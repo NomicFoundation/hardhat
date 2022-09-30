@@ -12,7 +12,6 @@ export function makeFakeSignature(
   tx: TxData | AccessListEIP2930Transaction | FeeMarketEIP1559Transaction,
   sender: Address
 ): {
-  v: number;
   r: number;
   s: number;
 } {
@@ -37,7 +36,6 @@ export function makeFakeSignature(
   );
 
   return {
-    v: 1,
     r: hashDigest.readUInt32LE(),
     s: hashDigest.readUInt32LE(4),
   };
