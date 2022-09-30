@@ -47,6 +47,7 @@ export interface UseProviderOptions {
   blockGasLimit?: bigint;
   accounts?: Array<{ privateKey: string; balance: bigint }>;
   allowUnlimitedContractSize?: boolean;
+  allowBlocksWithSameTimestamp?: boolean;
   initialBaseFeePerGas?: bigint;
   mempool?: HardhatNetworkMempoolConfig;
   coinbase?: string;
@@ -64,6 +65,7 @@ export function useProvider({
   blockGasLimit = DEFAULT_BLOCK_GAS_LIMIT,
   accounts = DEFAULT_ACCOUNTS,
   allowUnlimitedContractSize = DEFAULT_ALLOW_UNLIMITED_CONTRACT_SIZE,
+  allowBlocksWithSameTimestamp = false,
   initialBaseFeePerGas,
   mempool = DEFAULT_MEMPOOL_CONFIG,
   coinbase,
@@ -92,7 +94,7 @@ export function useProvider({
         allowUnlimitedContractSize,
         forkConfig,
         coinbase,
-        allowBlocksWithSameTimestamp: false,
+        allowBlocksWithSameTimestamp,
       },
       this.logger
     );

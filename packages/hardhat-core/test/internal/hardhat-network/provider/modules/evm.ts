@@ -282,14 +282,14 @@ describe("Evm module", function () {
                 [timestamp - 1],
                 `Timestamp ${
                   timestamp - 1
-                } is lower than or equal to previous block's timestamp ${timestamp}`
+                } is lower than the previous block's timestamp ${timestamp}`
               );
 
               await assertInvalidInputError(
                 this.provider,
                 "evm_setNextBlockTimestamp",
                 [timestamp],
-                `Timestamp ${timestamp} is lower than or equal to previous block's timestamp ${timestamp}`
+                `Timestamp ${timestamp} is equal to the previous block's timestamp`
               );
             });
 
@@ -1434,6 +1434,42 @@ describe("Evm module", function () {
               assert.equal(currentBlock, initialBlock);
             });
           });
+        });
+      });
+    });
+
+    describe(`${name} provider (allowBlocksWithSameTimestamp)`, function () {
+      setCWD();
+      useProvider({ allowBlocksWithSameTimestamp: true });
+
+      describe("evm_setNextBlockTimestamp", async function () {
+        it("should allow using the same timestamp as the previous block", async function () {
+          const timestamp = getCurrentTimestamp() + 70;
+          await this.provider.send("evm_mine", [timestamp]);
+
+          await this.provider.send("evm_setNextBlockTimestamp", [timestamp]);
+          await this.provider.send("evm_mine", []);
+
+          const block: RpcBlockOutput = await this.provider.send(
+            "eth_getBlockByNumber",
+            ["latest", false]
+          );
+
+          assertQuantity(block.timestamp, timestamp);
+        });
+
+        it("shouldn't set if specified timestamp is less to the previous block", async function () {
+          const timestamp = getCurrentTimestamp() + 70;
+          await this.provider.send("evm_mine", [timestamp]);
+
+          await assertInvalidInputError(
+            this.provider,
+            "evm_setNextBlockTimestamp",
+            [timestamp - 1],
+            `Timestamp ${
+              timestamp - 1
+            } is lower than the previous block's timestamp ${timestamp}`
+          );
         });
       });
     });

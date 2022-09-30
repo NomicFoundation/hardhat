@@ -39,6 +39,7 @@ import {
   DEFAULT_NETWORK_ID,
 } from "../helpers/providers";
 import { runFullBlock } from "./utils/runFullBlock";
+import { sleep } from "../helpers/sleep";
 
 interface ForkedBlock {
   networkName: string;
@@ -598,6 +599,54 @@ describe("HardhatNode", () => {
         await node.mineBlock();
 
         await assertIncreaseTime(now + delta + elapsedTimeInSeconds);
+      });
+
+      it("mines blocks with the same timestamp if allowBlocksWithSameTimestamp is set", async () => {
+        [, node] = await HardhatNode.create({
+          ...config,
+          allowBlocksWithSameTimestamp: true,
+        });
+
+        const timestamps = [];
+
+        for (let i = 0; i < 10; i++) {
+          await node.mineBlock();
+          timestamps.push((await node.getLatestBlock()).header.timestamp);
+        }
+
+        let differentTimestamps = 0;
+
+        for (let i = 0; i + 1 < timestamps.length; i++) {
+          if (timestamps[i] !== timestamps[i + 1]) {
+            differentTimestamps++;
+          }
+        }
+
+        // There is a small chance that two of the mined blocks were mined in a
+        // different second.
+        // This number shouldn't be bigger than 1 if we are running these tests
+        // on a computer from this century.
+        assert.isAtMost(differentTimestamps, 1);
+      });
+
+      it("timestamps can be increased even if allowBlocksWithSameTimestamp is set", async () => {
+        // we restore the clock to be able to use setTimeout
+        clock.restore();
+
+        [, node] = await HardhatNode.create({
+          ...config,
+          allowBlocksWithSameTimestamp: true,
+        });
+
+        await node.mineBlock();
+        const firsBlockTimestamp = (await node.getLatestBlock()).header
+          .timestamp;
+        await sleep(1100);
+        await node.mineBlock();
+        const secondBlockTimestamp = (await node.getLatestBlock()).header
+          .timestamp;
+
+        assert.notEqual(firsBlockTimestamp, secondBlockTimestamp);
       });
 
       describe("when time is increased by 30s", () => {
