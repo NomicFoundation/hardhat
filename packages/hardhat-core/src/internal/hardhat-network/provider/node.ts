@@ -121,7 +121,9 @@ import { makeStateTrie } from "./utils/makeStateTrie";
 import { putGenesisBlock } from "./utils/putGenesisBlock";
 import { txMapToArray } from "./utils/txMapToArray";
 import { RandomBufferGenerator } from "./utils/random";
-import { RethnetClient } from "rethnet-evm/rethnet-evm";
+import { RethnetClient, Transaction as RethnetTransaction } from "rethnet-evm";
+import { assertEthereumJsAndRethnetResults as assertEthereumjsAndRethnetResults } from "./utils/assertions";
+import { ethereumjsTransactionToRethnet } from "./utils/convertToRethnet"
 
 type ExecResult = EVMResult["execResult"];
 
@@ -2402,6 +2404,10 @@ Hardhat Network's forking functionality only works with blocks from at least spu
         skipBalance: true,
         skipBlockGasLimitValidation: true,
       });
+
+      const rethnetTx = ethereumjsTransactionToRethnet(tx);
+      const rethnetResult = await this._rethnet.run(rethnetTx);
+      assertEthereumjsAndRethnetResults(rethnetResult, ethereumjsResult);
 
       return ethereumjsResult;
     } finally {

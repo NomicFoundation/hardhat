@@ -13,8 +13,8 @@ use napi::{
 };
 use napi_derive::napi;
 use rethnet_evm::{
-    AccountInfo, Bytecode, Bytes, CreateScheme, Database, DatabaseDebug, ExecutionResult,
-    LayeredDatabase, RethnetLayer, State, TransactTo, TxEnv, EVM, H160, H256, U256,
+    AccountInfo, Bytecode, Bytes, CreateScheme, Database, DatabaseDebug, LayeredDatabase,
+    RethnetLayer, State, TransactTo, TxEnv, EVM, H160, H256, U256,
 };
 
 #[napi(constructor)]
@@ -117,6 +117,79 @@ impl TryFrom<Transaction> for TxEnv {
     }
 }
 
+#[napi(object)]
+pub struct TransactionOutput {
+    /// Return value from Call or Create transactions
+    #[napi(readonly)]
+    pub output: Option<Buffer>,
+    /// Optionally, a 160-bit address from Create transactions
+    #[napi(readonly)]
+    pub address: Option<Buffer>,
+}
+
+impl From<rethnet_evm::TransactOut> for TransactionOutput {
+    fn from(value: rethnet_evm::TransactOut) -> Self {
+        let (output, address) = match value {
+            rethnet_evm::TransactOut::None => (None, None),
+            rethnet_evm::TransactOut::Call(output) => (Some(Buffer::from(output.as_ref())), None),
+            rethnet_evm::TransactOut::Create(output, address) => (
+                Some(Buffer::from(output.as_ref())),
+                address.map(|address| Buffer::from(address.as_bytes())),
+            ),
+        };
+
+        Self { output, address }
+    }
+}
+
+#[napi(object)]
+pub struct ExecutionResult {
+    pub exit_code: u8,
+    pub output: TransactionOutput,
+    pub gas_used: BigInt,
+    pub gas_refunded: BigInt,
+    pub logs: Vec<serde_json::Value>,
+}
+
+impl TryFrom<rethnet_evm::ExecutionResult> for ExecutionResult {
+    type Error = napi::Error;
+
+    fn try_from(value: rethnet_evm::ExecutionResult) -> std::result::Result<Self, Self::Error> {
+        let logs = value
+            .logs
+            .into_iter()
+            .map(serde_json::to_value)
+            .collect::<serde_json::Result<Vec<serde_json::Value>>>()?;
+
+        Ok(Self {
+            exit_code: value.exit_reason as u8,
+            output: value.out.into(),
+            gas_used: BigInt::from(value.gas_used),
+            gas_refunded: BigInt::from(value.gas_refunded),
+            logs,
+        })
+    }
+}
+
+#[napi(object)]
+pub struct TransactionResult {
+    pub exec_result: ExecutionResult,
+    pub state: serde_json::Value,
+}
+
+impl TryFrom<(rethnet_evm::ExecutionResult, rethnet_evm::State)> for TransactionResult {
+    type Error = napi::Error;
+
+    fn try_from(
+        value: (rethnet_evm::ExecutionResult, rethnet_evm::State),
+    ) -> std::result::Result<Self, Self::Error> {
+        let exec_result = value.0.try_into()?;
+        let state = serde_json::to_value(value.1)?;
+
+        Ok(Self { exec_result, state })
+    }
+}
+
 #[napi]
 pub struct RethnetClient {
     request_sender: UnboundedSender<Request>,
@@ -135,22 +208,41 @@ impl RethnetClient {
     }
 
     #[napi]
-    pub async fn call(&self, transaction: Transaction) -> Result<serde_json::Value> {
+    pub async fn dry_run(&self, transaction: Transaction) -> Result<TransactionResult> {
         let transaction = transaction.try_into()?;
 
         let (sender, receiver) = oneshot::channel();
 
         self.request_sender
-            .send(Request::Call {
+            .send(Request::DryRun {
                 transaction,
                 sender,
             })
             .map_err(|_| anyhow!("Failed to send request"))?;
 
-        let result = receiver.await.expect("Rethnet unexpectedly crashed");
+        receiver
+            .await
+            .expect("Rethnet unexpectedly crashed")
+            .try_into()
+    }
 
-        serde_json::to_value(result.1)
-            .map_err(|e| napi::Error::new(Status::GenericFailure, e.to_string()))
+    #[napi]
+    pub async fn run(&self, transaction: Transaction) -> Result<ExecutionResult> {
+        let transaction = transaction.try_into()?;
+
+        let (sender, receiver) = oneshot::channel();
+
+        self.request_sender
+            .send(Request::Run {
+                transaction,
+                sender,
+            })
+            .map_err(|_| anyhow!("Failed to send request"))?;
+
+        receiver
+            .await
+            .expect("Rethnet unexpectedly crashed")
+            .try_into()
     }
 
     #[napi]
@@ -161,25 +253,6 @@ impl RethnetClient {
 
         self.request_sender
             .send(Request::InsertAccount { address, sender })
-            .map_err(|_| anyhow!("Failed to send request"))?;
-
-        receiver.await.expect("Rethnet unexpectedly crashed");
-        Ok(())
-    }
-
-    #[napi]
-    pub async fn insert_block(&self, block_number: BigInt, block_hash: Buffer) -> Result<()> {
-        let block_number = try_u256_from_bigint(block_number)?;
-        let block_hash = H256::from_slice(&block_hash);
-
-        let (sender, receiver) = oneshot::channel();
-
-        self.request_sender
-            .send(Request::InsertBlock {
-                block_number,
-                block_hash,
-                sender,
-            })
             .map_err(|_| anyhow!("Failed to send request"))?;
 
         receiver.await.expect("Rethnet unexpectedly crashed");
@@ -220,6 +293,25 @@ impl RethnetClient {
                     })
                 },
             )
+    }
+
+    #[napi]
+    pub async fn insert_block(&self, block_number: BigInt, block_hash: Buffer) -> Result<()> {
+        let block_number = try_u256_from_bigint(block_number)?;
+        let block_hash = H256::from_slice(&block_hash);
+
+        let (sender, receiver) = oneshot::channel();
+
+        self.request_sender
+            .send(Request::InsertBlock {
+                block_number,
+                block_hash,
+                sender,
+            })
+            .map_err(|_| anyhow!("Failed to send request"))?;
+
+        receiver.await.expect("Rethnet unexpectedly crashed");
+        Ok(())
     }
 
     #[napi]
@@ -310,9 +402,13 @@ enum Request {
         address: H160,
         sender: oneshot::Sender<anyhow::Result<Option<AccountInfo>>>,
     },
-    Call {
+    DryRun {
         transaction: TxEnv,
-        sender: oneshot::Sender<(ExecutionResult, State)>,
+        sender: oneshot::Sender<(rethnet_evm::ExecutionResult, State)>,
+    },
+    Run {
+        transaction: TxEnv,
+        sender: oneshot::Sender<rethnet_evm::ExecutionResult>,
     },
     InsertAccount {
         address: H160,
@@ -374,12 +470,19 @@ impl Rethnet {
                 Request::AccountByAddress { address, sender } => {
                     sender.send(self.evm.db().unwrap().basic(address)).is_ok()
                 }
-                Request::Call {
+                Request::DryRun {
                     transaction,
                     sender,
                 } => {
                     self.evm.env.tx = transaction;
                     sender.send(self.evm.transact()).is_ok()
+                }
+                Request::Run {
+                    transaction,
+                    sender,
+                } => {
+                    self.evm.env.tx = transaction;
+                    sender.send(self.evm.transact_commit()).is_ok()
                 }
                 Request::InsertAccount { address, sender } => {
                     self.evm

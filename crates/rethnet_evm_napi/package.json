@@ -3,14 +3,14 @@
     "name": "rethnet-evm",
     "version": "0.1.0-dev",
     "main": "rethnet-evm.node",
-    "types": "rethnet-evm.d.ts",
+    "types": "index.d.ts",
     "license": "MIT",
     "napi": {
         "name": "rethnet-evm"
     },
     "scripts": {
-        "build": "napi build --release --dts rethnet-evm.d.ts",
-        "build:debug": "napi build --dts rethnet-evm.d.ts",
+        "build": "napi build --release",
+        "build:debug": "napi build",
         "test": "mocha --recursive \"test/**/*.ts\""
     },
     "devDependencies": {

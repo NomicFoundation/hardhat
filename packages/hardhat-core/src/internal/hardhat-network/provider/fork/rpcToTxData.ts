@@ -30,6 +30,6 @@ export function rpcToTxData(
     accessList: rpcTransaction.accessList?.map((item) => [
       item.address,
       item.storageKeys ?? [],
-    ]),
+    ]) ?? undefined,
   };
 }
