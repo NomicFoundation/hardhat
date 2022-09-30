@@ -92,6 +92,7 @@ export function useProvider({
         allowUnlimitedContractSize,
         forkConfig,
         coinbase,
+        allowBlocksWithSameTimestamp: false,
       },
       this.logger
     );

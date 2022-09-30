@@ -31,6 +31,7 @@ interface CommonConfig {
   mempoolOrder: MempoolOrder;
   coinbase: string;
   chains: HardhatNetworkChainsConfig;
+  allowBlocksWithSameTimestamp: boolean;
 }
 
 export type LocalNodeConfig = CommonConfig;

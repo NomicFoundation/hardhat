@@ -72,6 +72,7 @@ interface HardhatNetworkProviderConfig {
   allowUnlimitedContractSize: boolean;
   throwOnTransactionFailures: boolean;
   throwOnCallFailures: boolean;
+  allowBlocksWithSameTimestamp: boolean;
 
   initialBaseFeePerGas?: number;
   initialDate?: Date;
@@ -251,6 +252,7 @@ export class HardhatNetworkProvider
           : undefined,
       coinbase: this._config.coinbase ?? DEFAULT_COINBASE,
       chains: this._config.chains,
+      allowBlocksWithSameTimestamp: this._config.allowBlocksWithSameTimestamp,
     };
 
     const [common, node] = await HardhatNode.create(config);
@@ -275,6 +277,7 @@ export class HardhatNetworkProvider
       node,
       miningTimer,
       this._logger,
+      this._config.allowBlocksWithSameTimestamp,
       this._config.experimentalHardhatNetworkMessageTraceHooks
     );
     this._hardhatModule = new HardhatModule(

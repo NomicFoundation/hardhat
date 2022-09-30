@@ -191,6 +191,7 @@ describe("Debug module", function () {
           allowUnlimitedContractSize: DEFAULT_ALLOW_UNLIMITED_CONTRACT_SIZE,
           forkConfig,
           forkCachePath: FORK_TESTS_CACHE_PATH,
+          allowBlocksWithSameTimestamp: false,
         },
         logger
       );
@@ -314,6 +315,7 @@ describe("Debug module", function () {
           allowUnlimitedContractSize: DEFAULT_ALLOW_UNLIMITED_CONTRACT_SIZE,
           forkConfig,
           forkCachePath: FORK_TESTS_CACHE_PATH,
+          allowBlocksWithSameTimestamp: false,
         },
         logger
       );

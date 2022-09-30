@@ -103,6 +103,8 @@ export function createProvider(
         coinbase: hardhatNetConfig.coinbase,
         genesisAccounts: accounts,
         allowUnlimitedContractSize: hardhatNetConfig.allowUnlimitedContractSize,
+        allowBlocksWithSameTimestamp:
+          hardhatNetConfig.allowBlocksWithSameTimestamp ?? false,
         initialDate:
           hardhatNetConfig.initialDate !== undefined
             ? parseDateString(hardhatNetConfig.initialDate)

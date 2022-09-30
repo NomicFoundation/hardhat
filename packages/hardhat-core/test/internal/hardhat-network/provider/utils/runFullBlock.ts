@@ -49,6 +49,7 @@ export async function runFullBlock(
     mempoolOrder: "priority",
     coinbase: "0x0000000000000000000000000000000000000000",
     chains: defaultHardhatNetworkParams.chains,
+    allowBlocksWithSameTimestamp: false,
   };
 
   const [common, forkedNode] = await HardhatNode.create(forkedNodeConfig);

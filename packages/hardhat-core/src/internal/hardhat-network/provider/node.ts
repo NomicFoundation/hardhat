@@ -142,6 +142,7 @@ export class HardhatNode extends EventEmitter {
       mempoolOrder,
       networkId,
       chainId,
+      allowBlocksWithSameTimestamp,
     } = config;
 
     let stateManager: StateManager;
@@ -283,6 +284,7 @@ export class HardhatNode extends EventEmitter {
       hardfork,
       hardforkActivations,
       mixHashGenerator,
+      allowBlocksWithSameTimestamp,
       tracingConfig,
       forkNetworkId,
       forkBlockNum,
@@ -366,6 +368,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     public readonly hardfork: HardforkName,
     private readonly _hardforkActivations: HardforkHistoryConfig,
     private _mixHashGenerator: RandomBufferGenerator,
+    private _allowBlocksWithSameTimestamp: boolean,
     tracingConfig?: TracingConfig,
     private _forkNetworkId?: number,
     private _forkBlockNumber?: bigint,
@@ -481,7 +484,8 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     const [, offsetShouldChange, newOffset] = timestampAndOffset;
 
     const needsTimestampIncrease =
-      await this._timestampClashesWithPreviousBlockOne(blockTimestamp);
+      !this._allowBlocksWithSameTimestamp &&
+      (await this._timestampClashesWithPreviousBlockOne(blockTimestamp));
     if (needsTimestampIncrease) {
       blockTimestamp += 1n;
     }
