@@ -38,8 +38,8 @@ import {
   DEFAULT_HARDFORK,
   DEFAULT_NETWORK_ID,
 } from "../helpers/providers";
-import { runFullBlock } from "./utils/runFullBlock";
 import { sleep } from "../helpers/sleep";
+import { runFullBlock } from "./utils/runFullBlock";
 
 interface ForkedBlock {
   networkName: string;
