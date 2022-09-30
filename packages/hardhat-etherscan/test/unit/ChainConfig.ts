@@ -6,10 +6,13 @@ describe("Chain Config", () => {
     const chainIds: number[] = Object.values(chainConfig).map(
       (config) => config.chainId
     );
-    //remove known duplicates
-    const filteredChainIds = chainIds.filter(obj => 
-                    obj !== 100 //xdai is now gnosis
-                    ); 
+
+    // check that xdai/gnosis is the only duplicate
+    const xdaiGnosisChains = chainIds.filter((obj) => obj === 100);
+    assert.lengthOf(xdaiGnosisChains, 2);
+
+    // check that there are no duplicates in the rest of the list
+    const filteredChainIds = chainIds.filter((obj) => obj !== 100);
 
     const uniqueIds = [...new Set(filteredChainIds)];
 
