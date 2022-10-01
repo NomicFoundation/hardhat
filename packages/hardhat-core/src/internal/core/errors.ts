@@ -77,7 +77,7 @@ export class HardhatError extends CustomError {
 
   constructor(
     errorDescriptor: ErrorDescriptor,
-    messageArguments: Record<string, any> = {},
+    messageArguments: Record<string, string | number> = {},
     parentError?: Error
   ) {
     const prefix = `${getErrorCode(errorDescriptor)}: `;
