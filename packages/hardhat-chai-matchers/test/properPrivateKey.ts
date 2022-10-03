@@ -17,6 +17,8 @@ describe("Proper private key", () => {
       .properPrivateKey;
     expect("0x706618637b8ca922f6290ce1ecd4c31247e9ab75cf0530a0ac95c0332173d7cw")
       .to.not.be.properPrivateKey;
+    expect("0x03c909455dcef4e1e981a21ffb14c1c51214906ce19e8e7541921b758221b5-e")
+      .to.not.be.properPrivateKey;
   });
 
   it("Expect to throw if invalid private key", async () => {
