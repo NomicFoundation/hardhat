@@ -44,7 +44,7 @@ extendEnvironment((hre) => {
       hasArtifact: (name: string) => hre.artifacts.artifactExists(name),
     },
     gasProvider: {
-      estimateGasLimit: async (tx) => {
+      estimateGasLimit: async (tx: any) => {
         const gasLimit = await hre.ethers.provider.estimateGas(tx);
 
         // return 1.5x estimated gas
@@ -62,7 +62,7 @@ extendEnvironment((hre) => {
       },
     },
     transactions: {
-      isConfirmed: async (txHash) => {
+      isConfirmed: async (txHash: any) => {
         const blockNumber = await hre.ethers.provider.getBlockNumber();
         const receipt = await hre.ethers.provider.getTransactionReceipt(txHash);
         if (receipt === null) {
@@ -71,7 +71,7 @@ extendEnvironment((hre) => {
 
         return receipt.blockNumber <= blockNumber;
       },
-      isMined: async (txHash) => {
+      isMined: async (txHash: any) => {
         const receipt = await hre.ethers.provider.getTransactionReceipt(txHash);
         return receipt !== null;
       },
@@ -93,7 +93,7 @@ extendEnvironment((hre) => {
       hre.ethers,
       isHardhatNetwork,
       hre.config.paths,
-      { pathToJournal, txPollingInterval, ui: false }
+      { pathToJournal, txPollingInterval, ui: true }
     );
   });
 });
@@ -140,7 +140,7 @@ task("deploy")
         process.exit(0);
       }
 
-      await hre.ignition.deploy(userRecipes[0], { parameters });
+      await hre.ignition.deploy(userRecipes[0], { parameters, ui: true });
     }
   );
 

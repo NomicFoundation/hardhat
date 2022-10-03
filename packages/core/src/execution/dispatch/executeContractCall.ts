@@ -15,12 +15,15 @@ export async function executeContractCall(
 
   const { address, abi } = resolve(contract);
 
-  const txHash = await services.contracts.call(
-    address,
-    abi,
-    method,
-    resolvedArgs
-  );
+  let txHash: string;
+  try {
+    txHash = await services.contracts.call(address, abi, method, resolvedArgs);
+  } catch (err) {
+    return {
+      _kind: "failure",
+      failure: err as any,
+    };
+  }
 
   await services.transactions.wait(txHash);
 

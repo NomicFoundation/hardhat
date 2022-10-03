@@ -21,5 +21,8 @@ contract Bar {
 contract Qux {
   address public a;
 
-  constructor (address _a) {a=_a;}
+  constructor (address _a, uint n) {
+    require(n > 0, "n must be positive");
+    a=_a;
+  }
 }

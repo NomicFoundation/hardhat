@@ -1,6 +1,6 @@
-import { FutureOutput } from "types/serialization";
+import { FutureOutput, SerializedFutureResult } from "types/serialization";
 
-export function serializeFutureOutput(x: FutureOutput) {
+export function serializeFutureOutput(x: FutureOutput): SerializedFutureResult {
   if (typeof x === "string") {
     return { _kind: "string" as const, value: x };
   } else if (typeof x === "number") {
@@ -12,7 +12,7 @@ export function serializeFutureOutput(x: FutureOutput) {
   }
 
   const exhaustiveCheck: never = x;
-  return exhaustiveCheck;
+  throw new Error(`Unexpected serialization type ${exhaustiveCheck}`);
 }
 
 export function deserializeFutureOutput(x: any) {

@@ -11,6 +11,12 @@ export interface IExecutionGraph {
 
 export type ArgValue = boolean | string | number | RecipeFuture;
 
+export type ExecutionVertexType =
+  | "ContractDeploy"
+  | "DeployedContract"
+  | "LibraryDeploy"
+  | "ContractCall";
+
 export type ExecutionVertex =
   | ContractDeploy
   | DeployedContract

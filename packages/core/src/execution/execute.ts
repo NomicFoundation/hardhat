@@ -1,63 +1,17 @@
-import { getSortedVertexIdsFrom } from "graph/utils";
-import { visit } from "graph/visit";
-import { Services } from "services/types";
-import { IgnitionRecipesResults } from "types/deployment";
-import { ExecutionVertex, IExecutionGraph } from "types/executionGraph";
+import { Deployment } from "deployment/Deployment";
 import { VisitResult } from "types/graph";
-import { DeploymentState } from "ui/types";
-import { UiService } from "ui/ui-service";
 
+import { visitInBatches } from "./batch/visitInBatches";
 import { executionDispatch } from "./dispatch/executionDispatch";
 
-export async function execute(
-  executionGraph: IExecutionGraph,
-  services: Services,
-  ui: UiService,
-  _recipeResults: IgnitionRecipesResults
-): Promise<VisitResult> {
-  const orderedVertexIds = getSortedVertexIdsFrom(executionGraph);
+export async function execute(deployment: Deployment): Promise<VisitResult> {
+  if (deployment.state.transform.executionGraph === null) {
+    throw new Error("Cannot execute without an execution graph");
+  }
 
-  const uiDeploymentState = setupUiDeploymentState(
-    executionGraph,
-    ui,
-    orderedVertexIds
+  return visitInBatches(
+    deployment,
+    deployment.state.transform.executionGraph,
+    executionDispatch
   );
-
-  return visit(
-    "Execution",
-    orderedVertexIds,
-    executionGraph,
-    { services },
-    new Map<number, any>(),
-    executionDispatch,
-    (vertex, kind, error) => {
-      if (kind === "success") {
-        uiDeploymentState.setExeuctionVertexAsSuccess(vertex);
-      } else if (kind === "failure") {
-        uiDeploymentState.setExecutionVertexAsFailure(vertex, error);
-      } else {
-        throw new Error(`Unknown kind ${kind}`);
-      }
-
-      ui.render();
-    }
-  );
-}
-
-function setupUiDeploymentState(
-  executionGraph: IExecutionGraph,
-  ui: UiService,
-  orderedVertexIds: number[]
-): DeploymentState {
-  const uiDeploymentState: DeploymentState = new DeploymentState();
-
-  uiDeploymentState.setExecutionVertexes(
-    orderedVertexIds
-      .map((vid) => executionGraph.vertexes.get(vid))
-      .filter((vertex): vertex is ExecutionVertex => vertex !== undefined)
-  );
-
-  ui.setDeploymentState(uiDeploymentState);
-
-  return uiDeploymentState;
 }

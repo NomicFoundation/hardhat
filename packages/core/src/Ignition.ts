@@ -1,19 +1,19 @@
 import setupDebug from "debug";
 
+import { Deployment } from "deployment/Deployment";
 import { execute } from "execution/execute";
-import { FileJournal } from "journal/FileJournal";
 import { InMemoryJournal } from "journal/InMemoryJournal";
 import { generateRecipeGraphFrom } from "process/generateRecipeGraphFrom";
 import { transformRecipeGraphToExecutionGraph } from "process/transformRecipeGraphToExecutionGraph";
 import { createServices } from "services/createServices";
 import { Services } from "services/types";
-import { DeploymentResult, IgnitionRecipesResults } from "types/deployment";
+import { DeploymentResult, UpdateUiAction } from "types/deployment";
 import { DependableFuture, FutureDict } from "types/future";
+import { VertexVisitResult } from "types/graph";
 import { IgnitionPlan } from "types/plan";
 import { Providers } from "types/providers";
 import { Recipe } from "types/recipeGraph";
-import { SerializedDeploymentResult } from "types/serialization";
-import { UiService } from "ui/ui-service";
+import { SerializedFutureResult } from "types/serialization";
 import { isDependable } from "utils/guards";
 import { serializeFutureOutput } from "utils/serialize";
 import { validateRecipeGraph } from "validation/validateRecipeGraph";
@@ -23,84 +23,47 @@ const log = setupDebug("ignition:main");
 export interface IgnitionDeployOptions {
   pathToJournal: string | undefined;
   txPollingInterval: number;
-  ui: boolean;
+  ui?: UpdateUiAction;
 }
 
 type RecipesOutputs = Record<string, any>;
 
 export class Ignition {
-  constructor(
-    private _providers: Providers,
-    private _recipesResults: IgnitionRecipesResults
-  ) {}
+  constructor(private _providers: Providers) {}
 
   public async deploy(
     recipe: Recipe,
-    options: IgnitionDeployOptions = {
-      ui: true,
-      pathToJournal: undefined,
-      txPollingInterval: 300,
-    }
+    givenOptions?: IgnitionDeployOptions
   ): Promise<[DeploymentResult, RecipesOutputs]> {
     log(`Start deploy`);
 
-    const ui = new UiService({ enabled: options.ui });
-
-    log("Create journal with path '%s'", options.pathToJournal);
-
-    const journal =
-      options.pathToJournal !== undefined
-        ? new FileJournal(options.pathToJournal)
-        : new InMemoryJournal();
-
-    const serviceOptions = {
-      providers: this._providers,
-      journal,
+    const options = {
+      pathToJournal: undefined,
       txPollingInterval: 300,
+      ui: undefined,
+      ...givenOptions,
     };
 
-    const services: Services = createServices(
-      "recipeIdEXECUTE",
-      "executorIdEXECUTE",
-      serviceOptions
+    const deployment = new Deployment(
+      recipe,
+      Deployment.setupServices(options, this._providers),
+      options.ui
     );
 
     const chainId = await this._getChainId();
-    log("ChainId resolved as '%s'", chainId);
+    deployment.setChainId(chainId);
 
-    log("Generate recipe graph from recipe");
+    const { result: constructResult, recipeOutputs } =
+      await this._constructExecutionGraphFrom(deployment, recipe);
 
-    const { graph: recipeGraph, recipeOutputs } = generateRecipeGraphFrom(
-      recipe,
-      { chainId }
-    );
-
-    log("Validate recipe graph");
-    const validationResult = await validateRecipeGraph(recipeGraph, services);
-
-    if (validationResult._kind === "failure") {
-      return [validationResult, {}];
+    if (constructResult._kind === "failure") {
+      return [constructResult, {}];
     }
 
-    log("Transform recipe graph to execution graph");
-    const transformResult = await transformRecipeGraphToExecutionGraph(
-      recipeGraph,
-      services
-    );
-
-    if (transformResult._kind === "failure") {
-      return [transformResult, {}];
-    }
-
-    const { executionGraph } = transformResult;
+    deployment.transformComplete(constructResult.executionGraph);
 
     log("Execute based on execution graph");
-    const executionResult = await execute(
-      executionGraph,
-      services,
-      ui,
-      this._recipesResults
-    );
+    const executionResult = await execute(deployment);
 
     if (executionResult._kind === "failure") {
       return [executionResult, {}];
@@ -153,6 +116,37 @@ export class Ignition {
     return { recipeGraph, executionGraph };
   }
 
+  private async _constructExecutionGraphFrom(
+    deployment: Deployment,
+    recipe: Recipe
+  ): Promise<{ result: any; recipeOutputs: FutureDict }> {
+    log("Generate recipe graph from recipe");
+    const { graph: recipeGraph, recipeOutputs } = generateRecipeGraphFrom(
+      recipe,
+      { chainId: deployment.state.details.chainId }
+    );
+
+    deployment.startValidation();
+    const validationResult = await validateRecipeGraph(
+      recipeGraph,
+      deployment.services
+    );
+
+    if (validationResult._kind === "failure") {
+      deployment.failValidation(validationResult.failures[1]);
+
+      return { result: validationResult, recipeOutputs };
+    }
+
+    log("Transform recipe graph to execution graph");
+    const transformResult = await transformRecipeGraphToExecutionGraph(
+      recipeGraph,
+      deployment.services
+    );
+
+    return { result: transformResult, recipeOutputs };
+  }
+
   private async _getChainId(): Promise<number> {
     const result = await this._providers.ethereumProvider.request({
       method: "eth_chainId",
@@ -163,17 +157,30 @@ export class Ignition {
 
   private _serialize(
     recipeOutputs: FutureDict,
-    result: Map<number, any>
-  ): SerializedDeploymentResult {
+    result: Map<number, VertexVisitResult>
+  ) {
     const entries = Object.entries(recipeOutputs).filter(
       (entry): entry is [string, DependableFuture] => isDependable(entry[1])
     );
 
-    const convertedEntries = entries.map(([name, future]) => {
-      const executionResultValue = result.get(future.vertexId);
+    const convertedEntries: Array<[string, SerializedFutureResult]> = entries
+      .map(([name, future]): [string, SerializedFutureResult] | null => {
+        const executionResultValue = result.get(future.vertexId);
 
-      return [name, serializeFutureOutput(executionResultValue)];
-    });
+        if (
+          executionResultValue === undefined ||
+          executionResultValue._kind === "failure"
+        ) {
+          return null;
+        }
+
+        const serializedOutput: SerializedFutureResult = serializeFutureOutput(
+          executionResultValue.result
+        );
+
+        return [name, serializedOutput];
+      })
+      .filter((x): x is [string, SerializedFutureResult] => x !== null);
 
     return Object.fromEntries(convertedEntries);
   }

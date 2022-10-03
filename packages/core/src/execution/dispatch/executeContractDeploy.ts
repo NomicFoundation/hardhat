@@ -6,32 +6,42 @@ import { resolveFrom, toAddress } from "./utils";
 
 export async function executeContractDeploy(
   { artifact, args, libraries }: ContractDeploy,
-  resultAccumulator: Map<number, any>,
+  resultAccumulator: Map<number, VertexVisitResult>,
   { services }: { services: Services }
 ): Promise<VertexVisitResult> {
-  const resolve = resolveFrom(resultAccumulator);
+  try {
+    const resolve = resolveFrom(resultAccumulator);
 
-  const resolvedArgs = args.map(resolve).map(toAddress);
+    const resolvedArgs = args.map(resolve).map(toAddress);
 
-  const resolvedLibraries = Object.fromEntries(
-    Object.entries(libraries ?? {}).map(([k, v]) => [k, toAddress(resolve(v))])
-  );
+    const resolvedLibraries = Object.fromEntries(
+      Object.entries(libraries ?? {}).map(([k, v]) => [
+        k,
+        toAddress(resolve(v)),
+      ])
+    );
 
-  const txHash = await services.contracts.deploy(
-    artifact,
-    resolvedArgs,
-    resolvedLibraries
-  );
+    const txHash = await services.contracts.deploy(
+      artifact,
+      resolvedArgs,
+      resolvedLibraries
+    );
 
-  const receipt = await services.transactions.wait(txHash);
+    const receipt = await services.transactions.wait(txHash);
 
-  return {
-    _kind: "success",
-    result: {
-      name: artifact.contractName,
-      abi: artifact.abi,
-      bytecode: artifact.bytecode,
-      address: receipt.contractAddress,
-    },
-  };
+    return {
+      _kind: "success",
+      result: {
+        name: artifact.contractName,
+        abi: artifact.abi,
+        bytecode: artifact.bytecode,
+        address: receipt.contractAddress,
+      },
+    };
+  } catch (err) {
+    return {
+      _kind: "failure",
+      failure: err as any,
+    };
+  }
 }

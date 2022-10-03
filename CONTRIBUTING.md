@@ -15,9 +15,9 @@ There are two packages:
 * [**core**](./packages/core/README.md) - containing the ignition library for orchestrating deployments
 * [**hardhat-plugin**](./packages/hardhat-plugin/README.md) - containing the Hardhat plugin wrapper for the core library
 
-## Architecture
+## Design
 
-An overview of the [architecture of the deploy process is explained here](./docs/architecture.md).
+An overview of the [design of the deploy process is explained here](./docs/design.md).
 
 ## Setup
 

@@ -6,7 +6,7 @@ import {
   RecipeState,
 } from "../src/deployment-state";
 
-import { IgnitionUi } from "../src/ui/components";
+import { IgnitionUi } from "@nomicfoundation/hardhat-ignition/src/ui/components";
 
 import { Example } from "./types";
 

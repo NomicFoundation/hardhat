@@ -165,7 +165,7 @@ describe("recipe parameters", () => {
         return { foo };
       });
 
-      const deployPromise = this.hre.ignition.deploy(userRecipe, {});
+      const deployPromise = this.hre.ignition.deploy(userRecipe, { ui: false });
 
       await mineBlocks(this.hre, [1, 1], deployPromise);
 
@@ -194,6 +194,7 @@ describe("recipe parameters", () => {
         parameters: {
           NotMyNumber: 11,
         },
+        ui: false,
       });
 
       await mineBlocks(this.hre, [1, 1], deployPromise);

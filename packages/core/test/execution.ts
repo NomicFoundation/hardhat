@@ -1,6 +1,7 @@
 /* eslint-disable import/no-unused-modules */
 import { assert } from "chai";
 
+import { Deployment } from "deployment/Deployment";
 import { ExecutionGraph } from "execution/ExecutionGraph";
 import { execute } from "execution/execute";
 import { Services, TransactionOptions } from "services/types";
@@ -76,10 +77,13 @@ describe("Execution", () => {
     }
 
     assert.deepStrictEqual(response.result.get(0), {
-      abi: [],
-      address: "0xAddr",
-      bytecode: "0x0",
-      name: "Foo",
+      _kind: "success",
+      result: {
+        abi: [],
+        address: "0xAddr",
+        bytecode: "0x0",
+        name: "Foo",
+      },
     });
   });
 
@@ -145,10 +149,13 @@ describe("Execution", () => {
     }
 
     assert.deepStrictEqual(response.result.get(0), {
-      abi: [],
-      address: "0xAddr",
-      bytecode: "0x0",
-      name: "Foo",
+      _kind: "success",
+      result: {
+        abi: [],
+        address: "0xAddr",
+        bytecode: "0x0",
+        name: "Foo",
+      },
     });
   });
 
@@ -173,7 +180,7 @@ describe("Execution", () => {
 
     const contractCall: ExecutionVertex = {
       type: "ContractCall",
-      id: 0,
+      id: 1,
       label: "Foo",
       contract: { vertexId: 0, type: "contract", label: "Foo", _future: true },
       method: "inc",
@@ -230,7 +237,10 @@ describe("Execution", () => {
     }
 
     assert.deepStrictEqual(response.result.get(1), {
-      hash: "0x2",
+      _kind: "success",
+      result: {
+        hash: "0x2",
+      },
     });
   });
 
@@ -263,9 +273,12 @@ describe("Execution", () => {
     }
 
     assert.deepStrictEqual(response.result.get(0), {
-      name: "Foo",
-      abi: [],
-      address: "0xAddr",
+      _kind: "success",
+      result: {
+        name: "Foo",
+        abi: [],
+        address: "0xAddr",
+      },
     });
   });
 });
@@ -280,19 +293,17 @@ async function assertExecuteSingleVertex(
   });
   executionGraph.vertexes.set(0, executionVertex);
 
-  const mockUiService = {
-    setDeploymentState: () => {},
-    render: () => {},
-  } as any;
+  const mockUpdateUiAction = () => {};
 
-  const mockRecipeResults = {} as any;
-
-  return execute(
-    executionGraph,
+  const deployment = new Deployment(
+    { name: "MyRecipe" },
     mockServices,
-    mockUiService,
-    mockRecipeResults
+    mockUpdateUiAction
   );
+
+  deployment.state.transform.executionGraph = executionGraph;
+
+  return execute(deployment);
 }
 
 async function assertDependentVertex(
@@ -303,22 +314,20 @@ async function assertDependentVertex(
   const executionGraph = new ExecutionGraph();
   executionGraph.adjacencyList = buildAdjacencyListFrom({
     0: [1],
-    1: [0],
+    1: [],
   });
   executionGraph.vertexes.set(0, parent);
   executionGraph.vertexes.set(1, child);
 
-  const mockUiService = {
-    setDeploymentState: () => {},
-    render: () => {},
-  } as any;
+  const mockUpdateUiAction = () => {};
 
-  const mockRecipeResults = {} as any;
-
-  return execute(
-    executionGraph,
+  const deployment = new Deployment(
+    { name: "MyRecipe" },
     mockServices,
-    mockUiService,
-    mockRecipeResults
+    mockUpdateUiAction
   );
+
+  deployment.state.transform.executionGraph = executionGraph;
+
+  return execute(deployment);
 }
