@@ -3,7 +3,7 @@ import type {
   VertexDescriptor,
 } from "@nomicfoundation/ignition-core";
 
-function getVertexes(graph: VertexGraph): Array<VertexDescriptor> {
+function getVertexes(graph: VertexGraph): VertexDescriptor[] {
   return [...graph.vertexes.values()];
 }
 
