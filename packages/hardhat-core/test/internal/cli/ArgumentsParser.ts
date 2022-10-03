@@ -343,9 +343,13 @@ describe("ArgumentsParser", () => {
       const definition = new SimpleTaskDefinition("compile", true);
       definition.addParam("param", "just a param");
       definition.addParam("bleep", "useless param", 1602, int, true);
-      expectHardhatError(() => {
-        argumentsParser.parseTaskArguments(definition, rawCLAs);
-      }, ERRORS.ARGUMENTS.MISSING_TASK_ARGUMENT);
+      expectHardhatError(
+        () => {
+          argumentsParser.parseTaskArguments(definition, rawCLAs);
+        },
+        ERRORS.ARGUMENTS.MISSING_TASK_ARGUMENT,
+        "HH306: The '--param' parameter of task 'compile' expects a value, but none was passed."
+      );
     });
 
     it("should fail trying to parse unrecognized positional argument", () => {
@@ -353,9 +357,13 @@ describe("ArgumentsParser", () => {
       const definition = new SimpleTaskDefinition("compile", true);
       definition.addParam("param", "just a param");
       definition.addParam("bleep", "useless param", 1602, int, true);
-      expectHardhatError(() => {
-        argumentsParser.parseTaskArguments(definition, rawCLAs);
-      }, ERRORS.ARGUMENTS.MISSING_TASK_ARGUMENT);
+      expectHardhatError(
+        () => {
+          argumentsParser.parseTaskArguments(definition, rawCLAs);
+        },
+        ERRORS.ARGUMENTS.MISSING_TASK_ARGUMENT,
+        "The '--param' parameter of task 'compile' expects a value, but none was passed."
+      );
     });
 
     it("should fail when passing unneeded arguments", () => {
@@ -392,7 +400,8 @@ describe("ArgumentsParser", () => {
 
       expectHardhatError(
         () => argumentsParser.parseTaskArguments(taskDefinition, rawCLAs),
-        ERRORS.ARGUMENTS.MISSING_TASK_ARGUMENT
+        ERRORS.ARGUMENTS.MISSING_TASK_ARGUMENT,
+        "HH306: The '--b' parameter of task 't' expects a value, but none was passed."
       );
     });
   });
