@@ -3,7 +3,6 @@ import setupDebug from "debug";
 import { IgnitionDeployOptions } from "Ignition";
 import { ExecutionGraph } from "execution/ExecutionGraph";
 import { ExecuteBatchResult } from "execution/batch/types";
-import { FileJournal } from "journal/FileJournal";
 import { InMemoryJournal } from "journal/InMemoryJournal";
 import { createServices } from "services/createServices";
 import { Services } from "services/types";
@@ -38,7 +37,8 @@ export class Deployment {
 
     const journal =
       options.pathToJournal !== undefined
-        ? new FileJournal(options.pathToJournal)
+        ? // TODO: bring back FileJournal
+          new InMemoryJournal() // ? new FileJournal(options.pathToJournal)
         : new InMemoryJournal();
 
     const serviceOptions = {
