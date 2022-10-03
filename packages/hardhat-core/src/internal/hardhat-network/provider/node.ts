@@ -1804,6 +1804,9 @@ Hardhat Network's forking functionality only works with blocks from at least spu
         } else {
           const txResult = await blockBuilder.addTransaction(tx);
 
+          const rethnetTx = ethereumjsTransactionToRethnet(tx);
+          const rethnetResult = await this._rethnet.run(rethnetTx);
+
           traces.push(await this._gatherTraces(txResult.execResult));
           results.push(txResult);
           receipts.push(txResult.receipt);
@@ -2406,8 +2409,8 @@ Hardhat Network's forking functionality only works with blocks from at least spu
       });
 
       const rethnetTx = ethereumjsTransactionToRethnet(tx);
-      const rethnetResult = await this._rethnet.run(rethnetTx);
-      assertEthereumjsAndRethnetResults(rethnetResult, ethereumjsResult);
+      const rethnetResult = await this._rethnet.dryRun(rethnetTx);
+      assertEthereumjsAndRethnetResults(rethnetResult.execResult, ethereumjsResult);
 
       return ethereumjsResult;
     } finally {

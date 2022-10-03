@@ -22,6 +22,7 @@ export function ethereumjsTransactionToRethnet(tx: TypedTransaction): Transactio
         value: tx.value,
         nonce: tx.nonce,
         input: tx.data,
+        accessList: (tx as AccessListEIP2930Transaction)?.AccessListJSON,
         chainId: chainId(tx),
     }
 

@@ -1,4 +1,4 @@
-use std::convert::TryFrom;
+use std::{convert::TryFrom, str::FromStr};
 
 use anyhow::anyhow;
 use napi::{
@@ -47,6 +47,32 @@ fn try_u256_from_bigint(mut value: BigInt) -> napi::Result<U256> {
 }
 
 #[napi(object)]
+pub struct AccessListItem {
+    pub address: String,
+    pub storage_keys: Vec<String>,
+}
+
+impl TryFrom<AccessListItem> for (H160, Vec<U256>) {
+    type Error = napi::Error;
+
+    fn try_from(value: AccessListItem) -> std::result::Result<Self, Self::Error> {
+        let address = H160::from_str(&value.address)
+            .map_err(|e| napi::Error::new(Status::InvalidArg, e.to_string()))?;
+
+        let storage_keys = value
+            .storage_keys
+            .into_iter()
+            .map(|key| {
+                U256::from_str(&key)
+                    .map_err(|e| napi::Error::new(Status::InvalidArg, e.to_string()))
+            })
+            .collect::<std::result::Result<Vec<U256>, _>>()?;
+
+        Ok((address, storage_keys))
+    }
+}
+
+#[napi(object)]
 pub struct Transaction {
     /// 160-bit address for caller
     /// Defaults to `0x00.0` address.
@@ -69,7 +95,7 @@ pub struct Transaction {
     /// Input byte data
     pub input: Option<Buffer>,
     /// A list of addresses and storage keys that the transaction plans to access.
-    // pub access_list: &Vec<(Buffer, Vec<BigInt>)>,
+    pub access_list: Option<Vec<AccessListItem>>,
     /// Transaction is only valid on networks with this chain ID.
     pub chain_id: Option<BigInt>,
 }
@@ -94,6 +120,13 @@ impl TryFrom<Transaction> for TxEnv {
             .input
             .map_or(Bytes::default(), |input| Bytes::copy_from_slice(&input));
 
+        let access_list = value.access_list.map_or(Ok(Vec::new()), |access_list| {
+            access_list
+                .into_iter()
+                .map(|item| item.try_into())
+                .collect::<std::result::Result<Vec<(H160, Vec<U256>)>, _>>()
+        })?;
+
         Ok(Self {
             caller,
             gas_limit: value
@@ -112,7 +145,7 @@ impl TryFrom<Transaction> for TxEnv {
             data,
             chain_id: value.chain_id.map(|chain_id| chain_id.get_u64().1),
             nonce: value.nonce.map(|nonce| nonce.get_u64().1),
-            access_list: Vec::new(),
+            access_list,
         })
     }
 }
