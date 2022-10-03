@@ -21,10 +21,10 @@ export function assertEthereumJsAndRethnetResults(
   ethereumjsResult: RunTxResult
 ): asserts rethnetResult {
   assertEthereumJsAndRethnetExitCodes(rethnetResult.exitCode, ethereumjsResult.execResult.exceptionError?.error);
-  expect(rethnetResult.gasRefunded).to.equal(ethereumjsResult.gasRefund);
-  expect(rethnetResult.gasUsed).to.equal(ethereumjsResult.totalGasSpent);
-  expect(rethnetResult.output.address).to.deep.equal(ethereumjsResult.createdAddress);
-  expect(rethnetResult.output.output).to.deep.equal(ethereumjsResult.execResult.returnValue);
+  expect(rethnetResult.gasRefunded, "Gas refunded").to.equal(ethereumjsResult.gasRefund);
+  expect(rethnetResult.gasUsed, "Gas used").to.equal(ethereumjsResult.totalGasSpent);
+  expect(rethnetResult.output.address, "Created address").to.deep.equal(ethereumjsResult.createdAddress);
+  expect(rethnetResult.output.output, "Return value").to.deep.equal(ethereumjsResult.execResult.returnValue);
   // TODO: Compare logs?
 }
 
@@ -71,6 +71,8 @@ function assertEthereumJsAndRethnetExitCodes(
 
   if (ethereumjsExitCode !== undefined) {
     const expected = mapping[ethereumjsExitCode];
-    assert(expected === undefined || expected === rethnetExitCode);
+    if (expected !== undefined) {
+      expect(expected, "exit code").to.equal(rethnetExitCode);
+    }
   }
 }
