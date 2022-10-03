@@ -26,10 +26,14 @@ export function makeFakeSignature(
     "chainId" in tx ? tx.chainId : "",
     "maxPriorityFeePerGas" in tx ? tx.maxPriorityFeePerGas : "",
     "maxFeePerGas" in tx ? tx.maxFeePerGas : "",
-    // note: accessList omitted because it doesn't serialize readily.
+    "accessList" in tx
+      ? tx.accessList?.map(([buf, bufs]) =>
+          [buf, ...bufs].map((b) => b.toString()).join(";")
+        )
+      : "",
   ]
     .map((a) => a?.toString() ?? "")
-    .join();
+    .join(",");
 
   const hashDigest = createNonCryptographicHashBasedIdentifier(
     Buffer.from(hashInputString)
