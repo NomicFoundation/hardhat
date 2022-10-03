@@ -1,10 +1,10 @@
-import { IgnitionPlan } from "@nomicfoundation/ignition-core";
+import type { IgnitionPlan } from "@nomicfoundation/ignition-core";
 import { exec } from "child_process";
 import fs from "fs-extra";
 import os from "os";
 import path from "path";
 
-import { graphToMermaid, wrapInFlowchart, wrapInMermaidDiv } from "./utils";
+import * as utils from "./utils";
 
 /**
  * file structure output:
@@ -20,36 +20,68 @@ import { graphToMermaid, wrapInFlowchart, wrapInMermaidDiv } from "./utils";
 
 interface RendererConfig {
   cachePath: string;
+  network: NetworkSettings;
 }
-/**
- * this is only temporary, until we get a proper build tool that will
- * include the html template files in the build output dir
- */
-const htmlTemplate = `
-<html>
-  <body>
-    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
-    <script>
-      mermaid.initialize({ startOnLoad: true, securityLevel: "loose" });
-    </script>
 
-    $
-  </body>
-</html>
-`;
+interface NetworkSettings {
+  name: string;
+  id: number | string;
+}
+
+interface LoadedTemplates {
+  [name: string]: string;
+}
+
+const regex = /%(\w+)%/g;
 
 export class Renderer {
-  private _htmlTemplate: string = "";
-  private _vertexTemplate: string = "";
+  private _templates: LoadedTemplates = {};
 
-  constructor(public plan: IgnitionPlan, public config: RendererConfig) {
+  constructor(
+    public recipeName: string,
+    public plan: IgnitionPlan,
+    public config: RendererConfig
+  ) {
     // ensure `plan` file structure once on construction
     // so we don't have to before every write function later
     this._ensureDirectoryStructure();
   }
 
   public write(): void {
-    const mainOutput = this.getIndexOutput();
+    this._loadHTMLAssets();
+
+    // title bar
+    const title = this._templates.title.replace(
+      regex,
+      utils.replacer({ recipeName: this.recipeName })
+    );
+
+    // summary
+    const networkName = this.config.network.name;
+    const networkId = this.config.network.id as string;
+    const txTotal = utils.getTxTotal(this.plan.recipeGraph);
+    const summaryLists = utils.getSummaryLists(this.plan.recipeGraph);
+    const summary = this._templates.summary.replace(
+      regex,
+      utils.replacer({ networkName, networkId, txTotal, summaryLists })
+    );
+
+    // plan
+    const mermaid = utils.wrapInMermaidDiv(
+      utils.graphToMermaid(this.plan.recipeGraph, this.recipePath)
+    );
+    const legend = utils.getLegend(this.plan.recipeGraph);
+    const plan = this._templates.plan.replace(
+      regex,
+      utils.replacer({ mermaid, legend })
+    );
+
+    // index.html
+    const mainOutput = this._templates.index.replace(
+      regex,
+      utils.replacer({ title, summary, plan })
+    );
+
     this._writeMainHTML(mainOutput);
 
     // the stringify in these loops is just a first draft version
@@ -58,9 +90,9 @@ export class Renderer {
       this._writeRecipeHTML(vertex.id, JSON.stringify(vertex, null, 2));
     }
 
-    for (const vertex of this.plan.executionGraph.vertexes.values()) {
-      this._writeExecutionHTML(vertex.id, JSON.stringify(vertex, null, 2));
-    }
+    // for (const vertex of this.plan.executionGraph.vertexes.values()) {
+    //   this._writeExecutionHTML(vertex.id, JSON.stringify(vertex, null, 2));
+    // }
   }
 
   /**
@@ -84,49 +116,6 @@ export class Renderer {
     exec(`${command} ${path.resolve(this.planPath, "index.html")}`);
   }
 
-  public getIndexOutput(): string {
-    const recipeBody = graphToMermaid(this.plan.recipeGraph, this.recipePath);
-    const executionBody = graphToMermaid(
-      this.plan.executionGraph,
-      this.executionPath
-    );
-
-    const recipeFlowchart = wrapInMermaidDiv(
-      wrapInFlowchart("RecipeGraph", recipeBody)
-    );
-    const executionFlowchart = wrapInMermaidDiv(
-      wrapInFlowchart("ExecutionGraph", executionBody)
-    );
-
-    return this.htmlTemplate.replace(
-      "$",
-      `${recipeFlowchart}\n${executionFlowchart}`
-    );
-  }
-
-  public get htmlTemplate(): string {
-    // simple cache to avoid redundant fs reads
-    // if (this._htmlTemplate === "") {
-    //   this._htmlTemplate = fs.readFileSync(
-    //     path.resolve(this._templatesPath, "index.html"),
-    //     "utf8"
-    //   );
-    // }
-    this._htmlTemplate = htmlTemplate; // temp hack - see comment at top of file
-    return this._htmlTemplate;
-  }
-
-  public get vertexTemplate(): string {
-    // simple cache to avoid redundant fs reads
-    // if (this._vertexTemplate === "") {
-    //   this._vertexTemplate = fs.readFileSync(
-    //     path.resolve(this._templatesPath, "vertex.html"),
-    //     "utf8"
-    //   );
-    // }
-    return this._vertexTemplate;
-  }
-
   public get planPath(): string {
     return path.resolve(this.config.cachePath, "plan");
   }
@@ -139,8 +128,12 @@ export class Renderer {
     return path.resolve(this.planPath, "execution");
   }
 
+  private get _assetsPath(): string {
+    return path.resolve(__dirname, "assets");
+  }
+
   private get _templatesPath(): string {
-    return path.resolve(__dirname, "templates");
+    return path.resolve(this._assetsPath, "templates");
   }
 
   private _writeExecutionHTML(id: number, text: string): void {
@@ -155,8 +148,32 @@ export class Renderer {
     fs.writeFileSync(`${this.planPath}/index.html`, text, "utf8");
   }
 
+  private _loadHTMLAssets(): void {
+    const templateFiles = fs.readdirSync(this._templatesPath);
+
+    for (const file of templateFiles) {
+      this._templates[file.split(".")[0]] = fs.readFileSync(
+        `${this._templatesPath}/${file}`,
+        "utf8"
+      );
+    }
+  }
+
+  private _copyUserAssets(): void {
+    const filenames = fs.readdirSync(this._assetsPath);
+    for (const file of filenames) {
+      if (file !== "templates") {
+        fs.copyFileSync(
+          `${this._assetsPath}/${file}`,
+          `${this.planPath}/${file}`
+        );
+      }
+    }
+  }
+
   private _ensureDirectoryStructure(): void {
     fs.ensureDirSync(this.recipePath);
     fs.ensureDirSync(this.executionPath);
+    this._copyUserAssets();
   }
 }

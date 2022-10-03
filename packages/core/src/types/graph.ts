@@ -1,6 +1,7 @@
 export interface VertexDescriptor {
   id: number;
   label: string;
+  type: string;
 }
 
 export type AdjacencyList = Map<number, Set<number>>;
