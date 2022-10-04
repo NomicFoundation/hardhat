@@ -5,7 +5,8 @@
   "license": "SEE LICENSE IN EACH PACKAGE'S LICENSE FILE",
   "private": true,
   "workspaces": [
-    "packages/*"
+    "packages/*",
+    "crates/rethnet_evm_napi"
   ],
   "devDependencies": {
     "@changesets/cli": "^2.16.0",
