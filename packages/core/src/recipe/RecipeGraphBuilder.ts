@@ -17,6 +17,7 @@ import type {
 import type { Artifact } from "types/hardhat";
 import {
   ContractOptions,
+  InternalParamValue,
   IRecipeGraph,
   IRecipeGraphBuilder,
   Recipe,
@@ -75,6 +76,7 @@ export class RecipeGraphBuilder implements IRecipeGraphBuilder {
         artifact,
         args: options?.args ?? [],
         scopeAdded: this.scopes.getScopedLabel(),
+        after: options?.after ?? [],
       });
 
       return artifactContractFuture;
@@ -97,6 +99,7 @@ export class RecipeGraphBuilder implements IRecipeGraphBuilder {
         libraryName,
         args: options?.args ?? [],
         scopeAdded: this.scopes.getScopedLabel(),
+        after: options?.after ?? [],
       });
 
       return libraryFuture;
@@ -129,6 +132,7 @@ export class RecipeGraphBuilder implements IRecipeGraphBuilder {
         args: options?.args ?? [],
         libraries: options?.libraries ?? {},
         scopeAdded: this.scopes.getScopedLabel(),
+        after: options?.after ?? [],
       });
 
       return artifactContractFuture;
@@ -152,6 +156,7 @@ export class RecipeGraphBuilder implements IRecipeGraphBuilder {
         args: options?.args ?? [],
         libraries: options?.libraries ?? {},
         scopeAdded: this.scopes.getScopedLabel(),
+        after: options?.after ?? [],
       });
 
       return contractFuture;
@@ -161,7 +166,8 @@ export class RecipeGraphBuilder implements IRecipeGraphBuilder {
   public contractAt(
     contractName: string,
     address: string,
-    abi: any[]
+    abi: any[],
+    options?: { after?: RecipeFuture[] }
   ): DeployedContract {
     const deployedFuture: DeployedContract = {
       vertexId: this._resolveNextId(),
@@ -179,6 +185,7 @@ export class RecipeGraphBuilder implements IRecipeGraphBuilder {
       address,
       abi,
       scopeAdded: this.scopes.getScopedLabel(),
+      after: options?.after ?? [],
     });
 
     return deployedFuture;
@@ -330,25 +337,43 @@ export class RecipeGraphBuilder implements IRecipeGraphBuilder {
     graph.vertexes.set(depNode.id, depNode);
     ensureVertex(graph.adjacencyList, depNode.id);
 
-    if (depNode.type !== "DeployedContract" && depNode.type !== "Virtual") {
-      const futureArgs = depNode.args.filter(isDependable);
-
-      for (const arg of futureArgs) {
-        addEdge(graph.adjacencyList, { from: arg.vertexId, to: depNode.id });
-      }
+    if (depNode.type === "HardhatContract") {
+      RecipeGraphBuilder._addEdgesBasedOn(depNode.args, graph, depNode);
+      RecipeGraphBuilder._addEdgesBasedOn(
+        Object.values(depNode.libraries),
+        graph,
+        depNode
+      );
+      RecipeGraphBuilder._addEdgesBasedOn(depNode.after, graph, depNode);
+      return;
     }
 
-    if (
-      depNode.type === "HardhatContract" ||
-      depNode.type === "ArtifactContract"
-    ) {
-      const futureLibraries = Object.values(depNode.libraries).filter(
-        isDependable
+    if (depNode.type === "ArtifactContract") {
+      RecipeGraphBuilder._addEdgesBasedOn(depNode.args, graph, depNode);
+      RecipeGraphBuilder._addEdgesBasedOn(
+        Object.values(depNode.libraries),
+        graph,
+        depNode
       );
+      RecipeGraphBuilder._addEdgesBasedOn(depNode.after, graph, depNode);
+      return;
+    }
 
-      for (const lib of futureLibraries) {
-        addEdge(graph.adjacencyList, { from: lib.vertexId, to: depNode.id });
-      }
+    if (depNode.type === "DeployedContract") {
+      RecipeGraphBuilder._addEdgesBasedOn(depNode.after, graph, depNode);
+      return;
+    }
+
+    if (depNode.type === "HardhatLibrary") {
+      RecipeGraphBuilder._addEdgesBasedOn(depNode.args, graph, depNode);
+      RecipeGraphBuilder._addEdgesBasedOn(depNode.after, graph, depNode);
+      return;
+    }
+
+    if (depNode.type === "ArtifactLibrary") {
+      RecipeGraphBuilder._addEdgesBasedOn(depNode.args, graph, depNode);
+      RecipeGraphBuilder._addEdgesBasedOn(depNode.after, graph, depNode);
+      return;
     }
 
     if (depNode.type === "Call") {
@@ -357,21 +382,87 @@ export class RecipeGraphBuilder implements IRecipeGraphBuilder {
         to: depNode.id,
       });
 
-      for (const afterVertex of depNode.after.filter(isDependable)) {
-        addEdge(graph.adjacencyList, {
-          from: afterVertex.vertexId,
-          to: depNode.id,
-        });
-      }
+      RecipeGraphBuilder._addEdgesBasedOn(
+        Object.values(depNode.args),
+        graph,
+        depNode
+      );
+      RecipeGraphBuilder._addEdgesBasedOn(
+        Object.values(depNode.after),
+        graph,
+        depNode
+      );
+      return;
     }
 
     if (depNode.type === "Virtual") {
-      for (const afterVertex of depNode.after.filter(isDependable)) {
-        addEdge(graph.adjacencyList, {
-          from: afterVertex.vertexId,
-          to: depNode.id,
-        });
+      RecipeGraphBuilder._addEdgesBasedOn(
+        Object.values(depNode.after),
+        graph,
+        depNode
+      );
+      return;
+    }
+  }
+
+  private static _addEdgesBasedOn(
+    args: InternalParamValue[],
+    graph: RecipeGraph,
+    depNode: RecipeVertex
+  ) {
+    for (const arg of args) {
+      if (
+        typeof arg === "string" ||
+        typeof arg === "number" ||
+        typeof arg === "boolean"
+      ) {
+        continue;
+      }
+
+      if (isDependable(arg)) {
+        addEdge(graph.adjacencyList, { from: arg.vertexId, to: depNode.id });
+        continue;
+      }
+
+      if (isParameter(arg)) {
+        const resolvedArg = RecipeGraphBuilder._resolveParameterFromScope(
+          graph,
+          arg
+        );
+
+        if (isDependable(resolvedArg)) {
+          addEdge(graph.adjacencyList, {
+            from: resolvedArg.vertexId,
+            to: depNode.id,
+          });
+          continue;
+        }
+
+        continue;
       }
     }
+  }
+
+  private static _resolveParameterFromScope(
+    graph: RecipeGraph,
+    param: RequiredParameter | OptionalParameter
+  ) {
+    const parametersFromScope = graph.registeredParameters[param.scope];
+
+    if (parametersFromScope === undefined) {
+      return param;
+    }
+
+    const scopeValue = parametersFromScope[param.label];
+
+    if (param.subtype === "optional") {
+      return scopeValue ?? param.defaultValue;
+    }
+
+    if (scopeValue === undefined) {
+      return param;
+    }
+
+    return scopeValue;
   }
 }

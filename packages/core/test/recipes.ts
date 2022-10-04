@@ -216,9 +216,11 @@ describe("Recipes", function () {
         "dependenciesBetweenContracts",
         (m: IRecipeGraphBuilder) => {
           const a = m.contract("A");
+          const someother = m.contract("Someother");
 
           const b = m.contract("B", {
             args: [a],
+            after: [someother],
           });
 
           return { a, b };
@@ -236,8 +238,8 @@ describe("Recipes", function () {
       assert.isDefined(recipeGraph);
     });
 
-    it("should have two nodes", () => {
-      assert.equal(recipeGraph.vertexes.size, 2);
+    it("should have three nodes", () => {
+      assert.equal(recipeGraph.vertexes.size, 3);
     });
 
     it("should have the contract node A", () => {
@@ -273,7 +275,7 @@ describe("Recipes", function () {
       assert.deepStrictEqual(deps, []);
     });
 
-    it("should show one dependency on A for the contract node B", () => {
+    it("should show two dependencies, on A for the contract node B, on A for Someother", () => {
       const depNode = getRecipeVertexByLabel(recipeGraph, "B");
 
       if (depNode === undefined) {
@@ -282,7 +284,10 @@ describe("Recipes", function () {
 
       const deps = getDependenciesForVertex(recipeGraph, depNode);
 
-      assert.deepStrictEqual(deps, [{ id: 0, label: "A" }]);
+      assert.deepStrictEqual(deps, [
+        { id: 0, label: "A" },
+        { id: 1, label: "Someother" },
+      ]);
     });
 
     it("should record the argument list for the contract node A as empty", () => {
@@ -307,9 +312,11 @@ describe("Recipes", function () {
       const callRecipe = buildRecipe("call", (m: IRecipeGraphBuilder) => {
         const token = m.contract("Token");
         const exchange = m.contract("Exchange");
+        const another = m.contract("Another");
 
         m.call(exchange, "addToken", {
           args: [token],
+          after: [another],
         });
 
         return {};
@@ -326,8 +333,8 @@ describe("Recipes", function () {
       assert.isDefined(recipeGraph);
     });
 
-    it("should have three nodes", () => {
-      assert.equal(recipeGraph.vertexes.size, 3);
+    it("should have four nodes", () => {
+      assert.equal(recipeGraph.vertexes.size, 4);
     });
 
     it("should have the contract node Token", () => {
@@ -386,7 +393,7 @@ describe("Recipes", function () {
       assert.deepStrictEqual(deps, []);
     });
 
-    it("should show two dependencies for the call node Exchange/addToken", () => {
+    it("should show three dependencies for the call node Exchange/addToken", () => {
       const depNode = getRecipeVertexByLabel(recipeGraph, "Exchange/addToken");
 
       if (depNode === undefined) {
@@ -401,6 +408,7 @@ describe("Recipes", function () {
           label: "Token",
         },
         { id: 1, label: "Exchange" },
+        { id: 2, label: "Another" },
       ]);
     });
 
@@ -462,7 +470,11 @@ describe("Recipes", function () {
     before(() => {
       const uniswapRecipe = buildRecipe("Uniswap", (m: IRecipeGraphBuilder) => {
         const abi = [{}];
-        const uniswap = m.contractAt("UniswapRouter", "0x123...", abi);
+        const someother = m.contract("Someother");
+
+        const uniswap = m.contractAt("UniswapRouter", "0x123...", abi, {
+          after: [someother],
+        });
 
         return { uniswap };
       });
@@ -478,8 +490,8 @@ describe("Recipes", function () {
       assert.isDefined(recipeGraph);
     });
 
-    it("should have one node", () => {
-      assert.equal(recipeGraph.vertexes.size, 1);
+    it("should have two nodes", () => {
+      assert.equal(recipeGraph.vertexes.size, 2);
     });
 
     it("should have the deployed contract node", () => {
@@ -493,7 +505,7 @@ describe("Recipes", function () {
       assert(isDeployedContract(depNode));
     });
 
-    it("should show no dependencies for the deployed contract node", () => {
+    it("should show one dependencies for the deployed contract node on someother", () => {
       const depNode = getRecipeVertexByLabel(recipeGraph, "UniswapRouter");
 
       if (depNode === undefined) {
@@ -502,7 +514,7 @@ describe("Recipes", function () {
 
       const deps = getDependenciesForVertex(recipeGraph, depNode);
 
-      assert.deepStrictEqual(deps, []);
+      assert.deepStrictEqual(deps, [{ id: 0, label: "Someother" }]);
     });
   });
 
@@ -515,8 +527,11 @@ describe("Recipes", function () {
       const fromArtifactRecipe = buildRecipe(
         "FromArtifact",
         (m: IRecipeGraphBuilder) => {
+          const someother = m.contract("Someother");
+
           const foo = m.contract("Foo", artifact, {
             args: [0],
+            after: [someother],
           });
 
           return { foo };
@@ -534,8 +549,8 @@ describe("Recipes", function () {
       assert.isDefined(recipeGraph);
     });
 
-    it("should have one node", () => {
-      assert.equal(recipeGraph.vertexes.size, 1);
+    it("should have two nodes", () => {
+      assert.equal(recipeGraph.vertexes.size, 2);
     });
 
     it("should have the artifact contract node", () => {
@@ -549,7 +564,7 @@ describe("Recipes", function () {
       assert(isArtifactContract(depNode));
     });
 
-    it("should show no dependencies for the artifact contract node", () => {
+    it("should show one dependency for the artifact contract node on Someother", () => {
       const depNode = getRecipeVertexByLabel(recipeGraph, "Foo");
 
       if (depNode === undefined) {
@@ -558,7 +573,12 @@ describe("Recipes", function () {
 
       const deps = getDependenciesForVertex(recipeGraph, depNode);
 
-      assert.deepStrictEqual(deps, []);
+      assert.deepStrictEqual(deps, [
+        {
+          id: 0,
+          label: "Someother",
+        },
+      ]);
     });
 
     it("should record the argument list for the artifact contract node", () => {
@@ -583,8 +603,11 @@ describe("Recipes", function () {
       const librariesRecipe = buildRecipe(
         "libraries",
         (m: IRecipeGraphBuilder) => {
+          const someother = m.contract("Someother");
+
           const safeMath = m.library("SafeMath", {
             args: [42],
+            after: [someother],
           });
 
           const contract = m.contract("Contract", {
@@ -608,8 +631,8 @@ describe("Recipes", function () {
       assert.isDefined(recipeGraph);
     });
 
-    it("should have two nodes", () => {
-      assert.equal(recipeGraph.vertexes.size, 2);
+    it("should have three nodes", () => {
+      assert.equal(recipeGraph.vertexes.size, 3);
     });
 
     it("should have the library node SafeMath", () => {
@@ -634,7 +657,7 @@ describe("Recipes", function () {
       assert(isHardhatContract(depNode));
     });
 
-    it("should show no dependencies for the library node SafeMath", () => {
+    it("should show one dependencies for the library node SafeMath to Someother", () => {
       const depNode = getRecipeVertexByLabel(recipeGraph, "SafeMath");
 
       if (depNode === undefined) {
@@ -643,7 +666,7 @@ describe("Recipes", function () {
 
       const deps = getDependenciesForVertex(recipeGraph, depNode);
 
-      assert.deepStrictEqual(deps, []);
+      assert.deepStrictEqual(deps, [{ id: 0, label: "Someother" }]);
     });
 
     it("should show one dependency on library node SafeMath for Contract", () => {
@@ -655,7 +678,7 @@ describe("Recipes", function () {
 
       const deps = getDependenciesForVertex(recipeGraph, depNode);
 
-      assert.deepStrictEqual(deps, [{ id: 0, label: "SafeMath" }]);
+      assert.deepStrictEqual(deps, [{ id: 1, label: "SafeMath" }]);
     });
 
     it("should record the argument list for the library node SafeMath as [42]", () => {
@@ -706,7 +729,15 @@ describe("Recipes", function () {
         }
       );
 
-      const { graph } = generateRecipeGraphFrom(librariesRecipe, {
+      const WrapRecipe = buildRecipe("Wrap", (m: IRecipeGraphBuilder) => {
+        const token = m.useRecipe(librariesRecipe, {
+          parameters: { tokenSymbol: "EXAMPLE", tokenName: "Example" },
+        });
+
+        return { token };
+      });
+
+      const { graph } = generateRecipeGraphFrom(WrapRecipe, {
         chainId: 31,
       });
 
@@ -718,7 +749,7 @@ describe("Recipes", function () {
     });
 
     it("should have one node", () => {
-      assert.equal(recipeGraph.vertexes.size, 1);
+      assert.equal(recipeGraph.vertexes.size, 2);
     });
   });
 });

@@ -47,6 +47,7 @@ export interface HardhatContractRecipeVertex extends VertexDescriptor {
   contractName: string;
   args: InternalParamValue[];
   libraries: LibraryMap;
+  after: RecipeFuture[];
 }
 
 export interface ArtifactContractRecipeVertex extends VertexDescriptor {
@@ -55,6 +56,7 @@ export interface ArtifactContractRecipeVertex extends VertexDescriptor {
   artifact: Artifact;
   args: InternalParamValue[];
   libraries: LibraryMap;
+  after: RecipeFuture[];
 }
 
 export interface DeployedContractRecipeVertex extends VertexDescriptor {
@@ -62,6 +64,7 @@ export interface DeployedContractRecipeVertex extends VertexDescriptor {
   scopeAdded: string;
   address: string;
   abi: any[];
+  after: RecipeFuture[];
 }
 
 export interface HardhatLibraryRecipeVertex extends VertexDescriptor {
@@ -69,6 +72,7 @@ export interface HardhatLibraryRecipeVertex extends VertexDescriptor {
   libraryName: string;
   scopeAdded: string;
   args: InternalParamValue[];
+  after: RecipeFuture[];
 }
 
 export interface ArtifactLibraryRecipeVertex extends VertexDescriptor {
@@ -76,6 +80,7 @@ export interface ArtifactLibraryRecipeVertex extends VertexDescriptor {
   scopeAdded: string;
   artifact: Artifact;
   args: InternalParamValue[];
+  after: RecipeFuture[];
 }
 
 export interface CallRecipeVertex extends VertexDescriptor {
@@ -98,6 +103,7 @@ export interface ContractOptions {
   libraries?: {
     [key: string]: RecipeFuture;
   };
+  after?: RecipeFuture[];
 }
 
 export interface UseRecipeOptions {
@@ -117,7 +123,8 @@ export interface IRecipeGraphBuilder {
   contractAt: (
     contractName: string,
     address: string,
-    abi: any[]
+    abi: any[],
+    options?: { after?: RecipeFuture[] }
   ) => DeployedContract;
 
   library: (
