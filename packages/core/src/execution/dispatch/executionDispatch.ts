@@ -1,6 +1,6 @@
 import { Services } from "services/types";
 import { ExecutionVertex } from "types/executionGraph";
-import { VertexVisitResult } from "types/graph";
+import { ResultsAccumulator, VertexVisitResult } from "types/graph";
 
 import { executeContractCall } from "./executeContractCall";
 import { executeContractDeploy } from "./executeContractDeploy";
@@ -9,7 +9,7 @@ import { executeLibraryDeploy } from "./executeLibraryDeploy";
 
 export function executionDispatch(
   executionVertex: ExecutionVertex,
-  resultAccumulator: Map<number, any>,
+  resultAccumulator: ResultsAccumulator,
   context: { services: Services }
 ): Promise<VertexVisitResult> {
   switch (executionVertex.type) {

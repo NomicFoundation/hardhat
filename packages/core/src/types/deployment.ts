@@ -1,6 +1,6 @@
 import { ExecutionGraph } from "execution/ExecutionGraph";
 
-import { VertexVisitResult } from "./graph";
+import { ResultsAccumulator, VertexVisitResult } from "./graph";
 import {
   SerializedDeploymentResult,
   SerializedFutureResult,
@@ -42,7 +42,7 @@ export interface ExecutionState {
   batch: Map<number, null | VertexVisitResult>;
   previousBatches: Array<Set<number>>;
 
-  resultsAccumulator: Map<number, VertexVisitResult>;
+  resultsAccumulator: ResultsAccumulator;
 }
 
 export interface DeployState {

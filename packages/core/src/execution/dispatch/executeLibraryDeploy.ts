@@ -1,12 +1,12 @@
 import { Services } from "services/types";
 import { LibraryDeploy } from "types/executionGraph";
-import { VertexVisitResult } from "types/graph";
+import { ResultsAccumulator, VertexVisitResult } from "types/graph";
 
 import { resolveFrom, toAddress } from "./utils";
 
 export async function executeLibraryDeploy(
   { artifact, args }: LibraryDeploy,
-  resultAccumulator: Map<number, any>,
+  resultAccumulator: ResultsAccumulator,
   { services }: { services: Services }
 ): Promise<VertexVisitResult> {
   try {

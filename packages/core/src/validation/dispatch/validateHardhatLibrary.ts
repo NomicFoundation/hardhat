@@ -1,12 +1,12 @@
 import { ethers } from "ethers";
 
 import { Services } from "services/types";
-import { VertexVisitResult } from "types/graph";
+import { ResultsAccumulator, VertexVisitResult } from "types/graph";
 import { HardhatLibraryRecipeVertex } from "types/recipeGraph";
 
 export async function validateHardhatLibrary(
   vertex: HardhatLibraryRecipeVertex,
-  _resultAccumulator: Map<number, any>,
+  _resultAccumulator: ResultsAccumulator,
   { services }: { services: Services }
 ): Promise<VertexVisitResult> {
   const artifactExists = await services.artifacts.hasArtifact(

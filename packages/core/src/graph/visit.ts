@@ -1,14 +1,19 @@
-import { IGraph, VertexVisitResult, VisitResult } from "types/graph";
+import {
+  IGraph,
+  ResultsAccumulator,
+  VertexVisitResult,
+  VisitResult,
+} from "types/graph";
 
 export async function visit<T, C>(
   phase: "Execution" | "Validation",
   orderedVertexIds: number[],
   graph: IGraph<T>,
   context: C,
-  resultAccumulator: Map<number, any>,
+  resultAccumulator: ResultsAccumulator,
   vistitorAction: (
     vertex: T,
-    resultAccumulator: Map<number, any>,
+    resultAccumulator: ResultsAccumulator,
     context: C
   ) => Promise<VertexVisitResult>,
   afterAction?: (vertex: T, kind: "success" | "failure", err?: unknown) => void

@@ -1,5 +1,5 @@
 import { ArgValue } from "types/executionGraph";
-import { VertexVisitResult } from "types/graph";
+import { ResultsAccumulator } from "types/graph";
 import { isDependable } from "utils/guards";
 
 export function toAddress(v: any) {
@@ -10,7 +10,7 @@ export function toAddress(v: any) {
   return v;
 }
 
-export function resolveFrom(context: Map<number, VertexVisitResult>) {
+export function resolveFrom(context: ResultsAccumulator) {
   return (arg: ArgValue) => {
     if (!isDependable(arg)) {
       return arg;

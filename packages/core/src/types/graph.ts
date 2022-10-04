@@ -30,9 +30,11 @@ export type VertexVisitResult =
 export type VisitResult =
   | {
       _kind: "success";
-      result: Map<number, VertexVisitResult>;
+      result: ResultsAccumulator;
     }
   | {
       _kind: "failure";
       failures: [string, Error[]];
     };
+
+export type ResultsAccumulator = Map<number, VertexVisitResult | null>;

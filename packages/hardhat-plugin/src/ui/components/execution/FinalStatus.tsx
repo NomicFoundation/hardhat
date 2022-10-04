@@ -53,7 +53,11 @@ const getDeploymentErrors = (deployState: DeployState): DeploymentError[] => {
     .map((id) => {
       const vertexResult = deployState.execution.resultsAccumulator.get(id);
 
-      if (vertexResult === undefined || vertexResult._kind === "success") {
+      if (
+        vertexResult === undefined ||
+        vertexResult === null ||
+        vertexResult._kind === "success"
+      ) {
         return null;
       }
 

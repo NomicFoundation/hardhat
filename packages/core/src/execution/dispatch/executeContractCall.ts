@@ -6,7 +6,7 @@ import { resolveFrom, toAddress } from "./utils";
 
 export async function executeContractCall(
   { method, contract, args }: ContractCall,
-  resultAccumulator: Map<number, any>,
+  resultAccumulator: Map<number, VertexVisitResult | null>,
   { services }: { services: Services }
 ): Promise<VertexVisitResult> {
   const resolve = resolveFrom(resultAccumulator);

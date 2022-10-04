@@ -1,12 +1,12 @@
 import { isAddress } from "@ethersproject/address";
 
 import { Services } from "services/types";
-import { VertexVisitResult } from "types/graph";
+import { ResultsAccumulator, VertexVisitResult } from "types/graph";
 import { DeployedContractRecipeVertex } from "types/recipeGraph";
 
 export async function validateDeployedContract(
   vertex: DeployedContractRecipeVertex,
-  _resultAccumulator: Map<number, any>,
+  _resultAccumulator: ResultsAccumulator,
   _context: { services: Services }
 ): Promise<VertexVisitResult> {
   if (!isAddress(vertex.address)) {

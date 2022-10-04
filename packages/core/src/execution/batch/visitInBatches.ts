@@ -3,6 +3,7 @@ import { Services } from "services/types";
 import { ExecutionState } from "types/deployment";
 import { ExecutionVertex } from "types/executionGraph";
 import {
+  ResultsAccumulator,
   VertexVisitResult,
   VertexVisitResultFailure,
   VertexVisitResultSuccess,
@@ -76,7 +77,7 @@ function calculateNextBatch(
 async function executeBatch(
   batch: Set<number>,
   executionGraph: ExecutionGraph,
-  resultsAccumulator: Map<number, VertexVisitResult>,
+  resultsAccumulator: ResultsAccumulator,
   uiUpdate: (vertexId: number, result: VertexVisitResult) => void,
   { services }: { services: Services },
   executionVertexDispatcher: ExecutionVertexDispatcher

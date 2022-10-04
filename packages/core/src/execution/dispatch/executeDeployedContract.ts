@@ -1,10 +1,10 @@
 import { Services } from "services/types";
 import { DeployedContract } from "types/executionGraph";
-import { VertexVisitResult } from "types/graph";
+import { ResultsAccumulator, VertexVisitResult } from "types/graph";
 
 export async function executeDeployedContract(
   { label, address, abi }: DeployedContract,
-  _resultAccumulator: Map<number, any>,
+  _resultAccumulator: ResultsAccumulator,
   _: { services: Services }
 ): Promise<VertexVisitResult> {
   return {

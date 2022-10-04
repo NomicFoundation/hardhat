@@ -1,7 +1,7 @@
 import { ExecutionGraph } from "execution/ExecutionGraph";
 import { ExecuteBatchResult } from "execution/batch/types";
 import { DeployPhase, DeployState, ExecutionState } from "types/deployment";
-import { VertexVisitResult } from "types/graph";
+import { ResultsAccumulator, VertexVisitResult } from "types/graph";
 import { Recipe } from "types/recipeGraph";
 import { difference, union } from "utils/sets";
 
@@ -42,11 +42,13 @@ export function initialiseExecutionStateFrom(
     errored: new Set<number>(),
     batch: new Map<number, VertexVisitResult | null>(),
     previousBatches: [],
-    resultsAccumulator: [...unstarted].reduce<Map<number, any>>((acc, id) => {
+    resultsAccumulator: [...unstarted].reduce<
+      Map<number, VertexVisitResult | null>
+    >((acc, id) => {
       acc.set(id, null);
 
       return acc;
-    }, new Map<number, any>()),
+    }, new Map<number, VertexVisitResult>()),
   };
 
   return executionState;
@@ -212,9 +214,11 @@ export function updateExecutionStateWithBatchResults(
 
 export function mergeBatchResultsInResultsAccumulator(
   executionState: ExecutionState,
-  batchResultsAcc: Map<number, any>
+  batchResultsAcc: ResultsAccumulator
 ): ExecutionState {
-  const updatedResultsAccumulator = new Map(executionState.resultsAccumulator);
+  const updatedResultsAccumulator: ResultsAccumulator = new Map(
+    executionState.resultsAccumulator
+  );
 
   batchResultsAcc.forEach((result, vertexId) => {
     updatedResultsAccumulator.set(vertexId, result);

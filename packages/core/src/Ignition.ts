@@ -9,7 +9,7 @@ import { createServices } from "services/createServices";
 import { Services } from "services/types";
 import { DeploymentResult, UpdateUiAction } from "types/deployment";
 import { DependableFuture, FutureDict } from "types/future";
-import { VertexVisitResult } from "types/graph";
+import { ResultsAccumulator } from "types/graph";
 import { IgnitionPlan } from "types/plan";
 import { Providers } from "types/providers";
 import { Recipe } from "types/recipeGraph";
@@ -155,10 +155,7 @@ export class Ignition {
     return Number(result);
   }
 
-  private _serialize(
-    recipeOutputs: FutureDict,
-    result: Map<number, VertexVisitResult>
-  ) {
+  private _serialize(recipeOutputs: FutureDict, result: ResultsAccumulator) {
     const entries = Object.entries(recipeOutputs).filter(
       (entry): entry is [string, DependableFuture] => isDependable(entry[1])
     );
@@ -169,6 +166,7 @@ export class Ignition {
 
         if (
           executionResultValue === undefined ||
+          executionResultValue === null ||
           executionResultValue._kind === "failure"
         ) {
           return null;

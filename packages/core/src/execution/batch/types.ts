@@ -1,11 +1,11 @@
 import { Services } from "services/types";
 import { ExecutionVertex } from "types/executionGraph";
-import { VertexVisitResult } from "types/graph";
+import { ResultsAccumulator, VertexVisitResult } from "types/graph";
 
 export type BatcherResult =
   | {
       _kind: "success";
-      context: Map<number, any>;
+      context: Map<number, VertexVisitResult>;
     }
   | {
       _kind: "failure";
@@ -14,7 +14,7 @@ export type BatcherResult =
 
 export type ExecutionVertexDispatcher = (
   vertex: ExecutionVertex,
-  resultAccumulator: Map<number, VertexVisitResult>,
+  resultAccumulator: ResultsAccumulator,
   context: { services: Services }
 ) => Promise<VertexVisitResult>;
 

@@ -1,5 +1,5 @@
 import { Services } from "services/types";
-import { VertexVisitResult } from "types/graph";
+import { ResultsAccumulator, VertexVisitResult } from "types/graph";
 import { RecipeVertex } from "types/recipeGraph";
 
 import { validateArtifactContract } from "./validateArtifactContract";
@@ -12,7 +12,7 @@ import { validateVirtual } from "./validateVirtual";
 
 export function validationDispatch(
   recipeVertex: RecipeVertex,
-  resultAccumulator: Map<number, any>,
+  resultAccumulator: ResultsAccumulator,
   context: { services: Services }
 ): Promise<VertexVisitResult> {
   switch (recipeVertex.type) {

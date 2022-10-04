@@ -142,7 +142,11 @@ export class Deployment {
       (acc: { [key: number]: VertexVisitResultFailure }, id) => {
         const result = this.state.execution.resultsAccumulator.get(id);
 
-        if (result === undefined || result._kind === "success") {
+        if (
+          result === undefined ||
+          result === null ||
+          result._kind === "success"
+        ) {
           return acc;
         }
 

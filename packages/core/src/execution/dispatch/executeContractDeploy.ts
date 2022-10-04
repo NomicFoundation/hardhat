@@ -1,12 +1,12 @@
 import { Services } from "services/types";
 import { ContractDeploy } from "types/executionGraph";
-import { VertexVisitResult } from "types/graph";
+import { ResultsAccumulator, VertexVisitResult } from "types/graph";
 
 import { resolveFrom, toAddress } from "./utils";
 
 export async function executeContractDeploy(
   { artifact, args, libraries }: ContractDeploy,
-  resultAccumulator: Map<number, VertexVisitResult>,
+  resultAccumulator: ResultsAccumulator,
   { services }: { services: Services }
 ): Promise<VertexVisitResult> {
   try {

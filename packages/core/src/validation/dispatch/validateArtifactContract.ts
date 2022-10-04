@@ -1,13 +1,13 @@
 import { ethers } from "ethers";
 
 import { Services } from "services/types";
-import { VertexVisitResult } from "types/graph";
+import { ResultsAccumulator, VertexVisitResult } from "types/graph";
 import { ArtifactContractRecipeVertex } from "types/recipeGraph";
 import { isArtifact } from "utils/guards";
 
 export async function validateArtifactContract(
   vertex: ArtifactContractRecipeVertex,
-  _resultAccumulator: Map<number, any>,
+  _resultAccumulator: ResultsAccumulator,
   _context: { services: Services }
 ): Promise<VertexVisitResult> {
   const artifactExists = isArtifact(vertex.artifact);
