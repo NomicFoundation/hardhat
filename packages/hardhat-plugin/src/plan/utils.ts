@@ -37,14 +37,14 @@ export function getSummaryLists(graph: VertexGraph): string {
   }
 
   return `
-<div class="deploy-list">
+<div class="deploy-list pure-u-1-2">
   ${deploys.length} contract ${plural("deploy", deploys.length)}
   <ul>
     ${deploys.join("\n")}
   </ul>
 </div>
 
-<div class="call-list">
+<div class="call-list pure-u-1-2">
   ${calls.length} contract ${plural("call", calls.length)}
   <ul>
     ${calls.join("\n")}
@@ -69,9 +69,12 @@ export function graphToMermaid(graph: VertexGraph, path: string): string {
 
   return `
 flowchart
+subgraph Graph
+direction TB
 ${nodeDefinitions}
 ${connectionDefinitions}
 ${linkDefinitions}
+end
 `;
 }
 
