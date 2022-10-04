@@ -28,7 +28,7 @@ export function makeFakeSignature(
     "maxFeePerGas" in tx ? tx.maxFeePerGas : "",
     "accessList" in tx
       ? tx.accessList?.map(([buf, bufs]) =>
-          [buf, ...bufs].map((b) => b.toString()).join(";")
+          [buf, ...bufs].map((b) => b.toString("hex")).join(";")
         )
       : "",
   ]
