@@ -550,6 +550,7 @@ const communityPlugins: IPlugin[] = [
   {
     name: "hardhat-cannon",
     author: "Synthetix Core Contributors",
+    authorUrl: "https://github.com/dbeal-eth",
     description: 
       "Define your project's deployment in a simple manifest, then deploy and share it anywhere. Inspired by Docker, Terraform, and npm. https://usecannon.com/",
     tags: ["Tooling", "Deployment", "Testing"]
@@ -557,6 +558,7 @@ const communityPlugins: IPlugin[] = [
   {
     name: "hardhat-interact",
     author: "Synthetix Core Contributors",
+    authorUrl: "https://github.com/dbeal-eth",
     description: 
       "Execute commands on deployed contracts on any network using a helpful TUI.",
     tags: ["Tooling", "Operations", "Testing"]
