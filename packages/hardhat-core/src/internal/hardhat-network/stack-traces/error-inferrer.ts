@@ -623,11 +623,13 @@ export class ErrorInferrer {
       if (calledFunction !== undefined) {
         return [
           {
-            type: StackTraceEntryType.INVALID_PARAMS_ERROR,
+            type: StackTraceEntryType.REVERT_ERROR,
             sourceReference: this._getFunctionStartSourceReference(
               trace,
               calledFunction
             ),
+            message: new ReturnData(trace.returnData),
+            isInvalidOpcodeError: lastInstruction.opcode === Opcode.INVALID,
           },
         ];
       }
