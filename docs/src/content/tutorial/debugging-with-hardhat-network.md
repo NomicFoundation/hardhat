@@ -20,7 +20,7 @@ contract Token {
 
 Then you can just add some `console.log` calls to the `transfer()` function as if you were using it in JavaScript:
 
-```solidity{2,3}
+```solidity{4,9}
 function transfer(address to, uint256 amount) external {
     require(balances[msg.sender] >= amount, "Not enough tokens");
 
