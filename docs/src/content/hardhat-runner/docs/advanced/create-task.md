@@ -146,7 +146,7 @@ balance: Prints an account's balance
 For global options help run: hardhat help
 ```
 
-Let’s now get the account’s balance. The [Hardhat Runtime Environment](../advanced/hardhat-runtime-environment.md) will be available in the global scope. By using Hardhat’s [ether.js plugin](https://github.com/nomiclabs/hardhat/tree/main/packages/hardhat-ethers), which is included in the Hardhat Toolbox, we get access to an ethers.js instance:
+Let’s now get the account’s balance. The [Hardhat Runtime Environment](../advanced/hardhat-runtime-environment.md) will be available in the global scope. By using Hardhat’s [ether.js plugin](https://github.com/NomicFoundation/hardhat/tree/main/packages/hardhat-ethers), which is included in the Hardhat Toolbox, we get access to an ethers.js instance:
 
 ```js
 task("balance", "Prints an account's balance")
@@ -288,7 +288,7 @@ Task overriding works very similarly to overriding methods when extending a clas
 
 Task override order is important since actions can only call the immediately overridden definition, using the `runSuper` function.
 
-Overriding built-in tasks is a great way to customize and extend Hardhat. To know which tasks to override, take a look at [src/builtin-tasks](https://github.com/nomiclabs/hardhat/tree/main/packages/hardhat-core/src/builtin-tasks).
+Overriding built-in tasks is a great way to customize and extend Hardhat. To know which tasks to override, take a look at [src/builtin-tasks](https://github.com/NomicFoundation/hardhat/tree/main/packages/hardhat-core/src/builtin-tasks).
 
 #### The `runSuper` function
 
