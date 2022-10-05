@@ -1,21 +1,13 @@
 use std::{convert::TryFrom, str::FromStr};
 
-use anyhow::anyhow;
-use napi::{
-    bindgen_prelude::*,
-    tokio::{
-        self,
-        sync::{
-            mpsc::{unbounded_channel, UnboundedReceiver, UnboundedSender},
-            oneshot,
-        },
-    },
-};
+use napi::bindgen_prelude::*;
 use napi_derive::napi;
 use rethnet_evm::{
-    AccountInfo, Bytecode, Bytes, CreateScheme, Database, DatabaseDebug, LayeredDatabase,
-    RethnetLayer, State, TransactTo, TxEnv, EVM, H160, H256, U256,
+    sync::Client, Bytes, CreateScheme, HashMap, LayeredDatabase, TransactTo, TxEnv, H160, H256,
+    U256,
 };
+use secp256k1::{PublicKey, Secp256k1, SecretKey};
+use sha3::{Digest, Keccak256};
 
 #[napi(constructor)]
 pub struct Account {
@@ -28,6 +20,19 @@ pub struct Account {
     /// 256-bit code hash
     #[napi(readonly)]
     pub code_hash: Buffer,
+}
+
+impl From<rethnet_evm::AccountInfo> for Account {
+    fn from(account_info: rethnet_evm::AccountInfo) -> Self {
+        Self {
+            balance: BigInt {
+                sign_bit: false,
+                words: account_info.balance.0.to_vec(),
+            },
+            nonce: BigInt::from(account_info.nonce),
+            code_hash: Buffer::from(account_info.code_hash.as_bytes()),
+        }
+    }
 }
 
 fn try_u256_from_bigint(mut value: BigInt) -> napi::Result<U256> {
@@ -44,6 +49,20 @@ fn try_u256_from_bigint(mut value: BigInt) -> napi::Result<U256> {
     }
 
     Ok(U256(value.words.try_into().unwrap()))
+}
+
+fn public_key_to_address(public_key: PublicKey) -> H160 {
+    let hash = Keccak256::digest(&public_key.serialize_uncompressed()[1..]);
+    // Only take the lower 160 bits of the hash
+    H160::from_slice(&hash[12..])
+}
+
+#[napi(object)]
+pub struct GenesisAccount {
+    /// Account private key
+    pub private_key: String,
+    /// Account balance
+    pub balance: BigInt,
 }
 
 #[napi(object)]
@@ -224,108 +243,101 @@ impl TryFrom<(rethnet_evm::ExecutionResult, rethnet_evm::State)> for Transaction
 }
 
 #[napi]
-pub struct RethnetClient {
-    request_sender: UnboundedSender<Request>,
+pub struct Rethnet {
+    client: Client,
 }
 
 #[napi]
-impl RethnetClient {
+impl Rethnet {
     #[allow(clippy::new_without_default)]
     #[napi(constructor)]
     pub fn new() -> Self {
-        let (request_sender, request_receiver) = unbounded_channel();
+        Self {
+            client: Client::with_db(LayeredDatabase::default()),
+        }
+    }
 
-        tokio::spawn(Rethnet::run(request_receiver));
+    #[napi(factory)]
+    pub fn with_genesis_accounts(accounts: Vec<GenesisAccount>) -> napi::Result<Self> {
+        let context = Secp256k1::signing_only();
+        let genesis_accounts = accounts
+            .into_iter()
+            .map(|account| {
+                let private_key = account
+                    .private_key
+                    .strip_prefix("0x")
+                    .unwrap_or(&account.private_key);
 
-        Self { request_sender }
+                let secret_key = SecretKey::from_str(private_key)
+                    .map_err(|e| napi::Error::new(Status::InvalidArg, e.to_string()))?;
+
+                let address = public_key_to_address(secret_key.public_key(&context));
+                try_u256_from_bigint(account.balance).map(|balance| {
+                    let account_info = rethnet_evm::AccountInfo {
+                        balance,
+                        ..Default::default()
+                    };
+
+                    (address, account_info)
+                })
+            })
+            .collect::<Result<HashMap<H160, rethnet_evm::AccountInfo>>>()?;
+
+        Ok(Self {
+            client: Client::with_genesis_accounts(genesis_accounts),
+        })
     }
 
     #[napi]
     pub async fn dry_run(&self, transaction: Transaction) -> Result<TransactionResult> {
         let transaction = transaction.try_into()?;
-
-        let (sender, receiver) = oneshot::channel();
-
-        self.request_sender
-            .send(Request::DryRun {
-                transaction,
-                sender,
-            })
-            .map_err(|_| anyhow!("Failed to send request"))?;
-
-        receiver
-            .await
-            .expect("Rethnet unexpectedly crashed")
-            .try_into()
+        self.client.dry_run(transaction).await.try_into()
     }
 
     #[napi]
     pub async fn run(&self, transaction: Transaction) -> Result<ExecutionResult> {
         let transaction = transaction.try_into()?;
-
-        let (sender, receiver) = oneshot::channel();
-
-        self.request_sender
-            .send(Request::Run {
-                transaction,
-                sender,
-            })
-            .map_err(|_| anyhow!("Failed to send request"))?;
-
-        receiver
-            .await
-            .expect("Rethnet unexpectedly crashed")
-            .try_into()
+        self.client.run(transaction).await.try_into()
     }
 
     #[napi]
-    pub async fn insert_account(&self, address: Buffer) -> Result<()> {
+    pub async fn create_checkpoint(&self) -> usize {
+        self.client.create_checkpoint().await
+    }
+
+    #[napi]
+    pub async fn revert_to_checkpoint(&self, checkpoint_id: BigInt) {
+        let checkpoint_id = usize::try_from(checkpoint_id.get_u64().1)
+            .expect("Checkpoint IDs should not be larger than usize");
+        self.client.revert_to_checkpoint(checkpoint_id).await
+    }
+
+    #[napi]
+    pub async fn get_account_by_address(&self, address: Buffer) -> Result<Option<Account>> {
         let address = H160::from_slice(&address);
+        self.client
+            .get_account_by_address(address)
+            .await
+            .map_or_else(
+                |e| Err(napi::Error::new(Status::GenericFailure, e.to_string())),
+                |account_info| Ok(account_info.map(Account::from)),
+            )
+    }
 
-        let (sender, receiver) = oneshot::channel();
+    #[napi]
+    pub async fn guarantee_transaction(&self, transaction: Transaction) -> Result<()> {
+        let transaction = transaction.try_into()?;
 
-        self.request_sender
-            .send(Request::InsertAccount { address, sender })
-            .map_err(|_| anyhow!("Failed to send request"))?;
-
-        receiver.await.expect("Rethnet unexpectedly crashed");
+        self.client.guarantee_transaction(transaction).await;
         Ok(())
     }
 
     #[napi]
-    pub async fn get_account_by_address(&self, address: Buffer) -> Result<Account> {
+    pub async fn insert_account(&self, address: Buffer) {
         let address = H160::from_slice(&address);
-
-        let (sender, receiver) = oneshot::channel();
-
-        self.request_sender
-            .send(Request::AccountByAddress { address, sender })
-            .map_err(|_| anyhow!("Failed to send request"))?;
-
-        receiver
-            .await
-            .expect("Rethnet unexpectedly crashed")?
-            .map_or_else(
-                || {
-                    Err(napi::Error::new(
-                        Status::GenericFailure,
-                        format!(
-                            "Database does not contain account with address: {}.",
-                            address,
-                        ),
-                    ))
-                },
-                |account_info| {
-                    Ok(Account {
-                        balance: BigInt {
-                            sign_bit: false,
-                            words: account_info.balance.0.to_vec(),
-                        },
-                        nonce: BigInt::from(account_info.nonce),
-                        code_hash: Buffer::from(account_info.code_hash.as_bytes()),
-                    })
-                },
-            )
+        self.client
+            .insert_account(address, rethnet_evm::AccountInfo::default())
+            .await;
     }
 
     #[napi]
@@ -333,17 +345,7 @@ impl RethnetClient {
         let block_number = try_u256_from_bigint(block_number)?;
         let block_hash = H256::from_slice(&block_hash);
 
-        let (sender, receiver) = oneshot::channel();
-
-        self.request_sender
-            .send(Request::InsertBlock {
-                block_number,
-                block_hash,
-                sender,
-            })
-            .map_err(|_| anyhow!("Failed to send request"))?;
-
-        receiver.await.expect("Rethnet unexpectedly crashed");
+        self.client.insert_block(block_number, block_hash).await;
         Ok(())
     }
 
@@ -352,55 +354,25 @@ impl RethnetClient {
         let address = H160::from_slice(&address);
         let balance = try_u256_from_bigint(balance)?;
 
-        let (sender, receiver) = oneshot::channel();
-
-        self.request_sender
-            .send(Request::SetAccountBalance {
-                address,
-                balance,
-                sender,
-            })
-            .map_err(|_| anyhow!("Failed to send request"))?;
-
-        receiver.await.expect("Rethnet unexpectedly crashed");
+        self.client.set_account_balance(address, balance).await;
         Ok(())
     }
 
     #[napi]
     pub async fn set_account_code(&self, address: Buffer, code: Buffer) -> Result<()> {
         let address = H160::from_slice(&address);
+        let code = Bytes::copy_from_slice(&code);
 
-        let (sender, receiver) = oneshot::channel();
-
-        self.request_sender
-            .send(Request::SetAccountCode {
-                address,
-                bytes: Bytes::copy_from_slice(&code),
-                sender,
-            })
-            .map_err(|_| anyhow!("Failed to send request"))?;
-
-        receiver.await.expect("Rethnet unexpectedly crashed");
+        self.client.set_account_code(address, code).await;
         Ok(())
     }
 
     #[napi]
-    pub async fn set_account_nonce(&self, address: Buffer, nonce: BigInt) -> Result<()> {
+    pub async fn set_account_nonce(&self, address: Buffer, nonce: BigInt) {
         let address = H160::from_slice(&address);
         let nonce = nonce.get_u64().1;
 
-        let (sender, receiver) = oneshot::channel();
-
-        self.request_sender
-            .send(Request::SetAccountNonce {
-                address,
-                nonce,
-                sender,
-            })
-            .map_err(|_| anyhow!("Failed to send request"))?;
-
-        receiver.await.expect("Rethnet unexpectedly crashed");
-        Ok(())
+        self.client.set_account_nonce(address, nonce).await;
     }
 
     #[napi]
@@ -414,171 +386,9 @@ impl RethnetClient {
         let index = try_u256_from_bigint(index)?;
         let value = try_u256_from_bigint(value)?;
 
-        let (sender, receiver) = oneshot::channel();
-
-        self.request_sender
-            .send(Request::SetAccountStorageSlot {
-                address,
-                index,
-                value,
-                sender,
-            })
-            .map_err(|_| anyhow!("Failed to send request"))?;
-
-        receiver.await.expect("Rethnet unexpectedly crashed");
-        Ok(())
-    }
-}
-
-enum Request {
-    AccountByAddress {
-        address: H160,
-        sender: oneshot::Sender<anyhow::Result<Option<AccountInfo>>>,
-    },
-    DryRun {
-        transaction: TxEnv,
-        sender: oneshot::Sender<(rethnet_evm::ExecutionResult, State)>,
-    },
-    Run {
-        transaction: TxEnv,
-        sender: oneshot::Sender<rethnet_evm::ExecutionResult>,
-    },
-    InsertAccount {
-        address: H160,
-        sender: oneshot::Sender<()>,
-    },
-    InsertBlock {
-        block_number: U256,
-        block_hash: H256,
-        sender: oneshot::Sender<()>,
-    },
-    SetAccountBalance {
-        address: H160,
-        balance: U256,
-        sender: oneshot::Sender<()>,
-    },
-    SetAccountCode {
-        address: H160,
-        bytes: Bytes,
-        sender: oneshot::Sender<()>,
-    },
-    SetAccountNonce {
-        address: H160,
-        nonce: u64,
-        sender: oneshot::Sender<()>,
-    },
-    SetAccountStorageSlot {
-        address: H160,
-        index: U256,
-        value: U256,
-        sender: oneshot::Sender<()>,
-    },
-}
-
-struct Rethnet {
-    evm: EVM<LayeredDatabase<RethnetLayer>>,
-    request_receiver: UnboundedReceiver<Request>,
-}
-
-impl Rethnet {
-    pub fn new(request_receiver: UnboundedReceiver<Request>) -> Self {
-        let mut evm = EVM::new();
-        evm.database(LayeredDatabase::default());
-
-        Self {
-            evm,
-            request_receiver,
-        }
-    }
-
-    pub async fn run(request_receiver: UnboundedReceiver<Request>) -> anyhow::Result<()> {
-        let mut rethnet = Rethnet::new(request_receiver);
-
-        rethnet.event_loop().await
-    }
-
-    async fn event_loop(&mut self) -> anyhow::Result<()> {
-        while let Some(request) = self.request_receiver.recv().await {
-            let sent_response = match request {
-                Request::AccountByAddress { address, sender } => {
-                    sender.send(self.evm.db().unwrap().basic(address)).is_ok()
-                }
-                Request::DryRun {
-                    transaction,
-                    sender,
-                } => {
-                    self.evm.env.tx = transaction;
-                    sender.send(self.evm.transact()).is_ok()
-                }
-                Request::Run {
-                    transaction,
-                    sender,
-                } => {
-                    self.evm.env.tx = transaction;
-                    sender.send(self.evm.transact_commit()).is_ok()
-                }
-                Request::InsertAccount { address, sender } => {
-                    self.evm
-                        .db()
-                        .unwrap()
-                        .insert_account(&address, AccountInfo::default());
-                    sender.send(()).is_ok()
-                }
-                Request::InsertBlock {
-                    block_number,
-                    block_hash,
-                    sender,
-                } => {
-                    self.evm
-                        .db()
-                        .unwrap()
-                        .insert_block(block_number, block_hash);
-                    sender.send(()).is_ok()
-                }
-                Request::SetAccountBalance {
-                    address,
-                    balance,
-                    sender,
-                } => {
-                    self.evm.db().unwrap().account_info_mut(&address).balance = balance;
-                    sender.send(()).is_ok()
-                }
-                Request::SetAccountCode {
-                    address,
-                    bytes,
-                    sender,
-                } => {
-                    self.evm.db().unwrap().account_info_mut(&address).code =
-                        Some(Bytecode::new_raw(bytes));
-                    sender.send(()).is_ok()
-                }
-                Request::SetAccountNonce {
-                    address,
-                    nonce,
-                    sender,
-                } => {
-                    self.evm.db().unwrap().account_info_mut(&address).nonce = nonce;
-                    sender.send(()).is_ok()
-                }
-                Request::SetAccountStorageSlot {
-                    address,
-                    index,
-                    value,
-                    sender,
-                } => {
-                    self.evm
-                        .db()
-                        .unwrap()
-                        .set_storage_slot_at_layer(address, index, value);
-
-                    sender.send(()).is_ok()
-                }
-            };
-
-            if !sent_response {
-                return Err(anyhow!("Failed to send response"));
-            }
-        }
+        self.client
+            .set_account_storage_slot(address, index, value)
+            .await;
         Ok(())
     }
 }

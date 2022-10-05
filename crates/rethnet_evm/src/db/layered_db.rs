@@ -67,6 +67,14 @@ pub struct RethnetLayer {
 }
 
 impl RethnetLayer {
+    /// Creates a `RethnetLayer` with the provided genesis accounts.
+    pub fn with_genesis_accounts(genesis_accounts: HashMap<H160, AccountInfo>) -> Self {
+        Self {
+            account_infos: genesis_accounts,
+            ..Default::default()
+        }
+    }
+
     /// Insert the `AccountInfo` with at the specified `address`.
     pub fn insert_account(&mut self, address: H160, mut account_info: AccountInfo) {
         if let Some(code) = account_info.code.take() {

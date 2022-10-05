@@ -121,7 +121,7 @@ import { makeStateTrie } from "./utils/makeStateTrie";
 import { putGenesisBlock } from "./utils/putGenesisBlock";
 import { txMapToArray } from "./utils/txMapToArray";
 import { RandomBufferGenerator } from "./utils/random";
-import { RethnetClient, Transaction as RethnetTransaction } from "rethnet-evm";
+import { GenesisAccount as RethnetGenesisAccount, Rethnet, Transaction as RethnetTransaction } from "rethnet-evm";
 import { assertEthereumJsAndRethnetResults as assertEthereumjsAndRethnetResults } from "./utils/assertions";
 import { ethereumjsTransactionToRethnet } from "./utils/convertToRethnet"
 
@@ -353,7 +353,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
   // blockNumber => state root
   private _irregularStatesByBlockNumber: Map<bigint, Buffer> = new Map();
 
-  private _rethnet = new RethnetClient();
+  public _rethnet;
 
   private constructor(
     private readonly _vm: VM,
@@ -395,6 +395,15 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     const contractsIdentifier = new ContractsIdentifier();
     this._vmTraceDecoder = new VmTraceDecoder(contractsIdentifier);
     this._solidityTracer = new SolidityTracer();
+
+    this._rethnet = Rethnet.withGenesisAccounts(genesisAccounts.map((account) => {
+      const rethnetGenesisAccount: RethnetGenesisAccount = {
+        privateKey: account.privateKey,
+        balance: BigInt(account.balance)
+      };
+
+      return rethnetGenesisAccount
+    }));
 
     if (tracingConfig === undefined || tracingConfig.buildInfos === undefined) {
       return;
@@ -1805,6 +1814,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
           const txResult = await blockBuilder.addTransaction(tx);
 
           const rethnetTx = ethereumjsTransactionToRethnet(tx);
+          await this._rethnet.guaranteeTransaction(rethnetTx);
           const rethnetResult = await this._rethnet.run(rethnetTx);
 
           traces.push(await this._gatherTraces(txResult.execResult));
@@ -2334,6 +2344,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     forceBaseFeeZero = false
   ): Promise<RunTxResult> {
     const initialStateRoot = await this._stateManager.getStateRoot();
+    const rethnetCheckpoint = await this._rethnet.createCheckpoint();
 
     let blockContext: Block | undefined;
     let originalCommon: Common | undefined;
@@ -2409,6 +2420,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
       });
 
       const rethnetTx = ethereumjsTransactionToRethnet(tx);
+      await this._rethnet.guaranteeTransaction(rethnetTx);
       const rethnetResult = await this._rethnet.dryRun(rethnetTx);
       assertEthereumjsAndRethnetResults(rethnetResult.execResult, ethereumjsResult);
 
@@ -2418,6 +2430,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
         (this._vm as any)._common = originalCommon;
       }
       await this._stateManager.setStateRoot(initialStateRoot);
+      await this._rethnet.revertToCheckpoint(rethnetCheckpoint);
     }
   }
 

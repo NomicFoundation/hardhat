@@ -12,3 +12,4 @@ pub type State = HashMap<H160, Account>;
 
 mod db;
 mod debug;
+pub mod sync;

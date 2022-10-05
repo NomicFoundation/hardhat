@@ -2,7 +2,7 @@ import { expect } from 'chai';
 import { DefaultStateManager } from '@nomicfoundation/ethereumjs-statemanager'
 import { AccountData, Address } from '@nomicfoundation/ethereumjs-util'
 
-import { RethnetClient, Account, Transaction } from '../..'
+import { Account, Rethnet, Transaction } from '../..'
 
 describe('Rethnet', () => {
     const caller = Address.fromString("0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266");
@@ -10,38 +10,38 @@ describe('Rethnet', () => {
 
     // TODO: insertBlock, setAccountCode, setAccountStorageSlot
     it('getAccountByAddress', async () => {
-        let rethnet = new RethnetClient();
+        let rethnet = new Rethnet();
 
         await rethnet.insertAccount(caller.buf);
         let account = await rethnet.getAccountByAddress(caller.buf);
 
-        expect(account.balance).to.equal(0n);
-        expect(account.nonce).to.equal(0n);
+        expect(account?.balance).to.equal(0n);
+        expect(account?.nonce).to.equal(0n);
     });
     it('setAccountBalance', async () => {
-        let rethnet = new RethnetClient();
+        let rethnet = new Rethnet();
 
         await rethnet.insertAccount(caller.buf);
         await rethnet.setAccountBalance(caller.buf, 100n);
 
         let account = await rethnet.getAccountByAddress(caller.buf);
 
-        expect(account.balance).to.equal(100n);
-        expect(account.nonce).to.equal(0n);
+        expect(account?.balance).to.equal(100n);
+        expect(account?.nonce).to.equal(0n);
     });
     it('setAccountNonce', async () => {
-        let rethnet = new RethnetClient();
+        let rethnet = new Rethnet();
 
         await rethnet.insertAccount(caller.buf);
         await rethnet.setAccountNonce(caller.buf, 5n);
 
         let account = await rethnet.getAccountByAddress(caller.buf);
 
-        expect(account.balance).to.equal(0n);
-        expect(account.nonce).to.equal(5n);
+        expect(account?.balance).to.equal(0n);
+        expect(account?.nonce).to.equal(5n);
     });
     it('call', async () => {
-        let rethnet = new RethnetClient();
+        let rethnet = new Rethnet();
 
         // Add funds to caller
         await rethnet.insertAccount(caller.buf);
