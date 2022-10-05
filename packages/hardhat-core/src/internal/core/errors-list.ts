@@ -245,7 +245,7 @@ Please delete your node_modules, package-lock.json, reinstall your project, and 
       title: "Corrupted lockfile",
       description: `Some versions of NPM are affected [by a bug](https://github.com/npm/cli/issues/4828) that leads to corrupt lockfiles being generated.
 
-This bug can only affect you if you are installing your project without a lockfile, but with an existing node_modules.
+This bug can only affect you if you, or someone at your team, installed the project without a lockfile, but with an existing node_modules.
 
 To avoid it, please delete both your node_modules and package-lock.json, and reinstall your project.
 
