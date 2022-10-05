@@ -300,8 +300,11 @@ export class HDWalletProvider extends LocalAccountsProvider {
     count: number = 10,
     passphrase: string = ""
   ) {
+    // NOTE: If mnemonic has space or newline at the beginning or end, it will be trimmed.
+    // This is because mnemonic containing them may generate different private keys.
+    const trimmedMnemonic = mnemonic.trim();
     const privateKeys = derivePrivateKeys(
-      mnemonic,
+      trimmedMnemonic,
       hdpath,
       initialIndex,
       count,
