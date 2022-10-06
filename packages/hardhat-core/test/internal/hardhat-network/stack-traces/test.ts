@@ -888,7 +888,7 @@ describe("Stack traces", function () {
     return;
   }
 
-  before("Download solcjs binaries", async function () {
+  before("Download solc binaries", async function () {
     const solidityCompilersToDownload = [
       ...solidity05Compilers,
       ...solidity06Compilers,
