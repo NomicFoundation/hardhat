@@ -1,6 +1,6 @@
 import * as t from "io-ts";
 
-import { SignTypedDataVersion, signTypedData } from "@metamask/eth-sig-util";
+import { signTypedData, SignTypedDataVersion } from "@metamask/eth-sig-util";
 import { FeeMarketEIP1559Transaction } from "@nomicfoundation/ethereumjs-tx";
 import { EIP1193Provider, RequestArguments } from "../../../types";
 import { HardhatError } from "../errors";

@@ -1,7 +1,7 @@
 import {
   bufferToHex,
   privateToAddress,
-  toChecksumAddress
+  toChecksumAddress,
 } from "@nomicfoundation/ethereumjs-util";
 import { assert } from "chai";
 
