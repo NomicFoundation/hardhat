@@ -1177,10 +1177,6 @@ export class ErrorInferrer {
     errorCode: bigint
   ): PanicErrorStackTraceEntry {
     const lastSourceReference = this._getLastSourceReference(trace);
-    assertHardhatInvariant(
-      lastSourceReference !== undefined,
-      "Expected last source reference to be defined"
-    );
     return {
       type: StackTraceEntryType.PANIC_ERROR,
       sourceReference:

@@ -81,7 +81,7 @@ export interface RevertErrorStackTraceEntry {
 export interface PanicErrorStackTraceEntry {
   type: StackTraceEntryType.PANIC_ERROR;
   errorCode: bigint;
-  sourceReference: SourceReference;
+  sourceReference?: SourceReference;
 }
 
 export interface CustomErrorStackTraceEntry {

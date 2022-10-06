@@ -112,7 +112,6 @@ function encodeStackTraceEntry(
 
     case StackTraceEntryType.CALLSTACK_ENTRY:
     case StackTraceEntryType.REVERT_ERROR:
-    case StackTraceEntryType.PANIC_ERROR:
     case StackTraceEntryType.CUSTOM_ERROR:
     case StackTraceEntryType.FUNCTION_NOT_PAYABLE_ERROR:
     case StackTraceEntryType.INVALID_PARAMS_ERROR:
@@ -188,6 +187,7 @@ function encodeStackTraceEntry(
 
     case StackTraceEntryType.OTHER_EXECUTION_ERROR:
     case StackTraceEntryType.CONTRACT_TOO_LARGE_ERROR:
+    case StackTraceEntryType.PANIC_ERROR:
       if (stackTraceEntry.sourceReference === undefined) {
         return new SolidityCallSite(
           undefined,
