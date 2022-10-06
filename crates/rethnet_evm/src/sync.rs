@@ -3,10 +3,10 @@ mod client;
 use anyhow::anyhow;
 use bytes::Bytes;
 use primitive_types::{H160, H256, U256};
-use revm::{AccountInfo, Bytecode, Database, ExecutionResult, TxEnv, EVM};
+use revm::{AccountInfo, Bytecode, Database, DatabaseCommit, ExecutionResult, TxEnv, EVM};
 use tokio::sync::{mpsc::UnboundedReceiver, oneshot};
 
-use crate::{DatabaseDebug, LayeredDatabase, RethnetLayer, State};
+use crate::{DatabaseDebug, State};
 
 pub use self::client::Client;
 
@@ -30,50 +30,53 @@ pub enum Request {
     InsertAccount {
         address: H160,
         account_info: AccountInfo,
-        sender: oneshot::Sender<()>,
+        sender: oneshot::Sender<anyhow::Result<()>>,
     },
     InsertBlock {
         block_number: U256,
         block_hash: H256,
-        sender: oneshot::Sender<()>,
+        sender: oneshot::Sender<anyhow::Result<()>>,
     },
     RevertToCheckpoint {
         checkpoint_id: usize,
-        sender: oneshot::Sender<()>,
+        sender: oneshot::Sender<anyhow::Result<()>>,
     },
     SetAccountBalance {
         address: H160,
         balance: U256,
-        sender: oneshot::Sender<()>,
+        sender: oneshot::Sender<anyhow::Result<()>>,
     },
     SetAccountCode {
         address: H160,
         bytes: Bytes,
-        sender: oneshot::Sender<()>,
+        sender: oneshot::Sender<anyhow::Result<()>>,
     },
     SetAccountNonce {
         address: H160,
         nonce: u64,
-        sender: oneshot::Sender<()>,
+        sender: oneshot::Sender<anyhow::Result<()>>,
     },
     SetAccountStorageSlot {
         address: H160,
         index: U256,
         value: U256,
-        sender: oneshot::Sender<()>,
+        sender: oneshot::Sender<anyhow::Result<()>>,
     },
 }
 
-pub struct Rethnet {
-    evm: EVM<LayeredDatabase<RethnetLayer>>,
+pub struct Rethnet<D>
+where
+    D: Database<Error = anyhow::Error> + DatabaseCommit + DatabaseDebug<Error = anyhow::Error>,
+{
+    evm: EVM<D>,
     request_receiver: UnboundedReceiver<Request>,
 }
 
-impl Rethnet {
-    pub fn new(
-        request_receiver: UnboundedReceiver<Request>,
-        db: LayeredDatabase<RethnetLayer>,
-    ) -> Self {
+impl<D> Rethnet<D>
+where
+    D: Database<Error = anyhow::Error> + DatabaseCommit + DatabaseDebug<Error = anyhow::Error>,
+{
+    pub fn new(request_receiver: UnboundedReceiver<Request>, db: D) -> Self {
         let mut evm = EVM::new();
         evm.database(db);
 
@@ -83,10 +86,7 @@ impl Rethnet {
         }
     }
 
-    pub async fn run(
-        request_receiver: UnboundedReceiver<Request>,
-        db: LayeredDatabase<RethnetLayer>,
-    ) -> anyhow::Result<()> {
+    pub async fn run(request_receiver: UnboundedReceiver<Request>, db: D) -> anyhow::Result<()> {
         let mut rethnet = Rethnet::new(request_receiver, db);
 
         rethnet.event_loop().await
@@ -98,9 +98,12 @@ impl Rethnet {
                 Request::AccountByAddress { address, sender } => {
                     sender.send(self.evm.db().unwrap().basic(address)).is_ok()
                 }
-                Request::CreateCheckpoint { sender } => sender
-                    .send(self.evm.db().unwrap().add_layer_default().0 - 1)
-                    .is_ok(),
+                Request::CreateCheckpoint { .. } => {
+                    // sender
+                    //     .send(self.evm.db().unwrap().add_layer_default().0 - 1)
+                    //     .is_ok()
+                    todo!()
+                }
                 Request::DryRun {
                     transaction,
                     sender,
@@ -119,69 +122,65 @@ impl Rethnet {
                     address,
                     account_info,
                     sender,
-                } => {
-                    self.evm
-                        .db()
-                        .unwrap()
-                        .insert_account(&address, account_info);
-                    sender.send(()).is_ok()
-                }
+                } => sender
+                    .send(self.evm.db().unwrap().insert_account(address, account_info))
+                    .is_ok(),
                 Request::InsertBlock {
                     block_number,
                     block_hash,
                     sender,
-                } => {
-                    self.evm
-                        .db()
-                        .unwrap()
-                        .insert_block(block_number, block_hash);
-                    sender.send(()).is_ok()
-                }
-                Request::RevertToCheckpoint {
-                    checkpoint_id,
-                    sender,
-                } => {
-                    self.evm.db().unwrap().revert_to_layer(checkpoint_id);
-                    sender.send(()).is_ok()
+                } => sender
+                    .send(
+                        self.evm
+                            .db()
+                            .unwrap()
+                            .insert_block(block_number, block_hash),
+                    )
+                    .is_ok(),
+                Request::RevertToCheckpoint { .. } => {
+                    // self.evm.db().unwrap().revert_to_layer(checkpoint_id);
+                    // sender.send(()).is_ok()
+                    todo!()
                 }
                 Request::SetAccountBalance {
                     address,
                     balance,
                     sender,
-                } => {
-                    self.evm.db().unwrap().account_info_mut(&address).balance = balance;
-                    sender.send(()).is_ok()
-                }
+                } => sender
+                    .send(self.evm.db().unwrap().set_account_balance(address, balance))
+                    .is_ok(),
                 Request::SetAccountCode {
                     address,
                     bytes,
                     sender,
-                } => {
-                    self.evm.db().unwrap().account_info_mut(&address).code =
-                        Some(Bytecode::new_raw(bytes));
-                    sender.send(()).is_ok()
-                }
+                } => sender
+                    .send(
+                        self.evm
+                            .db()
+                            .unwrap()
+                            .set_account_code(address, Bytecode::new_raw(bytes)),
+                    )
+                    .is_ok(),
                 Request::SetAccountNonce {
                     address,
                     nonce,
                     sender,
-                } => {
-                    self.evm.db().unwrap().account_info_mut(&address).nonce = nonce;
-                    sender.send(()).is_ok()
-                }
+                } => sender
+                    .send(self.evm.db().unwrap().set_account_nonce(address, nonce))
+                    .is_ok(),
                 Request::SetAccountStorageSlot {
                     address,
                     index,
                     value,
                     sender,
-                } => {
-                    self.evm
-                        .db()
-                        .unwrap()
-                        .set_storage_slot_at_layer(address, index, value);
-
-                    sender.send(()).is_ok()
-                }
+                } => sender
+                    .send(
+                        self.evm
+                            .db()
+                            .unwrap()
+                            .set_account_storage_slot(address, index, value),
+                    )
+                    .is_ok(),
             };
 
             if !sent_response {

@@ -1,13 +1,13 @@
 use bytes::Bytes;
 use hashbrown::HashMap;
 use primitive_types::{H160, H256, U256};
-use revm::{AccountInfo, ExecutionResult, TxEnv};
+use revm::{AccountInfo, Database, DatabaseCommit, ExecutionResult, TxEnv};
 use tokio::sync::{
     mpsc::{unbounded_channel, UnboundedSender},
     oneshot,
 };
 
-use crate::{LayeredDatabase, RethnetLayer, State};
+use crate::{DatabaseDebug, LayeredDatabase, RethnetLayer, State};
 
 use super::{Request, Rethnet};
 
@@ -17,7 +17,14 @@ pub struct Client {
 
 impl Client {
     /// Constructs a `Rethnet` client with the provided database.
-    pub fn with_db(db: LayeredDatabase<RethnetLayer>) -> Self {
+    pub fn with_db<D>(db: D) -> Self
+    where
+        D: Database<Error = anyhow::Error>
+            + DatabaseCommit
+            + DatabaseDebug<Error = anyhow::Error>
+            + Send
+            + 'static,
+    {
         let (request_sender, request_receiver) = unbounded_channel();
 
         tokio::spawn(Rethnet::run(request_receiver, db));
@@ -63,7 +70,7 @@ impl Client {
     }
 
     /// Guarantees that a transaction will succeed.
-    pub async fn guarantee_transaction(&self, transaction: TxEnv) {
+    pub async fn guarantee_transaction(&self, transaction: TxEnv) -> anyhow::Result<()> {
         let total_gas =
             U256::from(transaction.gas_limit) * transaction.gas_price + transaction.value;
 
@@ -74,13 +81,15 @@ impl Client {
                 account_info
             } else {
                 let account_info = AccountInfo::default();
-                self.insert_account(caller, account_info.clone()).await;
+                self.insert_account(caller, account_info.clone()).await?;
                 account_info
             };
 
         if account_info.balance < total_gas {
-            self.set_account_balance(caller, total_gas).await;
+            self.set_account_balance(caller, total_gas).await?;
         }
+
+        Ok(())
     }
 
     /// Creates a state checkpoint that can be reverted to using `revert_to_checkpoint`.
@@ -95,7 +104,7 @@ impl Client {
     }
 
     /// Reverts to the specified state checkpoint.
-    pub async fn revert_to_checkpoint(&self, checkpoint_id: usize) {
+    pub async fn revert_to_checkpoint(&self, checkpoint_id: usize) -> anyhow::Result<()> {
         let (sender, receiver) = oneshot::channel();
 
         self.request_sender
@@ -105,7 +114,7 @@ impl Client {
             })
             .expect("Failed to send request");
 
-        receiver.await.expect("Rethnet unexpectedly crashed");
+        receiver.await.expect("Rethnet unexpectedly crashed")
     }
 
     /// Retrieves the account corresponding to the address, if it exists.
@@ -123,7 +132,11 @@ impl Client {
     }
 
     /// Inserts the specified account into the state.
-    pub async fn insert_account(&self, address: H160, account_info: AccountInfo) {
+    pub async fn insert_account(
+        &self,
+        address: H160,
+        account_info: AccountInfo,
+    ) -> anyhow::Result<()> {
         let (sender, receiver) = oneshot::channel();
 
         self.request_sender
@@ -134,11 +147,11 @@ impl Client {
             })
             .expect("Failed to send request");
 
-        receiver.await.expect("Rethnet unexpectedly crashed");
+        receiver.await.expect("Rethnet unexpectedly crashed")
     }
 
     /// Inserts the specified block number and hash into the state.
-    pub async fn insert_block(&self, block_number: U256, block_hash: H256) {
+    pub async fn insert_block(&self, block_number: U256, block_hash: H256) -> anyhow::Result<()> {
         let (sender, receiver) = oneshot::channel();
 
         self.request_sender
@@ -149,11 +162,11 @@ impl Client {
             })
             .expect("Failed to send request");
 
-        receiver.await.expect("Rethnet unexpectedly crashed");
+        receiver.await.expect("Rethnet unexpectedly crashed")
     }
 
     /// Sets the account balance at the specified address to the provided value.
-    pub async fn set_account_balance(&self, address: H160, balance: U256) {
+    pub async fn set_account_balance(&self, address: H160, balance: U256) -> anyhow::Result<()> {
         let (sender, receiver) = oneshot::channel();
 
         self.request_sender
@@ -164,11 +177,11 @@ impl Client {
             })
             .expect("Failed to send request");
 
-        receiver.await.expect("Rethnet unexpectedly crashed");
+        receiver.await.expect("Rethnet unexpectedly crashed")
     }
 
     /// Sets the account code at the specified address to the provided value.
-    pub async fn set_account_code(&self, address: H160, code: Bytes) {
+    pub async fn set_account_code(&self, address: H160, code: Bytes) -> anyhow::Result<()> {
         let (sender, receiver) = oneshot::channel();
 
         self.request_sender
@@ -179,11 +192,11 @@ impl Client {
             })
             .expect("Failed to send request");
 
-        receiver.await.expect("Rethnet unexpectedly crashed");
+        receiver.await.expect("Rethnet unexpectedly crashed")
     }
 
     /// Sets the account nonce at the specified address to the provided value.
-    pub async fn set_account_nonce(&self, address: H160, nonce: u64) {
+    pub async fn set_account_nonce(&self, address: H160, nonce: u64) -> anyhow::Result<()> {
         let (sender, receiver) = oneshot::channel();
 
         self.request_sender
@@ -194,11 +207,16 @@ impl Client {
             })
             .expect("Failed to send request");
 
-        receiver.await.expect("Rethnet unexpectedly crashed");
+        receiver.await.expect("Rethnet unexpectedly crashed")
     }
 
     /// Sets the storage slot at the specified address and index to the provided value.
-    pub async fn set_account_storage_slot(&self, address: H160, index: U256, value: U256) {
+    pub async fn set_account_storage_slot(
+        &self,
+        address: H160,
+        index: U256,
+        value: U256,
+    ) -> anyhow::Result<()> {
         let (sender, receiver) = oneshot::channel();
 
         self.request_sender
@@ -210,6 +228,6 @@ impl Client {
             })
             .expect("Failed to send request");
 
-        receiver.await.expect("Rethnet unexpectedly crashed");
+        receiver.await.expect("Rethnet unexpectedly crashed")
     }
 }

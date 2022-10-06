@@ -1,10 +1,9 @@
 import { expect } from 'chai';
-import { DefaultStateManager } from '@nomicfoundation/ethereumjs-statemanager'
-import { AccountData, Address } from '@nomicfoundation/ethereumjs-util'
+import { Address } from '@nomicfoundation/ethereumjs-util'
 
-import { Account, Rethnet, Transaction } from '../..'
+import { Rethnet, Transaction } from '../..'
 
-describe('Rethnet', () => {
+describe('Rethnet DB', () => {
     const caller = Address.fromString("0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266");
     const receiver = Address.fromString("0x70997970C51812dc3A010C7d01b50e0d17dc79C8");
 

@@ -184,35 +184,103 @@ impl DatabaseCommit for LayeredDatabase<RethnetLayer> {
 }
 
 impl DatabaseDebug for LayeredDatabase<RethnetLayer> {
-    fn storage_root(&mut self) -> H256 {
-        todo!()
-    }
+    type Error = anyhow::Error;
 
-    fn account_info_mut(&mut self, address: &H160) -> &mut AccountInfo {
+    fn insert_account(
+        &mut self,
+        address: H160,
+        account_info: AccountInfo,
+    ) -> Result<(), Self::Error> {
         self.last_layer_mut()
             .account_infos
-            .get_mut(address)
-            .unwrap_or_else(|| {
-                panic!(
-                    "Layered database does not contain account with address: {}.",
-                    address,
-                )
-            })
+            .insert(address, account_info);
+
+        Ok(())
     }
 
-    fn insert_account(&mut self, address: &H160, account_info: AccountInfo) {
-        self.last_layer_mut()
-            .account_infos
-            .insert(*address, account_info);
-    }
-
-    fn insert_block(&mut self, block_number: U256, block_hash: H256) {
+    fn insert_block(&mut self, block_number: U256, block_hash: H256) -> Result<(), Self::Error> {
         self.last_layer_mut()
             .block_hashes
             .insert(block_number, block_hash);
+
+        Ok(())
     }
 
-    fn set_storage_slot_at_layer(&mut self, address: H160, index: U256, value: U256) {
+    fn set_account_balance(&mut self, address: H160, balance: U256) -> Result<(), Self::Error> {
+        if let Some(account_info) = self.last_layer_mut().account_infos.get_mut(&address) {
+            account_info.balance = balance;
+        } else {
+            let mut account_info = self
+                .iter()
+                .find_map(|layer| layer.account_infos.get(&address).cloned())
+                .ok_or_else(|| anyhow!("Unknown account with address: {}", address))?;
+
+            account_info.balance = balance;
+            self.last_layer_mut().insert_account(address, account_info);
+        }
+
+        Ok(())
+    }
+
+    fn set_account_code(&mut self, address: H160, code: Bytecode) -> Result<(), Self::Error> {
+        let code_hash = code.hash();
+
+        let old_code_hash =
+            if let Some(account_info) = self.last_layer_mut().account_infos.get_mut(&address) {
+                let old_code_hash = if account_info.code_hash != KECCAK_EMPTY {
+                    Some(code_hash)
+                } else {
+                    None
+                };
+
+                account_info.code_hash = code_hash;
+
+                old_code_hash
+            } else {
+                let mut account_info = self
+                    .iter()
+                    .find_map(|layer| layer.account_infos.get(&address).cloned())
+                    .ok_or_else(|| anyhow!("Unknown account with address: {}", address))?;
+
+                account_info.code_hash = code_hash;
+                self.last_layer_mut().insert_account(address, account_info);
+
+                None
+            };
+
+        if let Some(code_hash) = old_code_hash {
+            self.last_layer_mut().contracts.remove(&code_hash);
+        }
+
+        self.last_layer_mut()
+            .contracts
+            .insert(code_hash, code.bytes().clone());
+
+        Ok(())
+    }
+
+    fn set_account_nonce(&mut self, address: H160, nonce: u64) -> Result<(), Self::Error> {
+        if let Some(account_info) = self.last_layer_mut().account_infos.get_mut(&address) {
+            account_info.nonce = nonce;
+        } else {
+            let mut account_info = self
+                .iter()
+                .find_map(|layer| layer.account_infos.get(&address).cloned())
+                .ok_or_else(|| anyhow!("Unknown account with address: {}", address))?;
+
+            account_info.nonce = nonce;
+            self.last_layer_mut().insert_account(address, account_info);
+        }
+
+        Ok(())
+    }
+
+    fn set_account_storage_slot(
+        &mut self,
+        address: H160,
+        index: U256,
+        value: U256,
+    ) -> Result<(), Self::Error> {
         match self.last_layer_mut().storage.entry(address) {
             hashbrown::hash_map::Entry::Occupied(mut entry) => {
                 entry.get_mut().insert(index, value);
@@ -223,5 +291,11 @@ impl DatabaseDebug for LayeredDatabase<RethnetLayer> {
                 entry.insert(account_storage);
             }
         }
+
+        Ok(())
+    }
+
+    fn storage_root(&mut self) -> Result<H256, Self::Error> {
+        todo!()
     }
 }

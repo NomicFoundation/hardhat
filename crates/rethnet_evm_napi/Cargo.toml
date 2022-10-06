@@ -8,6 +8,7 @@ crate-type = ["cdylib"]
 
 [dependencies]
 anyhow = "1.0.64"
+crossbeam-channel = { version = "0.5.6", default-features = false }
 napi = { version = "2.9.0", default-features = false, features = ["async", "error_anyhow", "napi8", "serde-json"] }
 napi-derive = "2.9.0"
 rethnet_evm = { version = "0.1.0-dev", path = "../rethnet_evm" }
