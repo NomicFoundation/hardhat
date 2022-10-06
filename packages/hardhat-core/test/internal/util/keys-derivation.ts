@@ -33,7 +33,7 @@ describe("Keys derivation", function () {
       assert.equal(toChecksumAddress(addressWithPass), ADDRESS_WITH_PASS);
     });
 
-    it("Should derive the right keys from '\\n{mnemonic}'", function () {
+    it("Should derive the right keys from '\n{mnemonic}'", function () {
       const mnemonic = `\n${MNEMONIC}`;
       const path = "m/123/123'";
 
