@@ -159,6 +159,7 @@ export class ErrorInferrer {
     stacktrace: SolidityStackTrace,
     functionJumpdests: Instruction[],
     jumpedIntoFunction: boolean,
+    enteredFunction: boolean,
     lastSubmessageData: SubmessageData | undefined
   ): SolidityStackTrace {
     return (
@@ -168,7 +169,8 @@ export class ErrorInferrer {
         trace,
         stacktrace,
         functionJumpdests,
-        jumpedIntoFunction
+        jumpedIntoFunction,
+        enteredFunction
       ) ??
       this._checkNonContractCalled(trace, stacktrace) ??
       this._checkSolidity063UnmappedRevert(trace, stacktrace) ??
@@ -587,7 +589,8 @@ export class ErrorInferrer {
     trace: DecodedEvmMessageTrace,
     stacktrace: SolidityStackTrace,
     functionJumpdests: Instruction[],
-    jumpedIntoFunction: boolean
+    jumpedIntoFunction: boolean,
+    enteredFunction: boolean
   ): SolidityStackTrace | undefined {
     log("Start last executed instruction heuristic");
     const lastStep = trace.steps[trace.steps.length - 1];
@@ -612,7 +615,7 @@ export class ErrorInferrer {
       return revertOrInvalidStacktrace;
     }
 
-    if (isDecodedCallTrace(trace) && !jumpedIntoFunction) {
+    if (isDecodedCallTrace(trace) && !enteredFunction) {
       if (
         this._hasFailedInsideTheFallbackFunction(trace) ||
         this._hasFailedInsideTheReceiveFunction(trace)
