@@ -298,4 +298,19 @@ impl DatabaseDebug for LayeredDatabase<RethnetLayer> {
     fn storage_root(&mut self) -> Result<H256, Self::Error> {
         todo!()
     }
+
+    fn checkpoint(&mut self) -> Result<(), Self::Error> {
+        self.add_layer_default();
+        Ok(())
+    }
+
+    fn revert(&mut self) -> Result<(), Self::Error> {
+        let last_layer_id = self.last_layer_id();
+        if last_layer_id > 0 {
+            self.revert_to_layer(last_layer_id - 1);
+            Ok(())
+        } else {
+            Err(anyhow!("No checkpoints to revert."))
+        }
+    }
 }

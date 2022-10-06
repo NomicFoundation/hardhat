@@ -5,6 +5,7 @@ mod threadsafe_function;
 
 use std::{fmt::Debug, str::FromStr};
 
+use db::{CheckpointCall, RevertCall};
 use napi::{bindgen_prelude::*, JsUnknown, NapiRaw};
 use napi_derive::napi;
 use rethnet_evm::{
@@ -276,6 +277,8 @@ impl Rethnet {
     pub fn with_callbacks(
         env: Env,
         #[napi(ts_arg_type = "() => Promise<void>")] commit_fn: JsFunction,
+        #[napi(ts_arg_type = "() => Promise<void>")] checkpoint_fn: JsFunction,
+        #[napi(ts_arg_type = "() => Promise<void>")] revert_fn: JsFunction,
         #[napi(ts_arg_type = "(address: Buffer) => Promise<Account>")]
         get_account_by_address_fn: JsFunction,
         #[napi(ts_arg_type = "(address: Buffer, index: bigint) => Promise<bigint>")]
@@ -297,6 +300,30 @@ impl Rethnet {
             unsafe { commit_fn.raw() },
             0,
             |ctx: ThreadSafeCallContext<CommitCall>| {
+                let sender = ctx.value.sender.clone();
+                let promise = ctx.callback.call::<JsUnknown>(None, &[])?;
+                let result = await_void_promise(ctx.env, promise, ctx.value.sender);
+                handle_error(sender, result)
+            },
+        )?;
+
+        let checkpoint_fn = ThreadsafeFunction::create(
+            env.raw(),
+            unsafe { checkpoint_fn.raw() },
+            0,
+            |ctx: ThreadSafeCallContext<CheckpointCall>| {
+                let sender = ctx.value.sender.clone();
+                let promise = ctx.callback.call::<JsUnknown>(None, &[])?;
+                let result = await_void_promise(ctx.env, promise, ctx.value.sender);
+                handle_error(sender, result)
+            },
+        )?;
+
+        let revert_fn = ThreadsafeFunction::create(
+            env.raw(),
+            unsafe { revert_fn.raw() },
+            0,
+            |ctx: ThreadSafeCallContext<RevertCall>| {
                 let sender = ctx.value.sender.clone();
                 let promise = ctx.callback.call::<JsUnknown>(None, &[])?;
                 let result = await_void_promise(ctx.env, promise, ctx.value.sender);
@@ -511,6 +538,8 @@ impl Rethnet {
 
         let db = CallbackDatabase::new(
             commit_fn,
+            checkpoint_fn,
+            revert_fn,
             get_account_by_address_fn,
             get_account_storage_slot_fn,
             get_storage_root_fn,
@@ -570,16 +599,17 @@ impl Rethnet {
     }
 
     #[napi]
-    pub async fn create_checkpoint(&self) -> usize {
-        self.client.create_checkpoint().await
+    pub async fn checkpoint(&self) -> Result<()> {
+        self.client
+            .checkpoint()
+            .await
+            .map_err(|e| napi::Error::new(Status::GenericFailure, e.to_string()))
     }
 
     #[napi]
-    pub async fn revert_to_checkpoint(&self, checkpoint_id: BigInt) -> Result<()> {
-        let checkpoint_id = usize::try_from(checkpoint_id.get_u64().1)
-            .expect("Checkpoint IDs should not be larger than usize");
+    pub async fn revert(&self) -> Result<()> {
         self.client
-            .revert_to_checkpoint(checkpoint_id)
+            .revert()
             .await
             .map_err(|e| napi::Error::new(Status::GenericFailure, e.to_string()))
     }

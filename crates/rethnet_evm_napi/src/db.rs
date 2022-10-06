@@ -58,8 +58,18 @@ pub struct SetAccountStorageSlotCall {
     pub sender: Sender<napi::Result<()>>,
 }
 
+pub struct CheckpointCall {
+    pub sender: Sender<napi::Result<()>>,
+}
+
+pub struct RevertCall {
+    pub sender: Sender<napi::Result<()>>,
+}
+
 pub struct CallbackDatabase {
     commit_fn: ThreadsafeFunction<CommitCall>,
+    checkpoint_fn: ThreadsafeFunction<CheckpointCall>,
+    revert_fn: ThreadsafeFunction<RevertCall>,
     get_account_by_address_fn: ThreadsafeFunction<GetAccountByAddressCall>,
     get_account_storage_slot_fn: ThreadsafeFunction<GetAccountStorageSlotCall>,
     get_storage_root_fn: ThreadsafeFunction<GetStorageRootCall>,
@@ -74,6 +84,8 @@ impl CallbackDatabase {
     #[allow(clippy::too_many_arguments)]
     pub fn new(
         commit_fn: ThreadsafeFunction<CommitCall>,
+        checkpoint_fn: ThreadsafeFunction<CheckpointCall>,
+        revert_fn: ThreadsafeFunction<RevertCall>,
         get_account_by_address_fn: ThreadsafeFunction<GetAccountByAddressCall>,
         get_account_storage_slot_fn: ThreadsafeFunction<GetAccountStorageSlotCall>,
         get_storage_root: ThreadsafeFunction<GetStorageRootCall>,
@@ -85,6 +97,8 @@ impl CallbackDatabase {
     ) -> Self {
         Self {
             commit_fn,
+            checkpoint_fn,
+            revert_fn,
             get_account_by_address_fn,
             get_account_storage_slot_fn,
             get_storage_root_fn: get_storage_root,
@@ -261,6 +275,29 @@ impl DatabaseDebug for CallbackDatabase {
             GetStorageRootCall { sender },
             ThreadsafeFunctionCallMode::Blocking,
         );
+        assert_eq!(status, Status::Ok);
+
+        receiver.recv().unwrap().map_err(|e| anyhow!(e.to_string()))
+    }
+
+    fn checkpoint(&mut self) -> Result<(), Self::Error> {
+        let (sender, receiver) = channel();
+
+        let status = self.checkpoint_fn.call(
+            CheckpointCall { sender },
+            ThreadsafeFunctionCallMode::Blocking,
+        );
+        assert_eq!(status, Status::Ok);
+
+        receiver.recv().unwrap().map_err(|e| anyhow!(e.to_string()))
+    }
+
+    fn revert(&mut self) -> Result<(), Self::Error> {
+        let (sender, receiver) = channel();
+
+        let status = self
+            .revert_fn
+            .call(RevertCall { sender }, ThreadsafeFunctionCallMode::Blocking);
         assert_eq!(status, Status::Ok);
 
         receiver.recv().unwrap().map_err(|e| anyhow!(e.to_string()))

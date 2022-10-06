@@ -12,12 +12,15 @@ describe('Hardhat DB', () => {
     const caller = Address.fromString("0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266");
     const receiver = Address.fromString("0x70997970C51812dc3A010C7d01b50e0d17dc79C8");
 
-    let db = new HardhatDB(new DefaultStateManager());
+    let db: HardhatDB;
+    let rethnet: Rethnet;
 
-    // TODO: insertBlock, setAccountCode, setAccountStorageSlot
-    it('getAccountByAddress', async () => {
-        let rethnet = Rethnet.withCallbacks(
+    beforeEach(function () {
+        db = new HardhatDB(new DefaultStateManager());
+        rethnet = Rethnet.withCallbacks(
             db.commit.bind(db),
+            db.checkpoint.bind(db),
+            db.revert.bind(db),
             db.getAccountByAddress.bind(db),
             db.getAccountStorageSlot.bind(db),
             db.getStorageRoot.bind(db),
@@ -26,7 +29,10 @@ describe('Hardhat DB', () => {
             db.setAccountCode.bind(db),
             db.setAccountNonce.bind(db),
             db.setAccountStorageSlot.bind(db));
+    });
 
+    // TODO: insertBlock, setAccountCode, setAccountStorageSlot
+    it('getAccountByAddress', async () => {
         await rethnet.insertAccount(caller.buf);
         let account = await rethnet.getAccountByAddress(caller.buf);
 
@@ -34,8 +40,6 @@ describe('Hardhat DB', () => {
         expect(account?.nonce).to.equal(0n);
     });
     it('setAccountBalance', async () => {
-        let rethnet = new Rethnet();
-
         await rethnet.insertAccount(caller.buf);
         await rethnet.setAccountBalance(caller.buf, 100n);
 
@@ -45,8 +49,6 @@ describe('Hardhat DB', () => {
         expect(account?.nonce).to.equal(0n);
     });
     it('setAccountNonce', async () => {
-        let rethnet = new Rethnet();
-
         await rethnet.insertAccount(caller.buf);
         await rethnet.setAccountNonce(caller.buf, 5n);
 
@@ -56,8 +58,6 @@ describe('Hardhat DB', () => {
         expect(account?.nonce).to.equal(5n);
     });
     it('call', async () => {
-        let rethnet = new Rethnet();
-
         // Add funds to caller
         await rethnet.insertAccount(caller.buf);
         await rethnet.setAccountBalance(caller.buf, BigInt("0xffffffff"));

@@ -92,26 +92,23 @@ impl Client {
         Ok(())
     }
 
-    /// Creates a state checkpoint that can be reverted to using `revert_to_checkpoint`.
-    pub async fn create_checkpoint(&self) -> usize {
+    /// Creates a state checkpoint that can be reverted to using [`revert`].
+    pub async fn checkpoint(&self) -> anyhow::Result<()> {
         let (sender, receiver) = oneshot::channel();
 
         self.request_sender
-            .send(Request::CreateCheckpoint { sender })
+            .send(Request::Checkpoint { sender })
             .expect("Failed to send request");
 
         receiver.await.expect("Rethnet unexpectedly crashed")
     }
 
-    /// Reverts to the specified state checkpoint.
-    pub async fn revert_to_checkpoint(&self, checkpoint_id: usize) -> anyhow::Result<()> {
+    /// Reverts to the previous checkpoint, created using [`checkpoint`].
+    pub async fn revert(&self) -> anyhow::Result<()> {
         let (sender, receiver) = oneshot::channel();
 
         self.request_sender
-            .send(Request::RevertToCheckpoint {
-                checkpoint_id,
-                sender,
-            })
+            .send(Request::Revert { sender })
             .expect("Failed to send request");
 
         receiver.await.expect("Rethnet unexpectedly crashed")

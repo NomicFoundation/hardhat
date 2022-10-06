@@ -15,6 +15,14 @@ export class HardhatDB {
         return this._stateManager.commit();
     }
 
+    public async checkpoint() {
+        return this._stateManager.checkpoint();
+    }
+
+    public async revert() {
+        return this._stateManager.revert();
+    }
+
     public async getAccountByAddress(address: Buffer): Promise<RethnetAccount> {
         const account = await this._stateManager.getAccount(new Address(address));
 

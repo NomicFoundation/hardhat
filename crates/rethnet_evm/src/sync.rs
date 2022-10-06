@@ -16,8 +16,8 @@ pub enum Request {
         address: H160,
         sender: oneshot::Sender<anyhow::Result<Option<AccountInfo>>>,
     },
-    CreateCheckpoint {
-        sender: oneshot::Sender<usize>,
+    Checkpoint {
+        sender: oneshot::Sender<anyhow::Result<()>>,
     },
     DryRun {
         transaction: TxEnv,
@@ -37,8 +37,7 @@ pub enum Request {
         block_hash: H256,
         sender: oneshot::Sender<anyhow::Result<()>>,
     },
-    RevertToCheckpoint {
-        checkpoint_id: usize,
+    Revert {
         sender: oneshot::Sender<anyhow::Result<()>>,
     },
     SetAccountBalance {
@@ -98,11 +97,8 @@ where
                 Request::AccountByAddress { address, sender } => {
                     sender.send(self.evm.db().unwrap().basic(address)).is_ok()
                 }
-                Request::CreateCheckpoint { .. } => {
-                    // sender
-                    //     .send(self.evm.db().unwrap().add_layer_default().0 - 1)
-                    //     .is_ok()
-                    todo!()
+                Request::Checkpoint { sender } => {
+                    sender.send(self.evm.db().unwrap().checkpoint()).is_ok()
                 }
                 Request::DryRun {
                     transaction,
@@ -137,11 +133,7 @@ where
                             .insert_block(block_number, block_hash),
                     )
                     .is_ok(),
-                Request::RevertToCheckpoint { .. } => {
-                    // self.evm.db().unwrap().revert_to_layer(checkpoint_id);
-                    // sender.send(()).is_ok()
-                    todo!()
-                }
+                Request::Revert { sender } => sender.send(self.evm.db().unwrap().revert()).is_ok(),
                 Request::SetAccountBalance {
                     address,
                     balance,
