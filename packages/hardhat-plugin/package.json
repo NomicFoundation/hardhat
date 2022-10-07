@@ -32,13 +32,15 @@
     "clean": "rimraf .nyc_output coverage dist tsconfig.tsbuildinfo"
   },
   "devDependencies": {
-    "@istanbuljs/nyc-config-typescript": "1.0.2",
     "@ignored/ignition-core": "^0.0.3",
+    "@istanbuljs/nyc-config-typescript": "1.0.2",
     "@nomiclabs/hardhat-ethers": "^2.0.2",
     "@types/chai": "^4.2.22",
     "@types/chai-as-promised": "^7.1.4",
     "@types/debug": "^4.1.7",
+    "@types/dompurify": "2.4.0",
     "@types/fs-extra": "^9.0.13",
+    "@types/lodash": "4.14.189",
     "@types/mermaid": "^9.1.0",
     "@types/mocha": "^9.0.0",
     "@types/node": "12.20.25",
