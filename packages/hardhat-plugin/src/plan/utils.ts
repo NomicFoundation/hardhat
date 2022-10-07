@@ -53,7 +53,11 @@ export function getSummaryLists(graph: VertexGraph): string {
 `;
 }
 
-export function graphToMermaid(graph: VertexGraph, path: string): string {
+export function graphToMermaid(
+  graph: VertexGraph,
+  path: string,
+  name: string
+): string {
   const vertexes = getVertexes(graph);
 
   const nodeDefinitions = vertexes.map((v) => `${v.id}[${v.label}]`).join("\n");
@@ -69,7 +73,7 @@ export function graphToMermaid(graph: VertexGraph, path: string): string {
 
   return `
 flowchart
-subgraph Graph
+subgraph ${name}
 direction TB
 ${nodeDefinitions}
 ${connectionDefinitions}
@@ -86,7 +90,7 @@ export function wrapInMermaidDiv(text: string): string {
 `;
 }
 
-export function getLegend(graph: VertexGraph): string {
+export function getActions(graph: VertexGraph): string {
   const vertexes = getVertexes(graph);
 
   const items = vertexes.map(
@@ -98,7 +102,7 @@ export function getLegend(graph: VertexGraph): string {
   );
 
   return `
-<ul class="legend">
+<ul class="actions">
   ${items.join("\n")}
 </ul>
 `;

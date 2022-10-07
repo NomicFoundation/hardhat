@@ -20,13 +20,13 @@
   text-align: right;
 }
 
-ul.legend {
+ul.actions {
   list-style-type: none;
   margin: 0;
   padding: 0;
 }
 
-ul.legend > li {
+ul.actions > li {
   padding: 1rem 0.5rem;
   margin: 0.5rem auto;
   border: 1px solid black;
