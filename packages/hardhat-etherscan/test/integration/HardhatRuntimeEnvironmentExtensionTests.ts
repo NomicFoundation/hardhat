@@ -38,7 +38,7 @@ describe("hardhat-etherscan configuration with multiple api keys", function () {
   it("the apiKey subfield should be the apiKeys object", function () {
     assert.deepEqual(this.env.config.etherscan.apiKey, {
       mainnet: "mainnet-testtoken",
-      ropsten: "ropsten-testtoken",
+      goerli: "goerli-testtoken",
     });
   });
 });
