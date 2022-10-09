@@ -60,7 +60,7 @@ async function main(
 
   const expectedTrace = await forkClient.getDebugTraceTransaction(txHashBuffer);
 
-  assertEqualTraces(expectedTrace, trace);
+  assertEqualTraces(trace, expectedTrace);
 }
 
 const rpcUrlArg = process.argv[2];

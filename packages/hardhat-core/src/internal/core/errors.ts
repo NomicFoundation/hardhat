@@ -6,6 +6,8 @@ import { ErrorDescriptor, ERRORS, getErrorCode } from "./errors-list";
 const inspect = Symbol.for("nodejs.util.inspect.custom");
 
 export class CustomError extends Error {
+  private _stack: string;
+
   constructor(message: string, public readonly parent?: Error) {
     // WARNING: Using super when extending a builtin class doesn't work well
     // with TS if you are compiling to a version of JavaScript that doesn't have
@@ -20,10 +22,16 @@ export class CustomError extends Error {
     if ((Error as any).captureStackTrace !== undefined) {
       (Error as any).captureStackTrace(this, this.constructor);
     }
+
+    this._stack = this.stack ?? "";
+
+    Object.defineProperty(this, "stack", {
+      get: () => this[inspect](),
+    });
   }
 
-  public [inspect]() {
-    let str = this.stack;
+  public [inspect](): string {
+    let str = this._stack;
     if (this.parent !== undefined) {
       const parentAsAny = this.parent as any;
       const causeString =
@@ -69,7 +77,7 @@ export class HardhatError extends CustomError {
 
   constructor(
     errorDescriptor: ErrorDescriptor,
-    messageArguments: Record<string, any> = {},
+    messageArguments: Record<string, string | number> = {},
     parentError?: Error
   ) {
     const prefix = `${getErrorCode(errorDescriptor)}: `;

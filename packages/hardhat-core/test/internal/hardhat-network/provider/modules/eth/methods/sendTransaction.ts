@@ -1,11 +1,11 @@
+import { bufferToHex, zeroAddress } from "@nomicfoundation/ethereumjs-util";
 import { assert } from "chai";
-import { BN, bufferToHex, toBuffer, zeroAddress } from "ethereumjs-util";
 import { Client } from "undici";
 
 import {
   numberToRpcQuantity,
   rpcQuantityToNumber,
-  rpcQuantityToBN,
+  rpcQuantityToBigInt,
 } from "../../../../../../../src/internal/core/jsonrpc/types/base-types";
 import { InvalidInputError } from "../../../../../../../src/internal/core/providers/errors";
 import { workaroundWindowsCiFailures } from "../../../../../../utils/workaround-windows-ci-failures";
@@ -60,7 +60,7 @@ describe("Eth module", function () {
         // of Ethereum: its state transition function.
         //
         // We have mostly test about logic added on top of that, and will add new ones whenever
-        // suitable. This is approximately the same as assuming that @ethereumjs/vm is correct, which
+        // suitable. This is approximately the same as assuming that @nomicfoundation/ethereumjs-vm is correct, which
         // seems reasonable, and if it weren't we should address the issues there.
 
         describe("Params validation", function () {
@@ -357,11 +357,11 @@ describe("Eth module", function () {
                 {
                   from: DEFAULT_ACCOUNTS_ADDRESSES[1],
                   to: zeroAddress(),
-                  gas: numberToRpcQuantity(DEFAULT_BLOCK_GAS_LIMIT + 1),
+                  gas: numberToRpcQuantity(DEFAULT_BLOCK_GAS_LIMIT + 1n),
                 },
               ],
               `Transaction gas limit is ${
-                DEFAULT_BLOCK_GAS_LIMIT + 1
+                DEFAULT_BLOCK_GAS_LIMIT + 1n
               } and exceeds block gas limit of ${DEFAULT_BLOCK_GAS_LIMIT}`
             );
 
@@ -373,7 +373,7 @@ describe("Eth module", function () {
                 from: DEFAULT_ACCOUNTS_ADDRESSES[1],
                 data: "0xAA",
               },
-              "Transaction reverted without a reason"
+              "VM Exception while processing transaction: invalid opcode"
             );
 
             // Out of gas. This a deployment transaction that pushes 0x00 multiple times
@@ -412,16 +412,46 @@ describe("Eth module", function () {
               },
               "reverted with reason string 'A'"
             );
+
+            // This deploys a contract that reverts with a custom error in its constructor:
+            await assertTransactionFailure(
+              this.provider,
+              {
+                from: DEFAULT_ACCOUNTS_ADDRESSES[1],
+                data: "0x6080604052348015600f57600080fd5b506040517ffbd8bc9c00000000000000000000000000000000000000000000000000000000815260040160405180910390fdfe",
+              },
+              "VM Exception while processing transaction: reverted with an unrecognized custom error"
+            );
+
+            // This deploys a contract that divides by zero in its contstructor:
+            await assertTransactionFailure(
+              this.provider,
+              {
+                from: DEFAULT_ACCOUNTS_ADDRESSES[1],
+                data: "0x6080604052348015600f57600080fd5b5060006001601c91906021565b506084565b6000602a82604b565b9150603383604b565b925082604057603f6055565b5b828204905092915050565b6000819050919050565b7f4e487b7100000000000000000000000000000000000000000000000000000000600052601260045260246000fd5b603f8060916000396000f3fe6080604052600080fdfea26469706673582212208c4325ab2d6243893246d7f86891a2b8fad695c73555169ce9c8b4faebb42cac64736f6c63430008070033",
+              },
+              "VM Exception while processing transaction: reverted with panic code 0x12 (Division or modulo division by zero)"
+            );
+
+            // This deploys a contract that induces an invalid opcode in its constructor:
+            await assertTransactionFailure(
+              this.provider,
+              {
+                from: DEFAULT_ACCOUNTS_ADDRESSES[1],
+                data: "0x6080604052348015600f57600080fd5b50336000600181548110601e57fe5b9060005260206000200160006101000a81548173ffffffffffffffffffffffffffffffffffffffff021916908373ffffffffffffffffffffffffffffffffffffffff160217905550603f8060736000396000f3fe6080604052600080fdfea264697066735822122030b617dfc8dcad16dee465096971a42c88e1814350c1c5bc2a33165078e4f50f64736f6c634300060c0033",
+              },
+              "VM Exception while processing transaction: invalid opcode"
+            );
           });
 
           describe("when there are pending transactions in the mempool", () => {
             describe("when the sent transaction fits in the first block", () => {
               it("Should throw if the sender doesn't have enough balance as a result of mining pending transactions first", async function () {
-                const gasPrice = 10;
+                const gasPrice = 10n;
 
                 const firstBlock = await getFirstBlock();
                 const wholeAccountBalance = numberToRpcQuantity(
-                  DEFAULT_ACCOUNTS_BALANCES[0].subn(gasPrice * 21_000)
+                  DEFAULT_ACCOUNTS_BALANCES[0] - 21_000n * gasPrice
                 );
                 await this.provider.send("evm_setAutomine", [false]);
                 await this.provider.send("eth_sendTransaction", [
@@ -511,7 +541,7 @@ describe("Eth module", function () {
 
                 const sendTransaction = async (
                   nonce: number,
-                  value: BN | number
+                  value: bigint | number
                 ) => {
                   return this.provider.send("eth_sendTransaction", [
                     {
@@ -532,7 +562,7 @@ describe("Eth module", function () {
                 await sendTransaction(1, 0);
                 await sendTransaction(
                   2,
-                  initialBalance.sub(gasPrice.muln(21_000).muln(3))
+                  initialBalance - 3n * 21_000n * gasPrice
                 );
 
                 await this.provider.send("evm_setAutomine", [true]);
@@ -683,7 +713,7 @@ describe("Eth module", function () {
                 from: DEFAULT_ACCOUNTS_ADDRESSES[1],
                 to: DEFAULT_ACCOUNTS_ADDRESSES[2],
                 nonce: numberToRpcQuantity(0),
-                gasPrice: numberToRpcQuantity(gasPrice.muln(2)),
+                gasPrice: numberToRpcQuantity(2n * gasPrice),
               },
             ]);
             tx1 = await this.provider.send("eth_getTransactionByHash", [
@@ -774,7 +804,7 @@ describe("Eth module", function () {
                   from: DEFAULT_ACCOUNTS_ADDRESSES[1],
                   to: DEFAULT_ACCOUNTS_ADDRESSES[2],
                   nonce: numberToRpcQuantity(0),
-                  gasPrice: numberToRpcQuantity(baseFeePerGas.addn(1)),
+                  gasPrice: numberToRpcQuantity(baseFeePerGas + 1n),
                 },
               ],
               "Replacement transaction underpriced."
@@ -788,7 +818,7 @@ describe("Eth module", function () {
                   from: DEFAULT_ACCOUNTS_ADDRESSES[1],
                   to: DEFAULT_ACCOUNTS_ADDRESSES[2],
                   nonce: numberToRpcQuantity(0),
-                  maxFeePerGas: numberToRpcQuantity(baseFeePerGas.addn(1)),
+                  maxFeePerGas: numberToRpcQuantity(baseFeePerGas + 1n),
                 },
               ],
               "Replacement transaction underpriced."
@@ -802,9 +832,7 @@ describe("Eth module", function () {
                   from: DEFAULT_ACCOUNTS_ADDRESSES[1],
                   to: DEFAULT_ACCOUNTS_ADDRESSES[2],
                   nonce: numberToRpcQuantity(0),
-                  maxPriorityFeePerGas: numberToRpcQuantity(
-                    baseFeePerGas.addn(1)
-                  ),
+                  maxPriorityFeePerGas: numberToRpcQuantity(baseFeePerGas + 1n),
                 },
               ],
               "Replacement transaction underpriced."
@@ -834,8 +862,8 @@ describe("Eth module", function () {
         });
 
         describe("Fee params default values", function () {
-          let nextBlockBaseFee: BN;
-          const ONE_GWEI = new BN(10).pow(new BN(9));
+          let nextBlockBaseFee: bigint;
+          const ONE_GWEI = 10n ** 9n;
 
           beforeEach(async function () {
             // We disable automining as enqueueing the txs is enough and we want
@@ -847,7 +875,7 @@ describe("Eth module", function () {
               ["pending", false]
             );
 
-            nextBlockBaseFee = rpcQuantityToBN(pendingBlock.baseFeePerGas!);
+            nextBlockBaseFee = rpcQuantityToBigInt(pendingBlock.baseFeePerGas!);
           });
 
           describe("When no fee param is provided", function () {
@@ -870,7 +898,7 @@ describe("Eth module", function () {
               );
               assert.equal(
                 tx.maxFeePerGas,
-                numberToRpcQuantity(nextBlockBaseFee.muln(2).add(ONE_GWEI))
+                numberToRpcQuantity(2n * nextBlockBaseFee + ONE_GWEI)
               );
             });
           });
@@ -881,7 +909,7 @@ describe("Eth module", function () {
                 {
                   from: DEFAULT_ACCOUNTS_ADDRESSES[0],
                   to: DEFAULT_ACCOUNTS_ADDRESSES[0],
-                  maxFeePerGas: numberToRpcQuantity(ONE_GWEI.muln(2)),
+                  maxFeePerGas: numberToRpcQuantity(2n * ONE_GWEI),
                 },
               ]);
 
@@ -894,10 +922,7 @@ describe("Eth module", function () {
                 tx.maxPriorityFeePerGas,
                 numberToRpcQuantity(ONE_GWEI)
               );
-              assert.equal(
-                tx.maxFeePerGas,
-                numberToRpcQuantity(ONE_GWEI.muln(2))
-              );
+              assert.equal(tx.maxFeePerGas, numberToRpcQuantity(2n * ONE_GWEI));
             });
 
             it("Should use 1gwei maxPriorityFeePerGas if maxFeePerGas is < 1gwei", async function () {
@@ -937,7 +962,7 @@ describe("Eth module", function () {
               assert.equal(tx.maxPriorityFeePerGas, numberToRpcQuantity(1000));
               assert.equal(
                 tx.maxFeePerGas,
-                numberToRpcQuantity(nextBlockBaseFee.muln(2).addn(1000))
+                numberToRpcQuantity(2n * nextBlockBaseFee + 1000n)
               );
             });
           });
@@ -1037,7 +1062,7 @@ describe("Eth module", function () {
             },
           ]);
 
-          assert.isTrue(new BN(toBuffer(balanceAfter)).isZero());
+          assert.equal(BigInt(balanceAfter), 0n);
         });
 
         it("should use the proper chain ID", async function () {

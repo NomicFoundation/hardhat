@@ -1,6 +1,6 @@
 import chai, { assert } from "chai";
 import chaiAsPromised from "chai-as-promised";
-import { ethers } from "ethers";
+import { ethers, Signer } from "ethers";
 import { NomicLabsHardhatPluginError } from "hardhat/plugins";
 import { Artifact } from "hardhat/types";
 import util from "util";
@@ -710,6 +710,14 @@ describe("Ethers plugin", function () {
         });
 
         describe("by name and address", function () {
+          it("Should throw if address does not belong to a contract", async function () {
+            const address = await signers[0].getAddress();
+            return assert.isRejected(
+              this.env.ethers.getContractAt("Greeter", address),
+              `${address} is not a contract account.`
+            );
+          });
+
           it("Should return an instance of a contract", async function () {
             const contract = await this.env.ethers.getContractAt(
               "Greeter",
@@ -933,6 +941,78 @@ describe("Ethers plugin", function () {
           });
         });
       });
+
+      describe("deployContract", function () {
+        it("should deploy and return a contract with default signer", async function () {
+          const contract = await this.env.ethers.deployContract("Greeter");
+
+          await assertContract(contract, signers[0]);
+        });
+
+        it("should deploy and return a contract with custom signer passed directly", async function () {
+          const contract = await this.env.ethers.deployContract(
+            "Greeter",
+            signers[1]
+          );
+
+          await assertContract(contract, signers[1]);
+        });
+
+        it("should deploy and return a contract with custom signer passed as an option", async function () {
+          const contract = await this.env.ethers.deployContract("Greeter", {
+            signer: signers[1],
+          });
+
+          await assertContract(contract, signers[1]);
+        });
+
+        it("should deploy with args and return a contract", async function () {
+          const contract = await this.env.ethers.deployContract(
+            "GreeterWithConstructorArg",
+            ["Hello"]
+          );
+
+          await assertContract(contract, signers[0]);
+          assert(await contract.greet(), "Hello");
+        });
+
+        it("should deploy with args and return a contract with custom signer", async function () {
+          const contract = await this.env.ethers.deployContract(
+            "GreeterWithConstructorArg",
+            ["Hello"],
+            signers[1]
+          );
+
+          await assertContract(contract, signers[1]);
+          assert(await contract.greet(), "Hello");
+        });
+
+        it("should deploy with args and return a contract with custom signer as an option", async function () {
+          const contract = await this.env.ethers.deployContract(
+            "GreeterWithConstructorArg",
+            ["Hello"],
+            { signer: signers[1] }
+          );
+
+          await assertContract(contract, signers[1]);
+          assert(await contract.greet(), "Hello");
+        });
+
+        async function assertContract(
+          contract: ethers.Contract,
+          signer: Signer
+        ) {
+          assert.containsAllKeys(contract.interface.functions, [
+            "setGreeting(string)",
+            "greet()",
+          ]);
+
+          assert.equal(
+            await contract.signer.getAddress(),
+            await signer.getAddress()
+          );
+        }
+      });
     });
   });
 
@@ -949,7 +1029,7 @@ describe("Ethers plugin", function () {
         // see also
         // https://github.com/ethers-io/ethers.js/issues/615#issuecomment-848991047
         const provider = deployedGreeter.provider as EthersProviderWrapper;
-        provider.pollingInterval = 100;
+        provider.pollingInterval = 200;
 
         let eventEmitted = false;
         deployedGreeter.on("GreetingUpdated", () => {
@@ -960,7 +1040,7 @@ describe("Ethers plugin", function () {
 
         // wait for 1.5 polling intervals for the event to fire
         await new Promise((resolve) =>
-          setTimeout(resolve, provider.pollingInterval * 1.5)
+          setTimeout(resolve, provider.pollingInterval * 2)
         );
 
         assert.equal(eventEmitted, true);

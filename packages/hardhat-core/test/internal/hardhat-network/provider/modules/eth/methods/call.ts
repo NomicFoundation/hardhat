@@ -1,17 +1,19 @@
 import { assert } from "chai";
-import { BN } from "ethereumjs-util";
 import { Client } from "undici";
 
 import {
   numberToRpcQuantity,
   rpcDataToNumber,
   rpcQuantityToNumber,
-  rpcDataToBN,
-  rpcQuantityToBN,
+  rpcDataToBigInt,
+  rpcQuantityToBigInt,
 } from "../../../../../../../src/internal/core/jsonrpc/types/base-types";
 import { getCurrentTimestamp } from "../../../../../../../src/internal/hardhat-network/provider/utils/getCurrentTimestamp";
 import { workaroundWindowsCiFailures } from "../../../../../../utils/workaround-windows-ci-failures";
-import { assertInvalidInputError } from "../../../../helpers/assertions";
+import {
+  assertAddressBalance,
+  assertInvalidInputError,
+} from "../../../../helpers/assertions";
 import {
   EXAMPLE_BLOCKHASH_CONTRACT,
   EXAMPLE_CONTRACT,
@@ -515,7 +517,7 @@ contract C {
 
           const CALLER = DEFAULT_ACCOUNTS_ADDRESSES[2];
           let contractAddress: string;
-          let ethBalance: BN;
+          let ethBalance: bigint;
 
           function deployContractAndGetEthBalance() {
             beforeEach(async function () {
@@ -524,7 +526,7 @@ contract C {
                 deploymentBytecode
               );
 
-              ethBalance = rpcQuantityToBN(
+              ethBalance = rpcQuantityToBigInt(
                 await this.provider.send("eth_getBalance", [CALLER])
               );
               assert.notEqual(ethBalance.toString(), "0");
@@ -546,14 +548,14 @@ contract C {
               ]);
 
               assert.equal(
-                rpcDataToBN(balanceResult).toString(),
+                rpcDataToBigInt(balanceResult).toString(),
                 ethBalance.toString()
               );
             });
 
             it("Should use any provided gasPrice", async function () {
-              const gasLimit = 200_000;
-              const gasPrice = 2;
+              const gasLimit = 200_000n;
+              const gasPrice = 2n;
 
               const balanceResult = await this.provider.send("eth_call", [
                 {
@@ -565,10 +567,9 @@ contract C {
                 },
               ]);
 
-              assert.isTrue(
-                rpcDataToBN(balanceResult).eq(
-                  ethBalance.subn(gasLimit * gasPrice)
-                )
+              assert.equal(
+                rpcDataToBigInt(balanceResult),
+                ethBalance - gasLimit * gasPrice
               );
             });
           });
@@ -635,7 +636,7 @@ contract C {
                 ]);
 
                 assert.equal(
-                  rpcDataToBN(balanceResult).toString(),
+                  rpcDataToBigInt(balanceResult).toString(),
                   ethBalance.toString()
                 );
               });
@@ -653,7 +654,7 @@ contract C {
                 // This doesn't change because the baseFeePerGas of block where we
                 // run the eth_call is 0
                 assert.equal(
-                  rpcDataToBN(balanceResult).toString(),
+                  rpcDataToBigInt(balanceResult).toString(),
                   ethBalance.toString()
                 );
               });
@@ -670,8 +671,9 @@ contract C {
                 ]);
 
                 // The miner will get the priority fee
-                assert.isTrue(
-                  rpcDataToBN(balanceResult).eq(ethBalance.subn(500_000 * 3))
+                assert.equal(
+                  rpcDataToBigInt(balanceResult),
+                  ethBalance - 3n * 500_000n
                 );
               });
 
@@ -687,12 +689,102 @@ contract C {
                 ]);
 
                 // The miner will get the gasPrice * gas as a normalized priority fee
-                assert.isTrue(
-                  rpcDataToBN(balanceResult).eq(ethBalance.subn(500_000 * 6))
+                assert.equal(
+                  rpcDataToBigInt(balanceResult),
+                  ethBalance - 6n * 500_000n
                 );
               });
             });
           }
+        });
+
+        describe("sender balance", function () {
+          const sender = "0x47dc9a4a1ff2436deb1828d038868561c8a5aedf";
+          let contractAddress: string;
+
+          beforeEach("deploy the contract", async function () {
+            contractAddress = await deployContract(
+              this.provider,
+              `0x${EXAMPLE_READ_CONTRACT.bytecode.object}`
+            );
+          });
+
+          it("should use the sender's balance if it's enough", async function () {
+            // fund the sender
+            await this.provider.send("eth_sendTransaction", [
+              {
+                from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+                to: sender,
+                value: numberToRpcQuantity(1_000_000),
+              },
+            ]);
+            await assertAddressBalance(this.provider, sender, 1_000_000n);
+
+            // call the contract
+            const senderBalance = await this.provider.send("eth_call", [
+              {
+                from: sender,
+                to: contractAddress,
+                data: EXAMPLE_READ_CONTRACT.selectors.senderBalance,
+                gas: numberToRpcQuantity(100_000),
+                gasPrice: numberToRpcQuantity(1),
+              },
+            ]);
+
+            assert.equal(rpcDataToNumber(senderBalance), 900_000);
+          });
+
+          it("should increase the sender's balance if it's positive but not enough", async function () {
+            // We expect that, before the transaction is executed, the balance
+            // of the sender will be increased to the minimum value that lets
+            // the VM execute the tx. This means that during the execution of
+            // the tx, msg.sender.balance will be 0.
+
+            // fund the sender
+            await this.provider.send("eth_sendTransaction", [
+              {
+                from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+                to: sender,
+                value: numberToRpcQuantity(1_000),
+              },
+            ]);
+            await assertAddressBalance(this.provider, sender, 1_000n);
+
+            // call the contract
+            const senderBalance = await this.provider.send("eth_call", [
+              {
+                from: sender,
+                to: contractAddress,
+                data: EXAMPLE_READ_CONTRACT.selectors.senderBalance,
+                gas: numberToRpcQuantity(100_000),
+                gasPrice: numberToRpcQuantity(1),
+              },
+            ]);
+
+            assert.equal(rpcDataToNumber(senderBalance), 0);
+          });
+
+          it("should increase the sender's balance if it's zero", async function () {
+            // We expect that, before the transaction is executed, the balance
+            // of the sender will be increased to the minimum value that lets
+            // the VM execute the tx. This means that during the execution of
+            // the tx, msg.sender.balance will be 0.
+
+            await assertAddressBalance(this.provider, sender, 0n);
+
+            // call the contract
+            const senderBalance = await this.provider.send("eth_call", [
+              {
+                from: sender,
+                to: contractAddress,
+                data: EXAMPLE_READ_CONTRACT.selectors.senderBalance,
+                gas: numberToRpcQuantity(100_000),
+                gasPrice: numberToRpcQuantity(1),
+              },
+            ]);
+
+            assert.equal(rpcDataToNumber(senderBalance), 0);
+          });
         });
 
         it("should use the proper chain ID", async function () {

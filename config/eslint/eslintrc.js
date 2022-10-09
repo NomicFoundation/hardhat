@@ -74,7 +74,7 @@ module.exports = {
         trailingUnderscore: "allow",
       },
       {
-        selector: "classProperty",
+        selector: ["classProperty"],
         format: ["camelCase", "UPPER_CASE"],
         leadingUnderscore: "allow",
       },
@@ -89,7 +89,11 @@ module.exports = {
         leadingUnderscore: "require",
       },
       {
-        selector: ["objectLiteralProperty", "objectLiteralMethod"],
+        selector: ["objectLiteralProperty"],
+        format: null
+      },
+      {
+        selector: ["objectLiteralMethod"],
         format: ["camelCase", "PascalCase", "snake_case", "UPPER_CASE"],
         leadingUnderscore: "allow",
       },

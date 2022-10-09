@@ -1,5 +1,3 @@
-import * as fs from "fs";
-
 import { subtask, task, types } from "../internal/core/config/config-env";
 import { HardhatError } from "../internal/core/errors";
 import { ERRORS } from "../internal/core/errors-list";
@@ -7,6 +5,7 @@ import { DependencyGraph } from "../internal/solidity/dependencyGraph";
 import { ResolvedFile, ResolvedFilesMap } from "../internal/solidity/resolver";
 import { getPackageJson } from "../internal/util/packageInfo";
 
+import { getRealPathSync } from "../internal/util/fs-utils";
 import {
   TASK_COMPILE_SOLIDITY_GET_DEPENDENCY_GRAPH,
   TASK_COMPILE_SOLIDITY_GET_SOURCE_NAMES,
@@ -44,7 +43,7 @@ function getSortedFiles(dependenciesGraph: DependencyGraph) {
   } catch (error) {
     if (error instanceof Error) {
       if (error.toString().includes("Error: There is a cycle in the graph.")) {
-        throw new HardhatError(ERRORS.BUILTIN_TASKS.FLATTEN_CYCLE, error);
+        throw new HardhatError(ERRORS.BUILTIN_TASKS.FLATTEN_CYCLE, {}, error);
       }
     }
 
@@ -97,7 +96,7 @@ subtask(TASK_FLATTEN_GET_DEPENDENCY_GRAPH)
     const sourcePaths: string[] =
       files === undefined
         ? await run(TASK_COMPILE_SOLIDITY_GET_SOURCE_PATHS)
-        : files.map((f) => fs.realpathSync(f));
+        : files.map((f) => getRealPathSync(f));
 
     const sourceNames: string[] = await run(
       TASK_COMPILE_SOLIDITY_GET_SOURCE_NAMES,

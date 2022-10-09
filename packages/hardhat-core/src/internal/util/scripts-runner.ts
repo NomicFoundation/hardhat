@@ -20,7 +20,10 @@ export async function runScript(
 
     const nodeArgs = [
       ...processExecArgv,
-      ...getTsNodeArgsIfNeeded(scriptPath),
+      ...getTsNodeArgsIfNeeded(
+        scriptPath,
+        extraEnvVars.HARDHAT_TYPECHECK === "true"
+      ),
       ...extraNodeArgs,
     ];
 
@@ -33,7 +36,7 @@ export async function runScript(
     });
 
     childProcess.once("close", (status) => {
-      log(`Script ${scriptPath} exited with status code ${status}`);
+      log(`Script ${scriptPath} exited with status code ${status ?? "null"}`);
 
       resolve(status as number);
     });
@@ -90,7 +93,10 @@ function withFixedInspectArg(argv: string[]) {
   return argv.map(fixIfInspectArg);
 }
 
-function getTsNodeArgsIfNeeded(scriptPath: string): string[] {
+function getTsNodeArgsIfNeeded(
+  scriptPath: string,
+  shouldTypecheck: boolean
+): string[] {
   if (process.execArgv.includes("ts-node/register")) {
     return [];
   }
@@ -103,7 +109,10 @@ function getTsNodeArgsIfNeeded(scriptPath: string): string[] {
 
   // If the script we are going to run is .ts we need ts-node
   if (/\.tsx?$/i.test(scriptPath)) {
-    return ["--require", "ts-node/register"];
+    return [
+      "--require",
+      `ts-node/register${shouldTypecheck ? "" : "/transpile-only"}`,
+    ];
   }
 
   return [];

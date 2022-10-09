@@ -2,7 +2,7 @@
 
 Writing automated tests when building smart contracts is of crucial importance, as your user's money is what's at stake.
 
-To test our contract, we are going to use Hardhat Network, a local Ethereum network designed for development. It comes built-in with Hardhat, and it's used as the the default network. You don't need to setup anything to use it.
+To test our contract, we are going to use Hardhat Network, a local Ethereum network designed for development. It comes built-in with Hardhat, and it's used as the default network. You don't need to setup anything to use it.
 
 In our tests we're going to use [ethers.js](https://docs.ethers.io/v5/) to interact with the Ethereum contract we built in the previous section, and we'll use [Mocha](https://mochajs.org/) as our test runner.
 
@@ -196,14 +196,14 @@ const { loadFixture } = require("@nomicfoundation/hardhat-network-helpers");
 describe("Token contract", function () {
   // We define a fixture to reuse the same setup in every test. We use
   // loadFixture to run this setup once, snapshot that state, and reset Hardhat
-  // Network to that snapshopt in every test.
+  // Network to that snapshot in every test.
   async function deployTokenFixture() {
     // Get the ContractFactory and Signers here.
     const Token = await ethers.getContractFactory("Token");
     const [owner, addr1, addr2] = await ethers.getSigners();
 
     // To deploy our contract, we just have to call Token.deploy() and await
-    // its deployed() method, which happens onces its transaction has been
+    // its deployed() method, which happens once its transaction has been
     // mined.
     const hardhatToken = await Token.deploy();
 
@@ -279,7 +279,7 @@ describe("Token contract", function () {
       );
       const initialOwnerBalance = await hardhatToken.balanceOf(owner.address);
 
-      // Try to send 1 token from addr1 (0 tokens) to owner (1000 tokens).
+      // Try to send 1 token from addr1 (0 tokens) to owner.
       // `require` will evaluate false and revert the transaction.
       await expect(
         hardhatToken.connect(addr1).transfer(owner.address, 1)

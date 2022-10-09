@@ -19,9 +19,11 @@ export const HARDHAT_NETWORK_SUPPORTED_HARDFORKS = [
   "berlin",
   "london",
   "arrowGlacier",
+  "grayGlacier",
+  "merge",
 ];
 
-export const HARDHAT_MEMPOOL_SUPPORTED_ORDERS = <const>["fifo", "priority"];
+export const HARDHAT_MEMPOOL_SUPPORTED_ORDERS = ["fifo", "priority"] as const;
 
 export const ARTIFACT_FORMAT_VERSION = "hh-sol-artifact-1";
 export const DEBUG_FILE_FORMAT_VERSION = "hh-sol-dbg-1";

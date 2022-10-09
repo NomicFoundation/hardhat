@@ -7,10 +7,9 @@ import type {
   RequestArguments,
 } from "../../../types";
 
-import Common from "@ethereumjs/common";
+import { Common } from "@nomicfoundation/ethereumjs-common";
 import chalk from "chalk";
 import debug from "debug";
-import { BN } from "ethereumjs-util";
 import { EventEmitter } from "events";
 import fsExtra from "fs-extra";
 import semver from "semver";
@@ -25,9 +24,9 @@ import {
   MethodNotSupportedError,
   ProviderError,
 } from "../../core/providers/errors";
-import { FIRST_SOLC_VERSION_SUPPORTED } from "../stack-traces/solidityTracer";
-import { Mutex } from "../vendor/await-semaphore";
+import { Mutex } from "../../vendor/await-semaphore";
 
+import { FIRST_SOLC_VERSION_SUPPORTED } from "../stack-traces/constants";
 import { MiningTimer } from "./MiningTimer";
 import { DebugModule } from "./modules/debug";
 import { EthModule } from "./modules/eth";
@@ -63,7 +62,6 @@ export class HardhatNetworkProvider
   extends EventEmitter
   implements EIP1193Provider
 {
-  private _common?: Common;
   private _node?: HardhatNode;
   private _ethModule?: EthModule;
   private _netModule?: NetModule;
@@ -73,6 +71,8 @@ export class HardhatNetworkProvider
   private _debugModule?: DebugModule;
   private _personalModule?: PersonalModule;
   private readonly _mutex = new Mutex();
+  // this field is not used here but it's used in the tests
+  private _common?: Common;
 
   constructor(
     private readonly _hardfork: string,
@@ -81,7 +81,7 @@ export class HardhatNetworkProvider
     private readonly _networkId: number,
     private readonly _blockGasLimit: number,
     private readonly _initialBaseFeePerGas: number | undefined,
-    private readonly _minGasPrice: BN,
+    private readonly _minGasPrice: bigint,
     private readonly _throwOnTransactionFailures: boolean,
     private readonly _throwOnCallFailures: boolean,
     private readonly _automine: boolean,
@@ -353,7 +353,7 @@ export class HardhatNetworkProvider
     node.removeListener("ethEvent", this._ethEventListener);
   }
 
-  private _ethEventListener = (payload: { filterId: BN; result: any }) => {
+  private _ethEventListener = (payload: { filterId: bigint; result: any }) => {
     const subscription = `0x${payload.filterId.toString(16)}`;
     const result = payload.result;
     this._emitLegacySubscriptionEvent(subscription, result);

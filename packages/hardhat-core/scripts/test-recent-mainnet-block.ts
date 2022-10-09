@@ -1,4 +1,4 @@
-import Common from "@ethereumjs/common";
+import { Common } from "@nomicfoundation/ethereumjs-common";
 
 import { makeForkClient } from "../src/internal/hardhat-network/provider/utils/makeForkClient";
 import { runFullBlock } from "../test/internal/hardhat-network/provider/utils/runFullBlock";
@@ -17,14 +17,14 @@ async function main() {
   const { forkClient } = await makeForkClient(forkConfig);
 
   const latestBlockNumber = await forkClient.getLatestBlockNumber();
-  const blockNumber = latestBlockNumber.subn(20);
+  const blockNumber = latestBlockNumber - 20n;
 
   console.log("Testing block", blockNumber.toString());
 
   const remoteCommon = new Common({ chain: 1 });
   const hardfork = remoteCommon.getHardforkByBlockNumber(blockNumber);
 
-  await runFullBlock(rpcUrl, blockNumber.toNumber(), 1, hardfork);
+  await runFullBlock(rpcUrl, blockNumber, 1, hardfork);
 }
 
 main()

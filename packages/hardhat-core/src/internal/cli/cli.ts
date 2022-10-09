@@ -4,12 +4,20 @@ import debug from "debug";
 import semver from "semver";
 import "source-map-support/register";
 
-import { TASK_COMPILE, TASK_HELP } from "../../builtin-tasks/task-names";
+import {
+  TASK_COMPILE,
+  TASK_HELP,
+  TASK_TEST,
+} from "../../builtin-tasks/task-names";
 import { TaskArguments } from "../../types";
 import { HARDHAT_NAME } from "../constants";
 import { HardhatContext } from "../context";
 import { loadConfigAndTasks } from "../core/config/config-loading";
-import { HardhatError, HardhatPluginError } from "../core/errors";
+import {
+  assertHardhatInvariant,
+  HardhatError,
+  HardhatPluginError,
+} from "../core/errors";
 import { ERRORS, getErrorCode } from "../core/errors-list";
 import { isHardhatInstalledLocallyOrLinked } from "../core/execution-mode";
 import { getEnvHardhatArguments } from "../core/params/env-variables";
@@ -27,7 +35,7 @@ import {
 } from "../util/global-dir";
 import { getPackageJson, PackageJson } from "../util/packageInfo";
 
-import { applyWorkaround } from "../util/antlr-prototype-pollution-workaround";
+import { saveFlamegraph } from "../core/flamegraph";
 import { Analytics } from "./analytics";
 import { ArgumentsParser } from "./ArgumentsParser";
 import { enableEmoji } from "./emoji";
@@ -41,9 +49,8 @@ import {
 
 const log = debug("hardhat:core:cli");
 
-applyWorkaround();
-
 const ANALYTICS_SLOW_TASK_THRESHOLD = 300;
+const SHOULD_SHOW_STACK_TRACES_BY_DEFAULT = isRunningOnCiServer();
 
 async function printVersionMessage(packageJson: PackageJson) {
   console.log(packageJson.version);
@@ -100,7 +107,9 @@ async function suggestInstallingHardhatVscode() {
 async function main() {
   // We first accept this argument anywhere, so we know if the user wants
   // stack traces before really parsing the arguments.
-  let showStackTraces = process.argv.includes("--show-stack-traces");
+  let showStackTraces =
+    process.argv.includes("--show-stack-traces") ||
+    SHOULD_SHOW_STACK_TRACES_BY_DEFAULT;
 
   try {
     const packageJson = await getPackageJson();
@@ -167,7 +176,13 @@ async function main() {
     }
 
     if (willRunWithTypescript(hardhatArguments.config)) {
-      loadTsNode(hardhatArguments.tsconfig);
+      loadTsNode(hardhatArguments.tsconfig, hardhatArguments.typecheck);
+    } else {
+      if (hardhatArguments.typecheck === true) {
+        throw new HardhatError(
+          ERRORS.ARGUMENTS.TYPECHECK_USED_IN_JAVASCRIPT_PROJECT
+        );
+      }
     }
 
     let taskName = parsedTaskName ?? TASK_HELP;
@@ -251,23 +266,37 @@ async function main() {
 
     ctx.setHardhatRuntimeEnvironment(env);
 
-    const timestampBeforeRun = new Date().getTime();
+    try {
+      const timestampBeforeRun = new Date().getTime();
 
-    await env.run(taskName, taskArguments);
+      await env.run(taskName, taskArguments);
 
-    const timestampAfterRun = new Date().getTime();
-    if (
-      timestampAfterRun - timestampBeforeRun >
-      ANALYTICS_SLOW_TASK_THRESHOLD
-    ) {
-      await hitPromise;
-    } else {
-      abortAnalytics();
+      const timestampAfterRun = new Date().getTime();
+
+      if (
+        timestampAfterRun - timestampBeforeRun >
+          ANALYTICS_SLOW_TASK_THRESHOLD &&
+        taskName !== TASK_COMPILE
+      ) {
+        await hitPromise;
+      } else {
+        abortAnalytics();
+      }
+    } finally {
+      if (hardhatArguments.flamegraph === true) {
+        assertHardhatInvariant(
+          env.entryTaskProfile !== undefined,
+          "--flamegraph was set but entryTaskProfile is not defined"
+        );
+
+        const flamegraphPath = saveFlamegraph(env.entryTaskProfile);
+        console.log("Created flamegraph file", flamegraphPath);
+      }
     }
 
     // VSCode extension prompt for installation
     if (
-      taskName === "test" &&
+      taskName === TASK_TEST &&
       !isRunningOnCiServer() &&
       process.stdout.isTTY === true
     ) {
@@ -302,7 +331,7 @@ async function main() {
       log("Couldn't report error to sentry: %O", e);
     }
 
-    if (showStackTraces) {
+    if (showStackTraces || SHOULD_SHOW_STACK_TRACES_BY_DEFAULT) {
       console.error(error);
     } else {
       if (!isHardhatError) {

@@ -9,9 +9,11 @@ export class DependencyGraph implements taskTypes.DependencyGraph {
   ): Promise<DependencyGraph> {
     const graph = new DependencyGraph();
 
-    for (const resolvedFile of resolvedFiles) {
-      await graph._addDependenciesFrom(resolver, resolvedFile);
-    }
+    await Promise.all(
+      resolvedFiles.map((resolvedFile) =>
+        graph._addDependenciesFrom(resolver, resolvedFile)
+      )
+    );
 
     return graph;
   }
@@ -167,11 +169,13 @@ export class DependencyGraph implements taskTypes.DependencyGraph {
     this._resolvedFiles.set(file.sourceName, file);
     this._dependenciesPerFile.set(file.sourceName, dependencies);
 
-    for (const imp of file.content.imports) {
-      const dependency = await resolver.resolveImport(file, imp);
-      dependencies.add(dependency);
+    await Promise.all(
+      file.content.imports.map(async (imp) => {
+        const dependency = await resolver.resolveImport(file, imp);
+        dependencies.add(dependency);
 
-      await this._addDependenciesFrom(resolver, dependency);
-    }
+        await this._addDependenciesFrom(resolver, dependency);
+      })
+    );
   }
 }

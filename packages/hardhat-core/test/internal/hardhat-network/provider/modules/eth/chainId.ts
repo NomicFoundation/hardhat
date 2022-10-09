@@ -1,5 +1,4 @@
 import { assert } from "chai";
-import { BN, toBuffer } from "ethereumjs-util";
 
 import { workaroundWindowsCiFailures } from "../../../../../utils/workaround-windows-ci-failures";
 import { EXAMPLE_CHAIN_ID_CONTRACT } from "../../../helpers/contracts";
@@ -38,9 +37,9 @@ describe("Eth module", function () {
             },
           ]);
 
-          const chainId = new BN(toBuffer(chainIdHex)).toNumber();
+          const chainId = BigInt(chainIdHex);
 
-          assert.equal(chainId, DEFAULT_CHAIN_ID);
+          assert.equal(chainId, BigInt(DEFAULT_CHAIN_ID));
         });
 
         it("should read the right chain id in a write function", async function () {
@@ -65,9 +64,9 @@ describe("Eth module", function () {
             },
           ]);
 
-          const chainId = new BN(toBuffer(chainIdHex)).toNumber();
+          const chainId = BigInt(chainIdHex);
 
-          assert.equal(chainId, DEFAULT_CHAIN_ID);
+          assert.equal(chainId, BigInt(DEFAULT_CHAIN_ID));
         });
 
         it("should read the right chain id in a view function", async function () {
@@ -84,9 +83,9 @@ describe("Eth module", function () {
             },
           ]);
 
-          const chainId = new BN(toBuffer(chainIdHex)).toNumber();
+          const chainId = BigInt(chainIdHex);
 
-          assert.equal(chainId, DEFAULT_CHAIN_ID);
+          assert.equal(chainId, BigInt(DEFAULT_CHAIN_ID));
         });
       });
     });

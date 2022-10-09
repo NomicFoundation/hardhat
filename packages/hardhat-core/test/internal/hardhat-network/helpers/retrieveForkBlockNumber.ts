@@ -13,5 +13,5 @@ export async function retrieveForkBlockNumber(
   if (!(forkBlockchain instanceof ForkBlockchain)) {
     throw new Error("Provider has not been initialised with forkConfig");
   }
-  return forkBlockchain["_forkBlockNumber"].toNumber();
+  return Number(forkBlockchain["_forkBlockNumber"]);
 }

@@ -1,9 +1,5 @@
 import * as t from "io-ts";
 
-// TS2742 workaround
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-import { BN } from "ethereumjs-util";
-
 import { optionalOrNullable } from "../../../../util/io-ts";
 import { rpcHash } from "../base-types";
 

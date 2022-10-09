@@ -1,5 +1,3 @@
-import { BN } from "ethereumjs-util";
-import * as fs from "fs";
 import cloneDeep from "lodash/cloneDeep";
 import path from "path";
 
@@ -37,6 +35,7 @@ import { HardforkName } from "../../util/hardforks";
 import { fromEntries } from "../../util/lang";
 import { assertHardhatInvariant } from "../errors";
 
+import { getRealPathSync } from "../../util/fs-utils";
 import {
   DEFAULT_SOLC_VERSION,
   defaultDefaultNetwork,
@@ -174,7 +173,7 @@ function resolveHardhatNetworkConfig(
 
   const mining = resolveMiningConfig(hardhatNetworkConfig.mining);
 
-  const minGasPrice = new BN(
+  const minGasPrice = BigInt(
     hardhatNetworkConfig.minGasPrice ??
       clonedDefaultHardhatNetworkParams.minGasPrice
   );
@@ -184,6 +183,11 @@ function resolveHardhatNetworkConfig(
     clonedDefaultHardhatNetworkParams.blockGasLimit;
 
   const gas = hardhatNetworkConfig.gas ?? blockGasLimit;
+  const gasPrice =
+    hardhatNetworkConfig.gasPrice ?? clonedDefaultHardhatNetworkParams.gasPrice;
+  const initialBaseFeePerGas =
+    hardhatNetworkConfig.initialBaseFeePerGas ??
+    clonedDefaultHardhatNetworkParams.initialBaseFeePerGas;
 
   const initialDate =
     hardhatNetworkConfig.initialDate ?? new Date().toISOString();
@@ -212,7 +216,7 @@ function resolveHardhatNetworkConfig(
     }
   }
 
-  const config = {
+  const config: HardhatNetworkConfig = {
     ...clonedDefaultHardhatNetworkParams,
     ...hardhatNetworkConfig,
     accounts,
@@ -220,6 +224,8 @@ function resolveHardhatNetworkConfig(
     mining,
     blockGasLimit,
     gas,
+    gasPrice,
+    initialBaseFeePerGas,
     initialDate,
     minGasPrice,
     chains,
@@ -228,6 +234,9 @@ function resolveHardhatNetworkConfig(
   // We do it this way because ts gets lost otherwise
   if (config.forking === undefined) {
     delete config.forking;
+  }
+  if (config.initialBaseFeePerGas === undefined) {
+    delete config.initialBaseFeePerGas;
   }
 
   return config;
@@ -266,6 +275,8 @@ function resolveHttpNetworkConfig(
     ...networkConfig,
     accounts,
     url,
+    gas: networkConfig.gas ?? defaultHttpNetworkParams.gas,
+    gasPrice: networkConfig.gasPrice ?? defaultHttpNetworkParams.gasPrice,
   };
 }
 
@@ -438,7 +449,7 @@ export function resolveProjectPaths(
   userConfigPath: string,
   userPaths: ProjectPathsUserConfig = {}
 ): ProjectPathsConfig {
-  const configFile = fs.realpathSync(userConfigPath);
+  const configFile = getRealPathSync(userConfigPath);
   const configDir = path.dirname(configFile);
 
   const root = resolvePathFrom(configDir, "", userPaths.root);
