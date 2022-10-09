@@ -53,14 +53,12 @@ export function getSummaryLists(graph: VertexGraph): string {
 `;
 }
 
-export function graphToMermaid(
-  graph: VertexGraph,
-  path: string,
-  name: string
-): string {
+export function graphToMermaid(graph: VertexGraph, name: string): string {
   const vertexes = getVertexes(graph);
 
-  const nodeDefinitions = vertexes.map((v) => `${v.id}[${v.label}]`).join("\n");
+  const nodeDefinitions = vertexes
+    .map((v) => `${v.id}["${v.label}"]`)
+    .join("\n");
 
   const connectionDefinitions = graph
     .getEdges()
@@ -68,7 +66,7 @@ export function graphToMermaid(
     .join("\n");
 
   const linkDefinitions = vertexes
-    .map((v) => `click ${v.id} "${path}/${v.id}.json" _self`)
+    .map((v) => `click ${v.id} "recipe/${v.id}.json" _self`)
     .join("\n");
 
   return `
@@ -93,13 +91,15 @@ export function wrapInMermaidDiv(text: string): string {
 export function getActions(graph: VertexGraph): string {
   const vertexes = getVertexes(graph);
 
-  const items = vertexes.map(
-    (v) => `
-<li>
-  Contract ${v.type === "HardhatContract" ? "Deploy" : v.type} ${v.label}
+  const items = vertexes.map((v) => {
+    const type = v.type === "HardhatContract" ? "Deploy" : v.type;
+
+    return `
+<li onclick="window.location.assign('recipe/${v.id}.json')">
+  Contract ${type} ${v.label}
 </li>
-`
-  );
+`;
+  });
 
   return `
 <ul class="actions">

@@ -30,4 +30,5 @@ ul.actions > li {
   padding: 1rem 0.5rem;
   margin: 0.5rem auto;
   border: 1px solid black;
+  cursor: pointer;
 }

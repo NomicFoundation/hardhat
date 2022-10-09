@@ -68,11 +68,7 @@ export class Renderer {
 
     // plan
     const mermaid = utils.wrapInMermaidDiv(
-      utils.graphToMermaid(
-        this.plan.recipeGraph,
-        this.recipePath,
-        this.recipeName
-      )
+      utils.graphToMermaid(this.plan.recipeGraph, this.recipeName)
     );
     const actions = utils.getActions(this.plan.recipeGraph);
     const plan = this._templates.plan.replace(
