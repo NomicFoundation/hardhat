@@ -301,7 +301,9 @@ export class ForkBlockchain
       } else {
         if (this._forkIgnoreUnknownTxType) {
           console.log(
-            chalk.yellow(`Ignored a tx with unknown type ${transaction.type}`)
+            chalk.yellow(
+              `Ignored a tx with unknown type ${transaction.type.toString()}`
+            )
           );
           continue;
         } else {
