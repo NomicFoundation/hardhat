@@ -109,7 +109,7 @@
     "@nomicfoundation/ethereumjs-tx": "^4.0.0",
     "@nomicfoundation/ethereumjs-util": "^8.0.0",
     "@nomicfoundation/ethereumjs-vm": "^6.0.0",
-    "@nomicfoundation/solidity-analyzer": "^0.0.3",
+    "@nomicfoundation/solidity-analyzer": "^0.1.0",
     "@sentry/node": "^5.18.1",
     "@types/bn.js": "^5.1.0",
     "@types/lru-cache": "^5.1.0",
