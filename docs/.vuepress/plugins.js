@@ -228,6 +228,15 @@ const plugins = [
     tags: ["Testing", "Mocha"],
   },
   {
+    name: "@solidstate/hardhat-txn-dot-xyz",
+    author: "Nick Barry",
+    authorUrl: "https://github.com/ItsNickBarry",
+    url:
+      "https://github.com/solidstate-network/hardhat-txn-dot-xyz/tree/master",
+    description: "Generate and execute on-chain transactions via txn.xyz",
+    tags: ["Signing", "Scripts"],
+  },
+  {
     name: "hardhat-watcher",
     author: "Xander Deseyn",
     authorUrl: "https://github.com/N1ghtly",
