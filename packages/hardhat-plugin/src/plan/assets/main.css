@@ -32,3 +32,30 @@ ul.actions > li {
   border: 1px solid black;
   cursor: pointer;
 }
+
+/* default deploy & call styles for nodes and actions */
+[id^="action-deploy"] {
+  background-color: green;
+}
+
+[id^="action-call"] {
+  background-color: yellow;
+}
+
+[class*="deploy-"] > rect {
+  fill: green !important;
+}
+
+[class*="call-"] > polygon {
+  fill: yellow !important;
+}
+
+/* style for nodes & actions when hovered */
+.hovering > rect,
+.hovering > polygon {
+  fill: blue !important;
+}
+
+li.hovering {
+  background-color: blue;
+}

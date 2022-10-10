@@ -68,7 +68,7 @@ export class Renderer {
 
     // plan
     const mermaid = utils.wrapInMermaidDiv(
-      utils.graphToMermaid(this.plan.recipeGraph, this.recipeName)
+      utils.graphToMermaid(this.plan.recipeGraph)
     );
     const actions = utils.getActions(this.plan.recipeGraph);
     const plan = this._templates.plan.replace(
@@ -84,15 +84,20 @@ export class Renderer {
 
     this._writeMainHTML(mainOutput);
 
-    // the stringify in these loops is just a first draft version
-    // they'll be full html pages with styles at some point
     for (const vertex of this.plan.recipeGraph.vertexes.values()) {
-      this._writeRecipeHTML(vertex.id, JSON.stringify(vertex, null, 2));
-    }
+      const type = vertex.type === "HardhatContract" ? "Deploy" : "Call";
+      const label = vertex.label;
 
-    // for (const vertex of this.plan.executionGraph.vertexes.values()) {
-    //   this._writeExecutionHTML(vertex.id, JSON.stringify(vertex, null, 2));
-    // }
+      const params = utils.getParams(vertex);
+
+      const vertexOutput = this._templates.vertex.replace(
+        regex,
+        utils.replacer({ type, label, networkName, networkId, params })
+      );
+
+      this._writeRecipeHTML(vertex.id, vertexOutput);
+      this._writeDebugJSON(vertex.id, JSON.stringify(vertex, null, 2));
+    }
   }
 
   /**
@@ -137,15 +142,19 @@ export class Renderer {
   }
 
   private _writeExecutionHTML(id: number, text: string): void {
-    fs.writeFileSync(`${this.executionPath}/${id}.json`, text, "utf8");
+    fs.writeFileSync(`${this.executionPath}/${id}.html`, text, "utf8");
   }
 
   private _writeRecipeHTML(id: number, text: string): void {
-    fs.writeFileSync(`${this.recipePath}/${id}.json`, text, "utf8");
+    fs.writeFileSync(`${this.recipePath}/${id}.html`, text, "utf8");
   }
 
   private _writeMainHTML(text: string): void {
     fs.writeFileSync(`${this.planPath}/index.html`, text, "utf8");
+  }
+
+  private _writeDebugJSON(id: number, text: string): void {
+    fs.writeFileSync(`${this.recipePath}/${id}.json`, text, "utf8");
   }
 
   private _loadHTMLAssets(): void {

@@ -53,12 +53,17 @@ export function getSummaryLists(graph: VertexGraph): string {
 `;
 }
 
-export function graphToMermaid(graph: VertexGraph, name: string): string {
+function wrapNode(v: VertexDescriptor): string {
+  const text = `"${v.label}"`;
+  return v.type === "HardhatContract"
+    ? `${v.id}[${text}]:::deploy-${v.id}`
+    : `${v.id}{{${text}}}:::call-${v.id}`;
+}
+
+export function graphToMermaid(graph: VertexGraph): string {
   const vertexes = getVertexes(graph);
 
-  const nodeDefinitions = vertexes
-    .map((v) => `${v.id}["${v.label}"]`)
-    .join("\n");
+  const nodeDefinitions = vertexes.map(wrapNode).join("\n");
 
   const connectionDefinitions = graph
     .getEdges()
@@ -66,17 +71,14 @@ export function graphToMermaid(graph: VertexGraph, name: string): string {
     .join("\n");
 
   const linkDefinitions = vertexes
-    .map((v) => `click ${v.id} "recipe/${v.id}.json" _self`)
+    .map((v) => `click ${v.id} "recipe/${v.id}.html" _self`)
     .join("\n");
 
   return `
 flowchart
-subgraph ${name}
-direction TB
 ${nodeDefinitions}
 ${connectionDefinitions}
 ${linkDefinitions}
-end
 `;
 }
 
@@ -95,7 +97,10 @@ export function getActions(graph: VertexGraph): string {
     const type = v.type === "HardhatContract" ? "Deploy" : v.type;
 
     return `
-<li onclick="window.location.assign('recipe/${v.id}.json')">
+<li
+  id="action-${type.toLowerCase()}-${v.id}"
+  onclick="window.location.assign('recipe/${v.id}.html')"
+>
   Contract ${type} ${v.label}
 </li>
 `;
@@ -104,6 +109,26 @@ export function getActions(graph: VertexGraph): string {
   return `
 <ul class="actions">
   ${items.join("\n")}
+</ul>
+`;
+}
+
+export function getParams(vertex: VertexDescriptor): string {
+  if (!vertex?.args || vertex.args.length === 0) {
+    return "None";
+  }
+
+  const items = vertex.args
+    .map((a: any) => {
+      return `<li>${
+        a.defaultValue ?? a._future ? `Future &lt; ${a.label} &gt; address` : a
+      }</li>`;
+    })
+    .join("\n");
+
+  return `
+<ul class="args">
+  ${items}
 </ul>
 `;
 }
