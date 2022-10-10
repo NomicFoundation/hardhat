@@ -68,7 +68,10 @@ export class Resolver {
   constructor(
     private readonly _projectRoot: string,
     private readonly _parser: Parser,
-    private readonly _readFile: (absolutePath: string) => Promise<string>
+    private readonly _readFile: (absolutePath: string) => Promise<string>,
+    private readonly _translateImportName: (
+      importName: string
+    ) => Promise<string>
   ) {}
 
   /**
@@ -99,12 +102,14 @@ export class Resolver {
   /**
    * Resolves an import from an already resolved file.
    * @param from The file were the import statement is present.
-   * @param imported The path in the import statement.
+   * @param importName The path in the import statement.
    */
   public async resolveImport(
     from: ResolvedFile,
-    imported: string
+    importName: string
   ): Promise<ResolvedFile> {
+    const imported = await this._translateImportName(importName);
+
     const scheme = this._getUriScheme(imported);
     if (scheme !== undefined) {
       throw new HardhatError(ERRORS.RESOLVER.INVALID_IMPORT_PROTOCOL, {
