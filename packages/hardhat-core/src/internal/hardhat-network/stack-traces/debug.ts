@@ -209,5 +209,11 @@ export function printStackTrace(trace: SolidityStackTrace) {
     sourceReference: flattenSourceReference(entry.sourceReference),
   }));
 
-  console.log(JSON.stringify(withFlattenedSourceReferences, undefined, 2));
+  console.log(
+    JSON.stringify(
+      withFlattenedSourceReferences,
+      (key, value) => (typeof value === "bigint" ? value.toString() : value),
+      2
+    )
+  );
 }
