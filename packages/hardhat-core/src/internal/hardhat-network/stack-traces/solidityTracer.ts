@@ -210,6 +210,7 @@ export class SolidityTracer {
               instructionToCallstackStackTraceEntry(trace.bytecode, inst)
             );
             if (nextInst.location !== undefined) {
+              enteredFunction = true;
               jumpedIntoFunction = true;
             }
             functionJumpdests.push(nextInst);
