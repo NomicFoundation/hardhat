@@ -150,6 +150,7 @@ export async function downloadCompiler(solidityVersion: string) {
   );
 
   if (!isCompilerDownloaded) {
+    console.log("Downloading solc", solidityVersion);
     await downloader.downloadCompiler(solidityVersion);
   }
 }

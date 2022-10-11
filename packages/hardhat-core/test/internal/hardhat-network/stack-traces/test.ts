@@ -901,7 +901,6 @@ describe("Stack traces", function () {
     );
 
     for (const { solidityVersion } of solidityCompilersToDownload) {
-      console.log("Downloading solc", solidityVersion);
       await downloadCompiler(solidityVersion);
     }
   });
