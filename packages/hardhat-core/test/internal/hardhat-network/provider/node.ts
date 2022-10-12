@@ -642,7 +642,7 @@ describe("HardhatNode", () => {
     });
   });
 
-  describe.only("full block", function () {
+  describe("full block", function () {
     if (ALCHEMY_URL === undefined) {
       return;
     }

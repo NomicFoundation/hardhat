@@ -144,6 +144,7 @@ function defineTest(
   ) {
     it.skip(desc, func);
   } else if (testDefinition.only !== undefined && testDefinition.only) {
+    // eslint-disable-next-line no-only-tests/no-only-tests
     it.only(desc, func);
   } else {
     it(desc, func);
@@ -853,6 +854,7 @@ describe("Stack traces", function () {
       process.exit(1);
     }
 
+    // eslint-disable-next-line no-only-tests/no-only-tests
     describe.only(`Use compiler at ${customSolcPath} with version ${customSolcVersion}`, function () {
       const compilerOptions = {
         solidityVersion: customSolcVersion,
