@@ -48,6 +48,14 @@ await expect(token.transfer(address, 0)).to.be.revertedWith(
 );
 ```
 
+Assert that a transaction reverted with a specific regular expression reason:
+
+```ts
+await expect(token.transfer(address, 0)).to.be.revertedWith(
+  /AccessControl: account .* is missing role .*/
+);
+```
+
 ### `.revertedWithCustomError`
 
 Assert that a transaction reverted with a specific [custom error](https://docs.soliditylang.org/en/v0.8.14/contracts.html#errors-and-the-revert-statement):
