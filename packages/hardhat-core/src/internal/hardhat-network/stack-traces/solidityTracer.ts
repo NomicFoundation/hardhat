@@ -185,11 +185,6 @@ export class SolidityTracer {
     // There was a jump into a function according to the sourcemaps
     let jumpedIntoFunction = false;
 
-    // There was a jump into a function, according to the previous opcodes.
-    // We have a separate flag for this because each flag is used by different
-    // heuristics.
-    let enteredFunction = false;
-
     const functionJumpdests: Instruction[] = [];
 
     let lastSubmessageData: SubmessageData | undefined;
@@ -210,7 +205,6 @@ export class SolidityTracer {
               instructionToCallstackStackTraceEntry(trace.bytecode, inst)
             );
             if (nextInst.location !== undefined) {
-              enteredFunction = true;
               jumpedIntoFunction = true;
             }
             functionJumpdests.push(nextInst);
@@ -218,18 +212,6 @@ export class SolidityTracer {
         } else if (inst.jumpType === JumpType.OUTOF_FUNCTION) {
           stacktrace.pop();
           functionJumpdests.pop();
-        } else if (inst.opcode === Opcode.JUMPDEST && stepIndex - 4 >= 0) {
-          // If we are in a JUMPDEST and there was a "close" PUSH4, we interpret
-          // it as having jumped into a function after checking its selector.
-          const maybePush4Step = trace.steps[stepIndex - 4];
-          if (isEvmStep(maybePush4Step)) {
-            const maybePush4Inst = trace.bytecode.getInstruction(
-              maybePush4Step.pc
-            );
-            if (maybePush4Inst.opcode === Opcode.PUSH4) {
-              enteredFunction = true;
-            }
-          }
         }
       } else {
         subtracesSeen += 1;
@@ -254,7 +236,6 @@ export class SolidityTracer {
       stacktrace,
       functionJumpdests,
       jumpedIntoFunction,
-      enteredFunction,
       lastSubmessageData
     );
 
