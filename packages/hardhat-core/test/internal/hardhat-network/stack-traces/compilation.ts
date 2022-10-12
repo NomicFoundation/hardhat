@@ -9,11 +9,7 @@ import { getCompilersDir } from "../../../../src/internal/util/global-dir";
 
 import { CompilerInput, CompilerOutput } from "../../../../src/types";
 
-export interface CompilerOptions {
-  solidityVersion: string;
-  compilerPath: string;
-  runs?: number;
-}
+import { SolidityCompiler } from "./compilers-list";
 
 interface SolcSourceFileToContents {
   [filename: string]: { content: string };
@@ -30,16 +26,24 @@ function getSolcSourceFileMapping(sources: string[]): SolcSourceFileToContents {
 
 function getSolcInput(
   sources: SolcSourceFileToContents,
-  compilerOptions: CompilerOptions
+  compilerOptions: SolidityCompiler
 ): CompilerInput {
+  const optimizer =
+    compilerOptions.optimizer === undefined
+      ? {
+          enabled: false,
+        }
+      : {
+          enabled: true,
+          runs: compilerOptions.optimizer.runs,
+        };
+
   return {
     language: "Solidity",
     sources,
     settings: {
-      optimizer: {
-        enabled: compilerOptions.runs !== undefined,
-        runs: compilerOptions.runs ?? 200,
-      },
+      viaIR: compilerOptions.optimizer?.viaIR ?? false,
+      optimizer,
       outputSelection: {
         "*": {
           "*": [
@@ -57,14 +61,14 @@ function getSolcInput(
 
 function getSolcInputForFiles(
   sources: string[],
-  compilerOptions: CompilerOptions
+  compilerOptions: SolidityCompiler
 ): CompilerInput {
   return getSolcInput(getSolcSourceFileMapping(sources), compilerOptions);
 }
 
 function getSolcInputForLiteral(
   source: string,
-  compilerOptions: CompilerOptions,
+  compilerOptions: SolidityCompiler,
   filename: string = "literal.sol"
 ): CompilerInput {
   return getSolcInput({ [filename]: { content: source } }, compilerOptions);
@@ -96,7 +100,7 @@ async function compile(
 
 export async function compileFiles(
   sources: string[],
-  compilerOptions: CompilerOptions
+  compilerOptions: SolidityCompiler
 ): Promise<[CompilerInput, CompilerOutput]> {
   const compiler = await getCompilerForVersion(compilerOptions.solidityVersion);
   return compile(getSolcInputForFiles(sources, compilerOptions), compiler);
@@ -104,10 +108,9 @@ export async function compileFiles(
 
 export async function compileLiteral(
   source: string,
-  compilerOptions: CompilerOptions = {
+  compilerOptions: SolidityCompiler = {
     solidityVersion: "0.8.0",
     compilerPath: "soljson-v0.8.0+commit.c7dfd78e.js",
-    runs: 1,
   },
   filename: string = "literal.sol"
 ): Promise<[CompilerInput, CompilerOutput]> {

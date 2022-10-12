@@ -177,6 +177,7 @@ export interface CompilerInput {
   language: string;
   sources: { [sourceName: string]: { content: string } };
   settings: {
+    viaIR?: boolean;
     optimizer: { runs?: number; enabled?: boolean };
     metadata?: { useLiteralContent: boolean };
     outputSelection: {
