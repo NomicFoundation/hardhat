@@ -1,4 +1,6 @@
 {
+  "skipViaIR": true,
+  "skipViaIRReason": "https://github.com/ethereum/solidity/issues/13496",
   "transactions": [
     {
       "file": "c.sol",
