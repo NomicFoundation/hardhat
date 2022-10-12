@@ -33,6 +33,9 @@ type SampleProjectTypeCreationAction =
   | Action.CREATE_JAVASCRIPT_PROJECT_ACTION
   | Action.CREATE_TYPESCRIPT_PROJECT_ACTION;
 
+const SAMPLE_PROJECT_NO_COPY_FILES = ["LICENSE.md"]; // should not be copied from the sample project
+const SAMPLE_PROJECT_NO_OVEWRITE_FILES = ["README.md"]; // should not be overwritten by copying over from sample project
+
 const HARDHAT_PACKAGE_NAME = "hardhat";
 
 const PROJECT_DEPENDENCIES: Dependencies = {
@@ -126,11 +129,15 @@ async function copySampleProject(
     sampleProjectName
   );
 
-  const sampleProjectRootFiles = fsExtra.readdirSync(sampleProjectPath);
+  const sampleProjectRootFiles = fsExtra
+    .readdirSync(sampleProjectPath)
+    .filter((f) => !SAMPLE_PROJECT_NO_COPY_FILES.includes(f));
+
   const existingFiles = sampleProjectRootFiles
     .map((f) => path.join(projectRoot, f))
     .filter((f) => fsExtra.pathExistsSync(f))
-    .map((f) => path.relative(process.cwd(), f));
+    .map((f) => path.relative(process.cwd(), f))
+    .filter((f) => !SAMPLE_PROJECT_NO_OVEWRITE_FILES.includes(f));
 
   if (existingFiles.length > 0) {
     const errorMsg = `We couldn't initialize the sample project because ${pluralize(
@@ -146,10 +153,17 @@ Please delete or move them and try again.`;
 
   await fsExtra.copy(
     path.join(packageRoot, "sample-projects", sampleProjectName),
-    projectRoot
+    projectRoot,
+    {
+      filter: (src) => {
+        const fileName = path.basename(src);
+        return !(
+          SAMPLE_PROJECT_NO_COPY_FILES.includes(fileName) ||
+          SAMPLE_PROJECT_NO_OVEWRITE_FILES.includes(fileName)
+        );
+      },
+    }
   );
-
-  await fsExtra.remove(path.join(projectRoot, "LICENSE.md"));
 }
 
 async function addGitIgnore(projectRoot: string) {
@@ -384,7 +398,9 @@ export async function createProject() {
     `\n${emoji("✨ ")}${chalk.cyan("Project created")}${emoji(" ✨")}`
   );
   console.log();
-  console.log("See the README.md file for some example tasks you can run");
+  console.log(
+    "See the README.md file or https://hardhat.org/hardhat-runner/docs/getting-started for some example tasks you can run"
+  );
   console.log();
   showStarOnGitHubMessage();
 }
