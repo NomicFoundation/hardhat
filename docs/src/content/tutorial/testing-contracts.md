@@ -203,7 +203,7 @@ describe("Token contract", function () {
     const [owner, addr1, addr2] = await ethers.getSigners();
 
     // To deploy our contract, we just have to call Token.deploy() and await
-    // its deployed() method, which happens onces its transaction has been
+    // its deployed() method, which happens once its transaction has been
     // mined.
     const hardhatToken = await Token.deploy();
 
@@ -279,7 +279,7 @@ describe("Token contract", function () {
       );
       const initialOwnerBalance = await hardhatToken.balanceOf(owner.address);
 
-      // Try to send 1 token from addr1 (0 tokens) to owner (1000 tokens).
+      // Try to send 1 token from addr1 (0 tokens) to owner.
       // `require` will evaluate false and revert the transaction.
       await expect(
         hardhatToken.connect(addr1).transfer(owner.address, 1)

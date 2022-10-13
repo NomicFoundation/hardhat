@@ -74,7 +74,7 @@ Hardhat and its plugins are optimized for keeping startup time low.
 
 This is done by selectively requiring dependencies when needed using `import` or `require` following this criteria:
 
-1. If something is only imported for its type, and NOT its value, use a top-level `import ... from "mod"`
+1. If something is only imported for its type, and NOT its value, use a top-level `import ... from "mod"`.
 1. If a module is in the "Essential modules" list below, use a top-level `import ... from "mod"`.
 1. Otherwise, use `await import` or `require` locally in the functions that use it:
    1. If the function is sync, use node's `require`

@@ -1,5 +1,12 @@
 # @nomiclabs/hardhat-etherscan
 
+## 3.1.1
+
+### Patch Changes
+
+- adb075d42: Added gnosis as an alias for xdai (thanks @alebanzas!)
+- a30dcee88: Added Optimism Goerli and removed Optimism Kovan
+
 ## 3.1.0
 
 ### Minor Changes

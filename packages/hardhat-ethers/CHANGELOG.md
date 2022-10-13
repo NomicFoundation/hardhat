@@ -1,5 +1,11 @@
 # @nomiclabs/hardhat-ethers
 
+## 2.2.0
+
+### Minor Changes
+
+- f0310ec91: Add a `deployContract` helper
+
 ## 2.1.1
 
 ### Patch Changes

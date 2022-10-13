@@ -2,6 +2,7 @@ import { toBuffer } from "@nomicfoundation/ethereumjs-util";
 import { VM } from "@nomicfoundation/ethereumjs-vm";
 import { assert } from "chai";
 import fs from "fs";
+import fsExtra from "fs-extra";
 import path from "path";
 import semver from "semver";
 
@@ -40,7 +41,7 @@ import {
   compileFiles,
   COMPILER_DOWNLOAD_TIMEOUT,
   CompilerOptions,
-  downloadSolc,
+  downloadCompiler,
 } from "./compilation";
 import {
   encodeCall,
@@ -143,6 +144,7 @@ function defineTest(
   ) {
     it.skip(desc, func);
   } else if (testDefinition.only !== undefined && testDefinition.only) {
+    // eslint-disable-next-line no-only-tests/no-only-tests
     it.only(desc, func);
   } else {
     it(desc, func);
@@ -200,11 +202,12 @@ async function compileIfNecessary(
     .map((s) => fs.statSync(s).ctimeMs)
     .reduce((t1, t2) => Math.max(t1, t2), 0);
 
-  const artifacts = path.join(testDir, "artifacts");
+  // save the artifacts in test-files/artifacts/<path-to-test-dir>
+  const testFilesDir = path.join(__dirname, "test-files");
+  const relativeTestDir = path.relative(testFilesDir, testDir);
+  const artifacts = path.join(testFilesDir, "artifacts", relativeTestDir);
 
-  if (!fs.existsSync(artifacts)) {
-    fs.mkdirSync(artifacts);
-  }
+  fsExtra.ensureDirSync(artifacts);
 
   const optimizerModifier =
     runs !== undefined ? `optimized-with-runs-${runs}` : "unoptimized";
@@ -805,7 +808,7 @@ const solidityCompilers: SolidityCompiler[] = [
 ];
 
 const onlyLatestSolcVersions =
-  process.env.HARDHAT_TESTS_ONLY_LATEST_SOLC_VERSIONS !== undefined;
+  process.env.HARDHAT_TESTS_ALL_SOLC_VERSIONS === undefined;
 
 const filterSolcVersionBy =
   (versionRange: string) =>
@@ -851,6 +854,7 @@ describe("Stack traces", function () {
       process.exit(1);
     }
 
+    // eslint-disable-next-line no-only-tests/no-only-tests
     describe.only(`Use compiler at ${customSolcPath} with version ${customSolcVersion}`, function () {
       const compilerOptions = {
         solidityVersion: customSolcVersion,
@@ -886,13 +890,21 @@ describe("Stack traces", function () {
     return;
   }
 
-  before("Download solcjs binaries", async function () {
-    const paths = new Set(solidityCompilers.map((c) => c.compilerPath));
+  before("Download solc binaries", async function () {
+    const solidityCompilersToDownload = [
+      ...solidity05Compilers,
+      ...solidity06Compilers,
+      ...solidity07Compilers,
+      ...solidity08Compilers,
+    ];
 
-    this.timeout(paths.size * COMPILER_DOWNLOAD_TIMEOUT);
+    this.timeout(
+      solidityCompilersToDownload.length * COMPILER_DOWNLOAD_TIMEOUT
+    );
 
-    for (const p of paths) {
-      await downloadSolc(p);
+    for (const { solidityVersion } of solidityCompilersToDownload) {
+      console.log("Downloading solc", solidityVersion);
+      await downloadCompiler(solidityVersion);
     }
   });
 

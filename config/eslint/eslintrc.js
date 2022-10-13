@@ -9,6 +9,7 @@ module.exports = {
   plugins: [
     "@nomiclabs/eslint-plugin-hardhat-internal-rules",
     "eslint-plugin-import",
+    "no-only-tests",
     "@typescript-eslint",
   ],
   rules: {
@@ -192,6 +193,7 @@ module.exports = {
     "no-extra-bind": "error",
     "no-new-func": "error",
     "no-new-wrappers": "error",
+    "no-only-tests/no-only-tests": "error",
     "no-return-await": "off",
     "@typescript-eslint/return-await": "error",
     "no-sequences": "error",
