@@ -2,7 +2,7 @@ export interface VertexDescriptor {
   id: number;
   label: string;
   type: string;
-  args?: Array<any>;
+  args?: any[];
 }
 
 export type AdjacencyList = Map<number, Set<number>>;
