@@ -1,23 +1,79 @@
+use std::future::Future;
+
 use bytes::Bytes;
-use hashbrown::HashMap;
 use primitive_types::{H160, H256, U256};
 use revm::{AccountInfo, Database, DatabaseCommit, ExecutionResult, TxEnv};
-use tokio::sync::{
-    mpsc::{unbounded_channel, UnboundedSender},
-    oneshot,
+use tokio::{
+    runtime::{Builder, Runtime},
+    sync::{
+        mpsc::{unbounded_channel, UnboundedSender},
+        oneshot,
+    },
+    task::JoinHandle,
 };
 
-use crate::{DatabaseDebug, LayeredDatabase, RethnetLayer, State};
+use crate::{DatabaseDebug, State};
 
-use super::{Request, Rethnet};
+use super::{DatabaseMutRequest, DatabaseRequest, DebugRequest, Request, Rethnet};
 
 pub struct Client {
     request_sender: UnboundedSender<Request>,
+    rethnet_handle: Option<JoinHandle<anyhow::Result<()>>>,
+    runtime: Runtime,
 }
 
 impl Client {
-    /// Constructs a `Rethnet` client with the provided database.
-    pub fn with_db<D>(db: D) -> Self
+    fn new<F>(request_sender: UnboundedSender<Request>, future: F) -> anyhow::Result<Self>
+    where
+        F: Future<Output = anyhow::Result<()>> + Send + 'static,
+    {
+        let runtime = Builder::new_multi_thread().build()?;
+        let rethnet_handle = Some(runtime.spawn(future));
+
+        Ok(Self {
+            request_sender,
+            rethnet_handle,
+            runtime,
+        })
+    }
+    /// Constructs [`Rethnet`] with the provided database and runs it asynchronously.
+    pub fn with_db<D>(db: D) -> anyhow::Result<Self>
+    where
+        D: Database<Error = anyhow::Error> + Send + 'static,
+    {
+        let (request_sender, request_receiver) = unbounded_channel();
+
+        Self::new(request_sender, async {
+            Rethnet::new(request_receiver, db).run().await
+        })
+    }
+
+    /// Constructs [`Rethnet`] with the provided database and runs it asynchronously.
+    pub fn with_db_debug<D>(db: D) -> anyhow::Result<Self>
+    where
+        D: Database<Error = anyhow::Error> + DatabaseDebug<Error = anyhow::Error> + Send + 'static,
+    {
+        let (request_sender, request_receiver) = unbounded_channel();
+
+        Self::new(request_sender, async {
+            Rethnet::new(request_receiver, db).run_debug().await
+        })
+    }
+
+    /// Constructs [`Rethnet`] with the provided database and runs it asynchronously.
+    pub fn with_db_mut<D>(db: D) -> anyhow::Result<Self>
+    where
+        D: Database<Error = anyhow::Error> + DatabaseCommit + Send + 'static,
+    {
+        let (request_sender, request_receiver) = unbounded_channel();
+
+        Self::new(request_sender, async {
+            Rethnet::new(request_receiver, db).run_mut().await
+        })
+    }
+
+    /// Constructs [`Rethnet`] with the provided database and runs it asynchronously.
+    pub fn with_db_mut_debug<D>(db: D) -> anyhow::Result<Self>
     where
         D: Database<Error = anyhow::Error>
             + DatabaseCommit
@@ -27,18 +83,9 @@ impl Client {
     {
         let (request_sender, request_receiver) = unbounded_channel();
 
-        tokio::spawn(Rethnet::run(request_receiver, db));
-
-        Self { request_sender }
-    }
-
-    /// Constructs a `Rethnet` client with the provided genesis accounts.
-    pub fn with_genesis_accounts(genesis_accounts: HashMap<H160, AccountInfo>) -> Self {
-        let mut db =
-            LayeredDatabase::with_layer(RethnetLayer::with_genesis_accounts(genesis_accounts));
-        db.add_layer_default();
-
-        Self::with_db(db)
+        Self::new(request_sender, async {
+            Rethnet::new(request_receiver, db).run_mut_debug().await
+        })
     }
 
     /// Runs a transaction with committing the state.
@@ -46,10 +93,10 @@ impl Client {
         let (sender, receiver) = oneshot::channel();
 
         self.request_sender
-            .send(Request::DryRun {
+            .send(Request::Database(DatabaseRequest::DryRun {
                 transaction,
                 sender,
-            })
+            }))
             .expect("Failed to send request");
 
         receiver.await.expect("Rethnet unexpectedly crashed")
@@ -60,10 +107,10 @@ impl Client {
         let (sender, receiver) = oneshot::channel();
 
         self.request_sender
-            .send(Request::Run {
+            .send(Request::DatabaseMut(DatabaseMutRequest::Run {
                 transaction,
                 sender,
-            })
+            }))
             .expect("Failed to send request");
 
         receiver.await.expect("Rethnet unexpectedly crashed")
@@ -97,7 +144,7 @@ impl Client {
         let (sender, receiver) = oneshot::channel();
 
         self.request_sender
-            .send(Request::Checkpoint { sender })
+            .send(Request::Debug(DebugRequest::Checkpoint { sender }))
             .expect("Failed to send request");
 
         receiver.await.expect("Rethnet unexpectedly crashed")
@@ -108,7 +155,7 @@ impl Client {
         let (sender, receiver) = oneshot::channel();
 
         self.request_sender
-            .send(Request::Revert { sender })
+            .send(Request::Debug(DebugRequest::Revert { sender }))
             .expect("Failed to send request");
 
         receiver.await.expect("Rethnet unexpectedly crashed")
@@ -122,7 +169,10 @@ impl Client {
         let (sender, receiver) = oneshot::channel();
 
         self.request_sender
-            .send(Request::AccountByAddress { address, sender })
+            .send(Request::Database(DatabaseRequest::AccountByAddress {
+                address,
+                sender,
+            }))
             .expect("Failed to send request");
 
         receiver.await.expect("Rethnet unexpectedly crashed")
@@ -137,11 +187,11 @@ impl Client {
         let (sender, receiver) = oneshot::channel();
 
         self.request_sender
-            .send(Request::InsertAccount {
+            .send(Request::Debug(DebugRequest::InsertAccount {
                 address,
                 account_info,
                 sender,
-            })
+            }))
             .expect("Failed to send request");
 
         receiver.await.expect("Rethnet unexpectedly crashed")
@@ -152,11 +202,11 @@ impl Client {
         let (sender, receiver) = oneshot::channel();
 
         self.request_sender
-            .send(Request::InsertBlock {
+            .send(Request::Debug(DebugRequest::InsertBlock {
                 block_number,
                 block_hash,
                 sender,
-            })
+            }))
             .expect("Failed to send request");
 
         receiver.await.expect("Rethnet unexpectedly crashed")
@@ -167,11 +217,11 @@ impl Client {
         let (sender, receiver) = oneshot::channel();
 
         self.request_sender
-            .send(Request::SetAccountBalance {
+            .send(Request::Debug(DebugRequest::SetAccountBalance {
                 address,
                 balance,
                 sender,
-            })
+            }))
             .expect("Failed to send request");
 
         receiver.await.expect("Rethnet unexpectedly crashed")
@@ -182,11 +232,11 @@ impl Client {
         let (sender, receiver) = oneshot::channel();
 
         self.request_sender
-            .send(Request::SetAccountCode {
+            .send(Request::Debug(DebugRequest::SetAccountCode {
                 address,
                 bytes: code,
                 sender,
-            })
+            }))
             .expect("Failed to send request");
 
         receiver.await.expect("Rethnet unexpectedly crashed")
@@ -197,11 +247,11 @@ impl Client {
         let (sender, receiver) = oneshot::channel();
 
         self.request_sender
-            .send(Request::SetAccountNonce {
+            .send(Request::Debug(DebugRequest::SetAccountNonce {
                 address,
                 nonce,
                 sender,
-            })
+            }))
             .expect("Failed to send request");
 
         receiver.await.expect("Rethnet unexpectedly crashed")
@@ -217,14 +267,29 @@ impl Client {
         let (sender, receiver) = oneshot::channel();
 
         self.request_sender
-            .send(Request::SetAccountStorageSlot {
+            .send(Request::Debug(DebugRequest::SetAccountStorageSlot {
                 address,
                 index,
                 value,
                 sender,
-            })
+            }))
             .expect("Failed to send request");
 
         receiver.await.expect("Rethnet unexpectedly crashed")
+    }
+}
+
+impl Drop for Client {
+    fn drop(&mut self) {
+        if let Some(handle) = self.rethnet_handle.take() {
+            self.request_sender
+                .send(Request::Terminate)
+                .expect("Failed to send request");
+
+            self.runtime
+                .block_on(handle)
+                .unwrap()
+                .expect("Rethnet closed unexpectedly");
+        }
     }
 }

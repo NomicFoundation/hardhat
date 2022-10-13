@@ -4,7 +4,7 @@ import {
 } from "@nomicfoundation/ethereumjs-statemanager";
 import { Address } from '@nomicfoundation/ethereumjs-util'
 
-import { Rethnet, Transaction } from '../..'
+import { DatabaseCallbacks, DatabaseCommitCallbacks, DatabaseDebugCallbacks, Rethnet, Transaction } from '../..'
 import { HardhatDB } from '../../db';
 
 
@@ -17,18 +17,22 @@ describe('Hardhat DB', () => {
 
     beforeEach(function () {
         db = new HardhatDB(new DefaultStateManager());
-        rethnet = Rethnet.withCallbacks(
-            db.commit.bind(db),
-            db.checkpoint.bind(db),
-            db.revert.bind(db),
-            db.getAccountByAddress.bind(db),
-            db.getAccountStorageSlot.bind(db),
-            db.getStorageRoot.bind(db),
-            db.insertAccount.bind(db),
-            db.setAccountBalance.bind(db),
-            db.setAccountCode.bind(db),
-            db.setAccountNonce.bind(db),
-            db.setAccountStorageSlot.bind(db));
+
+        rethnet = Rethnet.withCallbacks({
+            getAccountByAddressFn: HardhatDB.prototype.getAccountByAddress.bind(db),
+            getAccountStorageSlotFn: HardhatDB.prototype.getAccountStorageSlot.bind(db)
+        }, {
+            commitFn: HardhatDB.prototype.commit.bind(db)
+        }, {
+            checkpointFn: HardhatDB.prototype.checkpoint.bind(db),
+            revertFn: HardhatDB.prototype.revert.bind(db),
+            getStorageRootFn: HardhatDB.prototype.getStorageRoot.bind(db),
+            insertAccountFn: HardhatDB.prototype.insertAccount.bind(db),
+            setAccountBalanceFn: HardhatDB.prototype.setAccountBalance.bind(db),
+            setAccountCodeFn: HardhatDB.prototype.setAccountCode.bind(db),
+            setAccountNonceFn: HardhatDB.prototype.setAccountNonce.bind(db),
+            setAccountStorageSlotFn: HardhatDB.prototype.setAccountStorageSlot.bind(db)
+        });
     });
 
     // TODO: insertBlock, setAccountCode, setAccountStorageSlot

@@ -5,26 +5,17 @@ mod threadsafe_function;
 
 use std::{fmt::Debug, str::FromStr};
 
-use db::{CheckpointCall, RevertCall};
-use napi::{bindgen_prelude::*, JsUnknown, NapiRaw};
+use db::{JsDatabaseCommitInner, JsDatabaseDebugInner};
+use napi::{bindgen_prelude::*, Status};
 use napi_derive::napi;
 use rethnet_evm::{
-    sync::Client, AccountInfo, Bytes, CreateScheme, HashMap, LayeredDatabase, TransactTo, TxEnv,
-    H160, H256, U256,
+    sync::Client, AccountInfo, Bytes, CreateScheme, HashMap, LayeredDatabase, RethnetLayer,
+    TransactTo, TxEnv, H160, H256, U256,
 };
-use secp256k1::{PublicKey, Secp256k1, SecretKey};
+use secp256k1::{PublicKey, Secp256k1, SecretKey, SignOnly};
 use sha3::{Digest, Keccak256};
 
-use crate::{
-    cast::TryCast,
-    db::{
-        CallbackDatabase, CommitCall, GetAccountByAddressCall, GetAccountStorageSlotCall,
-        GetStorageRootCall, InsertAccountCall, SetAccountBalanceCall, SetAccountCodeCall,
-        SetAccountNonceCall, SetAccountStorageSlotCall,
-    },
-    sync::{await_promise, await_void_promise, handle_error},
-    threadsafe_function::{ThreadSafeCallContext, ThreadsafeFunction},
-};
+use crate::{cast::TryCast, db::JsDatabase};
 
 #[napi(object)]
 pub struct Account {
@@ -66,6 +57,25 @@ impl From<AccountInfo> for Account {
                 .map(|code| Buffer::from(code.bytes().as_ref())),
         }
     }
+}
+
+fn private_key_to_address(
+    context: &Secp256k1<SignOnly>,
+    private_key: String,
+) -> napi::Result<H160> {
+    private_to_public_key(context, private_key).map(public_key_to_address)
+}
+
+fn private_to_public_key(
+    context: &Secp256k1<SignOnly>,
+    private_key: String,
+) -> napi::Result<secp256k1::PublicKey> {
+    let private_key = private_key.strip_prefix("0x").unwrap_or(&private_key);
+
+    SecretKey::from_str(private_key).map_or_else(
+        |e| Err(napi::Error::new(Status::InvalidArg, e.to_string())),
+        |secret_key| Ok(secret_key.public_key(context)),
+    )
 }
 
 fn public_key_to_address(public_key: PublicKey) -> H160 {
@@ -257,6 +267,40 @@ impl TryFrom<(rethnet_evm::ExecutionResult, rethnet_evm::State)> for Transaction
     }
 }
 
+#[napi(object)]
+pub struct DatabaseCallbacks {
+    #[napi(ts_type = "(address: Buffer) => Promise<Account>")]
+    pub get_account_by_address_fn: JsFunction,
+    #[napi(ts_type = "(address: Buffer, index: bigint) => Promise<bigint>")]
+    pub get_account_storage_slot_fn: JsFunction,
+}
+
+#[napi(object)]
+pub struct DatabaseCommitCallbacks {
+    #[napi(ts_type = "() => Promise<void>")]
+    pub commit_fn: JsFunction,
+}
+
+#[napi(object)]
+pub struct DatabaseDebugCallbacks {
+    #[napi(ts_type = "() => Promise<void>")]
+    pub checkpoint_fn: JsFunction,
+    #[napi(ts_type = "() => Promise<void>")]
+    pub revert_fn: JsFunction,
+    #[napi(ts_type = "() => Promise<Buffer>")]
+    pub get_storage_root_fn: JsFunction,
+    #[napi(ts_type = "(address: Buffer, account: Account) => Promise<void>")]
+    pub insert_account_fn: JsFunction,
+    #[napi(ts_type = "(address: Buffer, balance: bigint) => Promise<void>")]
+    pub set_account_balance_fn: JsFunction,
+    #[napi(ts_type = "(address: Buffer, code: Buffer) => Promise<void>")]
+    pub set_account_code_fn: JsFunction,
+    #[napi(ts_type = "(address: Buffer, nonce: bigint) => Promise<void>")]
+    pub set_account_nonce_fn: JsFunction,
+    #[napi(ts_type = "(address: Buffer, index: bigint, value: bigint) => Promise<void>")]
+    pub set_account_storage_slot_fn: JsFunction,
+}
+
 #[napi]
 pub struct Rethnet {
     client: Client,
@@ -266,293 +310,30 @@ pub struct Rethnet {
 impl Rethnet {
     #[allow(clippy::new_without_default)]
     #[napi(constructor)]
-    pub fn new() -> Self {
-        Self {
-            client: Client::with_db(LayeredDatabase::default()),
-        }
+    pub fn new() -> napi::Result<Self> {
+        Ok(Self {
+            client: Client::with_db_mut_debug(LayeredDatabase::default())?,
+        })
     }
 
-    #[allow(clippy::too_many_arguments)]
     #[napi(factory)]
     pub fn with_callbacks(
         env: Env,
-        #[napi(ts_arg_type = "() => Promise<void>")] commit_fn: JsFunction,
-        #[napi(ts_arg_type = "() => Promise<void>")] checkpoint_fn: JsFunction,
-        #[napi(ts_arg_type = "() => Promise<void>")] revert_fn: JsFunction,
-        #[napi(ts_arg_type = "(address: Buffer) => Promise<Account>")]
-        get_account_by_address_fn: JsFunction,
-        #[napi(ts_arg_type = "(address: Buffer, index: bigint) => Promise<bigint>")]
-        get_account_storage_slot_fn: JsFunction,
-        #[napi(ts_arg_type = "() => Promise<Buffer>")] get_storage_root_fn: JsFunction,
-        #[napi(ts_arg_type = "(address: Buffer, account: Account) => Promise<void>")]
-        insert_account_fn: JsFunction,
-        #[napi(ts_arg_type = "(address: Buffer, balance: bigint) => Promise<void>")]
-        set_account_balance_fn: JsFunction,
-        #[napi(ts_arg_type = "(address: Buffer, code: Buffer) => Promise<void>")]
-        set_account_code_fn: JsFunction,
-        #[napi(ts_arg_type = "(address: Buffer, nonce: bigint) => Promise<void>")]
-        set_account_nonce_fn: JsFunction,
-        #[napi(ts_arg_type = "(address: Buffer, index: bigint, value: bigint) => Promise<void>")]
-        set_account_storage_slot_fn: JsFunction,
+        db_callbacks: DatabaseCallbacks,
+        db_mut_callbacks: Option<DatabaseCommitCallbacks>,
+        db_debug_callbacks: Option<DatabaseDebugCallbacks>,
     ) -> napi::Result<Self> {
-        let commit_fn = ThreadsafeFunction::create(
-            env.raw(),
-            unsafe { commit_fn.raw() },
-            0,
-            |ctx: ThreadSafeCallContext<CommitCall>| {
-                let sender = ctx.value.sender.clone();
-                let promise = ctx.callback.call::<JsUnknown>(None, &[])?;
-                let result = await_void_promise(ctx.env, promise, ctx.value.sender);
-                handle_error(sender, result)
-            },
-        )?;
+        let db = JsDatabase::new(&env, db_callbacks)?;
+        let db_commit = db_mut_callbacks.map_or(Ok(None), |db| {
+            JsDatabaseCommitInner::new(&env, db).map(Some)
+        })?;
+        let db_debug = db_debug_callbacks
+            .map_or(Ok(None), |db| JsDatabaseDebugInner::new(&env, db).map(Some))?;
 
-        let checkpoint_fn = ThreadsafeFunction::create(
-            env.raw(),
-            unsafe { checkpoint_fn.raw() },
-            0,
-            |ctx: ThreadSafeCallContext<CheckpointCall>| {
-                let sender = ctx.value.sender.clone();
-                let promise = ctx.callback.call::<JsUnknown>(None, &[])?;
-                let result = await_void_promise(ctx.env, promise, ctx.value.sender);
-                handle_error(sender, result)
-            },
-        )?;
-
-        let revert_fn = ThreadsafeFunction::create(
-            env.raw(),
-            unsafe { revert_fn.raw() },
-            0,
-            |ctx: ThreadSafeCallContext<RevertCall>| {
-                let sender = ctx.value.sender.clone();
-                let promise = ctx.callback.call::<JsUnknown>(None, &[])?;
-                let result = await_void_promise(ctx.env, promise, ctx.value.sender);
-                handle_error(sender, result)
-            },
-        )?;
-
-        let get_account_by_address_fn = ThreadsafeFunction::create(
-            env.raw(),
-            unsafe { get_account_by_address_fn.raw() },
-            0,
-            |ctx: ThreadSafeCallContext<GetAccountByAddressCall>| {
-                let sender = ctx.value.sender.clone();
-                let address = ctx.env.create_buffer_copy(ctx.value.address.as_bytes())?;
-
-                let promise = ctx.callback.call(None, &[address.into_raw()])?;
-                let result =
-                    await_promise::<Account, AccountInfo>(ctx.env, promise, ctx.value.sender);
-
-                handle_error(sender, result)
-            },
-        )?;
-
-        let get_account_storage_slot_fn = ThreadsafeFunction::create(
-            env.raw(),
-            unsafe { get_account_storage_slot_fn.raw() },
-            0,
-            |ctx: ThreadSafeCallContext<GetAccountStorageSlotCall>| {
-                let sender = ctx.value.sender.clone();
-                let address = ctx
-                    .env
-                    .create_buffer_copy(ctx.value.address.as_bytes())?
-                    .into_raw();
-
-                let index = ctx
-                    .env
-                    .create_bigint_from_words(false, ctx.value.index.0.to_vec())?;
-
-                let promise = ctx
-                    .callback
-                    .call(None, &[address.into_unknown(), index.into_unknown()?])?;
-
-                let result = await_promise::<BigInt, U256>(ctx.env, promise, ctx.value.sender);
-
-                handle_error(sender, result)
-            },
-        )?;
-
-        let get_storage_root_fn = ThreadsafeFunction::create(
-            env.raw(),
-            unsafe { get_storage_root_fn.raw() },
-            0,
-            |ctx: ThreadSafeCallContext<GetStorageRootCall>| {
-                let sender = ctx.value.sender.clone();
-
-                let promise = ctx.callback.call::<JsUnknown>(None, &[])?;
-                let result = await_promise::<Buffer, H256>(ctx.env, promise, ctx.value.sender);
-
-                handle_error(sender, result)
-            },
-        )?;
-
-        let insert_account_fn = ThreadsafeFunction::create(
-            env.raw(),
-            unsafe { insert_account_fn.raw() },
-            0,
-            |ctx: ThreadSafeCallContext<InsertAccountCall>| {
-                let sender = ctx.value.sender.clone();
-                let address = ctx
-                    .env
-                    .create_buffer_copy(ctx.value.address.as_bytes())?
-                    .into_raw();
-
-                let mut account = ctx.env.create_object()?;
-
-                let balance = ctx
-                    .env
-                    .create_bigint_from_words(false, ctx.value.account_info.balance.0.to_vec())?;
-                account.set_named_property("balance", balance)?;
-
-                let nonce = ctx
-                    .env
-                    .create_bigint_from_u64(ctx.value.account_info.nonce)?;
-                account.set_named_property("nonce", nonce)?;
-
-                let code_hash = ctx
-                    .env
-                    .create_buffer_copy(ctx.value.account_info.code_hash.as_bytes())?
-                    .into_raw();
-                account.set_named_property("codeHash", code_hash)?;
-
-                if let Some(code) = ctx.value.account_info.code {
-                    let code = ctx
-                        .env
-                        .create_buffer_copy(code.bytes().as_ref())?
-                        .into_raw();
-
-                    account.set_named_property("code", code)?;
-                } else {
-                    account.set_named_property("code", ctx.env.get_null()?)?;
-                }
-
-                let promise = ctx
-                    .callback
-                    .call(None, &[address.into_unknown(), account.into_unknown()])?;
-
-                let result = await_void_promise(ctx.env, promise, ctx.value.sender);
-                handle_error(sender, result)
-            },
-        )?;
-
-        let set_account_balance_fn = ThreadsafeFunction::create(
-            env.raw(),
-            unsafe { set_account_balance_fn.raw() },
-            0,
-            |ctx: ThreadSafeCallContext<SetAccountBalanceCall>| {
-                let sender = ctx.value.sender.clone();
-                let address = ctx
-                    .env
-                    .create_buffer_copy(ctx.value.address.as_bytes())?
-                    .into_raw();
-
-                let balance = ctx
-                    .env
-                    .create_bigint_from_words(false, ctx.value.balance.0.to_vec())?;
-
-                let promise = ctx
-                    .callback
-                    .call(None, &[address.into_unknown(), balance.into_unknown()?])?;
-
-                let result = await_void_promise(ctx.env, promise, ctx.value.sender);
-                handle_error(sender, result)
-            },
-        )?;
-
-        let set_account_code_fn = ThreadsafeFunction::create(
-            env.raw(),
-            unsafe { set_account_code_fn.raw() },
-            0,
-            |ctx: ThreadSafeCallContext<SetAccountCodeCall>| {
-                let sender = ctx.value.sender.clone();
-                let address = ctx
-                    .env
-                    .create_buffer_copy(ctx.value.address.as_bytes())?
-                    .into_raw();
-
-                let code = ctx
-                    .env
-                    .create_buffer_copy(ctx.value.code.bytes().as_ref())?
-                    .into_raw();
-
-                let promise = ctx.callback.call(None, &[address, code])?;
-                let result = await_void_promise(ctx.env, promise, ctx.value.sender);
-                handle_error(sender, result)
-            },
-        )?;
-
-        let set_account_nonce_fn = ThreadsafeFunction::create(
-            env.raw(),
-            unsafe { set_account_nonce_fn.raw() },
-            0,
-            |ctx: ThreadSafeCallContext<SetAccountNonceCall>| {
-                let sender = ctx.value.sender.clone();
-                let address = ctx
-                    .env
-                    .create_buffer_copy(ctx.value.address.as_bytes())?
-                    .into_raw();
-
-                let nonce = ctx.env.create_bigint_from_u64(ctx.value.nonce)?;
-
-                let promise = ctx
-                    .callback
-                    .call(None, &[address.into_unknown(), nonce.into_unknown()?])?;
-
-                let result = await_void_promise(ctx.env, promise, ctx.value.sender);
-                handle_error(sender, result)
-            },
-        )?;
-
-        let set_account_storage_slot_fn = ThreadsafeFunction::create(
-            env.raw(),
-            unsafe { set_account_storage_slot_fn.raw() },
-            0,
-            |ctx: ThreadSafeCallContext<SetAccountStorageSlotCall>| {
-                let sender = ctx.value.sender.clone();
-                let address = ctx
-                    .env
-                    .create_buffer_copy(ctx.value.address.as_bytes())?
-                    .into_raw();
-
-                let index = ctx
-                    .env
-                    .create_bigint_from_words(false, ctx.value.index.0.to_vec())?;
-
-                let value = ctx
-                    .env
-                    .create_bigint_from_words(false, ctx.value.value.0.to_vec())?;
-
-                let promise = ctx.callback.call(
-                    None,
-                    &[
-                        address.into_unknown(),
-                        index.into_unknown()?,
-                        value.into_unknown()?,
-                    ],
-                )?;
-
-                let result = await_void_promise(ctx.env, promise, ctx.value.sender);
-                handle_error(sender, result)
-            },
-        )?;
-
-        let db = CallbackDatabase::new(
-            commit_fn,
-            checkpoint_fn,
-            revert_fn,
-            get_account_by_address_fn,
-            get_account_storage_slot_fn,
-            get_storage_root_fn,
-            insert_account_fn,
-            set_account_balance_fn,
-            set_account_code_fn,
-            set_account_nonce_fn,
-            set_account_storage_slot_fn,
-        );
-
-        Ok(Self {
-            client: Client::with_db(db),
-        })
+        db::client(db, db_commit, db_debug).map_or_else(
+            |e| Err(napi::Error::new(Status::GenericFailure, e.to_string())),
+            |client| Ok(Self { client }),
+        )
     }
 
     #[napi(factory)]
@@ -561,15 +342,7 @@ impl Rethnet {
         let genesis_accounts = accounts
             .into_iter()
             .map(|account| {
-                let private_key = account
-                    .private_key
-                    .strip_prefix("0x")
-                    .unwrap_or(&account.private_key);
-
-                let secret_key = SecretKey::from_str(private_key)
-                    .map_err(|e| napi::Error::new(Status::InvalidArg, e.to_string()))?;
-
-                let address = public_key_to_address(secret_key.public_key(&context));
+                let address = private_key_to_address(&context, account.private_key)?;
                 account.balance.try_cast().map(|balance| {
                     let account_info = AccountInfo {
                         balance,
@@ -581,9 +354,14 @@ impl Rethnet {
             })
             .collect::<Result<HashMap<H160, AccountInfo>>>()?;
 
-        Ok(Self {
-            client: Client::with_genesis_accounts(genesis_accounts),
-        })
+        let mut database =
+            LayeredDatabase::with_layer(RethnetLayer::with_genesis_accounts(genesis_accounts));
+        database.add_layer_default();
+
+        Client::with_db(database).map_or_else(
+            |e| Err(napi::Error::new(Status::GenericFailure, e.to_string())),
+            |client| Ok(Self { client }),
+        )
     }
 
     #[napi]
