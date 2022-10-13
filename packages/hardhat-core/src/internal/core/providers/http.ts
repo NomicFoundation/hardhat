@@ -1,4 +1,4 @@
-import type { Dispatcher, Pool as PoolT } from "undici";
+import { Dispatcher, ProxyAgent, Pool as PoolT } from "undici";
 
 import { EventEmitter } from "events";
 
@@ -36,6 +36,7 @@ export class HttpProvider extends EventEmitter implements EIP1193Provider {
   private _dispatcher: Dispatcher;
   private _path: string;
   private _authHeader: string | undefined;
+  private _proxy = false;
 
   constructor(
     private readonly _url: string,
@@ -58,7 +59,7 @@ export class HttpProvider extends EventEmitter implements EIP1193Provider {
             "utf-8"
           ).toString("base64")}`;
     try {
-      this._dispatcher = client ?? new Pool(url.origin);
+      this._dispatcher = this._retrieveProxyClient(client) ?? new Pool(url.origin);
     } catch (e) {
       if (e instanceof TypeError && e.message === "Invalid URL") {
         e.message += ` ${url.origin}`;
@@ -165,22 +166,23 @@ export class HttpProvider extends EventEmitter implements EIP1193Provider {
   ): Promise<JsonRpcResponse | JsonRpcResponse[]> {
     try {
       const response = await this._dispatcher.request({
-        method: "POST",
-        path: this._path,
-        body: JSON.stringify(request),
-        maxRedirections: 10,
-        headersTimeout:
-          process.env.DO_NOT_SET_THIS_ENV_VAR____IS_HARDHAT_CI !== undefined
-            ? 0
-            : this._timeout,
-        headers: {
-          "Content-Type": "application/json",
-          "User-Agent": `hardhat ${hardhatVersion ?? "(unknown version)"}`,
-          Authorization: this._authHeader,
-          ...this._extraHeaders,
-        },
+          method: "POST",
+          origin: this._proxy ? this._url: '',
+          path: this._proxy ? '' : this._path,
+          body: JSON.stringify(request),
+          maxRedirections: 10,
+          headersTimeout:
+            process.env.DO_NOT_SET_THIS_ENV_VAR____IS_HARDHAT_CI !== undefined
+              ? 0
+              : this._timeout,
+          headers: {
+            "Content-Type": "application/json",
+            "User-Agent": `hardhat ${hardhatVersion ?? "(unknown version)"}`,
+            Authorization: this._authHeader,
+            ...this._extraHeaders,
+          },
       });
-
+  
       if (this._isRateLimitResponse(response)) {
         // "The Fetch Standard allows users to skip consuming the response body
         // by relying on garbage collection to release connection resources.
@@ -274,5 +276,34 @@ export class HttpProvider extends EventEmitter implements EIP1193Provider {
     }
 
     return parsed;
+  }
+
+
+  private _retrieveProxyClient(client: Dispatcher | undefined) {
+    if (process.env.HTTPS_PROXY !== undefined) {
+      this._proxy = true
+      return new ProxyAgent({
+          uri: process.env.HTTPS_PROXY
+      })
+    }
+    if (process.env.https_proxy !== undefined) {
+      this._proxy = true
+      return new ProxyAgent({
+          uri: process.env.https_proxy
+      })
+    }
+    if (process.env.HTTP_PROXY !== undefined) {
+      this._proxy = true
+      return new ProxyAgent({
+          uri: process.env.HTTP_PROXY
+      })
+    }
+    if (process.env.http_proxy !== undefined) {
+      this._proxy = true
+      return new ProxyAgent({
+          uri: process.env.http_proxy
+      })
+    }
+    return client
   }
 }

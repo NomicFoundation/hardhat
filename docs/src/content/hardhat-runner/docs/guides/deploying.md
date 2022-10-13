@@ -55,3 +55,5 @@ As general rule, you can target any network from your Hardhat config using:
 ```
 npx hardhat run --network <your-network> scripts/deploy.js
 ```
+
+If you are behind a corporate proxy, you may need to set the `HTTP_PROXY` or `HTTPS_PROXY` environment variable to the URL of your proxy.

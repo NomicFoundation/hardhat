@@ -17,6 +17,8 @@ function getEnv(key: string): string | undefined {
 
 export const INFURA_URL = getEnv("INFURA_URL");
 export const ALCHEMY_URL = getEnv("ALCHEMY_URL");
+export const PROXY_URL = getEnv("PROXY_URL");
+
 
 function printForkingLogicNotBeingTestedWarning(varName: string) {
   console.warn(
@@ -32,4 +34,8 @@ if (INFURA_URL === undefined) {
 
 if (ALCHEMY_URL === undefined) {
   printForkingLogicNotBeingTestedWarning("ALCHEMY_URL");
+}
+
+if (PROXY_URL === undefined) {
+  printForkingLogicNotBeingTestedWarning("PROXY_URL");
 }
