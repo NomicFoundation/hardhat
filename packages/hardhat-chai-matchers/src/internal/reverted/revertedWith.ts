@@ -40,16 +40,18 @@ export function supportRevertedWith(Assertion: Chai.AssertionStatic) {
             `Expected transaction NOT to be reverted with reason '${expectedReason}', but it was`
           );
         } else if (decodedReturnData.kind === "Panic") {
+          const reason = `code ${decodedReturnData.code.toHexString()} (${decodedReturnData.description})`;
           assert(
-            false,
-            `Expected transaction to be reverted with reason '${expectedReason}', but it reverted with panic code ${decodedReturnData.code.toHexString()} (${
-              decodedReturnData.description
-            })`
+            reason === expectedReason,
+            `Expected transaction to be reverted with reason '${expectedReason}', but it reverted with panic ${reason}`
           );
         } else if (decodedReturnData.kind === "Custom") {
+          const { utils } = require("ethers");
+          const signature = /custom error '(.*)'/.exec(expectedReason)![1];
+          const selector = utils.keccak256(utils.toUtf8Bytes(signature)).slice(0, 2 + 8);
           assert(
-            false,
-            `Expected transaction to be reverted with reason '${expectedReason}', but it reverted with a custom error`
+            decodedReturnData.id === selector,
+            `Expected transaction to be reverted with reason '${expectedReason}' [${selector}], but it reverted with a custom error ${decodedReturnData.id}`
           );
         } else {
           const _exhaustiveCheck: never = decodedReturnData;
