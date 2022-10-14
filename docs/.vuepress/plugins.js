@@ -237,6 +237,15 @@ const plugins = [
     tags: ["Signing", "Scripts"],
   },
   {
+    name: "@solidstate/hardhat-bytecode-exporter",
+    author: "Nick Barry",
+    authorUrl: "https://github.com/ItsNickBarry",
+    url:
+      "https://github.com/solidstate-network/hardhat-bytecode-exporter/tree/master",
+    description: "Automatically export contract bytecode on compilation",
+    tags: ["Bytecode", "Compiling"],
+  },
+  {
     name: "hardhat-watcher",
     author: "Xander Deseyn",
     authorUrl: "https://github.com/N1ghtly",
