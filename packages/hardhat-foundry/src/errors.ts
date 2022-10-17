@@ -19,7 +19,7 @@ export function getPluginError(error: any) {
         );
       default:
         return new HardhatFoundryError(
-          `Unexpected error while running \`forge\`:${error.stderr.toString()}`
+          `Unexpected error while running \`forge\`: ${error.stderr.toString()}`
         );
     }
   }
