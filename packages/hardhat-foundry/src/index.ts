@@ -121,7 +121,7 @@ internalTask(TASK_COMPILE_SOLIDITY_GET_COMPILATION_JOB_FOR_FILE).setAction(
 
     const remappings = getRemappings();
     job.getSolcConfig().settings.remappings = Object.entries(remappings).map(
-      (fromTo) => fromTo.join("=")
+      ([from, to]) => `${from}=${to}`
     );
 
     return job;
