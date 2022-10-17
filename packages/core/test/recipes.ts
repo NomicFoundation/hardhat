@@ -752,6 +752,51 @@ describe("Recipes", function () {
       assert.equal(recipeGraph.vertexes.size, 2);
     });
   });
+
+  describe("useModule", () => {
+    let recipeGraph: IRecipeGraph;
+
+    before(() => {
+      const librariesRecipe = buildRecipe(
+        "libraries",
+        (m: IRecipeGraphBuilder) => {
+          const symbol = m.getOptionalParam("tokenSymbol", "TKN");
+          const name = m.getParam("tokenName");
+          const token = m.contract("Token", {
+            args: [symbol, name, 1_000_000],
+          });
+
+          return { token };
+        }
+      );
+
+      const WrapRecipe = buildRecipe("Wrap", (m: IRecipeGraphBuilder) => {
+        const token = m.useModule(librariesRecipe, {
+          parameters: { tokenSymbol: "EXAMPLE", tokenName: "Example" },
+        });
+
+        const token2 = m.useModule(librariesRecipe, {
+          parameters: { tokenSymbol: "EXAMPLE", tokenName: "Example" },
+        });
+
+        return { token, token2 };
+      });
+
+      const { graph } = generateRecipeGraphFrom(WrapRecipe, {
+        chainId: 31,
+      });
+
+      recipeGraph = graph;
+    });
+
+    it("should create a graph", () => {
+      assert.isDefined(recipeGraph);
+    });
+
+    it("should have one node", () => {
+      assert.equal(recipeGraph.vertexes.size, 2);
+    });
+  });
 });
 
 function getRecipeVertexByLabel(

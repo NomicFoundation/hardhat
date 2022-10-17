@@ -35,20 +35,20 @@ import {
 import { RecipeGraph } from "./RecipeGraph";
 import { ScopeStack } from "./ScopeStack";
 
+interface ModuleCache {
+  [label: string]: FutureDict;
+}
+
 export class RecipeGraphBuilder implements IRecipeGraphBuilder {
   public chainId: number;
-  public graph: IRecipeGraph;
-  private idCounter: number;
-  private useRecipeInvocationCounter: number;
-  private scopes: ScopeStack;
+  public graph: IRecipeGraph = new RecipeGraph();
+  private idCounter: number = 0;
+  private moduleCache: ModuleCache = {};
+  private useRecipeInvocationCounter: number = 0;
+  private scopes: ScopeStack = new ScopeStack();
 
   constructor(options: RecipeGraphBuilderOptions) {
     this.chainId = options.chainId;
-    this.idCounter = 0;
-    this.useRecipeInvocationCounter = 0;
-    this.graph = new RecipeGraph();
-
-    this.scopes = new ScopeStack();
   }
 
   public library(
@@ -295,6 +295,29 @@ export class RecipeGraphBuilder implements IRecipeGraphBuilder {
     this.scopes.pop();
 
     return { ...result, recipe: virtualVertex };
+  }
+
+  public useModule(recipe: Recipe, options?: UseRecipeOptions): FutureDict {
+    const label = `module:${recipe.name}`;
+
+    if (this.moduleCache[label] === undefined) {
+      this.scopes.push(label);
+      const scopeLabel = this.scopes.getScopedLabel();
+
+      if (options?.parameters !== undefined) {
+        this.graph.registeredParameters[scopeLabel] = options.parameters;
+      }
+
+      const result = recipe.recipeAction(this);
+
+      this._createRecipeVirtualVertex(label);
+
+      this.scopes.pop();
+
+      this.moduleCache[label] = { ...result };
+    }
+
+    return this.moduleCache[label];
   }
 
   private _createRecipeVirtualVertex(label: string): Virtual {
