@@ -31,7 +31,9 @@
     "LICENSE",
     "README.md"
   ],
-  "dependencies": {},
+  "dependencies": {
+    "chalk": "^5.1.2"
+  },
   "devDependencies": {
     "@types/chai": "^4.2.0",
     "@types/mocha": "^9.1.0",

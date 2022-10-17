@@ -1,28 +1,37 @@
 import { extendConfig, internalTask, task } from "hardhat/config";
 
 import {
-  TASK_COMPILE_SOLIDITY_GET_COMPILER_INPUT,
+  TASK_COMPILE_SOLIDITY_GET_COMPILATION_JOB_FOR_FILE,
   TASK_COMPILE_TRANSLATE_IMPORT_NAME,
 } from "hardhat/builtin-tasks/task-names";
+import { SolidityFilesCache } from "hardhat/builtin-tasks/utils/solidity-files-cache";
 import {
   CompilationJob,
-  CompilerInput,
+  CompilationJobCreationError,
+  DependencyGraph,
   HardhatRuntimeEnvironment,
+  ResolvedFile,
+  SolcConfig,
 } from "hardhat/types";
 import { existsSync, writeFileSync } from "fs";
 import path from "path";
+import chalk from "chalk";
 import { getRemappings } from "./getRemappings";
 import { runCmdSync } from "./runCmd";
 import { HardhatFoundryError } from "./errors";
 
-const TASK_INIT_FOUNDRY = "hardhat-foundry:init-foundry";
+const TASK_INIT_FOUNDRY = "init-foundry";
+
+let pluginActivated = false;
 
 extendConfig(async (config, userConfig) => {
   // Check foundry.toml presence. Don't warn when running foundry initialization task
   if (!existsSync(path.join(config.paths.root, "foundry.toml"))) {
     if (!process.argv.includes(TASK_INIT_FOUNDRY)) {
-      console.warn(
-        `Warning: No foundry.toml file found at ${config.paths.root}, hardhat-foundry plugin will not activate. Consider running 'npx hardhat ${TASK_INIT_FOUNDRY}'`
+      console.log(
+        chalk.yellow(
+          `Warning: No foundry.toml file found at ${config.paths.root}, hardhat-foundry plugin will not activate. Consider running 'npx hardhat ${TASK_INIT_FOUNDRY}'`
+        )
       );
     }
     return;
@@ -59,42 +68,65 @@ extendConfig(async (config, userConfig) => {
     config.paths.cache = "cache_hardhat";
   }
 
-  // Task that translates import names to sourcenames using remappings
-  internalTask(TASK_COMPILE_TRANSLATE_IMPORT_NAME).setAction(
-    async ({ importName }: { importName: string }): Promise<string> => {
-      const remappings = getRemappings();
+  pluginActivated = true;
+});
 
-      for (const from in remappings) {
-        if (Object.prototype.hasOwnProperty.call(remappings, from)) {
-          const to = remappings[from];
-          if (importName.startsWith(from)) {
-            return importName.replace(from, to);
-          }
+// Task that translates import names to sourcenames using remappings
+internalTask(TASK_COMPILE_TRANSLATE_IMPORT_NAME).setAction(
+  async (
+    { importName }: { importName: string },
+    _hre,
+    runSuper
+  ): Promise<string> => {
+    if (!pluginActivated) {
+      return runSuper({ importName });
+    }
+
+    const remappings = getRemappings();
+
+    for (const from in remappings) {
+      if (Object.prototype.hasOwnProperty.call(remappings, from)) {
+        const to = remappings[from];
+        if (importName.startsWith(from)) {
+          return importName.replace(from, to);
         }
       }
-
-      return importName;
     }
-  );
 
-  // Task that includes the remappings in solc input
-  internalTask(TASK_COMPILE_SOLIDITY_GET_COMPILER_INPUT).setAction(
-    async (
-      { compilationJob }: { compilationJob: CompilationJob },
-      _hre,
-      runSuper
-    ): Promise<CompilerInput> => {
-      const input = (await runSuper({ compilationJob })) as CompilerInput;
+    return importName;
+  }
+);
 
-      const remappings = getRemappings();
-      input.settings.remappings = Object.entries(remappings).map((fromTo) =>
-        fromTo.join("=")
-      );
+// Task that includes the remappings in solc input
+internalTask(TASK_COMPILE_SOLIDITY_GET_COMPILATION_JOB_FOR_FILE).setAction(
+  async (
+    {
+      dependencyGraph,
+      file,
+    }: {
+      dependencyGraph: DependencyGraph;
+      file: ResolvedFile;
+      solidityFilesCache?: SolidityFilesCache;
+    },
+    hre,
+    runSuper
+  ): Promise<CompilationJob | CompilationJobCreationError> => {
+    const job = (await runSuper({ dependencyGraph, file })) as
+      | CompilationJob
+      | CompilationJobCreationError;
 
-      return input;
+    if (!pluginActivated || isCompilationJobCreationError(job)) {
+      return job;
     }
-  );
-});
+
+    const remappings = getRemappings();
+    job.getSolcConfig().settings.remappings = Object.entries(remappings).map(
+      (fromTo) => fromTo.join("=")
+    );
+
+    return job;
+  }
+);
 
 task(
   TASK_INIT_FOUNDRY,
@@ -126,7 +158,22 @@ task(
     );
 
     const cmd = `forge install --no-commit foundry-rs/forge-std`;
-    console.log(`Running ${cmd}`);
-    runCmdSync(cmd);
+    console.log(`Running ${chalk.blue(cmd)}`);
+    try {
+      runCmdSync(cmd);
+    } catch (error) {
+      console.log(
+        chalk.red(
+          `Command failed. Please continue forge-std installation manually.`
+        )
+      );
+      console.log(error);
+    }
   }
 );
+
+function isCompilationJobCreationError(
+  x: CompilationJob | CompilationJobCreationError | SolcConfig
+): x is CompilationJobCreationError {
+  return "reason" in x;
+}

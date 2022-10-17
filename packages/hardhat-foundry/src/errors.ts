@@ -15,11 +15,11 @@ export function getPluginError(error: any) {
         );
       case 134:
         return new HardhatFoundryError(
-          "Running 'forge config' failed. Please check that your foundry.toml file is correct."
+          "Running `forge` failed. Please check that your foundry.toml file is correct."
         );
       default:
         return new HardhatFoundryError(
-          `Unexpected error while running \`forge config\`:${error.stderr.toString()}`
+          `Unexpected error while running \`forge\`:${error.stderr.toString()}`
         );
     }
   }
