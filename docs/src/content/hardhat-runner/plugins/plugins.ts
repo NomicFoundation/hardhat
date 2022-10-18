@@ -121,6 +121,44 @@ const communityPlugins: IPlugin[] = [
     tags: ["Documentation", "NatSpec"],
   },
   {
+    name: "@solidstate/hardhat-4byte-uploader",
+    author: "Nick Barry",
+    authorUrl: "https://github.com/ItsNickBarry",
+    description:
+      "Upload local function selectors to the Ethereum Selector Database",
+    tags: ["Bytecode", "ABI"],
+  },
+  {
+    name: "@solidstate/hardhat-test-short-circuit",
+    author: "Nick Barry",
+    authorUrl: "https://github.com/ItsNickBarry",
+    description:
+      "Stop Hardhat test execution on demand and print output from completed tests",
+    tags: ["Testing", "Mocha"],
+  },
+  {
+    name: "@solidstate/hardhat-txn-dot-xyz",
+    author: "Nick Barry",
+    authorUrl: "https://github.com/ItsNickBarry",
+    description: "Generate and execute on-chain transactions via txn.xyz",
+    tags: ["Signing", "Scripts"],
+  },
+  {
+    name: "@solidstate/hardhat-bytecode-exporter",
+    author: "Nick Barry",
+    authorUrl: "https://github.com/ItsNickBarry",
+    description: "Automatically export contract bytecode on compilation",
+    tags: ["Bytecode", "Compiling"],
+  },
+  {
+    name: "@solidstate/hardhat-accounts",
+    author: "Nick Barry",
+    authorUrl: "https://github.com/ItsNickBarry",
+    url: "https://github.com/solidstate-network/hardhat-accounts/tree/master",
+    description: "Output list of available accounts and their balances",
+    tags: ["Accounts", "Balances"],
+  },
+  {
     name: "hardhat-watcher",
     author: "Xander Deseyn",
     authorUrl: "https://github.com/N1ghtly",
