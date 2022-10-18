@@ -307,6 +307,14 @@ const communityPlugins: IPlugin[] = [
     tags: ["Yul", "Assembly", "Compiler", "Yul+"],
   },
   {
+    name: "@controlcpluscontrolv/hardhat-yul",
+    author: "ControlCplusControlV",
+    authorUrl: "https://github.com/controlCplusControlV/",
+    description:
+      "Hardhat plugin to compile the Yul and Yul+ languages into solc compatible artifacts. Works with .yul and .yulp file extensions",
+    tags: ["Yul", "Assembly", "Compiler", "Yul+"],
+  },
+  {
     name: "@primitivefi/hardhat-dodoc",
     author: "Primitive",
     authorUrl: "https://github.com/primitivefinance/primitive-dodoc",
