@@ -86,7 +86,7 @@ export async function assertDeploymentState(
         assert.isDefined(futureResult.value.hash);
         await assertTxMined(hre, futureResult.value.hash);
       } else {
-        const _exhaustiveCheck: never = expectedFutureResult;
+        assertNeverFutureResult(expectedFutureResult);
       }
     }
   }
@@ -216,4 +216,8 @@ export async function deployRecipe(
   const result = await deployPromise;
 
   return result;
+}
+
+function assertNeverFutureResult(expectedFutureResult: never) {
+  throw new Error(`Unextectped future result ${expectedFutureResult}`);
 }

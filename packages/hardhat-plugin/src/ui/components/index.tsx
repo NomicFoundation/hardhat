@@ -1,5 +1,4 @@
 import { DeployState } from "@nomicfoundation/ignition-core";
-import React from "react";
 
 import { StartingPanel } from "./StartingPanel";
 import { ValidationFailedPanel } from "./ValidationFailedPanel";

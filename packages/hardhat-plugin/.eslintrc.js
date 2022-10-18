@@ -7,5 +7,5 @@ module.exports = {
     sourceType: "module",
     createDefaultProgram: true,
   },
-  ignorePatterns: ["**/assets/bundle.ts"],
+  ignorePatterns: ["**/assets/bundle.ts", "**/.eslintrc.js", "esbuild.js"],
 };

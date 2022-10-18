@@ -1,22 +1,11 @@
 {
+  "extends": "../tsconfig.settings.json",
+  "references": [],
   "compilerOptions": {
-    "lib": ["es2021"],
-    "module": "commonjs",
-    "target": "es2021",
-    "strict": true,
-    "esModuleInterop": true,
-    "moduleResolution": "node",
-
-    "incremental": true,
-    "outDir": "./dist",
-    "declaration": true,
-    "declarationMap": true,
-    "sourceMap": true,
-    "jsx": "react-jsx",
-    "baseUrl": "src",
-    "paths": {
-      "*": ["*"]
-    }
+    "composite": true,
+    "outDir": "dist",
+    "rootDir": "src",
+    "baseUrl": "src"
   },
-  "exclude": ["dist", "node_modules", "ui-samples", "test"]
+  "include": ["src"]
 }

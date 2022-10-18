@@ -45,7 +45,7 @@ export class Ignition {
     };
 
     const deployment = new Deployment(
-      recipe,
+      recipe.name,
       Deployment.setupServices(options, this._providers),
       options.ui
     );

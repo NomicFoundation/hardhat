@@ -9,7 +9,6 @@ import { Services } from "services/types";
 import { DeployState, UpdateUiAction } from "types/deployment";
 import { VertexVisitResult, VertexVisitResultFailure } from "types/graph";
 import { Providers } from "types/providers";
-import { Recipe } from "types/recipeGraph";
 
 import {
   deployStateReducer,
@@ -23,8 +22,8 @@ export class Deployment {
   public services: Services;
   public ui?: UpdateUiAction;
 
-  constructor(recipe: Recipe, services: Services, ui?: UpdateUiAction) {
-    this.state = initializeDeployState(recipe);
+  constructor(recipeName: string, services: Services, ui?: UpdateUiAction) {
+    this.state = initializeDeployState(recipeName);
     this.services = services;
     this.ui = ui;
   }

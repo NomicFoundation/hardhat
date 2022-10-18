@@ -88,13 +88,11 @@ extendEnvironment((hre) => {
 
     const txPollingInterval = isHardhatNetwork ? 100 : 5000;
 
-    return new IgnitionWrapper(
-      providers,
-      hre.ethers,
-      isHardhatNetwork,
-      hre.config.paths,
-      { pathToJournal, txPollingInterval, ui: true }
-    );
+    return new IgnitionWrapper(providers, hre.ethers, {
+      pathToJournal,
+      txPollingInterval,
+      ui: true,
+    });
   });
 });
 

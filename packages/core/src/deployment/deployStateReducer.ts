@@ -2,14 +2,13 @@ import { ExecutionGraph } from "execution/ExecutionGraph";
 import { ExecuteBatchResult } from "execution/batch/types";
 import { DeployPhase, DeployState, ExecutionState } from "types/deployment";
 import { ResultsAccumulator, VertexVisitResult } from "types/graph";
-import { Recipe } from "types/recipeGraph";
 import { difference, union } from "utils/sets";
 
-export function initializeDeployState(recipe: Recipe): DeployState {
+export function initializeDeployState(recipeName: string): DeployState {
   return {
     phase: "uninitialized",
     details: {
-      recipeName: recipe.name,
+      recipeName,
       chainId: 0,
     },
     validation: {

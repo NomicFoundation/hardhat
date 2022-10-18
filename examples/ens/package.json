@@ -3,7 +3,11 @@
   "private": "true",
   "version": "0.0.1",
   "scripts": {
-    "test:examples": "hardhat test"
+    "test:examples": "hardhat test",
+    "lint": "yarn prettier --check && yarn eslint",
+    "lint:fix": "yarn prettier --write && yarn eslint --fix",
+    "eslint": "eslint \"ignition/**/*.{js,jsx}\" \"test/**/*.{js,jsx}\"",
+    "prettier": "prettier \"*.{js,md,json}\" \"ignition/*.{js,md,json}\" \"test/*.{js,md,json}\""
   },
   "devDependencies": {
     "hardhat": "^2.10.0",

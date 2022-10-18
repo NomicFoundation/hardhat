@@ -1,18 +1,13 @@
 {
+  "extends": "../tsconfig.settings.json",
+  "references": [{ "path": "../core" }],
   "compilerOptions": {
-    "lib": ["es2021"],
-    "module": "commonjs",
-    "target": "es2021",
-    "strict": true,
-    "esModuleInterop": true,
-    "moduleResolution": "node",
-
-    "incremental": true,
-    "outDir": "./dist",
-    "declaration": true,
-    "declarationMap": true,
-    "sourceMap": true,
-    "jsx": "react-jsx"
+    "composite": true,
+    "outDir": "dist",
+    "rootDir": "src",
+    "baseUrl": "src",
+    "jsx": "react-jsx",
+    "lib": ["es2021", "DOM", "DOM.Iterable"]
   },
-  "exclude": ["dist", "node_modules", "test", "src/plan/assets"]
+  "include": ["src"]
 }

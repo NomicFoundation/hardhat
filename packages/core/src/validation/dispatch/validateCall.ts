@@ -90,7 +90,7 @@ async function resolveArtifactForCallableFuture(
           );
           return artifact.abi;
         default:
-          assertNeverRecipeFuture(future);
+          return assertNeverRecipeFuture(future);
       }
     case "library":
       switch (future.subtype) {
@@ -102,13 +102,13 @@ async function resolveArtifactForCallableFuture(
           );
           return artifact.abi;
         default:
-          assertNeverRecipeFuture(future);
+          return assertNeverRecipeFuture(future);
       }
     default:
-      assertNeverRecipeFuture(future);
+      return assertNeverRecipeFuture(future);
   }
 }
 
-function assertNeverRecipeFuture(f: never) {
+function assertNeverRecipeFuture(f: never): undefined {
   throw new Error(`Unexpected recipe future type/subtype ${f}`);
 }

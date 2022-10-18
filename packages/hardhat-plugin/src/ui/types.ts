@@ -47,7 +47,6 @@ export class DeploymentState {
   public phase: DeployPhase;
   public recipeName: string;
 
-  private validationErrors: string[];
   private executionVertexes: { [key: string]: VertexStatus };
   private order: number[];
   public batches: UiBatch[];
@@ -59,7 +58,6 @@ export class DeploymentState {
 
     this.order = [];
 
-    this.validationErrors = [];
     this.executionVertexes = {};
     this.batches = [];
   }

@@ -15,7 +15,7 @@ export function constructAdjacencyList(
     return acc;
   }, new Set<number>());
 
-  for (const vertex of vertexes) {
+  for (const vertex of vertexes.values()) {
     ensureVertex(adjacencyList, vertex);
   }
 
