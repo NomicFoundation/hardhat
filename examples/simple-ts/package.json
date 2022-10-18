@@ -1,5 +1,5 @@
 {
-  "name": "hardhat-ignition-example-simple",
+  "name": "hardhat-ignition-example-simple-ts",
   "version": "0.0.1",
   "private": true,
   "dependencies": {

@@ -172,18 +172,23 @@ task("plan")
         process.exit(0);
       }
 
-      const plan = await hre.ignition.plan(userRecipes[0]);
+      const [recipe] = userRecipes;
 
-      const renderer = new Renderer(plan, {
+      const plan = await hre.ignition.plan(recipe);
+
+      const renderer = new Renderer(recipe.name, plan, {
         cachePath: hre.config.paths.cache,
+        network: {
+          name: hre.network.name,
+          id: hre.network.config.chainId ?? "unknown",
+        },
       });
 
       renderer.write();
 
       if (!quiet) {
         console.log(`Plan written to ${renderer.planPath}/index.html`);
+        renderer.open();
       }
-
-      renderer.open();
     }
   );
