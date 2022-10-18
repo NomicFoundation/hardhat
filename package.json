@@ -4,10 +4,15 @@
   "author": "Nomic Foundation",
   "license": "SEE LICENSE IN EACH PACKAGE'S LICENSE FILE",
   "private": true,
-  "workspaces": [
-    "packages/*",
-    "examples/*"
-  ],
+  "workspaces": {
+    "packages": [
+      "packages/*",
+      "examples/*"
+    ],
+    "nohoist": [
+      "**"
+    ]
+  },
   "scripts": {
     "build": "wsrun --exclude-missing --serial build",
     "lint": "wsrun --exclude-missing --serial lint",
@@ -19,6 +24,15 @@
     "clean": "wsrun --exclude-missing --serial clean"
   },
   "devDependencies": {
-    "wsrun": "^5.2.4"
+    "wsrun": "^5.2.4",
+    "@typescript-eslint/eslint-plugin": "4.31.2",
+    "@typescript-eslint/parser": "4.31.2",
+    "eslint": "^7.32.0",
+    "eslint-config-prettier": "8.3.0",
+    "eslint-import-resolver-typescript": "^3.5.1",
+    "eslint-plugin-import": "2.24.2",
+    "eslint-plugin-mocha": "^9.0.0",
+    "eslint-plugin-prettier": "4.0.0",
+    "typescript": "^4.7.4"
   }
 }
