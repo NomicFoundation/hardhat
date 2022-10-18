@@ -188,8 +188,7 @@ task("plan")
 
       if (!quiet) {
         console.log(`Plan written to ${renderer.planPath}/index.html`);
+        renderer.open();
       }
-
-      renderer.open();
     }
   );

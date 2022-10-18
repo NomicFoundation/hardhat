@@ -3,10 +3,10 @@ import mermaid from "mermaid";
 /* setup mermaid */
 mermaid.initialize({ startOnLoad: true, securityLevel: "loose" });
 
-/* setup event listeners */
-const nodes = document.getElementsByClassName("node");
-
 window.onload = () => {
+  /* setup event listeners */
+  const nodes = document.getElementsByClassName("node");
+
   for (const vertexElement of nodes) {
     const classList = [...vertexElement.classList.values()];
 

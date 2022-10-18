@@ -171,7 +171,8 @@ export class Renderer {
   private _copyUserAssets(): void {
     const filenames = fs.readdirSync(this._assetsPath);
     for (const file of filenames) {
-      if (file !== "templates") {
+      // the .ts logic is only so that `bundle.ts` isn't copied during end-to-end tests
+      if (file !== "templates" && !file.endsWith(".ts")) {
         fs.copyFileSync(
           `${this._assetsPath}/${file}`,
           `${this.planPath}/${file}`
