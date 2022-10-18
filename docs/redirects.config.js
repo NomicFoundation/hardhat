@@ -33,12 +33,12 @@ const customRedirects = [
   { source: "/links/stack-traces", destination: "/", permanent: false },
   {
     source: "/reportbug",
-    destination: "https://github.com/nomiclabs/hardhat/issues/new",
+    destination: "https://github.com/NomicFoundation/hardhat/issues/new",
     permanent: false
   },
   {
     source: "/report-bug",
-    destination: "https://github.com/nomiclabs/hardhat/issues/new",
+    destination: "https://github.com/NomicFoundation/hardhat/issues/new",
     permanent: false
   },
   {

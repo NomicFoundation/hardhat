@@ -99,6 +99,14 @@ export class SolidityTracer {
       }
     }
 
+    if (trace.error?.error === ERROR.CODESIZE_EXCEEDS_MAXIMUM) {
+      return [
+        {
+          type: StackTraceEntryType.CONTRACT_TOO_LARGE_ERROR,
+        },
+      ];
+    }
+
     const isInvalidOpcodeError = trace.error?.error === ERROR.INVALID_OPCODE;
 
     if (isCreateTrace(trace)) {

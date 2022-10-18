@@ -175,7 +175,7 @@ export interface HardhatNetworkForkingConfig {
   enabled: boolean;
   url: string;
   blockNumber?: number;
-  httpHeaders: { [name: string]: string };
+  httpHeaders?: { [name: string]: string };
 }
 
 export interface HttpNetworkConfig {

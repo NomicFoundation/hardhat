@@ -237,6 +237,21 @@ Either try using a new directory name, or remove the conflicting files.`,
         "Hardhat attempted to convert the input value to a BigInt, but no known conversion method was applicable to the given value.",
       shouldBeReported: false,
     },
+    CORRUPTED_LOCKFILE: {
+      number: 18,
+      message: `You installed Hardhat with a corrupted lockfile due to the NPM bug #4828.
+
+Please delete your node_modules, package-lock.json, reinstall your project, and try again.`,
+      title: "Corrupted lockfile",
+      description: `Some versions of NPM are affected [by a bug](https://github.com/npm/cli/issues/4828) that leads to corrupt lockfiles being generated.
+
+This bug can only affect you if you, or someone at your team, installed the project without a lockfile, but with an existing node_modules.
+
+To avoid it, please delete both your node_modules and package-lock.json, and reinstall your project.
+
+Note that you don't need to do this every time you install a new dependency, but please make sure to delete your node_modules every time you delete your package-lock.json.`,
+      shouldBeReported: false,
+    },
   },
   NETWORK: {
     CONFIG_NOT_FOUND: {
@@ -607,7 +622,8 @@ Please double check how you invoked Hardhat or ran your task.`,
     },
     MISSING_TASK_ARGUMENT: {
       number: 306,
-      message: "The '%param%' parameter expects a value, but none was passed.",
+      message:
+        "The '%param%' parameter of task '%task%' expects a value, but none was passed.",
       title: "Missing task argument",
       description: `You tried to run a task, but one of its required arguments was missing. 
 

@@ -82,6 +82,12 @@ export interface ICompilerDownloader {
  */
 export class CompilerDownloader implements ICompilerDownloader {
   public static getCompilerPlatform(): CompilerPlatform {
+    // TODO: This check is seriously wrong. It doesn't take into account
+    //  the architecture nor the toolchain. This should check the triplet of
+    //  system instead (see: https://wiki.osdev.org/Target_Triplet).
+    //
+    //  The only reason this downloader works is that it validates if the
+    //  binaries actually run.
     switch (os.platform()) {
       case "win32":
         return CompilerPlatform.WINDOWS;

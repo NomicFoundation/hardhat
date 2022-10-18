@@ -151,11 +151,28 @@ describe("e2e tests", function () {
           shell.exec(suggestedCommand, {
             env: {
               ...process.env,
-              GAS_REPORT: "true",
             },
           });
         });
       }
+
+      it("should report gas", async function () {
+        const { stdout } = shell.exec(`${hardhatBinary} test`, {
+          env: {
+            ...process.env,
+            REPORT_GAS: "true",
+          },
+        });
+
+        // check that some row has the gas report headers
+        // this will break if hardhat-gas-reporter changes its output
+        const lines = stdout.split(os.EOL);
+        const hasGasReport = lines.some((x) =>
+          x.match(/Contract.*Method.*Min.*Max.*Avg/)
+        );
+
+        assert.isTrue(hasGasReport);
+      });
     });
 
     describe("typescript sample project", function () {
@@ -181,11 +198,26 @@ describe("e2e tests", function () {
           shell.exec(suggestedCommand, {
             env: {
               ...process.env,
-              GAS_REPORT: "true",
             },
           });
         });
       }
+
+      it("should report gas", async function () {
+        const { stdout } = shell.exec(`${hardhatBinary} test`, {
+          env: {
+            ...process.env,
+            REPORT_GAS: "true",
+          },
+        });
+
+        const lines = stdout.split(os.EOL);
+        const hasGasReport = lines.some((x) =>
+          x.match(/Contract.*Method.*Min.*Max.*Avg/)
+        );
+
+        assert.isTrue(hasGasReport);
+      });
     });
   });
 

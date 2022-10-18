@@ -11,7 +11,7 @@ on:
       - "config/**"
   pull_request:
     branches:
-      - "*"
+      - "**"
     paths:
       - "packages/hardhat-waffle/**"
       - "packages/hardhat-ethers/**"

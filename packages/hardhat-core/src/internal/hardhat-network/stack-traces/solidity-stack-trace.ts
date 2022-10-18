@@ -171,7 +171,7 @@ export interface OtherExecutionErrorStackTraceEntry {
 
 export interface ContractTooLargeErrorStackTraceEntry {
   type: StackTraceEntryType.CONTRACT_TOO_LARGE_ERROR;
-  sourceReference: SourceReference;
+  sourceReference?: SourceReference;
 }
 
 export interface InternalFunctionCallStackEntry {
