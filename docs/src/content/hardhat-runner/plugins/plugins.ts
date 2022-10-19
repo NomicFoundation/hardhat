@@ -154,7 +154,6 @@ const communityPlugins: IPlugin[] = [
     name: "@solidstate/hardhat-accounts",
     author: "Nick Barry",
     authorUrl: "https://github.com/ItsNickBarry",
-    url: "https://github.com/solidstate-network/hardhat-accounts/tree/master",
     description: "Output list of available accounts and their balances",
     tags: ["Accounts", "Balances"],
   },
