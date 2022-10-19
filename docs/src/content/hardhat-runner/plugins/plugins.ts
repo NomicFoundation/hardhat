@@ -593,6 +593,14 @@ const communityPlugins: IPlugin[] = [
     tags: ["Tooling", "Deployment", "Testing"],
   },
   {
+    name: "hardhat-etherscan-contract-cloner",
+    author: "Tuckson",
+    authorUrl: "https://github.com/TucksonDev",
+    description:
+      "Hardhat plugin for cloning verified contracts from any supported network using Etherscan's API.",
+    tags: ["Etherscan", "Clone", "Smart contract"],
+  },
+  {
     name: "hardhat-interact",
     author: "Synthetix Core Contributors",
     authorUrl: "https://github.com/dbeal-eth",
