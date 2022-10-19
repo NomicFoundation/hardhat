@@ -477,8 +477,6 @@ export class EthModule {
       new Address(address),
       blockNumberOrPending
     );
-    const rethnetAccountBalance = (await this._node._rethnet.getAccountByAddress(address))?.balance ?? BigInt(0);
-    expect(accountBalance, "Account balance").to.equal(rethnetAccountBalance);
 
     return numberToRpcQuantity(accountBalance);
   }

@@ -40,6 +40,16 @@ impl TryCast<H256> for Buffer {
     }
 }
 
+impl TryCast<Bytecode> for Buffer {
+    type Error = napi::Error;
+
+    fn try_cast(self) -> Result<Bytecode, Self::Error> {
+        let bytes = Bytes::copy_from_slice(&self);
+
+        Ok(Bytecode::new_raw(bytes))
+    }
+}
+
 impl TryCast<U256> for BigInt {
     type Error = napi::Error;
 

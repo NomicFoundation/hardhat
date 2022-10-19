@@ -2,7 +2,7 @@ use std::future::Future;
 
 use bytes::Bytes;
 use primitive_types::{H160, H256, U256};
-use revm::{AccountInfo, Database, DatabaseCommit, ExecutionResult, TxEnv};
+use revm::{AccountInfo, BlockEnv, CfgEnv, Database, DatabaseCommit, ExecutionResult, TxEnv};
 use tokio::{
     runtime::{Builder, Runtime},
     sync::{
@@ -89,12 +89,19 @@ impl Client {
     }
 
     /// Runs a transaction with committing the state.
-    pub async fn dry_run(&self, transaction: TxEnv) -> (ExecutionResult, State) {
+    pub async fn dry_run(
+        &self,
+        transaction: TxEnv,
+        block: BlockEnv,
+        cfg: CfgEnv,
+    ) -> (ExecutionResult, State) {
         let (sender, receiver) = oneshot::channel();
 
         self.request_sender
             .send(Request::Database(DatabaseRequest::DryRun {
                 transaction,
+                block,
+                cfg,
                 sender,
             }))
             .expect("Failed to send request");
@@ -118,8 +125,9 @@ impl Client {
 
     /// Guarantees that a transaction will succeed.
     pub async fn guarantee_transaction(&self, transaction: TxEnv) -> anyhow::Result<()> {
-        let total_gas =
-            U256::from(transaction.gas_limit) * transaction.gas_price + transaction.value;
+        let total_gas = U256::from(transaction.gas_limit)
+            * (transaction.gas_price + transaction.gas_priority_fee.unwrap_or_else(U256::zero))
+            + transaction.value;
 
         let caller = transaction.caller;
 

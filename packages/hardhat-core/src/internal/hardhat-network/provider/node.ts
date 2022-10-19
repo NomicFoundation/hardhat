@@ -122,10 +122,14 @@ import { makeStateTrie } from "./utils/makeStateTrie";
 import { putGenesisBlock } from "./utils/putGenesisBlock";
 import { txMapToArray } from "./utils/txMapToArray";
 import { RandomBufferGenerator } from "./utils/random";
-import { GenesisAccount as RethnetGenesisAccount, Rethnet, Transaction as RethnetTransaction } from "rethnet-evm";
-import { HardhatDB } from "rethnet-evm/db"
-import { assertEthereumJsAndRethnetResults as assertEthereumjsAndRethnetResults } from "./utils/assertions";
-import { ethereumjsTransactionToRethnet } from "./utils/convertToRethnet"
+import {
+  GenesisAccount as RethnetGenesisAccount,
+  Rethnet,
+  Transaction as RethnetTransaction
+} from "rethnet-evm";
+import { HardhatDB } from "rethnet-evm/db";
+import { assertEthereumJsAndRethnetResults, assertEthereumJsAndRethnetResults as assertEthereumjsAndRethnetResults } from "./utils/assertions";
+import { ethereumjsTransactionToRethnet } from "./utils/convertToRethnet";
 
 type ExecResult = EVMResult["execResult"];
 
@@ -288,6 +292,7 @@ export class HardhatNode extends EventEmitter {
       hardfork,
       hardforkActivations,
       mixHashGenerator,
+      allowUnlimitedContractSize ?? false,
       tracingConfig,
       forkNetworkId,
       forkBlockNum,
@@ -374,6 +379,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     public readonly hardfork: HardforkName,
     private readonly _hardforkActivations: HardforkHistoryConfig,
     private _mixHashGenerator: RandomBufferGenerator,
+    private _allowUnlimitedContractSize: boolean,
     tracingConfig?: TracingConfig,
     private _forkNetworkId?: number,
     private _forkBlockNumber?: bigint,
@@ -399,19 +405,22 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     this._vmTraceDecoder = new VmTraceDecoder(contractsIdentifier);
     this._solidityTracer = new SolidityTracer();
 
-    this._hardhatDB = new HardhatDB(this._stateManager);
-    this._rethnet = Rethnet.withCallbacks(
-      HardhatDB.prototype.commit.bind(this._hardhatDB),
-      HardhatDB.prototype.checkpoint.bind(this._hardhatDB),
-      HardhatDB.prototype.revert.bind(this._hardhatDB),
-      HardhatDB.prototype.getAccountByAddress.bind(this._hardhatDB),
-      HardhatDB.prototype.getAccountStorageSlot.bind(this._hardhatDB),
-      HardhatDB.prototype.getStorageRoot.bind(this._hardhatDB),
-      HardhatDB.prototype.insertAccount.bind(this._hardhatDB),
-      HardhatDB.prototype.setAccountBalance.bind(this._hardhatDB),
-      HardhatDB.prototype.setAccountCode.bind(this._hardhatDB),
-      HardhatDB.prototype.setAccountNonce.bind(this._hardhatDB),
-      HardhatDB.prototype.setAccountStorageSlot.bind(this._hardhatDB));
+    this._hardhatDB = new HardhatDB(this._stateManager, this._blockchain);
+    this._rethnet = Rethnet.withCallbacks({
+      getAccountByAddressFn: HardhatDB.prototype.getAccountByAddress.bind(this._hardhatDB),
+      getAccountStorageSlotFn: HardhatDB.prototype.getAccountStorageSlot.bind(this._hardhatDB),
+      getBlockHashFn: HardhatDB.prototype.getBlockHash.bind(this._hardhatDB),
+      getCodeByHashFn: HardhatDB.prototype.getCodeByHash.bind(this._hardhatDB)
+    }, null, {
+      checkpointFn: HardhatDB.prototype.checkpoint.bind(this._hardhatDB),
+      revertFn: HardhatDB.prototype.revert.bind(this._hardhatDB),
+      getStorageRootFn: HardhatDB.prototype.getStorageRoot.bind(this._hardhatDB),
+      insertAccountFn: HardhatDB.prototype.insertAccount.bind(this._hardhatDB),
+      setAccountBalanceFn: HardhatDB.prototype.setAccountBalance.bind(this._hardhatDB),
+      setAccountCodeFn: HardhatDB.prototype.setAccountCode.bind(this._hardhatDB),
+      setAccountNonceFn: HardhatDB.prototype.setAccountNonce.bind(this._hardhatDB),
+      setAccountStorageSlotFn: HardhatDB.prototype.setAccountStorageSlot.bind(this._hardhatDB)
+    });
 
     if (tracingConfig === undefined || tracingConfig.buildInfos === undefined) {
       return;
@@ -1771,9 +1780,10 @@ Hardhat Network's forking functionality only works with blocks from at least spu
   ): Promise<MineBlockResult> {
     const parentBlock = await this.getLatestBlock();
 
+    const coinbase = this.getCoinbaseAddress();
     const headerData: HeaderData = {
       gasLimit: this.getBlockGasLimit(),
-      coinbase: this.getCoinbaseAddress(),
+      coinbase,
       nonce: this.isPostMergeHardfork()
         ? "0x0000000000000000"
         : "0x0000000000000042",
@@ -1819,11 +1829,20 @@ Hardhat Network's forking functionality only works with blocks from at least spu
         ) {
           transactionQueue.removeLastSenderTransactions();
         } else {
-          const txResult = await blockBuilder.addTransaction(tx);
-
           const rethnetTx = ethereumjsTransactionToRethnet(tx);
-          await this._rethnet.guaranteeTransaction(rethnetTx);
-          const rethnetResult = await this._rethnet.run(rethnetTx);
+          const rethnetResult = await this._rethnet.dryRun(rethnetTx, {
+            number: BigInt(parentBlock.header.number) + 1n,
+            coinbase: coinbase.buf,
+            timestamp: blockTimestamp,
+            basefee: headerData.baseFeePerGas,
+            gasLimit: blockGasLimit,
+          }, {
+            chainId: BigInt(this._configChainId),
+            allowUnlimitedContractSize: this._allowUnlimitedContractSize,
+          });
+
+          const txResult = await blockBuilder.addTransaction(tx);
+          assertEthereumJsAndRethnetResults(rethnetResult.execResult, txResult);
 
           traces.push(await this._gatherTraces(txResult.execResult));
           results.push(txResult);
@@ -2352,7 +2371,6 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     forceBaseFeeZero = false
   ): Promise<RunTxResult> {
     const initialStateRoot = await this._stateManager.getStateRoot();
-    const rethnetCheckpoint = await this._rethnet.checkpoint();
 
     let blockContext: Block | undefined;
     let originalCommon: Common | undefined;
@@ -2419,6 +2437,21 @@ Hardhat Network's forking functionality only works with blocks from at least spu
         }
       );
 
+      const rethnetTx = ethereumjsTransactionToRethnet(tx);
+      await this._rethnet.guaranteeTransaction(rethnetTx);
+      const rethnetResult = await this._rethnet.dryRun(rethnetTx, {
+        number: blockContext.header.number,
+        coinbase: blockContext.header.coinbase.buf,
+        timestamp: blockContext.header.timestamp,
+        basefee: blockContext.header.baseFeePerGas,
+        gasLimit: blockContext.header.gasLimit,
+      }, {
+        chainId: BigInt(this._configChainId),
+        allowUnlimitedContractSize: this._allowUnlimitedContractSize,
+      });
+
+      await this._stateManager.setStateRoot(initialStateRoot);
+
       const ethereumjsResult = await this._vm.runTx({
         block: blockContext,
         tx,
@@ -2427,9 +2460,6 @@ Hardhat Network's forking functionality only works with blocks from at least spu
         skipBlockGasLimitValidation: true,
       });
 
-      const rethnetTx = ethereumjsTransactionToRethnet(tx);
-      await this._rethnet.guaranteeTransaction(rethnetTx);
-      const rethnetResult = await this._rethnet.dryRun(rethnetTx);
       assertEthereumjsAndRethnetResults(rethnetResult.execResult, ethereumjsResult);
 
       return ethereumjsResult;
@@ -2438,7 +2468,6 @@ Hardhat Network's forking functionality only works with blocks from at least spu
         (this._vm as any)._common = originalCommon;
       }
       await this._stateManager.setStateRoot(initialStateRoot);
-      await this._rethnet.revert();
     }
   }
 

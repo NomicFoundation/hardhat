@@ -8,14 +8,21 @@ use std::{fmt::Debug, str::FromStr};
 use db::{JsDatabaseCommitInner, JsDatabaseDebugInner};
 use napi::{bindgen_prelude::*, Status};
 use napi_derive::napi;
+use once_cell::sync::OnceCell;
 use rethnet_evm::{
-    sync::Client, AccountInfo, Bytes, CreateScheme, HashMap, LayeredDatabase, RethnetLayer,
-    TransactTo, TxEnv, H160, H256, U256,
+    sync::Client, AccountInfo, BlockEnv, Bytes, CfgEnv, CreateScheme, HashMap, LayeredDatabase,
+    RethnetLayer, TransactTo, TxEnv, H160, H256, U256,
 };
 use secp256k1::{PublicKey, Secp256k1, SecretKey, SignOnly};
 use sha3::{Digest, Keccak256};
 
 use crate::{cast::TryCast, db::JsDatabase};
+
+struct Logger;
+
+unsafe impl Sync for Logger {}
+
+static LOGGER: OnceCell<Logger> = OnceCell::new();
 
 #[napi(object)]
 pub struct Account {
@@ -180,7 +187,7 @@ impl TryFrom<Transaction> for TxEnv {
                 .map_or(2u64.pow(63), |limit| limit.get_u64().1),
             gas_price: value
                 .gas_price
-                .map_or(Ok(U256::from(1)), BigInt::try_cast)?,
+                .map_or(Ok(U256::from(0)), BigInt::try_cast)?,
             gas_priority_fee: value
                 .gas_priority_fee
                 .map_or(Ok(None), |fee| BigInt::try_cast(fee).map(Some))?,
@@ -216,6 +223,62 @@ impl From<rethnet_evm::TransactOut> for TransactionOutput {
         };
 
         Self { output, address }
+    }
+}
+
+#[napi(object)]
+pub struct Block {
+    pub number: BigInt,
+    pub coinbase: Buffer,
+    pub timestamp: BigInt,
+    pub difficulty: Option<BigInt>,
+    pub basefee: Option<BigInt>,
+    pub gas_limit: BigInt,
+}
+
+impl TryFrom<Block> for BlockEnv {
+    type Error = napi::Error;
+
+    fn try_from(value: Block) -> std::result::Result<Self, Self::Error> {
+        let default = BlockEnv::default();
+        let difficulty = value.difficulty.map_or_else(
+            || Ok(default.difficulty),
+            |difficulty| difficulty.try_cast(),
+        )?;
+        let basefee = value
+            .basefee
+            .map_or_else(|| Ok(default.basefee), |basefee| basefee.try_cast())?;
+
+        Ok(Self {
+            number: value.number.try_cast()?,
+            coinbase: H160::from_slice(&value.coinbase),
+            timestamp: value.timestamp.try_cast()?,
+            difficulty,
+            basefee,
+            gas_limit: value.gas_limit.try_cast()?,
+        })
+    }
+}
+
+#[napi(object)]
+pub struct Host {
+    pub chain_id: BigInt,
+    pub allow_unlimited_contract_size: bool,
+}
+
+impl TryFrom<Host> for CfgEnv {
+    type Error = napi::Error;
+
+    fn try_from(value: Host) -> std::result::Result<Self, Self::Error> {
+        Ok(Self {
+            chain_id: value.chain_id.try_cast()?,
+            limit_contract_code_size: if value.allow_unlimited_contract_size {
+                Some(usize::MAX)
+            } else {
+                Some(0x6000)
+            },
+            ..Default::default()
+        })
     }
 }
 
@@ -273,6 +336,10 @@ pub struct DatabaseCallbacks {
     pub get_account_by_address_fn: JsFunction,
     #[napi(ts_type = "(address: Buffer, index: bigint) => Promise<bigint>")]
     pub get_account_storage_slot_fn: JsFunction,
+    #[napi(ts_type = "(blockNumber: bigint) => Promise<Buffer>")]
+    pub get_block_hash_fn: JsFunction,
+    #[napi(ts_type = "(codeHash: Buffer) => Promise<Buffer>")]
+    pub get_code_by_hash_fn: JsFunction,
 }
 
 #[napi(object)]
@@ -311,9 +378,9 @@ impl Rethnet {
     #[allow(clippy::new_without_default)]
     #[napi(constructor)]
     pub fn new() -> napi::Result<Self> {
-        Ok(Self {
-            client: Client::with_db_mut_debug(LayeredDatabase::default())?,
-        })
+        Ok(Self::with_logger(Client::with_db_mut_debug(
+            LayeredDatabase::default(),
+        )?))
     }
 
     #[napi(factory)]
@@ -332,8 +399,17 @@ impl Rethnet {
 
         db::client(db, db_commit, db_debug).map_or_else(
             |e| Err(napi::Error::new(Status::GenericFailure, e.to_string())),
-            |client| Ok(Self { client }),
+            |client| Ok(Self::with_logger(client)),
         )
+    }
+
+    fn with_logger(client: Client) -> Self {
+        let _logger = LOGGER.get_or_init(|| {
+            pretty_env_logger::init();
+            Logger
+        });
+
+        Self { client }
     }
 
     #[napi(factory)]
@@ -360,14 +436,25 @@ impl Rethnet {
 
         Client::with_db(database).map_or_else(
             |e| Err(napi::Error::new(Status::GenericFailure, e.to_string())),
-            |client| Ok(Self { client }),
+            |client| Ok(Self::with_logger(client)),
         )
     }
 
     #[napi]
-    pub async fn dry_run(&self, transaction: Transaction) -> Result<TransactionResult> {
+    pub async fn dry_run(
+        &self,
+        transaction: Transaction,
+        block: Block,
+        host: Host,
+    ) -> Result<TransactionResult> {
         let transaction = transaction.try_into()?;
-        self.client.dry_run(transaction).await.try_into()
+        let block = block.try_into()?;
+        let host = host.try_into()?;
+
+        self.client
+            .dry_run(transaction, block, host)
+            .await
+            .try_into()
     }
 
     #[napi]

@@ -3,13 +3,16 @@ mod client;
 use anyhow::bail;
 use bytes::Bytes;
 use primitive_types::{H160, H256, U256};
-use revm::{AccountInfo, Bytecode, Database, DatabaseCommit, ExecutionResult, TxEnv, EVM};
+use revm::{
+    AccountInfo, BlockEnv, Bytecode, CfgEnv, Database, DatabaseCommit, ExecutionResult, TxEnv, EVM,
+};
 use tokio::sync::{mpsc::UnboundedReceiver, oneshot};
 
-use crate::{DatabaseDebug, State};
+use crate::{inspector::RethnetInspector, DatabaseDebug, State};
 
 pub use self::client::Client;
 
+#[allow(clippy::large_enum_variant)]
 #[derive(Debug)]
 pub enum Request {
     Debug(DebugRequest),
@@ -98,6 +101,8 @@ pub enum DatabaseRequest {
     },
     DryRun {
         transaction: TxEnv,
+        block: BlockEnv,
+        cfg: CfgEnv,
         sender: oneshot::Sender<(ExecutionResult, State)>,
     },
 }
@@ -113,10 +118,16 @@ impl DatabaseRequest {
             }
             DatabaseRequest::DryRun {
                 transaction,
+                block,
+                cfg,
                 sender,
             } => {
                 evm.env.tx = transaction;
-                sender.send(evm.transact()).is_ok()
+                evm.env.block = block;
+                evm.env.cfg = cfg;
+                sender
+                    .send(evm.inspect(RethnetInspector::default()))
+                    .is_ok()
             }
         };
 

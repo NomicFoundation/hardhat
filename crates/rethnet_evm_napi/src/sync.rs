@@ -11,7 +11,7 @@ pub fn await_promise<I, O>(
 ) -> napi::Result<()>
 where
     I: FromNapiValue + TryCast<O, Error = napi::Error>,
-    O: Debug + 'static,
+    O: 'static,
 {
     // If the result is a promise, wait for it to resolve, and send the result to the channel.
     // Otherwise, send the result immediately.

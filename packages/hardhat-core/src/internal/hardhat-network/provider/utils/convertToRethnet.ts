@@ -15,9 +15,10 @@ export function ethereumjsTransactionToRethnet(tx: TypedTransaction): Transactio
     };
 
     const rethnetTx: Transaction = {
+        from: tx.getSenderAddress().toBuffer(),
         to: tx.to?.buf,
         gasLimit: tx.gasLimit,
-        gasPrice: (tx as FeeMarketEIP1559Transaction)?.maxFeePerGas,
+        gasPrice: (tx as FeeMarketEIP1559Transaction)?.maxFeePerGas ?? (tx as any).gasPrice,
         gasPriorityFee: (tx as FeeMarketEIP1559Transaction)?.maxPriorityFeePerGas,
         value: tx.value,
         nonce: tx.nonce,
