@@ -4,6 +4,7 @@ import { assert } from "chai";
 import { getDependenciesFor } from "graph/adjacencyList";
 import { generateRecipeGraphFrom } from "process/generateRecipeGraphFrom";
 import { RecipeGraph } from "recipe/RecipeGraph";
+import { buildModule } from "recipe/buildModule";
 import { buildRecipe } from "recipe/buildRecipe";
 import { VertexDescriptor } from "types/graph";
 import { Artifact } from "types/hardhat";
@@ -757,7 +758,7 @@ describe("Recipes", function () {
     let recipeGraph: IRecipeGraph;
 
     before(() => {
-      const librariesRecipe = buildRecipe(
+      const librariesRecipe = buildModule(
         "libraries",
         (m: IRecipeGraphBuilder) => {
           const symbol = m.getOptionalParam("tokenSymbol", "TKN");

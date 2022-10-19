@@ -1,3 +1,5 @@
+import hash from "object-hash";
+
 import { addEdge, ensureVertex } from "graph/adjacencyList";
 import type {
   RecipeFuture,
@@ -15,6 +17,7 @@ import type {
   Virtual,
 } from "types/future";
 import type { Artifact } from "types/hardhat";
+import type { Module, ModuleCache, ModuleDict } from "types/module";
 import {
   ContractOptions,
   InternalParamValue,
@@ -34,10 +37,6 @@ import {
 
 import { RecipeGraph } from "./RecipeGraph";
 import { ScopeStack } from "./ScopeStack";
-
-interface ModuleCache {
-  [label: string]: FutureDict;
-}
 
 export class RecipeGraphBuilder implements IRecipeGraphBuilder {
   public chainId: number;
@@ -297,8 +296,8 @@ export class RecipeGraphBuilder implements IRecipeGraphBuilder {
     return { ...result, recipe: virtualVertex };
   }
 
-  public useModule(recipe: Recipe, options?: UseRecipeOptions): FutureDict {
-    const label = `module:${recipe.name}`;
+  public useModule(module: Module, options?: UseRecipeOptions): ModuleDict {
+    const label = `module:${module.name}`;
 
     if (this.moduleCache[label] === undefined) {
       this.scopes.push(label);
@@ -308,16 +307,37 @@ export class RecipeGraphBuilder implements IRecipeGraphBuilder {
         this.graph.registeredParameters[scopeLabel] = options.parameters;
       }
 
-      const result = recipe.recipeAction(this);
+      const result = module.moduleAction(this);
+
+      // type casting here so that typescript lets us validate against js users bypassing typeguards
+      for (const future of Object.values(result as FutureDict)) {
+        if (!isCallable(future)) {
+          throw new Error(
+            `Cannot return Future of type "${future.type} from a module`
+          );
+        }
+      }
 
       this._createRecipeVirtualVertex(label);
 
       this.scopes.pop();
 
-      this.moduleCache[label] = { ...result };
+      const optionsHash = hash(options ?? null, { unorderedArrays: true });
+
+      this.moduleCache[label] = { result, optionsHash };
+    } else {
+      const moduleData = this.moduleCache[label];
+
+      const newHash = hash(options ?? null, { unorderedArrays: true });
+
+      if (moduleData.optionsHash !== newHash) {
+        throw new Error(
+          "`useModule` cannot be invoked on the same module using different parameters"
+        );
+      }
     }
 
-    return this.moduleCache[label];
+    return this.moduleCache[label].result;
   }
 
   private _createRecipeVirtualVertex(label: string): Virtual {
