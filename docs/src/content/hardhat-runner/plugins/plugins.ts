@@ -336,6 +336,14 @@ const communityPlugins: IPlugin[] = [
     tags: ["Deployment", "CREATE2", "Tasks"],
   },
   {
+    name: "@tovarishfin/hardhat-yul",
+    author: "tovarishfin",
+    authorUrl: "https://codylamson.com",
+    description:
+      "An updated and working Hardhat plugin to compile the Yul and Yul+ languages into solc compatible artifacts. Works with .yul and .yulp file extensions",
+    tags: ["Yul", "Assembly", "Compiler", "Yul+"],
+  },
+  {
     name: "@controlcpluscontrolv/hardhat-yul",
     author: "ControlCplusControlV",
     authorUrl: "https://github.com/controlCplusControlV/",
