@@ -141,10 +141,6 @@ export class Renderer {
     return path.resolve(this._assetsPath, "templates");
   }
 
-  private _writeExecutionHTML(id: number, text: string): void {
-    fs.writeFileSync(`${this.executionPath}/${id}.html`, text, "utf8");
-  }
-
   private _writeRecipeHTML(id: number, text: string): void {
     fs.writeFileSync(`${this.recipePath}/${id}.html`, text, "utf8");
   }

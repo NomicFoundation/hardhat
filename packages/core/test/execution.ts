@@ -296,7 +296,7 @@ async function assertExecuteSingleVertex(
   const mockUpdateUiAction = () => {};
 
   const deployment = new Deployment(
-    { name: "MyRecipe" },
+    "MyRecipe",
     mockServices,
     mockUpdateUiAction
   );
@@ -322,7 +322,7 @@ async function assertDependentVertex(
   const mockUpdateUiAction = () => {};
 
   const deployment = new Deployment(
-    { name: "MyRecipe" },
+    "MyRecipe",
     mockServices,
     mockUpdateUiAction
   );

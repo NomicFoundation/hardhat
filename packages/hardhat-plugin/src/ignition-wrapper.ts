@@ -5,22 +5,18 @@ import {
   ExternalParamValue,
   Recipe,
 } from "@nomicfoundation/ignition-core";
-import { HardhatConfig, HardhatRuntimeEnvironment } from "hardhat/types";
+import { HardhatRuntimeEnvironment } from "hardhat/types";
 
 import { renderToCli } from "./ui/renderToCli";
 
 type HardhatEthers = HardhatRuntimeEnvironment["ethers"];
-type HardhatPaths = HardhatConfig["paths"];
 
 export class IgnitionWrapper {
   private _ignition: Ignition;
-  private _cachedChainId: number | undefined;
 
   constructor(
     private _providers: Providers,
     private _ethers: HardhatEthers,
-    private _isHardhatNetwork: boolean,
-    private _paths: HardhatPaths,
     private _deployOptions: Omit<
       IgnitionDeployOptions,
       keyof { ui?: boolean }

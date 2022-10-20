@@ -729,8 +729,8 @@ describe("Recipes", function () {
         }
       );
 
-      const WrapRecipe = buildRecipe("Wrap", (m: IRecipeGraphBuilder) => {
-        const token = m.useRecipe(librariesRecipe, {
+      const WrapRecipe = buildRecipe("Wrap", (m) => {
+        const { token } = m.useRecipe(librariesRecipe, {
           parameters: { tokenSymbol: "EXAMPLE", tokenName: "Example" },
         });
 

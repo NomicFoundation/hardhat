@@ -163,8 +163,8 @@ export class ContractsService implements IContractsService {
   }
 
   private async _bump(
-    txHash: string,
-    signer: IgnitionSigner,
+    _txHash: string,
+    _signer: IgnitionSigner,
     previousTxRequest: ethers.providers.TransactionRequest,
     previousTxHash: string
   ): Promise<ethers.providers.TransactionRequest> {

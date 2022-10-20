@@ -1,0 +1,4 @@
+{
+  "files": [],
+  "references": [{ "path": "core" }, { "path": "hardhat-plugin" }]
+}
