@@ -756,6 +756,8 @@ describe("Recipes", function () {
 
   describe("useModule", () => {
     let recipeGraph: IRecipeGraph;
+    let returnsWrongFutureType: () => void;
+    let differentParams: () => void;
 
     before(() => {
       const librariesRecipe = buildModule(
@@ -788,6 +790,53 @@ describe("Recipes", function () {
       });
 
       recipeGraph = graph;
+
+      const DiffParamsRecipe = buildRecipe(
+        "Error",
+        (m: IRecipeGraphBuilder) => {
+          const token = m.useModule(librariesRecipe, {
+            parameters: { tokenSymbol: "EXAMPLE", tokenName: "Example" },
+          });
+
+          const token2 = m.useModule(librariesRecipe, {
+            parameters: { tokenSymbol: "DIFFERENT", tokenName: "Example" },
+          });
+
+          return { token, token2 };
+        }
+      );
+
+      const returnTypeModule = buildModule(
+        "returnsParam",
+        (m: IRecipeGraphBuilder) => {
+          const symbol = m.getOptionalParam("tokenSymbol", "TKN");
+          const name = m.getParam("tokenName");
+          const token = m.contract("Token", {
+            args: [symbol, name, 1_000_000],
+          });
+
+          return { token, name };
+        }
+      );
+
+      const ReturnTypeRecipe = buildRecipe(
+        "ReturnsParamRecipe",
+        (m: IRecipeGraphBuilder) => {
+          const token = m.useModule(returnTypeModule, {
+            parameters: { tokenSymbol: "EXAMPLE", tokenName: "Example" },
+          });
+
+          return { token };
+        }
+      );
+
+      returnsWrongFutureType = () => {
+        generateRecipeGraphFrom(ReturnTypeRecipe, { chainId: 31 });
+      };
+
+      differentParams = () => {
+        generateRecipeGraphFrom(DiffParamsRecipe, { chainId: 31 });
+      };
     });
 
     it("should create a graph", () => {
@@ -796,6 +845,20 @@ describe("Recipes", function () {
 
     it("should have one node", () => {
       assert.equal(recipeGraph.vertexes.size, 2);
+    });
+
+    it("should not allow using the same module with different parameters", () => {
+      assert.throws(
+        differentParams,
+        "`useModule` cannot be invoked on the same module using different parameters"
+      );
+    });
+
+    it("should not allow an uncallable future to be returned from a module", () => {
+      assert.throws(
+        returnsWrongFutureType,
+        `Cannot return Future of type "parameter" from a module`
+      );
     });
   });
 });

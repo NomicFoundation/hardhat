@@ -313,7 +313,7 @@ export class RecipeGraphBuilder implements IRecipeGraphBuilder {
       for (const future of Object.values(result as FutureDict)) {
         if (!isCallable(future)) {
           throw new Error(
-            `Cannot return Future of type "${future.type} from a module`
+            `Cannot return Future of type "${future.type}" from a module`
           );
         }
       }
@@ -322,13 +322,13 @@ export class RecipeGraphBuilder implements IRecipeGraphBuilder {
 
       this.scopes.pop();
 
-      const optionsHash = hash(options ?? null, { unorderedArrays: true });
+      const optionsHash = hash(options ?? null);
 
       this.moduleCache[label] = { result, optionsHash };
     } else {
       const moduleData = this.moduleCache[label];
 
-      const newHash = hash(options ?? null, { unorderedArrays: true });
+      const newHash = hash(options ?? null);
 
       if (moduleData.optionsHash !== newHash) {
         throw new Error(
