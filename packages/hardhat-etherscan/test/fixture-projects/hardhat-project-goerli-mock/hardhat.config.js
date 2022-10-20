@@ -18,8 +18,8 @@ module.exports = {
   },
   networks: {
     hardhat: {
-      // Rinkeby chain ID
-      chainId: 4,
+      // Goeri chain ID
+      chainId: 5,
     },
   },
   paths: {

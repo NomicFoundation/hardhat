@@ -1,5 +1,16 @@
 # hardhat
 
+## 2.12.0
+
+### Minor Changes
+
+- aebec509e: Use `"merge"` hardfork setting by default in Hardhat Network
+
+### Patch Changes
+
+- 3db5334b9: Fix compiler downloader
+- 6d2edac4e: Upgrade `solidity-analyzer` and handle NPM's issue #4828.
+
 ## 2.11.2
 
 ### Patch Changes

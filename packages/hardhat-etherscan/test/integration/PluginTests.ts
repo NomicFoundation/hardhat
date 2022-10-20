@@ -326,8 +326,8 @@ describe("Plugin integration tests", function () {
     });
   });
 
-  describe("Using a Hardhat project that mocks the rinkeby network", function () {
-    useEnvironment("hardhat-project-rinkeby-mock");
+  describe("Using a Hardhat project that mocks the goerli network", function () {
+    useEnvironment("hardhat-project-goerli-mock");
 
     let signer: any;
 
