@@ -11,7 +11,6 @@ import {
   DependencyGraph,
   HardhatRuntimeEnvironment,
   ResolvedFile,
-  SolcConfig,
 } from "hardhat/types";
 import { existsSync, writeFileSync } from "fs";
 import path from "path";
@@ -64,7 +63,11 @@ extendConfig(async (config, userConfig) => {
   config.paths.sources = foundryConfig.src;
 
   // Change hardhat's cache path if it clashes with foundry's
-  if (foundryConfig.cache_path === "cache") {
+  const foundryCachePath = path.resolve(
+    config.paths.root,
+    foundryConfig.cache_path
+  );
+  if (config.paths.cache === foundryCachePath) {
     config.paths.cache = "cache_hardhat";
   }
 
@@ -84,12 +87,9 @@ internalTask(TASK_COMPILE_TRANSLATE_IMPORT_NAME).setAction(
 
     const remappings = getRemappings();
 
-    for (const from in remappings) {
-      if (Object.prototype.hasOwnProperty.call(remappings, from)) {
-        const to = remappings[from];
-        if (importName.startsWith(from)) {
-          return importName.replace(from, to);
-        }
+    for (const [from, to] of Object.entries(remappings)) {
+      if (importName.startsWith(from)) {
+        return importName.replace(from, to);
       }
     }
 
@@ -173,7 +173,7 @@ task(
 );
 
 function isCompilationJobCreationError(
-  x: CompilationJob | CompilationJobCreationError | SolcConfig
+  x: CompilationJob | CompilationJobCreationError
 ): x is CompilationJobCreationError {
   return "reason" in x;
 }
