@@ -28,6 +28,7 @@ import {
   RecipeVertex,
   UseRecipeOptions,
 } from "types/recipeGraph";
+import { IgnitionError } from "utils/errors";
 import {
   isArtifact,
   isCallable,
@@ -312,7 +313,7 @@ export class RecipeGraphBuilder implements IRecipeGraphBuilder {
       // type casting here so that typescript lets us validate against js users bypassing typeguards
       for (const future of Object.values(result as FutureDict)) {
         if (!isCallable(future)) {
-          throw new Error(
+          throw new IgnitionError(
             `Cannot return Future of type "${future.type}" from a module`
           );
         }
@@ -331,7 +332,7 @@ export class RecipeGraphBuilder implements IRecipeGraphBuilder {
       const newHash = hash(options ?? null);
 
       if (moduleData.optionsHash !== newHash) {
-        throw new Error(
+        throw new IgnitionError(
           "`useModule` cannot be invoked on the same module using different parameters"
         );
       }

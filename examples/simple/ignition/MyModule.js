@@ -6,7 +6,7 @@ const {
 const myModule = buildModule("MyModule", (m) => {
   const foo = m.contract("Foo");
 
-  const bar = m.contract("bar", { args: [foo] });
+  const bar = m.contract("Bar", { args: [foo] });
 
   return { foo, bar };
 });

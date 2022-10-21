@@ -10,7 +10,7 @@ import { Renderer } from "./plan";
 import { loadUserRecipes, loadAllUserRecipes } from "./user-recipes";
 import "./type-extensions";
 
-export { buildRecipe } from "@nomicfoundation/ignition-core";
+export { buildRecipe, buildModule } from "@nomicfoundation/ignition-core";
 
 extendConfig((config, userConfig) => {
   const userIgnitionPath = userConfig.paths?.ignition;
