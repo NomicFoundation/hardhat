@@ -437,7 +437,11 @@ async function runTest(
 
   const vm = await instantiateVm();
   const hardhatDB = new HardhatDB(vm.stateManager, vm.blockchain);
-  const rethnet = createRethnetFromHardhatDB(hardhatDB);
+
+  const rethnet = createRethnetFromHardhatDB({
+    chainId: vm._common.chainId(),
+    limitContractCodeSize: 2n ** 64n - 1n
+  }, hardhatDB);
 
   const txIndexToContract: Map<number, DeployedContract> = new Map();
 

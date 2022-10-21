@@ -4,7 +4,7 @@ import {
 } from "@nomicfoundation/ethereumjs-statemanager";
 import { Address } from '@nomicfoundation/ethereumjs-util'
 
-import { Block, DatabaseCallbacks, DatabaseCommitCallbacks, DatabaseDebugCallbacks, Host, Rethnet, Transaction } from '../..'
+import { Block, Config, DatabaseCallbacks, DatabaseCommitCallbacks, DatabaseDebugCallbacks, Rethnet, Transaction } from '../..'
 import { HardhatDB } from '../../db';
 
 
@@ -18,7 +18,12 @@ describe('Hardhat DB', () => {
     beforeEach(function () {
         db = new HardhatDB(new DefaultStateManager());
 
-        rethnet = Rethnet.withCallbacks({
+        const cfg: Config = {
+            chainId: BigInt(0),
+            limitContractCodeSize: 2n ** 64n - 1n,
+            disableEip3607: true
+        };
+        rethnet = Rethnet.withCallbacks(cfg, {
             getAccountByAddressFn: HardhatDB.prototype.getAccountByAddress.bind(db),
             getAccountStorageSlotFn: HardhatDB.prototype.getAccountStorageSlot.bind(db),
             getBlockHashFn: HardhatDB.prototype.getBlockHash.bind(db),
@@ -80,11 +85,7 @@ describe('Hardhat DB', () => {
             number: BigInt(1),
             timestamp: BigInt(Math.ceil(new Date().getTime() / 1000))
         };
-        const host: Host = {
-            chainId: BigInt(0),
-            allowUnlimitedContractSize: false
-        };
-        let sendValueChanges = await rethnet.dryRun(sendValue, block, host);
+        let sendValueChanges = await rethnet.dryRun(sendValue, block);
 
         // receiver should have 100 (0x64) wei
         expect(sendValueChanges.state["0x70997970c51812dc3a010c7d01b50e0d17dc79c8"].info.balance)
@@ -100,7 +101,7 @@ describe('Hardhat DB', () => {
             input: Buffer.from("3859818153F3", "hex"),
         };
 
-        let createContractChanges = await rethnet.dryRun(createContract, block, host);
+        let createContractChanges = await rethnet.dryRun(createContract, block);
 
         expect(createContractChanges.state["0x5fbdb2315678afecb367f032d93f642f64180aa3"])
             .to.exist;

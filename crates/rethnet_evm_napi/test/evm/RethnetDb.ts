@@ -1,16 +1,25 @@
 import { expect } from 'chai';
 import { Address } from '@nomicfoundation/ethereumjs-util'
 
-import { Block, Host, Rethnet, Transaction } from '../..'
+import { Block, Config, Rethnet, Transaction } from '../..'
 
 describe('Rethnet DB', () => {
     const caller = Address.fromString("0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266");
     const receiver = Address.fromString("0x70997970C51812dc3A010C7d01b50e0d17dc79C8");
 
+    let rethnet: Rethnet;
+
+    beforeEach(function () {
+        const cfg: Config = {
+            chainId: BigInt(0),
+            limitContractCodeSize: BigInt(2n) ** BigInt(32n),
+            disableEip3607: true
+        };
+        rethnet = new Rethnet(cfg);
+    });
+
     // TODO: insertBlock, setAccountCode, setAccountStorageSlot
     it('getAccountByAddress', async () => {
-        let rethnet = new Rethnet();
-
         await rethnet.insertAccount(caller.buf);
         let account = await rethnet.getAccountByAddress(caller.buf);
 
@@ -18,8 +27,6 @@ describe('Rethnet DB', () => {
         expect(account?.nonce).to.equal(0n);
     });
     it('setAccountBalance', async () => {
-        let rethnet = new Rethnet();
-
         await rethnet.insertAccount(caller.buf);
         await rethnet.setAccountBalance(caller.buf, 100n);
 
@@ -29,8 +36,6 @@ describe('Rethnet DB', () => {
         expect(account?.nonce).to.equal(0n);
     });
     it('setAccountNonce', async () => {
-        let rethnet = new Rethnet();
-
         await rethnet.insertAccount(caller.buf);
         await rethnet.setAccountNonce(caller.buf, 5n);
 
@@ -40,8 +45,6 @@ describe('Rethnet DB', () => {
         expect(account?.nonce).to.equal(5n);
     });
     it('call', async () => {
-        let rethnet = new Rethnet();
-
         // Add funds to caller
         await rethnet.insertAccount(caller.buf);
         await rethnet.setAccountBalance(caller.buf, BigInt("0xffffffff"));
@@ -58,11 +61,7 @@ describe('Rethnet DB', () => {
             number: BigInt(1),
             timestamp: BigInt(Math.ceil(new Date().getTime() / 1000))
         };
-        const host: Host = {
-            chainId: BigInt(0),
-            allowUnlimitedContractSize: false
-        };
-        let sendValueChanges = await rethnet.dryRun(sendValue, block, host);
+        let sendValueChanges = await rethnet.dryRun(sendValue, block);
 
         // receiver should have 100 (0x64) wei
         expect(sendValueChanges.state["0x70997970c51812dc3a010c7d01b50e0d17dc79c8"].info.balance)
@@ -78,7 +77,7 @@ describe('Rethnet DB', () => {
             input: Buffer.from("3859818153F3", "hex"),
         };
 
-        let createContractChanges = await rethnet.dryRun(createContract, block, host);
+        let createContractChanges = await rethnet.dryRun(createContract, block);
 
         expect(createContractChanges.state["0x5fbdb2315678afecb367f032d93f642f64180aa3"])
             .to.exist;

@@ -381,7 +381,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     public readonly hardfork: HardforkName,
     private readonly _hardforkActivations: HardforkHistoryConfig,
     private _mixHashGenerator: RandomBufferGenerator,
-    private _allowUnlimitedContractSize: boolean,
+    allowUnlimitedContractSize: boolean,
     tracingConfig?: TracingConfig,
     private _forkNetworkId?: number,
     private _forkBlockNumber?: bigint,
@@ -408,7 +408,15 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     this._solidityTracer = new SolidityTracer();
 
     this._hardhatDB = new HardhatDB(this._stateManager, this._blockchain);
-    this._rethnet = createRethnetFromHardhatDB(this._hardhatDB);
+
+
+    const limitContractCodeSize = allowUnlimitedContractSize ? (2n ** 64n - 1n) : undefined;
+
+    this._rethnet = createRethnetFromHardhatDB({
+      chainId: BigInt(this._configChainId),
+      limitContractCodeSize,
+      disableEip3607: true,
+    }, this._hardhatDB);
 
     if (tracingConfig === undefined || tracingConfig.buildInfos === undefined) {
       return;
@@ -1831,9 +1839,6 @@ Hardhat Network's forking functionality only works with blocks from at least spu
             basefee: headerData.baseFeePerGas,
             gasLimit: blockGasLimit,
             difficulty,
-          }, {
-            chainId: BigInt(this._configChainId),
-            allowUnlimitedContractSize: this._allowUnlimitedContractSize,
           });
 
           const txResult = await blockBuilder.addTransaction(tx);
@@ -2445,9 +2450,6 @@ Hardhat Network's forking functionality only works with blocks from at least spu
         basefee: blockContext.header.baseFeePerGas,
         gasLimit: blockContext.header.gasLimit,
         difficulty,
-      }, {
-        chainId: BigInt(this._configChainId),
-        allowUnlimitedContractSize: this._allowUnlimitedContractSize,
       });
 
       await this._stateManager.setStateRoot(initialStateRoot);

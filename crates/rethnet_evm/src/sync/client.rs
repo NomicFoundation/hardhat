@@ -37,43 +37,43 @@ impl Client {
         })
     }
     /// Constructs [`Rethnet`] with the provided database and runs it asynchronously.
-    pub fn with_db<D>(db: D) -> anyhow::Result<Self>
+    pub fn with_db<D>(cfg: CfgEnv, db: D) -> anyhow::Result<Self>
     where
         D: Database<Error = anyhow::Error> + Send + 'static,
     {
         let (request_sender, request_receiver) = unbounded_channel();
 
         Self::new(request_sender, async {
-            Rethnet::new(request_receiver, db).run().await
+            Rethnet::new(request_receiver, cfg, db).run().await
         })
     }
 
     /// Constructs [`Rethnet`] with the provided database and runs it asynchronously.
-    pub fn with_db_debug<D>(db: D) -> anyhow::Result<Self>
+    pub fn with_db_debug<D>(cfg: CfgEnv, db: D) -> anyhow::Result<Self>
     where
         D: Database<Error = anyhow::Error> + DatabaseDebug<Error = anyhow::Error> + Send + 'static,
     {
         let (request_sender, request_receiver) = unbounded_channel();
 
         Self::new(request_sender, async {
-            Rethnet::new(request_receiver, db).run_debug().await
+            Rethnet::new(request_receiver, cfg, db).run_debug().await
         })
     }
 
     /// Constructs [`Rethnet`] with the provided database and runs it asynchronously.
-    pub fn with_db_mut<D>(db: D) -> anyhow::Result<Self>
+    pub fn with_db_mut<D>(cfg: CfgEnv, db: D) -> anyhow::Result<Self>
     where
         D: Database<Error = anyhow::Error> + DatabaseCommit + Send + 'static,
     {
         let (request_sender, request_receiver) = unbounded_channel();
 
         Self::new(request_sender, async {
-            Rethnet::new(request_receiver, db).run_mut().await
+            Rethnet::new(request_receiver, cfg, db).run_mut().await
         })
     }
 
     /// Constructs [`Rethnet`] with the provided database and runs it asynchronously.
-    pub fn with_db_mut_debug<D>(db: D) -> anyhow::Result<Self>
+    pub fn with_db_mut_debug<D>(cfg: CfgEnv, db: D) -> anyhow::Result<Self>
     where
         D: Database<Error = anyhow::Error>
             + DatabaseCommit
@@ -84,24 +84,20 @@ impl Client {
         let (request_sender, request_receiver) = unbounded_channel();
 
         Self::new(request_sender, async {
-            Rethnet::new(request_receiver, db).run_mut_debug().await
+            Rethnet::new(request_receiver, cfg, db)
+                .run_mut_debug()
+                .await
         })
     }
 
     /// Runs a transaction with committing the state.
-    pub async fn dry_run(
-        &self,
-        transaction: TxEnv,
-        block: BlockEnv,
-        cfg: CfgEnv,
-    ) -> (ExecutionResult, State) {
+    pub async fn dry_run(&self, transaction: TxEnv, block: BlockEnv) -> (ExecutionResult, State) {
         let (sender, receiver) = oneshot::channel();
 
         self.request_sender
             .send(Request::Database(DatabaseRequest::DryRun {
                 transaction,
                 block,
-                cfg,
                 sender,
             }))
             .expect("Failed to send request");

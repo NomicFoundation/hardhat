@@ -229,11 +229,11 @@ impl From<rethnet_evm::TransactOut> for TransactionOutput {
 #[napi(object)]
 pub struct Block {
     pub number: BigInt,
-    pub coinbase: Buffer,
+    pub coinbase: Option<Buffer>,
     pub timestamp: BigInt,
     pub difficulty: Option<BigInt>,
     pub basefee: Option<BigInt>,
-    pub gas_limit: BigInt,
+    pub gas_limit: Option<BigInt>,
 }
 
 impl TryFrom<Block> for BlockEnv {
@@ -241,6 +241,9 @@ impl TryFrom<Block> for BlockEnv {
 
     fn try_from(value: Block) -> std::result::Result<Self, Self::Error> {
         let default = BlockEnv::default();
+        let coinbase = value
+            .coinbase
+            .map_or(default.coinbase, |coinbase| H160::from_slice(&coinbase));
         let difficulty = value.difficulty.map_or_else(
             || Ok(default.difficulty),
             |difficulty| difficulty.try_cast(),
@@ -248,37 +251,112 @@ impl TryFrom<Block> for BlockEnv {
         let basefee = value
             .basefee
             .map_or_else(|| Ok(default.basefee), |basefee| basefee.try_cast())?;
+        let gas_limit = value
+            .gas_limit
+            .map_or(Ok(default.gas_limit), |gas_limit| gas_limit.try_cast())?;
 
         Ok(Self {
             number: value.number.try_cast()?,
-            coinbase: H160::from_slice(&value.coinbase),
+            coinbase,
             timestamp: value.timestamp.try_cast()?,
             difficulty,
             basefee,
-            gas_limit: value.gas_limit.try_cast()?,
+            gas_limit,
         })
     }
 }
 
+/// If not set, uses defaults from [`CfgEnv`].
 #[napi(object)]
-pub struct Host {
-    pub chain_id: BigInt,
-    pub allow_unlimited_contract_size: bool,
+pub struct Config {
+    pub chain_id: Option<BigInt>,
+    pub spec_id: Option<SpecId>,
+    pub limit_contract_code_size: Option<BigInt>,
+    pub disable_eip3607: Option<bool>,
 }
 
-impl TryFrom<Host> for CfgEnv {
+impl TryFrom<Config> for CfgEnv {
     type Error = napi::Error;
 
-    fn try_from(value: Host) -> std::result::Result<Self, Self::Error> {
-        Ok(Self {
-            chain_id: value.chain_id.try_cast()?,
-            limit_contract_code_size: if value.allow_unlimited_contract_size {
-                Some(usize::MAX)
+    fn try_from(value: Config) -> std::result::Result<Self, Self::Error> {
+        let default = CfgEnv::default();
+        let chain_id = value
+            .chain_id
+            .map_or(Ok(default.chain_id), |chain_id| chain_id.try_cast())?;
+
+        let spec_id = value
+            .spec_id
+            .map_or(default.spec_id, |spec_id| spec_id.into());
+
+        let limit_contract_code_size = value.limit_contract_code_size.map_or(Ok(None), |size| {
+            // TODO: the lossless check in get_u64 is broken: https://github.com/napi-rs/napi-rs/pull/1348
+            if let (false, size, _lossless) = size.get_u64() {
+                usize::try_from(size).map_or_else(
+                    |e| Err(napi::Error::new(Status::InvalidArg, e.to_string())),
+                    |size| Ok(Some(size)),
+                )
             } else {
-                Some(0x6000)
-            },
-            ..Default::default()
+                Err(napi::Error::new(
+                    Status::InvalidArg,
+                    "BigInt cannot be larger than usize::MAX".to_owned(),
+                ))
+            }
+        })?;
+
+        let disable_eip3607 = value.disable_eip3607.unwrap_or(default.disable_eip3607);
+
+        Ok(Self {
+            chain_id,
+            spec_id,
+            limit_contract_code_size,
+            disable_eip3607,
+            ..default
         })
+    }
+}
+
+#[napi]
+pub enum SpecId {
+    Frontier = 0,
+    FrontierThawing = 1,
+    Homestead = 2,
+    DaoFork = 3,
+    Tangerine = 4,
+    SpuriousDragon = 5,
+    Byzantium = 6,
+    Constantinople = 7,
+    Petersburg = 8,
+    Istanbul = 9,
+    MuirGlacier = 10,
+    Berlin = 11,
+    London = 12,
+    ArrowGlacier = 13,
+    GrayGlacier = 14,
+    Merge = 15,
+    Latest = 16,
+}
+
+impl From<SpecId> for rethnet_evm::SpecId {
+    fn from(value: SpecId) -> Self {
+        match value {
+            SpecId::Frontier => rethnet_evm::SpecId::FRONTIER,
+            SpecId::FrontierThawing => rethnet_evm::SpecId::FRONTIER_THAWING,
+            SpecId::Homestead => rethnet_evm::SpecId::HOMESTEAD,
+            SpecId::DaoFork => rethnet_evm::SpecId::DAO_FORK,
+            SpecId::Tangerine => rethnet_evm::SpecId::TANGERINE,
+            SpecId::SpuriousDragon => rethnet_evm::SpecId::SPURIOUS_DRAGON,
+            SpecId::Byzantium => rethnet_evm::SpecId::BYZANTIUM,
+            SpecId::Constantinople => rethnet_evm::SpecId::CONSTANTINOPLE,
+            SpecId::Petersburg => rethnet_evm::SpecId::PETERSBURG,
+            SpecId::Istanbul => rethnet_evm::SpecId::ISTANBUL,
+            SpecId::MuirGlacier => rethnet_evm::SpecId::MUIR_GLACIER,
+            SpecId::Berlin => rethnet_evm::SpecId::BERLIN,
+            SpecId::London => rethnet_evm::SpecId::LONDON,
+            SpecId::ArrowGlacier => rethnet_evm::SpecId::ARROW_GLACIER,
+            SpecId::GrayGlacier => rethnet_evm::SpecId::GRAY_GLACIER,
+            SpecId::Merge => rethnet_evm::SpecId::MERGE,
+            SpecId::Latest => rethnet_evm::SpecId::LATEST,
+        }
     }
 }
 
@@ -377,8 +455,11 @@ pub struct Rethnet {
 impl Rethnet {
     #[allow(clippy::new_without_default)]
     #[napi(constructor)]
-    pub fn new() -> napi::Result<Self> {
+    pub fn new(cfg: Config) -> napi::Result<Self> {
+        let cfg = cfg.try_into()?;
+
         Ok(Self::with_logger(Client::with_db_mut_debug(
+            cfg,
             LayeredDatabase::default(),
         )?))
     }
@@ -386,10 +467,13 @@ impl Rethnet {
     #[napi(factory)]
     pub fn with_callbacks(
         env: Env,
+        cfg: Config,
         db_callbacks: DatabaseCallbacks,
         db_mut_callbacks: Option<DatabaseCommitCallbacks>,
         db_debug_callbacks: Option<DatabaseDebugCallbacks>,
     ) -> napi::Result<Self> {
+        let cfg = cfg.try_into()?;
+
         let db = JsDatabase::new(&env, db_callbacks)?;
         let db_commit = db_mut_callbacks.map_or(Ok(None), |db| {
             JsDatabaseCommitInner::new(&env, db).map(Some)
@@ -397,7 +481,7 @@ impl Rethnet {
         let db_debug = db_debug_callbacks
             .map_or(Ok(None), |db| JsDatabaseDebugInner::new(&env, db).map(Some))?;
 
-        db::client(db, db_commit, db_debug).map_or_else(
+        db::client(cfg, db, db_commit, db_debug).map_or_else(
             |e| Err(napi::Error::new(Status::GenericFailure, e.to_string())),
             |client| Ok(Self::with_logger(client)),
         )
@@ -413,7 +497,9 @@ impl Rethnet {
     }
 
     #[napi(factory)]
-    pub fn with_genesis_accounts(accounts: Vec<GenesisAccount>) -> napi::Result<Self> {
+    pub fn with_genesis_accounts(cfg: Config, accounts: Vec<GenesisAccount>) -> napi::Result<Self> {
+        let cfg = cfg.try_into()?;
+
         let context = Secp256k1::signing_only();
         let genesis_accounts = accounts
             .into_iter()
@@ -434,7 +520,7 @@ impl Rethnet {
             LayeredDatabase::with_layer(RethnetLayer::with_genesis_accounts(genesis_accounts));
         database.add_layer_default();
 
-        Client::with_db(database).map_or_else(
+        Client::with_db(cfg, database).map_or_else(
             |e| Err(napi::Error::new(Status::GenericFailure, e.to_string())),
             |client| Ok(Self::with_logger(client)),
         )
@@ -445,16 +531,11 @@ impl Rethnet {
         &self,
         transaction: Transaction,
         block: Block,
-        host: Host,
     ) -> Result<TransactionResult> {
         let transaction = transaction.try_into()?;
         let block = block.try_into()?;
-        let host = host.try_into()?;
 
-        self.client
-            .dry_run(transaction, block, host)
-            .await
-            .try_into()
+        self.client.dry_run(transaction, block).await.try_into()
     }
 
     #[napi]

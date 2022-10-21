@@ -94,10 +94,6 @@ export async function traceTransaction(
         ),
         timestamp: BigInt(Math.floor(Date.now() / 1000)),
         gasLimit: 4000000n,
-      },
-      {
-        chainId: vm._common.chainId(),
-        allowUnlimitedContractSize: true,
       }
     );
 

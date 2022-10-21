@@ -6,7 +6,7 @@ pub use primitive_types::{H160, H256, U256};
 pub use revm::{
     db::{DatabaseRef, EmptyDB},
     Account, AccountInfo, BlockEnv, Bytecode, CfgEnv, CreateScheme, Database, DatabaseCommit,
-    ExecutionResult, Log, Return, TransactOut, TransactTo, TxEnv, EVM,
+    ExecutionResult, Log, Return, SpecId, TransactOut, TransactTo, TxEnv, EVM,
 };
 
 pub type State = HashMap<H160, Account>;

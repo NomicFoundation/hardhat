@@ -102,7 +102,6 @@ pub enum DatabaseRequest {
     DryRun {
         transaction: TxEnv,
         block: BlockEnv,
-        cfg: CfgEnv,
         sender: oneshot::Sender<(ExecutionResult, State)>,
     },
 }
@@ -119,12 +118,11 @@ impl DatabaseRequest {
             DatabaseRequest::DryRun {
                 transaction,
                 block,
-                cfg,
                 sender,
             } => {
                 evm.env.tx = transaction;
                 evm.env.block = block;
-                evm.env.cfg = cfg;
+
                 sender
                     .send(evm.inspect(RethnetInspector::default()))
                     .is_ok()
@@ -217,8 +215,9 @@ pub struct Rethnet<D> {
 }
 
 impl<D> Rethnet<D> {
-    pub fn new(request_receiver: UnboundedReceiver<Request>, db: D) -> Self {
+    pub fn new(request_receiver: UnboundedReceiver<Request>, cfg: CfgEnv, db: D) -> Self {
         let mut evm = EVM::new();
+        evm.env.cfg = cfg;
         evm.database(db);
 
         Self {
