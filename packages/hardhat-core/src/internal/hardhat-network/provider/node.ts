@@ -130,7 +130,7 @@ import {
 } from "rethnet-evm";
 import { HardhatDB } from "rethnet-evm/db";
 import { assertEthereumJsAndRethnetResults, assertEthereumJsAndRethnetResults as assertEthereumjsAndRethnetResults } from "./utils/assertions";
-import { ethereumjsTransactionToRethnet } from "./utils/convertToRethnet";
+import { createRethnetFromHardhatDB, ethereumjsTransactionToRethnet } from "./utils/convertToRethnet";
 import { fromBigIntLike } from "../../util/bigint";
 
 type ExecResult = EVMResult["execResult"];
@@ -408,21 +408,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     this._solidityTracer = new SolidityTracer();
 
     this._hardhatDB = new HardhatDB(this._stateManager, this._blockchain);
-    this._rethnet = Rethnet.withCallbacks({
-      getAccountByAddressFn: HardhatDB.prototype.getAccountByAddress.bind(this._hardhatDB),
-      getAccountStorageSlotFn: HardhatDB.prototype.getAccountStorageSlot.bind(this._hardhatDB),
-      getBlockHashFn: HardhatDB.prototype.getBlockHash.bind(this._hardhatDB),
-      getCodeByHashFn: HardhatDB.prototype.getCodeByHash.bind(this._hardhatDB)
-    }, null, {
-      checkpointFn: HardhatDB.prototype.checkpoint.bind(this._hardhatDB),
-      revertFn: HardhatDB.prototype.revert.bind(this._hardhatDB),
-      getStorageRootFn: HardhatDB.prototype.getStorageRoot.bind(this._hardhatDB),
-      insertAccountFn: HardhatDB.prototype.insertAccount.bind(this._hardhatDB),
-      setAccountBalanceFn: HardhatDB.prototype.setAccountBalance.bind(this._hardhatDB),
-      setAccountCodeFn: HardhatDB.prototype.setAccountCode.bind(this._hardhatDB),
-      setAccountNonceFn: HardhatDB.prototype.setAccountNonce.bind(this._hardhatDB),
-      setAccountStorageSlotFn: HardhatDB.prototype.setAccountStorageSlot.bind(this._hardhatDB)
-    });
+    this._rethnet = createRethnetFromHardhatDB(this._hardhatDB);
 
     if (tracingConfig === undefined || tracingConfig.buildInfos === undefined) {
       return;
