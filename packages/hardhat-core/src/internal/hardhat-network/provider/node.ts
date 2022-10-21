@@ -16,6 +16,7 @@ import {
   privateToAddress,
   setLengthLeft,
   toBuffer,
+  bufferToBigInt,
 } from "@nomicfoundation/ethereumjs-util";
 import {
   Bloom,
@@ -130,6 +131,7 @@ import {
 import { HardhatDB } from "rethnet-evm/db";
 import { assertEthereumJsAndRethnetResults, assertEthereumJsAndRethnetResults as assertEthereumjsAndRethnetResults } from "./utils/assertions";
 import { ethereumjsTransactionToRethnet } from "./utils/convertToRethnet";
+import { fromBigIntLike } from "../../util/bigint";
 
 type ExecResult = EVMResult["execResult"];
 
@@ -1830,12 +1832,19 @@ Hardhat Network's forking functionality only works with blocks from at least spu
           transactionQueue.removeLastSenderTransactions();
         } else {
           const rethnetTx = ethereumjsTransactionToRethnet(tx);
+          const difficulty = this._getBlockEnvDifficulty(
+            fromBigIntLike(headerData.difficulty),
+            headerData.mixHash !== undefined
+              ? bufferToBigInt(toBuffer(headerData.mixHash))
+              : undefined
+          );
           const rethnetResult = await this._rethnet.dryRun(rethnetTx, {
             number: BigInt(parentBlock.header.number) + 1n,
             coinbase: coinbase.buf,
             timestamp: blockTimestamp,
             basefee: headerData.baseFeePerGas,
             gasLimit: blockGasLimit,
+            difficulty,
           }, {
             chainId: BigInt(this._configChainId),
             allowUnlimitedContractSize: this._allowUnlimitedContractSize,
@@ -2439,12 +2448,17 @@ Hardhat Network's forking functionality only works with blocks from at least spu
 
       const rethnetTx = ethereumjsTransactionToRethnet(tx);
       await this._rethnet.guaranteeTransaction(rethnetTx);
+      const difficulty = this._getBlockEnvDifficulty(
+        blockContext.header.difficulty,
+        bufferToBigInt(blockContext.header.mixHash)
+      );
       const rethnetResult = await this._rethnet.dryRun(rethnetTx, {
         number: blockContext.header.number,
         coinbase: blockContext.header.coinbase.buf,
         timestamp: blockContext.header.timestamp,
         basefee: blockContext.header.baseFeePerGas,
         gasLimit: blockContext.header.gasLimit,
+        difficulty,
       }, {
         chainId: BigInt(this._configChainId),
         allowUnlimitedContractSize: this._allowUnlimitedContractSize,
@@ -2691,5 +2705,16 @@ Hardhat Network's forking functionality only works with blocks from at least spu
         `Network id ${networkId} does not correspond to a network that Hardhat can trace`
       );
     }
+  }
+
+  private _getBlockEnvDifficulty(
+    difficulty: bigint | undefined,
+    mixHash: bigint | undefined
+  ): bigint | undefined {
+    if (this.isPostMergeHardfork()) {
+      return mixHash;
+    }
+
+    return difficulty;
   }
 }
