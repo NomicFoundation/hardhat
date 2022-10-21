@@ -9,6 +9,6 @@ bytes = { version = "1.2.1", default-features = false }
 hashbrown = { version = "0.12.3", default-features = false, features = ["serde"] }
 log = { version = "0.4.17", default-features = false }
 primitive-types = { version = "0.11.1", default-features = false, features = ["impl-serde"] }
-revm = { git = "https://github.com/Wodann/revm", branch = "feat/optional-eip3607", version = "2.1.0", default-features = false, features = ["dev", "k256", "with-serde"] }
+revm = { git = "https://github.com/Wodann/revm", branch = "feat/optional-block-gas-limit", version = "2.1.0", default-features = false, features = ["dev", "k256", "with-serde"] }
 sha3 = { version = "0.10.4", default-features = false }
 tokio = { version = "1.21.2", default-features = false, features = ["sync"] }

@@ -272,6 +272,7 @@ pub struct Config {
     pub chain_id: Option<BigInt>,
     pub spec_id: Option<SpecId>,
     pub limit_contract_code_size: Option<BigInt>,
+    pub disable_block_gas_limit: Option<bool>,
     pub disable_eip3607: Option<bool>,
 }
 
@@ -303,12 +304,16 @@ impl TryFrom<Config> for CfgEnv {
             }
         })?;
 
+        let disable_block_gas_limit = value
+            .disable_block_gas_limit
+            .unwrap_or(default.disable_block_gas_limit);
         let disable_eip3607 = value.disable_eip3607.unwrap_or(default.disable_eip3607);
 
         Ok(Self {
             chain_id,
             spec_id,
             limit_contract_code_size,
+            disable_block_gas_limit,
             disable_eip3607,
             ..default
         })

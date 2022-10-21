@@ -415,6 +415,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     this._rethnet = createRethnetFromHardhatDB({
       chainId: BigInt(this._configChainId),
       limitContractCodeSize,
+      disableBlockGasLimit: true,
       disableEip3607: true,
     }, this._hardhatDB);
 
