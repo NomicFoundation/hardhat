@@ -55,12 +55,12 @@ You can think of this as `b` being analogue to a promise of an address, although
 ### Executing a method in a contract
 
 ```tsx
-const token = m.contract("Token")
-const exchange = m.contract("Exchange")
+const token = m.contract("Token");
+const exchange = m.contract("Exchange");
 
 m.call(exchange, "addToken", {
-  args: [token]
-})
+  args: [token],
+});
 ```
 
 ### Using an existing contract
@@ -138,3 +138,44 @@ When a recipe is deployed, the proper parameters must be provided. If they are n
 ```tsx
 const symbol = m.getOptionalParam("tokenSymbol", "TKN");
 ```
+
+## Modules
+
+Similarly to creating and using Recipes with `buildRecipe(...)` and `m.useRecipe(...)`, you may also choose to create and use Modules using `buildModule(...)` and `m.useModule(...)`:
+
+```tsx
+// ./ignition/MyRecipe.ts
+import {
+  buildRecipe,
+  buildModule,
+  RecipeBuilder,
+} from "@nomicfoundation/hardhat-ignition";
+
+const myModule = buildModule("MyModule", (m: RecipeBuilder) => {
+  const symbol = m.getParam("tokenSymbol");
+  const name = m.getParam("tokenName");
+  const token = m.contract("Token", {
+    args: [symbol, name, 1_000_000],
+  });
+
+  return { token };
+});
+
+export default buildRecipe("MyRecipe", (m: RecipeBuilder) => {
+  const { token } = m.useModule(myModule, {
+    parameters: {
+      tokenName: "EXAMPLE",
+      tokenSymbol: "XMPL",
+    },
+  });
+
+  return { token };
+});
+```
+
+The difference in using a Module instead of a Recipe is that, no matter how many times you invoke a given module via `m.useModule(...)`, that module will only be executed one time, with the results cached internally and returned for subsequent invocations.
+
+To enforce this, there are two rules that must be followed when creating modules:
+
+- Parameters passed into subsequent calls of `m.useModule(...)` must match the parameters used for the first invocation of a given module
+- Only `CallableFuture` types can be returned when building a module (i.e. contracts or libraries)
