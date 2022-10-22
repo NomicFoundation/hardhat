@@ -1,8 +1,8 @@
-import { InternalError } from "../../../core/providers/errors";
 import { RunTxResult } from "@nomicfoundation/ethereumjs-vm";
-import { ExecutionResult, TransactionOutput } from "rethnet-evm";
-import { assert, expect } from "chai";
+import { expect } from "chai";
+import { ExecutionResult } from "rethnet-evm";
 import { ERROR } from "@nomicfoundation/ethereumjs-evm/dist/exceptions";
+import { InternalError } from "../../../core/providers/errors";
 
 export function assertHardhatNetworkInvariant(
   invariant: boolean,
@@ -32,9 +32,9 @@ export function assertEthereumJsAndRethnetResults(
   );
   expect(rethnetResult.output.address, "Created address").to.deep.equal(
     ethereumjsResult.createdAddress?.toBuffer(),
-    `EthJS: ${ethereumjsResult.createdAddress?.toString()}, rethent: ${rethnetResult.output.address?.toString(
-      "hex"
-    )}`
+    `EthJS: ${
+      ethereumjsResult.createdAddress?.toString() ?? "null"
+    }, rethent: ${rethnetResult.output.address?.toString("hex") ?? "null"}`
   );
 
   if (ethereumjsResult.createdAddress === undefined) {
@@ -67,7 +67,7 @@ function assertEthereumJsAndRethnetExitCodes(
     [ERROR.STACK_OVERFLOW, [0x58]],
     [ERROR.INVALID_JUMP, [0x54]],
     [ERROR.INVALID_OPCODE, [0x51, 0x53]],
-    [ERROR.OUT_OF_RANGE, [0x59]],  // ?
+    [ERROR.OUT_OF_RANGE, [0x59]], // ?
     [ERROR.REVERT, [0x20]],
     [ERROR.STATIC_STATE_CHANGE, [0x52]], // ?
     [ERROR.INTERNAL_ERROR, undefined],
@@ -88,7 +88,7 @@ function assertEthereumJsAndRethnetExitCodes(
     [ERROR.BLS_12_381_INVALID_INPUT_LENGTH, undefined],
     [ERROR.BLS_12_381_POINT_NOT_ON_CURVE, undefined],
     [ERROR.BLS_12_381_INPUT_EMPTY, undefined],
-    [ERROR.BLS_12_381_FP_NOT_IN_FIELD, undefined]
+    [ERROR.BLS_12_381_FP_NOT_IN_FIELD, undefined],
   ]);
 
   if (ethereumjsExitCode !== undefined) {

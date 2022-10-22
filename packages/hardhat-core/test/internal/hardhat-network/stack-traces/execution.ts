@@ -84,18 +84,12 @@ export async function traceTransaction(
   try {
     const rethnetTx = ethereumjsTransactionToRethnet(signedTx);
 
-    const rethnetResult = await rethnet.dryRun(
-      rethnetTx,
-      {
-        number: 0n,
-        coinbase: Buffer.from(
-          "0000000000000000000000000000000000000000",
-          "hex"
-        ),
-        timestamp: BigInt(Math.floor(Date.now() / 1000)),
-        gasLimit: 4000000n,
-      }
-    );
+    const rethnetResult = await rethnet.dryRun(rethnetTx, {
+      number: 0n,
+      coinbase: Buffer.from("0000000000000000000000000000000000000000", "hex"),
+      timestamp: BigInt(Math.floor(Date.now() / 1000)),
+      gasLimit: 4000000n,
+    });
 
     const txResult = await vm.runTx({ tx: signedTx });
     assertEthereumJsAndRethnetResults(rethnetResult.execResult, txResult);

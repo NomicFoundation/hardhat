@@ -1,15 +1,19 @@
-import { AccessListEIP2930Transaction, FeeMarketEIP1559Transaction, TypedTransaction } from "@nomicfoundation/ethereumjs-tx";
+import {
+  AccessListEIP2930Transaction,
+  FeeMarketEIP1559Transaction,
+  TypedTransaction,
+} from "@nomicfoundation/ethereumjs-tx";
 import { Config, Rethnet, Transaction } from "rethnet-evm";
 import { HardhatDB } from "rethnet-evm/db";
 
-export function ethereumjsTransactionToRethnet(tx: TypedTransaction): Transaction {
-
-  const chainId = (tx: TypedTransaction) => {
-    if (tx as AccessListEIP2930Transaction) {
-      return (tx as AccessListEIP2930Transaction).chainId;
-    }
-    else if (tx as FeeMarketEIP1559Transaction) {
-      return (tx as FeeMarketEIP1559Transaction).chainId;
+export function ethereumjsTransactionToRethnet(
+  tx: TypedTransaction
+): Transaction {
+  const chainId = (_tx: TypedTransaction) => {
+    if (_tx instanceof AccessListEIP2930Transaction) {
+      return (_tx as AccessListEIP2930Transaction).chainId;
+    } else if (_tx instanceof FeeMarketEIP1559Transaction) {
+      return (_tx as FeeMarketEIP1559Transaction).chainId;
     } else {
       return undefined;
     }
@@ -19,19 +23,23 @@ export function ethereumjsTransactionToRethnet(tx: TypedTransaction): Transactio
     from: tx.getSenderAddress().toBuffer(),
     to: tx.to?.buf,
     gasLimit: tx.gasLimit,
-    gasPrice: (tx as FeeMarketEIP1559Transaction)?.maxFeePerGas ?? (tx as any).gasPrice,
+    gasPrice:
+      (tx as FeeMarketEIP1559Transaction)?.maxFeePerGas ?? (tx as any).gasPrice,
     gasPriorityFee: (tx as FeeMarketEIP1559Transaction)?.maxPriorityFeePerGas,
     value: tx.value,
     nonce: tx.nonce,
     input: tx.data,
     accessList: (tx as AccessListEIP2930Transaction)?.AccessListJSON,
     chainId: chainId(tx),
-  }
+  };
 
   return rethnetTx;
 }
 
-export function createRethnetFromHardhatDB(cfg: Config, hardhatDB: HardhatDB): Rethnet {
+export function createRethnetFromHardhatDB(
+  cfg: Config,
+  hardhatDB: HardhatDB
+): Rethnet {
   return Rethnet.withCallbacks(
     cfg,
     {

@@ -28,14 +28,14 @@ import {
 import { EVM, EVMResult } from "@nomicfoundation/ethereumjs-evm";
 import { ERROR } from "@nomicfoundation/ethereumjs-evm/dist/exceptions";
 import {
-  BaseStateManager,
   DefaultStateManager,
-  StateManager
+  StateManager,
 } from "@nomicfoundation/ethereumjs-statemanager";
 import { SignTypedDataVersion, signTypedData } from "@metamask/eth-sig-util";
 import chalk from "chalk";
 import debug from "debug";
 import EventEmitter from "events";
+import { HardhatDB } from "rethnet-evm/db";
 
 import * as BigIntUtils from "../../util/bigint";
 import { CompilerInput, CompilerOutput } from "../../../types";
@@ -81,6 +81,11 @@ import { VMTracer } from "../stack-traces/vm-tracer";
 import "./ethereumjs-workarounds";
 import { rpcQuantityToBigInt } from "../../core/jsonrpc/types/base-types";
 import { JsonRpcClient } from "../jsonrpc/client";
+import { assertEthereumJsAndRethnetResults } from "./utils/assertions";
+import {
+  createRethnetFromHardhatDB,
+  ethereumjsTransactionToRethnet,
+} from "./utils/convertToRethnet";
 import { bloomFilter, Filter, filterLogs, LATEST_BLOCK, Type } from "./filter";
 import { ForkBlockchain } from "./fork/ForkBlockchain";
 import { ForkStateManager } from "./fork/ForkStateManager";
@@ -123,15 +128,6 @@ import { makeStateTrie } from "./utils/makeStateTrie";
 import { putGenesisBlock } from "./utils/putGenesisBlock";
 import { txMapToArray } from "./utils/txMapToArray";
 import { RandomBufferGenerator } from "./utils/random";
-import {
-  GenesisAccount as RethnetGenesisAccount,
-  Rethnet,
-  Transaction as RethnetTransaction
-} from "rethnet-evm";
-import { HardhatDB } from "rethnet-evm/db";
-import { assertEthereumJsAndRethnetResults, assertEthereumJsAndRethnetResults as assertEthereumjsAndRethnetResults } from "./utils/assertions";
-import { createRethnetFromHardhatDB, ethereumjsTransactionToRethnet } from "./utils/convertToRethnet";
-import { fromBigIntLike } from "../../util/bigint";
 
 type ExecResult = EVMResult["execResult"];
 
@@ -239,7 +235,7 @@ export class HardhatNode extends EventEmitter {
         HardforkName.LONDON
       )
         ? initialBaseFeePerGasConfig ??
-        BigInt(HARDHAT_NETWORK_DEFAULT_INITIAL_BASE_FEE_PER_GAS)
+          BigInt(HARDHAT_NETWORK_DEFAULT_INITIAL_BASE_FEE_PER_GAS)
         : undefined;
 
       await putGenesisBlock(
@@ -409,15 +405,19 @@ Hardhat Network's forking functionality only works with blocks from at least spu
 
     this._hardhatDB = new HardhatDB(this._stateManager, this._blockchain);
 
+    const limitContractCodeSize = allowUnlimitedContractSize
+      ? 2n ** 64n - 1n
+      : undefined;
 
-    const limitContractCodeSize = allowUnlimitedContractSize ? (2n ** 64n - 1n) : undefined;
-
-    this._rethnet = createRethnetFromHardhatDB({
-      chainId: BigInt(this._configChainId),
-      limitContractCodeSize,
-      disableBlockGasLimit: true,
-      disableEip3607: true,
-    }, this._hardhatDB);
+    this._rethnet = createRethnetFromHardhatDB(
+      {
+        chainId: BigInt(this._configChainId),
+        limitContractCodeSize,
+        disableBlockGasLimit: true,
+        disableEip3607: true,
+      },
+      this._hardhatDB
+    );
 
     if (tracingConfig === undefined || tracingConfig.buildInfos === undefined) {
       return;
@@ -1570,7 +1570,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     return (
       Number(
         (block.header.gasUsed * BigInt(FLOATS_PRECISION)) /
-        block.header.gasLimit
+          block.header.gasLimit
       ) / FLOATS_PRECISION
     );
   }
@@ -1828,7 +1828,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
         } else {
           const rethnetTx = ethereumjsTransactionToRethnet(tx);
           const difficulty = this._getBlockEnvDifficulty(
-            fromBigIntLike(headerData.difficulty),
+            BigIntUtils.fromBigIntLike(headerData.difficulty),
             headerData.mixHash !== undefined
               ? bufferToBigInt(toBuffer(headerData.mixHash))
               : undefined
@@ -2302,14 +2302,14 @@ Hardhat Network's forking functionality only works with blocks from at least spu
       highestFailingEstimation >= 4_000_000n
         ? 50_000
         : highestFailingEstimation >= 1_000_000n
-          ? 10_000
-          : highestFailingEstimation >= 100_000n
-            ? 1_000
-            : highestFailingEstimation >= 50_000n
-              ? 500
-              : highestFailingEstimation >= 30_000n
-                ? 300
-                : 200;
+        ? 10_000
+        : highestFailingEstimation >= 100_000n
+        ? 1_000
+        : highestFailingEstimation >= 50_000n
+        ? 500
+        : highestFailingEstimation >= 30_000n
+        ? 300
+        : 200;
 
     if (diff <= minDiff) {
       return lowestSuccessfulEstimation;
@@ -2428,7 +2428,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
         {
           chainId:
             this._forkBlockNumber === undefined ||
-              blockContext.header.number >= this._forkBlockNumber
+            blockContext.header.number >= this._forkBlockNumber
               ? this._configChainId
               : this._forkNetworkId,
           networkId: this._forkNetworkId ?? this._configNetworkId,
@@ -2463,7 +2463,10 @@ Hardhat Network's forking functionality only works with blocks from at least spu
         skipBlockGasLimitValidation: true,
       });
 
-      assertEthereumjsAndRethnetResults(rethnetResult.execResult, ethereumjsResult);
+      assertEthereumJsAndRethnetResults(
+        rethnetResult.execResult,
+        ethereumjsResult
+      );
 
       return ethereumjsResult;
     } finally {
@@ -2640,7 +2643,8 @@ Hardhat Network's forking functionality only works with blocks from at least spu
 
     if (this._hardforkActivations.size === 0) {
       throw new InternalError(
-        `No known hardfork for execution on historical block ${blockNumber.toString()} (relative to fork block number ${this._forkBlockNumber
+        `No known hardfork for execution on historical block ${blockNumber.toString()} (relative to fork block number ${
+          this._forkBlockNumber
         }). The node was not configured with a hardfork activation history.  See http://hardhat.org/custom-hardfork-history`
       );
     }

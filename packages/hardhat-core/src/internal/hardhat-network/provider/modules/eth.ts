@@ -87,7 +87,6 @@ import { assertHardhatNetworkInvariant } from "../utils/assertions";
 import { optional } from "../../../util/io-ts";
 import * as BigIntUtils from "../../../util/bigint";
 import { ModulesLogger } from "./logger";
-import { expect } from "chai";
 
 const EIP1559_MIN_HARDFORK = "london";
 const ACCESS_LIST_MIN_HARDFORK = "berlin";
@@ -102,7 +101,7 @@ export class EthModule {
     private readonly _throwOnCallFailures: boolean,
     private readonly _logger: ModulesLogger,
     private readonly _experimentalHardhatNetworkMessageTraceHooks: BoundExperimentalHardhatNetworkMessageTraceHook[] = []
-  ) { }
+  ) {}
 
   public async processRequest(
     method: string,
@@ -1185,7 +1184,8 @@ export class EthModule {
       for (const [i, p] of rewardPercentiles.entries()) {
         if (p < 0 || p > 100) {
           throw new InvalidInputError(
-            `The reward percentile number ${i + 1
+            `The reward percentile number ${
+              i + 1
             } is invalid. It must be a float between 0 and 100, but is ${p} instead.`
           );
         }
@@ -1275,8 +1275,8 @@ export class EthModule {
         rpcTx.nonce !== undefined
           ? rpcTx.nonce
           : await this._node.getAccountNextPendingNonce(
-            new Address(rpcTx.from)
-          ),
+              new Address(rpcTx.from)
+            ),
     };
 
     if (
