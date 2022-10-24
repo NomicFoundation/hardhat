@@ -14,7 +14,7 @@ An issue being assigned does not mean that we are actively working on addressing
 
 ## Project structure
 
-This repository is a monorepo handled with [Yarn workspaces](https://classic.yarnpkg.com/en/docs/workspaces/).
+This repository is a monorepo handled with [Yarn v1](https://classic.yarnpkg.com/lang/en/) and [Yarn workspaces](https://classic.yarnpkg.com/en/docs/workspaces/).
 
 There's a folder for each subproject in `packages/`. All of them are plugins, except for `/packages/hardhat-core` which is the main project (i.e. the one that's published as [hardhat](https://npmjs.com/package/hardhat) in npm).
 
