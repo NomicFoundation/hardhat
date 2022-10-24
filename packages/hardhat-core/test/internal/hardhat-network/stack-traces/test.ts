@@ -5,7 +5,6 @@ import fs from "fs";
 import fsExtra from "fs-extra";
 import path from "path";
 import { Rethnet } from "rethnet-evm";
-import { HardhatDB } from "rethnet-evm/db";
 import semver from "semver";
 
 import { ReturnData } from "../../../../src/internal/hardhat-network/provider/return-data";
@@ -38,7 +37,10 @@ import {
 } from "../../../../src/types";
 import { setCWD } from "../helpers/cwd";
 
-import { createRethnetFromHardhatDB } from "../../../../src/internal/hardhat-network/provider/utils/convertToRethnet";
+import {
+  createRethnetFromHardhatDB,
+  HardhatDB,
+} from "../../../../src/internal/hardhat-network/provider/utils/convertToRethnet";
 import { SUPPORTED_SOLIDITY_VERSION_RANGE } from "../../../../src/internal/hardhat-network/stack-traces/constants";
 import {
   compileFiles,

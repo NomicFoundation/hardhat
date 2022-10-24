@@ -2,8 +2,8 @@ import { expect } from "chai";
 import { DefaultStateManager } from "@nomicfoundation/ethereumjs-statemanager";
 import { Address } from "@nomicfoundation/ethereumjs-util";
 
-import { Block, Config, Rethnet, Transaction } from "../..";
-import { HardhatDB } from "../../db";
+import { Block, Config, Rethnet, Transaction } from "rethnet-evm";
+import { HardhatDB } from "../../../../../src/internal/hardhat-network/provider/utils/convertToRethnet";
 
 describe("Hardhat DB", () => {
   const caller = Address.fromString(
@@ -53,7 +53,7 @@ describe("Hardhat DB", () => {
   // TODO: insertBlock, setAccountCode, setAccountStorageSlot
   it("getAccountByAddress", async () => {
     await rethnet.insertAccount(caller.buf);
-    let account = await rethnet.getAccountByAddress(caller.buf);
+    const account = await rethnet.getAccountByAddress(caller.buf);
 
     expect(account?.balance).to.equal(0n);
     expect(account?.nonce).to.equal(0n);
@@ -62,7 +62,7 @@ describe("Hardhat DB", () => {
     await rethnet.insertAccount(caller.buf);
     await rethnet.setAccountBalance(caller.buf, 100n);
 
-    let account = await rethnet.getAccountByAddress(caller.buf);
+    const account = await rethnet.getAccountByAddress(caller.buf);
 
     expect(account?.balance).to.equal(100n);
     expect(account?.nonce).to.equal(0n);
@@ -71,7 +71,7 @@ describe("Hardhat DB", () => {
     await rethnet.insertAccount(caller.buf);
     await rethnet.setAccountNonce(caller.buf, 5n);
 
-    let account = await rethnet.getAccountByAddress(caller.buf);
+    const account = await rethnet.getAccountByAddress(caller.buf);
 
     expect(account?.balance).to.equal(0n);
     expect(account?.nonce).to.equal(5n);
@@ -93,7 +93,7 @@ describe("Hardhat DB", () => {
       number: BigInt(1),
       timestamp: BigInt(Math.ceil(new Date().getTime() / 1000)),
     };
-    let sendValueChanges = await rethnet.dryRun(sendValue, block);
+    const sendValueChanges = await rethnet.dryRun(sendValue, block);
 
     // receiver should have 100 (0x64) wei
     expect(
@@ -111,7 +111,7 @@ describe("Hardhat DB", () => {
       input: Buffer.from("3859818153F3", "hex"),
     };
 
-    let createContractChanges = await rethnet.dryRun(createContract, block);
+    const createContractChanges = await rethnet.dryRun(createContract, block);
 
     expect(
       createContractChanges.state["0x5fbdb2315678afecb367f032d93f642f64180aa3"]

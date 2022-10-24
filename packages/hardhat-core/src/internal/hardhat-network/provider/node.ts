@@ -35,7 +35,6 @@ import { SignTypedDataVersion, signTypedData } from "@metamask/eth-sig-util";
 import chalk from "chalk";
 import debug from "debug";
 import EventEmitter from "events";
-import { HardhatDB } from "rethnet-evm/db";
 
 import * as BigIntUtils from "../../util/bigint";
 import { CompilerInput, CompilerOutput } from "../../../types";
@@ -85,6 +84,7 @@ import { assertEthereumJsAndRethnetResults } from "./utils/assertions";
 import {
   createRethnetFromHardhatDB,
   ethereumjsTransactionToRethnet,
+  HardhatDB,
 } from "./utils/convertToRethnet";
 import { bloomFilter, Filter, filterLogs, LATEST_BLOCK, Type } from "./filter";
 import { ForkBlockchain } from "./fork/ForkBlockchain";
