@@ -164,15 +164,16 @@ export class HttpProvider extends EventEmitter implements EIP1193Provider {
     retryNumber = 0
   ): Promise<JsonRpcResponse | JsonRpcResponse[]> {
     try {
+      const timeout = process.env.DO_NOT_SET_THIS_ENV_VAR____IS_HARDHAT_CI !== undefined
+      ? 0
+      : this._timeout;
       const response = await this._dispatcher.request({
         method: "POST",
         path: this._path,
         body: JSON.stringify(request),
+        bodyTimeout: timeout,
         maxRedirections: 10,
-        headersTimeout:
-          process.env.DO_NOT_SET_THIS_ENV_VAR____IS_HARDHAT_CI !== undefined
-            ? 0
-            : this._timeout,
+        headersTimeout: timeout,
         headers: {
           "Content-Type": "application/json",
           "User-Agent": `hardhat ${hardhatVersion ?? "(unknown version)"}`,
@@ -213,7 +214,7 @@ export class HttpProvider extends EventEmitter implements EIP1193Provider {
         );
       }
 
-      if (error.type === "request-timeout") {
+      if (error.code === "NETWORK_TIMEOUT" || error.type === "request-timeout") {
         throw new HardhatError(ERRORS.NETWORK.NETWORK_TIMEOUT, {}, error);
       }
 
