@@ -1,7 +1,8 @@
+import assert, { AssertionError } from "assert";
 import { RunTxResult } from "@nomicfoundation/ethereumjs-vm";
-import { expect } from "chai";
 import { ExecutionResult } from "rethnet-evm";
 import { ERROR } from "@nomicfoundation/ethereumjs-evm/dist/exceptions";
+
 import { InternalError } from "../../../core/providers/errors";
 
 export function assertHardhatNetworkInvariant(
@@ -24,27 +25,34 @@ export function assertEthereumJsAndRethnetResults(
     rethnetResult.exitCode,
     ethereumjsResult.execResult.exceptionError?.error
   );
-  expect(rethnetResult.gasRefunded, "Gas refunded").to.equal(
-    ethereumjsResult.gasRefund
+  assertEqual(
+    rethnetResult.gasRefunded,
+    ethereumjsResult.gasRefund,
+    "Gas refunded"
   );
-  expect(rethnetResult.gasUsed, "Gas used").to.equal(
-    ethereumjsResult.totalGasSpent
+
+  assertEqual(
+    rethnetResult.gasUsed,
+    ethereumjsResult.totalGasSpent,
+    "Gas used"
   );
-  expect(rethnetResult.output.address, "Created address").to.deep.equal(
-    ethereumjsResult.createdAddress?.toBuffer(),
-    `EthJS: ${
-      ethereumjsResult.createdAddress?.toString() ?? "null"
-    }, rethent: ${rethnetResult.output.address?.toString("hex") ?? "null"}`
+
+  const rethnetCreatedAddress = rethnetResult.output.address?.toString("hex");
+  const ethereumjsCreatedAddress = ethereumjsResult.createdAddress
+    ?.toString()
+    .slice(2); // remove the 0x prefix
+
+  assertEqual(
+    rethnetCreatedAddress,
+    ethereumjsCreatedAddress,
+    "Created address"
   );
 
   if (ethereumjsResult.createdAddress === undefined) {
-    expect(rethnetResult.output.output, "Return value").to.deep.equal(
-      ethereumjsResult.execResult.returnValue,
-      `Rethnet return value: ${rethnetResult.output.output!.toString(
-        "hex"
-      )}, ethereumjs return value: ${ethereumjsResult.execResult.returnValue.toString(
-        "hex"
-      )}`
+    assertEqual(
+      rethnetResult.output.output?.toString("hex"),
+      ethereumjsResult.execResult.returnValue.toString("hex"),
+      "Return value"
     );
   }
   // TODO: Compare logs?
@@ -94,7 +102,21 @@ function assertEthereumJsAndRethnetExitCodes(
   if (ethereumjsExitCode !== undefined) {
     const expected = mapping.get(ethereumjsExitCode);
     if (expected !== undefined) {
-      expect(expected, "exit code").to.contain(rethnetExitCode);
+      assert(
+        expected.includes(rethnetExitCode),
+        `Expected rethnet's exit code ${rethnetExitCode} to be included in ${expected.join(
+          ", "
+        )}`
+      );
     }
+  }
+}
+
+function assertEqual(rethnetValue: any, ethereumJsValue: any, field: string) {
+  if (rethnetValue !== ethereumJsValue) {
+    // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
+    throw new AssertionError({
+      message: `Expected '${field}' to match, but rethnet returned ${rethnetValue} and ethereumjs returned ${ethereumJsValue}`,
+    });
   }
 }
