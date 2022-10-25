@@ -11,7 +11,7 @@ on:
       - "Cargo.toml"
       - "rust-toolchain"
   pull_request:
-    branches: ["*"]
+    branches: ["**"]
     paths:
       - "config/**"
       - "crates/**"
