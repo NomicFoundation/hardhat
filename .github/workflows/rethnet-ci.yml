@@ -21,7 +21,6 @@ on:
 env:
   RUSTFLAGS: -Dwarnings
 
-
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
@@ -108,7 +107,7 @@ jobs:
           components: rustfmt
 
       - uses: Swatinem/rust-cache@v1
-        
+
       - name: Doctests
         uses: actions-rs/cargo@v1
         env:
