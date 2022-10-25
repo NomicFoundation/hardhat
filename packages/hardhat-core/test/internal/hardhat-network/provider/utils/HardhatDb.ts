@@ -1,4 +1,4 @@
-import { expect } from "chai";
+import { assert } from "chai";
 import { DefaultStateManager } from "@nomicfoundation/ethereumjs-statemanager";
 import { Address } from "@nomicfoundation/ethereumjs-util";
 
@@ -55,8 +55,8 @@ describe("Hardhat DB", () => {
     await rethnet.insertAccount(caller.buf);
     const account = await rethnet.getAccountByAddress(caller.buf);
 
-    expect(account?.balance).to.equal(0n);
-    expect(account?.nonce).to.equal(0n);
+    assert.equal(account?.balance, 0n);
+    assert.equal(account?.nonce, 0n);
   });
   it("setAccountBalance", async () => {
     await rethnet.insertAccount(caller.buf);
@@ -64,8 +64,8 @@ describe("Hardhat DB", () => {
 
     const account = await rethnet.getAccountByAddress(caller.buf);
 
-    expect(account?.balance).to.equal(100n);
-    expect(account?.nonce).to.equal(0n);
+    assert.equal(account?.balance, 100n);
+    assert.equal(account?.nonce, 0n);
   });
   it("setAccountNonce", async () => {
     await rethnet.insertAccount(caller.buf);
@@ -73,8 +73,8 @@ describe("Hardhat DB", () => {
 
     const account = await rethnet.getAccountByAddress(caller.buf);
 
-    expect(account?.balance).to.equal(0n);
-    expect(account?.nonce).to.equal(5n);
+    assert.equal(account?.balance, 0n);
+    assert.equal(account?.nonce, 5n);
   });
   it("call", async () => {
     // Add funds to caller
@@ -96,10 +96,11 @@ describe("Hardhat DB", () => {
     const sendValueChanges = await rethnet.dryRun(sendValue, block);
 
     // receiver should have 100 (0x64) wei
-    expect(
+    assert.equal(
       sendValueChanges.state["0x70997970c51812dc3a010c7d01b50e0d17dc79c8"].info
-        .balance
-    ).to.equal("0x64");
+        .balance,
+      "0x64"
+    );
 
     // create a contract
     const createContract: Transaction = {
@@ -113,14 +114,13 @@ describe("Hardhat DB", () => {
 
     const createContractChanges = await rethnet.dryRun(createContract, block);
 
-    expect(
+    assert.exists(
       createContractChanges.state["0x5fbdb2315678afecb367f032d93f642f64180aa3"]
-    ).to.exist;
+    );
     // check that the code hash is not the null hash (i.e., the address has code)
-    expect(
+    assert.notEqual(
       createContractChanges.state["0x5fbdb2315678afecb367f032d93f642f64180aa3"]
-        .info.code_hash
-    ).to.not.equal(
+        .info.code_hash,
       "0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470"
     );
   });
