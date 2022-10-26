@@ -32,7 +32,6 @@ where
         })?;
         then.call(Some(&result), &[cb, eb])?;
     } else {
-        // let result: V = result.try_into()?;
         let result = unsafe { I::from_napi_value(env.raw(), result.raw())? };
         tx.send(Ok(result.try_cast()?)).unwrap();
     }
