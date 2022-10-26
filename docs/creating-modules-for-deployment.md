@@ -116,7 +116,7 @@ m.call(exchange, "addToken", {
 
 ## Using the network chain id
 
-The`DeploymentBuilder` (`m`) exposes the chain id of the network in which the contracts are being deployed. This is useful if you need to do different things depending on the network.
+The `DeploymentBuilder` (`m`) exposes the chain id of the network in which the contracts are being deployed. This is useful if you need to do different things depending on the network.
 
 ```tsx
 const userModule = buildModule("MyModule", (m) => {
