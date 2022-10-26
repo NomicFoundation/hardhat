@@ -1,8 +1,18 @@
 import hash from "object-hash";
 
 import { addEdge, ensureVertex } from "graph/adjacencyList";
+import {
+  ContractOptions,
+  InternalParamValue,
+  IDeploymentGraph,
+  IDeploymentBuilder,
+  Subgraph,
+  DeploymentBuilderOptions,
+  DeploymentGraphVertex,
+  UseSubgraphOptions,
+} from "types/deploymentGraph";
 import type {
-  RecipeFuture,
+  DeploymentGraphFuture,
   HardhatContract,
   ArtifactLibrary,
   HardhatLibrary,
@@ -18,16 +28,6 @@ import type {
 } from "types/future";
 import type { Artifact } from "types/hardhat";
 import type { Module, ModuleCache, ModuleDict } from "types/module";
-import {
-  ContractOptions,
-  InternalParamValue,
-  IRecipeGraph,
-  IRecipeGraphBuilder,
-  Recipe,
-  RecipeGraphBuilderOptions,
-  RecipeVertex,
-  UseRecipeOptions,
-} from "types/recipeGraph";
 import { IgnitionError } from "utils/errors";
 import {
   isArtifact,
@@ -36,18 +36,18 @@ import {
   isParameter,
 } from "utils/guards";
 
-import { RecipeGraph } from "./RecipeGraph";
+import { DeploymentGraph } from "./DeploymentGraph";
 import { ScopeStack } from "./ScopeStack";
 
-export class RecipeGraphBuilder implements IRecipeGraphBuilder {
+export class DeploymentBuilder implements IDeploymentBuilder {
   public chainId: number;
-  public graph: IRecipeGraph = new RecipeGraph();
+  public graph: IDeploymentGraph = new DeploymentGraph();
   private idCounter: number = 0;
   private moduleCache: ModuleCache = {};
-  private useRecipeInvocationCounter: number = 0;
+  private useSubgraphInvocationCounter: number = 0;
   private scopes: ScopeStack = new ScopeStack();
 
-  constructor(options: RecipeGraphBuilderOptions) {
+  constructor(options: DeploymentBuilderOptions) {
     this.chainId = options.chainId;
   }
 
@@ -69,7 +69,7 @@ export class RecipeGraphBuilder implements IRecipeGraphBuilder {
         _future: true,
       };
 
-      RecipeGraphBuilder._addRecipeVertex(this.graph, {
+      DeploymentBuilder._addVertex(this.graph, {
         id: artifactContractFuture.vertexId,
         label: libraryName,
         type: "ArtifactLibrary",
@@ -92,7 +92,7 @@ export class RecipeGraphBuilder implements IRecipeGraphBuilder {
         _future: true,
       };
 
-      RecipeGraphBuilder._addRecipeVertex(this.graph, {
+      DeploymentBuilder._addVertex(this.graph, {
         id: libraryFuture.vertexId,
         label: libraryName,
         type: "HardhatLibrary",
@@ -124,7 +124,7 @@ export class RecipeGraphBuilder implements IRecipeGraphBuilder {
         _future: true,
       };
 
-      RecipeGraphBuilder._addRecipeVertex(this.graph, {
+      DeploymentBuilder._addVertex(this.graph, {
         id: artifactContractFuture.vertexId,
         label: contractName,
         type: "ArtifactContract",
@@ -148,7 +148,7 @@ export class RecipeGraphBuilder implements IRecipeGraphBuilder {
         _future: true,
       };
 
-      RecipeGraphBuilder._addRecipeVertex(this.graph, {
+      DeploymentBuilder._addVertex(this.graph, {
         id: contractFuture.vertexId,
         label: contractName,
         type: "HardhatContract",
@@ -167,7 +167,7 @@ export class RecipeGraphBuilder implements IRecipeGraphBuilder {
     contractName: string,
     address: string,
     abi: any[],
-    options?: { after?: RecipeFuture[] }
+    options?: { after?: DeploymentGraphFuture[] }
   ): DeployedContract {
     const deployedFuture: DeployedContract = {
       vertexId: this._resolveNextId(),
@@ -178,7 +178,7 @@ export class RecipeGraphBuilder implements IRecipeGraphBuilder {
       _future: true,
     };
 
-    RecipeGraphBuilder._addRecipeVertex(this.graph, {
+    DeploymentBuilder._addVertex(this.graph, {
       id: deployedFuture.vertexId,
       label: contractName,
       type: "DeployedContract",
@@ -192,14 +192,14 @@ export class RecipeGraphBuilder implements IRecipeGraphBuilder {
   }
 
   public call(
-    contractFuture: RecipeFuture,
+    contractFuture: DeploymentGraphFuture,
     functionName: string,
     {
       args,
       after,
     }: {
-      args: Array<boolean | string | number | RecipeFuture>;
-      after?: RecipeFuture[];
+      args: Array<boolean | string | number | DeploymentGraphFuture>;
+      after?: DeploymentGraphFuture[];
     }
   ): ContractCall {
     const callFuture: ContractCall = {
@@ -235,7 +235,7 @@ export class RecipeGraphBuilder implements IRecipeGraphBuilder {
       );
     }
 
-    RecipeGraphBuilder._addRecipeVertex(this.graph, {
+    DeploymentBuilder._addVertex(this.graph, {
       id: callFuture.vertexId,
       label: callFuture.label,
       type: "Call",
@@ -277,9 +277,12 @@ export class RecipeGraphBuilder implements IRecipeGraphBuilder {
     return paramFuture;
   }
 
-  public useRecipe(recipe: Recipe, options?: UseRecipeOptions): FutureDict {
-    const useRecipeInvocationId = this.useRecipeInvocationCounter++;
-    const label = `${recipe.name}:${useRecipeInvocationId}`;
+  public useSubgraph(
+    subgraph: Subgraph,
+    options?: UseSubgraphOptions
+  ): FutureDict {
+    const useSubgraphInvocationId = this.useSubgraphInvocationCounter++;
+    const label = `${subgraph.name}:${useSubgraphInvocationId}`;
 
     this.scopes.push(label);
     const scopeLabel = this.scopes.getScopedLabel();
@@ -288,16 +291,16 @@ export class RecipeGraphBuilder implements IRecipeGraphBuilder {
       this.graph.registeredParameters[scopeLabel] = options.parameters;
     }
 
-    const result = recipe.recipeAction(this);
+    const result = subgraph.subgraphAction(this);
 
-    const virtualVertex = this._createRecipeVirtualVertex(label);
+    const virtualVertex = this._createVirtualVertex(label);
 
     this.scopes.pop();
 
-    return { ...result, recipe: virtualVertex };
+    return { ...result, subgraph: virtualVertex };
   }
 
-  public useModule(module: Module, options?: UseRecipeOptions): ModuleDict {
+  public useModule(module: Module, options?: UseSubgraphOptions): ModuleDict {
     const label = `module:${module.name}`;
 
     if (this.moduleCache[label] === undefined) {
@@ -319,7 +322,7 @@ export class RecipeGraphBuilder implements IRecipeGraphBuilder {
         }
       }
 
-      this._createRecipeVirtualVertex(label);
+      this._createVirtualVertex(label);
 
       this.scopes.pop();
 
@@ -341,7 +344,7 @@ export class RecipeGraphBuilder implements IRecipeGraphBuilder {
     return this.moduleCache[label].result;
   }
 
-  private _createRecipeVirtualVertex(label: string): Virtual {
+  private _createVirtualVertex(label: string): Virtual {
     const virtualFuture: Virtual = {
       vertexId: this._resolveNextId(),
       label,
@@ -354,7 +357,7 @@ export class RecipeGraphBuilder implements IRecipeGraphBuilder {
     const afterVertexFutures = [...this.graph.vertexes.values()]
       .filter((v) => v.scopeAdded === scopeLabel)
       .map(
-        (v): RecipeFuture => ({
+        (v): DeploymentGraphFuture => ({
           vertexId: v.id,
           label: v.label,
           type: "virtual",
@@ -362,7 +365,7 @@ export class RecipeGraphBuilder implements IRecipeGraphBuilder {
         })
       );
 
-    RecipeGraphBuilder._addRecipeVertex(this.graph, {
+    DeploymentBuilder._addVertex(this.graph, {
       id: virtualFuture.vertexId,
       label,
       type: "Virtual",
@@ -377,46 +380,49 @@ export class RecipeGraphBuilder implements IRecipeGraphBuilder {
     return this.idCounter++;
   }
 
-  private static _addRecipeVertex(graph: RecipeGraph, depNode: RecipeVertex) {
+  private static _addVertex(
+    graph: DeploymentGraph,
+    depNode: DeploymentGraphVertex
+  ) {
     graph.vertexes.set(depNode.id, depNode);
     ensureVertex(graph.adjacencyList, depNode.id);
 
     if (depNode.type === "HardhatContract") {
-      RecipeGraphBuilder._addEdgesBasedOn(depNode.args, graph, depNode);
-      RecipeGraphBuilder._addEdgesBasedOn(
+      DeploymentBuilder._addEdgesBasedOn(depNode.args, graph, depNode);
+      DeploymentBuilder._addEdgesBasedOn(
         Object.values(depNode.libraries),
         graph,
         depNode
       );
-      RecipeGraphBuilder._addEdgesBasedOn(depNode.after, graph, depNode);
+      DeploymentBuilder._addEdgesBasedOn(depNode.after, graph, depNode);
       return;
     }
 
     if (depNode.type === "ArtifactContract") {
-      RecipeGraphBuilder._addEdgesBasedOn(depNode.args, graph, depNode);
-      RecipeGraphBuilder._addEdgesBasedOn(
+      DeploymentBuilder._addEdgesBasedOn(depNode.args, graph, depNode);
+      DeploymentBuilder._addEdgesBasedOn(
         Object.values(depNode.libraries),
         graph,
         depNode
       );
-      RecipeGraphBuilder._addEdgesBasedOn(depNode.after, graph, depNode);
+      DeploymentBuilder._addEdgesBasedOn(depNode.after, graph, depNode);
       return;
     }
 
     if (depNode.type === "DeployedContract") {
-      RecipeGraphBuilder._addEdgesBasedOn(depNode.after, graph, depNode);
+      DeploymentBuilder._addEdgesBasedOn(depNode.after, graph, depNode);
       return;
     }
 
     if (depNode.type === "HardhatLibrary") {
-      RecipeGraphBuilder._addEdgesBasedOn(depNode.args, graph, depNode);
-      RecipeGraphBuilder._addEdgesBasedOn(depNode.after, graph, depNode);
+      DeploymentBuilder._addEdgesBasedOn(depNode.args, graph, depNode);
+      DeploymentBuilder._addEdgesBasedOn(depNode.after, graph, depNode);
       return;
     }
 
     if (depNode.type === "ArtifactLibrary") {
-      RecipeGraphBuilder._addEdgesBasedOn(depNode.args, graph, depNode);
-      RecipeGraphBuilder._addEdgesBasedOn(depNode.after, graph, depNode);
+      DeploymentBuilder._addEdgesBasedOn(depNode.args, graph, depNode);
+      DeploymentBuilder._addEdgesBasedOn(depNode.after, graph, depNode);
       return;
     }
 
@@ -426,12 +432,12 @@ export class RecipeGraphBuilder implements IRecipeGraphBuilder {
         to: depNode.id,
       });
 
-      RecipeGraphBuilder._addEdgesBasedOn(
+      DeploymentBuilder._addEdgesBasedOn(
         Object.values(depNode.args),
         graph,
         depNode
       );
-      RecipeGraphBuilder._addEdgesBasedOn(
+      DeploymentBuilder._addEdgesBasedOn(
         Object.values(depNode.after),
         graph,
         depNode
@@ -440,7 +446,7 @@ export class RecipeGraphBuilder implements IRecipeGraphBuilder {
     }
 
     if (depNode.type === "Virtual") {
-      RecipeGraphBuilder._addEdgesBasedOn(
+      DeploymentBuilder._addEdgesBasedOn(
         Object.values(depNode.after),
         graph,
         depNode
@@ -451,8 +457,8 @@ export class RecipeGraphBuilder implements IRecipeGraphBuilder {
 
   private static _addEdgesBasedOn(
     args: InternalParamValue[],
-    graph: RecipeGraph,
-    depNode: RecipeVertex
+    graph: DeploymentGraph,
+    depNode: DeploymentGraphVertex
   ) {
     for (const arg of args) {
       if (
@@ -469,7 +475,7 @@ export class RecipeGraphBuilder implements IRecipeGraphBuilder {
       }
 
       if (isParameter(arg)) {
-        const resolvedArg = RecipeGraphBuilder._resolveParameterFromScope(
+        const resolvedArg = DeploymentBuilder._resolveParameterFromScope(
           graph,
           arg
         );
@@ -488,7 +494,7 @@ export class RecipeGraphBuilder implements IRecipeGraphBuilder {
   }
 
   private static _resolveParameterFromScope(
-    graph: RecipeGraph,
+    graph: DeploymentGraph,
     param: RequiredParameter | OptionalParameter
   ) {
     const parametersFromScope = graph.registeredParameters[param.scope];

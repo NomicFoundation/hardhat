@@ -1,7 +1,7 @@
 import type { ethers } from "ethers";
 
+import type { ExternalParamValue } from "./deploymentGraph";
 import type { Artifact } from "./hardhat";
-import type { ExternalParamValue } from "./recipeGraph";
 
 export interface Providers {
   artifacts: ArtifactsProvider;

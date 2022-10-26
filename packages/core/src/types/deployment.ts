@@ -8,11 +8,11 @@ import {
 
 export type UpdateUiAction = (deployState: DeployState) => void;
 
-export interface IgnitionRecipesResults {
-  load: (recipeId: string) => Promise<SerializedFutureResult | undefined>;
+export interface IgnitionModuleResults {
+  load: (moduleId: string) => Promise<SerializedFutureResult | undefined>;
   save: (
-    recipeId: string,
-    recipeResult: SerializedFutureResult
+    moduleId: string,
+    moduleResult: SerializedFutureResult
   ) => Promise<void>;
 }
 
@@ -48,7 +48,7 @@ export interface ExecutionState {
 export interface DeployState {
   phase: DeployPhase;
   details: {
-    recipeName: string;
+    moduleName: string;
     chainId: number;
   };
   validation: ValidationState;

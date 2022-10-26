@@ -1,12 +1,12 @@
 import { ethers } from "ethers";
 
 import { Services } from "services/types";
+import { ArtifactContractDeploymentVertex } from "types/deploymentGraph";
 import { ResultsAccumulator, VertexVisitResult } from "types/graph";
-import { ArtifactContractRecipeVertex } from "types/recipeGraph";
 import { isArtifact } from "utils/guards";
 
 export async function validateArtifactContract(
-  vertex: ArtifactContractRecipeVertex,
+  vertex: ArtifactContractDeploymentVertex,
   _resultAccumulator: ResultsAccumulator,
   _context: { services: Services }
 ): Promise<VertexVisitResult> {

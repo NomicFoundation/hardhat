@@ -5,7 +5,7 @@ import { assert } from "chai";
 import { deployModule, mineBlocks } from "./helpers";
 import { useEnvironment } from "./useEnvironment";
 
-describe("recipe parameters", () => {
+describe("module parameters", () => {
   useEnvironment("minimal");
 
   describe("required", () => {
@@ -153,7 +153,7 @@ describe("recipe parameters", () => {
     it("should throw if no parameters object provided", async function () {
       await this.hre.run("compile", { quiet: true });
 
-      const userRecipe = buildModule("MyModule", (m) => {
+      const userModule = buildModule("MyModule", (m) => {
         const myNumber = m.getParam("MyNumber");
 
         const foo = m.contract("Foo");
@@ -165,13 +165,13 @@ describe("recipe parameters", () => {
         return { foo };
       });
 
-      const deployPromise = this.hre.ignition.deploy(userRecipe, { ui: false });
+      const deployPromise = this.hre.ignition.deploy(userModule, { ui: false });
 
       await mineBlocks(this.hre, [1, 1], deployPromise);
 
       await assert.isRejected(
         deployPromise,
-        'No parameters object provided to deploy options, but recipe requires parameter "MyNumber"'
+        'No parameters object provided to deploy options, but module requires parameter "MyNumber"'
       );
     });
 

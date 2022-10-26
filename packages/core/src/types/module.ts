@@ -1,5 +1,5 @@
+import type { IDeploymentBuilder } from "./deploymentGraph";
 import type { CallableFuture } from "./future";
-import type { IRecipeGraphBuilder } from "./recipeGraph";
 
 export interface ModuleDict {
   [key: string]: CallableFuture;
@@ -7,7 +7,7 @@ export interface ModuleDict {
 
 export interface Module {
   name: string;
-  moduleAction: (builder: IRecipeGraphBuilder) => ModuleDict;
+  moduleAction: (builder: IDeploymentBuilder) => ModuleDict;
 }
 
 export interface ModuleData {

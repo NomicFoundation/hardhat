@@ -1,8 +1,8 @@
 /* eslint-disable import/no-unused-modules */
 import {
   buildModule,
-  buildRecipe,
-  IRecipeGraphBuilder,
+  buildSubgraph,
+  IDeploymentBuilder,
 } from "@ignored/ignition-core";
 import { isCallable } from "@ignored/ignition-core/src/utils/guards";
 import { assert } from "chai";
@@ -17,17 +17,17 @@ describe("useModule", function () {
     it("using useModule", async function () {
       await this.hre.run("compile", { quiet: true });
 
-      const thirdPartyRecipe = buildRecipe(
-        "ThirdPartyRecipe",
-        (m: IRecipeGraphBuilder) => {
+      const thirdPartyModule = buildModule(
+        "ThirdPartySubgraph",
+        (m: IDeploymentBuilder) => {
           const foo = m.contract("Foo");
 
           return { foo };
         }
       );
 
-      const userModule = buildModule("UserModule", (m: IRecipeGraphBuilder) => {
-        const { foo } = m.useRecipe(thirdPartyRecipe);
+      const userModule = buildModule("UserModule", (m: IDeploymentBuilder) => {
+        const { foo } = m.useModule(thirdPartyModule);
 
         m.call(foo, "inc", {
           args: [],
@@ -57,27 +57,24 @@ describe("useModule", function () {
     });
   });
 
-  describe("passing futures into recipes", () => {
-    it("using useRecipe", async function () {
+  describe("passing futures into subgraphs", () => {
+    it("using useSubgraph", async function () {
       await this.hre.run("compile", { quiet: true });
 
-      const thirdPartyRecipe = buildRecipe(
-        "ThirdPartyRecipe",
-        (m: IRecipeGraphBuilder) => {
-          const foo = m.getParam("Foo");
+      const thirdPartySubgraph = buildSubgraph("ThirdPartySubgraph", (m) => {
+        const foo = m.getParam("Foo");
 
-          m.call(foo, "inc", {
-            args: [],
-          });
+        m.call(foo, "inc", {
+          args: [],
+        });
 
-          return { foo };
-        }
-      );
+        return { foo };
+      });
 
-      const userModule = buildModule("UserModule", (m: IRecipeGraphBuilder) => {
+      const userModule = buildModule("UserModule", (m: IDeploymentBuilder) => {
         const foo = m.contract("Foo");
 
-        m.useRecipe(thirdPartyRecipe, {
+        m.useSubgraph(thirdPartySubgraph, {
           parameters: {
             Foo: foo,
           },
@@ -107,9 +104,9 @@ describe("useModule", function () {
     it("should allow ordering using returned futures", async function () {
       await this.hre.run("compile", { quiet: true });
 
-      const addSecondAndThirdEntryRecipe = buildRecipe(
-        "ThirdPartyRecipe",
-        (m: IRecipeGraphBuilder) => {
+      const addSecondAndThirdEntrySubgraph = buildSubgraph(
+        "ThirdPartySubgraph",
+        (m: IDeploymentBuilder) => {
           const trace = m.getParam("Trace");
 
           const secondCall = m.call(trace, "addEntry", {
@@ -125,12 +122,12 @@ describe("useModule", function () {
         }
       );
 
-      const userModule = buildModule("UserModule", (m: IRecipeGraphBuilder) => {
+      const userModule = buildModule("UserModule", (m: IDeploymentBuilder) => {
         const trace = m.contract("Trace", {
           args: ["first"],
         });
 
-        const { thirdCall } = m.useRecipe(addSecondAndThirdEntryRecipe, {
+        const { thirdCall } = m.useSubgraph(addSecondAndThirdEntrySubgraph, {
           parameters: {
             Trace: trace,
           },
@@ -166,12 +163,12 @@ describe("useModule", function () {
       );
     });
 
-    it("should allow ordering based on the recipe overall", async function () {
+    it("should allow ordering based on the module overall", async function () {
       await this.hre.run("compile", { quiet: true });
 
-      const addSecondAndThirdEntryRecipe = buildRecipe(
-        "ThirdPartyRecipe",
-        (m: IRecipeGraphBuilder) => {
+      const addSecondAndThirdEntrySubgraph = buildSubgraph(
+        "ThirdPartySubgraph",
+        (m: IDeploymentBuilder) => {
           const trace = m.getParam("Trace");
 
           const secondCall = m.call(trace, "addEntry", {
@@ -187,12 +184,12 @@ describe("useModule", function () {
         }
       );
 
-      const userModule = buildModule("UserModule", (m: IRecipeGraphBuilder) => {
+      const userModule = buildModule("UserModule", (m: IDeploymentBuilder) => {
         const trace = m.contract("Trace", {
           args: ["first"],
         });
 
-        const { recipe } = m.useRecipe(addSecondAndThirdEntryRecipe, {
+        const { subgraph } = m.useSubgraph(addSecondAndThirdEntrySubgraph, {
           parameters: {
             Trace: trace,
           },
@@ -200,7 +197,7 @@ describe("useModule", function () {
 
         m.call(trace, "addEntry", {
           args: ["fourth"],
-          after: [recipe],
+          after: [subgraph],
         });
 
         return { trace };

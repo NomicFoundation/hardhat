@@ -6,10 +6,10 @@ Ignition allows users to describe complex deployments and execute them on-chain.
 
 ```mermaid
 flowchart LR
-  0[User Recipe]
+  0[User Module]
   subgraph Ignition
-    1[Build Recipe Graph]
-    2[Validate Recipe Graph]
+    1[Build Deployment Graph]
+    2[Validate Deployment Graph]
     3[Transform to Execution Graph]
     4[Execute]
   end
@@ -21,18 +21,18 @@ flowchart LR
 
 Ignition expresses a deployment as a dependency graph of on-chain transactions, that is, contract deployments and contract calls. Deployments and calls can be dependent on each other. A call to a contract requires that that contract first be deployed; the call should not be invoked until the contract deploy has completed entirely and successfully.
 
-Ignition provides the **recipe api** (a js based dsl) so users can succintly describe a dependency graph of contract deploys and calls.
+Ignition provides the **deployment api** (a js based dsl) so users can succintly describe a dependency graph of contract deploys and calls.
 
-To deploy on-chain Ignition takes a `Recipe` specified via the **recipe api** and constructs the `ExecutionGraph` (the depenency graph of on-chain transactions). The final generation of the `ExecutionGraph` is a multi-step process of construction, validation and simplification that leverages a temporary intermediary representation (the `RecipeGraph`).
+To deploy on-chain Ignition takes a `Module` specified via the **deployment api** and constructs the `ExecutionGraph` (the depenency graph of on-chain transactions). The final generation of the `ExecutionGraph` is a multi-step process of construction, validation and simplification that leverages a temporary intermediary representation (the `DeploymentGraph`).
 
 The `ExecutionGraph` is passed to the execution engine which submits the transactions on-chain, ordering them and batching them based on the dependency constraints of the `ExecutionGraph`.
 
-## Building an `ExecutionGraph` from a Recipe
+## Building an `ExecutionGraph` from a Module
 
-The user describes the dependency graph as a `Recipe`, a utility function that takes a graph builder as its first argument. The user can express the on-chain transactions and their dependencies by calls on the graph builder.
+The user describes the dependency graph as a `Module`, a utility function that takes a graph builder as its first argument. The user can express the on-chain transactions and their dependencies by calls on the graph builder.
 
 ```javascript
-const subrecipe = buildRecipe("Subrecipe", (m) => {
+const subgraph = buildSubgraph("Subgraph", (m) => {
   const f = m.contract("F");
 
   m.call(f, "G");
@@ -40,7 +40,7 @@ const subrecipe = buildRecipe("Subrecipe", (m) => {
   return { f };
 });
 
-module.exports = buildRecipe("Example", (m) => {
+module.exports = buildModule("Example", (m) => {
   const a = m.contract("A");
 
   const bCall = m.call(a, "B");
@@ -49,7 +49,7 @@ module.exports = buildRecipe("Example", (m) => {
     after: [bCall],
   });
 
-  const { recipe: sub } = m.subrecipe(subrecipe, {
+  const { subgraph: sub } = m.useSubgraph(subgraph, {
     after: [a],
   });
 
@@ -65,7 +65,7 @@ module.exports = buildRecipe("Example", (m) => {
 });
 ```
 
-Ignition uses the `Recipe` to construct a `RecipeGraph`. The `RecipeGraph` matches closely with the high level **recipe api** and contains constructs that are **Hardhat** specific (i.e. "Deploy the 'A' Hardhat contract").
+Ignition uses the `Module` to construct a `DeploymentGraph`. The `DeploymentGraph` matches closely with the high level **api** and contains constructs that are **Hardhat** specific (i.e. "Deploy the 'A' Hardhat contract").
 
 ```mermaid
 flowchart BT
@@ -75,7 +75,7 @@ flowchart BT
   D(D):::ccall
   E(E):::ccall
 
-  subgraph subrecipe
+  subgraph sub
     direction RL
     F:::contract
     G(G):::ccall
@@ -83,9 +83,9 @@ flowchart BT
   end
 
   B -- calls --> A
-  subrecipe -.->|after| A
-  D -.->|after| subrecipe
-  C -.->|after| subrecipe
+  sub -.->|after| A
+  D -.->|after| sub
+  C -.->|after| sub
   E -->|after| B
   D -->|calls| A
   E -->|calls| A
@@ -94,7 +94,7 @@ flowchart BT
   classDef ccall fill:#b2e061,stroke:darkgray;
 ```
 
-During construction of the `RecipeGraph`, subrecipes are collapsed down to a single level. A vertex that depends on subrecipe, is altered to depend on all the vertexes of a subgraph. Similarly the vertexes of a subgraph are altered to depend on all the dependencies of that subgraph.
+During construction of the `DeploymentGraph`, subgraphs are collapsed down to a single level. A vertex that depends on subgraph, is altered to depend on all the vertexes of a subgraph. Similarly the vertexes of a subgraph are altered to depend on all the dependencies of that subgraph.
 
 ```mermaid
 flowchart BT
@@ -123,9 +123,9 @@ flowchart BT
   classDef ccall fill:#b2e061,stroke:darkgray;
 ```
 
-This `RecipeGraph` is validated (i.e. are all named hardhat contracts within the hardhat project; do all the calls have the right number of arguments etc). The validation attempts to ensure the `RecipeGraph` can be transformed into an `ExecutionGraph` without error and to reduce the chance of an on-chain errors during execution. Validation checks do not take into account on-chain state, only enforcing that the deployment makes sense internally.
+This `DeploymentGraph` is validated (i.e. are all named hardhat contracts within the hardhat project; do all the calls have the right number of arguments etc). The validation attempts to ensure the `DeploymentGraph` can be transformed into an `ExecutionGraph` without error and to reduce the chance of an on-chain errors during execution. Validation checks do not take into account on-chain state, only enforcing that the deployment makes sense internally.
 
-A valid `RecipeGraph` is then reduced to remove unnecessary edges (**NOTE: currently only a partial reduction, to remove subrecipe virtual nodes**).
+A valid `DeploymentGraph` is then reduced to remove unnecessary edges (**NOTE: currently only a partial reduction, to remove subgraph virtual nodes**).
 
 ```mermaid
 flowchart BT
@@ -149,7 +149,7 @@ flowchart BT
   classDef ccall fill:#b2e061,stroke:darkgray;
 ```
 
-The reduced `RecipeGraph` will contain lots of **Hardhat** specific references. Ignition transforms the `RecipeGraph` into an `ExecutionGraph` that is designed for use by the execution engine without any reference to **Hardhat**. The edge structure is copied across but each **Hardhat** specific vertex (an on-chain transaction) is translated into an agnostic equivalent. For instance, a deploy hardhat contract `Foo` instruction, will be transformed by reading the **Hardhat** artifact for `Foo` and passing along an agnostic `Deploy this artifact` instruction.
+The reduced `DeploymentGraph` will contain lots of **Hardhat** specific references. Ignition transforms the `DeploymentGraph` into an `ExecutionGraph` that is designed for use by the execution engine without any reference to **Hardhat**. The edge structure is copied across but each **Hardhat** specific vertex (an on-chain transaction) is translated into an agnostic equivalent. For instance, a deploy hardhat contract `Foo` instruction, will be transformed by reading the **Hardhat** artifact for `Foo` and passing along an agnostic `Deploy this artifact` instruction.
 
 Validated, simplified and converted to the agnostic `ExecutionGraph` representation, the execution engine can now run the deployment.
 

@@ -3,7 +3,7 @@ import {
   ArtifactLibrary,
   ContractCall,
   DeployedContract,
-  RecipeFuture,
+  DeploymentGraphFuture,
   FutureDict,
   HardhatContract,
   HardhatLibrary,
@@ -16,104 +16,104 @@ import { AdjacencyList, VertexDescriptor } from "./graph";
 import { Artifact } from "./hardhat";
 import { Module, ModuleDict } from "./module";
 
-export interface IRecipeGraph {
-  vertexes: Map<number, RecipeVertex>;
+export interface IDeploymentGraph {
+  vertexes: Map<number, DeploymentGraphVertex>;
   adjacencyList: AdjacencyList;
   registeredParameters: {
-    [key: string]: { [key: string]: string | number | RecipeFuture };
+    [key: string]: { [key: string]: string | number | DeploymentGraphFuture };
   };
   getEdges(): Array<{ from: number; to: number }>;
 }
 
 export interface LibraryMap {
-  [key: string]: RecipeFuture;
+  [key: string]: DeploymentGraphFuture;
 }
 
 export type ExternalParamValue = boolean | string | number;
 
-export type InternalParamValue = ExternalParamValue | RecipeFuture;
+export type InternalParamValue = ExternalParamValue | DeploymentGraphFuture;
 
-export type RecipeVertex =
-  | HardhatContractRecipeVertex
-  | ArtifactContractRecipeVertex
-  | DeployedContractRecipeVertex
-  | HardhatLibraryRecipeVertex
-  | ArtifactLibraryRecipeVertex
-  | CallRecipeVertex
+export type DeploymentGraphVertex =
+  | HardhatContractDeploymentVertex
+  | ArtifactContractDeploymentVertex
+  | DeployedContractDeploymentVertex
+  | HardhatLibraryDeploymentVertex
+  | ArtifactLibraryDeploymentVertex
+  | CallDeploymentVertex
   | VirtualVertex;
 
-export interface HardhatContractRecipeVertex extends VertexDescriptor {
+export interface HardhatContractDeploymentVertex extends VertexDescriptor {
   type: "HardhatContract";
   scopeAdded: string;
   contractName: string;
   args: InternalParamValue[];
   libraries: LibraryMap;
-  after: RecipeFuture[];
+  after: DeploymentGraphFuture[];
 }
 
-export interface ArtifactContractRecipeVertex extends VertexDescriptor {
+export interface ArtifactContractDeploymentVertex extends VertexDescriptor {
   type: "ArtifactContract";
   scopeAdded: string;
   artifact: Artifact;
   args: InternalParamValue[];
   libraries: LibraryMap;
-  after: RecipeFuture[];
+  after: DeploymentGraphFuture[];
 }
 
-export interface DeployedContractRecipeVertex extends VertexDescriptor {
+export interface DeployedContractDeploymentVertex extends VertexDescriptor {
   type: "DeployedContract";
   scopeAdded: string;
   address: string;
   abi: any[];
-  after: RecipeFuture[];
+  after: DeploymentGraphFuture[];
 }
 
-export interface HardhatLibraryRecipeVertex extends VertexDescriptor {
+export interface HardhatLibraryDeploymentVertex extends VertexDescriptor {
   type: "HardhatLibrary";
   libraryName: string;
   scopeAdded: string;
   args: InternalParamValue[];
-  after: RecipeFuture[];
+  after: DeploymentGraphFuture[];
 }
 
-export interface ArtifactLibraryRecipeVertex extends VertexDescriptor {
+export interface ArtifactLibraryDeploymentVertex extends VertexDescriptor {
   type: "ArtifactLibrary";
   scopeAdded: string;
   artifact: Artifact;
   args: InternalParamValue[];
-  after: RecipeFuture[];
+  after: DeploymentGraphFuture[];
 }
 
-export interface CallRecipeVertex extends VertexDescriptor {
+export interface CallDeploymentVertex extends VertexDescriptor {
   type: "Call";
   scopeAdded: string;
   contract: CallableFuture;
   method: string;
   args: InternalParamValue[];
-  after: RecipeFuture[];
+  after: DeploymentGraphFuture[];
 }
 
 export interface VirtualVertex extends VertexDescriptor {
   type: "Virtual";
   scopeAdded: string;
-  after: RecipeFuture[];
+  after: DeploymentGraphFuture[];
 }
 
 export interface ContractOptions {
   args?: InternalParamValue[];
   libraries?: {
-    [key: string]: RecipeFuture;
+    [key: string]: DeploymentGraphFuture;
   };
-  after?: RecipeFuture[];
+  after?: DeploymentGraphFuture[];
 }
 
-export interface UseRecipeOptions {
-  parameters?: { [key: string]: number | string | RecipeFuture };
+export interface UseSubgraphOptions {
+  parameters?: { [key: string]: number | string | DeploymentGraphFuture };
 }
 
-export interface IRecipeGraphBuilder {
+export interface IDeploymentBuilder {
   chainId: number;
-  graph: IRecipeGraph;
+  graph: IDeploymentGraph;
 
   contract: (
     contractName: string,
@@ -125,7 +125,7 @@ export interface IRecipeGraphBuilder {
     contractName: string,
     address: string,
     abi: any[],
-    options?: { after?: RecipeFuture[] }
+    options?: { after?: DeploymentGraphFuture[] }
   ) => DeployedContract;
 
   library: (
@@ -135,13 +135,13 @@ export interface IRecipeGraphBuilder {
   ) => HardhatLibrary | ArtifactLibrary;
 
   call: (
-    contractFuture: RecipeFuture,
+    contractFuture: DeploymentGraphFuture,
     functionName: string,
     {
       args,
     }: {
       args: InternalParamValue[];
-      after?: RecipeFuture[];
+      after?: DeploymentGraphFuture[];
     }
   ) => ContractCall;
 
@@ -152,15 +152,15 @@ export interface IRecipeGraphBuilder {
     defaultValue: ParameterValue
   ) => OptionalParameter;
 
-  useRecipe: (recipe: Recipe, options?: UseRecipeOptions) => FutureDict;
-  useModule: (module: Module, options?: UseRecipeOptions) => ModuleDict;
+  useSubgraph: (subgraph: Subgraph, options?: UseSubgraphOptions) => FutureDict;
+  useModule: (module: Module, options?: UseSubgraphOptions) => ModuleDict;
 }
 
-export interface Recipe {
+export interface Subgraph {
   name: string;
-  recipeAction: (builder: IRecipeGraphBuilder) => FutureDict;
+  subgraphAction: (builder: IDeploymentBuilder) => FutureDict;
 }
 
-export interface RecipeGraphBuilderOptions {
+export interface DeploymentBuilderOptions {
   chainId: number;
 }

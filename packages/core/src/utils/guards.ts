@@ -1,20 +1,20 @@
 import type {
+  DeploymentGraphVertex,
+  HardhatContractDeploymentVertex,
+  ArtifactContractDeploymentVertex,
+  DeployedContractDeploymentVertex,
+  CallDeploymentVertex,
+  HardhatLibraryDeploymentVertex,
+  ArtifactLibraryDeploymentVertex,
+} from "types/deploymentGraph";
+import type {
   CallableFuture,
   DependableFuture,
   OptionalParameter,
-  RecipeFuture,
+  DeploymentGraphFuture,
   RequiredParameter,
 } from "types/future";
 import { Artifact } from "types/hardhat";
-import type {
-  RecipeVertex,
-  HardhatContractRecipeVertex,
-  ArtifactContractRecipeVertex,
-  DeployedContractRecipeVertex,
-  CallRecipeVertex,
-  HardhatLibraryRecipeVertex,
-  ArtifactLibraryRecipeVertex,
-} from "types/recipeGraph";
 
 export function isArtifact(artifact: any): artifact is Artifact {
   return (
@@ -26,40 +26,42 @@ export function isArtifact(artifact: any): artifact is Artifact {
 }
 
 export function isHardhatContract(
-  node: RecipeVertex
-): node is HardhatContractRecipeVertex {
+  node: DeploymentGraphVertex
+): node is HardhatContractDeploymentVertex {
   return node.type === "HardhatContract";
 }
 
 export function isArtifactContract(
-  node: RecipeVertex
-): node is ArtifactContractRecipeVertex {
+  node: DeploymentGraphVertex
+): node is ArtifactContractDeploymentVertex {
   return node.type === "ArtifactContract";
 }
 
 export function isDeployedContract(
-  node: RecipeVertex
-): node is DeployedContractRecipeVertex {
+  node: DeploymentGraphVertex
+): node is DeployedContractDeploymentVertex {
   return node.type === "DeployedContract";
 }
 
-export function isCall(node: RecipeVertex): node is CallRecipeVertex {
+export function isCall(
+  node: DeploymentGraphVertex
+): node is CallDeploymentVertex {
   return node.type === "Call";
 }
 
 export function isHardhatLibrary(
-  node: RecipeVertex
-): node is HardhatLibraryRecipeVertex {
+  node: DeploymentGraphVertex
+): node is HardhatLibraryDeploymentVertex {
   return node.type === "HardhatLibrary";
 }
 
 export function isArtifactLibrary(
-  node: RecipeVertex
-): node is ArtifactLibraryRecipeVertex {
+  node: DeploymentGraphVertex
+): node is ArtifactLibraryDeploymentVertex {
   return node.type === "ArtifactLibrary";
 }
 
-export function isFuture(possible: {}): possible is RecipeFuture {
+export function isFuture(possible: {}): possible is DeploymentGraphFuture {
   return (
     possible !== undefined &&
     possible !== null &&
@@ -79,11 +81,13 @@ export function isDependable(possible: any): possible is DependableFuture {
 }
 
 export function isParameter(
-  future: RecipeFuture
+  future: DeploymentGraphFuture
 ): future is RequiredParameter | OptionalParameter {
   return future.type === "parameter";
 }
 
-export function isCallable(future: RecipeFuture): future is CallableFuture {
+export function isCallable(
+  future: DeploymentGraphFuture
+): future is CallableFuture {
   return future.type === "contract" || future.type === "library";
 }

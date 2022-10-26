@@ -1,11 +1,11 @@
 import { ethers } from "ethers";
 
 import { Services } from "services/types";
+import { HardhatLibraryDeploymentVertex } from "types/deploymentGraph";
 import { ResultsAccumulator, VertexVisitResult } from "types/graph";
-import { HardhatLibraryRecipeVertex } from "types/recipeGraph";
 
 export async function validateHardhatLibrary(
-  vertex: HardhatLibraryRecipeVertex,
+  vertex: HardhatLibraryDeploymentVertex,
   _resultAccumulator: ResultsAccumulator,
   { services }: { services: Services }
 ): Promise<VertexVisitResult> {

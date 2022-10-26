@@ -68,7 +68,7 @@ export function graphToMermaid(graph: VertexGraph): string {
     .join("\n");
 
   const linkDefinitions = vertexes
-    .map((v) => `click ${v.id} "recipe/${v.id}.html" _self`)
+    .map((v) => `click ${v.id} "module/${v.id}.html" _self`)
     .join("\n");
 
   return `
@@ -96,7 +96,7 @@ export function getActions(graph: VertexGraph): string {
     return `
 <li
   id="action-${type.toLowerCase()}-${v.id}"
-  onclick="window.location.assign('recipe/${v.id}.html')"
+  onclick="window.location.assign('module/${v.id}.html')"
 >
   Contract ${type} ${v.label}
 </li>

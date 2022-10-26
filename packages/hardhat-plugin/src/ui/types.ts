@@ -45,15 +45,15 @@ export interface DeploymentError {
 
 export class DeploymentState {
   public phase: DeployPhase;
-  public recipeName: string;
+  public moduleName: string;
 
   private executionVertexes: { [key: string]: VertexStatus };
   private order: number[];
   public batches: UiBatch[];
   private errors: { [key: number]: VertexVisitResultFailure } | undefined;
 
-  constructor({ recipeName }: { recipeName: string }) {
-    this.recipeName = recipeName;
+  constructor({ moduleName }: { moduleName: string }) {
+    this.moduleName = moduleName;
     this.phase = "uninitialized";
 
     this.order = [];

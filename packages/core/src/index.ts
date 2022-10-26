@@ -1,6 +1,6 @@
 export { Ignition, IgnitionDeployOptions } from "./Ignition";
-export { buildModule } from "recipe/buildModule";
-export { buildRecipe } from "recipe/buildRecipe";
+export { buildModule } from "dsl/buildModule";
+export { buildSubgraph } from "dsl/buildSubgraph";
 
 export type {
   SerializedDeploymentResult,
@@ -19,10 +19,10 @@ export type {
 } from "types/deployment";
 export type { Module } from "types/module";
 export type {
-  Recipe,
+  Subgraph,
   ExternalParamValue,
-  IRecipeGraphBuilder,
-} from "types/recipeGraph";
+  IDeploymentBuilder,
+} from "types/deploymentGraph";
 export type { FutureDict } from "types/future";
 export type { IgnitionPlan } from "types/plan";
 export type {

@@ -33,7 +33,7 @@ describe("Execution - visitInBatches", () => {
     const mockUpdateUiAction = () => {};
 
     const deployment = new Deployment(
-      "MyRecipe",
+      "MyModule",
       mockServices,
       mockUpdateUiAction
     );

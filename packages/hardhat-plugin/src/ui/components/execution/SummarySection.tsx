@@ -3,7 +3,7 @@ import { Box, Text } from "ink";
 
 export const SummarySection = ({
   deployState: {
-    details: { recipeName },
+    details: { moduleName },
   },
 }: {
   deployState: DeployState;
@@ -11,7 +11,7 @@ export const SummarySection = ({
   return (
     <Box margin={1}>
       <Text bold={true}>
-        Deploying recipe <Text italic={true}>{recipeName}</Text>
+        Deploying module <Text italic={true}>{moduleName}</Text>
       </Text>
     </Box>
   );

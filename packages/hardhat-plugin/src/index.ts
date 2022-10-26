@@ -7,10 +7,10 @@ import path from "path";
 import { ConfigWrapper } from "./ConfigWrapper";
 import { IgnitionWrapper } from "./ignition-wrapper";
 import { Renderer } from "./plan";
-import { loadUserModules, loadAllUserModules } from "./user-recipes";
+import { loadUserModules, loadAllUserModules } from "./user-modules";
 import "./type-extensions";
 
-export { buildRecipe, buildModule } from "@ignored/ignition-core";
+export { buildSubgraph, buildModule } from "@ignored/ignition-core";
 
 extendConfig((config, userConfig) => {
   const userIgnitionPath = userConfig.paths?.ignition;
@@ -97,17 +97,17 @@ extendEnvironment((hre) => {
 });
 
 task("deploy")
-  .addOptionalVariadicPositionalParam("userRecipesPaths")
+  .addOptionalVariadicPositionalParam("userModulesPaths")
   .addOptionalParam(
     "parameters",
-    "A json object as a string, of the recipe parameters"
+    "A json object as a string, of the module parameters"
   )
   .setAction(
     async (
       {
-        userRecipesPaths = [],
+        userModulesPaths = [],
         parameters: parametersAsJson,
-      }: { userRecipesPaths: string[]; parameters?: string },
+      }: { userModulesPaths: string[]; parameters?: string },
       hre
     ) => {
       await hre.run("compile", { quiet: true });
@@ -123,58 +123,58 @@ task("deploy")
         process.exit(0);
       }
 
-      let userRecipes: Module[];
-      if (userRecipesPaths.length === 0) {
-        userRecipes = loadAllUserModules(hre.config.paths.ignition);
+      let userModules: Module[];
+      if (userModulesPaths.length === 0) {
+        userModules = loadAllUserModules(hre.config.paths.ignition);
       } else {
-        userRecipes = loadUserModules(
+        userModules = loadUserModules(
           hre.config.paths.ignition,
-          userRecipesPaths
+          userModulesPaths
         );
       }
 
-      if (userRecipes.length === 0) {
-        console.warn("No Ignition recipes found");
+      if (userModules.length === 0) {
+        console.warn("No Ignition modules found");
         process.exit(0);
       }
 
-      await hre.ignition.deploy(userRecipes[0], { parameters, ui: true });
+      await hre.ignition.deploy(userModules[0], { parameters, ui: true });
     }
   );
 
 task("plan")
   .addFlag("quiet", "Disables logging output path to terminal")
-  .addOptionalVariadicPositionalParam("userRecipesPaths")
+  .addOptionalVariadicPositionalParam("userModulesPaths")
   .setAction(
     async (
       {
         quiet = false,
-        userRecipesPaths = [],
-      }: { quiet: boolean; userRecipesPaths: string[] },
+        userModulesPaths = [],
+      }: { quiet: boolean; userModulesPaths: string[] },
       hre
     ) => {
       await hre.run("compile", { quiet: true });
 
       let userModules: Module[];
-      if (userRecipesPaths.length === 0) {
+      if (userModulesPaths.length === 0) {
         userModules = loadAllUserModules(hre.config.paths.ignition);
       } else {
         userModules = loadUserModules(
           hre.config.paths.ignition,
-          userRecipesPaths
+          userModulesPaths
         );
       }
 
       if (userModules.length === 0) {
-        console.warn("No Ignition recipes found");
+        console.warn("No Ignition modules found");
         process.exit(0);
       }
 
-      const [recipe] = userModules;
+      const [module] = userModules;
 
-      const plan = await hre.ignition.plan(recipe);
+      const plan = await hre.ignition.plan(module);
 
-      const renderer = new Renderer(recipe.name, plan, {
+      const renderer = new Renderer(module.name, plan, {
         cachePath: hre.config.paths.cache,
         network: {
           name: hre.network.name,

@@ -1,12 +1,12 @@
 import { ethers } from "ethers";
 
 import { Services } from "services/types";
+import { CallDeploymentVertex } from "types/deploymentGraph";
 import { CallableFuture } from "types/future";
 import { ResultsAccumulator, VertexVisitResult } from "types/graph";
-import { CallRecipeVertex } from "types/recipeGraph";
 
 export async function validateCall(
-  vertex: CallRecipeVertex,
+  vertex: CallDeploymentVertex,
   _resultAccumulator: ResultsAccumulator,
   context: { services: Services }
 ): Promise<VertexVisitResult> {
@@ -90,7 +90,7 @@ async function resolveArtifactForCallableFuture(
           );
           return artifact.abi;
         default:
-          return assertNeverRecipeFuture(future);
+          return assertNeverDeploymentFuture(future);
       }
     case "library":
       switch (future.subtype) {
@@ -102,13 +102,13 @@ async function resolveArtifactForCallableFuture(
           );
           return artifact.abi;
         default:
-          return assertNeverRecipeFuture(future);
+          return assertNeverDeploymentFuture(future);
       }
     default:
-      return assertNeverRecipeFuture(future);
+      return assertNeverDeploymentFuture(future);
   }
 }
 
-function assertNeverRecipeFuture(f: never): undefined {
-  throw new Error(`Unexpected recipe future type/subtype ${f}`);
+function assertNeverDeploymentFuture(f: never): undefined {
+  throw new Error(`Unexpected deployment future type/subtype ${f}`);
 }

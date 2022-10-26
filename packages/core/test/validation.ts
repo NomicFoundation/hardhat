@@ -1,12 +1,12 @@
 /* eslint-disable import/no-unused-modules */
 import { assert } from "chai";
 
-import { generateRecipeGraphFrom } from "process/generateRecipeGraphFrom";
-import { buildModule } from "recipe/buildModule";
-import { buildRecipe } from "recipe/buildRecipe";
+import { buildModule } from "dsl/buildModule";
+import { buildSubgraph } from "dsl/buildSubgraph";
+import { generateDeploymentGraphFrom } from "process/generateDeploymentGraphFrom";
+import type { IDeploymentBuilder } from "types/deploymentGraph";
 import { Artifact } from "types/hardhat";
-import type { IRecipeGraphBuilder } from "types/recipeGraph";
-import { validateRecipeGraph } from "validation/validateRecipeGraph";
+import { validateDeploymentGraph } from "validation/validateDeploymentGraph";
 
 import { getMockServices } from "./helpers";
 
@@ -20,13 +20,13 @@ describe("Validation", () => {
 
   describe("artifact contract deploy", () => {
     it("should validate a correct artifact contract deploy", async () => {
-      const singleRecipe = buildModule("single", (m: IRecipeGraphBuilder) => {
+      const singleModule = buildModule("single", (m: IDeploymentBuilder) => {
         const example = m.contract("Example", exampleArtifact);
 
         return { example };
       });
 
-      const { graph } = generateRecipeGraphFrom(singleRecipe, {
+      const { graph } = generateDeploymentGraphFrom(singleModule, {
         chainId: 31337,
       });
 
@@ -34,13 +34,16 @@ describe("Validation", () => {
         ...getMockServices(),
       } as any;
 
-      const validationResult = await validateRecipeGraph(graph, mockServices);
+      const validationResult = await validateDeploymentGraph(
+        graph,
+        mockServices
+      );
 
       assert.equal(validationResult._kind, "success");
     });
 
     it("should not validate a artifact contract deploy with the wrong number of args", async () => {
-      const singleRecipe = buildModule("single", (m: IRecipeGraphBuilder) => {
+      const singleModule = buildModule("single", (m: IDeploymentBuilder) => {
         const example = m.contract("Example", exampleArtifact, {
           args: [1, 2, 3],
         });
@@ -48,7 +51,7 @@ describe("Validation", () => {
         return { example };
       });
 
-      const { graph } = generateRecipeGraphFrom(singleRecipe, {
+      const { graph } = generateDeploymentGraphFrom(singleModule, {
         chainId: 31337,
       });
 
@@ -56,7 +59,10 @@ describe("Validation", () => {
         ...getMockServices(),
       } as any;
 
-      const validationResult = await validateRecipeGraph(graph, mockServices);
+      const validationResult = await validateDeploymentGraph(
+        graph,
+        mockServices
+      );
 
       if (validationResult._kind !== "failure") {
         return assert.fail("validation should have failed");
@@ -76,13 +82,13 @@ describe("Validation", () => {
 
   describe("artifact library deploy", () => {
     it("should validate a correct artifact library deploy", async () => {
-      const singleRecipe = buildModule("single", (m: IRecipeGraphBuilder) => {
+      const singleModule = buildModule("single", (m: IDeploymentBuilder) => {
         const example = m.library("Example", exampleArtifact);
 
         return { example };
       });
 
-      const { graph } = generateRecipeGraphFrom(singleRecipe, {
+      const { graph } = generateDeploymentGraphFrom(singleModule, {
         chainId: 31337,
       });
 
@@ -90,13 +96,16 @@ describe("Validation", () => {
         ...getMockServices(),
       } as any;
 
-      const validationResult = await validateRecipeGraph(graph, mockServices);
+      const validationResult = await validateDeploymentGraph(
+        graph,
+        mockServices
+      );
 
       assert.equal(validationResult._kind, "success");
     });
 
     it("should not validate a artifact library deploy with the wrong number of args", async () => {
-      const singleRecipe = buildModule("single", (m: IRecipeGraphBuilder) => {
+      const singleModule = buildModule("single", (m: IDeploymentBuilder) => {
         const example = m.library("Example", exampleArtifact, {
           args: [1, 2, 3],
         });
@@ -104,7 +113,7 @@ describe("Validation", () => {
         return { example };
       });
 
-      const { graph } = generateRecipeGraphFrom(singleRecipe, {
+      const { graph } = generateDeploymentGraphFrom(singleModule, {
         chainId: 31337,
       });
 
@@ -112,7 +121,10 @@ describe("Validation", () => {
         ...getMockServices(),
       } as any;
 
-      const validationResult = await validateRecipeGraph(graph, mockServices);
+      const validationResult = await validateDeploymentGraph(
+        graph,
+        mockServices
+      );
 
       if (validationResult._kind !== "failure") {
         return assert.fail("validation should have failed");
@@ -214,7 +226,7 @@ describe("Validation", () => {
     };
 
     it("should validate a correct call", async () => {
-      const singleRecipe = buildModule("single", (m: IRecipeGraphBuilder) => {
+      const singleModule = buildModule("single", (m: IDeploymentBuilder) => {
         const example = m.contract("Foo");
 
         m.call(example, "sub", { args: [2] });
@@ -222,7 +234,7 @@ describe("Validation", () => {
         return { example };
       });
 
-      const { graph } = generateRecipeGraphFrom(singleRecipe, {
+      const { graph } = generateDeploymentGraphFrom(singleModule, {
         chainId: 31337,
       });
 
@@ -234,12 +246,15 @@ describe("Validation", () => {
         },
       } as any;
 
-      const validationResult = await validateRecipeGraph(graph, mockServices);
+      const validationResult = await validateDeploymentGraph(
+        graph,
+        mockServices
+      );
       assert.equal(validationResult._kind, "success");
     });
 
     it("should validate an overriden call", async () => {
-      const singleRecipe = buildModule("single", (m: IRecipeGraphBuilder) => {
+      const singleModule = buildModule("single", (m: IDeploymentBuilder) => {
         const example = m.contract("Foo");
 
         m.call(example, "inc(bool,uint256)", { args: [true, 2] });
@@ -247,7 +262,7 @@ describe("Validation", () => {
         return { example };
       });
 
-      const { graph } = generateRecipeGraphFrom(singleRecipe, {
+      const { graph } = generateDeploymentGraphFrom(singleModule, {
         chainId: 31337,
       });
 
@@ -259,12 +274,15 @@ describe("Validation", () => {
         },
       } as any;
 
-      const validationResult = await validateRecipeGraph(graph, mockServices);
+      const validationResult = await validateDeploymentGraph(
+        graph,
+        mockServices
+      );
       assert.equal(validationResult._kind, "success");
     });
 
     it("should fail a call on a nonexistant function", async () => {
-      const singleRecipe = buildModule("single", (m: IRecipeGraphBuilder) => {
+      const singleModule = buildModule("single", (m: IDeploymentBuilder) => {
         const example = m.contract("Foo");
 
         m.call(example, "nonexistant", { args: [] });
@@ -272,7 +290,7 @@ describe("Validation", () => {
         return { example };
       });
 
-      const { graph } = generateRecipeGraphFrom(singleRecipe, {
+      const { graph } = generateDeploymentGraphFrom(singleModule, {
         chainId: 31337,
       });
 
@@ -284,7 +302,10 @@ describe("Validation", () => {
         },
       } as any;
 
-      const validationResult = await validateRecipeGraph(graph, mockServices);
+      const validationResult = await validateDeploymentGraph(
+        graph,
+        mockServices
+      );
 
       if (validationResult._kind !== "failure") {
         return assert.fail("validation should have failed");
@@ -302,7 +323,7 @@ describe("Validation", () => {
     });
 
     it("should fail a call with wrong number of arguments", async () => {
-      const singleRecipe = buildModule("single", (m: IRecipeGraphBuilder) => {
+      const singleModule = buildModule("single", (m: IDeploymentBuilder) => {
         const example = m.contract("Foo");
 
         m.call(example, "sub", { args: [] });
@@ -310,7 +331,7 @@ describe("Validation", () => {
         return { example };
       });
 
-      const { graph } = generateRecipeGraphFrom(singleRecipe, {
+      const { graph } = generateDeploymentGraphFrom(singleModule, {
         chainId: 31337,
       });
 
@@ -322,7 +343,10 @@ describe("Validation", () => {
         },
       } as any;
 
-      const validationResult = await validateRecipeGraph(graph, mockServices);
+      const validationResult = await validateDeploymentGraph(
+        graph,
+        mockServices
+      );
 
       if (validationResult._kind !== "failure") {
         return assert.fail("validation should have failed");
@@ -340,7 +364,7 @@ describe("Validation", () => {
     });
 
     it("should fail an overloaded call with wrong number of arguments", async () => {
-      const singleRecipe = buildModule("single", (m: IRecipeGraphBuilder) => {
+      const singleModule = buildModule("single", (m: IDeploymentBuilder) => {
         const example = m.contract("MyContract");
 
         m.call(example, "inc", { args: [] });
@@ -348,7 +372,7 @@ describe("Validation", () => {
         return { example };
       });
 
-      const { graph } = generateRecipeGraphFrom(singleRecipe, {
+      const { graph } = generateDeploymentGraphFrom(singleModule, {
         chainId: 31337,
       });
 
@@ -360,7 +384,10 @@ describe("Validation", () => {
         },
       } as any;
 
-      const validationResult = await validateRecipeGraph(graph, mockServices);
+      const validationResult = await validateDeploymentGraph(
+        graph,
+        mockServices
+      );
 
       if (validationResult._kind !== "failure") {
         return assert.fail("validation should have failed");
@@ -380,7 +407,7 @@ describe("Validation", () => {
 
   describe("deployed contract", () => {
     it("should validate a correct artifact library deploy", async () => {
-      const singleRecipe = buildModule("single", (m: IRecipeGraphBuilder) => {
+      const singleModule = buildModule("single", (m: IDeploymentBuilder) => {
         const existing = m.contractAt(
           "Example",
           "0x0000000000000000000000000000000000000000",
@@ -390,7 +417,7 @@ describe("Validation", () => {
         return { existing };
       });
 
-      const { graph } = generateRecipeGraphFrom(singleRecipe, {
+      const { graph } = generateDeploymentGraphFrom(singleModule, {
         chainId: 31337,
       });
 
@@ -398,19 +425,22 @@ describe("Validation", () => {
         ...getMockServices(),
       } as any;
 
-      const validationResult = await validateRecipeGraph(graph, mockServices);
+      const validationResult = await validateDeploymentGraph(
+        graph,
+        mockServices
+      );
 
       assert.equal(validationResult._kind, "success");
     });
 
     it("should not validate a deployed contract with an invalid address", async () => {
-      const singleRecipe = buildModule("single", (m: IRecipeGraphBuilder) => {
+      const singleModule = buildModule("single", (m: IDeploymentBuilder) => {
         const existing = m.contractAt("Example", "0xBAD", []);
 
         return { existing };
       });
 
-      const { graph } = generateRecipeGraphFrom(singleRecipe, {
+      const { graph } = generateDeploymentGraphFrom(singleModule, {
         chainId: 31337,
       });
 
@@ -418,7 +448,10 @@ describe("Validation", () => {
         ...getMockServices(),
       } as any;
 
-      const validationResult = await validateRecipeGraph(graph, mockServices);
+      const validationResult = await validateDeploymentGraph(
+        graph,
+        mockServices
+      );
 
       if (validationResult._kind !== "failure") {
         return assert.fail("validation should have failed");
@@ -438,13 +471,13 @@ describe("Validation", () => {
 
   describe("hardhat contract deploy", () => {
     it("should validate a correct contract deploy", async () => {
-      const singleRecipe = buildModule("single", (m: IRecipeGraphBuilder) => {
+      const singleModule = buildModule("single", (m: IDeploymentBuilder) => {
         const example = m.contract("Example");
 
         return { example };
       });
 
-      const { graph } = generateRecipeGraphFrom(singleRecipe, {
+      const { graph } = generateDeploymentGraphFrom(singleModule, {
         chainId: 31337,
       });
 
@@ -456,19 +489,22 @@ describe("Validation", () => {
         },
       } as any;
 
-      const validationResult = await validateRecipeGraph(graph, mockServices);
+      const validationResult = await validateDeploymentGraph(
+        graph,
+        mockServices
+      );
 
       assert.equal(validationResult._kind, "success");
     });
 
     it("should not validate a contract deploy on a non-existant hardhat contract", async () => {
-      const singleRecipe = buildModule("single", (m: IRecipeGraphBuilder) => {
+      const singleModule = buildModule("single", (m: IDeploymentBuilder) => {
         const nonexistant = m.contract("Nonexistant");
 
         return { nonexistant };
       });
 
-      const { graph } = generateRecipeGraphFrom(singleRecipe, {
+      const { graph } = generateDeploymentGraphFrom(singleModule, {
         chainId: 31337,
       });
 
@@ -479,7 +515,10 @@ describe("Validation", () => {
         },
       } as any;
 
-      const validationResult = await validateRecipeGraph(graph, mockServices);
+      const validationResult = await validateDeploymentGraph(
+        graph,
+        mockServices
+      );
 
       if (validationResult._kind !== "failure") {
         return assert.fail("validation should have failed");
@@ -499,13 +538,13 @@ describe("Validation", () => {
 
   describe("hardhat library deploy", () => {
     it("should validate a correct deploy", async () => {
-      const singleRecipe = buildModule("single", (m: IRecipeGraphBuilder) => {
+      const singleModule = buildModule("single", (m: IDeploymentBuilder) => {
         const example = m.library("Example");
 
         return { example };
       });
 
-      const { graph } = generateRecipeGraphFrom(singleRecipe, {
+      const { graph } = generateDeploymentGraphFrom(singleModule, {
         chainId: 31337,
       });
 
@@ -517,19 +556,22 @@ describe("Validation", () => {
         },
       } as any;
 
-      const validationResult = await validateRecipeGraph(graph, mockServices);
+      const validationResult = await validateDeploymentGraph(
+        graph,
+        mockServices
+      );
 
       assert.equal(validationResult._kind, "success");
     });
 
     it("should not validate a library deploy on a non-existant hardhat library", async () => {
-      const singleRecipe = buildModule("single", (m: IRecipeGraphBuilder) => {
+      const singleModule = buildModule("single", (m: IDeploymentBuilder) => {
         const nonexistant = m.library("Nonexistant");
 
         return { nonexistant };
       });
 
-      const { graph } = generateRecipeGraphFrom(singleRecipe, {
+      const { graph } = generateDeploymentGraphFrom(singleModule, {
         chainId: 31337,
       });
 
@@ -540,7 +582,10 @@ describe("Validation", () => {
         },
       } as any;
 
-      const validationResult = await validateRecipeGraph(graph, mockServices);
+      const validationResult = await validateDeploymentGraph(
+        graph,
+        mockServices
+      );
 
       if (validationResult._kind !== "failure") {
         return assert.fail("validation should have failed");
@@ -560,19 +605,19 @@ describe("Validation", () => {
 
   describe("virtual", () => {
     it("should validate", async () => {
-      const subrecipe = buildRecipe("sub", (m) => {
+      const subgraph = buildSubgraph("sub", (m) => {
         const example = m.contract("Example");
 
         return { example };
       });
 
-      const singleRecipe = buildModule("single", (m: IRecipeGraphBuilder) => {
-        m.useRecipe(subrecipe);
+      const singleModule = buildModule("single", (m: IDeploymentBuilder) => {
+        m.useSubgraph(subgraph);
 
         return {};
       });
 
-      const { graph } = generateRecipeGraphFrom(singleRecipe, {
+      const { graph } = generateDeploymentGraphFrom(singleModule, {
         chainId: 31337,
       });
 
@@ -584,7 +629,10 @@ describe("Validation", () => {
         },
       } as any;
 
-      const validationResult = await validateRecipeGraph(graph, mockServices);
+      const validationResult = await validateDeploymentGraph(
+        graph,
+        mockServices
+      );
 
       assert.equal(validationResult._kind, "success");
     });

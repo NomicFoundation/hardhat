@@ -22,8 +22,8 @@ export class Deployment {
   public services: Services;
   public ui?: UpdateUiAction;
 
-  constructor(recipeName: string, services: Services, ui?: UpdateUiAction) {
-    this.state = initializeDeployState(recipeName);
+  constructor(moduleName: string, services: Services, ui?: UpdateUiAction) {
+    this.state = initializeDeployState(moduleName);
     this.services = services;
     this.ui = ui;
   }
@@ -47,7 +47,7 @@ export class Deployment {
     };
 
     const services: Services = createServices(
-      "recipeIdEXECUTE",
+      "moduleIdEXECUTE",
       "executorIdEXECUTE",
       serviceOptions
     );
@@ -64,7 +64,7 @@ export class Deployment {
   }
 
   public startValidation() {
-    log("Validate recipe graph");
+    log("Validate deployment graph");
     this.state = deployStateReducer(this.state, {
       type: "START_VALIDATION",
     });

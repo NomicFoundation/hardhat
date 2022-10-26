@@ -9,11 +9,11 @@ export class FileJournal implements Journal {
   constructor(private _path: string) {}
 
   public async addEntry(
-    recipeId: string,
+    moduleId: string,
     executorId: string,
     journalEntry: JournalEntry
   ): Promise<number> {
-    this._log(`Adding entry to ${recipeId}/${executorId}`);
+    this._log(`Adding entry to ${moduleId}/${executorId}`);
 
     let content;
     if (await fsExtra.pathExists(this._path)) {
@@ -22,39 +22,39 @@ export class FileJournal implements Journal {
       content = {};
     }
 
-    content[recipeId] = content[recipeId] ?? {};
-    content[recipeId][executorId] = content[recipeId][executorId] ?? [];
-    content[recipeId][executorId].push(journalEntry);
+    content[moduleId] = content[moduleId] ?? {};
+    content[moduleId][executorId] = content[moduleId][executorId] ?? [];
+    content[moduleId][executorId].push(journalEntry);
 
     await fsExtra.writeJson(this._path, content, {
       spaces: 2,
     });
 
-    return content[recipeId][executorId].length - 1;
+    return content[moduleId][executorId].length - 1;
   }
 
   public async getEntry(
-    recipeId: string,
+    moduleId: string,
     executorId: string,
     entryIndex: number
   ): Promise<JournalEntry | undefined> {
-    this._log(`Getting entry ${entryIndex} from ${recipeId}/${executorId}`);
+    this._log(`Getting entry ${entryIndex} from ${moduleId}/${executorId}`);
 
     if (!(await fsExtra.pathExists(this._path))) {
       return;
     }
     const content = await fsExtra.readJson(this._path);
 
-    return content?.[recipeId]?.[executorId]?.[entryIndex];
+    return content?.[moduleId]?.[executorId]?.[entryIndex];
   }
 
   public async replaceEntry(
-    recipeId: string,
+    moduleId: string,
     executorId: string,
     txIndex: number,
     journalEntry: JournalEntry
   ): Promise<void> {
-    this._log(`Replacing entry ${txIndex} from ${recipeId}/${executorId}`);
+    this._log(`Replacing entry ${txIndex} from ${moduleId}/${executorId}`);
 
     let content;
     if (await fsExtra.pathExists(this._path)) {
@@ -63,26 +63,26 @@ export class FileJournal implements Journal {
       content = {};
     }
 
-    if (content[recipeId]?.[executorId]?.[txIndex] === undefined) {
+    if (content[moduleId]?.[executorId]?.[txIndex] === undefined) {
       throw new Error(`Assertion error: replacing non-existent transaction`);
     }
 
-    content[recipeId][executorId][txIndex] = journalEntry;
+    content[moduleId][executorId][txIndex] = journalEntry;
 
     await fsExtra.writeJson(this._path, content, {
       spaces: 2,
     });
   }
 
-  public async delete(recipeId: string) {
-    this._log(`Deleting recipe ${recipeId}`);
+  public async delete(moduleId: string) {
+    this._log(`Deleting module ${moduleId}`);
 
     if (!(await fsExtra.pathExists(this._path))) {
       return;
     }
 
     const content = await fsExtra.readJson(this._path);
-    delete content?.[recipeId];
+    delete content?.[moduleId];
 
     if (Object.entries(content).length === 0) {
       await fsExtra.remove(this._path);

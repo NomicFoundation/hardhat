@@ -17,7 +17,7 @@ module.exports = buildModule("MyModule", (m) => {
 
 Modules can be deployed directly at the cli (with `npx hardhat deploy MyModule.js`), within Hardhat mocha tests (see [Ignition in Tests](TBD)) or consumed by other Modules to allow for complex deployments.
 
-During a deployment **Ignition** uses the module to generate an execution plan of the transactions to run and the order and dependency in which to run them. A module uses the passed `RecipeBuilder` to specify the on-chain transactions that will _eventually_ be run, and how they relate to each other to allow building a dependency graph.
+During a deployment **Ignition** uses the module to generate an execution plan of the transactions to run and the order and dependency in which to run them. A module uses the passed `DeploymentBuilder` to specify the on-chain transactions that will _eventually_ be run, and how they relate to each other to allow building a dependency graph.
 
 ## Deploying a contract
 
@@ -116,7 +116,7 @@ m.call(exchange, "addToken", {
 
 ## Using the network chain id
 
-The recipe builder (`m`) exposes the chain id of the network in which the contracts are being deployed. This is useful if you need to do different things depending on the network.
+The `DeploymentBuilder` (`m`) exposes the chain id of the network in which the contracts are being deployed. This is useful if you need to do different things depending on the network.
 
 ```tsx
 const userModule = buildModule("MyModule", (m) => {
@@ -134,7 +134,7 @@ const userModule = buildModule("MyModule", (m) => {
 
 ## Module Parameters
 
-Modules can have parameters that are accessed using the RecipeBuilder object:
+Modules can have parameters that are accessed using the `DeploymentBuilder` object:
 
 ```tsx
 const symbol = m.getParam("tokenSymbol");

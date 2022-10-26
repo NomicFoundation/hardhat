@@ -1,7 +1,7 @@
-import { RecipeFuture } from "./future";
+import { LibraryMap } from "./deploymentGraph";
+import { DeploymentGraphFuture } from "./future";
 import { AdjacencyList, VertexDescriptor } from "./graph";
 import { Artifact } from "./hardhat";
-import { LibraryMap } from "./recipeGraph";
 
 export interface IExecutionGraph {
   adjacencyList: AdjacencyList;
@@ -9,7 +9,7 @@ export interface IExecutionGraph {
   getEdges(): Array<{ from: number; to: number }>;
 }
 
-export type ArgValue = boolean | string | number | RecipeFuture;
+export type ArgValue = boolean | string | number | DeploymentGraphFuture;
 
 export type ExecutionVertexType =
   | "ContractDeploy"

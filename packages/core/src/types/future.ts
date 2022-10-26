@@ -52,7 +52,7 @@ export interface ContractCall {
   _future: true;
 }
 
-export type ParameterValue = string | number | RecipeFuture;
+export type ParameterValue = string | number | DeploymentGraphFuture;
 
 export interface RequiredParameter {
   label: string;
@@ -91,8 +91,8 @@ export type DependableFuture = CallableFuture | ContractCall | Virtual;
 
 export type ParameterFuture = RequiredParameter | OptionalParameter;
 
-export type RecipeFuture = DependableFuture | ParameterFuture;
+export type DeploymentGraphFuture = DependableFuture | ParameterFuture;
 
 export interface FutureDict {
-  [key: string]: RecipeFuture;
+  [key: string]: DeploymentGraphFuture;
 }

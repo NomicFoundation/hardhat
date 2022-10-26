@@ -1,4 +1,4 @@
-const { buildRecipe, buildModule } = require("@ignored/hardhat-ignition");
+const { buildSubgraph, buildModule } = require("@ignored/hardhat-ignition");
 
 const namehash = require("eth-ens-namehash");
 const ethers = hre.ethers;
@@ -18,7 +18,7 @@ const ZERO_HASH =
 
 const ACCOUNT_0 = "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266";
 
-const setupResolver = buildRecipe("RESOLVER", (m) => {
+const setupResolver = buildSubgraph("RESOLVER", (m) => {
   const ens = m.getParam("ENS");
   const account = m.getOptionalParam("ACCOUNT", ACCOUNT_0);
 
@@ -43,7 +43,7 @@ const setupResolver = buildRecipe("RESOLVER", (m) => {
   return { resolver };
 });
 
-const setupReverseRegistrar = buildRecipe("REVERSEREGISTRAR", (m) => {
+const setupReverseRegistrar = buildSubgraph("REVERSEREGISTRAR", (m) => {
   const ens = m.getParam("ENS");
   const resolver = m.getParam("RESOLVER");
   const account = m.getOptionalParam("ACCOUNT", ACCOUNT_0);
@@ -71,14 +71,14 @@ module.exports = buildModule("ENS", (m) => {
 
   const ens = m.contract("ENSRegistry");
 
-  const { resolver } = m.useRecipe(setupResolver, {
+  const { resolver } = m.useSubgraph(setupResolver, {
     parameters: {
       ENS: ens,
       ACCOUNT: owner,
     },
   });
 
-  const { reverseRegistrar } = m.useRecipe(setupReverseRegistrar, {
+  const { reverseRegistrar } = m.useSubgraph(setupReverseRegistrar, {
     parameters: {
       ENS: ens,
       RESOLVER: resolver,

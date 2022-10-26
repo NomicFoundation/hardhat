@@ -11,8 +11,8 @@ export const FinalStatus = ({ deployState }: { deployState: DeployState }) => {
       <Box flexDirection="column">
         <Divider />
         <Text>
-          🚀 Deployment Complete for recipe{" "}
-          <Text italic={true}>{deployState.details.recipeName}</Text>
+          🚀 Deployment Complete for module{" "}
+          <Text italic={true}>{deployState.details.moduleName}</Text>
         </Text>
       </Box>
     );
@@ -28,7 +28,7 @@ export const FinalStatus = ({ deployState }: { deployState: DeployState }) => {
 
         <Box>
           <Text>
-            ⛔ <Text italic={true}>{deployState.details.recipeName}</Text>{" "}
+            ⛔ <Text italic={true}>{deployState.details.moduleName}</Text>{" "}
             deployment{" "}
             <Text bold color="red">
               failed

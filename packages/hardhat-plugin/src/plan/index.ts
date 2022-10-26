@@ -13,7 +13,7 @@ import * as utils from "./utils";
  *    plan/
  *      execution/
  *        <vertex>.html
- *      recipe/
+ *      module/
  *        <vertex>.html
  *      index.html
  */
@@ -38,7 +38,7 @@ export class Renderer {
   private _templates: LoadedTemplates = {};
 
   constructor(
-    public recipeName: string,
+    public moduleName: string,
     public plan: IgnitionPlan,
     public config: RendererConfig
   ) {
@@ -53,14 +53,14 @@ export class Renderer {
     // title bar
     const title = this._templates.title.replace(
       regex,
-      utils.replacer({ recipeName: this.recipeName })
+      utils.replacer({ moduleName: this.moduleName })
     );
 
     // summary
     const networkName = this.config.network.name;
     const networkId = this.config.network.id as string;
-    const txTotal = utils.getTxTotal(this.plan.recipeGraph);
-    const summaryLists = utils.getSummaryLists(this.plan.recipeGraph);
+    const txTotal = utils.getTxTotal(this.plan.deploymentGraph);
+    const summaryLists = utils.getSummaryLists(this.plan.deploymentGraph);
     const summary = this._templates.summary.replace(
       regex,
       utils.replacer({ networkName, networkId, txTotal, summaryLists })
@@ -68,9 +68,9 @@ export class Renderer {
 
     // plan
     const mermaid = utils.wrapInMermaidDiv(
-      utils.graphToMermaid(this.plan.recipeGraph)
+      utils.graphToMermaid(this.plan.deploymentGraph)
     );
-    const actions = utils.getActions(this.plan.recipeGraph);
+    const actions = utils.getActions(this.plan.deploymentGraph);
     const plan = this._templates.plan.replace(
       regex,
       utils.replacer({ mermaid, actions })
@@ -84,7 +84,7 @@ export class Renderer {
 
     this._writeMainHTML(mainOutput);
 
-    for (const vertex of this.plan.recipeGraph.vertexes.values()) {
+    for (const vertex of this.plan.deploymentGraph.vertexes.values()) {
       const type = vertex.type === "HardhatContract" ? "Deploy" : "Call";
       const label = vertex.label;
 
@@ -95,7 +95,7 @@ export class Renderer {
         utils.replacer({ type, label, networkName, networkId, params })
       );
 
-      this._writeRecipeHTML(vertex.id, vertexOutput);
+      this._writeModuleHTML(vertex.id, vertexOutput);
       this._writeDebugJSON(vertex.id, JSON.stringify(vertex, null, 2));
     }
   }
@@ -125,8 +125,8 @@ export class Renderer {
     return path.resolve(this.config.cachePath, "plan");
   }
 
-  public get recipePath(): string {
-    return path.resolve(this.planPath, "recipe");
+  public get modulePath(): string {
+    return path.resolve(this.planPath, "module");
   }
 
   public get executionPath(): string {
@@ -141,8 +141,8 @@ export class Renderer {
     return path.resolve(this._assetsPath, "templates");
   }
 
-  private _writeRecipeHTML(id: number, text: string): void {
-    fs.writeFileSync(`${this.recipePath}/${id}.html`, text, "utf8");
+  private _writeModuleHTML(id: number, text: string): void {
+    fs.writeFileSync(`${this.modulePath}/${id}.html`, text, "utf8");
   }
 
   private _writeMainHTML(text: string): void {
@@ -150,7 +150,7 @@ export class Renderer {
   }
 
   private _writeDebugJSON(id: number, text: string): void {
-    fs.writeFileSync(`${this.recipePath}/${id}.json`, text, "utf8");
+    fs.writeFileSync(`${this.modulePath}/${id}.json`, text, "utf8");
   }
 
   private _loadHTMLAssets(): void {
@@ -178,7 +178,7 @@ export class Renderer {
   }
 
   private _ensureDirectoryStructure(): void {
-    fs.ensureDirSync(this.recipePath);
+    fs.ensureDirSync(this.modulePath);
     fs.ensureDirSync(this.executionPath);
     this._copyUserAssets();
   }

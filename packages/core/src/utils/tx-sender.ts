@@ -17,12 +17,12 @@ export class TxSender {
   private _txIndex = -1;
 
   constructor(
-    private _recipeId: string,
+    private _moduleId: string,
     private _executorId: string,
     private _gasProvider: GasProvider,
     private _journal: Journal
   ) {
-    this._debug = setupDebug(`ignition:tx-sender:${_recipeId}:${_executorId}`);
+    this._debug = setupDebug(`ignition:tx-sender:${_moduleId}:${_executorId}`);
   }
 
   /**
@@ -38,7 +38,7 @@ export class TxSender {
     const nextTxIndex = this._txIndex + 1;
     this._debug(`Getting transaction ${nextTxIndex} from journal`);
     const journaledTx = await this._journal.getEntry(
-      this._recipeId,
+      this._moduleId,
       this._executorId,
       nextTxIndex
     );
@@ -56,7 +56,7 @@ export class TxSender {
     const sentTx = await this._send(signer, tx);
 
     this._txIndex = await this._journal.addEntry(
-      this._recipeId,
+      this._moduleId,
       this._executorId,
       { txHash: sentTx.hash, blockNumberWhenSent }
     );
@@ -77,7 +77,7 @@ export class TxSender {
   ): Promise<string> {
     const sentTx = await this._send(signer, tx);
     await this._journal.replaceEntry(
-      this._recipeId,
+      this._moduleId,
       this._executorId,
       txIndex,
       { txHash: sentTx.hash, blockNumberWhenSent }

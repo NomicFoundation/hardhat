@@ -3,8 +3,8 @@ import setupDebug from "debug";
 import { Deployment } from "deployment/Deployment";
 import { execute } from "execution/execute";
 import { InMemoryJournal } from "journal/InMemoryJournal";
-import { generateRecipeGraphFrom } from "process/generateRecipeGraphFrom";
-import { transformRecipeGraphToExecutionGraph } from "process/transformRecipeGraphToExecutionGraph";
+import { generateDeploymentGraphFrom } from "process/generateDeploymentGraphFrom";
+import { transformDeploymentGraphToExecutionGraph } from "process/transformDeploymentGraphToExecutionGraph";
 import { createServices } from "services/createServices";
 import { Services } from "services/types";
 import { DeploymentResult, UpdateUiAction } from "types/deployment";
@@ -16,7 +16,7 @@ import { Providers } from "types/providers";
 import { SerializedFutureResult } from "types/serialization";
 import { isDependable } from "utils/guards";
 import { serializeFutureOutput } from "utils/serialize";
-import { validateRecipeGraph } from "validation/validateRecipeGraph";
+import { validateDeploymentGraph } from "validation/validateDeploymentGraph";
 
 const log = setupDebug("ignition:main");
 
@@ -26,7 +26,7 @@ export interface IgnitionDeployOptions {
   ui?: UpdateUiAction;
 }
 
-type RecipesOutputs = Record<string, any>;
+type ModuleOutputs = Record<string, any>;
 
 export class Ignition {
   constructor(private _providers: Providers) {}
@@ -34,7 +34,7 @@ export class Ignition {
   public async deploy(
     ignitionModule: Module,
     givenOptions?: IgnitionDeployOptions
-  ): Promise<[DeploymentResult, RecipesOutputs]> {
+  ): Promise<[DeploymentResult, ModuleOutputs]> {
     log(`Start deploy`);
 
     const options = {
@@ -53,7 +53,7 @@ export class Ignition {
     const chainId = await this._getChainId();
     deployment.setChainId(chainId);
 
-    const { result: constructResult, recipeOutputs } =
+    const { result: constructResult, moduleOutputs } =
       await this._constructExecutionGraphFrom(deployment, ignitionModule);
 
     if (constructResult._kind === "failure") {
@@ -70,7 +70,7 @@ export class Ignition {
     }
 
     const serializedDeploymentResult = this._serialize(
-      recipeOutputs,
+      moduleOutputs,
       executionResult.result
     );
 
@@ -87,25 +87,31 @@ export class Ignition {
     };
 
     const services: Services = createServices(
-      "recipeIdEXECUTE",
+      "moduleIdEXECUTE",
       "executorIdEXECUTE",
       serviceOptions
     );
 
     const chainId = await this._getChainId();
 
-    const { graph: recipeGraph } = generateRecipeGraphFrom(deploymentModule, {
-      chainId,
-    });
+    const { graph: deploymentGraph } = generateDeploymentGraphFrom(
+      deploymentModule,
+      {
+        chainId,
+      }
+    );
 
-    const validationResult = await validateRecipeGraph(recipeGraph, services);
+    const validationResult = await validateDeploymentGraph(
+      deploymentGraph,
+      services
+    );
 
     if (validationResult._kind === "failure") {
       throw new Error(validationResult.failures[0]);
     }
 
-    const transformResult = await transformRecipeGraphToExecutionGraph(
-      recipeGraph,
+    const transformResult = await transformDeploymentGraphToExecutionGraph(
+      deploymentGraph,
       services
     );
 
@@ -115,38 +121,38 @@ export class Ignition {
 
     const { executionGraph } = transformResult;
 
-    return { recipeGraph, executionGraph };
+    return { deploymentGraph, executionGraph };
   }
 
   private async _constructExecutionGraphFrom(
     deployment: Deployment,
     ignitionModule: Module
-  ): Promise<{ result: any; recipeOutputs: FutureDict }> {
-    log("Generate recipe graph from recipe");
-    const { graph: recipeGraph, recipeOutputs } = generateRecipeGraphFrom(
-      ignitionModule,
-      { chainId: deployment.state.details.chainId }
-    );
+  ): Promise<{ result: any; moduleOutputs: FutureDict }> {
+    log("Generate deployment graph from module");
+    const { graph: deploymentGraph, moduleOutputs } =
+      generateDeploymentGraphFrom(ignitionModule, {
+        chainId: deployment.state.details.chainId,
+      });
 
     deployment.startValidation();
-    const validationResult = await validateRecipeGraph(
-      recipeGraph,
+    const validationResult = await validateDeploymentGraph(
+      deploymentGraph,
       deployment.services
     );
 
     if (validationResult._kind === "failure") {
       deployment.failValidation(validationResult.failures[1]);
 
-      return { result: validationResult, recipeOutputs };
+      return { result: validationResult, moduleOutputs };
     }
 
-    log("Transform recipe graph to execution graph");
-    const transformResult = await transformRecipeGraphToExecutionGraph(
-      recipeGraph,
+    log("Transform deployment graph to execution graph");
+    const transformResult = await transformDeploymentGraphToExecutionGraph(
+      deploymentGraph,
       deployment.services
     );
 
-    return { result: transformResult, recipeOutputs };
+    return { result: transformResult, moduleOutputs };
   }
 
   private async _getChainId(): Promise<number> {
@@ -157,8 +163,8 @@ export class Ignition {
     return Number(result);
   }
 
-  private _serialize(recipeOutputs: FutureDict, result: ResultsAccumulator) {
-    const entries = Object.entries(recipeOutputs).filter(
+  private _serialize(moduleOutputs: FutureDict, result: ResultsAccumulator) {
+    const entries = Object.entries(moduleOutputs).filter(
       (entry): entry is [string, DependableFuture] => isDependable(entry[1])
     );
 
