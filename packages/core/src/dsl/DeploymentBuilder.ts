@@ -33,7 +33,9 @@ import {
   isArtifact,
   isCallable,
   isDependable,
+  isModule,
   isParameter,
+  isSubgraph,
 } from "utils/guards";
 
 import { DeploymentGraph } from "./DeploymentGraph";
@@ -281,56 +283,16 @@ export class DeploymentBuilder implements IDeploymentBuilder {
     subgraph: Subgraph,
     options?: UseSubgraphOptions
   ): FutureDict {
-    const useSubgraphInvocationId = this.useSubgraphInvocationCounter++;
-    const label = `${subgraph.name}:${useSubgraphInvocationId}`;
-
-    this.scopes.push(label);
-    const scopeLabel = this.scopes.getScopedLabel();
-
-    if (options !== undefined && options.parameters !== undefined) {
-      this.graph.registeredParameters[scopeLabel] = options.parameters;
-    }
-
-    const result = subgraph.subgraphAction(this);
-
-    const virtualVertex = this._createVirtualVertex(label);
-
-    this.scopes.pop();
+    const { result, virtualVertex } = this._useSubscope(subgraph, options);
 
     return { ...result, subgraph: virtualVertex };
   }
 
   public useModule(module: Module, options?: UseSubgraphOptions): ModuleDict {
-    const label = `module:${module.name}`;
+    const moduleKey = `module:${module.name}`;
 
-    if (this.moduleCache[label] === undefined) {
-      this.scopes.push(label);
-      const scopeLabel = this.scopes.getScopedLabel();
-
-      if (options?.parameters !== undefined) {
-        this.graph.registeredParameters[scopeLabel] = options.parameters;
-      }
-
-      const result = module.moduleAction(this);
-
-      // type casting here so that typescript lets us validate against js users bypassing typeguards
-      for (const future of Object.values(result as FutureDict)) {
-        if (!isCallable(future)) {
-          throw new IgnitionError(
-            `Cannot return Future of type "${future.type}" from a module`
-          );
-        }
-      }
-
-      this._createVirtualVertex(label);
-
-      this.scopes.pop();
-
-      const optionsHash = hash(options ?? null);
-
-      this.moduleCache[label] = { result, optionsHash };
-    } else {
-      const moduleData = this.moduleCache[label];
+    if (this.moduleCache[moduleKey] !== undefined) {
+      const moduleData = this.moduleCache[moduleKey];
 
       const newHash = hash(options ?? null);
 
@@ -339,9 +301,30 @@ export class DeploymentBuilder implements IDeploymentBuilder {
           "`useModule` cannot be invoked on the same module using different parameters"
         );
       }
+
+      return this.moduleCache[moduleKey].result;
     }
 
-    return this.moduleCache[label].result;
+    const { result, virtualVertex } = this._useSubscope(module, options);
+
+    // type casting here so that typescript lets us validate against js users bypassing typeguards
+    for (const future of Object.values(result)) {
+      if (isCallable(future)) {
+        continue;
+      }
+
+      throw new IgnitionError(
+        `Cannot return Future of type "${future.type}" from a module`
+      );
+    }
+
+    const moduleResult = { ...result, module: virtualVertex };
+
+    const optionsHash = hash(options ?? null);
+
+    this.moduleCache[moduleKey] = { result: moduleResult, optionsHash };
+
+    return moduleResult;
   }
 
   private _createVirtualVertex(label: string): Virtual {
@@ -514,5 +497,40 @@ export class DeploymentBuilder implements IDeploymentBuilder {
     }
 
     return scopeValue;
+  }
+
+  private _useSubscope(
+    subgraphOrModule: Subgraph | Module,
+    options?: UseSubgraphOptions
+  ) {
+    const useModuleInvocationId = this.useSubgraphInvocationCounter++;
+    const label = `${subgraphOrModule.name}:${useModuleInvocationId}`;
+
+    this.scopes.push(label);
+    const scopeLabel = this.scopes.getScopedLabel();
+
+    if (options !== undefined && options.parameters !== undefined) {
+      this.graph.registeredParameters[scopeLabel] = options.parameters;
+    }
+
+    const result = this._invokeAction(subgraphOrModule);
+
+    const virtualVertex = this._createVirtualVertex(label);
+
+    this.scopes.pop();
+
+    return { result, virtualVertex };
+  }
+
+  private _invokeAction(subgraphOrModule: Subgraph | Module) {
+    if (isSubgraph(subgraphOrModule)) {
+      return subgraphOrModule.subgraphAction(this);
+    }
+
+    if (isModule(subgraphOrModule)) {
+      return subgraphOrModule.moduleAction(this);
+    }
+
+    throw new Error("Unknown module type");
   }
 }

@@ -1,8 +1,8 @@
 import type { IDeploymentBuilder } from "./deploymentGraph";
-import type { CallableFuture } from "./future";
+import type { CallableFuture, Virtual } from "./future";
 
 export interface ModuleDict {
-  [key: string]: CallableFuture;
+  [key: string]: CallableFuture | Virtual;
 }
 
 export interface Module {

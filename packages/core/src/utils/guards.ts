@@ -6,6 +6,7 @@ import type {
   CallDeploymentVertex,
   HardhatLibraryDeploymentVertex,
   ArtifactLibraryDeploymentVertex,
+  Subgraph,
 } from "types/deploymentGraph";
 import type {
   CallableFuture,
@@ -15,6 +16,7 @@ import type {
   RequiredParameter,
 } from "types/future";
 import { Artifact } from "types/hardhat";
+import { Module } from "types/module";
 
 export function isArtifact(artifact: any): artifact is Artifact {
   return (
@@ -90,4 +92,12 @@ export function isCallable(
   future: DeploymentGraphFuture
 ): future is CallableFuture {
   return future.type === "contract" || future.type === "library";
+}
+
+export function isSubgraph(subgraph: {}): subgraph is Subgraph {
+  return `subgraphAction` in subgraph;
+}
+
+export function isModule(mod: {}): mod is Module {
+  return `moduleAction` in mod;
 }
