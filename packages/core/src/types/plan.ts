@@ -1,7 +1,7 @@
+import { IDeploymentGraph } from "./deploymentGraph";
 import { IExecutionGraph } from "./executionGraph";
-import { IRecipeGraph } from "./recipeGraph";
 
 export interface IgnitionPlan {
-  recipeGraph: IRecipeGraph;
+  deploymentGraph: IDeploymentGraph;
   executionGraph: IExecutionGraph;
 }

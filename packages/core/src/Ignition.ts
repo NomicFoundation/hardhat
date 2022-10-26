@@ -3,8 +3,8 @@ import setupDebug from "debug";
 import { Deployment } from "deployment/Deployment";
 import { execute } from "execution/execute";
 import { InMemoryJournal } from "journal/InMemoryJournal";
-import { generateRecipeGraphFrom } from "process/generateRecipeGraphFrom";
-import { transformRecipeGraphToExecutionGraph } from "process/transformRecipeGraphToExecutionGraph";
+import { generateDeploymentGraphFrom } from "process/generateDeploymentGraphFrom";
+import { transformDeploymentGraphToExecutionGraph } from "process/transformDeploymentGraphToExecutionGraph";
 import { createServices } from "services/createServices";
 import { Services } from "services/types";
 import { DeploymentResult, UpdateUiAction } from "types/deployment";
@@ -16,7 +16,7 @@ import { Providers } from "types/providers";
 import { SerializedFutureResult } from "types/serialization";
 import { isDependable } from "utils/guards";
 import { serializeFutureOutput } from "utils/serialize";
-import { validateRecipeGraph } from "validation/validateRecipeGraph";
+import { validateDeploymentGraph } from "validation/validateDeploymentGraph";
 
 const log = setupDebug("ignition:main");
 
@@ -94,18 +94,24 @@ export class Ignition {
 
     const chainId = await this._getChainId();
 
-    const { graph: recipeGraph } = generateRecipeGraphFrom(deploymentModule, {
-      chainId,
-    });
+    const { graph: deploymentGraph } = generateDeploymentGraphFrom(
+      deploymentModule,
+      {
+        chainId,
+      }
+    );
 
-    const validationResult = await validateRecipeGraph(recipeGraph, services);
+    const validationResult = await validateDeploymentGraph(
+      deploymentGraph,
+      services
+    );
 
     if (validationResult._kind === "failure") {
       throw new Error(validationResult.failures[0]);
     }
 
-    const transformResult = await transformRecipeGraphToExecutionGraph(
-      recipeGraph,
+    const transformResult = await transformDeploymentGraphToExecutionGraph(
+      deploymentGraph,
       services
     );
 
@@ -115,7 +121,7 @@ export class Ignition {
 
     const { executionGraph } = transformResult;
 
-    return { recipeGraph, executionGraph };
+    return { deploymentGraph, executionGraph };
   }
 
   private async _constructExecutionGraphFrom(
@@ -123,14 +129,14 @@ export class Ignition {
     ignitionModule: Module
   ): Promise<{ result: any; recipeOutputs: FutureDict }> {
     log("Generate recipe graph from recipe");
-    const { graph: recipeGraph, recipeOutputs } = generateRecipeGraphFrom(
-      ignitionModule,
-      { chainId: deployment.state.details.chainId }
-    );
+    const { graph: deploymentGraph, recipeOutputs } =
+      generateDeploymentGraphFrom(ignitionModule, {
+        chainId: deployment.state.details.chainId,
+      });
 
     deployment.startValidation();
-    const validationResult = await validateRecipeGraph(
-      recipeGraph,
+    const validationResult = await validateDeploymentGraph(
+      deploymentGraph,
       deployment.services
     );
 
@@ -141,8 +147,8 @@ export class Ignition {
     }
 
     log("Transform recipe graph to execution graph");
-    const transformResult = await transformRecipeGraphToExecutionGraph(
-      recipeGraph,
+    const transformResult = await transformDeploymentGraphToExecutionGraph(
+      deploymentGraph,
       deployment.services
     );
 

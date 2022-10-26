@@ -1,34 +1,34 @@
 import { Services } from "services/types";
 import {
+  ArtifactContractDeploymentVertex,
+  ArtifactLibraryDeploymentVertex,
+  CallDeploymentVertex,
+  DeployedContractDeploymentVertex,
+  HardhatContractDeploymentVertex,
+  HardhatLibraryDeploymentVertex,
+  IDeploymentGraph,
+  DeploymentGraphVertex,
+} from "types/deploymentGraph";
+import {
   ContractCall,
   ContractDeploy,
   DeployedContract,
   ExecutionVertex,
   LibraryDeploy,
 } from "types/executionGraph";
-import { RecipeFuture } from "types/future";
+import { DeploymentGraphFuture } from "types/future";
 import { Artifact } from "types/hardhat";
-import {
-  ArtifactContractRecipeVertex,
-  ArtifactLibraryRecipeVertex,
-  CallRecipeVertex,
-  DeployedContractRecipeVertex,
-  HardhatContractRecipeVertex,
-  HardhatLibraryRecipeVertex,
-  IRecipeGraph,
-  RecipeVertex,
-} from "types/recipeGraph";
 import { isFuture } from "utils/guards";
 
 interface TransformContext {
   services: Services;
-  graph: IRecipeGraph;
+  graph: IDeploymentGraph;
 }
 
-export function convertRecipeVertexToExecutionVertex(
+export function convertDeploymentVertexToExecutionVertex(
   context: TransformContext
-): (recipeVertex: RecipeVertex) => Promise<ExecutionVertex> {
-  return (recipeVertex: RecipeVertex): Promise<ExecutionVertex> => {
+): (recipeVertex: DeploymentGraphVertex) => Promise<ExecutionVertex> {
+  return (recipeVertex: DeploymentGraphVertex): Promise<ExecutionVertex> => {
     switch (recipeVertex.type) {
       case "HardhatContract":
         return convertHardhatContractToContractDeploy(recipeVertex, context);
@@ -53,7 +53,7 @@ export function convertRecipeVertexToExecutionVertex(
 }
 
 async function convertHardhatContractToContractDeploy(
-  vertex: HardhatContractRecipeVertex,
+  vertex: HardhatContractDeploymentVertex,
   transformContext: TransformContext
 ): Promise<ContractDeploy> {
   const artifact: Artifact =
@@ -70,7 +70,7 @@ async function convertHardhatContractToContractDeploy(
 }
 
 async function convertArtifactContractToContractDeploy(
-  vertex: ArtifactContractRecipeVertex,
+  vertex: ArtifactContractDeploymentVertex,
   transformContext: TransformContext
 ): Promise<ContractDeploy> {
   return {
@@ -84,7 +84,7 @@ async function convertArtifactContractToContractDeploy(
 }
 
 async function convertDeployedContractToDeployedDeploy(
-  vertex: DeployedContractRecipeVertex,
+  vertex: DeployedContractDeploymentVertex,
   _transformContext: TransformContext
 ): Promise<DeployedContract> {
   return {
@@ -97,7 +97,7 @@ async function convertDeployedContractToDeployedDeploy(
 }
 
 async function convertCallToContractCall(
-  vertex: CallRecipeVertex,
+  vertex: CallDeploymentVertex,
   transformContext: TransformContext
 ): Promise<ContractCall> {
   return {
@@ -112,7 +112,7 @@ async function convertCallToContractCall(
 }
 
 async function convertHardhatLibraryToLibraryDeploy(
-  vertex: HardhatLibraryRecipeVertex,
+  vertex: HardhatLibraryDeploymentVertex,
   transformContext: TransformContext
 ): Promise<LibraryDeploy> {
   const artifact: Artifact =
@@ -128,7 +128,7 @@ async function convertHardhatLibraryToLibraryDeploy(
 }
 
 async function convertArtifactLibraryToLibraryDeploy(
-  vertex: ArtifactLibraryRecipeVertex,
+  vertex: ArtifactLibraryDeploymentVertex,
   transformContext: TransformContext
 ): Promise<LibraryDeploy> {
   return {
@@ -151,9 +151,9 @@ function assertRecipeVertexNotExpected(
 }
 
 async function convertArgs(
-  args: Array<boolean | string | number | RecipeFuture>,
+  args: Array<boolean | string | number | DeploymentGraphFuture>,
   transformContext: TransformContext
-): Promise<Array<boolean | string | number | RecipeFuture>> {
+): Promise<Array<boolean | string | number | DeploymentGraphFuture>> {
   const resolvedArgs = [];
 
   for (const arg of args) {
@@ -166,7 +166,7 @@ async function convertArgs(
 }
 
 async function resolveParameter(
-  arg: boolean | string | number | RecipeFuture,
+  arg: boolean | string | number | DeploymentGraphFuture,
   { services, graph }: TransformContext
 ) {
   if (!isFuture(arg)) {

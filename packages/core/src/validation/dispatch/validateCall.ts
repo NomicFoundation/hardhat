@@ -1,12 +1,12 @@
 import { ethers } from "ethers";
 
 import { Services } from "services/types";
+import { CallDeploymentVertex } from "types/deploymentGraph";
 import { CallableFuture } from "types/future";
 import { ResultsAccumulator, VertexVisitResult } from "types/graph";
-import { CallRecipeVertex } from "types/recipeGraph";
 
 export async function validateCall(
-  vertex: CallRecipeVertex,
+  vertex: CallDeploymentVertex,
   _resultAccumulator: ResultsAccumulator,
   context: { services: Services }
 ): Promise<VertexVisitResult> {

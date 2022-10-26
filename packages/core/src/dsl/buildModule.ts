@@ -1,9 +1,9 @@
+import type { IDeploymentBuilder } from "types/deploymentGraph";
 import type { Module, ModuleDict } from "types/module";
-import type { IRecipeGraphBuilder } from "types/recipeGraph";
 
 export function buildModule(
   moduleName: string,
-  moduleFunc: (m: IRecipeGraphBuilder) => ModuleDict
+  moduleFunc: (m: IDeploymentBuilder) => ModuleDict
 ): Module {
   return {
     name: moduleName,

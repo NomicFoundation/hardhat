@@ -59,8 +59,8 @@ export class Renderer {
     // summary
     const networkName = this.config.network.name;
     const networkId = this.config.network.id as string;
-    const txTotal = utils.getTxTotal(this.plan.recipeGraph);
-    const summaryLists = utils.getSummaryLists(this.plan.recipeGraph);
+    const txTotal = utils.getTxTotal(this.plan.deploymentGraph);
+    const summaryLists = utils.getSummaryLists(this.plan.deploymentGraph);
     const summary = this._templates.summary.replace(
       regex,
       utils.replacer({ networkName, networkId, txTotal, summaryLists })
@@ -68,9 +68,9 @@ export class Renderer {
 
     // plan
     const mermaid = utils.wrapInMermaidDiv(
-      utils.graphToMermaid(this.plan.recipeGraph)
+      utils.graphToMermaid(this.plan.deploymentGraph)
     );
-    const actions = utils.getActions(this.plan.recipeGraph);
+    const actions = utils.getActions(this.plan.deploymentGraph);
     const plan = this._templates.plan.replace(
       regex,
       utils.replacer({ mermaid, actions })
@@ -84,7 +84,7 @@ export class Renderer {
 
     this._writeMainHTML(mainOutput);
 
-    for (const vertex of this.plan.recipeGraph.vertexes.values()) {
+    for (const vertex of this.plan.deploymentGraph.vertexes.values()) {
       const type = vertex.type === "HardhatContract" ? "Deploy" : "Call";
       const label = vertex.label;
 

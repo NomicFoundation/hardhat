@@ -1,11 +1,11 @@
 import { isAddress } from "@ethersproject/address";
 
 import { Services } from "services/types";
+import { DeployedContractDeploymentVertex } from "types/deploymentGraph";
 import { ResultsAccumulator, VertexVisitResult } from "types/graph";
-import { DeployedContractRecipeVertex } from "types/recipeGraph";
 
 export async function validateDeployedContract(
-  vertex: DeployedContractRecipeVertex,
+  vertex: DeployedContractDeploymentVertex,
   _resultAccumulator: ResultsAccumulator,
   _context: { services: Services }
 ): Promise<VertexVisitResult> {

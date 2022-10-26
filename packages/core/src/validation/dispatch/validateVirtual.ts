@@ -1,9 +1,9 @@
 import { Services } from "services/types";
+import { DeploymentGraphVertex } from "types/deploymentGraph";
 import { ResultsAccumulator, VertexVisitResult } from "types/graph";
-import { RecipeVertex } from "types/recipeGraph";
 
 export async function validateVirtual(
-  _recipeVertex: RecipeVertex,
+  _recipeVertex: DeploymentGraphVertex,
   _resultAccumulator: ResultsAccumulator,
   _context: { services: Services }
 ): Promise<VertexVisitResult> {

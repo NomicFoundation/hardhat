@@ -1,6 +1,6 @@
 import { Services } from "services/types";
+import { DeploymentGraphVertex } from "types/deploymentGraph";
 import { ResultsAccumulator, VertexVisitResult } from "types/graph";
-import { RecipeVertex } from "types/recipeGraph";
 
 import { validateArtifactContract } from "./validateArtifactContract";
 import { validateArtifactLibrary } from "./validateArtifactLibrary";
@@ -11,7 +11,7 @@ import { validateHardhatLibrary } from "./validateHardhatLibrary";
 import { validateVirtual } from "./validateVirtual";
 
 export function validationDispatch(
-  recipeVertex: RecipeVertex,
+  recipeVertex: DeploymentGraphVertex,
   resultAccumulator: ResultsAccumulator,
   context: { services: Services }
 ): Promise<VertexVisitResult> {

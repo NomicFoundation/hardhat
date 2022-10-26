@@ -2,7 +2,7 @@
 import {
   buildModule,
   buildSubgraph,
-  IRecipeGraphBuilder,
+  IDeploymentGraphBuilder,
 } from "@ignored/ignition-core";
 import { isCallable } from "@ignored/ignition-core/src/utils/guards";
 import { assert } from "chai";
@@ -19,26 +19,29 @@ describe("useModule", function () {
 
       const thirdPartyModule = buildModule(
         "ThirdPartyRecipe",
-        (m: IRecipeGraphBuilder) => {
+        (m: IDeploymentGraphBuilder) => {
           const foo = m.contract("Foo");
 
           return { foo };
         }
       );
 
-      const userModule = buildModule("UserModule", (m: IRecipeGraphBuilder) => {
-        const { foo } = m.useModule(thirdPartyModule);
+      const userModule = buildModule(
+        "UserModule",
+        (m: IDeploymentGraphBuilder) => {
+          const { foo } = m.useModule(thirdPartyModule);
 
-        m.call(foo, "inc", {
-          args: [],
-        });
+          m.call(foo, "inc", {
+            args: [],
+          });
 
-        if (!isCallable(foo)) {
-          throw new Error("Not callable");
+          if (!isCallable(foo)) {
+            throw new Error("Not callable");
+          }
+
+          return { foo };
         }
-
-        return { foo };
-      });
+      );
 
       const deployPromise = this.hre.ignition.deploy(userModule, {
         parameters: {},
@@ -71,17 +74,20 @@ describe("useModule", function () {
         return { foo };
       });
 
-      const userModule = buildModule("UserModule", (m: IRecipeGraphBuilder) => {
-        const foo = m.contract("Foo");
+      const userModule = buildModule(
+        "UserModule",
+        (m: IDeploymentGraphBuilder) => {
+          const foo = m.contract("Foo");
 
-        m.useSubgraph(thirdPartySubgraph, {
-          parameters: {
-            Foo: foo,
-          },
-        });
+          m.useSubgraph(thirdPartySubgraph, {
+            parameters: {
+              Foo: foo,
+            },
+          });
 
-        return { foo };
-      });
+          return { foo };
+        }
+      );
 
       const deployPromise = this.hre.ignition.deploy(userModule, {
         parameters: {},
@@ -106,7 +112,7 @@ describe("useModule", function () {
 
       const addSecondAndThirdEntrySubgraph = buildSubgraph(
         "ThirdPartySubgraph",
-        (m: IRecipeGraphBuilder) => {
+        (m: IDeploymentGraphBuilder) => {
           const trace = m.getParam("Trace");
 
           const secondCall = m.call(trace, "addEntry", {
@@ -122,24 +128,27 @@ describe("useModule", function () {
         }
       );
 
-      const userModule = buildModule("UserModule", (m: IRecipeGraphBuilder) => {
-        const trace = m.contract("Trace", {
-          args: ["first"],
-        });
+      const userModule = buildModule(
+        "UserModule",
+        (m: IDeploymentGraphBuilder) => {
+          const trace = m.contract("Trace", {
+            args: ["first"],
+          });
 
-        const { thirdCall } = m.useSubgraph(addSecondAndThirdEntrySubgraph, {
-          parameters: {
-            Trace: trace,
-          },
-        });
+          const { thirdCall } = m.useSubgraph(addSecondAndThirdEntrySubgraph, {
+            parameters: {
+              Trace: trace,
+            },
+          });
 
-        m.call(trace, "addEntry", {
-          args: ["fourth"],
-          after: [thirdCall],
-        });
+          m.call(trace, "addEntry", {
+            args: ["fourth"],
+            after: [thirdCall],
+          });
 
-        return { trace };
-      });
+          return { trace };
+        }
+      );
 
       const deployPromise = this.hre.ignition.deploy(userModule, {
         parameters: {},
@@ -168,7 +177,7 @@ describe("useModule", function () {
 
       const addSecondAndThirdEntryRecipe = buildSubgraph(
         "ThirdPartySubgraph",
-        (m: IRecipeGraphBuilder) => {
+        (m: IDeploymentGraphBuilder) => {
           const trace = m.getParam("Trace");
 
           const secondCall = m.call(trace, "addEntry", {
@@ -184,24 +193,27 @@ describe("useModule", function () {
         }
       );
 
-      const userModule = buildModule("UserModule", (m: IRecipeGraphBuilder) => {
-        const trace = m.contract("Trace", {
-          args: ["first"],
-        });
+      const userModule = buildModule(
+        "UserModule",
+        (m: IDeploymentGraphBuilder) => {
+          const trace = m.contract("Trace", {
+            args: ["first"],
+          });
 
-        const { recipe } = m.useSubgraph(addSecondAndThirdEntryRecipe, {
-          parameters: {
-            Trace: trace,
-          },
-        });
+          const { recipe } = m.useSubgraph(addSecondAndThirdEntryRecipe, {
+            parameters: {
+              Trace: trace,
+            },
+          });
 
-        m.call(trace, "addEntry", {
-          args: ["fourth"],
-          after: [recipe],
-        });
+          m.call(trace, "addEntry", {
+            args: ["fourth"],
+            after: [recipe],
+          });
 
-        return { trace };
-      });
+          return { trace };
+        }
+      );
 
       const deployPromise = this.hre.ignition.deploy(userModule, {
         parameters: {},

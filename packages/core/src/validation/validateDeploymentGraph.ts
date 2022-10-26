@@ -1,21 +1,21 @@
 import { getSortedVertexIdsFrom } from "graph/utils";
 import { visit } from "graph/visit";
 import { Services } from "services/types";
+import { IDeploymentGraph } from "types/deploymentGraph";
 import { VertexVisitResult, VisitResult } from "types/graph";
-import { IRecipeGraph } from "types/recipeGraph";
 
 import { validationDispatch } from "./dispatch/validationDispatch";
 
-export function validateRecipeGraph(
-  recipeGraph: IRecipeGraph,
+export function validateDeploymentGraph(
+  deploymentGraph: IDeploymentGraph,
   services: Services
 ): Promise<VisitResult> {
-  const orderedVertexIds = getSortedVertexIdsFrom(recipeGraph);
+  const orderedVertexIds = getSortedVertexIdsFrom(deploymentGraph);
 
   return visit(
     "Validation",
     orderedVertexIds,
-    recipeGraph,
+    deploymentGraph,
     { services },
     new Map<number, VertexVisitResult | null>(),
     validationDispatch

@@ -1,10 +1,10 @@
 import {
-  Recipe,
   SerializedFutureResult,
   SerializedDeploymentResult,
   DeploymentResult,
-  IRecipeGraphBuilder,
+  Module,
   buildModule,
+  IDeploymentBuilder,
 } from "@ignored/ignition-core";
 import { ModuleDict } from "@ignored/ignition-core/src/types/module";
 import { assert } from "chai";
@@ -112,7 +112,7 @@ async function assertTxMined(hre: any, hash: string) {
  */
 export async function deployModules(
   hre: any,
-  userRecipes: Recipe[],
+  userRecipes: Module[],
   expectedBlocks: number[]
 ): Promise<SerializedDeploymentResult> {
   await hre.run("compile", { quiet: true });
@@ -199,7 +199,7 @@ async function assertContract(hre: any, futureResult: SerializedFutureResult) {
 
 export async function deployModule(
   hre: any,
-  recipeDefinition: (m: IRecipeGraphBuilder) => ModuleDict,
+  recipeDefinition: (m: IDeploymentBuilder) => ModuleDict,
   options?: { parameters: {} }
 ): Promise<any> {
   await hre.run("compile", { quiet: true });
