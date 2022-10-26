@@ -121,6 +121,13 @@ export const chainConfig: ChainConfig = {
       browserURL: "https://arbiscan.io/",
     },
   },
+  arbitrumGoerli: {
+    chainId: 421613,
+    urls: {
+      apiURL: "https://api-goerli.arbiscan.io/api",
+      browserURL: "https://goerli.arbiscan.io/",
+    },
+  },
   arbitrumTestnet: {
     chainId: 421611,
     urls: {
