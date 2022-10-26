@@ -44,7 +44,7 @@ export class DeploymentBuilder implements IDeploymentBuilder {
   public graph: IDeploymentGraph = new DeploymentGraph();
   private idCounter: number = 0;
   private moduleCache: ModuleCache = {};
-  private useModuleInvocationCounter: number = 0;
+  private useSubgraphInvocationCounter: number = 0;
   private scopes: ScopeStack = new ScopeStack();
 
   constructor(options: DeploymentBuilderOptions) {
@@ -281,8 +281,8 @@ export class DeploymentBuilder implements IDeploymentBuilder {
     subgraph: Subgraph,
     options?: UseSubgraphOptions
   ): FutureDict {
-    const useModuleInvocationId = this.useModuleInvocationCounter++;
-    const label = `${subgraph.name}:${useModuleInvocationId}`;
+    const useSubgraphInvocationId = this.useSubgraphInvocationCounter++;
+    const label = `${subgraph.name}:${useSubgraphInvocationId}`;
 
     this.scopes.push(label);
     const scopeLabel = this.scopes.getScopedLabel();
