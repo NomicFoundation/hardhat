@@ -14,8 +14,12 @@ use tokio::{
 
 use crate::{DatabaseDebug, State};
 
-use super::{DatabaseMutRequest, DatabaseRequest, DebugRequest, Request, Rethnet};
+use super::{
+    request::{DatabaseMutRequest, DatabaseRequest, DebugRequest, Request},
+    Rethnet,
+};
 
+/// The asynchronous client that communicates with a [`Rethnet`] object.
 pub struct Client {
     request_sender: UnboundedSender<Request>,
     rethnet_handle: Option<JoinHandle<anyhow::Result<()>>>,
@@ -23,6 +27,7 @@ pub struct Client {
 }
 
 impl Client {
+    /// Creates a [`Client`] by spawning an asynchronous task to run [`Rethnet`].
     fn new<F>(request_sender: UnboundedSender<Request>, future: F) -> anyhow::Result<Self>
     where
         F: Future<Output = anyhow::Result<()>> + Send + 'static,
@@ -36,6 +41,7 @@ impl Client {
             runtime,
         })
     }
+
     /// Constructs [`Rethnet`] with the provided database and runs it asynchronously.
     pub fn with_db<D>(cfg: CfgEnv, db: D) -> anyhow::Result<Self>
     where

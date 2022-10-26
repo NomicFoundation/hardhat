@@ -3,6 +3,7 @@ use revm::{AccountInfo, Bytecode};
 
 /// A trait for debug operation on a database.
 pub trait DatabaseDebug {
+    /// The database's error type.
     type Error;
 
     /// Inserts an account with the specified `address`.
@@ -42,6 +43,7 @@ pub trait DatabaseDebug {
     fn revert(&mut self) -> Result<(), Self::Error>;
 }
 
+/// A trait for objects that support [`DatabaseDebug`].
 pub trait HasDatabaseDebug {
     /// The database's error type.
     type Error;

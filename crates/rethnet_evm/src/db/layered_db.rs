@@ -6,41 +6,52 @@ use revm::{Account, AccountInfo, Bytecode, Database, DatabaseCommit, KECCAK_EMPT
 
 use crate::DatabaseDebug;
 
+/// A database consisting of layers.
 pub struct LayeredDatabase<Layer> {
     stack: Vec<Layer>,
 }
 
 impl<Layer> LayeredDatabase<Layer> {
+    /// Creates a [`LayeredDatabase`] with the provided layer at the bottom.
     pub fn with_layer(layer: Layer) -> Self {
         Self { stack: vec![layer] }
     }
 
+    /// Returns the index of the top layer.
     pub fn last_layer_id(&self) -> usize {
         self.stack.len() - 1
     }
 
+    /// Returns a mutable reference to the top layer.
     pub fn last_layer_mut(&mut self) -> &mut Layer {
         // The `LayeredDatabase` always has at least one layer
         self.stack.last_mut().unwrap()
     }
 
+    /// Adds the provided layer to the top, returning its index and a
+    /// mutable reference to the layer.
     pub fn add_layer(&mut self, layer: Layer) -> (usize, &mut Layer) {
         let layer_id = self.stack.len();
         self.stack.push(layer);
         (layer_id, self.stack.last_mut().unwrap())
     }
 
+    /// Reverts to the layer with specified `layer_id`, removing all
+    /// layers above it.
     pub fn revert_to_layer(&mut self, layer_id: usize) {
         assert!(layer_id < self.stack.len(), "Invalid layer id.");
         self.stack.truncate(layer_id + 1);
     }
 
+    /// Returns an iterator over the object's layers.
     pub fn iter(&self) -> impl Iterator<Item = &Layer> {
         self.stack.iter().rev()
     }
 }
 
 impl<Layer: Default> LayeredDatabase<Layer> {
+    /// Adds a default layer to the top, returning its index and a
+    /// mutable reference to the layer.
     pub fn add_layer_default(&mut self) -> (usize, &mut Layer) {
         self.add_layer(Layer::default())
     }
@@ -54,6 +65,7 @@ impl<Layer: Default> Default for LayeredDatabase<Layer> {
     }
 }
 
+/// A layer with information needed for [`Rethnet`].
 #[derive(Debug, Default)]
 pub struct RethnetLayer {
     /// Address -> AccountInfo
