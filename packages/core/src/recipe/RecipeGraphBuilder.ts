@@ -1,3 +1,5 @@
+import hash from "object-hash";
+
 import { addEdge, ensureVertex } from "graph/adjacencyList";
 import type {
   RecipeFuture,
@@ -15,6 +17,7 @@ import type {
   Virtual,
 } from "types/future";
 import type { Artifact } from "types/hardhat";
+import type { Module, ModuleCache, ModuleDict } from "types/module";
 import {
   ContractOptions,
   InternalParamValue,
@@ -25,6 +28,7 @@ import {
   RecipeVertex,
   UseRecipeOptions,
 } from "types/recipeGraph";
+import { IgnitionError } from "utils/errors";
 import {
   isArtifact,
   isCallable,
@@ -37,18 +41,14 @@ import { ScopeStack } from "./ScopeStack";
 
 export class RecipeGraphBuilder implements IRecipeGraphBuilder {
   public chainId: number;
-  public graph: IRecipeGraph;
-  private idCounter: number;
-  private useRecipeInvocationCounter: number;
-  private scopes: ScopeStack;
+  public graph: IRecipeGraph = new RecipeGraph();
+  private idCounter: number = 0;
+  private moduleCache: ModuleCache = {};
+  private useRecipeInvocationCounter: number = 0;
+  private scopes: ScopeStack = new ScopeStack();
 
   constructor(options: RecipeGraphBuilderOptions) {
     this.chainId = options.chainId;
-    this.idCounter = 0;
-    this.useRecipeInvocationCounter = 0;
-    this.graph = new RecipeGraph();
-
-    this.scopes = new ScopeStack();
   }
 
   public library(
@@ -295,6 +295,50 @@ export class RecipeGraphBuilder implements IRecipeGraphBuilder {
     this.scopes.pop();
 
     return { ...result, recipe: virtualVertex };
+  }
+
+  public useModule(module: Module, options?: UseRecipeOptions): ModuleDict {
+    const label = `module:${module.name}`;
+
+    if (this.moduleCache[label] === undefined) {
+      this.scopes.push(label);
+      const scopeLabel = this.scopes.getScopedLabel();
+
+      if (options?.parameters !== undefined) {
+        this.graph.registeredParameters[scopeLabel] = options.parameters;
+      }
+
+      const result = module.moduleAction(this);
+
+      // type casting here so that typescript lets us validate against js users bypassing typeguards
+      for (const future of Object.values(result as FutureDict)) {
+        if (!isCallable(future)) {
+          throw new IgnitionError(
+            `Cannot return Future of type "${future.type}" from a module`
+          );
+        }
+      }
+
+      this._createRecipeVirtualVertex(label);
+
+      this.scopes.pop();
+
+      const optionsHash = hash(options ?? null);
+
+      this.moduleCache[label] = { result, optionsHash };
+    } else {
+      const moduleData = this.moduleCache[label];
+
+      const newHash = hash(options ?? null);
+
+      if (moduleData.optionsHash !== newHash) {
+        throw new IgnitionError(
+          "`useModule` cannot be invoked on the same module using different parameters"
+        );
+      }
+    }
+
+    return this.moduleCache[label].result;
   }
 
   private _createRecipeVirtualVertex(label: string): Virtual {

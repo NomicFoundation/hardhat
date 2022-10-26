@@ -132,3 +132,6 @@ dist
 
 # Mac OSX garbage
 .DS_Store
+
+# Custom workspace settings for VSCode
+.vscode/settings.json

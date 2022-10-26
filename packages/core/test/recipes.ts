@@ -4,6 +4,7 @@ import { assert } from "chai";
 import { getDependenciesFor } from "graph/adjacencyList";
 import { generateRecipeGraphFrom } from "process/generateRecipeGraphFrom";
 import { RecipeGraph } from "recipe/RecipeGraph";
+import { buildModule } from "recipe/buildModule";
 import { buildRecipe } from "recipe/buildRecipe";
 import { VertexDescriptor } from "types/graph";
 import { Artifact } from "types/hardhat";
@@ -285,8 +286,8 @@ describe("Recipes", function () {
       const deps = getDependenciesForVertex(recipeGraph, depNode);
 
       assert.deepStrictEqual(deps, [
-        { id: 0, label: "A" },
-        { id: 1, label: "Someother" },
+        { id: 0, label: "A", type: "" },
+        { id: 1, label: "Someother", type: "" },
       ]);
     });
 
@@ -406,9 +407,10 @@ describe("Recipes", function () {
         {
           id: 0,
           label: "Token",
+          type: "",
         },
-        { id: 1, label: "Exchange" },
-        { id: 2, label: "Another" },
+        { id: 1, label: "Exchange", type: "" },
+        { id: 2, label: "Another", type: "" },
       ]);
     });
 
@@ -514,7 +516,7 @@ describe("Recipes", function () {
 
       const deps = getDependenciesForVertex(recipeGraph, depNode);
 
-      assert.deepStrictEqual(deps, [{ id: 0, label: "Someother" }]);
+      assert.deepStrictEqual(deps, [{ id: 0, label: "Someother", type: "" }]);
     });
   });
 
@@ -577,6 +579,7 @@ describe("Recipes", function () {
         {
           id: 0,
           label: "Someother",
+          type: "",
         },
       ]);
     });
@@ -666,7 +669,7 @@ describe("Recipes", function () {
 
       const deps = getDependenciesForVertex(recipeGraph, depNode);
 
-      assert.deepStrictEqual(deps, [{ id: 0, label: "Someother" }]);
+      assert.deepStrictEqual(deps, [{ id: 0, label: "Someother", type: "" }]);
     });
 
     it("should show one dependency on library node SafeMath for Contract", () => {
@@ -678,7 +681,7 @@ describe("Recipes", function () {
 
       const deps = getDependenciesForVertex(recipeGraph, depNode);
 
-      assert.deepStrictEqual(deps, [{ id: 1, label: "SafeMath" }]);
+      assert.deepStrictEqual(deps, [{ id: 1, label: "SafeMath", type: "" }]);
     });
 
     it("should record the argument list for the library node SafeMath as [42]", () => {
@@ -752,6 +755,116 @@ describe("Recipes", function () {
       assert.equal(recipeGraph.vertexes.size, 2);
     });
   });
+
+  describe("useModule", () => {
+    let recipeGraph: IRecipeGraph;
+    let returnsWrongFutureType: () => void;
+    let differentParams: () => void;
+
+    before(() => {
+      const librariesRecipe = buildModule(
+        "libraries",
+        (m: IRecipeGraphBuilder) => {
+          const symbol = m.getOptionalParam("tokenSymbol", "TKN");
+          const name = m.getParam("tokenName");
+          const token = m.contract("Token", {
+            args: [symbol, name, 1_000_000],
+          });
+
+          return { token };
+        }
+      );
+
+      const WrapRecipe = buildRecipe("Wrap", (m: IRecipeGraphBuilder) => {
+        const { token } = m.useModule(librariesRecipe, {
+          parameters: { tokenSymbol: "EXAMPLE", tokenName: "Example" },
+        });
+
+        const { token: token2 } = m.useModule(librariesRecipe, {
+          parameters: { tokenSymbol: "EXAMPLE", tokenName: "Example" },
+        });
+
+        return { token, token2 };
+      });
+
+      const { graph } = generateRecipeGraphFrom(WrapRecipe, {
+        chainId: 31,
+      });
+
+      recipeGraph = graph;
+
+      const DiffParamsRecipe = buildRecipe(
+        "Error",
+        (m: IRecipeGraphBuilder) => {
+          const { token } = m.useModule(librariesRecipe, {
+            parameters: { tokenSymbol: "EXAMPLE", tokenName: "Example" },
+          });
+
+          const { token: token2 } = m.useModule(librariesRecipe, {
+            parameters: { tokenSymbol: "DIFFERENT", tokenName: "Example" },
+          });
+
+          return { token, token2 };
+        }
+      );
+
+      const returnTypeModule = buildModule(
+        "returnsParam",
+        // @ts-ignore
+        // ignoring here to specifically test for js ability to bypass type guards
+        (m: IRecipeGraphBuilder) => {
+          const symbol = m.getOptionalParam("tokenSymbol", "TKN");
+          const name = m.getParam("tokenName");
+          const token = m.contract("Token", {
+            args: [symbol, name, 1_000_000],
+          });
+
+          return { token, name };
+        }
+      );
+
+      const ReturnTypeRecipe = buildRecipe(
+        "ReturnsParamRecipe",
+        (m: IRecipeGraphBuilder) => {
+          const { token } = m.useModule(returnTypeModule, {
+            parameters: { tokenSymbol: "EXAMPLE", tokenName: "Example" },
+          });
+
+          return { token };
+        }
+      );
+
+      returnsWrongFutureType = () => {
+        generateRecipeGraphFrom(ReturnTypeRecipe, { chainId: 31 });
+      };
+
+      differentParams = () => {
+        generateRecipeGraphFrom(DiffParamsRecipe, { chainId: 31 });
+      };
+    });
+
+    it("should create a graph", () => {
+      assert.isDefined(recipeGraph);
+    });
+
+    it("should have one node", () => {
+      assert.equal(recipeGraph.vertexes.size, 2);
+    });
+
+    it("should not allow using the same module with different parameters", () => {
+      assert.throws(
+        differentParams,
+        /`useModule` cannot be invoked on the same module using different parameters/
+      );
+    });
+
+    it("should not allow an uncallable future to be returned from a module", () => {
+      assert.throws(
+        returnsWrongFutureType,
+        /Cannot return Future of type "parameter" from a module/
+      );
+    });
+  });
 });
 
 function getRecipeVertexByLabel(
@@ -772,5 +885,5 @@ function getDependenciesForVertex(
   return depIds
     .map((depId) => recipeGraph.vertexes.get(depId))
     .filter((nodeDesc): nodeDesc is RecipeVertex => nodeDesc !== undefined)
-    .map((vertex) => ({ id: vertex.id, label: vertex.label }));
+    .map((vertex) => ({ id: vertex.id, label: vertex.label, type: "" }));
 }

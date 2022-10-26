@@ -14,6 +14,7 @@ import {
 } from "./future";
 import { AdjacencyList, VertexDescriptor } from "./graph";
 import { Artifact } from "./hardhat";
+import { Module, ModuleDict } from "./module";
 
 export interface IRecipeGraph {
   vertexes: Map<number, RecipeVertex>;
@@ -152,6 +153,7 @@ export interface IRecipeGraphBuilder {
   ) => OptionalParameter;
 
   useRecipe: (recipe: Recipe, options?: UseRecipeOptions) => FutureDict;
+  useModule: (module: Module, options?: UseRecipeOptions) => ModuleDict;
 }
 
 export interface Recipe {

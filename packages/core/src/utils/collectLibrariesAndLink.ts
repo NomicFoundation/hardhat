@@ -1,7 +1,6 @@
 // eslint-disable-next-line import/no-extraneous-dependencies
-import { NomicLabsHardhatPluginError } from "hardhat/plugins";
-
 import { Artifact } from "types/hardhat";
+import { IgnitionError } from "utils/errors";
 
 interface Link {
   sourceName: string;
@@ -12,8 +11,6 @@ interface Link {
 export interface Libraries {
   [libraryName: string]: string;
 }
-
-const pluginName = "ignition";
 
 export async function collectLibrariesAndLink(
   artifact: Artifact,
@@ -38,8 +35,7 @@ export async function collectLibrariesAndLink(
     libraries
   )) {
     if (!utils.isAddress(linkedLibraryAddress)) {
-      throw new NomicLabsHardhatPluginError(
-        pluginName,
+      throw new IgnitionError(
         `You tried to link the contract ${artifact.contractName} with the library ${linkedLibraryName}, but provided this invalid address: ${linkedLibraryAddress}`
       );
     }
@@ -63,8 +59,7 @@ ${libraryFQNames}`;
       } else {
         detailedMessage = "This contract doesn't need linking any libraries.";
       }
-      throw new NomicLabsHardhatPluginError(
-        pluginName,
+      throw new IgnitionError(
         `You tried to link the contract ${artifact.contractName} with ${linkedLibraryName}, which is not one of its libraries.
 ${detailedMessage}`
       );
@@ -75,8 +70,7 @@ ${detailedMessage}`
         .map(({ sourceName, libName }) => `${sourceName}:${libName}`)
         .map((x) => `* ${x}`)
         .join("\n");
-      throw new NomicLabsHardhatPluginError(
-        pluginName,
+      throw new IgnitionError(
         `The library name ${linkedLibraryName} is ambiguous for the contract ${artifact.contractName}.
 It may resolve to one of the following libraries:
 ${matchingNeededLibrariesFQNs}
@@ -92,8 +86,7 @@ To fix this, choose one of these fully qualified library names and replace where
     // for it to be given twice in the libraries user input:
     // once as a library name and another as a fully qualified library name.
     if (linksToApply.has(neededLibraryFQN)) {
-      throw new NomicLabsHardhatPluginError(
-        pluginName,
+      throw new IgnitionError(
         `The library names ${neededLibrary.libName} and ${neededLibraryFQN} refer to the same library and were given as two separate library links.
 Remove one of them and review your library links before proceeding.`
       );
@@ -113,8 +106,7 @@ Remove one of them and review your library links before proceeding.`
       .map((x) => `* ${x}`)
       .join("\n");
 
-    throw new NomicLabsHardhatPluginError(
-      pluginName,
+    throw new IgnitionError(
       `The contract ${artifact.contractName} is missing links for the following libraries:
 ${missingLibraries}
 Learn more about linking contracts at https://hardhat.org/plugins/nomiclabs-hardhat-ethers.html#library-linking
