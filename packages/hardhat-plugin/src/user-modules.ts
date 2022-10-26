@@ -12,9 +12,9 @@ export function loadAllUserModules(userModulesDirectory: string): Module[] {
     throw new Error(`Directory ${userModulesDirectory} not found.`);
   }
 
-  const resolvedUserRecipesPaths = getAllUserModulesPaths(userModulesDirectory);
+  const resolvedUserModulesPaths = getAllUserModulesPaths(userModulesDirectory);
 
-  return getUserModulesFromPaths(resolvedUserRecipesPaths);
+  return getUserModulesFromPaths(resolvedUserModulesPaths);
 }
 
 export function loadUserModules(
@@ -38,7 +38,7 @@ export function loadUserModules(
 export function getUserModulesFromPaths(
   resolvedUserModulesPaths: string[]
 ): Module[] {
-  debug(`Loading '${resolvedUserModulesPaths.length}' recipe files`);
+  debug(`Loading '${resolvedUserModulesPaths.length}' module files`);
 
   const userModules: any[] = [];
   for (const pathToFile of resolvedUserModulesPaths) {
