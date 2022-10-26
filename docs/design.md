@@ -32,7 +32,7 @@ The `ExecutionGraph` is passed to the execution engine which submits the transac
 The user describes the dependency graph as a `Recipe`, a utility function that takes a graph builder as its first argument. The user can express the on-chain transactions and their dependencies by calls on the graph builder.
 
 ```javascript
-const subrecipe = buildRecipe("Subrecipe", (m) => {
+const subgraph = buildSubgraph("Subgraph", (m) => {
   const f = m.contract("F");
 
   m.call(f, "G");
@@ -40,7 +40,7 @@ const subrecipe = buildRecipe("Subrecipe", (m) => {
   return { f };
 });
 
-module.exports = buildRecipe("Example", (m) => {
+module.exports = buildModule("Example", (m) => {
   const a = m.contract("A");
 
   const bCall = m.call(a, "B");
@@ -49,7 +49,7 @@ module.exports = buildRecipe("Example", (m) => {
     after: [bCall],
   });
 
-  const { recipe: sub } = m.subrecipe(subrecipe, {
+  const { recipe: sub } = m.useSubgraph(subgraph, {
     after: [a],
   });
 

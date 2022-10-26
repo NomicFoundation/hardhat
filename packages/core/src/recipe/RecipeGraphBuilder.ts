@@ -23,7 +23,7 @@ import {
   InternalParamValue,
   IRecipeGraph,
   IRecipeGraphBuilder,
-  Recipe,
+  Subgraph,
   RecipeGraphBuilderOptions,
   RecipeVertex,
   UseRecipeOptions,
@@ -277,7 +277,7 @@ export class RecipeGraphBuilder implements IRecipeGraphBuilder {
     return paramFuture;
   }
 
-  public useRecipe(recipe: Recipe, options?: UseRecipeOptions): FutureDict {
+  public useSubgraph(recipe: Subgraph, options?: UseRecipeOptions): FutureDict {
     const useRecipeInvocationId = this.useRecipeInvocationCounter++;
     const label = `${recipe.name}:${useRecipeInvocationId}`;
 
@@ -288,7 +288,7 @@ export class RecipeGraphBuilder implements IRecipeGraphBuilder {
       this.graph.registeredParameters[scopeLabel] = options.parameters;
     }
 
-    const result = recipe.recipeAction(this);
+    const result = recipe.subgraphAction(this);
 
     const virtualVertex = this._createRecipeVirtualVertex(label);
 

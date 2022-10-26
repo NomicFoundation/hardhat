@@ -152,13 +152,13 @@ export interface IRecipeGraphBuilder {
     defaultValue: ParameterValue
   ) => OptionalParameter;
 
-  useRecipe: (recipe: Recipe, options?: UseRecipeOptions) => FutureDict;
+  useSubgraph: (subgraph: Subgraph, options?: UseRecipeOptions) => FutureDict;
   useModule: (module: Module, options?: UseRecipeOptions) => ModuleDict;
 }
 
-export interface Recipe {
+export interface Subgraph {
   name: string;
-  recipeAction: (builder: IRecipeGraphBuilder) => FutureDict;
+  subgraphAction: (builder: IRecipeGraphBuilder) => FutureDict;
 }
 
 export interface RecipeGraphBuilderOptions {

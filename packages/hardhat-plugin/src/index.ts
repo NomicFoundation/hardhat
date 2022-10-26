@@ -10,7 +10,7 @@ import { Renderer } from "./plan";
 import { loadUserModules, loadAllUserModules } from "./user-recipes";
 import "./type-extensions";
 
-export { buildRecipe, buildModule } from "@ignored/ignition-core";
+export { buildSubgraph, buildModule } from "@ignored/ignition-core";
 
 extendConfig((config, userConfig) => {
   const userIgnitionPath = userConfig.paths?.ignition;

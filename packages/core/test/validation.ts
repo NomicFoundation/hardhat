@@ -3,7 +3,7 @@ import { assert } from "chai";
 
 import { generateRecipeGraphFrom } from "process/generateRecipeGraphFrom";
 import { buildModule } from "recipe/buildModule";
-import { buildRecipe } from "recipe/buildRecipe";
+import { buildSubgraph } from "recipe/buildSubgraph";
 import { Artifact } from "types/hardhat";
 import type { IRecipeGraphBuilder } from "types/recipeGraph";
 import { validateRecipeGraph } from "validation/validateRecipeGraph";
@@ -560,14 +560,14 @@ describe("Validation", () => {
 
   describe("virtual", () => {
     it("should validate", async () => {
-      const subrecipe = buildRecipe("sub", (m) => {
+      const subgraph = buildSubgraph("sub", (m) => {
         const example = m.contract("Example");
 
         return { example };
       });
 
       const singleRecipe = buildModule("single", (m: IRecipeGraphBuilder) => {
-        m.useRecipe(subrecipe);
+        m.useSubgraph(subgraph);
 
         return {};
       });

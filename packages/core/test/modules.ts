@@ -5,7 +5,7 @@ import { getDependenciesFor } from "graph/adjacencyList";
 import { generateRecipeGraphFrom } from "process/generateRecipeGraphFrom";
 import { RecipeGraph } from "recipe/RecipeGraph";
 import { buildModule } from "recipe/buildModule";
-import { buildRecipe } from "recipe/buildRecipe";
+import { buildSubgraph } from "recipe/buildSubgraph";
 import { VertexDescriptor } from "types/graph";
 import { Artifact } from "types/hardhat";
 import type {
@@ -720,7 +720,7 @@ describe("Modules", function () {
     let recipeGraph: IRecipeGraph;
 
     before(() => {
-      const librariesRecipe = buildRecipe(
+      const librariesRecipe = buildSubgraph(
         "libraries",
         (m: IRecipeGraphBuilder) => {
           const symbol = m.getOptionalParam("tokenSymbol", "TKN");
@@ -734,7 +734,7 @@ describe("Modules", function () {
       );
 
       const WrapModule = buildModule("Wrap", (m) => {
-        const { token } = m.useRecipe(librariesRecipe, {
+        const { token } = m.useSubgraph(librariesRecipe, {
           parameters: { tokenSymbol: "EXAMPLE", tokenName: "Example" },
         });
 

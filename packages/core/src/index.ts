@@ -1,6 +1,6 @@
 export { Ignition, IgnitionDeployOptions } from "./Ignition";
 export { buildModule } from "recipe/buildModule";
-export { buildRecipe } from "recipe/buildRecipe";
+export { buildSubgraph } from "recipe/buildSubgraph";
 
 export type {
   SerializedDeploymentResult,
@@ -19,7 +19,7 @@ export type {
 } from "types/deployment";
 export type { Module } from "types/module";
 export type {
-  Recipe,
+  Subgraph as Recipe,
   ExternalParamValue,
   IRecipeGraphBuilder,
 } from "types/recipeGraph";
