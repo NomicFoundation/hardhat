@@ -1,9 +1,12 @@
 import setupDebug from "debug";
-import { ethers, Contract, ContractFactory } from "ethers";
+import { ethers } from "ethers";
 
-import { Artifact } from "types/hardhat";
-import { IgnitionSigner, Providers } from "types/providers";
-import { collectLibrariesAndLink } from "utils/collectLibrariesAndLink";
+import {
+  GasProvider,
+  IgnitionSigner,
+  SignersProvider,
+  TransactionsProvider,
+} from "types/providers";
 import { sleep } from "utils/sleep";
 import { TxSender } from "utils/tx-sender";
 
@@ -11,104 +14,50 @@ import type { TransactionOptions } from "./types";
 
 export interface IContractsService {
   deploy(
-    artifact: Artifact,
-    args: any[],
-    libraries: { [k: string]: any },
+    deployTransaction: ethers.providers.TransactionRequest,
     txOptions?: TransactionOptions
   ): Promise<string>;
 
   call(
-    address: string,
-    abi: any[],
-    method: string,
-    args: any[],
+    unsignedTx: ethers.PopulatedTransaction,
     txOptions?: TransactionOptions
   ): Promise<string>;
 }
 
+export interface ContractsServiceProviders {
+  web3Provider: ethers.providers.Web3Provider;
+  signersProvider: SignersProvider;
+  transactionsProvider: TransactionsProvider;
+  gasProvider: GasProvider;
+}
+
 export class ContractsService implements IContractsService {
   private _debug = setupDebug("ignition:services:contracts-service");
-  private _ethersProvider: ethers.providers.Web3Provider;
 
   constructor(
-    private _providers: Providers,
+    private _providers: ContractsServiceProviders,
     private _txSender: TxSender,
     private _options: { pollingInterval: number }
-  ) {
-    this._ethersProvider = new ethers.providers.Web3Provider(
-      _providers.ethereumProvider
-    );
-  }
+  ) {}
 
   public async deploy(
-    artifact: Artifact,
-    args: any[],
-    libraries: { [k: string]: any },
+    deployTransaction: ethers.providers.TransactionRequest,
     txOptions?: TransactionOptions
   ): Promise<string> {
     this._debug("Deploying contract");
-    const signer = await this._providers.signers.getDefaultSigner();
-
-    const linkedByteCode = await collectLibrariesAndLink(artifact, libraries);
-
-    const Factory = new ContractFactory(artifact.abi, linkedByteCode);
-
-    const deployTransaction = Factory.getDeployTransaction(...args);
+    const signer = await this._providers.signersProvider.getDefaultSigner();
 
     return this._sendTx(signer, deployTransaction, txOptions);
   }
 
   public async call(
-    address: string,
-    abi: any[],
-    method: string,
-    args: any[],
+    unsignedTx: ethers.PopulatedTransaction,
     txOptions?: TransactionOptions
   ): Promise<string> {
     this._debug("Calling method of contract");
-    const signer = await this._providers.signers.getDefaultSigner();
-    const contract = new Contract(address, abi);
-
-    const unsignedTx = await contract.populateTransaction[method](...args);
+    const signer = await this._providers.signersProvider.getDefaultSigner();
 
     return this._sendTx(signer, unsignedTx, txOptions);
-  }
-
-  public async staticCall(
-    address: string,
-    abi: any[],
-    method: string,
-    args: any[]
-  ): Promise<any> {
-    const provider = new ethers.providers.Web3Provider(
-      this._providers.ethereumProvider
-    );
-    const contract = new Contract(address, abi, provider);
-
-    return contract.callStatic[method](...args);
-  }
-
-  public async getLog(
-    txHash: string,
-    eventName: string,
-    address: string,
-    abi: any[]
-  ): Promise<any | undefined> {
-    const provider = new ethers.providers.Web3Provider(
-      this._providers.ethereumProvider
-    );
-    const contract = new ethers.Contract(address, abi, provider);
-
-    const receipt = await provider.waitForTransaction(txHash);
-
-    for (const log of receipt.logs) {
-      const parsedLog = contract.interface.parseLog(log);
-      if (parsedLog.name === eventName) {
-        return parsedLog;
-      }
-    }
-
-    return undefined;
   }
 
   private async _sendTx(
@@ -124,7 +73,8 @@ export class ContractsService implements IContractsService {
       tx.gasPrice = ethers.BigNumber.from(txOptions.gasPrice);
     }
 
-    let blockNumberWhenSent = await this._ethersProvider.getBlockNumber();
+    let blockNumberWhenSent =
+      await this._providers.web3Provider.getBlockNumber();
     const txIndexAndHash = await this._txSender.send(
       signer,
       tx,
@@ -135,17 +85,24 @@ export class ContractsService implements IContractsService {
     let txHash = txIndexAndHash[1];
 
     let txSent = tx;
+    let retries = 0;
     while (true) {
-      const currentBlockNumber = await this._ethersProvider.getBlockNumber();
+      const currentBlockNumber =
+        await this._providers.web3Provider.getBlockNumber();
 
-      if (await this._providers.transactions.isConfirmed(txHash)) {
+      if (await this._providers.transactionsProvider.isConfirmed(txHash)) {
         break;
       }
 
       if (blockNumberWhenSent + 5 <= currentBlockNumber) {
+        if (retries === 4) {
+          throw new Error("Transaction not confirmed within max retry limit");
+        }
+
         const txToSend = await this._bump(txHash, signer, txSent, txHash);
 
-        blockNumberWhenSent = await this._ethersProvider.getBlockNumber();
+        blockNumberWhenSent =
+          await this._providers.web3Provider.getBlockNumber();
         txHash = await this._txSender.sendAndReplace(
           signer,
           txToSend,
@@ -154,6 +111,7 @@ export class ContractsService implements IContractsService {
         );
 
         txSent = txToSend;
+        retries++;
       }
 
       await sleep(this._options.pollingInterval);
@@ -168,7 +126,7 @@ export class ContractsService implements IContractsService {
     previousTxRequest: ethers.providers.TransactionRequest,
     previousTxHash: string
   ): Promise<ethers.providers.TransactionRequest> {
-    const previousTx = await this._ethersProvider.getTransaction(
+    const previousTx = await this._providers.web3Provider.getTransaction(
       previousTxHash
     );
     const newEstimatedGasPrice =

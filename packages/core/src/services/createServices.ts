@@ -1,3 +1,5 @@
+import { ethers } from "ethers";
+
 import { Journal } from "journal/types";
 import { Providers } from "types/providers";
 import { TxSender } from "utils/tx-sender";
@@ -30,9 +32,20 @@ export function createServices(
 
   const services: Services = {
     artifacts: new ArtifactsService(providers),
-    contracts: new ContractsService(providers, txSender, {
-      pollingInterval: txPollingInterval,
-    }),
+    contracts: new ContractsService(
+      {
+        gasProvider: providers.gasProvider,
+        signersProvider: providers.signers,
+        transactionsProvider: providers.transactions,
+        web3Provider: new ethers.providers.Web3Provider(
+          providers.ethereumProvider
+        ),
+      },
+      txSender,
+      {
+        pollingInterval: txPollingInterval,
+      }
+    ),
     transactions: new TransactionsService(providers),
     config: new ConfigService(providers),
   };
