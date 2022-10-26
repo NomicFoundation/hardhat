@@ -33,7 +33,7 @@ export async function executeContractDeploy(
 
     const deployTransaction = Factory.getDeployTransaction(...resolvedArgs);
 
-    const txHash = await services.contracts.deploy(deployTransaction);
+    const txHash = await services.contracts.sendTx(deployTransaction);
 
     const receipt = await services.transactions.wait(txHash);
 

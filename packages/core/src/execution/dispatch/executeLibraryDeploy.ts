@@ -22,7 +22,8 @@ export async function executeLibraryDeploy(
     const Factory = new ContractFactory(artifact.abi, linkedByteCode);
 
     const deployTransaction = Factory.getDeployTransaction(...resolvedArgs);
-    const txHash = await services.contracts.deploy(deployTransaction);
+
+    const txHash = await services.contracts.sendTx(deployTransaction);
 
     const receipt = await services.transactions.wait(txHash);
 

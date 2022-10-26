@@ -24,7 +24,7 @@ export async function executeContractCall(
     const unsignedTx = await contractInstance.populateTransaction[method](
       ...resolvedArgs
     );
-    txHash = await services.contracts.call(unsignedTx);
+    txHash = await services.contracts.sendTx(unsignedTx);
   } catch (err) {
     return {
       _kind: "failure",

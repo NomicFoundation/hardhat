@@ -13,13 +13,8 @@ import { TxSender } from "utils/tx-sender";
 import type { TransactionOptions } from "./types";
 
 export interface IContractsService {
-  deploy(
+  sendTx(
     deployTransaction: ethers.providers.TransactionRequest,
-    txOptions?: TransactionOptions
-  ): Promise<string>;
-
-  call(
-    unsignedTx: ethers.PopulatedTransaction,
     txOptions?: TransactionOptions
   ): Promise<string>;
 }
@@ -40,24 +35,18 @@ export class ContractsService implements IContractsService {
     private _options: { pollingInterval: number }
   ) {}
 
-  public async deploy(
+  public async sendTx(
     deployTransaction: ethers.providers.TransactionRequest,
     txOptions?: TransactionOptions
   ): Promise<string> {
-    this._debug("Deploying contract");
+    if (deployTransaction.to !== undefined) {
+      this._debug("Calling method of contract");
+    } else {
+      this._debug("Deploying contract");
+    }
     const signer = await this._providers.signersProvider.getDefaultSigner();
 
     return this._sendTx(signer, deployTransaction, txOptions);
-  }
-
-  public async call(
-    unsignedTx: ethers.PopulatedTransaction,
-    txOptions?: TransactionOptions
-  ): Promise<string> {
-    this._debug("Calling method of contract");
-    const signer = await this._providers.signersProvider.getDefaultSigner();
-
-    return this._sendTx(signer, unsignedTx, txOptions);
   }
 
   private async _sendTx(
