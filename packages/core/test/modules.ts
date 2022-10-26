@@ -49,14 +49,14 @@ describe("Modules", function () {
     });
 
     it("should have the contract node", () => {
-      const depNode = getRecipeVertexByLabel(deploymentGraph, "Example");
+      const depNode = getDeploymentVertexByLabel(deploymentGraph, "Example");
 
       assert.isDefined(depNode);
       assert.equal(depNode?.label, "Example");
     });
 
     it("should show no dependencies for the contract node", () => {
-      const depNode = getRecipeVertexByLabel(deploymentGraph, "Example");
+      const depNode = getDeploymentVertexByLabel(deploymentGraph, "Example");
 
       if (depNode === undefined) {
         return assert.isDefined(depNode);
@@ -68,7 +68,7 @@ describe("Modules", function () {
     });
 
     it("should record the argument list for the contract node as empty", () => {
-      const depNode = getRecipeVertexByLabel(deploymentGraph, "Example");
+      const depNode = getDeploymentVertexByLabel(deploymentGraph, "Example");
 
       if (depNode === undefined) {
         return assert.isDefined(depNode);
@@ -112,19 +112,19 @@ describe("Modules", function () {
     });
 
     it("should have both contract nodes", () => {
-      const depNode1 = getRecipeVertexByLabel(deploymentGraph, "Example1");
+      const depNode1 = getDeploymentVertexByLabel(deploymentGraph, "Example1");
 
       assert.isDefined(depNode1);
       assert.equal(depNode1?.label, "Example1");
 
-      const depNode2 = getRecipeVertexByLabel(deploymentGraph, "Example2");
+      const depNode2 = getDeploymentVertexByLabel(deploymentGraph, "Example2");
 
       assert.isDefined(depNode2);
       assert.equal(depNode2?.label, "Example2");
     });
 
     it("should show no dependencies either contract node", () => {
-      const depNode1 = getRecipeVertexByLabel(deploymentGraph, "Example1");
+      const depNode1 = getDeploymentVertexByLabel(deploymentGraph, "Example1");
 
       if (depNode1 === undefined) {
         return assert.isDefined(depNode1);
@@ -134,7 +134,7 @@ describe("Modules", function () {
 
       assert.deepStrictEqual(deps1, []);
 
-      const depNode2 = getRecipeVertexByLabel(deploymentGraph, "Example2");
+      const depNode2 = getDeploymentVertexByLabel(deploymentGraph, "Example2");
 
       if (depNode2 === undefined) {
         return assert.isDefined(depNode1);
@@ -150,7 +150,7 @@ describe("Modules", function () {
     let deploymentGraph: IDeploymentGraph;
 
     before(() => {
-      const withConstructorArgsRecipe = buildModule(
+      const withConstructorArgsModule = buildModule(
         "withConstructorArgs",
         (m: IDeploymentBuilder) => {
           const token = m.contract("Token", {
@@ -161,7 +161,7 @@ describe("Modules", function () {
         }
       );
 
-      const { graph } = generateDeploymentGraphFrom(withConstructorArgsRecipe, {
+      const { graph } = generateDeploymentGraphFrom(withConstructorArgsModule, {
         chainId: 31337,
       });
 
@@ -177,14 +177,14 @@ describe("Modules", function () {
     });
 
     it("should have the contract node", () => {
-      const depNode = getRecipeVertexByLabel(deploymentGraph, "Token");
+      const depNode = getDeploymentVertexByLabel(deploymentGraph, "Token");
 
       assert.isDefined(depNode);
       assert.equal(depNode?.label, "Token");
     });
 
     it("should show no dependencies for the contract node", () => {
-      const depNode = getRecipeVertexByLabel(deploymentGraph, "Token");
+      const depNode = getDeploymentVertexByLabel(deploymentGraph, "Token");
 
       if (depNode === undefined) {
         return assert.isDefined(depNode);
@@ -196,7 +196,7 @@ describe("Modules", function () {
     });
 
     it("should record the argument list for the contract node", () => {
-      const depNode = getRecipeVertexByLabel(deploymentGraph, "Token");
+      const depNode = getDeploymentVertexByLabel(deploymentGraph, "Token");
 
       if (depNode === undefined) {
         return assert.isDefined(depNode);
@@ -214,7 +214,7 @@ describe("Modules", function () {
     let deploymentGraph: IDeploymentGraph;
 
     before(() => {
-      const depsBetweenContractsRecipe = buildModule(
+      const depsBetweenContractsModule = buildModule(
         "dependenciesBetweenContracts",
         (m: IDeploymentBuilder) => {
           const a = m.contract("A");
@@ -230,7 +230,7 @@ describe("Modules", function () {
       );
 
       const { graph } = generateDeploymentGraphFrom(
-        depsBetweenContractsRecipe,
+        depsBetweenContractsModule,
         {
           chainId: 31337,
         }
@@ -248,7 +248,7 @@ describe("Modules", function () {
     });
 
     it("should have the contract node A", () => {
-      const depNode = getRecipeVertexByLabel(deploymentGraph, "A");
+      const depNode = getDeploymentVertexByLabel(deploymentGraph, "A");
 
       if (depNode === undefined) {
         return assert.isDefined(depNode);
@@ -258,7 +258,7 @@ describe("Modules", function () {
     });
 
     it("should have the contract node B", () => {
-      const depNode = getRecipeVertexByLabel(deploymentGraph, "B");
+      const depNode = getDeploymentVertexByLabel(deploymentGraph, "B");
 
       if (depNode === undefined) {
         return assert.isDefined(depNode);
@@ -269,7 +269,7 @@ describe("Modules", function () {
     });
 
     it("should show no dependencies for the contract node A", () => {
-      const depNode = getRecipeVertexByLabel(deploymentGraph, "A");
+      const depNode = getDeploymentVertexByLabel(deploymentGraph, "A");
 
       if (depNode === undefined) {
         return assert.isDefined(depNode);
@@ -281,7 +281,7 @@ describe("Modules", function () {
     });
 
     it("should show two dependencies, on A for the contract node B, on A for Someother", () => {
-      const depNode = getRecipeVertexByLabel(deploymentGraph, "B");
+      const depNode = getDeploymentVertexByLabel(deploymentGraph, "B");
 
       if (depNode === undefined) {
         return assert.isDefined(depNode);
@@ -296,7 +296,7 @@ describe("Modules", function () {
     });
 
     it("should record the argument list for the contract node A as empty", () => {
-      const depNode = getRecipeVertexByLabel(deploymentGraph, "A");
+      const depNode = getDeploymentVertexByLabel(deploymentGraph, "A");
 
       if (depNode === undefined) {
         return assert.isDefined(depNode);
@@ -314,7 +314,7 @@ describe("Modules", function () {
     let deploymentGraph: IDeploymentGraph;
 
     before(() => {
-      const callRecipe = buildModule("call", (m: IDeploymentBuilder) => {
+      const callModule = buildModule("call", (m: IDeploymentBuilder) => {
         const token = m.contract("Token");
         const exchange = m.contract("Exchange");
         const another = m.contract("Another");
@@ -327,7 +327,7 @@ describe("Modules", function () {
         return {};
       });
 
-      const { graph } = generateDeploymentGraphFrom(callRecipe, {
+      const { graph } = generateDeploymentGraphFrom(callModule, {
         chainId: 31337,
       });
 
@@ -343,7 +343,7 @@ describe("Modules", function () {
     });
 
     it("should have the contract node Token", () => {
-      const depNode = getRecipeVertexByLabel(deploymentGraph, "Token");
+      const depNode = getDeploymentVertexByLabel(deploymentGraph, "Token");
 
       if (depNode === undefined) {
         return assert.isDefined(depNode);
@@ -353,7 +353,7 @@ describe("Modules", function () {
     });
 
     it("should have the contract node Exchange", () => {
-      const depNode = getRecipeVertexByLabel(deploymentGraph, "Exchange");
+      const depNode = getDeploymentVertexByLabel(deploymentGraph, "Exchange");
 
       if (depNode === undefined) {
         return assert.isDefined(depNode);
@@ -364,7 +364,7 @@ describe("Modules", function () {
     });
 
     it("should have the call node Exchange/addToken", () => {
-      const depNode = getRecipeVertexByLabel(
+      const depNode = getDeploymentVertexByLabel(
         deploymentGraph,
         "Exchange/addToken"
       );
@@ -378,7 +378,7 @@ describe("Modules", function () {
     });
 
     it("should show no dependencies for the contract node Token", () => {
-      const depNode = getRecipeVertexByLabel(deploymentGraph, "Token");
+      const depNode = getDeploymentVertexByLabel(deploymentGraph, "Token");
 
       if (depNode === undefined) {
         return assert.isDefined(depNode);
@@ -390,7 +390,7 @@ describe("Modules", function () {
     });
 
     it("should show no dependencies for the contract node Exchange", () => {
-      const depNode = getRecipeVertexByLabel(deploymentGraph, "Exchange");
+      const depNode = getDeploymentVertexByLabel(deploymentGraph, "Exchange");
 
       if (depNode === undefined) {
         return assert.isDefined(depNode);
@@ -402,7 +402,7 @@ describe("Modules", function () {
     });
 
     it("should show three dependencies for the call node Exchange/addToken", () => {
-      const depNode = getRecipeVertexByLabel(
+      const depNode = getDeploymentVertexByLabel(
         deploymentGraph,
         "Exchange/addToken"
       );
@@ -425,7 +425,7 @@ describe("Modules", function () {
     });
 
     it("should record the argument list for the contract node Token as empty", () => {
-      const depNode = getRecipeVertexByLabel(deploymentGraph, "Token");
+      const depNode = getDeploymentVertexByLabel(deploymentGraph, "Token");
 
       if (depNode === undefined) {
         return assert.isDefined(depNode);
@@ -439,7 +439,7 @@ describe("Modules", function () {
     });
 
     it("should record the argument list for the contract node Exchange as empty", () => {
-      const depNode = getRecipeVertexByLabel(deploymentGraph, "Exchange");
+      const depNode = getDeploymentVertexByLabel(deploymentGraph, "Exchange");
 
       if (depNode === undefined) {
         return assert.isDefined(depNode);
@@ -453,7 +453,7 @@ describe("Modules", function () {
     });
 
     it("should record the argument list for the call node Exchange at Exchange/addToken", () => {
-      const depNode = getRecipeVertexByLabel(
+      const depNode = getDeploymentVertexByLabel(
         deploymentGraph,
         "Exchange/addToken"
       );
@@ -483,7 +483,7 @@ describe("Modules", function () {
     let deploymentGraph: IDeploymentGraph;
 
     before(() => {
-      const uniswapRecipe = buildModule("Uniswap", (m: IDeploymentBuilder) => {
+      const uniswapModule = buildModule("Uniswap", (m: IDeploymentBuilder) => {
         const abi = [{}];
         const someother = m.contract("Someother");
 
@@ -494,7 +494,7 @@ describe("Modules", function () {
         return { uniswap };
       });
 
-      const { graph } = generateDeploymentGraphFrom(uniswapRecipe, {
+      const { graph } = generateDeploymentGraphFrom(uniswapModule, {
         chainId: 31337,
       });
 
@@ -510,7 +510,10 @@ describe("Modules", function () {
     });
 
     it("should have the deployed contract node", () => {
-      const depNode = getRecipeVertexByLabel(deploymentGraph, "UniswapRouter");
+      const depNode = getDeploymentVertexByLabel(
+        deploymentGraph,
+        "UniswapRouter"
+      );
 
       if (depNode === undefined) {
         return assert.isDefined(depNode);
@@ -521,7 +524,10 @@ describe("Modules", function () {
     });
 
     it("should show one dependencies for the deployed contract node on someother", () => {
-      const depNode = getRecipeVertexByLabel(deploymentGraph, "UniswapRouter");
+      const depNode = getDeploymentVertexByLabel(
+        deploymentGraph,
+        "UniswapRouter"
+      );
 
       if (depNode === undefined) {
         return assert.isDefined(depNode);
@@ -539,7 +545,7 @@ describe("Modules", function () {
     before(() => {
       const artifact = { abi: [], bytecode: "xxx" } as any as Artifact;
 
-      const fromArtifactRecipe = buildModule(
+      const fromArtifactModule = buildModule(
         "FromArtifact",
         (m: IDeploymentBuilder) => {
           const someother = m.contract("Someother");
@@ -553,7 +559,7 @@ describe("Modules", function () {
         }
       );
 
-      const { graph } = generateDeploymentGraphFrom(fromArtifactRecipe, {
+      const { graph } = generateDeploymentGraphFrom(fromArtifactModule, {
         chainId: 31337,
       });
 
@@ -569,7 +575,7 @@ describe("Modules", function () {
     });
 
     it("should have the artifact contract node", () => {
-      const depNode = getRecipeVertexByLabel(deploymentGraph, "Foo");
+      const depNode = getDeploymentVertexByLabel(deploymentGraph, "Foo");
 
       if (depNode === undefined) {
         return assert.isDefined(depNode);
@@ -580,7 +586,7 @@ describe("Modules", function () {
     });
 
     it("should show one dependency for the artifact contract node on Someother", () => {
-      const depNode = getRecipeVertexByLabel(deploymentGraph, "Foo");
+      const depNode = getDeploymentVertexByLabel(deploymentGraph, "Foo");
 
       if (depNode === undefined) {
         return assert.isDefined(depNode);
@@ -598,7 +604,7 @@ describe("Modules", function () {
     });
 
     it("should record the argument list for the artifact contract node", () => {
-      const depNode = getRecipeVertexByLabel(deploymentGraph, "Foo");
+      const depNode = getDeploymentVertexByLabel(deploymentGraph, "Foo");
 
       if (depNode === undefined) {
         return assert.isDefined(depNode);
@@ -616,7 +622,7 @@ describe("Modules", function () {
     let deploymentGraph: IDeploymentGraph;
 
     before(() => {
-      const librariesRecipe = buildModule(
+      const librariesModule = buildModule(
         "libraries",
         (m: IDeploymentBuilder) => {
           const someother = m.contract("Someother");
@@ -636,7 +642,7 @@ describe("Modules", function () {
         }
       );
 
-      const { graph } = generateDeploymentGraphFrom(librariesRecipe, {
+      const { graph } = generateDeploymentGraphFrom(librariesModule, {
         chainId: 31,
       });
 
@@ -652,7 +658,7 @@ describe("Modules", function () {
     });
 
     it("should have the library node SafeMath", () => {
-      const depNode = getRecipeVertexByLabel(deploymentGraph, "SafeMath");
+      const depNode = getDeploymentVertexByLabel(deploymentGraph, "SafeMath");
 
       if (depNode === undefined) {
         return assert.isDefined(depNode);
@@ -663,7 +669,7 @@ describe("Modules", function () {
     });
 
     it("should have the contract node Contract", () => {
-      const depNode = getRecipeVertexByLabel(deploymentGraph, "Contract");
+      const depNode = getDeploymentVertexByLabel(deploymentGraph, "Contract");
 
       if (depNode === undefined) {
         return assert.isDefined(depNode);
@@ -674,7 +680,7 @@ describe("Modules", function () {
     });
 
     it("should show one dependencies for the library node SafeMath to Someother", () => {
-      const depNode = getRecipeVertexByLabel(deploymentGraph, "SafeMath");
+      const depNode = getDeploymentVertexByLabel(deploymentGraph, "SafeMath");
 
       if (depNode === undefined) {
         return assert.isDefined(depNode);
@@ -686,7 +692,7 @@ describe("Modules", function () {
     });
 
     it("should show one dependency on library node SafeMath for Contract", () => {
-      const depNode = getRecipeVertexByLabel(deploymentGraph, "Contract");
+      const depNode = getDeploymentVertexByLabel(deploymentGraph, "Contract");
 
       if (depNode === undefined) {
         return assert.isDefined(depNode);
@@ -698,7 +704,7 @@ describe("Modules", function () {
     });
 
     it("should record the argument list for the library node SafeMath as [42]", () => {
-      const depNode = getRecipeVertexByLabel(deploymentGraph, "SafeMath");
+      const depNode = getDeploymentVertexByLabel(deploymentGraph, "SafeMath");
 
       if (depNode === undefined) {
         return assert.isDefined(depNode);
@@ -714,7 +720,7 @@ describe("Modules", function () {
 
   describe("network chain id", () => {
     it("should inject the chainId via the builder", () => {
-      const chainIdRecipe = buildModule("chainId", (m: IDeploymentBuilder) => {
+      const chainIdModule = buildModule("chainId", (m: IDeploymentBuilder) => {
         if (m.chainId === 42) {
           return {};
         }
@@ -724,7 +730,7 @@ describe("Modules", function () {
         return {};
       });
 
-      generateDeploymentGraphFrom(chainIdRecipe, { chainId: 42 });
+      generateDeploymentGraphFrom(chainIdModule, { chainId: 42 });
     });
   });
 
@@ -732,7 +738,7 @@ describe("Modules", function () {
     let deploymentGraph: IDeploymentGraph;
 
     before(() => {
-      const librariesRecipe = buildSubgraph(
+      const librariesSubgraph = buildSubgraph(
         "libraries",
         (m: IDeploymentBuilder) => {
           const symbol = m.getOptionalParam("tokenSymbol", "TKN");
@@ -746,7 +752,7 @@ describe("Modules", function () {
       );
 
       const WrapModule = buildModule("Wrap", (m) => {
-        const { token } = m.useSubgraph(librariesRecipe, {
+        const { token } = m.useSubgraph(librariesSubgraph, {
           parameters: { tokenSymbol: "EXAMPLE", tokenName: "Example" },
         });
 
@@ -779,7 +785,7 @@ describe("Modules", function () {
     let differentParams: () => void;
 
     before(() => {
-      const librariesRecipe = buildModule(
+      const librariesModule = buildModule(
         "libraries",
         (m: IDeploymentBuilder) => {
           const symbol = m.getOptionalParam("tokenSymbol", "TKN");
@@ -792,30 +798,30 @@ describe("Modules", function () {
         }
       );
 
-      const WrapRecipe = buildModule("Wrap", (m: IDeploymentBuilder) => {
-        const { token } = m.useModule(librariesRecipe, {
+      const WrapModule = buildModule("Wrap", (m: IDeploymentBuilder) => {
+        const { token } = m.useModule(librariesModule, {
           parameters: { tokenSymbol: "EXAMPLE", tokenName: "Example" },
         });
 
-        const { token: token2 } = m.useModule(librariesRecipe, {
+        const { token: token2 } = m.useModule(librariesModule, {
           parameters: { tokenSymbol: "EXAMPLE", tokenName: "Example" },
         });
 
         return { token, token2 };
       });
 
-      const { graph } = generateDeploymentGraphFrom(WrapRecipe, {
+      const { graph } = generateDeploymentGraphFrom(WrapModule, {
         chainId: 31,
       });
 
       deploymentGraph = graph;
 
-      const DiffParamsRecipe = buildModule("Error", (m: IDeploymentBuilder) => {
-        const { token } = m.useModule(librariesRecipe, {
+      const DiffParamsModule = buildModule("Error", (m: IDeploymentBuilder) => {
+        const { token } = m.useModule(librariesModule, {
           parameters: { tokenSymbol: "EXAMPLE", tokenName: "Example" },
         });
 
-        const { token: token2 } = m.useModule(librariesRecipe, {
+        const { token: token2 } = m.useModule(librariesModule, {
           parameters: { tokenSymbol: "DIFFERENT", tokenName: "Example" },
         });
 
@@ -837,8 +843,8 @@ describe("Modules", function () {
         }
       );
 
-      const ReturnTypeRecipe = buildModule(
-        "ReturnsParamRecipe",
+      const ReturnTypeModule = buildModule(
+        "ReturnsParamModule",
         (m: IDeploymentBuilder) => {
           const { token } = m.useModule(returnTypeModule, {
             parameters: { tokenSymbol: "EXAMPLE", tokenName: "Example" },
@@ -849,11 +855,11 @@ describe("Modules", function () {
       );
 
       returnsWrongFutureType = () => {
-        generateDeploymentGraphFrom(ReturnTypeRecipe, { chainId: 31 });
+        generateDeploymentGraphFrom(ReturnTypeModule, { chainId: 31 });
       };
 
       differentParams = () => {
-        generateDeploymentGraphFrom(DiffParamsRecipe, { chainId: 31 });
+        generateDeploymentGraphFrom(DiffParamsModule, { chainId: 31 });
       };
     });
 
@@ -881,7 +887,7 @@ describe("Modules", function () {
   });
 });
 
-function getRecipeVertexByLabel(
+function getDeploymentVertexByLabel(
   deploymentGraph: DeploymentGraph,
   label: string
 ): DeploymentGraphVertex | undefined {

@@ -11,36 +11,56 @@ import { validateHardhatLibrary } from "./validateHardhatLibrary";
 import { validateVirtual } from "./validateVirtual";
 
 export function validationDispatch(
-  recipeVertex: DeploymentGraphVertex,
+  deploymentVertex: DeploymentGraphVertex,
   resultAccumulator: ResultsAccumulator,
   context: { services: Services }
 ): Promise<VertexVisitResult> {
-  switch (recipeVertex.type) {
+  switch (deploymentVertex.type) {
     case "ArtifactContract":
-      return validateArtifactContract(recipeVertex, resultAccumulator, context);
+      return validateArtifactContract(
+        deploymentVertex,
+        resultAccumulator,
+        context
+      );
     case "ArtifactLibrary":
-      return validateArtifactLibrary(recipeVertex, resultAccumulator, context);
+      return validateArtifactLibrary(
+        deploymentVertex,
+        resultAccumulator,
+        context
+      );
     case "DeployedContract":
-      return validateDeployedContract(recipeVertex, resultAccumulator, context);
+      return validateDeployedContract(
+        deploymentVertex,
+        resultAccumulator,
+        context
+      );
     case "Call":
-      return validateCall(recipeVertex, resultAccumulator, context);
+      return validateCall(deploymentVertex, resultAccumulator, context);
     case "HardhatLibrary":
-      return validateHardhatLibrary(recipeVertex, resultAccumulator, context);
+      return validateHardhatLibrary(
+        deploymentVertex,
+        resultAccumulator,
+        context
+      );
     case "HardhatContract":
-      return validateHardhatContract(recipeVertex, resultAccumulator, context);
+      return validateHardhatContract(
+        deploymentVertex,
+        resultAccumulator,
+        context
+      );
     case "Virtual":
-      return validateVirtual(recipeVertex, resultAccumulator, context);
+      return validateVirtual(deploymentVertex, resultAccumulator, context);
     default:
-      return assertUnknownRecipeVertexType(recipeVertex);
+      return assertUnknownDeploymentVertexType(deploymentVertex);
   }
 }
 
-function assertUnknownRecipeVertexType(
-  recipeVertex: never
+function assertUnknownDeploymentVertexType(
+  deploymentVertex: never
 ): Promise<VertexVisitResult> {
-  const vertex = recipeVertex as any;
+  const vertex = deploymentVertex as any;
 
   const forReport = "type" in vertex ? vertex.type : vertex;
 
-  throw new Error(`Unknown recipe vertex type: ${forReport}`);
+  throw new Error(`Unknown deployment vertex type: ${forReport}`);
 }

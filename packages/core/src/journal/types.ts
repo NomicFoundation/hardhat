@@ -10,20 +10,20 @@ export interface JournalEntry {
  */
 export interface Journal {
   addEntry(
-    recipeId: string,
+    moduleId: string,
     executorId: string,
     entry: JournalEntry
   ): Promise<number>;
   getEntry(
-    recipeId: string,
+    moduleId: string,
     executorId: string,
     entryIndex: number
   ): Promise<JournalEntry | undefined>;
   replaceEntry(
-    recipeId: string,
+    moduleId: string,
     executorId: string,
     entryIndex: number,
     entry: JournalEntry
   ): Promise<void>;
-  delete(recipeId: string): Promise<void>;
+  delete(moduleId: string): Promise<void>;
 }

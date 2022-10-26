@@ -9,10 +9,10 @@ import { Module } from "types/module";
 export function generateDeploymentGraphFrom(
   ignitionModule: Module,
   builderOptions: DeploymentBuilderOptions
-): { graph: IDeploymentGraph; recipeOutputs: FutureDict } {
+): { graph: IDeploymentGraph; moduleOutputs: FutureDict } {
   const graphBuilder = new DeploymentBuilder(builderOptions);
 
-  const recipeOutputs = ignitionModule.moduleAction(graphBuilder);
+  const moduleOutputs = ignitionModule.moduleAction(graphBuilder);
 
-  return { graph: graphBuilder.graph, recipeOutputs };
+  return { graph: graphBuilder.graph, moduleOutputs };
 }

@@ -33,8 +33,8 @@ async function convertDeploymentToExecution(
   const executionGraph = new ExecutionGraph();
   executionGraph.adjacencyList = clone(deploymentGraph.adjacencyList);
 
-  for (const [id, recipeVertex] of deploymentGraph.vertexes.entries()) {
-    const executionVertex = await convert(recipeVertex);
+  for (const [id, deploymentVertex] of deploymentGraph.vertexes.entries()) {
+    const executionVertex = await convert(deploymentVertex);
 
     executionGraph.vertexes.set(id, executionVertex);
   }

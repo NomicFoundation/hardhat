@@ -47,7 +47,7 @@ function runTests(createJournal: () => Journal) {
 
   it("should add two transactions to journal", async function () {
     const txSender = new TxSender(
-      "MyRecipe",
+      "MyModule",
       "MyExecutor",
       mockGasProvider,
       createJournal()
@@ -70,7 +70,7 @@ function runTests(createJournal: () => Journal) {
   it("should not re-send an already sent transaction", async function () {
     const journal = createJournal();
     const txSender = new TxSender(
-      "MyRecipe",
+      "MyModule",
       "MyExecutor",
       mockGasProvider,
       journal
@@ -85,7 +85,7 @@ function runTests(createJournal: () => Journal) {
     signerStub.sendTransaction.resetHistory();
 
     const txSender2 = new TxSender(
-      "MyRecipe",
+      "MyModule",
       "MyExecutor",
       mockGasProvider,
       journal

@@ -44,7 +44,7 @@ export class DeploymentBuilder implements IDeploymentBuilder {
   public graph: IDeploymentGraph = new DeploymentGraph();
   private idCounter: number = 0;
   private moduleCache: ModuleCache = {};
-  private useRecipeInvocationCounter: number = 0;
+  private useModuleInvocationCounter: number = 0;
   private scopes: ScopeStack = new ScopeStack();
 
   constructor(options: DeploymentBuilderOptions) {
@@ -69,7 +69,7 @@ export class DeploymentBuilder implements IDeploymentBuilder {
         _future: true,
       };
 
-      DeploymentBuilder._addRecipeVertex(this.graph, {
+      DeploymentBuilder._addVertex(this.graph, {
         id: artifactContractFuture.vertexId,
         label: libraryName,
         type: "ArtifactLibrary",
@@ -92,7 +92,7 @@ export class DeploymentBuilder implements IDeploymentBuilder {
         _future: true,
       };
 
-      DeploymentBuilder._addRecipeVertex(this.graph, {
+      DeploymentBuilder._addVertex(this.graph, {
         id: libraryFuture.vertexId,
         label: libraryName,
         type: "HardhatLibrary",
@@ -124,7 +124,7 @@ export class DeploymentBuilder implements IDeploymentBuilder {
         _future: true,
       };
 
-      DeploymentBuilder._addRecipeVertex(this.graph, {
+      DeploymentBuilder._addVertex(this.graph, {
         id: artifactContractFuture.vertexId,
         label: contractName,
         type: "ArtifactContract",
@@ -148,7 +148,7 @@ export class DeploymentBuilder implements IDeploymentBuilder {
         _future: true,
       };
 
-      DeploymentBuilder._addRecipeVertex(this.graph, {
+      DeploymentBuilder._addVertex(this.graph, {
         id: contractFuture.vertexId,
         label: contractName,
         type: "HardhatContract",
@@ -178,7 +178,7 @@ export class DeploymentBuilder implements IDeploymentBuilder {
       _future: true,
     };
 
-    DeploymentBuilder._addRecipeVertex(this.graph, {
+    DeploymentBuilder._addVertex(this.graph, {
       id: deployedFuture.vertexId,
       label: contractName,
       type: "DeployedContract",
@@ -235,7 +235,7 @@ export class DeploymentBuilder implements IDeploymentBuilder {
       );
     }
 
-    DeploymentBuilder._addRecipeVertex(this.graph, {
+    DeploymentBuilder._addVertex(this.graph, {
       id: callFuture.vertexId,
       label: callFuture.label,
       type: "Call",
@@ -278,11 +278,11 @@ export class DeploymentBuilder implements IDeploymentBuilder {
   }
 
   public useSubgraph(
-    recipe: Subgraph,
+    subgraph: Subgraph,
     options?: UseSubgraphOptions
   ): FutureDict {
-    const useRecipeInvocationId = this.useRecipeInvocationCounter++;
-    const label = `${recipe.name}:${useRecipeInvocationId}`;
+    const useModuleInvocationId = this.useModuleInvocationCounter++;
+    const label = `${subgraph.name}:${useModuleInvocationId}`;
 
     this.scopes.push(label);
     const scopeLabel = this.scopes.getScopedLabel();
@@ -291,13 +291,13 @@ export class DeploymentBuilder implements IDeploymentBuilder {
       this.graph.registeredParameters[scopeLabel] = options.parameters;
     }
 
-    const result = recipe.subgraphAction(this);
+    const result = subgraph.subgraphAction(this);
 
-    const virtualVertex = this._createRecipeVirtualVertex(label);
+    const virtualVertex = this._createVirtualVertex(label);
 
     this.scopes.pop();
 
-    return { ...result, recipe: virtualVertex };
+    return { ...result, subgraph: virtualVertex };
   }
 
   public useModule(module: Module, options?: UseSubgraphOptions): ModuleDict {
@@ -322,7 +322,7 @@ export class DeploymentBuilder implements IDeploymentBuilder {
         }
       }
 
-      this._createRecipeVirtualVertex(label);
+      this._createVirtualVertex(label);
 
       this.scopes.pop();
 
@@ -344,7 +344,7 @@ export class DeploymentBuilder implements IDeploymentBuilder {
     return this.moduleCache[label].result;
   }
 
-  private _createRecipeVirtualVertex(label: string): Virtual {
+  private _createVirtualVertex(label: string): Virtual {
     const virtualFuture: Virtual = {
       vertexId: this._resolveNextId(),
       label,
@@ -365,7 +365,7 @@ export class DeploymentBuilder implements IDeploymentBuilder {
         })
       );
 
-    DeploymentBuilder._addRecipeVertex(this.graph, {
+    DeploymentBuilder._addVertex(this.graph, {
       id: virtualFuture.vertexId,
       label,
       type: "Virtual",
@@ -380,7 +380,7 @@ export class DeploymentBuilder implements IDeploymentBuilder {
     return this.idCounter++;
   }
 
-  private static _addRecipeVertex(
+  private static _addVertex(
     graph: DeploymentGraph,
     depNode: DeploymentGraphVertex
   ) {

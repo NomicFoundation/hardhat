@@ -9,7 +9,7 @@ import { TransactionsService } from "./TransactionsService";
 import { Services } from "./types";
 
 export function createServices(
-  recipeId: string,
+  moduleId: string,
   executorId: string,
   {
     providers,
@@ -22,7 +22,7 @@ export function createServices(
   }
 ): Services {
   const txSender = new TxSender(
-    recipeId,
+    moduleId,
     executorId,
     providers.gasProvider,
     journal

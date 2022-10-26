@@ -4,11 +4,11 @@ import { DeployPhase, DeployState, ExecutionState } from "types/deployment";
 import { ResultsAccumulator, VertexVisitResult } from "types/graph";
 import { difference, union } from "utils/sets";
 
-export function initializeDeployState(recipeName: string): DeployState {
+export function initializeDeployState(moduleName: string): DeployState {
   return {
     phase: "uninitialized",
     details: {
-      recipeName,
+      moduleName,
       chainId: 0,
     },
     validation: {

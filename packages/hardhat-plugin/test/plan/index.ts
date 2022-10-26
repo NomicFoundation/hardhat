@@ -15,7 +15,7 @@ describe("plan", () => {
     await this.hre.run("compile", { quiet: true });
     await this.hre.run("plan", {
       quiet: true,
-      userModulesPaths: ["MyRecipe.js"],
+      userModulesPaths: ["MyModule.js"],
     });
 
     const files = await fs.readdir(planPath);

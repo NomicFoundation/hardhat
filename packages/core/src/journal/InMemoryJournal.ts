@@ -9,43 +9,43 @@ export class InMemoryJournal implements Journal {
   private _journal: Map<string, Map<string, JournalEntry[]>> = new Map();
 
   public async addEntry(
-    recipeId: string,
+    moduleId: string,
     executorId: string,
     journalEntry: JournalEntry
   ): Promise<number> {
-    this._log(`Adding entry to ${recipeId}/${executorId}`);
+    this._log(`Adding entry to ${moduleId}/${executorId}`);
 
-    const recipeEntry: Map<string, JournalEntry[]> =
-      this._journal.get(recipeId) ?? new Map();
-    const executorEntries = recipeEntry.get(executorId) ?? [];
+    const moduleEntry: Map<string, JournalEntry[]> =
+      this._journal.get(moduleId) ?? new Map();
+    const executorEntries = moduleEntry.get(executorId) ?? [];
 
     executorEntries.push(journalEntry);
 
-    recipeEntry.set(executorId, executorEntries);
-    this._journal.set(recipeId, recipeEntry);
+    moduleEntry.set(executorId, executorEntries);
+    this._journal.set(moduleId, moduleEntry);
 
     return executorEntries.length - 1;
   }
 
   public async getEntry(
-    recipeId: string,
+    moduleId: string,
     executorId: string,
     entryIndex: number
   ): Promise<JournalEntry | undefined> {
-    this._log(`Getting entry ${entryIndex} from ${recipeId}/${executorId}`);
+    this._log(`Getting entry ${entryIndex} from ${moduleId}/${executorId}`);
 
-    return this._journal.get(recipeId)?.get(executorId)?.[entryIndex];
+    return this._journal.get(moduleId)?.get(executorId)?.[entryIndex];
   }
 
   public async replaceEntry(
-    recipeId: string,
+    moduleId: string,
     executorId: string,
     txIndex: number,
     entryIndex: JournalEntry
   ): Promise<void> {
-    this._log(`Replacing entry ${txIndex} from ${recipeId}/${executorId}`);
+    this._log(`Replacing entry ${txIndex} from ${moduleId}/${executorId}`);
 
-    const transactions = this._journal.get(recipeId)?.get(executorId);
+    const transactions = this._journal.get(moduleId)?.get(executorId);
     if (transactions === undefined || transactions[txIndex] === undefined) {
       throw new Error(`Assertion error: replacing non-existent transaction`);
     }
@@ -53,9 +53,9 @@ export class InMemoryJournal implements Journal {
     transactions[txIndex] = entryIndex;
   }
 
-  public async delete(recipeId: string) {
-    this._log(`Deleting recipe ${recipeId}`);
+  public async delete(moduleId: string) {
+    this._log(`Deleting module ${moduleId}`);
 
-    this._journal.delete(recipeId);
+    this._journal.delete(moduleId);
   }
 }

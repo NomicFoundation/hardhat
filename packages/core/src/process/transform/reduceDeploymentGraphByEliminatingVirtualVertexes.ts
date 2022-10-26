@@ -3,8 +3,8 @@ import { eliminate } from "graph/adjacencyList";
 import { DeploymentGraphVertex } from "types/deploymentGraph";
 
 /**
- * Recipe graphs can have virtual vertex that represent the
- * execution of all vertex in a recipe.
+ * Deployment graphs can have virtual vertex that represent the
+ * execution of all vertex in a module/subgraph.
  *
  * We reduce the graph to remove the virtual nodes, by adding
  * edges from any dependents to the virtual nodes dependents:
@@ -16,8 +16,8 @@ import { DeploymentGraphVertex } from "types/deploymentGraph";
  *         ▼
  *         C
  *
- * @param deploymentGraph the recipe graph with recipe virtual vertexes
- * @returns a reduced recipe graph
+ * @param deploymentGraph the deployment graph with virtual vertexes
+ * @returns a reduced deployment graph
  */
 export function reduceDeploymentGraphByEliminatingVirtualVertexes(
   deploymentGraph: DeploymentGraph

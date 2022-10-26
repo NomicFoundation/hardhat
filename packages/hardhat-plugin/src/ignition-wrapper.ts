@@ -43,12 +43,12 @@ export class IgnitionWrapper {
     });
 
     if (deploymentResult._kind === "hold") {
-      const [recipeId, holdReason] = deploymentResult.holds;
-      throw new Error(`Execution held for recipe '${recipeId}': ${holdReason}`);
+      const [moduleId, holdReason] = deploymentResult.holds;
+      throw new Error(`Execution held for module '${moduleId}': ${holdReason}`);
     }
 
     if (deploymentResult._kind === "failure") {
-      const [recipeId, failures] = deploymentResult.failures;
+      const [moduleId, failures] = deploymentResult.failures;
 
       let failuresMessage = "";
       for (const failure of failures) {
@@ -59,7 +59,7 @@ export class IgnitionWrapper {
         return process.exit(1);
       } else {
         throw new Error(
-          `Execution failed for recipe '${recipeId}':\n\n${failuresMessage}`
+          `Execution failed for module '${moduleId}':\n\n${failuresMessage}`
         );
       }
     }

@@ -1,11 +1,11 @@
 const { assert } = require("chai");
-const SimpleRecipe = require("../ignition/Simple");
+const SimpleModule = require("../ignition/Simple");
 
 describe("Simple", function () {
   let simpleContract;
 
   before(async () => {
-    const { simple } = await ignition.deploy(SimpleRecipe, {
+    const { simple } = await ignition.deploy(SimpleModule, {
       parameters: {
         IncAmount: 42,
       },

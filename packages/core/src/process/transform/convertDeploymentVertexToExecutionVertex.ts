@@ -27,27 +27,38 @@ interface TransformContext {
 
 export function convertDeploymentVertexToExecutionVertex(
   context: TransformContext
-): (recipeVertex: DeploymentGraphVertex) => Promise<ExecutionVertex> {
-  return (recipeVertex: DeploymentGraphVertex): Promise<ExecutionVertex> => {
-    switch (recipeVertex.type) {
+): (deploymentVertex: DeploymentGraphVertex) => Promise<ExecutionVertex> {
+  return (
+    deploymentVertex: DeploymentGraphVertex
+  ): Promise<ExecutionVertex> => {
+    switch (deploymentVertex.type) {
       case "HardhatContract":
-        return convertHardhatContractToContractDeploy(recipeVertex, context);
+        return convertHardhatContractToContractDeploy(
+          deploymentVertex,
+          context
+        );
       case "ArtifactContract":
-        return convertArtifactContractToContractDeploy(recipeVertex, context);
+        return convertArtifactContractToContractDeploy(
+          deploymentVertex,
+          context
+        );
       case "DeployedContract":
-        return convertDeployedContractToDeployedDeploy(recipeVertex, context);
+        return convertDeployedContractToDeployedDeploy(
+          deploymentVertex,
+          context
+        );
       case "Call":
-        return convertCallToContractCall(recipeVertex, context);
+        return convertCallToContractCall(deploymentVertex, context);
       case "HardhatLibrary":
-        return convertHardhatLibraryToLibraryDeploy(recipeVertex, context);
+        return convertHardhatLibraryToLibraryDeploy(deploymentVertex, context);
       case "ArtifactLibrary":
-        return convertArtifactLibraryToLibraryDeploy(recipeVertex, context);
+        return convertArtifactLibraryToLibraryDeploy(deploymentVertex, context);
       case "Virtual":
         throw new Error(
-          `Virtual vertex should be removed ${recipeVertex.id} (${recipeVertex.label})`
+          `Virtual vertex should be removed ${deploymentVertex.id} (${deploymentVertex.label})`
         );
       default:
-        return assertRecipeVertexNotExpected(recipeVertex);
+        return assertDeploymentVertexNotExpected(deploymentVertex);
     }
   };
 }
@@ -140,7 +151,7 @@ async function convertArtifactLibraryToLibraryDeploy(
   };
 }
 
-function assertRecipeVertexNotExpected(
+function assertDeploymentVertexNotExpected(
   vertex: never
 ): Promise<ExecutionVertex> {
   const v: any = vertex;
@@ -196,7 +207,7 @@ async function resolveParameter(
     switch (hasParamResult.errorCode) {
       case "no-params":
         throw new Error(
-          `No parameters object provided to deploy options, but recipe requires parameter "${arg.label}"`
+          `No parameters object provided to deploy options, but module requires parameter "${arg.label}"`
         );
       case "param-missing":
         throw new Error(`No parameter provided for "${arg.label}"`);

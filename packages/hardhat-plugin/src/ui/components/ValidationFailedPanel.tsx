@@ -9,8 +9,8 @@ export const ValidationFailedPanel = ({
   return (
     <Box flexDirection="column">
       <Text>
-        Ignition validation <Text color="red">failed</Text> for recipe{" "}
-        {deployState.details.recipeName}
+        Ignition validation <Text color="red">failed</Text> for module{" "}
+        {deployState.details.moduleName}
       </Text>
 
       <Box flexDirection="column" marginTop={1}>
