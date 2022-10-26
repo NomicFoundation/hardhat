@@ -3,10 +3,10 @@ import type { Module, ModuleDict } from "types/module";
 
 export function buildModule(
   moduleName: string,
-  moduleFunc: (m: IDeploymentBuilder) => ModuleDict
+  moduleAction: (m: IDeploymentBuilder) => ModuleDict
 ): Module {
   return {
     name: moduleName,
-    moduleAction: moduleFunc,
+    moduleAction,
   };
 }
