@@ -29,7 +29,7 @@ extendConfig(async (config, userConfig) => {
     if (!process.argv.includes(TASK_INIT_FOUNDRY)) {
       console.log(
         chalk.yellow(
-          `Warning: No foundry.toml file found at ${config.paths.root}, hardhat-foundry plugin will not activate. Consider running 'npx hardhat ${TASK_INIT_FOUNDRY}'`
+          `Warning: You are using the hardhat-foundry plugin but there isn't a foundry.toml file in your project. Run 'npx hardhat ${TASK_INIT_FOUNDRY}' to create one.`
         )
       );
     }
