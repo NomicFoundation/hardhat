@@ -1,14 +1,14 @@
 /* eslint-disable import/no-unused-modules */
 import { assert } from "chai";
 
-import { deployRecipe } from "./helpers";
+import { deployModule } from "./helpers";
 import { useEnvironment } from "./useEnvironment";
 
 describe("contract deploys", () => {
   useEnvironment("minimal");
 
   it("should be able to deploy a contract", async function () {
-    const result = await deployRecipe(this.hre, (m) => {
+    const result = await deployModule(this.hre, (m) => {
       const foo = m.contract("Foo");
 
       return { foo };
@@ -22,7 +22,7 @@ describe("contract deploys", () => {
   });
 
   it("should be able to deploy a contract with arguments", async function () {
-    const result = await deployRecipe(this.hre, (m) => {
+    const result = await deployModule(this.hre, (m) => {
       const greeter = m.contract("Greeter", {
         args: ["Hello World"],
       });
@@ -38,7 +38,7 @@ describe("contract deploys", () => {
   });
 
   it("should be able to deploy contracts with dependencies", async function () {
-    const result = await deployRecipe(this.hre, (m) => {
+    const result = await deployModule(this.hre, (m) => {
       const bar = m.contract("Bar");
       const usesContract = m.contract("UsesContract", {
         args: [bar],
@@ -56,7 +56,7 @@ describe("contract deploys", () => {
   });
 
   it("should be able to deploy contracts without dependencies", async function () {
-    const result = await deployRecipe(this.hre, (m) => {
+    const result = await deployModule(this.hre, (m) => {
       const foo = m.contract("Foo");
       const bar = m.contract("Bar");
 
@@ -77,7 +77,7 @@ describe("contract deploys", () => {
 
     const artifact = await this.hre.artifacts.readArtifact("Greeter");
 
-    const result = await deployRecipe(this.hre, (m) => {
+    const result = await deployModule(this.hre, (m) => {
       const greeter = m.contract("Greeter", artifact, {
         args: ["Hello World"],
       });

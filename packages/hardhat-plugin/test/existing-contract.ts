@@ -1,7 +1,7 @@
 /* eslint-disable import/no-unused-modules */
 import { assert } from "chai";
 
-import { deployRecipe } from "./helpers";
+import { deployModule } from "./helpers";
 import { useEnvironment } from "./useEnvironment";
 
 describe("existing contract", () => {
@@ -10,7 +10,7 @@ describe("existing contract", () => {
   it("should be able to use an existing contract", async function () {
     await this.hre.run("compile", { quiet: true });
 
-    const firstResult = await deployRecipe(this.hre, (m) => {
+    const firstResult = await deployModule(this.hre, (m) => {
       const bar = m.contract("Bar");
       const usesContract = m.contract("UsesContract", {
         args: ["0x0000000000000000000000000000000000000000"],
@@ -26,7 +26,7 @@ describe("existing contract", () => {
     const usesContractAddress: string = firstResult.usesContract.address;
     const usesContractAbi: any[] = firstResult.usesContract.abi;
 
-    const result = await deployRecipe(this.hre, (m) => {
+    const result = await deployModule(this.hre, (m) => {
       const bar = m.contractAt("Bar", barAddress, barAbi);
       const usesContract = m.contractAt(
         "UsesContract",

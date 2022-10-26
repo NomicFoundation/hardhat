@@ -1,43 +1,43 @@
-import { Recipe } from "@nomicfoundation/ignition-core";
+import { Module } from "@ignored/ignition-core";
 import setupDebug from "debug";
 import fsExtra from "fs-extra";
 import path from "path";
 
 const debug = setupDebug("hardhat-ignition:recipes");
 
-export function loadAllUserRecipes(userRecipesDirectory: string): Recipe[] {
-  debug(`Loading all user recipes from '${userRecipesDirectory}'`);
+export function loadAllUserModules(userRecipesDirectory: string): Module[] {
+  debug(`Loading all user modules from '${userRecipesDirectory}'`);
 
   if (!fsExtra.existsSync(userRecipesDirectory)) {
     throw new Error(`Directory ${userRecipesDirectory} not found.`);
   }
 
-  const resolvedUserRecipesPaths = getAllUserRecipesPaths(userRecipesDirectory);
+  const resolvedUserRecipesPaths = getAllUserModulesPaths(userRecipesDirectory);
 
-  return getUserRecipesFromPaths(resolvedUserRecipesPaths);
+  return getUserModulesFromPaths(resolvedUserRecipesPaths);
 }
 
-export function loadUserRecipes(
+export function loadUserModules(
   userRecipesDirectory: string,
   userRecipesFiles: string[] = []
-): Recipe[] {
-  debug(`Loading user recipes from '${userRecipesDirectory}'`);
+): Module[] {
+  debug(`Loading user modules from '${userRecipesDirectory}'`);
 
   if (!fsExtra.existsSync(userRecipesDirectory)) {
     throw new Error(`Directory ${userRecipesDirectory} not found.`);
   }
 
-  const resolvedUserRecipesPaths = getUserRecipesPaths(
+  const resolvedUserRecipesPaths = getUserModulesPaths(
     userRecipesDirectory,
     userRecipesFiles
   );
 
-  return getUserRecipesFromPaths(resolvedUserRecipesPaths);
+  return getUserModulesFromPaths(resolvedUserRecipesPaths);
 }
 
-export function getUserRecipesFromPaths(
+export function getUserModulesFromPaths(
   resolvedUserRecipesPaths: string[]
-): Recipe[] {
+): Module[] {
   debug(`Loading '${resolvedUserRecipesPaths.length}' recipe files`);
 
   const userRecipes: any[] = [];
@@ -56,14 +56,14 @@ export function getUserRecipesFromPaths(
   return userRecipes;
 }
 
-export function getUserRecipesPaths(
+export function getUserModulesPaths(
   userRecipesDirectory: string,
   userRecipesFiles: string[]
 ): string[] {
   return userRecipesFiles.map((x) => path.resolve(userRecipesDirectory, x));
 }
 
-export function getAllUserRecipesPaths(userRecipesDirectory: string) {
+export function getAllUserModulesPaths(userRecipesDirectory: string) {
   return fsExtra
     .readdirSync(userRecipesDirectory)
     .filter((x) => !x.startsWith("."))

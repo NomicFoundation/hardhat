@@ -1,4 +1,4 @@
-require("@nomicfoundation/hardhat-ignition");
+require("@ignored/hardhat-ignition");
 
 /**
  * @type import('hardhat/config').HardhatUserConfig

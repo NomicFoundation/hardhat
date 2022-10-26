@@ -16,23 +16,24 @@ import type {
 import {
   isArtifactContract,
   isCall,
+  isCallable,
   isDeployedContract,
   isHardhatContract,
   isHardhatLibrary,
 } from "utils/guards";
 
-describe("Recipes", function () {
+describe("Modules", function () {
   describe("single contract", () => {
     let recipeGraph: IRecipeGraph;
 
     before(() => {
-      const singleRecipe = buildRecipe("single", (m: IRecipeGraphBuilder) => {
+      const singleModule = buildModule("single", (m: IRecipeGraphBuilder) => {
         const example = m.contract("Example");
 
         return { example };
       });
 
-      const { graph } = generateRecipeGraphFrom(singleRecipe, {
+      const { graph } = generateRecipeGraphFrom(singleModule, {
         chainId: 31337,
       });
 
@@ -85,7 +86,7 @@ describe("Recipes", function () {
     let recipeGraph: IRecipeGraph;
 
     before(() => {
-      const twoContractsRecipe = buildRecipe(
+      const twoContractsModule = buildModule(
         "two contracts",
         (m: IRecipeGraphBuilder) => {
           const example1 = m.contract("Example1");
@@ -95,7 +96,7 @@ describe("Recipes", function () {
         }
       );
 
-      const { graph } = generateRecipeGraphFrom(twoContractsRecipe, {
+      const { graph } = generateRecipeGraphFrom(twoContractsModule, {
         chainId: 31337,
       });
 
@@ -149,7 +150,7 @@ describe("Recipes", function () {
     let recipeGraph: IRecipeGraph;
 
     before(() => {
-      const withConstructorArgsRecipe = buildRecipe(
+      const withConstructorArgsRecipe = buildModule(
         "withConstructorArgs",
         (m: IRecipeGraphBuilder) => {
           const token = m.contract("Token", {
@@ -213,7 +214,7 @@ describe("Recipes", function () {
     let recipeGraph: IRecipeGraph;
 
     before(() => {
-      const depsBetweenContractsRecipe = buildRecipe(
+      const depsBetweenContractsRecipe = buildModule(
         "dependenciesBetweenContracts",
         (m: IRecipeGraphBuilder) => {
           const a = m.contract("A");
@@ -310,7 +311,7 @@ describe("Recipes", function () {
     let recipeGraph: IRecipeGraph;
 
     before(() => {
-      const callRecipe = buildRecipe("call", (m: IRecipeGraphBuilder) => {
+      const callRecipe = buildModule("call", (m: IRecipeGraphBuilder) => {
         const token = m.contract("Token");
         const exchange = m.contract("Exchange");
         const another = m.contract("Another");
@@ -470,7 +471,7 @@ describe("Recipes", function () {
     let recipeGraph: IRecipeGraph;
 
     before(() => {
-      const uniswapRecipe = buildRecipe("Uniswap", (m: IRecipeGraphBuilder) => {
+      const uniswapRecipe = buildModule("Uniswap", (m: IRecipeGraphBuilder) => {
         const abi = [{}];
         const someother = m.contract("Someother");
 
@@ -526,7 +527,7 @@ describe("Recipes", function () {
     before(() => {
       const artifact = { abi: [], bytecode: "xxx" } as any as Artifact;
 
-      const fromArtifactRecipe = buildRecipe(
+      const fromArtifactRecipe = buildModule(
         "FromArtifact",
         (m: IRecipeGraphBuilder) => {
           const someother = m.contract("Someother");
@@ -603,7 +604,7 @@ describe("Recipes", function () {
     let recipeGraph: IRecipeGraph;
 
     before(() => {
-      const librariesRecipe = buildRecipe(
+      const librariesRecipe = buildModule(
         "libraries",
         (m: IRecipeGraphBuilder) => {
           const someother = m.contract("Someother");
@@ -701,7 +702,7 @@ describe("Recipes", function () {
 
   describe("network chain id", () => {
     it("should inject the chainId via the builder", () => {
-      const chainIdRecipe = buildRecipe("chainId", (m: IRecipeGraphBuilder) => {
+      const chainIdRecipe = buildModule("chainId", (m: IRecipeGraphBuilder) => {
         if (m.chainId === 42) {
           return {};
         }
@@ -715,7 +716,7 @@ describe("Recipes", function () {
     });
   });
 
-  describe("recipe parameters", () => {
+  describe("module parameters", () => {
     let recipeGraph: IRecipeGraph;
 
     before(() => {
@@ -732,15 +733,19 @@ describe("Recipes", function () {
         }
       );
 
-      const WrapRecipe = buildRecipe("Wrap", (m) => {
+      const WrapModule = buildModule("Wrap", (m) => {
         const { token } = m.useRecipe(librariesRecipe, {
           parameters: { tokenSymbol: "EXAMPLE", tokenName: "Example" },
         });
 
+        if (!isCallable(token)) {
+          throw new Error("Not callable");
+        }
+
         return { token };
       });
 
-      const { graph } = generateRecipeGraphFrom(WrapRecipe, {
+      const { graph } = generateRecipeGraphFrom(WrapModule, {
         chainId: 31,
       });
 
@@ -775,7 +780,7 @@ describe("Recipes", function () {
         }
       );
 
-      const WrapRecipe = buildRecipe("Wrap", (m: IRecipeGraphBuilder) => {
+      const WrapRecipe = buildModule("Wrap", (m: IRecipeGraphBuilder) => {
         const { token } = m.useModule(librariesRecipe, {
           parameters: { tokenSymbol: "EXAMPLE", tokenName: "Example" },
         });
@@ -793,7 +798,7 @@ describe("Recipes", function () {
 
       recipeGraph = graph;
 
-      const DiffParamsRecipe = buildRecipe(
+      const DiffParamsRecipe = buildModule(
         "Error",
         (m: IRecipeGraphBuilder) => {
           const { token } = m.useModule(librariesRecipe, {
@@ -823,7 +828,7 @@ describe("Recipes", function () {
         }
       );
 
-      const ReturnTypeRecipe = buildRecipe(
+      const ReturnTypeRecipe = buildModule(
         "ReturnsParamRecipe",
         (m: IRecipeGraphBuilder) => {
           const { token } = m.useModule(returnTypeModule, {

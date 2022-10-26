@@ -2,63 +2,88 @@
 
 ## Setup
 
+This guide assumes you are starting with the Hardhat Javascript project as covered in the [Hardhat quick start](https://hardhat.org/hardhat-runner/docs/getting-started#quick-start).
+
+```shell
+$ npx hardhat
+888    888                      888 888               888
+888    888                      888 888               888
+888    888                      888 888               888
+8888888888  8888b.  888d888 .d88888 88888b.   8888b.  888888
+888    888     "88b 888P"  d88" 888 888 "88b     "88b 888
+888    888 .d888888 888    888  888 888  888 .d888888 888
+888    888 888  888 888    Y88b 888 888  888 888  888 Y88b.
+888    888 "Y888888 888     "Y88888 888  888 "Y888888  "Y888
+
+👷 Welcome to Hardhat v2.9.9 👷‍
+
+? What do you want to do? …
+❯ Create a JavaScript project
+  Create a TypeScript project
+  Create an empty hardhat.config.js
+  Quit
+```
+
 Add **Ignition** to your **Hardhat** project by installing the plugin:
 
 ```shell
-npm install @nomicfoundation/hardhat-ignition
+npm install @ignored/hardhat-ignition
 ```
 
-Modify your `Hardhat.config.{ts,js}` file, to include **Ignition**:
+Modify your `hardhat.config.js` file, to include **Ignition**:
 
 ```javascript
-import { HardhatUserConfig, task } from "hardhat/config";
+require("@nomicfoundation/hardhat-toolbox");
 // ...
-import "@nomicfoundation/hardhat-ignition";
+require("@ignored/hardhat-ignition");
 ```
 
-Create an `./ignition` folder in your project root to contain your deployment recipes.
+Create an `./ignition` folder in your project root to contain your deployment modules.
 
 ```shell
 mkdir ./ignition
 ```
 
-## Write a deployment Recipe
+## Write a deployment module
 
-Add a deployment recipe under the `./ignition` folder:
+Add a deployment module under the `./ignition` folder for the example `Lock.sol` contract:
 
-```typescript
-// ./ignition/MyRecipe.ts
+```js
+// ./ignition/LockModule.js
+const { buildModule } = require("@ignored/hardhat-ignition");
 
-import { buildRecipe } from "@nomicfoundation/hardhat-ignition";
+const JAN_01_2100 = 4102491600;
 
-export default buildRecipe("MyRecipe", (m) => {
-  const token = m.contract("Token");
+module.exports = buildModule("LockModule", (m) => {
+  const unlockTime = m.getOptionalParam("unlockTime", JAN_01_2100);
 
-  return { token };
+  const lock = m.contract("Lock", { args: [unlockTime] });
+
+  return { lock };
 });
 ```
 
-Run the `deploy` task to test the recipe against a local ephemeral **Hardhat** node:
+Run the `deploy` task to test the module against an ephemeral **Hardhat** node (using the default `unlockTime`):
 
 ```shell
-npx hardhat deploy MyRecipe.ts
-# No need to generate any newer typings.
-# Token contract address 0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512
+npx hardhat deploy LockModule.js
 ```
 
-To deploy against a network configured in `hardhat.config.{ts,js}` pass the network name:
+Parameters can be passed as a flag at the command line via a json string:
 
 ```shell
-npx hardhat deploy --network mainnet ./ignition/MyRecipe.ts
-```
-
-Recipes that accept parameters can be passed those parameters at the command line via a json string:
-
-```shell
-npx hardhat deploy --parameters "{\"IncAmount\": 5}" ParamRecipe.js
+npx hardhat deploy --parameters "{\"unlockTime\":4102491600}" LockModule.js
 # Ensure you have properly escaped the json string
 ```
 
-Next, dig deeper into defining recipes:
+To deploy against a local hardhat node:
 
-[Creating recipes for deployment](./creating-recipes-for-deployment.md)
+```shell
+npx hardhat node
+// in another terminal
+npx hardhat deploy --network localhost LockModule.js
+```
+
+Next, dig deeper into defining modules:
+
+[Creating modules for deployment](./creating-modules-for-deployment.md)

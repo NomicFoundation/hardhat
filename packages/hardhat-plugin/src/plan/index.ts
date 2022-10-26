@@ -1,4 +1,4 @@
-import type { IgnitionPlan } from "@nomicfoundation/ignition-core";
+import type { IgnitionPlan } from "@ignored/ignition-core";
 import { exec } from "child_process";
 import fs from "fs-extra";
 import os from "os";

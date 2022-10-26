@@ -1,6 +1,7 @@
-const { buildRecipe } = require("@nomicfoundation/ignition-core");
+// eslint-disable-next-line import/no-unused-modules
+const { buildModule } = require("@ignored/ignition-core");
 
-module.exports = buildRecipe("MyRecipe", (m) => {
+module.exports = buildModule("MyModule", (m) => {
   const bar = m.contract("Bar");
   const usesContract = m.contract("UsesContract", {
     args: ["0x0000000000000000000000000000000000000000"],

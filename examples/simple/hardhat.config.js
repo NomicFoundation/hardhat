@@ -1,4 +1,4 @@
-require("@nomicfoundation/hardhat-ignition");
+require("@ignored/hardhat-ignition");
 
 module.exports = {
   solidity: "0.8.5",

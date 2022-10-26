@@ -3,8 +3,8 @@ import {
   IgnitionDeployOptions,
   Providers,
   ExternalParamValue,
-  Recipe,
-} from "@nomicfoundation/ignition-core";
+  Module,
+} from "@ignored/ignition-core";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 
 import { renderToCli } from "./ui/renderToCli";
@@ -26,7 +26,7 @@ export class IgnitionWrapper {
   }
 
   public async deploy(
-    recipe: Recipe,
+    ignitionModule: Module,
     deployParams:
       | { parameters: { [key: string]: ExternalParamValue }; ui?: boolean }
       | undefined
@@ -37,7 +37,7 @@ export class IgnitionWrapper {
       await this._providers.config.setParams(deployParams.parameters);
     }
 
-    const [deploymentResult] = await this._ignition.deploy(recipe, {
+    const [deploymentResult] = await this._ignition.deploy(ignitionModule, {
       ...this._deployOptions,
       ui: Boolean(deployParams?.ui) ? renderToCli : undefined,
     });
@@ -87,7 +87,7 @@ export class IgnitionWrapper {
     return resolvedOutput;
   }
 
-  public async plan(recipe: Recipe) {
-    return this._ignition.plan(recipe);
+  public async plan(ignitionModule: Module) {
+    return this._ignition.plan(ignitionModule);
   }
 }

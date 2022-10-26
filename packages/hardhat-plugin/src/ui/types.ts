@@ -3,7 +3,7 @@ import {
   ExecutionVertex,
   ExecutionVertexType,
   VertexVisitResultFailure,
-} from "@nomicfoundation/ignition-core";
+} from "@ignored/ignition-core";
 
 interface VertexSuccess {
   status: "success";

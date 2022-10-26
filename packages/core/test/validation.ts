@@ -2,6 +2,7 @@
 import { assert } from "chai";
 
 import { generateRecipeGraphFrom } from "process/generateRecipeGraphFrom";
+import { buildModule } from "recipe/buildModule";
 import { buildRecipe } from "recipe/buildRecipe";
 import { Artifact } from "types/hardhat";
 import type { IRecipeGraphBuilder } from "types/recipeGraph";
@@ -19,7 +20,7 @@ describe("Validation", () => {
 
   describe("artifact contract deploy", () => {
     it("should validate a correct artifact contract deploy", async () => {
-      const singleRecipe = buildRecipe("single", (m: IRecipeGraphBuilder) => {
+      const singleRecipe = buildModule("single", (m: IRecipeGraphBuilder) => {
         const example = m.contract("Example", exampleArtifact);
 
         return { example };
@@ -39,7 +40,7 @@ describe("Validation", () => {
     });
 
     it("should not validate a artifact contract deploy with the wrong number of args", async () => {
-      const singleRecipe = buildRecipe("single", (m: IRecipeGraphBuilder) => {
+      const singleRecipe = buildModule("single", (m: IRecipeGraphBuilder) => {
         const example = m.contract("Example", exampleArtifact, {
           args: [1, 2, 3],
         });
@@ -75,7 +76,7 @@ describe("Validation", () => {
 
   describe("artifact library deploy", () => {
     it("should validate a correct artifact library deploy", async () => {
-      const singleRecipe = buildRecipe("single", (m: IRecipeGraphBuilder) => {
+      const singleRecipe = buildModule("single", (m: IRecipeGraphBuilder) => {
         const example = m.library("Example", exampleArtifact);
 
         return { example };
@@ -95,7 +96,7 @@ describe("Validation", () => {
     });
 
     it("should not validate a artifact library deploy with the wrong number of args", async () => {
-      const singleRecipe = buildRecipe("single", (m: IRecipeGraphBuilder) => {
+      const singleRecipe = buildModule("single", (m: IRecipeGraphBuilder) => {
         const example = m.library("Example", exampleArtifact, {
           args: [1, 2, 3],
         });
@@ -213,7 +214,7 @@ describe("Validation", () => {
     };
 
     it("should validate a correct call", async () => {
-      const singleRecipe = buildRecipe("single", (m: IRecipeGraphBuilder) => {
+      const singleRecipe = buildModule("single", (m: IRecipeGraphBuilder) => {
         const example = m.contract("Foo");
 
         m.call(example, "sub", { args: [2] });
@@ -238,7 +239,7 @@ describe("Validation", () => {
     });
 
     it("should validate an overriden call", async () => {
-      const singleRecipe = buildRecipe("single", (m: IRecipeGraphBuilder) => {
+      const singleRecipe = buildModule("single", (m: IRecipeGraphBuilder) => {
         const example = m.contract("Foo");
 
         m.call(example, "inc(bool,uint256)", { args: [true, 2] });
@@ -263,7 +264,7 @@ describe("Validation", () => {
     });
 
     it("should fail a call on a nonexistant function", async () => {
-      const singleRecipe = buildRecipe("single", (m: IRecipeGraphBuilder) => {
+      const singleRecipe = buildModule("single", (m: IRecipeGraphBuilder) => {
         const example = m.contract("Foo");
 
         m.call(example, "nonexistant", { args: [] });
@@ -301,7 +302,7 @@ describe("Validation", () => {
     });
 
     it("should fail a call with wrong number of arguments", async () => {
-      const singleRecipe = buildRecipe("single", (m: IRecipeGraphBuilder) => {
+      const singleRecipe = buildModule("single", (m: IRecipeGraphBuilder) => {
         const example = m.contract("Foo");
 
         m.call(example, "sub", { args: [] });
@@ -339,7 +340,7 @@ describe("Validation", () => {
     });
 
     it("should fail an overloaded call with wrong number of arguments", async () => {
-      const singleRecipe = buildRecipe("single", (m: IRecipeGraphBuilder) => {
+      const singleRecipe = buildModule("single", (m: IRecipeGraphBuilder) => {
         const example = m.contract("MyContract");
 
         m.call(example, "inc", { args: [] });
@@ -379,7 +380,7 @@ describe("Validation", () => {
 
   describe("deployed contract", () => {
     it("should validate a correct artifact library deploy", async () => {
-      const singleRecipe = buildRecipe("single", (m: IRecipeGraphBuilder) => {
+      const singleRecipe = buildModule("single", (m: IRecipeGraphBuilder) => {
         const existing = m.contractAt(
           "Example",
           "0x0000000000000000000000000000000000000000",
@@ -403,7 +404,7 @@ describe("Validation", () => {
     });
 
     it("should not validate a deployed contract with an invalid address", async () => {
-      const singleRecipe = buildRecipe("single", (m: IRecipeGraphBuilder) => {
+      const singleRecipe = buildModule("single", (m: IRecipeGraphBuilder) => {
         const existing = m.contractAt("Example", "0xBAD", []);
 
         return { existing };
@@ -437,7 +438,7 @@ describe("Validation", () => {
 
   describe("hardhat contract deploy", () => {
     it("should validate a correct contract deploy", async () => {
-      const singleRecipe = buildRecipe("single", (m: IRecipeGraphBuilder) => {
+      const singleRecipe = buildModule("single", (m: IRecipeGraphBuilder) => {
         const example = m.contract("Example");
 
         return { example };
@@ -461,7 +462,7 @@ describe("Validation", () => {
     });
 
     it("should not validate a contract deploy on a non-existant hardhat contract", async () => {
-      const singleRecipe = buildRecipe("single", (m: IRecipeGraphBuilder) => {
+      const singleRecipe = buildModule("single", (m: IRecipeGraphBuilder) => {
         const nonexistant = m.contract("Nonexistant");
 
         return { nonexistant };
@@ -498,7 +499,7 @@ describe("Validation", () => {
 
   describe("hardhat library deploy", () => {
     it("should validate a correct deploy", async () => {
-      const singleRecipe = buildRecipe("single", (m: IRecipeGraphBuilder) => {
+      const singleRecipe = buildModule("single", (m: IRecipeGraphBuilder) => {
         const example = m.library("Example");
 
         return { example };
@@ -522,7 +523,7 @@ describe("Validation", () => {
     });
 
     it("should not validate a library deploy on a non-existant hardhat library", async () => {
-      const singleRecipe = buildRecipe("single", (m: IRecipeGraphBuilder) => {
+      const singleRecipe = buildModule("single", (m: IRecipeGraphBuilder) => {
         const nonexistant = m.library("Nonexistant");
 
         return { nonexistant };
@@ -565,10 +566,10 @@ describe("Validation", () => {
         return { example };
       });
 
-      const singleRecipe = buildRecipe("single", (m: IRecipeGraphBuilder) => {
-        const { example } = m.useRecipe(subrecipe);
+      const singleRecipe = buildModule("single", (m: IRecipeGraphBuilder) => {
+        m.useRecipe(subrecipe);
 
-        return { example };
+        return {};
       });
 
       const { graph } = generateRecipeGraphFrom(singleRecipe, {

@@ -1,7 +1,7 @@
 /* eslint-disable import/no-unused-modules */
 import { assert } from "chai";
 
-import { deployRecipe } from "./helpers";
+import { deployModule } from "./helpers";
 import { useEnvironment } from "./useEnvironment";
 
 describe("libraries", () => {
@@ -10,7 +10,7 @@ describe("libraries", () => {
   it("should be able to deploy a contract that depends on a hardhat library", async function () {
     await this.hre.run("compile", { quiet: true });
 
-    const result = await deployRecipe(this.hre, (m) => {
+    const result = await deployModule(this.hre, (m) => {
       const rubbishMath = m.library("RubbishMath");
       const dependsOnLib = m.contract("DependsOnLib", {
         libraries: {
@@ -44,7 +44,7 @@ describe("libraries", () => {
       "RubbishMath"
     );
 
-    const result = await deployRecipe(this.hre, (m) => {
+    const result = await deployModule(this.hre, (m) => {
       const rubbishMath = m.library("RubbishMath", libraryArtifact);
       const dependsOnLib = m.contract("DependsOnLib", {
         libraries: {
@@ -73,7 +73,7 @@ describe("libraries", () => {
 
   it("should deploy a contract with an existing library", async function () {
     // given
-    const libDeployResult = await deployRecipe(this.hre, (m) => {
+    const libDeployResult = await deployModule(this.hre, (m) => {
       const rubbishMath = m.contract("RubbishMath");
 
       return { rubbishMath };
@@ -82,7 +82,7 @@ describe("libraries", () => {
     const libAddress = libDeployResult.rubbishMath.address;
     const libAbi = libDeployResult.rubbishMath.abi;
 
-    const result = await deployRecipe(this.hre, (m) => {
+    const result = await deployModule(this.hre, (m) => {
       const rubbishMath = m.contractAt("RubbishMath", libAddress, libAbi);
 
       const dependsOnLib = m.contract("DependsOnLib", {

@@ -1,4 +1,4 @@
-import { DeployState, ExecutionVertex } from "@nomicfoundation/ignition-core";
+import { DeployState, ExecutionVertex } from "@ignored/ignition-core";
 import { Box, Text } from "ink";
 
 import { DeploymentError } from "../../types";

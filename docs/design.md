@@ -17,7 +17,7 @@ flowchart LR
   1 --> 2
   2 --> 3
   3 --> 4
-  ```
+```
 
 Ignition expresses a deployment as a dependency graph of on-chain transactions, that is, contract deployments and contract calls. Deployments and calls can be dependent on each other. A call to a contract requires that that contract first be deployed; the call should not be invoked until the contract deploy has completed entirely and successfully.
 
@@ -162,27 +162,34 @@ More than one transaction can be submitted to the Ethereum chain at once. A **de
 To simplify user reasoning about the order of execution, the execution engine groups into batches. A batch is the next set of transactions to submit. Batches are submitted until there is an error or all transactions are complete.
 
 ```javascript
-  let unstarted = getVertexesFrom(executionGraph)
-  let onHold = []
-  let errors = []
-  let completed = []
+let unstarted = getVertexesFrom(executionGraph);
+let onHold = [];
+let errors = [];
+let completed = [];
 
-  let buildBatch = (unstarted, completed) => unstarted.filter(v => allDependenciesCompleted(v, executionGraph, completed))
+let buildBatch = (unstarted, completed) =>
+  unstarted.filter((v) =>
+    allDependenciesCompleted(v, executionGraph, completed)
+  );
 
-  while (unstarted.length > 0) {
-    const batch = buildBatch(unstarted.concat(onHold), completed)
+while (unstarted.length > 0) {
+  const batch = buildBatch(unstarted.concat(onHold), completed);
 
-    const { errors: batchErrors, completed: batchCompleted, onhold: batchOnhold } = await executeBatch(batch)
+  const {
+    errors: batchErrors,
+    completed: batchCompleted,
+    onhold: batchOnhold,
+  } = await executeBatch(batch);
 
-    onHold = batchOnHold;
-    removeFrom(unstarted, batchCompleted)
-    addTo(completed, batchCompleted)
+  onHold = batchOnHold;
+  removeFrom(unstarted, batchCompleted);
+  addTo(completed, batchCompleted);
 
-    addTo(errors, batchErrors)
-    if (errors.length > 0) {
-      break;
-    }
+  addTo(errors, batchErrors);
+  if (errors.length > 0) {
+    break;
   }
+}
 ```
 
 A batch is constructed by looking at all unstarted or on-hold vertexes and using the `ExecutionGraph` to determine if all there dependencies have been met (executed successfully).

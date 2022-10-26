@@ -1,18 +1,20 @@
 /* eslint-disable import/no-unused-modules */
 import {
+  buildModule,
   buildRecipe,
   IRecipeGraphBuilder,
-} from "@nomicfoundation/ignition-core";
+} from "@ignored/ignition-core";
+import { isCallable } from "@ignored/ignition-core/src/utils/guards";
 import { assert } from "chai";
 
 import { mineBlocks } from "./helpers";
 import { useEnvironment } from "./useEnvironment";
 
-describe("useRecipe", function () {
+describe("useModule", function () {
   useEnvironment("minimal");
 
-  describe("returning futures from recipe usage", () => {
-    it("using useRecipe", async function () {
+  describe("returning futures from module usage", () => {
+    it("using useModule", async function () {
       await this.hre.run("compile", { quiet: true });
 
       const thirdPartyRecipe = buildRecipe(
@@ -24,17 +26,21 @@ describe("useRecipe", function () {
         }
       );
 
-      const userRecipe = buildRecipe("UserRecipe", (m: IRecipeGraphBuilder) => {
+      const userModule = buildModule("UserModule", (m: IRecipeGraphBuilder) => {
         const { foo } = m.useRecipe(thirdPartyRecipe);
 
         m.call(foo, "inc", {
           args: [],
         });
 
+        if (!isCallable(foo)) {
+          throw new Error("Not callable");
+        }
+
         return { foo };
       });
 
-      const deployPromise = this.hre.ignition.deploy(userRecipe, {
+      const deployPromise = this.hre.ignition.deploy(userModule, {
         parameters: {},
         ui: false,
       });
@@ -68,7 +74,7 @@ describe("useRecipe", function () {
         }
       );
 
-      const userRecipe = buildRecipe("UserRecipe", (m: IRecipeGraphBuilder) => {
+      const userModule = buildModule("UserModule", (m: IRecipeGraphBuilder) => {
         const foo = m.contract("Foo");
 
         m.useRecipe(thirdPartyRecipe, {
@@ -80,7 +86,7 @@ describe("useRecipe", function () {
         return { foo };
       });
 
-      const deployPromise = this.hre.ignition.deploy(userRecipe, {
+      const deployPromise = this.hre.ignition.deploy(userModule, {
         parameters: {},
         ui: false,
       });
@@ -97,7 +103,7 @@ describe("useRecipe", function () {
     });
   });
 
-  describe("passing futures into and out of recipes", () => {
+  describe("passing futures into and out of modules", () => {
     it("should allow ordering using returned futures", async function () {
       await this.hre.run("compile", { quiet: true });
 
@@ -119,7 +125,7 @@ describe("useRecipe", function () {
         }
       );
 
-      const userRecipe = buildRecipe("UserRecipe", (m: IRecipeGraphBuilder) => {
+      const userModule = buildModule("UserModule", (m: IRecipeGraphBuilder) => {
         const trace = m.contract("Trace", {
           args: ["first"],
         });
@@ -138,7 +144,7 @@ describe("useRecipe", function () {
         return { trace };
       });
 
-      const deployPromise = this.hre.ignition.deploy(userRecipe, {
+      const deployPromise = this.hre.ignition.deploy(userModule, {
         parameters: {},
         ui: false,
       });
@@ -181,7 +187,7 @@ describe("useRecipe", function () {
         }
       );
 
-      const userRecipe = buildRecipe("UserRecipe", (m: IRecipeGraphBuilder) => {
+      const userModule = buildModule("UserModule", (m: IRecipeGraphBuilder) => {
         const trace = m.contract("Trace", {
           args: ["first"],
         });
@@ -200,7 +206,7 @@ describe("useRecipe", function () {
         return { trace };
       });
 
-      const deployPromise = this.hre.ignition.deploy(userRecipe, {
+      const deployPromise = this.hre.ignition.deploy(userModule, {
         parameters: {},
         ui: false,
       });

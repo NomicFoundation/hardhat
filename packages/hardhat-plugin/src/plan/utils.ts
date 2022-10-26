@@ -1,7 +1,4 @@
-import type {
-  VertexGraph,
-  VertexDescriptor,
-} from "@nomicfoundation/ignition-core";
+import type { VertexGraph, VertexDescriptor } from "@ignored/ignition-core";
 
 function getVertexes(graph: VertexGraph): VertexDescriptor[] {
   return [...graph.vertexes.values()];

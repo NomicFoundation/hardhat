@@ -1,18 +1,18 @@
 import { RecipeGraphBuilder } from "recipe/RecipeGraphBuilder";
 import { FutureDict } from "types/future";
+import { Module } from "types/module";
 import type {
   RecipeGraphBuilderOptions,
-  Recipe,
   IRecipeGraph,
 } from "types/recipeGraph";
 
 export function generateRecipeGraphFrom(
-  recipe: Recipe,
+  ignitionModule: Module,
   builderOptions: RecipeGraphBuilderOptions
 ): { graph: IRecipeGraph; recipeOutputs: FutureDict } {
   const graphBuilder = new RecipeGraphBuilder(builderOptions);
 
-  const recipeOutputs = recipe.recipeAction(graphBuilder);
+  const recipeOutputs = ignitionModule.moduleAction(graphBuilder);
 
   return { graph: graphBuilder.graph, recipeOutputs };
 }

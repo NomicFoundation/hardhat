@@ -1,5 +1,5 @@
 import "@nomiclabs/hardhat-ethers";
-import { Providers, Recipe } from "@nomicfoundation/ignition-core";
+import { Module, Providers } from "@ignored/ignition-core";
 import { extendConfig, extendEnvironment, task } from "hardhat/config";
 import { lazyObject } from "hardhat/plugins";
 import path from "path";
@@ -7,10 +7,10 @@ import path from "path";
 import { ConfigWrapper } from "./ConfigWrapper";
 import { IgnitionWrapper } from "./ignition-wrapper";
 import { Renderer } from "./plan";
-import { loadUserRecipes, loadAllUserRecipes } from "./user-recipes";
+import { loadUserModules, loadAllUserModules } from "./user-recipes";
 import "./type-extensions";
 
-export { buildRecipe, buildModule } from "@nomicfoundation/ignition-core";
+export { buildRecipe, buildModule } from "@ignored/ignition-core";
 
 extendConfig((config, userConfig) => {
   const userIgnitionPath = userConfig.paths?.ignition;
@@ -123,11 +123,11 @@ task("deploy")
         process.exit(0);
       }
 
-      let userRecipes: Recipe[];
+      let userRecipes: Module[];
       if (userRecipesPaths.length === 0) {
-        userRecipes = loadAllUserRecipes(hre.config.paths.ignition);
+        userRecipes = loadAllUserModules(hre.config.paths.ignition);
       } else {
-        userRecipes = loadUserRecipes(
+        userRecipes = loadUserModules(
           hre.config.paths.ignition,
           userRecipesPaths
         );
@@ -155,22 +155,22 @@ task("plan")
     ) => {
       await hre.run("compile", { quiet: true });
 
-      let userRecipes: Recipe[];
+      let userModules: Module[];
       if (userRecipesPaths.length === 0) {
-        userRecipes = loadAllUserRecipes(hre.config.paths.ignition);
+        userModules = loadAllUserModules(hre.config.paths.ignition);
       } else {
-        userRecipes = loadUserRecipes(
+        userModules = loadUserModules(
           hre.config.paths.ignition,
           userRecipesPaths
         );
       }
 
-      if (userRecipes.length === 0) {
+      if (userModules.length === 0) {
         console.warn("No Ignition recipes found");
         process.exit(0);
       }
 
-      const [recipe] = userRecipes;
+      const [recipe] = userModules;
 
       const plan = await hre.ignition.plan(recipe);
 

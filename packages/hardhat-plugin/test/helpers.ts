@@ -3,10 +3,10 @@ import {
   SerializedFutureResult,
   SerializedDeploymentResult,
   DeploymentResult,
-  buildRecipe,
   IRecipeGraphBuilder,
-  FutureDict,
-} from "@nomicfoundation/ignition-core";
+  buildModule,
+} from "@ignored/ignition-core";
+import { ModuleDict } from "@ignored/ignition-core/src/types/module";
 import { assert } from "chai";
 
 export const resultAssertions = {
@@ -105,12 +105,12 @@ async function assertTxMined(hre: any, hash: string) {
 }
 
 /**
- * Deploy all the recipes in `userRecipes`.
+ * Deploy all the modules in `userModuless`.
  *
  * Assert that `expectedBlocks.length` blocks are mined, and that
  * each mined block has `expectedBlocks[i]` transactions.
  */
-export async function deployRecipes(
+export async function deployModules(
   hre: any,
   userRecipes: Recipe[],
   expectedBlocks: number[]
@@ -118,7 +118,7 @@ export async function deployRecipes(
   await hre.run("compile", { quiet: true });
 
   const deploymentResultPromise: Promise<DeploymentResult> = hre.run(
-    "deploy:deploy-recipes",
+    "deploy:deploy-modules",
     {
       userRecipes,
     }
@@ -197,14 +197,14 @@ async function assertContract(hre: any, futureResult: SerializedFutureResult) {
   return contract;
 }
 
-export async function deployRecipe(
+export async function deployModule(
   hre: any,
-  recipeDefinition: (m: IRecipeGraphBuilder) => FutureDict,
+  recipeDefinition: (m: IRecipeGraphBuilder) => ModuleDict,
   options?: { parameters: {} }
 ): Promise<any> {
   await hre.run("compile", { quiet: true });
 
-  const userRecipe = buildRecipe("MyRecipe", recipeDefinition);
+  const userRecipe = buildModule("MyModule", recipeDefinition);
 
   const deployPromise = hre.ignition.deploy(userRecipe, {
     ...options,

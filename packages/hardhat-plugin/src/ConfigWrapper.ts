@@ -2,7 +2,7 @@ import type {
   ConfigProvider,
   ExternalParamValue,
   HasParamResult,
-} from "@nomicfoundation/ignition-core";
+} from "@ignored/ignition-core";
 
 export class ConfigWrapper implements ConfigProvider {
   private parameters: { [key: string]: ExternalParamValue } | undefined;

@@ -1,4 +1,4 @@
-const { buildRecipe } = require("@nomicfoundation/hardhat-ignition");
+const { buildRecipe, buildModule } = require("@ignored/hardhat-ignition");
 
 const namehash = require("eth-ens-namehash");
 const ethers = hre.ethers;
@@ -66,7 +66,7 @@ const setupReverseRegistrar = buildRecipe("REVERSEREGISTRAR", (m) => {
   return { reverseRegistrar };
 });
 
-module.exports = buildRecipe("ENS", (m) => {
+module.exports = buildModule("ENS", (m) => {
   const owner = ACCOUNT_0;
 
   const ens = m.contract("ENSRegistry");

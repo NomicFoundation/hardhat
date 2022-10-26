@@ -1,4 +1,4 @@
-import { DeployState } from "@nomicfoundation/ignition-core";
+import { DeployState } from "@ignored/ignition-core";
 import { Box } from "ink";
 
 import { BatchExecution } from "./BatchExecution";

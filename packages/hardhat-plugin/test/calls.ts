@@ -1,14 +1,14 @@
 /* eslint-disable import/no-unused-modules */
 import { assert } from "chai";
 
-import { deployRecipe } from "./helpers";
+import { deployModule } from "./helpers";
 import { useEnvironment } from "./useEnvironment";
 
 describe("calls", () => {
   useEnvironment("minimal");
 
   it("should be able to call contracts", async function () {
-    const result = await deployRecipe(this.hre, (m) => {
+    const result = await deployModule(this.hre, (m) => {
       const bar = m.contract("Bar");
       const usesContract = m.contract("UsesContract", {
         args: ["0x0000000000000000000000000000000000000000"],
@@ -30,7 +30,7 @@ describe("calls", () => {
   });
 
   it("should be able to make calls in order", async function () {
-    const result = await deployRecipe(this.hre, (m) => {
+    const result = await deployModule(this.hre, (m) => {
       const trace = m.contract("Trace", {
         args: ["first"],
       });

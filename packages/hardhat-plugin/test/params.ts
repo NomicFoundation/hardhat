@@ -1,8 +1,8 @@
 /* eslint-disable import/no-unused-modules */
-import { buildRecipe } from "@nomicfoundation/ignition-core";
+import { buildModule } from "@ignored/ignition-core";
 import { assert } from "chai";
 
-import { deployRecipe, mineBlocks } from "./helpers";
+import { deployModule, mineBlocks } from "./helpers";
 import { useEnvironment } from "./useEnvironment";
 
 describe("recipe parameters", () => {
@@ -10,7 +10,7 @@ describe("recipe parameters", () => {
 
   describe("required", () => {
     it("should be able to retrieve a number", async function () {
-      const result = await deployRecipe(
+      const result = await deployModule(
         this.hre,
         (m) => {
           const myNumber = m.getParam("MyNumber");
@@ -36,7 +36,7 @@ describe("recipe parameters", () => {
     });
 
     it("should be able to retrieve a string", async function () {
-      const result = await deployRecipe(
+      const result = await deployModule(
         this.hre,
         (m) => {
           const myString = m.getParam("MyString");
@@ -62,7 +62,7 @@ describe("recipe parameters", () => {
 
   describe("optional", () => {
     it("should be able to retrieve a default number", async function () {
-      const result = await deployRecipe(this.hre, (m) => {
+      const result = await deployModule(this.hre, (m) => {
         const myNumber = m.getOptionalParam("MyNumber", 42);
 
         const foo = m.contract("Foo");
@@ -81,7 +81,7 @@ describe("recipe parameters", () => {
     });
 
     it("should be able to override a default number", async function () {
-      const result = await deployRecipe(
+      const result = await deployModule(
         this.hre,
         (m) => {
           const myNumber = m.getOptionalParam("MyNumber", 10);
@@ -108,7 +108,7 @@ describe("recipe parameters", () => {
     });
 
     it("should be able to retrieve a default string", async function () {
-      const result = await deployRecipe(this.hre, (m) => {
+      const result = await deployModule(this.hre, (m) => {
         const myString = m.getOptionalParam("MyString", "Example");
 
         const greeter = m.contract("Greeter", {
@@ -124,7 +124,7 @@ describe("recipe parameters", () => {
     });
 
     it("should be able to override a default string", async function () {
-      const result = await deployRecipe(
+      const result = await deployModule(
         this.hre,
         (m) => {
           const myString = m.getOptionalParam("MyString", "Example");
@@ -153,7 +153,7 @@ describe("recipe parameters", () => {
     it("should throw if no parameters object provided", async function () {
       await this.hre.run("compile", { quiet: true });
 
-      const userRecipe = buildRecipe("MyRecipe", (m) => {
+      const userRecipe = buildModule("MyModule", (m) => {
         const myNumber = m.getParam("MyNumber");
 
         const foo = m.contract("Foo");
@@ -178,7 +178,7 @@ describe("recipe parameters", () => {
     it("should throw if parameter missing from parameters", async function () {
       await this.hre.run("compile", { quiet: true });
 
-      const userRecipe = buildRecipe("MyRecipe", (m) => {
+      const userModule = buildModule("MyModule", (m) => {
         const myNumber = m.getParam("MyNumber");
 
         const foo = m.contract("Foo");
@@ -190,7 +190,7 @@ describe("recipe parameters", () => {
         return { foo };
       });
 
-      const deployPromise = this.hre.ignition.deploy(userRecipe, {
+      const deployPromise = this.hre.ignition.deploy(userModule, {
         parameters: {
           NotMyNumber: 11,
         },

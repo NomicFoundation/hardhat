@@ -1,4 +1,4 @@
-import { DeployState } from "@nomicfoundation/ignition-core";
+import { DeployState } from "@ignored/ignition-core";
 import { Box, Text } from "ink";
 import Spinner from "ink-spinner";
 

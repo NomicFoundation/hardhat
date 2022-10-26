@@ -10,9 +10,9 @@ import { Services } from "services/types";
 import { DeploymentResult, UpdateUiAction } from "types/deployment";
 import { DependableFuture, FutureDict } from "types/future";
 import { ResultsAccumulator } from "types/graph";
+import { Module } from "types/module";
 import { IgnitionPlan } from "types/plan";
 import { Providers } from "types/providers";
-import { Recipe } from "types/recipeGraph";
 import { SerializedFutureResult } from "types/serialization";
 import { isDependable } from "utils/guards";
 import { serializeFutureOutput } from "utils/serialize";
@@ -32,7 +32,7 @@ export class Ignition {
   constructor(private _providers: Providers) {}
 
   public async deploy(
-    recipe: Recipe,
+    ignitionModule: Module,
     givenOptions?: IgnitionDeployOptions
   ): Promise<[DeploymentResult, RecipesOutputs]> {
     log(`Start deploy`);
@@ -45,7 +45,7 @@ export class Ignition {
     };
 
     const deployment = new Deployment(
-      recipe.name,
+      ignitionModule.name,
       Deployment.setupServices(options, this._providers),
       options.ui
     );
@@ -54,7 +54,7 @@ export class Ignition {
     deployment.setChainId(chainId);
 
     const { result: constructResult, recipeOutputs } =
-      await this._constructExecutionGraphFrom(deployment, recipe);
+      await this._constructExecutionGraphFrom(deployment, ignitionModule);
 
     if (constructResult._kind === "failure") {
       return [constructResult, {}];
@@ -77,7 +77,7 @@ export class Ignition {
     return [{ _kind: "success", result: serializedDeploymentResult }, {}];
   }
 
-  public async plan(recipe: Recipe): Promise<IgnitionPlan> {
+  public async plan(deploymentModule: Module): Promise<IgnitionPlan> {
     log(`Start plan`);
 
     const serviceOptions = {
@@ -94,7 +94,9 @@ export class Ignition {
 
     const chainId = await this._getChainId();
 
-    const { graph: recipeGraph } = generateRecipeGraphFrom(recipe, { chainId });
+    const { graph: recipeGraph } = generateRecipeGraphFrom(deploymentModule, {
+      chainId,
+    });
 
     const validationResult = await validateRecipeGraph(recipeGraph, services);
 
@@ -118,11 +120,11 @@ export class Ignition {
 
   private async _constructExecutionGraphFrom(
     deployment: Deployment,
-    recipe: Recipe
+    ignitionModule: Module
   ): Promise<{ result: any; recipeOutputs: FutureDict }> {
     log("Generate recipe graph from recipe");
     const { graph: recipeGraph, recipeOutputs } = generateRecipeGraphFrom(
-      recipe,
+      ignitionModule,
       { chainId: deployment.state.details.chainId }
     );
 
