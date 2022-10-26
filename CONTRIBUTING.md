@@ -66,3 +66,7 @@ If typescript or testing gets into a weird state, `clean` will remove ephemeral 
 ```shell
 yarn clean
 ```
+
+## Publish
+
+To publish the **Ignition** packages to npm follow the [publishing instructions](./docs/publish.md).

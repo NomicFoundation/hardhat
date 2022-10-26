@@ -3,7 +3,23 @@
   "version": "0.0.2",
   "license": "MIT",
   "author": "Nomic Foundation",
+  "homepage": "https://hardhat.org",
+  "repository": "github:nomicfoundation/ignition",
+  "keywords": [
+    "ethereum",
+    "smart-contracts",
+    "hardhat",
+    "blockchain",
+    "dapps",
+    "tooling",
+    "solidity",
+    "deployment"
+  ],
+  "engines": {
+    "node": "^14.0.0 || ^16.0.0 || ^18.0.0"
+  },
   "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc --build && node post-build.js",
     "lint": "yarn prettier --check && yarn eslint",
