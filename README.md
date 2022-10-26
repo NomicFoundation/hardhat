@@ -27,7 +27,7 @@ See our [Getting started guide](./docs/getting-started-guide.md) for a worked ex
 
 ## Documentation
 
-- [Creating recipes for deployment](./docs/creating-recipes-for-deployment.md)
+- [Creating modules for deployment](./docs/creating-modules-for-deployment.md)
 
 ### Examples
 

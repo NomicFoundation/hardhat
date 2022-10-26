@@ -2,8 +2,6 @@
 
 This hardhat project is an example of using ignition to deploy a simple set of contracts.
 
-See the
-
 ## Deploying
 
 To run the ignition deploy against the ephemeral hardhat network:
