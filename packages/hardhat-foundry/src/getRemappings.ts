@@ -1,6 +1,8 @@
 import { runCmdSync } from "./runCmd";
 
-let remappings: { [from: string]: string };
+type Remappings = Record<string, string>;
+
+let remappings: Remappings | undefined;
 
 export function getRemappings() {
   // Return remappings if they were already loaded
