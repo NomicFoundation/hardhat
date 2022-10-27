@@ -275,13 +275,17 @@ describe("Artifacts class", function () {
 
       assert.deepEqual(storedArtifact, artifact);
 
-      // eslint-disable-next-line  dot-notation,@typescript-eslint/dot-notation
-      const artifactPath = await artifacts["_getArtifactPath"](
-        artifact.contractName
-      );
+      const artifactPath =
+        // eslint-disable-next-line  dot-notation,@typescript-eslint/dot-notation
+        await artifacts["_sourcesInPriorityOrder"][0]["_getArtifactPath"](
+          artifact.contractName
+        );
 
-      // eslint-disable-next-line  dot-notation,@typescript-eslint/dot-notation
-      const debugFilePath = artifacts["_getDebugFilePath"](artifactPath);
+      const debugFilePath =
+        // eslint-disable-next-line  dot-notation,@typescript-eslint/dot-notation
+        artifacts["_sourcesInPriorityOrder"][0]["_getDebugFilePath"](
+          artifactPath
+        );
 
       assert.isTrue(await fsExtra.pathExists(debugFilePath));
     });
@@ -305,13 +309,17 @@ describe("Artifacts class", function () {
 
       assert.deepEqual(storedArtifact, artifact);
 
-      // eslint-disable-next-line  dot-notation,@typescript-eslint/dot-notation
-      const artifactPath = await artifacts["_getArtifactPath"](
-        artifact.contractName
-      );
+      const artifactPath =
+        // eslint-disable-next-line  dot-notation,@typescript-eslint/dot-notation
+        await artifacts["_sourcesInPriorityOrder"][0]["_getArtifactPath"](
+          artifact.contractName
+        );
 
-      // eslint-disable-next-line  dot-notation, @typescript-eslint/dot-notation
-      const debugFilePath = artifacts["_getDebugFilePath"](artifactPath);
+      const debugFilePath =
+        // eslint-disable-next-line  dot-notation, @typescript-eslint/dot-notation
+        artifacts["_sourcesInPriorityOrder"][0]["_getDebugFilePath"](
+          artifactPath
+        );
 
       assert.isFalse(await fsExtra.pathExists(debugFilePath));
     });

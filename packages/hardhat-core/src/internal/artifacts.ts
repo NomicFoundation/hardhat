@@ -7,6 +7,7 @@ import fsPromises from "fs/promises";
 import {
   Artifact,
   Artifacts as IArtifacts,
+  ArtifactSource,
   BuildInfo,
   CompilerInput,
   CompilerOutput,
@@ -40,6 +41,24 @@ import {
 
 const log = debug("hardhat:core:artifacts");
 
+interface IHardhatArtifactSource extends ArtifactSource {
+  saveArtifactAndDebugFile(
+    artifact: Artifact,
+    pathToBuildInfo?: string
+  ): Promise<void>;
+  saveBuildInfo(
+    solcVersion: string,
+    solcLongVersion: string,
+    input: CompilerInput,
+    output: CompilerOutput
+  ): Promise<string>;
+  formArtifactPathFromFullyQualifiedName(fullyQualifiedName: string): string;
+  addValidArtifacts(
+    validArtifacts: Array<{ sourceName: string; artifacts: string[] }>
+  ): void;
+  removeObsoleteArtifacts(): void;
+}
+
 interface Cache {
   artifactPaths?: string[];
   debugFilePaths?: string[];
@@ -48,7 +67,7 @@ interface Cache {
   artifactFQNToBuildInfoPathCache: Map<string, string>;
 }
 
-export class Artifacts implements IArtifacts {
+class HardhatArtifactSource implements IHardhatArtifactSource {
   private _validArtifacts: Array<{ sourceName: string; artifacts: string[] }>;
 
   // Undefined means that the cache is disabled.
@@ -864,6 +883,235 @@ Please replace "${contractName}" for the correct contract name wherever you are 
     }
 
     return undefined;
+  }
+}
+
+export class Artifacts implements IArtifacts {
+  private readonly _sourcesInPriorityOrder: [
+    IHardhatArtifactSource,
+    ...ArtifactSource[]
+  ];
+
+  constructor(artifactsPath: string) {
+    this._sourcesInPriorityOrder = [new HardhatArtifactSource(artifactsPath)];
+  }
+
+  public async readArtifact(
+    contractNameOrFullyQualifiedName: string
+  ): Promise<Artifact> {
+    const artifact = this._getFirstValueFromSources(
+      "readArtifact",
+      contractNameOrFullyQualifiedName
+    );
+    if (artifact === undefined) {
+      throw new HardhatError(ERRORS.ARTIFACTS.NOT_FOUND, {
+        contractName: contractNameOrFullyQualifiedName,
+        suggestion: "",
+      });
+    }
+    return artifact;
+  }
+
+  public readArtifactSync(contractNameOrFullyQualifiedName: string): Artifact {
+    const artifact = this._getFirstValueFromSourcesSync(
+      "readArtifactSync",
+      contractNameOrFullyQualifiedName
+    );
+    if (artifact === undefined) {
+      throw new HardhatError(ERRORS.ARTIFACTS.NOT_FOUND, {
+        contractName: contractNameOrFullyQualifiedName,
+        suggestion: "",
+      });
+    }
+    return artifact;
+  }
+
+  public artifactExists(
+    contractNameOrFullyQualifiedName: string
+  ): Promise<boolean> {
+    return this._getFirstValueFromSources(
+      "artifactExists",
+      contractNameOrFullyQualifiedName
+    );
+  }
+
+  public async getAllFullyQualifiedNames(): Promise<string[]> {
+    return (
+      await Promise.all(
+        this._sourcesInPriorityOrder.map((s) => s.getAllFullyQualifiedNames())
+      )
+    ).flat();
+  }
+
+  public getBuildInfo(
+    fullyQualifiedName: string
+  ): Promise<BuildInfo | undefined> {
+    return this._getFirstValueFromSources("getBuildInfo", fullyQualifiedName);
+  }
+
+  public async getArtifactPaths(): Promise<string[]> {
+    return (
+      await Promise.all(
+        this._sourcesInPriorityOrder.map((s) => s.getArtifactPaths())
+      )
+    ).flat();
+  }
+
+  public async getDebugFilePaths(): Promise<string[]> {
+    return (
+      await Promise.all(
+        this._sourcesInPriorityOrder.map((s) => s.getDebugFilePaths())
+      )
+    ).flat();
+  }
+
+  public async getBuildInfoPaths(): Promise<string[]> {
+    return (
+      await Promise.all(
+        this._sourcesInPriorityOrder.map((s) => s.getBuildInfoPaths())
+      )
+    ).flat();
+  }
+
+  public clearCache(): void {
+    for (const source of this._sourcesInPriorityOrder) {
+      source.clearCache();
+    }
+  }
+
+  public disableCache(): void {
+    for (const source of this._sourcesInPriorityOrder) {
+      source.disableCache();
+    }
+  }
+
+  public saveArtifactAndDebugFile(
+    artifact: Artifact,
+    pathToBuildInfo?: string
+  ): Promise<void> {
+    return this._sourcesInPriorityOrder[0].saveArtifactAndDebugFile(
+      artifact,
+      pathToBuildInfo
+    );
+  }
+
+  public saveBuildInfo(
+    solcVersion: string,
+    solcLongVersion: string,
+    input: CompilerInput,
+    output: CompilerOutput
+  ): Promise<string> {
+    return this._sourcesInPriorityOrder[0].saveBuildInfo(
+      solcVersion,
+      solcLongVersion,
+      input,
+      output
+    );
+  }
+
+  public formArtifactPathFromFullyQualifiedName(
+    fullyQualifiedName: string
+  ): string {
+    return this._sourcesInPriorityOrder[0].formArtifactPathFromFullyQualifiedName(
+      fullyQualifiedName
+    );
+  }
+
+  public addValidArtifacts(
+    validArtifacts: Array<{ sourceName: string; artifacts: string[] }>
+  ) {
+    this._sourcesInPriorityOrder[0].addValidArtifacts(validArtifacts);
+  }
+
+  public async removeObsoleteArtifacts() {
+    this._sourcesInPriorityOrder[0].removeObsoleteArtifacts();
+  }
+
+  private async _getFirstValueFromSources(
+    method: "readArtifact",
+    key: string
+  ): Promise<Artifact>;
+
+  private async _getFirstValueFromSources(
+    method: "artifactExists",
+    key: string
+  ): Promise<boolean>;
+
+  private async _getFirstValueFromSources(
+    method: "getBuildInfo",
+    key: string
+  ): Promise<BuildInfo | undefined>;
+
+  private async _getFirstValueFromSources(
+    method: keyof ArtifactSource,
+    key: string
+  ): Promise<boolean | Artifact | string[] | BuildInfo | undefined> {
+    /* iterate over the sources to resolve the given name. if a source returns
+     * undefined or NOT_FOUND, continue on to the next source. preserve the
+     * latest thrown error so that its helpful error message can be delivered
+     * in the case where latter sources simply return undefined. if all sources
+     * are exhausted, and still nothing is found, throw NOT_FOUND. */
+    let caughtError: unknown | undefined;
+    for (const source of this._sourcesInPriorityOrder) {
+      try {
+        const value = await source[method](key);
+        if (value === undefined) {
+          continue;
+        }
+        return value;
+      } catch (error) {
+        if (
+          error instanceof HardhatError &&
+          error.number === ERRORS.ARTIFACTS.NOT_FOUND.number
+        ) {
+          caughtError = error;
+          continue;
+        }
+        // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
+        throw error;
+      }
+    }
+    if (caughtError !== undefined) {
+      // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
+      throw caughtError;
+    }
+  }
+
+  private _getFirstValueFromSourcesSync(
+    method: "readArtifactSync",
+    key: string
+  ): Artifact | undefined;
+
+  private _getFirstValueFromSourcesSync(
+    method: keyof Pick<ArtifactSource, "readArtifactSync">,
+    key: string
+  ): Artifact | undefined {
+    // intended to be exactly like _getFirstValueFromSources but without the await
+
+    let caughtError: unknown | undefined;
+    for (const source of this._sourcesInPriorityOrder) {
+      try {
+        const value = source[method](key);
+        if (value === undefined) {
+          continue;
+        }
+        return value;
+      } catch (error) {
+        if (
+          error instanceof HardhatError &&
+          error.number === ERRORS.ARTIFACTS.NOT_FOUND.number
+        ) {
+          caughtError = error;
+          continue;
+        }
+        // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
+        throw error;
+      }
+    }
+    if (caughtError !== undefined) {
+      // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
+      throw caughtError;
+    }
   }
 }
 

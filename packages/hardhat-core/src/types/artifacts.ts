@@ -92,7 +92,9 @@ export interface Artifacts {
   ): Promise<string>;
 
   /**
-   * Returns the absolute path to the given artifact.
+   * Returns the absolute path to the given artifact, as if it were saved
+   * locally, and not by a plugin (i.e. this method does not support
+   * ArtifactsExtension artifacts).
    *
    * @param fullyQualifiedName The FQN of the artifact.
    */
@@ -118,6 +120,92 @@ export interface Artifacts {
    * @see clearCache
    */
   disableCache?: () => void;
+}
+
+export interface ArtifactSource {
+  /**
+   * Reads an Artifact, returning `undefined` if not found.
+   * @see Artifacts#readArtifact
+   */
+  readArtifact(
+    contractNameOrFullyQualifiedName: string
+  ): Promise<Artifact | undefined>;
+
+  /**
+   * Reads an Artifact, returning `undefined` if not found.
+   * @see Artifacts#readArtifactSync
+   */
+  readArtifactSync(
+    contractNameOrFullyQualifiedName: string
+  ): Artifact | undefined;
+
+  /**
+   * @see Artifacts#artifactExists
+   */
+  artifactExists(contractNameOrFullyQualifiedName: string): Promise<boolean>;
+
+  /**
+   * @see Artifacts#getAllFullyQualifiedNames
+   */
+  getAllFullyQualifiedNames(): Promise<string[]>;
+
+  /**
+   * Returns the BuildInfo associated with an artifact. Return `undefined` if
+   * there's none.
+   *
+   * Always returning `undefined` is a valid implementation if you don't handle
+   * BuildInfos.
+   *
+   * @see Artifacts#getBuildInfo
+   */
+  getBuildInfo(fullyQualifiedName: string): Promise<BuildInfo | undefined>;
+
+  /**
+   * Returns the paths of all the artifacts that the plugin can read.
+   *
+   * @see Artifacts#getArtifactPaths
+   */
+  getArtifactPaths(): Promise<string[]>;
+
+  /**
+   * Returns the paths of all the debug files associated with the artifacts that
+   * the plugin can read.
+   *
+   * Always returning an empty array is a valid implementation if you don't
+   * handle debug files.
+   *
+   * @see Artifacts#getDebugFilePaths
+   */
+  getDebugFilePaths(): Promise<string[]>;
+
+  /**
+   * Returns the paths of all the BuildInfos associated with the artifacts that
+   * the plugin can read.
+   *
+   * Always returning an empty array is a valid implementation if you don't
+   * handle BuildInfos.
+   *
+   * @see Artifacts#getBuildInfoPaths
+   */
+  getBuildInfoPaths(): Promise<string[]>;
+
+  /**
+   * Clears the internal cache, if any.
+   *
+   * An empty function is a valid implementation if you don't cache results.
+   *
+   * @see Artifacts#clearCache
+   */
+  clearCache: () => void;
+
+  /**
+   * Disables the internal cache, if any.
+   *
+   * An empty function is a valid implementation if you don't cache results.
+   *
+   * @see Artifacts#disableCache
+   */
+  disableCache: () => void;
 }
 
 /**
