@@ -3,6 +3,8 @@ import fsExtra from "fs-extra";
 import debug from "debug";
 import os from "os";
 import { execFile } from "child_process";
+import { promisify } from "util";
+
 import { download } from "../../util/download";
 import { assertHardhatInvariant, HardhatError } from "../../core/errors";
 import { ERRORS } from "../../core/errors-list";
@@ -345,17 +347,15 @@ export class CompilerDownloader implements ICompilerDownloader {
     await fsExtra.createFile(this._getCompilerDoesntWorkFile(build));
   }
 
-  private _checkNativeSolc(build: CompilerBuild) {
+  private async _checkNativeSolc(build: CompilerBuild) {
     const solcPath = this._getCompilerBinaryPathFromBuild(build);
-    return new Promise((resolve) => {
-      try {
-        const process = execFile(solcPath, ["--version"]);
-        process.on("exit", (code) => {
-          resolve(code === 0);
-        });
-      } catch {
-        resolve(false);
-      }
-    });
+    const execFileP = promisify(execFile);
+
+    try {
+      await execFileP(solcPath, ["--version"]);
+      return true;
+    } catch {
+      return false;
+    }
   }
 }

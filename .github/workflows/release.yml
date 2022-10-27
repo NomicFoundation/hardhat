@@ -3,7 +3,7 @@ name: Release
 on:
   push:
     branches:
-      - $default-branch
+      - main
 
 jobs:
   release:
@@ -26,6 +26,6 @@ jobs:
         run: yarn
 
       - name: Create Release Pull Request
-        uses: changesets/action@master
+        uses: changesets/action@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
