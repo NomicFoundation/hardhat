@@ -8,7 +8,6 @@ export async function execute(deployment: Deployment): Promise<VisitResult> {
   if (deployment.state.transform.executionGraph === null) {
     throw new Error("Cannot execute without an execution graph");
   }
-
   return visitInBatches(
     deployment,
     deployment.state.transform.executionGraph,

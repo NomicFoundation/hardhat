@@ -20,20 +20,8 @@ export function getMockServices() {
 }
 
 class MockContractsService implements IContractsService {
-  public deploy(
-    _artifact: Artifact,
-    _args: any[],
-    _libraries: { [k: string]: any },
-    _txOptions?: TransactionOptions | undefined
-  ): Promise<string> {
-    throw new Error("Method not implemented.");
-  }
-
-  public call(
-    _address: string,
-    _abi: any[],
-    _method: string,
-    _args: any[],
+  public sendTx(
+    _deployTransaction: ethers.providers.TransactionRequest,
     _txOptions?: TransactionOptions | undefined
   ): Promise<string> {
     throw new Error("Method not implemented.");

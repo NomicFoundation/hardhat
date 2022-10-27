@@ -1,3 +1,5 @@
+import { Contract } from "ethers";
+
 import { Services } from "services/types";
 import { ContractCall } from "types/executionGraph";
 import { VertexVisitResult } from "types/graph";
@@ -17,7 +19,12 @@ export async function executeContractCall(
 
   let txHash: string;
   try {
-    txHash = await services.contracts.call(address, abi, method, resolvedArgs);
+    const contractInstance = new Contract(address, abi);
+
+    const unsignedTx = await contractInstance.populateTransaction[method](
+      ...resolvedArgs
+    );
+    txHash = await services.contracts.sendTx(unsignedTx);
   } catch (err) {
     return {
       _kind: "failure",

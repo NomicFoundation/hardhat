@@ -1,6 +1,9 @@
+import { ContractFactory } from "ethers";
+
 import { Services } from "services/types";
 import { ContractDeploy } from "types/executionGraph";
 import { ResultsAccumulator, VertexVisitResult } from "types/graph";
+import { collectLibrariesAndLink } from "utils/collectLibrariesAndLink";
 
 import { resolveFrom, toAddress } from "./utils";
 
@@ -21,11 +24,16 @@ export async function executeContractDeploy(
       ])
     );
 
-    const txHash = await services.contracts.deploy(
+    const linkedByteCode = await collectLibrariesAndLink(
       artifact,
-      resolvedArgs,
       resolvedLibraries
     );
+
+    const Factory = new ContractFactory(artifact.abi, linkedByteCode);
+
+    const deployTransaction = Factory.getDeployTransaction(...resolvedArgs);
+
+    const txHash = await services.contracts.sendTx(deployTransaction);
 
     const receipt = await services.transactions.wait(txHash);
 
