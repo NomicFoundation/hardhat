@@ -73,7 +73,7 @@ import {
   TASK_COMPILE_SOLIDITY_RUN_SOLC,
   TASK_COMPILE_SOLIDITY_RUN_SOLCJS,
   TASK_COMPILE_REMOVE_OBSOLETE_ARTIFACTS,
-  TASK_COMPILE_TRANSLATE_IMPORT_NAME,
+  TASK_COMPILE_TRANSFORM_IMPORT_NAME,
 } from "./task-names";
 import {
   getSolidityFilesCachePath,
@@ -160,9 +160,9 @@ subtask(TASK_COMPILE_SOLIDITY_READ_FILE)
 
 /**
  * This task is meant to be overriden by potential plugins
- * It allows to translate a given import name into a source name
+ * It allows to transform an import name
  */
-subtask(TASK_COMPILE_TRANSLATE_IMPORT_NAME)
+subtask(TASK_COMPILE_TRANSFORM_IMPORT_NAME)
   .addParam("importName", undefined, undefined, types.string)
   .setAction(
     async ({ importName }: { importName: string }): Promise<string> => {
@@ -193,7 +193,7 @@ subtask(TASK_COMPILE_SOLIDITY_GET_DEPENDENCY_GRAPH)
         (absolutePath: string) =>
           run(TASK_COMPILE_SOLIDITY_READ_FILE, { absolutePath }),
         (importName: string) =>
-          run(TASK_COMPILE_TRANSLATE_IMPORT_NAME, { importName })
+          run(TASK_COMPILE_TRANSFORM_IMPORT_NAME, { importName })
       );
 
       const resolvedFiles = await Promise.all(

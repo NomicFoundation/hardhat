@@ -2,7 +2,7 @@ import { extendConfig, internalTask, task } from "hardhat/config";
 
 import {
   TASK_COMPILE_SOLIDITY_GET_COMPILATION_JOB_FOR_FILE,
-  TASK_COMPILE_TRANSLATE_IMPORT_NAME,
+  TASK_COMPILE_TRANSFORM_IMPORT_NAME,
 } from "hardhat/builtin-tasks/task-names";
 import { SolidityFilesCache } from "hardhat/builtin-tasks/utils/solidity-files-cache";
 import {
@@ -15,15 +15,18 @@ import {
 import { existsSync, writeFileSync } from "fs";
 import path from "path";
 import chalk from "chalk";
-import { getRemappings } from "./getRemappings";
-import { runCmdSync } from "./runCmd";
-import { HardhatFoundryError } from "./errors";
+import {
+  getForgeConfig,
+  getRemappings,
+  HardhatFoundryError,
+  installDependency,
+} from "./foundry";
 
 const TASK_INIT_FOUNDRY = "init-foundry";
 
 let pluginActivated = false;
 
-extendConfig(async (config, userConfig) => {
+extendConfig((config, userConfig) => {
   // Check foundry.toml presence. Don't warn when running foundry initialization task
   if (!existsSync(path.join(config.paths.root, "foundry.toml"))) {
     if (!process.argv.includes(TASK_INIT_FOUNDRY)) {
@@ -37,7 +40,7 @@ extendConfig(async (config, userConfig) => {
   }
 
   // Load foundry config
-  const foundryConfig = JSON.parse(runCmdSync("forge config --json"));
+  const foundryConfig = getForgeConfig();
 
   // Ensure required keys exist
   if (
@@ -75,7 +78,7 @@ extendConfig(async (config, userConfig) => {
 });
 
 // Task that translates import names to sourcenames using remappings
-internalTask(TASK_COMPILE_TRANSLATE_IMPORT_NAME).setAction(
+internalTask(TASK_COMPILE_TRANSFORM_IMPORT_NAME).setAction(
   async (
     { importName }: { importName: string },
     _hre,
@@ -85,10 +88,10 @@ internalTask(TASK_COMPILE_TRANSLATE_IMPORT_NAME).setAction(
       return runSuper({ importName });
     }
 
-    const remappings = getRemappings();
+    const remappings = await getRemappings();
 
     for (const [from, to] of Object.entries(remappings)) {
-      if (importName.startsWith(from)) {
+      if (importName.startsWith(from) && !importName.startsWith(".")) {
         return importName.replace(from, to);
       }
     }
@@ -119,7 +122,7 @@ internalTask(TASK_COMPILE_SOLIDITY_GET_COMPILATION_JOB_FOR_FILE).setAction(
       return job;
     }
 
-    const remappings = getRemappings();
+    const remappings = await getRemappings();
     job.getSolcConfig().settings.remappings = Object.entries(remappings).map(
       ([from, to]) => `${from}=${to}`
     );
@@ -132,15 +135,20 @@ task(
   TASK_INIT_FOUNDRY,
   "Initialize foundry setup in current hardhat project",
   async (_, hre: HardhatRuntimeEnvironment) => {
-    if (existsSync("foundry.toml")) {
-      console.log(`File foundry.toml already exists. Aborting.`);
+    const foundryConfigPath = path.resolve(
+      hre.config.paths.root,
+      "foundry.toml"
+    );
+
+    if (existsSync(foundryConfigPath)) {
+      console.warn(chalk.yellow(`File foundry.toml already exists. Aborting.`));
       return;
     }
 
     console.log(`Creating foundry.toml file...`);
 
     writeFileSync(
-      "foundry.toml",
+      foundryConfigPath,
       [
         `[profile.default]`,
         `src = '${path.relative(
@@ -157,18 +165,7 @@ task(
       ].join("\n")
     );
 
-    const cmd = `forge install --no-commit foundry-rs/forge-std`;
-    console.log(`Running ${chalk.blue(cmd)}`);
-    try {
-      runCmdSync(cmd);
-    } catch (error) {
-      console.log(
-        chalk.red(
-          `Command failed. Please continue forge-std installation manually.`
-        )
-      );
-      console.log(error);
-    }
+    await installDependency("foundry-rs/forge-std");
   }
 );
 

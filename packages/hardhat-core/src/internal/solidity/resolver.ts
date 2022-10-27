@@ -177,14 +177,26 @@ export class Resolver {
           ERRORS.RESOLVER.LIBRARY_FILE_NOT_FOUND
         )
       ) {
-        throw new HardhatError(
-          ERRORS.RESOLVER.IMPORTED_FILE_NOT_FOUND,
-          {
-            imported,
-            from: from.sourceName,
-          },
-          error
-        );
+        if (imported !== importName) {
+          throw new HardhatError(
+            ERRORS.RESOLVER.IMPORTED_MAPPED_FILE_NOT_FOUND,
+            {
+              imported,
+              importName,
+              from: from.sourceName,
+            },
+            error
+          );
+        } else {
+          throw new HardhatError(
+            ERRORS.RESOLVER.IMPORTED_FILE_NOT_FOUND,
+            {
+              imported,
+              from: from.sourceName,
+            },
+            error
+          );
+        }
       }
 
       if (

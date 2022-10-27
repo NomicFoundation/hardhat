@@ -809,6 +809,16 @@ Hardhat's compiler is case sensitive to ensure projects are portable across diff
 Try installing the library using npm.`,
       shouldBeReported: false,
     },
+    IMPORTED_MAPPED_FILE_NOT_FOUND: {
+      number: 412,
+      message:
+        "File %importName% => %imported%, imported from %from%, not found.",
+      title: "Imported mapped file not found",
+      description: `One of your source files imported a nonexistent or not installed file.
+
+Please double check your imports and installed libraries.`,
+      shouldBeReported: false,
+    },
   },
   SOLC: {
     INVALID_VERSION: {
