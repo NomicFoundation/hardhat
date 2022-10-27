@@ -1,5 +1,11 @@
 # hardhat
 
+## 2.12.1
+
+### Patch Changes
+
+- 145b12c7d: Fixed a problem that was preventing Hardhat from being used in Alpine Linux.
+
 ## 2.12.0
 
 ### Minor Changes

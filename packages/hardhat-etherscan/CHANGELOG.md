@@ -1,5 +1,12 @@
 # @nomiclabs/hardhat-etherscan
 
+## 3.1.2
+
+### Patch Changes
+
+- eb3f7a7bd: - Added Arbitrum Goerli to the list of supported networks.
+  - Fixed the Optimism Goerli URLs.
+
 ## 3.1.1
 
 ### Patch Changes
