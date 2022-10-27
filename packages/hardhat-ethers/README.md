@@ -81,8 +81,6 @@ The [`Contract`s](https://docs.ethers.io/v5/single-page/#/v5/api/contract/contra
 
 If there is no signer available, `getContractAt` returns [read-only](https://docs.ethers.io/v5/single-page/#/v5/api/contract/contract/-%23-Contract--readonly) contracts.
 
-If the address provided to `getContractAt` is not the address of a contract account, an error will be thrown.
-
 ## Usage
 
 There are no additional steps you need to take for this plugin to work.
