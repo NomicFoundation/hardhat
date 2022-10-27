@@ -1,9 +1,16 @@
 import { expect } from "chai";
 import { Address } from "@nomicfoundation/ethereumjs-util";
 
-import { Block, Config, Rethnet, Transaction } from "../..";
+import {
+  Account,
+  BlockConfig,
+  Config,
+  Rethnet,
+  StateManager,
+  Transaction,
+} from "../..";
 
-describe("Rethnet DB", () => {
+describe("Rethnet", () => {
   const caller = Address.fromString(
     "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266"
   );
@@ -11,47 +18,33 @@ describe("Rethnet DB", () => {
     "0x70997970C51812dc3A010C7d01b50e0d17dc79C8"
   );
 
+  let stateManager: StateManager;
   let rethnet: Rethnet;
 
   beforeEach(function () {
+    stateManager = new StateManager();
     const cfg: Config = {
       chainId: BigInt(0),
       limitContractCodeSize: BigInt(2n) ** BigInt(32n),
       disableEip3607: true,
     };
-    rethnet = new Rethnet(cfg);
+    rethnet = new Rethnet(stateManager, cfg);
   });
 
-  // TODO: insertBlock, setAccountCode, setAccountStorageSlot
-  it("getAccountByAddress", async () => {
-    await rethnet.insertAccount(caller.buf);
-    let account = await rethnet.getAccountByAddress(caller.buf);
-
-    expect(account?.balance).to.equal(0n);
-    expect(account?.nonce).to.equal(0n);
-  });
-  it("setAccountBalance", async () => {
-    await rethnet.insertAccount(caller.buf);
-    await rethnet.setAccountBalance(caller.buf, 100n);
-
-    let account = await rethnet.getAccountByAddress(caller.buf);
-
-    expect(account?.balance).to.equal(100n);
-    expect(account?.nonce).to.equal(0n);
-  });
-  it("setAccountNonce", async () => {
-    await rethnet.insertAccount(caller.buf);
-    await rethnet.setAccountNonce(caller.buf, 5n);
-
-    let account = await rethnet.getAccountByAddress(caller.buf);
-
-    expect(account?.balance).to.equal(0n);
-    expect(account?.nonce).to.equal(5n);
-  });
   it("call", async () => {
     // Add funds to caller
-    await rethnet.insertAccount(caller.buf);
-    await rethnet.setAccountBalance(caller.buf, BigInt("0xffffffff"));
+    await stateManager.insertAccount(caller.buf);
+    await stateManager.modifyAccount(
+      caller.buf,
+      async function (account: Account): Promise<Account> {
+        return {
+          balance: BigInt("0xffffffff"),
+          nonce: account.nonce,
+          codeHash: account.codeHash,
+          code: account.code,
+        };
+      }
+    );
 
     // send some value
     const sendValue: Transaction = {
@@ -61,7 +54,7 @@ describe("Rethnet DB", () => {
       value: 100n,
     };
 
-    const block: Block = {
+    const block: BlockConfig = {
       number: BigInt(1),
       timestamp: BigInt(Math.ceil(new Date().getTime() / 1000)),
     };
@@ -69,9 +62,11 @@ describe("Rethnet DB", () => {
 
     // receiver should have 100 (0x64) wei
     expect(
-      sendValueChanges.state["0x70997970c51812dc3a010c7d01b50e0d17dc79c8"].info
-        .balance
-    ).to.equal("0x64");
+      BigInt(
+        sendValueChanges.state["0x70997970c51812dc3a010c7d01b50e0d17dc79c8"]
+          .info.balance
+      )
+    ).to.equal(BigInt("0x64"));
 
     // create a contract
     const createContract: Transaction = {

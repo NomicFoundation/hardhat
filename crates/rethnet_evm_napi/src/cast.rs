@@ -2,7 +2,8 @@ use napi::{
     bindgen_prelude::{BigInt, Buffer},
     Status,
 };
-use rethnet_evm::{AccountInfo, Bytecode, Bytes, H256, U256};
+use rethnet_eth::{Bytes, H256, U256};
+use rethnet_evm::{AccountInfo, Bytecode};
 
 use crate::Account;
 
@@ -66,6 +67,6 @@ impl TryCast<U256> for BigInt {
             }
         }
 
-        Ok(U256(self.words.try_into().unwrap()))
+        Ok(U256::from_limbs(self.words.try_into().unwrap()))
     }
 }

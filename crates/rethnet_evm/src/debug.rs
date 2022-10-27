@@ -1,7 +1,9 @@
-use primitive_types::{H160, H256, U256};
-use revm::{AccountInfo, Bytecode};
+use auto_impl::auto_impl;
+use rethnet_eth::{Address, H256, U256};
+use revm::AccountInfo;
 
 /// A trait for debug operation on a database.
+#[auto_impl(Box)]
 pub trait DatabaseDebug {
     /// The database's error type.
     type Error;
@@ -9,29 +11,22 @@ pub trait DatabaseDebug {
     /// Inserts an account with the specified `address`.
     fn insert_account(
         &mut self,
-        address: H160,
+        address: Address,
         account_info: AccountInfo,
     ) -> Result<(), Self::Error>;
 
     /// Inserts a block with the specified `block_number` and `block_hash`.
     fn insert_block(&mut self, block_number: U256, block_hash: H256) -> Result<(), Self::Error>;
 
-    /// Sets the account balance at the specified address to the provided value.
-    fn set_account_balance(&mut self, address: H160, balance: U256) -> Result<(), Self::Error>;
-
-    /// Sets the account code at the specified address to the provided value.
-    fn set_account_code(&mut self, address: H160, code: Bytecode) -> Result<(), Self::Error>;
-
-    /// Sets the account nonce at the specified address to the provided value.
-    fn set_account_nonce(&mut self, address: H160, nonce: u64) -> Result<(), Self::Error>;
-
-    /// Sets the storage slot at the specified address and index to the provided value.
-    fn set_account_storage_slot(
+    /// Modifies the account at the specified address using the provided function.
+    fn modify_account(
         &mut self,
-        address: H160,
-        index: U256,
-        value: U256,
+        address: Address,
+        modifier: Box<dyn Fn(&mut AccountInfo) + Send>,
     ) -> Result<(), Self::Error>;
+
+    /// Removes and returns the account at the specified address, if it exists.
+    fn remove_account(&mut self, address: Address) -> Result<Option<AccountInfo>, Self::Error>;
 
     /// Retrieves the storage root of the database.
     fn storage_root(&mut self) -> Result<H256, Self::Error>;
@@ -43,61 +38,47 @@ pub trait DatabaseDebug {
     fn revert(&mut self) -> Result<(), Self::Error>;
 }
 
-/// A trait for objects that support [`DatabaseDebug`].
-pub trait HasDatabaseDebug {
-    /// The database's error type.
-    type Error;
+// /// A trait for objects that support [`DatabaseDebug`].
+// pub trait HasDatabaseDebug {
+//     /// The database's error type.
+//     type Error;
 
-    /// Retrieves the owned `DatabaseDebug`.
-    fn db_debug(&mut self) -> &mut dyn DatabaseDebug<Error = Self::Error>;
-}
+//     /// Retrieves the owned `DatabaseDebug`.
+//     fn db_debug(&mut self) -> &mut dyn DatabaseDebug<Error = Self::Error>;
+// }
 
-impl<T: HasDatabaseDebug> DatabaseDebug for T {
-    type Error = <T as HasDatabaseDebug>::Error;
+// impl<T: HasDatabaseDebug> DatabaseDebug for T {
+//     type Error = <T as HasDatabaseDebug>::Error;
 
-    fn insert_account(
-        &mut self,
-        address: H160,
-        account_info: AccountInfo,
-    ) -> Result<(), Self::Error> {
-        self.db_debug().insert_account(address, account_info)
-    }
+//     fn insert_account(
+//         &mut self,
+//         address: Address,
+//         account_info: AccountInfo,
+//     ) -> Result<(), Self::Error> {
+//         self.db_debug().insert_account(address, account_info)
+//     }
 
-    fn insert_block(&mut self, block_number: U256, block_hash: H256) -> Result<(), Self::Error> {
-        self.db_debug().insert_block(block_number, block_hash)
-    }
+//     fn insert_block(&mut self, block_number: U256, block_hash: H256) -> Result<(), Self::Error> {
+//         self.db_debug().insert_block(block_number, block_hash)
+//     }
 
-    fn set_account_balance(&mut self, address: H160, balance: U256) -> Result<(), Self::Error> {
-        self.db_debug().set_account_balance(address, balance)
-    }
+//     fn modify_account(
+//         &mut self,
+//         address: Address,
+//         modifier: fn(&mut AccountInfo),
+//     ) -> Result<(), Self::Error> {
+//         self.db_debug().modify_account(address, modifier)
+//     }
 
-    fn set_account_code(&mut self, address: H160, code: Bytecode) -> Result<(), Self::Error> {
-        self.db_debug().set_account_code(address, code)
-    }
+//     fn storage_root(&mut self) -> Result<H256, Self::Error> {
+//         self.db_debug().storage_root()
+//     }
 
-    fn set_account_nonce(&mut self, address: H160, nonce: u64) -> Result<(), Self::Error> {
-        self.db_debug().set_account_nonce(address, nonce)
-    }
+//     fn checkpoint(&mut self) -> Result<(), Self::Error> {
+//         self.db_debug().checkpoint()
+//     }
 
-    fn set_account_storage_slot(
-        &mut self,
-        address: H160,
-        index: U256,
-        value: U256,
-    ) -> Result<(), Self::Error> {
-        self.db_debug()
-            .set_account_storage_slot(address, index, value)
-    }
-
-    fn storage_root(&mut self) -> Result<H256, Self::Error> {
-        self.db_debug().storage_root()
-    }
-
-    fn checkpoint(&mut self) -> Result<(), Self::Error> {
-        self.db_debug().checkpoint()
-    }
-
-    fn revert(&mut self) -> Result<(), Self::Error> {
-        self.db_debug().revert()
-    }
-}
+//     fn revert(&mut self) -> Result<(), Self::Error> {
+//         self.db_debug().revert()
+//     }
+// }

@@ -1,0 +1,373 @@
+use std::{fmt::Debug, io, marker::PhantomData};
+
+use hashbrown::HashMap;
+use rethnet_eth::{Address, H256, U256};
+use revm::{db::Database, Account, AccountInfo, Bytecode, DatabaseCommit};
+use tokio::{
+    runtime::{Builder, Runtime},
+    sync::{
+        mpsc::{unbounded_channel, UnboundedSender},
+        oneshot,
+    },
+    task::{self, JoinHandle},
+};
+
+use crate::DatabaseDebug;
+
+use super::request::Request;
+
+/// Trait that meets all requirements for a synchronous database that can be used by [`AsyncDatabase`].
+pub trait SyncDatabase<E>:
+    Database<Error = E> + DatabaseCommit + DatabaseDebug<Error = E> + Send + Sync + 'static
+where
+    E: Debug + Send,
+{
+}
+
+impl<D, E> SyncDatabase<E> for D
+where
+    D: Database<Error = E> + DatabaseCommit + DatabaseDebug<Error = E> + Send + Sync + 'static,
+    E: Debug + Send,
+{
+}
+
+/// A helper class for converting a synchronous database into an asynchronous database.
+///
+/// Requires the inner database to implement [`Database`], [`DatabaseCommit`], and [`DatabaseDebug`].
+pub struct AsyncDatabase<D, E>
+where
+    D: SyncDatabase<E>,
+    E: Debug + Send,
+{
+    runtime: Runtime,
+    request_sender: UnboundedSender<Request<E>>,
+    db_handle: Option<JoinHandle<()>>,
+    phantom: PhantomData<D>,
+}
+
+impl<D, E> AsyncDatabase<D, E>
+where
+    D: SyncDatabase<E>,
+    E: Debug + Send + 'static,
+{
+    /// Constructs an [`AsyncDatabase`] instance with the provided database.
+    pub fn new(mut db: D) -> io::Result<Self> {
+        let runtime = Builder::new_multi_thread().build()?;
+
+        let (sender, mut receiver) = unbounded_channel::<Request<<D as Database>::Error>>();
+
+        let db_handle = runtime.spawn(async move {
+            while let Some(request) = receiver.recv().await {
+                if !request.handle(&mut db) {
+                    break;
+                }
+            }
+        });
+
+        Ok(Self {
+            runtime,
+            request_sender: sender,
+            db_handle: Some(db_handle),
+            phantom: PhantomData,
+        })
+    }
+
+    /// Retrieves the runtime of the [`AsyncDatabase`].
+    pub fn runtime(&self) -> &Runtime {
+        &self.runtime
+    }
+
+    /// Retrieves the account corresponding to the specified address.
+    pub async fn account_by_address(&self, address: Address) -> Result<Option<AccountInfo>, E> {
+        let (sender, receiver) = oneshot::channel();
+
+        self.request_sender
+            .send(Request::AccountByAddress { address, sender })
+            .expect("Failed to send request");
+
+        receiver.await.unwrap()
+    }
+
+    /// Retrieves the storage slot corresponding to the specified address and index.
+    pub async fn account_storage_slot(&self, address: Address, index: U256) -> Result<U256, E> {
+        let (sender, receiver) = oneshot::channel();
+
+        self.request_sender
+            .send(Request::StorageSlot {
+                address,
+                index,
+                sender,
+            })
+            .expect("Failed to send request");
+
+        receiver.await.unwrap()
+    }
+
+    /// Applies the provided changes to the state.
+    pub async fn apply(&self, changes: HashMap<Address, Account>) {
+        let (sender, receiver) = oneshot::channel();
+
+        self.request_sender
+            .send(Request::Commit { changes, sender })
+            .expect("Failed to send request");
+
+        receiver.await.unwrap()
+    }
+
+    /// Retrieves the hash of the block corresponding to the specified number.
+    pub async fn block_hash_by_number(&self, number: U256) -> Result<H256, E> {
+        let (sender, receiver) = oneshot::channel();
+
+        self.request_sender
+            .send(Request::BlockHashByNumber { number, sender })
+            .expect("Failed to send request");
+
+        receiver.await.unwrap()
+    }
+
+    /// Creates a state checkpoint that can be reverted to using [`revert`].
+    pub async fn checkpoint(&self) -> Result<(), E> {
+        let (sender, receiver) = oneshot::channel();
+
+        self.request_sender
+            .send(Request::Checkpoint { sender })
+            .expect("Failed to send request");
+
+        receiver.await.unwrap()
+    }
+
+    /// Retrieves the code corresponding to the specified hash.
+    pub async fn code_by_hash(&self, code_hash: H256) -> Result<Bytecode, E> {
+        let (sender, receiver) = oneshot::channel();
+
+        self.request_sender
+            .send(Request::CodeByHash { code_hash, sender })
+            .expect("Failed to send request");
+
+        receiver.await.unwrap()
+    }
+
+    /// Inserts the specified account into the state.
+    pub async fn insert_account(
+        &self,
+        address: Address,
+        account_info: AccountInfo,
+    ) -> Result<(), E> {
+        let (sender, receiver) = oneshot::channel();
+
+        self.request_sender
+            .send(Request::InsertAccount {
+                address,
+                account_info,
+                sender,
+            })
+            .expect("Failed to send request");
+
+        receiver.await.unwrap()
+    }
+
+    /// Inserts the specified block number and hash into the state.
+    pub async fn insert_block(&self, block_number: U256, block_hash: H256) -> Result<(), E> {
+        let (sender, receiver) = oneshot::channel();
+
+        self.request_sender
+            .send(Request::InsertBlock {
+                block_number,
+                block_hash,
+                sender,
+            })
+            .expect("Failed to send request");
+
+        receiver.await.unwrap()
+    }
+
+    /// Modifies the account at the specified address using the provided function.
+    pub async fn modify_account(
+        &self,
+        address: Address,
+        modifier: Box<dyn Fn(&mut AccountInfo) + Send>,
+    ) -> Result<(), E> {
+        let (sender, receiver) = oneshot::channel();
+
+        self.request_sender
+            .send(Request::ModifyAccount {
+                address,
+                modifier,
+                sender,
+            })
+            .expect("Failed to send request");
+
+        receiver.await.unwrap()
+    }
+
+    /// Removes and returns the account at the specified address, if it exists.
+    pub async fn remove_account(&self, address: Address) -> Result<Option<AccountInfo>, E> {
+        let (sender, receiver) = oneshot::channel();
+
+        self.request_sender
+            .send(Request::RemoveAccount { address, sender })
+            .expect("Failed to send request");
+
+        receiver.await.unwrap()
+    }
+
+    /// Reverts to the previous checkpoint, created using [`checkpoint`].
+    pub async fn revert(&self) -> Result<(), E> {
+        let (sender, receiver) = oneshot::channel();
+
+        self.request_sender
+            .send(Request::Revert { sender })
+            .expect("Failed to send request");
+
+        receiver.await.unwrap()
+    }
+
+    /// Retrieves the state's storage root.
+    pub async fn storage_root(&self) -> Result<H256, E> {
+        let (sender, receiver) = oneshot::channel();
+
+        self.request_sender
+            .send(Request::StorageRoot { sender })
+            .expect("Failed to send request");
+
+        receiver.await.unwrap()
+    }
+}
+
+impl<D, E> Drop for AsyncDatabase<D, E>
+where
+    D: SyncDatabase<E>,
+    E: Debug + Send,
+{
+    fn drop(&mut self) {
+        if let Some(handle) = self.db_handle.take() {
+            self.request_sender
+                .send(Request::Terminate)
+                .expect("Failed to send request");
+
+            self.runtime.block_on(handle).unwrap();
+        }
+    }
+}
+
+/// Wrapper around an [`AsyncDatabase`] to allow synchronous function calls.
+pub struct AsyncDatabaseWrapper<'d, D, E>
+where
+    D: SyncDatabase<E>,
+    E: Debug + Send,
+{
+    db: &'d AsyncDatabase<D, E>,
+}
+
+impl<'d, D, E> AsyncDatabaseWrapper<'d, D, E>
+where
+    D: SyncDatabase<E>,
+    E: Debug + Send,
+{
+    /// Constructs an [`AsyncDatabaseWrapper`] instance.
+    pub fn new(db: &'d AsyncDatabase<D, E>) -> Self {
+        Self { db }
+    }
+}
+
+impl<'d, D, E> Database for AsyncDatabaseWrapper<'d, D, E>
+where
+    D: SyncDatabase<E>,
+    E: Debug + Send + 'static,
+{
+    type Error = E;
+
+    fn basic(&mut self, address: Address) -> Result<Option<AccountInfo>, Self::Error> {
+        task::block_in_place(move || {
+            self.db
+                .runtime()
+                .block_on(self.db.account_by_address(address))
+        })
+    }
+
+    fn code_by_hash(&mut self, code_hash: H256) -> Result<Bytecode, Self::Error> {
+        task::block_in_place(move || self.db.runtime().block_on(self.db.code_by_hash(code_hash)))
+    }
+
+    fn storage(&mut self, address: Address, index: U256) -> Result<U256, Self::Error> {
+        task::block_in_place(move || {
+            self.db
+                .runtime()
+                .block_on(self.db.account_storage_slot(address, index))
+        })
+    }
+
+    fn block_hash(&mut self, number: U256) -> Result<H256, Self::Error> {
+        task::block_in_place(move || {
+            self.db
+                .runtime()
+                .block_on(self.db.block_hash_by_number(number))
+        })
+    }
+}
+
+impl<'d, D, E> DatabaseCommit for AsyncDatabaseWrapper<'d, D, E>
+where
+    D: SyncDatabase<E>,
+    E: Debug + Send + 'static,
+{
+    fn commit(&mut self, changes: HashMap<Address, Account>) {
+        task::block_in_place(move || self.db.runtime().block_on(self.db.apply(changes)))
+    }
+}
+
+impl<'d, D, E> DatabaseDebug for AsyncDatabaseWrapper<'d, D, E>
+where
+    D: SyncDatabase<E>,
+    E: Debug + Send + 'static,
+{
+    type Error = E;
+
+    fn insert_account(
+        &mut self,
+        address: Address,
+        account_info: AccountInfo,
+    ) -> Result<(), Self::Error> {
+        task::block_in_place(move || {
+            self.db
+                .runtime()
+                .block_on(self.db.insert_account(address, account_info))
+        })
+    }
+
+    fn insert_block(&mut self, block_number: U256, block_hash: H256) -> Result<(), Self::Error> {
+        task::block_in_place(move || {
+            self.db
+                .runtime()
+                .block_on(self.db.insert_block(block_number, block_hash))
+        })
+    }
+
+    fn modify_account(
+        &mut self,
+        address: Address,
+        modifier: Box<dyn Fn(&mut AccountInfo) + Send>,
+    ) -> Result<(), Self::Error> {
+        task::block_in_place(move || {
+            self.db
+                .runtime()
+                .block_on(self.db.modify_account(address, modifier))
+        })
+    }
+
+    fn remove_account(&mut self, address: Address) -> Result<Option<AccountInfo>, Self::Error> {
+        task::block_in_place(move || self.db.runtime().block_on(self.db.remove_account(address)))
+    }
+
+    fn storage_root(&mut self) -> Result<H256, Self::Error> {
+        task::block_in_place(move || self.db.runtime().block_on(self.db.storage_root()))
+    }
+
+    fn checkpoint(&mut self) -> Result<(), Self::Error> {
+        task::block_in_place(move || self.db.runtime().block_on(self.db.checkpoint()))
+    }
+
+    fn revert(&mut self) -> Result<(), Self::Error> {
+        task::block_in_place(move || self.db.runtime().block_on(self.db.revert()))
+    }
+}

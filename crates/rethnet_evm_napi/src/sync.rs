@@ -39,6 +39,7 @@ where
     Ok(())
 }
 
+#[allow(dead_code)]
 pub fn await_void_promise(
     env: Env,
     result: JsUnknown,
