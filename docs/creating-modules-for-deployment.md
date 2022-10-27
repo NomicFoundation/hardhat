@@ -1,5 +1,23 @@
 # Creating Modules for Deployments
 
+---
+
+### Table of Contents
+
+- [Getting Started](./getting-started-guide.md)
+  - [Setup](./getting-started-guide.md#setup)
+  - [Writing Your First Deployment Module](./getting-started-guide.md#writing-your-first-deployment-module)
+- Creating Modules for Deployment
+  - [Deploying a Contract](./creating-modules-for-deployment.md#deploying-a-contract)
+  - [Executing a Method on a Contract](./creating-modules-for-deployment.md#executing-a-method-on-a-contract)
+  - [Using the Network Chain ID](./creating-modules-for-deployment.md#using-the-network-chain-id)
+  - [Module Parameters](./creating-modules-for-deployment.md#module-parameters)
+  - [Modules Within Modules](./creating-modules-for-deployment.md#modules-within-modules)
+- [Visualizing Your Deployment](./visualizing-your-deployment.md)
+  - [Actions](./visualizing-your-deployment.md#actions)
+
+---
+
 An **Ignition** deployment is composed of modules. A module is a special javascript/typescript function that encapsulates several on-chain transactions (e.g. deploy a contract, invoke a contract function etc).
 
 For example, this is a minimal module `MyModule` that deploys an instance of a `Token` contract and exposes it to any consumer of `MyModule`:
@@ -101,7 +119,7 @@ const contract = m.contract("Contract", {
 
 A library is deployed in the same way as a contract.
 
-## Executing a method on a contract
+## Executing a Method on a Contract
 
 Not all contract configuration happens via the constructor. To configure a contract calls can be made:
 
@@ -114,7 +132,7 @@ m.call(exchange, "addToken", {
 });
 ```
 
-## Using the network chain id
+## Using the Network Chain ID
 
 The `DeploymentBuilder` (`m`) exposes the chain id of the network in which the contracts are being deployed. This is useful if you need to do different things depending on the network.
 
@@ -151,7 +169,7 @@ When a module is deployed, the proper parameters must be provided. If they are n
 const symbol = m.getOptionalParam("tokenSymbol", "TKN");
 ```
 
-## Modules within modules
+## Modules Within Modules
 
 Modules can be deployed and consumed within other modules via `m.useModule(...)`:
 
@@ -180,3 +198,7 @@ module.exports = buildModule("`TEST` registrar", (m) => {
 Calls to `useModule` memoize the results object, assuming the same parameters are passed. Multiple calls to the same module with different parameters are banned.
 
 Only `CallableFuture` types can be returned when building a module, so contracts or libraries (not calls).
+
+Next, let's take a look at another way to visualize your deployments:
+
+[Visualizing your deployment](./visualizing-your-deployment.md)

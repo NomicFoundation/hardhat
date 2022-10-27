@@ -1,5 +1,23 @@
 # Getting Started
 
+---
+
+### Table of Contents
+
+- Getting Started
+  - [Setup](./getting-started-guide.md#setup)
+  - [Writing Your First Deployment Module](./getting-started-guide.md#writing-your-first-deployment-module)
+- [Creating Modules for Deployment](./creating-modules-for-deployment.md)
+  - [Deploying a Contract](./creating-modules-for-deployment.md#deploying-a-contract)
+  - [Executing a Method on a Contract](./creating-modules-for-deployment.md#executing-a-method-on-a-contract)
+  - [Using the Network Chain ID](./creating-modules-for-deployment.md#using-the-network-chain-id)
+  - [Module Parameters](./creating-modules-for-deployment.md#module-parameters)
+  - [Modules Within Modules](./creating-modules-for-deployment.md#modules-within-modules)
+- [Visualizing Your Deployment](./visualizing-your-deployment.md)
+  - [Actions](./visualizing-your-deployment.md#actions)
+
+---
+
 ## Setup
 
 This guide assumes you are starting with the Hardhat Javascript project as covered in the [Hardhat quick start](https://hardhat.org/hardhat-runner/docs/getting-started#quick-start).
@@ -26,7 +44,7 @@ $ npx hardhat
 
 Add **Ignition** to your **Hardhat** project by installing the plugin:
 
-```shell
+```bash
 npm install @ignored/hardhat-ignition
 ```
 
@@ -40,11 +58,11 @@ require("@ignored/hardhat-ignition");
 
 Create an `./ignition` folder in your project root to contain your deployment modules.
 
-```shell
+```bash
 mkdir ./ignition
 ```
 
-## Write a deployment module
+## Writing Your First Deployment Module
 
 Add a deployment module under the `./ignition` folder for the example `Lock.sol` contract:
 
@@ -65,22 +83,22 @@ module.exports = buildModule("LockModule", (m) => {
 
 Run the `deploy` task to test the module against an ephemeral **Hardhat** node (using the default `unlockTime`):
 
-```shell
+```bash
 npx hardhat deploy LockModule.js
 ```
 
 Parameters can be passed as a flag at the command line via a json string:
 
-```shell
+```bash
 npx hardhat deploy --parameters "{\"unlockTime\":4102491600}" LockModule.js
 # Ensure you have properly escaped the json string
 ```
 
 To deploy against a local hardhat node:
 
-```shell
+```bash
 npx hardhat node
-// in another terminal
+# in another terminal
 npx hardhat deploy --network localhost LockModule.js
 ```
 
