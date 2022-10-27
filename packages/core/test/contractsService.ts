@@ -1,25 +1,24 @@
 /* eslint-disable import/no-unused-modules */
-import { providers, ethers } from "ethers";
-import sinon from "sinon";
+import { assert } from "chai";
+import { ethers } from "ethers";
 
-import { ContractsService } from "services/ContractsService";
-import { Artifact } from "types/hardhat";
-import type { Providers } from "types/providers";
+import {
+  ContractsService,
+  ContractsServiceProviders,
+} from "services/ContractsService";
 import type { TxSender } from "utils/tx-sender";
 
 const txSender: TxSender = {
   async send(..._) {
-    console.log("send called");
     return [0, "0xabc"];
   },
   async sendAndReplace(..._) {
-    console.log("sendAndReplace called");
     return "0xabc";
   },
 } as TxSender;
 
-const providersFake: Providers = {
-  signers: {
+const providersFake = {
+  signersProvider: {
     async getDefaultSigner() {
       return {
         async sendTransaction(_) {
@@ -38,12 +37,22 @@ const providersFake: Providers = {
       };
     },
   },
-  ethereumProvider: {
-    async request(_) {
-      return {};
+  web3Provider: {
+    n: 0,
+    async getBlockNumber() {
+      this.n++;
+      return this.n;
+    },
+    async getTransaction() {
+      return {
+        hash: "",
+        nonce: 0,
+        gasLimit: 21000,
+        gasPrice: 100,
+      };
     },
   },
-  transactions: {
+  transactionsProvider: {
     async isConfirmed(_) {
       return false;
     },
@@ -59,58 +68,19 @@ const providersFake: Providers = {
       return ethers.BigNumber.from(0);
     },
   },
-} as Providers;
+} as unknown as ContractsServiceProviders;
 
-describe.skip("ContractsService", function () {
+describe("ContractsService", function () {
   it("should retry an unconfirmed transaction until the retry limit is hit", async function () {
-    class Web3Provider {
-      public blockNumber: 0;
-      public getBlockNumber = () => {
-        this.blockNumber += 5;
-        return this.blockNumber;
-      };
-      public getTransaction = () => {
-        return {
-          hash: "",
-          blockHash: "",
-          blockNumber: 0,
-          nonce: 0,
-          gasLimit: 100,
-          confirmations: 0,
-          chainId: 0,
-          data: "",
-          from: "",
-        } as unknown as ethers.providers.TransactionResponse;
-      };
-    }
-
-    class ContractFactory {
-      public getDeployTransaction = () => {
-        return {};
-      };
-    }
-
-    sinon.stub(ethers, "providers").returns({ Web3Provider });
-    sinon.stub(ethers, "ContractFactory").returns(ContractFactory);
-
-    // @ts-ignore
-    // sinon.replace(ethers.providers, "Web3Provider", Web3Provider);
-    // @ts-ignore
-    // sinon.replace(ethers, "ContractFactory", ContractFactory);
-
     const contractsService = new ContractsService(providersFake, txSender, {
       pollingInterval: 10,
     });
 
-    const fakeArtifact: Artifact = {
-      contractName: "Foo",
-      abi: [],
-      bytecode: "0x0",
-      linkReferences: {},
-    };
+    const fakeTx: ethers.providers.TransactionRequest = {};
 
-    const tx = await contractsService.deploy(fakeArtifact, [], {});
-
-    console.log(tx);
+    await assert.isRejected(
+      contractsService.sendTx(fakeTx),
+      /Transaction not confirmed within max retry limit/
+    );
   });
 });
