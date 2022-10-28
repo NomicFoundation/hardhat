@@ -156,6 +156,26 @@ if (totalSupply > 0) {
 
 Because `totalSupply` is not a number, it is a future.
 
+## Waiting for on-chain events (TBD)
+
+A deployment can be put `on-hold` until an on-chain action, external to the deployment, has taken place (for instance a timelock or multisig approval). The `await` condition can be specified:
+
+```tsx
+let multisig = m.deploy("Multisig");
+
+m.call(multisig, "authorize");
+
+m.await({
+  from: "0xUser1",
+  to: multisig.address,
+  // value: 20.toWei(),
+  // function: 'authorize',
+  events: [{ name: "AuthorizedBy", data: "0xUser1" }],
+});
+```
+
+The `await` during deployment will check whether a transaction matching the parameters has occured. If it has the deployment will continue, if not the deployment stops in the `on-hold` condition. A further run of the deployment will recheck the `await` condition.
+
 ## Using the Network Chain ID
 
 The `DeploymentBuilder` (`m`) exposes the chain id of the network in which the contracts are being deployed. This is useful if you need to do different things depending on the network.
