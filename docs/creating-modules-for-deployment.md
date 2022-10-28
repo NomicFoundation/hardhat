@@ -133,6 +133,29 @@ m.call(exchange, "addToken", {
 });
 ```
 
+### Using the results of a call with a deferred value (TBD)
+
+A contract might need the result of some other contract method as an input:
+
+```tsx
+const token = m.contract("Token");
+const totalSupply = m.call(token, "totalSupply");
+
+const someContract = m.contract("ContractName", {
+  args: [totalSupply],
+});
+```
+
+In this example, `totalSupply` is called a **deferred value**. Similar to how a contract future is a contract that will eventually be deployed, a deferred value is some value that will eventually be available. That means **you can't do this**:
+
+```tsx
+if (totalSupply > 0) {
+  ...
+}
+```
+
+Because `totalSupply` is not a number, it is a future.
+
 ## Using the Network Chain ID
 
 The `DeploymentBuilder` (`m`) exposes the chain id of the network in which the contracts are being deployed. This is useful if you need to do different things depending on the network.
