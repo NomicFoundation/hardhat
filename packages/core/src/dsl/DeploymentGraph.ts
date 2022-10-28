@@ -1,15 +1,17 @@
 import { Graph } from "graph/Graph";
-import { DeploymentGraphVertex as DeploymentGraphVertex } from "types/deploymentGraph";
-import { DeploymentGraphFuture } from "types/future";
+import {
+  DeploymentGraphVertex as DeploymentGraphVertex,
+  ScopeData,
+} from "types/deploymentGraph";
 
 export class DeploymentGraph extends Graph<DeploymentGraphVertex> {
-  public registeredParameters: {
-    [key: string]: { [key: string]: string | number | DeploymentGraphFuture };
+  public scopeData: {
+    [key: string]: ScopeData;
   };
 
   constructor() {
     super();
 
-    this.registeredParameters = {};
+    this.scopeData = {};
   }
 }

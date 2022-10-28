@@ -10,6 +10,7 @@ import {
   DeploymentBuilderOptions,
   DeploymentGraphVertex,
   UseSubgraphOptions,
+  ScopeData,
 } from "types/deploymentGraph";
 import type {
   DeploymentGraphFuture,
@@ -25,6 +26,7 @@ import type {
   FutureDict,
   CallableFuture,
   Virtual,
+  DependableFuture,
 } from "types/future";
 import type { Artifact } from "types/hardhat";
 import type { Module, ModuleCache, ModuleDict } from "types/module";
@@ -216,16 +218,17 @@ export class DeploymentBuilder implements IDeploymentBuilder {
       const parameter = contractFuture;
       const scope = parameter.scope;
 
-      const registeredScope = this.graph.registeredParameters[scope];
+      const scopeData = this.graph.scopeData[scope];
 
       if (
-        registeredScope === undefined ||
-        !(parameter.label in registeredScope)
+        scopeData === undefined ||
+        scopeData.parameters === undefined ||
+        !(parameter.label in scopeData.parameters)
       ) {
         throw new Error("Could not resolve contract from parameter");
       }
 
-      contract = registeredScope[parameter.label] as
+      contract = scopeData.parameters[parameter.label] as
         | HardhatContract
         | ArtifactContract
         | DeployedContract;
@@ -283,9 +286,9 @@ export class DeploymentBuilder implements IDeploymentBuilder {
     subgraph: Subgraph,
     options?: UseSubgraphOptions
   ): FutureDict {
-    const { result, virtualVertex } = this._useSubscope(subgraph, options);
+    const { result, after } = this._useSubscope(subgraph, options);
 
-    return { ...result, subgraph: virtualVertex };
+    return { ...result, subgraph: after };
   }
 
   public useModule(module: Module, options?: UseSubgraphOptions): ModuleDict {
@@ -305,7 +308,7 @@ export class DeploymentBuilder implements IDeploymentBuilder {
       return this.moduleCache[moduleKey].result;
     }
 
-    const { result, virtualVertex } = this._useSubscope(module, options);
+    const { result, after } = this._useSubscope(module, options);
 
     // type casting here so that typescript lets us validate against js users bypassing typeguards
     for (const future of Object.values(result)) {
@@ -318,7 +321,7 @@ export class DeploymentBuilder implements IDeploymentBuilder {
       );
     }
 
-    const moduleResult = { ...result, module: virtualVertex };
+    const moduleResult = { ...result, module: after };
 
     const optionsHash = hash(options ?? null);
 
@@ -327,32 +330,52 @@ export class DeploymentBuilder implements IDeploymentBuilder {
     return moduleResult;
   }
 
-  private _createVirtualVertex(label: string): Virtual {
+  private _createBeforeVirtualVertex(
+    label: string,
+    after: DeploymentGraphFuture[] = []
+  ): Virtual {
+    const afterLabel = `${label}::before`;
+
     const virtualFuture: Virtual = {
       vertexId: this._resolveNextId(),
-      label,
+      label: afterLabel,
       type: "virtual",
       _future: true,
     };
 
     const scopeLabel = this.scopes.getScopedLabel();
 
-    const afterVertexFutures = [...this.graph.vertexes.values()]
-      .filter((v) => v.scopeAdded === scopeLabel)
-      .map(
-        (v): DeploymentGraphFuture => ({
-          vertexId: v.id,
-          label: v.label,
-          type: "virtual",
-          _future: true,
-        })
-      );
+    DeploymentBuilder._addVertex(this.graph, {
+      id: virtualFuture.vertexId,
+      label: afterLabel,
+      type: "Virtual",
+      after,
+      scopeAdded: scopeLabel,
+    });
+
+    return virtualFuture;
+  }
+
+  private _createAfterVirtualVertex(
+    label: string,
+    after: DeploymentGraphFuture[] = []
+  ): Virtual {
+    const afterLabel = `${label}::after`;
+
+    const virtualFuture: Virtual = {
+      vertexId: this._resolveNextId(),
+      label: afterLabel,
+      type: "virtual",
+      _future: true,
+    };
+
+    const scopeLabel = this.scopes.getScopedLabel();
 
     DeploymentBuilder._addVertex(this.graph, {
       id: virtualFuture.vertexId,
-      label,
+      label: afterLabel,
       type: "Virtual",
-      after: afterVertexFutures,
+      after,
       scopeAdded: scopeLabel,
     });
 
@@ -480,13 +503,13 @@ export class DeploymentBuilder implements IDeploymentBuilder {
     graph: DeploymentGraph,
     param: RequiredParameter | OptionalParameter
   ) {
-    const parametersFromScope = graph.registeredParameters[param.scope];
+    const scopeData = graph.scopeData[param.scope];
 
-    if (parametersFromScope === undefined) {
+    if (scopeData === undefined || scopeData.parameters === undefined) {
       return param;
     }
 
-    const scopeValue = parametersFromScope[param.label];
+    const scopeValue = scopeData.parameters[param.label];
 
     if (param.subtype === "optional") {
       return scopeValue ?? param.defaultValue;
@@ -509,17 +532,49 @@ export class DeploymentBuilder implements IDeploymentBuilder {
     this.scopes.push(label);
     const scopeLabel = this.scopes.getScopedLabel();
 
-    if (options !== undefined && options.parameters !== undefined) {
-      this.graph.registeredParameters[scopeLabel] = options.parameters;
-    }
+    const beforeVirtualVertex = this._createBeforeVirtualVertex(
+      label,
+      options?.after
+    );
+
+    const scopeData: ScopeData = {
+      before: beforeVirtualVertex,
+      parameters: options?.parameters,
+    };
+
+    this.graph.scopeData[scopeLabel] = scopeData;
 
     const result = this._invokeAction(subgraphOrModule);
 
-    const virtualVertex = this._createVirtualVertex(label);
+    const addedVertexes = [...this.graph.vertexes.values()]
+      .filter((v) => v.scopeAdded === scopeLabel)
+      .filter((v) => v.type !== "Virtual")
+      .map(
+        (v): DependableFuture => ({
+          vertexId: v.id,
+          label: v.label,
+          type: "virtual",
+          _future: true,
+        })
+      );
+
+    for (const addedVertex of addedVertexes) {
+      addEdge(this.graph.adjacencyList, {
+        from: beforeVirtualVertex.vertexId,
+        to: addedVertex.vertexId,
+      });
+    }
+
+    const afterVirtualVertex = this._createAfterVirtualVertex(
+      label,
+      addedVertexes
+    );
+
+    scopeData.after = afterVirtualVertex;
 
     this.scopes.pop();
 
-    return { result, virtualVertex };
+    return { before: beforeVirtualVertex, result, after: afterVirtualVertex };
   }
 
   private _invokeAction(subgraphOrModule: Subgraph | Module) {

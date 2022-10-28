@@ -14,6 +14,7 @@ import type {
   OptionalParameter,
   DeploymentGraphFuture,
   RequiredParameter,
+  Virtual,
 } from "types/future";
 import { Artifact } from "types/hardhat";
 import { Module } from "types/module";
@@ -80,6 +81,10 @@ export function isDependable(possible: any): possible is DependableFuture {
       possible.type === "library" ||
       possible.type === "virtual")
   );
+}
+
+export function isVirtual(possible: any): possible is Virtual {
+  return isFuture(possible) && possible.type === "virtual";
 }
 
 export function isParameter(

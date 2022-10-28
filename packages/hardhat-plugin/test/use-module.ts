@@ -225,4 +225,83 @@ describe("useModule", function () {
       );
     });
   });
+
+  describe("modules depending on modules", () => {
+    it("should allow ordering using returned futures", async function () {
+      await this.hre.run("compile", { quiet: true });
+
+      const addSecondAndThirdEntryModule = buildModule(
+        "SecondAndThirdCallModule",
+        (m) => {
+          const trace = m.getParam("Trace");
+
+          const secondCall = m.call(trace, "addEntry", {
+            args: ["second"],
+          });
+
+          m.call(trace, "addEntry", {
+            args: ["third"],
+            after: [secondCall],
+          });
+
+          return {};
+        }
+      );
+
+      const fourthCallModule = buildModule("FourthCallModule", (m) => {
+        const trace = m.getParam("Trace");
+
+        m.call(trace, "addEntry", {
+          args: ["fourth"],
+        });
+
+        return {};
+      });
+
+      const userModule = buildModule("UserModule", (m: IDeploymentBuilder) => {
+        const trace = m.contract("Trace", {
+          args: ["first"],
+        });
+
+        const { module: secondAndThirdModule } = m.useModule(
+          addSecondAndThirdEntryModule,
+          {
+            parameters: {
+              Trace: trace,
+            },
+          }
+        );
+
+        m.useModule(fourthCallModule, {
+          parameters: {
+            Trace: trace,
+          },
+          after: [secondAndThirdModule],
+        });
+
+        return { trace };
+      });
+
+      const deployPromise = this.hre.ignition.deploy(userModule, {
+        parameters: {},
+        ui: false,
+      });
+
+      await mineBlocks(this.hre, [1, 1, 1, 1], deployPromise);
+
+      const result = await deployPromise;
+
+      assert.isDefined(result);
+
+      const entry1 = await result.trace.entries(0);
+      const entry2 = await result.trace.entries(1);
+      const entry3 = await result.trace.entries(2);
+      const entry4 = await result.trace.entries(3);
+
+      assert.deepStrictEqual(
+        [entry1, entry2, entry3, entry4],
+        ["first", "second", "third", "fourth"]
+      );
+    });
+  });
 });

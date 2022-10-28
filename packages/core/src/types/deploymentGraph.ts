@@ -11,16 +11,23 @@ import {
   ParameterValue,
   RequiredParameter,
   CallableFuture,
+  Virtual,
 } from "./future";
 import { AdjacencyList, VertexDescriptor } from "./graph";
 import { Artifact } from "./hardhat";
 import { Module, ModuleDict } from "./module";
 
+export interface ScopeData {
+  before: Virtual;
+  after?: Virtual;
+  parameters?: { [key: string]: string | number | DeploymentGraphFuture };
+}
+
 export interface IDeploymentGraph {
   vertexes: Map<number, DeploymentGraphVertex>;
   adjacencyList: AdjacencyList;
-  registeredParameters: {
-    [key: string]: { [key: string]: string | number | DeploymentGraphFuture };
+  scopeData: {
+    [key: string]: ScopeData;
   };
   getEdges(): Array<{ from: number; to: number }>;
 }
@@ -109,6 +116,7 @@ export interface ContractOptions {
 
 export interface UseSubgraphOptions {
   parameters?: { [key: string]: number | string | DeploymentGraphFuture };
+  after?: DeploymentGraphFuture[];
 }
 
 export interface IDeploymentBuilder {

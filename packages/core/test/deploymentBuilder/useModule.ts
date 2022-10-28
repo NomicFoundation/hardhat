@@ -55,8 +55,8 @@ describe("deployment builder - useModule", () => {
       assert.isDefined(deploymentGraph);
     });
 
-    it("should have two nodes", () => {
-      assert.equal(deploymentGraph.vertexes.size, 2);
+    it("should have three nodes", () => {
+      assert.equal(deploymentGraph.vertexes.size, 3);
     });
   });
 
@@ -90,8 +90,8 @@ describe("deployment builder - useModule", () => {
       assert.isDefined(deploymentGraph);
     });
 
-    it("should have three node", () => {
-      assert.equal(deploymentGraph.vertexes.size, 3);
+    it("should have four nodes", () => {
+      assert.equal(deploymentGraph.vertexes.size, 4);
     });
 
     it("should have the Token node", () => {
@@ -101,7 +101,7 @@ describe("deployment builder - useModule", () => {
       assert.equal(depNode?.label, "Token");
     });
 
-    it("should show no dependencies for the Token node", () => {
+    it("should show the Token node depending on the modules before virtual node", () => {
       const depNode = getDeploymentVertexByLabel(deploymentGraph, "Token");
 
       if (depNode === undefined) {
@@ -110,7 +110,13 @@ describe("deployment builder - useModule", () => {
 
       const deps = getDependenciesForVertex(deploymentGraph, depNode);
 
-      assert.deepStrictEqual(deps, []);
+      assert.deepStrictEqual(deps, [
+        {
+          id: 0,
+          label: "TokenModule:0::before",
+          type: "",
+        },
+      ]);
     });
 
     it("should have the Foo node", () => {
@@ -130,7 +136,189 @@ describe("deployment builder - useModule", () => {
       const deps = getDependenciesForVertex(deploymentGraph, depNode);
 
       assert.deepStrictEqual(deps, [
-        { id: 1, label: "TokenModule:0", type: "" },
+        { id: 2, label: "TokenModule:0::after", type: "" },
+      ]);
+    });
+  });
+
+  describe("a module depending on a contract", () => {
+    before(() => {
+      const TokenModule = buildModule(
+        "TokenModule",
+        (m: IDeploymentBuilder) => {
+          const bar = m.contract("Bar");
+          const baz = m.contract("Baz");
+
+          return { bar, baz };
+        }
+      );
+
+      const WrapModule = buildModule("Wrap", (m: IDeploymentBuilder) => {
+        const foo = m.contract("Foo");
+
+        const { bar, baz } = m.useModule(TokenModule, { after: [foo] });
+
+        return { foo, bar, baz };
+      });
+
+      const { graph } = generateDeploymentGraphFrom(WrapModule, {
+        chainId: 31,
+      });
+
+      deploymentGraph = graph;
+    });
+
+    it("should create a graph", () => {
+      assert.isDefined(deploymentGraph);
+    });
+
+    it("should have five nodes", () => {
+      assert.equal(deploymentGraph.vertexes.size, 5);
+    });
+
+    it("should have the Foo node", () => {
+      const depNode = getDeploymentVertexByLabel(deploymentGraph, "Foo");
+
+      assert.isDefined(depNode);
+      assert.equal(depNode?.label, "Foo");
+    });
+
+    it("should have the Bar node", () => {
+      const depNode = getDeploymentVertexByLabel(deploymentGraph, "Bar");
+
+      assert.isDefined(depNode);
+      assert.equal(depNode?.label, "Bar");
+    });
+
+    it("should have the Baz node", () => {
+      const depNode = getDeploymentVertexByLabel(deploymentGraph, "Baz");
+
+      assert.isDefined(depNode);
+      assert.equal(depNode?.label, "Baz");
+    });
+
+    it("should show Bar depending on the module before node", () => {
+      const depNode = getDeploymentVertexByLabel(deploymentGraph, "Bar");
+
+      if (depNode === undefined) {
+        return assert.isDefined(depNode);
+      }
+
+      const deps = getDependenciesForVertex(deploymentGraph, depNode);
+
+      assert.deepStrictEqual(deps, [
+        { id: 1, label: "TokenModule:0::before", type: "" },
+      ]);
+    });
+
+    it("should show Baz depending on the module before node", () => {
+      const depNode = getDeploymentVertexByLabel(deploymentGraph, "Baz");
+
+      if (depNode === undefined) {
+        return assert.isDefined(depNode);
+      }
+
+      const deps = getDependenciesForVertex(deploymentGraph, depNode);
+
+      assert.deepStrictEqual(deps, [
+        { id: 1, label: "TokenModule:0::before", type: "" },
+      ]);
+    });
+
+    it("should show module before virtual vertex depending on the Foo contract", () => {
+      const depNode = getDeploymentVertexByLabel(
+        deploymentGraph,
+        "TokenModule:0::before"
+      );
+
+      if (depNode === undefined) {
+        return assert.isDefined(depNode);
+      }
+
+      const deps = getDependenciesForVertex(deploymentGraph, depNode);
+
+      assert.deepStrictEqual(deps, [{ id: 0, label: "Foo", type: "" }]);
+    });
+  });
+
+  describe("a module depending on a module", () => {
+    before(() => {
+      const FooModule = buildModule("FooModule", (m: IDeploymentBuilder) => {
+        const foo = m.contract("Foo");
+
+        return { foo };
+      });
+
+      const BarModule = buildModule("BarModule", (m: IDeploymentBuilder) => {
+        const bar = m.contract("Bar");
+
+        return { bar };
+      });
+
+      const WrapModule = buildModule("Wrap", (m: IDeploymentBuilder) => {
+        const { module: barModule, foo } = m.useModule(FooModule);
+        const { bar } = m.useModule(BarModule, { after: [barModule] });
+
+        return { foo, bar };
+      });
+
+      const { graph } = generateDeploymentGraphFrom(WrapModule, {
+        chainId: 31,
+      });
+
+      deploymentGraph = graph;
+    });
+
+    it("should create a graph", () => {
+      assert.isDefined(deploymentGraph);
+    });
+
+    it("should have six nodes", () => {
+      assert.equal(deploymentGraph.vertexes.size, 6);
+    });
+
+    it("should have the Foo node", () => {
+      const depNode = getDeploymentVertexByLabel(deploymentGraph, "Foo");
+
+      assert.isDefined(depNode);
+      assert.equal(depNode?.label, "Foo");
+    });
+
+    it("should have the Bar node", () => {
+      const depNode = getDeploymentVertexByLabel(deploymentGraph, "Bar");
+
+      assert.isDefined(depNode);
+      assert.equal(depNode?.label, "Bar");
+    });
+
+    it("should show Bar depending on the module before node", () => {
+      const depNode = getDeploymentVertexByLabel(deploymentGraph, "Bar");
+
+      if (depNode === undefined) {
+        return assert.isDefined(depNode);
+      }
+
+      const deps = getDependenciesForVertex(deploymentGraph, depNode);
+
+      assert.deepStrictEqual(deps, [
+        { id: 3, label: "BarModule:1::before", type: "" },
+      ]);
+    });
+
+    it("should show bar module before virtual vertex depending on the Foo module after virtual vertex", () => {
+      const depNode = getDeploymentVertexByLabel(
+        deploymentGraph,
+        "BarModule:1::before"
+      );
+
+      if (depNode === undefined) {
+        return assert.isDefined(depNode);
+      }
+
+      const deps = getDependenciesForVertex(deploymentGraph, depNode);
+
+      assert.deepStrictEqual(deps, [
+        { id: 2, label: "FooModule:0::after", type: "" },
       ]);
     });
   });
@@ -168,8 +356,8 @@ describe("deployment builder - useModule", () => {
       assert.isDefined(deploymentGraph);
     });
 
-    it("should have three nodes", () => {
-      assert.equal(deploymentGraph.vertexes.size, 4);
+    it("should have six nodes", () => {
+      assert.equal(deploymentGraph.vertexes.size, 6);
     });
 
     it("should have the Foo node", () => {
@@ -195,7 +383,7 @@ describe("deployment builder - useModule", () => {
 
       const deps = getDependenciesForVertex(deploymentGraph, depNode);
 
-      assert.deepStrictEqual(deps, [{ id: 0, label: "Foo", type: "" }]);
+      assert.deepStrictEqual(deps, [{ id: 2, label: "Foo", type: "" }]);
     });
   });
 

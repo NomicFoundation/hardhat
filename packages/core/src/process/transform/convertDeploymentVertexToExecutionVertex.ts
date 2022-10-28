@@ -189,10 +189,14 @@ async function resolveParameter(
   }
 
   const scope = arg.scope;
-  const scopeParameters = graph.registeredParameters[scope];
+  const scopeData = graph.scopeData[scope];
 
-  if (scopeParameters !== undefined && arg.label in scopeParameters) {
-    return scopeParameters[arg.label];
+  if (
+    scopeData !== undefined &&
+    scopeData.parameters !== undefined &&
+    arg.label in scopeData.parameters
+  ) {
+    return scopeData.parameters[arg.label];
   }
 
   const hasParamResult = await services.config.hasParam(arg.label);

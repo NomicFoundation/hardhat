@@ -50,7 +50,7 @@ describe("deployment builder - parameters", function () {
     assert.isDefined(deploymentGraph);
   });
 
-  it("should have one node", () => {
-    assert.equal(deploymentGraph.vertexes.size, 2);
+  it("should have three nodes", () => {
+    assert.equal(deploymentGraph.vertexes.size, 3);
   });
 });
