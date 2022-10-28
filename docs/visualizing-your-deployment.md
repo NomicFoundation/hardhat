@@ -15,6 +15,7 @@
   - [Modules Within Modules](./creating-modules-for-deployment.md#modules-within-modules)
 - Visualizing Your Deployment
   - [Actions](./visualizing-your-deployment.md#actions)
+- [Testing With Hardhat](./testing-with-hardhat.md)
 
 ---
 
@@ -41,3 +42,7 @@ To view more details about any given transaction, simply clicking on it will nav
 ![Action detail output](images/plan-2.png)
 
 Notice that, since this is just a dry run and not an actual deployment, any Futures passed as arguments will not have a resolved value yet. We include a placeholder for that data in the output above, and during an actual deployment that future will, of course, be replaced by the appropriate value.
+
+Next we'll see how to use **Ignition** inside Hardhat tests
+
+[Testing With Hardhat](./testing-with-hardhat.md)

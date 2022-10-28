@@ -15,6 +15,7 @@
   - [Modules Within Modules](./creating-modules-for-deployment.md#modules-within-modules)
 - [Visualizing Your Deployment](./visualizing-your-deployment.md)
   - [Actions](./visualizing-your-deployment.md#actions)
+- [Testing With Hardhat](./testing-with-hardhat.md)
 
 ---
 
