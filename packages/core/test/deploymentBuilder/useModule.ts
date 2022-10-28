@@ -7,110 +7,134 @@ import type {
   IDeploymentGraph,
   IDeploymentBuilder,
 } from "types/deploymentGraph";
+import { Module } from "types/module";
 
 describe("deployment builder - useModule", () => {
   let deploymentGraph: IDeploymentGraph;
-  let returnsWrongFutureType: () => void;
-  let differentParams: () => void;
 
-  before(() => {
-    const librariesModule = buildModule(
-      "libraries",
-      (m: IDeploymentBuilder) => {
-        const symbol = m.getOptionalParam("tokenSymbol", "TKN");
-        const name = m.getParam("tokenName");
-        const token = m.contract("Token", {
-          args: [symbol, name, 1_000_000],
-        });
+  describe("use one module from another", () => {
+    before(() => {
+      const librariesModule = buildModule(
+        "libraries",
+        (m: IDeploymentBuilder) => {
+          const symbol = m.getOptionalParam("tokenSymbol", "TKN");
+          const name = m.getParam("tokenName");
+          const token = m.contract("Token", {
+            args: [symbol, name, 1_000_000],
+          });
 
-        return { token };
-      }
-    );
+          return { token };
+        }
+      );
 
-    const WrapModule = buildModule("Wrap", (m: IDeploymentBuilder) => {
-      const { token } = m.useModule(librariesModule, {
-        parameters: { tokenSymbol: "EXAMPLE", tokenName: "Example" },
-      });
-
-      const { token: token2 } = m.useModule(librariesModule, {
-        parameters: { tokenSymbol: "EXAMPLE", tokenName: "Example" },
-      });
-
-      return { token, token2 };
-    });
-
-    const { graph } = generateDeploymentGraphFrom(WrapModule, {
-      chainId: 31,
-    });
-
-    deploymentGraph = graph;
-
-    const DiffParamsModule = buildModule("Error", (m: IDeploymentBuilder) => {
-      const { token } = m.useModule(librariesModule, {
-        parameters: { tokenSymbol: "EXAMPLE", tokenName: "Example" },
-      });
-
-      const { token: token2 } = m.useModule(librariesModule, {
-        parameters: { tokenSymbol: "DIFFERENT", tokenName: "Example" },
-      });
-
-      return { token, token2 };
-    });
-
-    const returnTypeModule = buildModule(
-      "returnsParam",
-      // @ts-ignore
-      // ignoring here to specifically test for js ability to bypass type guards
-      (m: IDeploymentBuilder) => {
-        const symbol = m.getOptionalParam("tokenSymbol", "TKN");
-        const name = m.getParam("tokenName");
-        const token = m.contract("Token", {
-          args: [symbol, name, 1_000_000],
-        });
-
-        return { token, name };
-      }
-    );
-
-    const ReturnTypeModule = buildModule(
-      "ReturnsParamModule",
-      (m: IDeploymentBuilder) => {
-        const { token } = m.useModule(returnTypeModule, {
+      const WrapModule = buildModule("Wrap", (m: IDeploymentBuilder) => {
+        const { token } = m.useModule(librariesModule, {
           parameters: { tokenSymbol: "EXAMPLE", tokenName: "Example" },
         });
 
-        return { token };
-      }
-    );
+        const { token: token2 } = m.useModule(librariesModule, {
+          parameters: { tokenSymbol: "EXAMPLE", tokenName: "Example" },
+        });
 
-    returnsWrongFutureType = () => {
-      generateDeploymentGraphFrom(ReturnTypeModule, { chainId: 31 });
-    };
+        return { token, token2 };
+      });
 
-    differentParams = () => {
-      generateDeploymentGraphFrom(DiffParamsModule, { chainId: 31 });
-    };
+      const { graph } = generateDeploymentGraphFrom(WrapModule, {
+        chainId: 31,
+      });
+
+      deploymentGraph = graph;
+    });
+
+    it("should create a graph", () => {
+      assert.isDefined(deploymentGraph);
+    });
+
+    it("should have one node", () => {
+      assert.equal(deploymentGraph.vertexes.size, 2);
+    });
   });
 
-  it("should create a graph", () => {
-    assert.isDefined(deploymentGraph);
+  describe("reusing the same module with different parameters", () => {
+    let differentParamsModule: Module;
+
+    before(() => {
+      const librariesModule = buildModule(
+        "libraries",
+        (m: IDeploymentBuilder) => {
+          const symbol = m.getOptionalParam("tokenSymbol", "TKN");
+          const name = m.getParam("tokenName");
+          const token = m.contract("Token", {
+            args: [symbol, name, 1_000_000],
+          });
+
+          return { token };
+        }
+      );
+
+      differentParamsModule = buildModule("Error", (m: IDeploymentBuilder) => {
+        const { token } = m.useModule(librariesModule, {
+          parameters: { tokenSymbol: "EXAMPLE", tokenName: "Example" },
+        });
+
+        const { token: token2 } = m.useModule(librariesModule, {
+          parameters: { tokenSymbol: "DIFFERENT", tokenName: "Example" },
+        });
+
+        return { token, token2 };
+      });
+    });
+
+    it("should throw", () => {
+      assert.throws(
+        () =>
+          generateDeploymentGraphFrom(differentParamsModule, {
+            chainId: 31,
+          }),
+        /`useModule` cannot be invoked on the same module using different parameters/
+      );
+    });
   });
 
-  it("should have one node", () => {
-    assert.equal(deploymentGraph.vertexes.size, 2);
-  });
+  describe("returning non contract/library futures from within a module", () => {
+    let returnsWrongFutureTypeModule: Module;
 
-  it("should not allow using the same module with different parameters", () => {
-    assert.throws(
-      differentParams,
-      /`useModule` cannot be invoked on the same module using different parameters/
-    );
-  });
+    before(() => {
+      const returnTypeModule = buildModule(
+        "returnsParam",
+        // @ts-ignore
+        // ignoring here to specifically test for js ability to bypass type guards
+        (m: IDeploymentBuilder) => {
+          const symbol = m.getOptionalParam("tokenSymbol", "TKN");
+          const name = m.getParam("tokenName");
+          const token = m.contract("Token", {
+            args: [symbol, name, 1_000_000],
+          });
 
-  it("should not allow an uncallable future to be returned from a module", () => {
-    assert.throws(
-      returnsWrongFutureType,
-      /Cannot return Future of type "parameter" from a module/
-    );
+          return { token, name };
+        }
+      );
+
+      returnsWrongFutureTypeModule = buildModule(
+        "ReturnsParamModule",
+        (m: IDeploymentBuilder) => {
+          const { token } = m.useModule(returnTypeModule, {
+            parameters: { tokenSymbol: "EXAMPLE", tokenName: "Example" },
+          });
+
+          return { token };
+        }
+      );
+    });
+
+    it("should throw", () => {
+      assert.throws(
+        () =>
+          generateDeploymentGraphFrom(returnsWrongFutureTypeModule, {
+            chainId: 31,
+          }),
+        /Cannot return Future of type "parameter" from a module/
+      );
+    });
   });
 });
