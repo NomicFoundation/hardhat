@@ -7,7 +7,10 @@ import {
 } from "@nomicfoundation/ethereumjs-util";
 import { VM } from "@nomicfoundation/ethereumjs-vm";
 import abi from "ethereumjs-abi";
+import { Rethnet } from "rethnet-evm";
 
+import { assertEthereumJsAndRethnetResults } from "../../../../src/internal/hardhat-network/provider/utils/assertions";
+import { ethereumjsTransactionToRethnet } from "../../../../src/internal/hardhat-network/provider/utils/convertToRethnet";
 import { MessageTrace } from "../../../../src/internal/hardhat-network/stack-traces/message-trace";
 import { VMTracer } from "../../../../src/internal/hardhat-network/stack-traces/vm-tracer";
 
@@ -59,6 +62,7 @@ export function encodeCall(
 
 export async function traceTransaction(
   vm: VM,
+  rethnet: Rethnet,
   txData: TxData
 ): Promise<MessageTrace> {
   const tx = new Transaction({
@@ -78,7 +82,17 @@ export async function traceTransaction(
   vmTracer.enableTracing();
 
   try {
-    await vm.runTx({ tx: signedTx });
+    const rethnetTx = ethereumjsTransactionToRethnet(signedTx);
+
+    const rethnetResult = await rethnet.dryRun(rethnetTx, {
+      number: 0n,
+      coinbase: Buffer.from("0000000000000000000000000000000000000000", "hex"),
+      timestamp: BigInt(Math.floor(Date.now() / 1000)),
+      gasLimit: 4000000n,
+    });
+
+    const txResult = await vm.runTx({ tx: signedTx });
+    assertEthereumJsAndRethnetResults(rethnetResult.execResult, txResult);
 
     const messageTrace = vmTracer.getLastTopLevelMessageTrace();
     if (messageTrace === undefined) {

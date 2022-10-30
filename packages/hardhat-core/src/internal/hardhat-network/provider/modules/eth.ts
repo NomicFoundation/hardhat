@@ -472,13 +472,12 @@ export class EthModule {
     blockTag: OptionalRpcNewBlockTag
   ): Promise<string> {
     const blockNumberOrPending = await this._resolveNewBlockTag(blockTag);
-
-    return numberToRpcQuantity(
-      await this._node.getAccountBalance(
-        new Address(address),
-        blockNumberOrPending
-      )
+    const accountBalance = await this._node.getAccountBalance(
+      new Address(address),
+      blockNumberOrPending
     );
+
+    return numberToRpcQuantity(accountBalance);
   }
 
   // eth_getBlockByHash

@@ -1,0 +1,2 @@
+[alias]
+gen-execution-api  = "run --bin tools -- gen-execution-api"

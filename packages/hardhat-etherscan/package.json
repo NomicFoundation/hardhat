@@ -25,6 +25,7 @@
     "eslint": "eslint 'src/**/*.ts' 'test/**/*.ts'",
     "prettier": "prettier \"**/*.{js,md,json}\"",
     "test": "mocha --recursive \"test/**/*.ts\" --exit",
+    "prebuild": "cd ../../crates/rethnet_evm_napi && yarn build",
     "build": "tsc --build .",
     "prepublishOnly": "yarn build",
     "clean": "rimraf dist"
@@ -42,8 +43,8 @@
     "chalk": "^2.4.2",
     "debug": "^4.1.1",
     "fs-extra": "^7.0.1",
-    "semver": "^6.3.0",
     "lodash": "^4.17.11",
+    "semver": "^6.3.0",
     "table": "^6.8.0",
     "undici": "^5.4.0"
   },
