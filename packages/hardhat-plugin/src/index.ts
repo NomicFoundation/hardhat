@@ -1,5 +1,5 @@
 import "@nomiclabs/hardhat-ethers";
-import { Module, Providers } from "@ignored/ignition-core";
+import { Module, ModuleDict, Providers } from "@ignored/ignition-core";
 import { extendConfig, extendEnvironment, task } from "hardhat/config";
 import { lazyObject } from "hardhat/plugins";
 import path from "path";
@@ -123,7 +123,7 @@ task("deploy")
         process.exit(0);
       }
 
-      let userModules: Module[];
+      let userModules: Array<Module<ModuleDict>>;
       if (userModulesPaths.length === 0) {
         userModules = loadAllUserModules(hre.config.paths.ignition);
       } else {
@@ -155,7 +155,7 @@ task("plan")
     ) => {
       await hre.run("compile", { quiet: true });
 
-      let userModules: Module[];
+      let userModules: Array<Module<ModuleDict>>;
       if (userModulesPaths.length === 0) {
         userModules = loadAllUserModules(hre.config.paths.ignition);
       } else {

@@ -10,7 +10,7 @@ import { Services } from "services/types";
 import { DeploymentResult, UpdateUiAction } from "types/deployment";
 import { DependableFuture, FutureDict } from "types/future";
 import { ResultsAccumulator } from "types/graph";
-import { Module } from "types/module";
+import { Module, ModuleDict } from "types/module";
 import { IgnitionPlan } from "types/plan";
 import { Providers } from "types/providers";
 import { SerializedFutureResult } from "types/serialization";
@@ -31,8 +31,8 @@ type ModuleOutputs = Record<string, any>;
 export class Ignition {
   constructor(private _providers: Providers) {}
 
-  public async deploy(
-    ignitionModule: Module,
+  public async deploy<T extends ModuleDict>(
+    ignitionModule: Module<T>,
     givenOptions?: IgnitionDeployOptions
   ): Promise<[DeploymentResult, ModuleOutputs]> {
     log(`Start deploy`);
@@ -77,7 +77,9 @@ export class Ignition {
     return [{ _kind: "success", result: serializedDeploymentResult }, {}];
   }
 
-  public async plan(deploymentModule: Module): Promise<IgnitionPlan> {
+  public async plan<T extends ModuleDict>(
+    deploymentModule: Module<T>
+  ): Promise<IgnitionPlan> {
     log(`Start plan`);
 
     const serviceOptions = {
@@ -124,9 +126,9 @@ export class Ignition {
     return { deploymentGraph, executionGraph };
   }
 
-  private async _constructExecutionGraphFrom(
+  private async _constructExecutionGraphFrom<T extends ModuleDict>(
     deployment: Deployment,
-    ignitionModule: Module
+    ignitionModule: Module<T>
   ): Promise<{ result: any; moduleOutputs: FutureDict }> {
     log("Generate deployment graph from module");
     const { graph: deploymentGraph, moduleOutputs } =

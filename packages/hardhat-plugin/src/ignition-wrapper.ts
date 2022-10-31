@@ -4,6 +4,7 @@ import {
   Providers,
   ExternalParamValue,
   Module,
+  ModuleDict,
 } from "@ignored/ignition-core";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 
@@ -25,8 +26,8 @@ export class IgnitionWrapper {
     this._ignition = new Ignition(_providers);
   }
 
-  public async deploy(
-    ignitionModule: Module,
+  public async deploy<T extends ModuleDict>(
+    ignitionModule: Module<T>,
     deployParams:
       | { parameters: { [key: string]: ExternalParamValue }; ui?: boolean }
       | undefined
@@ -87,7 +88,7 @@ export class IgnitionWrapper {
     return resolvedOutput;
   }
 
-  public async plan(ignitionModule: Module) {
+  public async plan<T extends ModuleDict>(ignitionModule: Module<T>) {
     return this._ignition.plan(ignitionModule);
   }
 }

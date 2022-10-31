@@ -4,15 +4,15 @@ import type {
   IDeploymentGraph,
 } from "types/deploymentGraph";
 import { FutureDict } from "types/future";
-import { Module } from "types/module";
+import { Module, ModuleDict } from "types/module";
 
-export function generateDeploymentGraphFrom(
-  ignitionModule: Module,
+export function generateDeploymentGraphFrom<T extends ModuleDict>(
+  ignitionModule: Module<T>,
   builderOptions: DeploymentBuilderOptions
 ): { graph: IDeploymentGraph; moduleOutputs: FutureDict } {
   const graphBuilder = new DeploymentBuilder(builderOptions);
 
-  const moduleOutputs = ignitionModule.moduleAction(graphBuilder);
+  const moduleOutputs = ignitionModule.action(graphBuilder);
 
   return { graph: graphBuilder.graph, moduleOutputs };
 }

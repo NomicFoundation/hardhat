@@ -29,15 +29,13 @@ import type {
   DependableFuture,
 } from "types/future";
 import type { Artifact } from "types/hardhat";
-import type { Module, ModuleCache, ModuleDict } from "types/module";
+import type { ModuleCache, ModuleDict } from "types/module";
 import { IgnitionError } from "utils/errors";
 import {
   isArtifact,
   isCallable,
   isDependable,
-  isModule,
   isParameter,
-  isSubgraph,
 } from "utils/guards";
 
 import { DeploymentGraph } from "./DeploymentGraph";
@@ -282,16 +280,19 @@ export class DeploymentBuilder implements IDeploymentBuilder {
     return paramFuture;
   }
 
-  public useSubgraph(
-    subgraph: Subgraph,
+  public useSubgraph<T extends FutureDict>(
+    subgraph: Subgraph<T>,
     options?: UseSubgraphOptions
-  ): FutureDict {
+  ): T {
     const { result, after } = this._useSubscope(subgraph, options);
 
     return { ...result, subgraph: after };
   }
 
-  public useModule(module: Module, options?: UseSubgraphOptions): ModuleDict {
+  public useModule<T extends ModuleDict>(
+    module: Subgraph<T>,
+    options?: UseSubgraphOptions
+  ): T {
     const moduleKey = `module:${module.name}`;
 
     if (this.moduleCache[moduleKey] !== undefined) {
@@ -305,7 +306,7 @@ export class DeploymentBuilder implements IDeploymentBuilder {
         );
       }
 
-      return this.moduleCache[moduleKey].result;
+      return this.moduleCache[moduleKey].result as any;
     }
 
     const { result, after } = this._useSubscope(module, options);
@@ -522,8 +523,8 @@ export class DeploymentBuilder implements IDeploymentBuilder {
     return scopeValue;
   }
 
-  private _useSubscope(
-    subgraphOrModule: Subgraph | Module,
+  private _useSubscope<T extends FutureDict>(
+    subgraphOrModule: Subgraph<T>,
     options?: UseSubgraphOptions
   ) {
     const useModuleInvocationId = this.useSubgraphInvocationCounter++;
@@ -544,7 +545,7 @@ export class DeploymentBuilder implements IDeploymentBuilder {
 
     this.graph.scopeData[scopeLabel] = scopeData;
 
-    const result = this._invokeAction(subgraphOrModule);
+    const result = subgraphOrModule.action(this);
 
     const addedVertexes = [...this.graph.vertexes.values()]
       .filter((v) => v.scopeAdded === scopeLabel)
@@ -575,17 +576,5 @@ export class DeploymentBuilder implements IDeploymentBuilder {
     this.scopes.pop();
 
     return { before: beforeVirtualVertex, result, after: afterVirtualVertex };
-  }
-
-  private _invokeAction(subgraphOrModule: Subgraph | Module) {
-    if (isSubgraph(subgraphOrModule)) {
-      return subgraphOrModule.subgraphAction(this);
-    }
-
-    if (isModule(subgraphOrModule)) {
-      return subgraphOrModule.moduleAction(this);
-    }
-
-    throw new Error("Unknown module type");
   }
 }

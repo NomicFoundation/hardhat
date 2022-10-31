@@ -1,14 +1,11 @@
-import type { IDeploymentBuilder } from "./deploymentGraph";
-import type { CallableFuture, Virtual } from "./future";
+import { Subgraph } from "./deploymentGraph";
+import type { CallableFuture, FutureDict, Virtual } from "./future";
 
-export interface ModuleDict {
+export interface ModuleDict extends FutureDict {
   [key: string]: CallableFuture | Virtual;
 }
 
-export interface Module {
-  name: string;
-  moduleAction: (builder: IDeploymentBuilder) => ModuleDict;
-}
+export type Module<T extends ModuleDict> = Subgraph<T>;
 
 export interface ModuleData {
   result: ModuleDict;

@@ -1,11 +1,13 @@
-import { Module } from "@ignored/ignition-core";
+import { Module, ModuleDict } from "@ignored/ignition-core";
 import setupDebug from "debug";
 import fsExtra from "fs-extra";
 import path from "path";
 
 const debug = setupDebug("hardhat-ignition:modules");
 
-export function loadAllUserModules(userModulesDirectory: string): Module[] {
+export function loadAllUserModules(
+  userModulesDirectory: string
+): Array<Module<ModuleDict>> {
   debug(`Loading all user modules from '${userModulesDirectory}'`);
 
   if (!fsExtra.existsSync(userModulesDirectory)) {
@@ -20,7 +22,7 @@ export function loadAllUserModules(userModulesDirectory: string): Module[] {
 export function loadUserModules(
   userModulesDirectory: string,
   userModulesFiles: string[] = []
-): Module[] {
+): Array<Module<ModuleDict>> {
   debug(`Loading user modules from '${userModulesDirectory}'`);
 
   if (!fsExtra.existsSync(userModulesDirectory)) {
@@ -37,7 +39,7 @@ export function loadUserModules(
 
 export function getUserModulesFromPaths(
   resolvedUserModulesPaths: string[]
-): Module[] {
+): Array<Module<ModuleDict>> {
   debug(`Loading '${resolvedUserModulesPaths.length}' module files`);
 
   const userModules: any[] = [];

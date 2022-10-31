@@ -17,7 +17,7 @@ export type {
   DeployPhase,
   DeploymentResult,
 } from "types/deployment";
-export type { Module } from "types/module";
+export type { Module, ModuleDict } from "types/module";
 export type {
   Subgraph,
   ExternalParamValue,

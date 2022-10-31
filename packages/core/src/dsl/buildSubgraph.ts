@@ -1,12 +1,12 @@
 import type { IDeploymentBuilder, Subgraph } from "types/deploymentGraph";
 import type { FutureDict } from "types/future";
 
-export function buildSubgraph(
+export function buildSubgraph<T extends FutureDict>(
   subgraphName: string,
-  subgraphAction: (m: IDeploymentBuilder) => FutureDict
-): Subgraph {
+  subgraphAction: (m: IDeploymentBuilder) => T
+): Subgraph<T> {
   return {
     name: subgraphName,
-    subgraphAction,
+    action: subgraphAction,
   };
 }
