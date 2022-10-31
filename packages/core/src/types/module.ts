@@ -8,7 +8,7 @@ export interface ModuleDict extends FutureDict {
 export type Module<T extends ModuleDict> = Subgraph<T>;
 
 export interface ModuleData {
-  result: ModuleDict;
+  result: Virtual & ModuleDict;
   optionsHash: string;
 }
 

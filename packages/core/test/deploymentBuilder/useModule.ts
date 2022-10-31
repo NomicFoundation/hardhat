@@ -7,6 +7,12 @@ import type {
   IDeploymentGraph,
   IDeploymentBuilder,
 } from "types/deploymentGraph";
+import {
+  ArtifactContract,
+  CallableFuture,
+  HardhatContract,
+  Virtual,
+} from "types/future";
 import { Module } from "types/module";
 
 import {
@@ -72,7 +78,7 @@ describe("deployment builder - useModule", () => {
       );
 
       const WrapModule = buildModule("Wrap", (m: IDeploymentBuilder) => {
-        const { module } = m.useModule(TokenModule);
+        const module = m.useModule(TokenModule);
 
         const foo = m.contract("Foo", { after: [module] });
 
@@ -256,10 +262,10 @@ describe("deployment builder - useModule", () => {
       });
 
       const WrapModule = buildModule("Wrap", (m: IDeploymentBuilder) => {
-        const { module: barModule, foo } = m.useModule(FooModule);
-        const { bar } = m.useModule(BarModule, { after: [barModule] });
+        const fooModule = m.useModule(FooModule);
+        const { bar } = m.useModule(BarModule, { after: [fooModule] });
 
-        return { foo, bar };
+        return { foo: fooModule.foo, bar };
       });
 
       const { graph } = generateDeploymentGraphFrom(WrapModule, {
@@ -388,7 +394,10 @@ describe("deployment builder - useModule", () => {
   });
 
   describe("reusing the same module with different parameters", () => {
-    let differentParamsModule: Module;
+    let differentParamsModule: Module<{
+      token: HardhatContract | ArtifactContract;
+      token2: HardhatContract | ArtifactContract;
+    }>;
 
     before(() => {
       const librariesModule = buildModule(
@@ -429,7 +438,9 @@ describe("deployment builder - useModule", () => {
   });
 
   describe("returning non contract/library futures from within a module", () => {
-    let returnsWrongFutureTypeModule: Module;
+    let returnsWrongFutureTypeModule: Module<{
+      token: CallableFuture | Virtual;
+    }>;
 
     before(() => {
       const returnTypeModule = buildModule(

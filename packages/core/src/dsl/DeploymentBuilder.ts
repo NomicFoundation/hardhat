@@ -283,16 +283,16 @@ export class DeploymentBuilder implements IDeploymentBuilder {
   public useSubgraph<T extends FutureDict>(
     subgraph: Subgraph<T>,
     options?: UseSubgraphOptions
-  ): T {
+  ): Virtual & T {
     const { result, after } = this._useSubscope(subgraph, options);
 
-    return { ...result, subgraph: after };
+    return { ...result, ...after };
   }
 
   public useModule<T extends ModuleDict>(
     module: Subgraph<T>,
     options?: UseSubgraphOptions
-  ): T {
+  ): Virtual & T {
     const moduleKey = `module:${module.name}`;
 
     if (this.moduleCache[moduleKey] !== undefined) {
@@ -306,7 +306,7 @@ export class DeploymentBuilder implements IDeploymentBuilder {
         );
       }
 
-      return this.moduleCache[moduleKey].result as any;
+      return moduleData.result as any;
     }
 
     const { result, after } = this._useSubscope(module, options);
@@ -322,7 +322,7 @@ export class DeploymentBuilder implements IDeploymentBuilder {
       );
     }
 
-    const moduleResult = { ...result, module: after };
+    const moduleResult = { ...result, ...after };
 
     const optionsHash = hash(options ?? null);
 

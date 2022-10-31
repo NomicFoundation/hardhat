@@ -163,11 +163,11 @@ export interface IDeploymentBuilder {
   useSubgraph: <T extends FutureDict>(
     subgraph: Subgraph<T>,
     options?: UseSubgraphOptions
-  ) => T;
+  ) => Virtual & T;
   useModule: <T extends ModuleDict>(
     module: Subgraph<T>,
     options?: UseSubgraphOptions
-  ) => T;
+  ) => Virtual & T;
 }
 
 export interface Subgraph<T extends FutureDict> {

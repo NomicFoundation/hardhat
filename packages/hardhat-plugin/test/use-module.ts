@@ -189,7 +189,7 @@ describe("useModule", function () {
           args: ["first"],
         });
 
-        const { subgraph } = m.useSubgraph(addSecondAndThirdEntrySubgraph, {
+        const subgraph = m.useSubgraph(addSecondAndThirdEntrySubgraph, {
           parameters: {
             Trace: trace,
           },
@@ -263,14 +263,11 @@ describe("useModule", function () {
           args: ["first"],
         });
 
-        const { module: secondAndThirdModule } = m.useModule(
-          addSecondAndThirdEntryModule,
-          {
-            parameters: {
-              Trace: trace,
-            },
-          }
-        );
+        const secondAndThirdModule = m.useModule(addSecondAndThirdEntryModule, {
+          parameters: {
+            Trace: trace,
+          },
+        });
 
         m.useModule(fourthCallModule, {
           parameters: {

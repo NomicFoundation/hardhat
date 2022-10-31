@@ -54,7 +54,7 @@ describe("deployment builder - useSubgraph", () => {
       assert.isDefined(deploymentGraph);
     });
 
-    it("should have three nodes", () => {
+    it("should have four nodes", () => {
       assert.equal(deploymentGraph.vertexes.size, 4);
     });
 
@@ -99,6 +99,68 @@ describe("deployment builder - useSubgraph", () => {
       const deps = getDependenciesForVertex(deploymentGraph, depNode);
 
       assert.deepStrictEqual(deps, [{ id: 0, label: "Foo", type: "" }]);
+    });
+  });
+
+  describe("depened on a subgraph", () => {
+    before(() => {
+      const FooSubgraph = buildSubgraph("BarSubgraph", (m) => {
+        const foo = m.contract("Foo");
+
+        return { foo };
+      });
+
+      const WrapModule = buildModule("Wrap", (m) => {
+        const fooSubgraph = m.useSubgraph(FooSubgraph);
+
+        const bar = m.contract("Bar", {
+          after: [fooSubgraph],
+        });
+
+        return { foo: fooSubgraph.foo, bar };
+      });
+
+      const { graph } = generateDeploymentGraphFrom(WrapModule, {
+        chainId: 31,
+      });
+
+      deploymentGraph = graph;
+    });
+
+    it("should create a graph", () => {
+      assert.isDefined(deploymentGraph);
+    });
+
+    it("should have four nodes", () => {
+      assert.equal(deploymentGraph.vertexes.size, 4);
+    });
+
+    it("should have the Foo node", () => {
+      const depNode = getDeploymentVertexByLabel(deploymentGraph, "Foo");
+
+      assert.isDefined(depNode);
+      assert.equal(depNode?.label, "Foo");
+    });
+
+    it("should have the Bar node", () => {
+      const depNode = getDeploymentVertexByLabel(deploymentGraph, "Bar");
+
+      assert.isDefined(depNode);
+      assert.equal(depNode?.label, "Bar");
+    });
+
+    it("should show bar depending on the subgraph after node", () => {
+      const depNode = getDeploymentVertexByLabel(deploymentGraph, "Bar");
+
+      if (depNode === undefined) {
+        return assert.isDefined(depNode);
+      }
+
+      const deps = getDependenciesForVertex(deploymentGraph, depNode);
+
+      assert.deepStrictEqual(deps, [
+        { id: 2, label: "BarSubgraph:0::after", type: "" },
+      ]);
     });
   });
 });
