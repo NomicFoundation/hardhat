@@ -117,25 +117,19 @@ class ReadOnlyByPath {
  *
  * TODO: migrate ALL of the path-mapping logic into this class.
  */
-class ReadOnlyPathMapping
-  extends ReadOnlyByPath
-  implements
-    Pick<
-      ArtifactSource,
-      | "getAllFullyQualifiedNames"
-      | "getArtifactPaths"
-      | "getBuildInfo"
-      | "getBuildInfoPaths"
-      | "getDebugFilePaths"
-      /* TODO:
-      | "artifactExists"
-      | "readArtifact"
-      | "readArtifactSync" */
-    >
-{
+class ReadOnlyPathMapping extends ReadOnlyByPath implements ArtifactSource {
   constructor(protected _artifactsPath: string) {
     super();
   }
+
+  public async artifactExists(name: string): Promise<boolean> {
+    const artifactPath = await this._getArtifactPath(name);
+    return super._artifactPathExists(artifactPath);
+  }
+
+  public clearCache(): void {}
+
+  public disableCache(): void {}
 
   public async getArtifactPaths(): Promise<string[]> {
     const buildInfosDir = path.join(this._artifactsPath, BUILD_INFO_DIR_NAME);
@@ -196,6 +190,16 @@ class ReadOnlyPathMapping
     );
 
     return paths.sort();
+  }
+
+  public async readArtifact(name: string): Promise<Artifact> {
+    const artifactPath = await this._getArtifactPath(name);
+    return super._readArtifactByPath(artifactPath);
+  }
+
+  public readArtifactSync(name: string): Artifact {
+    const artifactPath = this._getArtifactPathSync(name);
+    return super._readArtifactByPathSync(artifactPath);
   }
 
   /**
@@ -538,21 +542,6 @@ class HardhatArtifactSource
     validArtifacts: Array<{ sourceName: string; artifacts: string[] }>
   ) {
     this._validArtifacts.push(...validArtifacts);
-  }
-
-  public async readArtifact(name: string): Promise<Artifact> {
-    const artifactPath = await this._getArtifactPath(name);
-    return super._readArtifactByPath(artifactPath);
-  }
-
-  public readArtifactSync(name: string): Artifact {
-    const artifactPath = this._getArtifactPathSync(name);
-    return super._readArtifactByPathSync(artifactPath);
-  }
-
-  public async artifactExists(name: string): Promise<boolean> {
-    const artifactPath = await this._getArtifactPath(name);
-    return super._artifactPathExists(artifactPath);
   }
 
   public async getBuildInfo(
