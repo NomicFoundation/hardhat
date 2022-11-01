@@ -370,6 +370,76 @@ Please replace "${contractName}" for the correct contract name wherever you are 
     return mostSimilarNames;
   }
 
+  protected async _getValidArtifactPathFromFullyQualifiedName(
+    fullyQualifiedName: string
+  ): Promise<string> {
+    const artifactPath =
+      this.formArtifactPathFromFullyQualifiedName(fullyQualifiedName);
+
+    try {
+      const trueCasePath = path.join(
+        this._artifactsPath,
+        await getFileTrueCase(
+          this._artifactsPath,
+          path.relative(this._artifactsPath, artifactPath)
+        )
+      );
+
+      if (artifactPath !== trueCasePath) {
+        throw new HardhatError(ERRORS.ARTIFACTS.WRONG_CASING, {
+          correct: this._getFullyQualifiedNameFromPath(trueCasePath),
+          incorrect: fullyQualifiedName,
+        });
+      }
+
+      return trueCasePath;
+    } catch (e) {
+      if (e instanceof FileNotFoundError) {
+        return this._handleWrongArtifactForFullyQualifiedName(
+          fullyQualifiedName
+        );
+      }
+
+      // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
+      throw e;
+    }
+  }
+
+  protected _getValidArtifactPathFromFullyQualifiedNameSync(
+    fullyQualifiedName: string
+  ): string {
+    const artifactPath =
+      this.formArtifactPathFromFullyQualifiedName(fullyQualifiedName);
+
+    try {
+      const trueCasePath = path.join(
+        this._artifactsPath,
+        getFileTrueCaseSync(
+          this._artifactsPath,
+          path.relative(this._artifactsPath, artifactPath)
+        )
+      );
+
+      if (artifactPath !== trueCasePath) {
+        throw new HardhatError(ERRORS.ARTIFACTS.WRONG_CASING, {
+          correct: this._getFullyQualifiedNameFromPath(trueCasePath),
+          incorrect: fullyQualifiedName,
+        });
+      }
+
+      return trueCasePath;
+    } catch (e) {
+      if (e instanceof FileNotFoundError) {
+        return this._handleWrongArtifactForFullyQualifiedName(
+          fullyQualifiedName
+        );
+      }
+
+      // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
+      throw e;
+    }
+  }
+
   protected _handleWrongArtifactForFullyQualifiedName(
     fullyQualifiedName: string
   ): never {
@@ -903,76 +973,6 @@ class HardhatArtifactSource
       parseFullyQualifiedName(fullyQualifiedName);
 
     return path.join(this._artifactsPath, sourceName, `${contractName}.json`);
-  }
-
-  private async _getValidArtifactPathFromFullyQualifiedName(
-    fullyQualifiedName: string
-  ): Promise<string> {
-    const artifactPath =
-      this.formArtifactPathFromFullyQualifiedName(fullyQualifiedName);
-
-    try {
-      const trueCasePath = path.join(
-        this._artifactsPath,
-        await getFileTrueCase(
-          this._artifactsPath,
-          path.relative(this._artifactsPath, artifactPath)
-        )
-      );
-
-      if (artifactPath !== trueCasePath) {
-        throw new HardhatError(ERRORS.ARTIFACTS.WRONG_CASING, {
-          correct: this._getFullyQualifiedNameFromPath(trueCasePath),
-          incorrect: fullyQualifiedName,
-        });
-      }
-
-      return trueCasePath;
-    } catch (e) {
-      if (e instanceof FileNotFoundError) {
-        return this._handleWrongArtifactForFullyQualifiedName(
-          fullyQualifiedName
-        );
-      }
-
-      // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
-      throw e;
-    }
-  }
-
-  private _getValidArtifactPathFromFullyQualifiedNameSync(
-    fullyQualifiedName: string
-  ): string {
-    const artifactPath =
-      this.formArtifactPathFromFullyQualifiedName(fullyQualifiedName);
-
-    try {
-      const trueCasePath = path.join(
-        this._artifactsPath,
-        getFileTrueCaseSync(
-          this._artifactsPath,
-          path.relative(this._artifactsPath, artifactPath)
-        )
-      );
-
-      if (artifactPath !== trueCasePath) {
-        throw new HardhatError(ERRORS.ARTIFACTS.WRONG_CASING, {
-          correct: this._getFullyQualifiedNameFromPath(trueCasePath),
-          incorrect: fullyQualifiedName,
-        });
-      }
-
-      return trueCasePath;
-    } catch (e) {
-      if (e instanceof FileNotFoundError) {
-        return this._handleWrongArtifactForFullyQualifiedName(
-          fullyQualifiedName
-        );
-      }
-
-      // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
-      throw e;
-    }
   }
 
   /**
