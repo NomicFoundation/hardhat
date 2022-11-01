@@ -198,6 +198,11 @@ class ReadOnlyPathMapping
     return paths.sort();
   }
 
+  protected _getAllFullyQualifiedNamesSync(): string[] {
+    const paths = this._getArtifactPathsSync();
+    return paths.map((p) => this._getFullyQualifiedNameFromPath(p)).sort();
+  }
+
   protected _getArtifactPathsSync(): string[] {
     const buildInfosDir = path.join(this._artifactsPath, BUILD_INFO_DIR_NAME);
 
@@ -801,11 +806,6 @@ class HardhatArtifactSource
       const fqn = this._getFullyQualifiedNameFromPath(file);
       return parseFullyQualifiedName(fqn).contractName;
     });
-  }
-
-  private _getAllFullyQualifiedNamesSync(): string[] {
-    const paths = this._getArtifactPathsSync();
-    return paths.map((p) => this._getFullyQualifiedNameFromPath(p)).sort();
   }
 
   private _formatSuggestions(names: string[], contractName: string): string {
