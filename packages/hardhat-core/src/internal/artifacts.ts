@@ -135,6 +135,18 @@ class ReadOnlyPathMapping
 
     return paths.sort();
   }
+
+  /**
+   * Returns the absolute path to the given artifact
+   */
+  public formArtifactPathFromFullyQualifiedName(
+    fullyQualifiedName: string
+  ): string {
+    const { sourceName, contractName } =
+      parseFullyQualifiedName(fullyQualifiedName);
+
+    return path.join(this._artifactsPath, sourceName, `${contractName}.json`);
+  }
 }
 
 class HardhatArtifactSource
@@ -462,18 +474,6 @@ class HardhatArtifactSource
       // We clear the cache here, as this may have non-existent paths now
       this.clearCache();
     }
-  }
-
-  /**
-   * Returns the absolute path to the given artifact
-   */
-  public formArtifactPathFromFullyQualifiedName(
-    fullyQualifiedName: string
-  ): string {
-    const { sourceName, contractName } =
-      parseFullyQualifiedName(fullyQualifiedName);
-
-    return path.join(this._artifactsPath, sourceName, `${contractName}.json`);
   }
 
   public clearCache() {
