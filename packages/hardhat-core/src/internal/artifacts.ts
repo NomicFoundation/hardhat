@@ -625,6 +625,23 @@ class MutablePathMapping extends ReadOnlyPathMapping implements ArtifactSource {
     ]);
   }
 
+  protected static _createBuildInfo(
+    id: string,
+    solcVersion: string,
+    solcLongVersion: string,
+    input: CompilerInput,
+    output: CompilerOutput
+  ): BuildInfo {
+    return {
+      id,
+      _format: BUILD_INFO_FORMAT_VERSION,
+      solcVersion,
+      solcLongVersion,
+      input,
+      output,
+    };
+  }
+
   private _createDebugFile(artifactPath: string, pathToBuildInfo: string) {
     const relativePathToBuildInfo = path.relative(
       path.dirname(artifactPath),
@@ -803,7 +820,7 @@ class HardhatArtifactSource
         input
       );
 
-      const buildInfo = this._createBuildInfo(
+      const buildInfo = MutablePathMapping._createBuildInfo(
         buildInfoName,
         solcVersion,
         solcLongVersion,
@@ -961,23 +978,6 @@ class HardhatArtifactSource
 
     this._cache?.artifactNameToArtifactPathCache.set(name, result);
     return result;
-  }
-
-  private _createBuildInfo(
-    id: string,
-    solcVersion: string,
-    solcLongVersion: string,
-    input: CompilerInput,
-    output: CompilerOutput
-  ): BuildInfo {
-    return {
-      id,
-      _format: BUILD_INFO_FORMAT_VERSION,
-      solcVersion,
-      solcLongVersion,
-      input,
-      output,
-    };
   }
 
   protected _getArtifactPathsSync(): string[] {
