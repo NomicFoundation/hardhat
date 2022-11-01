@@ -147,6 +147,23 @@ class ReadOnlyPathMapping
 
     return path.join(this._artifactsPath, sourceName, `${contractName}.json`);
   }
+
+  /**
+   * Returns the FQN of a contract giving the absolute path to its artifact.
+   *
+   * For example, given a path like
+   * `/path/to/project/artifacts/contracts/Foo.sol/Bar.json`, it'll return the
+   * FQN `contracts/Foo.sol:Bar`
+   */
+  protected _getFullyQualifiedNameFromPath(absolutePath: string): string {
+    const sourceName = replaceBackslashes(
+      path.relative(this._artifactsPath, path.dirname(absolutePath))
+    );
+
+    const contractName = path.basename(absolutePath).replace(".json", "");
+
+    return getFullyQualifiedName(sourceName, contractName);
+  }
 }
 
 class HardhatArtifactSource
@@ -898,23 +915,6 @@ Please replace "${contractName}" for the correct contract name wherever you are 
     }
 
     return matchingFiles[0];
-  }
-
-  /**
-   * Returns the FQN of a contract giving the absolute path to its artifact.
-   *
-   * For example, given a path like
-   * `/path/to/project/artifacts/contracts/Foo.sol/Bar.json`, it'll return the
-   * FQN `contracts/Foo.sol:Bar`
-   */
-  private _getFullyQualifiedNameFromPath(absolutePath: string): string {
-    const sourceName = replaceBackslashes(
-      path.relative(this._artifactsPath, path.dirname(absolutePath))
-    );
-
-    const contractName = path.basename(absolutePath).replace(".json", "");
-
-    return getFullyQualifiedName(sourceName, contractName);
   }
 
   /**
