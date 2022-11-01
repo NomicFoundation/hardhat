@@ -217,6 +217,13 @@ Please replace "${contractName}" for the correct contract name wherever you are 
     }
   }
 
+  protected _getAllContractNamesFromFiles(files: string[]): string[] {
+    return files.map((file) => {
+      const fqn = this._getFullyQualifiedNameFromPath(file);
+      return parseFullyQualifiedName(fqn).contractName;
+    });
+  }
+
   protected _getAllFullyQualifiedNamesSync(): string[] {
     const paths = this._getArtifactPathsSync();
     return paths.map((p) => this._getFullyQualifiedNameFromPath(p)).sort();
@@ -818,13 +825,6 @@ class HardhatArtifactSource
       // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
       throw e;
     }
-  }
-
-  private _getAllContractNamesFromFiles(files: string[]): string[] {
-    return files.map((file) => {
-      const fqn = this._getFullyQualifiedNameFromPath(file);
-      return parseFullyQualifiedName(fqn).contractName;
-    });
   }
 
   private _handleWrongArtifactForFullyQualifiedName(
