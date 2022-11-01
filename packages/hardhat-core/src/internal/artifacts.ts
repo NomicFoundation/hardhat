@@ -519,6 +519,22 @@ Please replace "${contractName}" for the correct contract name wherever you are 
       ),
     });
   }
+
+  /**
+   * DO NOT DELETE OR CHANGE
+   *
+   * use this.formArtifactPathFromFullyQualifiedName instead
+   * @deprecated until typechain migrates to public version
+   * @see https://github.com/dethcrypto/TypeChain/issues/544
+   */
+  private _getArtifactPathFromFullyQualifiedName(
+    fullyQualifiedName: string
+  ): string {
+    const { sourceName, contractName } =
+      parseFullyQualifiedName(fullyQualifiedName);
+
+    return path.join(this._artifactsPath, sourceName, `${contractName}.json`);
+  }
 }
 
 class HardhatArtifactSource
@@ -955,22 +971,6 @@ class HardhatArtifactSource
 
     this._cache?.artifactNameToArtifactPathCache.set(name, result);
     return result;
-  }
-
-  /**
-   * DO NOT DELETE OR CHANGE
-   *
-   * use this.formArtifactPathFromFullyQualifiedName instead
-   * @deprecated until typechain migrates to public version
-   * @see https://github.com/dethcrypto/TypeChain/issues/544
-   */
-  private _getArtifactPathFromFullyQualifiedName(
-    fullyQualifiedName: string
-  ): string {
-    const { sourceName, contractName } =
-      parseFullyQualifiedName(fullyQualifiedName);
-
-    return path.join(this._artifactsPath, sourceName, `${contractName}.json`);
   }
 
   /**
