@@ -189,6 +189,20 @@ class ReadOnlyPathMapping
     return paths.sort();
   }
 
+  protected _getArtifactPathsSync(): string[] {
+    const buildInfosDir = path.join(this._artifactsPath, BUILD_INFO_DIR_NAME);
+
+    const paths = getAllFilesMatchingSync(
+      this._artifactsPath,
+      (f) =>
+        f.endsWith(".json") &&
+        !f.startsWith(buildInfosDir) &&
+        !f.endsWith(".dbg.json")
+    );
+
+    return paths.sort();
+  }
+
   protected async _getBuildInfoPath(
     fullyQualifiedName: string
   ): Promise<string | undefined> {
@@ -690,23 +704,13 @@ class HardhatArtifactSource
     return debugFile;
   }
 
-  private _getArtifactPathsSync(): string[] {
+  protected _getArtifactPathsSync(): string[] {
     const cached = this._cache?.artifactPaths;
     if (cached !== undefined) {
       return cached;
     }
 
-    const buildInfosDir = path.join(this._artifactsPath, BUILD_INFO_DIR_NAME);
-
-    const paths = getAllFilesMatchingSync(
-      this._artifactsPath,
-      (f) =>
-        f.endsWith(".json") &&
-        !f.startsWith(buildInfosDir) &&
-        !f.endsWith(".dbg.json")
-    );
-
-    const result = paths.sort();
+    const result = super._getArtifactPathsSync();
 
     if (this._cache !== undefined) {
       this._cache.artifactPaths = result;
