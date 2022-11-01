@@ -839,7 +839,7 @@ class MutablePathMapping extends ReadOnlyPathMapping implements ArtifactSource {
   }
 }
 
-class HardhatArtifactSource
+class CachingPathMapping
   extends MutablePathMapping
   implements IHardhatArtifactSource
 {
@@ -1030,7 +1030,7 @@ export class Artifacts implements IArtifacts {
   ];
 
   constructor(artifactsPath: string) {
-    this._sourcesInPriorityOrder = [new HardhatArtifactSource(artifactsPath)];
+    this._sourcesInPriorityOrder = [new CachingPathMapping(artifactsPath)];
   }
 
   public async readArtifact(
