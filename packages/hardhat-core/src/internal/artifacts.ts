@@ -126,11 +126,11 @@ class ReadOnlyPathMapping
       | "getArtifactPaths"
       | "getBuildInfo"
       | "getBuildInfoPaths"
+      | "getDebugFilePaths"
       /* TODO:
       | "artifactExists"
       | "readArtifact"
-      | "readArtifactSync"
-      | "getDebugFilePaths" */
+      | "readArtifactSync" */
     >
 {
   constructor(protected _artifactsPath: string) {
@@ -184,6 +184,15 @@ class ReadOnlyPathMapping
     const paths = await getAllFilesMatching(
       path.join(this._artifactsPath, BUILD_INFO_DIR_NAME),
       (f) => f.endsWith(".json")
+    );
+
+    return paths.sort();
+  }
+
+  public async getDebugFilePaths(): Promise<string[]> {
+    const paths = await getAllFilesMatching(
+      path.join(this._artifactsPath),
+      (f) => f.endsWith(".dbg.json")
     );
 
     return paths.sort();
@@ -360,12 +369,7 @@ class HardhatArtifactSource
       return cached;
     }
 
-    const paths = await getAllFilesMatching(
-      path.join(this._artifactsPath),
-      (f) => f.endsWith(".dbg.json")
-    );
-
-    const result = paths.sort();
+    const result = await super.getDebugFilePaths();
 
     if (this._cache !== undefined) {
       this._cache.debugFilePaths = result;
