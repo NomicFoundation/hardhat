@@ -107,13 +107,12 @@ class ReadOnlyPathMapping
   implements
     Pick<
       ArtifactSource,
-      "getArtifactPaths"
+      "getAllFullyQualifiedNames" | "getArtifactPaths"
       /* TODO:
       | "artifactExists"
       | "getBuildInfo"
       | "readArtifact"
       | "readArtifactSync"
-      | "getAllFullyQualifiedNames"
       | "getBuildInfoPaths"
       | "getDebugFilePaths" */
     >
@@ -146,6 +145,11 @@ class ReadOnlyPathMapping
       parseFullyQualifiedName(fullyQualifiedName);
 
     return path.join(this._artifactsPath, sourceName, `${contractName}.json`);
+  }
+
+  public async getAllFullyQualifiedNames(): Promise<string[]> {
+    const paths = await this.getArtifactPaths();
+    return paths.map((p) => this._getFullyQualifiedNameFromPath(p)).sort();
   }
 
   /**
@@ -202,11 +206,6 @@ class HardhatArtifactSource
   public async artifactExists(name: string): Promise<boolean> {
     const artifactPath = await this._getArtifactPath(name);
     return super._artifactPathExists(artifactPath);
-  }
-
-  public async getAllFullyQualifiedNames(): Promise<string[]> {
-    const paths = await this.getArtifactPaths();
-    return paths.map((p) => this._getFullyQualifiedNameFromPath(p)).sort();
   }
 
   public async getBuildInfo(
