@@ -537,12 +537,23 @@ Please replace "${contractName}" for the correct contract name wherever you are 
   }
 }
 
+class MutablePathMapping extends ReadOnlyPathMapping implements ArtifactSource {
+  // TODO: migrate to here all methods that add, save or remove artifacts, and
+  // ultimately responsibility for and interface for all interaction with
+  // _validArtifacts.
+
+  protected _validArtifacts: Array<{ sourceName: string; artifacts: string[] }>;
+
+  constructor(artifactsPath: string) {
+    super(artifactsPath);
+    this._validArtifacts = [];
+  }
+}
+
 class HardhatArtifactSource
-  extends ReadOnlyPathMapping
+  extends MutablePathMapping
   implements IHardhatArtifactSource
 {
-  private _validArtifacts: Array<{ sourceName: string; artifacts: string[] }>;
-
   // Undefined means that the cache is disabled.
   private _cache?: Cache = {
     artifactNameToArtifactPathCache: new Map(),
@@ -551,7 +562,6 @@ class HardhatArtifactSource
 
   constructor(artifactsPath: string) {
     super(artifactsPath);
-    this._validArtifacts = [];
   }
 
   public addValidArtifacts(
