@@ -198,6 +198,25 @@ class ReadOnlyPathMapping
     return paths.sort();
   }
 
+  protected static _formatSuggestions(
+    names: string[],
+    contractName: string
+  ): string {
+    switch (names.length) {
+      case 0:
+        return "";
+      case 1:
+        return `Did you mean "${names[0]}"?`;
+      default:
+        return `We found some that were similar:
+
+${names.map((n) => `  * ${n}`).join(os.EOL)}
+
+Please replace "${contractName}" for the correct contract name wherever you are trying to read its artifact.
+`;
+    }
+  }
+
   protected _getAllFullyQualifiedNamesSync(): string[] {
     const paths = this._getArtifactPathsSync();
     return paths.map((p) => this._getFullyQualifiedNameFromPath(p)).sort();
@@ -808,22 +827,6 @@ class HardhatArtifactSource
     });
   }
 
-  private _formatSuggestions(names: string[], contractName: string): string {
-    switch (names.length) {
-      case 0:
-        return "";
-      case 1:
-        return `Did you mean "${names[0]}"?`;
-      default:
-        return `We found some that were similar:
-
-${names.map((n) => `  * ${n}`).join(os.EOL)}
-
-Please replace "${contractName}" for the correct contract name wherever you are trying to read its artifact.
-`;
-    }
-  }
-
   private _handleWrongArtifactForFullyQualifiedName(
     fullyQualifiedName: string
   ): never {
@@ -836,7 +839,10 @@ Please replace "${contractName}" for the correct contract name wherever you are 
 
     throw new HardhatError(ERRORS.ARTIFACTS.NOT_FOUND, {
       contractName: fullyQualifiedName,
-      suggestion: this._formatSuggestions(similarNames, fullyQualifiedName),
+      suggestion: ReadOnlyPathMapping._formatSuggestions(
+        similarNames,
+        fullyQualifiedName
+      ),
     });
   }
 
@@ -860,7 +866,7 @@ Please replace "${contractName}" for the correct contract name wherever you are 
 
     throw new HardhatError(ERRORS.ARTIFACTS.NOT_FOUND, {
       contractName,
-      suggestion: this._formatSuggestions(similarNames, contractName),
+      suggestion: ReadOnlyPathMapping._formatSuggestions(similarNames, contractName),
     });
   }
 
