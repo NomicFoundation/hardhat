@@ -624,6 +624,21 @@ class MutablePathMapping extends ReadOnlyPathMapping implements ArtifactSource {
       })(),
     ]);
   }
+
+  private _createDebugFile(artifactPath: string, pathToBuildInfo: string) {
+    const relativePathToBuildInfo = path.relative(
+      path.dirname(artifactPath),
+      pathToBuildInfo
+    );
+
+    const debugFile: DebugFile = {
+      _format: DEBUG_FILE_FORMAT_VERSION,
+      buildInfo: relativePathToBuildInfo,
+    };
+
+    return debugFile;
+  }
+
   /**
    * Remove the artifact file, its debug file and, if it exists, its build
    * info file.
@@ -963,20 +978,6 @@ class HardhatArtifactSource
       input,
       output,
     };
-  }
-
-  private _createDebugFile(artifactPath: string, pathToBuildInfo: string) {
-    const relativePathToBuildInfo = path.relative(
-      path.dirname(artifactPath),
-      pathToBuildInfo
-    );
-
-    const debugFile: DebugFile = {
-      _format: DEBUG_FILE_FORMAT_VERSION,
-      buildInfo: relativePathToBuildInfo,
-    };
-
-    return debugFile;
   }
 
   protected _getArtifactPathsSync(): string[] {
