@@ -1,5 +1,12 @@
 # hardhat
 
+## 2.12.2
+
+### Patch Changes
+
+- f6c74bc31: Fixed an issue that was causing build-info file names to not be deterministic.
+- 2022bed0d: Fixed an issue when forking networks like Arbitrum Nitro that use non-standard transaction types (#2995, #3194).
+
 ## 2.12.1
 
 ### Patch Changes
