@@ -4,7 +4,13 @@ export function getInputFromCompilationJob(
   compilationJob: CompilationJob
 ): CompilerInput {
   const sources: { [sourceName: string]: { content: string } } = {};
-  for (const file of compilationJob.getResolvedFiles()) {
+
+  // we sort the files so that we always get the same compilation input
+  const resolvedFiles = compilationJob
+    .getResolvedFiles()
+    .sort((a, b) => a.sourceName.localeCompare(b.sourceName));
+
+  for (const file of resolvedFiles) {
     sources[file.sourceName] = {
       content: file.content.rawContent,
     };
