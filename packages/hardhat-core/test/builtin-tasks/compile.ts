@@ -1,4 +1,5 @@
 import { assert } from "chai";
+import ci from "ci-info";
 import * as fsExtra from "fs-extra";
 import * as path from "path";
 
@@ -815,6 +816,32 @@ Read about compiler configuration at https://hardhat.org/config
           await this.env.run("compile");
         }, ERRORS.BUILTIN_TASKS.COMPILE_TASK_UNSUPPORTED_SOLC_VERSION);
       });
+    });
+  });
+
+  describe("project where two contracts import the same dependency", function () {
+    useFixtureProject("consistent-build-info-names");
+    useEnvironment();
+
+    it("should always produce the same build-info name", async function () {
+      await this.env.run("compile");
+
+      const buildInfos = getBuildInfos();
+      assert.lengthOf(buildInfos, 1);
+
+      const expectedBuildInfoName = buildInfos[0];
+
+      const runs = ci.isCI ? 10 : 100;
+
+      for (let i = 0; i < runs; i++) {
+        await this.env.run("clean");
+        await this.env.run("compile");
+
+        const newBuildInfos = getBuildInfos();
+        assert.lengthOf(newBuildInfos, 1);
+
+        assert.equal(newBuildInfos[0], expectedBuildInfoName);
+      }
     });
   });
 });
