@@ -198,6 +198,47 @@ class ReadOnlyPathMapping
     return paths.sort();
   }
 
+  /**
+   * If the project has these contracts:
+   *   - 'contracts/Greeter.sol:Greeter'
+   *   - 'contracts/Meeter.sol:Greeter'
+   *   - 'contracts/Greater.sol:Greater'
+   *  And the user tries to get an artifact with the name 'Greter', then
+   *  the suggestions will be 'Greeter', 'Greeter', and 'Greater'.
+   *
+   * We don't want to show duplicates here, so we use FQNs for those. The
+   * suggestions will then be:
+   *   - 'contracts/Greeter.sol:Greeter'
+   *   - 'contracts/Meeter.sol:Greeter'
+   *   - 'Greater'
+   */
+  protected _filterDuplicatesAsFullyQualifiedNames(
+    files: string[],
+    similarNames: string[]
+  ): string[] {
+    const outputNames = [];
+    const groups = similarNames.reduce((obj, cur) => {
+      // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
+      obj[cur] = obj[cur] ? obj[cur] + 1 : 1;
+      return obj;
+    }, {} as { [k: string]: number });
+
+    for (const [name, occurrences] of Object.entries(groups)) {
+      if (occurrences > 1) {
+        for (const file of files) {
+          if (path.basename(file) === `${name}.json`) {
+            outputNames.push(this._getFullyQualifiedNameFromPath(file));
+          }
+        }
+        continue;
+      }
+
+      outputNames.push(name);
+    }
+
+    return outputNames;
+  }
+
   protected static _formatSuggestions(
     names: string[],
     contractName: string
@@ -301,6 +342,52 @@ Please replace "${contractName}" for the correct contract name wherever you are 
     }
 
     return mostSimilarNames;
+  }
+
+  protected _handleWrongArtifactForFullyQualifiedName(
+    fullyQualifiedName: string
+  ): never {
+    const names = this._getAllFullyQualifiedNamesSync();
+
+    const similarNames = ReadOnlyPathMapping._getSimilarContractNames(
+      fullyQualifiedName,
+      names
+    );
+
+    throw new HardhatError(ERRORS.ARTIFACTS.NOT_FOUND, {
+      contractName: fullyQualifiedName,
+      suggestion: ReadOnlyPathMapping._formatSuggestions(
+        similarNames,
+        fullyQualifiedName
+      ),
+    });
+  }
+
+  protected _handleWrongArtifactForContractName(
+    contractName: string,
+    files: string[]
+  ): never {
+    const names = this._getAllContractNamesFromFiles(files);
+
+    let similarNames = ReadOnlyPathMapping._getSimilarContractNames(
+      contractName,
+      names
+    );
+
+    if (similarNames.length > 1) {
+      similarNames = this._filterDuplicatesAsFullyQualifiedNames(
+        files,
+        similarNames
+      );
+    }
+
+    throw new HardhatError(ERRORS.ARTIFACTS.NOT_FOUND, {
+      contractName,
+      suggestion: ReadOnlyPathMapping._formatSuggestions(
+        similarNames,
+        contractName
+      ),
+    });
   }
 }
 
@@ -825,90 +912,6 @@ class HardhatArtifactSource
       // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
       throw e;
     }
-  }
-
-  private _handleWrongArtifactForFullyQualifiedName(
-    fullyQualifiedName: string
-  ): never {
-    const names = this._getAllFullyQualifiedNamesSync();
-
-    const similarNames = ReadOnlyPathMapping._getSimilarContractNames(
-      fullyQualifiedName,
-      names
-    );
-
-    throw new HardhatError(ERRORS.ARTIFACTS.NOT_FOUND, {
-      contractName: fullyQualifiedName,
-      suggestion: ReadOnlyPathMapping._formatSuggestions(
-        similarNames,
-        fullyQualifiedName
-      ),
-    });
-  }
-
-  private _handleWrongArtifactForContractName(
-    contractName: string,
-    files: string[]
-  ): never {
-    const names = this._getAllContractNamesFromFiles(files);
-
-    let similarNames = ReadOnlyPathMapping._getSimilarContractNames(
-      contractName,
-      names
-    );
-
-    if (similarNames.length > 1) {
-      similarNames = this._filterDuplicatesAsFullyQualifiedNames(
-        files,
-        similarNames
-      );
-    }
-
-    throw new HardhatError(ERRORS.ARTIFACTS.NOT_FOUND, {
-      contractName,
-      suggestion: ReadOnlyPathMapping._formatSuggestions(similarNames, contractName),
-    });
-  }
-
-  /**
-   * If the project has these contracts:
-   *   - 'contracts/Greeter.sol:Greeter'
-   *   - 'contracts/Meeter.sol:Greeter'
-   *   - 'contracts/Greater.sol:Greater'
-   *  And the user tries to get an artifact with the name 'Greter', then
-   *  the suggestions will be 'Greeter', 'Greeter', and 'Greater'.
-   *
-   * We don't want to show duplicates here, so we use FQNs for those. The
-   * suggestions will then be:
-   *   - 'contracts/Greeter.sol:Greeter'
-   *   - 'contracts/Meeter.sol:Greeter'
-   *   - 'Greater'
-   */
-  private _filterDuplicatesAsFullyQualifiedNames(
-    files: string[],
-    similarNames: string[]
-  ): string[] {
-    const outputNames = [];
-    const groups = similarNames.reduce((obj, cur) => {
-      // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
-      obj[cur] = obj[cur] ? obj[cur] + 1 : 1;
-      return obj;
-    }, {} as { [k: string]: number });
-
-    for (const [name, occurrences] of Object.entries(groups)) {
-      if (occurrences > 1) {
-        for (const file of files) {
-          if (path.basename(file) === `${name}.json`) {
-            outputNames.push(this._getFullyQualifiedNameFromPath(file));
-          }
-        }
-        continue;
-      }
-
-      outputNames.push(name);
-    }
-
-    return outputNames;
   }
 
   private _getValidArtifactPathFromFullyQualifiedNameSync(
