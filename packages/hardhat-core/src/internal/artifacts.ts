@@ -548,6 +548,12 @@ class MutablePathMapping extends ReadOnlyPathMapping implements ArtifactSource {
     super(artifactsPath);
     this._validArtifacts = [];
   }
+
+  public addValidArtifacts(
+    validArtifacts: Array<{ sourceName: string; artifacts: string[] }>
+  ) {
+    this._validArtifacts.push(...validArtifacts);
+  }
 }
 
 class HardhatArtifactSource
@@ -562,12 +568,6 @@ class HardhatArtifactSource
 
   constructor(artifactsPath: string) {
     super(artifactsPath);
-  }
-
-  public addValidArtifacts(
-    validArtifacts: Array<{ sourceName: string; artifacts: string[] }>
-  ) {
-    this._validArtifacts.push(...validArtifacts);
   }
 
   public async getBuildInfo(
