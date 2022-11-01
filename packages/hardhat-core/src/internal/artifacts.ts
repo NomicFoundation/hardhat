@@ -122,10 +122,9 @@ class ReadOnlyPathMapping
   implements
     Pick<
       ArtifactSource,
-      "getAllFullyQualifiedNames" | "getArtifactPaths"
+      "getAllFullyQualifiedNames" | "getArtifactPaths" | "getBuildInfo"
       /* TODO:
       | "artifactExists"
-      | "getBuildInfo"
       | "readArtifact"
       | "readArtifactSync"
       | "getBuildInfoPaths"
@@ -165,6 +164,31 @@ class ReadOnlyPathMapping
   public async getAllFullyQualifiedNames(): Promise<string[]> {
     const paths = await this.getArtifactPaths();
     return paths.map((p) => this._getFullyQualifiedNameFromPath(p)).sort();
+  }
+
+  public async getBuildInfo(
+    fullyQualifiedName: string
+  ): Promise<BuildInfo | undefined> {
+    const buildInfoPath = await this._getBuildInfoPath(fullyQualifiedName);
+
+    if (buildInfoPath === undefined) {
+      return undefined;
+    }
+
+    return super._getBuildInfoByPath(buildInfoPath);
+  }
+
+  protected async _getBuildInfoPath(
+    fullyQualifiedName: string
+  ): Promise<string | undefined> {
+    const artifactPath =
+      this.formArtifactPathFromFullyQualifiedName(fullyQualifiedName);
+
+    const debugFilePath = this._getDebugFilePath(artifactPath);
+    const buildInfoPath = await ReadOnlyPathMapping._getBuildInfoFromDebugFile(
+      debugFilePath
+    );
+    return buildInfoPath;
   }
 
   /**
@@ -230,13 +254,7 @@ class HardhatArtifactSource
       this._cache?.artifactFQNToBuildInfoPathCache.get(fullyQualifiedName);
 
     if (buildInfoPath === undefined) {
-      const artifactPath =
-        this.formArtifactPathFromFullyQualifiedName(fullyQualifiedName);
-
-      const debugFilePath = this._getDebugFilePath(artifactPath);
-      buildInfoPath = await ReadOnlyByPath._getBuildInfoFromDebugFile(
-        debugFilePath
-      );
+      buildInfoPath = await super._getBuildInfoPath(fullyQualifiedName);
 
       if (buildInfoPath === undefined) {
         return undefined;
