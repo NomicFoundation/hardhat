@@ -67,7 +67,40 @@ interface Cache {
   artifactFQNToBuildInfoPathCache: Map<string, string>;
 }
 
-class HardhatArtifactSource implements IHardhatArtifactSource {
+/**
+ * The purpose of this class is to encapsulate JSON file I/O. It assumes that
+ * all input strings are simply paths, not contract names nor fully-qualified
+ * contract names like other interfaces around here accept.
+ *
+ * TODO: most of the file i/o got moved into this class, but there's still some
+ * remaining in the higher levels that should be considered for integration
+ * with this class.
+ */
+class ReadOnlyByPath {
+  protected async _readArtifactByPath(artifactPath: string): Promise<Artifact> {
+    return fsExtra.readJson(artifactPath);
+  }
+
+  protected _readArtifactByPathSync(artifactPath: string): Artifact {
+    return fsExtra.readJsonSync(artifactPath);
+  }
+
+  protected async _artifactPathExists(artifactPath: string): Promise<boolean> {
+    return fsExtra.pathExists(artifactPath);
+  }
+
+  protected async _getBuildInfoByPath(
+    buildInfoPath: string
+  ): Promise<BuildInfo | undefined> {
+    return fsExtra.readJSON(buildInfoPath);
+  }
+
+}
+
+class HardhatArtifactSource
+  extends ReadOnlyByPath
+  implements IHardhatArtifactSource
+{
   private _validArtifacts: Array<{ sourceName: string; artifacts: string[] }>;
 
   // Undefined means that the cache is disabled.
@@ -77,6 +110,7 @@ class HardhatArtifactSource implements IHardhatArtifactSource {
   };
 
   constructor(private _artifactsPath: string) {
+    super();
     this._validArtifacts = [];
   }
 
@@ -88,17 +122,17 @@ class HardhatArtifactSource implements IHardhatArtifactSource {
 
   public async readArtifact(name: string): Promise<Artifact> {
     const artifactPath = await this._getArtifactPath(name);
-    return fsExtra.readJson(artifactPath);
+    return super._readArtifactByPath(artifactPath);
   }
 
   public readArtifactSync(name: string): Artifact {
     const artifactPath = this._getArtifactPathSync(name);
-    return fsExtra.readJsonSync(artifactPath);
+    return super._readArtifactByPathSync(artifactPath);
   }
 
   public async artifactExists(name: string): Promise<boolean> {
     const artifactPath = await this._getArtifactPath(name);
-    return fsExtra.pathExists(artifactPath);
+    return super._artifactPathExists(artifactPath);
   }
 
   public async getAllFullyQualifiedNames(): Promise<string[]> {
@@ -129,7 +163,7 @@ class HardhatArtifactSource implements IHardhatArtifactSource {
       );
     }
 
-    return fsExtra.readJSON(buildInfoPath);
+    return super._getBuildInfoByPath(buildInfoPath);
   }
 
   public async getArtifactPaths(): Promise<string[]> {
