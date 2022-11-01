@@ -270,6 +270,36 @@ Please replace "${contractName}" for the correct contract name wherever you are 
     return paths.map((p) => this._getFullyQualifiedNameFromPath(p)).sort();
   }
 
+  /**
+   * Returns the absolute path to the artifact that corresponds to the given
+   * name.
+   *
+   * If the name is fully qualified, the path is computed from it.  If not, an
+   * artifact that matches the given name is searched in the existing artifacts.
+   * If there is an ambiguity, an error is thrown.
+   */
+  protected async _getArtifactPath(name: string): Promise<string> {
+    let result: string;
+    if (isFullyQualifiedName(name)) {
+      result = await this._getValidArtifactPathFromFullyQualifiedName(name);
+    } else {
+      const files = await this.getArtifactPaths();
+      result = this._getArtifactPathFromFiles(name, files);
+    }
+    return result;
+  }
+
+  protected _getArtifactPathSync(name: string): string {
+    let result: string;
+    if (isFullyQualifiedName(name)) {
+      result = this._getValidArtifactPathFromFullyQualifiedNameSync(name);
+    } else {
+      const files = this._getArtifactPathsSync();
+      result = this._getArtifactPathFromFiles(name, files);
+    }
+    return result;
+  }
+
   protected _getArtifactPathFromFiles(
     contractName: string,
     files: string[]
@@ -865,27 +895,13 @@ class HardhatArtifactSource
     ).toString("hex");
   }
 
-  /**
-   * Returns the absolute path to the artifact that corresponds to the given
-   * name.
-   *
-   * If the name is fully qualified, the path is computed from it.  If not, an
-   * artifact that matches the given name is searched in the existing artifacts.
-   * If there is an ambiguity, an error is thrown.
-   */
-  private async _getArtifactPath(name: string): Promise<string> {
+  protected async _getArtifactPath(name: string): Promise<string> {
     const cached = this._cache?.artifactNameToArtifactPathCache.get(name);
     if (cached !== undefined) {
       return cached;
     }
 
-    let result: string;
-    if (isFullyQualifiedName(name)) {
-      result = await this._getValidArtifactPathFromFullyQualifiedName(name);
-    } else {
-      const files = await this.getArtifactPaths();
-      result = this._getArtifactPathFromFiles(name, files);
-    }
+    const result = await super._getArtifactPath(name);
 
     this._cache?.artifactNameToArtifactPathCache.set(name, result);
     return result;
@@ -940,20 +956,13 @@ class HardhatArtifactSource
   /**
    * Sync version of _getArtifactPath
    */
-  private _getArtifactPathSync(name: string): string {
+  protected _getArtifactPathSync(name: string): string {
     const cached = this._cache?.artifactNameToArtifactPathCache.get(name);
     if (cached !== undefined) {
       return cached;
     }
 
-    let result: string;
-
-    if (isFullyQualifiedName(name)) {
-      result = this._getValidArtifactPathFromFullyQualifiedNameSync(name);
-    } else {
-      const files = this._getArtifactPathsSync();
-      result = this._getArtifactPathFromFiles(name, files);
-    }
+    const result = super._getArtifactPathSync(name);
 
     this._cache?.artifactNameToArtifactPathCache.set(name, result);
     return result;
