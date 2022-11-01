@@ -590,6 +590,40 @@ class MutablePathMapping extends ReadOnlyPathMapping implements ArtifactSource {
     await this._removeObsoleteBuildInfos();
   }
 
+  public async saveArtifactAndDebugFile(
+    artifact: Artifact,
+    pathToBuildInfo?: string
+  ) {
+    // artifact
+    const fullyQualifiedName = getFullyQualifiedName(
+      artifact.sourceName,
+      artifact.contractName
+    );
+
+    const artifactPath =
+      this.formArtifactPathFromFullyQualifiedName(fullyQualifiedName);
+
+    await fsExtra.ensureDir(path.dirname(artifactPath));
+
+    await Promise.all([
+      fsExtra.writeJSON(artifactPath, artifact, {
+        spaces: 2,
+      }),
+      (async () => {
+        if (pathToBuildInfo === undefined) {
+          return;
+        }
+
+        // save debug file
+        const debugFilePath = this._getDebugFilePath(artifactPath);
+        const debugFile = this._createDebugFile(artifactPath, pathToBuildInfo);
+
+        await fsExtra.writeJSON(debugFilePath, debugFile, {
+          spaces: 2,
+        });
+      })(),
+    ]);
+  }
   /**
    * Remove the artifact file, its debug file and, if it exists, its build
    * info file.
@@ -732,38 +766,7 @@ class HardhatArtifactSource
     pathToBuildInfo?: string
   ) {
     try {
-      // artifact
-      const fullyQualifiedName = getFullyQualifiedName(
-        artifact.sourceName,
-        artifact.contractName
-      );
-
-      const artifactPath =
-        this.formArtifactPathFromFullyQualifiedName(fullyQualifiedName);
-
-      await fsExtra.ensureDir(path.dirname(artifactPath));
-
-      await Promise.all([
-        fsExtra.writeJSON(artifactPath, artifact, {
-          spaces: 2,
-        }),
-        (async () => {
-          if (pathToBuildInfo === undefined) {
-            return;
-          }
-
-          // save debug file
-          const debugFilePath = this._getDebugFilePath(artifactPath);
-          const debugFile = this._createDebugFile(
-            artifactPath,
-            pathToBuildInfo
-          );
-
-          await fsExtra.writeJSON(debugFilePath, debugFile, {
-            spaces: 2,
-          });
-        })(),
-      ]);
+      await super.saveArtifactAndDebugFile(artifact, pathToBuildInfo);
     } finally {
       this.clearCache();
     }
