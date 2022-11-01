@@ -77,7 +77,7 @@ extendConfig((config, userConfig) => {
   pluginActivated = true;
 });
 
-// Task that translates import names to sourcenames using remappings
+// Task that transforms import names to sourcenames using remappings
 internalTask(TASK_COMPILE_TRANSFORM_IMPORT_NAME).setAction(
   async (
     { importName }: { importName: string },

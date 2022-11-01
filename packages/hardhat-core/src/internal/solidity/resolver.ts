@@ -69,7 +69,7 @@ export class Resolver {
     private readonly _projectRoot: string,
     private readonly _parser: Parser,
     private readonly _readFile: (absolutePath: string) => Promise<string>,
-    private readonly _translateImportName: (
+    private readonly _transformImportName: (
       importName: string
     ) => Promise<string>
   ) {}
@@ -108,7 +108,7 @@ export class Resolver {
     from: ResolvedFile,
     importName: string
   ): Promise<ResolvedFile> {
-    const imported = await this._translateImportName(importName);
+    const imported = await this._transformImportName(importName);
 
     const scheme = this._getUriScheme(imported);
     if (scheme !== undefined) {
