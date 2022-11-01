@@ -71,10 +71,6 @@ interface Cache {
  * The purpose of this class is to encapsulate JSON file I/O. It assumes that
  * all input strings are simply paths, not contract names nor fully-qualified
  * contract names like other interfaces around here accept.
- *
- * TODO: most of the file i/o got moved into this class, but there's still some
- * remaining in the higher levels that should be considered for integration
- * with this class.
  */
 class ReadOnlyByPath {
   protected async _readArtifactByPath(artifactPath: string): Promise<Artifact> {
@@ -93,6 +89,25 @@ class ReadOnlyByPath {
     buildInfoPath: string
   ): Promise<BuildInfo | undefined> {
     return fsExtra.readJSON(buildInfoPath);
+  }
+
+  /**
+   * Given the path to a debug file, returns the absolute path to its
+   * corresponding build info file if it exists, or undefined otherwise.
+   */
+  protected static async _getBuildInfoFromDebugFile(
+    debugFilePath: string
+  ): Promise<string | undefined> {
+    if (await fsExtra.pathExists(debugFilePath)) {
+      const { buildInfo } = await fsExtra.readJson(debugFilePath);
+      return path.resolve(path.dirname(debugFilePath), buildInfo);
+    }
+
+    return undefined;
+  }
+
+  protected _getDebugFilePath(artifactPath: string): string {
+    return artifactPath.replace(/\.json$/, ".dbg.json");
   }
 }
 
@@ -219,7 +234,9 @@ class HardhatArtifactSource
         this.formArtifactPathFromFullyQualifiedName(fullyQualifiedName);
 
       const debugFilePath = this._getDebugFilePath(artifactPath);
-      buildInfoPath = await this._getBuildInfoFromDebugFile(debugFilePath);
+      buildInfoPath = await ReadOnlyByPath._getBuildInfoFromDebugFile(
+        debugFilePath
+      );
 
       if (buildInfoPath === undefined) {
         return undefined;
@@ -516,7 +533,9 @@ class HardhatArtifactSource
 
     const buildInfos = await Promise.all(
       debugFiles.map(async (debugFile) => {
-        const buildInfoFile = await this._getBuildInfoFromDebugFile(debugFile);
+        const buildInfoFile = await ReadOnlyByPath._getBuildInfoFromDebugFile(
+          debugFile
+        );
         if (buildInfoFile !== undefined) {
           return path.resolve(path.dirname(debugFile), buildInfoFile);
         } else {
@@ -886,10 +905,6 @@ Please replace "${contractName}" for the correct contract name wherever you are 
     }
   }
 
-  private _getDebugFilePath(artifactPath: string): string {
-    return artifactPath.replace(/\.json$/, ".dbg.json");
-  }
-
   private _getArtifactPathFromFiles(
     contractName: string,
     files: string[]
@@ -924,28 +939,15 @@ Please replace "${contractName}" for the correct contract name wherever you are 
     await fsExtra.remove(artifactPath);
 
     const debugFilePath = this._getDebugFilePath(artifactPath);
-    const buildInfoPath = await this._getBuildInfoFromDebugFile(debugFilePath);
+    const buildInfoPath = await ReadOnlyByPath._getBuildInfoFromDebugFile(
+      debugFilePath
+    );
 
     await fsExtra.remove(debugFilePath);
 
     if (buildInfoPath !== undefined) {
       await fsExtra.remove(buildInfoPath);
     }
-  }
-
-  /**
-   * Given the path to a debug file, returns the absolute path to its
-   * corresponding build info file if it exists, or undefined otherwise.
-   */
-  private async _getBuildInfoFromDebugFile(
-    debugFilePath: string
-  ): Promise<string | undefined> {
-    if (await fsExtra.pathExists(debugFilePath)) {
-      const { buildInfo } = await fsExtra.readJson(debugFilePath);
-      return path.resolve(path.dirname(debugFilePath), buildInfo);
-    }
-
-    return undefined;
   }
 }
 
