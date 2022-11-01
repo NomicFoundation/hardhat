@@ -85,6 +85,7 @@ import {
   createRethnetFromHardhatDB,
   ethereumjsTransactionToRethnet,
   HardhatDB,
+  rethnetResultToRunTxResult,
 } from "./utils/convertToRethnet";
 import { bloomFilter, Filter, filterLogs, LATEST_BLOCK, Type } from "./filter";
 import { ForkBlockchain } from "./fork/ForkBlockchain";
@@ -1846,7 +1847,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
           assertEthereumJsAndRethnetResults(rethnetResult.execResult, txResult);
 
           traces.push(await this._gatherTraces(txResult.execResult));
-          results.push(txResult);
+          results.push(rethnetResultToRunTxResult(rethnetResult.execResult));
           receipts.push(txResult.receipt);
         }
 
@@ -2468,7 +2469,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
         ethereumjsResult
       );
 
-      return ethereumjsResult;
+      return rethnetResultToRunTxResult(rethnetResult.execResult);
     } finally {
       if (originalCommon !== undefined) {
         (this._vm as any)._common = originalCommon;
