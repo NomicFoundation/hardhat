@@ -270,6 +270,32 @@ Please replace "${contractName}" for the correct contract name wherever you are 
     return paths.map((p) => this._getFullyQualifiedNameFromPath(p)).sort();
   }
 
+  protected _getArtifactPathFromFiles(
+    contractName: string,
+    files: string[]
+  ): string {
+    const matchingFiles = files.filter((file) => {
+      return path.basename(file) === `${contractName}.json`;
+    });
+
+    if (matchingFiles.length === 0) {
+      return this._handleWrongArtifactForContractName(contractName, files);
+    }
+
+    if (matchingFiles.length > 1) {
+      const candidates = matchingFiles.map((file) =>
+        this._getFullyQualifiedNameFromPath(file)
+      );
+
+      throw new HardhatError(ERRORS.ARTIFACTS.MULTIPLE_FOUND, {
+        contractName,
+        candidates: candidates.join(os.EOL),
+      });
+    }
+
+    return matchingFiles[0];
+  }
+
   protected _getArtifactPathsSync(): string[] {
     const buildInfosDir = path.join(this._artifactsPath, BUILD_INFO_DIR_NAME);
 
@@ -947,32 +973,6 @@ class HardhatArtifactSource
       // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
       throw e;
     }
-  }
-
-  private _getArtifactPathFromFiles(
-    contractName: string,
-    files: string[]
-  ): string {
-    const matchingFiles = files.filter((file) => {
-      return path.basename(file) === `${contractName}.json`;
-    });
-
-    if (matchingFiles.length === 0) {
-      return this._handleWrongArtifactForContractName(contractName, files);
-    }
-
-    if (matchingFiles.length > 1) {
-      const candidates = matchingFiles.map((file) =>
-        this._getFullyQualifiedNameFromPath(file)
-      );
-
-      throw new HardhatError(ERRORS.ARTIFACTS.MULTIPLE_FOUND, {
-        contractName,
-        candidates: candidates.join(os.EOL),
-      });
-    }
-
-    return matchingFiles[0];
   }
 
   /**
