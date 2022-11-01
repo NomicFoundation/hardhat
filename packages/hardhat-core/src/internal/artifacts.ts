@@ -94,11 +94,51 @@ class ReadOnlyByPath {
   ): Promise<BuildInfo | undefined> {
     return fsExtra.readJSON(buildInfoPath);
   }
+}
 
+/**
+ * This class takes responsibility for the mappings between contract names,
+ * fully-qualified contract names, and file paths.
+ *
+ * TODO: migrate ALL of the path-mapping logic into this class.
+ */
+class ReadOnlyPathMapping
+  extends ReadOnlyByPath
+  implements
+    Pick<
+      ArtifactSource,
+      "getArtifactPaths"
+      /* TODO:
+      | "artifactExists"
+      | "getBuildInfo"
+      | "readArtifact"
+      | "readArtifactSync"
+      | "getAllFullyQualifiedNames"
+      | "getBuildInfoPaths"
+      | "getDebugFilePaths" */
+    >
+{
+  constructor(protected _artifactsPath: string) {
+    super();
+  }
+
+  public async getArtifactPaths(): Promise<string[]> {
+    const buildInfosDir = path.join(this._artifactsPath, BUILD_INFO_DIR_NAME);
+
+    const paths = await getAllFilesMatching(
+      this._artifactsPath,
+      (f) =>
+        f.endsWith(".json") &&
+        !f.startsWith(buildInfosDir) &&
+        !f.endsWith(".dbg.json")
+    );
+
+    return paths.sort();
+  }
 }
 
 class HardhatArtifactSource
-  extends ReadOnlyByPath
+  extends ReadOnlyPathMapping
   implements IHardhatArtifactSource
 {
   private _validArtifacts: Array<{ sourceName: string; artifacts: string[] }>;
@@ -109,8 +149,8 @@ class HardhatArtifactSource
     artifactFQNToBuildInfoPathCache: new Map(),
   };
 
-  constructor(private _artifactsPath: string) {
-    super();
+  constructor(artifactsPath: string) {
+    super(artifactsPath);
     this._validArtifacts = [];
   }
 
@@ -172,17 +212,7 @@ class HardhatArtifactSource
       return cached;
     }
 
-    const buildInfosDir = path.join(this._artifactsPath, BUILD_INFO_DIR_NAME);
-
-    const paths = await getAllFilesMatching(
-      this._artifactsPath,
-      (f) =>
-        f.endsWith(".json") &&
-        !f.startsWith(buildInfosDir) &&
-        !f.endsWith(".dbg.json")
-    );
-
-    const result = paths.sort();
+    const result = await super.getArtifactPaths();
 
     if (this._cache !== undefined) {
       this._cache.artifactPaths = result;
