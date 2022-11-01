@@ -1,6 +1,6 @@
 import { ArgValue } from "types/executionGraph";
 import { ResultsAccumulator } from "types/graph";
-import { isDependable } from "utils/guards";
+import { isDependable, isProxy } from "utils/guards";
 
 export function toAddress(v: any) {
   if (typeof v === "object" && "address" in v) {
@@ -11,23 +11,29 @@ export function toAddress(v: any) {
 }
 
 export function resolveFrom(context: ResultsAccumulator) {
-  return (arg: ArgValue) => {
-    if (!isDependable(arg)) {
-      return arg;
-    }
+  return (arg: ArgValue) => resolveFromContext(context, arg);
+}
 
-    const entry = context.get(arg.vertexId);
+function resolveFromContext(context: ResultsAccumulator, arg: ArgValue): any {
+  if (isProxy(arg)) {
+    return resolveFromContext(context, arg.value);
+  }
 
-    if (!entry) {
-      throw new Error(`No context entry for ${arg.vertexId} (${arg.label})`);
-    }
+  if (!isDependable(arg)) {
+    return arg;
+  }
 
-    if (entry._kind === "failure") {
-      throw new Error(
-        `Looking up context on a failed vertex - violation of constraint`
-      );
-    }
+  const entry = context.get(arg.vertexId);
 
-    return entry.result;
-  };
+  if (!entry) {
+    throw new Error(`No context entry for ${arg.vertexId} (${arg.label})`);
+  }
+
+  if (entry._kind === "failure") {
+    throw new Error(
+      `Looking up context on a failed vertex - violation of constraint`
+    );
+  }
+
+  return entry.result;
 }

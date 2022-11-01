@@ -15,6 +15,7 @@ import { IgnitionPlan } from "types/plan";
 import { Providers } from "types/providers";
 import { SerializedFutureResult } from "types/serialization";
 import { isDependable } from "utils/guards";
+import { resolveProxyValue } from "utils/proxy";
 import { serializeFutureOutput } from "utils/serialize";
 import { validateDeploymentGraph } from "validation/validateDeploymentGraph";
 
@@ -171,7 +172,9 @@ export class Ignition {
     );
 
     const convertedEntries: Array<[string, SerializedFutureResult]> = entries
-      .map(([name, future]): [string, SerializedFutureResult] | null => {
+      .map(([name, givenFuture]): [string, SerializedFutureResult] | null => {
+        const future = resolveProxyValue(givenFuture);
+
         const executionResultValue = result.get(future.vertexId);
 
         if (

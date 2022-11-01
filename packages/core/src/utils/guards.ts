@@ -14,6 +14,7 @@ import type {
   DeploymentGraphFuture,
   RequiredParameter,
   Virtual,
+  ProxyFuture,
 } from "types/future";
 import { Artifact } from "types/hardhat";
 
@@ -77,8 +78,13 @@ export function isDependable(possible: any): possible is DependableFuture {
     (possible.type === "call" ||
       possible.type === "contract" ||
       possible.type === "library" ||
-      possible.type === "virtual")
+      possible.type === "virtual" ||
+      possible.type === "proxy")
   );
+}
+
+export function isProxy(possible: any): possible is ProxyFuture {
+  return isFuture(possible) && possible.type === "proxy";
 }
 
 export function isVirtual(possible: any): possible is Virtual {
@@ -94,5 +100,9 @@ export function isParameter(
 export function isCallable(
   future: DeploymentGraphFuture
 ): future is CallableFuture {
+  if (isProxy(future)) {
+    return isCallable(future.value);
+  }
+
   return future.type === "contract" || future.type === "library";
 }

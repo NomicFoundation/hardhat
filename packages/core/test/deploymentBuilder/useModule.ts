@@ -11,6 +11,7 @@ import {
   ArtifactContract,
   CallableFuture,
   HardhatContract,
+  ProxyFuture,
   Virtual,
 } from "types/future";
 import { Module } from "types/module";
@@ -132,7 +133,56 @@ describe("deployment builder - useModule", () => {
       assert.equal(depNode?.label, "Foo");
     });
 
-    it("should show one dependencies, on Foo for the virtual node of the module", () => {
+    it("should foo depending on the after virtual node of the TokenModule", () => {
+      const depNode = getDeploymentVertexByLabel(deploymentGraph, "Foo");
+
+      if (depNode === undefined) {
+        return assert.isDefined(depNode);
+      }
+
+      const deps = getDependenciesForVertex(deploymentGraph, depNode);
+
+      assert.deepStrictEqual(deps, [
+        { id: 2, label: "TokenModule:0::after", type: "" },
+      ]);
+    });
+  });
+
+  describe("depending on a contract within a module", () => {
+    before(() => {
+      const TokenModule = buildModule(
+        "TokenModule",
+        (m: IDeploymentBuilder) => {
+          const token = m.contract("Token");
+
+          return { token };
+        }
+      );
+
+      const WrapModule = buildModule("Wrap", (m: IDeploymentBuilder) => {
+        const { token } = m.useModule(TokenModule);
+
+        const foo = m.contract("Foo", { after: [token] });
+
+        return { foo };
+      });
+
+      const { graph } = generateDeploymentGraphFrom(WrapModule, {
+        chainId: 31,
+      });
+
+      deploymentGraph = graph;
+    });
+
+    it("should create a graph", () => {
+      assert.isDefined(deploymentGraph);
+    });
+
+    it("should have four nodes", () => {
+      assert.equal(deploymentGraph.vertexes.size, 4);
+    });
+
+    it("should show foo depending on the after virtual node of the TokenModule (magic of proxy)", () => {
       const depNode = getDeploymentVertexByLabel(deploymentGraph, "Foo");
 
       if (depNode === undefined) {
@@ -380,7 +430,7 @@ describe("deployment builder - useModule", () => {
       assert.equal(depNode?.label, "Bar");
     });
 
-    it("should show one dependencies, between Bar and Foo", () => {
+    it("should show one dependencies, between Bar and Middle module", () => {
       const depNode = getDeploymentVertexByLabel(deploymentGraph, "Bar");
 
       if (depNode === undefined) {
@@ -389,7 +439,9 @@ describe("deployment builder - useModule", () => {
 
       const deps = getDependenciesForVertex(deploymentGraph, depNode);
 
-      assert.deepStrictEqual(deps, [{ id: 2, label: "Foo", type: "" }]);
+      assert.deepStrictEqual(deps, [
+        { id: 4, label: "Middle:0::after", type: "" },
+      ]);
     });
   });
 
@@ -439,7 +491,7 @@ describe("deployment builder - useModule", () => {
 
   describe("returning non contract/library futures from within a module", () => {
     let returnsWrongFutureTypeModule: Module<{
-      token: CallableFuture | Virtual;
+      token: CallableFuture | Virtual | ProxyFuture;
     }>;
 
     before(() => {

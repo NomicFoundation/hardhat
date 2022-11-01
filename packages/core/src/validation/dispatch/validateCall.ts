@@ -4,6 +4,7 @@ import { Services } from "services/types";
 import { CallDeploymentVertex } from "types/deploymentGraph";
 import { CallableFuture } from "types/future";
 import { ResultsAccumulator, VertexVisitResult } from "types/graph";
+import { resolveProxyValue } from "utils/proxy";
 
 export async function validateCall(
   vertex: CallDeploymentVertex,
@@ -74,9 +75,11 @@ export async function validateCall(
 }
 
 async function resolveArtifactForCallableFuture(
-  future: CallableFuture,
+  givenFuture: CallableFuture,
   { services }: { services: Services }
 ): Promise<any[] | undefined> {
+  const future = resolveProxyValue(givenFuture);
+
   switch (future.type) {
     case "contract":
       switch (future.subtype) {
@@ -104,11 +107,17 @@ async function resolveArtifactForCallableFuture(
         default:
           return assertNeverDeploymentFuture(future);
       }
+    case "virtual":
+      throw new Error(`Cannot call virtual future`);
+    case "call":
+      throw new Error(`Cannot call call future`);
     default:
       return assertNeverDeploymentFuture(future);
   }
 }
 
 function assertNeverDeploymentFuture(f: never): undefined {
-  throw new Error(`Unexpected deployment future type/subtype ${f}`);
+  throw new Error(
+    `Unexpected deployment future type/subtype ${JSON.stringify(f)}`
+  );
 }

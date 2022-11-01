@@ -78,6 +78,14 @@ export interface Virtual {
   _future: true;
 }
 
+export interface ProxyFuture {
+  label: string;
+  type: "proxy";
+  proxy: DependableFuture;
+  value: DependableFuture;
+  _future: true;
+}
+
 export type ContractFuture =
   | HardhatContract
   | ArtifactContract
@@ -87,7 +95,11 @@ export type LibraryFuture = HardhatLibrary | ArtifactLibrary;
 
 export type CallableFuture = ContractFuture | LibraryFuture;
 
-export type DependableFuture = CallableFuture | ContractCall | Virtual;
+export type DependableFuture =
+  | CallableFuture
+  | ContractCall
+  | Virtual
+  | ProxyFuture;
 
 export type ParameterFuture = RequiredParameter | OptionalParameter;
 

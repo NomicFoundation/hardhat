@@ -1,8 +1,13 @@
 import { Subgraph } from "./deploymentGraph";
-import type { CallableFuture, FutureDict, Virtual } from "./future";
+import type {
+  CallableFuture,
+  FutureDict,
+  ProxyFuture,
+  Virtual,
+} from "./future";
 
 export interface ModuleDict extends FutureDict {
-  [key: string]: CallableFuture | Virtual;
+  [key: string]: CallableFuture | Virtual | ProxyFuture;
 }
 
 export type Module<T extends ModuleDict> = Subgraph<T>;

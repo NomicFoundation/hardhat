@@ -27,6 +27,7 @@ import type {
   CallableFuture,
   Virtual,
   DependableFuture,
+  ProxyFuture,
 } from "types/future";
 import type { Artifact } from "types/hardhat";
 import type { ModuleCache, ModuleDict } from "types/module";
@@ -37,6 +38,7 @@ import {
   isDependable,
   isParameter,
 } from "utils/guards";
+import { resolveProxyDependency } from "utils/proxy";
 
 import { DeploymentGraph } from "./DeploymentGraph";
 import { ScopeStack } from "./ScopeStack";
@@ -306,7 +308,7 @@ export class DeploymentBuilder implements IDeploymentBuilder {
         );
       }
 
-      return moduleData.result as any;
+      return moduleData.result as Virtual & T;
     }
 
     const { result, after } = this._useSubscope(module, options);
@@ -322,13 +324,28 @@ export class DeploymentBuilder implements IDeploymentBuilder {
       );
     }
 
-    const moduleResult = { ...result, ...after };
+    const moduleResult = { ...this._enhance(result, after), ...after };
 
     const optionsHash = hash(options ?? null);
 
     this.moduleCache[moduleKey] = { result: moduleResult, optionsHash };
 
     return moduleResult;
+  }
+
+  private _enhance<T extends ModuleDict>(result: T, after: Virtual): T {
+    return Object.fromEntries(
+      Object.entries(result).map(([key, value]) => [
+        key,
+        {
+          label: key,
+          type: "proxy",
+          proxy: after,
+          value,
+          _future: true,
+        } as ProxyFuture,
+      ])
+    ) as T;
   }
 
   private _createBeforeVirtualVertex(
@@ -434,10 +451,7 @@ export class DeploymentBuilder implements IDeploymentBuilder {
     }
 
     if (depNode.type === "Call") {
-      addEdge(graph.adjacencyList, {
-        from: depNode.contract.vertexId,
-        to: depNode.id,
-      });
+      DeploymentBuilder._addEdgeBasedOn(depNode.contract, graph, depNode);
 
       DeploymentBuilder._addEdgesBasedOn(
         Object.values(depNode.args),
@@ -468,35 +482,47 @@ export class DeploymentBuilder implements IDeploymentBuilder {
     depNode: DeploymentGraphVertex
   ) {
     for (const arg of args) {
-      if (
-        typeof arg === "string" ||
-        typeof arg === "number" ||
-        typeof arg === "boolean"
-      ) {
-        continue;
+      DeploymentBuilder._addEdgeBasedOn(arg, graph, depNode);
+    }
+  }
+
+  private static _addEdgeBasedOn(
+    arg: InternalParamValue,
+    graph: DeploymentGraph,
+    depNode: DeploymentGraphVertex
+  ) {
+    if (
+      typeof arg === "string" ||
+      typeof arg === "number" ||
+      typeof arg === "boolean"
+    ) {
+      return;
+    }
+
+    if (isDependable(arg)) {
+      addEdge(graph.adjacencyList, {
+        from: resolveProxyDependency(arg).vertexId,
+        to: depNode.id,
+      });
+
+      return;
+    }
+
+    if (isParameter(arg)) {
+      const resolvedArg = DeploymentBuilder._resolveParameterFromScope(
+        graph,
+        arg
+      );
+
+      if (isDependable(resolvedArg)) {
+        addEdge(graph.adjacencyList, {
+          from: resolveProxyDependency(resolvedArg).vertexId,
+          to: depNode.id,
+        });
+        return;
       }
 
-      if (isDependable(arg)) {
-        addEdge(graph.adjacencyList, { from: arg.vertexId, to: depNode.id });
-        continue;
-      }
-
-      if (isParameter(arg)) {
-        const resolvedArg = DeploymentBuilder._resolveParameterFromScope(
-          graph,
-          arg
-        );
-
-        if (isDependable(resolvedArg)) {
-          addEdge(graph.adjacencyList, {
-            from: resolvedArg.vertexId,
-            to: depNode.id,
-          });
-          continue;
-        }
-
-        continue;
-      }
+      return;
     }
   }
 
@@ -562,7 +588,7 @@ export class DeploymentBuilder implements IDeploymentBuilder {
     for (const addedVertex of addedVertexes) {
       addEdge(this.graph.adjacencyList, {
         from: beforeVirtualVertex.vertexId,
-        to: addedVertex.vertexId,
+        to: resolveProxyDependency(addedVertex).vertexId,
       });
     }
 
