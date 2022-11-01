@@ -122,12 +122,14 @@ class ReadOnlyPathMapping
   implements
     Pick<
       ArtifactSource,
-      "getAllFullyQualifiedNames" | "getArtifactPaths" | "getBuildInfo"
+      | "getAllFullyQualifiedNames"
+      | "getArtifactPaths"
+      | "getBuildInfo"
+      | "getBuildInfoPaths"
       /* TODO:
       | "artifactExists"
       | "readArtifact"
       | "readArtifactSync"
-      | "getBuildInfoPaths"
       | "getDebugFilePaths" */
     >
 {
@@ -176,6 +178,15 @@ class ReadOnlyPathMapping
     }
 
     return super._getBuildInfoByPath(buildInfoPath);
+  }
+
+  public async getBuildInfoPaths(): Promise<string[]> {
+    const paths = await getAllFilesMatching(
+      path.join(this._artifactsPath, BUILD_INFO_DIR_NAME),
+      (f) => f.endsWith(".json")
+    );
+
+    return paths.sort();
   }
 
   protected async _getBuildInfoPath(
@@ -290,12 +301,7 @@ class HardhatArtifactSource
       return cached;
     }
 
-    const paths = await getAllFilesMatching(
-      path.join(this._artifactsPath, BUILD_INFO_DIR_NAME),
-      (f) => f.endsWith(".json")
-    );
-
-    const result = paths.sort();
+    const result = await super.getBuildInfoPaths();
 
     if (this._cache !== undefined) {
       this._cache.buildInfoPaths = result;
