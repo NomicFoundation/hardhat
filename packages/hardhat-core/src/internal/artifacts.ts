@@ -218,6 +218,36 @@ class ReadOnlyPathMapping
 
     return getFullyQualifiedName(sourceName, contractName);
   }
+
+  /**
+   *
+   * @param givenName can be FQN or contract name
+   * @param names MUST match type of givenName (i.e. array of FQN's if givenName is FQN)
+   * @returns
+   */
+  protected static _getSimilarContractNames(
+    givenName: string,
+    names: string[]
+  ): string[] {
+    let shortestDistance = EDIT_DISTANCE_THRESHOLD;
+    let mostSimilarNames: string[] = [];
+    for (const name of names) {
+      const distance = findDistance(givenName, name);
+
+      if (distance < shortestDistance) {
+        shortestDistance = distance;
+        mostSimilarNames = [name];
+        continue;
+      }
+
+      if (distance === shortestDistance) {
+        mostSimilarNames.push(name);
+        continue;
+      }
+    }
+
+    return mostSimilarNames;
+  }
 }
 
 class HardhatArtifactSource
@@ -791,7 +821,7 @@ Please replace "${contractName}" for the correct contract name wherever you are 
   ): never {
     const names = this._getAllFullyQualifiedNamesSync();
 
-    const similarNames = this._getSimilarContractNames(
+    const similarNames = ReadOnlyPathMapping._getSimilarContractNames(
       fullyQualifiedName,
       names
     );
@@ -808,7 +838,10 @@ Please replace "${contractName}" for the correct contract name wherever you are 
   ): never {
     const names = this._getAllContractNamesFromFiles(files);
 
-    let similarNames = this._getSimilarContractNames(contractName, names);
+    let similarNames = ReadOnlyPathMapping._getSimilarContractNames(
+      contractName,
+      names
+    );
 
     if (similarNames.length > 1) {
       similarNames = this._filterDuplicatesAsFullyQualifiedNames(
@@ -862,36 +895,6 @@ Please replace "${contractName}" for the correct contract name wherever you are 
     }
 
     return outputNames;
-  }
-
-  /**
-   *
-   * @param givenName can be FQN or contract name
-   * @param names MUST match type of givenName (i.e. array of FQN's if givenName is FQN)
-   * @returns
-   */
-  private _getSimilarContractNames(
-    givenName: string,
-    names: string[]
-  ): string[] {
-    let shortestDistance = EDIT_DISTANCE_THRESHOLD;
-    let mostSimilarNames: string[] = [];
-    for (const name of names) {
-      const distance = findDistance(givenName, name);
-
-      if (distance < shortestDistance) {
-        shortestDistance = distance;
-        mostSimilarNames = [name];
-        continue;
-      }
-
-      if (distance === shortestDistance) {
-        mostSimilarNames.push(name);
-        continue;
-      }
-    }
-
-    return mostSimilarNames;
   }
 
   private _getValidArtifactPathFromFullyQualifiedNameSync(
