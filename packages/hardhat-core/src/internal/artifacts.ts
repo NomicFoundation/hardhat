@@ -554,6 +554,96 @@ class MutablePathMapping extends ReadOnlyPathMapping implements ArtifactSource {
   ) {
     this._validArtifacts.push(...validArtifacts);
   }
+
+  /**
+   * Remove all artifacts that don't correspond to the current solidity files
+   */
+  public async removeObsoleteArtifacts() {
+    const validArtifactPaths = await Promise.all(
+      this._validArtifacts.flatMap(({ sourceName, artifacts }) =>
+        artifacts.map((artifactName) =>
+          this._getArtifactPath(getFullyQualifiedName(sourceName, artifactName))
+        )
+      )
+    );
+
+    const validArtifactsPathsSet = new Set<string>(validArtifactPaths);
+
+    for (const { sourceName, artifacts } of this._validArtifacts) {
+      for (const artifactName of artifacts) {
+        validArtifactsPathsSet.add(
+          this.formArtifactPathFromFullyQualifiedName(
+            getFullyQualifiedName(sourceName, artifactName)
+          )
+        );
+      }
+    }
+
+    const existingArtifactsPaths = await this.getArtifactPaths();
+
+    await Promise.all(
+      existingArtifactsPaths
+        .filter((artifactPath) => !validArtifactsPathsSet.has(artifactPath))
+        .map((artifactPath) => this._removeArtifactFiles(artifactPath))
+    );
+
+    await this._removeObsoleteBuildInfos();
+  }
+
+  /**
+   * Remove the artifact file, its debug file and, if it exists, its build
+   * info file.
+   */
+  private async _removeArtifactFiles(artifactPath: string) {
+    await fsExtra.remove(artifactPath);
+
+    const debugFilePath = this._getDebugFilePath(artifactPath);
+    const buildInfoPath = await ReadOnlyPathMapping._getBuildInfoFromDebugFile(
+      debugFilePath
+    );
+
+    await fsExtra.remove(debugFilePath);
+
+    if (buildInfoPath !== undefined) {
+      await fsExtra.remove(buildInfoPath);
+    }
+  }
+
+  /**
+   * Remove all build infos that aren't used by any debug file
+   */
+  private async _removeObsoleteBuildInfos() {
+    const debugFiles = await this.getDebugFilePaths();
+
+    const buildInfos = await Promise.all(
+      debugFiles.map(async (debugFile) => {
+        const buildInfoFile =
+          await ReadOnlyPathMapping._getBuildInfoFromDebugFile(debugFile);
+        if (buildInfoFile !== undefined) {
+          return path.resolve(path.dirname(debugFile), buildInfoFile);
+        } else {
+          return undefined;
+        }
+      })
+    );
+
+    const filteredBuildInfos: string[] = buildInfos.filter(
+      (bf): bf is string => typeof bf === "string"
+    );
+
+    const validBuildInfos = new Set<string>(filteredBuildInfos);
+
+    const buildInfoFiles = await this.getBuildInfoPaths();
+
+    await Promise.all(
+      buildInfoFiles
+        .filter((buildInfoFile) => !validBuildInfos.has(buildInfoFile))
+        .map(async (buildInfoFile) => {
+          log(`Removing buildInfo '${buildInfoFile}'`);
+          await fsExtra.unlink(buildInfoFile);
+        })
+    );
+  }
 }
 
 class HardhatArtifactSource
@@ -803,37 +893,7 @@ class HardhatArtifactSource
     this.clearCache();
 
     try {
-      const validArtifactPaths = await Promise.all(
-        this._validArtifacts.flatMap(({ sourceName, artifacts }) =>
-          artifacts.map((artifactName) =>
-            this._getArtifactPath(
-              getFullyQualifiedName(sourceName, artifactName)
-            )
-          )
-        )
-      );
-
-      const validArtifactsPathsSet = new Set<string>(validArtifactPaths);
-
-      for (const { sourceName, artifacts } of this._validArtifacts) {
-        for (const artifactName of artifacts) {
-          validArtifactsPathsSet.add(
-            this.formArtifactPathFromFullyQualifiedName(
-              getFullyQualifiedName(sourceName, artifactName)
-            )
-          );
-        }
-      }
-
-      const existingArtifactsPaths = await this.getArtifactPaths();
-
-      await Promise.all(
-        existingArtifactsPaths
-          .filter((artifactPath) => !validArtifactsPathsSet.has(artifactPath))
-          .map((artifactPath) => this._removeArtifactFiles(artifactPath))
-      );
-
-      await this._removeObsoleteBuildInfos();
+      await super.removeObsoleteArtifacts();
     } finally {
       // We clear the cache here, as this may have non-existent paths now
       this.clearCache();
@@ -854,43 +914,6 @@ class HardhatArtifactSource
 
   public disableCache() {
     this._cache = undefined;
-  }
-
-  /**
-   * Remove all build infos that aren't used by any debug file
-   */
-  private async _removeObsoleteBuildInfos() {
-    const debugFiles = await this.getDebugFilePaths();
-
-    const buildInfos = await Promise.all(
-      debugFiles.map(async (debugFile) => {
-        const buildInfoFile = await ReadOnlyByPath._getBuildInfoFromDebugFile(
-          debugFile
-        );
-        if (buildInfoFile !== undefined) {
-          return path.resolve(path.dirname(debugFile), buildInfoFile);
-        } else {
-          return undefined;
-        }
-      })
-    );
-
-    const filteredBuildInfos: string[] = buildInfos.filter(
-      (bf): bf is string => typeof bf === "string"
-    );
-
-    const validBuildInfos = new Set<string>(filteredBuildInfos);
-
-    const buildInfoFiles = await this.getBuildInfoPaths();
-
-    await Promise.all(
-      buildInfoFiles
-        .filter((buildInfoFile) => !validBuildInfos.has(buildInfoFile))
-        .map(async (buildInfoFile) => {
-          log(`Removing buildInfo '${buildInfoFile}'`);
-          await fsExtra.unlink(buildInfoFile);
-        })
-    );
   }
 
   private _getBuildInfoName(
@@ -981,25 +1004,6 @@ class HardhatArtifactSource
 
     this._cache?.artifactNameToArtifactPathCache.set(name, result);
     return result;
-  }
-
-  /**
-   * Remove the artifact file, its debug file and, if it exists, its build
-   * info file.
-   */
-  private async _removeArtifactFiles(artifactPath: string) {
-    await fsExtra.remove(artifactPath);
-
-    const debugFilePath = this._getDebugFilePath(artifactPath);
-    const buildInfoPath = await ReadOnlyByPath._getBuildInfoFromDebugFile(
-      debugFilePath
-    );
-
-    await fsExtra.remove(debugFilePath);
-
-    if (buildInfoPath !== undefined) {
-      await fsExtra.remove(buildInfoPath);
-    }
   }
 }
 
