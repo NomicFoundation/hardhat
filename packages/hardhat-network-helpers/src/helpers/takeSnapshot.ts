@@ -7,6 +7,7 @@ export interface SnapshotRestorer {
    * taken.
    */
   restore(): Promise<void>;
+  snapshotId: any;
 }
 
 /**
@@ -38,5 +39,6 @@ export async function takeSnapshot(): Promise<SnapshotRestorer> {
         method: "evm_snapshot",
       });
     },
+    snapshotId
   };
 }
