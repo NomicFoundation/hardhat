@@ -525,7 +525,7 @@ Please replace "${contractName}" for the correct contract name wherever you are 
    * @deprecated until typechain migrates to public version
    * @see https://github.com/dethcrypto/TypeChain/issues/544
    */
-  private _getArtifactPathFromFullyQualifiedName(
+  protected _getArtifactPathFromFullyQualifiedName(
     fullyQualifiedName: string
   ): string {
     const { sourceName, contractName } =
