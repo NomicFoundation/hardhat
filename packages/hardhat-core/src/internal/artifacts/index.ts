@@ -12,10 +12,8 @@ import { HardhatError } from "../core/errors";
 import { ERRORS } from "../core/errors-list";
 
 import { ReadOnlyPathMapping } from "./readonly";
-import {
-  MutablePathMapping,
-  CachingPathMapping,
-} from "./sources";
+import { MutablePathMapping } from "./mutable";
+import { CachingPathMapping } from "./sources";
 
 type SupportedArtifactSource =
   | ArtifactSource
