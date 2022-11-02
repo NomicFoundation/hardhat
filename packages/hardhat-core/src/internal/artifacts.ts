@@ -214,7 +214,7 @@ class ReadOnlyPathMapping extends ReadOnlyByPath implements ArtifactSource {
    *   - 'contracts/Meeter.sol:Greeter'
    *   - 'Greater'
    */
-  protected _filterDuplicatesAsFullyQualifiedNames(
+  private _filterDuplicatesAsFullyQualifiedNames(
     files: string[],
     similarNames: string[]
   ): string[] {
@@ -241,7 +241,7 @@ class ReadOnlyPathMapping extends ReadOnlyByPath implements ArtifactSource {
     return outputNames;
   }
 
-  protected static _formatSuggestions(
+  private static _formatSuggestions(
     names: string[],
     contractName: string
   ): string {
@@ -260,14 +260,14 @@ Please replace "${contractName}" for the correct contract name wherever you are 
     }
   }
 
-  protected _getAllContractNamesFromFiles(files: string[]): string[] {
+  private _getAllContractNamesFromFiles(files: string[]): string[] {
     return files.map((file) => {
       const fqn = this._getFullyQualifiedNameFromPath(file);
       return parseFullyQualifiedName(fqn).contractName;
     });
   }
 
-  protected _getAllFullyQualifiedNamesSync(): string[] {
+  private _getAllFullyQualifiedNamesSync(): string[] {
     const paths = this._getArtifactPathsSync();
     return paths.map((p) => this._getFullyQualifiedNameFromPath(p)).sort();
   }
@@ -302,7 +302,7 @@ Please replace "${contractName}" for the correct contract name wherever you are 
     return result;
   }
 
-  protected _getArtifactPathFromFiles(
+  private _getArtifactPathFromFiles(
     contractName: string,
     files: string[]
   ): string {
@@ -362,7 +362,7 @@ Please replace "${contractName}" for the correct contract name wherever you are 
    * `/path/to/project/artifacts/contracts/Foo.sol/Bar.json`, it'll return the
    * FQN `contracts/Foo.sol:Bar`
    */
-  protected _getFullyQualifiedNameFromPath(absolutePath: string): string {
+  private _getFullyQualifiedNameFromPath(absolutePath: string): string {
     const sourceName = replaceBackslashes(
       path.relative(this._artifactsPath, path.dirname(absolutePath))
     );
@@ -378,7 +378,7 @@ Please replace "${contractName}" for the correct contract name wherever you are 
    * @param names MUST match type of givenName (i.e. array of FQN's if givenName is FQN)
    * @returns
    */
-  protected static _getSimilarContractNames(
+  private static _getSimilarContractNames(
     givenName: string,
     names: string[]
   ): string[] {
@@ -402,7 +402,7 @@ Please replace "${contractName}" for the correct contract name wherever you are 
     return mostSimilarNames;
   }
 
-  protected async _getValidArtifactPathFromFullyQualifiedName(
+  private async _getValidArtifactPathFromFullyQualifiedName(
     fullyQualifiedName: string
   ): Promise<string> {
     const artifactPath =
@@ -437,7 +437,7 @@ Please replace "${contractName}" for the correct contract name wherever you are 
     }
   }
 
-  protected _getValidArtifactPathFromFullyQualifiedNameSync(
+  private _getValidArtifactPathFromFullyQualifiedNameSync(
     fullyQualifiedName: string
   ): string {
     const artifactPath =
@@ -472,7 +472,7 @@ Please replace "${contractName}" for the correct contract name wherever you are 
     }
   }
 
-  protected _handleWrongArtifactForFullyQualifiedName(
+  private _handleWrongArtifactForFullyQualifiedName(
     fullyQualifiedName: string
   ): never {
     const names = this._getAllFullyQualifiedNamesSync();
@@ -491,7 +491,7 @@ Please replace "${contractName}" for the correct contract name wherever you are 
     });
   }
 
-  protected _handleWrongArtifactForContractName(
+  private _handleWrongArtifactForContractName(
     contractName: string,
     files: string[]
   ): never {
@@ -540,7 +540,7 @@ class MutablePathMapping extends ReadOnlyPathMapping implements ArtifactSource {
   // ultimately responsibility for and interface for all interaction with
   // _validArtifacts.
 
-  protected _validArtifacts: Array<{ sourceName: string; artifacts: string[] }>;
+  private _validArtifacts: Array<{ sourceName: string; artifacts: string[] }>;
 
   constructor(artifactsPath: string) {
     super(artifactsPath);
@@ -735,7 +735,7 @@ class MutablePathMapping extends ReadOnlyPathMapping implements ArtifactSource {
     return buildInfoPath;
   }
 
-  protected static _createBuildInfo(
+  private static _createBuildInfo(
     id: string,
     solcVersion: string,
     solcLongVersion: string,
@@ -766,7 +766,7 @@ class MutablePathMapping extends ReadOnlyPathMapping implements ArtifactSource {
     return debugFile;
   }
 
-  protected static _getBuildInfoName(
+  private static _getBuildInfoName(
     solcVersion: string,
     solcLongVersion: string,
     input: CompilerInput
