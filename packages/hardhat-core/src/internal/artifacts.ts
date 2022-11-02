@@ -41,24 +41,6 @@ import {
 
 const log = debug("hardhat:core:artifacts");
 
-interface IHardhatArtifactSource extends ArtifactSource {
-  saveArtifactAndDebugFile(
-    artifact: Artifact,
-    pathToBuildInfo?: string
-  ): Promise<void>;
-  saveBuildInfo(
-    solcVersion: string,
-    solcLongVersion: string,
-    input: CompilerInput,
-    output: CompilerOutput
-  ): Promise<string>;
-  formArtifactPathFromFullyQualifiedName(fullyQualifiedName: string): string;
-  addValidArtifacts(
-    validArtifacts: Array<{ sourceName: string; artifacts: string[] }>
-  ): void;
-  removeObsoleteArtifacts(): void;
-}
-
 interface Cache {
   artifactPaths?: string[];
   debugFilePaths?: string[];
@@ -839,10 +821,7 @@ class MutablePathMapping extends ReadOnlyPathMapping implements ArtifactSource {
   }
 }
 
-class CachingPathMapping
-  extends MutablePathMapping
-  implements IHardhatArtifactSource
-{
+class CachingPathMapping extends MutablePathMapping {
   // Undefined means that the cache is disabled.
   private _cache?: Cache = {
     artifactNameToArtifactPathCache: new Map(),
@@ -1023,11 +1002,14 @@ class CachingPathMapping
   }
 }
 
+type SupportedArtifactSource =
+  | ArtifactSource
+  | ReadOnlyPathMapping
+  | MutablePathMapping
+  | CachingPathMapping;
+
 export class Artifacts implements IArtifacts {
-  private readonly _sourcesInPriorityOrder: [
-    IHardhatArtifactSource,
-    ...ArtifactSource[]
-  ];
+  private readonly _sourcesInPriorityOrder: SupportedArtifactSource[];
 
   constructor(artifactsPath: string) {
     this._sourcesInPriorityOrder = [new CachingPathMapping(artifactsPath)];
@@ -1126,10 +1108,12 @@ export class Artifacts implements IArtifacts {
     artifact: Artifact,
     pathToBuildInfo?: string
   ): Promise<void> {
-    return this._sourcesInPriorityOrder[0].saveArtifactAndDebugFile(
-      artifact,
-      pathToBuildInfo
-    );
+    for (const source of this._sourcesInPriorityOrder) {
+      if ("saveArtifactAndDebugFile" in source) {
+        return source.saveArtifactAndDebugFile(artifact, pathToBuildInfo);
+      }
+    }
+    throw new HardhatError(ERRORS.INTERNAL.NO_SUPPORTED_ARTIFACT_SOURCE);
   }
 
   public saveBuildInfo(
@@ -1138,30 +1122,52 @@ export class Artifacts implements IArtifacts {
     input: CompilerInput,
     output: CompilerOutput
   ): Promise<string> {
-    return this._sourcesInPriorityOrder[0].saveBuildInfo(
-      solcVersion,
-      solcLongVersion,
-      input,
-      output
-    );
+    for (const source of this._sourcesInPriorityOrder) {
+      if ("saveBuildInfo" in source) {
+        return source.saveBuildInfo(
+          solcVersion,
+          solcLongVersion,
+          input,
+          output
+        );
+      }
+    }
+    throw new HardhatError(ERRORS.INTERNAL.NO_SUPPORTED_ARTIFACT_SOURCE);
   }
 
   public formArtifactPathFromFullyQualifiedName(
     fullyQualifiedName: string
   ): string {
-    return this._sourcesInPriorityOrder[0].formArtifactPathFromFullyQualifiedName(
-      fullyQualifiedName
-    );
+    for (const source of this._sourcesInPriorityOrder) {
+      if ("formArtifactPathFromFullyQualifiedName" in source) {
+        return source.formArtifactPathFromFullyQualifiedName(
+          fullyQualifiedName
+        );
+      }
+    }
+    throw new HardhatError(ERRORS.INTERNAL.NO_SUPPORTED_ARTIFACT_SOURCE);
   }
 
   public addValidArtifacts(
     validArtifacts: Array<{ sourceName: string; artifacts: string[] }>
   ) {
-    this._sourcesInPriorityOrder[0].addValidArtifacts(validArtifacts);
+    for (const source of this._sourcesInPriorityOrder) {
+      if ("addValidArtifacts" in source) {
+        source.addValidArtifacts(validArtifacts);
+        return;
+      }
+    }
+    throw new HardhatError(ERRORS.INTERNAL.NO_SUPPORTED_ARTIFACT_SOURCE);
   }
 
   public async removeObsoleteArtifacts() {
-    return this._sourcesInPriorityOrder[0].removeObsoleteArtifacts();
+    for (const source of this._sourcesInPriorityOrder) {
+      if ("removeObsoleteArtifacts" in source) {
+        await source.removeObsoleteArtifacts();
+        return;
+      }
+    }
+    throw new HardhatError(ERRORS.INTERNAL.NO_SUPPORTED_ARTIFACT_SOURCE);
   }
 
   private async _getFirstValueFromSources(

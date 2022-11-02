@@ -1061,6 +1061,15 @@ Please [report it](https://github.com/nomiclabs/hardhat/issues/new) to help us i
 Please [report it](https://github.com/nomiclabs/hardhat/issues/new) to help us improve Hardhat.`,
       shouldBeReported: true,
     },
+    NO_SUPPORTED_ARTIFACT_SOURCE: {
+      number: 904,
+      message: "No configured artifact source can handle the request",
+      title: "No configured artifact source can handle the request",
+      description: `No configured artifact source can handle the request
+
+Please [report it](https://github.com/nomiclabs/hardhat/issues/new) to help us improve Hardhat.`,
+      shouldBeReported: true,
+    },
   },
   SOURCE_NAMES: {
     INVALID_SOURCE_NAME_ABSOLUTE_PATH: {
