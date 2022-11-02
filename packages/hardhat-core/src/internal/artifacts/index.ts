@@ -12,14 +12,14 @@ import {
   CompilerInput,
   CompilerOutput,
   DebugFile,
-} from "../types";
+} from "../../types";
 import {
   getFullyQualifiedName,
   isFullyQualifiedName,
   parseFullyQualifiedName,
   findDistance,
-} from "../utils/contract-names";
-import { replaceBackslashes } from "../utils/source-names";
+} from "../../utils/contract-names";
+import { replaceBackslashes } from "../../utils/source-names";
 
 import {
   ARTIFACT_FORMAT_VERSION,
@@ -27,17 +27,17 @@ import {
   BUILD_INFO_FORMAT_VERSION,
   DEBUG_FILE_FORMAT_VERSION,
   EDIT_DISTANCE_THRESHOLD,
-} from "./constants";
-import { HardhatError } from "./core/errors";
-import { ERRORS } from "./core/errors-list";
-import { createNonCryptographicHashBasedIdentifier } from "./util/hash";
+} from "../constants";
+import { HardhatError } from "../core/errors";
+import { ERRORS } from "../core/errors-list";
+import { createNonCryptographicHashBasedIdentifier } from "../util/hash";
 import {
   FileNotFoundError,
   getAllFilesMatching,
   getAllFilesMatchingSync,
   getFileTrueCase,
   getFileTrueCaseSync,
-} from "./util/fs-utils";
+} from "../util/fs-utils";
 
 const log = debug("hardhat:core:artifacts");
 
