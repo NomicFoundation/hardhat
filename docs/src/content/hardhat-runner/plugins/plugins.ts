@@ -648,6 +648,13 @@ const officialPlugins: IPlugin[] = [
     tags: ["Etherscan", "Verification"],
   },
   {
+    name: "@nomicfoundation/hardhat-foundry",
+    author: "Nomic Foundation",
+    authorUrl: "https://twitter.com/NomicFoundation",
+    description: "Makes it easier to use Hardhat and Foundry in the same project",
+    tags: ["Foundry"],
+  },
+  {
     name: "@nomiclabs/hardhat-vyper",
     author: "Nomic Foundation",
     authorUrl: "https://twitter.com/NomicFoundation",
