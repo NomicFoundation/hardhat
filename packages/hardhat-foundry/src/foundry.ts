@@ -18,7 +18,10 @@ export class HardhatFoundryError extends NomicLabsHardhatPluginError {
 class ForgeInstallError extends HardhatFoundryError {
   constructor(dependency: string, parent: Error) {
     super(
-      `Command failed. Please continue '${dependency}' installation manually.`,
+      `Couldn't install '${dependency}', please install it manually.
+
+${parent.message}
+`,
       parent
     );
   }
@@ -64,13 +67,9 @@ export async function installDependency(dependency: string) {
   console.log(`Running '${chalk.blue(cmd)}'`);
 
   try {
-    runCmdSync(cmd);
-  } catch (error) {
-    if (error instanceof Error) {
-      throw new ForgeInstallError(dependency, error);
-    }
-
-    throw error;
+    await exec(cmd);
+  } catch (error: any) {
+    throw new ForgeInstallError(dependency, error);
   }
 }
 
