@@ -1,18 +1,18 @@
 import chalk from "chalk";
 import { exec, execSync } from "child_process";
-import { CustomError, HardhatPluginError } from "hardhat/internal/core/errors";
+import { NomicLabsHardhatPluginError } from "hardhat/internal/core/errors";
 
 type Remappings = Record<string, string>;
 
 let cachedRemappings: Remappings | undefined;
 
-export class HardhatFoundryError extends HardhatPluginError {
-  constructor(message: string) {
-    super("hardhat-foundry", message);
+export class HardhatFoundryError extends NomicLabsHardhatPluginError {
+  constructor(message: string, parent?: Error) {
+    super("hardhat-foundry", message, parent);
   }
 }
 
-class ForgeInstallError extends CustomError {
+class ForgeInstallError extends HardhatFoundryError {
   constructor(dependency: string, parent: Error) {
     super(
       `Command failed. Please continue ${dependency} installation manually.`,
