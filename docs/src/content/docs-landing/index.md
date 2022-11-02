@@ -13,11 +13,7 @@ To get started check out these sections:
 
 ## Browse by component
 
-:::tip
-
 If you are in doubt about which component you are looking for, you can start [here.](/hardhat-runner)
-
-:::
 
 ### Hardhat Runner
 
