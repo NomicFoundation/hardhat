@@ -38,10 +38,6 @@ export class MutablePathMapping
   extends ReadOnlyPathMapping
   implements ArtifactSource
 {
-  // TODO: migrate to here all methods that add, save or remove artifacts, and
-  // ultimately responsibility for and interface for all interaction with
-  // _validArtifacts.
-
   private _validArtifacts: Array<{ sourceName: string; artifacts: string[] }>;
 
   constructor(artifactsPath: string) {
