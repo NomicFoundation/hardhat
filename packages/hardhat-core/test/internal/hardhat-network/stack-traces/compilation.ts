@@ -108,7 +108,7 @@ export async function compileFiles(
   if (path.isAbsolute(compilerOptions.compilerPath)) {
     compiler = {
       compilerPath: compilerOptions.compilerPath,
-      isSolcJs: true,
+      isSolcJs: process.env.HARDHAT_TESTS_SOLC_NATIVE !== "true",
       version: compilerOptions.solidityVersion,
       longVersion: compilerOptions.solidityVersion,
     };
