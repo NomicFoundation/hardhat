@@ -899,7 +899,7 @@ export class Artifacts implements IArtifacts {
   public async readArtifact(
     contractNameOrFullyQualifiedName: string
   ): Promise<Artifact> {
-    const artifact = this._getFirstValueFromSources(
+    const artifact = await this._getFirstValueFromSources(
       "readArtifact",
       contractNameOrFullyQualifiedName
     );
@@ -1024,7 +1024,7 @@ export class Artifacts implements IArtifacts {
   }
 
   public async removeObsoleteArtifacts() {
-    this._sourcesInPriorityOrder[0].removeObsoleteArtifacts();
+    return this._sourcesInPriorityOrder[0].removeObsoleteArtifacts();
   }
 
   private async _getFirstValueFromSources(
