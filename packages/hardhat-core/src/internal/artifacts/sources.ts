@@ -45,6 +45,7 @@ interface Cache {
   buildInfoPaths?: string[];
   artifactNameToArtifactPathCache: Map<string, string>;
   artifactFQNToBuildInfoPathCache: Map<string, string>;
+  artifactNameToArtifact: Map<string, Artifact>;
 }
 
 /**
@@ -830,10 +831,35 @@ export class CachingPathMapping extends MutablePathMapping {
   private _cache?: Cache = {
     artifactNameToArtifactPathCache: new Map(),
     artifactFQNToBuildInfoPathCache: new Map(),
+    artifactNameToArtifact: new Map(),
   };
 
   constructor(artifactsPath: string) {
     super(artifactsPath);
+  }
+
+  public async readArtifact(name: string): Promise<Artifact> {
+    let artifact = this._cache?.artifactNameToArtifact.get(name);
+
+    if (artifact === undefined) {
+      artifact = await super.readArtifact(name);
+    }
+
+    this._cache?.artifactNameToArtifact.set(name, artifact);
+
+    return artifact;
+  }
+
+  public readArtifactSync(name: string): Artifact {
+    let artifact = this._cache?.artifactNameToArtifact.get(name);
+
+    if (artifact === undefined) {
+      artifact = super.readArtifactSync(name);
+    }
+
+    this._cache?.artifactNameToArtifact.set(name, artifact);
+
+    return artifact;
   }
 
   public async getBuildInfo(
@@ -956,6 +982,7 @@ export class CachingPathMapping extends MutablePathMapping {
     this._cache = {
       artifactFQNToBuildInfoPathCache: new Map(),
       artifactNameToArtifactPathCache: new Map(),
+      artifactNameToArtifact: new Map(),
     };
   }
 
