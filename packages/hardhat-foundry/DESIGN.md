@@ -8,7 +8,7 @@ Hardhat's config is modified so that 1) the sources directory matches the one us
 
 Notice that when Foundry is added to a Hardhat project, and the `foundry.toml` is created using `hre.config.paths`, then successive commands will take the config from Foundry's config. But this will just match the one that was already being used by Hardhat, which is what we want.
 
-The plugin also detects the scenario where a user has *explicitly* set a Hardhat sources directory that doesn't match the one used by Foundry. This can happen if the user modifies the sources path *after* initializing the Foundry config. In this case, to silently override it would be wrong, so we throw an error.
+The plugin also detects the scenario where a user has _explicitly_ set a Hardhat sources directory that doesn't match the one used by Foundry. This can happen if the user modifies the sources path _after_ initializing the Foundry config. In this case, to silently override it would be wrong, so we throw an error.
 
 ### Compilation
 
