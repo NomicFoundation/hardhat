@@ -33,6 +33,7 @@ See our [Getting started guide](./docs/getting-started-guide.md) for a worked ex
 
 - [Simple](./examples/simple/README.md)
 - [ENS](./examples/ens/README.md)
+- [Create2](./examples//create2/README.md)
 
 ## Contributing
 

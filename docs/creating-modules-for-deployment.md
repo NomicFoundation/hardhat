@@ -13,6 +13,7 @@
   - [Using the Network Chain ID](./creating-modules-for-deployment.md#using-the-network-chain-id)
   - [Module Parameters](./creating-modules-for-deployment.md#module-parameters)
   - [Modules Within Modules](./creating-modules-for-deployment.md#modules-within-modules)
+  - [Create2 (TBD)](./creating-modules-for-deployment.md#create2-tbd)
 - [Visualizing Your Deployment](./visualizing-your-deployment.md)
   - [Actions](./visualizing-your-deployment.md#actions)
 - [Testing With Hardhat](./testing-with-hardhat.md)
@@ -242,6 +243,54 @@ module.exports = buildModule("`TEST` registrar", (m) => {
 Calls to `useModule` memoize the results object, assuming the same parameters are passed. Multiple calls to the same module with different parameters are banned.
 
 Only `CallableFuture` types can be returned when building a module, so contracts or libraries (not calls).
+
+## Create2 (TBD)
+
+`Create2` allows for reliably determining the address of a contract before it is deployed.
+
+It requires a factory contract:
+
+```solidity
+//SPDX-License-Identifier: MIT
+pragma solidity ^0.8.5;
+
+import "@openzeppelin/contracts/utils/Create2.sol";
+
+contract Create2Factory {
+    event Deployed(bytes32 indexed salt, address deployed);
+
+    function deploy(
+        uint256 amount,
+        bytes32 salt,
+        bytes memory bytecode
+    ) public returns (address) {
+        address deployedAddress;
+
+        deployedAddress = Create2.deploy(amount, salt, bytecode);
+        emit Deployed(salt, deployedAddress);
+
+        return deployedAddress;
+    }
+}
+```
+
+Given the `create2` factory, you can deploy a contract via it by:
+
+```ts
+module.exports = buildModule("Create2Example", (m) => {
+  const create2 = m.contract("Create2Factory");
+
+  const fooAddress = m.call(create2, "deploy", {
+    args: [
+      0, // amount
+      toBytes32(1), // salt
+      m.getBytesForArtifact("Foo"), // contract bytecode
+    ],
+  });
+
+  return { create2, foo: m.asContract(fooAddress) };
+});
+```
 
 ## Global Configuration
 

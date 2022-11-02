@@ -1,0 +1,19 @@
+{
+  "name": "@nomicfoundation/ignition-create2-example",
+  "private": true,
+  "version": "0.0.1",
+  "scripts": {
+    "test:examples": "hardhat test",
+    "lint": "yarn prettier --check && yarn eslint",
+    "lint:fix": "yarn prettier --write && yarn eslint --fix",
+    "eslint": "eslint \"ignition/**/*.{js,jsx}\" \"test/**/*.{js,jsx}\"",
+    "prettier": "prettier \"*.{js,md,json}\" \"ignition/*.{js,md,json}\" \"test/*.{js,md,json}\""
+  },
+  "devDependencies": {
+    "hardhat": "^2.10.0",
+    "@ignored/hardhat-ignition": "^0.0.3"
+  },
+  "dependencies": {
+    "@openzeppelin/contracts": "4.7.3"
+  }
+}
