@@ -13,7 +13,7 @@ import { ERRORS } from "../core/errors-list";
 
 import { ReadOnlyPathMapping } from "./readonly";
 import { MutablePathMapping } from "./mutable";
-import { CachingPathMapping } from "./sources";
+import { CachingPathMapping } from "./caching";
 
 type SupportedArtifactSource =
   | ArtifactSource
