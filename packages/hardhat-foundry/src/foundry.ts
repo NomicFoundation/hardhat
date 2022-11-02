@@ -1,6 +1,9 @@
 import chalk from "chalk";
-import { exec, execSync } from "child_process";
+import { exec as execCallback, execSync } from "child_process";
 import { NomicLabsHardhatPluginError } from "hardhat/internal/core/errors";
+import { promisify } from "util";
+
+const exec = promisify(execCallback);
 
 type Remappings = Record<string, string>;
 
@@ -15,7 +18,7 @@ export class HardhatFoundryError extends NomicLabsHardhatPluginError {
 class ForgeInstallError extends HardhatFoundryError {
   constructor(dependency: string, parent: Error) {
     super(
-      `Command failed. Please continue ${dependency} installation manually.`,
+      `Command failed. Please continue '${dependency}' installation manually.`,
       parent
     );
   }
@@ -58,7 +61,7 @@ export async function getRemappings() {
 
 export async function installDependency(dependency: string) {
   const cmd = `forge install --no-commit ${dependency}`;
-  console.log(`Running ${chalk.blue(cmd)}`);
+  console.log(`Running '${chalk.blue(cmd)}'`);
 
   try {
     runCmdSync(cmd);
@@ -85,15 +88,12 @@ function runCmdSync(cmd: string): string {
 }
 
 async function runCmd(cmd: string): Promise<string> {
-  return new Promise((resolve, reject) => {
-    exec(cmd, function (error, stdout) {
-      if (error !== null) {
-        reject(buildForgeExecutionError(error.code, error.message));
-      }
-
-      resolve(stdout);
-    });
-  });
+  try {
+    const { stdout } = await exec(cmd);
+    return stdout;
+  } catch (error: any) {
+    throw buildForgeExecutionError(error.code, error.message);
+  }
 }
 
 function buildForgeExecutionError(
