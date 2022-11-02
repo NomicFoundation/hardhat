@@ -11,8 +11,8 @@ import { ARTIFACT_FORMAT_VERSION } from "../constants";
 import { HardhatError } from "../core/errors";
 import { ERRORS } from "../core/errors-list";
 
+import { ReadOnlyPathMapping } from "./readonly";
 import {
-  ReadOnlyPathMapping,
   MutablePathMapping,
   CachingPathMapping,
 } from "./sources";
