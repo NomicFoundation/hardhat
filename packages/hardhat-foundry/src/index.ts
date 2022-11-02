@@ -142,7 +142,7 @@ task(
 
     if (existsSync(foundryConfigPath)) {
       console.warn(chalk.yellow(`File foundry.toml already exists. Aborting.`));
-      return;
+      process.exit(1);
     }
 
     console.log(`Creating foundry.toml file...`);
