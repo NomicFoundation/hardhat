@@ -207,7 +207,7 @@ export class Artifacts implements IArtifacts {
      * latest thrown error so that its helpful error message can be delivered
      * in the case where latter sources simply return undefined. if all sources
      * are exhausted, and still nothing is found, throw NOT_FOUND. */
-    let caughtError: unknown | undefined;
+    let lastCaughtError: unknown | undefined;
     for (const source of this._sourcesInPriorityOrder) {
       try {
         const value = await source[method](key);
@@ -220,16 +220,16 @@ export class Artifacts implements IArtifacts {
           error instanceof HardhatError &&
           error.number === ERRORS.ARTIFACTS.NOT_FOUND.number
         ) {
-          caughtError = error;
+          lastCaughtError = error;
           continue;
         }
         // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
         throw error;
       }
     }
-    if (caughtError !== undefined) {
+    if (lastCaughtError !== undefined) {
       // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
-      throw caughtError;
+      throw lastCaughtError;
     }
   }
 
@@ -244,7 +244,7 @@ export class Artifacts implements IArtifacts {
   ): Artifact | undefined {
     // intended to be exactly like _getFirstValueFromSources but without the await
 
-    let caughtError: unknown | undefined;
+    let lastCaughtError: unknown | undefined;
     for (const source of this._sourcesInPriorityOrder) {
       try {
         const value = source[method](key);
@@ -257,16 +257,16 @@ export class Artifacts implements IArtifacts {
           error instanceof HardhatError &&
           error.number === ERRORS.ARTIFACTS.NOT_FOUND.number
         ) {
-          caughtError = error;
+          lastCaughtError = error;
           continue;
         }
         // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
         throw error;
       }
     }
-    if (caughtError !== undefined) {
+    if (lastCaughtError !== undefined) {
       // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
-      throw caughtError;
+      throw lastCaughtError;
     }
   }
 }
