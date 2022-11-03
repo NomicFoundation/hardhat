@@ -11,21 +11,21 @@ import { ARTIFACT_FORMAT_VERSION } from "../constants";
 import { HardhatError } from "../core/errors";
 import { ERRORS } from "../core/errors-list";
 
-import { ReadOnlyPathMapping } from "./readonly";
-import { MutablePathMapping } from "./mutable";
-import { CachingPathMapping } from "./caching";
+import { ReadOnlySource } from "./readonly";
+import { MutableSource } from "./mutable";
+import { CachingSource } from "./caching";
 
 type SupportedArtifactSource =
   | ArtifactSource
-  | ReadOnlyPathMapping
-  | MutablePathMapping
-  | CachingPathMapping;
+  | ReadOnlySource
+  | MutableSource
+  | CachingSource;
 
 export class Artifacts implements IArtifacts {
   private readonly _sourcesInPriorityOrder: SupportedArtifactSource[];
 
   constructor(artifactsPath: string) {
-    this._sourcesInPriorityOrder = [new CachingPathMapping(artifactsPath)];
+    this._sourcesInPriorityOrder = [new CachingSource(artifactsPath)];
   }
 
   public async readArtifact(

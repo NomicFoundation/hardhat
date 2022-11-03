@@ -5,7 +5,7 @@ import {
   CompilerOutput,
 } from "../../types";
 
-import { MutablePathMapping } from "./mutable";
+import { MutableSource } from "./mutable";
 
 interface Cache {
   artifactPaths?: string[];
@@ -16,7 +16,7 @@ interface Cache {
   artifactNameToArtifact: Map<string, Artifact>;
 }
 
-export class CachingPathMapping extends MutablePathMapping {
+export class CachingSource extends MutableSource {
   // Undefined means that the cache is disabled.
   private _cache?: Cache = {
     artifactNameToArtifactPathCache: new Map(),
@@ -223,4 +223,4 @@ export class CachingPathMapping extends MutablePathMapping {
   }
 }
 
-export { MutablePathMapping } from "./mutable";
+export { MutableSource } from "./mutable";

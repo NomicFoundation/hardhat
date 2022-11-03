@@ -19,14 +19,11 @@ import {
   BUILD_INFO_FORMAT_VERSION,
   DEBUG_FILE_FORMAT_VERSION,
 } from "../constants";
-import { ReadOnlyPathMapping } from "./readonly";
+import { ReadOnlySource } from "./readonly";
 
 const log = debug("hardhat:core:artifacts");
 
-export class MutablePathMapping
-  extends ReadOnlyPathMapping
-  implements ArtifactSource
-{
+export class MutableSource extends ReadOnlySource implements ArtifactSource {
   private _validArtifacts: Array<{ sourceName: string; artifacts: string[] }>;
 
   constructor(artifactsPath: string) {
@@ -119,13 +116,13 @@ export class MutablePathMapping
     const buildInfoDir = path.join(this._artifactsPath, BUILD_INFO_DIR_NAME);
     await fsExtra.ensureDir(buildInfoDir);
 
-    const buildInfoName = MutablePathMapping._getBuildInfoName(
+    const buildInfoName = MutableSource._getBuildInfoName(
       solcVersion,
       solcLongVersion,
       input
     );
 
-    const buildInfo = MutablePathMapping._createBuildInfo(
+    const buildInfo = MutableSource._createBuildInfo(
       buildInfoName,
       solcVersion,
       solcLongVersion,
@@ -278,7 +275,7 @@ export class MutablePathMapping
     await fsExtra.remove(artifactPath);
 
     const debugFilePath = this._getDebugFilePath(artifactPath);
-    const buildInfoPath = await ReadOnlyPathMapping._getBuildInfoFromDebugFile(
+    const buildInfoPath = await ReadOnlySource._getBuildInfoFromDebugFile(
       debugFilePath
     );
 
@@ -297,8 +294,9 @@ export class MutablePathMapping
 
     const buildInfos = await Promise.all(
       debugFiles.map(async (debugFile) => {
-        const buildInfoFile =
-          await ReadOnlyPathMapping._getBuildInfoFromDebugFile(debugFile);
+        const buildInfoFile = await ReadOnlySource._getBuildInfoFromDebugFile(
+          debugFile
+        );
         if (buildInfoFile !== undefined) {
           return path.resolve(path.dirname(debugFile), buildInfoFile);
         } else {

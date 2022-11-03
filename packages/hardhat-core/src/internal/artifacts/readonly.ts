@@ -71,10 +71,7 @@ class ReadOnlyByPath {
  * This class takes responsibility for the mappings between contract names,
  * fully-qualified contract names, and file paths.
  */
-export class ReadOnlyPathMapping
-  extends ReadOnlyByPath
-  implements ArtifactSource
-{
+export class ReadOnlySource extends ReadOnlyByPath implements ArtifactSource {
   constructor(protected _artifactsPath: string) {
     super();
   }
@@ -308,7 +305,7 @@ Please replace "${contractName}" for the correct contract name wherever you are 
       this.formArtifactPathFromFullyQualifiedName(fullyQualifiedName);
 
     const debugFilePath = this._getDebugFilePath(artifactPath);
-    const buildInfoPath = await ReadOnlyPathMapping._getBuildInfoFromDebugFile(
+    const buildInfoPath = await ReadOnlySource._getBuildInfoFromDebugFile(
       debugFilePath
     );
     return buildInfoPath;
@@ -436,14 +433,14 @@ Please replace "${contractName}" for the correct contract name wherever you are 
   ): never {
     const names = this._getAllFullyQualifiedNamesSync();
 
-    const similarNames = ReadOnlyPathMapping._getSimilarContractNames(
+    const similarNames = ReadOnlySource._getSimilarContractNames(
       fullyQualifiedName,
       names
     );
 
     throw new HardhatError(ERRORS.ARTIFACTS.NOT_FOUND, {
       contractName: fullyQualifiedName,
-      suggestion: ReadOnlyPathMapping._formatSuggestions(
+      suggestion: ReadOnlySource._formatSuggestions(
         similarNames,
         fullyQualifiedName
       ),
@@ -456,7 +453,7 @@ Please replace "${contractName}" for the correct contract name wherever you are 
   ): never {
     const names = this._getAllContractNamesFromFiles(files);
 
-    let similarNames = ReadOnlyPathMapping._getSimilarContractNames(
+    let similarNames = ReadOnlySource._getSimilarContractNames(
       contractName,
       names
     );
@@ -470,10 +467,7 @@ Please replace "${contractName}" for the correct contract name wherever you are 
 
     throw new HardhatError(ERRORS.ARTIFACTS.NOT_FOUND, {
       contractName,
-      suggestion: ReadOnlyPathMapping._formatSuggestions(
-        similarNames,
-        contractName
-      ),
+      suggestion: ReadOnlySource._formatSuggestions(similarNames, contractName),
     });
   }
 
