@@ -76,11 +76,13 @@ describe("loadFixture", function () {
     assert.equal(await loadFixture(mineBlockFixture), 123);
   });
 
-  it("should throw the right error when an invalid snapshot is reverted", async function () {
+  it("should take snapshot again when trying to revert to future state", async function () {
+    let calledCount = 0;
     async function mineBlockFixture() {
       await mineBlock();
     }
     async function mineTwoBlocksFixture() {
+      calledCount++;
       await mineBlock();
       await mineBlock();
     }
@@ -88,10 +90,8 @@ describe("loadFixture", function () {
     await loadFixture(mineBlockFixture);
     await loadFixture(mineTwoBlocksFixture);
     await loadFixture(mineBlockFixture);
-    await assert.isRejected(
-      loadFixture(mineTwoBlocksFixture),
-      FixtureSnapshotError
-    );
+    await loadFixture(mineTwoBlocksFixture);
+    assert.equal(calledCount, 2);
   });
 
   it("should throw when an anonymous regular function is used", async function () {
