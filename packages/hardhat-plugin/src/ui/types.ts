@@ -178,6 +178,10 @@ export class DeploymentState {
   }
 }
 
+export interface AddressMap {
+  [label: string]: string;
+}
+
 function assertNeverUiVertexType(type: never): string {
   throw new Error(`Unexpected ui vertex type ${type}`);
 }

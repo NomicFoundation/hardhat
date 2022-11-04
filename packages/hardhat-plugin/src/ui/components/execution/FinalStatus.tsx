@@ -1,12 +1,25 @@
 import { DeployState, ExecutionVertex } from "@ignored/ignition-core";
 import { Box, Text } from "ink";
 
-import { DeploymentError } from "../../types";
+import { DeploymentError, AddressMap } from "ui/types";
 
+import { AddressResults } from "./AddressResults";
 import { Divider } from "./Divider";
 
 export const FinalStatus = ({ deployState }: { deployState: DeployState }) => {
   if (deployState.phase === "complete") {
+    const addressMap: AddressMap = {};
+    for (const value of deployState.execution.resultsAccumulator.values()) {
+      if (
+        value !== null &&
+        value._kind === "success" &&
+        "name" in value.result &&
+        "address" in value.result
+      ) {
+        addressMap[value.result.name] = value.result.address;
+      }
+    }
+
     return (
       <Box flexDirection="column">
         <Divider />
@@ -14,6 +27,9 @@ export const FinalStatus = ({ deployState }: { deployState: DeployState }) => {
           🚀 Deployment Complete for module{" "}
           <Text italic={true}>{deployState.details.moduleName}</Text>
         </Text>
+        <Divider />
+        <AddressResults addressMap={addressMap} />
+        <Text> </Text>
       </Box>
     );
   }
