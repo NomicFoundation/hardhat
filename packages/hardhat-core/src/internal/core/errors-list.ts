@@ -1063,9 +1063,9 @@ Please [report it](https://github.com/nomiclabs/hardhat/issues/new) to help us i
     },
     NO_SUPPORTED_ARTIFACT_SOURCE: {
       number: 904,
-      message: "No configured artifact source can handle the request",
+      message: "No configured artifact source can handle method %method%",
       title: "No configured artifact source can handle the request",
-      description: `No configured artifact source can handle the request
+      description: `No configured artifact source can handle the requested method.
 
 Please [report it](https://github.com/nomiclabs/hardhat/issues/new) to help us improve Hardhat.`,
       shouldBeReported: true,

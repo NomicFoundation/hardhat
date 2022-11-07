@@ -126,7 +126,9 @@ export class Artifacts implements IArtifacts {
         return source.saveArtifactAndDebugFile(artifact, pathToBuildInfo);
       }
     }
-    throw new HardhatError(ERRORS.INTERNAL.NO_SUPPORTED_ARTIFACT_SOURCE);
+    throw new HardhatError(ERRORS.INTERNAL.NO_SUPPORTED_ARTIFACT_SOURCE, {
+      method: "saveArtifactAndDebugFile",
+    });
   }
 
   public saveBuildInfo(
@@ -145,7 +147,9 @@ export class Artifacts implements IArtifacts {
         );
       }
     }
-    throw new HardhatError(ERRORS.INTERNAL.NO_SUPPORTED_ARTIFACT_SOURCE);
+    throw new HardhatError(ERRORS.INTERNAL.NO_SUPPORTED_ARTIFACT_SOURCE, {
+      method: "saveBuildInfo",
+    });
   }
 
   public formArtifactPathFromFullyQualifiedName(
@@ -158,7 +162,9 @@ export class Artifacts implements IArtifacts {
         );
       }
     }
-    throw new HardhatError(ERRORS.INTERNAL.NO_SUPPORTED_ARTIFACT_SOURCE);
+    throw new HardhatError(ERRORS.INTERNAL.NO_SUPPORTED_ARTIFACT_SOURCE, {
+      method: "formArtifactPathFromFullyQualifiedName",
+    });
   }
 
   public addValidArtifacts(
@@ -170,7 +176,9 @@ export class Artifacts implements IArtifacts {
         return;
       }
     }
-    throw new HardhatError(ERRORS.INTERNAL.NO_SUPPORTED_ARTIFACT_SOURCE);
+    throw new HardhatError(ERRORS.INTERNAL.NO_SUPPORTED_ARTIFACT_SOURCE, {
+      method: "addValidArtifacts",
+    });
   }
 
   public async removeObsoleteArtifacts() {
@@ -180,7 +188,9 @@ export class Artifacts implements IArtifacts {
         return;
       }
     }
-    throw new HardhatError(ERRORS.INTERNAL.NO_SUPPORTED_ARTIFACT_SOURCE);
+    throw new HardhatError(ERRORS.INTERNAL.NO_SUPPORTED_ARTIFACT_SOURCE, {
+      method: "removeObsoleteArtifacts",
+    });
   }
 
   private async _getFirstValueFromSources(
