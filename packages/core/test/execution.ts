@@ -34,6 +34,7 @@ describe("Execution", () => {
       artifact: fakeArtifact,
       args: [],
       libraries: {},
+      value: ethers.utils.parseUnits("0"),
     };
 
     const mockServices = {
@@ -74,6 +75,7 @@ describe("Execution", () => {
         address: "0xAddr",
         bytecode: fakeArtifact.bytecode,
         name: "Foo",
+        value: ethers.utils.parseUnits("0"),
       },
     });
   });

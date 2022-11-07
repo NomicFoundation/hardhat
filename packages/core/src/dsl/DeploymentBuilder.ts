@@ -1,7 +1,9 @@
+import { ethers } from "ethers";
 import hash from "object-hash";
 
 import { addEdge, ensureVertex } from "graph/adjacencyList";
 import {
+  CallOptions,
   ContractOptions,
   InternalParamValue,
   IDeploymentGraph,
@@ -42,6 +44,8 @@ import { resolveProxyDependency } from "utils/proxy";
 
 import { DeploymentGraph } from "./DeploymentGraph";
 import { ScopeStack } from "./ScopeStack";
+
+const DEFAULT_VALUE = ethers.utils.parseUnits("0");
 
 export class DeploymentBuilder implements IDeploymentBuilder {
   public chainId: number;
@@ -137,6 +141,7 @@ export class DeploymentBuilder implements IDeploymentBuilder {
         libraries: options?.libraries ?? {},
         scopeAdded: this.scopes.getScopedLabel(),
         after: options?.after ?? [],
+        value: options?.value ?? DEFAULT_VALUE,
       });
 
       return artifactContractFuture;
@@ -161,6 +166,7 @@ export class DeploymentBuilder implements IDeploymentBuilder {
         libraries: options?.libraries ?? {},
         scopeAdded: this.scopes.getScopedLabel(),
         after: options?.after ?? [],
+        value: options?.value ?? DEFAULT_VALUE,
       });
 
       return contractFuture;
@@ -198,13 +204,7 @@ export class DeploymentBuilder implements IDeploymentBuilder {
   public call(
     contractFuture: DeploymentGraphFuture,
     functionName: string,
-    {
-      args,
-      after,
-    }: {
-      args: Array<boolean | string | number | DeploymentGraphFuture>;
-      after?: DeploymentGraphFuture[];
-    }
+    { args, after, value }: CallOptions
   ): ContractCall {
     const callFuture: ContractCall = {
       vertexId: this._resolveNextId(),
@@ -249,6 +249,7 @@ export class DeploymentBuilder implements IDeploymentBuilder {
       args: args ?? [],
       after: after ?? [],
       scopeAdded: this.scopes.getScopedLabel(),
+      value: value ?? DEFAULT_VALUE,
     });
 
     return callFuture;
