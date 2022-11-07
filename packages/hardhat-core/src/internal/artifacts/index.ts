@@ -22,11 +22,12 @@ type SupportedArtifactSource =
   | CachingSource;
 
 export class Artifacts implements IArtifacts {
-  private readonly _sourcesInPriorityOrder: SupportedArtifactSource[];
-
-  constructor(artifactsPath: string) {
-    this._sourcesInPriorityOrder = [new CachingSource(artifactsPath)];
-  }
+  constructor(
+    artifactsPath: string,
+    private readonly _sourcesInPriorityOrder: SupportedArtifactSource[] = [
+      new CachingSource(artifactsPath),
+    ]
+  ) {}
 
   public async readArtifact(
     contractNameOrFullyQualifiedName: string

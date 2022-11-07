@@ -7,6 +7,9 @@ import {
   Artifacts,
   getArtifactFromContractOutput,
 } from "../../src/internal/artifacts";
+import { CachingSource } from "../../src/internal/artifacts/caching";
+import { MutableSource } from "../../src/internal/artifacts/mutable";
+import { ReadOnlySource } from "../../src/internal/artifacts/readonly";
 import { ERRORS } from "../../src/internal/core/errors-list";
 import { Artifact, CompilerInput, CompilerOutput } from "../../src/types";
 import { getFullyQualifiedName } from "../../src/utils/contract-names";
@@ -1256,6 +1259,338 @@ describe("Artifacts class", function () {
         assert.lengthOf(await artifacts.getDebugFilePaths(), 2);
         assert.lengthOf(await artifacts.getBuildInfoPaths(), 2);
       });
+    });
+  });
+
+  describe("configured with custom sources", function () {
+    useTmpDir("artifacts");
+
+    it("should write and read (async) the right artifacts", async function () {
+      for (const [name, output] of Object.entries(COMPILER_OUTPUTS)) {
+        const originalArtifact = getArtifactFromContractOutput(
+          "source.sol",
+          name,
+          output
+        );
+
+        const regularArtifactSource = new Artifacts(this.tmpDir);
+        await regularArtifactSource.saveArtifactAndDebugFile(
+          originalArtifact,
+          ""
+        );
+
+        for (const CustomSource of [
+          ReadOnlySource,
+          MutableSource,
+          CachingSource,
+          Artifacts,
+        ]) {
+          const customArtifactSource = new Artifacts(
+            "bad artifact path string; internal source will fallback to custom",
+            [new CustomSource(this.tmpDir)]
+          );
+
+          const artifactSourcedRegularly =
+            await regularArtifactSource.readArtifact(name);
+          const artifactFromCustomSource =
+            await customArtifactSource.readArtifact(name);
+
+          assert.deepEqual(artifactFromCustomSource, artifactSourcedRegularly);
+        }
+      }
+    });
+
+    it("should throw when trying to write with only read-only sources", async function () {
+      for (const [name, output] of Object.entries(COMPILER_OUTPUTS)) {
+        const artifact = getArtifactFromContractOutput(
+          "source.sol",
+          name,
+          output
+        );
+
+        const artifacts = new Artifacts(
+          "bad artifact path string; internal source will fallback to custom",
+          [new ReadOnlySource(this.tmpDir)]
+        );
+
+        await expectHardhatErrorAsync(
+          () => artifacts.saveArtifactAndDebugFile(artifact, ""),
+          ERRORS.INTERNAL.NO_SUPPORTED_ARTIFACT_SOURCE
+        );
+      }
+    });
+
+    it("should write and read (sync) the right artifacts", async function () {
+      for (const [name, output] of Object.entries(COMPILER_OUTPUTS)) {
+        const artifact = getArtifactFromContractOutput(
+          "source.sol",
+          name,
+          output
+        );
+
+        for (const CustomSource of [MutableSource, CachingSource, Artifacts]) {
+          const artifacts = new Artifacts(
+            "bad artifact path string; internal source will fallback to custom",
+            [new CustomSource(this.tmpDir)]
+          );
+
+          await artifacts.saveArtifactAndDebugFile(artifact, "");
+
+          const storedArtifact = artifacts.readArtifactSync(name);
+
+          assert.deepEqual(storedArtifact, artifact);
+        }
+      }
+    });
+
+    it("should read with read-only source", async function () {
+      for (const [name, output] of Object.entries(COMPILER_OUTPUTS)) {
+        const artifact = getArtifactFromContractOutput(
+          "source.sol",
+          name,
+          output
+        );
+        await new Artifacts(this.tmpDir).saveArtifactAndDebugFile(artifact, "");
+
+        const artifacts = new Artifacts(
+          "bad artifact path string; internal source will fallback to custom",
+          [new ReadOnlySource(this.tmpDir)]
+        );
+
+        const storedArtifact = artifacts.readArtifactSync(name);
+
+        assert.deepEqual(storedArtifact, artifact);
+      }
+    });
+
+    it("Should get all the fully qualified names of the artifacts", async function () {
+      const artifacts = new Artifacts(this.tmpDir);
+      await storeAllArtifacts("source.sol", artifacts);
+
+      const expected = [
+        "source.sol:Interface",
+        "source.sol:Lib",
+        "source.sol:WithBytecodeAndLibs",
+        "source.sol:WithBytecodeNoLibs",
+        "source.sol:WithoutBytecodeNoLibs",
+        "source.sol:WithoutBytecodeWithLibs",
+      ];
+
+      for (const CustomSource of [
+        ReadOnlySource,
+        MutableSource,
+        CachingSource,
+        Artifacts,
+      ]) {
+        const names = await new Artifacts(
+          "bad artifact path string; internal source will fallback to custom",
+          [new CustomSource(this.tmpDir)]
+        ).getAllFullyQualifiedNames();
+
+        assert.equal(names.length, Object.keys(COMPILER_OUTPUTS).length);
+
+        expected.sort();
+
+        assert.deepEqual(names, expected);
+      }
+    });
+
+    it("Should get a build info from a fully qualified name", async function () {
+      const contractName = "Lib";
+      const sourceName = "source.sol";
+      const output = COMPILER_OUTPUTS.Lib;
+
+      const artifacts = new Artifacts(this.tmpDir);
+
+      const solcVersion = "0.5.6";
+      const solcLongVersion = "0.5.6+12321";
+      const solcInput = { input: {} } as any;
+      const solcOutput = { sources: {}, contracts: {} } as any;
+
+      const buildInfoPath = await artifacts.saveBuildInfo(
+        solcVersion,
+        solcLongVersion,
+        solcInput,
+        solcOutput
+      );
+
+      const artifact = getArtifactFromContractOutput(
+        sourceName,
+        contractName,
+        output
+      );
+
+      await artifacts.saveArtifactAndDebugFile(artifact, buildInfoPath);
+
+      for (const CustomSource of [
+        ReadOnlySource,
+        MutableSource,
+        CachingSource,
+        Artifacts,
+      ]) {
+        const storedBuildInfo = await new Artifacts(
+          "bad artifact path string; internal source will fallback to custom",
+          [new CustomSource(this.tmpDir)]
+        ).getBuildInfo(getFullyQualifiedName(sourceName, contractName));
+
+        assert.equal(storedBuildInfo?.solcVersion, solcVersion);
+        assert.equal(storedBuildInfo?.solcLongVersion, solcLongVersion);
+        assert.deepEqual(storedBuildInfo?.input, solcInput);
+        assert.deepEqual(storedBuildInfo?.output, solcOutput);
+      }
+    });
+
+    it("Should be possible to get the paths to all the artifacts, debug files and build infos", async function () {
+      const artifacts = new Artifacts(this.tmpDir);
+      await storeAllArtifacts("source.sol", artifacts);
+
+      for (const CustomSource of [
+        ReadOnlySource,
+        MutableSource,
+        CachingSource,
+        Artifacts,
+      ]) {
+        const customArtifacts = new Artifacts(
+          "bad artifact path string; internal source will fallback to custom",
+          [new CustomSource(this.tmpDir)]
+        );
+
+        const artifactPaths = await customArtifacts.getArtifactPaths();
+        const debugFilePaths = await customArtifacts.getDebugFilePaths();
+        const buildInfoPaths = await customArtifacts.getBuildInfoPaths();
+
+        assert.lengthOf(artifactPaths, Object.keys(COMPILER_OUTPUTS).length);
+        assert.isTrue(artifactPaths.every((p) => p.startsWith(this.tmpDir)));
+        assert.isTrue(artifactPaths.every((p) => p.endsWith(".json")));
+
+        assert.lengthOf(debugFilePaths, Object.keys(COMPILER_OUTPUTS).length);
+        assert.isTrue(debugFilePaths.every((p) => p.startsWith(this.tmpDir)));
+        assert.isTrue(debugFilePaths.every((p) => p.endsWith(".dbg.json")));
+
+        assert.lengthOf(buildInfoPaths, 1);
+        assert.isTrue(buildInfoPaths.every((p) => p.startsWith(this.tmpDir)));
+        assert.isTrue(buildInfoPaths.every((p) => p.endsWith(".json")));
+      }
+    });
+
+    it("Should be able to save build-infos with partial fields", async function () {
+      const artifacts = new Artifacts(this.tmpDir);
+
+      async function assertBuildInfoIsCorrectylSavedAndHasTheRightOutput<
+        OutputT extends CompilerOutput
+      >(solcOutput: OutputT) {
+        const solcInput: CompilerInput = {
+          language: "solidity",
+          sources: {},
+          settings: {
+            optimizer: {},
+            outputSelection: {},
+          },
+        };
+
+        const buildInfoPath = await artifacts.saveBuildInfo(
+          "0.4.12",
+          "0.4.12+asd",
+          solcInput,
+          solcOutput
+        );
+        const read = await fsExtra.readJSON(buildInfoPath);
+        assert.deepEqual(read.output, solcOutput);
+      }
+
+      // empty sources and contracts
+      await assertBuildInfoIsCorrectylSavedAndHasTheRightOutput({
+        sources: {},
+        contracts: {},
+      });
+
+      // with unrelated data
+      await assertBuildInfoIsCorrectylSavedAndHasTheRightOutput({
+        sources: {},
+        contracts: {},
+        otherStuff: { a: 1 },
+      });
+
+      // with a single source
+      await assertBuildInfoIsCorrectylSavedAndHasTheRightOutput({
+        sources: { a: { id: 123, ast: {} } },
+        contracts: {},
+      });
+
+      // with a multiple sources
+      await assertBuildInfoIsCorrectylSavedAndHasTheRightOutput({
+        sources: { a: { id: 123, ast: {} }, b: { id: 1, ast: { asdas: 123 } } },
+        contracts: {},
+      });
+
+      const contract = {
+        abi: [],
+        evm: {
+          bytecode: {
+            object: "123",
+            sourceMap: "asd",
+            opcodes: "123asd",
+            linkReferences: {},
+          },
+          deployedBytecode: {
+            object: "123",
+            sourceMap: "asd",
+            opcodes: "123asd",
+            linkReferences: {},
+          },
+          methodIdentifiers: {},
+        },
+      };
+
+      // with a single contract
+      await assertBuildInfoIsCorrectylSavedAndHasTheRightOutput({
+        sources: {},
+        contracts: {
+          asd: {
+            C: contract,
+          },
+        },
+      });
+
+      // with multiple contracts
+      await assertBuildInfoIsCorrectylSavedAndHasTheRightOutput({
+        sources: {},
+        contracts: {
+          asd: {
+            C: contract,
+            B: contract,
+          },
+          f: {
+            F: contract,
+          },
+        },
+      });
+    });
+
+    it("Should be possible to get an absolute path to an artifact given a fully qualified name", async function () {
+      await new Artifacts(this.tmpDir).saveArtifactAndDebugFile(
+        getArtifactFromContractOutput("Lib.sol", "Lib", COMPILER_OUTPUTS.Lib),
+        ""
+      );
+
+      const fullyQualifiedName = "Lib.sol:Lib";
+
+      for (const CustomSource of [
+        ReadOnlySource,
+        MutableSource,
+        CachingSource,
+        Artifacts,
+      ]) {
+        const artifacts = new Artifacts(
+          "bad artifact path string; internal source will fallback to custom",
+          [new CustomSource(this.tmpDir)]
+        );
+        const artifactPath =
+          artifacts.formArtifactPathFromFullyQualifiedName(fullyQualifiedName);
+
+        assert.isTrue(artifactPath.startsWith(this.tmpDir));
+        assert.isTrue(artifactPath.endsWith(".json"));
+      }
     });
   });
 });
