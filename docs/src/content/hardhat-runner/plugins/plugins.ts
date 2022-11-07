@@ -616,6 +616,14 @@ const communityPlugins: IPlugin[] = [
       "Execute commands on deployed contracts on any network using a helpful TUI.",
     tags: ["Tooling", "Operations", "Testing"],
   },
+  {
+    name: "hardhat-chainlink-plugin",
+    author: "protofire.io",
+    authorUrl: "https://protofire.io/",
+    description:
+      "Hardhat TypeScript plugin to run a chainlink node and interact with it",
+    tags: ["ethereum", "smart-contracts", "chainlink", "hardhat-plugin"],
+  },
 ];
 
 const officialPlugins: IPlugin[] = [
