@@ -624,6 +624,13 @@ const communityPlugins: IPlugin[] = [
       "Hardhat TypeScript plugin to run a chainlink node and interact with it",
     tags: ["ethereum", "smart-contracts", "chainlink", "hardhat-plugin"],
   },
+  {
+    name: "hardhat-gui",
+    author: "yecandir",
+    authorUrl: "https://github.com/yecandir",
+    description: "Hardhat React Plugin to interact with your deployed contracts",
+    tags:["Tooling", "Testing", "ui", "plugin"]
+  }
 ];
 
 const officialPlugins: IPlugin[] = [
