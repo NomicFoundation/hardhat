@@ -41,6 +41,8 @@ export interface HardhatNetworkUserConfig {
   from?: string;
   gas?: "auto" | number;
   gasPrice?: "auto" | number;
+  maxFeePerGas?:  "auto" | number;
+  maxPriorityFeePerGas?: "auto" | number;
   gasMultiplier?: number;
   initialBaseFeePerGas?: number;
   hardfork?: string;

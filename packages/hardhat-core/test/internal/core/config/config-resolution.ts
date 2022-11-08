@@ -617,6 +617,16 @@ describe("Config resolution", () => {
       });
 
       describe("minGasPrice", function () {
+        it("custom eip-1559", function () {
+          const config = resolveConfig(__filename, {
+            networks: {
+              hardhat: {
+                maxFeePerGas: 100,
+                maxPriorityFeePerGas: 5,
+              },
+            },
+        });
+        
         it("should default to 0", function () {
           const config = resolveConfig(__filename, {});
 

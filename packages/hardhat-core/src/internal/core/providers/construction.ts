@@ -211,6 +211,13 @@ export function applyProviderWrappers(
     provider = new FixedGasProvider(provider, netConfig.gas);
   }
 
+
+  if (netConfig.maxFeePerGas === undefined || netConfig.maxFeePerGas === "auto") {
+    provider = new AutomaticGasProvider(provider, netConfig.gasMultiplier);
+  } else {
+    provider = new AutomaticGasPriceProvider(provider);
+  }
+
   if (netConfig.gasPrice === undefined || netConfig.gasPrice === "auto") {
     // If you use a LocalAccountsProvider or HDWalletProvider, your transactions
     // are signed locally. This requires having all of their fields available,

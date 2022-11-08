@@ -127,6 +127,8 @@ export const defaultHttpNetworkParams = {
   accounts: "remote" as "remote",
   gas: "auto" as "auto",
   gasPrice: "auto" as "auto",
+  maxFeePerGas: "auto" as "auto",
+  maxPriorityFeePerGas: "auto" as "auto",
   gasMultiplier: DEFAULT_GAS_MULTIPLIER,
   httpHeaders: {},
   timeout: 20000,
