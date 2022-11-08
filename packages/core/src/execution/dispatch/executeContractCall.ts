@@ -7,7 +7,7 @@ import { VertexVisitResult } from "types/graph";
 import { resolveFrom, toAddress } from "./utils";
 
 export async function executeContractCall(
-  { method, contract, args }: ContractCall,
+  { method, contract, args, value }: ContractCall,
   resultAccumulator: Map<number, VertexVisitResult | null>,
   { services }: { services: Services }
 ): Promise<VertexVisitResult> {
@@ -22,7 +22,8 @@ export async function executeContractCall(
     const contractInstance = new Contract(address, abi);
 
     const unsignedTx = await contractInstance.populateTransaction[method](
-      ...resolvedArgs
+      ...resolvedArgs,
+      { value }
     );
     txHash = await services.contracts.sendTx(unsignedTx);
   } catch (err) {

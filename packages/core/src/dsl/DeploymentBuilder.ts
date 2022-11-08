@@ -1,7 +1,9 @@
+import { ethers } from "ethers";
 import hash from "object-hash";
 
 import { addEdge, ensureVertex } from "graph/adjacencyList";
 import {
+  CallOptions,
   ContractOptions,
   InternalParamValue,
   IDeploymentGraph,
@@ -31,7 +33,7 @@ import type {
 } from "types/future";
 import type { Artifact } from "types/hardhat";
 import type { ModuleCache, ModuleDict } from "types/module";
-import { IgnitionError } from "utils/errors";
+import { IgnitionError, assertBigNumberParam } from "utils/errors";
 import {
   isArtifact,
   isCallable,
@@ -42,6 +44,8 @@ import { resolveProxyDependency } from "utils/proxy";
 
 import { DeploymentGraph } from "./DeploymentGraph";
 import { ScopeStack } from "./ScopeStack";
+
+const DEFAULT_VALUE = ethers.utils.parseUnits("0");
 
 export class DeploymentBuilder implements IDeploymentBuilder {
   public chainId: number;
@@ -119,6 +123,8 @@ export class DeploymentBuilder implements IDeploymentBuilder {
       const artifact = artifactOrOptions;
       const options: ContractOptions | undefined = givenOptions;
 
+      assertBigNumberParam(options?.value, "value");
+
       const artifactContractFuture: ArtifactContract = {
         vertexId: this._resolveNextId(),
         label: contractName,
@@ -137,11 +143,14 @@ export class DeploymentBuilder implements IDeploymentBuilder {
         libraries: options?.libraries ?? {},
         scopeAdded: this.scopes.getScopedLabel(),
         after: options?.after ?? [],
+        value: options?.value ?? DEFAULT_VALUE,
       });
 
       return artifactContractFuture;
     } else {
       const options: ContractOptions | undefined = artifactOrOptions;
+
+      assertBigNumberParam(options?.value, "value");
 
       const contractFuture: HardhatContract = {
         vertexId: this._resolveNextId(),
@@ -161,6 +170,7 @@ export class DeploymentBuilder implements IDeploymentBuilder {
         libraries: options?.libraries ?? {},
         scopeAdded: this.scopes.getScopedLabel(),
         after: options?.after ?? [],
+        value: options?.value ?? DEFAULT_VALUE,
       });
 
       return contractFuture;
@@ -198,14 +208,10 @@ export class DeploymentBuilder implements IDeploymentBuilder {
   public call(
     contractFuture: DeploymentGraphFuture,
     functionName: string,
-    {
-      args,
-      after,
-    }: {
-      args: Array<boolean | string | number | DeploymentGraphFuture>;
-      after?: DeploymentGraphFuture[];
-    }
+    { args, after, value }: CallOptions
   ): ContractCall {
+    assertBigNumberParam(value, "value");
+
     const callFuture: ContractCall = {
       vertexId: this._resolveNextId(),
       label: `${contractFuture.label}/${functionName}`,
@@ -249,6 +255,7 @@ export class DeploymentBuilder implements IDeploymentBuilder {
       args: args ?? [],
       after: after ?? [],
       scopeAdded: this.scopes.getScopedLabel(),
+      value: value ?? DEFAULT_VALUE,
     });
 
     return callFuture;

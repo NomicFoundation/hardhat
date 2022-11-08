@@ -24,7 +24,7 @@ describe("buildModule", () => {
           assert.throws(
             // @ts-ignore
             () => buildModule(value, () => {}),
-            /buildModule: `moduleName` must be a string/
+            /`moduleName` must be a string/
           );
         }
       }
@@ -39,7 +39,7 @@ describe("buildModule", () => {
           assert.throws(
             // @ts-ignore
             () => buildModule("", value),
-            /buildModule: `moduleAction` must be a function/
+            /`moduleAction` must be a function/
           );
         }
       }

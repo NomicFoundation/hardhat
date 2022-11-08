@@ -8,7 +8,7 @@ import { collectLibrariesAndLink } from "utils/collectLibrariesAndLink";
 import { resolveFrom, toAddress } from "./utils";
 
 export async function executeContractDeploy(
-  { artifact, args, libraries }: ContractDeploy,
+  { artifact, args, libraries, value }: ContractDeploy,
   resultAccumulator: ResultsAccumulator,
   { services }: { services: Services }
 ): Promise<VertexVisitResult> {
@@ -31,7 +31,9 @@ export async function executeContractDeploy(
 
     const Factory = new ContractFactory(artifact.abi, linkedByteCode);
 
-    const deployTransaction = Factory.getDeployTransaction(...resolvedArgs);
+    const deployTransaction = Factory.getDeployTransaction(...resolvedArgs, {
+      value,
+    });
 
     const txHash = await services.contracts.sendTx(deployTransaction);
 
@@ -44,6 +46,7 @@ export async function executeContractDeploy(
         abi: artifact.abi,
         bytecode: artifact.bytecode,
         address: receipt.contractAddress,
+        value,
       },
     };
   } catch (err) {

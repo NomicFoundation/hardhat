@@ -1,3 +1,5 @@
+import type { BigNumber } from "ethers";
+
 import { LibraryMap } from "./deploymentGraph";
 import { DeploymentGraphFuture } from "./future";
 import { AdjacencyList, VertexDescriptor } from "./graph";
@@ -28,6 +30,7 @@ export interface ContractDeploy extends VertexDescriptor {
   artifact: Artifact;
   args: ArgValue[];
   libraries: LibraryMap;
+  value: BigNumber;
 }
 
 export interface DeployedContract extends VertexDescriptor {
@@ -47,4 +50,5 @@ export interface ContractCall extends VertexDescriptor {
   contract: any;
   method: string;
   args: ArgValue[];
+  value: BigNumber;
 }

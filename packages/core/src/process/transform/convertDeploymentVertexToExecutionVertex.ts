@@ -77,6 +77,7 @@ async function convertHardhatContractToContractDeploy(
     artifact,
     args: await convertArgs(vertex.args, transformContext),
     libraries: vertex.libraries,
+    value: vertex.value,
   };
 }
 
@@ -91,6 +92,7 @@ async function convertArtifactContractToContractDeploy(
     artifact: vertex.artifact,
     args: await convertArgs(vertex.args, transformContext),
     libraries: vertex.libraries,
+    value: vertex.value,
   };
 }
 
@@ -115,10 +117,10 @@ async function convertCallToContractCall(
     type: "ContractCall",
     id: vertex.id,
     label: vertex.label,
-
     contract: await resolveParameter(vertex.contract, transformContext),
     method: vertex.method,
     args: await convertArgs(vertex.args, transformContext),
+    value: vertex.value,
   };
 }
 
