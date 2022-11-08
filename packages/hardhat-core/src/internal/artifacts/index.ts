@@ -32,10 +32,29 @@ export class Artifacts implements IArtifacts {
   public async readArtifact(
     contractNameOrFullyQualifiedName: string
   ): Promise<Artifact> {
-    const artifact = await this._getFirstValueFromSources(
-      "readArtifact",
-      contractNameOrFullyQualifiedName
-    );
+    let artifact;
+    let lastError;
+    for (const source of this._sourcesInPriorityOrder) {
+      try {
+        artifact = await source.readArtifact(contractNameOrFullyQualifiedName);
+        if (artifact === undefined) {
+          continue;
+        }
+      } catch (error) {
+        if (
+          error instanceof HardhatError &&
+          error.number === ERRORS.ARTIFACTS.NOT_FOUND.number
+        ) {
+          lastError = error;
+          continue;
+        }
+        // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
+        throw error;
+      }
+    }
+    if (lastError !== undefined) {
+      throw lastError;
+    }
     if (artifact === undefined) {
       throw new HardhatError(ERRORS.ARTIFACTS.NOT_FOUND, {
         contractName: contractNameOrFullyQualifiedName,
@@ -46,10 +65,29 @@ export class Artifacts implements IArtifacts {
   }
 
   public readArtifactSync(contractNameOrFullyQualifiedName: string): Artifact {
-    const artifact = this._getFirstValueFromSourcesSync(
-      "readArtifactSync",
-      contractNameOrFullyQualifiedName
-    );
+    let artifact;
+    let lastError;
+    for (const source of this._sourcesInPriorityOrder) {
+      try {
+        artifact = source.readArtifactSync(contractNameOrFullyQualifiedName);
+        if (artifact === undefined) {
+          continue;
+        }
+      } catch (error) {
+        if (
+          error instanceof HardhatError &&
+          error.number === ERRORS.ARTIFACTS.NOT_FOUND.number
+        ) {
+          lastError = error;
+          continue;
+        }
+        // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
+        throw error;
+      }
+    }
+    if (lastError !== undefined) {
+      throw lastError;
+    }
     if (artifact === undefined) {
       throw new HardhatError(ERRORS.ARTIFACTS.NOT_FOUND, {
         contractName: contractNameOrFullyQualifiedName,
@@ -59,13 +97,15 @@ export class Artifacts implements IArtifacts {
     return artifact;
   }
 
-  public artifactExists(
+  public async artifactExists(
     contractNameOrFullyQualifiedName: string
   ): Promise<boolean> {
-    return this._getFirstValueFromSources(
-      "artifactExists",
-      contractNameOrFullyQualifiedName
-    );
+    for (const source of this._sourcesInPriorityOrder) {
+      if (await source.artifactExists(contractNameOrFullyQualifiedName)) {
+        return true;
+      }
+    }
+    return false;
   }
 
   public async getAllFullyQualifiedNames(): Promise<string[]> {
@@ -76,10 +116,33 @@ export class Artifacts implements IArtifacts {
     ).flat();
   }
 
-  public getBuildInfo(
+  public async getBuildInfo(
     fullyQualifiedName: string
   ): Promise<BuildInfo | undefined> {
-    return this._getFirstValueFromSources("getBuildInfo", fullyQualifiedName);
+    let lastError: HardhatError | undefined;
+    for (const source of this._sourcesInPriorityOrder) {
+      try {
+        const buildInfo = await source.getBuildInfo(fullyQualifiedName);
+        if (buildInfo === undefined) {
+          continue;
+        }
+        return buildInfo;
+      } catch (error) {
+        if (
+          error instanceof HardhatError &&
+          error.number === ERRORS.ARTIFACTS.NOT_FOUND.number
+        ) {
+          lastError = error;
+          continue;
+        }
+        // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
+        throw error;
+      }
+    }
+    if (lastError !== undefined) {
+      // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
+      throw lastError;
+    }
   }
 
   public async getArtifactPaths(): Promise<string[]> {
@@ -192,93 +255,6 @@ export class Artifacts implements IArtifacts {
     throw new HardhatError(ERRORS.INTERNAL.NO_SUPPORTED_ARTIFACT_SOURCE, {
       method: "removeObsoleteArtifacts",
     });
-  }
-
-  private async _getFirstValueFromSources(
-    method: "readArtifact",
-    key: string
-  ): Promise<Artifact>;
-
-  private async _getFirstValueFromSources(
-    method: "artifactExists",
-    key: string
-  ): Promise<boolean>;
-
-  private async _getFirstValueFromSources(
-    method: "getBuildInfo",
-    key: string
-  ): Promise<BuildInfo | undefined>;
-
-  private async _getFirstValueFromSources(
-    method: keyof ArtifactSource,
-    key: string
-  ): Promise<boolean | Artifact | string[] | BuildInfo | undefined> {
-    /* iterate over the sources to resolve the given name. if a source returns
-     * undefined or NOT_FOUND, continue on to the next source. preserve the
-     * latest thrown error so that its helpful error message can be delivered
-     * in the case where latter sources simply return undefined. if all sources
-     * are exhausted, and still nothing is found, throw NOT_FOUND. */
-    let lastCaughtError: unknown | undefined;
-    for (const source of this._sourcesInPriorityOrder) {
-      try {
-        const value = await source[method](key);
-        if (value === undefined) {
-          continue;
-        }
-        return value;
-      } catch (error) {
-        if (
-          error instanceof HardhatError &&
-          error.number === ERRORS.ARTIFACTS.NOT_FOUND.number
-        ) {
-          lastCaughtError = error;
-          continue;
-        }
-        // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
-        throw error;
-      }
-    }
-    if (lastCaughtError !== undefined) {
-      // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
-      throw lastCaughtError;
-    }
-  }
-
-  private _getFirstValueFromSourcesSync(
-    method: "readArtifactSync",
-    key: string
-  ): Artifact | undefined;
-
-  private _getFirstValueFromSourcesSync(
-    method: keyof Pick<ArtifactSource, "readArtifactSync">,
-    key: string
-  ): Artifact | undefined {
-    // intended to be exactly like _getFirstValueFromSources but without the await
-
-    let lastCaughtError: unknown | undefined;
-    for (const source of this._sourcesInPriorityOrder) {
-      try {
-        const value = source[method](key);
-        if (value === undefined) {
-          continue;
-        }
-        return value;
-      } catch (error) {
-        if (
-          error instanceof HardhatError &&
-          error.number === ERRORS.ARTIFACTS.NOT_FOUND.number
-        ) {
-          lastCaughtError = error;
-          continue;
-        }
-        // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
-        throw error;
-      }
-    }
-    if (lastCaughtError !== undefined) {
-      // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
-      throw lastCaughtError;
-    }
   }
 }
 
