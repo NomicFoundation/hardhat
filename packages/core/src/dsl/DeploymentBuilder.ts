@@ -33,7 +33,7 @@ import type {
 } from "types/future";
 import type { Artifact } from "types/hardhat";
 import type { ModuleCache, ModuleDict } from "types/module";
-import { IgnitionError } from "utils/errors";
+import { IgnitionError, assertBigNumberParam } from "utils/errors";
 import {
   isArtifact,
   isCallable,
@@ -123,6 +123,8 @@ export class DeploymentBuilder implements IDeploymentBuilder {
       const artifact = artifactOrOptions;
       const options: ContractOptions | undefined = givenOptions;
 
+      assertBigNumberParam(options?.value, "value");
+
       const artifactContractFuture: ArtifactContract = {
         vertexId: this._resolveNextId(),
         label: contractName,
@@ -206,6 +208,8 @@ export class DeploymentBuilder implements IDeploymentBuilder {
     functionName: string,
     { args, after, value }: CallOptions
   ): ContractCall {
+    assertBigNumberParam(value, "value");
+
     const callFuture: ContractCall = {
       vertexId: this._resolveNextId(),
       label: `${contractFuture.label}/${functionName}`,
