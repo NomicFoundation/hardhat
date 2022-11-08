@@ -63,6 +63,14 @@ export class Deployment {
     });
   }
 
+  public setNetworkName(networkName: string) {
+    log("NetworkName resolved as '%s'", networkName);
+    this.state = deployStateReducer(this.state, {
+      type: "SET_NETWORK_NAME",
+      networkName,
+    });
+  }
+
   public startValidation() {
     log("Validate deployment graph");
     this.state = deployStateReducer(this.state, {

@@ -5,6 +5,7 @@ import { DeploymentError, AddressMap } from "ui/types";
 
 import { AddressResults } from "./AddressResults";
 import { Divider } from "./Divider";
+import { NetworkInfo } from "./NetworkInfo";
 
 export const FinalStatus = ({ deployState }: { deployState: DeployState }) => {
   if (deployState.phase === "complete") {
@@ -20,6 +21,11 @@ export const FinalStatus = ({ deployState }: { deployState: DeployState }) => {
       }
     }
 
+    const networkInfo = {
+      chainId: deployState.details.chainId,
+      networkName: deployState.details.networkName,
+    };
+
     return (
       <Box flexDirection="column">
         <Divider />
@@ -28,6 +34,8 @@ export const FinalStatus = ({ deployState }: { deployState: DeployState }) => {
           <Text italic={true}>{deployState.details.moduleName}</Text>
         </Text>
         <Divider />
+        <NetworkInfo networkInfo={networkInfo} />
+        <Text> </Text>
         <AddressResults addressMap={addressMap} />
         <Text> </Text>
       </Box>

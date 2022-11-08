@@ -45,12 +45,15 @@ export interface ExecutionState {
   resultsAccumulator: ResultsAccumulator;
 }
 
+export interface DeployNetworkConfig {
+  moduleName: string;
+  chainId: number;
+  networkName: string;
+}
+
 export interface DeployState {
   phase: DeployPhase;
-  details: {
-    moduleName: string;
-    chainId: number;
-  };
+  details: DeployNetworkConfig;
   validation: ValidationState;
   transform: {
     executionGraph: ExecutionGraph | null;
