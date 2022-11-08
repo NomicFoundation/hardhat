@@ -150,6 +150,8 @@ export class DeploymentBuilder implements IDeploymentBuilder {
     } else {
       const options: ContractOptions | undefined = artifactOrOptions;
 
+      assertBigNumberParam(options?.value, "value");
+
       const contractFuture: HardhatContract = {
         vertexId: this._resolveNextId(),
         label: contractName,
