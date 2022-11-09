@@ -37,6 +37,7 @@ export const FinalStatus = ({ deployState }: { deployState: DeployState }) => {
 
         <Divider />
         <AddressResults addressMap={addressMap} networkInfo={networkInfo} />
+        <Text> </Text>
       </Box>
     );
   }
