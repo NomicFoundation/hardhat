@@ -5,11 +5,11 @@ import { DeploymentError, AddressMap } from "ui/types";
 
 import { AddressResults } from "./AddressResults";
 import { Divider } from "./Divider";
-import { NetworkInfo } from "./NetworkInfo";
 
 export const FinalStatus = ({ deployState }: { deployState: DeployState }) => {
   if (deployState.phase === "complete") {
     const addressMap: AddressMap = {};
+
     for (const value of deployState.execution.resultsAccumulator.values()) {
       if (
         value !== null &&
@@ -29,15 +29,14 @@ export const FinalStatus = ({ deployState }: { deployState: DeployState }) => {
     return (
       <Box flexDirection="column">
         <Divider />
+
         <Text>
           🚀 Deployment Complete for module{" "}
           <Text italic={true}>{deployState.details.moduleName}</Text>
         </Text>
+
         <Divider />
-        <NetworkInfo networkInfo={networkInfo} />
-        <Text> </Text>
-        <AddressResults addressMap={addressMap} />
-        <Text> </Text>
+        <AddressResults addressMap={addressMap} networkInfo={networkInfo} />
       </Box>
     );
   }
