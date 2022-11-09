@@ -11,7 +11,7 @@
   },
   "dependencies": {
     "@nomiclabs/hardhat-ethers": "^2.0.2",
-    "@ignored/hardhat-ignition": "^0.0.2"
+    "@ignored/hardhat-ignition": "^0.0.3"
   },
   "devDependencies": {
     "hardhat": "^2.10.0"

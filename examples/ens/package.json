@@ -11,7 +11,7 @@
   },
   "devDependencies": {
     "hardhat": "^2.10.0",
-    "@ignored/hardhat-ignition": "^0.0.2"
+    "@ignored/hardhat-ignition": "^0.0.3"
   },
   "dependencies": {
     "@ensdomains/ens-contracts": "0.0.11"
