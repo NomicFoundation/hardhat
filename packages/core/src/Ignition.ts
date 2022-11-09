@@ -24,6 +24,7 @@ const log = setupDebug("ignition:main");
 export interface IgnitionDeployOptions {
   pathToJournal: string | undefined;
   txPollingInterval: number;
+  networkName: string;
   ui?: UpdateUiAction;
 }
 
@@ -42,6 +43,7 @@ export class Ignition {
       pathToJournal: undefined,
       txPollingInterval: 300,
       ui: undefined,
+      networkName: "",
       ...givenOptions,
     };
 
@@ -53,6 +55,7 @@ export class Ignition {
 
     const chainId = await this._getChainId();
     deployment.setChainId(chainId);
+    deployment.setNetworkName(options.networkName);
 
     const { result: constructResult, moduleOutputs } =
       await this._constructExecutionGraphFrom(deployment, ignitionModule);

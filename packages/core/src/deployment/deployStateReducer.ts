@@ -10,6 +10,7 @@ export function initializeDeployState(moduleName: string): DeployState {
     details: {
       moduleName,
       chainId: 0,
+      networkName: "",
     },
     validation: {
       errors: [],
@@ -57,6 +58,7 @@ export function deployStateReducer(
   state: DeployState,
   action:
     | { type: "SET_CHAIN_ID"; chainId: number }
+    | { type: "SET_NETWORK_NAME"; networkName: string }
     | {
         type: "START_VALIDATION";
       }
@@ -93,6 +95,14 @@ export function deployStateReducer(
         details: {
           ...state.details,
           chainId: action.chainId,
+        },
+      };
+    case "SET_NETWORK_NAME":
+      return {
+        ...state,
+        details: {
+          ...state.details,
+          networkName: action.networkName,
         },
       };
     case "START_VALIDATION":

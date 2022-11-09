@@ -138,7 +138,11 @@ task("deploy")
         process.exit(0);
       }
 
-      await hre.ignition.deploy(userModules[0], { parameters, ui: true });
+      await hre.ignition.deploy(userModules[0], {
+        parameters,
+        ui: true,
+        networkName: hre.network.name,
+      });
     }
   );
 

@@ -20,7 +20,7 @@ export class IgnitionWrapper {
     private _ethers: HardhatEthers,
     private _deployOptions: Omit<
       IgnitionDeployOptions,
-      keyof { ui?: boolean }
+      keyof { ui?: boolean; networkName: string }
     > & { ui?: boolean }
   ) {
     this._ignition = new Ignition(_providers);
@@ -29,7 +29,11 @@ export class IgnitionWrapper {
   public async deploy<T extends ModuleDict>(
     ignitionModule: Module<T>,
     deployParams:
-      | { parameters: { [key: string]: ExternalParamValue }; ui?: boolean }
+      | {
+          parameters: { [key: string]: ExternalParamValue };
+          ui?: boolean;
+          networkName: string;
+        }
       | undefined
   ) {
     const showUi = deployParams?.ui ?? true;
@@ -41,6 +45,7 @@ export class IgnitionWrapper {
     const [deploymentResult] = await this._ignition.deploy(ignitionModule, {
       ...this._deployOptions,
       ui: Boolean(deployParams?.ui) ? renderToCli : undefined,
+      networkName: deployParams?.networkName ?? "",
     });
 
     if (deploymentResult._kind === "hold") {

@@ -9,6 +9,7 @@ import { Divider } from "./Divider";
 export const FinalStatus = ({ deployState }: { deployState: DeployState }) => {
   if (deployState.phase === "complete") {
     const addressMap: AddressMap = {};
+
     for (const value of deployState.execution.resultsAccumulator.values()) {
       if (
         value !== null &&
@@ -20,15 +21,22 @@ export const FinalStatus = ({ deployState }: { deployState: DeployState }) => {
       }
     }
 
+    const networkInfo = {
+      chainId: deployState.details.chainId,
+      networkName: deployState.details.networkName,
+    };
+
     return (
       <Box flexDirection="column">
         <Divider />
+
         <Text>
           🚀 Deployment Complete for module{" "}
           <Text italic={true}>{deployState.details.moduleName}</Text>
         </Text>
+
         <Divider />
-        <AddressResults addressMap={addressMap} />
+        <AddressResults addressMap={addressMap} networkInfo={networkInfo} />
         <Text> </Text>
       </Box>
     );
