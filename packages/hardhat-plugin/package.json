@@ -33,7 +33,7 @@
   },
   "devDependencies": {
     "@istanbuljs/nyc-config-typescript": "1.0.2",
-    "@ignored/ignition-core": "^0.0.2",
+    "@ignored/ignition-core": "^0.0.3",
     "@nomiclabs/hardhat-ethers": "^2.0.2",
     "@types/chai": "^4.2.22",
     "@types/chai-as-promised": "^7.1.4",
@@ -65,7 +65,7 @@
     "typescript": "^4.7.4"
   },
   "peerDependencies": {
-    "@ignored/ignition-core": "^0.0.2",
+    "@ignored/ignition-core": "^0.0.3",
     "@nomiclabs/hardhat-ethers": "^2.0.2",
     "hardhat": "^2.10.0"
   },
