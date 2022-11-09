@@ -20,6 +20,8 @@ Start by creating a new directory called `contracts` and create a file inside th
 
 Paste the code below into the file and take a minute to read the code. It's simple and it's full of comments explaining the basics of Solidity.
 
+Additionally, [Alchemy](https://docs.alchemy.com) has a beginner smart contract tutorial called ["Hello World Smart Contract"](https://docs.alchemy.com/docs/hello-world-smart-contract). Along with HardHat, you'll learn how to use Metamask and Solidity as well as an RPC endpoint like the one that Alchemy provides.  
+
 :::tip
 
 To get syntax highlighting and editing assistance for Solidity in Visual Studio Code, try [Hardhat for Visual Studio Code](/hardhat-vscode).
