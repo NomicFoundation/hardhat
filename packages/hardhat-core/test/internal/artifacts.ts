@@ -7,14 +7,43 @@ import {
   Artifacts,
   getArtifactFromContractOutput,
 } from "../../src/internal/artifacts";
-import { CachingSource } from "../../src/internal/artifacts/caching";
-import { MutableSource } from "../../src/internal/artifacts/mutable";
-import { ReadOnlySource } from "../../src/internal/artifacts/readonly";
+import { CachingSource as CachingSourceImpl } from "../../src/internal/artifacts/caching";
+import { MutableSource as MutableSourceImpl } from "../../src/internal/artifacts/mutable";
+import { ReadOnlySource as ReadOnlySourceImpl } from "../../src/internal/artifacts/readonly";
 import { ERRORS } from "../../src/internal/core/errors-list";
-import { Artifact, CompilerInput, CompilerOutput } from "../../src/types";
+import {
+  Artifact,
+  ArtifactSource,
+  CompilerInput,
+  CompilerOutput,
+} from "../../src/types";
 import { getFullyQualifiedName } from "../../src/utils/contract-names";
 import { expectHardhatError, expectHardhatErrorAsync } from "../helpers/errors";
 import { useTmpDir } from "../helpers/fs";
+
+class ReadOnlySource extends ReadOnlySourceImpl implements ArtifactSource {
+  constructor(artifactsPath: string) {
+    super(artifactsPath);
+  }
+  public clearCache() {}
+  public disbaleCache() {}
+}
+
+class MutableSource extends MutableSourceImpl implements ArtifactSource {
+  constructor(artifactsPath: string) {
+    super(artifactsPath);
+  }
+  public clearCache() {}
+  public disbaleCache() {}
+}
+
+class CachingSource extends CachingSourceImpl implements ArtifactSource {
+  constructor(artifactsPath: string) {
+    super(artifactsPath);
+  }
+  public clearCache() {}
+  public disbaleCache() {}
+}
 
 async function storeAllArtifacts(sourceName: string, artifacts: Artifacts) {
   const solcVersion = "0.5.6";
@@ -280,15 +309,13 @@ describe("Artifacts class", function () {
 
       const artifactPath =
         // eslint-disable-next-line  dot-notation,@typescript-eslint/dot-notation
-        await artifacts["_sourcesInPriorityOrder"][0]["_getArtifactPath"](
+        await artifacts["_hardhatSource"]["_getArtifactPath"](
           artifact.contractName
         );
 
       const debugFilePath =
         // eslint-disable-next-line  dot-notation,@typescript-eslint/dot-notation
-        artifacts["_sourcesInPriorityOrder"][0]["_getDebugFilePath"](
-          artifactPath
-        );
+        artifacts["_hardhatSource"]["_getDebugFilePath"](artifactPath);
 
       assert.isTrue(await fsExtra.pathExists(debugFilePath));
     });
@@ -314,15 +341,13 @@ describe("Artifacts class", function () {
 
       const artifactPath =
         // eslint-disable-next-line  dot-notation,@typescript-eslint/dot-notation
-        await artifacts["_sourcesInPriorityOrder"][0]["_getArtifactPath"](
+        await artifacts["_hardhatSource"]["_getArtifactPath"](
           artifact.contractName
         );
 
       const debugFilePath =
         // eslint-disable-next-line  dot-notation, @typescript-eslint/dot-notation
-        artifacts["_sourcesInPriorityOrder"][0]["_getDebugFilePath"](
-          artifactPath
-        );
+        artifacts["_hardhatSource"]["_getDebugFilePath"](artifactPath);
 
       assert.isFalse(await fsExtra.pathExists(debugFilePath));
     });
@@ -1300,66 +1325,32 @@ describe("Artifacts class", function () {
       }
     });
 
-    it("should throw when trying to write with only read-only sources", async function () {
+    it("should read (sync) the right artifacts", async function () {
       for (const [name, output] of Object.entries(COMPILER_OUTPUTS)) {
-        const artifact = getArtifactFromContractOutput(
+        const originalArtifact = getArtifactFromContractOutput(
           "source.sol",
           name,
           output
         );
-
-        const artifacts = new Artifacts(
-          "bad artifact path string; internal source will fallback to custom",
-          [new ReadOnlySource(this.tmpDir)]
+        await new Artifacts(this.tmpDir).saveArtifactAndDebugFile(
+          originalArtifact
         );
 
-        await expectHardhatErrorAsync(
-          () => artifacts.saveArtifactAndDebugFile(artifact, ""),
-          ERRORS.INTERNAL.NO_SUPPORTED_ARTIFACT_SOURCE
-        );
-      }
-    });
-
-    it("should write and read (sync) the right artifacts", async function () {
-      for (const [name, output] of Object.entries(COMPILER_OUTPUTS)) {
-        const artifact = getArtifactFromContractOutput(
-          "source.sol",
-          name,
-          output
-        );
-
-        for (const CustomSource of [MutableSource, CachingSource, Artifacts]) {
+        for (const CustomSource of [
+          ReadOnlySource,
+          MutableSource,
+          CachingSource,
+          Artifacts,
+        ]) {
           const artifacts = new Artifacts(
             "bad artifact path string; internal source will fallback to custom",
             [new CustomSource(this.tmpDir)]
           );
 
-          await artifacts.saveArtifactAndDebugFile(artifact, "");
+          const retrievedArtifact = artifacts.readArtifactSync(name);
 
-          const storedArtifact = artifacts.readArtifactSync(name);
-
-          assert.deepEqual(storedArtifact, artifact);
+          assert.deepEqual(retrievedArtifact, originalArtifact);
         }
-      }
-    });
-
-    it("should read with read-only source", async function () {
-      for (const [name, output] of Object.entries(COMPILER_OUTPUTS)) {
-        const artifact = getArtifactFromContractOutput(
-          "source.sol",
-          name,
-          output
-        );
-        await new Artifacts(this.tmpDir).saveArtifactAndDebugFile(artifact, "");
-
-        const artifacts = new Artifacts(
-          "bad artifact path string; internal source will fallback to custom",
-          [new ReadOnlySource(this.tmpDir)]
-        );
-
-        const storedArtifact = artifacts.readArtifactSync(name);
-
-        assert.deepEqual(storedArtifact, artifact);
       }
     });
 
@@ -1426,7 +1417,6 @@ describe("Artifacts class", function () {
         ReadOnlySource,
         MutableSource,
         CachingSource,
-        Artifacts,
       ]) {
         const storedBuildInfo = await new Artifacts(
           "bad artifact path string; internal source will fallback to custom",
@@ -1579,7 +1569,6 @@ describe("Artifacts class", function () {
         ReadOnlySource,
         MutableSource,
         CachingSource,
-        Artifacts,
       ]) {
         const artifacts = new Artifacts(
           "bad artifact path string; internal source will fallback to custom",
@@ -1588,7 +1577,13 @@ describe("Artifacts class", function () {
         const artifactPath =
           artifacts.formArtifactPathFromFullyQualifiedName(fullyQualifiedName);
 
-        assert.isTrue(artifactPath.startsWith(this.tmpDir));
+        assert.isTrue(
+          // eslint-disable-next-line  dot-notation,@typescript-eslint/dot-notation
+          (artifacts["_extensionSources"][0] as ReadOnlySource)[
+            // eslint-disable-next-line  dot-notation,@typescript-eslint/dot-notation
+            "_artifactsPath"
+          ].startsWith(this.tmpDir)
+        );
         assert.isTrue(artifactPath.endsWith(".json"));
       }
     });

@@ -11,107 +11,115 @@ import { ARTIFACT_FORMAT_VERSION } from "../constants";
 import { HardhatError } from "../core/errors";
 import { ERRORS } from "../core/errors-list";
 
-import { ReadOnlySource } from "./readonly";
-import { MutableSource } from "./mutable";
 import { CachingSource } from "./caching";
 
-type SupportedArtifactSource =
-  | ArtifactSource
-  | ReadOnlySource
-  | MutableSource
-  | CachingSource;
-
 export class Artifacts implements IArtifacts {
+  private readonly _hardhatSource: CachingSource;
   constructor(
     artifactsPath: string,
-    private readonly _sourcesInPriorityOrder: SupportedArtifactSource[] = [
-      new CachingSource(artifactsPath),
-    ]
-  ) {}
+    private readonly _extensionSources: ArtifactSource[] = []
+  ) {
+    this._hardhatSource = new CachingSource(artifactsPath);
+  }
 
   public async readArtifact(
     contractNameOrFullyQualifiedName: string
   ): Promise<Artifact> {
     let artifact;
-    let lastError;
-    for (const source of this._sourcesInPriorityOrder) {
-      try {
-        artifact = await source.readArtifact(contractNameOrFullyQualifiedName);
-        if (artifact === undefined) {
-          continue;
-        }
-      } catch (error) {
-        if (
-          error instanceof HardhatError &&
-          error.number === ERRORS.ARTIFACTS.NOT_FOUND.number
-        ) {
-          lastError = error;
-          continue;
-        }
-        // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
-        throw error;
+
+    let hardhatError; // hold unless/until extensions yield nothing
+    try {
+      artifact = await this._hardhatSource.readArtifact(
+        contractNameOrFullyQualifiedName
+      );
+    } catch (error) {
+      if (error instanceof HardhatError) {
+        hardhatError = error;
       }
     }
-    if (lastError !== undefined) {
-      throw lastError;
+
+    if (
+      artifact === undefined ||
+      hardhatError?.number === ERRORS.ARTIFACTS.NOT_FOUND.number
+    ) {
+      const artifacts: Array<Artifact | undefined> = await Promise.all(
+        this._extensionSources.map((source) =>
+          source.readArtifact(contractNameOrFullyQualifiedName)
+        )
+      );
+      artifact = artifacts.find((_artifact) => _artifact !== undefined);
     }
+
     if (artifact === undefined) {
+      if (hardhatError !== undefined) {
+        throw hardhatError;
+      }
       throw new HardhatError(ERRORS.ARTIFACTS.NOT_FOUND, {
         contractName: contractNameOrFullyQualifiedName,
         suggestion: "",
       });
     }
+
     return artifact;
   }
 
   public readArtifactSync(contractNameOrFullyQualifiedName: string): Artifact {
     let artifact;
-    let lastError;
-    for (const source of this._sourcesInPriorityOrder) {
-      try {
-        artifact = source.readArtifactSync(contractNameOrFullyQualifiedName);
-        if (artifact === undefined) {
-          continue;
-        }
-      } catch (error) {
-        if (
-          error instanceof HardhatError &&
-          error.number === ERRORS.ARTIFACTS.NOT_FOUND.number
-        ) {
-          lastError = error;
-          continue;
-        }
-        // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
-        throw error;
+
+    let hardhatError; // hold unless/until extensions yield nothing
+    try {
+      artifact = this._hardhatSource.readArtifactSync(
+        contractNameOrFullyQualifiedName
+      );
+    } catch (error) {
+      if (error instanceof HardhatError) {
+        hardhatError = error;
       }
     }
-    if (lastError !== undefined) {
-      throw lastError;
+
+    if (
+      artifact === undefined ||
+      hardhatError?.number === ERRORS.ARTIFACTS.NOT_FOUND.number
+    ) {
+      for (const source of this._extensionSources) {
+        artifact = source.readArtifactSync(contractNameOrFullyQualifiedName);
+        if (artifact !== undefined) {
+          break;
+        }
+      }
     }
+
     if (artifact === undefined) {
-      throw new HardhatError(ERRORS.ARTIFACTS.NOT_FOUND, {
-        contractName: contractNameOrFullyQualifiedName,
-        suggestion: "",
-      });
+      if (hardhatError !== undefined) {
+        throw hardhatError;
+      } else {
+        throw new HardhatError(ERRORS.ARTIFACTS.NOT_FOUND, {
+          contractName: contractNameOrFullyQualifiedName,
+          suggestion: "",
+        });
+      }
     }
+
     return artifact;
   }
 
   public async artifactExists(
     contractNameOrFullyQualifiedName: string
   ): Promise<boolean> {
-    for (const source of this._sourcesInPriorityOrder) {
-      if (await source.artifactExists(contractNameOrFullyQualifiedName)) {
-        return true;
-      }
-    }
-    return false;
+    const existencesPerSource = await Promise.all(
+      [this._hardhatSource, ...this._extensionSources].map((source) =>
+        source.artifactExists(contractNameOrFullyQualifiedName)
+      )
+    );
+    return existencesPerSource.includes(true);
   }
 
   public async getAllFullyQualifiedNames(): Promise<string[]> {
     return (
       await Promise.all(
-        this._sourcesInPriorityOrder.map((s) => s.getAllFullyQualifiedNames())
+        [this._hardhatSource, ...this._extensionSources].map((s) =>
+          s.getAllFullyQualifiedNames()
+        )
       )
     ).flat();
   }
@@ -119,36 +127,44 @@ export class Artifacts implements IArtifacts {
   public async getBuildInfo(
     fullyQualifiedName: string
   ): Promise<BuildInfo | undefined> {
-    let lastError: HardhatError | undefined;
-    for (const source of this._sourcesInPriorityOrder) {
-      try {
-        const buildInfo = await source.getBuildInfo(fullyQualifiedName);
-        if (buildInfo === undefined) {
-          continue;
-        }
-        return buildInfo;
-      } catch (error) {
-        if (
-          error instanceof HardhatError &&
-          error.number === ERRORS.ARTIFACTS.NOT_FOUND.number
-        ) {
-          lastError = error;
-          continue;
-        }
-        // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
-        throw error;
+    let buildInfo;
+
+    let hardhatError; // hold unless/until extensions yield nothing
+    try {
+      buildInfo = await this._hardhatSource.getBuildInfo(fullyQualifiedName);
+    } catch (error) {
+      if (error instanceof HardhatError) {
+        hardhatError = error;
       }
     }
-    if (lastError !== undefined) {
-      // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
-      throw lastError;
+
+    if (
+      buildInfo === undefined ||
+      hardhatError?.number === ERRORS.ARTIFACTS.NOT_FOUND.number
+    ) {
+      const buildInfos: Array<BuildInfo | undefined> = await Promise.all(
+        this._extensionSources.map((source) =>
+          source.getBuildInfo(fullyQualifiedName)
+        )
+      );
+      buildInfo = buildInfos.find((info) => info !== undefined);
     }
+
+    if (buildInfo === undefined) {
+      if (hardhatError !== undefined) {
+        throw hardhatError;
+      }
+    }
+
+    return buildInfo;
   }
 
   public async getArtifactPaths(): Promise<string[]> {
     return (
       await Promise.all(
-        this._sourcesInPriorityOrder.map((s) => s.getArtifactPaths())
+        [this._hardhatSource, ...this._extensionSources].map((s) =>
+          s.getArtifactPaths()
+        )
       )
     ).flat();
   }
@@ -156,7 +172,9 @@ export class Artifacts implements IArtifacts {
   public async getDebugFilePaths(): Promise<string[]> {
     return (
       await Promise.all(
-        this._sourcesInPriorityOrder.map((s) => s.getDebugFilePaths())
+        [this._hardhatSource, ...this._extensionSources].map((s) =>
+          s.getDebugFilePaths()
+        )
       )
     ).flat();
   }
@@ -164,19 +182,21 @@ export class Artifacts implements IArtifacts {
   public async getBuildInfoPaths(): Promise<string[]> {
     return (
       await Promise.all(
-        this._sourcesInPriorityOrder.map((s) => s.getBuildInfoPaths())
+        [this._hardhatSource, ...this._extensionSources].map((s) =>
+          s.getBuildInfoPaths()
+        )
       )
     ).flat();
   }
 
   public clearCache(): void {
-    for (const source of this._sourcesInPriorityOrder) {
+    for (const source of [this._hardhatSource, ...this._extensionSources]) {
       source.clearCache();
     }
   }
 
   public disableCache(): void {
-    for (const source of this._sourcesInPriorityOrder) {
+    for (const source of [this._hardhatSource, ...this._extensionSources]) {
       source.disableCache();
     }
   }
@@ -185,14 +205,10 @@ export class Artifacts implements IArtifacts {
     artifact: Artifact,
     pathToBuildInfo?: string
   ): Promise<void> {
-    for (const source of this._sourcesInPriorityOrder) {
-      if ("saveArtifactAndDebugFile" in source) {
-        return source.saveArtifactAndDebugFile(artifact, pathToBuildInfo);
-      }
-    }
-    throw new HardhatError(ERRORS.INTERNAL.NO_SUPPORTED_ARTIFACT_SOURCE, {
-      method: "saveArtifactAndDebugFile",
-    });
+    return this._hardhatSource.saveArtifactAndDebugFile(
+      artifact,
+      pathToBuildInfo
+    );
   }
 
   public saveBuildInfo(
@@ -201,60 +217,30 @@ export class Artifacts implements IArtifacts {
     input: CompilerInput,
     output: CompilerOutput
   ): Promise<string> {
-    for (const source of this._sourcesInPriorityOrder) {
-      if ("saveBuildInfo" in source) {
-        return source.saveBuildInfo(
-          solcVersion,
-          solcLongVersion,
-          input,
-          output
-        );
-      }
-    }
-    throw new HardhatError(ERRORS.INTERNAL.NO_SUPPORTED_ARTIFACT_SOURCE, {
-      method: "saveBuildInfo",
-    });
+    return this._hardhatSource.saveBuildInfo(
+      solcVersion,
+      solcLongVersion,
+      input,
+      output
+    );
   }
 
   public formArtifactPathFromFullyQualifiedName(
     fullyQualifiedName: string
   ): string {
-    for (const source of this._sourcesInPriorityOrder) {
-      if ("formArtifactPathFromFullyQualifiedName" in source) {
-        return source.formArtifactPathFromFullyQualifiedName(
-          fullyQualifiedName
-        );
-      }
-    }
-    throw new HardhatError(ERRORS.INTERNAL.NO_SUPPORTED_ARTIFACT_SOURCE, {
-      method: "formArtifactPathFromFullyQualifiedName",
-    });
+    return this._hardhatSource.formArtifactPathFromFullyQualifiedName(
+      fullyQualifiedName
+    );
   }
 
   public addValidArtifacts(
     validArtifacts: Array<{ sourceName: string; artifacts: string[] }>
   ) {
-    for (const source of this._sourcesInPriorityOrder) {
-      if ("addValidArtifacts" in source) {
-        source.addValidArtifacts(validArtifacts);
-        return;
-      }
-    }
-    throw new HardhatError(ERRORS.INTERNAL.NO_SUPPORTED_ARTIFACT_SOURCE, {
-      method: "addValidArtifacts",
-    });
+    this._hardhatSource.addValidArtifacts(validArtifacts);
   }
 
   public async removeObsoleteArtifacts() {
-    for (const source of this._sourcesInPriorityOrder) {
-      if ("removeObsoleteArtifacts" in source) {
-        await source.removeObsoleteArtifacts();
-        return;
-      }
-    }
-    throw new HardhatError(ERRORS.INTERNAL.NO_SUPPORTED_ARTIFACT_SOURCE, {
-      method: "removeObsoleteArtifacts",
-    });
+    return this._hardhatSource.removeObsoleteArtifacts();
   }
 }
 
