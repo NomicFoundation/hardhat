@@ -27,6 +27,14 @@ export class Artifacts implements IArtifacts {
   ): Promise<Artifact> {
     let artifact;
 
+    // TODO: upon a "typo" input, we should be capturing suggestions from ALL
+    // sources. Currently we convey suggestions from the Hardhat source via the
+    // error it throws. The ArtifactSource interface should be amended with eg
+    // `getSuggestions(forName)`, and when no sources return a value then we
+    // should gather suggestions from all sources, de-duplicate them, and
+    // present them all to the user in one consolidated error.
+    // See also https://linear.app/nomic-foundation/issue/HH-1329
+
     let hardhatError; // hold unless/until extensions yield nothing
     try {
       artifact = await this._hardhatSource.readArtifact(
@@ -65,6 +73,14 @@ export class Artifacts implements IArtifacts {
 
   public readArtifactSync(contractNameOrFullyQualifiedName: string): Artifact {
     let artifact;
+
+    // TODO: upon a "typo" input, we should be capturing suggestions from ALL
+    // sources. Currently we convey suggestions from the Hardhat source via the
+    // error it throws. The ArtifactSource interface should be amended with eg
+    // `getSuggestions(forName)`, and when no sources return a value then we
+    // should gather suggestions from all sources, de-duplicate them, and
+    // present them all to the user in one consolidated error.
+    // See also https://linear.app/nomic-foundation/issue/HH-1329
 
     let hardhatError; // hold unless/until extensions yield nothing
     try {
@@ -128,6 +144,14 @@ export class Artifacts implements IArtifacts {
     fullyQualifiedName: string
   ): Promise<BuildInfo | undefined> {
     let buildInfo;
+
+    // TODO: upon a "typo" input, we should be capturing suggestions from ALL
+    // sources. Currently we convey suggestions from the Hardhat source via the
+    // error it throws. The ArtifactSource interface should be amended with eg
+    // `getSuggestions(forName)`, and when no sources return a value then we
+    // should gather suggestions from all sources, de-duplicate them, and
+    // present them all to the user in one consolidated error.
+    // See also https://linear.app/nomic-foundation/issue/HH-1329
 
     let hardhatError; // hold unless/until extensions yield nothing
     try {
