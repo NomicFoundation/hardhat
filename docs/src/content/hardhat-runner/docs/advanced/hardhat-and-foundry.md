@@ -1,6 +1,10 @@
 # Integrating with Foundry
 
-This guide explains how to use Hardhat and Foundry in the same project.
+This guide explains how to use the [`@nomicfoundation/hardhat-foundry`](/hardhat-runner/plugins/nomicfoundation-hardhat-foundry) plugin to use Hardhat and Foundry in the same project.
+
+When this plugin is installed and enabled, you will be able to compile your project with both Hardhat and Foundry, and to run scripts and tests written in JavaScript/TypeScript or in Solidity.
+
+Keep in mind that you'll still need to use the right tool in each case: use `npx hardhat run` to run a Hardhat script, `npx hardhat test` to run Hardhat tests, `forge script` to run Foundry's Solidity scripts and `forge test` to execute tests written in Solidity.
 
 ## Using Foundry in a Hardhat project
 
@@ -38,7 +42,27 @@ yarn add --dev @nomicfoundation/hardhat-foundry
 
 ::::
 
-and import it in your Hardhat config.
+and import it in your Hardhat config:
+
+::::tabsgroup{options=TypeScript,JavaScript}
+
+:::tab{value=TypeScript}
+
+```typescript
+import "@nomicfoundation/hardhat-foundry";
+```
+
+:::
+
+:::tab{value=JavaScript}
+
+```javascript
+require("@nomicfoundation/hardhat-foundry");
+```
+
+:::
+
+::::
 
 Finally, run `npx hardhat init-foundry`. This task will create a `foundry.toml` file with the right configuration and it will install [`forge-std`](https://github.com/foundry-rs/forge-std).
 
