@@ -624,6 +624,14 @@ const communityPlugins: IPlugin[] = [
       "Hardhat TypeScript plugin to run a chainlink node and interact with it",
     tags: ["ethereum", "smart-contracts", "chainlink", "hardhat-plugin"],
   },
+  {
+    name: "huff-deployer",
+    author: "Rodrigo Herrera",
+    authorUrl: "https://github.com/rodrigoherrerai",
+    description:
+      "A Hardhat Typescript plugin to test and interact with Huff contracts",
+    tags: ["Deployment", "Tasks", "Huff"],
+  },
 ];
 
 const officialPlugins: IPlugin[] = [
