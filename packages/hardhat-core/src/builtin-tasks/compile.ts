@@ -159,8 +159,8 @@ subtask(TASK_COMPILE_SOLIDITY_READ_FILE)
   );
 
 /**
- * This task is meant to be overriden by potential plugins
- * It allows to transform an import name
+ * This task transform the string literal in an import directive.
+ * By default it does nothing, but it can be overriden by plugins.
  */
 subtask(TASK_COMPILE_TRANSFORM_IMPORT_NAME)
   .addParam("importName", undefined, undefined, types.string)
