@@ -8,6 +8,8 @@ import { ITransactionsService } from "./TransactionsService";
 export interface TransactionOptions {
   gasLimit?: ethers.BigNumberish;
   gasPrice?: ethers.BigNumberish;
+  maxRetries: number;
+  gasIncrementPerRetry: ethers.BigNumber | null;
 }
 
 export interface Services {

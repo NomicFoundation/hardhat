@@ -4,6 +4,8 @@ import "hardhat/types/runtime";
 
 import type { IgnitionWrapper } from "./ignition-wrapper";
 
+import type { IgnitionConfig } from "./index";
+
 declare module "hardhat/types/config" {
   export interface ProjectPathsUserConfig {
     ignition?: string;
@@ -13,6 +15,14 @@ declare module "hardhat/types/config" {
   export interface ProjectPathsConfig {
     ignition: string;
     deployments: string;
+  }
+
+  export interface HardhatUserConfig {
+    ignition?: Partial<IgnitionConfig>;
+  }
+
+  export interface HardhatConfig {
+    ignition: IgnitionConfig;
   }
 }
 

@@ -243,6 +243,33 @@ Calls to `useModule` memoize the results object, assuming the same parameters ar
 
 Only `CallableFuture` types can be returned when building a module, so contracts or libraries (not calls).
 
+## Global Configuration
+
+There are currently two configurable options you can add to your `hardhat.config.js` file in order to adjust the way **Ignition** functions:
+
+```typescript
+interface IgnitionConfig {
+  maxRetries: number;
+  gasIncrementPerRetry: BigNumber | null;
+}
+
+// example inside hardhat.config.js
+const { ethers } = require('ethers');
+
+module.exports = {
+  ignition: {
+    maxRetries: 10,
+    gasIncrementPerRetry: ethers.utils.parseUnits('0.001');
+  }
+}
+```
+
+These config values control how **Ignition** retries unconfirmed transactions that are taking too long to confirm.
+
+The value of `maxRetries` is the number of times an unconfirmed transaction will be retried before considering it failed. (default value is 4)
+
+The value of `gasIncrementPerRetry` must be an `ethers.BigNumber` and is assumed to be in wei units. This value will be added to the previous transactions gas price on each subsequent retry. However, if not given or if given value is `null`, then the default logic will run which adds 10% of the previous transactions gas price on each retry.
+
 Next, let's take a look at another way to visualize your deployments:
 
 [Visualizing your deployment](./visualizing-your-deployment.md)

@@ -1,6 +1,6 @@
 import { ContractFactory } from "ethers";
 
-import { Services } from "services/types";
+import { ExecutionContext } from "types/deployment";
 import { LibraryDeploy } from "types/executionGraph";
 import { ResultsAccumulator, VertexVisitResult } from "types/graph";
 import { collectLibrariesAndLink } from "utils/collectLibrariesAndLink";
@@ -10,7 +10,7 @@ import { resolveFrom, toAddress } from "./utils";
 export async function executeLibraryDeploy(
   { artifact, args }: LibraryDeploy,
   resultAccumulator: ResultsAccumulator,
-  { services }: { services: Services }
+  { services, options }: ExecutionContext
 ): Promise<VertexVisitResult> {
   try {
     const resolvedArgs = args
@@ -23,7 +23,7 @@ export async function executeLibraryDeploy(
 
     const deployTransaction = Factory.getDeployTransaction(...resolvedArgs);
 
-    const txHash = await services.contracts.sendTx(deployTransaction);
+    const txHash = await services.contracts.sendTx(deployTransaction, options);
 
     const receipt = await services.transactions.wait(txHash);
 

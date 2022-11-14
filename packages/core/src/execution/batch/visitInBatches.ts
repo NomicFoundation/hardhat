@@ -1,6 +1,6 @@
 import { Deployment } from "deployment/Deployment";
 import { Services } from "services/types";
-import { ExecutionState } from "types/deployment";
+import { ExecutionState, ExecutionOptions } from "types/deployment";
 import { ExecutionVertex } from "types/executionGraph";
 import {
   ResultsAccumulator,
@@ -19,7 +19,8 @@ import { allDependenciesCompleted } from "./utils";
 export async function visitInBatches(
   deployment: Deployment,
   executionGraph: ExecutionGraph,
-  executionVertexDispatcher: ExecutionVertexDispatcher
+  executionVertexDispatcher: ExecutionVertexDispatcher,
+  options: ExecutionOptions
 ): Promise<VisitResult> {
   deployment.startExecutionPhase(executionGraph);
 
@@ -37,7 +38,8 @@ export async function visitInBatches(
       deployment.state.execution.resultsAccumulator,
       deployment.updateCurrentBatchWithResult.bind(deployment),
       { services: deployment.services },
-      executionVertexDispatcher
+      executionVertexDispatcher,
+      options
     );
 
     deployment.updateExecutionWithBatchResults(executeBatchResult);
@@ -80,7 +82,8 @@ async function executeBatch(
   resultsAccumulator: ResultsAccumulator,
   uiUpdate: (vertexId: number, result: VertexVisitResult) => void,
   { services }: { services: Services },
-  executionVertexDispatcher: ExecutionVertexDispatcher
+  executionVertexDispatcher: ExecutionVertexDispatcher,
+  options: ExecutionOptions
 ): Promise<ExecuteBatchResult> {
   const batchVertexes = [...batch]
     .map((vertexId) => executionGraph.vertexes.get(vertexId))
@@ -93,6 +96,7 @@ async function executeBatch(
   const promises = batchVertexes.map(async (vertex) => {
     const result = await executionVertexDispatcher(vertex, resultsAccumulator, {
       services,
+      options,
     });
 
     uiUpdate(vertex.id, result);

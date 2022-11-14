@@ -1,4 +1,7 @@
+import type { BigNumber } from "ethers";
+
 import { ExecutionGraph } from "execution/ExecutionGraph";
+import { Services } from "services/types";
 
 import { ResultsAccumulator, VertexVisitResult } from "./graph";
 import {
@@ -59,4 +62,14 @@ export interface DeployState {
     executionGraph: ExecutionGraph | null;
   };
   execution: ExecutionState;
+}
+
+export interface ExecutionOptions {
+  maxRetries: number;
+  gasIncrementPerRetry: BigNumber | null;
+}
+
+export interface ExecutionContext {
+  services: Services;
+  options: ExecutionOptions;
 }

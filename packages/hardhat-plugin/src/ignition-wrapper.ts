@@ -20,7 +20,7 @@ export class IgnitionWrapper {
     private _ethers: HardhatEthers,
     private _deployOptions: Omit<
       IgnitionDeployOptions,
-      keyof { ui?: boolean; networkName: string }
+      keyof { ui?: boolean }
     > & { ui?: boolean }
   ) {
     this._ignition = new Ignition(_providers);
@@ -32,11 +32,10 @@ export class IgnitionWrapper {
       | {
           parameters: { [key: string]: ExternalParamValue };
           ui?: boolean;
-          networkName: string;
         }
       | undefined
   ) {
-    const showUi = deployParams?.ui ?? true;
+    const showUi = deployParams?.ui ?? this._deployOptions.ui ?? true;
 
     if (deployParams !== undefined) {
       await this._providers.config.setParams(deployParams.parameters);
@@ -44,8 +43,7 @@ export class IgnitionWrapper {
 
     const [deploymentResult] = await this._ignition.deploy(ignitionModule, {
       ...this._deployOptions,
-      ui: Boolean(deployParams?.ui) ? renderToCli : undefined,
-      networkName: deployParams?.networkName ?? "",
+      ui: showUi ? renderToCli : undefined,
     });
 
     if (deploymentResult._kind === "hold") {

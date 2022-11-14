@@ -1,5 +1,6 @@
 import "@nomiclabs/hardhat-ethers";
 import { Module, ModuleDict, Providers } from "@ignored/ignition-core";
+import { BigNumber } from "ethers";
 import { extendConfig, extendEnvironment, task } from "hardhat/config";
 import { lazyObject } from "hardhat/plugins";
 import path from "path";
@@ -12,26 +13,41 @@ import "./type-extensions";
 
 export { buildSubgraph, buildModule } from "@ignored/ignition-core";
 
+export interface IgnitionConfig {
+  maxRetries: number;
+  gasIncrementPerRetry: BigNumber | null;
+}
+
+/* ignition config defaults */
+const IGNITION_DIR = "ignition";
+const DEPLOYMENTS_DIR = "deployments";
+const MAX_RETRIES = 4;
+const GAS_INCREMENT_PER_RETRY = null;
+
 extendConfig((config, userConfig) => {
-  const userIgnitionPath = userConfig.paths?.ignition;
-  const userDeploymentsPath = userConfig.paths?.deployments;
+  /* setup path configs */
+  const userPathsConfig = userConfig.paths ?? {};
 
-  let ignitionPath: string;
-  if (userIgnitionPath === undefined) {
-    ignitionPath = path.join(config.paths.root, "ignition");
-  } else {
-    ignitionPath = path.resolve(config.paths.root, userIgnitionPath);
-  }
+  config.paths = {
+    ...config.paths,
+    ignition: path.resolve(
+      config.paths.root,
+      userPathsConfig.ignition ?? IGNITION_DIR
+    ),
+    deployments: path.resolve(
+      config.paths.root,
+      userPathsConfig.deployments ?? DEPLOYMENTS_DIR
+    ),
+  };
 
-  let deploymentsPath: string;
-  if (userDeploymentsPath === undefined) {
-    deploymentsPath = path.join(config.paths.root, "deployments");
-  } else {
-    deploymentsPath = path.resolve(config.paths.root, userDeploymentsPath);
-  }
+  /* setup core configs */
+  const userIgnitionConfig = userConfig.ignition ?? {};
 
-  config.paths.ignition = ignitionPath;
-  config.paths.deployments = deploymentsPath;
+  config.ignition = {
+    maxRetries: userIgnitionConfig.maxRetries ?? MAX_RETRIES,
+    gasIncrementPerRetry:
+      userIgnitionConfig.gasIncrementPerRetry ?? GAS_INCREMENT_PER_RETRY,
+  };
 });
 
 /**
@@ -89,9 +105,11 @@ extendEnvironment((hre) => {
     const txPollingInterval = isHardhatNetwork ? 100 : 5000;
 
     return new IgnitionWrapper(providers, hre.ethers, {
+      ...hre.config.ignition,
       pathToJournal,
       txPollingInterval,
       ui: true,
+      networkName: hre.network.name,
     });
   });
 });
@@ -138,11 +156,7 @@ task("deploy")
         process.exit(0);
       }
 
-      await hre.ignition.deploy(userModules[0], {
-        parameters,
-        ui: true,
-        networkName: hre.network.name,
-      });
+      await hre.ignition.deploy(userModules[0], { parameters });
     }
   );
 

@@ -79,7 +79,10 @@ describe("ContractsService", function () {
     const fakeTx: ethers.providers.TransactionRequest = {};
 
     await assert.isRejected(
-      contractsService.sendTx(fakeTx),
+      contractsService.sendTx(fakeTx, {
+        maxRetries: 4,
+        gasIncrementPerRetry: null,
+      }),
       /Transaction not confirmed within max retry limit/
     );
   });

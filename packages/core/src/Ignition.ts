@@ -1,4 +1,5 @@
 import setupDebug from "debug";
+import { BigNumber } from "ethers";
 
 import { Deployment } from "deployment/Deployment";
 import { execute } from "execution/execute";
@@ -24,8 +25,10 @@ const log = setupDebug("ignition:main");
 export interface IgnitionDeployOptions {
   pathToJournal: string | undefined;
   txPollingInterval: number;
-  networkName: string;
   ui?: UpdateUiAction;
+  networkName: string;
+  maxRetries: number;
+  gasIncrementPerRetry: BigNumber | null;
 }
 
 type ModuleOutputs = Record<string, any>;
@@ -35,17 +38,9 @@ export class Ignition {
 
   public async deploy<T extends ModuleDict>(
     ignitionModule: Module<T>,
-    givenOptions?: IgnitionDeployOptions
+    options: IgnitionDeployOptions
   ): Promise<[DeploymentResult, ModuleOutputs]> {
     log(`Start deploy`);
-
-    const options = {
-      pathToJournal: undefined,
-      txPollingInterval: 300,
-      ui: undefined,
-      networkName: "",
-      ...givenOptions,
-    };
 
     const deployment = new Deployment(
       ignitionModule.name,
@@ -67,7 +62,10 @@ export class Ignition {
     deployment.transformComplete(constructResult.executionGraph);
 
     log("Execute based on execution graph");
-    const executionResult = await execute(deployment);
+    const executionResult = await execute(deployment, {
+      maxRetries: options.maxRetries,
+      gasIncrementPerRetry: options.gasIncrementPerRetry,
+    });
 
     if (executionResult._kind === "failure") {
       return [executionResult, {}];

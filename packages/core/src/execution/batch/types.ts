@@ -1,4 +1,4 @@
-import { Services } from "services/types";
+import { ExecutionContext } from "types/deployment";
 import { ExecutionVertex } from "types/executionGraph";
 import { ResultsAccumulator, VertexVisitResult } from "types/graph";
 
@@ -15,7 +15,7 @@ export type BatcherResult =
 export type ExecutionVertexDispatcher = (
   vertex: ExecutionVertex,
   resultAccumulator: ResultsAccumulator,
-  context: { services: Services }
+  context: ExecutionContext
 ) => Promise<VertexVisitResult>;
 
 export interface ExecuteBatchResult {

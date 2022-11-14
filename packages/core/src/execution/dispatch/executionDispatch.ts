@@ -1,4 +1,4 @@
-import { Services } from "services/types";
+import { ExecutionContext } from "types/deployment";
 import { ExecutionVertex } from "types/executionGraph";
 import { ResultsAccumulator, VertexVisitResult } from "types/graph";
 
@@ -10,7 +10,7 @@ import { executeLibraryDeploy } from "./executeLibraryDeploy";
 export function executionDispatch(
   executionVertex: ExecutionVertex,
   resultAccumulator: ResultsAccumulator,
-  context: { services: Services }
+  context: ExecutionContext
 ): Promise<VertexVisitResult> {
   switch (executionVertex.type) {
     case "ContractDeploy":

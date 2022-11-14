@@ -37,7 +37,7 @@ export class ContractsService implements IContractsService {
 
   public async sendTx(
     deployTransaction: ethers.providers.TransactionRequest,
-    txOptions?: TransactionOptions
+    txOptions: TransactionOptions
   ): Promise<string> {
     if (deployTransaction.to !== undefined) {
       this._debug("Calling method of contract");
@@ -52,7 +52,7 @@ export class ContractsService implements IContractsService {
   private async _sendTx(
     signer: IgnitionSigner,
     tx: ethers.providers.TransactionRequest,
-    txOptions?: TransactionOptions
+    txOptions: TransactionOptions
   ): Promise<string> {
     if (txOptions?.gasLimit !== undefined) {
       tx.gasLimit = ethers.BigNumber.from(txOptions.gasLimit);
@@ -84,11 +84,17 @@ export class ContractsService implements IContractsService {
       }
 
       if (blockNumberWhenSent + 5 <= currentBlockNumber) {
-        if (retries === 4) {
+        if (retries === txOptions.maxRetries) {
           throw new Error("Transaction not confirmed within max retry limit");
         }
 
-        const txToSend = await this._bump(txHash, signer, txSent, txHash);
+        const txToSend = await this._bump(
+          txHash,
+          signer,
+          txSent,
+          txHash,
+          txOptions.gasIncrementPerRetry
+        );
 
         blockNumberWhenSent =
           await this._providers.web3Provider.getBlockNumber();
@@ -113,7 +119,8 @@ export class ContractsService implements IContractsService {
     _txHash: string,
     _signer: IgnitionSigner,
     previousTxRequest: ethers.providers.TransactionRequest,
-    previousTxHash: string
+    previousTxHash: string,
+    gasIncrementPerRetry: ethers.BigNumber | null
   ): Promise<ethers.providers.TransactionRequest> {
     const previousTx = await this._providers.web3Provider.getTransaction(
       previousTxHash
@@ -123,10 +130,13 @@ export class ContractsService implements IContractsService {
 
     if (previousTx.gasPrice !== undefined) {
       // Increase 10%, and add 1 to be sure it's at least rounded up
-      const newGasPrice = ethers.BigNumber.from(previousTx.gasPrice)
-        .mul(110000)
-        .div(100000)
-        .add(1);
+      // or add by user's config value if present
+      const newGasPrice = gasIncrementPerRetry
+        ? ethers.BigNumber.from(previousTx.gasPrice).add(gasIncrementPerRetry)
+        : ethers.BigNumber.from(previousTx.gasPrice)
+            .mul(110000)
+            .div(100000)
+            .add(1);
 
       return {
         ...previousTxRequest,

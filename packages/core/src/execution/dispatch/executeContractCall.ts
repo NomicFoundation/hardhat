@@ -1,6 +1,6 @@
 import { Contract } from "ethers";
 
-import { Services } from "services/types";
+import { ExecutionContext } from "types/deployment";
 import { ContractCall } from "types/executionGraph";
 import { VertexVisitResult } from "types/graph";
 
@@ -9,7 +9,7 @@ import { resolveFrom, toAddress } from "./utils";
 export async function executeContractCall(
   { method, contract, args, value }: ContractCall,
   resultAccumulator: Map<number, VertexVisitResult | null>,
-  { services }: { services: Services }
+  { services, options }: ExecutionContext
 ): Promise<VertexVisitResult> {
   const resolve = resolveFrom(resultAccumulator);
 
@@ -25,7 +25,7 @@ export async function executeContractCall(
       ...resolvedArgs,
       { value }
     );
-    txHash = await services.contracts.sendTx(unsignedTx);
+    txHash = await services.contracts.sendTx(unsignedTx, options);
   } catch (err) {
     return {
       _kind: "failure",
