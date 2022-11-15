@@ -1,8 +1,8 @@
-import { Block } from "@nomicfoundation/ethereumjs-block";
-import {
+import type {
   AfterBlockEvent,
   PostByzantiumTxReceipt,
 } from "@nomicfoundation/ethereumjs-vm";
+import { Block } from "@nomicfoundation/ethereumjs-block";
 import { assert } from "chai";
 import { bufferToHex } from "@nomicfoundation/ethereumjs-util";
 

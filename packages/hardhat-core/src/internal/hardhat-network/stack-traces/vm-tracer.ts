@@ -1,12 +1,11 @@
+import type { InterpreterStep } from "@nomicfoundation/ethereumjs-evm/dist/interpreter";
+import type { Message } from "@nomicfoundation/ethereumjs-evm/dist/message";
 import {
   EVMResult,
   getActivePrecompiles,
 } from "@nomicfoundation/ethereumjs-evm";
-import { InterpreterStep } from "@nomicfoundation/ethereumjs-evm/dist/interpreter";
-import { Message } from "@nomicfoundation/ethereumjs-evm/dist/message";
-import { Address, bufferToBigInt } from "@nomicfoundation/ethereumjs-util";
-import { VM } from "@nomicfoundation/ethereumjs-vm";
-import { assertHardhatInvariant } from "../../core/errors";
+import { bufferToBigInt } from "@nomicfoundation/ethereumjs-util";
+import { VMAdapter } from "../provider/vm/vm-adapter";
 
 import {
   CallMessageTrace,
@@ -26,11 +25,11 @@ export class VMTracer {
   private _messageTraces: MessageTrace[] = [];
   private _enabled = false;
   private _lastError: Error | undefined;
-  private _maxPrecompileNumber = getActivePrecompiles(this._vm._common).size;
+  private _maxPrecompileNumber = getActivePrecompiles(this._vm.getCommon())
+    .size;
 
   constructor(
-    private readonly _vm: VM,
-    private readonly _getContractCode: (address: Address) => Promise<Buffer>,
+    private readonly _vm: VMAdapter,
     private readonly _throwErrors = true
   ) {
     this._beforeMessageHandler = this._beforeMessageHandler.bind(this);
@@ -42,14 +41,13 @@ export class VMTracer {
     if (this._enabled) {
       return;
     }
-    assertHardhatInvariant(
-      this._vm.evm.events !== undefined,
-      "EVM should have an 'events' property"
-    );
 
-    this._vm.evm.events.on("beforeMessage", this._beforeMessageHandler);
-    this._vm.evm.events.on("step", this._stepHandler);
-    this._vm.evm.events.on("afterMessage", this._afterMessageHandler);
+    this._vm.enableTracing({
+      beforeMessage: this._beforeMessageHandler,
+      step: this._stepHandler,
+      afterMessage: this._afterMessageHandler,
+    });
+
     this._enabled = true;
   }
 
@@ -58,20 +56,8 @@ export class VMTracer {
       return;
     }
 
-    assertHardhatInvariant(
-      this._vm.evm.events !== undefined,
-      "EVM should have an 'events' property"
-    );
+    this._vm.disableTracing();
 
-    this._vm.evm.events.removeListener(
-      "beforeMessage",
-      this._beforeMessageHandler
-    );
-    this._vm.evm.events.removeListener("step", this._stepHandler);
-    this._vm.evm.events.removeListener(
-      "afterMessage",
-      this._afterMessageHandler
-    );
     this._enabled = false;
   }
 
@@ -142,7 +128,7 @@ export class VMTracer {
         } else {
           const codeAddress = message.codeAddress;
 
-          const code = await this._getContractCode(codeAddress);
+          const code = await this._vm.getContractCode(codeAddress);
 
           const callTrace: CallMessageTrace = {
             code,
