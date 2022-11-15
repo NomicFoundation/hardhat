@@ -87,10 +87,18 @@ export class HardhatDB {
     if (this._stateManager instanceof DefaultStateManager) {
       // eslint-disable-next-line @typescript-eslint/dot-notation
       const db = this._stateManager._trie["_db"];
-      return db.get(Buffer.concat([Buffer.from("c"), codeHash]));
+      const code = await db.get(Buffer.concat([Buffer.from("c"), codeHash]));
+
+      if (code === null) {
+        // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
+        throw new Error("returning null in getCodeByHash is not supported");
+      }
+
+      return code;
     }
 
-    return Buffer.from([]);
+    // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
+    throw new Error("getCodeByHash not implemented for ForkStateManager");
   }
 
   public async getStorageRoot() {
