@@ -25,7 +25,7 @@ const log = setupDebug("ignition:main");
 export interface IgnitionDeployOptions {
   pathToJournal: string | undefined;
   txPollingInterval: number;
-  ui?: UpdateUiAction;
+  ui: boolean;
   networkName: string;
   maxRetries: number;
   gasIncrementPerRetry: BigNumber | null;
@@ -34,7 +34,10 @@ export interface IgnitionDeployOptions {
 type ModuleOutputs = Record<string, any>;
 
 export class Ignition {
-  constructor(private _providers: Providers) {}
+  constructor(
+    private _providers: Providers,
+    private _uiRenderer: UpdateUiAction
+  ) {}
 
   public async deploy<T extends ModuleDict>(
     ignitionModule: Module<T>,
@@ -45,7 +48,7 @@ export class Ignition {
     const deployment = new Deployment(
       ignitionModule.name,
       Deployment.setupServices(options, this._providers),
-      options.ui
+      options.ui ? this._uiRenderer : undefined
     );
 
     const chainId = await this._getChainId();

@@ -18,24 +18,19 @@ export class IgnitionWrapper {
   constructor(
     private _providers: Providers,
     private _ethers: HardhatEthers,
-    private _deployOptions: Omit<
-      IgnitionDeployOptions,
-      keyof { ui?: boolean }
-    > & { ui?: boolean }
+    private _deployOptions: Omit<IgnitionDeployOptions, keyof { ui?: boolean }>
   ) {
-    this._ignition = new Ignition(_providers);
+    this._ignition = new Ignition(_providers, renderToCli);
   }
 
   public async deploy<T extends ModuleDict>(
     ignitionModule: Module<T>,
-    deployParams:
-      | {
-          parameters: { [key: string]: ExternalParamValue };
-          ui?: boolean;
-        }
-      | undefined
+    deployParams?: {
+      parameters: { [key: string]: ExternalParamValue };
+      ui?: boolean;
+    }
   ) {
-    const showUi = deployParams?.ui ?? this._deployOptions.ui ?? true;
+    const showUi = deployParams?.ui ?? false;
 
     if (deployParams !== undefined) {
       await this._providers.config.setParams(deployParams.parameters);
@@ -43,7 +38,7 @@ export class IgnitionWrapper {
 
     const [deploymentResult] = await this._ignition.deploy(ignitionModule, {
       ...this._deployOptions,
-      ui: showUi ? renderToCli : undefined,
+      ui: showUi,
     });
 
     if (deploymentResult._kind === "hold") {

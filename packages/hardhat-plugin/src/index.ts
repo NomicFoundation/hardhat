@@ -108,7 +108,6 @@ extendEnvironment((hre) => {
       ...hre.config.ignition,
       pathToJournal,
       txPollingInterval,
-      ui: true,
       networkName: hre.network.name,
     });
   });
@@ -156,7 +155,7 @@ task("deploy")
         process.exit(0);
       }
 
-      await hre.ignition.deploy(userModules[0], { parameters });
+      await hre.ignition.deploy(userModules[0], { parameters, ui: true });
     }
   );
 
