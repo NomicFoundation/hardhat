@@ -9,7 +9,7 @@ on:
       - "config/**"
   pull_request:
     branches:
-      - "*"
+      - "**"
     paths:
       - "packages/hardhat-core/**"
       - "packages/hardhat-common/**"
@@ -36,10 +36,11 @@ jobs:
     name: Test Hardhat Network's forking functionality
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/setup-node@v1
-        with:
-          node-version: 12
       - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
+        with:
+          node-version: 14
+          cache: yarn
       - name: Install
         run: yarn --frozen-lockfile
       - name: Cache network requests

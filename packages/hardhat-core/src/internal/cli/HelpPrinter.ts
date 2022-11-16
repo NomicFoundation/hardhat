@@ -112,11 +112,11 @@ export class HelpPrinter {
 
     for (const name of Object.keys(paramDefinitions).sort()) {
       const definition = paramDefinitions[name];
-      const { defaultValue, isFlag } = definition;
+      const { isFlag, isOptional } = definition;
 
       paramsList += " ";
 
-      if (defaultValue !== undefined) {
+      if (isOptional) {
         paramsList += "[";
       }
 
@@ -126,7 +126,7 @@ export class HelpPrinter {
         paramsList += ` ${this._getParamValueDescription(definition)}`;
       }
 
-      if (defaultValue !== undefined) {
+      if (isOptional) {
         paramsList += "]";
       }
     }
@@ -140,11 +140,11 @@ export class HelpPrinter {
     let paramsList = "";
 
     for (const definition of positionalParamDefinitions) {
-      const { defaultValue, isVariadic, name } = definition;
+      const { isOptional, isVariadic, name } = definition;
 
       paramsList += " ";
 
-      if (defaultValue !== undefined) {
+      if (isOptional) {
         paramsList += "[";
       }
 
@@ -154,7 +154,7 @@ export class HelpPrinter {
 
       paramsList += name;
 
-      if (defaultValue !== undefined) {
+      if (isOptional) {
         paramsList += "]";
       }
     }

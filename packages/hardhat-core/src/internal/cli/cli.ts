@@ -4,12 +4,20 @@ import debug from "debug";
 import semver from "semver";
 import "source-map-support/register";
 
-import { TASK_COMPILE, TASK_HELP } from "../../builtin-tasks/task-names";
+import {
+  TASK_COMPILE,
+  TASK_HELP,
+  TASK_TEST,
+} from "../../builtin-tasks/task-names";
 import { TaskArguments } from "../../types";
 import { HARDHAT_NAME } from "../constants";
 import { HardhatContext } from "../context";
 import { loadConfigAndTasks } from "../core/config/config-loading";
-import { HardhatError, HardhatPluginError } from "../core/errors";
+import {
+  assertHardhatInvariant,
+  HardhatError,
+  HardhatPluginError,
+} from "../core/errors";
 import { ERRORS, getErrorCode } from "../core/errors-list";
 import { isHardhatInstalledLocallyOrLinked } from "../core/execution-mode";
 import { getEnvHardhatArguments } from "../core/params/env-variables";
@@ -21,34 +29,41 @@ import { Reporter } from "../sentry/reporter";
 import { isRunningOnCiServer } from "../util/ci-detection";
 import {
   hasConsentedTelemetry,
+  hasPromptedForHHVSCode,
+  writePromptedForHHVSCode,
   writeTelemetryConsent,
 } from "../util/global-dir";
 import { getPackageJson, PackageJson } from "../util/packageInfo";
 
-import { applyWorkaround } from "../util/antlr-prototype-pollution-workaround";
+import { saveFlamegraph } from "../core/flamegraph";
 import { Analytics } from "./analytics";
 import { ArgumentsParser } from "./ArgumentsParser";
 import { enableEmoji } from "./emoji";
-import { confirmTelemetryConsent, createProject } from "./project-creation";
+import { createProject } from "./project-creation";
+import { confirmHHVSCodeInstallation, confirmTelemetryConsent } from "./prompt";
+import {
+  InstallationState,
+  installHardhatVSCode,
+  isHardhatVSCodeInstalled,
+} from "./hardhat-vscode-installation";
 
 const log = debug("hardhat:core:cli");
 
-applyWorkaround();
-
 const ANALYTICS_SLOW_TASK_THRESHOLD = 300;
+const SHOULD_SHOW_STACK_TRACES_BY_DEFAULT = isRunningOnCiServer();
 
 async function printVersionMessage(packageJson: PackageJson) {
   console.log(packageJson.version);
 }
 
-function printWarningAboutNodeJsVersionIfNeceesary(packageJson: PackageJson) {
+function printWarningAboutNodeJsVersionIfNecessary(packageJson: PackageJson) {
   const requirement = packageJson.engines.node;
   if (!semver.satisfies(process.version, requirement)) {
     console.warn(
       chalk.yellow(
         `You are using a version of Node.js that is not supported by Hardhat, and it may work incorrectly, or not work at all.
 
-Please, upgrade your Node.js version.
+Please, make sure you are using a supported version of Node.js.
 
 To learn more about which versions of Node.js are supported go to https://hardhat.org/nodejs-versions`
       )
@@ -56,15 +71,50 @@ To learn more about which versions of Node.js are supported go to https://hardha
   }
 }
 
+async function suggestInstallingHardhatVscode() {
+  const alreadyPrompted = hasPromptedForHHVSCode();
+  if (alreadyPrompted) {
+    return;
+  }
+
+  const isInstalled = isHardhatVSCodeInstalled();
+  writePromptedForHHVSCode();
+
+  if (isInstalled !== InstallationState.EXTENSION_NOT_INSTALLED) {
+    return;
+  }
+
+  const installationConsent = await confirmHHVSCodeInstallation();
+
+  if (installationConsent === true) {
+    console.log("Installing Hardhat for Visual Studio Code...");
+    const installed = installHardhatVSCode();
+
+    if (installed) {
+      console.log("Hardhat for Visual Studio Code was successfully installed");
+    } else {
+      console.log(
+        "Hardhat for Visual Studio Code couldn't be installed. To learn more about it, go to https://hardhat.org/hardhat-vscode"
+      );
+    }
+  } else {
+    console.log(
+      "To learn more about Hardhat for Visual Studio Code, go to https://hardhat.org/hardhat-vscode"
+    );
+  }
+}
+
 async function main() {
   // We first accept this argument anywhere, so we know if the user wants
   // stack traces before really parsing the arguments.
-  let showStackTraces = process.argv.includes("--show-stack-traces");
+  let showStackTraces =
+    process.argv.includes("--show-stack-traces") ||
+    SHOULD_SHOW_STACK_TRACES_BY_DEFAULT;
 
   try {
     const packageJson = await getPackageJson();
 
-    printWarningAboutNodeJsVersionIfNeceesary(packageJson);
+    printWarningAboutNodeJsVersionIfNecessary(packageJson);
 
     const envVariableArguments = getEnvHardhatArguments(
       HARDHAT_PARAM_DEFINITIONS,
@@ -94,26 +144,31 @@ async function main() {
 
     showStackTraces = hardhatArguments.showStackTraces;
 
-    if (
-      hardhatArguments.config === undefined &&
-      !isCwdInsideProject() &&
-      (process.stdout.isTTY === true ||
-        process.env.HARDHAT_CREATE_BASIC_SAMPLE_PROJECT_WITH_DEFAULTS !==
-          undefined ||
-        process.env.HARDHAT_CREATE_ADVANCED_SAMPLE_PROJECT_WITH_DEFAULTS !==
-          undefined ||
-        process.env
-          .HARDHAT_CREATE_ADVANCED_TYPESCRIPT_SAMPLE_PROJECT_WITH_DEFAULTS !==
-          undefined)
-    ) {
-      await createProject();
-      return;
-    }
-
     // --version is a special case
     if (hardhatArguments.version) {
       await printVersionMessage(packageJson);
       return;
+    }
+
+    if (hardhatArguments.config === undefined && !isCwdInsideProject()) {
+      if (
+        process.stdout.isTTY === true ||
+        process.env.HARDHAT_CREATE_JAVASCRIPT_PROJECT_WITH_DEFAULTS !==
+          undefined ||
+        process.env.HARDHAT_CREATE_TYPESCRIPT_PROJECT_WITH_DEFAULTS !==
+          undefined
+      ) {
+        await createProject();
+        return;
+      }
+
+      // Many terminal emulators in windows fail to run the createProject()
+      // workflow, and don't present themselves as TTYs. If we are in this
+      // situation we throw a special error instructing the user to use WSL or
+      // powershell to initialize the project.
+      if (process.platform === "win32") {
+        throw new HardhatError(ERRORS.GENERAL.NOT_INSIDE_PROJECT_ON_WINDOWS);
+      }
     }
 
     if (!isHardhatInstalledLocallyOrLinked()) {
@@ -121,17 +176,29 @@ async function main() {
     }
 
     if (willRunWithTypescript(hardhatArguments.config)) {
-      loadTsNode();
+      loadTsNode(hardhatArguments.tsconfig, hardhatArguments.typecheck);
+    } else {
+      if (hardhatArguments.typecheck === true) {
+        throw new HardhatError(
+          ERRORS.ARGUMENTS.TYPECHECK_USED_IN_JAVASCRIPT_PROJECT
+        );
+      }
     }
 
     let taskName = parsedTaskName ?? TASK_HELP;
 
+    const showEmptyConfigWarning = true;
     const showSolidityConfigWarnings = taskName === TASK_COMPILE;
 
     const ctx = HardhatContext.createHardhatContext();
-    const config = loadConfigAndTasks(hardhatArguments, {
-      showSolidityConfigWarnings,
-    });
+
+    const { resolvedConfig, userConfig } = loadConfigAndTasks(
+      hardhatArguments,
+      {
+        showEmptyConfigWarning,
+        showSolidityConfigWarnings,
+      }
+    );
 
     let telemetryConsent: boolean | undefined = hasConsentedTelemetry();
 
@@ -151,7 +218,7 @@ async function main() {
 
     const analytics = await Analytics.getInstance(telemetryConsent);
 
-    Reporter.setConfigPath(config.paths.configFile);
+    Reporter.setConfigPath(resolvedConfig.paths.configFile);
     if (telemetryConsent === true) {
       Reporter.setEnabled(true);
     }
@@ -189,28 +256,53 @@ async function main() {
     }
 
     const env = new Environment(
-      config,
+      resolvedConfig,
       hardhatArguments,
       taskDefinitions,
       envExtenders,
-      ctx.experimentalHardhatNetworkMessageTraceHooks
+      ctx.experimentalHardhatNetworkMessageTraceHooks,
+      userConfig
     );
 
     ctx.setHardhatRuntimeEnvironment(env);
 
-    const timestampBeforeRun = new Date().getTime();
+    try {
+      const timestampBeforeRun = new Date().getTime();
 
-    await env.run(taskName, taskArguments);
+      await env.run(taskName, taskArguments);
 
-    const timestampAfterRun = new Date().getTime();
-    if (
-      timestampAfterRun - timestampBeforeRun >
-      ANALYTICS_SLOW_TASK_THRESHOLD
-    ) {
-      await hitPromise;
-    } else {
-      abortAnalytics();
+      const timestampAfterRun = new Date().getTime();
+
+      if (
+        timestampAfterRun - timestampBeforeRun >
+          ANALYTICS_SLOW_TASK_THRESHOLD &&
+        taskName !== TASK_COMPILE
+      ) {
+        await hitPromise;
+      } else {
+        abortAnalytics();
+      }
+    } finally {
+      if (hardhatArguments.flamegraph === true) {
+        assertHardhatInvariant(
+          env.entryTaskProfile !== undefined,
+          "--flamegraph was set but entryTaskProfile is not defined"
+        );
+
+        const flamegraphPath = saveFlamegraph(env.entryTaskProfile);
+        console.log("Created flamegraph file", flamegraphPath);
+      }
     }
+
+    // VSCode extension prompt for installation
+    if (
+      taskName === TASK_TEST &&
+      !isRunningOnCiServer() &&
+      process.stdout.isTTY === true
+    ) {
+      await suggestInstallingHardhatVscode();
+    }
+
     log(`Killing Hardhat after successfully running task ${taskName}`);
   } catch (error) {
     let isHardhatError = false;
@@ -234,17 +326,17 @@ async function main() {
     console.log("");
 
     try {
-      Reporter.reportError(error);
+      Reporter.reportError(error as Error);
     } catch (e) {
       log("Couldn't report error to sentry: %O", e);
     }
 
-    if (showStackTraces) {
+    if (showStackTraces || SHOULD_SHOW_STACK_TRACES_BY_DEFAULT) {
       console.error(error);
     } else {
       if (!isHardhatError) {
         console.error(
-          `If you think this is a bug in Hardhat, please report it here: https://hardhat.org/reportbug`
+          `If you think this is a bug in Hardhat, please report it here: https://hardhat.org/report-bug`
         );
       }
 

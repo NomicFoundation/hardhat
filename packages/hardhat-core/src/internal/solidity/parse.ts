@@ -1,8 +1,8 @@
-import debug from "debug";
+import type SolidityAnalyzerT from "@nomicfoundation/solidity-analyzer";
 
 import { SolidityFilesCache } from "../../builtin-tasks/utils/solidity-files-cache";
-
-const log = debug("hardhat:core:solidity:imports");
+import { HardhatError } from "../core/errors";
+import { ERRORS } from "../core/errors-list";
 
 interface ParsedData {
   imports: string[];
@@ -29,38 +29,22 @@ export class Parser {
       return cacheResult;
     }
 
-    let result;
     try {
-      const parser = require("@solidity-parser/parser");
-      const ast = parser.parse(fileContent, { tolerant: true });
+      const { analyze } =
+        require("@nomicfoundation/solidity-analyzer") as typeof SolidityAnalyzerT;
+      const result = analyze(fileContent);
 
-      const imports: string[] = [];
-      const versionPragmas: string[] = [];
+      this._cache.set(contentHash, result);
 
-      parser.visit(ast, {
-        ImportDirective: (node: { path: string }) => imports.push(node.path),
-        PragmaDirective: (node: { name: string; value: string }) => {
-          if (node.name === "solidity") {
-            versionPragmas.push(node.value);
-          }
-        },
-      });
+      return result;
+    } catch (e: any) {
+      if (e.code === "MODULE_NOT_FOUND") {
+        throw new HardhatError(ERRORS.GENERAL.CORRUPTED_LOCKFILE);
+      }
 
-      result = { imports, versionPragmas };
-    } catch (error) {
-      log(
-        "Failed to parse Solidity file to extract its imports, using regex fallback\n",
-        error
-      );
-      result = {
-        imports: findImportsWithRegexps(fileContent),
-        versionPragmas: findVersionPragmasWithRegexps(fileContent),
-      };
+      // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
+      throw e;
     }
-
-    this._cache.set(contentHash, result);
-
-    return result;
   }
 
   /**
@@ -92,44 +76,5 @@ export class Parser {
     }
 
     return { imports, versionPragmas };
-  }
-}
-
-function findImportsWithRegexps(fileContent: string): string[] {
-  const importsRegexp: RegExp =
-    /import\s+(?:(?:"([^;]*)"|'([^;]*)')(?:;|\s+as\s+[^;]*;)|.+from\s+(?:"(.*)"|'(.*)');)/g;
-
-  let imports: string[] = [];
-  let result: RegExpExecArray | null;
-
-  while (true) {
-    result = importsRegexp.exec(fileContent);
-    if (result === null) {
-      return imports;
-    }
-
-    imports = [
-      ...imports,
-      ...result.slice(1).filter((m: any) => m !== undefined),
-    ];
-  }
-}
-
-function findVersionPragmasWithRegexps(fileContent: string): string[] {
-  const versionPragmasRegexp: RegExp = /pragma\s+solidity\s+(.+?);/g;
-
-  let versionPragmas: string[] = [];
-  let result: RegExpExecArray | null;
-
-  while (true) {
-    result = versionPragmasRegexp.exec(fileContent);
-    if (result === null) {
-      return versionPragmas;
-    }
-
-    versionPragmas = [
-      ...versionPragmas,
-      ...result.slice(1).filter((m: any) => m !== undefined),
-    ];
   }
 }

@@ -9,7 +9,7 @@ export async function hasTruffleFixture(paths: ProjectPathsConfig) {
   try {
     require.resolve(path.join(paths.tests, TRUFFLE_FIXTURE_NAME));
     return true;
-  } catch (error) {
+  } catch {
     return false;
   }
 }

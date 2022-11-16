@@ -3,20 +3,20 @@ import { Context } from "mocha";
 
 import {
   numberToRpcQuantity,
-  rpcQuantityToBN,
+  rpcQuantityToBigInt,
   rpcQuantityToNumber,
-} from "../../../../../../../internal/core/jsonrpc/types/base-types";
-import { COINBASE_ADDRESS } from "../../../../../../../internal/hardhat-network/provider/node";
+} from "../../../../../../../src/internal/core/jsonrpc/types/base-types";
 import {
   RpcBlockOutput,
   RpcTransactionOutput,
-} from "../../../../../../../internal/hardhat-network/provider/output";
+} from "../../../../../../../src/internal/hardhat-network/provider/output";
 import { workaroundWindowsCiFailures } from "../../../../../../utils/workaround-windows-ci-failures";
 import { assertQuantity } from "../../../../helpers/assertions";
 import { setCWD } from "../../../../helpers/cwd";
 import { PROVIDERS } from "../../../../helpers/providers";
 import { retrieveForkBlockNumber } from "../../../../helpers/retrieveForkBlockNumber";
 import { sendTxToZeroAddress } from "../../../../helpers/transactions";
+import { DEFAULT_COINBASE } from "../../../../../../../src/internal/hardhat-network/provider/provider";
 
 describe("Eth module", function () {
   PROVIDERS.forEach(({ name, useProvider, isFork }) => {
@@ -84,7 +84,7 @@ describe("Eth module", function () {
           assert.equal(block.transactions.length, 1);
           assert.equal(block.parentHash, firstBlock.hash);
           assert.include(block.transactions as string[], txHash);
-          assert.equal(block.miner, COINBASE_ADDRESS.toString());
+          assert.equal(block.miner, DEFAULT_COINBASE.toString());
           assert.isEmpty(block.uncles);
         });
 
@@ -107,7 +107,7 @@ describe("Eth module", function () {
           assert.equal(block.transactions.length, 1);
           assert.equal(block.parentHash, firstBlock.hash);
           assert.include(block.transactions as string[], txHash);
-          assert.equal(block.miner, COINBASE_ADDRESS.toString());
+          assert.equal(block.miner, DEFAULT_COINBASE.toString());
           assert.isEmpty(block.uncles);
         });
 
@@ -128,7 +128,7 @@ describe("Eth module", function () {
           assertQuantity(block.number, firstBlockNumber + 1);
           assert.equal(block.transactions.length, 1);
           assert.equal(block.parentHash, firstBlock.hash);
-          assert.equal(block.miner, COINBASE_ADDRESS.toString());
+          assert.equal(block.miner, DEFAULT_COINBASE.toString());
           assert.isEmpty(block.uncles);
 
           const txOutput = block.transactions[0] as RpcTransactionOutput;
@@ -164,9 +164,8 @@ describe("Eth module", function () {
 
           assertQuantity(
             block.totalDifficulty,
-            rpcQuantityToBN(forkBlock.totalDifficulty).add(
-              rpcQuantityToBN(block.difficulty)
-            )
+            rpcQuantityToBigInt(forkBlock.totalDifficulty) +
+              rpcQuantityToBigInt(block.difficulty)
           );
         }
 

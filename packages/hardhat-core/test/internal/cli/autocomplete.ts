@@ -83,9 +83,10 @@ const coreParams = [
     name: "--network",
   },
   {
-    description: "Show stack traces.",
+    description: "Show stack traces (always enabled on CI servers).",
     name: "--show-stack-traces",
   },
+  versionParam,
   {
     description: "Shows this message, or a task's help if its name is provided",
     name: "--help",
@@ -103,11 +104,18 @@ const coreParams = [
     name: "--max-memory",
   },
   {
-    description: "Reserved hardhat argument -- Has no effect.",
+    description: "A TypeScript config file.",
     name: "--tsconfig",
   },
   verboseParam,
-  versionParam,
+  {
+    description: "Generate a flamegraph of your Hardhat tasks",
+    name: "--flamegraph",
+  },
+  {
+    description: "Enable TypeScript type-checking of your scripts/tests",
+    name: "--typecheck",
+  },
 ];
 
 const forceParam = {
@@ -117,6 +125,11 @@ const forceParam = {
 const quietParam = {
   description: "Makes the compilation process less verbose",
   name: "--quiet",
+};
+const concurrencyParam = {
+  description:
+    "Number of compilation jobs executed in parallel. Defaults to the number of CPU cores - 1",
+  name: "--concurrency",
 };
 
 describe("autocomplete", function () {
@@ -181,6 +194,7 @@ describe("autocomplete", function () {
         ...coreParams,
         forceParam,
         quietParam,
+        concurrencyParam,
       ]);
     });
 
@@ -194,6 +208,7 @@ describe("autocomplete", function () {
       expect(suggestions).same.deep.members([
         ...coreParamsWithoutVerbose,
         forceParam,
+        concurrencyParam,
       ]);
     });
 
@@ -243,6 +258,18 @@ describe("autocomplete", function () {
         {
           description: "Don't compile before running this task",
           name: "--no-compile",
+        },
+        {
+          description: "Run tests in parallel",
+          name: "--parallel",
+        },
+        {
+          description: "Stop running tests after the first test failure",
+          name: "--bail",
+        },
+        {
+          description: "Only run tests matching the given string or regexp",
+          name: "--grep",
         },
       ]);
     });

@@ -13,9 +13,6 @@ import {
   disableReplWriterShowProxy,
   isNodeCalledWithoutAScript,
 } from "./internal/util/console";
-import { applyWorkaround } from "./internal/util/antlr-prototype-pollution-workaround";
-
-applyWorkaround();
 
 if (!HardhatContext.isCreated()) {
   require("source-map-support/register");
@@ -36,17 +33,18 @@ if (!HardhatContext.isCreated()) {
   }
 
   if (willRunWithTypescript(hardhatArguments.config)) {
-    loadTsNode();
+    loadTsNode(hardhatArguments.tsconfig, hardhatArguments.typecheck);
   }
 
-  const config = loadConfigAndTasks(hardhatArguments);
+  const { resolvedConfig, userConfig } = loadConfigAndTasks(hardhatArguments);
 
   const env = new Environment(
-    config,
+    resolvedConfig,
     hardhatArguments,
     ctx.tasksDSL.getTaskDefinitions(),
     ctx.extendersManager.getExtenders(),
-    ctx.experimentalHardhatNetworkMessageTraceHooks
+    ctx.experimentalHardhatNetworkMessageTraceHooks,
+    userConfig
   );
 
   ctx.setHardhatRuntimeEnvironment(env);

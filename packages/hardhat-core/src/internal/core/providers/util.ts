@@ -13,7 +13,8 @@ export function derivePrivateKeys(
   mnemonic: string,
   hdpath: string,
   initialIndex: number,
-  count: number
+  count: number,
+  passphrase: string
 ): Buffer[] {
   if (hdpath.match(HD_PATH_REGEX) === null) {
     throw new HardhatError(ERRORS.NETWORK.INVALID_HD_PATH, { path: hdpath });
@@ -28,7 +29,8 @@ export function derivePrivateKeys(
   for (let i = initialIndex; i < initialIndex + count; i++) {
     const privateKey = deriveKeyFromMnemonicAndPath(
       mnemonic,
-      hdpath + i.toString()
+      hdpath + i.toString(),
+      passphrase
     );
 
     if (privateKey === undefined) {
@@ -51,13 +53,14 @@ export function normalizeHardhatNetworkAccountsConfig(
     return accountsConfig;
   }
 
-  const { bufferToHex } = require("ethereumjs-util");
+  const { bufferToHex } = require("@nomicfoundation/ethereumjs-util");
 
   return derivePrivateKeys(
     accountsConfig.mnemonic,
     accountsConfig.path,
     accountsConfig.initialIndex,
-    accountsConfig.count
+    accountsConfig.count,
+    accountsConfig.passphrase
   ).map((pk) => ({
     privateKey: bufferToHex(pk),
     balance: accountsConfig.accountsBalance ?? DEFAULT_HARDHAT_NETWORK_BALANCE,

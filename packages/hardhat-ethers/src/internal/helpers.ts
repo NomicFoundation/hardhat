@@ -1,13 +1,13 @@
 import type { ethers } from "ethers";
+import type { SignerWithAddress } from "../signers";
+import type { FactoryOptions, Libraries } from "../types";
+
 import { NomicLabsHardhatPluginError } from "hardhat/plugins";
 import {
   Artifact,
   HardhatRuntimeEnvironment,
   NetworkConfig,
 } from "hardhat/types";
-
-import type { SignerWithAddress } from "../signers";
-import type { FactoryOptions, Libraries } from "../types";
 
 interface Link {
   sourceName: string;
@@ -16,6 +16,28 @@ interface Link {
 }
 
 const pluginName = "hardhat-ethers";
+
+function isArtifact(artifact: any): artifact is Artifact {
+  const {
+    contractName,
+    sourceName,
+    abi,
+    bytecode,
+    deployedBytecode,
+    linkReferences,
+    deployedLinkReferences,
+  } = artifact;
+
+  return (
+    typeof contractName === "string" &&
+    typeof sourceName === "string" &&
+    Array.isArray(abi) &&
+    typeof bytecode === "string" &&
+    typeof deployedBytecode === "string" &&
+    linkReferences !== undefined &&
+    deployedLinkReferences !== undefined
+  );
+}
 
 export async function getSigners(
   hre: HardhatRuntimeEnvironment
@@ -44,6 +66,14 @@ export async function getSigner(
   return signerWithAddress;
 }
 
+export async function getImpersonatedSigner(
+  hre: HardhatRuntimeEnvironment,
+  address: string
+): Promise<SignerWithAddress> {
+  await hre.ethers.provider.send("hardhat_impersonateAccount", [address]);
+  return getSigner(hre, address);
+}
+
 export function getContractFactory(
   hre: HardhatRuntimeEnvironment,
   name: string,
@@ -66,9 +96,11 @@ export async function getContractFactory(
   signer?: ethers.Signer
 ) {
   if (typeof nameOrAbi === "string") {
-    return getContractFactoryByName(
+    const artifact = await hre.artifacts.readArtifact(nameOrAbi);
+
+    return getContractFactoryFromArtifact(
       hre,
-      nameOrAbi,
+      artifact,
       bytecodeOrFactoryOptions as ethers.Signer | FactoryOptions | undefined
     );
   }
@@ -92,15 +124,21 @@ function isFactoryOptions(
   return true;
 }
 
-async function getContractFactoryByName(
+export async function getContractFactoryFromArtifact(
   hre: HardhatRuntimeEnvironment,
-  contractName: string,
+  artifact: Artifact,
   signerOrOptions?: ethers.Signer | FactoryOptions
 ) {
-  const artifact = await hre.artifacts.readArtifact(contractName);
-
   let libraries: Libraries = {};
   let signer: ethers.Signer | undefined;
+
+  if (!isArtifact(artifact)) {
+    throw new NomicLabsHardhatPluginError(
+      pluginName,
+      `You are trying to create a contract factory from an artifact, but you have not passed a valid artifact parameter.`
+    );
+  }
+
   if (isFactoryOptions(signerOrOptions)) {
     signer = signerOrOptions.signer;
     libraries = signerOrOptions.libraries ?? {};
@@ -111,8 +149,8 @@ async function getContractFactoryByName(
   if (artifact.bytecode === "0x") {
     throw new NomicLabsHardhatPluginError(
       pluginName,
-      `You are trying to create a contract factory for the contract ${contractName}, which is abstract and can't be deployed.
-If you want to call a contract using ${contractName} as its interface use the "getContractAt" function instead.`
+      `You are trying to create a contract factory for the contract ${artifact.contractName}, which is abstract and can't be deployed.
+If you want to call a contract using ${artifact.contractName} as its interface use the "getContractAt" function instead.`
     );
   }
 
@@ -230,7 +268,7 @@ Remove one of them and review your library links before proceeding.`
       `The contract ${artifact.contractName} is missing links for the following libraries:
 ${missingLibraries}
 
-Learn more about linking contracts at https://hardhat.org/plugins/nomiclabs-hardhat-ethers.html#library-linking
+Learn more about linking contracts at https://hardhat.org/hardhat-runner/plugins/nomiclabs-hardhat-ethers#library-linking
 `
     );
   }
@@ -265,25 +303,13 @@ export async function getContractAt(
   address: string,
   signer?: ethers.Signer
 ) {
-  const { Contract } = require("ethers") as typeof ethers;
-
   if (typeof nameOrAbi === "string") {
     const artifact = await hre.artifacts.readArtifact(nameOrAbi);
-    const factory = await getContractFactoryByAbiAndBytecode(
-      hre,
-      artifact.abi,
-      "0x",
-      signer
-    );
 
-    let contract = factory.attach(address);
-    // If there's no signer, we connect the contract instance to the provider for the selected network.
-    if (contract.provider === null) {
-      contract = contract.connect(hre.ethers.provider);
-    }
-
-    return contract;
+    return getContractAtFromArtifact(hre, artifact, address, signer);
   }
+
+  const { Contract } = require("ethers") as typeof ethers;
 
   if (signer === undefined) {
     const signers = await hre.ethers.getSigners();
@@ -301,6 +327,64 @@ export async function getContractAt(
   );
 
   return new Contract(address, abiWithAddedGas, signerOrProvider);
+}
+
+export async function deployContract(
+  hre: HardhatRuntimeEnvironment,
+  name: string,
+  args?: any[],
+  signerOrOptions?: ethers.Signer | FactoryOptions
+): Promise<ethers.Contract>;
+
+export async function deployContract(
+  hre: HardhatRuntimeEnvironment,
+  name: string,
+  signerOrOptions?: ethers.Signer | FactoryOptions
+): Promise<ethers.Contract>;
+
+export async function deployContract(
+  hre: HardhatRuntimeEnvironment,
+  name: string,
+  argsOrSignerOrOptions?: any[] | ethers.Signer | FactoryOptions,
+  signerOrOptions?: ethers.Signer | FactoryOptions
+): Promise<ethers.Contract> {
+  let args = [];
+  if (Array.isArray(argsOrSignerOrOptions)) {
+    args = argsOrSignerOrOptions;
+  } else {
+    signerOrOptions = argsOrSignerOrOptions;
+  }
+  const factory = await getContractFactory(hre, name, signerOrOptions);
+  return factory.deploy(...args);
+}
+
+export async function getContractAtFromArtifact(
+  hre: HardhatRuntimeEnvironment,
+  artifact: Artifact,
+  address: string,
+  signer?: ethers.Signer
+) {
+  if (!isArtifact(artifact)) {
+    throw new NomicLabsHardhatPluginError(
+      pluginName,
+      `You are trying to create a contract by artifact, but you have not passed a valid artifact parameter.`
+    );
+  }
+
+  const factory = await getContractFactoryByAbiAndBytecode(
+    hre,
+    artifact.abi,
+    "0x",
+    signer
+  );
+
+  let contract = factory.attach(address);
+  // If there's no signer, we connect the contract instance to the provider for the selected network.
+  if (contract.provider === null) {
+    contract = contract.connect(hre.ethers.provider);
+  }
+
+  return contract;
 }
 
 // This helper adds a `gas` field to the ABI function elements if the network

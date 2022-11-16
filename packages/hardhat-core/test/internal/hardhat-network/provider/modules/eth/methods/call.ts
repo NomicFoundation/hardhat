@@ -1,18 +1,24 @@
 import { assert } from "chai";
+import { Client } from "undici";
 
-import { BN } from "ethereumjs-util";
 import {
   numberToRpcQuantity,
   rpcDataToNumber,
   rpcQuantityToNumber,
-} from "../../../../../../../internal/core/jsonrpc/types/base-types";
-import { getCurrentTimestamp } from "../../../../../../../internal/hardhat-network/provider/utils/getCurrentTimestamp";
+  rpcDataToBigInt,
+  rpcQuantityToBigInt,
+} from "../../../../../../../src/internal/core/jsonrpc/types/base-types";
+import { getCurrentTimestamp } from "../../../../../../../src/internal/hardhat-network/provider/utils/getCurrentTimestamp";
 import { workaroundWindowsCiFailures } from "../../../../../../utils/workaround-windows-ci-failures";
-import { assertInvalidInputError } from "../../../../helpers/assertions";
+import {
+  assertAddressBalance,
+  assertInvalidInputError,
+} from "../../../../helpers/assertions";
 import {
   EXAMPLE_BLOCKHASH_CONTRACT,
   EXAMPLE_CONTRACT,
   EXAMPLE_READ_CONTRACT,
+  EXAMPLE_REVERT_CONTRACT,
 } from "../../../../helpers/contracts";
 import { setCWD } from "../../../../helpers/cwd";
 import {
@@ -26,13 +32,10 @@ import {
   sendTxToZeroAddress,
 } from "../../../../helpers/transactions";
 import { compileLiteral } from "../../../../stack-traces/compilation";
-import {
-  rpcDataToBN,
-  rpcQuantityToBN,
-} from "../../../../../../../src/internal/core/jsonrpc/types/base-types";
+import { EthereumProvider } from "../../../../../../../src/types";
 
 describe("Eth module", function () {
-  PROVIDERS.forEach(({ name, useProvider, isFork }) => {
+  PROVIDERS.forEach(({ name, useProvider, isFork, chainId }) => {
     if (isFork) {
       this.timeout(50000);
     }
@@ -514,7 +517,7 @@ contract C {
 
           const CALLER = DEFAULT_ACCOUNTS_ADDRESSES[2];
           let contractAddress: string;
-          let ethBalance: BN;
+          let ethBalance: bigint;
 
           function deployContractAndGetEthBalance() {
             beforeEach(async function () {
@@ -523,7 +526,7 @@ contract C {
                 deploymentBytecode
               );
 
-              ethBalance = rpcQuantityToBN(
+              ethBalance = rpcQuantityToBigInt(
                 await this.provider.send("eth_getBalance", [CALLER])
               );
               assert.notEqual(ethBalance.toString(), "0");
@@ -545,14 +548,14 @@ contract C {
               ]);
 
               assert.equal(
-                rpcDataToBN(balanceResult).toString(),
+                rpcDataToBigInt(balanceResult).toString(),
                 ethBalance.toString()
               );
             });
 
             it("Should use any provided gasPrice", async function () {
-              const gasLimit = 200_000;
-              const gasPrice = 2;
+              const gasLimit = 200_000n;
+              const gasPrice = 2n;
 
               const balanceResult = await this.provider.send("eth_call", [
                 {
@@ -564,131 +567,377 @@ contract C {
                 },
               ]);
 
-              assert.isTrue(
-                rpcDataToBN(balanceResult).eq(
-                  ethBalance.subn(gasLimit * gasPrice)
-                )
+              assert.equal(
+                rpcDataToBigInt(balanceResult),
+                ethBalance - gasLimit * gasPrice
               );
             });
           });
 
-          describe("When running with EIP-1559", function () {
-            useProvider({ hardfork: "london" });
+          for (const hardfork of ["london", "arrowGlacier"]) {
+            describe(`When running with EIP-1559 (${hardfork})`, function () {
+              useProvider({ hardfork });
 
-            deployContractAndGetEthBalance();
+              deployContractAndGetEthBalance();
 
-            it("Should validate that gasPrice and maxFeePerGas & maxPriorityFeePerGas are not mixed", async function () {
-              await assertInvalidInputError(
-                this.provider,
-                "eth_call",
-                [
+              it("Should validate that gasPrice and maxFeePerGas & maxPriorityFeePerGas are not mixed", async function () {
+                await assertInvalidInputError(
+                  this.provider,
+                  "eth_call",
+                  [
+                    {
+                      from: CALLER,
+                      to: contractAddress,
+                      gasPrice: numberToRpcQuantity(1),
+                      maxFeePerGas: numberToRpcQuantity(1),
+                    },
+                  ],
+                  "Cannot send both gasPrice and maxFeePerGas"
+                );
+
+                await assertInvalidInputError(
+                  this.provider,
+                  "eth_call",
+                  [
+                    {
+                      from: CALLER,
+                      to: contractAddress,
+                      gasPrice: numberToRpcQuantity(1),
+                      maxPriorityFeePerGas: numberToRpcQuantity(1),
+                    },
+                  ],
+                  "Cannot send both gasPrice and maxPriorityFeePerGas"
+                );
+              });
+
+              it("Should validate that maxFeePerGas >= maxPriorityFeePerGas", async function () {
+                await assertInvalidInputError(
+                  this.provider,
+                  "eth_call",
+                  [
+                    {
+                      from: CALLER,
+                      to: contractAddress,
+                      maxFeePerGas: numberToRpcQuantity(1),
+                      maxPriorityFeePerGas: numberToRpcQuantity(2),
+                    },
+                  ],
+                  "maxPriorityFeePerGas (2) is bigger than maxFeePerGas (1)"
+                );
+              });
+
+              it("Should default to maxFeePerGas = 0 if nothing provided", async function () {
+                const balanceResult = await this.provider.send("eth_call", [
                   {
                     from: CALLER,
                     to: contractAddress,
-                    gasPrice: numberToRpcQuantity(1),
+                    data: balanceSelector,
+                  },
+                ]);
+
+                assert.equal(
+                  rpcDataToBigInt(balanceResult).toString(),
+                  ethBalance.toString()
+                );
+              });
+
+              it("Should use maxFeePerGas if provided with a maxPriorityFeePerGas = 0", async function () {
+                const balanceResult = await this.provider.send("eth_call", [
+                  {
+                    from: CALLER,
+                    to: contractAddress,
+                    data: balanceSelector,
                     maxFeePerGas: numberToRpcQuantity(1),
                   },
-                ],
-                "Cannot send both gasPrice and maxFeePerGas"
-              );
+                ]);
 
-              await assertInvalidInputError(
-                this.provider,
-                "eth_call",
-                [
+                // This doesn't change because the baseFeePerGas of block where we
+                // run the eth_call is 0
+                assert.equal(
+                  rpcDataToBigInt(balanceResult).toString(),
+                  ethBalance.toString()
+                );
+              });
+
+              it("Should use maxPriorityFeePerGas if provided, with maxFeePerGas = maxPriorityFeePerGas", async function () {
+                const balanceResult = await this.provider.send("eth_call", [
                   {
                     from: CALLER,
                     to: contractAddress,
-                    gasPrice: numberToRpcQuantity(1),
-                    maxPriorityFeePerGas: numberToRpcQuantity(1),
+                    data: balanceSelector,
+                    maxPriorityFeePerGas: numberToRpcQuantity(3),
+                    gas: numberToRpcQuantity(500_000),
                   },
-                ],
-                "Cannot send both gasPrice and maxPriorityFeePerGas"
-              );
-            });
+                ]);
 
-            it("Should validate that maxFeePerGas >= maxPriorityFeePerGas", async function () {
-              await assertInvalidInputError(
-                this.provider,
-                "eth_call",
-                [
+                // The miner will get the priority fee
+                assert.equal(
+                  rpcDataToBigInt(balanceResult),
+                  ethBalance - 3n * 500_000n
+                );
+              });
+
+              it("Should use gasPrice if provided", async function () {
+                const balanceResult = await this.provider.send("eth_call", [
                   {
                     from: CALLER,
                     to: contractAddress,
-                    maxFeePerGas: numberToRpcQuantity(1),
-                    maxPriorityFeePerGas: numberToRpcQuantity(2),
+                    data: balanceSelector,
+                    gasPrice: numberToRpcQuantity(6),
+                    gas: numberToRpcQuantity(500_000),
                   },
-                ],
-                "maxPriorityFeePerGas (2) is bigger than maxFeePerGas (1)"
-              );
-            });
+                ]);
 
-            it("Should default to maxFeePerGas = 0 if nothing provided", async function () {
-              const balanceResult = await this.provider.send("eth_call", [
-                {
-                  from: CALLER,
-                  to: contractAddress,
-                  data: balanceSelector,
+                // The miner will get the gasPrice * gas as a normalized priority fee
+                assert.equal(
+                  rpcDataToBigInt(balanceResult),
+                  ethBalance - 6n * 500_000n
+                );
+              });
+            });
+          }
+        });
+
+        describe("sender balance", function () {
+          const sender = "0x47dc9a4a1ff2436deb1828d038868561c8a5aedf";
+          let contractAddress: string;
+
+          beforeEach("deploy the contract", async function () {
+            contractAddress = await deployContract(
+              this.provider,
+              `0x${EXAMPLE_READ_CONTRACT.bytecode.object}`
+            );
+          });
+
+          it("should use the sender's balance if it's enough", async function () {
+            // fund the sender
+            await this.provider.send("eth_sendTransaction", [
+              {
+                from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+                to: sender,
+                value: numberToRpcQuantity(1_000_000),
+              },
+            ]);
+            await assertAddressBalance(this.provider, sender, 1_000_000n);
+
+            // call the contract
+            const senderBalance = await this.provider.send("eth_call", [
+              {
+                from: sender,
+                to: contractAddress,
+                data: EXAMPLE_READ_CONTRACT.selectors.senderBalance,
+                gas: numberToRpcQuantity(100_000),
+                gasPrice: numberToRpcQuantity(1),
+              },
+            ]);
+
+            assert.equal(rpcDataToNumber(senderBalance), 900_000);
+          });
+
+          it("should increase the sender's balance if it's positive but not enough", async function () {
+            // We expect that, before the transaction is executed, the balance
+            // of the sender will be increased to the minimum value that lets
+            // the VM execute the tx. This means that during the execution of
+            // the tx, msg.sender.balance will be 0.
+
+            // fund the sender
+            await this.provider.send("eth_sendTransaction", [
+              {
+                from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+                to: sender,
+                value: numberToRpcQuantity(1_000),
+              },
+            ]);
+            await assertAddressBalance(this.provider, sender, 1_000n);
+
+            // call the contract
+            const senderBalance = await this.provider.send("eth_call", [
+              {
+                from: sender,
+                to: contractAddress,
+                data: EXAMPLE_READ_CONTRACT.selectors.senderBalance,
+                gas: numberToRpcQuantity(100_000),
+                gasPrice: numberToRpcQuantity(1),
+              },
+            ]);
+
+            assert.equal(rpcDataToNumber(senderBalance), 0);
+          });
+
+          it("should increase the sender's balance if it's zero", async function () {
+            // We expect that, before the transaction is executed, the balance
+            // of the sender will be increased to the minimum value that lets
+            // the VM execute the tx. This means that during the execution of
+            // the tx, msg.sender.balance will be 0.
+
+            await assertAddressBalance(this.provider, sender, 0n);
+
+            // call the contract
+            const senderBalance = await this.provider.send("eth_call", [
+              {
+                from: sender,
+                to: contractAddress,
+                data: EXAMPLE_READ_CONTRACT.selectors.senderBalance,
+                gas: numberToRpcQuantity(100_000),
+                gasPrice: numberToRpcQuantity(1),
+              },
+            ]);
+
+            assert.equal(rpcDataToNumber(senderBalance), 0);
+          });
+        });
+
+        it("should use the proper chain ID", async function () {
+          const [_, compilerOutput] = await compileLiteral(`
+            contract ChainIdGetter {
+              event ChainId(uint i);
+              function getChainId() public returns (uint chainId) {
+                assembly { chainId := chainid() }
+              }
+            }
+          `);
+          const contractAddress = await deployContract(
+            this.provider,
+            `0x${compilerOutput.contracts["literal.sol"].ChainIdGetter.evm.bytecode.object}`
+          );
+
+          async function getChainIdFromContract(
+            provider: EthereumProvider
+          ): Promise<number> {
+            return rpcQuantityToNumber(
+              (
+                await provider.send("eth_call", [
+                  {
+                    to: contractAddress,
+                    data: "0x3408e470", // abi-encoded "getChainId()"
+                  },
+                ])
+              ).replace(/0x0*/, "0x")
+            );
+          }
+
+          assert.equal(await getChainIdFromContract(this.provider), chainId);
+        });
+
+        describe("http JSON-RPC response", function () {
+          let client: Client;
+
+          // send the transaction using an http client, otherwise the wrapped
+          // provider will intercept the response and throw an error
+          async function call({ from, to, data }: any) {
+            return client
+              .request({
+                method: "POST",
+                path: "/",
+                headers: {
+                  "Content-Type": "application/json",
                 },
-              ]);
+                body: JSON.stringify({
+                  jsonrpc: "2.0",
+                  id: 1,
+                  method: "eth_call",
+                  params: [
+                    {
+                      from,
+                      to,
+                      data,
+                    },
+                  ],
+                }),
+              })
+              .then((x) => x.body.json());
+          }
 
-              assert.equal(
-                rpcDataToBN(balanceResult).toString(),
-                ethBalance.toString()
-              );
+          beforeEach(function () {
+            if (this.serverInfo === undefined || isFork) {
+              this.skip();
+            }
+
+            const url = `http://${this.serverInfo.address}:${this.serverInfo.port}`;
+            client = new Client(url, {
+              keepAliveTimeout: 10,
+              keepAliveMaxTimeout: 10,
+            });
+          });
+
+          it("Should return the data of a call that reverts without a reason string", async function () {
+            const contractAddress = await deployContract(
+              this.provider,
+              `0x${EXAMPLE_REVERT_CONTRACT.bytecode.object}`
+            );
+
+            const response = await call({
+              from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+              to: contractAddress,
+              data: `${EXAMPLE_REVERT_CONTRACT.selectors.reverts}`,
             });
 
-            it("Should use maxFeePerGas if provided with a maxPriorityFeePerGas = 0", async function () {
-              const balanceResult = await this.provider.send("eth_call", [
-                {
-                  from: CALLER,
-                  to: contractAddress,
-                  data: balanceSelector,
-                  maxFeePerGas: numberToRpcQuantity(1),
-                },
-              ]);
+            assert.isDefined(response.error?.data);
+            assert.equal(response.error.message, response.error.data.message);
+            assert.equal(response.error.data.data, "0x");
+          });
 
-              // This doesn't change because the baseFeePerGas of block where we
-              // run the eth_call is 0
-              assert.equal(
-                rpcDataToBN(balanceResult).toString(),
-                ethBalance.toString()
-              );
+          it("Should return the data of a call that reverts with a reason string", async function () {
+            const contractAddress = await deployContract(
+              this.provider,
+              `0x${EXAMPLE_REVERT_CONTRACT.bytecode.object}`
+            );
+
+            const response = await call({
+              from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+              to: contractAddress,
+              data: `${EXAMPLE_REVERT_CONTRACT.selectors.revertsWithReasonString}`,
             });
 
-            it("Should use maxPriorityFeePerGas if provided, with maxFeePerGas = maxPriorityFeePerGas", async function () {
-              const balanceResult = await this.provider.send("eth_call", [
-                {
-                  from: CALLER,
-                  to: contractAddress,
-                  data: balanceSelector,
-                  maxPriorityFeePerGas: numberToRpcQuantity(3),
-                  gas: numberToRpcQuantity(500_000),
-                },
-              ]);
+            assert.isDefined(response.error?.data);
+            assert.equal(response.error.message, response.error.data.message);
+            assert.equal(
+              response.error.data.data,
+              // Error(string) encoded with value "a reason"
+              "0x08c379a0000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000000086120726561736f6e000000000000000000000000000000000000000000000000"
+            );
+          });
 
-              // The miner will get the priority fee
-              assert.isTrue(
-                rpcDataToBN(balanceResult).eq(ethBalance.subn(500_000 * 3))
-              );
+          it("Should return the data of a call that panics", async function () {
+            const contractAddress = await deployContract(
+              this.provider,
+              `0x${EXAMPLE_REVERT_CONTRACT.bytecode.object}`
+            );
+
+            const response = await call({
+              from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+              to: contractAddress,
+              data: `${EXAMPLE_REVERT_CONTRACT.selectors.panics}`,
             });
 
-            it("Should use gasPrice if provided", async function () {
-              const balanceResult = await this.provider.send("eth_call", [
-                {
-                  from: CALLER,
-                  to: contractAddress,
-                  data: balanceSelector,
-                  gasPrice: numberToRpcQuantity(6),
-                  gas: numberToRpcQuantity(500_000),
-                },
-              ]);
+            assert.isDefined(response.error?.data);
+            assert.equal(response.error.message, response.error.data.message);
+            assert.equal(
+              response.error.data.data,
+              // Panic(uint256) encoded with value 0x32 (out-of-bounds array access)
+              "0x4e487b710000000000000000000000000000000000000000000000000000000000000032"
+            );
+          });
 
-              // The miner will get the gasPrice * gas as a normalized priority fee
-              assert.isTrue(
-                rpcDataToBN(balanceResult).eq(ethBalance.subn(500_000 * 6))
-              );
+          it("Should return the data of a call that reverts with a custom error", async function () {
+            const contractAddress = await deployContract(
+              this.provider,
+              `0x${EXAMPLE_REVERT_CONTRACT.bytecode.object}`
+            );
+
+            const response = await call({
+              from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+              to: contractAddress,
+              data: `${EXAMPLE_REVERT_CONTRACT.selectors.customError}`,
             });
+
+            assert.isDefined(response.error?.data);
+            assert.equal(response.error.message, response.error.data.message);
+            assert.equal(
+              response.error.data.data,
+              // MyCustomError() encoded
+              "0x4e7254d6"
+            );
           });
         });
       });

@@ -1,5 +1,6 @@
 import * as fsExtra from "fs-extra";
 import path from "path";
+import { getRealPath } from "../../src/internal/util/fs-utils";
 
 /**
  * This helper adds mocha hooks to run the tests inside one of the projects
@@ -38,5 +39,5 @@ export async function getFixtureProjectPath(
     throw new Error(`Fixture project ${projectName} doesn't exist`);
   }
 
-  return fsExtra.realpath(projectPath);
+  return getRealPath(projectPath);
 }

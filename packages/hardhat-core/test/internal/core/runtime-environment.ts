@@ -30,7 +30,7 @@ describe("Environment", () => {
     defaultNetwork: "default",
     networks: {
       localhost: {
-        url: "http://localhosthost:8545",
+        url: "http://127.0.0.1:8545",
         ...defaultHttpNetworkParams,
       },
       hardhat: {
@@ -40,7 +40,7 @@ describe("Environment", () => {
         accounts: [],
       },
       default: {
-        url: "http://localhost:8545",
+        url: "http://127.0.0.1:8545",
         ...defaultHttpNetworkParams,
       },
     },
@@ -169,9 +169,13 @@ describe("Environment", () => {
         assert.isDefined(taskResult);
 
         // same task throws with required param missing
-        await expectHardhatErrorAsync(async () => {
-          await env.run("complexExampleTask", {});
-        }, ERRORS.ARGUMENTS.MISSING_TASK_ARGUMENT);
+        await expectHardhatErrorAsync(
+          async () => {
+            await env.run("complexExampleTask", {});
+          },
+          ERRORS.ARGUMENTS.MISSING_TASK_ARGUMENT,
+          "HH306: The 'positionalRequiredStringParam' parameter of task 'complexExampleTask' expects a value, but none was passed."
+        );
       });
 
       it("should use default value on missing optional argument with default param", async () => {
@@ -243,7 +247,7 @@ describe("Environment", () => {
           const argsString = JSON.stringify(taskArguments);
           try {
             await env.run(taskNameToRun, taskArguments);
-          } catch (error) {
+          } catch (error: any) {
             assert.fail(
               error,
               undefined,

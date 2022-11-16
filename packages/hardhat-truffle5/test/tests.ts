@@ -105,7 +105,7 @@ function testArtifactsFunctionality() {
     try {
       await UsesLib.new();
       assert.fail("UsesLib shouldn't be deployeable if not linked");
-    } catch (error) {
+    } catch (error: any) {
       assert.include(error.message, "UsesLib contains unresolved libraries");
     }
   });

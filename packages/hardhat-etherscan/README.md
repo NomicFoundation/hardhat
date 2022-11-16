@@ -58,6 +58,8 @@ module.exports = {
 };
 ```
 
+Alternatively you can specify more than one block explorer API key, by passing an object under the `apiKey` property, see [`Multiple API keys and alternative block explorers`](#multiple-api-keys-and-alternative-block-explorers).
+
 Lastly, run the `verify` task, passing the address of the contract, the network where it's deployed, and the constructor arguments that were used to deploy it (if any):
 
 ```bash
@@ -119,6 +121,58 @@ module.exports = {
   SomeLibrary: "0x...",
 };
 ```
+
+### Multiple API keys and alternative block explorers
+
+If your project targets multiple EVM-compatible networks that have different explorers, you'll need to set multiple API keys.
+
+To configure the API keys for the chains you are using, provide an object under `etherscan/apiKey` with the identifier of each chain as the key. **This is not necessarily the same name that you are using to define the network**. For example, if you are going to verify contracts in Ethereum mainnet, Optimism and Arbitrum, your config would look like this:
+
+```js
+module.exports = {
+  networks: {
+    mainnet: { ... },
+    testnet: { ... }
+  },
+  etherscan: {
+    apiKey: {
+        mainnet: "YOUR_ETHERSCAN_API_KEY",
+        optimisticEthereum: "YOUR_OPTIMISTIC_ETHERSCAN_API_KEY",
+        arbitrumOne: "YOUR_ARBISCAN_API_KEY",
+    }
+  }
+};
+```
+
+To see the full list of supported networks, run `npx hardhat verify --list-networks`. The identifiers shown there are the ones that should be used as keys in the `apiKey` object.
+
+### Adding support for other networks
+
+If the chain you are using is not in the list, you can manually add the necessary information to verify your contracts on it. For this you need three things: the chain id of the network, the URL of the verification endpoint, and the URL of the explorer.
+
+For example, if Goerli wasn't supported, you could add it like this:
+
+```
+etherscan: {
+  apiKey: {
+    goerli: "<goerli-api-key>"
+  },
+  customChains: [
+    {
+      network: "goerli",
+      chainId: 5,
+      urls: {
+        apiURL: "https://api-goerli.etherscan.io/api",
+        browserURL: "https://goerli.etherscan.io"
+      }
+    }
+  ]
+}
+```
+
+Keep in mind that the name you are giving to the network in `customChains` is the same one that has to be used in the `apiKey` object.
+
+To see which custom chains are supported, run `npx hardhat verify --list-networks`.
 
 ### Using programmatically
 

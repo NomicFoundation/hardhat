@@ -12,7 +12,7 @@ export abstract class ProviderWrapperWithChainId extends ProviderWrapper {
     if (this._chainId === undefined) {
       try {
         this._chainId = await this._getChainIdFromEthChainId();
-      } catch (error) {
+      } catch {
         // If eth_chainId fails we default to net_version
         this._chainId = await this._getChainIdFromEthNetVersion();
       }

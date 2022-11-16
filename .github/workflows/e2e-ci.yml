@@ -10,7 +10,7 @@ on:
       - "config/**"
   pull_request:
     branches:
-      - "*"
+      - "**"
     paths:
       - "packages/e2e/**"
       - "packages/hardhat-core/**"
@@ -31,12 +31,13 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node: [12, 14, 16]
+        node: [14, 16, 18]
     steps:
-      - uses: actions/setup-node@v1
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
         with:
           node-version: ${{ matrix.node }}
-      - uses: actions/checkout@v2
+          cache: yarn
       - name: Install
         run: yarn --frozen-lockfile
       - name: Build

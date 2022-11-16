@@ -49,7 +49,7 @@ describe("Hardhat Network special options", function () {
                 data: CONTRACT_BYTECODE,
               },
             ]),
-          /out of gas/
+          /trying to deploy a contract whose code is too large/
         );
       });
     });
@@ -142,6 +142,69 @@ describe("Hardhat Network special options", function () {
             "Cannot fork mainnet from block"
           );
         });
+      });
+    });
+  });
+
+  describe("coinbase", function () {
+    useFixtureProject("hardhat-network-with-custom-coinbase");
+    useEnvironment();
+
+    it("Should use the 0 address for the genesis block", async function () {
+      const block = await this.env.network.provider.send(
+        "eth_getBlockByNumber",
+        [numberToRpcQuantity(0), false]
+      );
+
+      assert.equal(block.miner, "0x0000000000000000000000000000000000000000");
+    });
+
+    it("Should use the coinbase address for the new blocks", async function () {
+      await this.env.network.provider.send("evm_mine");
+
+      const block = await this.env.network.provider.send(
+        "eth_getBlockByNumber",
+        [numberToRpcQuantity(1), false]
+      );
+
+      assert.equal(block.miner, this.env.config.networks.hardhat.coinbase);
+    });
+  });
+
+  describe("accounts", function () {
+    describe("mnemonic without passphrase", async function () {
+      useFixtureProject("mnemonic-without-passphrase");
+      useEnvironment();
+
+      it("should generate the correct accounts", async function () {
+        const [a1, a2] = await this.env.network.provider.send("eth_accounts");
+
+        assert.equal(
+          a1.toLowerCase(),
+          "0x57d27a673dbd70f12cbc32211c86af726683ce25"
+        );
+        assert.equal(
+          a2.toLowerCase(),
+          "0x075d1d9101a6ed3dcdc2f41c401cf638a7bbe053"
+        );
+      });
+    });
+
+    describe("mnemonic with a passphrase", async function () {
+      useFixtureProject("mnemonic-with-passphrase");
+      useEnvironment();
+
+      it("should generate the correct accounts", async function () {
+        const [a1, a2] = await this.env.network.provider.send("eth_accounts");
+
+        assert.equal(
+          a1.toLowerCase(),
+          "0x43da4d822743814bf08648631afe7854bb57d8dc"
+        );
+        assert.equal(
+          a2.toLowerCase(),
+          "0x1df58751bbe561bae7a82b55485c0e076748eedb"
+        );
       });
     });
   });

@@ -1,9 +1,9 @@
+import os from "os";
 import chalk from "chalk";
-import { exec } from "child_process";
 import debug from "debug";
 import fsExtra from "fs-extra";
-import path from "path";
 import semver from "semver";
+import AggregateError from "aggregate-error";
 
 import {
   Artifacts as ArtifactsImpl,
@@ -26,7 +26,6 @@ import {
 import { DependencyGraph } from "../internal/solidity/dependencyGraph";
 import { Parser } from "../internal/solidity/parse";
 import { ResolvedFile, Resolver } from "../internal/solidity/resolver";
-import { glob } from "../internal/util/glob";
 import { getCompilersDir } from "../internal/util/global-dir";
 import { pluralize } from "../internal/util/strings";
 import { Artifacts, CompilerInput, CompilerOutput, SolcBuild } from "../types";
@@ -40,6 +39,7 @@ import {
 import { getFullyQualifiedName } from "../utils/contract-names";
 import { localPathToSourceName } from "../utils/source-names";
 
+import { getAllFilesMatching } from "../internal/util/fs-utils";
 import {
   TASK_COMPILE,
   TASK_COMPILE_GET_COMPILATION_TASKS,
@@ -72,6 +72,7 @@ import {
   TASK_COMPILE_SOLIDITY_READ_FILE,
   TASK_COMPILE_SOLIDITY_RUN_SOLC,
   TASK_COMPILE_SOLIDITY_RUN_SOLCJS,
+  TASK_COMPILE_REMOVE_OBSOLETE_ARTIFACTS,
 } from "./task-names";
 import {
   getSolidityFilesCachePath,
@@ -99,6 +100,10 @@ function isConsoleLogError(error: any): boolean {
 
 const log = debug("hardhat:core:tasks:compile");
 
+const COMPILE_TASK_FIRST_SOLC_VERSION_SUPPORTED = "0.4.11";
+
+const DEFAULT_CONCURRENCY_LEVEL = Math.max(os.cpus().length - 1, 1);
+
 /**
  * Returns a list of absolute paths to all the solidity files in the project.
  * This list doesn't include dependencies, for example solidity files inside
@@ -110,7 +115,9 @@ const log = debug("hardhat:core:tasks:compile");
 subtask(
   TASK_COMPILE_SOLIDITY_GET_SOURCE_PATHS,
   async (_, { config }): Promise<string[]> => {
-    const paths = await glob(path.join(config.paths.sources, "**/*.sol"));
+    const paths = await getAllFilesMatching(config.paths.sources, (f) =>
+      f.endsWith(".sol")
+    );
 
     return paths;
   }
@@ -197,10 +204,10 @@ subtask(TASK_COMPILE_SOLIDITY_GET_DEPENDENCY_GRAPH)
  *
  * This is the right task to override to change the compiler configuration.
  * For example, if you want to change the compiler settings when targetting
- * rinkeby, you could do something like this:
+ * goerli, you could do something like this:
  *
  *   const compilationJob = await runSuper();
- *   if (config.network.name === 'rinkeby') {
+ *   if (config.network.name === 'goerli') {
  *     compilationJob.solidityConfig.settings = newSettings;
  *   }
  *   return compilationJob;
@@ -359,14 +366,17 @@ subtask(TASK_COMPILE_SOLIDITY_LOG_NOTHING_TO_COMPILE)
 subtask(TASK_COMPILE_SOLIDITY_COMPILE_JOBS)
   .addParam("compilationJobs", undefined, undefined, types.any)
   .addParam("quiet", undefined, undefined, types.boolean)
+  .addParam("concurrency", undefined, DEFAULT_CONCURRENCY_LEVEL, types.int)
   .setAction(
     async (
       {
         compilationJobs,
         quiet,
+        concurrency,
       }: {
         compilationJobs: CompilationJob[];
         quiet: boolean;
+        concurrency: number;
       },
       { run }
     ): Promise<{ artifactsEmittedPerJob: ArtifactsEmittedPerJob }> => {
@@ -376,39 +386,75 @@ subtask(TASK_COMPILE_SOLIDITY_COMPILE_JOBS)
         return { artifactsEmittedPerJob: [] };
       }
 
-      // sort compilation jobs by compiler version
-      const sortedCompilationJobs = compilationJobs
-        .slice()
-        .sort((job1, job2) => {
-          return semver.compare(
-            job1.getSolcConfig().version,
-            job2.getSolcConfig().version
-          );
-        });
+      log(`Compiling ${compilationJobs.length} jobs`);
 
-      log(`Compiling ${sortedCompilationJobs.length} jobs`);
+      const versionList: string[] = [];
+      for (const job of compilationJobs) {
+        const solcVersion = job.getSolcConfig().version;
 
-      const artifactsEmittedPerJob: ArtifactsEmittedPerJob = [];
-      for (let i = 0; i < sortedCompilationJobs.length; i++) {
-        const compilationJob = sortedCompilationJobs[i];
-
-        const { artifactsEmittedPerFile } = await run(
-          TASK_COMPILE_SOLIDITY_COMPILE_JOB,
-          {
-            compilationJob,
-            compilationJobs: sortedCompilationJobs,
-            compilationJobIndex: i,
-            quiet,
+        if (!versionList.includes(solcVersion)) {
+          // versions older than 0.4.11 don't work with hardhat
+          // see issue https://github.com/nomiclabs/hardhat/issues/2004
+          if (
+            semver.lt(solcVersion, COMPILE_TASK_FIRST_SOLC_VERSION_SUPPORTED)
+          ) {
+            throw new HardhatError(
+              ERRORS.BUILTIN_TASKS.COMPILE_TASK_UNSUPPORTED_SOLC_VERSION,
+              {
+                version: solcVersion,
+                firstSupportedVersion:
+                  COMPILE_TASK_FIRST_SOLC_VERSION_SUPPORTED,
+              }
+            );
           }
-        );
 
-        artifactsEmittedPerJob.push({
-          compilationJob,
-          artifactsEmittedPerFile,
-        });
+          versionList.push(solcVersion);
+        }
       }
 
-      return { artifactsEmittedPerJob };
+      const { default: pMap } = await import("p-map");
+      const pMapOptions = { concurrency, stopOnError: false };
+      try {
+        const artifactsEmittedPerJob: ArtifactsEmittedPerJob = await pMap(
+          compilationJobs,
+          async (compilationJob, compilationJobIndex) => {
+            const result = await run(TASK_COMPILE_SOLIDITY_COMPILE_JOB, {
+              compilationJob,
+              compilationJobs,
+              compilationJobIndex,
+              quiet,
+            });
+
+            return {
+              compilationJob: result.compilationJob,
+              artifactsEmittedPerFile: result.artifactsEmittedPerFile,
+            };
+          },
+          pMapOptions
+        );
+
+        return { artifactsEmittedPerJob };
+      } catch (e) {
+        if (!(e instanceof AggregateError)) {
+          // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
+          throw e;
+        }
+
+        for (const error of e) {
+          if (
+            !HardhatError.isHardhatErrorType(
+              error,
+              ERRORS.BUILTIN_TASKS.COMPILE_FAILURE
+            )
+          ) {
+            // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
+            throw error;
+          }
+        }
+
+        // error is an aggregate error, and all errors are compilation failures
+        throw new HardhatError(ERRORS.BUILTIN_TASKS.COMPILE_FAILURE);
+      }
     }
   );
 
@@ -484,89 +530,75 @@ subtask(TASK_COMPILE_SOLIDITY_GET_SOLC_BUILD)
       { run }
     ): Promise<SolcBuild> => {
       const compilersCache = await getCompilersDir();
-      const downloader = new CompilerDownloader(compilersCache);
+
+      const compilerPlatform = CompilerDownloader.getCompilerPlatform();
+      const downloader = CompilerDownloader.getConcurrencySafeDownloader(
+        compilerPlatform,
+        compilersCache
+      );
 
       const isCompilerDownloaded = await downloader.isCompilerDownloaded(
         solcVersion
       );
 
-      const { longVersion, platform: desiredPlatform } =
-        await downloader.getCompilerBuild(solcVersion);
-
-      await run(TASK_COMPILE_SOLIDITY_LOG_DOWNLOAD_COMPILER_START, {
-        solcVersion,
-        isCompilerDownloaded,
-        quiet,
-      });
-
-      let compilerPath: string | undefined;
-      let platform: CompilerPlatform | undefined;
-      let nativeBinaryFailed = false;
-
-      const compilerPathResult = await downloader.getDownloadedCompilerPath(
-        solcVersion
-      );
-
-      if (compilerPathResult === undefined) {
-        if (desiredPlatform === CompilerPlatform.WASM) {
-          // if we were trying to download solcjs and it failed, there's nothing
-          // we can do
-          throw new HardhatError(ERRORS.SOLC.CANT_GET_COMPILER, {
-            version: solcVersion,
-          });
-        }
-
-        nativeBinaryFailed = true;
-      } else {
-        compilerPath = compilerPathResult.compilerPath;
-
-        // when using a native binary, check that it works correctly
-        // it it doesn't, force the downloader to use solcjs
-        if (compilerPathResult.platform !== CompilerPlatform.WASM) {
-          log("Checking native solc binary");
-
-          const solcBinaryWorks = await checkSolcBinary(
-            compilerPathResult.compilerPath
-          );
-          if (!solcBinaryWorks) {
-            log("Native solc binary doesn't work, using solcjs instead");
-            nativeBinaryFailed = true;
-          }
-        }
-      }
-
-      if (nativeBinaryFailed) {
-        const solcJsDownloader = new CompilerDownloader(compilersCache, {
-          forceSolcJs: true,
+      if (!isCompilerDownloaded) {
+        await run(TASK_COMPILE_SOLIDITY_LOG_DOWNLOAD_COMPILER_START, {
+          solcVersion,
+          isCompilerDownloaded,
+          quiet,
         });
 
-        const solcjsCompilerPath =
-          await solcJsDownloader.getDownloadedCompilerPath(solcVersion);
+        await downloader.downloadCompiler(solcVersion);
 
-        if (solcjsCompilerPath === undefined) {
-          throw new HardhatError(ERRORS.SOLC.CANT_GET_COMPILER, {
-            version: solcVersion,
-          });
-        }
-
-        compilerPath = solcjsCompilerPath.compilerPath;
-        platform = CompilerPlatform.WASM;
+        await run(TASK_COMPILE_SOLIDITY_LOG_DOWNLOAD_COMPILER_END, {
+          solcVersion,
+          isCompilerDownloaded,
+          quiet,
+        });
       }
 
-      await run(TASK_COMPILE_SOLIDITY_LOG_DOWNLOAD_COMPILER_END, {
-        solcVersion,
-        isCompilerDownloaded,
-        quiet,
-      });
+      const compiler = await downloader.getCompiler(solcVersion);
 
-      const isSolcJs = platform === CompilerPlatform.WASM;
+      if (compiler !== undefined) {
+        return compiler;
+      }
 
-      assertHardhatInvariant(
-        compilerPath !== undefined,
-        "A compilerPath should be defined at this point"
+      log(
+        "Native solc binary doesn't work, using solcjs instead. Try running npx hardhat clean --global"
       );
 
-      return { compilerPath, isSolcJs, version: solcVersion, longVersion };
+      const wasmDownloader = CompilerDownloader.getConcurrencySafeDownloader(
+        CompilerPlatform.WASM,
+        compilersCache
+      );
+
+      const isWasmCompilerDownloader =
+        await wasmDownloader.isCompilerDownloaded(solcVersion);
+
+      if (!isWasmCompilerDownloader) {
+        await run(TASK_COMPILE_SOLIDITY_LOG_DOWNLOAD_COMPILER_START, {
+          solcVersion,
+          isCompilerDownloaded,
+          quiet,
+        });
+
+        await wasmDownloader.downloadCompiler(solcVersion);
+
+        await run(TASK_COMPILE_SOLIDITY_LOG_DOWNLOAD_COMPILER_END, {
+          solcVersion,
+          isCompilerDownloaded,
+          quiet,
+        });
+      }
+
+      const wasmCompiler = await wasmDownloader.getCompiler(solcVersion);
+
+      assertHardhatInvariant(
+        wasmCompiler !== undefined,
+        `WASM build of solc ${solcVersion} isn't working`
+      );
+
+      return wasmCompiler;
     }
   );
 
@@ -783,38 +815,41 @@ subtask(TASK_COMPILE_SOLIDITY_EMIT_ARTIFACTS)
         output
       );
 
-      const artifactsEmittedPerFile: ArtifactsEmittedPerFile = [];
-      for (const file of compilationJob.getResolvedFiles()) {
-        log(`Emitting artifacts for file '${file.sourceName}'`);
-        if (!compilationJob.emitsArtifacts(file)) {
-          continue;
-        }
+      const artifactsEmittedPerFile: ArtifactsEmittedPerFile =
+        await Promise.all(
+          compilationJob
+            .getResolvedFiles()
+            .filter((f) => compilationJob.emitsArtifacts(f))
+            .map(async (file) => {
+              const artifactsEmitted = await Promise.all(
+                Object.entries(output.contracts?.[file.sourceName] ?? {}).map(
+                  async ([contractName, contractOutput]) => {
+                    log(`Emitting artifact for contract '${contractName}'`);
+                    const artifact = await run(
+                      TASK_COMPILE_SOLIDITY_GET_ARTIFACT_FROM_COMPILATION_OUTPUT,
+                      {
+                        sourceName: file.sourceName,
+                        contractName,
+                        contractOutput,
+                      }
+                    );
 
-        const artifactsEmitted = [];
-        for (const [contractName, contractOutput] of Object.entries(
-          output.contracts?.[file.sourceName] ?? {}
-        )) {
-          log(`Emitting artifact for contract '${contractName}'`);
+                    await artifacts.saveArtifactAndDebugFile(
+                      artifact,
+                      pathToBuildInfo
+                    );
 
-          const artifact = await run(
-            TASK_COMPILE_SOLIDITY_GET_ARTIFACT_FROM_COMPILATION_OUTPUT,
-            {
-              sourceName: file.sourceName,
-              contractName,
-              contractOutput,
-            }
-          );
+                    return artifact.contractName;
+                  }
+                )
+              );
 
-          await artifacts.saveArtifactAndDebugFile(artifact, pathToBuildInfo);
-
-          artifactsEmitted.push(artifact.contractName);
-        }
-
-        artifactsEmittedPerFile.push({
-          file,
-          artifactsEmitted,
-        });
-      }
+              return {
+                file,
+                artifactsEmitted,
+              };
+            })
+        );
 
       return { artifactsEmittedPerFile };
     }
@@ -855,45 +890,11 @@ subtask(TASK_COMPILE_SOLIDITY_LOG_RUN_COMPILER_START)
   .addParam("compilationJobIndex", undefined, undefined, types.int)
   .addParam("quiet", undefined, undefined, types.boolean)
   .setAction(
-    async ({
-      compilationJobs,
-      compilationJobIndex,
-    }: {
+    async ({}: {
       compilationJob: CompilationJob;
       compilationJobs: CompilationJob[];
       compilationJobIndex: number;
-    }) => {
-      const solcVersion =
-        compilationJobs[compilationJobIndex].getSolcConfig().version;
-
-      // we log if this is the first job, or if the previous job has a
-      // different solc version
-      const shouldLog =
-        compilationJobIndex === 0 ||
-        compilationJobs[compilationJobIndex - 1].getSolcConfig().version !==
-          solcVersion;
-
-      if (!shouldLog) {
-        return;
-      }
-
-      // count how many files emit artifacts for this version
-      let count = 0;
-      for (let i = compilationJobIndex; i < compilationJobs.length; i++) {
-        const job = compilationJobs[i];
-        if (job.getSolcConfig().version !== solcVersion) {
-          break;
-        }
-
-        count += job
-          .getResolvedFiles()
-          .filter((file) => job.emitsArtifacts(file)).length;
-      }
-
-      console.log(
-        `Compiling ${count} ${pluralize(count, "file")} with ${solcVersion}`
-      );
-    }
+    }) => {}
   );
 
 /**
@@ -1098,7 +1099,7 @@ subtask(TASK_COMPILE_SOLIDITY_GET_COMPILATION_JOBS_FAILURE_REASONS)
       }
 
       if (noCompatibleSolc.length > 0) {
-        errorMessage += `The Solidity version pragma statement in these files don't match any of the configured compilers in your config. Change the pragma or configure additional compiler versions in your hardhat config.
+        errorMessage += `The Solidity version pragma statement in these files doesn't match any of the configured compilers in your config. Change the pragma or configure additional compiler versions in your hardhat config.
 
 `;
 
@@ -1242,8 +1243,17 @@ subtask(TASK_COMPILE_SOLIDITY_LOG_COMPILATION_RESULT)
   .addParam("quiet", undefined, undefined, types.boolean)
   .setAction(
     async ({ compilationJobs }: { compilationJobs: CompilationJob[] }) => {
-      if (compilationJobs.length > 0) {
-        console.log("Compilation finished successfully");
+      let count = 0;
+      for (const job of compilationJobs) {
+        count += job
+          .getResolvedFiles()
+          .filter((file) => job.emitsArtifacts(file)).length;
+      }
+
+      if (count > 0) {
+        console.log(
+          `Compiled ${count} Solidity ${pluralize(count, "file")} successfully`
+        );
       }
     }
   );
@@ -1257,9 +1267,14 @@ subtask(TASK_COMPILE_SOLIDITY_LOG_COMPILATION_RESULT)
 subtask(TASK_COMPILE_SOLIDITY)
   .addParam("force", undefined, undefined, types.boolean)
   .addParam("quiet", undefined, undefined, types.boolean)
+  .addParam("concurrency", undefined, DEFAULT_CONCURRENCY_LEVEL, types.int)
   .setAction(
     async (
-      { force, quiet }: { force: boolean; quiet: boolean },
+      {
+        force,
+        quiet,
+        concurrency,
+      }: { force: boolean; quiet: boolean; concurrency: number },
       { artifacts, config, run }
     ) => {
       const sourcePaths: string[] = await run(
@@ -1318,6 +1333,7 @@ subtask(TASK_COMPILE_SOLIDITY)
         {
           compilationJobs: mergedCompilationJobs,
           quiet,
+          concurrency,
         }
       );
 
@@ -1344,8 +1360,7 @@ subtask(TASK_COMPILE_SOLIDITY)
       // We know this is the actual implementation, so we use some
       // non-public methods here.
       const artifactsImpl = artifacts as ArtifactsImpl;
-      await artifactsImpl.removeObsoleteArtifacts(allArtifactsEmittedPerFile);
-      await artifactsImpl.removeObsoleteBuildInfos();
+      artifactsImpl.addValidArtifacts(allArtifactsEmittedPerFile);
 
       await solidityFilesCache.writeToFile(solidityFilesCachePath);
 
@@ -1355,6 +1370,13 @@ subtask(TASK_COMPILE_SOLIDITY)
       });
     }
   );
+
+subtask(TASK_COMPILE_REMOVE_OBSOLETE_ARTIFACTS, async (_, { artifacts }) => {
+  // We know this is the actual implementation, so we use some
+  // non-public methods here.
+  const artifactsImpl = artifacts as ArtifactsImpl;
+  await artifactsImpl.removeObsoleteArtifacts();
+});
 
 /**
  * Returns a list of compilation tasks.
@@ -1374,6 +1396,12 @@ subtask(TASK_COMPILE_GET_COMPILATION_TASKS, async (): Promise<string[]> => {
 task(TASK_COMPILE, "Compiles the entire project, building all artifacts")
   .addFlag("force", "Force compilation ignoring cache")
   .addFlag("quiet", "Makes the compilation process less verbose")
+  .addParam(
+    "concurrency",
+    "Number of compilation jobs executed in parallel. Defaults to the number of CPU cores - 1",
+    DEFAULT_CONCURRENCY_LEVEL,
+    types.int
+  )
   .setAction(async (compilationArgs: any, { run }) => {
     const compilationTasks: string[] = await run(
       TASK_COMPILE_GET_COMPILATION_TASKS
@@ -1382,6 +1410,8 @@ task(TASK_COMPILE, "Compiles the entire project, building all artifacts")
     for (const compilationTask of compilationTasks) {
       await run(compilationTask, compilationArgs);
     }
+
+    await run(TASK_COMPILE_REMOVE_OBSOLETE_ARTIFACTS);
   });
 
 /**
@@ -1393,6 +1423,8 @@ async function invalidateCacheMissingArtifacts(
   artifacts: Artifacts,
   resolvedFiles: ResolvedFile[]
 ): Promise<SolidityFilesCache> {
+  const paths = new Set(await artifacts.getArtifactPaths());
+
   for (const file of resolvedFiles) {
     const cacheEntry = solidityFilesCache.getEntry(file.absolutePath);
 
@@ -1401,20 +1433,22 @@ async function invalidateCacheMissingArtifacts(
     }
 
     const { artifacts: emittedArtifacts } = cacheEntry;
-
     for (const emittedArtifact of emittedArtifacts) {
-      const artifactExists = await artifacts.artifactExists(
-        getFullyQualifiedName(file.sourceName, emittedArtifact)
-      );
-      if (!artifactExists) {
+      const fqn = getFullyQualifiedName(file.sourceName, emittedArtifact);
+      const path = artifacts.formArtifactPathFromFullyQualifiedName(fqn);
+
+      if (!paths.has(path)) {
         log(
-          `Invalidate cache for '${file.absolutePath}' because artifact '${emittedArtifact}' doesn't exist`
+          `Invalidate cache for '${file.absolutePath}' because artifact '${fqn}' doesn't exist`
         );
+
         solidityFilesCache.removeEntry(file.absolutePath);
         break;
       }
     }
   }
+
+  artifacts.clearCache?.();
 
   return solidityFilesCache;
 }
@@ -1447,15 +1481,6 @@ function hasCompilationErrors(output: any): boolean {
   return (
     output.errors && output.errors.some((x: any) => x.severity === "error")
   );
-}
-
-async function checkSolcBinary(solcPath: string): Promise<boolean> {
-  return new Promise((resolve) => {
-    const process = exec(`${solcPath} --version`);
-    process.on("exit", (code) => {
-      resolve(code === 0);
-    });
-  });
 }
 
 /**

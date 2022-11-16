@@ -18,6 +18,7 @@
 /*.d.ts
 /*.d.ts.map
 /builtin-tasks
+/common
 /internal
 /types
 /utils

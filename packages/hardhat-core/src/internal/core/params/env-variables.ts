@@ -48,14 +48,19 @@ export function getEnvHardhatArguments(
       try {
         envArgs[paramName] = definition.type.parse(paramName, rawValue);
       } catch (error) {
-        throw new HardhatError(
-          ERRORS.ARGUMENTS.INVALID_ENV_VAR_VALUE,
-          {
-            varName: envVarName,
-            value: rawValue,
-          },
-          error
-        );
+        if (error instanceof Error) {
+          throw new HardhatError(
+            ERRORS.ARGUMENTS.INVALID_ENV_VAR_VALUE,
+            {
+              varName: envVarName,
+              value: rawValue,
+            },
+            error
+          );
+        }
+
+        // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
+        throw error;
       }
     } else {
       envArgs[paramName] = definition.defaultValue;

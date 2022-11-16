@@ -3,6 +3,7 @@ import { Context, getFunctionName, ValidationError } from "io-ts/lib";
 import { Reporter } from "io-ts/lib/Reporter";
 
 import {
+  HARDHAT_MEMPOOL_SUPPORTED_ORDERS,
   HARDHAT_NETWORK_NAME,
   HARDHAT_NETWORK_SUPPORTED_HARDFORKS,
 } from "../../constants";
@@ -11,6 +12,7 @@ import { fromEntries } from "../../util/lang";
 import { HardhatError } from "../errors";
 import { ERRORS } from "../errors-list";
 import { hardforkGte, HardforkName } from "../../util/hardforks";
+import { HardhatNetworkChainUserConfig } from "../../../types/config";
 import { defaultHardhatNetworkParams } from "./default-config";
 
 function stringify(v: any): string {
@@ -53,6 +55,59 @@ function getErrorMessage(path: string, value: any, expectedType: string) {
   )} for ${path} - Expected a value of type ${expectedType}.`;
 }
 
+function getPrivateKeyError(index: number, network: string, message: string) {
+  return `Invalid account: #${index} for network: ${network} - ${message}`;
+}
+
+function validatePrivateKey(
+  privateKey: unknown,
+  index: number,
+  network: string,
+  errors: string[]
+) {
+  if (typeof privateKey !== "string") {
+    errors.push(
+      getPrivateKeyError(
+        index,
+        network,
+        `Expected string, received ${typeof privateKey}`
+      )
+    );
+  } else {
+    // private key validation
+    const pkWithPrefix = /^0x/.test(privateKey)
+      ? privateKey
+      : `0x${privateKey}`;
+
+    // 32 bytes = 64 characters + 2 char prefix = 66
+    if (pkWithPrefix.length < 66) {
+      errors.push(
+        getPrivateKeyError(
+          index,
+          network,
+          "private key too short, expected 32 bytes"
+        )
+      );
+    } else if (pkWithPrefix.length > 66) {
+      errors.push(
+        getPrivateKeyError(
+          index,
+          network,
+          "private key too long, expected 32 bytes"
+        )
+      );
+    } else if (hexString.decode(pkWithPrefix).isLeft()) {
+      errors.push(
+        getPrivateKeyError(
+          index,
+          network,
+          "invalid hex character(s) found in string"
+        )
+      );
+    }
+  }
+}
+
 export function failure(es: ValidationError[]): string[] {
   return es.map(getMessage);
 }
@@ -91,6 +146,27 @@ export const hexString = new t.Type<string>(
   t.identity
 );
 
+function isAddress(v: unknown): v is string {
+  if (typeof v !== "string") {
+    return false;
+  }
+
+  const trimmed = v.trim();
+
+  return (
+    trimmed.match(HEX_STRING_REGEX) !== null &&
+    trimmed.startsWith("0x") &&
+    trimmed.length === 42
+  );
+}
+
+export const address = new t.Type<string>(
+  "address",
+  isAddress,
+  (u, c) => (isAddress(u) ? t.success(u) : t.failure(u, c)),
+  t.identity
+);
+
 export const decimalString = new t.Type<string>(
   "decimal string",
   isDecimalString,
@@ -114,14 +190,76 @@ const commonHDAccountsFields = {
 const HardhatNetworkHDAccountsConfig = t.type({
   mnemonic: optional(t.string),
   accountsBalance: optional(decimalString),
+  passphrase: optional(t.string),
   ...commonHDAccountsFields,
 });
+
+const Integer = new t.Type<number>(
+  "Integer",
+  (num: unknown): num is number => typeof num === "number",
+  (u, c) => {
+    try {
+      return typeof u === "string"
+        ? t.success(parseInt(u, 10))
+        : t.failure(u, c);
+    } catch {
+      return t.failure(u, c);
+    }
+  },
+  t.identity
+);
 
 const HardhatNetworkForkingConfig = t.type({
   enabled: optional(t.boolean),
   url: t.string,
   blockNumber: optional(t.number),
 });
+
+const HardhatNetworkMempoolConfig = t.type({
+  order: optional(
+    t.keyof(
+      fromEntries(
+        HARDHAT_MEMPOOL_SUPPORTED_ORDERS.map((order) => [order, null])
+      )
+    )
+  ),
+});
+
+const HardhatNetworkMiningConfig = t.type({
+  auto: optional(t.boolean),
+  interval: optional(t.union([t.number, t.tuple([t.number, t.number])])),
+  mempool: optional(HardhatNetworkMempoolConfig),
+});
+
+function isValidHardforkName(name: string) {
+  return Object.values(HardforkName).includes(name as HardforkName);
+}
+
+const HardforkNameType = new t.Type<HardforkName>(
+  Object.values(HardforkName)
+    .map((v) => `"${v}"`)
+    .join(" | "),
+  (name: unknown): name is HardforkName =>
+    typeof name === "string" && isValidHardforkName(name),
+  (u, c) => {
+    return typeof u === "string" && isValidHardforkName(u)
+      ? t.success(u as HardforkName)
+      : t.failure(u, c);
+  },
+  t.identity
+);
+
+const HardhatNetworkHardforkHistory = t.record(
+  HardforkNameType,
+  t.number,
+  "HardhatNetworkHardforkHistory"
+);
+
+const HardhatNetworkChainConfig = t.type({
+  hardforkHistory: HardhatNetworkHardforkHistory,
+});
+
+const HardhatNetworkChainsConfig = t.record(Integer, HardhatNetworkChainConfig);
 
 const commonNetworkConfigFields = {
   chainId: optional(t.number),
@@ -149,10 +287,14 @@ const HardhatNetworkConfig = t.type({
   initialDate: optional(t.string),
   loggingEnabled: optional(t.boolean),
   forking: optional(HardhatNetworkForkingConfig),
+  mining: optional(HardhatNetworkMiningConfig),
+  coinbase: optional(address),
+  chains: optional(HardhatNetworkChainsConfig),
 });
 
 const HDAccountsConfig = t.type({
   mnemonic: t.string,
+  passphrase: optional(t.string),
   ...commonHDAccountsFields,
 });
 
@@ -224,7 +366,7 @@ export function validateConfig(config: any) {
 }
 
 export function getValidationErrors(config: any): string[] {
-  const errors = [];
+  const errors: string[] = [];
 
   // These can't be validated with io-ts
   if (config !== undefined && typeof config.networks === "object") {
@@ -237,8 +379,7 @@ export function getValidationErrors(config: any): string[] {
       }
 
       // Validating the accounts with io-ts leads to very confusing errors messages
-      const configExceptAccounts = { ...hardhatNetwork };
-      delete configExceptAccounts.accounts;
+      const { accounts, ...configExceptAccounts } = hardhatNetwork;
 
       const netConfigResult = HardhatNetworkConfig.decode(configExceptAccounts);
       if (netConfigResult.isLeft()) {
@@ -251,31 +392,37 @@ export function getValidationErrors(config: any): string[] {
         );
       }
 
-      if (Array.isArray(hardhatNetwork.accounts)) {
-        for (const account of hardhatNetwork.accounts) {
-          if (typeof account.privateKey !== "string") {
+      // manual validation of accounts
+      if (Array.isArray(accounts)) {
+        for (const [index, account] of accounts.entries()) {
+          if (typeof account !== "object") {
             errors.push(
-              getErrorMessage(
-                `HardhatConfig.networks.${HARDHAT_NETWORK_NAME}.accounts[].privateKey`,
-                account.privateKey,
-                "string"
+              getPrivateKeyError(
+                index,
+                HARDHAT_NETWORK_NAME,
+                `Expected object, received ${typeof account}`
               )
             );
+            continue;
           }
 
-          if (typeof account.balance !== "string") {
+          const { privateKey, balance } = account;
+
+          validatePrivateKey(privateKey, index, HARDHAT_NETWORK_NAME, errors);
+
+          if (typeof balance !== "string") {
             errors.push(
               getErrorMessage(
                 `HardhatConfig.networks.${HARDHAT_NETWORK_NAME}.accounts[].balance`,
-                account.balance,
+                balance,
                 "string"
               )
             );
-          } else if (decimalString.decode(account.balance).isLeft()) {
+          } else if (decimalString.decode(balance).isLeft()) {
             errors.push(
               getErrorMessage(
                 `HardhatConfig.networks.${HARDHAT_NETWORK_NAME}.accounts[].balance`,
-                account.balance,
+                balance,
                 "decimal(wei)"
               )
             );
@@ -319,6 +466,29 @@ export function getValidationErrors(config: any): string[] {
           );
         }
       }
+
+      if (hardhatNetwork.chains !== undefined) {
+        Object.entries(hardhatNetwork.chains).forEach((chainEntry) => {
+          const [chainId, chainConfig] = chainEntry as [
+            string,
+            HardhatNetworkChainUserConfig
+          ];
+          const { hardforkHistory } = chainConfig;
+          if (hardforkHistory !== undefined) {
+            Object.keys(hardforkHistory).forEach((hardforkName) => {
+              if (!HARDHAT_NETWORK_SUPPORTED_HARDFORKS.includes(hardforkName)) {
+                errors.push(
+                  getErrorMessage(
+                    `HardhatConfig.networks.${HARDHAT_NETWORK_NAME}.chains[${chainId}].hardforkHistory`,
+                    hardforkName,
+                    `"${HARDHAT_NETWORK_SUPPORTED_HARDFORKS.join('" | "')}"`
+                  )
+                );
+              }
+            });
+          }
+        });
+      }
     }
 
     for (const [networkName, netConfig] of Object.entries<any>(
@@ -340,13 +510,47 @@ export function getValidationErrors(config: any): string[] {
         }
       }
 
-      const netConfigResult = HttpNetworkConfig.decode(netConfig);
+      const { accounts, ...configExceptAccounts } = netConfig;
+
+      const netConfigResult = HttpNetworkConfig.decode(configExceptAccounts);
       if (netConfigResult.isLeft()) {
         errors.push(
           getErrorMessage(
             `HardhatConfig.networks.${networkName}`,
             netConfig,
             "HttpNetworkConfig"
+          )
+        );
+      }
+
+      // manual validation of accounts
+      if (Array.isArray(accounts)) {
+        accounts.forEach((privateKey, index) =>
+          validatePrivateKey(privateKey, index, networkName, errors)
+        );
+      } else if (typeof accounts === "object") {
+        const hdConfigResult = HDAccountsConfig.decode(accounts);
+        if (hdConfigResult.isLeft()) {
+          errors.push(
+            getErrorMessage(
+              `HardhatConfig.networks.${networkName}`,
+              accounts,
+              "HttpNetworkHDAccountsConfig"
+            )
+          );
+        }
+      } else if (typeof accounts === "string") {
+        if (accounts !== "remote") {
+          errors.push(
+            `Invalid 'accounts' entry for network '${networkName}': expected an array of accounts or the string 'remote', but got the string '${accounts}'`
+          );
+        }
+      } else if (accounts !== undefined) {
+        errors.push(
+          getErrorMessage(
+            `HardhatConfig.networks.${networkName}.accounts`,
+            accounts,
+            '"remote" | string[] | HttpNetworkHDAccountsConfig | undefined'
           )
         );
       }

@@ -11,7 +11,7 @@ on:
       - "config/**"
   pull_request:
     branches:
-      - "*"
+      - "**"
     paths:
       - "packages/hardhat-truffle4/**"
       - "packages/hardhat-web3-legacy/**"
@@ -29,13 +29,14 @@ concurrency:
 
 jobs:
   test_on_windows:
-    name: Test hardhat-truffle4 on Windows with Node 12
+    name: Test hardhat-truffle4 on Windows with Node 14
     runs-on: windows-latest
     steps:
-      - uses: actions/setup-node@v1
-        with:
-          node-version: 12
       - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
+        with:
+          node-version: 14
+          cache: yarn
       - name: Install
         run: yarn --frozen-lockfile
       - name: Build
@@ -44,13 +45,16 @@ jobs:
         run: yarn test
 
   test_on_macos:
-    name: Test hardhat-truffle4 on MacOS with Node 12
+    name: Test hardhat-truffle4 on MacOS with Node 14
     runs-on: macos-latest
+    # disable until actions/virtual-environments#4896 is fixed
+    if: ${{ false }}
     steps:
-      - uses: actions/setup-node@v1
-        with:
-          node-version: 12
       - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
+        with:
+          node-version: 14
+          cache: yarn
       - name: Install
         run: yarn --frozen-lockfile
       - name: Build
@@ -63,12 +67,13 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node: [12, 14, 16]
+        node: [14, 16, 18]
     steps:
-      - uses: actions/setup-node@v1
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
         with:
           node-version: ${{ matrix.node }}
-      - uses: actions/checkout@v2
+          cache: yarn
       - name: Install
         run: yarn --frozen-lockfile
       - name: Build

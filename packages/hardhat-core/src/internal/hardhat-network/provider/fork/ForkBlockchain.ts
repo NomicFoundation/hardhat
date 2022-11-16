@@ -1,15 +1,15 @@
-import { Block } from "@ethereumjs/block";
-import Common from "@ethereumjs/common";
-import { TypedTransaction } from "@ethereumjs/tx";
-import { Address, BN } from "ethereumjs-util";
+import { Block } from "@nomicfoundation/ethereumjs-block";
+import { Common } from "@nomicfoundation/ethereumjs-common";
+import { TypedTransaction } from "@nomicfoundation/ethereumjs-tx";
+import { Address } from "@nomicfoundation/ethereumjs-util";
 
-import { FeeMarketEIP1559TxData } from "@ethereumjs/tx/dist/types";
+import { FeeMarketEIP1559TxData } from "@nomicfoundation/ethereumjs-tx/dist/types";
 import { RpcBlockWithTransactions } from "../../../core/jsonrpc/types/output/block";
 import { RpcTransactionReceipt } from "../../../core/jsonrpc/types/output/receipt";
 import { RpcTransaction } from "../../../core/jsonrpc/types/output/transaction";
 import { InternalError } from "../../../core/providers/errors";
 import { JsonRpcClient } from "../../jsonrpc/client";
-import { BlockchainData } from "../BlockchainData";
+import { BlockchainBase } from "../BlockchainBase";
 import { FilterParams } from "../node-types";
 import {
   remoteReceiptToRpcReceiptOutput,
@@ -24,98 +24,109 @@ import { ReadOnlyValidTransaction } from "../transactions/ReadOnlyValidTransacti
 import { HardhatBlockchainInterface } from "../types/HardhatBlockchainInterface";
 
 import { ReadOnlyValidEIP1559Transaction } from "../transactions/ReadOnlyValidEIP1559Transaction";
+import { ReadOnlyValidUnknownTypeTransaction } from "../transactions/ReadOnlyValidUnknownTypeTransaction";
 import { rpcToBlockData } from "./rpcToBlockData";
 import { rpcToTxData } from "./rpcToTxData";
 
 /* eslint-disable @nomiclabs/hardhat-internal-rules/only-hardhat-error */
 
-export class ForkBlockchain implements HardhatBlockchainInterface {
-  private _data = new BlockchainData();
+export class ForkBlockchain
+  extends BlockchainBase
+  implements HardhatBlockchainInterface
+{
   private _latestBlockNumber = this._forkBlockNumber;
 
   constructor(
     private _jsonRpcClient: JsonRpcClient,
-    private _forkBlockNumber: BN,
-    private _common: Common
-  ) {}
+    private _forkBlockNumber: bigint,
+    common: Common
+  ) {
+    super(common);
+  }
 
-  public async getLatestBlock(): Promise<Block> {
-    const block = await this.getBlock(this._latestBlockNumber);
-    if (block === null) {
-      throw new Error("Block not found");
-    }
-    return block;
+  public getLatestBlockNumber(): bigint {
+    return this._latestBlockNumber;
   }
 
   public async getBlock(
-    blockHashOrNumber: Buffer | number | BN
+    blockHashOrNumber: Buffer | bigint
   ): Promise<Block | null> {
-    let block: Block | undefined;
+    if (
+      typeof blockHashOrNumber === "bigint" &&
+      this._data.isReservedBlock(blockHashOrNumber)
+    ) {
+      this._data.fulfillBlockReservation(blockHashOrNumber);
+    }
+
+    let block: Block | undefined | null;
     if (Buffer.isBuffer(blockHashOrNumber)) {
       block = await this._getBlockByHash(blockHashOrNumber);
       return block ?? null;
     }
 
-    block = await this._getBlockByNumber(new BN(blockHashOrNumber));
+    block = await this._getBlockByNumber(BigInt(blockHashOrNumber));
     return block ?? null;
   }
 
   public async addBlock(block: Block): Promise<Block> {
-    const blockNumber = new BN(block.header.number);
-    if (!blockNumber.eq(this._latestBlockNumber.addn(1))) {
-      throw new Error("Invalid block number");
+    const blockNumber = BigInt(block.header.number);
+    if (blockNumber !== this._latestBlockNumber + 1n) {
+      throw new Error(
+        `Invalid block number ${blockNumber}. Expected ${
+          this._latestBlockNumber + 1n
+        }`
+      );
     }
 
     // When forking a network whose consensus is not the classic PoW,
     // we can't calculate the hash correctly.
     // Thus, we avoid this check for the first block after the fork.
-    if (blockNumber.gt(this._forkBlockNumber.addn(1))) {
+    if (blockNumber > this._forkBlockNumber + 1n) {
       const parent = await this.getLatestBlock();
       if (!block.header.parentHash.equals(parent.hash())) {
         throw new Error("Invalid parent hash");
       }
     }
 
-    this._latestBlockNumber = this._latestBlockNumber.addn(1);
+    this._latestBlockNumber++;
     const totalDifficulty = await this._computeTotalDifficulty(block);
     this._data.addBlock(block, totalDifficulty);
     return block;
   }
 
-  public async putBlock(block: Block): Promise<void> {
-    await this.addBlock(block);
-  }
-
-  public deleteBlock(blockHash: Buffer) {
-    const block = this._data.getBlockByHash(blockHash);
-    if (block === undefined) {
-      throw new Error("Block not found");
-    }
-    this._delBlock(block);
-  }
-
-  public async delBlock(blockHash: Buffer) {
-    this.deleteBlock(blockHash);
+  public reserveBlocks(
+    count: bigint,
+    interval: bigint,
+    previousBlockStateRoot: Buffer,
+    previousBlockTotalDifficulty: bigint,
+    previousBlockBaseFeePerGas: bigint | undefined
+  ) {
+    super.reserveBlocks(
+      count,
+      interval,
+      previousBlockStateRoot,
+      previousBlockTotalDifficulty,
+      previousBlockBaseFeePerGas
+    );
+    this._latestBlockNumber += count;
   }
 
   public deleteLaterBlocks(block: Block): void {
-    const blockNumber = new BN(block.header.number);
+    const blockNumber = block.header.number;
     const savedBlock = this._data.getBlockByNumber(blockNumber);
     if (savedBlock === undefined || !savedBlock.hash().equals(block.hash())) {
       throw new Error("Invalid block");
     }
 
-    const nextBlockNumber = blockNumber.addn(1);
-    if (this._forkBlockNumber.gte(nextBlockNumber)) {
+    const nextBlockNumber = blockNumber + 1n;
+    if (this._forkBlockNumber >= nextBlockNumber) {
       throw new Error("Cannot delete remote block");
     }
-    const nextBlock = this._data.getBlockByNumber(nextBlockNumber);
-    if (nextBlock !== undefined) {
-      return this._delBlock(nextBlock);
-    }
+
+    this._delBlock(nextBlockNumber);
   }
 
-  public async getTotalDifficulty(blockHash: Buffer): Promise<BN> {
+  public async getTotalDifficulty(blockHash: Buffer): Promise<bigint> {
     let td = this._data.getTotalDifficulty(blockHash);
     if (td !== undefined) {
       return td;
@@ -142,12 +153,6 @@ export class ForkBlockchain implements HardhatBlockchainInterface {
       return this._processRemoteTransaction(remote);
     }
     return tx;
-  }
-
-  public getLocalTransaction(
-    transactionHash: Buffer
-  ): TypedTransaction | undefined {
-    return this._data.getTransaction(transactionHash);
   }
 
   public async getBlockByTransactionHash(
@@ -185,25 +190,19 @@ export class ForkBlockchain implements HardhatBlockchainInterface {
     return null;
   }
 
-  public addTransactionReceipts(receipts: RpcReceiptOutput[]) {
-    for (const receipt of receipts) {
-      this._data.addTransactionReceipt(receipt);
-    }
-  }
-
   public getForkBlockNumber() {
     return this._forkBlockNumber;
   }
 
   public async getLogs(filterParams: FilterParams): Promise<RpcLogOutput[]> {
-    if (filterParams.fromBlock.lte(this._forkBlockNumber)) {
+    if (filterParams.fromBlock <= this._forkBlockNumber) {
       let toBlock = filterParams.toBlock;
       let localLogs: RpcLogOutput[] = [];
-      if (toBlock.gt(this._forkBlockNumber)) {
+      if (toBlock > this._forkBlockNumber) {
         toBlock = this._forkBlockNumber;
         localLogs = this._data.getLogs({
           ...filterParams,
-          fromBlock: this._forkBlockNumber.addn(1),
+          fromBlock: this._forkBlockNumber + 1n,
         });
       }
       const remoteLogs = await this._jsonRpcClient.getLogs({
@@ -215,23 +214,9 @@ export class ForkBlockchain implements HardhatBlockchainInterface {
             : filterParams.addresses,
         topics: filterParams.normalizedTopics,
       });
-      return remoteLogs
-        .map((log, index) => toRpcLogOutput(log, index))
-        .concat(localLogs);
+      return remoteLogs.map(toRpcLogOutput).concat(localLogs);
     }
     return this._data.getLogs(filterParams);
-  }
-
-  public iterator(
-    _name: string,
-    _onBlock: (block: Block, reorg: boolean) => void | Promise<void>
-  ): Promise<number | void> {
-    throw new Error("Method not implemented.");
-  }
-
-  public async getBaseFee(): Promise<BN> {
-    const latestBlock = await this.getLatestBlock();
-    return latestBlock.header.calcNextBaseFee();
   }
 
   private async _getBlockByHash(blockHash: Buffer) {
@@ -243,12 +228,12 @@ export class ForkBlockchain implements HardhatBlockchainInterface {
     return this._processRemoteBlock(rpcBlock);
   }
 
-  private async _getBlockByNumber(blockNumber: BN) {
-    if (blockNumber.gt(this._latestBlockNumber)) {
+  private async _getBlockByNumber(blockNumber: bigint) {
+    if (blockNumber > this._latestBlockNumber) {
       return undefined;
     }
-    const block = this._data.getBlockByNumber(blockNumber);
-    if (block !== undefined) {
+    const block = await super.getBlock(blockNumber);
+    if (block !== null) {
       return block;
     }
     const rpcBlock = await this._jsonRpcClient.getBlockByNumber(
@@ -263,18 +248,17 @@ export class ForkBlockchain implements HardhatBlockchainInterface {
       rpcBlock === null ||
       rpcBlock.hash === null ||
       rpcBlock.number === null ||
-      rpcBlock.number.gt(this._forkBlockNumber)
+      rpcBlock.number > this._forkBlockNumber
     ) {
       return undefined;
     }
 
-    // We copy the common and set it to London or Berlin if the remote block
-    // had EIP-1559 activated or not. The reason for this is that ethereumjs
-    // throws if we have a base fee for an older hardfork, and set a default
-    // one for London.
     const common = this._common.copy();
+    // We set the common's hardfork to Berlin if the remote block doesn't have
+    // EIP-1559 activated. The reason for this is that ethereumjs throws if we
+    // have a base fee for an older hardfork, and set a default one for London.
     if (rpcBlock.baseFeePerGas !== undefined) {
-      common.setHardfork("london");
+      common.setHardfork("london"); // TODO: consider changing this to "latest hardfork"
     } else {
       common.setHardfork("berlin");
     }
@@ -291,27 +275,43 @@ export class ForkBlockchain implements HardhatBlockchainInterface {
 
       // We use freeze false here because we add the transactions manually
       freeze: false,
+
+      // don't validate things like the size of `extraData` in the header
+      skipConsensusFormatValidation: true,
     });
 
     for (const transaction of rpcBlock.transactions) {
       let tx;
-      if (transaction.type === undefined || transaction.type.eqn(0)) {
+      if (transaction.type === undefined || transaction.type === 0n) {
         tx = new ReadOnlyValidTransaction(
           new Address(transaction.from),
           rpcToTxData(transaction)
         );
-      } else if (transaction.type.eqn(1)) {
+      } else if (transaction.type === 1n) {
         tx = new ReadOnlyValidEIP2930Transaction(
           new Address(transaction.from),
           rpcToTxData(transaction)
         );
-      } else if (transaction.type.eqn(2)) {
+      } else if (transaction.type === 2n) {
         tx = new ReadOnlyValidEIP1559Transaction(
           new Address(transaction.from),
           rpcToTxData(transaction) as FeeMarketEIP1559TxData
         );
       } else {
-        throw new InternalError(`Unknown transaction type ${transaction.type}`);
+        // we try to interpret unknown txs as legacy transactions, to support
+        // networks like Arbitrum that have non-standards tx types
+        try {
+          tx = new ReadOnlyValidUnknownTypeTransaction(
+            new Address(transaction.from),
+            Number(transaction.type),
+            rpcToTxData(transaction)
+          );
+        } catch (e: any) {
+          throw new InternalError(
+            `Could not process transaction with type ${transaction.type.toString()}`,
+            e
+          );
+        }
       }
 
       block.transactions.push(tx);
@@ -321,48 +321,19 @@ export class ForkBlockchain implements HardhatBlockchainInterface {
     return block;
   }
 
-  private async _computeTotalDifficulty(block: Block): Promise<BN> {
-    const difficulty = new BN(block.header.difficulty);
-    const blockNumber = new BN(block.header.number);
-    if (blockNumber.eqn(0)) {
-      return difficulty;
-    }
-
-    const parentBlock =
-      this._data.getBlockByNumber(blockNumber.subn(1)) ??
-      (await this.getBlock(blockNumber.subn(1)));
-    if (parentBlock === null) {
-      throw new Error("Block not found");
-    }
-    const parentHash = parentBlock.hash();
-    const parentTD = this._data.getTotalDifficulty(parentHash);
-    if (parentTD === undefined) {
-      throw new Error("This should never happen");
-    }
-    return parentTD.add(difficulty);
-  }
-
-  private _delBlock(block: Block): void {
-    if (new BN(block.header.number).lte(this._forkBlockNumber)) {
+  protected _delBlock(blockNumber: bigint): void {
+    if (blockNumber <= this._forkBlockNumber) {
       throw new Error("Cannot delete remote block");
     }
-
-    const blockNumber = block.header.number.toNumber();
-    for (let i = blockNumber; this._latestBlockNumber.gten(i); i++) {
-      const current = this._data.getBlockByNumber(new BN(i));
-      if (current !== undefined) {
-        this._data.removeBlock(current);
-      }
-    }
-
-    this._latestBlockNumber = new BN(blockNumber).subn(1);
+    super._delBlock(blockNumber);
+    this._latestBlockNumber = blockNumber - 1n;
   }
 
   private _processRemoteTransaction(rpcTransaction: RpcTransaction | null) {
     if (
       rpcTransaction === null ||
       rpcTransaction.blockNumber === null ||
-      rpcTransaction.blockNumber.gt(this._forkBlockNumber)
+      rpcTransaction.blockNumber > this._forkBlockNumber
     ) {
       return undefined;
     }
@@ -380,7 +351,7 @@ export class ForkBlockchain implements HardhatBlockchainInterface {
   private async _processRemoteReceipt(
     txReceipt: RpcTransactionReceipt | null
   ): Promise<RpcReceiptOutput | undefined> {
-    if (txReceipt === null || txReceipt.blockNumber.gt(this._forkBlockNumber)) {
+    if (txReceipt === null || txReceipt.blockNumber > this._forkBlockNumber) {
       return undefined;
     }
 

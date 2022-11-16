@@ -257,6 +257,252 @@ describe("Config validation", function () {
         });
       });
 
+      /**
+       * This describe block will encompass all private key tests
+       * for both Hardhat and HTTP networks
+       */
+      describe("Private key config", function () {
+        describe("HTTP network accounts", function () {
+          it("Should allow an array of valid private keys", function () {
+            validateConfig({
+              networks: {
+                custom: {
+                  url: "http://127.0.0.1",
+                  accounts: [
+                    "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                    "0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                    "0xcccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+                  ],
+                },
+              },
+            });
+          });
+
+          it("Should allow valid private keys with missing hex prefix", function () {
+            validateConfig({
+              networks: {
+                custom: {
+                  url: "http://127.0.0.1",
+                  accounts: [
+                    "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                  ],
+                },
+              },
+            });
+          });
+
+          it("Should not allow hex literals", function () {
+            expectHardhatError(
+              () =>
+                validateConfig({
+                  networks: {
+                    custom: {
+                      url: "http://127.0.0.1",
+                      accounts: [
+                        0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa,
+                      ],
+                    },
+                  },
+                }),
+              ERRORS.GENERAL.INVALID_CONFIG
+            );
+          });
+
+          it("Should not allow private keys of incorrect length", function () {
+            expectHardhatError(
+              () =>
+                validateConfig({
+                  networks: {
+                    custom: {
+                      url: "http://127.0.0.1",
+                      accounts: ["0xaaaa"],
+                    },
+                  },
+                }),
+              ERRORS.GENERAL.INVALID_CONFIG
+            );
+
+            expectHardhatError(
+              () =>
+                validateConfig({
+                  networks: {
+                    custom: {
+                      url: "http://127.0.0.1",
+                      accounts: [
+                        "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaabb",
+                      ],
+                    },
+                  },
+                }),
+              ERRORS.GENERAL.INVALID_CONFIG
+            );
+          });
+
+          it("Should not allow invalid private keys", function () {
+            expectHardhatError(
+              () =>
+                validateConfig({
+                  networks: {
+                    custom: {
+                      url: "http://127.0.0.1",
+                      accounts: [
+                        "0xgggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggg",
+                      ],
+                    },
+                  },
+                }),
+              ERRORS.GENERAL.INVALID_CONFIG
+            );
+          });
+        });
+
+        describe("Hardhat Network accounts", function () {
+          it("Should allow an array of account objects with valid private keys", function () {
+            validateConfig({
+              networks: {
+                [HARDHAT_NETWORK_NAME]: {
+                  accounts: [
+                    {
+                      balance: "123",
+                      privateKey:
+                        "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                    },
+                    {
+                      balance: "123",
+                      privateKey:
+                        "0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                    },
+                    {
+                      balance: "123",
+                      privateKey:
+                        "0xcccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+                    },
+                  ],
+                },
+              },
+            });
+          });
+
+          it("Should allow valid private keys with missing hex prefix", function () {
+            validateConfig({
+              networks: {
+                [HARDHAT_NETWORK_NAME]: {
+                  accounts: [
+                    {
+                      balance: "123",
+                      privateKey:
+                        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                    },
+                  ],
+                },
+              },
+            });
+          });
+
+          it("Should not allow an array that contains a value that is not an object", function () {
+            expectHardhatError(
+              () =>
+                validateConfig({
+                  networks: {
+                    [HARDHAT_NETWORK_NAME]: {
+                      accounts: [
+                        {
+                          balance: "123",
+                          privateKey:
+                            "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                        },
+                        "0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                        {
+                          balance: "123",
+                          privateKey:
+                            "0xcccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+                        },
+                      ],
+                    },
+                  },
+                }),
+              ERRORS.GENERAL.INVALID_CONFIG
+            );
+          });
+
+          it("Should not allow hex literals", function () {
+            expectHardhatError(
+              () =>
+                validateConfig({
+                  networks: {
+                    [HARDHAT_NETWORK_NAME]: {
+                      accounts: [
+                        {
+                          balance: "123",
+                          privateKey: 0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa,
+                        },
+                      ],
+                    },
+                  },
+                }),
+              ERRORS.GENERAL.INVALID_CONFIG
+            );
+          });
+
+          it("Should not allow private keys of incorrect length", function () {
+            expectHardhatError(
+              () =>
+                validateConfig({
+                  networks: {
+                    [HARDHAT_NETWORK_NAME]: {
+                      accounts: [
+                        {
+                          balance: "123",
+                          privateKey: "0xaaaa",
+                        },
+                      ],
+                    },
+                  },
+                }),
+              ERRORS.GENERAL.INVALID_CONFIG
+            );
+
+            expectHardhatError(
+              () =>
+                validateConfig({
+                  networks: {
+                    [HARDHAT_NETWORK_NAME]: {
+                      accounts: [
+                        {
+                          balance: "123",
+                          privateKey:
+                            "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaabbbb",
+                        },
+                      ],
+                    },
+                  },
+                }),
+              ERRORS.GENERAL.INVALID_CONFIG
+            );
+          });
+
+          it("Should not allow invalid private keys", function () {
+            expectHardhatError(
+              () =>
+                validateConfig({
+                  networks: {
+                    [HARDHAT_NETWORK_NAME]: {
+                      accounts: [
+                        {
+                          balance: "123",
+                          privateKey:
+                            "0xgggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggg",
+                        },
+                      ],
+                    },
+                  },
+                }),
+              ERRORS.GENERAL.INVALID_CONFIG
+            );
+          });
+        });
+      });
+
       describe("Hardhat Network config", function () {
         it("Should fail with invalid types", function () {
           expectHardhatError(
@@ -663,6 +909,23 @@ describe("Config validation", function () {
               },
             });
 
+            hdConfig = {
+              mnemonic: "asd",
+              accountsBalance: "123",
+              count: 123,
+              initialIndex: 1,
+              path: "m/1/2",
+              passphrase: "this is a secret",
+            };
+
+            validateConfig({
+              networks: {
+                [HARDHAT_NETWORK_NAME]: {
+                  accounts: hdConfig,
+                },
+              },
+            });
+
             validateConfig({
               networks: {
                 [HARDHAT_NETWORK_NAME]: {
@@ -745,6 +1008,155 @@ describe("Config validation", function () {
             );
           });
         });
+
+        describe("HardhatNetworkMempoolConfig", function () {
+          it("Should accept a valid Mempool config", function () {
+            validateConfig({
+              networks: {
+                [HARDHAT_NETWORK_NAME]: {
+                  mining: {
+                    auto: true,
+                    interval: 0,
+                  },
+                },
+              },
+            });
+
+            validateConfig({
+              networks: {
+                [HARDHAT_NETWORK_NAME]: {
+                  mining: {
+                    auto: true,
+                    interval: [10, 100],
+                  },
+                },
+              },
+            });
+
+            validateConfig({
+              networks: {
+                [HARDHAT_NETWORK_NAME]: {
+                  mining: {
+                    mempool: {
+                      order: "priority",
+                    },
+                  },
+                },
+              },
+            });
+
+            validateConfig({
+              networks: {
+                [HARDHAT_NETWORK_NAME]: {
+                  mining: {
+                    mempool: {
+                      order: "fifo",
+                    },
+                  },
+                },
+              },
+            });
+          });
+
+          it("Should fail with invalid types", function () {
+            expectHardhatError(
+              () =>
+                validateConfig({
+                  networks: {
+                    [HARDHAT_NETWORK_NAME]: {
+                      mining: {
+                        auto: "not-supported",
+                      },
+                    },
+                  },
+                }),
+              ERRORS.GENERAL.INVALID_CONFIG
+            );
+
+            expectHardhatError(
+              () =>
+                validateConfig({
+                  networks: {
+                    [HARDHAT_NETWORK_NAME]: {
+                      mining: {
+                        auto: true,
+                        interval: "not-supported",
+                      },
+                    },
+                  },
+                }),
+              ERRORS.GENERAL.INVALID_CONFIG
+            );
+
+            expectHardhatError(
+              () =>
+                validateConfig({
+                  networks: {
+                    [HARDHAT_NETWORK_NAME]: {
+                      mining: {
+                        mempool: {
+                          order: "not-supported",
+                        },
+                      },
+                    },
+                  },
+                }),
+              ERRORS.GENERAL.INVALID_CONFIG
+            );
+          });
+        });
+
+        describe("Hardhat network's coinbase", function () {
+          it("Should fail if it's not a valid address", function () {
+            expectHardhatError(
+              () =>
+                validateConfig({
+                  networks: {
+                    [HARDHAT_NETWORK_NAME]: {
+                      coinbase: "0x123",
+                    },
+                  },
+                }),
+              ERRORS.GENERAL.INVALID_CONFIG
+            );
+
+            expectHardhatError(
+              () =>
+                validateConfig({
+                  networks: {
+                    [HARDHAT_NETWORK_NAME]: {
+                      coinbase: 123,
+                    },
+                  },
+                }),
+              ERRORS.GENERAL.INVALID_CONFIG
+            );
+
+            expectHardhatError(
+              () =>
+                validateConfig({
+                  networks: {
+                    [HARDHAT_NETWORK_NAME]: {
+                      coinbase: "123",
+                    },
+                  },
+                }),
+              ERRORS.GENERAL.INVALID_CONFIG
+            );
+          });
+
+          it("Should accept an optional address", function () {
+            assert.isEmpty(
+              getValidationErrors({
+                networks: {
+                  [HARDHAT_NETWORK_NAME]: {
+                    coinbase: "   0x0000000000000000000000000000000000000001  ",
+                  },
+                },
+              })
+            );
+          });
+        });
       });
 
       describe("HTTP network config", function () {
@@ -788,7 +1200,7 @@ describe("Config validation", function () {
             const errors = getValidationErrors({
               networks: {
                 custom: {
-                  url: "http://localhost",
+                  url: "http://127.0.0.1",
                 },
               },
             });
@@ -799,7 +1211,7 @@ describe("Config validation", function () {
             const errors = getValidationErrors({
               networks: {
                 custom: {
-                  url: "http://localhost",
+                  url: "http://127.0.0.1",
                   httpHeaders: {
                     a: "asd",
                     b: "a",
@@ -816,7 +1228,7 @@ describe("Config validation", function () {
                 validateConfig({
                   networks: {
                     custom: {
-                      url: "http://localhost",
+                      url: "http://127.0.0.1",
                       httpHeaders: 123,
                     },
                   },
@@ -829,7 +1241,7 @@ describe("Config validation", function () {
                 validateConfig({
                   networks: {
                     custom: {
-                      url: "http://localhost",
+                      url: "http://127.0.0.1",
                       httpHeaders: "123",
                     },
                   },
@@ -844,7 +1256,7 @@ describe("Config validation", function () {
                 validateConfig({
                   networks: {
                     custom: {
-                      url: "http://localhost",
+                      url: "http://127.0.0.1",
                       httpHeaders: {
                         a: "a",
                         b: 123,
@@ -860,7 +1272,7 @@ describe("Config validation", function () {
                 validateConfig({
                   networks: {
                     custom: {
-                      url: "http://localhost",
+                      url: "http://127.0.0.1",
                       httpHeaders: {
                         a: "a",
                         b: false,
@@ -1171,7 +1583,13 @@ describe("Config validation", function () {
             gas: 678,
             gasPrice: 123,
             blockGasLimit: 8000,
-            accounts: [{ privateKey: "0xaaaa", balance: "123" }],
+            accounts: [
+              {
+                balance: "123",
+                privateKey:
+                  "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              },
+            ],
             forking: {
               url: "asd",
               blockNumber: 123,
@@ -1187,7 +1605,10 @@ describe("Config validation", function () {
             url: "",
           },
           withPrivateKeys: {
-            accounts: ["0x00", "0x11"],
+            accounts: [
+              "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            ],
             url: "",
           },
           withHdKeys: {
@@ -1207,7 +1628,13 @@ describe("Config validation", function () {
         getValidationErrors({
           networks: {
             [HARDHAT_NETWORK_NAME]: {
-              accounts: [{ privateKey: "0x1111", balance: "0" }],
+              accounts: [
+                {
+                  privateKey:
+                    "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                  balance: "0",
+                },
+              ],
             },
           },
         }),
@@ -1217,7 +1644,13 @@ describe("Config validation", function () {
         getValidationErrors({
           networks: {
             [HARDHAT_NETWORK_NAME]: {
-              accounts: [{ privateKey: "0x1111", balance: "1" }],
+              accounts: [
+                {
+                  privateKey:
+                    "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                  balance: "1",
+                },
+              ],
             },
           },
         }),
@@ -1227,7 +1660,13 @@ describe("Config validation", function () {
         getValidationErrors({
           networks: {
             [HARDHAT_NETWORK_NAME]: {
-              accounts: [{ privateKey: "0x1111", balance: "100123" }],
+              accounts: [
+                {
+                  privateKey:
+                    "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                  balance: "100123",
+                },
+              ],
             },
           },
         }),
@@ -1237,7 +1676,13 @@ describe("Config validation", function () {
         getValidationErrors({
           networks: {
             [HARDHAT_NETWORK_NAME]: {
-              accounts: [{ privateKey: "0x1111", balance: "12300000000123" }],
+              accounts: [
+                {
+                  privateKey:
+                    "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                  balance: "12300000000123",
+                },
+              ],
             },
           },
         }),
@@ -1247,7 +1692,7 @@ describe("Config validation", function () {
         getValidationErrors({
           networks: {
             custom: {
-              url: "http://localhost:8545",
+              url: "http://127.0.0.1:8545",
             },
             localhost: {
               accounts: [
@@ -1298,22 +1743,72 @@ describe("Config validation", function () {
           });
         });
 
-        describe("When using London", function () {
-          it("Should throw if minGasPrice is used", function () {
-            expectHardhatError(
-              () =>
-                validateConfig({
-                  networks: {
-                    hardhat: {
-                      hardfork: "london",
-                      minGasPrice: 123,
+        describe("When using London or later", function () {
+          for (const hardfork of ["london", "arrowGlacier"]) {
+            it(`Should throw if minGasPrice is used when ${hardfork} is activated`, function () {
+              expectHardhatError(
+                () =>
+                  validateConfig({
+                    networks: {
+                      hardhat: {
+                        hardfork,
+                        minGasPrice: 123,
+                      },
                     },
-                  },
-                }),
-              ERRORS.GENERAL.INVALID_CONFIG
-            );
-          });
+                  }),
+                ERRORS.GENERAL.INVALID_CONFIG
+              );
+            });
+          }
         });
+      });
+    });
+
+    describe("Hardfork history usage", function () {
+      it("Should validate good config", function () {
+        validateConfig({
+          networks: {
+            hardhat: {
+              chains: {
+                1: {
+                  hardforkHistory: {
+                    berlin: 12965000 - 1000,
+                    london: 12965000,
+                  },
+                },
+              },
+            },
+          },
+        });
+      });
+      it("Should validate good config with chainId as a string", function () {
+        validateConfig({
+          networks: {
+            hardhat: {
+              chains: {
+                "1": {
+                  hardforkHistory: {
+                    berlin: 12965000 - 1000,
+                    london: 12965000,
+                  },
+                },
+              },
+            },
+          },
+        });
+      });
+      it("should reject an invalid hardfork name", function () {
+        expectHardhatError(() => {
+          validateConfig({
+            networks: {
+              hardhat: {
+                chains: {
+                  1: { hardforkHistory: { bogusHardforkName: 12965000 } },
+                },
+              },
+            },
+          });
+        }, ERRORS.GENERAL.INVALID_CONFIG);
       });
     });
   });

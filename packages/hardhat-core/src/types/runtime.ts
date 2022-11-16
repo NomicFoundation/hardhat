@@ -1,5 +1,5 @@
 import { Artifacts } from "./artifacts";
-import { HardhatConfig, NetworkConfig } from "./config";
+import { HardhatConfig, HardhatUserConfig, NetworkConfig } from "./config";
 import { EthereumProvider } from "./provider";
 
 /**
@@ -167,6 +167,8 @@ export interface HardhatArguments {
   verbose: boolean;
   maxMemory?: number;
   tsconfig?: string;
+  flamegraph?: boolean;
+  typecheck?: boolean;
 }
 
 export type HardhatParamDefinitions = {
@@ -186,6 +188,7 @@ export type RunTaskFunction = (
 
 export interface HardhatRuntimeEnvironment {
   readonly config: HardhatConfig;
+  readonly userConfig: HardhatUserConfig;
   readonly hardhatArguments: HardhatArguments;
   readonly tasks: TasksMap;
   readonly run: RunTaskFunction;

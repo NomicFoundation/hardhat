@@ -4,10 +4,10 @@
   "commit": false,
   "linked": [],
   "access": "public",
-  "baseBranch": "master",
+  "baseBranch": "main",
   "updateInternalDependencies": "minor",
-  "ignore": [],
+  "ignore": ["@nomiclabs/common", "@nomiclabs/hardhat-e2e-tests"],
   "___experimentalUnsafeOptions_WILL_CHANGE_IN_PATCH": {
-    "onlyUpdatePeerDependentsWhenOutOfRange": false
+    "onlyUpdatePeerDependentsWhenOutOfRange": true
   }
 }

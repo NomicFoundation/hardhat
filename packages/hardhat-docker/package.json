@@ -2,7 +2,7 @@
   "name": "@nomiclabs/hardhat-docker",
   "version": "2.0.2",
   "description": "A library to manage Docker from Hardhat plugins",
-  "homepage": "https://github.com/nomiclabs/hardhat/tree/master/packages/hardhat-docker",
+  "homepage": "https://github.com/nomiclabs/hardhat/tree/main/packages/hardhat-docker",
   "repository": "github:nomiclabs/hardhat",
   "author": "Nomic Labs LLC",
   "license": "MIT",
@@ -19,6 +19,7 @@
     "eslint": "eslint 'src/**/*.ts' 'test/**/*.ts'",
     "test": "mocha --recursive \"test/**/*.ts\" --exit",
     "build": "tsc --build .",
+    "prepublishOnly": "yarn build",
     "clean": "rimraf dist"
   },
   "files": [
@@ -31,26 +32,26 @@
     "@types/chai": "^4.2.0",
     "@types/dockerode": "^2.5.19",
     "@types/fs-extra": "^5.1.0",
-    "@types/mocha": "^5.2.6",
-    "@types/node-fetch": "^2.3.7",
-    "@types/node": "^10.17.24",
-    "@typescript-eslint/eslint-plugin": "4.29.2",
+    "@types/mocha": "^9.1.0",
+    "@types/node": "^14.0.0",
+    "@typescript-eslint/eslint-plugin": "^5.30.7",
     "@typescript-eslint/parser": "4.29.2",
     "chai": "^4.2.0",
     "eslint": "^7.29.0",
     "eslint-config-prettier": "8.3.0",
     "eslint-plugin-import": "2.24.1",
+    "eslint-plugin-no-only-tests": "3.0.0",
     "eslint-plugin-prettier": "3.4.0",
-    "mocha": "^7.1.2",
-    "prettier": "2.3.2",
+    "mocha": "^10.0.0",
+    "prettier": "2.4.1",
     "rimraf": "^3.0.2",
     "ts-node": "^8.1.0",
-    "typescript": "~4.0.3"
+    "typescript": "~4.5.2"
   },
   "peerDependencies": {},
   "dependencies": {
-    "fs-extra": "^7.0.1",
     "dockerode": "^2.5.8",
-    "node-fetch": "^2.6.0"
+    "fs-extra": "^7.0.1",
+    "undici": "^5.4.0"
   }
 }

@@ -1,9 +1,10 @@
+import type { request as RequestT } from "undici";
+
 import AbortController from "abort-controller";
 import debug from "debug";
-import fetch from "node-fetch";
 import os from "os";
 import qs from "qs";
-import uuid from "uuid/v4";
+import { v4 as uuid } from "uuid";
 
 import * as builtinTaskNames from "../../builtin-tasks/task-names";
 import { isLocalDev } from "../core/execution-mode";
@@ -157,6 +158,8 @@ export class Analytics {
   }
 
   private _sendHit(hit: RawAnalytics): [AbortAnalytics, Promise<void>] {
+    const { request } = require("undici") as { request: typeof RequestT };
+
     log(`Sending hit for ${hit.dp}`);
 
     const controller = new AbortController();
@@ -171,7 +174,7 @@ export class Analytics {
 
     log(`Hit payload: ${JSON.stringify(hit)}`);
 
-    const hitPromise = fetch(googleAnalyticsUrl, {
+    const hitPromise = request(googleAnalyticsUrl, {
       body: hitPayload,
       method: "POST",
       signal: controller.signal,

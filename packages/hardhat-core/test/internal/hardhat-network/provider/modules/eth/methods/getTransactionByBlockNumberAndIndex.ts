@@ -1,13 +1,13 @@
+import { toBuffer, zeroAddress } from "@nomicfoundation/ethereumjs-util";
 import { assert } from "chai";
-import { BN, toBuffer, zeroAddress } from "ethereumjs-util";
 
-import { numberToRpcQuantity } from "../../../../../../../internal/core/jsonrpc/types/base-types";
-import { TransactionParams } from "../../../../../../../internal/hardhat-network/provider/node-types";
+import { numberToRpcQuantity } from "../../../../../../../src/internal/core/jsonrpc/types/base-types";
+import { TransactionParams } from "../../../../../../../src/internal/hardhat-network/provider/node-types";
 import {
   EIP1559RpcTransactionOutput,
   LegacyRpcTransactionOutput,
   AccessListEIP2930RpcTransactionOutput,
-} from "../../../../../../../internal/hardhat-network/provider/output";
+} from "../../../../../../../src/internal/hardhat-network/provider/output";
 import { workaroundWindowsCiFailures } from "../../../../../../utils/workaround-windows-ci-failures";
 import {
   assertAccessListTransaction,
@@ -15,6 +15,7 @@ import {
   assertLegacyTransaction,
 } from "../../../../helpers/assertions";
 import { setCWD } from "../../../../helpers/cwd";
+import { getPendingBaseFeePerGas } from "../../../../helpers/getPendingBaseFeePerGas";
 import {
   DEFAULT_ACCOUNTS_ADDRESSES,
   PROVIDERS,
@@ -72,10 +73,10 @@ describe("Eth module", function () {
             to: toBuffer(zeroAddress()),
             from: toBuffer(DEFAULT_ACCOUNTS_ADDRESSES[1]),
             data: toBuffer("0xaa"),
-            nonce: new BN(0),
-            value: new BN(123),
-            gasLimit: new BN(25000),
-            gasPrice: new BN(10e9),
+            nonce: 0n,
+            value: 123n,
+            gasLimit: 25_000n,
+            gasPrice: await getPendingBaseFeePerGas(this.provider),
           };
 
           const txHash = await sendTransactionFromTxParams(
@@ -106,10 +107,10 @@ describe("Eth module", function () {
             to: toBuffer(zeroAddress()),
             from: toBuffer(DEFAULT_ACCOUNTS_ADDRESSES[1]),
             data: toBuffer([]),
-            nonce: new BN(1),
-            value: new BN(123),
-            gasLimit: new BN(80000),
-            gasPrice: new BN(10e9),
+            nonce: 1n,
+            value: 123n,
+            gasLimit: 80_000n,
+            gasPrice: await getPendingBaseFeePerGas(this.provider),
           };
 
           const txHash2 = await sendTransactionFromTxParams(
@@ -143,10 +144,10 @@ describe("Eth module", function () {
             to: toBuffer(zeroAddress()),
             from: toBuffer(DEFAULT_ACCOUNTS_ADDRESSES[1]),
             data: toBuffer("0xaa"),
-            nonce: new BN(0),
-            value: new BN(123),
-            gasLimit: new BN(30000),
-            gasPrice: new BN(10e9),
+            nonce: 0n,
+            value: 123n,
+            gasLimit: 30_000n,
+            gasPrice: await getPendingBaseFeePerGas(this.provider),
             accessList: [
               [
                 toBuffer(zeroAddress()),
@@ -190,15 +191,16 @@ describe("Eth module", function () {
 
         it("should return EIP-1559 transactions", async function () {
           const firstBlock = await getFirstBlock();
+          const maxFeePerGas = await getPendingBaseFeePerGas(this.provider);
           const txParams: TransactionParams = {
             to: toBuffer(zeroAddress()),
             from: toBuffer(DEFAULT_ACCOUNTS_ADDRESSES[1]),
             data: toBuffer("0xaa"),
-            nonce: new BN(0),
-            value: new BN(123),
-            gasLimit: new BN(30000),
-            maxFeePerGas: new BN(10e9),
-            maxPriorityFeePerGas: new BN(1e9),
+            nonce: 0n,
+            value: 123n,
+            gasLimit: 30_000n,
+            maxFeePerGas,
+            maxPriorityFeePerGas: maxFeePerGas / 2n,
             accessList: [
               [
                 toBuffer(zeroAddress()),
@@ -246,10 +248,10 @@ describe("Eth module", function () {
             to: toBuffer(zeroAddress()),
             from: toBuffer(DEFAULT_ACCOUNTS_ADDRESSES[1]),
             data: toBuffer("0xaa"),
-            nonce: new BN(0),
-            value: new BN(123),
-            gasLimit: new BN(25000),
-            gasPrice: new BN(10e9),
+            nonce: 0n,
+            value: 123n,
+            gasLimit: 25_000n,
+            gasPrice: await getPendingBaseFeePerGas(this.provider),
           };
 
           const txHash = await sendTransactionFromTxParams(
@@ -273,10 +275,10 @@ describe("Eth module", function () {
             to: toBuffer(zeroAddress()),
             from: toBuffer(DEFAULT_ACCOUNTS_ADDRESSES[1]),
             data: toBuffer([]),
-            nonce: new BN(2),
-            value: new BN(123),
-            gasLimit: new BN(80000),
-            gasPrice: new BN(10e9),
+            nonce: 2n,
+            value: 123n,
+            gasLimit: 80_000n,
+            gasPrice: await getPendingBaseFeePerGas(this.provider),
           };
 
           const txHash2 = await sendTransactionFromTxParams(

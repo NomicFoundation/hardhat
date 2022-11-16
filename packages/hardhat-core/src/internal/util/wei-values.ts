@@ -1,5 +1,3 @@
-import { BN } from "ethereumjs-util";
-
 /**
  * This function turns a wei value in a human readable string. It shows values
  * in ETH, gwei or wei, depending on how large it is.
@@ -10,20 +8,20 @@ import { BN } from "ethereumjs-util";
  * It never shows more than 4 decimal digits. Adapting denominator and
  * truncating as necessary.
  */
-export function weiToHumanReadableString(wei: BN | number): string {
+export function weiToHumanReadableString(wei: bigint | number): string {
   if (typeof wei === "number") {
-    wei = new BN(wei);
+    wei = BigInt(wei);
   }
 
-  if (wei.eqn(0)) {
+  if (wei === 0n) {
     return "0 ETH";
   }
 
-  if (wei.lt(new BN(10).pow(new BN(5)))) {
-    return `${wei} wei`;
+  if (wei < 100_000n) {
+    return `${wei.toString()} wei`;
   }
 
-  if (wei.lt(new BN(10).pow(new BN(14)))) {
+  if (wei < 10n ** 14n) {
     return `${toDecimalString(wei, 9, 4)} gwei`;
   }
 
@@ -31,17 +29,17 @@ export function weiToHumanReadableString(wei: BN | number): string {
 }
 
 function toDecimalString(
-  value: BN,
+  value: bigint,
   digitsToInteger: number,
   decimalDigits: number = 4
 ): string {
-  const oneUnit = new BN(10).pow(new BN(digitsToInteger));
-  const oneDecimal = new BN(10).pow(new BN(digitsToInteger - decimalDigits));
+  const oneUnit = 10n ** BigInt(digitsToInteger);
+  const oneDecimal = 10n ** BigInt(digitsToInteger - decimalDigits);
 
-  const integer = value.div(oneUnit);
+  const integer = value / oneUnit;
 
-  const decimals = value.mod(oneUnit).div(oneDecimal);
-  if (decimals.eqn(0)) {
+  const decimals = (value % oneUnit) / oneDecimal;
+  if (decimals === 0n) {
     return integer.toString(10);
   }
 

@@ -9,6 +9,7 @@ module.exports = {
   plugins: [
     "@nomiclabs/eslint-plugin-hardhat-internal-rules",
     "eslint-plugin-import",
+    "no-only-tests",
     "@typescript-eslint",
   ],
   rules: {
@@ -74,7 +75,7 @@ module.exports = {
         trailingUnderscore: "allow",
       },
       {
-        selector: "classProperty",
+        selector: ["classProperty"],
         format: ["camelCase", "UPPER_CASE"],
         leadingUnderscore: "allow",
       },
@@ -89,7 +90,11 @@ module.exports = {
         leadingUnderscore: "require",
       },
       {
-        selector: ["objectLiteralProperty", "objectLiteralMethod"],
+        selector: ["objectLiteralProperty"],
+        format: null
+      },
+      {
+        selector: ["objectLiteralMethod"],
         format: ["camelCase", "PascalCase", "snake_case", "UPPER_CASE"],
         leadingUnderscore: "allow",
       },
@@ -132,9 +137,15 @@ module.exports = {
     "@typescript-eslint/prefer-function-type": "error",
     "@typescript-eslint/prefer-namespace-keyword": "error",
     "@typescript-eslint/restrict-plus-operands": "error",
+    "@typescript-eslint/restrict-template-expressions": ["error", {
+      allowAny: true,
+    }],
     "@typescript-eslint/strict-boolean-expressions": [
       "error",
       {
+        allowString: false,
+        allowNumber: false,
+        allowNullableObject: false,
         allowAny: true,
       },
     ],
@@ -162,6 +173,7 @@ module.exports = {
       "error",
       {
         groups: [
+          "type",
           "object",
           ["builtin", "external"],
           "parent",
@@ -170,6 +182,7 @@ module.exports = {
         ],
       },
     ],
+    "import/no-default-export": "error",
     "no-bitwise": "error",
     "no-caller": "error",
     "no-cond-assign": "error",
@@ -180,6 +193,7 @@ module.exports = {
     "no-extra-bind": "error",
     "no-new-func": "error",
     "no-new-wrappers": "error",
+    "no-only-tests/no-only-tests": "error",
     "no-return-await": "off",
     "@typescript-eslint/return-await": "error",
     "no-sequences": "error",
@@ -205,5 +219,8 @@ module.exports = {
       },
     ],
     "use-isnan": "error",
+    "no-restricted-imports": ["error", {
+      patterns: ["hardhat/src", "@nomiclabs/*/src"]
+    }],
   },
 };

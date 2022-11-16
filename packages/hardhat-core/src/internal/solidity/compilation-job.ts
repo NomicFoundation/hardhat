@@ -1,5 +1,6 @@
-import debug from "debug";
 import type { LoDashStatic } from "lodash";
+
+import debug from "debug";
 import semver from "semver";
 
 import { SolcConfig, SolidityConfig } from "../../types";
@@ -16,7 +17,7 @@ import { ResolvedFile } from "./resolver";
 const log = debug("hardhat:core:compilation-job");
 
 // this should have a proper version range when it's fixed
-const SOLC_BUG_9573_VERSIONS = "*";
+const SOLC_BUG_9573_VERSIONS = "<0.8.0";
 
 function isCompilationJobCreationError(
   x:
@@ -54,7 +55,8 @@ export class CompilationJob implements taskTypes.CompilationJob {
   }
 
   public merge(job: taskTypes.CompilationJob): CompilationJob {
-    const { isEqual }: LoDashStatic = require("lodash");
+    const isEqual = require("lodash/isEqual") as LoDashStatic["isEqual"];
+
     assertHardhatInvariant(
       isEqual(this.solidityConfig, job.getSolcConfig()),
       "Merging jobs with different solidity configurations"
@@ -102,8 +104,6 @@ function mergeCompilationJobs(
   jobs: taskTypes.CompilationJob[],
   isMergeable: (job: taskTypes.CompilationJob) => boolean
 ): taskTypes.CompilationJob[] {
-  const { flatten }: LoDashStatic = require("lodash");
-
   const jobsMap: Map<SolcConfig, taskTypes.CompilationJob[]> = new Map();
 
   for (const job of jobs) {
@@ -129,7 +129,8 @@ function mergeCompilationJobs(
     }
   }
 
-  return flatten([...jobsMap.values()]);
+  // Array#flat This method defaults to depth limit 1
+  return [...jobsMap.values()].flat(1_000_000);
 }
 
 /**
@@ -152,7 +153,9 @@ export async function createCompilationJobsFromConnectedComponent(
 
     if (isCompilationJobCreationError(compilationJobOrError)) {
       log(
-        `'${file.absolutePath}' couldn't be compiled. Reason: '${compilationJobOrError}'`
+        `'${file.absolutePath}' couldn't be compiled. Reason: '${
+          compilationJobOrError as any
+        }'`
       );
       errors.push(compilationJobOrError);
       continue;
@@ -231,15 +234,15 @@ function getCompilerConfigForFile(
   transitiveDependencies: taskTypes.TransitiveDependency[],
   solidityConfig: SolidityConfig
 ): SolcConfig | CompilationJobCreationError {
-  const { uniq }: LoDashStatic = require("lodash");
-
   const transitiveDependenciesVersionPragmas = transitiveDependencies.map(
     ({ dependency }) => dependency.content.versionPragmas
   );
-  const versionRange = uniq([
-    ...file.content.versionPragmas,
-    ...transitiveDependenciesVersionPragmas,
-  ]).join(" ");
+  const versionRange = Array.from(
+    new Set([
+      ...file.content.versionPragmas,
+      ...transitiveDependenciesVersionPragmas,
+    ])
+  ).join(" ");
 
   const overrides = solidityConfig.overrides ?? {};
 

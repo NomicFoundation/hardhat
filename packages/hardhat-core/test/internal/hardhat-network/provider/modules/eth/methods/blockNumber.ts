@@ -1,9 +1,10 @@
 import { assert } from "chai";
 
-import { numberToRpcQuantity } from "../../../../../../../internal/core/jsonrpc/types/base-types";
+import { numberToRpcQuantity } from "../../../../../../../src/internal/core/jsonrpc/types/base-types";
 import { workaroundWindowsCiFailures } from "../../../../../../utils/workaround-windows-ci-failures";
 import { assertQuantity } from "../../../../helpers/assertions";
 import { setCWD } from "../../../../helpers/cwd";
+import { getPendingBaseFeePerGas } from "../../../../helpers/getPendingBaseFeePerGas";
 import {
   DEFAULT_ACCOUNTS_ADDRESSES,
   PROVIDERS,
@@ -63,12 +64,14 @@ describe("Eth module", function () {
                 from: DEFAULT_ACCOUNTS_ADDRESSES[0],
                 to: "0x0000000000000000000000000000000000000001",
                 gas: numberToRpcQuantity(21000), // Address 1 is a precompile, so this will OOG
-                gasPrice: numberToRpcQuantity(10e9),
+                gasPrice: numberToRpcQuantity(
+                  await getPendingBaseFeePerGas(this.provider)
+                ),
               },
             ]);
 
             assert.fail("Tx should have failed");
-          } catch (e) {
+          } catch (e: any) {
             assert.notInclude(e.message, "Tx should have failed");
           }
 
@@ -85,7 +88,9 @@ describe("Eth module", function () {
               from: DEFAULT_ACCOUNTS_ADDRESSES[0],
               to: "0x0000000000000000000000000000000000000000",
               gas: numberToRpcQuantity(21000),
-              gasPrice: numberToRpcQuantity(10e9),
+              gasPrice: numberToRpcQuantity(
+                await getPendingBaseFeePerGas(this.provider)
+              ),
             },
           ]);
 

@@ -20,7 +20,7 @@ import {
 
 /* eslint-disable @nomiclabs/hardhat-internal-rules/only-hardhat-error */
 
-export default class JsonRpcHandler {
+export class JsonRpcHandler {
   constructor(private readonly _provider: EIP1193Provider) {}
 
   public handleHttp = async (req: IncomingMessage, res: ServerResponse) => {
@@ -207,7 +207,12 @@ const _readJsonHttpRequest = async (req: IncomingMessage): Promise<any> => {
 
     json = JSON.parse(text);
   } catch (error) {
-    throw new InvalidJsonInputError(`Parse error: ${error.message}`);
+    if (error instanceof Error) {
+      throw new InvalidJsonInputError(`Parse error: ${error.message}`);
+    }
+
+    // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
+    throw error;
   }
 
   return json;
@@ -218,16 +223,27 @@ const _readWsRequest = (msg: string): JsonRpcRequest => {
   try {
     json = JSON.parse(msg);
   } catch (error) {
-    throw new InvalidJsonInputError(`Parse error: ${error.message}`);
+    if (error instanceof Error) {
+      throw new InvalidJsonInputError(`Parse error: ${error.message}`);
+    }
+
+    // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
+    throw error;
   }
 
   return json;
 };
 
 const _handleError = (error: any): JsonRpcResponse => {
+  // extract the relevant fields from the error before wrapping it
   let txHash: string | undefined;
+  let returnData: string | undefined;
+
   if (error.transactionHash !== undefined) {
     txHash = error.transactionHash;
+  }
+  if (error.data !== undefined) {
+    returnData = error.data;
   }
 
   // In case of non-hardhat error, treat it as internal and associate the appropriate error code.
@@ -244,10 +260,16 @@ const _handleError = (error: any): JsonRpcResponse => {
     },
   };
 
+  response.error.data = {
+    message: error.message,
+  };
+
   if (txHash !== undefined) {
-    response.error.data = {
-      txHash,
-    };
+    response.error.data.txHash = txHash;
+  }
+
+  if (returnData !== undefined) {
+    response.error.data.data = returnData;
   }
 
   return response;

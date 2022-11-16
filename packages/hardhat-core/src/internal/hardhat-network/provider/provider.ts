@@ -1,18 +1,19 @@
-import Common from "@ethereumjs/common";
-import chalk from "chalk";
-import debug from "debug";
-import { BN } from "ethereumjs-util";
-import { EventEmitter } from "events";
-import fsExtra from "fs-extra";
-import semver from "semver";
-
 import type {
   Artifacts,
   BoundExperimentalHardhatNetworkMessageTraceHook,
   EIP1193Provider,
   EthSubscription,
+  HardhatNetworkChainsConfig,
   RequestArguments,
 } from "../../../types";
+
+import { Common } from "@nomicfoundation/ethereumjs-common";
+import chalk from "chalk";
+import debug from "debug";
+import { EventEmitter } from "events";
+import fsExtra from "fs-extra";
+import semver from "semver";
+
 import {
   HARDHAT_NETWORK_RESET_EVENT,
   HARDHAT_NETWORK_REVERT_SNAPSHOT_EVENT,
@@ -23,15 +24,16 @@ import {
   MethodNotSupportedError,
   ProviderError,
 } from "../../core/providers/errors";
-import { FIRST_SOLC_VERSION_SUPPORTED } from "../stack-traces/solidityTracer";
-import { Mutex } from "../vendor/await-semaphore";
+import { Mutex } from "../../vendor/await-semaphore";
 
+import { FIRST_SOLC_VERSION_SUPPORTED } from "../stack-traces/constants";
 import { MiningTimer } from "./MiningTimer";
 import { DebugModule } from "./modules/debug";
 import { EthModule } from "./modules/eth";
 import { EvmModule } from "./modules/evm";
 import { HardhatModule } from "./modules/hardhat";
 import { ModulesLogger } from "./modules/logger";
+import { PersonalModule } from "./modules/personal";
 import { NetModule } from "./modules/net";
 import { Web3Module } from "./modules/web3";
 import { HardhatNode } from "./node";
@@ -39,6 +41,7 @@ import {
   ForkConfig,
   GenesisAccount,
   IntervalMiningConfig,
+  MempoolOrder,
   NodeConfig,
   TracingConfig,
 } from "./node-types";
@@ -53,11 +56,12 @@ const PRIVATE_RPC_METHODS = new Set([
 
 /* eslint-disable @nomiclabs/hardhat-internal-rules/only-hardhat-error */
 
+export const DEFAULT_COINBASE = "0xc014ba5ec014ba5ec014ba5ec014ba5ec014ba5e";
+
 export class HardhatNetworkProvider
   extends EventEmitter
   implements EIP1193Provider
 {
-  private _common?: Common;
   private _node?: HardhatNode;
   private _ethModule?: EthModule;
   private _netModule?: NetModule;
@@ -65,7 +69,10 @@ export class HardhatNetworkProvider
   private _evmModule?: EvmModule;
   private _hardhatModule?: HardhatModule;
   private _debugModule?: DebugModule;
+  private _personalModule?: PersonalModule;
   private readonly _mutex = new Mutex();
+  // this field is not used here but it's used in the tests
+  private _common?: Common;
 
   constructor(
     private readonly _hardfork: string,
@@ -74,11 +81,13 @@ export class HardhatNetworkProvider
     private readonly _networkId: number,
     private readonly _blockGasLimit: number,
     private readonly _initialBaseFeePerGas: number | undefined,
-    private readonly _minGasPrice: BN,
+    private readonly _minGasPrice: bigint,
     private readonly _throwOnTransactionFailures: boolean,
     private readonly _throwOnCallFailures: boolean,
     private readonly _automine: boolean,
     private readonly _intervalMining: IntervalMiningConfig,
+    private readonly _mempoolOrder: MempoolOrder,
+    private readonly _chains: HardhatNetworkChainsConfig,
     private readonly _logger: ModulesLogger,
     private readonly _genesisAccounts: GenesisAccount[] = [],
     private readonly _artifacts?: Artifacts,
@@ -86,7 +95,8 @@ export class HardhatNetworkProvider
     private readonly _initialDate?: Date,
     private readonly _experimentalHardhatNetworkMessageTraceHooks: BoundExperimentalHardhatNetworkMessageTraceHook[] = [],
     private _forkConfig?: ForkConfig,
-    private readonly _forkCachePath?: string
+    private readonly _forkCachePath?: string,
+    private readonly _coinbase = DEFAULT_COINBASE
   ) {
     super();
   }
@@ -157,7 +167,7 @@ export class HardhatNetworkProvider
       this._logger.printFailedMethod(method);
       this._logger.printLogs();
 
-      if (!this._logger.isLoggedError(err)) {
+      if (err instanceof Error && !this._logger.isLoggedError(err)) {
         if (ProviderError.isProviderError(err)) {
           this._logger.printEmptyLine();
           this._logger.printErrorMessage(err.message);
@@ -205,6 +215,10 @@ export class HardhatNetworkProvider
       return this._debugModule!.processRequest(method, params);
     }
 
+    if (method.startsWith("personal_")) {
+      return this._personalModule!.processRequest(method, params);
+    }
+
     throw new MethodNotFoundError(`Method ${method} not found`);
   }
 
@@ -221,6 +235,7 @@ export class HardhatNetworkProvider
       allowUnlimitedContractSize: this._allowUnlimitedContractSize,
       tracingConfig: await this._makeTracingConfig(),
       initialBaseFeePerGas: this._initialBaseFeePerGas,
+      mempoolOrder: this._mempoolOrder,
       hardfork: this._hardfork,
       networkName: this._networkName,
       chainId: this._chainId,
@@ -229,6 +244,8 @@ export class HardhatNetworkProvider
       forkConfig: this._forkConfig,
       forkCachePath:
         this._forkConfig !== undefined ? this._forkCachePath : undefined,
+      coinbase: this._coinbase,
+      chains: this._chains,
     };
 
     const [common, node] = await HardhatNode.create(config);
@@ -265,6 +282,7 @@ export class HardhatNetworkProvider
       this._experimentalHardhatNetworkMessageTraceHooks
     );
     this._debugModule = new DebugModule(node);
+    this._personalModule = new PersonalModule(node);
 
     this._forwardNodeEvents(node);
   }
@@ -335,7 +353,7 @@ export class HardhatNetworkProvider
     node.removeListener("ethEvent", this._ethEventListener);
   }
 
-  private _ethEventListener = (payload: { filterId: BN; result: any }) => {
+  private _ethEventListener = (payload: { filterId: bigint; result: any }) => {
     const subscription = `0x${payload.filterId.toString(16)}`;
     const result = payload.result;
     this._emitLegacySubscriptionEvent(subscription, result);

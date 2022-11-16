@@ -1,8 +1,8 @@
-import { Block } from "@ethereumjs/block";
-import { TypedTransaction } from "@ethereumjs/tx";
+import { Block } from "@nomicfoundation/ethereumjs-block";
+import { TypedTransaction } from "@nomicfoundation/ethereumjs-tx";
+import { bufferToHex } from "@nomicfoundation/ethereumjs-util";
 import ansiEscapes from "ansi-escapes";
 import chalk, { Chalk } from "chalk";
-import { BN, bufferToHex } from "ethereumjs-util";
 import util from "util";
 
 import { assertHardhatInvariant } from "../../../core/errors";
@@ -27,7 +27,8 @@ interface PrintOptions {
   color?: Chalk;
   replaceLastLine?: boolean;
   collapsePrintedMethod?: boolean;
-  collapseMinedBlock?: boolean;
+  collapseIntervalMinedBlock?: boolean;
+  collapseHardhatMinedBlock?: boolean;
 }
 
 function printLine(line: string) {
@@ -35,15 +36,19 @@ function printLine(line: string) {
 }
 
 function replaceLastLine(newLine: string) {
-  process.stdout.write(
-    // eslint-disable-next-line prefer-template
-    ansiEscapes.cursorHide +
-      ansiEscapes.cursorPrevLine +
-      newLine +
-      ansiEscapes.eraseEndLine +
-      "\n" +
-      ansiEscapes.cursorShow
-  );
+  if (process.stdout.isTTY === true) {
+    process.stdout.write(
+      // eslint-disable-next-line prefer-template
+      ansiEscapes.cursorHide +
+        ansiEscapes.cursorPrevLine +
+        newLine +
+        ansiEscapes.eraseEndLine +
+        "\n" +
+        ansiEscapes.cursorShow
+    );
+  } else {
+    process.stdout.write(`${newLine}\n`);
+  }
 }
 
 /**
@@ -57,7 +62,8 @@ export class ModulesLogger {
   private _logs: Array<string | [string, string]> = [];
   private _titleLength = 0;
   private _currentIndent = 0;
-  private _emptyMinedBlocksRangeStart: number | undefined = undefined;
+  private _emptyIntervalMinedBlocksRangeStart: bigint | undefined = undefined;
+  private _emptyHardhatMinedBlocksRangeStart: bigint | undefined = undefined;
   private _methodBeingCollapsed?: string;
   private _methodCollapsedCount: number = 0;
 
@@ -102,7 +108,8 @@ export class ModulesLogger {
 
         for (let i = 0; i < block.transactions.length; i++) {
           const tx = block.transactions[i];
-          const txGasUsed = results[i].gasUsed.toNumber();
+
+          const txGasUsed = results[i].totalGasSpent;
           const txTrace = traces[i];
           const code = codes[i];
 
@@ -127,7 +134,7 @@ export class ModulesLogger {
       "The array of codes should have the same length as the array of results"
     );
 
-    const blockNumber = result.block.header.number.toNumber();
+    const blockNumber = result.block.header.number;
     const isEmpty = result.block.transactions.length === 0;
 
     this._indent(() => {
@@ -149,7 +156,7 @@ export class ModulesLogger {
 
           for (let i = 0; i < block.transactions.length; i++) {
             const tx = block.transactions[i];
-            const txGasUsed = results[i].gasUsed.toNumber();
+            const txGasUsed = results[i].totalGasSpent;
             const txTrace = traces[i];
             const code = codes[i];
 
@@ -181,7 +188,7 @@ export class ModulesLogger {
 
         for (let i = 0; i < block.transactions.length; i++) {
           const tx = block.transactions[i];
-          const txGasUsed = results[i].gasUsed.toNumber();
+          const txGasUsed = results[i].totalGasSpent;
           const txTrace = traces[i];
           const code = codes[i];
 
@@ -198,7 +205,7 @@ export class ModulesLogger {
   public logSingleTransaction(
     tx: TypedTransaction,
     block: Block,
-    txGasUsed: number,
+    txGasUsed: bigint,
     txTrace: GatherTracesResult,
     code: Buffer
   ) {
@@ -211,14 +218,11 @@ export class ModulesLogger {
 
       this._logTxFrom(tx.getSenderAddress().toBuffer());
       this._logTxTo(tx.to?.toBuffer(), txTrace.trace);
-      this._logTxValue(new BN(tx.value));
-      this._logWithTitle(
-        "Gas used",
-        `${txGasUsed} of ${tx.gasLimit.toNumber()}`
-      );
+      this._logTxValue(tx.value);
+      this._logWithTitle("Gas used", `${txGasUsed} of ${tx.gasLimit}`);
 
       this._logWithTitle(
-        `Block #${block.header.number.toNumber()}`,
+        `Block #${block.header.number}`,
         bufferToHex(block.hash())
       );
 
@@ -232,7 +236,7 @@ export class ModulesLogger {
 
   public logCurrentlySentTransaction(
     tx: TypedTransaction,
-    txGasUsed: number,
+    txGasUsed: bigint,
     txTrace: GatherTracesResult,
     code: Buffer,
     block: Block
@@ -249,14 +253,11 @@ export class ModulesLogger {
 
       this._logTxFrom(tx.getSenderAddress().toBuffer());
       this._logTxTo(tx.to?.toBuffer(), txTrace.trace);
-      this._logTxValue(new BN(tx.value));
-      this._logWithTitle(
-        "Gas used",
-        `${txGasUsed} of ${tx.gasLimit.toNumber()}`
-      );
+      this._logTxValue(tx.value);
+      this._logWithTitle("Gas used", `${txGasUsed} of ${tx.gasLimit}`);
 
       this._logWithTitle(
-        `Block #${block.header.number.toNumber()}`,
+        `Block #${block.header.number}`,
         bufferToHex(block.hash())
       );
 
@@ -282,7 +283,7 @@ export class ModulesLogger {
 
       this._logTxFrom(callParams.from);
       this._logTxTo(callParams.to, trace);
-      this._logTxValue(new BN(callParams.value));
+      this._logTxValue(callParams.value);
 
       this._logConsoleLogMessages(consoleLogMessages);
 
@@ -304,7 +305,7 @@ export class ModulesLogger {
 
       this._logTxFrom(callParams.from);
       this._logTxTo(callParams.to, trace);
-      if (callParams.value.gtn(0)) {
+      if (callParams.value > 0n) {
         this._logTxValue(callParams.value);
       }
 
@@ -318,14 +319,16 @@ export class ModulesLogger {
   }
 
   public logMinedBlockNumber(
-    blockNumber: number,
+    blockNumber: bigint,
     isEmpty: boolean,
-    baseFeePerGas?: BN
+    baseFeePerGas?: bigint
   ) {
     if (isEmpty) {
       this._log(
         `Mined empty block #${blockNumber}${
-          baseFeePerGas !== undefined ? ` with base fee ${baseFeePerGas}` : ""
+          baseFeePerGas !== undefined
+            ? ` with base fee ${baseFeePerGas.toString()}`
+            : ""
         }`
       );
 
@@ -359,7 +362,7 @@ export class ModulesLogger {
 
   private _logBaseFeePerGas(block: Block) {
     if (block.header.baseFeePerGas !== undefined) {
-      this._log(`Base fee: ${block.header.baseFeePerGas}`);
+      this._log(`Base fee: ${block.header.baseFeePerGas.toString()}`);
     }
   }
 
@@ -391,26 +394,28 @@ export class ModulesLogger {
     return true;
   }
 
-  public printMinedBlockNumber(
-    blockNumber: number,
+  public printIntervalMinedBlockNumber(
+    blockNumber: bigint,
     isEmpty: boolean,
-    baseFeePerGas?: BN
+    baseFeePerGas?: bigint
   ) {
-    if (this._emptyMinedBlocksRangeStart !== undefined) {
+    if (this._emptyIntervalMinedBlocksRangeStart !== undefined) {
       this._print(
-        `Mined empty block range #${this._emptyMinedBlocksRangeStart} to #${blockNumber}`,
-        { collapseMinedBlock: true, replaceLastLine: true }
+        `Mined empty block range #${this._emptyIntervalMinedBlocksRangeStart} to #${blockNumber}`,
+        { collapseIntervalMinedBlock: true, replaceLastLine: true }
       );
     } else {
-      this._emptyMinedBlocksRangeStart = blockNumber;
+      this._emptyIntervalMinedBlocksRangeStart = blockNumber;
 
       if (isEmpty) {
         this._print(
           `Mined empty block #${blockNumber}${
-            baseFeePerGas !== undefined ? ` with base fee ${baseFeePerGas}` : ""
+            baseFeePerGas !== undefined
+              ? ` with base fee ${baseFeePerGas.toString()}`
+              : ""
           }`,
           {
-            collapseMinedBlock: true,
+            collapseIntervalMinedBlock: true,
           }
         );
 
@@ -418,9 +423,38 @@ export class ModulesLogger {
       }
 
       this._print(`Mined block #${blockNumber}`, {
-        collapseMinedBlock: true,
+        collapseIntervalMinedBlock: true,
       });
     }
+  }
+
+  public logEmptyHardhatMinedBlock(
+    blockNumber: bigint,
+    baseFeePerGas?: bigint
+  ) {
+    this._indent(() => {
+      if (this._emptyHardhatMinedBlocksRangeStart !== undefined) {
+        this._log(
+          `Mined empty block range #${this._emptyHardhatMinedBlocksRangeStart} to #${blockNumber}`,
+          { collapseHardhatMinedBlock: true, replaceLastLine: true }
+        );
+      } else {
+        this._emptyHardhatMinedBlocksRangeStart = blockNumber;
+
+        this._log(
+          `Mined empty block #${blockNumber}${
+            baseFeePerGas !== undefined
+              ? ` with base fee ${baseFeePerGas.toString()}`
+              : ""
+          }`,
+          {
+            collapseHardhatMinedBlock: true,
+          }
+        );
+
+        return;
+      }
+    });
   }
 
   public printMetaMaskWarning() {
@@ -460,7 +494,7 @@ export class ModulesLogger {
       this.printEmptyLine();
 
       this._print(
-        "If you think this is a bug in Hardhat, please report it here: https://hardhat.org/reportbug"
+        "If you think this is a bug in Hardhat, please report it here: https://hardhat.org/report-bug"
       );
     });
   }
@@ -506,12 +540,19 @@ export class ModulesLogger {
     if (printOptions.collapsePrintedMethod !== true) {
       this._stopCollapsingMethod();
     }
-    if (printOptions.collapseMinedBlock !== true) {
-      this._emptyMinedBlocksRangeStart = undefined;
+    if (printOptions.collapseIntervalMinedBlock !== true) {
+      this._emptyIntervalMinedBlocksRangeStart = undefined;
+    }
+    if (printOptions.collapseHardhatMinedBlock !== true) {
+      this._emptyHardhatMinedBlocksRangeStart = undefined;
     }
     const formattedMessage = this._format(msg, printOptions);
 
-    this._logs.push(formattedMessage);
+    if (printOptions.replaceLastLine === true) {
+      this._logs[this._logs.length - 1] = formattedMessage;
+    } else {
+      this._logs.push(formattedMessage);
+    }
   }
 
   private _logError(err: Error) {
@@ -525,7 +566,7 @@ export class ModulesLogger {
     tx: TypedTransaction,
     txTrace: GatherTracesResult,
     code: Buffer,
-    txGasUsed: number,
+    txGasUsed: bigint,
     {
       highlightTxHash,
     }: {
@@ -547,11 +588,8 @@ export class ModulesLogger {
       this._logContractAndFunctionName(txTrace.trace, code);
       this._logTxFrom(tx.getSenderAddress().toBuffer());
       this._logTxTo(tx.to?.toBuffer(), txTrace.trace);
-      this._logTxValue(new BN(tx.value));
-      this._logWithTitle(
-        "Gas used",
-        `${txGasUsed} of ${tx.gasLimit.toNumber()}`
-      );
+      this._logTxValue(tx.value);
+      this._logWithTitle("Gas used", `${txGasUsed} of ${tx.gasLimit}`);
 
       this._logConsoleLogMessages(txTrace.consoleLogMessages);
 
@@ -575,8 +613,11 @@ export class ModulesLogger {
     if (printOptions.collapsePrintedMethod !== true) {
       this._stopCollapsingMethod();
     }
-    if (printOptions.collapseMinedBlock !== true) {
-      this._emptyMinedBlocksRangeStart = undefined;
+    if (printOptions.collapseIntervalMinedBlock !== true) {
+      this._emptyIntervalMinedBlocksRangeStart = undefined;
+    }
+    if (printOptions.collapseHardhatMinedBlock !== true) {
+      this._emptyHardhatMinedBlocksRangeStart = undefined;
     }
     const formattedMessage = this._format(msg, printOptions);
 
@@ -695,7 +736,7 @@ export class ModulesLogger {
     this._logWithTitle("To", toString);
   }
 
-  private _logTxValue(value: BN) {
+  private _logTxValue(value: bigint) {
     this._logWithTitle("Value", weiToHumanReadableString(value));
   }
 
@@ -704,9 +745,7 @@ export class ModulesLogger {
   }
 
   private _logBlockNumber(block: Block) {
-    this._log(
-      `Block #${block.header.number.toNumber()}: ${bufferToHex(block.hash())}`
-    );
+    this._log(`Block #${block.header.number}: ${bufferToHex(block.hash())}`);
   }
 
   private _logEmptyLineBetweenTransactions(

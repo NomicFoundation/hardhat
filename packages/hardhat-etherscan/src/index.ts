@@ -23,7 +23,7 @@ import path from "path";
 import semver from "semver";
 
 import { encodeArguments } from "./ABIEncoder";
-import { etherscanConfigExtender } from "./config";
+import { etherscanConfigExtender, verifyAllowedChains } from "./config";
 import {
   pluginName,
   TASK_VERIFY,
@@ -45,11 +45,12 @@ import {
   toCheckStatusRequest,
   toVerifyRequest,
 } from "./etherscan/EtherscanVerifyContractRequest";
+import { chainConfig } from "./ChainConfig";
 import {
-  EtherscanURLs,
   getEtherscanEndpoints,
   retrieveContractBytecode,
 } from "./network/prober";
+import { resolveEtherscanApiKey } from "./resolveEtherscanApiKey";
 import {
   Bytecode,
   ContractInformation,
@@ -63,9 +64,11 @@ import {
 } from "./solc/metadata";
 import { getLongVersion } from "./solc/version";
 import "./type-extensions";
+import { EtherscanNetworkEntry, EtherscanURLs } from "./types";
+import { buildContractUrl, printSupportedNetworks } from "./util";
 
 interface VerificationArgs {
-  address: string;
+  address?: string;
   // constructor args given as positional params
   constructorArgsParams: string[];
   // Filename of constructor arguments module
@@ -74,6 +77,9 @@ interface VerificationArgs {
   contract?: string;
   // Filename of libraries module
   libraries?: string;
+
+  // --list-networks flag
+  listNetworks: boolean;
 }
 
 interface VerificationSubtaskArgs {
@@ -127,9 +133,24 @@ const verify: ActionType<VerificationArgs> = async (
     constructorArgs: constructorArgsModule,
     contract,
     libraries: librariesModule,
+    listNetworks,
   },
-  { run }
+  { config, run }
 ) => {
+  if (listNetworks) {
+    await printSupportedNetworks(config.etherscan.customChains);
+    return;
+  }
+
+  if (address === undefined) {
+    throw new NomicLabsHardhatPluginError(
+      pluginName,
+      "You didn’t provide any address. Please re-run the 'verify' task with the address of the contract you want to verify."
+    );
+  }
+
+  verifyAllowedChains(config.etherscan);
+
   const constructorArguments: any[] = await run(
     TASK_VERIFY_GET_CONSTRUCTOR_ARGUMENTS,
     {
@@ -155,15 +176,6 @@ const verifySubtask: ActionType<VerificationSubtaskArgs> = async (
   { config, network, run }
 ) => {
   const { etherscan } = config;
-
-  if (etherscan.apiKey === undefined || etherscan.apiKey.trim() === "") {
-    throw new NomicLabsHardhatPluginError(
-      pluginName,
-      `Please provide an Etherscan API token via hardhat config.
-E.g.: { [...], etherscan: { apiKey: 'an API key' }, [...] }
-See https://etherscan.io/apis`
-    );
-  }
 
   const { isAddress } = await import("@ethersproject/address");
   if (!isAddress(address)) {
@@ -191,8 +203,14 @@ If your constructor has no arguments pass an empty array. E.g:
     TASK_VERIFY_GET_COMPILER_VERSIONS
   );
 
-  const etherscanAPIEndpoints: EtherscanURLs = await run(
-    TASK_VERIFY_GET_ETHERSCAN_ENDPOINT
+  const {
+    network: verificationNetwork,
+    urls: etherscanAPIEndpoints,
+  }: EtherscanNetworkEntry = await run(TASK_VERIFY_GET_ETHERSCAN_ENDPOINT);
+
+  const etherscanAPIKey = resolveEtherscanApiKey(
+    etherscan.apiKey,
+    verificationNetwork
   );
 
   const deployedBytecodeHex = await retrieveContractBytecode(
@@ -283,10 +301,11 @@ Possible causes are:
     contractInformation,
     etherscanAPIEndpoints,
     address,
-    etherscanAPIKey: etherscan.apiKey,
+    etherscanAPIKey,
     solcFullVersion,
     deployArgumentsEncoded,
   });
+
   if (success) {
     return;
   }
@@ -296,17 +315,18 @@ Possible causes are:
     etherscanAPIEndpoints,
     contractInformation,
     address,
-    etherscan.apiKey,
+    etherscanAPIKey,
     contractInformation.compilerInput,
     solcFullVersion,
     deployArgumentsEncoded
   );
 
   if (verificationStatus.isVerificationSuccess()) {
-    const contractURL = new URL(
-      `/address/${address}#code`,
-      etherscanAPIEndpoints.browserURL
+    const contractURL = buildContractUrl(
+      etherscanAPIEndpoints.browserURL,
+      address
     );
+
     console.log(
       `Successfully verified full build of contract ${contractInformation.contractName} on Etherscan.
 ${contractURL}`
@@ -369,7 +389,7 @@ subtask(TASK_VERIFY_GET_CONSTRUCTOR_ARGUMENTS)
         }
 
         return constructorArguments;
-      } catch (error) {
+      } catch (error: any) {
         throw new NomicLabsHardhatPluginError(
           pluginName,
           `Importing the module for the constructor arguments list failed.
@@ -407,7 +427,7 @@ subtask(TASK_VERIFY_GET_LIBRARIES)
         }
 
         return libraries;
-      } catch (error) {
+      } catch (error: any) {
         throw new NomicLabsHardhatPluginError(
           pluginName,
           `Importing the module for the libraries dictionary failed.
@@ -443,7 +463,7 @@ async function attemptVerification(
   console.log(
     `Successfully submitted source code for contract
 ${contractInformation.sourceName}:${contractInformation.contractName} at ${contractAddress}
-for verification on Etherscan. Waiting for verification result...
+for verification on the block explorer. Waiting for verification result...
 `
   );
 
@@ -591,8 +611,14 @@ See https://etherscan.io/solcversions for more information.`
   }
 );
 
-subtask(TASK_VERIFY_GET_ETHERSCAN_ENDPOINT).setAction(async (_, { network }) =>
-  getEtherscanEndpoints(network.provider, network.name)
+subtask(TASK_VERIFY_GET_ETHERSCAN_ENDPOINT).setAction(
+  async (_, { config, network }) =>
+    getEtherscanEndpoints(
+      network.provider,
+      network.name,
+      chainConfig,
+      config.etherscan.customChains
+    )
 );
 
 subtask(TASK_VERIFY_GET_CONTRACT_INFORMATION)
@@ -729,6 +755,7 @@ subtask(TASK_VERIFY_VERIFY_MINIMUM_BUILD)
         minimumBuild.output.contracts[contractInformation.sourceName][
           contractInformation.contractName
         ].evm.deployedBytecode.object;
+
       const matchedBytecode =
         contractInformation.compilerOutput.contracts[
           contractInformation.sourceName
@@ -746,9 +773,9 @@ subtask(TASK_VERIFY_VERIFY_MINIMUM_BUILD)
         );
 
         if (minimumBuildVerificationStatus.isVerificationSuccess()) {
-          const contractURL = new URL(
-            `/address/${address}#code`,
-            etherscanAPIEndpoints.browserURL
+          const contractURL = buildContractUrl(
+            etherscanAPIEndpoints.browserURL,
+            address
           );
           console.log(
             `Successfully verified contract ${contractInformation.contractName} on Etherscan.
@@ -781,7 +808,10 @@ subtask(TASK_VERIFY_GET_MINIMUM_BUILD)
   .setAction(getMinimumBuild);
 
 task(TASK_VERIFY, "Verifies contract on Etherscan")
-  .addPositionalParam("address", "Address of the smart contract to verify")
+  .addOptionalPositionalParam(
+    "address",
+    "Address of the smart contract to verify"
+  )
   .addOptionalParam(
     "constructorArgs",
     "File path to a javascript module that exports the list of arguments.",
@@ -807,6 +837,7 @@ task(TASK_VERIFY, "Verifies contract on Etherscan")
     "Contract constructor arguments. Ignored if the --constructor-args option is used.",
     []
   )
+  .addFlag("listNetworks", "Print the list of supported networks")
   .setAction(verify);
 
 subtask(TASK_VERIFY_VERIFY)

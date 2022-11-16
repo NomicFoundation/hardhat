@@ -1,13 +1,10 @@
+import { bufferToHex } from "@nomicfoundation/ethereumjs-util";
 import { assert } from "chai";
-import { BN, bufferToHex, toBuffer } from "ethereumjs-util";
-// eslint-disable-next-line import/no-extraneous-dependencies
-import { Contract, utils, Wallet } from "ethers";
-import fsExtra from "fs-extra";
 
 import {
   numberToRpcQuantity,
-  rpcDataToBN,
-  rpcQuantityToBN,
+  rpcDataToBigInt,
+  rpcQuantityToBigInt,
   rpcQuantityToNumber,
 } from "../../../../src/internal/core/jsonrpc/types/base-types";
 import { InvalidInputError } from "../../../../src/internal/core/providers/errors";
@@ -29,24 +26,14 @@ import {
 } from "../helpers/constants";
 import { EXAMPLE_CONTRACT } from "../helpers/contracts";
 import { setCWD } from "../helpers/cwd";
-import { EthersProviderWrapper } from "../helpers/ethers-provider-wrapper";
 import { hexStripZeros } from "../helpers/hexStripZeros";
 import { leftPad32 } from "../helpers/leftPad32";
 import {
-  DEFAULT_ACCOUNTS,
   DEFAULT_ACCOUNTS_ADDRESSES,
   FORKED_PROVIDERS,
 } from "../helpers/providers";
 import { retrieveForkBlockNumber } from "../helpers/retrieveForkBlockNumber";
 import { deployContract } from "../helpers/transactions";
-
-const ERC20Abi = fsExtra.readJsonSync(`${__dirname}/../abi/ERC20/ERC20.json`);
-const UniswapExchangeAbi = fsExtra.readJsonSync(
-  `${__dirname}/../abi/Uniswap/Exchange.json`
-);
-const UniswapFactoryAbi = fsExtra.readJsonSync(
-  `${__dirname}/../abi/Uniswap/Factory.json`
-);
 
 const WETH_DEPOSIT_SELECTOR = "0xd0e30db0";
 
@@ -81,8 +68,8 @@ describe("Forked provider", function () {
             { to: DAI_ADDRESS.toString(), data: daiTotalSupplySelector },
           ]);
 
-          const bnResult = new BN(toBuffer(result));
-          assert.isTrue(bnResult.gtn(0));
+          const bnResult = BigInt(result);
+          assert.isTrue(bnResult > 0n);
         });
 
         describe("when used in the context of a past block", () => {
@@ -140,7 +127,7 @@ describe("Forked provider", function () {
                 const balanceOfSelector = `0x70a08231${leftPad32(
                   BITFINEX_WALLET_ADDRESS.toString()
                 )}`;
-                return rpcDataToBN(
+                return rpcDataToBigInt(
                   await this.provider.send("eth_call", [
                     { to: WETH_ADDRESS.toString(), data: balanceOfSelector },
                   ])
@@ -211,7 +198,7 @@ describe("Forked provider", function () {
           const result = await this.provider.send("eth_getBalance", [
             WETH_ADDRESS.toString(),
           ]);
-          assert.isTrue(rpcQuantityToBN(result).gtn(0));
+          assert.isTrue(rpcQuantityToBigInt(result) > 0n);
         });
       });
 
@@ -220,7 +207,7 @@ describe("Forked provider", function () {
           const result = await this.provider.send("eth_getBalance", [
             BITFINEX_WALLET_ADDRESS.toString(),
           ]);
-          const initialBalance = rpcQuantityToBN(result);
+          const initialBalance = rpcQuantityToBigInt(result);
           await this.provider.send("eth_sendTransaction", [
             {
               from: DEFAULT_ACCOUNTS_ADDRESSES[0],
@@ -233,7 +220,7 @@ describe("Forked provider", function () {
           const balance = await this.provider.send("eth_getBalance", [
             BITFINEX_WALLET_ADDRESS.toString(),
           ]);
-          assertQuantity(balance, initialBalance.addn(100));
+          assertQuantity(balance, initialBalance + 100n);
         });
 
         it("supports wrapping of Ether", async function () {
@@ -242,7 +229,7 @@ describe("Forked provider", function () {
           )}`;
 
           const getWrappedBalance = async () =>
-            rpcDataToBN(
+            rpcDataToBigInt(
               await this.provider.send("eth_call", [
                 { to: WETH_ADDRESS.toString(), data: wethBalanceOfSelector },
               ])
@@ -260,10 +247,7 @@ describe("Forked provider", function () {
             },
           ]);
           const balance = await getWrappedBalance();
-          assert.equal(
-            balance.toString("hex"),
-            initialBalance.addn(100).toString("hex")
-          );
+          assert.equal(balance, initialBalance + 100n);
         });
       });
 
@@ -322,7 +306,7 @@ describe("Forked provider", function () {
             [account]
           );
 
-          assert.isTrue(rpcQuantityToBN(transactionCount).gtn(0));
+          assert.isTrue(rpcQuantityToBigInt(transactionCount) > 0);
         });
       });
 
@@ -407,9 +391,7 @@ describe("Forked provider", function () {
       });
 
       describe("hardhat_impersonateAccount", () => {
-        const oneEtherQuantity = numberToRpcQuantity(
-          new BN(10).pow(new BN(18))
-        );
+        const oneEtherQuantity = numberToRpcQuantity(10n ** 18n);
 
         it("allows to impersonate a remote EOA", async function () {
           await this.provider.send("hardhat_impersonateAccount", [
@@ -498,72 +480,6 @@ describe("Forked provider", function () {
             "unknown account",
             InvalidInputError.CODE
           );
-        });
-      });
-
-      describe("Tests on remote contracts", () => {
-        describe("Uniswap", () => {
-          let wallet: Wallet;
-          let factory: Contract;
-          let daiExchange: Contract;
-          let dai: Contract;
-
-          beforeEach(async function () {
-            const ethersProvider = new EthersProviderWrapper(this.provider);
-            wallet = new Wallet(DEFAULT_ACCOUNTS[0].privateKey, ethersProvider);
-
-            factory = new Contract(
-              UNISWAP_FACTORY_ADDRESS.toString(),
-              UniswapFactoryAbi,
-              ethersProvider
-            );
-
-            const daiExchangeAddress = await factory.getExchange(
-              DAI_ADDRESS.toString()
-            );
-
-            daiExchange = new Contract(
-              daiExchangeAddress,
-              UniswapExchangeAbi,
-              wallet
-            );
-
-            dai = new Contract(
-              DAI_ADDRESS.toString(),
-              ERC20Abi,
-              ethersProvider
-            );
-          });
-
-          it("can buy DAI for Ether", async function () {
-            const ethBefore = await wallet.getBalance();
-            const daiBefore = await dai.balanceOf(wallet.address);
-            assert.equal(daiBefore.toNumber(), 0);
-
-            const expectedDai = await daiExchange.getEthToTokenInputPrice(
-              utils.parseEther("0.5")
-            );
-            assert.isTrue(expectedDai.gt(0));
-
-            await daiExchange.ethToTokenSwapInput(
-              1, // min amount of token retrieved
-              2525644800, // random timestamp in the future (year 2050)
-              {
-                gasLimit: 4000000,
-                value: utils.parseEther("0.5"),
-              }
-            );
-
-            const ethAfter = await wallet.getBalance();
-            const daiAfter = await dai.balanceOf(wallet.address);
-
-            const ethLost = parseFloat(
-              utils.formatUnits(ethBefore.sub(ethAfter), "ether")
-            );
-
-            assert.equal(daiAfter.toString(), expectedDai.toString());
-            assert.closeTo(ethLost, 0.5, 0.01);
-          });
         });
       });
 

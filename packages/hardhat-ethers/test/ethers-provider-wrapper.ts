@@ -12,7 +12,9 @@ describe("Ethers provider wrapper", function () {
   useEnvironment("hardhat-project");
 
   beforeEach(function () {
-    realProvider = new ethers.providers.JsonRpcProvider();
+    realProvider = new ethers.providers.JsonRpcProvider(
+      "http://127.0.0.1:8545"
+    );
     wrapper = new EthersProviderWrapper(this.env.network.provider);
   });
 
@@ -35,11 +37,11 @@ describe("Ethers provider wrapper", function () {
     try {
       await realProvider.send("error_please", []);
       assert.fail("Ethers provider should have failed");
-    } catch (err) {
+    } catch (err: any) {
       try {
         await wrapper.send("error_please", []);
         assert.fail("Wrapped provider should have failed");
-      } catch (err2) {
+      } catch (err2: any) {
         assert.deepEqual(err2.message, err.message);
       }
     }

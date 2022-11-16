@@ -51,7 +51,7 @@ export const ERRORS = {
       title: "You are not inside a Hardhat project",
       description: `You are trying to run Hardhat outside of a Hardhat project.
 
-You can learn how to use Hardhat by reading the [Getting Started guide](../getting-started).`,
+You can learn how to use Hardhat by reading the [Getting Started guide](/hardhat-runner/docs/getting-started).`,
       shouldBeReported: false,
     },
     INVALID_NODE_VERSION: {
@@ -68,7 +68,7 @@ Please upgrade your version of Node.js and try again.`,
       number: 3,
       message: "%operation% is not supported in Hardhat.",
       title: "Unsupported operation",
-      description: `You are tying to perform an unsupported operation. 
+      description: `You are trying to perform an unsupported operation. 
 
 Unless you are creating a task or plugin, this is probably a bug. 
 
@@ -140,7 +140,7 @@ To learn more about how to access the Hardhat Runtime Environment from different
 The most common source of errors is trying to import the Hardhat Runtime Environment from your config or a file imported from it.
 This is not possible, as Hardhat can't be initialized while its config is being defined.
 
-You may also have accidentally imported \`hardhat\' instead of \`hardhat/config\`.
+You may also have accidentally imported \`hardhat\` instead of \`hardhat/config\`.
 
 Please make sure your config file is correct.
 
@@ -183,11 +183,11 @@ Please install Hardhat locally using npm or Yarn, and try again.`,
       number: 13,
       message: `Your Hardhat project uses typescript, but ts-node is not installed.
       
-Please run: npm \`install --save-dev ts-node\``,
+Please run: npm install --save-dev ts-node`,
       title: "ts-node not installed",
       description: `You are running a Hardhat project that uses typescript, but you haven't installed ts-node.
 
-Please run this and try again: npm install --save-dev ts-node`,
+Please run this and try again: \`npm install --save-dev ts-node\``,
       shouldBeReported: false,
     },
     TYPESCRIPT_NOT_INSTALLED: {
@@ -201,6 +201,57 @@ Please run: npm install --save-dev typescript`,
 Please run this and try again: \`npm install --save-dev typescript\``,
       shouldBeReported: false,
     },
+    NOT_INSIDE_PROJECT_ON_WINDOWS: {
+      number: 15,
+      message: `You are not inside a project and Hardhat failed to initialize a new one.
+
+If you were trying to create a new project, please try again using Windows Subsystem for Linux (WSL) or PowerShell.
+`,
+      title:
+        "You are not inside a Hardhat project and Hardhat failed to initialize a new one",
+      description: `You are trying to run Hardhat outside of a Hardhat project, and we couldn't initialize one.
+
+If you were trying to create a new project, please try again using Windows Subsystem for Linux (WSL) or PowerShell.
+
+You can learn how to use Hardhat by reading the [Getting Started guide](/hardhat-runner/docs/getting-started).`,
+      shouldBeReported: false,
+    },
+    CONFLICTING_FILES: {
+      number: 16,
+      message: `The directory %dest% contains files that could conflict:
+
+%conflicts%
+
+Either try using a new directory, or remove the files listed above.`,
+      title: "conflicting files during project creation",
+      description: `You are trying to create a new hardhat project, but there are existing files that would be overwritten by the creation process.
+
+Either try using a new directory name, or remove the conflicting files.`,
+      shouldBeReported: false,
+    },
+    INVALID_BIG_NUMBER: {
+      number: 17,
+      message: "The input value cannot be normalized to a BigInt: %message%",
+      title: "Invalid big number",
+      description:
+        "Hardhat attempted to convert the input value to a BigInt, but no known conversion method was applicable to the given value.",
+      shouldBeReported: false,
+    },
+    CORRUPTED_LOCKFILE: {
+      number: 18,
+      message: `You installed Hardhat with a corrupted lockfile due to the NPM bug #4828.
+
+Please delete your node_modules, package-lock.json, reinstall your project, and try again.`,
+      title: "Corrupted lockfile",
+      description: `Some versions of NPM are affected [by a bug](https://github.com/npm/cli/issues/4828) that leads to corrupt lockfiles being generated.
+
+This bug can only affect you if you, or someone at your team, installed the project without a lockfile, but with an existing node_modules.
+
+To avoid it, please delete both your node_modules and package-lock.json, and reinstall your project.
+
+Note that you don't need to do this every time you install a new dependency, but please make sure to delete your node_modules every time you delete your package-lock.json.`,
+      shouldBeReported: false,
+    },
   },
   NETWORK: {
     CONFIG_NOT_FOUND: {
@@ -209,7 +260,7 @@ Please run this and try again: \`npm install --save-dev typescript\``,
       title: "Selected network doesn't exist",
       description: `You are trying to run Hardhat with a nonexistent network.
 
-Read the [documentation](https://hardhat.org/config/#networks-configuration) to learn how to define custom networks.`,
+Read the [documentation](https://hardhat.org/hardhat-runner/docs/config#networks-configuration) to learn how to define custom networks.`,
       shouldBeReported: false,
     },
     INVALID_GLOBAL_CHAIN_ID: {
@@ -269,7 +320,7 @@ Please make sure that your Ethereum node has unlocked accounts.`,
       title: "Invalid HD path",
       description: `An invalid HD/BIP32 derivation path was provided in your config.  
       
-Read the [documentation](https://hardhat.org/config/#hd-wallet-config) to learn how to define HD accounts correctly.`,
+Read the [documentation](https://hardhat.org/hardhat-runner/docs/config#hd-wallet-config) to learn how to define HD accounts correctly.`,
       shouldBeReported: false,
     },
     INVALID_RPC_QUANTITY_VALUE: {
@@ -358,6 +409,15 @@ Please double check your transactions' parameters.`,
       description: `You are trying to send a transaction with a locally managed account, and no fee price parameters were provided. You need to send gasPrice, or maxFeePerGas and maxPriorityFeePerGas.  
 
 Please double check your transactions' parameters.`,
+      shouldBeReported: false,
+    },
+    PERSONALSIGN_MISSING_ADDRESS_PARAM: {
+      number: 116,
+      message: 'Missing "address" param when calling personal_sign.',
+      title: "Missing `address` param when calling personal_sign.",
+      description: `You called \`personal_sign\` with incorrect parameters.
+
+Please check that you are sending an \`address\` parameter.`,
       shouldBeReported: false,
     },
   },
@@ -562,7 +622,8 @@ Please double check how you invoked Hardhat or ran your task.`,
     },
     MISSING_TASK_ARGUMENT: {
       number: 306,
-      message: "Missing task argument %param%",
+      message:
+        "The '%param%' parameter of task '%task%' expects a value, but none was passed.",
       title: "Missing task argument",
       description: `You tried to run a task, but one of its required arguments was missing. 
 
@@ -618,9 +679,19 @@ Please double check how you invoked Hardhat or ran your task.`,
       number: 312,
       title: "Subtask run from the command line",
       message: "Trying to run the %name% subtask from the CLI",
-      description: `You tried to run an subtask from the command line.
+      description: `You tried to run a subtask from the command line.
       
 This is not supported. Please run the help task to see the available options.`,
+      shouldBeReported: false,
+    },
+    TYPECHECK_USED_IN_JAVASCRIPT_PROJECT: {
+      number: 313,
+      title: "The --typecheck flag was used in a javascript project",
+      message:
+        "Trying to use the --typecheck flag, but the project is not in typescript",
+      description: `You tried to run Hardhat with the \`--typecheck\` flag in a javascript project.
+
+This flag can only be used in typescript projects.`,
       shouldBeReported: false,
     },
   },
@@ -685,7 +756,7 @@ You must always use slashes (/) in Solidity imports.`,
       title: "Invalid import: trying to use an unsupported protocol",
       description: `A Solidity file is trying to import a file using an unsupported protocol, like http.
       
-You can only import files thar are available locally or installed through npm.`,
+You can only import files that are available locally or installed through npm.`,
       shouldBeReported: false,
     },
     INVALID_IMPORT_ABSOLUTE_PATH: {
@@ -742,42 +813,48 @@ Try installing the library using npm.`,
   SOLC: {
     INVALID_VERSION: {
       number: 500,
-      message:
-        "Solidity version %version% is invalid or hasn't been released yet.",
-      title: "Invalid `solc` version",
+      message: `Solidity version %version% is invalid or hasn't been released yet.
+        
+If you are certain it has been released, run "npx hardhat clean --global" and try again`,
+      title: "Invalid or unreleased `solc` version",
       description: `The Solidity version in your config is invalid or hasn't been released yet. 
 
-Please double check your \`solc\` config.`,
+If you are certain it has been released, run \`npx hardhat clean --global\` and try again.`,
       shouldBeReported: false,
     },
     DOWNLOAD_FAILED: {
       number: 501,
       message:
-        "Couldn't download compiler version %remoteVersion%. Please check your connection.",
+        "Couldn't download compiler version %remoteVersion%. Please check your internet connection and try again.",
       title: "`solc` download failed",
       description: `Couldn't download \`solc\`. 
       
-Please check your Internet connection.`,
+Please check your internet connection and try again.`,
       shouldBeReported: false,
     },
     VERSION_LIST_DOWNLOAD_FAILED: {
       number: 502,
       message:
-        "Couldn't download compiler versions list. Please check your connection.",
+        "Couldn't download compiler version list. Please check your internet connection and try again.",
       title: "Couldn't obtain `solc` version list",
       description: `Couldn't download \`solc\`'s version list. 
       
-Please check your Internet connection.`,
+Please check your internet connection and try again.`,
       shouldBeReported: false,
     },
     INVALID_DOWNLOAD: {
       number: 503,
-      message:
-        "Couldn't download compiler version %remoteVersion%. Checksum verification failed. Please check your connection.",
+      message: `Couldn't download compiler version %remoteVersion%: Checksum verification failed.
+
+Please check your internet connection and try again.
+
+If this error persists, run "npx hardhat clean --global".`,
       title: "Downloaded `solc` checksum verification failed",
-      description: `Downloaded \`solc\` verification failed.
-      
-Please check your Internet connection.`,
+      description: `Hardhat downloaded a version of the Solidity compiler, and its checksum verification failed.
+ 
+Please check your internet connection and try again.
+
+If this error persists, run \`npx hardhat clean --global\`.`,
       shouldBeReported: false,
     },
     CANT_GET_COMPILER: {
@@ -788,6 +865,21 @@ Please check your Internet connection.`,
 
 Please [report it](https://github.com/nomiclabs/hardhat/issues/new) to help us improve Hardhat.`,
       shouldBeReported: true,
+    },
+    CANT_RUN_NATIVE_COMPILER: {
+      number: 505,
+      message: `A native version of solc failed to run.
+
+If you are running MacOS, try installing Apple Rosetta.
+
+If this error persists, run "npx hardhat clean --global".`,
+      title: "Failed to run native solc",
+      description: `Hardhat successfully downloaded a native version of solc but it doesn't run.
+
+If you are running MacOS, try installing Apple Rosetta.
+
+If this error persists, run "npx hardhat clean --global".`,
+      shouldBeReported: false,
     },
   },
   BUILTIN_TASKS: {
@@ -861,11 +953,21 @@ To start the JSON-RPC server, retry the command without the --network parameter.
 if the URL of the JSON-RPC wasn't set.`,
       shouldBeReported: false,
     },
+    COMPILE_TASK_UNSUPPORTED_SOLC_VERSION: {
+      number: 608,
+      message: `Version %version% is not supported by Hardhat.
+
+The first supported version is %firstSupportedVersion%`,
+      title: "Unsupported solc version",
+      description: `This version of solidity is not supported by Hardhtat.
+Please use a newer, supported version.`,
+      shouldBeReported: true,
+    },
   },
   ARTIFACTS: {
     NOT_FOUND: {
       number: 700,
-      message: 'Artifact for contract "%contractName%" not found.',
+      message: 'Artifact for contract "%contractName%" not found. %suggestion%',
       title: "Artifact not found",
       description: `Tried to import a nonexistent artifact.
 

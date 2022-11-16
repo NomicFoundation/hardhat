@@ -1,7 +1,9 @@
+import type { Client as ClientT } from "undici";
+import type WsT from "ws";
+
 import debug from "debug";
 import http, { Server } from "http";
 import { AddressInfo } from "net";
-import type WsT from "ws";
 
 import {
   EIP1193Provider,
@@ -9,7 +11,7 @@ import {
 } from "../../../types";
 import { HttpProvider } from "../../core/providers/http";
 
-import JsonRpcHandler from "./handler";
+import { JsonRpcHandler } from "./handler";
 
 const log = debug("hardhat:core:hardhat-network:jsonrpc");
 
@@ -42,9 +44,21 @@ export class JsonRpcServer implements IJsonRpcServer {
   }
 
   public getProvider = (name = "json-rpc"): EIP1193Provider => {
-    const { address, port } = this._httpServer.address() as AddressInfo; // TCP sockets return AddressInfo
+    const { Client } = require("undici") as { Client: typeof ClientT };
+    const { address, port } = this._httpServer.address() as AddressInfo;
 
-    return new HttpProvider(`http://${address}:${port}/`, name);
+    const dispatcher = new Client(`http://${address}:${port}/`, {
+      keepAliveTimeout: 10,
+      keepAliveMaxTimeout: 10,
+    });
+
+    return new HttpProvider(
+      `http://${address}:${port}/`,
+      name,
+      {},
+      20000,
+      dispatcher
+    );
   };
 
   public listen = (): Promise<{ address: string; port: number }> => {
@@ -72,7 +86,7 @@ export class JsonRpcServer implements IJsonRpcServer {
 
   public close = async () => {
     await Promise.all([
-      new Promise((resolve, reject) => {
+      new Promise<void>((resolve, reject) => {
         log("Closing JSON-RPC server");
         this._httpServer.close((err) => {
           if (err !== null && err !== undefined) {
@@ -85,7 +99,7 @@ export class JsonRpcServer implements IJsonRpcServer {
           resolve();
         });
       }),
-      new Promise((resolve, reject) => {
+      new Promise<void>((resolve, reject) => {
         log("Closing websocket server");
         this._wsServer.close((err) => {
           if (err !== null && err !== undefined) {

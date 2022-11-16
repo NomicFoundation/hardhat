@@ -1,11 +1,12 @@
+import type { LoDashStatic } from "lodash";
+import type { ProjectPathsConfig, SolcConfig } from "../../types";
+
 import debug from "debug";
 import fsExtra from "fs-extra";
 import * as t from "io-ts";
-import type { LoDashStatic } from "lodash";
 import * as path from "path";
 
 import { SOLIDITY_FILES_CACHE_FILENAME } from "../../internal/constants";
-import type { ProjectPathsConfig, SolcConfig } from "../../types";
 
 const log = debug("hardhat:core:tasks:compile:cache");
 
@@ -56,7 +57,7 @@ export class SolidityFilesCache {
       _format: FORMAT_VERSION,
       files: {},
     };
-    if (fsExtra.existsSync(solidityFilesCachePath)) {
+    if (await fsExtra.pathExists(solidityFilesCachePath)) {
       cacheRaw = await fsExtra.readJson(solidityFilesCachePath);
     }
 
@@ -79,12 +80,13 @@ export class SolidityFilesCache {
   constructor(private _cache: Cache) {}
 
   public async removeNonExistingFiles() {
-    for (const absolutePath of Object.keys(this._cache.files)) {
-      if (!fsExtra.existsSync(absolutePath)) {
-        this.removeEntry(absolutePath);
-        continue;
-      }
-    }
+    await Promise.all(
+      Object.keys(this._cache.files).map(async (absolutePath) => {
+        if (!(await fsExtra.pathExists(absolutePath))) {
+          this.removeEntry(absolutePath);
+        }
+      })
+    );
   }
 
   public async writeToFile(solidityFilesCachePath: string) {
@@ -114,7 +116,7 @@ export class SolidityFilesCache {
     contentHash: string,
     solcConfig?: SolcConfig
   ): boolean {
-    const { isEqual }: LoDashStatic = require("lodash");
+    const isEqual = require("lodash/isEqual") as LoDashStatic["isEqual"];
 
     const cacheEntry = this.getEntry(absolutePath);
 

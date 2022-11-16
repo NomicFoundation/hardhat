@@ -1,7 +1,11 @@
-import Common from "@ethereumjs/common";
-import { AccessListEIP2930Transaction } from "@ethereumjs/tx";
+import { Common } from "@nomicfoundation/ethereumjs-common";
+import { AccessListEIP2930Transaction } from "@nomicfoundation/ethereumjs-tx";
 import { assert } from "chai";
-import { bufferToHex, privateToAddress, toBuffer } from "ethereumjs-util";
+import {
+  bufferToHex,
+  privateToAddress,
+  toBuffer,
+} from "@nomicfoundation/ethereumjs-util";
 
 import { ERRORS } from "../../../../src/internal/core/errors-list";
 import { numberToRpcQuantity } from "../../../../src/internal/core/jsonrpc/types/base-types";
@@ -588,6 +592,50 @@ describe("Local accounts provider", () => {
       ]);
     });
   });
+
+  describe("personal_sign", () => {
+    it("Should be compatible with geth's implementation", async () => {
+      // This test was created by using Geth 1.10.12-unstable and calling personal_sign
+
+      const provider = new LocalAccountsProvider(mock, [
+        "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80",
+      ]);
+
+      const result = await provider.request({
+        method: "personal_sign",
+        params: [
+          "0x5417aa2a18a44da0675524453ff108c545382f0d7e26605c56bba47c21b5e979",
+          "0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266",
+        ],
+      });
+
+      assert.equal(
+        result,
+        "0x9c73dd4937a37eecab3abb54b74b6ec8e500080431d36afedb1726624587ee6710296e10c1194dded7376f13ff03ef6c9e797eb86bae16c20c57776fc69344271c"
+      );
+    });
+
+    it("Should be compatible with metamask's implementation", async () => {
+      // This test was created by using Metamask 10.3.0
+
+      const provider = new LocalAccountsProvider(mock, [
+        "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80",
+      ]);
+
+      const result = (await provider.request({
+        method: "personal_sign",
+        params: [
+          "0x7699f568ecd7753e6ddf75a42fa4c2cc86cbbdc704c9eb1a6b6d4b9d8b8d1519",
+          "0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266",
+        ],
+      })) as string;
+
+      assert.equal(
+        result,
+        "0x2875e4206c9fe3b229291c81f95cc4f421e2f4d3e023f5b4041daa56ab4000977010b47a3c01036ec8a6a0872aec2ab285150f003d01b0d8da60c1cceb9154181c"
+      );
+    });
+  });
 });
 
 describe("hdwallet provider", () => {
@@ -607,6 +655,15 @@ describe("hdwallet provider", () => {
       method: "eth_accounts",
     })) as string[];
     assert.equal(response[0], "0x4f3e91d2cacd82fffd1f33a0d26d4078401986e9");
+  });
+
+  it("should generate a valid address with passphrase", async () => {
+    const passphrase = "this is a secret";
+    wrapper = new HDWalletProvider(mock, mnemonic, hdpath, 0, 10, passphrase);
+    const response = (await wrapper.request({
+      method: "eth_accounts",
+    })) as string[];
+    assert.equal(response[0], "0x6955b833d195e49c07fc56fbf0ec387325facb87");
   });
 
   it("should generate a valid address when given a different index", async () => {
@@ -764,11 +821,7 @@ describe("Sender providers", () => {
  * the same values as `tx`
  */
 function validateRawEIP2930Transaction(rawTx: string, tx: any) {
-  const common = Common.forCustomChain(
-    "mainnet",
-    { chainId: MOCK_PROVIDER_CHAIN_ID },
-    "berlin"
-  );
+  const common = Common.custom({ chainId: MOCK_PROVIDER_CHAIN_ID });
 
   const sentTx = AccessListEIP2930Transaction.fromSerializedTx(
     toBuffer(rawTx),

@@ -6,9 +6,15 @@ This document contains some tips on how to collaborate in this project.
 
 If you find a bug or want to propose a new feature, please [open an issue](https://github.com/nomiclabs/hardhat/issues/new). Pull requests are welcome, but we recommend you discuss it in an issue first, especially for big changes. This will increase the odds that we can accept your PR.
 
+## Issues auto-assignment
+
+Every issue gets automatically assigned to a team member. This person will act as the point of contact between the user that opened the issue and the team.
+
+An issue being assigned does not mean that we are actively working on addressing it, so if you are interested in addressing one add a comment mentioning it.
+
 ## Project structure
 
-This repository is a monorepo handled with [Yarn workspaces](https://classic.yarnpkg.com/en/docs/workspaces/).
+This repository is a monorepo handled with [Yarn v1](https://classic.yarnpkg.com/lang/en/) and [Yarn workspaces](https://classic.yarnpkg.com/en/docs/workspaces/).
 
 There's a folder for each subproject in `packages/`. All of them are plugins, except for `/packages/hardhat-core` which is the main project (i.e. the one that's published as [hardhat](https://npmjs.com/package/hardhat) in npm).
 
@@ -28,17 +34,9 @@ All tests are written using [mocha](https://mochajs.org) and [chai](https://www.
 
 You can run a package's tests by executing `yarn test` inside its folder.
 
-_Note_: for package [hardhat-vyper](./packages/hardhat-vyper) case, a running instance of Docker Desktop is required, with `vyperlang/vyper` image pulled. To install it, run:
-
-```
-docker pull vyperlang/vyper:0.1.0b10
-```
-
 ### Entire project
 
 You can run all the tests at once by running `yarn test` from the root folder.
-
-For the case of package [hardhat-vyper](./packages/hardhat-vyper), an `vyperlang/vyper` docker instance installed is required (see previous section for details). _Exception_ of this requirement is if running on a Windows local machine, in this case we skip it by default since Win 10 Pro version would be also required.
 
 ## Code formatting
 
@@ -50,17 +48,19 @@ The linter is always run in the CI, so make sure it passes before pushing code. 
 
 ## Branching
 
-We work on the branch [`master`](https://github.com/nomiclabs/hardhat/tree/master). Versions of the different packages are always tagged and pushed to GitHub. So if you are looking for the latests released version of something, please refer to the tags.
+We work on two branches, [`main`](https://github.com/nomiclabs/hardhat/tree/main) and [`development`](https://github.com/nomiclabs/hardhat/tree/development).
 
-Please, branch from `master` when implementing a new feature or fixing a bug, and use it as the base branch in pull requests.
+The `main` branch is meant to be kept in sync with the latest released version of each package. Most pull requests are based on `main`, so when in doubt use this branch.
+
+The development branch is meant to be used for major, risky changes that are ready, but we can't or don't want to release yet. We never release new versions from development. When we want to release the changes from development, we go through a stricter QA process, merge those changes into main, and release from main. Examples of things that should be based on development are features that require significant changes to the codebase, or bug fixes that involve a major refactor.
 
 ### Website and documentation branching
 
 If you are modifying the default config, adding a feature, or doing any kind of technical work that should be reflected in the documentation, the documentation change should be contained in the same branch and PR as the change.
 
-If you are working purely on the website or documentation, not as a result of a technical change, you should branch from [`website`](https://github.com/nomiclabs/hardhat/tree/website) and use it as the base branch in your pull request. Anything merged into `website` this way should also be merged into `master`.
+If you are working purely on the website or documentation, not as a result of a technical change, you should branch from [`main`](https://github.com/nomiclabs/hardhat/tree/main) and use it as the base branch in your pull request.
 
-Note that the `website` branch is automatically deployed, so take care when merging into it.
+Note that the `main` branch is automatically deployed, so take care when merging into it.
 
 ## Dependencies
 
@@ -74,9 +74,9 @@ Hardhat and its plugins are optimized for keeping startup time low.
 
 This is done by selectively requiring dependencies when needed using `import` or `require` following this criteria:
 
-1. If something is only imported for its type, and NOT its value, use a top-level `import ... from "mod"`
-1. If a module is in the "Essential modules" list below, use a top-level `import ... from "mod""`.
-1. Otherwise, use `await import` or `require` locally in the functions that use it.
+1. If something is only imported for its type, and NOT its value, use a top-level `import ... from "mod"`.
+1. If a module is in the "Essential modules" list below, use a top-level `import ... from "mod"`.
+1. Otherwise, use `await import` or `require` locally in the functions that use it:
    1. If the function is sync, use node's `require`
    2. If the function is an async, use `await import`
 
@@ -116,7 +116,7 @@ alias lhh='node --preserve-symlinks $(node -e "console.log(require.resolve(\"har
 
 ### Yalc
 
-If for any reason linking doesn't work for you, you can use [`yalc`](https://github.com/whitecolor/yalc).
+If for any reason linking doesn't work for you, you can use [`yalc`](https://github.com/whitecolor/yalc):
 
 1. Go to `packages/hardhat-core` and run `yalc publish`
 2. Go to some hardhat project and run `yalc add hardhat`

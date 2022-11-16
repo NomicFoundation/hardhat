@@ -1,11 +1,12 @@
+import type { task as taskT } from "hardhat/config";
+import type { CompilerInput } from "hardhat/types";
+
 import { assert, expect } from "chai";
 import {
   TASK_COMPILE,
   TASK_COMPILE_SOLIDITY_GET_COMPILER_INPUT,
 } from "hardhat/builtin-tasks/task-names";
-import type { task as taskT } from "hardhat/config";
 import { NomicLabsHardhatPluginError } from "hardhat/plugins";
-import type { CompilerInput } from "hardhat/types";
 import path from "path";
 
 import {
@@ -325,8 +326,8 @@ describe("Plugin integration tests", function () {
     });
   });
 
-  describe("Using a Hardhat project that mocks the rinkeby network", function () {
-    useEnvironment("hardhat-project-rinkeby-mock");
+  describe("Using a Hardhat project that mocks the goerli network", function () {
+    useEnvironment("hardhat-project-goerli-mock");
 
     let signer: any;
 
@@ -339,7 +340,7 @@ describe("Plugin integration tests", function () {
 
       // We override this task to avoid posting to an actual endpoint and to avoid our own sanity checks.
       task(TASK_VERIFY_GET_ETHERSCAN_ENDPOINT).setAction(async () => {
-        return "http://localhost:54321";
+        return "http://127.0.0.1:54321";
       });
       const { ethers } = this.env as any;
       const signers = await ethers.getSigners();

@@ -1,4 +1,4 @@
-import { bufferToHex } from "ethereumjs-util";
+import { bufferToHex } from "@nomicfoundation/ethereumjs-util";
 
 import {
   CallMessageTrace,
@@ -182,7 +182,7 @@ function flattenSourceReference(sourceReference?: SourceReference) {
 
   return {
     ...sourceReference,
-    file: sourceReference.file.sourceName,
+    file: sourceReference.sourceName,
   };
 }
 

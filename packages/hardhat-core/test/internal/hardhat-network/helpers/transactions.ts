@@ -1,5 +1,9 @@
-import { Transaction } from "@ethereumjs/tx";
-import { bufferToHex, toBuffer, zeroAddress } from "ethereumjs-util";
+import { Transaction } from "@nomicfoundation/ethereumjs-tx";
+import {
+  bufferToHex,
+  toBuffer,
+  zeroAddress,
+} from "@nomicfoundation/ethereumjs-util";
 
 import { numberToRpcQuantity } from "../../../../src/internal/core/jsonrpc/types/base-types";
 import { RpcTransactionRequestInput } from "../../../../src/internal/core/jsonrpc/types/input/transactionRequest";
@@ -12,18 +16,21 @@ import {
   DEFAULT_ACCOUNTS_ADDRESSES,
   DEFAULT_BLOCK_GAS_LIMIT,
 } from "./providers";
+import { getPendingBaseFeePerGas } from "./getPendingBaseFeePerGas";
 import { retrieveCommon } from "./retrieveCommon";
 
 export async function deployContract(
   provider: EthereumProvider,
   deploymentCode: string,
-  from = DEFAULT_ACCOUNTS_ADDRESSES[0]
+  from = DEFAULT_ACCOUNTS_ADDRESSES[0],
+  value = 0
 ): Promise<string> {
   const hash = await provider.send("eth_sendTransaction", [
     {
       from,
       data: deploymentCode,
       gas: numberToRpcQuantity(DEFAULT_BLOCK_GAS_LIMIT),
+      value: numberToRpcQuantity(value),
     },
   ]);
 
@@ -45,7 +52,7 @@ export async function sendTxToZeroAddress(
     to: zeroAddress(),
     value: numberToRpcQuantity(1),
     gas: numberToRpcQuantity(21000),
-    gasPrice: numberToRpcQuantity(10e9),
+    gasPrice: numberToRpcQuantity(await getPendingBaseFeePerGas(provider)),
   };
 
   return provider.send("eth_sendTransaction", [burnTxParams]);

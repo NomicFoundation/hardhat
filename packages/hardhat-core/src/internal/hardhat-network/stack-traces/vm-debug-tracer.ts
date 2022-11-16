@@ -1,18 +1,20 @@
-import { TypedTransaction } from "@ethereumjs/tx";
-import VM from "@ethereumjs/vm";
-import { EVMResult } from "@ethereumjs/vm/dist/evm/evm";
-import { InterpreterStep } from "@ethereumjs/vm/dist/evm/interpreter";
-import Message from "@ethereumjs/vm/dist/evm/message";
+import { TypedTransaction } from "@nomicfoundation/ethereumjs-tx";
+import { AfterTxEvent, VM } from "@nomicfoundation/ethereumjs-vm";
+import { EVMResult } from "@nomicfoundation/ethereumjs-evm";
+import { InterpreterStep } from "@nomicfoundation/ethereumjs-evm/dist/interpreter";
+import { Message } from "@nomicfoundation/ethereumjs-evm/dist/message";
 import {
-  EIP2929StateManager,
-  StateManager,
-} from "@ethereumjs/vm/dist/state/interface";
-import { Address, BN, setLengthLeft, toBuffer } from "ethereumjs-util";
+  Address,
+  bufferToBigInt,
+  setLengthLeft,
+  toBuffer,
+} from "@nomicfoundation/ethereumjs-util";
 
 import { assertHardhatInvariant } from "../../core/errors";
 import { RpcDebugTracingConfig } from "../../core/jsonrpc/types/input/debugTraceTransaction";
 import { InvalidInputError } from "../../core/providers/errors";
 import { RpcDebugTraceOutput, RpcStructLog } from "../provider/output";
+import * as BigIntUtils from "../../util/bigint";
 
 /* eslint-disable @nomiclabs/hardhat-internal-rules/only-hardhat-error */
 
@@ -54,6 +56,8 @@ export class VMDebugTracer {
   private _messages: DebugMessage[] = [];
   private _addressToStorage: Record<string, Storage> = {};
 
+  private _error: any;
+
   constructor(private readonly _vm: VM) {
     this._beforeMessageHandler = this._beforeMessageHandler.bind(this);
     this._afterMessageHandler = this._afterMessageHandler.bind(this);
@@ -75,6 +79,10 @@ export class VMDebugTracer {
 
       await action();
 
+      if (this._error !== undefined) {
+        throw this._error;
+      }
+
       return this._getDebugTrace();
     } finally {
       this._disableTracing();
@@ -82,20 +90,40 @@ export class VMDebugTracer {
   }
 
   private _enableTracing(config: RpcDebugTracingConfig) {
-    this._vm.on("beforeTx", this._beforeTxHandler);
-    this._vm.on("beforeMessage", this._beforeMessageHandler);
-    this._vm.on("step", this._stepHandler);
-    this._vm.on("afterMessage", this._afterMessageHandler);
-    this._vm.on("afterTx", this._afterTxHandler);
+    assertHardhatInvariant(
+      this._vm.evm.events !== undefined,
+      "EVM should have an 'events' property"
+    );
+
+    this._vm.events.on("beforeTx", this._beforeTxHandler);
+
+    this._vm.evm.events.on("beforeMessage", this._beforeMessageHandler);
+    this._vm.evm.events.on("step", this._stepHandler);
+    this._vm.evm.events.on("afterMessage", this._afterMessageHandler);
+
+    this._vm.events.on("afterTx", this._afterTxHandler);
+
     this._config = config;
   }
 
   private _disableTracing() {
-    this._vm.removeListener("beforeTx", this._beforeTxHandler);
-    this._vm.removeListener("beforeMessage", this._beforeMessageHandler);
-    this._vm.removeListener("step", this._stepHandler);
-    this._vm.removeListener("afterTx", this._afterTxHandler);
-    this._vm.removeListener("afterMessage", this._afterMessageHandler);
+    assertHardhatInvariant(
+      this._vm.evm.events !== undefined,
+      "EVM should have an 'events' property"
+    );
+
+    this._vm.events.removeListener("beforeTx", this._beforeTxHandler);
+
+    this._vm.evm.events.removeListener(
+      "beforeMessage",
+      this._beforeMessageHandler
+    );
+    this._vm.evm.events.removeListener("step", this._stepHandler);
+    this._vm.evm.events.removeListener(
+      "afterMessage",
+      this._afterMessageHandler
+    );
+    this._vm.events.removeListener("afterTx", this._afterTxHandler);
     this._config = undefined;
   }
 
@@ -133,13 +161,20 @@ export class VMDebugTracer {
   }
 
   private async _stepHandler(step: InterpreterStep, next: any) {
-    assertHardhatInvariant(
-      this._messages.length > 0,
-      "Step handler should be called after at least one beforeMessage handler"
-    );
+    try {
+      assertHardhatInvariant(
+        this._messages.length > 0,
+        "Step handler should be called after at least one beforeMessage handler"
+      );
 
-    const structLog = await this._stepToStructLog(step);
-    this._messages[this._messages.length - 1].structLogs.push(structLog);
+      const structLog = await this._stepToStructLog(step);
+      this._messages[this._messages.length - 1].structLogs.push(structLog);
+    } catch (e: any) {
+      // errors thrown in event handlers are lost, so we save this error to
+      // re-throw it in the `trace` function
+      this._error = e;
+      this._disableTracing();
+    }
 
     next();
   }
@@ -156,7 +191,7 @@ export class VMDebugTracer {
     next();
   }
 
-  private async _afterTxHandler(result: EVMResult, next: any) {
+  private async _afterTxHandler(result: AfterTxEvent, next: any) {
     const { default: flattenDeep } = await import("lodash/flattenDeep");
     const topLevelMessage = this._messages[0];
 
@@ -192,7 +227,7 @@ export class VMDebugTracer {
     }
 
     this._lastTrace = {
-      gas: result.gasUsed.toNumber(),
+      gas: Number(result.totalGasSpent),
       failed: result.execResult.exceptionError !== undefined,
       returnValue: result.execResult.returnValue.toString("hex"),
       structLogs: rpcStructLogs,
@@ -222,16 +257,6 @@ export class VMDebugTracer {
         this._addressToStorage[address] = {
           ...structLog.storage,
         };
-
-        // sometimes the memSize has the correct value
-        // for the memory length, in those cases we increase
-        // the memory to reflect this
-        if (structLog.memSize > structLog.memory.length) {
-          const wordsToAdd = structLog.memSize - structLog.memory.length;
-          for (let k = 0; k < wordsToAdd; k++) {
-            structLog.memory.push(EMPTY_MEMORY_WORD);
-          }
-        }
 
         if (i === 0) {
           continue;
@@ -299,7 +324,7 @@ export class VMDebugTracer {
   private _getStack(step: InterpreterStep): string[] {
     const stack = step.stack
       .slice()
-      .map((el: BN) => el.toString("hex").padStart(64, "0"));
+      .map((el: bigint) => el.toString(16).padStart(64, "0"));
     return stack;
   }
 
@@ -330,26 +355,25 @@ export class VMDebugTracer {
       storage[key] = storageValue;
     } else if (step.opcode.name === "REVERT") {
       const [offsetBuffer, lengthBuffer] = this._getFromStack(stack, 2);
-      const length = new BN(lengthBuffer);
-      const offset = new BN(offsetBuffer);
+      const length = bufferToBigInt(lengthBuffer);
+      const offset = bufferToBigInt(offsetBuffer);
 
       const [gasIncrease, addedWords] = this._memoryExpansion(
-        memory.length,
-        length.add(offset)
+        BigInt(memory.length),
+        length + offset
       );
 
-      gasCost += gasIncrease;
+      gasCost += Number(gasIncrease);
 
       for (let i = 0; i < addedWords; i++) {
         memory.push(EMPTY_MEMORY_WORD);
       }
     } else if (step.opcode.name === "CREATE2") {
       const [, , memoryUsedBuffer] = this._getFromStack(stack, 3);
-      const memoryUsed = new BN(memoryUsedBuffer);
-      const sha3ExtraCost = divUp(memoryUsed, 32)
-        .muln(this._sha3WordGas())
-        .toNumber();
-      gasCost += sha3ExtraCost;
+      const memoryUsed = bufferToBigInt(memoryUsedBuffer);
+      const sha3ExtraCost =
+        BigIntUtils.divUp(memoryUsed, 32n) * this._sha3WordGas();
+      gasCost += Number(sha3ExtraCost);
     } else if (
       step.opcode.name === "CALL" ||
       step.opcode.name === "STATICCALL" ||
@@ -381,22 +405,22 @@ export class VMDebugTracer {
         ] = this._getFromStack(stack, 7);
       }
 
-      const callCost = new BN(callCostBuffer);
+      const callCost = bufferToBigInt(callCostBuffer);
 
-      const value = new BN(valueBuffer);
+      const value = bufferToBigInt(valueBuffer);
 
-      const memoryLength = memory.length;
-      const inBN = new BN(inBuffer);
-      const inSizeBN = new BN(inSizeBuffer);
-      const inPosition = inSizeBN.isZero() ? inSizeBN : inBN.add(inSizeBN);
-      const outBN = new BN(outBuffer);
-      const outSizeBN = new BN(outSizeBuffer);
-      const outPosition = outSizeBN.isZero() ? outSizeBN : outBN.add(outSizeBN);
-      const memSize = inPosition.gt(outPosition) ? inPosition : outPosition;
+      const memoryLength = BigInt(memory.length);
+      const inBN = bufferToBigInt(inBuffer);
+      const inSizeBN = bufferToBigInt(inSizeBuffer);
+      const inPosition = inSizeBN === 0n ? inSizeBN : inBN + inSizeBN;
+      const outBN = bufferToBigInt(outBuffer);
+      const outSizeBN = bufferToBigInt(outSizeBuffer);
+      const outPosition = outSizeBN === 0n ? outSizeBN : outBN + outSizeBN;
+      const memSize = inPosition > outPosition ? inPosition : outPosition;
       const toAddress = new Address(recipientAddressBuffer.slice(-20));
 
       const constantGas = this._callConstantGas();
-      const availableGas = step.gasLeft.toNumber() - constantGas;
+      const availableGas = step.gasLeft - constantGas;
 
       const [memoryGas] = this._memoryExpansion(memoryLength, memSize);
 
@@ -408,10 +432,10 @@ export class VMDebugTracer {
         callCost
       );
 
-      gasCost = constantGas + dynamicGas;
+      gasCost = Number(constantGas + dynamicGas);
     } else if (step.opcode.name === "CALLCODE") {
       // finding an existing tx that uses CALLCODE or compiling a contract
-      // so that it uses tihs opcode is hard,
+      // so that it uses this opcode is hard,
       // so we just throw
       throw new InvalidInputError(
         "Transactions that use CALLCODE are not supported by Hardhat's debug_traceTransaction"
@@ -427,13 +451,13 @@ export class VMDebugTracer {
     const structLog: StructLog = {
       pc: step.pc,
       op,
-      gas: step.gasLeft.toNumber(),
+      gas: Number(step.gasLeft),
       gasCost,
       depth: step.depth + 1,
       stack,
       memory,
       storage,
-      memSize: step.memoryWordCount.toNumber(),
+      memSize: Number(step.memoryWordCount),
     };
 
     if (error !== undefined) {
@@ -443,15 +467,15 @@ export class VMDebugTracer {
     return structLog;
   }
 
-  private _memoryGas(): number {
+  private _memoryGas(): bigint {
     return this._vm._common.param("gasPrices", "memory");
   }
 
-  private _sha3WordGas(): number {
+  private _sha3WordGas(): bigint {
     return this._vm._common.param("gasPrices", "sha3Word");
   }
 
-  private _callConstantGas(): number {
+  private _callConstantGas(): bigint {
     if (this._vm._common.gteHardfork("berlin")) {
       return this._vm._common.param("gasPrices", "warmstorageread");
     }
@@ -459,15 +483,15 @@ export class VMDebugTracer {
     return this._vm._common.param("gasPrices", "call");
   }
 
-  private _callNewAccountGas(): number {
+  private _callNewAccountGas(): bigint {
     return this._vm._common.param("gasPrices", "callNewAccount");
   }
 
-  private _callValueTransferGas(): number {
+  private _callValueTransferGas(): bigint {
     return this._vm._common.param("gasPrices", "callValueTransfer");
   }
 
-  private _quadCoeffDiv(): number {
+  private _quadCoeffDiv(): bigint {
     return this._vm._common.param("gasPrices", "quadCoeffDiv");
   }
 
@@ -485,23 +509,14 @@ export class VMDebugTracer {
 
   private async _callDynamicGas(
     address: Address,
-    value: BN,
-    availableGas: number,
-    memoryGas: number,
-    callCost: BN
-  ): Promise<number> {
+    value: bigint,
+    availableGas: bigint,
+    memoryGas: bigint,
+    callCost: bigint
+  ): Promise<bigint> {
     // The available gas is reduced when the address is cold
     if (this._vm._common.gteHardfork("berlin")) {
-      const stateManager = this._vm.stateManager as
-        | StateManager
-        | EIP2929StateManager;
-
-      assertHardhatInvariant(
-        "isWarmedAddress" in stateManager,
-        "The VM should have an EIP2929StateManger when berlin is enabled"
-      );
-
-      const isWarmed = stateManager.isWarmedAddress(address.toBuffer());
+      const isWarmed = this._vm.eei.isWarmedAddress(address.toBuffer());
 
       const coldCost =
         this._vm._common.param("gasPrices", "coldaccountaccess") -
@@ -515,9 +530,9 @@ export class VMDebugTracer {
       }
     }
 
-    let gas = 0;
+    let gas = 0n;
 
-    const transfersValue = !value.isZero();
+    const transfersValue = value !== 0n;
     const addressIsEmpty = await this._isAddressEmpty(address);
 
     if (transfersValue && addressIsEmpty) {
@@ -535,41 +550,45 @@ export class VMDebugTracer {
     return gas;
   }
 
-  private _callGas(availableGas: number, base: number, callCost: BN): number {
+  private _callGas(
+    availableGas: bigint,
+    base: bigint,
+    callCost: bigint
+  ): bigint {
     availableGas -= base;
 
-    const gas = availableGas - Math.floor(availableGas / 64);
+    const gas = availableGas - availableGas / 64n;
 
-    if (callCost.gtn(gas)) {
+    if (callCost > gas) {
       return gas;
     }
 
-    return callCost.toNumber();
+    return callCost;
   }
 
   /**
    * Returns the increase in gas and the number of added words
    */
   private _memoryExpansion(
-    currentWords: number,
-    newSize: BN
-  ): [number, number] {
-    const currentSize = new BN(currentWords).muln(32);
-    const currentWordsLength = currentSize.addn(31).divn(32);
-    const newWordsLength = newSize.addn(31).divn(32);
+    currentWords: bigint,
+    newSize: bigint
+  ): [bigint, bigint] {
+    const currentSize = currentWords * 32n;
+    const currentWordsLength = (currentSize + 31n) / 32n;
+    const newWordsLength = (newSize + 31n) / 32n;
 
-    const wordsDiff = newWordsLength.sub(currentWordsLength);
+    const wordsDiff = newWordsLength - currentWordsLength;
 
-    if (newSize.gt(currentSize)) {
+    if (newSize > currentSize) {
       const newTotalFee = this._memoryFee(newWordsLength);
       const currentTotalFee = this._memoryFee(currentWordsLength);
 
-      const fee = newTotalFee.sub(currentTotalFee);
+      const fee = newTotalFee - currentTotalFee;
 
-      return [fee.toNumber(), wordsDiff.toNumber()];
+      return [fee, wordsDiff];
     }
 
-    return [0, 0];
+    return [0n, 0n];
   }
 
   private _getFromStack(stack: string[], count: number): Buffer[] {
@@ -580,26 +599,14 @@ export class VMDebugTracer {
       .map(toBuffer);
   }
 
-  private _memoryFee(words: BN): BN {
-    const square = words.mul(words);
-    const linCoef = words.muln(this._memoryGas());
-    const quadCoef = square.divn(this._quadCoeffDiv());
-    const newTotalFee = linCoef.add(quadCoef);
+  private _memoryFee(words: bigint): bigint {
+    const square = words * words;
+    const linCoef = words * this._memoryGas();
+    const quadCoef = square / this._quadCoeffDiv();
+    const newTotalFee = linCoef + quadCoef;
 
     return newTotalFee;
   }
-}
-
-function divUp(x: BN, y: number | BN): BN {
-  y = new BN(y);
-
-  let result = x.div(y);
-
-  if (!x.mod(y).eqn(0)) {
-    result = result.addn(1);
-  }
-
-  return result;
 }
 
 function toWord(b: Buffer): string {

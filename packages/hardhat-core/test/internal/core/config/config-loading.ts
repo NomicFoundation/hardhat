@@ -1,15 +1,14 @@
 import { assert } from "chai";
-import fsExtra from "fs-extra";
 import path from "path";
 import sinon from "sinon";
 
+import fs from "fs";
 import { TASK_CLEAN } from "../../../../src/builtin-tasks/task-names";
 import { HardhatContext } from "../../../../src/internal/context";
 import { loadConfigAndTasks } from "../../../../src/internal/core/config/config-loading";
 import { DEFAULT_SOLC_VERSION } from "../../../../src/internal/core/config/default-config";
 import { ERRORS } from "../../../../src/internal/core/errors-list";
 import { resetHardhatContext } from "../../../../src/internal/reset";
-import { glob } from "../../../../src/internal/util/glob";
 import { useEnvironment } from "../../../helpers/environment";
 import {
   expectHardhatError,
@@ -19,6 +18,10 @@ import {
   getFixtureProjectPath,
   useFixtureProject,
 } from "../../../helpers/project";
+import {
+  getAllFilesMatching,
+  getRealPathSync,
+} from "../../../../src/internal/util/fs-utils";
 
 describe("config loading", function () {
   describe("default config path", function () {
@@ -66,22 +69,22 @@ describe("config loading", function () {
     });
 
     it("should accept a relative path from the CWD", function () {
-      const config = loadConfigAndTasks({ config: "config.js" });
+      const { resolvedConfig } = loadConfigAndTasks({ config: "config.js" });
 
       assert.equal(
-        config.paths.configFile,
+        resolvedConfig.paths.configFile,
         path.normalize(path.join(process.cwd(), "config.js"))
       );
     });
 
     it("should accept an absolute path", async function () {
       const fixtureDir = await getFixtureProjectPath("custom-config-file");
-      const config = loadConfigAndTasks({
+      const { resolvedConfig } = loadConfigAndTasks({
         config: path.join(fixtureDir, "config.js"),
       });
 
       assert.equal(
-        config.paths.configFile,
+        resolvedConfig.paths.configFile,
         path.normalize(path.join(process.cwd(), "config.js"))
       );
     });
@@ -172,7 +175,7 @@ describe("config loading", function () {
       let errorThrown;
       try {
         loadConfigAndTasks();
-      } catch (e) {
+      } catch (e: any) {
         errorThrown = e;
       }
 
@@ -199,7 +202,7 @@ describe("config loading", function () {
       let errorThrown;
       try {
         loadConfigAndTasks();
-      } catch (e) {
+      } catch (e: any) {
         errorThrown = e;
       }
 
@@ -226,7 +229,7 @@ describe("config loading", function () {
       let errorThrown;
       try {
         loadConfigAndTasks();
-      } catch (e) {
+      } catch (e: any) {
         errorThrown = e;
       }
 
@@ -320,11 +323,16 @@ Hardhat plugin instead.`
     });
 
     it("Should keep track of all the files imported when loading the config", async function () {
-      const builtinTasksFiles = await glob(
-        "../../../../src/builtin-tasks/*.ts"
+      const builtinTasksFiles = await getAllFilesMatching(
+        // We use realpathSync and not getRealPathSync as that's what node uses
+        // internally.
+        fs.realpathSync(
+          path.join(__dirname, "..", "..", "..", "..", "src", "builtin-tasks")
+        ),
+        (f) => f.endsWith(".ts")
       );
 
-      const projectPath = await fsExtra.realpath(".");
+      const projectPath = getRealPathSync(".");
 
       // We run this twice to make sure that the cache is cleaned properly
       for (let i = 0; i < 2; i++) {
@@ -334,13 +342,22 @@ Hardhat plugin instead.`
 
         const files = ctx.getFilesLoadedDuringConfig();
 
+        const filesJson = JSON.stringify(files, undefined, 2);
+
         for (const file of builtinTasksFiles) {
-          // The task names may have been loaded before, so we ignore it.
-          if (file.endsWith("task-names.ts")) {
+          // The task names and the utils may have been loaded before, so we ignore them.
+          if (
+            file.endsWith("task-names.ts") ||
+            file.includes(path.join(path.sep, "utils", path.sep))
+          ) {
             continue;
           }
 
-          assert.include(files, file);
+          assert.include(
+            files,
+            file,
+            `${file} should be included in ${filesJson}`
+          );
         }
 
         // Must include the config file and the files directly and
@@ -371,8 +388,27 @@ Hardhat plugin instead.`
       resetHardhatContext();
     });
 
+    it("should emit a warning if config is the empty object", function () {
+      loadConfigAndTasks(
+        {
+          config: "empty-config.js",
+        },
+        { showEmptyConfigWarning: true }
+      );
+
+      assert.equal(consoleWarnStub.callCount, 1);
+      assert.include(
+        consoleWarnStub.args[0][0],
+        "Hardhat config is returning an empty config object, check the export from the config file if this is unexpected."
+      );
+      assert.include(
+        consoleWarnStub.args[0][0],
+        "Learn more about configuring Hardhat at https://hardhat.org/config"
+      );
+    });
+
     it("should emit a warning if there's no configured solidity", function () {
-      const config = loadConfigAndTasks(
+      const { resolvedConfig } = loadConfigAndTasks(
         {
           config: "config-without-solidity.js",
         },
@@ -384,8 +420,11 @@ Hardhat plugin instead.`
         consoleWarnStub.args[0][0],
         "Solidity compiler is not configured"
       );
-      assert.equal(config.solidity.compilers.length, 1);
-      assert.equal(config.solidity.compilers[0].version, DEFAULT_SOLC_VERSION);
+      assert.equal(resolvedConfig.solidity.compilers.length, 1);
+      assert.equal(
+        resolvedConfig.solidity.compilers[0].version,
+        DEFAULT_SOLC_VERSION
+      );
     });
 
     it("should emit a warning if the solc version is too new", function () {
@@ -422,6 +461,51 @@ Hardhat plugin instead.`
 
       assert.equal(consoleWarnStub.callCount, 1);
       assert.include(consoleWarnStub.args[0][0], "is not fully supported yet");
+    });
+
+    it("should emit a warning if there is a remapping in the compiler settings", function () {
+      loadConfigAndTasks(
+        {
+          config: "remapping-in-settings.js",
+        },
+        { showSolidityConfigWarnings: true }
+      );
+
+      assert.equal(consoleWarnStub.callCount, 1);
+      assert.include(
+        consoleWarnStub.args[0][0],
+        "remappings are not currently supported"
+      );
+    });
+
+    it("should emit a warning if there is a remapping in the list of compiler settings", function () {
+      loadConfigAndTasks(
+        {
+          config: "remapping-in-list.js",
+        },
+        { showSolidityConfigWarnings: true }
+      );
+
+      assert.equal(consoleWarnStub.callCount, 1);
+      assert.include(
+        consoleWarnStub.args[0][0],
+        "remappings are not currently supported"
+      );
+    });
+
+    it("should emit a warning if there is a remapping in the list of compiler overrides", function () {
+      loadConfigAndTasks(
+        {
+          config: "remapping-in-override.js",
+        },
+        { showSolidityConfigWarnings: true }
+      );
+
+      assert.equal(consoleWarnStub.callCount, 1);
+      assert.include(
+        consoleWarnStub.args[0][0],
+        "remappings are not currently supported"
+      );
     });
   });
 });

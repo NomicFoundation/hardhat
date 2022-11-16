@@ -46,7 +46,7 @@ The `waffle` object has these properties:
 - `createFixtureLoader`
 - `loadFixture`
 
-This plugin depends on [`@nomiclabs/hardhat-ethers`](https://github.com/nomiclabs/hardhat/tree/master/packages/hardhat-ethers), so it also injects an `ethers` object into the HRE, which is documented [here](https://github.com/nomiclabs/hardhat/tree/master/packages/hardhat-ethers#environment-extensions).
+This plugin depends on [`@nomiclabs/hardhat-ethers`](https://github.com/nomiclabs/hardhat/tree/main/packages/hardhat-ethers), so it also injects an `ethers` object into the HRE, which is documented [here](https://github.com/nomiclabs/hardhat/tree/main/packages/hardhat-ethers#environment-extensions).
 
 ## Usage
 
@@ -67,6 +67,6 @@ const { waffle } = require("hardhat");
 const { deployContract } = waffle;
 ```
 
-Also, you don't need to call `chai.use`.
+Also, you don't need to call `chai.use` in order to use [Waffle's Chai matchers](https://ethereum-waffle.readthedocs.io/en/latest/matchers.html).
 
-Note that by default, Hardhat saves its compilation output into `artifacts/` instead of `build/`. You can either use that directory in your tests, or [customize your Hardhat config](https://hardhat.org/config/#path-configuration).
+Note that by default, Hardhat saves its compilation output into `artifacts/` instead of `build/`. You can either use that directory in your tests, or [customize your Hardhat config](https://hardhat.org/hardhat-runner/docs/config#path-configuration).

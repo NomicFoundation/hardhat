@@ -1,4 +1,4 @@
-import { Address, BN } from "ethereumjs-util";
+import { Address } from "@nomicfoundation/ethereumjs-util";
 import * as t from "io-ts";
 
 import {
@@ -26,6 +26,7 @@ import {
   InvalidInputError,
   MethodNotFoundError,
 } from "../../../core/providers/errors";
+import { optional } from "../../../util/io-ts";
 import { MessageTrace } from "../../stack-traces/message-trace";
 import { HardhatNode } from "../node";
 import { ForkConfig, MineBlockResult } from "../node-types";
@@ -66,6 +67,9 @@ export class HardhatModule {
       case "hardhat_intervalMine":
         return this._intervalMineAction(...this._intervalMineParams(params));
 
+      case "hardhat_getAutomine":
+        return this._getAutomine();
+
       case "hardhat_stopImpersonatingAccount":
         return this._stopImpersonatingAction(
           ...this._stopImpersonatingParams(params)
@@ -104,6 +108,17 @@ export class HardhatModule {
       case "hardhat_setNextBlockBaseFeePerGas":
         return this._setNextBlockBaseFeePerGasAction(
           ...this._setNextBlockBaseFeePerGasParams(params)
+        );
+
+      case "hardhat_setCoinbase":
+        return this._setCoinbaseAction(...this._setCoinbaseParams(params));
+
+      case "hardhat_mine":
+        return this._hardhatMineAction(...this._hardhatMineParams(params));
+
+      case "hardhat_setPrevRandao":
+        return this._hardhatSetPrevRandaoAction(
+          ...this._hardhatSetPrevRandaoParams(params)
         );
     }
 
@@ -163,18 +178,18 @@ export class HardhatModule {
 
   private async _intervalMineAction(): Promise<boolean> {
     const result = await this._node.mineBlock();
-    const blockNumber = result.block.header.number.toNumber();
+    const blockNumber = result.block.header.number;
 
     const isEmpty = result.block.transactions.length === 0;
     if (isEmpty) {
-      this._logger.printMinedBlockNumber(
+      this._logger.printIntervalMinedBlockNumber(
         blockNumber,
         isEmpty,
         result.block.header.baseFeePerGas
       );
     } else {
-      await this._logBlock(result);
-      this._logger.printMinedBlockNumber(blockNumber, isEmpty);
+      await this._logBlock(result, { isIntervalMined: true });
+      this._logger.printIntervalMinedBlockNumber(blockNumber, isEmpty);
       const printedSomething = this._logger.printLogs();
       if (printedSomething) {
         this._logger.printEmptyLine();
@@ -182,6 +197,12 @@ export class HardhatModule {
     }
 
     return true;
+  }
+
+  // hardhat_getAutomine
+
+  private async _getAutomine(): Promise<boolean> {
+    return this._node.getAutomine();
   }
 
   // hardhat_stopImpersonatingAccount
@@ -222,18 +243,18 @@ export class HardhatModule {
 
   // hardhat_setMinGasPrice
 
-  private _setMinGasPriceParams(params: any[]): [BN] {
+  private _setMinGasPriceParams(params: any[]): [bigint] {
     return validateParams(params, rpcQuantity);
   }
 
-  private async _setMinGasPriceAction(minGasPrice: BN): Promise<true> {
-    if (minGasPrice.lt(new BN(0))) {
+  private async _setMinGasPriceAction(minGasPrice: bigint): Promise<true> {
+    if (minGasPrice < 0n) {
       throw new InvalidInputError("Minimum gas price cannot be negative");
     }
 
     if (this._node.isEip1559Active()) {
       throw new InvalidInputError(
-        "hardhat_setMinGasPrice is not support when EIP-1559 is active"
+        "hardhat_setMinGasPrice is not supported when EIP-1559 is active"
       );
     }
 
@@ -253,11 +274,11 @@ export class HardhatModule {
 
   // hardhat_setBalance
 
-  private _setBalanceParams(params: any[]): [Buffer, BN] {
+  private _setBalanceParams(params: any[]): [Buffer, bigint] {
     return validateParams(params, rpcAddress, rpcQuantity);
   }
 
-  private async _setBalanceAction(address: Buffer, newBalance: BN) {
+  private async _setBalanceAction(address: Buffer, newBalance: bigint) {
     await this._node.setAccountBalance(new Address(address), newBalance);
     return true;
   }
@@ -275,18 +296,18 @@ export class HardhatModule {
 
   // hardhat_setNonce
 
-  private _setNonceParams(params: any[]): [Buffer, BN] {
+  private _setNonceParams(params: any[]): [Buffer, bigint] {
     return validateParams(params, rpcAddress, rpcQuantity);
   }
 
-  private async _setNonceAction(address: Buffer, newNonce: BN) {
+  private async _setNonceAction(address: Buffer, newNonce: bigint) {
     await this._node.setNextConfirmedNonce(new Address(address), newNonce);
     return true;
   }
 
   // hardhat_setStorageAt
 
-  private _setStorageAtParams(params: any[]): [Buffer, BN, Buffer] {
+  private _setStorageAtParams(params: any[]): [Buffer, bigint, Buffer] {
     const [address, positionIndex, value] = validateParams(
       params,
       rpcAddress,
@@ -294,8 +315,8 @@ export class HardhatModule {
       rpcData
     );
 
-    const MAX_WORD_VALUE = new BN(2).pow(new BN(256));
-    if (positionIndex.gte(MAX_WORD_VALUE)) {
+    const MAX_WORD_VALUE = 2n ** 256n;
+    if (positionIndex >= MAX_WORD_VALUE) {
       throw new InvalidInputError(
         `Storage key must not be greater than or equal to 2^256. Received ${positionIndex.toString()}.`
       );
@@ -314,7 +335,7 @@ export class HardhatModule {
 
   private async _setStorageAtAction(
     address: Buffer,
-    positionIndex: BN,
+    positionIndex: bigint,
     value: Buffer
   ) {
     await this._node.setStorageAt(new Address(address), positionIndex, value);
@@ -322,11 +343,11 @@ export class HardhatModule {
   }
 
   // hardhat_setNextBlockBaseFeePerGas
-  private _setNextBlockBaseFeePerGasParams(params: any[]): [BN] {
+  private _setNextBlockBaseFeePerGasParams(params: any[]): [bigint] {
     return validateParams(params, rpcQuantity);
   }
 
-  private _setNextBlockBaseFeePerGasAction(baseFeePerGas: BN) {
+  private _setNextBlockBaseFeePerGasAction(baseFeePerGas: bigint) {
     if (!this._node.isEip1559Active()) {
       throw new InvalidInputError(
         "hardhat_setNextBlockBaseFeePerGas is disabled because EIP-1559 is not active"
@@ -337,20 +358,80 @@ export class HardhatModule {
     return true;
   }
 
-  private async _logBlock(result: MineBlockResult) {
+  // hardhat_setCoinbase
+
+  private _setCoinbaseParams(params: any[]): [Buffer] {
+    return validateParams(params, rpcAddress);
+  }
+
+  private async _setCoinbaseAction(address: Buffer) {
+    await this._node.setCoinbase(new Address(address));
+    return true;
+  }
+
+  // hardhat_mine
+  private async _hardhatMineAction(blockCount?: bigint, interval?: bigint) {
+    const mineBlockResults = await this._node.mineBlocks(blockCount, interval);
+
+    for (const [i, result] of mineBlockResults.entries()) {
+      await this._logHardhatMinedBlock(result);
+
+      // print an empty line after logging blocks with txs,
+      // unless it's the last logged block
+      const isEmpty = result.block.transactions.length === 0;
+      if (!isEmpty && i + 1 < mineBlockResults.length) {
+        this._logger.logEmptyLine();
+      }
+    }
+
+    return true;
+  }
+  private _hardhatMineParams(
+    params: any[]
+  ): [bigint | undefined, bigint | undefined] {
+    return validateParams(params, optional(rpcQuantity), optional(rpcQuantity));
+  }
+
+  // hardhat_setPrevRandao
+
+  private _hardhatSetPrevRandaoParams(params: any[]): [Buffer] {
+    // using rpcHash because it's also 32 bytes long
+    return validateParams(params, rpcHash);
+  }
+
+  private async _hardhatSetPrevRandaoAction(prevRandao: Buffer) {
+    if (!this._node.isPostMergeHardfork()) {
+      throw new InvalidInputError(
+        `hardhat_setPrevRandao is only available in post-merge hardforks, the current hardfork is ${this._node.hardfork}`
+      );
+    }
+
+    this._node.setPrevRandao(prevRandao);
+
+    return true;
+  }
+
+  private async _logBlock(
+    result: MineBlockResult,
+    { isIntervalMined }: { isIntervalMined: boolean }
+  ) {
     const { block, traces } = result;
 
     const codes: Buffer[] = [];
     for (const txTrace of traces) {
       const code = await this._node.getCodeFromTrace(
         txTrace.trace,
-        new BN(block.header.number)
+        block.header.number
       );
 
       codes.push(code);
     }
 
-    this._logger.logIntervalMinedBlock(result, codes);
+    if (isIntervalMined) {
+      this._logger.logIntervalMinedBlock(result, codes);
+    } else {
+      this._logger.logMinedBlock(result, codes);
+    }
 
     for (const txTrace of traces) {
       await this._runHardhatNetworkMessageTraceHooks(txTrace.trace, false);
@@ -367,6 +448,20 @@ export class HardhatModule {
 
     for (const hook of this._experimentalHardhatNetworkMessageTraceHooks) {
       await hook(trace, isCall);
+    }
+  }
+
+  private async _logHardhatMinedBlock(result: MineBlockResult) {
+    const isEmpty = result.block.transactions.length === 0;
+    const blockNumber = result.block.header.number;
+
+    if (isEmpty) {
+      this._logger.logEmptyHardhatMinedBlock(
+        blockNumber,
+        result.block.header.baseFeePerGas
+      );
+    } else {
+      await this._logBlock(result, { isIntervalMined: false });
     }
   }
 }

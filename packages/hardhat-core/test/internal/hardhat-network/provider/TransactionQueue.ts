@@ -1,17 +1,24 @@
-import { TxData } from "@ethereumjs/tx";
+import { TxData } from "@nomicfoundation/ethereumjs-tx";
+import {
+  AddressLike,
+  arrToBufArr,
+  bufferToBigInt,
+  bufferToHex,
+} from "@nomicfoundation/ethereumjs-util";
 import { assert } from "chai";
-import { AddressLike, BN, keccak256, bufferToHex } from "ethereumjs-util";
 import { randomBytes } from "crypto";
 
 import {
   AccessListEIP2930TxData,
   FeeMarketEIP1559TxData,
-} from "@ethereumjs/tx/dist/types";
+} from "@nomicfoundation/ethereumjs-tx/dist/types";
 import { OrderedTransaction } from "../../../../src/internal/hardhat-network/provider/PoolState";
 import { TransactionQueue } from "../../../../src/internal/hardhat-network/provider/TransactionQueue";
 import { createTestOrderedTransaction } from "../helpers/blockchain";
 import { makeOrderedTxMap } from "../helpers/makeOrderedTxMap";
 import { InternalError } from "../../../../src/internal/core/providers/errors";
+import * as BigIntUtils from "../../../../src/internal/util/bigint";
+import { keccak256 } from "../../../../src/internal/util/keccak";
 
 type TestTxData = (
   | TxData
@@ -32,12 +39,12 @@ const SEED = randomBytes(8);
 let lastValue = keccak256(SEED);
 function weakRandomComparator(_left: unknown, _right: unknown) {
   lastValue = keccak256(lastValue);
-  const leftRandomId = new BN(lastValue);
+  const leftRandomId = bufferToBigInt(arrToBufArr(lastValue));
 
   lastValue = keccak256(lastValue);
-  const rightRandomId = new BN(lastValue);
+  const rightRandomId = bufferToBigInt(arrToBufArr(lastValue));
 
-  return leftRandomId.cmp(rightRandomId);
+  return BigIntUtils.cmp(leftRandomId, rightRandomId);
 }
 
 describe(`TxPriorityHeap (tests using seed ${bufferToHex(SEED)})`, () => {
@@ -56,7 +63,7 @@ describe(`TxPriorityHeap (tests using seed ${bufferToHex(SEED)})`, () => {
         });
 
         assert.throws(
-          () => new TransactionQueue(makeOrderedTxMap([tx1])),
+          () => new TransactionQueue(makeOrderedTxMap([tx1]), "priority"),
           InternalError
         );
       });
@@ -81,7 +88,7 @@ describe(`TxPriorityHeap (tests using seed ${bufferToHex(SEED)})`, () => {
 
           const txs = [tx1, tx2, tx3, tx4];
           txs.sort(weakRandomComparator);
-          const queue = new TransactionQueue(makeOrderedTxMap(txs));
+          const queue = new TransactionQueue(makeOrderedTxMap(txs), "priority");
 
           assert.equal(queue.getNextTransaction(), tx4.data);
           assert.equal(queue.getNextTransaction(), tx2.data);
@@ -155,7 +162,7 @@ describe(`TxPriorityHeap (tests using seed ${bufferToHex(SEED)})`, () => {
 
         const txs = [tx1, tx2, tx3, tx4, tx5, tx6, tx7, tx8, tx9, tx10];
         txs.sort(weakRandomComparator);
-        const queue = new TransactionQueue(makeOrderedTxMap(txs));
+        const queue = new TransactionQueue(makeOrderedTxMap(txs), "priority");
 
         assert.equal(queue.getNextTransaction(), tx1.data);
         assert.equal(queue.getNextTransaction(), tx2.data);
@@ -182,14 +189,14 @@ describe(`TxPriorityHeap (tests using seed ${bufferToHex(SEED)})`, () => {
         });
 
         assert.doesNotThrow(
-          () => new TransactionQueue(makeOrderedTxMap([tx1]), new BN(1))
+          () => new TransactionQueue(makeOrderedTxMap([tx1]), "priority", 1n)
         );
       });
     });
 
     describe("Sorting", function () {
       it("Should use the effective miner fee to sort txs", function () {
-        const baseFee = new BN(15);
+        const baseFee = 15n;
 
         // Effective miner fee: 96
         const tx1 = createTestTransaction({ gasPrice: 111 });
@@ -217,7 +224,11 @@ describe(`TxPriorityHeap (tests using seed ${bufferToHex(SEED)})`, () => {
 
         const txs = [tx1, tx2, tx3, tx4, tx5];
         txs.sort(weakRandomComparator);
-        const queue = new TransactionQueue(makeOrderedTxMap(txs), baseFee);
+        const queue = new TransactionQueue(
+          makeOrderedTxMap(txs),
+          "priority",
+          baseFee
+        );
 
         assert.equal(queue.getNextTransaction(), tx5.data);
         assert.equal(queue.getNextTransaction(), tx4.data);
@@ -226,8 +237,38 @@ describe(`TxPriorityHeap (tests using seed ${bufferToHex(SEED)})`, () => {
         assert.equal(queue.getNextTransaction(), tx1.data);
       });
 
+      it("Should use the order to sort txs in FIFO mode", function () {
+        const baseFee = 15n;
+
+        // Effective miner fee: 96
+        const tx1 = createTestTransaction({ gasPrice: 111 });
+
+        // Effective miner fee: 100
+        const tx2 = createTestTransaction({
+          maxFeePerGas: 120,
+          maxPriorityFeePerGas: 100,
+        });
+
+        // Effective miner fee: 110
+        const tx3 = createTestTransaction({
+          maxFeePerGas: 140,
+          maxPriorityFeePerGas: 110,
+        });
+
+        const txs = [tx1, tx2, tx3];
+        const queue = new TransactionQueue(
+          makeOrderedTxMap(txs),
+          "fifo",
+          baseFee
+        );
+
+        assert.equal(queue.getNextTransaction(), tx1.data);
+        assert.equal(queue.getNextTransaction(), tx2.data);
+        assert.equal(queue.getNextTransaction(), tx3.data);
+      });
+
       it("Should not include transactions from a sender whose next tx was discarded", function () {
-        const baseFee = new BN(20);
+        const baseFee = 20n;
 
         const senderWithFirstTxNotMined =
           "0x0000000000000000000000000000000000000001";
@@ -307,7 +348,11 @@ describe(`TxPriorityHeap (tests using seed ${bufferToHex(SEED)})`, () => {
 
         const txs = [tx1, tx2, tx3, tx4, tx5, tx6, tx7, tx8, tx9, tx10];
         txs.sort(weakRandomComparator);
-        const queue = new TransactionQueue(makeOrderedTxMap(txs), baseFee);
+        const queue = new TransactionQueue(
+          makeOrderedTxMap(txs),
+          "priority",
+          baseFee
+        );
 
         assert.equal(queue.getNextTransaction(), tx1.data);
         assert.equal(queue.getNextTransaction(), tx2.data);

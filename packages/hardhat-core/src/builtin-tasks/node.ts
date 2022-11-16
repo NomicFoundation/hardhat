@@ -1,6 +1,7 @@
+import type EthereumjsUtilT from "@nomicfoundation/ethereumjs-util";
+
 import chalk from "chalk";
 import debug from "debug";
-import type EthereumjsUtilT from "ethereumjs-util";
 import fsExtra from "fs-extra";
 
 import { HARDHAT_NETWORK_NAME } from "../internal/constants";
@@ -20,6 +21,7 @@ import {
   JsonRpcServer,
 } from "../types";
 
+import { HARDHAT_NETWORK_MNEMONIC } from "../internal/core/config/default-config";
 import {
   TASK_NODE,
   TASK_NODE_CREATE_SERVER,
@@ -27,35 +29,66 @@ import {
   TASK_NODE_SERVER_CREATED,
   TASK_NODE_SERVER_READY,
 } from "./task-names";
-import { watchCompilerOutput } from "./utils/watch";
+import { watchCompilerOutput, Watcher } from "./utils/watch";
 
 const log = debug("hardhat:core:tasks:node");
 
-function logHardhatNetworkAccounts(networkConfig: HardhatNetworkConfig) {
-  if (networkConfig.accounts === undefined) {
-    return;
-  }
+function printDefaultConfigWarning() {
+  console.log(
+    chalk.bold(
+      "WARNING: These accounts, and their private keys, are publicly known."
+    )
+  );
+  console.log(
+    chalk.bold(
+      "Any funds sent to them on Mainnet or any other live network WILL BE LOST."
+    )
+  );
+}
 
-  const { BN, bufferToHex, privateToAddress, toBuffer } =
-    require("ethereumjs-util") as typeof EthereumjsUtilT;
+function logHardhatNetworkAccounts(networkConfig: HardhatNetworkConfig) {
+  const isDefaultConfig =
+    !Array.isArray(networkConfig.accounts) &&
+    networkConfig.accounts.mnemonic === HARDHAT_NETWORK_MNEMONIC;
+
+  const { bufferToHex, privateToAddress, toBuffer, toChecksumAddress } =
+    require("@nomicfoundation/ethereumjs-util") as typeof EthereumjsUtilT;
 
   console.log("Accounts");
   console.log("========");
+
+  if (isDefaultConfig) {
+    console.log();
+    printDefaultConfigWarning();
+    console.log();
+  }
 
   const accounts = normalizeHardhatNetworkAccountsConfig(
     networkConfig.accounts
   );
 
   for (const [index, account] of accounts.entries()) {
-    const address = bufferToHex(privateToAddress(toBuffer(account.privateKey)));
-    const privateKey = bufferToHex(toBuffer(account.privateKey));
-    const balance = new BN(account.balance)
-      .div(new BN(10).pow(new BN(18)))
-      .toString(10);
+    const address = toChecksumAddress(
+      bufferToHex(privateToAddress(toBuffer(account.privateKey)))
+    );
 
-    console.log(`Account #${index}: ${address} (${balance} ETH)
-Private Key: ${privateKey}
-`);
+    const balance = (BigInt(account.balance) / 10n ** 18n).toString(10);
+
+    let entry = `Account #${index}: ${address} (${balance} ETH)`;
+
+    if (isDefaultConfig) {
+      const privateKey = bufferToHex(toBuffer(account.privateKey));
+      entry += `
+Private Key: ${privateKey}`;
+    }
+
+    console.log(entry);
+    console.log();
+  }
+
+  if (isDefaultConfig) {
+    printDefaultConfigWarning();
+    console.log();
   }
 }
 
@@ -71,7 +104,7 @@ subtask(TASK_NODE_GET_PROVIDER)
         forkBlockNumber?: number;
         forkUrl?: string;
       },
-      { artifacts, config, network }
+      { artifacts, config, network, userConfig }
     ): Promise<EthereumProvider> => {
       let provider = network.provider;
 
@@ -122,10 +155,13 @@ subtask(TASK_NODE_GET_PROVIDER)
         });
       }
 
+      const hardhatNetworkUserConfig =
+        userConfig.networks?.[HARDHAT_NETWORK_NAME] ?? {};
+
       // enable logging
       await provider.request({
         method: "hardhat_setLoggingEnabled",
-        params: [true],
+        params: [hardhatNetworkUserConfig.loggingEnabled ?? true],
       });
 
       return provider;
@@ -268,7 +304,7 @@ task(TASK_NODE, "Starts a JSON-RPC server on top of Hardhat Network")
           forkUrl,
         });
 
-        // the default hostname is "localhost" unless we are inside a docker
+        // the default hostname is "127.0.0.1" unless we are inside a docker
         // container, in that case we use "0.0.0.0"
         let hostname: string;
         if (hostnameParam !== undefined) {
@@ -278,7 +314,7 @@ task(TASK_NODE, "Starts a JSON-RPC server on top of Hardhat Network")
           if (insideDocker) {
             hostname = "0.0.0.0";
           } else {
-            hostname = "localhost";
+            hostname = "127.0.0.1";
           }
         }
 
@@ -297,8 +333,9 @@ task(TASK_NODE, "Starts a JSON-RPC server on top of Hardhat Network")
 
         const { port: actualPort, address } = await server.listen();
 
+        let watcher: Watcher | undefined;
         try {
-          await watchCompilerOutput(provider, config.paths);
+          watcher = await watchCompilerOutput(provider, config.paths);
         } catch (error) {
           console.warn(
             chalk.yellow(
@@ -311,7 +348,9 @@ task(TASK_NODE, "Starts a JSON-RPC server on top of Hardhat Network")
             error
           );
 
-          Reporter.reportError(error);
+          if (error instanceof Error) {
+            Reporter.reportError(error);
+          }
         }
 
         await run(TASK_NODE_SERVER_READY, {
@@ -322,18 +361,24 @@ task(TASK_NODE, "Starts a JSON-RPC server on top of Hardhat Network")
         });
 
         await server.waitUntilClosed();
+        await watcher?.close();
       } catch (error) {
         if (HardhatError.isHardhatError(error)) {
           throw error;
         }
 
-        throw new HardhatError(
-          ERRORS.BUILTIN_TASKS.JSONRPC_SERVER_ERROR,
-          {
-            error: error.message,
-          },
-          error
-        );
+        if (error instanceof Error) {
+          throw new HardhatError(
+            ERRORS.BUILTIN_TASKS.JSONRPC_SERVER_ERROR,
+            {
+              error: error.message,
+            },
+            error
+          );
+        }
+
+        // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
+        throw error;
       }
     }
   );

@@ -1,5 +1,5 @@
 import { NomicLabsHardhatPluginError } from "hardhat/plugins";
-import type { Response } from "node-fetch";
+import { Dispatcher } from "undici";
 
 import { pluginName } from "../constants";
 
@@ -19,17 +19,19 @@ export async function verifyContract(
   url: string,
   req: EtherscanVerifyRequest
 ): Promise<EtherscanResponse> {
-  const { default: fetch } = await import("node-fetch");
+  const { request } = await import("undici");
   const parameters = new URLSearchParams({ ...req });
+  const method: Dispatcher.HttpMethod = "POST";
   const requestDetails = {
-    method: "post",
-    body: parameters,
+    method,
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: parameters.toString(),
   };
 
-  let response: Response;
+  let response: Dispatcher.ResponseData;
   try {
-    response = await fetch(url, requestDetails);
-  } catch (error) {
+    response = await request(url, requestDetails);
+  } catch (error: any) {
     throw new NomicLabsHardhatPluginError(
       pluginName,
       `Failed to send contract verification request.
@@ -39,18 +41,18 @@ Reason: ${error.message}`,
     );
   }
 
-  if (!response.ok) {
+  if (!(response.statusCode >= 200 && response.statusCode <= 299)) {
     // This could be always interpreted as JSON if there were any such guarantee in the Etherscan API.
-    const responseText = await response.text();
+    const responseText = await response.body.text();
     throw new NomicLabsHardhatPluginError(
       pluginName,
       `Failed to send contract verification request.
 Endpoint URL: ${url}
-The HTTP server response is not ok. Status code: ${response.status} Response text: ${responseText}`
+The HTTP server response is not ok. Status code: ${response.statusCode} Response text: ${responseText}`
     );
   }
 
-  const etherscanResponse = new EtherscanResponse(await response.json());
+  const etherscanResponse = new EtherscanResponse(await response.body.json());
 
   if (etherscanResponse.isBytecodeMissingInNetworkError()) {
     throw new NomicLabsHardhatPluginError(
@@ -82,30 +84,30 @@ export async function getVerificationStatus(
   const urlWithQuery = new URL(url);
   urlWithQuery.search = parameters.toString();
 
-  const { default: fetch } = await import("node-fetch");
+  const { request } = await import("undici");
   let response;
   try {
-    response = await fetch(urlWithQuery);
+    response = await request(urlWithQuery, { method: "GET" });
 
-    if (!response.ok) {
+    if (!(response.statusCode >= 200 && response.statusCode <= 299)) {
       // This could be always interpreted as JSON if there were any such guarantee in the Etherscan API.
-      const responseText = await response.text();
-      const message = `The HTTP server response is not ok. Status code: ${response.status} Response text: ${responseText}`;
+      const responseText = await response.body.text();
+      const message = `The HTTP server response is not ok. Status code: ${response.statusCode} Response text: ${responseText}`;
 
       throw new NomicLabsHardhatPluginError(pluginName, message);
     }
-  } catch (error) {
+  } catch (error: any) {
     throw new NomicLabsHardhatPluginError(
       pluginName,
       `Failure during etherscan status polling. The verification may still succeed but
 should be checked manually.
-Endpoint URL: ${urlWithQuery}
+Endpoint URL: ${urlWithQuery.toString()}
 Reason: ${error.message}`,
       error
     );
   }
 
-  const etherscanResponse = new EtherscanResponse(await response.json());
+  const etherscanResponse = new EtherscanResponse(await response.body.json());
 
   if (etherscanResponse.isPending()) {
     await delay(verificationIntervalMs);
@@ -129,7 +131,7 @@ Reason: ${etherscanResponse.message}`
   return etherscanResponse;
 }
 
-export default class EtherscanResponse {
+export class EtherscanResponse {
   public readonly status: number;
 
   public readonly message: string;

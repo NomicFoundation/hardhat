@@ -1,9 +1,11 @@
 import { assert } from "chai";
-import { BN, bufferToHex } from "ethereumjs-util";
+import { bufferToHex } from "@nomicfoundation/ethereumjs-util";
 
 import {
   numberToRpcQuantity,
+  rpcDataToBigInt,
   rpcQuantity,
+  rpcQuantityToBigInt,
 } from "../../../../src/internal/core/jsonrpc/types/base-types";
 import { RpcTransactionRequestInput } from "../../../../src/internal/core/jsonrpc/types/input/transactionRequest";
 import {
@@ -59,7 +61,7 @@ export async function assertProviderError(
   }
 
   assert.fail(
-    `Method ${method} should have thrown [${code}] ${message} but returned ${res}`
+    `Method '${method}' should have thrown '[${code}] ${message}' but returned '${res}'`
   );
 }
 
@@ -123,7 +125,7 @@ export async function assertInvalidInputError(
 
 export function assertQuantity(
   actual: any,
-  quantity: number | BN,
+  quantity: number | bigint,
   message?: string
 ) {
   assert.strictEqual(actual, numberToRpcQuantity(quantity), message);
@@ -131,7 +133,7 @@ export function assertQuantity(
 
 export async function assertNodeBalances(
   provider: EthereumProvider,
-  expectedBalances: Array<number | BN>
+  expectedBalances: Array<number | bigint>
 ) {
   const accounts: string[] = await provider.send("eth_accounts");
 
@@ -144,7 +146,7 @@ export async function assertNodeBalances(
 
 export async function assertPendingNodeBalances(
   provider: EthereumProvider,
-  expectedBalances: Array<number | BN>
+  expectedBalances: Array<number | bigint>
 ) {
   const accounts: string[] = await provider.send("eth_accounts");
 
@@ -196,7 +198,7 @@ export async function assertTransactionFailure(
 export function assertReceiptMatchesGethOne(
   actual: any,
   gethReceipt: RpcReceiptOutput,
-  expectedBlockNumber: number | BN
+  expectedBlockNumber: number | bigint
 ) {
   assertQuantity(actual.blockNumber, expectedBlockNumber);
   assert.strictEqual(actual.transactionIndex, gethReceipt.transactionIndex);
@@ -323,4 +325,32 @@ export async function assertLatestBlockNumber(
 
   assert.isNotNull(block);
   assert.equal(block.number, numberToRpcQuantity(latestBlockNumber));
+}
+
+export async function assertContractFieldEqualNumber(
+  provider: EthereumProvider,
+  contractAddress: string,
+  selector: string,
+  expectedValue: bigint
+) {
+  const value = rpcDataToBigInt(
+    await provider.send("eth_call", [
+      {
+        to: contractAddress,
+        data: selector,
+      },
+    ])
+  );
+  assert.equal(value, expectedValue);
+}
+
+export async function assertAddressBalance(
+  provider: EthereumProvider,
+  address: string,
+  expectedValue: bigint
+) {
+  const value = rpcQuantityToBigInt(
+    await provider.send("eth_getBalance", [address])
+  );
+  assert.equal(value, expectedValue);
 }

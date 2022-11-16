@@ -1,5 +1,5 @@
 import { NomicLabsHardhatPluginError } from "hardhat/plugins";
-import { Artifacts } from "hardhat/src/types";
+import { Artifacts } from "hardhat/types";
 import { isFullyQualifiedName } from "hardhat/utils/contract-names";
 import path from "path";
 
@@ -27,7 +27,7 @@ export class TruffleEnvironmentArtifacts {
       if (Contract.binary.includes("__")) {
         return false;
       }
-    } catch (e) {
+    } catch {
       return false;
     }
 

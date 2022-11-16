@@ -1,4 +1,3 @@
-import { BN } from "ethereumjs-util";
 import * as t from "io-ts";
 
 import { BoundExperimentalHardhatNetworkMessageTraceHook } from "../../../../types";
@@ -85,16 +84,15 @@ export class EvmModule {
     timestamp: RpcQuantityOrNumber
   ): Promise<string> {
     const latestBlock = await this._node.getLatestBlock();
-    const increment = new BN(timestamp).sub(
-      new BN(latestBlock.header.timestamp)
-    );
-    if (increment.lte(new BN(0))) {
+    const increment = BigInt(timestamp) - latestBlock.header.timestamp;
+
+    if (increment <= 0n) {
       throw new InvalidInputError(
-        `Timestamp ${timestamp} is lower than or equal to previous block's timestamp` +
-          ` ${new BN(latestBlock.header.timestamp).toNumber()}`
+        `Timestamp ${timestamp.toString()} is lower than or equal to previous block's timestamp` +
+          ` ${latestBlock.header.timestamp}`
       );
     }
-    this._node.setNextBlockTimestamp(new BN(timestamp));
+    this._node.setNextBlockTimestamp(BigInt(timestamp));
     return timestamp.toString();
   }
 
@@ -107,7 +105,7 @@ export class EvmModule {
   private async _increaseTimeAction(
     increment: RpcQuantityOrNumber
   ): Promise<string> {
-    this._node.increaseTime(new BN(increment));
+    this._node.increaseTime(BigInt(increment));
     const totalIncrement = this._node.getTimeIncrement();
     // This RPC call is an exception: it returns a number in decimal
     return totalIncrement.toString();
@@ -123,21 +121,20 @@ export class EvmModule {
   }
 
   private async _mineAction(timestamp: RpcQuantityOrNumber): Promise<string> {
+    timestamp = BigInt(timestamp);
     // if timestamp is specified, make sure it is bigger than previous
     // block's timestamp
-    if (timestamp !== 0) {
+    if (timestamp !== 0n) {
       const latestBlock = await this._node.getLatestBlock();
-      const increment = new BN(timestamp).sub(
-        new BN(latestBlock.header.timestamp)
-      );
-      if (increment.lte(new BN(0))) {
+      const increment = timestamp - latestBlock.header.timestamp;
+      if (increment <= 0n) {
         throw new InvalidInputError(
-          `Timestamp ${timestamp} is lower than previous block's timestamp` +
-            ` ${new BN(latestBlock.header.timestamp).toNumber()}`
+          `Timestamp ${timestamp.toString()} is lower than previous block's timestamp` +
+            ` ${latestBlock.header.timestamp}`
         );
       }
     }
-    const result = await this._node.mineBlock(new BN(timestamp));
+    const result = await this._node.mineBlock(timestamp);
 
     await this._logBlock(result);
 
@@ -146,12 +143,12 @@ export class EvmModule {
 
   // evm_revert
 
-  private _revertParams(params: any[]): [BN] {
+  private _revertParams(params: any[]): [bigint] {
     return validateParams(params, rpcQuantity);
   }
 
-  private async _revertAction(snapshotId: BN): Promise<boolean> {
-    return this._node.revertToSnapshot(snapshotId.toNumber());
+  private async _revertAction(snapshotId: bigint): Promise<boolean> {
+    return this._node.revertToSnapshot(Number(snapshotId));
   }
 
   // evm_snapshot
@@ -192,12 +189,12 @@ export class EvmModule {
 
   // evm_setBlockGasLimit
 
-  private _setBlockGasLimitParams(params: any[]): [BN] {
+  private _setBlockGasLimitParams(params: any[]): [bigint] {
     return validateParams(params, rpcQuantity);
   }
 
-  private async _setBlockGasLimitAction(blockGasLimit: BN): Promise<true> {
-    if (blockGasLimit.lte(new BN(0))) {
+  private async _setBlockGasLimitAction(blockGasLimit: bigint): Promise<true> {
+    if (blockGasLimit <= 0n) {
       throw new InvalidInputError("Block gas limit must be greater than 0");
     }
 
@@ -212,7 +209,7 @@ export class EvmModule {
     for (const txTrace of traces) {
       const code = await this._node.getCodeFromTrace(
         txTrace.trace,
-        new BN(block.header.number)
+        block.header.number
       );
 
       codes.push(code);

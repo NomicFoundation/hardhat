@@ -36,6 +36,7 @@ describe("compiler-input module", function () {
               "evm.bytecode",
               "evm.deployedBytecode",
               "evm.methodIdentifiers",
+              "metadata",
             ],
             "": ["ast"],
           },

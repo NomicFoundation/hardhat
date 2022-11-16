@@ -11,7 +11,7 @@ export abstract class ProviderWrapper
     super(_wrappedProvider);
   }
 
-  public abstract async request(args: RequestArguments): Promise<unknown>;
+  public abstract request(args: RequestArguments): Promise<unknown>;
 
   protected _getParams<ParamsT extends any[] = any[]>(
     args: RequestArguments
