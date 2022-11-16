@@ -1,6 +1,6 @@
 import * as t from "io-ts";
 
-import { SignTypedDataVersion, signTypedData } from "@metamask/eth-sig-util";
+import { signTypedData, SignTypedDataVersion } from "@metamask/eth-sig-util";
 import { FeeMarketEIP1559Transaction } from "@nomicfoundation/ethereumjs-tx";
 import { EIP1193Provider, RequestArguments } from "../../../types";
 import { HardhatError } from "../errors";
@@ -300,8 +300,11 @@ export class HDWalletProvider extends LocalAccountsProvider {
     count: number = 10,
     passphrase: string = ""
   ) {
+    // NOTE: If mnemonic has space or newline at the beginning or end, it will be trimmed.
+    // This is because mnemonic containing them may generate different private keys.
+    const trimmedMnemonic = mnemonic.trim();
     const privateKeys = derivePrivateKeys(
-      mnemonic,
+      trimmedMnemonic,
       hdpath,
       initialIndex,
       count,
