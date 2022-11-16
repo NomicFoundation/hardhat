@@ -48,7 +48,7 @@ await expect(token.transfer(address, 0)).to.be.revertedWith(
 );
 ```
 
-Assert that a transaction reverted with a specific regular expression reason:
+You can also use regular expressions:
 
 ```ts
 await expect(token.transfer(address, 0)).to.be.revertedWith(
