@@ -814,9 +814,9 @@ Try installing the library using npm.`,
       message:
         "Invalid import %imported% from %from%. Trying to import file using the own package's name.",
       title: "Invalid import: includes own package's name",
-      description: `A Solidity file is trying to import another using its own package name. That is most likely caused by an existing symlink for the package in your node modules created.
+      description: `A Solidity file is trying to import another using its own package name. This is most likely caused by an existing symlink for the package in your node_modules.
 
-Import the file directly without referencing the package's name.`,
+Use a relative import instead of referencing the package's name.`,
       shouldBeReported: false,
     },
   },
