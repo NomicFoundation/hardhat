@@ -71,12 +71,17 @@ Add a deployment module under the `./ignition` folder for the example `Lock.sol`
 // ./ignition/LockModule.js
 const { buildModule } = require("@ignored/hardhat-ignition");
 
-const JAN_01_2100 = 4102491600;
+const currentTimestampInSeconds = Math.round(Date.now() / 1000);
+const ONE_YEAR_IN_SECS = 365 * 24 * 60 * 60;
+const ONE_YEAR_IN_FUTURE = currentTimestampInSeconds + ONE_YEAR_IN_SECS;
+
+const ONE_ETHER = hre.ethers.utils.parseEther("1");
 
 module.exports = buildModule("LockModule", (m) => {
-  const unlockTime = m.getOptionalParam("unlockTime", JAN_01_2100);
+  const unlockTime = m.getOptionalParam("unlockTime", ONE_YEAR_IN_FUTURE);
+  const lockedAmount = m.getOptionalParam("lockedAmount", ONE_ETHER);
 
-  const lock = m.contract("Lock", { args: [unlockTime] });
+  const lock = m.contract("Lock", { args: [unlockTime], value: lockedAmount });
 
   return { lock };
 });
@@ -91,7 +96,7 @@ npx hardhat deploy LockModule.js
 Parameters can be passed as a flag at the command line via a json string:
 
 ```bash
-npx hardhat deploy --parameters "{\"unlockTime\":4102491600}" LockModule.js
+npx hardhat deploy --parameters "{\"unlockTime\":4102491600,\"lockedAmount\":2000000000}" LockModule.js
 # Ensure you have properly escaped the json string
 ```
 

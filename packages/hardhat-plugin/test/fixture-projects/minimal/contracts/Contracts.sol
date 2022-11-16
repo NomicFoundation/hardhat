@@ -47,3 +47,9 @@ contract Greeter {
         return _greeting;
     }
 }
+
+contract PassingValue {
+    constructor() payable {}
+
+    function deposit() public payable {}
+}

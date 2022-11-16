@@ -1,4 +1,5 @@
 /* eslint-disable import/no-unused-modules */
+import { buildModule } from "@ignored/ignition-core";
 import { assert } from "chai";
 
 import { deployModule } from "./helpers";
@@ -90,5 +91,61 @@ describe("contract deploys", () => {
     const greeting = await result.greeter.getGreeting();
 
     assert.equal(greeting, "Hello World");
+  });
+
+  describe("with endowment", () => {
+    it("should be able to deploy a contract with an endowment", async function () {
+      const result = await deployModule(this.hre, (m) => {
+        const passingValue = m.contract("PassingValue", {
+          value: this.hre.ethers.utils.parseEther("1"),
+        });
+
+        return { passingValue };
+      });
+
+      assert.isDefined(result.passingValue);
+
+      const actualInstanceBalance = await this.hre.ethers.provider.getBalance(
+        result.passingValue.address
+      );
+
+      assert.equal(
+        actualInstanceBalance.toString(),
+        this.hre.ethers.utils.parseEther("1").toString()
+      );
+    });
+
+    it("should be able to deploy a contract with an endowment via a parameter", async function () {
+      const submodule = buildModule("submodule", (m) => {
+        const endowment = m.getParam("endowment");
+
+        const passingValue = m.contract("PassingValue", {
+          value: endowment,
+        });
+
+        return { passingValue };
+      });
+
+      const result = await deployModule(this.hre, (m) => {
+        const { passingValue } = m.useModule(submodule, {
+          parameters: {
+            endowment: this.hre.ethers.utils.parseEther("1"),
+          },
+        });
+
+        return { passingValue };
+      });
+
+      assert.isDefined(result.passingValue);
+
+      const actualInstanceBalance = await this.hre.ethers.provider.getBalance(
+        result.passingValue.address
+      );
+
+      assert.equal(
+        actualInstanceBalance.toString(),
+        this.hre.ethers.utils.parseEther("1").toString()
+      );
+    });
   });
 });

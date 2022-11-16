@@ -73,20 +73,6 @@ describe("deployment builder - value", () => {
         ethers.utils.parseUnits("42").toString()
       );
     });
-
-    it("should throw if given a value that is not a BigNumber", () => {
-      const callModule = buildModule("call", (m: IDeploymentBuilder) => {
-        // @ts-ignore
-        const token = m.contract("Token", { value: "42" });
-
-        return { token };
-      });
-
-      assert.throws(
-        () => generateDeploymentGraphFrom(callModule, { chainId: 31337 }),
-        /`value` must be a BigNumber/
-      );
-    });
   });
 
   describe("call", () => {
@@ -106,26 +92,6 @@ describe("deployment builder - value", () => {
         ethers.utils.parseUnits("10").toString()
       );
     });
-
-    it("should throw if given a value that is not a BigNumber", () => {
-      const callModule = buildModule("call", (m: IDeploymentBuilder) => {
-        const token = m.contract("Token");
-        const exchange = m.contract("Exchange");
-
-        m.call(exchange, "addToken", {
-          args: [token],
-          // @ts-ignore
-          value: 10,
-        });
-
-        return {};
-      });
-
-      assert.throws(
-        () => generateDeploymentGraphFrom(callModule, { chainId: 31337 }),
-        /`value` must be a BigNumber/
-      );
-    });
   });
 
   describe("artifact", () => {
@@ -140,28 +106,6 @@ describe("deployment builder - value", () => {
       assert.equal(
         depNode.value.toString(),
         ethers.utils.parseUnits("3").toString()
-      );
-    });
-
-    it("should throw if given a value that is not a BigNumber", () => {
-      const artifact = { abi: [], bytecode: "xxx" } as any as Artifact;
-
-      const fromArtifactModule = buildModule(
-        "FromArtifact",
-        (m: IDeploymentBuilder) => {
-          const foo = m.contract("Foo", artifact, {
-            args: [0],
-            value: null,
-          });
-
-          return { foo };
-        }
-      );
-
-      assert.throws(
-        () =>
-          generateDeploymentGraphFrom(fromArtifactModule, { chainId: 31337 }),
-        /`value` must be a BigNumber/
       );
     });
   });

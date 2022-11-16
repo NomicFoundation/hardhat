@@ -78,6 +78,41 @@ describe("Validation", () => {
         "The constructor of the contract 'Example' expects 0 arguments but 3 were given"
       );
     });
+
+    it("should not validate a artifact contract deploy with a non-BigNumber value", async () => {
+      const singleModule = buildModule("single", (m: IDeploymentBuilder) => {
+        const example = m.contract("Example", exampleArtifact, {
+          args: [1, 2, 3],
+          value: "42" as any,
+        });
+
+        return { example };
+      });
+
+      const { graph } = generateDeploymentGraphFrom(singleModule, {
+        chainId: 31337,
+      });
+
+      const mockServices = {
+        ...getMockServices(),
+      } as any;
+
+      const validationResult = await validateDeploymentGraph(
+        graph,
+        mockServices
+      );
+
+      if (validationResult._kind !== "failure") {
+        return assert.fail("validation should have failed");
+      }
+
+      const {
+        failures: [text, [error]],
+      } = validationResult;
+
+      assert.equal(text, "Validation failed");
+      assert.equal(error.message, "For contract 'value' must be a BigNumber");
+    });
   });
 
   describe("artifact library deploy", () => {
@@ -403,6 +438,44 @@ describe("Validation", () => {
         "Function inc in contract MyContract is overloaded, but no overload expects 0 arguments"
       );
     });
+
+    it("should fail a call on a non-BigNumber as value", async () => {
+      const singleModule = buildModule("single", (m: IDeploymentBuilder) => {
+        const example = m.contract("Foo");
+
+        m.call(example, "nonexistant", { args: [], value: true as any });
+
+        return { example };
+      });
+
+      const { graph } = generateDeploymentGraphFrom(singleModule, {
+        chainId: 31337,
+      });
+
+      const mockServices = {
+        ...getMockServices(),
+        artifacts: {
+          hasArtifact: () => true,
+          getArtifact: () => exampleCallArtifact,
+        },
+      } as any;
+
+      const validationResult = await validateDeploymentGraph(
+        graph,
+        mockServices
+      );
+
+      if (validationResult._kind !== "failure") {
+        return assert.fail("validation should have failed");
+      }
+
+      const {
+        failures: [text, [error]],
+      } = validationResult;
+
+      assert.equal(text, "Validation failed");
+      assert.equal(error.message, "For call 'value' must be a BigNumber");
+    });
   });
 
   describe("deployed contract", () => {
@@ -533,6 +606,41 @@ describe("Validation", () => {
         error.message,
         "Artifact with name 'Nonexistant' doesn't exist"
       );
+    });
+
+    it("should not validate a contract with non-BigNumber value", async () => {
+      const singleModule = buildModule("single", (m: IDeploymentBuilder) => {
+        const nonexistant = m.contract("Nonexistant", { value: "42" as any });
+
+        return { nonexistant };
+      });
+
+      const { graph } = generateDeploymentGraphFrom(singleModule, {
+        chainId: 31337,
+      });
+
+      const mockServices = {
+        ...getMockServices(),
+        artifacts: {
+          hasArtifact: () => false,
+        },
+      } as any;
+
+      const validationResult = await validateDeploymentGraph(
+        graph,
+        mockServices
+      );
+
+      if (validationResult._kind !== "failure") {
+        return assert.fail("validation should have failed");
+      }
+
+      const {
+        failures: [text, [error]],
+      } = validationResult;
+
+      assert.equal(text, "Validation failed");
+      assert.equal(error.message, "For contract 'value' must be a BigNumber");
     });
   });
 

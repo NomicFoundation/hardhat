@@ -1,5 +1,5 @@
 {
-  "name": "@nomicfoundation/ignition-ens-example",
+  "name": "@nomicfoundation/ignition-sample-example",
   "private": true,
   "version": "0.0.1",
   "scripts": {
@@ -26,8 +26,5 @@
     "hardhat-gas-reporter": "1.0.9",
     "solidity-coverage": "0.8.2",
     "typechain": "8.1.1"
-  },
-  "dependencies": {
-    "@ensdomains/ens-contracts": "0.0.11"
   }
 }

@@ -1,3 +1,4 @@
+require("@nomicfoundation/hardhat-toolbox");
 require("@ignored/hardhat-ignition");
 
 /**

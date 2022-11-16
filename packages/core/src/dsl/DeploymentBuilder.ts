@@ -1,4 +1,4 @@
-import { ethers } from "ethers";
+import { BigNumber, ethers } from "ethers";
 import hash from "object-hash";
 
 import { addEdge, ensureVertex } from "graph/adjacencyList";
@@ -33,7 +33,7 @@ import type {
 } from "types/future";
 import type { Artifact } from "types/hardhat";
 import type { ModuleCache, ModuleDict } from "types/module";
-import { IgnitionError, assertBigNumberParam } from "utils/errors";
+import { IgnitionError } from "utils/errors";
 import {
   isArtifact,
   isCallable,
@@ -123,8 +123,6 @@ export class DeploymentBuilder implements IDeploymentBuilder {
       const artifact = artifactOrOptions;
       const options: ContractOptions | undefined = givenOptions;
 
-      assertBigNumberParam(options?.value, "value");
-
       const artifactContractFuture: ArtifactContract = {
         vertexId: this._resolveNextId(),
         label: contractName,
@@ -149,8 +147,6 @@ export class DeploymentBuilder implements IDeploymentBuilder {
       return artifactContractFuture;
     } else {
       const options: ContractOptions | undefined = artifactOrOptions;
-
-      assertBigNumberParam(options?.value, "value");
 
       const contractFuture: HardhatContract = {
         vertexId: this._resolveNextId(),
@@ -210,8 +206,6 @@ export class DeploymentBuilder implements IDeploymentBuilder {
     functionName: string,
     { args, after, value }: CallOptions
   ): ContractCall {
-    assertBigNumberParam(value, "value");
-
     const callFuture: ContractCall = {
       vertexId: this._resolveNextId(),
       label: `${contractFuture.label}/${functionName}`,
@@ -501,7 +495,8 @@ export class DeploymentBuilder implements IDeploymentBuilder {
     if (
       typeof arg === "string" ||
       typeof arg === "number" ||
-      typeof arg === "boolean"
+      typeof arg === "boolean" ||
+      BigNumber.isBigNumber(arg)
     ) {
       return;
     }

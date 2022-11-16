@@ -1,15 +1,23 @@
-import { ethers } from "ethers";
+import { ethers, BigNumber } from "ethers";
 
 import { Services } from "services/types";
 import { ArtifactContractDeploymentVertex } from "types/deploymentGraph";
 import { ResultsAccumulator, VertexVisitResult } from "types/graph";
-import { isArtifact } from "utils/guards";
+import { IgnitionError } from "utils/errors";
+import { isArtifact, isParameter } from "utils/guards";
 
 export async function validateArtifactContract(
   vertex: ArtifactContractDeploymentVertex,
   _resultAccumulator: ResultsAccumulator,
   _context: { services: Services }
 ): Promise<VertexVisitResult> {
+  if (!BigNumber.isBigNumber(vertex.value) && !isParameter(vertex.value)) {
+    return {
+      _kind: "failure",
+      failure: new IgnitionError(`For contract 'value' must be a BigNumber`),
+    };
+  }
+
   const artifactExists = isArtifact(vertex.artifact);
 
   if (!artifactExists) {

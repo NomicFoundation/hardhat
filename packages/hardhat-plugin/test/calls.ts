@@ -1,4 +1,5 @@
 /* eslint-disable import/no-unused-modules */
+import { buildModule } from "@ignored/ignition-core";
 import { assert } from "chai";
 
 import { deployModule } from "./helpers";
@@ -57,6 +58,68 @@ describe("calls", () => {
       [entry1, entry2, entry3],
       ["first", "second", "third"]
     );
+  });
+
+  describe("passing value", () => {
+    it("should be able to call a contract passing a value", async function () {
+      const result = await deployModule(this.hre, (m) => {
+        const passingValue = m.contract("PassingValue");
+
+        m.call(passingValue, "deposit", {
+          args: [],
+          value: this.hre.ethers.utils.parseEther("1"),
+        });
+
+        return { passingValue };
+      });
+
+      assert.isDefined(result.passingValue);
+
+      const actualInstanceBalance = await this.hre.ethers.provider.getBalance(
+        result.passingValue.address
+      );
+
+      assert.equal(
+        actualInstanceBalance.toString(),
+        this.hre.ethers.utils.parseEther("1").toString()
+      );
+    });
+
+    it("should be able to call a contract passing a value via a parameter", async function () {
+      const submodule = buildModule("submodule", (m) => {
+        const depositValue = m.getParam("depositValue");
+
+        const passingValue = m.contract("PassingValue");
+
+        m.call(passingValue, "deposit", {
+          args: [],
+          value: depositValue,
+        });
+
+        return { passingValue };
+      });
+
+      const result = await deployModule(this.hre, (m) => {
+        const { passingValue } = m.useModule(submodule, {
+          parameters: {
+            depositValue: this.hre.ethers.utils.parseEther("1"),
+          },
+        });
+
+        return { passingValue };
+      });
+
+      assert.isDefined(result.passingValue);
+
+      const actualInstanceBalance = await this.hre.ethers.provider.getBalance(
+        result.passingValue.address
+      );
+
+      assert.equal(
+        actualInstanceBalance.toString(),
+        this.hre.ethers.utils.parseEther("1").toString()
+      );
+    });
   });
 
   it("should note fail if call fails");

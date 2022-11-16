@@ -1,9 +1,11 @@
-import { ethers } from "ethers";
+import { ethers, BigNumber } from "ethers";
 
 import { Services } from "services/types";
 import { CallDeploymentVertex } from "types/deploymentGraph";
 import { CallableFuture } from "types/future";
 import { ResultsAccumulator, VertexVisitResult } from "types/graph";
+import { IgnitionError } from "utils/errors";
+import { isParameter } from "utils/guards";
 import { resolveProxyValue } from "utils/proxy";
 
 export async function validateCall(
@@ -11,6 +13,13 @@ export async function validateCall(
   _resultAccumulator: ResultsAccumulator,
   context: { services: Services }
 ): Promise<VertexVisitResult> {
+  if (!BigNumber.isBigNumber(vertex.value) && !isParameter(vertex.value)) {
+    return {
+      _kind: "failure",
+      failure: new IgnitionError(`For call 'value' must be a BigNumber`),
+    };
+  }
+
   const contractName = vertex.contract.label;
 
   const artifactAbi = await resolveArtifactForCallableFuture(

@@ -110,9 +110,9 @@ async function assertTxMined(hre: any, hash: string) {
  * Assert that `expectedBlocks.length` blocks are mined, and that
  * each mined block has `expectedBlocks[i]` transactions.
  */
-export async function deployModules(
+export async function deployModules<T extends ModuleDict>(
   hre: any,
-  userModules: Module[],
+  userModules: Array<Module<T>>,
   expectedBlocks: number[]
 ): Promise<SerializedDeploymentResult> {
   await hre.run("compile", { quiet: true });

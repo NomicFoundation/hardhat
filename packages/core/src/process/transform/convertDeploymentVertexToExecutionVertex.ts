@@ -1,3 +1,5 @@
+import { BigNumber } from "ethers";
+
 import { Services } from "services/types";
 import {
   ArtifactContractDeploymentVertex,
@@ -8,6 +10,7 @@ import {
   HardhatLibraryDeploymentVertex,
   IDeploymentGraph,
   DeploymentGraphVertex,
+  ExternalParamValue,
 } from "types/deploymentGraph";
 import {
   ContractCall,
@@ -77,7 +80,10 @@ async function convertHardhatContractToContractDeploy(
     artifact,
     args: await convertArgs(vertex.args, transformContext),
     libraries: vertex.libraries,
-    value: vertex.value,
+    value: (await resolveParameter(
+      vertex.value,
+      transformContext
+    )) as BigNumber,
   };
 }
 
@@ -92,7 +98,10 @@ async function convertArtifactContractToContractDeploy(
     artifact: vertex.artifact,
     args: await convertArgs(vertex.args, transformContext),
     libraries: vertex.libraries,
-    value: vertex.value,
+    value: (await resolveParameter(
+      vertex.value,
+      transformContext
+    )) as BigNumber,
   };
 }
 
@@ -120,7 +129,10 @@ async function convertCallToContractCall(
     contract: await resolveParameter(vertex.contract, transformContext),
     method: vertex.method,
     args: await convertArgs(vertex.args, transformContext),
-    value: vertex.value,
+    value: (await resolveParameter(
+      vertex.value,
+      transformContext
+    )) as BigNumber,
   };
 }
 
@@ -164,9 +176,11 @@ function assertDeploymentVertexNotExpected(
 }
 
 async function convertArgs(
-  args: Array<boolean | string | number | DeploymentGraphFuture>,
+  args: Array<boolean | string | number | BigNumber | DeploymentGraphFuture>,
   transformContext: TransformContext
-): Promise<Array<boolean | string | number | DeploymentGraphFuture>> {
+): Promise<
+  Array<boolean | string | number | BigNumber | DeploymentGraphFuture>
+> {
   const resolvedArgs = [];
 
   for (const arg of args) {
@@ -178,10 +192,10 @@ async function convertArgs(
   return resolvedArgs;
 }
 
-async function resolveParameter(
-  arg: boolean | string | number | DeploymentGraphFuture,
+async function resolveParameter<T extends DeploymentGraphFuture>(
+  arg: ExternalParamValue | T,
   { services, graph }: TransformContext
-) {
+): Promise<ExternalParamValue | T> {
   if (!isFuture(arg)) {
     return arg;
   }
@@ -198,7 +212,7 @@ async function resolveParameter(
     scopeData.parameters !== undefined &&
     arg.label in scopeData.parameters
   ) {
-    return scopeData.parameters[arg.label];
+    return scopeData.parameters[arg.label] as string | number | T;
   }
 
   const hasParamResult = await services.config.hasParam(arg.label);
@@ -206,7 +220,7 @@ async function resolveParameter(
   if (arg.subtype === "optional") {
     return hasParamResult.found
       ? services.config.getParam(arg.label)
-      : arg.defaultValue;
+      : (arg.defaultValue as T);
   }
 
   if (hasParamResult.found === false) {

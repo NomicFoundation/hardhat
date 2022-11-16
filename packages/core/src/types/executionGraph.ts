@@ -11,7 +11,12 @@ export interface IExecutionGraph {
   getEdges(): Array<{ from: number; to: number }>;
 }
 
-export type ArgValue = boolean | string | number | DeploymentGraphFuture;
+export type ArgValue =
+  | boolean
+  | string
+  | number
+  | BigNumber
+  | DeploymentGraphFuture;
 
 export type ExecutionVertexType =
   | "ContractDeploy"

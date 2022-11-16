@@ -14,6 +14,7 @@ import {
   RequiredParameter,
   CallableFuture,
   Virtual,
+  ParameterFuture,
 } from "./future";
 import { AdjacencyList, VertexDescriptor } from "./graph";
 import { Artifact } from "./hardhat";
@@ -38,7 +39,7 @@ export interface LibraryMap {
   [key: string]: DeploymentGraphFuture;
 }
 
-export type ExternalParamValue = boolean | string | number;
+export type ExternalParamValue = boolean | string | number | BigNumber;
 
 export type InternalParamValue = ExternalParamValue | DeploymentGraphFuture;
 
@@ -58,7 +59,7 @@ export interface HardhatContractDeploymentVertex extends VertexDescriptor {
   args: InternalParamValue[];
   libraries: LibraryMap;
   after: DeploymentGraphFuture[];
-  value: BigNumber;
+  value: BigNumber | ParameterFuture;
 }
 
 export interface ArtifactContractDeploymentVertex extends VertexDescriptor {
@@ -68,7 +69,7 @@ export interface ArtifactContractDeploymentVertex extends VertexDescriptor {
   args: InternalParamValue[];
   libraries: LibraryMap;
   after: DeploymentGraphFuture[];
-  value: BigNumber;
+  value: BigNumber | ParameterFuture;
 }
 
 export interface DeployedContractDeploymentVertex extends VertexDescriptor {
@@ -102,7 +103,7 @@ export interface CallDeploymentVertex extends VertexDescriptor {
   method: string;
   args: InternalParamValue[];
   after: DeploymentGraphFuture[];
-  value: BigNumber;
+  value: BigNumber | ParameterFuture;
 }
 
 export interface VirtualVertex extends VertexDescriptor {
@@ -117,13 +118,13 @@ export interface ContractOptions {
     [key: string]: DeploymentGraphFuture;
   };
   after?: DeploymentGraphFuture[];
-  value?: BigNumber;
+  value?: BigNumber | ParameterFuture;
 }
 
 export interface CallOptions {
   args: InternalParamValue[];
   after?: DeploymentGraphFuture[];
-  value?: BigNumber;
+  value?: BigNumber | ParameterFuture;
 }
 
 export interface UseSubgraphOptions {
