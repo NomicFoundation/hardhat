@@ -1,5 +1,7 @@
 # Ignition
 
+> **WARNING**: This repository is **highly experimental**, and is under **active development**. Any code or binaries produced from this project **should not be used in any production or critical workloads**. The API is preliminary, **the API will change**.
+
 Ignition is **Hardhat**'s deployment solution. It is a **Hardhat** plugin that allows you to create declarative deployments that can be reproduced across different networks.
 
 Built by the [Nomic Foundation](https://nomic.foundation/) for the Ethereum community.
