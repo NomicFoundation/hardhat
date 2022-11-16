@@ -11,7 +11,6 @@ import {
   Resolver,
 } from "../../../src/internal/solidity/resolver";
 import * as packageInfo from "../../../src/internal/util/packageInfo";
-import * as sourceNames from "../../../src/utils/source-names";
 import { LibraryInfo } from "../../../src/types/builtin-tasks";
 import { useEnvironment } from "../../helpers/environment";
 import { expectHardhatErrorAsync } from "../../helpers/errors";
