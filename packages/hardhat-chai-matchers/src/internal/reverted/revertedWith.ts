@@ -44,13 +44,13 @@ export function supportRevertedWith(Assertion: Chai.AssertionStatic) {
             `Expected transaction to be reverted with reason '${expectedReasonString}', but it reverted without a reason`
           );
         } else if (decodedReturnData.kind === "Error") {
-          const isReverted =
+          const matchesExpectedReason =
             expectedReason instanceof RegExp
               ? expectedReason.test(decodedReturnData.reason)
               : decodedReturnData.reason === expectedReasonString;
 
           assert(
-            isReverted,
+            matchesExpectedReason,
             `Expected transaction to be reverted with reason '${expectedReasonString}', but it reverted with reason '${decodedReturnData.reason}'`,
             `Expected transaction NOT to be reverted with reason '${expectedReasonString}', but it was`
           );
