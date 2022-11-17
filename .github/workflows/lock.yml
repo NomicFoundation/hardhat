@@ -1,8 +1,8 @@
-name: 'Lock Threads'
+name: "Lock Threads"
 
 on:
   schedule:
-    - cron: '0 0 * * *'
+    - cron: "0 0 * * *"
   workflow_dispatch:
 
 permissions:
@@ -18,5 +18,5 @@ jobs:
     steps:
       - uses: dessant/lock-threads@v3
         with:
-          issue-inactive-days: '90'
-          pr-inactive-days: '90'
+          issue-inactive-days: "90"
+          pr-inactive-days: "90"
