@@ -26,13 +26,13 @@ export class IgnitionWrapper {
   public async deploy<T extends ModuleDict>(
     ignitionModule: Module<T>,
     deployParams?: {
-      parameters: { [key: string]: ExternalParamValue };
+      parameters?: { [key: string]: ExternalParamValue };
       ui?: boolean;
     }
   ) {
     const showUi = deployParams?.ui ?? false;
 
-    if (deployParams !== undefined) {
+    if (deployParams?.parameters !== undefined) {
       await this._providers.config.setParams(deployParams.parameters);
     }
 

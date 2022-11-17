@@ -1,6 +1,7 @@
 import "@nomiclabs/hardhat-ethers";
 import { Module, ModuleDict, Providers } from "@ignored/ignition-core";
 import { BigNumber } from "ethers";
+import fs from "fs-extra";
 import { extendConfig, extendEnvironment, task } from "hardhat/config";
 import { lazyObject } from "hardhat/plugins";
 import path from "path";
@@ -16,6 +17,10 @@ export { buildSubgraph, buildModule } from "@ignored/ignition-core";
 export interface IgnitionConfig {
   maxRetries: number;
   gasIncrementPerRetry: BigNumber | null;
+}
+
+interface ModuleParams {
+  [key: string]: number | string;
 }
 
 /* ignition config defaults */
@@ -117,28 +122,17 @@ task("deploy")
   .addOptionalVariadicPositionalParam("userModulesPaths")
   .addOptionalParam(
     "parameters",
-    "A json object as a string, of the module parameters"
+    "A JSON object as a string, of the module parameters, or a relative path to a JSON file"
   )
   .setAction(
     async (
       {
         userModulesPaths = [],
-        parameters: parametersAsJson,
+        parameters: parametersInput,
       }: { userModulesPaths: string[]; parameters?: string },
       hre
     ) => {
       await hre.run("compile", { quiet: true });
-
-      let parameters: { [key: string]: number | string };
-      try {
-        parameters =
-          parametersAsJson !== undefined
-            ? JSON.parse(parametersAsJson)
-            : undefined;
-      } catch {
-        console.warn("Could not parse parameters json");
-        process.exit(0);
-      }
 
       let userModules: Array<Module<ModuleDict>>;
       if (userModulesPaths.length === 0) {
@@ -155,7 +149,21 @@ task("deploy")
         process.exit(0);
       }
 
-      await hre.ignition.deploy(userModules[0], { parameters, ui: true });
+      const [userModule] = userModules;
+
+      let parameters: ModuleParams | undefined;
+      if (parametersInput === undefined) {
+        parameters = resolveParametersFromModuleName(
+          userModule.name,
+          hre.config.paths.ignition
+        );
+      } else if (parametersInput.endsWith(".json")) {
+        parameters = resolveParametersFromFileName(parametersInput);
+      } else {
+        parameters = resolveParametersString(parametersInput);
+      }
+
+      await hre.ignition.deploy(userModule, { parameters, ui: true });
     }
   );
 
@@ -207,3 +215,39 @@ task("plan")
       }
     }
   );
+
+function resolveParametersFromModuleName(
+  moduleName: string,
+  ignitionPath: string
+): ModuleParams | undefined {
+  const files = fs.readdirSync(ignitionPath);
+  const configFilename = `${moduleName}.config.json`;
+
+  return files.includes(configFilename)
+    ? resolveConfigPath(path.resolve(ignitionPath, configFilename))
+    : undefined;
+}
+
+function resolveParametersFromFileName(fileName: string): ModuleParams {
+  const filepath = path.resolve(process.cwd(), fileName);
+
+  return resolveConfigPath(filepath);
+}
+
+function resolveConfigPath(filepath: string): ModuleParams {
+  try {
+    return require(filepath);
+  } catch {
+    console.warn(`Could not parse parameters from ${filepath}`);
+    process.exit(0);
+  }
+}
+
+function resolveParametersString(paramString: string): ModuleParams {
+  try {
+    return JSON.parse(paramString);
+  } catch {
+    console.warn(`Could not parse JSON parameters`);
+    process.exit(0);
+  }
+}

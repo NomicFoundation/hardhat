@@ -93,7 +93,20 @@ Run the `deploy` task to test the module against an ephemeral **Hardhat** node (
 npx hardhat deploy LockModule.js
 ```
 
-Parameters can be passed as a flag at the command line via a json string:
+A relative path to a file containing module parameters can be passed as a flag at the command line:
+
+```json
+// ignition/LockModule.config.json
+{
+  "unlockTime": 4102491600
+}
+```
+
+```bash
+npx hardhat deploy --parameters ignition/LockModule.config.json LockModule.js
+```
+
+Parameters can also be passed at the command line via a json string:
 
 ```bash
 npx hardhat deploy --parameters "{\"unlockTime\":4102491600,\"lockedAmount\":2000000000}" LockModule.js
