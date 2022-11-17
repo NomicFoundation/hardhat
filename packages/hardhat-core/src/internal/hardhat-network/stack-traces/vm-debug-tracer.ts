@@ -1,8 +1,8 @@
+import type { AfterTxEvent, VM } from "@nomicfoundation/ethereumjs-vm";
+import type { EVMResult } from "@nomicfoundation/ethereumjs-evm";
+import type { InterpreterStep } from "@nomicfoundation/ethereumjs-evm/dist/interpreter";
+import type { Message } from "@nomicfoundation/ethereumjs-evm/dist/message";
 import { TypedTransaction } from "@nomicfoundation/ethereumjs-tx";
-import { AfterTxEvent, VM } from "@nomicfoundation/ethereumjs-vm";
-import { EVMResult } from "@nomicfoundation/ethereumjs-evm";
-import { InterpreterStep } from "@nomicfoundation/ethereumjs-evm/dist/interpreter";
-import { Message } from "@nomicfoundation/ethereumjs-evm/dist/message";
 import {
   Address,
   bufferToBigInt,

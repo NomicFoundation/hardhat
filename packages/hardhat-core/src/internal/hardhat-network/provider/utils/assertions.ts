@@ -1,5 +1,5 @@
+import type { RunTxResult } from "@nomicfoundation/ethereumjs-vm";
 import assert, { AssertionError } from "assert";
-import { RunTxResult } from "@nomicfoundation/ethereumjs-vm";
 import { ExecutionResult } from "rethnet-evm";
 import { ERROR } from "@nomicfoundation/ethereumjs-evm/dist/exceptions";
 

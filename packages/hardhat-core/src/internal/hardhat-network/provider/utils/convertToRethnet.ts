@@ -1,7 +1,11 @@
+import type { RunTxResult } from "@nomicfoundation/ethereumjs-vm";
 import { BlockchainInterface } from "@nomicfoundation/ethereumjs-blockchain";
 import { EvmError } from "@nomicfoundation/ethereumjs-evm";
 import { ERROR } from "@nomicfoundation/ethereumjs-evm/dist/exceptions";
-import { StateManager } from "@nomicfoundation/ethereumjs-statemanager";
+import {
+  DefaultStateManager,
+  StateManager,
+} from "@nomicfoundation/ethereumjs-statemanager";
 import {
   AccessListEIP2930Transaction,
   FeeMarketEIP1559Transaction,
@@ -14,7 +18,6 @@ import {
   bufferToBigInt,
   setLengthLeft,
 } from "@nomicfoundation/ethereumjs-util";
-import { RunTxResult } from "@nomicfoundation/ethereumjs-vm";
 import {
   Account as RethnetAccount,
   Config,
@@ -81,8 +84,21 @@ export class HardhatDB {
   }
 
   public async getCodeByHash(codeHash: Buffer) {
-    const db = (this._stateManager as any)._trie._db;
-    return db.get(Buffer.concat([Buffer.from("c"), codeHash]));
+    if (this._stateManager instanceof DefaultStateManager) {
+      // eslint-disable-next-line @typescript-eslint/dot-notation
+      const db = this._stateManager._trie["_db"];
+      const code = await db.get(Buffer.concat([Buffer.from("c"), codeHash]));
+
+      if (code === null) {
+        // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
+        throw new Error("returning null in getCodeByHash is not supported");
+      }
+
+      return code;
+    }
+
+    // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
+    throw new Error("getCodeByHash not implemented for ForkStateManager");
   }
 
   public async getStorageRoot() {
@@ -278,7 +294,8 @@ function mapRethnetExitCodeToEthereumJsExceptionError(
   const ethereumJsError = rethnetExitCodeToEthereumJsError.get(rethnetExitCode);
   if (ethereumJsError === undefined) {
     console.trace(`Couldn't map exit code ${rethnetExitCode}`);
-    process.exit(1);
+    // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
+    throw new Error(`Couldn't map exit code ${rethnetExitCode}`);
   }
 
   return new EvmError(ethereumJsError);

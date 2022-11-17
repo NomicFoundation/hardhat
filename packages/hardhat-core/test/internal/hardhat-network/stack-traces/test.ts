@@ -1,13 +1,12 @@
 import { toBuffer } from "@nomicfoundation/ethereumjs-util";
-import { VM } from "@nomicfoundation/ethereumjs-vm";
 import { assert } from "chai";
 import fs from "fs";
 import fsExtra from "fs-extra";
 import path from "path";
-import { Rethnet } from "rethnet-evm";
 import semver from "semver";
 
 import { ReturnData } from "../../../../src/internal/hardhat-network/provider/return-data";
+import { VMAdapter } from "../../../../src/internal/hardhat-network/provider/vm/vm-adapter";
 import { createModelsAndDecodeBytecodes } from "../../../../src/internal/hardhat-network/stack-traces/compiler-to-model";
 import {
   ConsoleLogger,
@@ -37,10 +36,6 @@ import {
 } from "../../../../src/types";
 import { setCWD } from "../helpers/cwd";
 
-import {
-  createRethnetFromHardhatDB,
-  HardhatDB,
-} from "../../../../src/internal/hardhat-network/provider/utils/convertToRethnet";
 import { SUPPORTED_SOLIDITY_VERSION_RANGE } from "../../../../src/internal/hardhat-network/stack-traces/constants";
 import {
   compileFiles,
@@ -438,15 +433,6 @@ async function runTest(
   const logger = new ConsoleLogger();
 
   const vm = await instantiateVm();
-  const hardhatDB = new HardhatDB(vm.stateManager, vm.blockchain);
-
-  const rethnet = createRethnetFromHardhatDB(
-    {
-      chainId: vm._common.chainId(),
-      limitContractCodeSize: 2n ** 64n - 1n,
-    },
-    hardhatDB
-  );
 
   const txIndexToContract: Map<number, DeployedContract> = new Map();
 
@@ -458,7 +444,6 @@ async function runTest(
         txIndex,
         tx,
         vm,
-        rethnet,
         compilerOutput,
         txIndexToContract
       );
@@ -482,7 +467,6 @@ async function runTest(
         txIndex,
         tx,
         vm,
-        rethnet,
         compilerOutput,
         contract!
       );
@@ -589,8 +573,7 @@ function linkBytecode(
 async function runDeploymentTransactionTest(
   txIndex: number,
   tx: DeploymentTransaction,
-  vm: VM,
-  rethnet: Rethnet,
+  vm: VMAdapter,
   compilerOutput: CompilerOutput,
   txIndexToContract: Map<number, DeployedContract>
 ): Promise<CreateMessageTrace> {
@@ -622,7 +605,7 @@ async function runDeploymentTransactionTest(
 
   const data = Buffer.concat([deploymentBytecode, params]);
 
-  const trace = await traceTransaction(vm, rethnet, {
+  const trace = await traceTransaction(vm, {
     value: tx.value,
     data,
     gasLimit: tx.gas,
@@ -634,8 +617,7 @@ async function runDeploymentTransactionTest(
 async function runCallTransactionTest(
   txIndex: number,
   tx: CallTransaction,
-  vm: VM,
-  rethnet: Rethnet,
+  vm: VMAdapter,
   compilerOutput: CompilerOutput,
   contract: DeployedContract
 ): Promise<CallMessageTrace> {
@@ -656,7 +638,7 @@ async function runCallTransactionTest(
     data = Buffer.from([]);
   }
 
-  const trace = await traceTransaction(vm, rethnet, {
+  const trace = await traceTransaction(vm, {
     to: contract.address,
     value: tx.value,
     data,

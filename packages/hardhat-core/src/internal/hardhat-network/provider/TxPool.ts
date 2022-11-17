@@ -3,8 +3,8 @@ import {
   TransactionFactory,
   TypedTransaction,
 } from "@nomicfoundation/ethereumjs-tx";
-import { StateManager } from "@nomicfoundation/ethereumjs-statemanager";
 import {
+  Account,
   Address,
   bufferToHex,
   toBuffer,
@@ -101,7 +101,7 @@ export class TxPool {
   ) => OrderedTransaction;
 
   constructor(
-    private readonly _stateManager: StateManager,
+    private readonly _getAccount: (address: Address) => Promise<Account>,
     blockGasLimit: bigint,
     common: Common
   ) {
@@ -278,9 +278,7 @@ export class TxPool {
 
     // update pending transactions
     for (const [address, txs] of newPending) {
-      const senderAccount = await this._stateManager.getAccount(
-        Address.fromString(address)
-      );
+      const senderAccount = await this._getAccount(Address.fromString(address));
       const senderNonce = senderAccount.nonce;
       const senderBalance = senderAccount.balance;
 
@@ -316,9 +314,7 @@ export class TxPool {
     // update queued addresses
     let newQueued = this._getQueued();
     for (const [address, txs] of newQueued) {
-      const senderAccount = await this._stateManager.getAccount(
-        Address.fromString(address)
-      );
+      const senderAccount = await this._getAccount(Address.fromString(address));
       const senderNonce = senderAccount.nonce;
       const senderBalance = senderAccount.balance;
 
@@ -444,7 +440,7 @@ export class TxPool {
       );
     }
 
-    const senderAccount = await this._stateManager.getAccount(senderAddress);
+    const senderAccount = await this._getAccount(senderAddress);
     const senderBalance = senderAccount.balance;
 
     const maxFee = "gasPrice" in tx ? tx.gasPrice : tx.maxFeePerGas;
@@ -590,7 +586,7 @@ export class TxPool {
   private async _getNextConfirmedNonce(
     accountAddress: Address
   ): Promise<bigint> {
-    const account = await this._stateManager.getAccount(accountAddress);
+    const account = await this._getAccount(accountAddress);
     return account.nonce;
   }
 
