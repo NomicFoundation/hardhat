@@ -6,11 +6,16 @@ import {
   Module,
   ModuleDict,
 } from "@ignored/ignition-core";
+import { Contract } from "ethers";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 
 import { renderToCli } from "./ui/renderToCli";
 
 type HardhatEthers = HardhatRuntimeEnvironment["ethers"];
+
+interface DeployResult {
+  [key: string]: string | number | Contract;
+}
 
 export class IgnitionWrapper {
   private _ignition: Ignition;
@@ -29,7 +34,7 @@ export class IgnitionWrapper {
       parameters?: { [key: string]: ExternalParamValue };
       ui?: boolean;
     }
-  ) {
+  ): Promise<DeployResult> {
     const showUi = deployParams?.ui ?? false;
 
     if (deployParams?.parameters !== undefined) {
@@ -63,15 +68,15 @@ export class IgnitionWrapper {
       }
     }
 
-    const resolvedOutput: any = {};
-    for (const [key, serializedFutureResult] of Object.entries<any>(
+    const resolvedOutput: { [key: string]: string | number | Contract } = {};
+    for (const [key, serializedFutureResult] of Object.entries(
       deploymentResult.result
     )) {
       if (
         serializedFutureResult._kind === "string" ||
         serializedFutureResult._kind === "number"
       ) {
-        resolvedOutput[key] = serializedFutureResult;
+        resolvedOutput[key] = serializedFutureResult.value;
       } else if (serializedFutureResult._kind === "tx") {
         resolvedOutput[key] = serializedFutureResult.value.hash;
       } else {
