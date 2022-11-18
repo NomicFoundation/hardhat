@@ -143,7 +143,7 @@ export class EthereumJSAdapter implements VMAdapter {
       // eth_call. This will make the BASEFEE option also return 0, which
       // shouldn't. See: https://github.com/nomiclabs/hardhat/issues/1688
       if (
-        this.isEip1559Active(blockContext.header.number) &&
+        this._isEip1559Active(blockContext.header.number) &&
         (blockContext.header.baseFeePerGas === undefined || forceBaseFeeZero)
       ) {
         blockContext = Block.fromBlockData(blockContext, {
@@ -362,19 +362,6 @@ export class EthereumJSAdapter implements VMAdapter {
     );
   }
 
-  public isEip1559Active(blockNumberOrPending?: bigint | "pending"): boolean {
-    if (
-      blockNumberOrPending !== undefined &&
-      blockNumberOrPending !== "pending"
-    ) {
-      return this._common.hardforkGteHardfork(
-        this._selectHardfork(blockNumberOrPending),
-        "london"
-      );
-    }
-    return this._common.gteHardfork("london");
-  }
-
   public async startBlock(): Promise<void> {
     if (this._blockStartStateRoot !== undefined) {
       throw new Error("a block is already started");
@@ -435,5 +422,18 @@ export class EthereumJSAdapter implements VMAdapter {
         `Network id ${networkId} does not correspond to a network that Hardhat can trace`
       );
     }
+  }
+
+  private _isEip1559Active(blockNumberOrPending?: bigint | "pending"): boolean {
+    if (
+      blockNumberOrPending !== undefined &&
+      blockNumberOrPending !== "pending"
+    ) {
+      return this._common.hardforkGteHardfork(
+        this._selectHardfork(blockNumberOrPending),
+        "london"
+      );
+    }
+    return this._common.gteHardfork("london");
   }
 }

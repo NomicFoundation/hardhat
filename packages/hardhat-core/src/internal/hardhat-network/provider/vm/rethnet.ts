@@ -88,13 +88,6 @@ export class RethnetAdapter implements VMAdapter {
   }
 
   /**
-   * Temporary method, will be removed.
-   */
-  public isEip1559Active(): boolean {
-    throw new Error("not implemented");
-  }
-
-  /**
    * Get the account info for the given address.
    */
   public async getAccount(address: Address): Promise<Account> {

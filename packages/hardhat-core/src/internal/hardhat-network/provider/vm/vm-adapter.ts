@@ -17,9 +17,6 @@ export interface VMAdapter {
     forceBaseFeeZero?: boolean
   ): Promise<RunTxResult>;
 
-  // temporary methods
-  isEip1559Active(blockNumberOrPending?: bigint | "pending"): boolean;
-
   // getters
   getAccount(address: Address): Promise<Account>;
   getContractStorage(address: Address, key: Buffer): Promise<Buffer>;

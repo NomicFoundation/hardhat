@@ -257,6 +257,7 @@ export class HardhatNode extends EventEmitter {
       blockchain,
       txPool,
       common,
+      hardforkActivations,
       automine,
       minGasPrice,
       initialBlockTimeOffset,
@@ -339,6 +340,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     private readonly _blockchain: HardhatBlockchainInterface,
     private readonly _txPool: TxPool,
     private readonly _common: Common,
+    private _hardforkActivations: HardforkHistoryConfig,
     private _automine: boolean,
     private _minGasPrice: bigint,
     private _blockTimeOffsetSeconds: bigint = 0n,
@@ -2330,7 +2332,21 @@ Hardhat Network's forking functionality only works with blocks from at least spu
   }
 
   public isEip1559Active(blockNumberOrPending?: bigint | "pending"): boolean {
-    return this._vm.isEip1559Active(blockNumberOrPending);
+    if (
+      blockNumberOrPending !== undefined &&
+      blockNumberOrPending !== "pending"
+    ) {
+      return this._common.hardforkGteHardfork(
+        selectHardfork(
+          this._forkBlockNumber,
+          this._common.hardfork(),
+          this._hardforkActivations,
+          blockNumberOrPending
+        ),
+        "london"
+      );
+    }
+    return this._common.gteHardfork("london");
   }
 
   public isPostMergeHardfork(): boolean {

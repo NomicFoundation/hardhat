@@ -138,10 +138,6 @@ export class DualModeAdapter implements VMAdapter {
     );
   }
 
-  public isEip1559Active(blockNumberOrPending?: bigint | "pending"): boolean {
-    return this._ethereumJSAdapter.isEip1559Active(blockNumberOrPending);
-  }
-
   public async startBlock(): Promise<void> {
     return this._ethereumJSAdapter.startBlock();
   }
