@@ -2,7 +2,6 @@ import type { Message } from "@nomicfoundation/ethereumjs-evm";
 import type { RunTxResult } from "@nomicfoundation/ethereumjs-vm";
 import { BlockchainInterface } from "@nomicfoundation/ethereumjs-blockchain";
 import { Block } from "@nomicfoundation/ethereumjs-block";
-import { Common } from "@nomicfoundation/ethereumjs-common";
 import { StateManager } from "@nomicfoundation/ethereumjs-statemanager";
 import {
   Account,
@@ -86,13 +85,6 @@ export class RethnetAdapter implements VMAdapter {
     });
 
     return rethnetResultToRunTxResult(rethnetResult.execResult);
-  }
-
-  /**
-   * Temporary method, will be removed.
-   */
-  public getCommon(): Common {
-    throw new Error("not implemented");
   }
 
   /**

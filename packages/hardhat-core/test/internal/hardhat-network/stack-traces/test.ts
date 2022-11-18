@@ -1,3 +1,4 @@
+import { Common } from "@nomicfoundation/ethereumjs-common";
 import { toBuffer } from "@nomicfoundation/ethereumjs-util";
 import { assert } from "chai";
 import fs from "fs";
@@ -436,7 +437,7 @@ async function runTest(
   const tracer = new SolidityTracer();
   const logger = new ConsoleLogger();
 
-  const vm = await instantiateVm();
+  const [vm, common] = await instantiateVm();
 
   const txIndexToContract: Map<number, DeployedContract> = new Map();
 
@@ -448,6 +449,7 @@ async function runTest(
         txIndex,
         tx,
         vm,
+        common,
         compilerOutput,
         txIndexToContract
       );
@@ -471,6 +473,7 @@ async function runTest(
         txIndex,
         tx,
         vm,
+        common,
         compilerOutput,
         contract!
       );
@@ -578,6 +581,7 @@ async function runDeploymentTransactionTest(
   txIndex: number,
   tx: DeploymentTransaction,
   vm: VMAdapter,
+  common: Common,
   compilerOutput: CompilerOutput,
   txIndexToContract: Map<number, DeployedContract>
 ): Promise<CreateMessageTrace> {
@@ -609,7 +613,7 @@ async function runDeploymentTransactionTest(
 
   const data = Buffer.concat([deploymentBytecode, params]);
 
-  const trace = await traceTransaction(vm, {
+  const trace = await traceTransaction(vm, common, {
     value: tx.value,
     data,
     gasLimit: tx.gas,
@@ -622,6 +626,7 @@ async function runCallTransactionTest(
   txIndex: number,
   tx: CallTransaction,
   vm: VMAdapter,
+  common: Common,
   compilerOutput: CompilerOutput,
   contract: DeployedContract
 ): Promise<CallMessageTrace> {
@@ -642,7 +647,7 @@ async function runCallTransactionTest(
     data = Buffer.from([]);
   }
 
-  const trace = await traceTransaction(vm, {
+  const trace = await traceTransaction(vm, common, {
     to: contract.address,
     value: tx.value,
     data,

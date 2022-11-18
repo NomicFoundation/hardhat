@@ -46,14 +46,15 @@ export class EthereumJSAdapter implements VMAdapter {
   private _blockStartStateRoot: Buffer | undefined;
 
   constructor(
-    private _vm: VM,
-    private _stateManager: StateManager,
-    private _blockchain: HardhatBlockchainInterface,
+    private readonly _vm: VM,
+    private readonly _stateManager: StateManager,
+    private readonly _blockchain: HardhatBlockchainInterface,
+    private readonly _common: Common,
     private readonly _configNetworkId: number,
     private readonly _configChainId: number,
     private readonly _selectHardfork: (blockNumber: bigint) => string,
-    private _forkNetworkId?: number,
-    private _forkBlockNumber?: bigint
+    private readonly _forkNetworkId?: number,
+    private readonly _forkBlockNumber?: bigint
   ) {}
 
   public static async create(
@@ -109,6 +110,7 @@ export class EthereumJSAdapter implements VMAdapter {
       vm,
       stateManager,
       blockchain,
+      common,
       config.networkId,
       config.chainId,
       selectHardfork,
@@ -146,7 +148,7 @@ export class EthereumJSAdapter implements VMAdapter {
       ) {
         blockContext = Block.fromBlockData(blockContext, {
           freeze: false,
-          common: this.getCommon(),
+          common: this._common,
 
           skipConsensusFormatValidation: true,
         });
@@ -183,10 +185,6 @@ export class EthereumJSAdapter implements VMAdapter {
       }
       await this._stateManager.setStateRoot(initialStateRoot);
     }
-  }
-
-  public getCommon(): Common {
-    return this._vm._common;
   }
 
   public async getStateRoot(): Promise<Buffer> {
@@ -369,12 +367,12 @@ export class EthereumJSAdapter implements VMAdapter {
       blockNumberOrPending !== undefined &&
       blockNumberOrPending !== "pending"
     ) {
-      return this.getCommon().hardforkGteHardfork(
+      return this._common.hardforkGteHardfork(
         this._selectHardfork(blockNumberOrPending),
         "london"
       );
     }
-    return this.getCommon().gteHardfork("london");
+    return this._common.gteHardfork("london");
   }
 
   public async startBlock(): Promise<void> {

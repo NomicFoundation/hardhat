@@ -69,10 +69,6 @@ export class DualModeAdapter implements VMAdapter {
     return rethnetResult;
   }
 
-  public getCommon(): Common {
-    return this._ethereumJSAdapter.getCommon();
-  }
-
   public async getStateRoot(): Promise<Buffer> {
     return this._ethereumJSAdapter.getStateRoot();
   }

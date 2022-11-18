@@ -1,3 +1,4 @@
+import type { Common } from "@nomicfoundation/ethereumjs-common";
 import type { InterpreterStep } from "@nomicfoundation/ethereumjs-evm/dist/interpreter";
 import type { Message } from "@nomicfoundation/ethereumjs-evm/dist/message";
 import {
@@ -25,16 +26,17 @@ export class VMTracer {
   private _messageTraces: MessageTrace[] = [];
   private _enabled = false;
   private _lastError: Error | undefined;
-  private _maxPrecompileNumber = getActivePrecompiles(this._vm.getCommon())
-    .size;
+  private _maxPrecompileNumber;
 
   constructor(
     private readonly _vm: VMAdapter,
+    common: Common,
     private readonly _throwErrors = true
   ) {
     this._beforeMessageHandler = this._beforeMessageHandler.bind(this);
     this._stepHandler = this._stepHandler.bind(this);
     this._afterMessageHandler = this._afterMessageHandler.bind(this);
+    this._maxPrecompileNumber = getActivePrecompiles(common).size;
   }
 
   public enableTracing() {

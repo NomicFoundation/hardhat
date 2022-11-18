@@ -23,7 +23,7 @@ const senderPrivateKey = Buffer.from(
 );
 const senderAddress = privateToAddress(senderPrivateKey);
 
-export async function instantiateVm(): Promise<VMAdapter> {
+export async function instantiateVm(): Promise<[VMAdapter, Common]> {
   const account = Account.fromAccountData({ balance: 1e15 });
 
   const common = new Common({ chain: "mainnet" });
@@ -57,7 +57,7 @@ export async function instantiateVm(): Promise<VMAdapter> {
 
   await vm.putAccount(new Address(senderAddress), account);
 
-  return vm;
+  return [vm, common];
 }
 
 export function encodeConstructorParams(
@@ -92,6 +92,7 @@ export function encodeCall(
 
 export async function traceTransaction(
   vm: VMAdapter,
+  common: Common,
   txData: TxData
 ): Promise<MessageTrace> {
   const tx = new Transaction({
@@ -105,11 +106,11 @@ export async function traceTransaction(
 
   const signedTx = tx.sign(senderPrivateKey);
 
-  const vmTracer = new VMTracer(vm as any);
+  const vmTracer = new VMTracer(vm as any, common);
   vmTracer.enableTracing();
 
   try {
-    const blockBuilder = new BlockBuilder(vm, {
+    const blockBuilder = new BlockBuilder(vm, common, {
       parentBlock: Block.fromBlockData(
         {},
         {
