@@ -62,11 +62,6 @@ function assertEthereumJsAndRethnetExitCodes(
   rethnetExitCode: number,
   ethereumjsExitCode: ERROR | undefined
 ) {
-  // assert(ethereumjsExitCode === undefined && !(
-  //   rethnetExitCode === 0x00 ||
-  //   rethnetExitCode === 0x02 ||
-  //   rethnetExitCode === 0x03), "Expected a successful exit code");
-
   const mapping = new Map([
     [ERROR.OUT_OF_GAS, [0x50]],
     [ERROR.CODESTORE_OUT_OF_GAS, undefined],
@@ -109,6 +104,11 @@ function assertEthereumJsAndRethnetExitCodes(
         )}`
       );
     }
+  } else {
+    assert(
+      rethnetExitCode <= 0x04,
+      `Expected successful execution, but rethnet's exit code is ${rethnetExitCode}`
+    );
   }
 }
 

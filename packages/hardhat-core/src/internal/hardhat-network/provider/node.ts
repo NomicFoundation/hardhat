@@ -24,7 +24,6 @@ import { SignTypedDataVersion, signTypedData } from "@metamask/eth-sig-util";
 import chalk from "chalk";
 import debug from "debug";
 import EventEmitter from "events";
-import { Rethnet } from "rethnet-evm";
 
 import * as BigIntUtils from "../../util/bigint";
 import { CompilerInput, CompilerOutput } from "../../../types";

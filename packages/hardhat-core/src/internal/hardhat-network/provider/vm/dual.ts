@@ -163,6 +163,7 @@ export class DualModeAdapter implements VMAdapter {
   }
 
   public async startBlock(): Promise<void> {
+    await this._rethnetAdapter.startBlock();
     return this._ethereumJSAdapter.startBlock();
   }
 
@@ -170,20 +171,34 @@ export class DualModeAdapter implements VMAdapter {
     tx: TypedTransaction,
     block: Block
   ): Promise<[RunTxResult, Trace]> {
-    return this._ethereumJSAdapter.runTxInBlock(tx, block);
+    const ethereumJSResult = await this._ethereumJSAdapter.runTxInBlock(
+      tx,
+      block
+    );
+
+    console.log("ethereum:", ethereumJSResult);
+    console.log("eth exit code:", ethereumJSResult.execResult.exceptionError);
+    const rethnetResult = await this._rethnetAdapter.runTxInBlock(tx, block);
+
+    assertEqualRunTxResults(ethereumJSResult, rethnetResult);
+
+    return ethereumJSResult;
   }
 
   public async addBlockRewards(
     rewards: Array<[Address, bigint]>
   ): Promise<void> {
+    await this._rethnetAdapter.addBlockRewards(rewards);
     return this._ethereumJSAdapter.addBlockRewards(rewards);
   }
 
   public async sealBlock(): Promise<void> {
+    await this._rethnetAdapter.sealBlock();
     return this._ethereumJSAdapter.sealBlock();
   }
 
   public async revertBlock(): Promise<void> {
+    await this._rethnetAdapter.revertBlock();
     return this._ethereumJSAdapter.revertBlock();
   }
 }
