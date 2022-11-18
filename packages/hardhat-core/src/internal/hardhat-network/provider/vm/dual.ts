@@ -5,6 +5,7 @@ import { Common } from "@nomicfoundation/ethereumjs-common";
 import { TypedTransaction } from "@nomicfoundation/ethereumjs-tx";
 import { Account, Address } from "@nomicfoundation/ethereumjs-util";
 
+import { assertHardhatInvariant } from "../../../core/errors";
 import { RpcDebugTracingConfig } from "../../../core/jsonrpc/types/input/debugTraceTransaction";
 import { NodeConfig } from "../node-types";
 import { RpcDebugTraceOutput } from "../output";
@@ -39,9 +40,17 @@ export class DualModeAdapter implements VMAdapter {
     const rethnetAdapter = await RethnetAdapter.create(
       // eslint-disable-next-line @typescript-eslint/dot-notation
       ethereumJSAdapter["_stateManager"],
-      blockchain,
       config,
-      selectHardfork
+      selectHardfork,
+      async (blockNumber) => {
+        const block = await blockchain.getBlock(blockNumber);
+        assertHardhatInvariant(
+          block !== undefined && block !== null,
+          "Should be able to get block"
+        );
+
+        return block.header.hash();
+      }
     );
 
     return new DualModeAdapter(ethereumJSAdapter, rethnetAdapter);

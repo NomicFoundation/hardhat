@@ -26,16 +26,15 @@ import {
   Transaction,
 } from "rethnet-evm";
 
-import { HardhatError } from "../../../core/errors";
-import { ERRORS } from "../../../core/errors-list";
-
 export class HardhatDB {
   private _stateManager: StateManager;
   private _blockchain: BlockchainInterface | undefined;
 
-  constructor(stateManager: StateManager, blockchain?: BlockchainInterface) {
+  constructor(
+    stateManager: StateManager,
+    private _getBlockHash: (blockNumber: bigint) => Promise<Buffer>
+  ) {
     this._stateManager = stateManager;
-    this._blockchain = blockchain;
   }
 
   public async commit() {
@@ -73,14 +72,7 @@ export class HardhatDB {
   }
 
   public async getBlockHash(blockNumber: bigint) {
-    const block = await this._blockchain?.getBlock(blockNumber);
-    if (block === undefined || block === null) {
-      throw new HardhatError(ERRORS.GENERAL.UNSUPPORTED_OPERATION, {
-        error: "Block not found",
-      });
-    }
-
-    return block.header.hash();
+    return this._getBlockHash(blockNumber);
   }
 
   public async getCodeByHash(codeHash: Buffer) {

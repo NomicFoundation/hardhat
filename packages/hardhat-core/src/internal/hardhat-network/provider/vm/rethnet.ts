@@ -1,6 +1,5 @@
 import type { Message } from "@nomicfoundation/ethereumjs-evm";
 import type { RunTxResult } from "@nomicfoundation/ethereumjs-vm";
-import { BlockchainInterface } from "@nomicfoundation/ethereumjs-blockchain";
 import { Block } from "@nomicfoundation/ethereumjs-block";
 import { StateManager } from "@nomicfoundation/ethereumjs-statemanager";
 import {
@@ -35,11 +34,11 @@ export class RethnetAdapter implements VMAdapter {
 
   public static async create(
     stateManager: StateManager,
-    blockchain: BlockchainInterface,
     config: NodeConfig,
-    selectHardfork: (blockNumber: bigint) => string
+    selectHardfork: (blockNumber: bigint) => string,
+    getBlockHash: (blockNumber: bigint) => Promise<Buffer>
   ): Promise<RethnetAdapter> {
-    const hardhatDB = new HardhatDB(stateManager, blockchain);
+    const hardhatDB = new HardhatDB(stateManager, getBlockHash);
 
     const limitContractCodeSize =
       config.allowUnlimitedContractSize === true ? 2n ** 64n - 1n : undefined;
