@@ -39,6 +39,6 @@ export async function takeSnapshot(): Promise<SnapshotRestorer> {
         method: "evm_snapshot",
       });
     },
-    snapshotId
+    snapshotId,
   };
 }

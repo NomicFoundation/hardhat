@@ -1,9 +1,6 @@
 import { assert } from "chai";
 
-import {
-  FixtureAnonymousFunctionError,
-  FixtureSnapshotError,
-} from "../src/errors";
+import { FixtureAnonymousFunctionError } from "../src/errors";
 import { loadFixture } from "../src/loadFixture";
 import { useEnvironment, rpcQuantityToNumber } from "./test-utils";
 
