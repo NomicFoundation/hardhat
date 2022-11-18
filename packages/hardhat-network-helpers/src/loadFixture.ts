@@ -43,7 +43,8 @@ export async function loadFixture<T>(fixture: Fixture<T>): Promise<T> {
     try {
       await snapshot.restorer.restore();
       snapshots = snapshots.filter(
-        (s) => s.restorer.snapshotId <= snapshot.restorer.snapshotId
+        (s) =>
+          Number(s.restorer.snapshotId) <= Number(snapshot.restorer.snapshotId)
       );
     } catch (e) {
       if (e instanceof InvalidSnapshotError) {
