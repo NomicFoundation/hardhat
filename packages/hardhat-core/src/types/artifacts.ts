@@ -108,7 +108,7 @@ export interface Artifacts {
    *
    * This method, if present, clears that cache.
    */
-  clearCache?: () => void;
+  clearCache?(): void;
 
   /**
    * This method, if present, disables the artifact paths cache.
@@ -119,7 +119,7 @@ export interface Artifacts {
    *
    * @see clearCache
    */
-  disableCache?: () => void;
+  disableCache?(): void;
 }
 
 export interface ArtifactSource {
@@ -206,6 +206,14 @@ export interface ArtifactSource {
    * @see Artifacts#disableCache
    */
   disableCache: () => void;
+
+  /**
+   * Get a list of values similar to `contractNameOrFullyQualifiedName`, to be
+   * used as suggestions when that contract of FQN doesn't exist.
+   *
+   * Always returning an empty array is a valid implementation.
+   */
+  getSuggestions(contractNameOrFullyQualifiedName: string): string[];
 }
 
 /**

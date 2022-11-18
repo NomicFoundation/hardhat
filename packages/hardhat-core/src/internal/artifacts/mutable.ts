@@ -8,7 +8,6 @@ import { getFullyQualifiedName } from "../../utils/contract-names";
 import { createNonCryptographicHashBasedIdentifier } from "../util/hash";
 import {
   Artifact,
-  ArtifactSource,
   BuildInfo,
   CompilerInput,
   CompilerOutput,
@@ -23,7 +22,7 @@ import { ReadOnlySource } from "./readonly";
 
 const log = debug("hardhat:core:artifacts");
 
-export class MutableSource extends ReadOnlySource implements ArtifactSource {
+export class MutableSource extends ReadOnlySource {
   private _validArtifacts: Array<{ sourceName: string; artifacts: string[] }>;
 
   constructor(artifactsPath: string) {
@@ -49,7 +48,13 @@ export class MutableSource extends ReadOnlySource implements ArtifactSource {
       )
     );
 
-    const validArtifactsPathsSet = new Set<string>(validArtifactPaths);
+    const validArtifactPathsWithoutUndefined = validArtifactPaths.filter(
+      (artifactPath): artifactPath is string => artifactPath !== undefined
+    );
+
+    const validArtifactsPathsSet = new Set<string>(
+      validArtifactPathsWithoutUndefined
+    );
 
     for (const { sourceName, artifacts } of this._validArtifacts) {
       for (const artifactName of artifacts) {

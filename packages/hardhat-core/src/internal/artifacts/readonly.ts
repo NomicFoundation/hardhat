@@ -3,7 +3,7 @@ import * as path from "path";
 
 import fsExtra from "fs-extra";
 
-import { Artifact, ArtifactSource, BuildInfo } from "../../types";
+import { Artifact, BuildInfo } from "../../types";
 import {
   getFullyQualifiedName,
   isFullyQualifiedName,
@@ -71,19 +71,20 @@ class ReadOnlyByPath {
  * This class takes responsibility for the mappings between contract names,
  * fully-qualified contract names, and file paths.
  */
-export class ReadOnlySource extends ReadOnlyByPath implements ArtifactSource {
+export class ReadOnlySource extends ReadOnlyByPath {
   constructor(protected _artifactsPath: string) {
     super();
   }
 
   public async artifactExists(name: string): Promise<boolean> {
     const artifactPath = await this._getArtifactPath(name);
+
+    if (artifactPath === undefined) {
+      return false;
+    }
+
     return super._artifactPathExists(artifactPath);
   }
-
-  public clearCache(): void {}
-
-  public disableCache(): void {}
 
   public async getArtifactPaths(): Promise<string[]> {
     const buildInfosDir = path.join(this._artifactsPath, BUILD_INFO_DIR_NAME);
@@ -146,14 +147,44 @@ export class ReadOnlySource extends ReadOnlyByPath implements ArtifactSource {
     return paths.sort();
   }
 
-  public async readArtifact(name: string): Promise<Artifact> {
+  public async readArtifact(name: string): Promise<Artifact | undefined> {
     const artifactPath = await this._getArtifactPath(name);
+    if (artifactPath === undefined) {
+      return undefined;
+    }
+
     return super._readArtifactByPath(artifactPath);
   }
 
-  public readArtifactSync(name: string): Artifact {
+  public readArtifactSync(name: string): Artifact | undefined {
     const artifactPath = this._getArtifactPathSync(name);
+    if (artifactPath === undefined) {
+      return undefined;
+    }
+
     return super._readArtifactByPathSync(artifactPath);
+  }
+
+  public getSuggestions(name: string): string[] {
+    if (isFullyQualifiedName(name)) {
+      const fqns = this._getAllFullyQualifiedNamesSync();
+
+      return ReadOnlySource._getSimilarContractNames(name, fqns);
+    }
+
+    const files = this._getArtifactPathsSync();
+    const names = this._getAllContractNamesFromFiles(files);
+
+    let similarNames = ReadOnlySource._getSimilarContractNames(name, names);
+
+    if (similarNames.length > 1) {
+      similarNames = this._filterDuplicatesAsFullyQualifiedNames(
+        files,
+        similarNames
+      );
+    }
+
+    return similarNames;
   }
 
   /**
@@ -197,25 +228,6 @@ export class ReadOnlySource extends ReadOnlyByPath implements ArtifactSource {
     return outputNames;
   }
 
-  private static _formatSuggestions(
-    names: string[],
-    contractName: string
-  ): string {
-    switch (names.length) {
-      case 0:
-        return "";
-      case 1:
-        return `Did you mean "${names[0]}"?`;
-      default:
-        return `We found some that were similar:
-
-${names.map((n) => `  * ${n}`).join(os.EOL)}
-
-Please replace "${contractName}" for the correct contract name wherever you are trying to read its artifact.
-`;
-    }
-  }
-
   private _getAllContractNamesFromFiles(files: string[]): string[] {
     return files.map((file) => {
       const fqn = this._getFullyQualifiedNameFromPath(file);
@@ -236,8 +248,8 @@ Please replace "${contractName}" for the correct contract name wherever you are 
    * artifact that matches the given name is searched in the existing artifacts.
    * If there is an ambiguity, an error is thrown.
    */
-  protected async _getArtifactPath(name: string): Promise<string> {
-    let result: string;
+  protected async _getArtifactPath(name: string): Promise<string | undefined> {
+    let result: string | undefined;
     if (isFullyQualifiedName(name)) {
       result = await this._getValidArtifactPathFromFullyQualifiedName(name);
     } else {
@@ -247,8 +259,8 @@ Please replace "${contractName}" for the correct contract name wherever you are 
     return result;
   }
 
-  protected _getArtifactPathSync(name: string): string {
-    let result: string;
+  protected _getArtifactPathSync(name: string): string | undefined {
+    let result: string | undefined;
     if (isFullyQualifiedName(name)) {
       result = this._getValidArtifactPathFromFullyQualifiedNameSync(name);
     } else {
@@ -261,13 +273,13 @@ Please replace "${contractName}" for the correct contract name wherever you are 
   private _getArtifactPathFromFiles(
     contractName: string,
     files: string[]
-  ): string {
+  ): string | undefined {
     const matchingFiles = files.filter((file) => {
       return path.basename(file) === `${contractName}.json`;
     });
 
     if (matchingFiles.length === 0) {
-      return this._handleWrongArtifactForContractName(contractName, files);
+      return undefined;
     }
 
     if (matchingFiles.length > 1) {
@@ -360,7 +372,7 @@ Please replace "${contractName}" for the correct contract name wherever you are 
 
   private async _getValidArtifactPathFromFullyQualifiedName(
     fullyQualifiedName: string
-  ): Promise<string> {
+  ): Promise<string | undefined> {
     const artifactPath =
       this.formArtifactPathFromFullyQualifiedName(fullyQualifiedName);
 
@@ -383,9 +395,7 @@ Please replace "${contractName}" for the correct contract name wherever you are 
       return trueCasePath;
     } catch (e) {
       if (e instanceof FileNotFoundError) {
-        return this._handleWrongArtifactForFullyQualifiedName(
-          fullyQualifiedName
-        );
+        return undefined;
       }
 
       // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
@@ -395,7 +405,7 @@ Please replace "${contractName}" for the correct contract name wherever you are 
 
   private _getValidArtifactPathFromFullyQualifiedNameSync(
     fullyQualifiedName: string
-  ): string {
+  ): string | undefined {
     const artifactPath =
       this.formArtifactPathFromFullyQualifiedName(fullyQualifiedName);
 
@@ -418,57 +428,12 @@ Please replace "${contractName}" for the correct contract name wherever you are 
       return trueCasePath;
     } catch (e) {
       if (e instanceof FileNotFoundError) {
-        return this._handleWrongArtifactForFullyQualifiedName(
-          fullyQualifiedName
-        );
+        return undefined;
       }
 
       // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
       throw e;
     }
-  }
-
-  private _handleWrongArtifactForFullyQualifiedName(
-    fullyQualifiedName: string
-  ): never {
-    const names = this._getAllFullyQualifiedNamesSync();
-
-    const similarNames = ReadOnlySource._getSimilarContractNames(
-      fullyQualifiedName,
-      names
-    );
-
-    throw new HardhatError(ERRORS.ARTIFACTS.NOT_FOUND, {
-      contractName: fullyQualifiedName,
-      suggestion: ReadOnlySource._formatSuggestions(
-        similarNames,
-        fullyQualifiedName
-      ),
-    });
-  }
-
-  private _handleWrongArtifactForContractName(
-    contractName: string,
-    files: string[]
-  ): never {
-    const names = this._getAllContractNamesFromFiles(files);
-
-    let similarNames = ReadOnlySource._getSimilarContractNames(
-      contractName,
-      names
-    );
-
-    if (similarNames.length > 1) {
-      similarNames = this._filterDuplicatesAsFullyQualifiedNames(
-        files,
-        similarNames
-      );
-    }
-
-    throw new HardhatError(ERRORS.ARTIFACTS.NOT_FOUND, {
-      contractName,
-      suggestion: ReadOnlySource._formatSuggestions(similarNames, contractName),
-    });
   }
 
   /**

@@ -1,3 +1,5 @@
+import * as os from "os";
+
 import {
   Artifact,
   Artifacts as IArtifacts,
@@ -15,6 +17,7 @@ import { CachingSource } from "./caching";
 
 export class Artifacts implements IArtifacts {
   private readonly _hardhatSource: CachingSource;
+
   constructor(
     artifactsPath: string,
     private readonly _extensionSources: ArtifactSource[] = []
@@ -25,78 +28,33 @@ export class Artifacts implements IArtifacts {
   public async readArtifact(
     contractNameOrFullyQualifiedName: string
   ): Promise<Artifact> {
-    let artifact;
+    let artifact: Artifact | undefined = await this._hardhatSource.readArtifact(
+      contractNameOrFullyQualifiedName
+    );
 
-    // TODO: upon a "typo" input, we should be capturing suggestions from ALL
-    // sources. Currently we convey suggestions from the Hardhat source via the
-    // error it throws. The ArtifactSource interface should be amended with eg
-    // `getSuggestions(forName)`, and when no sources return a value then we
-    // should gather suggestions from all sources, de-duplicate them, and
-    // present them all to the user in one consolidated error.
-    // See also https://linear.app/nomic-foundation/issue/HH-1329
-
-    let hardhatError; // hold unless/until extensions yield nothing
-    try {
-      artifact = await this._hardhatSource.readArtifact(
-        contractNameOrFullyQualifiedName
-      );
-    } catch (error) {
-      if (error instanceof HardhatError) {
-        hardhatError = error;
-      }
-    }
-
-    if (
-      artifact === undefined ||
-      hardhatError?.number === ERRORS.ARTIFACTS.NOT_FOUND.number
-    ) {
+    if (artifact === undefined) {
       const artifacts: Array<Artifact | undefined> = await Promise.all(
         this._extensionSources.map((source) =>
           source.readArtifact(contractNameOrFullyQualifiedName)
         )
       );
+
       artifact = artifacts.find((_artifact) => _artifact !== undefined);
     }
 
     if (artifact === undefined) {
-      if (hardhatError !== undefined) {
-        throw hardhatError;
-      }
-      throw new HardhatError(ERRORS.ARTIFACTS.NOT_FOUND, {
-        contractName: contractNameOrFullyQualifiedName,
-        suggestion: "",
-      });
+      this._throwNotFound(contractNameOrFullyQualifiedName);
     }
 
     return artifact;
   }
 
   public readArtifactSync(contractNameOrFullyQualifiedName: string): Artifact {
-    let artifact;
+    let artifact: Artifact | undefined = this._hardhatSource.readArtifactSync(
+      contractNameOrFullyQualifiedName
+    );
 
-    // TODO: upon a "typo" input, we should be capturing suggestions from ALL
-    // sources. Currently we convey suggestions from the Hardhat source via the
-    // error it throws. The ArtifactSource interface should be amended with eg
-    // `getSuggestions(forName)`, and when no sources return a value then we
-    // should gather suggestions from all sources, de-duplicate them, and
-    // present them all to the user in one consolidated error.
-    // See also https://linear.app/nomic-foundation/issue/HH-1329
-
-    let hardhatError; // hold unless/until extensions yield nothing
-    try {
-      artifact = this._hardhatSource.readArtifactSync(
-        contractNameOrFullyQualifiedName
-      );
-    } catch (error) {
-      if (error instanceof HardhatError) {
-        hardhatError = error;
-      }
-    }
-
-    if (
-      artifact === undefined ||
-      hardhatError?.number === ERRORS.ARTIFACTS.NOT_FOUND.number
-    ) {
+    if (artifact === undefined) {
       for (const source of this._extensionSources) {
         artifact = source.readArtifactSync(contractNameOrFullyQualifiedName);
         if (artifact !== undefined) {
@@ -106,14 +64,7 @@ export class Artifacts implements IArtifacts {
     }
 
     if (artifact === undefined) {
-      if (hardhatError !== undefined) {
-        throw hardhatError;
-      } else {
-        throw new HardhatError(ERRORS.ARTIFACTS.NOT_FOUND, {
-          contractName: contractNameOrFullyQualifiedName,
-          suggestion: "",
-        });
-      }
+      this._throwNotFound(contractNameOrFullyQualifiedName);
     }
 
     return artifact;
@@ -143,41 +94,15 @@ export class Artifacts implements IArtifacts {
   public async getBuildInfo(
     fullyQualifiedName: string
   ): Promise<BuildInfo | undefined> {
-    let buildInfo;
+    let buildInfo = await this._hardhatSource.getBuildInfo(fullyQualifiedName);
 
-    // TODO: upon a "typo" input, we should be capturing suggestions from ALL
-    // sources. Currently we convey suggestions from the Hardhat source via the
-    // error it throws. The ArtifactSource interface should be amended with eg
-    // `getSuggestions(forName)`, and when no sources return a value then we
-    // should gather suggestions from all sources, de-duplicate them, and
-    // present them all to the user in one consolidated error.
-    // See also https://linear.app/nomic-foundation/issue/HH-1329
-
-    let hardhatError; // hold unless/until extensions yield nothing
-    try {
-      buildInfo = await this._hardhatSource.getBuildInfo(fullyQualifiedName);
-    } catch (error) {
-      if (error instanceof HardhatError) {
-        hardhatError = error;
-      }
-    }
-
-    if (
-      buildInfo === undefined ||
-      hardhatError?.number === ERRORS.ARTIFACTS.NOT_FOUND.number
-    ) {
+    if (buildInfo === undefined) {
       const buildInfos: Array<BuildInfo | undefined> = await Promise.all(
         this._extensionSources.map((source) =>
           source.getBuildInfo(fullyQualifiedName)
         )
       );
       buildInfo = buildInfos.find((info) => info !== undefined);
-    }
-
-    if (buildInfo === undefined) {
-      if (hardhatError !== undefined) {
-        throw hardhatError;
-      }
     }
 
     return buildInfo;
@@ -265,6 +190,43 @@ export class Artifacts implements IArtifacts {
 
   public async removeObsoleteArtifacts() {
     return this._hardhatSource.removeObsoleteArtifacts();
+  }
+
+  private _throwNotFound(contractNameOrFullyQualifiedName: string): never {
+    const suggestions = [
+      this._hardhatSource,
+      ...this._extensionSources,
+    ].flatMap((source) =>
+      source.getSuggestions(contractNameOrFullyQualifiedName)
+    );
+
+    const uniqueSuggestions = [...new Set(suggestions)].sort();
+
+    const suggestion = this._formatSuggestions(
+      uniqueSuggestions,
+      contractNameOrFullyQualifiedName
+    );
+
+    throw new HardhatError(ERRORS.ARTIFACTS.NOT_FOUND, {
+      contractName: contractNameOrFullyQualifiedName,
+      suggestion,
+    });
+  }
+
+  private _formatSuggestions(names: string[], contractName: string): string {
+    switch (names.length) {
+      case 0:
+        return "";
+      case 1:
+        return `Did you mean "${names[0]}"?`;
+      default:
+        return `We found some that were similar:
+
+${names.map((n) => `  * ${n}`).join(os.EOL)}
+
+Please replace "${contractName}" for the correct contract name wherever you are trying to read its artifact.
+`;
+    }
   }
 }
 

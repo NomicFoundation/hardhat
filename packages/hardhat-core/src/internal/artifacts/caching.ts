@@ -1,5 +1,6 @@
 import {
   Artifact,
+  ArtifactSource,
   BuildInfo,
   CompilerInput,
   CompilerOutput,
@@ -16,7 +17,7 @@ interface Cache {
   artifactNameToArtifact: Map<string, Artifact>;
 }
 
-export class CachingSource extends MutableSource {
+export class CachingSource extends MutableSource implements ArtifactSource {
   // Undefined means that the cache is disabled.
   private _cache?: Cache = {
     artifactNameToArtifactPathCache: new Map(),
@@ -28,11 +29,15 @@ export class CachingSource extends MutableSource {
     super(artifactsPath);
   }
 
-  public async readArtifact(name: string): Promise<Artifact> {
-    let artifact = this._cache?.artifactNameToArtifact.get(name);
+  public async readArtifact(name: string): Promise<Artifact | undefined> {
+    const cached = this._cache?.artifactNameToArtifact.get(name);
+    if (cached !== undefined) {
+      return cached;
+    }
 
+    const artifact = await super.readArtifact(name);
     if (artifact === undefined) {
-      artifact = await super.readArtifact(name);
+      return undefined;
     }
 
     this._cache?.artifactNameToArtifact.set(name, artifact);
@@ -40,11 +45,15 @@ export class CachingSource extends MutableSource {
     return artifact;
   }
 
-  public readArtifactSync(name: string): Artifact {
-    let artifact = this._cache?.artifactNameToArtifact.get(name);
+  public readArtifactSync(name: string): Artifact | undefined {
+    const cached = this._cache?.artifactNameToArtifact.get(name);
+    if (cached !== undefined) {
+      return cached;
+    }
 
+    const artifact = super.readArtifactSync(name);
     if (artifact === undefined) {
-      artifact = super.readArtifactSync(name);
+      return undefined;
     }
 
     this._cache?.artifactNameToArtifact.set(name, artifact);
@@ -80,13 +89,13 @@ export class CachingSource extends MutableSource {
       return cached;
     }
 
-    const result = await super.getArtifactPaths();
+    const artifactPaths = await super.getArtifactPaths();
 
     if (this._cache !== undefined) {
-      this._cache.artifactPaths = result;
+      this._cache.artifactPaths = artifactPaths;
     }
 
-    return result;
+    return artifactPaths;
   }
 
   public async getBuildInfoPaths(): Promise<string[]> {
@@ -95,13 +104,13 @@ export class CachingSource extends MutableSource {
       return cached;
     }
 
-    const result = await super.getBuildInfoPaths();
+    const buildInfoPaths = await super.getBuildInfoPaths();
 
     if (this._cache !== undefined) {
-      this._cache.buildInfoPaths = result;
+      this._cache.buildInfoPaths = buildInfoPaths;
     }
 
-    return result;
+    return buildInfoPaths;
   }
 
   public async getDebugFilePaths(): Promise<string[]> {
@@ -110,13 +119,13 @@ export class CachingSource extends MutableSource {
       return cached;
     }
 
-    const result = await super.getDebugFilePaths();
+    const debugFilePaths = await super.getDebugFilePaths();
 
     if (this._cache !== undefined) {
-      this._cache.debugFilePaths = result;
+      this._cache.debugFilePaths = debugFilePaths;
     }
 
-    return result;
+    return debugFilePaths;
   }
 
   public async saveArtifactAndDebugFile(
@@ -180,13 +189,16 @@ export class CachingSource extends MutableSource {
     this._cache = undefined;
   }
 
-  protected async _getArtifactPath(name: string): Promise<string> {
+  protected async _getArtifactPath(name: string): Promise<string | undefined> {
     const cached = this._cache?.artifactNameToArtifactPathCache.get(name);
     if (cached !== undefined) {
       return cached;
     }
 
     const result = await super._getArtifactPath(name);
+    if (result === undefined) {
+      return undefined;
+    }
 
     this._cache?.artifactNameToArtifactPathCache.set(name, result);
     return result;
@@ -210,17 +222,18 @@ export class CachingSource extends MutableSource {
   /**
    * Sync version of _getArtifactPath
    */
-  protected _getArtifactPathSync(name: string): string {
+  protected _getArtifactPathSync(name: string): string | undefined {
     const cached = this._cache?.artifactNameToArtifactPathCache.get(name);
     if (cached !== undefined) {
       return cached;
     }
 
     const result = super._getArtifactPathSync(name);
+    if (result === undefined) {
+      return undefined;
+    }
 
     this._cache?.artifactNameToArtifactPathCache.set(name, result);
     return result;
   }
 }
-
-export { MutableSource } from "./mutable";

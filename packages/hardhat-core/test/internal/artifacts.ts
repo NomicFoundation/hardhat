@@ -7,43 +7,17 @@ import {
   Artifacts,
   getArtifactFromContractOutput,
 } from "../../src/internal/artifacts";
-import { CachingSource as CachingSourceImpl } from "../../src/internal/artifacts/caching";
-import { MutableSource as MutableSourceImpl } from "../../src/internal/artifacts/mutable";
-import { ReadOnlySource as ReadOnlySourceImpl } from "../../src/internal/artifacts/readonly";
 import { ERRORS } from "../../src/internal/core/errors-list";
 import {
   Artifact,
   ArtifactSource,
+  BuildInfo,
   CompilerInput,
   CompilerOutput,
 } from "../../src/types";
 import { getFullyQualifiedName } from "../../src/utils/contract-names";
 import { expectHardhatError, expectHardhatErrorAsync } from "../helpers/errors";
 import { useTmpDir } from "../helpers/fs";
-
-class ReadOnlySource extends ReadOnlySourceImpl implements ArtifactSource {
-  constructor(artifactsPath: string) {
-    super(artifactsPath);
-  }
-  public clearCache() {}
-  public disbaleCache() {}
-}
-
-class MutableSource extends MutableSourceImpl implements ArtifactSource {
-  constructor(artifactsPath: string) {
-    super(artifactsPath);
-  }
-  public clearCache() {}
-  public disbaleCache() {}
-}
-
-class CachingSource extends CachingSourceImpl implements ArtifactSource {
-  constructor(artifactsPath: string) {
-    super(artifactsPath);
-  }
-  public clearCache() {}
-  public disbaleCache() {}
-}
 
 async function storeAllArtifacts(sourceName: string, artifacts: Artifacts) {
   const solcVersion = "0.5.6";
@@ -313,6 +287,10 @@ describe("Artifacts class", function () {
           artifact.contractName
         );
 
+      if (artifactPath === undefined) {
+        assert.fail("artifactPath should be defined");
+      }
+
       const debugFilePath =
         // eslint-disable-next-line  dot-notation,@typescript-eslint/dot-notation
         artifacts["_hardhatSource"]["_getDebugFilePath"](artifactPath);
@@ -344,6 +322,10 @@ describe("Artifacts class", function () {
         await artifacts["_hardhatSource"]["_getArtifactPath"](
           artifact.contractName
         );
+
+      if (artifactPath === undefined) {
+        assert.fail("artifactPath should be defined");
+      }
 
       const debugFilePath =
         // eslint-disable-next-line  dot-notation, @typescript-eslint/dot-notation
@@ -1290,178 +1272,172 @@ describe("Artifacts class", function () {
   describe("configured with custom sources", function () {
     useTmpDir("artifacts");
 
-    it("should write and read (async) the right artifacts", async function () {
-      for (const [name, output] of Object.entries(COMPILER_OUTPUTS)) {
-        const originalArtifact = getArtifactFromContractOutput(
-          "source.sol",
-          name,
-          output
-        );
+    class ArtifactSourceStub implements ArtifactSource {
+      constructor(private _id: string, private _knownContracts: string[]) {}
 
-        const regularArtifactSource = new Artifacts(this.tmpDir);
-        await regularArtifactSource.saveArtifactAndDebugFile(
-          originalArtifact,
-          ""
-        );
-
-        for (const CustomSource of [
-          ReadOnlySource,
-          MutableSource,
-          CachingSource,
-          Artifacts,
-        ]) {
-          const customArtifactSource = new Artifacts(
-            "bad artifact path string; internal source will fallback to custom",
-            [new CustomSource(this.tmpDir)]
-          );
-
-          const artifactSourcedRegularly =
-            await regularArtifactSource.readArtifact(name);
-          const artifactFromCustomSource =
-            await customArtifactSource.readArtifact(name);
-
-          assert.deepEqual(artifactFromCustomSource, artifactSourcedRegularly);
+      public async readArtifact(name: string): Promise<Artifact | undefined> {
+        if (this._knownContracts.includes(name)) {
+          return {
+            // we use the _format to check that the artifact comes from this
+            // source
+            _format: this._id,
+            contractName: name,
+            sourceName: `${name}.sol`,
+            abi: [],
+            bytecode: "0x",
+            deployedBytecode: "0x",
+            linkReferences: {},
+            deployedLinkReferences: {},
+          };
         }
       }
-    });
 
-    it("should read (sync) the right artifacts", async function () {
-      for (const [name, output] of Object.entries(COMPILER_OUTPUTS)) {
-        const originalArtifact = getArtifactFromContractOutput(
-          "source.sol",
-          name,
-          output
-        );
-        await new Artifacts(this.tmpDir).saveArtifactAndDebugFile(
-          originalArtifact
-        );
-
-        for (const CustomSource of [
-          ReadOnlySource,
-          MutableSource,
-          CachingSource,
-          Artifacts,
-        ]) {
-          const artifacts = new Artifacts(
-            "bad artifact path string; internal source will fallback to custom",
-            [new CustomSource(this.tmpDir)]
-          );
-
-          const retrievedArtifact = artifacts.readArtifactSync(name);
-
-          assert.deepEqual(retrievedArtifact, originalArtifact);
+      public readArtifactSync(name: string): Artifact | undefined {
+        if (this._knownContracts.includes(name)) {
+          return {
+            // we use the _format to check that the artifact comes from this
+            // source
+            _format: this._id,
+            contractName: name,
+            sourceName: `${name}.sol`,
+            abi: [],
+            bytecode: "0x",
+            deployedBytecode: "0x",
+            linkReferences: {},
+            deployedLinkReferences: {},
+          };
         }
       }
-    });
 
-    it("Should get all the fully qualified names of the artifacts", async function () {
-      const artifacts = new Artifacts(this.tmpDir);
-      await storeAllArtifacts("source.sol", artifacts);
-
-      const expected = [
-        "source.sol:Interface",
-        "source.sol:Lib",
-        "source.sol:WithBytecodeAndLibs",
-        "source.sol:WithBytecodeNoLibs",
-        "source.sol:WithoutBytecodeNoLibs",
-        "source.sol:WithoutBytecodeWithLibs",
-      ];
-
-      for (const CustomSource of [
-        ReadOnlySource,
-        MutableSource,
-        CachingSource,
-        Artifacts,
-      ]) {
-        const names = await new Artifacts(
-          "bad artifact path string; internal source will fallback to custom",
-          [new CustomSource(this.tmpDir)]
-        ).getAllFullyQualifiedNames();
-
-        assert.equal(names.length, Object.keys(COMPILER_OUTPUTS).length);
-
-        expected.sort();
-
-        assert.deepEqual(names, expected);
+      public async artifactExists(name: string): Promise<boolean> {
+        const result = this._knownContracts.includes(name);
+        return result;
       }
-    });
 
-    it("Should get a build info from a fully qualified name", async function () {
-      const contractName = "Lib";
-      const sourceName = "source.sol";
-      const output = COMPILER_OUTPUTS.Lib;
+      public async getAllFullyQualifiedNames(): Promise<string[]> {
+        return [];
+      }
 
-      const artifacts = new Artifacts(this.tmpDir);
+      public async getBuildInfo(): Promise<BuildInfo | undefined> {
+        return undefined;
+      }
 
-      const solcVersion = "0.5.6";
-      const solcLongVersion = "0.5.6+12321";
-      const solcInput = { input: {} } as any;
-      const solcOutput = { sources: {}, contracts: {} } as any;
+      public async getArtifactPaths(): Promise<string[]> {
+        return [];
+      }
 
-      const buildInfoPath = await artifacts.saveBuildInfo(
-        solcVersion,
-        solcLongVersion,
-        solcInput,
-        solcOutput
+      public async getDebugFilePaths(): Promise<string[]> {
+        return [];
+      }
+
+      public async getBuildInfoPaths(): Promise<string[]> {
+        return [];
+      }
+
+      public clearCache() {}
+
+      public disableCache() {}
+
+      public getSuggestions(): string[] {
+        return [];
+      }
+    }
+
+    it("should fall back to reading the artifact from the extension source", async function () {
+      const customSource = new ArtifactSourceStub("custom", ["Foo"]);
+      const artifacts = new Artifacts(this.tmpDir, [customSource]);
+
+      // async
+      const artifact = await artifacts.readArtifact("Foo");
+
+      assert.equal(
+        artifact._format,
+        "custom",
+        "Artifact should come from custom source"
       );
 
-      const artifact = getArtifactFromContractOutput(
-        sourceName,
-        contractName,
-        output
+      // sync
+      const artifactSync = artifacts.readArtifactSync("Foo");
+
+      assert.equal(
+        artifactSync._format,
+        "custom",
+        "Artifact should come from custom source"
+      );
+    });
+
+    it("should use the second extension source if the first one doesn't has the artifact", async function () {
+      const customSource1 = new ArtifactSourceStub("custom1", ["Foo"]);
+      const customSource2 = new ArtifactSourceStub("custom2", ["Bar"]);
+      const artifacts = new Artifacts(this.tmpDir, [
+        customSource1,
+        customSource2,
+      ]);
+
+      // async
+      const artifact = await artifacts.readArtifact("Bar");
+
+      assert.equal(
+        artifact._format,
+        "custom2",
+        "Artifact should come from first custom source"
       );
 
-      await artifacts.saveArtifactAndDebugFile(artifact, buildInfoPath);
+      // sync
+      const artifactSync = await artifacts.readArtifact("Bar");
 
-      for (const CustomSource of [
-        ReadOnlySource,
-        MutableSource,
-        CachingSource,
-      ]) {
-        const storedBuildInfo = await new Artifacts(
-          "bad artifact path string; internal source will fallback to custom",
-          [new CustomSource(this.tmpDir)]
-        ).getBuildInfo(getFullyQualifiedName(sourceName, contractName));
-
-        assert.equal(storedBuildInfo?.solcVersion, solcVersion);
-        assert.equal(storedBuildInfo?.solcLongVersion, solcLongVersion);
-        assert.deepEqual(storedBuildInfo?.input, solcInput);
-        assert.deepEqual(storedBuildInfo?.output, solcOutput);
-      }
+      assert.equal(
+        artifactSync._format,
+        "custom2",
+        "Artifact should come from first custom source"
+      );
     });
 
-    it("Should be possible to get the paths to all the artifacts, debug files and build infos", async function () {
-      const artifacts = new Artifacts(this.tmpDir);
-      await storeAllArtifacts("source.sol", artifacts);
+    it("should prefer the first extension source over the second", async function () {
+      const customSource1 = new ArtifactSourceStub("custom1", ["Foo"]);
+      const customSource2 = new ArtifactSourceStub("custom2", ["Foo"]);
+      const artifacts = new Artifacts(this.tmpDir, [
+        customSource1,
+        customSource2,
+      ]);
 
-      for (const CustomSource of [
-        ReadOnlySource,
-        MutableSource,
-        CachingSource,
-        Artifacts,
-      ]) {
-        const customArtifacts = new Artifacts(
-          "bad artifact path string; internal source will fallback to custom",
-          [new CustomSource(this.tmpDir)]
-        );
+      // async
+      const artifact = await artifacts.readArtifact("Foo");
 
-        const artifactPaths = await customArtifacts.getArtifactPaths();
-        const debugFilePaths = await customArtifacts.getDebugFilePaths();
-        const buildInfoPaths = await customArtifacts.getBuildInfoPaths();
+      assert.equal(
+        artifact._format,
+        "custom1",
+        "Artifact should come from first custom source"
+      );
 
-        assert.lengthOf(artifactPaths, Object.keys(COMPILER_OUTPUTS).length);
-        assert.isTrue(artifactPaths.every((p) => p.startsWith(this.tmpDir)));
-        assert.isTrue(artifactPaths.every((p) => p.endsWith(".json")));
+      // sync
+      const artifactSync = await artifacts.readArtifact("Foo");
 
-        assert.lengthOf(debugFilePaths, Object.keys(COMPILER_OUTPUTS).length);
-        assert.isTrue(debugFilePaths.every((p) => p.startsWith(this.tmpDir)));
-        assert.isTrue(debugFilePaths.every((p) => p.endsWith(".dbg.json")));
-
-        assert.lengthOf(buildInfoPaths, 1);
-        assert.isTrue(buildInfoPaths.every((p) => p.startsWith(this.tmpDir)));
-        assert.isTrue(buildInfoPaths.every((p) => p.endsWith(".json")));
-      }
+      assert.equal(
+        artifactSync._format,
+        "custom1",
+        "Artifact should come from first custom source"
+      );
     });
+
+    it("should use the custom sources to check if an artifact exists", async function () {
+      const customSource1 = new ArtifactSourceStub("custom1", ["Foo", "Bar"]);
+      const customSource2 = new ArtifactSourceStub("custom2", ["Bar", "Qux"]);
+
+      const artifacts = new Artifacts(this.tmpDir, [
+        customSource1,
+        customSource2,
+      ]);
+
+      assert.isTrue(await artifacts.artifactExists("Foo"));
+      assert.isTrue(await artifacts.artifactExists("Bar"));
+      assert.isTrue(await artifacts.artifactExists("Qux"));
+      assert.isFalse(await artifacts.artifactExists("Other"));
+    });
+  });
+
+  describe("build infos", function () {
+    useTmpDir("artifacts");
 
     it("Should be able to save build-infos with partial fields", async function () {
       const artifacts = new Artifacts(this.tmpDir);
@@ -1555,37 +1531,6 @@ describe("Artifacts class", function () {
           },
         },
       });
-    });
-
-    it("Should be possible to get an absolute path to an artifact given a fully qualified name", async function () {
-      await new Artifacts(this.tmpDir).saveArtifactAndDebugFile(
-        getArtifactFromContractOutput("Lib.sol", "Lib", COMPILER_OUTPUTS.Lib),
-        ""
-      );
-
-      const fullyQualifiedName = "Lib.sol:Lib";
-
-      for (const CustomSource of [
-        ReadOnlySource,
-        MutableSource,
-        CachingSource,
-      ]) {
-        const artifacts = new Artifacts(
-          "bad artifact path string; internal source will fallback to custom",
-          [new CustomSource(this.tmpDir)]
-        );
-        const artifactPath =
-          artifacts.formArtifactPathFromFullyQualifiedName(fullyQualifiedName);
-
-        assert.isTrue(
-          // eslint-disable-next-line  dot-notation,@typescript-eslint/dot-notation
-          (artifacts["_extensionSources"][0] as ReadOnlySource)[
-            // eslint-disable-next-line  dot-notation,@typescript-eslint/dot-notation
-            "_artifactsPath"
-          ].startsWith(this.tmpDir)
-        );
-        assert.isTrue(artifactPath.endsWith(".json"));
-      }
     });
   });
 });
