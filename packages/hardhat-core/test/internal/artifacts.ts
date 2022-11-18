@@ -1533,6 +1533,16 @@ describe("Artifacts class", function () {
       });
     });
   });
+
+  describe("backwards-compatibility", function () {
+    useTmpDir("artifacts");
+
+    it("should have a _getArtifactPathFromFullyQualifiedName method", async function () {
+      const artifacts: any = new Artifacts(this.tmpDir);
+
+      assert.isDefined(artifacts._getArtifactPathFromFullyQualifiedName);
+    });
+  });
 });
 
 // TODO: All of these outputs have their evm.bytecode duplicated as

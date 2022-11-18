@@ -435,20 +435,4 @@ export class ReadOnlySource extends ReadOnlyByPath {
       throw e;
     }
   }
-
-  /**
-   * DO NOT DELETE OR CHANGE
-   *
-   * use this.formArtifactPathFromFullyQualifiedName instead
-   * @deprecated until typechain migrates to public version
-   * @see https://github.com/dethcrypto/TypeChain/issues/544
-   */
-  protected _getArtifactPathFromFullyQualifiedName(
-    fullyQualifiedName: string
-  ): string {
-    const { sourceName, contractName } =
-      parseFullyQualifiedName(fullyQualifiedName);
-
-    return path.join(this._artifactsPath, sourceName, `${contractName}.json`);
-  }
 }

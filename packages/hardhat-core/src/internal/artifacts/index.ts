@@ -1,4 +1,5 @@
 import * as os from "os";
+import path from "path";
 
 import {
   Artifact,
@@ -8,6 +9,7 @@ import {
   CompilerInput,
   CompilerOutput,
 } from "../../types";
+import { parseFullyQualifiedName } from "../../utils/contract-names";
 
 import { ARTIFACT_FORMAT_VERSION } from "../constants";
 import { HardhatError } from "../core/errors";
@@ -19,10 +21,10 @@ export class Artifacts implements IArtifacts {
   private readonly _hardhatSource: CachingSource;
 
   constructor(
-    artifactsPath: string,
+    private readonly _artifactsPath: string,
     private readonly _extensionSources: ArtifactSource[] = []
   ) {
-    this._hardhatSource = new CachingSource(artifactsPath);
+    this._hardhatSource = new CachingSource(this._artifactsPath);
   }
 
   public async readArtifact(
@@ -227,6 +229,22 @@ ${names.map((n) => `  * ${n}`).join(os.EOL)}
 Please replace "${contractName}" for the correct contract name wherever you are trying to read its artifact.
 `;
     }
+  }
+
+  /**
+   * DO NOT DELETE OR CHANGE
+   *
+   * use this.formArtifactPathFromFullyQualifiedName instead
+   * @deprecated until typechain migrates to public version
+   * @see https://github.com/dethcrypto/TypeChain/issues/544
+   */
+  private _getArtifactPathFromFullyQualifiedName(
+    fullyQualifiedName: string
+  ): string {
+    const { sourceName, contractName } =
+      parseFullyQualifiedName(fullyQualifiedName);
+
+    return path.join(this._artifactsPath, sourceName, `${contractName}.json`);
   }
 }
 
