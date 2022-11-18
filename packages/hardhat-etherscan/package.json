@@ -3,7 +3,7 @@
   "version": "3.1.2",
   "description": "Hardhat plugin for verifying contracts on etherscan",
   "repository": "github:nomiclabs/hardhat",
-  "homepage": "https://github.com/nomiclabs/hardhat/tree/master/packages/hardhat-etherscan",
+  "homepage": "https://github.com/nomiclabs/hardhat/tree/main/packages/hardhat-etherscan",
   "author": "Nomic Labs LLC",
   "contributors": [
     "Nomic Labs LLC",

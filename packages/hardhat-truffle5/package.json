@@ -3,7 +3,7 @@
   "version": "2.0.7",
   "description": "Truffle 5 Hardhat compatibility plugin",
   "repository": "github:nomiclabs/hardhat",
-  "homepage": "https://github.com/nomiclabs/hardhat/tree/master/packages/hardhat-truffle5",
+  "homepage": "https://github.com/nomiclabs/hardhat/tree/main/packages/hardhat-truffle5",
   "author": "Nomic Labs LLC",
   "license": "MIT",
   "main": "dist/src/index.js",

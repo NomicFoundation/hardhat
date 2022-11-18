@@ -2,7 +2,7 @@
   "name": "@nomiclabs/common",
   "version": "0.0.1",
   "description": "Common logic and utilities to use throughout the project",
-  "homepage": "https://github.com/nomiclabs/hardhat/tree/master/packages/hardhat-truffle4",
+  "homepage": "https://github.com/nomiclabs/hardhat/tree/main/packages/hardhat-truffle4",
   "repository": "github:nomiclabs/hardhat",
   "author": "Nomic Labs LLC",
   "license": "MIT",

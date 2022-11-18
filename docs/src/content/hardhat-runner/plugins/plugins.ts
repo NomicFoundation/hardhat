@@ -616,6 +616,30 @@ const communityPlugins: IPlugin[] = [
       "Execute commands on deployed contracts on any network using a helpful TUI.",
     tags: ["Tooling", "Operations", "Testing"],
   },
+  {
+    name: "hardhat-chainlink-plugin",
+    author: "protofire.io",
+    authorUrl: "https://protofire.io/",
+    description:
+      "Hardhat TypeScript plugin to run a chainlink node and interact with it",
+    tags: ["ethereum", "smart-contracts", "chainlink", "hardhat-plugin"],
+  },
+  {
+    name: "huff-deployer",
+    author: "Rodrigo Herrera",
+    authorUrl: "https://github.com/rodrigoherrerai",
+    description:
+      "A Hardhat Typescript plugin to test and interact with Huff contracts",
+    tags: ["Deployment", "Tasks", "Huff"],
+  },
+  {
+    name: "hardhat-gui",
+    author: "yecandir",
+    authorUrl: "https://github.com/yecandir",
+    description:
+      "Hardhat React Plugin to interact with your deployed contracts",
+    tags: ["Tooling", "Testing", "ui", "plugin"],
+  },
 ];
 
 const officialPlugins: IPlugin[] = [
