@@ -5,7 +5,6 @@ import type {
 } from "@nomicfoundation/ethereumjs-evm";
 import type { RunTxResult } from "@nomicfoundation/ethereumjs-vm";
 import type { Block } from "@nomicfoundation/ethereumjs-block";
-import type { Common } from "@nomicfoundation/ethereumjs-common";
 import type { TypedTransaction } from "@nomicfoundation/ethereumjs-tx";
 import type { Account, Address } from "@nomicfoundation/ethereumjs-util";
 import type { RpcDebugTracingConfig } from "../../../core/jsonrpc/types/input/debugTraceTransaction";
@@ -17,10 +16,6 @@ export interface VMAdapter {
     blockContext: Block,
     forceBaseFeeZero?: boolean
   ): Promise<RunTxResult>;
-
-  // temporary methods
-  getCommon(): Common;
-  isEip1559Active(blockNumberOrPending?: bigint | "pending"): boolean;
 
   // getters
   getAccount(address: Address): Promise<Account>;

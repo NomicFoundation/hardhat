@@ -256,6 +256,8 @@ export class HardhatNode extends EventEmitter {
       vm,
       blockchain,
       txPool,
+      common,
+      hardforkActivations,
       automine,
       minGasPrice,
       initialBlockTimeOffset,
@@ -337,6 +339,8 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     private readonly _vm: VMAdapter,
     private readonly _blockchain: HardhatBlockchainInterface,
     private readonly _txPool: TxPool,
+    private readonly _common: Common,
+    private _hardforkActivations: HardforkHistoryConfig,
     private _automine: boolean,
     private _minGasPrice: bigint,
     private _blockTimeOffsetSeconds: bigint = 0n,
@@ -361,7 +365,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
       this.setUserProvidedNextBlockBaseFeePerGas(nextBlockBaseFee);
     }
 
-    this._vmTracer = new VMTracer(this._vm, false);
+    this._vmTracer = new VMTracer(this._vm, this._common, false);
     this._vmTracer.enableTracing();
 
     const contractsIdentifier = new ContractsIdentifier();
@@ -413,14 +417,14 @@ Hardhat Network's forking functionality only works with blocks from at least spu
 
       if ("maxFeePerGas" in txParams) {
         tx = FeeMarketEIP1559Transaction.fromTxData(txParams, {
-          common: this._vm.getCommon(),
+          common: this._common,
         });
       } else if ("accessList" in txParams) {
         tx = AccessListEIP2930Transaction.fromTxData(txParams, {
-          common: this._vm.getCommon(),
+          common: this._common,
         });
       } else {
-        tx = Transaction.fromTxData(txParams, { common: this._vm.getCommon() });
+        tx = Transaction.fromTxData(txParams, { common: this._common });
       }
 
       return tx.sign(pk);
@@ -1666,7 +1670,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
 
     headerData.baseFeePerGas = await this.getNextBlockBaseFeePerGas();
 
-    const blockBuilder = new BlockBuilder(this._vm, {
+    const blockBuilder = new BlockBuilder(this._vm, this._common, {
       parentBlock,
       headerData,
     });
@@ -1709,7 +1713,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
         tx = transactionQueue.getNextTransaction();
       }
 
-      const minerReward = this._vm.getCommon().param("pow", "minerReward");
+      const minerReward = this._common.param("pow", "minerReward");
       await blockBuilder.addRewards([[coinbase, minerReward]]);
       const block = await blockBuilder.seal();
       await this._blockchain.putBlock(block);
@@ -1736,7 +1740,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
 
   private _getMinimalTransactionFee(): bigint {
     // Typically 21_000 gas
-    return this._vm.getCommon().param("gasPrices", "tx");
+    return this._common.param("gasPrices", "tx");
   }
 
   private async _getFakeTransaction(
@@ -1750,18 +1754,18 @@ Hardhat Network's forking functionality only works with blocks from at least spu
 
     if ("maxFeePerGas" in txParams && txParams.maxFeePerGas !== undefined) {
       return new FakeSenderEIP1559Transaction(sender, txParams, {
-        common: this._vm.getCommon(),
+        common: this._common,
       });
     }
 
     if ("accessList" in txParams && txParams.accessList !== undefined) {
       return new FakeSenderAccessListEIP2930Transaction(sender, txParams, {
-        common: this._vm.getCommon(),
+        common: this._common,
       });
     }
 
     return new FakeSenderTransaction(sender, txParams, {
-      common: this._vm.getCommon(),
+      common: this._common,
     });
   }
 
@@ -1971,7 +1975,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     const receipts = getRpcReceiptOutputsFromLocalBlockExecution(
       block,
       runBlockResult,
-      shouldShowTransactionTypeForHardfork(this._vm.getCommon())
+      shouldShowTransactionTypeForHardfork(this._common)
     );
 
     this._blockchain.addTransactionReceipts(receipts);
@@ -1996,7 +2000,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
               getRpcBlock(
                 block,
                 td,
-                shouldShowTransactionTypeForHardfork(this._vm.getCommon()),
+                shouldShowTransactionTypeForHardfork(this._common),
                 false
               )
             );
@@ -2328,7 +2332,21 @@ Hardhat Network's forking functionality only works with blocks from at least spu
   }
 
   public isEip1559Active(blockNumberOrPending?: bigint | "pending"): boolean {
-    return this._vm.isEip1559Active(blockNumberOrPending);
+    if (
+      blockNumberOrPending !== undefined &&
+      blockNumberOrPending !== "pending"
+    ) {
+      return this._common.hardforkGteHardfork(
+        selectHardfork(
+          this._forkBlockNumber,
+          this._common.hardfork(),
+          this._hardforkActivations,
+          blockNumberOrPending
+        ),
+        "london"
+      );
+    }
+    return this._common.gteHardfork("london");
   }
 
   public isPostMergeHardfork(): boolean {

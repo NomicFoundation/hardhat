@@ -5,6 +5,7 @@ import { Common } from "@nomicfoundation/ethereumjs-common";
 import { TypedTransaction } from "@nomicfoundation/ethereumjs-tx";
 import { Account, Address } from "@nomicfoundation/ethereumjs-util";
 
+import { assertHardhatInvariant } from "../../../core/errors";
 import { RpcDebugTracingConfig } from "../../../core/jsonrpc/types/input/debugTraceTransaction";
 import { NodeConfig } from "../node-types";
 import { RpcDebugTraceOutput } from "../output";
@@ -39,9 +40,17 @@ export class DualModeAdapter implements VMAdapter {
     const rethnetAdapter = await RethnetAdapter.create(
       // eslint-disable-next-line @typescript-eslint/dot-notation
       ethereumJSAdapter["_stateManager"],
-      blockchain,
       config,
-      selectHardfork
+      selectHardfork,
+      async (blockNumber) => {
+        const block = await blockchain.getBlock(blockNumber);
+        assertHardhatInvariant(
+          block !== undefined && block !== null,
+          "Should be able to get block"
+        );
+
+        return block.header.hash();
+      }
     );
 
     return new DualModeAdapter(ethereumJSAdapter, rethnetAdapter);
@@ -67,10 +76,6 @@ export class DualModeAdapter implements VMAdapter {
     assertEqualRunTxResults(ethereumJSResult, rethnetResult);
 
     return rethnetResult;
-  }
-
-  public getCommon(): Common {
-    return this._ethereumJSAdapter.getCommon();
   }
 
   public async getStateRoot(): Promise<Buffer> {
@@ -140,10 +145,6 @@ export class DualModeAdapter implements VMAdapter {
       block,
       irregularStateOrUndefined
     );
-  }
-
-  public isEip1559Active(blockNumberOrPending?: bigint | "pending"): boolean {
-    return this._ethereumJSAdapter.isEip1559Active(blockNumberOrPending);
   }
 
   public async startBlock(): Promise<void> {

@@ -1,8 +1,6 @@
 import type { Message } from "@nomicfoundation/ethereumjs-evm";
 import type { RunTxResult } from "@nomicfoundation/ethereumjs-vm";
-import { BlockchainInterface } from "@nomicfoundation/ethereumjs-blockchain";
 import { Block } from "@nomicfoundation/ethereumjs-block";
-import { Common } from "@nomicfoundation/ethereumjs-common";
 import { StateManager } from "@nomicfoundation/ethereumjs-statemanager";
 import {
   Account,
@@ -36,11 +34,11 @@ export class RethnetAdapter implements VMAdapter {
 
   public static async create(
     stateManager: StateManager,
-    blockchain: BlockchainInterface,
     config: NodeConfig,
-    selectHardfork: (blockNumber: bigint) => string
+    selectHardfork: (blockNumber: bigint) => string,
+    getBlockHash: (blockNumber: bigint) => Promise<Buffer>
   ): Promise<RethnetAdapter> {
-    const hardhatDB = new HardhatDB(stateManager, blockchain);
+    const hardhatDB = new HardhatDB(stateManager, getBlockHash);
 
     const limitContractCodeSize =
       config.allowUnlimitedContractSize === true ? 2n ** 64n - 1n : undefined;
@@ -86,20 +84,6 @@ export class RethnetAdapter implements VMAdapter {
     });
 
     return rethnetResultToRunTxResult(rethnetResult.execResult);
-  }
-
-  /**
-   * Temporary method, will be removed.
-   */
-  public getCommon(): Common {
-    throw new Error("not implemented");
-  }
-
-  /**
-   * Temporary method, will be removed.
-   */
-  public isEip1559Active(): boolean {
-    throw new Error("not implemented");
   }
 
   /**

@@ -46,14 +46,15 @@ export class EthereumJSAdapter implements VMAdapter {
   private _blockStartStateRoot: Buffer | undefined;
 
   constructor(
-    private _vm: VM,
-    private _stateManager: StateManager,
-    private _blockchain: HardhatBlockchainInterface,
+    private readonly _vm: VM,
+    private readonly _stateManager: StateManager,
+    private readonly _blockchain: HardhatBlockchainInterface,
+    private readonly _common: Common,
     private readonly _configNetworkId: number,
     private readonly _configChainId: number,
     private readonly _selectHardfork: (blockNumber: bigint) => string,
-    private _forkNetworkId?: number,
-    private _forkBlockNumber?: bigint
+    private readonly _forkNetworkId?: number,
+    private readonly _forkBlockNumber?: bigint
   ) {}
 
   public static async create(
@@ -109,6 +110,7 @@ export class EthereumJSAdapter implements VMAdapter {
       vm,
       stateManager,
       blockchain,
+      common,
       config.networkId,
       config.chainId,
       selectHardfork,
@@ -141,12 +143,12 @@ export class EthereumJSAdapter implements VMAdapter {
       // eth_call. This will make the BASEFEE option also return 0, which
       // shouldn't. See: https://github.com/nomiclabs/hardhat/issues/1688
       if (
-        this.isEip1559Active(blockContext.header.number) &&
+        this._isEip1559Active(blockContext.header.number) &&
         (blockContext.header.baseFeePerGas === undefined || forceBaseFeeZero)
       ) {
         blockContext = Block.fromBlockData(blockContext, {
           freeze: false,
-          common: this.getCommon(),
+          common: this._common,
 
           skipConsensusFormatValidation: true,
         });
@@ -183,10 +185,6 @@ export class EthereumJSAdapter implements VMAdapter {
       }
       await this._stateManager.setStateRoot(initialStateRoot);
     }
-  }
-
-  public getCommon(): Common {
-    return this._vm._common;
   }
 
   public async getStateRoot(): Promise<Buffer> {
@@ -364,19 +362,6 @@ export class EthereumJSAdapter implements VMAdapter {
     );
   }
 
-  public isEip1559Active(blockNumberOrPending?: bigint | "pending"): boolean {
-    if (
-      blockNumberOrPending !== undefined &&
-      blockNumberOrPending !== "pending"
-    ) {
-      return this.getCommon().hardforkGteHardfork(
-        this._selectHardfork(blockNumberOrPending),
-        "london"
-      );
-    }
-    return this.getCommon().gteHardfork("london");
-  }
-
   public async startBlock(): Promise<void> {
     if (this._blockStartStateRoot !== undefined) {
       throw new Error("a block is already started");
@@ -437,5 +422,18 @@ export class EthereumJSAdapter implements VMAdapter {
         `Network id ${networkId} does not correspond to a network that Hardhat can trace`
       );
     }
+  }
+
+  private _isEip1559Active(blockNumberOrPending?: bigint | "pending"): boolean {
+    if (
+      blockNumberOrPending !== undefined &&
+      blockNumberOrPending !== "pending"
+    ) {
+      return this._common.hardforkGteHardfork(
+        this._selectHardfork(blockNumberOrPending),
+        "london"
+      );
+    }
+    return this._common.gteHardfork("london");
   }
 }

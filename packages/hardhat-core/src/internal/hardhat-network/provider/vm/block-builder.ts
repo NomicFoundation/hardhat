@@ -1,3 +1,4 @@
+import type { Common } from "@nomicfoundation/ethereumjs-common";
 import { Block, HeaderData } from "@nomicfoundation/ethereumjs-block";
 import { RLP } from "@nomicfoundation/ethereumjs-rlp";
 import { Trie } from "@nomicfoundation/ethereumjs-trie";
@@ -46,7 +47,11 @@ export class BlockBuilder {
   private _transactions: TypedTransaction[] = [];
   private _transactionResults: RunTxResult[] = [];
 
-  constructor(private _vm: VMAdapter, private _opts: BuildBlockOpts) {}
+  constructor(
+    private _vm: VMAdapter,
+    private _common: Common,
+    private _opts: BuildBlockOpts
+  ) {}
 
   public async startBlock(): Promise<void> {
     await this._vm.startBlock();
@@ -80,7 +85,7 @@ export class BlockBuilder {
 
     const blockData = { header, transactions: this._transactions };
     const block = Block.fromBlockData(blockData, {
-      common: this._vm.getCommon(),
+      common: this._common,
       skipConsensusFormatValidation: true,
       calcDifficultyFromHeader: this._opts.parentBlock.header,
     });
@@ -146,7 +151,7 @@ export class BlockBuilder {
     };
 
     const block = Block.fromBlockData(blockData, {
-      common: this._vm.getCommon(),
+      common: this._common,
       skipConsensusFormatValidation: true,
       calcDifficultyFromHeader: this._opts.parentBlock.header,
     });
