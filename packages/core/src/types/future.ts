@@ -52,6 +52,13 @@ export interface ContractCall {
   _future: true;
 }
 
+export interface AwaitFuture {
+  vertexId: number;
+  label: string;
+  type: "await";
+  _future: true;
+}
+
 export type ParameterValue = string | number | DeploymentGraphFuture;
 
 export interface RequiredParameter {
@@ -99,7 +106,8 @@ export type DependableFuture =
   | CallableFuture
   | ContractCall
   | Virtual
-  | ProxyFuture;
+  | ProxyFuture
+  | AwaitFuture;
 
 export type ParameterFuture = RequiredParameter | OptionalParameter;
 

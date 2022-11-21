@@ -11,8 +11,10 @@ import {
   IDeploymentGraph,
   DeploymentGraphVertex,
   ExternalParamValue,
+  AwaitVertex,
 } from "types/deploymentGraph";
 import {
+  AwaitedEvent,
   ContractCall,
   ContractDeploy,
   DeployedContract,
@@ -56,6 +58,8 @@ export function convertDeploymentVertexToExecutionVertex(
         return convertHardhatLibraryToLibraryDeploy(deploymentVertex, context);
       case "ArtifactLibrary":
         return convertArtifactLibraryToLibraryDeploy(deploymentVertex, context);
+      case "Await":
+        return convertAwaitToAwaitedEvent(deploymentVertex, context);
       case "Virtual":
         throw new Error(
           `Virtual vertex should be removed ${deploymentVertex.id} (${deploymentVertex.label})`
@@ -161,6 +165,20 @@ async function convertArtifactLibraryToLibraryDeploy(
     id: vertex.id,
     label: vertex.label,
     artifact: vertex.artifact,
+    args: await convertArgs(vertex.args, transformContext),
+  };
+}
+
+async function convertAwaitToAwaitedEvent(
+  vertex: AwaitVertex,
+  transformContext: TransformContext
+): Promise<AwaitedEvent> {
+  return {
+    type: "AwaitedEvent",
+    id: vertex.id,
+    label: vertex.label,
+    contract: await resolveParameter(vertex.contract, transformContext),
+    event: vertex.event,
     args: await convertArgs(vertex.args, transformContext),
   };
 }

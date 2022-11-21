@@ -13,6 +13,7 @@ import {
   DeploymentGraphVertex,
   UseSubgraphOptions,
   ScopeData,
+  AwaitOptions,
 } from "types/deploymentGraph";
 import type {
   DeploymentGraphFuture,
@@ -30,6 +31,7 @@ import type {
   Virtual,
   DependableFuture,
   ProxyFuture,
+  AwaitFuture,
 } from "types/future";
 import type { Artifact } from "types/hardhat";
 import type { ModuleCache, ModuleDict } from "types/module";
@@ -255,6 +257,61 @@ export class DeploymentBuilder implements IDeploymentBuilder {
     return callFuture;
   }
 
+  public awaitEvent(
+    contractFuture: DeploymentGraphFuture,
+    eventName: string,
+    { args, after }: AwaitOptions
+  ): AwaitFuture {
+    const vertexId = this._resolveNextId();
+
+    const awaitFuture: AwaitFuture = {
+      vertexId,
+      label: `${contractFuture.label}/${eventName}`,
+      type: "await",
+      _future: true,
+    };
+
+    let contract: CallableFuture;
+    if (isParameter(contractFuture)) {
+      const parameter = contractFuture;
+      const scope = parameter.scope;
+
+      const scopeData = this.graph.scopeData[scope];
+
+      if (
+        scopeData === undefined ||
+        scopeData.parameters === undefined ||
+        !(parameter.label in scopeData.parameters)
+      ) {
+        throw new Error("Could not resolve contract from parameter");
+      }
+
+      contract = scopeData.parameters[parameter.label] as
+        | HardhatContract
+        | ArtifactContract
+        | DeployedContract;
+    } else if (isCallable(contractFuture)) {
+      contract = contractFuture;
+    } else {
+      throw new Error(
+        `Not a callable future ${contractFuture.label} (${contractFuture.type})`
+      );
+    }
+
+    DeploymentBuilder._addVertex(this.graph, {
+      id: awaitFuture.vertexId,
+      label: awaitFuture.label,
+      type: "Await",
+      contract,
+      event: eventName,
+      args: args ?? [],
+      after: after ?? [],
+      scopeAdded: this.scopes.getScopedLabel(),
+    });
+
+    return awaitFuture;
+  }
+
   public getParam(paramName: string): RequiredParameter {
     const paramFuture: RequiredParameter = {
       label: paramName,
@@ -452,6 +509,22 @@ export class DeploymentBuilder implements IDeploymentBuilder {
     }
 
     if (depNode.type === "Call") {
+      DeploymentBuilder._addEdgeBasedOn(depNode.contract, graph, depNode);
+
+      DeploymentBuilder._addEdgesBasedOn(
+        Object.values(depNode.args),
+        graph,
+        depNode
+      );
+      DeploymentBuilder._addEdgesBasedOn(
+        Object.values(depNode.after),
+        graph,
+        depNode
+      );
+      return;
+    }
+
+    if (depNode.type === "Await") {
       DeploymentBuilder._addEdgeBasedOn(depNode.contract, graph, depNode);
 
       DeploymentBuilder._addEdgesBasedOn(
