@@ -30,6 +30,7 @@ export interface IgnitionDeployOptions {
   maxRetries: number;
   gasIncrementPerRetry: BigNumber | null;
   pollingInterval: number;
+  awaitEventDuration: number;
 }
 
 type ModuleOutputs = Record<string, any>;
@@ -72,6 +73,7 @@ export class Ignition {
       maxRetries: options.maxRetries,
       gasIncrementPerRetry: options.gasIncrementPerRetry,
       pollingInterval: options.pollingInterval,
+      awaitEventDuration: options.awaitEventDuration,
     });
 
     if (executionResult._kind === "failure") {

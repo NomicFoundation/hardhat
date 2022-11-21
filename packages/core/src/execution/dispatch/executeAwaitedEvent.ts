@@ -9,35 +9,35 @@ import { resolveFrom, toAddress } from "./utils";
 export async function executeAwaitedEvent(
   { event, contract, args }: AwaitedEvent,
   resultAccumulator: Map<number, VertexVisitResult | null>,
-  _: ExecutionContext
+  { services, options }: ExecutionContext
 ): Promise<VertexVisitResult> {
-  console.log(event);
-  console.log(args);
   const resolve = resolveFrom(resultAccumulator);
 
   const resolvedArgs = args.map(resolve).map(toAddress);
 
   const { address, abi } = resolve(contract);
 
-  let attempt = 1;
+  let log;
   try {
-    while (true) {
-      console.log(`attempt ${attempt}`);
+    const contractInstance = new Contract(address, abi);
 
-      const contractInstance = new Contract(address, abi);
+    const filter = contractInstance.filters[event](...resolvedArgs);
 
-      const results = contractInstance.filters[event](...resolvedArgs);
-      console.log("results");
-      console.log(results);
+    log = await services.transactions.waitForEvent(
+      filter,
+      options.awaitEventDuration
+    );
 
-      if (results.topics && results.topics.length !== 0) {
-        break;
-      }
-
-      attempt++;
+    if (log === null) {
+      // todo: implement on hold state
+      return {
+        _kind: "failure",
+        failure: new Error(
+          "Event not emitted within duration - try again later"
+        ),
+      };
     }
   } catch (err) {
-    console.log(err);
     return {
       _kind: "failure",
       failure: err as any,
@@ -46,6 +46,8 @@ export async function executeAwaitedEvent(
 
   return {
     _kind: "success",
-    result: {},
+    result: {
+      hash: log.transactionHash,
+    },
   };
 }

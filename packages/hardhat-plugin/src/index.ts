@@ -23,6 +23,7 @@ export interface IgnitionConfig {
   maxRetries: number;
   gasIncrementPerRetry: BigNumber | null;
   pollingInterval: number;
+  awaitEventDuration: number;
 }
 
 /* ignition config defaults */
@@ -31,6 +32,7 @@ const DEPLOYMENTS_DIR = "deployments";
 const MAX_RETRIES = 4;
 const GAS_INCREMENT_PER_RETRY = null;
 const POLLING_INTERVAL = 300;
+const AWAIT_EVENT_DURATION = 30000; // ms
 
 extendConfig((config, userConfig) => {
   /* setup path configs */
@@ -56,6 +58,8 @@ extendConfig((config, userConfig) => {
     gasIncrementPerRetry:
       userIgnitionConfig.gasIncrementPerRetry ?? GAS_INCREMENT_PER_RETRY,
     pollingInterval: userIgnitionConfig.pollingInterval ?? POLLING_INTERVAL,
+    awaitEventDuration:
+      userIgnitionConfig.awaitEventDuration ?? AWAIT_EVENT_DURATION,
   };
 });
 
