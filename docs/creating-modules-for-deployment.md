@@ -4,19 +4,22 @@
 
 ### Table of Contents
 
-- [Getting Started](./getting-started-guide.md)
-  - [Setup](./getting-started-guide.md#setup)
-  - [Writing Your First Deployment Module](./getting-started-guide.md#writing-your-first-deployment-module)
-- Creating Modules for Deployment
-  - [Deploying a Contract](./creating-modules-for-deployment.md#deploying-a-contract)
-  - [Executing a Method on a Contract](./creating-modules-for-deployment.md#executing-a-method-on-a-contract)
-  - [Using the Network Chain ID](./creating-modules-for-deployment.md#using-the-network-chain-id)
-  - [Module Parameters](./creating-modules-for-deployment.md#module-parameters)
-  - [Modules Within Modules](./creating-modules-for-deployment.md#modules-within-modules)
+- Creating Modules for Deployments
+- [Deploying a Contract](./creating-modules-for-deployment.md#deploying-a-contract)
+  - [Constructor arguments](./creating-modules-for-deployment.md#constructor-arguments)
+  - [Adding an endowment of _Eth_](./creating-modules-for-deployment.md#adding-an-endowment-of-eth)
+  - [Dependencies between contracts](./creating-modules-for-deployment.md#dependencies-between-contracts)
+  - [Using an existing contract](./creating-modules-for-deployment.md#using-an-existing-contract)
+  - [Deploying from an artifact](./creating-modules-for-deployment.md#deploying-from-an-artifact)
+  - [Linking libraries](./creating-modules-for-deployment.md#linking-libraries)
   - [Create2 (TBD)](./creating-modules-for-deployment.md#create2-tbd)
-- [Visualizing Your Deployment](./visualizing-your-deployment.md)
-  - [Actions](./visualizing-your-deployment.md#actions)
-- [Testing With Hardhat](./testing-with-hardhat.md)
+- [Calling contract methods](./creating-modules-for-deployment.md#calling-contract-methods)
+  - [Transfering _Eth_ as part of a call](./creating-modules-for-deployment.md#transfering-eth-as-part-of-a-call)
+  - [Using the results of a call with a deferred value (TBD)](./creating-modules-for-deployment.md#using-the-results-of-a-call-with-a-deferred-value-tbd)
+  - [Waiting for on-chain events (TBD)](./creating-modules-for-deployment.md#waiting-for-on-chain-events-tbd)
+- [Including modules within modules](./creating-modules-for-deployment.md#including-modules-within-modules)
+- [Module Parameters](./creating-modules-for-deployment.md#module-parameters)
+- [Switching based on the _Network Chain ID_](./creating-modules-for-deployment.md#switching-based-on-the-network-chain-id)
 
 ---
 
@@ -25,7 +28,6 @@ An **Ignition** deployment is composed of modules. A module is a special javascr
 For example, this is a minimal module `MyModule` that deploys an instance of a `Token` contract and exposes it to any consumer of `MyModule`:
 
 ```javascript
-// ./ignition/MyModule.js
 const { buildModule } = require("@ignored/hardhat-ignition");
 
 module.exports = buildModule("MyModule", (m) => {
@@ -35,9 +37,9 @@ module.exports = buildModule("MyModule", (m) => {
 });
 ```
 
-Modules can be deployed directly at the cli (with `npx hardhat deploy MyModule.js`), within Hardhat mocha tests (see [Ignition in Tests](TBD)) or consumed by other Modules to allow for complex deployments.
+Modules can be deployed directly at the cli (with `npx hardhat deploy MyModule.js`), within Hardhat mocha tests (see [Ignition in Tests](./using-ignition-in-hardhat-tests.md)) or consumed by other Modules to allow for complex deployments.
 
-During a deployment **Ignition** uses the module to generate an execution plan of the transactions to run and the order and dependency in which to run them. A module uses the passed `DeploymentBuilder` to specify the on-chain transactions that will _eventually_ be run, and how they relate to each other to allow building a dependency graph.
+During a deployment **Ignition** uses the module to generate an execution plan of the transactions to run and the order and dependency in which to run them. A module uses the injected `DeploymentBuilder` to specify the on-chain transactions that will _eventually_ be run, and how they interdepend on each other.
 
 ## Deploying a contract
 
@@ -56,6 +58,16 @@ In **Solidity** contracts may have constructor arguments that need satisfied on 
 ```tsx
 const token = m.contract("Token", {
   args: ["My Token", "TKN", 18],
+});
+```
+
+### Adding an endowment of _Eth_
+
+The deployed contract can be given an endowment of _Eth_ by passing the value of the endowment under the options object:
+
+```tsx
+const token = m.contract("Token", {
+  value: ethers.utils.parseUnits("1"),
 });
 ```
 
@@ -121,9 +133,57 @@ const contract = m.contract("Contract", {
 
 A library is deployed in the same way as a contract.
 
-## Executing a Method on a Contract
+### Create2 (TBD)
 
-Not all contract configuration happens via the constructor. To configure a contract calls can be made:
+`Create2` allows for reliably determining the address of a contract before it is deployed.
+
+It requires a factory contract:
+
+```solidity
+//SPDX-License-Identifier: MIT
+pragma solidity ^0.8.5;
+
+import "@openzeppelin/contracts/utils/Create2.sol";
+
+contract Create2Factory {
+    event Deployed(bytes32 indexed salt, address deployed);
+
+    function deploy(
+        uint256 amount,
+        bytes32 salt,
+        bytes memory bytecode
+    ) public returns (address) {
+        address deployedAddress;
+
+        deployedAddress = Create2.deploy(amount, salt, bytecode);
+        emit Deployed(salt, deployedAddress);
+
+        return deployedAddress;
+    }
+}
+```
+
+Given the `create2` factory, you can deploy a contract via the factory by:
+
+```ts
+module.exports = buildModule("Create2Example", (m) => {
+  const create2 = m.contract("Create2Factory");
+
+  const fooAddress = m.call(create2, "deploy", {
+    args: [
+      0, // amount
+      toBytes32(1), // salt
+      m.getBytesForArtifact("Foo"), // contract bytecode
+    ],
+  });
+
+  return { create2, foo: m.asContract(fooAddress) };
+});
+```
+
+## Calling contract methods
+
+Not all contract configuration happens via the constructor. To configure a contract through a call to a contract method:
 
 ```tsx
 const token = m.contract("Token");
@@ -131,6 +191,17 @@ const exchange = m.contract("Exchange");
 
 m.call(exchange, "addToken", {
   args: [token],
+});
+```
+
+### Transfering _Eth_ as part of a call
+
+Similar to `ethers`, a call can transfer `Eth` by passing a `value` under the options:
+
+```tsx
+m.call(exchange, "deposit", {
+  args: [],
+  value: ethers.utils.parseUnits("1"),
 });
 ```
 
@@ -175,9 +246,54 @@ m.await({
 });
 ```
 
-The `await` during deployment will check whether a transaction matching the parameters has occured. If it has the deployment will continue, if not the deployment stops in the `on-hold` condition. A further run of the deployment will recheck the `await` condition.
+The `await` during deployment will check whether a transaction matching the parameters has occured. If it has, the deployment will continue, if not the deployment stops in the `on-hold` condition. A further run of the deployment will recheck the `await` condition.
 
-## Using the Network Chain ID
+## Including modules within modules
+
+Modules can be deployed and consumed within other modules via `m.useModule(...)`:
+
+```tsx
+module.exports = buildModule("`TEST` registrar", (m) => {
+  // ...
+
+  const { ens, resolver, reverseRegistrar } = m.useModule(setupENSRegistry);
+
+  const registrar = m.contract("FIFSRegistrar", {
+    args: [ens, namehash.hash("test")],
+  });
+
+  // ...
+
+  return { ens, resolver, registrar, reverseRegistrar };
+});
+```
+
+Calls to `useModule` memoize the results object, assuming the same parameters are passed. Multiple calls to the same module with different parameters are banned.
+
+Only `CallableFuture` types can be returned when building a module, so contracts or libraries (not calls).
+
+## Module parameters
+
+Modules can have parameters that are accessed using the `DeploymentBuilder` object:
+
+```tsx
+const symbol = m.getParam("tokenSymbol");
+const name = m.getParam("tokenName");
+
+const token = m.contract("Token", {
+  args: [symbol, name, 1_000_000],
+});
+```
+
+When a module is deployed, the proper parameters must be provided. If they are not available, the deployment won't be executed and will error.
+
+You can use optional params with default values too:
+
+```tsx
+const symbol = m.getOptionalParam("tokenSymbol", "TKN");
+```
+
+## Switching based on the _Network Chain ID_
 
 The `DeploymentBuilder` (`m`) exposes the chain id of the network in which the contracts are being deployed. This is useful if you need to do different things depending on the network.
 
@@ -195,130 +311,8 @@ const userModule = buildModule("MyModule", (m) => {
 });
 ```
 
-## Module Parameters
+---
 
-Modules can have parameters that are accessed using the `DeploymentBuilder` object:
+Next, let's take a look at using an **Ignition** module within _Hardhat_ tests:
 
-```tsx
-const symbol = m.getParam("tokenSymbol");
-const name = m.getParam("tokenName");
-
-const token = m.contract("Token", {
-  args: [symbol, name, 1_000_000],
-});
-```
-
-When a module is deployed, the proper parameters must be provided. If they are not available, the deployment won't be executed. You can use optional params with default values too:
-
-```tsx
-const symbol = m.getOptionalParam("tokenSymbol", "TKN");
-```
-
-## Modules Within Modules
-
-Modules can be deployed and consumed within other modules via `m.useModule(...)`:
-
-```tsx
-module.exports = buildModule("`TEST` registrar", (m) => {
-  const tld = "test";
-  const tldHash = namehash.hash(tld);
-  const tldLabel = labelhash(tld);
-
-  const { ens, resolver, reverseRegistrar } = m.useModule(setupENSRegistry);
-
-  // Setup registrar
-  const registrar = m.contract("FIFSRegistrar", {
-    args: [ens, tldHash],
-  });
-
-  m.call(ens, "setSubnodeOwner", {
-    id: "set sub-node owner for registrar",
-    args: [ZERO_HASH, tldLabel, ACCOUNT_0],
-  });
-
-  return { ens, resolver, registrar, reverseRegistrar };
-});
-```
-
-Calls to `useModule` memoize the results object, assuming the same parameters are passed. Multiple calls to the same module with different parameters are banned.
-
-Only `CallableFuture` types can be returned when building a module, so contracts or libraries (not calls).
-
-## Create2 (TBD)
-
-`Create2` allows for reliably determining the address of a contract before it is deployed.
-
-It requires a factory contract:
-
-```solidity
-//SPDX-License-Identifier: MIT
-pragma solidity ^0.8.5;
-
-import "@openzeppelin/contracts/utils/Create2.sol";
-
-contract Create2Factory {
-    event Deployed(bytes32 indexed salt, address deployed);
-
-    function deploy(
-        uint256 amount,
-        bytes32 salt,
-        bytes memory bytecode
-    ) public returns (address) {
-        address deployedAddress;
-
-        deployedAddress = Create2.deploy(amount, salt, bytecode);
-        emit Deployed(salt, deployedAddress);
-
-        return deployedAddress;
-    }
-}
-```
-
-Given the `create2` factory, you can deploy a contract via it by:
-
-```ts
-module.exports = buildModule("Create2Example", (m) => {
-  const create2 = m.contract("Create2Factory");
-
-  const fooAddress = m.call(create2, "deploy", {
-    args: [
-      0, // amount
-      toBytes32(1), // salt
-      m.getBytesForArtifact("Foo"), // contract bytecode
-    ],
-  });
-
-  return { create2, foo: m.asContract(fooAddress) };
-});
-```
-
-## Global Configuration
-
-There are currently two configurable options you can add to your `hardhat.config.js` file in order to adjust the way **Ignition** functions:
-
-```typescript
-interface IgnitionConfig {
-  maxRetries: number;
-  gasIncrementPerRetry: BigNumber | null;
-}
-
-// example inside hardhat.config.js
-const { ethers } = require('ethers');
-
-module.exports = {
-  ignition: {
-    maxRetries: 10,
-    gasIncrementPerRetry: ethers.utils.parseUnits('0.001');
-  }
-}
-```
-
-These config values control how **Ignition** retries unconfirmed transactions that are taking too long to confirm.
-
-The value of `maxRetries` is the number of times an unconfirmed transaction will be retried before considering it failed. (default value is 4)
-
-The value of `gasIncrementPerRetry` must be an `ethers.BigNumber` and is assumed to be in wei units. This value will be added to the previous transactions gas price on each subsequent retry. However, if not given or if given value is `null`, then the default logic will run which adds 10% of the previous transactions gas price on each retry.
-
-Next, let's take a look at another way to visualize your deployments:
-
-[Visualizing your deployment](./visualizing-your-deployment.md)
+[Using Ignition in _Hardhat_ tests](./using-ignition-in-hardhat-tests.md)

@@ -1,3 +1,5 @@
+[![npm](https://img.shields.io/npm/v/@ignored/hardhat-ignition.svg)](https://www.npmjs.com/package/@ignored/hardhat-ignition) [![hardhat](https://hardhat.org/buidler-plugin-badge.svg?1)](https://hardhat.org)
+
 # Ignition
 
 > **WARNING**: This repository is **highly experimental**, and is under **active development**. Any code or binaries produced from this project **should not be used in any production or critical workloads**. The API is preliminary, **the API will change**.
@@ -10,16 +12,19 @@ Join our [Hardhat Support Discord server](https://hardhat.org/discord) to stay u
 
 ## Installation
 
-Add **Ignition** as a plugin to an existing [Hardhat](https://hardhat.org/) project:
-
-```shell
-npm install @ignored/hardhat-ignition
+```bash
+npm install --save-dev @ignored/hardhat-ignition
 ```
 
-Modify your `hardhat.config.{ts,js}` file, to include Ignition:
+And add the following statement to your `hardhat.config.js`:
 
-```javascript
-// ...
+```js
+require("@ignored/hardhat-ignition");
+```
+
+Or, if you are using TypeScript, add this to your `hardhat.config.ts`:
+
+```js
 import "@ignored/hardhat-ignition";
 ```
 
@@ -29,14 +34,26 @@ See our [Getting started guide](./docs/getting-started-guide.md) for a worked ex
 
 ## Documentation
 
-- [Creating modules for deployment](./docs/creating-modules-for-deployment.md)
+- [Getting started](./docs/getting-started-guide.md)
+- [Creating Modules for Deployments](./docs/creating-modules-for-deployment.md)
+  - [Deploying a Contract](./docs/creating-modules-for-deployment.md#deploying-a-contract)
+  - [Calling contract methods](./docs/creating-modules-for-deployment.md#calling-contract-methods)
+  - [Including modules within modules](./docs/creating-modules-for-deployment.md#including-modules-within-modules)
+  - [Module Parameters](./docs/creating-modules-for-deployment.md#module-parameters)
+  - [Switching based on the _Network Chain ID_](./docs/creating-modules-for-deployment.md#switching-based-on-the-network-chain-id)
+- [Using Ignition in _Hardhat_ tests](./docs/using-ignition-in-hardhat-tests.md)
+- [Running a deployment](./docs/running-a-deployment.md)
+  - [Visualizing your deployment with the `plan` task](./docs/running-a-deployment.md#visualizing-your-deployment-with-the-plan-task)
+  - [Executing the deployment](./docs/running-a-deployment.md#executing-the-deployment)
 
 ### Examples
 
-- [Simple](./examples/simple/README.md)
-- [ENS](./examples/ens/README.md)
-- [Create2](./examples/create2/README.md)
-- [Uniswap](./examples/uniswap/README.md)
+This repo contains example projects that show **Ignitions** features in context (under `./examples`):
+
+- [Sample](./examples/sample/README.md) - the **Hardhat** starter project enhanced with Ignition
+- [ENS](./examples/ens/README.md) - deploy ENS and its registry for local testing
+- [Create2](./examples/create2/README.md) - deploy contracts using a `create2` factory
+- [Uniswap](./examples/uniswap/README.md) - deploy Uniswap and test swaps
 
 ## Contributing
 

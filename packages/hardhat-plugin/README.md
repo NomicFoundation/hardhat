@@ -1,3 +1,5 @@
+[![npm](https://img.shields.io/npm/v/@ignored/hardhat-ignition.svg)](https://www.npmjs.com/package/@ignored/hardhat-ignition) [![hardhat](https://hardhat.org/buidler-plugin-badge.svg?1)](https://hardhat.org)
+
 # hardhat-ignition
 
 Hardhat plugin for orchestrating deployments.
@@ -26,7 +28,7 @@ import "@ignored/hardhat-ignition";
 
 ## Tasks
 
-This plugin provides the `deploy` task.
+This plugin provides the `deploy` and `plan` tasks.
 
 ## Usage
 
