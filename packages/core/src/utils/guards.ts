@@ -6,6 +6,7 @@ import type {
   CallDeploymentVertex,
   HardhatLibraryDeploymentVertex,
   ArtifactLibraryDeploymentVertex,
+  AwaitVertex,
 } from "types/deploymentGraph";
 import type {
   CallableFuture,
@@ -49,6 +50,12 @@ export function isCall(
   node: DeploymentGraphVertex
 ): node is CallDeploymentVertex {
   return node.type === "Call";
+}
+
+export function isAwaitedEvent(
+  node: DeploymentGraphVertex
+): node is AwaitVertex {
+  return node.type === "Await";
 }
 
 export function isHardhatLibrary(

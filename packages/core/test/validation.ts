@@ -478,6 +478,158 @@ describe("Validation", () => {
     });
   });
 
+  describe("awaited event", () => {
+    const exampleEventArtifact = {
+      _format: "hh-sol-artifact-1",
+      contractName: "Test",
+      sourceName: "contracts/Test.sol",
+      abi: [
+        {
+          anonymous: false,
+          inputs: [
+            {
+              indexed: true,
+              internalType: "address",
+              name: "sender",
+              type: "address",
+            },
+          ],
+          name: "SomeEvent",
+          type: "event",
+        },
+        {
+          inputs: [],
+          name: "test",
+          outputs: [],
+          stateMutability: "nonpayable",
+          type: "function",
+        },
+      ],
+      bytecode:
+        "6080604052348015600f57600080fd5b5060b08061001e6000396000f3fe6080604052348015600f57600080fd5b506004361060285760003560e01c8063f8a8fd6d14602d575b600080fd5b60336035565b005b3373ffffffffffffffffffffffffffffffffffffffff167f62e1088ac332ffa611ac64bd5a2aef2c27de42d3c61c686ec5c53753c35c7f6860405160405180910390a256fea2646970667358221220a77b6f6bba99fe90fc34a87656ffff1d3703a60de09e70feb2a64ed1dee0862264736f6c63430008070033",
+      deployedBytecode:
+        "6080604052348015600f57600080fd5b506004361060285760003560e01c8063f8a8fd6d14602d575b600080fd5b60336035565b005b3373ffffffffffffffffffffffffffffffffffffffff167f62e1088ac332ffa611ac64bd5a2aef2c27de42d3c61c686ec5c53753c35c7f6860405160405180910390a256fea2646970667358221220a77b6f6bba99fe90fc34a87656ffff1d3703a60de09e70feb2a64ed1dee0862264736f6c63430008070033",
+      linkReferences: {},
+      deployedLinkReferences: {},
+    };
+
+    it("should validate a correct awaited event", async () => {
+      const singleModule = buildModule("single", (m: IDeploymentBuilder) => {
+        const example = m.contract("Test");
+
+        const call = m.call(example, "test", { args: [] });
+
+        m.awaitEvent(example, "SomeEvent", { after: [call], args: ["0x0"] });
+
+        return { example };
+      });
+
+      const { graph } = generateDeploymentGraphFrom(singleModule, {
+        chainId: 31337,
+      });
+
+      const mockServices = {
+        ...getMockServices(),
+        artifacts: {
+          hasArtifact: () => true,
+          getArtifact: () => exampleEventArtifact,
+        },
+      } as any;
+
+      const validationResult = await validateDeploymentGraph(
+        graph,
+        mockServices
+      );
+      assert.equal(validationResult._kind, "success");
+    });
+
+    it("should fail awaiting a nonexistant event", async () => {
+      const singleModule = buildModule("single", (m: IDeploymentBuilder) => {
+        const example = m.contract("Test");
+
+        const call = m.call(example, "test", { args: [] });
+
+        m.awaitEvent(example, "Nonexistant", { args: [], after: [call] });
+
+        return { example };
+      });
+
+      const { graph } = generateDeploymentGraphFrom(singleModule, {
+        chainId: 31337,
+      });
+
+      const mockServices = {
+        ...getMockServices(),
+        artifacts: {
+          hasArtifact: () => true,
+          getArtifact: () => exampleEventArtifact,
+        },
+      } as any;
+
+      const validationResult = await validateDeploymentGraph(
+        graph,
+        mockServices
+      );
+
+      if (validationResult._kind !== "failure") {
+        return assert.fail("validation should have failed");
+      }
+
+      const {
+        failures: [text, [error]],
+      } = validationResult;
+
+      assert.equal(text, "Validation failed");
+      assert.equal(
+        error.message,
+        "Contract 'Test' doesn't have an event Nonexistant"
+      );
+    });
+
+    it("should fail an awaited event with wrong number of arguments", async () => {
+      const singleModule = buildModule("single", (m: IDeploymentBuilder) => {
+        const example = m.contract("Test");
+
+        const call = m.call(example, "test", { args: [] });
+
+        m.awaitEvent(example, "SomeEvent", { after: [call], args: [] });
+
+        return { example };
+      });
+
+      const { graph } = generateDeploymentGraphFrom(singleModule, {
+        chainId: 31337,
+      });
+
+      const mockServices = {
+        ...getMockServices(),
+        artifacts: {
+          hasArtifact: () => true,
+          getArtifact: () => exampleEventArtifact,
+        },
+      } as any;
+
+      const validationResult = await validateDeploymentGraph(
+        graph,
+        mockServices
+      );
+
+      if (validationResult._kind !== "failure") {
+        return assert.fail("validation should have failed");
+      }
+
+      const {
+        failures: [text, [error]],
+      } = validationResult;
+
+      assert.equal(text, "Validation failed");
+      assert.equal(
+        error.message,
+        "Event SomeEvent in contract Test expects 1 arguments but 0 were given"
+      );
+    });
+  });
+
   describe("deployed contract", () => {
     it("should validate a correct artifact library deploy", async () => {
       const singleModule = buildModule("single", (m: IDeploymentBuilder) => {
