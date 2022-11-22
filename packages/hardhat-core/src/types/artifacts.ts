@@ -42,6 +42,11 @@ export interface Artifacts {
   getBuildInfo(fullyQualifiedName: string): Promise<BuildInfo | undefined>;
 
   /**
+   * Synchronous version of getBuildInfo.
+   */
+  getBuildInfoSync(fullyQualifiedName: string): BuildInfo | undefined;
+
+  /**
    * Returns an array with the absolute paths of all the existing artifacts.
    *
    * Note that there's an artifact per contract.
