@@ -17,18 +17,18 @@ export async function executeAwaitedEvent(
 
   const { address, abi } = resolve(contract);
 
-  let log;
+  let eventResult;
   try {
     const contractInstance = new Contract(address, abi);
 
     const filter = contractInstance.filters[event](...resolvedArgs);
 
-    log = await services.transactions.waitForEvent(
+    eventResult = await services.transactions.waitForEvent(
       filter,
       options.awaitEventDuration
     );
 
-    if (log === null) {
+    if (eventResult === null) {
       // todo: implement on hold state
       return {
         _kind: "failure",
@@ -47,7 +47,7 @@ export async function executeAwaitedEvent(
   return {
     _kind: "success",
     result: {
-      hash: log.transactionHash,
+      hash: eventResult.transactionHash,
     },
   };
 }
