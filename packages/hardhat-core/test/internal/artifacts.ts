@@ -16,8 +16,10 @@ import {
   CompilerOutput,
 } from "../../src/types";
 import { getFullyQualifiedName } from "../../src/utils/contract-names";
+import { useEnvironment } from "../helpers/environment";
 import { expectHardhatError, expectHardhatErrorAsync } from "../helpers/errors";
 import { useTmpDir } from "../helpers/fs";
+import { useFixtureProject } from "../helpers/project";
 
 async function storeAllArtifacts(sourceName: string, artifacts: Artifacts) {
   const solcVersion = "0.5.6";
@@ -1542,6 +1544,20 @@ describe("Artifacts class", function () {
 
       assert.isDefined(artifacts._getArtifactPathFromFullyQualifiedName);
     });
+  });
+});
+
+describe("artifacts extensions", function () {
+  useFixtureProject("artifacts-extensions");
+  useEnvironment();
+
+  it("should read artifacts provided by Hardaht and provided by extensions", async function () {
+    await this.env.run("run", {
+      script: "./script.js",
+    });
+
+    assert.equal(process.exitCode, 0);
+    (process as any).exitCode = undefined;
   });
 });
 
