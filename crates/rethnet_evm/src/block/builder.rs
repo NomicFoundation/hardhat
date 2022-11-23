@@ -3,9 +3,9 @@ use std::{fmt::Debug, sync::Arc};
 use anyhow::bail;
 use rethnet_eth::{
     block::{Header, PartialHeader},
-    H256, U256,
+    Address, U256,
 };
-use revm::{BlockEnv, CfgEnv, ExecutionResult, SpecId, TxEnv};
+use revm::{BlockEnv, CfgEnv, ExecutionResult, TxEnv};
 
 use crate::{
     db::{AsyncDatabase, SyncDatabase},
@@ -36,7 +36,8 @@ where
         parent: Header,
         header: HeaderData,
     ) -> Result<Self, E> {
-        db.checkpoint().await?;
+        // TODO: Proper implementation of a block builder
+        // db.checkpoint().await?;
 
         // TODO: Allow user to pass in values
         let header = PartialHeader {
@@ -64,13 +65,13 @@ where
         self.header.gas_limit - self.gas_used()
     }
 
-    fn miner_reward(num_ommers: u64) -> U256 {
-        // TODO: This is the LONDON block reward. Did it change?
-        const BLOCK_REWARD: u64 = 2 * 10u64.pow(18);
-        const NIBLING_REWARD: u64 = BLOCK_REWARD / 32;
+    // fn miner_reward(num_ommers: u64) -> U256 {
+    //     // TODO: This is the LONDON block reward. Did it change?
+    //     const BLOCK_REWARD: u64 = 2 * 10u64.pow(18);
+    //     const NIBLING_REWARD: u64 = BLOCK_REWARD / 32;
 
-        U256::from(BLOCK_REWARD + num_ommers * NIBLING_REWARD)
-    }
+    //     U256::from(BLOCK_REWARD + num_ommers * NIBLING_REWARD)
+    // }
 
     /// Adds a pending transaction to
     pub async fn add_transaction(&mut self, transaction: TxEnv) -> anyhow::Result<ExecutionResult> {
@@ -112,30 +113,21 @@ where
 
     /// Finalizes the block, returning the state root.
     /// TODO: Build a full block
-    pub async fn finalize(self) -> Result<H256, E> {
-        #[derive(Eq, PartialEq)]
-        enum ConsensusType {
-            ProofOfStake,
-            ProofOfWork,
-        }
-        let consensus_type = if SpecId::enabled(self.cfg.spec_id, SpecId::MERGE) {
-            ConsensusType::ProofOfStake
-        } else {
-            ConsensusType::ProofOfWork
-        };
-
-        if consensus_type == ConsensusType::ProofOfWork {
+    pub async fn finalize(self, rewards: Vec<(Address, U256)>) -> Result<(), E> {
+        for (address, reward) in rewards {
             self.state
                 .modify_account(
-                    self.header.beneficiary,
-                    Box::new(|account_info| account_info.balance += Self::miner_reward(0)),
+                    address,
+                    Box::new(move |account_info| account_info.balance += reward),
                 )
                 .await?;
         }
 
-        // let block = Block::new(self.header, self.transactions, Vec::new());
-        // let state_root = trie_root(input);
-        // Ok(state_root)
-        todo!()
+        Ok(())
+    }
+
+    /// Aborts building of the block, reverting all transactions in the process.
+    pub async fn abort(self) -> Result<(), E> {
+        self.state.revert().await
     }
 }
