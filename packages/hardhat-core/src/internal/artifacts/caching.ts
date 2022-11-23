@@ -1,6 +1,6 @@
 import {
   Artifact,
-  ArtifactSource,
+  ArtifactsSource,
   BuildInfo,
   CompilerInput,
   CompilerOutput,
@@ -17,7 +17,7 @@ interface Cache {
   artifactNameToArtifact: Map<string, Artifact>;
 }
 
-export class CachingSource extends MutableSource implements ArtifactSource {
+export class CachingSource extends MutableSource implements ArtifactsSource {
   // Undefined means that the cache is disabled.
   private _cache?: Cache = {
     artifactNameToArtifactPathCache: new Map(),

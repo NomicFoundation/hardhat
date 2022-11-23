@@ -1,5 +1,6 @@
 import {
   ActionType,
+  ArtifactsExtender,
   ConfigExtender,
   ConfigurableTaskDefinition,
   EnvironmentExtender,
@@ -133,6 +134,17 @@ export function extendEnvironment(extender: EnvironmentExtender) {
 export function extendConfig(extender: ConfigExtender) {
   const ctx = HardhatContext.getHardhatContext();
   ctx.configExtenders.push(extender);
+}
+
+/**
+ * Accepts a function that receives the resolved configuration and returns an
+ * extra source of artifacts. This source has to implement the ArtifactsSource
+ * interface.
+ */
+export function extendArtifacts(artifactsExtender: ArtifactsExtender) {
+  const ctx = HardhatContext.getHardhatContext();
+  const extenderManager = ctx.extendersManager;
+  extenderManager.addArtifactsExtender(artifactsExtender);
 }
 
 // NOTE: This is experimental and will be removed. Please contact our team

@@ -1,4 +1,4 @@
-import { Artifacts } from "./artifacts";
+import { Artifacts, ArtifactsSource } from "./artifacts";
 import { HardhatConfig, HardhatUserConfig, NetworkConfig } from "./config";
 import { EthereumProvider } from "./provider";
 
@@ -207,3 +207,9 @@ export interface Network {
  * modify its properties or add new ones.
  */
 export type EnvironmentExtender = (env: HardhatRuntimeEnvironment) => void;
+
+/**
+ * A function that receives the resolved Hardhat configuration and
+ * returns an extra source of artifacts.
+ */
+export type ArtifactsExtender = (config: HardhatConfig) => ArtifactsSource;

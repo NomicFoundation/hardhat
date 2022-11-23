@@ -122,7 +122,14 @@ export interface Artifacts {
   disableCache?(): void;
 }
 
-export interface ArtifactSource {
+/**
+ * Classes implementing this interface can be used as extra sources of
+ * artifacts.
+ *
+ * Not every method needs to be fully implemented; some of them can have a
+ * minimal valid implementation, as explained on their jsdocs.
+ */
+export interface ArtifactsSource {
   /**
    * Reads an Artifact, returning `undefined` if not found.
    * @see Artifacts#readArtifact
@@ -145,6 +152,10 @@ export interface ArtifactSource {
   artifactExists(contractNameOrFullyQualifiedName: string): Promise<boolean>;
 
   /**
+   * Returns an array with the fully qualified names of all the artifacts.
+   *
+   * Always returning an empty array is a valid implementation.
+   *
    * @see Artifacts#getAllFullyQualifiedNames
    */
   getAllFullyQualifiedNames(): Promise<string[]>;
@@ -162,6 +173,8 @@ export interface ArtifactSource {
 
   /**
    * Returns the paths of all the artifacts that the plugin can read.
+   *
+   * Always returning an empty array is a valid implementation.
    *
    * @see Artifacts#getArtifactPaths
    */
@@ -206,14 +219,6 @@ export interface ArtifactSource {
    * @see Artifacts#disableCache
    */
   disableCache: () => void;
-
-  /**
-   * Get a list of values similar to `contractNameOrFullyQualifiedName`, to be
-   * used as suggestions when that contract of FQN doesn't exist.
-   *
-   * Always returning an empty array is a valid implementation.
-   */
-  getSuggestions(contractNameOrFullyQualifiedName: string): string[];
 }
 
 /**

@@ -10,7 +10,7 @@ import {
 import { ERRORS } from "../../src/internal/core/errors-list";
 import {
   Artifact,
-  ArtifactSource,
+  ArtifactsSource,
   BuildInfo,
   CompilerInput,
   CompilerOutput,
@@ -1272,7 +1272,7 @@ describe("Artifacts class", function () {
   describe("configured with custom sources", function () {
     useTmpDir("artifacts");
 
-    class ArtifactSourceStub implements ArtifactSource {
+    class ArtifactSourceStub implements ArtifactsSource {
       constructor(private _id: string, private _knownContracts: string[]) {}
 
       public async readArtifact(name: string): Promise<Artifact | undefined> {

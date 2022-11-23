@@ -4,7 +4,7 @@ import path from "path";
 import {
   Artifact,
   Artifacts as IArtifacts,
-  ArtifactSource,
+  ArtifactsSource,
   BuildInfo,
   CompilerInput,
   CompilerOutput,
@@ -22,7 +22,7 @@ export class Artifacts implements IArtifacts {
 
   constructor(
     private readonly _artifactsPath: string,
-    private readonly _extensionSources: ArtifactSource[] = []
+    private readonly _extensionSources: ArtifactsSource[] = []
   ) {
     this._hardhatSource = new CachingSource(this._artifactsPath);
   }
@@ -195,11 +195,8 @@ export class Artifacts implements IArtifacts {
   }
 
   private _throwNotFound(contractNameOrFullyQualifiedName: string): never {
-    const suggestions = [
-      this._hardhatSource,
-      ...this._extensionSources,
-    ].flatMap((source) =>
-      source.getSuggestions(contractNameOrFullyQualifiedName)
+    const suggestions = this._hardhatSource.getSuggestions(
+      contractNameOrFullyQualifiedName
     );
 
     const uniqueSuggestions = [...new Set(suggestions)].sort();

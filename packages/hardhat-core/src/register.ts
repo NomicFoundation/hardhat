@@ -38,11 +38,16 @@ if (!HardhatContext.isCreated()) {
 
   const { resolvedConfig, userConfig } = loadConfigAndTasks(hardhatArguments);
 
+  const artifactsExtensions = ctx.extendersManager
+    .getArtifactsExtenders()
+    .map((artifactsExtender) => artifactsExtender(resolvedConfig));
+
   const env = new Environment(
     resolvedConfig,
     hardhatArguments,
     ctx.tasksDSL.getTaskDefinitions(),
     ctx.extendersManager.getExtenders(),
+    artifactsExtensions,
     ctx.experimentalHardhatNetworkMessageTraceHooks,
     userConfig
   );

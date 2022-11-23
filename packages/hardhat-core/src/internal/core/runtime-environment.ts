@@ -2,6 +2,7 @@ import debug from "debug";
 
 import {
   Artifacts as IArtifacts,
+  ArtifactsSource,
   EnvironmentExtender,
   ExperimentalHardhatNetworkMessageTraceHook,
   HardhatArguments,
@@ -67,6 +68,7 @@ export class Environment implements HardhatRuntimeEnvironment {
     public readonly hardhatArguments: HardhatArguments,
     public readonly tasks: TasksMap,
     extenders: EnvironmentExtender[] = [],
+    artifactsExtensions: ArtifactsSource[] = [],
     experimentalHardhatNetworkMessageTraceHooks: ExperimentalHardhatNetworkMessageTraceHook[] = [],
     public readonly userConfig: HardhatUserConfig = {}
   ) {
@@ -85,7 +87,7 @@ export class Environment implements HardhatRuntimeEnvironment {
       });
     }
 
-    this.artifacts = new Artifacts(config.paths.artifacts);
+    this.artifacts = new Artifacts(config.paths.artifacts, artifactsExtensions);
 
     const provider = lazyObject(() => {
       log(`Creating provider for network ${networkName}`);

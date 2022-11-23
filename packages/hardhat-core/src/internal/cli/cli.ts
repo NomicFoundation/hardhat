@@ -255,11 +255,16 @@ async function main() {
       );
     }
 
+    const artifactsExtensions = ctx.extendersManager
+      .getArtifactsExtenders()
+      .map((artifactsExtender) => artifactsExtender(resolvedConfig));
+
     const env = new Environment(
       resolvedConfig,
       hardhatArguments,
       taskDefinitions,
       envExtenders,
+      artifactsExtensions,
       ctx.experimentalHardhatNetworkMessageTraceHooks,
       userConfig
     );
