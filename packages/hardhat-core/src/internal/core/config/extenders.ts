@@ -1,19 +1,19 @@
 import { ArtifactsExtender, EnvironmentExtender } from "../../../types";
 
 export class ExtenderManager {
-  private readonly _extenders: EnvironmentExtender[] = [];
+  private readonly _environmentExtenders: EnvironmentExtender[] = [];
   private readonly _artifactsExtenders: ArtifactsExtender[] = [];
 
-  public add(extender: EnvironmentExtender) {
-    this._extenders.push(extender);
+  public addEnvironmentExtender(environmentExtender: EnvironmentExtender) {
+    this._environmentExtenders.push(environmentExtender);
   }
 
   public addArtifactsExtender(artifactsExtender: ArtifactsExtender) {
     this._artifactsExtenders.push(artifactsExtender);
   }
 
-  public getExtenders(): EnvironmentExtender[] {
-    return this._extenders;
+  public getEnvironmentExtenders(): EnvironmentExtender[] {
+    return this._environmentExtenders;
   }
 
   public getArtifactsExtenders(): ArtifactsExtender[] {

@@ -223,7 +223,7 @@ async function main() {
       Reporter.setEnabled(true);
     }
 
-    const envExtenders = ctx.extendersManager.getExtenders();
+    const envExtenders = ctx.extendersManager.getEnvironmentExtenders();
     const taskDefinitions = ctx.tasksDSL.getTaskDefinitions();
 
     const [abortAnalytics, hitPromise] = await analytics.sendTaskHit(taskName);

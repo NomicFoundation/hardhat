@@ -128,7 +128,7 @@ export const types = argumentTypes;
 export function extendEnvironment(extender: EnvironmentExtender) {
   const ctx = HardhatContext.getHardhatContext();
   const extenderManager = ctx.extendersManager;
-  extenderManager.add(extender);
+  extenderManager.addEnvironmentExtender(extender);
 }
 
 export function extendConfig(extender: ConfigExtender) {

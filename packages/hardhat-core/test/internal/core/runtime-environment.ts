@@ -346,7 +346,7 @@ describe("Environment", () => {
           config,
           { ...args, network: "NOPE" },
           tasks,
-          ctx.extendersManager.getExtenders()
+          ctx.extendersManager.getEnvironmentExtenders()
         );
       }, ERRORS.NETWORK.CONFIG_NOT_FOUND);
     });
@@ -357,7 +357,7 @@ describe("Environment", () => {
         config,
         { ...args, network: undefined },
         tasks,
-        ctx.extendersManager.getExtenders()
+        ctx.extendersManager.getEnvironmentExtenders()
       );
 
       assert.equal(env.network.name, "default");
@@ -375,7 +375,7 @@ describe("Environment", () => {
         config,
         args,
         tasks,
-        ctx.extendersManager.getExtenders()
+        ctx.extendersManager.getEnvironmentExtenders()
       );
       assert.equal((env as any).__test_key, "a value");
       assert.equal((env as any).__test_bleep(2), 4);
