@@ -1,32 +1,33 @@
 const { expect } = require("chai");
+const { ethers } = require("ethers");
+
 const Multisig = require("../ignition/Multisig");
-const namehash = require("eth-ens-namehash");
-const labelhash = (label) =>
-  hre.ethers.utils.keccak256(hre.ethers.utils.toUtf8Bytes(label));
 
 const ACCOUNT_0 = "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266";
-const ACCOUNT_1 = "0x70997970C51812dc3A010C7d01b50e0d17dc79C8";
 
 describe("Multisig", function () {
-  it("should be able to create new subrecords", async function () {
-    // Arrange
-    const { ens, resolver } = await ignition.deploy(ENSModule);
+  let multisig;
 
-    await ens.setSubnodeOwner(
-      namehash.hash("test"),
-      labelhash("alice"),
-      ACCOUNT_0
+  before(async () => {
+    const moduleResult = await ignition.deploy(Multisig);
+
+    multisig = moduleResult.multisig;
+  });
+
+  it("should store a submitted transaction", async function () {
+    const submittedTx = await multisig.functions.transactions(0);
+
+    expect(submittedTx.destination).to.equal(ACCOUNT_0);
+    expect(submittedTx.value.toString()).to.equal(
+      ethers.utils.parseUnits("50").toString()
     );
+    expect(submittedTx.data).to.equal("0x00");
+    expect(submittedTx.executed).to.equal(false);
+  });
 
-    // Act
-    await resolver["setAddr(bytes32,address)"](
-      namehash.hash("alice.test"),
-      ACCOUNT_1
-    );
+  it("should confirm a stored transaction", async function () {
+    const [isConfirmed] = await multisig.functions.confirmations(0, ACCOUNT_0);
 
-    // Assert
-    const after = await resolver["addr(bytes32)"](namehash.hash("alice.test"));
-
-    expect(after).to.equal(ACCOUNT_1);
+    expect(isConfirmed).to.equal(true);
   });
 });

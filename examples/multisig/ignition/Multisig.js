@@ -6,7 +6,7 @@ const ACCOUNT_1 = "0x70997970C51812dc3A010C7d01b50e0d17dc79C8";
 
 module.exports = buildModule("MultisigModule", (m) => {
   const owners = [ACCOUNT_0, ACCOUNT_1];
-  const required = 2;
+  const required = 1;
   const value = ethers.utils.parseUnits("100");
 
   // todo: support arbitrary tx
@@ -21,12 +21,12 @@ module.exports = buildModule("MultisigModule", (m) => {
   });
 
   // todo: support sending via non-default account
-  const event = m.awaitEvent(multisig, "Confirmation", {
-    args: [ACCOUNT_1, 0],
+  m.awaitEvent(multisig, "Confirmation", {
+    args: [ACCOUNT_0, 0],
     after: [call],
   });
 
-  m.call(multisig, "executeTransaction", { args: [0], after: [event] });
+  // m.call(multisig, "executeTransaction", { args: [0], after: [event] });
 
   return { multisig };
 });
