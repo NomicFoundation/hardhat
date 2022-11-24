@@ -19,11 +19,7 @@ import {
   setLengthLeft,
   toBuffer,
 } from "@nomicfoundation/ethereumjs-util";
-import {
-  Bloom,
-  RunBlockResult,
-  RunTxResult,
-} from "@nomicfoundation/ethereumjs-vm";
+import { RunBlockResult, RunTxResult } from "@nomicfoundation/ethereumjs-vm";
 import { SignTypedDataVersion, signTypedData } from "@metamask/eth-sig-util";
 import chalk from "chalk";
 import debug from "debug";
@@ -106,6 +102,7 @@ import { FakeSenderTransaction } from "./transactions/FakeSenderTransaction";
 import { TxPool } from "./TxPool";
 import { TransactionQueue } from "./TransactionQueue";
 import { HardhatBlockchainInterface } from "./types/HardhatBlockchainInterface";
+import { Bloom } from "./utils/bloom";
 import { getCurrentTimestamp } from "./utils/getCurrentTimestamp";
 import { makeCommon } from "./utils/makeCommon";
 import { makeForkClient } from "./utils/makeForkClient";

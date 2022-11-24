@@ -10,13 +10,13 @@ import {
   intToBuffer,
 } from "@nomicfoundation/ethereumjs-util";
 import {
-  Bloom,
   PostByzantiumTxReceipt,
   PreByzantiumTxReceipt,
   RunTxResult,
   TxReceipt,
 } from "@nomicfoundation/ethereumjs-vm";
 import { fromBigIntLike } from "../../../util/bigint";
+import { Bloom } from "../utils/bloom";
 
 import { VMAdapter } from "./vm-adapter";
 
