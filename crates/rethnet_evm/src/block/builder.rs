@@ -11,6 +11,7 @@ use crate::{
     db::{AsyncDatabase, SyncDatabase},
     evm::build_evm,
     inspector::RethnetInspector,
+    trace::Trace,
     HeaderData,
 };
 
@@ -74,7 +75,10 @@ where
     // }
 
     /// Adds a pending transaction to
-    pub async fn add_transaction(&mut self, transaction: TxEnv) -> anyhow::Result<ExecutionResult> {
+    pub async fn add_transaction(
+        &mut self,
+        transaction: TxEnv,
+    ) -> anyhow::Result<(ExecutionResult, Trace)> {
         //  transaction's gas limit cannot be greater than the remaining gas in the block
         if U256::from(transaction.gas_limit) > self.gas_remaining() {
             bail!("tx has a higher gas limit than the remaining gas in the block");
@@ -93,12 +97,15 @@ where
         let db = self.state.clone();
         let cfg = self.cfg.clone();
 
-        let (result, changes) = self
+        let (result, changes, trace) = self
             .state
             .runtime()
             .spawn(async move {
                 let mut evm = build_evm(&db, cfg, transaction, block);
-                evm.inspect(RethnetInspector::default())
+
+                let mut inspector = RethnetInspector::default();
+                let (result, state) = evm.inspect(&mut inspector);
+                (result, state, inspector.into_trace())
             })
             .await
             .unwrap();
@@ -108,7 +115,7 @@ where
         self.header.gas_used += U256::from(result.gas_used);
 
         // TODO: store receipt
-        Ok(result)
+        Ok((result, trace))
     }
 
     /// Finalizes the block, returning the state root.

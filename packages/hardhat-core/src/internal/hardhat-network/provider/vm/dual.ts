@@ -22,8 +22,8 @@ function printEthereumJSTrace(trace: any) {
   console.log(JSON.stringify(trace, null, 2));
 }
 
-function printRethnetTrace(_trace: any) {
-  // not implemented
+function printRethnetTrace(trace: any) {
+  console.log(JSON.stringify(trace, null, 2));
 }
 
 export class DualModeAdapter implements VMAdapter {
@@ -80,7 +80,7 @@ export class DualModeAdapter implements VMAdapter {
 
     try {
       assertEqualRunTxResults(ethereumJSResult, rethnetResult);
-      return [rethnetResult, null];
+      return [rethnetResult, rethnetTrace];
     } catch (e) {
       // if the results didn't match, print the traces
       console.log("EthereumJS trace");
@@ -171,18 +171,25 @@ export class DualModeAdapter implements VMAdapter {
     tx: TypedTransaction,
     block: Block
   ): Promise<[RunTxResult, Trace]> {
-    const ethereumJSResult = await this._ethereumJSAdapter.runTxInBlock(
-      tx,
-      block
-    );
+    const [ethereumJSResult, ethereumJSTrace] =
+      await this._ethereumJSAdapter.runTxInBlock(tx, block);
 
-    console.log("ethereum:", ethereumJSResult);
-    console.log("eth exit code:", ethereumJSResult.execResult.exceptionError);
-    const rethnetResult = await this._rethnetAdapter.runTxInBlock(tx, block);
+    const [rethnetResult, rethnetTrace] =
+      await this._rethnetAdapter.runTxInBlock(tx, block);
 
-    assertEqualRunTxResults(ethereumJSResult, rethnetResult);
+    try {
+      assertEqualRunTxResults(ethereumJSResult, rethnetResult);
+      return [ethereumJSResult, ethereumJSTrace];
+    } catch (e) {
+      // if the results didn't match, print the traces
+      console.log("EthereumJS trace");
+      printEthereumJSTrace(ethereumJSTrace);
+      console.log();
+      console.log("Rethnet trace");
+      printRethnetTrace(rethnetTrace);
 
-    return ethereumJSResult;
+      throw e;
+    }
   }
 
   public async addBlockRewards(

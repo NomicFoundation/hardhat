@@ -25,6 +25,9 @@ pub type State = HashMap<Address, Account>;
 /// Database types for managing Ethereum state
 pub mod db;
 
+/// Types used for tracing EVM calls
+pub mod trace;
+
 mod block;
 mod debug;
 pub(crate) mod evm;

@@ -1,10 +1,10 @@
 mod access_list;
 mod block;
 mod cast;
-// mod db;
 mod state;
 mod sync;
 mod threadsafe_function;
+mod trace;
 mod transaction;
 
 use std::{fmt::Debug, str::FromStr};
@@ -18,6 +18,7 @@ use rethnet_evm::{AccountInfo, CfgEnv};
 use secp256k1::{PublicKey, Secp256k1, SecretKey, SignOnly};
 use sha3::{Digest, Keccak256};
 use state::StateManager;
+use trace::Trace;
 use transaction::{Transaction, TransactionOutput};
 
 use crate::cast::TryCast; //, db::{JsDatabase, JsDatabaseCommitInner, JsDatabaseDebugInner}};
@@ -209,24 +210,28 @@ pub struct ExecutionResult {
     pub gas_used: BigInt,
     pub gas_refunded: BigInt,
     pub logs: Vec<serde_json::Value>,
+    pub trace: Trace,
 }
 
-impl TryFrom<rethnet_evm::ExecutionResult> for ExecutionResult {
+impl TryFrom<(rethnet_evm::ExecutionResult, rethnet_evm::trace::Trace)> for ExecutionResult {
     type Error = napi::Error;
 
-    fn try_from(value: rethnet_evm::ExecutionResult) -> std::result::Result<Self, Self::Error> {
-        let logs = value
+    fn try_from(
+        (result, trace): (rethnet_evm::ExecutionResult, rethnet_evm::trace::Trace),
+    ) -> std::result::Result<Self, Self::Error> {
+        let logs = result
             .logs
             .into_iter()
             .map(serde_json::to_value)
             .collect::<serde_json::Result<Vec<serde_json::Value>>>()?;
 
         Ok(Self {
-            exit_code: value.exit_reason as u8,
-            output: value.out.into(),
-            gas_used: BigInt::from(value.gas_used),
-            gas_refunded: BigInt::from(value.gas_refunded),
+            exit_code: result.exit_reason as u8,
+            output: result.out.into(),
+            gas_used: BigInt::from(result.gas_used),
+            gas_refunded: BigInt::from(result.gas_refunded),
             logs,
+            trace: trace.into(),
         })
     }
 }
@@ -237,14 +242,24 @@ pub struct TransactionResult {
     pub state: serde_json::Value,
 }
 
-impl TryFrom<(rethnet_evm::ExecutionResult, rethnet_evm::State)> for TransactionResult {
+impl
+    TryFrom<(
+        rethnet_evm::ExecutionResult,
+        rethnet_evm::State,
+        rethnet_evm::trace::Trace,
+    )> for TransactionResult
+{
     type Error = napi::Error;
 
     fn try_from(
-        value: (rethnet_evm::ExecutionResult, rethnet_evm::State),
+        (result, state, trace): (
+            rethnet_evm::ExecutionResult,
+            rethnet_evm::State,
+            rethnet_evm::trace::Trace,
+        ),
     ) -> std::result::Result<Self, Self::Error> {
-        let exec_result = value.0.try_into()?;
-        let state = serde_json::to_value(value.1)?;
+        let exec_result = (result, trace).try_into()?;
+        let state = serde_json::to_value(state)?;
 
         Ok(Self { exec_result, state })
     }

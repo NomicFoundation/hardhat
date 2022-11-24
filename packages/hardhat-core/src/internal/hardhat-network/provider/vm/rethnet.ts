@@ -85,10 +85,14 @@ export class RethnetAdapter implements VMAdapter {
       difficulty,
     });
 
-    console.log("rethnet dryRun:", rethnetResult);
-    const result = rethnetResultToRunTxResult(rethnetResult.execResult);
-
-    return [result, null];
+    try {
+      const result = rethnetResultToRunTxResult(rethnetResult.execResult);
+      return [result, rethnetResult.execResult.trace];
+    } catch (e) {
+      console.log("Rethnet trace");
+      console.log(rethnetResult.execResult.trace);
+      throw e;
+    }
   }
 
   /**
@@ -194,11 +198,9 @@ export class RethnetAdapter implements VMAdapter {
       ethereumjsHeaderDataToRethnet(block.header, difficulty)
     );
 
-    console.log("rethnet in block:", rethnetResult);
-
     const result = rethnetResultToRunTxResult(rethnetResult);
 
-    return [result, null];
+    return [result, rethnetResult.trace];
   }
 
   /**

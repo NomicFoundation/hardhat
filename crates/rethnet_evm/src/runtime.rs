@@ -1,11 +1,12 @@
 use std::{fmt::Debug, sync::Arc};
 
-use revm::{AccountInfo, BlockEnv, CfgEnv, ExecutionResult, TxEnv};
+use revm::{BlockEnv, CfgEnv, ExecutionResult, TxEnv};
 
 use crate::{
     db::{AsyncDatabase, SyncDatabase},
     evm::build_evm,
     inspector::RethnetInspector,
+    trace::Trace,
     State,
 };
 
@@ -32,7 +33,7 @@ where
         &mut self,
         transaction: TxEnv,
         block: BlockEnv,
-    ) -> (ExecutionResult, State) {
+    ) -> (ExecutionResult, State, Trace) {
         let db = self.db.clone();
         let cfg = self.cfg.clone();
 
@@ -40,7 +41,10 @@ where
             .runtime()
             .spawn(async move {
                 let mut evm = build_evm(&db, cfg, transaction, block);
-                evm.inspect(RethnetInspector::default())
+
+                let mut inspector = RethnetInspector::default();
+                let (result, state) = evm.inspect(&mut inspector);
+                (result, state, inspector.into_trace())
             })
             .await
             .unwrap()
@@ -51,7 +55,7 @@ where
         &mut self,
         transaction: TxEnv,
         block: BlockEnv,
-    ) -> Result<(ExecutionResult, State), E> {
+    ) -> Result<(ExecutionResult, State, Trace), E> {
         let mut old_disable_balance_check = true;
         std::mem::swap(
             &mut old_disable_balance_check,
@@ -66,7 +70,10 @@ where
             .runtime()
             .spawn(async move {
                 let mut evm = build_evm(&db, cfg, transaction, block);
-                evm.inspect(RethnetInspector::default())
+
+                let mut inspector = RethnetInspector::default();
+                let (result, state) = evm.inspect(&mut inspector);
+                (result, state, inspector.into_trace())
             })
             .await
             .unwrap();
@@ -80,11 +87,11 @@ where
     }
 
     /// Runs a transaction, committing the state in the process.
-    pub async fn run(&mut self, transaction: TxEnv, block: BlockEnv) -> ExecutionResult {
-        let (result, changes) = self.dry_run(transaction, block).await;
+    pub async fn run(&mut self, transaction: TxEnv, block: BlockEnv) -> (ExecutionResult, Trace) {
+        let (result, changes, trace) = self.dry_run(transaction, block).await;
 
         self.db.apply(changes).await;
 
-        result
+        (result, trace)
     }
 }
