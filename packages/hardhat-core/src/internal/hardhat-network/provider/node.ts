@@ -2234,7 +2234,8 @@ Hardhat Network's forking functionality only works with blocks from at least spu
       // know anything about the txs in the current block
     }
 
-    return this._vm.dryRun(tx, blockContext, forceBaseFeeZero);
+    const [result] = await this._vm.dryRun(tx, blockContext, forceBaseFeeZero);
+    return result;
   }
 
   private async _computeFilterParams(

@@ -13,10 +13,18 @@ import { HardhatBlockchainInterface } from "../types/HardhatBlockchainInterface"
 
 import { EthereumJSAdapter } from "./ethereumjs";
 import { RethnetAdapter } from "./rethnet";
-import { VMAdapter } from "./vm-adapter";
+import { Trace, VMAdapter } from "./vm-adapter";
 
 /* eslint-disable @nomiclabs/hardhat-internal-rules/only-hardhat-error */
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
+
+function printEthereumJSTrace(trace: any) {
+  console.log(JSON.stringify(trace, null, 2));
+}
+
+function printRethnetTrace(_trace: any) {
+  // not implemented
+}
 
 export class DualModeAdapter implements VMAdapter {
   constructor(
@@ -60,22 +68,29 @@ export class DualModeAdapter implements VMAdapter {
     tx: TypedTransaction,
     blockContext: Block,
     forceBaseFeeZero?: boolean
-  ): Promise<RunTxResult> {
-    const ethereumJSResult = await this._ethereumJSAdapter.dryRun(
+  ): Promise<[RunTxResult, Trace]> {
+    const [ethereumJSResult, ethereumJSTrace] =
+      await this._ethereumJSAdapter.dryRun(tx, blockContext, forceBaseFeeZero);
+
+    const [rethnetResult, rethnetTrace] = await this._rethnetAdapter.dryRun(
       tx,
       blockContext,
       forceBaseFeeZero
     );
 
-    const rethnetResult = await this._rethnetAdapter.dryRun(
-      tx,
-      blockContext,
-      forceBaseFeeZero
-    );
+    try {
+      assertEqualRunTxResults(ethereumJSResult, rethnetResult);
+      return [rethnetResult, null];
+    } catch (e) {
+      // if the results didn't match, print the traces
+      console.log("EthereumJS trace");
+      printEthereumJSTrace(ethereumJSTrace);
+      console.log();
+      console.log("Rethnet trace");
+      printRethnetTrace(rethnetTrace);
 
-    assertEqualRunTxResults(ethereumJSResult, rethnetResult);
-
-    return rethnetResult;
+      throw e;
+    }
   }
 
   public async getStateRoot(): Promise<Buffer> {
@@ -154,7 +169,7 @@ export class DualModeAdapter implements VMAdapter {
   public async runTxInBlock(
     tx: TypedTransaction,
     block: Block
-  ): Promise<RunTxResult> {
+  ): Promise<[RunTxResult, Trace]> {
     return this._ethereumJSAdapter.runTxInBlock(tx, block);
   }
 

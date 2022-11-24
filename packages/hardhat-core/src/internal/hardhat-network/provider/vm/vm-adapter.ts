@@ -10,12 +10,14 @@ import type { Account, Address } from "@nomicfoundation/ethereumjs-util";
 import type { RpcDebugTracingConfig } from "../../../core/jsonrpc/types/input/debugTraceTransaction";
 import type { RpcDebugTraceOutput } from "../output";
 
+export type Trace = any;
+
 export interface VMAdapter {
   dryRun(
     tx: TypedTransaction,
     blockContext: Block,
     forceBaseFeeZero?: boolean
-  ): Promise<RunTxResult>;
+  ): Promise<[RunTxResult, Trace]>;
 
   // getters
   getAccount(address: Address): Promise<Account>;
@@ -41,7 +43,10 @@ export interface VMAdapter {
 
   // methods for block-building
   startBlock(): Promise<void>;
-  runTxInBlock(tx: TypedTransaction, block: Block): Promise<RunTxResult>;
+  runTxInBlock(
+    tx: TypedTransaction,
+    block: Block
+  ): Promise<[RunTxResult, Trace]>;
   addBlockRewards(rewards: Array<[Address, bigint]>): Promise<void>;
   sealBlock(): Promise<void>;
   revertBlock(): Promise<void>;

@@ -30,7 +30,7 @@ import { FakeSenderTransaction } from "../transactions/FakeSenderTransaction";
 import { HardhatBlockchainInterface } from "../types/HardhatBlockchainInterface";
 import { makeForkClient } from "../utils/makeForkClient";
 import { makeStateTrie } from "../utils/makeStateTrie";
-import { VMAdapter } from "./vm-adapter";
+import { Trace, VMAdapter } from "./vm-adapter";
 
 /* eslint-disable @nomiclabs/hardhat-internal-rules/only-hardhat-error */
 
@@ -123,7 +123,7 @@ export class EthereumJSAdapter implements VMAdapter {
     tx: TypedTransaction,
     blockContext: Block,
     forceBaseFeeZero = false
-  ): Promise<RunTxResult> {
+  ): Promise<[RunTxResult, Trace]> {
     const initialStateRoot = await this.getStateRoot();
 
     let originalCommon: Common | undefined;
@@ -172,13 +172,28 @@ export class EthereumJSAdapter implements VMAdapter {
         }
       );
 
-      return await this._vm.runTx({
-        block: blockContext,
-        tx,
-        skipNonce: true,
-        skipBalance: true,
-        skipBlockGasLimitValidation: true,
-      });
+      const vmDebugTracer = new VMDebugTracer(this._vm);
+      let result: RunTxResult | undefined;
+      const trace = await vmDebugTracer.trace(
+        async () => {
+          result = await this._vm.runTx({
+            block: blockContext,
+            tx,
+            skipNonce: true,
+            skipBalance: true,
+            skipBlockGasLimitValidation: true,
+          });
+        },
+        {
+          disableStorage: true,
+          disableMemory: true,
+          disableStack: true,
+        }
+      );
+
+      assertHardhatInvariant(result !== undefined, "Should have a result");
+
+      return [result, trace];
     } finally {
       if (originalCommon !== undefined) {
         (this._vm as any)._common = originalCommon;
@@ -373,8 +388,23 @@ export class EthereumJSAdapter implements VMAdapter {
   public async runTxInBlock(
     tx: TypedTransaction,
     block: Block
-  ): Promise<RunTxResult> {
-    return this._vm.runTx({ tx, block });
+  ): Promise<[RunTxResult, Trace]> {
+    const vmTracer = new VMDebugTracer(this._vm);
+    let result: RunTxResult | undefined;
+    const trace = await vmTracer.trace(
+      async () => {
+        result = await this._vm.runTx({ tx, block });
+      },
+      {
+        disableStorage: true,
+        disableMemory: true,
+        disableStack: true,
+      }
+    );
+
+    assertHardhatInvariant(result !== undefined, "Should have a result");
+
+    return [result, trace];
   }
 
   public async addBlockRewards(

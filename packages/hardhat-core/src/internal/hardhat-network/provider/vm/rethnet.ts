@@ -21,7 +21,7 @@ import { hardforkGte, HardforkName } from "../../../util/hardforks";
 import { RpcDebugTraceOutput } from "../output";
 import { RpcDebugTracingConfig } from "../../../core/jsonrpc/types/input/debugTraceTransaction";
 
-import { VMAdapter } from "./vm-adapter";
+import { Trace, VMAdapter } from "./vm-adapter";
 
 /* eslint-disable @nomiclabs/hardhat-internal-rules/only-hardhat-error */
 /* eslint-disable @typescript-eslint/no-unused-vars */
@@ -63,7 +63,7 @@ export class RethnetAdapter implements VMAdapter {
     tx: TypedTransaction,
     blockContext: Block,
     forceBaseFeeZero?: boolean
-  ): Promise<RunTxResult> {
+  ): Promise<[RunTxResult, Trace]> {
     const rethnetTx = ethereumjsTransactionToRethnet(tx);
 
     const difficulty = this._getBlockEnvDifficulty(
@@ -83,7 +83,9 @@ export class RethnetAdapter implements VMAdapter {
       difficulty,
     });
 
-    return rethnetResultToRunTxResult(rethnetResult.execResult);
+    const result = rethnetResultToRunTxResult(rethnetResult.execResult);
+
+    return [result, null];
   }
 
   /**
@@ -175,7 +177,7 @@ export class RethnetAdapter implements VMAdapter {
   public async runTxInBlock(
     tx: TypedTransaction,
     block: Block
-  ): Promise<RunTxResult> {
+  ): Promise<[RunTxResult, Trace]> {
     throw new Error("not implemented");
   }
 
