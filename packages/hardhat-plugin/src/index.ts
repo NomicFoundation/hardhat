@@ -1,5 +1,10 @@
 import "@nomiclabs/hardhat-ethers";
-import { Module, ModuleDict, Providers } from "@ignored/ignition-core";
+import {
+  Module,
+  ModuleDict,
+  Providers,
+  ModuleParams,
+} from "@ignored/ignition-core";
 import { BigNumber } from "ethers";
 import fs from "fs-extra";
 import { extendConfig, extendEnvironment, task } from "hardhat/config";
@@ -17,10 +22,6 @@ export { buildSubgraph, buildModule } from "@ignored/ignition-core";
 export interface IgnitionConfig {
   maxRetries: number;
   gasIncrementPerRetry: BigNumber | null;
-}
-
-interface ModuleParams {
-  [key: string]: number | string;
 }
 
 /* ignition config defaults */

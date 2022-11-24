@@ -2,6 +2,7 @@ import type { ethers } from "ethers";
 
 import type { ExternalParamValue } from "./deploymentGraph";
 import type { Artifact } from "./hardhat";
+import { ModuleParams } from "./module";
 
 export interface Providers {
   artifacts: ArtifactsProvider;
@@ -47,6 +48,8 @@ export type HasParamResult =
   | { found: true };
 
 export interface ConfigProvider {
+  parameters: ModuleParams | undefined;
+
   setParams(parameters: { [key: string]: ExternalParamValue }): Promise<void>;
 
   getParam(paramName: string): Promise<ExternalParamValue>;

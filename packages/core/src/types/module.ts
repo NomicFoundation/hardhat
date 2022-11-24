@@ -1,4 +1,4 @@
-import { Subgraph } from "./deploymentGraph";
+import type { ExternalParamValue, Subgraph } from "./deploymentGraph";
 import type {
   CallableFuture,
   FutureDict,
@@ -19,4 +19,8 @@ export interface ModuleData {
 
 export interface ModuleCache {
   [label: string]: ModuleData;
+}
+
+export interface ModuleParams {
+  [key: string]: ExternalParamValue;
 }
