@@ -1,11 +1,6 @@
 import { Block } from "@nomicfoundation/ethereumjs-block";
 import { Common } from "@nomicfoundation/ethereumjs-common";
-import {
-  EVM,
-  EVMResult,
-  InterpreterStep,
-  Message,
-} from "@nomicfoundation/ethereumjs-evm";
+import { EVM } from "@nomicfoundation/ethereumjs-evm";
 import {
   DefaultStateManager,
   StateManager,
@@ -30,15 +25,9 @@ import { FakeSenderTransaction } from "../transactions/FakeSenderTransaction";
 import { HardhatBlockchainInterface } from "../types/HardhatBlockchainInterface";
 import { makeForkClient } from "../utils/makeForkClient";
 import { makeStateTrie } from "../utils/makeStateTrie";
-import { Trace, VMAdapter } from "./vm-adapter";
+import { Trace, TracingCallbacks, VMAdapter } from "./vm-adapter";
 
 /* eslint-disable @nomiclabs/hardhat-internal-rules/only-hardhat-error */
-
-interface TracingCallbacks {
-  beforeMessage: (message: Message, next: any) => Promise<void>;
-  step: (step: InterpreterStep, next: any) => Promise<void>;
-  afterMessage: (result: EVMResult, next: any) => Promise<void>;
-}
 
 export class EthereumJSAdapter implements VMAdapter {
   private _tracingCallbacks: TracingCallbacks | undefined;

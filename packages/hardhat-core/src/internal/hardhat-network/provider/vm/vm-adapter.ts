@@ -12,6 +12,12 @@ import type { RpcDebugTraceOutput } from "../output";
 
 export type Trace = any;
 
+export interface TracingCallbacks {
+  beforeMessage: (message: Message, next: any) => Promise<void>;
+  step: (step: InterpreterStep, next: any) => Promise<void>;
+  afterMessage: (result: EVMResult, next: any) => Promise<void>;
+}
+
 export interface VMAdapter {
   dryRun(
     tx: TypedTransaction,
@@ -57,10 +63,6 @@ export interface VMAdapter {
     block: Block,
     config: RpcDebugTracingConfig
   ): Promise<RpcDebugTraceOutput>;
-  enableTracing(callbacks: {
-    beforeMessage: (message: Message, next: any) => Promise<void>;
-    step: (step: InterpreterStep, next: any) => Promise<void>;
-    afterMessage: (result: EVMResult, next: any) => Promise<void>;
-  }): void;
+  enableTracing(callbacks: TracingCallbacks): void;
   disableTracing(): void;
 }

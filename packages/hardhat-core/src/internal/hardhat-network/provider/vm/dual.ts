@@ -1,4 +1,3 @@
-import type { Message } from "@nomicfoundation/ethereumjs-evm";
 import type { RunTxResult } from "@nomicfoundation/ethereumjs-vm";
 import { Block } from "@nomicfoundation/ethereumjs-block";
 import { Common } from "@nomicfoundation/ethereumjs-common";
@@ -13,7 +12,7 @@ import { HardhatBlockchainInterface } from "../types/HardhatBlockchainInterface"
 
 import { EthereumJSAdapter } from "./ethereumjs";
 import { RethnetAdapter } from "./rethnet";
-import { Trace, VMAdapter } from "./vm-adapter";
+import { Trace, TracingCallbacks, VMAdapter } from "./vm-adapter";
 
 /* eslint-disable @nomiclabs/hardhat-internal-rules/only-hardhat-error */
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
@@ -140,11 +139,7 @@ export class DualModeAdapter implements VMAdapter {
     return this._ethereumJSAdapter.traceTransaction(hash, block, config);
   }
 
-  public enableTracing(callbacks: {
-    beforeMessage: (message: Message, next: any) => Promise<void>;
-    step: () => Promise<void>;
-    afterMessage: () => Promise<void>;
-  }): void {
+  public enableTracing(callbacks: TracingCallbacks): void {
     return this._ethereumJSAdapter.enableTracing(callbacks);
   }
 
