@@ -1,12 +1,12 @@
 import type { Common } from "@nomicfoundation/ethereumjs-common";
-import type { InterpreterStep } from "@nomicfoundation/ethereumjs-evm/dist/interpreter";
-import type { Message } from "@nomicfoundation/ethereumjs-evm/dist/message";
-import {
-  EVMResult,
-  getActivePrecompiles,
-} from "@nomicfoundation/ethereumjs-evm";
+import { getActivePrecompiles } from "@nomicfoundation/ethereumjs-evm";
 import { bufferToBigInt } from "@nomicfoundation/ethereumjs-util";
-import { VMAdapter } from "../provider/vm/vm-adapter";
+import {
+  TracingMessage,
+  TracingMessageResult,
+  TracingStep,
+  VMAdapter,
+} from "../provider/vm/vm-adapter";
 
 import {
   CallMessageTrace,
@@ -87,7 +87,7 @@ export class VMTracer {
     return this._throwErrors || this._lastError === undefined;
   }
 
-  private async _beforeMessageHandler(message: Message, next: any) {
+  private async _beforeMessageHandler(message: TracingMessage, next: any) {
     if (!this._shouldKeepTracing()) {
       next();
       return;
@@ -174,7 +174,7 @@ export class VMTracer {
     }
   }
 
-  private async _stepHandler(step: InterpreterStep, next: any) {
+  private async _stepHandler(step: TracingStep, next: any) {
     if (!this._shouldKeepTracing()) {
       next();
       return;
@@ -201,7 +201,7 @@ export class VMTracer {
     }
   }
 
-  private async _afterMessageHandler(result: EVMResult, next: any) {
+  private async _afterMessageHandler(result: TracingMessageResult, next: any) {
     if (!this._shouldKeepTracing()) {
       next();
       return;
