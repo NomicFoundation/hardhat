@@ -72,9 +72,7 @@ const providersFake = {
 
 describe("ContractsService", function () {
   it("should retry an unconfirmed transaction until the retry limit is hit", async function () {
-    const contractsService = new ContractsService(providersFake, txSender, {
-      pollingInterval: 10,
-    });
+    const contractsService = new ContractsService(providersFake, txSender);
 
     const fakeTx: ethers.providers.TransactionRequest = {};
 
@@ -82,6 +80,7 @@ describe("ContractsService", function () {
       contractsService.sendTx(fakeTx, {
         maxRetries: 4,
         gasIncrementPerRetry: null,
+        pollingInterval: 10,
       }),
       /Transaction not confirmed within max retry limit/
     );

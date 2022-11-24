@@ -29,6 +29,7 @@ export interface IgnitionDeployOptions {
   networkName: string;
   maxRetries: number;
   gasIncrementPerRetry: BigNumber | null;
+  pollingInterval: number;
 }
 
 type ModuleOutputs = Record<string, any>;
@@ -68,6 +69,7 @@ export class Ignition {
     const executionResult = await execute(deployment, {
       maxRetries: options.maxRetries,
       gasIncrementPerRetry: options.gasIncrementPerRetry,
+      pollingInterval: options.pollingInterval,
     });
 
     if (executionResult._kind === "failure") {
@@ -90,7 +92,6 @@ export class Ignition {
     const serviceOptions = {
       providers: this._providers,
       journal: new InMemoryJournal(),
-      txPollingInterval: 300,
     };
 
     const services: Services = createServices(

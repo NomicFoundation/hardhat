@@ -66,4 +66,16 @@ describe("config", () => {
     assert(BigNumber.isBigNumber(sendTxOptions.gasIncrementPerRetry));
     assert(BigNumber.from(sendTxOptions.gasIncrementPerRetry).eq(1000));
   });
+
+  it("should apply pollingInterval", async function () {
+    await deployModule(this.hre, (m) => {
+      m.contract("Bar");
+
+      return {};
+    });
+
+    const sendTxOptions = sendTxStub.getCalls()[0].lastArg;
+
+    assert.equal(sendTxOptions.pollingInterval, 4);
+  });
 });
