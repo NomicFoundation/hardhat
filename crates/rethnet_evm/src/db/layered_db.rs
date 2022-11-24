@@ -104,6 +104,59 @@ impl RethnetLayer {
     }
 }
 
+impl LayeredDatabase<RethnetLayer> {
+    /// Retrieves a reference to the account corresponding to the address, if it exists.
+    pub fn account(&self, address: &Address) -> Option<&AccountInfo> {
+        self.iter()
+            .find_map(|layer| layer.account_infos.get(address))
+    }
+
+    /// Retrieves a mutable reference to the account corresponding to the address, if it exists.
+    pub fn account_mut(&mut self, address: &Address) -> Option<&mut AccountInfo> {
+        // WORKAROUND: https://blog.rust-lang.org/2022/08/05/nll-by-default.html
+        if self.last_layer_mut().account_infos.contains_key(address) {
+            return Some(
+                self.last_layer_mut()
+                    .account_infos
+                    .get_mut(address)
+                    .unwrap(),
+            );
+        }
+
+        self.account(address).cloned().map(|account_info| {
+            self.last_layer_mut()
+                .account_infos
+                .insert_unique_unchecked(address.clone(), account_info)
+                .1
+        })
+    }
+
+    /// Retrieves a mutable reference to the account corresponding to the address, if it exists.
+    /// Otherwise, inserts a new account.
+    pub fn account_or_insert_mut(&mut self, address: &Address) -> &mut AccountInfo {
+        // WORKAROUND: https://blog.rust-lang.org/2022/08/05/nll-by-default.html
+        if self.last_layer_mut().account_infos.contains_key(address) {
+            return self
+                .last_layer_mut()
+                .account_infos
+                .get_mut(address)
+                .unwrap();
+        }
+
+        let account_info = self.account(address).cloned().unwrap_or(AccountInfo {
+            balance: U256::ZERO,
+            nonce: 0,
+            code_hash: KECCAK_EMPTY,
+            code: None,
+        });
+
+        self.last_layer_mut()
+            .account_infos
+            .insert_unique_unchecked(address.clone(), account_info)
+            .1
+    }
+}
+
 impl Database for LayeredDatabase<RethnetLayer> {
     type Error = anyhow::Error;
 
@@ -111,8 +164,16 @@ impl Database for LayeredDatabase<RethnetLayer> {
         let account = self
             .iter()
             .find_map(|layer| layer.account_infos.get(&address).cloned());
+
         log::debug!("account with address `{}`: {:?}", address, account);
-        Ok(account)
+
+        // TODO: Move this out of LayeredDatabase when forking
+        Ok(account.or(Some(AccountInfo {
+            balance: U256::ZERO,
+            nonce: 0,
+            code_hash: KECCAK_EMPTY,
+            code: None,
+        })))
     }
 
     fn code_by_hash(&mut self, code_hash: H256) -> anyhow::Result<Bytecode> {
@@ -225,17 +286,9 @@ impl DatabaseDebug for LayeredDatabase<RethnetLayer> {
         address: Address,
         modifier: Box<dyn Fn(&mut AccountInfo) + Send>,
     ) -> Result<(), Self::Error> {
-        if let Some(account_info) = self.last_layer_mut().account_infos.get_mut(&address) {
-            modifier(account_info);
-        } else {
-            let mut account_info = self
-                .iter()
-                .find_map(|layer| layer.account_infos.get(&address).cloned())
-                .ok_or_else(|| anyhow!("Unknown account with address: {}", address))?;
-
-            modifier(&mut account_info);
-            self.last_layer_mut().insert_account(address, account_info);
-        }
+        // TODO: Move account insertion out of LayeredDatabase when forking
+        let account_info = self.account_or_insert_mut(&address);
+        modifier(account_info);
 
         Ok(())
     }

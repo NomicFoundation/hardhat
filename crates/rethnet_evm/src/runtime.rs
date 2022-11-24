@@ -52,12 +52,6 @@ where
         transaction: TxEnv,
         block: BlockEnv,
     ) -> Result<(ExecutionResult, State), E> {
-        if let Ok(None) = self.db.account_by_address(transaction.caller).await {
-            self.db
-                .insert_account(transaction.caller, AccountInfo::default())
-                .await?;
-        }
-
         let mut old_disable_balance_check = true;
         std::mem::swap(
             &mut old_disable_balance_check,
