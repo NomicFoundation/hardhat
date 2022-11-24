@@ -1,5 +1,9 @@
 import type { VertexGraph, VertexDescriptor } from "@ignored/ignition-core";
 
+function isDeploy(v: VertexDescriptor): boolean {
+  return v.type === "HardhatContract" || v.type === "ArtifactContract";
+}
+
 function getVertexes(graph: VertexGraph): VertexDescriptor[] {
   return [...graph.vertexes.values()];
 }
@@ -26,7 +30,7 @@ export function getSummaryLists(graph: VertexGraph): string {
   const deploys = [];
   const calls = [];
   for (const vertex of vertexes) {
-    if (vertex.type === "HardhatContract") {
+    if (isDeploy(vertex)) {
       deploys.push(li(vertex.label));
     } else if (vertex.type === "Call") {
       calls.push(li(vertex.label));
@@ -52,7 +56,7 @@ export function getSummaryLists(graph: VertexGraph): string {
 
 function wrapNode(v: VertexDescriptor): string {
   const text = `"${v.label}"`;
-  return v.type === "HardhatContract"
+  return isDeploy(v)
     ? `${v.id}[${text}]:::deploy-${v.id}`
     : `${v.id}{{${text}}}:::call-${v.id}`;
 }
@@ -91,7 +95,7 @@ export function getActions(graph: VertexGraph): string {
   const vertexes = getVertexes(graph);
 
   const items = vertexes.map((v) => {
-    const type = v.type === "HardhatContract" ? "Deploy" : v.type;
+    const type = isDeploy(v) ? "Deploy" : v.type;
 
     return `
 <li
@@ -118,7 +122,11 @@ export function getParams(vertex: VertexDescriptor): string {
   const items = vertex.args
     .map((a: any) => {
       return `<li>${
-        a.defaultValue ?? a._future ? `Future &lt; ${a.label} &gt; address` : a
+        a.defaultValue ?? a._future
+          ? `Future &lt; ${a.label} &gt; ${
+              a.type === "contract" ? "address" : a.type
+            } parameter`
+          : a
       }</li>`;
     })
     .join("\n");
