@@ -113,6 +113,30 @@ export class Artifacts implements IArtifacts {
     return fsExtra.readJSON(buildInfoPath);
   }
 
+  public getBuildInfoSync(fullyQualifiedName: string): BuildInfo | undefined {
+    let buildInfoPath =
+      this._cache?.artifactFQNToBuildInfoPathCache.get(fullyQualifiedName);
+
+    if (buildInfoPath === undefined) {
+      const artifactPath =
+        this.formArtifactPathFromFullyQualifiedName(fullyQualifiedName);
+
+      const debugFilePath = this._getDebugFilePath(artifactPath);
+      buildInfoPath = this._getBuildInfoFromDebugFileSync(debugFilePath);
+
+      if (buildInfoPath === undefined) {
+        return undefined;
+      }
+
+      this._cache?.artifactFQNToBuildInfoPathCache.set(
+        fullyQualifiedName,
+        buildInfoPath
+      );
+    }
+
+    return fsExtra.readJSONSync(buildInfoPath);
+  }
+
   public async getArtifactPaths(): Promise<string[]> {
     const cached = this._cache?.artifactPaths;
     if (cached !== undefined) {
@@ -860,6 +884,20 @@ Please replace "${contractName}" for the correct contract name wherever you are 
   ): Promise<string | undefined> {
     if (await fsExtra.pathExists(debugFilePath)) {
       const { buildInfo } = await fsExtra.readJson(debugFilePath);
+      return path.resolve(path.dirname(debugFilePath), buildInfo);
+    }
+
+    return undefined;
+  }
+
+  /**
+   * Sync version of _getBuildInfoFromDebugFile
+   */
+  private _getBuildInfoFromDebugFileSync(
+    debugFilePath: string
+  ): string | undefined {
+    if (fsExtra.pathExistsSync(debugFilePath)) {
+      const { buildInfo } = fsExtra.readJsonSync(debugFilePath);
       return path.resolve(path.dirname(debugFilePath), buildInfo);
     }
 
