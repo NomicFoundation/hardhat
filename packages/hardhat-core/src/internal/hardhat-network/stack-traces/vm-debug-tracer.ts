@@ -222,7 +222,10 @@ export class VMDebugTracer {
     );
 
     // geth does this for some reason
-    if (result.execResult.exceptionError?.error === "out of gas") {
+    if (
+      rpcStructLogs.length > 0 &&
+      result.execResult.exceptionError?.error === "out of gas"
+    ) {
       rpcStructLogs[rpcStructLogs.length - 1].error = {};
     }
 

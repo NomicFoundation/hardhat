@@ -127,6 +127,31 @@ describe("Debug module", function () {
           assertEqualTraces(trace, modifiesStateTrace);
         });
 
+        it("should trace an OOG transaction sent to a precompile", async function () {
+          await sendDummyTransaction(this.provider, 0, {
+            from: DEFAULT_ACCOUNTS_ADDRESSES[1],
+            to: "0x0000000000000000000000000000000000000001",
+          }).catch(() => {});
+
+          const block = await this.provider.send("eth_getBlockByNumber", [
+            "latest",
+            false,
+          ]);
+
+          const txHash = block.transactions[0];
+
+          const trace: RpcDebugTraceOutput = await this.provider.send(
+            "debug_traceTransaction",
+            [txHash]
+          );
+          assert.deepEqual(trace, {
+            gas: 21_000,
+            failed: true,
+            returnValue: "",
+            structLogs: [],
+          });
+        });
+
         describe("berlin", function () {
           useProvider({ hardfork: "berlin" });
 
