@@ -1,5 +1,5 @@
-import type { RunBlockResult } from "@nomicfoundation/ethereumjs-vm";
 import type { ReturnData } from "./return-data";
+import type { RunBlockResult } from "./vm/vm-adapter";
 
 import { Block } from "@nomicfoundation/ethereumjs-block";
 

@@ -485,13 +485,13 @@ async function runTest(
 
     try {
       if (tx.stackTrace === undefined) {
-        assert.isUndefined(
-          trace.error,
+        assert.isFalse(
+          trace.exit.isError(),
           `Transaction ${txIndex} shouldn't have failed`
         );
       } else {
         assert.isDefined(
-          trace.error,
+          trace.exit.isError(),
           `Transaction ${txIndex} should have failed`
         );
       }
@@ -501,7 +501,7 @@ async function runTest(
       throw error;
     }
 
-    if (trace.error !== undefined) {
+    if (trace.exit.isError()) {
       const stackTrace = tracer.getStackTrace(decodedTrace);
 
       try {
@@ -842,7 +842,7 @@ const solidity08Compilers = solidityCompilers.filter(
   filterSolcVersionBy("^0.8.0")
 );
 
-describe.skip("Stack traces", function () {
+describe("Stack traces", function () {
   setCWD();
 
   // if a path to a solc file was specified, we only run these tests and use

@@ -12,7 +12,11 @@ import {
 } from "@nomicfoundation/ethereumjs-statemanager";
 import { TypedTransaction } from "@nomicfoundation/ethereumjs-tx";
 import { Account, Address } from "@nomicfoundation/ethereumjs-util";
-import { EEI, RunTxResult, VM } from "@nomicfoundation/ethereumjs-vm";
+import {
+  EEI,
+  RunTxResult as EthereumJSRunTxResult,
+  VM,
+} from "@nomicfoundation/ethereumjs-vm";
 import { assertHardhatInvariant } from "../../../core/errors";
 import { RpcDebugTracingConfig } from "../../../core/jsonrpc/types/input/debugTraceTransaction";
 import {
@@ -28,10 +32,10 @@ import { FakeSenderAccessListEIP2930Transaction } from "../transactions/FakeSend
 import { FakeSenderEIP1559Transaction } from "../transactions/FakeSenderEIP1559Transaction";
 import { FakeSenderTransaction } from "../transactions/FakeSenderTransaction";
 import { HardhatBlockchainInterface } from "../types/HardhatBlockchainInterface";
-import { mapEthereumJsExceptionErrorToRethnetExitCode } from "../utils/convertToRethnet";
 import { makeForkClient } from "../utils/makeForkClient";
 import { makeStateTrie } from "../utils/makeStateTrie";
-import { Trace, TracingCallbacks, VMAdapter } from "./vm-adapter";
+import { Exit } from "./exit";
+import { RunTxResult, Trace, TracingCallbacks, VMAdapter } from "./vm-adapter";
 
 /* eslint-disable @nomiclabs/hardhat-internal-rules/only-hardhat-error */
 
@@ -168,10 +172,10 @@ export class EthereumJSAdapter implements VMAdapter {
       );
 
       const vmDebugTracer = new VMDebugTracer(this._vm);
-      let result: RunTxResult | undefined;
+      let ethereumJSResult: EthereumJSRunTxResult | undefined;
       const trace = await vmDebugTracer.trace(
         async () => {
-          result = await this._vm.runTx({
+          ethereumJSResult = await this._vm.runTx({
             block: blockContext,
             tx,
             skipNonce: true,
@@ -186,7 +190,20 @@ export class EthereumJSAdapter implements VMAdapter {
         }
       );
 
-      assertHardhatInvariant(result !== undefined, "Should have a result");
+      assertHardhatInvariant(
+        ethereumJSResult !== undefined,
+        "Should have a result"
+      );
+
+      const ethereumJSError = ethereumJSResult.execResult.exceptionError;
+      const result: RunTxResult = {
+        bloom: ethereumJSResult.bloom,
+        gasUsed: ethereumJSResult.totalGasSpent,
+        receipt: ethereumJSResult.receipt,
+        returnValue: ethereumJSResult.execResult.returnValue,
+        createdAddress: ethereumJSResult.createdAddress,
+        exit: Exit.fromEthereumJSEvmError(ethereumJSError),
+      };
 
       return [result, trace];
     } finally {
@@ -382,10 +399,10 @@ export class EthereumJSAdapter implements VMAdapter {
     block: Block
   ): Promise<[RunTxResult, Trace]> {
     const vmTracer = new VMDebugTracer(this._vm);
-    let result: RunTxResult | undefined;
+    let ethereumJSResult: EthereumJSRunTxResult | undefined;
     const trace = await vmTracer.trace(
       async () => {
-        result = await this._vm.runTx({ tx, block });
+        ethereumJSResult = await this._vm.runTx({ tx, block });
       },
       {
         disableStorage: true,
@@ -394,7 +411,20 @@ export class EthereumJSAdapter implements VMAdapter {
       }
     );
 
-    assertHardhatInvariant(result !== undefined, "Should have a result");
+    assertHardhatInvariant(
+      ethereumJSResult !== undefined,
+      "Should have a result"
+    );
+
+    const ethereumJSError = ethereumJSResult.execResult.exceptionError;
+    const result: RunTxResult = {
+      bloom: ethereumJSResult.bloom,
+      gasUsed: ethereumJSResult.totalGasSpent,
+      receipt: ethereumJSResult.receipt,
+      returnValue: ethereumJSResult.execResult.returnValue,
+      createdAddress: ethereumJSResult.createdAddress,
+      exit: Exit.fromEthereumJSEvmError(ethereumJSError),
+    };
 
     return [result, trace];
   }
@@ -492,12 +522,16 @@ export class EthereumJSAdapter implements VMAdapter {
 
   private _afterMessageHandler = (result: EVMResult, next: any) => {
     if (this._tracingCallbacks !== undefined) {
+      const vmError = Exit.fromEthereumJSEvmError(
+        result.execResult.exceptionError
+      );
+
+      const rethnetExitCode = vmError.getRethnetExitCode();
+
       return this._tracingCallbacks.afterMessage(
         {
           executionResult: {
-            exitCode: mapEthereumJsExceptionErrorToRethnetExitCode(
-              result.execResult.exceptionError
-            ),
+            exitCode: rethnetExitCode,
             output: {
               address: result.createdAddress?.toBuffer(),
               output: result.execResult.returnValue,

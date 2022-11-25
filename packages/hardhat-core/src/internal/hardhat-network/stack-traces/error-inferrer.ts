@@ -1,9 +1,9 @@
-import { ERROR } from "@nomicfoundation/ethereumjs-evm/dist/exceptions";
 import { defaultAbiCoder as abi } from "@ethersproject/abi";
 import semver from "semver";
 
 import { AbiHelpers } from "../../util/abi-helpers";
 import { ReturnData } from "../provider/return-data";
+import { ExitCode } from "../provider/vm/exit";
 
 import {
   DecodedCallMessageTrace,
@@ -268,8 +268,7 @@ export class ErrorInferrer {
       callInst
     );
 
-    const lastMessageFailed =
-      lastSubmessageData.messageTrace.error !== undefined;
+    const lastMessageFailed = lastSubmessageData.messageTrace.exit.isError();
     if (lastMessageFailed) {
       // add the call/create that generated the message to the stack trace
       inferredStacktrace.push(callStackFrame);
@@ -1374,7 +1373,7 @@ export class ErrorInferrer {
   }
 
   private _isContractTooLargeError(trace: DecodedCreateMessageTrace) {
-    return trace.error?.error === ERROR.CODESIZE_EXCEEDS_MAXIMUM;
+    return trace.exit.kind === ExitCode.CODESIZE_EXCEEDS_MAXIMUM;
   }
 
   private _solidity063CorrectLineNumber(
@@ -1555,8 +1554,8 @@ export class ErrorInferrer {
     }
 
     if (
-      trace.error?.error === ERROR.OUT_OF_GAS &&
-      call.error?.error === ERROR.OUT_OF_GAS
+      trace.exit.kind === ExitCode.OUT_OF_GAS &&
+      call.exit.kind === ExitCode.OUT_OF_GAS
     ) {
       return true;
     }
@@ -1645,12 +1644,12 @@ export class ErrorInferrer {
       return false;
     }
 
-    if (trace.error?.error !== ERROR.REVERT) {
+    if (trace.exit.kind !== ExitCode.REVERT) {
       return false;
     }
 
     const call = trace.steps[callStepIndex] as MessageTrace;
-    if (call.error?.error !== ERROR.OUT_OF_GAS) {
+    if (call.exit.kind !== ExitCode.OUT_OF_GAS) {
       return false;
     }
 

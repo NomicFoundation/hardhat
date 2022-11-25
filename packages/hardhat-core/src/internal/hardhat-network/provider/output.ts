@@ -1,4 +1,4 @@
-import type { RunBlockResult } from "@nomicfoundation/ethereumjs-vm";
+import type { RunBlockResult } from "./vm/vm-adapter";
 import { Block } from "@nomicfoundation/ethereumjs-block";
 import { Common } from "@nomicfoundation/ethereumjs-common";
 import { TypedTransaction } from "@nomicfoundation/ethereumjs-tx";
@@ -295,7 +295,7 @@ export function getRpcReceiptOutputsFromLocalBlockExecution(
 
   for (let i = 0; i < runBlockResult.results.length; i += 1) {
     const tx = block.transactions[i];
-    const { createdAddress, totalGasSpent } = runBlockResult.results[i];
+    const { createdAddress, gasUsed } = runBlockResult.results[i];
     const receipt = runBlockResult.receipts[i];
 
     const logs = receipt.logs.map((log) => {
@@ -312,7 +312,7 @@ export function getRpcReceiptOutputsFromLocalBlockExecution(
       from: bufferToRpcData(tx.getSenderAddress().toBuffer()),
       to: tx.to === undefined ? null : bufferToRpcData(tx.to.toBuffer()),
       cumulativeGasUsed: numberToRpcQuantity(receipt.cumulativeBlockGasUsed),
-      gasUsed: numberToRpcQuantity(totalGasSpent),
+      gasUsed: numberToRpcQuantity(gasUsed),
       contractAddress:
         createdAddress !== undefined
           ? bufferToRpcData(createdAddress.toBuffer())

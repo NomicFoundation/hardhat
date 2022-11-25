@@ -8,8 +8,8 @@ import type {
 import { getActivePrecompiles } from "@nomicfoundation/ethereumjs-evm";
 import { Address, bufferToBigInt } from "@nomicfoundation/ethereumjs-util";
 
-import { mapRethnetExitCodeToEthereumJsExceptionError } from "../provider/utils/convertToRethnet";
 import { assertHardhatInvariant } from "../../core/errors";
+import { Exit, ExitCode } from "../provider/vm/exit";
 import { VMAdapter } from "../provider/vm/vm-adapter";
 
 import {
@@ -109,6 +109,7 @@ export class VMTracer {
           code: message.data,
           steps: [],
           value: message.value,
+          exit: new Exit(ExitCode.SUCCESS),
           returnData: DUMMY_RETURN_DATA,
           numberOfSubtraces: 0,
           depth: message.depth,
@@ -125,6 +126,7 @@ export class VMTracer {
             precompile: Number(toAsBigInt),
             calldata: message.data,
             value: message.value,
+            exit: new Exit(ExitCode.SUCCESS),
             returnData: DUMMY_RETURN_DATA,
             depth: message.depth,
             gasUsed: DUMMY_GAS_USED,
@@ -148,6 +150,7 @@ export class VMTracer {
             calldata: message.data,
             steps: [],
             value: message.value,
+            exit: new Exit(ExitCode.SUCCESS),
             returnData: DUMMY_RETURN_DATA,
             address: message.to,
             numberOfSubtraces: 0,
@@ -221,9 +224,7 @@ export class VMTracer {
     try {
       const trace = this._messageTraces[this._messageTraces.length - 1];
 
-      trace.error = mapRethnetExitCodeToEthereumJsExceptionError(
-        result.executionResult.exitCode
-      );
+      trace.exit = Exit.fromRethnetExitCode(result.executionResult.exitCode);
       trace.returnData =
         result.executionResult.output.output ?? Buffer.from([]);
       trace.gasUsed = result.executionResult.gasUsed;
