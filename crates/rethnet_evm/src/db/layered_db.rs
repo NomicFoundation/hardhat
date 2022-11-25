@@ -192,7 +192,8 @@ impl Database for LayeredDatabase<RethnetLayer> {
     }
 
     fn storage(&mut self, address: Address, index: U256) -> anyhow::Result<U256> {
-        self.iter()
+        Ok(self
+            .iter()
             .find_map(|layer| {
                 layer
                     .storage
@@ -200,13 +201,7 @@ impl Database for LayeredDatabase<RethnetLayer> {
                     .and_then(|storage| storage.get(&index))
                     .cloned()
             })
-            .ok_or_else(|| {
-                anyhow!(
-                    "Layered database does not contain storage with address: {}; and index: {}.",
-                    address,
-                    index
-                )
-            })
+            .unwrap_or(U256::ZERO))
     }
 
     fn block_hash(&mut self, number: U256) -> anyhow::Result<H256> {
