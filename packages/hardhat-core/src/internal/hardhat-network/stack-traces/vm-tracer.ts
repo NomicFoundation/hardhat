@@ -1,12 +1,16 @@
 import type { Common } from "@nomicfoundation/ethereumjs-common";
-import { getActivePrecompiles } from "@nomicfoundation/ethereumjs-evm";
-import { bufferToBigInt } from "@nomicfoundation/ethereumjs-util";
-import {
+import type {
   TracingMessage,
   TracingMessageResult,
   TracingStep,
-  VMAdapter,
-} from "../provider/vm/vm-adapter";
+} from "rethnet-evm";
+
+import { getActivePrecompiles } from "@nomicfoundation/ethereumjs-evm";
+import { Address, bufferToBigInt } from "@nomicfoundation/ethereumjs-util";
+
+import { mapRethnetExitCodeToEthereumJsExceptionError } from "../provider/utils/convertToRethnet";
+import { assertHardhatInvariant } from "../../core/errors";
+import { VMAdapter } from "../provider/vm/vm-adapter";
 
 import {
   CallMessageTrace,
@@ -114,7 +118,7 @@ export class VMTracer {
 
         trace = createTrace;
       } else {
-        const toAsBigInt = bufferToBigInt(message.to.toBuffer());
+        const toAsBigInt = bufferToBigInt(message.to);
 
         if (toAsBigInt > 0 && toAsBigInt <= this._maxPrecompileNumber) {
           const precompileTrace: PrecompileMessageTrace = {
@@ -130,7 +134,14 @@ export class VMTracer {
         } else {
           const codeAddress = message.codeAddress;
 
-          const code = await this._vm.getContractCode(codeAddress);
+          // if we enter here, then `to` is not undefined, therefore
+          // `codeAddress` should be defined
+          assertHardhatInvariant(
+            codeAddress !== undefined,
+            "codeAddress should be defined"
+          );
+
+          const code = await this._vm.getContractCode(new Address(codeAddress));
 
           const callTrace: CallMessageTrace = {
             code,
@@ -138,11 +149,11 @@ export class VMTracer {
             steps: [],
             value: message.value,
             returnData: DUMMY_RETURN_DATA,
-            address: message.to.toBuffer(),
+            address: message.to,
             numberOfSubtraces: 0,
             depth: message.depth,
             gasUsed: DUMMY_GAS_USED,
-            codeAddress: codeAddress.toBuffer(),
+            codeAddress,
           };
 
           trace = callTrace;
@@ -189,7 +200,7 @@ export class VMTracer {
         );
       }
 
-      trace.steps.push({ pc: step.pc });
+      trace.steps.push({ pc: Number(step.pc) });
       next();
     } catch (error) {
       if (this._throwErrors) {
@@ -210,12 +221,15 @@ export class VMTracer {
     try {
       const trace = this._messageTraces[this._messageTraces.length - 1];
 
-      trace.error = result.execResult.exceptionError;
-      trace.returnData = result.execResult.returnValue;
-      trace.gasUsed = result.execResult.executionGasUsed;
+      trace.error = mapRethnetExitCodeToEthereumJsExceptionError(
+        result.executionResult.exitCode
+      );
+      trace.returnData =
+        result.executionResult.output.output ?? Buffer.from([]);
+      trace.gasUsed = result.executionResult.gasUsed;
 
       if (isCreateTrace(trace)) {
-        trace.deployedContract = result?.createdAddress?.toBuffer();
+        trace.deployedContract = result.executionResult.output.address;
       }
 
       if (this._messageTraces.length > 1) {

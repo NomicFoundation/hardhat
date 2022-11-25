@@ -2,30 +2,15 @@ import type { RunTxResult } from "@nomicfoundation/ethereumjs-vm";
 import type { Block } from "@nomicfoundation/ethereumjs-block";
 import type { TypedTransaction } from "@nomicfoundation/ethereumjs-tx";
 import type { Account, Address } from "@nomicfoundation/ethereumjs-util";
+import type {
+  TracingMessage,
+  TracingMessageResult,
+  TracingStep,
+} from "rethnet-evm";
 import type { RpcDebugTracingConfig } from "../../../core/jsonrpc/types/input/debugTraceTransaction";
 import type { RpcDebugTraceOutput } from "../output";
-import { EvmError } from "@nomicfoundation/ethereumjs-evm";
 
 export type Trace = any;
-
-export interface TracingMessage {
-  to?: Address;
-  depth: number;
-  data: Buffer;
-  value: bigint;
-  codeAddress: Address;
-}
-export interface TracingStep {
-  pc: number;
-}
-export interface TracingMessageResult {
-  createdAddress?: Address;
-  execResult: {
-    exceptionError?: EvmError;
-    returnValue: Buffer;
-    executionGasUsed: bigint;
-  };
-}
 
 export interface TracingCallbacks {
   beforeMessage: (message: TracingMessage, next: any) => Promise<void>;

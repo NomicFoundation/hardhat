@@ -276,7 +276,23 @@ const rethnetExitCodeToEthereumJsError = new Map([
   [0x64, ERROR.INITCODE_SIZE_VIOLATION],
 ]);
 
-function mapRethnetExitCodeToEthereumJsExceptionError(
+export function mapEthereumJsExceptionErrorToRethnetExitCode(
+  evmError: EvmError | undefined
+): number {
+  if (evmError === undefined) {
+    return 0;
+  }
+
+  for (const [exitCode, error] of rethnetExitCodeToEthereumJsError.entries()) {
+    if (evmError.error === error) {
+      return exitCode;
+    }
+  }
+
+  return 0;
+}
+
+export function mapRethnetExitCodeToEthereumJsExceptionError(
   rethnetExitCode: number
 ): EvmError | undefined {
   if (rethnetExitCode <= 0x03) {

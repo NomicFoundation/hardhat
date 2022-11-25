@@ -1,6 +1,11 @@
 import { Block } from "@nomicfoundation/ethereumjs-block";
 import { Common } from "@nomicfoundation/ethereumjs-common";
-import { EVM } from "@nomicfoundation/ethereumjs-evm";
+import {
+  EVM,
+  EVMResult,
+  InterpreterStep,
+  Message,
+} from "@nomicfoundation/ethereumjs-evm";
 import {
   DefaultStateManager,
   StateManager,
@@ -23,6 +28,7 @@ import { FakeSenderAccessListEIP2930Transaction } from "../transactions/FakeSend
 import { FakeSenderEIP1559Transaction } from "../transactions/FakeSenderEIP1559Transaction";
 import { FakeSenderTransaction } from "../transactions/FakeSenderTransaction";
 import { HardhatBlockchainInterface } from "../types/HardhatBlockchainInterface";
+import { mapEthereumJsExceptionErrorToRethnetExitCode } from "../utils/convertToRethnet";
 import { makeForkClient } from "../utils/makeForkClient";
 import { makeStateTrie } from "../utils/makeStateTrie";
 import { Trace, TracingCallbacks, VMAdapter } from "./vm-adapter";
@@ -241,12 +247,9 @@ export class EthereumJSAdapter implements VMAdapter {
 
     this._tracingCallbacks = callbacks;
 
-    this._vm.evm.events.on(
-      "beforeMessage",
-      this._tracingCallbacks.beforeMessage
-    );
-    this._vm.evm.events.on("step", this._tracingCallbacks.step);
-    this._vm.evm.events.on("afterMessage", this._tracingCallbacks.afterMessage);
+    this._vm.evm.events.on("beforeMessage", this._beforeMessageHandler);
+    this._vm.evm.events.on("step", this._stepHandler);
+    this._vm.evm.events.on("afterMessage", this._afterMessageHandler);
   }
 
   public disableTracing(): void {
@@ -258,12 +261,12 @@ export class EthereumJSAdapter implements VMAdapter {
     if (this._tracingCallbacks !== undefined) {
       this._vm.evm.events.removeListener(
         "beforeMessage",
-        this._tracingCallbacks.beforeMessage
+        this._beforeMessageHandler
       );
-      this._vm.evm.events.removeListener("step", this._tracingCallbacks.step);
+      this._vm.evm.events.removeListener("step", this._stepHandler);
       this._vm.evm.events.removeListener(
         "afterMessage",
-        this._tracingCallbacks.afterMessage
+        this._afterMessageHandler
       );
 
       this._tracingCallbacks = undefined;
@@ -455,4 +458,59 @@ export class EthereumJSAdapter implements VMAdapter {
     }
     return this._common.gteHardfork("london");
   }
+
+  private _beforeMessageHandler = (message: Message, next: any) => {
+    if (this._tracingCallbacks !== undefined) {
+      return this._tracingCallbacks.beforeMessage(
+        {
+          ...message,
+          to: message.to?.toBuffer(),
+          codeAddress:
+            message.to !== undefined
+              ? message.codeAddress.toBuffer()
+              : undefined,
+        },
+        next
+      );
+    }
+
+    next();
+  };
+
+  private _stepHandler = (step: InterpreterStep, next: any) => {
+    if (this._tracingCallbacks !== undefined) {
+      return this._tracingCallbacks.step(
+        {
+          pc: BigInt(step.pc),
+        },
+        next
+      );
+    }
+
+    next();
+  };
+
+  private _afterMessageHandler = (result: EVMResult, next: any) => {
+    if (this._tracingCallbacks !== undefined) {
+      return this._tracingCallbacks.afterMessage(
+        {
+          executionResult: {
+            exitCode: mapEthereumJsExceptionErrorToRethnetExitCode(
+              result.execResult.exceptionError
+            ),
+            output: {
+              address: result.createdAddress?.toBuffer(),
+              output: result.execResult.returnValue,
+            },
+            gasUsed: result.execResult.executionGasUsed,
+            gasRefunded: result.execResult.gasRefund ?? 0n,
+            logs: result.execResult.logs ?? [],
+          },
+        },
+        next
+      );
+    }
+
+    next();
+  };
 }
