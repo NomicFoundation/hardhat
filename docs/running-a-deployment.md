@@ -55,33 +55,43 @@ npx hardhat deploy --network mainnet LockModule.js
 
 ### Configuration options
 
-There are currently two configurable options you can add to your Hardhat config file in order to adjust the way **Ignition** runs the deployment:
+There are currently some configurable options you can add to your Hardhat config file in order to adjust the way **Ignition** runs the deployment:
 
 ```tsx
 interface IgnitionConfig {
   maxRetries: number;
   gasIncrementPerRetry: BigNumber | null;
+  pollingInterval: number; // milliseconds
 }
 ```
 
 These can be set within Hardhat config under the `ignition` property:
 
 ```tsx
-const { ethers } = require('ethers');
+const { ethers } = require("ethers");
 
 module.exports = {
   ignition: {
     maxRetries: 10,
-    gasIncrementPerRetry: ethers.utils.parseUnits('0.001');
-  }
-}
+    gasIncrementPerRetry: ethers.utils.parseUnits("0.001"),
+    pollingInterval: 300,
+  },
+};
 ```
+
+---
+
+`maxRetries`, `gasIncrementPerRetry`, and `pollingInterval`
+
+---
 
 These config values control how **Ignition** retries transactions that are taking too long to confirm.
 
 The value of `maxRetries` is the number of times an unconfirmed transaction will be retried before considering it failed. (default value is 4)
 
 The value of `gasIncrementPerRetry` must be an `ethers.BigNumber` and is assumed to be in wei units. This value will be added to the previous transactions gas price on each subsequent retry. However, if not given or if the given value is `null`, then the default logic will run which adds 10% of the previous transactions gas price on each retry.
+
+The value of `pollingInterval` is the number of milliseconds the process will wait between polls when checking if the transaction has been confirmed yet. The default value is 300 milliseconds.
 
 ## Resuming a failed or onhold deployment (TBD)
 
