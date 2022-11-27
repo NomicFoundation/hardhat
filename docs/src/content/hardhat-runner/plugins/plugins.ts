@@ -640,6 +640,13 @@ const communityPlugins: IPlugin[] = [
       "Hardhat React Plugin to interact with your deployed contracts",
     tags: ["Tooling", "Testing", "ui", "plugin"],
   },
+  {
+    name: "hardhat-finder",
+    author: "Emre Tepe",
+    authorUrl: "https://emretepedev.github.io/",
+    description: "Hardhat plugin to get compiler outputs of contracts",
+    tags: ["Tooling", "Testing", "Tasks", "Scripts", "Solc", "Compiler"],
+  },
 ];
 
 const officialPlugins: IPlugin[] = [
