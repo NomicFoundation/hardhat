@@ -11,7 +11,7 @@ hash256-std-hasher = { version = "0.15.2", default-features = false }
 hex = { version = "0.4.3", default-features = false, features = ["alloc"] }
 open-fastrlp = { version = "0.1.2", default-features = false, features = ["derive"], optional = true }
 primitive-types = { version = "0.11.1", default-features = false, features = ["rlp"] }
-revm = { path = "../../../revm/crates/revm", version = "2.1.0", default-features = false }
+revm = { git = "https://github.com/wodann/revm", branch = "feat/optional-balance-check", version = "2.1.0", default-features = false }
 rlp = { version = "0.5.2", default-features = false, features = ["derive"] }
 ruint = { version = "1.7.0", default-features = false }
 secp256k1 = { version = "0.24.0", default-features = false, features = ["alloc", "recovery"] }
