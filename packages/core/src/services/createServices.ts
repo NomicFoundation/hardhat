@@ -16,11 +16,9 @@ export function createServices(
   {
     providers,
     journal,
-    txPollingInterval,
   }: {
     providers: Providers;
     journal: Journal;
-    txPollingInterval: number;
   }
 ): Services {
   const txSender = new TxSender(
@@ -41,10 +39,7 @@ export function createServices(
           providers.ethereumProvider
         ),
       },
-      txSender,
-      {
-        pollingInterval: txPollingInterval,
-      }
+      txSender
     ),
     transactions: new TransactionsService(providers),
     config: new ConfigService(providers),

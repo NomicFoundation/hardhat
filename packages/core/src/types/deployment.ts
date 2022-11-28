@@ -67,6 +67,7 @@ export interface DeployState {
 export interface ExecutionOptions {
   maxRetries: number;
   gasIncrementPerRetry: BigNumber | null;
+  pollingInterval: number;
 }
 
 export interface ExecutionContext {

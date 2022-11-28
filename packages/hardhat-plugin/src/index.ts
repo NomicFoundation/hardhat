@@ -17,6 +17,7 @@ export { buildSubgraph, buildModule } from "@ignored/ignition-core";
 export interface IgnitionConfig {
   maxRetries: number;
   gasIncrementPerRetry: BigNumber | null;
+  pollingInterval: number;
 }
 
 interface ModuleParams {
@@ -28,6 +29,7 @@ const IGNITION_DIR = "ignition";
 const DEPLOYMENTS_DIR = "deployments";
 const MAX_RETRIES = 4;
 const GAS_INCREMENT_PER_RETRY = null;
+const POLLING_INTERVAL = 300;
 
 extendConfig((config, userConfig) => {
   /* setup path configs */
@@ -52,6 +54,7 @@ extendConfig((config, userConfig) => {
     maxRetries: userIgnitionConfig.maxRetries ?? MAX_RETRIES,
     gasIncrementPerRetry:
       userIgnitionConfig.gasIncrementPerRetry ?? GAS_INCREMENT_PER_RETRY,
+    pollingInterval: userIgnitionConfig.pollingInterval ?? POLLING_INTERVAL,
   };
 });
 

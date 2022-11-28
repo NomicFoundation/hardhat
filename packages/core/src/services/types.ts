@@ -10,6 +10,7 @@ export interface TransactionOptions {
   gasPrice?: ethers.BigNumberish;
   maxRetries: number;
   gasIncrementPerRetry: ethers.BigNumber | null;
+  pollingInterval: number;
 }
 
 export interface Services {

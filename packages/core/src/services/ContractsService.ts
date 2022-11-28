@@ -31,8 +31,7 @@ export class ContractsService implements IContractsService {
 
   constructor(
     private _providers: ContractsServiceProviders,
-    private _txSender: TxSender,
-    private _options: { pollingInterval: number }
+    private _txSender: TxSender
   ) {}
 
   public async sendTx(
@@ -109,7 +108,7 @@ export class ContractsService implements IContractsService {
         retries++;
       }
 
-      await sleep(this._options.pollingInterval);
+      await sleep(txOptions.pollingInterval);
     }
 
     return txHash;

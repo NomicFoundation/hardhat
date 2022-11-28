@@ -43,7 +43,6 @@ export class Deployment {
     const serviceOptions = {
       providers,
       journal,
-      txPollingInterval: 300,
     };
 
     const services: Services = createServices(

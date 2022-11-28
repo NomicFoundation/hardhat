@@ -13,5 +13,6 @@ module.exports = {
   ignition: {
     maxRetries: 1,
     gasIncrementPerRetry: BigNumber.from(1000),
+    pollingInterval: 4,
   },
 };
