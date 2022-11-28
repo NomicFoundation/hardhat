@@ -4,12 +4,14 @@ import { ExecutionGraph } from "execution/ExecutionGraph";
 import { Services } from "services/types";
 
 import { ResultsAccumulator, VertexVisitResult } from "./graph";
+import { ModuleParams } from "./module";
 import {
   SerializedDeploymentResult,
   SerializedFutureResult,
 } from "./serialization";
 
 export type UpdateUiAction = (deployState: DeployState) => void;
+export type UiParamsClosure = (moduleParams?: ModuleParams) => UpdateUiAction;
 
 export interface IgnitionModuleResults {
   load: (moduleId: string) => Promise<SerializedFutureResult | undefined>;

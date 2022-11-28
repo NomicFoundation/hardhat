@@ -8,7 +8,7 @@ import { generateDeploymentGraphFrom } from "process/generateDeploymentGraphFrom
 import { transformDeploymentGraphToExecutionGraph } from "process/transformDeploymentGraphToExecutionGraph";
 import { createServices } from "services/createServices";
 import { Services } from "services/types";
-import { DeploymentResult, UpdateUiAction } from "types/deployment";
+import { DeploymentResult, UiParamsClosure } from "types/deployment";
 import { DependableFuture, FutureDict } from "types/future";
 import { ResultsAccumulator } from "types/graph";
 import { Module, ModuleDict } from "types/module";
@@ -37,7 +37,7 @@ type ModuleOutputs = Record<string, any>;
 export class Ignition {
   constructor(
     private _providers: Providers,
-    private _uiRenderer: UpdateUiAction
+    private _uiRenderer: UiParamsClosure
   ) {}
 
   public async deploy<T extends ModuleDict>(
@@ -49,7 +49,9 @@ export class Ignition {
     const deployment = new Deployment(
       ignitionModule.name,
       Deployment.setupServices(options, this._providers),
-      options.ui ? this._uiRenderer : undefined
+      options.ui
+        ? this._uiRenderer(this._providers.config.parameters)
+        : undefined
     );
 
     const chainId = await this._getChainId();

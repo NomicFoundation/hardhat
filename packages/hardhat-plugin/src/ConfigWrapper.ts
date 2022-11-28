@@ -2,22 +2,17 @@ import type {
   ConfigProvider,
   ExternalParamValue,
   HasParamResult,
+  ModuleParams,
 } from "@ignored/ignition-core";
 
 export class ConfigWrapper implements ConfigProvider {
-  private parameters: { [key: string]: ExternalParamValue } | undefined;
+  public parameters: ModuleParams | undefined;
 
   constructor() {
     this.parameters = undefined;
   }
 
-  public async setParams(
-    parameters:
-      | {
-          [key: string]: ExternalParamValue;
-        }
-      | undefined
-  ): Promise<void> {
+  public async setParams(parameters: ModuleParams | undefined): Promise<void> {
     this.parameters = parameters;
   }
 

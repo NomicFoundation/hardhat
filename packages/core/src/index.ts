@@ -16,8 +16,9 @@ export type {
   DeployState,
   DeployPhase,
   DeploymentResult,
+  UpdateUiAction,
 } from "types/deployment";
-export type { Module, ModuleDict } from "types/module";
+export type { Module, ModuleDict, ModuleParams } from "types/module";
 export type {
   Subgraph,
   ExternalParamValue,

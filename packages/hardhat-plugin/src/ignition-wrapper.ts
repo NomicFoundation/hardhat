@@ -2,9 +2,9 @@ import {
   Ignition,
   IgnitionDeployOptions,
   Providers,
-  ExternalParamValue,
   Module,
   ModuleDict,
+  ModuleParams,
 } from "@ignored/ignition-core";
 import { Contract } from "ethers";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
@@ -31,7 +31,7 @@ export class IgnitionWrapper {
   public async deploy<T extends ModuleDict>(
     ignitionModule: Module<T>,
     deployParams?: {
-      parameters?: { [key: string]: ExternalParamValue };
+      parameters?: ModuleParams;
       ui?: boolean;
     }
   ): Promise<DeployResult> {
