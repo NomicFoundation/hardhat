@@ -43,7 +43,7 @@ where
     },
     ModifyAccount {
         address: Address,
-        modifier: Box<dyn Fn(&mut AccountInfo) + Send>,
+        modifier: Box<dyn Fn(&mut U256, &mut u64, &mut Option<Bytecode>) + Send>,
         sender: oneshot::Sender<Result<(), E>>,
     },
     RemoveAccount {
@@ -51,6 +51,12 @@ where
         sender: oneshot::Sender<Result<Option<AccountInfo>, E>>,
     },
     Revert {
+        sender: oneshot::Sender<Result<(), E>>,
+    },
+    SetStorageSlot {
+        address: Address,
+        index: U256,
+        value: U256,
         sender: oneshot::Sender<Result<(), E>>,
     },
     StorageRoot {
@@ -111,6 +117,14 @@ where
                 sender.send(db.remove_account(address)).unwrap()
             }
             Request::Revert { sender } => sender.send(db.revert()).unwrap(),
+            Request::SetStorageSlot {
+                address,
+                index,
+                value,
+                sender,
+            } => sender
+                .send(db.set_account_storage_slot(address, index, value))
+                .unwrap(),
             Request::StorageRoot { sender } => sender.send(db.storage_root()).unwrap(),
             Request::StorageSlot {
                 address,
@@ -176,7 +190,7 @@ where
                 .finish(),
             Self::ModifyAccount {
                 address,
-                modifier: _modifier,
+                modifier,
                 sender,
             } => f
                 .debug_struct("ModifyAccount")
@@ -189,6 +203,18 @@ where
                 .field("sender", sender)
                 .finish(),
             Self::Revert { sender } => f.debug_struct("Revert").field("sender", sender).finish(),
+            Self::SetStorageSlot {
+                address,
+                index,
+                value,
+                sender,
+            } => f
+                .debug_struct("SetStorageSlot")
+                .field("address", address)
+                .field("index", index)
+                .field("value", value)
+                .field("sender", sender)
+                .finish(),
             Self::StorageRoot { sender } => f
                 .debug_struct("StorageRoot")
                 .field("sender", sender)

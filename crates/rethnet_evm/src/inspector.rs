@@ -1,4 +1,4 @@
-use revm::{Database, EVMData, Inspector, Interpreter, Return};
+use revm::{opcode, Database, EVMData, Inspector, Interpreter, Return};
 
 use crate::trace::Trace;
 
@@ -43,6 +43,10 @@ where
             .expect("There must always be an opcode when ending a step");
 
         self.trace.add_step(opcode, interp.gas(), exit_code);
+
+        if opcode == opcode::RETURN {
+            self.trace.return_value = interp.return_value();
+        }
 
         Return::Continue
     }

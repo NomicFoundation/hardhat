@@ -185,7 +185,7 @@ where
     pub async fn modify_account(
         &self,
         address: Address,
-        modifier: Box<dyn Fn(&mut AccountInfo) + Send>,
+        modifier: Box<dyn Fn(&mut U256, &mut u64, &mut Option<Bytecode>) + Send>,
     ) -> Result<(), E> {
         let (sender, receiver) = oneshot::channel();
 
@@ -217,6 +217,27 @@ where
 
         self.request_sender
             .send(Request::Revert { sender })
+            .expect("Failed to send request");
+
+        receiver.await.unwrap()
+    }
+
+    /// Sets the storage slot at the specified address and index to the provided value.
+    pub async fn set_account_storage_slot(
+        &self,
+        address: Address,
+        index: U256,
+        value: U256,
+    ) -> Result<(), E> {
+        let (sender, receiver) = oneshot::channel();
+
+        self.request_sender
+            .send(Request::SetStorageSlot {
+                address,
+                index,
+                value,
+                sender,
+            })
             .expect("Failed to send request");
 
         receiver.await.unwrap()
@@ -346,7 +367,7 @@ where
     fn modify_account(
         &mut self,
         address: Address,
-        modifier: Box<dyn Fn(&mut AccountInfo) + Send>,
+        modifier: Box<dyn Fn(&mut U256, &mut u64, &mut Option<Bytecode>) + Send>,
     ) -> Result<(), Self::Error> {
         task::block_in_place(move || {
             self.db
@@ -357,6 +378,19 @@ where
 
     fn remove_account(&mut self, address: Address) -> Result<Option<AccountInfo>, Self::Error> {
         task::block_in_place(move || self.db.runtime().block_on(self.db.remove_account(address)))
+    }
+
+    fn set_account_storage_slot(
+        &mut self,
+        address: Address,
+        index: U256,
+        value: U256,
+    ) -> Result<(), Self::Error> {
+        task::block_in_place(move || {
+            self.db
+                .runtime()
+                .block_on(self.db.set_account_storage_slot(address, index, value))
+        })
     }
 
     fn storage_root(&mut self) -> Result<H256, Self::Error> {

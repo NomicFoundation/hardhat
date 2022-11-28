@@ -5,10 +5,10 @@ use std::sync::{
 
 use napi::{bindgen_prelude::*, JsFunction, JsObject, NapiRaw, Status};
 use napi_derive::napi;
-use rethnet_eth::{Address, H256};
+use rethnet_eth::{Address, H256, U256};
 use rethnet_evm::{
     db::{AsyncDatabase, LayeredDatabase, RethnetLayer, SyncDatabase},
-    AccountInfo, HashMap,
+    AccountInfo, Bytecode, HashMap,
 };
 use secp256k1::Secp256k1;
 
@@ -16,12 +16,14 @@ use crate::{
     private_key_to_address,
     sync::{await_promise, handle_error},
     threadsafe_function::{ThreadSafeCallContext, ThreadsafeFunction, ThreadsafeFunctionCallMode},
-    Account, GenesisAccount, TryCast,
+    Account, AccountData, GenesisAccount, TryCast,
 };
 
 struct ModifyAccountCall {
-    pub account_info: AccountInfo,
-    pub sender: Sender<napi::Result<AccountInfo>>,
+    pub balance: U256,
+    pub nonce: u64,
+    pub code: Option<Bytecode>,
+    pub sender: Sender<napi::Result<(U256, u64, Option<Bytecode>)>>,
 }
 
 #[napi]
@@ -102,6 +104,29 @@ impl StateManager {
     }
 
     #[napi]
+    pub async fn get_account_storage_slot(
+        &mut self,
+        address: Buffer,
+        index: BigInt,
+    ) -> napi::Result<BigInt> {
+        let address = Address::from_slice(&address);
+        let index = BigInt::try_cast(index)?;
+
+        self.db
+            .account_storage_slot(address, index)
+            .await
+            .map_or_else(
+                |e| Err(napi::Error::new(Status::GenericFailure, e.to_string())),
+                |value| {
+                    Ok(BigInt {
+                        sign_bit: false,
+                        words: value.into_limbs().to_vec(),
+                    })
+                },
+            )
+    }
+
+    #[napi]
     pub async fn get_code_by_hash(&mut self, code_hash: Buffer) -> napi::Result<Buffer> {
         let code_hash = H256::from_slice(&code_hash);
 
@@ -150,7 +175,9 @@ impl StateManager {
         &mut self,
         env: Env,
         address: Buffer,
-        #[napi(ts_arg_type = "(account: Account) => Promise<Account>")]
+        #[napi(
+            ts_arg_type = "(balance: bigint, nonce: bigint, code: Buffer | undefined) => Promise<AccountData>"
+        )]
         modify_account_fn: JsFunction,
     ) -> napi::Result<JsObject> {
         let address = Address::from_slice(&address);
@@ -162,39 +189,30 @@ impl StateManager {
             |ctx: ThreadSafeCallContext<ModifyAccountCall>| {
                 let sender = ctx.value.sender.clone();
 
-                let mut account = ctx.env.create_object()?;
-
-                let balance = ctx.env.create_bigint_from_words(
-                    false,
-                    ctx.value.account_info.balance.into_limbs().to_vec(),
-                )?;
-                account.set_named_property("balance", balance)?;
+                let balance = ctx
+                    .env
+                    .create_bigint_from_words(false, ctx.value.balance.into_limbs().to_vec())?
+                    .into_unknown()?;
 
                 let nonce = ctx
                     .env
-                    .create_bigint_from_u64(ctx.value.account_info.nonce)?;
-                account.set_named_property("nonce", nonce)?;
+                    .create_bigint_from_u64(ctx.value.nonce)?
+                    .into_unknown()?;
 
-                let code_hash = ctx
-                    .env
-                    .create_buffer_copy(ctx.value.account_info.code_hash.as_bytes())?
-                    .into_raw();
-                account.set_named_property("codeHash", code_hash)?;
-
-                if let Some(code) = ctx.value.account_info.code {
-                    let code = ctx
-                        .env
+                let code = if let Some(code) = ctx.value.code {
+                    ctx.env
                         .create_buffer_copy(code.bytes().as_ref())?
-                        .into_raw();
-
-                    account.set_named_property("code", code)?;
+                        .into_unknown()
                 } else {
-                    account.set_named_property("code", ctx.env.get_null()?)?;
-                }
+                    ctx.env.get_null()?.into_unknown()
+                };
 
-                let promise = ctx.callback.call(None, &[account.into_unknown()])?;
-                let result =
-                    await_promise::<Account, AccountInfo>(ctx.env, promise, ctx.value.sender);
+                let promise = ctx.callback.call(None, &[balance, nonce, code])?;
+                let result = await_promise::<AccountData, (U256, u64, Option<Bytecode>)>(
+                    ctx.env,
+                    promise,
+                    ctx.value.sender,
+                );
 
                 handle_error(sender, result)
             },
@@ -207,20 +225,29 @@ impl StateManager {
             let result = db
                 .modify_account(
                     address,
-                    Box::new(move |account_info: &mut AccountInfo| {
-                        let (sender, receiver) = channel();
+                    Box::new(
+                        move |balance: &mut U256, nonce: &mut u64, code: &mut Option<Bytecode>| {
+                            let (sender, receiver) = channel();
 
-                        let status = modify_account_fn.call(
-                            ModifyAccountCall {
-                                sender,
-                                account_info: account_info.clone(),
-                            },
-                            ThreadsafeFunctionCallMode::Blocking,
-                        );
-                        assert_eq!(status, Status::Ok);
+                            let status = modify_account_fn.call(
+                                ModifyAccountCall {
+                                    sender,
+                                    balance: balance.clone(),
+                                    nonce: *nonce,
+                                    code: code.clone(),
+                                },
+                                ThreadsafeFunctionCallMode::Blocking,
+                            );
+                            assert_eq!(status, Status::Ok);
 
-                        *account_info = receiver.recv().unwrap().expect("Failed to commit");
-                    }),
+                            let (new_balance, new_nonce, new_code) =
+                                receiver.recv().unwrap().expect("Failed to commit");
+
+                            *balance = new_balance;
+                            *nonce = new_nonce;
+                            *code = new_code;
+                        },
+                    ),
                 )
                 .await
                 .map_err(|e| napi::Error::new(Status::GenericFailure, e.to_string()));
@@ -239,5 +266,22 @@ impl StateManager {
             |e| Err(napi::Error::new(Status::GenericFailure, e.to_string())),
             |account| Ok(account.map(Account::from)),
         )
+    }
+
+    #[napi]
+    pub async fn set_account_storage_slot(
+        &mut self,
+        address: Buffer,
+        index: BigInt,
+        value: BigInt,
+    ) -> napi::Result<()> {
+        let address = Address::from_slice(&address);
+        let index = BigInt::try_cast(index)?;
+        let value = BigInt::try_cast(value)?;
+
+        self.db
+            .set_account_storage_slot(address, index, value)
+            .await
+            .map_err(|e| napi::Error::new(Status::GenericFailure, e.to_string()))
     }
 }

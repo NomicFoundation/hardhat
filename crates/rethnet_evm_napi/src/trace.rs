@@ -1,16 +1,21 @@
-use napi::bindgen_prelude::BigInt;
+use napi::bindgen_prelude::{BigInt, Buffer};
 use napi_derive::napi;
 
 #[napi(object)]
 pub struct Trace {
     pub steps: Vec<Step>,
+    pub return_value: Buffer,
 }
 
 impl From<rethnet_evm::trace::Trace> for Trace {
     fn from(value: rethnet_evm::trace::Trace) -> Self {
         let steps = value.steps.into_iter().map(From::from).collect();
+        let return_value = Buffer::from(value.return_value.as_ref());
 
-        Self { steps }
+        Self {
+            steps,
+            return_value,
+        }
     }
 }
 

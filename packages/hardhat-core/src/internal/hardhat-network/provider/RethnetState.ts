@@ -3,9 +3,11 @@ import { StorageDump } from "@nomicfoundation/ethereumjs-statemanager/dist/inter
 import {
   Account,
   Address,
+  bufferToBigInt,
   KECCAK256_NULL,
+  toBuffer,
 } from "@nomicfoundation/ethereumjs-util";
-import { StateManager, Account as RethnetAccount } from "rethnet-evm";
+import { StateManager, AccountData } from "rethnet-evm";
 import { GenesisAccount } from "./node-types";
 
 /* eslint-disable @nomiclabs/hardhat-internal-rules/only-hardhat-error */
@@ -84,18 +86,19 @@ export class RethnetStateManager implements StateManagerInterface {
 
   public async modifyAccountFields(
     address: Address,
-    accountFields: Partial<
-      Pick<Account, "nonce" | "balance" | "storageRoot" | "codeHash">
-    >
+    accountFields: Partial<Pick<Account, "nonce" | "balance">>
   ): Promise<void> {
     await this._state.modifyAccount(
       address.buf,
-      async function (account: RethnetAccount): Promise<RethnetAccount> {
+      async function (
+        balance: bigint,
+        nonce: bigint,
+        code: Buffer | undefined
+      ): Promise<AccountData> {
         return {
-          balance: accountFields.balance ?? account.balance,
-          nonce: accountFields.nonce ?? account.nonce,
-          codeHash: accountFields.codeHash ?? account.codeHash,
-          code: account.code,
+          balance: accountFields.balance ?? balance,
+          nonce: accountFields.nonce ?? nonce,
+          code,
         };
       }
     );
@@ -122,7 +125,10 @@ export class RethnetStateManager implements StateManagerInterface {
     address: Address,
     key: Buffer
   ): Promise<Buffer> {
-    throw new Error("not implemented");
+    const index = bufferToBigInt(key);
+
+    const value = await this._state.getAccountStorageSlot(address.buf, index);
+    return toBuffer(value);
   }
 
   public async putContractStorage(
@@ -130,7 +136,10 @@ export class RethnetStateManager implements StateManagerInterface {
     key: Buffer,
     value: Buffer
   ): Promise<void> {
-    throw new Error("not implemented");
+    const index = bufferToBigInt(key);
+    const number = bufferToBigInt(value);
+
+    await this._state.setAccountStorageSlot(address.buf, index, number);
   }
 
   public async clearContractStorage(address: Address): Promise<void> {

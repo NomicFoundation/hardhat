@@ -21,7 +21,7 @@ use state::StateManager;
 use trace::Trace;
 use transaction::{Transaction, TransactionOutput};
 
-use crate::cast::TryCast; //, db::{JsDatabase, JsDatabaseCommitInner, JsDatabaseDebugInner}};
+use crate::cast::TryCast;
 
 struct Logger;
 
@@ -40,6 +40,19 @@ pub struct Account {
     /// 256-bit code hash
     #[napi(readonly)]
     pub code_hash: Buffer,
+    /// Optionally, byte code
+    #[napi(readonly)]
+    pub code: Option<Buffer>,
+}
+
+#[napi(object)]
+pub struct AccountData {
+    /// Account balance
+    #[napi(readonly)]
+    pub balance: BigInt,
+    /// Account nonce
+    #[napi(readonly)]
+    pub nonce: BigInt,
     /// Optionally, byte code
     #[napi(readonly)]
     pub code: Option<Buffer>,

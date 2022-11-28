@@ -1,6 +1,6 @@
 use auto_impl::auto_impl;
 use rethnet_eth::{Address, H256, U256};
-use revm::AccountInfo;
+use revm::{AccountInfo, Bytecode};
 
 /// A trait for debug operation on a database.
 #[auto_impl(Box)]
@@ -22,11 +22,19 @@ pub trait DatabaseDebug {
     fn modify_account(
         &mut self,
         address: Address,
-        modifier: Box<dyn Fn(&mut AccountInfo) + Send>,
+        modifier: Box<dyn Fn(&mut U256, &mut u64, &mut Option<Bytecode>) + Send>,
     ) -> Result<(), Self::Error>;
 
     /// Removes and returns the account at the specified address, if it exists.
     fn remove_account(&mut self, address: Address) -> Result<Option<AccountInfo>, Self::Error>;
+
+    /// Sets the storage slot at the specified address and index to the provided value.
+    fn set_account_storage_slot(
+        &mut self,
+        address: Address,
+        index: U256,
+        value: U256,
+    ) -> Result<(), Self::Error>;
 
     /// Retrieves the storage root of the database.
     fn storage_root(&mut self) -> Result<H256, Self::Error>;

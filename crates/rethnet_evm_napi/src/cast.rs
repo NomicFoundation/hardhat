@@ -5,7 +5,7 @@ use napi::{
 use rethnet_eth::{Bytes, H256, U256};
 use rethnet_evm::{AccountInfo, Bytecode};
 
-use crate::Account;
+use crate::{Account, AccountData};
 
 /// An attempted conversion that consumes `self`, which may or may not be
 /// expensive. It is identical to [`TryInto`], but it allows us to implement
@@ -30,6 +30,20 @@ impl TryCast<AccountInfo> for Account {
                 .code
                 .map(|code| Bytecode::new_raw(Bytes::copy_from_slice(&code))),
         })
+    }
+}
+
+impl TryCast<(U256, u64, Option<Bytecode>)> for AccountData {
+    type Error = napi::Error;
+
+    fn try_cast(self) -> Result<(U256, u64, Option<Bytecode>), Self::Error> {
+        let balance = self.balance.try_cast()?;
+        let nonce = self.nonce.get_u64().1;
+        let code = self
+            .code
+            .map(|code| Bytecode::new_raw(Bytes::copy_from_slice(&code)));
+
+        Ok((balance, nonce, code))
     }
 }
 

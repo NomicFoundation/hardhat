@@ -1,7 +1,6 @@
 import type { Message } from "@nomicfoundation/ethereumjs-evm";
 import type { RunTxResult } from "@nomicfoundation/ethereumjs-vm";
 import { Block } from "@nomicfoundation/ethereumjs-block";
-import { Common } from "@nomicfoundation/ethereumjs-common";
 import { StateManager as StateManagerInterface } from "@nomicfoundation/ethereumjs-statemanager";
 import {
   Account,
@@ -9,7 +8,7 @@ import {
   bufferToBigInt,
 } from "@nomicfoundation/ethereumjs-util";
 import { TypedTransaction } from "@nomicfoundation/ethereumjs-tx";
-import { BlockBuilder, Rethnet, StateManager } from "rethnet-evm";
+import { AccountData, BlockBuilder, Rethnet } from "rethnet-evm";
 
 import { NodeConfig } from "../node-types";
 import {
@@ -17,9 +16,9 @@ import {
   ethereumjsTransactionToRethnet,
   rethnetResultToRunTxResult,
 } from "../utils/convertToRethnet";
-import { RethnetStateManager } from "../RethnetState";
 import { hardforkGte, HardforkName } from "../../../util/hardforks";
 import { RpcDebugTraceOutput } from "../output";
+import { RethnetStateManager } from "../RethnetState";
 import { RpcDebugTracingConfig } from "../../../core/jsonrpc/types/input/debugTraceTransaction";
 
 import { Trace, VMAdapter } from "./vm-adapter";
@@ -29,7 +28,7 @@ import { Trace, VMAdapter } from "./vm-adapter";
 
 export class RethnetAdapter implements VMAdapter {
   constructor(
-    private _state: StateManager,
+    private _state: RethnetStateManager,
     private _rethnet: Rethnet,
     private readonly _selectHardfork: (blockNumber: bigint) => string
   ) {}
@@ -56,7 +55,7 @@ export class RethnetAdapter implements VMAdapter {
       disableEip3607: true,
     });
 
-    return new RethnetAdapter(state.asInner(), rethnet, selectHardfork);
+    return new RethnetAdapter(state, rethnet, selectHardfork);
   }
 
   /**
@@ -99,7 +98,7 @@ export class RethnetAdapter implements VMAdapter {
    * Get the account info for the given address.
    */
   public async getAccount(address: Address): Promise<Account> {
-    throw new Error("not implemented");
+    return this._state.getAccount(address);
   }
 
   /**
@@ -109,28 +108,43 @@ export class RethnetAdapter implements VMAdapter {
     address: Address,
     key: Buffer
   ): Promise<Buffer> {
-    throw new Error("not implemented");
+    return this._state.getContractStorage(address, key);
   }
 
   /**
    * Get the contract code at the given address.
    */
   public async getContractCode(address: Address): Promise<Buffer> {
-    throw new Error("not implemented");
+    return this._state.getContractCode(address);
   }
 
   /**
    * Update the account info for the given address.
    */
   public async putAccount(address: Address, account: Account): Promise<void> {
-    throw new Error("not implemented");
+    await this._state.putAccount(address, account);
   }
 
   /**
    * Update the contract code for the given address.
    */
   public async putContractCode(address: Address, value: Buffer): Promise<void> {
-    throw new Error("not implemented");
+    await this._state
+      .asInner()
+      .modifyAccount(
+        address.buf,
+        async function (
+          balance: bigint,
+          nonce: bigint,
+          _code: Buffer | undefined
+        ): Promise<AccountData> {
+          return {
+            balance,
+            nonce,
+            code: value,
+          };
+        }
+      );
   }
 
   /**
@@ -141,14 +155,14 @@ export class RethnetAdapter implements VMAdapter {
     key: Buffer,
     value: Buffer
   ): Promise<void> {
-    throw new Error("not implemented");
+    await this._state.putContractStorage(address, key, value);
   }
 
   /**
    * Get the root of the current state trie.
    */
   public async getStateRoot(): Promise<Buffer> {
-    throw new Error("not implemented");
+    return this._state.getStateRoot();
   }
 
   /**
@@ -210,7 +224,7 @@ export class RethnetAdapter implements VMAdapter {
     rewards: Array<[Address, bigint]>
   ): Promise<void> {
     const blockBuilder = await BlockBuilder.new(
-      this._state,
+      this._state.asInner(),
       {},
       {
         // Dummy values

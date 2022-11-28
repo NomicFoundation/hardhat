@@ -125,7 +125,7 @@ where
             self.state
                 .modify_account(
                     address,
-                    Box::new(move |account_info| account_info.balance += reward),
+                    Box::new(move |balance, _nonce, _code| *balance += reward),
                 )
                 .await?;
         }

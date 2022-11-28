@@ -23,7 +23,13 @@ function printEthereumJSTrace(trace: any) {
 }
 
 function printRethnetTrace(trace: any) {
-  console.log(JSON.stringify(trace, null, 2));
+  console.log(
+    JSON.stringify(
+      trace,
+      (key, value) => (typeof value === "bigint" ? value.toString() : value),
+      2
+    )
+  );
 }
 
 export class DualModeAdapter implements VMAdapter {
@@ -98,14 +104,34 @@ export class DualModeAdapter implements VMAdapter {
   }
 
   public async getAccount(address: Address): Promise<Account> {
-    return this._ethereumJSAdapter.getAccount(address);
+    const ethereumJSAccount = await this._ethereumJSAdapter.getAccount(address);
+    const rethnetAccount = await this._rethnetAdapter.getAccount(address);
+
+    assertEqualAccounts(ethereumJSAccount, rethnetAccount);
+
+    return ethereumJSAccount;
   }
 
   public async getContractStorage(
     address: Address,
     key: Buffer
   ): Promise<Buffer> {
-    return this._ethereumJSAdapter.getContractStorage(address, key);
+    const ethereumJSStorageSlot =
+      await this._ethereumJSAdapter.getContractStorage(address, key);
+
+    const rethnetStorageSlot = await this._rethnetAdapter.getContractStorage(
+      address,
+      key
+    );
+
+    if (!ethereumJSStorageSlot.equals(rethnetStorageSlot)) {
+      console.trace(
+        `Different storage slot: ${ethereumJSStorageSlot} !== ${rethnetStorageSlot}`
+      );
+      throw new Error("Different storage slot");
+    }
+
+    return rethnetStorageSlot;
   }
 
   public async getContractCode(address: Address): Promise<Buffer> {
@@ -113,6 +139,7 @@ export class DualModeAdapter implements VMAdapter {
   }
 
   public async putAccount(address: Address, account: Account): Promise<void> {
+    await this._rethnetAdapter.putAccount(address, account);
     return this._ethereumJSAdapter.putAccount(address, account);
   }
 
@@ -125,6 +152,7 @@ export class DualModeAdapter implements VMAdapter {
     key: Buffer,
     value: Buffer
   ): Promise<void> {
+    await this._rethnetAdapter.putContractStorage(address, key, value);
     return this._ethereumJSAdapter.putContractStorage(address, key, value);
   }
 
@@ -272,4 +300,38 @@ function assertEqualRunTxResults(
       throw new Error("Different returnValue");
     }
   }
+}
+
+function assertEqualAccounts(
+  ethereumJSAccount: Account,
+  rethnetAccount: Account
+) {
+  if (ethereumJSAccount.balance !== rethnetAccount.balance) {
+    console.trace(
+      `Different balance: ${ethereumJSAccount.balance} !== ${rethnetAccount.balance}`
+    );
+    throw new Error("Different balance");
+  }
+
+  if (!ethereumJSAccount.codeHash.equals(rethnetAccount.codeHash)) {
+    console.trace(
+      `Different codeHash: ${ethereumJSAccount.codeHash} !== ${rethnetAccount.codeHash}`
+    );
+    throw new Error("Different codeHash");
+  }
+
+  if (ethereumJSAccount.nonce !== rethnetAccount.nonce) {
+    console.trace(
+      `Different nonce: ${ethereumJSAccount.nonce} !== ${rethnetAccount.nonce}`
+    );
+    throw new Error("Different nonce");
+  }
+
+  // TODO: Add storageRoot to Rethnet
+  // if (ethereumJSAccount.storageRoot !== rethnetAccount.storageRoot) {
+  //   console.trace(
+  //     `Different storageRoot: ${ethereumJSAccount.storageRoot} !== ${rethnetAccount.storageRoot}`
+  //   );
+  //   throw new Error("Different storageRoot");
+  // }
 }

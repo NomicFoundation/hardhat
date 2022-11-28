@@ -1,3 +1,4 @@
+use rethnet_eth::Bytes;
 use revm::{Gas, Return};
 
 /// A trace for an EVM call.
@@ -5,6 +6,8 @@ use revm::{Gas, Return};
 pub struct Trace {
     /// The individual steps of the call
     pub steps: Vec<Step>,
+    /// The return value of the call
+    pub return_value: Bytes,
     gas: Option<Gas>,
 }
 

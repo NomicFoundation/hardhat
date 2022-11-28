@@ -261,9 +261,7 @@ impl DatabaseDebug for LayeredDatabase<RethnetLayer> {
         address: Address,
         account_info: AccountInfo,
     ) -> Result<(), Self::Error> {
-        self.last_layer_mut()
-            .account_infos
-            .insert(address, account_info);
+        self.last_layer_mut().insert_account(address, account_info);
 
         Ok(())
     }
@@ -279,11 +277,34 @@ impl DatabaseDebug for LayeredDatabase<RethnetLayer> {
     fn modify_account(
         &mut self,
         address: Address,
-        modifier: Box<dyn Fn(&mut AccountInfo) + Send>,
+        modifier: Box<dyn Fn(&mut U256, &mut u64, &mut Option<Bytecode>) + Send>,
     ) -> Result<(), Self::Error> {
         // TODO: Move account insertion out of LayeredDatabase when forking
         let account_info = self.account_or_insert_mut(&address);
-        modifier(account_info);
+        let old_code_hash = account_info.code_hash;
+
+        modifier(
+            &mut account_info.balance,
+            &mut account_info.nonce,
+            &mut account_info.code,
+        );
+
+        if let Some(code) = account_info.code.take() {
+            let new_code_hash = code.hash();
+
+            if old_code_hash != new_code_hash {
+                account_info.code_hash = new_code_hash;
+
+                let last_layer = self.last_layer_mut();
+
+                // The old contract should now return empty bytecode
+                last_layer.contracts.insert(old_code_hash, Bytes::new());
+
+                last_layer
+                    .contracts
+                    .insert(new_code_hash, code.bytes().clone());
+            }
+        }
 
         Ok(())
     }
@@ -302,6 +323,28 @@ impl DatabaseDebug for LayeredDatabase<RethnetLayer> {
             self.last_layer_mut().insert_account(address, empty_account);
             Ok(None)
         }
+    }
+
+    fn set_account_storage_slot(
+        &mut self,
+        address: Address,
+        index: U256,
+        value: U256,
+    ) -> Result<(), Self::Error> {
+        self.last_layer_mut()
+            .storage
+            .entry(address)
+            .and_modify(|entry| {
+                entry.insert(index, value);
+            })
+            .or_insert_with(|| {
+                let mut account_storage = HashMap::new();
+                account_storage.insert(index, value);
+
+                account_storage
+            });
+
+        Ok(())
     }
 
     fn storage_root(&mut self) -> Result<H256, Self::Error> {
