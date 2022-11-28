@@ -6,29 +6,24 @@ export const ModuleParameters = ({
 }: {
   moduleParams?: ModuleParams;
 }) => {
-  if (moduleParams) {
-    const params = [];
-
-    for (const [key, value] of Object.entries(moduleParams)) {
-      const item = (
-        <Text>
-          {key}: {value}
-        </Text>
-      );
-
-      params.push(item, <Newline />);
-    }
-
-    params.pop();
-
-    return (
-      <Text>
-        <Text bold={true}>Module parameters:</Text>
-        <Newline />
-        {...params}
-      </Text>
-    );
-  } else {
+  if (!moduleParams) {
     return null;
   }
+
+  const params = Object.entries(moduleParams).map(([key, value]) => (
+    <Text>
+      <Text>
+        {key}: {value}
+      </Text>
+      <Newline />
+    </Text>
+  ));
+
+  return (
+    <Text>
+      <Text bold={true}>Module parameters:</Text>
+      <Newline />
+      {...params}
+    </Text>
+  );
 };
