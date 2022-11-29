@@ -5,7 +5,7 @@ const Multisig = require("../ignition/Multisig");
 
 const ACCOUNT_0 = "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266";
 
-describe("Multisig", function () {
+describe.skip("Multisig", function () {
   let multisig;
 
   before(async () => {
