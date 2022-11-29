@@ -257,9 +257,16 @@ Note that you don't need to do this every time you install a new dependency, but
       message: `Your project is an ESM project (you have "type": "module" set in your package.json) but your Hardhat config file uses a .js or .ts extension.
 
 Rename the file to use a .cjs or .cts extension to fix this problem.`,
-      title: "Hardht config with .js or .ts extension in an ESM project",
+      title: "Hardhat config with .js or .ts extension in an ESM project",
       description:
         "Your project is an ESM project but your Hardhat config uses an .js or .ts extension. Hardhat config files cannot be an ES module. To fix this, rename your Hardhat config to use the .cjs or .cts extension.",
+      shouldBeReported: false,
+    },
+    ESM_TYPESCRIPT_PROJECT_CREATION: {
+      number: 20,
+      message: `Your project is an ESM project (you have "type": "module" set in your package.json) and you are trying to initialize a TypeScript project. This is not supported yet.`,
+      title: "Initializing a TypeScript sample project in an ESM project",
+      description: `Your project is an ESM project (you have "type": "module" set in your package.json) and you are trying to initialize a TypeScript project. This is not supported yet.`,
       shouldBeReported: false,
     },
   },

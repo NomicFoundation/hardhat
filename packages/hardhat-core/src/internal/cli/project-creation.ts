@@ -4,7 +4,7 @@ import os from "os";
 import path from "path";
 
 import { HARDHAT_NAME } from "../constants";
-import { HardhatError } from "../core/errors";
+import { assertHardhatInvariant, HardhatError } from "../core/errors";
 import { ERRORS } from "../core/errors-list";
 import { getRecommendedGitIgnore } from "../core/project-structure";
 import {
@@ -12,7 +12,11 @@ import {
   writeTelemetryConsent,
 } from "../util/global-dir";
 import { fromEntries } from "../util/lang";
-import { getPackageJson, getPackageRoot } from "../util/packageInfo";
+import {
+  getPackageJson,
+  getPackageRoot,
+  PackageJson,
+} from "../util/packageInfo";
 import { pluralize } from "../util/strings";
 import {
   confirmRecommendedDepsInstallation,
@@ -109,14 +113,28 @@ async function printWelcomeMessage() {
 
 async function copySampleProject(
   projectRoot: string,
-  projectType: SampleProjectTypeCreationAction
+  projectType: SampleProjectTypeCreationAction,
+  isEsm: boolean
 ) {
   const packageRoot = getPackageRoot();
 
-  const sampleProjectName =
-    projectType === Action.CREATE_JAVASCRIPT_PROJECT_ACTION
-      ? "javascript"
-      : "typescript";
+  let sampleProjectName: string;
+  if (projectType === Action.CREATE_JAVASCRIPT_PROJECT_ACTION) {
+    if (isEsm) {
+      sampleProjectName = "javascript-esm";
+    } else {
+      sampleProjectName = "javascript";
+    }
+  } else {
+    if (isEsm) {
+      assertHardhatInvariant(
+        false,
+        "Shouldn't try to create a TypeScript project in an ESM based project"
+      );
+    } else {
+      sampleProjectName = "typescript";
+    }
+  }
 
   await fsExtra.ensureDir(projectRoot);
 
@@ -187,11 +205,19 @@ module.exports = {
 };
 `;
 
-async function writeEmptyHardhatConfig() {
-  return fsExtra.writeFile("hardhat.config.js", EMPTY_HARDHAT_CONFIG, "utf-8");
+async function writeEmptyHardhatConfig(isEsm: boolean) {
+  const hardhatConfigFilename = isEsm
+    ? "hardhat.config.cjs"
+    : "hardhat.config.js";
+
+  return fsExtra.writeFile(
+    hardhatConfigFilename,
+    EMPTY_HARDHAT_CONFIG,
+    "utf-8"
+  );
 }
 
-async function getAction(): Promise<Action> {
+async function getAction(isEsm: boolean): Promise<Action> {
   if (
     process.env.HARDHAT_CREATE_JAVASCRIPT_PROJECT_WITH_DEFAULTS !== undefined
   ) {
@@ -211,7 +237,11 @@ async function getAction(): Promise<Action> {
         message: "What do you want to do?",
         initial: 0,
         choices: Object.values(Action).map((a: Action) => {
-          return { name: a, message: a, value: a };
+          return {
+            name: a,
+            message: isEsm ? a.replace(".js", ".cjs") : a,
+            value: a,
+          };
         }),
       },
     ]);
@@ -257,18 +287,28 @@ export async function createProject() {
 
   await printWelcomeMessage();
 
-  const action = await getAction();
+  let packageJson: PackageJson | undefined;
+  if (await fsExtra.pathExists("package.json")) {
+    packageJson = await fsExtra.readJson("package.json");
+  }
+  const isEsm = packageJson?.type === "module";
+
+  const action = await getAction(isEsm);
 
   if (action === Action.QUIT_ACTION) {
     return;
   }
 
-  if (!(await fsExtra.pathExists("package.json"))) {
+  if (isEsm && action === Action.CREATE_TYPESCRIPT_PROJECT_ACTION) {
+    throw new HardhatError(ERRORS.GENERAL.ESM_TYPESCRIPT_PROJECT_CREATION);
+  }
+
+  if (packageJson === undefined) {
     await createPackageJson();
   }
 
   if (action === Action.CREATE_EMPTY_HARDHAT_CONFIG_ACTION) {
-    await writeEmptyHardhatConfig();
+    await writeEmptyHardhatConfig(isEsm);
     console.log(
       `${emoji("✨ ")}${chalk.cyan(`Config file created`)}${emoji(" ✨")}`
     );
@@ -332,7 +372,7 @@ export async function createProject() {
     }
   }
 
-  await copySampleProject(projectRoot, action);
+  await copySampleProject(projectRoot, action, isEsm);
 
   let shouldShowInstallationInstructions = true;
 
