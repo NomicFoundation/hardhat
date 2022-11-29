@@ -50,7 +50,6 @@ The next step might be to have a network of these nodes making these calls to di
 
 [Chainlink Off-Chain Reporting](https://blog.chain.link/off-chain-reporting-live-on-mainnet/) (Chainlink OCR) has improved on this methodology by having the off-chain oracle network communicate with each other, cryptographically sign their responses, aggregate their responses off-chain, and send only one transaction on-chain with the result. This way, less gas is spent, but you still get the guarantee of decentralized data since every node has signed their part of the transaction, making it unchangeable by the node sending the transaction. The escalation policy kicks in if the node doesn't transact, and the next node sends the transaction.
 
-
 ## Chainlink Data Feeds
 
 Chainlink Data Feeds are the quickest way to connect your smart contracts to the real-world data such as asset prices, reserve balances, and L2 sequencer health. To consume price data, your smart contract should reference AggregatorV3Interface, which defines the external functions implemented by Data Feeds.
@@ -385,4 +384,3 @@ contract APIConsumer is ChainlinkClient, ConfirmedOwner {
     }
 }
 ```
-
