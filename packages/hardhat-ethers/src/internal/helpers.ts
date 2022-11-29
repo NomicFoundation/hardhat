@@ -303,13 +303,6 @@ export async function getContractAt(
   address: string,
   signer?: ethers.Signer
 ) {
-  if ((await hre.ethers.provider.getCode(address)) === "0x") {
-    throw new NomicLabsHardhatPluginError(
-      pluginName,
-      `${address} is not a contract account.`
-    );
-  }
-
   if (typeof nameOrAbi === "string") {
     const artifact = await hre.artifacts.readArtifact(nameOrAbi);
 
@@ -334,6 +327,35 @@ export async function getContractAt(
   );
 
   return new Contract(address, abiWithAddedGas, signerOrProvider);
+}
+
+export async function deployContract(
+  hre: HardhatRuntimeEnvironment,
+  name: string,
+  args?: any[],
+  signerOrOptions?: ethers.Signer | FactoryOptions
+): Promise<ethers.Contract>;
+
+export async function deployContract(
+  hre: HardhatRuntimeEnvironment,
+  name: string,
+  signerOrOptions?: ethers.Signer | FactoryOptions
+): Promise<ethers.Contract>;
+
+export async function deployContract(
+  hre: HardhatRuntimeEnvironment,
+  name: string,
+  argsOrSignerOrOptions?: any[] | ethers.Signer | FactoryOptions,
+  signerOrOptions?: ethers.Signer | FactoryOptions
+): Promise<ethers.Contract> {
+  let args = [];
+  if (Array.isArray(argsOrSignerOrOptions)) {
+    args = argsOrSignerOrOptions;
+  } else {
+    signerOrOptions = argsOrSignerOrOptions;
+  }
+  const factory = await getContractFactory(hre, name, signerOrOptions);
+  return factory.deploy(...args);
 }
 
 export async function getContractAtFromArtifact(

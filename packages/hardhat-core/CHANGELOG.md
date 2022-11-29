@@ -1,5 +1,29 @@
 # hardhat
 
+## 2.12.2
+
+### Patch Changes
+
+- f6c74bc31: Fixed an issue that was causing build-info file names to not be deterministic.
+- 2022bed0d: Fixed an issue when forking networks like Arbitrum Nitro that use non-standard transaction types (#2995, #3194).
+
+## 2.12.1
+
+### Patch Changes
+
+- 145b12c7d: Fixed a problem that was preventing Hardhat from being used in Alpine Linux.
+
+## 2.12.0
+
+### Minor Changes
+
+- aebec509e: Use `"merge"` hardfork setting by default in Hardhat Network
+
+### Patch Changes
+
+- 3db5334b9: Fix compiler downloader
+- 6d2edac4e: Upgrade `solidity-analyzer` and handle NPM's issue #4828.
+
 ## 2.11.2
 
 ### Patch Changes

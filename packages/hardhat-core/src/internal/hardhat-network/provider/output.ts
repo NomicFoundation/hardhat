@@ -24,7 +24,7 @@ export interface RpcBlockOutput {
   gasLimit: string;
   gasUsed: string;
   hash: string | null;
-  logsBloom: string | null;
+  logsBloom: string;
   miner: string;
   mixHash: string | null;
   nonce: string | null;
@@ -171,7 +171,7 @@ export function getRpcBlock(
     nonce: pending ? null : bufferToRpcData(block.header.nonce, 8),
     mixHash: pending ? null : bufferToRpcData(block.header.mixHash, 32),
     sha3Uncles: bufferToRpcData(block.header.uncleHash),
-    logsBloom: pending ? null : bufferToRpcData(block.header.logsBloom),
+    logsBloom: bufferToRpcData(block.header.logsBloom),
     transactionsRoot: bufferToRpcData(block.header.transactionsTrie),
     stateRoot: bufferToRpcData(block.header.stateRoot),
     receiptsRoot: bufferToRpcData(block.header.receiptTrie),

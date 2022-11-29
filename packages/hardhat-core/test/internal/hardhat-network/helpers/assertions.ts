@@ -5,6 +5,7 @@ import {
   numberToRpcQuantity,
   rpcDataToBigInt,
   rpcQuantity,
+  rpcQuantityToBigInt,
 } from "../../../../src/internal/core/jsonrpc/types/base-types";
 import { RpcTransactionRequestInput } from "../../../../src/internal/core/jsonrpc/types/input/transactionRequest";
 import {
@@ -339,6 +340,17 @@ export async function assertContractFieldEqualNumber(
         data: selector,
       },
     ])
+  );
+  assert.equal(value, expectedValue);
+}
+
+export async function assertAddressBalance(
+  provider: EthereumProvider,
+  address: string,
+  expectedValue: bigint
+) {
+  const value = rpcQuantityToBigInt(
+    await provider.send("eth_getBalance", [address])
   );
   assert.equal(value, expectedValue);
 }

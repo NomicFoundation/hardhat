@@ -237,8 +237,23 @@ Either try using a new directory name, or remove the conflicting files.`,
         "Hardhat attempted to convert the input value to a BigInt, but no known conversion method was applicable to the given value.",
       shouldBeReported: false,
     },
-    ESM_PROJECT_WITHOUT_CJS_CONFIG: {
+    CORRUPTED_LOCKFILE: {
       number: 18,
+      message: `You installed Hardhat with a corrupted lockfile due to the NPM bug #4828.
+
+Please delete your node_modules, package-lock.json, reinstall your project, and try again.`,
+      title: "Corrupted lockfile",
+      description: `Some versions of NPM are affected [by a bug](https://github.com/npm/cli/issues/4828) that leads to corrupt lockfiles being generated.
+
+This bug can only affect you if you, or someone at your team, installed the project without a lockfile, but with an existing node_modules.
+
+To avoid it, please delete both your node_modules and package-lock.json, and reinstall your project.
+
+Note that you don't need to do this every time you install a new dependency, but please make sure to delete your node_modules every time you delete your package-lock.json.`,
+      shouldBeReported: false,
+    },
+    ESM_PROJECT_WITHOUT_CJS_CONFIG: {
+      number: 19,
       message: `Your project is an ESM project (you have "type": "module" set in your package.json) but your Hardhat config file uses a .js or .ts extension.
 
 Rename the file to use a .cjs or .cts extension to fix this problem.`,
@@ -617,7 +632,8 @@ Please double check how you invoked Hardhat or ran your task.`,
     },
     MISSING_TASK_ARGUMENT: {
       number: 306,
-      message: "The '%param%' parameter expects a value, but none was passed.",
+      message:
+        "The '%param%' parameter of task '%task%' expects a value, but none was passed.",
       title: "Missing task argument",
       description: `You tried to run a task, but one of its required arguments was missing. 
 
@@ -801,6 +817,16 @@ Hardhat's compiler is case sensitive to ensure projects are portable across diff
       description: `A Solidity file is trying to import another which belongs to a library that is not installed.
       
 Try installing the library using npm.`,
+      shouldBeReported: false,
+    },
+    INCLUDES_OWN_PACKAGE_NAME: {
+      number: 412,
+      message:
+        "Invalid import %imported% from %from%. Trying to import file using the own package's name.",
+      title: "Invalid import: includes own package's name",
+      description: `A Solidity file is trying to import another using its own package name. This is most likely caused by an existing symlink for the package in your node_modules.
+
+Use a relative import instead of referencing the package's name.`,
       shouldBeReported: false,
     },
   },

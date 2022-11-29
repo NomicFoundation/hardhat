@@ -12,12 +12,12 @@ This object can have entries like `defaultNetwork`, [`networks`](#networks-confi
 
 ```js
 module.exports = {
-  defaultNetwork: "rinkeby",
+  defaultNetwork: "goerli",
   networks: {
     hardhat: {
     },
-    rinkeby: {
-      url: "https://eth-rinkeby.alchemyapi.io/v2/123abc123abc123abc123abc123abcde",
+    goerli: {
+      url: "https://eth-goerli.alchemyapi.io/v2/123abc123abc123abc123abc123abcde",
       accounts: [privateKey1, privateKey2, ...]
     }
   },
@@ -101,7 +101,7 @@ For example:
 ```js
 module.exports = {
   networks: {
-    rinkeby: {
+    goerli: {
       url: "...",
       accounts: {
         mnemonic: "test test test test test test test test test test test junk",

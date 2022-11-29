@@ -2,7 +2,7 @@
 
 :::warning
 
-Rather than using Ganache, we recommend using the built-in [Hardhat Network](../hardhat-network/index.md) network to test your smart contracts, as it generates [combined JavaScript and Solidity stack traces](../hardhat-network/index.md#solidity-stack-traces), making debugging easier.
+Rather than using Ganache, we recommend using the built-in [Hardhat Network](../../../hardhat-network/docs/overview/index.md) network to test your smart contracts, as it generates [combined JavaScript and Solidity stack traces](../../../hardhat-network/docs/overview/index.md#solidity-stack-traces), making debugging easier.
 
 If you still want to run your tests using Ganache, you can do it in one of the following two ways.
 

@@ -3,7 +3,7 @@
   "version": "2.0.0",
   "description": "Nomic Foundation's recommended bundle of Hardhat plugins",
   "repository": "github:nomicfoundation/hardhat",
-  "homepage": "https://github.com/nomicfoundation/hardhat/tree/master/packages/hardhat-toolbox",
+  "homepage": "https://github.com/nomicfoundation/hardhat/tree/main/packages/hardhat-toolbox",
   "author": "Nomic Foundation",
   "contributors": [
     "Nomic Foundation"
@@ -52,6 +52,7 @@
     "eslint": "^7.29.0",
     "eslint-config-prettier": "8.3.0",
     "eslint-plugin-import": "2.24.1",
+    "eslint-plugin-no-only-tests": "3.0.0",
     "eslint-plugin-prettier": "3.4.0",
     "ethers": "^5.4.7",
     "hardhat": "^2.11.0",

@@ -1,7 +1,6 @@
-import type cbor from "cbor";
-
 import debug from "debug";
 import util from "util";
+import { decodeFirstSync } from "cbor";
 
 interface MetadataDescription {
   solcVersion: string;
@@ -79,13 +78,7 @@ export function decodeSolcMetadata(bytecode: Buffer) {
       lastMetadataBytes.length
     } bytes of metadata: ${lastMetadataBytes.toString("hex")}`
   );
-
-  const { decodeFirstSync }: typeof cbor = require("cbor");
-  // The documentation for decodeFirst mentions the `required` option even though
-  // the type information is missing it.
-  // See http://hildjj.github.io/node-cbor/Decoder.html#.decodeFirst
-  const options: cbor.DecoderOptions = { required: true } as any;
-  const decoded = decodeFirstSync(metadataPayload, options);
+  const decoded = decodeFirstSync(metadataPayload, { required: true });
   return {
     decoded,
     metadataSectionSizeInBytes: metadataSectionLength,
