@@ -30,6 +30,9 @@ import { getPendingBaseFeePerGas } from "../../helpers/getPendingBaseFeePerGas";
 import { RpcBlockOutput } from "../../../../../src/internal/hardhat-network/provider/output";
 import * as BigIntUtils from "../../../../../src/internal/util/bigint";
 import { EXAMPLE_DIFFICULTY_CONTRACT } from "../../helpers/contracts";
+import { HardhatMetadata } from "../../../../../src/internal/core/jsonrpc/types/output/metadata";
+import { useFixtureProject } from "../../../../helpers/project";
+import { useEnvironment } from "../../../../helpers/environment";
 
 describe("Hardhat module", function () {
   PROVIDERS.forEach(({ name, useProvider, isFork }) => {
@@ -2763,6 +2766,158 @@ describe("Hardhat module", function () {
           });
         });
       });
+
+      describe("hardhat_metadata", function () {
+        it("has the right fields", async function () {
+          const metadata = await this.provider.send("hardhat_metadata");
+
+          assert.isString(metadata.clientVersion);
+          assert.isNumber(metadata.chainId);
+          assert.isString(metadata.instanceId);
+          assert.isNumber(metadata.latestBlockNumber);
+          assert.isString(metadata.latestBlockHash);
+
+          // check that instance id is 32 bytes long
+          assert.lengthOf(metadata.instanceId, 66);
+
+          if (isFork) {
+            assert.isDefined(metadata.forkedNetwork);
+            assert.isNumber(metadata.forkedNetwork.chainId);
+            assert.isNumber(metadata.forkedNetwork.forkBlockNumber);
+            assert.isString(metadata.forkedNetwork.forkBlockHash);
+          } else {
+            assert.notProperty(metadata, "forkedNetwork");
+          }
+        });
+
+        it("shouldn't change the instance id when a block is mined", async function () {
+          const metadataBefore: HardhatMetadata = await this.provider.send(
+            "hardhat_metadata"
+          );
+
+          // send a transaction to generate a new block
+          await sendTxToZeroAddress(this.provider);
+
+          const metadataAfter: HardhatMetadata = await this.provider.send(
+            "hardhat_metadata"
+          );
+
+          assert.equal(metadataBefore.instanceId, metadataAfter.instanceId);
+        });
+
+        it("changes its instanceId when hardhat_reset is used", async function () {
+          const metadataBefore: HardhatMetadata = await this.provider.send(
+            "hardhat_metadata"
+          );
+
+          await this.provider.send("hardhat_reset");
+
+          const metadataAfter: HardhatMetadata = await this.provider.send(
+            "hardhat_metadata"
+          );
+
+          assert.notEqual(metadataBefore.instanceId, metadataAfter.instanceId);
+        });
+
+        it("doesn't change its instandeId when snapshots are used", async function () {
+          const snapshotId = await this.provider.send("evm_snapshot");
+
+          const metadataBefore: HardhatMetadata = await this.provider.send(
+            "hardhat_metadata"
+          );
+
+          await sendTxToZeroAddress(this.provider);
+          await this.provider.send("evm_revert", [snapshotId]);
+
+          const metadataAfter: HardhatMetadata = await this.provider.send(
+            "hardhat_metadata"
+          );
+
+          assert.equal(metadataBefore.instanceId, metadataAfter.instanceId);
+        });
+
+        it("updates the block number and block hash when a new block is mined (sending a tx)", async function () {
+          const metadataBefore: HardhatMetadata = await this.provider.send(
+            "hardhat_metadata"
+          );
+
+          // send a transaction to generate a new block
+          await sendTxToZeroAddress(this.provider);
+
+          const metadataAfter: HardhatMetadata = await this.provider.send(
+            "hardhat_metadata"
+          );
+
+          assert.equal(
+            metadataAfter.latestBlockNumber,
+            metadataBefore.latestBlockNumber + 1
+          );
+          assert.notEqual(
+            metadataBefore.latestBlockHash,
+            metadataAfter.latestBlockHash
+          );
+        });
+
+        it("updates the block number and block hash when a new block is mined (using hardhat_mine)", async function () {
+          const metadataBefore: HardhatMetadata = await this.provider.send(
+            "hardhat_metadata"
+          );
+
+          await this.provider.send("hardhat_mine", ["0x100"]);
+
+          const metadataAfter: HardhatMetadata = await this.provider.send(
+            "hardhat_metadata"
+          );
+
+          assert.equal(
+            metadataAfter.latestBlockNumber,
+            metadataBefore.latestBlockNumber + 0x100
+          );
+          assert.notEqual(
+            metadataBefore.latestBlockHash,
+            metadataAfter.latestBlockHash
+          );
+        });
+
+        it("forkBlockNumber and forkBlockHash don't change when a block is mined", async function () {
+          if (!isFork) {
+            return this.skip();
+          }
+
+          const metadataBefore: HardhatMetadata = await this.provider.send(
+            "hardhat_metadata"
+          );
+
+          // send a transaction to generate a new block
+          await sendTxToZeroAddress(this.provider);
+
+          const metadataAfter: HardhatMetadata = await this.provider.send(
+            "hardhat_metadata"
+          );
+
+          assert.equal(
+            metadataBefore.forkedNetwork!.forkBlockNumber,
+            metadataAfter.forkedNetwork!.forkBlockNumber
+          );
+          assert.equal(
+            metadataBefore.forkedNetwork!.forkBlockHash,
+            metadataAfter.forkedNetwork!.forkBlockHash
+          );
+        });
+      });
+    });
+  });
+
+  describe("fixture project tests", function () {
+    useFixtureProject("non-default-chainid");
+    useEnvironment();
+
+    it("should return the chainId set in the config", async function () {
+      const metadata: HardhatMetadata = await this.env.network.provider.send(
+        "hardhat_metadata"
+      );
+
+      assert.equal(metadata.chainId, 1000);
     });
   });
 });
