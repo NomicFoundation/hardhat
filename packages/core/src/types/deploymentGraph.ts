@@ -3,6 +3,7 @@ import type { BigNumber } from "ethers";
 import {
   ArtifactContract,
   ArtifactLibrary,
+  AwaitFuture,
   ContractCall,
   DeployedContract,
   DeploymentGraphFuture,
@@ -50,7 +51,8 @@ export type DeploymentGraphVertex =
   | HardhatLibraryDeploymentVertex
   | ArtifactLibraryDeploymentVertex
   | CallDeploymentVertex
-  | VirtualVertex;
+  | VirtualVertex
+  | AwaitVertex;
 
 export interface HardhatContractDeploymentVertex extends VertexDescriptor {
   type: "HardhatContract";
@@ -112,6 +114,15 @@ export interface VirtualVertex extends VertexDescriptor {
   after: DeploymentGraphFuture[];
 }
 
+export interface AwaitVertex extends VertexDescriptor {
+  type: "Await";
+  scopeAdded: string;
+  contract: CallableFuture;
+  event: string;
+  args: InternalParamValue[];
+  after: DeploymentGraphFuture[];
+}
+
 export interface ContractOptions {
   args?: InternalParamValue[];
   libraries?: {
@@ -125,6 +136,11 @@ export interface CallOptions {
   args: InternalParamValue[];
   after?: DeploymentGraphFuture[];
   value?: BigNumber | ParameterFuture;
+}
+
+export interface AwaitOptions {
+  args: InternalParamValue[];
+  after?: DeploymentGraphFuture[];
 }
 
 export interface UseSubgraphOptions {
@@ -160,6 +176,12 @@ export interface IDeploymentBuilder {
     functionName: string,
     options: CallOptions
   ) => ContractCall;
+
+  awaitEvent: (
+    contractFuture: DeploymentGraphFuture,
+    eventName: string,
+    options: AwaitOptions
+  ) => AwaitFuture;
 
   getParam: (paramName: string) => RequiredParameter;
 

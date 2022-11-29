@@ -22,13 +22,15 @@ export type ExecutionVertexType =
   | "ContractDeploy"
   | "DeployedContract"
   | "LibraryDeploy"
-  | "ContractCall";
+  | "ContractCall"
+  | "AwaitedEvent";
 
 export type ExecutionVertex =
   | ContractDeploy
   | DeployedContract
   | LibraryDeploy
-  | ContractCall;
+  | ContractCall
+  | AwaitedEvent;
 
 export interface ContractDeploy extends VertexDescriptor {
   type: "ContractDeploy";
@@ -56,4 +58,11 @@ export interface ContractCall extends VertexDescriptor {
   method: string;
   args: ArgValue[];
   value: BigNumber;
+}
+
+export interface AwaitedEvent extends VertexDescriptor {
+  type: "AwaitedEvent";
+  contract: any;
+  event: string;
+  args: ArgValue[];
 }

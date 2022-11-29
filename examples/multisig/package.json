@@ -1,0 +1,21 @@
+{
+  "name": "@nomicfoundation/ignition-example-multisig",
+  "private": true,
+  "version": "0.0.1",
+  "scripts": {
+    "test:examples": "hardhat test",
+    "lint": "yarn prettier --check && yarn eslint",
+    "lint:fix": "yarn prettier --write && yarn eslint --fix",
+    "eslint": "eslint \"ignition/**/*.{js,jsx}\" \"test/**/*.{js,jsx}\"",
+    "prettier": "prettier \"*.{js,md,json}\" \"ignition/*.{js,md,json}\" \"test/*.{js,md,json}\""
+  },
+  "dependencies": {
+    "@nomiclabs/hardhat-ethers": "^2.2.1",
+    "@ignored/hardhat-ignition": "^0.0.3",
+    "@nomicfoundation/hardhat-toolbox": "2.0.0",
+    "@openzeppelin/contracts": "^4.3.2",
+    "chai": "^4.3.4",
+    "ethers": "^5.7.2",
+    "hardhat": "^2.12.0"
+  }
+}

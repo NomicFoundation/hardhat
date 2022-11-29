@@ -62,6 +62,7 @@ interface IgnitionConfig {
   maxRetries: number;
   gasIncrementPerRetry: BigNumber | null;
   pollingInterval: number; // milliseconds
+  awaitEventDuration: number; // milliseconds
 }
 ```
 
@@ -75,6 +76,7 @@ module.exports = {
     maxRetries: 10,
     gasIncrementPerRetry: ethers.utils.parseUnits("0.001"),
     pollingInterval: 300,
+    awaitEventDuration: 10000,
   },
 };
 ```
@@ -92,6 +94,14 @@ The value of `maxRetries` is the number of times an unconfirmed transaction will
 The value of `gasIncrementPerRetry` must be an `ethers.BigNumber` and is assumed to be in wei units. This value will be added to the previous transactions gas price on each subsequent retry. However, if not given or if the given value is `null`, then the default logic will run which adds 10% of the previous transactions gas price on each retry.
 
 The value of `pollingInterval` is the number of milliseconds the process will wait between polls when checking if the transaction has been confirmed yet. The default value is 300 milliseconds.
+
+---
+
+`awaitEventDuration`
+
+---
+
+This config value determines how long `m.awaitEvent` waits for the given event to be emitted on-chain before marking the deployment as "on-hold". It should be given as a number of milliseconds, with the default value being 30000, or 30 seconds.
 
 ## Resuming a failed or onhold deployment (TBD)
 

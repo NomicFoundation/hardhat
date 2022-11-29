@@ -13,6 +13,8 @@ import { Artifact } from "types/hardhat";
 import { buildAdjacencyListFrom } from "./graph/helpers";
 import { getMockServices } from "./helpers";
 
+const ACCOUNT_0 = "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266";
+
 describe("Execution", () => {
   afterEach(() => {
     sinon.restore();
@@ -218,8 +220,7 @@ describe("Execution", () => {
     };
 
     const response = await assertDependentVertex(
-      contractDeploy,
-      contractCall,
+      [contractDeploy, contractCall],
       mockServices
     );
 
@@ -232,6 +233,111 @@ describe("Execution", () => {
       _kind: "success",
       result: {
         hash: "0x2",
+      },
+    });
+  });
+
+  it("should execute an awaited event", async () => {
+    const fakeArtifact = {
+      contractName: "Test",
+      abi: [
+        {
+          anonymous: false,
+          inputs: [
+            {
+              indexed: true,
+              internalType: "address",
+              name: "sender",
+              type: "address",
+            },
+          ],
+          name: "SomeEvent",
+          type: "event",
+        },
+        {
+          inputs: [],
+          name: "test",
+          outputs: [],
+          stateMutability: "nonpayable",
+          type: "function",
+        },
+      ],
+      bytecode:
+        "6080604052348015600f57600080fd5b5060b08061001e6000396000f3fe6080604052348015600f57600080fd5b506004361060285760003560e01c8063f8a8fd6d14602d575b600080fd5b60336035565b005b3373ffffffffffffffffffffffffffffffffffffffff167f62e1088ac332ffa611ac64bd5a2aef2c27de42d3c61c686ec5c53753c35c7f6860405160405180910390a256fea2646970667358221220a77b6f6bba99fe90fc34a87656ffff1d3703a60de09e70feb2a64ed1dee0862264736f6c63430008070033",
+      linkReferences: {},
+    };
+
+    const contractDeploy: ExecutionVertex = {
+      type: "ContractDeploy",
+      id: 0,
+      label: "Test",
+      artifact: fakeArtifact,
+      args: [],
+      libraries: {},
+      value: ethers.utils.parseUnits("0"),
+    };
+
+    const contractCall: ExecutionVertex = {
+      type: "ContractCall",
+      id: 1,
+      label: "Test/test",
+      contract: { vertexId: 0, type: "contract", label: "Test", _future: true },
+      method: "test",
+      args: [],
+      value: ethers.utils.parseUnits("0"),
+    };
+
+    const awaitedEvent: ExecutionVertex = {
+      type: "AwaitedEvent",
+      id: 2,
+      contract: { vertexId: 0, type: "contract", label: "Test", _future: true },
+      label: "Test/SomeEvent",
+      event: "SomeEvent",
+      args: [ACCOUNT_0],
+    };
+
+    const sendTxStub = sinon.stub();
+    sendTxStub.onCall(0).resolves("0x1");
+    sendTxStub.onCall(1).resolves("0x2");
+
+    const waitForEventStub = sinon.stub();
+    waitForEventStub.onFirstCall().resolves({ transactionHash: "0x3" });
+
+    const mockServices: Services = {
+      ...getMockServices(),
+      contracts: {
+        sendTx: sendTxStub,
+      } as any,
+      transactions: {
+        wait: (txHash: string) => {
+          if (txHash === "0x1") {
+            return {
+              contractAddress: "0x0000000000000000000000000000000000000001",
+            };
+          }
+
+          return {
+            contractAddress: "0x0000000000000000000000000000000000000002",
+          };
+        },
+        waitForEvent: waitForEventStub,
+      } as any,
+    };
+
+    const response = await assertDependentVertex(
+      [contractDeploy, contractCall, awaitedEvent],
+      mockServices
+    );
+
+    assert.isDefined(response);
+    if (response._kind === "failure") {
+      return assert.fail("deploy failed");
+    }
+
+    assert.deepStrictEqual(response.result.get(2), {
+      _kind: "success",
+      result: {
+        hash: "0x3",
       },
     });
   });
@@ -295,21 +401,25 @@ async function assertExecuteSingleVertex(
 
   deployment.state.transform.executionGraph = executionGraph;
 
-  return execute(deployment);
+  return execute(deployment, {} as any);
 }
 
 async function assertDependentVertex(
-  parent: ExecutionVertex,
-  child: ExecutionVertex,
+  vertexes: ExecutionVertex[],
   mockServices: Services
 ) {
+  const obj = {};
+  const len = vertexes.length;
+  for (let i = 0; i < len; i++) {
+    obj[i] = i === len - 1 ? [] : [i + 1];
+  }
+
   const executionGraph = new ExecutionGraph();
-  executionGraph.adjacencyList = buildAdjacencyListFrom({
-    0: [1],
-    1: [],
+  executionGraph.adjacencyList = buildAdjacencyListFrom(obj);
+
+  vertexes.forEach((vertex, i) => {
+    executionGraph.vertexes.set(i, vertex);
   });
-  executionGraph.vertexes.set(0, parent);
-  executionGraph.vertexes.set(1, child);
 
   const mockUpdateUiAction = () => {};
 
@@ -321,5 +431,5 @@ async function assertDependentVertex(
 
   deployment.state.transform.executionGraph = executionGraph;
 
-  return execute(deployment);
+  return execute(deployment, {} as any);
 }

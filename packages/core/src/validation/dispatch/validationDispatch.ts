@@ -4,6 +4,7 @@ import { ResultsAccumulator, VertexVisitResult } from "types/graph";
 
 import { validateArtifactContract } from "./validateArtifactContract";
 import { validateArtifactLibrary } from "./validateArtifactLibrary";
+import { validateAwaitEvent } from "./validateAwaitEvent";
 import { validateCall } from "./validateCall";
 import { validateDeployedContract } from "./validateDeployedContract";
 import { validateHardhatContract } from "./validateHardhatContract";
@@ -50,6 +51,8 @@ export function validationDispatch(
       );
     case "Virtual":
       return validateVirtual(deploymentVertex, resultAccumulator, context);
+    case "Await":
+      return validateAwaitEvent(deploymentVertex, resultAccumulator, context);
     default:
       return assertUnknownDeploymentVertexType(deploymentVertex);
   }

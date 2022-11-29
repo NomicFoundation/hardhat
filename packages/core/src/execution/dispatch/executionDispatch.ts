@@ -2,6 +2,7 @@ import { ExecutionContext } from "types/deployment";
 import { ExecutionVertex } from "types/executionGraph";
 import { ResultsAccumulator, VertexVisitResult } from "types/graph";
 
+import { executeAwaitedEvent } from "./executeAwaitedEvent";
 import { executeContractCall } from "./executeContractCall";
 import { executeContractDeploy } from "./executeContractDeploy";
 import { executeDeployedContract } from "./executeDeployedContract";
@@ -25,6 +26,8 @@ export function executionDispatch(
       return executeContractCall(executionVertex, resultAccumulator, context);
     case "LibraryDeploy":
       return executeLibraryDeploy(executionVertex, resultAccumulator, context);
+    case "AwaitedEvent":
+      return executeAwaitedEvent(executionVertex, resultAccumulator, context);
     default:
       return assertUnknownExecutionVertexType(executionVertex);
   }

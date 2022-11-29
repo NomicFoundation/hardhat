@@ -16,7 +16,7 @@
 - [Calling contract methods](./creating-modules-for-deployment.md#calling-contract-methods)
   - [Transfering _Eth_ as part of a call](./creating-modules-for-deployment.md#transfering-eth-as-part-of-a-call)
   - [Using the results of a call with a deferred value (TBD)](./creating-modules-for-deployment.md#using-the-results-of-a-call-with-a-deferred-value-tbd)
-  - [Waiting for on-chain events (TBD)](./creating-modules-for-deployment.md#waiting-for-on-chain-events-tbd)
+  - [Waiting for on-chain events](./creating-modules-for-deployment.md#waiting-for-on-chain-events)
 - [Including modules within modules](./creating-modules-for-deployment.md#including-modules-within-modules)
 - [Module Parameters](./creating-modules-for-deployment.md#module-parameters)
 - [Switching based on the _Network Chain ID_](./creating-modules-for-deployment.md#switching-based-on-the-network-chain-id)
@@ -228,25 +228,24 @@ if (totalSupply > 0) {
 
 Because `totalSupply` is not a number, it is a future.
 
-## Waiting for on-chain events (TBD)
+## Waiting for on-chain events
 
-A deployment can be put `on-hold` until an on-chain action, external to the deployment, has taken place (for instance a timelock or multisig approval). The `await` condition can be specified:
+A deployment can be put `on-hold` until an on-chain event has been emitted (for instance a timelock or multisig approval):
 
 ```tsx
-let multisig = m.deploy("Multisig");
+const multisig = m.deploy("Multisig");
 
-m.call(multisig, "authorize");
+const call = m.call(multisig, "authorize");
 
-m.await({
-  from: "0xUser1",
-  to: multisig.address,
-  // value: 20.toWei(),
-  // function: 'authorize',
-  events: [{ name: "AuthorizedBy", data: "0xUser1" }],
+m.awaitEvent(multisig, "AuthorizedBy", {
+  args: ["0xUser1"],
+  after: [call],
 });
 ```
 
-The `await` during deployment will check whether a transaction matching the parameters has occured. If it has, the deployment will continue, if not the deployment stops in the `on-hold` condition. A further run of the deployment will recheck the `await` condition.
+The `awaitEvent` during deployment will check whether an event matching the given filter args has been emitted. If it has, the deployment will continue, if not the deployment will pause and listen for the event for a [configurable](./running-a-deployment.md#configuration-options) period of time. If the event has not been detected within this listening period, the deployment stops in the `on-hold` condition. A further run of the deployment will recheck the `awaitEvent` condition.
+
+A full example of the `awaitEvent` function can be seen in our [Multisig example](../examples/multisig/README.md).
 
 ## Including modules within modules
 

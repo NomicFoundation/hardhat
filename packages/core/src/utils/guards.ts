@@ -6,6 +6,7 @@ import type {
   CallDeploymentVertex,
   HardhatLibraryDeploymentVertex,
   ArtifactLibraryDeploymentVertex,
+  AwaitVertex,
 } from "types/deploymentGraph";
 import type {
   CallableFuture,
@@ -51,6 +52,12 @@ export function isCall(
   return node.type === "Call";
 }
 
+export function isAwaitedEvent(
+  node: DeploymentGraphVertex
+): node is AwaitVertex {
+  return node.type === "Await";
+}
+
 export function isHardhatLibrary(
   node: DeploymentGraphVertex
 ): node is HardhatLibraryDeploymentVertex {
@@ -79,6 +86,7 @@ export function isDependable(possible: any): possible is DependableFuture {
       possible.type === "contract" ||
       possible.type === "library" ||
       possible.type === "virtual" ||
+      possible.type === "await" ||
       possible.type === "proxy")
   );
 }

@@ -124,6 +124,8 @@ const resolveFailureTypeFrom = (vertex: ExecutionVertex): string => {
       return "-";
     case "LibraryDeploy":
       return "Failed library deploy";
+    case "AwaitedEvent":
+      return "Failed awaited event";
     default:
       return assertNeverUiVertexType(vertex);
   }
