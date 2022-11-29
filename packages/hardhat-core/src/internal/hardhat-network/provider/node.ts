@@ -2552,7 +2552,6 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     const metadata: HardhatMetadata = {
       clientVersion,
       chainId: this._configChainId,
-      networkId: this._configNetworkId,
       instanceId,
       latestBlockNumber: Number(latestBlock.header.number),
       latestBlockHash,

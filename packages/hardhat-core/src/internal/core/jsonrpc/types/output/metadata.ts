@@ -6,9 +6,6 @@ export interface HardhatMetadata {
   // The chain's id. Used to sign transactions.
   chainId: number;
 
-  // The network's id. Normally matches the chainId. Should not be used to sign transactions.
-  networkId: number;
-
   // A 0x-prefixed hex-encoded 32 bytes id which uniquiely identifies an instance/run
   // of Hardhat Network. Running Hardhat Network more than once (even with the same version
   // and parameters) would always result in different `instanceId`s.

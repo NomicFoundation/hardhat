@@ -2773,7 +2773,6 @@ describe("Hardhat module", function () {
 
           assert.isString(metadata.clientVersion);
           assert.isNumber(metadata.chainId);
-          assert.isNumber(metadata.networkId);
           assert.isString(metadata.instanceId);
           assert.isNumber(metadata.latestBlockNumber);
           assert.isString(metadata.latestBlockHash);
@@ -2913,13 +2912,12 @@ describe("Hardhat module", function () {
     useFixtureProject("non-default-chainid");
     useEnvironment();
 
-    it("should return the chainId and networkId set in the config", async function () {
+    it("should return the chainId set in the config", async function () {
       const metadata: HardhatMetadata = await this.env.network.provider.send(
         "hardhat_metadata"
       );
 
       assert.equal(metadata.chainId, 1000);
-      assert.equal(metadata.networkId, 1000);
     });
   });
 });
