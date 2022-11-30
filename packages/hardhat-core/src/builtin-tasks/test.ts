@@ -47,9 +47,8 @@ subtask(TASK_TEST_GET_TEST_FILES)
       return jsFiles;
     }
 
-    const tsFiles = await getAllFilesMatching(
-      config.paths.tests,
-      (f) => f.endsWith(".ts") || f.endsWith(".mts")
+    const tsFiles = await getAllFilesMatching(config.paths.tests, (f) =>
+      f.endsWith(".ts")
     );
 
     return [...jsFiles, ...tsFiles];
@@ -109,8 +108,8 @@ subtask(TASK_TEST_RUN_MOCHA_TESTS)
       // we call loadFilesAsync to enable Mocha's ESM support
       const projectPackageJson = await getProjectPackageJson();
       const isTypeModule = projectPackageJson.type === "module";
-      const hasEsmTest = taskArgs.testFiles.some(
-        (file) => file.endsWith(".mjs") || file.endsWith(".mts")
+      const hasEsmTest = taskArgs.testFiles.some((file) =>
+        file.endsWith(".mjs")
       );
       if (isTypeModule || hasEsmTest) {
         // Because of the way the ESM cache works, loadFilesAsync doesn't work
