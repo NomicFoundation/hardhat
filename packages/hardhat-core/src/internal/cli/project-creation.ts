@@ -170,7 +170,11 @@ async function copySampleProject(
       "these files already exist"
     )}: ${existingFiles.join(", ")}
 
-Please delete or move them and try again.`;
+Please delete or rename ${pluralize(
+      existingFiles.length,
+      "it",
+      "them"
+    )} and try again.`;
     console.log(chalk.red(errorMsg));
     process.exit(1);
   }
