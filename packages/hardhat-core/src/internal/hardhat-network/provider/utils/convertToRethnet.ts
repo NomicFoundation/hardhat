@@ -295,7 +295,7 @@ const rethnetExitCodeToEthereumJsError = new Map([
   [0x60, ERROR.CREATE_COLLISION],
   [0x01, ERROR.STOP],
   [0x53, ERROR.INVALID_BYTECODE_RESULT],
-  [0x64, ERROR.INITCODE_SIZE_VIOLATION],
+  [0x64, ERROR.CODESIZE_EXCEEDS_MAXIMUM], // ERROR.INITCODE_SIZE_VIOLATION],
 ]);
 
 function mapRethnetExitCodeToEthereumJsExceptionError(
