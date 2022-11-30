@@ -345,7 +345,6 @@ export class DeploymentBuilder implements IDeploymentBuilder {
     const bytesFuture: BytesFuture = {
       label: artifactName,
       type: "bytes",
-      scope: this.scopes.getScopedLabel(),
       _future: true,
     };
 

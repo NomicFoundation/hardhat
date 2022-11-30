@@ -81,7 +81,6 @@ export interface OptionalParameter {
 export interface BytesFuture {
   label: string;
   type: "bytes";
-  scope: string;
   _future: true;
 }
 
