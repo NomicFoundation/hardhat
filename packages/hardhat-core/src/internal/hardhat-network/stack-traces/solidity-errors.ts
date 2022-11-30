@@ -271,7 +271,8 @@ function getMessageFromLastStackTraceEntry(
       }
 
       if (!stackTraceEntry.message.isEmpty()) {
-        return `VM Exception while processing transaction: reverted with an unrecognized custom error`;
+        const selector = stackTraceEntry.message.getSelector();
+        return `VM Exception while processing transaction: reverted with an unrecognized custom error with selector ${selector}`;
       }
 
       if (stackTraceEntry.isInvalidOpcodeError) {
