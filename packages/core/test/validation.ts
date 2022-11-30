@@ -1,5 +1,6 @@
 /* eslint-disable import/no-unused-modules */
 import { assert } from "chai";
+import sinon from "sinon";
 
 import { buildModule } from "dsl/buildModule";
 import { buildSubgraph } from "dsl/buildSubgraph";
@@ -113,6 +114,48 @@ describe("Validation", () => {
       assert.equal(text, "Validation failed");
       assert.equal(error.message, "For contract 'value' must be a BigNumber");
     });
+
+    it("should not validate a artifact contract deploy with a non-existent bytes artifact arg", async () => {
+      const singleModule = buildModule("single", (m: IDeploymentBuilder) => {
+        const example = m.contract("Example", exampleArtifact, {
+          args: [1, 2, m.getBytesForArtifact("Nonexistant")],
+        });
+
+        return { example };
+      });
+
+      const { graph } = generateDeploymentGraphFrom(singleModule, {
+        chainId: 31337,
+      });
+
+      const mockServices = {
+        ...getMockServices(),
+        artifacts: {
+          hasArtifact(_name: string) {
+            return false;
+          },
+        },
+      } as any;
+
+      const validationResult = await validateDeploymentGraph(
+        graph,
+        mockServices
+      );
+
+      if (validationResult._kind !== "failure") {
+        return assert.fail("validation should have failed");
+      }
+
+      const {
+        failures: [text, [error]],
+      } = validationResult;
+
+      assert.equal(text, "Validation failed");
+      assert.equal(
+        error.message,
+        "Artifact with name 'Nonexistant' doesn't exist"
+      );
+    });
   });
 
   describe("artifact library deploy", () => {
@@ -173,6 +216,48 @@ describe("Validation", () => {
       assert.equal(
         error.message,
         "The constructor of the library 'Example' expects 0 arguments but 3 were given"
+      );
+    });
+
+    it("should not validate a artifact library deploy with a non-existent bytes artifact arg", async () => {
+      const singleModule = buildModule("single", (m: IDeploymentBuilder) => {
+        const example = m.library("Example", exampleArtifact, {
+          args: [1, 2, m.getBytesForArtifact("Nonexistant")],
+        });
+
+        return { example };
+      });
+
+      const { graph } = generateDeploymentGraphFrom(singleModule, {
+        chainId: 31337,
+      });
+
+      const mockServices = {
+        ...getMockServices(),
+        artifacts: {
+          hasArtifact(_name: string) {
+            return false;
+          },
+        },
+      } as any;
+
+      const validationResult = await validateDeploymentGraph(
+        graph,
+        mockServices
+      );
+
+      if (validationResult._kind !== "failure") {
+        return assert.fail("validation should have failed");
+      }
+
+      const {
+        failures: [text, [error]],
+      } = validationResult;
+
+      assert.equal(text, "Validation failed");
+      assert.equal(
+        error.message,
+        "Artifact with name 'Nonexistant' doesn't exist"
       );
     });
   });
@@ -475,6 +560,50 @@ describe("Validation", () => {
 
       assert.equal(text, "Validation failed");
       assert.equal(error.message, "For call 'value' must be a BigNumber");
+    });
+
+    it("should fail a call with a non-existent bytes artifact arg", async () => {
+      const singleModule = buildModule("single", (m: IDeploymentBuilder) => {
+        const example = m.contract("Foo");
+
+        m.call(example, "nonexistant", {
+          args: [m.getBytesForArtifact("Bar")],
+        });
+
+        return { example };
+      });
+
+      const { graph } = generateDeploymentGraphFrom(singleModule, {
+        chainId: 31337,
+      });
+
+      const fakeHasArtifact = sinon.stub();
+      fakeHasArtifact.onFirstCall().resolves(true);
+      fakeHasArtifact.onSecondCall().resolves(false);
+
+      const mockServices = {
+        ...getMockServices(),
+        artifacts: {
+          hasArtifact: fakeHasArtifact,
+          getArtifact: () => exampleCallArtifact,
+        },
+      } as any;
+
+      const validationResult = await validateDeploymentGraph(
+        graph,
+        mockServices
+      );
+
+      if (validationResult._kind !== "failure") {
+        return assert.fail("validation should have failed");
+      }
+
+      const {
+        failures: [text, [error]],
+      } = validationResult;
+
+      assert.equal(text, "Validation failed");
+      assert.equal(error.message, "Artifact with name 'Bar' doesn't exist");
     });
   });
 
@@ -793,6 +922,46 @@ describe("Validation", () => {
 
       assert.equal(text, "Validation failed");
       assert.equal(error.message, "For contract 'value' must be a BigNumber");
+    });
+
+    it("should not validate a contract with non-existing bytes artifact arg", async () => {
+      const singleModule = buildModule("single", (m: IDeploymentBuilder) => {
+        const nonexistant = m.contract("Nonexistant", {
+          args: [m.getBytesForArtifact("Nonexistant")],
+        });
+
+        return { nonexistant };
+      });
+
+      const { graph } = generateDeploymentGraphFrom(singleModule, {
+        chainId: 31337,
+      });
+
+      const mockServices = {
+        ...getMockServices(),
+        artifacts: {
+          hasArtifact: () => false,
+        },
+      } as any;
+
+      const validationResult = await validateDeploymentGraph(
+        graph,
+        mockServices
+      );
+
+      if (validationResult._kind !== "failure") {
+        return assert.fail("validation should have failed");
+      }
+
+      const {
+        failures: [text, [error]],
+      } = validationResult;
+
+      assert.equal(text, "Validation failed");
+      assert.equal(
+        error.message,
+        "Artifact with name 'Nonexistant' doesn't exist"
+      );
     });
   });
 
