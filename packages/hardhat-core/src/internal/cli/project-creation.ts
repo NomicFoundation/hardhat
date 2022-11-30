@@ -237,9 +237,22 @@ async function getAction(isEsm: boolean): Promise<Action> {
         message: "What do you want to do?",
         initial: 0,
         choices: Object.values(Action).map((a: Action) => {
+          let message: string;
+          if (isEsm) {
+            if (a === Action.CREATE_EMPTY_HARDHAT_CONFIG_ACTION) {
+              message = a.replace(".js", ".cjs");
+            } else if (a === Action.CREATE_TYPESCRIPT_PROJECT_ACTION) {
+              message = `${a} (not available for ESM projects)`;
+            } else {
+              message = a;
+            }
+          } else {
+            message = a;
+          }
+
           return {
             name: a,
-            message: isEsm ? a.replace(".js", ".cjs") : a,
+            message,
             value: a,
           };
         }),
