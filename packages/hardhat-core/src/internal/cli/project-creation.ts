@@ -7,6 +7,7 @@ import { HARDHAT_NAME } from "../constants";
 import { assertHardhatInvariant, HardhatError } from "../core/errors";
 import { ERRORS } from "../core/errors-list";
 import { getRecommendedGitIgnore } from "../core/project-structure";
+import { getAllFilesMatching } from "../util/fs-utils";
 import {
   hasConsentedTelemetry,
   writeTelemetryConsent,
@@ -144,11 +145,23 @@ async function copySampleProject(
     sampleProjectName
   );
 
-  const sampleProjectRootFiles = fsExtra.readdirSync(sampleProjectPath);
-  const existingFiles = sampleProjectRootFiles
-    .map((f) => path.join(projectRoot, f))
-    .filter((f) => fsExtra.pathExistsSync(f))
-    .map((f) => path.relative(process.cwd(), f));
+  // relative paths to all the sample project files
+  const sampleProjectFiles = (await getAllFilesMatching(sampleProjectPath)).map(
+    (file) => path.relative(sampleProjectPath, file)
+  );
+
+  // check if the target directory already has files that clash with the sample
+  // project files
+  const existingFiles: string[] = [];
+  for (const file of sampleProjectFiles) {
+    const targetProjectFile = path.resolve(projectRoot, file);
+
+    // if the project already has a README.md file, we'll skip it when
+    // we copy the files
+    if (file !== "README.md" && fsExtra.existsSync(targetProjectFile)) {
+      existingFiles.push(file);
+    }
+  }
 
   if (existingFiles.length > 0) {
     const errorMsg = `We couldn't initialize the sample project because ${pluralize(
@@ -156,18 +169,29 @@ async function copySampleProject(
       "this file already exists",
       "these files already exist"
     )}: ${existingFiles.join(", ")}
-    
+
 Please delete or move them and try again.`;
     console.log(chalk.red(errorMsg));
     process.exit(1);
   }
 
-  await fsExtra.copy(
-    path.join(packageRoot, "sample-projects", sampleProjectName),
-    projectRoot
-  );
+  // copy the files
+  for (const file of sampleProjectFiles) {
+    const sampleProjectFile = path.resolve(sampleProjectPath, file);
+    const targetProjectFile = path.resolve(projectRoot, file);
 
-  await fsExtra.remove(path.join(projectRoot, "LICENSE.md"));
+    if (file === "README.md" && fsExtra.existsSync(targetProjectFile)) {
+      // we don't override the readme if it exists
+      continue;
+    }
+
+    if (file === "LICENSE.md") {
+      // we don't copy the license
+      continue;
+    }
+
+    fsExtra.copySync(sampleProjectFile, targetProjectFile);
+  }
 }
 
 async function addGitIgnore(projectRoot: string) {
