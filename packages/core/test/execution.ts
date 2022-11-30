@@ -184,6 +184,7 @@ describe("Execution", () => {
       artifact: fakeArtifact,
       args: [],
       libraries: {},
+      value: ethers.utils.parseUnits("0"),
     };
 
     const contractCall: ExecutionVertex = {
@@ -193,6 +194,7 @@ describe("Execution", () => {
       contract: { vertexId: 0, type: "contract", label: "Foo", _future: true },
       method: "inc",
       args: [1],
+      value: ethers.utils.parseUnits("0"),
     };
 
     const sendTxStub = sinon.stub();

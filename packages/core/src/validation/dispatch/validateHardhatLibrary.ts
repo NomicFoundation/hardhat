@@ -3,12 +3,21 @@ import { ethers } from "ethers";
 import { Services } from "services/types";
 import { HardhatLibraryDeploymentVertex } from "types/deploymentGraph";
 import { ResultsAccumulator, VertexVisitResult } from "types/graph";
+import { InvalidArtifactError } from "utils/errors";
+
+import { validateBytesForArtifact } from "./helpers";
 
 export async function validateHardhatLibrary(
   vertex: HardhatLibraryDeploymentVertex,
   _resultAccumulator: ResultsAccumulator,
   { services }: { services: Services }
 ): Promise<VertexVisitResult> {
+  const invalidBytes = await validateBytesForArtifact(vertex.args, services);
+
+  if (invalidBytes !== null) {
+    return invalidBytes;
+  }
+
   const artifactExists = await services.artifacts.hasArtifact(
     vertex.libraryName
   );
@@ -16,9 +25,7 @@ export async function validateHardhatLibrary(
   if (!artifactExists) {
     return {
       _kind: "failure",
-      failure: new Error(
-        `Library with name '${vertex.libraryName}' doesn't exist`
-      ),
+      failure: new InvalidArtifactError(vertex.libraryName),
     };
   }
 

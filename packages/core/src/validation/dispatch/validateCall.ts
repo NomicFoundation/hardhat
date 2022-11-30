@@ -3,10 +3,13 @@ import { ethers, BigNumber } from "ethers";
 import { Services } from "services/types";
 import { CallDeploymentVertex } from "types/deploymentGraph";
 import { ResultsAccumulator, VertexVisitResult } from "types/graph";
-import { IgnitionError } from "utils/errors";
+import { IgnitionError, InvalidArtifactError } from "utils/errors";
 import { isParameter } from "utils/guards";
 
-import { resolveArtifactForCallableFuture } from "./helpers";
+import {
+  resolveArtifactForCallableFuture,
+  validateBytesForArtifact,
+} from "./helpers";
 
 export async function validateCall(
   vertex: CallDeploymentVertex,
@@ -20,6 +23,15 @@ export async function validateCall(
     };
   }
 
+  const invalidBytes = await validateBytesForArtifact(
+    vertex.args,
+    context.services
+  );
+
+  if (invalidBytes !== null) {
+    return invalidBytes;
+  }
+
   const contractName = vertex.contract.label;
 
   const artifactAbi = await resolveArtifactForCallableFuture(
@@ -30,7 +42,7 @@ export async function validateCall(
   if (artifactAbi === undefined) {
     return {
       _kind: "failure",
-      failure: new Error(`Artifact with name '${contractName}' doesn't exist`),
+      failure: new InvalidArtifactError(contractName),
     };
   }
 

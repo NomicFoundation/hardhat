@@ -5,11 +5,22 @@ import { ArtifactLibraryDeploymentVertex } from "types/deploymentGraph";
 import { ResultsAccumulator, VertexVisitResult } from "types/graph";
 import { isArtifact } from "utils/guards";
 
+import { validateBytesForArtifact } from "./helpers";
+
 export async function validateArtifactLibrary(
   vertex: ArtifactLibraryDeploymentVertex,
   _resultAccumulator: ResultsAccumulator,
   _context: { services: Services }
 ): Promise<VertexVisitResult> {
+  const invalidBytes = await validateBytesForArtifact(
+    vertex.args,
+    _context.services
+  );
+
+  if (invalidBytes !== null) {
+    return invalidBytes;
+  }
+
   const artifactExists = isArtifact(vertex.artifact);
 
   if (!artifactExists) {

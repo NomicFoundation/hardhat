@@ -7,20 +7,17 @@ describe("Create2", function () {
   let factory;
 
   before(async () => {
-    const FooArtifact = await hre.artifacts.readArtifact("Foo");
-    const BarArtifact = await hre.artifacts.readArtifact("Bar");
-
     const DeployViaCreate2Module = buildModule(
       "DeployViaCreate2Module",
       (m) => {
         const { create2 } = m.useModule(Create2FactoryModule);
 
         m.call(create2, "deploy", {
-          args: [0, toBytes32(1), FooArtifact.bytecode],
+          args: [0, toBytes32(1), m.getBytesForArtifact("Foo")],
         });
 
         m.call(create2, "deploy", {
-          args: [0, toBytes32(2), BarArtifact.bytecode],
+          args: [0, toBytes32(2), m.getBytesForArtifact("Bar")],
         });
 
         return { create2 };

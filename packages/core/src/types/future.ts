@@ -78,6 +78,13 @@ export interface OptionalParameter {
   _future: true;
 }
 
+export interface BytesFuture {
+  label: string;
+  type: "bytes";
+  scope: string;
+  _future: true;
+}
+
 export interface Virtual {
   vertexId: number;
   label: string;
@@ -111,7 +118,10 @@ export type DependableFuture =
 
 export type ParameterFuture = RequiredParameter | OptionalParameter;
 
-export type DeploymentGraphFuture = DependableFuture | ParameterFuture;
+export type DeploymentGraphFuture =
+  | DependableFuture
+  | ParameterFuture
+  | BytesFuture;
 
 export interface FutureDict {
   [key: string]: DeploymentGraphFuture;

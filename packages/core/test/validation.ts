@@ -858,7 +858,7 @@ describe("Validation", () => {
       assert.equal(text, "Validation failed");
       assert.equal(
         error.message,
-        "Library with name 'Nonexistant' doesn't exist"
+        "Artifact with name 'Nonexistant' doesn't exist"
       );
     });
   });

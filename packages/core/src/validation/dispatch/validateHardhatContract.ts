@@ -3,8 +3,10 @@ import { ethers, BigNumber } from "ethers";
 import { Services } from "services/types";
 import { HardhatContractDeploymentVertex } from "types/deploymentGraph";
 import { ResultsAccumulator, VertexVisitResult } from "types/graph";
-import { IgnitionError } from "utils/errors";
+import { IgnitionError, InvalidArtifactError } from "utils/errors";
 import { isParameter } from "utils/guards";
+
+import { validateBytesForArtifact } from "./helpers";
 
 export async function validateHardhatContract(
   vertex: HardhatContractDeploymentVertex,
@@ -18,6 +20,12 @@ export async function validateHardhatContract(
     };
   }
 
+  const invalidBytes = await validateBytesForArtifact(vertex.args, services);
+
+  if (invalidBytes !== null) {
+    return invalidBytes;
+  }
+
   const artifactExists = await services.artifacts.hasArtifact(
     vertex.contractName
   );
@@ -25,9 +33,7 @@ export async function validateHardhatContract(
   if (!artifactExists) {
     return {
       _kind: "failure",
-      failure: new Error(
-        `Artifact with name '${vertex.contractName}' doesn't exist`
-      ),
+      failure: new InvalidArtifactError(vertex.contractName),
     };
   }
 

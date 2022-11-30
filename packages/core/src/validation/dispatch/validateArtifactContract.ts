@@ -3,8 +3,10 @@ import { ethers, BigNumber } from "ethers";
 import { Services } from "services/types";
 import { ArtifactContractDeploymentVertex } from "types/deploymentGraph";
 import { ResultsAccumulator, VertexVisitResult } from "types/graph";
-import { IgnitionError } from "utils/errors";
+import { IgnitionError, InvalidArtifactError } from "utils/errors";
 import { isArtifact, isParameter } from "utils/guards";
+
+import { validateBytesForArtifact } from "./helpers";
 
 export async function validateArtifactContract(
   vertex: ArtifactContractDeploymentVertex,
@@ -18,14 +20,21 @@ export async function validateArtifactContract(
     };
   }
 
+  const invalidBytes = await validateBytesForArtifact(
+    vertex.args,
+    _context.services
+  );
+
+  if (invalidBytes !== null) {
+    return invalidBytes;
+  }
+
   const artifactExists = isArtifact(vertex.artifact);
 
   if (!artifactExists) {
     return {
       _kind: "failure",
-      failure: new Error(
-        `Artifact not provided for contract '${vertex.label}'`
-      ),
+      failure: new InvalidArtifactError(vertex.label),
     };
   }
 

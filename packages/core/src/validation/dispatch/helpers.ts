@@ -1,5 +1,9 @@
 import type { Services } from "services/types";
+import { InternalParamValue } from "types/deploymentGraph";
 import type { CallableFuture } from "types/future";
+import { VertexVisitResultFailure } from "types/graph";
+import { InvalidArtifactError } from "utils/errors";
+import { isBytesArg } from "utils/guards";
 import { resolveProxyValue } from "utils/proxy";
 
 export async function resolveArtifactForCallableFuture(
@@ -44,6 +48,28 @@ export async function resolveArtifactForCallableFuture(
     default:
       return assertNeverDeploymentFuture(future);
   }
+}
+
+export async function validateBytesForArtifact(
+  args: InternalParamValue[],
+  services: Services
+): Promise<VertexVisitResultFailure | null> {
+  const bytesArgs = args.filter(isBytesArg);
+
+  const bytesExists = await Promise.all(
+    bytesArgs.map((v) => services.artifacts.hasArtifact(v.label))
+  );
+
+  const bytesDoesNotExistIndex = bytesExists.findIndex((v) => !v);
+
+  if (bytesDoesNotExistIndex === -1) {
+    return null;
+  }
+
+  return {
+    _kind: "failure",
+    failure: new InvalidArtifactError(bytesArgs[bytesDoesNotExistIndex].label),
+  };
 }
 
 function assertNeverDeploymentFuture(f: never): undefined {
