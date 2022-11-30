@@ -243,12 +243,12 @@ where
         receiver.await.unwrap()
     }
 
-    /// Retrieves the state's storage root.
-    pub async fn storage_root(&self) -> Result<H256, E> {
+    /// Retrieves the state's root.
+    pub async fn state_root(&self) -> Result<H256, E> {
         let (sender, receiver) = oneshot::channel();
 
         self.request_sender
-            .send(Request::StorageRoot { sender })
+            .send(Request::StateRoot { sender })
             .expect("Failed to send request");
 
         receiver.await.unwrap()
@@ -393,8 +393,8 @@ where
         })
     }
 
-    fn storage_root(&mut self) -> Result<H256, Self::Error> {
-        task::block_in_place(move || self.db.runtime().block_on(self.db.storage_root()))
+    fn state_root(&mut self) -> Result<H256, Self::Error> {
+        task::block_in_place(move || self.db.runtime().block_on(self.db.state_root()))
     }
 
     fn checkpoint(&mut self) -> Result<(), Self::Error> {

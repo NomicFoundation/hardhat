@@ -8,7 +8,7 @@ use napi_derive::napi;
 use rethnet_eth::{Address, H256, U256};
 use rethnet_evm::{
     db::{AsyncDatabase, LayeredDatabase, RethnetLayer, SyncDatabase},
-    AccountInfo, Bytecode, HashMap,
+    AccountInfo, Bytecode, DatabaseDebug, HashMap,
 };
 use secp256k1::Secp256k1;
 
@@ -35,7 +35,7 @@ pub struct StateManager {
 impl StateManager {
     #[napi(constructor)]
     pub fn new() -> napi::Result<Self> {
-        Self::with_db(LayeredDatabase::<RethnetLayer>::default())
+        Self::with_accounts(HashMap::default())
     }
 
     #[napi(factory)]
@@ -56,9 +56,21 @@ impl StateManager {
             })
             .collect::<napi::Result<HashMap<Address, AccountInfo>>>()?;
 
+        Self::with_accounts(genesis_accounts)
+    }
+
+    fn with_accounts(mut accounts: HashMap<Address, AccountInfo>) -> napi::Result<Self> {
+        // Mimic precompiles activation
+        for idx in 1..=8 {
+            let mut address = Address::zero();
+            address.0[19] = idx;
+            accounts.insert(address, AccountInfo::default());
+        }
+
         let mut database =
-            LayeredDatabase::with_layer(RethnetLayer::with_genesis_accounts(genesis_accounts));
-        database.add_layer_default();
+            LayeredDatabase::with_layer(RethnetLayer::with_genesis_accounts(accounts));
+
+        database.checkpoint().unwrap();
 
         Self::with_db(database)
     }
@@ -137,8 +149,8 @@ impl StateManager {
     }
 
     #[napi]
-    pub async fn get_storage_root(&mut self) -> napi::Result<Buffer> {
-        self.db.storage_root().await.map_or_else(
+    pub async fn get_state_root(&mut self) -> napi::Result<Buffer> {
+        self.db.state_root().await.map_or_else(
             |e| Err(napi::Error::new(Status::GenericFailure, e.to_string())),
             |root| Ok(Buffer::from(root.as_ref())),
         )

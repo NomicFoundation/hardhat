@@ -1,6 +1,11 @@
 use anyhow::anyhow;
 use hashbrown::HashMap;
-use rethnet_eth::{Address, Bytes, H256, U256};
+use rethnet_eth::{
+    account::BasicAccount,
+    state::{state_root, storage_root},
+    trie::KECCAK_NULL_RLP,
+    Address, Bytes, H256, U256,
+};
 use revm::{Account, AccountInfo, Bytecode, Database, DatabaseCommit, KECCAK_EMPTY};
 
 use crate::DatabaseDebug;
@@ -76,6 +81,8 @@ pub struct RethnetLayer {
     contracts: HashMap<H256, Bytes>,
     /// Block number -> Block hash
     block_hashes: HashMap<U256, H256>,
+    /// Cached state root
+    state_root: Option<H256>,
 }
 
 impl RethnetLayer {
@@ -347,12 +354,57 @@ impl DatabaseDebug for LayeredDatabase<RethnetLayer> {
         Ok(())
     }
 
-    fn storage_root(&mut self) -> Result<H256, Self::Error> {
-        todo!()
+    fn state_root(&mut self) -> Result<H256, Self::Error> {
+        self.iter()
+            .next()
+            .and_then(|read_layer| read_layer.state_root.clone())
+            .ok_or_else(|| anyhow!("Has no state root"))
     }
 
     fn checkpoint(&mut self) -> Result<(), Self::Error> {
+        let mut storage = HashMap::new();
+
+        self.iter().flat_map(|layer| layer.storage.iter()).for_each(
+            |(address, account_storage)| {
+                storage
+                    .entry(address.clone())
+                    .and_modify(|storage: &mut HashMap<U256, U256>| {
+                        account_storage.iter().for_each(|(index, value)| {
+                            storage.entry(index.clone()).or_insert(value.clone());
+                        });
+                    })
+                    .or_insert(account_storage.clone());
+            },
+        );
+
+        let storage_roots: HashMap<Address, H256> = storage
+            .into_iter()
+            .map(|(address, storage)| (address, storage_root(&storage)))
+            .collect();
+
+        let mut state = HashMap::new();
+
+        self.iter()
+            .flat_map(|layer| layer.account_infos.iter())
+            .for_each(|(address, account_info)| {
+                let storage_root = storage_roots
+                    .get(address)
+                    .cloned()
+                    .unwrap_or(KECCAK_NULL_RLP);
+
+                state.entry(address.clone()).or_insert(BasicAccount {
+                    nonce: U256::from(account_info.nonce),
+                    balance: account_info.balance,
+                    storage_root,
+                    code_hash: account_info.code_hash,
+                });
+            });
+
+        let state_root = state_root(&state);
+        self.last_layer_mut().state_root.replace(state_root.clone());
+
         self.add_layer_default();
+
         Ok(())
     }
 

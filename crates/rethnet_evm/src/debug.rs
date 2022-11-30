@@ -37,7 +37,7 @@ pub trait DatabaseDebug {
     ) -> Result<(), Self::Error>;
 
     /// Retrieves the storage root of the database.
-    fn storage_root(&mut self) -> Result<H256, Self::Error>;
+    fn state_root(&mut self) -> Result<H256, Self::Error>;
 
     /// Creates a checkpoint that can be reverted to using [`revert`].
     fn checkpoint(&mut self) -> Result<(), Self::Error>;

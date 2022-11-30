@@ -24,35 +24,26 @@ impl TryFrom<BlockConfig> for BlockEnv {
     type Error = napi::Error;
 
     fn try_from(value: BlockConfig) -> std::result::Result<Self, Self::Error> {
-        println!("BlockEnv::try_from start");
-
         let default = BlockEnv::default();
 
-        println!("BlockEnv::number");
         let number = value.number.map_or(Ok(default.number), BigInt::try_cast)?;
-        println!("BlockEnv::coinbase");
         let coinbase = value
             .coinbase
             .map_or(default.coinbase, |coinbase| Address::from_slice(&coinbase));
-        println!("BlockEnv::difficulty");
         let difficulty = value.difficulty.map_or_else(
             || Ok(default.difficulty),
             |difficulty| difficulty.try_cast(),
         )?;
-        println!("BlockEnv::timestamp");
         let timestamp = value
             .timestamp
             .map_or(Ok(default.timestamp), BigInt::try_cast)?;
-        println!("BlockEnv::basefee");
         let basefee = value
             .basefee
             .map_or_else(|| Ok(default.basefee), |basefee| basefee.try_cast())?;
-        println!("BlockEnv::gaslimit");
         let gas_limit = value
             .gas_limit
             .map_or(Ok(default.gas_limit), |gas_limit| gas_limit.try_cast())?;
 
-        println!("BlockEnv::try_from end");
         Ok(Self {
             number,
             coinbase,
