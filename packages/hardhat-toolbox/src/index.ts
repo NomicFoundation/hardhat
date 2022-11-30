@@ -39,6 +39,7 @@ extendConfig((config, userConfig) => {
   // We don't generate types for js projects
   if (userConfig?.typechain?.dontOverrideCompile === undefined) {
     config.typechain.dontOverrideCompile =
-      config.paths.configFile.endsWith(".js");
+      config.paths.configFile.endsWith(".js") ||
+      config.paths.configFile.endsWith(".cjs");
   }
 });
