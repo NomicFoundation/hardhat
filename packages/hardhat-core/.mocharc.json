@@ -3,7 +3,6 @@
   "file": "./test/setup.ts",
   "exclude": [
     "test/fixture-projects/**/*.ts",
-    "test/fixture-projects/**/*.cts",
     "test/fixture-projects/**/*.js",
     "test/helpers/**/*.ts"
   ],

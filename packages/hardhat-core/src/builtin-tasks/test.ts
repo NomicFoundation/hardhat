@@ -49,7 +49,7 @@ subtask(TASK_TEST_GET_TEST_FILES)
 
     const tsFiles = await getAllFilesMatching(
       config.paths.tests,
-      (f) => f.endsWith(".ts") || f.endsWith(".cts") || f.endsWith(".mts")
+      (f) => f.endsWith(".ts") || f.endsWith(".mts")
     );
 
     return [...jsFiles, ...tsFiles];

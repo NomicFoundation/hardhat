@@ -33,15 +33,6 @@ describe("Typescript support", function () {
     });
   });
 
-  describe("hardhat.config.cts", function () {
-    useFixtureProject("typescript-esm-project");
-    useEnvironment();
-
-    it("Should load the config", function () {
-      assert.isDefined(this.env.config.networks.network);
-    });
-  });
-
   describe("Typescript scripts", function () {
     useFixtureProject("typescript-project");
     useEnvironment();

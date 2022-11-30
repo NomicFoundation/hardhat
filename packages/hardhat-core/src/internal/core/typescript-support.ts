@@ -81,5 +81,5 @@ export function loadTsNode(
 }
 
 function isTypescriptFile(path: string): boolean {
-  return path.endsWith(".ts") || path.endsWith(".cts");
+  return path.endsWith(".ts");
 }
