@@ -668,14 +668,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
   }
 
   public async getLatestBlock(): Promise<Block> {
-    const block = await this._blockchain.getLatestBlock();
-
-    const difficulty = block.header.difficulty.toString(16);
-    if (difficulty.length > 64) {
-      console.trace(`Difficulty is too large: 0x`, difficulty);
-      throw new Error("Invalid difficulty");
-    }
-    return block;
+    return this._blockchain.getLatestBlock();
   }
 
   public getLatestBlockNumber(): bigint {

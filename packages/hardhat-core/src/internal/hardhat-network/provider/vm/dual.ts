@@ -100,7 +100,19 @@ export class DualModeAdapter implements VMAdapter {
   }
 
   public async getStateRoot(): Promise<Buffer> {
-    return this._ethereumJSAdapter.getStateRoot();
+    const ethereumJSRoot = await this._ethereumJSAdapter.getStateRoot();
+    const rethnetRoot = await this._rethnetAdapter.getStateRoot();
+
+    if (!ethereumJSRoot.equals(rethnetRoot)) {
+      console.trace(
+        `Different state root: ${ethereumJSRoot.toString(
+          "hex"
+        )} !== ${rethnetRoot.toString("hex")}`
+      );
+      throw new Error("Different state root");
+    }
+
+    return rethnetRoot;
   }
 
   public async getAccount(address: Address): Promise<Account> {
@@ -135,7 +147,19 @@ export class DualModeAdapter implements VMAdapter {
   }
 
   public async getContractCode(address: Address): Promise<Buffer> {
-    return this._ethereumJSAdapter.getContractCode(address);
+    const ethereumJSCode = await this._ethereumJSAdapter.getContractCode(
+      address
+    );
+    const rethnetCode = await this._rethnetAdapter.getContractCode(address);
+
+    if (!ethereumJSCode.equals(rethnetCode)) {
+      console.trace(
+        `Different contract code: ${ethereumJSCode} !== ${rethnetCode}`
+      );
+      throw new Error("Different contract code");
+    }
+
+    return rethnetCode;
   }
 
   public async putAccount(address: Address, account: Account): Promise<void> {
@@ -157,7 +181,8 @@ export class DualModeAdapter implements VMAdapter {
   }
 
   public async restoreContext(stateRoot: Buffer): Promise<void> {
-    return this._ethereumJSAdapter.restoreContext(stateRoot);
+    await this._ethereumJSAdapter.restoreContext(stateRoot);
+    return this._rethnetAdapter.restoreContext(stateRoot);
   }
 
   public async traceTransaction(

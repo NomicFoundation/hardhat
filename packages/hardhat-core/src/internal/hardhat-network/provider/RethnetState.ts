@@ -105,7 +105,20 @@ export class RethnetStateManager implements StateManagerInterface {
   }
 
   public async putContractCode(address: Address, value: Buffer): Promise<void> {
-    throw new Error("not implemented");
+    await this._state.modifyAccount(
+      address.buf,
+      async function (
+        balance: bigint,
+        nonce: bigint,
+        _code: Buffer | undefined
+      ): Promise<AccountData> {
+        return {
+          balance,
+          nonce,
+          code: value,
+        };
+      }
+    );
   }
 
   public async getContractCode(address: Address): Promise<Buffer> {
@@ -150,16 +163,14 @@ export class RethnetStateManager implements StateManagerInterface {
     return this._state.checkpoint();
   }
 
-  public async commit(): Promise<void> {
-    throw new Error("not implemented");
-  }
+  public async commit(): Promise<void> {}
 
   public async revert(): Promise<void> {
     return this._state.revert();
   }
 
   public async getStateRoot(): Promise<Buffer> {
-    return this._state.getStorageRoot();
+    return this._state.getStateRoot();
   }
 
   public async setStateRoot(stateRoot: Buffer): Promise<void> {

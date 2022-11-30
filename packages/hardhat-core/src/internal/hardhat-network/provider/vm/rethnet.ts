@@ -8,7 +8,7 @@ import {
   bufferToBigInt,
 } from "@nomicfoundation/ethereumjs-util";
 import { TypedTransaction } from "@nomicfoundation/ethereumjs-tx";
-import { AccountData, BlockBuilder, Rethnet } from "rethnet-evm";
+import { BlockBuilder, Rethnet } from "rethnet-evm";
 
 import { NodeConfig } from "../node-types";
 import {
@@ -129,22 +129,7 @@ export class RethnetAdapter implements VMAdapter {
    * Update the contract code for the given address.
    */
   public async putContractCode(address: Address, value: Buffer): Promise<void> {
-    await this._state
-      .asInner()
-      .modifyAccount(
-        address.buf,
-        async function (
-          balance: bigint,
-          nonce: bigint,
-          _code: Buffer | undefined
-        ): Promise<AccountData> {
-          return {
-            balance,
-            nonce,
-            code: value,
-          };
-        }
-      );
+    return this._state.putContractCode(address, value);
   }
 
   /**
@@ -182,7 +167,7 @@ export class RethnetAdapter implements VMAdapter {
    * Throw if it can't.
    */
   public async restoreContext(stateRoot: Buffer): Promise<void> {
-    throw new Error("not implemented");
+    return this._state.setStateRoot(stateRoot);
   }
 
   /**
@@ -310,6 +295,15 @@ export class RethnetAdapter implements VMAdapter {
 
     if (isPostMergeHardfork) {
       return mixHash;
+    }
+
+    const MAX_DIFFICULTY = 2n ** 32n - 1n;
+    if (difficulty !== undefined && difficulty > MAX_DIFFICULTY) {
+      console.trace(
+        "Difficulty is larger than U256::max:",
+        difficulty.toString(16)
+      );
+      return MAX_DIFFICULTY;
     }
 
     return difficulty;
