@@ -1,14 +1,16 @@
 //! Return types for `eth_getProof`
 
-use crate::eth::trie::KECCAK_NULL_RLP;
-use ethers_core::types::{H256, U256};
+use crate::trie::KECCAK_NULL_RLP;
+use primitive_types::H256;
 use revm::KECCAK_EMPTY;
-// reexport for convenience
-pub use ethers_core::types::{EIP1186ProofResponse as AccountProof, StorageProof};
+use ruint::aliases::U256;
 
 /// Basic account type.
 #[derive(Debug, Clone, PartialEq, Eq)]
-#[cfg_attr(feature = "fastrlp", derive(open_fastrlp::RlpEncodable, open_fastrlp::RlpDecodable))]
+#[cfg_attr(
+    feature = "fastrlp",
+    derive(open_fastrlp::RlpEncodable, open_fastrlp::RlpDecodable)
+)]
 pub struct BasicAccount {
     /// Nonce of the account.
     pub nonce: U256,
@@ -23,8 +25,8 @@ pub struct BasicAccount {
 impl Default for BasicAccount {
     fn default() -> Self {
         BasicAccount {
-            balance: 0.into(),
-            nonce: 0.into(),
+            balance: U256::ZERO,
+            nonce: U256::ZERO,
             code_hash: KECCAK_EMPTY,
             storage_root: KECCAK_NULL_RLP,
         }

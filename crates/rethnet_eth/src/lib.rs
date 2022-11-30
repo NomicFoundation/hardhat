@@ -7,11 +7,11 @@
 // };
 
 pub mod access_list;
+pub mod account;
 pub mod block;
-// pub mod proof;
 pub mod receipt;
 pub mod signature;
-// pub mod state;
+pub mod state;
 // pub mod subscription;
 pub mod transaction;
 pub mod trie;
