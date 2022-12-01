@@ -36,6 +36,9 @@ pub trait DatabaseDebug {
         value: U256,
     ) -> Result<(), Self::Error>;
 
+    /// Reverts the state to match the specified state root.
+    fn set_state_root(&mut self, state_root: &H256) -> Result<(), Self::Error>;
+
     /// Retrieves the storage root of the database.
     fn state_root(&mut self) -> Result<H256, Self::Error>;
 

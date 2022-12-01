@@ -59,6 +59,10 @@ where
         value: U256,
         sender: oneshot::Sender<Result<(), E>>,
     },
+    SetStateRoot {
+        state_root: H256,
+        sender: oneshot::Sender<Result<(), E>>,
+    },
     StateRoot {
         sender: oneshot::Sender<Result<H256, E>>,
     },
@@ -125,6 +129,9 @@ where
             } => sender
                 .send(db.set_account_storage_slot(address, index, value))
                 .unwrap(),
+            Request::SetStateRoot { state_root, sender } => {
+                sender.send(db.set_state_root(&state_root)).unwrap()
+            }
             Request::StateRoot { sender } => sender.send(db.state_root()).unwrap(),
             Request::StorageSlot {
                 address,
@@ -215,10 +222,14 @@ where
                 .field("value", value)
                 .field("sender", sender)
                 .finish(),
-            Self::StateRoot { sender } => f
-                .debug_struct("StorageRoot")
+            Self::SetStateRoot { state_root, sender } => f
+                .debug_struct("SetStateRoot")
+                .field("state_root", state_root)
                 .field("sender", sender)
                 .finish(),
+            Self::StateRoot { sender } => {
+                f.debug_struct("StateRoot").field("sender", sender).finish()
+            }
             Self::StorageSlot {
                 address,
                 index,

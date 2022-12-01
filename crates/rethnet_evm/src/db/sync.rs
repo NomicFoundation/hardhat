@@ -243,6 +243,20 @@ where
         receiver.await.unwrap()
     }
 
+    /// Reverts the state to match the specified state root.
+    pub async fn set_state_root(&self, state_root: &H256) -> Result<(), E> {
+        let (sender, receiver) = oneshot::channel();
+
+        self.request_sender
+            .send(Request::SetStateRoot {
+                state_root: state_root.clone(),
+                sender,
+            })
+            .expect("Failed to send request");
+
+        receiver.await.unwrap()
+    }
+
     /// Retrieves the state's root.
     pub async fn state_root(&self) -> Result<H256, E> {
         let (sender, receiver) = oneshot::channel();
@@ -390,6 +404,14 @@ where
             self.db
                 .runtime()
                 .block_on(self.db.set_account_storage_slot(address, index, value))
+        })
+    }
+
+    fn set_state_root(&mut self, state_root: &H256) -> Result<(), Self::Error> {
+        task::block_in_place(move || {
+            self.db
+                .runtime()
+                .block_on(self.db.set_state_root(state_root))
         })
     }
 

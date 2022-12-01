@@ -296,4 +296,14 @@ impl StateManager {
             .await
             .map_err(|e| napi::Error::new(Status::GenericFailure, e.to_string()))
     }
+
+    #[napi]
+    pub async fn set_state_root(&mut self, state_root: Buffer) -> napi::Result<()> {
+        let state_root = H256::from_slice(&state_root);
+
+        self.db
+            .set_state_root(&state_root)
+            .await
+            .map_err(|e| napi::Error::new(Status::GenericFailure, e.to_string()))
+    }
 }

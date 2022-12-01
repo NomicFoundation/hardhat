@@ -354,14 +354,29 @@ impl DatabaseDebug for LayeredDatabase<RethnetLayer> {
         Ok(())
     }
 
-    fn state_root(&mut self) -> Result<H256, Self::Error> {
-        self.iter()
-            .next()
-            .and_then(|read_layer| read_layer.state_root.clone())
-            .ok_or_else(|| anyhow!("Has no state root"))
+    fn set_state_root(&mut self, state_root: &H256) -> Result<(), Self::Error> {
+        let layer_id = self.iter().enumerate().find_map(|(layer_id, layer)| {
+            if layer.state_root.as_ref() == Some(state_root) {
+                Some(layer_id)
+            } else {
+                None
+            }
+        });
+
+        if let Some(layer_id) = layer_id {
+            let num_layers = self.stack.len();
+            self.stack.truncate(num_layers - layer_id);
+
+            self.add_layer_default();
+            assert_eq!(self.state_root().unwrap(), *state_root);
+
+            Ok(())
+        } else {
+            Err(anyhow!("Unknown state root"))
+        }
     }
 
-    fn checkpoint(&mut self) -> Result<(), Self::Error> {
+    fn state_root(&mut self) -> Result<H256, Self::Error> {
         let mut storage = HashMap::new();
 
         self.iter().flat_map(|layer| layer.storage.iter()).for_each(
@@ -400,8 +415,12 @@ impl DatabaseDebug for LayeredDatabase<RethnetLayer> {
                 });
             });
 
-        let state_root = state_root(&state);
-        self.last_layer_mut().state_root.replace(state_root.clone());
+        Ok(state_root(&state))
+    }
+
+    fn checkpoint(&mut self) -> Result<(), Self::Error> {
+        let state_root = self.state_root()?;
+        self.last_layer_mut().state_root.replace(state_root);
 
         self.add_layer_default();
 
