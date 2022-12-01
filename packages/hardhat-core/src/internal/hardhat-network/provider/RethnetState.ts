@@ -174,7 +174,7 @@ export class RethnetStateManager implements StateManagerInterface {
   }
 
   public async setStateRoot(stateRoot: Buffer): Promise<void> {
-    throw new Error("not implemented");
+    return this._state.setStateRoot(stateRoot);
   }
 
   public async hasStateRoot(root: Buffer): Promise<boolean> {

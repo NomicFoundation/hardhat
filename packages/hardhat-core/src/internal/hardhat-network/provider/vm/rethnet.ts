@@ -158,7 +158,9 @@ export class RethnetAdapter implements VMAdapter {
     block: Block,
     irregularStateOrUndefined: Buffer | undefined
   ): Promise<void> {
-    throw new Error("not implemented");
+    return this._state.setStateRoot(
+      irregularStateOrUndefined ?? block.header.stateRoot
+    );
   }
 
   /**

@@ -182,7 +182,9 @@ export class DualModeAdapter implements VMAdapter {
 
   public async restoreContext(stateRoot: Buffer): Promise<void> {
     await this._ethereumJSAdapter.restoreContext(stateRoot);
-    return this._rethnetAdapter.restoreContext(stateRoot);
+    await this._rethnetAdapter.restoreContext(stateRoot);
+
+    const _test = await this.getStateRoot();
   }
 
   public async traceTransaction(
@@ -209,7 +211,12 @@ export class DualModeAdapter implements VMAdapter {
     block: Block,
     irregularStateOrUndefined: Buffer | undefined
   ): Promise<void> {
-    return this._ethereumJSAdapter.setBlockContext(
+    await this._ethereumJSAdapter.setBlockContext(
+      block,
+      irregularStateOrUndefined
+    );
+
+    return this._rethnetAdapter.setBlockContext(
       block,
       irregularStateOrUndefined
     );
