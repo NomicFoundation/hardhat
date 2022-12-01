@@ -57,7 +57,7 @@ pub struct Transaction {
 }
 
 pub fn get_tx_by_hash(
-    url: String,
+    url: &str,
     tx_hash: String,
 ) -> Result<Transaction, Box<dyn std::error::Error>> {
     use jsonrpc_types::{Call, MethodCall, Params};
