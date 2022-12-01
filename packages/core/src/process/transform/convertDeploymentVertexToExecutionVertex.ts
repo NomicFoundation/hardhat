@@ -21,9 +21,9 @@ import {
   ExecutionVertex,
   LibraryDeploy,
 } from "types/executionGraph";
-import { DeploymentGraphFuture } from "types/future";
+import { BytesFuture, DeploymentGraphFuture } from "types/future";
 import { Artifact } from "types/hardhat";
-import { isFuture } from "utils/guards";
+import { isBytesArg, isFuture } from "utils/guards";
 
 interface TransformContext {
   services: Services;
@@ -202,7 +202,9 @@ async function convertArgs(
   const resolvedArgs = [];
 
   for (const arg of args) {
-    const resolvedArg = await resolveParameter(arg, transformContext);
+    const resolvedArg = isBytesArg(arg)
+      ? await resolveBytesForArtifact(arg, transformContext.services)
+      : await resolveParameter(arg, transformContext);
 
     resolvedArgs.push(resolvedArg);
   }
@@ -255,6 +257,15 @@ async function resolveParameter<T extends DeploymentGraphFuture>(
   }
 
   return services.config.getParam(arg.label);
+}
+
+async function resolveBytesForArtifact(
+  arg: BytesFuture,
+  services: Services
+): Promise<string> {
+  const artifact = await services.artifacts.getArtifact(arg.label);
+
+  return artifact.bytecode;
 }
 
 function assertNeverParamResult(hasParamResult: never) {

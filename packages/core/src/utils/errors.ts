@@ -1,6 +1,12 @@
 import { BigNumber } from "ethers";
 import { NomicLabsHardhatPluginError } from "hardhat/plugins";
 
+export class InvalidArtifactError extends NomicLabsHardhatPluginError {
+  constructor(name: string) {
+    super("ignition", `Artifact with name '${name}' doesn't exist`);
+  }
+}
+
 export class IgnitionError extends NomicLabsHardhatPluginError {
   constructor(message: string) {
     super("ignition", message);

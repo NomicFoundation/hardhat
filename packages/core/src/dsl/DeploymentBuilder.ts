@@ -32,6 +32,7 @@ import type {
   DependableFuture,
   ProxyFuture,
   AwaitFuture,
+  BytesFuture,
 } from "types/future";
 import type { Artifact } from "types/hardhat";
 import type { ModuleCache, ModuleDict } from "types/module";
@@ -338,6 +339,16 @@ export class DeploymentBuilder implements IDeploymentBuilder {
     };
 
     return paramFuture;
+  }
+
+  public getBytesForArtifact(artifactName: string): BytesFuture {
+    const bytesFuture: BytesFuture = {
+      label: artifactName,
+      type: "bytes",
+      _future: true,
+    };
+
+    return bytesFuture;
   }
 
   public useSubgraph<T extends FutureDict>(

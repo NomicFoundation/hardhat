@@ -16,6 +16,7 @@ import {
   CallableFuture,
   Virtual,
   ParameterFuture,
+  BytesFuture,
 } from "./future";
 import { AdjacencyList, VertexDescriptor } from "./graph";
 import { Artifact } from "./hardhat";
@@ -189,6 +190,8 @@ export interface IDeploymentBuilder {
     paramName: string,
     defaultValue: ParameterValue
   ) => OptionalParameter;
+
+  getBytesForArtifact: (artifactName: string) => BytesFuture;
 
   useSubgraph: <T extends FutureDict>(
     subgraph: Subgraph<T>,

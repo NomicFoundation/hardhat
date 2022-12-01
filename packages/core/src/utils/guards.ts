@@ -1,3 +1,5 @@
+import { BigNumber } from "ethers";
+
 import type {
   DeploymentGraphVertex,
   HardhatContractDeploymentVertex,
@@ -7,6 +9,7 @@ import type {
   HardhatLibraryDeploymentVertex,
   ArtifactLibraryDeploymentVertex,
   AwaitVertex,
+  InternalParamValue,
 } from "types/deploymentGraph";
 import type {
   CallableFuture,
@@ -16,6 +19,7 @@ import type {
   RequiredParameter,
   Virtual,
   ProxyFuture,
+  BytesFuture,
 } from "types/future";
 import { Artifact } from "types/hardhat";
 
@@ -103,6 +107,14 @@ export function isParameter(
   future: DeploymentGraphFuture
 ): future is RequiredParameter | OptionalParameter {
   return future.type === "parameter";
+}
+
+export function isBytesArg(arg: InternalParamValue): arg is BytesFuture {
+  return (
+    typeof arg === "object" &&
+    !BigNumber.isBigNumber(arg) &&
+    arg.type === "bytes"
+  );
 }
 
 export function isCallable(

@@ -4,7 +4,10 @@ import { Services } from "services/types";
 import { AwaitVertex } from "types/deploymentGraph";
 import { ResultsAccumulator, VertexVisitResult } from "types/graph";
 
-import { resolveArtifactForCallableFuture } from "./helpers";
+import {
+  resolveArtifactForCallableFuture,
+  validateBytesForArtifact,
+} from "./helpers";
 
 export async function validateAwaitEvent(
   vertex: AwaitVertex,
@@ -12,6 +15,15 @@ export async function validateAwaitEvent(
   context: { services: Services }
 ): Promise<VertexVisitResult> {
   const contractName = vertex.contract.label;
+
+  const invalidBytes = await validateBytesForArtifact(
+    vertex.args,
+    context.services
+  );
+
+  if (invalidBytes !== null) {
+    return invalidBytes;
+  }
 
   const artifactAbi = await resolveArtifactForCallableFuture(
     vertex.contract,

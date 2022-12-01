@@ -12,7 +12,7 @@
   - [Using an existing contract](./creating-modules-for-deployment.md#using-an-existing-contract)
   - [Deploying from an artifact](./creating-modules-for-deployment.md#deploying-from-an-artifact)
   - [Linking libraries](./creating-modules-for-deployment.md#linking-libraries)
-  - [Create2 (TBD)](./creating-modules-for-deployment.md#create2-tbd)
+  - [Create2](./creating-modules-for-deployment.md#create2)
 - [Calling contract methods](./creating-modules-for-deployment.md#calling-contract-methods)
   - [Transfering _Eth_ as part of a call](./creating-modules-for-deployment.md#transfering-eth-as-part-of-a-call)
   - [Using the results of a call with a deferred value (TBD)](./creating-modules-for-deployment.md#using-the-results-of-a-call-with-a-deferred-value-tbd)
@@ -133,7 +133,7 @@ const contract = m.contract("Contract", {
 
 A library is deployed in the same way as a contract.
 
-### Create2 (TBD)
+### Create2
 
 `Create2` allows for reliably determining the address of a contract before it is deployed.
 
@@ -177,7 +177,7 @@ module.exports = buildModule("Create2Example", (m) => {
     ],
   });
 
-  return { create2, foo: m.asContract(fooAddress) };
+  return { create2, foo: m.contractAt(fooAddress) };
 });
 ```
 
