@@ -76,13 +76,13 @@ pub fn get_tx_by_hash(
     let response_text_ = response.text().expect("failed to get response text");
     let response_text = response_text_.as_str();
 
-    let success: jsonrpc_types::Success<Transaction> = serde_json::from_str(response_text).expect(
-        format!(
-            "failed to interpret as Transaction response string \"{}\"",
-            response_text
-        )
-        .as_str(),
-    );
+    let success: jsonrpc_types::Success<Transaction> = serde_json::from_str(response_text)
+        .unwrap_or_else(|_| {
+            panic!(
+                "failed to interpret as Transaction response string \"{}\"",
+                response_text
+            )
+        });
 
     Ok(success.result)
 }
