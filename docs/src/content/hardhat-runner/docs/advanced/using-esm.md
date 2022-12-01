@@ -14,6 +14,8 @@ Hardhat doesn't support [ESM in TypeScript projects](#esm-and-typescript-project
 
 ## Using ES Modules in Hardhat
 
+The following sections explain how to use ES modules in new or existing Hardhat projects.
+
 ### Starting an ESM-first Hardhat project
 
 If you want to start a Hardhat project that uses ES modules by default, first you have to initialize a Node.js project:
