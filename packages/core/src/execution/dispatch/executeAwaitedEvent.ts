@@ -1,4 +1,4 @@
-import { Contract } from "ethers";
+import { Contract, ethers } from "ethers";
 
 import { ExecutionContext } from "types/deployment";
 import { AwaitedEvent } from "types/executionGraph";
@@ -17,13 +17,13 @@ export async function executeAwaitedEvent(
 
   const { address, abi } = resolve(contract);
 
-  let eventResult;
+  let topics: ethers.utils.Result;
   try {
     const contractInstance = new Contract(address, abi);
 
     const filter = contractInstance.filters[event](...resolvedArgs);
 
-    eventResult = await services.transactions.waitForEvent(
+    const eventResult = await services.transactions.waitForEvent(
       filter,
       options.awaitEventDuration
     );
@@ -37,6 +37,8 @@ export async function executeAwaitedEvent(
         ),
       };
     }
+
+    topics = contractInstance.interface.parseLog(eventResult).args;
   } catch (err) {
     return {
       _kind: "failure",
@@ -47,7 +49,7 @@ export async function executeAwaitedEvent(
   return {
     _kind: "success",
     result: {
-      hash: eventResult.transactionHash,
+      topics,
     },
   };
 }

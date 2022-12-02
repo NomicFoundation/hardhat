@@ -7,11 +7,13 @@ const ACCOUNT_0 = "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266";
 
 describe.skip("Multisig", function () {
   let multisig;
+  let event;
 
   before(async () => {
     const moduleResult = await ignition.deploy(Multisig);
 
     multisig = moduleResult.multisig;
+    event = moduleResult.event;
   });
 
   it("should store a submitted transaction", async function () {
@@ -29,5 +31,10 @@ describe.skip("Multisig", function () {
     const [isConfirmed] = await multisig.functions.confirmations(0, ACCOUNT_0);
 
     expect(isConfirmed).to.equal(true);
+  });
+
+  it("should emit the sender and transaction id after confirming a stored transaction", async function () {
+    expect(event.sender).to.equal(ACCOUNT_0);
+    expect(ethers.BigNumber.from("0").eq(event.transactionId)).to.be.true;
   });
 });

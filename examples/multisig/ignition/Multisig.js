@@ -21,12 +21,12 @@ module.exports = buildModule("MultisigModule", (m) => {
   });
 
   // todo: support sending via non-default account
-  m.awaitEvent(multisig, "Confirmation", {
+  const event = m.awaitEvent(multisig, "Confirmation", {
     args: [ACCOUNT_0, 0],
     after: [call],
   });
 
   // m.call(multisig, "executeTransaction", { args: [0], after: [event] });
 
-  return { multisig };
+  return { multisig, event };
 });
