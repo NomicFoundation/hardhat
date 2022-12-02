@@ -1700,7 +1700,9 @@ Hardhat Network's forking functionality only works with blocks from at least spu
         ) {
           transactionQueue.removeLastSenderTransactions();
         } else {
+          const _stateRoot = await this._vm.getStateRoot();
           const txResult = await blockBuilder.addTransaction(tx);
+          const _stateRoot2 = await this._vm.getStateRoot();
 
           traces.push(await this._gatherTraces(txResult.execResult));
           results.push(txResult);
@@ -1711,7 +1713,9 @@ Hardhat Network's forking functionality only works with blocks from at least spu
       }
 
       const minerReward = this._common.param("pow", "minerReward");
+      const _stateRoot3 = await this._vm.getStateRoot();
       await blockBuilder.addRewards([[coinbase, minerReward]]);
+      const _stateRoot4 = await this._vm.getStateRoot();
       const block = await blockBuilder.seal();
       await this._blockchain.putBlock(block);
 

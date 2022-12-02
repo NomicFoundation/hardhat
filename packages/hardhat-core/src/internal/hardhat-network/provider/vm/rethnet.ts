@@ -199,9 +199,14 @@ export class RethnetAdapter implements VMAdapter {
       ethereumjsHeaderDataToRethnet(block.header, difficulty)
     );
 
-    const result = rethnetResultToRunTxResult(rethnetResult);
-
-    return [result, rethnetResult.trace];
+    try {
+      const result = rethnetResultToRunTxResult(rethnetResult);
+      return [result, rethnetResult.trace];
+    } catch (e) {
+      console.log("Rethnet trace");
+      console.log(rethnetResult.trace);
+      throw e;
+    }
   }
 
   /**

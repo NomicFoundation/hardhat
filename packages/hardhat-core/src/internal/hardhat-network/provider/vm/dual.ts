@@ -154,7 +154,9 @@ export class DualModeAdapter implements VMAdapter {
 
     if (!ethereumJSCode.equals(rethnetCode)) {
       console.trace(
-        `Different contract code: ${ethereumJSCode} !== ${rethnetCode}`
+        `Different contract code: ${ethereumJSCode.toString(
+          "hex"
+        )} !== ${rethnetCode.toString("hex")}`
       );
       throw new Error("Different contract code");
     }
@@ -176,15 +178,15 @@ export class DualModeAdapter implements VMAdapter {
     key: Buffer,
     value: Buffer
   ): Promise<void> {
-    await this._rethnetAdapter.putContractStorage(address, key, value);
-    return this._ethereumJSAdapter.putContractStorage(address, key, value);
+    await this._ethereumJSAdapter.putContractStorage(address, key, value);
+    return this._rethnetAdapter.putContractStorage(address, key, value);
   }
 
   public async restoreContext(stateRoot: Buffer): Promise<void> {
     await this._ethereumJSAdapter.restoreContext(stateRoot);
     await this._rethnetAdapter.restoreContext(stateRoot);
 
-    const _test = await this.getStateRoot();
+    const _assert = await this.getStateRoot();
   }
 
   public async traceTransaction(
@@ -239,6 +241,11 @@ export class DualModeAdapter implements VMAdapter {
 
     try {
       assertEqualRunTxResults(ethereumJSResult, rethnetResult);
+
+      if (rethnetResult.createdAddress !== undefined) {
+        const _test = this.getAccount(rethnetResult.createdAddress);
+      }
+
       return [ethereumJSResult, ethereumJSTrace];
     } catch (e) {
       // if the results didn't match, print the traces

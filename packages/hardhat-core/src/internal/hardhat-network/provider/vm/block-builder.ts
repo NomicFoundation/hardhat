@@ -90,7 +90,9 @@ export class BlockBuilder {
       calcDifficultyFromHeader: this._opts.parentBlock.header,
     });
 
+    const _stateRoot = await this._vm.getStateRoot();
     const [result] = await this._vm.runTxInBlock(tx, block);
+    const _stateRoot2 = await this._vm.getStateRoot();
 
     this._transactions.push(tx);
     this._transactionResults.push(result);
