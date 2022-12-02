@@ -7,6 +7,7 @@ import { dateToTimestampSeconds } from "../../../util/date";
 import { hardforkGte, HardforkName } from "../../../util/hardforks";
 import { HardhatBlockchain } from "../HardhatBlockchain";
 import { LocalNodeConfig } from "../node-types";
+import { RethnetStateManager } from "../RethnetState";
 import { getCurrentTimestamp } from "./getCurrentTimestamp";
 
 export async function putGenesisBlock(
@@ -14,6 +15,7 @@ export async function putGenesisBlock(
   common: Common,
   { initialDate, blockGasLimit }: LocalNodeConfig,
   stateTrie: Trie,
+  rethnetState: RethnetStateManager,
   hardfork: HardforkName,
   initialMixHash: Buffer,
   initialBaseFee?: bigint
@@ -53,4 +55,5 @@ export async function putGenesisBlock(
   );
 
   await blockchain.putBlock(genesisBlock);
+  await rethnetState.putBlock(genesisBlock);
 }

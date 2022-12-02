@@ -1,3 +1,4 @@
+import { Block } from "@nomicfoundation/ethereumjs-block";
 import { StateManager as StateManagerInterface } from "@nomicfoundation/ethereumjs-statemanager";
 import { StorageDump } from "@nomicfoundation/ethereumjs-statemanager/dist/interface";
 import {
@@ -179,5 +180,9 @@ export class RethnetStateManager implements StateManagerInterface {
 
   public async hasStateRoot(root: Buffer): Promise<boolean> {
     throw new Error("not implemented");
+  }
+
+  public async putBlock(block: Block): Promise<void> {
+    return this._state.insertBlock(block.header.number, block.hash());
   }
 }

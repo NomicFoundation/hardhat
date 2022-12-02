@@ -26,6 +26,7 @@ export interface VMAdapter {
 
   // setters
   putAccount(address: Address, account: Account): Promise<void>;
+  putBlock(block: Block): Promise<void>;
   putContractCode(address: Address, value: Buffer): Promise<void>;
   putContractStorage(
     address: Address,

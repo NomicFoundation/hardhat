@@ -1,7 +1,6 @@
 import type { Message } from "@nomicfoundation/ethereumjs-evm";
 import type { RunTxResult } from "@nomicfoundation/ethereumjs-vm";
 import { Block } from "@nomicfoundation/ethereumjs-block";
-import { StateManager as StateManagerInterface } from "@nomicfoundation/ethereumjs-statemanager";
 import {
   Account,
   Address,
@@ -34,19 +33,13 @@ export class RethnetAdapter implements VMAdapter {
   ) {}
 
   public static async create(
-    stateManager: StateManagerInterface,
+    state: RethnetStateManager,
     config: NodeConfig,
     selectHardfork: (blockNumber: bigint) => string,
     getBlockHash: (blockNumber: bigint) => Promise<Buffer>
   ): Promise<RethnetAdapter> {
-    // const hardhatDB = new HardhatDB(stateManager, getBlockHash);
-
     const limitContractCodeSize =
       config.allowUnlimitedContractSize === true ? 2n ** 64n - 1n : undefined;
-
-    const state = RethnetStateManager.withGenesisAccounts(
-      config.genesisAccounts
-    );
 
     const rethnet = new Rethnet(state.asInner(), {
       chainId: BigInt(config.chainId),
@@ -122,7 +115,11 @@ export class RethnetAdapter implements VMAdapter {
    * Update the account info for the given address.
    */
   public async putAccount(address: Address, account: Account): Promise<void> {
-    await this._state.putAccount(address, account);
+    return this._state.putAccount(address, account);
+  }
+
+  public async putBlock(block: Block): Promise<void> {
+    return this._state.putBlock(block);
   }
 
   /**

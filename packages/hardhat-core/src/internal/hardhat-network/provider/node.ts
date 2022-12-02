@@ -113,6 +113,7 @@ import { RandomBufferGenerator } from "./utils/random";
 import { DualModeAdapter } from "./vm/dual";
 import { VMAdapter } from "./vm/vm-adapter";
 import { BlockBuilder } from "./vm/block-builder";
+import { RethnetStateManager } from "./RethnetState";
 
 type ExecResult = EVMResult["execResult"];
 
@@ -152,6 +153,9 @@ export class HardhatNode extends EventEmitter {
     let forkClient: JsonRpcClient | undefined;
 
     const common = makeCommon(config);
+
+    const rethnetState =
+      RethnetStateManager.withGenesisAccounts(genesisAccounts);
 
     if (isForkedNodeConfig(config)) {
       const {
@@ -215,6 +219,7 @@ export class HardhatNode extends EventEmitter {
         common,
         config,
         stateTrie,
+        rethnetState,
         hardfork,
         mixHashGenerator.next(),
         genesisBlockBaseFeePerGas
@@ -231,6 +236,7 @@ export class HardhatNode extends EventEmitter {
 
     const currentHardfork = common.hardfork();
     const vm = await DualModeAdapter.create(
+      rethnetState,
       common,
       blockchain,
       config,
@@ -1718,6 +1724,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
       const _stateRoot4 = await this._vm.getStateRoot();
       const block = await blockBuilder.seal();
       await this._blockchain.putBlock(block);
+      await this._vm.putBlock(block);
 
       await this._txPool.updatePendingAndQueued();
 

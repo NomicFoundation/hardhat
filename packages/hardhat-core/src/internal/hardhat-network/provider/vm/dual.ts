@@ -9,6 +9,7 @@ import { assertHardhatInvariant } from "../../../core/errors";
 import { RpcDebugTracingConfig } from "../../../core/jsonrpc/types/input/debugTraceTransaction";
 import { NodeConfig } from "../node-types";
 import { RpcDebugTraceOutput } from "../output";
+import { RethnetStateManager } from "../RethnetState";
 import { HardhatBlockchainInterface } from "../types/HardhatBlockchainInterface";
 
 import { EthereumJSAdapter } from "./ethereumjs";
@@ -39,6 +40,7 @@ export class DualModeAdapter implements VMAdapter {
   ) {}
 
   public static async create(
+    rethnetState: RethnetStateManager,
     common: Common,
     blockchain: HardhatBlockchainInterface,
     config: NodeConfig,
@@ -52,8 +54,7 @@ export class DualModeAdapter implements VMAdapter {
     );
 
     const rethnetAdapter = await RethnetAdapter.create(
-      // eslint-disable-next-line @typescript-eslint/dot-notation
-      ethereumJSAdapter["_stateManager"],
+      rethnetState,
       config,
       selectHardfork,
       async (blockNumber) => {
@@ -165,12 +166,18 @@ export class DualModeAdapter implements VMAdapter {
   }
 
   public async putAccount(address: Address, account: Account): Promise<void> {
-    await this._rethnetAdapter.putAccount(address, account);
-    return this._ethereumJSAdapter.putAccount(address, account);
+    await this._ethereumJSAdapter.putAccount(address, account);
+    return this._rethnetAdapter.putAccount(address, account);
+  }
+
+  public async putBlock(block: Block): Promise<void> {
+    await this._ethereumJSAdapter.putBlock(block);
+    return this._rethnetAdapter.putBlock(block);
   }
 
   public async putContractCode(address: Address, value: Buffer): Promise<void> {
-    return this._ethereumJSAdapter.putContractCode(address, value);
+    await this._ethereumJSAdapter.putContractCode(address, value);
+    return this._rethnetAdapter.putContractCode(address, value);
   }
 
   public async putContractStorage(

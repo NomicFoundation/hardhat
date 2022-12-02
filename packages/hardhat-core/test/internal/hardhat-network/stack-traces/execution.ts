@@ -16,6 +16,7 @@ import { MessageTrace } from "../../../../src/internal/hardhat-network/stack-tra
 import { VMTracer } from "../../../../src/internal/hardhat-network/stack-traces/vm-tracer";
 import { defaultHardhatNetworkParams } from "../../../../src/internal/core/config/default-config";
 import { BlockBuilder } from "../../../../src/internal/hardhat-network/provider/vm/block-builder";
+import { RethnetStateManager } from "../../../../src/internal/hardhat-network/provider/RethnetState";
 
 const senderPrivateKey = Buffer.from(
   "e331b6d69882b4cb4ea581d88e0b604039a3de5967688d3dcffdd2270c0fd109",
@@ -36,7 +37,10 @@ export async function instantiateVm(): Promise<[VMAdapter, Common]> {
     })
   );
 
+  const rethnetState = new RethnetStateManager();
+
   const vm = await DualModeAdapter.create(
+    rethnetState,
     common,
     blockchain,
     {
