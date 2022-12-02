@@ -144,7 +144,7 @@ impl StateManager {
 
         self.db.code_by_hash(code_hash).await.map_or_else(
             |e| Err(napi::Error::new(Status::GenericFailure, e.to_string())),
-            |code| Ok(Buffer::from(code.bytes().as_ref())),
+            |code| Ok(Buffer::from(&code.bytes()[..code.len()])),
         )
     }
 
@@ -213,7 +213,7 @@ impl StateManager {
 
                 let code = if let Some(code) = ctx.value.code {
                     ctx.env
-                        .create_buffer_copy(code.bytes().as_ref())?
+                        .create_buffer_copy(&code.bytes()[..code.len()])?
                         .into_unknown()
                 } else {
                     ctx.env.get_null()?.into_unknown()

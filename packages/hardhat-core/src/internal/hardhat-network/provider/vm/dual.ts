@@ -120,7 +120,7 @@ export class DualModeAdapter implements VMAdapter {
     const ethereumJSAccount = await this._ethereumJSAdapter.getAccount(address);
     const rethnetAccount = await this._rethnetAdapter.getAccount(address);
 
-    assertEqualAccounts(ethereumJSAccount, rethnetAccount);
+    assertEqualAccounts(address, ethereumJSAccount, rethnetAccount);
 
     return ethereumJSAccount;
   }
@@ -349,10 +349,12 @@ function assertEqualRunTxResults(
 }
 
 function assertEqualAccounts(
+  address: Address,
   ethereumJSAccount: Account,
   rethnetAccount: Account
 ) {
   if (ethereumJSAccount.balance !== rethnetAccount.balance) {
+    console.trace(`Account: ${address}`);
     console.trace(
       `Different balance: ${ethereumJSAccount.balance} !== ${rethnetAccount.balance}`
     );

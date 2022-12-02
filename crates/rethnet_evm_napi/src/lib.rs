@@ -14,7 +14,7 @@ use napi::{bindgen_prelude::*, Status};
 use napi_derive::napi;
 use once_cell::sync::OnceCell;
 use rethnet_eth::Address;
-use rethnet_evm::{AccountInfo, CfgEnv};
+use rethnet_evm::{AccountInfo, CfgEnv, TxEnv};
 use secp256k1::{PublicKey, Secp256k1, SecretKey, SignOnly};
 use sha3::{Digest, Keccak256};
 use state::StateManager;
@@ -79,7 +79,7 @@ impl From<AccountInfo> for Account {
             code_hash: Buffer::from(account_info.code_hash.as_bytes()),
             code: account_info
                 .code
-                .map(|code| Buffer::from(code.bytes().as_ref())),
+                .map(|code| Buffer::from(&code.bytes()[..code.len()])),
         }
     }
 }
@@ -332,7 +332,7 @@ impl Rethnet {
         transaction: Transaction,
         block: BlockConfig,
     ) -> Result<ExecutionResult> {
-        let transaction = transaction.try_into()?;
+        let transaction: TxEnv = transaction.try_into()?;
         let block = block.try_into()?;
 
         self.runtime.run(transaction, block).await.try_into()
