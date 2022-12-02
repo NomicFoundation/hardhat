@@ -17,12 +17,26 @@ use ethers::types::{Transaction, TxHash};
 //
 // TODO: do more than just get-tx-by-hash.
 
-pub fn get_tx_by_hash(
-    url: &str,
-    tx_hash: TxHash,
-) -> Result<Transaction, Box<dyn std::error::Error>> {
+#[derive(thiserror::Error, Debug)]
+pub enum GetTxByHashError {
+    #[error("Failed to send request")]
+    SendError { msg: String },
+
+    #[error("Failed to get response body")]
+    ResponseError { msg: String },
+
+    #[error("Response was not a Success<Transaction>")]
+    InterpretationError { msg: String, response_text: String },
+
+    #[error(transparent)]
+    OtherError(#[from] std::io::Error),
+}
+
+pub fn get_tx_by_hash(url: &str, tx_hash: TxHash) -> Result<Transaction, GetTxByHashError> {
+    use GetTxByHashError::{InterpretationError, ResponseError, SendError};
+
     use jsonrpc_types::{Call, MethodCall, Params};
-    let response = reqwest::blocking::Client::new()
+    let response_text = reqwest::blocking::Client::new()
         .post(url)
         .json(&jsonrpc_types::Request::Single(Call::MethodCall(
             MethodCall::new(
@@ -32,18 +46,21 @@ pub fn get_tx_by_hash(
             ),
         )))
         .send()
-        .expect("failed to send");
+        .map_err(|err| SendError {
+            msg: err.to_string(),
+        })?
+        .text()
+        .map_err(|err| ResponseError {
+            msg: err.to_string(),
+        })?;
 
-    let response_text_ = response.text().expect("failed to get response text");
-    let response_text = response_text_.as_str();
+    let response_text_str = response_text.as_str();
 
-    let success: jsonrpc_types::Success<Transaction> = serde_json::from_str(response_text)
-        .unwrap_or_else(|_| {
-            panic!(
-                "failed to interpret as Transaction response string \"{}\"",
-                response_text
-            )
-        });
+    let success: jsonrpc_types::Success<Transaction> = serde_json::from_str(response_text_str)
+        .map_err(|err| InterpretationError {
+            msg: err.to_string(),
+            response_text,
+        })?;
 
     Ok(success.result)
 }
@@ -51,6 +68,9 @@ pub fn get_tx_by_hash(
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    use std::str::FromStr;
+
     use ethers::types::{Bytes, H160, H256, U256, U64};
 
     #[test]
@@ -59,8 +79,6 @@ mod tests {
             .expect("ALCHEMY_URL environment variable not defined")
             .into_string()
             .expect("couldn't convert OsString into a String");
-
-        use std::str::FromStr;
 
         let hash =
             TxHash::from_str("0xc008e9f9bb92057dd0035496fbf4fb54f66b4b18b370928e46d6603933054d5a")
@@ -124,6 +142,42 @@ mod tests {
         );
         assert_eq!(tx.v, U64::from_str("1c").expect("couldn't parse data"));
         assert_eq!(tx.value, U256::from_str("0").expect("couldn't parse data"));
+    }
+
+    #[test]
+    fn get_tx_by_hash_dns_error() {
+        let alchemy_url = "https://xxxeth-mainnet.g.alchemy.com";
+
+        let hash =
+            TxHash::from_str("0xc008e9f9bb92057dd0035496fbf4fb54f66b4b18b370928e46d6603933054d5a")
+                .expect("failed to parse hash from string");
+
+        let error_string = format!(
+            "{:?}",
+            get_tx_by_hash(alchemy_url, hash)
+                .expect_err("should have failed to connect to a garbage domain name")
+        );
+
+        assert!(error_string.contains("SendError"));
+        assert!(error_string.contains("dns error"));
+    }
+
+    #[test]
+    fn get_tx_by_hash_bad_api_key() {
+        let alchemy_url = "https://eth-mainnet.g.alchemy.com/v2/abcdefg";
+
+        let hash =
+            TxHash::from_str("0xc008e9f9bb92057dd0035496fbf4fb54f66b4b18b370928e46d6603933054d5a")
+                .expect("failed to parse hash from string");
+
+        let error_string = format!(
+            "{:?}",
+            get_tx_by_hash(alchemy_url, hash)
+                .expect_err("should have failed to interpret response as a Transaction")
+        );
+
+        assert!(error_string.contains("InterpretationError"));
+        assert!(error_string.contains("Must be authenticated!"));
     }
 
     // TODO: write some tests that exercise the errors i coded.
