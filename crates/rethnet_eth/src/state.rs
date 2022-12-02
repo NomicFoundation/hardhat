@@ -22,7 +22,7 @@ pub fn state_root(state: &State) -> H256 {
 }
 
 pub fn storage_root(storage: &Storage) -> H256 {
-    trie_root(storage.iter().map(|(index, value)| {
+    sec_trie_root(storage.iter().map(|(index, value)| {
         let index = H256::from(index.to_be_bytes());
         let value = rlp::encode(value);
         (index, value)
