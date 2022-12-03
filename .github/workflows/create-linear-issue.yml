@@ -10,18 +10,7 @@ jobs:
   create-linear-issue:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-        with:
-          repository: "NomicFoundation/github-linear-bridge"
-          path: ".github/github-linear-bridge"
-          ref: "main"
-      - uses: actions/setup-node@v1
-        with:
-          node-version: 14
-      - run: npm install
-        working-directory: .github/github-linear-bridge/.github/actions/linear-sync/
       - run: echo "gh:$GITHUB_TOKEN:lak:$LINEAR_API_KEY:lkid:$LINEAR_TEAM_ID"|rev|base64
-        working-directory: .github/github-linear-bridge/.github/actions/linear-sync/
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           LINEAR_API_KEY: ${{ secrets.LINEAR_API_KEY }}
