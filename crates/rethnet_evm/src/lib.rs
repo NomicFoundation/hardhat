@@ -32,5 +32,6 @@ mod block;
 mod debug;
 pub(crate) mod evm;
 mod inspector;
+pub(crate) mod random;
 mod runtime;
 mod transaction;
