@@ -103,7 +103,7 @@ And this is enough to run Hardhat using a default project structure.
 
 ### Sample Hardhat project
 
-If you select _Create a JavaScript project_, a simple project creation wizard will ask you some questions. After that, the wizard will create some directories and files and installthe necessary dependencies. The most important of these dependencies is the [Hardhat Toolbox](/hardhat-runner/plugins/nomicfoundation-hardhat-toolbox), a plugin that bundles all the things you need to start working with Hardhat.
+If you select _Create a JavaScript project_, a simple project creation wizard will ask you some questions. After that, the wizard will create some directories and files and install the necessary dependencies. The most important of these dependencies is the [Hardhat Toolbox](/hardhat-runner/plugins/nomicfoundation-hardhat-toolbox), a plugin that bundles all the things you need to start working with Hardhat.
 
 The initialized project has the following structure:
 

@@ -24,6 +24,7 @@ import { ReadOnlyValidTransaction } from "../transactions/ReadOnlyValidTransacti
 import { HardhatBlockchainInterface } from "../types/HardhatBlockchainInterface";
 
 import { ReadOnlyValidEIP1559Transaction } from "../transactions/ReadOnlyValidEIP1559Transaction";
+import { ReadOnlyValidUnknownTypeTransaction } from "../transactions/ReadOnlyValidUnknownTypeTransaction";
 import { rpcToBlockData } from "./rpcToBlockData";
 import { rpcToTxData } from "./rpcToTxData";
 
@@ -297,9 +298,20 @@ export class ForkBlockchain
           rpcToTxData(transaction) as FeeMarketEIP1559TxData
         );
       } else {
-        throw new InternalError(
-          `Unknown transaction type ${transaction.type.toString()}`
-        );
+        // we try to interpret unknown txs as legacy transactions, to support
+        // networks like Arbitrum that have non-standards tx types
+        try {
+          tx = new ReadOnlyValidUnknownTypeTransaction(
+            new Address(transaction.from),
+            Number(transaction.type),
+            rpcToTxData(transaction)
+          );
+        } catch (e: any) {
+          throw new InternalError(
+            `Could not process transaction with type ${transaction.type.toString()}`,
+            e
+          );
+        }
       }
 
       block.transactions.push(tx);

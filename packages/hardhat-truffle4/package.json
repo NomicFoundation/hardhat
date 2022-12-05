@@ -2,7 +2,7 @@
   "name": "@nomiclabs/hardhat-truffle4",
   "version": "2.0.6",
   "description": "Truffle 4 Hardhat compatibility plugin",
-  "homepage": "https://github.com/nomiclabs/hardhat/tree/master/packages/hardhat-truffle4",
+  "homepage": "https://github.com/nomiclabs/hardhat/tree/main/packages/hardhat-truffle4",
   "repository": "github:nomiclabs/hardhat",
   "author": "Nomic Labs LLC",
   "license": "MIT",

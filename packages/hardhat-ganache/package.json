@@ -2,7 +2,7 @@
   "name": "@nomiclabs/hardhat-ganache",
   "version": "2.0.1",
   "description": "Hardhat plugin for managing Ganache",
-  "homepage": "https://github.com/nomiclabs/hardhat/tree/master/packages/hardhat-ganache",
+  "homepage": "https://github.com/nomiclabs/hardhat/tree/main/packages/hardhat-ganache",
   "repository": "github:nomiclabs/hardhat",
   "author": "Nomic Labs LLC",
   "license": "MIT",
