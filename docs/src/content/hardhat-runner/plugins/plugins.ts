@@ -647,6 +647,14 @@ const communityPlugins: IPlugin[] = [
     description: "Hardhat plugin to get compiler outputs of contracts",
     tags: ["Tooling", "Testing", "Tasks", "Scripts", "Solc", "Compiler"],
   },
+  {
+    name: "@dlsl/hardhat-migrate",
+    author: "Distributed Lab",
+    authorUrl: "https://distributedlab.com/",
+    description:
+      "Hardhat plugin to automate the deployment and verification of contracts",
+    tags: ["Deployment", "Verification", "Migration"],
+  },
 ];
 
 const officialPlugins: IPlugin[] = [
