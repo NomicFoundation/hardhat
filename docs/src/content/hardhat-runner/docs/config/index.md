@@ -60,7 +60,7 @@ See [the Hardhat Network Configuration Reference](/hardhat-network/docs/referenc
 
 ### JSON-RPC based networks
 
-These are networks that connect to an external node. Nodes can be running in your computer, like Ganache, or remotely, like Alchemy or Infura.
+These are networks that connect to an external node. Nodes can be running in your computer, like Ganache, or remotely, like Alchemy, Nodereal or Infura.
 
 This kind of network is configured with objects with the following fields:
 
