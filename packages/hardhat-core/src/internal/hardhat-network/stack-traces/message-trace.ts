@@ -1,6 +1,5 @@
-import type { EvmError } from "@nomicfoundation/ethereumjs-evm";
-
 import type { Bytecode } from "./model";
+import type { Exit } from "../provider/vm/exit";
 
 export type MessageTrace =
   | CreateMessageTrace
@@ -16,7 +15,7 @@ export type DecodedEvmMessageTrace =
 export interface BaseMessageTrace {
   value: bigint;
   returnData: Buffer;
-  error?: EvmError;
+  exit: Exit;
   gasUsed: bigint;
   depth: number;
 }
@@ -30,7 +29,6 @@ export interface BaseEvmMessageTrace extends BaseMessageTrace {
   code: Buffer;
   value: bigint;
   returnData: Buffer;
-  error?: EvmError;
   steps: MessageTraceStep[];
   bytecode?: Bytecode;
   // The following is just an optimization: When processing this traces it's useful to know ahead of

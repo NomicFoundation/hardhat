@@ -1,5 +1,3 @@
-import type { Message } from "@nomicfoundation/ethereumjs-evm";
-import type { RunTxResult } from "@nomicfoundation/ethereumjs-vm";
 import { Block } from "@nomicfoundation/ethereumjs-block";
 import { StateManager } from "@nomicfoundation/ethereumjs-statemanager";
 import {
@@ -21,7 +19,7 @@ import { hardforkGte, HardforkName } from "../../../util/hardforks";
 import { RpcDebugTraceOutput } from "../output";
 import { RpcDebugTracingConfig } from "../../../core/jsonrpc/types/input/debugTraceTransaction";
 
-import { Trace, VMAdapter } from "./vm-adapter";
+import { RunTxResult, Trace, TracingCallbacks, VMAdapter } from "./vm-adapter";
 
 /* eslint-disable @nomiclabs/hardhat-internal-rules/only-hardhat-error */
 /* eslint-disable @typescript-eslint/no-unused-vars */
@@ -220,11 +218,7 @@ export class RethnetAdapter implements VMAdapter {
   /**
    * Start tracing the VM execution with the given callbacks.
    */
-  public enableTracing(callbacks: {
-    beforeMessage: (message: Message, next: any) => Promise<void>;
-    step: () => Promise<void>;
-    afterMessage: () => Promise<void>;
-  }): void {
+  public enableTracing(callbacks: TracingCallbacks): void {
     throw new Error("not implemented");
   }
 

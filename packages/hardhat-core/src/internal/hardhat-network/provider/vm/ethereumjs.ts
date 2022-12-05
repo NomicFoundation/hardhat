@@ -12,7 +12,11 @@ import {
 } from "@nomicfoundation/ethereumjs-statemanager";
 import { TypedTransaction } from "@nomicfoundation/ethereumjs-tx";
 import { Account, Address } from "@nomicfoundation/ethereumjs-util";
-import { EEI, RunTxResult, VM } from "@nomicfoundation/ethereumjs-vm";
+import {
+  EEI,
+  RunTxResult as EthereumJSRunTxResult,
+  VM,
+} from "@nomicfoundation/ethereumjs-vm";
 import { assertHardhatInvariant } from "../../../core/errors";
 import { RpcDebugTracingConfig } from "../../../core/jsonrpc/types/input/debugTraceTransaction";
 import {
@@ -30,15 +34,10 @@ import { FakeSenderTransaction } from "../transactions/FakeSenderTransaction";
 import { HardhatBlockchainInterface } from "../types/HardhatBlockchainInterface";
 import { makeForkClient } from "../utils/makeForkClient";
 import { makeStateTrie } from "../utils/makeStateTrie";
-import { Trace, VMAdapter } from "./vm-adapter";
+import { Exit } from "./exit";
+import { RunTxResult, Trace, TracingCallbacks, VMAdapter } from "./vm-adapter";
 
 /* eslint-disable @nomiclabs/hardhat-internal-rules/only-hardhat-error */
-
-interface TracingCallbacks {
-  beforeMessage: (message: Message, next: any) => Promise<void>;
-  step: (step: InterpreterStep, next: any) => Promise<void>;
-  afterMessage: (result: EVMResult, next: any) => Promise<void>;
-}
 
 export class EthereumJSAdapter implements VMAdapter {
   private _tracingCallbacks: TracingCallbacks | undefined;
@@ -173,10 +172,10 @@ export class EthereumJSAdapter implements VMAdapter {
       );
 
       const vmDebugTracer = new VMDebugTracer(this._vm);
-      let result: RunTxResult | undefined;
+      let ethereumJSResult: EthereumJSRunTxResult | undefined;
       const trace = await vmDebugTracer.trace(
         async () => {
-          result = await this._vm.runTx({
+          ethereumJSResult = await this._vm.runTx({
             block: blockContext,
             tx,
             skipNonce: true,
@@ -191,7 +190,20 @@ export class EthereumJSAdapter implements VMAdapter {
         }
       );
 
-      assertHardhatInvariant(result !== undefined, "Should have a result");
+      assertHardhatInvariant(
+        ethereumJSResult !== undefined,
+        "Should have a result"
+      );
+
+      const ethereumJSError = ethereumJSResult.execResult.exceptionError;
+      const result: RunTxResult = {
+        bloom: ethereumJSResult.bloom,
+        gasUsed: ethereumJSResult.totalGasSpent,
+        receipt: ethereumJSResult.receipt,
+        returnValue: ethereumJSResult.execResult.returnValue,
+        createdAddress: ethereumJSResult.createdAddress,
+        exit: Exit.fromEthereumJSEvmError(ethereumJSError),
+      };
 
       return [result, trace];
     } finally {
@@ -252,12 +264,9 @@ export class EthereumJSAdapter implements VMAdapter {
 
     this._tracingCallbacks = callbacks;
 
-    this._vm.evm.events.on(
-      "beforeMessage",
-      this._tracingCallbacks.beforeMessage
-    );
-    this._vm.evm.events.on("step", this._tracingCallbacks.step);
-    this._vm.evm.events.on("afterMessage", this._tracingCallbacks.afterMessage);
+    this._vm.evm.events.on("beforeMessage", this._beforeMessageHandler);
+    this._vm.evm.events.on("step", this._stepHandler);
+    this._vm.evm.events.on("afterMessage", this._afterMessageHandler);
   }
 
   public disableTracing(): void {
@@ -269,12 +278,12 @@ export class EthereumJSAdapter implements VMAdapter {
     if (this._tracingCallbacks !== undefined) {
       this._vm.evm.events.removeListener(
         "beforeMessage",
-        this._tracingCallbacks.beforeMessage
+        this._beforeMessageHandler
       );
-      this._vm.evm.events.removeListener("step", this._tracingCallbacks.step);
+      this._vm.evm.events.removeListener("step", this._stepHandler);
       this._vm.evm.events.removeListener(
         "afterMessage",
-        this._tracingCallbacks.afterMessage
+        this._afterMessageHandler
       );
 
       this._tracingCallbacks = undefined;
@@ -390,10 +399,10 @@ export class EthereumJSAdapter implements VMAdapter {
     block: Block
   ): Promise<[RunTxResult, Trace]> {
     const vmTracer = new VMDebugTracer(this._vm);
-    let result: RunTxResult | undefined;
+    let ethereumJSResult: EthereumJSRunTxResult | undefined;
     const trace = await vmTracer.trace(
       async () => {
-        result = await this._vm.runTx({ tx, block });
+        ethereumJSResult = await this._vm.runTx({ tx, block });
       },
       {
         disableStorage: true,
@@ -402,7 +411,20 @@ export class EthereumJSAdapter implements VMAdapter {
       }
     );
 
-    assertHardhatInvariant(result !== undefined, "Should have a result");
+    assertHardhatInvariant(
+      ethereumJSResult !== undefined,
+      "Should have a result"
+    );
+
+    const ethereumJSError = ethereumJSResult.execResult.exceptionError;
+    const result: RunTxResult = {
+      bloom: ethereumJSResult.bloom,
+      gasUsed: ethereumJSResult.totalGasSpent,
+      receipt: ethereumJSResult.receipt,
+      returnValue: ethereumJSResult.execResult.returnValue,
+      createdAddress: ethereumJSResult.createdAddress,
+      exit: Exit.fromEthereumJSEvmError(ethereumJSError),
+    };
 
     return [result, trace];
   }
@@ -466,4 +488,63 @@ export class EthereumJSAdapter implements VMAdapter {
     }
     return this._common.gteHardfork("london");
   }
+
+  private _beforeMessageHandler = (message: Message, next: any) => {
+    if (this._tracingCallbacks !== undefined) {
+      return this._tracingCallbacks.beforeMessage(
+        {
+          ...message,
+          to: message.to?.toBuffer(),
+          codeAddress:
+            message.to !== undefined
+              ? message.codeAddress.toBuffer()
+              : undefined,
+        },
+        next
+      );
+    }
+
+    next();
+  };
+
+  private _stepHandler = (step: InterpreterStep, next: any) => {
+    if (this._tracingCallbacks !== undefined) {
+      return this._tracingCallbacks.step(
+        {
+          pc: BigInt(step.pc),
+        },
+        next
+      );
+    }
+
+    next();
+  };
+
+  private _afterMessageHandler = (result: EVMResult, next: any) => {
+    if (this._tracingCallbacks !== undefined) {
+      const vmError = Exit.fromEthereumJSEvmError(
+        result.execResult.exceptionError
+      );
+
+      const rethnetExitCode = vmError.getRethnetExitCode();
+
+      return this._tracingCallbacks.afterMessage(
+        {
+          executionResult: {
+            exitCode: rethnetExitCode,
+            output: {
+              address: result.createdAddress?.toBuffer(),
+              output: result.execResult.returnValue,
+            },
+            gasUsed: result.execResult.executionGasUsed,
+            gasRefunded: result.execResult.gasRefund ?? 0n,
+            logs: result.execResult.logs ?? [],
+          },
+        },
+        next
+      );
+    }
+
+    next();
+  };
 }

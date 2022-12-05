@@ -1,11 +1,15 @@
 import type { Common } from "@nomicfoundation/ethereumjs-common";
-import type { InterpreterStep } from "@nomicfoundation/ethereumjs-evm/dist/interpreter";
-import type { Message } from "@nomicfoundation/ethereumjs-evm/dist/message";
-import {
-  EVMResult,
-  getActivePrecompiles,
-} from "@nomicfoundation/ethereumjs-evm";
-import { bufferToBigInt } from "@nomicfoundation/ethereumjs-util";
+import type {
+  TracingMessage,
+  TracingMessageResult,
+  TracingStep,
+} from "rethnet-evm";
+
+import { getActivePrecompiles } from "@nomicfoundation/ethereumjs-evm";
+import { Address, bufferToBigInt } from "@nomicfoundation/ethereumjs-util";
+
+import { assertHardhatInvariant } from "../../core/errors";
+import { Exit, ExitCode } from "../provider/vm/exit";
 import { VMAdapter } from "../provider/vm/vm-adapter";
 
 import {
@@ -87,7 +91,7 @@ export class VMTracer {
     return this._throwErrors || this._lastError === undefined;
   }
 
-  private async _beforeMessageHandler(message: Message, next: any) {
+  private async _beforeMessageHandler(message: TracingMessage, next: any) {
     if (!this._shouldKeepTracing()) {
       next();
       return;
@@ -105,6 +109,7 @@ export class VMTracer {
           code: message.data,
           steps: [],
           value: message.value,
+          exit: new Exit(ExitCode.SUCCESS),
           returnData: DUMMY_RETURN_DATA,
           numberOfSubtraces: 0,
           depth: message.depth,
@@ -114,13 +119,14 @@ export class VMTracer {
 
         trace = createTrace;
       } else {
-        const toAsBigInt = bufferToBigInt(message.to.toBuffer());
+        const toAsBigInt = bufferToBigInt(message.to);
 
         if (toAsBigInt > 0 && toAsBigInt <= this._maxPrecompileNumber) {
           const precompileTrace: PrecompileMessageTrace = {
             precompile: Number(toAsBigInt),
             calldata: message.data,
             value: message.value,
+            exit: new Exit(ExitCode.SUCCESS),
             returnData: DUMMY_RETURN_DATA,
             depth: message.depth,
             gasUsed: DUMMY_GAS_USED,
@@ -130,19 +136,27 @@ export class VMTracer {
         } else {
           const codeAddress = message.codeAddress;
 
-          const code = await this._vm.getContractCode(codeAddress);
+          // if we enter here, then `to` is not undefined, therefore
+          // `codeAddress` should be defined
+          assertHardhatInvariant(
+            codeAddress !== undefined,
+            "codeAddress should be defined"
+          );
+
+          const code = await this._vm.getContractCode(new Address(codeAddress));
 
           const callTrace: CallMessageTrace = {
             code,
             calldata: message.data,
             steps: [],
             value: message.value,
+            exit: new Exit(ExitCode.SUCCESS),
             returnData: DUMMY_RETURN_DATA,
-            address: message.to.toBuffer(),
+            address: message.to,
             numberOfSubtraces: 0,
             depth: message.depth,
             gasUsed: DUMMY_GAS_USED,
-            codeAddress: codeAddress.toBuffer(),
+            codeAddress,
           };
 
           trace = callTrace;
@@ -174,7 +188,7 @@ export class VMTracer {
     }
   }
 
-  private async _stepHandler(step: InterpreterStep, next: any) {
+  private async _stepHandler(step: TracingStep, next: any) {
     if (!this._shouldKeepTracing()) {
       next();
       return;
@@ -189,7 +203,7 @@ export class VMTracer {
         );
       }
 
-      trace.steps.push({ pc: step.pc });
+      trace.steps.push({ pc: Number(step.pc) });
       next();
     } catch (error) {
       if (this._throwErrors) {
@@ -201,7 +215,7 @@ export class VMTracer {
     }
   }
 
-  private async _afterMessageHandler(result: EVMResult, next: any) {
+  private async _afterMessageHandler(result: TracingMessageResult, next: any) {
     if (!this._shouldKeepTracing()) {
       next();
       return;
@@ -210,12 +224,13 @@ export class VMTracer {
     try {
       const trace = this._messageTraces[this._messageTraces.length - 1];
 
-      trace.error = result.execResult.exceptionError;
-      trace.returnData = result.execResult.returnValue;
-      trace.gasUsed = result.execResult.executionGasUsed;
+      trace.exit = Exit.fromRethnetExitCode(result.executionResult.exitCode);
+      trace.returnData =
+        result.executionResult.output.output ?? Buffer.from([]);
+      trace.gasUsed = result.executionResult.gasUsed;
 
       if (isCreateTrace(trace)) {
-        trace.deployedContract = result?.createdAddress?.toBuffer();
+        trace.deployedContract = result.executionResult.output.address;
       }
 
       if (this._messageTraces.length > 1) {

@@ -1,7 +1,4 @@
-import type { RunTxResult } from "@nomicfoundation/ethereumjs-vm";
 import { BlockchainInterface } from "@nomicfoundation/ethereumjs-blockchain";
-import { EvmError } from "@nomicfoundation/ethereumjs-evm";
-import { ERROR } from "@nomicfoundation/ethereumjs-evm/dist/exceptions";
 import {
   DefaultStateManager,
   StateManager,
@@ -25,6 +22,8 @@ import {
   Rethnet,
   Transaction,
 } from "rethnet-evm";
+import { Exit } from "../vm/exit";
+import { RunTxResult } from "../vm/vm-adapter";
 
 export class HardhatDB {
   private _stateManager: StateManager;
@@ -199,96 +198,26 @@ export function createRethnetFromHardhatDB(
 export function rethnetResultToRunTxResult(
   rethnetResult: ExecutionResult
 ): RunTxResult {
+  const vmError = Exit.fromRethnetExitCode(rethnetResult.exitCode);
   // We return an object with only the properties that are used by Hardhat.
   // To be extra sure that the other properties are not used, we add getters
   // that exit the process if accessed.
+
   return {
-    totalGasSpent: rethnetResult.gasUsed,
-    gasRefund: rethnetResult.gasRefunded,
+    gasUsed: rethnetResult.gasUsed,
     createdAddress:
       rethnetResult.output.address !== undefined
         ? new Address(rethnetResult.output.address)
         : undefined,
-    execResult: {
-      exceptionError: mapRethnetExitCodeToEthereumJsExceptionError(
-        rethnetResult.exitCode
-      ),
-      returnValue: rethnetResult.output.output ?? Buffer.from([]),
-
-      get runState(): any {
-        console.trace("execResult.runState not implemented");
-        return process.exit(1);
-      },
-      get gas(): any {
-        console.trace("execResult.gas not implemented");
-        return process.exit(1);
-      },
-      get executionGasUsed(): any {
-        console.trace("execResult.executionGasUsed not implemented");
-        return process.exit(1);
-      },
-      get logs(): any {
-        console.trace("execResult.logs not implemented");
-        return process.exit(1);
-      },
-      get selfdestruct(): any {
-        console.trace("execResult.selfdestruct not implemented");
-        return process.exit(1);
-      },
-      get gasRefund(): any {
-        console.trace("execResult.gasRefund not implemented");
-        return process.exit(1);
-      },
-    },
-
+    exit: vmError,
+    returnValue: rethnetResult.output.output ?? Buffer.from([]),
     get bloom(): any {
       console.trace("bloom not implemented");
-      return process.exit(1);
-    },
-    get amountSpent(): any {
-      console.trace("amountSpent not implemented");
       return process.exit(1);
     },
     get receipt(): any {
       console.trace("receipt not implemented");
       return process.exit(1);
     },
-    get accessList(): any {
-      console.trace("accessList not implemented");
-      return process.exit(1);
-    },
   };
-}
-
-const rethnetExitCodeToEthereumJsError = new Map([
-  [0x50, ERROR.OUT_OF_GAS],
-  [0x57, ERROR.STACK_UNDERFLOW],
-  [0x58, ERROR.STACK_OVERFLOW],
-  [0x54, ERROR.INVALID_JUMP],
-  [0x51, ERROR.INVALID_OPCODE],
-  [0x53, ERROR.INVALID_OPCODE],
-  [0x59, ERROR.OUT_OF_RANGE],
-  [0x20, ERROR.REVERT],
-  [0x52, ERROR.STATIC_STATE_CHANGE],
-  [0x60, ERROR.CREATE_COLLISION],
-  [0x01, ERROR.STOP],
-  [0x53, ERROR.INVALID_BYTECODE_RESULT],
-  [0x64, ERROR.INITCODE_SIZE_VIOLATION],
-]);
-
-function mapRethnetExitCodeToEthereumJsExceptionError(
-  rethnetExitCode: number
-): EvmError | undefined {
-  if (rethnetExitCode <= 0x03) {
-    return;
-  }
-
-  const ethereumJsError = rethnetExitCodeToEthereumJsError.get(rethnetExitCode);
-  if (ethereumJsError === undefined) {
-    console.trace(`Couldn't map exit code ${rethnetExitCode}`);
-    // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
-    throw new Error(`Couldn't map exit code ${rethnetExitCode}`);
-  }
-
-  return new EvmError(ethereumJsError);
 }

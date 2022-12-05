@@ -1,16 +1,43 @@
-import type {
-  EVMResult,
-  InterpreterStep,
-  Message,
-} from "@nomicfoundation/ethereumjs-evm";
-import type { RunTxResult } from "@nomicfoundation/ethereumjs-vm";
 import type { Block } from "@nomicfoundation/ethereumjs-block";
 import type { TypedTransaction } from "@nomicfoundation/ethereumjs-tx";
 import type { Account, Address } from "@nomicfoundation/ethereumjs-util";
+import type { TxReceipt } from "@nomicfoundation/ethereumjs-vm";
+import type {
+  TracingMessage,
+  TracingMessageResult,
+  TracingStep,
+} from "rethnet-evm";
 import type { RpcDebugTracingConfig } from "../../../core/jsonrpc/types/input/debugTraceTransaction";
 import type { RpcDebugTraceOutput } from "../output";
+import { Bloom } from "../utils/bloom";
+
+import { Exit } from "./exit";
 
 export type Trace = any;
+
+export interface RunTxResult {
+  bloom: Bloom;
+  createdAddress?: Address;
+  gasUsed: bigint;
+  returnValue: Buffer;
+  exit: Exit;
+  receipt: TxReceipt;
+}
+
+export interface RunBlockResult {
+  results: RunTxResult[];
+  receipts: TxReceipt[];
+  stateRoot: Buffer;
+  logsBloom: Buffer;
+  receiptsRoot: Buffer;
+  gasUsed: bigint;
+}
+
+export interface TracingCallbacks {
+  beforeMessage: (message: TracingMessage, next: any) => Promise<void>;
+  step: (step: TracingStep, next: any) => Promise<void>;
+  afterMessage: (result: TracingMessageResult, next: any) => Promise<void>;
+}
 
 export interface VMAdapter {
   dryRun(
@@ -57,10 +84,6 @@ export interface VMAdapter {
     block: Block,
     config: RpcDebugTracingConfig
   ): Promise<RpcDebugTraceOutput>;
-  enableTracing(callbacks: {
-    beforeMessage: (message: Message, next: any) => Promise<void>;
-    step: (step: InterpreterStep, next: any) => Promise<void>;
-    afterMessage: (result: EVMResult, next: any) => Promise<void>;
-  }): void;
+  enableTracing(callbacks: TracingCallbacks): void;
   disableTracing(): void;
 }
