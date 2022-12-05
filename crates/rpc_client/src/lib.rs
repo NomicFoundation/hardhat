@@ -54,9 +54,7 @@ pub fn get_tx_by_hash(url: &str, tx_hash: TxHash) -> Result<Transaction, GetTxBy
             msg: err.to_string(),
         })?;
 
-    let response_text_str = response_text.as_str();
-
-    let success: jsonrpc_types::Success<Transaction> = serde_json::from_str(response_text_str)
+    let success: jsonrpc_types::Success<Transaction> = serde_json::from_str(&response_text)
         .map_err(|err| InterpretationError {
             msg: err.to_string(),
             response_text,
