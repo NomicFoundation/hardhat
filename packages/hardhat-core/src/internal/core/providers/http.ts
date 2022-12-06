@@ -167,8 +167,9 @@ export class HttpProvider extends EventEmitter implements EIP1193Provider {
     try {
       const response = await this._dispatcher.request({
           method: "POST",
-          origin: this._proxy ? this._url: '',
-          path: this._proxy ? '' : this._path,
+          //Assuming undici pool ignores origin anyway
+          origin: new URL(this._url).origin,
+          path: this._path,
           body: JSON.stringify(request),
           maxRedirections: 10,
           headersTimeout:
