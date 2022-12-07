@@ -28,11 +28,11 @@ describe("Config extension", () => {
   it("copy across an etherscan api keys object", () => {
     const resolvedConfig = {} as HardhatConfig;
     etherscanConfigExtender(resolvedConfig, {
-      etherscan: { apiKey: { ropsten: "example_token" } },
+      etherscan: { apiKey: { goerli: "example_token" } },
     });
 
     assert.deepStrictEqual(resolvedConfig.etherscan, {
-      apiKey: { ropsten: "example_token" },
+      apiKey: { goerli: "example_token" },
       customChains: [],
     });
   });
@@ -41,7 +41,7 @@ describe("Config extension", () => {
     const resolvedConfig = {} as HardhatConfig;
     etherscanConfigExtender(resolvedConfig, {
       etherscan: {
-        apiKey: { ropsten: "example_token" },
+        apiKey: { goerli: "example_token" },
         customChains: [
           {
             network: "My Chain",
@@ -56,7 +56,7 @@ describe("Config extension", () => {
     });
 
     assert.deepStrictEqual(resolvedConfig.etherscan, {
-      apiKey: { ropsten: "example_token" },
+      apiKey: { goerli: "example_token" },
       customChains: [
         {
           network: "My Chain",

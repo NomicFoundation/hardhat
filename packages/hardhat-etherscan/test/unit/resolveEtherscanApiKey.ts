@@ -6,7 +6,7 @@ describe("Etherscan API Key resolution", () => {
     it("returns the api key no matter the network", () => {
       assert.equal(resolveEtherscanApiKey("testtoken", "mainnet"), "testtoken");
 
-      assert.equal(resolveEtherscanApiKey("testtoken", "rinkeby"), "testtoken");
+      assert.equal(resolveEtherscanApiKey("testtoken", "goerli"), "testtoken");
     });
   });
 
@@ -14,7 +14,7 @@ describe("Etherscan API Key resolution", () => {
     it("can retrieve different keys depending on --network", () => {
       const apiKey = {
         mainnet: "mainnet-testtoken",
-        rinkeby: "rinkeby-testtoken",
+        goerli: "goerli-testtoken",
       };
 
       assert.equal(
@@ -22,26 +22,26 @@ describe("Etherscan API Key resolution", () => {
         "mainnet-testtoken"
       );
       assert.equal(
-        resolveEtherscanApiKey(apiKey, "rinkeby"),
-        "rinkeby-testtoken"
+        resolveEtherscanApiKey(apiKey, "goerli"),
+        "goerli-testtoken"
       );
     });
   });
 
   describe("provide no api key", () => {
     const expectedBadApiKeyMessage =
-      /You are trying to verify a contract in 'rinkeby', but no API token was found for this network. Please provide one in your hardhat config. For example/;
+      /You are trying to verify a contract in 'goerli', but no API token was found for this network. Please provide one in your hardhat config. For example/;
 
     it("should throw if api key root is undefined", () => {
       assert.throws(
-        () => resolveEtherscanApiKey(undefined, "rinkeby"),
+        () => resolveEtherscanApiKey(undefined, "goerli"),
         expectedBadApiKeyMessage
       );
     });
 
     it("should throw if api key root is empty string", () => {
       assert.throws(
-        () => resolveEtherscanApiKey("", "rinkeby"),
+        () => resolveEtherscanApiKey("", "goerli"),
         expectedBadApiKeyMessage
       );
     });
@@ -49,14 +49,14 @@ describe("Etherscan API Key resolution", () => {
     it("should throw if network subkey is undefined", () => {
       assert.throws(
         // @ts-expect-error
-        () => resolveEtherscanApiKey({ rinkeby: undefined }, "rinkeby"),
+        () => resolveEtherscanApiKey({ goerli: undefined }, "goerli"),
         expectedBadApiKeyMessage
       );
     });
 
     it("should throw if network subkey is empty string", () => {
       assert.throws(
-        () => resolveEtherscanApiKey({ rinkeby: "" }, "rinkeby"),
+        () => resolveEtherscanApiKey({ goerli: "" }, "goerli"),
         expectedBadApiKeyMessage
       );
     });

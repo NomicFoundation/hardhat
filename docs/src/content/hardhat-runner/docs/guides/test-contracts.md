@@ -151,7 +151,7 @@ Here again we are calling a function and asserting that it reverts with the corr
 
 ### Using fixtures
 
-So far we've deployed the `Lock` contract in each test. This means that at the beginning of each test we have to get the contract factory and then deploy the contract. This might be fine for a single contract but, if you have a more complicated setup, each test will have several lines at the begginning just to set up the desired state, and most of the time these lines will be the same.
+So far we've deployed the `Lock` contract in each test. This means that at the beginning of each test we have to get the contract factory and then deploy the contract. This might be fine for a single contract but, if you have a more complicated setup, each test will have several lines at the beginning just to set up the desired state, and most of the time these lines will be the same.
 
 In a typical Mocha test, this duplication of code is handled with a `beforeEach` hook:
 

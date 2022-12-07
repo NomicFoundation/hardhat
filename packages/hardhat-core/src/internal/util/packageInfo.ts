@@ -24,6 +24,15 @@ export function findClosestPackageJson(file: string): string | null {
   return findup.sync("package.json", { cwd: path.dirname(file) });
 }
 
+export async function getPackageName(file: string): Promise<string> {
+  const packageJsonPath = findClosestPackageJson(file);
+  if (packageJsonPath !== null && packageJsonPath !== "") {
+    const packageJson: PackageJson = await fsExtra.readJSON(packageJsonPath);
+    return packageJson.name;
+  }
+  return "";
+}
+
 export async function getPackageJson(): Promise<PackageJson> {
   const root = getPackageRoot();
   return fsExtra.readJSON(path.join(root, "package.json"));

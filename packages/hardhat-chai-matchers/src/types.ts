@@ -6,7 +6,7 @@ declare namespace Chai {
       TypeComparison {
     emit(contract: any, eventName: string): EmitAssertion;
     reverted: AsyncAssertion;
-    revertedWith(reason: string): AsyncAssertion;
+    revertedWith(reason: string | RegExp): AsyncAssertion;
     revertedWithoutReason(): AsyncAssertion;
     revertedWithPanic(code?: any): AsyncAssertion;
     revertedWithCustomError(
