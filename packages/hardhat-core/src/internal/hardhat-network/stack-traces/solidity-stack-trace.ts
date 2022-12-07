@@ -38,6 +38,7 @@ export const UNRECOGNIZED_FUNCTION_NAME = "<unrecognized-selector>";
 export const UNKNOWN_FUNCTION_NAME = "<unknown>";
 export const PRECOMPILE_FUNCTION_NAME = "<precompile>";
 export const UNRECOGNIZED_CONTRACT_NAME = "<UnrecognizedContract>";
+export const UNKNOWN_ERROR_SELECTOR = "<unknown-error-selector>";
 
 export interface SourceReference {
   sourceName: string;

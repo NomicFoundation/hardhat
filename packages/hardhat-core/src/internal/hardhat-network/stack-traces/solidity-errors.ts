@@ -8,6 +8,7 @@ import {
   SolidityStackTraceEntry,
   SourceReference,
   StackTraceEntryType,
+  UNKNOWN_ERROR_SELECTOR,
   UNKNOWN_FUNCTION_NAME,
   UNRECOGNIZED_CONTRACT_NAME,
   UNRECOGNIZED_FUNCTION_NAME,
@@ -271,7 +272,8 @@ function getMessageFromLastStackTraceEntry(
       }
 
       if (!stackTraceEntry.message.isEmpty()) {
-        const selector = stackTraceEntry.message.getSelector() ?? "";
+        const selector =
+          stackTraceEntry.message.getSelector() ?? UNKNOWN_ERROR_SELECTOR;
         return `VM Exception while processing transaction: reverted with an unrecognized custom error with selector ${selector}`;
       }
 
