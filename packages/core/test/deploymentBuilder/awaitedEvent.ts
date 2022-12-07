@@ -25,7 +25,7 @@ describe("deployment builder - await event", () => {
         after: [another],
       });
 
-      m.awaitEvent(token, "Transfer", { args: [token], after: [call] });
+      m.awaitEvent({});
 
       return {};
     });

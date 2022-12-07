@@ -8,7 +8,7 @@ import type {
   CallDeploymentVertex,
   HardhatLibraryDeploymentVertex,
   ArtifactLibraryDeploymentVertex,
-  AwaitVertex,
+  EventVertex,
   InternalParamValue,
 } from "types/deploymentGraph";
 import type {
@@ -58,8 +58,8 @@ export function isCall(
 
 export function isAwaitedEvent(
   node: DeploymentGraphVertex
-): node is AwaitVertex {
-  return node.type === "Await";
+): node is EventVertex {
+  return node.type === "Event";
 }
 
 export function isHardhatLibrary(

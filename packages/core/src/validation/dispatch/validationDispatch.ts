@@ -51,7 +51,7 @@ export function validationDispatch(
       );
     case "Virtual":
       return validateVirtual(deploymentVertex, resultAccumulator, context);
-    case "Await":
+    case "Event":
       return validateAwaitEvent(deploymentVertex, resultAccumulator, context);
     default:
       return assertUnknownDeploymentVertexType(deploymentVertex);

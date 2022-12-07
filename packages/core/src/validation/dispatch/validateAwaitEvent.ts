@@ -1,7 +1,7 @@
 import { ethers } from "ethers";
 
 import { Services } from "services/types";
-import { AwaitVertex } from "types/deploymentGraph";
+import { EventVertex } from "types/deploymentGraph";
 import { ResultsAccumulator, VertexVisitResult } from "types/graph";
 
 import {
@@ -10,12 +10,10 @@ import {
 } from "./helpers";
 
 export async function validateAwaitEvent(
-  vertex: AwaitVertex,
+  vertex: EventVertex,
   _resultAccumulator: ResultsAccumulator,
   context: { services: Services }
 ): Promise<VertexVisitResult> {
-  const contractName = vertex.contract.label;
-
   const invalidBytes = await validateBytesForArtifact(
     vertex.args,
     context.services
@@ -25,21 +23,31 @@ export async function validateAwaitEvent(
     return invalidBytes;
   }
 
-  const artifactAbi = await resolveArtifactForCallableFuture(
-    vertex.contract,
-    context
-  );
+  let artifactAbi: any[] | undefined;
+  if (typeof vertex.address !== "string") {
+    artifactAbi = await resolveArtifactForCallableFuture(
+      vertex.address,
+      context
+    );
 
-  if (artifactAbi === undefined) {
+    if (artifactAbi === undefined) {
+      return {
+        _kind: "failure",
+        failure: new Error(
+          `Artifact with name '${vertex.address.label}' doesn't exist`
+        ),
+      };
+    }
+  } else if (!ethers.utils.isAddress(vertex.address)) {
     return {
       _kind: "failure",
-      failure: new Error(`Artifact with name '${contractName}' doesn't exist`),
+      failure: new Error(`Invalid address ${vertex.address}`),
     };
   }
 
   const argsLength = vertex.args.length;
 
-  const iface = new ethers.utils.Interface(artifactAbi);
+  const iface = new ethers.utils.Interface(artifactAbi ?? vertex.abi);
 
   const events = Object.entries(iface.events)
     .filter(([fname]) => fname === vertex.event)
@@ -53,7 +61,7 @@ export async function validateAwaitEvent(
     return {
       _kind: "failure",
       failure: new Error(
-        `Contract '${contractName}' doesn't have an event ${vertex.event}`
+        `Given contract doesn't have an event ${vertex.event}`
       ),
     };
   }
@@ -67,14 +75,14 @@ export async function validateAwaitEvent(
       return {
         _kind: "failure",
         failure: new Error(
-          `Event ${vertex.event} in contract ${contractName} expects ${eventFragments[0].inputs.length} arguments but ${argsLength} were given`
+          `Event ${vertex.event} in contract expects ${eventFragments[0].inputs.length} arguments but ${argsLength} were given`
         ),
       };
     } else {
       return {
         _kind: "failure",
         failure: new Error(
-          `Event ${vertex.event} in contract ${contractName} is overloaded, but no overload expects ${argsLength} arguments`
+          `Event ${vertex.event} in contract is overloaded, but no overload expects ${argsLength} arguments`
         ),
       };
     }

@@ -11,7 +11,7 @@
   },
   "dependencies": {
     "@nomiclabs/hardhat-ethers": "^2.2.1",
-    "@ignored/hardhat-ignition": "^0.0.3",
+    "@ignored/hardhat-ignition": "^0.0.4",
     "@nomicfoundation/hardhat-toolbox": "2.0.0",
     "@openzeppelin/contracts": "^4.3.2",
     "chai": "^4.3.4",

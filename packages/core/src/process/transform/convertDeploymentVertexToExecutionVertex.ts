@@ -11,7 +11,7 @@ import {
   IDeploymentGraph,
   DeploymentGraphVertex,
   ExternalParamValue,
-  AwaitVertex,
+  EventVertex,
 } from "types/deploymentGraph";
 import {
   AwaitedEvent,
@@ -21,7 +21,11 @@ import {
   ExecutionVertex,
   LibraryDeploy,
 } from "types/executionGraph";
-import { BytesFuture, DeploymentGraphFuture } from "types/future";
+import {
+  BytesFuture,
+  DeploymentGraphFuture,
+  EventParamFuture,
+} from "types/future";
 import { Artifact } from "types/hardhat";
 import { isBytesArg, isFuture } from "utils/guards";
 
@@ -58,7 +62,7 @@ export function convertDeploymentVertexToExecutionVertex(
         return convertHardhatLibraryToLibraryDeploy(deploymentVertex, context);
       case "ArtifactLibrary":
         return convertArtifactLibraryToLibraryDeploy(deploymentVertex, context);
-      case "Await":
+      case "Event":
         return convertAwaitToAwaitedEvent(deploymentVertex, context);
       case "Virtual":
         throw new Error(
@@ -170,14 +174,15 @@ async function convertArtifactLibraryToLibraryDeploy(
 }
 
 async function convertAwaitToAwaitedEvent(
-  vertex: AwaitVertex,
+  vertex: EventVertex,
   transformContext: TransformContext
 ): Promise<AwaitedEvent> {
   return {
     type: "AwaitedEvent",
     id: vertex.id,
     label: vertex.label,
-    contract: await resolveParameter(vertex.contract, transformContext),
+    abi: vertex.abi,
+    address: vertex.address,
     event: vertex.event,
     args: await convertArgs(vertex.args, transformContext),
   };
@@ -194,7 +199,14 @@ function assertDeploymentVertexNotExpected(
 }
 
 async function convertArgs(
-  args: Array<boolean | string | number | BigNumber | DeploymentGraphFuture>,
+  args: Array<
+    | boolean
+    | string
+    | number
+    | BigNumber
+    | DeploymentGraphFuture
+    | EventParamFuture
+  >,
   transformContext: TransformContext
 ): Promise<
   Array<boolean | string | number | BigNumber | DeploymentGraphFuture>

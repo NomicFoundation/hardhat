@@ -31,8 +31,10 @@ import type {
   Virtual,
   DependableFuture,
   ProxyFuture,
-  AwaitFuture,
+  EventFuture,
   BytesFuture,
+  EventParams,
+  ArtifactFuture,
 } from "types/future";
 import type { Artifact } from "types/hardhat";
 import type { ModuleCache, ModuleDict } from "types/module";
@@ -49,6 +51,27 @@ import { DeploymentGraph } from "./DeploymentGraph";
 import { ScopeStack } from "./ScopeStack";
 
 const DEFAULT_VALUE = ethers.utils.parseUnits("0");
+
+function parseEventParams(
+  abi: Array<{ type: string; name: string; inputs: any[] }>,
+  eventName: string
+): EventParams {
+  const event = abi.find((v) => v.type === "event" && v.name === eventName);
+
+  if (!event) {
+    return {};
+  }
+
+  return event.inputs.reduce<EventParams>((acc, { name }) => {
+    acc[name] = {
+      label: name,
+      type: "eventParam",
+      _future: true,
+    };
+
+    return acc;
+  }, {});
+}
 
 export class DeploymentBuilder implements IDeploymentBuilder {
   public chainId: number;
@@ -188,6 +211,7 @@ export class DeploymentBuilder implements IDeploymentBuilder {
       type: "contract",
       subtype: "deployed",
       abi,
+      address,
       _future: true,
     };
 
@@ -259,58 +283,57 @@ export class DeploymentBuilder implements IDeploymentBuilder {
   }
 
   public awaitEvent(
-    contractFuture: DeploymentGraphFuture,
+    artifactFuture: ArtifactFuture,
     eventName: string,
     { args, after }: AwaitOptions
-  ): AwaitFuture {
+  ): EventFuture {
     const vertexId = this._resolveNextId();
 
-    const awaitFuture: AwaitFuture = {
+    const eventFuture: EventFuture = {
       vertexId,
-      label: `${contractFuture.label}/${eventName}`,
+      label: `${artifactFuture.label}/${eventName}`,
       type: "await",
+      subtype: "event",
       _future: true,
+      params: {},
     };
 
-    let contract: CallableFuture;
-    if (isParameter(contractFuture)) {
-      const parameter = contractFuture;
-      const scope = parameter.scope;
+    if (
+      artifactFuture.subtype !== "artifact" &&
+      artifactFuture.subtype !== "deployed"
+    ) {
+      const future = artifactFuture as any;
 
-      const scopeData = this.graph.scopeData[scope];
-
-      if (
-        scopeData === undefined ||
-        scopeData.parameters === undefined ||
-        !(parameter.label in scopeData.parameters)
-      ) {
-        throw new Error("Could not resolve contract from parameter");
-      }
-
-      contract = scopeData.parameters[parameter.label] as
-        | HardhatContract
-        | ArtifactContract
-        | DeployedContract;
-    } else if (isCallable(contractFuture)) {
-      contract = contractFuture;
-    } else {
       throw new Error(
-        `Not a callable future ${contractFuture.label} (${contractFuture.type})`
+        `Not an artifact future ${future.label} (${future.type})`
       );
     }
 
+    let abi: any[];
+    let address: string | ArtifactContract;
+    if (artifactFuture.subtype === "artifact") {
+      abi = artifactFuture.artifact.abi;
+      address = artifactFuture;
+    } else {
+      abi = artifactFuture.abi;
+      address = artifactFuture.address;
+    }
+
+    eventFuture.params = parseEventParams(abi, eventName);
+
     DeploymentBuilder._addVertex(this.graph, {
-      id: awaitFuture.vertexId,
-      label: awaitFuture.label,
-      type: "Await",
-      contract,
+      id: eventFuture.vertexId,
+      label: eventFuture.label,
+      type: "Event",
+      address,
+      abi,
       event: eventName,
       args: args ?? [],
       after: after ?? [],
       scopeAdded: this.scopes.getScopedLabel(),
     });
 
-    return awaitFuture;
+    return eventFuture;
   }
 
   public getParam(paramName: string): RequiredParameter {
@@ -535,8 +558,8 @@ export class DeploymentBuilder implements IDeploymentBuilder {
       return;
     }
 
-    if (depNode.type === "Await") {
-      DeploymentBuilder._addEdgeBasedOn(depNode.contract, graph, depNode);
+    if (depNode.type === "Event") {
+      DeploymentBuilder._addEdgeBasedOn(depNode.address, graph, depNode);
 
       DeploymentBuilder._addEdgesBasedOn(
         Object.values(depNode.args),

@@ -7,19 +7,19 @@ import { VertexVisitResult } from "types/graph";
 import { resolveFrom, toAddress } from "./utils";
 
 export async function executeAwaitedEvent(
-  { event, contract, args }: AwaitedEvent,
+  { event, address, abi, args }: AwaitedEvent,
   resultAccumulator: Map<number, VertexVisitResult | null>,
   { services, options }: ExecutionContext
 ): Promise<VertexVisitResult> {
   const resolve = resolveFrom(resultAccumulator);
 
-  const resolvedArgs = args.map(resolve).map(toAddress);
+  const resolvedArgs = [...args, address].map(resolve).map(toAddress);
 
-  const { address, abi } = resolve(contract);
+  const resolvedAddress = resolvedArgs.pop();
 
   let topics: ethers.utils.Result;
   try {
-    const contractInstance = new Contract(address, abi);
+    const contractInstance = new Contract(resolvedAddress, abi);
 
     const filter = contractInstance.filters[event](...resolvedArgs);
 

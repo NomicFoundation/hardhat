@@ -1,7 +1,7 @@
 import type { BigNumber } from "ethers";
 
 import { LibraryMap } from "./deploymentGraph";
-import { DeploymentGraphFuture } from "./future";
+import { ArtifactContract, DeploymentGraphFuture } from "./future";
 import { AdjacencyList, VertexDescriptor } from "./graph";
 import { Artifact } from "./hardhat";
 
@@ -62,7 +62,8 @@ export interface ContractCall extends VertexDescriptor {
 
 export interface AwaitedEvent extends VertexDescriptor {
   type: "AwaitedEvent";
-  contract: any;
+  abi: any[];
+  address: string | ArtifactContract;
   event: string;
   args: ArgValue[];
 }

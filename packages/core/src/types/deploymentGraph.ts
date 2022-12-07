@@ -3,7 +3,7 @@ import type { BigNumber } from "ethers";
 import {
   ArtifactContract,
   ArtifactLibrary,
-  AwaitFuture,
+  EventFuture,
   ContractCall,
   DeployedContract,
   DeploymentGraphFuture,
@@ -17,6 +17,7 @@ import {
   Virtual,
   ParameterFuture,
   BytesFuture,
+  ArtifactFuture,
 } from "./future";
 import { AdjacencyList, VertexDescriptor } from "./graph";
 import { Artifact } from "./hardhat";
@@ -53,7 +54,7 @@ export type DeploymentGraphVertex =
   | ArtifactLibraryDeploymentVertex
   | CallDeploymentVertex
   | VirtualVertex
-  | AwaitVertex;
+  | EventVertex;
 
 export interface HardhatContractDeploymentVertex extends VertexDescriptor {
   type: "HardhatContract";
@@ -115,10 +116,11 @@ export interface VirtualVertex extends VertexDescriptor {
   after: DeploymentGraphFuture[];
 }
 
-export interface AwaitVertex extends VertexDescriptor {
-  type: "Await";
+export interface EventVertex extends VertexDescriptor {
+  type: "Event";
   scopeAdded: string;
-  contract: CallableFuture;
+  abi: any[];
+  address: string | ArtifactContract;
   event: string;
   args: InternalParamValue[];
   after: DeploymentGraphFuture[];
@@ -179,10 +181,10 @@ export interface IDeploymentBuilder {
   ) => ContractCall;
 
   awaitEvent: (
-    contractFuture: DeploymentGraphFuture,
+    contractFuture: ArtifactFuture,
     eventName: string,
     options: AwaitOptions
-  ) => AwaitFuture;
+  ) => EventFuture;
 
   getParam: (paramName: string) => RequiredParameter;
 
