@@ -12,13 +12,12 @@ import {
 import {
   PostByzantiumTxReceipt,
   PreByzantiumTxReceipt,
-  RunTxResult,
   TxReceipt,
 } from "@nomicfoundation/ethereumjs-vm";
 import { fromBigIntLike } from "../../../util/bigint";
 import { Bloom } from "../utils/bloom";
 
-import { VMAdapter } from "./vm-adapter";
+import { RunTxResult, VMAdapter } from "./vm-adapter";
 
 /* eslint-disable @nomiclabs/hardhat-internal-rules/only-hardhat-error */
 
@@ -96,7 +95,7 @@ export class BlockBuilder {
 
     this._transactions.push(tx);
     this._transactionResults.push(result);
-    this._gasUsed += result.totalGasSpent;
+    this._gasUsed += result.gasUsed;
 
     return result;
   }

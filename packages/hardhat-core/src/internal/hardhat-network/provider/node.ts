@@ -1,4 +1,3 @@
-import type { EVMResult } from "@nomicfoundation/ethereumjs-evm";
 import { Block, HeaderData } from "@nomicfoundation/ethereumjs-block";
 import { Common } from "@nomicfoundation/ethereumjs-common";
 import {
@@ -7,7 +6,6 @@ import {
   Transaction,
   TypedTransaction,
 } from "@nomicfoundation/ethereumjs-tx";
-import { ERROR } from "@nomicfoundation/ethereumjs-evm/dist/exceptions";
 import {
   Address,
   ECDSASignature,
@@ -19,7 +17,6 @@ import {
   setLengthLeft,
   toBuffer,
 } from "@nomicfoundation/ethereumjs-util";
-import { RunBlockResult, RunTxResult } from "@nomicfoundation/ethereumjs-vm";
 import { SignTypedDataVersion, signTypedData } from "@metamask/eth-sig-util";
 import chalk from "chalk";
 import debug from "debug";
@@ -96,6 +93,7 @@ import {
   shouldShowTransactionTypeForHardfork,
 } from "./output";
 import { ReturnData } from "./return-data";
+import { RethnetStateManager } from "./RethnetState";
 import { FakeSenderAccessListEIP2930Transaction } from "./transactions/FakeSenderAccessListEIP2930Transaction";
 import { FakeSenderEIP1559Transaction } from "./transactions/FakeSenderEIP1559Transaction";
 import { FakeSenderTransaction } from "./transactions/FakeSenderTransaction";
@@ -111,11 +109,9 @@ import { putGenesisBlock } from "./utils/putGenesisBlock";
 import { txMapToArray } from "./utils/txMapToArray";
 import { RandomBufferGenerator } from "./utils/random";
 import { DualModeAdapter } from "./vm/dual";
-import { VMAdapter } from "./vm/vm-adapter";
+import { RunBlockResult, RunTxResult, VMAdapter } from "./vm/vm-adapter";
 import { BlockBuilder } from "./vm/block-builder";
-import { RethnetStateManager } from "./RethnetState";
-
-type ExecResult = EVMResult["execResult"];
+import { ExitCode, Exit } from "./vm/exit";
 
 const log = debug("hardhat:core:hardhat-network:node");
 
@@ -622,11 +618,11 @@ Hardhat Network's forking functionality only works with blocks from at least spu
       async () => this._runTxAndRevertMutations(tx, blockNumberOrPending, true)
     );
 
-    const traces = await this._gatherTraces(result.execResult);
+    const traces = await this._gatherTraces(result);
 
     return {
       ...traces,
-      result: new ReturnData(result.execResult.returnValue),
+      result: new ReturnData(result.returnValue),
     };
   }
 
@@ -776,20 +772,16 @@ Hardhat Network's forking functionality only works with blocks from at least spu
 
     // This is only considered if the call to _runTxAndRevertMutations doesn't
     // manage errors
-    if (result.execResult.exceptionError !== undefined) {
+    if (result.exit.isError()) {
       return {
         estimation: this.getBlockGasLimit(),
         trace: vmTrace,
-        error: await this._manageErrors(
-          result.execResult,
-          vmTrace,
-          vmTracerError
-        ),
+        error: await this._manageErrors(result, vmTrace, vmTracerError),
         consoleLogMessages,
       };
     }
 
-    const initialEstimation = result.totalGasSpent;
+    const initialEstimation = result.gasUsed;
 
     return {
       estimation: await this._correctInitialEstimation(
@@ -1577,7 +1569,9 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     return results;
   }
 
-  private async _gatherTraces(result: ExecResult): Promise<GatherTracesResult> {
+  private async _gatherTraces(
+    result: RunTxResult
+  ): Promise<GatherTracesResult> {
     let vmTrace = this._vmTracer.getLastTopLevelMessageTrace();
     const vmTracerError = this._vmTracer.getLastError();
     this._vmTracer.clearLastError();
@@ -1719,7 +1713,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
           const txResult = await blockBuilder.addTransaction(tx);
           const _stateRoot2 = await this._vm.getStateRoot();
 
-          traces.push(await this._gatherTraces(txResult.execResult));
+          traces.push(await this._gatherTraces(txResult));
           results.push(txResult);
           receipts.push(txResult.receipt);
         }
@@ -1833,11 +1827,11 @@ Hardhat Network's forking functionality only works with blocks from at least spu
   }
 
   private async _manageErrors(
-    vmResult: ExecResult,
+    vmResult: RunTxResult,
     vmTrace: MessageTrace | undefined,
     vmTracerError: Error | undefined
   ): Promise<SolidityError | TransactionExecutionError | undefined> {
-    if (vmResult.exceptionError === undefined) {
+    if (!vmResult.exit.isError()) {
       return undefined;
     }
 
@@ -1857,20 +1851,18 @@ Hardhat Network's forking functionality only works with blocks from at least spu
       );
     }
 
-    const error = vmResult.exceptionError;
+    const exitCode = vmResult.exit;
 
-    // we don't use `instanceof` in case someone uses a different VM dependency
-    // see https://github.com/nomiclabs/hardhat/issues/1317
-    const isVmError = "error" in error && typeof error.error === "string";
+    const isExitCode = exitCode instanceof Exit;
 
     // If this is not a VM error, or if it's an internal VM error, we just
     // rethrow. An example of a non-VmError being thrown here is an HTTP error
     // coming from the ForkedStateManager.
-    if (!isVmError || error.error === ERROR.INTERNAL_ERROR) {
-      throw error;
+    if (!isExitCode || exitCode.kind === ExitCode.INTERNAL_ERROR) {
+      throw exitCode;
     }
 
-    if (error.error === ERROR.CODESIZE_EXCEEDS_MAXIMUM) {
+    if (exitCode.kind === ExitCode.CODESIZE_EXCEEDS_MAXIMUM) {
       if (stackTrace !== undefined) {
         return encodeSolidityStackTrace(
           "Transaction ran out of gas",
@@ -1881,7 +1873,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
       return new TransactionExecutionError("Transaction ran out of gas");
     }
 
-    if (error.error === ERROR.OUT_OF_GAS) {
+    if (exitCode.kind === ExitCode.OUT_OF_GAS) {
       // if the error is an out of gas, we ignore the inferred error in the
       // trace
       return new TransactionExecutionError("Transaction ran out of gas");
@@ -1901,7 +1893,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
       returnDataExplanation = "with unrecognized return data or custom error";
     }
 
-    if (error.error === ERROR.REVERT) {
+    if (exitCode.kind === ExitCode.REVERT) {
       const fallbackMessage = `VM Exception while processing transaction: revert ${returnDataExplanation}`;
 
       if (stackTrace !== undefined) {
@@ -2132,7 +2124,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
       this._runTxAndRevertMutations(tx, blockNumberOrPending)
     );
 
-    if (result.execResult.exceptionError === undefined) {
+    if (!result.exit.isError()) {
       return initialEstimation;
     }
 
@@ -2206,7 +2198,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
       this._runTxAndRevertMutations(tx, blockNumberOrPending)
     );
 
-    if (result.execResult.exceptionError === undefined) {
+    if (!result.exit.isError()) {
       return this._binarySearchEstimation(
         blockNumberOrPending,
         txParams,

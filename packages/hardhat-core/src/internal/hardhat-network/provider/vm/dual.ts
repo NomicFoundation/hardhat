@@ -1,9 +1,11 @@
-import type { Message } from "@nomicfoundation/ethereumjs-evm";
-import type { RunTxResult } from "@nomicfoundation/ethereumjs-vm";
 import { Block } from "@nomicfoundation/ethereumjs-block";
 import { Common } from "@nomicfoundation/ethereumjs-common";
 import { TypedTransaction } from "@nomicfoundation/ethereumjs-tx";
-import { Account, Address } from "@nomicfoundation/ethereumjs-util";
+import {
+  Account,
+  Address,
+  bufferToHex,
+} from "@nomicfoundation/ethereumjs-util";
 
 import { assertHardhatInvariant } from "../../../core/errors";
 import { RpcDebugTracingConfig } from "../../../core/jsonrpc/types/input/debugTraceTransaction";
@@ -14,7 +16,7 @@ import { HardhatBlockchainInterface } from "../types/HardhatBlockchainInterface"
 
 import { EthereumJSAdapter } from "./ethereumjs";
 import { RethnetAdapter } from "./rethnet";
-import { Trace, VMAdapter } from "./vm-adapter";
+import { RunTxResult, Trace, TracingCallbacks, VMAdapter } from "./vm-adapter";
 
 /* eslint-disable @nomiclabs/hardhat-internal-rules/only-hardhat-error */
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
@@ -59,10 +61,7 @@ export class DualModeAdapter implements VMAdapter {
       selectHardfork,
       async (blockNumber) => {
         const block = await blockchain.getBlock(blockNumber);
-        assertHardhatInvariant(
-          block !== undefined && block !== null,
-          "Should be able to get block"
-        );
+        assertHardhatInvariant(block !== null, "Should be able to get block");
 
         return block.header.hash();
       }
@@ -137,9 +136,19 @@ export class DualModeAdapter implements VMAdapter {
       key
     );
 
-    if (!ethereumJSStorageSlot.equals(rethnetStorageSlot)) {
+    if (
+      !(
+        ethereumJSStorageSlot.length === 0 &&
+        rethnetStorageSlot.equals(Buffer.from([0x00]))
+      ) &&
+      !ethereumJSStorageSlot.equals(rethnetStorageSlot)
+    ) {
+      console.trace(ethereumJSStorageSlot);
+      console.trace(rethnetStorageSlot);
       console.trace(
-        `Different storage slot: ${ethereumJSStorageSlot} !== ${rethnetStorageSlot}`
+        `Different storage slot: ${bufferToHex(
+          ethereumJSStorageSlot
+        )} !== ${bufferToHex(rethnetStorageSlot)}`
       );
       throw new Error("Different storage slot");
     }
@@ -204,11 +213,7 @@ export class DualModeAdapter implements VMAdapter {
     return this._ethereumJSAdapter.traceTransaction(hash, block, config);
   }
 
-  public enableTracing(callbacks: {
-    beforeMessage: (message: Message, next: any) => Promise<void>;
-    step: () => Promise<void>;
-    afterMessage: () => Promise<void>;
-  }): void {
+  public enableTracing(callbacks: TracingCallbacks): void {
     return this._ethereumJSAdapter.enableTracing(callbacks);
   }
 
@@ -288,18 +293,13 @@ function assertEqualRunTxResults(
   ethereumJSResult: RunTxResult,
   rethnetResult: RunTxResult
 ) {
-  if (ethereumJSResult.totalGasSpent !== rethnetResult.totalGasSpent) {
+  if (ethereumJSResult.gasUsed !== rethnetResult.gasUsed) {
     console.trace(
-      `Different totalGasSpent: ${ethereumJSResult.totalGasSpent} !== ${rethnetResult.totalGasSpent}`
+      `Different totalGasSpent: ${ethereumJSResult.gasUsed} !== ${rethnetResult.gasUsed}`
     );
     throw new Error("Different totalGasSpent");
   }
-  if (ethereumJSResult.gasRefund !== rethnetResult.gasRefund) {
-    console.trace(
-      `Different gasRefund: ${ethereumJSResult.gasRefund} !== ${rethnetResult.gasRefund}`
-    );
-    throw new Error("Different gasRefund");
-  }
+
   if (
     ethereumJSResult.createdAddress?.toString() !==
     rethnetResult.createdAddress?.toString()
@@ -310,24 +310,11 @@ function assertEqualRunTxResults(
     throw new Error("Different createdAddress");
   }
 
-  if (
-    ethereumJSResult.execResult.exceptionError?.error !==
-    rethnetResult.execResult.exceptionError?.error
-  ) {
+  if (ethereumJSResult.exit.kind !== rethnetResult.exit.kind) {
     console.trace(
-      `Different exceptionError.error: ${ethereumJSResult.execResult.exceptionError?.error} !== ${rethnetResult.execResult.exceptionError?.error}`
+      `Different exceptionError.error: ${ethereumJSResult.exit.kind} !== ${rethnetResult.exit.kind}`
     );
     throw new Error("Different exceptionError.error");
-  }
-
-  if (
-    ethereumJSResult.execResult.exceptionError?.errorType !==
-    rethnetResult.execResult.exceptionError?.errorType
-  ) {
-    console.trace(
-      `Different exceptionError.errorType: ${ethereumJSResult.execResult.exceptionError?.errorType} !== ${rethnetResult.execResult.exceptionError?.errorType}`
-    );
-    throw new Error("Different exceptionError.errorType");
   }
 
   // TODO: we only compare the return values when a contract was *not* created,
@@ -335,13 +322,13 @@ function assertEqualRunTxResults(
   // and rethnet doesn't
   if (ethereumJSResult.createdAddress === undefined) {
     if (
-      ethereumJSResult.execResult.returnValue.toString("hex") !==
-      rethnetResult.execResult.returnValue.toString("hex")
+      ethereumJSResult.returnValue.toString("hex") !==
+      rethnetResult.returnValue.toString("hex")
     ) {
       console.trace(
-        `Different returnValue: ${ethereumJSResult.execResult.returnValue.toString(
+        `Different returnValue: ${ethereumJSResult.returnValue.toString(
           "hex"
-        )} !== ${rethnetResult.execResult.returnValue.toString("hex")}`
+        )} !== ${rethnetResult.returnValue.toString("hex")}`
       );
       throw new Error("Different returnValue");
     }

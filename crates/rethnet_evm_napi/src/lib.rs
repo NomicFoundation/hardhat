@@ -278,6 +278,44 @@ impl
     }
 }
 
+#[napi(object)]
+pub struct TracingMessage {
+    /// Recipient address. None if it is a Create message.
+    #[napi(readonly)]
+    pub to: Option<Buffer>,
+
+    /// Depth of the message
+    #[napi(readonly)]
+    pub depth: u8,
+
+    /// Input data of the message
+    #[napi(readonly)]
+    pub data: Buffer,
+
+    /// Value sent in the message
+    #[napi(readonly)]
+    pub value: BigInt,
+
+    /// Address of the code that is being executed. Can be different from `to` if a delegate call
+    /// is being done.
+    #[napi(readonly)]
+    pub code_address: Option<Buffer>,
+}
+
+#[napi(object)]
+pub struct TracingStep {
+    /// Program counter
+    #[napi(readonly)]
+    pub pc: BigInt,
+}
+
+#[napi(object)]
+pub struct TracingMessageResult {
+    /// Execution result
+    #[napi(readonly)]
+    pub execution_result: ExecutionResult,
+}
+
 #[napi]
 pub struct Rethnet {
     runtime: rethnet_evm::Rethnet<anyhow::Error>,
