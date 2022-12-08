@@ -86,6 +86,11 @@ const customRedirects = [
     destination: "/hardhat-network/docs/guides/forking-other-networks.html#using-a-custom-hardfork-history",
     permanent: false
   },
+  {
+    source: "/solidity-survey-2022",
+    destination: "https://cryptpad.fr/form/#/2/form/view/HuPIRv4gvziSV0dPV1SJncKzYJXTVc8LGCaMfLUoj2c/",
+    permanent: false
+  },
 
   // top-level component URLs
   {
