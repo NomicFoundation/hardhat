@@ -41,6 +41,9 @@ where
         block_hash: H256,
         sender: oneshot::Sender<Result<(), E>>,
     },
+    MakeSnapshot {
+        sender: oneshot::Sender<H256>,
+    },
     ModifyAccount {
         address: Address,
         modifier: Box<dyn Fn(&mut U256, &mut u64, &mut Option<Bytecode>) + Send>,
@@ -49,6 +52,10 @@ where
     RemoveAccount {
         address: Address,
         sender: oneshot::Sender<Result<Option<AccountInfo>, E>>,
+    },
+    RemoveSnapshot {
+        state_root: H256,
+        sender: oneshot::Sender<bool>,
     },
     Revert {
         sender: oneshot::Sender<Result<(), E>>,
@@ -112,6 +119,7 @@ where
             } => sender
                 .send(db.insert_block(block_number, block_hash))
                 .unwrap(),
+            Request::MakeSnapshot { sender } => sender.send(db.make_snapshot()).unwrap(),
             Request::ModifyAccount {
                 address,
                 modifier,
@@ -119,6 +127,9 @@ where
             } => sender.send(db.modify_account(address, modifier)).unwrap(),
             Request::RemoveAccount { address, sender } => {
                 sender.send(db.remove_account(address)).unwrap()
+            }
+            Request::RemoveSnapshot { state_root, sender } => {
+                sender.send(db.remove_snapshot(&state_root)).unwrap()
             }
             Request::Revert { sender } => sender.send(db.revert()).unwrap(),
             Request::SetStorageSlot {
@@ -195,9 +206,13 @@ where
                 .field("block_hash", block_hash)
                 .field("sender", sender)
                 .finish(),
+            Self::MakeSnapshot { sender } => f
+                .debug_struct("MakeSnapshot")
+                .field("sender", sender)
+                .finish(),
             Self::ModifyAccount {
                 address,
-                modifier,
+                modifier: _modifier,
                 sender,
             } => f
                 .debug_struct("ModifyAccount")
@@ -207,6 +222,11 @@ where
             Self::RemoveAccount { address, sender } => f
                 .debug_struct("RemoveAccount")
                 .field("address", address)
+                .field("sender", sender)
+                .finish(),
+            Self::RemoveSnapshot { state_root, sender } => f
+                .debug_struct("RemoveSnapshot")
+                .field("state_root", state_root)
                 .field("sender", sender)
                 .finish(),
             Self::Revert { sender } => f.debug_struct("Revert").field("sender", sender).finish(),

@@ -256,6 +256,7 @@ export class HardhatNode extends EventEmitter {
     );
 
     const node = new HardhatNode(
+      rethnetState,
       vm,
       blockchain,
       txPool,
@@ -339,6 +340,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
   private _irregularStatesByBlockNumber: Map<bigint, Buffer> = new Map();
 
   private constructor(
+    private _rethnetState: RethnetStateManager,
     private readonly _vm: VMAdapter,
     private readonly _blockchain: HardhatBlockchainInterface,
     private readonly _txPool: TxPool,
@@ -995,6 +997,13 @@ Hardhat Network's forking functionality only works with blocks from at least spu
       coinbase: this.getCoinbaseAddress().toString(),
       mixHashGenerator: this._mixHashGenerator.clone(),
     };
+
+    const rethnetSnapshot = await this._rethnetState.makeSnapshot();
+    if (!rethnetSnapshot.equals(snapshot.stateRoot)) {
+      throw new Error(
+        "Snapshot with unequal state roots: ${snapshot.stateRoot} !== ${rethnetSnapshot}."
+      );
+    }
 
     this._irregularStatesByBlockNumber = new Map(
       this._irregularStatesByBlockNumber

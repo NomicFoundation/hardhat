@@ -10,8 +10,8 @@ use revm::{Account, AccountInfo, Bytecode, Database, DatabaseCommit, KECCAK_EMPT
 
 use crate::DatabaseDebug;
 
-#[derive(Debug)]
-struct RevertedLayers<Layer> {
+#[derive(Clone, Debug)]
+struct RevertedLayers<Layer: Clone> {
     /// The parent layer's state root
     pub parent_state_root: H256,
     /// The reverted layers
@@ -19,19 +19,22 @@ struct RevertedLayers<Layer> {
 }
 
 /// A database consisting of layers.
-#[derive(Debug)]
-pub struct LayeredDatabase<Layer> {
+#[derive(Clone, Debug)]
+pub struct LayeredDatabase<Layer: Clone> {
     stack: Vec<Layer>,
     /// The old parent layer state root and the reverted layers
     reverted_layers: Option<RevertedLayers<Layer>>,
+    /// Snapshots
+    snapshots: HashMap<H256, Vec<Layer>>, // naive implementation
 }
 
-impl<Layer> LayeredDatabase<Layer> {
+impl<Layer: Clone> LayeredDatabase<Layer> {
     /// Creates a [`LayeredDatabase`] with the provided layer at the bottom.
     pub fn with_layer(layer: Layer) -> Self {
         Self {
             stack: vec![layer],
             reverted_layers: None,
+            snapshots: HashMap::new(),
         }
     }
 
@@ -67,7 +70,7 @@ impl<Layer> LayeredDatabase<Layer> {
     }
 }
 
-impl<Layer: Default> LayeredDatabase<Layer> {
+impl<Layer: Clone + Default> LayeredDatabase<Layer> {
     /// Adds a default layer to the top, returning its index and a
     /// mutable reference to the layer.
     pub fn add_layer_default(&mut self) -> (usize, &mut Layer) {
@@ -75,17 +78,18 @@ impl<Layer: Default> LayeredDatabase<Layer> {
     }
 }
 
-impl<Layer: Default> Default for LayeredDatabase<Layer> {
+impl<Layer: Clone + Default> Default for LayeredDatabase<Layer> {
     fn default() -> Self {
         Self {
             stack: vec![Layer::default()],
             reverted_layers: None,
+            snapshots: HashMap::new(),
         }
     }
 }
 
 /// A layer with information needed for [`Rethnet`].
-#[derive(Debug, Default)]
+#[derive(Clone, Debug, Default)]
 pub struct RethnetLayer {
     /// Address -> AccountInfo
     account_infos: HashMap<Address, Option<AccountInfo>>,
@@ -367,6 +371,19 @@ impl DatabaseDebug for LayeredDatabase<RethnetLayer> {
         Ok(())
     }
 
+    fn make_snapshot(&mut self) -> H256 {
+        let state_root = self.state_root().unwrap();
+        let mut snapshot = self.stack.clone();
+        if let Some(layer) = snapshot.last_mut() {
+            layer.state_root.replace(state_root.clone());
+        }
+
+        // Currently overwrites old snapshots
+        self.snapshots.insert(state_root.clone(), snapshot);
+
+        state_root
+    }
+
     fn modify_account(
         &mut self,
         address: Address,
@@ -414,6 +431,10 @@ impl DatabaseDebug for LayeredDatabase<RethnetLayer> {
         }
     }
 
+    fn remove_snapshot(&mut self, state_root: &H256) -> bool {
+        self.snapshots.remove(state_root).is_some()
+    }
+
     fn set_account_storage_slot(
         &mut self,
         address: Address,
@@ -446,6 +467,17 @@ impl DatabaseDebug for LayeredDatabase<RethnetLayer> {
         if !self.last_layer_mut().has_state_root() {
             let state_root = self.state_root()?;
             self.last_layer_mut().state_root.replace(state_root);
+        }
+
+        if let Some(snapshot) = self.snapshots.get(state_root) {
+            // Retain all layers except the first
+            self.reverted_layers = Some(RevertedLayers {
+                parent_state_root: self.stack.first().unwrap().state_root.unwrap(),
+                stack: self.stack.split_off(1),
+            });
+            self.stack = snapshot.clone();
+
+            return Ok(());
         }
 
         // Check whether the state root is contained in the previously reverted layers

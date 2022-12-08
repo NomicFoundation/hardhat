@@ -182,6 +182,11 @@ impl StateManager {
             .map_err(|e| napi::Error::new(Status::GenericFailure, e.to_string()))
     }
 
+    #[napi]
+    pub async fn make_snapshot(&mut self) -> Buffer {
+        self.db.make_snapshot().await.as_ref().into()
+    }
+
     #[napi(ts_return_type = "Promise<void>")]
     pub fn modify_account(
         &mut self,
@@ -278,6 +283,13 @@ impl StateManager {
             |e| Err(napi::Error::new(Status::GenericFailure, e.to_string())),
             |account| Ok(account.map(Account::from)),
         )
+    }
+
+    #[napi]
+    pub async fn remove_snapshot(&mut self, state_root: Buffer) -> bool {
+        let state_root = H256::from_slice(&state_root);
+
+        self.db.remove_snapshot(state_root).await
     }
 
     #[napi]

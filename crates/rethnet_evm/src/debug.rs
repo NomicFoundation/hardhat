@@ -47,49 +47,10 @@ pub trait DatabaseDebug {
 
     /// Reverts to the previous checkpoint, created using [`checkpoint`].
     fn revert(&mut self) -> Result<(), Self::Error>;
+
+    /// Makes a snapshot of the database that's retained until [`remove_snapshot`] is called. Returns the snapshot's identifier.
+    fn make_snapshot(&mut self) -> H256;
+
+    /// Removes the snapshot corresponding to the specified id, if it exists. Returns whether a snapshot was removed.
+    fn remove_snapshot(&mut self, state_root: &H256) -> bool;
 }
-
-// /// A trait for objects that support [`DatabaseDebug`].
-// pub trait HasDatabaseDebug {
-//     /// The database's error type.
-//     type Error;
-
-//     /// Retrieves the owned `DatabaseDebug`.
-//     fn db_debug(&mut self) -> &mut dyn DatabaseDebug<Error = Self::Error>;
-// }
-
-// impl<T: HasDatabaseDebug> DatabaseDebug for T {
-//     type Error = <T as HasDatabaseDebug>::Error;
-
-//     fn insert_account(
-//         &mut self,
-//         address: Address,
-//         account_info: AccountInfo,
-//     ) -> Result<(), Self::Error> {
-//         self.db_debug().insert_account(address, account_info)
-//     }
-
-//     fn insert_block(&mut self, block_number: U256, block_hash: H256) -> Result<(), Self::Error> {
-//         self.db_debug().insert_block(block_number, block_hash)
-//     }
-
-//     fn modify_account(
-//         &mut self,
-//         address: Address,
-//         modifier: fn(&mut AccountInfo),
-//     ) -> Result<(), Self::Error> {
-//         self.db_debug().modify_account(address, modifier)
-//     }
-
-//     fn storage_root(&mut self) -> Result<H256, Self::Error> {
-//         self.db_debug().storage_root()
-//     }
-
-//     fn checkpoint(&mut self) -> Result<(), Self::Error> {
-//         self.db_debug().checkpoint()
-//     }
-
-//     fn revert(&mut self) -> Result<(), Self::Error> {
-//         self.db_debug().revert()
-//     }
-// }

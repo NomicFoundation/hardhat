@@ -181,6 +181,17 @@ where
         receiver.await.unwrap()
     }
 
+    /// Makes a snapshot of the database that's retained until [`remove_snapshot`] is called. Returns the snapshot's identifier.
+    pub async fn make_snapshot(&self) -> H256 {
+        let (sender, receiver) = oneshot::channel();
+
+        self.request_sender
+            .send(Request::MakeSnapshot { sender })
+            .expect("Failed to send request");
+
+        receiver.await.unwrap()
+    }
+
     /// Modifies the account at the specified address using the provided function.
     pub async fn modify_account(
         &self,
@@ -206,6 +217,17 @@ where
 
         self.request_sender
             .send(Request::RemoveAccount { address, sender })
+            .expect("Failed to send request");
+
+        receiver.await.unwrap()
+    }
+
+    /// Removes the snapshot corresponding to the specified id, if it exists. Returns whether a snapshot was removed.
+    pub async fn remove_snapshot(&self, state_root: H256) -> bool {
+        let (sender, receiver) = oneshot::channel();
+
+        self.request_sender
+            .send(Request::RemoveSnapshot { state_root, sender })
             .expect("Failed to send request");
 
         receiver.await.unwrap()
@@ -425,5 +447,17 @@ where
 
     fn revert(&mut self) -> Result<(), Self::Error> {
         task::block_in_place(move || self.db.runtime().block_on(self.db.revert()))
+    }
+
+    fn make_snapshot(&mut self) -> H256 {
+        task::block_in_place(move || self.db.runtime().block_on(self.db.make_snapshot()))
+    }
+
+    fn remove_snapshot(&mut self, state_root: &H256) -> bool {
+        task::block_in_place(move || {
+            self.db
+                .runtime()
+                .block_on(self.db.remove_snapshot(state_root.clone()))
+        })
     }
 }

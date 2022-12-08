@@ -2,11 +2,7 @@ use hashbrown::HashMap;
 use primitive_types::H256;
 use ruint::aliases::U256;
 
-use crate::{
-    account::BasicAccount,
-    trie::{sec_trie_root, trie_root},
-    Address,
-};
+use crate::{account::BasicAccount, trie::sec_trie_root, Address};
 
 /// State mapping of addresses to accounts.
 pub type State = HashMap<Address, BasicAccount>;

@@ -85,6 +85,10 @@ export class RethnetStateManager implements StateManagerInterface {
     await this._state.removeAccount(address.buf);
   }
 
+  public async makeSnapshot(): Promise<Buffer> {
+    return this._state.makeSnapshot();
+  }
+
   public async modifyAccountFields(
     address: Address,
     accountFields: Partial<Pick<Account, "nonce" | "balance">>
