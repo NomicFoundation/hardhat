@@ -1,5 +1,12 @@
 # hardhat
 
+## 2.12.4
+
+### Patch Changes
+
+- 7154371e3: Fixed an issue that caused compilation with solcjs to not work when Hardhat is bundled
+- 2fc9a2cb8: Show a message with a link to the Solidity Developer Survey
+
 ## 2.12.3
 
 ### Patch Changes
