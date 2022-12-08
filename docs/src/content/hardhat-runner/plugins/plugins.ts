@@ -655,6 +655,14 @@ const communityPlugins: IPlugin[] = [
       "Hardhat plugin to automate the deployment and verification of contracts",
     tags: ["Deployment", "Verification", "Migration"],
   },
+  {
+    name: "Sidekik",
+    author: "mistersingh179",
+    authorUrl: "https://sidekik.xyz/",
+    description:
+      "Setup your hardhat project development with Sidekik to get an auto-build UI. With this UI you can debug, test & grok your code. The UI hot-reloads itself in real time as you type in code.",
+    tags: ["Tooling", "plugin", "Testing", "development", "Monitoring", "debugging", "development-tool"],
+  },
 ];
 
 const officialPlugins: IPlugin[] = [
