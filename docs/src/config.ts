@@ -23,7 +23,8 @@ export const SOCIALS_LINKS = {
   [SocialsEnum.DISCORD]: "/discord",
 };
 
-export const BANNER_LINK = "https://cryptpad.fr/form/#/2/form/view/HuPIRv4gvziSV0dPV1SJncKzYJXTVc8LGCaMfLUoj2c";
+export const BANNER_LINK =
+  "https://cryptpad.fr/form/#/2/form/view/HuPIRv4gvziSV0dPV1SJncKzYJXTVc8LGCaMfLUoj2c";
 
 export const PRIVACY_POLICY_PATH = "/privacy-policy.html";
 
