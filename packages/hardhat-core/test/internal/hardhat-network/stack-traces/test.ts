@@ -136,9 +136,7 @@ function defineTest(
   const func = async function (this: Mocha.Context) {
     this.timeout(TEST_TIMEOUT_MILLIS);
 
-    await runTest(dirPath, testDefinition, sources, {
-      ...compilerOptions,
-    });
+    await runTest(dirPath, testDefinition, sources, compilerOptions);
   };
 
   if (
@@ -288,6 +286,7 @@ function compareStackTraces(
 ) {
   const isViaIR = optimizer?.viaIR === true;
 
+  // if IR is enabled, we ignore callstack entries in the comparison
   if (isViaIR) {
     trace = trace.filter(
       (frame) => frame.type !== StackTraceEntryType.CALLSTACK_ENTRY
@@ -322,13 +321,6 @@ function compareStackTraces(
     ) {
       // when viaIR is enabled, we consider a generic REVERT_ERROR or
       // OTHER_EXECUTION_ERROR enough and don't compare its contents
-      continue;
-    }
-
-    if (isViaIR && actualErrorType === "INVALID_PARAMS_ERROR") {
-      // We have several tests that incorrectly infer the error as
-      // INVALID_PARAMS_ERROR when viaIR is enabled. We are skipping them for
-      // now.
       continue;
     }
 

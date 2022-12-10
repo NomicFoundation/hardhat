@@ -649,15 +649,21 @@ export class ErrorInferrer {
       );
 
       if (calledFunction !== undefined) {
-        return [
-          {
-            type: StackTraceEntryType.INVALID_PARAMS_ERROR,
-            sourceReference: this._getFunctionStartSourceReference(
-              trace,
-              calledFunction
-            ),
-          },
-        ];
+        const isValidCalldata = calledFunction.isValidCalldata(
+          trace.calldata.slice(4)
+        );
+
+        if (!isValidCalldata) {
+          return [
+            {
+              type: StackTraceEntryType.INVALID_PARAMS_ERROR,
+              sourceReference: this._getFunctionStartSourceReference(
+                trace,
+                calledFunction
+              ),
+            },
+          ];
+        }
       }
 
       if (this._solidity063MaybeUnmappedRevert(trace)) {
@@ -1168,6 +1174,21 @@ export class ErrorInferrer {
     };
   }
 
+  private _instructionWithinFunctionToUnmappedSolc063RevertErrorStackTraceEntry(
+    trace: DecodedEvmMessageTrace,
+    inst: Instruction
+  ): UnmappedSolc063RevertErrorStackTraceEntry {
+    const sourceReference = sourceLocationToSourceReference(
+      trace.bytecode,
+      inst.location
+    );
+
+    return {
+      type: StackTraceEntryType.UNMAPPED_SOLC_0_6_3_REVERT_ERROR,
+      sourceReference,
+    };
+  }
+
   private _instructionWithinFunctionToPanicStackTraceEntry(
     trace: DecodedEvmMessageTrace,
     inst: Instruction,
@@ -1333,13 +1354,10 @@ export class ErrorInferrer {
         prevLoc !== undefined &&
         prevLoc.equals(nextLoc)
       ) {
-        return {
-          ...this._instructionWithinFunctionToRevertStackTraceEntry(
-            trace,
-            nextInst
-          ),
-          type: StackTraceEntryType.UNMAPPED_SOLC_0_6_3_REVERT_ERROR,
-        };
+        return this._instructionWithinFunctionToUnmappedSolc063RevertErrorStackTraceEntry(
+          trace,
+          nextInst
+        );
       }
 
       let revertFrame: UnmappedSolc063RevertErrorStackTraceEntry | undefined;
@@ -1347,21 +1365,17 @@ export class ErrorInferrer {
       // If the previous and next location don't match, we try to use the
       // previous one if it's inside a function, otherwise we use the next one
       if (prevFunc !== undefined && prevInst !== undefined) {
-        revertFrame = {
-          ...this._instructionWithinFunctionToRevertStackTraceEntry(
+        revertFrame =
+          this._instructionWithinFunctionToUnmappedSolc063RevertErrorStackTraceEntry(
             trace,
             prevInst
-          ),
-          type: StackTraceEntryType.UNMAPPED_SOLC_0_6_3_REVERT_ERROR,
-        };
+          );
       } else if (nextFunc !== undefined) {
-        revertFrame = {
-          ...this._instructionWithinFunctionToRevertStackTraceEntry(
+        revertFrame =
+          this._instructionWithinFunctionToUnmappedSolc063RevertErrorStackTraceEntry(
             trace,
             nextInst
-          ),
-          type: StackTraceEntryType.UNMAPPED_SOLC_0_6_3_REVERT_ERROR,
-        };
+          );
       }
 
       if (revertFrame !== undefined) {
@@ -1376,13 +1390,10 @@ export class ErrorInferrer {
       // an unconditional revert happens in a constructor. If this is the case
       // we just return a special error.
       const constructorRevertFrame: UnmappedSolc063RevertErrorStackTraceEntry =
-        {
-          ...this._instructionWithinFunctionToRevertStackTraceEntry(
-            trace,
-            prevInst
-          ),
-          type: StackTraceEntryType.UNMAPPED_SOLC_0_6_3_REVERT_ERROR,
-        };
+        this._instructionWithinFunctionToUnmappedSolc063RevertErrorStackTraceEntry(
+          trace,
+          prevInst
+        );
 
       // When the latest instruction is not within a function we need
       // some default sourceReference to show to the user
@@ -1416,13 +1427,10 @@ export class ErrorInferrer {
       // In this case we just return whatever the last mapped intruction
       // points to.
       const latestInstructionRevertFrame: UnmappedSolc063RevertErrorStackTraceEntry =
-        {
-          ...this._instructionWithinFunctionToRevertStackTraceEntry(
-            trace,
-            prevInst
-          ),
-          type: StackTraceEntryType.UNMAPPED_SOLC_0_6_3_REVERT_ERROR,
-        };
+        this._instructionWithinFunctionToUnmappedSolc063RevertErrorStackTraceEntry(
+          trace,
+          prevInst
+        );
 
       if (latestInstructionRevertFrame.sourceReference !== undefined) {
         this._solidity063CorrectLineNumber(latestInstructionRevertFrame);
@@ -1438,6 +1446,10 @@ export class ErrorInferrer {
   private _solidity063CorrectLineNumber(
     revertFrame: UnmappedSolc063RevertErrorStackTraceEntry
   ) {
+    if (revertFrame.sourceReference === undefined) {
+      return;
+    }
+
     const lines = revertFrame.sourceReference.sourceContent.split("\n");
 
     const currentLine = lines[revertFrame.sourceReference.line - 1];

@@ -1,5 +1,7 @@
 import fs from "fs";
 import path from "path";
+import semver from "semver";
+
 import {
   Compiler as SolcJsCompiler,
   NativeCompiler,
@@ -31,6 +33,19 @@ function getSolcInput(
   sources: SolcSourceFileToContents,
   compilerOptions: SolidityCompiler
 ): CompilerInput {
+  const isViaIR = compilerOptions.optimizer?.viaIR ?? false;
+
+  // using ":" as a minimal setting for the yul optimizer steps is only
+  // available starting from version 0.8.18
+  const optimizerDetails =
+    semver.gte(compilerOptions.solidityVersion, "0.8.18") && isViaIR
+      ? {
+          yulDetails: {
+            optimizerSteps: ":",
+          },
+        }
+      : undefined;
+
   const optimizer =
     compilerOptions.optimizer === undefined
       ? {
@@ -39,26 +54,32 @@ function getSolcInput(
       : {
           enabled: true,
           runs: compilerOptions.optimizer.runs,
+          details: optimizerDetails,
         };
+
+  const settings: CompilerInput["settings"] = {
+    optimizer,
+    outputSelection: {
+      "*": {
+        "*": [
+          "abi",
+          "evm.bytecode",
+          "evm.deployedBytecode",
+          "evm.methodIdentifiers",
+        ],
+        "": ["id", "ast"],
+      },
+    },
+  };
+
+  if (isViaIR) {
+    settings.viaIR = true;
+  }
 
   return {
     language: "Solidity",
     sources,
-    settings: {
-      viaIR: compilerOptions.optimizer?.viaIR ?? false,
-      optimizer,
-      outputSelection: {
-        "*": {
-          "*": [
-            "abi",
-            "evm.bytecode",
-            "evm.deployedBytecode",
-            "evm.methodIdentifiers",
-          ],
-          "": ["id", "ast"],
-        },
-      },
-    },
+    settings,
   };
 }
 

@@ -121,7 +121,6 @@ function encodeStackTraceEntry(
     case StackTraceEntryType.NONCONTRACT_ACCOUNT_CALLED_ERROR:
     case StackTraceEntryType.CALL_FAILED_ERROR:
     case StackTraceEntryType.DIRECT_LIBRARY_CALL_ERROR:
-    case StackTraceEntryType.UNMAPPED_SOLC_0_6_3_REVERT_ERROR:
       return sourceReferenceToSolidityCallsite(stackTraceEntry.sourceReference);
 
     case StackTraceEntryType.UNRECOGNIZED_CREATE_CALLSTACK_ENTRY:
@@ -188,6 +187,7 @@ function encodeStackTraceEntry(
     case StackTraceEntryType.OTHER_EXECUTION_ERROR:
     case StackTraceEntryType.CONTRACT_TOO_LARGE_ERROR:
     case StackTraceEntryType.PANIC_ERROR:
+    case StackTraceEntryType.UNMAPPED_SOLC_0_6_3_REVERT_ERROR:
       if (stackTraceEntry.sourceReference === undefined) {
         return new SolidityCallSite(
           undefined,
