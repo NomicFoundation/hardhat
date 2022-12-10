@@ -655,6 +655,14 @@ const communityPlugins: IPlugin[] = [
       "Hardhat plugin to automate the deployment and verification of contracts",
     tags: ["Deployment", "Verification", "Migration"],
   },
+  {
+    name: "hardhat notifier",
+    author: "Mister Singh",
+    authorUrl: "https://www.npmjs.com/package/hardhat-notifier",
+    description:
+      "Hardhat plugin to send an OSX notification when hardhat compilcation fails/succeeds",
+    tags: ["Deployment", "Tooling", "Notification", "Compile"],
+  },
 ];
 
 const officialPlugins: IPlugin[] = [
