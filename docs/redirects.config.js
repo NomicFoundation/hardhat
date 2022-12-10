@@ -91,6 +91,11 @@ const customRedirects = [
     destination: "https://cryptpad.fr/form/#/2/form/view/HuPIRv4gvziSV0dPV1SJncKzYJXTVc8LGCaMfLUoj2c/",
     permanent: false
   },
+  {
+    source: "/solc-viair",
+    destination: "/hardhat-runner/docs/reference/solidity-support#support-for-ir-based-codegen",
+    permanent: false
+  },
 
   // top-level component URLs
   {

@@ -9,7 +9,7 @@ import {
   TASK_HELP,
   TASK_TEST,
 } from "../../builtin-tasks/task-names";
-import { TaskArguments } from "../../types";
+import { HardhatConfig, TaskArguments } from "../../types";
 import { HARDHAT_NAME } from "../constants";
 import { HardhatContext } from "../context";
 import { loadConfigAndTasks } from "../core/config/config-loading";
@@ -100,6 +100,23 @@ async function suggestInstallingHardhatVscode() {
   } else {
     console.log(
       "To learn more about Hardhat for Visual Studio Code, go to https://hardhat.org/hardhat-vscode"
+    );
+  }
+}
+
+function showViaIRWarning(resolvedConfig: HardhatConfig) {
+  const viaIREnabled = resolvedConfig.solidity.compilers.some(
+    (compiler) => compiler.settings?.viaIR === true
+  );
+
+  if (viaIREnabled) {
+    console.warn();
+    console.warn(
+      chalk.yellow(
+        `Your solidity settings have viaIR enabled, which is not fully supported yet. You can still use Hardhat, but some features, like stack traces, might not work correctly.
+
+Learn more at https://hardhat.org/solc-viair`
+      )
     );
   }
 }
@@ -310,6 +327,11 @@ async function main() {
         process.env.HARDHAT_HIDE_SOLIDITY_SURVEY_MESSAGE !== "true"
       ) {
         showSoliditySurveyMessage();
+      }
+
+      // we show the viaIR warning only if the tests failed
+      if (process.exitCode !== 0) {
+        showViaIRWarning(resolvedConfig);
       }
     }
 
