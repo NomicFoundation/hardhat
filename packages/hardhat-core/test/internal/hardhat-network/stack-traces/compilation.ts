@@ -1,5 +1,7 @@
 import fs from "fs";
 import path from "path";
+import semver from "semver";
+
 import {
   Compiler as SolcJsCompiler,
   NativeCompiler,
@@ -12,11 +14,7 @@ import { getCompilersDir } from "../../../../src/internal/util/global-dir";
 
 import { CompilerInput, CompilerOutput } from "../../../../src/types";
 
-export interface CompilerOptions {
-  solidityVersion: string;
-  compilerPath: string;
-  runs?: number;
-}
+import { SolidityCompiler } from "./compilers-list";
 
 interface SolcSourceFileToContents {
   [filename: string]: { content: string };
@@ -33,41 +31,70 @@ function getSolcSourceFileMapping(sources: string[]): SolcSourceFileToContents {
 
 function getSolcInput(
   sources: SolcSourceFileToContents,
-  compilerOptions: CompilerOptions
+  compilerOptions: SolidityCompiler
 ): CompilerInput {
+  const isViaIR = compilerOptions.optimizer?.viaIR ?? false;
+
+  // using ":" as a minimal setting for the yul optimizer steps is only
+  // available starting from version 0.8.18
+  const optimizerDetails =
+    semver.gte(compilerOptions.solidityVersion, "0.8.18") && isViaIR
+      ? {
+          yulDetails: {
+            optimizerSteps: ":",
+          },
+        }
+      : undefined;
+
+  const optimizer =
+    compilerOptions.optimizer === undefined
+      ? {
+          enabled: false,
+        }
+      : {
+          enabled: true,
+          runs: compilerOptions.optimizer.runs,
+          details: optimizerDetails,
+        };
+
+  const settings: CompilerInput["settings"] = {
+    optimizer,
+    outputSelection: {
+      "*": {
+        "*": [
+          "abi",
+          "evm.bytecode",
+          "evm.deployedBytecode",
+          "evm.methodIdentifiers",
+        ],
+        "": ["id", "ast"],
+      },
+    },
+  };
+
+  // old compilers might throw if we use the `viaIR` setting because they don't
+  // recognize the option, so we only set it when it's true
+  if (isViaIR) {
+    settings.viaIR = true;
+  }
+
   return {
     language: "Solidity",
     sources,
-    settings: {
-      optimizer: {
-        enabled: compilerOptions.runs !== undefined,
-        runs: compilerOptions.runs ?? 200,
-      },
-      outputSelection: {
-        "*": {
-          "*": [
-            "abi",
-            "evm.bytecode",
-            "evm.deployedBytecode",
-            "evm.methodIdentifiers",
-          ],
-          "": ["id", "ast"],
-        },
-      },
-    },
+    settings,
   };
 }
 
 function getSolcInputForFiles(
   sources: string[],
-  compilerOptions: CompilerOptions
+  compilerOptions: SolidityCompiler
 ): CompilerInput {
   return getSolcInput(getSolcSourceFileMapping(sources), compilerOptions);
 }
 
 function getSolcInputForLiteral(
   source: string,
-  compilerOptions: CompilerOptions,
+  compilerOptions: SolidityCompiler,
   filename: string = "literal.sol"
 ): CompilerInput {
   return getSolcInput({ [filename]: { content: source } }, compilerOptions);
@@ -101,7 +128,7 @@ async function compile(
 
 export async function compileFiles(
   sources: string[],
-  compilerOptions: CompilerOptions
+  compilerOptions: SolidityCompiler
 ): Promise<[CompilerInput, CompilerOutput]> {
   let compiler: Compiler;
   // special case for running tests with custom solc
@@ -121,10 +148,9 @@ export async function compileFiles(
 
 export async function compileLiteral(
   source: string,
-  compilerOptions: CompilerOptions = {
+  compilerOptions: SolidityCompiler = {
     solidityVersion: "0.8.0",
     compilerPath: "soljson-v0.8.0+commit.c7dfd78e.js",
-    runs: 1,
   },
   filename: string = "literal.sol"
 ): Promise<[CompilerInput, CompilerOutput]> {
@@ -167,6 +193,7 @@ export async function downloadCompiler(solidityVersion: string) {
   );
 
   if (!isCompilerDownloaded) {
+    console.log("Downloading solc", solidityVersion);
     await downloader.downloadCompiler(solidityVersion);
   }
 }

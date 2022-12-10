@@ -182,7 +182,16 @@ export interface CompilerInput {
   language: string;
   sources: { [sourceName: string]: { content: string } };
   settings: {
-    optimizer: { runs?: number; enabled?: boolean };
+    viaIR?: boolean;
+    optimizer: {
+      runs?: number;
+      enabled?: boolean;
+      details?: {
+        yulDetails: {
+          optimizerSteps: string;
+        };
+      };
+    };
     metadata?: { useLiteralContent: boolean };
     outputSelection: {
       [sourceName: string]: {
