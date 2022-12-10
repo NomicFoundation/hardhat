@@ -860,6 +860,7 @@ function defineTestForSolidityMajorVersion(
   testsPath: string
 ) {
   for (const compilerOptions of solcVersionsCompilerOptions) {
+    // eslint-disable-next-line no-only-tests/no-only-tests
     const describeFn = compilerOptions.only === true ? describe.only : describe;
 
     describeFn(`Use compiler ${compilerOptions.compilerPath}`, function () {
