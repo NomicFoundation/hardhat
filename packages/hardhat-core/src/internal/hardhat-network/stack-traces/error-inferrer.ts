@@ -637,15 +637,21 @@ export class ErrorInferrer {
       );
 
       if (calledFunction !== undefined) {
-        return [
-          {
-            type: StackTraceEntryType.INVALID_PARAMS_ERROR,
-            sourceReference: this._getFunctionStartSourceReference(
-              trace,
-              calledFunction
-            ),
-          },
-        ];
+        const isValidCalldata = calledFunction.isValidCalldata(
+          trace.calldata.slice(4)
+        );
+
+        if (!isValidCalldata) {
+          return [
+            {
+              type: StackTraceEntryType.INVALID_PARAMS_ERROR,
+              sourceReference: this._getFunctionStartSourceReference(
+                trace,
+                calledFunction
+              ),
+            },
+          ];
+        }
       }
 
       if (this._solidity063MaybeUnmappedRevert(trace)) {
