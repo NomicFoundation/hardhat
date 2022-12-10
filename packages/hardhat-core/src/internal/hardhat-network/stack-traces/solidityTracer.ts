@@ -171,7 +171,10 @@ export class SolidityTracer {
     const stacktrace: SolidityStackTrace = [];
 
     let subtracesSeen = 0;
+
+    // There was a jump into a function according to the sourcemaps
     let jumpedIntoFunction = false;
+
     const functionJumpdests: Instruction[] = [];
 
     let lastSubmessageData: SubmessageData | undefined;
