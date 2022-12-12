@@ -172,7 +172,8 @@ async function main() {
     }
 
     if (
-      process.env.__HARDHAT_ALLOW_NON_LOCAL_INSTALLATION !== "true" &&
+      process.env.HARDHAT_EXPERIMENTAL_ALLOW_NON_LOCAL_INSTALLATION !==
+        "true" &&
       !isHardhatInstalledLocallyOrLinked()
     ) {
       throw new HardhatError(ERRORS.GENERAL.NON_LOCAL_INSTALLATION);
