@@ -1,6 +1,7 @@
 # Hardhat documentation website
 
-[中文翻译文档](../ChineseVersionDocs/README_doc.cn.md)
+Translations of this document:
+- [中文翻译文档](../ChineseVersionDocs/README_doc.cn.md)
 
 This is a NextJS-based application for the Hardhat documentation website. This app is utilizing SSG for creating pages on the build step. It's developed keeping the best practices in mind including accessibility, SEO and Performance optimizations, and scalability
 
