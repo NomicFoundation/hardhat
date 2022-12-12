@@ -1,8 +1,15 @@
 import fs from "fs";
 import path from "path";
-import solcWrapper from "solc/wrapper";
+import {
+  Compiler as SolcJsCompiler,
+  NativeCompiler,
+} from "../../../../src/internal/solidity/compiler";
+import {
+  Compiler,
+  CompilerDownloader,
+} from "../../../../src/internal/solidity/compiler/downloader";
+import { getCompilersDir } from "../../../../src/internal/util/global-dir";
 
-import { download } from "../../../../src/internal/util/download";
 import { CompilerInput, CompilerOutput } from "../../../../src/types";
 
 export interface CompilerOptions {
@@ -66,71 +73,20 @@ function getSolcInputForLiteral(
   return getSolcInput({ [filename]: { content: source } }, compilerOptions);
 }
 
-/**
- * Copied from `solidity/compiler/index.ts`.
- */
-function loadCompilerSources(compilerPath: string) {
-  const Module = module.constructor as any;
-  const previousHook = Module._extensions[".js"];
-
-  Module._extensions[".js"] = function (
-    module: NodeJS.Module,
-    filename: string
-  ) {
-    const content = fs.readFileSync(filename, "utf8");
-    Object.getPrototypeOf(module)._compile.call(module, content, filename);
-  };
-
-  const loadedSolc = require(compilerPath);
-
-  Module._extensions[".js"] = previousHook;
-
-  return loadedSolc;
-}
-
 export const COMPILER_DOWNLOAD_TIMEOUT = 10000;
-
-function getCompilersDownloadDir() {
-  return path.join(__dirname, "compilers");
-}
-
-function getCompilerDownloadPath(compilerPath: string) {
-  const compilersDir = getCompilersDownloadDir();
-  return path.resolve(compilersDir, compilerPath);
-}
-
-export async function downloadSolc(compilerPath: string): Promise<void> {
-  const absoluteCompilerPath = getCompilerDownloadPath(compilerPath);
-  const compilerUrl = `https://solc-bin.ethereum.org/bin/${compilerPath}`;
-
-  if (fs.existsSync(absoluteCompilerPath)) {
-    return;
-  }
-
-  await download(compilerUrl, absoluteCompilerPath, COMPILER_DOWNLOAD_TIMEOUT);
-}
-
-async function getSolc(compilerPath: string): Promise<any> {
-  const isAbsolutePath = path.isAbsolute(compilerPath);
-
-  if (!isAbsolutePath) {
-    await downloadSolc(compilerPath);
-  }
-
-  const absoluteCompilerPath = isAbsolutePath
-    ? compilerPath
-    : getCompilerDownloadPath(compilerPath);
-
-  return solcWrapper(loadCompilerSources(absoluteCompilerPath));
-}
 
 async function compile(
   input: CompilerInput,
-  compilerOptions: CompilerOptions
+  compiler: Compiler
 ): Promise<[CompilerInput, CompilerOutput]> {
-  const solc = await getSolc(compilerOptions.compilerPath);
+  let runnableCompiler: any;
+  if (compiler.isSolcJs) {
+    runnableCompiler = new SolcJsCompiler(compiler.compilerPath);
+  } else {
+    runnableCompiler = new NativeCompiler(compiler.compilerPath);
+  }
 
-  const output = JSON.parse(solc.compile(JSON.stringify(input)));
+  const output = await runnableCompiler.compile(input);
 
   if (output.errors !== undefined) {
     for (const error of output.errors) {
@@ -147,10 +103,20 @@ export async function compileFiles(
   sources: string[],
   compilerOptions: CompilerOptions
 ): Promise<[CompilerInput, CompilerOutput]> {
-  return compile(
-    getSolcInputForFiles(sources, compilerOptions),
-    compilerOptions
-  );
+  let compiler: Compiler;
+  // special case for running tests with custom solc
+  if (path.isAbsolute(compilerOptions.compilerPath)) {
+    compiler = {
+      compilerPath: compilerOptions.compilerPath,
+      isSolcJs: process.env.HARDHAT_TESTS_SOLC_NATIVE !== "true",
+      version: compilerOptions.solidityVersion,
+      longVersion: compilerOptions.solidityVersion,
+    };
+  } else {
+    compiler = await getCompilerForVersion(compilerOptions.solidityVersion);
+  }
+
+  return compile(getSolcInputForFiles(sources, compilerOptions), compiler);
 }
 
 export async function compileLiteral(
@@ -162,8 +128,45 @@ export async function compileLiteral(
   },
   filename: string = "literal.sol"
 ): Promise<[CompilerInput, CompilerOutput]> {
+  await downloadCompiler(compilerOptions.solidityVersion);
+  const compiler = await getCompilerForVersion(compilerOptions.solidityVersion);
+
   return compile(
     getSolcInputForLiteral(source, compilerOptions, filename),
-    compilerOptions
+    compiler
   );
+}
+
+async function getCompilerForVersion(
+  solidityVersion: string
+): Promise<Compiler> {
+  const compilersCache = await getCompilersDir();
+  const compilerPlatform = CompilerDownloader.getCompilerPlatform();
+  const downloader = CompilerDownloader.getConcurrencySafeDownloader(
+    compilerPlatform,
+    compilersCache
+  );
+  const compiler = await downloader.getCompiler(solidityVersion);
+  if (compiler === undefined) {
+    throw new Error("Expected compiler to be downloaded");
+  }
+
+  return compiler;
+}
+
+export async function downloadCompiler(solidityVersion: string) {
+  const compilersCache = await getCompilersDir();
+  const compilerPlatform = CompilerDownloader.getCompilerPlatform();
+  const downloader = CompilerDownloader.getConcurrencySafeDownloader(
+    compilerPlatform,
+    compilersCache
+  );
+
+  const isCompilerDownloaded = await downloader.isCompilerDownloaded(
+    solidityVersion
+  );
+
+  if (!isCompilerDownloaded) {
+    await downloader.downloadCompiler(solidityVersion);
+  }
 }

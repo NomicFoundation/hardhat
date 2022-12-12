@@ -1,5 +1,47 @@
 # hardhat
 
+## 2.12.4
+
+### Patch Changes
+
+- 7154371e3: Fixed an issue that caused compilation with solcjs to not work when Hardhat is bundled
+- 2fc9a2cb8: Show a message with a link to the Solidity Developer Survey
+
+## 2.12.3
+
+### Patch Changes
+
+- 13433f176: Fixed an edge case where Hardhat would hang if `debug_traceTransaction` was used with an OOG transaction sent to a precompile.
+- c9809e182: Trim leading and trailing spaces in mnemonics.
+- a1d43109a: Pending blocks now include the `bloom` field.
+- 818107821: Added a new `hardhat_metadata` RPC method
+- 937d15e51: A better error is show if a Solidity file makes an import throug its own package name.
+- 4cf9a6d58: Added a `getBuildInfoSync` function to the `hre.artifacts` object (thanks @emretepedev!)
+
+## 2.12.2
+
+### Patch Changes
+
+- f6c74bc31: Fixed an issue that was causing build-info file names to not be deterministic.
+- 2022bed0d: Fixed an issue when forking networks like Arbitrum Nitro that use non-standard transaction types (#2995, #3194).
+
+## 2.12.1
+
+### Patch Changes
+
+- 145b12c7d: Fixed a problem that was preventing Hardhat from being used in Alpine Linux.
+
+## 2.12.0
+
+### Minor Changes
+
+- aebec509e: Use `"merge"` hardfork setting by default in Hardhat Network
+
+### Patch Changes
+
+- 3db5334b9: Fix compiler downloader
+- 6d2edac4e: Upgrade `solidity-analyzer` and handle NPM's issue #4828.
+
 ## 2.11.2
 
 ### Patch Changes

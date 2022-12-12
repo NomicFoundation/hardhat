@@ -7,6 +7,7 @@ export interface SnapshotRestorer {
    * taken.
    */
   restore(): Promise<void>;
+  snapshotId: string;
 }
 
 /**
@@ -21,6 +22,12 @@ export async function takeSnapshot(): Promise<SnapshotRestorer> {
   let snapshotId = await provider.request({
     method: "evm_snapshot",
   });
+
+  if (typeof snapshotId !== "string") {
+    throw new HardhatNetworkHelpersError(
+      "Assertion error: the value returned by evm_snapshot should be a string"
+    );
+  }
 
   return {
     restore: async () => {
@@ -44,5 +51,6 @@ export async function takeSnapshot(): Promise<SnapshotRestorer> {
         method: "evm_snapshot",
       });
     },
+    snapshotId,
   };
 }

@@ -43,7 +43,7 @@ function getSortedFiles(dependenciesGraph: DependencyGraph) {
   } catch (error) {
     if (error instanceof Error) {
       if (error.toString().includes("Error: There is a cycle in the graph.")) {
-        throw new HardhatError(ERRORS.BUILTIN_TASKS.FLATTEN_CYCLE, error);
+        throw new HardhatError(ERRORS.BUILTIN_TASKS.FLATTEN_CYCLE, {}, error);
       }
     }
 

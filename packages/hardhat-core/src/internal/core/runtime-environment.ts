@@ -355,7 +355,8 @@ export class Environment implements HardhatRuntimeEnvironment {
           const argumentValue = taskArguments[paramName];
           const resolvedArgumentValue = this._resolveArgument(
             paramDefinition,
-            argumentValue
+            argumentValue,
+            taskDefinition.name
           );
           if (resolvedArgumentValue !== undefined) {
             values[paramName] = resolvedArgumentValue;
@@ -392,7 +393,8 @@ export class Environment implements HardhatRuntimeEnvironment {
    */
   private _resolveArgument(
     paramDefinition: ParamDefinition<any>,
-    argumentValue: any
+    argumentValue: any,
+    taskName: string
   ) {
     const { name, isOptional, defaultValue } = paramDefinition;
 
@@ -405,6 +407,7 @@ export class Environment implements HardhatRuntimeEnvironment {
       // undefined & mandatory argument -> error
       throw new HardhatError(ERRORS.ARGUMENTS.MISSING_TASK_ARGUMENT, {
         param: name,
+        task: taskName,
       });
     }
 

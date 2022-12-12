@@ -80,6 +80,8 @@ interface VerificationArgs {
 
   // --list-networks flag
   listNetworks: boolean;
+  // --no-compile flag
+  noCompile: boolean;
 }
 
 interface VerificationSubtaskArgs {
@@ -88,6 +90,7 @@ interface VerificationSubtaskArgs {
   // Fully qualified name of the contract
   contract?: string;
   libraries: Libraries;
+  noCompile: boolean;
 }
 
 interface Build {
@@ -134,6 +137,7 @@ const verify: ActionType<VerificationArgs> = async (
     contract,
     libraries: librariesModule,
     listNetworks,
+    noCompile,
   },
   { config, run }
 ) => {
@@ -168,11 +172,18 @@ const verify: ActionType<VerificationArgs> = async (
     constructorArguments,
     contract,
     libraries,
+    noCompile,
   });
 };
 
 const verifySubtask: ActionType<VerificationSubtaskArgs> = async (
-  { address, constructorArguments, contract: contractFQN, libraries },
+  {
+    address,
+    constructorArguments,
+    contract: contractFQN,
+    libraries,
+    noCompile,
+  },
   { config, network, run }
 ) => {
   const { etherscan } = config;
@@ -249,7 +260,9 @@ Possible causes are:
   }
 
   // Make sure that contract artifacts are up-to-date.
-  await run(TASK_COMPILE);
+  if (!noCompile) {
+    await run(TASK_COMPILE);
+  }
 
   const contractInformation: ExtendedContractInformation = await run(
     TASK_VERIFY_GET_CONTRACT_INFORMATION,
@@ -838,6 +851,7 @@ task(TASK_VERIFY, "Verifies contract on Etherscan")
     []
   )
   .addFlag("listNetworks", "Print the list of supported networks")
+  .addFlag("noCompile", "Don't compile before running this task")
   .setAction(verify);
 
 subtask(TASK_VERIFY_VERIFY)
@@ -845,6 +859,7 @@ subtask(TASK_VERIFY_VERIFY)
   .addOptionalParam("constructorArguments", undefined, [], types.any)
   .addOptionalParam("contract", undefined, undefined, types.string)
   .addOptionalParam("libraries", undefined, {}, types.any)
+  .addFlag("noCompile", undefined)
   .setAction(verifySubtask);
 
 function assertHardhatPluginInvariant(

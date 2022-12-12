@@ -5,11 +5,13 @@ import {
 import { validateParams } from "../../../core/jsonrpc/types/input/validation";
 import { MethodNotFoundError } from "../../../core/providers/errors";
 import { keccak256 } from "../../../util/keccak";
-import { getPackageJson } from "../../../util/packageInfo";
+import { HardhatNode } from "../node";
 
 /* eslint-disable @nomiclabs/hardhat-internal-rules/only-hardhat-error */
 
 export class Web3Module {
+  constructor(private readonly _node: HardhatNode) {}
+
   public async processRequest(
     method: string,
     params: any[] = []
@@ -32,9 +34,7 @@ export class Web3Module {
   }
 
   private async _clientVersionAction(): Promise<string> {
-    const hardhatPackage = await getPackageJson();
-    const ethereumjsVMPackage = require("@nomicfoundation/ethereumjs-vm/package.json");
-    return `HardhatNetwork/${hardhatPackage.version}/@nomicfoundation/ethereumjs-vm/${ethereumjsVMPackage.version}`;
+    return this._node.getClientVersion();
   }
 
   // web3_sha3

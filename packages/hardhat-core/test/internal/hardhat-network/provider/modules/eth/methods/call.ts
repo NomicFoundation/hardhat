@@ -10,7 +10,10 @@ import {
 } from "../../../../../../../src/internal/core/jsonrpc/types/base-types";
 import { getCurrentTimestamp } from "../../../../../../../src/internal/hardhat-network/provider/utils/getCurrentTimestamp";
 import { workaroundWindowsCiFailures } from "../../../../../../utils/workaround-windows-ci-failures";
-import { assertInvalidInputError } from "../../../../helpers/assertions";
+import {
+  assertAddressBalance,
+  assertInvalidInputError,
+} from "../../../../helpers/assertions";
 import {
   EXAMPLE_BLOCKHASH_CONTRACT,
   EXAMPLE_CONTRACT,
@@ -693,6 +696,95 @@ contract C {
               });
             });
           }
+        });
+
+        describe("sender balance", function () {
+          const sender = "0x47dc9a4a1ff2436deb1828d038868561c8a5aedf";
+          let contractAddress: string;
+
+          beforeEach("deploy the contract", async function () {
+            contractAddress = await deployContract(
+              this.provider,
+              `0x${EXAMPLE_READ_CONTRACT.bytecode.object}`
+            );
+          });
+
+          it("should use the sender's balance if it's enough", async function () {
+            // fund the sender
+            await this.provider.send("eth_sendTransaction", [
+              {
+                from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+                to: sender,
+                value: numberToRpcQuantity(1_000_000),
+              },
+            ]);
+            await assertAddressBalance(this.provider, sender, 1_000_000n);
+
+            // call the contract
+            const senderBalance = await this.provider.send("eth_call", [
+              {
+                from: sender,
+                to: contractAddress,
+                data: EXAMPLE_READ_CONTRACT.selectors.senderBalance,
+                gas: numberToRpcQuantity(100_000),
+                gasPrice: numberToRpcQuantity(1),
+              },
+            ]);
+
+            assert.equal(rpcDataToNumber(senderBalance), 900_000);
+          });
+
+          it("should increase the sender's balance if it's positive but not enough", async function () {
+            // We expect that, before the transaction is executed, the balance
+            // of the sender will be increased to the minimum value that lets
+            // the VM execute the tx. This means that during the execution of
+            // the tx, msg.sender.balance will be 0.
+
+            // fund the sender
+            await this.provider.send("eth_sendTransaction", [
+              {
+                from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+                to: sender,
+                value: numberToRpcQuantity(1_000),
+              },
+            ]);
+            await assertAddressBalance(this.provider, sender, 1_000n);
+
+            // call the contract
+            const senderBalance = await this.provider.send("eth_call", [
+              {
+                from: sender,
+                to: contractAddress,
+                data: EXAMPLE_READ_CONTRACT.selectors.senderBalance,
+                gas: numberToRpcQuantity(100_000),
+                gasPrice: numberToRpcQuantity(1),
+              },
+            ]);
+
+            assert.equal(rpcDataToNumber(senderBalance), 0);
+          });
+
+          it("should increase the sender's balance if it's zero", async function () {
+            // We expect that, before the transaction is executed, the balance
+            // of the sender will be increased to the minimum value that lets
+            // the VM execute the tx. This means that during the execution of
+            // the tx, msg.sender.balance will be 0.
+
+            await assertAddressBalance(this.provider, sender, 0n);
+
+            // call the contract
+            const senderBalance = await this.provider.send("eth_call", [
+              {
+                from: sender,
+                to: contractAddress,
+                data: EXAMPLE_READ_CONTRACT.selectors.senderBalance,
+                gas: numberToRpcQuantity(100_000),
+                gasPrice: numberToRpcQuantity(1),
+              },
+            ]);
+
+            assert.equal(rpcDataToNumber(senderBalance), 0);
+          });
         });
 
         it("should use the proper chain ID", async function () {
