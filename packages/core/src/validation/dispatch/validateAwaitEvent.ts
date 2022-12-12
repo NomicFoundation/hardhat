@@ -58,10 +58,12 @@ export async function validateAwaitEvent(
     .concat(events);
 
   if (eventFragments.length === 0) {
+    const contractName = vertex.label.split("/")[0];
+
     return {
       _kind: "failure",
       failure: new Error(
-        `Given contract doesn't have an event ${vertex.event}`
+        `Contract '${contractName}' doesn't have an event ${vertex.event}`
       ),
     };
   }
@@ -72,10 +74,12 @@ export async function validateAwaitEvent(
 
   if (matchingEventFragments.length === 0) {
     if (eventFragments.length === 1) {
+      const contractName = vertex.label.split("/")[0];
+
       return {
         _kind: "failure",
         failure: new Error(
-          `Event ${vertex.event} in contract expects ${eventFragments[0].inputs.length} arguments but ${argsLength} were given`
+          `Event ${vertex.event} in contract ${contractName} expects ${eventFragments[0].inputs.length} arguments but ${argsLength} were given`
         ),
       };
     } else {

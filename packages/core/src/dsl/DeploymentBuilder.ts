@@ -56,14 +56,12 @@ function parseEventParams(
   abi: Array<{ type: string; name: string; inputs: any[] }>,
   event: EventFuture
 ): EventParams {
-  const [contractName, eventName] = event.label.split("/");
+  const [_, eventName] = event.label.split("/");
 
   const abiEvent = abi.find((v) => v.type === "event" && v.name === eventName);
 
   if (!abiEvent) {
-    throw new Error(
-      `No event "${eventName}" found in ABI for contract "${contractName}"`
-    );
+    return {};
   }
 
   return abiEvent.inputs.reduce<EventParams>((acc, { name }) => {

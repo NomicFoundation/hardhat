@@ -292,7 +292,15 @@ describe("Execution", () => {
     const awaitedEvent: ExecutionVertex = {
       type: "AwaitedEvent",
       id: 2,
-      contract: { vertexId: 0, type: "contract", label: "Test", _future: true },
+      abi: fakeArtifact.abi,
+      address: {
+        vertexId: 0,
+        type: "contract",
+        subtype: "artifact",
+        artifact: fakeArtifact,
+        label: "Test",
+        _future: true,
+      },
       label: "Test/SomeEvent",
       event: "SomeEvent",
       args: [ACCOUNT_0],

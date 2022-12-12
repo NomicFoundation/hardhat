@@ -1,13 +1,14 @@
 import type { ExternalParamValue, Subgraph } from "./deploymentGraph";
 import type {
   CallableFuture,
+  EventFuture,
   FutureDict,
   ProxyFuture,
   Virtual,
 } from "./future";
 
 export interface ModuleDict extends FutureDict {
-  [key: string]: CallableFuture | Virtual | ProxyFuture;
+  [key: string]: CallableFuture | Virtual | ProxyFuture | EventFuture;
 }
 
 export type Module<T extends ModuleDict> = Subgraph<T>;

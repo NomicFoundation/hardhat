@@ -6,6 +6,7 @@ import { buildModule } from "dsl/buildModule";
 import { buildSubgraph } from "dsl/buildSubgraph";
 import { generateDeploymentGraphFrom } from "process/generateDeploymentGraphFrom";
 import type { IDeploymentBuilder } from "types/deploymentGraph";
+import { ArtifactContract } from "types/future";
 import { Artifact } from "types/hardhat";
 import { validateDeploymentGraph } from "validation/validateDeploymentGraph";
 
@@ -644,11 +645,14 @@ describe("Validation", () => {
 
     it("should validate a correct awaited event", async () => {
       const singleModule = buildModule("single", (m: IDeploymentBuilder) => {
-        const example = m.contract("Test");
+        const example = m.contract("Test", exampleEventArtifact);
 
         const call = m.call(example, "test", { args: [] });
 
-        m.awaitEvent(example, "SomeEvent", { after: [call], args: ["0x0"] });
+        m.awaitEvent(example as ArtifactContract, "SomeEvent", {
+          after: [call],
+          args: ["0x0"],
+        });
 
         return { example };
       });
@@ -674,11 +678,14 @@ describe("Validation", () => {
 
     it("should fail awaiting a nonexistant event", async () => {
       const singleModule = buildModule("single", (m: IDeploymentBuilder) => {
-        const example = m.contract("Test");
+        const example = m.contract("Test", exampleEventArtifact);
 
         const call = m.call(example, "test", { args: [] });
 
-        m.awaitEvent(example, "Nonexistant", { args: [], after: [call] });
+        m.awaitEvent(example as ArtifactContract, "Nonexistant", {
+          args: [],
+          after: [call],
+        });
 
         return { example };
       });
@@ -717,11 +724,14 @@ describe("Validation", () => {
 
     it("should fail an awaited event with wrong number of arguments", async () => {
       const singleModule = buildModule("single", (m: IDeploymentBuilder) => {
-        const example = m.contract("Test");
+        const example = m.contract("Test", exampleEventArtifact);
 
         const call = m.call(example, "test", { args: [] });
 
-        m.awaitEvent(example, "SomeEvent", { after: [call], args: [] });
+        m.awaitEvent(example as ArtifactContract, "SomeEvent", {
+          after: [call],
+          args: [],
+        });
 
         return { example };
       });
