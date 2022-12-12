@@ -8,7 +8,8 @@ Built by the [Nomic Foundation](https://nomic.foundation/) for the Ethereum comm
 
 Join our [Hardhat Support Discord server](https://hardhat.org/discord) to stay up to date on new releases, plugins and tutorials.
 
-[中文翻译文档](./ChineseVersionDocs/README.cn.md)
+Translations of this document:
+- [中文翻译文档](./ChineseVersionDocs/README.cn.md)
 
 ## Installation
 
