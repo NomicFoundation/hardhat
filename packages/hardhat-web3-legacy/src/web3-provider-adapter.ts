@@ -102,6 +102,9 @@ export class Web3HTTPProviderAdapter {
       }
 
       response.error = {
+        // This might be a mistake, but I'm leaving it as is just in case,
+        // because it's not obvious what we should do here.
+        // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
         code: error.code ? +error.code : 404,
         message: error.message,
         data: {

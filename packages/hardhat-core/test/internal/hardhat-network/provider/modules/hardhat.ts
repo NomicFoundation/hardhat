@@ -1,14 +1,12 @@
 import { assert } from "chai";
-import { BN } from "ethereumjs-util";
 // eslint-disable-next-line import/no-extraneous-dependencies
 import { ethers } from "ethers";
 import sinon from "sinon";
 
-import { describe } from "mocha";
 import {
   numberToRpcQuantity,
   numberToRpcStorageSlot,
-  rpcQuantityToBN,
+  rpcQuantityToBigInt,
   rpcQuantityToNumber,
 } from "../../../../../src/internal/core/jsonrpc/types/base-types";
 import { CompilerOutputContract } from "../../../../../src/types/artifacts";
@@ -23,10 +21,18 @@ import {
 import { EMPTY_ACCOUNT_ADDRESS } from "../../helpers/constants";
 import { setCWD } from "../../helpers/cwd";
 import { DEFAULT_ACCOUNTS_ADDRESSES, PROVIDERS } from "../../helpers/providers";
-import { deployContract } from "../../helpers/transactions";
+import {
+  deployContract,
+  sendTxToZeroAddress,
+} from "../../helpers/transactions";
 import { compileLiteral } from "../../stack-traces/compilation";
 import { getPendingBaseFeePerGas } from "../../helpers/getPendingBaseFeePerGas";
 import { RpcBlockOutput } from "../../../../../src/internal/hardhat-network/provider/output";
+import * as BigIntUtils from "../../../../../src/internal/util/bigint";
+import { EXAMPLE_DIFFICULTY_CONTRACT } from "../../helpers/contracts";
+import { HardhatMetadata } from "../../../../../src/internal/core/jsonrpc/types/output/metadata";
+import { useFixtureProject } from "../../../../helpers/project";
+import { useEnvironment } from "../../../../helpers/environment";
 
 describe("Hardhat module", function () {
   PROVIDERS.forEach(({ name, useProvider, isFork }) => {
@@ -864,8 +870,10 @@ describe("Hardhat module", function () {
         });
 
         describe("base fee per gas", function () {
-          const getBlockBaseFeePerGas = async (block: number): Promise<BN> => {
-            return rpcQuantityToBN(
+          const getBlockBaseFeePerGas = async (
+            block: number
+          ): Promise<bigint> => {
+            return rpcQuantityToBigInt(
               (
                 await this.ctx.provider.send("eth_getBlockByNumber", [
                   numberToRpcQuantity(block),
@@ -895,7 +903,7 @@ describe("Hardhat module", function () {
               const blockBaseFeePerGas = await getBlockBaseFeePerGas(
                 originalLatestBlockNumber + i
               );
-              assert.isTrue(blockBaseFeePerGas.eqn(1));
+              assert.equal(blockBaseFeePerGas, 1n);
             }
           });
         });
@@ -1185,8 +1193,8 @@ describe("Hardhat module", function () {
             ]);
 
             return {
-              difficulty: rpcQuantityToBN(block.difficulty),
-              totalDifficulty: rpcQuantityToBN(block.totalDifficulty),
+              difficulty: rpcQuantityToBigInt(block.difficulty),
+              totalDifficulty: rpcQuantityToBigInt(block.totalDifficulty),
             };
           };
 
@@ -1201,7 +1209,7 @@ describe("Hardhat module", function () {
               previousBlockNumber + 10
             );
 
-            assert.isTrue(middleBlockDifficulty.difficulty.eqn(0));
+            assert.equal(middleBlockDifficulty.difficulty, 0n);
           });
 
           it("reserved blocks should have consistent difficulty values", async function () {
@@ -1218,12 +1226,10 @@ describe("Hardhat module", function () {
                 previousBlockNumber + i
               );
 
-              assert.isTrue(
-                blockDifficulty.totalDifficulty.eq(
-                  previousBlockDifficulty.totalDifficulty.add(
-                    blockDifficulty.difficulty
-                  )
-                )
+              assert.equal(
+                blockDifficulty.totalDifficulty,
+                previousBlockDifficulty.totalDifficulty +
+                  blockDifficulty.difficulty
               );
 
               previousBlockDifficulty = blockDifficulty;
@@ -1463,28 +1469,28 @@ describe("Hardhat module", function () {
 
         it("should result in a modified balance", async function () {
           // Arrange: Capture existing balance
-          const existingBalance = rpcQuantityToBN(
+          const existingBalance = rpcQuantityToBigInt(
             await this.provider.send("eth_getBalance", [
               DEFAULT_ACCOUNTS_ADDRESSES[0],
             ])
           );
 
           // Act: Set the new balance.
-          const targetBalance = existingBalance.add(new BN(1)).mul(new BN(2));
+          const targetBalance = (existingBalance + 1n) * 2n;
           // For sanity, ensure that we really are making a change:
-          assert.isFalse(targetBalance.eq(existingBalance));
+          assert.notEqual(targetBalance, existingBalance);
           await this.provider.send("hardhat_setBalance", [
             DEFAULT_ACCOUNTS_ADDRESSES[0],
             numberToRpcQuantity(targetBalance),
           ]);
 
           // Assert: Ensure the new balance was set.
-          const newBalance = rpcQuantityToBN(
+          const newBalance = rpcQuantityToBigInt(
             await this.provider.send("eth_getBalance", [
               DEFAULT_ACCOUNTS_ADDRESSES[0],
             ])
           );
-          assert(targetBalance.eq(newBalance));
+          assert(targetBalance === newBalance);
         });
 
         it("should not result in a modified state root", async function () {
@@ -1523,7 +1529,7 @@ describe("Hardhat module", function () {
           );
 
           // Arrange 2: Set a new balance
-          const targetBalance = new BN("123454321");
+          const targetBalance = 123454321n;
           const targetBalanceHex = numberToRpcQuantity(targetBalance);
           await this.provider.send("hardhat_setBalance", [
             DEFAULT_ACCOUNTS_ADDRESSES[0],
@@ -1547,18 +1553,19 @@ describe("Hardhat module", function () {
           // Arrange: Fund a not-yet-existing account.
           const notYetExistingAccount =
             "0x1234567890123456789012345678901234567890";
-          const amountToBeSent = new BN(10);
-          const cost = new BN("21000000000000" /* 21k gwei in wei*/).mul(
-            await getPendingBaseFeePerGas(this.provider)
-          );
-          const balanceRequired = amountToBeSent.add(cost);
+          const amountToBeSent = 10n;
+          /* 21k gwei in wei * pending base fee */
+          const cost =
+            21_000_000_000_000n *
+            (await getPendingBaseFeePerGas(this.provider));
+          const balanceRequired = amountToBeSent + cost;
           await this.provider.send("hardhat_setBalance", [
             notYetExistingAccount,
             numberToRpcQuantity(balanceRequired),
           ]);
 
           // Arrange: Capture the existing balance of the destination account.
-          const existingBalance = rpcQuantityToBN(
+          const existingBalance = rpcQuantityToBigInt(
             await this.provider.send("eth_getBalance", [
               DEFAULT_ACCOUNTS_ADDRESSES[0],
             ])
@@ -1580,13 +1587,13 @@ describe("Hardhat module", function () {
           ]);
 
           // Assert: ensure the destination address is increased as expected.
-          const newBalance = rpcQuantityToBN(
+          const newBalance = rpcQuantityToBigInt(
             await this.provider.send("eth_getBalance", [
               DEFAULT_ACCOUNTS_ADDRESSES[0],
             ])
           );
 
-          assert(newBalance.eq(existingBalance.add(amountToBeSent)));
+          assert.equal(newBalance, existingBalance + amountToBeSent);
         });
 
         it("should have its effects persist across snapshot save/restore", async function () {
@@ -2026,13 +2033,13 @@ describe("Hardhat module", function () {
         });
 
         it("should reject a storage key that is greater than 32 bytes", async function () {
-          const MAX_WORD_VALUE = new BN(2).pow(new BN(256));
+          const MAX_WORD_VALUE = 2n ** 256n;
           await assertInvalidInputError(
             this.provider,
             "hardhat_setStorageAt",
             [
               DEFAULT_ACCOUNTS_ADDRESSES[0],
-              numberToRpcQuantity(MAX_WORD_VALUE.add(new BN(1))),
+              numberToRpcQuantity(MAX_WORD_VALUE + 1n),
               "0xff",
             ],
             "Storage key must not be greater than or equal to 2^256. Received 115792089237316195423570985008687907853269984665640564039457584007913129639937."
@@ -2069,7 +2076,7 @@ describe("Hardhat module", function () {
           await this.provider.send("hardhat_setStorageAt", [
             DEFAULT_ACCOUNTS_ADDRESSES[0],
             numberToRpcQuantity(0),
-            `0x${new BN(targetStorageValue).toString(16, 64)}`,
+            `0x${BigIntUtils.toEvmWord(targetStorageValue)}`,
           ]);
 
           const resultingStorageValue = await this.provider.send(
@@ -2106,7 +2113,7 @@ describe("Hardhat module", function () {
           await this.provider.send("hardhat_setStorageAt", [
             contractAddress,
             numberToRpcQuantity(0),
-            `0x${new BN(10).toString(16, 64)}`,
+            `0x${BigIntUtils.toEvmWord(10n)}`,
           ]);
 
           // Assert: Verify that the contract retrieves the modified value.
@@ -2165,7 +2172,7 @@ describe("Hardhat module", function () {
           await this.provider.send("hardhat_setStorageAt", [
             DEFAULT_ACCOUNTS_ADDRESSES[0],
             numberToRpcQuantity(0),
-            `0x${new BN(targetStorageValue).toString(16, 64)}`,
+            `0x${BigIntUtils.toEvmWord(targetStorageValue)}`,
           ]);
 
           // Act 2: Mine a block
@@ -2596,6 +2603,321 @@ describe("Hardhat module", function () {
           assert.equal(await this.provider.send("eth_coinbase"), cb2);
         });
       });
+
+      describe("hardhat_setPrevRandao", function () {
+        async function assertPrevRandao(
+          provider: any,
+          expectedPrevRandao: string
+        ) {
+          const latestBlock = await provider.send("eth_getBlockByNumber", [
+            "latest",
+            false,
+          ]);
+
+          assert.equal(latestBlock.mixHash, expectedPrevRandao);
+        }
+
+        describe("in hardforks before the merge", function () {
+          useProvider({ hardfork: "london" });
+
+          it("should throw", async function () {
+            await assertInvalidInputError(
+              this.provider,
+              "hardhat_setPrevRandao",
+              [
+                "0x1234567812345678123456781234567812345678123456781234567812345678",
+              ],
+              "hardhat_setPrevRandao is only available in post-merge hardforks"
+            );
+          });
+        });
+
+        describe("in hardforks after the merge", function () {
+          useProvider({ hardfork: "merge" });
+
+          it("should set a value and get it in the next block header", async function () {
+            await this.provider.send("hardhat_setPrevRandao", [
+              "0x1234567812345678123456781234567812345678123456781234567812345678",
+            ]);
+
+            // send a transaction to generate a new block
+            await sendTxToZeroAddress(this.provider);
+
+            await assertPrevRandao(
+              this.provider,
+              "0x1234567812345678123456781234567812345678123456781234567812345678"
+            );
+          });
+
+          it("should set a value and get it in the next block execution", async function () {
+            await this.provider.send("hardhat_setPrevRandao", [
+              "0x0000000000000000000000000000000000000000000000000000000000000017",
+            ]);
+
+            const contractAddress = await deployContract(
+              this.provider,
+              `0x${EXAMPLE_DIFFICULTY_CONTRACT.bytecode.object}`
+            );
+
+            const difficultyHex = await this.provider.send("eth_call", [
+              {
+                to: contractAddress,
+                from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+                data: `${EXAMPLE_DIFFICULTY_CONTRACT.selectors.difficulty}`,
+              },
+            ]);
+
+            const difficulty = BigInt(difficultyHex);
+
+            assert.equal(difficulty, 0x17n);
+          });
+
+          it("should accept zero as a value", async function () {
+            await this.provider.send("hardhat_setPrevRandao", [
+              "0x0000000000000000000000000000000000000000000000000000000000000000",
+            ]);
+
+            // send a transaction to generate a new block
+            await sendTxToZeroAddress(this.provider);
+
+            await assertPrevRandao(
+              this.provider,
+              "0x0000000000000000000000000000000000000000000000000000000000000000"
+            );
+          });
+
+          it("should accept 0xfff...fff as a value", async function () {
+            await this.provider.send("hardhat_setPrevRandao", [
+              "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+            ]);
+
+            // send a transaction to generate a new block
+            await sendTxToZeroAddress(this.provider);
+
+            await assertPrevRandao(
+              this.provider,
+              "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+            );
+          });
+
+          it("should work with snapshots", async function () {
+            await this.provider.send("hardhat_setPrevRandao", [
+              "0x1234567812345678123456781234567812345678123456781234567812345678",
+            ]);
+
+            const snapshotId = await this.provider.send("evm_snapshot");
+
+            // send a transaction to generate a new block
+            await sendTxToZeroAddress(this.provider);
+
+            await assertPrevRandao(
+              this.provider,
+              "0x1234567812345678123456781234567812345678123456781234567812345678"
+            );
+
+            await this.provider.send("evm_revert", [snapshotId]);
+
+            // send a transaction to generate a new block
+            await sendTxToZeroAddress(this.provider);
+
+            await assertPrevRandao(
+              this.provider,
+              "0x1234567812345678123456781234567812345678123456781234567812345678"
+            );
+          });
+
+          it("should be used as the preimage of the following block", async function () {
+            await this.provider.send("hardhat_setPrevRandao", [
+              "0x1234567812345678123456781234567812345678123456781234567812345678",
+            ]);
+
+            // send a transaction to generate a new block
+            await sendTxToZeroAddress(this.provider);
+
+            await assertPrevRandao(
+              this.provider,
+              "0x1234567812345678123456781234567812345678123456781234567812345678"
+            );
+
+            // send a transaction to generate a new block
+            await sendTxToZeroAddress(this.provider);
+
+            // keccak of 0x12345671234...
+            await assertPrevRandao(
+              this.provider,
+              "0x3d6b7104c741bf23615b1bb00e067e9ef51c8ba2ab40042ee05086c14870f17c"
+            );
+          });
+
+          it("should reject values with less than 32 bytes", async function () {
+            await assertInvalidArgumentsError(
+              this.provider,
+              "hardhat_setPrevRandao",
+              ["0x12345678"]
+            );
+          });
+
+          it("should reject values with more than 32 bytes", async function () {
+            await assertInvalidArgumentsError(
+              this.provider,
+              "hardhat_setPrevRandao",
+              [`0x${"f".repeat(65)}`]
+            );
+          });
+        });
+      });
+
+      describe("hardhat_metadata", function () {
+        it("has the right fields", async function () {
+          const metadata = await this.provider.send("hardhat_metadata");
+
+          assert.isString(metadata.clientVersion);
+          assert.isNumber(metadata.chainId);
+          assert.isString(metadata.instanceId);
+          assert.isNumber(metadata.latestBlockNumber);
+          assert.isString(metadata.latestBlockHash);
+
+          // check that instance id is 32 bytes long
+          assert.lengthOf(metadata.instanceId, 66);
+
+          if (isFork) {
+            assert.isDefined(metadata.forkedNetwork);
+            assert.isNumber(metadata.forkedNetwork.chainId);
+            assert.isNumber(metadata.forkedNetwork.forkBlockNumber);
+            assert.isString(metadata.forkedNetwork.forkBlockHash);
+          } else {
+            assert.notProperty(metadata, "forkedNetwork");
+          }
+        });
+
+        it("shouldn't change the instance id when a block is mined", async function () {
+          const metadataBefore: HardhatMetadata = await this.provider.send(
+            "hardhat_metadata"
+          );
+
+          // send a transaction to generate a new block
+          await sendTxToZeroAddress(this.provider);
+
+          const metadataAfter: HardhatMetadata = await this.provider.send(
+            "hardhat_metadata"
+          );
+
+          assert.equal(metadataBefore.instanceId, metadataAfter.instanceId);
+        });
+
+        it("changes its instanceId when hardhat_reset is used", async function () {
+          const metadataBefore: HardhatMetadata = await this.provider.send(
+            "hardhat_metadata"
+          );
+
+          await this.provider.send("hardhat_reset");
+
+          const metadataAfter: HardhatMetadata = await this.provider.send(
+            "hardhat_metadata"
+          );
+
+          assert.notEqual(metadataBefore.instanceId, metadataAfter.instanceId);
+        });
+
+        it("doesn't change its instandeId when snapshots are used", async function () {
+          const snapshotId = await this.provider.send("evm_snapshot");
+
+          const metadataBefore: HardhatMetadata = await this.provider.send(
+            "hardhat_metadata"
+          );
+
+          await sendTxToZeroAddress(this.provider);
+          await this.provider.send("evm_revert", [snapshotId]);
+
+          const metadataAfter: HardhatMetadata = await this.provider.send(
+            "hardhat_metadata"
+          );
+
+          assert.equal(metadataBefore.instanceId, metadataAfter.instanceId);
+        });
+
+        it("updates the block number and block hash when a new block is mined (sending a tx)", async function () {
+          const metadataBefore: HardhatMetadata = await this.provider.send(
+            "hardhat_metadata"
+          );
+
+          // send a transaction to generate a new block
+          await sendTxToZeroAddress(this.provider);
+
+          const metadataAfter: HardhatMetadata = await this.provider.send(
+            "hardhat_metadata"
+          );
+
+          assert.equal(
+            metadataAfter.latestBlockNumber,
+            metadataBefore.latestBlockNumber + 1
+          );
+          assert.notEqual(
+            metadataBefore.latestBlockHash,
+            metadataAfter.latestBlockHash
+          );
+        });
+
+        it("updates the block number and block hash when a new block is mined (using hardhat_mine)", async function () {
+          const metadataBefore: HardhatMetadata = await this.provider.send(
+            "hardhat_metadata"
+          );
+
+          await this.provider.send("hardhat_mine", ["0x100"]);
+
+          const metadataAfter: HardhatMetadata = await this.provider.send(
+            "hardhat_metadata"
+          );
+
+          assert.equal(
+            metadataAfter.latestBlockNumber,
+            metadataBefore.latestBlockNumber + 0x100
+          );
+          assert.notEqual(
+            metadataBefore.latestBlockHash,
+            metadataAfter.latestBlockHash
+          );
+        });
+
+        it("forkBlockNumber and forkBlockHash don't change when a block is mined", async function () {
+          if (!isFork) {
+            return this.skip();
+          }
+
+          const metadataBefore: HardhatMetadata = await this.provider.send(
+            "hardhat_metadata"
+          );
+
+          // send a transaction to generate a new block
+          await sendTxToZeroAddress(this.provider);
+
+          const metadataAfter: HardhatMetadata = await this.provider.send(
+            "hardhat_metadata"
+          );
+
+          assert.equal(
+            metadataBefore.forkedNetwork!.forkBlockNumber,
+            metadataAfter.forkedNetwork!.forkBlockNumber
+          );
+          assert.equal(
+            metadataBefore.forkedNetwork!.forkBlockHash,
+            metadataAfter.forkedNetwork!.forkBlockHash
+          );
+        });
+      });
+    });
+  });
+
+  describe("fixture project tests", function () {
+    useFixtureProject("non-default-chainid");
+    useEnvironment();
+
+    it("should return the chainId set in the config", async function () {
+      const metadata: HardhatMetadata = await this.env.network.provider.send(
+        "hardhat_metadata"
+      );
+
+      assert.equal(metadata.chainId, 1000);
     });
   });
 });

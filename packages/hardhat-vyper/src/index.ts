@@ -3,11 +3,9 @@ import type { Artifacts } from "hardhat/types/artifacts";
 import type { VyperOutput, VyperBuild } from "./types";
 
 import * as os from "os";
-import path from "path";
 import fsExtra from "fs-extra";
 import semver from "semver";
 
-import { glob } from "hardhat/internal/util/glob";
 import { getCompilersDir } from "hardhat/internal/util/global-dir";
 import { localPathToSourceName } from "hardhat/utils/source-names";
 import { getFullyQualifiedName } from "hardhat/utils/contract-names";
@@ -39,6 +37,7 @@ import {
   VyperPluginError,
 } from "./util";
 import "./type-extensions";
+import { getFilesWithExtension } from "./glob";
 
 const log = getLogger("tasks:compile");
 
@@ -59,8 +58,8 @@ subtask(
 subtask(
   TASK_COMPILE_VYPER_GET_SOURCE_PATHS,
   async (_, { config }): Promise<string[]> => {
-    const vyPaths = await glob(path.join(config.paths.sources, "**/*.vy"));
-    const vpyPaths = await glob(path.join(config.paths.sources, "**/*.v.py"));
+    const vyPaths = await getFilesWithExtension(config.paths.sources, "vy");
+    const vpyPaths = await getFilesWithExtension(config.paths.sources, "v.py");
 
     return [...vyPaths, ...vpyPaths];
   }

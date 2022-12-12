@@ -49,13 +49,13 @@ This is literally all it takes to put together a plugin for Hardhat. Now `hi` is
 
 ## Using the Hardhat TypeScript plugin boilerplate
 
-For a complete example of a plugin you can take a look at the [Hardhat TypeScript plugin boilerplate project](https://github.com/nomiclabs/hardhat-ts-plugin-boilerplate/).
+For a complete example of a plugin you can take a look at the [Hardhat TypeScript plugin boilerplate project](https://github.com/NomicFoundation/hardhat-ts-plugin-boilerplate/).
 
 Plugins don't need to be written in TypeScript, but we recommend doing it, as many of our users use it. Creating a plugin in JavaScript can lead to a subpar experience for them.
 
 ### Extending the HRE
 
-To learn how to successfully extend the [HRE](./hardhat-runtime-environment.md) in TypeScript, and to give your users type information about your extension, take a look at [`src/index.ts`](https://github.com/nomiclabs/hardhat-ts-plugin-boilerplate/blob/master/src/index.ts) in the boilerplate repo and read the [Extending the HRE](./hardhat-runtime-environment.md#extending-the-hre) documentation.
+To learn how to successfully extend the [HRE](./hardhat-runtime-environment.md) in TypeScript, and to give your users type information about your extension, take a look at [`src/index.ts`](https://github.com/NomicFoundation/hardhat-ts-plugin-boilerplate/blob/master/src/index.ts) in the boilerplate repo and read the [Extending the HRE](./hardhat-runtime-environment.md#extending-the-hre) documentation.
 
 Make sure to keep the type extension in your main file, as that convention is used across different plugins.
 
@@ -65,7 +65,7 @@ The boilerplate project also has an example on how to extend the Hardhat config.
 
 We strongly recommend doing this in TypeScript and properly extending the config types.
 
-An example on how to add fields to the Hardhat config can be found in [`src/index.ts`](https://github.com/nomiclabs/hardhat-ts-plugin-boilerplate/blob/master/src/index.ts).
+An example on how to add fields to the Hardhat config can be found in [`src/index.ts`](https://github.com/NomicFoundation/hardhat-ts-plugin-boilerplate/blob/master/src/index.ts).
 
 ## Plugin development best practices
 
@@ -81,7 +81,7 @@ Keeping startup time short is vital to give a good user experience.
 
 To do so, Hardhat and its plugins delay any slow import or initialization until the very last moment. To do so, you can use `lazyObject`, and `lazyFunction` from `hardhat/plugins`.
 
-An example on how to use them is present in [`src/index.ts`](https://github.com/nomiclabs/hardhat-ts-plugin-boilerplate/blob/master/src/index.ts).
+An example on how to use them is present in [`src/index.ts`](https://github.com/NomicFoundation/hardhat-ts-plugin-boilerplate/blob/master/src/index.ts).
 
 ## Notes on dependencies
 
@@ -107,4 +107,4 @@ Examples of suggested overrides are:
 - Linter integrations should override the `check` task.
 - Plugins generating intermediate files should override the `clean` task.
 
-For a list of all the built-in tasks and subtasks please take a look at [`task-names.ts`](https://github.com/nomiclabs/hardhat/blob/master/packages/hardhat-core/src/builtin-tasks/task-names.ts)
+For a list of all the built-in tasks and subtasks please take a look at [`task-names.ts`](https://github.com/NomicFoundation/hardhat/blob/main/packages/hardhat-core/src/builtin-tasks/task-names.ts)

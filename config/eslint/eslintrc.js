@@ -9,6 +9,7 @@ module.exports = {
   plugins: [
     "@nomiclabs/eslint-plugin-hardhat-internal-rules",
     "eslint-plugin-import",
+    "no-only-tests",
     "@typescript-eslint",
   ],
   rules: {
@@ -74,7 +75,7 @@ module.exports = {
         trailingUnderscore: "allow",
       },
       {
-        selector: "classProperty",
+        selector: ["classProperty"],
         format: ["camelCase", "UPPER_CASE"],
         leadingUnderscore: "allow",
       },
@@ -89,7 +90,11 @@ module.exports = {
         leadingUnderscore: "require",
       },
       {
-        selector: ["objectLiteralProperty", "objectLiteralMethod"],
+        selector: ["objectLiteralProperty"],
+        format: null
+      },
+      {
+        selector: ["objectLiteralMethod"],
         format: ["camelCase", "PascalCase", "snake_case", "UPPER_CASE"],
         leadingUnderscore: "allow",
       },
@@ -141,7 +146,7 @@ module.exports = {
         allowString: false,
         allowNumber: false,
         allowNullableObject: false,
-        allowAny: true,
+        allowAny: false,
       },
     ],
     "@typescript-eslint/triple-slash-reference": [
@@ -188,6 +193,7 @@ module.exports = {
     "no-extra-bind": "error",
     "no-new-func": "error",
     "no-new-wrappers": "error",
+    "no-only-tests/no-only-tests": "error",
     "no-return-await": "off",
     "@typescript-eslint/return-await": "error",
     "no-sequences": "error",

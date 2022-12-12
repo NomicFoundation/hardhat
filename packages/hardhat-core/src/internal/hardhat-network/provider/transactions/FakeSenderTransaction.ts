@@ -1,8 +1,12 @@
-import Common from "@ethereumjs/common";
-import { Transaction, TxData, TxOptions } from "@ethereumjs/tx";
-import { Address, BN, rlp } from "ethereumjs-util";
+import { Common } from "@nomicfoundation/ethereumjs-common";
+import * as rlp from "@nomicfoundation/ethereumjs-rlp";
+import { Transaction, TxData, TxOptions } from "@nomicfoundation/ethereumjs-tx";
+import { Address, arrToBufArr } from "@nomicfoundation/ethereumjs-util";
 
-import { InternalError } from "../../../core/providers/errors";
+import {
+  InternalError,
+  InvalidArgumentsError,
+} from "../../../core/providers/errors";
 
 /* eslint-disable @nomiclabs/hardhat-internal-rules/only-hardhat-error */
 
@@ -51,11 +55,9 @@ export class FakeSenderTransaction extends Transaction {
     serialized: Buffer,
     opts?: TxOptions
   ) {
-    const values = rlp.decode(serialized);
+    const values = arrToBufArr(rlp.decode(serialized));
 
-    if (!Array.isArray(values)) {
-      throw new Error("Invalid serialized tx input. Must be array");
-    }
+    checkIsFlatBufferArray(values);
 
     return this.fromSenderAndValuesArray(sender, values, opts);
   }
@@ -98,9 +100,9 @@ export class FakeSenderTransaction extends Transaction {
     super(
       {
         ...data,
-        v: data.v ?? new BN(27),
-        r: data.r ?? new BN(1),
-        s: data.s ?? new BN(2),
+        v: data.v ?? 27,
+        r: data.r ?? 1,
+        s: data.s ?? 2,
       },
       { ...opts, freeze: false }
     );
@@ -182,3 +184,19 @@ FakeSenderTransactionPrototype._processSignature = function () {
     "`_processSignature` is not implemented in FakeSenderTransaction"
   );
 };
+
+function checkIsFlatBufferArray(values: unknown): asserts values is Buffer[] {
+  if (!Array.isArray(values)) {
+    throw new InvalidArgumentsError(
+      `Invalid deserialized tx. Expected a Buffer[], but got '${values as any}'`
+    );
+  }
+
+  for (const [i, value] of values.entries()) {
+    if (!Buffer.isBuffer(value)) {
+      throw new InvalidArgumentsError(
+        `Invalid deserialized tx. Expected a Buffer in position ${i}, but got '${value}'`
+      );
+    }
+  }
+}

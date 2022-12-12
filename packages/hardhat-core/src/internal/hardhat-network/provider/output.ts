@@ -1,9 +1,10 @@
-import { Block } from "@ethereumjs/block";
-import Common from "@ethereumjs/common";
-import { TypedTransaction } from "@ethereumjs/tx";
-import { RunBlockResult } from "@ethereumjs/vm/dist/runBlock";
-import { BN, bufferToHex } from "ethereumjs-util";
+import { Block } from "@nomicfoundation/ethereumjs-block";
+import { Common } from "@nomicfoundation/ethereumjs-common";
+import { TypedTransaction } from "@nomicfoundation/ethereumjs-tx";
+import { bufferToHex } from "@nomicfoundation/ethereumjs-util";
+import { RunBlockResult } from "@nomicfoundation/ethereumjs-vm";
 
+import * as BigIntUtils from "../../util/bigint";
 import { assertHardhatInvariant } from "../../core/errors";
 import {
   bufferToRpcData,
@@ -23,7 +24,7 @@ export interface RpcBlockOutput {
   gasLimit: string;
   gasUsed: string;
   hash: string | null;
-  logsBloom: string | null;
+  logsBloom: string;
   miner: string;
   mixHash: string | null;
   nonce: string | null;
@@ -150,7 +151,7 @@ export interface RpcDebugTraceOutput {
 
 export function getRpcBlock(
   block: Block,
-  totalDifficulty: BN,
+  totalDifficulty: bigint,
   showTransactionType: boolean,
   includeTransactions = true,
   pending = false
@@ -162,7 +163,7 @@ export function getRpcBlock(
     : block.transactions.map((tx) => bufferToRpcData(tx.hash()));
 
   const output: RpcBlockOutput = {
-    number: pending ? null : numberToRpcQuantity(new BN(block.header.number)),
+    number: pending ? null : numberToRpcQuantity(block.header.number),
     hash: pending ? null : bufferToRpcData(block.hash()),
     parentHash: bufferToRpcData(block.header.parentHash),
     // We pad this to 8 bytes because of a limitation in The Graph
@@ -170,18 +171,18 @@ export function getRpcBlock(
     nonce: pending ? null : bufferToRpcData(block.header.nonce, 8),
     mixHash: pending ? null : bufferToRpcData(block.header.mixHash, 32),
     sha3Uncles: bufferToRpcData(block.header.uncleHash),
-    logsBloom: pending ? null : bufferToRpcData(block.header.bloom),
+    logsBloom: bufferToRpcData(block.header.logsBloom),
     transactionsRoot: bufferToRpcData(block.header.transactionsTrie),
     stateRoot: bufferToRpcData(block.header.stateRoot),
     receiptsRoot: bufferToRpcData(block.header.receiptTrie),
     miner: bufferToRpcData(block.header.coinbase.toBuffer()),
-    difficulty: numberToRpcQuantity(new BN(block.header.difficulty)),
+    difficulty: numberToRpcQuantity(block.header.difficulty),
     totalDifficulty: numberToRpcQuantity(totalDifficulty),
     extraData: bufferToRpcData(block.header.extraData),
     size: numberToRpcQuantity(block.serialize().length),
-    gasLimit: numberToRpcQuantity(new BN(block.header.gasLimit)),
-    gasUsed: numberToRpcQuantity(new BN(block.header.gasUsed)),
-    timestamp: numberToRpcQuantity(new BN(block.header.timestamp)),
+    gasLimit: numberToRpcQuantity(block.header.gasLimit),
+    gasUsed: numberToRpcQuantity(block.header.gasUsed),
+    timestamp: numberToRpcQuantity(block.header.timestamp),
     transactions,
     uncles: block.uncleHeaders.map((uh: any) => bufferToRpcData(uh.hash())),
   };
@@ -223,23 +224,21 @@ export function getRpcTransaction(
   const baseOutput = {
     blockHash: block === "pending" ? null : bufferToRpcData(block.hash()),
     blockNumber:
-      block === "pending"
-        ? null
-        : numberToRpcQuantity(new BN(block.header.number)),
+      block === "pending" ? null : numberToRpcQuantity(block.header.number),
     from: bufferToRpcData(tx.getSenderAddress().toBuffer()),
-    gas: numberToRpcQuantity(new BN(tx.gasLimit)),
+    gas: numberToRpcQuantity(tx.gasLimit),
     hash: bufferToRpcData(tx.hash()),
     input: bufferToRpcData(tx.data),
-    nonce: numberToRpcQuantity(new BN(tx.nonce)),
+    nonce: numberToRpcQuantity(tx.nonce),
     to: tx.to === undefined ? null : bufferToRpcData(tx.to.toBuffer()),
     transactionIndex: index !== undefined ? numberToRpcQuantity(index) : null,
-    value: numberToRpcQuantity(new BN(tx.value)),
-    v: numberToRpcQuantity(new BN(tx.v)),
-    r: numberToRpcQuantity(new BN(tx.r)),
-    s: numberToRpcQuantity(new BN(tx.s)),
+    value: numberToRpcQuantity(tx.value),
+    v: numberToRpcQuantity(tx.v),
+    r: numberToRpcQuantity(tx.r),
+    s: numberToRpcQuantity(tx.s),
     type:
       showTransactionType || isTypedTransaction
-        ? numberToRpcQuantity(tx.transactionType)
+        ? numberToRpcQuantity(tx.type)
         : undefined,
     accessList:
       "accessList" in tx
@@ -274,14 +273,14 @@ export function getRpcTransaction(
   };
 }
 
-function getEffectiveGasPrice(tx: TypedTransaction, baseFeePerGas: BN) {
+function getEffectiveGasPrice(tx: TypedTransaction, baseFeePerGas: bigint) {
   const maxFeePerGas = "maxFeePerGas" in tx ? tx.maxFeePerGas : tx.gasPrice;
   const maxPriorityFeePerGas =
     "maxPriorityFeePerGas" in tx ? tx.maxPriorityFeePerGas : tx.gasPrice;
 
-  // baseFeePerGas + min(maxFeePerGas - baseFeePerGas, maxPriorityFeePerGas)
-  return baseFeePerGas.add(
-    BN.min(maxFeePerGas.sub(baseFeePerGas), maxPriorityFeePerGas)
+  return (
+    baseFeePerGas +
+    BigIntUtils.min(maxFeePerGas - baseFeePerGas, maxPriorityFeePerGas)
   );
 }
 
@@ -296,7 +295,7 @@ export function getRpcReceiptOutputsFromLocalBlockExecution(
 
   for (let i = 0; i < runBlockResult.results.length; i += 1) {
     const tx = block.transactions[i];
-    const { createdAddress, gasUsed } = runBlockResult.results[i];
+    const { createdAddress, totalGasSpent } = runBlockResult.results[i];
     const receipt = runBlockResult.receipts[i];
 
     const logs = receipt.logs.map((log) => {
@@ -309,11 +308,11 @@ export function getRpcReceiptOutputsFromLocalBlockExecution(
       transactionHash: bufferToRpcData(tx.hash()),
       transactionIndex: numberToRpcQuantity(i),
       blockHash: bufferToRpcData(block.hash()),
-      blockNumber: numberToRpcQuantity(new BN(block.header.number)),
+      blockNumber: numberToRpcQuantity(block.header.number),
       from: bufferToRpcData(tx.getSenderAddress().toBuffer()),
       to: tx.to === undefined ? null : bufferToRpcData(tx.to.toBuffer()),
-      cumulativeGasUsed: numberToRpcQuantity(new BN(receipt.gasUsed)),
-      gasUsed: numberToRpcQuantity(gasUsed),
+      cumulativeGasUsed: numberToRpcQuantity(receipt.cumulativeBlockGasUsed),
+      gasUsed: numberToRpcQuantity(totalGasSpent),
       contractAddress:
         createdAddress !== undefined
           ? bufferToRpcData(createdAddress.toBuffer())
@@ -322,9 +321,7 @@ export function getRpcReceiptOutputsFromLocalBlockExecution(
       logsBloom: bufferToRpcData(receipt.bitvector),
       // There's no way to execute an EIP-2718 tx locally if we aren't in
       // an HF >= Berlin, so this check is enough
-      type: showTransactionType
-        ? numberToRpcQuantity(tx.transactionType)
-        : undefined,
+      type: showTransactionType ? numberToRpcQuantity(tx.type) : undefined,
     };
 
     if ("stateRoot" in receipt) {
@@ -386,7 +383,7 @@ export function remoteReceiptToRpcReceiptOutput(
     transactionIndex: numberToRpcQuantity(receipt.transactionIndex),
     type:
       showTransactionType || isTypedTransaction
-        ? numberToRpcQuantity(tx.transactionType)
+        ? numberToRpcQuantity(tx.type)
         : undefined,
     effectiveGasPrice:
       showEffectiveGasPrice || tx.type === 2
@@ -433,9 +430,7 @@ function getRpcLogOutput(
     transactionHash: block !== undefined ? bufferToRpcData(tx.hash()) : null,
     blockHash: block !== undefined ? bufferToRpcData(block.hash()) : null,
     blockNumber:
-      block !== undefined
-        ? numberToRpcQuantity(new BN(block.header.number))
-        : null,
+      block !== undefined ? numberToRpcQuantity(block.header.number) : null,
     address: bufferToRpcData(log[0]),
     data: bufferToRpcData(log[2]),
     topics: log[1].map((topic: Buffer) => bufferToRpcData(topic)),

@@ -1,9 +1,8 @@
-import { BN } from "ethereumjs-util";
 import { EIP1193Provider, RequestArguments } from "../../../types";
 import {
   numberToRpcQuantity,
   rpcQuantityToNumber,
-  rpcQuantityToBN,
+  rpcQuantityToBigInt,
 } from "../jsonrpc/types/base-types";
 
 import { ProviderWrapper } from "./wrapper";
@@ -140,10 +139,11 @@ export class AutomaticGasProvider extends MultipliedGasEstimationProvider {
 export class AutomaticGasPriceProvider extends ProviderWrapper {
   // We pay the max base fee that can be required if the next
   // EIP1559_BASE_FEE_MAX_FULL_BLOCKS_PREFERENCE are full.
-  public static readonly EIP1559_BASE_FEE_MAX_FULL_BLOCKS_PREFERENCE: number = 3;
+  public static readonly EIP1559_BASE_FEE_MAX_FULL_BLOCKS_PREFERENCE: bigint =
+    3n;
 
   // See eth_feeHistory for an explanation of what this means
-  public static readonly EIP1559_REWARD_PERCENTILE: number = 50;
+  public static readonly EIP1559_REWARD_PERCENTILE: bigint = 50n;
 
   private _nodeHasFeeHistory?: boolean;
   private _nodeSupportsEIP1559?: boolean;
@@ -195,16 +195,16 @@ export class AutomaticGasPriceProvider extends ProviderWrapper {
 
     let maxFeePerGas =
       tx.maxFeePerGas !== undefined
-        ? rpcQuantityToBN(tx.maxFeePerGas)
+        ? rpcQuantityToBigInt(tx.maxFeePerGas)
         : suggestedEip1559Values.maxFeePerGas;
 
     const maxPriorityFeePerGas =
       tx.maxPriorityFeePerGas !== undefined
-        ? rpcQuantityToBN(tx.maxPriorityFeePerGas)
+        ? rpcQuantityToBigInt(tx.maxPriorityFeePerGas)
         : suggestedEip1559Values.maxPriorityFeePerGas;
 
-    if (maxFeePerGas.lt(maxPriorityFeePerGas)) {
-      maxFeePerGas = maxFeePerGas.add(maxPriorityFeePerGas);
+    if (maxFeePerGas < maxPriorityFeePerGas) {
+      maxFeePerGas += maxPriorityFeePerGas;
     }
 
     tx.maxFeePerGas = numberToRpcQuantity(maxFeePerGas);
@@ -213,18 +213,18 @@ export class AutomaticGasPriceProvider extends ProviderWrapper {
     return this._wrappedProvider.request(args);
   }
 
-  private async _getGasPrice(): Promise<BN> {
+  private async _getGasPrice(): Promise<bigint> {
     const response = (await this._wrappedProvider.request({
       method: "eth_gasPrice",
     })) as string;
 
-    return rpcQuantityToBN(response);
+    return rpcQuantityToBigInt(response);
   }
 
   private async _suggestEip1559FeePriceValues(): Promise<
     | {
-        maxFeePerGas: BN;
-        maxPriorityFeePerGas: BN;
+        maxFeePerGas: bigint;
+        maxPriorityFeePerGas: bigint;
       }
     | undefined
   > {
@@ -258,25 +258,17 @@ export class AutomaticGasPriceProvider extends ProviderWrapper {
         // Each block increases the base fee by 1/8 at most, when full.
         // We have the next block's base fee, so we compute a cap for the
         // next N blocks here.
-        maxFeePerGas: rpcQuantityToBN(response.baseFeePerGas[1])
-          .mul(
-            new BN(9).pow(
-              new BN(
-                AutomaticGasPriceProvider.EIP1559_BASE_FEE_MAX_FULL_BLOCKS_PREFERENCE -
-                  1
-              )
-            )
-          )
-          .div(
-            new BN(8).pow(
-              new BN(
-                AutomaticGasPriceProvider.EIP1559_BASE_FEE_MAX_FULL_BLOCKS_PREFERENCE -
-                  1
-              )
-            )
-          ),
 
-        maxPriorityFeePerGas: rpcQuantityToBN(response.reward[0][0]),
+        maxFeePerGas:
+          (rpcQuantityToBigInt(response.baseFeePerGas[1]) *
+            9n **
+              (AutomaticGasPriceProvider.EIP1559_BASE_FEE_MAX_FULL_BLOCKS_PREFERENCE -
+                1n)) /
+          8n **
+            (AutomaticGasPriceProvider.EIP1559_BASE_FEE_MAX_FULL_BLOCKS_PREFERENCE -
+              1n),
+
+        maxPriorityFeePerGas: rpcQuantityToBigInt(response.reward[0][0]),
       };
     } catch {
       this._nodeHasFeeHistory = false;

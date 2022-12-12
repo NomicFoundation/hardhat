@@ -3,7 +3,7 @@ import { Context } from "mocha";
 
 import {
   numberToRpcQuantity,
-  rpcQuantityToBN,
+  rpcQuantityToBigInt,
   rpcQuantityToNumber,
 } from "../../../../../../../src/internal/core/jsonrpc/types/base-types";
 import {
@@ -103,6 +103,7 @@ describe("Eth module", function () {
             ["pending", false]
           );
 
+          assert.isNotEmpty(block.logsBloom);
           assert.equal(block.transactions.length, 1);
           assert.equal(block.parentHash, firstBlock.hash);
           assert.include(block.transactions as string[], txHash);
@@ -163,9 +164,8 @@ describe("Eth module", function () {
 
           assertQuantity(
             block.totalDifficulty,
-            rpcQuantityToBN(forkBlock.totalDifficulty).add(
-              rpcQuantityToBN(block.difficulty)
-            )
+            rpcQuantityToBigInt(forkBlock.totalDifficulty) +
+              rpcQuantityToBigInt(block.difficulty)
           );
         }
 

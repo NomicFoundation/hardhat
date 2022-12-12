@@ -1,16 +1,21 @@
 import { assert } from "chai";
+import ci from "ci-info";
 import * as fsExtra from "fs-extra";
 import * as path from "path";
 
 import { TASK_COMPILE_SOLIDITY_GET_COMPILATION_JOBS_FAILURE_REASONS } from "../../src/builtin-tasks/task-names";
 import { SOLIDITY_FILES_CACHE_FILENAME } from "../../src/internal/constants";
 import { ERRORS } from "../../src/internal/core/errors-list";
-import { globSync } from "../../src/internal/util/glob";
 import { CompilationJobCreationErrorReason } from "../../src/types/builtin-tasks";
 import { useEnvironment } from "../helpers/environment";
 import { expectHardhatErrorAsync } from "../helpers/errors";
 import { useFixtureProject } from "../helpers/project";
+import { assertValidJson } from "../utils/json";
 import { mockFile } from "../utils/mock-file";
+import {
+  getAllFilesMatchingSync,
+  getRealPathSync,
+} from "../../src/internal/util/fs-utils";
 
 function assertFileExists(pathToFile: string) {
   assert.isTrue(
@@ -31,6 +36,13 @@ describe("compile task", function () {
     fsExtra.removeSync(path.join("cache", SOLIDITY_FILES_CACHE_FILENAME));
   });
 
+  function getBuildInfos() {
+    return getAllFilesMatchingSync(
+      getRealPathSync("artifacts/build-info"),
+      (f) => f.endsWith(".json")
+    );
+  }
+
   describe("project with single file", function () {
     useFixtureProject("compilation-single-file");
     useEnvironment();
@@ -42,7 +54,64 @@ describe("compile task", function () {
       assertBuildInfoExists(
         path.join("artifacts", "contracts", "A.sol", "A.dbg.json")
       );
-      assert.lengthOf(globSync("artifacts/build-info/*.json"), 1);
+
+      const buildInfos = getBuildInfos();
+      assert.lengthOf(buildInfos, 1);
+
+      assertValidJson(buildInfos[0]);
+    });
+  });
+
+  describe("project with an empty file", function () {
+    useFixtureProject("compilation-empty-file");
+    useEnvironment();
+
+    it("should compile and emit no artifact", async function () {
+      await this.env.run("compile");
+
+      // the artifacts directory only has the build-info directory
+      const artifactsDirectory = fsExtra.readdirSync("artifacts");
+      assert.lengthOf(artifactsDirectory, 1);
+
+      const buildInfos = getBuildInfos();
+      assert.lengthOf(buildInfos, 0);
+    });
+  });
+
+  describe("project with a single file with many contracts", function () {
+    useFixtureProject("compilation-single-file-many-contracts");
+    useEnvironment();
+
+    it("should compile and emit artifacts", async function () {
+      await this.env.run("compile");
+
+      const artifactsDirectory = fsExtra.readdirSync(
+        "artifacts/contracts/A.sol"
+      );
+      // 100 contracts, 2 files per contract
+      assert.lengthOf(artifactsDirectory, 200);
+
+      const buildInfos = getBuildInfos();
+      assert.lengthOf(buildInfos, 1);
+
+      assertValidJson(buildInfos[0]);
+    });
+  });
+
+  describe("project with many files", function () {
+    useFixtureProject("compilation-many-files");
+    useEnvironment();
+
+    it("should compile and emit artifacts", async function () {
+      await this.env.run("compile");
+
+      const contractsDirectory = fsExtra.readdirSync("artifacts/contracts");
+      assert.lengthOf(contractsDirectory, 100);
+
+      const buildInfos = getBuildInfos();
+      assert.lengthOf(buildInfos, 1);
+
+      assertValidJson(buildInfos[0]);
     });
   });
 
@@ -61,7 +130,11 @@ describe("compile task", function () {
       assertBuildInfoExists(
         path.join("artifacts", "contracts", "B.sol", "B.dbg.json")
       );
-      assert.lengthOf(globSync("artifacts/build-info/*.json"), 2);
+
+      const buildInfos = getBuildInfos();
+      assert.lengthOf(buildInfos, 2);
+      assertValidJson(buildInfos[0]);
+      assertValidJson(buildInfos[1]);
     });
   });
 
@@ -743,6 +816,32 @@ Read about compiler configuration at https://hardhat.org/config
           await this.env.run("compile");
         }, ERRORS.BUILTIN_TASKS.COMPILE_TASK_UNSUPPORTED_SOLC_VERSION);
       });
+    });
+  });
+
+  describe("project where two contracts import the same dependency", function () {
+    useFixtureProject("consistent-build-info-names");
+    useEnvironment();
+
+    it("should always produce the same build-info name", async function () {
+      await this.env.run("compile");
+
+      const buildInfos = getBuildInfos();
+      assert.lengthOf(buildInfos, 1);
+
+      const expectedBuildInfoName = buildInfos[0];
+
+      const runs = ci.isCI ? 10 : 100;
+
+      for (let i = 0; i < runs; i++) {
+        await this.env.run("clean");
+        await this.env.run("compile");
+
+        const newBuildInfos = getBuildInfos();
+        assert.lengthOf(newBuildInfos, 1);
+
+        assert.equal(newBuildInfos[0], expectedBuildInfoName);
+      }
     });
   });
 });

@@ -1,9 +1,9 @@
-import { Block } from "@ethereumjs/block";
-import Common from "@ethereumjs/common";
-import { TypedTransaction } from "@ethereumjs/tx";
-import { Address, BN } from "ethereumjs-util";
+import { Block } from "@nomicfoundation/ethereumjs-block";
+import { Common } from "@nomicfoundation/ethereumjs-common";
+import { TypedTransaction } from "@nomicfoundation/ethereumjs-tx";
+import { Address } from "@nomicfoundation/ethereumjs-util";
 
-import { FeeMarketEIP1559TxData } from "@ethereumjs/tx/dist/types";
+import { FeeMarketEIP1559TxData } from "@nomicfoundation/ethereumjs-tx/dist/types";
 import { RpcBlockWithTransactions } from "../../../core/jsonrpc/types/output/block";
 import { RpcTransactionReceipt } from "../../../core/jsonrpc/types/output/receipt";
 import { RpcTransaction } from "../../../core/jsonrpc/types/output/transaction";
@@ -24,6 +24,7 @@ import { ReadOnlyValidTransaction } from "../transactions/ReadOnlyValidTransacti
 import { HardhatBlockchainInterface } from "../types/HardhatBlockchainInterface";
 
 import { ReadOnlyValidEIP1559Transaction } from "../transactions/ReadOnlyValidEIP1559Transaction";
+import { ReadOnlyValidUnknownTypeTransaction } from "../transactions/ReadOnlyValidUnknownTypeTransaction";
 import { rpcToBlockData } from "./rpcToBlockData";
 import { rpcToTxData } from "./rpcToTxData";
 
@@ -37,24 +38,24 @@ export class ForkBlockchain
 
   constructor(
     private _jsonRpcClient: JsonRpcClient,
-    private _forkBlockNumber: BN,
+    private _forkBlockNumber: bigint,
     common: Common
   ) {
     super(common);
   }
 
-  public getLatestBlockNumber(): BN {
+  public getLatestBlockNumber(): bigint {
     return this._latestBlockNumber;
   }
 
   public async getBlock(
-    blockHashOrNumber: Buffer | number | BN
+    blockHashOrNumber: Buffer | bigint
   ): Promise<Block | null> {
     if (
-      (typeof blockHashOrNumber === "number" || BN.isBN(blockHashOrNumber)) &&
-      this._data.isReservedBlock(new BN(blockHashOrNumber))
+      typeof blockHashOrNumber === "bigint" &&
+      this._data.isReservedBlock(blockHashOrNumber)
     ) {
-      this._data.fulfillBlockReservation(new BN(blockHashOrNumber));
+      this._data.fulfillBlockReservation(blockHashOrNumber);
     }
 
     let block: Block | undefined | null;
@@ -63,42 +64,42 @@ export class ForkBlockchain
       return block ?? null;
     }
 
-    block = await this._getBlockByNumber(new BN(blockHashOrNumber));
+    block = await this._getBlockByNumber(BigInt(blockHashOrNumber));
     return block ?? null;
   }
 
   public async addBlock(block: Block): Promise<Block> {
-    const blockNumber = new BN(block.header.number);
-    if (!blockNumber.eq(this._latestBlockNumber.addn(1))) {
+    const blockNumber = BigInt(block.header.number);
+    if (blockNumber !== this._latestBlockNumber + 1n) {
       throw new Error(
-        `Invalid block number ${blockNumber.toNumber()}. Expected ${this._latestBlockNumber
-          .addn(1)
-          .toNumber()}`
+        `Invalid block number ${blockNumber}. Expected ${
+          this._latestBlockNumber + 1n
+        }`
       );
     }
 
     // When forking a network whose consensus is not the classic PoW,
     // we can't calculate the hash correctly.
     // Thus, we avoid this check for the first block after the fork.
-    if (blockNumber.gt(this._forkBlockNumber.addn(1))) {
+    if (blockNumber > this._forkBlockNumber + 1n) {
       const parent = await this.getLatestBlock();
       if (!block.header.parentHash.equals(parent.hash())) {
         throw new Error("Invalid parent hash");
       }
     }
 
-    this._latestBlockNumber = this._latestBlockNumber.addn(1);
+    this._latestBlockNumber++;
     const totalDifficulty = await this._computeTotalDifficulty(block);
     this._data.addBlock(block, totalDifficulty);
     return block;
   }
 
   public reserveBlocks(
-    count: BN,
-    interval: BN,
+    count: bigint,
+    interval: bigint,
     previousBlockStateRoot: Buffer,
-    previousBlockTotalDifficulty: BN,
-    previousBlockBaseFeePerGas: BN | undefined
+    previousBlockTotalDifficulty: bigint,
+    previousBlockBaseFeePerGas: bigint | undefined
   ) {
     super.reserveBlocks(
       count,
@@ -107,25 +108,25 @@ export class ForkBlockchain
       previousBlockTotalDifficulty,
       previousBlockBaseFeePerGas
     );
-    this._latestBlockNumber = this._latestBlockNumber.add(count);
+    this._latestBlockNumber += count;
   }
 
   public deleteLaterBlocks(block: Block): void {
-    const blockNumber = new BN(block.header.number);
+    const blockNumber = block.header.number;
     const savedBlock = this._data.getBlockByNumber(blockNumber);
     if (savedBlock === undefined || !savedBlock.hash().equals(block.hash())) {
       throw new Error("Invalid block");
     }
 
-    const nextBlockNumber = blockNumber.addn(1);
-    if (this._forkBlockNumber.gte(nextBlockNumber)) {
+    const nextBlockNumber = blockNumber + 1n;
+    if (this._forkBlockNumber >= nextBlockNumber) {
       throw new Error("Cannot delete remote block");
     }
 
     this._delBlock(nextBlockNumber);
   }
 
-  public async getTotalDifficulty(blockHash: Buffer): Promise<BN> {
+  public async getTotalDifficulty(blockHash: Buffer): Promise<bigint> {
     let td = this._data.getTotalDifficulty(blockHash);
     if (td !== undefined) {
       return td;
@@ -194,14 +195,14 @@ export class ForkBlockchain
   }
 
   public async getLogs(filterParams: FilterParams): Promise<RpcLogOutput[]> {
-    if (filterParams.fromBlock.lte(this._forkBlockNumber)) {
+    if (filterParams.fromBlock <= this._forkBlockNumber) {
       let toBlock = filterParams.toBlock;
       let localLogs: RpcLogOutput[] = [];
-      if (toBlock.gt(this._forkBlockNumber)) {
+      if (toBlock > this._forkBlockNumber) {
         toBlock = this._forkBlockNumber;
         localLogs = this._data.getLogs({
           ...filterParams,
-          fromBlock: this._forkBlockNumber.addn(1),
+          fromBlock: this._forkBlockNumber + 1n,
         });
       }
       const remoteLogs = await this._jsonRpcClient.getLogs({
@@ -227,8 +228,8 @@ export class ForkBlockchain
     return this._processRemoteBlock(rpcBlock);
   }
 
-  private async _getBlockByNumber(blockNumber: BN) {
-    if (blockNumber.gt(this._latestBlockNumber)) {
+  private async _getBlockByNumber(blockNumber: bigint) {
+    if (blockNumber > this._latestBlockNumber) {
       return undefined;
     }
     const block = await super.getBlock(blockNumber);
@@ -247,16 +248,15 @@ export class ForkBlockchain
       rpcBlock === null ||
       rpcBlock.hash === null ||
       rpcBlock.number === null ||
-      rpcBlock.number.gt(this._forkBlockNumber)
+      rpcBlock.number > this._forkBlockNumber
     ) {
       return undefined;
     }
 
-    // We copy the common and set it to London or Berlin if the remote block
-    // had EIP-1559 activated or not. The reason for this is that ethereumjs
-    // throws if we have a base fee for an older hardfork, and set a default
-    // one for London.
     const common = this._common.copy();
+    // We set the common's hardfork to Berlin if the remote block doesn't have
+    // EIP-1559 activated. The reason for this is that ethereumjs throws if we
+    // have a base fee for an older hardfork, and set a default one for London.
     if (rpcBlock.baseFeePerGas !== undefined) {
       common.setHardfork("london"); // TODO: consider changing this to "latest hardfork"
     } else {
@@ -275,29 +275,43 @@ export class ForkBlockchain
 
       // We use freeze false here because we add the transactions manually
       freeze: false,
+
+      // don't validate things like the size of `extraData` in the header
+      skipConsensusFormatValidation: true,
     });
 
     for (const transaction of rpcBlock.transactions) {
       let tx;
-      if (transaction.type === undefined || transaction.type.eqn(0)) {
+      if (transaction.type === undefined || transaction.type === 0n) {
         tx = new ReadOnlyValidTransaction(
           new Address(transaction.from),
           rpcToTxData(transaction)
         );
-      } else if (transaction.type.eqn(1)) {
+      } else if (transaction.type === 1n) {
         tx = new ReadOnlyValidEIP2930Transaction(
           new Address(transaction.from),
           rpcToTxData(transaction)
         );
-      } else if (transaction.type.eqn(2)) {
+      } else if (transaction.type === 2n) {
         tx = new ReadOnlyValidEIP1559Transaction(
           new Address(transaction.from),
           rpcToTxData(transaction) as FeeMarketEIP1559TxData
         );
       } else {
-        throw new InternalError(
-          `Unknown transaction type ${transaction.type.toString()}`
-        );
+        // we try to interpret unknown txs as legacy transactions, to support
+        // networks like Arbitrum that have non-standards tx types
+        try {
+          tx = new ReadOnlyValidUnknownTypeTransaction(
+            new Address(transaction.from),
+            Number(transaction.type),
+            rpcToTxData(transaction)
+          );
+        } catch (e: any) {
+          throw new InternalError(
+            `Could not process transaction with type ${transaction.type.toString()}`,
+            e
+          );
+        }
       }
 
       block.transactions.push(tx);
@@ -307,19 +321,19 @@ export class ForkBlockchain
     return block;
   }
 
-  protected _delBlock(blockNumber: BN): void {
-    if (blockNumber.lte(this._forkBlockNumber)) {
+  protected _delBlock(blockNumber: bigint): void {
+    if (blockNumber <= this._forkBlockNumber) {
       throw new Error("Cannot delete remote block");
     }
     super._delBlock(blockNumber);
-    this._latestBlockNumber = blockNumber.subn(1);
+    this._latestBlockNumber = blockNumber - 1n;
   }
 
   private _processRemoteTransaction(rpcTransaction: RpcTransaction | null) {
     if (
       rpcTransaction === null ||
       rpcTransaction.blockNumber === null ||
-      rpcTransaction.blockNumber.gt(this._forkBlockNumber)
+      rpcTransaction.blockNumber > this._forkBlockNumber
     ) {
       return undefined;
     }
@@ -337,7 +351,7 @@ export class ForkBlockchain
   private async _processRemoteReceipt(
     txReceipt: RpcTransactionReceipt | null
   ): Promise<RpcReceiptOutput | undefined> {
-    if (txReceipt === null || txReceipt.blockNumber.gt(this._forkBlockNumber)) {
+    if (txReceipt === null || txReceipt.blockNumber > this._forkBlockNumber) {
       return undefined;
     }
 

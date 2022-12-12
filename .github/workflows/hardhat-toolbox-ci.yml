@@ -14,7 +14,7 @@ on:
       - "config/**"
   pull_request:
     branches:
-      - "*"
+      - "**"
     paths:
       - "packages/hardhat-toolbox/**"
       - "packages/hardhat-core/**"

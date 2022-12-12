@@ -26,7 +26,7 @@ https://hardhat-lime.vercel.app/
 
 ## Adding content
 
-Website content is located in `*.md` files withing `src/content` folder. It's written in Markdown syntax. Folders structure in `content` is reflected on the website.
+Website content is located in `*.md` files within `src/content` folder. It's written in Markdown syntax. Folders structure in `content` is reflected on the website.
 
 To tune pages, behavior and appearance also use optional `*.yaml` files with additional configurations.
 
@@ -181,7 +181,7 @@ There are two relatively independent processes in the build step:
 
 Page paths are generated in the `getStaticPaths` functions in files of the `page` folder. The result of these functions is an array of page paths. Page pros are generated with the `getStaticProps` function which is executed once per page with a page path passed as an argument and returns all required page props.
 
-Execution of `getStaticPaths` and `getStaticProps` is handled by NextJS on a build step and it runs them in isolation (which means we can't share common calculated parameters within them). To optimize a building time we store an intermediate config in a temporary file on the `getStaticPaths` execution and read it from `getStaticProps` functions. It contains layout settings and a map of pages with specific props.
+Execution of `getStaticPaths` and `getStaticProps` is handled by NextJS on a build step and it runs them in isolation (which means we can't share common calculated parameters within them). To optimize building time, we store an intermediate config in a temporary file on the `getStaticPaths` execution and read it from `getStaticProps` functions. It contains layout settings and a map of pages with specific props.
 
 ## Styling
 

@@ -167,6 +167,8 @@ export interface HardhatArguments {
   verbose: boolean;
   maxMemory?: number;
   tsconfig?: string;
+  flamegraph?: boolean;
+  typecheck?: boolean;
 }
 
 export type HardhatParamDefinitions = {

@@ -1,4 +1,4 @@
-import { BlockData } from "@ethereumjs/block";
+import { BlockData } from "@nomicfoundation/ethereumjs-block";
 
 import { RpcBlockWithTransactions } from "../../../core/jsonrpc/types/output/block";
 
@@ -13,7 +13,7 @@ export function rpcToBlockData(rpcBlock: RpcBlockWithTransactions): BlockData {
       stateRoot: rpcBlock.stateRoot,
       transactionsTrie: rpcBlock.transactionsRoot,
       receiptTrie: rpcBlock.receiptsRoot,
-      bloom: rpcBlock.logsBloom,
+      logsBloom: rpcBlock.logsBloom,
       difficulty: rpcBlock.difficulty,
       number: rpcBlock.number ?? undefined,
       gasLimit: rpcBlock.gasLimit,

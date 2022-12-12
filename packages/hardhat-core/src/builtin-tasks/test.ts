@@ -8,8 +8,8 @@ import { subtask, task } from "../internal/core/config/config-env";
 import { isRunningWithTypescript } from "../internal/core/typescript-support";
 import { getForkCacheDirPath } from "../internal/hardhat-network/provider/utils/disk-cache";
 import { showForkRecommendationsBannerIfNecessary } from "../internal/hardhat-network/provider/utils/fork-recomendations-banner";
-import { glob } from "../internal/util/glob";
 import { pluralize } from "../internal/util/strings";
+import { getAllFilesMatching } from "../internal/util/fs-utils";
 
 import {
   TASK_COMPILE,
@@ -35,13 +35,17 @@ subtask(TASK_TEST_GET_TEST_FILES)
       return testFilesAbsolutePaths;
     }
 
-    const jsFiles = await glob(path.join(config.paths.tests, "**/*.js"));
+    const jsFiles = await getAllFilesMatching(config.paths.tests, (f) =>
+      f.endsWith(".js")
+    );
 
     if (!isRunningWithTypescript(config)) {
       return jsFiles;
     }
 
-    const tsFiles = await glob(path.join(config.paths.tests, "**/*.ts"));
+    const tsFiles = await getAllFilesMatching(config.paths.tests, (f) =>
+      f.endsWith(".ts")
+    );
 
     return [...jsFiles, ...tsFiles];
   });

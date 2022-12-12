@@ -237,6 +237,21 @@ Either try using a new directory name, or remove the conflicting files.`,
         "Hardhat attempted to convert the input value to a BigInt, but no known conversion method was applicable to the given value.",
       shouldBeReported: false,
     },
+    CORRUPTED_LOCKFILE: {
+      number: 18,
+      message: `You installed Hardhat with a corrupted lockfile due to the NPM bug #4828.
+
+Please delete your node_modules, package-lock.json, reinstall your project, and try again.`,
+      title: "Corrupted lockfile",
+      description: `Some versions of NPM are affected [by a bug](https://github.com/npm/cli/issues/4828) that leads to corrupt lockfiles being generated.
+
+This bug can only affect you if you, or someone at your team, installed the project without a lockfile, but with an existing node_modules.
+
+To avoid it, please delete both your node_modules and package-lock.json, and reinstall your project.
+
+Note that you don't need to do this every time you install a new dependency, but please make sure to delete your node_modules every time you delete your package-lock.json.`,
+      shouldBeReported: false,
+    },
   },
   NETWORK: {
     CONFIG_NOT_FOUND: {
@@ -607,7 +622,8 @@ Please double check how you invoked Hardhat or ran your task.`,
     },
     MISSING_TASK_ARGUMENT: {
       number: 306,
-      message: "The '%param%' parameter expects a value, but none was passed.",
+      message:
+        "The '%param%' parameter of task '%task%' expects a value, but none was passed.",
       title: "Missing task argument",
       description: `You tried to run a task, but one of its required arguments was missing. 
 
@@ -666,6 +682,16 @@ Please double check how you invoked Hardhat or ran your task.`,
       description: `You tried to run a subtask from the command line.
       
 This is not supported. Please run the help task to see the available options.`,
+      shouldBeReported: false,
+    },
+    TYPECHECK_USED_IN_JAVASCRIPT_PROJECT: {
+      number: 313,
+      title: "The --typecheck flag was used in a javascript project",
+      message:
+        "Trying to use the --typecheck flag, but the project is not in typescript",
+      description: `You tried to run Hardhat with the \`--typecheck\` flag in a javascript project.
+
+This flag can only be used in typescript projects.`,
       shouldBeReported: false,
     },
   },
@@ -783,46 +809,62 @@ Hardhat's compiler is case sensitive to ensure projects are portable across diff
 Try installing the library using npm.`,
       shouldBeReported: false,
     },
+    INCLUDES_OWN_PACKAGE_NAME: {
+      number: 412,
+      message:
+        "Invalid import %imported% from %from%. Trying to import file using the own package's name.",
+      title: "Invalid import: includes own package's name",
+      description: `A Solidity file is trying to import another using its own package name. This is most likely caused by an existing symlink for the package in your node_modules.
+
+Use a relative import instead of referencing the package's name.`,
+      shouldBeReported: false,
+    },
   },
   SOLC: {
     INVALID_VERSION: {
       number: 500,
-      message:
-        "Solidity version %version% is invalid or hasn't been released yet.",
-      title: "Invalid `solc` version",
+      message: `Solidity version %version% is invalid or hasn't been released yet.
+        
+If you are certain it has been released, run "npx hardhat clean --global" and try again`,
+      title: "Invalid or unreleased `solc` version",
       description: `The Solidity version in your config is invalid or hasn't been released yet. 
 
-Please double check your \`solc\` config.`,
+If you are certain it has been released, run \`npx hardhat clean --global\` and try again.`,
       shouldBeReported: false,
     },
     DOWNLOAD_FAILED: {
       number: 501,
       message:
-        "Couldn't download compiler version %remoteVersion%. Please check your connection.",
+        "Couldn't download compiler version %remoteVersion%. Please check your internet connection and try again.",
       title: "`solc` download failed",
       description: `Couldn't download \`solc\`. 
       
-Please check your Internet connection.`,
+Please check your internet connection and try again.`,
       shouldBeReported: false,
     },
     VERSION_LIST_DOWNLOAD_FAILED: {
       number: 502,
       message:
-        "Couldn't download compiler versions list. Please check your connection.",
+        "Couldn't download compiler version list. Please check your internet connection and try again.",
       title: "Couldn't obtain `solc` version list",
       description: `Couldn't download \`solc\`'s version list. 
       
-Please check your Internet connection.`,
+Please check your internet connection and try again.`,
       shouldBeReported: false,
     },
     INVALID_DOWNLOAD: {
       number: 503,
-      message:
-        "Couldn't download compiler version %remoteVersion%. Checksum verification failed. Please check your connection.",
+      message: `Couldn't download compiler version %remoteVersion%: Checksum verification failed.
+
+Please check your internet connection and try again.
+
+If this error persists, run "npx hardhat clean --global".`,
       title: "Downloaded `solc` checksum verification failed",
-      description: `Downloaded \`solc\` verification failed.
-      
-Please check your Internet connection.`,
+      description: `Hardhat downloaded a version of the Solidity compiler, and its checksum verification failed.
+ 
+Please check your internet connection and try again.
+
+If this error persists, run \`npx hardhat clean --global\`.`,
       shouldBeReported: false,
     },
     CANT_GET_COMPILER: {
@@ -833,6 +875,21 @@ Please check your Internet connection.`,
 
 Please [report it](https://github.com/nomiclabs/hardhat/issues/new) to help us improve Hardhat.`,
       shouldBeReported: true,
+    },
+    CANT_RUN_NATIVE_COMPILER: {
+      number: 505,
+      message: `A native version of solc failed to run.
+
+If you are running MacOS, try installing Apple Rosetta.
+
+If this error persists, run "npx hardhat clean --global".`,
+      title: "Failed to run native solc",
+      description: `Hardhat successfully downloaded a native version of solc but it doesn't run.
+
+If you are running MacOS, try installing Apple Rosetta.
+
+If this error persists, run "npx hardhat clean --global".`,
+      shouldBeReported: false,
     },
   },
   BUILTIN_TASKS: {

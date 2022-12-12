@@ -11,6 +11,7 @@ export { setBlockGasLimit } from "./helpers/setBlockGasLimit";
 export { setCode } from "./helpers/setCode";
 export { setCoinbase } from "./helpers/setCoinbase";
 export { setNonce } from "./helpers/setNonce";
+export { setPrevRandao } from "./helpers/setPrevRandao";
 export { setStorageAt } from "./helpers/setStorageAt";
 export { setNextBlockBaseFeePerGas } from "./helpers/setNextBlockBaseFeePerGas";
 export { stopImpersonatingAccount } from "./helpers/stopImpersonatingAccount";

@@ -1,5 +1,4 @@
 import { assert } from "chai";
-import * as fs from "fs";
 import fsExtra from "fs-extra";
 import path from "path";
 
@@ -15,6 +14,7 @@ import {
   useFixtureProject,
 } from "../../helpers/project";
 
+import { getRealPathSync } from "../../../src/internal/util/fs-utils";
 import { createMockData, MockFile } from "./helpers";
 
 function assertDeps(
@@ -56,7 +56,7 @@ describe("Dependency Graph", function () {
     let loop2: ResolvedFile;
 
     before("Mock some resolved files", function () {
-      projectRoot = fs.realpathSync(".");
+      projectRoot = getRealPathSync(".");
 
       fileWithoutDependencies = new ResolvedFile(
         "contracts/WD.sol",

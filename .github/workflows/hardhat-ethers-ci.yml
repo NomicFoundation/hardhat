@@ -10,7 +10,7 @@ on:
       - "config/**"
   pull_request:
     branches:
-      - "*"
+      - "**"
     paths:
       - "packages/hardhat-ethers/**"
       - "packages/hardhat-core/**"

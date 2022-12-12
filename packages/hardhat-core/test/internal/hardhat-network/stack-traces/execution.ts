@@ -1,7 +1,12 @@
-import { Transaction, TxData } from "@ethereumjs/tx";
-import VM from "@ethereumjs/vm";
+import { Transaction, TxData } from "@nomicfoundation/ethereumjs-tx";
+import {
+  Account,
+  Address,
+  privateToAddress,
+  bigIntToBuffer,
+} from "@nomicfoundation/ethereumjs-util";
+import { VM } from "@nomicfoundation/ethereumjs-vm";
 import abi from "ethereumjs-abi";
-import { Account, Address, privateToAddress } from "ethereumjs-util";
 
 import { MessageTrace } from "../../../../src/internal/hardhat-network/stack-traces/message-trace";
 import { VMTracer } from "../../../../src/internal/hardhat-network/stack-traces/vm-tracer";
@@ -15,7 +20,7 @@ const senderAddress = privateToAddress(senderPrivateKey);
 export async function instantiateVm(): Promise<VM> {
   const account = Account.fromAccountData({ balance: 1e15 });
 
-  const vm = new VM({ activatePrecompiles: true });
+  const vm = await VM.create({ activatePrecompiles: true });
 
   await vm.stateManager.putAccount(new Address(senderAddress), account);
 
@@ -58,7 +63,7 @@ export async function traceTransaction(
 ): Promise<MessageTrace> {
   const tx = new Transaction({
     value: 0,
-    gasPrice: 1,
+    gasPrice: 10,
     nonce: await getNextPendingNonce(vm),
     ...txData,
     // If the test didn't define a gasLimit, we assume 4M is enough
@@ -88,5 +93,5 @@ export async function traceTransaction(
 
 async function getNextPendingNonce(vm: VM): Promise<Buffer> {
   const acc = await vm.stateManager.getAccount(new Address(senderAddress));
-  return acc.nonce.toBuffer();
+  return bigIntToBuffer(acc.nonce);
 }

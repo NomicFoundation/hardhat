@@ -22,6 +22,17 @@ export declare function getContractFactory(
   signer?: ethers.Signer
 ): Promise<ethers.ContractFactory>;
 
+export declare function deployContract(
+  name: string,
+  signerOrOptions?: ethers.Signer | FactoryOptions
+): Promise<ethers.Contract>;
+
+export declare function deployContract(
+  name: string,
+  args: any[],
+  signerOrOptions?: ethers.Signer | FactoryOptions
+): Promise<ethers.Contract>;
+
 export interface HardhatEthersHelpers {
   provider: ethers.providers.JsonRpcProvider;
 
@@ -43,4 +54,5 @@ export interface HardhatEthersHelpers {
   getSigner: (address: string) => Promise<SignerWithAddress>;
   getSigners: () => Promise<SignerWithAddress[]>;
   getImpersonatedSigner: (address: string) => Promise<SignerWithAddress>;
+  deployContract: typeof deployContract;
 }

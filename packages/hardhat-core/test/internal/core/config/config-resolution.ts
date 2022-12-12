@@ -1,5 +1,4 @@
 import { assert } from "chai";
-import { BN } from "ethereumjs-util";
 import cloneDeep from "lodash/cloneDeep";
 import * as path from "path";
 import sinon from "sinon";
@@ -621,10 +620,7 @@ describe("Config resolution", () => {
         it("should default to 0", function () {
           const config = resolveConfig(__filename, {});
 
-          assert.equal(
-            config.networks.hardhat.minGasPrice.toString(),
-            new BN(0).toString()
-          );
+          assert.equal(config.networks.hardhat.minGasPrice, 0n);
         });
 
         it("should accept numbers", function () {
@@ -636,10 +632,7 @@ describe("Config resolution", () => {
             },
           });
 
-          assert.equal(
-            config.networks.hardhat.minGasPrice.toString(),
-            new BN(10).toString()
-          );
+          assert.equal(config.networks.hardhat.minGasPrice, 10n);
         });
 
         it("should accept strings", function () {
@@ -651,10 +644,7 @@ describe("Config resolution", () => {
             },
           });
 
-          assert.equal(
-            config.networks.hardhat.minGasPrice.toString(),
-            new BN(10).pow(new BN(11)).toString()
-          );
+          assert.equal(config.networks.hardhat.minGasPrice, 10n ** 11n);
         });
       });
 
@@ -689,8 +679,27 @@ describe("Config resolution", () => {
         });
 
         assert.deepEqual(config.networks.hardhat, {
-          ...networkConfig,
-          minGasPrice: new BN(10),
+          accounts: [{ privateKey: "0x00000", balance: "123" }],
+          chainId: 123,
+          from: "from",
+          gas: 1,
+          gasMultiplier: 1231,
+          gasPrice: 2345678,
+          throwOnCallFailures: false,
+          throwOnTransactionFailures: false,
+          loggingEnabled: true,
+          allowUnlimitedContractSize: true,
+          blockGasLimit: 567,
+          minGasPrice: 10n,
+          mining: {
+            auto: false,
+            interval: 0,
+            mempool: {
+              order: "priority",
+            },
+          },
+          hardfork: "hola",
+          initialDate: "today",
           chains: defaultHardhatNetworkParams.chains,
         });
       });
@@ -798,7 +807,7 @@ describe("Config resolution", () => {
         });
 
         it("Should let you override everything", function () {
-          const otherNetworkConfig: HttpNetworkConfig = {
+          const otherNetworkConfig: HttpNetworkUserConfig = {
             url: "asd",
             timeout: 1,
             accounts: ["0x00000"],
@@ -816,7 +825,19 @@ describe("Config resolution", () => {
             networks: { other: otherNetworkConfig },
           });
 
-          assert.deepEqual(config.networks.other, otherNetworkConfig);
+          assert.deepEqual(config.networks.other, {
+            url: "asd",
+            timeout: 1,
+            accounts: ["0x00000"],
+            chainId: 123,
+            from: "from",
+            gas: 1,
+            gasMultiplier: 1231,
+            gasPrice: 2345678,
+            httpHeaders: {
+              header: "asd",
+            },
+          });
         });
 
         it("Should add default values to HD accounts config objects", function () {

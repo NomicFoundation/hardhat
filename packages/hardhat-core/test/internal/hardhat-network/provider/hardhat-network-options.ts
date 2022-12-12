@@ -49,7 +49,7 @@ describe("Hardhat Network special options", function () {
                 data: CONTRACT_BYTECODE,
               },
             ]),
-          /out of gas/
+          /trying to deploy a contract whose code is too large/
         );
       });
     });

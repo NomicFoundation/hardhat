@@ -1,6 +1,6 @@
 import { assert } from "chai";
 
-import { randomAddress } from "../../../../src/internal/hardhat-network/provider/fork/random";
+import { randomAddress } from "../../../../src/internal/hardhat-network/provider/utils/random";
 import { OrderedTransaction } from "../../../../src/internal/hardhat-network/provider/PoolState";
 
 import { createTestOrderedTransaction } from "./blockchain";

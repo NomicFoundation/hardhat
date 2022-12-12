@@ -9,6 +9,7 @@
 - muirGlacier
 - london
 - arrowGlacier
+- merge
 
 ## Config
 
@@ -61,7 +62,7 @@ The block gas limit to use in Hardhat Network's blockchain. Default value: `30_0
 
 #### `hardfork`
 
-This setting changes how Hardhat Network works, to mimic Ethereum's mainnet at a given hardfork. It must be one of `"byzantium"`, `"constantinople"`, `"petersburg"`, `"istanbul"`, `"muirGlacier"`, `"berlin"`, `"london"` and `"arrowGlacier"`. Default value: `"arrowGlacier"`
+This setting changes how Hardhat Network works, to mimic Ethereum's mainnet at a given hardfork. It must be one of `"byzantium"`, `"constantinople"`, `"petersburg"`, `"istanbul"`, `"muirGlacier"`, `"berlin"`, `"london"`, `"arrowGlacier"`, `"grayGlacier"` and `"merge"`. Default value: `"merge"`
 
 #### `throwOnTransactionFailures`
 
@@ -206,7 +207,7 @@ networks: {
 - `console.log` implements the same formatting options that can be found in Node.js' [`console.log`](https://nodejs.org/dist/latest-v12.x/docs/api/console.html#console_console_log_data_args), which in turn uses [`util.format`](https://nodejs.org/dist/latest-v12.x/docs/api/util.html#util_util_format_format_args).
   - Example: `console.log("Changing owner from %s to %s", currentOwner, newOwner)`
 - `console.log` is implemented in standard Solidity and then detected in Hardhat Network. This makes its compilation work with any other tools (like Remix, Waffle or Truffle).
-- `console.log` calls can run in other networks, like mainnet, kovan, ropsten, etc. They do nothing in those networks, but do spend a minimal amount of gas.
+- `console.log` calls can run in other networks, like mainnet, goerli, sepolia, etc. They do nothing in those networks, but do spend a minimal amount of gas.
 - `console.log` output can also be viewed for testnets and mainnet via [Tenderly](https://tenderly.co/).
 - `console.log` works by sending static calls to a well-known contract address. At runtime, Hardhat Network detects calls to that address, decodes the input data to the calls, and writes it to the console.
 
@@ -386,7 +387,7 @@ await hre.network.provider.request({
 });
 ```
 
-If you are using [`hardhat-ethers`](https://github.com/nomiclabs/hardhat/tree/master/packages/hardhat-ethers), call `getSigner` after impersonating the account:
+If you are using [`hardhat-ethers`](https://github.com/NomicFoundation/hardhat/tree/main/packages/hardhat-ethers), call `getSigner` after impersonating the account:
 
 ```
 const signer = await ethers.getSigner("0x364d6D0333432C3Ac016Ca832fb8594A8cE43Ca6")
@@ -490,6 +491,20 @@ await network.provider.send("hardhat_setNextBlockBaseFeePerGas", [
 ```
 
 This only affects the next block; the base fee will keep being updated in each subsequent block according to [EIP-1559](https://eips.ethereum.org/EIPS/eip-1559).
+
+#### `hardhat_setPrevRandao`
+
+Sets the PREVRANDAO value of the next block.
+
+For example:
+
+```tsx
+await network.provider.send("hardhat_setPrevRandao", [
+  "0x1234567812345678123456781234567812345678123456781234567812345678",
+]);
+```
+
+This only affects the next block. The PREVRANDAO of the following blocks will continue to be computed as the keccak256 hash of the previous value.
 
 #### `hardhat_setNonce`
 

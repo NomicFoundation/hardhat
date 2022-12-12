@@ -1,9 +1,5 @@
 import * as t from "io-ts";
 
-// TS2742 workaround
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-import { BN } from "ethereumjs-util";
-
 import { optionalOrNullable } from "../../../../util/io-ts";
 import { rpcData, rpcQuantity } from "../base-types";
 
@@ -20,6 +16,8 @@ export const rpcBlockTagName = t.keyof({
   earliest: null,
   latest: null,
   pending: null,
+  safe: null,
+  finalized: null,
 });
 
 // This is the new kind of block tag as defined by https://github.com/ethereum/EIPs/blob/master/EIPS/eip-1898.md

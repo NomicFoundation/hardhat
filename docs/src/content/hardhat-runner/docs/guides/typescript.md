@@ -102,7 +102,7 @@ Now, we are going to rename the config file from `hardhat.config.js` to `hardhat
 mv hardhat.config.js hardhat.config.ts
 ```
 
-We need to a single change to your config for it to work with TypeScript: you must use `import`/`export` instead of `require`/`module.exports`.
+We need to make a single change to your config for it to work with TypeScript: you must use `import`/`export` instead of `require`/`module.exports`.
 
 By using TypeScript, you can also type your configuration, which will save you from typos and other mistakes.
 
@@ -119,6 +119,14 @@ Finally, you need to create a [`tsconfig.json`](https://www.typescriptlang.org/d
 <<< @/../packages/hardhat-core/sample-projects/typescript/tsconfig.json
 
 And that's really all it takes. Now you can write your config, tests, tasks and scripts in TypeScript.
+
+## Type-checking your project
+
+For performance reasons, Hardhat won't type-check your project when you run a task. You can explicitly enable type-checking with the `--typecheck` flag.
+
+For example, if you run `npx hardhat test` and one of your tests has a compilation error, the test task will be executed anyway. But if you run `npx hardhat test --typecheck`, Hardhat will detect and throw the compilation error before starting to run the tests.
+
+Since type-checking adds significant overhead, we recommend to do it only in your CI or in pre-commit/pre-push hooks.
 
 ## Writing tests and scripts in TypeScript
 
@@ -163,14 +171,6 @@ const config: HardhatUserConfig = {
 
 export default config;
 ```
-
-## Performance optimizations
-
-Under the hood, Hardhat uses [ts-node](https://www.npmjs.com/package/ts-node) to support TypeScript. By default, it will recompile and type-check everything on every run. Depending on your project's size, this can get slow.
-
-You can make Hardhat run faster by preventing `ts-node` from type-checking your project. This is done by setting the `TS_NODE_TRANSPILE_ONLY` env variable to `1`.
-
-For example, you can run your TypeScript-based tests faster like this `TS_NODE_TRANSPILE_ONLY=1 npx hardhat test`.
 
 ## Running your tests and scripts directly with `ts-node`
 

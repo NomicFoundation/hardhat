@@ -1,5 +1,5 @@
+import { zeroAddress } from "@nomicfoundation/ethereumjs-util";
 import { assert } from "chai";
-import { BN, toBuffer, zeroAddress } from "ethereumjs-util";
 
 import { numberToRpcQuantity } from "../../../../../../../src/internal/core/jsonrpc/types/base-types";
 import { workaroundWindowsCiFailures } from "../../../../../../utils/workaround-windows-ci-failures";
@@ -77,8 +77,8 @@ describe("Eth module", function () {
           ]);
 
           await assertNodeBalances(this.provider, [
-            DEFAULT_ACCOUNTS_BALANCES[0].sub(gasPrice.muln(21000).addn(1)),
-            DEFAULT_ACCOUNTS_BALANCES[1].addn(1),
+            DEFAULT_ACCOUNTS_BALANCES[0] - (gasPrice * 21_000n + 1n),
+            DEFAULT_ACCOUNTS_BALANCES[1] + 1n,
             ...DEFAULT_ACCOUNTS_BALANCES.slice(2),
           ]);
 
@@ -88,18 +88,14 @@ describe("Eth module", function () {
               to: DEFAULT_ACCOUNTS_ADDRESSES[1],
               value: numberToRpcQuantity(2),
               gas: numberToRpcQuantity(21000),
-              gasPrice: numberToRpcQuantity(gasPrice.muln(2)),
+              gasPrice: numberToRpcQuantity(2n * gasPrice),
             },
           ]);
 
           await assertNodeBalances(this.provider, [
-            DEFAULT_ACCOUNTS_BALANCES[0].sub(
-              gasPrice
-                .muln(21000)
-                .addn(1)
-                .add(gasPrice.muln(21000).muln(2).addn(2))
-            ),
-            DEFAULT_ACCOUNTS_BALANCES[1].addn(1 + 2),
+            DEFAULT_ACCOUNTS_BALANCES[0] -
+              (gasPrice * 21000n + 1n + (gasPrice * 21000n * 2n + 2n)),
+            DEFAULT_ACCOUNTS_BALANCES[1] + 3n,
             ...DEFAULT_ACCOUNTS_BALANCES.slice(2),
           ]);
         });
@@ -121,8 +117,8 @@ describe("Eth module", function () {
 
           await assertPendingNodeBalances(this.provider, [
             DEFAULT_ACCOUNTS_BALANCES[0],
-            DEFAULT_ACCOUNTS_BALANCES[1].sub(gasPrice.muln(21000).addn(1)),
-            DEFAULT_ACCOUNTS_BALANCES[2].addn(1),
+            DEFAULT_ACCOUNTS_BALANCES[1] - (gasPrice * 21000n + 1n),
+            DEFAULT_ACCOUNTS_BALANCES[2] + 1n,
             ...DEFAULT_ACCOUNTS_BALANCES.slice(3),
           ]);
 
@@ -132,20 +128,16 @@ describe("Eth module", function () {
               to: DEFAULT_ACCOUNTS_ADDRESSES[2],
               value: numberToRpcQuantity(2),
               gas: numberToRpcQuantity(21000),
-              gasPrice: numberToRpcQuantity(gasPrice.muln(2)),
+              gasPrice: numberToRpcQuantity(2n * gasPrice),
               nonce: numberToRpcQuantity(1),
             },
           ]);
 
           await assertPendingNodeBalances(this.provider, [
             DEFAULT_ACCOUNTS_BALANCES[0],
-            DEFAULT_ACCOUNTS_BALANCES[1].sub(
-              gasPrice
-                .muln(21000)
-                .addn(1)
-                .add(gasPrice.muln(21000).muln(2).addn(2))
-            ),
-            DEFAULT_ACCOUNTS_BALANCES[2].addn(1 + 2),
+            DEFAULT_ACCOUNTS_BALANCES[1] -
+              (21_000n * gasPrice + 1n + 2n * 21_000n * gasPrice + 2n),
+            DEFAULT_ACCOUNTS_BALANCES[2] + 3n,
             ...DEFAULT_ACCOUNTS_BALANCES.slice(3),
           ]);
         });
@@ -189,11 +181,11 @@ describe("Eth module", function () {
             },
           ]);
 
-          const balance = new BN(
-            toBuffer(await this.provider.send("eth_getBalance", [coinbase]))
+          const balance = BigInt(
+            await this.provider.send("eth_getBalance", [coinbase])
           );
 
-          assert.isTrue(balance.gtn(0));
+          assert.isTrue(balance > 0n);
 
           await this.provider.send("eth_sendTransaction", [
             {
@@ -202,11 +194,11 @@ describe("Eth module", function () {
             },
           ]);
 
-          const balance2 = new BN(
-            toBuffer(await this.provider.send("eth_getBalance", [coinbase]))
+          const balance2 = BigInt(
+            await this.provider.send("eth_getBalance", [coinbase])
           );
 
-          assert.isTrue(balance2.gt(balance));
+          assert.isTrue(balance2 > balance);
         });
 
         it("should leverage block tag parameter", async function () {

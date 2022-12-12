@@ -119,7 +119,7 @@ function overwriteBigNumberFunction(
         throw new Error(`Unknown comparison operation ${method as any}`);
       }
     }
-    if (chaiUtils.flag(this, "doLength") && isBigNumber(actualArg)) {
+    if (Boolean(chaiUtils.flag(this, "doLength")) && isBigNumber(actualArg)) {
       const sizeOrLength =
         expectedFlag instanceof Map || expectedFlag instanceof Set
           ? "size"
@@ -140,7 +140,7 @@ function overwriteBigNumberFunction(
         expected,
         actual
       );
-    } else if (functionName === "eq" && chaiUtils.flag(this, "deep")) {
+    } else if (functionName === "eq" && Boolean(chaiUtils.flag(this, "deep"))) {
       const deepEqual = require("deep-eql");
       // this is close enough to what chai itself does, except we compare
       // numbers after normalizing them

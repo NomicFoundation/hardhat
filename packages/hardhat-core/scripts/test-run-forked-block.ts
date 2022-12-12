@@ -1,4 +1,5 @@
-import Common from "@ethereumjs/common";
+import { Common } from "@nomicfoundation/ethereumjs-common";
+import { request } from "undici";
 
 import { runFullBlock } from "../test/internal/hardhat-network/provider/utils/runFullBlock";
 
@@ -15,14 +16,24 @@ if (blockNumberArg === undefined) {
   usage();
 }
 
-async function main(rpcUrl: string, blockNumber: number, chainId: number) {
+async function getChainId(rpcUrl: string) {
+  const { body } = await request(rpcUrl, {
+    method: "POST",
+    body: JSON.stringify({ method: "eth_chainId" }),
+  });
+  const rpcResponse = await body.json();
+  return Number(rpcResponse.result);
+}
+
+async function main(rpcUrl: string, blockNumber: bigint) {
+  const chainId = await getChainId(rpcUrl);
   const remoteCommon = new Common({ chain: chainId });
   const hardfork = remoteCommon.getHardforkByBlockNumber(blockNumber);
 
-  await runFullBlock(rpcUrlArg, blockNumber, chainId, hardfork)
+  await runFullBlock(rpcUrlArg, blockNumber, chainId, hardfork);
 }
 
-main(rpcUrlArg, +blockNumberArg, 1)
+main(rpcUrlArg, BigInt(blockNumberArg))
   .then(() => process.exit(0))
   .catch((error) => {
     console.error(error);

@@ -1,5 +1,3 @@
-import { BN } from "ethereumjs-util";
-
 import { HardhatNetworkChainsConfig } from "../../../../src/types/config";
 import { defaultHardhatNetworkParams } from "../../../../src/internal/core/config/default-config";
 import { BackwardsCompatibilityProviderAdapter } from "../../../../src/internal/core/providers/backwards-compatibility";
@@ -48,10 +46,10 @@ export interface UseProviderOptions {
   networkName?: string;
   chainId?: number;
   networkId?: number;
-  blockGasLimit?: number;
-  accounts?: Array<{ privateKey: string; balance: BN }>;
+  blockGasLimit?: bigint;
+  accounts?: Array<{ privateKey: string; balance: bigint }>;
   allowUnlimitedContractSize?: boolean;
-  initialBaseFeePerGas?: number;
+  initialBaseFeePerGas?: bigint;
   mempool?: HardhatNetworkMempoolConfig;
   coinbase?: string;
   chains?: HardhatNetworkChainsConfig;
@@ -81,9 +79,11 @@ export function useProvider({
       networkName,
       chainId,
       networkId,
-      blockGasLimit,
-      initialBaseFeePerGas,
-      new BN(0), // minGasPrice
+      Number(blockGasLimit),
+      initialBaseFeePerGas === undefined
+        ? undefined
+        : Number(initialBaseFeePerGas),
+      0n, // minGasPrice
       true,
       true,
       mining.auto,

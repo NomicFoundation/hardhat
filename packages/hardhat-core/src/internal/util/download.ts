@@ -7,8 +7,6 @@ import { getHardhatVersion } from "./packageInfo";
 
 const TEMP_FILE_PREFIX = "tmp-";
 
-const hardhatVersion = getHardhatVersion();
-
 function resolveTempFileName(filePath: string): string {
   const { dir, ext, name } = path.parse(filePath);
 
@@ -39,6 +37,8 @@ export async function download(
 
     return getGlobalDispatcher();
   }
+
+  const hardhatVersion = getHardhatVersion();
 
   // Fetch the url
   const response = await request(url, {

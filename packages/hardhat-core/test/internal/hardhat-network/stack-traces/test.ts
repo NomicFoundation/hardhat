@@ -1,7 +1,8 @@
-import VM from "@ethereumjs/vm";
+import { toBuffer } from "@nomicfoundation/ethereumjs-util";
+import { VM } from "@nomicfoundation/ethereumjs-vm";
 import { assert } from "chai";
-import { BN, toBuffer } from "ethereumjs-util";
 import fs from "fs";
+import fsExtra from "fs-extra";
 import path from "path";
 import semver from "semver";
 
@@ -26,10 +27,7 @@ import {
   SolidityStackTraceEntry,
   StackTraceEntryType,
 } from "../../../../src/internal/hardhat-network/stack-traces/solidity-stack-trace";
-import {
-  SolidityTracer,
-  SUPPORTED_SOLIDITY_VERSION_RANGE,
-} from "../../../../src/internal/hardhat-network/stack-traces/solidityTracer";
+import { SolidityTracer } from "../../../../src/internal/hardhat-network/stack-traces/solidityTracer";
 import { VmTraceDecoder } from "../../../../src/internal/hardhat-network/stack-traces/vm-trace-decoder";
 import {
   CompilerInput,
@@ -38,11 +36,12 @@ import {
 } from "../../../../src/types";
 import { setCWD } from "../helpers/cwd";
 
+import { SUPPORTED_SOLIDITY_VERSION_RANGE } from "../../../../src/internal/hardhat-network/stack-traces/constants";
 import {
   compileFiles,
   COMPILER_DOWNLOAD_TIMEOUT,
   CompilerOptions,
-  downloadSolc,
+  downloadCompiler,
 } from "./compilation";
 import {
   encodeCall,
@@ -145,6 +144,7 @@ function defineTest(
   ) {
     it.skip(desc, func);
   } else if (testDefinition.only !== undefined && testDefinition.only) {
+    // eslint-disable-next-line no-only-tests/no-only-tests
     it.only(desc, func);
   } else {
     it(desc, func);
@@ -202,11 +202,12 @@ async function compileIfNecessary(
     .map((s) => fs.statSync(s).ctimeMs)
     .reduce((t1, t2) => Math.max(t1, t2), 0);
 
-  const artifacts = path.join(testDir, "artifacts");
+  // save the artifacts in test-files/artifacts/<path-to-test-dir>
+  const testFilesDir = path.join(__dirname, "test-files");
+  const relativeTestDir = path.relative(testFilesDir, testDir);
+  const artifacts = path.join(testFilesDir, "artifacts", relativeTestDir);
 
-  if (!fs.existsSync(artifacts)) {
-    fs.mkdirSync(artifacts);
-  }
+  fsExtra.ensureDirSync(artifacts);
 
   const optimizerModifier =
     runs !== undefined ? `optimized-with-runs-${runs}` : "unoptimized";
@@ -227,7 +228,9 @@ async function compileIfNecessary(
     fs.statSync(inputPath).ctimeMs > maxSourceCtime &&
     fs.statSync(outputPath).ctimeMs > maxSourceCtime;
 
-  if (isCached) {
+  const usingCustomSolc = process.env.HARDHAT_TESTS_SOLC_PATH !== undefined;
+
+  if (!usingCustomSolc && isCached) {
     const inputJson = fs.readFileSync(inputPath, "utf8");
     const outputJson = fs.readFileSync(outputPath, "utf8");
 
@@ -239,8 +242,10 @@ async function compileIfNecessary(
     compilerOptions
   );
 
-  fs.writeFileSync(inputPath, JSON.stringify(compilerInput, undefined, 2));
-  fs.writeFileSync(outputPath, JSON.stringify(compilerOutput, undefined, 2));
+  if (!usingCustomSolc) {
+    fs.writeFileSync(inputPath, JSON.stringify(compilerInput, undefined, 2));
+    fs.writeFileSync(outputPath, JSON.stringify(compilerOutput, undefined, 2));
+  }
 
   return [compilerInput, compilerOutput];
 }
@@ -306,10 +311,10 @@ function compareStackTraces(
         `Stack trace of tx ${txIndex} entry ${i} should have value`
       );
 
-      const expectedValue = new BN(expected.value);
+      const expectedValue = BigInt(expected.value);
 
       assert.isTrue(
-        expectedValue.eq((actual as any).value),
+        expectedValue === (actual as any).value,
         `Stack trace of tx ${txIndex} entry ${i} has value ${actualValue.toString(
           10
         )} and should have ${expectedValue.toString(10)}`
@@ -329,7 +334,7 @@ function compareStackTraces(
         `Stack trace of tx ${txIndex} entry ${i} should have an errorCode`
       );
 
-      const actualErrorCodeHex = actualErrorCode.toString("hex");
+      const actualErrorCodeHex = actualErrorCode.toString(16);
 
       assert.isTrue(
         expected.errorCode === actualErrorCodeHex,
@@ -799,10 +804,15 @@ const solidityCompilers: SolidityCompiler[] = [
     compilerPath: "soljson-v0.8.16+commit.07a7930e.js",
     latestSolcVersion: true,
   },
+  {
+    solidityVersion: "0.8.17",
+    compilerPath: "soljson-v0.8.17+commit.8df45f5f.js",
+    latestSolcVersion: true,
+  },
 ];
 
 const onlyLatestSolcVersions =
-  process.env.HARDHAT_TESTS_ONLY_LATEST_SOLC_VERSIONS !== undefined;
+  process.env.HARDHAT_TESTS_ALL_SOLC_VERSIONS === undefined;
 
 const filterSolcVersionBy =
   (versionRange: string) =>
@@ -848,6 +858,7 @@ describe("Stack traces", function () {
       process.exit(1);
     }
 
+    // eslint-disable-next-line no-only-tests/no-only-tests
     describe.only(`Use compiler at ${customSolcPath} with version ${customSolcVersion}`, function () {
       const compilerOptions = {
         solidityVersion: customSolcVersion,
@@ -883,13 +894,21 @@ describe("Stack traces", function () {
     return;
   }
 
-  before("Download solcjs binaries", async function () {
-    const paths = new Set(solidityCompilers.map((c) => c.compilerPath));
+  before("Download solc binaries", async function () {
+    const solidityCompilersToDownload = [
+      ...solidity05Compilers,
+      ...solidity06Compilers,
+      ...solidity07Compilers,
+      ...solidity08Compilers,
+    ];
 
-    this.timeout(paths.size * COMPILER_DOWNLOAD_TIMEOUT);
+    this.timeout(
+      solidityCompilersToDownload.length * COMPILER_DOWNLOAD_TIMEOUT
+    );
 
-    for (const p of paths) {
-      await downloadSolc(p);
+    for (const { solidityVersion } of solidityCompilersToDownload) {
+      console.log("Downloading solc", solidityVersion);
+      await downloadCompiler(solidityVersion);
     }
   });
 

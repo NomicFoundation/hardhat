@@ -290,3 +290,19 @@ await helpers.dropTransaction(
   "0x1010101010101010101010101010101010101010101010101010101010101010"
 );
 ```
+
+### `setNextBlockBaseFeePerGas(baseFeePerGas)`
+
+Sets the base fee of the next block.
+
+Parameters:
+
+- `baseFeePerGas`: The new base fee to use.
+
+### `setPrevRandao(prevRandao)`
+
+Sets the PREVRANDAO value of the next block.
+
+Parameters:
+
+- `prevRandao`: The new PREVRANDAO value to use.

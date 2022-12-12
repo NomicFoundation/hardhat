@@ -1,9 +1,13 @@
-import { BN, bufferToHex, privateToAddress, toBuffer } from "ethereumjs-util";
+import {
+  bufferToHex,
+  privateToAddress,
+  toBuffer,
+} from "@nomicfoundation/ethereumjs-util";
+
 import {
   HardhatNetworkMempoolConfig,
   HardhatNetworkMiningConfig,
 } from "../../../../src/types";
-
 import { ALCHEMY_URL, INFURA_URL } from "../../../setup";
 
 import { useProvider, UseProviderOptions } from "./useProvider";
@@ -12,7 +16,7 @@ export const DEFAULT_HARDFORK = "london";
 export const DEFAULT_NETWORK_NAME = "TestNet";
 export const DEFAULT_CHAIN_ID = 123;
 export const DEFAULT_NETWORK_ID = 234;
-export const DEFAULT_BLOCK_GAS_LIMIT = 6000000;
+export const DEFAULT_BLOCK_GAS_LIMIT = 6000000n;
 export const DEFAULT_USE_JSON_RPC = false;
 export const DEFAULT_ALLOW_UNLIMITED_CONTRACT_SIZE = false;
 
@@ -32,22 +36,22 @@ export const DEFAULT_ACCOUNTS = [
   {
     privateKey:
       "0xe331b6d69882b4cb4ea581d88e0b604039a3de5967688d3dcffdd2270c0fd109",
-    balance: new BN(10).pow(new BN(21)),
+    balance: 10n ** 21n,
   },
   {
     privateKey:
       "0xe331b6d69882b4cb4ea581d88e0b604039a3de5967688d3dcffdd2270c0fd10a",
-    balance: new BN(10).pow(new BN(21)),
+    balance: 10n ** 21n,
   },
   {
     privateKey:
       "0xe331b6d69882b4cb4ea581d88e0b604039a3de5967688d3dcffdd2270c0fd10b",
-    balance: new BN(10).pow(new BN(21)),
+    balance: 10n ** 21n,
   },
   {
     privateKey:
       "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80",
-    balance: new BN(10).pow(new BN(21)),
+    balance: 10n ** 21n,
   },
 ];
 export const DEFAULT_ACCOUNTS_ADDRESSES = DEFAULT_ACCOUNTS.map((account) =>

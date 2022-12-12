@@ -10,6 +10,7 @@ import {
 } from "../../../src/internal/core/project-structure";
 import { expectHardhatError } from "../../helpers/errors";
 import { useFixtureProject } from "../../helpers/project";
+import { getRealPath } from "../../../src/internal/util/fs-utils";
 
 describe("project structure", () => {
   describe("isCwdInsideProject", () => {
@@ -45,7 +46,7 @@ describe("project structure", () => {
 
       before("get root path", async () => {
         // TODO: This is no longer needed once PR #71 gets merged
-        const pathToFixtureRoot = await fsExtra.realpath(
+        const pathToFixtureRoot = await getRealPath(
           path.join(
             __dirname,
             "..",
@@ -55,7 +56,7 @@ describe("project structure", () => {
           )
         );
 
-        configPath = await fsExtra.realpath(
+        configPath = await getRealPath(
           path.join(pathToFixtureRoot, "hardhat.config.js")
         );
       });

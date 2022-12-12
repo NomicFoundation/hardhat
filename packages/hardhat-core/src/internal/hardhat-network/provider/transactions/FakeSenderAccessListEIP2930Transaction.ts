@@ -1,11 +1,16 @@
-import Common from "@ethereumjs/common";
-import { AccessListEIP2930Transaction } from "@ethereumjs/tx";
+import { Common } from "@nomicfoundation/ethereumjs-common";
+import * as rlp from "@nomicfoundation/ethereumjs-rlp";
+import { AccessListEIP2930Transaction } from "@nomicfoundation/ethereumjs-tx";
 import {
   AccessListEIP2930TxData,
   AccessListEIP2930ValuesArray,
   TxOptions,
-} from "@ethereumjs/tx/dist/types";
-import { Address, BN, rlp } from "ethereumjs-util";
+} from "@nomicfoundation/ethereumjs-tx/dist/types";
+import {
+  Address,
+  arrToBufArr,
+  bufferToInt,
+} from "@nomicfoundation/ethereumjs-util";
 
 import {
   InternalError,
@@ -65,15 +70,11 @@ export class FakeSenderAccessListEIP2930Transaction extends AccessListEIP2930Tra
       );
     }
 
-    const values = rlp.decode(serialized.slice(1));
+    const values = arrToBufArr(rlp.decode(serialized.slice(1)));
 
-    if (!Array.isArray(values)) {
-      throw new InvalidArgumentsError(
-        "Invalid serialized tx input. Must be array"
-      );
-    }
+    checkIsAccessListEIP2930ValuesArray(values);
 
-    return this.fromSenderAndValuesArray(sender, values as any, opts);
+    return this.fromSenderAndValuesArray(sender, values, opts);
   }
 
   public static fromSenderAndValuesArray(
@@ -81,12 +82,6 @@ export class FakeSenderAccessListEIP2930Transaction extends AccessListEIP2930Tra
     values: AccessListEIP2930ValuesArray,
     opts: TxOptions = {}
   ): FakeSenderAccessListEIP2930Transaction {
-    if (values.length !== 8 && values.length !== 11) {
-      throw new InvalidArgumentsError(
-        "Invalid EIP-2930 transaction. Only expecting 8 values (for unsigned tx) or 11 values (for signed tx)."
-      );
-    }
-
     const [
       chainId,
       nonce,
@@ -112,9 +107,9 @@ export class FakeSenderAccessListEIP2930Transaction extends AccessListEIP2930Tra
         value,
         data: data ?? Buffer.from([]),
         accessList: accessList ?? [],
-        v: v !== undefined ? new BN(v) : undefined, // EIP2930 supports v's with value 0 (empty Buffer)
-        r: r !== undefined && r.length !== 0 ? new BN(r) : undefined,
-        s: s !== undefined && s.length !== 0 ? new BN(s) : undefined,
+        v: v !== undefined ? bufferToInt(v) : undefined, // EIP2930 supports v's with value 0 (empty Buffer)
+        r: r !== undefined && r.length !== 0 ? bufferToInt(r) : undefined,
+        s: s !== undefined && s.length !== 0 ? bufferToInt(s) : undefined,
       },
       opts
     );
@@ -132,9 +127,9 @@ export class FakeSenderAccessListEIP2930Transaction extends AccessListEIP2930Tra
     super(
       {
         ...data,
-        v: data.v ?? new BN(1),
-        r: data.r ?? new BN(1),
-        s: data.s ?? new BN(2),
+        v: data.v ?? 1,
+        r: data.r ?? 1,
+        s: data.s ?? 2,
       },
       { ...opts, freeze: false }
     );
@@ -157,7 +152,7 @@ export class FakeSenderAccessListEIP2930Transaction extends AccessListEIP2930Tra
     );
   }
 
-  public _processSignature(_v: number, _r: Buffer, _s: Buffer): never {
+  public _processSignature(_v: bigint, _r: Buffer, _s: Buffer): never {
     throw new InternalError(
       "`_processSignature` is not implemented in FakeSenderAccessListEIP2930Transaction"
     );
@@ -189,5 +184,41 @@ export class FakeSenderAccessListEIP2930Transaction extends AccessListEIP2930Tra
     }
 
     return true;
+  }
+}
+
+function checkIsAccessListEIP2930ValuesArray(
+  values: unknown
+): asserts values is AccessListEIP2930ValuesArray {
+  if (!Array.isArray(values)) {
+    throw new InvalidArgumentsError(
+      `Invalid deserialized tx. Expected a Buffer[], but got '${values as any}'`
+    );
+  }
+
+  if (values.length !== 8 && values.length !== 11) {
+    throw new InvalidArgumentsError(
+      "Invalid EIP-2930 transaction. Only expecting 8 values (for unsigned tx) or 11 values (for signed tx)."
+    );
+  }
+
+  // all elements in the array are buffers, except the 8th one that is an
+  // AccessListBuffer (an array of AccessListBufferItems)
+  for (const [i, value] of values.entries()) {
+    if (i === 7) {
+      if (!Array.isArray(value)) {
+        // we could check more things to assert that it's an AccessListBuffer,
+        // but we're assuming that just checking if it's an array is enough
+        throw new InvalidArgumentsError(
+          `Invalid deserialized tx. Expected a AccessListBuffer in position ${i}, but got '${value}'`
+        );
+      }
+    } else {
+      if (!Buffer.isBuffer(values[i])) {
+        throw new InvalidArgumentsError(
+          `Invalid deserialized tx. Expected a Buffer in position ${i}, but got '${value}'`
+        );
+      }
+    }
   }
 }

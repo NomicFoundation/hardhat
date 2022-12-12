@@ -4,6 +4,9 @@ const shell = require("shelljs");
 
 shell.set("-e");
 
+// make sure that this env var is not set
+delete process.env.TS_NODE_TRANSPILE_ONLY;
+
 const rootDir = path.join(__dirname, "..", "..");
 const hardhatCoreDir = path.join(rootDir, "packages", "hardhat-core");
 

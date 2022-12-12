@@ -8,7 +8,7 @@ import {
   getArtifactFromContractOutput,
 } from "../../src/internal/artifacts";
 import { ERRORS } from "../../src/internal/core/errors-list";
-import { Artifact } from "../../src/types";
+import { Artifact, CompilerInput, CompilerOutput } from "../../src/types";
 import { getFullyQualifiedName } from "../../src/utils/contract-names";
 import { expectHardhatError, expectHardhatErrorAsync } from "../helpers/errors";
 import { useTmpDir } from "../helpers/fs";
@@ -391,7 +391,7 @@ describe("Artifacts class", function () {
       const artifact = getArtifactFromContractOutput(sourceName, name, output);
 
       const artifacts = new Artifacts(this.tmpDir);
-      await artifacts.saveArtifactAndDebugFile(artifact, "");
+      await artifacts.saveArtifactAndDebugFile(artifact);
 
       const storedArtifact = await artifacts.readArtifact("MyLib.sol:Lib");
 
@@ -757,7 +757,7 @@ describe("Artifacts class", function () {
       assert.isTrue(artifactPath.endsWith(".json"));
     });
 
-    it("Should be possible to get a build info from a fully qualified name", async function () {
+    it("Should be possible to get a build info from a fully qualified name (async)", async function () {
       const contractName = "Lib";
       const sourceName = "source.sol";
       const output = COMPILER_OUTPUTS.Lib;
@@ -766,8 +766,8 @@ describe("Artifacts class", function () {
 
       const solcVersion = "0.5.6";
       const solcLongVersion = "0.5.6+12321";
-      const solcInput = { input: true } as any;
-      const solcOutput = { output: true } as any;
+      const solcInput = { input: {} } as any;
+      const solcOutput = { sources: {}, contracts: {} } as any;
 
       const buildInfoPath = await artifacts.saveBuildInfo(
         solcVersion,
@@ -794,7 +794,44 @@ describe("Artifacts class", function () {
       assert.deepEqual(storedBuildInfo?.output, solcOutput);
     });
 
-    it("Trying to get a build info of an artifact that doesn't have one should just return undefined", async function () {
+    it("Should be possible to get a build info from a fully qualified name (sync)", async function () {
+      const contractName = "Lib";
+      const sourceName = "source.sol";
+      const output = COMPILER_OUTPUTS.Lib;
+
+      const artifacts = new Artifacts(this.tmpDir);
+
+      const solcVersion = "0.5.6";
+      const solcLongVersion = "0.5.6+12321";
+      const solcInput = { input: {} } as any;
+      const solcOutput = { sources: {}, contracts: {} } as any;
+
+      const buildInfoPath = await artifacts.saveBuildInfo(
+        solcVersion,
+        solcLongVersion,
+        solcInput,
+        solcOutput
+      );
+
+      const artifact = getArtifactFromContractOutput(
+        sourceName,
+        contractName,
+        output
+      );
+
+      await artifacts.saveArtifactAndDebugFile(artifact, buildInfoPath);
+
+      const storedBuildInfo = artifacts.getBuildInfoSync(
+        getFullyQualifiedName(sourceName, contractName)
+      );
+
+      assert.equal(storedBuildInfo?.solcVersion, solcVersion);
+      assert.equal(storedBuildInfo?.solcLongVersion, solcLongVersion);
+      assert.deepEqual(storedBuildInfo?.input, solcInput);
+      assert.deepEqual(storedBuildInfo?.output, solcOutput);
+    });
+
+    it("Trying to get a build info of an artifact that doesn't have one should just return undefined (async)", async function () {
       const contractName = "Lib";
       const sourceName = "source.sol";
       const output = COMPILER_OUTPUTS.Lib;
@@ -810,6 +847,28 @@ describe("Artifacts class", function () {
       await artifacts.saveArtifactAndDebugFile(artifact);
 
       const storedBuildInfo = await artifacts.getBuildInfo(
+        getFullyQualifiedName(sourceName, contractName)
+      );
+
+      assert.isUndefined(storedBuildInfo);
+    });
+
+    it("Trying to get a build info of an artifact that doesn't have one should just return undefined (sync)", async function () {
+      const contractName = "Lib";
+      const sourceName = "source.sol";
+      const output = COMPILER_OUTPUTS.Lib;
+
+      const artifacts = new Artifacts(this.tmpDir);
+
+      const artifact = getArtifactFromContractOutput(
+        sourceName,
+        contractName,
+        output
+      );
+
+      await artifacts.saveArtifactAndDebugFile(artifact);
+
+      const storedBuildInfo = artifacts.getBuildInfoSync(
         getFullyQualifiedName(sourceName, contractName)
       );
 
@@ -907,6 +966,347 @@ describe("Artifacts class", function () {
 
       // -2 because of the ones that we tested above that are equal
       assert.equal(new Set(allPaths).size, allPaths.length - 2);
+    });
+
+    it("Should be able to save build-infos with partial fields", async function () {
+      const artifacts = new Artifacts(this.tmpDir);
+
+      async function assertBuildInfoIsCorrectylSavedAndHasTheRightOutput<
+        OutputT extends CompilerOutput
+      >(solcOutput: OutputT) {
+        const solcInput: CompilerInput = {
+          language: "solidity",
+          sources: {},
+          settings: {
+            optimizer: {},
+            outputSelection: {},
+          },
+        };
+
+        const buildInfoPath = await artifacts.saveBuildInfo(
+          "0.4.12",
+          "0.4.12+asd",
+          solcInput,
+          solcOutput
+        );
+        const read = await fsExtra.readJSON(buildInfoPath);
+        assert.deepEqual(read.output, solcOutput);
+      }
+
+      // empty sources and contracts
+      await assertBuildInfoIsCorrectylSavedAndHasTheRightOutput({
+        sources: {},
+        contracts: {},
+      });
+
+      // with unrelated data
+      await assertBuildInfoIsCorrectylSavedAndHasTheRightOutput({
+        sources: {},
+        contracts: {},
+        otherStuff: { a: 1 },
+      });
+
+      // with a single source
+      await assertBuildInfoIsCorrectylSavedAndHasTheRightOutput({
+        sources: { a: { id: 123, ast: {} } },
+        contracts: {},
+      });
+
+      // with a multiple sources
+      await assertBuildInfoIsCorrectylSavedAndHasTheRightOutput({
+        sources: { a: { id: 123, ast: {} }, b: { id: 1, ast: { asdas: 123 } } },
+        contracts: {},
+      });
+
+      const contract = {
+        abi: [],
+        evm: {
+          bytecode: {
+            object: "123",
+            sourceMap: "asd",
+            opcodes: "123asd",
+            linkReferences: {},
+          },
+          deployedBytecode: {
+            object: "123",
+            sourceMap: "asd",
+            opcodes: "123asd",
+            linkReferences: {},
+          },
+          methodIdentifiers: {},
+        },
+      };
+
+      // with a single contract
+      await assertBuildInfoIsCorrectylSavedAndHasTheRightOutput({
+        sources: {},
+        contracts: {
+          asd: {
+            C: contract,
+          },
+        },
+      });
+
+      // with multiple contracts
+      await assertBuildInfoIsCorrectylSavedAndHasTheRightOutput({
+        sources: {},
+        contracts: {
+          asd: {
+            C: contract,
+            B: contract,
+          },
+          f: {
+            F: contract,
+          },
+        },
+      });
+    });
+  });
+
+  // TODO: How do we test that getting a path for an artifact and build
+  //   info gets cached?
+  describe("Caching", function () {
+    useTmpDir("artifacts");
+
+    const SOLC_INPUT: CompilerInput = {
+      sources: {},
+      settings: { optimizer: {}, outputSelection: {} },
+      language: "",
+    };
+
+    const SOLC_OUPUT: CompilerOutput = {
+      sources: {},
+      contracts: {},
+    };
+
+    let artifacts: Artifacts;
+    let buildInfoPath: string;
+    beforeEach(async function () {
+      artifacts = new Artifacts(this.tmpDir);
+      buildInfoPath = await artifacts.saveBuildInfo(
+        "0.4.12",
+        "0.4.12+123",
+        SOLC_INPUT,
+        SOLC_OUPUT
+      );
+
+      await artifacts.saveArtifactAndDebugFile(
+        {
+          _format: "",
+          abi: [],
+          contractName: "C",
+          sourceName: "c.sol",
+          bytecode: "",
+          deployedBytecode: "",
+          linkReferences: {},
+          deployedLinkReferences: {},
+        },
+        buildInfoPath
+      );
+    });
+
+    describe("Successful caching", function () {
+      it("Should cache the path to each artifact and build info, and the lists of paths", async function () {
+        assert.lengthOf(await artifacts.getArtifactPaths(), 1);
+        assert.lengthOf(await artifacts.getDebugFilePaths(), 1);
+        assert.lengthOf(await artifacts.getBuildInfoPaths(), 1);
+
+        // we create some other files, which shouldn't be returned
+
+        await fsExtra.writeJSON(path.join(this.tmpDir, "c.sol", "B.json"), {});
+        await fsExtra.writeJSON(
+          path.join(this.tmpDir, "c.sol", "B.dbg.json"),
+          {}
+        );
+        await fsExtra.writeJSON(
+          path.join(this.tmpDir, "build-info", "something.json"),
+          {}
+        );
+
+        assert.lengthOf(await artifacts.getArtifactPaths(), 1);
+        assert.lengthOf(await artifacts.getDebugFilePaths(), 1);
+        assert.lengthOf(await artifacts.getBuildInfoPaths(), 1);
+      });
+    });
+
+    describe("Clear cache", function () {
+      it("Should clear all the caches", async function () {
+        assert.lengthOf(await artifacts.getArtifactPaths(), 1);
+        assert.lengthOf(await artifacts.getDebugFilePaths(), 1);
+        assert.lengthOf(await artifacts.getBuildInfoPaths(), 1);
+
+        // we create some other files, which should be returned after clearing
+        //  the cache
+
+        await fsExtra.writeJSON(path.join(this.tmpDir, "c.sol", "B.json"), {});
+        await fsExtra.writeJSON(
+          path.join(this.tmpDir, "c.sol", "B.dbg.json"),
+          {}
+        );
+        await fsExtra.writeJSON(
+          path.join(this.tmpDir, "build-info", "something.json"),
+          {}
+        );
+
+        artifacts.clearCache();
+
+        assert.lengthOf(await artifacts.getArtifactPaths(), 2);
+        assert.lengthOf(await artifacts.getDebugFilePaths(), 2);
+        assert.lengthOf(await artifacts.getBuildInfoPaths(), 2);
+      });
+
+      it("Shouldn't re-enable the cache", async function () {
+        artifacts.disableCache();
+
+        assert.lengthOf(await artifacts.getArtifactPaths(), 1);
+        assert.lengthOf(await artifacts.getDebugFilePaths(), 1);
+        assert.lengthOf(await artifacts.getBuildInfoPaths(), 1);
+
+        // We clear the cache here and call the getters again, this shouldn't
+        // cache the results
+        artifacts.clearCache();
+
+        assert.lengthOf(await artifacts.getArtifactPaths(), 1);
+        assert.lengthOf(await artifacts.getDebugFilePaths(), 1);
+        assert.lengthOf(await artifacts.getBuildInfoPaths(), 1);
+
+        // we create some other files, which should be returned, as there's
+        // no cache
+
+        await fsExtra.writeJSON(path.join(this.tmpDir, "c.sol", "B.json"), {});
+        await fsExtra.writeJSON(
+          path.join(this.tmpDir, "c.sol", "B.dbg.json"),
+          {}
+        );
+        await fsExtra.writeJSON(
+          path.join(this.tmpDir, "build-info", "something.json"),
+          {}
+        );
+
+        assert.lengthOf(await artifacts.getArtifactPaths(), 2);
+        assert.lengthOf(await artifacts.getDebugFilePaths(), 2);
+        assert.lengthOf(await artifacts.getBuildInfoPaths(), 2);
+      });
+    });
+
+    describe("Automatic cache clearing", function () {
+      it("Should clear all the caches", async function () {
+        assert.lengthOf(await artifacts.getArtifactPaths(), 1);
+        assert.lengthOf(await artifacts.getDebugFilePaths(), 1);
+        assert.lengthOf(await artifacts.getBuildInfoPaths(), 1);
+
+        // create new artifacts clears the cache
+
+        buildInfoPath = await artifacts.saveBuildInfo(
+          "0.4.13",
+          "0.4.13+123",
+          SOLC_INPUT,
+          SOLC_OUPUT
+        );
+
+        await artifacts.saveArtifactAndDebugFile(
+          {
+            _format: "",
+            abi: [],
+            contractName: "C",
+            sourceName: "e.sol",
+            bytecode: "",
+            deployedBytecode: "",
+            linkReferences: {},
+            deployedLinkReferences: {},
+          },
+          buildInfoPath
+        );
+
+        assert.lengthOf(await artifacts.getArtifactPaths(), 2);
+        assert.lengthOf(await artifacts.getDebugFilePaths(), 2);
+        assert.lengthOf(await artifacts.getBuildInfoPaths(), 2);
+      });
+
+      it("Shouldn't re-enable the cache", async function () {
+        artifacts.disableCache();
+        artifacts.clearCache();
+
+        assert.lengthOf(await artifacts.getArtifactPaths(), 1);
+        assert.lengthOf(await artifacts.getDebugFilePaths(), 1);
+        assert.lengthOf(await artifacts.getBuildInfoPaths(), 1);
+
+        // create new artifacts clears the cache
+
+        buildInfoPath = await artifacts.saveBuildInfo(
+          "0.4.13",
+          "0.4.13+123",
+          SOLC_INPUT,
+          SOLC_OUPUT
+        );
+
+        await artifacts.saveArtifactAndDebugFile(
+          {
+            _format: "",
+            abi: [],
+            contractName: "C",
+            sourceName: "e.sol",
+            bytecode: "",
+            deployedBytecode: "",
+            linkReferences: {},
+            deployedLinkReferences: {},
+          },
+          buildInfoPath
+        );
+
+        assert.lengthOf(await artifacts.getArtifactPaths(), 2);
+        assert.lengthOf(await artifacts.getDebugFilePaths(), 2);
+        assert.lengthOf(await artifacts.getBuildInfoPaths(), 2);
+
+        // we create some other files, which should be returned, as the cache
+        //  is disabled
+
+        await fsExtra.writeJSON(path.join(this.tmpDir, "c.sol", "B.json"), {});
+        await fsExtra.writeJSON(
+          path.join(this.tmpDir, "c.sol", "B.dbg.json"),
+          {}
+        );
+        await fsExtra.writeJSON(
+          path.join(this.tmpDir, "build-info", "something.json"),
+          {}
+        );
+
+        assert.lengthOf(await artifacts.getArtifactPaths(), 3);
+        assert.lengthOf(await artifacts.getDebugFilePaths(), 3);
+        assert.lengthOf(await artifacts.getBuildInfoPaths(), 3);
+      });
+    });
+
+    describe("Disabling cache", function () {
+      it("Should clear the cache", async function () {
+        assert.lengthOf(await artifacts.getArtifactPaths(), 1);
+        assert.lengthOf(await artifacts.getDebugFilePaths(), 1);
+        assert.lengthOf(await artifacts.getBuildInfoPaths(), 1);
+
+        // we create some other files, which shouldn't be returned
+
+        await fsExtra.writeJSON(path.join(this.tmpDir, "c.sol", "B.json"), {});
+        await fsExtra.writeJSON(
+          path.join(this.tmpDir, "c.sol", "B.dbg.json"),
+          {}
+        );
+        await fsExtra.writeJSON(
+          path.join(this.tmpDir, "build-info", "something.json"),
+          {}
+        );
+
+        assert.lengthOf(await artifacts.getArtifactPaths(), 1);
+        assert.lengthOf(await artifacts.getDebugFilePaths(), 1);
+        assert.lengthOf(await artifacts.getBuildInfoPaths(), 1);
+
+        artifacts.disableCache();
+
+        // we disabled the cache, so now they should be returned
+
+        assert.lengthOf(await artifacts.getArtifactPaths(), 2);
+        assert.lengthOf(await artifacts.getDebugFilePaths(), 2);
+        assert.lengthOf(await artifacts.getBuildInfoPaths(), 2);
+      });
     });
   });
 });

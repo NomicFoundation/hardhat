@@ -2,9 +2,9 @@ import type { NumberLike } from "../types";
 import { getHardhatProvider, toRpcQuantity } from "../utils";
 
 /**
- * Sets the base fee of the next block
+ * Sets the base fee of the next block.
  *
- * @param baseFeePerGas The new base fee to use
+ * @param baseFeePerGas The new base fee to use.
  */
 export async function setNextBlockBaseFeePerGas(
   baseFeePerGas: NumberLike

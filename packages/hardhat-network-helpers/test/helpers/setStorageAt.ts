@@ -40,6 +40,7 @@ describe("setStorageAt", function () {
       ["bigint", BigInt(1), 1],
       ["hex encoded", "0x1", 1],
       ["hex encoded with leading zeros", "0x01", 1],
+      ["hex encoded with several leading zeros", "0x001", 1],
       ["ethers's bignumber instances", ethers.BigNumber.from(1), 1],
       ["bn.js instances", new BN(1), 1],
     ];

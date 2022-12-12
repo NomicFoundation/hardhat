@@ -1,12 +1,12 @@
+import { zeroAddress } from "@nomicfoundation/ethereumjs-util";
 import { assert } from "chai";
-import { BN, zeroAddress } from "ethereumjs-util";
 import sinon from "sinon";
 
 import {
   bufferToRpcData,
   numberToRpcQuantity,
-  rpcDataToNumber,
-  rpcQuantityToBN,
+  rpcDataToBigInt,
+  rpcQuantityToBigInt,
   rpcQuantityToNumber,
 } from "../../../../../src/internal/core/jsonrpc/types/base-types";
 import {
@@ -378,9 +378,9 @@ describe("Evm module", function () {
             "pending",
             false,
           ]);
-          const gasLimitBefore = rpcQuantityToBN(blockBefore.gasLimit);
+          const gasLimitBefore = rpcQuantityToNumber(blockBefore.gasLimit);
 
-          const newBlockGasLimit = new BN(34228);
+          const newBlockGasLimit = 34228;
           await this.provider.send("evm_setBlockGasLimit", [
             numberToRpcQuantity(newBlockGasLimit),
           ]);
@@ -389,10 +389,10 @@ describe("Evm module", function () {
             "pending",
             false,
           ]);
-          const gasLimitAfter = rpcQuantityToBN(blockAfter.gasLimit);
+          const gasLimitAfter = rpcQuantityToNumber(blockAfter.gasLimit);
 
-          assert.isFalse(gasLimitBefore.eq(gasLimitAfter));
-          assert.isTrue(gasLimitAfter.eq(newBlockGasLimit));
+          assert.notEqual(gasLimitBefore, gasLimitAfter);
+          assert.equal(gasLimitAfter, newBlockGasLimit);
         });
 
         it("removes transactions that exceed the new block gas limit from the mempool", async function () {
@@ -557,7 +557,7 @@ describe("Evm module", function () {
 
           await this.provider.send("evm_setAutomine", [false]);
           await this.provider.send("evm_setBlockGasLimit", [
-            numberToRpcQuantity(2 * DEFAULT_BLOCK_GAS_LIMIT),
+            numberToRpcQuantity(2n * DEFAULT_BLOCK_GAS_LIMIT),
           ]);
 
           const tx1Hash = await this.provider.send("eth_sendTransaction", [
@@ -586,14 +586,14 @@ describe("Evm module", function () {
             { address: contractAddress },
           ]);
 
-          const gasUsedUntilGasLeftCall = 21_185; // value established empirically using Remix on Rinkeby network
+          const gasUsedUntilGasLeftCall = 21_185n; // value established empirically using Remix on Rinkeby network
           const expectedGasLeft =
             DEFAULT_BLOCK_GAS_LIMIT - gasUsedUntilGasLeftCall;
 
           assert.equal(logTx1.transactionHash, tx1Hash);
           assert.equal(logTx2.transactionHash, tx2Hash);
-          assert.equal(rpcDataToNumber(logTx1.data), expectedGasLeft);
-          assert.equal(rpcDataToNumber(logTx2.data), expectedGasLeft);
+          assert.equal(rpcDataToBigInt(logTx1.data), expectedGasLeft);
+          assert.equal(rpcDataToBigInt(logTx2.data), expectedGasLeft);
         });
 
         it("should accept a hex string param", async function () {
@@ -672,7 +672,7 @@ describe("Evm module", function () {
           ]);
           const currentBlock = await this.provider.send("eth_blockNumber");
 
-          assertQuantity(currentBlock, rpcQuantityToBN(previousBlock).addn(1));
+          assertQuantity(currentBlock, rpcQuantityToBigInt(previousBlock) + 1n);
         });
 
         it("should mine all pending transactions after re-enabling automine", async function () {

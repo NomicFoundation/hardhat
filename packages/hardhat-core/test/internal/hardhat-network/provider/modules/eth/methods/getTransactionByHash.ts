@@ -1,17 +1,17 @@
-import Common from "@ethereumjs/common";
-import { Transaction } from "@ethereumjs/tx";
-import { assert } from "chai";
+import { Common } from "@nomicfoundation/ethereumjs-common";
+import { Transaction } from "@nomicfoundation/ethereumjs-tx";
 import {
-  BN,
+  bigIntToBuffer,
   bufferToHex,
   setLengthLeft,
   toBuffer,
   zeroAddress,
-} from "ethereumjs-util";
+} from "@nomicfoundation/ethereumjs-util";
+import { assert } from "chai";
 
 import {
   numberToRpcQuantity,
-  rpcQuantityToBN,
+  rpcQuantityToBigInt,
 } from "../../../../../../../src/internal/core/jsonrpc/types/base-types";
 import { TransactionParams } from "../../../../../../../src/internal/hardhat-network/provider/node-types";
 import {
@@ -76,9 +76,9 @@ describe("Eth module", function () {
             to: toBuffer(zeroAddress()),
             from: toBuffer(DEFAULT_ACCOUNTS_ADDRESSES[1]),
             data: toBuffer("0xaa"),
-            nonce: new BN(0),
-            value: new BN(123),
-            gasLimit: new BN(25000),
+            nonce: 0n,
+            value: 123n,
+            gasLimit: 25_000n,
             gasPrice: await getPendingBaseFeePerGas(this.provider),
           };
 
@@ -110,9 +110,9 @@ describe("Eth module", function () {
             to: toBuffer(zeroAddress()),
             from: toBuffer(DEFAULT_ACCOUNTS_ADDRESSES[1]),
             data: toBuffer([]),
-            nonce: new BN(1),
-            value: new BN(123),
-            gasLimit: new BN(80000),
+            nonce: 1n,
+            value: 123n,
+            gasLimit: 80_000n,
             gasPrice: await getPendingBaseFeePerGas(this.provider),
           };
 
@@ -147,9 +147,9 @@ describe("Eth module", function () {
             to: undefined,
             from: toBuffer(DEFAULT_ACCOUNTS_ADDRESSES[1]),
             data: toBuffer("0x60006000fd"),
-            nonce: new BN(0),
-            value: new BN(123),
-            gasLimit: new BN(250000),
+            nonce: 0n,
+            value: 123n,
+            gasLimit: 250_000n,
             gasPrice: await getPendingBaseFeePerGas(this.provider),
           };
 
@@ -211,15 +211,14 @@ describe("Eth module", function () {
             },
           ]);
 
-          // create and send signed tx
-          const common = Common.forCustomChain(
-            "mainnet",
+          const common = Common.custom(
             {
               chainId: DEFAULT_CHAIN_ID,
               networkId: DEFAULT_NETWORK_ID,
-              name: "hardhat",
             },
-            "muirGlacier"
+            {
+              hardfork: "muirGlacier",
+            }
           );
 
           const txParams = {
@@ -250,38 +249,38 @@ describe("Eth module", function () {
 
           assert.equal(fetchedTx.from, address);
           assert.equal(fetchedTx.to, DEFAULT_ACCOUNTS_ADDRESSES[1]);
-          assert(
-            rpcQuantityToBN(fetchedTx.value).eq(rpcQuantityToBN(txParams.value))
+          assert.equal(
+            rpcQuantityToBigInt(fetchedTx.value),
+            rpcQuantityToBigInt(txParams.value)
           );
-          assert(
-            rpcQuantityToBN(fetchedTx.nonce).eq(rpcQuantityToBN(txParams.nonce))
+          assert.equal(
+            rpcQuantityToBigInt(fetchedTx.nonce),
+            rpcQuantityToBigInt(txParams.nonce)
           );
-          assert(
-            rpcQuantityToBN(fetchedTx.gas).eq(
-              rpcQuantityToBN(txParams.gasLimit)
-            )
+          assert.equal(
+            rpcQuantityToBigInt(fetchedTx.gas),
+            rpcQuantityToBigInt(txParams.gasLimit)
           );
-          assert(
-            rpcQuantityToBN(fetchedTx.gasPrice).eq(
-              rpcQuantityToBN(txParams.gasPrice)
-            )
+          assert.equal(
+            rpcQuantityToBigInt(fetchedTx.gasPrice),
+            rpcQuantityToBigInt(txParams.gasPrice)
           );
           assert.equal(fetchedTx.input, txParams.data);
 
           // tx.v is padded but fetchedTx.v is not, so we need to do this
-          const fetchedTxV = new BN(toBuffer(fetchedTx.v));
-          const expectedTxV = new BN(signedTx.v!);
-          assert.isTrue(fetchedTxV.eq(expectedTxV));
+          const fetchedTxV = BigInt(fetchedTx.v);
+          const expectedTxV = BigInt(signedTx.v!);
+          assert.equal(fetchedTxV, expectedTxV);
 
           // Also equalize left padding (signedTx has a leading 0)
           assert.equal(
             toBuffer(fetchedTx.r).toString("hex"),
-            toBuffer(signedTx.r!).toString("hex")
+            bigIntToBuffer(signedTx.r!).toString("hex")
           );
 
           assert.equal(
             toBuffer(fetchedTx.s).toString("hex"),
-            toBuffer(signedTx.s!).toString("hex")
+            bigIntToBuffer(signedTx.s!).toString("hex")
           );
         });
 
@@ -290,9 +289,9 @@ describe("Eth module", function () {
             to: toBuffer(zeroAddress()),
             from: toBuffer(DEFAULT_ACCOUNTS_ADDRESSES[1]),
             data: toBuffer([]),
-            nonce: new BN(0),
-            value: new BN(123),
-            gasLimit: new BN(25000),
+            nonce: 0n,
+            value: 123n,
+            gasLimit: 25_000n,
             gasPrice: await getPendingBaseFeePerGas(this.provider),
           };
 
@@ -323,31 +322,31 @@ describe("Eth module", function () {
           assert.equal(tx.from, "0x8a9d69aa686fa0f9bbdec21294f67d4d9cfb4a3e");
         });
 
-        it("should get an existing transaction from rinkeby", async function () {
+        it("should get an existing transaction from goerli", async function () {
           const { ALCHEMY_URL } = process.env;
           if (!isFork || ALCHEMY_URL === undefined || ALCHEMY_URL === "") {
             this.skip();
           }
-          const rinkebyUrl = ALCHEMY_URL.replace("mainnet", "rinkeby");
+          const goerliUrl = ALCHEMY_URL.replace("mainnet", "goerli");
 
           // If "mainnet" is not present the replacement failed so we skip the test
-          if (rinkebyUrl === ALCHEMY_URL) {
+          if (goerliUrl === ALCHEMY_URL) {
             this.skip();
           }
 
           await this.provider.send("hardhat_reset", [
             {
               forking: {
-                jsonRpcUrl: rinkebyUrl,
+                jsonRpcUrl: goerliUrl,
               },
             },
           ]);
 
           const tx = await this.provider.send("eth_getTransactionByHash", [
-            "0x9f8322fbfc0092c0493d4421626e682a0ef0a56ea37efe8f29cda804cca92e7f",
+            "0x3f0908ca1db37402b4fc18e8722dfffa9d78aa1c25b90c37dfe8c9f8a2612b2f",
           ]);
 
-          assert.equal(tx.from, "0xbc3109d75dffaae85ef595902e3bd70fe0643b3b");
+          assert.equal(tx.from, "0x84467283e3663522a02574288291a9d0f9c968c2");
         });
 
         it("should return access list transactions", async function () {
@@ -356,9 +355,9 @@ describe("Eth module", function () {
             from: toBuffer(DEFAULT_ACCOUNTS_ADDRESSES[1]),
             to: toBuffer(zeroAddress()),
             data: toBuffer("0x"),
-            nonce: new BN(0),
-            value: new BN(123),
-            gasLimit: new BN(30000),
+            nonce: 0n,
+            value: 123n,
+            gasLimit: 30_000n,
             gasPrice: await getPendingBaseFeePerGas(this.provider),
             accessList: [
               [
@@ -401,11 +400,11 @@ describe("Eth module", function () {
             from: toBuffer(DEFAULT_ACCOUNTS_ADDRESSES[1]),
             to: toBuffer(zeroAddress()),
             data: toBuffer("0x"),
-            nonce: new BN(0),
-            value: new BN(123),
-            gasLimit: new BN(30000),
+            nonce: 0n,
+            value: 123n,
+            gasLimit: 30_000n,
             maxFeePerGas,
-            maxPriorityFeePerGas: maxFeePerGas.divn(2),
+            maxPriorityFeePerGas: maxFeePerGas / 2n,
             accessList: [
               [
                 toBuffer(zeroAddress()),

@@ -1,8 +1,10 @@
-import { Block } from "@ethereumjs/block";
-import VM from "@ethereumjs/vm";
-import { AfterBlockEvent, RunBlockOpts } from "@ethereumjs/vm/dist/runBlock";
+import { Block } from "@nomicfoundation/ethereumjs-block";
+import {
+  AfterBlockEvent,
+  RunBlockOpts,
+  VM,
+} from "@nomicfoundation/ethereumjs-vm";
 import { assert } from "chai";
-import { BN } from "ethereumjs-util";
 
 import { defaultHardhatNetworkParams } from "../../../../../src/internal/core/config/default-config";
 import { rpcToBlockData } from "../../../../../src/internal/hardhat-network/provider/fork/rpcToBlockData";
@@ -17,18 +19,18 @@ import { assertEqualBlocks } from "./assertEqualBlocks";
 
 export async function runFullBlock(
   url: string,
-  blockToRun: number,
+  blockToRun: bigint,
   chainId: number,
   hardfork: string
 ) {
   const forkConfig = {
     jsonRpcUrl: url,
-    blockNumber: blockToRun - 1,
+    blockNumber: Number(blockToRun) - 1,
   };
 
   const { forkClient } = await makeForkClient(forkConfig);
 
-  const rpcBlock = await forkClient.getBlockByNumber(new BN(blockToRun), true);
+  const rpcBlock = await forkClient.getBlockByNumber(blockToRun, true);
 
   if (rpcBlock === null) {
     assert.fail();
@@ -42,8 +44,8 @@ export async function runFullBlock(
     hardfork,
     forkConfig,
     forkCachePath: FORK_TESTS_CACHE_PATH,
-    blockGasLimit: rpcBlock.gasLimit.toNumber(),
-    minGasPrice: new BN(0),
+    blockGasLimit: Number(rpcBlock.gasLimit),
+    minGasPrice: 0n,
     genesisAccounts: [],
     mempoolOrder: "priority",
     coinbase: "0x0000000000000000000000000000000000000000",
@@ -57,6 +59,9 @@ export async function runFullBlock(
       ...rpcBlock,
       // We wipe the receipt root to make sure we get a new one
       receiptsRoot: Buffer.alloc(32, 0),
+
+      // remove the extra data to prevent ethereumjs from validating it
+      extraData: Buffer.from([]),
     }),
     {
       common,
@@ -83,7 +88,7 @@ export async function runFullBlock(
     afterBlockEvent
   );
 
-  const newBlock = await forkedNode.getBlockByNumber(new BN(blockToRun));
+  const newBlock = await forkedNode.getBlockByNumber(blockToRun);
 
   if (newBlock === undefined) {
     assert.fail();
@@ -103,12 +108,13 @@ async function runBlockAndGetAfterBlockEvent(
   }
 
   try {
-    vm.once("afterBlock", handler);
+    vm.events.once("afterBlock", handler);
     await vm.runBlock(runBlockOpts);
   } finally {
     // We need this in case `runBlock` throws before emitting the event.
     // Otherwise we'd be leaking the listener until the next call to runBlock.
-    vm.removeListener("afterBlock", handler);
+
+    vm.events.removeListener("afterBlock", handler);
   }
 
   return results!;

@@ -124,7 +124,7 @@ await expect(contract.call()).to.be.revertedWith("Some revert message");
 await expect(contract.call()).not.to.be.revertedWith("Another revert message");
 ```
 
-The `revertedWithPanic` matcher allows you to assert that a revert did or didn't occurr with a specific [panic code](https://docs.soliditylang.org/en/v0.8.14/control-structures.html#panic-via-assert-and-error-via-require). You can match a panic code via its integer value (including via hexadecimal notation, such as `0x12`) or via the `PANIC_CODES` dictionary exported from this package:
+The `revertedWithPanic` matcher allows you to assert that a revert did or didn't occur with a specific [panic code](https://docs.soliditylang.org/en/v0.8.14/control-structures.html#panic-via-assert-and-error-via-require). You can match a panic code via its integer value (including via hexadecimal notation, such as `0x12`) or via the `PANIC_CODES` dictionary exported from this package:
 
 ```js
 const { PANIC_CODES } = require("@nomicfoundation/hardhat-chai-matchers/panic");

@@ -263,6 +263,69 @@ describe("Eth module", function () {
             );
           });
 
+          it("should accept short hex strings", async function () {
+            const validHexStrings = [
+              "0x",
+              "0x0",
+              "0x00",
+              "0x000",
+              "0x1",
+              "0x01",
+              "0x001",
+              "0xA",
+              "0x0A",
+              "0x00A",
+              "0xb",
+              "0x0b",
+              "0x00b",
+            ];
+
+            for (const storageSlot of validHexStrings) {
+              assert.strictEqual(
+                await this.provider.send("eth_getStorageAt", [
+                  "0x0101010101010101010101010101010101010101",
+                  storageSlot,
+                ]),
+                "0x0000000000000000000000000000000000000000000000000000000000000000"
+              );
+            }
+          });
+
+          it("should accept storage slots without the 0x prefix", async function () {
+            const validHexStrings = [
+              "0",
+              "00",
+              "000",
+              "1",
+              "01",
+              "001",
+              "A",
+              "0A",
+              "00A",
+              "b",
+              "0b",
+              "00b",
+            ];
+
+            for (const storageSlot of validHexStrings) {
+              assert.strictEqual(
+                await this.provider.send("eth_getStorageAt", [
+                  "0x0101010101010101010101010101010101010101",
+                  storageSlot,
+                ]),
+                "0x0000000000000000000000000000000000000000000000000000000000000000"
+              );
+            }
+
+            assert.strictEqual(
+              await this.provider.send("eth_getStorageAt", [
+                "0x0101010101010101010101010101010101010101",
+                "0000000000000000000000000000000000000000000000000000000000000000",
+              ]),
+              "0x0000000000000000000000000000000000000000000000000000000000000000"
+            );
+          });
+
           it("should not accept plain numbers", async function () {
             await assertInvalidArgumentsError(
               this.provider,
@@ -272,21 +335,21 @@ describe("Eth module", function () {
             );
           });
 
+          it("should not accept empty strings", async function () {
+            await assertInvalidArgumentsError(
+              this.provider,
+              "eth_getStorageAt",
+              ["0x0101010101010101010101010101010101010101", ""],
+              "Storage slot argument cannot be an empty string"
+            );
+          });
+
           it("should not accept invalid hex strings", async function () {
             await assertInvalidArgumentsError(
               this.provider,
               "eth_getStorageAt",
               ["0x0101010101010101010101010101010101010101", "0xABCDEFG"],
-              "Storage slot argument must be a valid hexadecimal prefixed with \"0x\", got '0xABCDEFG'"
-            );
-          });
-
-          it("should not accept hex strings that are too short", async function () {
-            await assertInvalidArgumentsError(
-              this.provider,
-              "eth_getStorageAt",
-              ["0x0101010101010101010101010101010101010101", "0x0"],
-              `Storage slot argument must have a length of 66 ("0x" + 32 bytes), but '0x0' has a length of 3`
+              "Storage slot argument must be a valid hexadecimal, got '0xABCDEFG'"
             );
           });
 
@@ -298,7 +361,17 @@ describe("Eth module", function () {
                 "0x0101010101010101010101010101010101010101",
                 "0x00000000000000000000000000000000000000000000000000000000000000000",
               ],
-              `Storage slot argument must have a length of 66 ("0x" + 32 bytes), but '0x00000000000000000000000000000000000000000000000000000000000000000' has a length of 67`
+              `Storage slot argument must have a length of at most 66 ("0x" + 32 bytes), but '0x00000000000000000000000000000000000000000000000000000000000000000' has a length of 67`
+            );
+
+            await assertInvalidArgumentsError(
+              this.provider,
+              "eth_getStorageAt",
+              [
+                "0x0101010101010101010101010101010101010101",
+                "00000000000000000000000000000000000000000000000000000000000000000",
+              ],
+              `Storage slot argument must have a length of at most 64 (32 bytes), but '00000000000000000000000000000000000000000000000000000000000000000' has a length of 65`
             );
           });
         });

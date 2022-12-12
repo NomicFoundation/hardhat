@@ -1,6 +1,5 @@
 import { assert } from "chai";
 
-import { BN } from "ethereumjs-util";
 import { workaroundWindowsCiFailures } from "../../../../../../utils/workaround-windows-ci-failures";
 import { setCWD } from "../../../../helpers/cwd";
 import {
@@ -41,7 +40,7 @@ describe("Eth module", function () {
           });
 
           it("Should validate that newestBlock exists", async function () {
-            const block = new BN(10).pow(new BN(10));
+            const block = 10n ** 10n;
 
             await assertInvalidInputError(
               this.provider,

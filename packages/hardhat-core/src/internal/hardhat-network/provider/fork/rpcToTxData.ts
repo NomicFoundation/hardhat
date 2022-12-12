@@ -1,12 +1,15 @@
-import { AccessListEIP2930TxData, TxData } from "@ethereumjs/tx";
+import {
+  AccessListEIP2930TxData,
+  TxData,
+} from "@nomicfoundation/ethereumjs-tx";
 
-import { FeeMarketEIP1559TxData } from "@ethereumjs/tx/dist/types";
+import { FeeMarketEIP1559TxData } from "@nomicfoundation/ethereumjs-tx/dist/types";
 import { RpcTransaction } from "../../../core/jsonrpc/types/output/transaction";
 
 export function rpcToTxData(
   rpcTransaction: RpcTransaction
 ): TxData | AccessListEIP2930TxData | FeeMarketEIP1559TxData {
-  const isEip1559 = rpcTransaction.type?.eqn(2) ?? false;
+  const isEip1559 = rpcTransaction.type === 2n;
 
   return {
     gasLimit: rpcTransaction.gas,

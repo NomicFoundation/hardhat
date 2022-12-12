@@ -4,7 +4,7 @@
     "outDir": "./dist",
     "composite": true
   },
-  "exclude": ["./dist", "./node_modules", "./test/**/hardhat.config.ts"],
+  "exclude": ["./dist", "./node_modules", "./test/fixture-projects/**/*"],
   "references": [
     {
       "path": "../hardhat-core/src"

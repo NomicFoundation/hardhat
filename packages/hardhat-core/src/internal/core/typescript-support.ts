@@ -38,7 +38,10 @@ export function isTypescriptSupported() {
   return cachedIsTypescriptSupported;
 }
 
-export function loadTsNode(tsConfigPath?: string) {
+export function loadTsNode(
+  tsConfigPath?: string,
+  shouldTypecheck: boolean = false
+) {
   try {
     require.resolve("typescript");
   } catch {
@@ -67,8 +70,14 @@ export function loadTsNode(tsConfigPath?: string) {
     process.env.TS_NODE_FILES = "true";
   }
 
+  let tsNodeRequirement = "ts-node/register";
+
+  if (!shouldTypecheck) {
+    tsNodeRequirement += "/transpile-only";
+  }
+
   // eslint-disable-next-line import/no-extraneous-dependencies
-  require("ts-node/register");
+  require(tsNodeRequirement);
 }
 
 function isTypescriptFile(path: string): boolean {

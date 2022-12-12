@@ -36,11 +36,11 @@ type SampleProjectTypeCreationAction =
 const HARDHAT_PACKAGE_NAME = "hardhat";
 
 const PROJECT_DEPENDENCIES: Dependencies = {
-  "@nomicfoundation/hardhat-toolbox": "^1.0.1",
+  "@nomicfoundation/hardhat-toolbox": "^2.0.0",
 };
 
 const PEER_DEPENDENCIES: Dependencies = {
-  hardhat: "^2.9.9",
+  hardhat: "^2.11.1",
   "@nomicfoundation/hardhat-network-helpers": "^1.0.0",
   "@nomicfoundation/hardhat-chai-matchers": "^1.0.0",
   "@nomiclabs/hardhat-ethers": "^2.0.0",
@@ -48,7 +48,7 @@ const PEER_DEPENDENCIES: Dependencies = {
   chai: "^4.2.0",
   ethers: "^5.4.7",
   "hardhat-gas-reporter": "^1.0.8",
-  "solidity-coverage": "^0.7.21",
+  "solidity-coverage": "^0.8.0",
   "@typechain/hardhat": "^6.1.2",
   typechain: "^8.1.0",
   "@typechain/ethers-v5": "^10.1.0",
@@ -180,16 +180,15 @@ async function printRecommendedDepsInstallationInstructions(
   console.log(`  ${cmd.join(" ")}`);
 }
 
-async function writeEmptyHardhatConfig() {
-  return fsExtra.writeFile(
-    "hardhat.config.js",
-    `/** @type import('hardhat/config').HardhatUserConfig */
+// exported so we can test that it uses the latest supported version of solidity
+export const EMPTY_HARDHAT_CONFIG = `/** @type import('hardhat/config').HardhatUserConfig */
 module.exports = {
-  solidity: "0.8.9",
+  solidity: "0.8.17",
 };
-`,
-    "utf-8"
-  );
+`;
+
+async function writeEmptyHardhatConfig() {
+  return fsExtra.writeFile("hardhat.config.js", EMPTY_HARDHAT_CONFIG, "utf-8");
 }
 
 async function getAction(): Promise<Action> {
@@ -253,6 +252,20 @@ function showStarOnGitHubMessage() {
   console.log(chalk.cyan("     https://github.com/NomicFoundation/hardhat"));
 }
 
+export function showSoliditySurveyMessage() {
+  if (new Date() > new Date("2023-07-01 23:39")) {
+    // the survey has finished
+    return;
+  }
+
+  console.log();
+  console.log(
+    chalk.cyan(
+      "Please take a moment to complete the 2022 Solidity Survey: https://hardhat.org/solidity-survey-2022"
+    )
+  );
+}
+
 export async function createProject() {
   printAsciiLogo();
 
@@ -288,6 +301,7 @@ export async function createProject() {
 
     console.log();
     showStarOnGitHubMessage();
+    showSoliditySurveyMessage();
 
     return;
   }
@@ -388,6 +402,7 @@ export async function createProject() {
   console.log("See the README.md file for some example tasks you can run");
   console.log();
   showStarOnGitHubMessage();
+  showSoliditySurveyMessage();
 }
 
 async function canInstallRecommendedDeps() {
