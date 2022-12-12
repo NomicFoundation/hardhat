@@ -25,7 +25,7 @@ function getSortedFiles(dependenciesGraph: DependencyGraph) {
     .sort(([a], [b]) => a.sourceName.localeCompare(b.sourceName));
 
   const filesMap: ResolvedFilesMap = {};
-  const resolvedFiles = dependencies.map(([f]) => f);
+  const resolvedFiles = dependencies.map(([file, _deps]) => file);
 
   resolvedFiles.forEach((f) => (filesMap[f.sourceName] = f));
 
