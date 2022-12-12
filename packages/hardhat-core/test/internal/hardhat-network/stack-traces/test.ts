@@ -144,6 +144,7 @@ function defineTest(
   ) {
     it.skip(desc, func);
   } else if (testDefinition.only !== undefined && testDefinition.only) {
+    // eslint-disable-next-line no-only-tests/no-only-tests
     it.only(desc, func);
   } else {
     it(desc, func);
@@ -227,7 +228,9 @@ async function compileIfNecessary(
     fs.statSync(inputPath).ctimeMs > maxSourceCtime &&
     fs.statSync(outputPath).ctimeMs > maxSourceCtime;
 
-  if (isCached) {
+  const usingCustomSolc = process.env.HARDHAT_TESTS_SOLC_PATH !== undefined;
+
+  if (!usingCustomSolc && isCached) {
     const inputJson = fs.readFileSync(inputPath, "utf8");
     const outputJson = fs.readFileSync(outputPath, "utf8");
 
@@ -239,8 +242,10 @@ async function compileIfNecessary(
     compilerOptions
   );
 
-  fs.writeFileSync(inputPath, JSON.stringify(compilerInput, undefined, 2));
-  fs.writeFileSync(outputPath, JSON.stringify(compilerOutput, undefined, 2));
+  if (!usingCustomSolc) {
+    fs.writeFileSync(inputPath, JSON.stringify(compilerInput, undefined, 2));
+    fs.writeFileSync(outputPath, JSON.stringify(compilerOutput, undefined, 2));
+  }
 
   return [compilerInput, compilerOutput];
 }
@@ -853,6 +858,7 @@ describe("Stack traces", function () {
       process.exit(1);
     }
 
+    // eslint-disable-next-line no-only-tests/no-only-tests
     describe.only(`Use compiler at ${customSolcPath} with version ${customSolcVersion}`, function () {
       const compilerOptions = {
         solidityVersion: customSolcVersion,

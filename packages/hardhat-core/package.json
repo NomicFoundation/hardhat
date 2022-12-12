@@ -1,6 +1,6 @@
 {
   "name": "hardhat",
-  "version": "2.12.0",
+  "version": "2.12.4",
   "author": "Nomic Labs LLC",
   "license": "MIT",
   "homepage": "https://hardhat.org",
@@ -85,6 +85,7 @@
     "eslint": "^7.29.0",
     "eslint-config-prettier": "8.3.0",
     "eslint-plugin-import": "2.24.1",
+    "eslint-plugin-no-only-tests": "3.0.0",
     "eslint-plugin-prettier": "3.4.0",
     "ethers": "^5.0.0",
     "mocha": "^10.0.0",

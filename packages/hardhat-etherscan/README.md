@@ -150,20 +150,20 @@ To see the full list of supported networks, run `npx hardhat verify --list-netwo
 
 If the chain you are using is not in the list, you can manually add the necessary information to verify your contracts on it. For this you need three things: the chain id of the network, the URL of the verification endpoint, and the URL of the explorer.
 
-For example, if Rinkeby wasn't supported, you could add it like this:
+For example, if Goerli wasn't supported, you could add it like this:
 
 ```
 etherscan: {
   apiKey: {
-    rinkeby: "<rinkeby-api-key>"
+    goerli: "<goerli-api-key>"
   },
   customChains: [
     {
-      network: "rinkeby",
-      chainId: 4,
+      network: "goerli",
+      chainId: 5,
       urls: {
-        apiURL: "https://api-rinkeby.etherscan.io/api",
-        browserURL: "https://rinkeby.etherscan.io"
+        apiURL: "https://api-goerli.etherscan.io/api",
+        browserURL: "https://goerli.etherscan.io"
       }
     }
   ]

@@ -1,8 +1,11 @@
 import { assert } from "chai";
 import path from "path";
+import sinon from "sinon";
 
 import { ERRORS } from "../../src/internal/core/errors-list";
+import * as packageInfo from "../../src/internal/util/packageInfo";
 import {
+  includesOwnPackageName,
   isAbsolutePathSourceName,
   isLocalSourceName,
   localPathToSourceName,
@@ -213,6 +216,26 @@ describe("Source names utilities", function () {
       assert.equal(replaceBackslashes("\\a"), "/a");
       assert.equal(replaceBackslashes("\\\\a"), "//a");
       assert.equal(replaceBackslashes("/\\\\a"), "///a");
+    });
+  });
+
+  describe("includesOwnPackageName", function () {
+    before(() => {
+      sinon.stub(packageInfo, "getPackageName").resolves("myPackageName");
+    });
+
+    after(() => {
+      sinon.restore();
+    });
+
+    it("Should return true if parsed string starts with the package name", async function () {
+      assert.isTrue(await includesOwnPackageName("myPackageName/src/file"));
+    });
+
+    it("Should return false if the parsed string doesn't start with the package name", async function () {
+      assert.isFalse(
+        await includesOwnPackageName("differentPackageName/src/file")
+      );
     });
   });
 });

@@ -1,4 +1,4 @@
-import { InvalidSnapshotError } from "../errors";
+import { HardhatNetworkHelpersError, InvalidSnapshotError } from "../errors";
 import { getHardhatProvider } from "../utils";
 
 export interface SnapshotRestorer {
@@ -7,6 +7,7 @@ export interface SnapshotRestorer {
    * taken.
    */
   restore(): Promise<void>;
+  snapshotId: string;
 }
 
 /**
@@ -22,12 +23,24 @@ export async function takeSnapshot(): Promise<SnapshotRestorer> {
     method: "evm_snapshot",
   });
 
+  if (typeof snapshotId !== "string") {
+    throw new HardhatNetworkHelpersError(
+      "Assertion error: the value returned by evm_snapshot should be a string"
+    );
+  }
+
   return {
     restore: async () => {
       const reverted = await provider.request({
         method: "evm_revert",
         params: [snapshotId],
       });
+
+      if (typeof reverted !== "boolean") {
+        throw new HardhatNetworkHelpersError(
+          "Assertion error: the value returned by evm_revert should be a boolean"
+        );
+      }
 
       if (!reverted) {
         throw new InvalidSnapshotError();
@@ -38,5 +51,6 @@ export async function takeSnapshot(): Promise<SnapshotRestorer> {
         method: "evm_snapshot",
       });
     },
+    snapshotId,
   };
 }

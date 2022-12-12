@@ -4,7 +4,7 @@ module.exports = {
   etherscan: {
     apiKey: {
       mainnet: "mainnet-testtoken",
-      ropsten: "ropsten-testtoken",
+      goerli: "goerli-testtoken",
     },
   },
   solidity: {

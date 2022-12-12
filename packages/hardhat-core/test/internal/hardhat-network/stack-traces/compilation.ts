@@ -1,6 +1,9 @@
 import fs from "fs";
 import path from "path";
-import { NativeCompiler } from "../../../../src/internal/solidity/compiler";
+import {
+  Compiler as SolcJsCompiler,
+  NativeCompiler,
+} from "../../../../src/internal/solidity/compiler";
 import {
   Compiler,
   CompilerDownloader,
@@ -76,14 +79,16 @@ async function compile(
   input: CompilerInput,
   compiler: Compiler
 ): Promise<[CompilerInput, CompilerOutput]> {
+  let runnableCompiler: any;
   if (compiler.isSolcJs) {
-    throw new Error("These tests expect to be able to run native solc");
+    runnableCompiler = new SolcJsCompiler(compiler.compilerPath);
+  } else {
+    runnableCompiler = new NativeCompiler(compiler.compilerPath);
   }
-  const nativeCompiler = new NativeCompiler(compiler.compilerPath);
 
-  const output = await nativeCompiler.compile(input);
+  const output = await runnableCompiler.compile(input);
 
-  if (output.errors) {
+  if (output.errors !== undefined) {
     for (const error of output.errors) {
       if (error.severity === "error") {
         throw new Error(`Failed to compile: ${error.message}`);
@@ -98,7 +103,19 @@ export async function compileFiles(
   sources: string[],
   compilerOptions: CompilerOptions
 ): Promise<[CompilerInput, CompilerOutput]> {
-  const compiler = await getCompilerForVersion(compilerOptions.solidityVersion);
+  let compiler: Compiler;
+  // special case for running tests with custom solc
+  if (path.isAbsolute(compilerOptions.compilerPath)) {
+    compiler = {
+      compilerPath: compilerOptions.compilerPath,
+      isSolcJs: process.env.HARDHAT_TESTS_SOLC_NATIVE !== "true",
+      version: compilerOptions.solidityVersion,
+      longVersion: compilerOptions.solidityVersion,
+    };
+  } else {
+    compiler = await getCompilerForVersion(compilerOptions.solidityVersion);
+  }
+
   return compile(getSolcInputForFiles(sources, compilerOptions), compiler);
 }
 

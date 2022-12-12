@@ -46,7 +46,7 @@ The `waffle` object has these properties:
 - `createFixtureLoader`
 - `loadFixture`
 
-This plugin depends on [`@nomiclabs/hardhat-ethers`](https://github.com/nomiclabs/hardhat/tree/master/packages/hardhat-ethers), so it also injects an `ethers` object into the HRE, which is documented [here](https://github.com/nomiclabs/hardhat/tree/master/packages/hardhat-ethers#environment-extensions).
+This plugin depends on [`@nomiclabs/hardhat-ethers`](https://github.com/nomiclabs/hardhat/tree/main/packages/hardhat-ethers), so it also injects an `ethers` object into the HRE, which is documented [here](https://github.com/nomiclabs/hardhat/tree/main/packages/hardhat-ethers#environment-extensions).
 
 ## Usage
 

@@ -96,8 +96,8 @@ export const chainConfig: ChainConfig = {
   optimisticGoerli: {
     chainId: 420,
     urls: {
-      apiURL: "https://api-goerli-optimistic.etherscan.io/api",
-      browserURL: "https://goerli-optimistic.etherscan.io/",
+      apiURL: "https://api-goerli-optimism.etherscan.io/api",
+      browserURL: "https://goerli-optimism.etherscan.io/",
     },
   },
   polygon: {
@@ -119,6 +119,13 @@ export const chainConfig: ChainConfig = {
     urls: {
       apiURL: "https://api.arbiscan.io/api",
       browserURL: "https://arbiscan.io/",
+    },
+  },
+  arbitrumGoerli: {
+    chainId: 421613,
+    urls: {
+      apiURL: "https://api-goerli.arbiscan.io/api",
+      browserURL: "https://goerli.arbiscan.io/",
     },
   },
   arbitrumTestnet: {
@@ -214,5 +221,5 @@ export const chainConfig: ChainConfig = {
   },
   // We are not adding new networks to the core of hardhat-etherscan anymore.
   // Please read this to learn how to manually add support for custom networks:
-  // https://github.com/NomicFoundation/hardhat/tree/master/packages/hardhat-etherscan#adding-support-for-other-networks
+  // https://github.com/NomicFoundation/hardhat/tree/main/packages/hardhat-etherscan#adding-support-for-other-networks
 };

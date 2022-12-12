@@ -204,10 +204,10 @@ subtask(TASK_COMPILE_SOLIDITY_GET_DEPENDENCY_GRAPH)
  *
  * This is the right task to override to change the compiler configuration.
  * For example, if you want to change the compiler settings when targetting
- * rinkeby, you could do something like this:
+ * goerli, you could do something like this:
  *
  *   const compilationJob = await runSuper();
- *   if (config.network.name === 'rinkeby') {
+ *   if (config.network.name === 'goerli') {
  *     compilationJob.solidityConfig.settings = newSettings;
  *   }
  *   return compilationJob;
@@ -748,7 +748,7 @@ subtask(TASK_COMPILE_SOLIDITY_LOG_COMPILATION_ERRORS)
       }
     }
 
-    const hasConsoleErrors = output.errors.some(isConsoleLogError);
+    const hasConsoleErrors: boolean = output.errors.some(isConsoleLogError);
     if (hasConsoleErrors) {
       console.error(
         chalk.red(
@@ -1478,9 +1478,7 @@ function needsCompilation(
 }
 
 function hasCompilationErrors(output: any): boolean {
-  return (
-    output.errors && output.errors.some((x: any) => x.severity === "error")
-  );
+  return output.errors?.some((x: any) => x.severity === "error");
 }
 
 /**

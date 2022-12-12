@@ -1,4 +1,4 @@
-import type { BigNumberish, providers } from "ethers";
+import type { BigNumber, BigNumberish, providers } from "ethers";
 import ordinal from "ordinal";
 
 import { buildAssert } from "../utils";
@@ -40,7 +40,7 @@ export function supportChangeEtherBalances(Assertion: Chai.AssertionStatic) {
           ),
           () => {
             const lines: string[] = [];
-            actualChanges.forEach((change, i) => {
+            actualChanges.forEach((change: BigNumber, i) => {
               if (!change.eq(BigNumber.from(balanceChanges[i]))) {
                 lines.push(
                   `Expected the ether balance of ${
@@ -57,7 +57,7 @@ export function supportChangeEtherBalances(Assertion: Chai.AssertionStatic) {
           },
           () => {
             const lines: string[] = [];
-            actualChanges.forEach((change, i) => {
+            actualChanges.forEach((change: BigNumber, i) => {
               if (change.eq(BigNumber.from(balanceChanges[i]))) {
                 lines.push(
                   `Expected the ether balance of ${

@@ -406,11 +406,11 @@ describe("Ethers plugin", function () {
                 },
               });
             } catch (reason: any) {
-              assert.instanceOf(
-                reason,
-                NomicLabsHardhatPluginError,
-                "getContractFactory should fail with a hardhat plugin error"
-              );
+              if (!(reason instanceof NomicLabsHardhatPluginError)) {
+                assert.fail(
+                  "getContractFactory should fail with a hardhat plugin error"
+                );
+              }
               assert.isTrue(
                 reason.message.includes("is ambiguous for the contract"),
                 "getContractFactory should report the ambiguous name resolution as the cause"
@@ -710,12 +710,10 @@ describe("Ethers plugin", function () {
         });
 
         describe("by name and address", function () {
-          it("Should throw if address does not belong to a contract", async function () {
+          it("Should not throw if address does not belong to a contract", async function () {
             const address = await signers[0].getAddress();
-            return assert.isRejected(
-              this.env.ethers.getContractAt("Greeter", address),
-              `${address} is not a contract account.`
-            );
+            // shouldn't throw
+            await this.env.ethers.getContractAt("Greeter", address);
           });
 
           it("Should return an instance of a contract", async function () {
