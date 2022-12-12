@@ -67,6 +67,7 @@ export interface EventParams {
 }
 
 export interface EventParamFuture {
+  vertexId: number;
   label: string;
   type: "eventParam";
   _future: true;
@@ -135,7 +136,8 @@ export type ParameterFuture = RequiredParameter | OptionalParameter;
 export type DeploymentGraphFuture =
   | DependableFuture
   | ParameterFuture
-  | BytesFuture;
+  | BytesFuture
+  | EventParamFuture;
 
 export interface FutureDict {
   [key: string]: DeploymentGraphFuture;

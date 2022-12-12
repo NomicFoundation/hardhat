@@ -54,16 +54,21 @@ const DEFAULT_VALUE = ethers.utils.parseUnits("0");
 
 function parseEventParams(
   abi: Array<{ type: string; name: string; inputs: any[] }>,
-  eventName: string
+  event: EventFuture
 ): EventParams {
-  const event = abi.find((v) => v.type === "event" && v.name === eventName);
+  const [contractName, eventName] = event.label.split("/");
 
-  if (!event) {
-    return {};
+  const abiEvent = abi.find((v) => v.type === "event" && v.name === eventName);
+
+  if (!abiEvent) {
+    throw new Error(
+      `No event "${eventName}" found in ABI for contract "${contractName}"`
+    );
   }
 
-  return event.inputs.reduce<EventParams>((acc, { name }) => {
+  return abiEvent.inputs.reduce<EventParams>((acc, { name }) => {
     acc[name] = {
+      vertexId: event.vertexId,
       label: name,
       type: "eventParam",
       _future: true,
@@ -319,7 +324,7 @@ export class DeploymentBuilder implements IDeploymentBuilder {
       address = artifactFuture.address;
     }
 
-    eventFuture.params = parseEventParams(abi, eventName);
+    eventFuture.params = parseEventParams(abi, eventFuture);
 
     DeploymentBuilder._addVertex(this.graph, {
       id: eventFuture.vertexId,
@@ -611,6 +616,15 @@ export class DeploymentBuilder implements IDeploymentBuilder {
     if (isDependable(arg)) {
       addEdge(graph.adjacencyList, {
         from: resolveProxyDependency(arg).vertexId,
+        to: depNode.id,
+      });
+
+      return;
+    }
+
+    if (arg.type === "eventParam") {
+      addEdge(graph.adjacencyList, {
+        from: arg.vertexId,
         to: depNode.id,
       });
 

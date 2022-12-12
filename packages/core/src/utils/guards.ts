@@ -20,6 +20,7 @@ import type {
   Virtual,
   ProxyFuture,
   BytesFuture,
+  EventParamFuture,
 } from "types/future";
 import { Artifact } from "types/hardhat";
 
@@ -101,6 +102,10 @@ export function isProxy(possible: any): possible is ProxyFuture {
 
 export function isVirtual(possible: any): possible is Virtual {
   return isFuture(possible) && possible.type === "virtual";
+}
+
+export function isEventParam(possible: any): possible is EventParamFuture {
+  return isFuture(possible) && possible.type === "eventParam";
 }
 
 export function isParameter(

@@ -1,6 +1,6 @@
 import { ArgValue } from "types/executionGraph";
 import { ResultsAccumulator } from "types/graph";
-import { isDependable, isProxy } from "utils/guards";
+import { isDependable, isEventParam, isProxy } from "utils/guards";
 
 export function toAddress(v: any) {
   if (typeof v === "object" && "address" in v) {
@@ -19,7 +19,7 @@ function resolveFromContext(context: ResultsAccumulator, arg: ArgValue): any {
     return resolveFromContext(context, arg.value);
   }
 
-  if (!isDependable(arg)) {
+  if (!isDependable(arg) && !isEventParam(arg)) {
     return arg;
   }
 
@@ -33,6 +33,10 @@ function resolveFromContext(context: ResultsAccumulator, arg: ArgValue): any {
     throw new Error(
       `Looking up context on a failed vertex - violation of constraint`
     );
+  }
+
+  if (isEventParam(arg)) {
+    return entry.result.topics[arg.label];
   }
 
   return entry.result;

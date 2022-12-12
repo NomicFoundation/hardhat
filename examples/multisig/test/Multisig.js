@@ -16,17 +16,6 @@ describe("Multisig", function () {
     event = moduleResult.event;
   });
 
-  it("should store a submitted transaction", async function () {
-    const submittedTx = await multisig.functions.transactions(0);
-
-    expect(submittedTx.destination).to.equal(ACCOUNT_0);
-    expect(submittedTx.value.toString()).to.equal(
-      ethers.utils.parseUnits("50").toString()
-    );
-    expect(submittedTx.data).to.equal("0x00");
-    expect(submittedTx.executed).to.equal(false);
-  });
-
   it("should confirm a stored transaction", async function () {
     const [isConfirmed] = await multisig.functions.confirmations(0, ACCOUNT_0);
 
@@ -36,5 +25,16 @@ describe("Multisig", function () {
   it("should emit the sender and transaction id after confirming a stored transaction", async function () {
     expect(event.sender).to.equal(ACCOUNT_0);
     expect(ethers.BigNumber.from("0").eq(event.transactionId)).to.be.true;
+  });
+
+  it("should execute a confirmed transaction", async function () {
+    const submittedTx = await multisig.functions.transactions(0);
+
+    expect(submittedTx.destination).to.equal(ACCOUNT_0);
+    expect(submittedTx.value.toString()).to.equal(
+      ethers.utils.parseUnits("50").toString()
+    );
+    expect(submittedTx.data).to.equal("0x00");
+    expect(submittedTx.executed).to.equal(true);
   });
 });

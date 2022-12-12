@@ -18,6 +18,7 @@ import {
   ParameterFuture,
   BytesFuture,
   ArtifactFuture,
+  EventParamFuture,
 } from "./future";
 import { AdjacencyList, VertexDescriptor } from "./graph";
 import { Artifact } from "./hardhat";
@@ -44,7 +45,10 @@ export interface LibraryMap {
 
 export type ExternalParamValue = boolean | string | number | BigNumber;
 
-export type InternalParamValue = ExternalParamValue | DeploymentGraphFuture;
+export type InternalParamValue =
+  | ExternalParamValue
+  | DeploymentGraphFuture
+  | EventParamFuture;
 
 export type DeploymentGraphVertex =
   | HardhatContractDeploymentVertex
