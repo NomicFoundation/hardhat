@@ -656,7 +656,7 @@ const communityPlugins: IPlugin[] = [
     tags: ["Deployment", "Verification", "Migration"],
   },
   {
-    name: "hardhat notifier",
+    name: "hardhat-notifier",
     author: "Mister Singh",
     authorUrl: "https://www.npmjs.com/package/hardhat-notifier",
     description:
