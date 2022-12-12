@@ -146,7 +146,7 @@ module.exports = {
         allowString: false,
         allowNumber: false,
         allowNullableObject: false,
-        allowAny: true,
+        allowAny: false,
       },
     ],
     "@typescript-eslint/triple-slash-reference": [

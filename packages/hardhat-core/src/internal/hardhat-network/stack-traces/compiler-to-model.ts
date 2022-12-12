@@ -539,7 +539,7 @@ function astFunctionDefinitionToSelector(functionDefinition: any): Buffer {
   return abi.methodID(functionDefinition.name, paramTypes);
 }
 
-function isContractType(param: any) {
+function isContractType(param: any): boolean {
   return (
     (param.typeName?.nodeType === "UserDefinedTypeName" ||
       param?.nodeType === "UserDefinedTypeName") &&
@@ -548,7 +548,7 @@ function isContractType(param: any) {
   );
 }
 
-function isEnumType(param: any) {
+function isEnumType(param: any): boolean {
   return (
     (param.typeName?.nodeType === "UserDefinedTypeName" ||
       param?.nodeType === "UserDefinedTypeName") &&
