@@ -174,6 +174,6 @@ describe("Greeter contract", function() {
 });
 ```
 
-Checkout the plugin's [README file](https://github.com/nomiclabs/hardhat/tree/master/packages/hardhat-truffle5) for more information about it.
+Checkout the plugin's [README file](https://github.com/NomicFoundation/hardhat/tree/main/packages/hardhat-truffle5) for more information about it.
 
 [hardhat runtime environment]: /documentation/#hardhat-runtime-environment-hre

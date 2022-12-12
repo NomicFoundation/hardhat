@@ -677,26 +677,8 @@ describe("HardhatNode", () => {
       {
         networkName: "goerli",
         url: ALCHEMY_URL.replace("mainnet", "goerli"),
-        blockToRun: 5062605n,
+        blockToRun: 7728449n, // this block has both EIP-2930 and EIP-1559 txs
         chainId: 5,
-      },
-      {
-        networkName: "rinkeby",
-        url: ALCHEMY_URL.replace("mainnet", "rinkeby"),
-        blockToRun: 8004365n,
-        chainId: 4,
-      },
-      {
-        networkName: "ropsten",
-        url: ALCHEMY_URL.replace("mainnet", "ropsten"),
-        blockToRun: 9812365n, // this block has a EIP-2930 tx
-        chainId: 3,
-      },
-      {
-        networkName: "ropsten",
-        url: ALCHEMY_URL.replace("mainnet", "ropsten"),
-        blockToRun: 10499406n, // this block has a EIP-1559 tx
-        chainId: 3,
       },
     ];
 

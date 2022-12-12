@@ -1,5 +1,17 @@
 # @nomiclabs/hardhat-ethers
 
+## 2.2.1
+
+### Patch Changes
+
+- 136f25a9e: `getContractAt` doesn't throw anymore if the given address is not a contract.
+
+## 2.2.0
+
+### Minor Changes
+
+- f0310ec91: Add a `deployContract` helper
+
 ## 2.1.1
 
 ### Patch Changes

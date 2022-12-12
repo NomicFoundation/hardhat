@@ -9,6 +9,7 @@ export class DependencyGraph implements taskTypes.DependencyGraph {
   ): Promise<DependencyGraph> {
     const graph = new DependencyGraph();
 
+    // TODO refactor this to make the results deterministic
     await Promise.all(
       resolvedFiles.map((resolvedFile) =>
         graph._addDependenciesFrom(resolver, resolvedFile)
@@ -169,6 +170,7 @@ export class DependencyGraph implements taskTypes.DependencyGraph {
     this._resolvedFiles.set(file.sourceName, file);
     this._dependenciesPerFile.set(file.sourceName, dependencies);
 
+    // TODO refactor this to make the results deterministic
     await Promise.all(
       file.content.imports.map(async (imp) => {
         const dependency = await resolver.resolveImport(file, imp);

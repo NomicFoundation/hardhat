@@ -113,6 +113,30 @@ export class Artifacts implements IArtifacts {
     return fsExtra.readJSON(buildInfoPath);
   }
 
+  public getBuildInfoSync(fullyQualifiedName: string): BuildInfo | undefined {
+    let buildInfoPath =
+      this._cache?.artifactFQNToBuildInfoPathCache.get(fullyQualifiedName);
+
+    if (buildInfoPath === undefined) {
+      const artifactPath =
+        this.formArtifactPathFromFullyQualifiedName(fullyQualifiedName);
+
+      const debugFilePath = this._getDebugFilePath(artifactPath);
+      buildInfoPath = this._getBuildInfoFromDebugFileSync(debugFilePath);
+
+      if (buildInfoPath === undefined) {
+        return undefined;
+      }
+
+      this._cache?.artifactFQNToBuildInfoPathCache.set(
+        fullyQualifiedName,
+        buildInfoPath
+      );
+    }
+
+    return fsExtra.readJSONSync(buildInfoPath);
+  }
+
   public async getArtifactPaths(): Promise<string[]> {
     const cached = this._cache?.artifactPaths;
     if (cached !== undefined) {
@@ -865,6 +889,20 @@ Please replace "${contractName}" for the correct contract name wherever you are 
 
     return undefined;
   }
+
+  /**
+   * Sync version of _getBuildInfoFromDebugFile
+   */
+  private _getBuildInfoFromDebugFileSync(
+    debugFilePath: string
+  ): string | undefined {
+    if (fsExtra.pathExistsSync(debugFilePath)) {
+      const { buildInfo } = fsExtra.readJsonSync(debugFilePath);
+      return path.resolve(path.dirname(debugFilePath), buildInfo);
+    }
+
+    return undefined;
+  }
 }
 
 /**
@@ -879,31 +917,22 @@ export function getArtifactFromContractOutput(
   contractName: string,
   contractOutput: any
 ): Artifact {
-  const evmBytecode = contractOutput.evm && contractOutput.evm.bytecode;
-  let bytecode: string =
-    evmBytecode && evmBytecode.object ? evmBytecode.object : "";
+  const evmBytecode = contractOutput.evm?.bytecode;
+  let bytecode: string = evmBytecode?.object ?? "";
 
   if (bytecode.slice(0, 2).toLowerCase() !== "0x") {
     bytecode = `0x${bytecode}`;
   }
 
-  const evmDeployedBytecode =
-    contractOutput.evm && contractOutput.evm.deployedBytecode;
-  let deployedBytecode: string =
-    evmDeployedBytecode && evmDeployedBytecode.object
-      ? evmDeployedBytecode.object
-      : "";
+  const evmDeployedBytecode = contractOutput.evm?.deployedBytecode;
+  let deployedBytecode: string = evmDeployedBytecode?.object ?? "";
 
   if (deployedBytecode.slice(0, 2).toLowerCase() !== "0x") {
     deployedBytecode = `0x${deployedBytecode}`;
   }
 
-  const linkReferences =
-    evmBytecode && evmBytecode.linkReferences ? evmBytecode.linkReferences : {};
-  const deployedLinkReferences =
-    evmDeployedBytecode && evmDeployedBytecode.linkReferences
-      ? evmDeployedBytecode.linkReferences
-      : {};
+  const linkReferences = evmBytecode?.linkReferences ?? {};
+  const deployedLinkReferences = evmDeployedBytecode?.linkReferences ?? {};
 
   return {
     _format: ARTIFACT_FORMAT_VERSION,

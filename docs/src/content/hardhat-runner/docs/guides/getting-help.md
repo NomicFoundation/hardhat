@@ -2,7 +2,7 @@
 
 Hardhat has a strong community of users willing to help you in times of trouble. Please read this entire guide to learn where and how to ask for help more effectively.
 
-The first place to look for answers is the [GitHub Discussions section in the Hardhat repository.](https://github.com/nomiclabs/hardhat) We recommend you search there first, as the answer may already exist.
+The first place to look for answers is the [GitHub Discussions section in the Hardhat repository.](https://github.com/NomicFoundation/hardhat) We recommend you search there first, as the answer may already exist.
 
 If you can't find what you are looking for on GitHub Discussions, you can [create a new Discussion](https://github.com/NomicFoundation/hardhat/discussions/new).
 

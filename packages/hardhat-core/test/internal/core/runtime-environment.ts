@@ -169,9 +169,13 @@ describe("Environment", () => {
         assert.isDefined(taskResult);
 
         // same task throws with required param missing
-        await expectHardhatErrorAsync(async () => {
-          await env.run("complexExampleTask", {});
-        }, ERRORS.ARGUMENTS.MISSING_TASK_ARGUMENT);
+        await expectHardhatErrorAsync(
+          async () => {
+            await env.run("complexExampleTask", {});
+          },
+          ERRORS.ARGUMENTS.MISSING_TASK_ARGUMENT,
+          "HH306: The 'positionalRequiredStringParam' parameter of task 'complexExampleTask' expects a value, but none was passed."
+        );
       });
 
       it("should use default value on missing optional argument with default param", async () => {
@@ -248,7 +252,7 @@ describe("Environment", () => {
               error,
               undefined,
               `Should not throw error task ${taskNameToRun} with args ${argsString}. Error message: ${
-                error.message || error
+                error.message ?? error
               }`
             );
           }
