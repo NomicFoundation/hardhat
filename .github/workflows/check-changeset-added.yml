@@ -6,7 +6,7 @@ name: Check changeset
 on:
   pull_request:
     branches:
-      - master
+      - main
 
 jobs:
   test:
