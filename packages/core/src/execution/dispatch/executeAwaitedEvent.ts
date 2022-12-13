@@ -1,4 +1,4 @@
-import { Contract } from "ethers";
+import { Contract, ethers } from "ethers";
 
 import { ExecutionContext } from "types/deployment";
 import { AwaitedEvent } from "types/executionGraph";
@@ -7,23 +7,23 @@ import { VertexVisitResult } from "types/graph";
 import { resolveFrom, toAddress } from "./utils";
 
 export async function executeAwaitedEvent(
-  { event, contract, args }: AwaitedEvent,
+  { event, address, abi, args }: AwaitedEvent,
   resultAccumulator: Map<number, VertexVisitResult | null>,
   { services, options }: ExecutionContext
 ): Promise<VertexVisitResult> {
   const resolve = resolveFrom(resultAccumulator);
 
-  const resolvedArgs = args.map(resolve).map(toAddress);
+  const resolvedArgs = [...args, address].map(resolve).map(toAddress);
 
-  const { address, abi } = resolve(contract);
+  const resolvedAddress = resolvedArgs.pop();
 
-  let eventResult;
+  let topics: ethers.utils.Result;
   try {
-    const contractInstance = new Contract(address, abi);
+    const contractInstance = new Contract(resolvedAddress, abi);
 
     const filter = contractInstance.filters[event](...resolvedArgs);
 
-    eventResult = await services.transactions.waitForEvent(
+    const eventResult = await services.transactions.waitForEvent(
       filter,
       options.awaitEventDuration
     );
@@ -37,6 +37,8 @@ export async function executeAwaitedEvent(
         ),
       };
     }
+
+    topics = contractInstance.interface.parseLog(eventResult).args;
   } catch (err) {
     return {
       _kind: "failure",
@@ -47,7 +49,7 @@ export async function executeAwaitedEvent(
   return {
     _kind: "success",
     result: {
-      hash: eventResult.transactionHash,
+      topics,
     },
   };
 }

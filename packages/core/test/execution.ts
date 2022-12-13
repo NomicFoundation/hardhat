@@ -292,18 +292,33 @@ describe("Execution", () => {
     const awaitedEvent: ExecutionVertex = {
       type: "AwaitedEvent",
       id: 2,
-      contract: { vertexId: 0, type: "contract", label: "Test", _future: true },
+      abi: fakeArtifact.abi,
+      address: {
+        vertexId: 0,
+        type: "contract",
+        subtype: "artifact",
+        artifact: fakeArtifact,
+        label: "Test",
+        _future: true,
+      },
       label: "Test/SomeEvent",
       event: "SomeEvent",
       args: [ACCOUNT_0],
     };
+
+    const iface = new ethers.utils.Interface(fakeArtifact.abi);
+
+    const fakeLog = iface.encodeEventLog(
+      ethers.utils.EventFragment.from(fakeArtifact.abi[0]),
+      ["0x0000000000000000000000000000000000000003"]
+    );
 
     const sendTxStub = sinon.stub();
     sendTxStub.onCall(0).resolves("0x1");
     sendTxStub.onCall(1).resolves("0x2");
 
     const waitForEventStub = sinon.stub();
-    waitForEventStub.onFirstCall().resolves({ transactionHash: "0x3" });
+    waitForEventStub.onFirstCall().resolves(fakeLog);
 
     const mockServices: Services = {
       ...getMockServices(),
@@ -339,7 +354,7 @@ describe("Execution", () => {
     assert.deepStrictEqual(response.result.get(2), {
       _kind: "success",
       result: {
-        hash: "0x3",
+        topics: ["0x0000000000000000000000000000000000000003"],
       },
     });
   });

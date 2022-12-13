@@ -8,7 +8,7 @@ import type {
   CallDeploymentVertex,
   HardhatLibraryDeploymentVertex,
   ArtifactLibraryDeploymentVertex,
-  AwaitVertex,
+  EventVertex,
   InternalParamValue,
 } from "types/deploymentGraph";
 import type {
@@ -20,6 +20,7 @@ import type {
   Virtual,
   ProxyFuture,
   BytesFuture,
+  EventParamFuture,
 } from "types/future";
 import { Artifact } from "types/hardhat";
 
@@ -58,8 +59,8 @@ export function isCall(
 
 export function isAwaitedEvent(
   node: DeploymentGraphVertex
-): node is AwaitVertex {
-  return node.type === "Await";
+): node is EventVertex {
+  return node.type === "Event";
 }
 
 export function isHardhatLibrary(
@@ -101,6 +102,10 @@ export function isProxy(possible: any): possible is ProxyFuture {
 
 export function isVirtual(possible: any): possible is Virtual {
   return isFuture(possible) && possible.type === "virtual";
+}
+
+export function isEventParam(possible: any): possible is EventParamFuture {
+  return isFuture(possible) && possible.type === "eventParam";
 }
 
 export function isParameter(

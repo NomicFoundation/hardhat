@@ -3,14 +3,14 @@ import {
   ContractCall,
   DependableFuture,
   Virtual,
-  AwaitFuture,
+  EventFuture,
 } from "types/future";
 
 import { isProxy } from "./guards";
 
 export function resolveProxyDependency(
   future: DependableFuture
-): CallableFuture | ContractCall | Virtual | AwaitFuture {
+): CallableFuture | ContractCall | Virtual | EventFuture {
   if (isProxy(future)) {
     return resolveProxyDependency(future.proxy);
   }
@@ -20,7 +20,7 @@ export function resolveProxyDependency(
 
 export function resolveProxyValue(
   future: DependableFuture
-): CallableFuture | ContractCall | Virtual | AwaitFuture {
+): CallableFuture | ContractCall | Virtual | EventFuture {
   if (isProxy(future)) {
     return resolveProxyValue(future.value);
   }

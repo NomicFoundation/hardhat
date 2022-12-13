@@ -6,7 +6,7 @@ import {
   ModuleDict,
   ModuleParams,
 } from "@ignored/ignition-core";
-import { Contract } from "ethers";
+import { Contract, ethers } from "ethers";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 
 import { renderToCli } from "./ui/renderToCli";
@@ -14,7 +14,7 @@ import { renderToCli } from "./ui/renderToCli";
 type HardhatEthers = HardhatRuntimeEnvironment["ethers"];
 
 interface DeployResult {
-  [key: string]: string | number | Contract;
+  [key: string]: string | number | Contract | ethers.utils.Result;
 }
 
 export class IgnitionWrapper {
@@ -68,7 +68,9 @@ export class IgnitionWrapper {
       }
     }
 
-    const resolvedOutput: { [key: string]: string | number | Contract } = {};
+    const resolvedOutput: {
+      [key: string]: string | number | Contract | ethers.utils.Result;
+    } = {};
     for (const [key, serializedFutureResult] of Object.entries(
       deploymentResult.result
     )) {
@@ -79,6 +81,8 @@ export class IgnitionWrapper {
         resolvedOutput[key] = serializedFutureResult.value;
       } else if (serializedFutureResult._kind === "tx") {
         resolvedOutput[key] = serializedFutureResult.value.hash;
+      } else if (serializedFutureResult._kind === "event") {
+        resolvedOutput[key] = serializedFutureResult.value.topics;
       } else {
         const { abi, address } = serializedFutureResult.value;
 

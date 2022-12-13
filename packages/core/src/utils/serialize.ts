@@ -9,6 +9,8 @@ export function serializeFutureOutput(x: FutureOutput): SerializedFutureResult {
     return { _kind: "contract" as const, value: x };
   } else if ("hash" in x) {
     return { _kind: "tx" as const, value: x };
+  } else if ("topics" in x) {
+    return { _kind: "event" as const, value: x };
   }
 
   const exhaustiveCheck: never = x;

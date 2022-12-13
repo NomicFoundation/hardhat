@@ -24,6 +24,7 @@ export interface DeployedContract {
   type: "contract";
   subtype: "deployed";
   abi: any[];
+  address: string;
   _future: true;
 }
 
@@ -52,10 +53,23 @@ export interface ContractCall {
   _future: true;
 }
 
-export interface AwaitFuture {
+export interface EventFuture {
   vertexId: number;
   label: string;
   type: "await";
+  subtype: "event";
+  _future: true;
+  params: EventParams;
+}
+
+export interface EventParams {
+  [eventParam: string]: EventParamFuture;
+}
+
+export interface EventParamFuture {
+  vertexId: number;
+  label: string;
+  type: "eventParam";
   _future: true;
 }
 
@@ -99,6 +113,8 @@ export interface ProxyFuture {
   _future: true;
 }
 
+export type ArtifactFuture = ArtifactContract | DeployedContract;
+
 export type ContractFuture =
   | HardhatContract
   | ArtifactContract
@@ -113,14 +129,15 @@ export type DependableFuture =
   | ContractCall
   | Virtual
   | ProxyFuture
-  | AwaitFuture;
+  | EventFuture;
 
 export type ParameterFuture = RequiredParameter | OptionalParameter;
 
 export type DeploymentGraphFuture =
   | DependableFuture
   | ParameterFuture
-  | BytesFuture;
+  | BytesFuture
+  | EventParamFuture;
 
 export interface FutureDict {
   [key: string]: DeploymentGraphFuture;
