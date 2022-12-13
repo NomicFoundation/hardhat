@@ -16,11 +16,16 @@ describe("Create2", function () {
           args: [0, toBytes32(1), m.getBytesForArtifact("Foo")],
         });
 
-        m.call(create2, "deploy", {
+        const call = m.call(create2, "deploy", {
           args: [0, toBytes32(2), m.getBytesForArtifact("Bar")],
         });
 
-        return { create2 };
+        const event = m.awaitEvent(create2, "Deployed", {
+          args: [toBytes32(2)],
+          after: [call],
+        });
+
+        return { create2, bar: m.contractAt(event.params.deployed) };
       }
     );
 

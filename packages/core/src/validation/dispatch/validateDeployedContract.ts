@@ -9,7 +9,7 @@ export async function validateDeployedContract(
   _resultAccumulator: ResultsAccumulator,
   _context: { services: Services }
 ): Promise<VertexVisitResult> {
-  if (!isAddress(vertex.address)) {
+  if (typeof vertex.address === "string" && !isAddress(vertex.address)) {
     return {
       _kind: "failure",
       failure: new Error(
