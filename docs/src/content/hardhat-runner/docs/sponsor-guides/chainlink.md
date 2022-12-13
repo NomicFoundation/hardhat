@@ -50,7 +50,7 @@ The next step might be to have a network of these nodes making these calls to di
 
 [Chainlink Off-Chain Reporting](https://blog.chain.link/off-chain-reporting-live-on-mainnet/) (Chainlink OCR) has improved on this methodology by having the off-chain oracle network communicate with each other, cryptographically sign their responses, aggregate their responses off-chain, and send only one transaction on-chain with the result. This way, less gas is spent, but you still get the guarantee of decentralized data since every node has signed their part of the transaction, making it unchangeable by the node sending the transaction. The escalation policy kicks in if the node doesn't transact, and the next node sends the transaction.
 
-## Chainlink Data Feeds
+## Getting Price Data
 
 Chainlink Data Feeds are the quickest way to connect your smart contracts to the real-world data such as asset prices, reserve balances, and L2 sequencer health. To consume price data, your smart contract should reference AggregatorV3Interface, which defines the external functions implemented by Data Feeds.
 
@@ -90,7 +90,9 @@ contract PriceConsumerV3 {
 
 ```
 
-## Chainlink VRF
+## Randomness
+
+Randomness in computer systems, especially on blockchains, is challenging to achieve because general-purpose blockchains like Ethereum do not have inherent randomness. Another problem is the public nature of blockchain technology which makes finding a secure source of entropy difficult. Almost any mechanism of generating on-chain randomness using Solidity is vulnerable to MEV attacks. 
 
 Chainlink VRF (Verifiable Random Function) is a provably-fair and verifiable source of randomness designed for smart contracts. Smart contract developers can use Chainlink VRF as a tamper-proof random number generation (RNG) to build reliable smart contracts for any applications which rely on unpredictable outcomes:
 
@@ -207,180 +209,6 @@ contract VRFv2Consumer is VRFConsumerBaseV2, ConfirmedOwner {
         require(s_requests[_requestId].exists, 'request not found');
         RequestStatus memory request = s_requests[_requestId];
         return (request.fulfilled, request.randomWords);
-    }
-}
-```
-
-## Chainlink Automation
-
-Smart contracts can't trigger or initiate their own functions at arbitrary times or under arbitrary conditions. State changes will only occur when another account initiates a transaction (such as a user, oracle, or contract). [Chainlink Automation](https://docs.chain.link/docs/chainlink-automation/introduction/) enables conditional execution of your smart contracts functions through a hyper-reliable and decentralized automation platform that uses the same external network of node operators that secures billions in value.
-
-Chainlink Automation will reliably execute smart contract functions using a variety of triggers.
-
-### [Time-based Trigger](https://docs.chain.link/docs/chainlink-automation/introduction/#time-based-trigger)
-
-Open the [Chainlink Automation app](https://automation.chain.link/).
-
-Register a new Upkeep in the Chainlink Automation App and select Time-based trigger. Provide the address of your deployed contract, provide the ABI if it is not verified, and choose the function that you want to automate along with the relevant function inputs, if any.
-
-Specify the time schedule using CRON.
-
-Complete the remaining details. Your gas limit needs to include an extra 150K for execution. Fund your Upkeep with ERC-677 LINK.
-
-### [Custom logic Trigger](https://docs.chain.link/docs/chainlink-automation/introduction/#custom-logic-trigger)
-
-To use a custom logic trigger, you must make your contract compatible with the `AutomationCompatibleInterface` contract, which consists of two functions:
-
-- `checkUpkeep` - Checks if the contract requires work to be done.
-- `performUpkeep` - Performs the work on the contract, if instructed by checkUpkeep.
-
-The example below is a simple counter contract which is Automation compatible.
-
-```solidity
-// SPDX-License-Identifier: MIT
-pragma solidity ^0.8.7;
-
-// AutomationCompatible.sol imports the functions from both ./AutomationBase.sol and
-// ./interfaces/AutomationCompatibleInterface.sol
-import "@chainlink/contracts/src/v0.8/AutomationCompatible.sol";
-
-/**
- * THIS IS AN EXAMPLE CONTRACT THAT USES HARDCODED VALUES FOR CLARITY.
- * THIS IS AN EXAMPLE CONTRACT THAT USES UN-AUDITED CODE.
- * DO NOT USE THIS CODE IN PRODUCTION.
- */
-
-contract Counter is AutomationCompatibleInterface {
-    /**
-    * Public counter variable
-    */
-    uint public counter;
-
-    /**
-    * Use an interval in seconds and a timestamp to slow execution of Upkeep
-    */
-    uint public immutable interval;
-    uint public lastTimeStamp;
-
-    constructor(uint updateInterval) {
-      interval = updateInterval;
-      lastTimeStamp = block.timestamp;
-
-      counter = 0;
-    }
-
-    function checkUpkeep(bytes calldata /* checkData */) external view override returns (bool upkeepNeeded, bytes memory /* performData */) {
-        upkeepNeeded = (block.timestamp - lastTimeStamp) > interval;
-        // We don't use the checkData in this example. The checkData is defined when the Upkeep was registered.
-    }
-
-    function performUpkeep(bytes calldata /* performData */) external override {
-        //We highly recommend revalidating the upkeep in the performUpkeep function
-        if ((block.timestamp - lastTimeStamp) > interval ) {
-            lastTimeStamp = block.timestamp;
-            counter = counter + 1;
-        }
-        // We don't use the performData in this example. The performData is generated by the Automation Node's call to your checkUpkeep function
-    }
-}
-```
-
-After deploying a contract [register](https://docs.chain.link/docs/chainlink-automation/register-upkeep/) a new Upkeep in the [Chainlink Automation App](https://automation.chain.link/) and select Custom logic trigger. Provide the address of your compatible contract and complete the remaining details. Ensure you specify the appropriate gas limit for your function to execute on chain and fund your Upkeep with ERC-677 LINK.
-
-## Chainlink API Call
-
-[Chainlink API Calls](https://docs.chain.link/docs/make-a-http-get-request) are the easiest way to get data from the off-chain world in the traditional way the web works: API calls. Doing a single instance of this and having only one oracle makes it centralized by nature. To keep it truly decentralized, a smart contract platform would need to use numerous nodes found in an [external data market](https://market.link/).
-
-This also follows the request and receive cycle of oracles and needs the contract to be funded with ERC-677 LINK (the oracle gas) to work.
-
-```solidity
-// SPDX-License-Identifier: MIT
-pragma solidity ^0.8.7;
-
-import '@chainlink/contracts/src/v0.8/ChainlinkClient.sol';
-import '@chainlink/contracts/src/v0.8/ConfirmedOwner.sol';
-
-/**
- * Request testnet LINK and ETH here: https://faucets.chain.link/
- * Find information on LINK Token Contracts and get the latest ETH and LINK faucets here: https://docs.chain.link/docs/link-token-contracts/
- */
-
-/**
- * THIS IS AN EXAMPLE CONTRACT WHICH USES HARDCODED VALUES FOR CLARITY.
- * THIS EXAMPLE USES UN-AUDITED CODE.
- * DO NOT USE THIS CODE IN PRODUCTION.
- */
-
-contract APIConsumer is ChainlinkClient, ConfirmedOwner {
-    using Chainlink for Chainlink.Request;
-
-    uint256 public volume;
-    bytes32 private jobId;
-    uint256 private fee;
-
-    event RequestVolume(bytes32 indexed requestId, uint256 volume);
-
-    /**
-     * @notice Initialize the link token and target oracle
-     *
-     * Goerli Testnet details:
-     * Link Token: 0x326C977E6efc84E512bB9C30f76E30c160eD06FB
-     * Oracle: 0xCC79157eb46F5624204f47AB42b3906cAA40eaB7 (Chainlink DevRel)
-     * jobId: ca98366cc7314957b8c012c72f05aeeb
-     *
-     */
-    constructor() ConfirmedOwner(msg.sender) {
-        setChainlinkToken(0x326C977E6efc84E512bB9C30f76E30c160eD06FB);
-        setChainlinkOracle(0xCC79157eb46F5624204f47AB42b3906cAA40eaB7);
-        jobId = 'ca98366cc7314957b8c012c72f05aeeb';
-        fee = (1 * LINK_DIVISIBILITY) / 10; // 0,1 * 10**18 (Varies by network and job)
-    }
-
-    /**
-     * Create a Chainlink request to retrieve API response, find the target
-     * data, then multiply by 1000000000000000000 (to remove decimal places from data).
-     */
-    function requestVolumeData() public returns (bytes32 requestId) {
-        Chainlink.Request memory req = buildChainlinkRequest(jobId, address(this), this.fulfill.selector);
-
-        // Set the URL to perform the GET request on
-        req.add('get', 'https://min-api.cryptocompare.com/data/pricemultifull?fsyms=ETH&tsyms=USD');
-
-        // Set the path to find the desired data in the API response, where the response format is:
-        // {"RAW":
-        //   {"ETH":
-        //    {"USD":
-        //     {
-        //      "VOLUME24HOUR": xxx.xxx,
-        //     }
-        //    }
-        //   }
-        //  }
-        // request.add("path", "RAW.ETH.USD.VOLUME24HOUR"); // Chainlink nodes prior to 1.0.0 support this format
-        req.add('path', 'RAW,ETH,USD,VOLUME24HOUR'); // Chainlink nodes 1.0.0 and later support this format
-
-        // Multiply the result by 1000000000000000000 to remove decimals
-        int256 timesAmount = 10**18;
-        req.addInt('times', timesAmount);
-
-        // Sends the request
-        return sendChainlinkRequest(req, fee);
-    }
-
-    /**
-     * Receive the response in the form of uint256
-     */
-    function fulfill(bytes32 _requestId, uint256 _volume) public recordChainlinkFulfillment(_requestId) {
-        emit RequestVolume(_requestId, _volume);
-        volume = _volume;
-    }
-
-    /**
-     * Allow withdraw of Link tokens from the contract
-     */
-    function withdrawLink() public onlyOwner {
-        LinkTokenInterface link = LinkTokenInterface(chainlinkTokenAddress());
-        require(link.transfer(msg.sender, link.balanceOf(address(this))), 'Unable to transfer');
     }
 }
 ```
