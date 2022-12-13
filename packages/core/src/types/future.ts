@@ -24,7 +24,7 @@ export interface DeployedContract {
   type: "contract";
   subtype: "deployed";
   abi: any[];
-  address: string;
+  address: string | EventParamFuture;
   _future: true;
 }
 
@@ -114,6 +114,8 @@ export interface ProxyFuture {
 }
 
 export type ArtifactFuture = ArtifactContract | DeployedContract;
+
+export type AddressResolvable = EventParamFuture | ArtifactFuture;
 
 export type ContractFuture =
   | HardhatContract

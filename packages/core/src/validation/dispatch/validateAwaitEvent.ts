@@ -24,7 +24,16 @@ export async function validateAwaitEvent(
   }
 
   let artifactAbi: any[] | undefined;
-  if (typeof vertex.address !== "string") {
+  if (typeof vertex.address === "string") {
+    if (!ethers.utils.isAddress(vertex.address)) {
+      return {
+        _kind: "failure",
+        failure: new Error(`Invalid address ${vertex.address}`),
+      };
+    }
+
+    artifactAbi = vertex.abi;
+  } else if (vertex.address.type === "contract") {
     artifactAbi = await resolveArtifactForCallableFuture(
       vertex.address,
       context
@@ -38,11 +47,6 @@ export async function validateAwaitEvent(
         ),
       };
     }
-  } else if (!ethers.utils.isAddress(vertex.address)) {
-    return {
-      _kind: "failure",
-      failure: new Error(`Invalid address ${vertex.address}`),
-    };
   }
 
   const argsLength = vertex.args.length;
@@ -69,7 +73,7 @@ export async function validateAwaitEvent(
   }
 
   const matchingEventFragments = eventFragments.filter(
-    (f) => f.inputs.length === argsLength
+    (f) => f.inputs.length >= argsLength
   );
 
   if (matchingEventFragments.length === 0) {

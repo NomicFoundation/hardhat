@@ -35,6 +35,7 @@ import type {
   BytesFuture,
   EventParams,
   ArtifactFuture,
+  EventParamFuture,
 } from "types/future";
 import type { Artifact } from "types/hardhat";
 import type { ModuleCache, ModuleDict } from "types/module";
@@ -204,7 +205,7 @@ export class DeploymentBuilder implements IDeploymentBuilder {
 
   public contractAt(
     contractName: string,
-    address: string,
+    address: string | EventParamFuture,
     abi: any[],
     options?: { after?: DeploymentGraphFuture[] }
   ): DeployedContract {
@@ -313,7 +314,7 @@ export class DeploymentBuilder implements IDeploymentBuilder {
     }
 
     let abi: any[];
-    let address: string | ArtifactContract;
+    let address: string | ArtifactContract | EventParamFuture;
     if (artifactFuture.subtype === "artifact") {
       abi = artifactFuture.artifact.abi;
       address = artifactFuture;

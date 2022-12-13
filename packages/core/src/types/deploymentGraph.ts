@@ -83,7 +83,7 @@ export interface ArtifactContractDeploymentVertex extends VertexDescriptor {
 export interface DeployedContractDeploymentVertex extends VertexDescriptor {
   type: "DeployedContract";
   scopeAdded: string;
-  address: string;
+  address: string | EventParamFuture;
   abi: any[];
   after: DeploymentGraphFuture[];
 }
@@ -124,7 +124,7 @@ export interface EventVertex extends VertexDescriptor {
   type: "Event";
   scopeAdded: string;
   abi: any[];
-  address: string | ArtifactContract;
+  address: string | ArtifactContract | EventParamFuture;
   event: string;
   args: InternalParamValue[];
   after: DeploymentGraphFuture[];
@@ -167,7 +167,7 @@ export interface IDeploymentBuilder {
 
   contractAt: (
     contractName: string,
-    address: string,
+    address: string | EventParamFuture,
     abi: any[],
     options?: { after?: DeploymentGraphFuture[] }
   ) => DeployedContract;
