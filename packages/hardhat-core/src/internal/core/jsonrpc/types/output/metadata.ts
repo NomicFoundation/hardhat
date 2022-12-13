@@ -6,10 +6,10 @@ export interface HardhatMetadata {
   // The chain's id. Used to sign transactions.
   chainId: number;
 
-  // A 0x-prefixed hex-encoded 32 bytes id which uniquiely identifies an instance/run
+  // A 0x-prefixed hex-encoded 32 bytes id which uniquely identifies an instance/run
   // of Hardhat Network. Running Hardhat Network more than once (even with the same version
-  // and parameters) would always result in different `instanceId`s.
-  // Running `hardhat_reset` would change the `instanceId` of an existing Hardhat Network.
+  // and parameters) will always result in different `instanceId`s.
+  // Running `hardhat_reset` will change the `instanceId` of an existing Hardhat Network.
   instanceId: string;
 
   // The latest block's number in Hardhat Network

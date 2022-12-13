@@ -404,6 +404,20 @@ Call [`hardhat_stopImpersonatingAccount`](#hardhat-stopimpersonatingaccount) to 
 
 Returns `true` if automatic mining is enabled, and `false` otherwise. See [Mining Modes](../explanation/mining-modes.md) to learn more.
 
+#### `hardhat_metadata`
+
+Returns an object with metadata about the instance of the Hardhat Network. This object contains:
+
+- `clientVersion`: A string identifying the version of Hardhat, for debugging purposes, not meant to be displayed to users.
+- `chainId`: The chain's id. Used to sign transactions.
+- `instanceId`: A 0x-prefixed hex-encoded 32 bytes id which uniquely identifies an instance/run of Hardhat Network. Running Hardhat Network more than once (even with the same version and parameters) will always result in different `instanceId`s. Running `hardhat_reset` will change the `instanceId` of an existing Hardhat Network.
+- `latestBlockNumber`: The latest block's number in Hardhat Network.
+- `latestBlockHash`: The latest block's hash in Hardhat Network.
+- `forkedNetwork`: An object with information about the forked network. This field is only present when Hardhat Network is forking another chain. Its fields are:
+  - `chainId`: The chainId of the network that is being forked
+  - `forkBlockNumber`: The number of the block that the network forked from.
+  - `forkBlockHash`: The hash of the block that the network forked from.
+
 #### `hardhat_mine`
 
 Sometimes you may want to advance the latest block number of the Hardhat Network by a large number of blocks. One way to do this would be to call the `evm_mine` RPC method multiple times, but this is too slow if you want to mine thousands of blocks. The `hardhat_mine` method can mine any number of blocks at once, in constant time. (It exhibits the same performance no matter how many blocks are mined.)
