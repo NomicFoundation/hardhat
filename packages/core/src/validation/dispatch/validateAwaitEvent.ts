@@ -73,7 +73,7 @@ export async function validateAwaitEvent(
   }
 
   const matchingEventFragments = eventFragments.filter(
-    (f) => f.inputs.length === argsLength
+    (f) => f.inputs.length >= argsLength
   );
 
   if (matchingEventFragments.length === 0) {

@@ -722,7 +722,7 @@ describe("Validation", () => {
       );
     });
 
-    it("should fail an awaited event with wrong number of arguments", async () => {
+    it("should fail an awaited event with too many arguments", async () => {
       const singleModule = buildModule("single", (m: IDeploymentBuilder) => {
         const example = m.contract("Test", exampleEventArtifact);
 
@@ -730,7 +730,7 @@ describe("Validation", () => {
 
         m.awaitEvent(example as ArtifactContract, "SomeEvent", {
           after: [call],
-          args: [],
+          args: [1, 2, 3, 4],
         });
 
         return { example };
@@ -764,7 +764,7 @@ describe("Validation", () => {
       assert.equal(text, "Validation failed");
       assert.equal(
         error.message,
-        "Event SomeEvent in contract Test expects 1 arguments but 0 were given"
+        "Event SomeEvent in contract Test expects 1 arguments but 4 were given"
       );
     });
   });
