@@ -19,12 +19,23 @@ function getSortedFiles(dependenciesGraph: DependencyGraph) {
   const tsort = require("tsort");
   const graph = tsort();
 
+  // sort the graph entries to make the results deterministic
+  const dependencies = dependenciesGraph
+    .entries()
+    .sort(([a], [b]) => a.sourceName.localeCompare(b.sourceName));
+
   const filesMap: ResolvedFilesMap = {};
-  const resolvedFiles = dependenciesGraph.getResolvedFiles();
+  const resolvedFiles = dependencies.map(([file, _deps]) => file);
+
   resolvedFiles.forEach((f) => (filesMap[f.sourceName] = f));
 
-  for (const [from, deps] of dependenciesGraph.entries()) {
-    for (const to of deps) {
+  for (const [from, deps] of dependencies) {
+    // sort the dependencies to make the results deterministic
+    const sortedDeps = [...deps].sort((a, b) =>
+      a.sourceName.localeCompare(b.sourceName)
+    );
+
+    for (const to of sortedDeps) {
       graph.add(to.sourceName, from.sourceName);
     }
   }

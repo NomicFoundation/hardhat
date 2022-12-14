@@ -1,5 +1,11 @@
 # @nomiclabs/hardhat-etherscan
 
+## 3.1.3
+
+### Patch Changes
+
+- 17b275de3: Add `--no-compile` flag to the `verify` task
+
 ## 3.1.2
 
 ### Patch Changes
