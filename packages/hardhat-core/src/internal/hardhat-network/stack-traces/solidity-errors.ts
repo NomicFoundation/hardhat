@@ -8,7 +8,6 @@ import {
   SolidityStackTraceEntry,
   SourceReference,
   StackTraceEntryType,
-  UNKNOWN_ERROR_SELECTOR,
   UNKNOWN_FUNCTION_NAME,
   UNRECOGNIZED_CONTRACT_NAME,
   UNRECOGNIZED_FUNCTION_NAME,
@@ -272,9 +271,16 @@ function getMessageFromLastStackTraceEntry(
       }
 
       if (!stackTraceEntry.message.isEmpty()) {
-        const selector =
-          stackTraceEntry.message.getSelector() ?? UNKNOWN_ERROR_SELECTOR;
-        return `VM Exception while processing transaction: reverted with an unrecognized custom error with selector ${selector}`;
+        const selector = stackTraceEntry.message.getSelector();
+
+        if (selector !== undefined) {
+          return `VM Exception while processing transaction: reverted with an unrecognized custom error with selector ${selector}`;
+        }
+
+        // this should only happen when the transaction has return data but it
+        // has less than 4 bytes, which should be a very uncommon scenario
+        const rawReturnData = stackTraceEntry.message.value.toString("hex");
+        return `VM Exception while processing transaction: reverted with return data ${rawReturnData}`;
       }
 
       if (stackTraceEntry.isInvalidOpcodeError) {
