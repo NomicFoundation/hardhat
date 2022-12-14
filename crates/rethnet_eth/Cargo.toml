@@ -1,0 +1,28 @@
+[package]
+name = "rethnet_eth"
+version = "0.1.0-dev"
+edition = "2021"
+
+[dependencies]
+bytes = { version = "1.2.1", default-features = false }
+ethbloom = { version = "0.13.0", default-features = false, features = ["rlp"] }
+hash-db = { version = "0.15.2", default-features = false }
+hash256-std-hasher = { version = "0.15.2", default-features = false }
+hashbrown = { version = "0.12.3", default-features = false }
+hex = { version = "0.4.3", default-features = false, features = ["alloc"] }
+open-fastrlp = { version = "0.1.2", default-features = false, features = ["derive"], optional = true }
+primitive-types = { version = "0.11.1", default-features = false, features = ["rlp"] }
+revm = { git = "https://github.com/wodann/revm", branch = "feat/optional-balance-check", version = "2.1.0", default-features = false }
+rlp = { version = "0.5.2", default-features = false, features = ["derive"] }
+ruint = { version = "1.7.0", default-features = false }
+secp256k1 = { version = "0.24.0", default-features = false, features = ["alloc", "recovery"] }
+serde = { version = "1.0.147", default-features = false, features = ["derive"], optional = true }
+sha3 = { version = "0.10.6", default-features = false }
+thiserror = { version = "1.0.37", default-features = false }
+triehash = { version = "0.8.4", default-features = false }
+
+[features]
+default = ["std"]
+# fastrlp = ["dep:open-fastrlp", "ruint/fastrlp"] Broken due to lack of support for fastrlp in primitive-types
+serde = ["dep:serde", "bytes/serde", "ethbloom/serialize", "hashbrown/serde", "primitive-types/serde", "ruint/serde"]
+std = ["bytes/std", "ethbloom/std", "hash256-std-hasher/std", "hash-db/std", "hex/std", "open-fastrlp?/std", "primitive-types/std", "rlp/std", "secp256k1/std", "serde?/std", "sha3/std", "triehash/std"]
