@@ -1,4 +1,4 @@
-use ethers::types::{Transaction, TxHash};
+use rethnet_eth::{transaction::Transaction, H256};
 
 // provide interfaces for all of the client functionality depended on by the existing Hardhat
 // Network logic, specifically
@@ -138,7 +138,7 @@ impl RpcClient {
             .wrapping_sub(since_epoch.subsec_nanos() as u64))
     }
 
-    pub fn get_tx_by_hash(&self, tx_hash: TxHash) -> Result<Transaction, GetTxByHashError> {
+    pub fn get_tx_by_hash(&self, tx_hash: H256) -> Result<Transaction, GetTxByHashError> {
         use GetTxByHashError::{InterpretationError, ResponseError, SendError};
 
         let request_id =
@@ -181,17 +181,19 @@ mod tests {
 
     use std::str::FromStr;
 
-    use ethers::types::{Bytes, H160, H256, U256, U64};
+    use rethnet_eth::{Address, Bytes, U256};
 
     #[test]
     fn get_tx_by_hash_success() {
+        use std::str::FromStr;
+
         let alchemy_url = std::env::var_os("ALCHEMY_URL")
             .expect("ALCHEMY_URL environment variable not defined")
             .into_string()
             .expect("couldn't convert OsString into a String");
 
         let hash =
-            TxHash::from_str("0xc008e9f9bb92057dd0035496fbf4fb54f66b4b18b370928e46d6603933054d5a")
+            H256::from_str("0xc008e9f9bb92057dd0035496fbf4fb54f66b4b18b370928e46d6603933054d5a")
                 .expect("failed to parse hash from string");
 
         let tx: Transaction = RpcClient::new(alchemy_url.as_str())
@@ -209,50 +211,65 @@ mod tests {
         );
         assert_eq!(
             tx.block_number,
-            Some(U64::from_str("a74fde").expect("couldn't parse data"))
+            Some(u64::from_str_radix("a74fde", 16).expect("couldn't parse data"))
         );
         assert_eq!(tx.hash, hash);
         assert_eq!(
             tx.from,
-            H160::from_str("0x7d97fcdb98632a91be79d3122b4eb99c0c4223ee")
+            Address::from_str("0x7d97fcdb98632a91be79d3122b4eb99c0c4223ee")
                 .expect("couldn't parse data")
         );
         assert_eq!(
             tx.gas,
-            U256::from_str("30d40").expect("couldn't parse data")
+            U256::from_str_radix("30d40", 16).expect("couldn't parse data")
         );
         assert_eq!(
             tx.gas_price,
-            Some(U256::from_str("1e449a99b8").expect("couldn't parse data"))
+            Some(U256::from_str_radix("1e449a99b8", 16).expect("couldn't parse data"))
         );
-        assert_eq!(tx.input, Bytes::from_str("a9059cbb000000000000000000000000e2c1e729e05f34c07d80083982ccd9154045dcc600000000000000000000000000000000000000000000000000000004a817c800").expect("couldn't parse data"));
+        assert_eq!(
+            tx.input,
+            Bytes::from("0xa9059cbb000000000000000000000000e2c1e729e05f34c07d80083982ccd9154045dcc600000000000000000000000000000000000000000000000000000004a817c800")
+        );
         assert_eq!(
             tx.nonce,
-            U256::from_str("653b").expect("couldn't parse data")
+            U256::from_str_radix("653b", 16).expect("couldn't parse data")
         );
         assert_eq!(
             tx.r,
-            U256::from_str("eb56df45bd355e182fba854506bc73737df275af5a323d30f98db13fdf44393a")
-                .expect("couldn't parse data")
+            U256::from_str_radix(
+                "eb56df45bd355e182fba854506bc73737df275af5a323d30f98db13fdf44393a",
+                16
+            )
+            .expect("couldn't parse data")
         );
         assert_eq!(
             tx.s,
-            U256::from_str("2c6efcd210cdc7b3d3191360f796ca84cab25a52ed8f72efff1652adaabc1c83")
-                .expect("couldn't parse data")
+            U256::from_str_radix(
+                "2c6efcd210cdc7b3d3191360f796ca84cab25a52ed8f72efff1652adaabc1c83",
+                16
+            )
+            .expect("couldn't parse data")
         );
         assert_eq!(
             tx.to,
             Some(
-                H160::from_str("dac17f958d2ee523a2206206994597c13d831ec7")
+                Address::from_str("dac17f958d2ee523a2206206994597c13d831ec7")
                     .expect("couldn't parse data")
             )
         );
         assert_eq!(
             tx.transaction_index,
-            Some(U64::from_str("88").expect("couldn't parse data"))
+            Some(u64::from_str_radix("88", 16).expect("couldn't parse data"))
         );
-        assert_eq!(tx.v, U64::from_str("1c").expect("couldn't parse data"));
-        assert_eq!(tx.value, U256::from_str("0").expect("couldn't parse data"));
+        assert_eq!(
+            tx.v,
+            u64::from_str_radix("1c", 16).expect("couldn't parse data")
+        );
+        assert_eq!(
+            tx.value,
+            U256::from_str_radix("0", 16).expect("couldn't parse data")
+        );
     }
 
     #[test]
@@ -260,7 +277,7 @@ mod tests {
         let alchemy_url = "https://xxxeth-mainnet.g.alchemy.com";
 
         let hash =
-            TxHash::from_str("0xc008e9f9bb92057dd0035496fbf4fb54f66b4b18b370928e46d6603933054d5a")
+            H256::from_str("0xc008e9f9bb92057dd0035496fbf4fb54f66b4b18b370928e46d6603933054d5a")
                 .expect("failed to parse hash from string");
 
         let error_string = format!(
@@ -279,7 +296,7 @@ mod tests {
         let alchemy_url = "https://eth-mainnet.g.alchemy.com/v2/abcdefg";
 
         let hash =
-            TxHash::from_str("0xc008e9f9bb92057dd0035496fbf4fb54f66b4b18b370928e46d6603933054d5a")
+            H256::from_str("0xc008e9f9bb92057dd0035496fbf4fb54f66b4b18b370928e46d6603933054d5a")
                 .expect("failed to parse hash from string");
 
         let error_string = format!(

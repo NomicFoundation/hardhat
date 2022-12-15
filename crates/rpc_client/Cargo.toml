@@ -8,6 +8,7 @@ edition = "2021"
 [dependencies]
 ethers = "0.17"
 reqwest = { version = "0.11", features = ["blocking", "json"] }
+rethnet_eth = { version = "0.1.0-dev", path = "../rethnet_eth", features = ["serde"] }
 serde = "1.0.148"
 serde_json = "1.0.89"
 thiserror = "1.0.37"
