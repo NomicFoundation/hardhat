@@ -5,7 +5,7 @@ use rethnet_eth::{Address, H256, U256};
 use revm::{Account, AccountInfo, Bytecode, Database, DatabaseCommit};
 use tokio::sync::oneshot;
 
-use crate::DatabaseDebug;
+use crate::{debug::ModifierFn, DatabaseDebug};
 
 /// The request type used internally by a [`SyncDatabase`].
 pub enum Request<E>
@@ -46,7 +46,7 @@ where
     },
     ModifyAccount {
         address: Address,
-        modifier: Box<dyn Fn(&mut U256, &mut u64, &mut Option<Bytecode>) + Send>,
+        modifier: ModifierFn,
         sender: oneshot::Sender<Result<(), E>>,
     },
     RemoveAccount {

@@ -12,7 +12,7 @@ use tokio::{
     task::{self, JoinHandle},
 };
 
-use crate::DatabaseDebug;
+use crate::{debug::ModifierFn, DatabaseDebug};
 
 use super::request::Request;
 
@@ -193,11 +193,7 @@ where
     }
 
     /// Modifies the account at the specified address using the provided function.
-    pub async fn modify_account(
-        &self,
-        address: Address,
-        modifier: Box<dyn Fn(&mut U256, &mut u64, &mut Option<Bytecode>) + Send>,
-    ) -> Result<(), E> {
+    pub async fn modify_account(&self, address: Address, modifier: ModifierFn) -> Result<(), E> {
         let (sender, receiver) = oneshot::channel();
 
         self.request_sender
@@ -271,7 +267,7 @@ where
 
         self.request_sender
             .send(Request::SetStateRoot {
-                state_root: state_root.clone(),
+                state_root: *state_root,
                 sender,
             })
             .expect("Failed to send request");
@@ -457,7 +453,7 @@ where
         task::block_in_place(move || {
             self.db
                 .runtime()
-                .block_on(self.db.remove_snapshot(state_root.clone()))
+                .block_on(self.db.remove_snapshot(*state_root))
         })
     }
 }

@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 use rethnet_eth::H256;
 use revm::common::keccak256;
 

@@ -26,7 +26,7 @@ pub struct Step {
 impl Trace {
     /// Adds a VM step to the trace.
     pub fn add_step(&mut self, opcode: u8, gas: &Gas, exit_code: Return) {
-        let step = if let Some(old_gas) = self.gas.replace(gas.clone()) {
+        let step = if let Some(old_gas) = self.gas.replace(*gas) {
             Step {
                 opcode,
                 gas_cost: gas.spend() - old_gas.spend(),

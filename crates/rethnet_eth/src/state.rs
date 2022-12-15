@@ -10,6 +10,7 @@ pub type State = HashMap<Address, BasicAccount>;
 /// Account storage mapping of indices to values.
 pub type Storage = HashMap<U256, U256>;
 
+/// Calculates the state root hash of the provided state.
 pub fn state_root(state: &State) -> H256 {
     sec_trie_root(state.iter().map(|(address, account)| {
         let account = rlp::encode(account);
@@ -17,6 +18,7 @@ pub fn state_root(state: &State) -> H256 {
     }))
 }
 
+/// Calculates the storage root hash of the provided storage.
 pub fn storage_root(storage: &Storage) -> H256 {
     sec_trie_root(storage.iter().map(|(index, value)| {
         let index = H256::from(index.to_be_bytes());

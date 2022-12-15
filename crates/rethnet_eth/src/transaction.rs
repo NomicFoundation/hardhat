@@ -1,3 +1,9 @@
+// Part of this code was adapted from foundry and is distributed under their licenss:
+// - https://github.com/foundry-rs/foundry/blob/01b16238ff87dc7ca8ee3f5f13e389888c2a2ee4/LICENSE-APACHE
+// - https://github.com/foundry-rs/foundry/blob/01b16238ff87dc7ca8ee3f5f13e389888c2a2ee4/LICENSE-MIT
+// For the original context see: https://github.com/foundry-rs/foundry/blob/01b16238ff87dc7ca8ee3f5f13e389888c2a2ee4/anvil/core/src/eth/transaction/mod.rs
+#![allow(missing_docs)]
+
 //! transaction related data
 
 use crate::{
@@ -17,8 +23,11 @@ use rlp::{Decodable, DecoderError, Encodable, Rlp, RlpStream};
 /// 3. EIP1559 [`EIP1559TransactionRequest`]
 #[derive(Debug, Clone, Eq, PartialEq)]
 pub enum TransactionRequest {
+    /// A legacy transaction request
     Legacy(LegacyTransactionRequest),
+    /// An EIP-2930 transaction request
     EIP2930(EIP2930TransactionRequest),
+    /// An EIP-1559 transaction request
     EIP1559(EIP1559TransactionRequest),
 }
 

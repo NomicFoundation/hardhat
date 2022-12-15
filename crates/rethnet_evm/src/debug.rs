@@ -2,6 +2,8 @@ use auto_impl::auto_impl;
 use rethnet_eth::{Address, H256, U256};
 use revm::{AccountInfo, Bytecode};
 
+pub type ModifierFn = Box<dyn Fn(&mut U256, &mut u64, &mut Option<Bytecode>) + Send>;
+
 /// A trait for debug operation on a database.
 #[auto_impl(Box)]
 pub trait DatabaseDebug {
@@ -19,11 +21,8 @@ pub trait DatabaseDebug {
     fn insert_block(&mut self, block_number: U256, block_hash: H256) -> Result<(), Self::Error>;
 
     /// Modifies the account at the specified address using the provided function.
-    fn modify_account(
-        &mut self,
-        address: Address,
-        modifier: Box<dyn Fn(&mut U256, &mut u64, &mut Option<Bytecode>) + Send>,
-    ) -> Result<(), Self::Error>;
+    fn modify_account(&mut self, address: Address, modifier: ModifierFn)
+        -> Result<(), Self::Error>;
 
     /// Removes and returns the account at the specified address, if it exists.
     fn remove_account(&mut self, address: Address) -> Result<Option<AccountInfo>, Self::Error>;

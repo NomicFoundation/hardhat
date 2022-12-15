@@ -160,14 +160,13 @@ impl LayeredDatabase<RethnetLayer> {
                 .last_layer_mut()
                 .account_infos
                 .get_mut(address)
-                .map(|account_info| account_info.as_mut())
-                .flatten();
+                .and_then(|account_info| account_info.as_mut());
         }
 
         self.account(address).cloned().map(|account_info| {
             self.last_layer_mut()
                 .account_infos
-                .insert_unique_unchecked(address.clone(), Some(account_info))
+                .insert_unique_unchecked(*address, Some(account_info))
                 .1
                 .as_mut()
                 .unwrap()
@@ -206,7 +205,7 @@ impl LayeredDatabase<RethnetLayer> {
 
         self.last_layer_mut()
             .account_infos
-            .insert_unique_unchecked(address.clone(), Some(account_info))
+            .insert_unique_unchecked(*address, Some(account_info))
             .1
             .as_mut()
             .unwrap()
@@ -228,16 +227,14 @@ impl LayeredDatabase<RethnetLayer> {
                 .insert(code_hash, Bytecode::new());
 
             // Write None to signal that the account was deleted
-            self.last_layer_mut()
-                .account_infos
-                .insert(address.clone(), None);
+            self.last_layer_mut().account_infos.insert(*address, None);
         }
 
         let storage = self.iter().find_map(|layer| layer.storage.get(address));
 
         if let Some(Some(_)) = storage {
             // Write None to signal that the account's storage was deleted
-            self.last_layer_mut().storage.insert(address.clone(), None);
+            self.last_layer_mut().storage.insert(*address, None);
         }
     }
 }
@@ -375,11 +372,11 @@ impl DatabaseDebug for LayeredDatabase<RethnetLayer> {
         let state_root = self.state_root().unwrap();
         let mut snapshot = self.stack.clone();
         if let Some(layer) = snapshot.last_mut() {
-            layer.state_root.replace(state_root.clone());
+            layer.state_root.replace(state_root);
         }
 
         // Currently overwrites old snapshots
-        self.snapshots.insert(state_root.clone(), snapshot);
+        self.snapshots.insert(state_root, snapshot);
 
         state_root
     }
@@ -481,32 +478,28 @@ impl DatabaseDebug for LayeredDatabase<RethnetLayer> {
         }
 
         // Check whether the state root is contained in the previously reverted layers
-        let reinstated_layers = self
-            .reverted_layers
-            .take()
-            .map(|mut reverted_layers| {
-                let layer_id =
-                    reverted_layers
-                        .stack
-                        .iter()
-                        .enumerate()
-                        .find_map(|(layer_id, layer)| {
-                            if layer.state_root.unwrap() == *state_root {
-                                Some(layer_id)
-                            } else {
-                                None
-                            }
-                        });
+        let reinstated_layers = self.reverted_layers.take().and_then(|mut reverted_layers| {
+            let layer_id =
+                reverted_layers
+                    .stack
+                    .iter()
+                    .enumerate()
+                    .find_map(|(layer_id, layer)| {
+                        if layer.state_root.unwrap() == *state_root {
+                            Some(layer_id)
+                        } else {
+                            None
+                        }
+                    });
 
-                if let Some(layer_id) = layer_id {
-                    reverted_layers.stack.truncate(layer_id + 1);
+            if let Some(layer_id) = layer_id {
+                reverted_layers.stack.truncate(layer_id + 1);
 
-                    Some(reverted_layers)
-                } else {
-                    None
-                }
-            })
-            .flatten();
+                Some(reverted_layers)
+            } else {
+                None
+            }
+        });
 
         let state_root = reinstated_layers
             .as_ref()
@@ -524,7 +517,7 @@ impl DatabaseDebug for LayeredDatabase<RethnetLayer> {
 
         if let Some(layer_id) = layer_id {
             let reverted_layers = self.stack.split_off(layer_id + 1);
-            let parent_state_root = self.stack.last().unwrap().state_root.unwrap().clone();
+            let parent_state_root = self.stack.last().unwrap().state_root.unwrap();
 
             if let Some(mut reinstated_layers) = reinstated_layers {
                 self.stack.append(&mut reinstated_layers.stack);
@@ -552,9 +545,7 @@ impl DatabaseDebug for LayeredDatabase<RethnetLayer> {
 
         self.iter().flat_map(|layer| layer.storage.iter()).for_each(
             |(address, account_storage)| {
-                storage
-                    .entry(address.clone())
-                    .or_insert(account_storage.clone());
+                storage.entry(*address).or_insert(account_storage.clone());
             },
         );
 
@@ -576,7 +567,7 @@ impl DatabaseDebug for LayeredDatabase<RethnetLayer> {
                     .unwrap_or(KECCAK_NULL_RLP);
 
                 state
-                    .entry(address.clone())
+                    .entry(*address)
                     .or_insert(account_info.as_ref().map(|account_info| BasicAccount {
                         nonce: U256::from(account_info.nonce),
                         balance: account_info.balance,

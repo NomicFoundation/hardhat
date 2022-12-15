@@ -1,3 +1,8 @@
+// Part of this code was adapted from foundry and is distributed under their licenss:
+// - https://github.com/foundry-rs/foundry/blob/01b16238ff87dc7ca8ee3f5f13e389888c2a2ee4/LICENSE-APACHE
+// - https://github.com/foundry-rs/foundry/blob/01b16238ff87dc7ca8ee3f5f13e389888c2a2ee4/LICENSE-MIT
+// For the original context see: https://github.com/foundry-rs/foundry/blob/01b16238ff87dc7ca8ee3f5f13e389888c2a2ee4/anvil/core/src/eth/block.rs
+
 use primitive_types::H256;
 use revm::common::keccak256;
 use rlp::{Decodable, DecoderError, Encodable, Rlp, RlpStream};
@@ -13,12 +18,16 @@ use crate::{transaction::SignedTransaction, trie, Address, Bloom, Bytes};
 )]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct Block {
+    /// The block's header
     pub header: Header,
+    /// The block's transactions
     pub transactions: Vec<SignedTransaction>,
+    /// The block's ommers' headers
     pub ommers: Vec<Header>,
 }
 
 impl Block {
+    /// Constructs a new block from the provided partial header, transactions, and ommers.
     pub fn new(
         partial_header: PartialHeader,
         transactions: Vec<SignedTransaction>,
@@ -60,22 +69,37 @@ impl Decodable for Block {
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
 pub struct Header {
+    /// The parent block's hash
     pub parent_hash: H256,
+    /// The ommers' root hash
     pub ommers_hash: H256,
+    /// The block's beneficiary address
     pub beneficiary: Address,
+    /// The state's root hash
     pub state_root: H256,
+    /// The transactions' root hash
     pub transactions_root: H256,
+    /// The receipts' root hash
     pub receipts_root: H256,
+    /// The logs' bloom
     pub logs_bloom: Bloom,
+    /// The block's difficulty
     pub difficulty: U256,
+    /// The block's number
     pub number: U256,
+    /// The block's gas limit
     pub gas_limit: U256,
+    /// The amount of gas used by the block
     pub gas_used: U256,
+    /// The block's timestamp
     pub timestamp: u64,
+    /// The block's extra data
     pub extra_data: Bytes,
+    /// The block's mix hash
     pub mix_hash: H256,
-    pub nonce: B64,
+    /// The block's nonce
     #[cfg_attr(feature = "serde", serde(with = "B64Def"))]
+    pub nonce: B64,
     /// BaseFee was added by EIP-1559 and is ignored in legacy headers.
     pub base_fee_per_gas: Option<U256>,
 }
@@ -93,6 +117,7 @@ impl From<B64Def> for B64 {
 }
 
 impl Header {
+    /// Constructs a [`Header`] from the provided [`PartialHeader`], ommers' root hash, and transactions' root hash.
     pub fn new(partial_header: PartialHeader, ommers_hash: H256, transactions_root: H256) -> Self {
         Self {
             parent_hash: partial_header.parent_hash,
@@ -114,6 +139,7 @@ impl Header {
         }
     }
 
+    /// Calculates the block's hash.
     pub fn hash(&self) -> H256 {
         keccak256(&rlp::encode(self))
     }
@@ -279,19 +305,33 @@ impl open_fastrlp::Decodable for Header {
 /// Partial header definition without ommers hash and transactions root
 #[derive(Clone, Debug, PartialEq, Eq, Default)]
 pub struct PartialHeader {
+    /// The parent block's hash
     pub parent_hash: H256,
+    /// The block's beneficiary address
     pub beneficiary: Address,
+    /// The state's root hash
     pub state_root: H256,
+    /// The receipts' root hash
     pub receipts_root: H256,
+    /// The logs' bloom
     pub logs_bloom: Bloom,
+    /// The block's difficulty
     pub difficulty: U256,
+    /// The block's number
     pub number: U256,
+    /// The block's gas limit
     pub gas_limit: U256,
+    /// The amount of gas used by the block
     pub gas_used: U256,
+    /// The block's timestamp
     pub timestamp: u64,
+    /// The block's extra data
     pub extra_data: Bytes,
+    /// The block's mix hash
     pub mix_hash: H256,
+    /// The block's nonce
     pub nonce: B64,
+    /// BaseFee was added by EIP-1559 and is ignored in legacy headers.
     pub base_fee: Option<U256>,
 }
 

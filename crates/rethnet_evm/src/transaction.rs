@@ -23,7 +23,9 @@ pub struct TransactionInfo {
     pub out: Option<Bytes>,
 }
 
+/// A transaction that's pending inclusion in a block.
 pub struct PendingTransaction {
+    /// A signed transaction
     pub transaction: SignedTransaction,
     caller: Address,
 }

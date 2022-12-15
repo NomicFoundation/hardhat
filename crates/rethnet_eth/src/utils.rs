@@ -1,7 +1,18 @@
+// Part of this code was adapted from foundry and is distributed under their licenss:
+// - https://github.com/foundry-rs/foundry/blob/01b16238ff87dc7ca8ee3f5f13e389888c2a2ee4/LICENSE-APACHE
+// - https://github.com/foundry-rs/foundry/blob/01b16238ff87dc7ca8ee3f5f13e389888c2a2ee4/LICENSE-MIT
+// For the original context see: https://github.com/foundry-rs/foundry/blob/01b16238ff87dc7ca8ee3f5f13e389888c2a2ee4/anvil/core/src/eth/utils.rs
+//
+// Part of this code was adapted from ethers-rs and is distributed under their licenss:
+// - https://github.com/gakonst/ethers-rs/blob/cba6f071aedafb766e82e4c2f469ed5e4638337d/LICENSE-APACHE
+// - https://github.com/gakonst/ethers-rs/blob/cba6f071aedafb766e82e4c2f469ed5e4638337d/LICENSE-MIT
+// For the original context see: https://github.com/gakonst/ethers-rs/blob/cba6f071aedafb766e82e4c2f469ed5e4638337d/ethers-core/src/utils/hash.rs
+
 use primitive_types::H256;
 use revm::common::keccak256;
 use rlp::RlpStream;
 
+/// RLP-encodes the provided value, prepends it with the provided ID, and appends it to the provided [`RlpStream`].
 pub fn enveloped<T: rlp::Encodable>(id: u8, v: &T, s: &mut RlpStream) {
     use rlp::Encodable;
 

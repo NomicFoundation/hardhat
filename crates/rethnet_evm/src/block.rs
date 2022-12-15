@@ -14,13 +14,21 @@ pub struct BlockInfo {
     pub receipts: Vec<TypedReceipt>,
 }
 
+/// Data of a block header
 pub struct HeaderData {
+    /// The block number
     pub number: Option<U256>,
+    /// The block's beneficiary
     pub coinbase: Option<Address>,
+    /// The block's timestamp
     pub timestamp: Option<U256>,
+    /// The block's difficulty
     pub difficulty: Option<U256>,
+    /// The block's base gas fee
     pub basefee: Option<U256>,
+    /// The block's gas limit
     pub gas_limit: Option<U256>,
+    /// The parent block's hash
     pub parent_hash: Option<H256>,
     // pub uncle_hash: Option<H256>,
     // pub state_root: Option<H256>,

@@ -249,7 +249,7 @@ impl StateManager {
                             let status = modify_account_fn.call(
                                 ModifyAccountCall {
                                     sender,
-                                    balance: balance.clone(),
+                                    balance: *balance,
                                     nonce: *nonce,
                                     code: code.clone(),
                                 },
