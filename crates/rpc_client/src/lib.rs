@@ -32,35 +32,50 @@ pub enum GetTxByHashError {
     OtherError(#[from] std::io::Error),
 }
 
-pub fn get_tx_by_hash(url: &str, tx_hash: TxHash) -> Result<Transaction, GetTxByHashError> {
-    use GetTxByHashError::{InterpretationError, ResponseError, SendError};
+pub struct RpcClient {
+    url: String,
+    client: reqwest::blocking::Client,
+}
 
-    use jsonrpc_types::{Call, MethodCall, Params};
-    let response_text = reqwest::blocking::Client::new()
-        .post(url)
-        .json(&jsonrpc_types::Request::Single(Call::MethodCall(
-            MethodCall::new(
-                "eth_getTransactionByHash",
-                Some(Params::Array(vec![serde_json::json!(tx_hash)])),
-                1.into(),
-            ),
-        )))
-        .send()
-        .map_err(|err| SendError {
-            msg: err.to_string(),
-        })?
-        .text()
-        .map_err(|err| ResponseError {
-            msg: err.to_string(),
-        })?;
+impl RpcClient {
+    pub fn new(url: &str) -> Self {
+        RpcClient {
+            url: url.to_string(),
+            client: reqwest::blocking::Client::new(),
+        }
+    }
 
-    let success: jsonrpc_types::Success<Transaction> = serde_json::from_str(&response_text)
-        .map_err(|err| InterpretationError {
-            msg: err.to_string(),
-            response_text,
-        })?;
+    pub fn get_tx_by_hash(&self, tx_hash: TxHash) -> Result<Transaction, GetTxByHashError> {
+        use GetTxByHashError::{InterpretationError, ResponseError, SendError};
 
-    Ok(success.result)
+        use jsonrpc_types::{Call, MethodCall, Params};
+        let response_text = self
+            .client
+            .post(self.url.to_string())
+            .json(&jsonrpc_types::Request::Single(Call::MethodCall(
+                MethodCall::new(
+                    "eth_getTransactionByHash",
+                    Some(Params::Array(vec![serde_json::json!(tx_hash)])),
+                    1.into(),
+                ),
+            )))
+            .send()
+            .map_err(|err| SendError {
+                msg: err.to_string(),
+            })?
+            .text()
+            .map_err(|err| ResponseError {
+                msg: err.to_string(),
+            })?;
+
+        let success: jsonrpc_types::Success<Transaction> = serde_json::from_str(&response_text)
+            .map_err(|err| InterpretationError {
+                msg: err.to_string(),
+                response_text,
+            })?;
+
+        Ok(success.result)
+    }
 }
 
 #[cfg(test)]
@@ -82,8 +97,9 @@ mod tests {
             TxHash::from_str("0xc008e9f9bb92057dd0035496fbf4fb54f66b4b18b370928e46d6603933054d5a")
                 .expect("failed to parse hash from string");
 
-        let tx: Transaction =
-            get_tx_by_hash(alchemy_url.as_str(), hash).expect("failed to get transaction by hash");
+        let tx: Transaction = RpcClient::new(alchemy_url.as_str())
+            .get_tx_by_hash(hash)
+            .expect("failed to get transaction by hash");
 
         assert_eq!(
             tx.block_hash,
@@ -152,7 +168,8 @@ mod tests {
 
         let error_string = format!(
             "{:?}",
-            get_tx_by_hash(alchemy_url, hash)
+            RpcClient::new(alchemy_url)
+                .get_tx_by_hash(hash)
                 .expect_err("should have failed to connect to a garbage domain name")
         );
 
@@ -170,7 +187,8 @@ mod tests {
 
         let error_string = format!(
             "{:?}",
-            get_tx_by_hash(alchemy_url, hash)
+            RpcClient::new(alchemy_url)
+                .get_tx_by_hash(hash)
                 .expect_err("should have failed to interpret response as a Transaction")
         );
 
