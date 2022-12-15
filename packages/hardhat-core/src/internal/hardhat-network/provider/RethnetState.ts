@@ -1,6 +1,4 @@
 import { Block } from "@nomicfoundation/ethereumjs-block";
-import { StateManager as StateManagerInterface } from "@nomicfoundation/ethereumjs-statemanager";
-import { StorageDump } from "@nomicfoundation/ethereumjs-statemanager/dist/interface";
 import {
   Account,
   Address,
@@ -14,7 +12,7 @@ import { GenesisAccount } from "./node-types";
 /* eslint-disable @nomiclabs/hardhat-internal-rules/only-hardhat-error */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 
-export class RethnetStateManager implements StateManagerInterface {
+export class RethnetStateManager {
   constructor(private _state: StateManager = new StateManager()) {}
 
   public static withGenesisAccounts(
@@ -34,18 +32,6 @@ export class RethnetStateManager implements StateManagerInterface {
 
   public asInner(): StateManager {
     return this._state;
-  }
-
-  public copy(): RethnetStateManager {
-    return this;
-  }
-
-  public async flush(): Promise<void> {
-    throw new Error("not implemented");
-  }
-
-  public async dumpStorage(address: Address): Promise<StorageDump> {
-    throw new Error("not implemented");
   }
 
   public async accountExists(address: Address): Promise<boolean> {

@@ -143,8 +143,6 @@ export class DualModeAdapter implements VMAdapter {
       ) &&
       !ethereumJSStorageSlot.equals(rethnetStorageSlot)
     ) {
-      console.trace(ethereumJSStorageSlot);
-      console.trace(rethnetStorageSlot);
       console.trace(
         `Different storage slot: ${bufferToHex(
           ethereumJSStorageSlot
