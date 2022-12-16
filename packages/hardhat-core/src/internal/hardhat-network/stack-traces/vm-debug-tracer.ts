@@ -445,9 +445,10 @@ export class VMDebugTracer {
       );
     } else if (step.opcode.name === "INVALID") {
       const code = await this._getContractCode(step.codeAddress);
-
-      const opcodeHex = code[step.pc].toString(16);
-      op = `opcode 0x${opcodeHex} not defined`;
+      if (code.length > step.pc) {
+        const opcodeHex = code[step.pc].toString(16);
+        op = `opcode 0x${opcodeHex} not defined`;
+      }
       error = {};
     }
 
