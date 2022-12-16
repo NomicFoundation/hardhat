@@ -68,49 +68,6 @@ pub struct EthTransactionRequest {
     pub transaction_type: Option<U256>,
 }
 
-#[derive(Clone, Debug, PartialEq, Eq, Default)]
-#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
-#[cfg_attr(feature = "serde", serde(deny_unknown_fields))]
-#[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
-pub struct Transaction {
-    /// The transaction's hash
-    pub hash: H256,
-    pub nonce: U256,
-    pub block_hash: Option<H256>,
-    #[cfg_attr(feature = "serde", serde(deserialize_with = "optional_u64_from_hex"))]
-    pub block_number: Option<u64>,
-    #[cfg_attr(feature = "serde", serde(deserialize_with = "optional_u64_from_hex"))]
-    pub transaction_index: Option<u64>,
-    pub from: Address,
-    pub to: Option<Address>,
-    pub value: U256,
-    pub gas_price: Option<U256>,
-    pub gas: U256,
-    pub input: Bytes,
-    #[cfg_attr(feature = "serde", serde(deserialize_with = "u64_from_hex"))]
-    pub v: u64,
-    pub r: U256,
-    pub s: U256,
-}
-
-#[cfg(feature = "serde")]
-fn optional_u64_from_hex<'de, D>(deserializer: D) -> Result<Option<u64>, D::Error>
-where
-    D: serde::Deserializer<'de>,
-{
-    let s: &str = serde::Deserialize::deserialize(deserializer)?;
-    Ok(Some(u64::from_str_radix(&s[2..], 16).expect("whatever")))
-}
-
-#[cfg(feature = "serde")]
-fn u64_from_hex<'de, D>(deserializer: D) -> Result<u64, D::Error>
-where
-    D: serde::Deserializer<'de>,
-{
-    let s: &str = serde::Deserialize::deserialize(deserializer)?;
-    Ok(u64::from_str_radix(&s[2..], 16).expect("whatever"))
-}
-
 impl EthTransactionRequest {
     /// Converts the request into a [TypedTransactionRequest]
     pub fn into_typed_request(self) -> Option<TransactionRequest> {

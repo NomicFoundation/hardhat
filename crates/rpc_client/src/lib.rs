@@ -1,4 +1,4 @@
-use rethnet_eth::{transaction::Transaction, H256};
+use rethnet_eth::H256;
 
 // provide interfaces for all of the client functionality depended on by the existing Hardhat
 // Network logic, specifically
@@ -102,6 +102,50 @@ mod jsonrpc_types {
     }
 }
 
+mod eth {
+    use rethnet_eth::{Address, Bytes, H256, U256};
+
+    #[derive(Clone, Debug, PartialEq, Eq, Default, serde::Deserialize, serde::Serialize)]
+    #[serde(deny_unknown_fields)]
+    #[serde(rename_all = "camelCase")]
+    pub struct Transaction {
+        /// The transaction's hash
+        pub hash: H256,
+        pub nonce: U256,
+        pub block_hash: Option<H256>,
+        #[serde(deserialize_with = "optional_u64_from_hex")]
+        pub block_number: Option<u64>,
+        #[serde(deserialize_with = "optional_u64_from_hex")]
+        pub transaction_index: Option<u64>,
+        pub from: Address,
+        pub to: Option<Address>,
+        pub value: U256,
+        pub gas_price: Option<U256>,
+        pub gas: U256,
+        pub input: Bytes,
+        #[serde(deserialize_with = "u64_from_hex")]
+        pub v: u64,
+        pub r: U256,
+        pub s: U256,
+    }
+
+    fn optional_u64_from_hex<'de, D>(deserializer: D) -> Result<Option<u64>, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        let s: &str = serde::Deserialize::deserialize(deserializer)?;
+        Ok(Some(u64::from_str_radix(&s[2..], 16).expect("whatever")))
+    }
+
+    fn u64_from_hex<'de, D>(deserializer: D) -> Result<u64, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        let s: &str = serde::Deserialize::deserialize(deserializer)?;
+        Ok(u64::from_str_radix(&s[2..], 16).expect("whatever"))
+    }
+}
+
 #[derive(thiserror::Error, Debug)]
 pub enum GetTxByHashError {
     #[error("Failed to send request")]
@@ -138,7 +182,7 @@ impl RpcClient {
             .wrapping_sub(since_epoch.subsec_nanos() as u64))
     }
 
-    pub fn get_tx_by_hash(&self, tx_hash: H256) -> Result<Transaction, GetTxByHashError> {
+    pub fn get_tx_by_hash(&self, tx_hash: H256) -> Result<eth::Transaction, GetTxByHashError> {
         use GetTxByHashError::{InterpretationError, ResponseError, SendError};
 
         let request_id =
@@ -163,8 +207,8 @@ impl RpcClient {
                 msg: err.to_string(),
             })?;
 
-        let success: jsonrpc_types::Success<Transaction> = serde_json::from_str(&response_text)
-            .map_err(|err| InterpretationError {
+        let success: jsonrpc_types::Success<eth::Transaction> =
+            serde_json::from_str(&response_text).map_err(|err| InterpretationError {
                 msg: err.to_string(),
                 response_text,
             })?;
@@ -196,7 +240,7 @@ mod tests {
             H256::from_str("0xc008e9f9bb92057dd0035496fbf4fb54f66b4b18b370928e46d6603933054d5a")
                 .expect("failed to parse hash from string");
 
-        let tx: Transaction = RpcClient::new(alchemy_url.as_str())
+        let tx: eth::Transaction = RpcClient::new(alchemy_url.as_str())
             .get_tx_by_hash(hash)
             .expect("failed to get transaction by hash");
 
