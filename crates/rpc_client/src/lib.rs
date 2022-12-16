@@ -203,7 +203,7 @@ impl RpcClient {
 
     pub fn get_tx_by_hash(
         &self,
-        tx_hash: H256,
+        tx_hash: &H256,
     ) -> Result<eth::Transaction, errors::GetTxByHashError> {
         use errors::GetTxByHashError::{InterpretationError, ResponseError, SendError};
 
@@ -263,7 +263,7 @@ mod tests {
                 .expect("failed to parse hash from string");
 
         let tx: eth::Transaction = RpcClient::new(alchemy_url.as_str())
-            .get_tx_by_hash(hash)
+            .get_tx_by_hash(&hash)
             .expect("failed to get transaction by hash");
 
         assert_eq!(
@@ -349,7 +349,7 @@ mod tests {
         let error_string = format!(
             "{:?}",
             RpcClient::new(alchemy_url)
-                .get_tx_by_hash(hash)
+                .get_tx_by_hash(&hash)
                 .expect_err("should have failed to connect to a garbage domain name")
         );
 
@@ -368,7 +368,7 @@ mod tests {
         let error_string = format!(
             "{:?}",
             RpcClient::new(alchemy_url)
-                .get_tx_by_hash(hash)
+                .get_tx_by_hash(&hash)
                 .expect_err("should have failed to interpret response as a Transaction")
         );
 
