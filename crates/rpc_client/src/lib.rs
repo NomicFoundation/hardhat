@@ -136,7 +136,9 @@ mod eth {
         D: serde::Deserializer<'de>,
     {
         let s: &str = serde::Deserialize::deserialize(deserializer)?;
-        Ok(Some(u64::from_str_radix(&s[2..], 16).expect("whatever")))
+        Ok(Some(
+            u64::from_str_radix(&s[2..], 16).expect("failed to parse u64"),
+        ))
     }
 
     fn u64_from_hex<'de, D>(deserializer: D) -> Result<u64, D::Error>
@@ -144,7 +146,7 @@ mod eth {
         D: serde::Deserializer<'de>,
     {
         let s: &str = serde::Deserialize::deserialize(deserializer)?;
-        Ok(u64::from_str_radix(&s[2..], 16).expect("whatever"))
+        Ok(u64::from_str_radix(&s[2..], 16).expect("failed to parse u64"))
     }
 }
 
@@ -201,6 +203,11 @@ impl RpcClient {
             .wrapping_sub(since_epoch.subsec_nanos() as u64))
     }
 
+    // TODO: pass in a reference to the hash, not the object
+    // "internal mutability". have a member variable that's an atomic uint and then use that as the
+    // ID.
+    // TODO: change the API to support not just legacy transaction types in the output, but also
+    // EIP-1559 and EIP-2930 ones as well.
     pub fn get_tx_by_hash(
         &self,
         tx_hash: &H256,
