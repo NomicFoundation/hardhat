@@ -146,19 +146,36 @@ mod eth {
     }
 }
 
-#[derive(thiserror::Error, Debug)]
-pub enum GetTxByHashError {
-    #[error("Failed to send request")]
-    SendError { msg: String },
+pub mod errors {
+    #[derive(thiserror::Error, Debug)]
+    pub enum GetTxByHashError {
+        #[error("Response was not a Success<Transaction>")]
+        InterpretationError { msg: String, response_text: String },
 
-    #[error("Failed to get response body")]
-    ResponseError { msg: String },
+        #[error("Failed to send request")]
+        SendError { msg: String },
 
-    #[error("Response was not a Success<Transaction>")]
-    InterpretationError { msg: String, response_text: String },
+        #[error("Failed to get response body")]
+        ResponseError { msg: String },
 
-    #[error(transparent)]
-    OtherError(#[from] std::io::Error),
+        #[error(transparent)]
+        OtherError(#[from] std::io::Error),
+    }
+
+    #[derive(thiserror::Error, Debug)]
+    pub enum GetTxReceiptError {
+        #[error("Response was not a Success<TransactionReceipt>")]
+        InterpretationError { msg: String, response_text: String },
+
+        #[error("Failed to send request")]
+        SendError { msg: String },
+
+        #[error("Failed to get response body")]
+        ResponseError { msg: String },
+
+        #[error(transparent)]
+        OtherError(#[from] std::io::Error),
+    }
 }
 
 pub struct RpcClient {
@@ -182,8 +199,11 @@ impl RpcClient {
             .wrapping_sub(since_epoch.subsec_nanos() as u64))
     }
 
-    pub fn get_tx_by_hash(&self, tx_hash: H256) -> Result<eth::Transaction, GetTxByHashError> {
-        use GetTxByHashError::{InterpretationError, ResponseError, SendError};
+    pub fn get_tx_by_hash(
+        &self,
+        tx_hash: H256,
+    ) -> Result<eth::Transaction, errors::GetTxByHashError> {
+        use errors::GetTxByHashError::{InterpretationError, ResponseError, SendError};
 
         let request_id =
             jsonrpc::Id::Num(RpcClient::make_id().expect("error generating request ID"));
