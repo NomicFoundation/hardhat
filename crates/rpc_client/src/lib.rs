@@ -17,8 +17,8 @@ use rethnet_eth::H256;
 //
 // TODO: do more than just get-tx-by-hash.
 
-mod jsonrpc_types {
-    // sourced from https://github.com/koushiro/async-jsonrpc
+mod jsonrpc {
+    // adapted from https://github.com/koushiro/async-jsonrpc
 
     use serde::{Deserialize, Serialize};
 
@@ -186,7 +186,7 @@ impl RpcClient {
         use GetTxByHashError::{InterpretationError, ResponseError, SendError};
 
         let request_id =
-            jsonrpc_types::Id::Num(RpcClient::make_id().expect("error generating request ID"));
+            jsonrpc::Id::Num(RpcClient::make_id().expect("error generating request ID"));
 
         let response_text = self
             .client
@@ -207,8 +207,8 @@ impl RpcClient {
                 msg: err.to_string(),
             })?;
 
-        let success: jsonrpc_types::Success<eth::Transaction> =
-            serde_json::from_str(&response_text).map_err(|err| InterpretationError {
+        let success: jsonrpc::Success<eth::Transaction> = serde_json::from_str(&response_text)
+            .map_err(|err| InterpretationError {
                 msg: err.to_string(),
                 response_text,
             })?;
