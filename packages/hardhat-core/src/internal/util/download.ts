@@ -56,6 +56,9 @@ export async function download(
 
     await streamPipeline(response.body, fs.createWriteStream(tmpFilePath));
     return fsExtra.move(tmpFilePath, filePath, { overwrite: true });
+  } else {
+    // undici's response bodies must always be consumed to prevent leaks
+    await response.body.text();
   }
 
   // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
