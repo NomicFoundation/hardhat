@@ -105,7 +105,7 @@ mod jsonrpc {
 mod eth {
     // adapted from github.com/gakonst/ethers-rs
 
-    use rethnet_eth::{Address, Bytes, H256, U256};
+    use rethnet_eth::{Address, Bloom, Bytes, H256, U256};
 
     #[derive(Clone, Debug, PartialEq, Eq, Default, serde::Deserialize, serde::Serialize)]
     #[serde(deny_unknown_fields)]
@@ -147,6 +147,68 @@ mod eth {
     {
         let s: &str = serde::Deserialize::deserialize(deserializer)?;
         Ok(u64::from_str_radix(&s[2..], 16).expect("failed to parse u64"))
+    }
+
+    #[derive(Debug, Clone, PartialEq, Eq, serde::Deserialize, serde::Serialize)]
+    #[serde(rename_all = "camelCase")]
+    pub struct Log {
+        pub address: Address,
+        pub topics: Vec<H256>,
+        pub data: Bytes,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        pub block_hash: Option<H256>,
+        #[serde(
+            skip_serializing_if = "Option::is_none",
+            deserialize_with = "optional_u64_from_hex"
+        )]
+        pub block_number: Option<u64>,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        pub transaction_hash: Option<H256>,
+        #[serde(
+            skip_serializing_if = "Option::is_none",
+            deserialize_with = "optional_u64_from_hex"
+        )]
+        pub transaction_index: Option<u64>,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        pub log_index: Option<U256>,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        pub transaction_log_index: Option<U256>,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        pub log_type: Option<String>,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        pub removed: Option<bool>,
+    }
+
+    #[derive(Clone, Debug, PartialEq, Eq, Default, serde::Deserialize, serde::Serialize)]
+    #[serde(deny_unknown_fields)]
+    #[serde(rename_all = "camelCase")]
+    pub struct TransactionReceipt {
+        pub block_hash: Option<H256>,
+        #[serde(deserialize_with = "optional_u64_from_hex")]
+        pub block_number: Option<u64>,
+        pub contract_address: Option<Address>,
+        pub cumulative_gas_used: U256,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        pub effective_gas_price: Option<U256>,
+        pub from: Address,
+        pub gas_used: Option<U256>,
+        pub logs: Vec<Log>,
+        pub logs_bloom: Bloom,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        pub root: Option<H256>,
+        #[serde(deserialize_with = "optional_u64_from_hex")]
+        pub status: Option<u64>,
+        pub to: Option<Address>,
+        pub transaction_hash: H256,
+        #[serde(deserialize_with = "u64_from_hex")]
+        pub transaction_index: u64,
+        #[serde(
+            rename = "type",
+            default,
+            skip_serializing_if = "Option::is_none",
+            deserialize_with = "optional_u64_from_hex"
+        )]
+        pub transaction_type: Option<u64>,
     }
 }
 
@@ -246,6 +308,45 @@ impl RpcClient {
 
         Ok(success.result)
     }
+
+    pub fn get_tx_receipt(
+        &self,
+        tx_hash: H256,
+    ) -> Result<eth::TransactionReceipt, errors::GetTxReceiptError> {
+        use errors::GetTxReceiptError::{InterpretationError, ResponseError, SendError};
+
+        let request_id =
+            jsonrpc::Id::Num(RpcClient::make_id().expect("error generating request ID"));
+
+        let response_text = self
+            .client
+            .post(self.url.to_string())
+            .body(
+                format!(
+                    "{{\"jsonrpc\":\"2.0\",\"method\":\"eth_getTransactionReceipt\",\"params\":[{}],\"id\":{}}}",
+                    serde_json::json!(tx_hash),
+                    serde_json::json!(request_id)
+                )
+            )
+            .send()
+            .map_err(|err| SendError {
+                msg: err.to_string(),
+            })?
+            .text()
+            .map_err(|err| ResponseError {
+                msg: err.to_string(),
+            })?;
+
+        let success: jsonrpc::Success<eth::TransactionReceipt> =
+            serde_json::from_str(&response_text).map_err(|err| InterpretationError {
+                msg: err.to_string(),
+                response_text,
+            })?;
+
+        assert_eq!(success.id, request_id);
+
+        Ok(success.result)
+    }
 }
 
 #[cfg(test)]
@@ -256,20 +357,24 @@ mod tests {
 
     use rethnet_eth::{Address, Bytes, U256};
 
+    fn get_alchemy_url() -> Result<String, String> {
+        Ok(std::env::var_os("ALCHEMY_URL")
+            .expect("ALCHEMY_URL environment variable not defined")
+            .into_string()
+            .expect("couldn't convert OsString into a String"))
+    }
+
     #[test]
     fn get_tx_by_hash_success() {
         use std::str::FromStr;
 
-        let alchemy_url = std::env::var_os("ALCHEMY_URL")
-            .expect("ALCHEMY_URL environment variable not defined")
-            .into_string()
-            .expect("couldn't convert OsString into a String");
+        let alchemy_url = get_alchemy_url().expect("failed to get Alchemy URL");
 
         let hash =
             H256::from_str("0xc008e9f9bb92057dd0035496fbf4fb54f66b4b18b370928e46d6603933054d5a")
                 .expect("failed to parse hash from string");
 
-        let tx: eth::Transaction = RpcClient::new(alchemy_url.as_str())
+        let tx: eth::Transaction = RpcClient::new(&alchemy_url)
             .get_tx_by_hash(&hash)
             .expect("failed to get transaction by hash");
 
@@ -384,4 +489,102 @@ mod tests {
     }
 
     // TODO: write some tests that exercise the errors i coded.
+
+    #[test]
+    fn get_tx_receipt_success() {
+        let alchemy_url = get_alchemy_url().expect("failed to get Alchemy URL");
+
+        let hash =
+            H256::from_str("0xc008e9f9bb92057dd0035496fbf4fb54f66b4b18b370928e46d6603933054d5a")
+                .expect("failed to parse hash from string");
+
+        let receipt: eth::TransactionReceipt = RpcClient::new(&alchemy_url)
+            .get_tx_receipt(hash)
+            .expect("failed to get transaction by hash");
+
+        assert_eq!(
+            receipt.block_hash,
+            Some(
+                H256::from_str(
+                    "0x88fadbb673928c61b9ede3694ae0589ac77ae38ec90a24a6e12e83f42f18c7e8"
+                )
+                .expect("couldn't parse data")
+            )
+        );
+        assert_eq!(
+            receipt.block_number,
+            Some(u64::from_str_radix("a74fde", 16).expect("couldn't parse data"))
+        );
+        assert_eq!(receipt.contract_address, None);
+        assert_eq!(
+            receipt.cumulative_gas_used,
+            U256::from_str_radix("56c81b", 16).expect("couldn't parse data")
+        );
+        assert_eq!(
+            receipt.effective_gas_price,
+            Some(U256::from_str_radix("1e449a99b8", 16).expect("couldn't parse data"))
+        );
+        assert_eq!(
+            receipt.from,
+            Address::from_str("0x7d97fcdb98632a91be79d3122b4eb99c0c4223ee")
+                .expect("couldn't parse data")
+        );
+        assert_eq!(
+            receipt.gas_used,
+            Some(U256::from_str_radix("a0f9", 16).expect("couldn't parse data"))
+        );
+        assert_eq!(receipt.logs.len(), 1);
+        // TODO: assert more things about the log(s)
+        // TODO: consider asserting something about the logs bloom
+        assert_eq!(receipt.root, None);
+        assert_eq!(receipt.status, Some(1));
+        assert_eq!(
+            receipt.to,
+            Some(
+                Address::from_str("dac17f958d2ee523a2206206994597c13d831ec7")
+                    .expect("couldn't parse data")
+            )
+        );
+        assert_eq!(receipt.transaction_hash, hash);
+        assert_eq!(receipt.transaction_index, 136);
+        assert_eq!(receipt.transaction_type, Some(0));
+    }
+
+    #[test]
+    fn get_tx_receipt_dns_error() {
+        let alchemy_url = "https://xxxeth-mainnet.g.alchemy.com";
+
+        let hash =
+            H256::from_str("0xc008e9f9bb92057dd0035496fbf4fb54f66b4b18b370928e46d6603933054d5a")
+                .expect("failed to parse hash from string");
+
+        let error_string = format!(
+            "{:?}",
+            RpcClient::new(alchemy_url)
+                .get_tx_receipt(hash)
+                .expect_err("should have failed to connect to a garbage domain name")
+        );
+
+        assert!(error_string.contains("SendError"));
+        assert!(error_string.contains("dns error"));
+    }
+
+    #[test]
+    fn get_tx_receipt_bad_api_key() {
+        let alchemy_url = "https://eth-mainnet.g.alchemy.com/v2/abcdefg";
+
+        let hash =
+            H256::from_str("0xc008e9f9bb92057dd0035496fbf4fb54f66b4b18b370928e46d6603933054d5a")
+                .expect("failed to parse hash from string");
+
+        let error_string = format!(
+            "{:?}",
+            RpcClient::new(alchemy_url)
+                .get_tx_receipt(hash)
+                .expect_err("should have failed to interpret response as a Receipt")
+        );
+
+        assert!(error_string.contains("InterpretationError"));
+        assert!(error_string.contains("Must be authenticated!"));
+    }
 }
