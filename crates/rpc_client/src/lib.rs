@@ -1,4 +1,4 @@
-use rethnet_eth::H256;
+use rethnet_eth::{Address, H256};
 
 // provide interfaces for all of the client functionality depended on by the existing Hardhat
 // Network logic, specifically
@@ -150,6 +150,7 @@ mod eth {
     }
 
     #[derive(Debug, Clone, PartialEq, Eq, serde::Deserialize, serde::Serialize)]
+    #[serde(deny_unknown_fields)]
     #[serde(rename_all = "camelCase")]
     pub struct Log {
         pub address: Address,
@@ -231,6 +232,21 @@ pub mod errors {
     #[derive(thiserror::Error, Debug)]
     pub enum GetTxReceiptError {
         #[error("Response was not a Success<TransactionReceipt>")]
+        InterpretationError { msg: String, response_text: String },
+
+        #[error("Failed to send request")]
+        SendError { msg: String },
+
+        #[error("Failed to get response body")]
+        ResponseError { msg: String },
+
+        #[error(transparent)]
+        OtherError(#[from] std::io::Error),
+    }
+
+    #[derive(thiserror::Error, Debug)]
+    pub enum GetLogsError {
+        #[error("Response was not a Success<Log[]>")]
         InterpretationError { msg: String, response_text: String },
 
         #[error("Failed to send request")]
@@ -339,6 +355,61 @@ impl RpcClient {
 
         let success: jsonrpc::Success<eth::TransactionReceipt> =
             serde_json::from_str(&response_text).map_err(|err| InterpretationError {
+                msg: err.to_string(),
+                response_text,
+            })?;
+
+        assert_eq!(success.id, request_id);
+
+        Ok(success.result)
+    }
+
+    pub fn get_logs(
+        &self,
+        from_block: u64,
+        to_block: u64,
+        address: Address,
+    ) -> Result<Vec<eth::Log>, errors::GetLogsError> {
+        use errors::GetLogsError::{InterpretationError, ResponseError, SendError};
+
+        let request_id =
+            jsonrpc::Id::Num(RpcClient::make_id().expect("error generating request ID"));
+
+        let from_block_str = format!("{:#016x}", from_block);
+        let to_block_str = format!("{:#016x}", to_block);
+
+        let request_body = format!(
+            "{{
+                \"jsonrpc\":\"2.0\",
+                \"method\":\"eth_getLogs\",
+                \"params\":[{{
+                    \"fromBlock\":\"{}\",
+                    \"toBlock\":\"{}\",
+                    \"address\":{}
+                }}],
+                \"id\":{}
+            }}",
+            from_block_str,
+            to_block_str,
+            serde_json::json!(address),
+            serde_json::json!(request_id),
+        );
+
+        let response_text = self
+            .client
+            .post(self.url.to_string())
+            .body(request_body)
+            .send()
+            .map_err(|err| SendError {
+                msg: err.to_string(),
+            })?
+            .text()
+            .map_err(|err| ResponseError {
+                msg: err.to_string(),
+            })?;
+
+        let success: jsonrpc::Success<Vec<eth::Log>> = serde_json::from_str(&response_text)
+            .map_err(|err| InterpretationError {
                 msg: err.to_string(),
                 response_text,
             })?;
@@ -586,5 +657,19 @@ mod tests {
 
         assert!(error_string.contains("InterpretationError"));
         assert!(error_string.contains("Must be authenticated!"));
+    }
+
+    #[test]
+    fn get_logs_success() {
+        let alchemy_url = get_alchemy_url().expect("failed to get Alchemy URL");
+        let logs = RpcClient::new(&alchemy_url)
+            .get_logs(
+                10496585,
+                10496585,
+                Address::from_str("0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2")
+                    .expect("failed to parse data"),
+            )
+            .expect("failed to get logs");
+        assert_eq!(logs.len(), 12);
     }
 }
