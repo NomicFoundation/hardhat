@@ -1,3 +1,5 @@
+import type { Dispatcher } from "undici";
+
 import fs from "fs";
 import fsExtra from "fs-extra";
 import path from "path";
@@ -27,23 +29,18 @@ export async function download(
   const { getGlobalDispatcher, ProxyAgent, request } = await import("undici");
   const streamPipeline = util.promisify(pipeline);
 
-  function chooseDispatcher() {
-    if (process.env.HTTPS_PROXY !== undefined) {
-      return new ProxyAgent(process.env.HTTPS_PROXY);
-    }
-
-    if (process.env.HTTP_PROXY !== undefined) {
-      return new ProxyAgent(process.env.HTTP_PROXY);
-    }
-
-    return getGlobalDispatcher();
+  let dispatcher: Dispatcher;
+  if (process.env.http_proxy !== undefined) {
+    dispatcher = new ProxyAgent(process.env.http_proxy);
+  } else {
+    dispatcher = getGlobalDispatcher();
   }
 
   const hardhatVersion = getHardhatVersion();
 
   // Fetch the url
   const response = await request(url, {
-    dispatcher: chooseDispatcher(),
+    dispatcher,
     headersTimeout: timeoutMillis,
     maxRedirections: 10,
     method: "GET",
