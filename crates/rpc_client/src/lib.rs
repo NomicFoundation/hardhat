@@ -103,6 +103,8 @@ mod jsonrpc {
 }
 
 mod eth {
+    // adapted from github.com/gakonst/ethers-rs
+
     use rethnet_eth::{Address, Bytes, H256, U256};
 
     #[derive(Clone, Debug, PartialEq, Eq, Default, serde::Deserialize, serde::Serialize)]
