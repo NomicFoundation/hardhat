@@ -258,66 +258,23 @@ mod eth {
     }
 }
 
-pub mod errors {
-    #[derive(thiserror::Error, Debug)]
-    pub enum GetTxByHashError {
-        #[error("Response was not a Success<Transaction>")]
-        InterpretationError { msg: String, response_text: String },
+#[derive(thiserror::Error, Debug)]
+pub enum RpcClientError {
+    #[error("Response was not of the expected type")]
+    InterpretationError {
+        msg: String,
+        expected_type: String,
+        response_text: String,
+    },
 
-        #[error("Failed to send request")]
-        SendError { msg: String },
+    #[error("Failed to send request")]
+    SendError { msg: String },
 
-        #[error("Failed to get response body")]
-        ResponseError { msg: String },
+    #[error("Failed to get response body")]
+    ResponseError { msg: String },
 
-        #[error(transparent)]
-        OtherError(#[from] std::io::Error),
-    }
-
-    #[derive(thiserror::Error, Debug)]
-    pub enum GetTxReceiptError {
-        #[error("Response was not a Success<TransactionReceipt>")]
-        InterpretationError { msg: String, response_text: String },
-
-        #[error("Failed to send request")]
-        SendError { msg: String },
-
-        #[error("Failed to get response body")]
-        ResponseError { msg: String },
-
-        #[error(transparent)]
-        OtherError(#[from] std::io::Error),
-    }
-
-    #[derive(thiserror::Error, Debug)]
-    pub enum GetLogsError {
-        #[error("Response was not a Success<Log[]>")]
-        InterpretationError { msg: String, response_text: String },
-
-        #[error("Failed to send request")]
-        SendError { msg: String },
-
-        #[error("Failed to get response body")]
-        ResponseError { msg: String },
-
-        #[error(transparent)]
-        OtherError(#[from] std::io::Error),
-    }
-
-    #[derive(thiserror::Error, Debug)]
-    pub enum GetBlockByHashError {
-        #[error("Response was not a Success<Block>")]
-        InterpretationError { msg: String, response_text: String },
-
-        #[error("Failed to send request")]
-        SendError { msg: String },
-
-        #[error("Failed to get response body")]
-        ResponseError { msg: String },
-
-        #[error(transparent)]
-        OtherError(#[from] std::io::Error),
-    }
+    #[error(transparent)]
+    OtherError(#[from] std::io::Error),
 }
 
 pub struct RpcClient {
@@ -346,11 +303,8 @@ impl RpcClient {
     // ID.
     // TODO: change the API to support not just legacy transaction types in the output, but also
     // EIP-1559 and EIP-2930 ones as well.
-    pub fn get_tx_by_hash(
-        &self,
-        tx_hash: &H256,
-    ) -> Result<eth::Transaction, errors::GetTxByHashError> {
-        use errors::GetTxByHashError::{InterpretationError, ResponseError, SendError};
+    pub fn get_tx_by_hash(&self, tx_hash: &H256) -> Result<eth::Transaction, RpcClientError> {
+        use RpcClientError::{InterpretationError, ResponseError, SendError};
 
         let request_id =
             jsonrpc::Id::Num(RpcClient::make_id().expect("error generating request ID"));
@@ -377,6 +331,7 @@ impl RpcClient {
         let success: jsonrpc::Success<eth::Transaction> = serde_json::from_str(&response_text)
             .map_err(|err| InterpretationError {
                 msg: err.to_string(),
+                expected_type: String::from("jsonrpc::Success<eth::Transaction>"),
                 response_text,
             })?;
 
@@ -385,11 +340,8 @@ impl RpcClient {
         Ok(success.result)
     }
 
-    pub fn get_tx_receipt(
-        &self,
-        tx_hash: H256,
-    ) -> Result<eth::TransactionReceipt, errors::GetTxReceiptError> {
-        use errors::GetTxReceiptError::{InterpretationError, ResponseError, SendError};
+    pub fn get_tx_receipt(&self, tx_hash: H256) -> Result<eth::TransactionReceipt, RpcClientError> {
+        use RpcClientError::{InterpretationError, ResponseError, SendError};
 
         let request_id =
             jsonrpc::Id::Num(RpcClient::make_id().expect("error generating request ID"));
@@ -416,6 +368,7 @@ impl RpcClient {
         let success: jsonrpc::Success<eth::TransactionReceipt> =
             serde_json::from_str(&response_text).map_err(|err| InterpretationError {
                 msg: err.to_string(),
+                expected_type: String::from("jsonrpc::Success<eth::TransactionReceipt>"),
                 response_text,
             })?;
 
@@ -429,8 +382,8 @@ impl RpcClient {
         from_block: u64,
         to_block: u64,
         address: Address,
-    ) -> Result<Vec<eth::Log>, errors::GetLogsError> {
-        use errors::GetLogsError::{InterpretationError, ResponseError, SendError};
+    ) -> Result<Vec<eth::Log>, RpcClientError> {
+        use RpcClientError::{InterpretationError, ResponseError, SendError};
 
         let request_id =
             jsonrpc::Id::Num(RpcClient::make_id().expect("error generating request ID"));
@@ -471,6 +424,7 @@ impl RpcClient {
         let success: jsonrpc::Success<Vec<eth::Log>> = serde_json::from_str(&response_text)
             .map_err(|err| InterpretationError {
                 msg: err.to_string(),
+                expected_type: String::from("jsonrpc::Success<Vec<eth::Log>>"),
                 response_text,
             })?;
 
@@ -483,8 +437,8 @@ impl RpcClient {
         &self,
         tx_hash: &H256,
         include_transactions: bool,
-    ) -> Result<eth::Block<eth::Transaction>, errors::GetBlockByHashError> {
-        use errors::GetBlockByHashError::{InterpretationError, ResponseError, SendError};
+    ) -> Result<eth::Block<eth::Transaction>, RpcClientError> {
+        use RpcClientError::{InterpretationError, ResponseError, SendError};
 
         let request_id =
             jsonrpc::Id::Num(RpcClient::make_id().expect("error generating request ID"));
@@ -517,6 +471,7 @@ impl RpcClient {
         let success: jsonrpc::Success<eth::Block<eth::Transaction>> =
             serde_json::from_str(&response_text).map_err(|err| InterpretationError {
                 msg: err.to_string(),
+                expected_type: String::from("jsonrpc::Success<eth::Block<eth::Transaction>>"),
                 response_text,
             })?;
 
