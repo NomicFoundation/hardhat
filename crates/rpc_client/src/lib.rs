@@ -211,6 +211,51 @@ mod eth {
         )]
         pub transaction_type: Option<u64>,
     }
+
+    #[derive(Debug, Default, Clone, PartialEq, Eq, serde::Deserialize, serde::Serialize)]
+    #[serde(deny_unknown_fields)]
+    #[serde(rename_all = "camelCase")]
+    pub struct Block<TX> {
+        pub hash: Option<H256>,
+        pub parent_hash: H256,
+        pub sha3_uncles: H256,
+        pub author: Option<Address>,
+        pub state_root: H256,
+        pub transactions_root: H256,
+        pub receipts_root: H256,
+        #[serde(deserialize_with = "optional_u64_from_hex")]
+        pub number: Option<u64>,
+        pub gas_used: U256,
+        pub gas_limit: U256,
+        pub extra_data: Bytes,
+        pub logs_bloom: Option<Bloom>,
+        #[serde(default)]
+        pub timestamp: U256,
+        #[serde(default)]
+        pub difficulty: U256,
+        pub total_difficulty: Option<U256>,
+        #[serde(default, deserialize_with = "deserialize_null_default")]
+        pub seal_fields: Vec<Bytes>,
+        #[serde(default)]
+        pub uncles: Vec<H256>,
+        #[serde(bound = "TX: serde::Serialize + serde::de::DeserializeOwned", default)]
+        pub transactions: Vec<TX>,
+        pub size: Option<U256>,
+        pub mix_hash: Option<H256>,
+        pub nonce: Option<U256>,
+        pub base_fee_per_gas: Option<U256>,
+        pub miner: Address,
+    }
+
+    fn deserialize_null_default<'de, D, T>(deserializer: D) -> Result<T, D::Error>
+    where
+        T: Default + serde::Deserialize<'de>,
+        D: serde::Deserializer<'de>,
+    {
+        use serde::Deserialize;
+        let opt = Option::deserialize(deserializer)?;
+        Ok(opt.unwrap_or_default())
+    }
 }
 
 pub mod errors {
@@ -247,6 +292,21 @@ pub mod errors {
     #[derive(thiserror::Error, Debug)]
     pub enum GetLogsError {
         #[error("Response was not a Success<Log[]>")]
+        InterpretationError { msg: String, response_text: String },
+
+        #[error("Failed to send request")]
+        SendError { msg: String },
+
+        #[error("Failed to get response body")]
+        ResponseError { msg: String },
+
+        #[error(transparent)]
+        OtherError(#[from] std::io::Error),
+    }
+
+    #[derive(thiserror::Error, Debug)]
+    pub enum GetBlockByHashError {
+        #[error("Response was not a Success<Block>")]
         InterpretationError { msg: String, response_text: String },
 
         #[error("Failed to send request")]
@@ -410,6 +470,52 @@ impl RpcClient {
 
         let success: jsonrpc::Success<Vec<eth::Log>> = serde_json::from_str(&response_text)
             .map_err(|err| InterpretationError {
+                msg: err.to_string(),
+                response_text,
+            })?;
+
+        assert_eq!(success.id, request_id);
+
+        Ok(success.result)
+    }
+
+    pub fn get_block_by_hash(
+        &self,
+        tx_hash: &H256,
+        include_transactions: bool,
+    ) -> Result<eth::Block<eth::Transaction>, errors::GetBlockByHashError> {
+        use errors::GetBlockByHashError::{InterpretationError, ResponseError, SendError};
+
+        let request_id =
+            jsonrpc::Id::Num(RpcClient::make_id().expect("error generating request ID"));
+
+        let request_body = format!(
+            "{{
+                \"jsonrpc\":\"2.0\",
+                \"method\":\"eth_getBlockByHash\",
+                \"params\":[{},{}],
+                \"id\":{}
+            }}",
+            serde_json::json!(tx_hash),
+            serde_json::json!(include_transactions),
+            serde_json::json!(request_id),
+        );
+
+        let response_text = self
+            .client
+            .post(self.url.to_string())
+            .body(request_body)
+            .send()
+            .map_err(|err| SendError {
+                msg: err.to_string(),
+            })?
+            .text()
+            .map_err(|err| ResponseError {
+                msg: err.to_string(),
+            })?;
+
+        let success: jsonrpc::Success<eth::Block<eth::Transaction>> =
+            serde_json::from_str(&response_text).map_err(|err| InterpretationError {
                 msg: err.to_string(),
                 response_text,
             })?;
@@ -671,5 +777,21 @@ mod tests {
             )
             .expect("failed to get logs");
         assert_eq!(logs.len(), 12);
+    }
+
+    #[test]
+    fn get_block_by_hash_success() {
+        let alchemy_url = get_alchemy_url().expect("failed to get Alchemy URL");
+
+        let hash =
+            H256::from_str("0x71d5e7c8ff9ea737034c16e333a75575a4a94d29482e0c2b88f0a6a8369c1812")
+                .expect("failed to parse hash from string");
+
+        let block = RpcClient::new(&alchemy_url)
+            .get_block_by_hash(&hash, true)
+            .expect("should have succeeded");
+
+        assert_eq!(block.hash, Some(hash));
+        assert_eq!(block.transactions.len(), 192);
     }
 }
