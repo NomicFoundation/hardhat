@@ -617,6 +617,7 @@ mod tests {
         );
 
         assert!(error_string.contains("InterpretationError"));
+        assert!(error_string.contains("Success<eth::Transaction>"));
         assert!(error_string.contains("Must be authenticated!"));
     }
 
@@ -717,6 +718,7 @@ mod tests {
         );
 
         assert!(error_string.contains("InterpretationError"));
+        assert!(error_string.contains("Success<eth::TransactionReceipt>"));
         assert!(error_string.contains("Must be authenticated!"));
     }
 
