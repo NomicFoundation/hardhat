@@ -1723,7 +1723,6 @@ Hardhat Network's forking functionality only works with blocks from at least spu
       await blockBuilder.addRewards([[coinbase, minerReward]]);
       const block = await blockBuilder.seal();
       await this._blockchain.putBlock(block);
-      await this._vm.putBlock(block);
 
       await this._txPool.updatePendingAndQueued();
 

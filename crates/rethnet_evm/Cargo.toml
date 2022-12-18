@@ -7,11 +7,11 @@ edition = "2021"
 anyhow = { version = "1.0.64", default-features = false, features = ["std"] }
 auto_impl = { version = "1.0.1", default-features = false }
 ethers-signers = { version = "1.0.0", default-features = false }
-hashbrown = { version = "0.12.3", default-features = false, features = ["serde"] }
+hashbrown = { version = "0.13", default-features = false, features = ["ahash", "serde"] }
 log = { version = "0.4.17", default-features = false }
 parking_lot = { version = "0.12.1", default-features = false }
 rethnet_eth = { version = "0.1.0-dev", path = "../rethnet_eth" }
-revm = { git = "https://github.com/wodann/revm", branch = "feat/optional-balance-check", version = "2.1.0", default-features = false, features = ["dev", "k256", "with-serde"] }
+revm = { git = "https://github.com/wodann/revm", rev = "0734307", version = "2.3", default-features = false, features = ["dev", "k256", "with-serde"] }
 secp256k1 = { version = "0.24.1", default-features = false, features = ["alloc"] }
 sha3 = { version = "0.10.4", default-features = false }
 signature = { version = "1.6.4", default-features = false, features = ["std"] }

@@ -3,12 +3,11 @@
 // - https://github.com/foundry-rs/foundry/blob/01b16238ff87dc7ca8ee3f5f13e389888c2a2ee4/LICENSE-MIT
 // For the original context see: https://github.com/foundry-rs/foundry/blob/01b16238ff87dc7ca8ee3f5f13e389888c2a2ee4/anvil/core/src/eth/block.rs
 
-use primitive_types::H256;
 use revm::common::keccak256;
 use rlp::{Decodable, DecoderError, Encodable, Rlp, RlpStream};
-use ruint::aliases::{B64, U256};
+use ruint::aliases::U160;
 
-use crate::{transaction::SignedTransaction, trie, Address, Bloom, Bytes};
+use crate::{transaction::SignedTransaction, trie, Address, Bloom, Bytes, B256, B64, U256};
 
 /// Ethereum block
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -70,17 +69,17 @@ impl Decodable for Block {
 #[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
 pub struct Header {
     /// The parent block's hash
-    pub parent_hash: H256,
+    pub parent_hash: B256,
     /// The ommers' root hash
-    pub ommers_hash: H256,
+    pub ommers_hash: B256,
     /// The block's beneficiary address
     pub beneficiary: Address,
     /// The state's root hash
-    pub state_root: H256,
+    pub state_root: B256,
     /// The transactions' root hash
-    pub transactions_root: H256,
+    pub transactions_root: B256,
     /// The receipts' root hash
-    pub receipts_root: H256,
+    pub receipts_root: B256,
     /// The logs' bloom
     pub logs_bloom: Bloom,
     /// The block's difficulty
@@ -96,7 +95,7 @@ pub struct Header {
     /// The block's extra data
     pub extra_data: Bytes,
     /// The block's mix hash
-    pub mix_hash: H256,
+    pub mix_hash: B256,
     /// The block's nonce
     #[cfg_attr(feature = "serde", serde(with = "B64Def"))]
     pub nonce: B64,
@@ -118,7 +117,7 @@ impl From<B64Def> for B64 {
 
 impl Header {
     /// Constructs a [`Header`] from the provided [`PartialHeader`], ommers' root hash, and transactions' root hash.
-    pub fn new(partial_header: PartialHeader, ommers_hash: H256, transactions_root: H256) -> Self {
+    pub fn new(partial_header: PartialHeader, ommers_hash: B256, transactions_root: B256) -> Self {
         Self {
             parent_hash: partial_header.parent_hash,
             ommers_hash,
@@ -140,7 +139,7 @@ impl Header {
     }
 
     /// Calculates the block's hash.
-    pub fn hash(&self) -> H256 {
+    pub fn hash(&self) -> B256 {
         keccak256(&rlp::encode(self))
     }
 
@@ -182,12 +181,14 @@ impl rlp::Encodable for Header {
         } else {
             s.begin_list(16);
         }
-        s.append(&self.parent_hash);
-        s.append(&self.ommers_hash);
-        s.append(&self.beneficiary);
-        s.append(&self.state_root);
-        s.append(&self.transactions_root);
-        s.append(&self.receipts_root);
+        s.append(&ruint::aliases::B256::from_be_bytes(self.parent_hash.0));
+        s.append(&ruint::aliases::B256::from_be_bytes(self.ommers_hash.0));
+        s.append(&ruint::aliases::B160::from_be_bytes(self.beneficiary.0));
+        s.append(&ruint::aliases::B256::from_be_bytes(self.state_root.0));
+        s.append(&ruint::aliases::B256::from_be_bytes(
+            self.transactions_root.0,
+        ));
+        s.append(&ruint::aliases::B256::from_be_bytes(self.receipts_root.0));
         s.append(&self.logs_bloom);
         s.append(&self.difficulty);
         s.append(&self.number);
@@ -195,7 +196,7 @@ impl rlp::Encodable for Header {
         s.append(&self.gas_used);
         s.append(&self.timestamp);
         s.append(&self.extra_data.as_ref());
-        s.append(&self.mix_hash);
+        s.append(&ruint::aliases::B256::from_be_bytes(self.mix_hash.0));
         s.append(&self.nonce);
         if let Some(ref base_fee) = self.base_fee_per_gas {
             s.append(base_fee);
@@ -206,12 +207,12 @@ impl rlp::Encodable for Header {
 impl rlp::Decodable for Header {
     fn decode(rlp: &rlp::Rlp) -> Result<Self, rlp::DecoderError> {
         let result = Header {
-            parent_hash: rlp.val_at(0)?,
-            ommers_hash: rlp.val_at(1)?,
-            beneficiary: rlp.val_at(2)?,
-            state_root: rlp.val_at(3)?,
-            transactions_root: rlp.val_at(4)?,
-            receipts_root: rlp.val_at(5)?,
+            parent_hash: B256::from(rlp.val_at::<U256>(0)?.to_be_bytes()),
+            ommers_hash: B256::from(rlp.val_at::<U256>(1)?.to_be_bytes()),
+            beneficiary: Address::from(rlp.val_at::<U160>(2)?.to_be_bytes()),
+            state_root: B256::from(rlp.val_at::<U256>(3)?.to_be_bytes()),
+            transactions_root: B256::from(rlp.val_at::<U256>(4)?.to_be_bytes()),
+            receipts_root: B256::from(rlp.val_at::<U256>(5)?.to_be_bytes()),
             logs_bloom: rlp.val_at(6)?,
             difficulty: rlp.val_at(7)?,
             number: rlp.val_at(8)?,
@@ -219,7 +220,7 @@ impl rlp::Decodable for Header {
             gas_used: rlp.val_at(10)?,
             timestamp: rlp.val_at(11)?,
             extra_data: rlp.val_at::<Vec<u8>>(12)?.into(),
-            mix_hash: rlp.val_at(13)?,
+            mix_hash: B256::from(rlp.val_at::<U256>(13)?.to_be_bytes()),
             nonce: rlp.val_at(14)?,
             base_fee_per_gas: if let Ok(base_fee) = rlp.at(15) {
                 Some(<U256 as Decodable>::decode(&base_fee)?)
@@ -277,12 +278,12 @@ impl open_fastrlp::Decodable for Header {
         let start_len = buf.len();
 
         Ok(Header {
-            parent_hash: <H256 as open_fastrlp::Decodable>::decode(buf)?,
-            ommers_hash: <H256 as open_fastrlp::Decodable>::decode(buf)?,
+            parent_hash: <B256 as open_fastrlp::Decodable>::decode(buf)?,
+            ommers_hash: <B256 as open_fastrlp::Decodable>::decode(buf)?,
             beneficiary: <Address as open_fastrlp::Decodable>::decode(buf)?,
-            state_root: <H256 as open_fastrlp::Decodable>::decode(buf)?,
-            transactions_root: <H256 as open_fastrlp::Decodable>::decode(buf)?,
-            receipts_root: <H256 as open_fastrlp::Decodable>::decode(buf)?,
+            state_root: <B256 as open_fastrlp::Decodable>::decode(buf)?,
+            transactions_root: <B256 as open_fastrlp::Decodable>::decode(buf)?,
+            receipts_root: <B256 as open_fastrlp::Decodable>::decode(buf)?,
             logs_bloom: <Bloom as open_fastrlp::Decodable>::decode(buf)?,
             difficulty: <U256 as open_fastrlp::Decodable>::decode(buf)?,
             number: <U256 as open_fastrlp::Decodable>::decode(buf)?,
@@ -290,7 +291,7 @@ impl open_fastrlp::Decodable for Header {
             gas_used: <U256 as open_fastrlp::Decodable>::decode(buf)?,
             timestamp: <u64 as open_fastrlp::Decodable>::decode(buf)?,
             extra_data: <Bytes as open_fastrlp::Decodable>::decode(buf)?,
-            mix_hash: <H256 as open_fastrlp::Decodable>::decode(buf)?,
+            mix_hash: <B256 as open_fastrlp::Decodable>::decode(buf)?,
             nonce: <H64 as open_fastrlp::Decodable>::decode(buf)?,
             base_fee_per_gas: if start_len - header.payload_length < buf.len() {
                 // if there is leftover data in the payload, decode the base fee
@@ -306,13 +307,13 @@ impl open_fastrlp::Decodable for Header {
 #[derive(Clone, Debug, PartialEq, Eq, Default)]
 pub struct PartialHeader {
     /// The parent block's hash
-    pub parent_hash: H256,
+    pub parent_hash: B256,
     /// The block's beneficiary address
     pub beneficiary: Address,
     /// The state's root hash
-    pub state_root: H256,
+    pub state_root: B256,
     /// The receipts' root hash
-    pub receipts_root: H256,
+    pub receipts_root: B256,
     /// The logs' bloom
     pub logs_bloom: Bloom,
     /// The block's difficulty
@@ -328,7 +329,7 @@ pub struct PartialHeader {
     /// The block's extra data
     pub extra_data: Bytes,
     /// The block's mix hash
-    pub mix_hash: H256,
+    pub mix_hash: B256,
     /// The block's nonce
     pub nonce: B64,
     /// BaseFee was added by EIP-1559 and is ignored in legacy headers.
@@ -442,12 +443,12 @@ mod tests {
         let expected = hex::decode("f901f9a00000000000000000000000000000000000000000000000000000000000000000a00000000000000000000000000000000000000000000000000000000000000000940000000000000000000000000000000000000000a00000000000000000000000000000000000000000000000000000000000000000a00000000000000000000000000000000000000000000000000000000000000000a00000000000000000000000000000000000000000000000000000000000000000b90100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000008208ae820d0582115c8215b3821a0a827788a00000000000000000000000000000000000000000000000000000000000000000880000000000000000").unwrap();
         let mut data = vec![];
         let header = Header {
-            parent_hash: H256::from_str("0000000000000000000000000000000000000000000000000000000000000000").unwrap(),
-            ommers_hash: H256::from_str("0000000000000000000000000000000000000000000000000000000000000000").unwrap(),
+            parent_hash: B256::from_str("0000000000000000000000000000000000000000000000000000000000000000").unwrap(),
+            ommers_hash: B256::from_str("0000000000000000000000000000000000000000000000000000000000000000").unwrap(),
             beneficiary: H160::from_str("0000000000000000000000000000000000000000").unwrap(),
-            state_root: H256::from_str("0000000000000000000000000000000000000000000000000000000000000000").unwrap(),
-            transactions_root: H256::from_str("0000000000000000000000000000000000000000000000000000000000000000").unwrap(),
-            receipts_root: H256::from_str("0000000000000000000000000000000000000000000000000000000000000000").unwrap(),
+            state_root: B256::from_str("0000000000000000000000000000000000000000000000000000000000000000").unwrap(),
+            transactions_root: B256::from_str("0000000000000000000000000000000000000000000000000000000000000000").unwrap(),
+            receipts_root: B256::from_str("0000000000000000000000000000000000000000000000000000000000000000").unwrap(),
             logs_bloom: <[u8; 256]>::from_hex("00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000").unwrap().into(),
             difficulty: 0x8aeu64.into(),
             number: 0xd05u64.into(),
@@ -455,7 +456,7 @@ mod tests {
             gas_used: 0x15b3u64.into(),
             timestamp: 0x1a0au64,
             extra_data: hex::decode("7788").unwrap().into(),
-            mix_hash: H256::from_str("0000000000000000000000000000000000000000000000000000000000000000").unwrap(),
+            mix_hash: B256::from_str("0000000000000000000000000000000000000000000000000000000000000000").unwrap(),
             nonce: U64::from(0x0),
             base_fee_per_gas: None,
         };
@@ -470,28 +471,28 @@ mod tests {
         use hex::FromHex;
 
         let expected_hash =
-            H256::from_str("6a251c7c3c5dca7b42407a3752ff48f3bbca1fab7f9868371d9918daf1988d1f")
+            B256::from_str("0x6a251c7c3c5dca7b42407a3752ff48f3bbca1fab7f9868371d9918daf1988d1f")
                 .unwrap();
         let header = Header {
-            parent_hash: H256::from_str(
-                "e0a94a7a3c9617401586b1a27025d2d9671332d22d540e0af72b069170380f2a",
+            parent_hash: B256::from_str(
+                "0xe0a94a7a3c9617401586b1a27025d2d9671332d22d540e0af72b069170380f2a",
             )
             .unwrap(),
-            ommers_hash: H256::from_str(
-                "1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347",
+            ommers_hash: B256::from_str(
+                "0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347",
             )
             .unwrap(),
-            beneficiary: Address::from_str("ba5e000000000000000000000000000000000000").unwrap(),
-            state_root: H256::from_str(
-                "ec3c94b18b8a1cff7d60f8d258ec723312932928626b4c9355eb4ab3568ec7f7",
+            beneficiary: Address::from_str("0xba5e000000000000000000000000000000000000").unwrap(),
+            state_root: B256::from_str(
+                "0xec3c94b18b8a1cff7d60f8d258ec723312932928626b4c9355eb4ab3568ec7f7",
             )
             .unwrap(),
-            transactions_root: H256::from_str(
-                "50f738580ed699f0469702c7ccc63ed2e51bc034be9479b7bff4e68dee84accf",
+            transactions_root: B256::from_str(
+                "0x50f738580ed699f0469702c7ccc63ed2e51bc034be9479b7bff4e68dee84accf",
             )
             .unwrap(),
-            receipts_root: H256::from_str(
-                "29b0562f7140574dd0d50dee8a271b22e1a0a7b78fca58f7c60370d8317ba2a9",
+            receipts_root: B256::from_str(
+                "0x29b0562f7140574dd0d50dee8a271b22e1a0a7b78fca58f7c60370d8317ba2a9",
             )
             .unwrap(),
             logs_bloom: <[u8; 256]>::from_hex("00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000").unwrap().into(),
@@ -501,7 +502,7 @@ mod tests {
             gas_used: U256::from(0x015534u64),
             timestamp: 0x079eu64,
             extra_data: hex::decode("42").unwrap().into(),
-            mix_hash: H256::from_str(
+            mix_hash: B256::from_str(
                 "0000000000000000000000000000000000000000000000000000000000000000",
             )
             .unwrap(),
@@ -517,12 +518,12 @@ mod tests {
     fn test_decode_block_header() {
         let data = hex::decode("f901f9a00000000000000000000000000000000000000000000000000000000000000000a00000000000000000000000000000000000000000000000000000000000000000940000000000000000000000000000000000000000a00000000000000000000000000000000000000000000000000000000000000000a00000000000000000000000000000000000000000000000000000000000000000a00000000000000000000000000000000000000000000000000000000000000000b90100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000008208ae820d0582115c8215b3821a0a827788a00000000000000000000000000000000000000000000000000000000000000000880000000000000000").unwrap();
         let expected = Header {
-            parent_hash: H256::from_str("0000000000000000000000000000000000000000000000000000000000000000").unwrap(),
-            ommers_hash: H256::from_str("0000000000000000000000000000000000000000000000000000000000000000").unwrap(),
+            parent_hash: B256::from_str("0000000000000000000000000000000000000000000000000000000000000000").unwrap(),
+            ommers_hash: B256::from_str("0000000000000000000000000000000000000000000000000000000000000000").unwrap(),
             beneficiary: H160::from_str("0000000000000000000000000000000000000000").unwrap(),
-            state_root: H256::from_str("0000000000000000000000000000000000000000000000000000000000000000").unwrap(),
-            transactions_root: H256::from_str("0000000000000000000000000000000000000000000000000000000000000000").unwrap(),
-            receipts_root: H256::from_str("0000000000000000000000000000000000000000000000000000000000000000").unwrap(),
+            state_root: B256::from_str("0000000000000000000000000000000000000000000000000000000000000000").unwrap(),
+            transactions_root: B256::from_str("0000000000000000000000000000000000000000000000000000000000000000").unwrap(),
+            receipts_root: B256::from_str("0000000000000000000000000000000000000000000000000000000000000000").unwrap(),
             logs_bloom: <[u8; 256]>::from_hex("00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000").unwrap().into(),
             difficulty: 0x8aeu64.into(),
             number: 0xd05u64.into(),
@@ -530,7 +531,7 @@ mod tests {
             gas_used: 0x15b3u64.into(),
             timestamp: 0x1a0au64,
             extra_data: hex::decode("7788").unwrap().into(),
-            mix_hash: H256::from_str("0000000000000000000000000000000000000000000000000000000000000000").unwrap(),
+            mix_hash: B256::from_str("0000000000000000000000000000000000000000000000000000000000000000").unwrap(),
             nonce: U64::from(0x0),
             base_fee_per_gas: None,
         };

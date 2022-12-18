@@ -1,6 +1,6 @@
 mod builder;
 
-use rethnet_eth::{block::Block, receipt::TypedReceipt, Address, H256, U256};
+use rethnet_eth::{block::Block, receipt::TypedReceipt, Address, B256, U256};
 
 use crate::transaction::TransactionInfo;
 
@@ -29,9 +29,9 @@ pub struct HeaderData {
     /// The block's gas limit
     pub gas_limit: Option<U256>,
     /// The parent block's hash
-    pub parent_hash: Option<H256>,
-    // pub uncle_hash: Option<H256>,
-    // pub state_root: Option<H256>,
-    // pub transactions_trie: Option<H256>,
-    // pub receipt_trie: Option<H256>,
+    pub parent_hash: Option<B256>,
+    // pub uncle_hash: Option<B256>,
+    // pub state_root: Option<B256>,
+    // pub transactions_trie: Option<B256>,
+    // pub receipt_trie: Option<B256>,
 }

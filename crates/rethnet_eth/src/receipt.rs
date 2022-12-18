@@ -5,8 +5,10 @@
 
 #![allow(missing_docs)]
 
-use crate::{utils::enveloped, Address, Bloom, Bytes, H256, U256};
 use rlp::{Decodable, DecoderError, Encodable, Rlp, RlpStream};
+use ruint::aliases::U160;
+
+use crate::{utils::enveloped, Address, Bloom, Bytes, B256, U256};
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 #[cfg_attr(
@@ -16,7 +18,7 @@ use rlp::{Decodable, DecoderError, Encodable, Rlp, RlpStream};
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct Log {
     pub address: Address,
-    pub topics: Vec<H256>,
+    pub topics: Vec<B256>,
     pub data: Bytes,
 }
 
@@ -52,9 +54,15 @@ impl From<Log> for revm::Log {
 
 impl Encodable for Log {
     fn rlp_append(&self, stream: &mut rlp::RlpStream) {
+        let topics = self
+            .topics
+            .iter()
+            .map(|topic| ruint::aliases::B256::from_be_bytes(topic.0))
+            .collect::<Vec<ruint::aliases::B256>>();
+
         stream.begin_list(3);
-        stream.append(&self.address);
-        stream.append_list(&self.topics);
+        stream.append(&ruint::aliases::B160::from_be_bytes(self.address.0));
+        stream.append_list(&topics);
         stream.append(&self.data.as_ref());
     }
 }
@@ -62,8 +70,17 @@ impl Encodable for Log {
 impl Decodable for Log {
     fn decode(rlp: &Rlp) -> Result<Self, DecoderError> {
         let result = Log {
-            address: rlp.val_at(0)?,
-            topics: rlp.list_at(1)?,
+            address: {
+                let address = rlp.val_at::<U160>(0)?.to_be_bytes();
+                Address::from(address)
+            },
+            topics: {
+                let topics = rlp.list_at::<U256>(1)?;
+                topics
+                    .into_iter()
+                    .map(|topic| B256::from(topic.to_be_bytes()))
+                    .collect()
+            },
             data: rlp.val_at::<Vec<u8>>(2)?.into(),
         };
         Ok(result)

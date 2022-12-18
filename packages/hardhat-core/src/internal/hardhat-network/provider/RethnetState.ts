@@ -1,4 +1,3 @@
-import { Block } from "@nomicfoundation/ethereumjs-block";
 import {
   Account,
   Address,
@@ -170,9 +169,5 @@ export class RethnetStateManager {
 
   public async hasStateRoot(root: Buffer): Promise<boolean> {
     throw new Error("not implemented");
-  }
-
-  public async putBlock(block: Block): Promise<void> {
-    return this._state.insertBlock(block.header.number, block.hash());
   }
 }

@@ -2,7 +2,7 @@ use napi::{
     bindgen_prelude::{BigInt, Buffer},
     Status,
 };
-use rethnet_eth::{Bytes, H256, U256};
+use rethnet_eth::{Bytes, B256, U256};
 use rethnet_evm::{AccountInfo, Bytecode};
 
 use crate::{Account, AccountData};
@@ -25,7 +25,7 @@ impl TryCast<AccountInfo> for Account {
         Ok(AccountInfo {
             balance: self.balance.try_cast()?,
             nonce: self.nonce.get_u64().1,
-            code_hash: H256::from_slice(&self.code_hash),
+            code_hash: B256::from_slice(&self.code_hash),
             code: self
                 .code
                 .map(|code| Bytecode::new_raw(Bytes::copy_from_slice(&code))),
@@ -47,11 +47,11 @@ impl TryCast<(U256, u64, Option<Bytecode>)> for AccountData {
     }
 }
 
-impl TryCast<H256> for Buffer {
+impl TryCast<B256> for Buffer {
     type Error = napi::Error;
 
-    fn try_cast(self) -> std::result::Result<H256, Self::Error> {
-        Ok(H256::from_slice(&self))
+    fn try_cast(self) -> std::result::Result<B256, Self::Error> {
+        Ok(B256::from_slice(&self))
     }
 }
 

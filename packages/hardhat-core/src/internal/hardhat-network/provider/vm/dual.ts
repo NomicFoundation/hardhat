@@ -177,11 +177,6 @@ export class DualModeAdapter implements VMAdapter {
     return this._rethnetAdapter.putAccount(address, account);
   }
 
-  public async putBlock(block: Block): Promise<void> {
-    await this._ethereumJSAdapter.putBlock(block);
-    return this._rethnetAdapter.putBlock(block);
-  }
-
   public async putContractCode(address: Address, value: Buffer): Promise<void> {
     await this._ethereumJSAdapter.putContractCode(address, value);
     return this._rethnetAdapter.putContractCode(address, value);

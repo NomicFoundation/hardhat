@@ -25,14 +25,12 @@ pub mod utils;
 
 pub use bytes::Bytes;
 pub use ethbloom::Bloom;
-pub use primitive_types::{H256, H512};
-pub use ruint::aliases::{B64, U256, U64};
-
-use primitive_types::H160;
+pub use revm::{B160, B256};
+pub use ruint::aliases::{B512, B64, U256, U64};
 
 /// An Ethereum address
-pub type Address = H160;
+pub type Address = B160;
 /// A secret key
-pub type Secret = H256;
+pub type Secret = B256;
 /// A public key
-pub type Public = H512;
+pub type Public = B512;

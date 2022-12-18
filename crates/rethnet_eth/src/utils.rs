@@ -8,7 +8,7 @@
 // - https://github.com/gakonst/ethers-rs/blob/cba6f071aedafb766e82e4c2f469ed5e4638337d/LICENSE-MIT
 // For the original context see: https://github.com/gakonst/ethers-rs/blob/cba6f071aedafb766e82e4c2f469ed5e4638337d/ethers-core/src/utils/hash.rs
 
-use primitive_types::H256;
+use crate::B256;
 use revm::common::keccak256;
 use rlp::RlpStream;
 
@@ -30,7 +30,7 @@ const PREFIX: &str = "\x19Ethereum Signed Message:\n";
 /// The data is a UTF-8 encoded string and will enveloped as follows:
 /// `"\x19Ethereum Signed Message:\n" + message.length + message` and hashed
 /// using keccak256.
-pub fn hash_message<S>(message: S) -> H256
+pub fn hash_message<S>(message: S) -> B256
 where
     S: AsRef<[u8]>,
 {

@@ -5,7 +5,7 @@ use std::sync::{
 
 use napi::{bindgen_prelude::*, JsFunction, JsObject, NapiRaw, Status};
 use napi_derive::napi;
-use rethnet_eth::{Address, H256, U256};
+use rethnet_eth::{Address, B256, U256};
 use rethnet_evm::{
     db::{AsyncDatabase, LayeredDatabase, RethnetLayer, SyncDatabase},
     AccountInfo, Bytecode, DatabaseDebug, HashMap,
@@ -87,7 +87,7 @@ impl StateManager {
     }
 
     #[napi]
-    pub async fn checkpoint(&mut self) -> napi::Result<()> {
+    pub async fn checkpoint(&self) -> napi::Result<()> {
         self.db
             .checkpoint()
             .await
@@ -95,7 +95,7 @@ impl StateManager {
     }
 
     #[napi]
-    pub async fn revert(&mut self) -> napi::Result<()> {
+    pub async fn revert(&self) -> napi::Result<()> {
         self.db
             .revert()
             .await
@@ -103,10 +103,7 @@ impl StateManager {
     }
 
     #[napi]
-    pub async fn get_account_by_address(
-        &mut self,
-        address: Buffer,
-    ) -> napi::Result<Option<Account>> {
+    pub async fn get_account_by_address(&self, address: Buffer) -> napi::Result<Option<Account>> {
         let address = Address::from_slice(&address);
 
         self.db.account_by_address(address).await.map_or_else(
@@ -117,7 +114,7 @@ impl StateManager {
 
     #[napi]
     pub async fn get_account_storage_slot(
-        &mut self,
+        &self,
         address: Buffer,
         index: BigInt,
     ) -> napi::Result<BigInt> {
@@ -139,8 +136,8 @@ impl StateManager {
     }
 
     #[napi]
-    pub async fn get_code_by_hash(&mut self, code_hash: Buffer) -> napi::Result<Buffer> {
-        let code_hash = H256::from_slice(&code_hash);
+    pub async fn get_code_by_hash(&self, code_hash: Buffer) -> napi::Result<Buffer> {
+        let code_hash = B256::from_slice(&code_hash);
 
         self.db.code_by_hash(code_hash).await.map_or_else(
             |e| Err(napi::Error::new(Status::GenericFailure, e.to_string())),
@@ -149,7 +146,7 @@ impl StateManager {
     }
 
     #[napi]
-    pub async fn get_state_root(&mut self) -> napi::Result<Buffer> {
+    pub async fn get_state_root(&self) -> napi::Result<Buffer> {
         self.db.state_root().await.map_or_else(
             |e| Err(napi::Error::new(Status::GenericFailure, e.to_string())),
             |root| Ok(Buffer::from(root.as_ref())),
@@ -157,7 +154,7 @@ impl StateManager {
     }
 
     #[napi]
-    pub async fn insert_account(&mut self, address: Buffer, account: Account) -> napi::Result<()> {
+    pub async fn insert_account(&self, address: Buffer, account: Account) -> napi::Result<()> {
         let address = Address::from_slice(&address);
         let account = account.try_cast()?;
 
@@ -168,28 +165,13 @@ impl StateManager {
     }
 
     #[napi]
-    pub async fn insert_block(
-        &mut self,
-        block_number: BigInt,
-        block_hash: Buffer,
-    ) -> napi::Result<()> {
-        let block_number = BigInt::try_cast(block_number)?;
-        let block_hash = H256::from_slice(&block_hash);
-
-        self.db
-            .insert_block(block_number, block_hash)
-            .await
-            .map_err(|e| napi::Error::new(Status::GenericFailure, e.to_string()))
-    }
-
-    #[napi]
-    pub async fn make_snapshot(&mut self) -> Buffer {
-        self.db.make_snapshot().await.as_ref().into()
+    pub async fn make_snapshot(&self) -> Buffer {
+        <B256 as AsRef<[u8]>>::as_ref(&self.db.make_snapshot().await).into()
     }
 
     #[napi(ts_return_type = "Promise<void>")]
     pub fn modify_account(
-        &mut self,
+        &self,
         env: Env,
         address: Buffer,
         #[napi(
@@ -276,7 +258,7 @@ impl StateManager {
     }
 
     #[napi]
-    pub async fn remove_account(&mut self, address: Buffer) -> napi::Result<Option<Account>> {
+    pub async fn remove_account(&self, address: Buffer) -> napi::Result<Option<Account>> {
         let address = Address::from_slice(&address);
 
         self.db.remove_account(address).await.map_or_else(
@@ -286,15 +268,15 @@ impl StateManager {
     }
 
     #[napi]
-    pub async fn remove_snapshot(&mut self, state_root: Buffer) -> bool {
-        let state_root = H256::from_slice(&state_root);
+    pub async fn remove_snapshot(&self, state_root: Buffer) -> bool {
+        let state_root = B256::from_slice(&state_root);
 
         self.db.remove_snapshot(state_root).await
     }
 
     #[napi]
     pub async fn set_account_storage_slot(
-        &mut self,
+        &self,
         address: Buffer,
         index: BigInt,
         value: BigInt,
@@ -310,8 +292,8 @@ impl StateManager {
     }
 
     #[napi]
-    pub async fn set_state_root(&mut self, state_root: Buffer) -> napi::Result<()> {
-        let state_root = H256::from_slice(&state_root);
+    pub async fn set_state_root(&self, state_root: Buffer) -> napi::Result<()> {
+        let state_root = B256::from_slice(&state_root);
 
         self.db
             .set_state_root(&state_root)

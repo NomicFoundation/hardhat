@@ -5,13 +5,13 @@ use rethnet_eth::{
         EIP1559SignedTransaction, EIP2930SignedTransaction, LegacySignedTransaction,
         SignedTransaction, TransactionKind,
     },
-    Address, Bloom, Bytes, H256, U256,
+    Address, Bloom, Bytes, B256, U256,
 };
 
 /// Represents all relevant information of an executed transaction
 #[derive(Debug, Eq, PartialEq, Clone)]
 pub struct TransactionInfo {
-    pub transaction_hash: H256,
+    pub transaction_hash: B256,
     pub transaction_index: u32,
     pub from: Address,
     pub to: Option<Address>,
@@ -142,7 +142,7 @@ impl From<PendingTransaction> for revm::TxEnv {
 //     /// the recovered sender of this transaction
 //     sender: Address,
 //     /// hash of `transaction`, so it can easily be reused with encoding and hashing agan
-//     hash: H256,
+//     hash: B256,
 // }
 
 // impl PendingTransaction {
@@ -165,7 +165,7 @@ impl From<PendingTransaction> for revm::TxEnv {
 //         self.transaction.nonce()
 //     }
 
-//     pub fn hash(&self) -> &H256 {
+//     pub fn hash(&self) -> &B256 {
 //         &self.hash
 //     }
 

@@ -237,8 +237,6 @@ export class EthereumJSAdapter implements VMAdapter {
     return this._stateManager.putAccount(address, account);
   }
 
-  public async putBlock(_block: Block): Promise<void> {}
-
   public async putContractCode(address: Address, value: Buffer): Promise<void> {
     return this._stateManager.putContractCode(address, value);
   }

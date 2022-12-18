@@ -6,14 +6,16 @@
 
 //! transaction related data
 
+use revm::common::keccak256;
+use rlp::{Decodable, DecoderError, Encodable, Rlp, RlpStream};
+use ruint::aliases::U160;
+
 use crate::{
     access_list::{AccessList, AccessListItem},
     signature::{Signature, SignatureError},
     utils::enveloped,
-    Address, Bytes, H256, U256,
+    Address, Bytes, B256, U256,
 };
-use revm::common::keccak256;
-use rlp::{Decodable, DecoderError, Encodable, Rlp, RlpStream};
 
 /// Container type for various Ethereum transaction requests
 ///
@@ -171,7 +173,10 @@ impl Decodable for TransactionKind {
                 Err(DecoderError::RlpExpectedToBeData)
             }
         } else {
-            Ok(TransactionKind::Call(rlp.as_val()?))
+            Ok(TransactionKind::Call({
+                let address = rlp.as_val::<U160>()?.to_be_bytes();
+                Address::from(address)
+            }))
         }
     }
 }
@@ -228,7 +233,7 @@ pub struct EIP2930TransactionRequest {
 }
 
 impl EIP2930TransactionRequest {
-    pub fn hash(&self) -> H256 {
+    pub fn hash(&self) -> B256 {
         let encoded = rlp::encode(self);
         let mut out = vec![0; 1 + encoded.len()];
         out[0] = 1;
@@ -278,7 +283,7 @@ pub struct LegacyTransactionRequest {
 }
 
 impl LegacyTransactionRequest {
-    pub fn hash(&self) -> H256 {
+    pub fn hash(&self) -> B256 {
         keccak256(&rlp::encode(self))
     }
 }
@@ -341,7 +346,7 @@ pub struct EIP1559TransactionRequest {
 }
 
 impl EIP1559TransactionRequest {
-    pub fn hash(&self) -> H256 {
+    pub fn hash(&self) -> B256 {
         let encoded = rlp::encode(self);
         let mut out = vec![0; 1 + encoded.len()];
         out[0] = 2;
@@ -505,7 +510,7 @@ impl SignedTransaction {
         matches!(self, SignedTransaction::EIP1559(_))
     }
 
-    pub fn hash(&self) -> H256 {
+    pub fn hash(&self) -> B256 {
         match self {
             SignedTransaction::Legacy(t) => t.hash(),
             SignedTransaction::EIP2930(t) => t.hash(),
@@ -710,7 +715,7 @@ impl LegacySignedTransaction {
         &self.nonce
     }
 
-    pub fn hash(&self) -> H256 {
+    pub fn hash(&self) -> B256 {
         keccak256(&rlp::encode(self))
     }
 
@@ -792,8 +797,8 @@ pub struct EIP2930SignedTransaction {
     pub input: Bytes,
     pub access_list: AccessList,
     pub odd_y_parity: bool,
-    pub r: H256,
-    pub s: H256,
+    pub r: B256,
+    pub s: B256,
 }
 
 impl EIP2930SignedTransaction {
@@ -801,7 +806,7 @@ impl EIP2930SignedTransaction {
         &self.nonce
     }
 
-    pub fn hash(&self) -> H256 {
+    pub fn hash(&self) -> B256 {
         let encoded = rlp::encode(self);
         let mut out = vec![0; 1 + encoded.len()];
         out[0] = 1;
@@ -832,8 +837,8 @@ impl rlp::Encodable for EIP2930SignedTransaction {
         s.append(&self.input.as_ref());
         s.append(&self.access_list);
         s.append(&self.odd_y_parity);
-        s.append(&U256::from_be_bytes(self.r.0));
-        s.append(&U256::from_be_bytes(self.s.0));
+        s.append(&ruint::aliases::B256::from_be_bytes(self.r.0));
+        s.append(&ruint::aliases::B256::from_be_bytes(self.s.0));
     }
 }
 
@@ -853,14 +858,8 @@ impl rlp::Decodable for EIP2930SignedTransaction {
             input: rlp.val_at::<Vec<u8>>(6)?.into(),
             access_list: rlp.val_at(7)?,
             odd_y_parity: rlp.val_at(8)?,
-            r: {
-                let rarr = rlp.val_at::<U256>(9)?.to_be_bytes();
-                H256::from(rarr)
-            },
-            s: {
-                let sarr = rlp.val_at::<U256>(10)?.to_be_bytes();
-                H256::from(sarr)
-            },
+            r: B256::from(rlp.val_at::<U256>(9)?.to_be_bytes()),
+            s: B256::from(rlp.val_at::<U256>(10)?.to_be_bytes()),
         })
     }
 }
@@ -882,8 +881,8 @@ pub struct EIP1559SignedTransaction {
     pub input: Bytes,
     pub access_list: AccessList,
     pub odd_y_parity: bool,
-    pub r: H256,
-    pub s: H256,
+    pub r: B256,
+    pub s: B256,
 }
 
 impl EIP1559SignedTransaction {
@@ -891,7 +890,7 @@ impl EIP1559SignedTransaction {
         &self.nonce
     }
 
-    pub fn hash(&self) -> H256 {
+    pub fn hash(&self) -> B256 {
         let encoded = rlp::encode(self);
         let mut out = vec![0; 1 + encoded.len()];
         out[0] = 2;
@@ -923,8 +922,8 @@ impl Encodable for EIP1559SignedTransaction {
         s.append(&self.input.as_ref());
         s.append(&self.access_list);
         s.append(&self.odd_y_parity);
-        s.append(&U256::from_be_bytes(self.r.0));
-        s.append(&U256::from_be_bytes(self.s.0));
+        s.append(&ruint::aliases::B256::from_be_bytes(self.r.0));
+        s.append(&ruint::aliases::B256::from_be_bytes(self.s.0));
     }
 }
 
@@ -945,14 +944,8 @@ impl Decodable for EIP1559SignedTransaction {
             input: rlp.val_at::<Vec<u8>>(7)?.into(),
             access_list: rlp.val_at(8)?,
             odd_y_parity: rlp.val_at(9)?,
-            r: {
-                let rarr = rlp.val_at::<U256>(10)?.to_be_bytes();
-                H256::from(rarr)
-            },
-            s: {
-                let sarr = rlp.val_at::<U256>(11)?.to_be_bytes();
-                H256::from(sarr)
-            },
+            r: B256::from(rlp.val_at::<U256>(10)?.to_be_bytes()),
+            s: B256::from(rlp.val_at::<U256>(11)?.to_be_bytes()),
         })
     }
 }
@@ -993,7 +986,9 @@ mod tests {
         if let TransactionKind::Call(ref to) = tx.kind {
             assert_eq!(
                 *to,
-                "095e7baea6a6c7c4c2dfeb977efac326af552d87".parse().unwrap()
+                "0x095e7baea6a6c7c4c2dfeb977efac326af552d87"
+                    .parse()
+                    .unwrap()
             );
         } else {
             panic!();
@@ -1001,7 +996,9 @@ mod tests {
         assert_eq!(tx.value, U256::from(0x0au64));
         assert_eq!(
             tx.recover().unwrap(),
-            "0f65fe9276bc9a24ae7083ae28e2660ef72df99e".parse().unwrap()
+            "0x0f65fe9276bc9a24ae7083ae28e2660ef72df99e"
+                .parse()
+                .unwrap()
         );
     }
 
@@ -1022,8 +1019,8 @@ mod tests {
             value: U256::from(3),
             input: Bytes::from(vec![1, 2]),
             odd_y_parity: true,
-            r: H256::default(),
-            s: H256::default(),
+            r: B256::default(),
+            s: B256::default(),
             access_list: vec![].into(),
         });
 
@@ -1061,8 +1058,8 @@ mod tests {
             value: U256::from(3),
             input: Bytes::from(vec![1, 2]),
             odd_y_parity: true,
-            r: H256::default(),
-            s: H256::default(),
+            r: B256::default(),
+            s: B256::default(),
             access_list: vec![].into(),
         });
 
@@ -1188,9 +1185,9 @@ mod tests {
             input: Bytes::default(),
             access_list: AccessList::default(),
             odd_y_parity: true,
-            r: H256::from_str("59e6b67f48fb32e7e570dfb11e042b5ad2e55e3ce3ce9cd989c7e06e07feeafd")
+            r: B256::from_str("59e6b67f48fb32e7e570dfb11e042b5ad2e55e3ce3ce9cd989c7e06e07feeafd")
                 .unwrap(),
-            s: H256::from_str("016b83f4f980694ed2eee4d10667242b1f40dc406901b34125b008d334d47469")
+            s: B256::from_str("016b83f4f980694ed2eee4d10667242b1f40dc406901b34125b008d334d47469")
                 .unwrap(),
         });
         assert_eq!(

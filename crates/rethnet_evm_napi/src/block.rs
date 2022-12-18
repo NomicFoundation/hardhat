@@ -2,7 +2,7 @@ mod builder;
 
 use napi::bindgen_prelude::{BigInt, Buffer};
 use napi_derive::napi;
-use rethnet_eth::{Address, Bloom, Bytes, B64, H256, U64};
+use rethnet_eth::{Address, Bloom, Bytes, B256, B64, U64};
 use rethnet_evm::BlockEnv;
 
 use crate::cast::TryCast;
@@ -15,6 +15,7 @@ pub struct BlockConfig {
     pub coinbase: Option<Buffer>,
     pub timestamp: Option<BigInt>,
     pub difficulty: Option<BigInt>,
+    pub prevrandao: Option<Buffer>,
     pub basefee: Option<BigInt>,
     pub gas_limit: Option<BigInt>,
     pub parent_hash: Option<Buffer>,
@@ -34,6 +35,9 @@ impl TryFrom<BlockConfig> for BlockEnv {
             || Ok(default.difficulty),
             |difficulty| difficulty.try_cast(),
         )?;
+        let prevrandao = value
+            .prevrandao
+            .map(|prevrandao| B256::from_slice(&prevrandao));
         let timestamp = value
             .timestamp
             .map_or(Ok(default.timestamp), BigInt::try_cast)?;
@@ -49,6 +53,7 @@ impl TryFrom<BlockConfig> for BlockEnv {
             coinbase,
             timestamp,
             difficulty,
+            prevrandao,
             basefee,
             gas_limit,
         })
@@ -110,12 +115,12 @@ impl TryFrom<BlockHeader> for rethnet_eth::block::Header {
 
     fn try_from(value: BlockHeader) -> Result<Self, Self::Error> {
         Ok(Self {
-            parent_hash: H256::from_slice(&value.parent_hash),
-            ommers_hash: H256::from_slice(&value.ommers_hash),
+            parent_hash: B256::from_slice(&value.parent_hash),
+            ommers_hash: B256::from_slice(&value.ommers_hash),
             beneficiary: Address::from_slice(&value.beneficiary),
-            state_root: H256::from_slice(&value.state_root),
-            transactions_root: H256::from_slice(&value.transactions_root),
-            receipts_root: H256::from_slice(&value.receipts_root),
+            state_root: B256::from_slice(&value.state_root),
+            transactions_root: B256::from_slice(&value.transactions_root),
+            receipts_root: B256::from_slice(&value.receipts_root),
             logs_bloom: Bloom::from_slice(&value.logs_bloom),
             difficulty: value.difficulty.try_cast()?,
             number: value.number.try_cast()?,
@@ -123,7 +128,7 @@ impl TryFrom<BlockHeader> for rethnet_eth::block::Header {
             gas_used: value.gas_used.try_cast()?,
             timestamp: value.timestamp.get_u64().1,
             extra_data: Bytes::copy_from_slice(&value.extra_data),
-            mix_hash: H256::from_slice(&value.mix_hash),
+            mix_hash: B256::from_slice(&value.mix_hash),
             nonce: B64::from(U64::from(value.nonce.get_u64().1)),
             base_fee_per_gas: value
                 .base_fee_per_gas

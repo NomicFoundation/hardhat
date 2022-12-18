@@ -1,13 +1,13 @@
 #![allow(dead_code)]
 
-use rethnet_eth::H256;
+use rethnet_eth::B256;
 use revm::common::keccak256;
 
 /// A pseudorandom hash generator which allows overriding of the next generated hash.
 #[derive(Debug)]
 pub struct RandomHashGenerator {
     /// The next hash that will be returned
-    next_value: H256,
+    next_value: B256,
 }
 
 impl RandomHashGenerator {
@@ -19,7 +19,7 @@ impl RandomHashGenerator {
     }
 
     /// Returns the next hash, generated the future next hash, and caches it.
-    pub fn next(&mut self) -> H256 {
+    pub fn next(&mut self) -> B256 {
         let mut next_value = keccak256(self.next_value.as_bytes());
 
         std::mem::swap(&mut self.next_value, &mut next_value);
@@ -28,7 +28,7 @@ impl RandomHashGenerator {
     }
 
     /// Overwrites the next hash output by the generator.
-    pub fn set_next(&mut self, next_value: H256) {
+    pub fn set_next(&mut self, next_value: B256) {
         self.next_value = next_value;
     }
 }

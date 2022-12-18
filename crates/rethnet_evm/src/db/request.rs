@@ -1,7 +1,7 @@
 use std::fmt::Debug;
 
 use hashbrown::HashMap;
-use rethnet_eth::{Address, H256, U256};
+use rethnet_eth::{Address, B256, U256};
 use revm::{Account, AccountInfo, Bytecode, Database, DatabaseCommit};
 use tokio::sync::oneshot;
 
@@ -16,15 +16,11 @@ where
         address: Address,
         sender: oneshot::Sender<Result<Option<AccountInfo>, E>>,
     },
-    BlockHashByNumber {
-        number: U256,
-        sender: oneshot::Sender<Result<H256, E>>,
-    },
     Checkpoint {
         sender: oneshot::Sender<Result<(), E>>,
     },
     CodeByHash {
-        code_hash: H256,
+        code_hash: B256,
         sender: oneshot::Sender<Result<Bytecode, E>>,
     },
     Commit {
@@ -36,13 +32,8 @@ where
         account_info: AccountInfo,
         sender: oneshot::Sender<Result<(), E>>,
     },
-    InsertBlock {
-        block_number: U256,
-        block_hash: H256,
-        sender: oneshot::Sender<Result<(), E>>,
-    },
     MakeSnapshot {
-        sender: oneshot::Sender<H256>,
+        sender: oneshot::Sender<B256>,
     },
     ModifyAccount {
         address: Address,
@@ -54,7 +45,7 @@ where
         sender: oneshot::Sender<Result<Option<AccountInfo>, E>>,
     },
     RemoveSnapshot {
-        state_root: H256,
+        state_root: B256,
         sender: oneshot::Sender<bool>,
     },
     Revert {
@@ -67,11 +58,11 @@ where
         sender: oneshot::Sender<Result<(), E>>,
     },
     SetStateRoot {
-        state_root: H256,
+        state_root: B256,
         sender: oneshot::Sender<Result<(), E>>,
     },
     StateRoot {
-        sender: oneshot::Sender<Result<H256, E>>,
+        sender: oneshot::Sender<Result<B256, E>>,
     },
     StorageSlot {
         address: Address,
@@ -93,10 +84,6 @@ where
             Request::AccountByAddress { address, sender } => {
                 sender.send(db.basic(address)).unwrap()
             }
-            Request::BlockHashByNumber { number, sender } => {
-                sender.send(db.block_hash(number)).unwrap()
-            }
-
             Request::Checkpoint { sender } => sender.send(db.checkpoint()).unwrap(),
             Request::CodeByHash { code_hash, sender } => {
                 sender.send(db.code_by_hash(code_hash)).unwrap()
@@ -111,13 +98,6 @@ where
                 sender,
             } => sender
                 .send(db.insert_account(address, account_info))
-                .unwrap(),
-            Request::InsertBlock {
-                block_number,
-                block_hash,
-                sender,
-            } => sender
-                .send(db.insert_block(block_number, block_hash))
                 .unwrap(),
             Request::MakeSnapshot { sender } => sender.send(db.make_snapshot()).unwrap(),
             Request::ModifyAccount {
@@ -167,11 +147,6 @@ where
                 .field("address", address)
                 .field("sender", sender)
                 .finish(),
-            Self::BlockHashByNumber { number, sender } => f
-                .debug_struct("BlockHashByNumber")
-                .field("number", number)
-                .field("sender", sender)
-                .finish(),
             Self::Checkpoint { sender } => f
                 .debug_struct("Checkpoint")
                 .field("sender", sender)
@@ -194,16 +169,6 @@ where
                 .debug_struct("InsertAccount")
                 .field("address", address)
                 .field("account_info", account_info)
-                .field("sender", sender)
-                .finish(),
-            Self::InsertBlock {
-                block_number,
-                block_hash,
-                sender,
-            } => f
-                .debug_struct("InsertBlock")
-                .field("block_number", block_number)
-                .field("block_hash", block_hash)
                 .field("sender", sender)
                 .finish(),
             Self::MakeSnapshot { sender } => f

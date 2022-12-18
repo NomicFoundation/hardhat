@@ -16,7 +16,7 @@ const exitCodeToRethnetExitCode: Record<ExitCode, number> = {
   [ExitCode.OUT_OF_GAS]: 0x50,
   [ExitCode.INTERNAL_ERROR]: 0x20,
   [ExitCode.INVALID_OPCODE]: 0x53,
-  [ExitCode.CODESIZE_EXCEEDS_MAXIMUM]: 0x64,
+  [ExitCode.CODESIZE_EXCEEDS_MAXIMUM]: 0x65,
 };
 
 export class Exit {
@@ -34,7 +34,7 @@ export class Exit {
       case 0x51:
       case 0x53:
         return new Exit(ExitCode.INVALID_OPCODE);
-      case 0x64:
+      case 0x65:
         return new Exit(ExitCode.CODESIZE_EXCEEDS_MAXIMUM);
       default: {
         // TODO temporary, should be removed in production

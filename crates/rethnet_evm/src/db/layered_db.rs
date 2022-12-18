@@ -4,7 +4,7 @@ use rethnet_eth::{
     account::BasicAccount,
     state::{state_root, storage_root},
     trie::KECCAK_NULL_RLP,
-    Address, H256, U256,
+    Address, B256, U256,
 };
 use revm::{Account, AccountInfo, Bytecode, Database, DatabaseCommit, KECCAK_EMPTY};
 
@@ -13,7 +13,7 @@ use crate::DatabaseDebug;
 #[derive(Clone, Debug)]
 struct RevertedLayers<Layer: Clone> {
     /// The parent layer's state root
-    pub parent_state_root: H256,
+    pub parent_state_root: B256,
     /// The reverted layers
     pub stack: Vec<Layer>,
 }
@@ -25,7 +25,7 @@ pub struct LayeredDatabase<Layer: Clone> {
     /// The old parent layer state root and the reverted layers
     reverted_layers: Option<RevertedLayers<Layer>>,
     /// Snapshots
-    snapshots: HashMap<H256, Vec<Layer>>, // naive implementation
+    snapshots: HashMap<B256, Vec<Layer>>, // naive implementation
 }
 
 impl<Layer: Clone> LayeredDatabase<Layer> {
@@ -96,11 +96,9 @@ pub struct RethnetLayer {
     /// Address -> Storage
     storage: HashMap<Address, Option<HashMap<U256, U256>>>,
     /// Code hash -> Address
-    contracts: HashMap<H256, Bytecode>,
-    /// Block number -> Block hash
-    block_hashes: HashMap<U256, H256>,
+    contracts: HashMap<B256, Bytecode>,
     /// Cached state root
-    state_root: Option<H256>,
+    state_root: Option<B256>,
 }
 
 impl RethnetLayer {
@@ -260,7 +258,7 @@ impl Database for LayeredDatabase<RethnetLayer> {
         })))
     }
 
-    fn code_by_hash(&mut self, code_hash: H256) -> anyhow::Result<Bytecode> {
+    fn code_by_hash(&mut self, code_hash: B256) -> anyhow::Result<Bytecode> {
         if code_hash == KECCAK_EMPTY {
             return Ok(Bytecode::new());
         }
@@ -283,17 +281,6 @@ impl Database for LayeredDatabase<RethnetLayer> {
             .and_then(|storage| storage.get(&index))
             .cloned()
             .unwrap_or(U256::ZERO))
-    }
-
-    fn block_hash(&mut self, number: U256) -> anyhow::Result<H256> {
-        self.iter()
-            .find_map(|layer| layer.block_hashes.get(&number).cloned())
-            .ok_or_else(|| {
-                anyhow!(
-                    "Layered database does not contain block hash with number: {}.",
-                    number
-                )
-            })
     }
 }
 
@@ -360,15 +347,7 @@ impl DatabaseDebug for LayeredDatabase<RethnetLayer> {
         Ok(())
     }
 
-    fn insert_block(&mut self, block_number: U256, block_hash: H256) -> Result<(), Self::Error> {
-        self.last_layer_mut()
-            .block_hashes
-            .insert(block_number, block_hash);
-
-        Ok(())
-    }
-
-    fn make_snapshot(&mut self) -> H256 {
+    fn make_snapshot(&mut self) -> B256 {
         let state_root = self.state_root().unwrap();
         let mut snapshot = self.stack.clone();
         if let Some(layer) = snapshot.last_mut() {
@@ -428,7 +407,7 @@ impl DatabaseDebug for LayeredDatabase<RethnetLayer> {
         }
     }
 
-    fn remove_snapshot(&mut self, state_root: &H256) -> bool {
+    fn remove_snapshot(&mut self, state_root: &B256) -> bool {
         self.snapshots.remove(state_root).is_some()
     }
 
@@ -459,7 +438,7 @@ impl DatabaseDebug for LayeredDatabase<RethnetLayer> {
         Ok(())
     }
 
-    fn set_state_root(&mut self, state_root: &H256) -> Result<(), Self::Error> {
+    fn set_state_root(&mut self, state_root: &B256) -> Result<(), Self::Error> {
         // Ensure the last layer has a state root
         if !self.last_layer_mut().has_state_root() {
             let state_root = self.state_root()?;
@@ -540,7 +519,7 @@ impl DatabaseDebug for LayeredDatabase<RethnetLayer> {
         }
     }
 
-    fn state_root(&mut self) -> Result<H256, Self::Error> {
+    fn state_root(&mut self) -> Result<B256, Self::Error> {
         let mut storage = HashMap::new();
 
         self.iter().flat_map(|layer| layer.storage.iter()).for_each(
@@ -549,7 +528,7 @@ impl DatabaseDebug for LayeredDatabase<RethnetLayer> {
             },
         );
 
-        let storage_roots: HashMap<Address, H256> = storage
+        let storage_roots: HashMap<Address, B256> = storage
             .into_iter()
             .filter_map(|(address, storage)| {
                 storage.map(|storage| (address, storage_root(&storage)))

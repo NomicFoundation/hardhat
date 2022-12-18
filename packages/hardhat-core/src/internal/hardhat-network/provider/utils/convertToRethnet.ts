@@ -165,7 +165,8 @@ export function ethereumjsBlockHeaderToRethnet(
 
 export function ethereumjsHeaderDataToRethnet(
   headerData?: HeaderData,
-  difficulty?: bigint
+  difficulty?: bigint,
+  prevRandao?: Buffer
 ): BlockConfig {
   const coinbase =
     headerData?.coinbase === undefined
@@ -181,6 +182,7 @@ export function ethereumjsHeaderDataToRethnet(
     coinbase,
     timestamp: fromBigIntLike(headerData?.timestamp),
     difficulty,
+    prevrandao: prevRandao,
     basefee: fromBigIntLike(headerData?.baseFeePerGas),
     gasLimit: fromBigIntLike(headerData?.gasLimit),
     parentHash: headerData?.parentHash as Buffer,

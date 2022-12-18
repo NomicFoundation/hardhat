@@ -1,5 +1,5 @@
 use auto_impl::auto_impl;
-use rethnet_eth::{Address, H256, U256};
+use rethnet_eth::{Address, B256, U256};
 use revm::{AccountInfo, Bytecode};
 
 pub type ModifierFn = Box<dyn Fn(&mut U256, &mut u64, &mut Option<Bytecode>) + Send>;
@@ -17,9 +17,6 @@ pub trait DatabaseDebug {
         account_info: AccountInfo,
     ) -> Result<(), Self::Error>;
 
-    /// Inserts a block with the specified `block_number` and `block_hash`.
-    fn insert_block(&mut self, block_number: U256, block_hash: H256) -> Result<(), Self::Error>;
-
     /// Modifies the account at the specified address using the provided function.
     fn modify_account(&mut self, address: Address, modifier: ModifierFn)
         -> Result<(), Self::Error>;
@@ -36,10 +33,10 @@ pub trait DatabaseDebug {
     ) -> Result<(), Self::Error>;
 
     /// Reverts the state to match the specified state root.
-    fn set_state_root(&mut self, state_root: &H256) -> Result<(), Self::Error>;
+    fn set_state_root(&mut self, state_root: &B256) -> Result<(), Self::Error>;
 
     /// Retrieves the storage root of the database.
-    fn state_root(&mut self) -> Result<H256, Self::Error>;
+    fn state_root(&mut self) -> Result<B256, Self::Error>;
 
     /// Creates a checkpoint that can be reverted to using [`revert`].
     fn checkpoint(&mut self) -> Result<(), Self::Error>;
@@ -48,8 +45,8 @@ pub trait DatabaseDebug {
     fn revert(&mut self) -> Result<(), Self::Error>;
 
     /// Makes a snapshot of the database that's retained until [`remove_snapshot`] is called. Returns the snapshot's identifier.
-    fn make_snapshot(&mut self) -> H256;
+    fn make_snapshot(&mut self) -> B256;
 
     /// Removes the snapshot corresponding to the specified id, if it exists. Returns whether a snapshot was removed.
-    fn remove_snapshot(&mut self, state_root: &H256) -> bool;
+    fn remove_snapshot(&mut self, state_root: &B256) -> bool;
 }

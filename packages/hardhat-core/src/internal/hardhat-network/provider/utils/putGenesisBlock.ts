@@ -55,5 +55,4 @@ export async function putGenesisBlock(
   );
 
   await blockchain.putBlock(genesisBlock);
-  await rethnetState.putBlock(genesisBlock);
 }

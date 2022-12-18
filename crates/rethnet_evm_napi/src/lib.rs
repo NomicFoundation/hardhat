@@ -1,5 +1,6 @@
 mod access_list;
 mod block;
+mod blockchain;
 mod cast;
 mod state;
 mod sync;
@@ -10,6 +11,7 @@ mod transaction;
 use std::{fmt::Debug, str::FromStr};
 
 use block::BlockConfig;
+use blockchain::Blockchain;
 use napi::{bindgen_prelude::*, Status};
 use napi_derive::napi;
 use once_cell::sync::OnceCell;
@@ -324,7 +326,11 @@ pub struct Rethnet {
 #[napi]
 impl Rethnet {
     #[napi(constructor)]
-    pub fn new(state_manager: &StateManager, cfg: Config) -> napi::Result<Self> {
+    pub fn new(
+        blockchain: &Blockchain,
+        state_manager: &StateManager,
+        cfg: Config,
+    ) -> napi::Result<Self> {
         let _logger = LOGGER.get_or_init(|| {
             pretty_env_logger::init();
             Logger
@@ -332,14 +338,15 @@ impl Rethnet {
 
         let cfg = cfg.try_into()?;
 
-        let runtime = rethnet_evm::Rethnet::new(state_manager.db.clone(), cfg);
+        let runtime =
+            rethnet_evm::Rethnet::new(blockchain.as_inner().clone(), state_manager.db.clone(), cfg);
 
         Ok(Self { runtime })
     }
 
     #[napi]
     pub async fn dry_run(
-        &mut self,
+        &self,
         transaction: Transaction,
         block: BlockConfig,
     ) -> Result<TransactionResult> {
@@ -351,7 +358,7 @@ impl Rethnet {
 
     #[napi]
     pub async fn guaranteed_dry_run(
-        &mut self,
+        &self,
         transaction: Transaction,
         block: BlockConfig,
     ) -> Result<TransactionResult> {
@@ -366,7 +373,7 @@ impl Rethnet {
 
     #[napi]
     pub async fn run(
-        &mut self,
+        &self,
         transaction: Transaction,
         block: BlockConfig,
     ) -> Result<ExecutionResult> {

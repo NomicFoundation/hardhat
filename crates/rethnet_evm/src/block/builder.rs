@@ -5,9 +5,11 @@ use rethnet_eth::{
     block::{Header, PartialHeader},
     Address, U256,
 };
-use revm::{BlockEnv, CfgEnv, ExecutionResult, TxEnv};
+use revm::{BlockEnv, CfgEnv, ExecutionResult, SpecId, TxEnv};
+use tokio::runtime::Runtime;
 
 use crate::{
+    blockchain::{AsyncBlockchain, SyncBlockchain},
     db::{AsyncDatabase, SyncDatabase},
     evm::build_evm,
     inspector::RethnetInspector,
@@ -20,6 +22,7 @@ pub struct BlockBuilder<E>
 where
     E: Debug + Send + 'static,
 {
+    blockchain: Arc<AsyncBlockchain<Box<dyn SyncBlockchain<E>>, E>>,
     state: Arc<AsyncDatabase<Box<dyn SyncDatabase<E>>, E>>,
     header: PartialHeader,
     transactions: Vec<TxEnv>,
@@ -32,6 +35,7 @@ where
 {
     /// Creates an intance of [`BlockBuilder`], creating a checkpoint in the process.
     pub async fn new(
+        blockchain: Arc<AsyncBlockchain<Box<dyn SyncBlockchain<E>>, E>>,
         db: Arc<AsyncDatabase<Box<dyn SyncDatabase<E>>, E>>,
         cfg: CfgEnv,
         parent: Header,
@@ -49,11 +53,17 @@ where
         };
 
         Ok(Self {
+            blockchain,
             state: db,
             header,
             transactions: Vec::new(),
             cfg,
         })
+    }
+
+    /// Retrieves the runtime of the [`BlockBuilder`].
+    pub fn runtime(&self) -> &Runtime {
+        self.state.runtime()
     }
 
     /// Retrieves the amount of gas used in the block, so far.
@@ -92,8 +102,14 @@ where
             difficulty: self.header.difficulty,
             basefee: self.header.base_fee.unwrap_or(U256::ZERO),
             gas_limit: self.header.gas_limit,
+            prevrandao: if self.cfg.spec_id > SpecId::MERGE {
+                Some(self.header.mix_hash)
+            } else {
+                None
+            },
         };
 
+        let blockchain = self.blockchain.clone();
         let db = self.state.clone();
         let cfg = self.cfg.clone();
 
@@ -101,7 +117,7 @@ where
             .state
             .runtime()
             .spawn(async move {
-                let mut evm = build_evm(&db, cfg, transaction, block);
+                let mut evm = build_evm(&blockchain, &db, cfg, transaction, block);
 
                 let mut inspector = RethnetInspector::default();
                 let (result, state) = evm.inspect(&mut inspector);

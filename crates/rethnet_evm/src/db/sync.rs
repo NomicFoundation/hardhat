@@ -1,7 +1,7 @@
 use std::{fmt::Debug, io, marker::PhantomData};
 
 use hashbrown::HashMap;
-use rethnet_eth::{Address, H256, U256};
+use rethnet_eth::{Address, B256, U256};
 use revm::{db::Database, Account, AccountInfo, Bytecode, DatabaseCommit};
 use tokio::{
     runtime::{Builder, Runtime},
@@ -54,7 +54,7 @@ where
     pub fn new(mut db: D) -> io::Result<Self> {
         let runtime = Builder::new_multi_thread().build()?;
 
-        let (sender, mut receiver) = unbounded_channel::<Request<<D as Database>::Error>>();
+        let (sender, mut receiver) = unbounded_channel::<Request<E>>();
 
         let db_handle = runtime.spawn(async move {
             while let Some(request) = receiver.recv().await {
@@ -114,17 +114,6 @@ where
         receiver.await.unwrap()
     }
 
-    /// Retrieves the hash of the block corresponding to the specified number.
-    pub async fn block_hash_by_number(&self, number: U256) -> Result<H256, E> {
-        let (sender, receiver) = oneshot::channel();
-
-        self.request_sender
-            .send(Request::BlockHashByNumber { number, sender })
-            .expect("Failed to send request");
-
-        receiver.await.unwrap()
-    }
-
     /// Creates a state checkpoint that can be reverted to using [`revert`].
     pub async fn checkpoint(&self) -> Result<(), E> {
         let (sender, receiver) = oneshot::channel();
@@ -137,7 +126,7 @@ where
     }
 
     /// Retrieves the code corresponding to the specified hash.
-    pub async fn code_by_hash(&self, code_hash: H256) -> Result<Bytecode, E> {
+    pub async fn code_by_hash(&self, code_hash: B256) -> Result<Bytecode, E> {
         let (sender, receiver) = oneshot::channel();
 
         self.request_sender
@@ -166,23 +155,8 @@ where
         receiver.await.unwrap()
     }
 
-    /// Inserts the specified block number and hash into the state.
-    pub async fn insert_block(&self, block_number: U256, block_hash: H256) -> Result<(), E> {
-        let (sender, receiver) = oneshot::channel();
-
-        self.request_sender
-            .send(Request::InsertBlock {
-                block_number,
-                block_hash,
-                sender,
-            })
-            .expect("Failed to send request");
-
-        receiver.await.unwrap()
-    }
-
     /// Makes a snapshot of the database that's retained until [`remove_snapshot`] is called. Returns the snapshot's identifier.
-    pub async fn make_snapshot(&self) -> H256 {
+    pub async fn make_snapshot(&self) -> B256 {
         let (sender, receiver) = oneshot::channel();
 
         self.request_sender
@@ -219,7 +193,7 @@ where
     }
 
     /// Removes the snapshot corresponding to the specified id, if it exists. Returns whether a snapshot was removed.
-    pub async fn remove_snapshot(&self, state_root: H256) -> bool {
+    pub async fn remove_snapshot(&self, state_root: B256) -> bool {
         let (sender, receiver) = oneshot::channel();
 
         self.request_sender
@@ -262,7 +236,7 @@ where
     }
 
     /// Reverts the state to match the specified state root.
-    pub async fn set_state_root(&self, state_root: &H256) -> Result<(), E> {
+    pub async fn set_state_root(&self, state_root: &B256) -> Result<(), E> {
         let (sender, receiver) = oneshot::channel();
 
         self.request_sender
@@ -276,7 +250,7 @@ where
     }
 
     /// Retrieves the state's root.
-    pub async fn state_root(&self) -> Result<H256, E> {
+    pub async fn state_root(&self) -> Result<B256, E> {
         let (sender, receiver) = oneshot::channel();
 
         self.request_sender
@@ -338,7 +312,7 @@ where
         })
     }
 
-    fn code_by_hash(&mut self, code_hash: H256) -> Result<Bytecode, Self::Error> {
+    fn code_by_hash(&mut self, code_hash: B256) -> Result<Bytecode, Self::Error> {
         task::block_in_place(move || self.db.runtime().block_on(self.db.code_by_hash(code_hash)))
     }
 
@@ -347,14 +321,6 @@ where
             self.db
                 .runtime()
                 .block_on(self.db.account_storage_slot(address, index))
-        })
-    }
-
-    fn block_hash(&mut self, number: U256) -> Result<H256, Self::Error> {
-        task::block_in_place(move || {
-            self.db
-                .runtime()
-                .block_on(self.db.block_hash_by_number(number))
         })
     }
 }
@@ -388,14 +354,6 @@ where
         })
     }
 
-    fn insert_block(&mut self, block_number: U256, block_hash: H256) -> Result<(), Self::Error> {
-        task::block_in_place(move || {
-            self.db
-                .runtime()
-                .block_on(self.db.insert_block(block_number, block_hash))
-        })
-    }
-
     fn modify_account(
         &mut self,
         address: Address,
@@ -425,7 +383,7 @@ where
         })
     }
 
-    fn set_state_root(&mut self, state_root: &H256) -> Result<(), Self::Error> {
+    fn set_state_root(&mut self, state_root: &B256) -> Result<(), Self::Error> {
         task::block_in_place(move || {
             self.db
                 .runtime()
@@ -433,7 +391,7 @@ where
         })
     }
 
-    fn state_root(&mut self) -> Result<H256, Self::Error> {
+    fn state_root(&mut self) -> Result<B256, Self::Error> {
         task::block_in_place(move || self.db.runtime().block_on(self.db.state_root()))
     }
 
@@ -445,11 +403,11 @@ where
         task::block_in_place(move || self.db.runtime().block_on(self.db.revert()))
     }
 
-    fn make_snapshot(&mut self) -> H256 {
+    fn make_snapshot(&mut self) -> B256 {
         task::block_in_place(move || self.db.runtime().block_on(self.db.make_snapshot()))
     }
 
-    fn remove_snapshot(&mut self, state_root: &H256) -> bool {
+    fn remove_snapshot(&mut self, state_root: &B256) -> bool {
         task::block_in_place(move || {
             self.db
                 .runtime()

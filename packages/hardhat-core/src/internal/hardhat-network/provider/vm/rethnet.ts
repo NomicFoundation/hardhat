@@ -1,11 +1,7 @@
 import { Block } from "@nomicfoundation/ethereumjs-block";
-import {
-  Account,
-  Address,
-  bufferToBigInt,
-} from "@nomicfoundation/ethereumjs-util";
+import { Account, Address } from "@nomicfoundation/ethereumjs-util";
 import { TypedTransaction } from "@nomicfoundation/ethereumjs-tx";
-import { BlockBuilder, Rethnet } from "rethnet-evm";
+import { BlockBuilder, Blockchain, Rethnet } from "rethnet-evm";
 
 import { NodeConfig } from "../node-types";
 import {
@@ -25,6 +21,7 @@ import { RunTxResult, Trace, TracingCallbacks, VMAdapter } from "./vm-adapter";
 
 export class RethnetAdapter implements VMAdapter {
   constructor(
+    private _blockchain: Blockchain,
     private _state: RethnetStateManager,
     private _rethnet: Rethnet,
     private readonly _selectHardfork: (blockNumber: bigint) => string
@@ -36,17 +33,19 @@ export class RethnetAdapter implements VMAdapter {
     selectHardfork: (blockNumber: bigint) => string,
     getBlockHash: (blockNumber: bigint) => Promise<Buffer>
   ): Promise<RethnetAdapter> {
+    const blockchain = new Blockchain(getBlockHash);
+
     const limitContractCodeSize =
       config.allowUnlimitedContractSize === true ? 2n ** 64n - 1n : undefined;
 
-    const rethnet = new Rethnet(state.asInner(), {
+    const rethnet = new Rethnet(blockchain, state.asInner(), {
       chainId: BigInt(config.chainId),
       limitContractCodeSize,
       disableBlockGasLimit: true,
       disableEip3607: true,
     });
 
-    return new RethnetAdapter(state, rethnet, selectHardfork);
+    return new RethnetAdapter(blockchain, state, rethnet, selectHardfork);
   }
 
   /**
@@ -60,9 +59,12 @@ export class RethnetAdapter implements VMAdapter {
     const rethnetTx = ethereumjsTransactionToRethnet(tx);
 
     const difficulty = this._getBlockEnvDifficulty(
+      blockContext.header.difficulty
+    );
+
+    const prevRandao = this._getBlockPrevRandao(
       blockContext.header.number,
-      blockContext.header.difficulty,
-      bufferToBigInt(blockContext.header.mixHash)
+      blockContext.header.mixHash
     );
 
     const rethnetResult = await this._rethnet.guaranteedDryRun(rethnetTx, {
@@ -73,6 +75,7 @@ export class RethnetAdapter implements VMAdapter {
         forceBaseFeeZero === true ? 0n : blockContext.header.baseFeePerGas,
       gasLimit: blockContext.header.gasLimit,
       difficulty,
+      prevrandao: prevRandao,
     });
 
     try {
@@ -114,10 +117,6 @@ export class RethnetAdapter implements VMAdapter {
    */
   public async putAccount(address: Address, account: Account): Promise<void> {
     return this._state.putAccount(address, account);
-  }
-
-  public async putBlock(block: Block): Promise<void> {
-    return this._state.putBlock(block);
   }
 
   /**
@@ -183,15 +182,16 @@ export class RethnetAdapter implements VMAdapter {
   ): Promise<[RunTxResult, Trace]> {
     const rethnetTx = ethereumjsTransactionToRethnet(tx);
 
-    const difficulty = this._getBlockEnvDifficulty(
+    const difficulty = this._getBlockEnvDifficulty(block.header.difficulty);
+
+    const prevRandao = this._getBlockPrevRandao(
       block.header.number,
-      block.header.difficulty,
-      bufferToBigInt(block.header.mixHash)
+      block.header.mixHash
     );
 
     const rethnetResult = await this._rethnet.run(
       rethnetTx,
-      ethereumjsHeaderDataToRethnet(block.header, difficulty)
+      ethereumjsHeaderDataToRethnet(block.header, difficulty, prevRandao)
     );
 
     try {
@@ -211,6 +211,7 @@ export class RethnetAdapter implements VMAdapter {
     rewards: Array<[Address, bigint]>
   ): Promise<void> {
     const blockBuilder = await BlockBuilder.new(
+      this._blockchain,
       this._state.asInner(),
       {},
       {
@@ -281,23 +282,11 @@ export class RethnetAdapter implements VMAdapter {
   }
 
   private _getBlockEnvDifficulty(
-    blockNumber: bigint,
-    difficulty: bigint | undefined,
-    mixHash: bigint | undefined
+    difficulty: bigint | undefined
   ): bigint | undefined {
-    const hardfork = this._selectHardfork(blockNumber);
-    const isPostMergeHardfork = hardforkGte(
-      hardfork as HardforkName,
-      HardforkName.MERGE
-    );
-
-    if (isPostMergeHardfork) {
-      return mixHash;
-    }
-
     const MAX_DIFFICULTY = 2n ** 32n - 1n;
     if (difficulty !== undefined && difficulty > MAX_DIFFICULTY) {
-      console.trace(
+      console.debug(
         "Difficulty is larger than U256::max:",
         difficulty.toString(16)
       );
@@ -305,5 +294,26 @@ export class RethnetAdapter implements VMAdapter {
     }
 
     return difficulty;
+  }
+
+  private _getBlockPrevRandao(
+    blockNumber: bigint,
+    mixHash: Buffer | undefined
+  ): Buffer | undefined {
+    const hardfork = this._selectHardfork(blockNumber);
+    const isPostMergeHardfork = hardforkGte(
+      hardfork as HardforkName,
+      HardforkName.MERGE
+    );
+
+    if (isPostMergeHardfork) {
+      if (mixHash === undefined) {
+        throw new Error("mixHash must be set for post-merge hardfork");
+      }
+
+      return mixHash;
+    }
+
+    return undefined;
   }
 }

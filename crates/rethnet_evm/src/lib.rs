@@ -8,8 +8,10 @@ use rethnet_eth::Address;
 
 pub use hashbrown::HashMap;
 pub use revm::{
-    db::EmptyDB, Account, AccountInfo, BlockEnv, Bytecode, CfgEnv, CreateScheme, Database,
-    DatabaseCommit, ExecutionResult, Log, Return, SpecId, TransactOut, TransactTo, TxEnv, EVM,
+    blockchain::{Blockchain, BlockchainRef},
+    db::EmptyDB,
+    Account, AccountInfo, BlockEnv, Bytecode, CfgEnv, CreateScheme, Database, DatabaseCommit,
+    ExecutionResult, Log, Return, SpecId, TransactOut, TransactTo, TxEnv, EVM,
 };
 
 pub use crate::{
@@ -21,6 +23,9 @@ pub use crate::{
 
 /// State mapping of addresses to accounts.
 pub type State = HashMap<Address, Account>;
+
+/// Types for managing Ethereum blockchain
+pub mod blockchain;
 
 /// Database types for managing Ethereum state
 pub mod db;

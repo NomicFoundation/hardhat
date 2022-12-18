@@ -13,7 +13,7 @@ use secp256k1::{
 use sha3::{Digest, Keccak256};
 use thiserror::Error;
 
-use crate::{utils::hash_message, Address, H256, U256};
+use crate::{utils::hash_message, Address, B256, U256};
 
 /// Converts a [`PublicKey`] to an [`Address`].
 pub fn public_key_to_address(public_key: PublicKey) -> Address {
@@ -53,7 +53,7 @@ pub enum RecoveryMessage {
     /// Message bytes
     Data(Vec<u8>),
     /// Message hash
-    Hash(H256),
+    Hash(B256),
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Copy, Hash)]
@@ -105,7 +105,7 @@ impl Signature {
             RecoveryMessage::Hash(hash) => hash,
         };
 
-        struct Hash(H256);
+        struct Hash(B256);
 
         impl ThirtyTwoByteHash for Hash {
             fn into_32(self) -> [u8; 32] {
@@ -290,12 +290,12 @@ impl From<String> for RecoveryMessage {
 
 impl From<[u8; 32]> for RecoveryMessage {
     fn from(hash: [u8; 32]) -> Self {
-        H256(hash).into()
+        B256(hash).into()
     }
 }
 
-impl From<H256> for RecoveryMessage {
-    fn from(hash: H256) -> Self {
+impl From<B256> for RecoveryMessage {
+    fn from(hash: B256) -> Self {
         RecoveryMessage::Hash(hash)
     }
 }
@@ -309,11 +309,11 @@ mod tests {
         // test vector taken from:
         // https://web3js.readthedocs.io/en/v1.2.2/web3-eth-accounts.html#sign
         let signature = Signature::from_str(
-            "b91467e570a6466aa9e9876cbcd013baba02900b8979d43fe208a4a4f339f5fd6007e74cd82e037b800186422fc2da167c747ef045e5d18a5f5d4300f8e1a0291c"
+            "0xb91467e570a6466aa9e9876cbcd013baba02900b8979d43fe208a4a4f339f5fd6007e74cd82e037b800186422fc2da167c747ef045e5d18a5f5d4300f8e1a0291c"
         ).expect("could not parse signature");
         assert_eq!(
             signature.recover("Some data").unwrap(),
-            Address::from_str("2c7536E3605D9C16a7a3D7b1898e529396a65c23").unwrap()
+            Address::from_str("0x2c7536E3605D9C16a7a3D7b1898e529396a65c23").unwrap()
         );
     }
 
