@@ -1,4 +1,4 @@
-use rethnet_eth::{Address, H256};
+use rethnet_eth::{Address, H256, U256};
 
 // provide interfaces for all of the client functionality depended on by the existing Hardhat
 // Network logic, specifically
@@ -572,6 +572,56 @@ impl RpcClient {
 
         Ok(success.result)
     }
+
+    pub fn get_transaction_count(
+        &self,
+        address: &Address,
+        block_number: u64,
+    ) -> Result<U256, RpcClientError> {
+        use RpcClientError::{InterpretationError, ResponseError, SendError};
+
+        let request_id =
+            jsonrpc::Id::Num(RpcClient::make_id().expect("error generating request ID"));
+
+        let request_body = format!(
+            "{{
+                \"jsonrpc\":\"2.0\",
+                \"method\":\"eth_getTransactionCount\",
+                \"params\":[{},\"{:#x}\"],
+                \"id\":{}
+            }}",
+            serde_json::json!(address),
+            block_number,
+            serde_json::json!(request_id),
+        );
+
+        let response_text = self
+            .client
+            .post(self.url.to_string())
+            .body(request_body.clone())
+            .send()
+            .map_err(|err| SendError {
+                msg: err.to_string(),
+                request_body: request_body.clone(),
+            })?
+            .text()
+            .map_err(|err| ResponseError {
+                msg: err.to_string(),
+                request_body: request_body.clone(),
+            })?;
+
+        let success: jsonrpc::Success<U256> =
+            serde_json::from_str(&response_text).map_err(|err| InterpretationError {
+                msg: err.to_string(),
+                request_body: request_body.clone(),
+                expected_type: String::from("jsonrpc::Success<U256>"),
+                response_text,
+            })?;
+
+        assert_eq!(success.id, request_id);
+
+        Ok(success.result)
+    }
 }
 
 #[cfg(test)]
@@ -857,5 +907,18 @@ mod tests {
 
         assert_eq!(block.number, Some(block_number));
         assert_eq!(block.transactions.len(), 102);
+    }
+
+    #[test]
+    fn get_transaction_count_success() {
+        let alchemy_url = get_alchemy_url().expect("failed to get Alchemy URL");
+
+        let dai_address = Address::from_str("0x6b175474e89094c44da98b954eedeac495271d0f")
+            .expect("failed to parse address");
+        let transaction_count = RpcClient::new(&alchemy_url)
+            .get_transaction_count(&dai_address, 16220843)
+            .expect("should have succeeded");
+
+        assert_eq!(transaction_count, U256::from(1));
     }
 }
