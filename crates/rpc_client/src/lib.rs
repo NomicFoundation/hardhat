@@ -479,6 +479,53 @@ impl RpcClient {
 
         Ok(success.result)
     }
+
+    pub fn get_block_by_number(
+        &self,
+        block_number: u64,
+        include_transactions: bool,
+    ) -> Result<eth::Block<eth::Transaction>, RpcClientError> {
+        use RpcClientError::{InterpretationError, ResponseError, SendError};
+
+        let request_id =
+            jsonrpc::Id::Num(RpcClient::make_id().expect("error generating request ID"));
+
+        let request_body = format!(
+            "{{
+                \"jsonrpc\":\"2.0\",
+                \"method\":\"eth_getBlockByNumber\",
+                \"params\":[\"{:#x}\",{}],
+                \"id\":{}
+            }}",
+            block_number,
+            serde_json::json!(include_transactions),
+            serde_json::json!(request_id),
+        );
+
+        let response_text = self
+            .client
+            .post(self.url.to_string())
+            .body(request_body)
+            .send()
+            .map_err(|err| SendError {
+                msg: err.to_string(),
+            })?
+            .text()
+            .map_err(|err| ResponseError {
+                msg: err.to_string(),
+            })?;
+
+        let success: jsonrpc::Success<eth::Block<eth::Transaction>> =
+            serde_json::from_str(&response_text).map_err(|err| InterpretationError {
+                msg: err.to_string(),
+                expected_type: String::from("jsonrpc::Success<eth::Block<eth::Transaction>>"),
+                response_text,
+            })?;
+
+        assert_eq!(success.id, request_id);
+
+        Ok(success.result)
+    }
 }
 
 #[cfg(test)]
@@ -749,6 +796,20 @@ mod tests {
             .expect("should have succeeded");
 
         assert_eq!(block.hash, Some(hash));
+        assert_eq!(block.transactions.len(), 192);
+    }
+
+    #[test]
+    fn get_block_by_number_success() {
+        let alchemy_url = get_alchemy_url().expect("failed to get Alchemy URL");
+
+        let block_number = 10496585;
+
+        let block = RpcClient::new(&alchemy_url)
+            .get_block_by_number(block_number, true)
+            .expect("should have succeeded");
+
+        assert_eq!(block.number, Some(block_number));
         assert_eq!(block.transactions.len(), 192);
     }
 }
