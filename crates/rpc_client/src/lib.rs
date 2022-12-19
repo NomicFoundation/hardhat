@@ -388,22 +388,19 @@ impl RpcClient {
         let request_id =
             jsonrpc::Id::Num(RpcClient::make_id().expect("error generating request ID"));
 
-        let from_block_str = format!("{:#016x}", from_block);
-        let to_block_str = format!("{:#016x}", to_block);
-
         let request_body = format!(
             "{{
                 \"jsonrpc\":\"2.0\",
                 \"method\":\"eth_getLogs\",
                 \"params\":[{{
-                    \"fromBlock\":\"{}\",
-                    \"toBlock\":\"{}\",
+                    \"fromBlock\":\"{:#x}\",
+                    \"toBlock\":\"{:#x}\",
                     \"address\":{}
                 }}],
                 \"id\":{}
             }}",
-            from_block_str,
-            to_block_str,
+            from_block,
+            to_block,
             serde_json::json!(address),
             serde_json::json!(request_id),
         );
