@@ -286,15 +286,16 @@ pub enum RpcClientError {
     #[error("Response was not of the expected type")]
     InterpretationError {
         msg: String,
+        request_body: String,
         expected_type: String,
         response_text: String,
     },
 
     #[error("Failed to send request")]
-    SendError { msg: String },
+    SendError { msg: String, request_body: String },
 
     #[error("Failed to get response body")]
-    ResponseError { msg: String },
+    ResponseError { msg: String, request_body: String },
 
     #[error(transparent)]
     OtherError(#[from] std::io::Error),
@@ -332,28 +333,36 @@ impl RpcClient {
         let request_id =
             jsonrpc::Id::Num(RpcClient::make_id().expect("error generating request ID"));
 
+        let request_body: String = format!(
+            "{{
+                \"jsonrpc\":\"2.0\",
+                \"method\":\"eth_getTransactionByHash\",
+                \"params\":[{}],
+                \"id\":{}
+            }}",
+            serde_json::json!(tx_hash),
+            serde_json::json!(request_id)
+        );
+
         let response_text = self
             .client
             .post(self.url.to_string())
-            .body(
-                format!(
-                    "{{\"jsonrpc\":\"2.0\",\"method\":\"eth_getTransactionByHash\",\"params\":[{}],\"id\":{}}}",
-                    serde_json::json!(tx_hash),
-                    serde_json::json!(request_id)
-                )
-            )
+            .body(request_body.clone())
             .send()
             .map_err(|err| SendError {
                 msg: err.to_string(),
+                request_body: request_body.clone(),
             })?
             .text()
             .map_err(|err| ResponseError {
                 msg: err.to_string(),
+                request_body: request_body.clone(),
             })?;
 
         let success: jsonrpc::Success<eth::Transaction> = serde_json::from_str(&response_text)
             .map_err(|err| InterpretationError {
                 msg: err.to_string(),
+                request_body,
                 expected_type: String::from("jsonrpc::Success<eth::Transaction>"),
                 response_text,
             })?;
@@ -369,28 +378,36 @@ impl RpcClient {
         let request_id =
             jsonrpc::Id::Num(RpcClient::make_id().expect("error generating request ID"));
 
+        let request_body = format!(
+            "{{
+                \"jsonrpc\":\"2.0\",
+                \"method\":\"eth_getTransactionReceipt\",
+                \"params\":[{}],
+                \"id\":{}
+            }}",
+            serde_json::json!(tx_hash),
+            serde_json::json!(request_id)
+        );
+
         let response_text = self
             .client
             .post(self.url.to_string())
-            .body(
-                format!(
-                    "{{\"jsonrpc\":\"2.0\",\"method\":\"eth_getTransactionReceipt\",\"params\":[{}],\"id\":{}}}",
-                    serde_json::json!(tx_hash),
-                    serde_json::json!(request_id)
-                )
-            )
+            .body(request_body.clone())
             .send()
             .map_err(|err| SendError {
                 msg: err.to_string(),
+                request_body: request_body.clone(),
             })?
             .text()
             .map_err(|err| ResponseError {
                 msg: err.to_string(),
+                request_body: request_body.clone(),
             })?;
 
         let success: jsonrpc::Success<eth::TransactionReceipt> =
             serde_json::from_str(&response_text).map_err(|err| InterpretationError {
                 msg: err.to_string(),
+                request_body: request_body.clone(),
                 expected_type: String::from("jsonrpc::Success<eth::TransactionReceipt>"),
                 response_text,
             })?;
@@ -431,19 +448,22 @@ impl RpcClient {
         let response_text = self
             .client
             .post(self.url.to_string())
-            .body(request_body)
+            .body(request_body.clone())
             .send()
             .map_err(|err| SendError {
                 msg: err.to_string(),
+                request_body: request_body.clone(),
             })?
             .text()
             .map_err(|err| ResponseError {
                 msg: err.to_string(),
+                request_body: request_body.clone(),
             })?;
 
         let success: jsonrpc::Success<Vec<eth::Log>> = serde_json::from_str(&response_text)
             .map_err(|err| InterpretationError {
                 msg: err.to_string(),
+                request_body: request_body.clone(),
                 expected_type: String::from("jsonrpc::Success<Vec<eth::Log>>"),
                 response_text,
             })?;
@@ -478,19 +498,22 @@ impl RpcClient {
         let response_text = self
             .client
             .post(self.url.to_string())
-            .body(request_body)
+            .body(request_body.clone())
             .send()
             .map_err(|err| SendError {
                 msg: err.to_string(),
+                request_body: request_body.clone(),
             })?
             .text()
             .map_err(|err| ResponseError {
                 msg: err.to_string(),
+                request_body: request_body.clone(),
             })?;
 
         let success: jsonrpc::Success<eth::Block<eth::Transaction>> =
             serde_json::from_str(&response_text).map_err(|err| InterpretationError {
                 msg: err.to_string(),
+                request_body: request_body.clone(),
                 expected_type: String::from("jsonrpc::Success<eth::Block<eth::Transaction>>"),
                 response_text,
             })?;
@@ -525,19 +548,22 @@ impl RpcClient {
         let response_text = self
             .client
             .post(self.url.to_string())
-            .body(request_body)
+            .body(request_body.clone())
             .send()
             .map_err(|err| SendError {
                 msg: err.to_string(),
+                request_body: request_body.clone(),
             })?
             .text()
             .map_err(|err| ResponseError {
                 msg: err.to_string(),
+                request_body: request_body.clone(),
             })?;
 
         let success: jsonrpc::Success<eth::Block<eth::Transaction>> =
             serde_json::from_str(&response_text).map_err(|err| InterpretationError {
                 msg: err.to_string(),
+                request_body: request_body.clone(),
                 expected_type: String::from("jsonrpc::Success<eth::Block<eth::Transaction>>"),
                 response_text,
             })?;
