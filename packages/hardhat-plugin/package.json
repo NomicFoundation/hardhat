@@ -1,6 +1,6 @@
 {
   "name": "@ignored/hardhat-ignition",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "license": "MIT",
   "author": "Nomic Foundation",
   "homepage": "https://hardhat.org",
@@ -32,7 +32,7 @@
     "clean": "rimraf .nyc_output coverage dist tsconfig.tsbuildinfo"
   },
   "devDependencies": {
-    "@ignored/ignition-core": "^0.0.4",
+    "@ignored/ignition-core": "^0.0.5",
     "@istanbuljs/nyc-config-typescript": "1.0.2",
     "@nomiclabs/hardhat-ethers": "^2.0.2",
     "@types/chai": "^4.2.22",
@@ -67,7 +67,7 @@
     "typescript": "^4.7.4"
   },
   "peerDependencies": {
-    "@ignored/ignition-core": "^0.0.4",
+    "@ignored/ignition-core": "^0.0.5",
     "@nomiclabs/hardhat-ethers": "^2.0.2",
     "hardhat": "^2.12.0"
   },

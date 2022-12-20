@@ -11,7 +11,7 @@
   },
   "devDependencies": {
     "hardhat": "^2.10.0",
-    "@ignored/hardhat-ignition": "^0.0.4"
+    "@ignored/hardhat-ignition": "^0.0.5"
   },
   "dependencies": {
     "@openzeppelin/contracts": "4.7.3"
