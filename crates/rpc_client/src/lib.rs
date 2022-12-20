@@ -14,8 +14,6 @@ use rethnet_eth::{Address, Bytes, H256, U256};
 //      const noncePromise = this._jsonRpcClient.getTransactionCount(
 //      const accountData = await this._jsonRpcClient.getAccountData(
 //    const remoteValue = await this._jsonRpcClient.getStorageAt(
-//
-// TODO: do more than just get-tx-by-hash.
 
 mod jsonrpc {
     // adapted from https://github.com/koushiro/async-jsonrpc
@@ -328,11 +326,6 @@ impl RpcClient {
             .wrapping_sub(since_epoch.subsec_nanos() as u64))
     }
 
-    // TODO: pass in a reference to the hash, not the object
-    // "internal mutability". have a member variable that's an atomic uint and then use that as the
-    // ID.
-    // TODO: change the API to support not just legacy transaction types in the output, but also
-    // EIP-1559 and EIP-2930 ones as well.
     pub fn get_tx_by_hash(&self, tx_hash: &H256) -> Result<eth::Transaction, RpcClientError> {
         use RpcClientError::{InterpretationError, ResponseError, SendError};
 
@@ -847,8 +840,6 @@ mod tests {
         assert!(error_string.contains("Success<eth::Transaction>"));
         assert!(error_string.contains("Must be authenticated!"));
     }
-
-    // TODO: write some tests that exercise the errors i coded.
 
     #[test]
     fn get_tx_receipt_success() {
