@@ -7,6 +7,7 @@ import { executeContractCall } from "./executeContractCall";
 import { executeContractDeploy } from "./executeContractDeploy";
 import { executeDeployedContract } from "./executeDeployedContract";
 import { executeLibraryDeploy } from "./executeLibraryDeploy";
+import { executeSendETH } from "./executeSendETH";
 
 export function executionDispatch(
   executionVertex: ExecutionVertex,
@@ -28,14 +29,14 @@ export function executionDispatch(
       return executeLibraryDeploy(executionVertex, resultAccumulator, context);
     case "AwaitedEvent":
       return executeAwaitedEvent(executionVertex, resultAccumulator, context);
+    case "SentETH":
+      return executeSendETH(executionVertex, resultAccumulator, context);
     default:
-      return assertUnknownExecutionVertexType(executionVertex);
+      assertUnknownExecutionVertexType(executionVertex);
   }
 }
 
-function assertUnknownExecutionVertexType(
-  executionVertex: never
-): Promise<VertexVisitResult> {
+function assertUnknownExecutionVertexType(executionVertex: never): never {
   const vertex = executionVertex as any;
 
   const forReport = "type" in vertex ? vertex.type : vertex;

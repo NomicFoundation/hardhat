@@ -1,5 +1,6 @@
 /* eslint-disable import/no-unused-modules */
 import { assert } from "chai";
+import { ethers } from "ethers";
 import sinon from "sinon";
 
 import { buildModule } from "dsl/buildModule";
@@ -605,6 +606,131 @@ describe("Validation", () => {
 
       assert.equal(text, "Validation failed");
       assert.equal(error.message, "Artifact with name 'Bar' doesn't exist");
+    });
+  });
+
+  describe("sendETH", () => {
+    const exampleCallArtifact = {
+      _format: "hh-sol-artifact-1",
+      contractName: "Foo",
+      sourceName: "contracts/Foo.sol",
+      abi: [
+        {
+          stateMutability: "payable",
+          type: "receive",
+        },
+      ],
+      bytecode:
+        "6080604052348015600f57600080fd5b50604580601d6000396000f3fe608060405236600a57005b600080fdfea2646970667358221220da7e5683d44d4d83925bddf4a1eb18237892d4fe13551888fef8b0925eb9023664736f6c63430008070033",
+      deployedBytecode: "0x0",
+      linkReferences: {},
+      deployedLinkReferences: {},
+    };
+
+    it("should validate a correct send", async () => {
+      const singleModule = buildModule("single", (m: IDeploymentBuilder) => {
+        const example = m.contract("Foo");
+        const value = ethers.utils.parseUnits("42");
+
+        m.sendETH(example, { value });
+
+        return { example };
+      });
+
+      const { graph } = generateDeploymentGraphFrom(singleModule, {
+        chainId: 31337,
+      });
+
+      const mockServices = {
+        ...getMockServices(),
+        artifacts: {
+          hasArtifact: () => true,
+          getArtifact: () => exampleCallArtifact,
+        },
+      } as any;
+
+      const validationResult = await validateDeploymentGraph(
+        graph,
+        mockServices
+      );
+      assert.equal(validationResult._kind, "success");
+    });
+
+    it("should fail a send with an invalid address", async () => {
+      const singleModule = buildModule("single", (m: IDeploymentBuilder) => {
+        const example = m.contract("Foo");
+        const value = ethers.utils.parseUnits("42");
+
+        m.sendETH("0xnull", { value });
+
+        return { example };
+      });
+
+      const { graph } = generateDeploymentGraphFrom(singleModule, {
+        chainId: 31337,
+      });
+
+      const mockServices = {
+        ...getMockServices(),
+        artifacts: {
+          hasArtifact: () => true,
+          getArtifact: () => exampleCallArtifact,
+        },
+      } as any;
+
+      const validationResult = await validateDeploymentGraph(
+        graph,
+        mockServices
+      );
+
+      if (validationResult._kind !== "failure") {
+        return assert.fail("validation should have failed");
+      }
+
+      const {
+        failures: [text, [error]],
+      } = validationResult;
+
+      assert.equal(text, "Validation failed");
+      assert.equal(error.message, `"0xnull" is not a valid address`);
+    });
+
+    it("should fail a call on a non-BigNumber as value", async () => {
+      const singleModule = buildModule("single", (m: IDeploymentBuilder) => {
+        const example = m.contract("Foo");
+
+        m.sendETH(example, { value: true as any });
+
+        return { example };
+      });
+
+      const { graph } = generateDeploymentGraphFrom(singleModule, {
+        chainId: 31337,
+      });
+
+      const mockServices = {
+        ...getMockServices(),
+        artifacts: {
+          hasArtifact: () => true,
+          getArtifact: () => exampleCallArtifact,
+        },
+      } as any;
+
+      const validationResult = await validateDeploymentGraph(
+        graph,
+        mockServices
+      );
+
+      if (validationResult._kind !== "failure") {
+        return assert.fail("validation should have failed");
+      }
+
+      const {
+        failures: [text, [error]],
+      } = validationResult;
+
+      assert.equal(text, "Validation failed");
+      assert.equal(error.message, "For send 'value' must be a BigNumber");
     });
   });
 

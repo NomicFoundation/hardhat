@@ -12,6 +12,7 @@ import {
   DeploymentGraphVertex,
   ExternalParamValue,
   EventVertex,
+  SendVertex,
 } from "types/deploymentGraph";
 import {
   AwaitedEvent,
@@ -20,6 +21,7 @@ import {
   DeployedContract,
   ExecutionVertex,
   LibraryDeploy,
+  SentETH,
 } from "types/executionGraph";
 import {
   BytesFuture,
@@ -64,6 +66,8 @@ export function convertDeploymentVertexToExecutionVertex(
         return convertArtifactLibraryToLibraryDeploy(deploymentVertex, context);
       case "Event":
         return convertAwaitToAwaitedEvent(deploymentVertex, context);
+      case "SendETH":
+        return convertSendToSentETH(deploymentVertex, context);
       case "Virtual":
         throw new Error(
           `Virtual vertex should be removed ${deploymentVertex.id} (${deploymentVertex.label})`
@@ -185,6 +189,22 @@ async function convertAwaitToAwaitedEvent(
     address: vertex.address,
     event: vertex.event,
     args: await convertArgs(vertex.args, transformContext),
+  };
+}
+
+async function convertSendToSentETH(
+  vertex: SendVertex,
+  transformContext: TransformContext
+): Promise<SentETH> {
+  return {
+    type: "SentETH",
+    id: vertex.id,
+    label: vertex.label,
+    address: vertex.address,
+    value: (await resolveParameter(
+      vertex.value,
+      transformContext
+    )) as BigNumber,
   };
 }
 

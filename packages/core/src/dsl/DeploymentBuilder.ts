@@ -14,6 +14,7 @@ import {
   UseSubgraphOptions,
   ScopeData,
   AwaitOptions,
+  SendOptions,
 } from "types/deploymentGraph";
 import type {
   DeploymentGraphFuture,
@@ -36,13 +37,18 @@ import type {
   EventParams,
   ArtifactFuture,
   EventParamFuture,
+  SendFuture,
+  ContractFuture,
+  AddressResolvable,
 } from "types/future";
 import type { Artifact } from "types/hardhat";
 import type { ModuleCache, ModuleDict } from "types/module";
 import { IgnitionError } from "utils/errors";
 import {
+  assertUnknownDeploymentVertexType,
   isArtifact,
   isCallable,
+  isContract,
   isDependable,
   isParameter,
 } from "utils/guards";
@@ -65,11 +71,12 @@ function parseEventParams(
     return {};
   }
 
-  return abiEvent.inputs.reduce<EventParams>((acc, { name }) => {
+  return abiEvent.inputs.reduce<EventParams>((acc, { name, type }) => {
     acc[name] = {
       vertexId: event.vertexId,
       label: name,
       type: "eventParam",
+      subtype: type,
       _future: true,
     };
 
@@ -340,6 +347,58 @@ export class DeploymentBuilder implements IDeploymentBuilder {
     return eventFuture;
   }
 
+  public sendETH(sendTo: AddressResolvable, options: SendOptions): SendFuture {
+    const vertexId = this._resolveNextId();
+
+    const sendFuture: SendFuture = {
+      vertexId,
+      label: `send/${vertexId}`,
+      type: "send",
+      subtype: "eth",
+      _future: true,
+    };
+
+    let address: AddressResolvable;
+    if (typeof sendTo === "string" || isContract(sendTo)) {
+      address = sendTo;
+    } else if (isParameter(sendTo)) {
+      const parameter = sendTo;
+      const scope = parameter.scope;
+
+      const scopeData = this.graph.scopeData[scope];
+
+      if (
+        scopeData === undefined ||
+        scopeData.parameters === undefined ||
+        !(parameter.label in scopeData.parameters)
+      ) {
+        throw new Error("Could not resolve contract from parameter");
+      }
+
+      address = scopeData.parameters[parameter.label] as ContractFuture;
+    } else {
+      if (sendTo.subtype !== "address") {
+        throw new Error(
+          `Event param "${sendTo.label}" is type "${sendTo.subtype}" but must be type "address"`
+        );
+      }
+
+      address = sendTo;
+    }
+
+    DeploymentBuilder._addVertex(this.graph, {
+      id: vertexId,
+      label: sendFuture.label,
+      type: "SendETH",
+      address,
+      value: options.value,
+      after: options.after ?? [],
+      scopeAdded: this.scopes.getScopedLabel(),
+    });
+
+    return sendFuture;
+  }
+
   public getParam(paramName: string): RequiredParameter {
     const paramFuture: RequiredParameter = {
       label: paramName,
@@ -578,6 +637,17 @@ export class DeploymentBuilder implements IDeploymentBuilder {
       return;
     }
 
+    if (depNode.type === "SendETH") {
+      DeploymentBuilder._addEdgeBasedOn(depNode.address, graph, depNode);
+
+      DeploymentBuilder._addEdgesBasedOn(
+        Object.values(depNode.after),
+        graph,
+        depNode
+      );
+      return;
+    }
+
     if (depNode.type === "Virtual") {
       DeploymentBuilder._addEdgesBasedOn(
         Object.values(depNode.after),
@@ -586,6 +656,8 @@ export class DeploymentBuilder implements IDeploymentBuilder {
       );
       return;
     }
+
+    assertUnknownDeploymentVertexType(depNode);
   }
 
   private static _addEdgesBasedOn(

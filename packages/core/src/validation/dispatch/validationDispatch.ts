@@ -1,6 +1,7 @@
 import { Services } from "services/types";
 import { DeploymentGraphVertex } from "types/deploymentGraph";
 import { ResultsAccumulator, VertexVisitResult } from "types/graph";
+import { assertUnknownDeploymentVertexType } from "utils/guards";
 
 import { validateArtifactContract } from "./validateArtifactContract";
 import { validateArtifactLibrary } from "./validateArtifactLibrary";
@@ -9,6 +10,7 @@ import { validateCall } from "./validateCall";
 import { validateDeployedContract } from "./validateDeployedContract";
 import { validateHardhatContract } from "./validateHardhatContract";
 import { validateHardhatLibrary } from "./validateHardhatLibrary";
+import { validateSendETH } from "./validateSendETH";
 import { validateVirtual } from "./validateVirtual";
 
 export function validationDispatch(
@@ -53,17 +55,9 @@ export function validationDispatch(
       return validateVirtual(deploymentVertex, resultAccumulator, context);
     case "Event":
       return validateAwaitEvent(deploymentVertex, resultAccumulator, context);
+    case "SendETH":
+      return validateSendETH(deploymentVertex, resultAccumulator);
     default:
-      return assertUnknownDeploymentVertexType(deploymentVertex);
+      assertUnknownDeploymentVertexType(deploymentVertex);
   }
-}
-
-function assertUnknownDeploymentVertexType(
-  deploymentVertex: never
-): Promise<VertexVisitResult> {
-  const vertex = deploymentVertex as any;
-
-  const forReport = "type" in vertex ? vertex.type : vertex;
-
-  throw new Error(`Unknown deployment vertex type: ${forReport}`);
 }

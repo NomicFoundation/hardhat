@@ -174,6 +174,8 @@ export class DeploymentState {
         return "Failed library deploy";
       case "AwaitedEvent":
         return "Failed awaited event";
+      case "SentETH":
+        return "Failed to send ETH";
       default:
         return assertNeverUiVertexType(vertex.type);
     }

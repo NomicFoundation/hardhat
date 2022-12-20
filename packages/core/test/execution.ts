@@ -239,6 +239,87 @@ describe("Execution", () => {
     });
   });
 
+  it("should execute an ETH send", async () => {
+    const fakeArtifact: Artifact = {
+      contractName: "Foo",
+      abi: [
+        {
+          stateMutability: "payable",
+          type: "receive",
+        },
+      ],
+      bytecode:
+        "6080604052348015600f57600080fd5b50604580601d6000396000f3fe608060405236600a57005b600080fdfea2646970667358221220da7e5683d44d4d83925bddf4a1eb18237892d4fe13551888fef8b0925eb9023664736f6c63430008070033",
+      linkReferences: {},
+    };
+
+    const contractDeploy: ExecutionVertex = {
+      type: "ContractDeploy",
+      id: 0,
+      label: "Foo",
+      artifact: fakeArtifact,
+      args: [],
+      libraries: {},
+      value: ethers.utils.parseUnits("0"),
+    };
+
+    const sendETH: ExecutionVertex = {
+      type: "SentETH",
+      id: 1,
+      label: "Foo",
+      address: {
+        vertexId: 0,
+        type: "contract",
+        subtype: "artifact",
+        artifact: fakeArtifact,
+        label: "Foo",
+        _future: true,
+      },
+      value: ethers.utils.parseUnits("42"),
+    };
+
+    const sendTxStub = sinon.stub();
+    sendTxStub.onCall(0).resolves("0x1");
+    sendTxStub.onCall(1).resolves("0x2");
+
+    const mockServices: Services = {
+      ...getMockServices(),
+      contracts: {
+        sendTx: sendTxStub,
+      } as any,
+      transactions: {
+        wait: (txHash: string) => {
+          if (txHash === "0x1") {
+            return {
+              contractAddress: "0x0000000000000000000000000000000000000001",
+            };
+          }
+
+          return {
+            contractAddress: "0x0000000000000000000000000000000000000002",
+          };
+        },
+      } as any,
+    };
+
+    const response = await assertDependentVertex(
+      [contractDeploy, sendETH],
+      mockServices
+    );
+
+    assert.isDefined(response);
+    if (response._kind === "failure") {
+      return assert.fail("deploy failed");
+    }
+
+    assert.deepStrictEqual(response.result.get(1), {
+      _kind: "success",
+      result: {
+        hash: "0x2",
+      },
+    });
+  });
+
   it("should execute an awaited event", async () => {
     const fakeArtifact = {
       contractName: "Test",

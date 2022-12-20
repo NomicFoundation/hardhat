@@ -2,6 +2,7 @@ import type { BigNumber } from "ethers";
 
 import { LibraryMap } from "./deploymentGraph";
 import {
+  AddressResolvable,
   ArtifactContract,
   DeploymentGraphFuture,
   EventParamFuture,
@@ -27,14 +28,16 @@ export type ExecutionVertexType =
   | "DeployedContract"
   | "LibraryDeploy"
   | "ContractCall"
-  | "AwaitedEvent";
+  | "AwaitedEvent"
+  | "SentETH";
 
 export type ExecutionVertex =
   | ContractDeploy
   | DeployedContract
   | LibraryDeploy
   | ContractCall
-  | AwaitedEvent;
+  | AwaitedEvent
+  | SentETH;
 
 export interface ContractDeploy extends VertexDescriptor {
   type: "ContractDeploy";
@@ -70,4 +73,10 @@ export interface AwaitedEvent extends VertexDescriptor {
   address: string | ArtifactContract | EventParamFuture;
   event: string;
   args: ArgValue[];
+}
+
+export interface SentETH extends VertexDescriptor {
+  type: "SentETH";
+  address: AddressResolvable;
+  value: BigNumber;
 }

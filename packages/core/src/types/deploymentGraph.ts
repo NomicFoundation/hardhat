@@ -19,6 +19,8 @@ import {
   BytesFuture,
   ArtifactFuture,
   EventParamFuture,
+  SendFuture,
+  AddressResolvable,
 } from "./future";
 import { AdjacencyList, VertexDescriptor } from "./graph";
 import { Artifact } from "./hardhat";
@@ -58,7 +60,8 @@ export type DeploymentGraphVertex =
   | ArtifactLibraryDeploymentVertex
   | CallDeploymentVertex
   | VirtualVertex
-  | EventVertex;
+  | EventVertex
+  | SendVertex;
 
 export interface HardhatContractDeploymentVertex extends VertexDescriptor {
   type: "HardhatContract";
@@ -130,6 +133,14 @@ export interface EventVertex extends VertexDescriptor {
   after: DeploymentGraphFuture[];
 }
 
+export interface SendVertex extends VertexDescriptor {
+  type: "SendETH";
+  scopeAdded: string;
+  address: AddressResolvable;
+  value: BigNumber | ParameterFuture;
+  after: DeploymentGraphFuture[];
+}
+
 export interface ContractOptions {
   args?: InternalParamValue[];
   libraries?: {
@@ -147,6 +158,11 @@ export interface CallOptions {
 
 export interface AwaitOptions {
   args: InternalParamValue[];
+  after?: DeploymentGraphFuture[];
+}
+
+export interface SendOptions {
+  value: BigNumber | ParameterFuture;
   after?: DeploymentGraphFuture[];
 }
 
@@ -189,6 +205,8 @@ export interface IDeploymentBuilder {
     eventName: string,
     options: AwaitOptions
   ) => EventFuture;
+
+  sendETH: (sendTo: AddressResolvable, options: SendOptions) => SendFuture;
 
   getParam: (paramName: string) => RequiredParameter;
 

@@ -21,6 +21,7 @@ import type {
   ProxyFuture,
   BytesFuture,
   EventParamFuture,
+  ContractFuture,
 } from "types/future";
 import { Artifact } from "types/hardhat";
 
@@ -130,4 +131,24 @@ export function isCallable(
   }
 
   return future.type === "contract" || future.type === "library";
+}
+
+export function isContract(
+  future: DeploymentGraphFuture
+): future is ContractFuture {
+  if (isProxy(future)) {
+    return isContract(future.value);
+  }
+
+  return future.type === "contract";
+}
+
+export function assertUnknownDeploymentVertexType(
+  deploymentVertex: never
+): never {
+  const vertex = deploymentVertex as any;
+
+  const forReport = "type" in vertex ? vertex.type : vertex;
+
+  throw new Error(`Unknown deployment vertex type: ${forReport}`);
 }

@@ -62,6 +62,14 @@ export interface EventFuture {
   params: EventParams;
 }
 
+export interface SendFuture {
+  vertexId: number;
+  label: string;
+  type: "send";
+  subtype: "eth";
+  _future: true;
+}
+
 export interface EventParams {
   [eventParam: string]: EventParamFuture;
 }
@@ -70,6 +78,7 @@ export interface EventParamFuture {
   vertexId: number;
   label: string;
   type: "eventParam";
+  subtype: string;
   _future: true;
 }
 
@@ -115,8 +124,6 @@ export interface ProxyFuture {
 
 export type ArtifactFuture = ArtifactContract | DeployedContract;
 
-export type AddressResolvable = EventParamFuture | ArtifactFuture;
-
 export type ContractFuture =
   | HardhatContract
   | ArtifactContract
@@ -132,6 +139,12 @@ export type DependableFuture =
   | Virtual
   | ProxyFuture
   | EventFuture;
+
+export type AddressResolvable =
+  | string
+  | ParameterFuture
+  | EventParamFuture
+  | ContractFuture;
 
 export type ParameterFuture = RequiredParameter | OptionalParameter;
 

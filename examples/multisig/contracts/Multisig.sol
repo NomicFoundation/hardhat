@@ -84,7 +84,7 @@ contract Multisig {
             emit Deposit(msg.sender, msg.value);
     }
 
-    constructor(address[] memory _owners, uint _required) payable
+    constructor(address[] memory _owners, uint _required)
         validRequirement(_owners.length, _required)
     {
         for (uint i=0; i<_owners.length; i++) {

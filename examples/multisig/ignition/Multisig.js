@@ -11,15 +11,15 @@ module.exports = buildModule("MultisigModule", (m) => {
   const required = 1;
   const value = ethers.utils.parseUnits("100");
 
-  // todo: support arbitrary tx
   const multisig = m.contract("Multisig", MultisigArtifact, {
     args: [owners, required],
-    value,
   });
+
+  const funding = m.sendETH(multisig, { value, after: [multisig] });
 
   const call = m.call(multisig, "submitTransaction", {
     args: [ACCOUNT_0, ethers.utils.parseUnits("50"), "0x00"],
-    after: [multisig],
+    after: [funding],
   });
 
   // todo: support sending via non-default account

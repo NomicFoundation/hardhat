@@ -296,6 +296,7 @@ describe("deployment builder - await event", () => {
         vertexId: 2,
         label: "value",
         type: "eventParam",
+        subtype: "uint256",
         _future: true,
       },
     ]);
