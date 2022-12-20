@@ -371,7 +371,10 @@ impl RpcClient {
         Ok(success.result)
     }
 
-    pub fn get_tx_receipt(&self, tx_hash: H256) -> Result<eth::TransactionReceipt, RpcClientError> {
+    pub fn get_tx_receipt(
+        &self,
+        tx_hash: &H256,
+    ) -> Result<eth::TransactionReceipt, RpcClientError> {
         use RpcClientError::{InterpretationError, ResponseError, SendError};
 
         let request_id =
@@ -420,7 +423,7 @@ impl RpcClient {
         &self,
         from_block: u64,
         to_block: u64,
-        address: Address,
+        address: &Address,
     ) -> Result<Vec<eth::Log>, RpcClientError> {
         use RpcClientError::{InterpretationError, ResponseError, SendError};
 
@@ -850,7 +853,7 @@ mod tests {
                 .expect("failed to parse hash from string");
 
         let receipt: eth::TransactionReceipt = RpcClient::new(&alchemy_url)
-            .get_tx_receipt(hash)
+            .get_tx_receipt(&hash)
             .expect("failed to get transaction by hash");
 
         assert_eq!(
@@ -910,7 +913,7 @@ mod tests {
         let error_string = format!(
             "{:?}",
             RpcClient::new(alchemy_url)
-                .get_tx_receipt(hash)
+                .get_tx_receipt(&hash)
                 .expect_err("should have failed to connect to a garbage domain name")
         );
 
@@ -929,7 +932,7 @@ mod tests {
         let error_string = format!(
             "{:?}",
             RpcClient::new(alchemy_url)
-                .get_tx_receipt(hash)
+                .get_tx_receipt(&hash)
                 .expect_err("should have failed to interpret response as a Receipt")
         );
 
@@ -945,7 +948,7 @@ mod tests {
             .get_logs(
                 10496585,
                 10496585,
-                Address::from_str("0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2")
+                &Address::from_str("0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2")
                     .expect("failed to parse data"),
             )
             .expect("failed to get logs");
