@@ -13,7 +13,7 @@ hex = { version = "0.4.3", default-features = false, features = ["alloc"] }
 hex-literal = { version = "0.3", default-features = false }
 open-fastrlp = { version = "0.1.2", default-features = false, features = ["derive"], optional = true }
 primitive-types = { version = "0.11.1", default-features = false, features = ["rlp"] }
-revm = { git = "https://github.com/wodann/revm", rev = "0734307", version = "2.3", default-features = false }
+revm = { git = "https://github.com/wodann/revm", rev = "7c28358", version = "2.3", default-features = false }
 rlp = { version = "0.5.2", default-features = false, features = ["derive"] }
 ruint = { version = "1.7.0", default-features = false }
 secp256k1 = { version = "0.24.0", default-features = false, features = ["alloc", "recovery"] }
