@@ -86,4 +86,7 @@ export interface VMAdapter {
   ): Promise<RpcDebugTraceOutput>;
   enableTracing(callbacks: TracingCallbacks): void;
   disableTracing(): void;
+
+  // methods for snapshotting
+  makeSnapshot(): Promise<Buffer>;
 }

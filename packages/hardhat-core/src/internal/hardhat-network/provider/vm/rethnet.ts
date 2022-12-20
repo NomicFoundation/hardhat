@@ -28,7 +28,6 @@ export class RethnetAdapter implements VMAdapter {
   ) {}
 
   public static async create(
-    state: RethnetStateManager,
     config: NodeConfig,
     selectHardfork: (blockNumber: bigint) => string,
     getBlockHash: (blockNumber: bigint) => Promise<Buffer>
@@ -37,6 +36,10 @@ export class RethnetAdapter implements VMAdapter {
 
     const limitContractCodeSize =
       config.allowUnlimitedContractSize === true ? 2n ** 64n - 1n : undefined;
+
+    const state = RethnetStateManager.withGenesisAccounts(
+      config.genesisAccounts
+    );
 
     const rethnet = new Rethnet(blockchain, state.asInner(), {
       chainId: BigInt(config.chainId),
@@ -279,6 +282,10 @@ export class RethnetAdapter implements VMAdapter {
    */
   public disableTracing(): void {
     throw new Error("not implemented");
+  }
+
+  public async makeSnapshot(): Promise<Buffer> {
+    return this._state.makeSnapshot();
   }
 
   private _getBlockEnvDifficulty(

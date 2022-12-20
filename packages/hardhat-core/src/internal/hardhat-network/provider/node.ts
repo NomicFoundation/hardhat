@@ -93,7 +93,6 @@ import {
   shouldShowTransactionTypeForHardfork,
 } from "./output";
 import { ReturnData } from "./return-data";
-import { RethnetStateManager } from "./RethnetState";
 import { FakeSenderAccessListEIP2930Transaction } from "./transactions/FakeSenderAccessListEIP2930Transaction";
 import { FakeSenderEIP1559Transaction } from "./transactions/FakeSenderEIP1559Transaction";
 import { FakeSenderTransaction } from "./transactions/FakeSenderTransaction";
@@ -149,9 +148,6 @@ export class HardhatNode extends EventEmitter {
     let forkClient: JsonRpcClient | undefined;
 
     const common = makeCommon(config);
-
-    const rethnetState =
-      RethnetStateManager.withGenesisAccounts(genesisAccounts);
 
     if (isForkedNodeConfig(config)) {
       const {
@@ -215,7 +211,6 @@ export class HardhatNode extends EventEmitter {
         common,
         config,
         stateTrie,
-        rethnetState,
         hardfork,
         mixHashGenerator.next(),
         genesisBlockBaseFeePerGas
@@ -232,7 +227,6 @@ export class HardhatNode extends EventEmitter {
 
     const currentHardfork = common.hardfork();
     const vm = await DualModeAdapter.create(
-      rethnetState,
       common,
       blockchain,
       config,
@@ -252,7 +246,6 @@ export class HardhatNode extends EventEmitter {
     );
 
     const node = new HardhatNode(
-      rethnetState,
       vm,
       blockchain,
       txPool,
@@ -336,7 +329,6 @@ Hardhat Network's forking functionality only works with blocks from at least spu
   private _irregularStatesByBlockNumber: Map<bigint, Buffer> = new Map();
 
   private constructor(
-    private _rethnetState: RethnetStateManager,
     private readonly _vm: VMAdapter,
     private readonly _blockchain: HardhatBlockchainInterface,
     private readonly _txPool: TxPool,
@@ -979,7 +971,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
       id,
       date: new Date(),
       latestBlock: await this.getLatestBlock(),
-      stateRoot: await this._vm.getStateRoot(),
+      stateRoot: await this._vm.makeSnapshot(),
       txPoolSnapshotId: this._txPool.snapshot(),
       blockTimeOffsetSeconds: this.getTimeIncrement(),
       nextBlockTimestamp: this.getNextBlockTimestamp(),
@@ -989,13 +981,6 @@ Hardhat Network's forking functionality only works with blocks from at least spu
       coinbase: this.getCoinbaseAddress().toString(),
       mixHashGenerator: this._mixHashGenerator.clone(),
     };
-
-    const rethnetSnapshot = await this._rethnetState.makeSnapshot();
-    if (!rethnetSnapshot.equals(snapshot.stateRoot)) {
-      throw new Error(
-        "Snapshot with unequal state roots: ${snapshot.stateRoot} !== ${rethnetSnapshot}."
-      );
-    }
 
     this._irregularStatesByBlockNumber = new Map(
       this._irregularStatesByBlockNumber

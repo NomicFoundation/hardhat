@@ -1,7 +1,7 @@
 import { expect } from "chai";
-import { Address } from "@nomicfoundation/ethereumjs-util";
+import { Address, KECCAK256_NULL } from "@nomicfoundation/ethereumjs-util";
 
-import { Account, Config, StateManager, Transaction } from "../..";
+import { Account, AccountData, Config, StateManager, Transaction } from "../..";
 
 describe("State Manager", () => {
   const caller = Address.fromString(
@@ -19,7 +19,11 @@ describe("State Manager", () => {
 
   // TODO: insertBlock, setAccountCode, setAccountStorageSlot
   it("getAccountByAddress", async () => {
-    await stateManager.insertAccount(caller.buf);
+    await stateManager.insertAccount(caller.buf, {
+      nonce: 0n,
+      balance: 0n,
+      codeHash: KECCAK256_NULL,
+    });
     let account = await stateManager.getAccountByAddress(caller.buf);
 
     expect(account?.balance).to.equal(0n);
@@ -27,15 +31,23 @@ describe("State Manager", () => {
   });
 
   it("setAccountBalance", async () => {
-    await stateManager.insertAccount(caller.buf);
+    await stateManager.insertAccount(caller.buf, {
+      nonce: 0n,
+      balance: 0n,
+      codeHash: KECCAK256_NULL,
+    });
+
     await stateManager.modifyAccount(
       caller.buf,
-      async function (account: Account): Promise<Account> {
+      async function (
+        _balance: bigint,
+        nonce: bigint,
+        code: Buffer | undefined
+      ): Promise<AccountData> {
         return {
           balance: 100n,
-          nonce: account.nonce,
-          codeHash: account.codeHash,
-          code: account.code,
+          nonce,
+          code,
         };
       }
     );
@@ -44,18 +56,27 @@ describe("State Manager", () => {
 
     expect(account?.balance).to.equal(100n);
     expect(account?.nonce).to.equal(0n);
+    expect(account?.codeHash).to.eql(KECCAK256_NULL);
   });
 
   it("setAccountNonce", async () => {
-    await stateManager.insertAccount(caller.buf);
+    await stateManager.insertAccount(caller.buf, {
+      nonce: 0n,
+      balance: 0n,
+      codeHash: KECCAK256_NULL,
+    });
+
     await stateManager.modifyAccount(
       caller.buf,
-      async function (account: Account): Promise<Account> {
+      async function (
+        balance: bigint,
+        nonce: bigint,
+        code: Buffer | undefined
+      ): Promise<AccountData> {
         return {
-          balance: account.balance,
+          balance,
           nonce: 5n,
-          codeHash: account.codeHash,
-          code: account.code,
+          code,
         };
       }
     );
@@ -64,5 +85,6 @@ describe("State Manager", () => {
 
     expect(account?.balance).to.equal(0n);
     expect(account?.nonce).to.equal(5n);
+    expect(account?.codeHash).to.eql(KECCAK256_NULL);
   });
 });

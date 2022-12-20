@@ -59,10 +59,10 @@ export class RethnetStateManager {
   public async accountIsEmpty(address: Address): Promise<boolean> {
     const account = await this._state.getAccountByAddress(address.buf);
     return (
-      account !== null &&
-      account.balance === 0n &&
-      account.nonce === 0n &&
-      account.codeHash.equals(KECCAK256_NULL)
+      account === null ||
+      (account.balance === 0n &&
+        account.nonce === 0n &&
+        account.codeHash.equals(KECCAK256_NULL))
     );
   }
 
@@ -145,10 +145,6 @@ export class RethnetStateManager {
     await this._state.setAccountStorageSlot(address.buf, index, number);
   }
 
-  public async clearContractStorage(address: Address): Promise<void> {
-    throw new Error("not implemented");
-  }
-
   public async checkpoint(): Promise<void> {
     return this._state.checkpoint();
   }
@@ -165,9 +161,5 @@ export class RethnetStateManager {
 
   public async setStateRoot(stateRoot: Buffer): Promise<void> {
     return this._state.setStateRoot(stateRoot);
-  }
-
-  public async hasStateRoot(root: Buffer): Promise<boolean> {
-    throw new Error("not implemented");
   }
 }

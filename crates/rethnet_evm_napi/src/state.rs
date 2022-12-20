@@ -169,6 +169,9 @@ impl StateManager {
         <B256 as AsRef<[u8]>>::as_ref(&self.db.make_snapshot().await).into()
     }
 
+    /// Modifies the account with the provided address using the specified modifier function.
+    /// The modifier function receives the current values as individual parameters and will update the account's values
+    /// to the returned `AccountData` values.
     #[napi(ts_return_type = "Promise<void>")]
     pub fn modify_account(
         &self,

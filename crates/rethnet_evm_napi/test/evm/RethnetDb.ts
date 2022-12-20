@@ -1,8 +1,9 @@
 import { expect } from "chai";
-import { Address } from "@nomicfoundation/ethereumjs-util";
+import { Address, KECCAK256_NULL } from "@nomicfoundation/ethereumjs-util";
 
 import {
-  Account,
+  AccountData,
+  Blockchain,
   BlockConfig,
   Config,
   Rethnet,
@@ -18,33 +19,32 @@ describe("Rethnet", () => {
     "0x70997970C51812dc3A010C7d01b50e0d17dc79C8"
   );
 
+  let blockchain: Blockchain;
   let stateManager: StateManager;
   let rethnet: Rethnet;
 
-  beforeEach(function () {
-    stateManager = new StateManager();
+  beforeEach(async function () {
+    (blockchain = new Blockchain(async function (
+      _blockNumber: bigint
+    ): Promise<Buffer> {
+      return Buffer.allocUnsafe(0);
+    })),
+      (stateManager = new StateManager());
     const cfg: Config = {
       chainId: BigInt(0),
       limitContractCodeSize: BigInt(2n) ** BigInt(32n),
       disableEip3607: true,
     };
-    rethnet = new Rethnet(stateManager, cfg);
+    rethnet = new Rethnet(blockchain, stateManager, cfg);
   });
 
   it("call", async () => {
     // Add funds to caller
-    await stateManager.insertAccount(caller.buf);
-    await stateManager.modifyAccount(
-      caller.buf,
-      async function (account: Account): Promise<Account> {
-        return {
-          balance: BigInt("0xffffffff"),
-          nonce: account.nonce,
-          codeHash: account.codeHash,
-          code: account.code,
-        };
-      }
-    );
+    await stateManager.insertAccount(caller.buf, {
+      nonce: 0n,
+      balance: BigInt("0xffffffff"),
+      codeHash: KECCAK256_NULL,
+    });
 
     // send some value
     const sendValue: Transaction = {

@@ -11,7 +11,6 @@ import { assertHardhatInvariant } from "../../../core/errors";
 import { RpcDebugTracingConfig } from "../../../core/jsonrpc/types/input/debugTraceTransaction";
 import { NodeConfig } from "../node-types";
 import { RpcDebugTraceOutput } from "../output";
-import { RethnetStateManager } from "../RethnetState";
 import { HardhatBlockchainInterface } from "../types/HardhatBlockchainInterface";
 
 import { EthereumJSAdapter } from "./ethereumjs";
@@ -42,7 +41,6 @@ export class DualModeAdapter implements VMAdapter {
   ) {}
 
   public static async create(
-    rethnetState: RethnetStateManager,
     common: Common,
     blockchain: HardhatBlockchainInterface,
     config: NodeConfig,
@@ -56,7 +54,6 @@ export class DualModeAdapter implements VMAdapter {
     );
 
     const rethnetAdapter = await RethnetAdapter.create(
-      rethnetState,
       config,
       selectHardfork,
       async (blockNumber) => {
@@ -174,12 +171,12 @@ export class DualModeAdapter implements VMAdapter {
 
   public async putAccount(address: Address, account: Account): Promise<void> {
     await this._ethereumJSAdapter.putAccount(address, account);
-    return this._rethnetAdapter.putAccount(address, account);
+    await this._rethnetAdapter.putAccount(address, account);
   }
 
   public async putContractCode(address: Address, value: Buffer): Promise<void> {
     await this._ethereumJSAdapter.putContractCode(address, value);
-    return this._rethnetAdapter.putContractCode(address, value);
+    await this._rethnetAdapter.putContractCode(address, value);
   }
 
   public async putContractStorage(
@@ -188,14 +185,12 @@ export class DualModeAdapter implements VMAdapter {
     value: Buffer
   ): Promise<void> {
     await this._ethereumJSAdapter.putContractStorage(address, key, value);
-    return this._rethnetAdapter.putContractStorage(address, key, value);
+    await this._rethnetAdapter.putContractStorage(address, key, value);
   }
 
   public async restoreContext(stateRoot: Buffer): Promise<void> {
     await this._ethereumJSAdapter.restoreContext(stateRoot);
     await this._rethnetAdapter.restoreContext(stateRoot);
-
-    const _assert = await this.getStateRoot();
   }
 
   public async traceTransaction(
@@ -223,7 +218,7 @@ export class DualModeAdapter implements VMAdapter {
       irregularStateOrUndefined
     );
 
-    return this._rethnetAdapter.setBlockContext(
+    await this._rethnetAdapter.setBlockContext(
       block,
       irregularStateOrUndefined
     );
@@ -231,7 +226,7 @@ export class DualModeAdapter implements VMAdapter {
 
   public async startBlock(): Promise<void> {
     await this._rethnetAdapter.startBlock();
-    return this._ethereumJSAdapter.startBlock();
+    await this._ethereumJSAdapter.startBlock();
   }
 
   public async runTxInBlock(
@@ -279,6 +274,22 @@ export class DualModeAdapter implements VMAdapter {
   public async revertBlock(): Promise<void> {
     await this._rethnetAdapter.revertBlock();
     return this._ethereumJSAdapter.revertBlock();
+  }
+
+  public async makeSnapshot(): Promise<Buffer> {
+    const ethereumJSRoot = await this._ethereumJSAdapter.makeSnapshot();
+    const rethnetRoot = await this._rethnetAdapter.makeSnapshot();
+
+    if (!ethereumJSRoot.equals(rethnetRoot)) {
+      console.trace(
+        `Different snapshot state root: ${ethereumJSRoot.toString(
+          "hex"
+        )} !== ${rethnetRoot.toString("hex")}`
+      );
+      throw new Error("Different snapshot state root");
+    }
+
+    return rethnetRoot;
   }
 }
 
