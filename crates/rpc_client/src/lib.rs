@@ -885,8 +885,6 @@ mod tests {
             Some(U256::from_str_radix("a0f9", 16).expect("couldn't parse data"))
         );
         assert_eq!(receipt.logs.len(), 1);
-        // TODO: assert more things about the log(s)
-        // TODO: consider asserting something about the logs bloom
         assert_eq!(receipt.root, None);
         assert_eq!(receipt.status, Some(1));
         assert_eq!(
@@ -952,6 +950,8 @@ mod tests {
             )
             .expect("failed to get logs");
         assert_eq!(logs.len(), 12);
+        // TODO: assert more things about the log(s)
+        // TODO: consider asserting something about the logs bloom
     }
 
     #[test]
