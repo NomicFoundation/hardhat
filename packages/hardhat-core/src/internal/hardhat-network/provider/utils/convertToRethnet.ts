@@ -18,6 +18,7 @@ import {
   bigIntToBuffer,
   bufferToBigInt,
   setLengthLeft,
+  toBuffer,
 } from "@nomicfoundation/ethereumjs-util";
 import {
   Account as RethnetAccount,
@@ -171,11 +172,7 @@ export function ethereumjsHeaderDataToRethnet(
   const coinbase =
     headerData?.coinbase === undefined
       ? undefined
-      : Buffer.isBuffer(headerData.coinbase)
-      ? headerData.coinbase
-      : typeof headerData?.coinbase === "string"
-      ? Buffer.from(headerData.coinbase)
-      : headerData.coinbase.buf;
+      : toBuffer(headerData.coinbase);
 
   return {
     number: fromBigIntLike(headerData?.number),
