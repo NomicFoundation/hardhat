@@ -110,6 +110,14 @@ mod eth {
     #[derive(Clone, Debug, PartialEq, Eq, Default, serde::Deserialize, serde::Serialize)]
     #[serde(deny_unknown_fields)]
     #[serde(rename_all = "camelCase")]
+    pub struct AccessListEntry {
+        address: Address,
+        storage_keys: Vec<U256>,
+    }
+
+    #[derive(Clone, Debug, PartialEq, Eq, Default, serde::Deserialize, serde::Serialize)]
+    #[serde(deny_unknown_fields)]
+    #[serde(rename_all = "camelCase")]
     pub struct Transaction {
         /// The transaction's hash
         pub hash: H256,
@@ -129,6 +137,21 @@ mod eth {
         pub v: u64,
         pub r: U256,
         pub s: U256,
+        #[serde(default, deserialize_with = "optional_u64_from_hex")]
+        pub chain_id: Option<u64>,
+        #[serde(
+            rename = "type",
+            default,
+            skip_serializing_if = "Option::is_none",
+            deserialize_with = "optional_u64_from_hex"
+        )]
+        pub transaction_type: Option<u64>,
+        #[serde(default)]
+        pub access_list: Option<Vec<AccessListEntry>>,
+        #[serde(default)]
+        pub max_fee_per_gas: Option<U256>,
+        #[serde(default)]
+        pub max_priority_fee_per_gas: Option<U256>,
     }
 
     fn optional_u64_from_hex<'de, D>(deserializer: D) -> Result<Option<u64>, D::Error>
@@ -800,13 +823,13 @@ mod tests {
     fn get_block_by_number_success() {
         let alchemy_url = get_alchemy_url().expect("failed to get Alchemy URL");
 
-        let block_number = 10496585;
+        let block_number = 16222385;
 
         let block = RpcClient::new(&alchemy_url)
             .get_block_by_number(block_number, true)
             .expect("should have succeeded");
 
         assert_eq!(block.number, Some(block_number));
-        assert_eq!(block.transactions.len(), 192);
+        assert_eq!(block.transactions.len(), 102);
     }
 }
