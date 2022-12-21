@@ -133,19 +133,20 @@ export class DualModeAdapter implements VMAdapter {
       key
     );
 
-    if (
-      !(
-        ethereumJSStorageSlot.length === 0 &&
-        rethnetStorageSlot.equals(Buffer.from([0x00]))
-      ) &&
-      !ethereumJSStorageSlot.equals(rethnetStorageSlot)
-    ) {
-      console.trace(
-        `Different storage slot: ${bufferToHex(
-          ethereumJSStorageSlot
-        )} !== ${bufferToHex(rethnetStorageSlot)}`
-      );
-      throw new Error("Different storage slot");
+    if (!ethereumJSStorageSlot.equals(rethnetStorageSlot)) {
+      // we only throw if any of the returned values was non-empty, but
+      // ethereumjs and rethnet return different values when that happens
+      if (
+        ethereumJSStorageSlot.length !== 0 ||
+        !rethnetStorageSlot.equals(Buffer.from([0x00]))
+      ) {
+        console.trace(
+          `Different storage slot: ${bufferToHex(
+            ethereumJSStorageSlot
+          )} !== ${bufferToHex(rethnetStorageSlot)}`
+        );
+        throw new Error("Different storage slot");
+      }
     }
 
     return rethnetStorageSlot;
