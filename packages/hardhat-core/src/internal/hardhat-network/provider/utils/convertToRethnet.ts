@@ -159,7 +159,7 @@ export function ethereumjsBlockHeaderToRethnet(
     timestamp: blockHeader.timestamp,
     extraData: blockHeader.extraData,
     mixHash: blockHeader.mixHash,
-    nonce: BigInt("0x" + blockHeader.nonce.toString("hex")),
+    nonce: BigInt(`0x${blockHeader.nonce.toString("hex")}`),
     baseFeePerGas: blockHeader.baseFeePerGas,
   };
 }
