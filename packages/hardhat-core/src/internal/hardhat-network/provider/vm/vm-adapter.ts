@@ -49,7 +49,7 @@ export interface VMAdapter {
   // getters
   getAccount(address: Address): Promise<Account>;
   getContractStorage(address: Address, key: Buffer): Promise<Buffer>;
-  getContractCode(address: Address): Promise<Buffer>;
+  getContractCode(address: Address, ethJsOnly?: boolean): Promise<Buffer>;
 
   // setters
   putAccount(address: Address, account: Account): Promise<void>;

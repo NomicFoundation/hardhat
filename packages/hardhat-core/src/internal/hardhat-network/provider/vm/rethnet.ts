@@ -111,7 +111,16 @@ export class RethnetAdapter implements VMAdapter {
   /**
    * Get the contract code at the given address.
    */
-  public async getContractCode(address: Address): Promise<Buffer> {
+  public async getContractCode(
+    address: Address,
+    ethJsOnly?: boolean
+  ): Promise<Buffer> {
+    if (ethJsOnly === true) {
+      throw new Error(
+        "Calling RethnetAdapter.getContractCode with ethJsOnly=true, this shouldn't happen"
+      );
+    }
+
     return this._state.getContractCode(address);
   }
 

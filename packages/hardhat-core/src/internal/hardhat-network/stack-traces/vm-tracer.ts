@@ -143,7 +143,10 @@ export class VMTracer {
             "codeAddress should be defined"
           );
 
-          const code = await this._vm.getContractCode(new Address(codeAddress));
+          const code = await this._vm.getContractCode(
+            new Address(codeAddress),
+            true // ethJsOnly, temporary fix
+          );
 
           const callTrace: CallMessageTrace = {
             code,

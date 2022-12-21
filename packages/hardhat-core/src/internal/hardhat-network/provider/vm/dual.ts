@@ -151,10 +151,18 @@ export class DualModeAdapter implements VMAdapter {
     return rethnetStorageSlot;
   }
 
-  public async getContractCode(address: Address): Promise<Buffer> {
+  public async getContractCode(
+    address: Address,
+    ethJsOnly?: boolean
+  ): Promise<Buffer> {
     const ethereumJSCode = await this._ethereumJSAdapter.getContractCode(
       address
     );
+
+    if (ethJsOnly === true) {
+      return ethereumJSCode;
+    }
+
     const rethnetCode = await this._rethnetAdapter.getContractCode(address);
 
     if (!ethereumJSCode.equals(rethnetCode)) {
