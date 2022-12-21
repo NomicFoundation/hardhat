@@ -3,9 +3,9 @@
 // - https://github.com/gakonst/ethers-rs/blob/cba6f071aedafb766e82e4c2f469ed5e4638337d/LICENSE-MIT
 // For the original context see: https://github.com/gakonst/ethers-rs/blob/3d9c3290d42b77c510e5b5d0b6f7a2f72913bfff/ethers-core/src/types/transaction/eip2930.rs
 
-use ruint::aliases::U256;
+use ruint::aliases::U160;
 
-use crate::Address;
+use crate::{Address, U256};
 
 /// Access list
 // NB: Need to use `RlpEncodableWrapper` else we get an extra [] in the output
@@ -27,7 +27,7 @@ impl From<Vec<AccessListItem>> for AccessList {
 }
 
 /// Access list item
-#[derive(Debug, Default, Clone, PartialEq, Eq, Hash, rlp::RlpEncodable, rlp::RlpDecodable)]
+#[derive(Debug, Default, Clone, PartialEq, Eq, Hash)]
 #[cfg_attr(
     feature = "fastrlp",
     derive(open_fastrlp::RlpEncodable, open_fastrlp::RlpDecodable)
@@ -39,4 +39,22 @@ pub struct AccessListItem {
     pub address: Address,
     /// Accessed storage keys
     pub storage_keys: Vec<U256>,
+}
+
+impl rlp::Encodable for AccessListItem {
+    fn rlp_append(&self, stream: &mut rlp::RlpStream) {
+        stream.begin_list(2);
+        stream.append(&ruint::aliases::B160::from_be_bytes(self.address.0));
+        stream.append_list(&self.storage_keys);
+    }
+}
+
+impl rlp::Decodable for AccessListItem {
+    fn decode(rlp: &rlp::Rlp) -> Result<Self, rlp::DecoderError> {
+        let result = AccessListItem {
+            address: Address::from(rlp.val_at::<U160>(0)?.to_be_bytes()),
+            storage_keys: rlp.list_at::<U256>(1)?,
+        };
+        Ok(result)
+    }
 }

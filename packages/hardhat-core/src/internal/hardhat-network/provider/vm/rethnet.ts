@@ -1,22 +1,17 @@
 import { Block } from "@nomicfoundation/ethereumjs-block";
-import { StateManager } from "@nomicfoundation/ethereumjs-statemanager";
-import {
-  Account,
-  Address,
-  bufferToBigInt,
-} from "@nomicfoundation/ethereumjs-util";
+import { Account, Address } from "@nomicfoundation/ethereumjs-util";
 import { TypedTransaction } from "@nomicfoundation/ethereumjs-tx";
-import { Rethnet } from "rethnet-evm";
+import { BlockBuilder, Blockchain, Rethnet } from "rethnet-evm";
 
 import { NodeConfig } from "../node-types";
 import {
-  createRethnetFromHardhatDB,
+  ethereumjsHeaderDataToRethnet,
   ethereumjsTransactionToRethnet,
-  HardhatDB,
   rethnetResultToRunTxResult,
 } from "../utils/convertToRethnet";
 import { hardforkGte, HardforkName } from "../../../util/hardforks";
 import { RpcDebugTraceOutput } from "../output";
+import { RethnetStateManager } from "../RethnetState";
 import { RpcDebugTracingConfig } from "../../../core/jsonrpc/types/input/debugTraceTransaction";
 
 import { RunTxResult, Trace, TracingCallbacks, VMAdapter } from "./vm-adapter";
@@ -26,32 +21,34 @@ import { RunTxResult, Trace, TracingCallbacks, VMAdapter } from "./vm-adapter";
 
 export class RethnetAdapter implements VMAdapter {
   constructor(
+    private _blockchain: Blockchain,
+    private _state: RethnetStateManager,
     private _rethnet: Rethnet,
     private readonly _selectHardfork: (blockNumber: bigint) => string
   ) {}
 
   public static async create(
-    stateManager: StateManager,
     config: NodeConfig,
     selectHardfork: (blockNumber: bigint) => string,
     getBlockHash: (blockNumber: bigint) => Promise<Buffer>
   ): Promise<RethnetAdapter> {
-    const hardhatDB = new HardhatDB(stateManager, getBlockHash);
+    const blockchain = new Blockchain(getBlockHash);
 
     const limitContractCodeSize =
       config.allowUnlimitedContractSize === true ? 2n ** 64n - 1n : undefined;
 
-    const rethnet = createRethnetFromHardhatDB(
-      {
-        chainId: BigInt(config.chainId),
-        limitContractCodeSize,
-        disableBlockGasLimit: true,
-        disableEip3607: true,
-      },
-      hardhatDB
+    const state = RethnetStateManager.withGenesisAccounts(
+      config.genesisAccounts
     );
 
-    return new RethnetAdapter(rethnet, selectHardfork);
+    const rethnet = new Rethnet(blockchain, state.asInner(), {
+      chainId: BigInt(config.chainId),
+      limitContractCodeSize,
+      disableBlockGasLimit: true,
+      disableEip3607: true,
+    });
+
+    return new RethnetAdapter(blockchain, state, rethnet, selectHardfork);
   }
 
   /**
@@ -65,13 +62,15 @@ export class RethnetAdapter implements VMAdapter {
     const rethnetTx = ethereumjsTransactionToRethnet(tx);
 
     const difficulty = this._getBlockEnvDifficulty(
-      blockContext.header.number,
-      blockContext.header.difficulty,
-      bufferToBigInt(blockContext.header.mixHash)
+      blockContext.header.difficulty
     );
 
-    await this._rethnet.guaranteeTransaction(rethnetTx);
-    const rethnetResult = await this._rethnet.dryRun(rethnetTx, {
+    const prevRandao = this._getBlockPrevRandao(
+      blockContext.header.number,
+      blockContext.header.mixHash
+    );
+
+    const rethnetResult = await this._rethnet.guaranteedDryRun(rethnetTx, {
       number: blockContext.header.number,
       coinbase: blockContext.header.coinbase.buf,
       timestamp: blockContext.header.timestamp,
@@ -79,18 +78,24 @@ export class RethnetAdapter implements VMAdapter {
         forceBaseFeeZero === true ? 0n : blockContext.header.baseFeePerGas,
       gasLimit: blockContext.header.gasLimit,
       difficulty,
+      prevrandao: prevRandao,
     });
 
-    const result = rethnetResultToRunTxResult(rethnetResult.execResult);
-
-    return [result, null];
+    try {
+      const result = rethnetResultToRunTxResult(rethnetResult.execResult);
+      return [result, rethnetResult.execResult.trace];
+    } catch (e) {
+      console.log("Rethnet trace");
+      console.log(rethnetResult.execResult.trace);
+      throw e;
+    }
   }
 
   /**
    * Get the account info for the given address.
    */
   public async getAccount(address: Address): Promise<Account> {
-    throw new Error("not implemented");
+    return this._state.getAccount(address);
   }
 
   /**
@@ -100,28 +105,37 @@ export class RethnetAdapter implements VMAdapter {
     address: Address,
     key: Buffer
   ): Promise<Buffer> {
-    throw new Error("not implemented");
+    return this._state.getContractStorage(address, key);
   }
 
   /**
    * Get the contract code at the given address.
    */
-  public async getContractCode(address: Address): Promise<Buffer> {
-    throw new Error("not implemented");
+  public async getContractCode(
+    address: Address,
+    ethJsOnly?: boolean
+  ): Promise<Buffer> {
+    if (ethJsOnly === true) {
+      throw new Error(
+        "Calling RethnetAdapter.getContractCode with ethJsOnly=true, this shouldn't happen"
+      );
+    }
+
+    return this._state.getContractCode(address);
   }
 
   /**
    * Update the account info for the given address.
    */
   public async putAccount(address: Address, account: Account): Promise<void> {
-    throw new Error("not implemented");
+    return this._state.putAccount(address, account);
   }
 
   /**
    * Update the contract code for the given address.
    */
   public async putContractCode(address: Address, value: Buffer): Promise<void> {
-    throw new Error("not implemented");
+    return this._state.putContractCode(address, value);
   }
 
   /**
@@ -132,14 +146,14 @@ export class RethnetAdapter implements VMAdapter {
     key: Buffer,
     value: Buffer
   ): Promise<void> {
-    throw new Error("not implemented");
+    await this._state.putContractStorage(address, key, value);
   }
 
   /**
    * Get the root of the current state trie.
    */
   public async getStateRoot(): Promise<Buffer> {
-    throw new Error("not implemented");
+    return this._state.getStateRoot();
   }
 
   /**
@@ -150,7 +164,9 @@ export class RethnetAdapter implements VMAdapter {
     block: Block,
     irregularStateOrUndefined: Buffer | undefined
   ): Promise<void> {
-    throw new Error("not implemented");
+    return this._state.setStateRoot(
+      irregularStateOrUndefined ?? block.header.stateRoot
+    );
   }
 
   /**
@@ -159,14 +175,14 @@ export class RethnetAdapter implements VMAdapter {
    * Throw if it can't.
    */
   public async restoreContext(stateRoot: Buffer): Promise<void> {
-    throw new Error("not implemented");
+    return this._state.setStateRoot(stateRoot);
   }
 
   /**
    * Start a new block and accept transactions sent with `runTxInBlock`.
    */
   public async startBlock(): Promise<void> {
-    throw new Error("not implemented");
+    await this._state.checkpoint();
   }
 
   /**
@@ -176,7 +192,28 @@ export class RethnetAdapter implements VMAdapter {
     tx: TypedTransaction,
     block: Block
   ): Promise<[RunTxResult, Trace]> {
-    throw new Error("not implemented");
+    const rethnetTx = ethereumjsTransactionToRethnet(tx);
+
+    const difficulty = this._getBlockEnvDifficulty(block.header.difficulty);
+
+    const prevRandao = this._getBlockPrevRandao(
+      block.header.number,
+      block.header.mixHash
+    );
+
+    const rethnetResult = await this._rethnet.run(
+      rethnetTx,
+      ethereumjsHeaderDataToRethnet(block.header, difficulty, prevRandao)
+    );
+
+    try {
+      const result = rethnetResultToRunTxResult(rethnetResult);
+      return [result, rethnetResult.trace];
+    } catch (e) {
+      console.log("Rethnet trace");
+      console.log(rethnetResult.trace);
+      throw e;
+    }
   }
 
   /**
@@ -185,22 +222,49 @@ export class RethnetAdapter implements VMAdapter {
   public async addBlockRewards(
     rewards: Array<[Address, bigint]>
   ): Promise<void> {
-    throw new Error("not implemented");
+    const blockBuilder = await BlockBuilder.new(
+      this._blockchain,
+      this._state.asInner(),
+      {},
+      {
+        // Dummy values
+        parentHash: Buffer.alloc(32, 0),
+        ommersHash: Buffer.alloc(32, 0),
+        beneficiary: Buffer.alloc(20, 0),
+        stateRoot: Buffer.alloc(32, 0),
+        transactionsRoot: Buffer.alloc(32, 0),
+        receiptsRoot: Buffer.alloc(32, 0),
+        logsBloom: Buffer.alloc(256, 0),
+        difficulty: 0n,
+        number: 0n,
+        gasLimit: 0n,
+        gasUsed: 0n,
+        timestamp: 0n,
+        extraData: Buffer.allocUnsafe(0),
+        mixHash: Buffer.alloc(32, 0),
+        nonce: 0n,
+      },
+      {}
+    );
+
+    await blockBuilder.finalize(
+      rewards.map(([address, reward]) => {
+        return [address.buf, reward];
+      })
+    );
   }
 
   /**
    * Finish the block successfully. Must be called after `addBlockRewards`.
    */
-  public async sealBlock(): Promise<void> {
-    throw new Error("not implemented");
-  }
+  public async sealBlock(): Promise<void> {}
 
   /**
    * Revert the block and discard the changes to the state. Can be called
    * at any point after `startBlock`.
    */
   public async revertBlock(): Promise<void> {
-    throw new Error("not implemented");
+    await this._state.revert();
   }
 
   /**
@@ -229,11 +293,29 @@ export class RethnetAdapter implements VMAdapter {
     throw new Error("not implemented");
   }
 
+  public async makeSnapshot(): Promise<Buffer> {
+    return this._state.makeSnapshot();
+  }
+
   private _getBlockEnvDifficulty(
-    blockNumber: bigint,
-    difficulty: bigint | undefined,
-    mixHash: bigint | undefined
+    difficulty: bigint | undefined
   ): bigint | undefined {
+    const MAX_DIFFICULTY = 2n ** 32n - 1n;
+    if (difficulty !== undefined && difficulty > MAX_DIFFICULTY) {
+      console.debug(
+        "Difficulty is larger than U256::max:",
+        difficulty.toString(16)
+      );
+      return MAX_DIFFICULTY;
+    }
+
+    return difficulty;
+  }
+
+  private _getBlockPrevRandao(
+    blockNumber: bigint,
+    mixHash: Buffer | undefined
+  ): Buffer | undefined {
     const hardfork = this._selectHardfork(blockNumber);
     const isPostMergeHardfork = hardforkGte(
       hardfork as HardforkName,
@@ -241,9 +323,13 @@ export class RethnetAdapter implements VMAdapter {
     );
 
     if (isPostMergeHardfork) {
+      if (mixHash === undefined) {
+        throw new Error("mixHash must be set for post-merge hardfork");
+      }
+
       return mixHash;
     }
 
-    return difficulty;
+    return undefined;
   }
 }

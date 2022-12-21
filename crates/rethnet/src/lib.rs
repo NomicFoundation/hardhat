@@ -38,9 +38,6 @@ where
 {
     let args = Args::parse_from(args);
     match args.command {
-        Command::Start => {
-            println!("Hello, world!");
-            Ok(ExitStatus::Success)
-        }
+        Command::Start => Ok(ExitStatus::Success),
     }
 }

@@ -85,6 +85,7 @@ export async function runFullBlock(
 
   // TODO remove "as any" and make this work with VMAdapter
   await (forkedNode["_vm"] as any).blockchain.putBlock(modifiedBlock);
+  await (forkedNode["_vm"] as any).putBlock(modifiedBlock);
   await forkedNode["_saveBlockAsSuccessfullyRun"](
     modifiedBlock,
     afterBlockEvent

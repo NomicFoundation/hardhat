@@ -1,20 +1,41 @@
 use anyhow::anyhow;
-use bytes::Bytes;
 use hashbrown::HashMap;
-use primitive_types::{H160, H256, U256};
+use rethnet_eth::{
+    account::BasicAccount,
+    state::{state_root, storage_root},
+    trie::KECCAK_NULL_RLP,
+    Address, B256, U256,
+};
 use revm::{Account, AccountInfo, Bytecode, Database, DatabaseCommit, KECCAK_EMPTY};
 
 use crate::DatabaseDebug;
 
-/// A database consisting of layers.
-pub struct LayeredDatabase<Layer> {
-    stack: Vec<Layer>,
+#[derive(Clone, Debug)]
+struct RevertedLayers<Layer: Clone> {
+    /// The parent layer's state root
+    pub parent_state_root: B256,
+    /// The reverted layers
+    pub stack: Vec<Layer>,
 }
 
-impl<Layer> LayeredDatabase<Layer> {
+/// A database consisting of layers.
+#[derive(Clone, Debug)]
+pub struct LayeredDatabase<Layer: Clone> {
+    stack: Vec<Layer>,
+    /// The old parent layer state root and the reverted layers
+    reverted_layers: Option<RevertedLayers<Layer>>,
+    /// Snapshots
+    snapshots: HashMap<B256, Vec<Layer>>, // naive implementation
+}
+
+impl<Layer: Clone> LayeredDatabase<Layer> {
     /// Creates a [`LayeredDatabase`] with the provided layer at the bottom.
     pub fn with_layer(layer: Layer) -> Self {
-        Self { stack: vec![layer] }
+        Self {
+            stack: vec![layer],
+            reverted_layers: None,
+            snapshots: HashMap::new(),
+        }
     }
 
     /// Returns the index of the top layer.
@@ -49,7 +70,7 @@ impl<Layer> LayeredDatabase<Layer> {
     }
 }
 
-impl<Layer: Default> LayeredDatabase<Layer> {
+impl<Layer: Clone + Default> LayeredDatabase<Layer> {
     /// Adds a default layer to the top, returning its index and a
     /// mutable reference to the layer.
     pub fn add_layer_default(&mut self) -> (usize, &mut Layer) {
@@ -57,42 +78,54 @@ impl<Layer: Default> LayeredDatabase<Layer> {
     }
 }
 
-impl<Layer: Default> Default for LayeredDatabase<Layer> {
+impl<Layer: Clone + Default> Default for LayeredDatabase<Layer> {
     fn default() -> Self {
         Self {
             stack: vec![Layer::default()],
+            reverted_layers: None,
+            snapshots: HashMap::new(),
         }
     }
 }
 
 /// A layer with information needed for [`Rethnet`].
-#[derive(Debug, Default)]
+#[derive(Clone, Debug, Default)]
 pub struct RethnetLayer {
     /// Address -> AccountInfo
-    account_infos: HashMap<H160, AccountInfo>,
+    account_infos: HashMap<Address, Option<AccountInfo>>,
     /// Address -> Storage
-    storage: HashMap<H160, HashMap<U256, U256>>,
+    storage: HashMap<Address, Option<HashMap<U256, U256>>>,
     /// Code hash -> Address
-    contracts: HashMap<H256, Bytes>,
-    /// Block number -> Block hash
-    block_hashes: HashMap<U256, H256>,
+    contracts: HashMap<B256, Bytecode>,
+    /// Cached state root
+    state_root: Option<B256>,
 }
 
 impl RethnetLayer {
     /// Creates a `RethnetLayer` with the provided genesis accounts.
-    pub fn with_genesis_accounts(genesis_accounts: HashMap<H160, AccountInfo>) -> Self {
+    pub fn with_genesis_accounts(genesis_accounts: HashMap<Address, AccountInfo>) -> Self {
+        let genesis_accounts = genesis_accounts
+            .into_iter()
+            .map(|(address, account_info)| (address, Some(account_info)))
+            .collect();
+
         Self {
             account_infos: genesis_accounts,
             ..Default::default()
         }
     }
 
-    /// Insert the `AccountInfo` with at the specified `address`.
-    pub fn insert_account(&mut self, address: H160, mut account_info: AccountInfo) {
+    /// Returns whether the layer has a state root.
+    pub fn has_state_root(&self) -> bool {
+        self.state_root.is_some()
+    }
+
+    /// Insert the provided `AccountInfo` at the specified `address`.
+    pub fn insert_account(&mut self, address: Address, mut account_info: AccountInfo) {
         if let Some(code) = account_info.code.take() {
             if !code.is_empty() {
                 account_info.code_hash = code.hash();
-                self.contracts.insert(code.hash(), code.bytes().clone());
+                self.contracts.insert(code.hash(), code);
             }
         }
 
@@ -100,26 +133,138 @@ impl RethnetLayer {
             account_info.code_hash = KECCAK_EMPTY;
         }
 
-        self.account_infos.insert(address, account_info);
+        self.account_infos.insert(address, Some(account_info));
+    }
+}
+
+impl LayeredDatabase<RethnetLayer> {
+    /// Retrieves a reference to the account corresponding to the address, if it exists.
+    pub fn account(&self, address: &Address) -> Option<&AccountInfo> {
+        self.iter()
+            .find_map(|layer| {
+                layer
+                    .account_infos
+                    .get(address)
+                    .map(|account_info| account_info.as_ref())
+            })
+            .flatten()
+    }
+
+    /// Retrieves a mutable reference to the account corresponding to the address, if it exists.
+    pub fn account_mut(&mut self, address: &Address) -> Option<&mut AccountInfo> {
+        // WORKAROUND: https://blog.rust-lang.org/2022/08/05/nll-by-default.html
+        if self.last_layer_mut().account_infos.contains_key(address) {
+            return self
+                .last_layer_mut()
+                .account_infos
+                .get_mut(address)
+                .and_then(|account_info| account_info.as_mut());
+        }
+
+        self.account(address).cloned().map(|account_info| {
+            self.last_layer_mut()
+                .account_infos
+                .insert_unique_unchecked(*address, Some(account_info))
+                .1
+                .as_mut()
+                .unwrap()
+        })
+    }
+
+    /// Retrieves a mutable reference to the account corresponding to the address, if it exists.
+    /// Otherwise, inserts a new account.
+    pub fn account_or_insert_mut(&mut self, address: &Address) -> &mut AccountInfo {
+        // WORKAROUND: https://blog.rust-lang.org/2022/08/05/nll-by-default.html
+        if self.last_layer_mut().account_infos.contains_key(address) {
+            let was_deleted = self
+                .last_layer_mut()
+                .account_infos
+                .get(address)
+                .unwrap()
+                .is_none();
+
+            if !was_deleted {
+                return self
+                    .last_layer_mut()
+                    .account_infos
+                    .get_mut(address)
+                    .unwrap()
+                    .as_mut()
+                    .unwrap();
+            }
+        }
+
+        let account_info = self.account(address).cloned().unwrap_or(AccountInfo {
+            balance: U256::ZERO,
+            nonce: 0,
+            code_hash: KECCAK_EMPTY,
+            code: None,
+        });
+
+        self.last_layer_mut()
+            .account_infos
+            .insert_unique_unchecked(*address, Some(account_info))
+            .1
+            .as_mut()
+            .unwrap()
+    }
+
+    /// Removes the [`AccountInfo`] corresponding to the specified address.
+    pub fn remove_account(&mut self, address: &Address) {
+        let account_info = self
+            .iter()
+            .find_map(|layer| layer.account_infos.get(address));
+
+        if let Some(Some(account_info)) = account_info {
+            debug_assert!(account_info.code.is_none());
+
+            let code_hash = account_info.code_hash;
+
+            self.last_layer_mut()
+                .contracts
+                .insert(code_hash, Bytecode::new());
+
+            // Write None to signal that the account was deleted
+            self.last_layer_mut().account_infos.insert(*address, None);
+        }
+
+        let storage = self.iter().find_map(|layer| layer.storage.get(address));
+
+        if let Some(Some(_)) = storage {
+            // Write None to signal that the account's storage was deleted
+            self.last_layer_mut().storage.insert(*address, None);
+        }
     }
 }
 
 impl Database for LayeredDatabase<RethnetLayer> {
     type Error = anyhow::Error;
 
-    fn basic(&mut self, address: H160) -> anyhow::Result<Option<AccountInfo>> {
-        Ok(self
+    fn basic(&mut self, address: Address) -> anyhow::Result<Option<AccountInfo>> {
+        let account = self
             .iter()
-            .find_map(|layer| layer.account_infos.get(&address).cloned()))
+            .find_map(|layer| layer.account_infos.get(&address))
+            .cloned()
+            .flatten();
+
+        log::debug!("account with address `{}`: {:?}", address, account);
+
+        // TODO: Move this out of LayeredDatabase when forking
+        Ok(account.or(Some(AccountInfo {
+            balance: U256::ZERO,
+            nonce: 0,
+            code_hash: KECCAK_EMPTY,
+            code: None,
+        })))
     }
 
-    fn code_by_hash(&mut self, code_hash: H256) -> anyhow::Result<Bytecode> {
+    fn code_by_hash(&mut self, code_hash: B256) -> anyhow::Result<Bytecode> {
+        if code_hash == KECCAK_EMPTY {
+            return Ok(Bytecode::new());
+        }
+
         self.iter()
-            .find_map(|layer| {
-                layer.contracts.get(&code_hash).map(|bytecode| unsafe {
-                    Bytecode::new_raw_with_hash(bytecode.clone(), code_hash)
-                })
-            })
+            .find_map(|layer| layer.contracts.get(&code_hash).cloned())
             .ok_or_else(|| {
                 anyhow!(
                     "Layered database does not contain contract with code hash: {}.",
@@ -128,68 +273,62 @@ impl Database for LayeredDatabase<RethnetLayer> {
             })
     }
 
-    fn storage(&mut self, address: H160, index: U256) -> anyhow::Result<U256> {
-        self.iter()
-            .find_map(|layer| {
-                layer
-                    .storage
-                    .get(&address)
-                    .and_then(|storage| storage.get(&index))
-                    .cloned()
-            })
-            .ok_or_else(|| {
-                anyhow!(
-                    "Layered database does not contain storage with address: {}; and index: {}.",
-                    address,
-                    index
-                )
-            })
-    }
-
-    fn block_hash(&mut self, number: U256) -> anyhow::Result<H256> {
-        self.iter()
-            .find_map(|layer| layer.block_hashes.get(&number).cloned())
-            .ok_or_else(|| {
-                anyhow!(
-                    "Layered database does not contain block hash with number: {}.",
-                    number
-                )
-            })
+    fn storage(&mut self, address: Address, index: U256) -> anyhow::Result<U256> {
+        Ok(self
+            .iter()
+            .find_map(|layer| layer.storage.get(&address).map(|storage| storage.as_ref()))
+            .flatten()
+            .and_then(|storage| storage.get(&index))
+            .cloned()
+            .unwrap_or(U256::ZERO))
     }
 }
 
 impl DatabaseCommit for LayeredDatabase<RethnetLayer> {
-    fn commit(&mut self, changes: HashMap<H160, Account>) {
-        let last_layer = self.last_layer_mut();
-
+    fn commit(&mut self, changes: HashMap<Address, Account>) {
         changes.into_iter().for_each(|(address, account)| {
             if account.is_empty() || account.is_destroyed {
-                last_layer.account_infos.remove(&address);
+                self.remove_account(&address);
             } else {
-                last_layer.insert_account(address, account.info);
+                self.last_layer_mut().insert_account(address, account.info);
 
-                let storage = last_layer
-                    .storage
-                    .entry(address)
-                    .and_modify(|storage| {
-                        if account.storage_cleared {
-                            storage.clear();
-                        }
-                    })
-                    .or_default();
+                let storage = if self.last_layer_mut().storage.contains_key(&address) {
+                    let storage = self.last_layer_mut().storage.get_mut(&address).unwrap();
+
+                    let was_deleted = storage.is_none();
+                    if was_deleted {
+                        storage.replace(HashMap::new());
+                    }
+
+                    storage.as_mut().unwrap()
+                } else {
+                    let storage = self
+                        .iter()
+                        .find_map(|layer| layer.storage.get(&address))
+                        .cloned()
+                        .flatten()
+                        .unwrap_or_default();
+
+                    self.last_layer_mut()
+                        .storage
+                        .insert_unique_unchecked(address, Some(storage))
+                        .1
+                        .as_mut()
+                        .unwrap()
+                };
+
+                if account.storage_cleared {
+                    storage.clear();
+                }
 
                 account.storage.into_iter().for_each(|(index, value)| {
                     let value = value.present_value();
-                    if value.is_zero() {
+                    if value == U256::ZERO {
                         storage.remove(&index);
                     } else {
                         storage.insert(index, value);
                     }
                 });
-
-                if storage.is_empty() {
-                    last_layer.storage.remove(&address);
-                }
             }
         });
     }
@@ -200,119 +339,236 @@ impl DatabaseDebug for LayeredDatabase<RethnetLayer> {
 
     fn insert_account(
         &mut self,
-        address: H160,
+        address: Address,
         account_info: AccountInfo,
     ) -> Result<(), Self::Error> {
-        self.last_layer_mut()
-            .account_infos
-            .insert(address, account_info);
+        self.last_layer_mut().insert_account(address, account_info);
 
         Ok(())
     }
 
-    fn insert_block(&mut self, block_number: U256, block_hash: H256) -> Result<(), Self::Error> {
-        self.last_layer_mut()
-            .block_hashes
-            .insert(block_number, block_hash);
+    fn make_snapshot(&mut self) -> B256 {
+        let state_root = self.state_root().unwrap();
+        let mut snapshot = self.stack.clone();
+        if let Some(layer) = snapshot.last_mut() {
+            layer.state_root.replace(state_root);
+        }
+
+        // Currently overwrites old snapshots
+        self.snapshots.insert(state_root, snapshot);
+
+        state_root
+    }
+
+    fn modify_account(
+        &mut self,
+        address: Address,
+        modifier: Box<dyn Fn(&mut U256, &mut u64, &mut Option<Bytecode>) + Send>,
+    ) -> Result<(), Self::Error> {
+        // TODO: Move account insertion out of LayeredDatabase when forking
+        let account_info = self.account_or_insert_mut(&address);
+        let old_code_hash = account_info.code_hash;
+
+        modifier(
+            &mut account_info.balance,
+            &mut account_info.nonce,
+            &mut account_info.code,
+        );
+
+        if let Some(code) = account_info.code.take() {
+            let new_code_hash = code.hash();
+
+            if old_code_hash != new_code_hash {
+                account_info.code_hash = new_code_hash;
+
+                let last_layer = self.last_layer_mut();
+
+                // The old contract should now return empty bytecode
+                last_layer.contracts.insert(old_code_hash, Bytecode::new());
+
+                last_layer.contracts.insert(new_code_hash, code);
+            }
+        }
 
         Ok(())
     }
 
-    fn set_account_balance(&mut self, address: H160, balance: U256) -> Result<(), Self::Error> {
+    fn remove_account(&mut self, address: Address) -> Result<Option<AccountInfo>, Self::Error> {
+        // Set None to indicate the account was deleted
         if let Some(account_info) = self.last_layer_mut().account_infos.get_mut(&address) {
-            account_info.balance = balance;
+            let old_account_info = account_info.clone();
+
+            *account_info = None;
+
+            Ok(old_account_info)
         } else {
-            let mut account_info = self
-                .iter()
-                .find_map(|layer| layer.account_infos.get(&address).cloned())
-                .ok_or_else(|| anyhow!("Unknown account with address: {}", address))?;
-
-            account_info.balance = balance;
-            self.last_layer_mut().insert_account(address, account_info);
+            self.last_layer_mut().account_infos.insert(address, None);
+            Ok(None)
         }
-
-        Ok(())
     }
 
-    fn set_account_code(&mut self, address: H160, code: Bytecode) -> Result<(), Self::Error> {
-        let code_hash = code.hash();
-
-        let old_code_hash =
-            if let Some(account_info) = self.last_layer_mut().account_infos.get_mut(&address) {
-                let old_code_hash = if account_info.code_hash != KECCAK_EMPTY {
-                    Some(code_hash)
-                } else {
-                    None
-                };
-
-                account_info.code_hash = code_hash;
-
-                old_code_hash
-            } else {
-                let mut account_info = self
-                    .iter()
-                    .find_map(|layer| layer.account_infos.get(&address).cloned())
-                    .ok_or_else(|| anyhow!("Unknown account with address: {}", address))?;
-
-                account_info.code_hash = code_hash;
-                self.last_layer_mut().insert_account(address, account_info);
-
-                None
-            };
-
-        if let Some(code_hash) = old_code_hash {
-            self.last_layer_mut().contracts.remove(&code_hash);
-        }
-
-        self.last_layer_mut()
-            .contracts
-            .insert(code_hash, code.bytes().clone());
-
-        Ok(())
-    }
-
-    fn set_account_nonce(&mut self, address: H160, nonce: u64) -> Result<(), Self::Error> {
-        if let Some(account_info) = self.last_layer_mut().account_infos.get_mut(&address) {
-            account_info.nonce = nonce;
-        } else {
-            let mut account_info = self
-                .iter()
-                .find_map(|layer| layer.account_infos.get(&address).cloned())
-                .ok_or_else(|| anyhow!("Unknown account with address: {}", address))?;
-
-            account_info.nonce = nonce;
-            self.last_layer_mut().insert_account(address, account_info);
-        }
-
-        Ok(())
+    fn remove_snapshot(&mut self, state_root: &B256) -> bool {
+        self.snapshots.remove(state_root).is_some()
     }
 
     fn set_account_storage_slot(
         &mut self,
-        address: H160,
+        address: Address,
         index: U256,
         value: U256,
     ) -> Result<(), Self::Error> {
-        match self.last_layer_mut().storage.entry(address) {
-            hashbrown::hash_map::Entry::Occupied(mut entry) => {
-                entry.get_mut().insert(index, value);
-            }
-            hashbrown::hash_map::Entry::Vacant(entry) => {
+        self.last_layer_mut()
+            .storage
+            .entry(address)
+            .and_modify(|entry| {
+                let was_deleted = entry.is_none();
+                if was_deleted {
+                    entry.replace(HashMap::new());
+                }
+
+                entry.as_mut().unwrap().insert(index, value);
+            })
+            .or_insert_with(|| {
                 let mut account_storage = HashMap::new();
                 account_storage.insert(index, value);
-                entry.insert(account_storage);
-            }
-        }
+
+                Some(account_storage)
+            });
 
         Ok(())
     }
 
-    fn storage_root(&mut self) -> Result<H256, Self::Error> {
-        todo!()
+    fn set_state_root(&mut self, state_root: &B256) -> Result<(), Self::Error> {
+        // Ensure the last layer has a state root
+        if !self.last_layer_mut().has_state_root() {
+            let state_root = self.state_root()?;
+            self.last_layer_mut().state_root.replace(state_root);
+        }
+
+        if let Some(snapshot) = self.snapshots.get(state_root) {
+            // Retain all layers except the first
+            self.reverted_layers = Some(RevertedLayers {
+                parent_state_root: self.stack.first().unwrap().state_root.unwrap(),
+                stack: self.stack.split_off(1),
+            });
+            self.stack = snapshot.clone();
+
+            return Ok(());
+        }
+
+        // Check whether the state root is contained in the previously reverted layers
+        let reinstated_layers = self.reverted_layers.take().and_then(|mut reverted_layers| {
+            let layer_id =
+                reverted_layers
+                    .stack
+                    .iter()
+                    .enumerate()
+                    .find_map(|(layer_id, layer)| {
+                        if layer.state_root.unwrap() == *state_root {
+                            Some(layer_id)
+                        } else {
+                            None
+                        }
+                    });
+
+            if let Some(layer_id) = layer_id {
+                reverted_layers.stack.truncate(layer_id + 1);
+
+                Some(reverted_layers)
+            } else {
+                None
+            }
+        });
+
+        let state_root = reinstated_layers
+            .as_ref()
+            .map_or(state_root, |reinstated_layers| {
+                &reinstated_layers.parent_state_root
+            });
+
+        let layer_id = self.stack.iter().enumerate().find_map(|(layer_id, layer)| {
+            if layer.state_root.unwrap() == *state_root {
+                Some(layer_id)
+            } else {
+                None
+            }
+        });
+
+        if let Some(layer_id) = layer_id {
+            let reverted_layers = self.stack.split_off(layer_id + 1);
+            let parent_state_root = self.stack.last().unwrap().state_root.unwrap();
+
+            if let Some(mut reinstated_layers) = reinstated_layers {
+                self.stack.append(&mut reinstated_layers.stack);
+            }
+
+            self.add_layer_default();
+
+            self.reverted_layers = if reverted_layers.is_empty() {
+                None
+            } else {
+                Some(RevertedLayers {
+                    parent_state_root,
+                    stack: reverted_layers,
+                })
+            };
+
+            Ok(())
+        } else {
+            Err(anyhow!("Unknown state root: {}", state_root))
+        }
+    }
+
+    fn state_root(&mut self) -> Result<B256, Self::Error> {
+        let mut storage = HashMap::new();
+
+        self.iter().flat_map(|layer| layer.storage.iter()).for_each(
+            |(address, account_storage)| {
+                storage.entry(*address).or_insert(account_storage.clone());
+            },
+        );
+
+        let storage_roots: HashMap<Address, B256> = storage
+            .into_iter()
+            .filter_map(|(address, storage)| {
+                storage.map(|storage| (address, storage_root(&storage)))
+            })
+            .collect();
+
+        let mut state = HashMap::new();
+
+        self.iter()
+            .flat_map(|layer| layer.account_infos.iter())
+            .for_each(|(address, account_info)| {
+                let storage_root = storage_roots
+                    .get(address)
+                    .cloned()
+                    .unwrap_or(KECCAK_NULL_RLP);
+
+                state
+                    .entry(*address)
+                    .or_insert(account_info.as_ref().map(|account_info| BasicAccount {
+                        nonce: U256::from(account_info.nonce),
+                        balance: account_info.balance,
+                        storage_root,
+                        code_hash: account_info.code_hash,
+                    }));
+            });
+
+        let state: HashMap<Address, BasicAccount> = state
+            .into_iter()
+            .filter_map(|(address, account)| account.map(|account| (address, account)))
+            .collect();
+
+        Ok(state_root(&state))
     }
 
     fn checkpoint(&mut self) -> Result<(), Self::Error> {
+        let state_root = self.state_root()?;
+        self.last_layer_mut().state_root.replace(state_root);
+
         self.add_layer_default();
+
         Ok(())
     }
 

@@ -446,8 +446,16 @@ export class VMDebugTracer {
     } else if (step.opcode.name === "INVALID") {
       const code = await this._getContractCode(step.codeAddress);
 
-      const opcodeHex = code[step.pc].toString(16);
-      op = `opcode 0x${opcodeHex} not defined`;
+      if (code.length > step.pc) {
+        const opcodeHex = code[step.pc].toString(16);
+        op = `opcode 0x${opcodeHex} not defined`;
+      } else {
+        // This can happen if there is an invalid opcode in a constructor.
+        // We don't have an easy way to access the init code from here, so we
+        // don't show the value of the opcode in this case.
+        op = "opcode not defined";
+      }
+
       error = {};
     }
 

@@ -456,6 +456,10 @@ export class EthereumJSAdapter implements VMAdapter {
     this._blockStartStateRoot = undefined;
   }
 
+  public async makeSnapshot(): Promise<Buffer> {
+    return this.getStateRoot();
+  }
+
   private _getCommonForTracing(networkId: number, blockNumber: bigint): Common {
     try {
       const common = Common.custom(
@@ -539,6 +543,10 @@ export class EthereumJSAdapter implements VMAdapter {
             gasUsed: result.execResult.executionGasUsed,
             gasRefunded: result.execResult.gasRefund ?? 0n,
             logs: result.execResult.logs ?? [],
+            trace: {
+              steps: [],
+              returnValue: result.execResult.returnValue,
+            },
           },
         },
         next

@@ -1,3 +1,7 @@
+import {
+  BlockHeader as EthereumJSBlockHeader,
+  HeaderData,
+} from "@nomicfoundation/ethereumjs-block";
 import { BlockchainInterface } from "@nomicfoundation/ethereumjs-blockchain";
 import {
   DefaultStateManager,
@@ -14,14 +18,16 @@ import {
   bigIntToBuffer,
   bufferToBigInt,
   setLengthLeft,
+  toBuffer,
 } from "@nomicfoundation/ethereumjs-util";
 import {
   Account as RethnetAccount,
-  Config,
+  BlockConfig,
+  BlockHeader as RethnetBlockHeader,
   ExecutionResult,
-  Rethnet,
   Transaction,
 } from "rethnet-evm";
+import { fromBigIntLike } from "../../../util/bigint";
 import { Exit } from "../vm/exit";
 import { RunTxResult } from "../vm/vm-adapter";
 
@@ -135,6 +141,51 @@ export class HardhatDB {
   }
 }
 
+export function ethereumjsBlockHeaderToRethnet(
+  blockHeader: EthereumJSBlockHeader
+): RethnetBlockHeader {
+  return {
+    parentHash: blockHeader.parentHash,
+    ommersHash: blockHeader.uncleHash,
+    beneficiary: blockHeader.coinbase.buf,
+    stateRoot: blockHeader.stateRoot,
+    transactionsRoot: blockHeader.transactionsTrie,
+    receiptsRoot: blockHeader.receiptTrie,
+    logsBloom: blockHeader.logsBloom,
+    difficulty: blockHeader.difficulty,
+    number: blockHeader.number,
+    gasLimit: blockHeader.gasLimit,
+    gasUsed: blockHeader.gasUsed,
+    timestamp: blockHeader.timestamp,
+    extraData: blockHeader.extraData,
+    mixHash: blockHeader.mixHash,
+    nonce: BigInt(`0x${blockHeader.nonce.toString("hex")}`),
+    baseFeePerGas: blockHeader.baseFeePerGas,
+  };
+}
+
+export function ethereumjsHeaderDataToRethnet(
+  headerData?: HeaderData,
+  difficulty?: bigint,
+  prevRandao?: Buffer
+): BlockConfig {
+  const coinbase =
+    headerData?.coinbase === undefined
+      ? undefined
+      : toBuffer(headerData.coinbase);
+
+  return {
+    number: fromBigIntLike(headerData?.number),
+    coinbase,
+    timestamp: fromBigIntLike(headerData?.timestamp),
+    difficulty,
+    prevrandao: prevRandao,
+    basefee: fromBigIntLike(headerData?.baseFeePerGas),
+    gasLimit: fromBigIntLike(headerData?.gasLimit),
+    parentHash: headerData?.parentHash as Buffer,
+  };
+}
+
 export function ethereumjsTransactionToRethnet(
   tx: TypedTransaction
 ): Transaction {
@@ -163,36 +214,6 @@ export function ethereumjsTransactionToRethnet(
   };
 
   return rethnetTx;
-}
-
-export function createRethnetFromHardhatDB(
-  cfg: Config,
-  hardhatDB: HardhatDB
-): Rethnet {
-  return Rethnet.withCallbacks(
-    cfg,
-    {
-      getAccountByAddressFn:
-        HardhatDB.prototype.getAccountByAddress.bind(hardhatDB),
-      getAccountStorageSlotFn:
-        HardhatDB.prototype.getAccountStorageSlot.bind(hardhatDB),
-      getBlockHashFn: HardhatDB.prototype.getBlockHash.bind(hardhatDB),
-      getCodeByHashFn: HardhatDB.prototype.getCodeByHash.bind(hardhatDB),
-    },
-    null,
-    {
-      checkpointFn: HardhatDB.prototype.checkpoint.bind(hardhatDB),
-      revertFn: HardhatDB.prototype.revert.bind(hardhatDB),
-      getStorageRootFn: HardhatDB.prototype.getStorageRoot.bind(hardhatDB),
-      insertAccountFn: HardhatDB.prototype.insertAccount.bind(hardhatDB),
-      setAccountBalanceFn:
-        HardhatDB.prototype.setAccountBalance.bind(hardhatDB),
-      setAccountCodeFn: HardhatDB.prototype.setAccountCode.bind(hardhatDB),
-      setAccountNonceFn: HardhatDB.prototype.setAccountNonce.bind(hardhatDB),
-      setAccountStorageSlotFn:
-        HardhatDB.prototype.setAccountStorageSlot.bind(hardhatDB),
-    }
-  );
 }
 
 export function rethnetResultToRunTxResult(
