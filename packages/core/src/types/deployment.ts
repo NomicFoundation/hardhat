@@ -1,9 +1,15 @@
 import type { BigNumber } from "ethers";
 
-import { ExecutionGraph } from "execution/ExecutionGraph";
 import { Services } from "services/types";
 
-import { ResultsAccumulator, VertexVisitResult } from "./graph";
+import { ExecutionVertex } from "./executionGraph";
+import {
+  IGraph,
+  VertexDescriptor,
+  VertexVisitResult,
+  VertexVisitResultFailure,
+  VertexVisitResultSuccess,
+} from "./graph";
 import { ModuleParams } from "./module";
 import {
   SerializedDeploymentResult,
@@ -23,7 +29,7 @@ export interface IgnitionModuleResults {
 
 export type DeploymentResult =
   | { _kind: "failure"; failures: [string, Error[]] }
-  | { _kind: "hold"; holds: [string, string[]] }
+  | { _kind: "hold"; holds: VertexDescriptor[] }
   | { _kind: "success"; result: SerializedDeploymentResult };
 
 export type DeployPhase =
@@ -32,22 +38,93 @@ export type DeployPhase =
   | "execution"
   | "complete"
   | "failed"
+  | "hold"
   | "validation-failed";
+
+export type DeployStateExecutionCommand =
+  | {
+      type: "EXECUTION::START";
+    }
+  | {
+      type: "EXECUTION::SET_BATCH";
+      batch: number[];
+    }
+  | {
+      type: "EXECUTION::SET_VERTEX_RESULT";
+      vertexId: number;
+      result: VertexVisitResult;
+    };
+
+export type DeployStateCommand =
+  | { type: "SET_CHAIN_ID"; chainId: number }
+  | { type: "SET_NETWORK_NAME"; networkName: string }
+  | {
+      type: "START_VALIDATION";
+    }
+  | {
+      type: "VALIDATION_FAIL";
+      errors: Error[];
+    }
+  | {
+      type: "TRANSFORM_COMPLETE";
+      executionGraph: IGraph<ExecutionVertex>;
+    }
+  | DeployStateExecutionCommand;
 
 export interface ValidationState {
   errors: Error[];
 }
 
+export type VertexExecutionStatusUnstarted = "UNSTARTED";
+export type VertexExecutionStatusRunning = "RUNNING";
+export type VertexExecutionStatusCompleted = "COMPLETED";
+export type VertexExecutionStatusFailed = "FAILED";
+export type VertexExecutionStatusHold = "HOLD";
+
+export type VertexExecutionStatus =
+  | VertexExecutionStatusUnstarted
+  | VertexExecutionStatusRunning
+  | VertexExecutionStatusCompleted
+  | VertexExecutionStatusFailed
+  | VertexExecutionStatusHold;
+
+export interface VertexExecutionStateRunning {
+  status: VertexExecutionStatusUnstarted;
+  result: null;
+}
+
+export interface VertexExecutionStateUnstarted {
+  status: VertexExecutionStatusRunning;
+  result: null;
+}
+
+export interface VertexExecutionStateCompleted {
+  status: VertexExecutionStatusCompleted;
+  result: VertexVisitResultSuccess;
+}
+
+export interface VertexExecutionStateFailed {
+  status: VertexExecutionStatusFailed;
+  result: VertexVisitResultFailure;
+}
+
+export interface VertexExecutionStateHold {
+  status: VertexExecutionStatusHold;
+  result: null;
+}
+
+export type VertexExecutionState =
+  | VertexExecutionStateUnstarted
+  | VertexExecutionStateRunning
+  | VertexExecutionStateCompleted
+  | VertexExecutionStateFailed
+  | VertexExecutionStateHold;
+
 export interface ExecutionState {
-  unstarted: Set<number>;
-  onHold: Set<number>;
-  completed: Set<number>;
-  errored: Set<number>;
-
-  batch: Map<number, null | VertexVisitResult>;
+  run: number;
+  vertexes: { [key: number]: VertexExecutionState };
+  batch: Set<number> | null;
   previousBatches: Array<Set<number>>;
-
-  resultsAccumulator: ResultsAccumulator;
 }
 
 export interface DeployNetworkConfig {
@@ -61,7 +138,7 @@ export interface DeployState {
   details: DeployNetworkConfig;
   validation: ValidationState;
   transform: {
-    executionGraph: ExecutionGraph | null;
+    executionGraph: IGraph<ExecutionVertex> | null;
   };
   execution: ExecutionState;
 }

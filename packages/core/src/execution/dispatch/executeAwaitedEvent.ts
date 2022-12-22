@@ -29,12 +29,8 @@ export async function executeAwaitedEvent(
     );
 
     if (eventResult === null) {
-      // todo: implement on hold state
       return {
-        _kind: "failure",
-        failure: new Error(
-          "Event not emitted within duration - try again later"
-        ),
+        _kind: "hold",
       };
     }
 

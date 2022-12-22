@@ -29,6 +29,7 @@
     "test": "mocha --recursive \"test/**/*.ts\"",
     "test:debug": "DEBUG='hardhat-ignition:*,ignition:*' yarn test",
     "test:coverage": "nyc mocha \"test/**/*.ts\"",
+    "test:build": "tsc --project ./test/",
     "clean": "rimraf .nyc_output coverage dist tsconfig.tsbuildinfo"
   },
   "devDependencies": {
@@ -43,6 +44,7 @@
     "@types/lodash": "4.14.189",
     "@types/mermaid": "^9.1.0",
     "@types/mocha": "^9.0.0",
+    "@types/ndjson": "2.0.1",
     "@types/node": "12.20.25",
     "@types/sinon": "^10.0.13",
     "@typescript-eslint/eslint-plugin": "4.31.2",
@@ -77,6 +79,8 @@
     "fs-extra": "^10.0.0",
     "ink": "3.2.0",
     "ink-spinner": "4.0.3",
-    "react": "18.2.0"
+    "ndjson": "2.0.0",
+    "react": "18.2.0",
+    "serialize-error": "8.1.0"
   }
 }

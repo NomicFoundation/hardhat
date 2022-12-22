@@ -43,6 +43,7 @@ export class ContractsService implements IContractsService {
     } else {
       this._debug("Deploying contract");
     }
+
     const signer = await this._providers.signersProvider.getDefaultSigner();
 
     return this._sendTx(signer, deployTransaction, txOptions);
@@ -63,14 +64,8 @@ export class ContractsService implements IContractsService {
 
     let blockNumberWhenSent =
       await this._providers.web3Provider.getBlockNumber();
-    const txIndexAndHash = await this._txSender.send(
-      signer,
-      tx,
-      blockNumberWhenSent
-    );
 
-    const txIndex = txIndexAndHash[0];
-    let txHash = txIndexAndHash[1];
+    let txHash = await this._txSender.send(signer, tx);
 
     let txSent = tx;
     let retries = 0;
@@ -97,12 +92,8 @@ export class ContractsService implements IContractsService {
 
         blockNumberWhenSent =
           await this._providers.web3Provider.getBlockNumber();
-        txHash = await this._txSender.sendAndReplace(
-          signer,
-          txToSend,
-          blockNumberWhenSent,
-          txIndex
-        );
+
+        txHash = await this._txSender.sendAndReplace(signer, txToSend);
 
         txSent = txToSend;
         retries++;
@@ -124,6 +115,7 @@ export class ContractsService implements IContractsService {
     const previousTx = await this._providers.web3Provider.getTransaction(
       previousTxHash
     );
+
     const newEstimatedGasPrice =
       await this._providers.gasProvider.estimateGasPrice();
 

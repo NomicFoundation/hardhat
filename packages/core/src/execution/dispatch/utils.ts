@@ -35,6 +35,12 @@ function resolveFromContext(context: ResultsAccumulator, arg: ArgValue): any {
     );
   }
 
+  if (entry._kind === "hold") {
+    throw new Error(
+      `Looking up context on a on hold - violation of constraint`
+    );
+  }
+
   if (isEventParam(arg)) {
     return entry.result.topics[arg.label];
   }

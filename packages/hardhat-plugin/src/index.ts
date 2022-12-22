@@ -1,17 +1,12 @@
 import "@nomiclabs/hardhat-ethers";
-import {
-  Module,
-  ModuleDict,
-  Providers,
-  ModuleParams,
-} from "@ignored/ignition-core";
+import { Module, ModuleDict, ModuleParams } from "@ignored/ignition-core";
 import { BigNumber } from "ethers";
 import fs from "fs-extra";
 import { extendConfig, extendEnvironment, task } from "hardhat/config";
 import { lazyObject } from "hardhat/plugins";
 import path from "path";
 
-import { ConfigWrapper } from "./ConfigWrapper";
+import { buildIgnitionProvidersFrom } from "./buildIgnitionProvidersFrom";
 import { IgnitionWrapper } from "./ignition-wrapper";
 import { Renderer } from "./plan";
 import { loadUserModules, loadAllUserModules } from "./user-modules";
@@ -32,7 +27,7 @@ const DEPLOYMENTS_DIR = "deployments";
 const MAX_RETRIES = 4;
 const GAS_INCREMENT_PER_RETRY = null;
 const POLLING_INTERVAL = 300;
-const AWAIT_EVENT_DURATION = 30000; // ms
+const AWAIT_EVENT_DURATION = 3000; // ms
 
 extendConfig((config, userConfig) => {
   /* setup path configs */
@@ -67,59 +62,15 @@ extendConfig((config, userConfig) => {
  * Add an `ignition` object to the HRE.
  */
 extendEnvironment((hre) => {
-  const providers: Providers = {
-    artifacts: {
-      getArtifact: (name: string) => hre.artifacts.readArtifact(name),
-      hasArtifact: (name: string) => hre.artifacts.artifactExists(name),
-    },
-    gasProvider: {
-      estimateGasLimit: async (tx: any) => {
-        const gasLimit = await hre.ethers.provider.estimateGas(tx);
-
-        // return 1.5x estimated gas
-        return gasLimit.mul(15).div(10);
-      },
-      estimateGasPrice: async () => {
-        return hre.ethers.provider.getGasPrice();
-      },
-    },
-    ethereumProvider: hre.network.provider,
-    signers: {
-      getDefaultSigner: async () => {
-        const [signer] = await hre.ethers.getSigners();
-        return signer;
-      },
-    },
-    transactions: {
-      isConfirmed: async (txHash: any) => {
-        const blockNumber = await hre.ethers.provider.getBlockNumber();
-        const receipt = await hre.ethers.provider.getTransactionReceipt(txHash);
-        if (receipt === null) {
-          return false;
-        }
-
-        return receipt.blockNumber <= blockNumber;
-      },
-      isMined: async (txHash: any) => {
-        const receipt = await hre.ethers.provider.getTransactionReceipt(txHash);
-        return receipt !== null;
-      },
-    },
-    config: new ConfigWrapper(),
-  };
+  const providers = buildIgnitionProvidersFrom(hre);
 
   hre.ignition = lazyObject(() => {
     const isHardhatNetwork = hre.network.name === "hardhat";
-
-    const pathToJournal = isHardhatNetwork
-      ? undefined
-      : path.resolve(hre.config.paths.root, "ignition-journal.json");
 
     const txPollingInterval = isHardhatNetwork ? 100 : 5000;
 
     return new IgnitionWrapper(providers, hre.ethers, {
       ...hre.config.ignition,
-      pathToJournal,
       txPollingInterval,
       networkName: hre.network.name,
     });
@@ -171,7 +122,22 @@ task("deploy")
         parameters = resolveParametersString(parametersInput);
       }
 
-      await hre.ignition.deploy(userModule, { parameters, ui: true });
+      const isHardhatNetwork = hre.network.name === "hardhat";
+      const journalPath = isHardhatNetwork
+        ? undefined
+        : resolveJournalPath(userModule.name, hre.config.paths.ignition);
+
+      try {
+        await hre.ignition.deploy(userModule, {
+          parameters,
+          journalPath,
+          ui: true,
+        });
+      } catch {
+        // display of error or on hold is done
+        // based on state, thrown error can be ignored
+        process.exit(1);
+      }
     }
   );
 
@@ -249,6 +215,12 @@ function resolveConfigPath(filepath: string): ModuleParams {
     console.warn(`Could not parse parameters from ${filepath}`);
     process.exit(0);
   }
+}
+
+function resolveJournalPath(moduleName: string, ignitionPath: string) {
+  const journalFile = `${moduleName}.journal.ndjson`;
+
+  return path.join(ignitionPath, journalFile);
 }
 
 function resolveParametersString(paramString: string): ModuleParams {

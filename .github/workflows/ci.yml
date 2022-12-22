@@ -23,6 +23,8 @@ jobs:
         run: yarn build
       - name: Lint
         run: yarn lint
+      - name: Check tests typecheck
+        run: yarn test:build
       - name: Run tests
         run: yarn test
       - name: Run tests in examples
@@ -43,6 +45,8 @@ jobs:
         run: yarn build
       - name: Lint
         run: yarn lint
+      - name: Check tests typecheck
+        run: yarn test:build
       - name: Run tests
         run: yarn test
       - name: Run tests in examples
@@ -66,6 +70,8 @@ jobs:
         run: yarn build
       - name: Lint
         run: yarn lint
+      - name: Check tests typecheck
+        run: yarn test:build
       - name: Run tests
         run: yarn test
       - name: Run tests in examples

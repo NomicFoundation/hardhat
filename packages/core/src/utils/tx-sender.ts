@@ -1,7 +1,6 @@
 import setupDebug, { IDebugger } from "debug";
 import { ethers } from "ethers";
 
-import { Journal } from "journal/types";
 import { GasProvider, IgnitionSigner } from "types/providers";
 
 /**
@@ -13,16 +12,8 @@ import { GasProvider, IgnitionSigner } from "types/providers";
 export class TxSender {
   private _debug: IDebugger;
 
-  // Index of the last sent tx, or -1 if none was sent yet
-  private _txIndex = -1;
-
-  constructor(
-    private _moduleId: string,
-    private _executorId: string,
-    private _gasProvider: GasProvider,
-    private _journal: Journal
-  ) {
-    this._debug = setupDebug(`ignition:tx-sender:${_moduleId}:${_executorId}`);
+  constructor(private _gasProvider: GasProvider) {
+    this._debug = setupDebug(`ignition:tx-sender`);
   }
 
   /**
@@ -32,36 +23,13 @@ export class TxSender {
    */
   public async send(
     signer: IgnitionSigner,
-    tx: ethers.providers.TransactionRequest,
-    blockNumberWhenSent: number
-  ): Promise<[number, string]> {
-    const nextTxIndex = this._txIndex + 1;
-    this._debug(`Getting transaction ${nextTxIndex} from journal`);
-    const journaledTx = await this._journal.getEntry(
-      this._moduleId,
-      this._executorId,
-      nextTxIndex
-    );
-
-    if (journaledTx !== undefined) {
-      this._debug(`Transaction with index ${nextTxIndex} found in journal`);
-      this._txIndex = nextTxIndex;
-      return [this._txIndex, journaledTx.txHash];
-    }
-
-    this._debug(
-      `Transaction with index ${nextTxIndex} not found in journal, sending`
-    );
+    tx: ethers.providers.TransactionRequest
+  ): Promise<string> {
+    this._debug(`sending transaction`, [tx]);
 
     const sentTx = await this._send(signer, tx);
 
-    this._txIndex = await this._journal.addEntry(
-      this._moduleId,
-      this._executorId,
-      { txHash: sentTx.hash, blockNumberWhenSent }
-    );
-
-    return [this._txIndex, sentTx.hash];
+    return sentTx.hash;
   }
 
   /**
@@ -71,17 +39,9 @@ export class TxSender {
    */
   public async sendAndReplace(
     signer: IgnitionSigner,
-    tx: ethers.providers.TransactionRequest,
-    blockNumberWhenSent: number,
-    txIndex: number
+    tx: ethers.providers.TransactionRequest
   ): Promise<string> {
     const sentTx = await this._send(signer, tx);
-    await this._journal.replaceEntry(
-      this._moduleId,
-      this._executorId,
-      txIndex,
-      { txHash: sentTx.hash, blockNumberWhenSent }
-    );
 
     return sentTx.hash;
   }

@@ -43,6 +43,12 @@ export interface DeploymentError {
   failureType: string;
 }
 
+export interface DeploymentHold {
+  id: number;
+  vertex: string;
+  event?: string;
+}
+
 export class DeploymentState {
   public phase: DeployPhase;
   public moduleName: string;

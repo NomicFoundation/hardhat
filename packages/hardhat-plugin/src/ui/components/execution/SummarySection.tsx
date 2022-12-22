@@ -14,8 +14,8 @@ export const SummarySection = ({
   moduleParams?: ModuleParams;
 }) => {
   return (
-    <Box margin={1} flexDirection="column">
-      <Box marginBottom={1} flexDirection="row">
+    <Box marginBottom={0} flexDirection="column">
+      <Box marginTop={1} flexDirection="row">
         <Text bold={true}>
           Deploying module <Text italic={true}>{moduleName}</Text>
         </Text>

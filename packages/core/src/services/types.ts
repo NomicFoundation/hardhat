@@ -3,6 +3,7 @@ import { ethers } from "ethers";
 import { IArtifactsService } from "./ArtifactsService";
 import { IConfigService } from "./ConfigService";
 import { IContractsService } from "./ContractsService";
+import { INetworkService } from "./NetworkService";
 import { ITransactionsService } from "./TransactionsService";
 
 export interface TransactionOptions {
@@ -14,6 +15,7 @@ export interface TransactionOptions {
 }
 
 export interface Services {
+  network: INetworkService;
   contracts: IContractsService;
   artifacts: IArtifactsService;
   transactions: ITransactionsService;

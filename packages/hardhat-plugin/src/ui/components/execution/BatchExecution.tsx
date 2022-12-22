@@ -13,6 +13,10 @@ export const BatchExecution = ({
 }) => {
   const batches = resolveBatchesFrom(deployState);
 
+  if (batches.length === 0) {
+    return null;
+  }
+
   return (
     <>
       <Divider />
@@ -78,7 +82,7 @@ const StatusBadge = ({ vertex }: { vertex: UiVertex }) => {
       badge = <Text>❌</Text>;
       break;
     case "HELD":
-      badge = <Text>⚠</Text>;
+      badge = <Text>🔶</Text>;
       break;
     case "RUNNING":
       badge = <Spinner />;
@@ -103,6 +107,10 @@ function resolveBatchBorderColor(vertexes: UiVertex[]) {
 
   if (vertexes.some((v) => v.status === "ERRORED")) {
     return "red";
+  }
+
+  if (vertexes.some((v) => v.status === "HELD")) {
+    return "yellow";
   }
 
   if (vertexes.every((v) => v.status === "COMPELETED")) {
@@ -132,7 +140,7 @@ function resolveVertexColors(vertex: UiVertex): {
       };
     case "HELD":
       return {
-        borderColor: "darkgray",
+        borderColor: "yellow",
         borderStyle: "bold",
         textColor: "white",
       };
@@ -149,7 +157,7 @@ function resolveVertexColors(vertex: UiVertex): {
 
 const resolveBatchesFrom = (deployState: DeployState): UiBatch[] => {
   const stateBatches =
-    deployState.execution.batch.size > 0
+    deployState.execution.batch !== null
       ? [
           ...deployState.execution.previousBatches,
           deployState.execution.batch.keys(),
@@ -187,29 +195,19 @@ const determineStatusOf = (
 ): UiVertexStatus => {
   const execution = deployState.execution;
 
-  if (execution.batch.has(vertexId)) {
-    const entry = execution.batch.get(vertexId);
-
-    if (entry === null) {
-      return "RUNNING";
-    }
-
-    if (entry?._kind === "success") {
-      return "COMPELETED";
-    }
-
-    if (entry?._kind === "failure") {
-      return "ERRORED";
-    }
-
-    throw new Error(`Unable to determine current batch status ${entry}`);
+  if (execution.vertexes[vertexId]?.status === "RUNNING") {
+    return "RUNNING";
   }
 
-  if (execution.errored.has(vertexId)) {
+  if (execution.vertexes[vertexId]?.status === "FAILED") {
     return "ERRORED";
   }
 
-  if (execution.completed.has(vertexId)) {
+  if (execution.vertexes[vertexId]?.status === "HOLD") {
+    return "HELD";
+  }
+
+  if (execution.vertexes[vertexId]?.status === "COMPLETED") {
     return "COMPELETED";
   }
 

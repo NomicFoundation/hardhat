@@ -10,7 +10,13 @@ export const ModuleParameters = ({
     return null;
   }
 
-  const params = Object.entries(moduleParams).map(([key, value]) => (
+  const entries = Object.entries(moduleParams);
+
+  if (entries.length === 0) {
+    return null;
+  }
+
+  const params = entries.map(([key, value]) => (
     <Text>
       <Text>
         {key}: {value}

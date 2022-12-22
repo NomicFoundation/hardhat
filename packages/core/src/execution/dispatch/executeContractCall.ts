@@ -25,6 +25,7 @@ export async function executeContractCall(
       ...resolvedArgs,
       { value }
     );
+
     txHash = await services.contracts.sendTx(unsignedTx, options);
   } catch (err) {
     return {

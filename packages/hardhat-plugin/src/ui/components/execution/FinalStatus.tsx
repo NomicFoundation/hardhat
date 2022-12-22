@@ -1,33 +1,37 @@
-import { DeployState, ExecutionVertex } from "@ignored/ignition-core";
+import {
+  DeployState,
+  ExecutionVertex,
+  viewExecutionResults,
+} from "@ignored/ignition-core";
 import { Box, Text } from "ink";
 
-import { DeploymentError, AddressMap } from "ui/types";
+import { DeploymentError, DeploymentHold } from "ui/types";
 
 import { AddressResults } from "./AddressResults";
 import { Divider } from "./Divider";
+import { viewEverthingExecutedAlready } from "./views";
 
 export const FinalStatus = ({ deployState }: { deployState: DeployState }) => {
   if (deployState.phase === "complete") {
-    const addressMap: AddressMap = {};
+    if (viewEverthingExecutedAlready(deployState)) {
+      return (
+        <Box margin={0} flexDirection="column">
+          <Divider />
 
-    for (const value of deployState.execution.resultsAccumulator.values()) {
-      if (
-        value !== null &&
-        value._kind === "success" &&
-        "name" in value.result &&
-        "address" in value.result
-      ) {
-        addressMap[value.result.name] = value.result.address;
-      }
+          <Text>
+            Nothing new to deploy, everything deployed on a previous run of{" "}
+            <Text italic={true}>{deployState.details.moduleName}</Text>
+          </Text>
+
+          <Divider />
+          <AddressResults deployState={deployState} />
+          <Text> </Text>
+        </Box>
+      );
     }
 
-    const networkInfo = {
-      chainId: deployState.details.chainId,
-      networkName: deployState.details.networkName,
-    };
-
     return (
-      <Box flexDirection="column">
+      <Box margin={0} flexDirection="column">
         <Divider />
 
         <Text>
@@ -36,8 +40,34 @@ export const FinalStatus = ({ deployState }: { deployState: DeployState }) => {
         </Text>
 
         <Divider />
-        <AddressResults addressMap={addressMap} networkInfo={networkInfo} />
+        <AddressResults deployState={deployState} />
         <Text> </Text>
+      </Box>
+    );
+  }
+
+  if (deployState.phase === "hold") {
+    const deploymentHolds: DeploymentHold[] = getDeploymentHolds(deployState);
+
+    return (
+      <Box flexDirection="column">
+        <Divider />
+
+        <Box>
+          <Text>
+            🟡 <Text italic={true}>{deployState.details.moduleName}</Text>{" "}
+            deployment{" "}
+            <Text bold color="yellow">
+              on hold
+            </Text>
+          </Text>
+        </Box>
+
+        <Box flexDirection="column">
+          {deploymentHolds.map((dh) => (
+            <DepHold key={`hold-${dh.id}`} deploymentHold={dh} />
+          ))}
+        </Box>
       </Box>
     );
   }
@@ -73,14 +103,19 @@ export const FinalStatus = ({ deployState }: { deployState: DeployState }) => {
 };
 
 const getDeploymentErrors = (deployState: DeployState): DeploymentError[] => {
-  return [...deployState.execution.errored]
+  const executionResults = viewExecutionResults(deployState);
+
+  return Object.entries(deployState.execution.vertexes)
+    .filter(([_id, v]) => v.status === "FAILED")
+    .map(([id]) => parseInt(id, 10))
     .map((id) => {
-      const vertexResult = deployState.execution.resultsAccumulator.get(id);
+      const vertexResult = executionResults.get(id);
 
       if (
         vertexResult === undefined ||
         vertexResult === null ||
-        vertexResult._kind === "success"
+        vertexResult._kind === "success" ||
+        vertexResult._kind === "hold"
       ) {
         return null;
       }
@@ -100,6 +135,24 @@ const getDeploymentErrors = (deployState: DeployState): DeploymentError[] => {
     .filter((x): x is DeploymentError => x !== null);
 };
 
+const getDeploymentHolds = (deployState: DeployState): DeploymentHold[] => {
+  return Object.entries(deployState.execution.vertexes)
+    .filter(([_id, v]) => v.status === "HOLD")
+    .map(([id]) => parseInt(id, 10))
+    .map((id) => {
+      const vertex = deployState.transform.executionGraph?.vertexes.get(id);
+
+      if (vertex === undefined) {
+        return null;
+      }
+
+      const holdDescription = buildHoldDescriptionFrom(vertex);
+
+      return holdDescription;
+    })
+    .filter((x): x is DeploymentError => x !== null);
+};
+
 const buildErrorDescriptionFrom = (
   error: Error,
   vertex: ExecutionVertex
@@ -111,6 +164,14 @@ const buildErrorDescriptionFrom = (
     vertex: vertex.label,
     message,
     failureType: resolveFailureTypeFrom(vertex),
+  };
+};
+
+const buildHoldDescriptionFrom = (vertex: ExecutionVertex): DeploymentHold => {
+  return {
+    id: vertex.id,
+    vertex: vertex.label,
+    event: vertex.type === "AwaitedEvent" ? vertex.event : undefined,
   };
 };
 
@@ -148,6 +209,25 @@ const DepError = ({
         {deploymentError.failureType} - {deploymentError.vertex}
       </Text>
       <Text>{deploymentError.message}</Text>
+    </Box>
+  );
+};
+
+const DepHold = ({ deploymentHold }: { deploymentHold: DeploymentHold }) => {
+  if (deploymentHold.event === undefined) {
+    return (
+      <Box flexDirection="column" margin={1}>
+        <Text bold={true}>{deploymentHold.vertex}</Text>
+      </Box>
+    );
+  }
+
+  return (
+    <Box flexDirection="column" margin={1}>
+      <Text>
+        <Text bold={true}>{deploymentHold.vertex}</Text> waiting on event{" "}
+        <Text bold={true}>{deploymentHold.event}</Text>
+      </Text>
     </Box>
   );
 };

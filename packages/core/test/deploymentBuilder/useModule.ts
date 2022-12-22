@@ -10,6 +10,7 @@ import type {
 import {
   ArtifactContract,
   CallableFuture,
+  EventFuture,
   HardhatContract,
   ProxyFuture,
   Virtual,
@@ -491,7 +492,7 @@ describe("deployment builder - useModule", () => {
 
   describe("returning non contract/library futures from within a module", () => {
     let returnsWrongFutureTypeModule: Module<{
-      token: CallableFuture | Virtual | ProxyFuture;
+      token: CallableFuture | Virtual | ProxyFuture | EventFuture;
     }>;
 
     before(() => {

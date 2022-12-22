@@ -22,8 +22,9 @@
     "test": "wsrun --exclude-missing --serial test",
     "test:coverage": "wsrun --exclude-missing --serial test:coverage",
     "test:examples": "wsrun --exclude-missing --serial test:examples",
+    "test:build": "wsrun --exclude-missing --serial test:build",
     "watch": "tsc --build --watch packages/core packages/hardhat-plugin",
-    "fullcheck": "yarn build && yarn lint && yarn test:coverage && yarn test:examples",
+    "fullcheck": "yarn build && yarn lint && yarn test:build && yarn test:coverage && yarn test:examples",
     "clean": "wsrun --exclude-missing --serial clean"
   },
   "devDependencies": {

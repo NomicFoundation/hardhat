@@ -2,11 +2,7 @@
 import { assert } from "chai";
 import { ethers } from "ethers";
 import sinon from "sinon";
-import tmp from "tmp";
 
-import { FileJournal } from "journal/FileJournal";
-import { InMemoryJournal } from "journal/InMemoryJournal";
-import { Journal } from "journal/types";
 import { GasProvider, IgnitionSigner } from "types/providers";
 import { TxSender } from "utils/tx-sender";
 
@@ -42,70 +38,25 @@ function createMockTx() {
   return {} as ethers.providers.TransactionRequest;
 }
 
-function runTests(createJournal: () => Journal) {
+function runTests() {
   const mockGasProvider = new MockGasProvider();
 
   it("should add two transactions to journal", async function () {
-    const txSender = new TxSender(
-      "MyModule",
-      "MyExecutor",
-      mockGasProvider,
-      createJournal()
-    );
+    const txSender = new TxSender(mockGasProvider);
 
     const signerStub = createSignerSpy();
     const mockTx1 = createMockTx();
-    const [txIndex1, hash1] = await txSender.send(signerStub, mockTx1, 0);
-    assert.equal(txIndex1, 0);
+    const hash1 = await txSender.send(signerStub, mockTx1);
     assert.equal(hash1, "hash-0");
     assert.isTrue(signerStub.sendTransaction.calledWith(mockTx1));
 
     const mockTx2 = createMockTx();
-    const [txIndex2, hash2] = await txSender.send(signerStub, mockTx2, 0);
-    assert.equal(txIndex2, 1);
+    const hash2 = await txSender.send(signerStub, mockTx2);
     assert.equal(hash2, "hash-1");
     assert.isTrue(signerStub.sendTransaction.calledWith(mockTx2));
-  });
-
-  it("should not re-send an already sent transaction", async function () {
-    const journal = createJournal();
-    const txSender = new TxSender(
-      "MyModule",
-      "MyExecutor",
-      mockGasProvider,
-      journal
-    );
-
-    const signerStub = createSignerSpy();
-    const mockTx1 = createMockTx();
-    const [txIndex1, hash1] = await txSender.send(signerStub, mockTx1, 0);
-    assert.equal(txIndex1, 0);
-    assert.equal(hash1, "hash-0");
-    assert.isTrue(signerStub.sendTransaction.calledWith(mockTx1));
-    signerStub.sendTransaction.resetHistory();
-
-    const txSender2 = new TxSender(
-      "MyModule",
-      "MyExecutor",
-      mockGasProvider,
-      journal
-    );
-    const [txIndex2, hash2] = await txSender2.send(signerStub, mockTx1, 0);
-    assert.equal(txIndex2, 0);
-    assert.equal(hash2, "hash-0");
-    assert.isFalse(signerStub.sendTransaction.called);
   });
 }
 
 describe("TxSender", function () {
-  describe("in-memory journal", function () {
-    runTests(() => new InMemoryJournal());
-  });
-
-  describe("file journal", function () {
-    runTests(() => {
-      const pathToJournal = tmp.tmpNameSync();
-      return new FileJournal(pathToJournal);
-    });
-  });
+  runTests();
 });

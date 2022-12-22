@@ -9,13 +9,14 @@ import { execute } from "execution/execute";
 import { Services, TransactionOptions } from "services/types";
 import { ExecutionVertex } from "types/executionGraph";
 import { Artifact } from "types/hardhat";
+import { ICommandJournal } from "types/journal";
 
-import { buildAdjacencyListFrom } from "./graph/helpers";
-import { getMockServices } from "./helpers";
+import { buildAdjacencyListFrom } from "../graph/helpers";
+import { getMockServices } from "../helpers";
 
 const ACCOUNT_0 = "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266";
 
-describe("Execution", () => {
+describe("Execution - dispatch", () => {
   afterEach(() => {
     sinon.restore();
   });
@@ -60,13 +61,14 @@ describe("Execution", () => {
       } as any,
     };
 
-    const response = await assertExecuteSingleVertex(
+    const response = await runExecuteOnSingleVertex(
       contractDeploy,
       mockServices
     );
 
     assert.isDefined(response);
-    if (response._kind === "failure") {
+
+    if (response._kind !== "success") {
       return assert.fail("deploy failed");
     }
 
@@ -120,13 +122,13 @@ describe("Execution", () => {
       } as any,
     };
 
-    const response = await assertExecuteSingleVertex(
+    const response = await runExecuteOnSingleVertex(
       contractDeploy,
       mockServices
     );
 
     assert.isDefined(response);
-    if (response._kind === "failure") {
+    if (response._kind !== "success") {
       return assert.fail("deploy failed");
     }
 
@@ -221,13 +223,13 @@ describe("Execution", () => {
       } as any,
     };
 
-    const response = await assertDependentVertex(
+    const response = await runExecuteOnDependentVertex(
       [contractDeploy, contractCall],
       mockServices
     );
 
     assert.isDefined(response);
-    if (response._kind === "failure") {
+    if (response._kind !== "success") {
       return assert.fail("deploy failed");
     }
 
@@ -239,204 +241,154 @@ describe("Execution", () => {
     });
   });
 
-  it("should execute an ETH send", async () => {
-    const fakeArtifact: Artifact = {
-      contractName: "Foo",
-      abi: [
-        {
-          stateMutability: "payable",
-          type: "receive",
-        },
-      ],
-      bytecode:
-        "6080604052348015600f57600080fd5b50604580601d6000396000f3fe608060405236600a57005b600080fdfea2646970667358221220da7e5683d44d4d83925bddf4a1eb18237892d4fe13551888fef8b0925eb9023664736f6c63430008070033",
-      linkReferences: {},
-    };
+  describe("await event", () => {
+    let contractDeploy: ExecutionVertex;
+    let contractCall: ExecutionVertex;
+    let awaitedEvent: ExecutionVertex;
+    let mockServices: Services;
 
-    const contractDeploy: ExecutionVertex = {
-      type: "ContractDeploy",
-      id: 0,
-      label: "Foo",
-      artifact: fakeArtifact,
-      args: [],
-      libraries: {},
-      value: ethers.utils.parseUnits("0"),
-    };
+    beforeEach(() => {
+      const fakeArtifact = {
+        contractName: "Test",
+        abi: [
+          {
+            type: "event",
+            name: "SomeEvent",
+            anonymous: false,
+            inputs: [
+              {
+                indexed: true,
+                internalType: "address",
+                name: "sender",
+                type: "address",
+              },
+            ],
+          },
+          {
+            inputs: [],
+            name: "test",
+            outputs: [],
+            stateMutability: "nonpayable",
+            type: "function",
+          },
+        ],
+        bytecode:
+          "6080604052348015600f57600080fd5b5060b08061001e6000396000f3fe6080604052348015600f57600080fd5b506004361060285760003560e01c8063f8a8fd6d14602d575b600080fd5b60336035565b005b3373ffffffffffffffffffffffffffffffffffffffff167f62e1088ac332ffa611ac64bd5a2aef2c27de42d3c61c686ec5c53753c35c7f6860405160405180910390a256fea2646970667358221220a77b6f6bba99fe90fc34a87656ffff1d3703a60de09e70feb2a64ed1dee0862264736f6c63430008070033",
+        linkReferences: {},
+      };
 
-    const sendETH: ExecutionVertex = {
-      type: "SentETH",
-      id: 1,
-      label: "Foo",
-      address: {
-        vertexId: 0,
-        type: "contract",
-        subtype: "artifact",
-        artifact: fakeArtifact,
-        label: "Foo",
-        _future: true,
-      },
-      value: ethers.utils.parseUnits("42"),
-    };
-
-    const sendTxStub = sinon.stub();
-    sendTxStub.onCall(0).resolves("0x1");
-    sendTxStub.onCall(1).resolves("0x2");
-
-    const mockServices: Services = {
-      ...getMockServices(),
-      contracts: {
-        sendTx: sendTxStub,
-      } as any,
-      transactions: {
-        wait: (txHash: string) => {
-          if (txHash === "0x1") {
-            return {
-              contractAddress: "0x0000000000000000000000000000000000000001",
-            };
-          }
-
-          return {
-            contractAddress: "0x0000000000000000000000000000000000000002",
-          };
-        },
-      } as any,
-    };
-
-    const response = await assertDependentVertex(
-      [contractDeploy, sendETH],
-      mockServices
-    );
-
-    assert.isDefined(response);
-    if (response._kind === "failure") {
-      return assert.fail("deploy failed");
-    }
-
-    assert.deepStrictEqual(response.result.get(1), {
-      _kind: "success",
-      result: {
-        hash: "0x2",
-      },
-    });
-  });
-
-  it("should execute an awaited event", async () => {
-    const fakeArtifact = {
-      contractName: "Test",
-      abi: [
-        {
-          anonymous: false,
-          inputs: [
-            {
-              indexed: true,
-              internalType: "address",
-              name: "sender",
-              type: "address",
-            },
-          ],
-          name: "SomeEvent",
-          type: "event",
-        },
-        {
-          inputs: [],
-          name: "test",
-          outputs: [],
-          stateMutability: "nonpayable",
-          type: "function",
-        },
-      ],
-      bytecode:
-        "6080604052348015600f57600080fd5b5060b08061001e6000396000f3fe6080604052348015600f57600080fd5b506004361060285760003560e01c8063f8a8fd6d14602d575b600080fd5b60336035565b005b3373ffffffffffffffffffffffffffffffffffffffff167f62e1088ac332ffa611ac64bd5a2aef2c27de42d3c61c686ec5c53753c35c7f6860405160405180910390a256fea2646970667358221220a77b6f6bba99fe90fc34a87656ffff1d3703a60de09e70feb2a64ed1dee0862264736f6c63430008070033",
-      linkReferences: {},
-    };
-
-    const contractDeploy: ExecutionVertex = {
-      type: "ContractDeploy",
-      id: 0,
-      label: "Test",
-      artifact: fakeArtifact,
-      args: [],
-      libraries: {},
-      value: ethers.utils.parseUnits("0"),
-    };
-
-    const contractCall: ExecutionVertex = {
-      type: "ContractCall",
-      id: 1,
-      label: "Test/test",
-      contract: { vertexId: 0, type: "contract", label: "Test", _future: true },
-      method: "test",
-      args: [],
-      value: ethers.utils.parseUnits("0"),
-    };
-
-    const awaitedEvent: ExecutionVertex = {
-      type: "AwaitedEvent",
-      id: 2,
-      abi: fakeArtifact.abi,
-      address: {
-        vertexId: 0,
-        type: "contract",
-        subtype: "artifact",
-        artifact: fakeArtifact,
+      contractDeploy = {
+        type: "ContractDeploy",
+        id: 0,
         label: "Test",
-        _future: true,
-      },
-      label: "Test/SomeEvent",
-      event: "SomeEvent",
-      args: [ACCOUNT_0],
-    };
+        artifact: fakeArtifact,
+        args: [],
+        libraries: {},
+        value: ethers.utils.parseUnits("0"),
+      };
 
-    const iface = new ethers.utils.Interface(fakeArtifact.abi);
-
-    const fakeLog = iface.encodeEventLog(
-      ethers.utils.EventFragment.from(fakeArtifact.abi[0]),
-      ["0x0000000000000000000000000000000000000003"]
-    );
-
-    const sendTxStub = sinon.stub();
-    sendTxStub.onCall(0).resolves("0x1");
-    sendTxStub.onCall(1).resolves("0x2");
-
-    const waitForEventStub = sinon.stub();
-    waitForEventStub.onFirstCall().resolves(fakeLog);
-
-    const mockServices: Services = {
-      ...getMockServices(),
-      contracts: {
-        sendTx: sendTxStub,
-      } as any,
-      transactions: {
-        wait: (txHash: string) => {
-          if (txHash === "0x1") {
-            return {
-              contractAddress: "0x0000000000000000000000000000000000000001",
-            };
-          }
-
-          return {
-            contractAddress: "0x0000000000000000000000000000000000000002",
-          };
+      contractCall = {
+        type: "ContractCall",
+        id: 1,
+        label: "Test/test",
+        contract: {
+          vertexId: 0,
+          type: "contract",
+          label: "Test",
+          _future: true,
         },
-        waitForEvent: waitForEventStub,
-      } as any,
-    };
+        method: "test",
+        args: [],
+        value: ethers.utils.parseUnits("0"),
+      };
 
-    const response = await assertDependentVertex(
-      [contractDeploy, contractCall, awaitedEvent],
-      mockServices
-    );
+      awaitedEvent = {
+        type: "AwaitedEvent",
+        id: 2,
+        abi: fakeArtifact.abi,
+        address: {
+          vertexId: 0,
+          type: "contract",
+          subtype: "artifact",
+          artifact: fakeArtifact,
+          label: "Test",
+          _future: true,
+        },
+        label: "Test/SomeEvent",
+        event: "SomeEvent",
+        args: [ACCOUNT_0],
+      };
 
-    assert.isDefined(response);
-    if (response._kind === "failure") {
-      return assert.fail("deploy failed");
-    }
+      const iface = new ethers.utils.Interface(fakeArtifact.abi);
 
-    assert.deepStrictEqual(response.result.get(2), {
-      _kind: "success",
-      result: {
-        topics: ["0x0000000000000000000000000000000000000003"],
-      },
+      const fakeLog = iface.encodeEventLog(
+        ethers.utils.EventFragment.from(fakeArtifact.abi[0]),
+        ["0x0000000000000000000000000000000000000003"]
+      );
+
+      const sendTxStub = sinon.stub();
+      sendTxStub.onCall(0).resolves("0x1");
+      sendTxStub.onCall(1).resolves("0x2");
+
+      const waitForEventStub = sinon.stub();
+      waitForEventStub.onFirstCall().resolves(fakeLog);
+
+      mockServices = {
+        ...getMockServices(),
+        contracts: {
+          sendTx: sendTxStub,
+        } as any,
+        transactions: {
+          wait: (txHash: string) => {
+            if (txHash === "0x1") {
+              return {
+                contractAddress: "0x0000000000000000000000000000000000000001",
+              };
+            }
+
+            return {
+              contractAddress: "0x0000000000000000000000000000000000000002",
+            };
+          },
+          waitForEvent: waitForEventStub,
+        } as any,
+      };
+    });
+
+    it("should return the result of an awaited event that completes within the timeout", async () => {
+      const response = await runExecuteOnDependentVertex(
+        [contractDeploy, contractCall, awaitedEvent],
+        mockServices
+      );
+
+      if (response._kind !== "success") {
+        return assert.fail("deploy failed");
+      }
+
+      assert.deepStrictEqual(response.result.get(2), {
+        _kind: "success",
+        result: {
+          topics: ["0x0000000000000000000000000000000000000003"],
+        },
+      });
+    });
+
+    it("should return as on hold if an awaited event is not detected within the timeout", async () => {
+      const response = await runExecuteOnDependentVertex(
+        [contractDeploy, awaitedEvent],
+        {
+          ...mockServices,
+          transactions: {
+            ...mockServices.transactions,
+            waitForEvent: sinon.stub().resolves(null),
+          },
+        }
+      );
+
+      assert(
+        response._kind === "hold",
+        `response should be hold, not: ${response._kind}`
+      );
     });
   });
 
@@ -452,19 +404,19 @@ describe("Execution", () => {
     const mockServices: Services = {
       ...getMockServices(),
       contracts: {
-        deploy: async (): Promise<string> => {
+        deploy: async (): Promise<void> => {
           assert.fail("deploy should not be called");
         },
       } as any,
     };
 
-    const response = await assertExecuteSingleVertex(
+    const response = await runExecuteOnSingleVertex(
       contractDeploy,
       mockServices
     );
 
     assert.isDefined(response);
-    if (response._kind === "failure") {
+    if (response._kind !== "success") {
       return assert.fail("deploy failed");
     }
 
@@ -479,7 +431,7 @@ describe("Execution", () => {
   });
 });
 
-async function assertExecuteSingleVertex(
+async function runExecuteOnSingleVertex(
   executionVertex: ExecutionVertex,
   mockServices: Services
 ) {
@@ -490,10 +442,15 @@ async function assertExecuteSingleVertex(
   executionGraph.vertexes.set(0, executionVertex);
 
   const mockUpdateUiAction = () => {};
+  const mockJournal: ICommandJournal = {
+    record: async () => {},
+    read: () => null,
+  };
 
   const deployment = new Deployment(
     "MyModule",
     mockServices,
+    mockJournal,
     mockUpdateUiAction
   );
 
@@ -502,7 +459,7 @@ async function assertExecuteSingleVertex(
   return execute(deployment, {} as any);
 }
 
-async function assertDependentVertex(
+async function runExecuteOnDependentVertex(
   vertexes: ExecutionVertex[],
   mockServices: Services
 ) {
@@ -520,10 +477,15 @@ async function assertDependentVertex(
   });
 
   const mockUpdateUiAction = () => {};
+  const mockJournal: ICommandJournal = {
+    record: async () => {},
+    read: () => null,
+  };
 
   const deployment = new Deployment(
     "MyModule",
     mockServices,
+    mockJournal,
     mockUpdateUiAction
   );
 

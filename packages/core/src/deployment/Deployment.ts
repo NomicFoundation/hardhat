@@ -1,19 +1,25 @@
 import setupDebug from "debug";
 
-import { IgnitionDeployOptions } from "Ignition";
 import { ExecutionGraph } from "execution/ExecutionGraph";
-import { ExecuteBatchResult } from "execution/batch/types";
-import { InMemoryJournal } from "journal/InMemoryJournal";
-import { createServices } from "services/createServices";
 import { Services } from "services/types";
-import { DeployState, UpdateUiAction } from "types/deployment";
-import { VertexVisitResult, VertexVisitResultFailure } from "types/graph";
-import { Providers } from "types/providers";
+import {
+  DeployState,
+  UpdateUiAction,
+  DeployStateCommand,
+  DeployStateExecutionCommand,
+} from "types/deployment";
+import {
+  VertexDescriptor,
+  VertexVisitResult,
+  VertexVisitResultFailure,
+} from "types/graph";
+import { ICommandJournal } from "types/journal";
 
 import {
-  deployStateReducer,
   initializeDeployState,
+  deployStateReducer,
 } from "./deployStateReducer";
+import { isDeployStateExecutionCommand } from "./utils";
 
 const log = setupDebug("ignition:deployment");
 
@@ -21,157 +27,179 @@ export class Deployment {
   public state: DeployState;
   public services: Services;
   public ui?: UpdateUiAction;
+  private commandJournal: ICommandJournal;
 
-  constructor(moduleName: string, services: Services, ui?: UpdateUiAction) {
+  constructor(
+    moduleName: string,
+    services: Services,
+    journal: ICommandJournal,
+    ui?: UpdateUiAction
+  ) {
     this.state = initializeDeployState(moduleName);
     this.services = services;
+    this.commandJournal = journal;
     this.ui = ui;
   }
 
-  public static setupServices(
-    options: IgnitionDeployOptions,
-    providers: Providers
-  ): Services {
-    log("Create journal with path '%s'", options.pathToJournal);
+  public async load(
+    commandStream: AsyncGenerator<DeployStateExecutionCommand, void, unknown>
+  ) {
+    log("Loading from journal");
 
-    const journal =
-      options.pathToJournal !== undefined
-        ? // TODO: bring back FileJournal
-          new InMemoryJournal() // ? new FileJournal(options.pathToJournal)
-        : new InMemoryJournal();
-
-    const serviceOptions = {
-      providers,
-      journal,
-    };
-
-    const services: Services = createServices(
-      "moduleIdEXECUTE",
-      "executorIdEXECUTE",
-      serviceOptions
-    );
-
-    return services;
+    for await (const command of commandStream) {
+      this.state = deployStateReducer(this.state, command);
+    }
   }
 
   public setChainId(chainId: number) {
-    log("ChainId resolved as '%s'", chainId);
-    this.state = deployStateReducer(this.state, {
+    return this._runDeploymentCommand(`ChainId resolved as '${chainId}'`, {
       type: "SET_CHAIN_ID",
       chainId,
     });
   }
 
   public setNetworkName(networkName: string) {
-    log("NetworkName resolved as '%s'", networkName);
-    this.state = deployStateReducer(this.state, {
-      type: "SET_NETWORK_NAME",
-      networkName,
-    });
+    return this._runDeploymentCommand(
+      `NetworkName resolved as '${networkName}'`,
+      {
+        type: "SET_NETWORK_NAME",
+        networkName,
+      }
+    );
   }
 
   public startValidation() {
-    log("Validate deployment graph");
-    this.state = deployStateReducer(this.state, {
+    return this._runDeploymentCommand("Validate deployment graph", {
       type: "START_VALIDATION",
     });
-
-    this._renderToUi(this.state);
   }
 
   public failValidation(errors: Error[]) {
-    log(`Validation failed with errors`, errors);
-    this.state = deployStateReducer(this.state, {
-      type: "VALIDATION_FAIL",
-      errors,
-    });
-
-    this._renderToUi(this.state);
+    return this._runDeploymentCommand(
+      [`Validation failed with errors`, errors],
+      {
+        type: "VALIDATION_FAIL",
+        errors,
+      }
+    );
   }
 
   public transformComplete(executionGraph: ExecutionGraph) {
-    log(`Transform complete`, executionGraph);
-    this.state = deployStateReducer(this.state, {
-      type: "TRANSFORM_COMPLETE",
-      executionGraph,
-    });
-
-    this._renderToUi(this.state);
+    return this._runDeploymentCommand(
+      [`Transform complete`, [executionGraph]],
+      {
+        type: "TRANSFORM_COMPLETE",
+        executionGraph,
+      }
+    );
   }
 
-  public startExecutionPhase(executionGraph: ExecutionGraph) {
-    log(`Starting Execution`);
-    this.state = deployStateReducer(this.state, {
-      type: "START_EXECUTION_PHASE",
-      executionGraph,
+  public startExecutionPhase() {
+    return this._runDeploymentCommand("Starting Execution", {
+      type: "EXECUTION::START",
     });
-
-    this._renderToUi(this.state);
   }
 
-  public updateExecutionWithNewBatch(batch: Set<number>) {
-    log(`Update execution with new batch`, batch);
-    this.state = deployStateReducer(this.state, {
-      type: "UPDATE_EXECUTION_WITH_NEW_BATCH",
+  public updateExecutionWithNewBatch(batch: number[]) {
+    return this._runDeploymentCommand("Update execution with new batch", {
+      type: "EXECUTION::SET_BATCH",
       batch,
     });
-
-    this._renderToUi(this.state);
   }
 
-  public updateExecutionWithBatchResults(batchResult: ExecuteBatchResult) {
-    log(`Update execution with batch results`, batchResult);
-    this.state = deployStateReducer(this.state, {
-      type: "UPDATE_EXECUTION_WITH_BATCH_RESULTS",
-      batchResult,
-    });
-
-    this._renderToUi(this.state);
-  }
-
-  public updateCurrentBatchWithResult(
-    vertexId: number,
-    result: VertexVisitResult
-  ) {
-    log(`Update current with batch result for ${vertexId}`, result);
-    this.state = deployStateReducer(this.state, {
-      type: "UPDATE_CURRENT_BATCH_WITH_RESULT",
-      vertexId,
-      result,
-    });
-
-    this._renderToUi(this.state);
+  public async updateVertexResult(vertexId: number, result: VertexVisitResult) {
+    return this._runDeploymentCommand(
+      [`Update current with batch result for ${vertexId}`, [result]],
+      {
+        type: "EXECUTION::SET_VERTEX_RESULT",
+        vertexId,
+        result,
+      }
+    );
   }
 
   public readExecutionErrors() {
-    const errors = [...this.state.execution.errored].reduce(
-      (acc: { [key: number]: VertexVisitResultFailure }, id) => {
-        const result = this.state.execution.resultsAccumulator.get(id);
+    return [...Object.entries(this.state.execution.vertexes)]
+      .filter(([_id, value]) => value.status === "FAILED")
+      .reduce(
+        (
+          acc: { [key: number]: VertexVisitResultFailure },
+          [id, { result }]
+        ) => {
+          if (
+            result === undefined ||
+            result === null ||
+            result._kind !== "failure"
+          ) {
+            return acc;
+          }
 
-        if (
-          result === undefined ||
-          result === null ||
-          result._kind === "success"
-        ) {
+          acc[parseInt(id, 10)] = result;
+
           return acc;
+        },
+        {}
+      );
+  }
+
+  public readExecutionHolds(): VertexDescriptor[] {
+    const executionGraph = this.state.transform.executionGraph;
+
+    if (executionGraph === null) {
+      throw new Error("Cannot read from unset execution graph");
+    }
+
+    return [...Object.entries(this.state.execution.vertexes)]
+      .filter(([_id, value]) => value.status === "HOLD")
+      .map(([id]) => {
+        const vertex = executionGraph.vertexes.get(parseInt(id, 10));
+
+        if (vertex === undefined) {
+          return null;
         }
 
-        acc[id] = result;
+        const descriptor: VertexDescriptor = {
+          id: vertex.id,
+          label: vertex.label,
+          type: vertex.type,
+        };
 
-        return acc;
-      },
-      {}
-    );
-
-    return errors;
+        return descriptor;
+      })
+      .filter((x): x is VertexDescriptor => Boolean(x));
   }
 
   public hasUnstarted(): boolean {
-    return this.state.execution.unstarted.size > 0;
+    return Object.values(this.state.execution.vertexes).some(
+      (v) => v.status === "UNSTARTED"
+    );
   }
 
   public hasErrors(): boolean {
-    return this.state.execution.errored.size > 0;
+    return Object.values(this.state.execution.vertexes).some(
+      (v) => v.status === "FAILED"
+    );
+  }
+
+  public hasHolds(): boolean {
+    return Object.values(this.state.execution.vertexes).some(
+      (v) => v.status === "HOLD"
+    );
+  }
+
+  private async _runDeploymentCommand(
+    logMessage: string | [string, any[]],
+    command: DeployStateCommand
+  ): Promise<void> {
+    log.apply(this, typeof logMessage === "string" ? [logMessage] : logMessage);
+
+    if (isDeployStateExecutionCommand(command)) {
+      await this.commandJournal.record(command);
+    }
+
+    this.state = deployStateReducer(this.state, command);
+
+    this._renderToUi(this.state);
   }
 
   private _renderToUi(state: DeployState) {

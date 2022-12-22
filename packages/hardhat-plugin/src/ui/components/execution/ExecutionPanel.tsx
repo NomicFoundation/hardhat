@@ -4,6 +4,7 @@ import { Box } from "ink";
 import { BatchExecution } from "./BatchExecution";
 import { FinalStatus } from "./FinalStatus";
 import { SummarySection } from "./SummarySection";
+import { viewEverthingExecutedAlready } from "./views";
 
 export const ExecutionPanel = ({
   deployState,
@@ -12,6 +13,14 @@ export const ExecutionPanel = ({
   deployState: DeployState;
   moduleParams?: ModuleParams;
 }) => {
+  if (viewEverthingExecutedAlready(deployState)) {
+    return (
+      <Box flexDirection="column">
+        <FinalStatus deployState={deployState} />
+      </Box>
+    );
+  }
+
   return (
     <Box flexDirection="column">
       <SummarySection deployState={deployState} moduleParams={moduleParams} />

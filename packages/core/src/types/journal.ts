@@ -1,3 +1,5 @@
+import type { DeployStateExecutionCommand } from "types/deployment";
+
 export interface JournalEntry {
   txHash: string;
   blockNumberWhenSent: number;
@@ -26,4 +28,10 @@ export interface Journal {
     entry: JournalEntry
   ): Promise<void>;
   delete(moduleId: string): Promise<void>;
+}
+
+export interface ICommandJournal {
+  record(command: DeployStateExecutionCommand): Promise<void>;
+
+  read(): AsyncGenerator<DeployStateExecutionCommand, void, unknown>;
 }

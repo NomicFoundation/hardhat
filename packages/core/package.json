@@ -28,6 +28,7 @@
     "prettier": "prettier \"**/*.{js,md,json}\"",
     "test": "mocha --recursive \"test/**/*.ts\"",
     "test:debug": "DEBUG='ignition:*' yarn test",
+    "test:build": "tsc --project ./test/",
     "ui-samples": "TS_NODE_TRANSPILE_ONLY=1 ts-node ui-samples/index.tsx",
     "test:coverage": "nyc mocha \"test/**/*.ts\"",
     "clean": "rimraf .nyc_output coverage dist tsconfig.tsbuildinfo"
@@ -35,6 +36,7 @@
   "devDependencies": {
     "@istanbuljs/nyc-config-typescript": "1.0.2",
     "@types/chai": "^4.2.22",
+    "@types/chai-as-promised": "^7.1.5",
     "@types/debug": "^4.1.7",
     "@types/fs-extra": "^9.0.13",
     "@types/mocha": "^9.0.0",

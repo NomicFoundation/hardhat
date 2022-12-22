@@ -1,3 +1,4 @@
+import { DeployState, viewExecutionResults } from "@ignored/ignition-core";
 import { Box, Spacer, Text } from "ink";
 
 import { AddressMap } from "ui/types";
@@ -5,12 +6,17 @@ import { AddressMap } from "ui/types";
 import { NetworkInfo } from "./NetworkInfo";
 
 export const AddressResults = ({
-  addressMap,
-  networkInfo,
+  deployState,
 }: {
-  addressMap: AddressMap;
-  networkInfo: { chainId: number; networkName: string };
+  deployState: DeployState;
 }) => {
+  const addressMap = resolveDeployAddresses(deployState);
+
+  const networkInfo = {
+    chainId: deployState.details.chainId,
+    networkName: deployState.details.networkName,
+  };
+
   return (
     <Box flexDirection="column">
       <Box flexDirection="row" marginBottom={1}>
@@ -26,4 +32,21 @@ export const AddressResults = ({
       ))}
     </Box>
   );
+};
+
+const resolveDeployAddresses = (deployState: DeployState) => {
+  const addressMap: AddressMap = {};
+
+  for (const value of viewExecutionResults(deployState).values()) {
+    if (
+      value !== null &&
+      value._kind === "success" &&
+      "name" in value.result &&
+      "address" in value.result
+    ) {
+      addressMap[value.result.name] = value.result.address;
+    }
+  }
+
+  return addressMap;
 };

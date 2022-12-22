@@ -7,7 +7,7 @@
 - [Visualizing your deployment with the `plan` task](./running-a-deployment.md#visualizing-your-deployment-with-the-plan-task)
 - [Executing the deployment](./running-a-deployment.md#executing-the-deployment)
   - [Configuration options](./running-a-deployment.md#configuration-options)
-  - [Resuming a failed or onhold deployment (TBD)](./running-a-deployment.md#visualizing-your-deployment-with-the-plan-task)
+  - [Resuming a failed or onhold deployment](./running-a-deployment.md#visualizing-your-deployment-with-the-plan-task)
 
 ---
 
@@ -103,14 +103,12 @@ The value of `pollingInterval` is the number of milliseconds the process will wa
 
 This config value determines how long `m.awaitEvent` waits for the given event to be emitted on-chain before marking the deployment as "on-hold". It should be given as a number of milliseconds, with the default value being 30000, or 30 seconds.
 
-## Resuming a failed or onhold deployment (TBD)
+## Resuming a failed or onhold deployment
 
-Currently, failed transactions will be retried a number of times, with an increasing gas price each time, up to a max retry limit. If it has failed past that point, the deployment is considered failed and will be stopped. But what happens if some transactions in the deployment had already succeeded?
+A run of a deployment can succeed, fail or be on hold. A failed deployment or one that is on hold, assuming it was run against a non-ephemeral network, can be rerun using the deploy command:
 
-Broadly speaking, if some part of the deployment fails, the user will be able to retry it, or to modify the failing action. With the help of an internal journaling service, successfully completed transactions would not be run a second time when resuming a partially failed deployment.
+`npx hardhat deploy MyModule.js --network localhost`
 
-Similarly, a user with a deployment that is considered "on hold" and awaiting the completion of an external action of some kind (multisig wallet signatures, as an example) would be able to close the running **Ignition** process and resume the deployment safely whenever they choose without worrying about the previous actions being resolved again.
+Each run logs its events to a journal file (recorded in a sibling file to the module under `MyModule.journal.ndjson`). The journal file is used to reconstruct the state of the deployment during previous runs. Any failed contract deploys or contract calls will be retried, the deployment picking up from where the last fail occurred. Any `awaitEvent` invocations that had not returned and hence were on `Hold` on the last run, will be retried as well.
 
 For non-development network deployments, this means some form of deployment freezing will be recommended that records relevant information such as contract abi, deployed address and network. These files will be recommended to be committed into project repositories as well.
-
-The exact nature of these files is TBD as this feature is being developed.

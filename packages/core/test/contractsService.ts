@@ -10,7 +10,7 @@ import type { TxSender } from "utils/tx-sender";
 
 const txSender: TxSender = {
   async send(..._) {
-    return [0, "0xabc"];
+    return "0xabc";
   },
   async sendAndReplace(..._) {
     return "0xabc";

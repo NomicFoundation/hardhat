@@ -1,34 +1,20 @@
 import { ethers } from "ethers";
 
-import { Journal } from "journal/types";
 import { Providers } from "types/providers";
 import { TxSender } from "utils/tx-sender";
 
 import { ArtifactsService } from "./ArtifactsService";
 import { ConfigService } from "./ConfigService";
 import { ContractsService } from "./ContractsService";
+import { NetworkService } from "./NetworkService";
 import { TransactionsService } from "./TransactionsService";
 import { Services } from "./types";
 
-export function createServices(
-  moduleId: string,
-  executorId: string,
-  {
-    providers,
-    journal,
-  }: {
-    providers: Providers;
-    journal: Journal;
-  }
-): Services {
-  const txSender = new TxSender(
-    moduleId,
-    executorId,
-    providers.gasProvider,
-    journal
-  );
+export function createServices(providers: Providers): Services {
+  const txSender = new TxSender(providers.gasProvider);
 
   const services: Services = {
+    network: new NetworkService(providers),
     artifacts: new ArtifactsService(providers),
     contracts: new ContractsService(
       {

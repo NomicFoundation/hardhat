@@ -25,9 +25,14 @@ export interface VertexVisitResultFailure {
   failure: Error;
 }
 
+export interface VertexVisitResultHold {
+  _kind: "hold";
+}
+
 export type VertexVisitResult =
   | VertexVisitResultSuccess
-  | VertexVisitResultFailure;
+  | VertexVisitResultFailure
+  | VertexVisitResultHold;
 
 export type VisitResult =
   | {
@@ -37,6 +42,10 @@ export type VisitResult =
   | {
       _kind: "failure";
       failures: [string, Error[]];
+    }
+  | {
+      _kind: "hold";
+      holds: VertexDescriptor[];
     };
 
 export type ResultsAccumulator = Map<number, VertexVisitResult | null>;
