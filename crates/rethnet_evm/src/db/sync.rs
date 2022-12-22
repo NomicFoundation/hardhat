@@ -88,6 +88,20 @@ where
         receiver.await.unwrap()
     }
 
+    /// Retrieves the storage root of the account at the specified address.
+    pub async fn account_storage_root(&self, address: &Address) -> Result<Option<B256>, E> {
+        let (sender, receiver) = oneshot::channel();
+
+        self.request_sender
+            .send(Request::AccountStorageRoot {
+                address: *address,
+                sender,
+            })
+            .expect("Failed to send request");
+
+        receiver.await.unwrap()
+    }
+
     /// Retrieves the storage slot corresponding to the specified address and index.
     pub async fn account_storage_slot(&self, address: Address, index: U256) -> Result<U256, E> {
         let (sender, receiver) = oneshot::channel();
@@ -341,6 +355,14 @@ where
     E: Debug + Send + 'static,
 {
     type Error = E;
+
+    fn account_storage_root(&mut self, address: &Address) -> Result<Option<B256>, Self::Error> {
+        task::block_in_place(move || {
+            self.db
+                .runtime
+                .block_on(self.db.account_storage_root(address))
+        })
+    }
 
     fn insert_account(
         &mut self,

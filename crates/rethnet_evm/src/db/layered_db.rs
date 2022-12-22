@@ -337,6 +337,13 @@ impl DatabaseCommit for LayeredDatabase<RethnetLayer> {
 impl DatabaseDebug for LayeredDatabase<RethnetLayer> {
     type Error = anyhow::Error;
 
+    fn account_storage_root(&mut self, address: &Address) -> Result<Option<B256>, Self::Error> {
+        Ok(self
+            .iter()
+            .find_map(|layer| layer.storage.get(address))
+            .map(|storage| storage.as_ref().map_or(KECCAK_NULL_RLP, storage_root)))
+    }
+
     fn insert_account(
         &mut self,
         address: Address,

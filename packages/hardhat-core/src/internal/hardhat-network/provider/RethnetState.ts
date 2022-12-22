@@ -40,10 +40,11 @@ export class RethnetStateManager {
 
   public async getAccount(address: Address): Promise<Account> {
     const account = await this._state.getAccountByAddress(address.buf);
+    const storageRoot = await this._state.getAccountStorageRoot(address.buf);
     return new Account(
       account?.nonce,
       account?.balance,
-      undefined,
+      storageRoot ?? undefined,
       account?.codeHash
     );
   }
