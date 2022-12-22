@@ -15,4 +15,5 @@ revm = { git = "https://github.com/wodann/revm", rev = "7c28358", version = "2.3
 secp256k1 = { version = "0.24.1", default-features = false, features = ["alloc"] }
 sha3 = { version = "0.10.4", default-features = false }
 signature = { version = "1.6.4", default-features = false, features = ["std"] }
+thiserror = { version = "1.0.38", default-features = false }
 tokio = { version = "1.21.2", default-features = false, features = ["rt-multi-thread", "sync"] }

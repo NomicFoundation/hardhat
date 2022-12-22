@@ -1,6 +1,5 @@
 use std::{fmt::Debug, sync::Arc};
 
-use rethnet_eth::B256;
 use revm::{BlockEnv, CfgEnv, ExecutionResult, SpecId, TxEnv};
 
 use crate::{
@@ -9,6 +8,7 @@ use crate::{
     evm::build_evm,
     inspector::RethnetInspector,
     trace::Trace,
+    transaction::TransactionError,
     State,
 };
 
@@ -43,46 +43,17 @@ where
     pub async fn dry_run(
         &self,
         transaction: TxEnv,
-        mut block: BlockEnv,
-    ) -> (ExecutionResult, State, Trace) {
+        block: BlockEnv,
+    ) -> Result<(ExecutionResult, State, Trace), TransactionError> {
+        if self.cfg.spec_id > SpecId::MERGE && block.prevrandao.is_none() {
+            return Err(TransactionError::MissingPrevrandao);
+        }
+
         let blockchain = self.blockchain.clone();
         let db = self.db.clone();
         let cfg = self.cfg.clone();
 
-        if cfg.spec_id > SpecId::MERGE && block.prevrandao.is_none() {
-            block.prevrandao = Some(B256::zero());
-        }
-
-        self.db
-            .runtime()
-            .spawn(async move {
-                let mut evm = build_evm(&blockchain, &db, cfg, transaction, block);
-
-                let mut inspector = RethnetInspector::default();
-                let (result, state) = evm.inspect(&mut inspector);
-                (result, state, inspector.into_trace())
-            })
-            .await
-            .unwrap()
-    }
-
-    /// Runs a transaction without committing the state, while disabling balance checks and creating accounts for new addresses.
-    pub async fn guaranteed_dry_run(
-        &self,
-        transaction: TxEnv,
-        mut block: BlockEnv,
-    ) -> Result<(ExecutionResult, State, Trace), E> {
-        let blockchain = self.blockchain.clone();
-        let db = self.db.clone();
-
-        let mut cfg = self.cfg.clone();
-        cfg.disable_balance_check = true;
-
-        if cfg.spec_id > SpecId::MERGE && block.prevrandao.is_none() {
-            block.prevrandao = Some(B256::zero());
-        }
-
-        let result = self
+        Ok(self
             .db
             .runtime()
             .spawn(async move {
@@ -93,17 +64,49 @@ where
                 (result, state, inspector.into_trace())
             })
             .await
-            .unwrap();
+            .unwrap())
+    }
 
-        Ok(result)
+    /// Runs a transaction without committing the state, while disabling balance checks and creating accounts for new addresses.
+    pub async fn guaranteed_dry_run(
+        &self,
+        transaction: TxEnv,
+        block: BlockEnv,
+    ) -> Result<(ExecutionResult, State, Trace), TransactionError> {
+        if self.cfg.spec_id > SpecId::MERGE && block.prevrandao.is_none() {
+            return Err(TransactionError::MissingPrevrandao);
+        }
+
+        let blockchain = self.blockchain.clone();
+        let db = self.db.clone();
+
+        let mut cfg = self.cfg.clone();
+        cfg.disable_balance_check = true;
+
+        Ok(self
+            .db
+            .runtime()
+            .spawn(async move {
+                let mut evm = build_evm(&blockchain, &db, cfg, transaction, block);
+
+                let mut inspector = RethnetInspector::default();
+                let (result, state) = evm.inspect(&mut inspector);
+                (result, state, inspector.into_trace())
+            })
+            .await
+            .unwrap())
     }
 
     /// Runs a transaction, committing the state in the process.
-    pub async fn run(&self, transaction: TxEnv, block: BlockEnv) -> (ExecutionResult, Trace) {
-        let (result, changes, trace) = self.dry_run(transaction, block).await;
+    pub async fn run(
+        &self,
+        transaction: TxEnv,
+        block: BlockEnv,
+    ) -> Result<(ExecutionResult, Trace), TransactionError> {
+        let (result, changes, trace) = self.dry_run(transaction, block).await?;
 
         self.db.apply(changes).await;
 
-        (result, trace)
+        Ok((result, trace))
     }
 }

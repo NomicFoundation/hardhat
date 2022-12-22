@@ -8,6 +8,14 @@ use rethnet_eth::{
     Address, Bloom, Bytes, B256, U256,
 };
 
+/// Invalid transaction error
+#[derive(Debug, thiserror::Error)]
+pub enum TransactionError {
+    /// The transaction is expected to have a prevrandao, as the executor's config is on a post-merge hardfork.
+    #[error("Post-merge transaction is missing prevrandao")]
+    MissingPrevrandao,
+}
+
 /// Represents all relevant information of an executed transaction
 #[derive(Debug, Eq, PartialEq, Clone)]
 pub struct TransactionInfo {
