@@ -60,7 +60,7 @@ impl BlockBuilder {
                 .await
                 .map_err(|e| napi::Error::new(Status::GenericFailure, e.to_string()))?;
 
-            result.try_into()
+            Ok(result.into())
         } else {
             Err(napi::Error::new(
                 Status::InvalidArg,

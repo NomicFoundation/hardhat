@@ -222,35 +222,50 @@ impl From<SpecId> for rethnet_evm::SpecId {
 }
 
 #[napi(object)]
+pub struct Log {
+    pub address: Buffer,
+    pub topics: Vec<Buffer>,
+    pub data: Buffer,
+}
+
+impl From<rethnet_evm::Log> for Log {
+    fn from(log: rethnet_evm::Log) -> Self {
+        let topics = log
+            .topics
+            .into_iter()
+            .map(|topic| Buffer::from(topic.as_bytes()))
+            .collect();
+
+        Self {
+            address: Buffer::from(log.address.as_bytes()),
+            topics,
+            data: Buffer::from(log.data.as_ref()),
+        }
+    }
+}
+
+#[napi(object)]
 pub struct ExecutionResult {
     pub exit_code: u8,
     pub output: TransactionOutput,
     pub gas_used: BigInt,
     pub gas_refunded: BigInt,
-    pub logs: Vec<serde_json::Value>,
+    pub logs: Vec<Log>,
     pub trace: Trace,
 }
 
-impl TryFrom<(rethnet_evm::ExecutionResult, rethnet_evm::trace::Trace)> for ExecutionResult {
-    type Error = napi::Error;
+impl From<(rethnet_evm::ExecutionResult, rethnet_evm::trace::Trace)> for ExecutionResult {
+    fn from((result, trace): (rethnet_evm::ExecutionResult, rethnet_evm::trace::Trace)) -> Self {
+        let logs = result.logs.into_iter().map(Log::from).collect();
 
-    fn try_from(
-        (result, trace): (rethnet_evm::ExecutionResult, rethnet_evm::trace::Trace),
-    ) -> std::result::Result<Self, Self::Error> {
-        let logs = result
-            .logs
-            .into_iter()
-            .map(serde_json::to_value)
-            .collect::<serde_json::Result<Vec<serde_json::Value>>>()?;
-
-        Ok(Self {
+        Self {
             exit_code: result.exit_reason as u8,
             output: result.out.into(),
             gas_used: BigInt::from(result.gas_used),
             gas_refunded: BigInt::from(result.gas_refunded),
             logs,
             trace: trace.into(),
-        })
+        }
     }
 }
 
@@ -276,7 +291,7 @@ impl
             rethnet_evm::trace::Trace,
         ),
     ) -> std::result::Result<Self, Self::Error> {
-        let exec_result = (result, trace).try_into()?;
+        let exec_result = (result, trace).into();
         let state = serde_json::to_value(state)?;
 
         Ok(Self { exec_result, state })
@@ -388,10 +403,11 @@ impl Rethnet {
         let transaction: TxEnv = transaction.try_into()?;
         let block = block.try_into()?;
 
-        self.runtime
+        Ok(self
+            .runtime
             .run(transaction, block)
             .await
             .map_err(|e| napi::Error::new(Status::GenericFailure, e.to_string()))?
-            .try_into()
+            .into())
     }
 }

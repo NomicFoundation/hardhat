@@ -32,6 +32,7 @@ import { FakeSenderAccessListEIP2930Transaction } from "../transactions/FakeSend
 import { FakeSenderEIP1559Transaction } from "../transactions/FakeSenderEIP1559Transaction";
 import { FakeSenderTransaction } from "../transactions/FakeSenderTransaction";
 import { HardhatBlockchainInterface } from "../types/HardhatBlockchainInterface";
+import { Bloom } from "../utils/bloom";
 import { makeForkClient } from "../utils/makeForkClient";
 import { makeStateTrie } from "../utils/makeStateTrie";
 import { Exit } from "./exit";
@@ -197,7 +198,7 @@ export class EthereumJSAdapter implements VMAdapter {
 
       const ethereumJSError = ethereumJSResult.execResult.exceptionError;
       const result: RunTxResult = {
-        bloom: ethereumJSResult.bloom,
+        bloom: new Bloom(ethereumJSResult.bloom.bitvector),
         gasUsed: ethereumJSResult.totalGasSpent,
         receipt: ethereumJSResult.receipt,
         returnValue: ethereumJSResult.execResult.returnValue,
@@ -418,7 +419,7 @@ export class EthereumJSAdapter implements VMAdapter {
 
     const ethereumJSError = ethereumJSResult.execResult.exceptionError;
     const result: RunTxResult = {
-      bloom: ethereumJSResult.bloom,
+      bloom: new Bloom(ethereumJSResult.bloom.bitvector),
       gasUsed: ethereumJSResult.totalGasSpent,
       receipt: ethereumJSResult.receipt,
       returnValue: ethereumJSResult.execResult.returnValue,
@@ -542,7 +543,14 @@ export class EthereumJSAdapter implements VMAdapter {
             },
             gasUsed: result.execResult.executionGasUsed,
             gasRefunded: result.execResult.gasRefund ?? 0n,
-            logs: result.execResult.logs ?? [],
+            logs:
+              result.execResult.logs?.map((log) => {
+                return {
+                  address: log[0],
+                  topics: log[1],
+                  data: log[2],
+                };
+              }) ?? [],
             trace: {
               steps: [],
               returnValue: result.execResult.returnValue,

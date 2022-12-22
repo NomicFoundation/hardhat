@@ -81,4 +81,11 @@ export class Bloom {
       this.bitvector[i] = this.bitvector[i] | bloom.bitvector[i];
     }
   }
+
+  /**
+   * Checks equality with another bloom.
+   */
+  public equals(otherBloom: Bloom): boolean {
+    return this.bitvector.equals(otherBloom.bitvector);
+  }
 }
