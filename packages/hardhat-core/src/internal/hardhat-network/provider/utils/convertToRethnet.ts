@@ -45,7 +45,7 @@ export function ethereumjsBlockHeaderToRethnet(
   };
 }
 
-export function ethereumsjsHardforkToRethnet(hardfork: string): SpecId {
+export function ethereumsjsHardforkToRethnet(hardfork: HardforkName): SpecId {
   switch (hardfork) {
     case HardforkName.FRONTIER:
       return SpecId.Frontier;
@@ -77,9 +77,11 @@ export function ethereumsjsHardforkToRethnet(hardfork: string): SpecId {
       return SpecId.GrayGlacier;
     case HardforkName.MERGE:
       return SpecId.Merge;
-
     default:
-      throw new Error("Unknown hardfork name, this shouldn't happen");
+     const _exhaustiveCheck: never = hardfork;
+      throw new Error(
+        `Unknown hardfork name '${hardfork as string}', this shouldn't happen`
+      );
   }
 }
 
