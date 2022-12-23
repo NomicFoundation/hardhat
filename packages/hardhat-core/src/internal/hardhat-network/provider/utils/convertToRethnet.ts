@@ -78,7 +78,7 @@ export function ethereumsjsHardforkToRethnet(hardfork: HardforkName): SpecId {
     case HardforkName.MERGE:
       return SpecId.Merge;
     default:
-     const _exhaustiveCheck: never = hardfork;
+      const _exhaustiveCheck: never = hardfork;
       throw new Error(
         `Unknown hardfork name '${hardfork as string}', this shouldn't happen`
       );
