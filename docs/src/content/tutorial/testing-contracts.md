@@ -100,7 +100,7 @@ describe("Token contract", function () {
   // ...previous test...
 
   it("Should transfer tokens between accounts", async function() {
-    const [owner, addr1, addr2] = await ethers.getSigners();
+    const [, addr1, addr2] = await ethers.getSigners();
 
     const Token = await ethers.getContractFactory("Token");
 
