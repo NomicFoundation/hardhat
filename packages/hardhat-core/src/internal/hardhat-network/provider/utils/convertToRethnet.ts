@@ -2,144 +2,25 @@ import {
   BlockHeader as EthereumJSBlockHeader,
   HeaderData,
 } from "@nomicfoundation/ethereumjs-block";
-import { BlockchainInterface } from "@nomicfoundation/ethereumjs-blockchain";
-import {
-  DefaultStateManager,
-  StateManager,
-} from "@nomicfoundation/ethereumjs-statemanager";
 import {
   AccessListEIP2930Transaction,
   FeeMarketEIP1559Transaction,
   TypedTransaction,
 } from "@nomicfoundation/ethereumjs-tx";
+import { Address, toBuffer } from "@nomicfoundation/ethereumjs-util";
 import {
-  Account,
-  Address,
-  bigIntToBuffer,
-  bufferToBigInt,
-  setLengthLeft,
-  toBuffer,
-} from "@nomicfoundation/ethereumjs-util";
-import {
-  Account as RethnetAccount,
   BlockConfig,
   BlockHeader as RethnetBlockHeader,
   ExecutionResult,
+  SpecId,
   Transaction,
 } from "rethnet-evm";
 import { fromBigIntLike } from "../../../util/bigint";
+import { HardforkName } from "../../../util/hardforks";
 import { Exit } from "../vm/exit";
 import { RunTxResult } from "../vm/vm-adapter";
 
-export class HardhatDB {
-  private _stateManager: StateManager;
-  private _blockchain: BlockchainInterface | undefined;
-
-  constructor(
-    stateManager: StateManager,
-    private _getBlockHash: (blockNumber: bigint) => Promise<Buffer>
-  ) {
-    this._stateManager = stateManager;
-  }
-
-  public async commit() {
-    return this._stateManager.commit();
-  }
-
-  public async checkpoint() {
-    return this._stateManager.checkpoint();
-  }
-
-  public async revert() {
-    return this._stateManager.revert();
-  }
-
-  public async getAccountByAddress(address: Buffer) {
-    return this._stateManager.getAccount(new Address(address));
-  }
-
-  public async getAccountStorageSlot(address: Buffer, index: bigint) {
-    const key = setLengthLeft(bigIntToBuffer(index), 32);
-    let data = await this._stateManager.getContractStorage(
-      new Address(address),
-      key
-    );
-
-    const EXPECTED_DATA_SIZE = 32;
-    if (data.length < EXPECTED_DATA_SIZE) {
-      data = Buffer.concat(
-        [Buffer.alloc(EXPECTED_DATA_SIZE - data.length, 0), data],
-        EXPECTED_DATA_SIZE
-      );
-    }
-
-    return bufferToBigInt(data);
-  }
-
-  public async getBlockHash(blockNumber: bigint) {
-    return this._getBlockHash(blockNumber);
-  }
-
-  public async getCodeByHash(codeHash: Buffer) {
-    if (this._stateManager instanceof DefaultStateManager) {
-      // eslint-disable-next-line @typescript-eslint/dot-notation
-      const db = this._stateManager._trie["_db"];
-      const code = await db.get(Buffer.concat([Buffer.from("c"), codeHash]));
-
-      if (code === null) {
-        // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
-        throw new Error("returning null in getCodeByHash is not supported");
-      }
-
-      return code;
-    }
-
-    // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
-    throw new Error("getCodeByHash not implemented for ForkStateManager");
-  }
-
-  public async getStorageRoot() {
-    return this._stateManager.getStateRoot();
-  }
-
-  public async insertAccount(
-    address: Buffer,
-    account: RethnetAccount
-  ): Promise<void> {
-    return this._stateManager.putAccount(
-      new Address(address),
-      new Account(account.nonce, account.balance, undefined, account.codeHash)
-    );
-  }
-
-  public async setAccountBalance(address: Buffer, balance: bigint) {
-    return this._stateManager.modifyAccountFields(new Address(address), {
-      balance,
-    });
-  }
-
-  public async setAccountCode(address: Buffer, code: Buffer) {
-    return this._stateManager.putContractCode(new Address(address), code);
-  }
-
-  public async setAccountNonce(address: Buffer, nonce: bigint) {
-    return this._stateManager.modifyAccountFields(new Address(address), {
-      nonce,
-    });
-  }
-
-  public async setAccountStorageSlot(
-    address: Buffer,
-    index: bigint,
-    value: bigint
-  ) {
-    return this._stateManager.putContractStorage(
-      new Address(address),
-      setLengthLeft(bigIntToBuffer(index), 32),
-      setLengthLeft(bigIntToBuffer(value), 32)
-    );
-  }
-}
+/* eslint-disable @nomiclabs/hardhat-internal-rules/only-hardhat-error */
 
 export function ethereumjsBlockHeaderToRethnet(
   blockHeader: EthereumJSBlockHeader
@@ -162,6 +43,46 @@ export function ethereumjsBlockHeaderToRethnet(
     nonce: BigInt(`0x${blockHeader.nonce.toString("hex")}`),
     baseFeePerGas: blockHeader.baseFeePerGas,
   };
+}
+
+export function ethereumsjsHardforkToRethnet(hardfork: HardforkName): SpecId {
+  switch (hardfork) {
+    case HardforkName.FRONTIER:
+      return SpecId.Frontier;
+    case HardforkName.HOMESTEAD:
+      return SpecId.Homestead;
+    case HardforkName.DAO:
+      return SpecId.DaoFork;
+    case HardforkName.TANGERINE_WHISTLE:
+      return SpecId.Tangerine;
+    case HardforkName.SPURIOUS_DRAGON:
+      return SpecId.SpuriousDragon;
+    case HardforkName.BYZANTIUM:
+      return SpecId.Byzantium;
+    case HardforkName.CONSTANTINOPLE:
+      return SpecId.Constantinople;
+    case HardforkName.PETERSBURG:
+      return SpecId.Petersburg;
+    case HardforkName.ISTANBUL:
+      return SpecId.Istanbul;
+    case HardforkName.MUIR_GLACIER:
+      return SpecId.MuirGlacier;
+    case HardforkName.BERLIN:
+      return SpecId.Berlin;
+    case HardforkName.LONDON:
+      return SpecId.London;
+    case HardforkName.ARROW_GLACIER:
+      return SpecId.ArrowGlacier;
+    case HardforkName.GRAY_GLACIER:
+      return SpecId.GrayGlacier;
+    case HardforkName.MERGE:
+      return SpecId.Merge;
+    default:
+      const _exhaustiveCheck: never = hardfork;
+      throw new Error(
+        `Unknown hardfork name '${hardfork as string}', this shouldn't happen`
+      );
+  }
 }
 
 export function ethereumjsHeaderDataToRethnet(

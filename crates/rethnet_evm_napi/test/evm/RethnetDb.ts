@@ -7,6 +7,7 @@ import {
   BlockConfig,
   Config,
   Rethnet,
+  SpecId,
   StateManager,
   Transaction,
 } from "../..";
@@ -24,14 +25,17 @@ describe("Rethnet", () => {
   let rethnet: Rethnet;
 
   beforeEach(async function () {
-    (blockchain = new Blockchain(async function (
+    blockchain = new Blockchain(async function (
       _blockNumber: bigint
     ): Promise<Buffer> {
       return Buffer.allocUnsafe(0);
-    })),
-      (stateManager = new StateManager());
+    });
+
+    stateManager = new StateManager();
+
     const cfg: Config = {
       chainId: BigInt(0),
+      specId: SpecId.GrayGlacier,
       limitContractCodeSize: BigInt(2n) ** BigInt(32n),
       disableEip3607: true,
     };

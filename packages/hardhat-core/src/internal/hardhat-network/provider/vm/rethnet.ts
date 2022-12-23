@@ -7,6 +7,7 @@ import { NodeConfig } from "../node-types";
 import {
   ethereumjsHeaderDataToRethnet,
   ethereumjsTransactionToRethnet,
+  ethereumsjsHardforkToRethnet,
   rethnetResultToRunTxResult,
 } from "../utils/convertToRethnet";
 import { hardforkGte, HardforkName } from "../../../util/hardforks";
@@ -43,6 +44,7 @@ export class RethnetAdapter implements VMAdapter {
 
     const rethnet = new Rethnet(blockchain, state.asInner(), {
       chainId: BigInt(config.chainId),
+      specId: ethereumsjsHardforkToRethnet(config.hardfork as HardforkName),
       limitContractCodeSize,
       disableBlockGasLimit: true,
       disableEip3607: true,

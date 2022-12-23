@@ -12,7 +12,10 @@ use std::{fmt::Debug, str::FromStr};
 
 use block::BlockConfig;
 use blockchain::Blockchain;
-use napi::{bindgen_prelude::*, Status};
+use napi::{
+    bindgen_prelude::{BigInt, Buffer, ToNapiValue},
+    Status,
+};
 use napi_derive::napi;
 use once_cell::sync::OnceCell;
 use rethnet_eth::Address;
@@ -349,11 +352,15 @@ impl Rethnet {
         &self,
         transaction: Transaction,
         block: BlockConfig,
-    ) -> Result<TransactionResult> {
+    ) -> napi::Result<TransactionResult> {
         let transaction = transaction.try_into()?;
         let block = block.try_into()?;
 
-        self.runtime.dry_run(transaction, block).await.try_into()
+        self.runtime
+            .dry_run(transaction, block)
+            .await
+            .map_err(|e| napi::Error::new(Status::GenericFailure, e.to_string()))?
+            .try_into()
     }
 
     #[napi]
@@ -361,13 +368,14 @@ impl Rethnet {
         &self,
         transaction: Transaction,
         block: BlockConfig,
-    ) -> Result<TransactionResult> {
+    ) -> napi::Result<TransactionResult> {
         let transaction = transaction.try_into()?;
         let block = block.try_into()?;
 
         self.runtime
             .guaranteed_dry_run(transaction, block)
-            .await?
+            .await
+            .map_err(|e| napi::Error::new(Status::GenericFailure, e.to_string()))?
             .try_into()
     }
 
@@ -376,10 +384,14 @@ impl Rethnet {
         &self,
         transaction: Transaction,
         block: BlockConfig,
-    ) -> Result<ExecutionResult> {
+    ) -> napi::Result<ExecutionResult> {
         let transaction: TxEnv = transaction.try_into()?;
         let block = block.try_into()?;
 
-        self.runtime.run(transaction, block).await.try_into()
+        self.runtime
+            .run(transaction, block)
+            .await
+            .map_err(|e| napi::Error::new(Status::GenericFailure, e.to_string()))?
+            .try_into()
     }
 }
