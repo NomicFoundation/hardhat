@@ -1,7 +1,7 @@
 import { expect } from "chai";
 import { Address, KECCAK256_NULL } from "@nomicfoundation/ethereumjs-util";
 
-import { Account, AccountData, Config, StateManager, Transaction } from "../..";
+import { AccountData, StateManager } from "../..";
 
 describe("State Manager", () => {
   const caller = Address.fromString(

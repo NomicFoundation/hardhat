@@ -10,7 +10,10 @@ pub trait DatabaseDebug {
     /// The database's error type.
     type Error;
 
-    /// Inserts an account with the specified `address`.
+    /// Retrieves the storage root of the account at the specified address.
+    fn account_storage_root(&mut self, address: &Address) -> Result<Option<B256>, Self::Error>;
+
+    /// Inserts an account with the specified address.
     fn insert_account(
         &mut self,
         address: Address,

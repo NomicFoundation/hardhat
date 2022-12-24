@@ -375,11 +375,10 @@ function assertEqualAccounts(
     throw new Error("Different nonce");
   }
 
-  // TODO: Add storageRoot to Rethnet
-  // if (ethereumJSAccount.storageRoot !== rethnetAccount.storageRoot) {
-  //   console.trace(
-  //     `Different storageRoot: ${ethereumJSAccount.storageRoot} !== ${rethnetAccount.storageRoot}`
-  //   );
-  //   throw new Error("Different storageRoot");
-  // }
+  if (!ethereumJSAccount.storageRoot.equals(rethnetAccount.storageRoot)) {
+    console.trace(
+      `Different storageRoot: ${ethereumJSAccount.storageRoot} !== ${rethnetAccount.storageRoot}`
+    );
+    throw new Error("Different storageRoot");
+  }
 }

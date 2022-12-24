@@ -16,6 +16,10 @@ where
         address: Address,
         sender: oneshot::Sender<Result<Option<AccountInfo>, E>>,
     },
+    AccountStorageRoot {
+        address: Address,
+        sender: oneshot::Sender<Result<Option<B256>, E>>,
+    },
     Checkpoint {
         sender: oneshot::Sender<Result<(), E>>,
     },
@@ -84,6 +88,9 @@ where
             Request::AccountByAddress { address, sender } => {
                 sender.send(db.basic(address)).unwrap()
             }
+            Request::AccountStorageRoot { address, sender } => {
+                sender.send(db.account_storage_root(&address)).unwrap()
+            }
             Request::Checkpoint { sender } => sender.send(db.checkpoint()).unwrap(),
             Request::CodeByHash { code_hash, sender } => {
                 sender.send(db.code_by_hash(code_hash)).unwrap()
@@ -144,6 +151,11 @@ where
         match self {
             Self::AccountByAddress { address, sender } => f
                 .debug_struct("AccountByAddress")
+                .field("address", address)
+                .field("sender", sender)
+                .finish(),
+            Self::AccountStorageRoot { address, sender } => f
+                .debug_struct("AccountStorageRoot")
                 .field("address", address)
                 .field("sender", sender)
                 .finish(),

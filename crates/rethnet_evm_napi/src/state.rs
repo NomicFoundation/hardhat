@@ -112,6 +112,17 @@ impl StateManager {
         )
     }
 
+    /// Retrieves the storage root of the account at the specified address.
+    #[napi]
+    pub async fn get_account_storage_root(&self, address: Buffer) -> napi::Result<Option<Buffer>> {
+        let address = Address::from_slice(&address);
+
+        self.db.account_storage_root(&address).await.map_or_else(
+            |e| Err(napi::Error::new(Status::GenericFailure, e.to_string())),
+            |root| Ok(root.map(|root| Buffer::from(root.as_ref()))),
+        )
+    }
+
     #[napi]
     pub async fn get_account_storage_slot(
         &self,
