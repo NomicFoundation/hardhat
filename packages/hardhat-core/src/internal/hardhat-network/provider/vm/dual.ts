@@ -346,6 +346,13 @@ function assertEqualRunTxResults(
       throw new Error("Different returnValue");
     }
   }
+
+  if (!ethereumJSResult.bloom.equals(rethnetResult.bloom)) {
+    console.trace(
+      `Different bloom: ${ethereumJSResult.bloom} !== ${rethnetResult.bloom}`
+    );
+    throw new Error("Different bloom");
+  }
 }
 
 function assertEqualAccounts(

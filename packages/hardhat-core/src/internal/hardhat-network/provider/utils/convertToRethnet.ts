@@ -12,6 +12,7 @@ import {
   BlockConfig,
   BlockHeader as RethnetBlockHeader,
   ExecutionResult,
+  Log,
   SpecId,
   Transaction,
 } from "rethnet-evm";
@@ -19,6 +20,7 @@ import { fromBigIntLike } from "../../../util/bigint";
 import { HardforkName } from "../../../util/hardforks";
 import { Exit } from "../vm/exit";
 import { RunTxResult } from "../vm/vm-adapter";
+import { Bloom } from "./bloom";
 
 /* eslint-disable @nomiclabs/hardhat-internal-rules/only-hardhat-error */
 
@@ -137,6 +139,17 @@ export function ethereumjsTransactionToRethnet(
   return rethnetTx;
 }
 
+function rethnetLogsToBloom(logs: Log[]): Bloom {
+  const bloom = new Bloom();
+  for (const log of logs) {
+    bloom.add(log.address);
+    for (const topic of log.topics) {
+      bloom.add(topic);
+    }
+  }
+  return bloom;
+}
+
 export function rethnetResultToRunTxResult(
   rethnetResult: ExecutionResult
 ): RunTxResult {
@@ -153,10 +166,7 @@ export function rethnetResultToRunTxResult(
         : undefined,
     exit: vmError,
     returnValue: rethnetResult.output.output ?? Buffer.from([]),
-    get bloom(): any {
-      console.trace("bloom not implemented");
-      return process.exit(1);
-    },
+    bloom: rethnetLogsToBloom(rethnetResult.logs),
     get receipt(): any {
       console.trace("receipt not implemented");
       return process.exit(1);
