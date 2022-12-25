@@ -1,4 +1,4 @@
-name: Hardhat Network Tracing Capabilities, scheduled runs for all solc verisons
+name: Hardhat Network Tracing Capabilities, scheduled runs for all solc versions
 
 on:
   schedule:
