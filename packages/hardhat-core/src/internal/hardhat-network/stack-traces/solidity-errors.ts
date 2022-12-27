@@ -271,16 +271,9 @@ function getMessageFromLastStackTraceEntry(
       }
 
       if (!stackTraceEntry.message.isEmpty()) {
-        const selector = stackTraceEntry.message.getSelector();
+        const returnData = stackTraceEntry.message.value.toString("hex");
 
-        if (selector !== undefined) {
-          return `VM Exception while processing transaction: reverted with an unrecognized custom error with selector ${selector}`;
-        }
-
-        // this should only happen when the transaction has return data but it
-        // has less than 4 bytes, which should be a very uncommon scenario
-        const rawReturnData = stackTraceEntry.message.value.toString("hex");
-        return `VM Exception while processing transaction: reverted with return data ${rawReturnData}`;
+        return `VM Exception while processing transaction: reverted with an unrecognized custom error (return data: 0x${returnData})`;
       }
 
       if (stackTraceEntry.isInvalidOpcodeError) {
