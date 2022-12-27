@@ -45,7 +45,7 @@ To learn more about tasks, please read [this guide](../advanced/create-task).
 
 You can write scripts and run them with Hardhat. They can take advantage of the [Hardhat Runtime Environment](../advanced/hardhat-runtime-environment.md) to access all of Hardhat's functionality, including the task runner.
 
-Here's a script that does the same as our `accounts` task. Create an `accounts.js` file with this content:
+Here's a script that does the same as our `accounts` task. Create an `accounts.js` file in the `scripts` directory with this content:
 
 ```js
 async function main() {
@@ -58,14 +58,14 @@ async function main() {
 
 main().catch((error) => {
   console.error(error);
-  process.exit(1);
+  process.exitCode = 1;
 });
 ```
 
 And run it using the built-in `run` task:
 
 ```
-npx hardhat run accounts.js
+npx hardhat run scripts/accounts.js
 ```
 
 Note that we are using `ethers` without importing it. This is possible because everything that is available in the Hardhat Runtime Environment is also globally available in the script.
