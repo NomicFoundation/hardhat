@@ -21,6 +21,8 @@ import { RunTxResult, Trace, TracingCallbacks, VMAdapter } from "./vm-adapter";
 /* eslint-disable @typescript-eslint/no-unused-vars */
 
 export class RethnetAdapter implements VMAdapter {
+  private _tracingCallbacks: TracingCallbacks | undefined;
+
   constructor(
     private _blockchain: Blockchain,
     private _state: RethnetStateManager,
@@ -291,14 +293,56 @@ export class RethnetAdapter implements VMAdapter {
    * Start tracing the VM execution with the given callbacks.
    */
   public enableTracing(callbacks: TracingCallbacks): void {
-    throw new Error("not implemented");
+    this._tracingCallbacks = callbacks;
+
+    const emitBeforeMessage = () => {
+      if (this._tracingCallbacks !== undefined) {
+        // eslint-disable-next-line @typescript-eslint/no-floating-promises
+        this._tracingCallbacks.beforeMessage(
+          {
+            data: Buffer.from([1, 2, 3]),
+          } as any,
+          () => {}
+        );
+      }
+    };
+
+    const emitStep = () => {
+      if (this._tracingCallbacks !== undefined) {
+        // eslint-disable-next-line @typescript-eslint/no-floating-promises
+        this._tracingCallbacks.step(
+          {
+            pc: 0n,
+          },
+          () => {}
+        );
+      }
+    };
+
+    const emitAfterMessage = () => {
+      if (this._tracingCallbacks !== undefined) {
+        // eslint-disable-next-line @typescript-eslint/no-floating-promises
+        this._tracingCallbacks.afterMessage(
+          {
+            executionResult: {
+              exitCode: 0,
+            } as any,
+          },
+          () => {}
+        );
+      }
+    };
+
+    setInterval(emitBeforeMessage, 100);
+    setInterval(emitStep, 100);
+    setInterval(emitAfterMessage, 100);
   }
 
   /**
    * Stop tracing the execution.
    */
   public disableTracing(): void {
-    throw new Error("not implemented");
+    this._tracingCallbacks = undefined;
   }
 
   public async makeSnapshot(): Promise<Buffer> {
@@ -340,4 +384,25 @@ export class RethnetAdapter implements VMAdapter {
 
     return undefined;
   }
+
+  private _beforeMessageHandler = (message: Message, next: any) => {
+    if (this._tracingCallbacks !== undefined) {
+    }
+
+    next();
+  };
+
+  private _stepHandler = (step: InterpreterStep, next: any) => {
+    if (this._tracingCallbacks !== undefined) {
+    }
+
+    next();
+  };
+
+  private _afterMessageHandler = (result: EVMResult, next: any) => {
+    if (this._tracingCallbacks !== undefined) {
+    }
+
+    next();
+  };
 }

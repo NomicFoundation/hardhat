@@ -7,6 +7,7 @@ import {
   Address,
   bufferToHex,
 } from "@nomicfoundation/ethereumjs-util";
+import { TracingMessage, TracingMessageResult, TracingStep } from "rethnet-evm";
 
 import { assertHardhatInvariant } from "../../../core/errors";
 import { RpcDebugTracingConfig } from "../../../core/jsonrpc/types/input/debugTraceTransaction";
@@ -36,6 +37,8 @@ function printRethnetTrace(trace: any) {
 }
 
 export class DualModeAdapter implements VMAdapter {
+  private _tracingCallbacks: TracingCallbacks | undefined;
+
   constructor(
     private _ethereumJSAdapter: VMAdapter,
     private _rethnetAdapter: VMAdapter
@@ -73,14 +76,20 @@ export class DualModeAdapter implements VMAdapter {
     blockContext: Block,
     forceBaseFeeZero?: boolean
   ): Promise<[RunTxResult, Trace]> {
-    const [ethereumJSResult, ethereumJSTrace] =
-      await this._ethereumJSAdapter.dryRun(tx, blockContext, forceBaseFeeZero);
-
-    const [rethnetResult, rethnetTrace] = await this._rethnetAdapter.dryRun(
+    const ethereumJSResultPromise = this._ethereumJSAdapter.dryRun(
       tx,
       blockContext,
       forceBaseFeeZero
     );
+
+    const rethnetResultPromise = this._rethnetAdapter.dryRun(
+      tx,
+      blockContext,
+      forceBaseFeeZero
+    );
+
+    const [[ethereumJSResult, ethereumJSTrace], [rethnetResult, rethnetTrace]] =
+      await Promise.all([ethereumJSResultPromise, rethnetResultPromise]);
 
     try {
       assertEqualRunTxResults(ethereumJSResult, rethnetResult);
@@ -212,11 +221,26 @@ export class DualModeAdapter implements VMAdapter {
   }
 
   public enableTracing(callbacks: TracingCallbacks): void {
-    return this._ethereumJSAdapter.enableTracing(callbacks);
+    this._tracingCallbacks = callbacks;
+
+    this._ethereumJSAdapter.enableTracing({
+      beforeMessage: this._ethereumJSBeforeMessagehandler,
+      step: this._ethereumJSStepHandler,
+      afterMessage: this._ethereumJSAfterMessageHandler,
+    });
+
+    this._rethnetAdapter.enableTracing({
+      beforeMessage: this._rethnetBeforeMessagehandler,
+      step: this._rethnetStepHandler,
+      afterMessage: this._rethnetAfterMessageHandler,
+    });
   }
 
   public disableTracing(): void {
-    return this._ethereumJSAdapter.disableTracing();
+    this._tracingCallbacks = undefined;
+
+    this._ethereumJSAdapter.disableTracing();
+    this._rethnetAdapter.disableTracing();
   }
 
   public async setBlockContext(
@@ -243,11 +267,15 @@ export class DualModeAdapter implements VMAdapter {
     tx: TypedTransaction,
     block: Block
   ): Promise<[RunTxResult, Trace]> {
-    const [ethereumJSResult, ethereumJSTrace] =
-      await this._ethereumJSAdapter.runTxInBlock(tx, block);
+    const ethereumJSResultPromise = this._ethereumJSAdapter.runTxInBlock(
+      tx,
+      block
+    );
 
-    const [rethnetResult, rethnetTrace] =
-      await this._rethnetAdapter.runTxInBlock(tx, block);
+    const rethnetResultPromise = this._rethnetAdapter.runTxInBlock(tx, block);
+
+    const [[ethereumJSResult, ethereumJSTrace], [rethnetResult, rethnetTrace]] =
+      await Promise.all([ethereumJSResultPromise, rethnetResultPromise]);
 
     try {
       assertEqualRunTxResults(ethereumJSResult, rethnetResult);
@@ -301,6 +329,165 @@ export class DualModeAdapter implements VMAdapter {
 
     return rethnetRoot;
   }
+
+  private _currentBeforeMessage: TracingMessage | undefined;
+  private _currentBeforeMessageNext: any;
+  private _currentStep: TracingStep | undefined;
+  private _currentStepNext: any;
+  private _currentMessageResult: TracingMessageResult | undefined;
+  private _currentMessageResultNext: any;
+
+  private _ethereumJSBeforeMessagehandler = async (
+    message: TracingMessage,
+    next: any
+  ) => {
+    return this._beforeMessageHandler(message, next, true);
+  };
+
+  private _rethnetBeforeMessagehandler = async (
+    message: TracingMessage,
+    next: any
+  ) => {
+    return this._beforeMessageHandler(message, next, false);
+  };
+
+  private _beforeMessageHandler = async (
+    message: TracingMessage,
+    next: any,
+    isEthJS: boolean
+  ) => {
+    if (this._tracingCallbacks === undefined) {
+      return next();
+    }
+
+    if (this._currentBeforeMessage === undefined) {
+      // this method executed first, save results
+      this._currentBeforeMessage = message;
+      this._currentBeforeMessageNext = next;
+    } else {
+      // this method executed second, compare results
+      if (!message.data.equals(this._currentBeforeMessage.data)) {
+        const current = isEthJS ? "ethereumjs" : "rethnet";
+        const previous = isEthJS ? "rethnet" : "ethereumjs";
+        const errorMessage = `Different data in before message handler, ${current}: '${message.data.toString(
+          "hex"
+        )}', ${previous}: '${this._currentBeforeMessage.data.toString("hex")}'`;
+
+        // both log and send the error, because the error message sometimes is
+        // swallowed by the tests
+        console.log("==========>", errorMessage);
+        next(new Error(errorMessage));
+      }
+
+      // continue the execution of the other adapter
+      this._currentBeforeMessageNext();
+
+      // clean the state
+      this._currentBeforeMessage = undefined;
+      this._currentBeforeMessageNext = undefined;
+
+      return this._tracingCallbacks.beforeMessage(message, next);
+    }
+  };
+
+  private _ethereumJSStepHandler = async (step: TracingStep, next: any) => {
+    return this._stepHandler(step, next, true);
+  };
+
+  private _rethnetStepHandler = async (step: TracingStep, next: any) => {
+    return this._stepHandler(step, next, false);
+  };
+
+  private _stepHandler = async (
+    step: TracingStep,
+    next: any,
+    isEthJS: boolean
+  ) => {
+    if (this._tracingCallbacks === undefined) {
+      return next();
+    }
+
+    if (this._currentStep === undefined) {
+      // this method executed first, save results
+      this._currentStep = step;
+      this._currentStepNext = next;
+    } else {
+      // this method executed second, compare results
+      if (step.pc !== this._currentStep.pc) {
+        const current = isEthJS ? "ethereumjs" : "rethnet";
+        const previous = isEthJS ? "rethnet" : "ethereumjs";
+        const errorMessage = `Different pc in step handler, ${current}: '${step.pc}', ${previous}: '${this._currentStep.pc}'`;
+
+        // both log and send the error, because the error message sometimes is
+        // swallowed by the tests
+        console.log("==========>", errorMessage);
+        next(new Error(errorMessage));
+      }
+
+      // continue the execution of the other adapter
+      this._currentStepNext();
+
+      // clean the state
+      this._currentStep = undefined;
+      this._currentStepNext = undefined;
+
+      return this._tracingCallbacks.step(step, next);
+    }
+  };
+
+  private _ethereumJSAfterMessageHandler = async (
+    result: TracingMessageResult,
+    next: any
+  ) => {
+    return this._afterMessageHandler(result, next, true);
+  };
+
+  private _rethnetAfterMessageHandler = async (
+    result: TracingMessageResult,
+    next: any
+  ) => {
+    return this._afterMessageHandler(result, next, false);
+  };
+
+  private _afterMessageHandler = async (
+    result: TracingMessageResult,
+    next: any,
+    isEthJS: boolean
+  ) => {
+    if (this._tracingCallbacks === undefined) {
+      return next();
+    }
+
+    if (this._currentMessageResult === undefined) {
+      // this method executed first, save results
+      this._currentMessageResult = result;
+      this._currentMessageResultNext = next;
+    } else {
+      // this method executed second, compare results
+      if (
+        result.executionResult.exitCode !==
+        this._currentMessageResult.executionResult.exitCode
+      ) {
+        const current = isEthJS ? "ethereumjs" : "rethnet";
+        const previous = isEthJS ? "rethnet" : "ethereumjs";
+        const errorMessage = `Different exit codes in after message handler, ${current}: '${result.executionResult.exitCode}', ${previous}: '${this._currentMessageResult.executionResult.exitCode}'`;
+
+        // both log and send the error, because the error message sometimes is
+        // swallowed by the tests
+        console.log("==========>", errorMessage);
+        next(new Error(errorMessage));
+      }
+
+      // continue the execution of the other adapter
+      this._currentMessageResultNext();
+
+      // clean the state
+      this._currentMessageResult = undefined;
+      this._currentMessageResultNext = undefined;
+
+      return this._tracingCallbacks.afterMessage(result, next);
+    }
+  };
 }
 
 function assertEqualRunTxResults(
