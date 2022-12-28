@@ -1,5 +1,6 @@
 import { Block } from "@nomicfoundation/ethereumjs-block";
 import { Common } from "@nomicfoundation/ethereumjs-common";
+import { Log } from "@nomicfoundation/ethereumjs-evm";
 import { TypedTransaction } from "@nomicfoundation/ethereumjs-tx";
 import {
   Account,
@@ -352,6 +353,70 @@ function assertEqualRunTxResults(
       `Different bloom: ${ethereumJSResult.bloom} !== ${rethnetResult.bloom}`
     );
     throw new Error("Different bloom");
+  }
+
+  if (
+    !ethereumJSResult.receipt.bitvector.equals(rethnetResult.receipt.bitvector)
+  ) {
+    console.trace(
+      `Different receipt bitvector: ${ethereumJSResult.receipt.bitvector} !== ${rethnetResult.receipt.bitvector}`
+    );
+    throw new Error("Different receipt bitvector");
+  }
+
+  if (
+    ethereumJSResult.receipt.cumulativeBlockGasUsed !==
+    rethnetResult.receipt.cumulativeBlockGasUsed
+  ) {
+    console.trace(
+      `Different receipt cumulativeBlockGasUsed: ${ethereumJSResult.receipt.cumulativeBlockGasUsed} !== ${rethnetResult.receipt.cumulativeBlockGasUsed}`
+    );
+    throw new Error("Different receipt cumulativeBlockGasUsed");
+  }
+
+  assertEqualLogs(ethereumJSResult.receipt.logs, rethnetResult.receipt.logs);
+}
+
+function assertEqualLogs(ethereumJSLogs: Log[], rethnetLogs: Log[]) {
+  if (ethereumJSLogs.length !== rethnetLogs.length) {
+    console.trace(
+      `Different logs length: ${ethereumJSLogs.length} !== ${rethnetLogs.length}`
+    );
+    throw new Error("Different logs length");
+  }
+
+  for (let logIdx = 0; logIdx < ethereumJSLogs.length; ++logIdx) {
+    if (!ethereumJSLogs[logIdx][0].equals(rethnetLogs[logIdx][0])) {
+      console.trace(
+        `Different log[${logIdx}] address: ${ethereumJSLogs[logIdx][0]} !== ${rethnetLogs[logIdx][0]}`
+      );
+      throw new Error("Different log address");
+    }
+
+    const ethereumJSTopics = ethereumJSLogs[logIdx][1];
+    const rethnetTopics = rethnetLogs[logIdx][1];
+    if (ethereumJSTopics.length !== rethnetTopics.length) {
+      console.trace(
+        `Different log[${logIdx}] topics length: ${ethereumJSTopics.length} !== ${rethnetTopics.length}`
+      );
+      throw new Error("Different log topics length");
+    }
+
+    for (let topicIdx = 0; topicIdx < ethereumJSTopics.length; ++topicIdx) {
+      if (!ethereumJSTopics[topicIdx].equals(rethnetTopics[topicIdx])) {
+        console.trace(
+          `Different log[${logIdx}] topic[${topicIdx}]: ${ethereumJSTopics[topicIdx]} !== ${rethnetTopics[topicIdx]}`
+        );
+        throw new Error("Different log topic");
+      }
+    }
+
+    if (!ethereumJSLogs[logIdx][2].equals(rethnetLogs[logIdx][2])) {
+      console.trace(
+        `Different log[${logIdx}] data: ${ethereumJSLogs[logIdx][2]} !== ${rethnetLogs[logIdx][2]}`
+      );
+      throw new Error("Different log data");
+    }
   }
 }
 

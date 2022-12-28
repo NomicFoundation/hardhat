@@ -2,6 +2,7 @@ mod access_list;
 mod block;
 mod blockchain;
 mod cast;
+mod receipt;
 mod state;
 mod sync;
 mod threadsafe_function;

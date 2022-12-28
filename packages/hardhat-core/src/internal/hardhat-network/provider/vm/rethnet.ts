@@ -84,7 +84,10 @@ export class RethnetAdapter implements VMAdapter {
     });
 
     try {
-      const result = rethnetResultToRunTxResult(rethnetResult.execResult);
+      const result = rethnetResultToRunTxResult(
+        rethnetResult.execResult,
+        blockContext.header.gasUsed
+      );
       return [result, rethnetResult.execResult.trace];
     } catch (e) {
       console.log("Rethnet trace");
@@ -209,7 +212,10 @@ export class RethnetAdapter implements VMAdapter {
     );
 
     try {
-      const result = rethnetResultToRunTxResult(rethnetResult);
+      const result = rethnetResultToRunTxResult(
+        rethnetResult,
+        block.header.gasUsed
+      );
       return [result, rethnetResult.trace];
     } catch (e) {
       console.log("Rethnet trace");
