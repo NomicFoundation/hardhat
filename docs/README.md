@@ -102,7 +102,8 @@ We use the plugin `remark-directive` in order to provide tabs functionality.
 
 Parameters are passed in curly braces.
 
-`options-list` - required parameter. Comma separated strings, which is provided in tabs' `value` parameter.  
+`options-list` - required parameter. Comma separated strings, which is provided in tabs' `value` parameter.
+
 `value` - required parameter. It should be provided as an option in `options-list` in `tabsgroup`.
 
 You can use `space` symbol in parameters by wrapping `options/value` in quotes(`""`). Examples: `options="npm 7+,yarn"` / `value="npm 7"`.
