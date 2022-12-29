@@ -20,7 +20,8 @@ function resolveTempFileName(filePath: string): string {
 export async function download(
   url: string,
   filePath: string,
-  timeoutMillis = 10000
+  timeoutMillis = 10000,
+  extraHeaders: { [name: string]: string } = {}
 ) {
   const { pipeline } = await import("stream");
   const { getGlobalDispatcher, ProxyAgent, request } = await import("undici");
@@ -47,6 +48,7 @@ export async function download(
     maxRedirections: 10,
     method: "GET",
     headers: {
+      ...extraHeaders,
       "User-Agent": `hardhat ${hardhatVersion ?? "(unknown version)"}`,
     },
   });
