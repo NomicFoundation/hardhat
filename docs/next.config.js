@@ -18,7 +18,7 @@ const linariaConfig = withLinaria({
          * https://hardhat.org/hardhat-network/explanation/mining-modes
          *
          * We need this to keep the links of the previous version workable.
-         * 
+         *
          * The only exception is the privacy-policy.html file, which we host in
          * public/
          */

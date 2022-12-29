@@ -138,7 +138,7 @@ async function copySampleProject(
       "this file already exists",
       "these files already exist"
     )}: ${existingFiles.join(", ")}
-    
+
 Please delete or move them and try again.`;
     console.log(chalk.red(errorMsg));
     process.exit(1);
