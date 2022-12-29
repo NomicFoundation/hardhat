@@ -1,5 +1,11 @@
 # @nomiclabs/hardhat-vyper
 
+## 3.0.2
+
+### Patch Changes
+
+- 7e81377fc: Fix vyper compiler download timeouts
+
 ## 3.0.1
 
 ### Patch Changes

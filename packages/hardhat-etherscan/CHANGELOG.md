@@ -1,5 +1,11 @@
 # @nomiclabs/hardhat-etherscan
 
+## 3.1.4
+
+### Patch Changes
+
+- fdeba783f: A warning is now shown when there is an etherscan entry in the networks object.
+
 ## 3.1.3
 
 ### Patch Changes
