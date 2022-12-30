@@ -83,6 +83,26 @@ export class CachingSource extends MutableSource implements ArtifactsSource {
     return super._getBuildInfoByPath(buildInfoPath);
   }
 
+  public getBuildInfoSync(fullyQualifiedName: string): BuildInfo | undefined {
+    let buildInfoPath =
+      this._cache?.artifactFQNToBuildInfoPathCache.get(fullyQualifiedName);
+
+    if (buildInfoPath === undefined) {
+      buildInfoPath = super._getBuildInfoPathSync(fullyQualifiedName);
+
+      if (buildInfoPath === undefined) {
+        return undefined;
+      }
+
+      this._cache?.artifactFQNToBuildInfoPathCache.set(
+        fullyQualifiedName,
+        buildInfoPath
+      );
+    }
+
+    return super._getBuildInfoByPathSync(buildInfoPath);
+  }
+
   public async getArtifactPaths(): Promise<string[]> {
     const cached = this._cache?.artifactPaths;
     if (cached !== undefined) {
@@ -220,7 +240,7 @@ export class CachingSource extends MutableSource implements ArtifactsSource {
   }
 
   /**
-   * Sync version of _getArtifactPath
+   * Synchronous version of _getArtifactPath
    */
   protected _getArtifactPathSync(name: string): string | undefined {
     const cached = this._cache?.artifactNameToArtifactPathCache.get(name);

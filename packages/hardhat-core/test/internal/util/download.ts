@@ -49,7 +49,7 @@ describe("Compiler List download with proxy", function () {
     });
 
     // skipping due to an undici bug
-    // see: https://linear.app/nomic-foundation/issue/HH-863/re-enable-proxy-download-tests-when-undici-is-updated
+    // see: https://github.com/NomicFoundation/hardhat/issues/3448
     it.skip("Should call download with the right params", async function () {
       const compilersDir = this.tmpDir;
       const downloadPath = path.join(compilersDir, "downloadedCompilerProxy");
@@ -75,7 +75,7 @@ describe("Compiler List download with proxy", function () {
     });
 
     // skipping due to an undici bug
-    // see: https://linear.app/nomic-foundation/issue/HH-863/re-enable-proxy-download-tests-when-undici-is-updated
+    // see: https://github.com/NomicFoundation/hardhat/issues/3448
     it.skip("Should call download with the right params", async function () {
       const compilersDir = this.tmpDir;
       const downloadPath = path.join(compilersDir, "downloadedCompilerProxy");

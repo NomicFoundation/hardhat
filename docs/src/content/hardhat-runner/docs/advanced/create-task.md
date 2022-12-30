@@ -239,7 +239,7 @@ Hardhat tasks can receive named parameters with a value (eg `--parameter-name pa
 Adding an optional parameter to the `hello` task can look like this:
 
 ```js
-task("hello", "Prints a greeting'")
+task("hello", "Prints a greeting")
   .addOptionalParam("greeting", "The greeting to print", "Hello, World!")
   .setAction(async ({ greeting }) => console.log(greeting));
 ```

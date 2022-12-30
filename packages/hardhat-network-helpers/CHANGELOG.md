@@ -1,5 +1,11 @@
 # @nomicfoundation/hardhat-network-helpers
 
+## 1.0.7
+
+### Patch Changes
+
+- 15b8b61f6: Fixed an error triggered by certain combinations of `loadFixture` calls (#3249, thanks @skosito!)
+
 ## 1.0.6
 
 ### Patch Changes

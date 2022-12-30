@@ -777,7 +777,7 @@ describe("Artifacts class", function () {
       assert.isTrue(artifactPath.endsWith(".json"));
     });
 
-    it("Should be possible to get a build info from a fully qualified name", async function () {
+    it("Should be possible to get a build info from a fully qualified name (async)", async function () {
       const contractName = "Lib";
       const sourceName = "source.sol";
       const output = COMPILER_OUTPUTS.Lib;
@@ -814,7 +814,44 @@ describe("Artifacts class", function () {
       assert.deepEqual(storedBuildInfo?.output, solcOutput);
     });
 
-    it("Trying to get a build info of an artifact that doesn't have one should just return undefined", async function () {
+    it("Should be possible to get a build info from a fully qualified name (sync)", async function () {
+      const contractName = "Lib";
+      const sourceName = "source.sol";
+      const output = COMPILER_OUTPUTS.Lib;
+
+      const artifacts = new Artifacts(this.tmpDir);
+
+      const solcVersion = "0.5.6";
+      const solcLongVersion = "0.5.6+12321";
+      const solcInput = { input: {} } as any;
+      const solcOutput = { sources: {}, contracts: {} } as any;
+
+      const buildInfoPath = await artifacts.saveBuildInfo(
+        solcVersion,
+        solcLongVersion,
+        solcInput,
+        solcOutput
+      );
+
+      const artifact = getArtifactFromContractOutput(
+        sourceName,
+        contractName,
+        output
+      );
+
+      await artifacts.saveArtifactAndDebugFile(artifact, buildInfoPath);
+
+      const storedBuildInfo = artifacts.getBuildInfoSync(
+        getFullyQualifiedName(sourceName, contractName)
+      );
+
+      assert.equal(storedBuildInfo?.solcVersion, solcVersion);
+      assert.equal(storedBuildInfo?.solcLongVersion, solcLongVersion);
+      assert.deepEqual(storedBuildInfo?.input, solcInput);
+      assert.deepEqual(storedBuildInfo?.output, solcOutput);
+    });
+
+    it("Trying to get a build info of an artifact that doesn't have one should just return undefined (async)", async function () {
       const contractName = "Lib";
       const sourceName = "source.sol";
       const output = COMPILER_OUTPUTS.Lib;
@@ -830,6 +867,28 @@ describe("Artifacts class", function () {
       await artifacts.saveArtifactAndDebugFile(artifact);
 
       const storedBuildInfo = await artifacts.getBuildInfo(
+        getFullyQualifiedName(sourceName, contractName)
+      );
+
+      assert.isUndefined(storedBuildInfo);
+    });
+
+    it("Trying to get a build info of an artifact that doesn't have one should just return undefined (sync)", async function () {
+      const contractName = "Lib";
+      const sourceName = "source.sol";
+      const output = COMPILER_OUTPUTS.Lib;
+
+      const artifacts = new Artifacts(this.tmpDir);
+
+      const artifact = getArtifactFromContractOutput(
+        sourceName,
+        contractName,
+        output
+      );
+
+      await artifacts.saveArtifactAndDebugFile(artifact);
+
+      const storedBuildInfo = artifacts.getBuildInfoSync(
         getFullyQualifiedName(sourceName, contractName)
       );
 
@@ -1324,6 +1383,10 @@ describe("Artifacts class", function () {
         return undefined;
       }
 
+      public getBuildInfoSync(): BuildInfo | undefined {
+        return undefined;
+      }
+
       public async getArtifactPaths(): Promise<string[]> {
         return [];
       }
@@ -1551,7 +1614,7 @@ describe("artifacts extensions", function () {
   useFixtureProject("artifacts-extensions");
   useEnvironment();
 
-  it("should read artifacts provided by Hardaht and provided by extensions", async function () {
+  it("should read artifacts provided by Hardhat and provided by extensions", async function () {
     await this.env.run("run", {
       script: "./script.js",
     });

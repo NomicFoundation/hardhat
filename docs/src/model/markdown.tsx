@@ -325,6 +325,17 @@ export const getCommitDate = (fileName: string): string => {
 };
 
 export const getEditLink = (fileName: string): string => {
-  // https://github.com/NomicFoundation/hardhat/edit/main/docs/hardhat-network/guides/forking-other-networks.md
+  // the errors page is a special case because it's auto-generated
+  const errorsFile = path.join(
+    "content",
+    "hardhat-runner",
+    "docs",
+    "errors",
+    "index.md"
+  );
+  if (fileName.endsWith(errorsFile)) {
+    return "https://github.com/NomicFoundation/hardhat/edit/main/packages/hardhat-core/src/internal/core/errors-list.ts";
+  }
+
   return fileName.replace(DOCS_PATH, REPO_URL);
 };

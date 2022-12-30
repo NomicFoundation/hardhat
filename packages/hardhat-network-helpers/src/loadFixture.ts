@@ -14,7 +14,7 @@ interface Snapshot<T> {
   data: T;
 }
 
-const snapshots: Array<Snapshot<any>> = [];
+let snapshots: Array<Snapshot<any>> = [];
 
 /**
  * Useful in tests for setting up the desired state of the network.
@@ -42,6 +42,10 @@ export async function loadFixture<T>(fixture: Fixture<T>): Promise<T> {
   if (snapshot !== undefined) {
     try {
       await snapshot.restorer.restore();
+      snapshots = snapshots.filter(
+        (s) =>
+          Number(s.restorer.snapshotId) <= Number(snapshot.restorer.snapshotId)
+      );
     } catch (e) {
       if (e instanceof InvalidSnapshotError) {
         throw new FixtureSnapshotError(e);

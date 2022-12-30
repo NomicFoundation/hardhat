@@ -110,6 +110,21 @@ export class Artifacts implements IArtifacts {
     return buildInfo;
   }
 
+  public getBuildInfoSync(fullyQualifiedName: string): BuildInfo | undefined {
+    let buildInfo = this._hardhatSource.getBuildInfoSync(fullyQualifiedName);
+
+    if (buildInfo === undefined) {
+      const buildInfos: Array<BuildInfo | undefined> =
+        this._extensionSources.map((source) =>
+          source.getBuildInfoSync(fullyQualifiedName)
+        );
+
+      buildInfo = buildInfos.find((info) => info !== undefined);
+    }
+
+    return buildInfo;
+  }
+
   public async getArtifactPaths(): Promise<string[]> {
     return (
       await Promise.all(

@@ -143,7 +143,7 @@ export class AutomaticGasPriceProvider extends ProviderWrapper {
     3n;
 
   // See eth_feeHistory for an explanation of what this means
-  public static readonly EIP1559_REWARD_PERCENTILE: bigint = 50n;
+  public static readonly EIP1559_REWARD_PERCENTILE = 50;
 
   private _nodeHasFeeHistory?: boolean;
   private _nodeSupportsEIP1559?: boolean;

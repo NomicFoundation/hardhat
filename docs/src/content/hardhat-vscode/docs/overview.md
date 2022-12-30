@@ -65,7 +65,7 @@ Rename the identifier under the cursor and all of its references:
 
 Apply solidity formatting to the current document.
 
-The formatting configuration can be overriden through a `.prettierrc` file, see [Formatting Configuration](./formatting.md#formatting-configuration).
+The formatting configuration can be overridden through a `.prettierrc` file, see [Formatting Configuration](./formatting.md#formatting-configuration).
 
 ![Reformat](/hardhat-vscode-images/format.gif "Reformat")
 

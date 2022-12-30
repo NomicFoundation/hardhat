@@ -47,6 +47,12 @@ class ReadOnlyByPath {
     return fsExtra.readJSON(buildInfoPath);
   }
 
+  protected _getBuildInfoByPathSync(
+    buildInfoPath: string
+  ): BuildInfo | undefined {
+    return fsExtra.readJSONSync(buildInfoPath);
+  }
+
   /**
    * Given the path to a debug file, returns the absolute path to its
    * corresponding build info file if it exists, or undefined otherwise.
@@ -56,6 +62,20 @@ class ReadOnlyByPath {
   ): Promise<string | undefined> {
     if (await fsExtra.pathExists(debugFilePath)) {
       const { buildInfo } = await fsExtra.readJson(debugFilePath);
+      return path.resolve(path.dirname(debugFilePath), buildInfo);
+    }
+
+    return undefined;
+  }
+
+  /**
+   * Synchronous version of _getBuildInfoFromDebugFile
+   */
+  protected static _getBuildInfoFromDebugFileSync(
+    debugFilePath: string
+  ): string | undefined {
+    if (fsExtra.pathExistsSync(debugFilePath)) {
+      const { buildInfo } = fsExtra.readJsonSync(debugFilePath);
       return path.resolve(path.dirname(debugFilePath), buildInfo);
     }
 
@@ -320,6 +340,18 @@ export class ReadOnlySource extends ReadOnlyByPath {
     const buildInfoPath = await ReadOnlySource._getBuildInfoFromDebugFile(
       debugFilePath
     );
+    return buildInfoPath;
+  }
+
+  protected _getBuildInfoPathSync(
+    fullyQualifiedName: string
+  ): string | undefined {
+    const artifactPath =
+      this.formArtifactPathFromFullyQualifiedName(fullyQualifiedName);
+
+    const debugFilePath = this._getDebugFilePath(artifactPath);
+    const buildInfoPath =
+      ReadOnlySource._getBuildInfoFromDebugFileSync(debugFilePath);
     return buildInfoPath;
   }
 

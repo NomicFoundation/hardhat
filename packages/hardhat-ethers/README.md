@@ -54,6 +54,8 @@ interface FactoryOptions {
   libraries?: Libraries;
 }
 
+function deployContract(name: string, constructorArgs?: any[], signer?: ethers.Signer): Promise<ethers.Contract>;
+
 function getContractFactory(name: string, signer?: ethers.Signer): Promise<ethers.ContractFactory>;
 
 function getContractFactory(name: string, factoryOptions: FactoryOptions): Promise<ethers.ContractFactory>;

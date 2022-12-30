@@ -24,7 +24,8 @@ export class TruffleEnvironmentArtifacts {
 
   public contractWasLinked(Contract: TruffleContract) {
     try {
-      if (Contract.binary.includes("__")) {
+      const contractBinary: string = Contract.binary;
+      if (contractBinary.includes("__")) {
         return false;
       }
     } catch {
