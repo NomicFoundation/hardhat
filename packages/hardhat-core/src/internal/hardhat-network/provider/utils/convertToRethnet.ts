@@ -151,12 +151,15 @@ function rethnetLogsToBloom(logs: Log[]): Bloom {
 }
 
 export function rethnetResultToRunTxResult(
-  rethnetResult: ExecutionResult
+  rethnetResult: ExecutionResult,
+  blockGasUsed: bigint
 ): RunTxResult {
   const vmError = Exit.fromRethnetExitCode(rethnetResult.exitCode);
   // We return an object with only the properties that are used by Hardhat.
   // To be extra sure that the other properties are not used, we add getters
   // that exit the process if accessed.
+
+  const bloom = rethnetLogsToBloom(rethnetResult.logs);
 
   return {
     gasUsed: rethnetResult.gasUsed,
@@ -166,10 +169,15 @@ export function rethnetResultToRunTxResult(
         : undefined,
     exit: vmError,
     returnValue: rethnetResult.output.output ?? Buffer.from([]),
-    bloom: rethnetLogsToBloom(rethnetResult.logs),
-    get receipt(): any {
-      console.trace("receipt not implemented");
-      return process.exit(1);
+    bloom,
+    receipt: {
+      // Receipts have a 0 as status on error
+      status: vmError.isError() ? 0 : 1,
+      cumulativeBlockGasUsed: blockGasUsed + rethnetResult.gasUsed,
+      bitvector: bloom.bitvector,
+      logs: rethnetResult.logs.map((log) => {
+        return [log.address, log.topics, log.data];
+      }),
     },
   };
 }
