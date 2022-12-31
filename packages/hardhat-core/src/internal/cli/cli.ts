@@ -52,11 +52,25 @@ const log = debug("hardhat:core:cli");
 const ANALYTICS_SLOW_TASK_THRESHOLD = 300;
 const SHOULD_SHOW_STACK_TRACES_BY_DEFAULT = isRunningOnCiServer();
 
+const LTS_VERSIONS = ["^14.0.0", "^16.0.0", "^18.0.0"]
+
 async function printVersionMessage(packageJson: PackageJson) {
   console.log(packageJson.version);
 }
 
 function printWarningAboutNodeJsVersionIfNecessary(packageJson: PackageJson) {
+  if (!semver.satisfies(process.version, LTS_VERSIONS.join(" || "))) {
+    console.warn(
+      chalk.yellow(
+        `You are using a version of Node.js that is not LTS, and it may work incorrectly, or not work at all.
+
+Please, make sure you are using a latest LTS version of Node.js.
+
+To learn more about which versions of Node.js are supported go to https://hardhat.org/nodejs-versions`
+      )
+    );
+    return;
+  }
   const requirement = packageJson.engines.node;
   if (!semver.satisfies(process.version, requirement)) {
     console.warn(
