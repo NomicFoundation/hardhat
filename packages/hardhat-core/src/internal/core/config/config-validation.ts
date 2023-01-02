@@ -13,6 +13,7 @@ import { HardhatError } from "../errors";
 import { ERRORS } from "../errors-list";
 import { hardforkGte, HardforkName } from "../../util/hardforks";
 import { HardhatNetworkChainUserConfig } from "../../../types/config";
+import { HardhatConfig } from "../../../types";
 import { defaultHardhatNetworkParams } from "./default-config";
 
 function stringify(v: any): string {
@@ -572,4 +573,18 @@ export function getValidationErrors(config: any): string[] {
 
   const ioTsErrors = DotPathReporter.report(result);
   return [...errors, ...ioTsErrors];
+}
+
+export function validateResolvedConfig(resolvedConfig: HardhatConfig) {
+  console.log(resolvedConfig.solidity.compilers);
+  const soliditySettings: any[] = resolvedConfig.solidity.compilers.map(
+    (s) => s.settings
+  );
+  const optimiser: any[] = soliditySettings.map((o) => o.optimizer);
+  const runs: number[] = optimiser.map((r): number => r.runs);
+  if (runs[0] > 2 ** 32 - 1) {
+    throw new HardhatError(ERRORS.GENERAL.INVALID_CONFIG, {
+      errors: "Exceeded max number of optimizer runs.",
+    });
+  }
 }
