@@ -103,7 +103,6 @@ import { Bloom } from "./utils/bloom";
 import { getCurrentTimestamp } from "./utils/getCurrentTimestamp";
 import { makeCommon } from "./utils/makeCommon";
 import { makeForkClient } from "./utils/makeForkClient";
-import { makeStateTrie } from "./utils/makeStateTrie";
 import { putGenesisBlock } from "./utils/putGenesisBlock";
 import { txMapToArray } from "./utils/txMapToArray";
 import { RandomBufferGenerator } from "./utils/random";
@@ -194,35 +193,13 @@ export class HardhatNode extends EventEmitter {
         hardforkActivations = config.chains.get(forkNetworkId)!.hardforkHistory;
       }
     } else {
-      const stateTrie = await makeStateTrie(genesisAccounts);
-
-      const hardhatBlockchain = new HardhatBlockchain(common);
-
-      const genesisBlockBaseFeePerGas = hardforkGte(
-        hardfork,
-        HardforkName.LONDON
-      )
-        ? initialBaseFeePerGasConfig ??
-          BigInt(HARDHAT_NETWORK_DEFAULT_INITIAL_BASE_FEE_PER_GAS)
-        : undefined;
-
-      await putGenesisBlock(
-        hardhatBlockchain,
-        common,
-        config,
-        stateTrie,
-        hardfork,
-        mixHashGenerator.next(),
-        genesisBlockBaseFeePerGas
-      );
+      blockchain = new HardhatBlockchain(common);
 
       if (config.initialDate !== undefined) {
         initialBlockTimeOffset = BigInt(
           getDifferenceInSeconds(config.initialDate, new Date())
         );
       }
-
-      blockchain = hardhatBlockchain;
     }
 
     const currentHardfork = common.hardfork();
@@ -238,6 +215,26 @@ export class HardhatNode extends EventEmitter {
           blockNumber
         )
     );
+
+    if (!isForkedNodeConfig(config)) {
+      const genesisBlockBaseFeePerGas = hardforkGte(
+        hardfork,
+        HardforkName.LONDON
+      )
+        ? initialBaseFeePerGasConfig ??
+          BigInt(HARDHAT_NETWORK_DEFAULT_INITIAL_BASE_FEE_PER_GAS)
+        : undefined;
+
+      await putGenesisBlock(
+        blockchain as HardhatBlockchain,
+        common,
+        config,
+        await vm.getStateRoot(),
+        hardfork,
+        mixHashGenerator.next(),
+        genesisBlockBaseFeePerGas
+      );
+    }
 
     const txPool = new TxPool(
       (address) => vm.getAccount(address),
