@@ -652,8 +652,7 @@ const communityPlugins: IPlugin[] = [
     name: "hardhat-jest",
     author: "Arian Hosseini",
     authorUrl: "https://www.npmjs.com/package/hardhat-jest",
-    description:
-      "Hardhat plugin that allows you to use Jest easily",
+    description: "Hardhat plugin that allows you to use Jest easily",
     tags: ["Deployment", "Testing", "Jest", "Smart Contracts", "Solidity"],
   },
 ];
