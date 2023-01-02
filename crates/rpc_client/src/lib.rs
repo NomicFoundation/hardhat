@@ -1,3 +1,5 @@
+use std::sync::atomic::{AtomicU64, Ordering};
+
 use rethnet_eth::{Address, Bytes, H256, U256};
 
 mod eth;
@@ -47,6 +49,7 @@ pub struct AccountData {
 pub struct RpcClient {
     url: String,
     client: reqwest::blocking::Client,
+    next_id: AtomicU64,
 }
 
 struct Request {
@@ -59,19 +62,12 @@ impl RpcClient {
         RpcClient {
             url: url.to_string(),
             client: reqwest::blocking::Client::new(),
+            next_id: AtomicU64::new(0),
         }
     }
 
-    fn make_id() -> Result<u64, std::time::SystemTimeError> {
-        use std::time::{SystemTime, UNIX_EPOCH};
-        let since_epoch = SystemTime::now().duration_since(UNIX_EPOCH)?;
-        Ok(since_epoch
-            .as_secs()
-            .wrapping_sub(since_epoch.subsec_nanos() as u64))
-    }
-
     fn make_request(&self, method: &str, params: String) -> Request {
-        let id = jsonrpc::Id::Num(RpcClient::make_id().expect("error generating request ID"));
+        let id = jsonrpc::Id::Num(self.next_id.fetch_add(1, Ordering::Relaxed));
 
         Request {
             body: format!(
