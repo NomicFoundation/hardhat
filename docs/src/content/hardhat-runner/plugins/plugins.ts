@@ -648,6 +648,13 @@ const communityPlugins: IPlugin[] = [
       "Hardhat plugin to send an OSX notification when hardhat compilcation fails/succeeds",
     tags: ["Deployment", "Tooling", "Notification", "Compile"],
   },
+  {
+    name: "hardhat-jest",
+    author: "Arian Hosseini",
+    authorUrl: "https://www.npmjs.com/package/hardhat-jest",
+    description: "Hardhat plugin that allows you to use Jest easily",
+    tags: ["Deployment", "Testing", "Jest", "Smart Contracts", "Solidity"],
+  },
 ];
 
 const officialPlugins: IPlugin[] = [
