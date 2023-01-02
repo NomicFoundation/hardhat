@@ -48,7 +48,7 @@ pub struct AccountData {
 
 pub struct RpcClient {
     url: String,
-    client: reqwest::blocking::Client,
+    client: reqwest::Client,
     next_id: AtomicU64,
 }
 
@@ -61,7 +61,7 @@ impl RpcClient {
     pub fn new(url: &str) -> Self {
         RpcClient {
             url: url.to_string(),
-            client: reqwest::blocking::Client::new(),
+            client: reqwest::Client::new(),
             next_id: AtomicU64::new(0),
         }
     }
@@ -85,31 +85,33 @@ impl RpcClient {
         }
     }
 
-    fn submit_request(&self, request_body: &str) -> Result<String, RpcClientError> {
+    async fn submit_request(&self, request_body: &str) -> Result<String, RpcClientError> {
         use RpcClientError::{ResponseError, SendError};
 
         self.client
             .post(self.url.to_string())
             .body(request_body.to_string())
             .send()
+            .await
             .map_err(|err| SendError {
                 msg: err.to_string(),
                 request_body: request_body.to_string(),
             })?
             .text()
+            .await
             .map_err(|err| ResponseError {
                 msg: err.to_string(),
                 request_body: request_body.to_string(),
             })
     }
 
-    pub fn get_tx_by_hash(&self, tx_hash: &H256) -> Result<eth::Transaction, RpcClientError> {
+    pub async fn get_tx_by_hash(&self, tx_hash: &H256) -> Result<eth::Transaction, RpcClientError> {
         let request = self.make_request(
             "eth_getTransactionByHash",
             format!("{}", serde_json::json!(tx_hash)),
         );
 
-        let response_text = self.submit_request(&request.body)?;
+        let response_text = self.submit_request(&request.body).await?;
 
         let success: jsonrpc::Success<eth::Transaction> = serde_json::from_str(&response_text)
             .map_err(|err| RpcClientError::InterpretationError {
@@ -124,7 +126,7 @@ impl RpcClient {
         Ok(success.result)
     }
 
-    pub fn get_tx_receipt(
+    pub async fn get_tx_receipt(
         &self,
         tx_hash: &H256,
     ) -> Result<eth::TransactionReceipt, RpcClientError> {
@@ -133,7 +135,7 @@ impl RpcClient {
             format!("{}", serde_json::json!(tx_hash)),
         );
 
-        let response_text = self.submit_request(&request.body)?;
+        let response_text = self.submit_request(&request.body).await?;
 
         let success: jsonrpc::Success<eth::TransactionReceipt> =
             serde_json::from_str(&response_text).map_err(|err| {
@@ -150,7 +152,7 @@ impl RpcClient {
         Ok(success.result)
     }
 
-    pub fn get_logs(
+    pub async fn get_logs(
         &self,
         from_block: u64,
         to_block: u64,
@@ -170,7 +172,7 @@ impl RpcClient {
             ),
         );
 
-        let response_text = self.submit_request(&request.body)?;
+        let response_text = self.submit_request(&request.body).await?;
 
         let success: jsonrpc::Success<Vec<eth::Log>> = serde_json::from_str(&response_text)
             .map_err(|err| RpcClientError::InterpretationError {
@@ -185,7 +187,7 @@ impl RpcClient {
         Ok(success.result)
     }
 
-    pub fn get_block_by_hash(
+    pub async fn get_block_by_hash(
         &self,
         tx_hash: &H256,
         include_transactions: bool,
@@ -199,7 +201,7 @@ impl RpcClient {
             ),
         );
 
-        let response_text = self.submit_request(&request.body)?;
+        let response_text = self.submit_request(&request.body).await?;
 
         let success: jsonrpc::Success<eth::Block<eth::Transaction>> =
             serde_json::from_str(&response_text).map_err(|err| {
@@ -216,7 +218,7 @@ impl RpcClient {
         Ok(success.result)
     }
 
-    pub fn get_block_by_number(
+    pub async fn get_block_by_number(
         &self,
         block_number: u64,
         include_transactions: bool,
@@ -230,7 +232,7 @@ impl RpcClient {
             ),
         );
 
-        let response_text = self.submit_request(&request.body)?;
+        let response_text = self.submit_request(&request.body).await?;
 
         let success: jsonrpc::Success<eth::Block<eth::Transaction>> =
             serde_json::from_str(&response_text).map_err(|err| {
@@ -247,7 +249,7 @@ impl RpcClient {
         Ok(success.result)
     }
 
-    pub fn get_transaction_count(
+    pub async fn get_transaction_count(
         &self,
         address: &Address,
         block_number: u64,
@@ -257,7 +259,7 @@ impl RpcClient {
             format!("{},\"{:#x}\"", serde_json::json!(address), block_number),
         );
 
-        let response_text = self.submit_request(&request.body)?;
+        let response_text = self.submit_request(&request.body).await?;
 
         let success: jsonrpc::Success<U256> =
             serde_json::from_str(&response_text).map_err(|err| {
@@ -274,7 +276,7 @@ impl RpcClient {
         Ok(success.result)
     }
 
-    pub fn get_account_data(
+    pub async fn get_account_data(
         &self,
         address: &Address,
         block_number: u64,
@@ -299,7 +301,7 @@ impl RpcClient {
             requests[0].body, requests[1].body, requests[2].body
         );
 
-        let response_text = self.submit_request(&request_body)?;
+        let response_text = self.submit_request(&request_body).await?;
 
         let results: (
             jsonrpc::Success<U256>,
@@ -337,8 +339,8 @@ mod tests {
             .expect("couldn't convert OsString into a String"))
     }
 
-    #[test]
-    fn get_tx_by_hash_success() {
+    #[tokio::test]
+    async fn get_tx_by_hash_success() {
         use std::str::FromStr;
 
         let alchemy_url = get_alchemy_url().expect("failed to get Alchemy URL");
@@ -349,6 +351,7 @@ mod tests {
 
         let tx: eth::Transaction = RpcClient::new(&alchemy_url)
             .get_tx_by_hash(&hash)
+            .await
             .expect("failed to get transaction by hash");
 
         assert_eq!(
@@ -423,8 +426,8 @@ mod tests {
         );
     }
 
-    #[test]
-    fn get_tx_by_hash_dns_error() {
+    #[tokio::test]
+    async fn get_tx_by_hash_dns_error() {
         let alchemy_url = "https://xxxeth-mainnet.g.alchemy.com";
 
         let hash =
@@ -435,6 +438,7 @@ mod tests {
             "{:?}",
             RpcClient::new(alchemy_url)
                 .get_tx_by_hash(&hash)
+                .await
                 .expect_err("should have failed to connect to a garbage domain name")
         );
 
@@ -442,8 +446,8 @@ mod tests {
         assert!(error_string.contains("dns error"));
     }
 
-    #[test]
-    fn get_tx_by_hash_bad_api_key() {
+    #[tokio::test]
+    async fn get_tx_by_hash_bad_api_key() {
         let alchemy_url = "https://eth-mainnet.g.alchemy.com/v2/abcdefg";
 
         let hash =
@@ -454,6 +458,7 @@ mod tests {
             "{:?}",
             RpcClient::new(alchemy_url)
                 .get_tx_by_hash(&hash)
+                .await
                 .expect_err("should have failed to interpret response as a Transaction")
         );
 
@@ -462,8 +467,8 @@ mod tests {
         assert!(error_string.contains("Must be authenticated!"));
     }
 
-    #[test]
-    fn get_tx_receipt_success() {
+    #[tokio::test]
+    async fn get_tx_receipt_success() {
         let alchemy_url = get_alchemy_url().expect("failed to get Alchemy URL");
 
         let hash =
@@ -472,6 +477,7 @@ mod tests {
 
         let receipt: eth::TransactionReceipt = RpcClient::new(&alchemy_url)
             .get_tx_receipt(&hash)
+            .await
             .expect("failed to get transaction by hash");
 
         assert_eq!(
@@ -520,8 +526,8 @@ mod tests {
         assert_eq!(receipt.transaction_type, Some(0));
     }
 
-    #[test]
-    fn get_tx_receipt_dns_error() {
+    #[tokio::test]
+    async fn get_tx_receipt_dns_error() {
         let alchemy_url = "https://xxxeth-mainnet.g.alchemy.com";
 
         let hash =
@@ -532,6 +538,7 @@ mod tests {
             "{:?}",
             RpcClient::new(alchemy_url)
                 .get_tx_receipt(&hash)
+                .await
                 .expect_err("should have failed to connect to a garbage domain name")
         );
 
@@ -539,8 +546,8 @@ mod tests {
         assert!(error_string.contains("dns error"));
     }
 
-    #[test]
-    fn get_tx_receipt_bad_api_key() {
+    #[tokio::test]
+    async fn get_tx_receipt_bad_api_key() {
         let alchemy_url = "https://eth-mainnet.g.alchemy.com/v2/abcdefg";
 
         let hash =
@@ -551,6 +558,7 @@ mod tests {
             "{:?}",
             RpcClient::new(alchemy_url)
                 .get_tx_receipt(&hash)
+                .await
                 .expect_err("should have failed to interpret response as a Receipt")
         );
 
@@ -559,8 +567,8 @@ mod tests {
         assert!(error_string.contains("Must be authenticated!"));
     }
 
-    #[test]
-    fn get_logs_success() {
+    #[tokio::test]
+    async fn get_logs_success() {
         let alchemy_url = get_alchemy_url().expect("failed to get Alchemy URL");
         let logs = RpcClient::new(&alchemy_url)
             .get_logs(
@@ -569,14 +577,15 @@ mod tests {
                 &Address::from_str("0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2")
                     .expect("failed to parse data"),
             )
+            .await
             .expect("failed to get logs");
         assert_eq!(logs.len(), 12);
         // TODO: assert more things about the log(s)
         // TODO: consider asserting something about the logs bloom
     }
 
-    #[test]
-    fn get_block_by_hash_success() {
+    #[tokio::test]
+    async fn get_block_by_hash_success() {
         let alchemy_url = get_alchemy_url().expect("failed to get Alchemy URL");
 
         let hash =
@@ -585,28 +594,30 @@ mod tests {
 
         let block = RpcClient::new(&alchemy_url)
             .get_block_by_hash(&hash, true)
+            .await
             .expect("should have succeeded");
 
         assert_eq!(block.hash, Some(hash));
         assert_eq!(block.transactions.len(), 192);
     }
 
-    #[test]
-    fn get_block_by_number_success() {
+    #[tokio::test]
+    async fn get_block_by_number_success() {
         let alchemy_url = get_alchemy_url().expect("failed to get Alchemy URL");
 
         let block_number = 16222385;
 
         let block = RpcClient::new(&alchemy_url)
             .get_block_by_number(block_number, true)
+            .await
             .expect("should have succeeded");
 
         assert_eq!(block.number, Some(block_number));
         assert_eq!(block.transactions.len(), 102);
     }
 
-    #[test]
-    fn get_transaction_count_success() {
+    #[tokio::test]
+    async fn get_transaction_count_success() {
         let alchemy_url = get_alchemy_url().expect("failed to get Alchemy URL");
 
         let dai_address = Address::from_str("0x6b175474e89094c44da98b954eedeac495271d0f")
@@ -614,13 +625,14 @@ mod tests {
 
         let transaction_count = RpcClient::new(&alchemy_url)
             .get_transaction_count(&dai_address, 16220843)
+            .await
             .expect("should have succeeded");
 
         assert_eq!(transaction_count, U256::from(1));
     }
 
-    #[test]
-    fn get_account_data_success() {
+    #[tokio::test]
+    async fn get_account_data_success() {
         let alchemy_url = get_alchemy_url().expect("failed to get Alchemy URL");
 
         let dai_address = Address::from_str("0x6b175474e89094c44da98b954eedeac495271d0f")
@@ -628,6 +640,7 @@ mod tests {
 
         let account_data = RpcClient::new(&alchemy_url)
             .get_account_data(&dai_address, 16220843)
+            .await
             .expect("should have succeeded");
 
         assert_eq!(account_data.balance, U256::from(0));
