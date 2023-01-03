@@ -355,7 +355,7 @@ describe("Debug module", function () {
       );
     });
 
-    // see HH-1031
+    // see https://github.com/NomicFoundation/hardhat/issues/3519
     it.skip("Should return the right values for a successful tx", async function () {
       const trace: RpcDebugTraceOutput = await provider.send(
         "debug_traceTransaction",
