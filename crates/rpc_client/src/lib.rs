@@ -1,6 +1,6 @@
 use std::sync::atomic::{AtomicU64, Ordering};
 
-use rethnet_eth::{Address, Bytes, H256, U256};
+use rethnet_eth::{Address, Bytes, B256, U256};
 
 mod eth;
 mod jsonrpc;
@@ -105,7 +105,7 @@ impl RpcClient {
             })
     }
 
-    pub async fn get_tx_by_hash(&self, tx_hash: &H256) -> Result<eth::Transaction, RpcClientError> {
+    pub async fn get_tx_by_hash(&self, tx_hash: &B256) -> Result<eth::Transaction, RpcClientError> {
         let request = self.make_request(
             "eth_getTransactionByHash",
             format!("{}", serde_json::json!(tx_hash)),
@@ -128,7 +128,7 @@ impl RpcClient {
 
     pub async fn get_tx_receipt(
         &self,
-        tx_hash: &H256,
+        tx_hash: &B256,
     ) -> Result<eth::TransactionReceipt, RpcClientError> {
         let request = self.make_request(
             "eth_getTransactionReceipt",
@@ -189,7 +189,7 @@ impl RpcClient {
 
     pub async fn get_block_by_hash(
         &self,
-        tx_hash: &H256,
+        tx_hash: &B256,
         include_transactions: bool,
     ) -> Result<eth::Block<eth::Transaction>, RpcClientError> {
         let request = self.make_request(
@@ -346,7 +346,7 @@ mod tests {
         let alchemy_url = get_alchemy_url().expect("failed to get Alchemy URL");
 
         let hash =
-            H256::from_str("0xc008e9f9bb92057dd0035496fbf4fb54f66b4b18b370928e46d6603933054d5a")
+            B256::from_str("0xc008e9f9bb92057dd0035496fbf4fb54f66b4b18b370928e46d6603933054d5a")
                 .expect("failed to parse hash from string");
 
         let tx: eth::Transaction = RpcClient::new(&alchemy_url)
@@ -357,7 +357,7 @@ mod tests {
         assert_eq!(
             tx.block_hash,
             Some(
-                H256::from_str(
+                B256::from_str(
                     "0x88fadbb673928c61b9ede3694ae0589ac77ae38ec90a24a6e12e83f42f18c7e8"
                 )
                 .expect("couldn't parse data")
@@ -431,7 +431,7 @@ mod tests {
         let alchemy_url = "https://xxxeth-mainnet.g.alchemy.com";
 
         let hash =
-            H256::from_str("0xc008e9f9bb92057dd0035496fbf4fb54f66b4b18b370928e46d6603933054d5a")
+            B256::from_str("0xc008e9f9bb92057dd0035496fbf4fb54f66b4b18b370928e46d6603933054d5a")
                 .expect("failed to parse hash from string");
 
         let error_string = format!(
@@ -451,7 +451,7 @@ mod tests {
         let alchemy_url = "https://eth-mainnet.g.alchemy.com/v2/abcdefg";
 
         let hash =
-            H256::from_str("0xc008e9f9bb92057dd0035496fbf4fb54f66b4b18b370928e46d6603933054d5a")
+            B256::from_str("0xc008e9f9bb92057dd0035496fbf4fb54f66b4b18b370928e46d6603933054d5a")
                 .expect("failed to parse hash from string");
 
         let error_string = format!(
@@ -472,7 +472,7 @@ mod tests {
         let alchemy_url = get_alchemy_url().expect("failed to get Alchemy URL");
 
         let hash =
-            H256::from_str("0xc008e9f9bb92057dd0035496fbf4fb54f66b4b18b370928e46d6603933054d5a")
+            B256::from_str("0xc008e9f9bb92057dd0035496fbf4fb54f66b4b18b370928e46d6603933054d5a")
                 .expect("failed to parse hash from string");
 
         let receipt: eth::TransactionReceipt = RpcClient::new(&alchemy_url)
@@ -483,7 +483,7 @@ mod tests {
         assert_eq!(
             receipt.block_hash,
             Some(
-                H256::from_str(
+                B256::from_str(
                     "0x88fadbb673928c61b9ede3694ae0589ac77ae38ec90a24a6e12e83f42f18c7e8"
                 )
                 .expect("couldn't parse data")
@@ -531,7 +531,7 @@ mod tests {
         let alchemy_url = "https://xxxeth-mainnet.g.alchemy.com";
 
         let hash =
-            H256::from_str("0xc008e9f9bb92057dd0035496fbf4fb54f66b4b18b370928e46d6603933054d5a")
+            B256::from_str("0xc008e9f9bb92057dd0035496fbf4fb54f66b4b18b370928e46d6603933054d5a")
                 .expect("failed to parse hash from string");
 
         let error_string = format!(
@@ -551,7 +551,7 @@ mod tests {
         let alchemy_url = "https://eth-mainnet.g.alchemy.com/v2/abcdefg";
 
         let hash =
-            H256::from_str("0xc008e9f9bb92057dd0035496fbf4fb54f66b4b18b370928e46d6603933054d5a")
+            B256::from_str("0xc008e9f9bb92057dd0035496fbf4fb54f66b4b18b370928e46d6603933054d5a")
                 .expect("failed to parse hash from string");
 
         let error_string = format!(
@@ -589,7 +589,7 @@ mod tests {
         let alchemy_url = get_alchemy_url().expect("failed to get Alchemy URL");
 
         let hash =
-            H256::from_str("0x71d5e7c8ff9ea737034c16e333a75575a4a94d29482e0c2b88f0a6a8369c1812")
+            B256::from_str("0x71d5e7c8ff9ea737034c16e333a75575a4a94d29482e0c2b88f0a6a8369c1812")
                 .expect("failed to parse hash from string");
 
         let block = RpcClient::new(&alchemy_url)

@@ -1,6 +1,6 @@
 // adapted from github.com/gakonst/ethers-rs
 
-use rethnet_eth::{Address, Bloom, Bytes, H256, U256};
+use rethnet_eth::{Address, Bloom, Bytes, B256, U256};
 
 #[derive(Clone, Debug, PartialEq, Eq, Default, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
@@ -15,9 +15,9 @@ pub struct AccessListEntry {
 #[serde(rename_all = "camelCase")]
 pub struct Transaction {
     /// The transaction's hash
-    pub hash: H256,
+    pub hash: B256,
     pub nonce: U256,
-    pub block_hash: Option<H256>,
+    pub block_hash: Option<B256>,
     #[serde(deserialize_with = "optional_u64_from_hex")]
     pub block_number: Option<u64>,
     #[serde(deserialize_with = "optional_u64_from_hex")]
@@ -72,17 +72,17 @@ where
 #[serde(rename_all = "camelCase")]
 pub struct Log {
     pub address: Address,
-    pub topics: Vec<H256>,
+    pub topics: Vec<B256>,
     pub data: Bytes,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub block_hash: Option<H256>,
+    pub block_hash: Option<B256>,
     #[serde(
         skip_serializing_if = "Option::is_none",
         deserialize_with = "optional_u64_from_hex"
     )]
     pub block_number: Option<u64>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub transaction_hash: Option<H256>,
+    pub transaction_hash: Option<B256>,
     #[serde(
         skip_serializing_if = "Option::is_none",
         deserialize_with = "optional_u64_from_hex"
@@ -102,7 +102,7 @@ pub struct Log {
 #[serde(deny_unknown_fields)]
 #[serde(rename_all = "camelCase")]
 pub struct TransactionReceipt {
-    pub block_hash: Option<H256>,
+    pub block_hash: Option<B256>,
     #[serde(deserialize_with = "optional_u64_from_hex")]
     pub block_number: Option<u64>,
     pub contract_address: Option<Address>,
@@ -114,11 +114,11 @@ pub struct TransactionReceipt {
     pub logs: Vec<Log>,
     pub logs_bloom: Bloom,
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub root: Option<H256>,
+    pub root: Option<B256>,
     #[serde(deserialize_with = "optional_u64_from_hex")]
     pub status: Option<u64>,
     pub to: Option<Address>,
-    pub transaction_hash: H256,
+    pub transaction_hash: B256,
     #[serde(deserialize_with = "u64_from_hex")]
     pub transaction_index: u64,
     #[serde(
@@ -134,13 +134,13 @@ pub struct TransactionReceipt {
 #[serde(deny_unknown_fields)]
 #[serde(rename_all = "camelCase")]
 pub struct Block<TX> {
-    pub hash: Option<H256>,
-    pub parent_hash: H256,
-    pub sha3_uncles: H256,
+    pub hash: Option<B256>,
+    pub parent_hash: B256,
+    pub sha3_uncles: B256,
     pub author: Option<Address>,
-    pub state_root: H256,
-    pub transactions_root: H256,
-    pub receipts_root: H256,
+    pub state_root: B256,
+    pub transactions_root: B256,
+    pub receipts_root: B256,
     #[serde(deserialize_with = "optional_u64_from_hex")]
     pub number: Option<u64>,
     pub gas_used: U256,
@@ -155,11 +155,11 @@ pub struct Block<TX> {
     #[serde(default, deserialize_with = "deserialize_null_default")]
     pub seal_fields: Vec<Bytes>,
     #[serde(default)]
-    pub uncles: Vec<H256>,
+    pub uncles: Vec<B256>,
     #[serde(bound = "TX: serde::Serialize + serde::de::DeserializeOwned", default)]
     pub transactions: Vec<TX>,
     pub size: Option<U256>,
-    pub mix_hash: Option<H256>,
+    pub mix_hash: Option<B256>,
     pub nonce: Option<U256>,
     pub base_fee_per_gas: Option<U256>,
     pub miner: Address,
