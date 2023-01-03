@@ -576,15 +576,10 @@ export function getValidationErrors(config: any): string[] {
 }
 
 export function validateResolvedConfig(resolvedConfig: HardhatConfig) {
-  console.log(resolvedConfig.solidity.compilers);
-  const soliditySettings: any[] = resolvedConfig.solidity.compilers.map(
-    (s) => s.settings
-  );
-  const optimiser: any[] = soliditySettings.map((o) => o.optimizer);
-  const runs: number[] = optimiser.map((r): number => r.runs);
-  if (runs[0] > 2 ** 32 - 1) {
-    throw new HardhatError(ERRORS.GENERAL.INVALID_CONFIG, {
-      errors: "Exceeded max number of optimizer runs.",
+  const runs = resolvedConfig.solidity.compilers[0].settings?.optimizer?.runs
+  if (runs >= 2 ** 32) {
+    throw new HardhatError(ERRORS.GENERAL.INVALID_RESOLVED_CONFIG, {
+      error: "Exceeded max number of optimizer runs.",
     });
   }
 }
