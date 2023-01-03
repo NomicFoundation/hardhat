@@ -3,12 +3,15 @@ name: Add label to new issue
 on:
   issues:
     types: [opened]
+  pull_request:
+    types: [opened]
 
 jobs:
   label-new-issue:
     runs-on: ubuntu-latest
     permissions:
       issues: write
+      pull-requests: write
     steps:
       - uses: actions/github-script@v6
         with:
