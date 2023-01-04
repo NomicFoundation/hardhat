@@ -19,6 +19,7 @@ import {
   EIP1559RpcTransactionOutput,
   LegacyRpcTransactionOutput,
 } from "../../../../../../../src/internal/hardhat-network/provider/output";
+import { INFURA_URL } from "../../../../../../setup";
 import { workaroundWindowsCiFailures } from "../../../../../../utils/workaround-windows-ci-failures";
 import {
   assertAccessListTransaction,
@@ -323,14 +324,13 @@ describe("Eth module", function () {
         });
 
         it("should get an existing transaction from goerli", async function () {
-          const { ALCHEMY_URL } = process.env;
-          if (!isFork || ALCHEMY_URL === undefined || ALCHEMY_URL === "") {
+          if (!isFork || INFURA_URL === undefined) {
             this.skip();
           }
-          const goerliUrl = ALCHEMY_URL.replace("mainnet", "goerli");
+          const goerliUrl = INFURA_URL.replace("mainnet", "goerli");
 
           // If "mainnet" is not present the replacement failed so we skip the test
-          if (goerliUrl === ALCHEMY_URL) {
+          if (goerliUrl === INFURA_URL) {
             this.skip();
           }
 
