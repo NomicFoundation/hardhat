@@ -7,5 +7,6 @@ order:
   - /create-task
   - /scripts
   - /building-plugins
+  - /flattening
   - href: /vscode-tests
     title: Running tests in VS Code

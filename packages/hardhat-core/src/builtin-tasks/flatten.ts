@@ -124,7 +124,10 @@ subtask(TASK_FLATTEN_GET_DEPENDENCY_GRAPH)
     return dependencyGraph;
   });
 
-task(TASK_FLATTEN, "Flattens and prints contracts and their dependencies")
+task(
+  TASK_FLATTEN,
+  "Flattens and prints contracts and their dependencies. If no file is passed, all the contracts in the project will be flattened."
+)
   .addOptionalVariadicPositionalParam(
     "files",
     "The files to flatten",
