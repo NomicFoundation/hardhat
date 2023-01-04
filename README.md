@@ -48,7 +48,7 @@ See our [Getting started guide](./docs/getting-started-guide.md) for a worked ex
 
 ### Examples
 
-This repo contains example projects that show **Ignitions** features in context (under `./examples`):
+This repo contains example projects that show **Ignition** features in context (under `./examples`):
 
 - [Sample](./examples/sample/README.md) - the **Hardhat** starter project enhanced with Ignition
 - [ENS](./examples/ens/README.md) - deploy ENS and its registry for local testing

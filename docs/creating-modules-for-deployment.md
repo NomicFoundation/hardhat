@@ -40,7 +40,7 @@ module.exports = buildModule("MyModule", (m) => {
 
 Modules can be deployed directly at the cli (with `npx hardhat deploy MyModule.js`), within Hardhat mocha tests (see [Ignition in Tests](./using-ignition-in-hardhat-tests.md)) or consumed by other Modules to allow for complex deployments.
 
-During a deployment **Ignition** uses the module to generate an execution plan of the transactions to run and the order and dependency in which to run them. A module uses the injected `DeploymentBuilder` to specify the on-chain transactions that will _eventually_ be run, and how they interdepend on each other.
+During a deployment, **Ignition** uses the module to generate an execution plan of the transactions to run and the order in which to run them based on their dependencies. A module uses the injected `DeploymentBuilder` to specify the on-chain transactions that will _eventually_ be run, and how they interdepend on each other.
 
 ## Deploying a contract
 
@@ -83,7 +83,7 @@ const b = m.contract("B", {
 });
 ```
 
-You can think of this as `b` being the equivalent of a promise of an address, although futures are not promises.
+You can think of this as `b` being the equivalent of a promise of an address, although **_futures are not promises_**.
 
 If a contract does not directly depend through arguments on another contract, a dependency (don't deploy `b` until `a` is successfully deployed) can still be created using the `after` array of options:
 
