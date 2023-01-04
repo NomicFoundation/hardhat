@@ -167,4 +167,4 @@ When using Infura without the archival add-on, you will only have access to the 
 For full details on what's supported, see [the Hardhat Network Config Reference](../reference/#config).
 
 [alchemy]: https://alchemyapi.io/
-[Infura]: https://alchemyapi.io/
+[infura]: https://alchemyapi.io/
