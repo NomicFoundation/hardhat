@@ -1,4 +1,8 @@
-// adapted from github.com/gakonst/ethers-rs
+// Parts of this code were adapted from github.com/gakonst/ethers-rs and are distributed under its
+// licenses:
+// - https://github.com/gakonst/ethers-rs/blob/7e6c3ba98363bdf6131e8284f186cc2c70ff48c3/LICENSE-APACHE
+// - https://github.com/gakonst/ethers-rs/blob/7e6c3ba98363bdf6131e8284f186cc2c70ff48c3/LICENSE-MIT
+// For the original context, see https://github.com/gakonst/ethers-rs/tree/7e6c3ba98363bdf6131e8284f186cc2c70ff48c3
 
 use rethnet_eth::{Address, Bloom, Bytes, B256, U256};
 

@@ -1,4 +1,8 @@
-// adapted from https://github.com/koushiro/async-jsonrpc
+// Parts of this code were adapted from github.com/koushiro/async-jsonrpc and are distributed under its
+// licenses:
+// - https://github.com/koushiro/async-jsonrpc/blob/9b42602f4faa63dd4b6a1a9fe359bffa97e636d5/LICENSE-APACHE
+// - https://github.com/koushiro/async-jsonrpc/blob/9b42602f4faa63dd4b6a1a9fe359bffa97e636d5/LICENSE-MIT
+// For the original context, see https://github.com/koushiro/async-jsonrpc/tree/9b42602f4faa63dd4b6a1a9fe359bffa97e636d5
 
 use serde::{Deserialize, Serialize};
 
