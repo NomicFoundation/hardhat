@@ -106,10 +106,10 @@ import { makeForkClient } from "./utils/makeForkClient";
 import { putGenesisBlock } from "./utils/putGenesisBlock";
 import { txMapToArray } from "./utils/txMapToArray";
 import { RandomBufferGenerator } from "./utils/random";
-import { DualModeAdapter } from "./vm/dual";
 import { RunBlockResult, RunTxResult, VMAdapter } from "./vm/vm-adapter";
 import { BlockBuilder } from "./vm/block-builder";
 import { ExitCode, Exit } from "./vm/exit";
+import { createVm } from "./vm/creation";
 
 const log = debug("hardhat:core:hardhat-network:node");
 
@@ -203,17 +203,14 @@ export class HardhatNode extends EventEmitter {
     }
 
     const currentHardfork = common.hardfork();
-    const vm = await DualModeAdapter.create(
-      common,
-      blockchain,
-      config,
-      (blockNumber) =>
-        selectHardfork(
-          forkBlockNum,
-          currentHardfork,
-          hardforkActivations,
-          blockNumber
-        )
+
+    const vm = await createVm(common, blockchain, config, (blockNumber) =>
+      selectHardfork(
+        forkBlockNum,
+        currentHardfork,
+        hardforkActivations,
+        blockNumber
+      )
     );
 
     if (!isForkedNodeConfig(config)) {
