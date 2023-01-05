@@ -51,7 +51,7 @@ export class Environment implements HardhatRuntimeEnvironment {
 
   public entryTaskProfile?: TaskProfile;
 
-  public version: string | null = getHardhatVersion();
+  public version: string = getHardhatVersion();
 
   /**
    * Initializes the Hardhat Runtime Environment and the given

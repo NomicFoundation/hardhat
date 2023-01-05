@@ -194,7 +194,7 @@ export interface HardhatRuntimeEnvironment {
   readonly run: RunTaskFunction;
   readonly network: Network;
   readonly artifacts: Artifacts;
-  readonly version: string | null;
+  readonly version: string;
 }
 
 export interface Network {
