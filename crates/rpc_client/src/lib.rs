@@ -52,42 +52,145 @@ pub struct RpcClient {
     next_id: AtomicU64,
 }
 
-struct Request {
-    body: String,
+#[allow(clippy::enum_variant_names)]
+enum MethodInvocation {
+    GetTxByHash(B256),
+    GetTxReceipt(B256),
+    GetLogs {
+        from_block: u64,
+        to_block: u64,
+        address: Address,
+    },
+    GetBalance {
+        address: Address,
+        block_number: u64,
+    },
+    GetBlockByHash {
+        hash: B256,
+        include_transactions: bool,
+    },
+    GetBlockByNumber {
+        number: u64,
+        include_transactions: bool,
+    },
+    GetCode {
+        address: Address,
+        block_number: u64,
+    },
+    GetTxCount {
+        address: Address,
+        block_number: u64,
+    },
+}
+
+struct SingleRequest {
+    json: String,
     id: jsonrpc::Id,
 }
 
+struct Response {
+    text: String,
+    request_body: String,
+    request_id: jsonrpc::Id,
+}
+
+struct BatchResponse {
+    text: String,
+    request_body: String,
+    request_ids: Vec<jsonrpc::Id>,
+}
+
 impl RpcClient {
-    pub fn new(url: &str) -> Self {
-        RpcClient {
-            url: url.to_string(),
-            client: reqwest::Client::new(),
-            next_id: AtomicU64::new(0),
-        }
-    }
+    fn form_request(&self, input: &MethodInvocation) -> SingleRequest {
+        let (method, params_json) = match input {
+            MethodInvocation::GetBlockByHash {
+                hash,
+                include_transactions,
+            } => (
+                "eth_getBlockByHash",
+                format!(
+                    "{},{}",
+                    serde_json::json!(hash),
+                    serde_json::json!(include_transactions),
+                ),
+            ),
+            MethodInvocation::GetBlockByNumber {
+                number,
+                include_transactions,
+            } => (
+                "eth_getBlockByNumber",
+                format!(
+                    "\"{:#x}\",{}",
+                    number,
+                    serde_json::json!(include_transactions),
+                ),
+            ),
+            MethodInvocation::GetLogs {
+                from_block,
+                to_block,
+                address,
+            } => (
+                "eth_getLogs",
+                format!(
+                    "{{
+                        \"fromBlock\":\"{:#x}\",
+                        \"toBlock\":\"{:#x}\",
+                        \"address\":{}
+                    }}",
+                    from_block,
+                    to_block,
+                    serde_json::json!(address)
+                ),
+            ),
+            MethodInvocation::GetTxByHash(hash) => (
+                "eth_getTransactionByHash",
+                format!("{}", serde_json::json!(hash)),
+            ),
+            MethodInvocation::GetTxCount {
+                address,
+                block_number,
+            } => (
+                "eth_getTransactionCount",
+                format!("{},\"{:#x}\"", serde_json::json!(address), block_number),
+            ),
+            MethodInvocation::GetTxReceipt(tx_hash) => (
+                "eth_getTransactionReceipt",
+                format!("{}", serde_json::json!(tx_hash)),
+            ),
+            MethodInvocation::GetBalance {
+                address,
+                block_number,
+            } => (
+                "eth_getBalance",
+                format!("{},\"{:#x}\"", serde_json::json!(address), block_number),
+            ),
+            MethodInvocation::GetCode {
+                address,
+                block_number,
+            } => (
+                "eth_getCode",
+                format!("{},\"{:#x}\"", serde_json::json!(address), block_number),
+            ),
+        };
 
-    fn make_request(&self, method: &str, params: String) -> Request {
         let id = jsonrpc::Id::Num(self.next_id.fetch_add(1, Ordering::Relaxed));
-
-        Request {
-            body: format!(
-                "{{
+        let json = format!(
+            "{{
                     \"jsonrpc\":\"2.0\",
                     \"method\":\"{}\",
                     \"params\":[{}],
                     \"id\":{}
                 }}",
-                method,
-                params,
-                serde_json::json!(id)
-            ),
-            id,
-        }
+            method,
+            params_json,
+            serde_json::json!(id)
+        );
+        SingleRequest { json, id }
     }
 
-    async fn submit_request(&self, request_body: &str) -> Result<String, RpcClientError> {
+    /// returns response text
+    async fn send_request_body(&self, request_body: String) -> Result<String, RpcClientError> {
         use RpcClientError::{ResponseError, SendError};
-
         self.client
             .post(self.url.to_string())
             .body(request_body.to_string())
@@ -105,23 +208,60 @@ impl RpcClient {
             })
     }
 
-    pub async fn get_tx_by_hash(&self, tx_hash: &B256) -> Result<eth::Transaction, RpcClientError> {
-        let request = self.make_request(
-            "eth_getTransactionByHash",
-            format!("{}", serde_json::json!(tx_hash)),
+    async fn call(&self, input: &MethodInvocation) -> Result<Response, RpcClientError> {
+        let SingleRequest { json, id } = self.form_request(input);
+        let response_text = self.send_request_body(json.clone()).await?;
+        Ok(Response {
+            request_id: id,
+            request_body: json.clone(),
+            text: response_text,
+        })
+    }
+
+    async fn batch_call(
+        &self,
+        inputs: &[MethodInvocation],
+    ) -> Result<BatchResponse, RpcClientError> {
+        let requests: Vec<SingleRequest> = inputs.iter().map(|i| self.form_request(i)).collect();
+
+        let request_body = format!(
+            "[{}]",
+            requests
+                .iter()
+                .map(|r| { r.json.clone() })
+                .collect::<Vec<String>>()
+                .join(",")
         );
 
-        let response_text = self.submit_request(&request.body).await?;
+        let response_text = self.send_request_body(request_body.clone()).await?;
 
-        let success: jsonrpc::Success<eth::Transaction> = serde_json::from_str(&response_text)
+        Ok(BatchResponse {
+            request_body: request_body.clone(),
+            request_ids: requests.into_iter().map(|r| r.id).collect(),
+            text: response_text,
+        })
+    }
+
+    pub fn new(url: &str) -> Self {
+        RpcClient {
+            url: url.to_string(),
+            client: reqwest::Client::new(),
+            next_id: AtomicU64::new(0),
+        }
+    }
+
+    pub async fn get_tx_by_hash(&self, tx_hash: &B256) -> Result<eth::Transaction, RpcClientError> {
+        let response = self.call(&MethodInvocation::GetTxByHash(*tx_hash)).await?;
+
+        let success: jsonrpc::Success<eth::Transaction> = serde_json::from_str(&response.text)
             .map_err(|err| RpcClientError::InterpretationError {
                 msg: err.to_string(),
-                request_body: request.body,
+                request_body: response.request_body,
                 expected_type: String::from("jsonrpc::Success<eth::Transaction>"),
-                response_text,
+                response_text: response.text,
             })?;
 
-        assert_eq!(success.id, request.id);
+        assert_eq!(success.id, response.request_id);
 
         Ok(success.result)
     }
@@ -130,24 +270,19 @@ impl RpcClient {
         &self,
         tx_hash: &B256,
     ) -> Result<eth::TransactionReceipt, RpcClientError> {
-        let request = self.make_request(
-            "eth_getTransactionReceipt",
-            format!("{}", serde_json::json!(tx_hash)),
-        );
-
-        let response_text = self.submit_request(&request.body).await?;
+        let response = self.call(&MethodInvocation::GetTxReceipt(*tx_hash)).await?;
 
         let success: jsonrpc::Success<eth::TransactionReceipt> =
-            serde_json::from_str(&response_text).map_err(|err| {
+            serde_json::from_str(&response.text).map_err(|err| {
                 RpcClientError::InterpretationError {
                     msg: err.to_string(),
-                    request_body: request.body,
+                    request_body: response.request_body,
                     expected_type: String::from("jsonrpc::Success<eth::TransactionReceipt>"),
-                    response_text,
+                    response_text: response.text,
                 }
             })?;
 
-        assert_eq!(success.id, request.id);
+        assert_eq!(success.id, response.request_id);
 
         Ok(success.result)
     }
@@ -158,93 +293,77 @@ impl RpcClient {
         to_block: u64,
         address: &Address,
     ) -> Result<Vec<eth::Log>, RpcClientError> {
-        let request = self.make_request(
-            "eth_getLogs",
-            format!(
-                "{{
-                    \"fromBlock\":\"{:#x}\",
-                    \"toBlock\":\"{:#x}\",
-                    \"address\":{}
-                }}",
+        let response = self
+            .call(&MethodInvocation::GetLogs {
                 from_block,
                 to_block,
-                serde_json::json!(address)
-            ),
-        );
+                address: *address,
+            })
+            .await?;
 
-        let response_text = self.submit_request(&request.body).await?;
-
-        let success: jsonrpc::Success<Vec<eth::Log>> = serde_json::from_str(&response_text)
+        let success: jsonrpc::Success<Vec<eth::Log>> = serde_json::from_str(&response.text)
             .map_err(|err| RpcClientError::InterpretationError {
                 msg: err.to_string(),
-                request_body: request.body.clone(),
+                request_body: response.request_body.clone(),
                 expected_type: String::from("jsonrpc::Success<Vec<eth::Log>>"),
-                response_text,
+                response_text: response.text,
             })?;
 
-        assert_eq!(success.id, request.id);
+        assert_eq!(success.id, response.request_id);
 
         Ok(success.result)
     }
 
     pub async fn get_block_by_hash(
         &self,
-        tx_hash: &B256,
+        hash: &B256,
         include_transactions: bool,
     ) -> Result<eth::Block<eth::Transaction>, RpcClientError> {
-        let request = self.make_request(
-            "eth_getBlockByHash",
-            format!(
-                "{},{}",
-                serde_json::json!(tx_hash),
-                serde_json::json!(include_transactions),
-            ),
-        );
-
-        let response_text = self.submit_request(&request.body).await?;
+        let response = self
+            .call(&MethodInvocation::GetBlockByHash {
+                hash: *hash,
+                include_transactions,
+            })
+            .await?;
 
         let success: jsonrpc::Success<eth::Block<eth::Transaction>> =
-            serde_json::from_str(&response_text).map_err(|err| {
+            serde_json::from_str(&response.text).map_err(|err| {
                 RpcClientError::InterpretationError {
                     msg: err.to_string(),
-                    request_body: request.body.clone(),
+                    request_body: response.request_body.clone(),
                     expected_type: String::from("jsonrpc::Success<eth::Block<eth::Transaction>>"),
-                    response_text,
+                    response_text: response.text,
                 }
             })?;
 
-        assert_eq!(success.id, request.id);
+        assert_eq!(success.id, response.request_id);
 
         Ok(success.result)
     }
 
     pub async fn get_block_by_number(
         &self,
-        block_number: u64,
+        number: u64,
         include_transactions: bool,
     ) -> Result<eth::Block<eth::Transaction>, RpcClientError> {
-        let request = self.make_request(
-            "eth_getBlockByNumber",
-            format!(
-                "\"{:#x}\",{}",
-                block_number,
-                serde_json::json!(include_transactions),
-            ),
-        );
-
-        let response_text = self.submit_request(&request.body).await?;
+        let response = self
+            .call(&MethodInvocation::GetBlockByNumber {
+                number,
+                include_transactions,
+            })
+            .await?;
 
         let success: jsonrpc::Success<eth::Block<eth::Transaction>> =
-            serde_json::from_str(&response_text).map_err(|err| {
+            serde_json::from_str(&response.text).map_err(|err| {
                 RpcClientError::InterpretationError {
                     msg: err.to_string(),
-                    request_body: request.body.clone(),
+                    request_body: response.request_body.clone(),
                     expected_type: String::from("jsonrpc::Success<eth::Block<eth::Transaction>>"),
-                    response_text,
+                    response_text: response.text,
                 }
             })?;
 
-        assert_eq!(success.id, request.id);
+        assert_eq!(success.id, response.request_id);
 
         Ok(success.result)
     }
@@ -254,24 +373,24 @@ impl RpcClient {
         address: &Address,
         block_number: u64,
     ) -> Result<U256, RpcClientError> {
-        let request = self.make_request(
-            "eth_getTransactionCount",
-            format!("{},\"{:#x}\"", serde_json::json!(address), block_number),
-        );
-
-        let response_text = self.submit_request(&request.body).await?;
+        let response = self
+            .call(&MethodInvocation::GetTxCount {
+                address: *address,
+                block_number,
+            })
+            .await?;
 
         let success: jsonrpc::Success<U256> =
-            serde_json::from_str(&response_text).map_err(|err| {
+            serde_json::from_str(&response.text).map_err(|err| {
                 RpcClientError::InterpretationError {
                     msg: err.to_string(),
-                    request_body: request.body.clone(),
+                    request_body: response.request_body.clone(),
                     expected_type: String::from("jsonrpc::Success<U256>"),
-                    response_text,
+                    response_text: response.text,
                 }
             })?;
 
-        assert_eq!(success.id, request.id);
+        assert_eq!(success.id, response.request_id);
 
         Ok(success.result)
     }
@@ -281,40 +400,39 @@ impl RpcClient {
         address: &Address,
         block_number: u64,
     ) -> Result<AccountData, RpcClientError> {
-        let requests = [
-            self.make_request(
-                "eth_getBalance",
-                format!("{},\"{:#x}\"", serde_json::json!(address), block_number),
-            ),
-            self.make_request(
-                "eth_getCode",
-                format!("{},\"{:#x}\"", serde_json::json!(address), block_number),
-            ),
-            self.make_request(
-                "eth_getTransactionCount",
-                format!("{},\"{:#x}\"", serde_json::json!(address), block_number),
-            ),
-        ];
+        let inputs = Vec::from([
+            MethodInvocation::GetBalance {
+                address: *address,
+                block_number,
+            },
+            MethodInvocation::GetCode {
+                address: *address,
+                block_number,
+            },
+            MethodInvocation::GetTxCount {
+                address: *address,
+                block_number,
+            },
+        ]);
 
-        let request_body = format!(
-            "[{}, {}, {}]",
-            requests[0].body, requests[1].body, requests[2].body
-        );
-
-        let response_text = self.submit_request(&request_body).await?;
+        let response = self.batch_call(&inputs).await?;
 
         let results: (
             jsonrpc::Success<U256>,
             jsonrpc::Success<Bytes>,
             jsonrpc::Success<U256>,
-        ) = serde_json::from_str(&response_text).map_err(|err| {
+        ) = serde_json::from_str(&response.text).map_err(|err| {
             RpcClientError::InterpretationError {
                 msg: err.to_string(),
-                request_body: request_body.clone(),
+                request_body: response.request_body.clone(),
                 expected_type: String::from("Array"),
-                response_text,
+                response_text: response.text.clone(),
             }
         })?;
+
+        assert_eq!(results.0.id, response.request_ids[0]);
+        assert_eq!(results.1.id, response.request_ids[1]);
+        assert_eq!(results.2.id, response.request_ids[2]);
 
         Ok(AccountData {
             balance: results.0.result,
