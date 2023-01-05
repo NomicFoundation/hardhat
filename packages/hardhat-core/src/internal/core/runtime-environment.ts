@@ -51,9 +51,7 @@ export class Environment implements HardhatRuntimeEnvironment {
 
   public entryTaskProfile?: TaskProfile;
 
-  public version: string | null;
-
-  public hardhatVersion = getHardhatVersion();
+  public version: string | null = getHardhatVersion();
 
   /**
    * Initializes the Hardhat Runtime Environment and the given
@@ -111,8 +109,6 @@ export class Environment implements HardhatRuntimeEnvironment {
       config: config.networks[networkName],
       provider,
     };
-
-    this.version = this.hardhatVersion;
 
     this._extenders = extenders;
 
