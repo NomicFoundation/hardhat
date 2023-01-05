@@ -13,7 +13,7 @@ import { trace as mainnetReturnsDataTrace } from "../../../../fixture-debug-trac
 import { trace as mainnetReturnsDataTraceGeth } from "../../../../fixture-debug-traces/mainnetReturnsDataTraceGeth";
 import { trace as mainnetRevertTrace } from "../../../../fixture-debug-traces/mainnetRevertTrace";
 import { trace as modifiesStateTrace } from "../../../../fixture-debug-traces/modifiesStateTrace";
-import { ALCHEMY_URL } from "../../../../setup";
+import { INFURA_URL } from "../../../../setup";
 import { assertInvalidInputError } from "../../helpers/assertions";
 import { FORK_TESTS_CACHE_PATH } from "../../helpers/constants";
 import { EXAMPLE_CONTRACT } from "../../helpers/contracts";
@@ -127,6 +127,31 @@ describe("Debug module", function () {
           assertEqualTraces(trace, modifiesStateTrace);
         });
 
+        it("should trace an OOG transaction sent to a precompile", async function () {
+          await sendDummyTransaction(this.provider, 0, {
+            from: DEFAULT_ACCOUNTS_ADDRESSES[1],
+            to: "0x0000000000000000000000000000000000000001",
+          }).catch(() => {});
+
+          const block = await this.provider.send("eth_getBlockByNumber", [
+            "latest",
+            false,
+          ]);
+
+          const txHash = block.transactions[0];
+
+          const trace: RpcDebugTraceOutput = await this.provider.send(
+            "debug_traceTransaction",
+            [txHash]
+          );
+          assert.deepEqual(trace, {
+            gas: 21_000,
+            failed: true,
+            returnValue: "",
+            structLogs: [],
+          });
+        });
+
         describe("berlin", function () {
           useProvider({ hardfork: "berlin" });
 
@@ -165,11 +190,11 @@ describe("Debug module", function () {
     let provider: EthereumProvider;
 
     beforeEach(function () {
-      if (ALCHEMY_URL === undefined) {
+      if (INFURA_URL === undefined) {
         this.skip();
       }
       const forkConfig: ForkConfig = {
-        jsonRpcUrl: ALCHEMY_URL!,
+        jsonRpcUrl: INFURA_URL!,
         blockNumber: 11_954_000,
       };
 
@@ -291,11 +316,11 @@ describe("Debug module", function () {
     let provider: EthereumProvider;
 
     beforeEach(function () {
-      if (ALCHEMY_URL === undefined) {
+      if (INFURA_URL === undefined) {
         this.skip();
       }
       const forkConfig: ForkConfig = {
-        jsonRpcUrl: ALCHEMY_URL!,
+        jsonRpcUrl: INFURA_URL!,
         blockNumber: 15_204_358,
       };
 
@@ -330,7 +355,7 @@ describe("Debug module", function () {
       );
     });
 
-    // see HH-1031
+    // see https://github.com/NomicFoundation/hardhat/issues/3519
     it.skip("Should return the right values for a successful tx", async function () {
       const trace: RpcDebugTraceOutput = await provider.send(
         "debug_traceTransaction",

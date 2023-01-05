@@ -1,9 +1,6 @@
 import { assert } from "chai";
 
-import {
-  FixtureAnonymousFunctionError,
-  FixtureSnapshotError,
-} from "../src/errors";
+import { FixtureAnonymousFunctionError } from "../src/errors";
 import { loadFixture } from "../src/loadFixture";
 import { useEnvironment, rpcQuantityToNumber } from "./test-utils";
 
@@ -76,11 +73,13 @@ describe("loadFixture", function () {
     assert.equal(await loadFixture(mineBlockFixture), 123);
   });
 
-  it("should throw the right error when an invalid snapshot is reverted", async function () {
+  it("should take snapshot again when trying to revert to future state", async function () {
+    let calledCount = 0;
     async function mineBlockFixture() {
       await mineBlock();
     }
     async function mineTwoBlocksFixture() {
+      calledCount++;
       await mineBlock();
       await mineBlock();
     }
@@ -88,10 +87,47 @@ describe("loadFixture", function () {
     await loadFixture(mineBlockFixture);
     await loadFixture(mineTwoBlocksFixture);
     await loadFixture(mineBlockFixture);
-    await assert.isRejected(
-      loadFixture(mineTwoBlocksFixture),
-      FixtureSnapshotError
-    );
+    await loadFixture(mineTwoBlocksFixture);
+    assert.equal(calledCount, 2);
+  });
+
+  it("should take snapshot again when trying to revert to future state (edge case)", async function () {
+    // This tests is meant to check that snapshot ids are compared as numbers
+    // and not as strings.
+    // We run 16 fixtures, so that the last one has a snapshot id of 0x10, and
+    // then we run again the second one (with a snapshot id of 0x2). The last
+    // one should be removed because 0x2 <= 0x10, but this won't happen if they
+    // are compared as strings.
+
+    // keep track of how many times each fixture is called
+    const calledCount: Map<number, number> = new Map();
+    const fixturesFunctions = [...Array(16)].map((x, i) => {
+      calledCount.set(i, 0);
+      return async function mineBlockFixture() {
+        calledCount.set(i, calledCount.get(i)! + 1);
+      };
+    });
+
+    // run all fixtures and check they were called once
+    for (const fixtureFunction of fixturesFunctions) {
+      await loadFixture(fixtureFunction);
+    }
+    for (let i = 0; i < fixturesFunctions.length; i++) {
+      assert.equal(calledCount.get(i), 1);
+    }
+
+    // we run the second fixture again, this should remove all the ones that
+    // are afte rit
+    await loadFixture(fixturesFunctions[1]);
+    assert.equal(calledCount.get(1), 1);
+
+    // the last fixture should be run again
+    await loadFixture(fixturesFunctions[15]);
+    assert.equal(calledCount.get(15), 2);
+
+    // the first one shouldn't be removed
+    await loadFixture(fixturesFunctions[0]);
+    assert.equal(calledCount.get(0), 1);
   });
 
   it("should throw when an anonymous regular function is used", async function () {

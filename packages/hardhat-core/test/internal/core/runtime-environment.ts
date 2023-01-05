@@ -252,7 +252,7 @@ describe("Environment", () => {
               error,
               undefined,
               `Should not throw error task ${taskNameToRun} with args ${argsString}. Error message: ${
-                error.message || error
+                error.message ?? error
               }`
             );
           }

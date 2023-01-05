@@ -1,6 +1,7 @@
 import chalk from "chalk";
 
 import { HARDHAT_NETWORK_NAME } from "../../../constants";
+import { assertHardhatInvariant } from "../../../core/errors";
 import {
   numberToRpcQuantity,
   rpcQuantityToNumber,
@@ -29,6 +30,7 @@ export async function makeForkClient(
   forkClient: JsonRpcClient;
   forkBlockNumber: bigint;
   forkBlockTimestamp: number;
+  forkBlockHash: string;
 }> {
   const provider = new HttpProvider(
     forkConfig.jsonRpcUrl,
@@ -88,7 +90,14 @@ Please use block number ${lastSafeBlock} or wait for the block to get ${
     cacheToDiskEnabled ? forkCachePath : undefined
   );
 
-  return { forkClient, forkBlockNumber, forkBlockTimestamp };
+  const forkBlockHash = block.hash;
+
+  assertHardhatInvariant(
+    forkBlockHash !== null,
+    "Forked block should have a hash"
+  );
+
+  return { forkClient, forkBlockNumber, forkBlockTimestamp, forkBlockHash };
 }
 
 async function getBlockByNumber(

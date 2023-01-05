@@ -1,5 +1,31 @@
 # @nomiclabs/hardhat-etherscan
 
+## 3.1.4
+
+### Patch Changes
+
+- fdeba783f: A warning is now shown when there is an etherscan entry in the networks object.
+
+## 3.1.3
+
+### Patch Changes
+
+- 17b275de3: Add `--no-compile` flag to the `verify` task
+
+## 3.1.2
+
+### Patch Changes
+
+- eb3f7a7bd: - Added Arbitrum Goerli to the list of supported networks.
+  - Fixed the Optimism Goerli URLs.
+
+## 3.1.1
+
+### Patch Changes
+
+- adb075d42: Added gnosis as an alias for xdai (thanks @alebanzas!)
+- a30dcee88: Added Optimism Goerli and removed Optimism Kovan
+
 ## 3.1.0
 
 ### Minor Changes

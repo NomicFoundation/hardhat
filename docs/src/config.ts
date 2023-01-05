@@ -23,13 +23,14 @@ export const SOCIALS_LINKS = {
   [SocialsEnum.DISCORD]: "/discord",
 };
 
-export const BANNER_LINK = "https://nomic.foundation/hiring";
+export const BANNER_LINK =
+  "https://cryptpad.fr/form/#/2/form/view/HuPIRv4gvziSV0dPV1SJncKzYJXTVc8LGCaMfLUoj2c";
 
 export const PRIVACY_POLICY_PATH = "/privacy-policy.html";
 
 export const bannerContent = {
-  text: "Join the Hardhat team! Nomic Foundation is hiring",
-  shortText: "Join the Hardhat team! We are hiring",
+  text: "Please take a few minutes to complete the 2022 Solidity Survey",
+  shortText: "Complete the 2022 Solidity Survey here",
   href: BANNER_LINK,
 };
 
@@ -44,7 +45,7 @@ export const PLUGINS_PATH = path.join(
 );
 export const TEMP_PATH = path.join(process.cwd(), "temp/");
 export const REPO_URL =
-  "https://github.com/NomicFoundation/hardhat/edit/master/docs/src/content/";
+  "https://github.com/NomicFoundation/hardhat/edit/main/docs/src/content/";
 
 // Regular expression to find tool in query string.
 export const toolRegExp = /tool=[A-Z_]+/;

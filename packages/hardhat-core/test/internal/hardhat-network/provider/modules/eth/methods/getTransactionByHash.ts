@@ -19,6 +19,7 @@ import {
   EIP1559RpcTransactionOutput,
   LegacyRpcTransactionOutput,
 } from "../../../../../../../src/internal/hardhat-network/provider/output";
+import { INFURA_URL } from "../../../../../../setup";
 import { workaroundWindowsCiFailures } from "../../../../../../utils/workaround-windows-ci-failures";
 import {
   assertAccessListTransaction,
@@ -322,31 +323,30 @@ describe("Eth module", function () {
           assert.equal(tx.from, "0x8a9d69aa686fa0f9bbdec21294f67d4d9cfb4a3e");
         });
 
-        it("should get an existing transaction from rinkeby", async function () {
-          const { ALCHEMY_URL } = process.env;
-          if (!isFork || ALCHEMY_URL === undefined || ALCHEMY_URL === "") {
+        it("should get an existing transaction from goerli", async function () {
+          if (!isFork || INFURA_URL === undefined) {
             this.skip();
           }
-          const rinkebyUrl = ALCHEMY_URL.replace("mainnet", "rinkeby");
+          const goerliUrl = INFURA_URL.replace("mainnet", "goerli");
 
           // If "mainnet" is not present the replacement failed so we skip the test
-          if (rinkebyUrl === ALCHEMY_URL) {
+          if (goerliUrl === INFURA_URL) {
             this.skip();
           }
 
           await this.provider.send("hardhat_reset", [
             {
               forking: {
-                jsonRpcUrl: rinkebyUrl,
+                jsonRpcUrl: goerliUrl,
               },
             },
           ]);
 
           const tx = await this.provider.send("eth_getTransactionByHash", [
-            "0x9f8322fbfc0092c0493d4421626e682a0ef0a56ea37efe8f29cda804cca92e7f",
+            "0x3f0908ca1db37402b4fc18e8722dfffa9d78aa1c25b90c37dfe8c9f8a2612b2f",
           ]);
 
-          assert.equal(tx.from, "0xbc3109d75dffaae85ef595902e3bd70fe0643b3b");
+          assert.equal(tx.from, "0x84467283e3663522a02574288291a9d0f9c968c2");
         });
 
         it("should return access list transactions", async function () {

@@ -90,7 +90,8 @@ export async function writeAnalyticsId(clientId: string) {
 
 export async function getCompilersDir() {
   const cache = await getCacheDir();
-  const compilersCache = path.join(cache, "compilers");
+  // Note: we introduce `-v2` to invalidate all the previous compilers at once
+  const compilersCache = path.join(cache, "compilers-v2");
   await fs.ensureDir(compilersCache);
   return compilersCache;
 }

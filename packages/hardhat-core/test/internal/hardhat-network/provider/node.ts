@@ -23,7 +23,7 @@ import {
   HardhatNetworkChainConfig,
   HardhatNetworkChainsConfig,
 } from "../../../../src/types";
-import { ALCHEMY_URL } from "../../../setup";
+import { INFURA_URL } from "../../../setup";
 import { assertQuantity } from "../helpers/assertions";
 import {
   EMPTY_ACCOUNT_ADDRESS,
@@ -643,7 +643,7 @@ describe("HardhatNode", () => {
   });
 
   describe("full block", function () {
-    if (ALCHEMY_URL === undefined) {
+    if (INFURA_URL === undefined) {
       return;
     }
 
@@ -652,51 +652,33 @@ describe("HardhatNode", () => {
       // its receipts contain the state root, and we can't compute it
       {
         networkName: "mainnet",
-        url: ALCHEMY_URL,
+        url: INFURA_URL,
         blockToRun: 4370001n,
         chainId: 1,
       },
       {
         networkName: "mainnet",
-        url: ALCHEMY_URL,
+        url: INFURA_URL,
         blockToRun: 7280001n,
         chainId: 1,
       },
       {
         networkName: "mainnet",
-        url: ALCHEMY_URL,
+        url: INFURA_URL,
         blockToRun: 9069001n,
         chainId: 1,
       },
       {
         networkName: "mainnet",
-        url: ALCHEMY_URL,
+        url: INFURA_URL,
         blockToRun: 9300077n,
         chainId: 1,
       },
       {
         networkName: "goerli",
-        url: ALCHEMY_URL.replace("mainnet", "goerli"),
-        blockToRun: 5062605n,
+        url: INFURA_URL.replace("mainnet", "goerli"),
+        blockToRun: 7728449n, // this block has both EIP-2930 and EIP-1559 txs
         chainId: 5,
-      },
-      {
-        networkName: "rinkeby",
-        url: ALCHEMY_URL.replace("mainnet", "rinkeby"),
-        blockToRun: 8004365n,
-        chainId: 4,
-      },
-      {
-        networkName: "ropsten",
-        url: ALCHEMY_URL.replace("mainnet", "ropsten"),
-        blockToRun: 9812365n, // this block has a EIP-2930 tx
-        chainId: 3,
-      },
-      {
-        networkName: "ropsten",
-        url: ALCHEMY_URL.replace("mainnet", "ropsten"),
-        blockToRun: 10499406n, // this block has a EIP-1559 tx
-        chainId: 3,
       },
     ];
 
@@ -827,7 +809,7 @@ describe("HardhatNode", () => {
   describe("should run calls in the right hardfork context", async function () {
     this.timeout(10000);
     before(function () {
-      if (ALCHEMY_URL === undefined) {
+      if (INFURA_URL === undefined) {
         this.skip();
         return;
       }
@@ -847,7 +829,7 @@ describe("HardhatNode", () => {
       networkId: 1,
       hardfork: "london",
       forkConfig: {
-        jsonRpcUrl: ALCHEMY_URL!,
+        jsonRpcUrl: INFURA_URL!,
         blockNumber: Number(eip1559ActivationBlock),
       },
       forkCachePath: FORK_TESTS_CACHE_PATH,
@@ -1002,7 +984,7 @@ describe("HardhatNode", () => {
   });
 
   it("should support a historical call in the context of a block added via mineBlocks()", async function () {
-    if (ALCHEMY_URL === undefined) {
+    if (INFURA_URL === undefined) {
       this.skip();
       return;
     }
@@ -1013,7 +995,7 @@ describe("HardhatNode", () => {
       networkId: 1,
       hardfork: "london",
       forkConfig: {
-        jsonRpcUrl: ALCHEMY_URL,
+        jsonRpcUrl: INFURA_URL,
         blockNumber: 12965000, // eip1559ActivationBlock
       },
       forkCachePath: FORK_TESTS_CACHE_PATH,

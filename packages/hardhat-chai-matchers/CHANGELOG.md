@@ -1,5 +1,17 @@
 # @nomicfoundation/hardhat-chai-matchers
 
+## 1.0.5
+
+### Patch Changes
+
+- 478c244a7: The `revertedWith` matcher now supports regular expressions (thanks @Dkdaniz!)
+
+## 1.0.4
+
+### Patch Changes
+
+- 691f0cecb: Fixed the values matched by `properAddress` and `properPrivateKey` (thanks @olehmisar!)
+
 ## 1.0.3
 
 ### Patch Changes

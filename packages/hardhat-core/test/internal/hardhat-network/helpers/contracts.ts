@@ -104,17 +104,16 @@ export const EXAMPLE_CONTRACT = {
 
 contract Example {
     event StateModified(uint256 indexed _oldI, uint256 _newI);
-    
-    
+
     uint256 public i = 0;
     uint8 public j = 1;
     bytes32 h = "1234567890123456789012345678901234567890123456789012345678901234";
-    
+
     function modifiesState(uint256 _i) payable public {
         emit StateModified(i, _i);
         i = _i;
     }
-    
+
 }`,
   // Compiled with Remix.
   bytecode: {

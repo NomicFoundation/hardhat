@@ -207,7 +207,7 @@ networks: {
 - `console.log` implements the same formatting options that can be found in Node.js' [`console.log`](https://nodejs.org/dist/latest-v12.x/docs/api/console.html#console_console_log_data_args), which in turn uses [`util.format`](https://nodejs.org/dist/latest-v12.x/docs/api/util.html#util_util_format_format_args).
   - Example: `console.log("Changing owner from %s to %s", currentOwner, newOwner)`
 - `console.log` is implemented in standard Solidity and then detected in Hardhat Network. This makes its compilation work with any other tools (like Remix, Waffle or Truffle).
-- `console.log` calls can run in other networks, like mainnet, kovan, ropsten, etc. They do nothing in those networks, but do spend a minimal amount of gas.
+- `console.log` calls can run in other networks, like mainnet, goerli, sepolia, etc. They do nothing in those networks, but do spend a minimal amount of gas.
 - `console.log` output can also be viewed for testnets and mainnet via [Tenderly](https://tenderly.co/).
 - `console.log` works by sending static calls to a well-known contract address. At runtime, Hardhat Network detects calls to that address, decodes the input data to the calls, and writes it to the console.
 
@@ -387,7 +387,7 @@ await hre.network.provider.request({
 });
 ```
 
-If you are using [`hardhat-ethers`](https://github.com/nomiclabs/hardhat/tree/master/packages/hardhat-ethers), call `getSigner` after impersonating the account:
+If you are using [`hardhat-ethers`](https://github.com/NomicFoundation/hardhat/tree/main/packages/hardhat-ethers), call `getSigner` after impersonating the account:
 
 ```
 const signer = await ethers.getSigner("0x364d6D0333432C3Ac016Ca832fb8594A8cE43Ca6")
@@ -403,6 +403,20 @@ Call [`hardhat_stopImpersonatingAccount`](#hardhat-stopimpersonatingaccount) to 
 #### `hardhat_getAutomine`
 
 Returns `true` if automatic mining is enabled, and `false` otherwise. See [Mining Modes](../explanation/mining-modes.md) to learn more.
+
+#### `hardhat_metadata`
+
+Returns an object with metadata about the instance of the Hardhat Network. This object contains:
+
+- `clientVersion`: A string identifying the version of Hardhat, for debugging purposes, not meant to be displayed to users.
+- `chainId`: The chain's id. Used to sign transactions.
+- `instanceId`: A 0x-prefixed hex-encoded 32 bytes id which uniquely identifies an instance/run of Hardhat Network. Running Hardhat Network more than once (even with the same version and parameters) will always result in different `instanceId`s. Running `hardhat_reset` will change the `instanceId` of an existing Hardhat Network.
+- `latestBlockNumber`: The latest block's number in Hardhat Network.
+- `latestBlockHash`: The latest block's hash in Hardhat Network.
+- `forkedNetwork`: An object with information about the forked network. This field is only present when Hardhat Network is forking another chain. Its fields are:
+  - `chainId`: The chainId of the network that is being forked
+  - `forkBlockNumber`: The number of the block that the network forked from.
+  - `forkBlockHash`: The hash of the block that the network forked from.
 
 #### `hardhat_mine`
 

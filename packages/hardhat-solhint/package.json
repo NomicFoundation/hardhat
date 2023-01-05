@@ -1,9 +1,9 @@
 {
   "name": "@nomiclabs/hardhat-solhint",
-  "version": "2.0.1",
+  "version": "3.0.0",
   "description": "Hardhat plugin for solhint",
   "repository": "github:nomiclabs/hardhat",
-  "homepage": "https://github.com/nomiclabs/hardhat/tree/master/packages/hardhat-solhint",
+  "homepage": "https://github.com/nomiclabs/hardhat/tree/main/packages/hardhat-solhint",
   "author": "Nomic Labs LLC",
   "license": "MIT",
   "main": "dist/src/index.js",
@@ -34,7 +34,7 @@
     "README.md"
   ],
   "dependencies": {
-    "solhint": "^2.0.0"
+    "solhint": "^3.0.0"
   },
   "devDependencies": {
     "@types/chai": "^4.2.0",
@@ -47,6 +47,7 @@
     "eslint": "^7.29.0",
     "eslint-config-prettier": "8.3.0",
     "eslint-plugin-import": "2.24.1",
+    "eslint-plugin-no-only-tests": "3.0.0",
     "eslint-plugin-prettier": "3.4.0",
     "fs-extra": "^7.0.1",
     "hardhat": "^2.0.0",

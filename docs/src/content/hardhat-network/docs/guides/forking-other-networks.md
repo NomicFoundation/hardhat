@@ -30,7 +30,7 @@ By accessing any state that exists on mainnet, Hardhat Network will pull the dat
 
 ## Pinning a block
 
-Hardhat Network will by default fork from the latest mainnet block. While this might be practical depending on the context, to set up a test suite that depends on forking we recommend forking from a specific block number.
+Hardhat Network will by default fork from a recent mainnet block. While this might be practical depending on the context, to set up a test suite that depends on forking we recommend forking from a specific block number.
 
 There are two reasons for this:
 
@@ -160,10 +160,11 @@ See also [the `chains` entry in the Hardhat Network configuration reference](../
 
 ### "Project ID does not have access to archive state"
 
-When using Infura without the archival add-on, you will only have access to the state of the blockchain from recent blocks. To avoid this problem, you can use either a local archive node or a service that provides archival data, like [Alchemy].
+When using Infura without the archival add-on, you will only have access to the state of the blockchain from recent blocks. To avoid this problem, you can use either a local archive node or a service that provides archival data, like [Alchemy] or [Infura].
 
 ## See also
 
 For full details on what's supported, see [the Hardhat Network Config Reference](../reference/#config).
 
 [alchemy]: https://alchemyapi.io/
+[infura]: https://alchemyapi.io/

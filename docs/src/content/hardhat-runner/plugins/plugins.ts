@@ -121,6 +121,43 @@ const communityPlugins: IPlugin[] = [
     tags: ["Documentation", "NatSpec"],
   },
   {
+    name: "@solidstate/hardhat-4byte-uploader",
+    author: "Nick Barry",
+    authorUrl: "https://github.com/ItsNickBarry",
+    description:
+      "Upload local function selectors to the Ethereum Selector Database",
+    tags: ["Bytecode", "ABI"],
+  },
+  {
+    name: "@solidstate/hardhat-test-short-circuit",
+    author: "Nick Barry",
+    authorUrl: "https://github.com/ItsNickBarry",
+    description:
+      "Stop Hardhat test execution on demand and print output from completed tests",
+    tags: ["Testing", "Mocha"],
+  },
+  {
+    name: "@solidstate/hardhat-txn-dot-xyz",
+    author: "Nick Barry",
+    authorUrl: "https://github.com/ItsNickBarry",
+    description: "Generate and execute on-chain transactions via txn.xyz",
+    tags: ["Signing", "Scripts"],
+  },
+  {
+    name: "@solidstate/hardhat-bytecode-exporter",
+    author: "Nick Barry",
+    authorUrl: "https://github.com/ItsNickBarry",
+    description: "Automatically export contract bytecode on compilation",
+    tags: ["Bytecode", "Compiling"],
+  },
+  {
+    name: "@solidstate/hardhat-accounts",
+    author: "Nick Barry",
+    authorUrl: "https://github.com/ItsNickBarry",
+    description: "Output list of available accounts and their balances",
+    tags: ["Accounts", "Balances"],
+  },
+  {
     name: "hardhat-watcher",
     author: "Xander Deseyn",
     authorUrl: "https://github.com/N1ghtly",
@@ -156,21 +193,6 @@ const communityPlugins: IPlugin[] = [
     description:
       "Automatically deploy the ERC-1820 registry contract to Hardhat EVM chains.",
     tags: ["Testing"],
-  },
-  {
-    name: "@aragon/buidler-aragon",
-    author: "Aragon One",
-    authorUrl: "https://twitter.com/aragononeteam",
-    description: "Buidler plugin for Aragon App development",
-    tags: ["Aragon", "Apps", "Buidler plugin"],
-  },
-  {
-    name: "buidler-source-descriptor",
-    author: "Kendrick Tan",
-    authorUrl: "https://github.com/kendricktan",
-    description:
-      "A Buidler plugin to generate a descriptor of your Solidity source code",
-    tags: ["Compiling", "Documentation", "Buidler plugin"],
   },
   {
     name: "hardhat-local-networks-config-plugin",
@@ -297,6 +319,14 @@ const communityPlugins: IPlugin[] = [
     description:
       "Hardhat plugin to deploy your smart contracts across multiple EVM chains with the same deterministic address.",
     tags: ["Deployment", "CREATE2", "Tasks"],
+  },
+  {
+    name: "@tovarishfin/hardhat-yul",
+    author: "tovarishfin",
+    authorUrl: "https://codylamson.com",
+    description:
+      "An updated and working Hardhat plugin to compile the Yul and Yul+ languages into solc compatible artifacts. Works with .yul and .yulp file extensions",
+    tags: ["Yul", "Assembly", "Compiler", "Yul+"],
   },
   {
     name: "@controlcpluscontrolv/hardhat-yul",
@@ -546,6 +576,84 @@ const communityPlugins: IPlugin[] = [
     description:
       "Overrides ENS ownership in hardhat network to allow orchestration superpowers",
     tags: ["ENS", "Testing", "Orchestration", "Productivity"],
+  },
+  {
+    name: "hardhat-cannon",
+    author: "Synthetix Core Contributors",
+    authorUrl: "https://github.com/dbeal-eth",
+    description:
+      "Define your project's deployment in a simple manifest, then deploy and share it anywhere. Inspired by Docker, Terraform, and npm. https://usecannon.com/",
+    tags: ["Tooling", "Deployment", "Testing"],
+  },
+  {
+    name: "hardhat-etherscan-contract-cloner",
+    author: "Tuckson",
+    authorUrl: "https://github.com/TucksonDev",
+    description:
+      "Hardhat plugin for cloning verified contracts from any supported network using Etherscan's API.",
+    tags: ["Etherscan", "Clone", "Smart contract"],
+  },
+  {
+    name: "hardhat-interact",
+    author: "Synthetix Core Contributors",
+    authorUrl: "https://github.com/dbeal-eth",
+    description:
+      "Execute commands on deployed contracts on any network using a helpful TUI.",
+    tags: ["Tooling", "Operations", "Testing"],
+  },
+  {
+    name: "hardhat-chainlink-plugin",
+    author: "protofire.io",
+    authorUrl: "https://protofire.io/",
+    description:
+      "Hardhat TypeScript plugin to run a chainlink node and interact with it",
+    tags: ["ethereum", "smart-contracts", "chainlink", "hardhat-plugin"],
+  },
+  {
+    name: "huff-deployer",
+    author: "Rodrigo Herrera",
+    authorUrl: "https://github.com/rodrigoherrerai",
+    description:
+      "A Hardhat Typescript plugin to test and interact with Huff contracts",
+    tags: ["Deployment", "Tasks", "Huff"],
+  },
+  {
+    name: "hardhat-gui",
+    author: "yecandir",
+    authorUrl: "https://github.com/yecandir",
+    description:
+      "Hardhat React Plugin to interact with your deployed contracts",
+    tags: ["Tooling", "Testing", "ui", "plugin"],
+  },
+  {
+    name: "hardhat-finder",
+    author: "Emre Tepe",
+    authorUrl: "https://emretepedev.github.io/",
+    description: "Hardhat plugin to get compiler outputs of contracts",
+    tags: ["Tooling", "Testing", "Tasks", "Scripts", "Solc", "Compiler"],
+  },
+  {
+    name: "@dlsl/hardhat-migrate",
+    author: "Distributed Lab",
+    authorUrl: "https://distributedlab.com/",
+    description:
+      "Hardhat plugin to automate the deployment and verification of contracts",
+    tags: ["Deployment", "Verification", "Migration"],
+  },
+  {
+    name: "hardhat-notifier",
+    author: "Mister Singh",
+    authorUrl: "https://www.npmjs.com/package/hardhat-notifier",
+    description:
+      "Hardhat plugin to send an OSX notification when hardhat compilcation fails/succeeds",
+    tags: ["Deployment", "Tooling", "Notification", "Compile"],
+  },
+  {
+    name: "hardhat-jest",
+    author: "Arian Hosseini",
+    authorUrl: "https://www.npmjs.com/package/hardhat-jest",
+    description: "Hardhat plugin that allows you to use Jest easily",
+    tags: ["Deployment", "Testing", "Jest", "Smart Contracts", "Solidity"],
   },
 ];
 

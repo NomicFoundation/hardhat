@@ -79,7 +79,7 @@ describe("INTEGRATION: Reverted with", function () {
       });
 
       // depends on a bug being fixed on ethers.js
-      // see https://linear.app/nomic-foundation/issue/HH-725
+      // see https://github.com/NomicFoundation/hardhat/issues/3446
       it.skip("failed asserts", async function () {
         await runFailedAsserts({
           matchers,
@@ -98,6 +98,14 @@ describe("INTEGRATION: Reverted with", function () {
           method: "revertsWith",
           args: ["some reason"],
           successfulAssert: (x) => expect(x).to.be.revertedWith("some reason"),
+        });
+
+        await runSuccessfulAsserts({
+          matchers,
+          method: "revertsWith",
+          args: ["regular expression reason"],
+          successfulAssert: (x) =>
+            expect(x).to.be.revertedWith(/regular .* reason/),
         });
 
         await runSuccessfulAsserts({
@@ -128,6 +136,18 @@ describe("INTEGRATION: Reverted with", function () {
           failedAssert: (x) => expect(x).to.be.revertedWith("some reason"),
           failedAssertReason:
             "Expected transaction to be reverted with reason 'some reason', but it reverted with reason 'another reason'",
+        });
+      });
+
+      it("failed asserts: expected a different regular expression reason ", async function () {
+        await runFailedAsserts({
+          matchers,
+          method: "revertsWith",
+          args: ["another regular expression reason"],
+          failedAssert: (x) =>
+            expect(x).to.be.revertedWith(/some regular .* reason/),
+          failedAssertReason:
+            "Expected transaction to be reverted with reason 'some regular .* reason', but it reverted with reason 'another regular expression reason'",
         });
       });
     });
@@ -187,7 +207,10 @@ describe("INTEGRATION: Reverted with", function () {
         expect(() =>
           // @ts-expect-error
           expect(hash).to.be.revertedWith(10)
-        ).to.throw(TypeError, "Expected the revert reason to be a string");
+        ).to.throw(
+          TypeError,
+          "Expected the revert reason to be a string or a regular expression"
+        );
       });
 
       it("errors that are not related to a reverted transaction", async function () {
