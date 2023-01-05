@@ -32,6 +32,8 @@ import {
   TaskProfile,
 } from "./task-profiling";
 
+import { getHardhatVersion } from "../util/packageInfo";
+
 const log = debug("hardhat:core:hre");
 
 export class Environment implements HardhatRuntimeEnvironment {
@@ -49,6 +51,10 @@ export class Environment implements HardhatRuntimeEnvironment {
   private readonly _extenders: EnvironmentExtender[];
 
   public entryTaskProfile?: TaskProfile;
+
+  public version: string | null;
+
+  public hardhatVersion = getHardhatVersion();
 
   /**
    * Initializes the Hardhat Runtime Environment and the given
@@ -106,6 +112,8 @@ export class Environment implements HardhatRuntimeEnvironment {
       config: config.networks[networkName],
       provider,
     };
+
+    this.version = this .hardhatVersion;
 
     this._extenders = extenders;
 
