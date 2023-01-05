@@ -80,6 +80,11 @@ pub struct RpcClient {
 
 #[allow(clippy::enum_variant_names)]
 enum MethodInvocation {
+    GetStorageAt {
+        address: Address,
+        position: U256,
+        block_number: u64,
+    },
     GetTxByHash(B256),
     GetTxReceipt(B256),
     GetLogs {
@@ -166,6 +171,19 @@ impl RpcClient {
                     from_block,
                     to_block,
                     serde_json::json!(address)
+                ),
+            ),
+            MethodInvocation::GetStorageAt {
+                address,
+                position,
+                block_number,
+            } => (
+                "eth_getStorageAt",
+                format!(
+                    "{},\"{:#x}\",\"{:#x}\"",
+                    serde_json::json!(address),
+                    position,
+                    block_number
                 ),
             ),
             MethodInvocation::GetTxByHash(hash) => (
@@ -409,6 +427,36 @@ impl RpcClient {
         let response = self
             .call(&MethodInvocation::GetTxCount {
                 address: *address,
+                block_number,
+            })
+            .await?;
+
+        let success: jsonrpc::Success<U256> =
+            serde_json::from_str(&response.text).map_err(|err| {
+                RpcClientError::InterpretationError {
+                    msg: err.to_string(),
+                    request_body: response.request_body.clone(),
+                    expected_type: String::from("jsonrpc::Success<U256>"),
+                    response_text: response.text,
+                }
+            })?;
+
+        assert_eq!(success.id, response.request_id);
+
+        Ok(success.result)
+    }
+
+    /// eth_getStorageAt
+    pub async fn get_storage_at(
+        &self,
+        address: &Address,
+        position: U256,
+        block_number: u64,
+    ) -> Result<U256, RpcClientError> {
+        let response = self
+            .call(&MethodInvocation::GetStorageAt {
+                address: *address,
+                position,
                 block_number,
             })
             .await?;
@@ -767,6 +815,36 @@ mod tests {
 
         assert_eq!(block.number, Some(block_number));
         assert_eq!(block.transactions.len(), 102);
+    }
+
+    #[tokio::test]
+    async fn get_storage_at() {
+        let alchemy_url = get_alchemy_url().expect("failed to get Alchemy URL");
+
+        let dai_address = Address::from_str("0x6b175474e89094c44da98b954eedeac495271d0f")
+            .expect("failed to parse address");
+
+        let total_supply: U256 = RpcClient::new(&alchemy_url)
+            .get_storage_at(
+                &dai_address,
+                U256::from_str_radix(
+                    "0000000000000000000000000000000000000000000000000000000000000001",
+                    16,
+                )
+                .expect("failed to parse storage location"),
+                16220843,
+            )
+            .await
+            .expect("should have succeeded");
+
+        assert_eq!(
+            total_supply,
+            U256::from_str_radix(
+                "000000000000000000000000000000000000000010a596ae049e066d4991945c",
+                16
+            )
+            .expect("failed to parse storage location")
+        );
     }
 
     #[tokio::test]
