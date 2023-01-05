@@ -20,6 +20,7 @@ import { Artifacts } from "../artifacts";
 import { MessageTrace } from "../hardhat-network/stack-traces/message-trace";
 import { lazyObject } from "../util/lazy";
 
+import { getHardhatVersion } from "../util/packageInfo";
 import { analyzeModuleNotFoundError } from "./config/config-loading";
 import { HardhatError } from "./errors";
 import { ERRORS } from "./errors-list";
@@ -31,8 +32,6 @@ import {
   createTaskProfile,
   TaskProfile,
 } from "./task-profiling";
-
-import { getHardhatVersion } from "../util/packageInfo";
 
 const log = debug("hardhat:core:hre");
 
@@ -113,7 +112,7 @@ export class Environment implements HardhatRuntimeEnvironment {
       provider,
     };
 
-    this.version = this .hardhatVersion;
+    this.version = this.hardhatVersion;
 
     this._extenders = extenders;
 
