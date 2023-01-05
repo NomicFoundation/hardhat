@@ -4,6 +4,8 @@
 // - https://github.com/gakonst/ethers-rs/blob/7e6c3ba98363bdf6131e8284f186cc2c70ff48c3/LICENSE-MIT
 // For the original context, see https://github.com/gakonst/ethers-rs/tree/7e6c3ba98363bdf6131e8284f186cc2c70ff48c3
 
+use std::fmt::Debug;
+
 use rethnet_eth::{Address, Bloom, Bytes, B256, U256};
 
 #[derive(Clone, Debug, PartialEq, Eq, Default, serde::Deserialize, serde::Serialize)]
@@ -160,7 +162,10 @@ pub struct Block<TX> {
     pub seal_fields: Vec<Bytes>,
     #[serde(default)]
     pub uncles: Vec<B256>,
-    #[serde(bound = "TX: serde::Serialize + serde::de::DeserializeOwned", default)]
+    #[serde(
+        bound = "TX: Debug + Default + Clone + PartialEq + Eq + serde::Serialize + serde::de::DeserializeOwned",
+        default
+    )]
     pub transactions: Vec<TX>,
     pub size: Option<U256>,
     pub mix_hash: Option<B256>,
