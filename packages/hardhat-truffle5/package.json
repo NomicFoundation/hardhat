@@ -43,7 +43,7 @@
     "@nomiclabs/hardhat-web3": "^2.0.0",
     "@types/fs-extra": "^5.1.0",
     "@types/glob": "^7.1.1",
-    "@types/mocha": "^10.0.0",
+    "@types/mocha": ">=9.1.0",
     "@types/node": "^14.0.0",
     "@typescript-eslint/eslint-plugin": "^5.30.7",
     "@typescript-eslint/parser": "4.29.2",
