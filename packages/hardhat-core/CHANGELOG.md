@@ -1,5 +1,23 @@
 # hardhat
 
+## 2.12.5
+
+### Patch Changes
+
+- 051bedf01: Added an experimental environment variable flag to disable the local installation check
+- 3fcdd3bb2: The selector of unrecognized custom errors is now shown as part of the error message (thanks @vivianjeng!)
+- aa721398e: Fixed a bug that was causing the flatten task to produce non-deterministic results
+- 5dc9b7c99: Fixed a bug when `gasPrice` was set to `"auto"`, which is the default configuration when connecting to a JSON-RPC network. This bug was preventing the results from `eth_feeHistory` from being used when they should.
+- 23a594a59: The full return data of unrecognized custom errors is now shown in error messages
+- 7e81377fc: Accept extra headers in the internal download module
+
+## 2.12.4
+
+### Patch Changes
+
+- 7154371e3: Fixed an issue that caused compilation with solcjs to not work when Hardhat is bundled
+- 2fc9a2cb8: Show a message with a link to the Solidity Developer Survey
+
 ## 2.12.3
 
 ### Patch Changes

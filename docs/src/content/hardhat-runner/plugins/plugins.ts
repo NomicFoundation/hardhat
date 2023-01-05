@@ -195,21 +195,6 @@ const communityPlugins: IPlugin[] = [
     tags: ["Testing"],
   },
   {
-    name: "@aragon/buidler-aragon",
-    author: "Aragon One",
-    authorUrl: "https://twitter.com/aragononeteam",
-    description: "Buidler plugin for Aragon App development",
-    tags: ["Aragon", "Apps", "Buidler plugin"],
-  },
-  {
-    name: "buidler-source-descriptor",
-    author: "Kendrick Tan",
-    authorUrl: "https://github.com/kendricktan",
-    description:
-      "A Buidler plugin to generate a descriptor of your Solidity source code",
-    tags: ["Compiling", "Documentation", "Buidler plugin"],
-  },
-  {
     name: "hardhat-local-networks-config-plugin",
     author: "Facu Spagnuolo",
     authorUrl: "https://twitter.com/facuspagnuolo",
@@ -654,6 +639,21 @@ const communityPlugins: IPlugin[] = [
     description:
       "Hardhat plugin to automate the deployment and verification of contracts",
     tags: ["Deployment", "Verification", "Migration"],
+  },
+  {
+    name: "hardhat-notifier",
+    author: "Mister Singh",
+    authorUrl: "https://www.npmjs.com/package/hardhat-notifier",
+    description:
+      "Hardhat plugin to send an OSX notification when hardhat compilcation fails/succeeds",
+    tags: ["Deployment", "Tooling", "Notification", "Compile"],
+  },
+  {
+    name: "hardhat-jest",
+    author: "Arian Hosseini",
+    authorUrl: "https://www.npmjs.com/package/hardhat-jest",
+    description: "Hardhat plugin that allows you to use Jest easily",
+    tags: ["Deployment", "Testing", "Jest", "Smart Contracts", "Solidity"],
   },
 ];
 
