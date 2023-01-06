@@ -690,7 +690,8 @@ const officialPlugins: IPlugin[] = [
     name: "@nomicfoundation/hardhat-foundry",
     author: "Nomic Foundation",
     authorUrl: "https://twitter.com/NomicFoundation",
-    description: "Makes it easier to use Hardhat and Foundry in the same project",
+    description:
+      "Makes it easier to use Hardhat and Foundry in the same project",
     tags: ["Foundry"],
   },
   {
