@@ -254,12 +254,12 @@ Note that you don't need to do this every time you install a new dependency, but
     },
     ESM_PROJECT_WITHOUT_CJS_CONFIG: {
       number: 19,
-      message: `Your project is an ESM project (you have "type": "module" set in your package.json) but your Hardhat config file uses a .js or .ts extension.
+      message: `Your project is an ESM project (you have "type": "module" set in your package.json) but your Hardhat config file uses a .js extension.
 
 Rename the file to use a .cjs to fix this problem.`,
-      title: "Hardhat config with .js or .ts extension in an ESM project",
+      title: "Hardhat config with .js extension in an ESM project",
       description:
-        "Your project is an ESM project but your Hardhat config uses an .js or .ts extension. Hardhat config files cannot be an ES module. To fix this, rename your Hardhat config to use the .cjs extension.",
+        "Your project is an ESM project but your Hardhat config uses an .js extension. Hardhat config files cannot be an ES module. To fix this, rename your Hardhat config to use the .cjs extension.",
       shouldBeReported: false,
     },
     ESM_TYPESCRIPT_PROJECT_CREATION: {
