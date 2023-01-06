@@ -435,10 +435,14 @@ export class ErrorInferrer {
           trace.bytecode.contract.getFunctionFromSelector(
             trace.calldata.slice(0, 4)
           );
-        assertHardhatInvariant(
-          functionSelector !== undefined,
-          "Expected function selector to be defined"
-        );
+
+        // in general this shouldn't happen, but it does when viaIR is enabled,
+        // "optimizerSteps": "u" is used, and the called function is fallback or
+        // receive
+        if (functionSelector === undefined) {
+          return;
+        }
+
         inferredStacktrace.push({
           type: StackTraceEntryType.REVERT_ERROR,
           sourceReference: this._getFunctionStartSourceReference(
