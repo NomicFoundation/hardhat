@@ -51,7 +51,7 @@ class ArtifactsSourceStub {
   disableCache() {}
 }
 
-extendArtifacts((config) => {
+experimentalExtendArtifacts((config) => {
   // we assert that the resolved config is received, just in case
   assert.equal(config.solidity.compilers[0].version, "0.5.15");
 

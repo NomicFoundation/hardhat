@@ -141,7 +141,9 @@ export function extendConfig(extender: ConfigExtender) {
  * extra source of artifacts. This source has to implement the ArtifactsSource
  * interface.
  */
-export function extendArtifacts(artifactsExtender: ArtifactsExtender) {
+export function experimentalExtendArtifacts(
+  artifactsExtender: ArtifactsExtender
+) {
   const ctx = HardhatContext.getHardhatContext();
   const extenderManager = ctx.extendersManager;
   extenderManager.addArtifactsExtender(artifactsExtender);
