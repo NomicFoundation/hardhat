@@ -46,7 +46,8 @@ const coreTasks = [
     name: "console",
   },
   {
-    description: "Flattens and prints contracts and their dependencies",
+    description:
+      "Flattens and prints contracts and their dependencies. If no file is passed, all the contracts in the project will be flattened.",
     name: "flatten",
   },
   {

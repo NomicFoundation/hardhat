@@ -1,6 +1,6 @@
 {
   "name": "@nomiclabs/hardhat-solhint",
-  "version": "2.0.1",
+  "version": "3.0.0",
   "description": "Hardhat plugin for solhint",
   "repository": "github:nomiclabs/hardhat",
   "homepage": "https://github.com/nomiclabs/hardhat/tree/main/packages/hardhat-solhint",
@@ -34,12 +34,12 @@
     "README.md"
   ],
   "dependencies": {
-    "solhint": "^2.0.0"
+    "solhint": "^3.0.0"
   },
   "devDependencies": {
     "@types/chai": "^4.2.0",
     "@types/fs-extra": "^5.1.0",
-    "@types/mocha": "^9.1.0",
+    "@types/mocha": ">=9.1.0",
     "@types/node": "^14.0.0",
     "@typescript-eslint/eslint-plugin": "^5.30.7",
     "@typescript-eslint/parser": "4.29.2",

@@ -9,7 +9,7 @@ import {
 } from "../../../../src/internal/core/jsonrpc/types/base-types";
 import { InvalidInputError } from "../../../../src/internal/core/providers/errors";
 import { LegacyRpcTransactionOutput } from "../../../../src/internal/hardhat-network/provider/output";
-import { ALCHEMY_URL } from "../../../setup";
+import { INFURA_URL } from "../../../setup";
 import { workaroundWindowsCiFailures } from "../../../utils/workaround-windows-ci-failures";
 import {
   assertQuantity,
@@ -485,14 +485,14 @@ describe("Forked provider", function () {
 
       describe("blocks timestamps", () => {
         it("should use a timestamp relative to the forked block timestamp", async function () {
-          if (ALCHEMY_URL === undefined) {
+          if (INFURA_URL === undefined) {
             this.skip();
           }
 
           await this.provider.send("hardhat_reset", [
             {
               forking: {
-                jsonRpcUrl: ALCHEMY_URL,
+                jsonRpcUrl: INFURA_URL,
                 blockNumber: 11565019, // first block of 2021
               },
             },

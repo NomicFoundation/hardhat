@@ -65,7 +65,7 @@ const TYPESCRIPT_DEPENDENCIES: Dependencies = {};
 
 const TYPESCRIPT_PEER_DEPENDENCIES: Dependencies = {
   "@types/chai": "^4.2.0",
-  "@types/mocha": "^9.1.0",
+  "@types/mocha": ">=9.1.0",
   "@types/node": ">=12.0.0",
   "ts-node": ">=8.0.0",
   typescript: ">=4.5.0",
@@ -323,6 +323,20 @@ function showStarOnGitHubMessage() {
   console.log(chalk.cyan("     https://github.com/NomicFoundation/hardhat"));
 }
 
+export function showSoliditySurveyMessage() {
+  if (new Date() > new Date("2023-07-01 23:39")) {
+    // the survey has finished
+    return;
+  }
+
+  console.log();
+  console.log(
+    chalk.cyan(
+      "Please take a moment to complete the 2022 Solidity Survey: https://hardhat.org/solidity-survey-2022"
+    )
+  );
+}
+
 export async function createProject() {
   printAsciiLogo();
 
@@ -368,6 +382,7 @@ export async function createProject() {
 
     console.log();
     showStarOnGitHubMessage();
+    showSoliditySurveyMessage();
 
     return;
   }
@@ -468,6 +483,7 @@ export async function createProject() {
   console.log("See the README.md file for some example tasks you can run");
   console.log();
   showStarOnGitHubMessage();
+  showSoliditySurveyMessage();
 }
 
 async function canInstallRecommendedDeps() {

@@ -519,12 +519,8 @@ export class ErrorInferrer {
       return;
     }
 
-    let errorMessage = "reverted with an unrecognized custom error";
-
-    const selector = returnData.getSelector();
-    if (selector !== undefined) {
-      errorMessage += ` with selector ${selector}`;
-    }
+    const rawReturnData = returnData.value.toString("hex");
+    let errorMessage = `reverted with an unrecognized custom error (return data: 0x${rawReturnData})`;
 
     for (const customError of trace.bytecode.contract.customErrors) {
       if (returnData.matchesSelector(customError.selector)) {

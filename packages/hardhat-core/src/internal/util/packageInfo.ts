@@ -41,19 +41,16 @@ export async function getPackageJson(): Promise<PackageJson> {
   return fsExtra.readJSON(path.join(root, "package.json"));
 }
 
-export function getHardhatVersion(): string | null {
+export function getHardhatVersion(): string {
   const packageJsonPath = findClosestPackageJson(__filename);
 
-  if (packageJsonPath === null) {
-    return null;
-  }
+  assertHardhatInvariant(
+    packageJsonPath !== null,
+    "There should be a package.json in hardhat-core's root directory"
+  );
 
-  try {
-    const packageJson = fsExtra.readJsonSync(packageJsonPath);
-    return packageJson.version;
-  } catch {
-    return null;
-  }
+  const packageJson = fsExtra.readJsonSync(packageJsonPath);
+  return packageJson.version;
 }
 
 /**

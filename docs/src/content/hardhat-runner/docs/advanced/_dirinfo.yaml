@@ -7,6 +7,8 @@ order:
   - /create-task
   - /scripts
   - /building-plugins
+  - /hardhat-and-foundry
+  - /flattening
   - href: /vscode-tests
     title: Running tests in VS Code
   - /using-esm

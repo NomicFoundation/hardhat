@@ -8,7 +8,7 @@ contract C {
   }
 
   function test(bool b) m1(b) m2 public {
-    
+
 
     revert();
   }

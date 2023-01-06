@@ -36,6 +36,12 @@ export async function takeSnapshot(): Promise<SnapshotRestorer> {
         params: [snapshotId],
       });
 
+      if (typeof reverted !== "boolean") {
+        throw new HardhatNetworkHelpersError(
+          "Assertion error: the value returned by evm_revert should be a boolean"
+        );
+      }
+
       if (!reverted) {
         throw new InvalidSnapshotError();
       }

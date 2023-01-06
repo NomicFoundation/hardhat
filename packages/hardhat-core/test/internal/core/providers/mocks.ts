@@ -32,6 +32,9 @@ export class MockedProvider extends EventEmitter implements EIP1193Provider {
     method,
     params = [],
   }: RequestArguments): Promise<any> {
+    // stringify the params to make sure they are serializable
+    JSON.stringify(params);
+
     this._latestParams[method] = params;
 
     if (this._numberOfCalls[method] === undefined) {
