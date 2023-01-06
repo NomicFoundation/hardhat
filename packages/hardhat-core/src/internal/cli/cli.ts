@@ -12,7 +12,10 @@ import {
 import { HardhatConfig, TaskArguments } from "../../types";
 import { HARDHAT_NAME } from "../constants";
 import { HardhatContext } from "../context";
-import { loadConfigAndTasks } from "../core/config/config-loading";
+import {
+  getConfiguredCompilers,
+  loadConfigAndTasks,
+} from "../core/config/config-loading";
 import {
   assertHardhatInvariant,
   HardhatError,
@@ -105,7 +108,8 @@ async function suggestInstallingHardhatVscode() {
 }
 
 function showViaIRWarning(resolvedConfig: HardhatConfig) {
-  const viaIREnabled = resolvedConfig.solidity.compilers.some(
+  const configuredCompilers = getConfiguredCompilers(resolvedConfig.solidity);
+  const viaIREnabled = configuredCompilers.some(
     (compiler) => compiler.settings?.viaIR === true
   );
 
