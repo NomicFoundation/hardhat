@@ -655,6 +655,14 @@ const communityPlugins: IPlugin[] = [
     description: "Hardhat plugin that allows you to use Jest easily",
     tags: ["Deployment", "Testing", "Jest", "Smart Contracts", "Solidity"],
   },
+  {
+    name: "@dlsl/hardhat-gobind",
+    author: "Distributed Lab",
+    authorUrl: "https://distributedlab.com/",
+    description:
+      "Hardhat plugin to generate smart contract bindings for Golang",
+    tags: ["Bindings", "Go", "Testing"],
+  },
 ];
 
 const officialPlugins: IPlugin[] = [
