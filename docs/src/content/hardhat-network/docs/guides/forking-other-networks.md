@@ -160,10 +160,11 @@ See also [the `chains` entry in the Hardhat Network configuration reference](../
 
 ### "Project ID does not have access to archive state"
 
-When using Infura without the archival add-on, you will only have access to the state of the blockchain from recent blocks. To avoid this problem, you can use either a local archive node or a service that provides archival data, like [Alchemy].
+When using Infura without the archival add-on, you will only have access to the state of the blockchain from recent blocks. To avoid this problem, you can use either a local archive node or a service that provides archival data, like [Alchemy] or [Infura].
 
 ## See also
 
 For full details on what's supported, see [the Hardhat Network Config Reference](../reference/#config).
 
 [alchemy]: https://alchemyapi.io/
+[infura]: https://alchemyapi.io/

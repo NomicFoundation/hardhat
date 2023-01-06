@@ -49,7 +49,7 @@ export async function download(
     method: "GET",
     headers: {
       ...extraHeaders,
-      "User-Agent": `hardhat ${hardhatVersion ?? "(unknown version)"}`,
+      "User-Agent": `hardhat ${hardhatVersion}`,
     },
   });
 

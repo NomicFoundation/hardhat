@@ -60,7 +60,7 @@ const TYPESCRIPT_DEPENDENCIES: Dependencies = {};
 
 const TYPESCRIPT_PEER_DEPENDENCIES: Dependencies = {
   "@types/chai": "^4.2.0",
-  "@types/mocha": "^9.1.0",
+  "@types/mocha": ">=9.1.0",
   "@types/node": ">=12.0.0",
   "ts-node": ">=8.0.0",
   typescript: ">=4.5.0",

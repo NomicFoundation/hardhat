@@ -303,6 +303,7 @@ export interface CompilerInput {
         [libraryName: string]: string;
       };
     };
+    remappings?: string[];
   };
 }
 

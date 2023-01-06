@@ -73,6 +73,7 @@ import {
   TASK_COMPILE_SOLIDITY_RUN_SOLC,
   TASK_COMPILE_SOLIDITY_RUN_SOLCJS,
   TASK_COMPILE_REMOVE_OBSOLETE_ARTIFACTS,
+  TASK_COMPILE_TRANSFORM_IMPORT_NAME,
 } from "./task-names";
 import {
   getSolidityFilesCachePath,
@@ -158,6 +159,18 @@ subtask(TASK_COMPILE_SOLIDITY_READ_FILE)
   );
 
 /**
+ * This task transform the string literal in an import directive.
+ * By default it does nothing, but it can be overriden by plugins.
+ */
+subtask(TASK_COMPILE_TRANSFORM_IMPORT_NAME)
+  .addParam("importName", undefined, undefined, types.string)
+  .setAction(
+    async ({ importName }: { importName: string }): Promise<string> => {
+      return importName;
+    }
+  );
+
+/**
  * Receives a list of source names and returns a dependency graph. This task
  * is responsible for both resolving dependencies (like getting files from
  * node_modules) and generating the graph.
@@ -178,7 +191,9 @@ subtask(TASK_COMPILE_SOLIDITY_GET_DEPENDENCY_GRAPH)
         config.paths.root,
         parser,
         (absolutePath: string) =>
-          run(TASK_COMPILE_SOLIDITY_READ_FILE, { absolutePath })
+          run(TASK_COMPILE_SOLIDITY_READ_FILE, { absolutePath }),
+        (importName: string) =>
+          run(TASK_COMPILE_TRANSFORM_IMPORT_NAME, { importName })
       );
 
       const resolvedFiles = await Promise.all(
