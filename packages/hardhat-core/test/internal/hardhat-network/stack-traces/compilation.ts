@@ -1,6 +1,5 @@
 import fs from "fs";
 import path from "path";
-import semver from "semver";
 
 import {
   Compiler as SolcJsCompiler,
@@ -35,16 +34,13 @@ function getSolcInput(
 ): CompilerInput {
   const isViaIR = compilerOptions.optimizer?.viaIR ?? false;
 
-  // using ":" as a minimal setting for the yul optimizer steps is only
-  // available starting from version 0.8.18
-  const optimizerDetails =
-    semver.gte(compilerOptions.solidityVersion, "0.8.18") && isViaIR
-      ? {
-          yulDetails: {
-            optimizerSteps: ":",
-          },
-        }
-      : undefined;
+  const optimizerDetails = isViaIR
+    ? {
+        yulDetails: {
+          optimizerSteps: "u",
+        },
+      }
+    : undefined;
 
   const optimizer =
     compilerOptions.optimizer === undefined
