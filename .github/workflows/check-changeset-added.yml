@@ -1,33 +1,51 @@
-# Checks that a PR has a changeset, or that someone explicitly added a comment
-# saying "no changeset needed".
+# Checks that a PR has a changeset, or that the description
+# explicitly says "no changeset needed".
 
-name: Check changeset
+name: Check that PR has a changeset
 
 on:
   pull_request:
-    branches:
-      - main
+    branches: [$default-branch]
 
 jobs:
-  test:
+  check-if-changeset:
     name: Check that PR has a changeset
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v2
+      - uses: actions/github-script@v6
         with:
-          ref: "refs/pull/${{ github.event.number }}/merge"
-      - name: Search comment saying that a changeset was added
-        uses: peter-evans/find-comment@f4499a714d59013c74a08789b48abe4b704364a0
-        id: search_changeset_comment
-        with:
-          issue-number: ${{ github.event.pull_request.number }}
-          body-includes: Changeset detected
-      - name: Search comment saying that a changeset is not needed
-        uses: peter-evans/find-comment@f4499a714d59013c74a08789b48abe4b704364a0
-        id: search_no_changeset_needed
-        with:
-          issue-number: ${{ github.event.pull_request.number }}
-          body-includes: no changeset needed
-      - name: Check changeset
-        run: test -n "${{ steps.search_changeset_comment.outputs.comment-id }}" || test -n "${{ steps.search_no_changeset_needed.outputs.comment-id }}"
+          script: |
+            const pullNumber = context.issue.number;
+
+            console.log("check if an added file is in the .changeset directory")
+            const { data: files } = await github.rest.pulls.listFiles({
+              ...context.issue,
+              pull_number: pullNumber
+            });
+
+            const changeset = files.find(
+              file => file.status === "added" && file.filename.startsWith(".changeset/")
+            );
+
+            if (changeset !== undefined) {
+              console.log("Changeset found:", changeset.filename);
+              return;
+            }
+
+            console.log('check if the PR description says "no changeset needed"')
+            const { data: pull } = await github.rest.pulls.get({
+              ...context.issue,
+              pull_number: pullNumber
+            });
+
+            const noChangesetNeededComment = pull.body
+              ?.toLowerCase()
+              .includes("no changeset needed");
+
+            if (noChangesetNeededComment) {
+              console.log("The PR description says that no changeset is needed");
+              return;
+            }
+
+            console.error("No changeset found");
+            process.exit(1);
