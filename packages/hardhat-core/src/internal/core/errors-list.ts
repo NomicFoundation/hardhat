@@ -252,6 +252,16 @@ To avoid it, please delete both your node_modules and package-lock.json, and rei
 Note that you don't need to do this every time you install a new dependency, but please make sure to delete your node_modules every time you delete your package-lock.json.`,
       shouldBeReported: false,
     },
+    ESM_PROJECT_WITHOUT_CJS_CONFIG: {
+      number: 19,
+      message: `Your project is an ESM project (you have "type": "module" set in your package.json) but your Hardhat config file uses a .js or .ts extension.
+
+Rename the file to use a .cjs to fix this problem.`,
+      title: "Hardhat config with .js or .ts extension in an ESM project",
+      description:
+        "Your project is an ESM project but your Hardhat config uses an .js or .ts extension. Hardhat config files cannot be an ES module. To fix this, rename your Hardhat config to use the .cjs extension.",
+      shouldBeReported: false,
+    },
   },
   NETWORK: {
     CONFIG_NOT_FOUND: {
@@ -981,6 +991,14 @@ The first supported version is %firstSupportedVersion%`,
       title: "Unsupported solc version",
       description: `This version of solidity is not supported by Hardhtat.
 Please use a newer, supported version.`,
+      shouldBeReported: true,
+    },
+    TEST_TASK_ESM_TESTS_RUN_TWICE: {
+      number: 609,
+      message: `Your project uses ESM and you've programmatically run your tests twice. This is not supported yet.`,
+      title: "Running tests twice in an ESM project",
+      description:
+        'You have run your tests twice programmatically and your project is an ESM project (you have `"type": "module"` in your `package.json`, or some of your files have an `.mjs` extension). This is not supported by Mocha yet.',
       shouldBeReported: true,
     },
   },

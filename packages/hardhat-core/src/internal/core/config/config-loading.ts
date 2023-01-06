@@ -25,8 +25,21 @@ import { DEFAULT_SOLC_VERSION } from "./default-config";
 const log = debug("hardhat:core:config");
 
 function importCsjOrEsModule(filePath: string): any {
-  const imported = require(filePath);
-  return imported.default !== undefined ? imported.default : imported;
+  try {
+    const imported = require(filePath);
+    return imported.default !== undefined ? imported.default : imported;
+  } catch (e: any) {
+    if (e.code === "ERR_REQUIRE_ESM") {
+      throw new HardhatError(
+        ERRORS.GENERAL.ESM_PROJECT_WITHOUT_CJS_CONFIG,
+        {},
+        e
+      );
+    }
+
+    // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
+    throw e;
+  }
 }
 
 export function resolveConfigPath(configPath: string | undefined) {

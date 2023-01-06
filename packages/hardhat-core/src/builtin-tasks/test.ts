@@ -5,11 +5,14 @@ import path from "path";
 
 import { HARDHAT_NETWORK_NAME } from "../internal/constants";
 import { subtask, task } from "../internal/core/config/config-env";
+import { HardhatError } from "../internal/core/errors";
+import { ERRORS } from "../internal/core/errors-list";
 import { isRunningWithTypescript } from "../internal/core/typescript-support";
 import { getForkCacheDirPath } from "../internal/hardhat-network/provider/utils/disk-cache";
 import { showForkRecommendationsBannerIfNecessary } from "../internal/hardhat-network/provider/utils/fork-recomendations-banner";
 import { pluralize } from "../internal/util/strings";
 import { getAllFilesMatching } from "../internal/util/fs-utils";
+import { getProjectPackageJson } from "../internal/util/packageInfo";
 
 import {
   TASK_COMPILE,
@@ -35,8 +38,9 @@ subtask(TASK_TEST_GET_TEST_FILES)
       return testFilesAbsolutePaths;
     }
 
-    const jsFiles = await getAllFilesMatching(config.paths.tests, (f) =>
-      f.endsWith(".js")
+    const jsFiles = await getAllFilesMatching(
+      config.paths.tests,
+      (f) => f.endsWith(".js") || f.endsWith(".cjs") || f.endsWith(".mjs")
     );
 
     if (!isRunningWithTypescript(config)) {
@@ -52,6 +56,7 @@ subtask(TASK_TEST_GET_TEST_FILES)
 
 subtask(TASK_TEST_SETUP_TEST_ENVIRONMENT, async () => {});
 
+let testsAlreadyRun = false;
 subtask(TASK_TEST_RUN_MOCHA_TESTS)
   .addFlag("parallel", "Run tests in parallel")
   .addFlag("bail", "Stop running tests after the first test failure")
@@ -98,6 +103,29 @@ subtask(TASK_TEST_RUN_MOCHA_TESTS)
 
       const mocha = new Mocha(mochaConfig);
       taskArgs.testFiles.forEach((file) => mocha.addFile(file));
+
+      // if the project is of type "module" or if there's some ESM test file,
+      // we call loadFilesAsync to enable Mocha's ESM support
+      const projectPackageJson = await getProjectPackageJson();
+      const isTypeModule = projectPackageJson.type === "module";
+      const hasEsmTest = taskArgs.testFiles.some((file) =>
+        file.endsWith(".mjs")
+      );
+      if (isTypeModule || hasEsmTest) {
+        // Because of the way the ESM cache works, loadFilesAsync doesn't work
+        // correctly if used twice within the same process, so we throw an error
+        // in that case
+        if (testsAlreadyRun) {
+          throw new HardhatError(
+            ERRORS.BUILTIN_TASKS.TEST_TASK_ESM_TESTS_RUN_TWICE
+          );
+        }
+        testsAlreadyRun = true;
+
+        // This instructs Mocha to use the more verbose file loading infrastructure
+        // which supports both ESM and CJS
+        await mocha.loadFilesAsync();
+      }
 
       const testFailures = await new Promise<number>((resolve) => {
         mocha.run(resolve);
