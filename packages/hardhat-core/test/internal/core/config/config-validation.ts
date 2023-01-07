@@ -1817,7 +1817,7 @@ describe("Config validation", function () {
   });
 
   describe("Resolved Config validation", function () {
-    it("Should fail if the optimizer runs exceeds limit", function () {
+    it("Should fail if the optimizer runs has invalid number", function () {
       const optimizer = {
         enabled: true,
         runs: 2 ** 32,
@@ -1827,6 +1827,62 @@ describe("Config validation", function () {
           compilers: [
             { version: "0.6.7", settings: { optimizer } },
           ]
+        },
+      });
+      expectHardhatError(
+        () => validateResolvedConfig(resolved),
+        ERRORS.GENERAL.INVALID_RESOLVED_CONFIG,
+        "Exceeded max number of optimizer runs."
+      );
+    });
+
+    it("Shouldn't fail if the optimizer has a valid runs", function () {
+      const optimizer = {
+        enabled: true,
+        runs: 123,
+      };
+      const resolved = resolveConfig(__filename, {
+        solidity: {
+          compilers: [
+            { version: "0.6.7", settings: { optimizer } },
+          ]
+        },
+      });
+      assert.isUndefined(validateResolvedConfig(resolved));
+    });
+
+    it("Shouldn't fail if the optimizer doesn't have run config", function () {
+      const optimizer = {
+        enabled: true
+      };
+      const resolved = resolveConfig(__filename, {
+        solidity: {
+          compilers: [
+            { version: "0.6.7", settings: { optimizer } },
+          ]
+        },
+      });
+      assert.isUndefined(validateResolvedConfig(resolved));
+    });
+
+    it("Should fail if the optimizer runs has invalid number in overrides config", function () {
+      const optimizer = {
+        enabled: true,
+        runs: 2 ** 32
+      };
+      const resolved = resolveConfig(__filename, {
+        solidity: {
+          compilers: [
+            { version: "0.6.7" },
+          ],
+          overrides: {
+            "contracts/Foo.sol": {
+              version: "0.6.7",
+              settings: {
+                optimizer,
+              },
+            },
+          },
         },
       });
       expectHardhatError(
