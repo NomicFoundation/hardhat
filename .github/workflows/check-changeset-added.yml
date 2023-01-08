@@ -23,7 +23,7 @@ jobs:
         with:
           script: |
             const pullNumber = context.issue.number;
-            
+
             const { data: files } = await github.rest.pulls.listFiles({
               ...context.issue,
               pull_number: pullNumber
@@ -35,10 +35,10 @@ jobs:
               console.log("Changeset found:", changeset.filename);
               return;
             }
-            
+
             console.log("No changeset found");
-            
-            
+
+
             const { data: pull } = await github.rest.pulls.get({
               ...context.issue,
               pull_number: pullNumber
@@ -49,7 +49,7 @@ jobs:
               console.log('The PR is labeled as "no changeset needed"');
               return;
             }
-            
+
             console.log('The PR is not labeled as "no changeset needed"');
-            
+
             process.exit(1);
