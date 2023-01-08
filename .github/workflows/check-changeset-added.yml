@@ -1,11 +1,18 @@
-# Checks that a PR has a changeset, or that the description
-# explicitly says "no changeset needed".
+# Fails if a PR doesn't have a changeset and is not labeled
+# as "no changeset needed"
 
-name: Check that PR has a changeset
+name: Check that the PR has a changeset
 
 on:
   pull_request:
-    branches: [$default-branch]
+    branches:
+      - main
+    types:
+      - opened
+      - synchronize
+      - reopened
+      - labeled
+      - unlabeled
 
 jobs:
   check-if-changeset:
@@ -16,36 +23,33 @@ jobs:
         with:
           script: |
             const pullNumber = context.issue.number;
-
-            console.log("check if an added file is in the .changeset directory")
+            
             const { data: files } = await github.rest.pulls.listFiles({
               ...context.issue,
               pull_number: pullNumber
             });
-
             const changeset = files.find(
               file => file.status === "added" && file.filename.startsWith(".changeset/")
             );
-
             if (changeset !== undefined) {
               console.log("Changeset found:", changeset.filename);
               return;
             }
-
-            console.log('check if the PR description says "no changeset needed"')
+            
+            console.log("No changeset found");
+            
+            
             const { data: pull } = await github.rest.pulls.get({
               ...context.issue,
               pull_number: pullNumber
             });
-
-            const noChangesetNeededComment = pull.body
-              ?.toLowerCase()
-              .includes("no changeset needed");
-
-            if (noChangesetNeededComment) {
-              console.log("The PR description says that no changeset is needed");
+            const noChangesetNeededLabel = pull.labels
+              .some(l => l.name === "no changeset needed");
+            if (noChangesetNeededLabel) {
+              console.log('The PR is labeled as "no changeset needed"');
               return;
             }
-
-            console.error("No changeset found");
+            
+            console.log('The PR is not labeled as "no changeset needed"');
+            
             process.exit(1);
