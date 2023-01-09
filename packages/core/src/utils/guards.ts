@@ -93,7 +93,8 @@ export function isDependable(possible: any): possible is DependableFuture {
       possible.type === "library" ||
       possible.type === "virtual" ||
       possible.type === "await" ||
-      possible.type === "proxy")
+      possible.type === "proxy" ||
+      possible.type === "send")
   );
 }
 

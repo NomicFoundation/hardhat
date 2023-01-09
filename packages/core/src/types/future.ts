@@ -138,7 +138,8 @@ export type DependableFuture =
   | ContractCall
   | Virtual
   | ProxyFuture
-  | EventFuture;
+  | EventFuture
+  | SendFuture;
 
 export type AddressResolvable =
   | string

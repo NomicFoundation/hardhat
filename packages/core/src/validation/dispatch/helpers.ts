@@ -45,6 +45,8 @@ export async function resolveArtifactForCallableFuture(
       throw new Error(`Cannot call call future`);
     case "await":
       throw new Error(`Cannot call await future`);
+    case "send":
+      throw new Error(`Cannot call send future`);
     default:
       return assertNeverDeploymentFuture(future);
   }
