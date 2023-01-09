@@ -20,7 +20,7 @@ import {
   confirmProjectCreation,
 } from "./prompt";
 import { emoji } from "./emoji";
-import { Dependencies } from "./types";
+import { Dependencies, PackageManager } from "./types";
 
 enum Action {
   CREATE_JAVASCRIPT_PROJECT_ACTION = "Create a JavaScript project",
@@ -372,7 +372,7 @@ export async function createProject() {
         useDefaultPromptResponses ||
         (await confirmRecommendedDepsInstallation(
           dependenciesToInstall,
-          await isYarnProject()
+          await getProjectPackageManager()
         ));
       if (shouldInstall) {
         const installed = await installRecommendedDependencies(
@@ -428,6 +428,16 @@ function isInstalled(dep: string) {
 
 async function isYarnProject() {
   return fsExtra.pathExists("yarn.lock");
+}
+
+async function isPnpmProject() {
+  return fsExtra.pathExists("pnpm-lock.yaml");
+}
+
+async function getProjectPackageManager(): Promise<PackageManager> {
+  if (await isYarnProject()) return "yarn";
+  if (await isPnpmProject()) return "pnpm";
+  return "npm";
 }
 
 async function doesNpmAutoInstallPeerDependencies() {
@@ -496,6 +506,10 @@ async function getRecommendedDependenciesInstallationCommand(
     return ["yarn", "add", "--dev", ...deps];
   }
 
+  if (await isPnpmProject()) {
+    return ["pnpm", "add", "-D", ...deps];
+  }
+
   return ["npm", "install", "--save-dev", ...deps];
 }
 
@@ -503,7 +517,9 @@ async function getDependencies(
   projectType: SampleProjectTypeCreationAction
 ): Promise<Dependencies> {
   const shouldInstallPeerDependencies =
-    (await isYarnProject()) || !(await doesNpmAutoInstallPeerDependencies());
+    (await isYarnProject()) ||
+    (await isPnpmProject()) ||
+    !(await doesNpmAutoInstallPeerDependencies());
 
   const shouldInstallTypescriptDependencies =
     projectType === Action.CREATE_TYPESCRIPT_PROJECT_ACTION;
