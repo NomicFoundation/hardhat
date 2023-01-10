@@ -1,3 +1,5 @@
+#![cfg(feature = "serde")]
+
 // Parts of this code were adapted from github.com/gakonst/ethers-rs and are distributed under its
 // licenses:
 // - https://github.com/gakonst/ethers-rs/blob/7e6c3ba98363bdf6131e8284f186cc2c70ff48c3/LICENSE-APACHE
@@ -6,7 +8,7 @@
 
 use std::fmt::Debug;
 
-use rethnet_eth::{Address, Bloom, Bytes, B256, U256};
+use crate::{Address, Bloom, Bytes, B256, U256};
 
 #[derive(Clone, Debug, PartialEq, Eq, Default, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]

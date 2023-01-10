@@ -1,6 +1,8 @@
+#![cfg(feature = "serde")]
+
 use std::sync::atomic::{AtomicU64, Ordering};
 
-use rethnet_eth::{Address, Bytes, B256, U256};
+use crate::{Address, Bytes, B256, U256};
 
 mod eth;
 mod jsonrpc;
@@ -20,32 +22,56 @@ mod jsonrpc;
 //      const accountData = await this._jsonRpcClient.getAccountData(
 //    const remoteValue = await this._jsonRpcClient.getStorageAt(
 
+/// Specialzed error types
 #[derive(thiserror::Error, Debug)]
 pub enum RpcClientError {
+    /// The remote node's response did not conform to the expected format
     #[error("Response was not of the expected type")]
     InterpretationError {
+        /// A more specific message
         msg: String,
+        /// The body of the request that was submitted to elicit the response
         request_body: String,
+        /// The Rust type which was expected to be decoded from the JSON received
         expected_type: String,
+        /// The body of the response given by the remote node
         response_text: String,
     },
 
+    /// The message could not be sent to the remote node
     #[error("Failed to send request")]
-    SendError { msg: String, request_body: String },
+    SendError {
+        /// The error message
+        msg: String,
+        /// The body of the request that was submitted
+        request_body: String,
+    },
 
+    /// The remote node failed to reply with the body of the response
     #[error("Failed to get response body")]
-    ResponseError { msg: String, request_body: String },
+    ResponseError {
+        /// The specific error message
+        msg: String,
+        /// The body of the request that was submitted
+        request_body: String,
+    },
 
+    /// Some other error from an underlying dependency
     #[error(transparent)]
     OtherError(#[from] std::io::Error),
 }
 
+/// the output of get_account_data
 pub struct AccountData {
+    /// The account's balance
     pub balance: U256,
+    /// The code stored at the account address
     pub code: Bytes,
+    /// The count of this account's previous transactions, aka nonce
     pub transaction_count: U256,
 }
 
+/// A client for executing RPC methods on a remote Ethereum node
 pub struct RpcClient {
     url: String,
     client: reqwest::Client,
@@ -242,6 +268,7 @@ impl RpcClient {
         })
     }
 
+    /// Create a new RpcClient instance, given a remote node URL.
     pub fn new(url: &str) -> Self {
         RpcClient {
             url: url.to_string(),
@@ -250,6 +277,7 @@ impl RpcClient {
         }
     }
 
+    /// eth_getTransactionByHash
     pub async fn get_tx_by_hash(&self, tx_hash: &B256) -> Result<eth::Transaction, RpcClientError> {
         let response = self.call(&MethodInvocation::GetTxByHash(*tx_hash)).await?;
 
@@ -266,6 +294,7 @@ impl RpcClient {
         Ok(success.result)
     }
 
+    /// eth_getTransactionReceipt
     pub async fn get_tx_receipt(
         &self,
         tx_hash: &B256,
@@ -287,6 +316,7 @@ impl RpcClient {
         Ok(success.result)
     }
 
+    /// eth_getLogs
     pub async fn get_logs(
         &self,
         from_block: u64,
@@ -314,6 +344,7 @@ impl RpcClient {
         Ok(success.result)
     }
 
+    /// eth_getBlockByHash
     pub async fn get_block_by_hash(
         &self,
         hash: &B256,
@@ -341,6 +372,7 @@ impl RpcClient {
         Ok(success.result)
     }
 
+    /// eth_getBlockByNumber
     pub async fn get_block_by_number(
         &self,
         number: u64,
@@ -368,6 +400,7 @@ impl RpcClient {
         Ok(success.result)
     }
 
+    /// eth_getTransactionCount
     pub async fn get_transaction_count(
         &self,
         address: &Address,
@@ -395,6 +428,8 @@ impl RpcClient {
         Ok(success.result)
     }
 
+    /// Submit a consolidated batch of RPC method invocations in order to obtain the set of data
+    /// contained in AccountData.
     pub async fn get_account_data(
         &self,
         address: &Address,
@@ -448,7 +483,7 @@ mod tests {
 
     use std::str::FromStr;
 
-    use rethnet_eth::{Address, Bytes, U256};
+    use crate::{Address, Bytes, U256};
 
     fn get_alchemy_url() -> Result<String, String> {
         Ok(std::env::var_os("ALCHEMY_URL")
