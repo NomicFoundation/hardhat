@@ -1,4 +1,4 @@
-use std::{fmt::Debug, io, marker::PhantomData};
+use std::{fmt::Debug, io};
 
 use hashbrown::HashMap;
 use rethnet_eth::{Address, B256, U256};
@@ -34,24 +34,21 @@ where
 /// A helper class for converting a synchronous database into an asynchronous database.
 ///
 /// Requires the inner database to implement [`Database`], [`DatabaseCommit`], and [`DatabaseDebug`].
-pub struct AsyncDatabase<D, E>
+pub struct AsyncDatabase<E>
 where
-    D: SyncDatabase<E>,
     E: Debug + Send,
 {
     runtime: Runtime,
     request_sender: UnboundedSender<Request<E>>,
     db_handle: Option<JoinHandle<()>>,
-    phantom: PhantomData<D>,
 }
 
-impl<D, E> AsyncDatabase<D, E>
+impl<E> AsyncDatabase<E>
 where
-    D: SyncDatabase<E>,
     E: Debug + Send + 'static,
 {
     /// Constructs an [`AsyncDatabase`] instance with the provided database.
-    pub fn new(mut db: D) -> io::Result<Self> {
+    pub fn new<D: SyncDatabase<E>>(mut db: D) -> io::Result<Self> {
         let runtime = Builder::new_multi_thread().build()?;
 
         let (sender, mut receiver) = unbounded_channel::<Request<E>>();
@@ -68,7 +65,6 @@ where
             runtime,
             request_sender: sender,
             db_handle: Some(db_handle),
-            phantom: PhantomData,
         })
     }
 
@@ -275,9 +271,8 @@ where
     }
 }
 
-impl<D, E> Drop for AsyncDatabase<D, E>
+impl<E> Drop for AsyncDatabase<E>
 where
-    D: SyncDatabase<E>,
     E: Debug + Send,
 {
     fn drop(&mut self) {
@@ -291,76 +286,53 @@ where
     }
 }
 
-/// Wrapper around an [`AsyncDatabase`] to allow synchronous function calls.
-pub struct AsyncDatabaseWrapper<'d, D, E>
+impl<'d, E> Database for &'d AsyncDatabase<E>
 where
-    D: SyncDatabase<E>,
-    E: Debug + Send,
-{
-    db: &'d AsyncDatabase<D, E>,
-}
-
-impl<'d, D, E> AsyncDatabaseWrapper<'d, D, E>
-where
-    D: SyncDatabase<E>,
-    E: Debug + Send,
-{
-    /// Constructs an [`AsyncDatabaseWrapper`] instance.
-    pub fn new(db: &'d AsyncDatabase<D, E>) -> Self {
-        Self { db }
-    }
-}
-
-impl<'d, D, E> Database for AsyncDatabaseWrapper<'d, D, E>
-where
-    D: SyncDatabase<E>,
     E: Debug + Send + 'static,
 {
     type Error = E;
 
     fn basic(&mut self, address: Address) -> Result<Option<AccountInfo>, Self::Error> {
         task::block_in_place(move || {
-            self.db
-                .runtime()
-                .block_on(self.db.account_by_address(address))
+            self.runtime
+                .block_on(AsyncDatabase::account_by_address(*self, address))
         })
     }
 
     fn code_by_hash(&mut self, code_hash: B256) -> Result<Bytecode, Self::Error> {
-        task::block_in_place(move || self.db.runtime().block_on(self.db.code_by_hash(code_hash)))
+        task::block_in_place(move || {
+            self.runtime
+                .block_on(AsyncDatabase::code_by_hash(*self, code_hash))
+        })
     }
 
     fn storage(&mut self, address: Address, index: U256) -> Result<U256, Self::Error> {
         task::block_in_place(move || {
-            self.db
-                .runtime()
-                .block_on(self.db.account_storage_slot(address, index))
+            self.runtime
+                .block_on(AsyncDatabase::account_storage_slot(*self, address, index))
         })
     }
 }
 
-impl<'d, D, E> DatabaseCommit for AsyncDatabaseWrapper<'d, D, E>
+impl<'d, E> DatabaseCommit for &'d AsyncDatabase<E>
 where
-    D: SyncDatabase<E>,
     E: Debug + Send + 'static,
 {
     fn commit(&mut self, changes: HashMap<Address, Account>) {
-        task::block_in_place(move || self.db.runtime().block_on(self.db.apply(changes)))
+        task::block_in_place(move || self.runtime.block_on(self.apply(changes)))
     }
 }
 
-impl<'d, D, E> DatabaseDebug for AsyncDatabaseWrapper<'d, D, E>
+impl<'d, E> DatabaseDebug for &'d AsyncDatabase<E>
 where
-    D: SyncDatabase<E>,
     E: Debug + Send + 'static,
 {
     type Error = E;
 
     fn account_storage_root(&mut self, address: &Address) -> Result<Option<B256>, Self::Error> {
         task::block_in_place(move || {
-            self.db
-                .runtime
-                .block_on(self.db.account_storage_root(address))
+            self.runtime
+                .block_on(AsyncDatabase::account_storage_root(*self, address))
         })
     }
 
@@ -370,9 +342,8 @@ where
         account_info: AccountInfo,
     ) -> Result<(), Self::Error> {
         task::block_in_place(move || {
-            self.db
-                .runtime()
-                .block_on(self.db.insert_account(address, account_info))
+            self.runtime
+                .block_on(AsyncDatabase::insert_account(*self, address, account_info))
         })
     }
 
@@ -382,14 +353,16 @@ where
         modifier: Box<dyn Fn(&mut U256, &mut u64, &mut Option<Bytecode>) + Send>,
     ) -> Result<(), Self::Error> {
         task::block_in_place(move || {
-            self.db
-                .runtime()
-                .block_on(self.db.modify_account(address, modifier))
+            self.runtime
+                .block_on(AsyncDatabase::modify_account(*self, address, modifier))
         })
     }
 
     fn remove_account(&mut self, address: Address) -> Result<Option<AccountInfo>, Self::Error> {
-        task::block_in_place(move || self.db.runtime().block_on(self.db.remove_account(address)))
+        task::block_in_place(move || {
+            self.runtime
+                .block_on(AsyncDatabase::remove_account(*self, address))
+        })
     }
 
     fn set_account_storage_slot(
@@ -399,41 +372,40 @@ where
         value: U256,
     ) -> Result<(), Self::Error> {
         task::block_in_place(move || {
-            self.db
-                .runtime()
-                .block_on(self.db.set_account_storage_slot(address, index, value))
+            self.runtime
+                .block_on(AsyncDatabase::set_account_storage_slot(
+                    *self, address, index, value,
+                ))
         })
     }
 
     fn set_state_root(&mut self, state_root: &B256) -> Result<(), Self::Error> {
         task::block_in_place(move || {
-            self.db
-                .runtime()
-                .block_on(self.db.set_state_root(state_root))
+            self.runtime
+                .block_on(AsyncDatabase::set_state_root(*self, state_root))
         })
     }
 
     fn state_root(&mut self) -> Result<B256, Self::Error> {
-        task::block_in_place(move || self.db.runtime().block_on(self.db.state_root()))
+        task::block_in_place(move || self.runtime.block_on(AsyncDatabase::state_root(*self)))
     }
 
     fn checkpoint(&mut self) -> Result<(), Self::Error> {
-        task::block_in_place(move || self.db.runtime().block_on(self.db.checkpoint()))
+        task::block_in_place(move || self.runtime.block_on(AsyncDatabase::checkpoint(*self)))
     }
 
     fn revert(&mut self) -> Result<(), Self::Error> {
-        task::block_in_place(move || self.db.runtime().block_on(self.db.revert()))
+        task::block_in_place(move || self.runtime.block_on(AsyncDatabase::revert(*self)))
     }
 
     fn make_snapshot(&mut self) -> B256 {
-        task::block_in_place(move || self.db.runtime().block_on(self.db.make_snapshot()))
+        task::block_in_place(move || self.runtime.block_on(AsyncDatabase::make_snapshot(*self)))
     }
 
     fn remove_snapshot(&mut self, state_root: &B256) -> bool {
         task::block_in_place(move || {
-            self.db
-                .runtime()
-                .block_on(self.db.remove_snapshot(*state_root))
+            self.runtime
+                .block_on(AsyncDatabase::remove_snapshot(*self, *state_root))
         })
     }
 }

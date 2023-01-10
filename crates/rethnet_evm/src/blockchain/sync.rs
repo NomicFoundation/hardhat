@@ -1,4 +1,4 @@
-use std::{fmt::Debug, io, marker::PhantomData};
+use std::{fmt::Debug, io};
 
 use rethnet_eth::{B256, U256};
 use revm::blockchain::Blockchain;
@@ -30,24 +30,21 @@ where
 /// A helper class for converting a synchronous blockchain into an asynchronous blockchain.
 ///
 /// Requires the inner blockchain to implement [`Blockchain`].
-pub struct AsyncBlockchain<B, E>
+pub struct AsyncBlockchain<E>
 where
-    B: SyncBlockchain<E>,
     E: Debug + Send,
 {
     runtime: Runtime,
     request_sender: UnboundedSender<Request<E>>,
     blockchain_handle: Option<JoinHandle<()>>,
-    phantom: PhantomData<B>,
 }
 
-impl<B, E> AsyncBlockchain<B, E>
+impl<E> AsyncBlockchain<E>
 where
-    B: SyncBlockchain<E>,
     E: Debug + Send + 'static,
 {
     /// Constructs an [`AsyncBlockchain`] instance with the provided database.
-    pub fn new(mut blockchain: B) -> io::Result<Self> {
+    pub fn new<B: SyncBlockchain<E>>(mut blockchain: B) -> io::Result<Self> {
         let runtime = Builder::new_multi_thread().build()?;
 
         let (sender, mut receiver) = unbounded_channel::<Request<E>>();
@@ -64,7 +61,6 @@ where
             runtime,
             request_sender: sender,
             blockchain_handle: Some(blockchain_handle),
-            phantom: PhantomData,
         })
     }
 
@@ -100,9 +96,8 @@ where
     // }
 }
 
-impl<D, E> Drop for AsyncBlockchain<D, E>
+impl<E> Drop for AsyncBlockchain<E>
 where
-    D: SyncBlockchain<E>,
     E: Debug + Send,
 {
     fn drop(&mut self) {
@@ -116,9 +111,8 @@ where
     }
 }
 
-impl<'b, B, E> Blockchain for &'b AsyncBlockchain<B, E>
+impl<'b, E> Blockchain for &'b AsyncBlockchain<E>
 where
-    B: SyncBlockchain<E>,
     E: Debug + Send + 'static,
 {
     type Error = E;

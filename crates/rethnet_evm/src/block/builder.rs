@@ -9,12 +9,8 @@ use revm::{BlockEnv, CfgEnv, ExecutionResult, SpecId, TxEnv};
 use tokio::runtime::Runtime;
 
 use crate::{
-    blockchain::{AsyncBlockchain, SyncBlockchain},
-    db::{AsyncDatabase, SyncDatabase},
-    evm::build_evm,
-    inspector::RethnetInspector,
-    trace::Trace,
-    HeaderData,
+    blockchain::AsyncBlockchain, db::AsyncDatabase, evm::build_evm, inspector::RethnetInspector,
+    trace::Trace, HeaderData,
 };
 
 /// A builder for constructing Ethereum blocks.
@@ -22,8 +18,8 @@ pub struct BlockBuilder<E>
 where
     E: Debug + Send + 'static,
 {
-    blockchain: Arc<AsyncBlockchain<Box<dyn SyncBlockchain<E>>, E>>,
-    state: Arc<AsyncDatabase<Box<dyn SyncDatabase<E>>, E>>,
+    blockchain: Arc<AsyncBlockchain<E>>,
+    state: Arc<AsyncDatabase<E>>,
     header: PartialHeader,
     transactions: Vec<TxEnv>,
     cfg: CfgEnv,
@@ -35,8 +31,8 @@ where
 {
     /// Creates an intance of [`BlockBuilder`], creating a checkpoint in the process.
     pub async fn new(
-        blockchain: Arc<AsyncBlockchain<Box<dyn SyncBlockchain<E>>, E>>,
-        db: Arc<AsyncDatabase<Box<dyn SyncDatabase<E>>, E>>,
+        blockchain: Arc<AsyncBlockchain<E>>,
+        db: Arc<AsyncDatabase<E>>,
         cfg: CfgEnv,
         parent: Header,
         header: HeaderData,

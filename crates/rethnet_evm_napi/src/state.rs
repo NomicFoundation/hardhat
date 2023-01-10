@@ -28,7 +28,7 @@ struct ModifyAccountCall {
 
 #[napi]
 pub struct StateManager {
-    pub(super) db: Arc<AsyncDatabase<Box<dyn SyncDatabase<anyhow::Error>>, anyhow::Error>>,
+    pub(super) db: Arc<AsyncDatabase<anyhow::Error>>,
 }
 
 #[napi]
