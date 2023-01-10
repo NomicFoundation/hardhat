@@ -1,5 +1,11 @@
 # @nomicfoundation/hardhat-toolbox
 
+## 2.0.1
+
+### Patch Changes
+
+- 10a928c4c: Upgraded mocha and @types/mocha dependencies in Hardhat and Hardhat Toolbox
+
 ## 2.0.0
 
 ### Major Changes

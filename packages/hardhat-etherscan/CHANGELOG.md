@@ -1,5 +1,11 @@
 # @nomiclabs/hardhat-etherscan
 
+## 3.1.5
+
+### Patch Changes
+
+- 7e013fa19: Upgrade undici
+
 ## 3.1.4
 
 ### Patch Changes
