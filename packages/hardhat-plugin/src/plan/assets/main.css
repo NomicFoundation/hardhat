@@ -12,6 +12,15 @@
   padding: 1rem;
 }
 
+.summary-lists {
+  font-size: 90%;
+}
+
+.summary-lists ul {
+  list-style-type: none;
+  padding-inline-start: 1em;
+}
+
 .mermaid {
   text-align: center;
 }
@@ -42,17 +51,32 @@ ul.actions > li {
   background-color: yellow;
 }
 
+[id^="action-transfer"] {
+  background-color: orange;
+}
+
+[id^="action-event"] {
+  background-color: cyan;
+}
+
 [class*="deploy-"] > rect {
   fill: green !important;
 }
 
-[class*="call-"] > polygon {
+[class*="call-"] > rect {
   fill: yellow !important;
 }
 
+[class*="transfer-"] > rect {
+  fill: orange !important;
+}
+
+[class*="event-"] > rect {
+  fill: cyan !important;
+}
+
 /* style for nodes & actions when hovered */
-.hovering > rect,
-.hovering > polygon {
+.hovering > rect {
   fill: blue !important;
 }
 

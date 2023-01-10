@@ -1,7 +1,26 @@
 import type { VertexGraph, VertexDescriptor } from "@ignored/ignition-core";
 
-function isDeploy(v: VertexDescriptor): boolean {
-  return v.type === "HardhatContract" || v.type === "ArtifactContract";
+export function parseType(v: VertexDescriptor): string {
+  let type: string;
+  switch (v.type) {
+    case "HardhatContract":
+    case "ArtifactContract":
+      type = "deploy";
+      break;
+    case "Call":
+      type = "call";
+      break;
+    case "SendETH":
+      type = "transfer";
+      break;
+    case "Event":
+      type = "event";
+      break;
+    default:
+      throw new Error(`Unknown vertex type: ${v.type}`);
+  }
+
+  return type;
 }
 
 function getVertexes(graph: VertexGraph): VertexDescriptor[] {
@@ -16,6 +35,13 @@ function li(s: string): string {
   return `<li>${s}</li>`;
 }
 
+function ul(a: string[]): string {
+  return `
+  <ul>
+    ${a.join("\n")}
+  </ul>`;
+}
+
 export function getTxTotal(graph: VertexGraph): string {
   const vertexes = getVertexes(graph);
 
@@ -27,38 +53,36 @@ export function getTxTotal(graph: VertexGraph): string {
 export function getSummaryLists(graph: VertexGraph): string {
   const vertexes = getVertexes(graph);
 
-  const deploys = [];
-  const calls = [];
+  const obj: { [k: string]: string[] } = {};
+
+  let cols = 0;
   for (const vertex of vertexes) {
-    if (isDeploy(vertex)) {
-      deploys.push(li(vertex.label));
-    } else if (vertex.type === "Call") {
-      calls.push(li(vertex.label));
+    const type = parseType(vertex);
+
+    if (obj[type] === undefined) {
+      cols++;
+      obj[type] = [];
     }
+
+    obj[type].push(li(vertex.label));
   }
 
-  return `
-<div class="deploy-list pure-u-1-2">
-  ${deploys.length} contract ${plural("deploy", deploys.length)}
-  <ul>
-    ${deploys.join("\n")}
-  </ul>
-</div>
-
-<div class="call-list pure-u-1-2">
-  ${calls.length} contract ${plural("call", calls.length)}
-  <ul>
-    ${calls.join("\n")}
-  </ul>
+  const output = [];
+  for (const [type, value] of Object.entries(obj)) {
+    const item = `
+<div class="${type}-list pure-u-1-${cols}">
+  <b><u>${value.length} contract ${plural(type, value.length)}</u></b>
+  ${ul(value)}
 </div>
 `;
+    output.push(item);
+  }
+
+  return output.join("\n");
 }
 
 function wrapNode(v: VertexDescriptor): string {
-  const text = `"${v.label}"`;
-  return isDeploy(v)
-    ? `${v.id}[${text}]:::deploy-${v.id}`
-    : `${v.id}{{${text}}}:::call-${v.id}`;
+  return `${v.id}[${v.label}]:::${parseType(v)}-${v.id}`;
 }
 
 export function graphToMermaid(graph: VertexGraph): string {
@@ -95,11 +119,11 @@ export function getActions(graph: VertexGraph): string {
   const vertexes = getVertexes(graph);
 
   const items = vertexes.map((v) => {
-    const type = isDeploy(v) ? "Deploy" : v.type;
+    const type = parseType(v);
 
     return `
 <li
-  id="action-${type.toLowerCase()}-${v.id}"
+  id="action-${type}-${v.id}"
   onclick="window.location.assign('module/${v.id}.html')"
 >
   Contract ${type} ${v.label}

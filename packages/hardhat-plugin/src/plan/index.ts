@@ -1,5 +1,6 @@
 import type { IgnitionPlan } from "@ignored/ignition-core";
 import { exec } from "child_process";
+import { ethers } from "ethers";
 import fs from "fs-extra";
 import os from "os";
 import path from "path";
@@ -85,14 +86,23 @@ export class Renderer {
     this._writeMainHTML(mainOutput);
 
     for (const vertex of this.plan.deploymentGraph.vertexes.values()) {
-      const type = vertex.type === "HardhatContract" ? "Deploy" : "Call";
+      const type = utils.parseType(vertex);
       const label = vertex.label;
 
       const params = utils.getParams(vertex);
 
+      let value: string = "None";
+      if ("value" in vertex) {
+        if ("type" in vertex.value) {
+          value = `Future &lt; ${vertex.value.label} &gt value parameter`;
+        } else {
+          value = ethers.utils.formatEther(vertex.value);
+        }
+      }
+
       const vertexOutput = this._templates.vertex.replace(
         regex,
-        utils.replacer({ type, label, networkName, networkId, params })
+        utils.replacer({ type, label, networkName, networkId, params, value })
       );
 
       this._writeModuleHTML(vertex.id, vertexOutput);

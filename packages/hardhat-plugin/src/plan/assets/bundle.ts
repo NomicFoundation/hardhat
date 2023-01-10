@@ -11,7 +11,7 @@ window.onload = () => {
     const classList = [...vertexElement.classList.values()];
 
     for (const className of classList) {
-      if (/^(deploy|call)/.test(className)) {
+      if (/^(deploy|call|transfer|event)/.test(className)) {
         const actionElement = document.getElementById(`action-${className}`);
         const vertexClassString = [...classList, "hovering"].join(" ");
 
