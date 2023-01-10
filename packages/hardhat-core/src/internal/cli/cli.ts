@@ -39,7 +39,7 @@ import { saveFlamegraph } from "../core/flamegraph";
 import { Analytics } from "./analytics";
 import { ArgumentsParser } from "./ArgumentsParser";
 import { enableEmoji } from "./emoji";
-import { createProject, showSoliditySurveyMessage } from "./project-creation";
+import { createProject } from "./project-creation";
 import { confirmHHVSCodeInstallation, confirmTelemetryConsent } from "./prompt";
 import {
   InstallationState,
@@ -305,16 +305,6 @@ async function main() {
       process.stdout.isTTY === true
     ) {
       await suggestInstallingHardhatVscode();
-
-      // we show the solidity survey message if the tests failed and only
-      // 1/3 of the time
-      if (
-        process.exitCode !== 0 &&
-        Math.random() < 0.3333 &&
-        process.env.HARDHAT_HIDE_SOLIDITY_SURVEY_MESSAGE !== "true"
-      ) {
-        showSoliditySurveyMessage();
-      }
     }
 
     log(`Killing Hardhat after successfully running task ${taskName}`);
