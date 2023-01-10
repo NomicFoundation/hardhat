@@ -141,7 +141,10 @@ pub struct TransactionReceipt {
 #[derive(Debug, Default, Clone, PartialEq, Eq, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 #[serde(rename_all = "camelCase")]
-pub struct Block<TX> {
+pub struct Block<TX>
+where
+    TX: Debug + Default + Clone + PartialEq + Eq,
+{
     pub hash: Option<B256>,
     pub parent_hash: B256,
     pub sha3_uncles: B256,
