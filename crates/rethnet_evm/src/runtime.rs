@@ -3,13 +3,8 @@ use std::{fmt::Debug, sync::Arc};
 use revm::{BlockEnv, CfgEnv, ExecutionResult, SpecId, TxEnv};
 
 use crate::{
-    blockchain::{AsyncBlockchain, SyncBlockchain},
-    db::{AsyncDatabase, SyncDatabase},
-    evm::build_evm,
-    inspector::RethnetInspector,
-    trace::Trace,
-    transaction::TransactionError,
-    State,
+    blockchain::AsyncBlockchain, db::AsyncDatabase, evm::build_evm, inspector::RethnetInspector,
+    trace::Trace, transaction::TransactionError, State,
 };
 
 /// The asynchronous Rethnet runtime.
@@ -17,8 +12,8 @@ pub struct Rethnet<E>
 where
     E: Debug + Send + 'static,
 {
-    blockchain: Arc<AsyncBlockchain<Box<dyn SyncBlockchain<E>>, E>>,
-    db: Arc<AsyncDatabase<Box<dyn SyncDatabase<E>>, E>>,
+    blockchain: Arc<AsyncBlockchain<E>>,
+    db: Arc<AsyncDatabase<E>>,
     cfg: CfgEnv,
 }
 
@@ -28,8 +23,8 @@ where
 {
     /// Constructs a new [`Rethnet`] instance.
     pub fn new(
-        blockchain: Arc<AsyncBlockchain<Box<dyn SyncBlockchain<E>>, E>>,
-        db: Arc<AsyncDatabase<Box<dyn SyncDatabase<E>>, E>>,
+        blockchain: Arc<AsyncBlockchain<E>>,
+        db: Arc<AsyncDatabase<E>>,
         cfg: CfgEnv,
     ) -> Self {
         Self {

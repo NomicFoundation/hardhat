@@ -16,13 +16,11 @@ use self::js_blockchain::{GetBlockHashCall, JsBlockchain};
 
 #[napi]
 pub struct Blockchain {
-    inner: Arc<AsyncBlockchain<Box<dyn SyncBlockchain<anyhow::Error>>, anyhow::Error>>,
+    inner: Arc<AsyncBlockchain<anyhow::Error>>,
 }
 
 impl Blockchain {
-    pub fn as_inner(
-        &self,
-    ) -> &Arc<AsyncBlockchain<Box<dyn SyncBlockchain<anyhow::Error>>, anyhow::Error>> {
+    pub fn as_inner(&self) -> &Arc<AsyncBlockchain<anyhow::Error>> {
         &self.inner
     }
 }
