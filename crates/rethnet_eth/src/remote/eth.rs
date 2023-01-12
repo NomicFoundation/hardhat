@@ -167,10 +167,7 @@ where
     pub seal_fields: Vec<Bytes>,
     #[serde(default)]
     pub uncles: Vec<B256>,
-    #[serde(
-        bound = "TX: Debug + Default + Clone + PartialEq + Eq + serde::Serialize + serde::de::DeserializeOwned",
-        default
-    )]
+    #[serde(default)]
     pub transactions: Vec<TX>,
     pub size: Option<U256>,
     pub mix_hash: Option<B256>,
