@@ -25,7 +25,7 @@ import {
   confirmProjectCreation,
 } from "./prompt";
 import { emoji } from "./emoji";
-import { Dependencies } from "./types";
+import { Dependencies, PackageManager } from "./types";
 
 enum Action {
   CREATE_JAVASCRIPT_PROJECT_ACTION = "Create a JavaScript project",
@@ -323,20 +323,6 @@ function showStarOnGitHubMessage() {
   console.log(chalk.cyan("     https://github.com/NomicFoundation/hardhat"));
 }
 
-export function showSoliditySurveyMessage() {
-  if (new Date() > new Date("2023-07-01 23:39")) {
-    // the survey has finished
-    return;
-  }
-
-  console.log();
-  console.log(
-    chalk.cyan(
-      "Please take a moment to complete the 2022 Solidity Survey: https://hardhat.org/solidity-survey-2022"
-    )
-  );
-}
-
 export async function createProject() {
   printAsciiLogo();
 
@@ -382,7 +368,6 @@ export async function createProject() {
 
     console.log();
     showStarOnGitHubMessage();
-    showSoliditySurveyMessage();
 
     return;
   }
@@ -453,7 +438,7 @@ export async function createProject() {
         useDefaultPromptResponses ||
         (await confirmRecommendedDepsInstallation(
           dependenciesToInstall,
-          await isYarnProject()
+          await getProjectPackageManager()
         ));
       if (shouldInstall) {
         const installed = await installRecommendedDependencies(
@@ -483,7 +468,6 @@ export async function createProject() {
   console.log("See the README.md file for some example tasks you can run");
   console.log();
   showStarOnGitHubMessage();
-  showSoliditySurveyMessage();
 }
 
 async function canInstallRecommendedDeps() {
@@ -509,6 +493,16 @@ function isInstalled(dep: string) {
 
 async function isYarnProject() {
   return fsExtra.pathExists("yarn.lock");
+}
+
+async function isPnpmProject() {
+  return fsExtra.pathExists("pnpm-lock.yaml");
+}
+
+async function getProjectPackageManager(): Promise<PackageManager> {
+  if (await isYarnProject()) return "yarn";
+  if (await isPnpmProject()) return "pnpm";
+  return "npm";
 }
 
 async function doesNpmAutoInstallPeerDependencies() {
@@ -577,6 +571,10 @@ async function getRecommendedDependenciesInstallationCommand(
     return ["yarn", "add", "--dev", ...deps];
   }
 
+  if (await isPnpmProject()) {
+    return ["pnpm", "add", "-D", ...deps];
+  }
+
   return ["npm", "install", "--save-dev", ...deps];
 }
 
@@ -584,7 +582,9 @@ async function getDependencies(
   projectType: SampleProjectTypeCreationAction
 ): Promise<Dependencies> {
   const shouldInstallPeerDependencies =
-    (await isYarnProject()) || !(await doesNpmAutoInstallPeerDependencies());
+    (await isYarnProject()) ||
+    (await isPnpmProject()) ||
+    !(await doesNpmAutoInstallPeerDependencies());
 
   const shouldInstallTypescriptDependencies =
     projectType === Action.CREATE_TYPESCRIPT_PROJECT_ACTION;

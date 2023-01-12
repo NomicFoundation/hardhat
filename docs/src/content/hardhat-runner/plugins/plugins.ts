@@ -663,6 +663,14 @@ const communityPlugins: IPlugin[] = [
       "Hardhat plugin to generate smart contract bindings for Golang",
     tags: ["Bindings", "Go", "Testing"],
   },
+  {
+    name: "hardhat-storage-vault",
+    author: "Emre Tepe",
+    authorUrl: "https://emretepedev.github.io/",
+    description:
+      "Hardhat plugin to check and lock the storage layout of contracts",
+    tags: ["Tooling", "Testing", "Storage"],
+  },
 ];
 
 const officialPlugins: IPlugin[] = [
