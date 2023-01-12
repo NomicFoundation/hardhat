@@ -105,7 +105,8 @@ enum MethodInvocation {
         /// position
         U256,
         /// block_number
-        U64,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        Option<U64>,
     ),
     #[serde(
         rename = "eth_getTransactionByHash",
@@ -123,7 +124,8 @@ enum MethodInvocation {
     GetBalance(
         Address,
         /// block number
-        U64,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        Option<U64>,
     ),
     #[serde(rename = "eth_getBlockByHash")]
     GetBlockByHash(
@@ -143,13 +145,15 @@ enum MethodInvocation {
     GetCode(
         Address,
         /// block number
-        U64,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        Option<U64>,
     ),
     #[serde(rename = "eth_getTransactionCount")]
     GetTxCount(
         Address,
         /// block number
-        U64,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        Option<U64>,
     ),
 }
 
@@ -356,12 +360,12 @@ impl RpcClient {
     pub async fn get_transaction_count(
         &self,
         address: &Address,
-        block_number: u64,
+        block_number: Option<u64>,
     ) -> Result<U256, RpcClientError> {
         Ok(self
             .call(&MethodInvocation::GetTxCount(
                 *address,
-                U64::from(block_number),
+                block_number.map(U64::from),
             ))
             .await?)
     }
@@ -371,13 +375,13 @@ impl RpcClient {
         &self,
         address: &Address,
         position: U256,
-        block_number: u64,
+        block_number: Option<u64>,
     ) -> Result<U256, RpcClientError> {
         Ok(self
             .call(&MethodInvocation::GetStorageAt(
                 *address,
                 position,
-                U64::from(block_number),
+                block_number.map(U64::from),
             ))
             .await?)
     }
@@ -387,12 +391,12 @@ impl RpcClient {
     pub async fn get_account_info(
         &self,
         address: &Address,
-        block_number: u64,
+        block_number: Option<u64>,
     ) -> Result<AccountInfo, RpcClientError> {
         let inputs = Vec::from([
-            MethodInvocation::GetBalance(*address, U64::from(block_number)),
-            MethodInvocation::GetCode(*address, U64::from(block_number)),
-            MethodInvocation::GetTxCount(*address, U64::from(block_number)),
+            MethodInvocation::GetBalance(*address, block_number.map(U64::from)),
+            MethodInvocation::GetCode(*address, block_number.map(U64::from)),
+            MethodInvocation::GetTxCount(*address, block_number.map(U64::from)),
         ]);
 
         let response = self.batch_call(&inputs).await?;
@@ -718,7 +722,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn get_storage_at() {
+    async fn get_storage_at_with_block_success() {
         let alchemy_url = get_alchemy_url().expect("failed to get Alchemy URL");
 
         let dai_address = Address::from_str("0x6b175474e89094c44da98b954eedeac495271d0f")
@@ -732,7 +736,7 @@ mod tests {
                     16,
                 )
                 .expect("failed to parse storage location"),
-                16220843,
+                Some(16220843),
             )
             .await
             .expect("should have succeeded");
@@ -748,6 +752,29 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn get_storage_at_success() {
+        let alchemy_url = get_alchemy_url().expect("failed to get Alchemy URL");
+
+        let dai_address = Address::from_str("0x6b175474e89094c44da98b954eedeac495271d0f")
+            .expect("failed to parse address");
+
+        let total_supply: U256 = RpcClient::new(&alchemy_url)
+            .get_storage_at(
+                &dai_address,
+                U256::from_str_radix(
+                    "0000000000000000000000000000000000000000000000000000000000000001",
+                    16,
+                )
+                .expect("failed to parse storage location"),
+                None,
+            )
+            .await
+            .expect("should have succeeded");
+
+        assert!(total_supply > U256::from(0));
+    }
+
+    #[tokio::test]
     async fn get_transaction_count_success() {
         let alchemy_url = get_alchemy_url().expect("failed to get Alchemy URL");
 
@@ -755,7 +782,7 @@ mod tests {
             .expect("failed to parse address");
 
         let transaction_count = RpcClient::new(&alchemy_url)
-            .get_transaction_count(&dai_address, 16220843)
+            .get_transaction_count(&dai_address, Some(16220843))
             .await
             .expect("should have succeeded");
 
