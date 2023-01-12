@@ -2,11 +2,7 @@ import type { Block } from "@nomicfoundation/ethereumjs-block";
 import type { TypedTransaction } from "@nomicfoundation/ethereumjs-tx";
 import type { Account, Address } from "@nomicfoundation/ethereumjs-util";
 import type { TxReceipt } from "@nomicfoundation/ethereumjs-vm";
-import type {
-  TracingMessage,
-  TracingMessageResult,
-  TracingStep,
-} from "rethnet-evm";
+import type { TracingCallbacks } from "rethnet-evm";
 import type { RpcDebugTracingConfig } from "../../../core/jsonrpc/types/input/debugTraceTransaction";
 import type { RpcDebugTraceOutput } from "../output";
 import { Bloom } from "../utils/bloom";
@@ -31,12 +27,6 @@ export interface RunBlockResult {
   logsBloom: Buffer;
   receiptsRoot: Buffer;
   gasUsed: bigint;
-}
-
-export interface TracingCallbacks {
-  beforeMessage: (message: TracingMessage, next: any) => Promise<void>;
-  step: (step: TracingStep, next: any) => Promise<void>;
-  afterMessage: (result: TracingMessageResult, next: any) => Promise<void>;
 }
 
 export interface VMAdapter {

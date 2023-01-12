@@ -6,7 +6,7 @@ use rethnet_eth::{
     trie::KECCAK_NULL_RLP,
     Address, B256, U256,
 };
-use revm::{Account, AccountInfo, Bytecode, Database, DatabaseCommit, KECCAK_EMPTY};
+use revm::{Account, AccountInfo, Bytecode, State, StateCommit, KECCAK_EMPTY};
 
 use crate::DatabaseDebug;
 
@@ -237,7 +237,7 @@ impl LayeredDatabase<RethnetLayer> {
     }
 }
 
-impl Database for LayeredDatabase<RethnetLayer> {
+impl State for LayeredDatabase<RethnetLayer> {
     type Error = anyhow::Error;
 
     fn basic(&mut self, address: Address) -> anyhow::Result<Option<AccountInfo>> {
@@ -284,7 +284,7 @@ impl Database for LayeredDatabase<RethnetLayer> {
     }
 }
 
-impl DatabaseCommit for LayeredDatabase<RethnetLayer> {
+impl StateCommit for LayeredDatabase<RethnetLayer> {
     fn commit(&mut self, changes: HashMap<Address, Account>) {
         changes.into_iter().for_each(|(address, account)| {
             if account.is_empty() || account.is_destroyed {

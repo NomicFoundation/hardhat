@@ -1,7 +1,16 @@
 import { Block } from "@nomicfoundation/ethereumjs-block";
 import { Account, Address } from "@nomicfoundation/ethereumjs-util";
 import { TypedTransaction } from "@nomicfoundation/ethereumjs-tx";
-import { BlockBuilder, Blockchain, Rethnet } from "rethnet-evm";
+import {
+  BlockBuilder,
+  Blockchain,
+  Rethnet,
+  Tracer,
+  TracingCallbacks,
+  TracingMessage,
+  TracingMessageResult,
+  TracingStep,
+} from "rethnet-evm";
 
 import { NodeConfig } from "../node-types";
 import {
@@ -15,7 +24,7 @@ import { RpcDebugTraceOutput } from "../output";
 import { RethnetStateManager } from "../RethnetState";
 import { RpcDebugTracingConfig } from "../../../core/jsonrpc/types/input/debugTraceTransaction";
 
-import { RunTxResult, Trace, TracingCallbacks, VMAdapter } from "./vm-adapter";
+import { RunTxResult, Trace, VMAdapter } from "./vm-adapter";
 
 /* eslint-disable @nomiclabs/hardhat-internal-rules/only-hardhat-error */
 /* eslint-disable @typescript-eslint/no-unused-vars */
@@ -74,16 +83,25 @@ export class RethnetAdapter implements VMAdapter {
       blockContext.header.mixHash
     );
 
-    const rethnetResult = await this._rethnet.guaranteedDryRun(rethnetTx, {
-      number: blockContext.header.number,
-      coinbase: blockContext.header.coinbase.buf,
-      timestamp: blockContext.header.timestamp,
-      basefee:
-        forceBaseFeeZero === true ? 0n : blockContext.header.baseFeePerGas,
-      gasLimit: blockContext.header.gasLimit,
-      difficulty,
-      prevrandao: prevRandao,
-    });
+    let tracer;
+    if (this._tracingCallbacks !== undefined) {
+      tracer = new Tracer(this._tracingCallbacks);
+    }
+
+    const rethnetResult = await this._rethnet.guaranteedDryRun(
+      rethnetTx,
+      {
+        number: blockContext.header.number,
+        coinbase: blockContext.header.coinbase.buf,
+        timestamp: blockContext.header.timestamp,
+        basefee:
+          forceBaseFeeZero === true ? 0n : blockContext.header.baseFeePerGas,
+        gasLimit: blockContext.header.gasLimit,
+        difficulty,
+        prevrandao: prevRandao,
+      },
+      tracer
+    );
 
     try {
       const result = rethnetResultToRunTxResult(
@@ -208,9 +226,15 @@ export class RethnetAdapter implements VMAdapter {
       block.header.mixHash
     );
 
+    let tracer;
+    if (this._tracingCallbacks !== undefined) {
+      tracer = new Tracer(this._tracingCallbacks);
+    }
+
     const rethnetResult = await this._rethnet.run(
       rethnetTx,
-      ethereumjsHeaderDataToRethnet(block.header, difficulty, prevRandao)
+      ethereumjsHeaderDataToRethnet(block.header, difficulty, prevRandao),
+      tracer
     );
 
     try {
@@ -294,48 +318,6 @@ export class RethnetAdapter implements VMAdapter {
    */
   public enableTracing(callbacks: TracingCallbacks): void {
     this._tracingCallbacks = callbacks;
-
-    const emitBeforeMessage = () => {
-      if (this._tracingCallbacks !== undefined) {
-        // eslint-disable-next-line @typescript-eslint/no-floating-promises
-        this._tracingCallbacks.beforeMessage(
-          {
-            data: Buffer.from([1, 2, 3]),
-          } as any,
-          () => {}
-        );
-      }
-    };
-
-    const emitStep = () => {
-      if (this._tracingCallbacks !== undefined) {
-        // eslint-disable-next-line @typescript-eslint/no-floating-promises
-        this._tracingCallbacks.step(
-          {
-            pc: 0n,
-          },
-          () => {}
-        );
-      }
-    };
-
-    const emitAfterMessage = () => {
-      if (this._tracingCallbacks !== undefined) {
-        // eslint-disable-next-line @typescript-eslint/no-floating-promises
-        this._tracingCallbacks.afterMessage(
-          {
-            executionResult: {
-              exitCode: 0,
-            } as any,
-          },
-          () => {}
-        );
-      }
-    };
-
-    setInterval(emitBeforeMessage, 100);
-    setInterval(emitStep, 100);
-    setInterval(emitAfterMessage, 100);
   }
 
   /**
@@ -385,21 +367,21 @@ export class RethnetAdapter implements VMAdapter {
     return undefined;
   }
 
-  private _beforeMessageHandler = (message: Message, next: any) => {
+  private _beforeMessageHandler = (message: TracingMessage, next: any) => {
     if (this._tracingCallbacks !== undefined) {
     }
 
     next();
   };
 
-  private _stepHandler = (step: InterpreterStep, next: any) => {
+  private _stepHandler = (step: TracingStep, next: any) => {
     if (this._tracingCallbacks !== undefined) {
     }
 
     next();
   };
 
-  private _afterMessageHandler = (result: EVMResult, next: any) => {
+  private _afterMessageHandler = (result: TracingMessageResult, next: any) => {
     if (this._tracingCallbacks !== undefined) {
     }
 

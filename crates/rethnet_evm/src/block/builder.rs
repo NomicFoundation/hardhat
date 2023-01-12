@@ -9,7 +9,7 @@ use revm::{BlockEnv, CfgEnv, ExecutionResult, SpecId, TxEnv};
 use tokio::runtime::Runtime;
 
 use crate::{
-    blockchain::AsyncBlockchain, db::AsyncDatabase, evm::build_evm, inspector::RethnetInspector,
+    blockchain::AsyncBlockchain, evm::build_evm, inspector::RethnetInspector, state::AsyncState,
     trace::Trace, HeaderData,
 };
 
@@ -19,7 +19,7 @@ where
     E: Debug + Send + 'static,
 {
     blockchain: Arc<AsyncBlockchain<E>>,
-    state: Arc<AsyncDatabase<E>>,
+    state: Arc<AsyncState<E>>,
     header: PartialHeader,
     transactions: Vec<TxEnv>,
     cfg: CfgEnv,
@@ -32,7 +32,7 @@ where
     /// Creates an intance of [`BlockBuilder`], creating a checkpoint in the process.
     pub async fn new(
         blockchain: Arc<AsyncBlockchain<E>>,
-        db: Arc<AsyncDatabase<E>>,
+        db: Arc<AsyncState<E>>,
         cfg: CfgEnv,
         parent: Header,
         header: HeaderData,
@@ -113,7 +113,7 @@ where
             .state
             .runtime()
             .spawn(async move {
-                let mut evm = build_evm(&blockchain, &db, cfg, transaction, block);
+                let mut evm = build_evm(blockchain, db, cfg, transaction, block);
 
                 let mut inspector = RethnetInspector::default();
                 let (result, state) = evm.inspect(&mut inspector);

@@ -7,7 +7,12 @@ import {
   Address,
   bufferToHex,
 } from "@nomicfoundation/ethereumjs-util";
-import { TracingMessage, TracingMessageResult, TracingStep } from "rethnet-evm";
+import {
+  TracingCallbacks,
+  TracingMessage,
+  TracingMessageResult,
+  TracingStep,
+} from "rethnet-evm";
 
 import { assertHardhatInvariant } from "../../../core/errors";
 import { RpcDebugTracingConfig } from "../../../core/jsonrpc/types/input/debugTraceTransaction";
@@ -17,7 +22,7 @@ import { HardhatBlockchainInterface } from "../types/HardhatBlockchainInterface"
 
 import { EthereumJSAdapter } from "./ethereumjs";
 import { RethnetAdapter } from "./rethnet";
-import { RunTxResult, Trace, TracingCallbacks, VMAdapter } from "./vm-adapter";
+import { RunTxResult, Trace, VMAdapter } from "./vm-adapter";
 
 /* eslint-disable @nomiclabs/hardhat-internal-rules/only-hardhat-error */
 /* eslint-disable @typescript-eslint/restrict-template-expressions */

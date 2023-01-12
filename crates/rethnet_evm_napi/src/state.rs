@@ -7,7 +7,7 @@ use napi::{bindgen_prelude::*, JsFunction, JsObject, NapiRaw, Status};
 use napi_derive::napi;
 use rethnet_eth::{Address, B256, U256};
 use rethnet_evm::{
-    db::{AsyncDatabase, LayeredDatabase, RethnetLayer, SyncDatabase},
+    state::{AsyncState, LayeredDatabase, RethnetLayer, SyncState},
     AccountInfo, Bytecode, DatabaseDebug, HashMap,
 };
 use secp256k1::Secp256k1;
@@ -28,7 +28,7 @@ struct ModifyAccountCall {
 
 #[napi]
 pub struct StateManager {
-    pub(super) db: Arc<AsyncDatabase<anyhow::Error>>,
+    pub(super) db: Arc<AsyncState<anyhow::Error>>,
 }
 
 #[napi]
@@ -77,10 +77,10 @@ impl StateManager {
 
     fn with_db<D>(db: D) -> napi::Result<Self>
     where
-        D: SyncDatabase<anyhow::Error>,
+        D: SyncState<anyhow::Error>,
     {
-        let db: Box<dyn SyncDatabase<anyhow::Error>> = Box::new(db);
-        let db = AsyncDatabase::new(db)
+        let db: Box<dyn SyncState<anyhow::Error>> = Box::new(db);
+        let db = AsyncState::new(db)
             .map_err(|e| napi::Error::new(Status::GenericFailure, e.to_string()))?;
 
         Ok(Self { db: Arc::new(db) })

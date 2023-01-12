@@ -17,6 +17,7 @@ import {
   RunTxResult as EthereumJSRunTxResult,
   VM,
 } from "@nomicfoundation/ethereumjs-vm";
+import { TracingCallbacks } from "rethnet-evm";
 import { assertHardhatInvariant } from "../../../core/errors";
 import { RpcDebugTracingConfig } from "../../../core/jsonrpc/types/input/debugTraceTransaction";
 import {
@@ -36,7 +37,7 @@ import { Bloom } from "../utils/bloom";
 import { makeForkClient } from "../utils/makeForkClient";
 import { makeStateTrie } from "../utils/makeStateTrie";
 import { Exit } from "./exit";
-import { RunTxResult, Trace, TracingCallbacks, VMAdapter } from "./vm-adapter";
+import { RunTxResult, Trace, VMAdapter } from "./vm-adapter";
 
 /* eslint-disable @nomiclabs/hardhat-internal-rules/only-hardhat-error */
 
@@ -516,7 +517,21 @@ export class EthereumJSAdapter implements VMAdapter {
     if (this._tracingCallbacks !== undefined) {
       return this._tracingCallbacks.step(
         {
+          depth: BigInt(step.depth),
           pc: BigInt(step.pc),
+          opcode: step.opcode.name,
+          // returnValue: 0, // Do we have error values in ethereumjs?
+          gasCost: BigInt(step.opcode.fee) + (step.opcode.dynamicFee ?? 0n),
+          gasRefunded: step.gasRefund,
+          gasLeft: step.gasLeft,
+          stack: step.stack,
+          memory: step.memory,
+          contract: {
+            balance: step.account.balance,
+            nonce: step.account.nonce,
+            codeHash: step.account.codeHash,
+          },
+          contractAddress: step.address.buf,
         },
         next
       );

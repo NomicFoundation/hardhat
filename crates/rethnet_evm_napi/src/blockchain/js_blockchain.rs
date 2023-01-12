@@ -3,7 +3,7 @@ use std::sync::mpsc::{channel, Sender};
 use anyhow::anyhow;
 use napi::Status;
 use rethnet_eth::{B256, U256};
-use rethnet_evm::Blockchain;
+use rethnet_evm::BlockHash;
 
 use crate::threadsafe_function::{ThreadsafeFunction, ThreadsafeFunctionCallMode};
 
@@ -16,7 +16,7 @@ pub struct JsBlockchain {
     pub(super) get_block_hash_fn: ThreadsafeFunction<GetBlockHashCall>,
 }
 
-impl Blockchain for JsBlockchain {
+impl BlockHash for JsBlockchain {
     type Error = anyhow::Error;
 
     fn block_hash(&mut self, block_number: U256) -> Result<B256, Self::Error> {

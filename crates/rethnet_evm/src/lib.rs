@@ -8,16 +8,16 @@ use rethnet_eth::Address;
 
 pub use hashbrown::HashMap;
 pub use revm::{
-    blockchain::{Blockchain, BlockchainRef},
-    db::EmptyDB,
-    Account, AccountInfo, BlockEnv, Bytecode, CfgEnv, CreateScheme, Database, DatabaseCommit,
-    ExecutionResult, Log, Return, SpecId, TransactOut, TransactTo, TxEnv, EVM,
+    db::DatabaseComponents, Account, AccountInfo, BlockEnv, BlockHash, BlockHashRef, Bytecode,
+    CallInputs, CfgEnv, CreateInputs, CreateScheme, Database, EVMData, ExecutionResult, Gas,
+    Inspector, Interpreter, Log, Return, SpecId, State as StateMut, StateCommit, StateRef,
+    TransactOut, TransactTo, TxEnv, EVM, OPCODE_JUMPMAP,
 };
 
 pub use crate::{
     block::{BlockBuilder, HeaderData},
     debug::DatabaseDebug,
-    runtime::Rethnet,
+    runtime::{AsyncDatabase, Rethnet},
     transaction::PendingTransaction,
 };
 
@@ -28,7 +28,7 @@ pub type State = HashMap<Address, Account>;
 pub mod blockchain;
 
 /// Database types for managing Ethereum state
-pub mod db;
+pub mod state;
 
 /// Types used for tracing EVM calls
 pub mod trace;

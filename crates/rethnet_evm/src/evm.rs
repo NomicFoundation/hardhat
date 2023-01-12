@@ -1,24 +1,23 @@
-use std::fmt::Debug;
+use std::{fmt::Debug, sync::Arc};
 
-use revm::{BlockEnv, CfgEnv, TxEnv};
+use revm::{db::DatabaseComponents, BlockEnv, CfgEnv, TxEnv};
 
-use crate::{blockchain::AsyncBlockchain, db::AsyncDatabase};
+use crate::{blockchain::AsyncBlockchain, state::AsyncState};
 
 /// Creates an evm from the provided database, config, transaction, and block.
 #[allow(clippy::type_complexity)]
-pub fn build_evm<'b, 'd, E>(
-    blockchain: &'b AsyncBlockchain<E>,
-    db: &'d AsyncDatabase<E>,
+pub fn build_evm<E>(
+    block_hash: Arc<AsyncBlockchain<E>>,
+    state: Arc<AsyncState<E>>,
     cfg: CfgEnv,
     transaction: TxEnv,
     block: BlockEnv,
-) -> revm::EVM<&'d AsyncDatabase<E>, &'b AsyncBlockchain<E>>
+) -> revm::EVM<DatabaseComponents<Arc<AsyncBlockchain<E>>, Arc<AsyncState<E>>>>
 where
     E: Debug + Send + 'static,
 {
     let mut evm = revm::EVM::new();
-    evm.set_blockchain(blockchain);
-    evm.database(db);
+    evm.database(DatabaseComponents { block_hash, state });
     evm.env.cfg = cfg;
     evm.env.block = block;
     evm.env.tx = transaction;

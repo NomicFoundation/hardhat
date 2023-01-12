@@ -2,7 +2,7 @@ use std::fmt::Debug;
 
 use hashbrown::HashMap;
 use rethnet_eth::{Address, B256, U256};
-use revm::{Account, AccountInfo, Bytecode, Database, DatabaseCommit};
+use revm::{Account, AccountInfo, Bytecode, State, StateCommit};
 use tokio::sync::oneshot;
 
 use crate::{debug::ModifierFn, DatabaseDebug};
@@ -82,7 +82,7 @@ where
 {
     pub fn handle<D>(self, db: &mut D) -> bool
     where
-        D: Database<Error = E> + DatabaseCommit + DatabaseDebug<Error = E>,
+        D: State<Error = E> + StateCommit + DatabaseDebug<Error = E>,
     {
         match self {
             Request::AccountByAddress { address, sender } => {
