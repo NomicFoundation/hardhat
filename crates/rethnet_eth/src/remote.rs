@@ -1,5 +1,7 @@
 use std::sync::atomic::{AtomicU64, Ordering};
 
+use revm::AccountInfo;
+
 use crate::{Address, Bytes, B256, U256};
 
 mod eth;
@@ -57,16 +59,6 @@ pub enum RpcClientError {
     /// Some other error from an underlying dependency
     #[error(transparent)]
     OtherError(#[from] std::io::Error),
-}
-
-/// the output of get_account_data
-pub struct AccountData {
-    /// The account's balance
-    pub balance: U256,
-    /// The code stored at the account address
-    pub code: Bytes,
-    /// The count of this account's previous transactions, aka nonce
-    pub transaction_count: U256,
 }
 
 /// A client for executing RPC methods on a remote Ethereum node
@@ -391,12 +383,12 @@ impl RpcClient {
     }
 
     /// Submit a consolidated batch of RPC method invocations in order to obtain the set of data
-    /// contained in AccountData.
-    pub async fn get_account_data(
+    /// contained in AccountInfo.
+    pub async fn get_account_info(
         &self,
         address: &Address,
         block_number: u64,
-    ) -> Result<AccountData, RpcClientError> {
+    ) -> Result<AccountInfo, RpcClientError> {
         let inputs = Vec::from([
             MethodInvocation::GetBalance(*address, U64::from(block_number)),
             MethodInvocation::GetCode(*address, U64::from(block_number)),
@@ -422,10 +414,13 @@ impl RpcClient {
         assert_eq!(results.1.id, response.request_ids[1]);
         assert_eq!(results.2.id, response.request_ids[2]);
 
-        Ok(AccountData {
+        let code = revm::Bytecode::new_raw(results.1.result);
+
+        Ok(AccountInfo {
             balance: results.0.result,
-            code: results.1.result,
-            transaction_count: results.2.result,
+            code: Some(code.clone()),
+            code_hash: code.hash(),
+            nonce: results.2.result.to(),
         })
     }
 }
@@ -768,22 +763,34 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn get_account_data_success() {
+    async fn get_account_info_with_block_success() {
         let alchemy_url = get_alchemy_url().expect("failed to get Alchemy URL");
 
         let dai_address = Address::from_str("0x6b175474e89094c44da98b954eedeac495271d0f")
             .expect("failed to parse address");
 
-        let account_data = RpcClient::new(&alchemy_url)
-            .get_account_data(&dai_address, 16220843)
+        let account_info = RpcClient::new(&alchemy_url)
+            .get_account_info(&dai_address, Some(16220843))
             .await
             .expect("should have succeeded");
 
-        assert_eq!(account_data.balance, U256::from(0));
-        assert_eq!(
-            account_data.code,
-            String::from(include_str!("test_bytecode.in")).trim_end()
-        );
-        assert_eq!(account_data.transaction_count, U256::from(1));
+        assert_eq!(account_info.balance, U256::from(0));
+        assert_eq!(account_info.nonce, 1);
+    }
+
+    #[tokio::test]
+    async fn get_account_info_success() {
+        let alchemy_url = get_alchemy_url().expect("failed to get Alchemy URL");
+
+        let dai_address = Address::from_str("0x6b175474e89094c44da98b954eedeac495271d0f")
+            .expect("failed to parse address");
+
+        let account_info = RpcClient::new(&alchemy_url)
+            .get_account_info(&dai_address, None)
+            .await
+            .expect("should have succeeded");
+
+        assert_eq!(account_info.balance, U256::from(0));
+        assert_eq!(account_info.nonce, 1);
     }
 }
