@@ -104,25 +104,9 @@ yarn add --dev hardhat @nomicfoundation/hardhat-foundry
 
 After that, initialize a Hardhat project with `npx hardhat`. Choose the "Create an empty hardhat.config.js" option, and then import the plugin in `hardhat.config.js`:
 
-::::tabsgroup{options=TypeScript,JavaScript}
-
-:::tab{value=TypeScript}
-
-```typescript
-import "@nomicfoundation/hardhat-foundry";
-```
-
-:::
-
-:::tab{value=JavaScript}
-
 ```javascript
 require("@nomicfoundation/hardhat-foundry");
 ```
-
-:::
-
-::::
 
 You should now be able to compile your project with Hardhat and to add Hardhat scripts and tests.
 
