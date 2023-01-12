@@ -29,4 +29,23 @@ Despite these features possibly being affected, the compilation and execution of
 
 The solc compiler has a newer, alternative way of generating bytecode through an [intermediate representation](https://docs.soliditylang.org/en/latest/ir-breaking-changes.html). This mode of compilation can be enabled with the `viaIR` setting.
 
-At the moment, this option only works well [when the optimizer is enabled](https://github.com/ethereum/solidity/issues/12533). Since Hardhat works much better when the optimizer is disabled, we don't completely support the `viaIR` option yet. You can still use the `viaIR` option for compiling your contracts and running your tests, but things like stack traces won't work as well.
+At the moment, this option only works well [when the optimizer is enabled](https://github.com/ethereum/solidity/issues/12533). Since Hardhat works much better when the optimizer is disabled, we don't completely support the `viaIR` option yet. You can still enable it to compile your contracts and run your tests, but things like stack traces might not work correctly.
+
+If you use the `viaIR` option, we recommend you set the [optimization step sequence](https://docs.soliditylang.org/en/v0.8.17/yul.html#optimization-step-sequence) to `"u"`, to make Hardhat work as well as possible:
+
+```
+solidity: {
+  version: "0.8.17", // any version you want
+  settings: {
+    viaIR: true,
+    optimizer: {
+      enabled: true,
+      details: {
+        yulDetails: {
+          optimizerSteps: "u",
+        },
+      },
+    },
+  },
+}
+```
