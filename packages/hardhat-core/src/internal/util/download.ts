@@ -6,6 +6,7 @@ import path from "path";
 import util from "util";
 
 import { getHardhatVersion } from "./packageInfo";
+import { shouldUseProxy } from "./proxy";
 
 const TEMP_FILE_PREFIX = "tmp-";
 
@@ -30,7 +31,7 @@ export async function download(
   const streamPipeline = util.promisify(pipeline);
 
   let dispatcher: Dispatcher;
-  if (process.env.http_proxy !== undefined) {
+  if (process.env.http_proxy !== undefined && shouldUseProxy(url)) {
     dispatcher = new ProxyAgent(process.env.http_proxy);
   } else {
     dispatcher = getGlobalDispatcher();

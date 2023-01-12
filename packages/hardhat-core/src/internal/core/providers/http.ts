@@ -17,6 +17,7 @@ import {
 import { getHardhatVersion } from "../../util/packageInfo";
 import { HardhatError } from "../errors";
 import { ERRORS } from "../errors-list";
+import { shouldUseProxy } from "../../util/proxy";
 
 import { ProviderError } from "./errors";
 
@@ -60,7 +61,7 @@ export class HttpProvider extends EventEmitter implements EIP1193Provider {
     try {
       this._dispatcher = client ?? new Pool(url.origin);
 
-      if (process.env.http_proxy !== undefined) {
+      if (process.env.http_proxy !== undefined && shouldUseProxy(url.origin)) {
         this._dispatcher = new ProxyAgent(process.env.http_proxy);
       }
     } catch (e) {
