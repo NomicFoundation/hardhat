@@ -680,7 +680,6 @@ const communityPlugins: IPlugin[] = [
     tags: ["Tooling", "Storage", "Gas", "Size", "Bytecode"],
   },
 ];
-];
 
 const officialPlugins: IPlugin[] = [
   {
