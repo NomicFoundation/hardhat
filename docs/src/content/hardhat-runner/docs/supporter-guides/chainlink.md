@@ -92,7 +92,7 @@ contract PriceConsumerV3 {
 
 ## Randomness
 
-Randomness in computer systems, especially on blockchains, is challenging to achieve because general-purpose blockchains like Ethereum do not have inherent randomness. Another problem is the public nature of blockchain technology which makes finding a secure source of entropy difficult. Almost any mechanism of generating on-chain randomness using Solidity is vulnerable to MEV attacks. 
+Randomness in computer systems, especially on blockchains, is challenging to achieve because general-purpose blockchains like Ethereum do not have inherent randomness. Another problem is the public nature of blockchain technology which makes finding a secure source of entropy difficult. Almost any mechanism of generating on-chain randomness using Solidity is vulnerable to MEV attacks.
 
 Chainlink VRF (Verifiable Random Function) is a provably-fair and verifiable source of randomness designed for smart contracts. Smart contract developers can use Chainlink VRF as a tamper-proof random number generation (RNG) to build reliable smart contracts for any applications which rely on unpredictable outcomes:
 
