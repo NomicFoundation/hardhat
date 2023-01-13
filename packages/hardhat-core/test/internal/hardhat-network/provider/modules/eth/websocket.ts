@@ -118,6 +118,34 @@ describe("Eth module", function () {
           assert.equal(newLogEvent.params.subscription, subscription);
         });
 
+        it("Supports single and batched requests", async function () {
+          const { result: accounts } = await sendMethod("eth_accounts");
+          const [acc1, acc2] = accounts;
+          const balancesAcc1Resp = await sendJson({
+            jsonrpc: "2.0",
+            id: Math.random(),
+            method: "eth_getBalance",
+            params: [acc1],
+          });
+          const balancesResp = await sendJson([
+            {
+              jsonrpc: "2.0",
+              id: Math.random(),
+              method: "eth_getBalance",
+              params: [acc1],
+            },
+            {
+              jsonrpc: "2.0",
+              id: Math.random(),
+              method: "eth_getBalance",
+              params: [acc2],
+            },
+          ]);
+
+          assert.match(balancesAcc1Resp.result, /^0x[\dA-F]+$/i);
+          assert.equal(balancesAcc1Resp.result, balancesResp[0].result);
+        });
+
         async function subscribeTo(event: string, ...extraParams: any[]) {
           const subscriptionPromise = new Promise<string>((resolve) => {
             const listener: any = (message: any) => {
@@ -172,6 +200,43 @@ describe("Eth module", function () {
             })
           );
 
+          const result = await resultPromise;
+
+          return result;
+        }
+
+        async function sendJson<
+          TBody extends TReq | TReq[],
+          TReq extends {
+            jsonrpc: "2.0";
+            id: number;
+            method: string;
+            params: any[];
+          },
+          TResp extends {
+            jsonrpc: "2.0";
+            id: number;
+            result: any;
+          }
+        >(body: TBody): Promise<TBody extends TReq[] ? TResp[] : TResp> {
+          const resultPromise = new Promise<any>((resolve) => {
+            const listener: any = (message: any) => {
+              const parsedMessage = JSON.parse(message.toString());
+              const receivedId = Array.isArray(parsedMessage)
+                ? parsedMessage[0]?.id
+                : parsedMessage.id;
+              const sentId = Array.isArray(body) ? body[0]?.id : body.id;
+
+              if (receivedId === sentId) {
+                ws.removeListener("message", listener);
+                resolve(parsedMessage);
+              }
+            };
+
+            ws.on("message", listener);
+          });
+
+          ws.send(JSON.stringify(body));
           const result = await resultPromise;
 
           return result;
