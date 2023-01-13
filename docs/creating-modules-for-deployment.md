@@ -201,7 +201,6 @@ Similar to `ethers`, a call can transfer `Eth` by passing a `value` under the op
 
 ```tsx
 m.call(exchange, "deposit", {
-  args: [],
   value: ethers.utils.parseUnits("1"),
 });
 ```
