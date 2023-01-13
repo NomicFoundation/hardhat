@@ -35,6 +35,7 @@ See our [Getting started guide](./docs/getting-started-guide.md) for a worked ex
 ## Documentation
 
 - [Getting started](./docs/getting-started-guide.md)
+- [Explanation](./docs/explanation.md)
 - [Creating Modules for Deployments](./docs/creating-modules-for-deployment.md)
   - [Deploying a Contract](./docs/creating-modules-for-deployment.md#deploying-a-contract)
   - [Calling contract methods](./docs/creating-modules-for-deployment.md#calling-contract-methods)

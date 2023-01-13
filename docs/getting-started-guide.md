@@ -155,6 +155,6 @@ npx hardhat test
 
 ---
 
-Next, dig deeper into defining modules:
+Next, get a better understanding of the motivations of **Ignition** and how it sets out to achieve them:
 
-[Creating modules for deployment](./creating-modules-for-deployment.md)
+[Explanation](./explanation.md)
