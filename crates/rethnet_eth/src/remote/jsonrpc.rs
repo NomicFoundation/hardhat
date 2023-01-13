@@ -1,5 +1,3 @@
-#![cfg(feature = "serde")]
-
 // Parts of this code were adapted from github.com/koushiro/async-jsonrpc and are distributed under its
 // licenses:
 // - https://github.com/koushiro/async-jsonrpc/blob/9b42602f4faa63dd4b6a1a9fe359bffa97e636d5/LICENSE-APACHE

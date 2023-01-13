@@ -1,5 +1,3 @@
-#![cfg(feature = "serde")]
-
 use std::sync::atomic::{AtomicU64, Ordering};
 
 use crate::{Address, Bytes, B256, U256};
