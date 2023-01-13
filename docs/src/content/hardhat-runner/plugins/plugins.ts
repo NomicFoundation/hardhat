@@ -671,6 +671,15 @@ const communityPlugins: IPlugin[] = [
       "Hardhat plugin to check and lock the storage layout of contracts",
     tags: ["Tooling", "Testing", "Storage"],
   },
+  {
+    name: "hardhat-insight",
+    author: "Andres Adjimann",
+    authorUrl: "https://www.npmjs.com/package/hardhat-insight",
+    description:
+      "Hardhat plugin to get contract storage, gas and code size insights using the compiler ast output",
+    tags: ["Tooling", "Storage", "Gas", "Size", "Bytecode"],
+  },
+];
 ];
 
 const officialPlugins: IPlugin[] = [
