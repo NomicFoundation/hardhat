@@ -242,15 +242,13 @@ impl RpcClient {
         T: for<'a> serde::Deserialize<'a>,
     {
         let id = jsonrpc::Id::Num(self.next_id.fetch_add(1, Ordering::Relaxed));
-        let SingleRequest { json, id } = SingleRequest {
-            json: serde_json::json!(Request {
-                version: crate::remote::jsonrpc::Version::V2_0,
-                id: id.clone(),
-                method: input,
-            })
-            .to_string(),
-            id,
-        };
+        let json = serde_json::json!(Request {
+            version: crate::remote::jsonrpc::Version::V2_0,
+            id: id.clone(),
+            method: input,
+        })
+        .to_string();
+
         Self::verify_success(Response {
             request_id: id,
             request_body: json.clone(),
