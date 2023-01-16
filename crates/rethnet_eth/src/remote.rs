@@ -252,7 +252,7 @@ impl RpcClient {
         Self::verify_success(Response {
             request_id: id,
             request_body: json.clone(),
-            text: self.send_request_body(json.clone()).await?,
+            text: self.send_request_body(json).await?,
         })
     }
 
