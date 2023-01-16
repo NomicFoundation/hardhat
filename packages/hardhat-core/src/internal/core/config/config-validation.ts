@@ -587,8 +587,8 @@ export function validateResolvedConfig(resolvedConfig: HardhatConfigT) {
 
   for (const run of runs) {
     if (run >= 2 ** 32) {
-      throw new HardhatError(ERRORS.GENERAL.INVALID_RESOLVED_CONFIG, {
-        errors: "Exceeded max number of optimizer runs.",
+      throw new HardhatError(ERRORS.GENERAL.INVALID_CONFIG, {
+        errors: "The number of optimizer runs exceeds the maximum of 2**32 - 1",
       });
     }
   }

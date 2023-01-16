@@ -1829,8 +1829,8 @@ describe("Config validation", function () {
       });
       expectHardhatError(
         () => validateResolvedConfig(resolved),
-        ERRORS.GENERAL.INVALID_RESOLVED_CONFIG,
-        "Exceeded max number of optimizer runs."
+        ERRORS.GENERAL.INVALID_CONFIG,
+        "The number of optimizer runs exceeds the maximum of 2**32 - 1"
       );
     });
 
@@ -1879,8 +1879,8 @@ describe("Config validation", function () {
       });
       expectHardhatError(
         () => validateResolvedConfig(resolved),
-        ERRORS.GENERAL.INVALID_RESOLVED_CONFIG,
-        "Exceeded max number of optimizer runs."
+        ERRORS.GENERAL.INVALID_CONFIG,
+        "The number of optimizer runs exceeds the maximum of 2**32 - 1"
       );
     });
   });

@@ -252,13 +252,6 @@ To avoid it, please delete both your node_modules and package-lock.json, and rei
 Note that you don't need to do this every time you install a new dependency, but please make sure to delete your node_modules every time you delete your package-lock.json.`,
       shouldBeReported: false,
     },
-    INVALID_RESOLVED_CONFIG: {
-      number: 19,
-      message: `%error%`,
-      title: "Invalid Resolved Config",
-      description: `Check for invalid values in the hardhat.config.js file`,
-      shouldBeReported: false,
-    },
   },
   NETWORK: {
     CONFIG_NOT_FOUND: {
