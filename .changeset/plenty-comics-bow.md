@@ -2,4 +2,4 @@
 "hardhat": patch
 ---
 
-Add BatchRequest support for WebSocket server
+Added support for sending batch requests through WebSocket to the Hardhat node (thanks @tenbits!)
