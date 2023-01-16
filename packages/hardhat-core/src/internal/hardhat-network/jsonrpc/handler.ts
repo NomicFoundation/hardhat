@@ -82,38 +82,21 @@ export class JsonRpcHandler {
     this._provider.addListener("notification", listener);
 
     ws.on("message", async (msg) => {
-      let rpcReq: JsonRpcRequest | undefined;
-      let rpcResp: JsonRpcResponse | undefined;
+      let rpcReq: JsonRpcRequest | JsonRpcRequest[];
+      let rpcResp: JsonRpcResponse | JsonRpcResponse[];
 
       try {
         rpcReq = _readWsRequest(msg as string);
 
-        if (!isValidJsonRequest(rpcReq)) {
-          throw new InvalidRequestError("Invalid request");
-        }
-
-        rpcResp = await this._handleRequest(rpcReq);
-
-        // If eth_subscribe was successful, keep track of the subscription id,
-        // so we can cleanup on websocket close.
-        if (
-          rpcReq.method === "eth_subscribe" &&
-          isSuccessfulJsonResponse(rpcResp)
-        ) {
-          subscriptions.push(rpcResp.result);
-        }
+        rpcResp = Array.isArray(rpcReq)
+          ? await Promise.all(
+              rpcReq.map((req) =>
+                this._handleSingleWsRequest(req, subscriptions)
+              )
+            )
+          : await this._handleSingleWsRequest(rpcReq, subscriptions);
       } catch (error) {
         rpcResp = _handleError(error);
-      }
-
-      // Validate the RPC response.
-      if (!isValidJsonResponse(rpcResp)) {
-        // Malformed response coming from the provider, report to user as an internal error.
-        rpcResp = _handleError(new InternalError("Internal error"));
-      }
-
-      if (rpcReq !== undefined) {
-        rpcResp.id = rpcReq.id;
       }
 
       ws.send(JSON.stringify(rpcResp));
@@ -155,7 +138,9 @@ export class JsonRpcHandler {
     res.end(JSON.stringify(rpcResp));
   }
 
-  private async _handleSingleRequest(req: any): Promise<JsonRpcResponse> {
+  private async _handleSingleRequest(
+    req: JsonRpcRequest
+  ): Promise<JsonRpcResponse> {
     if (!isValidJsonRequest(req)) {
       return _handleError(new InvalidRequestError("Invalid request"));
     }
@@ -177,6 +162,24 @@ export class JsonRpcHandler {
 
     if (rpcReq !== undefined) {
       rpcResp.id = rpcReq.id !== undefined ? rpcReq.id : null;
+    }
+
+    return rpcResp;
+  }
+
+  private async _handleSingleWsRequest(
+    rpcReq: JsonRpcRequest,
+    subscriptions: string[]
+  ) {
+    const rpcResp = await this._handleSingleRequest(rpcReq);
+
+    // If eth_subscribe was successful, keep track of the subscription id,
+    // so we can cleanup on websocket close.
+    if (
+      rpcReq.method === "eth_subscribe" &&
+      isSuccessfulJsonResponse(rpcResp)
+    ) {
+      subscriptions.push(rpcResp.result);
     }
 
     return rpcResp;
@@ -218,7 +221,7 @@ const _readJsonHttpRequest = async (req: IncomingMessage): Promise<any> => {
   return json;
 };
 
-const _readWsRequest = (msg: string): JsonRpcRequest => {
+const _readWsRequest = (msg: string): JsonRpcRequest | JsonRpcRequest[] => {
   let json: any;
   try {
     json = JSON.parse(msg);
