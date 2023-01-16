@@ -1,4 +1,4 @@
-import type { HardhatConfigT } from "../../../types";
+import type { HardhatConfig as HardhatConfigT } from "../../../types";
 
 import * as t from "io-ts";
 import { Context, getFunctionName, ValidationError } from "io-ts/lib";
