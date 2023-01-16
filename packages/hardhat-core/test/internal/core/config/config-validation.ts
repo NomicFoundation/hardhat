@@ -4,7 +4,7 @@ import { HARDHAT_NETWORK_NAME } from "../../../../src/internal/constants";
 import {
   getValidationErrors,
   validateConfig,
-  validateResolvedConfig
+  validateResolvedConfig,
 } from "../../../../src/internal/core/config/config-validation";
 import { ERRORS } from "../../../../src/internal/core/errors-list";
 import { HardhatNetworkHDAccountsUserConfig } from "../../../../src/types";
@@ -1824,9 +1824,7 @@ describe("Config validation", function () {
       };
       const resolved = resolveConfig(__filename, {
         solidity: {
-          compilers: [
-            { version: "0.6.7", settings: { optimizer } },
-          ]
+          compilers: [{ version: "0.6.7", settings: { optimizer } }],
         },
       });
       expectHardhatError(
@@ -1843,9 +1841,7 @@ describe("Config validation", function () {
       };
       const resolved = resolveConfig(__filename, {
         solidity: {
-          compilers: [
-            { version: "0.6.7", settings: { optimizer } },
-          ]
+          compilers: [{ version: "0.6.7", settings: { optimizer } }],
         },
       });
       assert.isUndefined(validateResolvedConfig(resolved));
@@ -1853,13 +1849,11 @@ describe("Config validation", function () {
 
     it("Shouldn't fail if the optimizer doesn't have run config", function () {
       const optimizer = {
-        enabled: true
+        enabled: true,
       };
       const resolved = resolveConfig(__filename, {
         solidity: {
-          compilers: [
-            { version: "0.6.7", settings: { optimizer } },
-          ]
+          compilers: [{ version: "0.6.7", settings: { optimizer } }],
         },
       });
       assert.isUndefined(validateResolvedConfig(resolved));
@@ -1868,13 +1862,11 @@ describe("Config validation", function () {
     it("Should fail if the optimizer runs has invalid number in overrides config", function () {
       const optimizer = {
         enabled: true,
-        runs: 2 ** 32
+        runs: 2 ** 32,
       };
       const resolved = resolveConfig(__filename, {
         solidity: {
-          compilers: [
-            { version: "0.6.7" },
-          ],
+          compilers: [{ version: "0.6.7" }],
           overrides: {
             "contracts/Foo.sol": {
               version: "0.6.7",

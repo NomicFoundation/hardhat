@@ -1,3 +1,5 @@
+import type { HardhatConfigT } from "../../../types";
+
 import * as t from "io-ts";
 import { Context, getFunctionName, ValidationError } from "io-ts/lib";
 import { Reporter } from "io-ts/lib/Reporter";
@@ -13,7 +15,6 @@ import { HardhatError } from "../errors";
 import { ERRORS } from "../errors-list";
 import { hardforkGte, HardforkName } from "../../util/hardforks";
 import { HardhatNetworkChainUserConfig } from "../../../types/config";
-import { HardhatConfig } from "../../../types";
 import { defaultHardhatNetworkParams } from "./default-config";
 
 function stringify(v: any): string {
@@ -575,19 +576,19 @@ export function getValidationErrors(config: any): string[] {
   return [...errors, ...ioTsErrors];
 }
 
-export function validateResolvedConfig(resolvedConfig: HardhatConfig) {
+export function validateResolvedConfig(resolvedConfig: HardhatConfigT) {
   const solcConfigs = [
     ...resolvedConfig.solidity.compilers,
     ...Object.values(resolvedConfig.solidity.overrides),
   ];
-  const runs = solcConfigs.filter(
-    ({ settings }) => settings?.optimizer?.runs !== undefined
-  ).map(runs => runs?.settings?.optimizer?.runs);
+  const runs = solcConfigs
+    .filter(({ settings }) => settings?.optimizer?.runs !== undefined)
+    .map(({ settings }) => settings?.optimizer?.runs);
 
   for (const run of runs) {
     if (run >= 2 ** 32) {
       throw new HardhatError(ERRORS.GENERAL.INVALID_RESOLVED_CONFIG, {
-        error: "Exceeded max number of optimizer runs.",
+        errors: "Exceeded max number of optimizer runs.",
       });
     }
   }
