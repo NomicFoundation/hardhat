@@ -8,12 +8,15 @@ import ndjson from "ndjson";
 import { serializeError, deserializeError } from "serialize-error";
 
 export class CommandJournal implements ICommandJournal {
-  constructor(private _path: string) {}
+  constructor(private _chainId: number, private _path: string) {}
 
   public async record(command: DeployStateExecutionCommand) {
     return fs.promises.appendFile(
       this._path,
-      `${JSON.stringify(command, this._serializeReplacer.bind(this))}\n`
+      `${JSON.stringify(
+        { chainId: this._chainId, ...command },
+        this._serializeReplacer.bind(this)
+      )}\n`
     );
   }
 
@@ -36,6 +39,15 @@ export class CommandJournal implements ICommandJournal {
         json,
         this._deserializeReplace.bind(this)
       );
+
+      if (
+        !("chainId" in deserializedChunk) ||
+        deserializedChunk.chainId !== this._chainId
+      ) {
+        continue;
+      }
+
+      delete deserializedChunk.chainId;
 
       yield deserializedChunk as DeployStateExecutionCommand;
     }
