@@ -166,11 +166,13 @@ export class JsonRpcHandler {
 
     return rpcResp;
   }
+
   private async _handleSingleWsRequest(
     rpcReq: JsonRpcRequest,
     subscriptions: string[]
   ) {
     const rpcResp = await this._handleSingleRequest(rpcReq);
+
     // If eth_subscribe was successful, keep track of the subscription id,
     // so we can cleanup on websocket close.
     if (
@@ -179,6 +181,7 @@ export class JsonRpcHandler {
     ) {
       subscriptions.push(rpcResp.result);
     }
+
     return rpcResp;
   }
 
