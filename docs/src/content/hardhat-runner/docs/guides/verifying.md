@@ -44,7 +44,7 @@ module.exports = {
 
 ## Deploying and verifying a contract in the Goerli testnet
 
-We are going to use the [Goerli testnet](https://ethereum.org/en/developers/docs/networks/#goerli) to deploy and verify our contract, so you need to add this network in your Hardhat config. Here we are using [Alchemy](https://www.alchemy.com/) to connect to the network, but you can use any JSON-RPC URL you want.
+We are going to use the [Goerli testnet](https://ethereum.org/en/developers/docs/networks/#goerli) to deploy and verify our contract, so you need to add this network in your Hardhat config. Here we are using [Alchemy](https://www.alchemy.com/) to connect to the network, but you can use an alternative JSON-RPC URL like [Infura](https://www.infura.io/) if you want.
 
 ::::tabsgroup{options=TypeScript,JavaScript}
 

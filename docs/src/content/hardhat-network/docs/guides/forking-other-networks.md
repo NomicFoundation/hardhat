@@ -102,32 +102,21 @@ Once you've got a local instance of the mainnet chain state, setting that state 
 
 ## Resetting the fork
 
-You can manipulate forking during runtime to reset back to a fresh forked state, fork from another block number or disable forking by calling `hardhat_reset`:
+You can reset the network with the [`reset`](</hardhat-network-helpers/docs/reference#reset([url],-[blocknumber])>) network helper:
 
-```ts
-await network.provider.request({
-  method: "hardhat_reset",
-  params: [
-    {
-      forking: {
-        jsonRpcUrl: "https://eth-mainnet.alchemyapi.io/v2/<key>",
-        blockNumber: 14390000,
-      },
-    },
-  ],
-});
+```js
+const helpers = require("@nomicfoundation/hardhat-network-helpers");
+
+await helpers.reset(url, blockNumber);
 ```
 
-You can disable forking by passing empty params:
+Both the `url` and the `blockNumber` can be different to the ones that are currently being used by the fork.
+
+To reset the network to a local, non-forked state, call the helper without any arguments:
 
 ```ts
-await network.provider.request({
-  method: "hardhat_reset",
-  params: [],
-});
+await helpers.reset();
 ```
-
-This will reset Hardhat Network, starting a new instance in the state described [here](../reference/#initial-state).
 
 ## Using a custom hardfork history
 
@@ -160,10 +149,11 @@ See also [the `chains` entry in the Hardhat Network configuration reference](../
 
 ### "Project ID does not have access to archive state"
 
-When using Infura without the archival add-on, you will only have access to the state of the blockchain from recent blocks. To avoid this problem, you can use either a local archive node or a service that provides archival data, like [Alchemy].
+When using Infura without the archival add-on, you will only have access to the state of the blockchain from recent blocks. To avoid this problem, you can use either a local archive node or a service that provides archival data, like [Alchemy] or [Infura].
 
 ## See also
 
 For full details on what's supported, see [the Hardhat Network Config Reference](../reference/#config).
 
 [alchemy]: https://alchemyapi.io/
+[infura]: https://alchemyapi.io/

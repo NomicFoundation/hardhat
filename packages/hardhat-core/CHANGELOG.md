@@ -1,5 +1,18 @@
 # hardhat
 
+## 2.12.6
+
+### Patch Changes
+
+- 7e013fa19: Upgrade undici
+- 025aa3660: Added support for pnpm during project creation (thanks @Hopsken!)
+- 3798f0d72: Added a `version` field to the HRE
+- c228ef56c: Fixed problem with impersonated-sender transactions sometimes resulting in duplicate transaction hashes (#1963)
+- 7ca111982: Added a minor clarification to the `flatten` task help.
+- 10a928c4c: Upgraded mocha and @types/mocha dependencies in Hardhat and Hardhat Toolbox
+- a200a667b: Removed the message linking to the 2022 solidity survey
+- 7adb62b2a: Added a new subtask to the compile task to support the `hardhat-foundry` plugin
+
 ## 2.12.5
 
 ### Patch Changes

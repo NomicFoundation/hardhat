@@ -648,6 +648,29 @@ const communityPlugins: IPlugin[] = [
       "Hardhat plugin to send an OSX notification when hardhat compilcation fails/succeeds",
     tags: ["Deployment", "Tooling", "Notification", "Compile"],
   },
+  {
+    name: "hardhat-jest",
+    author: "Arian Hosseini",
+    authorUrl: "https://www.npmjs.com/package/hardhat-jest",
+    description: "Hardhat plugin that allows you to use Jest easily",
+    tags: ["Deployment", "Testing", "Jest", "Smart Contracts", "Solidity"],
+  },
+  {
+    name: "@dlsl/hardhat-gobind",
+    author: "Distributed Lab",
+    authorUrl: "https://distributedlab.com/",
+    description:
+      "Hardhat plugin to generate smart contract bindings for Golang",
+    tags: ["Bindings", "Go", "Testing"],
+  },
+  {
+    name: "hardhat-storage-vault",
+    author: "Emre Tepe",
+    authorUrl: "https://emretepedev.github.io/",
+    description:
+      "Hardhat plugin to check and lock the storage layout of contracts",
+    tags: ["Tooling", "Testing", "Storage"],
+  },
 ];
 
 const officialPlugins: IPlugin[] = [
@@ -678,6 +701,14 @@ const officialPlugins: IPlugin[] = [
     authorUrl: "https://twitter.com/NomicFoundation",
     description: "Automatically verify contracts on Etherscan",
     tags: ["Etherscan", "Verification"],
+  },
+  {
+    name: "@nomicfoundation/hardhat-foundry",
+    author: "Nomic Foundation",
+    authorUrl: "https://twitter.com/NomicFoundation",
+    description:
+      "Makes it easier to use Hardhat and Foundry in the same project",
+    tags: ["Foundry"],
   },
   {
     name: "@nomiclabs/hardhat-vyper",

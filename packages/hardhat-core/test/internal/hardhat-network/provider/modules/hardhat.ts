@@ -11,7 +11,7 @@ import {
 } from "../../../../../src/internal/core/jsonrpc/types/base-types";
 import { CompilerOutputContract } from "../../../../../src/types/artifacts";
 import { expectErrorAsync } from "../../../../helpers/errors";
-import { ALCHEMY_URL } from "../../../../setup";
+import { INFURA_URL } from "../../../../setup";
 import { workaroundWindowsCiFailures } from "../../../../utils/workaround-windows-ci-failures";
 import {
   assertInternalError,
@@ -178,6 +178,71 @@ describe("Hardhat module", function () {
             contract,
           ]);
           assert.notEqual(balance, funds);
+        });
+
+        describe("hash collisions", function () {
+          async function checkForHashCollisions(provider: any, txData: any) {
+            const hashes = new Set<string>();
+
+            const randomAddress = () =>
+              `0x${Buffer.from(
+                [...Array(20)].map(() => Math.floor(256 * Math.random()))
+              ).toString("hex")}`;
+
+            await provider.send("hardhat_setNextBlockBaseFeePerGas", [
+              numberToRpcQuantity(1),
+            ]);
+
+            for (let i = 0; i < 200; i++) {
+              const address = randomAddress();
+
+              // send 0.1 eth to the address
+              await provider.send("eth_sendTransaction", [
+                {
+                  from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+                  to: address,
+                  value: "0x16345785d8a0000",
+                },
+              ]);
+
+              await provider.send("hardhat_impersonateAccount", [address]);
+              const hash = await provider.send("eth_sendTransaction", [
+                {
+                  from: address,
+                  to: "0x0000000000000000000000000000000000000000",
+                  gasLimit: 5_000_000,
+                  ...txData,
+                },
+              ]);
+
+              if (hashes.has(hash)) {
+                assert.fail(
+                  `Found a tx hash collision while using hardhat_impersonateAccount after ${i} transactions`
+                );
+              }
+
+              hashes.add(hash);
+            }
+          }
+
+          it("doesn't produce hash collisions (legacy transactions)", async function () {
+            await checkForHashCollisions(this.provider, {
+              gasPrice: "0x10",
+            });
+          });
+
+          it("doesn't produce hash collisions (access list transactions)", async function () {
+            await checkForHashCollisions(this.provider, {
+              gasPrice: "0x10",
+              accessList: [],
+            });
+          });
+
+          it("doesn't produce hash collisions (EIP1559 transactions)", async function () {
+            await checkForHashCollisions(this.provider, {
+              maxFeePerGas: "0x10",
+            });
+          });
         });
       });
 
@@ -1240,7 +1305,7 @@ describe("Hardhat module", function () {
 
       describe("hardhat_reset", function () {
         before(function () {
-          if (ALCHEMY_URL === undefined) {
+          if (INFURA_URL === undefined) {
             this.skip();
           }
         });
@@ -1269,7 +1334,7 @@ describe("Hardhat module", function () {
           await assertInvalidArgumentsError(this.provider, "hardhat_reset", [
             {
               forking: {
-                jsonRpcUrl: ALCHEMY_URL,
+                jsonRpcUrl: INFURA_URL,
                 blockNumber: "0",
               },
             },
@@ -1280,7 +1345,7 @@ describe("Hardhat module", function () {
           const result = await this.provider.send("hardhat_reset", [
             {
               forking: {
-                jsonRpcUrl: ALCHEMY_URL,
+                jsonRpcUrl: INFURA_URL,
                 blockNumber: safeBlockInThePast,
               },
             },
@@ -1370,7 +1435,7 @@ describe("Hardhat module", function () {
             await this.provider.send("hardhat_reset", [
               {
                 forking: {
-                  jsonRpcUrl: ALCHEMY_URL,
+                  jsonRpcUrl: INFURA_URL,
                   blockNumber: safeBlockInThePast,
                 },
               },
@@ -1383,13 +1448,13 @@ describe("Hardhat module", function () {
             await this.provider.send("hardhat_reset", [
               {
                 forking: {
-                  jsonRpcUrl: ALCHEMY_URL,
+                  jsonRpcUrl: INFURA_URL,
                   blockNumber: safeBlockInThePast,
                 },
               },
             ]);
             await this.provider.send("hardhat_reset", [
-              { forking: { jsonRpcUrl: ALCHEMY_URL } },
+              { forking: { jsonRpcUrl: INFURA_URL } },
             ]);
 
             // This condition is rather loose as Infura can sometimes return
@@ -1418,7 +1483,7 @@ describe("Hardhat module", function () {
             await this.provider.send("hardhat_reset", [
               {
                 forking: {
-                  jsonRpcUrl: ALCHEMY_URL,
+                  jsonRpcUrl: INFURA_URL,
                   blockNumber: safeBlockInThePast,
                 },
               },
@@ -1430,7 +1495,7 @@ describe("Hardhat module", function () {
             await this.provider.send("hardhat_reset", [
               {
                 forking: {
-                  jsonRpcUrl: ALCHEMY_URL,
+                  jsonRpcUrl: INFURA_URL,
                   blockNumber: safeBlockInThePast,
                 },
               },

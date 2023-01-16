@@ -438,7 +438,32 @@ Also note that blocks created via `hardhat_mine` may not trigger new-block event
 
 #### `hardhat_reset`
 
-See the [Mainnet Forking guide](./guides/forking-other-networks.md#resetting-the-fork)
+You can manipulate forking during runtime to reset back to a fresh forked state, fork from another block number or disable forking by calling `hardhat_reset`:
+
+```ts
+await network.provider.request({
+  method: "hardhat_reset",
+  params: [
+    {
+      forking: {
+        jsonRpcUrl: "https://eth-mainnet.alchemyapi.io/v2/<key>",
+        blockNumber: 14390000,
+      },
+    },
+  ],
+});
+```
+
+You can disable forking by passing empty params:
+
+```ts
+await network.provider.request({
+  method: "hardhat_reset",
+  params: [],
+});
+```
+
+This will reset the Hardhat Network, starting a new instance in the state described [here](#initial-state).
 
 #### `hardhat_setBalance`
 

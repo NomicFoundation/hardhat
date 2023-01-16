@@ -826,6 +826,16 @@ Try installing the library using npm.`,
 Use a relative import instead of referencing the package's name.`,
       shouldBeReported: false,
     },
+    IMPORTED_MAPPED_FILE_NOT_FOUND: {
+      number: 413,
+      message:
+        "File %importName% => %imported%, imported from %from%, not found.",
+      title: "Imported mapped file not found",
+      description: `One of your source files imported a nonexistent or not installed file.
+
+Please double check your imports and installed libraries.`,
+      shouldBeReported: false,
+    },
   },
   SOLC: {
     INVALID_VERSION: {
