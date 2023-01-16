@@ -233,7 +233,7 @@ impl JsTracer {
                     .and_then(|pc| tracing_step.set_named_property("pc", pc))?;
 
                 ctx.env
-                    .create_string(OPCODE_JUMPMAP[usize::from(ctx.value.opcode)].unwrap())
+                    .create_string(OPCODE_JUMPMAP[usize::from(ctx.value.opcode)].unwrap_or(""))
                     .and_then(|opcode| tracing_step.set_named_property("opcode", opcode))?;
 
                 ctx.env

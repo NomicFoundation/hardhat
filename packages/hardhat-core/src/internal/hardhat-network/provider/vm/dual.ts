@@ -362,7 +362,8 @@ export class DualModeAdapter implements VMAdapter {
     isEthJS: boolean
   ) => {
     if (this._tracingCallbacks === undefined) {
-      return next();
+      next();
+      return;
     }
 
     if (this._currentBeforeMessage === undefined) {
@@ -409,7 +410,8 @@ export class DualModeAdapter implements VMAdapter {
     isEthJS: boolean
   ) => {
     if (this._tracingCallbacks === undefined) {
-      return next();
+      next();
+      return;
     }
 
     if (this._currentStep === undefined) {
@@ -460,7 +462,8 @@ export class DualModeAdapter implements VMAdapter {
     isEthJS: boolean
   ) => {
     if (this._tracingCallbacks === undefined) {
-      return next();
+      next();
+      return;
     }
 
     if (this._currentMessageResult === undefined) {
