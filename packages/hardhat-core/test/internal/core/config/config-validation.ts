@@ -1844,7 +1844,22 @@ describe("Config validation", function () {
           compilers: [{ version: "0.6.7", settings: { optimizer } }],
         },
       });
-      assert.isUndefined(validateResolvedConfig(resolved));
+
+      validateResolvedConfig(resolved);
+    });
+
+    it("Should allow using the maximum number of runs", function () {
+      const optimizer = {
+        enabled: true,
+        runs: 2 ** 32 - 1,
+      };
+      const resolved = resolveConfig(__filename, {
+        solidity: {
+          compilers: [{ version: "0.6.7", settings: { optimizer } }],
+        },
+      });
+
+      validateResolvedConfig(resolved);
     });
 
     it("Shouldn't fail if the optimizer doesn't have run config", function () {
@@ -1856,7 +1871,8 @@ describe("Config validation", function () {
           compilers: [{ version: "0.6.7", settings: { optimizer } }],
         },
       });
-      assert.isUndefined(validateResolvedConfig(resolved));
+
+      validateResolvedConfig(resolved);
     });
 
     it("Should fail if the optimizer runs has invalid number in overrides config", function () {
