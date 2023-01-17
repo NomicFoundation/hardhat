@@ -4,7 +4,7 @@ const env = require("hardhat");
 async function main() {
   const customConfigs = require("../hardhat.config.ts").default;
   const customOptions = customConfigs.networks.ganache;
-  console.log("customOptions",customOptions)
+  console.log("customOptions", customOptions);
 
   const accounts = await env.network.provider.send("eth_accounts");
 
@@ -14,7 +14,7 @@ async function main() {
   }
 
   // Test for validity of all data
-console.log("accounts.length",accounts.length)
+  console.log("accounts.length", accounts.length);
   // Test for: totalAccounts
   if (accounts.length !== customOptions.totalAccounts) {
     throw new Error("Invalid: total accounts");

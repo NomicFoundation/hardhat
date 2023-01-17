@@ -39,7 +39,7 @@ async function handlePluginTask(
   }
 
   log("Starting Ganache");
-  //console.log("env.network",env.network)
+  // console.log("env.network",env.network)
   const options = env.network.config as unknown as HardhatGanacheOptions;
   const ganacheService = await GanacheService.create(options);
 

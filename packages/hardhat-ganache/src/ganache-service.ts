@@ -84,7 +84,9 @@ export class GanacheService {
     };
   }
 
-  public static async create(options: HardhatGanacheOptions): Promise<GanacheService> {
+  public static async create(
+    options: HardhatGanacheOptions
+  ): Promise<GanacheService> {
     // We use this weird way of importing this library here as a workaround
     // to this issue https://github.com/trufflesuite/ganache-core/issues/465
     // const Ganache = (() => require)()("ganache");
@@ -98,7 +100,7 @@ export class GanacheService {
     return new GanacheService(options);
   }
 
-  private readonly _server: Server<"ethereum">|undefined;
+  private readonly _server: Server<"ethereum"> | undefined;
   private readonly _ganacheOptions: ServerOptions<"ethereum">;
   private readonly _hardhatGanacheOptions: HardhatGanacheOptions;
 
@@ -106,12 +108,12 @@ export class GanacheService {
     log("Initializing server");
 
     // Validate and Transform received options before initialize server
-    this._hardhatGanacheOptions = options
+    this._hardhatGanacheOptions = options;
     this._ganacheOptions = this._validateAndTransformOptions(options);
 
     try {
       // Initialize server and provider with given options
-     // console.log("this._ganacheOptions",this._ganacheOptions)
+      // console.log("this._ganacheOptions",this._ganacheOptions)
       this._server = ganache.server(this._ganacheOptions) as Server<"ethereum">;
 
       // Note: this seems to be deprecated
@@ -150,16 +152,15 @@ export class GanacheService {
       log("Starting server");
 
       // Get port and hostname from validated options
-      const port = this._hardhatGanacheOptions.port||8545;
-      const hostname = this._hardhatGanacheOptions.hostname||"localhost";
+      const port = this._hardhatGanacheOptions.port || 8545;
+      const hostname = this._hardhatGanacheOptions.hostname || "localhost";
 
       // Start server with current configs (port and hostname)
       await new Promise<void>((resolve, reject) => {
-
         // Note: I can't figure out how to do this with new version of ganache
-        //Note: call back seems to be doing the job
+        // Note: call back seems to be doing the job
         // eslint-disable-next-line prefer-const
-        //let onError: (err: Error) => void;
+        // let onError: (err: Error) => void;
 
         // const onListening = () => {
         //   this._server?.removeListener("error", onError);
@@ -175,8 +176,8 @@ export class GanacheService {
         // this._server.once("error", onError);
 
         this._server?.listen(port, hostname, async (err) => {
-          if (err) reject(err);
-    
+          if (err != null) reject(err);
+
           console.log(`ganache listening on port ${port}...`);
           const provider = this._server?.provider;
           const accounts = await provider?.request({
@@ -212,17 +213,18 @@ export class GanacheService {
       log("Stopping server");
 
       // Stop server and Wait for it
-      await new Promise<void>(async(resolve, reject) => {
-        await this._server?.close(
-        //   (err: Error) => {
-        //   if (err !== undefined && err !== null) {
-        //     reject(err);
-        //   } else {
-        //     resolve();
-        //   }
-        // }
-        );
-        resolve()
+      await new Promise<void>(async (resolve, reject) => {
+        await this._server
+          ?.close
+          //   (err: Error) => {
+          //   if (err !== undefined && err !== null) {
+          //     reject(err);
+          //   } else {
+          //     resolve();
+          //   }
+          // }
+          ();
+        resolve();
       });
     } catch (e: any) {
       const error = new NomicLabsHardhatPluginError(
@@ -240,13 +242,15 @@ export class GanacheService {
     this._checkForServiceErrors();
   }
 
-  private _validateAndTransformOptions(options: HardhatGanacheOptions): ServerOptions<"ethereum"> {
-    let validatedOptions = options;
-   // console.log("_validateAndTransformOptions",options)
+  private _validateAndTransformOptions(
+    options: HardhatGanacheOptions
+  ): ServerOptions<"ethereum"> {
+    const validatedOptions = options;
+    // console.log("_validateAndTransformOptions",options)
 
     // Validate and parse hostname and port from URL (this validation is priority)
     const url = new URL(options.url);
-    console.log("url",url)
+    console.log("url", url);
     if (url.hostname !== "localhost" && url.hostname !== "127.0.0.1") {
       throw new NomicLabsHardhatPluginError(
         "@nomiclabs/hardhat-ganache",
@@ -281,7 +285,7 @@ export class GanacheService {
         ? parseInt(url.port, 10)
         : DEFAULT_PORT;
 
-        // This part was supposed to convert to snakecase which is not necessary anymore
+    // This part was supposed to convert to snakecase which is not necessary anymore
     // const optionsToInclude = [
     //   "accountsKeyPath",
     //   "dbPath",
@@ -298,48 +302,48 @@ export class GanacheService {
     //   }
     // }
 
-   let resp={
-    gasPrice: 20000000000,
-    gasLimit: 6721975,
-    wallet:{
-      totalAccounts:validatedOptions.totalAccounts,
-      defaultBalance:validatedOptions.defaultBalanceEther,
-      // hdPath:validatedOptions.hdPath,
-      // unlockedAccounts:validatedOptions.unlockedAccounts,
-     // accountKeysPath:validatedOptions.accountKeysPath,
-      mnemonic:validatedOptions.mnemonic
-    }
-  }
-  
-    return resp
-    
-    // TODO: make a function that correctly does this conversion:
-        return {
+    const resp = {
       gasPrice: 20000000000,
       gasLimit: 6721975,
-      //server:{rpcEndpoint:validatedOptions.url},
-      wallet:{
-        totalAccounts:validatedOptions.totalAccounts,
-        defaultBalance:validatedOptions.defaultBalanceEther,
-        hdPath:validatedOptions.hdPath,
-        unlockedAccounts:validatedOptions.unlockedAccounts,
-        accountKeysPath:validatedOptions.accountKeysPath,
-        mnemonic:validatedOptions.mnemonic
+      wallet: {
+        totalAccounts: validatedOptions.totalAccounts,
+        defaultBalance: validatedOptions.defaultBalanceEther,
+        // hdPath:validatedOptions.hdPath,
+        // unlockedAccounts:validatedOptions.unlockedAccounts,
+        // accountKeysPath:validatedOptions.accountKeysPath,
+        mnemonic: validatedOptions.mnemonic,
       },
-      hardfork:validatedOptions.hardfork,
+    };
+
+    return resp;
+
+    // TODO: make a function that correctly does this conversion:
+    return {
+      gasPrice: 20000000000,
+      gasLimit: 6721975,
+      // server:{rpcEndpoint:validatedOptions.url},
+      wallet: {
+        totalAccounts: validatedOptions.totalAccounts,
+        defaultBalance: validatedOptions.defaultBalanceEther,
+        hdPath: validatedOptions.hdPath,
+        unlockedAccounts: validatedOptions.unlockedAccounts,
+        accountKeysPath: validatedOptions.accountKeysPath,
+        mnemonic: validatedOptions.mnemonic,
+      },
+      hardfork: validatedOptions.hardfork,
       allowUnlimitedContractSize: validatedOptions.allowUnlimitedContractSize,
-      chain:{
-        allowUnlimitedContractSize:validatedOptions.allowUnlimitedContractSize,
-        hardfork:validatedOptions.hardfork
+      chain: {
+        allowUnlimitedContractSize: validatedOptions.allowUnlimitedContractSize,
+        hardfork: validatedOptions.hardfork,
       },
-      miner:{
-        blockTime:validatedOptions.blockTime
+      miner: {
+        blockTime: validatedOptions.blockTime,
       },
-      logging:{
-        debug:validatedOptions.debug
+      logging: {
+        debug: validatedOptions.debug,
       },
-      //@ts-ignore
-      fork:validatedOptions.fork
+      // @ts-ignore
+      fork: validatedOptions.fork,
     };
   }
   // Note: this doesnt seem to be supported anymore
