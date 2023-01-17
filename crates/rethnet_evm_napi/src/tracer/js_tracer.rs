@@ -158,7 +158,7 @@ impl JsTracer {
     pub fn new(env: &Env, callbacks: TracingCallbacks) -> napi::Result<Self> {
         let before_message_fn = ThreadsafeFunction::create(
             env.raw(),
-            unsafe { callbacks.after_message.raw() },
+            unsafe { callbacks.before_message.raw() },
             0,
             |ctx: ThreadSafeCallContext<BeforeMessageHandlerCall>| {
                 let sender = ctx.value.sender.clone();
