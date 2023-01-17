@@ -3,6 +3,8 @@ export { buildModule } from "dsl/buildModule";
 export { buildSubgraph } from "dsl/buildSubgraph";
 export { viewExecutionResults } from "deployment/utils";
 export { createServices } from "services/createServices";
+export { serializeReplacer } from "utils/serialize";
+export { IgnitionError } from "utils/errors";
 
 export type {
   SerializedDeploymentResult,

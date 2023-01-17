@@ -54,6 +54,7 @@ describe("deployment state reducer", () => {
     beforeEach(() => {
       state = deployStateReducer(state, {
         type: "EXECUTION::START",
+        executionGraphHash: "XXX",
       });
     });
 
@@ -88,6 +89,7 @@ describe("deployment state reducer", () => {
       state = applyActions(state, [
         {
           type: "EXECUTION::START",
+          executionGraphHash: "XXX",
         },
         {
           type: "EXECUTION::SET_BATCH",
@@ -107,6 +109,7 @@ describe("deployment state reducer", () => {
       state = applyActions(state, [
         {
           type: "EXECUTION::START",
+          executionGraphHash: "XXX",
         },
         {
           type: "EXECUTION::SET_BATCH",
@@ -141,6 +144,7 @@ describe("deployment state reducer", () => {
       state = applyActions(state, [
         {
           type: "EXECUTION::START",
+          executionGraphHash: "XXX",
         },
         {
           type: "EXECUTION::SET_BATCH",
@@ -174,6 +178,7 @@ describe("deployment state reducer", () => {
       state = applyActions(state, [
         {
           type: "EXECUTION::START",
+          executionGraphHash: "XXX",
         },
 
         {
@@ -246,6 +251,7 @@ describe("deployment state reducer", () => {
       state = applyActions(state, [
         {
           type: "EXECUTION::START",
+          executionGraphHash: "XXX",
         },
 
         {
@@ -294,6 +300,7 @@ describe("deployment state reducer", () => {
       state = applyActions(state, [
         {
           type: "EXECUTION::START",
+          executionGraphHash: "XXX",
         },
 
         {

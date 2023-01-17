@@ -13,7 +13,7 @@ import { IgnitionError } from "utils/errors";
 
 import { ExecutionGraph } from "./ExecutionGraph";
 import { executionDispatch } from "./dispatch/executionDispatch";
-import { allDependenciesCompleted } from "./utils";
+import { allDependenciesCompleted, hashExecutionGraph } from "./utils";
 
 export async function execute(
   deployment: Deployment,
@@ -37,7 +37,9 @@ export async function executeInBatches(
   executionVertexDispatcher: ExecutionVertexDispatcher,
   options: ExecutionOptions
 ): Promise<VisitResult> {
-  await deployment.startExecutionPhase();
+  const executionGraphHash = hashExecutionGraph(executionGraph);
+
+  await deployment.startExecutionPhase(executionGraphHash);
 
   while (deployment.hasUnstarted()) {
     const batch = calculateNextBatch(

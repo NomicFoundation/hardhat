@@ -39,11 +39,13 @@ export type DeployPhase =
   | "complete"
   | "failed"
   | "hold"
-  | "validation-failed";
+  | "validation-failed"
+  | "reconciliation-failed";
 
 export type DeployStateExecutionCommand =
   | {
       type: "EXECUTION::START";
+      executionGraphHash: string;
     }
   | {
       type: "EXECUTION::SET_BATCH";
@@ -68,6 +70,9 @@ export type DeployStateCommand =
   | {
       type: "TRANSFORM_COMPLETE";
       executionGraph: IGraph<ExecutionVertex>;
+    }
+  | {
+      type: "RECONCILIATION_FAILED";
     }
   | DeployStateExecutionCommand;
 
@@ -125,6 +130,7 @@ export interface ExecutionState {
   vertexes: { [key: number]: VertexExecutionState };
   batch: Set<number> | null;
   previousBatches: Array<Set<number>>;
+  executionGraphHash: string;
 }
 
 export interface DeployNetworkConfig {

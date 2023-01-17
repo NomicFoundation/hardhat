@@ -7,12 +7,13 @@ import {
   ModuleParams,
   createServices,
   ICommandJournal,
+  IgnitionError,
 } from "@ignored/ignition-core";
 import { Contract, ethers } from "ethers";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 
 import { CommandJournal } from "./CommandJournal";
-import { renderToCli } from "./ui/renderToCli";
+import { initializeRenderState, renderToCli } from "./ui/renderToCli";
 
 type HardhatEthers = HardhatRuntimeEnvironment["ethers"];
 
@@ -44,7 +45,10 @@ export class IgnitionWrapper {
     const ignition = new Ignition({
       services,
       uiRenderer: showUi
-        ? renderToCli(this._providers.config.parameters)
+        ? renderToCli(
+            initializeRenderState(),
+            this._providers.config.parameters
+          )
         : undefined,
       journal: deployParams?.journal
         ? deployParams?.journal
@@ -70,7 +74,7 @@ export class IgnitionWrapper {
         heldMessage += `  - ${vertex.label}\n`;
       }
 
-      throw new Error(
+      throw new IgnitionError(
         `Execution held for module '${ignitionModule.name}':\n\n${heldMessage}`
       );
     }
@@ -83,7 +87,7 @@ export class IgnitionWrapper {
         failuresMessage += `  - ${failure.message}\n`;
       }
 
-      throw new Error(
+      throw new IgnitionError(
         `Execution failed for module '${moduleId}':\n\n${failuresMessage}`
       );
     }

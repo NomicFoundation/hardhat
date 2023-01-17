@@ -4,6 +4,7 @@ import { BigNumber } from "ethers";
 import { Deployment } from "deployment/Deployment";
 import { execute } from "execution/execute";
 import { loadJournalInto } from "execution/loadJournalInto";
+import { hashExecutionGraph } from "execution/utils";
 import { NoopCommandJournal } from "journal/NoopCommandJournal";
 import { generateDeploymentGraphFrom } from "process/generateDeploymentGraphFrom";
 import { transformDeploymentGraphToExecutionGraph } from "process/transformDeploymentGraphToExecutionGraph";
@@ -15,6 +16,7 @@ import { ICommandJournal } from "types/journal";
 import { Module, ModuleDict } from "types/module";
 import { IgnitionPlan } from "types/plan";
 import { SerializedFutureResult } from "types/serialization";
+import { IgnitionError } from "utils/errors";
 import { isDependable } from "utils/guards";
 import { resolveProxyValue } from "utils/proxy";
 import { serializeFutureOutput } from "utils/serialize";
@@ -82,6 +84,15 @@ export class Ignition {
 
     // rebuild previous execution state based on journal
     await loadJournalInto(deployment, this._journal);
+
+    // check that safe to run based on changes
+    const moduleChangeResult = this._checkSafeDeployment(deployment);
+
+    if (moduleChangeResult?._kind === "failure") {
+      await deployment.failReconciliation();
+
+      return [moduleChangeResult, {}];
+    }
 
     const executionResult = await execute(deployment, {
       maxRetries: options.maxRetries,
@@ -210,5 +221,42 @@ export class Ignition {
       .filter((x): x is [string, SerializedFutureResult] => x !== null);
 
     return Object.fromEntries(convertedEntries);
+  }
+
+  private _checkSafeDeployment(
+    deployment: Deployment
+  ): DeploymentResult | { _kind: "success" } {
+    if (deployment.state.transform.executionGraph === null) {
+      throw new IgnitionError(
+        "Execution graph must be set to check safe deployment"
+      );
+    }
+
+    const previousExecutionGraphHash =
+      deployment.state.execution.executionGraphHash;
+
+    if (previousExecutionGraphHash === "") {
+      return { _kind: "success" };
+    }
+
+    const currentExecutionGraphHash = hashExecutionGraph(
+      deployment.state.transform.executionGraph
+    );
+
+    if (previousExecutionGraphHash === currentExecutionGraphHash) {
+      return { _kind: "success" };
+    }
+
+    return {
+      _kind: "failure",
+      failures: [
+        "module change failure",
+        [
+          new Error(
+            "The module has been modified since the last run. Delete the journal file to start again."
+          ),
+        ],
+      ],
+    };
   }
 }

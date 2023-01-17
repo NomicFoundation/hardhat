@@ -339,7 +339,7 @@ describe("Reruning execution", () => {
       // Assert
       assert.equal(result._kind, "failure");
 
-      // two calls sent
+      // one calls sent
       assert.equal(
         sentTransactionCount,
         1,
@@ -379,6 +379,46 @@ describe("Reruning execution", () => {
         redeployResult.result.token.value.address,
         "0x1F98431c8aD98523631AE4a59f267346ea31F984"
       );
+    });
+
+    it("should error if the module has been changed", async () => {
+      // Arrange
+      const someModule = buildModule("MyModule", (m) => {
+        const token = m.contract("Token");
+
+        m.call(token, "configure", { args: [100] });
+
+        return { token };
+      });
+
+      const modifiedModule = buildModule("MyModule", (m) => {
+        const token = m.contract("Token");
+
+        m.call(token, "configure", { args: [999] });
+
+        return { token };
+      });
+
+      await ignition.deploy(someModule, {} as any);
+
+      // Act
+      const [modifiedResult] = await ignition.deploy(modifiedModule, {} as any);
+
+      // Assert
+      // the second transaction is not sent
+      assert.equal(sentTransactionCount, 1, "postconditition after rerun");
+
+      assert.deepStrictEqual(modifiedResult, {
+        _kind: "failure",
+        failures: [
+          "module change failure",
+          [
+            new Error(
+              "The module has been modified since the last run. Delete the journal file to start again."
+            ),
+          ],
+        ],
+      });
     });
   });
 });

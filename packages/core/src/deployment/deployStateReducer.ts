@@ -29,6 +29,7 @@ export function initializeDeployState(moduleName: string): DeployState {
       vertexes: {},
       batch: null,
       previousBatches: [],
+      executionGraphHash: "",
     },
   };
 }
@@ -73,6 +74,8 @@ export function deployStateReducer(
         ...state,
         transform: { executionGraph: action.executionGraph },
       };
+    case "RECONCILIATION_FAILED":
+      return { ...state, phase: "reconciliation-failed" };
     case "EXECUTION::START":
       if (state.transform.executionGraph === null) {
         return state;
@@ -81,6 +84,7 @@ export function deployStateReducer(
       const executionStateForRun = deployExecutionStateReducer(
         initialiseExecutionStateFrom(
           state.transform.executionGraph,
+          action.executionGraphHash,
           state.execution
         ),
         action
@@ -115,6 +119,7 @@ export function deployStateReducer(
 
 function initialiseExecutionStateFrom(
   executionGraph: ExecutionGraph,
+  executionGraphHash: string,
   previousExecutionState: ExecutionState
 ): ExecutionState {
   const vertexes = Array.from(executionGraph.vertexes.keys()).reduce<{
@@ -133,6 +138,7 @@ function initialiseExecutionStateFrom(
     vertexes,
     batch: null,
     previousBatches: [],
+    executionGraphHash,
   };
 
   return executionState;

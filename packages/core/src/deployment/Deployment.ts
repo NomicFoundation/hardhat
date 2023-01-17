@@ -94,9 +94,16 @@ export class Deployment {
     );
   }
 
-  public startExecutionPhase() {
+  public failReconciliation() {
+    return this._runDeploymentCommand(`Reconciliation failed`, {
+      type: "RECONCILIATION_FAILED",
+    });
+  }
+
+  public startExecutionPhase(executionGraphHash: string) {
     return this._runDeploymentCommand("Starting Execution", {
       type: "EXECUTION::START",
+      executionGraphHash,
     });
   }
 

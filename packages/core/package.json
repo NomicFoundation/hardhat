@@ -76,6 +76,7 @@
     "ethers": "^5.4.7",
     "fs-extra": "^10.0.0",
     "js-graph-algorithms": "1.0.18",
-    "object-hash": "^3.0.0"
+    "object-hash": "^3.0.0",
+    "serialize-error": "8.1.0"
   }
 }
