@@ -157,11 +157,6 @@ enum MethodInvocation {
     ),
 }
 
-struct SingleRequest {
-    json: String,
-    id: jsonrpc::Id,
-}
-
 struct Response {
     text: String,
     request_body: String,
@@ -256,36 +251,27 @@ impl RpcClient {
         &self,
         inputs: &[MethodInvocation],
     ) -> Result<BatchResponse, RpcClientError> {
-        let requests: Vec<SingleRequest> = inputs
+        let (request_strings, request_ids): (Vec<String>, Vec<jsonrpc::Id>) = inputs
             .iter()
             .map(|i| {
                 let id = jsonrpc::Id::Num(self.next_id.fetch_add(1, Ordering::Relaxed));
-                SingleRequest {
-                    json: serde_json::json!(Request {
-                        version: crate::remote::jsonrpc::Version::V2_0,
-                        id: id.clone(),
-                        method: i,
-                    })
-                    .to_string(),
-                    id,
-                }
+                let json = serde_json::json!(Request {
+                    version: crate::remote::jsonrpc::Version::V2_0,
+                    id: id.clone(),
+                    method: i,
+                })
+                .to_string();
+                (json, id)
             })
-            .collect();
+            .unzip();
 
-        let request_body = format!(
-            "[{}]",
-            requests
-                .iter()
-                .map(|r| { r.json.clone() })
-                .collect::<Vec<String>>()
-                .join(",")
-        );
+        let request_body = format!("[{}]", request_strings.join(","));
 
         let response_text = self.send_request_body(request_body.clone()).await?;
 
         Ok(BatchResponse {
-            request_body: request_body.clone(),
-            request_ids: requests.into_iter().map(|r| r.id).collect(),
+            request_body,
+            request_ids,
             text: response_text,
         })
     }
