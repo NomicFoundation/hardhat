@@ -602,12 +602,18 @@ where
         _is_static: bool,
         _eval: Return,
     ) -> Return {
+        // TODO: temporary fix
+        let pre_step_option = self.pre_step.take();
+        if pre_step_option.is_none() {
+            return Return::Continue;
+        }
+
         let StepData {
             depth,
             pc,
             opcode,
             gas: pre_step_gas,
-        } = self.pre_step.take().expect("Gas must exist");
+        } = pre_step_option.expect("Gas must exist");
         let post_step_gas = interp.gas();
 
         let (sender, receiver) = channel();
