@@ -138,11 +138,19 @@ pub struct AfterMessageHandlerCall {
 }
 
 #[derive(Clone)]
+struct StepData {
+    depth: u64,
+    pc: u64,
+    opcode: u8,
+    gas: Gas,
+}
+
+#[derive(Clone)]
 pub struct JsTracer {
     before_message_fn: ThreadsafeFunction<BeforeMessageHandlerCall>,
     step_fn: ThreadsafeFunction<StepHandlerCall>,
     after_message_fn: ThreadsafeFunction<AfterMessageHandlerCall>,
-    pre_step_gas: Option<Gas>,
+    pre_step: Option<StepData>,
 }
 
 impl JsTracer {
@@ -437,7 +445,7 @@ impl JsTracer {
             before_message_fn,
             step_fn,
             after_message_fn,
-            pre_step_gas: None,
+            pre_step: None,
         })
     }
 }
@@ -574,10 +582,15 @@ where
     fn step(
         &mut self,
         interp: &mut rethnet_evm::Interpreter,
-        _data: &mut rethnet_evm::EVMData<'_, D>,
+        data: &mut rethnet_evm::EVMData<'_, D>,
         _is_static: bool,
     ) -> Return {
-        self.pre_step_gas = Some(*interp.gas());
+        self.pre_step = Some(StepData {
+            depth: data.journaled_state.depth(),
+            pc: interp.program_counter() as u64,
+            opcode: interp.current_opcode(),
+            gas: *interp.gas(),
+        });
 
         Return::Continue
     }
@@ -589,16 +602,21 @@ where
         _is_static: bool,
         _eval: Return,
     ) -> Return {
-        let pre_step_gas = self.pre_step_gas.take().expect("Gas must exist");
+        let StepData {
+            depth,
+            pc,
+            opcode,
+            gas: pre_step_gas,
+        } = self.pre_step.take().expect("Gas must exist");
         let post_step_gas = interp.gas();
 
         let (sender, receiver) = channel();
 
         let status = self.step_fn.call(
             StepHandlerCall {
-                depth: data.journaled_state.depth(),
-                pc: interp.program_counter() as u64,
-                opcode: interp.current_opcode(),
+                depth,
+                pc,
+                opcode,
                 return_value: interp.instruction_result,
                 gas_cost: post_step_gas.spend() - pre_step_gas.spend(),
                 gas_refunded: post_step_gas.refunded() - pre_step_gas.refunded(),
