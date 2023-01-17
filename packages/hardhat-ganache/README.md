@@ -28,7 +28,7 @@ import "@nomiclabs/hardhat-ganache";
 
 ## Tasks
 
-This plugin hooks into the `test` and `run` tasks to wrap them in the instantiation and termination of a `ganache-core` instance. This plugin creates no additional tasks.
+This plugin hooks into the `test` and `run` tasks to wrap them in the instantiation and termination of a `ganache` instance. This plugin creates no additional tasks.
 
 ## Environment extensions
 

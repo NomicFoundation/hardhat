@@ -6,7 +6,7 @@ import { useEnvironment } from "./helpers";
 
 // Note: Skipping as this plugin hasn't been updated to the latest Ganache version,
 //   so it doesn't work well with Node 18
-describe.skip("Ganache plugin with empty configs", function () {
+describe("Ganache plugin with empty configs", function () {
   useEnvironment("hardhat-project", "ganache");
 
   it("Should add ganache network to the config", function () {
@@ -51,16 +51,15 @@ describe.skip("Ganache plugin with empty configs", function () {
   });
 });
 
-// Note: Skipping as this plugin hasn't been updated to the latest Ganache version,
-//   so it doesn't work well with Node 18
-describe.skip("Ganache plugin with custom configs", function () {
+// Note: Each of the skipped test is working when ran with .only
+describe("Ganache plugin with custom configs", function () {
   useEnvironment("hardhat-project-with-configs", "ganache");
 
   it("Should add ganache network to hardhat's config", function () {
     assert.isDefined(this.env.config.networks.ganache);
   });
 
-  it("Should load custom configs in hardhat's config'", function () {
+  it.skip("Should load custom configs in hardhat's config'", function () {
     assert.isDefined(this.env.config.networks.ganache);
     const customConfigs =
       require("./fixture-projects/hardhat-project-with-configs/hardhat.config.ts").default;
@@ -76,7 +75,7 @@ describe.skip("Ganache plugin with custom configs", function () {
     }
   });
 
-  it("Should expose merged (custom + defaults) configs in hardhat's config", function () {
+  it.skip("Should expose merged (custom + defaults) configs in hardhat's config", function () {
     assert.isDefined(this.env.config.networks.ganache);
     const customConfigs =
       require("./fixture-projects/hardhat-project-with-configs/hardhat.config.ts").default;
@@ -94,7 +93,7 @@ describe.skip("Ganache plugin with custom configs", function () {
     }
   });
 
-  it("Should run Hardhat RUN task using Ganache with custom configs", async function () {
+  it.skip("Should run Hardhat RUN task using Ganache with custom configs", async function () {
     await this.env.run("run", {
       noCompile: true,
       script: "scripts/custom-accounts-sample.js",

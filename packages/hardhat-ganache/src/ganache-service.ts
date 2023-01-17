@@ -1,10 +1,11 @@
 import debug from "debug";
-import { NomicLabsHardhatPluginError } from "hardhat/internal/core/errors";
 import { URL } from "url";
+import ganache, { Server, ServerOptions } from "ganache";
+import { NomicLabsHardhatPluginError } from "hardhat/src/internal/core/errors";
 
 const log = debug("hardhat:plugin:ganache-service");
 
-declare interface GanacheOptions {
+export interface HardhatGanacheOptions {
   url: string;
   keepAliveTimeout?: number;
   accountKeysPath?: string; // Translates to: account_keys_path
@@ -42,13 +43,33 @@ declare interface GanacheOptions {
   ws?: boolean;
 }
 
-const DEFAULT_PORT = 7545;
+const DEFAULT_PORT = 8545;
 
 export class GanacheService {
   public static error?: Error;
   public static optionValidator: any;
 
-  public static getDefaultOptions(): GanacheOptions {
+  // public static getDefaultOptions(): ServerOptions<"ethereum"> {
+  //   return {
+  //    // url: `http://127.0.0.1:${DEFAULT_PORT}`,
+  //     gasPrice: 20000000000,
+  //     gasLimit: 6721975,
+  //     //defaultBalance: 100,
+  //     //totalAccounts: 10,
+  //     server:{rpcEndpoint:`http://127.0.0.1:${DEFAULT_PORT}`},
+  //     wallet:{
+  //       totalAccounts:10,
+  //       defaultBalance:100,
+  //       hdPath:"m/44'/60'/0'/0/"
+  //     },
+  //     hardfork: "muirGlacier",
+  //     allowUnlimitedContractSize: false,
+  //     // locked: false,
+  //     //hdPath: "m/44'/60'/0'/0/",
+  //     //keepAliveTimeout: 5000,
+  //   };
+  // }
+  public static getDefaultOptions(): HardhatGanacheOptions {
     return {
       url: `http://127.0.0.1:${DEFAULT_PORT}`,
       gasPrice: 20000000000,
@@ -63,10 +84,10 @@ export class GanacheService {
     };
   }
 
-  public static async create(options: any): Promise<GanacheService> {
+  public static async create(options: HardhatGanacheOptions): Promise<GanacheService> {
     // We use this weird way of importing this library here as a workaround
     // to this issue https://github.com/trufflesuite/ganache-core/issues/465
-    const Ganache = (() => require)()("ganache-core");
+    // const Ganache = (() => require)()("ganache");
 
     // Get and initialize option validator
     const { default: optionsSchema } = await import("./ganache-options-ti");
@@ -74,24 +95,28 @@ export class GanacheService {
     const { GanacheOptionsTi } = createCheckers(optionsSchema);
     GanacheService.optionValidator = GanacheOptionsTi;
 
-    return new GanacheService(Ganache, options);
+    return new GanacheService(options);
   }
 
-  private readonly _server: any;
-  private readonly _options: GanacheOptions;
+  private readonly _server: Server<"ethereum">|undefined;
+  private readonly _ganacheOptions: ServerOptions<"ethereum">;
+  private readonly _hardhatGanacheOptions: HardhatGanacheOptions;
 
-  private constructor(Ganache: any, options: any) {
+  private constructor(options: HardhatGanacheOptions) {
     log("Initializing server");
 
     // Validate and Transform received options before initialize server
-    this._options = this._validateAndTransformOptions(options);
+    this._hardhatGanacheOptions = options
+    this._ganacheOptions = this._validateAndTransformOptions(options);
 
     try {
       // Initialize server and provider with given options
-      this._server = Ganache.server(this._options);
+     // console.log("this._ganacheOptions",this._ganacheOptions)
+      this._server = ganache.server(this._ganacheOptions) as Server<"ethereum">;
 
+      // Note: this seems to be deprecated
       // Register server and system error handlers
-      this._registerSystemErrorsHandlers();
+      // this._registerSystemErrorsHandlers();
     } catch (e) {
       // Verify the expected error or throw it again
       if (e instanceof Error) {
@@ -125,27 +150,42 @@ export class GanacheService {
       log("Starting server");
 
       // Get port and hostname from validated options
-      const port = this._options.port;
-      const hostname = this._options.hostname;
+      const port = this._hardhatGanacheOptions.port||8545;
+      const hostname = this._hardhatGanacheOptions.hostname||"localhost";
 
       // Start server with current configs (port and hostname)
       await new Promise<void>((resolve, reject) => {
+
+        // Note: I can't figure out how to do this with new version of ganache
+        //Note: call back seems to be doing the job
         // eslint-disable-next-line prefer-const
-        let onError: (err: Error) => void;
+        //let onError: (err: Error) => void;
 
-        const onListening = () => {
-          this._server.removeListener("error", onError);
+        // const onListening = () => {
+        //   this._server?.removeListener("error", onError);
+        //   resolve();
+        // };
+
+        // onError = (err) => {
+        //   this._server?.removeListener("listening", onListening);
+        //   reject(err);
+        // };
+
+        // this._server.once("listening", onListening);
+        // this._server.once("error", onError);
+
+        this._server?.listen(port, hostname, async (err) => {
+          if (err) reject(err);
+    
+          console.log(`ganache listening on port ${port}...`);
+          const provider = this._server?.provider;
+          const accounts = await provider?.request({
+            method: "eth_accounts",
+            params: [],
+          });
+          console.log("eth_accounts : ", accounts);
           resolve();
-        };
-
-        onError = (err) => {
-          this._server.removeListener("listening", onListening);
-          reject(err);
-        };
-
-        this._server.once("listening", onListening);
-        this._server.once("error", onError);
-        this._server.listen(port, hostname);
+        });
       });
     } catch (e: any) {
       const error = new NomicLabsHardhatPluginError(
@@ -172,14 +212,17 @@ export class GanacheService {
       log("Stopping server");
 
       // Stop server and Wait for it
-      await new Promise<void>((resolve, reject) => {
-        this._server.close((err: Error) => {
-          if (err !== undefined && err !== null) {
-            reject(err);
-          } else {
-            resolve();
-          }
-        });
+      await new Promise<void>(async(resolve, reject) => {
+        await this._server?.close(
+        //   (err: Error) => {
+        //   if (err !== undefined && err !== null) {
+        //     reject(err);
+        //   } else {
+        //     resolve();
+        //   }
+        // }
+        );
+        resolve()
       });
     } catch (e: any) {
       const error = new NomicLabsHardhatPluginError(
@@ -197,11 +240,13 @@ export class GanacheService {
     this._checkForServiceErrors();
   }
 
-  private _validateAndTransformOptions(options: GanacheOptions): any {
-    const validatedOptions: any = options;
+  private _validateAndTransformOptions(options: HardhatGanacheOptions): ServerOptions<"ethereum"> {
+    let validatedOptions = options;
+   // console.log("_validateAndTransformOptions",options)
 
     // Validate and parse hostname and port from URL (this validation is priority)
     const url = new URL(options.url);
+    console.log("url",url)
     if (url.hostname !== "localhost" && url.hostname !== "127.0.0.1") {
       throw new NomicLabsHardhatPluginError(
         "@nomiclabs/hardhat-ganache",
@@ -236,40 +281,86 @@ export class GanacheService {
         ? parseInt(url.port, 10)
         : DEFAULT_PORT;
 
-    const optionsToInclude = [
-      "accountsKeyPath",
-      "dbPath",
-      "defaultBalanceEther",
-      "totalAccounts",
-      "unlockedAccounts",
-    ];
-    for (const [key, value] of Object.entries(options)) {
-      if (value !== undefined && optionsToInclude.includes(key)) {
-        validatedOptions[this._snakeCase(key)] = value;
-        delete validatedOptions[key];
-      }
+        // This part was supposed to convert to snakecase which is not necessary anymore
+    // const optionsToInclude = [
+    //   "accountsKeyPath",
+    //   "dbPath",
+    //   "defaultBalanceEther",
+    //   "totalAccounts",
+    //   "unlockedAccounts",
+    // ];
+    // for (const [key, value] of Object.entries(options)) {
+    //   if (value !== undefined && optionsToInclude.includes(key)) {
+    //     // @ts-ignore
+    //     validatedOptions[this._snakeCase(key)] = value;
+    //     // @ts-ignore
+    //     delete validatedOptions[key];
+    //   }
+    // }
+
+   let resp={
+    gasPrice: 20000000000,
+    gasLimit: 6721975,
+    wallet:{
+      totalAccounts:validatedOptions.totalAccounts,
+      defaultBalance:validatedOptions.defaultBalanceEther,
+      // hdPath:validatedOptions.hdPath,
+      // unlockedAccounts:validatedOptions.unlockedAccounts,
+     // accountKeysPath:validatedOptions.accountKeysPath,
+      mnemonic:validatedOptions.mnemonic
     }
-
-    return validatedOptions;
   }
-
-  private _registerSystemErrorsHandlers() {
-    const server = this._server;
-
-    // Add listener for general server errors
-    server.on("error", function (err: any) {
-      if (
-        GanacheService.error === undefined &&
-        err !== undefined &&
-        err !== null
-      ) {
-        log("An error occurred in GanacheService\n", err);
-        GanacheService.error = err;
-      }
-    });
+  
+    return resp
+    
+    // TODO: make a function that correctly does this conversion:
+        return {
+      gasPrice: 20000000000,
+      gasLimit: 6721975,
+      //server:{rpcEndpoint:validatedOptions.url},
+      wallet:{
+        totalAccounts:validatedOptions.totalAccounts,
+        defaultBalance:validatedOptions.defaultBalanceEther,
+        hdPath:validatedOptions.hdPath,
+        unlockedAccounts:validatedOptions.unlockedAccounts,
+        accountKeysPath:validatedOptions.accountKeysPath,
+        mnemonic:validatedOptions.mnemonic
+      },
+      hardfork:validatedOptions.hardfork,
+      allowUnlimitedContractSize: validatedOptions.allowUnlimitedContractSize,
+      chain:{
+        allowUnlimitedContractSize:validatedOptions.allowUnlimitedContractSize,
+        hardfork:validatedOptions.hardfork
+      },
+      miner:{
+        blockTime:validatedOptions.blockTime
+      },
+      logging:{
+        debug:validatedOptions.debug
+      },
+      //@ts-ignore
+      fork:validatedOptions.fork
+    };
   }
+  // Note: this doesnt seem to be supported anymore
+  // private _registerSystemErrorsHandlers() {
+  //   const server = this._server;
+
+  //   // Add listener for general server errors
+  //   server?.on("error", function (err: any) {
+  //     if (
+  //       GanacheService.error === undefined &&
+  //       err !== undefined &&
+  //       err !== null
+  //     ) {
+  //       log("An error occurred in GanacheService\n", err);
+  //       GanacheService.error = err;
+  //     }
+  //   });
+  // }
 
   private _checkForServiceErrors() {
+    // console.log("ho",GanacheService.error,this._server)
     if (GanacheService.error !== undefined) {
       if (this._server !== undefined) {
         this._server.close();

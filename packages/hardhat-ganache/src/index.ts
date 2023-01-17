@@ -1,15 +1,15 @@
 import debug from "debug";
-import { TASK_RUN, TASK_TEST } from "hardhat/builtin-tasks/task-names";
-import { extendConfig, task } from "hardhat/config";
+import { TASK_RUN, TASK_TEST } from "hardhat/src/builtin-tasks/task-names";
+import { extendConfig, task } from "hardhat/src/config";
 import {
   HardhatRuntimeEnvironment,
   RunSuperFunction,
   TaskArguments,
-} from "hardhat/types";
+} from "hardhat/src/types";
 
 const log = debug("hardhat:plugin:ganache");
 
-import { GanacheService } from "./ganache-service";
+import { GanacheService, HardhatGanacheOptions } from "./ganache-service";
 
 task(TASK_TEST, async (_args, env, runSuper) => {
   return handlePluginTask(env, runSuper);
@@ -39,8 +39,8 @@ async function handlePluginTask(
   }
 
   log("Starting Ganache");
-
-  const options = env.network.config;
+  //console.log("env.network",env.network)
+  const options = env.network.config as unknown as HardhatGanacheOptions;
   const ganacheService = await GanacheService.create(options);
 
   await ganacheService.startServer();
