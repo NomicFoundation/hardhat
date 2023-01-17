@@ -17,7 +17,6 @@ import {
   RunTxResult as EthereumJSRunTxResult,
   VM,
 } from "@nomicfoundation/ethereumjs-vm";
-import { TracingCallbacks } from "rethnet-evm";
 import { assertHardhatInvariant } from "../../../core/errors";
 import { RpcDebugTracingConfig } from "../../../core/jsonrpc/types/input/debugTraceTransaction";
 import {
@@ -25,7 +24,9 @@ import {
   InvalidInputError,
   TransactionExecutionError,
 } from "../../../core/providers/errors";
+import { MessageTrace } from "../../stack-traces/message-trace";
 import { VMDebugTracer } from "../../stack-traces/vm-debug-tracer";
+import { VMTracer } from "../../stack-traces/vm-tracer";
 import { ForkStateManager } from "../fork/ForkStateManager";
 import { isForkedNodeConfig, NodeConfig } from "../node-types";
 import { RpcDebugTraceOutput } from "../output";
@@ -42,9 +43,9 @@ import { RunTxResult, Trace, VMAdapter } from "./vm-adapter";
 /* eslint-disable @nomiclabs/hardhat-internal-rules/only-hardhat-error */
 
 export class EthereumJSAdapter implements VMAdapter {
-  private _tracingCallbacks: TracingCallbacks | undefined;
-
   private _blockStartStateRoot: Buffer | undefined;
+
+  private _vmTracer: VMTracer;
 
   constructor(
     private readonly _vm: VM,
@@ -56,7 +57,18 @@ export class EthereumJSAdapter implements VMAdapter {
     private readonly _selectHardfork: (blockNumber: bigint) => string,
     private readonly _forkNetworkId?: number,
     private readonly _forkBlockNumber?: bigint
-  ) {}
+  ) {
+    this._vmTracer = new VMTracer(this, _common, false);
+
+    assertHardhatInvariant(
+      this._vm.evm.events !== undefined,
+      "EVM should have an 'events' property"
+    );
+
+    this._vm.evm.events.on("beforeMessage", this._beforeMessageHandler);
+    this._vm.evm.events.on("step", this._stepHandler);
+    this._vm.evm.events.on("afterMessage", this._afterMessageHandler);
+  }
 
   public static async create(
     common: Common,
@@ -258,40 +270,6 @@ export class EthereumJSAdapter implements VMAdapter {
     return this._stateManager.setStateRoot(stateRoot);
   }
 
-  public enableTracing(callbacks: TracingCallbacks): void {
-    assertHardhatInvariant(
-      this._vm.evm.events !== undefined,
-      "EVM should have an 'events' property"
-    );
-
-    this._tracingCallbacks = callbacks;
-
-    this._vm.evm.events.on("beforeMessage", this._beforeMessageHandler);
-    this._vm.evm.events.on("step", this._stepHandler);
-    this._vm.evm.events.on("afterMessage", this._afterMessageHandler);
-  }
-
-  public disableTracing(): void {
-    assertHardhatInvariant(
-      this._vm.evm.events !== undefined,
-      "EVM should have an 'events' property"
-    );
-
-    if (this._tracingCallbacks !== undefined) {
-      this._vm.evm.events.removeListener(
-        "beforeMessage",
-        this._beforeMessageHandler
-      );
-      this._vm.evm.events.removeListener("step", this._stepHandler);
-      this._vm.evm.events.removeListener(
-        "afterMessage",
-        this._afterMessageHandler
-      );
-
-      this._tracingCallbacks = undefined;
-    }
-  }
-
   public async setBlockContext(
     block: Block,
     irregularStateOrUndefined: Buffer | undefined
@@ -462,6 +440,20 @@ export class EthereumJSAdapter implements VMAdapter {
     return this.getStateRoot();
   }
 
+  public getLastTrace(): {
+    trace: MessageTrace | undefined;
+    error: Error | undefined;
+  } {
+    const trace = this._vmTracer.getLastTopLevelMessageTrace();
+    const error = this._vmTracer.getLastError();
+
+    return { trace, error };
+  }
+
+  public clearLastError() {
+    this._vmTracer.clearLastError();
+  }
+
   private _getCommonForTracing(networkId: number, blockNumber: bigint): Common {
     try {
       const common = Common.custom(
@@ -495,87 +487,82 @@ export class EthereumJSAdapter implements VMAdapter {
     return this._common.gteHardfork("london");
   }
 
-  private _beforeMessageHandler = (message: Message, next: any) => {
-    if (this._tracingCallbacks !== undefined) {
-      return this._tracingCallbacks.beforeMessage(
-        {
-          ...message,
-          to: message.to?.toBuffer(),
-          codeAddress:
-            message.to !== undefined
-              ? message.codeAddress.toBuffer()
-              : undefined,
-        },
-        next
-      );
-    }
+  private _beforeMessageHandler = async (message: Message, next: any) => {
+    try {
+      await this._vmTracer.addBeforeMessage({
+        ...message,
+        to: message.to?.toBuffer(),
+        codeAddress:
+          message.to !== undefined ? message.codeAddress.toBuffer() : undefined,
+      });
 
-    next();
+      return next();
+    } catch (e) {
+      return next(e);
+    }
   };
 
-  private _stepHandler = (step: InterpreterStep, next: any) => {
-    if (this._tracingCallbacks !== undefined) {
-      return this._tracingCallbacks.step(
-        {
-          depth: BigInt(step.depth),
-          pc: BigInt(step.pc),
-          opcode: step.opcode.name,
-          // returnValue: 0, // Do we have error values in ethereumjs?
-          gasCost: BigInt(step.opcode.fee) + (step.opcode.dynamicFee ?? 0n),
-          gasRefunded: step.gasRefund,
-          gasLeft: step.gasLeft,
-          stack: step.stack,
-          memory: step.memory,
-          contract: {
-            balance: step.account.balance,
-            nonce: step.account.nonce,
-            codeHash: step.account.codeHash,
-          },
-          contractAddress: step.address.buf,
+  private _stepHandler = async (step: InterpreterStep, next: any) => {
+    try {
+      await this._vmTracer.addStep({
+        depth: BigInt(step.depth),
+        pc: BigInt(step.pc),
+        opcode: step.opcode.name,
+        // returnValue: 0, // Do we have error values in ethereumjs?
+        gasCost: BigInt(step.opcode.fee) + (step.opcode.dynamicFee ?? 0n),
+        gasRefunded: step.gasRefund,
+        gasLeft: step.gasLeft,
+        stack: step.stack,
+        memory: step.memory,
+        contract: {
+          balance: step.account.balance,
+          nonce: step.account.nonce,
+          codeHash: step.account.codeHash,
         },
-        next
-      );
-    }
+        contractAddress: step.address.buf,
+      });
 
-    next();
+      return next();
+    } catch (e) {
+      return next(e);
+    }
   };
 
-  private _afterMessageHandler = (result: EVMResult, next: any) => {
-    if (this._tracingCallbacks !== undefined) {
+  private _afterMessageHandler = async (result: EVMResult, next: any) => {
+    try {
       const vmError = Exit.fromEthereumJSEvmError(
         result.execResult.exceptionError
       );
 
       const rethnetExitCode = vmError.getRethnetExitCode();
 
-      return this._tracingCallbacks.afterMessage(
-        {
-          executionResult: {
-            exitCode: rethnetExitCode,
-            output: {
-              address: result.createdAddress?.toBuffer(),
-              output: result.execResult.returnValue,
-            },
-            gasUsed: result.execResult.executionGasUsed,
-            gasRefunded: result.execResult.gasRefund ?? 0n,
-            logs:
-              result.execResult.logs?.map((log) => {
-                return {
-                  address: log[0],
-                  topics: log[1],
-                  data: log[2],
-                };
-              }) ?? [],
-            trace: {
-              steps: [],
-              returnValue: result.execResult.returnValue,
-            },
+      await this._vmTracer.addAfterMessage({
+        executionResult: {
+          exitCode: rethnetExitCode,
+          output: {
+            address: result.createdAddress?.toBuffer(),
+            output: result.execResult.returnValue,
+          },
+          gasUsed: result.execResult.executionGasUsed,
+          gasRefunded: result.execResult.gasRefund ?? 0n,
+          logs:
+            result.execResult.logs?.map((log) => {
+              return {
+                address: log[0],
+                topics: log[1],
+                data: log[2],
+              };
+            }) ?? [],
+          trace: {
+            steps: [],
+            returnValue: result.execResult.returnValue,
           },
         },
-        next
-      );
-    }
+      });
 
-    next();
+      return next();
+    } catch (e) {
+      return next(e);
+    }
   };
 }

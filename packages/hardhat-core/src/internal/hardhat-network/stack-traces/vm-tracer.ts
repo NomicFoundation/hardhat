@@ -27,8 +27,11 @@ const DUMMY_RETURN_DATA = Buffer.from([]);
 const DUMMY_GAS_USED = 0n;
 
 export class VMTracer {
+  public tracingMessages: TracingMessage[] = [];
+  public tracingSteps: TracingStep[] = [];
+  public tracingMessageResults: TracingMessageResult[] = [];
+
   private _messageTraces: MessageTrace[] = [];
-  private _enabled = false;
   private _lastError: Error | undefined;
   private _maxPrecompileNumber;
 
@@ -37,45 +40,10 @@ export class VMTracer {
     common: Common,
     private readonly _throwErrors = true
   ) {
-    this._beforeMessageHandler = this._beforeMessageHandler.bind(this);
-    this._stepHandler = this._stepHandler.bind(this);
-    this._afterMessageHandler = this._afterMessageHandler.bind(this);
     this._maxPrecompileNumber = getActivePrecompiles(common).size;
   }
 
-  public enableTracing() {
-    if (this._enabled) {
-      return;
-    }
-
-    this._vm.enableTracing({
-      beforeMessage: this._beforeMessageHandler,
-      step: this._stepHandler,
-      afterMessage: this._afterMessageHandler,
-    });
-
-    this._enabled = true;
-  }
-
-  public disableTracing() {
-    if (!this._enabled) {
-      return;
-    }
-
-    this._vm.disableTracing();
-
-    this._enabled = false;
-  }
-
-  public get enabled(): boolean {
-    return this._enabled;
-  }
-
   public getLastTopLevelMessageTrace(): MessageTrace | undefined {
-    if (!this._enabled) {
-      throw new Error("You can't get a vm trace if the VMTracer is disabled");
-    }
-
     return this._messageTraces[0];
   }
 
@@ -91,9 +59,8 @@ export class VMTracer {
     return this._throwErrors || this._lastError === undefined;
   }
 
-  private async _beforeMessageHandler(message: TracingMessage, next: any) {
+  public async addBeforeMessage(message: TracingMessage) {
     if (!this._shouldKeepTracing()) {
-      next();
       return;
     }
 
@@ -102,7 +69,12 @@ export class VMTracer {
 
       if (message.depth === 0) {
         this._messageTraces = [];
+        this.tracingMessages = [];
+        this.tracingSteps = [];
+        this.tracingMessageResults = [];
       }
+
+      this.tracingMessages.push(message);
 
       if (message.to === undefined) {
         const createTrace: CreateMessageTrace = {
@@ -143,10 +115,7 @@ export class VMTracer {
             "codeAddress should be defined"
           );
 
-          const code = await this._vm.getContractCode(
-            new Address(codeAddress),
-            true // ethJsOnly, temporary fix
-          );
+          const code = await this._vm.getContractCode(new Address(codeAddress));
 
           const callTrace: CallMessageTrace = {
             code,
@@ -180,22 +149,22 @@ export class VMTracer {
       }
 
       this._messageTraces.push(trace);
-      next();
     } catch (error) {
+      console.log("addBeforeMessage", error); // TODO delete
       if (this._throwErrors) {
-        next(error);
+        throw error;
       } else {
         this._lastError = error as Error;
-        next();
       }
     }
   }
 
-  private async _stepHandler(step: TracingStep, next: any) {
+  public async addStep(step: TracingStep) {
     if (!this._shouldKeepTracing()) {
-      next();
       return;
     }
+
+    this.tracingSteps.push(step);
 
     try {
       const trace = this._messageTraces[this._messageTraces.length - 1];
@@ -207,22 +176,22 @@ export class VMTracer {
       }
 
       trace.steps.push({ pc: Number(step.pc) });
-      next();
     } catch (error) {
+      console.log("addStep", error); // TODO delete
       if (this._throwErrors) {
-        next(error);
+        throw error;
       } else {
         this._lastError = error as Error;
-        next();
       }
     }
   }
 
-  private async _afterMessageHandler(result: TracingMessageResult, next: any) {
+  public async addAfterMessage(result: TracingMessageResult) {
     if (!this._shouldKeepTracing()) {
-      next();
       return;
     }
+
+    this.tracingMessageResults.push(result);
 
     try {
       const trace = this._messageTraces[this._messageTraces.length - 1];
@@ -239,14 +208,12 @@ export class VMTracer {
       if (this._messageTraces.length > 1) {
         this._messageTraces.pop();
       }
-
-      next();
     } catch (error) {
+      console.log("addAfterMessage", error); // TODO delete
       if (this._throwErrors) {
-        next(error);
+        throw error;
       } else {
         this._lastError = error as Error;
-        next();
       }
     }
   }

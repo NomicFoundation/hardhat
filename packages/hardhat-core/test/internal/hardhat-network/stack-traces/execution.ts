@@ -107,7 +107,8 @@ export async function traceTransaction(
   const signedTx = tx.sign(senderPrivateKey);
 
   const vmTracer = new VMTracer(vm as any, common);
-  vmTracer.enableTracing();
+  // TODO adapt this part of the tests
+  // vmTracer.enableTracing();
 
   try {
     const blockBuilder = new BlockBuilder(vm, common, {
@@ -133,7 +134,7 @@ export async function traceTransaction(
     }
     return messageTrace;
   } finally {
-    vmTracer.disableTracing();
+    // vmTracer.disableTracing();
   }
 }
 
