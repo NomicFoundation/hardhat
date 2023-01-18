@@ -679,6 +679,14 @@ const communityPlugins: IPlugin[] = [
       "Hardhat plugin to get contract storage, gas and code size insights using the compiler ast output",
     tags: ["Tooling", "Storage", "Gas", "Size", "Bytecode"],
   },
+  {
+    name: "hardhat-scilla",
+    author: "Saeed Dadkhah",
+    authorUrl: "https://www.npmjs.com/package/hardhat-scilla-plugin",
+    description:
+      "Hardhat plugin to test scilla contracts. Scilla is Zillqa's programming language to develop smart contracts.",
+    tags: ["Scilla", "Testing", "Zilliqa"],
+  },
 ];
 
 const officialPlugins: IPlugin[] = [
