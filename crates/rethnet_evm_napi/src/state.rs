@@ -217,7 +217,7 @@ impl StateManager {
                         .create_buffer_copy(&code.bytes()[..code.len()])?
                         .into_unknown()
                 } else {
-                    ctx.env.get_null()?.into_unknown()
+                    ctx.env.get_undefined()?.into_unknown()
                 };
 
                 let promise = ctx.callback.call(None, &[balance, nonce, code])?;

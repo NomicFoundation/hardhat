@@ -346,7 +346,31 @@ export class DualModeAdapter implements VMAdapter {
         );
       }
 
-      // etc
+      if (ethereumJSTrace.exit.kind !== rethnetTrace.exit.kind) {
+        throw new Error(
+          `Different exit: ${ethereumJSTrace.exit.kind} !== ${rethnetTrace.exit.kind}`
+        );
+      }
+
+      if (ethereumJSTrace.gasUsed !== rethnetTrace.gasUsed) {
+        console.log("ethereumjs:", ethereumJSTrace);
+        console.log("rethnet:", rethnetTrace);
+        throw new Error(
+          `Different gasUsed: ${ethereumJSTrace.gasUsed} !== ${rethnetTrace.gasUsed}`
+        );
+      }
+
+      if (!ethereumJSTrace.returnData.equals(rethnetTrace.returnData)) {
+        throw new Error(
+          `Different returnData: ${ethereumJSTrace.returnData} !== ${rethnetTrace.returnData}`
+        );
+      }
+
+      if (ethereumJSTrace.value !== rethnetTrace.value) {
+        throw new Error(
+          `Different value: ${ethereumJSTrace.value} !== ${rethnetTrace.value}`
+        );
+      }
     }
 
     if (ethereumJSError === undefined) {
@@ -363,22 +387,175 @@ export class DualModeAdapter implements VMAdapter {
       }
 
       // both errors are defined
-      if (ethereumJSError.message !== rethnetError.message) {
+      if (ethereumJSError.name !== rethnetError.name) {
         throw new Error(
-          `Different message: ${ethereumJSError.message} !== ${rethnetError.message}`
+          `Different error name: ${ethereumJSError.name} !== ${rethnetError.name}`
         );
       }
 
-      // etc
+      if (ethereumJSError.message !== rethnetError.message) {
+        throw new Error(
+          `Different error message: ${ethereumJSError.message} !== ${rethnetError.message}`
+        );
+      }
+
+      if (ethereumJSError.stack === undefined) {
+        if (rethnetError.stack !== undefined) {
+          throw new Error(
+            "ethereumJSError.stack is undefined but rethnetError.stack is defined"
+          );
+        }
+      } else {
+        if (rethnetError.stack === undefined) {
+          throw new Error(
+            "ethereumJSError.stack is defined but rethnetError.stack is undefined"
+          );
+        }
+
+        // both error stacks are defined
+        if (ethereumJSError.stack !== rethnetError.stack) {
+          throw new Error(
+            `Different error stack: ${ethereumJSError.stack} !== ${rethnetError.stack}`
+          );
+        }
+      }
     }
 
-    if (
-      this._ethereumJSVMTracer.tracingSteps.length !==
-      this._rethnetVMTracer.tracingSteps.length
-    ) {
+    const ethereumJSSteps = this._ethereumJSVMTracer.tracingSteps;
+    const rethnetSteps = this._rethnetVMTracer.tracingSteps;
+    if (ethereumJSSteps.length !== rethnetSteps.length) {
       throw new Error(
         `Different number of steps in tracers: ${this._ethereumJSVMTracer.tracingSteps.length} !== ${this._rethnetVMTracer.tracingSteps.length}`
       );
+    }
+
+    for (let stepIdx = 0; stepIdx < ethereumJSSteps.length; ++stepIdx) {
+      const ethereumJSStep = ethereumJSSteps[stepIdx];
+      const rethnetStep = rethnetSteps[stepIdx];
+
+      if (ethereumJSStep.depth !== rethnetStep.depth) {
+        console.trace(
+          `Different steps[${stepIdx}] depth: ${ethereumJSStep.depth} !== ${rethnetStep.depth}`
+        );
+        throw new Error("Different step depth");
+      }
+
+      if (ethereumJSStep.pc !== rethnetStep.pc) {
+        console.trace(
+          `Different steps[${stepIdx}] pc: ${ethereumJSStep.pc} !== ${rethnetStep.pc}`
+        );
+        throw new Error("Different step pc");
+      }
+
+      if (ethereumJSStep.opcode !== rethnetStep.opcode) {
+        console.trace(
+          `Different steps[${stepIdx}] opcode: ${ethereumJSStep.opcode} !== ${rethnetStep.opcode}`
+        );
+        throw new Error("Different step opcode");
+      }
+
+      if (ethereumJSStep.gasCost !== rethnetStep.gasCost) {
+        console.trace(
+          `Different steps[${stepIdx}] gasCost: ${ethereumJSStep.gasCost} !== ${rethnetStep.gasCost}`
+        );
+        throw new Error("Different step gasCost");
+      }
+
+      if (ethereumJSStep.gasLeft !== rethnetStep.gasLeft) {
+        console.trace(
+          `Different steps[${stepIdx}] gasLeft: ${ethereumJSStep.gasLeft} !== ${rethnetStep.gasLeft}`
+        );
+        throw new Error("Different step gasLeft");
+      }
+
+      const ethereumJSStack = ethereumJSStep.stack;
+      const rethnetStack = rethnetStep.stack;
+      if (ethereumJSStack.length !== rethnetStack.length) {
+        throw new Error(
+          `Different number of stack elements in tracers: ${ethereumJSStack.length} !== ${rethnetStack.length}`
+        );
+      }
+
+      for (let stackIdx = 0; stackIdx < ethereumJSSteps.length; ++stackIdx) {
+        const ethereumJSStackElement = ethereumJSStack[stackIdx];
+        const rethnetStackElement = rethnetStack[stackIdx];
+
+        if (ethereumJSStackElement !== rethnetStackElement) {
+          console.trace(
+            `Different steps[${stepIdx}] stack[${stackIdx}]: ${ethereumJSStackElement} !== ${rethnetStackElement}`
+          );
+          throw new Error("Different step stack element");
+        }
+      }
+
+      if (!ethereumJSStep.memory.equals(rethnetStep.memory)) {
+        console.trace(
+          `Different steps[${stepIdx}] memory: ${ethereumJSStep.memory} !== ${rethnetStep.memory}`
+        );
+        throw new Error("Different step memory");
+      }
+
+      if (ethereumJSStep.contract.balance !== rethnetStep.contract.balance) {
+        console.trace(
+          `Different steps[${stepIdx}] contract balance: ${ethereumJSStep.contract.balance} !== ${rethnetStep.contract.balance}`
+        );
+        throw new Error("Different step contract balance");
+      }
+
+      if (ethereumJSStep.contract.nonce !== rethnetStep.contract.nonce) {
+        console.trace(
+          `Different steps[${stepIdx}] contract nonce: ${ethereumJSStep.contract.nonce} !== ${rethnetStep.contract.nonce}`
+        );
+        throw new Error("Different step contract nonce");
+      }
+
+      if (
+        !ethereumJSStep.contract.codeHash.equals(rethnetStep.contract.codeHash)
+      ) {
+        console.trace(
+          `Different steps[${stepIdx}] contract codeHash: ${ethereumJSStep.contract.codeHash} !== ${rethnetStep.contract.codeHash}`
+        );
+        throw new Error("Different step contract codeHash");
+      }
+
+      // Code can be stored separately from the account in Rethnet
+      // const ethereumJSCode = ethereumJSStep.contract.code;
+      // const rethnetCode = rethnetStep.contract.code;
+      // if (ethereumJSCode === undefined) {
+      //   if (rethnetCode !== undefined) {
+      //     console.trace(
+      //       `Different steps[${stepIdx}] contract code: ${ethereumJSCode} !== ${rethnetCode}`
+      //     );
+
+      //     throw new Error(
+      //       "ethereumJSCode is undefined but rethnetCode is defined"
+      //     );
+      //   }
+      // } else {
+      //   if (rethnetCode === undefined) {
+      //     console.trace(
+      //       `Different steps[${stepIdx}] contract code: ${ethereumJSCode} !== ${rethnetCode}`
+      //     );
+
+      //     throw new Error(
+      //       "ethereumJSCode is defined but rethnetCode is undefined"
+      //     );
+      //   }
+
+      //   if (!ethereumJSCode.equals(rethnetCode)) {
+      //     console.trace(
+      //       `Different steps[${stepIdx}] contract code: ${ethereumJSCode} !== ${rethnetCode}`
+      //     );
+      //     throw new Error("Different step contract code");
+      //   }
+      // }
+
+      if (!ethereumJSStep.contractAddress.equals(rethnetStep.contractAddress)) {
+        console.trace(
+          `Different steps[${stepIdx}] contract address: ${ethereumJSStep.contractAddress} !== ${rethnetStep.contractAddress}`
+        );
+        throw new Error("Different step contract address");
+      }
     }
 
     // TODO: compare each step
@@ -391,7 +568,8 @@ export class DualModeAdapter implements VMAdapter {
   }
 
   public clearLastError() {
-    throw new Error("not implemented");
+    this._ethereumJSVMTracer.clearLastError();
+    this._rethnetVMTracer.clearLastError();
   }
 }
 

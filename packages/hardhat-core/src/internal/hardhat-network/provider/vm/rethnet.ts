@@ -327,20 +327,6 @@ export class RethnetAdapter implements VMAdapter {
     throw new Error("not implemented");
   }
 
-  /**
-   * Start tracing the VM execution with the given callbacks.
-   */
-  // public enableTracing(callbacks: TracingCallbacks): void {
-  //   this._tracingCallbacks = callbacks;
-  // }
-
-  /**
-   * Stop tracing the execution.
-   */
-  // public disableTracing(): void {
-  //   this._tracingCallbacks = undefined;
-  // }
-
   public async makeSnapshot(): Promise<Buffer> {
     return this._state.makeSnapshot();
   }
@@ -402,13 +388,13 @@ export class RethnetAdapter implements VMAdapter {
     await this._vmTracer.addBeforeMessage(message);
   };
 
-  private _stepHandler = async (step: TracingStep, next: any) => {
+  private _stepHandler = async (step: TracingStep, _next: any) => {
     await this._vmTracer.addStep(step);
   };
 
   private _afterMessageHandler = async (
     result: TracingMessageResult,
-    next: any
+    _next: any
   ) => {
     await this._vmTracer.addAfterMessage(result);
   };

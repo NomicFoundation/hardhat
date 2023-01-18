@@ -505,7 +505,7 @@ export class EthereumJSAdapter implements VMAdapter {
   private _stepHandler = async (step: InterpreterStep, next: any) => {
     try {
       await this._vmTracer.addStep({
-        depth: BigInt(step.depth),
+        depth: step.depth,
         pc: BigInt(step.pc),
         opcode: step.opcode.name,
         // returnValue: 0, // Do we have error values in ethereumjs?
