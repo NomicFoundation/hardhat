@@ -1,5 +1,23 @@
 # @nomiclabs/hardhat-etherscan
 
+## 3.1.5
+
+### Patch Changes
+
+- 7e013fa19: Upgrade undici
+
+## 3.1.4
+
+### Patch Changes
+
+- fdeba783f: A warning is now shown when there is an etherscan entry in the networks object.
+
+## 3.1.3
+
+### Patch Changes
+
+- 17b275de3: Add `--no-compile` flag to the `verify` task
+
 ## 3.1.2
 
 ### Patch Changes

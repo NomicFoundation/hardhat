@@ -420,7 +420,7 @@ describe("Eth module", function () {
                 from: DEFAULT_ACCOUNTS_ADDRESSES[1],
                 data: "0x6080604052348015600f57600080fd5b506040517ffbd8bc9c00000000000000000000000000000000000000000000000000000000815260040160405180910390fdfe",
               },
-              "VM Exception while processing transaction: reverted with an unrecognized custom error"
+              "VM Exception while processing transaction: reverted with an unrecognized custom error (return data: 0xfbd8bc9c)"
             );
 
             // This deploys a contract that divides by zero in its contstructor:

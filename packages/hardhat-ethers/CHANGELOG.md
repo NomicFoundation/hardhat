@@ -1,5 +1,11 @@
 # @nomiclabs/hardhat-ethers
 
+## 2.2.2
+
+### Patch Changes
+
+- 7e013fa19: Upgrade undici
+
 ## 2.2.1
 
 ### Patch Changes

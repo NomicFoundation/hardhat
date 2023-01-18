@@ -22,6 +22,7 @@ import {
   rpcCompilerOutput,
 } from "../../../core/jsonrpc/types/input/solc";
 import { validateParams } from "../../../core/jsonrpc/types/input/validation";
+import { HardhatMetadata } from "../../../core/jsonrpc/types/output/metadata";
 import {
   InvalidInputError,
   MethodNotFoundError,
@@ -92,6 +93,9 @@ export class HardhatModule {
         return this._dropTransactionAction(
           ...this._dropTransactionParams(params)
         );
+
+      case "hardhat_metadata":
+        return this._metadataAction(...this._metadataParams(params));
 
       case "hardhat_setBalance":
         return this._setBalanceAction(...this._setBalanceParams(params));
@@ -270,6 +274,16 @@ export class HardhatModule {
 
   private async _dropTransactionAction(hash: Buffer): Promise<boolean> {
     return this._node.dropTransaction(hash);
+  }
+
+  // hardhat_metadata
+
+  private _metadataParams(params: any[]): [] {
+    return validateParams(params);
+  }
+
+  private async _metadataAction(): Promise<HardhatMetadata> {
+    return this._node.getMetadata();
   }
 
   // hardhat_setBalance

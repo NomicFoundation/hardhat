@@ -29,8 +29,8 @@ To try this out, let's look at [a fresh Hardhat project](../guides/project-setup
 ```
 $ ls -l
 total 400
--rw-r--r--    1 fzeoli  staff     195 Jul 30 15:27 hardhat.config.js
 drwxr-xr-x    3 fzeoli  staff      96 Jul 30 15:27 contracts
+-rw-r--r--    1 fzeoli  staff     195 Jul 30 15:27 hardhat.config.js
 drwxr-xr-x  502 fzeoli  staff   16064 Jul 30 15:31 node_modules
 -rw-r--r--    1 fzeoli  staff  194953 Jul 30 15:31 package-lock.json
 -rw-r--r--    1 fzeoli  staff     365 Jul 30 15:31 package.json

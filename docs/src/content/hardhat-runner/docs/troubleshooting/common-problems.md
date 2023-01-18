@@ -12,4 +12,4 @@ If you are experiencing this problem, you can use Hardhat's `--max-memory` argum
 npx hardhat --max-memory 4096 compile
 ```
 
-If you find yourself using this all the time, you can set it with an environment variable in your `.bashrc`: `export HARDHAT_MAX_MEMORY=4096`.
+If you find yourself using this all the time, you can set it with an environment variable in your `.bashrc` (if using bash) or `.zshrc` (if using zsh): `export HARDHAT_MAX_MEMORY=4096`.

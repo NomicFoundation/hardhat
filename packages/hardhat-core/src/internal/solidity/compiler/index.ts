@@ -41,6 +41,14 @@ export class Compiler implements ICompiler {
    */
   private _loadCompilerSources(compilerPath: string) {
     const Module = module.constructor as any;
+
+    // if Hardhat is bundled (for example, in the vscode extension), then
+    // Module._extenions might be undefined. In that case, we just use a plain
+    // require.
+    if (Module._extensions === undefined) {
+      return require(compilerPath);
+    }
+
     const previousHook = Module._extensions[".js"];
 
     Module._extensions[".js"] = function (

@@ -75,7 +75,7 @@ export function useEnvironmentWithNode(fixtureProjectName: string) {
         const nodeStarted = data
           .toString()
           .includes("Started HTTP and WebSocket JSON-RPC server at");
-        if (nodeStarted) {
+        if (Boolean(nodeStarted)) {
           resolve();
         }
       });

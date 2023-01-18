@@ -79,7 +79,7 @@ describe("INTEGRATION: Reverted with", function () {
       });
 
       // depends on a bug being fixed on ethers.js
-      // see https://linear.app/nomic-foundation/issue/HH-725
+      // see https://github.com/NomicFoundation/hardhat/issues/3446
       it.skip("failed asserts", async function () {
         await runFailedAsserts({
           matchers,

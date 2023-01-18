@@ -123,7 +123,7 @@ You can create your own tasks. Check out the [Creating a task](/guides/create-ta
 
 ### Plugins
 
-Hardhat is unopinionated in terms of what tools you end up using, but it does come with some built-in defaults. All of which can be overriden. Most of the time the way to use a given tool is by consuming a plugin that integrates it into Hardhat.
+Hardhat is unopinionated in terms of what tools you end up using, but it does come with some built-in defaults. All of which can be overridden. Most of the time the way to use a given tool is by consuming a plugin that integrates it into Hardhat.
 
 In this tutorial we are going to use our recommended plugin, [`@nomicfoundation/hardhat-toolbox`](../hardhat-runner/plugins/nomicfoundation-hardhat-toolbox), which has everything you need for developing smart contracts.
 
@@ -164,6 +164,6 @@ require("@nomicfoundation/hardhat-toolbox");
 
 /** @type import('hardhat/config').HardhatUserConfig */
 module.exports = {
-  solidity: "0.8.9",
+  solidity: "0.8.17",
 };
 ```

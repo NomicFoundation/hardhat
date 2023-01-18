@@ -6,6 +6,6 @@ import {
 
 import {
     ImportTrailingWhitespace
-} from "@scope/package/contracts/nested/dir/Importer.sol";  
+} from "@scope/package/contracts/nested/dir/Importer.sol";
 
 contract ImportMultiline {}

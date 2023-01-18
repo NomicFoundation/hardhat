@@ -16,9 +16,11 @@ import {
   privateToAddress,
   setLengthLeft,
   toBuffer,
+  bufferToBigInt,
 } from "@nomicfoundation/ethereumjs-util";
 import { SignTypedDataVersion, signTypedData } from "@metamask/eth-sig-util";
 import chalk from "chalk";
+import { randomBytes } from "crypto";
 import debug from "debug";
 import EventEmitter from "events";
 
@@ -38,6 +40,7 @@ import {
   InvalidInputError,
   TransactionExecutionError,
 } from "../../core/providers/errors";
+import { HardhatMetadata } from "../../core/jsonrpc/types/output/metadata";
 import { Reporter } from "../../sentry/reporter";
 import { getDifferenceInSeconds } from "../../util/date";
 import {
@@ -45,6 +48,7 @@ import {
   hardforkGte,
   HardforkName,
 } from "../../util/hardforks";
+import { getPackageJson } from "../../util/packageInfo";
 import { createModelsAndDecodeBytecodes } from "../stack-traces/compiler-to-model";
 import { ConsoleLogger } from "../stack-traces/consoleLogger";
 import { ContractsIdentifier } from "../stack-traces/contracts-identifier";
@@ -135,6 +139,7 @@ export class HardhatNode extends EventEmitter {
     let nextBlockBaseFeePerGas: bigint | undefined;
     let forkNetworkId: number | undefined;
     let forkBlockNum: bigint | undefined;
+    let forkBlockHash: string | undefined;
     let hardforkActivations: HardforkHistoryConfig = new Map();
 
     const initialBaseFeePerGasConfig =
@@ -153,11 +158,13 @@ export class HardhatNode extends EventEmitter {
         forkClient: _forkClient,
         forkBlockNumber,
         forkBlockTimestamp,
+        forkBlockHash: _forkBlockHash,
       } = await makeForkClient(config.forkConfig, config.forkCachePath);
       forkClient = _forkClient;
 
       forkNetworkId = forkClient.getNetworkId();
       forkBlockNum = forkBlockNumber;
+      forkBlockHash = _forkBlockHash;
 
       this._validateHardforks(
         config.forkConfig.blockNumber,
@@ -239,8 +246,11 @@ export class HardhatNode extends EventEmitter {
       common
     );
 
+    const instanceId = bufferToBigInt(randomBytes(32));
+
     const node = new HardhatNode(
       vm,
+      instanceId,
       blockchain,
       txPool,
       common,
@@ -258,6 +268,7 @@ export class HardhatNode extends EventEmitter {
       tracingConfig,
       forkNetworkId,
       forkBlockNum,
+      forkBlockHash,
       nextBlockBaseFeePerGas,
       forkClient
     );
@@ -324,6 +335,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
 
   private constructor(
     private readonly _vm: VMAdapter,
+    private readonly _instanceId: bigint,
     private readonly _blockchain: HardhatBlockchainInterface,
     private readonly _txPool: TxPool,
     private readonly _common: Common,
@@ -341,6 +353,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     tracingConfig?: TracingConfig,
     private _forkNetworkId?: number,
     private _forkBlockNumber?: bigint,
+    private _forkBlockHash?: string,
     nextBlockBaseFee?: bigint,
     private _forkClient?: JsonRpcClient
   ) {
@@ -2339,6 +2352,51 @@ Hardhat Network's forking functionality only works with blocks from at least spu
 
   public setPrevRandao(prevRandao: Buffer): void {
     this._mixHashGenerator.setNext(prevRandao);
+  }
+
+  public async getClientVersion(): Promise<string> {
+    const hardhatPackage = await getPackageJson();
+    const ethereumjsVMPackage = require("@nomicfoundation/ethereumjs-vm/package.json");
+    return `HardhatNetwork/${hardhatPackage.version}/@nomicfoundation/ethereumjs-vm/${ethereumjsVMPackage.version}`;
+  }
+
+  public async getMetadata(): Promise<HardhatMetadata> {
+    const clientVersion = await this.getClientVersion();
+
+    const instanceIdHex = BigIntUtils.toEvmWord(this._instanceId);
+    const instanceId = `0x${instanceIdHex}`;
+
+    const latestBlock = await this.getLatestBlock();
+
+    const latestBlockHashHex = latestBlock.header.hash().toString("hex");
+    const latestBlockHash = `0x${latestBlockHashHex}`;
+
+    const metadata: HardhatMetadata = {
+      clientVersion,
+      chainId: this._configChainId,
+      instanceId,
+      latestBlockNumber: Number(latestBlock.header.number),
+      latestBlockHash,
+    };
+
+    if (this._forkBlockNumber !== undefined) {
+      assertHardhatInvariant(
+        this._forkNetworkId !== undefined,
+        "this._forkNetworkId should be defined if this._forkBlockNumber is defined"
+      );
+      assertHardhatInvariant(
+        this._forkBlockHash !== undefined,
+        "this._forkBlockhash should be defined if this._forkBlockNumber is defined"
+      );
+
+      metadata.forkedNetwork = {
+        chainId: this._forkNetworkId,
+        forkBlockNumber: Number(this._forkBlockNumber),
+        forkBlockHash: this._forkBlockHash,
+      };
+    }
+
+    return metadata;
   }
 
   private _getNextMixHash(): Buffer {

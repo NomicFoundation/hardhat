@@ -76,7 +76,8 @@ export async function createMockData(
     projectRoot,
     new Parser(),
     (absolutePath: string) =>
-      fsExtra.readFile(absolutePath, { encoding: "utf8" })
+      fsExtra.readFile(absolutePath, { encoding: "utf8" }),
+    async (sourceName: string) => sourceName
   );
   resolver.resolveImport = async (from: ResolvedFile, imported: string) => {
     const importedFile = importsMap.get(imported);

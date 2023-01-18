@@ -134,7 +134,8 @@ describe("Dependency Graph", function () {
         projectRoot,
         new Parser(),
         (absolutePath: string) =>
-          fsExtra.readFile(absolutePath, { encoding: "utf8" })
+          fsExtra.readFile(absolutePath, { encoding: "utf8" }),
+        async (sourceName: string) => sourceName
       );
       resolver.resolveImport = async (_: ResolvedFile, imported: string) => {
         switch (imported) {
@@ -279,7 +280,8 @@ describe("Dependency Graph", function () {
           await getFixtureProjectPath(PROJECT),
           new Parser(),
           (absolutePath: string) =>
-            fsExtra.readFile(absolutePath, { encoding: "utf8" })
+            fsExtra.readFile(absolutePath, { encoding: "utf8" }),
+          async (sourceName: string) => sourceName
         );
       });
 

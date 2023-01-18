@@ -1,5 +1,47 @@
 # hardhat
 
+## 2.12.6
+
+### Patch Changes
+
+- 7e013fa19: Upgrade undici
+- 025aa3660: Added support for pnpm during project creation (thanks @Hopsken!)
+- 3798f0d72: Added a `version` field to the HRE
+- c228ef56c: Fixed problem with impersonated-sender transactions sometimes resulting in duplicate transaction hashes (#1963)
+- 7ca111982: Added a minor clarification to the `flatten` task help.
+- 10a928c4c: Upgraded mocha and @types/mocha dependencies in Hardhat and Hardhat Toolbox
+- a200a667b: Removed the message linking to the 2022 solidity survey
+- 7adb62b2a: Added a new subtask to the compile task to support the `hardhat-foundry` plugin
+
+## 2.12.5
+
+### Patch Changes
+
+- 051bedf01: Added an experimental environment variable flag to disable the local installation check
+- 3fcdd3bb2: The selector of unrecognized custom errors is now shown as part of the error message (thanks @vivianjeng!)
+- aa721398e: Fixed a bug that was causing the flatten task to produce non-deterministic results
+- 5dc9b7c99: Fixed a bug when `gasPrice` was set to `"auto"`, which is the default configuration when connecting to a JSON-RPC network. This bug was preventing the results from `eth_feeHistory` from being used when they should.
+- 23a594a59: The full return data of unrecognized custom errors is now shown in error messages
+- 7e81377fc: Accept extra headers in the internal download module
+
+## 2.12.4
+
+### Patch Changes
+
+- 7154371e3: Fixed an issue that caused compilation with solcjs to not work when Hardhat is bundled
+- 2fc9a2cb8: Show a message with a link to the Solidity Developer Survey
+
+## 2.12.3
+
+### Patch Changes
+
+- 13433f176: Fixed an edge case where Hardhat would hang if `debug_traceTransaction` was used with an OOG transaction sent to a precompile.
+- c9809e182: Trim leading and trailing spaces in mnemonics.
+- a1d43109a: Pending blocks now include the `bloom` field.
+- 818107821: Added a new `hardhat_metadata` RPC method
+- 937d15e51: A better error is show if a Solidity file makes an import throug its own package name.
+- 4cf9a6d58: Added a `getBuildInfoSync` function to the `hre.artifacts` object (thanks @emretepedev!)
+
 ## 2.12.2
 
 ### Patch Changes

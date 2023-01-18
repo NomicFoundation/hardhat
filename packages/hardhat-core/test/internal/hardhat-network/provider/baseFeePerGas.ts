@@ -10,7 +10,7 @@ import {
 } from "../../../../src/internal/core/jsonrpc/types/base-types";
 import { EthereumProvider } from "../../../../src/types";
 import { makeForkClient } from "../../../../src/internal/hardhat-network/provider/utils/makeForkClient";
-import { ALCHEMY_URL } from "../../../setup";
+import { INFURA_URL } from "../../../setup";
 import { rpcToBlockData } from "../../../../src/internal/hardhat-network/provider/fork/rpcToBlockData";
 
 async function getLatestBaseFeePerGas(provider: EthereumProvider) {
@@ -102,14 +102,14 @@ describe("Block's baseFeePerGas", function () {
               useProvider();
 
               it("Should use the same base fee as the one remote networks's forked block", async function () {
-                if (ALCHEMY_URL === undefined || ALCHEMY_URL === "") {
+                if (INFURA_URL === undefined) {
                   this.skip();
                   return;
                 }
 
                 const blockNumber = await this.provider.send("eth_blockNumber");
                 const { forkClient } = await makeForkClient({
-                  jsonRpcUrl: ALCHEMY_URL!,
+                  jsonRpcUrl: INFURA_URL!,
                 });
 
                 const remoteLatestBlockBaseFeePerGas =
