@@ -1,6 +1,6 @@
 {
   "name": "@nomicfoundation/hardhat-chai-matchers",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "Hardhat utils for testing",
   "homepage": "https://github.com/nomicfoundation/hardhat/tree/main/packages/hardhat-chai-matchers",
   "repository": "github:nomicfoundation/hardhat",
@@ -40,7 +40,7 @@
     "@nomiclabs/hardhat-ethers": "^2.0.0",
     "@types/bn.js": "^5.1.0",
     "@types/chai": "^4.2.0",
-    "@types/mocha": "^9.1.0",
+    "@types/mocha": ">=9.1.0",
     "@types/node": "^14.0.0",
     "@typescript-eslint/eslint-plugin": "^5.30.7",
     "@typescript-eslint/parser": "4.29.2",

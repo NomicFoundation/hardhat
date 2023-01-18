@@ -1,4 +1,4 @@
-import { Dependencies } from "./types";
+import { Dependencies, PackageManager } from "./types";
 
 function createConfirmationPrompt(name: string, message: string) {
   return {
@@ -36,15 +36,13 @@ function createConfirmationPrompt(name: string, message: string) {
 
 export async function confirmRecommendedDepsInstallation(
   depsToInstall: Dependencies,
-  useYarn: boolean
+  packageManager: PackageManager
 ): Promise<boolean> {
   const { default: enquirer } = await import("enquirer");
 
   let responses: {
     shouldInstallPlugin: boolean;
   };
-
-  const packageManager = useYarn ? "yarn" : "npm";
 
   try {
     responses = await enquirer.prompt<typeof responses>([

@@ -12,6 +12,9 @@ pub mod account;
 pub mod block;
 /// Ethereum receipt types
 pub mod receipt;
+/// Remote node interaction
+#[cfg(feature = "serde")]
+pub mod remote;
 /// Ethereum signature types
 pub mod signature;
 /// Ethereum state types and functions

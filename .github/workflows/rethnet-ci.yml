@@ -6,6 +6,7 @@ on:
       - $default-branch
       - "rethnet/main"
     paths:
+      - ".github/workflows/rethnet-ci.yml"
       - "config/**"
       - "crates/**"
       - "Cargo.toml"
@@ -13,6 +14,7 @@ on:
   pull_request:
     branches: ["**"]
     paths:
+      - ".github/workflows/rethnet-ci.yml"
       - "config/**"
       - "crates/**"
       - "Cargo.toml"
@@ -38,13 +40,13 @@ jobs:
           profile: minimal
           override: true
 
-      - uses: Swatinem/rust-cache@v1
+      - uses: Swatinem/rust-cache@v2
 
       - name: Cargo check
         uses: actions-rs/cargo@v1
         with:
           command: check
-          args: --all-targets
+          args: --workspace --all-features --all-targets
 
   test-js:
     name: Test Node.js
@@ -79,7 +81,7 @@ jobs:
           override: true
           components: rustfmt
 
-      - uses: Swatinem/rust-cache@v1
+      - uses: Swatinem/rust-cache@v2
 
       - name: Build
         run: yarn build
@@ -109,7 +111,7 @@ jobs:
           override: true
           components: rustfmt
 
-      - uses: Swatinem/rust-cache@v1
+      - uses: Swatinem/rust-cache@v2
 
       - name: Doctests
         uses: actions-rs/cargo@v1
@@ -117,7 +119,7 @@ jobs:
           RUSTFLAGS: ${{ matrix.RUSTFLAGS }}
         with:
           command: test
-          args: --doc --all-features
+          args: --doc --workspace --all-features
 
       - name: Install latest nextest release
         uses: taiki-e/install-action@nextest
@@ -127,6 +129,37 @@ jobs:
         env:
           RUSTFLAGS: ${{ matrix.RUSTFLAGS }}
           CARGO_INCREMENTAL: ${{ matrix.CARGO_INCREMENTAL }}
+          ALCHEMY_URL: ${{ secrets.ALCHEMY_URL }}
         with:
           command: nextest
-          args: run --all-features
+          args: run --workspace --all-features
+
+  style:
+    name: Check Style
+    runs-on: ubuntu-latest
+    needs: check
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: true
+
+      - name: Install stable toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          override: true
+          components: clippy, rustfmt
+
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Run cargo fmt
+        uses: actions-rs/cargo@v1
+        with:
+          command: fmt
+          args: --all --check
+
+      - name: Run cargo clippy
+        uses: actions-rs/clippy-check@v1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          args: --workspace --all-features

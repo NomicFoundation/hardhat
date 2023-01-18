@@ -16,3 +16,4 @@ export { setStorageAt } from "./helpers/setStorageAt";
 export { setNextBlockBaseFeePerGas } from "./helpers/setNextBlockBaseFeePerGas";
 export { stopImpersonatingAccount } from "./helpers/stopImpersonatingAccount";
 export { takeSnapshot, SnapshotRestorer } from "./helpers/takeSnapshot";
+export { reset } from "./helpers/reset";

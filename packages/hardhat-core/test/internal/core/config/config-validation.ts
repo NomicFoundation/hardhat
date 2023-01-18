@@ -4,10 +4,13 @@ import { HARDHAT_NETWORK_NAME } from "../../../../src/internal/constants";
 import {
   getValidationErrors,
   validateConfig,
+  validateResolvedConfig,
 } from "../../../../src/internal/core/config/config-validation";
 import { ERRORS } from "../../../../src/internal/core/errors-list";
 import { HardhatNetworkHDAccountsUserConfig } from "../../../../src/types";
 import { expectHardhatError } from "../../../helpers/errors";
+
+import { resolveConfig } from "../../../../src/internal/core/config/config-resolution";
 
 describe("Config validation", function () {
   describe("default network config", function () {
@@ -1810,6 +1813,91 @@ describe("Config validation", function () {
           });
         }, ERRORS.GENERAL.INVALID_CONFIG);
       });
+    });
+  });
+
+  describe("Resolved Config validation", function () {
+    it("Should fail if the optimizer runs has invalid number", function () {
+      const optimizer = {
+        enabled: true,
+        runs: 2 ** 32,
+      };
+      const resolved = resolveConfig(__filename, {
+        solidity: {
+          compilers: [{ version: "0.6.7", settings: { optimizer } }],
+        },
+      });
+      expectHardhatError(
+        () => validateResolvedConfig(resolved),
+        ERRORS.GENERAL.INVALID_CONFIG,
+        "The number of optimizer runs exceeds the maximum of 2**32 - 1"
+      );
+    });
+
+    it("Shouldn't fail if the optimizer has a valid runs", function () {
+      const optimizer = {
+        enabled: true,
+        runs: 123,
+      };
+      const resolved = resolveConfig(__filename, {
+        solidity: {
+          compilers: [{ version: "0.6.7", settings: { optimizer } }],
+        },
+      });
+
+      validateResolvedConfig(resolved);
+    });
+
+    it("Should allow using the maximum number of runs", function () {
+      const optimizer = {
+        enabled: true,
+        runs: 2 ** 32 - 1,
+      };
+      const resolved = resolveConfig(__filename, {
+        solidity: {
+          compilers: [{ version: "0.6.7", settings: { optimizer } }],
+        },
+      });
+
+      validateResolvedConfig(resolved);
+    });
+
+    it("Shouldn't fail if the optimizer doesn't have run config", function () {
+      const optimizer = {
+        enabled: true,
+      };
+      const resolved = resolveConfig(__filename, {
+        solidity: {
+          compilers: [{ version: "0.6.7", settings: { optimizer } }],
+        },
+      });
+
+      validateResolvedConfig(resolved);
+    });
+
+    it("Should fail if the optimizer runs has invalid number in overrides config", function () {
+      const optimizer = {
+        enabled: true,
+        runs: 2 ** 32,
+      };
+      const resolved = resolveConfig(__filename, {
+        solidity: {
+          compilers: [{ version: "0.6.7" }],
+          overrides: {
+            "contracts/Foo.sol": {
+              version: "0.6.7",
+              settings: {
+                optimizer,
+              },
+            },
+          },
+        },
+      });
+      expectHardhatError(
+        () => validateResolvedConfig(resolved),
+        ERRORS.GENERAL.INVALID_CONFIG,
+        "The number of optimizer runs exceeds the maximum of 2**32 - 1"
+      );
     });
   });
 });

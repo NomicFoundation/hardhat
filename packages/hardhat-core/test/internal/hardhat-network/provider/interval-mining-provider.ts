@@ -2,7 +2,7 @@ import { assert } from "chai";
 import sinon from "sinon";
 
 import { rpcQuantityToNumber } from "../../../../src/internal/core/jsonrpc/types/base-types";
-import { ALCHEMY_URL } from "../../../setup";
+import { INFURA_URL } from "../../../setup";
 import { workaroundWindowsCiFailures } from "../../../utils/workaround-windows-ci-failures";
 import { setCWD } from "../helpers/cwd";
 import { INTERVAL_MINING_PROVIDERS } from "../helpers/providers";
@@ -69,7 +69,7 @@ describe("Interval mining provider", function () {
             await this.provider.send("hardhat_reset", [
               {
                 forking: {
-                  jsonRpcUrl: ALCHEMY_URL,
+                  jsonRpcUrl: INFURA_URL,
                   blockNumber: safeBlockInThePast,
                 },
               },

@@ -1682,7 +1682,7 @@ export class EthModule {
         rpcRequest.maxPriorityFeePerGas !== undefined) &&
       !this._common.gteHardfork(EIP1559_MIN_HARDFORK)
     ) {
-      throw new InvalidArgumentsError(`EIP-1559 style fee params (maxFeePerGas or maxPriorityFeePerGas) received but they are not supported by the current hardfork. 
+      throw new InvalidArgumentsError(`EIP-1559 style fee params (maxFeePerGas or maxPriorityFeePerGas) received but they are not supported by the current hardfork.
 
 You can use them by running Hardhat Network with 'hardfork' ${EIP1559_MIN_HARDFORK} or later.`);
     }
@@ -1693,8 +1693,8 @@ You can use them by running Hardhat Network with 'hardfork' ${EIP1559_MIN_HARDFO
       rpcRequest.accessList !== undefined &&
       !this._common.gteHardfork(ACCESS_LIST_MIN_HARDFORK)
     ) {
-      throw new InvalidArgumentsError(`Access list received but is not supported by the current hardfork. 
-      
+      throw new InvalidArgumentsError(`Access list received but is not supported by the current hardfork.
+
 You can use them by running Hardhat Network with 'hardfork' ${ACCESS_LIST_MIN_HARDFORK} or later.`);
     }
 
@@ -1735,7 +1735,7 @@ You can use them by running Hardhat Network with 'hardfork' ${ACCESS_LIST_MIN_HA
     }
 
     if (!this._common.gteHardfork(EIP155_MIN_HARDFORK)) {
-      throw new InvalidArgumentsError(`Trying to send an EIP-155 transaction, but they are not supported by the current hardfork.  
+      throw new InvalidArgumentsError(`Trying to send an EIP-155 transaction, but they are not supported by the current hardfork.
 
 You can use them by running Hardhat Network with 'hardfork' ${EIP155_MIN_HARDFORK} or later.`);
     }

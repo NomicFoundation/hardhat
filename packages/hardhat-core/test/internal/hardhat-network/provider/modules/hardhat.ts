@@ -11,7 +11,7 @@ import {
 } from "../../../../../src/internal/core/jsonrpc/types/base-types";
 import { CompilerOutputContract } from "../../../../../src/types/artifacts";
 import { expectErrorAsync } from "../../../../helpers/errors";
-import { ALCHEMY_URL } from "../../../../setup";
+import { INFURA_URL } from "../../../../setup";
 import { workaroundWindowsCiFailures } from "../../../../utils/workaround-windows-ci-failures";
 import {
   assertInternalError,
@@ -30,6 +30,9 @@ import { getPendingBaseFeePerGas } from "../../helpers/getPendingBaseFeePerGas";
 import { RpcBlockOutput } from "../../../../../src/internal/hardhat-network/provider/output";
 import * as BigIntUtils from "../../../../../src/internal/util/bigint";
 import { EXAMPLE_DIFFICULTY_CONTRACT } from "../../helpers/contracts";
+import { HardhatMetadata } from "../../../../../src/internal/core/jsonrpc/types/output/metadata";
+import { useFixtureProject } from "../../../../helpers/project";
+import { useEnvironment } from "../../../../helpers/environment";
 
 describe("Hardhat module", function () {
   PROVIDERS.forEach(({ name, useProvider, isFork }) => {
@@ -175,6 +178,71 @@ describe("Hardhat module", function () {
             contract,
           ]);
           assert.notEqual(balance, funds);
+        });
+
+        describe("hash collisions", function () {
+          async function checkForHashCollisions(provider: any, txData: any) {
+            const hashes = new Set<string>();
+
+            const randomAddress = () =>
+              `0x${Buffer.from(
+                [...Array(20)].map(() => Math.floor(256 * Math.random()))
+              ).toString("hex")}`;
+
+            await provider.send("hardhat_setNextBlockBaseFeePerGas", [
+              numberToRpcQuantity(1),
+            ]);
+
+            for (let i = 0; i < 200; i++) {
+              const address = randomAddress();
+
+              // send 0.1 eth to the address
+              await provider.send("eth_sendTransaction", [
+                {
+                  from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+                  to: address,
+                  value: "0x16345785d8a0000",
+                },
+              ]);
+
+              await provider.send("hardhat_impersonateAccount", [address]);
+              const hash = await provider.send("eth_sendTransaction", [
+                {
+                  from: address,
+                  to: "0x0000000000000000000000000000000000000000",
+                  gasLimit: 5_000_000,
+                  ...txData,
+                },
+              ]);
+
+              if (hashes.has(hash)) {
+                assert.fail(
+                  `Found a tx hash collision while using hardhat_impersonateAccount after ${i} transactions`
+                );
+              }
+
+              hashes.add(hash);
+            }
+          }
+
+          it("doesn't produce hash collisions (legacy transactions)", async function () {
+            await checkForHashCollisions(this.provider, {
+              gasPrice: "0x10",
+            });
+          });
+
+          it("doesn't produce hash collisions (access list transactions)", async function () {
+            await checkForHashCollisions(this.provider, {
+              gasPrice: "0x10",
+              accessList: [],
+            });
+          });
+
+          it("doesn't produce hash collisions (EIP1559 transactions)", async function () {
+            await checkForHashCollisions(this.provider, {
+              maxFeePerGas: "0x10",
+            });
+          });
         });
       });
 
@@ -1237,7 +1305,7 @@ describe("Hardhat module", function () {
 
       describe("hardhat_reset", function () {
         before(function () {
-          if (ALCHEMY_URL === undefined) {
+          if (INFURA_URL === undefined) {
             this.skip();
           }
         });
@@ -1266,7 +1334,7 @@ describe("Hardhat module", function () {
           await assertInvalidArgumentsError(this.provider, "hardhat_reset", [
             {
               forking: {
-                jsonRpcUrl: ALCHEMY_URL,
+                jsonRpcUrl: INFURA_URL,
                 blockNumber: "0",
               },
             },
@@ -1277,7 +1345,7 @@ describe("Hardhat module", function () {
           const result = await this.provider.send("hardhat_reset", [
             {
               forking: {
-                jsonRpcUrl: ALCHEMY_URL,
+                jsonRpcUrl: INFURA_URL,
                 blockNumber: safeBlockInThePast,
               },
             },
@@ -1367,7 +1435,7 @@ describe("Hardhat module", function () {
             await this.provider.send("hardhat_reset", [
               {
                 forking: {
-                  jsonRpcUrl: ALCHEMY_URL,
+                  jsonRpcUrl: INFURA_URL,
                   blockNumber: safeBlockInThePast,
                 },
               },
@@ -1380,13 +1448,13 @@ describe("Hardhat module", function () {
             await this.provider.send("hardhat_reset", [
               {
                 forking: {
-                  jsonRpcUrl: ALCHEMY_URL,
+                  jsonRpcUrl: INFURA_URL,
                   blockNumber: safeBlockInThePast,
                 },
               },
             ]);
             await this.provider.send("hardhat_reset", [
-              { forking: { jsonRpcUrl: ALCHEMY_URL } },
+              { forking: { jsonRpcUrl: INFURA_URL } },
             ]);
 
             // This condition is rather loose as Infura can sometimes return
@@ -1415,7 +1483,7 @@ describe("Hardhat module", function () {
             await this.provider.send("hardhat_reset", [
               {
                 forking: {
-                  jsonRpcUrl: ALCHEMY_URL,
+                  jsonRpcUrl: INFURA_URL,
                   blockNumber: safeBlockInThePast,
                 },
               },
@@ -1427,7 +1495,7 @@ describe("Hardhat module", function () {
             await this.provider.send("hardhat_reset", [
               {
                 forking: {
-                  jsonRpcUrl: ALCHEMY_URL,
+                  jsonRpcUrl: INFURA_URL,
                   blockNumber: safeBlockInThePast,
                 },
               },
@@ -2763,6 +2831,158 @@ describe("Hardhat module", function () {
           });
         });
       });
+
+      describe("hardhat_metadata", function () {
+        it("has the right fields", async function () {
+          const metadata = await this.provider.send("hardhat_metadata");
+
+          assert.isString(metadata.clientVersion);
+          assert.isNumber(metadata.chainId);
+          assert.isString(metadata.instanceId);
+          assert.isNumber(metadata.latestBlockNumber);
+          assert.isString(metadata.latestBlockHash);
+
+          // check that instance id is 32 bytes long
+          assert.lengthOf(metadata.instanceId, 66);
+
+          if (isFork) {
+            assert.isDefined(metadata.forkedNetwork);
+            assert.isNumber(metadata.forkedNetwork.chainId);
+            assert.isNumber(metadata.forkedNetwork.forkBlockNumber);
+            assert.isString(metadata.forkedNetwork.forkBlockHash);
+          } else {
+            assert.notProperty(metadata, "forkedNetwork");
+          }
+        });
+
+        it("shouldn't change the instance id when a block is mined", async function () {
+          const metadataBefore: HardhatMetadata = await this.provider.send(
+            "hardhat_metadata"
+          );
+
+          // send a transaction to generate a new block
+          await sendTxToZeroAddress(this.provider);
+
+          const metadataAfter: HardhatMetadata = await this.provider.send(
+            "hardhat_metadata"
+          );
+
+          assert.equal(metadataBefore.instanceId, metadataAfter.instanceId);
+        });
+
+        it("changes its instanceId when hardhat_reset is used", async function () {
+          const metadataBefore: HardhatMetadata = await this.provider.send(
+            "hardhat_metadata"
+          );
+
+          await this.provider.send("hardhat_reset");
+
+          const metadataAfter: HardhatMetadata = await this.provider.send(
+            "hardhat_metadata"
+          );
+
+          assert.notEqual(metadataBefore.instanceId, metadataAfter.instanceId);
+        });
+
+        it("doesn't change its instandeId when snapshots are used", async function () {
+          const snapshotId = await this.provider.send("evm_snapshot");
+
+          const metadataBefore: HardhatMetadata = await this.provider.send(
+            "hardhat_metadata"
+          );
+
+          await sendTxToZeroAddress(this.provider);
+          await this.provider.send("evm_revert", [snapshotId]);
+
+          const metadataAfter: HardhatMetadata = await this.provider.send(
+            "hardhat_metadata"
+          );
+
+          assert.equal(metadataBefore.instanceId, metadataAfter.instanceId);
+        });
+
+        it("updates the block number and block hash when a new block is mined (sending a tx)", async function () {
+          const metadataBefore: HardhatMetadata = await this.provider.send(
+            "hardhat_metadata"
+          );
+
+          // send a transaction to generate a new block
+          await sendTxToZeroAddress(this.provider);
+
+          const metadataAfter: HardhatMetadata = await this.provider.send(
+            "hardhat_metadata"
+          );
+
+          assert.equal(
+            metadataAfter.latestBlockNumber,
+            metadataBefore.latestBlockNumber + 1
+          );
+          assert.notEqual(
+            metadataBefore.latestBlockHash,
+            metadataAfter.latestBlockHash
+          );
+        });
+
+        it("updates the block number and block hash when a new block is mined (using hardhat_mine)", async function () {
+          const metadataBefore: HardhatMetadata = await this.provider.send(
+            "hardhat_metadata"
+          );
+
+          await this.provider.send("hardhat_mine", ["0x100"]);
+
+          const metadataAfter: HardhatMetadata = await this.provider.send(
+            "hardhat_metadata"
+          );
+
+          assert.equal(
+            metadataAfter.latestBlockNumber,
+            metadataBefore.latestBlockNumber + 0x100
+          );
+          assert.notEqual(
+            metadataBefore.latestBlockHash,
+            metadataAfter.latestBlockHash
+          );
+        });
+
+        it("forkBlockNumber and forkBlockHash don't change when a block is mined", async function () {
+          if (!isFork) {
+            return this.skip();
+          }
+
+          const metadataBefore: HardhatMetadata = await this.provider.send(
+            "hardhat_metadata"
+          );
+
+          // send a transaction to generate a new block
+          await sendTxToZeroAddress(this.provider);
+
+          const metadataAfter: HardhatMetadata = await this.provider.send(
+            "hardhat_metadata"
+          );
+
+          assert.equal(
+            metadataBefore.forkedNetwork!.forkBlockNumber,
+            metadataAfter.forkedNetwork!.forkBlockNumber
+          );
+          assert.equal(
+            metadataBefore.forkedNetwork!.forkBlockHash,
+            metadataAfter.forkedNetwork!.forkBlockHash
+          );
+        });
+      });
+    });
+  });
+
+  describe("fixture project tests", function () {
+    useFixtureProject("non-default-chainid");
+    useEnvironment();
+
+    it("should return the chainId set in the config", async function () {
+      const metadata: HardhatMetadata = await this.env.network.provider.send(
+        "hardhat_metadata"
+      );
+
+      assert.equal(metadata.chainId, 1000);
     });
   });
 });

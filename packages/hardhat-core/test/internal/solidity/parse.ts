@@ -79,7 +79,7 @@ import "./1.sol";
             uint256 b,
             bytes memory a
         ) = []
-      
+
     `,
         "",
         ""

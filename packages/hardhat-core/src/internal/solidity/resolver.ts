@@ -69,7 +69,10 @@ export class Resolver {
   constructor(
     private readonly _projectRoot: string,
     private readonly _parser: Parser,
-    private readonly _readFile: (absolutePath: string) => Promise<string>
+    private readonly _readFile: (absolutePath: string) => Promise<string>,
+    private readonly _transformImportName: (
+      importName: string
+    ) => Promise<string>
   ) {}
 
   /**
@@ -100,12 +103,14 @@ export class Resolver {
   /**
    * Resolves an import from an already resolved file.
    * @param from The file were the import statement is present.
-   * @param imported The path in the import statement.
+   * @param importName The path in the import statement.
    */
   public async resolveImport(
     from: ResolvedFile,
-    imported: string
+    importName: string
   ): Promise<ResolvedFile> {
+    const imported = await this._transformImportName(importName);
+
     const scheme = this._getUriScheme(imported);
     if (scheme !== undefined) {
       throw new HardhatError(ERRORS.RESOLVER.INVALID_IMPORT_PROTOCOL, {
@@ -182,14 +187,26 @@ export class Resolver {
           ERRORS.RESOLVER.LIBRARY_FILE_NOT_FOUND
         )
       ) {
-        throw new HardhatError(
-          ERRORS.RESOLVER.IMPORTED_FILE_NOT_FOUND,
-          {
-            imported,
-            from: from.sourceName,
-          },
-          error
-        );
+        if (imported !== importName) {
+          throw new HardhatError(
+            ERRORS.RESOLVER.IMPORTED_MAPPED_FILE_NOT_FOUND,
+            {
+              imported,
+              importName,
+              from: from.sourceName,
+            },
+            error
+          );
+        } else {
+          throw new HardhatError(
+            ERRORS.RESOLVER.IMPORTED_FILE_NOT_FOUND,
+            {
+              imported,
+              from: from.sourceName,
+            },
+            error
+          );
+        }
       }
 
       if (

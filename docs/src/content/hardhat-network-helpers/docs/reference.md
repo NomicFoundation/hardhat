@@ -306,3 +306,13 @@ Sets the PREVRANDAO value of the next block.
 Parameters:
 
 - `prevRandao`: The new PREVRANDAO value to use.
+
+## Other helpers
+
+### `reset([url], [blockNumber])`
+
+Resets the Hardhat Network. The result of calling this method depends on which arguments are provided:
+
+- If a `url` and a `blockNumber` are passed, the network will be reset to a forked state using that URL and block number.
+- If no `blockNumber` is provided, the network will be reset to a forked state using the latest block number that can be forked with a low probability of being reorged.
+- If the function is called without arguments, the network will be reset to a local, non-forked state.

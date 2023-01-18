@@ -29,7 +29,9 @@ describe("Ethers provider wrapper", function () {
     this.skip();
     // We disable this test for RskJ
     // See: https://github.com/rsksmart/rskj/issues/876
-    const version = await this.env.network.provider.send("web3_clientVersion");
+    const version: string = await this.env.network.provider.send(
+      "web3_clientVersion"
+    );
     if (version.includes("RskJ")) {
       this.skip();
     }
