@@ -671,6 +671,14 @@ const communityPlugins: IPlugin[] = [
       "Hardhat plugin to check and lock the storage layout of contracts",
     tags: ["Tooling", "Testing", "Storage"],
   },
+  {
+    name: "hardhat-scilla",
+    author: "Saeed Dadkhah",
+    authorUrl: "https://www.npmjs.com/package/hardhat-scilla-plugin",
+    description:
+      "Hardhat plugin to test scilla contracts. Scilla is Zillqa's programming language to develop smart contracts.",
+    tags: ["Scilla", "Testing", "Zilliqa"],
+  },
 ];
 
 const officialPlugins: IPlugin[] = [
