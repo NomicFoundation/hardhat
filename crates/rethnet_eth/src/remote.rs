@@ -7,22 +7,7 @@ use crate::{Address, Bytes, B256, U256};
 mod eth;
 mod jsonrpc;
 
-// provide interfaces for all of the client functionality depended on by the existing Hardhat
-// Network logic, specifically
-// packages/hardhat-core/src/internal/hardhat-network/provider/fork/{ForkBlockchain,
-// ForkStateManager}.ts
-// and even more specifically, all of the methods shown in these excerpts:
-//
-//      const remote = await this._jsonRpcClient.getTransactionByHash(
-//    const remote = await this._jsonRpcClient.getTransactionReceipt(
-//      const remoteLogs = await this._jsonRpcClient.getLogs({
-//    const rpcBlock = await this._jsonRpcClient.getBlockByHash(blockHash, true);
-//    const rpcBlock = await this._jsonRpcClient.getBlockByNumber(
-//      const noncePromise = this._jsonRpcClient.getTransactionCount(
-//      const accountData = await this._jsonRpcClient.getAccountData(
-//    const remoteValue = await this._jsonRpcClient.getStorageAt(
-
-/// Specialzed error types
+/// Specialized error types
 #[derive(thiserror::Error, Debug)]
 pub enum RpcClientError {
     /// The remote node's response did not conform to the expected format
@@ -95,7 +80,6 @@ where
     seq.end()
 }
 
-#[allow(clippy::enum_variant_names)]
 #[derive(serde::Serialize)]
 #[serde(tag = "method", content = "params")]
 enum MethodInvocation {
@@ -179,7 +163,7 @@ struct GetLogsInput {
 
 #[derive(serde::Serialize)]
 struct Request<'a> {
-    version: crate::remote::jsonrpc::Version,
+    version: jsonrpc::Version,
     #[serde(flatten)]
     method: &'a MethodInvocation,
     id: jsonrpc::Id,
