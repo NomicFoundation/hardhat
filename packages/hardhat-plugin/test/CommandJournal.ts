@@ -9,14 +9,14 @@ import { CommandJournal } from "../src/CommandJournal";
 const tempCommandFilePath = "./tmp-test-journal.journal.ndjson";
 
 describe("File based command journal", () => {
-  after(() => {
+  afterEach(() => {
     if (fs.existsSync(tempCommandFilePath)) {
       fs.unlinkSync(tempCommandFilePath);
     }
   });
 
   it("should write and read commands", async () => {
-    const journal = new CommandJournal(tempCommandFilePath);
+    const journal = new CommandJournal(31337, tempCommandFilePath);
 
     const commands: DeployStateExecutionCommand[] = [
       { type: "EXECUTION::START" },
@@ -84,5 +84,43 @@ describe("File based command journal", () => {
     }
 
     assert.deepStrictEqual(readCommands, commands);
+  });
+
+  it("should scope runs by chainId", async () => {
+    const hardhatNetworkJournal = new CommandJournal(
+      31337,
+      tempCommandFilePath
+    );
+
+    const commands: DeployStateExecutionCommand[] = [
+      { type: "EXECUTION::START" },
+    ];
+
+    for (const command of commands) {
+      await hardhatNetworkJournal.record(command);
+    }
+
+    const otherNetworkJournal = new CommandJournal(99999, tempCommandFilePath);
+
+    const otherNetworkCommands: DeployStateExecutionCommand[] = [];
+
+    for await (const readCommand of otherNetworkJournal.read()) {
+      otherNetworkCommands.push(readCommand);
+    }
+
+    assert.deepStrictEqual(otherNetworkCommands, []);
+
+    const laterHardhatNetworkJournal = new CommandJournal(
+      31337,
+      tempCommandFilePath
+    );
+
+    const laterHardhatNetworkCommands: DeployStateExecutionCommand[] = [];
+
+    for await (const readCommand of laterHardhatNetworkJournal.read()) {
+      laterHardhatNetworkCommands.push(readCommand);
+    }
+
+    assert.deepStrictEqual(laterHardhatNetworkCommands, commands);
   });
 });
