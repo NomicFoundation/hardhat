@@ -129,6 +129,7 @@ jobs:
         env:
           RUSTFLAGS: ${{ matrix.RUSTFLAGS }}
           CARGO_INCREMENTAL: ${{ matrix.CARGO_INCREMENTAL }}
+          ALCHEMY_URL: ${{ secrets.ALCHEMY_URL }}
         with:
           command: nextest
           args: run --workspace --all-features
