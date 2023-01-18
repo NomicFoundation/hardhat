@@ -11,7 +11,7 @@ module.exports = buildModule("Create2Factory", (m) => {
     args: [0, toBytes32(1), m.getBytesForArtifact("Foo")],
   });
 
-  const fooEvent = m.awaitEvent(create2, "Deployed", {
+  const fooEvent = m.event(create2, "Deployed", {
     args: [toBytes32(1)],
     after: [fooCall],
   });
@@ -21,7 +21,7 @@ module.exports = buildModule("Create2Factory", (m) => {
     after: [fooEvent],
   });
 
-  const barEvent = m.awaitEvent(create2, "Deployed", {
+  const barEvent = m.event(create2, "Deployed", {
     args: [toBytes32(2)],
     after: [barCall],
   });

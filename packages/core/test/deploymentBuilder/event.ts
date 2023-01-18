@@ -69,14 +69,10 @@ describe("deployment builder - await event", () => {
 
       const call = m.call(testContract, "test", { args: [] });
 
-      const event = m.awaitEvent(
-        testContract as ArtifactContract,
-        "SomeEvent",
-        {
-          args: [testContract],
-          after: [call],
-        }
-      );
+      const event = m.event(testContract as ArtifactContract, "SomeEvent", {
+        args: [testContract],
+        after: [call],
+      });
 
       m.call(testContract, "verify", {
         args: [event.params.value],

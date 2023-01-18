@@ -775,7 +775,7 @@ describe("Validation", () => {
 
         const call = m.call(example, "test", { args: [] });
 
-        m.awaitEvent(example as ArtifactContract, "SomeEvent", {
+        m.event(example as ArtifactContract, "SomeEvent", {
           after: [call],
           args: ["0x0"],
         });
@@ -808,7 +808,7 @@ describe("Validation", () => {
 
         const call = m.call(example, "test", { args: [] });
 
-        m.awaitEvent(example as ArtifactContract, "Nonexistant", {
+        m.event(example as ArtifactContract, "Nonexistant", {
           args: [],
           after: [call],
         });
@@ -854,7 +854,7 @@ describe("Validation", () => {
 
         const call = m.call(example, "test", { args: [] });
 
-        m.awaitEvent(example as ArtifactContract, "SomeEvent", {
+        m.event(example as ArtifactContract, "SomeEvent", {
           after: [call],
           args: [1, 2, 3, 4],
         });

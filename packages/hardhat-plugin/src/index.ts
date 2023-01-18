@@ -18,7 +18,7 @@ export interface IgnitionConfig {
   maxRetries: number;
   gasIncrementPerRetry: BigNumber | null;
   pollingInterval: number;
-  awaitEventDuration: number;
+  eventDuration: number;
 }
 
 /* ignition config defaults */
@@ -53,8 +53,7 @@ extendConfig((config, userConfig) => {
     gasIncrementPerRetry:
       userIgnitionConfig.gasIncrementPerRetry ?? GAS_INCREMENT_PER_RETRY,
     pollingInterval: userIgnitionConfig.pollingInterval ?? POLLING_INTERVAL,
-    awaitEventDuration:
-      userIgnitionConfig.awaitEventDuration ?? AWAIT_EVENT_DURATION,
+    eventDuration: userIgnitionConfig.eventDuration ?? AWAIT_EVENT_DURATION,
   };
 });
 

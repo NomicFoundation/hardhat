@@ -200,7 +200,7 @@ export interface IDeploymentBuilder {
     options: CallOptions
   ) => ContractCall;
 
-  awaitEvent: (
+  event: (
     contractFuture: ArtifactFuture,
     eventName: string,
     options: AwaitOptions

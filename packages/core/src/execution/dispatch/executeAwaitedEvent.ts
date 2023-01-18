@@ -25,7 +25,7 @@ export async function executeAwaitedEvent(
 
     const eventResult = await services.transactions.waitForEvent(
       filter,
-      options.awaitEventDuration
+      options.eventDuration
     );
 
     if (eventResult === null) {

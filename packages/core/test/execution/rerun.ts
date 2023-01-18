@@ -149,7 +149,7 @@ describe("Reruning execution", () => {
 
         const configureCall = m.call(token, "configure", { args: [100] });
 
-        m.awaitEvent(token as any, "ConfigComplete", {
+        m.event(token as any, "ConfigComplete", {
           after: [configureCall],
           args: [],
         });

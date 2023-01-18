@@ -5,9 +5,9 @@ import { assertUnknownDeploymentVertexType } from "utils/guards";
 
 import { validateArtifactContract } from "./validateArtifactContract";
 import { validateArtifactLibrary } from "./validateArtifactLibrary";
-import { validateAwaitEvent } from "./validateAwaitEvent";
 import { validateCall } from "./validateCall";
 import { validateDeployedContract } from "./validateDeployedContract";
+import { validateEvent } from "./validateEvent";
 import { validateHardhatContract } from "./validateHardhatContract";
 import { validateHardhatLibrary } from "./validateHardhatLibrary";
 import { validateSendETH } from "./validateSendETH";
@@ -54,7 +54,7 @@ export function validationDispatch(
     case "Virtual":
       return validateVirtual(deploymentVertex, resultAccumulator, context);
     case "Event":
-      return validateAwaitEvent(deploymentVertex, resultAccumulator, context);
+      return validateEvent(deploymentVertex, resultAccumulator, context);
     case "SendETH":
       return validateSendETH(deploymentVertex, resultAccumulator);
     default:

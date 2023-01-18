@@ -293,7 +293,7 @@ export class DeploymentBuilder implements IDeploymentBuilder {
     return callFuture;
   }
 
-  public awaitEvent(
+  public event(
     artifactFuture: ArtifactFuture,
     eventName: string,
     { args, after }: AwaitOptions
