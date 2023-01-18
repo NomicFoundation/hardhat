@@ -5,6 +5,7 @@ import fs from "fs-extra";
 import { extendConfig, extendEnvironment, task } from "hardhat/config";
 import { lazyObject } from "hardhat/plugins";
 import path from "path";
+import prompts from "prompts";
 
 import { buildIgnitionProvidersFrom } from "./buildIgnitionProvidersFrom";
 import { IgnitionWrapper } from "./ignition-wrapper";
@@ -91,6 +92,26 @@ task("deploy")
       }: { userModulesPaths: string[]; parameters?: string },
       hre
     ) => {
+      if (hre.network.name !== "hardhat") {
+        const chainId = await hre.network.provider.request({
+          method: "eth_chainId",
+        });
+
+        const prompt = await prompts({
+          type: "confirm",
+          name: "networkConfirmation",
+          message: `Confirm deploy to network ${hre.network.name} (${Number(
+            chainId
+          )})?`,
+          initial: true,
+        });
+
+        if (!prompt.networkConfirmation) {
+          console.log("Deploy cancelled");
+          return;
+        }
+      }
+
       await hre.run("compile", { quiet: true });
 
       let userModules: Array<Module<ModuleDict>>;
