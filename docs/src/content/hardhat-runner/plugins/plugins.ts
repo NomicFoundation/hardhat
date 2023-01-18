@@ -672,6 +672,14 @@ const communityPlugins: IPlugin[] = [
     tags: ["Tooling", "Testing", "Storage"],
   },
   {
+    name: "hardhat-insight",
+    author: "Andres Adjimann",
+    authorUrl: "https://www.npmjs.com/package/hardhat-insight",
+    description:
+      "Hardhat plugin to get contract storage, gas and code size insights using the compiler ast output",
+    tags: ["Tooling", "Storage", "Gas", "Size", "Bytecode"],
+  },
+  {
     name: "hardhat-scilla-plugin",
     author: "Saeed Dadkhah",
     authorUrl: "https://www.github.com/its-saeed",
