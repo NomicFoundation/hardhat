@@ -18,7 +18,13 @@ import {
 } from "rethnet-evm";
 import { fromBigIntLike } from "../../../util/bigint";
 import { HardforkName } from "../../../util/hardforks";
-import { Exit } from "../vm/exit";
+import {
+  isCreateOutput,
+  isHaltResult,
+  isRevertResult,
+  isSuccessResult,
+} from "../../stack-traces/message-trace";
+import { Exit, ExitCode } from "../vm/exit";
 import { RunTxResult } from "../vm/vm-adapter";
 import { Bloom } from "./bloom";
 
@@ -154,30 +160,45 @@ export function rethnetResultToRunTxResult(
   rethnetResult: ExecutionResult,
   blockGasUsed: bigint
 ): RunTxResult {
-  const vmError = Exit.fromRethnetExitCode(rethnetResult.exitCode);
-  // We return an object with only the properties that are used by Hardhat.
-  // To be extra sure that the other properties are not used, we add getters
-  // that exit the process if accessed.
+  const createdAddress =
+    isSuccessResult(rethnetResult.result) &&
+    isCreateOutput(rethnetResult.result.output)
+      ? rethnetResult.result.output.address
+      : undefined;
 
-  const bloom = rethnetLogsToBloom(rethnetResult.logs);
+  const exit = isSuccessResult(rethnetResult.result)
+    ? Exit.fromRethnetSuccessReason(rethnetResult.result.reason)
+    : isHaltResult(rethnetResult.result)
+    ? Exit.fromRethnetExceptionalHalt(rethnetResult.result.reason)
+    : new Exit(ExitCode.REVERT);
+
+  const returnValue = isRevertResult(rethnetResult.result)
+    ? rethnetResult.result.returnValue
+    : isSuccessResult(rethnetResult.result)
+    ? rethnetResult.result.output.returnValue
+    : Buffer.from([]);
+
+  const bloom = isSuccessResult(rethnetResult.result)
+    ? rethnetLogsToBloom(rethnetResult.result.logs)
+    : new Bloom(undefined);
 
   return {
-    gasUsed: rethnetResult.gasUsed,
+    gasUsed: rethnetResult.result.gasUsed,
     createdAddress:
-      rethnetResult.output.address !== undefined
-        ? new Address(rethnetResult.output.address)
-        : undefined,
-    exit: vmError,
-    returnValue: rethnetResult.output.output ?? Buffer.from([]),
+      createdAddress !== undefined ? new Address(createdAddress) : undefined,
+    exit,
+    returnValue,
     bloom,
     receipt: {
       // Receipts have a 0 as status on error
-      status: vmError.isError() ? 0 : 1,
-      cumulativeBlockGasUsed: blockGasUsed + rethnetResult.gasUsed,
+      status: exit.isError() ? 0 : 1,
+      cumulativeBlockGasUsed: blockGasUsed + rethnetResult.result.gasUsed,
       bitvector: bloom.bitvector,
-      logs: rethnetResult.logs.map((log) => {
-        return [log.address, log.topics, log.data];
-      }),
+      logs: !isHaltResult(rethnetResult.result)
+        ? rethnetResult.result.logs.map((log) => {
+            return [log.address, log.topics, log.data];
+          })
+        : [],
     },
   };
 }

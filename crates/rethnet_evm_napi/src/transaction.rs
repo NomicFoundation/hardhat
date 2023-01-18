@@ -90,26 +90,15 @@ pub struct TransactionConfig {
 }
 
 #[napi(object)]
-pub struct TransactionOutput {
-    /// Return value from Call or Create transactions
-    #[napi(readonly)]
-    pub output: Option<Buffer>,
-    /// Optionally, a 160-bit address from Create transactions
-    #[napi(readonly)]
-    pub address: Option<Buffer>,
+pub struct CallOutput {
+    /// Return value
+    pub return_value: Buffer,
 }
 
-impl From<rethnet_evm::TransactOut> for TransactionOutput {
-    fn from(value: rethnet_evm::TransactOut) -> Self {
-        let (output, address) = match value {
-            rethnet_evm::TransactOut::None => (None, None),
-            rethnet_evm::TransactOut::Call(output) => (Some(Buffer::from(output.as_ref())), None),
-            rethnet_evm::TransactOut::Create(output, address) => (
-                Some(Buffer::from(output.as_ref())),
-                address.map(|address| Buffer::from(address.as_bytes())),
-            ),
-        };
-
-        Self { output, address }
-    }
+#[napi(object)]
+pub struct CreateOutput {
+    /// Return value
+    pub return_value: Buffer,
+    /// Optionally, a 160-bit address
+    pub address: Option<Buffer>,
 }

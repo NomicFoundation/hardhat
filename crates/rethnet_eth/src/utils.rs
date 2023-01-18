@@ -9,7 +9,7 @@
 // For the original context see: https://github.com/gakonst/ethers-rs/blob/cba6f071aedafb766e82e4c2f469ed5e4638337d/ethers-core/src/utils/hash.rs
 
 use crate::B256;
-use revm::common::keccak256;
+use revm_primitives::keccak256;
 use rlp::RlpStream;
 
 /// RLP-encodes the provided value, prepends it with the provided ID, and appends it to the provided [`RlpStream`].

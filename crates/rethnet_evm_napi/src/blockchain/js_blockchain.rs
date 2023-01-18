@@ -1,9 +1,8 @@
 use std::sync::mpsc::{channel, Sender};
 
-use anyhow::anyhow;
 use napi::Status;
 use rethnet_eth::{B256, U256};
-use rethnet_evm::Blockchain;
+use rethnet_evm::BlockHash;
 
 use crate::threadsafe_function::{ThreadsafeFunction, ThreadsafeFunctionCallMode};
 
@@ -16,8 +15,8 @@ pub struct JsBlockchain {
     pub(super) get_block_hash_fn: ThreadsafeFunction<GetBlockHashCall>,
 }
 
-impl Blockchain for JsBlockchain {
-    type Error = anyhow::Error;
+impl BlockHash for JsBlockchain {
+    type Error = napi::Error;
 
     fn block_hash(&mut self, block_number: U256) -> Result<B256, Self::Error> {
         let (sender, receiver) = channel();
@@ -31,6 +30,6 @@ impl Blockchain for JsBlockchain {
         );
         assert_eq!(status, Status::Ok);
 
-        receiver.recv().unwrap().map_err(|e| anyhow!(e.to_string()))
+        receiver.recv().unwrap()
     }
 }

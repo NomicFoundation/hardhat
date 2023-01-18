@@ -6,7 +6,7 @@ pub type ModifierFn = Box<dyn Fn(&mut U256, &mut u64, &mut Option<Bytecode>) + S
 
 /// A trait for debug operation on a database.
 #[auto_impl(Box)]
-pub trait DatabaseDebug {
+pub trait StateDebug {
     /// The database's error type.
     type Error;
 

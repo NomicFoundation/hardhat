@@ -14,18 +14,18 @@ use std::{fmt::Debug, str::FromStr};
 use block::BlockConfig;
 use blockchain::Blockchain;
 use napi::{
-    bindgen_prelude::{BigInt, Buffer, ToNapiValue},
-    Status,
+    bindgen_prelude::{BigInt, Buffer, Either3, ToNapiValue},
+    Either, Status,
 };
 use napi_derive::napi;
 use once_cell::sync::OnceCell;
 use rethnet_eth::Address;
-use rethnet_evm::{AccountInfo, CfgEnv, TxEnv};
+use rethnet_evm::{db::StateError, AccountInfo, CfgEnv, TxEnv};
 use secp256k1::{PublicKey, Secp256k1, SecretKey, SignOnly};
 use sha3::{Digest, Keccak256};
 use state::StateManager;
 use trace::Trace;
-use transaction::{Transaction, TransactionOutput};
+use transaction::{CallOutput, CreateOutput, Transaction};
 
 use crate::cast::TryCast;
 
@@ -245,26 +245,149 @@ impl From<rethnet_evm::Log> for Log {
     }
 }
 
+/// The possible reasons for a `ExitStatus::Success`.
+#[napi]
+pub enum SuccessReason {
+    Stop,
+    Return,
+    SelfDestruct,
+}
+
+impl From<rethnet_evm::Eval> for SuccessReason {
+    fn from(eval: rethnet_evm::Eval) -> Self {
+        match eval {
+            rethnet_evm::Eval::Stop => Self::Stop,
+            rethnet_evm::Eval::Return => Self::Return,
+            rethnet_evm::Eval::SelfDestruct => Self::SelfDestruct,
+        }
+    }
+}
+
 #[napi(object)]
-pub struct ExecutionResult {
-    pub exit_code: u8,
-    pub output: TransactionOutput,
+pub struct SuccessResult {
+    pub reason: SuccessReason,
     pub gas_used: BigInt,
     pub gas_refunded: BigInt,
     pub logs: Vec<Log>,
+    pub output: Either<CallOutput, CreateOutput>,
+}
+
+#[napi(object)]
+pub struct RevertResult {
+    pub gas_used: BigInt,
+    pub logs: Vec<Log>,
+    pub return_value: Buffer,
+}
+
+/// Indicates that the EVM has experienced an exceptional halt. This causes execution to
+/// immediately end with all gas being consumed.
+#[napi]
+pub enum ExceptionalHalt {
+    OutOfGas,
+    OpcodeNotFound,
+    InvalidFEOpcode,
+    InvalidJump,
+    NotActivated,
+    StackUnderflow,
+    StackOverflow,
+    OutOfOffset,
+    CreateCollision,
+    OverflowPayment,
+    PrecompileError,
+    NonceOverflow,
+    /// Create init code size exceeds limit (runtime).
+    CreateContractSizeLimit,
+    /// Error on created contract that begins with EF
+    CreateContractStartingWithEF,
+}
+
+impl From<rethnet_evm::Halt> for ExceptionalHalt {
+    fn from(halt: rethnet_evm::Halt) -> Self {
+        match halt {
+            rethnet_evm::Halt::OutOfGas => ExceptionalHalt::OutOfGas,
+            rethnet_evm::Halt::OpcodeNotFound => ExceptionalHalt::OpcodeNotFound,
+            rethnet_evm::Halt::InvalidFEOpcode => ExceptionalHalt::InvalidFEOpcode,
+            rethnet_evm::Halt::InvalidJump => ExceptionalHalt::InvalidJump,
+            rethnet_evm::Halt::NotActivated => ExceptionalHalt::NotActivated,
+            rethnet_evm::Halt::StackUnderflow => ExceptionalHalt::StackUnderflow,
+            rethnet_evm::Halt::StackOverflow => ExceptionalHalt::StackOverflow,
+            rethnet_evm::Halt::OutOfOffset => ExceptionalHalt::OutOfOffset,
+            rethnet_evm::Halt::CreateCollision => ExceptionalHalt::CreateCollision,
+            rethnet_evm::Halt::OverflowPayment => ExceptionalHalt::OverflowPayment,
+            rethnet_evm::Halt::PrecompileError => ExceptionalHalt::PrecompileError,
+            rethnet_evm::Halt::NonceOverflow => ExceptionalHalt::NonceOverflow,
+            rethnet_evm::Halt::CreateContractSizeLimit => ExceptionalHalt::CreateContractSizeLimit,
+            rethnet_evm::Halt::CreateContractStartingWithEF => {
+                ExceptionalHalt::CreateContractStartingWithEF
+            }
+        }
+    }
+}
+
+#[napi(object)]
+pub struct HaltResult {
+    pub reason: ExceptionalHalt,
+    /// Halting will spend all the gas and will thus be equal to gas_limit.
+    pub gas_used: BigInt,
+}
+
+#[napi(object)]
+pub struct ExecutionResult {
+    pub result: Either3<SuccessResult, RevertResult, HaltResult>,
     pub trace: Trace,
 }
 
 impl From<(rethnet_evm::ExecutionResult, rethnet_evm::trace::Trace)> for ExecutionResult {
     fn from((result, trace): (rethnet_evm::ExecutionResult, rethnet_evm::trace::Trace)) -> Self {
-        let logs = result.logs.into_iter().map(Log::from).collect();
+        let result = match result {
+            rethnet_evm::ExecutionResult::Success {
+                reason,
+                gas_used,
+                gas_refunded,
+                logs,
+                output,
+            } => {
+                let logs = logs.into_iter().map(Log::from).collect();
+
+                Either3::A(SuccessResult {
+                    reason: reason.into(),
+                    gas_used: BigInt::from(gas_used),
+                    gas_refunded: BigInt::from(gas_refunded),
+                    logs,
+                    output: match output {
+                        rethnet_evm::Output::Call(return_value) => Either::A(CallOutput {
+                            return_value: Buffer::from(return_value.as_ref()),
+                        }),
+                        rethnet_evm::Output::Create(return_value, address) => {
+                            Either::B(CreateOutput {
+                                return_value: Buffer::from(return_value.as_ref()),
+                                address: address.map(|address| Buffer::from(address.as_bytes())),
+                            })
+                        }
+                    },
+                })
+            }
+            rethnet_evm::ExecutionResult::Revert {
+                gas_used,
+                logs,
+                return_value,
+            } => {
+                let logs = logs.into_iter().map(Log::from).collect();
+
+                Either3::B(RevertResult {
+                    gas_used: BigInt::from(gas_used),
+                    logs,
+                    return_value: Buffer::from(return_value.as_ref()),
+                })
+            }
+            rethnet_evm::ExecutionResult::Halt { reason, gas_used } => Either3::C(HaltResult {
+                reason: reason.into(),
+                gas_used: BigInt::from(gas_used),
+            }),
+        };
 
         Self {
-            exit_code: result.exit_reason as u8,
-            output: result.out.into(),
-            gas_used: BigInt::from(result.gas_used),
-            gas_refunded: BigInt::from(result.gas_refunded),
-            logs,
+            result,
             trace: trace.into(),
         }
     }
@@ -339,7 +462,7 @@ pub struct TracingMessageResult {
 
 #[napi]
 pub struct Rethnet {
-    runtime: rethnet_evm::Rethnet<anyhow::Error>,
+    runtime: rethnet_evm::Rethnet<napi::Error, StateError>,
 }
 
 #[napi]
@@ -357,8 +480,11 @@ impl Rethnet {
 
         let cfg = cfg.try_into()?;
 
-        let runtime =
-            rethnet_evm::Rethnet::new(blockchain.as_inner().clone(), state_manager.db.clone(), cfg);
+        let runtime = rethnet_evm::Rethnet::new(
+            blockchain.as_inner().clone(),
+            state_manager.state.clone(),
+            cfg,
+        );
 
         Ok(Self { runtime })
     }

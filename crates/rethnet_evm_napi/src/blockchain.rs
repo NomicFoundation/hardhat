@@ -16,11 +16,11 @@ use self::js_blockchain::{GetBlockHashCall, JsBlockchain};
 
 #[napi]
 pub struct Blockchain {
-    inner: Arc<AsyncBlockchain<anyhow::Error>>,
+    inner: Arc<AsyncBlockchain<napi::Error>>,
 }
 
 impl Blockchain {
-    pub fn as_inner(&self) -> &Arc<AsyncBlockchain<anyhow::Error>> {
+    pub fn as_inner(&self) -> &Arc<AsyncBlockchain<napi::Error>> {
         &self.inner
     }
 }
@@ -56,9 +56,9 @@ impl Blockchain {
 
     fn with_blockchain<B>(blockchain: B) -> napi::Result<Self>
     where
-        B: SyncBlockchain<anyhow::Error>,
+        B: SyncBlockchain<napi::Error>,
     {
-        let blockchain: Box<dyn SyncBlockchain<anyhow::Error>> = Box::new(blockchain);
+        let blockchain: Box<dyn SyncBlockchain<napi::Error>> = Box::new(blockchain);
         let blockchain = AsyncBlockchain::new(blockchain)
             .map_err(|e| napi::Error::new(Status::GenericFailure, e.to_string()))?;
 

@@ -2,10 +2,10 @@ use std::fmt::Debug;
 
 use hashbrown::HashMap;
 use rethnet_eth::{Address, B256, U256};
-use revm::{Account, AccountInfo, Bytecode, Database, DatabaseCommit};
+use revm::{db::State, Account, AccountInfo, Bytecode, DatabaseCommit};
 use tokio::sync::oneshot;
 
-use crate::{debug::ModifierFn, DatabaseDebug};
+use crate::{debug::ModifierFn, StateDebug};
 
 /// The request type used internally by a [`SyncDatabase`].
 pub enum Request<E>
@@ -80,23 +80,23 @@ impl<E> Request<E>
 where
     E: Debug,
 {
-    pub fn handle<D>(self, db: &mut D) -> bool
+    pub fn handle<S>(self, state: &mut S) -> bool
     where
-        D: Database<Error = E> + DatabaseCommit + DatabaseDebug<Error = E>,
+        S: State<Error = E> + DatabaseCommit + StateDebug<Error = E>,
     {
         match self {
             Request::AccountByAddress { address, sender } => {
-                sender.send(db.basic(address)).unwrap()
+                sender.send(state.basic(address)).unwrap()
             }
             Request::AccountStorageRoot { address, sender } => {
-                sender.send(db.account_storage_root(&address)).unwrap()
+                sender.send(state.account_storage_root(&address)).unwrap()
             }
-            Request::Checkpoint { sender } => sender.send(db.checkpoint()).unwrap(),
+            Request::Checkpoint { sender } => sender.send(state.checkpoint()).unwrap(),
             Request::CodeByHash { code_hash, sender } => {
-                sender.send(db.code_by_hash(code_hash)).unwrap()
+                sender.send(state.code_by_hash(code_hash)).unwrap()
             }
             Request::Commit { changes, sender } => {
-                db.commit(changes);
+                state.commit(changes);
                 sender.send(()).unwrap()
             }
             Request::InsertAccount {
@@ -104,38 +104,40 @@ where
                 account_info,
                 sender,
             } => sender
-                .send(db.insert_account(address, account_info))
+                .send(state.insert_account(address, account_info))
                 .unwrap(),
-            Request::MakeSnapshot { sender } => sender.send(db.make_snapshot()).unwrap(),
+            Request::MakeSnapshot { sender } => sender.send(state.make_snapshot()).unwrap(),
             Request::ModifyAccount {
                 address,
                 modifier,
                 sender,
-            } => sender.send(db.modify_account(address, modifier)).unwrap(),
+            } => sender
+                .send(state.modify_account(address, modifier))
+                .unwrap(),
             Request::RemoveAccount { address, sender } => {
-                sender.send(db.remove_account(address)).unwrap()
+                sender.send(state.remove_account(address)).unwrap()
             }
             Request::RemoveSnapshot { state_root, sender } => {
-                sender.send(db.remove_snapshot(&state_root)).unwrap()
+                sender.send(state.remove_snapshot(&state_root)).unwrap()
             }
-            Request::Revert { sender } => sender.send(db.revert()).unwrap(),
+            Request::Revert { sender } => sender.send(state.revert()).unwrap(),
             Request::SetStorageSlot {
                 address,
                 index,
                 value,
                 sender,
             } => sender
-                .send(db.set_account_storage_slot(address, index, value))
+                .send(state.set_account_storage_slot(address, index, value))
                 .unwrap(),
             Request::SetStateRoot { state_root, sender } => {
-                sender.send(db.set_state_root(&state_root)).unwrap()
+                sender.send(state.set_state_root(&state_root)).unwrap()
             }
-            Request::StateRoot { sender } => sender.send(db.state_root()).unwrap(),
+            Request::StateRoot { sender } => sender.send(state.state_root()).unwrap(),
             Request::StorageSlot {
                 address,
                 index,
                 sender,
-            } => sender.send(db.storage(address, index)).unwrap(),
+            } => sender.send(state.storage(address, index)).unwrap(),
             Request::Terminate => return false,
         }
 

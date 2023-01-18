@@ -1,3 +1,5 @@
+use std::fmt::Debug;
+
 use rethnet_eth::{
     receipt::Log,
     signature::SignatureError,
@@ -7,13 +9,35 @@ use rethnet_eth::{
     },
     Address, Bloom, Bytes, B256, U256,
 };
+use revm::{db::DatabaseComponentError, EVMError, InvalidTransaction};
 
 /// Invalid transaction error
 #[derive(Debug, thiserror::Error)]
-pub enum TransactionError {
+pub enum TransactionError<BE, SE> {
+    #[error(transparent)]
+    BlockHash(BE),
+    #[error("Invalid transaction")]
+    InvalidTransaction(InvalidTransaction),
     /// The transaction is expected to have a prevrandao, as the executor's config is on a post-merge hardfork.
     #[error("Post-merge transaction is missing prevrandao")]
     MissingPrevrandao,
+    #[error(transparent)]
+    State(SE),
+}
+
+impl<BE, SE> From<EVMError<DatabaseComponentError<SE, BE>>> for TransactionError<BE, SE>
+where
+    BE: Debug + Send + 'static,
+    SE: Debug + Send + 'static,
+{
+    fn from(error: EVMError<DatabaseComponentError<SE, BE>>) -> Self {
+        match error {
+            EVMError::Transaction(e) => Self::InvalidTransaction(e),
+            EVMError::PrevrandaoNotSet => unreachable!(),
+            EVMError::Database(DatabaseComponentError::State(e)) => Self::State(e),
+            EVMError::Database(DatabaseComponentError::BlockHash(e)) => Self::BlockHash(e),
+        }
+    }
 }
 
 /// Represents all relevant information of an executed transaction
@@ -27,7 +51,7 @@ pub struct TransactionInfo {
     pub logs: Vec<Log>,
     pub logs_bloom: Bloom,
     // pub traces: todo!(),
-    pub exit: revm::Return,
+    pub exit: revm::InstructionResult,
     pub out: Option<Bytes>,
 }
 

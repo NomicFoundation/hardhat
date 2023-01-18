@@ -1,7 +1,7 @@
 use std::fmt::Debug;
 
 use rethnet_eth::{B256, U256};
-use revm::blockchain::Blockchain;
+use revm::db::BlockHash;
 use tokio::sync::oneshot;
 
 /// The request type used internally by a [`SyncDatabase`].
@@ -28,7 +28,7 @@ where
 {
     pub fn handle<D>(self, db: &mut D) -> bool
     where
-        D: Blockchain<Error = E>,
+        D: BlockHash<Error = E>,
     {
         match self {
             Request::BlockHashByNumber { number, sender } => {

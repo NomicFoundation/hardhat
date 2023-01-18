@@ -1,6 +1,6 @@
 use std::sync::atomic::{AtomicU64, Ordering};
 
-use revm::AccountInfo;
+use revm_primitives::AccountInfo;
 
 use crate::{Address, Bytes, B256, U256};
 
@@ -380,7 +380,7 @@ impl RpcClient {
         assert_eq!(results.1.id, response.request_ids[1]);
         assert_eq!(results.2.id, response.request_ids[2]);
 
-        let code = revm::Bytecode::new_raw(results.1.result);
+        let code = revm_primitives::Bytecode::new_raw(results.1.result);
 
         Ok(AccountInfo {
             balance: results.0.result,

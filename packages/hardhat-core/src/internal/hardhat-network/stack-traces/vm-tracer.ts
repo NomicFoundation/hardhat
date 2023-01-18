@@ -1,5 +1,6 @@
 import type { Common } from "@nomicfoundation/ethereumjs-common";
-import type {
+import {
+  CreateOutput,
   TracingMessage,
   TracingMessageResult,
   TracingStep,
@@ -16,7 +17,9 @@ import {
   CallMessageTrace,
   CreateMessageTrace,
   isCreateTrace,
+  isHaltResult,
   isPrecompileTrace,
+  isSuccessResult,
   MessageTrace,
   PrecompileMessageTrace,
 } from "./message-trace";
@@ -226,14 +229,22 @@ export class VMTracer {
 
     try {
       const trace = this._messageTraces[this._messageTraces.length - 1];
+      trace.gasUsed = result.executionResult.result.gasUsed;
 
-      trace.exit = Exit.fromRethnetExitCode(result.executionResult.exitCode);
-      trace.returnData =
-        result.executionResult.output.output ?? Buffer.from([]);
-      trace.gasUsed = result.executionResult.gasUsed;
+      const executionResult = result.executionResult.result;
+      if (isSuccessResult(executionResult)) {
+        trace.exit = Exit.fromRethnetSuccessReason(executionResult.reason);
+        trace.returnData = executionResult.output.returnValue;
 
-      if (isCreateTrace(trace)) {
-        trace.deployedContract = result.executionResult.output.address;
+        if (isCreateTrace(trace)) {
+          trace.deployedContract = (
+            executionResult.output as CreateOutput
+          ).address;
+        }
+      } else if (isHaltResult(executionResult)) {
+        trace.exit = Exit.fromRethnetExceptionalHalt(executionResult.reason);
+      } else {
+        trace.exit = new Exit(ExitCode.REVERT);
       }
 
       if (this._messageTraces.length > 1) {

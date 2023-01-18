@@ -1,4 +1,4 @@
-use revm::{blockchain::Blockchain, opcode, Database, EVMData, Inspector, Interpreter, Return};
+use revm::{opcode, Database, EVMData, Inspector, InstructionResult, Interpreter};
 
 use crate::trace::Trace;
 
@@ -15,29 +15,28 @@ impl RethnetInspector {
     }
 }
 
-impl<D, BC> Inspector<D, BC> for RethnetInspector
+impl<D> Inspector<D> for RethnetInspector
 where
     D: Database,
-    BC: Blockchain<Error = D::Error>,
 {
     fn step(
         &mut self,
         interp: &mut Interpreter,
-        _data: &mut EVMData<'_, D, BC>,
+        _data: &mut EVMData<'_, D>,
         _is_static: bool,
-    ) -> Return {
+    ) -> InstructionResult {
         self.opcode_stack.push(interp.current_opcode());
 
-        Return::Continue
+        InstructionResult::Continue
     }
 
     fn step_end(
         &mut self,
         interp: &mut Interpreter,
-        _data: &mut EVMData<'_, D, BC>,
+        _data: &mut EVMData<'_, D>,
         _is_static: bool,
-        exit_code: Return,
-    ) -> Return {
+        exit_code: InstructionResult,
+    ) -> InstructionResult {
         let opcode = self
             .opcode_stack
             .pop()
@@ -45,10 +44,10 @@ where
 
         self.trace.add_step(opcode, interp.gas(), exit_code);
 
-        if opcode == opcode::RETURN {
+        if opcode == opcode::RETURN || opcode == opcode::REVERT {
             self.trace.return_value = interp.return_value();
         }
 
-        Return::Continue
+        InstructionResult::Continue
     }
 }

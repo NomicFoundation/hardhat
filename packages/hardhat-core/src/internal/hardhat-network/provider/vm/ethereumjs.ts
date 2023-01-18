@@ -6,6 +6,7 @@ import {
   InterpreterStep,
   Message,
 } from "@nomicfoundation/ethereumjs-evm";
+import { ERROR } from "@nomicfoundation/ethereumjs-evm/dist/exceptions";
 import {
   DefaultStateManager,
   StateManager,
@@ -17,6 +18,7 @@ import {
   RunTxResult as EthereumJSRunTxResult,
   VM,
 } from "@nomicfoundation/ethereumjs-vm";
+import { SuccessReason } from "rethnet-evm";
 import { assertHardhatInvariant } from "../../../core/errors";
 import { RpcDebugTracingConfig } from "../../../core/jsonrpc/types/input/debugTraceTransaction";
 import {
@@ -527,30 +529,64 @@ export class EthereumJSAdapter implements VMAdapter {
 
   private _afterMessageHandler = (result: EVMResult, next: any) => {
     if (this._tracingCallbacks !== undefined) {
-      const vmError = Exit.fromEthereumJSEvmError(
-        result.execResult.exceptionError
-      );
+      const getLogs = () => {
+        return (
+          result.execResult.logs?.map((log) => {
+            return {
+              address: log[0],
+              topics: log[1],
+              data: log[2],
+            };
+          }) ?? []
+        );
+      };
 
-      const rethnetExitCode = vmError.getRethnetExitCode();
+      const gasUsed = result.execResult.executionGasUsed;
+
+      let executionResult;
+
+      if (result.execResult.exceptionError === undefined) {
+        const reason =
+          result.execResult.selfdestruct === undefined
+            ? SuccessReason.Return
+            : SuccessReason.SelfDestruct;
+
+        executionResult = {
+          reason,
+          gasUsed,
+          gasRefunded: result.execResult.gasRefund ?? 0n,
+          logs: getLogs(),
+          output:
+            result.createdAddress === undefined
+              ? {
+                  returnValue: result.execResult.returnValue,
+                }
+              : {
+                  address: result.createdAddress.toBuffer(),
+                  returnValue: result.execResult.returnValue,
+                },
+        };
+      } else if (result.execResult.exceptionError.error === ERROR.REVERT) {
+        executionResult = {
+          gasUsed,
+          logs: getLogs(),
+          returnValue: result.execResult.returnValue,
+        };
+      } else {
+        const vmError = Exit.fromEthereumJSEvmError(
+          result.execResult.exceptionError
+        );
+
+        executionResult = {
+          reason: vmError.getRethnetExceptionalHalt(),
+          gasUsed,
+        };
+      }
 
       return this._tracingCallbacks.afterMessage(
         {
           executionResult: {
-            exitCode: rethnetExitCode,
-            output: {
-              address: result.createdAddress?.toBuffer(),
-              output: result.execResult.returnValue,
-            },
-            gasUsed: result.execResult.executionGasUsed,
-            gasRefunded: result.execResult.gasRefund ?? 0n,
-            logs:
-              result.execResult.logs?.map((log) => {
-                return {
-                  address: log[0],
-                  topics: log[1],
-                  data: log[2],
-                };
-              }) ?? [],
+            result: executionResult,
             trace: {
               steps: [],
               returnValue: result.execResult.returnValue,

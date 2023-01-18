@@ -90,8 +90,8 @@ export class RethnetAdapter implements VMAdapter {
       );
       return [result, rethnetResult.execResult.trace];
     } catch (e) {
-      console.log("Rethnet trace");
-      console.log(rethnetResult.execResult.trace);
+      // console.log("Rethnet trace");
+      // console.log(rethnetResult.execResult.trace);
       throw e;
     }
   }
@@ -218,8 +218,8 @@ export class RethnetAdapter implements VMAdapter {
       );
       return [result, rethnetResult.trace];
     } catch (e) {
-      console.log("Rethnet trace");
-      console.log(rethnetResult.trace);
+      // console.log("Rethnet trace");
+      // console.log(rethnetResult.trace);
       throw e;
     }
   }
@@ -230,7 +230,7 @@ export class RethnetAdapter implements VMAdapter {
   public async addBlockRewards(
     rewards: Array<[Address, bigint]>
   ): Promise<void> {
-    const blockBuilder = await BlockBuilder.new(
+    const blockBuilder = BlockBuilder.new(
       this._blockchain,
       this._state.asInner(),
       {},
