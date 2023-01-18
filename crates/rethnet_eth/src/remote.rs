@@ -84,7 +84,7 @@ where
 #[serde(tag = "method", content = "params")]
 enum MethodInvocation {
     #[serde(rename = "eth_getStorageAt")]
-    GetStorageAt(
+    StorageAt(
         Address,
         /// position
         U256,
@@ -96,44 +96,44 @@ enum MethodInvocation {
         rename = "eth_getTransactionByHash",
         serialize_with = "single_to_sequence"
     )]
-    GetTxByHash(B256),
+    TxByHash(B256),
     #[serde(
         rename = "eth_getTransactionReceipt",
         serialize_with = "single_to_sequence"
     )]
-    GetTxReceipt(B256),
+    TxReceipt(B256),
     #[serde(rename = "eth_getLogs", serialize_with = "single_to_sequence")]
-    GetLogs(GetLogsInput),
+    Logs(GetLogsInput),
     #[serde(rename = "eth_getBalance")]
-    GetBalance(
+    Balance(
         Address,
         /// block number
         #[serde(skip_serializing_if = "Option::is_none")]
         Option<U64>,
     ),
     #[serde(rename = "eth_getBlockByHash")]
-    GetBlockByHash(
+    BlockByHash(
         /// hash
         B256,
         /// include transactions
         bool,
     ),
     #[serde(rename = "eth_getBlockByNumber")]
-    GetBlockByNumber(
+    BlockByNumber(
         /// block number
         U64,
         /// include transactions
         bool,
     ),
     #[serde(rename = "eth_getCode")]
-    GetCode(
+    Code(
         Address,
         /// block number
         #[serde(skip_serializing_if = "Option::is_none")]
         Option<U64>,
     ),
     #[serde(rename = "eth_getTransactionCount")]
-    GetTxCount(
+    TxCount(
         Address,
         /// block number
         #[serde(skip_serializing_if = "Option::is_none")]
@@ -181,7 +181,7 @@ impl RpcClient {
                 request_body: response.request_body,
                 expected_type: format!(
                     "rethnet_eth::remote::jsonrpc::Success<{}>",
-                    std::any::type_name::<T>().to_string()
+                    std::any::type_name::<T>()
                 ),
                 response_text,
             }
@@ -271,7 +271,7 @@ impl RpcClient {
 
     /// eth_getTransactionByHash
     pub async fn get_tx_by_hash(&self, tx_hash: &B256) -> Result<eth::Transaction, RpcClientError> {
-        Ok(self.call(&MethodInvocation::GetTxByHash(*tx_hash)).await?)
+        self.call(&MethodInvocation::TxByHash(*tx_hash)).await
     }
 
     /// eth_getTransactionReceipt
@@ -279,7 +279,7 @@ impl RpcClient {
         &self,
         tx_hash: &B256,
     ) -> Result<eth::TransactionReceipt, RpcClientError> {
-        Ok(self.call(&MethodInvocation::GetTxReceipt(*tx_hash)).await?)
+        self.call(&MethodInvocation::TxReceipt(*tx_hash)).await
     }
 
     /// eth_getLogs
@@ -289,13 +289,12 @@ impl RpcClient {
         to_block: u64,
         address: &Address,
     ) -> Result<Vec<eth::Log>, RpcClientError> {
-        Ok(self
-            .call(&MethodInvocation::GetLogs(GetLogsInput {
-                from_block: U64::from(from_block),
-                to_block: U64::from(to_block),
-                address: *address,
-            }))
-            .await?)
+        self.call(&MethodInvocation::Logs(GetLogsInput {
+            from_block: U64::from(from_block),
+            to_block: U64::from(to_block),
+            address: *address,
+        }))
+        .await
     }
 
     /// eth_getBlockByHash
@@ -304,12 +303,8 @@ impl RpcClient {
         hash: &B256,
         include_transactions: bool,
     ) -> Result<eth::Block<eth::Transaction>, RpcClientError> {
-        Ok(self
-            .call(&MethodInvocation::GetBlockByHash(
-                *hash,
-                include_transactions,
-            ))
-            .await?)
+        self.call(&MethodInvocation::BlockByHash(*hash, include_transactions))
+            .await
     }
 
     /// eth_getBlockByNumber
@@ -318,12 +313,11 @@ impl RpcClient {
         number: u64,
         include_transactions: bool,
     ) -> Result<eth::Block<eth::Transaction>, RpcClientError> {
-        Ok(self
-            .call(&MethodInvocation::GetBlockByNumber(
-                U64::from(number),
-                include_transactions,
-            ))
-            .await?)
+        self.call(&MethodInvocation::BlockByNumber(
+            U64::from(number),
+            include_transactions,
+        ))
+        .await
     }
 
     /// eth_getTransactionCount
@@ -332,12 +326,11 @@ impl RpcClient {
         address: &Address,
         block_number: Option<u64>,
     ) -> Result<U256, RpcClientError> {
-        Ok(self
-            .call(&MethodInvocation::GetTxCount(
-                *address,
-                block_number.map(U64::from),
-            ))
-            .await?)
+        self.call(&MethodInvocation::TxCount(
+            *address,
+            block_number.map(U64::from),
+        ))
+        .await
     }
 
     /// eth_getStorageAt
@@ -347,13 +340,12 @@ impl RpcClient {
         position: U256,
         block_number: Option<u64>,
     ) -> Result<U256, RpcClientError> {
-        Ok(self
-            .call(&MethodInvocation::GetStorageAt(
-                *address,
-                position,
-                block_number.map(U64::from),
-            ))
-            .await?)
+        self.call(&MethodInvocation::StorageAt(
+            *address,
+            position,
+            block_number.map(U64::from),
+        ))
+        .await
     }
 
     /// Submit a consolidated batch of RPC method invocations in order to obtain the set of data
@@ -364,9 +356,9 @@ impl RpcClient {
         block_number: Option<u64>,
     ) -> Result<AccountInfo, RpcClientError> {
         let inputs = Vec::from([
-            MethodInvocation::GetBalance(*address, block_number.map(U64::from)),
-            MethodInvocation::GetCode(*address, block_number.map(U64::from)),
-            MethodInvocation::GetTxCount(*address, block_number.map(U64::from)),
+            MethodInvocation::Balance(*address, block_number.map(U64::from)),
+            MethodInvocation::Code(*address, block_number.map(U64::from)),
+            MethodInvocation::TxCount(*address, block_number.map(U64::from)),
         ]);
 
         let response = self.batch_call(&inputs).await?;
