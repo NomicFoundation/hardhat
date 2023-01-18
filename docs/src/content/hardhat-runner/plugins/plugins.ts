@@ -672,9 +672,9 @@ const communityPlugins: IPlugin[] = [
     tags: ["Tooling", "Testing", "Storage"],
   },
   {
-    name: "hardhat-scilla",
+    name: "hardhat-scilla-plugin",
     author: "Saeed Dadkhah",
-    authorUrl: "https://www.npmjs.com/package/hardhat-scilla-plugin",
+    authorUrl: "https://www.github.com/its-saeed",
     description:
       "Hardhat plugin to test scilla contracts. Scilla is Zillqa's programming language to develop smart contracts.",
     tags: ["Scilla", "Testing", "Zilliqa"],
