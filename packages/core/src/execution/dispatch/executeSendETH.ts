@@ -27,7 +27,13 @@ export async function executeSendETH(
     };
   }
 
-  await services.transactions.wait(txHash);
+  try {
+    await services.transactions.wait(txHash);
+  } catch {
+    return {
+      _kind: "hold",
+    };
+  }
 
   return {
     _kind: "success",
