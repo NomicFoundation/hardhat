@@ -687,6 +687,14 @@ const communityPlugins: IPlugin[] = [
       "Hardhat plugin to test scilla contracts. Scilla is Zillqa's programming language to develop smart contracts.",
     tags: ["Scilla", "Testing", "Zilliqa"],
   },
+  {
+    name: "hardhat-flat-exporter",
+    author: "Laz",
+    authorUrl: "https://www.npmjs.com/package/hardhat-flat-exporter",
+    description:
+      "Export flat contract on compilation via Hardhat.",
+    tags: ["Flatten", "Smart contract", "Solidity", "Deployment"],
+  },
 ];
 
 const officialPlugins: IPlugin[] = [
