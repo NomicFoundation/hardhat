@@ -15,16 +15,8 @@ pub enum RemoteDatabaseError {
     #[error("The requested method does not have an implementation")]
     UnimplementedMethod(),
 
-    #[error("The storage value could not be retrieved")]
-    NetworkError(String),
-
-    #[error("The retrieved value did not match data type exepectations")]
-    UnexpectedResponse {
-        msg: String,
-        request_body: String,
-        expected_type: String,
-        response_text: String,
-    },
+    #[error(transparent)]
+    RpcError(#[from] RpcClientError),
 
     /// Some other error from an underlying dependency
     #[error(transparent)]
@@ -42,31 +34,6 @@ impl RemoteDatabase {
                 .expect("failed to construct async runtime"),
         }
     }
-
-    fn map_err(&self, err: RpcClientError) -> RemoteDatabaseError {
-        match err {
-            RpcClientError::SendError {
-                msg,
-                request_body: _,
-            }
-            | RpcClientError::ResponseError {
-                msg,
-                request_body: _,
-            } => RemoteDatabaseError::NetworkError(msg),
-            RpcClientError::InterpretationError {
-                msg,
-                request_body,
-                expected_type,
-                response_text,
-            } => RemoteDatabaseError::UnexpectedResponse {
-                msg,
-                request_body,
-                expected_type,
-                response_text,
-            },
-            RpcClientError::OtherError(e) => RemoteDatabaseError::OtherError(e),
-        }
-    }
 }
 
 impl DatabaseRef for RemoteDatabase {
@@ -76,7 +43,7 @@ impl DatabaseRef for RemoteDatabase {
         Ok(Some(
             self.runtime
                 .block_on(self.client.get_account_info(&address, None))
-                .map_err(|e| self.map_err(e))?,
+                .map_err(RemoteDatabaseError::RpcError)?,
         ))
     }
 
@@ -88,7 +55,7 @@ impl DatabaseRef for RemoteDatabase {
     fn storage(&self, address: Address, index: U256) -> Result<U256, Self::Error> {
         self.runtime
             .block_on(self.client.get_storage_at(&address, index, None))
-            .map_err(|e| self.map_err(e))
+            .map_err(RemoteDatabaseError::RpcError)
     }
 }
 
