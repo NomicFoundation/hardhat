@@ -84,6 +84,10 @@ An optional string setting the date of the blockchain. Valid values are [Javascr
 
 An optional boolean that disables the contract size limit imposed by the [EIP 170](https://eips.ethereum.org/EIPS/eip-170). Default value: `false`
 
+#### `allowBlocksWithSameTimestamp`
+
+A boolean to allow mining blocks that have the same timestamp. This is not allowed by default because Ethereum's consensus rules specify that each block should have a different timestamp. Default value: `false`
+
 #### `forking`
 
 An object that describes the [forking](./guides/forking-other-networks.md) configuration that can have the following fields:
