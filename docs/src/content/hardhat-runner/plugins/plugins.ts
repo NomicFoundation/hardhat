@@ -690,7 +690,7 @@ const communityPlugins: IPlugin[] = [
   {
     name: "hardhat-flat-exporter",
     author: "Laz",
-    authorUrl: "https://www.npmjs.com/package/hardhat-flat-exporter",
+    authorUrl: "https://github.com/Saszr",
     description:
       "Export flat contract on compilation via Hardhat.",
     tags: ["Flatten", "Smart contract", "Solidity", "Deployment"],
