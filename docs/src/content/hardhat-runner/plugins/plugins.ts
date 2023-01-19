@@ -691,8 +691,7 @@ const communityPlugins: IPlugin[] = [
     name: "hardhat-flat-exporter",
     author: "Laz",
     authorUrl: "https://github.com/Saszr",
-    description:
-      "Export flat contract on compilation via Hardhat.",
+    description: "Export flat contract on compilation via Hardhat.",
     tags: ["Flatten", "Smart contract", "Solidity", "Deployment"],
   },
 ];
