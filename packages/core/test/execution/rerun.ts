@@ -4,7 +4,9 @@ import { assert } from "chai";
 import { ethers } from "ethers";
 
 import { buildModule } from "dsl/buildModule";
+import { TransactionsService } from "services/TransactionsService";
 import { Artifact } from "types/hardhat";
+import { Providers } from "types/providers";
 
 import { Ignition } from "../../src/Ignition";
 import { getMockServices } from "../helpers";
@@ -248,6 +250,30 @@ describe("Reruning execution", () => {
         redeployResult.result.token.value.address,
         "0x1F98431c8aD98523631AE4a59f267346ea31F984"
       );
+    });
+
+    it("should return on hold if there is an error waiting for the tx hash to confirm", async () => {
+      myModule = buildModule("TxModule", (m) => {
+        const token = m.contract("Token", tokenArtifact);
+
+        return { token };
+      });
+
+      ignition = new Ignition({
+        services: {
+          ...getMockServices(),
+          artifacts: {
+            hasArtifact: () => true,
+            getArtifact: () => tokenArtifact,
+          },
+          transactions: new TransactionsService({} as Providers),
+        } as any,
+        journal: new MemoryCommandJournal(),
+      });
+
+      const [result] = await ignition.deploy(myModule, {} as any);
+
+      assert.equal(result._kind, "hold");
     });
   });
 
