@@ -2,7 +2,7 @@
 
 This hardhat project is an example of using ignition to deploy a basic Multisig contract, send a transaction via the multisig, wait for an external confirmation, then resume the deploy to execute the confirmed transaction.
 
-The module demonstrates how `m.awaitEvent(...)` can be used to pause deployment until after an event matching the given filter has been emitted on-chain.
+The module demonstrates how `m.event(...)` can be used to pause deployment until after an event matching the given filter has been emitted on-chain.
 
 ## Deploying
 

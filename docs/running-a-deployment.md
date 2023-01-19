@@ -62,7 +62,7 @@ interface IgnitionConfig {
   maxRetries: number;
   gasIncrementPerRetry: BigNumber | null;
   pollingInterval: number; // milliseconds
-  awaitEventDuration: number; // milliseconds
+  eventDuration: number; // milliseconds
 }
 ```
 
@@ -76,7 +76,7 @@ module.exports = {
     maxRetries: 10,
     gasIncrementPerRetry: ethers.utils.parseUnits("0.001"),
     pollingInterval: 300,
-    awaitEventDuration: 10000,
+    eventDuration: 10000,
   },
 };
 ```
@@ -97,11 +97,11 @@ The value of `pollingInterval` is the number of milliseconds the process will wa
 
 ---
 
-`awaitEventDuration`
+`eventDuration`
 
 ---
 
-This config value determines how long `m.awaitEvent` waits for the given event to be emitted on-chain before marking the deployment as "on-hold". It should be given as a number of milliseconds, with the default value being 30000, or 30 seconds.
+This config value determines how long `m.event` waits for the given event to be emitted on-chain before marking the deployment as "on-hold". It should be given as a number of milliseconds, with the default value being 30000, or 30 seconds.
 
 ## Resuming a failed or onhold deployment
 
@@ -109,6 +109,6 @@ A run of a deployment can succeed, fail or be on hold. A failed deployment or on
 
 `npx hardhat deploy MyModule.js --network localhost`
 
-Each run logs its events to a journal file (recorded in a sibling file to the module under `MyModule.journal.ndjson`). The journal file is used to reconstruct the state of the deployment during previous runs. Runs are scoped to the `chainId` of the network, so that runs against different networks do not interact. Any failed contract deploys or contract calls will be retried, the deployment picking up from where the last fail occurred. Any `awaitEvent` invocations that had not returned and hence were on `Hold` on the last run, will be retried as well.
+Each run logs its events to a journal file (recorded in a sibling file to the module under `MyModule.journal.ndjson`). The journal file is used to reconstruct the state of the deployment during previous runs. Runs are scoped to the `chainId` of the network, so that runs against different networks do not interact. Any failed contract deploys or contract calls will be retried, the deployment picking up from where the last fail occurred. Any `event` invocations that had not returned and hence were on `Hold` on the last run, will be retried as well.
 
 For non-development network deployments, this means some form of deployment freezing will be recommended that records relevant information such as contract abi, deployed address and network. These files will be recommended to be committed into project repositories as well.

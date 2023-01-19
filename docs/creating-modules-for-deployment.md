@@ -247,7 +247,7 @@ const multisig = m.deploy("Multisig");
 
 const call = m.call(multisig, "authorize");
 
-const event = m.awaitEvent(multisig, "AuthorizedBy", {
+const event = m.event(multisig, "AuthorizedBy", {
   args: ["0xUser1"],
   after: [call],
 });
@@ -255,11 +255,11 @@ const event = m.awaitEvent(multisig, "AuthorizedBy", {
 m.call(multisig, "execute", { args: [event.params.transactionId] });
 ```
 
-The `awaitEvent` during deployment will check whether an event matching the given filter args has been emitted. If it has, the deployment will continue, if not the deployment will pause and listen for the event for a [configurable](./running-a-deployment.md#configuration-options) period of time. If the event has not been detected within this listening period, the deployment stops in the `on-hold` condition. A further run of the deployment will recheck the `awaitEvent` condition.
+The `event` during deployment will check whether an event matching the given filter args has been emitted. If it has, the deployment will continue, if not the deployment will pause and listen for the event for a [configurable](./running-a-deployment.md#configuration-options) period of time. If the event has not been detected within this listening period, the deployment stops in the `on-hold` condition. A further run of the deployment will recheck the `event` condition.
 
 Upon execution, the `EventFuture` will be resolved to the values of the params emitted by the given event. You can then use those values in tests or other modules as expected.
 
-A full example of the `awaitEvent` function can be seen in our [Multisig example](../examples/multisig/README.md).
+A full example of the `event` function can be seen in our [Multisig example](../examples/multisig/README.md).
 
 ## Including modules within modules
 

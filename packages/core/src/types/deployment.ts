@@ -147,7 +147,7 @@ export interface ExecutionOptions {
   maxRetries: number;
   gasIncrementPerRetry: BigNumber | null;
   pollingInterval: number;
-  awaitEventDuration: number;
+  eventDuration: number;
 }
 
 export interface ExecutionContext {

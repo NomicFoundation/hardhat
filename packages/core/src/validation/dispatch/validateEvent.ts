@@ -9,7 +9,7 @@ import {
   validateBytesForArtifact,
 } from "./helpers";
 
-export async function validateAwaitEvent(
+export async function validateEvent(
   vertex: EventVertex,
   _resultAccumulator: ResultsAccumulator,
   context: { services: Services }

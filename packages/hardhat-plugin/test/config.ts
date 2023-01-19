@@ -79,7 +79,7 @@ describe("config", () => {
     assert.equal(sendTxOptions.pollingInterval, 4);
   });
 
-  it("should apply awaitEventDuration", async function () {
+  it("should apply eventDuration", async function () {
     await deployModule(this.hre, (m) => {
       m.contract("Bar");
 
@@ -88,6 +88,6 @@ describe("config", () => {
 
     const sendTxOptions = sendTxStub.getCalls()[0].lastArg;
 
-    assert.equal(sendTxOptions.awaitEventDuration, 10000);
+    assert.equal(sendTxOptions.eventDuration, 10000);
   });
 });
