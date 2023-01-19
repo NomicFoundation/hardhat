@@ -256,6 +256,7 @@ export class RethnetAdapter implements VMAdapter {
         rethnetResult,
         block.header.gasUsed
       );
+      console.log("runTxInBlock", result.exit)
       return [result, rethnetResult.trace];
     } catch (e) {
       console.log("Rethnet trace");
@@ -337,6 +338,8 @@ export class RethnetAdapter implements VMAdapter {
   } {
     const trace = this._vmTracer.getLastTopLevelMessageTrace();
     const error = this._vmTracer.getLastError();
+
+    console.log("getLastTrace", trace?.exit);
 
     return { trace, error };
   }
