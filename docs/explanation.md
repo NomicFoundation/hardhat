@@ -87,44 +87,13 @@ Ignition keeps a journal of the execution. When a deployment fails, you can reru
 
 The Module API allows for waiting on an Ethereum `Event`, in this case the deployment will halt as _on hold_ if the `Event` has not occurred. Rerunning the Module will restart from the `Event` check.
 
-### Modifying your Modules between deployments
+### Modifying your Modules between deployments (TBD)
 
 You can modify your deployments between Ignition runs, for instance, when dealing with errors. This allows you to incrementally grow your system.
 
 Ignition will reconcile your modified Module with the `Actions` that are recorded in the journal from previous runs. If it determines that an `Action` has already been run, then it will not be rerun. If the Module has diverged too far for Ignition to safely make an assessment of whether an `Action` has been previously run, then it will alert the user.
 
 The tracking and reconciling of `Actions` in previous runs is done automatically, but you can identify an `Action` explicity with an `id` to eliminate ambiguity.
-
-<!-- - This can help deal with errors
-- You can use it to incrementally grow your system
-- Ignition will restart from where it was left the last time you run it, and continue from there, deploying the new contracts.
-- To be able to do this, Ignition needs to be able to uniquely identify each Action, even in the presence of changes
-- Ignition won’t try to execute successfully executed Actions unless you explicitly ask for it.
-- Ignition assigns an id to each Action. It can do it automatically in most cases, but sometimes it will ask the user to do it instead. -->
-
-<!-- - Ignition keeps a journal of the execution
-- When a deployment fails, you can restart from where it failed. It doesn’t redeploy everything.
-- It uses the journal to quickly get back to the state it was at, and continues from there. -->
-
-<!-- - Modules are only run once, like JavaScript modules.
-- Ignition takes a Module, creates the graph of actions, and then executes it.
-- Most actions get executed by running a transaction.
-- Ignition may run more than one transaction to complete an action.
-    - Because of errors or gas management
-    - Transparent to the user
-- Not every action results in transactions
-- Executing an Action successfully makes its associated Future “resolved”.
-- Actions aren’t run until all the Future’s it depends on have been resolved.
-- Ignition executes Actions in batches, running as many actions as it can in parallel. -->
-
-<!-- ## Using a Module from another Module
-
-- How to use a Module from another one.
-- Only get one result per module.
-- Using the same module twice gives you the same set of contracts. Doesn’t deploy twice.
-- If an action depends on another module’s future, it won’t be executed until the entire module gets successfully executed. -->
-
----
 
 Next, dig deeper into defining modules:
 

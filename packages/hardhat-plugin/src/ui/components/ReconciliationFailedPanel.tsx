@@ -10,8 +10,8 @@ export const ReconciliationFailedPanel = ({
     <Box flexDirection="column">
       <Text color={"red"}>
         Ignition cannot rerun the module{" "}
-        <Text bold>{deployState.details.moduleName}</Text>, it has been altered.
-        since the last run
+        <Text bold>{deployState.details.moduleName}</Text>, it has been altered
+        since the last run.
       </Text>
 
       <Box marginTop={1}>
