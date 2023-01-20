@@ -150,7 +150,7 @@ pub struct JsTracer {
     before_message_fn: ThreadsafeFunction<BeforeMessageHandlerCall>,
     step_fn: ThreadsafeFunction<StepHandlerCall>,
     after_message_fn: ThreadsafeFunction<AfterMessageHandlerCall>,
-    pre_step: Option<StepData>,
+    pre_steps: Vec<StepData>,
 }
 
 impl JsTracer {
@@ -450,7 +450,7 @@ impl JsTracer {
             before_message_fn,
             step_fn,
             after_message_fn,
-            pre_step: None,
+            pre_steps: Vec::new(),
         })
     }
 }
@@ -598,7 +598,7 @@ where
         data: &mut rethnet_evm::EVMData<'_, D>,
         _is_static: bool,
     ) -> Return {
-        self.pre_step = Some(StepData {
+        self.pre_steps.push(StepData {
             depth: data.journaled_state.depth,
             pc: interp.program_counter() as u64,
             opcode: interp.current_opcode(),
@@ -616,17 +616,16 @@ where
         _eval: Return,
     ) -> Return {
         // TODO: temporary fix
-        let pre_step_option = self.pre_step.take();
-        if pre_step_option.is_none() {
-            return Return::Continue;
-        }
-
         let StepData {
             depth,
             pc,
             opcode,
             gas: pre_step_gas,
-        } = pre_step_option.expect("Gas must exist");
+        } = self
+            .pre_steps
+            .pop()
+            .expect("At least one pre-step should exist");
+
         let post_step_gas = interp.gas();
 
         let (sender, receiver) = channel();
