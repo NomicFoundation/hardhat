@@ -3,11 +3,9 @@ title: Oracles
 description: Oracles help get real-world data into your Ethereum application because smart contracts can't query real-world data on their own.
 ---
 
-# Working with Chainlink oracles
+# Working with blockchain oracles
 
 _This guide is based on the [ethereum.org oracles guide](https://ethereum.org/en/developers/docs/oracles) and the [official Chainlink documentation](https://docs.chain.link/)._
-
-Chainlink expands the capabilities of smart contracts by enabling access to real-world data and off-chain computation while maintaining the security and reliability guarantees inherent to blockchain technology.
 
 ## What is an oracle
 
@@ -25,17 +23,17 @@ With a blockchain like Ethereum, you need every node in the network to replay ev
 
 Oracles solve this problem by posting the data on the blockchain. So any node replaying the transaction will use the same immutable data that's posted for all to see. To do this, an oracle is typically made up of a smart contract and some off-chain components that can query APIs, then periodically send transactions to update the smart contract's data.
 
-### The oracle problem
+## The oracle problem
 
 As we mentioned, blockchain transactions cannot access off-chain data directly. At the same time, relying on a single source of truth to provide data is insecure and invalidates the decentralization of a smart contract. This is known as the oracle problem.
 
 We can avoid the oracle problem by using a decentralized oracle that pulls from multiple data sources; if one data source is hacked or fails, the smart contract will still function as intended.
 
-### Security
+## Security
 
 An oracle is only as secure as its data source(s). If a dapp uses Uniswap as an oracle for its ETH/DAI price feed, an attacker can move the price on Uniswap to manipulate the dapp's understanding of the current price. An example of how to combat this is [a feed system](https://developer.makerdao.com/feeds/) like the one used by MakerDAO, which collates price data from many external price feeds instead of just relying on a single source.
 
-### Architecture
+## Architecture
 
 This is an example of a simple Oracle architecture, but there are more ways than this to trigger off-chain computation.
 
@@ -102,113 +100,142 @@ Chainlink VRF (Verifiable Random Function) is a provably-fair and verifiable sou
 
 Random numbers are difficult because blockchains are deterministic.
 
-To start with Chainlink VRF, create a new subscription on the Goerli testnet at [Subscription Manager](https://vrf.chain.link).
+To start with Chainlink VRF, create a new `VRFv2Consumer.sol` smart contract, which you can get from the [Official Chainlink Documentation](https://docs.chain.link/vrf/v2/subscription/examples/get-a-random-number).
 
-Click Create Subscription and follow the instructions to create a new subscription account. MetaMask opens and asks you to confirm payment to create the account on-chain. After you approve the transaction, the network confirms the creation of your subscription account on-chain.
+Usually, you will create and manage your subscriptions on the [VRF Subscription Management](https://vrf.chain.link/) page, but with the [`@chainlink/hardhat-chainlink`](https://www.npmjs.com/package/@chainlink/hardhat-chainlink) plugin, you can automate that process. This plugin will help you to use the Chainlink protocol inside your tests, scripts & tasks.
 
-After the subscription is created, click Add funds and follow the instructions to fund your subscription. For this example, a balance of 2 LINK is sufficient. MetaMask opens to confirm the LINK transfer to your subscription. After you approve the transaction, the network confirms the transfer of your LINK token to your subscription account.
+You will need to install it by typing:
 
-After you add funds, click Add consumer. A page opens with your account details and subscription ID. Record your subscription ID, which you need for your consuming contract. You will add the consuming contract to your subscription later.
+::::tabsgroup{options="npm 7+,npm 6,yarn"}
 
-```solidity
-// SPDX-License-Identifier: MIT
-// An example of a consumer contract that relies on a subscription for funding.
-pragma solidity ^0.8.7;
+:::tab{value="npm 7+"}
 
-import '@chainlink/contracts/src/v0.8/interfaces/VRFCoordinatorV2Interface.sol';
-import '@chainlink/contracts/src/v0.8/VRFConsumerBaseV2.sol';
-import '@chainlink/contracts/src/v0.8/ConfirmedOwner.sol';
-
-/**
- * Request testnet LINK and ETH here: https://faucets.chain.link/
- * Find information on LINK Token Contracts and get the latest ETH and LINK faucets here: https://docs.chain.link/docs/link-token-contracts/
- */
-
-/**
- * THIS IS AN EXAMPLE CONTRACT THAT USES HARDCODED VALUES FOR CLARITY.
- * THIS IS AN EXAMPLE CONTRACT THAT USES UN-AUDITED CODE.
- * DO NOT USE THIS CODE IN PRODUCTION.
- */
-
-contract VRFv2Consumer is VRFConsumerBaseV2, ConfirmedOwner {
-    event RequestSent(uint256 requestId, uint32 numWords);
-    event RequestFulfilled(uint256 requestId, uint256[] randomWords);
-
-    struct RequestStatus {
-        bool fulfilled; // whether the request has been successfully fulfilled
-        bool exists; // whether a requestId exists
-        uint256[] randomWords;
-    }
-    mapping(uint256 => RequestStatus) public s_requests; /* requestId --> requestStatus */
-    VRFCoordinatorV2Interface COORDINATOR;
-
-    // Your subscription ID.
-    uint64 s_subscriptionId;
-
-    // past requests Id.
-    uint256[] public requestIds;
-    uint256 public lastRequestId;
-
-    // The gas lane to use, which specifies the maximum gas price to bump to.
-    // For a list of available gas lanes on each network,
-    // see https://docs.chain.link/docs/vrf/v2/subscription/supported-networks/#configurations
-    bytes32 keyHash = 0x79d3d8832d904592c0bf9818b621522c988bb8b0c05cdc3b15aea1b6e8db0c15;
-
-    // Depends on the number of requested values that you want sent to the
-    // fulfillRandomWords() function. Storing each word costs about 20,000 gas,
-    // so 100,000 is a safe default for this example contract. Test and adjust
-    // this limit based on the network that you select, the size of the request,
-    // and the processing of the callback request in the fulfillRandomWords()
-    // function.
-    uint32 callbackGasLimit = 100000;
-
-    // The default is 3, but you can set this higher.
-    uint16 requestConfirmations = 3;
-
-    // For this example, retrieve 2 random values in one request.
-    // Cannot exceed VRFCoordinatorV2.MAX_NUM_WORDS.
-    uint32 numWords = 2;
-
-    /**
-     * HARDCODED FOR GOERLI
-     * COORDINATOR: 0x2Ca8E0C643bDe4C2E08ab1fA0da3401AdAD7734D
-     */
-    constructor(uint64 subscriptionId)
-        VRFConsumerBaseV2(0x2Ca8E0C643bDe4C2E08ab1fA0da3401AdAD7734D)
-        ConfirmedOwner(msg.sender)
-    {
-        COORDINATOR = VRFCoordinatorV2Interface(0x2Ca8E0C643bDe4C2E08ab1fA0da3401AdAD7734D);
-        s_subscriptionId = subscriptionId;
-    }
-
-    // Assumes the subscription is funded sufficiently.
-    function requestRandomWords() external onlyOwner returns (uint256 requestId) {
-        // Will revert if subscription is not set and funded.
-        requestId = COORDINATOR.requestRandomWords(
-            keyHash,
-            s_subscriptionId,
-            requestConfirmations,
-            callbackGasLimit,
-            numWords
-        );
-        s_requests[requestId] = RequestStatus({randomWords: new uint256[](0), exists: true, fulfilled: false});
-        requestIds.push(requestId);
-        lastRequestId = requestId;
-        emit RequestSent(requestId, numWords);
-        return requestId;
-    }
-
-    function fulfillRandomWords(uint256 _requestId, uint256[] memory _randomWords) internal override {
-        require(s_requests[_requestId].exists, 'request not found');
-        s_requests[_requestId].fulfilled = true;
-        s_requests[_requestId].randomWords = _randomWords;
-        emit RequestFulfilled(_requestId, _randomWords);
-    }
-
-    function getRequestStatus(uint256 _requestId) external view returns (bool fulfilled, uint256[] memory randomWords) {
-        require(s_requests[_requestId].exists, 'request not found');
-        RequestStatus memory request = s_requests[_requestId];
-        return (request.fulfilled, request.randomWords);
-    }
-}
 ```
+npm install --save-dev @chainlink/hardhat-chainlink
+```
+
+:::
+
+:::tab{value="npm 6"}
+
+```
+npm install --save-dev @chainlink/hardhat-chainlink
+```
+
+:::
+
+:::tab{value="yarn"}
+
+```
+yarn add --dev @chainlink/hardhat-chainlink
+```
+
+:::
+
+::::
+
+And import it inside the `hardhat.config` file:
+
+::::tabsgroup{options="TypeScript,JavaScript"}
+
+:::tab{value="TypeScript"}
+
+```ts
+import "@chainlink/hardhat-chainlink";
+```
+
+:::
+
+:::tab{value="JavaScript"}
+
+```js
+require("@chainlink/hardhat-chainlink");
+```
+
+:::
+
+::::
+
+Then you can just expand the deployment script which will deploy the above `VRFv2Consumer` smart contract and do the VRF Managment part.
+
+To do so, first prepare the `hardhat.config` file for the deployment on the Goerli network:
+
+```ts
+  networks: {
+    goerli: {
+      url: GOERLI_RPC_URL,
+      accounts: [PRIVATE_KEY]
+    }
+  }
+```
+
+And after that, expand your deployment script:
+
+```ts
+// scripts/deploy.ts
+import { chainlink, ethers } from "hardhat";
+
+async function main() {
+  // NOTE: If you already have an active VRF Subscription, proceed to step 3
+
+  // Step 1: Create a new VRF Subscription
+  const vrfCoordinatorAddress = `0x2Ca8E0C643bDe4C2E08ab1fA0da3401AdAD7734D`;
+  const { subscriptionId } = await chainlink.createVrfSubscription(
+    vrfCoordinatorAddress
+  );
+
+  // Step 2: Fund VRF Subscription
+  const linkTokenAddress = `0x326C977E6efc84E512bB9C30f76E30c160eD06FB`;
+  const amountInJuels = ethers.BigNumber.from(`1000000000000000000`); // 1 LINK
+  await chainlink.fundVrfSubscription(
+    vrfCoordinatorAddress,
+    linkTokenAddress,
+    amountInJuels,
+    subscriptionId
+  );
+
+  // Step 3: Deploy your smart contract
+  const VRFv2ConsumerFactory = await ethers.getContractFactory("VRFv2Consumer");
+  const VRFv2Consumer = await VRFv2ConsumerFactory.deploy(subscriptionId);
+  await VRFv2Consumer.deployed();
+  console.log("VRFv2Consumer deployed to:", VRFv2Consumer.address);
+
+  // Step 4: Add VRF Consumer contract to your VRF Subscription
+  await chainlink.addVrfConsumer(
+    vrfCoordinatorAddress,
+    VRFv2Consumer.address,
+    subscriptionId
+  );
+}
+
+main().catch((error) => {
+  console.error(error);
+  process.exitCode = 1;
+});
+```
+
+Finnaly, run the deployment script by typing:
+```sh
+npx hardhat run scripts/deploy.ts --network goerli
+```
+
+## Use blockchain oracles
+
+There are multiple oracle applications you can integrate into your dapp:
+
+- [Chainlink](https://chain.link/) - _Chainlink decentralized oracle networks provide tamper-proof inputs, outputs, and computations to support advanced smart contracts on any blockchain._
+
+- [Witnet](https://witnet.io/) - _Witnet is a permissionless, decentralized, and censorship-resistant oracle helping smart contracts to react to real world events with strong crypto-economic guarantees._
+
+- [UMA Oracle](https://umaproject.org/products/optimistic-oracle) - _UMA's optimistic oracle allows smart contracts to quickly and receive any kind of data for different applications, including insurance, financial derivatives, and prediction market._
+
+- [Tellor](https://tellor.io/) - _Tellor is a transparent and permissionless oracle protocol for your smart contract to easily get any data whenever it needs it._
+
+- [Band Protocol](https://bandprotocol.com/) - _Band Protocol is a cross-chain data oracle platform that aggregates and connects real-world data and APIs to smart contracts._
+
+- [Provable](https://provable.xyz/) - _Provable connects blockchain dapps with any external Web API and leverages TLSNotary proofs, Trusted Execution Environments (TEEs), and secure cryptographic primitives to guarantee data authenticity._
+
+- [Paralink](https://paralink.network/) - _Paralink provides an open source and decentralized oracle platform for smart contracts running on Ethereum and other popular blockchains._
+
+- [Dos.Network](https://dos.network/) - _DOS Network is a decentralized oracle service network to boost blockchain usability with real-world data and computation power._
+
