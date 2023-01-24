@@ -104,7 +104,7 @@ task("deploy")
           message: `Confirm deploy to network ${hre.network.name} (${Number(
             chainId
           )})?`,
-          initial: true,
+          initial: false,
         });
 
         if (!prompt.networkConfirmation) {
