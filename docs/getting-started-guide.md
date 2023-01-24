@@ -117,7 +117,7 @@ npx hardhat deploy --network localhost LockModule.js
 
 ### Using the Module within Hardhat Tests
 
-Ignition modules can be used in **Hardhat** tests to simplify test setup. In the Hardhat quick start guide the `./test/Lock.js` test file can be leverage **Ingition** by updating the `deployOneYearLockFixture` fixture:
+Ignition modules can be used in **Hardhat** tests to simplify test setup. In the Hardhat quick start guide the `./test/Lock.js` test file can be leverage **Ignition** by updating the `deployOneYearLockFixture` fixture:
 
 ```js
 ...
