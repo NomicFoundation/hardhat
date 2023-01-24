@@ -24,7 +24,7 @@ pub enum RemoteDatabaseError {
 
 impl RemoteDatabase {
     /// Construct a new RemoteDatabse given the URL of a remote Ethereum node.
-    pub fn _new(url: &str) -> Self {
+    pub fn new(url: &str) -> Self {
         Self {
             client: RpcClient::new(url),
             runtime: Builder::new_multi_thread()
@@ -75,7 +75,7 @@ mod tests {
         let dai_address = Address::from_str("0x6b175474e89094c44da98b954eedeac495271d0f")
             .expect("failed to parse address");
 
-        let account_info: AccountInfo = RemoteDatabase::_new(&alchemy_url)
+        let account_info: AccountInfo = RemoteDatabase::new(&alchemy_url)
             .basic(dai_address)
             .expect("should succeed")
             .unwrap();
