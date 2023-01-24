@@ -5,11 +5,13 @@ use rethnet_eth::{Address, B256, U256};
 
 use revm::{db::DatabaseRef, AccountInfo, Bytecode};
 
+/// An revm database backed by a remote Ethereum node
 pub struct RemoteDatabase {
     client: RpcClient,
     runtime: Runtime,
 }
 
+/// Errors that might be returned from RemoteDatabase
 #[derive(thiserror::Error, Debug)]
 pub enum RemoteDatabaseError {
     #[error(transparent)]
@@ -21,6 +23,7 @@ pub enum RemoteDatabaseError {
 }
 
 impl RemoteDatabase {
+    /// Construct a new RemoteDatabse given the URL of a remote Ethereum node.
     pub fn _new(url: &str) -> Self {
         Self {
             client: RpcClient::new(url),
