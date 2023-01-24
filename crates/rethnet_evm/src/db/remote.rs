@@ -34,6 +34,14 @@ impl RemoteDatabase {
                 .expect("failed to construct async runtime"),
         }
     }
+
+    /// Retrieve the state root of the given block
+    pub fn state_root(&self, block_number: u64) -> Result<B256, RemoteDatabaseError> {
+        Ok(self
+            .runtime
+            .block_on(self.client.get_block_by_number(block_number, false))?
+            .state_root)
+    }
 }
 
 impl DatabaseRef for RemoteDatabase {
