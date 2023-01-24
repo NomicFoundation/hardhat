@@ -1,6 +1,7 @@
 import { ExecutionContext } from "types/deployment";
 import { ExecutionVertex } from "types/executionGraph";
 import { ResultsAccumulator, VertexVisitResult } from "types/graph";
+import { IgnitionError } from "utils/errors";
 
 import { executeAwaitedEvent } from "./executeAwaitedEvent";
 import { executeContractCall } from "./executeContractCall";
@@ -41,5 +42,5 @@ function assertUnknownExecutionVertexType(executionVertex: never): never {
 
   const forReport = "type" in vertex ? vertex.type : vertex;
 
-  throw new Error(`Unknown execution vertex type: ${forReport}`);
+  throw new IgnitionError(`Unknown execution vertex type: ${forReport}`);
 }

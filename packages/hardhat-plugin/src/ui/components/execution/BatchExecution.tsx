@@ -1,4 +1,4 @@
-import { DeployState } from "@ignored/ignition-core";
+import { DeployState, IgnitionError } from "@ignored/ignition-core";
 import { Box, Text } from "ink";
 import Spinner from "ink-spinner";
 
@@ -211,9 +211,9 @@ const determineStatusOf = (
     return "COMPELETED";
   }
 
-  throw new Error(`Unable to determine vertex status for ${vertexId}`);
+  throw new IgnitionError(`Unable to determine vertex status for ${vertexId}`);
 };
 
 function assertNeverVertexStatus(status: never): any {
-  throw new Error(`Unexpected vertex status ${status}`);
+  throw new IgnitionError(`Unexpected vertex status ${status}`);
 }

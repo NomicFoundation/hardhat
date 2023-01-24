@@ -1,6 +1,7 @@
 import { DiGraph, TopologicalSort } from "js-graph-algorithms";
 
 import { AdjacencyList } from "types/graph";
+import { IgnitionError } from "utils/errors";
 
 export function constructEmptyAdjacencyList(): AdjacencyList {
   return new Map<number, Set<number>>();
@@ -84,7 +85,7 @@ export function eliminate(
     const toSet = updatedList.get(dependency);
 
     if (toSet === undefined) {
-      throw new Error("Dependency sets should be defined");
+      throw new IgnitionError("Dependency sets should be defined");
     }
 
     const setWithoutV = new Set<number>([...toSet].filter((n) => n !== v));

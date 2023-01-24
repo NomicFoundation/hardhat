@@ -8,6 +8,7 @@ import type {
   IDeploymentGraph,
   IDeploymentBuilder,
 } from "types/deploymentGraph";
+import { IgnitionError } from "utils/errors";
 import { isCallable } from "utils/guards";
 
 describe("deployment builder - parameters", function () {
@@ -33,7 +34,7 @@ describe("deployment builder - parameters", function () {
       });
 
       if (!isCallable(token)) {
-        throw new Error("Not callable");
+        throw new IgnitionError("Not callable");
       }
 
       return { token };

@@ -263,7 +263,7 @@ export class DeploymentBuilder implements IDeploymentBuilder {
         scopeData.parameters === undefined ||
         !(parameter.label in scopeData.parameters)
       ) {
-        throw new Error("Could not resolve contract from parameter");
+        throw new IgnitionError("Could not resolve contract from parameter");
       }
 
       contract = scopeData.parameters[parameter.label] as
@@ -273,7 +273,7 @@ export class DeploymentBuilder implements IDeploymentBuilder {
     } else if (isCallable(contractFuture)) {
       contract = contractFuture;
     } else {
-      throw new Error(
+      throw new IgnitionError(
         `Not a callable future ${contractFuture.label} (${contractFuture.type})`
       );
     }
@@ -315,7 +315,7 @@ export class DeploymentBuilder implements IDeploymentBuilder {
     ) {
       const future = artifactFuture as any;
 
-      throw new Error(
+      throw new IgnitionError(
         `Not an artifact future ${future.label} (${future.type})`
       );
     }
@@ -372,13 +372,13 @@ export class DeploymentBuilder implements IDeploymentBuilder {
         scopeData.parameters === undefined ||
         !(parameter.label in scopeData.parameters)
       ) {
-        throw new Error("Could not resolve contract from parameter");
+        throw new IgnitionError("Could not resolve contract from parameter");
       }
 
       address = scopeData.parameters[parameter.label] as ContractFuture;
     } else {
       if (sendTo.subtype !== "address") {
-        throw new Error(
+        throw new IgnitionError(
           `Event param "${sendTo.label}" is type "${sendTo.subtype}" but must be type "address"`
         );
       }

@@ -1,4 +1,8 @@
-import type { VertexGraph, VertexDescriptor } from "@ignored/ignition-core";
+import {
+  VertexGraph,
+  VertexDescriptor,
+  IgnitionError,
+} from "@ignored/ignition-core";
 
 export function parseType(v: VertexDescriptor): string {
   let type: string;
@@ -17,7 +21,7 @@ export function parseType(v: VertexDescriptor): string {
       type = "event";
       break;
     default:
-      throw new Error(`Unknown vertex type: ${v.type}`);
+      throw new IgnitionError(`Unknown vertex type: ${v.type}`);
   }
 
   return type;

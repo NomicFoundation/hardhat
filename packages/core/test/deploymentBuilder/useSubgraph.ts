@@ -8,6 +8,7 @@ import type {
   IDeploymentGraph,
   IDeploymentBuilder,
 } from "types/deploymentGraph";
+import { IgnitionError } from "utils/errors";
 import { isCallable } from "utils/guards";
 
 import {
@@ -37,7 +38,7 @@ describe("deployment builder - useSubgraph", () => {
         });
 
         if (!isCallable(bar)) {
-          throw new Error("Not callable");
+          throw new IgnitionError("Not callable");
         }
 
         return { foo, bar };

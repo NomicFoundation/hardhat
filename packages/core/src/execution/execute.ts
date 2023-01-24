@@ -125,7 +125,9 @@ async function executeBatch(
     .filter((v): v is ExecutionVertex => v !== undefined);
 
   if (batchVertexes.length !== batch.length) {
-    throw new Error("Unable to retrieve all vertexes while executing batch");
+    throw new IgnitionError(
+      "Unable to retrieve all vertexes while executing batch"
+    );
   }
 
   const promises = batchVertexes.map(async (vertex) => {

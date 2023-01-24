@@ -29,6 +29,7 @@ import {
   EventParamFuture,
 } from "types/future";
 import { Artifact } from "types/hardhat";
+import { IgnitionError } from "utils/errors";
 import { isBytesArg, isFuture } from "utils/guards";
 
 interface TransformContext {
@@ -69,7 +70,7 @@ export function convertDeploymentVertexToExecutionVertex(
       case "SendETH":
         return convertSendToSentETH(deploymentVertex, context);
       case "Virtual":
-        throw new Error(
+        throw new IgnitionError(
           `Virtual vertex should be removed ${deploymentVertex.id} (${deploymentVertex.label})`
         );
       default:
@@ -215,7 +216,7 @@ function assertDeploymentVertexNotExpected(
 
   const obj = typeof v === "object" && "type" in v ? v.type : v;
 
-  throw new Error(`Type not expected: ${obj}`);
+  throw new IgnitionError(`Type not expected: ${obj}`);
 }
 
 async function convertArgs(
@@ -278,11 +279,11 @@ async function resolveParameter<T extends DeploymentGraphFuture>(
   if (hasParamResult.found === false) {
     switch (hasParamResult.errorCode) {
       case "no-params":
-        throw new Error(
+        throw new IgnitionError(
           `No parameters object provided to deploy options, but module requires parameter "${arg.label}"`
         );
       case "param-missing":
-        throw new Error(`No parameter provided for "${arg.label}"`);
+        throw new IgnitionError(`No parameter provided for "${arg.label}"`);
       default:
         assertNeverParamResult(hasParamResult.errorCode);
     }
@@ -301,5 +302,5 @@ async function resolveBytesForArtifact(
 }
 
 function assertNeverParamResult(hasParamResult: never) {
-  throw new Error(`Unexpected error code ${hasParamResult}`);
+  throw new IgnitionError(`Unexpected error code ${hasParamResult}`);
 }

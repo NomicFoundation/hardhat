@@ -152,7 +152,7 @@ export class Ignition {
     );
 
     if (validationResult._kind === "failure") {
-      throw new Error(validationResult.failures[0]);
+      throw new IgnitionError(validationResult.failures[0]);
     }
 
     const transformResult = await transformDeploymentGraphToExecutionGraph(
@@ -161,7 +161,7 @@ export class Ignition {
     );
 
     if (transformResult._kind === "failure") {
-      throw new Error(transformResult.failures[0]);
+      throw new IgnitionError(transformResult.failures[0]);
     }
 
     const { executionGraph } = transformResult;
