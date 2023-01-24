@@ -42,6 +42,7 @@ import {
   verifyContract,
 } from "./etherscan/EtherscanService";
 import {
+  toCheckAddressStatusRequest,
   toCheckStatusRequest,
   toVerifyRequest,
 } from "./etherscan/EtherscanVerifyContractRequest";
@@ -471,6 +472,23 @@ async function attemptVerification(
     compilerVersion: solcFullVersion,
     constructorArguments: deployArgumentsEncoded,
   });
+
+  const prePollRequest = toCheckAddressStatusRequest({
+    apiKey: etherscanAPIKey,
+    contractAddress,
+  });
+
+  // Check if the contract is already verified
+  const preVerificationStatus = await getVerificationStatus(
+    etherscanAPIEndpoints.apiURL,
+    prePollRequest
+  );
+
+  if (preVerificationStatus.isOk()) {
+    console.log("Contract already verified");
+    return preVerificationStatus;
+  }
+
   const response = await verifyContract(etherscanAPIEndpoints.apiURL, request);
 
   console.log(

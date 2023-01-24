@@ -18,8 +18,10 @@ export interface EtherscanVerifyRequest extends EtherscanRequest {
 
 export interface EtherscanCheckStatusRequest extends EtherscanRequest {
   action: "checkverifystatus";
-  guid: string;
+  guid?: string;
+  contractAddress?: string;
 }
+
 
 export function toVerifyRequest(params: {
   apiKey: string;
@@ -52,5 +54,17 @@ export function toCheckStatusRequest(params: {
     module: "contract",
     action: "checkverifystatus",
     guid: params.guid,
+  };
+}
+
+export function toCheckAddressStatusRequest(params: {
+  apiKey: string;
+  contractAddress: string;
+}): EtherscanCheckStatusRequest {
+  return {
+    apikey: params.apiKey,
+    module: "contract",
+    action: "checkverifystatus",
+    contractAddress: params.contractAddress,
   };
 }
