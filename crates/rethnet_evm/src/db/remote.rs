@@ -12,9 +12,6 @@ pub struct RemoteDatabase {
 
 #[derive(thiserror::Error, Debug)]
 pub enum RemoteDatabaseError {
-    #[error("The requested method does not have an implementation")]
-    UnimplementedMethod(),
-
     #[error(transparent)]
     RpcError(#[from] RpcClientError),
 
@@ -49,7 +46,7 @@ impl DatabaseRef for RemoteDatabase {
 
     /// unimplemented
     fn code_by_hash(&self, _code_hash: B256) -> Result<Bytecode, Self::Error> {
-        Err(Self::Error::UnimplementedMethod())
+        unimplemented!();
     }
 
     fn storage(&self, address: Address, index: U256) -> Result<U256, Self::Error> {
