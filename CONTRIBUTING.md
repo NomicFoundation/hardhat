@@ -19,6 +19,8 @@ There are two packages:
 
 An overview of the [design of the deploy process is explained here](./docs/design.md).
 
+An outline of our plans for [distributable deployments is here](./docs/distributable-deployments.md)
+
 ## Setup
 
 Ignition is a `typescript` project managed by `npm`.
