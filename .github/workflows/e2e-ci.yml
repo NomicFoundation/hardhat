@@ -11,6 +11,8 @@ on:
   pull_request:
     branches:
       - "**"
+      - "!rethnet*/**"
+      - "!49-implement-read-only-struct-remotedatabase-for-querying-the-blockchain"
     paths:
       - "packages/e2e/**"
       - "packages/hardhat-core/**"
