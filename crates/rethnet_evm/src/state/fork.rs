@@ -1,17 +1,17 @@
 use hashbrown::HashMap;
-use revm::{db::DatabaseRef, Account, AccountInfo, Bytecode};
+use revm::primitives::{Account, AccountInfo, Bytecode};
 
 use rethnet_eth::{Address, B256, U256};
 
-use crate::db::{
-    layered_db::{LayeredDatabase, RethnetLayer},
-    remote::{RemoteDatabase, RemoteDatabaseError},
+use crate::state::{
+    layered_state::{LayeredState, RethnetLayer},
+    remote::RemoteDatabase,
 };
 
 /// A database integrating the state from a remote node and the state from a local layered
 /// database.
-pub struct ForkDatabase {
-    layered_db: LayeredDatabase<RethnetLayer>,
+pub struct ForkState {
+    layered_db: LayeredState<RethnetLayer>,
     remote_db: RemoteDatabase,
     account_info_cache: HashMap<Address, AccountInfo>,
     code_by_hash_cache: HashMap<B256, Bytecode>,
@@ -20,32 +20,12 @@ pub struct ForkDatabase {
     fork_block_state_root_cache: Option<B256>,
 }
 
-/// An error emitted by ForkDatabase
-#[derive(thiserror::Error, Debug)]
-pub enum ForkDatabaseError {
-    /// An error from the underlying RemoteDatabase
-    #[error(transparent)]
-    RemoteDatabase(#[from] RemoteDatabaseError),
-
-    /// An error from the underlying LayeredDatabase
-    #[error(transparent)]
-    LayeredDatabase(#[from] <LayeredDatabase<RethnetLayer> as revm::Database>::Error),
-
-    /// Code hash not found in cache of remote database
-    #[error("Cache of remote database does not contain contract with code hash: {0}.")]
-    NoSuchCodeHash(B256),
-
-    /// Some other error from an underlying dependency
-    #[error(transparent)]
-    OtherError(#[from] std::io::Error),
-}
-
-impl ForkDatabase {
-    /// instantiate a new ForkDatabase
+impl ForkState {
+    /// instantiate a new ForkState
     pub fn new(url: &str, fork_block_number: u64) -> Self {
         let remote_db = RemoteDatabase::new(url);
 
-        let layered_db = LayeredDatabase::<RethnetLayer>::default();
+        let layered_db = LayeredState::<RethnetLayer>::default();
 
         Self {
             layered_db,
@@ -59,23 +39,16 @@ impl ForkDatabase {
     }
 }
 
-impl revm::Database for ForkDatabase {
-    type Error = ForkDatabaseError;
+impl revm::db::State for ForkState {
+    type Error = super::StateError;
 
     fn basic(&mut self, address: Address) -> Result<Option<AccountInfo>, Self::Error> {
-        if let Some(layered) = self
-            .layered_db
-            .basic(address)
-            .map_err(ForkDatabaseError::LayeredDatabase)?
-        {
+        use revm::db::StateRef; // for basic()
+        if let Some(layered) = self.layered_db.basic(address)? {
             Ok(Some(layered))
         } else if let Some(cached) = self.account_info_cache.get(&address) {
             Ok(Some(cached.clone()))
-        } else if let Some(remote) = self
-            .remote_db
-            .basic(address)
-            .map_err(ForkDatabaseError::RemoteDatabase)?
-        {
+        } else if let Some(remote) = self.remote_db.basic(address).map_err(Self::Error::Remote)? {
             self.account_info_cache.insert(address, remote.clone());
 
             if remote.code.is_some() {
@@ -96,15 +69,13 @@ impl revm::Database for ForkDatabase {
             Ok(cached.clone())
         } else {
             // remote_db doesn't support code_by_hash, so there's no delegation to it here.
-            Err(ForkDatabaseError::NoSuchCodeHash(code_hash))
+            Err(Self::Error::InvalidCodeHash(code_hash))
         }
     }
 
     fn storage(&mut self, address: Address, index: U256) -> Result<U256, Self::Error> {
-        let layered = self
-            .layered_db
-            .storage(address, index)
-            .map_err(ForkDatabaseError::LayeredDatabase)?;
+        use revm::db::StateRef; // for storage()
+        let layered = self.layered_db.storage(address, index)?;
 
         if layered != U256::from(0) {
             Ok(layered)
@@ -114,7 +85,7 @@ impl revm::Database for ForkDatabase {
             let remote = self
                 .remote_db
                 .storage(address, index)
-                .map_err(ForkDatabaseError::RemoteDatabase)?;
+                .map_err(Self::Error::Remote)?;
 
             self.storage_cache.insert((address, index), remote);
 
@@ -123,19 +94,17 @@ impl revm::Database for ForkDatabase {
     }
 }
 
-impl revm::DatabaseCommit for ForkDatabase {
+impl revm::DatabaseCommit for ForkState {
     fn commit(&mut self, changes: HashMap<Address, Account>) {
         self.layered_db.commit(changes)
     }
 }
 
-impl crate::DatabaseDebug for ForkDatabase {
-    type Error = ForkDatabaseError;
+impl crate::state::debug::StateDebug for ForkState {
+    type Error = super::StateError;
 
     fn account_storage_root(&mut self, address: &Address) -> Result<Option<B256>, Self::Error> {
-        self.layered_db
-            .account_storage_root(address)
-            .map_err(ForkDatabaseError::LayeredDatabase)
+        self.layered_db.account_storage_root(address)
     }
 
     /// Inserts an account with the specified address.
@@ -144,32 +113,21 @@ impl crate::DatabaseDebug for ForkDatabase {
         address: Address,
         account_info: AccountInfo,
     ) -> Result<(), Self::Error> {
-        self.layered_db
-            .insert_account(address, account_info)
-            .map_err(ForkDatabaseError::LayeredDatabase)
+        self.layered_db.insert_account(address, account_info)
     }
 
     /// Modifies the account at the specified address using the provided function.
     fn modify_account(
         &mut self,
         address: Address,
-        modifier: crate::debug::ModifierFn,
+        modifier: crate::state::AccountModifierFn,
     ) -> Result<(), Self::Error> {
-        use revm::Database; // for basic()
+        use revm::db::{State, StateRef}; // for basic() (from both)
 
-        if (self
-            .layered_db
-            .basic(address)
-            .map_err(ForkDatabaseError::LayeredDatabase)?)
-        .is_none()
-        {
+        if (self.layered_db.basic(address)?).is_none() {
             let account_info = if let Some(cached) = self.account_info_cache.get(&address) {
                 Some(cached.clone())
-            } else if let Some(remote) = self
-                .remote_db
-                .basic(address)
-                .map_err(ForkDatabaseError::RemoteDatabase)?
-            {
+            } else if let Some(remote) = self.remote_db.basic(address)? {
                 self.account_info_cache.insert(address, remote.clone());
 
                 if remote.code.is_some() {
@@ -185,15 +143,12 @@ impl crate::DatabaseDebug for ForkDatabase {
                 self.layered_db.insert_account(address, account_info)?
             }
         }
-        self.layered_db
-            .modify_account(address, modifier)
-            .map_err(ForkDatabaseError::LayeredDatabase)
+        self.layered_db.modify_account(address, modifier)
     }
 
     /// Removes and returns the account at the specified address, if it exists.
     fn remove_account(&mut self, address: Address) -> Result<Option<AccountInfo>, Self::Error> {
-        crate::DatabaseDebug::remove_account(&mut self.layered_db, address)
-            .map_err(ForkDatabaseError::LayeredDatabase)
+        crate::state::StateDebug::remove_account(&mut self.layered_db, address)
     }
 
     /// Sets the storage slot at the specified address and index to the provided value.
@@ -205,48 +160,34 @@ impl crate::DatabaseDebug for ForkDatabase {
     ) -> Result<(), Self::Error> {
         self.layered_db
             .set_account_storage_slot(address, index, value)
-            .map_err(ForkDatabaseError::LayeredDatabase)
     }
 
     /// Reverts the state to match the specified state root.
     fn set_state_root(&mut self, state_root: &B256) -> Result<(), Self::Error> {
-        self.layered_db
-            .set_state_root(state_root)
-            .map_err(ForkDatabaseError::LayeredDatabase)
+        self.layered_db.set_state_root(state_root)
     }
 
     /// Retrieves the storage root of the database.
     fn state_root(&mut self) -> Result<B256, Self::Error> {
         if self.layered_db.iter().next().is_some() {
-            Ok(self
-                .layered_db
-                .state_root()
-                .map_err(ForkDatabaseError::LayeredDatabase)?)
+            Ok(self.layered_db.state_root()?)
         } else if let Some(cached) = self.fork_block_state_root_cache {
             Ok(cached)
         } else {
-            self.fork_block_state_root_cache = Some(
-                self.remote_db
-                    .state_root(self.fork_block_number)
-                    .map_err(ForkDatabaseError::RemoteDatabase)
-                    .map_err(|e| anyhow::anyhow!(e))?,
-            );
+            self.fork_block_state_root_cache =
+                Some(self.remote_db.state_root(self.fork_block_number)?);
             Ok(self.fork_block_state_root_cache.unwrap())
         }
     }
 
     /// Creates a checkpoint that can be reverted to using [`revert`].
     fn checkpoint(&mut self) -> Result<(), Self::Error> {
-        self.layered_db
-            .checkpoint()
-            .map_err(ForkDatabaseError::LayeredDatabase)
+        self.layered_db.checkpoint()
     }
 
     /// Reverts to the previous checkpoint, created using [`checkpoint`].
     fn revert(&mut self) -> Result<(), Self::Error> {
-        self.layered_db
-            .revert()
-            .map_err(ForkDatabaseError::LayeredDatabase)
+        self.layered_db.revert()
     }
 
     /// Makes a snapshot of the database that's retained until [`remove_snapshot`] is called. Returns the snapshot's identifier.
@@ -278,12 +219,12 @@ mod tests {
     fn basic_success() {
         let dai_address = Address::from_str("0x6b175474e89094c44da98b954eedeac495271d0f")
             .expect("failed to parse address");
-        let mut fork_db = ForkDatabase::new(
+        let mut fork_db = ForkState::new(
             &get_alchemy_url().expect("failed to get alchemy url"),
             16220843,
         );
         let account_info =
-            revm::Database::basic(&mut fork_db, dai_address).expect("should have succeeded");
+            revm::db::State::basic(&mut fork_db, dai_address).expect("should have succeeded");
 
         assert!(account_info.is_some());
         let account_info = account_info.unwrap();

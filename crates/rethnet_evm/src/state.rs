@@ -1,4 +1,5 @@
 mod debug;
+mod fork;
 mod layered_state;
 mod remote;
 mod request;
@@ -8,6 +9,7 @@ use rethnet_eth::B256;
 
 pub use self::{
     debug::{AccountModifierFn, StateDebug},
+    fork::ForkState,
     layered_state::{LayeredState, RethnetLayer},
     remote::RemoteDatabase,
     sync::{AsyncState, SyncState},
@@ -25,4 +27,10 @@ pub enum StateError {
     /// Specified state root does not exist
     #[error("State root `{0}` does not exist.")]
     InvalidStateRoot(B256),
+    /// Error from the underlying remote state
+    #[error(transparent)]
+    Remote(#[from] remote::RemoteDatabaseError),
+    /// Some other error from an underlying dependency
+    #[error(transparent)]
+    Other(#[from] std::io::Error),
 }

@@ -3,11 +3,11 @@ use std::sync::{
     Arc,
 };
 
-use napi::{bindgen_prelude::*, JsFunction, JsObject, NapiRaw, Status};
+use napi::{bindgen_prelude::*, JsFunction, JsNumber, JsObject, JsString, NapiRaw, Status};
 use napi_derive::napi;
 use rethnet_eth::{signature::private_key_to_address, Address, B256, U256};
 use rethnet_evm::{
-    state::{AsyncState, LayeredState, RethnetLayer, StateDebug, StateError, SyncState},
+    state::{AsyncState, ForkState, LayeredState, RethnetLayer, StateDebug, StateError, SyncState},
     AccountInfo, Bytecode, HashMap, KECCAK_EMPTY,
 };
 use secp256k1::Secp256k1;
@@ -98,6 +98,18 @@ impl StateManager {
         Ok(Self {
             state: Arc::new(state),
         })
+    }
+
+    /// Constructs a [`StateManager`] that uses the remote node and block number as the basis for
+    /// its state.
+    #[napi(factory)]
+    pub fn with_fork(remote_node_url: JsString, fork_block_number: JsNumber) -> napi::Result<Self> {
+        let fork_block_number: i64 = fork_block_number.try_into()?;
+        Self::with_state(ForkState::new(
+            remote_node_url.into_utf8()?.as_str()?,
+            u64::try_from(fork_block_number)
+                .expect("couldn't safely convert fork_block_number to u64"),
+        ))
     }
 
     /// Creates a state checkpoint that can be reverted to using [`revert`].
