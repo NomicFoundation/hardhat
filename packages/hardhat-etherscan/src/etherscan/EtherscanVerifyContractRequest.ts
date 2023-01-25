@@ -22,7 +22,6 @@ export interface EtherscanCheckStatusRequest extends EtherscanRequest {
   contractAddress?: string;
 }
 
-
 export function toVerifyRequest(params: {
   apiKey: string;
   contractAddress: string;
