@@ -3,11 +3,11 @@ use std::sync::{
     Arc,
 };
 
-use napi::{bindgen_prelude::*, JsFunction, JsObject, NapiRaw, Status};
+use napi::{bindgen_prelude::*, JsFunction, JsNumber, JsObject, JsString, NapiRaw, Status};
 use napi_derive::napi;
 use rethnet_eth::{Address, B256, U256};
 use rethnet_evm::{
-    db::{AsyncDatabase, LayeredDatabase, RethnetLayer, SyncDatabase},
+    db::{AsyncDatabase, ForkDatabase, LayeredDatabase, RethnetLayer, SyncDatabase},
     AccountInfo, Bytecode, DatabaseDebug, HashMap,
 };
 use secp256k1::Secp256k1;
@@ -84,6 +84,16 @@ impl StateManager {
             .map_err(|e| napi::Error::new(Status::GenericFailure, e.to_string()))?;
 
         Ok(Self { db: Arc::new(db) })
+    }
+
+    #[napi(factory)]
+    pub fn with_fork(remote_node_url: JsString, fork_block_number: JsNumber) -> napi::Result<Self> {
+        let fork_block_number: i64 = fork_block_number.try_into()?;
+        Self::with_db(ForkDatabase::new(
+            remote_node_url.into_utf8()?.as_str()?,
+            u64::try_from(fork_block_number)
+                .expect("couldn't safely convert fork_block_number to u64"),
+        ))
     }
 
     #[napi]
