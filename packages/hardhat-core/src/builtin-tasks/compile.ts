@@ -94,7 +94,7 @@ function isConsoleLogError(error: any): boolean {
   return (
     error.type === "TypeError" &&
     typeof error.message === "string" &&
-    error.message.includes("log") &&
+    error.message.includes("log") === true &&
     error.message.includes("type(library console)")
   );
 }
