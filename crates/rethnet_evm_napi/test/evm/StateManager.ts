@@ -11,10 +11,23 @@ describe("State Manager", () => {
     "0x70997970C51812dc3A010C7d01b50e0d17dc79C8"
   );
 
+  const stateManagers = [{name: "default", getStateManager: () => new StateManager()}];
+
+  const alchemyUrl = process.env.ALCHEMY_URL;
+  if (alchemyUrl === undefined) {
+    console.log("WARNING: skipping fork tests because the ALCHEMY_URL environment variable is undefined");
+  } else {
+    stateManagers.push(
+      {name: "fork", getStateManager: () => StateManager.withFork(alchemyUrl, 16220843)}
+    );
+  }
+
+  for (const {name, getStateManager} of stateManagers) {
+    describe(`With the ${name} StateManager`, () => {
   let stateManager: StateManager;
 
   beforeEach(function () {
-    stateManager = new StateManager();
+    stateManager = getStateManager();
   });
 
   // TODO: insertBlock, setAccountCode, setAccountStorageSlot
@@ -82,4 +95,6 @@ describe("State Manager", () => {
     expect(account?.balance).to.equal(0n);
     expect(account?.nonce).to.equal(5n);
   });
+    });
+  }
 });

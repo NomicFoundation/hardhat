@@ -23,6 +23,24 @@ describe("Rethnet", () => {
   let stateManager: StateManager;
   let rethnet: Rethnet;
 
+  const stateManagers = [
+    { name: "default", getStateManager: () => new StateManager() }
+  ];
+
+  const alchemyUrl = process.env.ALCHEMY_URL;
+  if (alchemyUrl === undefined) {
+    console.log(
+      "WARNING: skipping fork tests because the ALCHEMY_URL environment variable is undefined"
+    );
+  } else {
+    stateManagers.push({
+        name: "fork",
+        getStateManager: () => StateManager.withFork(alchemyUrl, 16220843),
+    });
+  }
+
+  for (const {name, getStateManager} of stateManagers) {
+    describe(`With the ${name} StateManager`, () => {
   beforeEach(async function () {
     blockchain = new Blockchain(async function (
       _blockNumber: bigint
@@ -30,7 +48,7 @@ describe("Rethnet", () => {
       return Buffer.allocUnsafe(0);
     });
 
-    stateManager = new StateManager();
+    stateManager = getStateManager();
 
     const cfg: Config = {
       chainId: BigInt(0),
@@ -93,4 +111,6 @@ describe("Rethnet", () => {
       "0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470"
     );
   });
+    });
+  }
 });
