@@ -694,6 +694,14 @@ const communityPlugins: IPlugin[] = [
     description: "Export flat contract on compilation via Hardhat.",
     tags: ["Flatten", "Smart contract", "Solidity", "Deployment"],
   },
+  {
+    name: "@dlsl/hardhat-markup",
+    author: "Distributed Lab",
+    authorUrl: "https://distributedlab.com/",
+    description:
+      "Hardhat plugin to generate customizable smart contracts documentation",
+    tags: ["Documentation", "NatSpec", "Markdown"],
+  },
 ];
 
 const officialPlugins: IPlugin[] = [
