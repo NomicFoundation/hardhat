@@ -3,7 +3,7 @@ import { Account, Address } from "@nomicfoundation/ethereumjs-util";
 import { TypedTransaction } from "@nomicfoundation/ethereumjs-tx";
 import { BlockBuilder, Blockchain, Rethnet } from "rethnet-evm";
 
-import { NodeConfig } from "../node-types";
+import { isForkedNodeConfig, NodeConfig } from "../node-types";
 import {
   ethereumjsHeaderDataToRethnet,
   ethereumjsTransactionToRethnet,
@@ -33,6 +33,11 @@ export class RethnetAdapter implements VMAdapter {
     selectHardfork: (blockNumber: bigint) => string,
     getBlockHash: (blockNumber: bigint) => Promise<Buffer>
   ): Promise<RethnetAdapter> {
+    if (isForkedNodeConfig(config)) {
+      // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
+      throw new Error("Forking is not supported for Rethnet yet");
+    }
+
     const blockchain = new Blockchain(getBlockHash);
 
     const limitContractCodeSize =
