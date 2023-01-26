@@ -110,7 +110,7 @@ m.call(uniswap, "swap", { ... })
 To allow you to use your own mechanism for getting the contract artifact, `contract` supports passing an `Artifact` as an optional second parameter:
 
 ```javascript
-const artifact = await this.hre.artifacts.readArtifact("Foo");
+const artifact = hre.artifacts.readArtifactSync("Foo");
 
 const userModule = buildModule("MyModule", (m) => {
   m.contract("Foo", artifact, {
