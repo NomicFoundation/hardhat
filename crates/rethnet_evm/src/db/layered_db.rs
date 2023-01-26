@@ -5,7 +5,11 @@ use rethnet_eth::{
     trie::KECCAK_NULL_RLP,
     Address, B256, U256,
 };
-use revm::{db::State, Account, AccountInfo, Bytecode, DatabaseCommit, KECCAK_EMPTY};
+use revm::{
+    db::State,
+    primitives::{Account, AccountInfo, Bytecode, KECCAK_EMPTY},
+    DatabaseCommit,
+};
 
 use crate::StateDebug;
 

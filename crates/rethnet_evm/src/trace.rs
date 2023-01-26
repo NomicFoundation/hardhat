@@ -1,5 +1,5 @@
 use rethnet_eth::Bytes;
-use revm::{Gas, InstructionResult};
+use revm::interpreter::{Gas, InstructionResult};
 
 /// A trace for an EVM call.
 #[derive(Default)]

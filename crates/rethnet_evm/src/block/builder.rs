@@ -5,8 +5,8 @@ use rethnet_eth::{
     Address, U256,
 };
 use revm::{
-    db::DatabaseComponentError, BlockEnv, CfgEnv, EVMError, ExecutionResult, InvalidTransaction,
-    SpecId, TxEnv,
+    db::DatabaseComponentError,
+    primitives::{BlockEnv, CfgEnv, EVMError, ExecutionResult, InvalidTransaction, SpecId, TxEnv},
 };
 use tokio::runtime::Runtime;
 

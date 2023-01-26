@@ -9,7 +9,11 @@ use rethnet_eth::{
     },
     Address, Bloom, Bytes, B256, U256,
 };
-use revm::{db::DatabaseComponentError, EVMError, InvalidTransaction};
+use revm::{
+    db::DatabaseComponentError,
+    interpreter::InstructionResult,
+    primitives::{CreateScheme, EVMError, InvalidTransaction, TransactTo, TxEnv},
+};
 
 /// Invalid transaction error
 #[derive(Debug, thiserror::Error)]
@@ -51,7 +55,7 @@ pub struct TransactionInfo {
     pub logs: Vec<Log>,
     pub logs_bloom: Bloom,
     // pub traces: todo!(),
-    pub exit: revm::InstructionResult,
+    pub exit: InstructionResult,
     pub out: Option<Bytes>,
 }
 
@@ -78,12 +82,12 @@ impl PendingTransaction {
     }
 }
 
-impl From<PendingTransaction> for revm::TxEnv {
+impl From<PendingTransaction> for TxEnv {
     fn from(transaction: PendingTransaction) -> Self {
-        fn transact_to(kind: TransactionKind) -> revm::TransactTo {
+        fn transact_to(kind: TransactionKind) -> TransactTo {
             match kind {
-                TransactionKind::Call(address) => revm::TransactTo::Call(address),
-                TransactionKind::Create => revm::TransactTo::Create(revm::CreateScheme::Create),
+                TransactionKind::Call(address) => TransactTo::Call(address),
+                TransactionKind::Create => TransactTo::Create(CreateScheme::Create),
             }
         }
 

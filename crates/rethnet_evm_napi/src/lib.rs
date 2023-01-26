@@ -275,8 +275,7 @@ pub struct SuccessResult {
 #[napi(object)]
 pub struct RevertResult {
     pub gas_used: BigInt,
-    pub logs: Vec<Log>,
-    pub return_value: Buffer,
+    pub output: Buffer,
 }
 
 /// Indicates that the EVM has experienced an exceptional halt. This causes execution to
@@ -367,19 +366,10 @@ impl From<(rethnet_evm::ExecutionResult, rethnet_evm::trace::Trace)> for Executi
                     },
                 })
             }
-            rethnet_evm::ExecutionResult::Revert {
-                gas_used,
-                logs,
-                return_value,
-            } => {
-                let logs = logs.into_iter().map(Log::from).collect();
-
-                Either3::B(RevertResult {
-                    gas_used: BigInt::from(gas_used),
-                    logs,
-                    return_value: Buffer::from(return_value.as_ref()),
-                })
-            }
+            rethnet_evm::ExecutionResult::Revert { gas_used, output } => Either3::B(RevertResult {
+                gas_used: BigInt::from(gas_used),
+                output: Buffer::from(output.as_ref()),
+            }),
             rethnet_evm::ExecutionResult::Halt { reason, gas_used } => Either3::C(HaltResult {
                 reason: reason.into(),
                 gas_used: BigInt::from(gas_used),

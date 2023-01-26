@@ -173,7 +173,7 @@ export function rethnetResultToRunTxResult(
     : new Exit(ExitCode.REVERT);
 
   const returnValue = isRevertResult(rethnetResult.result)
-    ? rethnetResult.result.returnValue
+    ? rethnetResult.result.output
     : isSuccessResult(rethnetResult.result)
     ? rethnetResult.result.output.returnValue
     : Buffer.from([]);
@@ -194,7 +194,7 @@ export function rethnetResultToRunTxResult(
       status: exit.isError() ? 0 : 1,
       cumulativeBlockGasUsed: blockGasUsed + rethnetResult.result.gasUsed,
       bitvector: bloom.bitvector,
-      logs: !isHaltResult(rethnetResult.result)
+      logs: isSuccessResult(rethnetResult.result)
         ? rethnetResult.result.logs.map((log) => {
             return [log.address, log.topics, log.data];
           })

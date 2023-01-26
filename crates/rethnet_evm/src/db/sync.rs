@@ -2,7 +2,11 @@ use std::{fmt::Debug, io};
 
 use hashbrown::HashMap;
 use rethnet_eth::{Address, B256, U256};
-use revm::{db::State, Account, AccountInfo, Bytecode, DatabaseCommit};
+use revm::{
+    db::State,
+    primitives::{Account, AccountInfo, Bytecode},
+    DatabaseCommit,
+};
 use tokio::{
     runtime::{Builder, Runtime},
     sync::{

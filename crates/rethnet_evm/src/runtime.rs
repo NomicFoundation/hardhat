@@ -1,6 +1,6 @@
 use std::{fmt::Debug, sync::Arc};
 
-use revm::{BlockEnv, CfgEnv, ExecutionResult, SpecId, TxEnv};
+use revm::primitives::{BlockEnv, CfgEnv, ExecutionResult, SpecId, TxEnv};
 
 use crate::{
     blockchain::AsyncBlockchain, db::AsyncState, evm::run_transaction, trace::Trace,

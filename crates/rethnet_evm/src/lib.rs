@@ -8,8 +8,10 @@ pub use hashbrown::HashMap;
 pub use revm::{
     db::EmptyDB,
     db::{BlockHash, BlockHashRef},
-    Account, AccountInfo, BlockEnv, Bytecode, CfgEnv, CreateScheme, Database, DatabaseCommit, Eval,
-    ExecutionResult, Halt, Log, Output, ResultAndState, SpecId, State, TransactTo, TxEnv, EVM,
+    primitives::{
+        Account, AccountInfo, BlockEnv, Bytecode, CfgEnv, CreateScheme, Eval, ExecutionResult,
+        Halt, Log, Output, ResultAndState, SpecId, State, TransactTo, TxEnv,
+    },
 };
 
 pub use crate::{

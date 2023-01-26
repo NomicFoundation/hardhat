@@ -1,6 +1,6 @@
 use auto_impl::auto_impl;
 use rethnet_eth::{Address, B256, U256};
-use revm::{AccountInfo, Bytecode};
+use revm::primitives::{AccountInfo, Bytecode};
 
 pub type ModifierFn = Box<dyn Fn(&mut U256, &mut u64, &mut Option<Bytecode>) + Send>;
 

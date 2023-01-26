@@ -529,18 +529,6 @@ export class EthereumJSAdapter implements VMAdapter {
 
   private _afterMessageHandler = (result: EVMResult, next: any) => {
     if (this._tracingCallbacks !== undefined) {
-      const getLogs = () => {
-        return (
-          result.execResult.logs?.map((log) => {
-            return {
-              address: log[0],
-              topics: log[1],
-              data: log[2],
-            };
-          }) ?? []
-        );
-      };
-
       const gasUsed = result.execResult.executionGasUsed;
 
       let executionResult;
@@ -555,7 +543,14 @@ export class EthereumJSAdapter implements VMAdapter {
           reason,
           gasUsed,
           gasRefunded: result.execResult.gasRefund ?? 0n,
-          logs: getLogs(),
+          logs:
+            result.execResult.logs?.map((log) => {
+              return {
+                address: log[0],
+                topics: log[1],
+                data: log[2],
+              };
+            }) ?? [],
           output:
             result.createdAddress === undefined
               ? {
@@ -569,8 +564,7 @@ export class EthereumJSAdapter implements VMAdapter {
       } else if (result.execResult.exceptionError.error === ERROR.REVERT) {
         executionResult = {
           gasUsed,
-          logs: getLogs(),
-          returnValue: result.execResult.returnValue,
+          output: result.execResult.returnValue,
         };
       } else {
         const vmError = Exit.fromEthereumJSEvmError(

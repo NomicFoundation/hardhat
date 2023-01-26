@@ -2,7 +2,7 @@ use std::{fmt::Debug, sync::Arc};
 
 use revm::{
     db::{DatabaseComponentError, DatabaseComponents},
-    BlockEnv, CfgEnv, EVMError, ExecutionResult, ResultAndState, State, TxEnv,
+    primitives::{BlockEnv, CfgEnv, EVMError, ExecutionResult, ResultAndState, State, TxEnv},
 };
 use tokio::{runtime::Runtime, task::JoinHandle};
 

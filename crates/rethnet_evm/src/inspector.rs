@@ -1,4 +1,7 @@
-use revm::{opcode, Database, EVMData, Inspector, InstructionResult, Interpreter};
+use revm::{
+    interpreter::{opcode, InstructionResult, Interpreter},
+    Database, EVMData, Inspector,
+};
 
 use crate::trace::Trace;
 
