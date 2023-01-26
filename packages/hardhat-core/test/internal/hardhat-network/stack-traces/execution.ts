@@ -11,11 +11,10 @@ import abi from "ethereumjs-abi";
 import { HardhatBlockchain } from "../../../../src/internal/hardhat-network/provider/HardhatBlockchain";
 
 import { VMAdapter } from "../../../../src/internal/hardhat-network/provider/vm/vm-adapter";
-import { DualModeAdapter } from "../../../../src/internal/hardhat-network/provider/vm/dual";
 import { MessageTrace } from "../../../../src/internal/hardhat-network/stack-traces/message-trace";
-import { VMTracer } from "../../../../src/internal/hardhat-network/stack-traces/vm-tracer";
 import { defaultHardhatNetworkParams } from "../../../../src/internal/core/config/default-config";
 import { BlockBuilder } from "../../../../src/internal/hardhat-network/provider/vm/block-builder";
+import { createVm } from "../../../../src/internal/hardhat-network/provider/vm/creation";
 
 const senderPrivateKey = Buffer.from(
   "e331b6d69882b4cb4ea581d88e0b604039a3de5967688d3dcffdd2270c0fd109",
@@ -36,7 +35,7 @@ export async function instantiateVm(): Promise<[VMAdapter, Common]> {
     })
   );
 
-  const vm = await DualModeAdapter.create(
+  const vm = await createVm(
     common,
     blockchain,
     {
@@ -106,10 +105,6 @@ export async function traceTransaction(
 
   const signedTx = tx.sign(senderPrivateKey);
 
-  const vmTracer = new VMTracer(vm as any, common);
-  // TODO adapt this part of the tests
-  // vmTracer.enableTracing();
-
   try {
     const blockBuilder = new BlockBuilder(vm, common, {
       parentBlock: Block.fromBlockData(
@@ -127,14 +122,13 @@ export async function traceTransaction(
     await blockBuilder.addRewards([]);
     await blockBuilder.seal();
 
-    const messageTrace = vmTracer.getLastTopLevelMessageTrace();
-    if (messageTrace === undefined) {
-      const lastError = vmTracer.getLastError();
-      throw lastError ?? new Error("Cannot get last top level message trace");
+    const { trace, error } = vm.getLastTrace();
+    if (trace === undefined) {
+      throw error ?? new Error("Cannot get last top level message trace");
     }
-    return messageTrace;
+    return trace;
   } finally {
-    // vmTracer.disableTracing();
+    vm.clearLastError();
   }
 }
 
