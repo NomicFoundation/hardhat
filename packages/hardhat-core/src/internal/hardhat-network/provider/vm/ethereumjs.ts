@@ -58,7 +58,7 @@ export class EthereumJSAdapter implements VMAdapter {
     private readonly _forkNetworkId?: number,
     private readonly _forkBlockNumber?: bigint
   ) {
-    this._vmTracer = new VMTracer(this, _common, false);
+    this._vmTracer = new VMTracer(_common, false);
 
     assertHardhatInvariant(
       this._vm.evm.events !== undefined,
@@ -489,11 +489,16 @@ export class EthereumJSAdapter implements VMAdapter {
 
   private _beforeMessageHandler = async (message: Message, next: any) => {
     try {
+      const code =
+        message.to !== undefined
+          ? await this.getContractCode(message.codeAddress)
+          : undefined;
       await this._vmTracer.addBeforeMessage({
         ...message,
         to: message.to?.toBuffer(),
         codeAddress:
           message.to !== undefined ? message.codeAddress.toBuffer() : undefined,
+        code,
       });
 
       return next();

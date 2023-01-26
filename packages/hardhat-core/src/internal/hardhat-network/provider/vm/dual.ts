@@ -70,8 +70,8 @@ export class DualModeAdapter implements VMAdapter {
       common
     );
 
-    const ethereumJSVMTracer = new VMTracer(ethereumJSAdapter, common, false);
-    const rethnetVMTracer = new VMTracer(rethnetAdapter, common, false);
+    const ethereumJSVMTracer = new VMTracer(common, false);
+    const rethnetVMTracer = new VMTracer(common, false);
 
     return new DualModeAdapter(
       ethereumJSAdapter,

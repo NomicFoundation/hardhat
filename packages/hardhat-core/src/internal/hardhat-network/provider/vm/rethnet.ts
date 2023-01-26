@@ -41,7 +41,7 @@ export class RethnetAdapter implements VMAdapter {
     private readonly _selectHardfork: (blockNumber: bigint) => string,
     common: Common
   ) {
-    this._vmTracer = new VMTracer(this, common, false);
+    this._vmTracer = new VMTracer(common, false);
   }
 
   public static async create(
