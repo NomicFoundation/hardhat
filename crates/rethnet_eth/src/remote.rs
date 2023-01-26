@@ -393,24 +393,23 @@ impl RpcClient {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-
     use std::str::FromStr;
 
     use crate::{Address, Bytes, U256};
 
-    fn get_alchemy_url() -> Result<String, String> {
-        Ok(std::env::var_os("ALCHEMY_URL")
+    use super::*;
+
+    fn get_alchemy_url() -> String {
+        std::env::var_os("ALCHEMY_URL")
             .expect("ALCHEMY_URL environment variable not defined")
             .into_string()
-            .expect("couldn't convert OsString into a String"))
+            .expect("Couldn't convert OsString into a String")
     }
 
+    #[test_with::env(ALCHEMY_URL)]
     #[tokio::test]
     async fn get_tx_by_hash_success() {
-        use std::str::FromStr;
-
-        let alchemy_url = get_alchemy_url().expect("failed to get Alchemy URL");
+        let alchemy_url = get_alchemy_url();
 
         let hash =
             B256::from_str("0xc008e9f9bb92057dd0035496fbf4fb54f66b4b18b370928e46d6603933054d5a")
@@ -493,6 +492,7 @@ mod tests {
         );
     }
 
+    #[test_with::env(ALCHEMY_URL)]
     #[tokio::test]
     async fn get_tx_by_hash_dns_error() {
         let alchemy_url = "https://xxxeth-mainnet.g.alchemy.com";
@@ -513,6 +513,7 @@ mod tests {
         assert!(error_string.contains("dns error"));
     }
 
+    #[test_with::env(ALCHEMY_URL)]
     #[tokio::test]
     async fn get_tx_by_hash_bad_api_key() {
         let alchemy_url = "https://eth-mainnet.g.alchemy.com/v2/abcdefg";
@@ -534,9 +535,10 @@ mod tests {
         assert!(error_string.contains("Must be authenticated!"));
     }
 
+    #[test_with::env(ALCHEMY_URL)]
     #[tokio::test]
     async fn get_tx_receipt_success() {
-        let alchemy_url = get_alchemy_url().expect("failed to get Alchemy URL");
+        let alchemy_url = get_alchemy_url();
 
         let hash =
             B256::from_str("0xc008e9f9bb92057dd0035496fbf4fb54f66b4b18b370928e46d6603933054d5a")
@@ -593,6 +595,7 @@ mod tests {
         assert_eq!(receipt.transaction_type, Some(0));
     }
 
+    #[test_with::env(ALCHEMY_URL)]
     #[tokio::test]
     async fn get_tx_receipt_dns_error() {
         let alchemy_url = "https://xxxeth-mainnet.g.alchemy.com";
@@ -613,6 +616,7 @@ mod tests {
         assert!(error_string.contains("dns error"));
     }
 
+    #[test_with::env(ALCHEMY_URL)]
     #[tokio::test]
     async fn get_tx_receipt_bad_api_key() {
         let alchemy_url = "https://eth-mainnet.g.alchemy.com/v2/abcdefg";
@@ -634,9 +638,10 @@ mod tests {
         assert!(error_string.contains("Must be authenticated!"));
     }
 
+    #[test_with::env(ALCHEMY_URL)]
     #[tokio::test]
     async fn get_logs_success() {
-        let alchemy_url = get_alchemy_url().expect("failed to get Alchemy URL");
+        let alchemy_url = get_alchemy_url();
         let logs = RpcClient::new(&alchemy_url)
             .get_logs(
                 10496585,
@@ -651,9 +656,10 @@ mod tests {
         // TODO: consider asserting something about the logs bloom
     }
 
+    #[test_with::env(ALCHEMY_URL)]
     #[tokio::test]
     async fn get_block_by_hash_success() {
-        let alchemy_url = get_alchemy_url().expect("failed to get Alchemy URL");
+        let alchemy_url = get_alchemy_url();
 
         let hash =
             B256::from_str("0x71d5e7c8ff9ea737034c16e333a75575a4a94d29482e0c2b88f0a6a8369c1812")
@@ -668,9 +674,10 @@ mod tests {
         assert_eq!(block.transactions.len(), 192);
     }
 
+    #[test_with::env(ALCHEMY_URL)]
     #[tokio::test]
     async fn get_block_by_number_success() {
-        let alchemy_url = get_alchemy_url().expect("failed to get Alchemy URL");
+        let alchemy_url = get_alchemy_url();
 
         let block_number = 16222385;
 
@@ -683,9 +690,10 @@ mod tests {
         assert_eq!(block.transactions.len(), 102);
     }
 
+    #[test_with::env(ALCHEMY_URL)]
     #[tokio::test]
     async fn get_storage_at_with_block_success() {
-        let alchemy_url = get_alchemy_url().expect("failed to get Alchemy URL");
+        let alchemy_url = get_alchemy_url();
 
         let dai_address = Address::from_str("0x6b175474e89094c44da98b954eedeac495271d0f")
             .expect("failed to parse address");
@@ -713,9 +721,10 @@ mod tests {
         );
     }
 
+    #[test_with::env(ALCHEMY_URL)]
     #[tokio::test]
     async fn get_storage_at_success() {
-        let alchemy_url = get_alchemy_url().expect("failed to get Alchemy URL");
+        let alchemy_url = get_alchemy_url();
 
         let dai_address = Address::from_str("0x6b175474e89094c44da98b954eedeac495271d0f")
             .expect("failed to parse address");
@@ -736,9 +745,10 @@ mod tests {
         assert!(total_supply > U256::from(0));
     }
 
+    #[test_with::env(ALCHEMY_URL)]
     #[tokio::test]
     async fn get_transaction_count_success() {
-        let alchemy_url = get_alchemy_url().expect("failed to get Alchemy URL");
+        let alchemy_url = get_alchemy_url();
 
         let dai_address = Address::from_str("0x6b175474e89094c44da98b954eedeac495271d0f")
             .expect("failed to parse address");
@@ -751,9 +761,10 @@ mod tests {
         assert_eq!(transaction_count, U256::from(1));
     }
 
+    #[test_with::env(ALCHEMY_URL)]
     #[tokio::test]
     async fn get_account_info_with_block_success() {
-        let alchemy_url = get_alchemy_url().expect("failed to get Alchemy URL");
+        let alchemy_url = get_alchemy_url();
 
         let dai_address = Address::from_str("0x6b175474e89094c44da98b954eedeac495271d0f")
             .expect("failed to parse address");
@@ -767,9 +778,10 @@ mod tests {
         assert_eq!(account_info.nonce, 1);
     }
 
+    #[test_with::env(ALCHEMY_URL)]
     #[tokio::test]
     async fn get_account_info_success() {
-        let alchemy_url = get_alchemy_url().expect("failed to get Alchemy URL");
+        let alchemy_url = get_alchemy_url();
 
         let dai_address = Address::from_str("0x6b175474e89094c44da98b954eedeac495271d0f")
             .expect("failed to parse address");
