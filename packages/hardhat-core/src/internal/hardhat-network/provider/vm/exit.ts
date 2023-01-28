@@ -9,6 +9,7 @@ export enum ExitCode {
   INTERNAL_ERROR,
   INVALID_OPCODE,
   CODESIZE_EXCEEDS_MAXIMUM,
+  CREATE_COLLISION,
 }
 
 export class Exit {
@@ -30,6 +31,9 @@ export class Exit {
       case ExceptionalHalt.OpcodeNotFound:
       case ExceptionalHalt.InvalidFEOpcode:
         return new Exit(ExitCode.INVALID_OPCODE);
+
+      case ExceptionalHalt.CreateCollision:
+        return new Exit(ExitCode.CREATE_COLLISION);
 
       case ExceptionalHalt.CreateContractSizeLimit:
         return new Exit(ExitCode.CODESIZE_EXCEEDS_MAXIMUM);
@@ -67,9 +71,13 @@ export class Exit {
       return new Exit(ExitCode.CODESIZE_EXCEEDS_MAXIMUM);
     }
 
+    if (evmError.error === ERROR.CREATE_COLLISION) {
+      return new Exit(ExitCode.CREATE_COLLISION);
+    }
+
     // TODO temporary, should be removed in production
     // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
-    throw new Error(`Unmatched rethnet exit code: ${evmError.error}`);
+    throw new Error(`Unmatched evm error: ${evmError.error}`);
   }
 
   constructor(public kind: ExitCode) {}
@@ -92,6 +100,8 @@ export class Exit {
         return "Invalid opcode";
       case ExitCode.CODESIZE_EXCEEDS_MAXIMUM:
         return "Codesize exceeds maximum";
+      case ExitCode.CREATE_COLLISION:
+        return "Create collision";
     }
 
     const _exhaustiveCheck: never = this.kind;
@@ -111,6 +121,8 @@ export class Exit {
         return new EvmError(ERROR.INVALID_OPCODE);
       case ExitCode.CODESIZE_EXCEEDS_MAXIMUM:
         return new EvmError(ERROR.CODESIZE_EXCEEDS_MAXIMUM);
+      case ExitCode.CREATE_COLLISION:
+        return new EvmError(ERROR.CREATE_COLLISION);
     }
 
     const _exhaustiveCheck: never = this.kind;

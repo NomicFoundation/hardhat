@@ -7,11 +7,13 @@ use rethnet_eth::{
 use revm::{
     db::DatabaseComponentError,
     primitives::{BlockEnv, CfgEnv, EVMError, ExecutionResult, InvalidTransaction, SpecId, TxEnv},
+    Inspector,
 };
 use tokio::runtime::Runtime;
 
 use crate::{
-    blockchain::AsyncBlockchain, db::AsyncState, evm::run_transaction, trace::Trace, HeaderData,
+    blockchain::AsyncBlockchain, evm::run_transaction, runtime::AsyncDatabase, state::AsyncState,
+    trace::Trace, HeaderData,
 };
 
 #[derive(Debug, thiserror::Error)]
@@ -114,6 +116,7 @@ where
     pub async fn add_transaction(
         &mut self,
         transaction: TxEnv,
+        inspector: Option<Box<dyn Inspector<AsyncDatabase<BE, SE>> + Send>>,
     ) -> Result<(ExecutionResult, Trace), BlockTransactionError<BE, SE>> {
         //  transaction's gas limit cannot be greater than the remaining gas in the block
         if U256::from(transaction.gas_limit) > self.gas_remaining() {
@@ -142,6 +145,7 @@ where
             self.cfg.clone(),
             transaction,
             block,
+            inspector,
         )
         .await
         .unwrap()?;

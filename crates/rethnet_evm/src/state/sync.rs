@@ -3,7 +3,7 @@ use std::{fmt::Debug, io};
 use hashbrown::HashMap;
 use rethnet_eth::{Address, B256, U256};
 use revm::{
-    db::State,
+    db::{State, StateRef},
     primitives::{Account, AccountInfo, Bytecode},
     DatabaseCommit,
 };
@@ -290,30 +290,30 @@ where
     }
 }
 
-impl<'d, E> State for &'d AsyncState<E>
+impl<E> StateRef for AsyncState<E>
 where
     E: Debug + Send + 'static,
 {
     type Error = E;
 
-    fn basic(&mut self, address: Address) -> Result<Option<AccountInfo>, Self::Error> {
+    fn basic(&self, address: Address) -> Result<Option<AccountInfo>, Self::Error> {
         task::block_in_place(move || {
             self.runtime
-                .block_on(AsyncState::account_by_address(*self, address))
+                .block_on(AsyncState::account_by_address(self, address))
         })
     }
 
-    fn code_by_hash(&mut self, code_hash: B256) -> Result<Bytecode, Self::Error> {
+    fn code_by_hash(&self, code_hash: B256) -> Result<Bytecode, Self::Error> {
         task::block_in_place(move || {
             self.runtime
-                .block_on(AsyncState::code_by_hash(*self, code_hash))
+                .block_on(AsyncState::code_by_hash(self, code_hash))
         })
     }
 
-    fn storage(&mut self, address: Address, index: U256) -> Result<U256, Self::Error> {
+    fn storage(&self, address: Address, index: U256) -> Result<U256, Self::Error> {
         task::block_in_place(move || {
             self.runtime
-                .block_on(AsyncState::account_storage_slot(*self, address, index))
+                .block_on(AsyncState::account_storage_slot(self, address, index))
         })
     }
 }

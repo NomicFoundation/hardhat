@@ -7,6 +7,7 @@ mod state;
 mod sync;
 mod threadsafe_function;
 mod trace;
+mod tracer;
 mod transaction;
 
 use std::{fmt::Debug, str::FromStr};
@@ -20,11 +21,12 @@ use napi::{
 use napi_derive::napi;
 use once_cell::sync::OnceCell;
 use rethnet_eth::Address;
-use rethnet_evm::{db::StateError, AccountInfo, CfgEnv, TxEnv};
+use rethnet_evm::{state::StateError, AccountInfo, CfgEnv, TxEnv};
 use secp256k1::{PublicKey, Secp256k1, SecretKey, SignOnly};
 use sha3::{Digest, Keccak256};
 use state::StateManager;
 use trace::Trace;
+use tracer::Tracer;
 use transaction::{CallOutput, CreateOutput, Transaction};
 
 use crate::cast::TryCast;
@@ -412,44 +414,6 @@ impl
     }
 }
 
-#[napi(object)]
-pub struct TracingMessage {
-    /// Recipient address. None if it is a Create message.
-    #[napi(readonly)]
-    pub to: Option<Buffer>,
-
-    /// Depth of the message
-    #[napi(readonly)]
-    pub depth: u8,
-
-    /// Input data of the message
-    #[napi(readonly)]
-    pub data: Buffer,
-
-    /// Value sent in the message
-    #[napi(readonly)]
-    pub value: BigInt,
-
-    /// Address of the code that is being executed. Can be different from `to` if a delegate call
-    /// is being done.
-    #[napi(readonly)]
-    pub code_address: Option<Buffer>,
-}
-
-#[napi(object)]
-pub struct TracingStep {
-    /// Program counter
-    #[napi(readonly)]
-    pub pc: BigInt,
-}
-
-#[napi(object)]
-pub struct TracingMessageResult {
-    /// Execution result
-    #[napi(readonly)]
-    pub execution_result: ExecutionResult,
-}
-
 #[napi]
 pub struct Rethnet {
     runtime: rethnet_evm::Rethnet<napi::Error, StateError>,
@@ -484,12 +448,15 @@ impl Rethnet {
         &self,
         transaction: Transaction,
         block: BlockConfig,
+        tracer: Option<&Tracer>,
     ) -> napi::Result<TransactionResult> {
         let transaction = transaction.try_into()?;
         let block = block.try_into()?;
 
+        let inspector = tracer.map(|tracer| tracer.as_dyn_inspector());
+
         self.runtime
-            .dry_run(transaction, block)
+            .dry_run(transaction, block, inspector)
             .await
             .map_err(|e| napi::Error::new(Status::GenericFailure, e.to_string()))?
             .try_into()
@@ -500,12 +467,15 @@ impl Rethnet {
         &self,
         transaction: Transaction,
         block: BlockConfig,
+        tracer: Option<&Tracer>,
     ) -> napi::Result<TransactionResult> {
         let transaction = transaction.try_into()?;
         let block = block.try_into()?;
 
+        let inspector = tracer.map(|tracer| tracer.as_dyn_inspector());
+
         self.runtime
-            .guaranteed_dry_run(transaction, block)
+            .guaranteed_dry_run(transaction, block, inspector)
             .await
             .map_err(|e| napi::Error::new(Status::GenericFailure, e.to_string()))?
             .try_into()
@@ -516,13 +486,16 @@ impl Rethnet {
         &self,
         transaction: Transaction,
         block: BlockConfig,
+        tracer: Option<&Tracer>,
     ) -> napi::Result<ExecutionResult> {
         let transaction: TxEnv = transaction.try_into()?;
         let block = block.try_into()?;
 
+        let inspector = tracer.map(|tracer| tracer.as_dyn_inspector());
+
         Ok(self
             .runtime
-            .run(transaction, block)
+            .run(transaction, block, inspector)
             .await
             .map_err(|e| napi::Error::new(Status::GenericFailure, e.to_string()))?
             .into())

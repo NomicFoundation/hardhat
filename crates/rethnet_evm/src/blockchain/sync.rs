@@ -1,7 +1,7 @@
 use std::{fmt::Debug, io};
 
 use rethnet_eth::{B256, U256};
-use revm::db::BlockHash;
+use revm::db::{BlockHash, BlockHashRef};
 use tokio::{
     runtime::{Builder, Runtime},
     sync::{
@@ -111,13 +111,13 @@ where
     }
 }
 
-impl<'b, E> BlockHash for &'b AsyncBlockchain<E>
+impl<E> BlockHashRef for AsyncBlockchain<E>
 where
     E: Debug + Send + 'static,
 {
     type Error = E;
 
-    fn block_hash(&mut self, number: U256) -> Result<B256, Self::Error> {
+    fn block_hash(&self, number: U256) -> Result<B256, Self::Error> {
         task::block_in_place(move || self.runtime.block_on(self.block_hash_by_number(number)))
     }
 }

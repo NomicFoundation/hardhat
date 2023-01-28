@@ -7,7 +7,7 @@ use napi::{bindgen_prelude::*, JsFunction, JsObject, NapiRaw, Status};
 use napi_derive::napi;
 use rethnet_eth::{Address, B256, U256};
 use rethnet_evm::{
-    db::{AsyncState, LayeredState, RethnetLayer, StateError, SyncState},
+    state::{AsyncState, LayeredState, RethnetLayer, StateError, SyncState},
     AccountInfo, Bytecode, HashMap, StateDebug,
 };
 use secp256k1::Secp256k1;
@@ -218,7 +218,7 @@ impl StateManager {
                         .create_buffer_copy(&code.bytes()[..code.len()])?
                         .into_unknown()
                 } else {
-                    ctx.env.get_null()?.into_unknown()
+                    ctx.env.get_undefined()?.into_unknown()
                 };
 
                 let promise = ctx.callback.call(None, &[balance, nonce, code])?;

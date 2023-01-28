@@ -15,6 +15,7 @@ import {
   InternalError,
   InvalidArgumentsError,
 } from "../../../core/providers/errors";
+import { makeFakeSignature } from "../utils/makeFakeSignature";
 
 /* eslint-disable @nomiclabs/hardhat-internal-rules/only-hardhat-error */
 
@@ -123,12 +124,14 @@ export class FakeSenderEIP1559Transaction extends FeeMarketEIP1559Transaction {
     data: FeeMarketEIP1559TxData = {},
     opts?: TxOptions
   ) {
+    const fakeSignature = makeFakeSignature(data, sender);
+
     super(
       {
         ...data,
         v: data.v ?? 1,
-        r: data.r ?? 1,
-        s: data.s ?? 2,
+        r: data.r ?? fakeSignature.r,
+        s: data.s ?? fakeSignature.s,
       },
       { ...opts, freeze: false }
     );

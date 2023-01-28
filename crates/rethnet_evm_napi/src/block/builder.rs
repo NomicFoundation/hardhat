@@ -7,11 +7,11 @@ use napi::{
 };
 use napi_derive::napi;
 use rethnet_eth::{Address, U256};
-use rethnet_evm::db::StateError;
+use rethnet_evm::state::StateError;
 
 use crate::{
-    blockchain::Blockchain, cast::TryCast, state::StateManager, transaction::Transaction, Config,
-    ExecutionResult,
+    blockchain::Blockchain, cast::TryCast, state::StateManager, tracer::Tracer,
+    transaction::Transaction, Config, ExecutionResult,
 };
 
 use super::{BlockConfig, BlockHeader};
@@ -49,13 +49,19 @@ impl BlockBuilder {
     }
 
     #[napi]
-    pub async fn add_transaction(&self, transaction: Transaction) -> napi::Result<ExecutionResult> {
+    pub async fn add_transaction(
+        &self,
+        transaction: Transaction,
+        tracer: Option<&Tracer>,
+    ) -> napi::Result<ExecutionResult> {
         let mut builder = self.builder.lock().await;
         if let Some(builder) = builder.as_mut() {
             let transaction = transaction.try_into()?;
 
+            let inspector = tracer.map(|tracer| tracer.as_dyn_inspector());
+
             let result = builder
-                .add_transaction(transaction)
+                .add_transaction(transaction, inspector)
                 .await
                 .map_err(|e| napi::Error::new(Status::GenericFailure, e.to_string()))?;
 

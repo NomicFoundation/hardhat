@@ -1,11 +1,18 @@
 use std::{fmt::Debug, sync::Arc};
 
-use revm::primitives::{BlockEnv, CfgEnv, ExecutionResult, SpecId, TxEnv};
+use revm::{
+    db::DatabaseComponents,
+    primitives::{BlockEnv, CfgEnv, ExecutionResult, SpecId, TxEnv},
+    Inspector,
+};
 
 use crate::{
-    blockchain::AsyncBlockchain, db::AsyncState, evm::run_transaction, trace::Trace,
+    blockchain::AsyncBlockchain, evm::run_transaction, state::AsyncState, trace::Trace,
     transaction::TransactionError, State,
 };
+
+/// Asynchronous implementation of the Database super-trait
+pub type AsyncDatabase<BE, SE> = DatabaseComponents<Arc<AsyncState<SE>>, Arc<AsyncBlockchain<BE>>>;
 
 /// The asynchronous Rethnet runtime.
 pub struct Rethnet<BE, SE>
@@ -37,6 +44,7 @@ where
         &self,
         transaction: TxEnv,
         block: BlockEnv,
+        inspector: Option<Box<dyn Inspector<AsyncDatabase<BE, SE>> + Send>>,
     ) -> Result<(ExecutionResult, State, Trace), TransactionError<BE, SE>> {
         if self.cfg.spec_id > SpecId::MERGE && block.prevrandao.is_none() {
             return Err(TransactionError::MissingPrevrandao);
@@ -49,6 +57,7 @@ where
             self.cfg.clone(),
             transaction,
             block,
+            inspector,
         )
         .await
         .unwrap()
@@ -60,6 +69,7 @@ where
         &self,
         transaction: TxEnv,
         block: BlockEnv,
+        inspector: Option<Box<dyn Inspector<AsyncDatabase<BE, SE>> + Send>>,
     ) -> Result<(ExecutionResult, State, Trace), TransactionError<BE, SE>> {
         if self.cfg.spec_id > SpecId::MERGE && block.prevrandao.is_none() {
             return Err(TransactionError::MissingPrevrandao);
@@ -75,6 +85,7 @@ where
             cfg,
             transaction,
             block,
+            inspector,
         )
         .await
         .unwrap()
@@ -86,8 +97,9 @@ where
         &self,
         transaction: TxEnv,
         block: BlockEnv,
+        inspector: Option<Box<dyn Inspector<AsyncDatabase<BE, SE>> + Send>>,
     ) -> Result<(ExecutionResult, Trace), TransactionError<BE, SE>> {
-        let (result, changes, trace) = self.dry_run(transaction, block).await?;
+        let (result, changes, trace) = self.dry_run(transaction, block, inspector).await?;
 
         self.state.apply(changes).await;
 

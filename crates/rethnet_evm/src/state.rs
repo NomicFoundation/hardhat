@@ -1,11 +1,13 @@
 mod layered_db;
+mod remote;
 mod request;
 mod sync;
 
 use rethnet_eth::B256;
-pub use sync::{AsyncState, SyncState};
 
-pub use layered_db::{LayeredState, RethnetLayer};
+pub use self::layered_db::{LayeredState, RethnetLayer};
+pub use self::remote::RemoteDatabase;
+pub use self::sync::{AsyncState, SyncState};
 
 /// Combinatorial error for the database API
 #[derive(Debug, thiserror::Error)]

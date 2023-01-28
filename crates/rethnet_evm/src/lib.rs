@@ -5,19 +5,24 @@
 #![warn(missing_docs)]
 
 pub use hashbrown::HashMap;
+
 pub use revm::{
-    db::EmptyDB,
-    db::{BlockHash, BlockHashRef},
-    primitives::{
-        Account, AccountInfo, BlockEnv, Bytecode, CfgEnv, CreateScheme, Eval, ExecutionResult,
-        Halt, Log, Output, ResultAndState, SpecId, State, TransactTo, TxEnv,
+    db::{
+        BlockHash, BlockHashRef, Database, DatabaseCommit, DatabaseComponentError,
+        DatabaseComponents, State as StateMut, StateRef,
     },
+    interpreter::{
+        instruction_result::SuccessOrHalt, CallInputs, CreateInputs, Gas, InstructionResult,
+        Interpreter, OPCODE_JUMPMAP,
+    },
+    primitives::*,
+    EVMData, Inspector,
 };
 
 pub use crate::{
     block::{BlockBuilder, HeaderData},
     debug::StateDebug,
-    runtime::Rethnet,
+    runtime::{AsyncDatabase, Rethnet},
     transaction::PendingTransaction,
 };
 
@@ -25,7 +30,7 @@ pub use crate::{
 pub mod blockchain;
 
 /// Database types for managing Ethereum state
-pub mod db;
+pub mod state;
 
 /// Types used for tracing EVM calls
 pub mod trace;

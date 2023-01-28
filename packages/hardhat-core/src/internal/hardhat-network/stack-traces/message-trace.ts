@@ -127,5 +127,5 @@ export function isRevertResult(
 export function isHaltResult(
   result: SuccessResult | RevertResult | HaltResult
 ): result is HaltResult {
-  return !("logs" in result);
+  return !("output" in result);
 }

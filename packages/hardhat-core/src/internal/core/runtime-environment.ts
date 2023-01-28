@@ -20,6 +20,7 @@ import { Artifacts } from "../artifacts";
 import { MessageTrace } from "../hardhat-network/stack-traces/message-trace";
 import { lazyObject } from "../util/lazy";
 
+import { getHardhatVersion } from "../util/packageInfo";
 import { analyzeModuleNotFoundError } from "./config/config-loading";
 import { HardhatError } from "./errors";
 import { ERRORS } from "./errors-list";
@@ -49,6 +50,8 @@ export class Environment implements HardhatRuntimeEnvironment {
   private readonly _extenders: EnvironmentExtender[];
 
   public entryTaskProfile?: TaskProfile;
+
+  public version: string = getHardhatVersion();
 
   /**
    * Initializes the Hardhat Runtime Environment and the given
