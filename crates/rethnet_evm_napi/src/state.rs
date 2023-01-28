@@ -13,10 +13,11 @@ use rethnet_evm::{
 use secp256k1::Secp256k1;
 
 use crate::{
+    account::{Account, AccountData},
     private_key_to_address,
     sync::{await_promise, handle_error},
     threadsafe_function::{ThreadSafeCallContext, ThreadsafeFunction, ThreadsafeFunctionCallMode},
-    Account, AccountData, GenesisAccount, TryCast,
+    TryCast,
 };
 
 struct ModifyAccountCall {
@@ -24,6 +25,15 @@ struct ModifyAccountCall {
     pub nonce: u64,
     pub code: Option<Bytecode>,
     pub sender: Sender<napi::Result<(U256, u64, Option<Bytecode>)>>,
+}
+
+/// An account that needs to be created during the genesis block.
+#[napi(object)]
+pub struct GenesisAccount {
+    /// Account private key
+    pub private_key: String,
+    /// Account balance
+    pub balance: BigInt,
 }
 
 #[napi]

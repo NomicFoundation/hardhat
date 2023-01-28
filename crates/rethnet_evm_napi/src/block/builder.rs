@@ -10,8 +10,12 @@ use rethnet_eth::{Address, U256};
 use rethnet_evm::state::StateError;
 
 use crate::{
-    blockchain::Blockchain, cast::TryCast, state::StateManager, tracer::Tracer,
-    transaction::Transaction, Config, ExecutionResult,
+    blockchain::Blockchain,
+    cast::TryCast,
+    config::Config,
+    state::StateManager,
+    tracer::Tracer,
+    transaction::{result::ExecutionResult, Transaction},
 };
 
 use super::{BlockConfig, BlockHeader};

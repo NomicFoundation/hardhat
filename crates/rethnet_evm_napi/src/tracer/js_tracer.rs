@@ -9,9 +9,10 @@ use rethnet_eth::{Address, Bytes, U256};
 use rethnet_evm::{Gas, InstructionResult, SuccessOrHalt, OPCODE_JUMPMAP};
 
 use crate::{
+    account::Account,
     sync::{await_void_promise, handle_error},
     threadsafe_function::{ThreadSafeCallContext, ThreadsafeFunction, ThreadsafeFunctionCallMode},
-    Account, ExecutionResult,
+    transaction::result::ExecutionResult,
 };
 
 #[napi(object)]

@@ -5,7 +5,7 @@ use napi::{
 use rethnet_eth::{Bytes, B256, U256};
 use rethnet_evm::{AccountInfo, Bytecode};
 
-use crate::{Account, AccountData};
+use crate::account::{Account, AccountData};
 
 /// An attempted conversion that consumes `self`, which may or may not be
 /// expensive. It is identical to [`TryInto`], but it allows us to implement

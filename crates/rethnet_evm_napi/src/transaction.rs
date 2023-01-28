@@ -1,3 +1,5 @@
+pub mod result;
+
 use napi::bindgen_prelude::{BigInt, Buffer};
 use napi_derive::napi;
 use rethnet_eth::{Address, Bytes, U256};
@@ -87,18 +89,4 @@ impl TryFrom<Transaction> for rethnet_evm::TxEnv {
 #[napi(object)]
 pub struct TransactionConfig {
     pub disable_balance_check: Option<bool>,
-}
-
-#[napi(object)]
-pub struct CallOutput {
-    /// Return value
-    pub return_value: Buffer,
-}
-
-#[napi(object)]
-pub struct CreateOutput {
-    /// Return value
-    pub return_value: Buffer,
-    /// Optionally, a 160-bit address
-    pub address: Option<Buffer>,
 }
