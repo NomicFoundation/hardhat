@@ -14,12 +14,14 @@ use crate::{
 
 use self::js_blockchain::{GetBlockHashCall, JsBlockchain};
 
+/// The Rethnet blockchain
 #[napi]
 pub struct Blockchain {
     inner: Arc<AsyncBlockchain<napi::Error>>,
 }
 
 impl Blockchain {
+    /// Provides immutable access to the inner implementation.
     pub fn as_inner(&self) -> &Arc<AsyncBlockchain<napi::Error>> {
         &self.inner
     }
@@ -27,6 +29,7 @@ impl Blockchain {
 
 #[napi]
 impl Blockchain {
+    /// Constructs a new blockchain that queries the blockhash using a callback.
     #[napi(constructor)]
     pub fn new(
         env: Env,

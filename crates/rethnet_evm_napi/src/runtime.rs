@@ -21,6 +21,7 @@ unsafe impl Sync for Logger {}
 
 static LOGGER: OnceCell<Logger> = OnceCell::new();
 
+/// The Rethnet runtime, which can execute individual transactions.
 #[napi]
 pub struct Rethnet {
     runtime: rethnet_evm::Rethnet<napi::Error, StateError>,
@@ -28,6 +29,7 @@ pub struct Rethnet {
 
 #[napi]
 impl Rethnet {
+    /// Constructs a `Rethnet` runtime.
     #[napi(constructor)]
     pub fn new(
         blockchain: &Blockchain,
@@ -50,6 +52,7 @@ impl Rethnet {
         Ok(Self { runtime })
     }
 
+    /// Executes the provided transaction without changing state.
     #[napi]
     pub async fn dry_run(
         &self,
@@ -69,6 +72,7 @@ impl Rethnet {
             .try_into()
     }
 
+    /// Executes the provided transaction without changing state, ignoring validation checks in the process.
     #[napi]
     pub async fn guaranteed_dry_run(
         &self,
@@ -88,6 +92,7 @@ impl Rethnet {
             .try_into()
     }
 
+    /// Executes the provided transaction, changing state in the process.
     #[napi]
     pub async fn run(
         &self,

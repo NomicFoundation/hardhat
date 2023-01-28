@@ -9,6 +9,7 @@ mod cast;
 mod config;
 mod log;
 mod receipt;
+/// Rethnet runtime for executing individual transactions
 mod runtime;
 mod state;
 mod sync;

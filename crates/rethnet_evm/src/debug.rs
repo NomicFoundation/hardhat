@@ -13,7 +13,7 @@ pub trait StateDebug {
     /// Retrieves the storage root of the account at the specified address.
     fn account_storage_root(&mut self, address: &Address) -> Result<Option<B256>, Self::Error>;
 
-    /// Inserts an account with the specified address.
+    /// Inserts the provided account at the specified address.
     fn insert_account(
         &mut self,
         address: Address,
@@ -50,6 +50,6 @@ pub trait StateDebug {
     /// Makes a snapshot of the database that's retained until [`remove_snapshot`] is called. Returns the snapshot's identifier.
     fn make_snapshot(&mut self) -> B256;
 
-    /// Removes the snapshot corresponding to the specified id, if it exists. Returns whether a snapshot was removed.
+    /// Removes the snapshot corresponding to the specified state root, if it exists. Returns whether a snapshot was removed.
     fn remove_snapshot(&mut self, state_root: &B256) -> bool;
 }
