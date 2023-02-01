@@ -34,11 +34,11 @@ module.exports = buildModule("CounterModule", (m) => {
 
 The `moduleDefinition` callback receives a `moduleBuilder` object, which is used to define the different on-chain `Action`s that are needed to complete the deployment of the module, and returns the contracts it wants to export.
 
-`moduleBuidler` methods don’t execute any `Action`, they record the intent and its relationship to other `Actions` and return a `Future` that represents the eventual result of its execution.
+`moduleBuilder` methods don’t execute any `Action`, they record the intent and its relationship to other `Actions` and return a `Future` that represents the eventual result of its execution.
 
 In the above example, when we call `m.contract`, we create a contract deployment `Action`, and get a `Future` that represents its eventual result, the address the contract is deployed to.
 
-`Actions` can depend on other `Action`'s results. We do this by using an `Action`'s `Future` as an argument to a subsequent `moduleBuidler` method. For example, here we define two `Actions`. One that deploys a contract, and another one that initializes it.
+`Actions` can depend on other `Action`'s results. We do this by using an `Action`'s `Future` as an argument to a subsequent `moduleBuilder` method. For example, here we define two `Actions`. One that deploys a contract, and another one that initializes it.
 
 ```tsx
 module.exports = buildModule("ContractWithInitModule", (m) => {
