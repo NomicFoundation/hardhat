@@ -21,6 +21,31 @@ You can set the following fields on the `networks.hardhat` config:
 
 The chain ID number used by Hardhat Network's blockchain. Default value: `31337`.
 
+The Hardhat Network (i.e. `hardhat`) configuration is used to configure the Hardhat Network blockchain. While other entries in the `network` object will be used to configure how hardhat talks to other networks. For this reason it is a common idiom to see:
+
+```javascript
+        localhost: {
+            url: `http://127.0.0.1:8545`,
+            chainId: 1337,
+        },
+        hardhat: {
+            chainId: 1337,
+        },
+```
+_NOTE: Some wallets (e.g. MetaMask) assume the `chainId` value will be `1337`._
+
+The Hardhat Network can then be run with:
+
+```shell
+npx hardhat node
+```
+
+A contract can then be deployed to the Hardhat Network using:
+
+```shell
+npx hardhat run --network localhost scripts/deploy.js
+```
+
 #### `from`
 
 The address to use as default sender. If not present the first account of the Hardhat Network is used.
