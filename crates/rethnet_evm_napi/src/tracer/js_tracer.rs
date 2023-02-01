@@ -37,6 +37,10 @@ pub struct TracingMessage {
     /// is being done.
     #[napi(readonly)]
     pub code_address: Option<Buffer>,
+
+    /// Code of the contract that is being executed.
+    #[napi(readonly)]
+    pub code: Option<Buffer>,
 }
 
 #[napi(object)]

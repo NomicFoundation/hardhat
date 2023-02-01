@@ -7,11 +7,10 @@ import {
 } from "rethnet-evm";
 
 import { getActivePrecompiles } from "@nomicfoundation/ethereumjs-evm";
-import { Address, bufferToBigInt } from "@nomicfoundation/ethereumjs-util";
+import { bufferToBigInt } from "@nomicfoundation/ethereumjs-util";
 
 import { assertHardhatInvariant } from "../../core/errors";
 import { Exit, ExitCode } from "../provider/vm/exit";
-import { VMAdapter } from "../provider/vm/vm-adapter";
 
 import {
   CallMessageTrace,
@@ -38,11 +37,7 @@ export class VMTracer {
   private _lastError: Error | undefined;
   private _maxPrecompileNumber;
 
-  constructor(
-    private readonly _vm: VMAdapter,
-    common: Common,
-    private readonly _throwErrors = true
-  ) {
+  constructor(common: Common, private readonly _throwErrors = true) {
     this._maxPrecompileNumber = getActivePrecompiles(common).size;
   }
 
@@ -112,16 +107,18 @@ export class VMTracer {
           const codeAddress = message.codeAddress;
 
           // if we enter here, then `to` is not undefined, therefore
-          // `codeAddress` should be defined
+          // `codeAddress` and `code` should be defined
           assertHardhatInvariant(
             codeAddress !== undefined,
             "codeAddress should be defined"
           );
-
-          const code = await this._vm.getContractCode(new Address(codeAddress));
+          assertHardhatInvariant(
+            message.code !== undefined,
+            "code should be defined"
+          );
 
           const callTrace: CallMessageTrace = {
-            code,
+            code: message.code,
             calldata: message.data,
             steps: [],
             value: message.value,

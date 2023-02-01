@@ -71,8 +71,8 @@ export class DualModeAdapter implements VMAdapter {
       common
     );
 
-    const ethereumJSVMTracer = new VMTracer(ethereumJSAdapter, common, false);
-    const rethnetVMTracer = new VMTracer(rethnetAdapter, common, false);
+    const ethereumJSVMTracer = new VMTracer(common, false);
+    const rethnetVMTracer = new VMTracer(common, false);
 
     return new DualModeAdapter(
       ethereumJSAdapter,
@@ -175,17 +175,10 @@ export class DualModeAdapter implements VMAdapter {
     return rethnetStorageSlot;
   }
 
-  public async getContractCode(
-    address: Address,
-    ethJsOnly?: boolean
-  ): Promise<Buffer> {
+  public async getContractCode(address: Address): Promise<Buffer> {
     const ethereumJSCode = await this._ethereumJSAdapter.getContractCode(
       address
     );
-
-    if (ethJsOnly === true) {
-      return ethereumJSCode;
-    }
 
     const rethnetCode = await this._rethnetAdapter.getContractCode(address);
 

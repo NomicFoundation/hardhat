@@ -41,7 +41,7 @@ export class RethnetAdapter implements VMAdapter {
     private readonly _selectHardfork: (blockNumber: bigint) => string,
     common: Common
   ) {
-    this._vmTracer = new VMTracer(this, common, false);
+    this._vmTracer = new VMTracer(common, false);
   }
 
   public static async create(
@@ -154,16 +154,7 @@ export class RethnetAdapter implements VMAdapter {
   /**
    * Get the contract code at the given address.
    */
-  public async getContractCode(
-    address: Address,
-    ethJsOnly?: boolean
-  ): Promise<Buffer> {
-    if (ethJsOnly === true) {
-      throw new Error(
-        "Calling RethnetAdapter.getContractCode with ethJsOnly=true, this shouldn't happen"
-      );
-    }
-
+  public async getContractCode(address: Address): Promise<Buffer> {
     return this._state.getContractCode(address);
   }
 
