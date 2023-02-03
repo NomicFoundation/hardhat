@@ -105,7 +105,7 @@ describe("Environment", () => {
         { a: 1 },
         types.json
       )
-      .setAction(async () => 42);
+      .setAction(async (_args: any[]) => _args);
 
     dsl
       .task("taskWithMultipleTypesParams", "a task with many types params")
@@ -130,7 +130,7 @@ describe("Environment", () => {
         [],
         types.string
       )
-      .setAction(async () => 42);
+      .setAction(async (_args: any[]) => _args);
 
     tasks = ctx.tasksDSL.getTaskDefinitions();
 
@@ -364,6 +364,28 @@ describe("Environment", () => {
 
       assert.equal(env.network.name, "default");
       assert.equal(env.network.config, config.networks.default);
+    });
+
+    it("should override subtask args through parent", async () => {
+      dsl
+        .task("parentTask", "a task that will call another task")
+        .setAction(async (_, hre) => {
+          return hre.run("taskWithMultipleTypesParams", {
+            optIntParam: 123,
+          });
+        });
+
+      // default run
+      const result1 = await env.run("parentTask");
+      assert.equal(result1.optIntParam, 123);
+
+      // subtask args should get overriden
+      const result2 = await env.run("parentTask", undefined, {
+        taskWithMultipleTypesParams: {
+          optIntParam: 456,
+        },
+      });
+      assert.equal(result2.optIntParam, 456);
     });
   });
 
