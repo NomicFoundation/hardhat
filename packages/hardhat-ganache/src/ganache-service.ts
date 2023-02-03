@@ -146,7 +146,7 @@ export class GanacheService {
 
   public async startServer() {
     // Verify service state before start (TODO Maybe extract this to a decorator)
-    this._checkForServiceErrors();
+    await this._checkForServiceErrors();
 
     try {
       log("Starting server");
@@ -202,12 +202,12 @@ export class GanacheService {
     }
 
     // Verify service state after start (TODO Maybe extract this to a decorator)
-    this._checkForServiceErrors();
+    await this._checkForServiceErrors();
   }
 
   public async stopServer() {
     // Verify service state before continue (TODO Maybe extract this to a decorator)
-    this._checkForServiceErrors();
+    await this._checkForServiceErrors();
 
     try {
       log("Stopping server");
@@ -239,7 +239,7 @@ export class GanacheService {
       }
     }
 
-    this._checkForServiceErrors();
+    await this._checkForServiceErrors();
   }
 
   private _validateAndTransformOptions(
@@ -363,11 +363,11 @@ export class GanacheService {
   //   });
   // }
 
-  private _checkForServiceErrors() {
+   private async _checkForServiceErrors() {
     // console.log("ho",GanacheService.error,this._server)
     if (GanacheService.error !== undefined) {
       if (this._server !== undefined) {
-        this._server.close();
+        await this._server.close();
       }
 
       throw new NomicLabsHardhatPluginError(
