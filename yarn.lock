@@ -11400,10 +11400,10 @@ ts-interface-builder@^0.2.0:
     glob "^7.1.6"
     typescript "^3.0.0"
 
-ts-interface-checker@^0.1.9:
-  version "0.1.13"
-  resolved "https://registry.yarnpkg.com/ts-interface-checker/-/ts-interface-checker-0.1.13.tgz#784fd3d679722bc103b1b4b8030bcddb5db2a699"
-  integrity sha512-Y/arvbn+rrz3JCKl9C4kVNfTfSm2/mEp5FSz5EsZSANGPSlQrpRI5M4PKF+mJnE52jOO90PnPSc3Ur3bTQw0gA==
+ts-interface-checker@^1.0.2:
+  version "1.0.2"
+  resolved "https://registry.yarnpkg.com/ts-interface-checker/-/ts-interface-checker-1.0.2.tgz#63f73a098b0ed34b982df1f490c54890e8e5e0b3"
+  integrity sha512-4IKKvhZRXhvtYF/mtu+OCfBqJKV6LczUq4kQYcpT+iSB7++R9+giWnp2ecwWMIcnG16btVOkXFnoxLSYMN1Q1g==
 
 ts-node@^8.1.0:
   version "8.10.2"
