@@ -363,7 +363,7 @@ export class GanacheService {
   //   });
   // }
 
-   private async _checkForServiceErrors() {
+  private async _checkForServiceErrors() {
     // console.log("ho",GanacheService.error,this._server)
     if (GanacheService.error !== undefined) {
       if (this._server !== undefined) {
