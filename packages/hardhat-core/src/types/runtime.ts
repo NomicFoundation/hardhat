@@ -146,6 +146,10 @@ export interface TaskDefinition extends ConfigurableTaskDefinition {
  */
 export type TaskArguments = any;
 
+export interface SubtaskArguments {
+  [subtaskName: string]: TaskArguments;
+}
+
 export interface RunSuperFunction<ArgT extends TaskArguments> {
   (taskArguments?: ArgT): Promise<any>;
   isDefined: boolean;
@@ -183,7 +187,8 @@ export interface TasksMap {
 
 export type RunTaskFunction = (
   name: string,
-  taskArguments?: TaskArguments
+  taskArguments?: TaskArguments,
+  subtaskArguments?: { [subtaskName: string]: TaskArguments }
 ) => Promise<any>;
 
 export interface HardhatRuntimeEnvironment {

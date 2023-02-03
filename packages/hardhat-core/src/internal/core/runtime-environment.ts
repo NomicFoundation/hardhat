@@ -12,6 +12,7 @@ import {
   ParamDefinition,
   RunSuperFunction,
   RunTaskFunction,
+  SubtaskArguments,
   TaskArguments,
   TaskDefinition,
   TasksMap,
@@ -120,6 +121,7 @@ export class Environment implements HardhatRuntimeEnvironment {
    *
    * @param name The task's name.
    * @param taskArguments A map of task's arguments.
+   * @param subtaskArguments A map of subtasks to their arguments.
    *
    * @throws a HH303 if there aren't any defined tasks with the given name.
    * @returns a promise with the task's execution result.
@@ -127,6 +129,7 @@ export class Environment implements HardhatRuntimeEnvironment {
   public readonly run: RunTaskFunction = async (
     name,
     taskArguments = {},
+    subtaskArguments = {},
     callerTaskProfile?: TaskProfile
   ) => {
     const taskDefinition = this.tasks[name];
@@ -141,7 +144,8 @@ export class Environment implements HardhatRuntimeEnvironment {
 
     const resolvedTaskArguments = this._resolveValidTaskArguments(
       taskDefinition,
-      taskArguments
+      taskArguments,
+      subtaskArguments
     );
 
     let taskProfile: TaskProfile | undefined;
@@ -159,6 +163,7 @@ export class Environment implements HardhatRuntimeEnvironment {
       return await this._runTaskDefinition(
         taskDefinition,
         resolvedTaskArguments,
+        subtaskArguments,
         taskProfile
       );
     } catch (e) {
@@ -218,20 +223,23 @@ export class Environment implements HardhatRuntimeEnvironment {
   private async _runTaskDefinition(
     taskDefinition: TaskDefinition,
     taskArguments: TaskArguments,
+    subtaskArguments: SubtaskArguments,
     taskProfile?: TaskProfile
   ): Promise<any> {
     let runSuperFunction: any;
 
     if (taskDefinition instanceof OverriddenTaskDefinition) {
       runSuperFunction = async (
-        _taskArguments: TaskArguments = taskArguments
+        _taskArguments: TaskArguments = taskArguments,
+        _subtaskArguments: SubtaskArguments = subtaskArguments
       ) => {
         log("Running %s's super", taskDefinition.name);
 
         if (taskProfile === undefined) {
           return this._runTaskDefinition(
             taskDefinition.parentTaskDefinition,
-            _taskArguments
+            _taskArguments,
+            _subtaskArguments
           );
         }
 
@@ -267,7 +275,10 @@ export class Environment implements HardhatRuntimeEnvironment {
     globalAsAny.runSuper = runSuper;
 
     let modifiedHreWithParentTaskProfile: any | undefined;
-    if (this.hardhatArguments.flamegraph === true) {
+    if (
+      this.hardhatArguments.flamegraph === true ||
+      subtaskArguments !== undefined
+    ) {
       // We create a modified version of `this`, as we want to keep track of the
       // `taskProfile` and use it as `callerTaskProfile` if the action calls
       // `run`, and add a few utility methods.
@@ -275,8 +286,17 @@ export class Environment implements HardhatRuntimeEnvironment {
       // Note that for this to work we need to set the prototype later
       modifiedHreWithParentTaskProfile = {
         ...this,
-        run: (_name: string, _taskArguments: TaskArguments) =>
-          (this as any).run(_name, _taskArguments, taskProfile),
+        run: (
+          _name: string,
+          _taskArguments: TaskArguments,
+          _subtaskArguments: SubtaskArguments
+        ) =>
+          (this as any).run(
+            _name,
+            _taskArguments,
+            { ..._subtaskArguments, ...subtaskArguments }, // parent subtask args take precedence
+            taskProfile
+          ),
         adhocProfile: async (_name: string, f: () => Promise<any>) => {
           const adhocProfile = createTaskProfile(_name);
           taskProfile!.children.push(adhocProfile);
@@ -334,9 +354,14 @@ export class Environment implements HardhatRuntimeEnvironment {
    */
   private _resolveValidTaskArguments(
     taskDefinition: TaskDefinition,
-    taskArguments: TaskArguments
+    taskArguments: TaskArguments,
+    subtaskArguments: SubtaskArguments = {}
   ): TaskArguments {
-    const { paramDefinitions, positionalParamDefinitions } = taskDefinition;
+    const {
+      name: taskName,
+      paramDefinitions,
+      positionalParamDefinitions,
+    } = taskDefinition;
 
     const nonPositionalParamDefinitions = Object.values(paramDefinitions);
 
@@ -355,7 +380,8 @@ export class Environment implements HardhatRuntimeEnvironment {
       ({ errors, values }, paramDefinition) => {
         try {
           const paramName = paramDefinition.name;
-          const argumentValue = taskArguments[paramName];
+          const argumentValue =
+            subtaskArguments[taskName][paramName] ?? taskArguments[paramName];
           const resolvedArgumentValue = this._resolveArgument(
             paramDefinition,
             argumentValue,
