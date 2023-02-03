@@ -59,7 +59,7 @@ describe("Ganache plugin with custom configs", function () {
     assert.isDefined(this.env.config.networks.ganache);
   });
 
-  it.skip("Should load custom configs in hardhat's config'", function () {
+  it("Should load custom configs in hardhat's config'", function () {
     assert.isDefined(this.env.config.networks.ganache);
     const customConfigs =
       require("./fixture-projects/hardhat-project-with-configs/hardhat.config.ts").default;
@@ -75,7 +75,7 @@ describe("Ganache plugin with custom configs", function () {
     }
   });
 
-  it.skip("Should expose merged (custom + defaults) configs in hardhat's config", function () {
+  it("Should expose merged (custom + defaults) configs in hardhat's config", function () {
     assert.isDefined(this.env.config.networks.ganache);
     const customConfigs =
       require("./fixture-projects/hardhat-project-with-configs/hardhat.config.ts").default;
@@ -93,7 +93,7 @@ describe("Ganache plugin with custom configs", function () {
     }
   });
 
-  it.skip("Should run Hardhat RUN task using Ganache with custom configs", async function () {
+  it("Should run Hardhat RUN task using Ganache with custom configs", async function () {
     await this.env.run("run", {
       noCompile: true,
       script: "scripts/custom-accounts-sample.js",
