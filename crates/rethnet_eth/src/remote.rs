@@ -80,6 +80,33 @@ where
     seq.end()
 }
 
+/// For specifying a block
+#[derive(Clone)]
+pub enum BlockSpec {
+    /// as a block number
+    Number(u64),
+    /// as a block tag (eg "latest")
+    Tag(String),
+}
+
+#[derive(serde::Serialize)]
+#[serde(untagged)]
+enum SerializableBlockSpec {
+    /// as a block number
+    Number(U64),
+    /// as a block tag (eg "latest")
+    Tag(String),
+}
+
+impl From<BlockSpec> for SerializableBlockSpec {
+    fn from(block_spec: BlockSpec) -> SerializableBlockSpec {
+        match block_spec {
+            BlockSpec::Number(n) => SerializableBlockSpec::Number(U64::from(n)),
+            BlockSpec::Tag(s) => SerializableBlockSpec::Tag(s),
+        }
+    }
+}
+
 #[derive(serde::Serialize)]
 #[serde(tag = "method", content = "params")]
 enum MethodInvocation {
@@ -88,9 +115,7 @@ enum MethodInvocation {
         Address,
         /// position
         U256,
-        /// block_number
-        #[serde(skip_serializing_if = "Option::is_none")]
-        Option<U64>,
+        SerializableBlockSpec,
     ),
     #[serde(
         rename = "eth_getTransactionByHash",
@@ -105,12 +130,7 @@ enum MethodInvocation {
     #[serde(rename = "eth_getLogs", serialize_with = "single_to_sequence")]
     Logs(GetLogsInput),
     #[serde(rename = "eth_getBalance")]
-    Balance(
-        Address,
-        /// block number
-        #[serde(skip_serializing_if = "Option::is_none")]
-        Option<U64>,
-    ),
+    Balance(Address, SerializableBlockSpec),
     #[serde(rename = "eth_getBlockByHash")]
     BlockByHash(
         /// hash
@@ -119,26 +139,15 @@ enum MethodInvocation {
         bool,
     ),
     #[serde(rename = "eth_getBlockByNumber")]
-    BlockByNumber(
-        /// block number
-        U64,
+    Block(
+        SerializableBlockSpec,
         /// include transactions
         bool,
     ),
     #[serde(rename = "eth_getCode")]
-    Code(
-        Address,
-        /// block number
-        #[serde(skip_serializing_if = "Option::is_none")]
-        Option<U64>,
-    ),
+    Code(Address, SerializableBlockSpec),
     #[serde(rename = "eth_getTransactionCount")]
-    TxCount(
-        Address,
-        /// block number
-        #[serde(skip_serializing_if = "Option::is_none")]
-        Option<U64>,
-    ),
+    TxCount(Address, SerializableBlockSpec),
 }
 
 struct Response {
@@ -156,8 +165,8 @@ struct BatchResponse {
 #[derive(serde::Serialize)]
 #[serde(rename_all = "camelCase")]
 struct GetLogsInput {
-    from_block: U64,
-    to_block: U64,
+    from_block: SerializableBlockSpec,
+    to_block: SerializableBlockSpec,
     address: Address,
 }
 
@@ -285,13 +294,13 @@ impl RpcClient {
     /// eth_getLogs
     pub async fn get_logs(
         &self,
-        from_block: u64,
-        to_block: u64,
+        from_block: BlockSpec,
+        to_block: BlockSpec,
         address: &Address,
     ) -> Result<Vec<eth::Log>, RpcClientError> {
         self.call(&MethodInvocation::Logs(GetLogsInput {
-            from_block: U64::from(from_block),
-            to_block: U64::from(to_block),
+            from_block: from_block.into(),
+            to_block: to_block.into(),
             address: *address,
         }))
         .await
@@ -310,12 +319,21 @@ impl RpcClient {
     /// eth_getBlockByNumber
     pub async fn get_block_by_number(
         &self,
-        number: u64,
+        number: BlockSpec,
         include_transactions: bool,
     ) -> Result<eth::Block<eth::Transaction>, RpcClientError> {
-        self.call(&MethodInvocation::BlockByNumber(
-            U64::from(number),
+        self.call(&MethodInvocation::Block(
+            number.into(),
             include_transactions,
+        ))
+        .await
+    }
+
+    /// eth_getBlockByNumber("latest")
+    pub async fn get_latest_block(&self) -> Result<eth::Block<B256>, RpcClientError> {
+        self.call(&MethodInvocation::Block(
+            SerializableBlockSpec::Tag("latest".to_string()),
+            false,
         ))
         .await
     }
@@ -324,13 +342,10 @@ impl RpcClient {
     pub async fn get_transaction_count(
         &self,
         address: &Address,
-        block_number: Option<u64>,
+        block: BlockSpec,
     ) -> Result<U256, RpcClientError> {
-        self.call(&MethodInvocation::TxCount(
-            *address,
-            block_number.map(U64::from),
-        ))
-        .await
+        self.call(&MethodInvocation::TxCount(*address, block.into()))
+            .await
     }
 
     /// eth_getStorageAt
@@ -338,12 +353,12 @@ impl RpcClient {
         &self,
         address: &Address,
         position: U256,
-        block_number: Option<u64>,
+        block: BlockSpec,
     ) -> Result<U256, RpcClientError> {
         self.call(&MethodInvocation::StorageAt(
             *address,
             position,
-            block_number.map(U64::from),
+            block.into(),
         ))
         .await
     }
@@ -353,12 +368,12 @@ impl RpcClient {
     pub async fn get_account_info(
         &self,
         address: &Address,
-        block_number: Option<u64>,
+        block: BlockSpec,
     ) -> Result<AccountInfo, RpcClientError> {
         let inputs = Vec::from([
-            MethodInvocation::Balance(*address, block_number.map(U64::from)),
-            MethodInvocation::Code(*address, block_number.map(U64::from)),
-            MethodInvocation::TxCount(*address, block_number.map(U64::from)),
+            MethodInvocation::Balance(*address, block.clone().into()),
+            MethodInvocation::Code(*address, block.clone().into()),
+            MethodInvocation::TxCount(*address, block.into()),
         ]);
 
         let response = self.batch_call(&inputs).await?;
@@ -371,7 +386,7 @@ impl RpcClient {
             RpcClientError::InterpretationError {
                 msg: err.to_string(),
                 request_body: response.request_body.clone(),
-                expected_type: String::from("Array"),
+                expected_type: String::from("Array of success results"),
                 response_text: response.text.clone(),
             }
         })?;
@@ -644,8 +659,8 @@ mod tests {
         let alchemy_url = get_alchemy_url();
         let logs = RpcClient::new(&alchemy_url)
             .get_logs(
-                10496585,
-                10496585,
+                BlockSpec::Number(10496585),
+                BlockSpec::Number(10496585),
                 &Address::from_str("0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2")
                     .expect("failed to parse data"),
             )
@@ -682,7 +697,7 @@ mod tests {
         let block_number = 16222385;
 
         let block = RpcClient::new(&alchemy_url)
-            .get_block_by_number(block_number, true)
+            .get_block_by_number(BlockSpec::Number(block_number), true)
             .await
             .expect("should have succeeded");
 
@@ -706,7 +721,7 @@ mod tests {
                     16,
                 )
                 .expect("failed to parse storage location"),
-                Some(16220843),
+                BlockSpec::Number(16220843),
             )
             .await
             .expect("should have succeeded");
@@ -737,7 +752,7 @@ mod tests {
                     16,
                 )
                 .expect("failed to parse storage location"),
-                None,
+                BlockSpec::Tag("latest".to_string()),
             )
             .await
             .expect("should have succeeded");
@@ -754,7 +769,7 @@ mod tests {
             .expect("failed to parse address");
 
         let transaction_count = RpcClient::new(&alchemy_url)
-            .get_transaction_count(&dai_address, Some(16220843))
+            .get_transaction_count(&dai_address, BlockSpec::Number(16220843))
             .await
             .expect("should have succeeded");
 
@@ -770,7 +785,7 @@ mod tests {
             .expect("failed to parse address");
 
         let account_info = RpcClient::new(&alchemy_url)
-            .get_account_info(&dai_address, Some(16220843))
+            .get_account_info(&dai_address, BlockSpec::Number(16220843))
             .await
             .expect("should have succeeded");
 
@@ -787,7 +802,7 @@ mod tests {
             .expect("failed to parse address");
 
         let account_info = RpcClient::new(&alchemy_url)
-            .get_account_info(&dai_address, None)
+            .get_account_info(&dai_address, BlockSpec::Tag("latest".to_string()))
             .await
             .expect("should have succeeded");
 

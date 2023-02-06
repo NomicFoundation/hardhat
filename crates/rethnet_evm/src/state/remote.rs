@@ -5,7 +5,7 @@ use revm::{
 use tokio::runtime::{Builder, Runtime};
 
 use rethnet_eth::{
-    remote::{RpcClient, RpcClientError},
+    remote::{BlockSpec, RpcClient, RpcClientError},
     Address, B256, U256,
 };
 
@@ -43,7 +43,10 @@ impl RemoteDatabase {
     pub fn state_root(&self, block_number: u64) -> Result<B256, RemoteDatabaseError> {
         Ok(self
             .runtime
-            .block_on(self.client.get_block_by_number(block_number, false))?
+            .block_on(
+                self.client
+                    .get_block_by_number(BlockSpec::Number(block_number), false),
+            )?
             .state_root)
     }
 }
@@ -54,7 +57,10 @@ impl StateRef for RemoteDatabase {
     fn basic(&self, address: Address) -> Result<Option<AccountInfo>, Self::Error> {
         Ok(Some(
             self.runtime
-                .block_on(self.client.get_account_info(&address, None))
+                .block_on(
+                    self.client
+                        .get_account_info(&address, BlockSpec::Tag("latest".to_string())),
+                )
                 .map_err(RemoteDatabaseError::RpcError)?,
         ))
     }
@@ -66,7 +72,11 @@ impl StateRef for RemoteDatabase {
 
     fn storage(&self, address: Address, index: U256) -> Result<U256, Self::Error> {
         self.runtime
-            .block_on(self.client.get_storage_at(&address, index, None))
+            .block_on(self.client.get_storage_at(
+                &address,
+                index,
+                BlockSpec::Tag("latest".to_string()),
+            ))
             .map_err(RemoteDatabaseError::RpcError)
     }
 }
