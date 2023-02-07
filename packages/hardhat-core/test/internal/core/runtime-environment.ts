@@ -387,6 +387,57 @@ describe("Environment", () => {
       });
       assert.equal(result2.optIntParam, 456);
     });
+
+    it("should prioritize the first subtask arg", async () => {
+      dsl.task("a", "a", async (_, hre) => {
+        const a = await hre.run("b", undefined, { d: { p: "a" } });
+        const b = await hre.run("b", undefined);
+
+        return [a, b];
+      });
+
+      dsl.subtask("b", "b", (_, hre) => {
+        return hre.run("c", undefined, { d: { p: "b" } });
+      });
+
+      dsl.subtask("c", "c", (_, hre) => {
+        return hre.run("d", { p: "c" });
+      });
+
+      dsl
+        .subtask("d")
+        .addParam("p")
+        .setAction(({ p }) => {
+          return p;
+        });
+
+      const resultA = await env.run("a");
+      assert.deepEqual(resultA, ["a", "b"]);
+    });
+
+    it("should override subtask args even if one of the calls passes undefined", async () => {
+      dsl.task("a", "a", async (_, hre) => {
+        return hre.run("b", undefined, { d: { p: "a" } });
+      });
+
+      dsl.subtask("b", "b", (_, hre) => {
+        return hre.run("c", undefined, undefined);
+      });
+
+      dsl.subtask("c", "c", (_, hre) => {
+        return hre.run("d", { p: "c" });
+      });
+
+      dsl
+        .subtask("d")
+        .addParam("p")
+        .setAction(({ p }) => {
+          return p;
+        });
+
+      const resultA = await env.run("a");
+      assert.equal(resultA, "a");
+    });
   });
 
   describe("Plugin system", () => {
