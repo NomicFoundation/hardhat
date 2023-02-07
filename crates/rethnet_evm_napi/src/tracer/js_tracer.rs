@@ -708,11 +708,11 @@ where
         data: &mut rethnet_evm::EVMData<'_, D>,
         _is_static: bool,
     ) -> InstructionResult {
-        if interp.current_opcode() == opcode::STOP {
-            self.pending_before = None;
-        } else {
-            self.validate_before_message();
+        if interp.current_opcode() == opcode::STOP && self.pending_before.is_some() {
+            return InstructionResult::Continue;
         }
+
+        self.validate_before_message();
 
         // self.pre_steps.push(StepData {
         //     depth: data.journaled_state.depth,
