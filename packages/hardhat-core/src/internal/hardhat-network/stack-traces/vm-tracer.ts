@@ -150,7 +150,6 @@ export class VMTracer {
 
       this._messageTraces.push(trace);
     } catch (error) {
-      console.log("addBeforeMessage", error); // TODO delete
       if (this._throwErrors) {
         throw error;
       } else {
@@ -177,7 +176,6 @@ export class VMTracer {
 
       trace.steps.push({ pc: Number(step.pc) });
     } catch (error) {
-      console.log("addStep", error); // TODO delete
       if (this._throwErrors) {
         throw error;
       } else {
@@ -219,7 +217,6 @@ export class VMTracer {
         this._messageTraces.pop();
       }
     } catch (error) {
-      console.log("addAfterMessage", error); // TODO delete
       if (this._throwErrors) {
         throw error;
       } else {

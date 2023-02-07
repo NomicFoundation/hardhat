@@ -1,4 +1,7 @@
-use std::sync::mpsc::{channel, Sender};
+use std::{
+    fmt::Debug,
+    sync::mpsc::{channel, Sender},
+};
 
 use napi::{
     bindgen_prelude::{BigInt, Buffer},
@@ -6,7 +9,9 @@ use napi::{
 };
 use napi_derive::napi;
 use rethnet_eth::{Address, Bytes, U256};
-use rethnet_evm::{Gas, InstructionResult, SuccessOrHalt, OPCODE_JUMPMAP};
+use rethnet_evm::{
+    opcode, return_revert, Bytecode, Gas, InstructionResult, SuccessOrHalt, OPCODE_JUMPMAP,
+};
 
 use crate::{
     account::Account,
@@ -100,13 +105,19 @@ pub struct TracingCallbacks {
     pub after_message: JsFunction,
 }
 
-pub struct BeforeMessageHandlerCall {
+#[derive(Clone)]
+struct BeforeMessage {
     pub depth: usize,
     pub to: Option<Address>,
     pub data: Bytes,
     pub value: U256,
     pub code_address: Option<Address>,
-    pub sender: Sender<napi::Result<()>>,
+    pub code: Option<Bytecode>,
+}
+
+struct BeforeMessageHandlerCall {
+    message: BeforeMessage,
+    sender: Sender<napi::Result<()>>,
 }
 
 pub struct StepHandlerCall {
@@ -116,18 +127,18 @@ pub struct StepHandlerCall {
     pub pc: u64,
     /// The executed op code
     pub opcode: u8,
-    /// The return value of the step
-    pub return_value: InstructionResult,
-    /// The amount of gas that was used by the step
-    pub gas_cost: u64,
-    /// The amount of gas that was refunded by the step
-    pub gas_refunded: i64,
-    /// The amount of gas left
-    pub gas_left: u64,
-    /// The stack
-    pub stack: Vec<U256>,
-    /// The memory
-    pub memory: Bytes,
+    // /// The return value of the step
+    // pub return_value: InstructionResult,
+    // /// The amount of gas that was used by the step
+    // pub gas_cost: u64,
+    // /// The amount of gas that was refunded by the step
+    // pub gas_refunded: i64,
+    // /// The amount of gas left
+    // pub gas_left: u64,
+    // /// The stack
+    // pub stack: Vec<U256>,
+    // /// The memory
+    // pub memory: Bytes,
     /// The contract being executed
     pub contract: rethnet_evm::AccountInfo,
     /// The address of the contract
@@ -143,19 +154,11 @@ pub struct AfterMessageHandlerCall {
 }
 
 #[derive(Clone)]
-struct StepData {
-    depth: usize,
-    pc: u64,
-    opcode: u8,
-    gas: Gas,
-}
-
-#[derive(Clone)]
 pub struct JsTracer {
     before_message_fn: ThreadsafeFunction<BeforeMessageHandlerCall>,
     step_fn: ThreadsafeFunction<StepHandlerCall>,
     after_message_fn: ThreadsafeFunction<AfterMessageHandlerCall>,
-    pre_steps: Vec<StepData>,
+    pending_before: Option<BeforeMessage>,
 }
 
 impl JsTracer {
@@ -171,10 +174,11 @@ impl JsTracer {
                 let mut tracing_message = ctx.env.create_object()?;
 
                 ctx.env
-                    .create_int64(ctx.value.depth as i64)
+                    .create_int64(ctx.value.message.depth as i64)
                     .and_then(|depth| tracing_message.set_named_property("depth", depth))?;
 
                 ctx.value
+                    .message
                     .to
                     .as_ref()
                     .map_or_else(
@@ -188,14 +192,15 @@ impl JsTracer {
                     .and_then(|to| tracing_message.set_named_property("to", to))?;
 
                 ctx.env
-                    .create_buffer_copy(&ctx.value.data)
+                    .create_buffer_copy(&ctx.value.message.data)
                     .and_then(|data| tracing_message.set_named_property("data", data.into_raw()))?;
 
                 ctx.env
-                    .create_bigint_from_words(false, ctx.value.value.as_limbs().to_vec())
+                    .create_bigint_from_words(false, ctx.value.message.value.as_limbs().to_vec())
                     .and_then(|value| tracing_message.set_named_property("value", value))?;
 
                 ctx.value
+                    .message
                     .code_address
                     .as_ref()
                     .map_or_else(
@@ -208,6 +213,22 @@ impl JsTracer {
                     )
                     .and_then(|code_address| {
                         tracing_message.set_named_property("codeAddress", code_address)
+                    })?;
+
+                ctx.value
+                    .message
+                    .code
+                    .as_ref()
+                    .map_or_else(
+                        || ctx.env.get_undefined().map(JsUndefined::into_unknown),
+                        |code| {
+                            ctx.env
+                                .create_buffer_copy(&code.bytes()[..code.len()])
+                                .map(JsBufferValue::into_unknown)
+                        },
+                    )
+                    .and_then(|code_address| {
+                        tracing_message.set_named_property("code", code_address)
                     })?;
 
                 let next = ctx.env.create_object()?;
@@ -240,47 +261,47 @@ impl JsTracer {
                     .create_string(OPCODE_JUMPMAP[usize::from(ctx.value.opcode)].unwrap_or(""))
                     .and_then(|opcode| tracing_step.set_named_property("opcode", opcode))?;
 
-                ctx.env
-                    .create_uint32((ctx.value.return_value as u8).into())
-                    .and_then(|return_value| {
-                        tracing_step.set_named_property("returnValue", return_value)
-                    })?;
+                // ctx.env
+                //     .create_uint32((ctx.value.return_value as u8).into())
+                //     .and_then(|return_value| {
+                //         tracing_step.set_named_property("returnValue", return_value)
+                //     })?;
 
-                ctx.env
-                    .create_bigint_from_u64(ctx.value.gas_cost)
-                    .and_then(|gas_cost| tracing_step.set_named_property("gasCost", gas_cost))?;
+                // ctx.env
+                //     .create_bigint_from_u64(ctx.value.gas_cost)
+                //     .and_then(|gas_cost| tracing_step.set_named_property("gasCost", gas_cost))?;
 
-                ctx.env
-                    .create_bigint_from_i64(ctx.value.gas_refunded)
-                    .and_then(|gas_refunded| {
-                        tracing_step.set_named_property("gasRefunded", gas_refunded)
-                    })?;
+                // ctx.env
+                //     .create_bigint_from_i64(ctx.value.gas_refunded)
+                //     .and_then(|gas_refunded| {
+                //         tracing_step.set_named_property("gasRefunded", gas_refunded)
+                //     })?;
 
-                ctx.env
-                    .create_bigint_from_u64(ctx.value.gas_left)
-                    .and_then(|gas_left| tracing_step.set_named_property("gasLeft", gas_left))?;
+                // ctx.env
+                //     .create_bigint_from_u64(ctx.value.gas_left)
+                //     .and_then(|gas_left| tracing_step.set_named_property("gasLeft", gas_left))?;
 
-                let mut stack =
-                    ctx.env
-                        .create_array(u32::try_from(ctx.value.stack.len()).map_err(|e| {
-                            napi::Error::new(Status::GenericFailure, e.to_string())
-                        })?)?;
+                // let mut stack =
+                //     ctx.env
+                //         .create_array(u32::try_from(ctx.value.stack.len()).map_err(|e| {
+                //             napi::Error::new(Status::GenericFailure, e.to_string())
+                //         })?)?;
 
-                for value in ctx.value.stack {
-                    ctx.env
-                        .create_bigint_from_words(false, value.as_limbs().to_vec())
-                        .and_then(|value| stack.insert(value))?;
-                }
+                // for value in ctx.value.stack {
+                //     ctx.env
+                //         .create_bigint_from_words(false, value.as_limbs().to_vec())
+                //         .and_then(|value| stack.insert(value))?;
+                // }
 
-                stack
-                    .coerce_to_object()
-                    .and_then(|stack| tracing_step.set_named_property("stack", stack))?;
+                // stack
+                //     .coerce_to_object()
+                //     .and_then(|stack| tracing_step.set_named_property("stack", stack))?;
 
-                ctx.env
-                    .create_buffer_copy(&ctx.value.memory)
-                    .and_then(|memory| {
-                        tracing_step.set_named_property("memory", memory.into_raw())
-                    })?;
+                // ctx.env
+                //     .create_buffer_copy(&ctx.value.memory)
+                //     .and_then(|memory| {
+                //         tracing_step.set_named_property("memory", memory.into_raw())
+                //     })?;
 
                 let mut contract = ctx.env.create_object()?;
 
@@ -292,7 +313,7 @@ impl JsTracer {
                 contract.set_named_property("nonce", nonce)?;
 
                 ctx.env
-                    .create_buffer_copy(&ctx.value.memory)
+                    .create_buffer_copy(ctx.value.contract.code_hash)
                     .and_then(|code_hash| {
                         contract.set_named_property("codeHash", code_hash.into_unknown())
                     })?;
@@ -477,14 +498,32 @@ impl JsTracer {
             before_message_fn,
             step_fn,
             after_message_fn,
-            pre_steps: Vec::new(),
+            pending_before: None,
         })
+    }
+
+    fn validate_before_message(&mut self) {
+        if let Some(message) = self.pending_before.take() {
+            let (sender, receiver) = channel();
+
+            let status = self.before_message_fn.call(
+                BeforeMessageHandlerCall { message, sender },
+                ThreadsafeFunctionCallMode::Blocking,
+            );
+            assert_eq!(status, Status::Ok);
+
+            receiver
+                .recv()
+                .unwrap()
+                .expect("Failed call to BeforeMessageHandler");
+        }
     }
 }
 
 impl<D> rethnet_evm::Inspector<D> for JsTracer
 where
     D: rethnet_evm::Database,
+    D::Error: Debug,
 {
     fn call(
         &mut self,
@@ -492,25 +531,34 @@ where
         inputs: &mut rethnet_evm::CallInputs,
         _is_static: bool,
     ) -> (InstructionResult, Gas, rethnet_eth::Bytes) {
-        let (sender, receiver) = channel();
+        self.validate_before_message();
 
-        let status = self.before_message_fn.call(
-            BeforeMessageHandlerCall {
-                depth: data.journaled_state.depth,
-                to: Some(inputs.context.address),
-                data: inputs.input.clone(),
-                value: inputs.transfer.value,
-                code_address: Some(inputs.context.code_address),
-                sender,
-            },
-            ThreadsafeFunctionCallMode::Blocking,
-        );
-        assert_eq!(status, Status::Ok);
+        let code = data
+            .journaled_state
+            .state
+            .get(&inputs.context.code_address)
+            .map(|account| {
+                if let Some(code) = &account.info.code {
+                    code.clone()
+                } else {
+                    data.db.code_by_hash(account.info.code_hash).unwrap()
+                }
+            })
+            .unwrap_or_else(|| {
+                let account = data.db.basic(inputs.context.code_address).unwrap().unwrap();
+                account
+                    .code
+                    .unwrap_or_else(|| data.db.code_by_hash(account.code_hash).unwrap())
+            });
 
-        receiver
-            .recv()
-            .unwrap()
-            .expect("Failed call to BeforeMessageHandler");
+        self.pending_before = Some(BeforeMessage {
+            depth: data.journaled_state.depth,
+            to: Some(inputs.context.address),
+            data: inputs.input.clone(),
+            value: inputs.transfer.value,
+            code_address: Some(inputs.context.code_address),
+            code: Some(code),
+        });
 
         (InstructionResult::Continue, Gas::new(0), Bytes::default())
     }
@@ -524,39 +572,54 @@ where
         out: Bytes,
         _is_static: bool,
     ) -> (InstructionResult, Gas, Bytes) {
+        match ret {
+            return_revert!() if self.pending_before.is_some() => {
+                self.pending_before = None;
+                return (ret, remaining_gas, out);
+            }
+            _ => (),
+        }
+
+        self.validate_before_message();
+
+        let ret = if ret == InstructionResult::CallTooDeep || ret == InstructionResult::OutOfFund {
+            InstructionResult::Revert
+        } else {
+            ret
+        };
+
         let result = match ret.into() {
-            SuccessOrHalt::Success(reason) => Some(rethnet_evm::ExecutionResult::Success {
+            SuccessOrHalt::Success(reason) => rethnet_evm::ExecutionResult::Success {
                 reason,
                 gas_used: remaining_gas.spend(),
                 gas_refunded: remaining_gas.refunded() as u64,
                 logs: data.journaled_state.logs.clone(),
                 output: rethnet_evm::Output::Call(out.clone()),
-            }),
-            SuccessOrHalt::Revert => Some(rethnet_evm::ExecutionResult::Revert {
+            },
+            SuccessOrHalt::Revert => rethnet_evm::ExecutionResult::Revert {
                 gas_used: remaining_gas.spend(),
                 output: out.clone(),
-            }),
-            SuccessOrHalt::Halt(reason) => Some(rethnet_evm::ExecutionResult::Halt {
+            },
+            SuccessOrHalt::Halt(reason) => rethnet_evm::ExecutionResult::Halt {
                 reason,
                 gas_used: remaining_gas.limit(),
-            }),
-            SuccessOrHalt::FatalExternalError | SuccessOrHalt::Internal => None,
+            },
+            SuccessOrHalt::Internal => panic!("Internal error: {:?}", ret),
+            SuccessOrHalt::FatalExternalError => panic!("Fatal external error"),
         };
 
-        if let Some(result) = result {
-            let (sender, receiver) = channel();
+        let (sender, receiver) = channel();
 
-            let status = self.after_message_fn.call(
-                AfterMessageHandlerCall { result, sender },
-                ThreadsafeFunctionCallMode::Blocking,
-            );
-            assert_eq!(status, Status::Ok);
+        let status = self.after_message_fn.call(
+            AfterMessageHandlerCall { result, sender },
+            ThreadsafeFunctionCallMode::Blocking,
+        );
+        assert_eq!(status, Status::Ok);
 
-            receiver
-                .recv()
-                .unwrap()
-                .expect("Failed call to BeforeMessageHandler");
-        }
+        receiver
+            .recv()
+            .unwrap()
+            .expect("Failed call to BeforeMessageHandler");
 
         (ret, remaining_gas, out)
     }
@@ -566,25 +629,16 @@ where
         data: &mut rethnet_evm::EVMData<'_, D>,
         inputs: &mut rethnet_evm::CreateInputs,
     ) -> (InstructionResult, Option<rethnet_eth::B160>, Gas, Bytes) {
-        let (sender, receiver) = channel();
+        self.validate_before_message();
 
-        let status = self.before_message_fn.call(
-            BeforeMessageHandlerCall {
-                depth: data.journaled_state.depth,
-                to: None,
-                data: inputs.init_code.clone(),
-                value: inputs.value,
-                code_address: None,
-                sender,
-            },
-            ThreadsafeFunctionCallMode::Blocking,
-        );
-        assert_eq!(status, Status::Ok);
-
-        receiver
-            .recv()
-            .unwrap()
-            .expect("Failed call to BeforeMessageHandler");
+        self.pending_before = Some(BeforeMessage {
+            depth: data.journaled_state.depth,
+            to: None,
+            data: inputs.init_code.clone(),
+            value: inputs.value,
+            code_address: None,
+            code: None,
+        });
 
         (
             InstructionResult::Continue,
@@ -603,6 +657,14 @@ where
         remaining_gas: Gas,
         out: Bytes,
     ) -> (InstructionResult, Option<rethnet_eth::B160>, Gas, Bytes) {
+        self.validate_before_message();
+
+        let ret = if ret == InstructionResult::CallTooDeep || ret == InstructionResult::OutOfFund {
+            InstructionResult::Revert
+        } else {
+            ret
+        };
+
         let result = match ret.into() {
             SuccessOrHalt::Success(reason) => Some(rethnet_evm::ExecutionResult::Success {
                 reason,
@@ -646,49 +708,32 @@ where
         data: &mut rethnet_evm::EVMData<'_, D>,
         _is_static: bool,
     ) -> InstructionResult {
-        self.pre_steps.push(StepData {
-            depth: data.journaled_state.depth,
-            pc: interp.program_counter() as u64,
-            opcode: interp.current_opcode(),
-            gas: *interp.gas(),
-        });
+        if interp.current_opcode() == opcode::STOP {
+            self.pending_before = None;
+        } else {
+            self.validate_before_message();
+        }
 
-        InstructionResult::Continue
-    }
-
-    fn step_end(
-        &mut self,
-        interp: &mut rethnet_evm::Interpreter,
-        data: &mut rethnet_evm::EVMData<'_, D>,
-        _is_static: bool,
-        _eval: InstructionResult,
-    ) -> InstructionResult {
-        // TODO: temporary fix
-        let StepData {
-            depth,
-            pc,
-            opcode,
-            gas: pre_step_gas,
-        } = self
-            .pre_steps
-            .pop()
-            .expect("At least one pre-step should exist");
-
-        let post_step_gas = interp.gas();
+        // self.pre_steps.push(StepData {
+        //     depth: data.journaled_state.depth,
+        //     pc: interp.program_counter() as u64,
+        //     opcode: interp.current_opcode(),
+        //     gas: *interp.gas(),
+        // });
 
         let (sender, receiver) = channel();
 
         let status = self.step_fn.call(
             StepHandlerCall {
-                depth,
-                pc,
-                opcode,
-                return_value: interp.instruction_result,
-                gas_cost: post_step_gas.spend() - pre_step_gas.spend(),
-                gas_refunded: post_step_gas.refunded() - pre_step_gas.refunded(),
-                gas_left: interp.gas().remaining(),
-                stack: interp.stack().data().clone(),
-                memory: Bytes::copy_from_slice(interp.memory.data().as_slice()),
+                depth: data.journaled_state.depth,
+                pc: interp.program_counter() as u64,
+                opcode: interp.current_opcode(),
+                // return_value: interp.instruction_result,
+                // gas_cost: post_step_gas.spend() - pre_step_gas.spend(),
+                // gas_refunded: post_step_gas.refunded() - pre_step_gas.refunded(),
+                // gas_left: interp.gas().remaining(),
+                // stack: interp.stack().data().clone(),
+                // memory: Bytes::copy_from_slice(interp.memory.data().as_slice()),
                 contract: data
                     .journaled_state
                     .account(interp.contract.address)
@@ -708,4 +753,27 @@ where
 
         InstructionResult::Continue
     }
+
+    // fn step_end(
+    //     &mut self,
+    //     interp: &mut rethnet_evm::Interpreter,
+    //     _data: &mut rethnet_evm::EVMData<'_, D>,
+    //     _is_static: bool,
+    //     _eval: InstructionResult,
+    // ) -> InstructionResult {
+    //     // TODO: temporary fix
+    //     let StepData {
+    //         depth,
+    //         pc,
+    //         opcode,
+    //         gas: pre_step_gas,
+    //     } = self
+    //         .pre_steps
+    //         .pop()
+    //         .expect("At least one pre-step should exist");
+
+    //     let post_step_gas = interp.gas();
+
+    //     InstructionResult::Continue
+    // }
 }

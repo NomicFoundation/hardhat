@@ -10,8 +10,8 @@ hashbrown = { version = "0.13", default-features = false, features = ["ahash", "
 log = { version = "0.4.17", default-features = false }
 parking_lot = { version = "0.12.1", default-features = false }
 rethnet_eth = { version = "0.1.0-dev", path = "../rethnet_eth", features = ["serde"] }
-# revm = { git = "https://github.com/bluealloy/revm", rev = "72355f4", version = "2.3", default-features = false, features = ["dev", "serde", "std"] }
-revm = { path = "../../../revm/crates/revm", version = "2.3", default-features = false, features = ["dev", "serde", "std"] }
+revm = { git = "https://github.com/wodann/revm", rev = "13d2f20", version = "3.0", default-features = false, features = ["dev", "serde", "std"] }
+# revm = { path = "../../../revm/crates/revm", version = "3.0", default-features = false, features = ["dev", "serde", "std"] }
 secp256k1 = { version = "0.24.1", default-features = false, features = ["alloc"] }
 sha3 = { version = "0.10.4", default-features = false }
 signature = { version = "1.6.4", default-features = false, features = ["std"] }

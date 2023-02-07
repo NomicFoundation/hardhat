@@ -12,8 +12,8 @@ pub use revm::{
         DatabaseComponents, State as StateMut, StateRef,
     },
     interpreter::{
-        instruction_result::SuccessOrHalt, CallInputs, CreateInputs, Gas, InstructionResult,
-        Interpreter, OPCODE_JUMPMAP,
+        instruction_result::SuccessOrHalt, opcode, return_revert, CallInputs, CreateInputs, Gas,
+        InstructionResult, Interpreter, OPCODE_JUMPMAP,
     },
     primitives::*,
     EVMData, Inspector,

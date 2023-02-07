@@ -542,10 +542,9 @@ export class EthereumJSAdapter implements VMAdapter {
       let executionResult;
 
       if (result.execResult.exceptionError === undefined) {
-        const reason =
-          result.execResult.selfdestruct === undefined
-            ? SuccessReason.Return
-            : SuccessReason.SelfDestruct;
+        const reason = !result.execResult.returnValue.equals(Buffer.from([]))
+          ? SuccessReason.Return
+          : SuccessReason.SelfDestruct;
 
         executionResult = {
           reason,

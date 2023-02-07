@@ -10,7 +10,11 @@ import {
 
 import { assertHardhatInvariant } from "../../../core/errors";
 import { RpcDebugTracingConfig } from "../../../core/jsonrpc/types/input/debugTraceTransaction";
-import { MessageTrace } from "../../stack-traces/message-trace";
+import {
+  isEvmStep,
+  isPrecompileTrace,
+  MessageTrace,
+} from "../../stack-traces/message-trace";
 import { VMTracer } from "../../stack-traces/vm-tracer";
 import { NodeConfig } from "../node-types";
 import { RpcDebugTraceOutput } from "../output";
@@ -333,38 +337,7 @@ export class DualModeAdapter implements VMAdapter {
         );
       }
 
-      // both traces are defined
-      if (ethereumJSTrace.depth !== rethnetTrace.depth) {
-        throw new Error(
-          `Different depth: ${ethereumJSTrace.depth} !== ${rethnetTrace.depth}`
-        );
-      }
-
-      if (ethereumJSTrace.exit.kind !== rethnetTrace.exit.kind) {
-        throw new Error(
-          `Different exit: ${ethereumJSTrace.exit.kind} !== ${rethnetTrace.exit.kind}`
-        );
-      }
-
-      if (ethereumJSTrace.gasUsed !== rethnetTrace.gasUsed) {
-        console.log("ethereumjs:", ethereumJSTrace);
-        console.log("rethnet:", rethnetTrace);
-        throw new Error(
-          `Different gasUsed: ${ethereumJSTrace.gasUsed} !== ${rethnetTrace.gasUsed}`
-        );
-      }
-
-      if (!ethereumJSTrace.returnData.equals(rethnetTrace.returnData)) {
-        throw new Error(
-          `Different returnData: ${ethereumJSTrace.returnData} !== ${rethnetTrace.returnData}`
-        );
-      }
-
-      if (ethereumJSTrace.value !== rethnetTrace.value) {
-        throw new Error(
-          `Different value: ${ethereumJSTrace.value} !== ${rethnetTrace.value}`
-        );
-      }
+      assertEqualTraces(ethereumJSTrace, rethnetTrace);
     }
 
     if (ethereumJSError === undefined) {
@@ -731,5 +704,147 @@ function assertEqualAccounts(
     //   )} !== ${rethnetAccount.storageRoot.toString("hex")}`
     // );
     // throw new Error("Different storageRoot");
+  }
+}
+
+function assertEqualTraces(
+  ethereumJSTrace: MessageTrace,
+  rethnetTrace: MessageTrace
+) {
+  // both traces are defined
+  if (ethereumJSTrace.depth !== rethnetTrace.depth) {
+    throw new Error(
+      `Different depth: ${ethereumJSTrace.depth} !== ${rethnetTrace.depth}`
+    );
+  }
+
+  if (ethereumJSTrace.exit.kind !== rethnetTrace.exit.kind) {
+    throw new Error(
+      `Different exit: ${ethereumJSTrace.exit.kind} !== ${rethnetTrace.exit.kind}`
+    );
+  }
+
+  if (ethereumJSTrace.gasUsed !== rethnetTrace.gasUsed) {
+    throw new Error(
+      `Different gasUsed: ${ethereumJSTrace.gasUsed} !== ${rethnetTrace.gasUsed}`
+    );
+  }
+
+  if (!ethereumJSTrace.returnData.equals(rethnetTrace.returnData)) {
+    throw new Error(
+      `Different returnData: ${ethereumJSTrace.returnData} !== ${rethnetTrace.returnData}`
+    );
+  }
+
+  if (ethereumJSTrace.value !== rethnetTrace.value) {
+    throw new Error(
+      `Different value: ${ethereumJSTrace.value} !== ${rethnetTrace.value}`
+    );
+  }
+
+  if (isPrecompileTrace(ethereumJSTrace)) {
+    if (!isPrecompileTrace(rethnetTrace)) {
+      throw new Error(
+        `ethereumJSTrace is a precompiled trace but rethnetTrace is not`
+      );
+    }
+
+    // Both traces are precompile traces
+    if (ethereumJSTrace.precompile !== rethnetTrace.precompile) {
+      throw new Error(
+        `Different precompile: ${ethereumJSTrace.precompile} !== ${rethnetTrace.precompile}`
+      );
+    }
+
+    if (!ethereumJSTrace.calldata.equals(rethnetTrace.calldata)) {
+      throw new Error(
+        `Different calldata: ${ethereumJSTrace.calldata} !== ${rethnetTrace.calldata}`
+      );
+    }
+  } else {
+    if (isPrecompileTrace(rethnetTrace)) {
+      throw new Error(
+        `ethereumJSTrace is a precompiled trace but ethereumJSTrace is not`
+      );
+    }
+
+    // Both traces are NOT precompile traces
+    if (!ethereumJSTrace.code.equals(rethnetTrace.code)) {
+      console.log("ethereumjs:", ethereumJSTrace);
+      console.log("rethnet:", rethnetTrace);
+      throw new Error(
+        `Different code: ${ethereumJSTrace.code.toString(
+          "hex"
+        )} !== ${rethnetTrace.code.toString("hex")}`
+      );
+    }
+
+    if (ethereumJSTrace.steps.length !== rethnetTrace.steps.length) {
+      throw new Error(
+        `Different steps length: ${ethereumJSTrace.steps.length} !== ${rethnetTrace.steps.length}`
+      );
+    }
+
+    for (let stepIdx = 0; stepIdx < ethereumJSTrace.steps.length; stepIdx++) {
+      const ethereumJSStep = ethereumJSTrace.steps[stepIdx];
+      const rethnetStep = rethnetTrace.steps[stepIdx];
+
+      if (isEvmStep(ethereumJSStep)) {
+        // if (stepIdx >= rethnetTrace.steps.length) {
+        //   console.log("code:", ethereumJSTrace.code);
+        //   console.log(stepIdx);
+        //   console.log(ethereumJSStep);
+        //   console.log("opcode:", ethereumJSTrace.code[ethereumJSStep.pc]);
+        //   continue;
+        // }
+
+        if (!isEvmStep(rethnetStep)) {
+          throw new Error(
+            `ethereumJSStep '${stepIdx}' is an EVM step but rethnetStep '${stepIdx}' is not`
+          );
+        }
+
+        if (ethereumJSStep.pc !== rethnetStep.pc) {
+          throw new Error(
+            `Different step[${stepIdx}]: ${ethereumJSStep.pc} !== ${rethnetStep.pc}`
+          );
+        }
+      } else {
+        if (isEvmStep(rethnetStep)) {
+          throw new Error(
+            `rethnetStep '${stepIdx}' is an EVM step but ethereumJSStep '${stepIdx}' is not`
+          );
+        }
+
+        assertEqualTraces(ethereumJSStep, rethnetStep);
+      }
+    }
+
+    if (ethereumJSTrace.bytecode === undefined) {
+      if (rethnetTrace.bytecode !== undefined) {
+        throw new Error(
+          "ethereumJSTrace.bytecode is undefined but rethnetTrace.bytecode is defined"
+        );
+      }
+    } else {
+      if (rethnetTrace.bytecode === undefined) {
+        throw new Error(
+          "ethereumJSTrace.bytecode is defined but rethnetTrace.bytecode is undefined"
+        );
+      }
+
+      // Both traces contain bytecode
+      if (!ethereumJSTrace.bytecode.equals(rethnetTrace.bytecode)) {
+        throw new Error(
+          `Different bytecode: ${ethereumJSTrace.bytecode} !== ${rethnetTrace.bytecode}`
+        );
+      }
+    }
+
+    if (ethereumJSTrace.numberOfSubtraces !== rethnetTrace.numberOfSubtraces) {
+      throw new Error(
+        `Different numberOfSubtraces: ${ethereumJSTrace.numberOfSubtraces} !== ${rethnetTrace.numberOfSubtraces}`
+      );
+    }
   }
 }
