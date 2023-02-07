@@ -188,7 +188,7 @@ export interface TasksMap {
 export type RunTaskFunction = (
   name: string,
   taskArguments?: TaskArguments,
-  subtaskArguments?: { [subtaskName: string]: TaskArguments }
+  subtaskArguments?: SubtaskArguments
 ) => Promise<any>;
 
 export interface HardhatRuntimeEnvironment {

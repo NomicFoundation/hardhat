@@ -355,7 +355,7 @@ export class Environment implements HardhatRuntimeEnvironment {
   private _resolveValidTaskArguments(
     taskDefinition: TaskDefinition,
     taskArguments: TaskArguments,
-    subtaskArguments: SubtaskArguments = {}
+    subtaskArguments: SubtaskArguments
   ): TaskArguments {
     const {
       name: taskName,
