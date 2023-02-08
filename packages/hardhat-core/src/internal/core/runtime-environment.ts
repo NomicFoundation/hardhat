@@ -250,6 +250,7 @@ export class Environment implements HardhatRuntimeEnvironment {
           return await this._runTaskDefinition(
             taskDefinition.parentTaskDefinition,
             _taskArguments,
+            _subtaskArguments,
             parentTaskProfile
           );
         } finally {
