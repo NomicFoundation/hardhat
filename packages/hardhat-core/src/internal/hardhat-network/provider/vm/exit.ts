@@ -1,9 +1,11 @@
-import { EvmError } from "@nomicfoundation/ethereumjs-evm";
+import { EVMResult, EvmError } from "@nomicfoundation/ethereumjs-evm";
 import { ERROR } from "@nomicfoundation/ethereumjs-evm/dist/exceptions";
 import { ExceptionalHalt, SuccessReason } from "rethnet-evm";
 
 export enum ExitCode {
-  SUCCESS,
+  STOP,
+  RETURN,
+  SELF_DESTRUCT,
   REVERT,
   OUT_OF_GAS,
   INTERNAL_ERROR,
@@ -15,11 +17,12 @@ export enum ExitCode {
 export class Exit {
   public static fromRethnetSuccessReason(reason: SuccessReason): Exit {
     switch (reason) {
-      case SuccessReason.Return:
-      case SuccessReason.SelfDestruct:
       case SuccessReason.Stop:
-        return new Exit(ExitCode.SUCCESS);
-      // TODO: Should we throw an error if default is hit?
+        return new Exit(ExitCode.STOP);
+      case SuccessReason.Return:
+        return new Exit(ExitCode.RETURN);
+      case SuccessReason.SelfDestruct:
+        return new Exit(ExitCode.SELF_DESTRUCT);
     }
   }
 
@@ -46,9 +49,23 @@ export class Exit {
     }
   }
 
-  public static fromEthereumJSEvmError(evmError: EvmError | undefined): Exit {
+  public static fromEthereumJSEvmResult(result: EVMResult): Exit {
+    const evmError = result.execResult.exceptionError;
     if (evmError === undefined) {
-      return new Exit(ExitCode.SUCCESS);
+      // TODO: Figure out which of STOP | RETURN | SELF_DESTRUCT
+      if (
+        result.execResult.selfdestruct !== undefined &&
+        Object.keys(result.execResult.selfdestruct).length > 0
+      ) {
+        return new Exit(ExitCode.SELF_DESTRUCT);
+      } else if (
+        result.createdAddress !== undefined ||
+        result.execResult.returnValue.length > 0
+      ) {
+        return new Exit(ExitCode.RETURN);
+      } else {
+        return new Exit(ExitCode.STOP);
+      }
     }
 
     if (evmError.error === ERROR.REVERT) {
@@ -82,14 +99,22 @@ export class Exit {
 
   constructor(public kind: ExitCode) {}
 
+  public isSuccess(): boolean {
+    return this.kind <= ExitCode.SELF_DESTRUCT;
+  }
+
   public isError(): boolean {
-    return this.kind !== ExitCode.SUCCESS;
+    return this.kind > ExitCode.SELF_DESTRUCT;
   }
 
   public getReason(): string {
     switch (this.kind) {
-      case ExitCode.SUCCESS:
-        return "Success";
+      case ExitCode.STOP:
+        return "Stopped";
+      case ExitCode.RETURN:
+        return "Returned";
+      case ExitCode.SELF_DESTRUCT:
+        return "Self destructed";
       case ExitCode.REVERT:
         return "Reverted";
       case ExitCode.OUT_OF_GAS:
@@ -109,7 +134,9 @@ export class Exit {
 
   public getEthereumJSError(): EvmError | undefined {
     switch (this.kind) {
-      case ExitCode.SUCCESS:
+      case ExitCode.STOP:
+      case ExitCode.RETURN:
+      case ExitCode.SELF_DESTRUCT:
         return undefined;
       case ExitCode.REVERT:
         return new EvmError(ERROR.REVERT);

@@ -320,7 +320,7 @@ export class RethnetAdapter implements VMAdapter {
     block: Block,
     config: RpcDebugTracingConfig
   ): Promise<RpcDebugTraceOutput> {
-    throw new Error("not implemented");
+    throw new Error("traceTransaction not implemented for Rethnet");
   }
 
   public async makeSnapshot(): Promise<Buffer> {

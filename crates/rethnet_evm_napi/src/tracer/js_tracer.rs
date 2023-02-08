@@ -708,48 +708,51 @@ where
         data: &mut rethnet_evm::EVMData<'_, D>,
         _is_static: bool,
     ) -> InstructionResult {
-        if interp.current_opcode() == opcode::STOP && self.pending_before.is_some() {
-            return InstructionResult::Continue;
-        }
+        // Skip the step
+        let skip_step = self.pending_before.as_ref().map_or(false, |message| {
+            message.code.is_some() && interp.current_opcode() == opcode::STOP
+        });
 
         self.validate_before_message();
 
-        // self.pre_steps.push(StepData {
-        //     depth: data.journaled_state.depth,
-        //     pc: interp.program_counter() as u64,
-        //     opcode: interp.current_opcode(),
-        //     gas: *interp.gas(),
-        // });
+        if !skip_step {
+            // self.pre_steps.push(StepData {
+            //     depth: data.journaled_state.depth,
+            //     pc: interp.program_counter() as u64,
+            //     opcode: interp.current_opcode(),
+            //     gas: *interp.gas(),
+            // });
 
-        let (sender, receiver) = channel();
+            let (sender, receiver) = channel();
 
-        let status = self.step_fn.call(
-            StepHandlerCall {
-                depth: data.journaled_state.depth,
-                pc: interp.program_counter() as u64,
-                opcode: interp.current_opcode(),
-                // return_value: interp.instruction_result,
-                // gas_cost: post_step_gas.spend() - pre_step_gas.spend(),
-                // gas_refunded: post_step_gas.refunded() - pre_step_gas.refunded(),
-                // gas_left: interp.gas().remaining(),
-                // stack: interp.stack().data().clone(),
-                // memory: Bytes::copy_from_slice(interp.memory.data().as_slice()),
-                contract: data
-                    .journaled_state
-                    .account(interp.contract.address)
-                    .info
-                    .clone(),
-                contract_address: interp.contract().address,
-                sender,
-            },
-            ThreadsafeFunctionCallMode::Blocking,
-        );
-        assert_eq!(status, Status::Ok);
+            let status = self.step_fn.call(
+                StepHandlerCall {
+                    depth: data.journaled_state.depth,
+                    pc: interp.program_counter() as u64,
+                    opcode: interp.current_opcode(),
+                    // return_value: interp.instruction_result,
+                    // gas_cost: post_step_gas.spend() - pre_step_gas.spend(),
+                    // gas_refunded: post_step_gas.refunded() - pre_step_gas.refunded(),
+                    // gas_left: interp.gas().remaining(),
+                    // stack: interp.stack().data().clone(),
+                    // memory: Bytes::copy_from_slice(interp.memory.data().as_slice()),
+                    contract: data
+                        .journaled_state
+                        .account(interp.contract.address)
+                        .info
+                        .clone(),
+                    contract_address: interp.contract().address,
+                    sender,
+                },
+                ThreadsafeFunctionCallMode::Blocking,
+            );
+            assert_eq!(status, Status::Ok);
 
-        receiver
-            .recv()
-            .unwrap()
-            .expect("Failed call to BeforeMessageHandler");
+            receiver
+                .recv()
+                .unwrap()
+                .expect("Failed call to BeforeMessageHandler");
+        }
 
         InstructionResult::Continue
     }

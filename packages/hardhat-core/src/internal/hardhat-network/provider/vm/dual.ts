@@ -558,8 +558,8 @@ function assertEqualRunTxResults(
     throw new Error("Different totalGasSpent");
   }
 
-  const exitCode = ethereumJSResult.exit.kind;
-  if (exitCode === ExitCode.SUCCESS || exitCode === ExitCode.REVERT) {
+  const exitCode = ethereumJSResult.exit;
+  if (exitCode.isSuccess() || exitCode.kind === ExitCode.REVERT) {
     // TODO: we only compare the return values when a contract was *not* created,
     // because sometimes ethereumjs has the created bytecode in the return value
     // and rethnet doesn't
@@ -608,15 +608,15 @@ function assertEqualRunTxResults(
     assertEqualLogs(ethereumJSResult.receipt.logs, rethnetResult.receipt.logs);
   }
 
-  if (exitCode === ExitCode.SUCCESS) {
+  if (exitCode.isSuccess()) {
     if (
       ethereumJSResult.createdAddress?.toString() !==
-        rethnetResult.createdAddress?.toString() &&
+      rethnetResult.createdAddress?.toString()
       // ethereumjs returns a createdAddress, even when reverting
-      !(
-        rethnetResult.createdAddress === undefined &&
-        ethereumJSResult.exit.kind !== ExitCode.SUCCESS
-      )
+      // && !(
+      //   rethnetResult.createdAddress === undefined &&
+      //   ethereumJSResult.exit.isError()
+      // )
     ) {
       console.trace(
         `Different createdAddress: ${ethereumJSResult.createdAddress?.toString()} !== ${rethnetResult.createdAddress?.toString()}`
