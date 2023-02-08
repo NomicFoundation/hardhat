@@ -150,15 +150,15 @@ export interface SubtaskArguments {
   [subtaskName: string]: TaskArguments;
 }
 
-export interface RunSuperFunction<ArgT extends TaskArguments> {
-  (taskArguments?: ArgT): Promise<any>;
+export interface RunSuperFunction<TaskArgumentsT extends TaskArguments> {
+  (taskArguments?: TaskArgumentsT): Promise<any>;
   isDefined: boolean;
 }
 
-export type ActionType<ArgsT extends TaskArguments> = (
-  taskArgs: ArgsT,
+export type ActionType<TaskArgumentsT extends TaskArguments> = (
+  taskArgs: TaskArgumentsT,
   env: HardhatRuntimeEnvironment,
-  runSuper: RunSuperFunction<ArgsT>
+  runSuper: RunSuperFunction<TaskArgumentsT>
 ) => Promise<any>;
 
 export interface HardhatArguments {
