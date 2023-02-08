@@ -287,14 +287,13 @@ export class Resolver {
       }
     }
 
-    let nodeModulesPath = path.dirname(path.dirname(packageJsonPath));
-    if (this._isScopedPackage(sourceName)) {
-      nodeModulesPath = path.dirname(nodeModulesPath);
-    }
+    let packageRoot = path.default.dirname(packageJsonPath);
+    let pattern = new RegExp(`^${libraryName}/?`);
+    let fileName = sourceName.replace(pattern, "");
 
     await this._validateSourceNameExistenceAndCasing(
-      nodeModulesPath,
-      sourceName,
+      packageRoot,
+      fileName,
       true
     );
 
@@ -307,7 +306,7 @@ export class Resolver {
     return this._resolveFile(
       sourceName,
       // We resolve to the real path here, as we may be resolving a linked library
-      await getRealPath(path.join(nodeModulesPath, sourceName)),
+      await getRealPath(path.join(packageRoot, fileName)),
       libraryName,
       libraryVersion
     );
