@@ -269,8 +269,7 @@ export class Environment implements HardhatRuntimeEnvironment {
       runSuperFunction.isDefined = false;
     }
 
-    const runSuper: RunSuperFunction<TaskArguments, SubtaskArguments> =
-      runSuperFunction;
+    const runSuper: RunSuperFunction<TaskArguments> = runSuperFunction;
 
     const globalAsAny = global as any;
     const previousRunSuper: any = globalAsAny.runSuper;
