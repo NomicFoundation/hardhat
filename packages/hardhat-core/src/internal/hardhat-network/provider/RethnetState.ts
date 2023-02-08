@@ -4,7 +4,7 @@ import {
   toBuffer,
 } from "@nomicfoundation/ethereumjs-util";
 import { StateManager, Account, Bytecode } from "rethnet-evm";
-import { GenesisAccount } from "./node-types";
+import { ForkConfig, GenesisAccount } from "./node-types";
 
 /* eslint-disable @nomiclabs/hardhat-internal-rules/only-hardhat-error */
 /* eslint-disable @typescript-eslint/no-unused-vars */
@@ -24,6 +24,14 @@ export class RethnetStateManager {
           };
         })
       )
+    );
+  }
+
+  public static withFork(forkConfig: ForkConfig): RethnetStateManager {
+    return new RethnetStateManager(
+      StateManager.withFork(forkConfig.jsonRpcUrl, forkConfig.blockNumber)
+      // TODO: consider changing StateManager.withFork() to also support
+      // passing in (and of course using) forkConfig.httpHeaders.
     );
   }
 
