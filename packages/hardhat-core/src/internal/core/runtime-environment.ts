@@ -386,6 +386,7 @@ export class Environment implements HardhatRuntimeEnvironment {
           const paramName = paramDefinition.name;
           const argumentValue =
             subtaskArguments[taskName][paramName] ?? taskArguments[paramName];
+
           const resolvedArgumentValue = this._resolveArgument(
             paramDefinition,
             argumentValue,
@@ -398,6 +399,9 @@ export class Environment implements HardhatRuntimeEnvironment {
           if (HardhatError.isHardhatError(error)) {
             errors.push(error);
           }
+
+          // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
+          throw error;
         }
         return { errors, values };
       },
