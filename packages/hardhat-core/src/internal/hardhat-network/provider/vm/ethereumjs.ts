@@ -211,13 +211,14 @@ export class EthereumJSAdapter implements VMAdapter {
         "Should have a result"
       );
 
+      const ethereumJSError = ethereumJSResult.execResult.exceptionError;
       const result: RunTxResult = {
         bloom: new Bloom(ethereumJSResult.bloom.bitvector),
         gasUsed: ethereumJSResult.totalGasSpent,
         receipt: ethereumJSResult.receipt,
         returnValue: ethereumJSResult.execResult.returnValue,
         createdAddress: ethereumJSResult.createdAddress,
-        exit: Exit.fromEthereumJSEvmResult(ethereumJSResult),
+        exit: Exit.fromEthereumJSEvmError(ethereumJSError),
       };
 
       return [result, trace];
@@ -397,13 +398,14 @@ export class EthereumJSAdapter implements VMAdapter {
       "Should have a result"
     );
 
+    const ethereumJSError = ethereumJSResult.execResult.exceptionError;
     const result: RunTxResult = {
       bloom: new Bloom(ethereumJSResult.bloom.bitvector),
       gasUsed: ethereumJSResult.totalGasSpent,
       receipt: ethereumJSResult.receipt,
       returnValue: ethereumJSResult.execResult.returnValue,
       createdAddress: ethereumJSResult.createdAddress,
-      exit: Exit.fromEthereumJSEvmResult(ethereumJSResult),
+      exit: Exit.fromEthereumJSEvmError(ethereumJSError),
     };
 
     return [result, trace];
@@ -577,7 +579,9 @@ export class EthereumJSAdapter implements VMAdapter {
           output: result.execResult.returnValue,
         };
       } else {
-        const vmError = Exit.fromEthereumJSEvmResult(result);
+        const vmError = Exit.fromEthereumJSEvmError(
+          result.execResult.exceptionError
+        );
 
         executionResult = {
           reason: vmError.getRethnetExceptionalHalt(),
