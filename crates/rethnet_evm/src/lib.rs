@@ -23,7 +23,7 @@ pub use crate::{
     block::{BlockBuilder, HeaderData},
     debug::StateDebug,
     runtime::{AsyncDatabase, Rethnet},
-    transaction::PendingTransaction,
+    transaction::{PendingTransaction, TransactionError},
 };
 
 /// Types for managing Ethereum blockchain

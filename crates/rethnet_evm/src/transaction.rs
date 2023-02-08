@@ -18,13 +18,16 @@ use revm::{
 /// Invalid transaction error
 #[derive(Debug, thiserror::Error)]
 pub enum TransactionError<BE, SE> {
+    /// Blockchain errors
     #[error(transparent)]
     BlockHash(BE),
+    /// Corrupt transaction data
     #[error("Invalid transaction")]
     InvalidTransaction(InvalidTransaction),
     /// The transaction is expected to have a prevrandao, as the executor's config is on a post-merge hardfork.
     #[error("Post-merge transaction is missing prevrandao")]
     MissingPrevrandao,
+    /// State errors
     #[error(transparent)]
     State(SE),
 }

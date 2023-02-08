@@ -1,7 +1,7 @@
 use napi::Status;
 use napi_derive::napi;
 use once_cell::sync::OnceCell;
-use rethnet_evm::{state::StateError, TxEnv};
+use rethnet_evm::{state::StateError, InvalidTransaction, TransactionError, TxEnv};
 
 use crate::{
     block::BlockConfig,
@@ -109,7 +109,17 @@ impl Rethnet {
             .runtime
             .run(transaction, block, inspector)
             .await
-            .map_err(|e| napi::Error::new(Status::GenericFailure, e.to_string()))?
+            .map_err(|e| {
+                napi::Error::new(
+                    Status::GenericFailure,
+                    match e {
+                        TransactionError::InvalidTransaction(
+                            InvalidTransaction::LackOfFundForGasLimit { gas_limit, balance },
+                        ) => format!("sender doesn't have enough funds to send tx. The max upfront cost is: {} and the sender's account only has: {}", gas_limit, balance),
+                        e => e.to_string(),
+                    },
+                )
+            })?
             .into())
     }
 }
