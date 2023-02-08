@@ -4,6 +4,7 @@ import {
   ConfigurableTaskDefinition,
   EnvironmentExtender,
   ExperimentalHardhatNetworkMessageTraceHook,
+  SubtaskArguments,
   TaskArguments,
 } from "../../../types";
 import { HardhatContext } from "../../context";
@@ -19,10 +20,13 @@ import * as argumentTypes from "../params/argumentTypes";
  * @param action The task's action.
  * @returns A task definition.
  */
-export function task<TaskArgumentsT extends TaskArguments>(
+export function task<
+  TaskArgumentsT extends TaskArguments,
+  SubtaskArgumentsT extends SubtaskArguments
+>(
   name: string,
   description?: string,
-  action?: ActionType<TaskArgumentsT>
+  action?: ActionType<TaskArgumentsT, SubtaskArgumentsT>
 ): ConfigurableTaskDefinition;
 
 /**
@@ -36,15 +40,21 @@ export function task<TaskArgumentsT extends TaskArguments>(
  *
  * @returns A task definition.
  */
-export function task<TaskArgumentsT extends TaskArguments>(
+export function task<
+  TaskArgumentsT extends TaskArguments,
+  SubtaskArgumentsT extends SubtaskArguments
+>(
   name: string,
-  action: ActionType<TaskArgumentsT>
+  action: ActionType<TaskArgumentsT, SubtaskArgumentsT>
 ): ConfigurableTaskDefinition;
 
-export function task<TaskArgumentsT extends TaskArguments>(
+export function task<
+  TaskArgumentsT extends TaskArguments,
+  SubtaskArgumentsT extends SubtaskArguments
+>(
   name: string,
-  descriptionOrAction?: string | ActionType<TaskArgumentsT>,
-  action?: ActionType<TaskArgumentsT>
+  descriptionOrAction?: string | ActionType<TaskArgumentsT, SubtaskArgumentsT>,
+  action?: ActionType<TaskArgumentsT, SubtaskArgumentsT>
 ): ConfigurableTaskDefinition {
   const ctx = HardhatContext.getHardhatContext();
   const dsl = ctx.tasksDSL;
@@ -71,10 +81,13 @@ export function task<TaskArgumentsT extends TaskArguments>(
  * @param action The task's action.
  * @returns A task definition.
  */
-export function subtask<TaskArgumentsT extends TaskArguments>(
+export function subtask<
+  TaskArgumentsT extends TaskArguments,
+  SubtaskArgumentsT extends SubtaskArguments
+>(
   name: string,
   description?: string,
-  action?: ActionType<TaskArgumentsT>
+  action?: ActionType<TaskArgumentsT, SubtaskArgumentsT>
 ): ConfigurableTaskDefinition;
 
 /**
@@ -88,15 +101,21 @@ export function subtask<TaskArgumentsT extends TaskArguments>(
  * @param action The task's action.
  * @returns A task definition.
  */
-export function subtask<TaskArgumentsT extends TaskArguments>(
+export function subtask<
+  TaskArgumentsT extends TaskArguments,
+  SubtaskArgumentsT extends SubtaskArguments
+>(
   name: string,
-  action: ActionType<TaskArgumentsT>
+  action: ActionType<TaskArgumentsT, SubtaskArgumentsT>
 ): ConfigurableTaskDefinition;
 
-export function subtask<TaskArgumentsT extends TaskArguments>(
+export function subtask<
+  TaskArgumentsT extends TaskArguments,
+  SubtaskArgumentsT extends SubtaskArguments
+>(
   name: string,
-  descriptionOrAction?: string | ActionType<TaskArgumentsT>,
-  action?: ActionType<TaskArgumentsT>
+  descriptionOrAction?: string | ActionType<TaskArgumentsT, SubtaskArgumentsT>,
+  action?: ActionType<TaskArgumentsT, SubtaskArgumentsT>
 ): ConfigurableTaskDefinition {
   const ctx = HardhatContext.getHardhatContext();
   const dsl = ctx.tasksDSL;

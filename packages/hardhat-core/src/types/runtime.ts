@@ -43,7 +43,7 @@ export interface CLIArgumentType<T> extends ArgumentType<T> {
 export interface ConfigurableTaskDefinition {
   setDescription(description: string): this;
 
-  setAction(action: ActionType<TaskArguments>): this;
+  setAction(action: ActionType<TaskArguments, SubtaskArguments>): this;
 
   addParam<T>(
     name: string,
@@ -120,7 +120,7 @@ export interface ParamDefinitionsMap {
 export interface TaskDefinition extends ConfigurableTaskDefinition {
   readonly name: string;
   readonly description?: string;
-  readonly action: ActionType<TaskArguments>;
+  readonly action: ActionType<TaskArguments, SubtaskArguments>;
   readonly isSubtask: boolean;
 
   // TODO: Rename this to something better. It doesn't include the positional
@@ -150,15 +150,24 @@ export interface SubtaskArguments {
   [subtaskName: string]: TaskArguments;
 }
 
-export interface RunSuperFunction<TaskArgumentsT extends TaskArguments> {
-  (taskArguments?: TaskArgumentsT): Promise<any>;
+export interface RunSuperFunction<
+  TaskArgumentsT extends TaskArguments,
+  SubtaskArgumentsT extends SubtaskArguments
+> {
+  (
+    taskArguments?: TaskArgumentsT,
+    subtaskArguments?: SubtaskArgumentsT
+  ): Promise<any>;
   isDefined: boolean;
 }
 
-export type ActionType<TaskArgumentsT extends TaskArguments> = (
+export type ActionType<
+  TaskArgumentsT extends TaskArguments,
+  SubtaskArgumentsT extends SubtaskArguments
+> = (
   taskArgs: TaskArgumentsT,
   env: HardhatRuntimeEnvironment,
-  runSuper: RunSuperFunction<TaskArgumentsT>
+  runSuper: RunSuperFunction<TaskArgumentsT, SubtaskArgumentsT>
 ) => Promise<any>;
 
 export interface HardhatArguments {

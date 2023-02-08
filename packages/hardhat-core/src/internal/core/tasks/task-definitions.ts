@@ -4,6 +4,7 @@ import {
   CLIArgumentType,
   ParamDefinition,
   ParamDefinitionsMap,
+  SubtaskArguments,
   TaskArguments,
   TaskDefinition,
 } from "../../../types";
@@ -31,7 +32,7 @@ export class SimpleTaskDefinition implements TaskDefinition {
   }
   public readonly paramDefinitions: ParamDefinitionsMap = {};
   public readonly positionalParamDefinitions: Array<ParamDefinition<any>> = [];
-  public action: ActionType<TaskArguments>;
+  public action: ActionType<TaskArguments, SubtaskArguments>;
 
   private _positionalParamNames: Set<string>;
   private _hasVariadicParam: boolean;
@@ -73,9 +74,10 @@ export class SimpleTaskDefinition implements TaskDefinition {
    * Sets the task's action.
    * @param action The action.
    */
-  public setAction<TaskArgumentsT extends TaskArguments>(
-    action: ActionType<TaskArgumentsT>
-  ) {
+  public setAction<
+    TaskArgumentsT extends TaskArguments,
+    SubtaskArgumentsT extends SubtaskArguments
+  >(action: ActionType<TaskArgumentsT, SubtaskArgumentsT>) {
     // TODO: There's probably something bad here. See types.ts for more info.
     this.action = action;
     return this;
@@ -552,7 +554,7 @@ export class SimpleTaskDefinition implements TaskDefinition {
  */
 export class OverriddenTaskDefinition implements TaskDefinition {
   private _description?: string;
-  private _action?: ActionType<TaskArguments>;
+  private _action?: ActionType<TaskArguments, SubtaskArguments>;
 
   constructor(
     public readonly parentTaskDefinition: TaskDefinition,
@@ -571,9 +573,10 @@ export class OverriddenTaskDefinition implements TaskDefinition {
    * Overrides the parent task's action.
    * @param action the action.
    */
-  public setAction<TaskArgumentsT extends TaskArguments>(
-    action: ActionType<TaskArgumentsT>
-  ) {
+  public setAction<
+    TaskArgumentsT extends TaskArguments,
+    SubtaskArgumentsT extends SubtaskArguments
+  >(action: ActionType<TaskArgumentsT, SubtaskArgumentsT>) {
     // TODO: There's probably something bad here. See types.ts for more info.
     this._action = action;
     return this;
