@@ -385,7 +385,7 @@ export class Environment implements HardhatRuntimeEnvironment {
         try {
           const paramName = paramDefinition.name;
           const argumentValue =
-            subtaskArguments[taskName][paramName] ?? taskArguments[paramName];
+            subtaskArguments[taskName]?.[paramName] ?? taskArguments[paramName];
 
           const resolvedArgumentValue = this._resolveArgument(
             paramDefinition,
