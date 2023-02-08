@@ -438,6 +438,22 @@ describe("Environment", () => {
       const resultA = await env.run("a");
       assert.equal(resultA, "a");
     });
+
+    it("Should resolve default params", async () => {
+      dsl.task("a", "a", async (_, hre) => {
+        return hre.run("b", undefined, {});
+      });
+
+      dsl
+        .subtask("b")
+        .addOptionalParam("p", "p", 123, types.int)
+        .setAction(async ({ p }) => {
+          return p;
+        });
+
+      const result = await env.run("a");
+      assert.equal(result, 123);
+    });
   });
 
   describe("Plugin system", () => {
