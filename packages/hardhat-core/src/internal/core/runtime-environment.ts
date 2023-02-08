@@ -276,29 +276,32 @@ export class Environment implements HardhatRuntimeEnvironment {
     const previousRunSuper: any = globalAsAny.runSuper;
     globalAsAny.runSuper = runSuper;
 
-    let modifiedHreWithParentTaskProfile: any | undefined;
-    if (
-      this.hardhatArguments.flamegraph === true ||
-      subtaskArguments !== undefined
-    ) {
-      // We create a modified version of `this`, as we want to keep track of the
-      // `taskProfile` and use it as `callerTaskProfile` if the action calls
-      // `run`, and add a few utility methods.
-      //
-      // Note that for this to work we need to set the prototype later
+    // We create a modified version of `this`, as we want to keep track of the
+    // `subtaskArguments` and use it to generate updated `subtaskArguments` if
+    // the action calls `run`.
+    //
+    // Note that for this to work we need to set the prototype later
+    let modifiedHreWithParentTaskProfile: any = {
+      ...this,
+      run: (
+        _name: string,
+        _taskArguments: TaskArguments,
+        _subtaskArguments: SubtaskArguments
+      ) =>
+        (this as any).run(
+          _name,
+          _taskArguments,
+          { ..._subtaskArguments, ...subtaskArguments }, // parent subtask args take precedence
+          taskProfile
+        ),
+    };
+
+    if (this.hardhatArguments.flamegraph === true) {
+      // To generate flamegraph, we want to keep track of the `taskProfile` and
+      // use it as `callerTaskProfile` if the action calls `run`, and add a few
+      // utility methods.
       modifiedHreWithParentTaskProfile = {
-        ...this,
-        run: (
-          _name: string,
-          _taskArguments: TaskArguments,
-          _subtaskArguments: SubtaskArguments
-        ) =>
-          (this as any).run(
-            _name,
-            _taskArguments,
-            { ..._subtaskArguments, ...subtaskArguments }, // parent subtask args take precedence
-            taskProfile
-          ),
+        ...modifiedHreWithParentTaskProfile,
         adhocProfile: async (_name: string, f: () => Promise<any>) => {
           const adhocProfile = createTaskProfile(_name);
           taskProfile!.children.push(adhocProfile);
@@ -318,12 +321,12 @@ export class Environment implements HardhatRuntimeEnvironment {
           }
         },
       };
-
-      Object.setPrototypeOf(
-        modifiedHreWithParentTaskProfile,
-        Object.getPrototypeOf(this)
-      );
     }
+
+    Object.setPrototypeOf(
+      modifiedHreWithParentTaskProfile,
+      Object.getPrototypeOf(this)
+    );
 
     const uninjectFromGlobal =
       modifiedHreWithParentTaskProfile?.injectToGlobal() ??
