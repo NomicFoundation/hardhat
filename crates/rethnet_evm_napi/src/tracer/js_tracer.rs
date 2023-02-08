@@ -582,13 +582,16 @@ where
 
         self.validate_before_message();
 
-        let ret = if ret == InstructionResult::CallTooDeep || ret == InstructionResult::OutOfFund {
+        let safe_ret = if ret == InstructionResult::CallTooDeep
+            || ret == InstructionResult::OutOfFund
+            || ret == InstructionResult::StateChangeDuringStaticCall
+        {
             InstructionResult::Revert
         } else {
             ret
         };
 
-        let result = match ret.into() {
+        let result = match safe_ret.into() {
             SuccessOrHalt::Success(reason) => rethnet_evm::ExecutionResult::Success {
                 reason,
                 gas_used: remaining_gas.spend(),
@@ -604,7 +607,7 @@ where
                 reason,
                 gas_used: remaining_gas.limit(),
             },
-            SuccessOrHalt::Internal => panic!("Internal error: {:?}", ret),
+            SuccessOrHalt::Internal => panic!("Internal error: {:?}", safe_ret),
             SuccessOrHalt::FatalExternalError => panic!("Fatal external error"),
         };
 
