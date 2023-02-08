@@ -375,50 +375,26 @@ export class Environment implements HardhatRuntimeEnvironment {
       ...positionalParamDefinitions,
     ];
 
-    const initResolvedArguments: {
-      errors: HardhatError[];
-      values: TaskArguments;
-    } = { errors: [], values: {} };
+    const resolvedArguments: TaskArguments = {};
 
-    const resolvedArguments = allTaskParamDefinitions.reduce(
-      ({ errors, values }, paramDefinition) => {
-        try {
-          const paramName = paramDefinition.name;
-          const argumentValue =
-            subtaskArguments[taskName]?.[paramName] ?? taskArguments[paramName];
+    for (const paramDefinition of allTaskParamDefinitions) {
+      const paramName = paramDefinition.name;
+      const argumentValue =
+        subtaskArguments[taskName]?.[paramName] ?? taskArguments[paramName];
 
-          const resolvedArgumentValue = this._resolveArgument(
-            paramDefinition,
-            argumentValue,
-            taskDefinition.name
-          );
-          if (resolvedArgumentValue !== undefined) {
-            values[paramName] = resolvedArgumentValue;
-          }
-        } catch (error) {
-          if (HardhatError.isHardhatError(error)) {
-            errors.push(error);
-          }
+      const resolvedArgumentValue = this._resolveArgument(
+        paramDefinition,
+        argumentValue,
+        taskDefinition.name
+      );
 
-          // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
-          throw error;
-        }
-        return { errors, values };
-      },
-      initResolvedArguments
-    );
-
-    const { errors: resolveErrors, values: resolvedValues } = resolvedArguments;
-
-    // if has argument errors, throw the first one
-    if (resolveErrors.length > 0) {
-      throw resolveErrors[0];
+      if (resolvedArgumentValue !== undefined) {
+        resolvedArguments[paramName] = resolvedArgumentValue;
+      }
     }
 
-    // append the rest of arguments that where not in the task param definitions
-    const resolvedTaskArguments = { ...taskArguments, ...resolvedValues };
-
-    return resolvedTaskArguments;
+    // We keep the args in taskArguments that were not resolved
+    return { ...taskArguments, ...resolvedArguments };
   }
 
   /**
