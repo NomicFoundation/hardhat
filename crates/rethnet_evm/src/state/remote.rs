@@ -2,7 +2,7 @@ use revm::{
     db::StateRef,
     primitives::{AccountInfo, Bytecode},
 };
-use tokio::runtime::{Builder, Runtime};
+use tokio::runtime::{Builder, Handle, Runtime};
 
 use rethnet_eth::{
     remote::{BlockSpec, RpcClient, RpcClientError},
@@ -12,7 +12,7 @@ use rethnet_eth::{
 /// An revm database backed by a remote Ethereum node
 pub struct RemoteDatabase {
     client: RpcClient,
-    runtime: Runtime,
+    runtime: Option<Runtime>,
 }
 
 /// Errors that might be returned from RemoteDatabase
@@ -31,18 +31,33 @@ impl RemoteDatabase {
     pub fn new(url: &str) -> Self {
         Self {
             client: RpcClient::new(url),
-            runtime: Builder::new_multi_thread()
-                .enable_io()
-                .enable_time()
-                .build()
-                .expect("failed to construct async runtime"),
+            runtime: match Handle::try_current() {
+                Ok(_) => None,
+                Err(_) => Some(
+                    Builder::new_multi_thread()
+                        .enable_io()
+                        .enable_time()
+                        .build()
+                        .expect("failed to construct async runtime"),
+                ),
+            },
+        }
+    }
+
+    fn runtime(&self) -> Handle {
+        if let Ok(handle) = Handle::try_current() {
+            handle
+        } else if self.runtime.is_some() {
+            self.runtime.as_ref().unwrap().handle().clone()
+        } else {
+            panic!("no runtime available")
         }
     }
 
     /// Retrieve the state root of the given block
     pub fn state_root(&self, block_number: u64) -> Result<B256, RemoteDatabaseError> {
         Ok(self
-            .runtime
+            .runtime()
             .block_on(
                 self.client
                     .get_block_by_number(BlockSpec::Number(block_number), false),
@@ -56,7 +71,7 @@ impl StateRef for RemoteDatabase {
 
     fn basic(&self, address: Address) -> Result<Option<AccountInfo>, Self::Error> {
         Ok(Some(
-            self.runtime
+            self.runtime()
                 .block_on(
                     self.client
                         .get_account_info(&address, BlockSpec::Tag("latest".to_string())),
@@ -71,7 +86,7 @@ impl StateRef for RemoteDatabase {
     }
 
     fn storage(&self, address: Address, index: U256) -> Result<U256, Self::Error> {
-        self.runtime
+        self.runtime()
             .block_on(self.client.get_storage_at(
                 &address,
                 index,
