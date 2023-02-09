@@ -72,9 +72,9 @@ impl revm::Database for ForkDatabase {
         {
             Ok(Some(layered))
         } else if let Some(remote) = self
-            .layered_db
+            .remote_db
             .basic(address)
-            .map_err(ForkDatabaseError::LayeredDatabase)?
+            .map_err(ForkDatabaseError::RemoteDatabase)?
         {
             self.account_info_cache.insert(address, remote.clone());
 
@@ -261,10 +261,10 @@ mod tests {
         assert!(account_info.is_some());
         let account_info = account_info.unwrap();
         assert_eq!(account_info.balance, U256::from(0));
-        assert_eq!(account_info.nonce, 0);
+        assert_eq!(account_info.nonce, 1);
         assert_eq!(
             account_info.code_hash,
-            B256::from_str("0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470")
+            B256::from_str("0x74280a6e975486b18c8a65edee16b3b7a2f4c24398a094648552810549cbf864")
                 .expect("failed to parse")
         );
     }
