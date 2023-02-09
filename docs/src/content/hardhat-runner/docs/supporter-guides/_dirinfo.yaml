@@ -1,5 +1,5 @@
 section-type: group
 section-title: Supporter guides
 order:
-  - title: Working with Chainlink oracles
-    href: /chainlink
+  - title: Working with oracles
+    href: /oracles
