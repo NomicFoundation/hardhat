@@ -84,10 +84,10 @@ module.exports = buildModule("LockModule", (m) => {
 Run the `deploy` task to test the module against an ephemeral **Hardhat** node (using the default `unlockTime`):
 
 ```bash
-npx hardhat deploy LockModule.js
+npx hardhat deploy LockModule
 ```
 
-A relative path to a file containing module parameters can be passed as a flag at the command line:
+A file containing module parameters can be passed as a flag at the command line:
 
 ```json
 // ignition/LockModule.config.json

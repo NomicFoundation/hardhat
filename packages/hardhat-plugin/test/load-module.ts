@@ -1,0 +1,50 @@
+/* eslint-disable import/no-unused-modules */
+import { assert } from "chai";
+
+import { loadModule } from "../src/load-module";
+
+import { useEnvironment } from "./useEnvironment";
+
+describe("loadModule", function () {
+  useEnvironment("user-modules");
+
+  it("should return the module given the module name", () => {
+    const module = loadModule("ignition", "TestModule");
+
+    assert.isDefined(module);
+    assert.equal(module.name, "testing123");
+  });
+
+  it("should return the module given the module name and extension", () => {
+    const module = loadModule("ignition", "TestModule.js");
+
+    assert.isDefined(module);
+    assert.equal(module.name, "testing123");
+  });
+
+  it("should throw if the module name does not exist", () => {
+    assert.throws(() => loadModule("ignition", "Fake"));
+  });
+
+  it("should throw if the module name with extension does not exist", () => {
+    assert.throws(() => loadModule("ignition", "Fake.js"));
+  });
+
+  it("should throw if the full path to the module does not exist", () => {
+    assert.throws(() => loadModule("ignition", "./ignition/Fake.js"));
+  });
+
+  it("should throw if the full path to the module is outside the module directory", () => {
+    assert.throws(
+      () => loadModule("contracts", "./ignition/TestModule.js"),
+      `The referenced module ./ignition/TestModule.js is outside the module directory contracts`
+    );
+  });
+
+  it("should throw if given a user module directory that does not exist", async () => {
+    assert.throws(
+      () => loadModule("/fake", "AFile.js"),
+      `Directory /fake not found.`
+    );
+  });
+});

@@ -9,8 +9,8 @@ import prompts from "prompts";
 
 import { buildIgnitionProvidersFrom } from "./buildIgnitionProvidersFrom";
 import { IgnitionWrapper } from "./ignition-wrapper";
+import { loadModule } from "./load-module";
 import { Renderer } from "./plan";
-import { loadUserModules, loadAllUserModules } from "./user-modules";
 import "./type-extensions";
 
 export { buildSubgraph, buildModule } from "@ignored/ignition-core";
@@ -78,7 +78,7 @@ extendEnvironment((hre) => {
 });
 
 task("deploy")
-  .addOptionalVariadicPositionalParam("userModulesPaths")
+  .addPositionalParam("moduleNameOrPath")
   .addOptionalParam(
     "parameters",
     "A JSON object as a string, of the module parameters, or a relative path to a JSON file"
@@ -86,9 +86,9 @@ task("deploy")
   .setAction(
     async (
       {
-        userModulesPaths = [],
+        moduleNameOrPath,
         parameters: parametersInput,
-      }: { userModulesPaths: string[]; parameters?: string },
+      }: { moduleNameOrPath: string; parameters?: string },
       hre
     ) => {
       if (hre.network.name !== "hardhat") {
@@ -113,22 +113,15 @@ task("deploy")
 
       await hre.run("compile", { quiet: true });
 
-      let userModules: Array<Module<ModuleDict>>;
-      if (userModulesPaths.length === 0) {
-        userModules = loadAllUserModules(hre.config.paths.ignition);
-      } else {
-        userModules = loadUserModules(
-          hre.config.paths.ignition,
-          userModulesPaths
-        );
-      }
+      const userModule: Module<ModuleDict> | undefined = loadModule(
+        hre.config.paths.ignition,
+        moduleNameOrPath
+      );
 
-      if (userModules.length === 0) {
+      if (userModule === undefined) {
         console.warn("No Ignition modules found");
         process.exit(0);
       }
-
-      const [userModule] = userModules;
 
       let parameters: ModuleParams | undefined;
       if (parametersInput === undefined) {
@@ -163,37 +156,30 @@ task("deploy")
 
 task("plan")
   .addFlag("quiet", "Disables logging output path to terminal")
-  .addOptionalVariadicPositionalParam("userModulesPaths")
+  .addPositionalParam("moduleNameOrPath")
   .setAction(
     async (
       {
         quiet = false,
-        userModulesPaths = [],
-      }: { quiet: boolean; userModulesPaths: string[] },
+        moduleNameOrPath,
+      }: { quiet: boolean; moduleNameOrPath: string },
       hre
     ) => {
       await hre.run("compile", { quiet: true });
 
-      let userModules: Array<Module<ModuleDict>>;
-      if (userModulesPaths.length === 0) {
-        userModules = loadAllUserModules(hre.config.paths.ignition);
-      } else {
-        userModules = loadUserModules(
-          hre.config.paths.ignition,
-          userModulesPaths
-        );
-      }
+      const userModule: Module<ModuleDict> | undefined = loadModule(
+        hre.config.paths.ignition,
+        moduleNameOrPath
+      );
 
-      if (userModules.length === 0) {
+      if (userModule === undefined) {
         console.warn("No Ignition modules found");
         process.exit(0);
       }
 
-      const [module] = userModules;
+      const plan = await hre.ignition.plan(userModule);
 
-      const plan = await hre.ignition.plan(module);
-
-      const renderer = new Renderer(module.name, plan, {
+      const renderer = new Renderer(userModule.name, plan, {
         cachePath: hre.config.paths.cache,
         network: {
           name: hre.network.name,

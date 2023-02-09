@@ -20,7 +20,7 @@ Once you have built and tested your deployment module, it is time to deploy it! 
 The `plan` task takes one argument, the module to visualize. For example, using the `ENS.js` module from our [ENS example project](../examples/ens/README.md):
 
 ```bash
-npx hardhat plan ENS.js
+npx hardhat plan ENS
 ```
 
 Running `plan` will generate the report based on the given module (in this case `ENS.js`), it will then open the report in your system's default browser:
@@ -38,7 +38,7 @@ If something in your deployment isn't behaving the way you expected, the `plan` 
 Deploying a module is done using the **Ignition** deploy task:
 
 ```sh
-npx hardhat deploy LockModule.js
+npx hardhat deploy LockModule
 ```
 
 Module parameters can be passed as a `json` string to the `parameters` flag:
