@@ -79,7 +79,7 @@ describe("ContractsService", function () {
     await assert.isRejected(
       contractsService.sendTx(fakeTx, {
         maxRetries: 4,
-        gasIncrementPerRetry: null,
+        gasPriceIncrementPerRetry: null,
         pollingInterval: 10,
       }),
       /Transaction not confirmed within max retry limit/

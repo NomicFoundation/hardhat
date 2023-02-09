@@ -12,7 +12,7 @@ module.exports = {
   },
   ignition: {
     maxRetries: 1,
-    gasIncrementPerRetry: BigNumber.from(1000),
+    gasPriceIncrementPerRetry: BigNumber.from(1000),
     pollingInterval: 4,
     eventDuration: 10000,
   },

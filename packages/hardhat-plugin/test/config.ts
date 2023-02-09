@@ -54,7 +54,7 @@ describe("config", () => {
     assert.equal(sendTxOptions.maxRetries, 1);
   });
 
-  it("should apply gasIncrementPerRetry", async function () {
+  it("should apply gasPriceIncrementPerRetry", async function () {
     await deployModule(this.hre, (m) => {
       m.contract("Bar");
 
@@ -63,8 +63,8 @@ describe("config", () => {
 
     const sendTxOptions = sendTxStub.getCalls()[0].lastArg;
 
-    assert(BigNumber.isBigNumber(sendTxOptions.gasIncrementPerRetry));
-    assert(BigNumber.from(sendTxOptions.gasIncrementPerRetry).eq(1000));
+    assert(BigNumber.isBigNumber(sendTxOptions.gasPriceIncrementPerRetry));
+    assert(BigNumber.from(sendTxOptions.gasPriceIncrementPerRetry).eq(1000));
   });
 
   it("should apply pollingInterval", async function () {

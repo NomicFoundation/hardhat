@@ -28,7 +28,7 @@ export interface IgnitionDeployOptions {
   txPollingInterval: number;
   networkName: string;
   maxRetries: number;
-  gasIncrementPerRetry: BigNumber | null;
+  gasPriceIncrementPerRetry: BigNumber | null;
   pollingInterval: number;
   eventDuration: number;
 }
@@ -96,7 +96,7 @@ export class Ignition {
 
     const executionResult = await execute(deployment, {
       maxRetries: options.maxRetries,
-      gasIncrementPerRetry: options.gasIncrementPerRetry,
+      gasPriceIncrementPerRetry: options.gasPriceIncrementPerRetry,
       pollingInterval: options.pollingInterval,
       eventDuration: options.eventDuration,
     });

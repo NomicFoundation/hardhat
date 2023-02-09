@@ -5,7 +5,7 @@ Config options:
 Global config:
 
 - maxRetries: number
-- gasIncrementPerRetry: BigNumber
+- gasPriceIncrementPerRetry: BigNumber
   - Increments gasPrice if legacy tx
   - Increments maxPriorityFeePerGas otherwise
   - ** proposal ** currently incrementing maxFeePerGas as well, but maybe should remove that.

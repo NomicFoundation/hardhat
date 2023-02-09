@@ -17,7 +17,7 @@ export { buildSubgraph, buildModule } from "@ignored/ignition-core";
 
 export interface IgnitionConfig {
   maxRetries: number;
-  gasIncrementPerRetry: BigNumber | null;
+  gasPriceIncrementPerRetry: BigNumber | null;
   pollingInterval: number;
   eventDuration: number;
 }
@@ -51,8 +51,8 @@ extendConfig((config, userConfig) => {
 
   config.ignition = {
     maxRetries: userIgnitionConfig.maxRetries ?? MAX_RETRIES,
-    gasIncrementPerRetry:
-      userIgnitionConfig.gasIncrementPerRetry ?? GAS_INCREMENT_PER_RETRY,
+    gasPriceIncrementPerRetry:
+      userIgnitionConfig.gasPriceIncrementPerRetry ?? GAS_INCREMENT_PER_RETRY,
     pollingInterval: userIgnitionConfig.pollingInterval ?? POLLING_INTERVAL,
     eventDuration: userIgnitionConfig.eventDuration ?? AWAIT_EVENT_DURATION,
   };

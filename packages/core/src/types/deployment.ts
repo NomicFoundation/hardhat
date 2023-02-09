@@ -151,7 +151,7 @@ export interface DeployState {
 
 export interface ExecutionOptions {
   maxRetries: number;
-  gasIncrementPerRetry: BigNumber | null;
+  gasPriceIncrementPerRetry: BigNumber | null;
   pollingInterval: number;
   eventDuration: number;
 }

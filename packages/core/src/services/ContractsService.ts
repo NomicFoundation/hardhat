@@ -87,7 +87,7 @@ export class ContractsService implements IContractsService {
           signer,
           txSent,
           txHash,
-          txOptions.gasIncrementPerRetry
+          txOptions.gasPriceIncrementPerRetry
         );
 
         blockNumberWhenSent =
@@ -110,7 +110,7 @@ export class ContractsService implements IContractsService {
     _signer: IgnitionSigner,
     previousTxRequest: ethers.providers.TransactionRequest,
     previousTxHash: string,
-    gasIncrementPerRetry: ethers.BigNumber | null
+    gasPriceIncrementPerRetry: ethers.BigNumber | null
   ): Promise<ethers.providers.TransactionRequest> {
     const previousTx = await this._providers.web3Provider.getTransaction(
       previousTxHash
@@ -122,8 +122,10 @@ export class ContractsService implements IContractsService {
     if (previousTx.gasPrice !== undefined) {
       // Increase 10%, and add 1 to be sure it's at least rounded up
       // or add by user's config value if present
-      const newGasPrice = gasIncrementPerRetry
-        ? ethers.BigNumber.from(previousTx.gasPrice).add(gasIncrementPerRetry)
+      const newGasPrice = gasPriceIncrementPerRetry
+        ? ethers.BigNumber.from(previousTx.gasPrice).add(
+            gasPriceIncrementPerRetry
+          )
         : ethers.BigNumber.from(previousTx.gasPrice)
             .mul(110000)
             .div(100000)
