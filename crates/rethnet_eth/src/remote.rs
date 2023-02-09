@@ -11,7 +11,7 @@ mod jsonrpc;
 #[derive(thiserror::Error, Debug)]
 pub enum RpcClientError {
     /// The remote node's response did not conform to the expected format
-    #[error("Response was not of the expected type")]
+    #[error("Response was not of the expected type ({expected_type}). {msg}. Request body was {request_body}. Response text was {response_text}")]
     InterpretationError {
         /// A more specific message
         msg: String,
@@ -24,7 +24,7 @@ pub enum RpcClientError {
     },
 
     /// The message could not be sent to the remote node
-    #[error("Failed to send request")]
+    #[error("Failed to send request. {msg}. Request body was {request_body}.")]
     SendError {
         /// The error message
         msg: String,
@@ -33,7 +33,7 @@ pub enum RpcClientError {
     },
 
     /// The remote node failed to reply with the body of the response
-    #[error("Failed to get response body")]
+    #[error("Failed to get response body. {msg}. Request body was {request_body}.")]
     ResponseError {
         /// The specific error message
         msg: String,
