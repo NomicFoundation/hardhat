@@ -2,18 +2,11 @@
 title: Oracles
 description: Oracles help get real-world data into your Ethereum application because smart contracts can't query real-world data on their own.
 ---
-
-# Working with blockchain oracles
-
-_This guide is based on the [ethereum.org oracles guide](https://ethereum.org/en/developers/docs/oracles) and the [official Chainlink documentation](https://docs.chain.link/)._
-
-## What is an oracle
+_This guide is based on the [ethereum.org oracles guide](https://ethereum.org/en/developers/docs/oracles)_
 
 Oracles provide a bridge between the real-world and on-chain smart contracts by being a source of data that smart contracts can rely on, and act upon.
 
 Oracles play a critical role in facilitating the full potential of smart contract utility. Without a reliable connection to real-world conditions, smart contracts cannot effectively serve the real-world.
-
-Watch Patrick explain Oracles:
 
 <iframe width="560" height="315" src="https://www.youtube-nocookie.com/embed/ZJfkNzyO7-U" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
 
@@ -44,13 +37,10 @@ This is an example of a simple Oracle architecture, but there are more ways than
 
 This is how to get data in a 1 to 1 manner, however to improve security you may want to decentralize how you collect your off-chain data.
 
-The next step might be to have a network of these nodes making these calls to different APIs and sources, and aggregating the data on-chain.
-
-[Chainlink Off-Chain Reporting](https://blog.chain.link/off-chain-reporting-live-on-mainnet/) (Chainlink OCR) has improved on this methodology by having the off-chain oracle network communicate with each other, cryptographically sign their responses, aggregate their responses off-chain, and send only one transaction on-chain with the result. This way, less gas is spent, but you still get the guarantee of decentralized data since every node has signed their part of the transaction, making it unchangeable by the node sending the transaction. The escalation policy kicks in if the node doesn't transact, and the next node sends the transaction.
 
 ## Getting Price Data
 
-Chainlink Data Feeds are the quickest way to connect your smart contracts to the real-world data such as asset prices, reserve balances, and L2 sequencer health. To consume price data, your smart contract should reference AggregatorV3Interface, which defines the external functions implemented by Data Feeds.
+Below is an example of how you can retrieve the latest ETH price in your smart contract using a Chainlink price feed on Goerli:
 
 ```solidity
 // SPDX-License-Identifier: MIT
@@ -75,13 +65,7 @@ contract PriceConsumerV3 {
      * Returns the latest price
      */
     function getLatestPrice() public view returns (int) {
-        (
-            /*uint80 roundID*/,
-            int price,
-            /*uint startedAt*/,
-            /*uint timeStamp*/,
-            /*uint80 answeredInRound*/
-        ) = priceFeed.latestRoundData();
+        (int price) = priceFeed.latestRoundData();
         return price;
     }
 }
@@ -92,7 +76,9 @@ contract PriceConsumerV3 {
 
 Randomness in computer systems, especially on blockchains, is challenging to achieve because general-purpose blockchains like Ethereum do not have inherent randomness. Another problem is the public nature of blockchain technology which makes finding a secure source of entropy difficult. Almost any mechanism of generating on-chain randomness using Solidity is vulnerable to MEV attacks.
 
-Chainlink VRF (Verifiable Random Function) is a provably-fair and verifiable source of randomness designed for smart contracts. Smart contract developers can use Chainlink VRF as a tamper-proof random number generation (RNG) to build reliable smart contracts for any applications which rely on unpredictable outcomes:
+It is possible to generate the random value off-chain and send it on-chain, but doing so imposes high trust requirements on users. They must believe the value was truly generated via unpredictable mechanisms and wasn’t altered in transit.
+
+Oracles designed for off-chain computation solve this problem by securely generating random outcomes off-chain that they broadcast on-chain along with cryptographic proofs attesting to the unpredictability of the process. An example is Chainlink VRF (Verifiable Random Function), which is a provably-fair and verifiable source of randomness designed for smart contracts. Smart contract developers can use Chainlink VRF as a tamper-proof random number generation (RNG) to build  smart contracts for any applications which rely on unpredictable outcomes:
 
 - Blockchain games and NFTs
 - Random assignment of duties and resources (e.g. randomly assigning judges to cases)
