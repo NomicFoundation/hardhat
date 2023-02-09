@@ -33,7 +33,7 @@ function onlyHardhatPluginErrorRule(context) {
 
         context.report({
           node,
-          message: `Only HardhatError must be thrown, ${exceptionName} found.`,
+          message: `Only HardhatPluginError must be thrown, ${exceptionName} found.`,
         });
       }
     },
