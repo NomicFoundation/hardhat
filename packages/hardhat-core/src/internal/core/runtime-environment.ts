@@ -296,9 +296,7 @@ export class Environment implements HardhatRuntimeEnvironment {
     };
 
     if (this.hardhatArguments.flamegraph === true) {
-      // To generate flamegraph, we want to keep track of the `taskProfile` and
-      // use it as `callerTaskProfile` if the action calls `run`, and add a few
-      // utility methods.
+      // We modify the `this` again to add  a few utility methods.
       modifiedHreWithParentTaskProfile = {
         ...modifiedHreWithParentTaskProfile,
         adhocProfile: async (_name: string, f: () => Promise<any>) => {
