@@ -1,0 +1,1 @@
+https://github.com/NomicFoundation/hardhat/edit/remove-hardhat-waffle/packages/hardhat-waffle/README.md
