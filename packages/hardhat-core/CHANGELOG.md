@@ -1,5 +1,21 @@
 # hardhat
 
+## 2.12.7
+
+### Patch Changes
+
+- e443b3667: Added an option in Hardhat Network to allow mining blocks with the same timestamp
+- c23a1cac4: Added support for the `http_proxy` environment variable. When this variable is set, Hardhat will send its requests through the given proxy for things like JSON-RPC requests, mainnet forking and downloading compilers.
+
+  We also removed support for the `HTTP_PROXY` and `HTTPS_PROXY` environment variables, since `http_proxy` is the most commonly used environment variable for this kind of thing. Those variables could only be used for downloading compilers.
+
+  Finally, we also added support for `no_proxy`, which accepts a comma separated list of hosts or `"*"`. Any host included in this list will not be proxied.
+
+  Note that requests to `"localhost"` or `"127.0.0.1"` are never proxied.
+
+- 69546655e: Added support for sending batch requests through WebSocket to the Hardhat node (thanks @tenbits!)
+- 6bf1673bb: Added a config validation for the number of optimizer runs used (thanks @konarshankar07!)
+
 ## 2.12.6
 
 ### Patch Changes
