@@ -22,6 +22,8 @@ export interface IgnitionConfig {
   eventDuration: number;
 }
 
+const DISPLAY_UI = !Boolean(process.env.DEBUG);
+
 /* ignition config defaults */
 const IGNITION_DIR = "ignition";
 const DEPLOYMENTS_DIR = "deployments";
@@ -144,12 +146,17 @@ task("deploy")
         await hre.ignition.deploy(userModule, {
           parameters,
           journalPath,
-          ui: true,
+          ui: DISPLAY_UI,
         });
-      } catch {
-        // display of error or on hold is done
-        // based on state, thrown error can be ignored
-        process.exit(1);
+      } catch (err) {
+        if (DISPLAY_UI) {
+          // display of error or on hold is done
+          // based on state, thrown error display
+          // can be ignored
+          process.exit(1);
+        } else {
+          throw err;
+        }
       }
     }
   );
