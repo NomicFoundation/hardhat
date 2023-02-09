@@ -276,8 +276,8 @@ export class Environment implements HardhatRuntimeEnvironment {
     globalAsAny.runSuper = runSuper;
 
     // We create a modified version of `this`, as we want to keep track of the
-    // `subtaskArguments` and use it to generate updated `subtaskArguments` if
-    // the action calls `run`.
+    // `subtaskArguments` and `taskProfile` through `run` invocations. This
+    // way we keep track of callers's data, even when tasks are run in parallel.
     //
     // Note that for this to work we need to set the prototype later
     let modifiedHreWithParentTaskProfile: any = {
