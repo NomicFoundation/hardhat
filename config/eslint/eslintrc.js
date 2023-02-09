@@ -13,6 +13,7 @@ module.exports = {
     "@typescript-eslint",
   ],
   rules: {
+    "@nomiclabs/only-hardhat-plugin-error": "off",
     "@typescript-eslint/adjacent-overload-signatures": "error",
     "@typescript-eslint/array-type": [
       "error",
