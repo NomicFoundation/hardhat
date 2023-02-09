@@ -45,10 +45,7 @@ export class IgnitionWrapper {
     const ignition = new Ignition({
       services,
       uiRenderer: showUi
-        ? renderToCli(
-            initializeRenderState(),
-            this._providers.config.parameters
-          )
+        ? renderToCli(initializeRenderState(), deployParams?.parameters)
         : undefined,
       journal: deployParams?.journal
         ? deployParams?.journal
