@@ -1657,6 +1657,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
         ? "0x0000000000000000"
         : "0x0000000000000042",
       timestamp: blockTimestamp,
+      number: this.getLatestBlockNumber() + 1n,
     };
 
     if (this.isPostMergeHardfork()) {
