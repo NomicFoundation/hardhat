@@ -3,9 +3,12 @@ import { extendEnvironment } from "hardhat/config";
 import { lazyObject } from "hardhat/plugins";
 
 import { getDeployMockContract, hardhatDeployContract } from "./deploy";
+import { hardhatChaiMatchersIncompatibilityCheck } from "./hardhatChaiMatchersIncompatibilityCheck";
 import { getLinkFunction } from "./link";
 import { initializeWaffleMatchers } from "./matchers";
 import "./type-extensions";
+
+hardhatChaiMatchersIncompatibilityCheck();
 
 extendEnvironment((hre) => {
   // We can't actually implement a MockProvider because of its private

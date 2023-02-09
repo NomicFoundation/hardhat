@@ -14,37 +14,8 @@ When you use this plugin, you'll be able to:
 - Measure your tests coverage with [solidity-coverage](https://github.com/sc-forks/solidity-coverage).
 - And, if you are using TypeScript, get type bindings for your contracts with [Typechain](https://github.com/dethcrypto/TypeChain/).
 
-### Installation
+### Usage
 
-We recommend using npm 7 or later. If you do that, then you just need to install the plugin itself:
+To create a new project that uses the Toolbox, check our [Setting up a project guide](https://hardhat.org/hardhat-runner/docs/guides/project-setup).
 
-```bash
-npm install --save-dev @nomicfoundation/hardhat-toolbox
-```
-
-If you are using an older version of npm, you'll also need to install all the packages used by the toolbox.
-
-```bash
-npm install --save-dev @nomicfoundation/hardhat-toolbox @nomicfoundation/hardhat-network-helpers @nomicfoundation/hardhat-chai-matchers @nomiclabs/hardhat-ethers @nomiclabs/hardhat-etherscan chai ethers hardhat-gas-reporter solidity-coverage @typechain/hardhat typechain @typechain/ethers-v5 @ethersproject/abi @ethersproject/providers
-```
-
-That's also the case if you are using yarn:
-
-```
-yarn add --dev @nomicfoundation/hardhat-toolbox @nomicfoundation/hardhat-network-helpers @nomicfoundation/hardhat-chai-matchers @nomiclabs/hardhat-ethers @nomiclabs/hardhat-etherscan chai ethers hardhat-gas-reporter solidity-coverage @typechain/hardhat typechain @typechain/ethers-v5 @ethersproject/abi @ethersproject/providers
-```
-
-### Migrating to Hardhat Toolbox
-
-Migrating an existing project to the Toolbox is easy:
-
-1. First, if you are using `hardhat-waffle`, we recommend you migrate to our [Hardhat Chai Matchers](https://hardhat.org/hardhat-chai-matchers). They are a drop-in replacement, so this should only take a few minutes. Learn how to do that [here](https://hardhat.org/hardhat-chai-matchers/docs/migrate-from-waffle).
-2. Install the toolbox and its dependencies. If you are using npm 7 or later, you just need to do `npm install --save-dev @nomicfoundation/hardhat-toolbox`. If not, check the [Installation section](#installation) above.
-3. Uninstall `@nomiclabs/hardhat-waffle` and `ethereum-waffle`, and remove the `@nomiclabs/hardhat-waffle` import from your Hardhat config.
-4. Import the Toolbox in your Hardhat config. This will make many other imports redundant, so you can remove any of these if you want:
-
-   - `@nomiclabs/hardhat-ethers`
-   - `@nomiclabs/hardhat-etherscan`
-   - `hardhat-gas-reporter`
-   - `solidity-coverage`
-   - `@typechain/hardhat`
+If you want to migrate an existing Hardhat project to use the Toolbox, read [our migration guide](https://hardhat.org/hardhat-runner/docs/guides/migrating-from-hardhat-waffle).
