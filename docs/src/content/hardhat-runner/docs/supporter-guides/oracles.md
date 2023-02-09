@@ -2,6 +2,8 @@
 title: Oracles
 description: Oracles help get real-world data into your Ethereum application because smart contracts can't query real-world data on their own.
 ---
+# Working with blockchain oracles
+
 _This guide is based on the [ethereum.org oracles guide](https://ethereum.org/en/developers/docs/oracles)_
 
 Oracles provide a bridge between the real-world and on-chain smart contracts by being a source of data that smart contracts can rely on, and act upon.
