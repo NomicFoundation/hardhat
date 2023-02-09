@@ -67,41 +67,69 @@ export class Ignition {
       this._uiRenderer
     );
 
-    const chainId = await this._services.network.getChainId();
-    await deployment.setChainId(chainId);
-    await deployment.setNetworkName(options.networkName);
+    try {
+      const chainId = await this._services.network.getChainId();
+      await deployment.setChainId(chainId);
+      await deployment.setNetworkName(options.networkName);
 
-    const { result: constructResult, moduleOutputs } =
-      await this._constructExecutionGraphFrom(deployment, ignitionModule);
+      const { result: constructResult, moduleOutputs } =
+        await this._constructExecutionGraphFrom(deployment, ignitionModule);
 
-    if (constructResult._kind === "failure") {
-      return [constructResult, {}];
+      if (constructResult._kind === "failure") {
+        log("Failed to construct execution graph");
+        return [constructResult, {}];
+      }
+
+      log("Execution graph constructed");
+      await deployment.transformComplete(constructResult.executionGraph);
+
+      // rebuild previous execution state based on journal
+      log("Load journal entries for network");
+      await loadJournalInto(deployment, this._journal);
+
+      // check that safe to run based on changes
+      log("Reconciling previous runs with current module");
+      const moduleChangeResult = this._checkSafeDeployment(deployment);
+
+      if (moduleChangeResult?._kind === "failure") {
+        log("Failed to reconcile");
+        await deployment.failReconciliation();
+
+        return [moduleChangeResult, {}];
+      }
+
+      log("Execute based on execution graph");
+      const executionResult = await execute(deployment, {
+        maxRetries: options.maxRetries,
+        gasPriceIncrementPerRetry: options.gasPriceIncrementPerRetry,
+        pollingInterval: options.pollingInterval,
+        eventDuration: options.eventDuration,
+      });
+
+      return this._buildOutputFrom(executionResult, moduleOutputs);
+    } catch (err) {
+      if (!(err instanceof Error)) {
+        const unexpectedError = new IgnitionError("Unexpected error");
+
+        await deployment.failUnexpected([unexpectedError]);
+        return [
+          {
+            _kind: "failure",
+            failures: ["Unexpected error", [unexpectedError]],
+          },
+          {},
+        ];
+      }
+
+      await deployment.failUnexpected([err]);
+      return [
+        {
+          _kind: "failure",
+          failures: ["Unexpected error", [err]],
+        },
+        {},
+      ];
     }
-
-    await deployment.transformComplete(constructResult.executionGraph);
-
-    log("Execute based on execution graph");
-
-    // rebuild previous execution state based on journal
-    await loadJournalInto(deployment, this._journal);
-
-    // check that safe to run based on changes
-    const moduleChangeResult = this._checkSafeDeployment(deployment);
-
-    if (moduleChangeResult?._kind === "failure") {
-      await deployment.failReconciliation();
-
-      return [moduleChangeResult, {}];
-    }
-
-    const executionResult = await execute(deployment, {
-      maxRetries: options.maxRetries,
-      gasPriceIncrementPerRetry: options.gasPriceIncrementPerRetry,
-      pollingInterval: options.pollingInterval,
-      eventDuration: options.eventDuration,
-    });
-
-    return this._buildOutputFrom(executionResult, moduleOutputs);
   }
 
   public async plan<T extends ModuleDict>(
@@ -168,6 +196,12 @@ export class Ignition {
       deploymentGraph,
       deployment.services
     );
+
+    if (transformResult._kind === "failure") {
+      await deployment.failUnexpected(transformResult.failures[1]);
+
+      return { result: transformResult, moduleOutputs };
+    }
 
     return { result: transformResult, moduleOutputs };
   }

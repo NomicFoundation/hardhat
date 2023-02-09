@@ -40,7 +40,8 @@ export type DeployPhase =
   | "failed"
   | "hold"
   | "validation-failed"
-  | "reconciliation-failed";
+  | "reconciliation-failed"
+  | "failed-unexpectedly";
 
 export type DeployStateExecutionCommand =
   | {
@@ -73,6 +74,10 @@ export type DeployStateCommand =
     }
   | {
       type: "RECONCILIATION_FAILED";
+    }
+  | {
+      type: "UNEXPECTED_FAIL";
+      errors: Error[];
     }
   | DeployStateExecutionCommand;
 
@@ -147,6 +152,9 @@ export interface DeployState {
     executionGraph: IGraph<ExecutionVertex> | null;
   };
   execution: ExecutionState;
+  unexpected: {
+    errors: Error[];
+  };
 }
 
 export interface ExecutionOptions {

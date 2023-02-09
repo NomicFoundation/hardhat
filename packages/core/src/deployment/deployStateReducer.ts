@@ -31,6 +31,9 @@ export function initializeDeployState(moduleName: string): DeployState {
       previousBatches: [],
       executionGraphHash: "",
     },
+    unexpected: {
+      errors: [],
+    },
   };
 }
 
@@ -76,6 +79,14 @@ export function deployStateReducer(
       };
     case "RECONCILIATION_FAILED":
       return { ...state, phase: "reconciliation-failed" };
+    case "UNEXPECTED_FAIL":
+      return {
+        ...state,
+        phase: "failed-unexpectedly",
+        unexpected: {
+          errors: action.errors,
+        },
+      };
     case "EXECUTION::START":
       if (state.transform.executionGraph === null) {
         return state;

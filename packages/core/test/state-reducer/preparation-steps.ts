@@ -7,6 +7,7 @@ import {
 } from "deployment/deployStateReducer";
 import { buildModule } from "dsl/buildModule";
 import { DeployState } from "types/deployment";
+import { IExecutionGraph } from "types/executionGraph";
 
 import { applyActions, resolveExecutionGraphFor } from "./utils";
 
@@ -85,8 +86,10 @@ describe("deployment state reducer", () => {
   });
 
   describe("transform", () => {
+    let exampleExecutionGraph: IExecutionGraph;
+
     beforeEach(async () => {
-      const exampleExecutionGraph = await resolveExecutionGraphFor(
+      exampleExecutionGraph = await resolveExecutionGraphFor(
         buildModule("TokenModule", (m) => {
           const token = m.contract("Token");
 
@@ -106,16 +109,44 @@ describe("deployment state reducer", () => {
         {
           type: "START_VALIDATION",
         },
-        {
-          type: "TRANSFORM_COMPLETE",
-          executionGraph: exampleExecutionGraph,
-        },
       ]);
     });
 
-    it("should set the execution graph", () => {
-      assert.isDefined(state.transform.executionGraph);
-      assert.equal(state.transform.executionGraph.vertexes.size, 1);
+    describe("completion", () => {
+      beforeEach(() => {
+        state = applyActions(state, [
+          {
+            type: "TRANSFORM_COMPLETE",
+            executionGraph: exampleExecutionGraph,
+          },
+        ]);
+      });
+
+      it("should set the execution graph", () => {
+        assert.isDefined(state.transform.executionGraph);
+        assert.equal(state.transform.executionGraph.vertexes.size, 1);
+      });
+    });
+
+    describe("unexpected failure", () => {
+      beforeEach(() => {
+        state = applyActions(state, [
+          {
+            type: "UNEXPECTED_FAIL",
+            errors: [new Error("Failed graph transform")],
+          },
+        ]);
+      });
+
+      it("should not set the execution graph", () => {
+        assert.isNull(state.transform.executionGraph);
+      });
+
+      it("should set the an entry in the unexpected errors", () => {
+        assert.deepStrictEqual(state.unexpected.errors, [
+          new Error("Failed graph transform"),
+        ]);
+      });
     });
   });
 });

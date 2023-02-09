@@ -94,6 +94,16 @@ export class Deployment {
     );
   }
 
+  public failUnexpected(errors: Error[]) {
+    return this._runDeploymentCommand(
+      [`Failure from unexpected errors`, errors],
+      {
+        type: "UNEXPECTED_FAIL",
+        errors,
+      }
+    );
+  }
+
   public failReconciliation() {
     return this._runDeploymentCommand(`Reconciliation failed`, {
       type: "RECONCILIATION_FAILED",
