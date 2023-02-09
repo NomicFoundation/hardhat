@@ -280,7 +280,7 @@ export class Environment implements HardhatRuntimeEnvironment {
     // way we keep track of callers's data, even when tasks are run in parallel.
     //
     // Note that for this to work we need to set the prototype later
-    let modifiedHreWithParentTaskProfile: any = {
+    let modifiedHre: any = {
       ...this,
       run: (
         _name: string,
@@ -297,8 +297,8 @@ export class Environment implements HardhatRuntimeEnvironment {
 
     if (this.hardhatArguments.flamegraph === true) {
       // We modify the `this` again to add  a few utility methods.
-      modifiedHreWithParentTaskProfile = {
-        ...modifiedHreWithParentTaskProfile,
+      modifiedHre = {
+        ...modifiedHre,
         adhocProfile: async (_name: string, f: () => Promise<any>) => {
           const adhocProfile = createTaskProfile(_name);
           taskProfile!.children.push(adhocProfile);
@@ -320,19 +320,15 @@ export class Environment implements HardhatRuntimeEnvironment {
       };
     }
 
-    Object.setPrototypeOf(
-      modifiedHreWithParentTaskProfile,
-      Object.getPrototypeOf(this)
-    );
+    Object.setPrototypeOf(modifiedHre, Object.getPrototypeOf(this));
 
     const uninjectFromGlobal =
-      modifiedHreWithParentTaskProfile?.injectToGlobal() ??
-      this.injectToGlobal();
+      modifiedHre?.injectToGlobal() ?? this.injectToGlobal();
 
     try {
       return await taskDefinition.action(
         taskArguments,
-        modifiedHreWithParentTaskProfile ?? this,
+        modifiedHre ?? this,
         runSuper
       );
     } finally {
