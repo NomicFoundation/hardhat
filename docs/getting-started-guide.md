@@ -63,14 +63,14 @@ Add a deployment module under the `./ignition` folder for the example `Lock.sol`
 // ./ignition/LockModule.js
 const { buildModule } = require("@ignored/hardhat-ignition");
 
-const currentTimestampInSeconds = Math.round(Date.now() / 1000);
-const ONE_YEAR_IN_SECS = 365 * 24 * 60 * 60;
-const ONE_YEAR_IN_FUTURE = currentTimestampInSeconds + ONE_YEAR_IN_SECS;
+const currentTimestampInSeconds = Math.round(new Date(2023, 01, 01) / 1000);
+const TEN_YEAR_IN_SECS = 10 * 365 * 24 * 60 * 60;
+const TEN_YEARS_IN_FUTURE = currentTimestampInSeconds + TEN_YEAR_IN_SECS;
 
 const ONE_GWEI = hre.ethers.utils.parseUnits("1", "gwei");
 
 module.exports = buildModule("LockModule", (m) => {
-  const unlockTime = m.getOptionalParam("unlockTime", ONE_YEAR_IN_FUTURE);
+  const unlockTime = m.getOptionalParam("unlockTime", TEN_YEARS_IN_FUTURE);
   const lockedAmount = m.getOptionalParam("lockedAmount", ONE_GWEI);
 
   const lock = m.contract("Lock", { args: [unlockTime], value: lockedAmount });
@@ -97,13 +97,13 @@ A file containing module parameters can be passed as a flag at the command line:
 ```
 
 ```bash
-npx hardhat deploy --parameters ignition/LockModule.config.json LockModule.js
+npx hardhat deploy --parameters ignition/LockModule.config.json LockModule
 ```
 
 Parameters can also be passed at the command line via a json string:
 
 ```bash
-npx hardhat deploy --parameters "{\"unlockTime\":4102491600,\"lockedAmount\":2000000000}" LockModule.js
+npx hardhat deploy --parameters "{\"unlockTime\":4102491600,\"lockedAmount\":2000000000}" LockModule
 # Ensure you have properly escaped the json string
 ```
 
@@ -112,7 +112,7 @@ To deploy against a specific network pass it on the command line, for instance t
 ```bash
 npx hardhat node
 # in another terminal
-npx hardhat deploy --network localhost LockModule.js
+npx hardhat deploy --network localhost LockModule
 ```
 
 ### Using the Module within Hardhat Tests
