@@ -43,10 +43,12 @@ export class JsonRpcServer implements IJsonRpcServer {
     this._wsServer.on("connection", handler.handleWs);
   }
 
+  // NOTE: This method is only used for testing
   public getProvider = (name = "json-rpc"): EIP1193Provider => {
     const { Client } = require("undici") as { Client: typeof ClientT };
     const { address, port } = this._httpServer.address() as AddressInfo;
 
+    // NOTE: These timeouts are extremelly low because this method is only used for testing.
     const dispatcher = new Client(`http://${address}:${port}/`, {
       keepAliveTimeout: 10,
       keepAliveMaxTimeout: 10,
