@@ -662,45 +662,45 @@ where
     ) -> (InstructionResult, Option<rethnet_eth::B160>, Gas, Bytes) {
         self.validate_before_message();
 
-        let ret = if ret == InstructionResult::CallTooDeep || ret == InstructionResult::OutOfFund {
-            InstructionResult::Revert
-        } else {
-            ret
-        };
+        let safe_ret =
+            if ret == InstructionResult::CallTooDeep || ret == InstructionResult::OutOfFund {
+                InstructionResult::Revert
+            } else {
+                ret
+            };
 
-        let result = match ret.into() {
-            SuccessOrHalt::Success(reason) => Some(rethnet_evm::ExecutionResult::Success {
+        let result = match safe_ret.into() {
+            SuccessOrHalt::Success(reason) => rethnet_evm::ExecutionResult::Success {
                 reason,
                 gas_used: remaining_gas.spend(),
                 gas_refunded: remaining_gas.refunded() as u64,
                 logs: data.journaled_state.logs.clone(),
                 output: rethnet_evm::Output::Create(out.clone(), address),
-            }),
-            SuccessOrHalt::Revert => Some(rethnet_evm::ExecutionResult::Revert {
+            },
+            SuccessOrHalt::Revert => rethnet_evm::ExecutionResult::Revert {
                 gas_used: remaining_gas.spend(),
                 output: out.clone(),
-            }),
-            SuccessOrHalt::Halt(reason) => Some(rethnet_evm::ExecutionResult::Halt {
+            },
+            SuccessOrHalt::Halt(reason) => rethnet_evm::ExecutionResult::Halt {
                 reason,
                 gas_used: remaining_gas.limit(),
-            }),
-            SuccessOrHalt::FatalExternalError | SuccessOrHalt::Internal => None,
+            },
+            SuccessOrHalt::Internal => panic!("Internal error: {:?}", safe_ret),
+            SuccessOrHalt::FatalExternalError => panic!("Fatal external error"),
         };
 
-        if let Some(result) = result {
-            let (sender, receiver) = channel();
+        let (sender, receiver) = channel();
 
-            let status = self.after_message_fn.call(
-                AfterMessageHandlerCall { result, sender },
-                ThreadsafeFunctionCallMode::Blocking,
-            );
-            assert_eq!(status, Status::Ok);
+        let status = self.after_message_fn.call(
+            AfterMessageHandlerCall { result, sender },
+            ThreadsafeFunctionCallMode::Blocking,
+        );
+        assert_eq!(status, Status::Ok);
 
-            receiver
-                .recv()
-                .unwrap()
-                .expect("Failed call to BeforeMessageHandler");
-        }
+        receiver
+            .recv()
+            .unwrap()
+            .expect("Failed call to BeforeMessageHandler");
 
         (ret, address, remaining_gas, out)
     }

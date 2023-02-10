@@ -1,4 +1,4 @@
-import { EVMResult, EvmError } from "@nomicfoundation/ethereumjs-evm";
+import { EvmError } from "@nomicfoundation/ethereumjs-evm";
 import { ERROR } from "@nomicfoundation/ethereumjs-evm/dist/exceptions";
 import { ExceptionalHalt, SuccessReason } from "rethnet-evm";
 

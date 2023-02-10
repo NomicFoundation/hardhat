@@ -1846,6 +1846,12 @@ Hardhat Network's forking functionality only works with blocks from at least spu
       throw exitCode;
     }
 
+    if (exitCode.kind !== vmTrace?.exit.kind) {
+      console.trace("execution:", exitCode);
+      console.log("trace:", vmTrace?.exit);
+      throw Error("Execution error does not match trace error");
+    }
+
     if (exitCode.kind === ExitCode.CODESIZE_EXCEEDS_MAXIMUM) {
       if (stackTrace !== undefined) {
         return encodeSolidityStackTrace(
