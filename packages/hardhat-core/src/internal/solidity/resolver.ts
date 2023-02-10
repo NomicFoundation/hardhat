@@ -287,7 +287,7 @@ export class Resolver {
       }
     }
 
-    let packageRoot = path.default.dirname(packageJsonPath);
+    let packageRoot = path.dirname(packageJsonPath);
     let pattern = new RegExp(`^${libraryName}/?`);
     let fileName = sourceName.replace(pattern, "");
 
