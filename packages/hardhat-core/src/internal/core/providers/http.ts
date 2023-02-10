@@ -171,22 +171,30 @@ export class HttpProvider extends EventEmitter implements EIP1193Provider {
     const { request: sendRequest } = await import("undici");
     const url = new URL(this._url);
 
+    const timeout =
+      process.env.DO_NOT_SET_THIS_ENV_VAR____IS_HARDHAT_CI !== undefined
+        ? 0
+        : this._timeout;
+
+    const headers: { [name: string]: string } = {
+      "Content-Type": "application/json",
+      "User-Agent": `hardhat ${hardhatVersion}`,
+      ...this._extraHeaders,
+    };
+
+    if (this._authHeader !== undefined) {
+      headers.Authorization = this._authHeader;
+    }
+
     try {
       const response = await sendRequest(url, {
         dispatcher: this._dispatcher,
         method: "POST",
         body: JSON.stringify(request),
         maxRedirections: 10,
-        headersTimeout:
-          process.env.DO_NOT_SET_THIS_ENV_VAR____IS_HARDHAT_CI !== undefined
-            ? 0
-            : this._timeout,
-        headers: {
-          "Content-Type": "application/json",
-          "User-Agent": `hardhat ${hardhatVersion}`,
-          Authorization: this._authHeader,
-          ...this._extraHeaders,
-        },
+        headersTimeout: timeout,
+        bodyTimeout: timeout,
+        headers,
       });
 
       if (this._isRateLimitResponse(response)) {
@@ -270,7 +278,7 @@ export class HttpProvider extends EventEmitter implements EIP1193Provider {
   ): number | undefined {
     const header = response.headers["retry-after"];
 
-    if (header === undefined || header === null) {
+    if (header === undefined || header === null || Array.isArray(header)) {
       return undefined;
     }
 
