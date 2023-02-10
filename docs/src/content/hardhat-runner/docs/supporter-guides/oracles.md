@@ -2,6 +2,7 @@
 title: Oracles
 description: Oracles help get real-world data into your Ethereum application because smart contracts can't query real-world data on their own.
 ---
+
 # Working with blockchain oracles
 
 _This guide is based on the [ethereum.org oracles guide](https://ethereum.org/en/developers/docs/oracles)_
@@ -38,7 +39,6 @@ This is an example of simple Oracle architecture, however, there are more ways t
 4. The off-chain service responds with the data requested in a secondary transaction to the smart contract.
 
 This is how to get data in a 1 to 1 manner, however to improve security you may want to decentralize how you collect your off-chain data.
-
 
 ## Getting Price Data
 
@@ -80,7 +80,7 @@ Randomness in computer systems, especially on blockchains, is challenging to ach
 
 It is possible to generate the random value off-chain and send it on-chain, but doing so imposes high trust requirements on users. They must believe the value was truly generated via unpredictable mechanisms and wasn’t altered in transit.
 
-Oracles designed for off-chain computation solve this problem by securely generating random outcomes off-chain that they broadcast on-chain along with cryptographic proofs attesting to the unpredictability of the process. An example is Chainlink VRF (Verifiable Random Function), which is a provably-fair and verifiable source of randomness designed for smart contracts. Smart contract developers can use Chainlink VRF as a tamper-proof random number generation (RNG) to build  smart contracts for any applications which rely on unpredictable outcomes:
+Oracles designed for off-chain computation solve this problem by securely generating random outcomes off-chain that they broadcast on-chain along with cryptographic proofs attesting to the unpredictability of the process. An example is Chainlink VRF (Verifiable Random Function), which is a provably-fair and verifiable source of randomness designed for smart contracts. Smart contract developers can use Chainlink VRF as a tamper-proof random number generation (RNG) to build smart contracts for any applications which rely on unpredictable outcomes:
 
 - Blockchain games and NFTs
 - Random assignment of duties and resources (e.g. randomly assigning judges to cases)
@@ -203,6 +203,7 @@ main().catch((error) => {
 ```
 
 Finnaly, run the deployment script by typing:
+
 ```sh
 npx hardhat run scripts/deploy.ts --network goerli
 ```
@@ -226,4 +227,3 @@ There are multiple oracle applications you can integrate into your dapp:
 - [Paralink](https://paralink.network/) - _Paralink provides an open source and decentralized oracle platform for smart contracts running on Ethereum and other popular blockchains._
 
 - [Dos.Network](https://dos.network/) - _DOS Network is a decentralized oracle service network to boost blockchain usability with real-world data and computation power._
-
