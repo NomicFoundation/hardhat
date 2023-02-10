@@ -671,6 +671,29 @@ const communityPlugins: IPlugin[] = [
       "Hardhat plugin to check and lock the storage layout of contracts",
     tags: ["Tooling", "Testing", "Storage"],
   },
+  {
+    name: "hardhat-insight",
+    author: "Andres Adjimann",
+    authorUrl: "https://www.npmjs.com/package/hardhat-insight",
+    description:
+      "Hardhat plugin to get contract storage, gas and code size insights using the compiler ast output",
+    tags: ["Tooling", "Storage", "Gas", "Size", "Bytecode"],
+  },
+  {
+    name: "hardhat-scilla-plugin",
+    author: "Saeed Dadkhah",
+    authorUrl: "https://www.github.com/its-saeed",
+    description:
+      "Hardhat plugin to test scilla contracts. Scilla is Zillqa's programming language to develop smart contracts.",
+    tags: ["Scilla", "Testing", "Zilliqa"],
+  },
+  {
+    name: "hardhat-flat-exporter",
+    author: "Laz",
+    authorUrl: "https://github.com/Saszr",
+    description: "Export flat contract on compilation via Hardhat.",
+    tags: ["Flatten", "Smart contract", "Solidity", "Deployment"],
+  },
 ];
 
 const officialPlugins: IPlugin[] = [

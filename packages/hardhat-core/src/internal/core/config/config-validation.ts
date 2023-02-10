@@ -1,3 +1,5 @@
+import type { HardhatConfig as HardhatConfigT } from "../../../types";
+
 import * as t from "io-ts";
 import { Context, getFunctionName, ValidationError } from "io-ts/lib";
 import { Reporter } from "io-ts/lib/Reporter";
@@ -572,4 +574,22 @@ export function getValidationErrors(config: any): string[] {
 
   const ioTsErrors = DotPathReporter.report(result);
   return [...errors, ...ioTsErrors];
+}
+
+export function validateResolvedConfig(resolvedConfig: HardhatConfigT) {
+  const solcConfigs = [
+    ...resolvedConfig.solidity.compilers,
+    ...Object.values(resolvedConfig.solidity.overrides),
+  ];
+  const runs = solcConfigs
+    .filter(({ settings }) => settings?.optimizer?.runs !== undefined)
+    .map(({ settings }) => settings?.optimizer?.runs);
+
+  for (const run of runs) {
+    if (run >= 2 ** 32) {
+      throw new HardhatError(ERRORS.GENERAL.INVALID_CONFIG, {
+        errors: "The number of optimizer runs exceeds the maximum of 2**32 - 1",
+      });
+    }
+  }
 }

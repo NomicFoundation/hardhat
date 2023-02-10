@@ -11,7 +11,6 @@ import {
   DEFAULT_CHAIN_ID,
   DEFAULT_HARDFORK,
   DEFAULT_NETWORK_ID,
-  DEFAULT_NETWORK_NAME,
 } from "../test/internal/hardhat-network/helpers/providers";
 import { assertEqualTraces } from "../test/internal/hardhat-network/provider/utils/assertEqualTraces";
 
@@ -30,23 +29,23 @@ async function main(
   const txHashBuffer = Buffer.from(strip0x(txHash), "hex");
 
   const hardhatNetworkProvider = new HardhatNetworkProvider(
-    DEFAULT_HARDFORK,
-    DEFAULT_NETWORK_NAME,
-    DEFAULT_CHAIN_ID,
-    DEFAULT_NETWORK_ID,
-    100000000,
-    true,
-    true,
-    false, // mining.auto
-    0, // mining.interval
-    new ModulesLogger(true),
-    DEFAULT_ACCOUNTS,
-    undefined,
-    DEFAULT_ALLOW_UNLIMITED_CONTRACT_SIZE,
-    undefined,
-    undefined,
-    forkConfig,
-    FORK_TESTS_CACHE_PATH
+    {
+      hardfork: DEFAULT_HARDFORK,
+      chainId: DEFAULT_CHAIN_ID,
+      networkId: DEFAULT_NETWORK_ID,
+      blockGasLimit: 100000000,
+      minGasPrice: 0n,
+      throwOnTransactionFailures: true,
+      throwOnCallFailures: true,
+      automine: false,
+      intervalMining: 0,
+      genesisAccounts: DEFAULT_ACCOUNTS,
+      allowUnlimitedContractSize: DEFAULT_ALLOW_UNLIMITED_CONTRACT_SIZE,
+      forkConfig,
+      forkCachePath: FORK_TESTS_CACHE_PATH,
+      allowBlocksWithSameTimestamp: false,
+    },
+    new ModulesLogger(true)
   );
 
   const provider = new BackwardsCompatibilityProviderAdapter(

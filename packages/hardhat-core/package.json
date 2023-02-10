@@ -1,6 +1,6 @@
 {
   "name": "hardhat",
-  "version": "2.12.6",
+  "version": "2.12.7",
   "author": "Nomic Labs LLC",
   "license": "MIT",
   "homepage": "https://hardhat.org",
@@ -90,7 +90,6 @@
     "ethers": "^5.0.0",
     "mocha": "^10.0.0",
     "prettier": "2.4.1",
-    "proxy": "^1.0.2",
     "rimraf": "^3.0.2",
     "sinon": "^9.0.0",
     "time-require": "^0.1.2",

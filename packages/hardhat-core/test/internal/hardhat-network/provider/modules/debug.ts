@@ -25,7 +25,6 @@ import {
   DEFAULT_CHAIN_ID,
   DEFAULT_HARDFORK,
   DEFAULT_NETWORK_ID,
-  DEFAULT_NETWORK_NAME,
   PROVIDERS,
 } from "../../helpers/providers";
 import { sendDummyTransaction } from "../../helpers/sendDummyTransaction";
@@ -201,27 +200,25 @@ describe("Debug module", function () {
       const logger = new ModulesLogger(false);
 
       const hardhatNetworkProvider = new HardhatNetworkProvider(
-        DEFAULT_HARDFORK,
-        DEFAULT_NETWORK_NAME,
-        DEFAULT_CHAIN_ID,
-        DEFAULT_NETWORK_ID,
-        13000000,
-        undefined,
-        0n,
-        true,
-        true,
-        false, // mining.auto
-        0, // mining.interval
-        "priority", // mining.mempool.order
-        defaultHardhatNetworkParams.chains,
-        logger,
-        DEFAULT_ACCOUNTS,
-        undefined,
-        DEFAULT_ALLOW_UNLIMITED_CONTRACT_SIZE,
-        undefined,
-        undefined,
-        forkConfig,
-        FORK_TESTS_CACHE_PATH
+        {
+          hardfork: DEFAULT_HARDFORK,
+          chainId: DEFAULT_CHAIN_ID,
+          networkId: DEFAULT_NETWORK_ID,
+          blockGasLimit: 13000000,
+          minGasPrice: 0n,
+          throwOnTransactionFailures: true,
+          throwOnCallFailures: true,
+          automine: false,
+          intervalMining: 0,
+          mempoolOrder: "priority",
+          chains: defaultHardhatNetworkParams.chains,
+          genesisAccounts: DEFAULT_ACCOUNTS,
+          allowUnlimitedContractSize: DEFAULT_ALLOW_UNLIMITED_CONTRACT_SIZE,
+          forkConfig,
+          forkCachePath: FORK_TESTS_CACHE_PATH,
+          allowBlocksWithSameTimestamp: false,
+        },
+        logger
       );
 
       provider = new BackwardsCompatibilityProviderAdapter(
@@ -327,27 +324,25 @@ describe("Debug module", function () {
       const logger = new ModulesLogger(false);
 
       const hardhatNetworkProvider = new HardhatNetworkProvider(
-        DEFAULT_HARDFORK,
-        DEFAULT_NETWORK_NAME,
-        DEFAULT_CHAIN_ID,
-        DEFAULT_NETWORK_ID,
-        13000000,
-        undefined,
-        0n,
-        true,
-        true,
-        false, // mining.auto
-        0, // mining.interval
-        "priority", // mining.mempool.order
-        defaultHardhatNetworkParams.chains,
-        logger,
-        DEFAULT_ACCOUNTS,
-        undefined,
-        DEFAULT_ALLOW_UNLIMITED_CONTRACT_SIZE,
-        undefined,
-        undefined,
-        forkConfig,
-        FORK_TESTS_CACHE_PATH
+        {
+          hardfork: DEFAULT_HARDFORK,
+          chainId: DEFAULT_CHAIN_ID,
+          networkId: DEFAULT_NETWORK_ID,
+          blockGasLimit: 13000000,
+          minGasPrice: 0n,
+          throwOnTransactionFailures: true,
+          throwOnCallFailures: true,
+          automine: false,
+          intervalMining: 0,
+          mempoolOrder: "priority",
+          chains: defaultHardhatNetworkParams.chains,
+          genesisAccounts: DEFAULT_ACCOUNTS,
+          allowUnlimitedContractSize: DEFAULT_ALLOW_UNLIMITED_CONTRACT_SIZE,
+          forkConfig,
+          forkCachePath: FORK_TESTS_CACHE_PATH,
+          allowBlocksWithSameTimestamp: false,
+        },
+        logger
       );
 
       provider = new BackwardsCompatibilityProviderAdapter(

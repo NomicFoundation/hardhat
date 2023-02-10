@@ -102,32 +102,21 @@ Once you've got a local instance of the mainnet chain state, setting that state 
 
 ## Resetting the fork
 
-You can manipulate forking during runtime to reset back to a fresh forked state, fork from another block number or disable forking by calling `hardhat_reset`:
+You can reset the network with the [`reset`](</hardhat-network-helpers/docs/reference#reset([url],-[blocknumber])>) network helper:
 
-```ts
-await network.provider.request({
-  method: "hardhat_reset",
-  params: [
-    {
-      forking: {
-        jsonRpcUrl: "https://eth-mainnet.alchemyapi.io/v2/<key>",
-        blockNumber: 14390000,
-      },
-    },
-  ],
-});
+```js
+const helpers = require("@nomicfoundation/hardhat-network-helpers");
+
+await helpers.reset(url, blockNumber);
 ```
 
-You can disable forking by passing empty params:
+Both the `url` and the `blockNumber` can be different to the ones that are currently being used by the fork.
+
+To reset the network to a local, non-forked state, call the helper without any arguments:
 
 ```ts
-await network.provider.request({
-  method: "hardhat_reset",
-  params: [],
-});
+await helpers.reset();
 ```
-
-This will reset Hardhat Network, starting a new instance in the state described [here](../reference/#initial-state).
 
 ## Using a custom hardfork history
 

@@ -84,6 +84,10 @@ An optional string setting the date of the blockchain. Valid values are [Javascr
 
 An optional boolean that disables the contract size limit imposed by the [EIP 170](https://eips.ethereum.org/EIPS/eip-170). Default value: `false`
 
+#### `allowBlocksWithSameTimestamp`
+
+A boolean to allow mining blocks that have the same timestamp. This is not allowed by default because Ethereum's consensus rules specify that each block should have a different timestamp. Default value: `false`
+
 #### `forking`
 
 An object that describes the [forking](./guides/forking-other-networks.md) configuration that can have the following fields:
@@ -438,7 +442,32 @@ Also note that blocks created via `hardhat_mine` may not trigger new-block event
 
 #### `hardhat_reset`
 
-See the [Mainnet Forking guide](./guides/forking-other-networks.md#resetting-the-fork)
+You can manipulate forking during runtime to reset back to a fresh forked state, fork from another block number or disable forking by calling `hardhat_reset`:
+
+```ts
+await network.provider.request({
+  method: "hardhat_reset",
+  params: [
+    {
+      forking: {
+        jsonRpcUrl: "https://eth-mainnet.alchemyapi.io/v2/<key>",
+        blockNumber: 14390000,
+      },
+    },
+  ],
+});
+```
+
+You can disable forking by passing empty params:
+
+```ts
+await network.provider.request({
+  method: "hardhat_reset",
+  params: [],
+});
+```
+
+This will reset the Hardhat Network, starting a new instance in the state described [here](#initial-state).
 
 #### `hardhat_setBalance`
 

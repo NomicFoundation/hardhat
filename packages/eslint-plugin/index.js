@@ -1,4 +1,4 @@
-const { onlyHardhatErrorRule } = require("./onlyHardhatErrorRule");
+const { onlyHardhatErrorRule, onlyHardhatPluginErrorRule } = require("./onlyHardhatErrorRule");
 
 const rules = {
   "only-hardhat-error": {
@@ -11,6 +11,16 @@ const rules = {
       },
     },
   },
+  "only-hardhat-plugin-error": {
+    create: onlyHardhatPluginErrorRule,
+    meta: {
+      type: "problem",
+      schema: [],
+      docs: {
+        description: "Enforces that only HardhatPluginError is thrown.",
+      },
+    },
+  }
 };
 
 module.exports = { rules };
