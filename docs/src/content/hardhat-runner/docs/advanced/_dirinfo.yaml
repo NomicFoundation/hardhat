@@ -11,3 +11,4 @@ order:
   - /flattening
   - href: /vscode-tests
     title: Running tests in VS Code
+  - /using-esm

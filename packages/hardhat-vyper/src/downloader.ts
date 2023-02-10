@@ -147,10 +147,10 @@ export class CompilerDownloader {
   private async _downloadCompilersList(): Promise<void> {
     try {
       await this._download(GITHUB_RELEASES_URL, this.compilersListPath);
-    } catch {
+    } catch (e: unknown) {
       throw new VyperPluginError(
         "Failed to download compiler list",
-        undefined,
+        e as Error,
         true
       );
     }

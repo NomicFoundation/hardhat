@@ -77,6 +77,8 @@ describe("time#setNextBlockTimestamp", function () {
       await assert.isRejected(
         hh.time.setNextBlockTimestamp(initialTimestamp - 1)
       );
+
+      await hh.time.setNextBlockTimestamp(initialTimestamp);
       await hh.mine();
 
       const endBlockNumber = await hh.time.latestBlock();

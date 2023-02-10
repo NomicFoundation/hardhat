@@ -17,6 +17,7 @@ export function getPackageRoot(): string {
 export interface PackageJson {
   name: string;
   version: string;
+  type?: "commonjs" | "module";
   engines: {
     node: string;
   };
@@ -50,4 +51,18 @@ export function getHardhatVersion(): string {
 
   const packageJson = fsExtra.readJsonSync(packageJsonPath);
   return packageJson.version;
+}
+
+/**
+ * Return the contents of the package.json in the user's project
+ */
+export function getProjectPackageJson(): Promise<any> {
+  const packageJsonPath = findup.sync("package.json");
+
+  assertHardhatInvariant(
+    packageJsonPath !== null,
+    "Expected a package.json file in the current directory or in an ancestor directory"
+  );
+
+  return fsExtra.readJson(packageJsonPath);
 }
