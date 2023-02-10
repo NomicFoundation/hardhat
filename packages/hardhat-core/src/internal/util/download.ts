@@ -43,6 +43,7 @@ export async function download(
   const response = await request(url, {
     dispatcher,
     headersTimeout: timeoutMillis,
+    bodyTimeout: timeoutMillis,
     maxRedirections: 10,
     method: "GET",
     headers: {
