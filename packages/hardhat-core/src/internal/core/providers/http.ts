@@ -234,7 +234,10 @@ export class HttpProvider extends EventEmitter implements EIP1193Provider {
         );
       }
 
-      if (error.type === "request-timeout") {
+      if (
+        typeof error.code === "string" &&
+        error.code.endsWith("_TIMEOUT") === true
+      ) {
         throw new HardhatError(ERRORS.NETWORK.NETWORK_TIMEOUT, {}, error);
       }
 
