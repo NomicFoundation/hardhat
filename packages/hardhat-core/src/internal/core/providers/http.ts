@@ -42,7 +42,7 @@ export class HttpProvider extends EventEmitter implements EIP1193Provider {
     private readonly _url: string,
     private readonly _networkName: string,
     private readonly _extraHeaders: { [name: string]: string } = {},
-    private readonly _timeout = 20000,
+    timeout = 20000,
     client: Undici.Dispatcher | undefined = undefined
   ) {
     super();
@@ -59,10 +59,24 @@ export class HttpProvider extends EventEmitter implements EIP1193Provider {
             "utf-8"
           ).toString("base64")}`;
     try {
-      this._dispatcher = client ?? new Pool(url.origin);
+      if (process.env.DO_NOT_SET_THIS_ENV_VAR____IS_HARDHAT_CI !== undefined) {
+        timeout = 0;
+      }
+
+      const options: Undici.Agent.Options = {
+        connections: 128, // We sate a sane limit of concurrent connections
+        connect: { timeout },
+        bodyTimeout: timeout,
+        headersTimeout: timeout,
+      };
 
       if (process.env.http_proxy !== undefined && shouldUseProxy(url.origin)) {
-        this._dispatcher = new ProxyAgent(process.env.http_proxy);
+        this._dispatcher = new ProxyAgent({
+          uri: process.env.http_proxy,
+          ...options,
+        });
+      } else {
+        this._dispatcher = client ?? new Pool(url.origin, options);
       }
     } catch (e) {
       if (e instanceof TypeError && e.message === "Invalid URL") {
@@ -171,11 +185,6 @@ export class HttpProvider extends EventEmitter implements EIP1193Provider {
     const { request: sendRequest } = await import("undici");
     const url = new URL(this._url);
 
-    const timeout =
-      process.env.DO_NOT_SET_THIS_ENV_VAR____IS_HARDHAT_CI !== undefined
-        ? 0
-        : this._timeout;
-
     const headers: { [name: string]: string } = {
       "Content-Type": "application/json",
       "User-Agent": `hardhat ${hardhatVersion}`,
@@ -192,8 +201,6 @@ export class HttpProvider extends EventEmitter implements EIP1193Provider {
         method: "POST",
         body: JSON.stringify(request),
         maxRedirections: 10,
-        headersTimeout: timeout,
-        bodyTimeout: timeout,
         headers,
       });
 
