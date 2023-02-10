@@ -16,4 +16,16 @@ describe("deployment builder - buildModule", () => {
       });
     }, /The callback passed to 'buildModule' for BadAsyncModule returns a Promise; async callbacks are not allowed in 'buildModule'./);
   });
+
+  it("should throw if build module throws an exception", () => {
+    assert.throws(() => {
+      const badAsyncModule = buildModule("BadAsyncModule", () => {
+        throw new Error("User thrown error");
+      });
+
+      return generateDeploymentGraphFrom(badAsyncModule, {
+        chainId: 31337,
+      });
+    }, /User thrown error/);
+  });
 });

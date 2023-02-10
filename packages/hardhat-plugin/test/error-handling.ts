@@ -17,4 +17,12 @@ describe("module error handling", () => {
       /The callback passed to 'buildModule' for MyModule returns a Promise; async callbacks are not allowed in 'buildModule'./
     );
   });
+
+  it("should error on module throwing an exception", async function () {
+    const promise = deployModule(this.hre, () => {
+      throw new Error("User thrown error");
+    });
+
+    return assert.isRejected(promise, /User thrown error/);
+  });
 });
