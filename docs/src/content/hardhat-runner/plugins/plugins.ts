@@ -694,6 +694,13 @@ const communityPlugins: IPlugin[] = [
     description: "Export flat contract on compilation via Hardhat.",
     tags: ["Flatten", "Smart contract", "Solidity", "Deployment"],
   },
+  {
+    name: "@chainlink/hardhat-chainlink",
+    author: "Chainlink Labs",
+    authorUrl: "https://github.com/smartcontractkit/hardhat-chainlink",
+    description: "Integrates Chainlink into Hardhat projects.",
+    tags: ["chainlink", "hardhat"],
+  },
 ];
 
 const officialPlugins: IPlugin[] = [
