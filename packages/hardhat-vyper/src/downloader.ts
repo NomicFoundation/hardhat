@@ -14,7 +14,7 @@ import { VyperPluginError, getLogger } from "./util";
 
 const log = getLogger("downloader");
 
-const DOWNLOAD_TIMEOUT_MS = 30_000;
+const DOWNLOAD_TIMEOUT_MS = 40_000;
 
 async function downloadFile(
   url: string,
