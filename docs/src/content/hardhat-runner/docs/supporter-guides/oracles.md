@@ -8,7 +8,7 @@ _This guide is based on the [ethereum.org oracles guide](https://ethereum.org/en
 
 Oracles provide a bridge between the real-world and on-chain smart contracts by being a source of data that smart contracts can rely on, and act upon.
 
-Oracles play a critical role in facilitating the full potential of smart contract utility. Without a reliable connection to real-world conditions, smart contracts cannot effectively serve the real-world.
+Oracles play a critical role in facilitating the full potential of smart contract utility. Without a reliable connection to real-world data, smart contracts cannot effectively serve the real-world.
 
 <iframe width="560" height="315" src="https://www.youtube-nocookie.com/embed/ZJfkNzyO7-U" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
 
@@ -22,7 +22,7 @@ Oracles solve this problem by posting the data on the blockchain. So any node re
 
 As we mentioned, blockchain transactions cannot access off-chain data directly. At the same time, relying on a single source of truth to provide data is insecure and invalidates the decentralization of a smart contract. This is known as the oracle problem.
 
-We can avoid the oracle problem by using a decentralized oracle that pulls from multiple data sources; if one data source is hacked or fails, the smart contract will still function as intended.
+We can avoid the oracle problem by using a decentralized oracle network, which pulls data from multiple sources; if one data source is hacked or fails, the smart contract will still function as intended.
 
 ## Security
 
@@ -30,7 +30,7 @@ An oracle is only as secure as its data source(s). If a dapp uses Uniswap as an 
 
 ## Architecture
 
-This is an example of a simple Oracle architecture, but there are more ways than this to trigger off-chain computation.
+This is an example of simple Oracle architecture, however, there are more ways to trigger off-chain computation.
 
 1. Emit a log with your [smart contract event](https://ethereum.org/developers/docs/smart-contracts/anatomy/#events-and-logs)
 2. An off-chain service has subscribed (usually using something like the JSON-RPC `eth_subscribe` command) to these specific logs.
@@ -76,7 +76,7 @@ contract PriceConsumerV3 {
 
 ## Randomness
 
-Randomness in computer systems, especially on blockchains, is challenging to achieve because general-purpose blockchains like Ethereum do not have inherent randomness. Another problem is the public nature of blockchain technology which makes finding a secure source of entropy difficult. Almost any mechanism of generating on-chain randomness using Solidity is vulnerable to MEV attacks.
+Randomness in computer systems, especially on blockchains, is challenging to achieve because general-purpose blockchains like Ethereum do not have inherent randomness. Another problem is the public nature of blockchain technology which makes finding a secure source of entropy difficult. Almost any mechanism of generating on-chain randomness using Solidity is vulnerable to [MEV attacks](https://ethereum.org/en/developers/docs/mev/).
 
 It is possible to generate the random value off-chain and send it on-chain, but doing so imposes high trust requirements on users. They must believe the value was truly generated via unpredictable mechanisms and wasn’t altered in transit.
 
