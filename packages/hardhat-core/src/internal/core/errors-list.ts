@@ -254,12 +254,12 @@ Note that you don't need to do this every time you install a new dependency, but
     },
     ESM_PROJECT_WITHOUT_CJS_CONFIG: {
       number: 19,
-      message: `Your project is an ESM project (you have "type": "module" set in your package.json) but your Hardhat config file uses a .js extension.
+      message: `Your project is an ESM project (you have "type": "module" set in your package.json) but your Hardhat config file uses the .js extension.
 
-Rename the file to use a .cjs to fix this problem.`,
+Rename the file to use the .cjs to fix this problem.`,
       title: "Hardhat config with .js extension in an ESM project",
       description:
-        "Your project is an ESM project but your Hardhat config uses an .js extension. Hardhat config files cannot be an ES module. To fix this, rename your Hardhat config to use the .cjs extension.",
+        "Your project is an ESM project but your Hardhat config uses the .js extension. Hardhat config files cannot be an ES module. To fix this, rename your Hardhat config to use the .cjs extension.",
       shouldBeReported: false,
     },
     ESM_TYPESCRIPT_PROJECT_CREATION: {
@@ -1005,7 +1005,7 @@ Please use a newer, supported version.`,
       message: `Your project uses ESM and you've programmatically run your tests twice. This is not supported yet.`,
       title: "Running tests twice in an ESM project",
       description:
-        'You have run your tests twice programmatically and your project is an ESM project (you have `"type": "module"` in your `package.json`, or some of your files have an `.mjs` extension). This is not supported by Mocha yet.',
+        'You have run your tests twice programmatically and your project is an ESM project (you have `"type": "module"` in your `package.json`, or some of your files have the `.mjs` extension). This is not supported by Mocha yet.',
       shouldBeReported: true,
     },
   },
