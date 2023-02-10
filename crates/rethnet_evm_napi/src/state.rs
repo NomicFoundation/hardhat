@@ -103,12 +103,22 @@ impl StateManager {
     /// Constructs a [`StateManager`] that uses the remote node and block number as the basis for
     /// its state.
     #[napi(factory)]
-    pub fn with_fork(remote_node_url: JsString, fork_block_number: JsNumber) -> napi::Result<Self> {
-        let fork_block_number: i64 = fork_block_number.try_into()?;
+    pub fn with_fork(
+        remote_node_url: JsString,
+        fork_block_number: Option<JsNumber>,
+    ) -> napi::Result<Self> {
+        let fork_block_number: Option<u64> = if fork_block_number.is_some() {
+            let fork_block_number: i64 = fork_block_number.unwrap().try_into()?;
+            Some(
+                u64::try_from(fork_block_number)
+                    .expect("couldn't safely convert fork_block_number to u64"),
+            )
+        } else {
+            None
+        };
         Self::with_state(ForkState::new(
             remote_node_url.into_utf8()?.as_str()?,
-            u64::try_from(fork_block_number)
-                .expect("couldn't safely convert fork_block_number to u64"),
+            fork_block_number,
         ))
     }
 

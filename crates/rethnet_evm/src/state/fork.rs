@@ -1,7 +1,8 @@
 use hashbrown::HashMap;
 use revm::primitives::{Account, AccountInfo, Bytecode};
+use tokio::runtime::Builder;
 
-use rethnet_eth::{Address, B256, U256};
+use rethnet_eth::{remote::RpcClient, Address, B256, U256};
 
 use crate::state::{
     layered_state::{LayeredState, RethnetLayer},
@@ -22,7 +23,7 @@ pub struct ForkState {
 
 impl ForkState {
     /// instantiate a new ForkState
-    pub fn new(url: &str, fork_block_number: u64) -> Self {
+    pub fn new(url: &str, fork_block_number: Option<u64>) -> Self {
         let remote_db = RemoteDatabase::new(url);
 
         let layered_db = LayeredState::<RethnetLayer>::default();
@@ -33,7 +34,16 @@ impl ForkState {
             account_info_cache: HashMap::new(),
             code_by_hash_cache: HashMap::new(),
             storage_cache: HashMap::new(),
-            fork_block_number,
+            fork_block_number: fork_block_number
+                .or(Builder::new_multi_thread()
+                    .enable_io()
+                    .enable_time()
+                    .build()
+                    .expect("failed to construct async runtime")
+                    .block_on(RpcClient::new(url).get_latest_block())
+                    .expect("failed to get latest block")
+                    .number)
+                .unwrap(),
             fork_block_state_root_cache: None,
         }
     }
@@ -221,7 +231,7 @@ mod tests {
             .expect("failed to parse address");
         let mut fork_db = ForkState::new(
             &get_alchemy_url().expect("failed to get alchemy url"),
-            16220843,
+            Some(16220843),
         );
         let account_info =
             revm::db::State::basic(&mut fork_db, dai_address).expect("should have succeeded");
