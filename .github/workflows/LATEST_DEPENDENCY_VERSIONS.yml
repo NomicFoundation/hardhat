@@ -25,6 +25,7 @@ jobs:
         run: yarn list
       - name: Run tests
         env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           DO_NOT_SET_THIS_ENV_VAR____IS_HARDHAT_CI: true
           FORCE_COLOR: 3
         run: yarn test || (echo "===== Retry =====" && yarn test)
