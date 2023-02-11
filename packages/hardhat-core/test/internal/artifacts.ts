@@ -1458,7 +1458,7 @@ describe("Artifacts class", function () {
       );
     });
 
-    it("should prefer the first extension source over the second", async function () {
+    it("should prefer the second extension source over the first", async function () {
       const customSource1 = new ArtifactSourceStub("custom1", ["Foo"]);
       const customSource2 = new ArtifactSourceStub("custom2", ["Foo"]);
       const artifacts = new Artifacts(this.tmpDir, [
@@ -1471,8 +1471,8 @@ describe("Artifacts class", function () {
 
       assert.equal(
         artifact._format,
-        "custom1",
-        "Artifact should come from first custom source"
+        "custom2",
+        "Artifact should come from second custom source"
       );
 
       // sync
@@ -1480,8 +1480,8 @@ describe("Artifacts class", function () {
 
       assert.equal(
         artifactSync._format,
-        "custom1",
-        "Artifact should come from first custom source"
+        "custom2",
+        "Artifact should come from second custom source"
       );
     });
 
