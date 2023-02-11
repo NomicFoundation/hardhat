@@ -63,14 +63,14 @@ impl revm::Database for ForkDatabase {
     type Error = ForkDatabaseError;
 
     fn basic(&mut self, address: Address) -> Result<Option<AccountInfo>, Self::Error> {
-        if let Some(cached) = self.account_info_cache.get(&address) {
-            Ok(Some(cached.clone()))
-        } else if let Some(layered) = self
+        if let Some(layered) = self
             .layered_db
             .basic(address)
             .map_err(ForkDatabaseError::LayeredDatabase)?
         {
             Ok(Some(layered))
+        } else if let Some(cached) = self.account_info_cache.get(&address) {
+            Ok(Some(cached.clone()))
         } else if let Some(remote) = self
             .remote_db
             .basic(address)
