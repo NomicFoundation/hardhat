@@ -1,5 +1,12 @@
 # @nomicfoundation/hardhat-network-helpers
 
+## 1.0.8
+
+### Patch Changes
+
+- e443b3667: Added an option in Hardhat Network to allow mining blocks with the same timestamp
+- 8a4ad9ddc: Added a new 'reset' network helper
+
 ## 1.0.7
 
 ### Patch Changes

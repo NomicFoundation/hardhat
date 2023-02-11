@@ -86,31 +86,36 @@ export function createProvider(
       require("../../hardhat-network/provider/utils/disk-cache") as typeof DiskCacheT;
 
     eip1193Provider = new HardhatNetworkProvider(
-      hardhatNetConfig.hardfork,
-      HARDHAT_NETWORK_NAME,
-      hardhatNetConfig.chainId,
-      hardhatNetConfig.chainId,
-      hardhatNetConfig.blockGasLimit,
-      hardhatNetConfig.initialBaseFeePerGas,
-      hardhatNetConfig.minGasPrice,
-      hardhatNetConfig.throwOnTransactionFailures,
-      hardhatNetConfig.throwOnCallFailures,
-      hardhatNetConfig.mining.auto,
-      hardhatNetConfig.mining.interval,
-      // This cast is valid because of the config validation and resolution
-      hardhatNetConfig.mining.mempool.order as MempoolOrder,
-      hardhatNetConfig.chains,
+      {
+        chainId: hardhatNetConfig.chainId,
+        networkId: hardhatNetConfig.chainId,
+        hardfork: hardhatNetConfig.hardfork,
+        blockGasLimit: hardhatNetConfig.blockGasLimit,
+        initialBaseFeePerGas: hardhatNetConfig.initialBaseFeePerGas,
+        minGasPrice: hardhatNetConfig.minGasPrice,
+        throwOnTransactionFailures: hardhatNetConfig.throwOnTransactionFailures,
+        throwOnCallFailures: hardhatNetConfig.throwOnCallFailures,
+        automine: hardhatNetConfig.mining.auto,
+        intervalMining: hardhatNetConfig.mining.interval,
+        // This cast is valid because of the config validation and resolution
+        mempoolOrder: hardhatNetConfig.mining.mempool.order as MempoolOrder,
+        chains: hardhatNetConfig.chains,
+        coinbase: hardhatNetConfig.coinbase,
+        genesisAccounts: accounts,
+        allowUnlimitedContractSize: hardhatNetConfig.allowUnlimitedContractSize,
+        allowBlocksWithSameTimestamp:
+          hardhatNetConfig.allowBlocksWithSameTimestamp ?? false,
+        initialDate:
+          hardhatNetConfig.initialDate !== undefined
+            ? parseDateString(hardhatNetConfig.initialDate)
+            : undefined,
+        experimentalHardhatNetworkMessageTraceHooks,
+        forkConfig,
+        forkCachePath:
+          paths !== undefined ? getForkCacheDirPath(paths) : undefined,
+      },
       new ModulesLogger(hardhatNetConfig.loggingEnabled),
-      accounts,
-      artifacts,
-      hardhatNetConfig.allowUnlimitedContractSize,
-      hardhatNetConfig.initialDate !== undefined
-        ? parseDateString(hardhatNetConfig.initialDate)
-        : undefined,
-      experimentalHardhatNetworkMessageTraceHooks,
-      forkConfig,
-      paths !== undefined ? getForkCacheDirPath(paths) : undefined,
-      hardhatNetConfig.coinbase
+      artifacts
     );
   } else {
     const HttpProvider = importProvider<

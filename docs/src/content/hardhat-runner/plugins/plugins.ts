@@ -648,6 +648,67 @@ const communityPlugins: IPlugin[] = [
       "Hardhat plugin to send an OSX notification when hardhat compilcation fails/succeeds",
     tags: ["Deployment", "Tooling", "Notification", "Compile"],
   },
+  {
+    name: "hardhat-jest",
+    author: "Arian Hosseini",
+    authorUrl: "https://www.npmjs.com/package/hardhat-jest",
+    description: "Hardhat plugin that allows you to use Jest easily",
+    tags: ["Deployment", "Testing", "Jest", "Smart Contracts", "Solidity"],
+  },
+  {
+    name: "@dlsl/hardhat-gobind",
+    author: "Distributed Lab",
+    authorUrl: "https://distributedlab.com/",
+    description:
+      "Hardhat plugin to generate smart contract bindings for Golang",
+    tags: ["Bindings", "Go", "Testing"],
+  },
+  {
+    name: "hardhat-storage-vault",
+    author: "Emre Tepe",
+    authorUrl: "https://emretepedev.github.io/",
+    description:
+      "Hardhat plugin to check and lock the storage layout of contracts",
+    tags: ["Tooling", "Testing", "Storage"],
+  },
+  {
+    name: "hardhat-insight",
+    author: "Andres Adjimann",
+    authorUrl: "https://www.npmjs.com/package/hardhat-insight",
+    description:
+      "Hardhat plugin to get contract storage, gas and code size insights using the compiler ast output",
+    tags: ["Tooling", "Storage", "Gas", "Size", "Bytecode"],
+  },
+  {
+    name: "hardhat-scilla-plugin",
+    author: "Saeed Dadkhah",
+    authorUrl: "https://www.github.com/its-saeed",
+    description:
+      "Hardhat plugin to test scilla contracts. Scilla is Zillqa's programming language to develop smart contracts.",
+    tags: ["Scilla", "Testing", "Zilliqa"],
+  },
+  {
+    name: "hardhat-flat-exporter",
+    author: "Laz",
+    authorUrl: "https://github.com/Saszr",
+    description: "Export flat contract on compilation via Hardhat.",
+    tags: ["Flatten", "Smart contract", "Solidity", "Deployment"],
+  },
+  {
+    name: "@chainlink/hardhat-chainlink",
+    author: "Chainlink Labs",
+    authorUrl: "https://github.com/smartcontractkit/hardhat-chainlink",
+    description: "Integrates Chainlink into Hardhat projects.",
+    tags: ["chainlink", "hardhat"],
+  },
+  {
+    name: "@dlsl/hardhat-markup",
+    author: "Distributed Lab",
+    authorUrl: "https://distributedlab.com/",
+    description:
+      "Hardhat plugin to generate customizable smart contracts documentation",
+    tags: ["Documentation", "NatSpec", "Markdown"],
+  },
 ];
 
 const officialPlugins: IPlugin[] = [
@@ -680,6 +741,14 @@ const officialPlugins: IPlugin[] = [
     tags: ["Etherscan", "Verification"],
   },
   {
+    name: "@nomicfoundation/hardhat-foundry",
+    author: "Nomic Foundation",
+    authorUrl: "https://twitter.com/NomicFoundation",
+    description:
+      "Makes it easier to use Hardhat and Foundry in the same project",
+    tags: ["Foundry"],
+  },
+  {
     name: "@nomiclabs/hardhat-vyper",
     author: "Nomic Foundation",
     authorUrl: "https://twitter.com/NomicFoundation",
@@ -708,13 +777,6 @@ const officialPlugins: IPlugin[] = [
     description:
       "Adds a Waffle-compatible provider to the Hardhat Runtime Environment and automatically initializes the Waffle Chai matchers",
     tags: ["Waffle", "Testing"],
-  },
-  {
-    name: "@nomiclabs/hardhat-ganache",
-    author: "Nomic Foundation",
-    authorUrl: "https://twitter.com/NomicFoundation",
-    description: "Hardhat plugin for managing Ganache",
-    tags: ["Ganache", "Testing network"],
   },
   {
     name: "@nomiclabs/hardhat-web3",

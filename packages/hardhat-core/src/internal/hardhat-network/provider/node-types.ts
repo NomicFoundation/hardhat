@@ -24,7 +24,6 @@ interface CommonConfig {
   hardfork: string;
   minGasPrice: bigint;
   networkId: number;
-  networkName: string;
   allowUnlimitedContractSize?: boolean;
   initialDate?: Date;
   tracingConfig?: TracingConfig;
@@ -32,6 +31,7 @@ interface CommonConfig {
   mempoolOrder: MempoolOrder;
   coinbase: string;
   chains: HardhatNetworkChainsConfig;
+  allowBlocksWithSameTimestamp: boolean;
 }
 
 export type LocalNodeConfig = CommonConfig;

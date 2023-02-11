@@ -139,7 +139,7 @@ export class ConsoleLogger {
 
   private _decode(data: Buffer, types: string[]): ConsoleLogs {
     return types.map((type, i) => {
-      const position = i * 32;
+      const position: number = i * 32;
       switch (types[i]) {
         case Uint256Ty:
           return bufferToBigInt(

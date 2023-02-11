@@ -45,7 +45,7 @@ const Block = styled.div`
   padding: 0 0 24px;
   min-height: 100px;
   &.content {
-    z-index: 1;
+    z-index: 2;
   }
   & svg {
     margin: 0 auto;

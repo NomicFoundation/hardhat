@@ -178,10 +178,6 @@
         "href": "/plugins/nomiclabs-hardhat-solhint"
       },
       {
-        "label": "@nomiclabs/hardhat-ganache",
-        "href": "/plugins/nomiclabs-hardhat-ganache"
-      },
-      {
         "label": "@nomiclabs/hardhat-solpp",
         "href": "/plugins/nomiclabs-hardhat-solpp"
       },

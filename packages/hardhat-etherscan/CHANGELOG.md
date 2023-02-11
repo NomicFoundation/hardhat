@@ -1,5 +1,17 @@
 # @nomiclabs/hardhat-etherscan
 
+## 3.1.6
+
+### Patch Changes
+
+- 070abb7f5: Added support for the `http_proxy` environment variable. When this variable is set, `hardhat-etherscan` will use the given proxy to send the verification requests.
+
+## 3.1.5
+
+### Patch Changes
+
+- 7e013fa19: Upgrade undici
+
 ## 3.1.4
 
 ### Patch Changes

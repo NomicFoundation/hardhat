@@ -4,15 +4,20 @@ import os from "os";
 import path from "path";
 
 import { HARDHAT_NAME } from "../constants";
-import { HardhatError } from "../core/errors";
+import { assertHardhatInvariant, HardhatError } from "../core/errors";
 import { ERRORS } from "../core/errors-list";
 import { getRecommendedGitIgnore } from "../core/project-structure";
+import { getAllFilesMatching } from "../util/fs-utils";
 import {
   hasConsentedTelemetry,
   writeTelemetryConsent,
 } from "../util/global-dir";
 import { fromEntries } from "../util/lang";
-import { getPackageJson, getPackageRoot } from "../util/packageInfo";
+import {
+  getPackageJson,
+  getPackageRoot,
+  PackageJson,
+} from "../util/packageInfo";
 import { pluralize } from "../util/strings";
 import {
   confirmRecommendedDepsInstallation,
@@ -20,7 +25,7 @@ import {
   confirmProjectCreation,
 } from "./prompt";
 import { emoji } from "./emoji";
-import { Dependencies } from "./types";
+import { Dependencies, PackageManager } from "./types";
 
 enum Action {
   CREATE_JAVASCRIPT_PROJECT_ACTION = "Create a JavaScript project",
@@ -60,7 +65,7 @@ const TYPESCRIPT_DEPENDENCIES: Dependencies = {};
 
 const TYPESCRIPT_PEER_DEPENDENCIES: Dependencies = {
   "@types/chai": "^4.2.0",
-  "@types/mocha": "^9.1.0",
+  "@types/mocha": ">=9.1.0",
   "@types/node": ">=12.0.0",
   "ts-node": ">=8.0.0",
   typescript: ">=4.5.0",
@@ -109,14 +114,28 @@ async function printWelcomeMessage() {
 
 async function copySampleProject(
   projectRoot: string,
-  projectType: SampleProjectTypeCreationAction
+  projectType: SampleProjectTypeCreationAction,
+  isEsm: boolean
 ) {
   const packageRoot = getPackageRoot();
 
-  const sampleProjectName =
-    projectType === Action.CREATE_JAVASCRIPT_PROJECT_ACTION
-      ? "javascript"
-      : "typescript";
+  let sampleProjectName: string;
+  if (projectType === Action.CREATE_JAVASCRIPT_PROJECT_ACTION) {
+    if (isEsm) {
+      sampleProjectName = "javascript-esm";
+    } else {
+      sampleProjectName = "javascript";
+    }
+  } else {
+    if (isEsm) {
+      assertHardhatInvariant(
+        false,
+        "Shouldn't try to create a TypeScript project in an ESM based project"
+      );
+    } else {
+      sampleProjectName = "typescript";
+    }
+  }
 
   await fsExtra.ensureDir(projectRoot);
 
@@ -126,11 +145,23 @@ async function copySampleProject(
     sampleProjectName
   );
 
-  const sampleProjectRootFiles = fsExtra.readdirSync(sampleProjectPath);
-  const existingFiles = sampleProjectRootFiles
-    .map((f) => path.join(projectRoot, f))
-    .filter((f) => fsExtra.pathExistsSync(f))
-    .map((f) => path.relative(process.cwd(), f));
+  // relative paths to all the sample project files
+  const sampleProjectFiles = (await getAllFilesMatching(sampleProjectPath)).map(
+    (file) => path.relative(sampleProjectPath, file)
+  );
+
+  // check if the target directory already has files that clash with the sample
+  // project files
+  const existingFiles: string[] = [];
+  for (const file of sampleProjectFiles) {
+    const targetProjectFile = path.resolve(projectRoot, file);
+
+    // if the project already has a README.md file, we'll skip it when
+    // we copy the files
+    if (file !== "README.md" && fsExtra.existsSync(targetProjectFile)) {
+      existingFiles.push(file);
+    }
+  }
 
   if (existingFiles.length > 0) {
     const errorMsg = `We couldn't initialize the sample project because ${pluralize(
@@ -139,17 +170,32 @@ async function copySampleProject(
       "these files already exist"
     )}: ${existingFiles.join(", ")}
 
-Please delete or move them and try again.`;
+Please delete or rename ${pluralize(
+      existingFiles.length,
+      "it",
+      "them"
+    )} and try again.`;
     console.log(chalk.red(errorMsg));
     process.exit(1);
   }
 
-  await fsExtra.copy(
-    path.join(packageRoot, "sample-projects", sampleProjectName),
-    projectRoot
-  );
+  // copy the files
+  for (const file of sampleProjectFiles) {
+    const sampleProjectFile = path.resolve(sampleProjectPath, file);
+    const targetProjectFile = path.resolve(projectRoot, file);
 
-  await fsExtra.remove(path.join(projectRoot, "LICENSE.md"));
+    if (file === "README.md" && fsExtra.existsSync(targetProjectFile)) {
+      // we don't override the readme if it exists
+      continue;
+    }
+
+    if (file === "LICENSE.md") {
+      // we don't copy the license
+      continue;
+    }
+
+    fsExtra.copySync(sampleProjectFile, targetProjectFile);
+  }
 }
 
 async function addGitIgnore(projectRoot: string) {
@@ -187,11 +233,19 @@ module.exports = {
 };
 `;
 
-async function writeEmptyHardhatConfig() {
-  return fsExtra.writeFile("hardhat.config.js", EMPTY_HARDHAT_CONFIG, "utf-8");
+async function writeEmptyHardhatConfig(isEsm: boolean) {
+  const hardhatConfigFilename = isEsm
+    ? "hardhat.config.cjs"
+    : "hardhat.config.js";
+
+  return fsExtra.writeFile(
+    hardhatConfigFilename,
+    EMPTY_HARDHAT_CONFIG,
+    "utf-8"
+  );
 }
 
-async function getAction(): Promise<Action> {
+async function getAction(isEsm: boolean): Promise<Action> {
   if (
     process.env.HARDHAT_CREATE_JAVASCRIPT_PROJECT_WITH_DEFAULTS !== undefined
   ) {
@@ -211,7 +265,24 @@ async function getAction(): Promise<Action> {
         message: "What do you want to do?",
         initial: 0,
         choices: Object.values(Action).map((a: Action) => {
-          return { name: a, message: a, value: a };
+          let message: string;
+          if (isEsm) {
+            if (a === Action.CREATE_EMPTY_HARDHAT_CONFIG_ACTION) {
+              message = a.replace(".js", ".cjs");
+            } else if (a === Action.CREATE_TYPESCRIPT_PROJECT_ACTION) {
+              message = `${a} (not available for ESM projects)`;
+            } else {
+              message = a;
+            }
+          } else {
+            message = a;
+          }
+
+          return {
+            name: a,
+            message,
+            value: a,
+          };
         }),
       },
     ]);
@@ -252,37 +323,33 @@ function showStarOnGitHubMessage() {
   console.log(chalk.cyan("     https://github.com/NomicFoundation/hardhat"));
 }
 
-export function showSoliditySurveyMessage() {
-  if (new Date() > new Date("2023-07-01 23:39")) {
-    // the survey has finished
-    return;
-  }
-
-  console.log();
-  console.log(
-    chalk.cyan(
-      "Please take a moment to complete the 2022 Solidity Survey: https://hardhat.org/solidity-survey-2022"
-    )
-  );
-}
-
 export async function createProject() {
   printAsciiLogo();
 
   await printWelcomeMessage();
 
-  const action = await getAction();
+  let packageJson: PackageJson | undefined;
+  if (await fsExtra.pathExists("package.json")) {
+    packageJson = await fsExtra.readJson("package.json");
+  }
+  const isEsm = packageJson?.type === "module";
+
+  const action = await getAction(isEsm);
 
   if (action === Action.QUIT_ACTION) {
     return;
   }
 
-  if (!(await fsExtra.pathExists("package.json"))) {
+  if (isEsm && action === Action.CREATE_TYPESCRIPT_PROJECT_ACTION) {
+    throw new HardhatError(ERRORS.GENERAL.ESM_TYPESCRIPT_PROJECT_CREATION);
+  }
+
+  if (packageJson === undefined) {
     await createPackageJson();
   }
 
   if (action === Action.CREATE_EMPTY_HARDHAT_CONFIG_ACTION) {
-    await writeEmptyHardhatConfig();
+    await writeEmptyHardhatConfig(isEsm);
     console.log(
       `${emoji("✨ ")}${chalk.cyan(`Config file created`)}${emoji(" ✨")}`
     );
@@ -301,7 +368,6 @@ export async function createProject() {
 
     console.log();
     showStarOnGitHubMessage();
-    showSoliditySurveyMessage();
 
     return;
   }
@@ -347,7 +413,7 @@ export async function createProject() {
     }
   }
 
-  await copySampleProject(projectRoot, action);
+  await copySampleProject(projectRoot, action, isEsm);
 
   let shouldShowInstallationInstructions = true;
 
@@ -372,7 +438,7 @@ export async function createProject() {
         useDefaultPromptResponses ||
         (await confirmRecommendedDepsInstallation(
           dependenciesToInstall,
-          await isYarnProject()
+          await getProjectPackageManager()
         ));
       if (shouldInstall) {
         const installed = await installRecommendedDependencies(
@@ -402,7 +468,6 @@ export async function createProject() {
   console.log("See the README.md file for some example tasks you can run");
   console.log();
   showStarOnGitHubMessage();
-  showSoliditySurveyMessage();
 }
 
 async function canInstallRecommendedDeps() {
@@ -428,6 +493,16 @@ function isInstalled(dep: string) {
 
 async function isYarnProject() {
   return fsExtra.pathExists("yarn.lock");
+}
+
+async function isPnpmProject() {
+  return fsExtra.pathExists("pnpm-lock.yaml");
+}
+
+async function getProjectPackageManager(): Promise<PackageManager> {
+  if (await isYarnProject()) return "yarn";
+  if (await isPnpmProject()) return "pnpm";
+  return "npm";
 }
 
 async function doesNpmAutoInstallPeerDependencies() {
@@ -496,6 +571,10 @@ async function getRecommendedDependenciesInstallationCommand(
     return ["yarn", "add", "--dev", ...deps];
   }
 
+  if (await isPnpmProject()) {
+    return ["pnpm", "add", "-D", ...deps];
+  }
+
   return ["npm", "install", "--save-dev", ...deps];
 }
 
@@ -503,7 +582,9 @@ async function getDependencies(
   projectType: SampleProjectTypeCreationAction
 ): Promise<Dependencies> {
   const shouldInstallPeerDependencies =
-    (await isYarnProject()) || !(await doesNpmAutoInstallPeerDependencies());
+    (await isYarnProject()) ||
+    (await isPnpmProject()) ||
+    !(await doesNpmAutoInstallPeerDependencies());
 
   const shouldInstallTypescriptDependencies =
     projectType === Action.CREATE_TYPESCRIPT_PROJECT_ACTION;

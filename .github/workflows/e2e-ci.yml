@@ -44,3 +44,5 @@ jobs:
         run: yarn build
       - name: Run tests
         run: yarn test
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

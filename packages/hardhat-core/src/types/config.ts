@@ -51,6 +51,7 @@ export interface HardhatNetworkUserConfig {
   throwOnTransactionFailures?: boolean;
   throwOnCallFailures?: boolean;
   allowUnlimitedContractSize?: boolean;
+  allowBlocksWithSameTimestamp?: boolean;
   initialDate?: string;
   loggingEnabled?: boolean;
   forking?: HardhatNetworkForkingUserConfig;
@@ -151,6 +152,7 @@ export interface HardhatNetworkConfig {
   forking?: HardhatNetworkForkingConfig;
   coinbase?: string;
   chains: HardhatNetworkChainsConfig;
+  allowBlocksWithSameTimestamp?: boolean;
 }
 
 export type HardhatNetworkAccountsConfig =

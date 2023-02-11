@@ -37,7 +37,7 @@ import { saveFlamegraph } from "../core/flamegraph";
 import { Analytics } from "./analytics";
 import { ArgumentsParser } from "./ArgumentsParser";
 import { enableEmoji } from "./emoji";
-import { createProject, showSoliditySurveyMessage } from "./project-creation";
+import { createProject } from "./project-creation";
 import { confirmHHVSCodeInstallation, confirmTelemetryConsent } from "./prompt";
 import {
   InstallationState,
@@ -285,16 +285,6 @@ async function main() {
       process.stdout.isTTY === true
     ) {
       await suggestInstallingHardhatVscode();
-
-      // we show the solidity survey message if the tests failed and only
-      // 1/3 of the time
-      if (
-        process.exitCode !== 0 &&
-        Math.random() < 0.3333 &&
-        process.env.HARDHAT_HIDE_SOLIDITY_SURVEY_MESSAGE !== "true"
-      ) {
-        showSoliditySurveyMessage();
-      }
     }
 
     log(`Killing Hardhat after successfully running task ${taskName}`);
@@ -303,11 +293,15 @@ async function main() {
 
     if (HardhatError.isHardhatError(error)) {
       isHardhatError = true;
-      console.error(chalk.red(`Error ${error.message}`));
+      console.error(
+        chalk.red.bold("Error"),
+        error.message.replace(/^\w+:/, (t) => chalk.red.bold(t))
+      );
     } else if (HardhatPluginError.isHardhatPluginError(error)) {
       isHardhatError = true;
       console.error(
-        chalk.red(`Error in plugin ${error.pluginName}: ${error.message}`)
+        chalk.red.bold(`Error in plugin ${error.pluginName}:`),
+        error.message
       );
     } else if (error instanceof Error) {
       console.error(chalk.red("An unexpected error occurred:"));
