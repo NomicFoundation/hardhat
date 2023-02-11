@@ -779,13 +779,6 @@ const officialPlugins: IPlugin[] = [
     tags: ["Waffle", "Testing"],
   },
   {
-    name: "@nomiclabs/hardhat-ganache",
-    author: "Nomic Foundation",
-    authorUrl: "https://twitter.com/NomicFoundation",
-    description: "Hardhat plugin for managing Ganache",
-    tags: ["Ganache", "Testing network"],
-  },
-  {
     name: "@nomiclabs/hardhat-web3",
     author: "Nomic Foundation",
     authorUrl: "https://twitter.com/NomicFoundation",
