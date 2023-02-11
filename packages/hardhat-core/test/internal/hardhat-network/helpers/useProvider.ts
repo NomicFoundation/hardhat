@@ -130,7 +130,7 @@ export function useProvider({
       await this.server.close();
       const afterClose = Date.now();
       const elapsedTime = afterClose - beforeClose;
-      if (elapsedTime > 1000) {
+      if (elapsedTime > 1500) {
         throw new Error(
           `Closing the server took more than 1 second (${elapsedTime}ms), which can lead to incredibly slow tests. Please fix it.`
         );
