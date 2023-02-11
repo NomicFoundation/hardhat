@@ -701,6 +701,14 @@ const communityPlugins: IPlugin[] = [
     description: "Integrates Chainlink into Hardhat projects.",
     tags: ["chainlink", "hardhat"],
   },
+  {
+    name: "@dlsl/hardhat-markup",
+    author: "Distributed Lab",
+    authorUrl: "https://distributedlab.com/",
+    description:
+      "Hardhat plugin to generate customizable smart contracts documentation",
+    tags: ["Documentation", "NatSpec", "Markdown"],
+  },
 ];
 
 const officialPlugins: IPlugin[] = [
