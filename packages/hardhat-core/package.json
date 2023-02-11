@@ -20,7 +20,7 @@
     "solidity"
   ],
   "bin": {
-    "hardhat": "internal/cli/cli.js"
+    "hardhat": "internal/cli/bootstrap.js"
   },
   "engines": {
     "node": ">=14.0.0"
