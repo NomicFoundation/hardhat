@@ -313,7 +313,10 @@ async function main() {
 
     if (HardhatError.isHardhatError(error)) {
       isHardhatError = true;
-      console.error(error.message.replace(/^\w+:/, (t) => chalk.red.bold(t)));
+      console.error(
+        chalk.red.bold("Error"),
+        error.message.replace(/^\w+:/, (t) => chalk.red.bold(t))
+      );
     } else if (HardhatPluginError.isHardhatPluginError(error)) {
       isHardhatError = true;
       console.error(
