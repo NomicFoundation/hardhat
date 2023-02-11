@@ -313,11 +313,12 @@ async function main() {
 
     if (HardhatError.isHardhatError(error)) {
       isHardhatError = true;
-      console.error(chalk.red(`Error ${error.message}`));
+      console.error(error.message.replace(/^\w+:/, (t) => chalk.red.bold(t)));
     } else if (HardhatPluginError.isHardhatPluginError(error)) {
       isHardhatError = true;
       console.error(
-        chalk.red(`Error in plugin ${error.pluginName}: ${error.message}`)
+        chalk.red.bold(`Error in plugin ${error.pluginName}:`),
+        error.message
       );
     } else if (error instanceof Error) {
       console.error(chalk.red("An unexpected error occurred:"));
