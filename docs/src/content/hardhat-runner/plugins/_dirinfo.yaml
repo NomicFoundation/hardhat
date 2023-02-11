@@ -10,7 +10,6 @@ order:
   - "@nomiclabs/hardhat-solhint"
   - "@nomiclabs/hardhat-solpp"
   - "@nomiclabs/hardhat-waffle"
-  - "@nomiclabs/hardhat-ganache"
   - "@nomiclabs/hardhat-web3"
   - "@nomiclabs/hardhat-truffle5"
   - "@nomiclabs/hardhat-web3-legacy"
