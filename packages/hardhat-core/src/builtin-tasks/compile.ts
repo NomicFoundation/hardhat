@@ -757,9 +757,13 @@ subtask(TASK_COMPILE_SOLIDITY_LOG_COMPILATION_ERRORS)
           getFormattedInternalCompilerErrorMessage(error) ??
           error.formattedMessage;
 
-        console.error(errorMessage.replace(/^\w+:/, t => chalk.red.bold(t)));
+        console.error(errorMessage.replace(/^\w+:/, (t) => chalk.red.bold(t)));
       } else {
-        console.warn((error.formattedMessage as string).replace(/^\w+/, t => chalk.yellow.bold(t)));
+        console.warn(
+          (error.formattedMessage as string).replace(/^\w+/, (t) =>
+            chalk.yellow.bold(t)
+          )
+        );
       }
     }
 
