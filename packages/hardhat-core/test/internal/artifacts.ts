@@ -1611,16 +1611,29 @@ describe("Artifacts class", function () {
 });
 
 describe("artifacts extensions", function () {
-  useFixtureProject("artifacts-extensions");
-  useEnvironment();
+  describe("Single extension", function () {
+    useFixtureProject("artifacts-extensions");
+    useEnvironment();
 
-  it("should read artifacts provided by Hardhat and provided by extensions", async function () {
-    await this.env.run("run", {
-      script: "./script.js",
+    it("should read artifacts provided by Hardhat and provided by extensions", async function () {
+      await this.env.run("run", {
+        script: "./script.js",
+      });
+
+      assert.equal(process.exitCode, 0);
+      (process as any).exitCode = undefined;
     });
+  });
 
-    assert.equal(process.exitCode, 0);
-    (process as any).exitCode = undefined;
+  describe("Multiple extensions", function () {
+    useFixtureProject("multiple-artifact-extensions");
+    useEnvironment();
+
+    it("should use the extensions in the reverse order of definition", async function () {
+      const b = (await this.env.artifacts.readArtifact("B")) as any;
+
+      assert.equal(b.sourceIndex, 1);
+    });
   });
 });
 

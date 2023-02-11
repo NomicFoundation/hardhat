@@ -19,12 +19,15 @@ import { CachingSource } from "./caching";
 
 export class Artifacts implements IArtifacts {
   private readonly _hardhatSource: CachingSource;
+  private readonly _extensionSources: ArtifactsSource[];
 
   constructor(
     private readonly _artifactsPath: string,
-    private readonly _extensionSources: ArtifactsSource[] = []
+    extensionSources: ArtifactsSource[] = []
   ) {
     this._hardhatSource = new CachingSource(this._artifactsPath);
+    // We use the extensions in reversed definition order
+    this._extensionSources = extensionSources.reverse();
   }
 
   public async readArtifact(
