@@ -7,6 +7,7 @@ hardhat-runner:
     - hardhat-runner/docs/config
     - hardhat-runner/docs/guides
     - hardhat-runner/docs/advanced
+    - hardhat-runner/docs/supporter-guides
     - hardhat-runner/docs/troubleshooting
     - hardhat-runner/docs/reference
     - hardhat-runner/plugins

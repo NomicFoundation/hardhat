@@ -71,6 +71,26 @@ describe("project structure", () => {
       });
     });
   });
+
+  describe("Inside an ESM project", () => {
+    useFixtureProject("esm/cjs-config");
+    let configPath: string;
+
+    before("get root path", async () => {
+      configPath = await getRealPath(
+        path.join(process.cwd(), "hardhat.config.cjs")
+      );
+    });
+
+    it("should work from the project root", () => {
+      assert.equal(getUserConfigPath(), configPath);
+    });
+
+    it("should work from deeper inside the project", () => {
+      process.chdir("contracts");
+      assert.equal(getUserConfigPath(), configPath);
+    });
+  });
 });
 
 describe("getRecommendedGitIgnore", () => {

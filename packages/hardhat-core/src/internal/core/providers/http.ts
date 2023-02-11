@@ -1,4 +1,4 @@
-import type { Dispatcher, Pool as PoolT } from "undici";
+import type * as Undici from "undici";
 
 import { EventEmitter } from "events";
 
@@ -17,6 +17,7 @@ import {
 import { getHardhatVersion } from "../../util/packageInfo";
 import { HardhatError } from "../errors";
 import { ERRORS } from "../errors-list";
+import { shouldUseProxy } from "../../util/proxy";
 
 import { ProviderError } from "./errors";
 
@@ -33,7 +34,7 @@ const hardhatVersion = getHardhatVersion();
 
 export class HttpProvider extends EventEmitter implements EIP1193Provider {
   private _nextRequestId = 1;
-  private _dispatcher: Dispatcher;
+  private _dispatcher: Undici.Dispatcher;
   private _path: string;
   private _authHeader: string | undefined;
 
@@ -42,11 +43,11 @@ export class HttpProvider extends EventEmitter implements EIP1193Provider {
     private readonly _networkName: string,
     private readonly _extraHeaders: { [name: string]: string } = {},
     private readonly _timeout = 20000,
-    client: Dispatcher | undefined = undefined
+    client: Undici.Dispatcher | undefined = undefined
   ) {
     super();
 
-    const { Pool } = require("undici") as { Pool: typeof PoolT };
+    const { Pool, ProxyAgent } = require("undici") as typeof Undici;
 
     const url = new URL(this._url);
     this._path = url.pathname;
@@ -59,6 +60,10 @@ export class HttpProvider extends EventEmitter implements EIP1193Provider {
           ).toString("base64")}`;
     try {
       this._dispatcher = client ?? new Pool(url.origin);
+
+      if (process.env.http_proxy !== undefined && shouldUseProxy(url.origin)) {
+        this._dispatcher = new ProxyAgent(process.env.http_proxy);
+      }
     } catch (e) {
       if (e instanceof TypeError && e.message === "Invalid URL") {
         e.message += ` ${url.origin}`;
@@ -163,10 +168,13 @@ export class HttpProvider extends EventEmitter implements EIP1193Provider {
     request: JsonRpcRequest | JsonRpcRequest[],
     retryNumber = 0
   ): Promise<JsonRpcResponse | JsonRpcResponse[]> {
+    const { request: sendRequest } = await import("undici");
+    const url = new URL(this._url);
+
     try {
-      const response = await this._dispatcher.request({
+      const response = await sendRequest(url, {
+        dispatcher: this._dispatcher,
         method: "POST",
-        path: this._path,
         body: JSON.stringify(request),
         maxRedirections: 10,
         headersTimeout:
@@ -193,8 +201,6 @@ export class HttpProvider extends EventEmitter implements EIP1193Provider {
         if (seconds !== undefined && this._shouldRetry(retryNumber, seconds)) {
           return await this._retry(request, seconds, retryNumber);
         }
-
-        const url = new URL(this._url);
 
         // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
         throw new ProviderError(
@@ -255,12 +261,12 @@ export class HttpProvider extends EventEmitter implements EIP1193Provider {
     return true;
   }
 
-  private _isRateLimitResponse(response: Dispatcher.ResponseData) {
+  private _isRateLimitResponse(response: Undici.Dispatcher.ResponseData) {
     return response.statusCode === TOO_MANY_REQUEST_STATUS;
   }
 
   private _getRetryAfterSeconds(
-    response: Dispatcher.ResponseData
+    response: Undici.Dispatcher.ResponseData
   ): number | undefined {
     const header = response.headers["retry-after"];
 
