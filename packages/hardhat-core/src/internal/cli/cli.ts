@@ -1,7 +1,5 @@
-#!/usr/bin/env node
 import chalk from "chalk";
 import debug from "debug";
-import semver from "semver";
 import "source-map-support/register";
 
 import {
@@ -36,7 +34,7 @@ import {
   writePromptedForHHVSCode,
   writeTelemetryConsent,
 } from "../util/global-dir";
-import { getPackageJson, PackageJson } from "../util/packageInfo";
+import { getPackageJson } from "../util/packageInfo";
 
 import { saveFlamegraph } from "../core/flamegraph";
 import { Analytics } from "./analytics";
@@ -55,23 +53,9 @@ const log = debug("hardhat:core:cli");
 const ANALYTICS_SLOW_TASK_THRESHOLD = 300;
 const SHOULD_SHOW_STACK_TRACES_BY_DEFAULT = isRunningOnCiServer();
 
-async function printVersionMessage(packageJson: PackageJson) {
+async function printVersionMessage() {
+  const packageJson = await getPackageJson();
   console.log(packageJson.version);
-}
-
-function printWarningAboutNodeJsVersionIfNecessary(packageJson: PackageJson) {
-  const requirement = packageJson.engines.node;
-  if (!semver.satisfies(process.version, requirement)) {
-    console.warn(
-      chalk.yellow(
-        `You are using a version of Node.js that is not supported by Hardhat, and it may work incorrectly, or not work at all.
-
-Please, make sure you are using a supported version of Node.js.
-
-To learn more about which versions of Node.js are supported go to https://hardhat.org/nodejs-versions`
-      )
-    );
-  }
 }
 
 async function suggestInstallingHardhatVscode() {
@@ -133,10 +117,6 @@ async function main() {
     SHOULD_SHOW_STACK_TRACES_BY_DEFAULT;
 
   try {
-    const packageJson = await getPackageJson();
-
-    printWarningAboutNodeJsVersionIfNecessary(packageJson);
-
     const envVariableArguments = getEnvHardhatArguments(
       HARDHAT_PARAM_DEFINITIONS,
       process.env
@@ -167,7 +147,7 @@ async function main() {
 
     // --version is a special case
     if (hardhatArguments.version) {
-      await printVersionMessage(packageJson);
+      await printVersionMessage();
       return;
     }
 
@@ -339,11 +319,15 @@ async function main() {
 
     if (HardhatError.isHardhatError(error)) {
       isHardhatError = true;
-      console.error(chalk.red(`Error ${error.message}`));
+      console.error(
+        chalk.red.bold("Error"),
+        error.message.replace(/^\w+:/, (t) => chalk.red.bold(t))
+      );
     } else if (HardhatPluginError.isHardhatPluginError(error)) {
       isHardhatError = true;
       console.error(
-        chalk.red(`Error in plugin ${error.pluginName}: ${error.message}`)
+        chalk.red.bold(`Error in plugin ${error.pluginName}:`),
+        error.message
       );
     } else if (error instanceof Error) {
       console.error(chalk.red("An unexpected error occurred:"));

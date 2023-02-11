@@ -184,6 +184,13 @@ export const chainConfig: ChainConfig = {
       browserURL: "https://gnosisscan.io",
     },
   },
+  chiado: {
+    chainId: 10200,
+    urls: {
+      apiURL: "https://blockscout.chiadochain.net/api",
+      browserURL: "https://blockscout.chiadochain.net",
+    },
+  },
   sokol: {
     chainId: 77,
     urls: {

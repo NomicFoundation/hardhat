@@ -20,10 +20,10 @@
     "solidity"
   ],
   "bin": {
-    "hardhat": "internal/cli/cli.js"
+    "hardhat": "internal/cli/bootstrap.js"
   },
   "engines": {
-    "node": "^14.0.0 || ^16.0.0 || ^18.0.0"
+    "node": ">=14.0.0"
   },
   "scripts": {
     "lint": "yarn prettier --check && yarn eslint",

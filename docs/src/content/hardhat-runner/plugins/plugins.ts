@@ -701,6 +701,14 @@ const communityPlugins: IPlugin[] = [
     description: "Integrates Chainlink into Hardhat projects.",
     tags: ["chainlink", "hardhat"],
   },
+  {
+    name: "@dlsl/hardhat-markup",
+    author: "Distributed Lab",
+    authorUrl: "https://distributedlab.com/",
+    description:
+      "Hardhat plugin to generate customizable smart contracts documentation",
+    tags: ["Documentation", "NatSpec", "Markdown"],
+  },
 ];
 
 const officialPlugins: IPlugin[] = [
@@ -769,13 +777,6 @@ const officialPlugins: IPlugin[] = [
     description:
       "Adds a Waffle-compatible provider to the Hardhat Runtime Environment and automatically initializes the Waffle Chai matchers",
     tags: ["Waffle", "Testing"],
-  },
-  {
-    name: "@nomiclabs/hardhat-ganache",
-    author: "Nomic Foundation",
-    authorUrl: "https://twitter.com/NomicFoundation",
-    description: "Hardhat plugin for managing Ganache",
-    tags: ["Ganache", "Testing network"],
   },
   {
     name: "@nomiclabs/hardhat-web3",

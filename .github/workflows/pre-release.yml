@@ -36,6 +36,7 @@ jobs:
           DO_NOT_SET_THIS_ENV_VAR____IS_HARDHAT_CI: true
           FORCE_COLOR: 3
           NODE_OPTIONS: "--max-old-space-size=4096"
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: yarn test
       - name: Check dependency versions
         run: node scripts/check-dependencies.js

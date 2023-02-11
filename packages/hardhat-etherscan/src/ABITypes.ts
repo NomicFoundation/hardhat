@@ -19,10 +19,10 @@ export function isABIArgumentLengthError(
 ): error is ABIArgumentLengthError {
   return (
     error.code === "INVALID_ARGUMENT" &&
-    error.count &&
+    error.count !== undefined &&
     typeof error.count.types === "number" &&
     typeof error.count.values === "number" &&
-    error.value &&
+    error.value !== undefined &&
     typeof error.value.types === "object" &&
     typeof error.value.values === "object" &&
     error instanceof Error
