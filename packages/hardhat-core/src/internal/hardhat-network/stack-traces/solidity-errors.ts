@@ -271,7 +271,9 @@ function getMessageFromLastStackTraceEntry(
       }
 
       if (!stackTraceEntry.message.isEmpty()) {
-        return `VM Exception while processing transaction: reverted with an unrecognized custom error`;
+        const returnData = stackTraceEntry.message.value.toString("hex");
+
+        return `VM Exception while processing transaction: reverted with an unrecognized custom error (return data: 0x${returnData})`;
       }
 
       if (stackTraceEntry.isInvalidOpcodeError) {

@@ -78,7 +78,7 @@ const customRedirects = [
   },
   {
     source: "/migrate-from-waffle",
-    destination: "/hardhat-chai-matchers/docs/migrate-from-waffle",
+    destination: "/hardhat-runner/docs/guides/migrating-from-hardhat-waffle",
     permanent: false
   },
   {

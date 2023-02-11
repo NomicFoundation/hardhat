@@ -73,7 +73,9 @@ export class SimpleTaskDefinition implements TaskDefinition {
    * Sets the task's action.
    * @param action The action.
    */
-  public setAction<ArgsT extends TaskArguments>(action: ActionType<ArgsT>) {
+  public setAction<TaskArgumentsT extends TaskArguments>(
+    action: ActionType<TaskArgumentsT>
+  ) {
     // TODO: There's probably something bad here. See types.ts for more info.
     this.action = action;
     return this;
@@ -569,7 +571,9 @@ export class OverriddenTaskDefinition implements TaskDefinition {
    * Overrides the parent task's action.
    * @param action the action.
    */
-  public setAction<ArgsT extends TaskArguments>(action: ActionType<ArgsT>) {
+  public setAction<TaskArgumentsT extends TaskArguments>(
+    action: ActionType<TaskArgumentsT>
+  ) {
     // TODO: There's probably something bad here. See types.ts for more info.
     this._action = action;
     return this;

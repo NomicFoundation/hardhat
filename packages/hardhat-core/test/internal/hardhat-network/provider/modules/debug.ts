@@ -13,7 +13,7 @@ import { trace as mainnetReturnsDataTrace } from "../../../../fixture-debug-trac
 import { trace as mainnetReturnsDataTraceGeth } from "../../../../fixture-debug-traces/mainnetReturnsDataTraceGeth";
 import { trace as mainnetRevertTrace } from "../../../../fixture-debug-traces/mainnetRevertTrace";
 import { trace as modifiesStateTrace } from "../../../../fixture-debug-traces/modifiesStateTrace";
-import { ALCHEMY_URL } from "../../../../setup";
+import { INFURA_URL } from "../../../../setup";
 import { assertInvalidInputError } from "../../helpers/assertions";
 import { FORK_TESTS_CACHE_PATH } from "../../helpers/constants";
 import { EXAMPLE_CONTRACT } from "../../helpers/contracts";
@@ -25,7 +25,6 @@ import {
   DEFAULT_CHAIN_ID,
   DEFAULT_HARDFORK,
   DEFAULT_NETWORK_ID,
-  DEFAULT_NETWORK_NAME,
   PROVIDERS,
 } from "../../helpers/providers";
 import { sendDummyTransaction } from "../../helpers/sendDummyTransaction";
@@ -190,38 +189,36 @@ describe("Debug module", function () {
     let provider: EthereumProvider;
 
     beforeEach(function () {
-      if (ALCHEMY_URL === undefined) {
+      if (INFURA_URL === undefined) {
         this.skip();
       }
       const forkConfig: ForkConfig = {
-        jsonRpcUrl: ALCHEMY_URL!,
+        jsonRpcUrl: INFURA_URL!,
         blockNumber: 11_954_000,
       };
 
       const logger = new ModulesLogger(false);
 
       const hardhatNetworkProvider = new HardhatNetworkProvider(
-        DEFAULT_HARDFORK,
-        DEFAULT_NETWORK_NAME,
-        DEFAULT_CHAIN_ID,
-        DEFAULT_NETWORK_ID,
-        13000000,
-        undefined,
-        0n,
-        true,
-        true,
-        false, // mining.auto
-        0, // mining.interval
-        "priority", // mining.mempool.order
-        defaultHardhatNetworkParams.chains,
-        logger,
-        DEFAULT_ACCOUNTS,
-        undefined,
-        DEFAULT_ALLOW_UNLIMITED_CONTRACT_SIZE,
-        undefined,
-        undefined,
-        forkConfig,
-        FORK_TESTS_CACHE_PATH
+        {
+          hardfork: DEFAULT_HARDFORK,
+          chainId: DEFAULT_CHAIN_ID,
+          networkId: DEFAULT_NETWORK_ID,
+          blockGasLimit: 13000000,
+          minGasPrice: 0n,
+          throwOnTransactionFailures: true,
+          throwOnCallFailures: true,
+          automine: false,
+          intervalMining: 0,
+          mempoolOrder: "priority",
+          chains: defaultHardhatNetworkParams.chains,
+          genesisAccounts: DEFAULT_ACCOUNTS,
+          allowUnlimitedContractSize: DEFAULT_ALLOW_UNLIMITED_CONTRACT_SIZE,
+          forkConfig,
+          forkCachePath: FORK_TESTS_CACHE_PATH,
+          allowBlocksWithSameTimestamp: false,
+        },
+        logger
       );
 
       provider = new BackwardsCompatibilityProviderAdapter(
@@ -316,38 +313,36 @@ describe("Debug module", function () {
     let provider: EthereumProvider;
 
     beforeEach(function () {
-      if (ALCHEMY_URL === undefined) {
+      if (INFURA_URL === undefined) {
         this.skip();
       }
       const forkConfig: ForkConfig = {
-        jsonRpcUrl: ALCHEMY_URL!,
+        jsonRpcUrl: INFURA_URL!,
         blockNumber: 15_204_358,
       };
 
       const logger = new ModulesLogger(false);
 
       const hardhatNetworkProvider = new HardhatNetworkProvider(
-        DEFAULT_HARDFORK,
-        DEFAULT_NETWORK_NAME,
-        DEFAULT_CHAIN_ID,
-        DEFAULT_NETWORK_ID,
-        13000000,
-        undefined,
-        0n,
-        true,
-        true,
-        false, // mining.auto
-        0, // mining.interval
-        "priority", // mining.mempool.order
-        defaultHardhatNetworkParams.chains,
-        logger,
-        DEFAULT_ACCOUNTS,
-        undefined,
-        DEFAULT_ALLOW_UNLIMITED_CONTRACT_SIZE,
-        undefined,
-        undefined,
-        forkConfig,
-        FORK_TESTS_CACHE_PATH
+        {
+          hardfork: DEFAULT_HARDFORK,
+          chainId: DEFAULT_CHAIN_ID,
+          networkId: DEFAULT_NETWORK_ID,
+          blockGasLimit: 13000000,
+          minGasPrice: 0n,
+          throwOnTransactionFailures: true,
+          throwOnCallFailures: true,
+          automine: false,
+          intervalMining: 0,
+          mempoolOrder: "priority",
+          chains: defaultHardhatNetworkParams.chains,
+          genesisAccounts: DEFAULT_ACCOUNTS,
+          allowUnlimitedContractSize: DEFAULT_ALLOW_UNLIMITED_CONTRACT_SIZE,
+          forkConfig,
+          forkCachePath: FORK_TESTS_CACHE_PATH,
+          allowBlocksWithSameTimestamp: false,
+        },
+        logger
       );
 
       provider = new BackwardsCompatibilityProviderAdapter(
@@ -355,7 +350,7 @@ describe("Debug module", function () {
       );
     });
 
-    // see HH-1031
+    // see https://github.com/NomicFoundation/hardhat/issues/3519
     it.skip("Should return the right values for a successful tx", async function () {
       const trace: RpcDebugTraceOutput = await provider.send(
         "debug_traceTransaction",

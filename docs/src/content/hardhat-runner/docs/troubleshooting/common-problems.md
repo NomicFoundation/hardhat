@@ -12,4 +12,10 @@ If you are experiencing this problem, you can use Hardhat's `--max-memory` argum
 npx hardhat --max-memory 4096 compile
 ```
 
-If you find yourself using this all the time, you can set it with an environment variable in your `.bashrc`: `export HARDHAT_MAX_MEMORY=4096`.
+If you find yourself using this all the time, you can set it with an environment variable in your `.bashrc` (if using bash) or `.zshrc` (if using zsh): `export HARDHAT_MAX_MEMORY=4096`.
+
+## Using Hardhat with a proxy server
+
+Hardhat supports the `http_proxy` environment variable. When this variable is set, Hardhat will send its requests through the given proxy for things like JSON-RPC requests, mainnet forking and downloading compilers.
+
+There's also support for the `no_proxy` variable, which accepts a comma separated list of hosts or `"*"`. Any host included in this list will not be proxied. Note that requests to `"localhost"` or `"127.0.0.1"` are never proxied.

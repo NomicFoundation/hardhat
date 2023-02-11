@@ -164,7 +164,7 @@ describe("Ethers plugin", function () {
         /**
          * this test has been skipped pending the removal of ganache from this
          * test suite, which is being tracked at
-         * https://linear.app/nomic-foundation/issue/HH-722/remove-ganache-from-our-test-suite
+         * https://github.com/NomicFoundation/hardhat/issues/3447
          */
         it.skip("should sign a message", async function () {
           const [sig] = await this.env.ethers.getSigners();
@@ -406,11 +406,11 @@ describe("Ethers plugin", function () {
                 },
               });
             } catch (reason: any) {
-              assert.instanceOf(
-                reason,
-                NomicLabsHardhatPluginError,
-                "getContractFactory should fail with a hardhat plugin error"
-              );
+              if (!(reason instanceof NomicLabsHardhatPluginError)) {
+                assert.fail(
+                  "getContractFactory should fail with a hardhat plugin error"
+                );
+              }
               assert.isTrue(
                 reason.message.includes("is ambiguous for the contract"),
                 "getContractFactory should report the ambiguous name resolution as the cause"

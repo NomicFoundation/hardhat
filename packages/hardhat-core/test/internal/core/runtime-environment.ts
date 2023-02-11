@@ -105,7 +105,7 @@ describe("Environment", () => {
         { a: 1 },
         types.json
       )
-      .setAction(async () => 42);
+      .setAction(async (_args: any[]) => _args);
 
     dsl
       .task("taskWithMultipleTypesParams", "a task with many types params")
@@ -130,7 +130,7 @@ describe("Environment", () => {
         [],
         types.string
       )
-      .setAction(async () => 42);
+      .setAction(async (_args: any[]) => _args);
 
     tasks = ctx.tasksDSL.getTaskDefinitions();
 
@@ -145,6 +145,8 @@ describe("Environment", () => {
       assert.deepEqual(env.config, config);
       assert.isDefined(env.tasks);
       assert.isDefined(env.network);
+      assert.isDefined(env.version);
+      assert.isString(env.version);
     });
 
     it("should run a task correctly", async () => {
@@ -252,7 +254,7 @@ describe("Environment", () => {
               error,
               undefined,
               `Should not throw error task ${taskNameToRun} with args ${argsString}. Error message: ${
-                error.message || error
+                error.message ?? error
               }`
             );
           }
@@ -362,6 +364,95 @@ describe("Environment", () => {
 
       assert.equal(env.network.name, "default");
       assert.equal(env.network.config, config.networks.default);
+    });
+
+    it("should override subtask args through parent", async () => {
+      dsl
+        .task("parentTask", "a task that will call another task")
+        .setAction(async (_, hre) => {
+          return hre.run("taskWithMultipleTypesParams", {
+            optIntParam: 123,
+          });
+        });
+
+      // default run
+      const result1 = await env.run("parentTask");
+      assert.equal(result1.optIntParam, 123);
+
+      // subtask args should get overriden
+      const result2 = await env.run("parentTask", undefined, {
+        taskWithMultipleTypesParams: {
+          optIntParam: 456,
+        },
+      });
+      assert.equal(result2.optIntParam, 456);
+    });
+
+    it("should prioritize the first subtask arg", async () => {
+      dsl.task("a", "a", async (_, hre) => {
+        const a = await hre.run("b", undefined, { d: { p: "a" } });
+        const b = await hre.run("b", undefined);
+
+        return [a, b];
+      });
+
+      dsl.subtask("b", "b", (_, hre) => {
+        return hre.run("c", undefined, { d: { p: "b" } });
+      });
+
+      dsl.subtask("c", "c", (_, hre) => {
+        return hre.run("d", { p: "c" });
+      });
+
+      dsl
+        .subtask("d")
+        .addParam("p")
+        .setAction(({ p }) => {
+          return p;
+        });
+
+      const resultA = await env.run("a");
+      assert.deepEqual(resultA, ["a", "b"]);
+    });
+
+    it("should override subtask args even if one of the calls passes undefined", async () => {
+      dsl.task("a", "a", async (_, hre) => {
+        return hre.run("b", undefined, { d: { p: "a" } });
+      });
+
+      dsl.subtask("b", "b", (_, hre) => {
+        return hre.run("c", undefined, undefined);
+      });
+
+      dsl.subtask("c", "c", (_, hre) => {
+        return hre.run("d", { p: "c" });
+      });
+
+      dsl
+        .subtask("d")
+        .addParam("p")
+        .setAction(({ p }) => {
+          return p;
+        });
+
+      const resultA = await env.run("a");
+      assert.equal(resultA, "a");
+    });
+
+    it("Should resolve default params", async () => {
+      dsl.task("a", "a", async (_, hre) => {
+        return hre.run("b", undefined, {});
+      });
+
+      dsl
+        .subtask("b")
+        .addOptionalParam("p", "p", 123, types.int)
+        .setAction(async ({ p }) => {
+          return p;
+        });
+
+      const result = await env.run("a");
+      assert.equal(result, 123);
     });
   });
 

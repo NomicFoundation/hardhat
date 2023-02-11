@@ -160,7 +160,7 @@ function getFlamegraphFileContent(flamegraph: Flamegraph): string {
 
     <!-- D3.js -->
     <script src="https://d3js.org/d3.v4.min.js" charset="utf-8"></script>
-    
+
     <!-- d3-tip -->
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/d3-tip/0.9.1/d3-tip.min.js"></script>
 
@@ -182,27 +182,27 @@ function getFlamegraphFileContent(flamegraph: Flamegraph): string {
 
     function label(d) {
       if (d.data.parallel) {
-        return "(multiple parallel runs) task: " + d.data.name + ", max time: " + readableTime(d.data.value);  
+        return "(multiple parallel runs) task: " + d.data.name + ", max time: " + readableTime(d.data.value);
       }
-        
+
       return "task: " + d.data.name + ", time: " + readableTime(d.data.value);
     }
-    
+
     function readableTime(t) {
       const NANOSECONDS_TO_MILLISECONDS = 1_000_000;
       const NANOSECONDS_TO_SECONDS = 1_000_000_000;
-      
+
       if (t < NANOSECONDS_TO_MILLISECONDS) {
         return t + "ns";
       }
-      
+
       if (t < NANOSECONDS_TO_SECONDS) {
           return (t / NANOSECONDS_TO_MILLISECONDS).toFixed(4) + "ms";
       }
-      
+
       return (t / NANOSECONDS_TO_SECONDS).toFixed(4) + "s";
     }
-    
+
     const tip = d3.tip()
       .direction("s")
       .offset([8, 0])
@@ -215,7 +215,7 @@ function getFlamegraphFileContent(flamegraph: Flamegraph): string {
     flameGraph.setDetailsElement(details);
 
     flameGraph.label(label);
-    
+
     flameGraph.setColorMapper(function(d, originalColor) {
       if (d.highlight) {
         return '#E600E6';
@@ -227,7 +227,7 @@ function getFlamegraphFileContent(flamegraph: Flamegraph): string {
 
       return "#EB5414"
     });
-    
+
     d3.select("#chart")
           .datum(${data})
           .call(flameGraph);

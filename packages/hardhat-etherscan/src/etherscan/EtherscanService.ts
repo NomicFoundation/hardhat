@@ -2,6 +2,7 @@ import { NomicLabsHardhatPluginError } from "hardhat/plugins";
 import { Dispatcher } from "undici";
 
 import { pluginName } from "../constants";
+import { sendGetRequest, sendPostRequest } from "../undici";
 
 import {
   EtherscanCheckStatusRequest,
@@ -19,18 +20,11 @@ export async function verifyContract(
   url: string,
   req: EtherscanVerifyRequest
 ): Promise<EtherscanResponse> {
-  const { request } = await import("undici");
   const parameters = new URLSearchParams({ ...req });
-  const method: Dispatcher.HttpMethod = "POST";
-  const requestDetails = {
-    method,
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    body: parameters.toString(),
-  };
 
   let response: Dispatcher.ResponseData;
   try {
-    response = await request(url, requestDetails);
+    response = await sendPostRequest(new URL(url), parameters.toString());
   } catch (error: any) {
     throw new NomicLabsHardhatPluginError(
       pluginName,
@@ -84,10 +78,9 @@ export async function getVerificationStatus(
   const urlWithQuery = new URL(url);
   urlWithQuery.search = parameters.toString();
 
-  const { request } = await import("undici");
   let response;
   try {
-    response = await request(urlWithQuery, { method: "GET" });
+    response = await sendGetRequest(urlWithQuery);
 
     if (!(response.statusCode >= 200 && response.statusCode <= 299)) {
       // This could be always interpreted as JSON if there were any such guarantee in the Etherscan API.

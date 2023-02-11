@@ -256,7 +256,7 @@ describe("Token contract", function () {
       ).to.changeTokenBalances(hardhatToken, [addr1, addr2], [-50, 50]);
     });
 
-    it("should emit Transfer events", async function () {
+    it("Should emit Transfer events", async function () {
       const { hardhatToken, owner, addr1, addr2 } = await loadFixture(
         deployTokenFixture
       );

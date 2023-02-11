@@ -20,14 +20,27 @@ import { getUserConfigPath } from "../project-structure";
 
 import { SUPPORTED_SOLIDITY_VERSION_RANGE } from "../../hardhat-network/stack-traces/constants";
 import { resolveConfig } from "./config-resolution";
-import { validateConfig } from "./config-validation";
+import { validateConfig, validateResolvedConfig } from "./config-validation";
 import { DEFAULT_SOLC_VERSION } from "./default-config";
 
 const log = debug("hardhat:core:config");
 
 function importCsjOrEsModule(filePath: string): any {
-  const imported = require(filePath);
-  return imported.default !== undefined ? imported.default : imported;
+  try {
+    const imported = require(filePath);
+    return imported.default !== undefined ? imported.default : imported;
+  } catch (e: any) {
+    if (e.code === "ERR_REQUIRE_ESM") {
+      throw new HardhatError(
+        ERRORS.GENERAL.ESM_PROJECT_WITHOUT_CJS_CONFIG,
+        {},
+        e
+      );
+    }
+
+    // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
+    throw e;
+  }
 }
 
 export function resolveConfigPath(configPath: string | undefined) {
@@ -109,6 +122,8 @@ export function loadConfigAndTasks(
     extender(resolved, frozenUserConfig);
   }
 
+  validateResolvedConfig(resolved);
+
   if (showSolidityConfigWarnings) {
     checkUnsupportedSolidityConfig(resolved);
     checkUnsupportedRemappings(resolved);
@@ -166,6 +181,8 @@ export function analyzeModuleNotFoundError(error: any, configPath: string) {
   const throwingFile = stackTrace
     .filter((x) => x.file !== null)
     .map((x) => x.file!)
+    // ignore frames related to source map support
+    .filter((x) => !x.includes(path.join("@cspotcode", "source-map-support")))
     .find((x) => path.isAbsolute(x));
 
   if (throwingFile === null || throwingFile === undefined) {

@@ -51,7 +51,7 @@ Then, you just need to create a file named `.mocharc.json` in your project's roo
 
 :::warning
 
-Running test directly from Visual Studio Code won't compile your contracts automatically. Make sure compile them manually.
+Running test directly from Visual Studio Code won't compile your contracts automatically. Make sure to compile them manually.
 
 :::
 

@@ -85,4 +85,24 @@ describe("Flatten task", () => {
       assert.isFalse(flattenedFiles.includes("} from"));
     });
   });
+
+  describe("project where two contracts import the same dependency", function () {
+    useFixtureProject("consistent-build-info-names");
+    useEnvironment();
+
+    it("should always produce the same flattened file", async function () {
+      const runs = 100;
+      const flattenedFiles: string[] = [];
+
+      for (let i = 0; i < runs; i++) {
+        const flattened = await this.env.run(TASK_FLATTEN_GET_FLATTENED_SOURCE);
+
+        flattenedFiles.push(flattened);
+      }
+
+      for (let i = 0; i + 1 < runs; i++) {
+        assert.equal(flattenedFiles[i], flattenedFiles[i + 1]);
+      }
+    });
+  });
 });

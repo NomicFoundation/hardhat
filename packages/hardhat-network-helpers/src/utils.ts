@@ -1,3 +1,4 @@
+import type EthereumJSUtil from "ethereumjs-util";
 import type { EIP1193Provider } from "hardhat/types";
 
 import type { NumberLike } from "./types";
@@ -41,6 +42,10 @@ export async function getHardhatProvider(): Promise<EIP1193Provider> {
   return hre.network.provider;
 }
 
+export function toNumber(x: NumberLike): number {
+  return Number(toRpcQuantity(x));
+}
+
 export function toBigInt(x: NumberLike): bigint {
   return BigInt(toRpcQuantity(x));
 }
@@ -73,7 +78,8 @@ export function toRpcQuantity(x: NumberLike): string {
 }
 
 export function assertValidAddress(address: string): void {
-  const { isValidChecksumAddress, isValidAddress } = require("ethereumjs-util");
+  const { isValidChecksumAddress, isValidAddress } =
+    require("ethereumjs-util") as typeof EthereumJSUtil;
 
   if (!isValidAddress(address)) {
     throw new HardhatNetworkHelpersError(`${address} is not a valid address`);
@@ -104,10 +110,10 @@ export function assertTxHash(hexString: string): void {
   }
 }
 
-export function assertPositiveNumber(n: bigint): void {
-  if (n <= BigInt(0)) {
+export function assertNonNegativeNumber(n: bigint): void {
+  if (n < BigInt(0)) {
     throw new HardhatNetworkHelpersError(
-      `Invalid input: expected a positive number but ${n} was given.`
+      `Invalid input: expected a non-negative number but ${n} was given.`
     );
   }
 }

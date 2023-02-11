@@ -14,13 +14,27 @@ import { VyperPluginError, getLogger } from "./util";
 
 const log = getLogger("downloader");
 
+const DOWNLOAD_TIMEOUT_MS = 30_000;
+
 async function downloadFile(
   url: string,
   destinationFile: string
 ): Promise<void> {
   const { download } = await import("hardhat/internal/util/download");
   log(`Downloading from ${url} to ${destinationFile}`);
-  await download(url, destinationFile);
+
+  const headers: { [name: string]: string } = {};
+  // If we are running in GitHub Actions we use the GitHub token as auth to
+  // avoid hitting a rate limit.
+  // Inspired by https://github.com/vyperlang/vvm/blob/5c37a2f4bbebc8c5f7f1dbb8ff89a4df1070ec44/vvm/install.py#L139
+  if (process.env.GITHUB_TOKEN !== undefined) {
+    const base64 = Buffer.from(process.env.GITHUB_TOKEN, "ascii").toString(
+      "base64"
+    );
+    headers.Authorization = `Basic ${base64}`;
+  }
+
+  await download(url, destinationFile, DOWNLOAD_TIMEOUT_MS, headers);
 }
 
 type DownloadFunction = (url: string, destinationFile: string) => Promise<void>;
@@ -133,10 +147,10 @@ export class CompilerDownloader {
   private async _downloadCompilersList(): Promise<void> {
     try {
       await this._download(GITHUB_RELEASES_URL, this.compilersListPath);
-    } catch {
+    } catch (e: unknown) {
       throw new VyperPluginError(
         "Failed to download compiler list",
-        undefined,
+        e as Error,
         true
       );
     }

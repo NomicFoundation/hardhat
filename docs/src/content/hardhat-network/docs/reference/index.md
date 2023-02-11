@@ -84,6 +84,10 @@ An optional string setting the date of the blockchain. Valid values are [Javascr
 
 An optional boolean that disables the contract size limit imposed by the [EIP 170](https://eips.ethereum.org/EIPS/eip-170). Default value: `false`
 
+#### `allowBlocksWithSameTimestamp`
+
+A boolean to allow mining blocks that have the same timestamp. This is not allowed by default because Ethereum's consensus rules specify that each block should have a different timestamp. Default value: `false`
+
 #### `forking`
 
 An object that describes the [forking](./guides/forking-other-networks.md) configuration that can have the following fields:
@@ -404,6 +408,20 @@ Call [`hardhat_stopImpersonatingAccount`](#hardhat-stopimpersonatingaccount) to 
 
 Returns `true` if automatic mining is enabled, and `false` otherwise. See [Mining Modes](../explanation/mining-modes.md) to learn more.
 
+#### `hardhat_metadata`
+
+Returns an object with metadata about the instance of the Hardhat Network. This object contains:
+
+- `clientVersion`: A string identifying the version of Hardhat, for debugging purposes, not meant to be displayed to users.
+- `chainId`: The chain's id. Used to sign transactions.
+- `instanceId`: A 0x-prefixed hex-encoded 32 bytes id which uniquely identifies an instance/run of Hardhat Network. Running Hardhat Network more than once (even with the same version and parameters) will always result in different `instanceId`s. Running `hardhat_reset` will change the `instanceId` of an existing Hardhat Network.
+- `latestBlockNumber`: The latest block's number in Hardhat Network.
+- `latestBlockHash`: The latest block's hash in Hardhat Network.
+- `forkedNetwork`: An object with information about the forked network. This field is only present when Hardhat Network is forking another chain. Its fields are:
+  - `chainId`: The chainId of the network that is being forked
+  - `forkBlockNumber`: The number of the block that the network forked from.
+  - `forkBlockHash`: The hash of the block that the network forked from.
+
 #### `hardhat_mine`
 
 Sometimes you may want to advance the latest block number of the Hardhat Network by a large number of blocks. One way to do this would be to call the `evm_mine` RPC method multiple times, but this is too slow if you want to mine thousands of blocks. The `hardhat_mine` method can mine any number of blocks at once, in constant time. (It exhibits the same performance no matter how many blocks are mined.)
@@ -424,7 +442,32 @@ Also note that blocks created via `hardhat_mine` may not trigger new-block event
 
 #### `hardhat_reset`
 
-See the [Mainnet Forking guide](./guides/forking-other-networks.md#resetting-the-fork)
+You can manipulate forking during runtime to reset back to a fresh forked state, fork from another block number or disable forking by calling `hardhat_reset`:
+
+```ts
+await network.provider.request({
+  method: "hardhat_reset",
+  params: [
+    {
+      forking: {
+        jsonRpcUrl: "https://eth-mainnet.alchemyapi.io/v2/<key>",
+        blockNumber: 14390000,
+      },
+    },
+  ],
+});
+```
+
+You can disable forking by passing empty params:
+
+```ts
+await network.provider.request({
+  method: "hardhat_reset",
+  params: [],
+});
+```
+
+This will reset the Hardhat Network, starting a new instance in the state described [here](#initial-state).
 
 #### `hardhat_setBalance`
 

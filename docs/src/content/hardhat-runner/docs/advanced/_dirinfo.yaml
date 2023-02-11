@@ -3,9 +3,12 @@ section-title: Advanced
 order:
   - /hardhat-runtime-environment
   - /artifacts
-  - /multiple-solidity-versions 
+  - /multiple-solidity-versions
   - /create-task
   - /scripts
   - /building-plugins
+  - /hardhat-and-foundry
+  - /flattening
   - href: /vscode-tests
     title: Running tests in VS Code
+  - /using-esm
