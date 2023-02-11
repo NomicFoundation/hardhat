@@ -1,6 +1,6 @@
 # Migrating from Waffle
 
-This page explains how to migrate from Waffle to Hardhat Chai Matchers, and the advantages of doing it. Migrating should only take a few minutes.
+If you want to replace Waffle with Hardhat Chai Matchers, we recommend you [migrate to the Hardhat Toolbox](/hardhat-runner/docs/guides/migrating-from-hardhat-waffle). If for some reason you want to migrate without using the Toolbox, read on.
 
 ## How to migrate
 
@@ -90,38 +90,8 @@ The `@nomicfoundation/hardhat-chai-matchers` plugin is meant to be a drop-in rep
 
    ::::
 
-4. If you were not importing the `@nomiclabs/hardhat-ethers` plugin explicitly (because the Hardhat Waffle plugin already imported it), then add it to your config:
-
-   ::::tabsgroup{options=TypeScript,JavaScript}
-
-   :::tab{value=TypeScript}
-
-   ```ts
-   import "@nomiclabs/hardhat-ethers";
-   ```
-
-   :::
-
-   :::tab{value=JavaScript}
-
-   ```js
-   require("@nomiclabs/hardhat-ethers");
-   ```
-
-   :::
-
-   ::::
-
 :::tip
 
-Looking for a replacement of Waffle's `loadFixture`? You can find our version of it in [Hardhat Network Helpers](/hardhat-network-helpers/docs/reference#fixtures).
+Looking for a replacement for Waffle's `loadFixture`? You can find our version of it in [Hardhat Network Helpers](/hardhat-network-helpers/docs/reference#fixtures).
 
 :::
-
-## Why migrate?
-
-The Hardhat Chai Matchers are compatible with Waffle's API and offer several advantages:
-
-- **More features**: the Hardhat Chai Matchers include new matchers, like [`.revertedWithCustomError`](./reference#.revertedwithcustomerror) and [`.revertedWithPanic`](/chai-matchers/reference.md#.revertedwithpanic), which let you perform better assertions of a transaction's revert reason.
-- **Support for native BigInts**: Besides numbers and ethers’s BigNumbers, you can also use JavaScript's native BigInts in your assertions, which means being able to do things like `expect(await token.totalSupply()).to.equal(10n**18n)` instead of `expect(await token.totalSupply()).to.equal(ethers.BigNumber.from("1000000000000000000"))`.
-- **More reliable**: Several problems and minor bugs in Waffle's matchers are fixed in the Hardhat Chai Matchers.

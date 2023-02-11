@@ -1,6 +1,7 @@
 import { NomicLabsHardhatPluginError } from "hardhat/plugins";
 
 import { pluginName } from "../constants";
+import { sendGetRequest } from "../undici";
 
 const COMPILERS_LIST_URL = "https://solc-bin.ethereum.org/bin/list.json";
 
@@ -29,9 +30,8 @@ export async function getLongVersion(shortVersion: string): Promise<string> {
 
 export async function getVersions(): Promise<CompilersList> {
   try {
-    const { request } = await import("undici");
     // It would be better to query an etherscan API to get this list but there's no such API yet.
-    const response = await request(COMPILERS_LIST_URL, { method: "GET" });
+    const response = await sendGetRequest(new URL(COMPILERS_LIST_URL));
 
     if (!(response.statusCode >= 200 && response.statusCode <= 299)) {
       const responseText = await response.body.text();

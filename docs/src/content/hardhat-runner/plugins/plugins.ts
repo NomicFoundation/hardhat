@@ -695,6 +695,13 @@ const communityPlugins: IPlugin[] = [
     tags: ["Flatten", "Smart contract", "Solidity", "Deployment"],
   },
   {
+    name: "@chainlink/hardhat-chainlink",
+    author: "Chainlink Labs",
+    authorUrl: "https://github.com/smartcontractkit/hardhat-chainlink",
+    description: "Integrates Chainlink into Hardhat projects.",
+    tags: ["chainlink", "hardhat"],
+  },
+  {
     name: "@dlsl/hardhat-markup",
     author: "Distributed Lab",
     authorUrl: "https://distributedlab.com/",
