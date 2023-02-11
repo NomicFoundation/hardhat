@@ -29,6 +29,19 @@ export class CachingSource extends MutableSource implements ArtifactsSource {
     super(artifactsPath);
   }
 
+  public artifactExists(
+    contractNameOrFullyQualifiedName: string
+  ): Promise<boolean> {
+    // Cached internally because `ReadOnlyByPath#artifactExists` calls
+    // `this._readArtifactByPath`, which invokes `CachingSource#_readArtifactByPath`.
+    return super.artifactExists(contractNameOrFullyQualifiedName);
+  }
+  public getAllFullyQualifiedNames(): Promise<string[]> {
+    // Cached internally because `ReadOnlySource#getAllFullyQualifiedNames` calls
+    // `this.getArtifactPaths`, which invokes `CachingSource#getArtifactPaths`.
+    return super.getAllFullyQualifiedNames();
+  }
+
   public async readArtifact(name: string): Promise<Artifact | undefined> {
     const cached = this._cache?.artifactNameToArtifact.get(name);
     if (cached !== undefined) {
