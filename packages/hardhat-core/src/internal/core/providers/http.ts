@@ -42,7 +42,7 @@ export class HttpProvider extends EventEmitter implements EIP1193Provider {
     private readonly _url: string,
     private readonly _networkName: string,
     private readonly _extraHeaders: { [name: string]: string } = {},
-    private readonly _timeout = 20000,
+    timeout = 20000,
     client: Undici.Dispatcher | undefined = undefined
   ) {
     super();
@@ -59,10 +59,24 @@ export class HttpProvider extends EventEmitter implements EIP1193Provider {
             "utf-8"
           ).toString("base64")}`;
     try {
-      this._dispatcher = client ?? new Pool(url.origin);
+      if (process.env.DO_NOT_SET_THIS_ENV_VAR____IS_HARDHAT_CI !== undefined) {
+        timeout = 0;
+      }
+
+      const options: Undici.Agent.Options = {
+        connections: 128, // We sate a sane limit of concurrent connections
+        connect: { timeout },
+        bodyTimeout: timeout,
+        headersTimeout: timeout,
+      };
 
       if (process.env.http_proxy !== undefined && shouldUseProxy(url.origin)) {
-        this._dispatcher = new ProxyAgent(process.env.http_proxy);
+        this._dispatcher = new ProxyAgent({
+          uri: process.env.http_proxy,
+          ...options,
+        });
+      } else {
+        this._dispatcher = client ?? new Pool(url.origin, options);
       }
     } catch (e) {
       if (e instanceof TypeError && e.message === "Invalid URL") {
@@ -171,22 +185,23 @@ export class HttpProvider extends EventEmitter implements EIP1193Provider {
     const { request: sendRequest } = await import("undici");
     const url = new URL(this._url);
 
+    const headers: { [name: string]: string } = {
+      "Content-Type": "application/json",
+      "User-Agent": `hardhat ${hardhatVersion}`,
+      ...this._extraHeaders,
+    };
+
+    if (this._authHeader !== undefined) {
+      headers.Authorization = this._authHeader;
+    }
+
     try {
       const response = await sendRequest(url, {
         dispatcher: this._dispatcher,
         method: "POST",
         body: JSON.stringify(request),
         maxRedirections: 10,
-        headersTimeout:
-          process.env.DO_NOT_SET_THIS_ENV_VAR____IS_HARDHAT_CI !== undefined
-            ? 0
-            : this._timeout,
-        headers: {
-          "Content-Type": "application/json",
-          "User-Agent": `hardhat ${hardhatVersion}`,
-          Authorization: this._authHeader,
-          ...this._extraHeaders,
-        },
+        headers,
       });
 
       if (this._isRateLimitResponse(response)) {
@@ -219,7 +234,10 @@ export class HttpProvider extends EventEmitter implements EIP1193Provider {
         );
       }
 
-      if (error.type === "request-timeout") {
+      if (
+        typeof error.code === "string" &&
+        error.code.endsWith("_TIMEOUT") === true
+      ) {
         throw new HardhatError(ERRORS.NETWORK.NETWORK_TIMEOUT, {}, error);
       }
 
@@ -270,7 +288,7 @@ export class HttpProvider extends EventEmitter implements EIP1193Provider {
   ): number | undefined {
     const header = response.headers["retry-after"];
 
-    if (header === undefined || header === null) {
+    if (header === undefined || header === null || Array.isArray(header)) {
       return undefined;
     }
 
