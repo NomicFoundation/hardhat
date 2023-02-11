@@ -69,7 +69,10 @@ export class RethnetAdapter implements VMAdapter {
 
     let state: RethnetStateManager;
     if (isForkedNodeConfig(config)) {
-      state = RethnetStateManager.withFork(config.forkConfig);
+      state = RethnetStateManager.withFork(
+        config.forkConfig,
+        config.genesisAccounts
+      );
     } else {
       state = RethnetStateManager.withGenesisAccounts(config.genesisAccounts);
     }

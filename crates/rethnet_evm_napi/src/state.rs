@@ -49,11 +49,9 @@ impl StateManager {
         Self::with_accounts(HashMap::default())
     }
 
-    /// Constructs a [`StateManager`] with the provided accounts present in the genesis state.
-    #[napi(factory)]
-    pub fn with_genesis_accounts(accounts: Vec<GenesisAccount>) -> napi::Result<Self> {
+    fn map_accounts(accounts: Vec<GenesisAccount>) -> Result<HashMap<Address, AccountInfo>> {
         let context = Secp256k1::signing_only();
-        let genesis_accounts = accounts
+        accounts
             .into_iter()
             .map(|account| {
                 let address = private_key_to_address(&context, &account.private_key)
@@ -67,19 +65,30 @@ impl StateManager {
                     (address, account_info)
                 })
             })
-            .collect::<napi::Result<HashMap<Address, AccountInfo>>>()?;
+            .collect::<napi::Result<HashMap<Address, AccountInfo>>>()
+    }
+
+    /// Constructs a [`StateManager`] with the provided accounts present in the genesis state.
+    #[napi(factory)]
+    pub fn with_genesis_accounts(accounts: Vec<GenesisAccount>) -> napi::Result<Self> {
+        let genesis_accounts = Self::map_accounts(accounts)?;
 
         Self::with_accounts(genesis_accounts)
     }
 
-    fn with_accounts(mut accounts: HashMap<Address, AccountInfo>) -> napi::Result<Self> {
+    fn init_precompiles(accounts: HashMap<Address, AccountInfo>) -> HashMap<Address, AccountInfo> {
         // Mimic precompiles activation
+        let mut accounts = accounts;
         for idx in 1..=8 {
             let mut address = Address::zero();
             address.0[19] = idx;
             accounts.insert(address, AccountInfo::default());
         }
+        accounts
+    }
 
+    fn with_accounts(accounts: HashMap<Address, AccountInfo>) -> napi::Result<Self> {
+        let accounts = Self::init_precompiles(accounts);
         let mut state = LayeredState::with_layer(RethnetLayer::with_genesis_accounts(accounts));
 
         state.checkpoint().unwrap();
@@ -105,6 +114,7 @@ impl StateManager {
     #[napi(factory)]
     pub fn with_fork(
         remote_node_url: JsString,
+        accounts: Vec<GenesisAccount>,
         fork_block_number: Option<JsNumber>,
     ) -> napi::Result<Self> {
         let fork_block_number: Option<u64> = if fork_block_number.is_some() {
@@ -116,8 +126,11 @@ impl StateManager {
         } else {
             None
         };
+        let accounts = Self::map_accounts(accounts)?;
+        let accounts = Self::init_precompiles(accounts);
         Self::with_state(ForkState::new(
             remote_node_url.into_utf8()?.as_str()?,
+            accounts,
             fork_block_number,
         ))
     }

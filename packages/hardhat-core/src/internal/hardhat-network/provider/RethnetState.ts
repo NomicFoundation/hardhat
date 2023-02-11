@@ -27,9 +27,21 @@ export class RethnetStateManager {
     );
   }
 
-  public static withFork(forkConfig: ForkConfig): RethnetStateManager {
+  public static withFork(
+    forkConfig: ForkConfig,
+    genesisAccounts: GenesisAccount[]
+  ): RethnetStateManager {
     return new RethnetStateManager(
-      StateManager.withFork(forkConfig.jsonRpcUrl, forkConfig.blockNumber)
+      StateManager.withFork(
+        forkConfig.jsonRpcUrl,
+        genesisAccounts.map((account) => {
+          return {
+            privateKey: account.privateKey,
+            balance: BigInt(account.balance),
+          };
+        }),
+        forkConfig.blockNumber
+      )
       // TODO: consider changing StateManager.withFork() to also support
       // passing in (and of course using) forkConfig.httpHeaders.
     );

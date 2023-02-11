@@ -18,7 +18,7 @@ describe("State Manager", () => {
     console.log("WARNING: skipping fork tests because the ALCHEMY_URL environment variable is undefined");
   } else {
     stateManagers.push(
-      {name: "fork", getStateManager: () => StateManager.withFork(alchemyUrl, 16220843)}
+      {name: "fork", getStateManager: () => StateManager.withFork(alchemyUrl, [], 16220843)}
     );
   }
 

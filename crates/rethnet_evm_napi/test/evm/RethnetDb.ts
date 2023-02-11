@@ -35,7 +35,7 @@ describe("Rethnet", () => {
   } else {
     stateManagers.push({
         name: "fork",
-        getStateManager: () => StateManager.withFork(alchemyUrl, 16220843),
+        getStateManager: () => StateManager.withFork(alchemyUrl, [], 16220843),
     });
   }
 

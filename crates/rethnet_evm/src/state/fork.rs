@@ -23,10 +23,17 @@ pub struct ForkState {
 
 impl ForkState {
     /// instantiate a new ForkState
-    pub fn new(url: &str, fork_block_number: Option<u64>) -> Self {
+    pub fn new(
+        url: &str,
+        accounts: HashMap<Address, AccountInfo>,
+        fork_block_number: Option<u64>,
+    ) -> Self {
         let remote_db = RemoteDatabase::new(url);
 
-        let layered_db = LayeredState::<RethnetLayer>::default();
+        let mut layered_db =
+            LayeredState::with_layer(RethnetLayer::with_genesis_accounts(accounts));
+
+        crate::state::StateDebug::checkpoint(&mut layered_db).unwrap();
 
         Self {
             layered_db,
@@ -231,6 +238,7 @@ mod tests {
             .expect("failed to parse address");
         let mut fork_db = ForkState::new(
             &get_alchemy_url().expect("failed to get alchemy url"),
+            HashMap::default(),
             Some(16220843),
         );
         let account_info =
