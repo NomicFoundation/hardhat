@@ -91,11 +91,13 @@ type ArtifactsEmittedPerJob = Array<{
 }>;
 
 function isConsoleLogError(error: any): boolean {
+  const message = error.message;
+
   return (
     error.type === "TypeError" &&
-    typeof error.message === "string" &&
-    error.message.includes("log") &&
-    error.message.includes("type(library console)")
+    typeof message === "string" &&
+    message.includes("log") &&
+    message.includes("type(library console)")
   );
 }
 
