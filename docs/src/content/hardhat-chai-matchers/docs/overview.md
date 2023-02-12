@@ -49,7 +49,7 @@ A few other helpers, such as argument predicates and panic code constants, must 
 
 ### Events
 
-You can easily write tests to verify that your contract emitted a certain event. For example, `await expect(contract.call()).to.emit(contract, "Event")` would detect the event emitted by the following Solidtity code:
+You can easily write tests to verify that your contract emitted a certain event. For example, `await expect(contract.call()).to.emit(contract, "Event")` would detect the event emitted by the following Solidity code:
 
 ```solidity
 contract C {
@@ -179,7 +179,7 @@ These matchers support not just [ethers' `BigNumber`](https://docs.ethers.io/v5/
 
 ### Balance Changes
 
-Often times, a transaction you're testing will be expected to have some effect on a wallet's balance, either its balance of Ether or its balance of some ERC-20 token. Another set of matchers allows you to verify that a transaction resulted in such a balance change:
+Oftentimes, a transaction you're testing will be expected to have some effect on a wallet's balance, either its balance of Ether or its balance of some ERC-20 token. Another set of matchers allows you to verify that a transaction resulted in such a balance change:
 
 ```js
 await expect(() =>
