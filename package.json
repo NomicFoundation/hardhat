@@ -8,9 +8,6 @@
     "packages": [
       "packages/*",
       "examples/*"
-    ],
-    "nohoist": [
-      "**"
     ]
   },
   "scripts": {
@@ -24,7 +21,7 @@
     "test:examples": "wsrun --exclude-missing --serial test:examples",
     "test:build": "wsrun --exclude-missing --serial test:build",
     "watch": "tsc --build --watch packages/core packages/hardhat-plugin",
-    "fullcheck": "yarn build && yarn lint && yarn test:build && yarn test:coverage && yarn test:examples",
+    "fullcheck": "npm run build && npm run lint && npm run test:build && npm run test:coverage && npm run test:examples",
     "clean": "wsrun --exclude-missing --serial clean"
   },
   "devDependencies": {

@@ -4,8 +4,8 @@
   "version": "0.0.1",
   "scripts": {
     "test:examples": "hardhat test",
-    "lint": "yarn prettier --check && yarn eslint",
-    "lint:fix": "yarn prettier --write && yarn eslint --fix",
+    "lint": "npm run prettier -- --check && npm run eslint",
+    "lint:fix": "npm run prettier -- --write && npm run eslint -- --fix",
     "eslint": "eslint \"ignition/**/*.{js,jsx}\" \"test/**/*.{js,jsx}\"",
     "prettier": "prettier \"*.{js,md,json}\" \"ignition/*.{js,md,json}\" \"test/*.{js,md,json}\""
   },

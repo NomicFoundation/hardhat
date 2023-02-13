@@ -1,4 +1,4 @@
-const { BigNumber } = require("../../../node_modules/ethers/lib/index");
+const { BigNumber } = require("../../../../../node_modules/ethers/lib/index");
 
 require("../../../src/index");
 

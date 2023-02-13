@@ -4,7 +4,7 @@
     {
       "label": "Run watch",
       "type": "shell",
-      "command": "yarn watch",
+      "command": "npm run watch",
       "group": "none",
       "presentation": {
         "reveal": "never",

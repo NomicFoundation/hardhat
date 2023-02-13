@@ -8,7 +8,7 @@ If you find a bug or want to propose a new feature, please open an issue. Pull r
 
 ## Project Structure
 
-This repository is a monorepo handled with `Yarn` workspaces.
+This repository is a monorepo handled with `npm` workspaces.
 
 There are two packages:
 
@@ -21,12 +21,12 @@ An overview of the [design of the deploy process is explained here](./docs/desig
 
 ## Setup
 
-Ignition is a `typescript` project managed by `yarn`.
+Ignition is a `typescript` project managed by `npm`.
 
-The install the dependencies, run `yarn` in the project root:
+To install the dependencies, run `npm` in the project root:
 
 ```shell
-yarn
+npm install
 ```
 
 ## Building
@@ -34,13 +34,13 @@ yarn
 The packages are written in `typescript` and so require a build step, to build:
 
 ```shell
-yarn build
+npm run build
 ```
 
 The **Hardhat** plugin depends on **core**, while developing you may want to run a continuous build with `watch`:
 
 ```shell
-yarn watch
+npm run watch
 ```
 
 ## Testing
@@ -48,7 +48,7 @@ yarn watch
 The test suite is written in `mocha`, to run:
 
 ```shell
-yarn test
+npm run test
 ```
 
 ## Linting
@@ -56,7 +56,7 @@ yarn test
 Formatting is enforced with `prettier` and code rules with `eslint`, to run both:
 
 ```shell
-yarn lint
+npm run lint
 ```
 
 ## Clean
@@ -64,7 +64,7 @@ yarn lint
 If typescript or testing gets into a weird state, `clean` will remove ephemeral folders (i.e. `./dist`, `./coverage` etc) and clear the typescript build info cache, allowing you to start from clean:
 
 ```shell
-yarn clean
+npm run clean
 ```
 
 ## Publish

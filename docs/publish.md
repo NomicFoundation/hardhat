@@ -3,7 +3,7 @@
 To publish ignition:
 
 1. git fetch, Checkout out `main`, then ensure your branch is up to date `git pull --ff-only`
-2. Run a full check, stopping on failure: `yarn fullcheck`
+2. Run a full check, stopping on failure: `npm run fullcheck`
 3. Create a release branch `git checkout -b release/yyyy-mm-dd`
 4. Under `./packages/core`, update the package version based on semver if appropriate.
 5. Under `./packages/hardhat-plugin`, update the package version based on semver if appropriate.
