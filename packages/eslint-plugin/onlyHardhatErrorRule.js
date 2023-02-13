@@ -63,7 +63,8 @@ function getExpressionClassNameAndBaseClass(expression, tc) {
 
   const className = exceptionType.symbol.getName();
   const baseClass =
-    exceptionType.resolvedBaseConstructorType?.symbol?.getName();
+    exceptionType.resolvedBaseConstructorType?.symbol?.getName() ??
+    "[UNKNOWN BASE CLASS]";
 
   return [className, baseClass];
 }
