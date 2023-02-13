@@ -31,10 +31,6 @@ pub enum ForkDatabaseError {
     #[error(transparent)]
     LayeredDatabase(#[from] <LayeredDatabase<RethnetLayer> as revm::Database>::Error),
 
-    /// Account not found
-    #[error("Could not find account {0}")]
-    AccountNotFound(Address),
-
     /// Some other error from an underlying dependency
     #[error(transparent)]
     OtherError(#[from] std::io::Error),
@@ -85,7 +81,7 @@ impl revm::Database for ForkDatabase {
 
             Ok(Some(remote))
         } else {
-            Err(ForkDatabaseError::AccountNotFound(address))
+            Ok(None)
         }
     }
 
