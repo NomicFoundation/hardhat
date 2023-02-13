@@ -99,26 +99,24 @@ impl revm::Database for ForkDatabase {
     }
 
     fn storage(&mut self, address: Address, index: U256) -> Result<U256, Self::Error> {
-        if let Some(cached) = self.storage_cache.get(&(address, index)) {
+        let layered = self
+            .layered_db
+            .storage(address, index)
+            .map_err(ForkDatabaseError::LayeredDatabase)?;
+
+        if layered != U256::from(0) {
+            Ok(layered)
+        } else if let Some(cached) = self.storage_cache.get(&(address, index)) {
             Ok(*cached)
         } else {
-            let layered = self
-                .layered_db
+            let remote = self
+                .remote_db
                 .storage(address, index)
-                .map_err(ForkDatabaseError::LayeredDatabase)?;
+                .map_err(ForkDatabaseError::RemoteDatabase)?;
 
-            if layered != U256::from(0) {
-                Ok(layered)
-            } else {
-                let remote = self
-                    .remote_db
-                    .storage(address, index)
-                    .map_err(ForkDatabaseError::RemoteDatabase)?;
+            self.storage_cache.insert((address, index), remote);
 
-                self.storage_cache.insert((address, index), remote);
-
-                Ok(remote)
-            }
+            Ok(remote)
         }
     }
 }
