@@ -247,6 +247,7 @@ mod tests {
             .expect("couldn't convert OsString into a String"))
     }
 
+    #[test_with::env(ALCHEMY_URL)]
     #[test]
     fn basic_success() {
         let dai_address = Address::from_str("0x6b175474e89094c44da98b954eedeac495271d0f")
