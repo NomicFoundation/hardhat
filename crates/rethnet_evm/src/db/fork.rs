@@ -153,6 +153,36 @@ impl crate::DatabaseDebug for ForkDatabase {
         address: Address,
         modifier: crate::debug::ModifierFn,
     ) -> Result<(), Self::Error> {
+        use revm::Database; // for basic()
+
+        if (self
+            .layered_db
+            .basic(address)
+            .map_err(ForkDatabaseError::LayeredDatabase)?)
+        .is_none()
+        {
+            let account_info = if let Some(cached) = self.account_info_cache.get(&address) {
+                Some(cached.clone())
+            } else if let Some(remote) = self
+                .remote_db
+                .basic(address)
+                .map_err(ForkDatabaseError::RemoteDatabase)?
+            {
+                self.account_info_cache.insert(address, remote.clone());
+
+                if remote.code.is_some() {
+                    self.code_by_hash_cache
+                        .insert(remote.code_hash, remote.code.clone().unwrap());
+                }
+
+                Some(remote)
+            } else {
+                None
+            };
+            if let Some(account_info) = account_info {
+                self.layered_db.insert_account(address, account_info)?
+            }
+        }
         self.layered_db
             .modify_account(address, modifier)
             .map_err(ForkDatabaseError::LayeredDatabase)
