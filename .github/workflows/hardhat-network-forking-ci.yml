@@ -2,18 +2,31 @@ name: Hardhat Network Forking Functionality CI
 
 on:
   push:
-    branches: [$default-branch]
+    branches:
+      - $default-branch
+      - "rethnet/main"
     paths:
       - "packages/hardhat-core/**"
       - "packages/hardhat-common/**"
       - "config/**"
+      - ".github/workflows/hardhat-network-forking-ci.yml"
+      - "crates/**"
+      - "Cargo.toml"
+      - "rust-toolchain"
   pull_request:
     branches:
       - "**"
     paths:
+      - ".github/workflows/hardhat-network-forking-ci.yml"
       - "packages/hardhat-core/**"
       - "packages/hardhat-common/**"
       - "config/**"
+      - "crates/**"
+      - "Cargo.toml"
+      - "rust-toolchain"
+
+env:
+  RUSTFLAGS: -Dwarnings
 
 defaults:
   run:
@@ -37,6 +50,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
+
+      - name: Install Rust (stable)
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          override: true
+          components: rustfmt
+
+      - uses: Swatinem/rust-cache@v2
+
       - uses: actions/setup-node@v2
         with:
           node-version: 14
