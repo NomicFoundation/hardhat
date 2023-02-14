@@ -58,7 +58,7 @@ impl StateManager {
             .map(|account| {
                 let address = private_key_to_address(&context, &account.private_key)
                     .map_err(|e| napi::Error::new(Status::InvalidArg, e.to_string()))?;
-                account.balance.try_cast().map(|balance| {
+                TryCast::<U256>::try_cast(account.balance).map(|balance| {
                     let account_info = AccountInfo {
                         balance,
                         ..Default::default()
@@ -148,7 +148,7 @@ impl StateManager {
         index: BigInt,
     ) -> napi::Result<BigInt> {
         let address = Address::from_slice(&address);
-        let index = BigInt::try_cast(index)?;
+        let index: U256 = BigInt::try_cast(index)?;
 
         self.state
             .account_storage_slot(address, index)
@@ -187,7 +187,7 @@ impl StateManager {
     #[napi]
     pub async fn insert_account(&self, address: Buffer, account: Account) -> napi::Result<()> {
         let address = Address::from_slice(&address);
-        let account = account.try_cast()?;
+        let account: AccountInfo = account.try_cast()?;
 
         self.state
             .insert_account(address, account)
@@ -320,8 +320,8 @@ impl StateManager {
         value: BigInt,
     ) -> napi::Result<()> {
         let address = Address::from_slice(&address);
-        let index = BigInt::try_cast(index)?;
-        let value = BigInt::try_cast(value)?;
+        let index: U256 = BigInt::try_cast(index)?;
+        let value: U256 = BigInt::try_cast(value)?;
 
         self.state
             .set_account_storage_slot(address, index, value)
