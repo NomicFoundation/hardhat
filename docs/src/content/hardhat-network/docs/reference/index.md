@@ -382,7 +382,7 @@ Remove a transaction from the mempool
 
 Hardhat Network allows you to send transactions impersonating specific account and contract addresses.
 
-To impersonate an account use the this method, passing the address to impersonate as its parameter:
+To impersonate an account use this method, passing the address to impersonate as its parameter:
 
 ```tsx
 await hre.network.provider.request({
