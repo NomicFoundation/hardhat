@@ -31,6 +31,10 @@ pub enum ForkDatabaseError {
     #[error(transparent)]
     LayeredDatabase(#[from] <LayeredDatabase<RethnetLayer> as revm::Database>::Error),
 
+    /// Code hash not found in cache of remote database
+    #[error("Cache of remote database does not contain contract with code hash: {0}.")]
+    NoSuchCodeHash(B256),
+
     /// Some other error from an underlying dependency
     #[error(transparent)]
     OtherError(#[from] std::io::Error),
@@ -86,15 +90,13 @@ impl revm::Database for ForkDatabase {
     }
 
     fn code_by_hash(&mut self, code_hash: B256) -> Result<Bytecode, Self::Error> {
-        if let Some(cached) = self.code_by_hash_cache.get(&code_hash) {
+        if let Ok(layered) = self.layered_db.code_by_hash(code_hash) {
+            Ok(layered)
+        } else if let Some(cached) = self.code_by_hash_cache.get(&code_hash) {
             Ok(cached.clone())
         } else {
-            Ok(self
-                .layered_db
-                .code_by_hash(code_hash)
-                .map_err(ForkDatabaseError::LayeredDatabase)?)
-
             // remote_db doesn't support code_by_hash, so there's no delegation to it here.
+            Err(ForkDatabaseError::NoSuchCodeHash(code_hash))
         }
     }
 
