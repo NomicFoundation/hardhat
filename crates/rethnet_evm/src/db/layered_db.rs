@@ -249,7 +249,6 @@ impl Database for LayeredDatabase<RethnetLayer> {
 
         log::debug!("account with address `{}`: {:?}", address, account);
 
-        // TODO: Move this out of LayeredDatabase when forking
         Ok(account)
     }
 
