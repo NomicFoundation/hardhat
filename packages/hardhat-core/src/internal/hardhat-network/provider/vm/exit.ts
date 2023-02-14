@@ -8,6 +8,7 @@ export enum ExitCode {
   OUT_OF_GAS,
   INTERNAL_ERROR,
   INVALID_OPCODE,
+  STACK_UNDERFLOW,
   CODESIZE_EXCEEDS_MAXIMUM,
   CREATE_COLLISION,
 }
@@ -31,6 +32,9 @@ export class Exit {
       case ExceptionalHalt.OpcodeNotFound:
       case ExceptionalHalt.InvalidFEOpcode:
         return new Exit(ExitCode.INVALID_OPCODE);
+
+      case ExceptionalHalt.StackUnderflow:
+        return new Exit(ExitCode.STACK_UNDERFLOW);
 
       case ExceptionalHalt.CreateCollision:
         return new Exit(ExitCode.CREATE_COLLISION);
@@ -67,6 +71,10 @@ export class Exit {
       return new Exit(ExitCode.INVALID_OPCODE);
     }
 
+    if (evmError.error === ERROR.STACK_UNDERFLOW) {
+      return new Exit(ExitCode.STACK_UNDERFLOW);
+    }
+
     if (evmError.error === ERROR.CODESIZE_EXCEEDS_MAXIMUM) {
       return new Exit(ExitCode.CODESIZE_EXCEEDS_MAXIMUM);
     }
@@ -98,6 +106,8 @@ export class Exit {
         return "Internal error";
       case ExitCode.INVALID_OPCODE:
         return "Invalid opcode";
+      case ExitCode.STACK_UNDERFLOW:
+        return "Stack underflow";
       case ExitCode.CODESIZE_EXCEEDS_MAXIMUM:
         return "Codesize exceeds maximum";
       case ExitCode.CREATE_COLLISION:
@@ -119,6 +129,8 @@ export class Exit {
         return new EvmError(ERROR.INTERNAL_ERROR);
       case ExitCode.INVALID_OPCODE:
         return new EvmError(ERROR.INVALID_OPCODE);
+      case ExitCode.STACK_UNDERFLOW:
+        return new EvmError(ERROR.STACK_UNDERFLOW);
       case ExitCode.CODESIZE_EXCEEDS_MAXIMUM:
         return new EvmError(ERROR.CODESIZE_EXCEEDS_MAXIMUM);
       case ExitCode.CREATE_COLLISION:
