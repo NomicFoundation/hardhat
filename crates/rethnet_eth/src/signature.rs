@@ -8,7 +8,7 @@ use std::str::FromStr;
 
 use secp256k1::{
     ecdsa::{RecoverableSignature, RecoveryId},
-    PublicKey, Secp256k1, ThirtyTwoByteHash,
+    PublicKey, Secp256k1, SecretKey, SignOnly, ThirtyTwoByteHash,
 };
 use sha3::{Digest, Keccak256};
 use thiserror::Error;
@@ -20,6 +20,23 @@ pub fn public_key_to_address(public_key: PublicKey) -> Address {
     let hash = Keccak256::digest(&public_key.serialize_uncompressed()[1..]);
     // Only take the lower 160 bits of the hash
     Address::from_slice(&hash[12..])
+}
+
+/// Converts a private to an address using the provided context.
+pub fn private_key_to_address(
+    context: &Secp256k1<SignOnly>,
+    private_key: &str,
+) -> Result<Address, secp256k1::Error> {
+    private_to_public_key(context, private_key).map(public_key_to_address)
+}
+
+fn private_to_public_key(
+    context: &Secp256k1<SignOnly>,
+    private_key: &str,
+) -> Result<PublicKey, secp256k1::Error> {
+    let private_key = private_key.strip_prefix("0x").unwrap_or(private_key);
+
+    SecretKey::from_str(private_key).map(|secret_key| secret_key.public_key(context))
 }
 
 /// An error involving a signature.

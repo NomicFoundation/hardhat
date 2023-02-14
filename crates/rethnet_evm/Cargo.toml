@@ -5,16 +5,12 @@ edition = "2021"
 
 [dependencies]
 auto_impl = { version = "1.0.1", default-features = false }
-ethers-signers = { version = "1.0.0", default-features = false }
 hashbrown = { version = "0.13", default-features = false, features = ["ahash", "serde"] }
 log = { version = "0.4.17", default-features = false }
 parking_lot = { version = "0.12.1", default-features = false }
 rethnet_eth = { version = "0.1.0-dev", path = "../rethnet_eth", features = ["serde"] }
 revm = { git = "https://github.com/wodann/revm", rev = "2ab0fd5", version = "3.0", default-features = false, features = ["dev", "serde", "std"] }
 # revm = { path = "../../../revm/crates/revm", version = "3.0", default-features = false, features = ["dev", "serde", "std"] }
-secp256k1 = { version = "0.24.1", default-features = false, features = ["alloc"] }
-sha3 = { version = "0.10.4", default-features = false }
-signature = { version = "1.6.4", default-features = false, features = ["std"] }
 thiserror = { version = "1.0.38", default-features = false }
 tokio = { version = "1.21.2", default-features = false, features = ["rt-multi-thread", "sync"] }
 

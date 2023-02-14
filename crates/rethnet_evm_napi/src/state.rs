@@ -5,7 +5,7 @@ use std::sync::{
 
 use napi::{bindgen_prelude::*, JsFunction, JsObject, NapiRaw, Status};
 use napi_derive::napi;
-use rethnet_eth::{Address, B256, U256};
+use rethnet_eth::{signature::private_key_to_address, Address, B256, U256};
 use rethnet_evm::{
     state::{AsyncState, LayeredState, RethnetLayer, StateError, SyncState},
     AccountInfo, Bytecode, HashMap, StateDebug,
@@ -14,10 +14,9 @@ use secp256k1::Secp256k1;
 
 use crate::{
     account::{Account, AccountData},
-    private_key_to_address,
+    cast::TryCast,
     sync::{await_promise, handle_error},
     threadsafe_function::{ThreadSafeCallContext, ThreadsafeFunction, ThreadsafeFunctionCallMode},
-    TryCast,
 };
 
 struct ModifyAccountCall {
@@ -57,7 +56,8 @@ impl StateManager {
         let genesis_accounts = accounts
             .into_iter()
             .map(|account| {
-                let address = private_key_to_address(&context, account.private_key)?;
+                let address = private_key_to_address(&context, &account.private_key)
+                    .map_err(|e| napi::Error::new(Status::InvalidArg, e.to_string()))?;
                 account.balance.try_cast().map(|balance| {
                     let account_info = AccountInfo {
                         balance,
