@@ -39,6 +39,7 @@ import {
 import {
   delay,
   getVerificationStatus,
+  isAlreadyVerified,
   verifyContract,
 } from "./etherscan/EtherscanService";
 import {
@@ -223,6 +224,11 @@ If your constructor has no arguments pass an empty array. E.g:
     etherscan.apiKey,
     verificationNetwork
   );
+
+  if (await isAlreadyVerified(etherscanAPIKey, address)) {
+    console.log(`The contract ${address} has already been verified`);
+    return;
+  }
 
   const deployedBytecodeHex = await retrieveContractBytecode(
     address,
@@ -471,6 +477,7 @@ async function attemptVerification(
     compilerVersion: solcFullVersion,
     constructorArguments: deployArgumentsEncoded,
   });
+
   const response = await verifyContract(etherscanAPIEndpoints.apiURL, request);
 
   console.log(
