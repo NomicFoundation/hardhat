@@ -42,10 +42,12 @@ pub enum SpecId {
     GrayGlacier = 14,
     /// Merge
     Merge = 15,
-    /// Merge + EOF
-    MergeEOF = 16,
+    /// Shanghai
+    Shanghai = 16,
+    /// Cancun
+    Cancun = 17,
     /// Latest
-    Latest = 17,
+    Latest = 18,
 }
 
 impl From<SpecId> for rethnet_evm::SpecId {
@@ -67,7 +69,8 @@ impl From<SpecId> for rethnet_evm::SpecId {
             SpecId::ArrowGlacier => rethnet_evm::SpecId::ARROW_GLACIER,
             SpecId::GrayGlacier => rethnet_evm::SpecId::GRAY_GLACIER,
             SpecId::Merge => rethnet_evm::SpecId::MERGE,
-            SpecId::MergeEOF => rethnet_evm::SpecId::MERGE_EOF,
+            SpecId::Shanghai => rethnet_evm::SpecId::SHANGHAI,
+            SpecId::Cancun => rethnet_evm::SpecId::CANCUN,
             SpecId::Latest => rethnet_evm::SpecId::LATEST,
         }
     }

@@ -91,7 +91,7 @@ pub enum ExceptionalHalt {
 impl From<rethnet_evm::Halt> for ExceptionalHalt {
     fn from(halt: rethnet_evm::Halt) -> Self {
         match halt {
-            rethnet_evm::Halt::OutOfGas => ExceptionalHalt::OutOfGas,
+            rethnet_evm::Halt::OutOfGas(..) => ExceptionalHalt::OutOfGas,
             rethnet_evm::Halt::OpcodeNotFound => ExceptionalHalt::OpcodeNotFound,
             // rethnet_evm::Halt::CallNotAllowedInsideStatic => {
             //     ExceptionalHalt::CallNotAllowedInsideStatic

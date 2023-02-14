@@ -17,7 +17,7 @@ use crate::{
     account::Account,
     sync::{await_void_promise, handle_error},
     threadsafe_function::{ThreadSafeCallContext, ThreadsafeFunction, ThreadsafeFunctionCallMode},
-    transaction::result::ExecutionResult,
+    transaction::result::{ExceptionalHalt, ExecutionResult},
 };
 
 #[napi(object)]
@@ -463,8 +463,9 @@ impl JsTracer {
                         gas_used
                     }
                     rethnet_evm::ExecutionResult::Halt { reason, gas_used } => {
+                        let halt = ExceptionalHalt::from(reason);
                         ctx.env
-                            .create_uint32(reason as u32)
+                            .create_uint32(halt as u32)
                             .and_then(|reason| result.set_named_property("reason", reason))?;
 
                         gas_used
