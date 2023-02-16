@@ -2,7 +2,10 @@ use hashbrown::HashMap;
 use revm::primitives::{Account, AccountInfo, Bytecode};
 use tokio::runtime::Builder;
 
-use rethnet_eth::{remote::RpcClient, Address, B256, U256};
+use rethnet_eth::{
+    remote::{BlockSpec, RpcClient},
+    Address, B256, U256,
+};
 
 use crate::state::{
     layered_state::{LayeredState, RethnetLayer},
@@ -30,8 +33,39 @@ impl ForkState {
     ) -> Self {
         let remote_db = RemoteDatabase::new(url);
 
+        let rpc_client = RpcClient::new(url);
+
+        let async_runtime = Builder::new_multi_thread()
+            .enable_io()
+            .enable_time()
+            .build()
+            .expect("failed to construct async runtime");
+
+        let fork_block_number = fork_block_number
+            .or(async_runtime
+                .block_on(rpc_client.get_latest_block())
+                .expect("failed to get latest block")
+                .number)
+            .unwrap();
+
+        let mut initialized_accounts = accounts.clone();
+        for (address, account_info) in accounts.iter() {
+            let remote_account_info = async_runtime
+                .block_on(
+                    rpc_client.get_account_info(address, BlockSpec::Number(fork_block_number)),
+                )
+                .expect("failed to retrieve remote account info for local account initialization");
+            initialized_accounts.insert(
+                *address,
+                AccountInfo {
+                    nonce: remote_account_info.nonce,
+                    ..account_info.clone()
+                },
+            );
+        }
+
         let mut layered_db =
-            LayeredState::with_layer(RethnetLayer::with_genesis_accounts(accounts));
+            LayeredState::with_layer(RethnetLayer::with_genesis_accounts(initialized_accounts));
 
         crate::state::StateDebug::checkpoint(&mut layered_db).unwrap();
 
@@ -41,16 +75,7 @@ impl ForkState {
             account_info_cache: HashMap::new(),
             code_by_hash_cache: HashMap::new(),
             storage_cache: HashMap::new(),
-            fork_block_number: fork_block_number
-                .or(Builder::new_multi_thread()
-                    .enable_io()
-                    .enable_time()
-                    .build()
-                    .expect("failed to construct async runtime")
-                    .block_on(RpcClient::new(url).get_latest_block())
-                    .expect("failed to get latest block")
-                    .number)
-                .unwrap(),
+            fork_block_number,
             fork_block_state_root_cache: None,
         }
     }
