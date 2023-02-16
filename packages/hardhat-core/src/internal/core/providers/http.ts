@@ -133,8 +133,8 @@ export class HttpProvider extends EventEmitter implements EIP1193Provider {
     for (const response of jsonRpcResponses) {
       if (isErrorResponse(response)) {
       const error = new ProviderError(
-        jsonRpcResponse.error.message,
-        jsonRpcResponse.error.code,
+        response.error.message,
+        response.error.code,
         stackSavingError
       );
         error.data = response.error.data;
