@@ -80,7 +80,7 @@ export class HttpProvider extends EventEmitter implements EIP1193Provider {
   public async request(args: RequestArguments): Promise<unknown> {
     // We create the error here to capture the stack traces at this point,
     // the async call that follows would probably loose of the stack trace
-    const error = new ProviderError("HttpProviderError", -1);
+    const stackSavingError = new ProviderError("HttpProviderError", -1);
 
     const jsonRpcRequest = this._getJsonRpcRequest(
       args.method,
@@ -89,8 +89,11 @@ export class HttpProvider extends EventEmitter implements EIP1193Provider {
     const jsonRpcResponse = await this._fetchJsonRpcResponse(jsonRpcRequest);
 
     if (isErrorResponse(jsonRpcResponse)) {
-      error.message = jsonRpcResponse.error.message;
-      error.code = jsonRpcResponse.error.code;
+      const error = new ProviderError(
+        jsonRpcResponse.error.message,
+        jsonRpcResponse.error.code,
+        stackSavingError
+      );
       error.data = jsonRpcResponse.error.data;
       // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
       throw error;
@@ -114,7 +117,7 @@ export class HttpProvider extends EventEmitter implements EIP1193Provider {
   ): Promise<any[]> {
     // We create the errors here to capture the stack traces at this point,
     // the async call that follows would probably loose of the stack trace
-    const error = new ProviderError("HttpProviderError", -1);
+    const stackSavingError = new ProviderError("HttpProviderError", -1);
 
     // we need this to sort the responses
     const idToIndexMap: Record<string, number> = {};
@@ -129,8 +132,11 @@ export class HttpProvider extends EventEmitter implements EIP1193Provider {
 
     for (const response of jsonRpcResponses) {
       if (isErrorResponse(response)) {
-        error.message = response.error.message;
-        error.code = response.error.code;
+      const error = new ProviderError(
+        jsonRpcResponse.error.message,
+        jsonRpcResponse.error.code,
+        stackSavingError
+      );
         error.data = response.error.data;
         // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
         throw error;
