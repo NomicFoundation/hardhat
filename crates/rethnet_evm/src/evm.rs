@@ -8,8 +8,11 @@ use revm::{
 use tokio::{runtime::Runtime, task::JoinHandle};
 
 use crate::{
-    blockchain::AsyncBlockchain, inspector::RethnetInspector, runtime::AsyncDatabase,
-    state::AsyncState, trace::Trace,
+    blockchain::AsyncBlockchain,
+    inspector::DualInspector,
+    runtime::AsyncDatabase,
+    state::AsyncState,
+    trace::{Trace, TraceCollector},
 };
 
 /// Creates an evm from the provided database, config, transaction, and block.
@@ -53,14 +56,19 @@ where
 {
     runtime.spawn(async move {
         let mut evm = build_evm(blockchain, state, cfg, transaction, block);
-        if let Some(mut inspector) = inspector {
+
+        let (result, state, tracer) = if let Some(inspector) = inspector {
+            let mut inspector = DualInspector::new(TraceCollector::default(), inspector);
+
             let ResultAndState { result, state } = evm.inspect(&mut inspector)?;
-            Ok((result, state, Trace::default()))
+            (result, state, inspector.into_parts().0)
         } else {
-            let mut inspector = RethnetInspector::default();
+            let mut inspector = TraceCollector::default();
             let ResultAndState { result, state } = evm.inspect(&mut inspector)?;
 
-            Ok((result, state, inspector.into_trace()))
-        }
+            (result, state, inspector)
+        };
+
+        Ok((result, state, tracer.into_trace()))
     })
 }
