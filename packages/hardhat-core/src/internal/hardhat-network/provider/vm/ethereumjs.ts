@@ -72,6 +72,10 @@ export class EthereumJSAdapter implements VMAdapter {
     this._vm.evm.events.on("afterMessage", this._afterMessageHandler);
   }
 
+  public getForkBlockNumber() {
+    return this._forkBlockNumber;
+  }
+
   public static async create(
     common: Common,
     blockchain: HardhatBlockchainInterface,
