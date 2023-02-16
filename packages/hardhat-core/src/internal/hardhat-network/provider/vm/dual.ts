@@ -553,18 +553,20 @@ function assertEqualRunTxResults(
   ethereumJSResult: RunTxResult,
   rethnetResult: RunTxResult
 ) {
+  const differences: string[] = [];
+
   if (ethereumJSResult.exit.kind !== rethnetResult.exit.kind) {
     console.trace(
       `Different exceptionError.error: ${ethereumJSResult.exit.kind} !== ${rethnetResult.exit.kind}`
     );
-    throw new Error("Different exceptionError.error");
+    differences.push("exceptionError.error");
   }
 
   if (ethereumJSResult.gasUsed !== rethnetResult.gasUsed) {
     console.trace(
       `Different totalGasSpent: ${ethereumJSResult.gasUsed} !== ${rethnetResult.gasUsed}`
     );
-    throw new Error("Different totalGasSpent");
+    differences.push("totalGasSpent");
   }
 
   const exitCode = ethereumJSResult.exit.kind;
@@ -582,7 +584,7 @@ function assertEqualRunTxResults(
           "hex"
         )} !== ${rethnetResult.returnValue.toString("hex")}`
       );
-      throw new Error("Different returnValue");
+      differences.push("returnValue");
     }
     // }
 
@@ -590,7 +592,7 @@ function assertEqualRunTxResults(
       console.trace(
         `Different bloom: ${ethereumJSResult.bloom} !== ${rethnetResult.bloom}`
       );
-      throw new Error("Different bloom");
+      differences.push("bloom");
     }
 
     if (
@@ -601,7 +603,7 @@ function assertEqualRunTxResults(
       console.trace(
         `Different receipt bitvector: ${ethereumJSResult.receipt.bitvector} !== ${rethnetResult.receipt.bitvector}`
       );
-      throw new Error("Different receipt bitvector");
+      differences.push("receipt.bitvector");
     }
 
     if (
@@ -611,7 +613,7 @@ function assertEqualRunTxResults(
       console.trace(
         `Different receipt cumulativeBlockGasUsed: ${ethereumJSResult.receipt.cumulativeBlockGasUsed} !== ${rethnetResult.receipt.cumulativeBlockGasUsed}`
       );
-      throw new Error("Different receipt cumulativeBlockGasUsed");
+      differences.push("receipt.cumulativeBlockGasUsed");
     }
 
     assertEqualLogs(ethereumJSResult.receipt.logs, rethnetResult.receipt.logs);
@@ -630,17 +632,23 @@ function assertEqualRunTxResults(
       console.trace(
         `Different createdAddress: ${ethereumJSResult.createdAddress?.toString()} !== ${rethnetResult.createdAddress?.toString()}`
       );
-      throw new Error("Different createdAddress");
+      differences.push("createdAddress");
     }
+  }
+
+  if (differences.length !== 0) {
+    throw new Error(`Different result fields: ${differences}`);
   }
 }
 
 function assertEqualLogs(ethereumJSLogs: Log[], rethnetLogs: Log[]) {
+  const differences: string[] = [];
+
   if (ethereumJSLogs.length !== rethnetLogs.length) {
     console.trace(
       `Different logs length: ${ethereumJSLogs.length} !== ${rethnetLogs.length}`
     );
-    throw new Error("Different logs length");
+    differences.push("length");
   }
 
   for (let logIdx = 0; logIdx < ethereumJSLogs.length; ++logIdx) {
@@ -648,7 +656,7 @@ function assertEqualLogs(ethereumJSLogs: Log[], rethnetLogs: Log[]) {
       console.trace(
         `Different log[${logIdx}] address: ${ethereumJSLogs[logIdx][0]} !== ${rethnetLogs[logIdx][0]}`
       );
-      throw new Error("Different log address");
+      differences.push("address");
     }
 
     const ethereumJSTopics = ethereumJSLogs[logIdx][1];
@@ -657,7 +665,7 @@ function assertEqualLogs(ethereumJSLogs: Log[], rethnetLogs: Log[]) {
       console.trace(
         `Different log[${logIdx}] topics length: ${ethereumJSTopics.length} !== ${rethnetTopics.length}`
       );
-      throw new Error("Different log topics length");
+      differences.push("topics length");
     }
 
     for (let topicIdx = 0; topicIdx < ethereumJSTopics.length; ++topicIdx) {
@@ -665,7 +673,7 @@ function assertEqualLogs(ethereumJSLogs: Log[], rethnetLogs: Log[]) {
         console.trace(
           `Different log[${logIdx}] topic[${topicIdx}]: ${ethereumJSTopics[topicIdx]} !== ${rethnetTopics[topicIdx]}`
         );
-        throw new Error("Different log topic");
+        differences.push("topic");
       }
     }
 
@@ -673,8 +681,12 @@ function assertEqualLogs(ethereumJSLogs: Log[], rethnetLogs: Log[]) {
       console.trace(
         `Different log[${logIdx}] data: ${ethereumJSLogs[logIdx][2]} !== ${rethnetLogs[logIdx][2]}`
       );
-      throw new Error("Different log data");
+      differences.push("data");
     }
+  }
+
+  if (differences.length !== 0) {
+    throw new Error(`Different log fields: ${differences}`);
   }
 }
 
@@ -683,26 +695,28 @@ function assertEqualAccounts(
   ethereumJSAccount: Account,
   rethnetAccount: Account
 ) {
+  const differences: string[] = [];
+
   if (ethereumJSAccount.balance !== rethnetAccount.balance) {
     console.trace(`Account: ${address}`);
     console.trace(
       `Different balance: ${ethereumJSAccount.balance} !== ${rethnetAccount.balance}`
     );
-    throw new Error("Different balance");
+    differences.push("balance");
   }
 
   if (!ethereumJSAccount.codeHash.equals(rethnetAccount.codeHash)) {
     console.trace(
       `Different codeHash: ${ethereumJSAccount.codeHash} !== ${rethnetAccount.codeHash}`
     );
-    throw new Error("Different codeHash");
+    differences.push("codeHash");
   }
 
   if (ethereumJSAccount.nonce !== rethnetAccount.nonce) {
     console.trace(
       `Different nonce: ${ethereumJSAccount.nonce} !== ${rethnetAccount.nonce}`
     );
-    throw new Error("Different nonce");
+    differences.push("nonce");
   }
 
   if (!ethereumJSAccount.storageRoot.equals(rethnetAccount.storageRoot)) {
