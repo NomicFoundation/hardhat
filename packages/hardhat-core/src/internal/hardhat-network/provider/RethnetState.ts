@@ -1,11 +1,9 @@
 import {
-  Account,
   Address,
   bufferToBigInt,
-  KECCAK256_NULL,
   toBuffer,
 } from "@nomicfoundation/ethereumjs-util";
-import { StateManager, AccountData } from "rethnet-evm";
+import { StateManager, Account, Bytecode } from "rethnet-evm";
 import { GenesisAccount } from "./node-types";
 
 /* eslint-disable @nomiclabs/hardhat-internal-rules/only-hardhat-error */
@@ -38,23 +36,12 @@ export class RethnetStateManager {
     return account !== null;
   }
 
-  public async getAccount(address: Address): Promise<Account> {
-    const account = await this._state.getAccountByAddress(address.buf);
-    const storageRoot = await this._state.getAccountStorageRoot(address.buf);
-    return new Account(
-      account?.nonce,
-      account?.balance,
-      storageRoot ?? undefined,
-      account?.codeHash
-    );
+  public async getAccount(address: Address): Promise<Account | null> {
+    return this._state.getAccountByAddress(address.buf);
   }
 
-  public async putAccount(address: Address, account: Account): Promise<void> {
-    await this._state.insertAccount(address.buf, {
-      balance: account.balance,
-      nonce: account.nonce,
-      codeHash: account.codeHash,
-    });
+  public async getAccountStorageRoot(address: Address): Promise<Buffer | null> {
+    return this._state.getAccountStorageRoot(address.buf);
   }
 
   public async accountIsEmpty(address: Address): Promise<boolean> {
@@ -63,7 +50,7 @@ export class RethnetStateManager {
       account === null ||
       (account.balance === 0n &&
         account.nonce === 0n &&
-        account.codeHash.equals(KECCAK256_NULL))
+        account.code === undefined)
     );
   }
 
@@ -75,41 +62,15 @@ export class RethnetStateManager {
     return this._state.makeSnapshot();
   }
 
-  public async modifyAccountFields(
+  public async modifyAccount(
     address: Address,
-    accountFields: Partial<Pick<Account, "nonce" | "balance">>
+    modifyAccountFn: (
+      balance: bigint,
+      nonce: bigint,
+      code: Bytecode | undefined
+    ) => Promise<Account>
   ): Promise<void> {
-    await this._state.modifyAccount(
-      address.buf,
-      async function (
-        balance: bigint,
-        nonce: bigint,
-        code: Buffer | undefined
-      ): Promise<AccountData> {
-        return {
-          balance: accountFields.balance ?? balance,
-          nonce: accountFields.nonce ?? nonce,
-          code,
-        };
-      }
-    );
-  }
-
-  public async putContractCode(address: Address, value: Buffer): Promise<void> {
-    await this._state.modifyAccount(
-      address.buf,
-      async function (
-        balance: bigint,
-        nonce: bigint,
-        _code: Buffer | undefined
-      ): Promise<AccountData> {
-        return {
-          balance,
-          nonce,
-          code: value,
-        };
-      }
-    );
+    await this._state.modifyAccount(address.buf, modifyAccountFn);
   }
 
   public async getContractCode(address: Address): Promise<Buffer> {
@@ -119,10 +80,10 @@ export class RethnetStateManager {
     }
 
     if (account.code !== undefined) {
-      return account.code;
+      return account.code.code;
     }
 
-    return this._state.getCodeByHash(account.codeHash);
+    return Buffer.from([]);
   }
 
   public async getContractStorage(

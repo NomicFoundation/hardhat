@@ -476,15 +476,6 @@ export class DualModeAdapter implements VMAdapter {
         throw new Error("Different step contract nonce");
       }
 
-      if (
-        !ethereumJSStep.contract.codeHash.equals(rethnetStep.contract.codeHash)
-      ) {
-        console.trace(
-          `Different steps[${stepIdx}] contract codeHash: ${ethereumJSStep.contract.codeHash} !== ${rethnetStep.contract.codeHash}`
-        );
-        throw new Error("Different step contract codeHash");
-      }
-
       // Code can be stored separately from the account in Rethnet
       // const ethereumJSCode = ethereumJSStep.contract.code;
       // const rethnetCode = rethnetStep.contract.code;

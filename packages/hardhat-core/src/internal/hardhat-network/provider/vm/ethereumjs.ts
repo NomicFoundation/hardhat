@@ -524,7 +524,10 @@ export class EthereumJSAdapter implements VMAdapter {
         contract: {
           balance: step.account.balance,
           nonce: step.account.nonce,
-          codeHash: step.account.codeHash,
+          code: {
+            hash: step.account.codeHash,
+            code: Buffer.from([]),
+          },
         },
         contractAddress: step.address.buf,
       });
