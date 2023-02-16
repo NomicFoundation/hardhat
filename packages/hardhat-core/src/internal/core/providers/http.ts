@@ -132,11 +132,11 @@ export class HttpProvider extends EventEmitter implements EIP1193Provider {
 
     for (const response of jsonRpcResponses) {
       if (isErrorResponse(response)) {
-      const error = new ProviderError(
-        response.error.message,
-        response.error.code,
-        stackSavingError
-      );
+        const error = new ProviderError(
+          response.error.message,
+          response.error.code,
+          stackSavingError,
+        );
         error.data = response.error.data;
         // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
         throw error;
