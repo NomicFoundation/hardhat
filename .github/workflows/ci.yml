@@ -17,8 +17,8 @@ jobs:
         with:
           node-version: 14
           cache: npm
-      - name: npm 7
-        run: npm i -g npm@7
+      - name: npm latest
+        run: npm i -g npm@8 && npm i -g npm@latest
       - name: Install
         run: npm install
       - name: Build
@@ -41,8 +41,8 @@ jobs:
         with:
           node-version: 14
           cache: npm
-      - name: npm 7
-        run: npm i -g npm@7
+      - name: npm latest
+        run: npm i -g npm
       - name: Install
         run: npm install
       - name: Build
@@ -68,8 +68,8 @@ jobs:
         with:
           node-version: ${{ matrix.node }}
           cache: npm
-      - name: npm 7
-        run: npm i -g npm@7
+      - name: npm latest
+        run: npm i -g npm
       - name: Install
         run: npm install
       - name: Build

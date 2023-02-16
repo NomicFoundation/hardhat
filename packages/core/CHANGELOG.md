@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## 0.0.8 - 2023-02-16
+
+### Changed
+
+- Rename config option `gasIncrementPerRetry` to `gasPriceIncrementPerRetry` for clarity ([#143](https://github.com/NomicFoundation/ignition/pull/143))
+
+### Fixed
+
+- Ban passing async functions to `buildModule` ([#138](https://github.com/NomicFoundation/ignition/issues/138))
+
 ## 0.0.7 - 2023-01-31
 
 ### Fixed
