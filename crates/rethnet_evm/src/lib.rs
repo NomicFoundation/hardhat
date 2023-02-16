@@ -21,7 +21,6 @@ pub use revm::{
 
 pub use crate::{
     block::{BlockBuilder, HeaderData},
-    debug::StateDebug,
     runtime::{AsyncDatabase, Rethnet},
     transaction::{PendingTransaction, TransactionError},
 };
@@ -36,7 +35,6 @@ pub mod state;
 pub mod trace;
 
 mod block;
-mod debug;
 pub(crate) mod evm;
 mod inspector;
 pub(crate) mod random;

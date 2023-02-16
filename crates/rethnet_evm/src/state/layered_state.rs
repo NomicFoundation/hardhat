@@ -11,9 +11,7 @@ use revm::{
     DatabaseCommit,
 };
 
-use crate::StateDebug;
-
-use super::StateError;
+use super::{StateDebug, StateError};
 
 #[derive(Clone, Debug)]
 struct RevertedLayers<Layer: Clone> {
