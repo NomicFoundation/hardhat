@@ -135,7 +135,7 @@ export class HttpProvider extends EventEmitter implements EIP1193Provider {
         const error = new ProviderError(
           response.error.message,
           response.error.code,
-          stackSavingError,
+          stackSavingError
         );
         error.data = response.error.data;
         // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
