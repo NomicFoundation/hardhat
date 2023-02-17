@@ -21,7 +21,8 @@ pub trait StateDebug {
         account_info: AccountInfo,
     ) -> Result<(), Self::Error>;
 
-    /// Modifies the account at the specified address using the provided function.
+    /// Modifies the account at the specified address using the provided function. If the address
+    /// points to an empty account, that will be modified instead.
     fn modify_account(
         &mut self,
         address: Address,

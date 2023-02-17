@@ -372,7 +372,6 @@ impl StateDebug for LayeredState<RethnetLayer> {
         address: Address,
         modifier: Box<dyn Fn(&mut U256, &mut u64, &mut Option<Bytecode>) + Send>,
     ) -> Result<(), Self::Error> {
-        // TODO: Move account insertion out of LayeredState when forking
         let account_info = self.account_or_insert_mut(&address);
         let old_code_hash = account_info.code_hash;
 
