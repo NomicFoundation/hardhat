@@ -13,6 +13,7 @@ use rethnet_eth::{
 pub struct RemoteDatabase {
     client: RpcClient,
     runtime: Option<Runtime>,
+    block_number: u64,
 }
 
 /// Errors that might be returned from RemoteDatabase
@@ -27,8 +28,9 @@ pub enum RemoteDatabaseError {
 }
 
 impl RemoteDatabase {
-    /// Construct a new RemoteDatabse given the URL of a remote Ethereum node.
-    pub fn new(url: &str) -> Self {
+    /// Construct a new RemoteDatabse given the URL of a remote Ethereum node and a
+    /// block number from which data will be pulled.
+    pub fn new(url: &str, block_number: u64) -> Self {
         Self {
             client: RpcClient::new(url),
             runtime: match Handle::try_current() {
@@ -41,6 +43,7 @@ impl RemoteDatabase {
                         .expect("failed to construct async runtime"),
                 ),
             },
+            block_number,
         }
     }
 
@@ -74,7 +77,7 @@ impl StateRef for RemoteDatabase {
             self.runtime()
                 .block_on(
                     self.client
-                        .get_account_info(&address, BlockSpec::Tag("latest".to_string())),
+                        .get_account_info(&address, BlockSpec::Number(self.block_number)),
                 )
                 .map_err(RemoteDatabaseError::RpcError)
         })?))
@@ -91,7 +94,7 @@ impl StateRef for RemoteDatabase {
                 .block_on(self.client.get_storage_at(
                     &address,
                     index,
-                    BlockSpec::Tag("latest".to_string()),
+                    BlockSpec::Number(self.block_number),
                 ))
                 .map_err(RemoteDatabaseError::RpcError)
         })
@@ -115,7 +118,7 @@ mod tests {
         let dai_address = Address::from_str("0x6b175474e89094c44da98b954eedeac495271d0f")
             .expect("failed to parse address");
 
-        let account_info: AccountInfo = RemoteDatabase::new(&alchemy_url)
+        let account_info: AccountInfo = RemoteDatabase::new(&alchemy_url, 16643427)
             .basic(dai_address)
             .expect("should succeed")
             .unwrap();
