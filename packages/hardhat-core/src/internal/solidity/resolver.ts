@@ -456,7 +456,7 @@ export class Resolver {
     );
 
     const nmIndex = sourceName.indexOf(`${NODE_MODULES}/`);
-    return sourceName.substr(nmIndex + NODE_MODULES.length + 1);
+    return sourceName.substring(nmIndex + NODE_MODULES.length + 1);
   }
 
   private async _validateSourceNameExistenceAndCasing(
