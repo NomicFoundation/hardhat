@@ -80,4 +80,4 @@ jobs:
           FORCE_COLOR: 3
         run: |
           yarn build
-          yarn test:forking
+          yarn test:forking --exit
