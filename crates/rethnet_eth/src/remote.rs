@@ -2,7 +2,7 @@ use std::sync::atomic::{AtomicU64, Ordering};
 
 use revm_primitives::AccountInfo;
 
-use crate::{Address, Bytes, B256, U256};
+use crate::{Address, B256, U256};
 
 mod eth;
 mod jsonrpc;
@@ -380,7 +380,7 @@ impl RpcClient {
 
         let results: (
             jsonrpc::Success<U256>,
-            jsonrpc::Success<Bytes>,
+            jsonrpc::Success<jsonrpc::ZeroXPrefixedBytes>,
             jsonrpc::Success<U256>,
         ) = serde_json::from_str(&response.text).map_err(|err| {
             RpcClientError::InterpretationError {
@@ -395,7 +395,7 @@ impl RpcClient {
         assert_eq!(results.1.id, response.request_ids[1]);
         assert_eq!(results.2.id, response.request_ids[2]);
 
-        let code = revm_primitives::Bytecode::new_raw(results.1.result);
+        let code = revm_primitives::Bytecode::new_raw(results.1.result.bytes);
 
         Ok(AccountInfo {
             balance: results.0.result,

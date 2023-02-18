@@ -84,3 +84,42 @@ impl<'a> serde::de::Visitor<'a> for VersionVisitor {
         }
     }
 }
+
+pub struct ZeroXPrefixedBytes {
+    pub bytes: bytes::Bytes,
+}
+
+impl<'a> Deserialize<'a> for ZeroXPrefixedBytes {
+    fn deserialize<D>(deserializer: D) -> Result<ZeroXPrefixedBytes, D::Error>
+    where
+        D: serde::Deserializer<'a>,
+    {
+        deserializer.deserialize_identifier(ZeroXPrefixedBytesVisitor)
+    }
+}
+
+struct ZeroXPrefixedBytesVisitor;
+impl<'a> serde::de::Visitor<'a> for ZeroXPrefixedBytesVisitor {
+    type Value = ZeroXPrefixedBytes;
+
+    fn expecting(&self, formatter: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        formatter.write_str("a 0x-prefixed string of hex digits")
+    }
+
+    fn visit_str<E>(self, value: &str) -> Result<Self::Value, E>
+    where
+        E: serde::de::Error,
+    {
+        if &value[0..1] == "0x" {
+            Err(serde::de::Error::custom(
+                "string does not have a '0x' prefix",
+            ))
+        } else {
+            Ok(ZeroXPrefixedBytes {
+                bytes: bytes::Bytes::from(
+                    hex::decode(value[2..].to_string()).expect("failed to decode hex string"),
+                ),
+            })
+        }
+    }
+}

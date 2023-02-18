@@ -275,7 +275,7 @@ mod tests {
         assert_eq!(account_info.nonce, 1);
         assert_eq!(
             account_info.code_hash,
-            B256::from_str("0x74280a6e975486b18c8a65edee16b3b7a2f4c24398a094648552810549cbf864")
+            B256::from_str("0x4e36f96ee1667a663dfaac57c4d185a0e369a3a217e0079d49620f34f85d1ac7")
                 .expect("failed to parse")
         );
     }
