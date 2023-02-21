@@ -3,7 +3,7 @@
 // - https://github.com/foundry-rs/foundry/blob/01b16238ff87dc7ca8ee3f5f13e389888c2a2ee4/LICENSE-MIT
 // For the original context see: https://github.com/foundry-rs/foundry/blob/01b16238ff87dc7ca8ee3f5f13e389888c2a2ee4/anvil/core/src/eth/block.rs
 
-use revm::common::keccak256;
+use revm_primitives::keccak256;
 use rlp::{Decodable, DecoderError, Encodable, Rlp, RlpStream};
 use ruint::aliases::U160;
 

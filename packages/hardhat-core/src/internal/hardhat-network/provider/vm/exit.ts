@@ -1,5 +1,6 @@
 import { EvmError } from "@nomicfoundation/ethereumjs-evm";
 import { ERROR } from "@nomicfoundation/ethereumjs-evm/dist/exceptions";
+import { ExceptionalHalt, SuccessReason } from "rethnet-evm";
 
 export enum ExitCode {
   SUCCESS,
@@ -8,38 +9,39 @@ export enum ExitCode {
   INTERNAL_ERROR,
   INVALID_OPCODE,
   CODESIZE_EXCEEDS_MAXIMUM,
+  CREATE_COLLISION,
 }
 
-const exitCodeToRethnetExitCode: Record<ExitCode, number> = {
-  [ExitCode.SUCCESS]: 0x00,
-  [ExitCode.REVERT]: 0x20,
-  [ExitCode.OUT_OF_GAS]: 0x50,
-  [ExitCode.INTERNAL_ERROR]: 0x20,
-  [ExitCode.INVALID_OPCODE]: 0x53,
-  [ExitCode.CODESIZE_EXCEEDS_MAXIMUM]: 0x65,
-};
-
 export class Exit {
-  public static fromRethnetExitCode(rethnetExitCode: number): Exit {
-    switch (rethnetExitCode) {
-      case 0x00:
-      case 0x01:
-      case 0x02:
-      case 0x03:
+  public static fromRethnetSuccessReason(reason: SuccessReason): Exit {
+    switch (reason) {
+      case SuccessReason.Stop:
+      case SuccessReason.Return:
+      case SuccessReason.SelfDestruct:
         return new Exit(ExitCode.SUCCESS);
-      case 0x20:
-        return new Exit(ExitCode.REVERT);
-      case 0x50:
+      // TODO: Should we throw an error if default is hit?
+    }
+  }
+
+  public static fromRethnetExceptionalHalt(halt: ExceptionalHalt): Exit {
+    switch (halt) {
+      case ExceptionalHalt.OutOfGas:
         return new Exit(ExitCode.OUT_OF_GAS);
-      case 0x51:
-      case 0x53:
+
+      case ExceptionalHalt.OpcodeNotFound:
+      case ExceptionalHalt.InvalidFEOpcode:
         return new Exit(ExitCode.INVALID_OPCODE);
-      case 0x65:
+
+      case ExceptionalHalt.CreateCollision:
+        return new Exit(ExitCode.CREATE_COLLISION);
+
+      case ExceptionalHalt.CreateContractSizeLimit:
         return new Exit(ExitCode.CODESIZE_EXCEEDS_MAXIMUM);
+
       default: {
         // TODO temporary, should be removed in production
         // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
-        throw new Error(`Unmatched rethnet exit code: ${rethnetExitCode}`);
+        throw new Error(`Unmatched rethnet exceptional halt: ${halt}`);
       }
     }
   }
@@ -69,9 +71,13 @@ export class Exit {
       return new Exit(ExitCode.CODESIZE_EXCEEDS_MAXIMUM);
     }
 
+    if (evmError.error === ERROR.CREATE_COLLISION) {
+      return new Exit(ExitCode.CREATE_COLLISION);
+    }
+
     // TODO temporary, should be removed in production
     // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
-    throw new Error(`Unmatched rethnet exit code: ${evmError.error}`);
+    throw new Error(`Unmatched evm error: ${evmError.error}`);
   }
 
   constructor(public kind: ExitCode) {}
@@ -94,6 +100,8 @@ export class Exit {
         return "Invalid opcode";
       case ExitCode.CODESIZE_EXCEEDS_MAXIMUM:
         return "Codesize exceeds maximum";
+      case ExitCode.CREATE_COLLISION:
+        return "Create collision";
     }
 
     const _exhaustiveCheck: never = this.kind;
@@ -102,7 +110,7 @@ export class Exit {
   public getEthereumJSError(): EvmError | undefined {
     switch (this.kind) {
       case ExitCode.SUCCESS:
-        return;
+        return undefined;
       case ExitCode.REVERT:
         return new EvmError(ERROR.REVERT);
       case ExitCode.OUT_OF_GAS:
@@ -113,12 +121,26 @@ export class Exit {
         return new EvmError(ERROR.INVALID_OPCODE);
       case ExitCode.CODESIZE_EXCEEDS_MAXIMUM:
         return new EvmError(ERROR.CODESIZE_EXCEEDS_MAXIMUM);
+      case ExitCode.CREATE_COLLISION:
+        return new EvmError(ERROR.CREATE_COLLISION);
     }
 
     const _exhaustiveCheck: never = this.kind;
   }
 
-  public getRethnetExitCode(): number {
-    return exitCodeToRethnetExitCode[this.kind];
+  public getRethnetExceptionalHalt(): ExceptionalHalt {
+    switch (this.kind) {
+      case ExitCode.OUT_OF_GAS:
+        return ExceptionalHalt.OutOfGas;
+      case ExitCode.INVALID_OPCODE:
+        return ExceptionalHalt.OpcodeNotFound;
+      case ExitCode.CODESIZE_EXCEEDS_MAXIMUM:
+        return ExceptionalHalt.CreateContractSizeLimit;
+
+      default:
+        // TODO temporary, should be removed in production
+        // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
+        throw new Error(`Unmatched rethnet exceptional halt: ${this.kind}`);
+    }
   }
 }

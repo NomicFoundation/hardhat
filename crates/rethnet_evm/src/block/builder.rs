@@ -1,42 +1,74 @@
 use std::{fmt::Debug, sync::Arc};
 
-use anyhow::bail;
 use rethnet_eth::{
     block::{Header, PartialHeader},
     Address, U256,
 };
-use revm::{BlockEnv, CfgEnv, ExecutionResult, SpecId, TxEnv};
+use revm::{
+    db::DatabaseComponentError,
+    primitives::{BlockEnv, CfgEnv, EVMError, ExecutionResult, InvalidTransaction, SpecId, TxEnv},
+    Inspector,
+};
 use tokio::runtime::Runtime;
 
 use crate::{
-    blockchain::AsyncBlockchain, db::AsyncDatabase, evm::build_evm, inspector::RethnetInspector,
+    blockchain::AsyncBlockchain, evm::run_transaction, runtime::AsyncDatabase, state::AsyncState,
     trace::Trace, HeaderData,
 };
 
-/// A builder for constructing Ethereum blocks.
-pub struct BlockBuilder<E>
+#[derive(Debug, thiserror::Error)]
+pub enum BlockTransactionError<BE, SE> {
+    #[error(transparent)]
+    BlockHash(BE),
+    #[error("Transaction has a higher gas limit than the remaining gas in the block")]
+    ExceedsBlockGasLimit,
+    #[error("Invalid transaction")]
+    InvalidTransaction(InvalidTransaction),
+    #[error(transparent)]
+    State(SE),
+}
+
+impl<BE, SE> From<EVMError<DatabaseComponentError<SE, BE>>> for BlockTransactionError<BE, SE>
 where
-    E: Debug + Send + 'static,
+    BE: Debug + Send + 'static,
+    SE: Debug + Send + 'static,
 {
-    blockchain: Arc<AsyncBlockchain<E>>,
-    state: Arc<AsyncDatabase<E>>,
+    fn from(error: EVMError<DatabaseComponentError<SE, BE>>) -> Self {
+        match error {
+            EVMError::Transaction(e) => Self::InvalidTransaction(e),
+            EVMError::PrevrandaoNotSet => unreachable!(),
+            EVMError::Database(DatabaseComponentError::State(e)) => Self::State(e),
+            EVMError::Database(DatabaseComponentError::BlockHash(e)) => Self::BlockHash(e),
+        }
+    }
+}
+
+/// A builder for constructing Ethereum blocks.
+pub struct BlockBuilder<BE, SE>
+where
+    BE: Debug + Send + 'static,
+    SE: Debug + Send + 'static,
+{
+    blockchain: Arc<AsyncBlockchain<BE>>,
+    state: Arc<AsyncState<SE>>,
     header: PartialHeader,
     transactions: Vec<TxEnv>,
     cfg: CfgEnv,
 }
 
-impl<E> BlockBuilder<E>
+impl<BE, SE> BlockBuilder<BE, SE>
 where
-    E: Debug + Send + 'static,
+    BE: Debug + Send + 'static,
+    SE: Debug + Send + 'static,
 {
     /// Creates an intance of [`BlockBuilder`], creating a checkpoint in the process.
-    pub async fn new(
-        blockchain: Arc<AsyncBlockchain<E>>,
-        db: Arc<AsyncDatabase<E>>,
+    pub fn new(
+        blockchain: Arc<AsyncBlockchain<BE>>,
+        state: Arc<AsyncState<SE>>,
         cfg: CfgEnv,
         parent: Header,
         header: HeaderData,
-    ) -> Result<Self, E> {
+    ) -> Self {
         // TODO: Proper implementation of a block builder
         // db.checkpoint().await?;
 
@@ -48,13 +80,13 @@ where
             ..PartialHeader::default()
         };
 
-        Ok(Self {
+        Self {
             blockchain,
-            state: db,
+            state,
             header,
             transactions: Vec::new(),
             cfg,
-        })
+        }
     }
 
     /// Retrieves the runtime of the [`BlockBuilder`].
@@ -84,10 +116,11 @@ where
     pub async fn add_transaction(
         &mut self,
         transaction: TxEnv,
-    ) -> anyhow::Result<(ExecutionResult, Trace)> {
+        inspector: Option<Box<dyn Inspector<AsyncDatabase<BE, SE>> + Send>>,
+    ) -> Result<(ExecutionResult, Trace), BlockTransactionError<BE, SE>> {
         //  transaction's gas limit cannot be greater than the remaining gas in the block
         if U256::from(transaction.gas_limit) > self.gas_remaining() {
-            bail!("tx has a higher gas limit than the remaining gas in the block");
+            return Err(BlockTransactionError::ExceedsBlockGasLimit);
         }
 
         self.transactions.push(transaction.clone());
@@ -105,26 +138,21 @@ where
             },
         };
 
-        let blockchain = self.blockchain.clone();
-        let db = self.state.clone();
-        let cfg = self.cfg.clone();
-
-        let (result, changes, trace) = self
-            .state
-            .runtime()
-            .spawn(async move {
-                let mut evm = build_evm(&blockchain, &db, cfg, transaction, block);
-
-                let mut inspector = RethnetInspector::default();
-                let (result, state) = evm.inspect(&mut inspector);
-                (result, state, inspector.into_trace())
-            })
-            .await
-            .unwrap();
+        let (result, changes, trace) = run_transaction(
+            self.state.runtime(),
+            self.blockchain.clone(),
+            self.state.clone(),
+            self.cfg.clone(),
+            transaction,
+            block,
+            inspector,
+        )
+        .await
+        .unwrap()?;
 
         self.state.apply(changes).await;
 
-        self.header.gas_used += U256::from(result.gas_used);
+        self.header.gas_used += U256::from(result.gas_used());
 
         // TODO: store receipt
         Ok((result, trace))
@@ -132,7 +160,7 @@ where
 
     /// Finalizes the block, returning the state root.
     /// TODO: Build a full block
-    pub async fn finalize(self, rewards: Vec<(Address, U256)>) -> Result<(), E> {
+    pub async fn finalize(self, rewards: Vec<(Address, U256)>) -> Result<(), SE> {
         for (address, reward) in rewards {
             self.state
                 .modify_account(
@@ -146,7 +174,7 @@ where
     }
 
     /// Aborts building of the block, reverting all transactions in the process.
-    pub async fn abort(self) -> Result<(), E> {
+    pub async fn abort(self) -> Result<(), SE> {
         self.state.revert().await
     }
 }

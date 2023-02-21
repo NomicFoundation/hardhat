@@ -64,7 +64,6 @@ import {
 import { SolidityStackTrace } from "../stack-traces/solidity-stack-trace";
 import { SolidityTracer } from "../stack-traces/solidityTracer";
 import { VmTraceDecoder } from "../stack-traces/vm-trace-decoder";
-import { VMTracer } from "../stack-traces/vm-tracer";
 
 import "./ethereumjs-workarounds";
 import { rpcQuantityToBigInt } from "../../core/jsonrpc/types/base-types";
@@ -324,7 +323,6 @@ Hardhat Network's forking functionality only works with blocks from at least spu
   private _nextSnapshotId = 1; // We start in 1 to mimic Ganache
   private readonly _snapshots: Snapshot[] = [];
 
-  private readonly _vmTracer: VMTracer;
   private readonly _vmTraceDecoder: VmTraceDecoder;
   private readonly _solidityTracer: SolidityTracer;
   private readonly _consoleLogger: ConsoleLogger = new ConsoleLogger();
@@ -364,9 +362,6 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     if (nextBlockBaseFee !== undefined) {
       this.setUserProvidedNextBlockBaseFeePerGas(nextBlockBaseFee);
     }
-
-    this._vmTracer = new VMTracer(this._vm, this._common, false);
-    this._vmTracer.enableTracing();
 
     const contractsIdentifier = new ContractsIdentifier();
     this._vmTraceDecoder = new VmTraceDecoder(contractsIdentifier);
@@ -756,9 +751,10 @@ Hardhat Network's forking functionality only works with blocks from at least spu
       this._runTxAndRevertMutations(tx, blockNumberOrPending)
     );
 
-    let vmTrace = this._vmTracer.getLastTopLevelMessageTrace();
-    const vmTracerError = this._vmTracer.getLastError();
-    this._vmTracer.clearLastError();
+    const traceResult = this._vm.getLastTrace();
+    let vmTrace = traceResult.trace;
+    const vmTracerError = traceResult.error;
+    this._vm.clearLastError();
 
     if (vmTrace !== undefined) {
       vmTrace = this._vmTraceDecoder.tryToDecodeMessageTrace(vmTrace);
@@ -1564,9 +1560,10 @@ Hardhat Network's forking functionality only works with blocks from at least spu
   private async _gatherTraces(
     result: RunTxResult
   ): Promise<GatherTracesResult> {
-    let vmTrace = this._vmTracer.getLastTopLevelMessageTrace();
-    const vmTracerError = this._vmTracer.getLastError();
-    this._vmTracer.clearLastError();
+    const traceResult = this._vm.getLastTrace();
+    let vmTrace = traceResult.trace;
+    const vmTracerError = traceResult.error;
+    this._vm.clearLastError();
 
     if (vmTrace !== undefined) {
       vmTrace = this._vmTraceDecoder.tryToDecodeMessageTrace(vmTrace);
@@ -1847,6 +1844,12 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     // coming from the ForkedStateManager.
     if (!isExitCode || exitCode.kind === ExitCode.INTERNAL_ERROR) {
       throw exitCode;
+    }
+
+    if (exitCode.kind !== vmTrace?.exit.kind) {
+      console.trace("execution:", exitCode);
+      console.log("trace:", vmTrace?.exit);
+      throw Error("Execution error does not match trace error");
     }
 
     if (exitCode.kind === ExitCode.CODESIZE_EXCEEDS_MAXIMUM) {

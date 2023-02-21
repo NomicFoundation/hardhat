@@ -82,6 +82,10 @@ export class BlockBuilder {
       gasUsed: this._gasUsed,
     };
 
+    if (header.number === undefined) {
+      header.number = this._opts.parentBlock.header.number + 1n;
+    }
+
     const blockData = { header, transactions: this._transactions };
     const block = Block.fromBlockData(blockData, {
       common: this._common,

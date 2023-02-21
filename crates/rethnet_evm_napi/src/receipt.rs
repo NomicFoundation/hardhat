@@ -1,7 +1,7 @@
 use napi::bindgen_prelude::{BigInt, Buffer};
 use napi_derive::napi;
 
-use crate::Log;
+use crate::log::Log;
 
 #[napi(object)]
 pub struct Receipt {

@@ -10,7 +10,7 @@ use hex_literal::hex;
 use crate::{trie::KECCAK_NULL_RLP, B256, U256};
 
 /// The KECCAK for empty code.
-pub const KECCAK_EMPTY: revm::B256 = revm::B256(hex!(
+pub const KECCAK_EMPTY: revm_primitives::B256 = revm_primitives::B256(hex!(
     "c5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470"
 ));
 

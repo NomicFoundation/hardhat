@@ -1,4 +1,3 @@
-use anyhow::anyhow;
 use hashbrown::HashMap;
 use rethnet_eth::{
     account::BasicAccount,
@@ -6,9 +5,15 @@ use rethnet_eth::{
     trie::KECCAK_NULL_RLP,
     Address, B256, U256,
 };
-use revm::{Account, AccountInfo, Bytecode, Database, DatabaseCommit, KECCAK_EMPTY};
+use revm::{
+    db::State,
+    primitives::{Account, AccountInfo, Bytecode, KECCAK_EMPTY},
+    DatabaseCommit,
+};
 
-use crate::DatabaseDebug;
+use crate::StateDebug;
+
+use super::StateError;
 
 #[derive(Clone, Debug)]
 struct RevertedLayers<Layer: Clone> {
@@ -18,9 +23,9 @@ struct RevertedLayers<Layer: Clone> {
     pub stack: Vec<Layer>,
 }
 
-/// A database consisting of layers.
+/// A state consisting of layers.
 #[derive(Clone, Debug)]
-pub struct LayeredDatabase<Layer: Clone> {
+pub struct LayeredState<Layer: Clone> {
     stack: Vec<Layer>,
     /// The old parent layer state root and the reverted layers
     reverted_layers: Option<RevertedLayers<Layer>>,
@@ -28,8 +33,8 @@ pub struct LayeredDatabase<Layer: Clone> {
     snapshots: HashMap<B256, Vec<Layer>>, // naive implementation
 }
 
-impl<Layer: Clone> LayeredDatabase<Layer> {
-    /// Creates a [`LayeredDatabase`] with the provided layer at the bottom.
+impl<Layer: Clone> LayeredState<Layer> {
+    /// Creates a [`LayeredState`] with the provided layer at the bottom.
     pub fn with_layer(layer: Layer) -> Self {
         Self {
             stack: vec![layer],
@@ -45,7 +50,7 @@ impl<Layer: Clone> LayeredDatabase<Layer> {
 
     /// Returns a mutable reference to the top layer.
     pub fn last_layer_mut(&mut self) -> &mut Layer {
-        // The `LayeredDatabase` always has at least one layer
+        // The `LayeredState` always has at least one layer
         self.stack.last_mut().unwrap()
     }
 
@@ -70,7 +75,7 @@ impl<Layer: Clone> LayeredDatabase<Layer> {
     }
 }
 
-impl<Layer: Clone + Default> LayeredDatabase<Layer> {
+impl<Layer: Clone + Default> LayeredState<Layer> {
     /// Adds a default layer to the top, returning its index and a
     /// mutable reference to the layer.
     pub fn add_layer_default(&mut self) -> (usize, &mut Layer) {
@@ -78,7 +83,7 @@ impl<Layer: Clone + Default> LayeredDatabase<Layer> {
     }
 }
 
-impl<Layer: Clone + Default> Default for LayeredDatabase<Layer> {
+impl<Layer: Clone + Default> Default for LayeredState<Layer> {
     fn default() -> Self {
         Self {
             stack: vec![Layer::default()],
@@ -137,7 +142,7 @@ impl RethnetLayer {
     }
 }
 
-impl LayeredDatabase<RethnetLayer> {
+impl LayeredState<RethnetLayer> {
     /// Retrieves a reference to the account corresponding to the address, if it exists.
     pub fn account(&self, address: &Address) -> Option<&AccountInfo> {
         self.iter()
@@ -237,19 +242,17 @@ impl LayeredDatabase<RethnetLayer> {
     }
 }
 
-impl Database for LayeredDatabase<RethnetLayer> {
-    type Error = anyhow::Error;
+impl State for LayeredState<RethnetLayer> {
+    type Error = StateError;
 
-    fn basic(&mut self, address: Address) -> anyhow::Result<Option<AccountInfo>> {
+    fn basic(&mut self, address: Address) -> Result<Option<AccountInfo>, Self::Error> {
         let account = self
             .iter()
             .find_map(|layer| layer.account_infos.get(&address))
             .cloned()
             .flatten();
 
-        log::debug!("account with address `{}`: {:?}", address, account);
-
-        // TODO: Move this out of LayeredDatabase when forking
+        // TODO: Move this out of LayeredState when forking
         Ok(account.or(Some(AccountInfo {
             balance: U256::ZERO,
             nonce: 0,
@@ -258,22 +261,17 @@ impl Database for LayeredDatabase<RethnetLayer> {
         })))
     }
 
-    fn code_by_hash(&mut self, code_hash: B256) -> anyhow::Result<Bytecode> {
+    fn code_by_hash(&mut self, code_hash: B256) -> Result<Bytecode, Self::Error> {
         if code_hash == KECCAK_EMPTY {
             return Ok(Bytecode::new());
         }
 
         self.iter()
             .find_map(|layer| layer.contracts.get(&code_hash).cloned())
-            .ok_or_else(|| {
-                anyhow!(
-                    "Layered database does not contain contract with code hash: {}.",
-                    code_hash,
-                )
-            })
+            .ok_or(StateError::InvalidCodeHash(code_hash))
     }
 
-    fn storage(&mut self, address: Address, index: U256) -> anyhow::Result<U256> {
+    fn storage(&mut self, address: Address, index: U256) -> Result<U256, Self::Error> {
         Ok(self
             .iter()
             .find_map(|layer| layer.storage.get(&address).map(|storage| storage.as_ref()))
@@ -284,7 +282,7 @@ impl Database for LayeredDatabase<RethnetLayer> {
     }
 }
 
-impl DatabaseCommit for LayeredDatabase<RethnetLayer> {
+impl DatabaseCommit for LayeredState<RethnetLayer> {
     fn commit(&mut self, changes: HashMap<Address, Account>) {
         changes.into_iter().for_each(|(address, account)| {
             if account.is_empty() || account.is_destroyed {
@@ -334,8 +332,8 @@ impl DatabaseCommit for LayeredDatabase<RethnetLayer> {
     }
 }
 
-impl DatabaseDebug for LayeredDatabase<RethnetLayer> {
-    type Error = anyhow::Error;
+impl StateDebug for LayeredState<RethnetLayer> {
+    type Error = StateError;
 
     fn account_storage_root(&mut self, address: &Address) -> Result<Option<B256>, Self::Error> {
         Ok(self
@@ -372,7 +370,7 @@ impl DatabaseDebug for LayeredDatabase<RethnetLayer> {
         address: Address,
         modifier: Box<dyn Fn(&mut U256, &mut u64, &mut Option<Bytecode>) + Send>,
     ) -> Result<(), Self::Error> {
-        // TODO: Move account insertion out of LayeredDatabase when forking
+        // TODO: Move account insertion out of LayeredState when forking
         let account_info = self.account_or_insert_mut(&address);
         let old_code_hash = account_info.code_hash;
 
@@ -522,7 +520,7 @@ impl DatabaseDebug for LayeredDatabase<RethnetLayer> {
 
             Ok(())
         } else {
-            Err(anyhow!("Unknown state root: {}", state_root))
+            Err(StateError::InvalidStateRoot(*state_root))
         }
     }
 
@@ -585,7 +583,7 @@ impl DatabaseDebug for LayeredDatabase<RethnetLayer> {
             self.revert_to_layer(last_layer_id - 1);
             Ok(())
         } else {
-            Err(anyhow!("No checkpoints to revert."))
+            Err(StateError::CannotRevert)
         }
     }
 }

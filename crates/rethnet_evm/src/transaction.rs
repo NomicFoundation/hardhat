@@ -1,3 +1,5 @@
+use std::fmt::Debug;
+
 use rethnet_eth::{
     receipt::Log,
     signature::SignatureError,
@@ -7,13 +9,42 @@ use rethnet_eth::{
     },
     Address, Bloom, Bytes, B256, U256,
 };
+use revm::{
+    db::DatabaseComponentError,
+    interpreter::InstructionResult,
+    primitives::{CreateScheme, EVMError, InvalidTransaction, TransactTo, TxEnv},
+};
 
 /// Invalid transaction error
 #[derive(Debug, thiserror::Error)]
-pub enum TransactionError {
+pub enum TransactionError<BE, SE> {
+    /// Blockchain errors
+    #[error(transparent)]
+    BlockHash(BE),
+    /// Corrupt transaction data
+    #[error("Invalid transaction")]
+    InvalidTransaction(InvalidTransaction),
     /// The transaction is expected to have a prevrandao, as the executor's config is on a post-merge hardfork.
     #[error("Post-merge transaction is missing prevrandao")]
     MissingPrevrandao,
+    /// State errors
+    #[error(transparent)]
+    State(SE),
+}
+
+impl<BE, SE> From<EVMError<DatabaseComponentError<SE, BE>>> for TransactionError<BE, SE>
+where
+    BE: Debug + Send + 'static,
+    SE: Debug + Send + 'static,
+{
+    fn from(error: EVMError<DatabaseComponentError<SE, BE>>) -> Self {
+        match error {
+            EVMError::Transaction(e) => Self::InvalidTransaction(e),
+            EVMError::PrevrandaoNotSet => unreachable!(),
+            EVMError::Database(DatabaseComponentError::State(e)) => Self::State(e),
+            EVMError::Database(DatabaseComponentError::BlockHash(e)) => Self::BlockHash(e),
+        }
+    }
 }
 
 /// Represents all relevant information of an executed transaction
@@ -27,7 +58,7 @@ pub struct TransactionInfo {
     pub logs: Vec<Log>,
     pub logs_bloom: Bloom,
     // pub traces: todo!(),
-    pub exit: revm::Return,
+    pub exit: InstructionResult,
     pub out: Option<Bytes>,
 }
 
@@ -54,12 +85,12 @@ impl PendingTransaction {
     }
 }
 
-impl From<PendingTransaction> for revm::TxEnv {
+impl From<PendingTransaction> for TxEnv {
     fn from(transaction: PendingTransaction) -> Self {
-        fn transact_to(kind: TransactionKind) -> revm::TransactTo {
+        fn transact_to(kind: TransactionKind) -> TransactTo {
             match kind {
-                TransactionKind::Call(address) => revm::TransactTo::Call(address),
-                TransactionKind::Create => revm::TransactTo::Create(revm::CreateScheme::Create),
+                TransactionKind::Call(address) => TransactTo::Call(address),
+                TransactionKind::Create => TransactTo::Create(CreateScheme::Create),
             }
         }
 

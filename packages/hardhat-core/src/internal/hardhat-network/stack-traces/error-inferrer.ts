@@ -557,6 +557,10 @@ export class ErrorInferrer {
     functionJumpdests: Instruction[],
     jumpedIntoFunction: boolean
   ): SolidityStackTrace | undefined {
+    if (trace.steps.length === 0) {
+      return;
+    }
+
     const lastStep = trace.steps[trace.steps.length - 1];
 
     if (!isEvmStep(lastStep)) {
@@ -1144,6 +1148,10 @@ export class ErrorInferrer {
   }
 
   private _solidity063MaybeUnmappedRevert(trace: DecodedEvmMessageTrace) {
+    if (trace.steps.length === 0) {
+      return false;
+    }
+
     const lastStep = trace.steps[trace.steps.length - 1];
     if (!isEvmStep(lastStep)) {
       return false;

@@ -7,16 +7,17 @@ use napi::{bindgen_prelude::*, JsFunction, JsObject, NapiRaw, Status};
 use napi_derive::napi;
 use rethnet_eth::{Address, B256, U256};
 use rethnet_evm::{
-    db::{AsyncDatabase, LayeredDatabase, RethnetLayer, SyncDatabase},
-    AccountInfo, Bytecode, DatabaseDebug, HashMap,
+    state::{AsyncState, LayeredState, RethnetLayer, StateError, SyncState},
+    AccountInfo, Bytecode, HashMap, StateDebug,
 };
 use secp256k1::Secp256k1;
 
 use crate::{
+    account::{Account, AccountData},
     private_key_to_address,
     sync::{await_promise, handle_error},
     threadsafe_function::{ThreadSafeCallContext, ThreadsafeFunction, ThreadsafeFunctionCallMode},
-    Account, AccountData, GenesisAccount, TryCast,
+    TryCast,
 };
 
 struct ModifyAccountCall {
@@ -26,18 +27,30 @@ struct ModifyAccountCall {
     pub sender: Sender<napi::Result<(U256, u64, Option<Bytecode>)>>,
 }
 
+/// An account that needs to be created during the genesis block.
+#[napi(object)]
+pub struct GenesisAccount {
+    /// Account private key
+    pub private_key: String,
+    /// Account balance
+    pub balance: BigInt,
+}
+
+/// The Rethnet state
 #[napi]
 pub struct StateManager {
-    pub(super) db: Arc<AsyncDatabase<anyhow::Error>>,
+    pub(super) state: Arc<AsyncState<StateError>>,
 }
 
 #[napi]
 impl StateManager {
+    /// Constructs a [`StateManager`] with an empty state.
     #[napi(constructor)]
     pub fn new() -> napi::Result<Self> {
         Self::with_accounts(HashMap::default())
     }
 
+    /// Constructs a [`StateManager`] with the provided accounts present in the genesis state.
     #[napi(factory)]
     pub fn with_genesis_accounts(accounts: Vec<GenesisAccount>) -> napi::Result<Self> {
         let context = Secp256k1::signing_only();
@@ -67,46 +80,50 @@ impl StateManager {
             accounts.insert(address, AccountInfo::default());
         }
 
-        let mut database =
-            LayeredDatabase::with_layer(RethnetLayer::with_genesis_accounts(accounts));
+        let mut state = LayeredState::with_layer(RethnetLayer::with_genesis_accounts(accounts));
 
-        database.checkpoint().unwrap();
+        state.checkpoint().unwrap();
 
-        Self::with_db(database)
+        Self::with_state(state)
     }
 
-    fn with_db<D>(db: D) -> napi::Result<Self>
+    fn with_state<S>(state: S) -> napi::Result<Self>
     where
-        D: SyncDatabase<anyhow::Error>,
+        S: SyncState<StateError>,
     {
-        let db: Box<dyn SyncDatabase<anyhow::Error>> = Box::new(db);
-        let db = AsyncDatabase::new(db)
+        let state: Box<dyn SyncState<StateError>> = Box::new(state);
+        let state = AsyncState::new(state)
             .map_err(|e| napi::Error::new(Status::GenericFailure, e.to_string()))?;
 
-        Ok(Self { db: Arc::new(db) })
+        Ok(Self {
+            state: Arc::new(state),
+        })
     }
 
+    /// Creates a state checkpoint that can be reverted to using [`revert`].
     #[napi]
     pub async fn checkpoint(&self) -> napi::Result<()> {
-        self.db
+        self.state
             .checkpoint()
             .await
             .map_err(|e| napi::Error::new(Status::GenericFailure, e.to_string()))
     }
 
+    /// Reverts to the previous checkpoint, created using [`checkpoint`].
     #[napi]
     pub async fn revert(&self) -> napi::Result<()> {
-        self.db
+        self.state
             .revert()
             .await
             .map_err(|e| napi::Error::new(Status::GenericFailure, e.to_string()))
     }
 
+    /// Retrieves the account corresponding to the specified address.
     #[napi]
     pub async fn get_account_by_address(&self, address: Buffer) -> napi::Result<Option<Account>> {
         let address = Address::from_slice(&address);
 
-        self.db.account_by_address(address).await.map_or_else(
+        self.state.account_by_address(address).await.map_or_else(
             |e| Err(napi::Error::new(Status::GenericFailure, e.to_string())),
             |account_info| Ok(account_info.map(Account::from)),
         )
@@ -117,12 +134,13 @@ impl StateManager {
     pub async fn get_account_storage_root(&self, address: Buffer) -> napi::Result<Option<Buffer>> {
         let address = Address::from_slice(&address);
 
-        self.db.account_storage_root(&address).await.map_or_else(
+        self.state.account_storage_root(&address).await.map_or_else(
             |e| Err(napi::Error::new(Status::GenericFailure, e.to_string())),
             |root| Ok(root.map(|root| Buffer::from(root.as_ref()))),
         )
     }
 
+    /// Retrieves the storage slot at the specified address and index.
     #[napi]
     pub async fn get_account_storage_slot(
         &self,
@@ -132,7 +150,7 @@ impl StateManager {
         let address = Address::from_slice(&address);
         let index = BigInt::try_cast(index)?;
 
-        self.db
+        self.state
             .account_storage_slot(address, index)
             .await
             .map_or_else(
@@ -150,34 +168,37 @@ impl StateManager {
     pub async fn get_code_by_hash(&self, code_hash: Buffer) -> napi::Result<Buffer> {
         let code_hash = B256::from_slice(&code_hash);
 
-        self.db.code_by_hash(code_hash).await.map_or_else(
+        self.state.code_by_hash(code_hash).await.map_or_else(
             |e| Err(napi::Error::new(Status::GenericFailure, e.to_string())),
             |code| Ok(Buffer::from(&code.bytes()[..code.len()])),
         )
     }
 
+    /// Retrieves the storage root of the database.
     #[napi]
     pub async fn get_state_root(&self) -> napi::Result<Buffer> {
-        self.db.state_root().await.map_or_else(
+        self.state.state_root().await.map_or_else(
             |e| Err(napi::Error::new(Status::GenericFailure, e.to_string())),
             |root| Ok(Buffer::from(root.as_ref())),
         )
     }
 
+    /// Inserts the provided account at the specified address.
     #[napi]
     pub async fn insert_account(&self, address: Buffer, account: Account) -> napi::Result<()> {
         let address = Address::from_slice(&address);
         let account = account.try_cast()?;
 
-        self.db
+        self.state
             .insert_account(address, account)
             .await
             .map_err(|e| napi::Error::new(Status::GenericFailure, e.to_string()))
     }
 
+    /// Makes a snapshot of the database that's retained until [`removeSnapshot`] is called. Returns the snapshot's identifier.
     #[napi]
     pub async fn make_snapshot(&self) -> Buffer {
-        <B256 as AsRef<[u8]>>::as_ref(&self.db.make_snapshot().await).into()
+        <B256 as AsRef<[u8]>>::as_ref(&self.state.make_snapshot().await).into()
     }
 
     /// Modifies the account with the provided address using the specified modifier function.
@@ -217,7 +238,7 @@ impl StateManager {
                         .create_buffer_copy(&code.bytes()[..code.len()])?
                         .into_unknown()
                 } else {
-                    ctx.env.get_null()?.into_unknown()
+                    ctx.env.get_undefined()?.into_unknown()
                 };
 
                 let promise = ctx.callback.call(None, &[balance, nonce, code])?;
@@ -232,9 +253,9 @@ impl StateManager {
         )?;
 
         let (deferred, promise) = env.create_deferred()?;
-        let db = self.db.clone();
+        let db = self.state.clone();
 
-        self.db.runtime().spawn(async move {
+        self.state.runtime().spawn(async move {
             let result = db
                 .modify_account(
                     address,
@@ -271,23 +292,26 @@ impl StateManager {
         Ok(promise)
     }
 
+    /// Removes and returns the account at the specified address, if it exists.
     #[napi]
     pub async fn remove_account(&self, address: Buffer) -> napi::Result<Option<Account>> {
         let address = Address::from_slice(&address);
 
-        self.db.remove_account(address).await.map_or_else(
+        self.state.remove_account(address).await.map_or_else(
             |e| Err(napi::Error::new(Status::GenericFailure, e.to_string())),
             |account| Ok(account.map(Account::from)),
         )
     }
 
+    /// Removes the snapshot corresponding to the specified state root, if it exists. Returns whether a snapshot was removed.
     #[napi]
     pub async fn remove_snapshot(&self, state_root: Buffer) -> bool {
         let state_root = B256::from_slice(&state_root);
 
-        self.db.remove_snapshot(state_root).await
+        self.state.remove_snapshot(state_root).await
     }
 
+    /// Sets the storage slot at the specified address and index to the provided value.
     #[napi]
     pub async fn set_account_storage_slot(
         &self,
@@ -299,17 +323,18 @@ impl StateManager {
         let index = BigInt::try_cast(index)?;
         let value = BigInt::try_cast(value)?;
 
-        self.db
+        self.state
             .set_account_storage_slot(address, index, value)
             .await
             .map_err(|e| napi::Error::new(Status::GenericFailure, e.to_string()))
     }
 
+    /// Reverts the state to match the specified state root.
     #[napi]
     pub async fn set_state_root(&self, state_root: Buffer) -> napi::Result<()> {
         let state_root = B256::from_slice(&state_root);
 
-        self.db
+        self.state
             .set_state_root(&state_root)
             .await
             .map_err(|e| napi::Error::new(Status::GenericFailure, e.to_string()))

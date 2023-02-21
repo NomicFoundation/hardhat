@@ -31,7 +31,8 @@ export function createVm(
         assertHardhatInvariant(block !== null, "Should be able to get block");
 
         return block.header.hash();
-      }
+      },
+      common
     );
   } else {
     return DualModeAdapter.create(common, blockchain, config, selectHardfork);

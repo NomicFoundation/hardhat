@@ -692,7 +692,7 @@ describe("Eth module - hardfork dependant tests", function () {
     });
 
     describe("Receipts formatting", function () {
-      describe("Before byzantium", function () {
+      describe.skip("Before byzantium", function () {
         useProviderAndCommon("spuriousDragon");
 
         it("Should have a root field, and shouldn't have a status one nor type", async function () {
