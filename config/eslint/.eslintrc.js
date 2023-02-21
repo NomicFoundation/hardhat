@@ -27,7 +27,6 @@ module.exports = {
     "mocha",
   ],
   rules: {
-    "@nomiclabs/only-hardhat-error": "off",
     "import/no-unused-modules": [
       1,
       { unusedExports: true, missingExports: true },
