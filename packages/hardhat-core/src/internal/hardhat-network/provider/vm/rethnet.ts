@@ -1,10 +1,16 @@
 import { Block } from "@nomicfoundation/ethereumjs-block";
 import { Common } from "@nomicfoundation/ethereumjs-common";
-import { Account, Address } from "@nomicfoundation/ethereumjs-util";
+import {
+  Account,
+  Address,
+  KECCAK256_NULL,
+} from "@nomicfoundation/ethereumjs-util";
 import { TypedTransaction } from "@nomicfoundation/ethereumjs-tx";
 import {
+  Account as RethnetAccount,
   BlockBuilder,
   Blockchain,
+  Bytecode,
   Rethnet,
   Tracer,
   TracingMessage,
@@ -20,6 +26,7 @@ import {
   rethnetResultToRunTxResult,
 } from "../utils/convertToRethnet";
 import { hardforkGte, HardforkName } from "../../../util/hardforks";
+import { keccak256 } from "../../../util/keccak";
 import { RpcDebugTraceOutput } from "../output";
 import { RethnetStateManager } from "../RethnetState";
 import { RpcDebugTracingConfig } from "../../../core/jsonrpc/types/input/debugTraceTransaction";
@@ -138,7 +145,14 @@ export class RethnetAdapter implements VMAdapter {
    * Get the account info for the given address.
    */
   public async getAccount(address: Address): Promise<Account> {
-    return this._state.getAccount(address);
+    const account = await this._state.getAccount(address);
+    const storageRoot = await this._state.getAccountStorageRoot(address);
+    return new Account(
+      account?.nonce,
+      account?.balance,
+      storageRoot ?? undefined,
+      account?.code?.hash
+    );
   }
 
   /**
@@ -162,14 +176,66 @@ export class RethnetAdapter implements VMAdapter {
    * Update the account info for the given address.
    */
   public async putAccount(address: Address, account: Account): Promise<void> {
-    return this._state.putAccount(address, account);
+    const contractCode =
+      account.codeHash === KECCAK256_NULL
+        ? undefined
+        : await this._state.getContractCode(address);
+
+    return this._state.modifyAccount(
+      address,
+      async function (
+        balance: bigint,
+        nonce: bigint,
+        code: Bytecode | undefined
+      ): Promise<RethnetAccount> {
+        const newCode: Bytecode | undefined =
+          account.codeHash === KECCAK256_NULL
+            ? undefined
+            : account.codeHash === code?.hash
+            ? code
+            : {
+                hash: account.codeHash,
+                code: contractCode!,
+              };
+
+        return {
+          balance: account.balance,
+          nonce: account.nonce,
+          code: newCode,
+        };
+      }
+    );
   }
 
   /**
    * Update the contract code for the given address.
    */
   public async putContractCode(address: Address, value: Buffer): Promise<void> {
-    return this._state.putContractCode(address, value);
+    const codeHash = keccak256(value);
+    return this._state.modifyAccount(
+      address,
+      async function (
+        balance: bigint,
+        nonce: bigint,
+        code: Bytecode | undefined
+      ): Promise<RethnetAccount> {
+        const newCode: Bytecode | undefined =
+          codeHash === KECCAK256_NULL
+            ? undefined
+            : codeHash === code?.hash
+            ? code
+            : {
+                hash: codeHash,
+                code: value,
+              };
+
+        return {
+          balance,
+          nonce,
+          code: newCode,
+        };
+      }
+    );
   }
 
   /**
