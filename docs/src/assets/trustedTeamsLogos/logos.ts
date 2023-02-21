@@ -44,7 +44,7 @@ export const TrustedTeamsLogos = [
   },
   {
     img: require("./aragonOne.png"),
-    alt: "ARAGONE ONE company logo",
+    alt: "ARAGON ONE company logo",
   },
   {
     img: require("./kleros.png"),
@@ -215,7 +215,7 @@ export const TrustedTeamsLogosDark = [
   },
   {
     img: require("./dark/aragonOne-dark.png"),
-    alt: "ARAGONE ONE company logo",
+    alt: "ARAGON ONE company logo",
   },
   {
     img: require("./dark/kleros-dark.png"),
