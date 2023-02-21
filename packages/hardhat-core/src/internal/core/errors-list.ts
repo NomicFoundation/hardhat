@@ -960,7 +960,7 @@ We recommend not using this kind of dependency.`,
       number: 604,
       message: "Error running JSON-RPC server: %error%",
       title: "Error running JSON-RPC server",
-      description: `There was error while starting the JSON-RPC HTTP server.`,
+      description: `There was an error while starting the JSON-RPC HTTP server.`,
       shouldBeReported: false,
     },
     JSONRPC_UNSUPPORTED_NETWORK: {
