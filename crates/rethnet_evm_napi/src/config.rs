@@ -105,8 +105,7 @@ impl TryFrom<Config> for CfgEnv {
             .map_or(default.spec_id, |spec_id| spec_id.into());
 
         let limit_contract_code_size = value.limit_contract_code_size.map_or(Ok(None), |size| {
-            // TODO: the lossless check in get_u64 is broken: https://github.com/napi-rs/napi-rs/pull/1348
-            if let (false, size, _lossless) = size.get_u64() {
+            if let (false, size, true) = size.get_u64() {
                 usize::try_from(size).map_or_else(
                     |e| Err(napi::Error::new(Status::InvalidArg, e.to_string())),
                     |size| Ok(Some(size)),
