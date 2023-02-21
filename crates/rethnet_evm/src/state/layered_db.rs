@@ -252,8 +252,6 @@ impl State for LayeredState<RethnetLayer> {
             .cloned()
             .flatten();
 
-        log::debug!("account with address `{}`: {:?}", address, account);
-
         // TODO: Move this out of LayeredState when forking
         Ok(account.or(Some(AccountInfo {
             balance: U256::ZERO,
