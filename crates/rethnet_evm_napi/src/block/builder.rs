@@ -6,8 +6,8 @@ use napi::{
     Status,
 };
 use napi_derive::napi;
-use rethnet_eth::{Address, U256};
-use rethnet_evm::state::StateError;
+use rethnet_eth::{block::Header, Address, U256};
+use rethnet_evm::{state::StateError, CfgEnv, HeaderData, TxEnv};
 
 use crate::{
     blockchain::Blockchain,
@@ -35,9 +35,9 @@ impl BlockBuilder {
         parent: BlockHeader,
         block: BlockConfig,
     ) -> napi::Result<BlockBuilder> {
-        let config = config.try_into()?;
-        let parent = parent.try_into()?;
-        let block = block.try_into()?;
+        let config = CfgEnv::try_from(config)?;
+        let parent = Header::try_from(parent)?;
+        let block = HeaderData::try_from(block)?;
 
         let builder = rethnet_evm::BlockBuilder::new(
             blockchain.as_inner().clone(),
@@ -60,7 +60,7 @@ impl BlockBuilder {
     ) -> napi::Result<ExecutionResult> {
         let mut builder = self.builder.lock().await;
         if let Some(builder) = builder.as_mut() {
-            let transaction = transaction.try_into()?;
+            let transaction = TxEnv::try_from(transaction)?;
 
             let inspector = tracer.map(|tracer| tracer.as_dyn_inspector());
 
@@ -78,17 +78,16 @@ impl BlockBuilder {
         }
     }
 
-    #[napi]
     /// This call consumes the [`BlockBuilder`] object in Rust. Afterwards, you can no longer call
     /// methods on the JS object.
+    #[napi]
     pub async fn finalize(&self, rewards: Vec<(Buffer, BigInt)>) -> napi::Result<()> {
         let mut builder = self.builder.lock().await;
         if let Some(builder) = builder.take() {
             let rewards = rewards
                 .into_iter()
                 .map(|(address, reward)| {
-                    reward
-                        .try_cast()
+                    TryCast::<U256>::try_cast(reward)
                         .map(|reward| (Address::from_slice(&address), reward))
                 })
                 .collect::<napi::Result<Vec<(Address, U256)>>>()?;
@@ -105,9 +104,9 @@ impl BlockBuilder {
         }
     }
 
-    #[napi]
     /// This call consumes the [`BlockBuilder`] object in Rust. Afterwards, you can no longer call
     /// methods on the JS object.
+    #[napi]
     pub async fn abort(&self) -> napi::Result<()> {
         let mut builder = self.builder.lock().await;
         if let Some(builder) = builder.take() {
