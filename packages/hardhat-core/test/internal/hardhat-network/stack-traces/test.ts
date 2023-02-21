@@ -792,12 +792,10 @@ const solidityCompilers: SolidityCompiler[] = [
   {
     solidityVersion: "0.8.14",
     compilerPath: "soljson-v0.8.14+commit.80d49f37.js",
-    latestSolcVersion: true,
   },
   {
     solidityVersion: "0.8.15",
     compilerPath: "soljson-v0.8.15+commit.e14f2714.js",
-    latestSolcVersion: true,
   },
   {
     solidityVersion: "0.8.16",
@@ -807,6 +805,11 @@ const solidityCompilers: SolidityCompiler[] = [
   {
     solidityVersion: "0.8.17",
     compilerPath: "soljson-v0.8.17+commit.8df45f5f.js",
+    latestSolcVersion: true,
+  },
+  {
+    solidityVersion: "0.8.18",
+    compilerPath: "soljson-v0.8.18+commit.87f61d96.js",
     latestSolcVersion: true,
   },
 ];
