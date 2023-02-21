@@ -1,5 +1,8 @@
 use rethnet_eth::Bytes;
-use revm::interpreter::{Gas, InstructionResult};
+use revm::{
+    interpreter::{opcode, Gas, InstructionResult, Interpreter},
+    Database, EVMData, Inspector,
+};
 
 /// A trace for an EVM call.
 #[derive(Default)]
@@ -43,5 +46,56 @@ impl Trace {
         };
 
         self.steps.push(step);
+    }
+}
+
+/// Object that gathers trace information during EVM execution and can be turned into a trace upon completion.
+#[derive(Default)]
+pub struct TraceCollector {
+    trace: Trace,
+    opcode_stack: Vec<u8>,
+}
+
+impl TraceCollector {
+    /// Converts the [`Tracer`] into its [`Trace`].
+    pub fn into_trace(self) -> Trace {
+        self.trace
+    }
+}
+
+impl<D> Inspector<D> for TraceCollector
+where
+    D: Database,
+{
+    fn step(
+        &mut self,
+        interp: &mut Interpreter,
+        _data: &mut EVMData<'_, D>,
+        _is_static: bool,
+    ) -> InstructionResult {
+        self.opcode_stack.push(interp.current_opcode());
+
+        InstructionResult::Continue
+    }
+
+    fn step_end(
+        &mut self,
+        interp: &mut Interpreter,
+        _data: &mut EVMData<'_, D>,
+        _is_static: bool,
+        exit_code: InstructionResult,
+    ) -> InstructionResult {
+        let opcode = self
+            .opcode_stack
+            .pop()
+            .expect("There must always be an opcode when ending a step");
+
+        self.trace.add_step(opcode, interp.gas(), exit_code);
+
+        if opcode == opcode::RETURN || opcode == opcode::REVERT {
+            self.trace.return_value = interp.return_value();
+        }
+
+        exit_code
     }
 }
