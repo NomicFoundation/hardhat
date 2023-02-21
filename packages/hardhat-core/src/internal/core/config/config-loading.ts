@@ -296,7 +296,10 @@ function checkUnsupportedSolidityConfig(resolvedConfig: HardhatConfig) {
 
   const unsupportedVersions: string[] = [];
   for (const solcVersion of solcVersions) {
-    if (!semver.satisfies(solcVersion, SUPPORTED_SOLIDITY_VERSION_RANGE)) {
+    if (
+      !semver.satisfies(solcVersion, SUPPORTED_SOLIDITY_VERSION_RANGE)
+      && !unsupportedVersions.includes(solcVersion)
+    ) {
       unsupportedVersions.push(solcVersion);
     }
   }
