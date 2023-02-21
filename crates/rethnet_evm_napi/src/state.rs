@@ -7,8 +7,8 @@ use napi::{bindgen_prelude::*, JsFunction, JsObject, NapiRaw, Status};
 use napi_derive::napi;
 use rethnet_eth::{signature::private_key_to_address, Address, B256, U256};
 use rethnet_evm::{
-    state::{AsyncState, LayeredState, RethnetLayer, StateError, SyncState},
-    AccountInfo, Bytecode, HashMap, StateDebug, KECCAK_EMPTY,
+    state::{AsyncState, LayeredState, RethnetLayer, StateDebug, StateError, SyncState},
+    AccountInfo, Bytecode, HashMap, KECCAK_EMPTY,
 };
 use secp256k1::Secp256k1;
 

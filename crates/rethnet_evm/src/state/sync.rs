@@ -16,7 +16,7 @@ use tokio::{
     task::{self, JoinHandle},
 };
 
-use crate::{debug::ModifierFn, StateDebug};
+use crate::state::{AccountModifierFn, StateDebug};
 
 use super::request::Request;
 
@@ -181,7 +181,11 @@ where
     }
 
     /// Modifies the account at the specified address using the provided function.
-    pub async fn modify_account(&self, address: Address, modifier: ModifierFn) -> Result<(), E> {
+    pub async fn modify_account(
+        &self,
+        address: Address,
+        modifier: AccountModifierFn,
+    ) -> Result<(), E> {
         let (sender, receiver) = oneshot::channel();
 
         self.request_sender

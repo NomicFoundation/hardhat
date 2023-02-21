@@ -2,7 +2,8 @@ use auto_impl::auto_impl;
 use rethnet_eth::{Address, B256, U256};
 use revm::primitives::{AccountInfo, Bytecode};
 
-pub type ModifierFn = Box<dyn Fn(&mut U256, &mut u64, &mut Option<Bytecode>) + Send>;
+/// Function type for modifying account information.
+pub type AccountModifierFn = Box<dyn Fn(&mut U256, &mut u64, &mut Option<Bytecode>) + Send>;
 
 /// A trait for debug operation on a database.
 #[auto_impl(Box)]
@@ -21,8 +22,11 @@ pub trait StateDebug {
     ) -> Result<(), Self::Error>;
 
     /// Modifies the account at the specified address using the provided function.
-    fn modify_account(&mut self, address: Address, modifier: ModifierFn)
-        -> Result<(), Self::Error>;
+    fn modify_account(
+        &mut self,
+        address: Address,
+        modifier: AccountModifierFn,
+    ) -> Result<(), Self::Error>;
 
     /// Removes and returns the account at the specified address, if it exists.
     fn remove_account(&mut self, address: Address) -> Result<Option<AccountInfo>, Self::Error>;

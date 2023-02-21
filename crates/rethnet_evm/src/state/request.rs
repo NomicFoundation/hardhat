@@ -9,7 +9,7 @@ use revm::{
 };
 use tokio::sync::oneshot;
 
-use crate::{debug::ModifierFn, StateDebug};
+use crate::state::{AccountModifierFn, StateDebug};
 
 /// The request type used internally by a [`SyncDatabase`].
 pub enum Request<E>
@@ -45,7 +45,7 @@ where
     },
     ModifyAccount {
         address: Address,
-        modifier: ModifierFn,
+        modifier: AccountModifierFn,
         sender: oneshot::Sender<Result<(), E>>,
     },
     RemoveAccount {
