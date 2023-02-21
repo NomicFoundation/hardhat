@@ -4,6 +4,7 @@ import type {
   DeployStateExecutionCommand,
 } from "types/deployment";
 import { ResultsAccumulator, VertexVisitResult } from "types/graph";
+import { IgnitionError } from "utils/errors";
 
 export function isDeployStateExecutionCommand(
   command: DeployStateCommand
@@ -16,7 +17,7 @@ export function isDeployStateExecutionCommand(
 }
 
 export function assertNeverMessageType(action: never) {
-  throw new Error(`Unexpected message type ${action}`);
+  throw new IgnitionError(`Unexpected message type ${action}`);
 }
 
 export function viewExecutionResults(

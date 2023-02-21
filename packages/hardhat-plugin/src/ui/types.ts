@@ -3,6 +3,7 @@ import {
   ExecutionVertex,
   ExecutionVertexType,
   VertexVisitResultFailure,
+  IgnitionError,
 } from "@ignored/ignition-core";
 
 interface VertexSuccess {
@@ -193,5 +194,5 @@ export interface AddressMap {
 }
 
 function assertNeverUiVertexType(type: never): string {
-  throw new Error(`Unexpected ui vertex type ${type}`);
+  throw new IgnitionError(`Unexpected ui vertex type ${type}`);
 }

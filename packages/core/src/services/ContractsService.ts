@@ -7,6 +7,7 @@ import {
   SignersProvider,
   TransactionsProvider,
 } from "types/providers";
+import { IgnitionError } from "utils/errors";
 import { sleep } from "utils/sleep";
 import { TxSender } from "utils/tx-sender";
 
@@ -79,7 +80,9 @@ export class ContractsService implements IContractsService {
 
       if (blockNumberWhenSent + 5 <= currentBlockNumber) {
         if (retries === txOptions.maxRetries) {
-          throw new Error("Transaction not confirmed within max retry limit");
+          throw new IgnitionError(
+            "Transaction not confirmed within max retry limit"
+          );
         }
 
         const txToSend = await this._bump(
@@ -162,7 +165,7 @@ export class ContractsService implements IContractsService {
       };
     }
 
-    throw new Error(
+    throw new IgnitionError(
       `Transaction doesn't have gasPrice or maxFeePerGas/maxPriorityFeePerGas`
     );
   }

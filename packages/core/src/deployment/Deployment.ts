@@ -14,6 +14,7 @@ import {
   VertexVisitResultFailure,
 } from "types/graph";
 import { ICommandJournal } from "types/journal";
+import { IgnitionError } from "utils/errors";
 
 import {
   initializeDeployState,
@@ -163,7 +164,7 @@ export class Deployment {
     const executionGraph = this.state.transform.executionGraph;
 
     if (executionGraph === null) {
-      throw new Error("Cannot read from unset execution graph");
+      throw new IgnitionError("Cannot read from unset execution graph");
     }
 
     return [...Object.entries(this.state.execution.vertexes)]

@@ -2,6 +2,8 @@ import { serializeError } from "serialize-error";
 
 import { FutureOutput, SerializedFutureResult } from "types/serialization";
 
+import { IgnitionError } from "./errors";
+
 export function serializeFutureOutput(x: FutureOutput): SerializedFutureResult {
   if (typeof x === "string") {
     return { _kind: "string" as const, value: x };
@@ -16,16 +18,18 @@ export function serializeFutureOutput(x: FutureOutput): SerializedFutureResult {
   }
 
   const exhaustiveCheck: never = x;
-  throw new Error(`Unexpected serialization type ${exhaustiveCheck}`);
+  throw new IgnitionError(`Unexpected serialization type ${exhaustiveCheck}`);
 }
 
 export function deserializeFutureOutput(x: any) {
   if (x === null || x === undefined) {
-    throw new Error("[deserializeFutureOutput] value is null or undefined");
+    throw new IgnitionError(
+      "[deserializeFutureOutput] value is null or undefined"
+    );
   }
 
   if (!("_kind" in x)) {
-    throw new Error(
+    throw new IgnitionError(
       "[deserializeFutureOutput] value was not serialized by Ignition"
     );
   }

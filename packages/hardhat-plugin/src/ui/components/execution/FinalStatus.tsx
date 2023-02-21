@@ -2,6 +2,7 @@ import {
   DeployState,
   ExecutionVertex,
   viewExecutionResults,
+  IgnitionError,
 } from "@ignored/ignition-core";
 import { Box, Text } from "ink";
 
@@ -195,7 +196,7 @@ const resolveFailureTypeFrom = (vertex: ExecutionVertex): string => {
 };
 
 function assertNeverUiVertexType(vertex: never): string {
-  throw new Error(`Unexpected ui vertex type ${vertex}`);
+  throw new IgnitionError(`Unexpected ui vertex type ${vertex}`);
 }
 
 const DepError = ({

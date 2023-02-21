@@ -8,6 +8,7 @@ import { ITransactionsService } from "services/TransactionsService";
 import { Services, TransactionOptions } from "services/types";
 import { Artifact } from "types/hardhat";
 import { HasParamResult } from "types/providers";
+import { IgnitionError } from "utils/errors";
 
 export function getMockServices() {
   const mockServices: Services = {
@@ -50,7 +51,7 @@ class MockArtifactsService implements IArtifactsService {
   }
 
   public getArtifact(_name: string): Promise<Artifact> {
-    throw new Error("Method not implemented.");
+    throw new IgnitionError("Method not implemented.");
   }
 }
 
@@ -63,16 +64,16 @@ class MockTransactionService implements ITransactionsService {
     _filter: ethers.EventFilter,
     _durationMs: number
   ): Promise<ethers.providers.Log> {
-    throw new Error("Method not implemented.");
+    throw new IgnitionError("Method not implemented.");
   }
 }
 
 class MockConfigService implements IConfigService {
   public getParam(_paramName: string): Promise<string | number> {
-    throw new Error("Method not implemented.");
+    throw new IgnitionError("Method not implemented.");
   }
 
   public hasParam(_paramName: string): Promise<HasParamResult> {
-    throw new Error("Method not implemented.");
+    throw new IgnitionError("Method not implemented.");
   }
 }

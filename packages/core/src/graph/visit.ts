@@ -4,6 +4,7 @@ import {
   VertexVisitResult,
   VisitResult,
 } from "types/graph";
+import { IgnitionError } from "utils/errors";
 
 export async function visit<T, C>(
   phase: "Execution" | "Validation",
@@ -22,7 +23,7 @@ export async function visit<T, C>(
     const vertex = graph.vertexes.get(vertexId);
 
     if (vertex === undefined) {
-      throw new Error(`Could not get vertex ${vertexId}`);
+      throw new IgnitionError(`Could not get vertex ${vertexId}`);
     }
 
     const vertexVisitResult = await vistitorAction(

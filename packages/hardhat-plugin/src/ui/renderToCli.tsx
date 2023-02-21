@@ -2,6 +2,7 @@ import {
   DeployState,
   ModuleParams,
   UpdateUiAction,
+  IgnitionError,
 } from "@ignored/ignition-core";
 import { render } from "ink";
 
@@ -54,7 +55,7 @@ export function unmountCli(state: RenderState): Promise<void> {
     state.waitUntilExit === null ||
     state.clear === null
   ) {
-    throw new Error("Cannot unmount with no unmount function");
+    throw new IgnitionError("Cannot unmount with no unmount function");
   }
 
   state.clear();

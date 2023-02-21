@@ -25,6 +25,8 @@ import type {
 } from "types/future";
 import { Artifact } from "types/hardhat";
 
+import { IgnitionError } from "./errors";
+
 export function isArtifact(artifact: any): artifact is Artifact {
   return (
     artifact !== null &&
@@ -151,5 +153,5 @@ export function assertUnknownDeploymentVertexType(
 
   const forReport = "type" in vertex ? vertex.type : vertex;
 
-  throw new Error(`Unknown deployment vertex type: ${forReport}`);
+  throw new IgnitionError(`Unknown deployment vertex type: ${forReport}`);
 }
