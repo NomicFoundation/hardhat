@@ -38,7 +38,7 @@ $ npx hardhat
 Add **Ignition** to your **Hardhat** project by installing the plugin:
 
 ```bash
-npm install @ignored/hardhat-ignition
+npm install --save-dev @ignored/hardhat-ignition
 ```
 
 Modify your `hardhat.config.js` file, to include **Ignition**:

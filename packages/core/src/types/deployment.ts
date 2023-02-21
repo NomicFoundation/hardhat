@@ -47,6 +47,7 @@ export type DeployStateExecutionCommand =
   | {
       type: "EXECUTION::START";
       executionGraphHash: string;
+      force: boolean;
     }
   | {
       type: "EXECUTION::SET_BATCH";
@@ -162,6 +163,7 @@ export interface ExecutionOptions {
   gasPriceIncrementPerRetry: BigNumber | null;
   pollingInterval: number;
   eventDuration: number;
+  force: boolean;
 }
 
 export interface ExecutionContext {

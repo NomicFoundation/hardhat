@@ -84,6 +84,16 @@ describe("Reruning execution", () => {
                 return {};
               }
 
+              if (tx === "0x00003") {
+                return {
+                  contractAddress: "0x1F98431c8aD98523631AE4a59f267346ea31F984",
+                };
+              }
+
+              if (tx === "0x00004") {
+                return {};
+              }
+
               throw new Error(`Unexpected transaction sent: ${tx}`);
             },
           },
@@ -133,6 +143,19 @@ describe("Reruning execution", () => {
         redeployResult.result.token.value.address,
         "0x1F98431c8aD98523631AE4a59f267346ea31F984"
       );
+    });
+
+    it("should rerun all on-chain transactions on second run if force enabled", async () => {
+      // Arrange
+      await ignition.deploy(myModule, {} as any);
+
+      // Act
+      const [redeployResult] = await ignition.deploy(myModule, {
+        force: true,
+      } as any);
+
+      // Assert
+      assert.equal(redeployResult._kind, "success");
     });
   });
 

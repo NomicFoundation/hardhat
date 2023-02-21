@@ -85,12 +85,14 @@ task("deploy")
     "parameters",
     "A JSON object as a string, of the module parameters, or a relative path to a JSON file"
   )
+  .addFlag("force", "restart the deployment ignoring previous history")
   .setAction(
     async (
       {
         moduleNameOrPath,
         parameters: parametersInput,
-      }: { moduleNameOrPath: string; parameters?: string },
+        force,
+      }: { moduleNameOrPath: string; parameters?: string; force: boolean },
       hre
     ) => {
       if (hre.network.name !== "hardhat") {
@@ -147,6 +149,7 @@ task("deploy")
           parameters,
           journalPath,
           ui: DISPLAY_UI,
+          force,
         });
       } catch (err) {
         if (DISPLAY_UI) {

@@ -25,7 +25,10 @@ export class IgnitionWrapper {
   constructor(
     private _providers: Providers,
     private _ethers: HardhatEthers,
-    private _deployOptions: Omit<IgnitionDeployOptions, keyof { ui?: boolean }>
+    private _deployOptions: Omit<
+      IgnitionDeployOptions,
+      keyof { force?: boolean }
+    >
   ) {}
 
   public async deploy<T extends ModuleDict>(
@@ -35,9 +38,11 @@ export class IgnitionWrapper {
       journalPath?: string | undefined;
       ui?: boolean;
       journal?: ICommandJournal;
+      force?: boolean;
     }
   ): Promise<DeployResult> {
     const showUi = deployParams?.ui ?? false;
+    const force = deployParams?.force ?? false;
 
     const services = createServices(this._providers);
     const chainId = await services.network.getChainId();
@@ -58,10 +63,10 @@ export class IgnitionWrapper {
       await this._providers.config.setParams(deployParams.parameters);
     }
 
-    const [deploymentResult] = await ignition.deploy(
-      ignitionModule,
-      this._deployOptions
-    );
+    const [deploymentResult] = await ignition.deploy(ignitionModule, {
+      ...this._deployOptions,
+      force,
+    });
 
     if (deploymentResult._kind === "hold") {
       const heldVertexes = deploymentResult.holds;

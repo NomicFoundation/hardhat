@@ -111,10 +111,11 @@ export class Deployment {
     });
   }
 
-  public startExecutionPhase(executionGraphHash: string) {
+  public startExecutionPhase(executionGraphHash: string, force: boolean) {
     return this._runDeploymentCommand("Starting Execution", {
       type: "EXECUTION::START",
       executionGraphHash,
+      force,
     });
   }
 

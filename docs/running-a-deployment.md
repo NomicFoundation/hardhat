@@ -117,4 +117,10 @@ Each run logs its events to a journal file (recorded in a sibling file to the mo
 
 > **NOTE**: Changes to modules between runs of a deployment are not currently supported
 
+To start a deployment again, ignoring the state from previous runs and rerunning the entirety of the module, the force flag can be used:
+
+```
+npx hardhat deploy MyModule.js --network localhost --force
+```
+
 For non-development network deployments, this means some form of deployment freezing will be recommended that records relevant information such as contract abi, deployed address and network. These files will be recommended to be committed into project repositories as well.

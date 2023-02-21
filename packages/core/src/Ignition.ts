@@ -31,6 +31,7 @@ export interface IgnitionDeployOptions {
   gasPriceIncrementPerRetry: BigNumber | null;
   pollingInterval: number;
   eventDuration: number;
+  force: boolean;
 }
 
 type ModuleOutputs = Record<string, any>;
@@ -104,6 +105,7 @@ export class Ignition {
         gasPriceIncrementPerRetry: options.gasPriceIncrementPerRetry,
         pollingInterval: options.pollingInterval,
         eventDuration: options.eventDuration,
+        force: options.force,
       });
 
       return this._buildOutputFrom(executionResult, moduleOutputs);

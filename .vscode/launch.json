@@ -22,7 +22,7 @@
     {
       "name": "Debug core tests",
       "internalConsoleOptions": "openOnSessionStart",
-      "program": "${workspaceFolder}/packages/core/node_modules/mocha/bin/_mocha",
+      "program": "${workspaceFolder}/node_modules/mocha/bin/_mocha",
       "request": "launch",
       "skipFiles": ["<node_internals>/**"],
       "type": "node",

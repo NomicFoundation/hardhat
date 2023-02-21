@@ -96,7 +96,8 @@ export function deployStateReducer(
         initialiseExecutionStateFrom(
           state.transform.executionGraph,
           action.executionGraphHash,
-          state.execution
+          state.execution,
+          action.force
         ),
         action
       );
@@ -131,12 +132,13 @@ export function deployStateReducer(
 function initialiseExecutionStateFrom(
   executionGraph: ExecutionGraph,
   executionGraphHash: string,
-  previousExecutionState: ExecutionState
+  previousExecutionState: ExecutionState,
+  force: boolean
 ): ExecutionState {
   const vertexes = Array.from(executionGraph.vertexes.keys()).reduce<{
     [key: number]: VertexExecutionState;
   }>((acc, id) => {
-    if (previousExecutionState.vertexes[id]?.status === "COMPLETED") {
+    if (!force && previousExecutionState.vertexes[id]?.status === "COMPLETED") {
       return { ...acc, [id]: previousExecutionState.vertexes[id] };
     }
 

@@ -39,7 +39,7 @@ export async function executeInBatches(
 ): Promise<VisitResult> {
   const executionGraphHash = hashExecutionGraph(executionGraph);
 
-  await deployment.startExecutionPhase(executionGraphHash);
+  await deployment.startExecutionPhase(executionGraphHash, options.force);
 
   while (deployment.hasUnstarted()) {
     const batch = calculateNextBatch(
