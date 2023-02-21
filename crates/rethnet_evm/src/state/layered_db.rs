@@ -215,12 +215,14 @@ impl LayeredState<RethnetLayer> {
     }
 
     /// Removes the [`AccountInfo`] corresponding to the specified address.
-    pub fn remove_account(&mut self, address: &Address) {
+    fn remove_account(&mut self, address: &Address) -> Option<AccountInfo> {
         let account_info = self
             .iter()
-            .find_map(|layer| layer.account_infos.get(address));
+            .find_map(|layer| layer.account_infos.get(address))
+            .cloned()
+            .flatten();
 
-        if let Some(Some(account_info)) = account_info {
+        if let Some(account_info) = &account_info {
             debug_assert!(account_info.code.is_none());
 
             let code_hash = account_info.code_hash;
@@ -239,6 +241,8 @@ impl LayeredState<RethnetLayer> {
             // Write None to signal that the account's storage was deleted
             self.last_layer_mut().storage.insert(*address, None);
         }
+
+        account_info
     }
 }
 
@@ -399,17 +403,7 @@ impl StateDebug for LayeredState<RethnetLayer> {
     }
 
     fn remove_account(&mut self, address: Address) -> Result<Option<AccountInfo>, Self::Error> {
-        // Set None to indicate the account was deleted
-        if let Some(account_info) = self.last_layer_mut().account_infos.get_mut(&address) {
-            let old_account_info = account_info.clone();
-
-            *account_info = None;
-
-            Ok(old_account_info)
-        } else {
-            self.last_layer_mut().account_infos.insert(address, None);
-            Ok(None)
-        }
+        Ok(self.remove_account(&address))
     }
 
     fn remove_snapshot(&mut self, state_root: &B256) -> bool {
