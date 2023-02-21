@@ -16,7 +16,6 @@ rethnet_evm = { version = "0.1.0-dev", path = "../rethnet_evm" }
 rethnet_eth = { version = "0.1.0-dev", path = "../rethnet_eth" }
 secp256k1 = { version = "0.24.0", default-features = false, features = ["alloc"] }
 serde_json = { version = "1.0.85", default-features = false, features = ["alloc"] }
-sha3 = { version = "0.10.5", default-features = false }
 
 [build-dependencies]
 napi-build = "2.0.1"

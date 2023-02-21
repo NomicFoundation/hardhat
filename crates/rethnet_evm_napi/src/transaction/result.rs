@@ -71,7 +71,6 @@ pub struct RevertResult {
 pub enum ExceptionalHalt {
     OutOfGas,
     OpcodeNotFound,
-    // CallNotAllowedInsideStatic,
     InvalidFEOpcode,
     InvalidJump,
     NotActivated,
@@ -93,9 +92,6 @@ impl From<rethnet_evm::Halt> for ExceptionalHalt {
         match halt {
             rethnet_evm::Halt::OutOfGas(..) => ExceptionalHalt::OutOfGas,
             rethnet_evm::Halt::OpcodeNotFound => ExceptionalHalt::OpcodeNotFound,
-            // rethnet_evm::Halt::CallNotAllowedInsideStatic => {
-            //     ExceptionalHalt::CallNotAllowedInsideStatic
-            // }
             rethnet_evm::Halt::InvalidFEOpcode => ExceptionalHalt::InvalidFEOpcode,
             rethnet_evm::Halt::InvalidJump => ExceptionalHalt::InvalidJump,
             rethnet_evm::Halt::NotActivated => ExceptionalHalt::NotActivated,
