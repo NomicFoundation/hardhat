@@ -1,5 +1,4 @@
 import debug from "debug";
-import abi from "ethereumjs-abi";
 
 import {
   CompilerInput,
@@ -23,6 +22,8 @@ import {
   SourceLocation,
 } from "./model";
 import { decodeInstructions } from "./source-maps";
+
+const abi = require("ethereumjs-abi");
 
 const log = debug("hardhat:core:hardhat-network:compiler-to-model");
 

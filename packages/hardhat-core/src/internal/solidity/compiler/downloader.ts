@@ -294,7 +294,7 @@ export class CompilerDownloader implements ICompilerDownloader {
     build: CompilerBuild,
     downloadPath: string
   ): Promise<boolean> {
-    const ethereumjsUtil = await import("@nomicfoundation/ethereumjs-util");
+    const ethereumjsUtil = require("@nomicfoundation/ethereumjs-util");
     const { keccak256 } = await import("../../util/keccak");
 
     const expectedKeccak256 = build.keccak256;
@@ -328,7 +328,7 @@ export class CompilerDownloader implements ICompilerDownloader {
       downloadPath.endsWith(".zip")
     ) {
       // some window builds are zipped, some are not
-      const { default: AdmZip } = await import("adm-zip");
+      const AdmZip = require("adm-zip");
 
       const solcFolder = path.join(this._compilersDir, build.version);
       await fsExtra.ensureDir(solcFolder);
