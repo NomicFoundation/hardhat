@@ -709,6 +709,22 @@ const communityPlugins: IPlugin[] = [
       "Hardhat plugin to generate customizable smart contracts documentation",
     tags: ["Documentation", "NatSpec", "Markdown"],
   },
+  {
+    name: "hardhat-contract-clarity",
+    author: "Marc-Aurele Besner",
+    authorUrl: "https://github.com/marc-aurele-besner",
+    description:
+      "This Hardhat plugin add 3 tasks to Hardhat, to summarize a smart contract in human readable format using OpenAI GPT-3, to create a readme looking at your package.json and a task to ask question to chatGPT when running into errors.",
+    tags: ["chatGPT", "openai", "gpt3", "ai"],
+  },
+  {
+    name: "transaction-retry-tool",
+    author: "Marc-Aurele Besner",
+    authorUrl: "https://github.com/marc-aurele-besner",
+    description:
+      "This Hardhat plugin provides two tasks and two functions to help you manage and optimize your transactions on Ethereum compatible blockchain. The two tasks include the ability to retry a transaction and retrieve the current gas cost.",
+    tags: ["transaction", "gasPrice", "retry", "helper"],
+  },
 ];
 
 const officialPlugins: IPlugin[] = [
