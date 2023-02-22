@@ -160,7 +160,7 @@ function processContractAstNode(
 
   for (const node of contractNode.nodes) {
     if (node.nodeType === "FunctionDefinition") {
-      const functionAbi = contractAbi?.find(
+      const functionAbis = contractAbi?.filter(
         (abiEntry) => abiEntry.name === node.name
       );
 
@@ -169,7 +169,7 @@ function processContractAstNode(
         fileIdToSourceFile,
         contract,
         file,
-        functionAbi
+        functionAbis
       );
     } else if (node.nodeType === "ModifierDefinition") {
       processModifierDefinitionAstNode(
@@ -198,7 +198,7 @@ function processFunctionDefinitionAstNode(
   fileIdToSourceFile: Map<number, SourceFile>,
   contract: Contract | undefined,
   file: SourceFile,
-  functionAbi?: ContractAbiEntry
+  functionAbis?: ContractAbiEntry[]
 ) {
   if (functionDefinitionNode.implemented === false) {
     return;
@@ -224,7 +224,25 @@ function processFunctionDefinitionAstNode(
     selector = astFunctionDefinitionToSelector(functionDefinitionNode);
   }
 
-  const paramTypes = functionAbi?.inputs?.map((input) => input.type);
+  // function can be overloaded, match the abi by the selector
+  const matchingFunctionAbi = functionAbis?.find((functionAbi) => {
+    if (functionAbi.name === undefined) {
+      return false;
+    }
+
+    const functionAbiSelector = abi.methodID(
+      functionAbi.name,
+      functionAbi.inputs?.map((input) => input.type) ?? []
+    );
+
+    if (selector === undefined || functionAbiSelector === undefined) {
+      return false;
+    }
+
+    return selector.equals(functionAbiSelector);
+  });
+
+  const paramTypes = matchingFunctionAbi?.inputs?.map((input) => input.type);
 
   const cf = new ContractFunction(
     functionDefinitionNode.name,
