@@ -6,10 +6,11 @@ import {
   bigIntToBuffer,
 } from "@nomicfoundation/ethereumjs-util";
 import { VM } from "@nomicfoundation/ethereumjs-vm";
-import abi from "ethereumjs-abi";
 
 import { MessageTrace } from "../../../../src/internal/hardhat-network/stack-traces/message-trace";
 import { VMTracer } from "../../../../src/internal/hardhat-network/stack-traces/vm-tracer";
+
+const abi = require("ethereumjs-abi");
 
 const senderPrivateKey = Buffer.from(
   "e331b6d69882b4cb4ea581d88e0b604039a3de5967688d3dcffdd2270c0fd109",

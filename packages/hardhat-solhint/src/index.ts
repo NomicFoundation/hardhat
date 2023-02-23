@@ -47,9 +47,10 @@ async function hasConfigFile(rootDirectory: string) {
 
 async function getSolhintConfig(rootDirectory: string) {
   let solhintConfig;
-  const { loadConfig, applyExtends } = await import(
-    "solhint/lib/config/config-file"
-  );
+  const {
+    loadConfig,
+    applyExtends,
+  } = require("solhint/lib/config/config-file");
   if (await hasConfigFile(rootDirectory)) {
     try {
       solhintConfig = await loadConfig();
@@ -83,7 +84,7 @@ function printReport(reports: any) {
 }
 
 subtask("hardhat-solhint:run-solhint", async (_, { config }) => {
-  const { processPath } = await import("solhint/lib/index");
+  const { processPath } = require("solhint/lib/index");
   return processPath(
     join(config.paths.sources, "**", "*.sol"),
     await getSolhintConfig(config.paths.root)
