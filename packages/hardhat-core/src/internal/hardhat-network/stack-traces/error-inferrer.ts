@@ -1,7 +1,9 @@
+/* eslint "@typescript-eslint/no-non-null-assertion": "error" */
 import { ERROR } from "@nomicfoundation/ethereumjs-evm/dist/exceptions";
 import { defaultAbiCoder as abi } from "@ethersproject/abi";
 import semver from "semver";
 
+import { assertHardhatInvariant } from "../../core/errors";
 import { AbiHelpers } from "../../util/abi-helpers";
 import { ReturnData } from "../provider/return-data";
 
@@ -69,13 +71,16 @@ export class ErrorInferrer {
       trace.calldata.slice(0, 4)
     );
 
-    if (this._isFunctionNotPayableError(trace, calledFunction)) {
+    if (
+      calledFunction !== undefined &&
+      this._isFunctionNotPayableError(trace, calledFunction)
+    ) {
       return [
         {
           type: StackTraceEntryType.FUNCTION_NOT_PAYABLE_ERROR,
           sourceReference: this._getFunctionStartSourceReference(
             trace,
-            calledFunction!
+            calledFunction
           ),
           value: trace.value,
         },
@@ -197,8 +202,9 @@ export class ErrorInferrer {
         stacktrace[i + 2].type === StackTraceEntryType.RETURNDATA_SIZE_ERROR
       ) {
         // ! below for tsc. we confirmed existence in the enclosing conditional.
-        const thatSrcRef = stacktrace[i + 2].sourceReference!;
+        const thatSrcRef = stacktrace[i + 2].sourceReference;
         if (
+          thatSrcRef !== undefined &&
           frame.sourceReference.range[0] === thatSrcRef.range[0] &&
           frame.sourceReference.range[1] === thatSrcRef.range[1] &&
           frame.sourceReference.line === thatSrcRef.line
@@ -286,7 +292,11 @@ export class ErrorInferrer {
             lastSubmessageData.stepIndex
           )
         ) {
-          const lastFrame = inferredStacktrace.pop()!;
+          const lastFrame = inferredStacktrace.pop();
+          assertHardhatInvariant(
+            lastFrame !== undefined,
+            "Expected inferred stack trace to have at least one frame"
+          );
           inferredStacktrace.push({
             type: StackTraceEntryType.CONTRACT_CALL_RUN_OUT_OF_GAS_ERROR,
             sourceReference: lastFrame.sourceReference,
@@ -421,13 +431,23 @@ export class ErrorInferrer {
         );
       } else if (isDecodedCallTrace(trace)) {
         // This is here because of the optimizations
+        const functionSelector =
+          trace.bytecode.contract.getFunctionFromSelector(
+            trace.calldata.slice(0, 4)
+          );
+
+        // in general this shouldn't happen, but it does when viaIR is enabled,
+        // "optimizerSteps": "u" is used, and the called function is fallback or
+        // receive
+        if (functionSelector === undefined) {
+          return;
+        }
+
         inferredStacktrace.push({
           type: StackTraceEntryType.REVERT_ERROR,
           sourceReference: this._getFunctionStartSourceReference(
             trace,
-            trace.bytecode.contract.getFunctionFromSelector(
-              trace.calldata.slice(0, 4)
-            )!
+            functionSelector
           ),
           message: new ReturnData(trace.returnData),
           isInvalidOpcodeError: lastInstruction.opcode === Opcode.INVALID,
@@ -617,15 +637,21 @@ export class ErrorInferrer {
       );
 
       if (calledFunction !== undefined) {
-        return [
-          {
-            type: StackTraceEntryType.INVALID_PARAMS_ERROR,
-            sourceReference: this._getFunctionStartSourceReference(
-              trace,
-              calledFunction
-            ),
-          },
-        ];
+        const isValidCalldata = calledFunction.isValidCalldata(
+          trace.calldata.slice(4)
+        );
+
+        if (!isValidCalldata) {
+          return [
+            {
+              type: StackTraceEntryType.INVALID_PARAMS_ERROR,
+              sourceReference: this._getFunctionStartSourceReference(
+                trace,
+                calledFunction
+              ),
+            },
+          ];
+        }
       }
 
       if (this._solidity063MaybeUnmappedRevert(trace)) {
@@ -646,10 +672,17 @@ export class ErrorInferrer {
     stacktrace: SolidityStackTrace
   ): SolidityStackTrace | undefined {
     if (this._isCalledNonContractAccountError(trace)) {
+      const sourceReference = this._getLastSourceReference(trace);
+
+      // We are sure this is not undefined because there was at least a call instruction
+      assertHardhatInvariant(
+        sourceReference !== undefined,
+        "Expected source reference to be defined"
+      );
+
       const nonContractCalledFrame: SolidityStackTraceEntry = {
         type: StackTraceEntryType.NONCONTRACT_ACCOUNT_CALLED_ERROR,
-        // We are sure this is not undefined because there was at least a call instruction
-        sourceReference: this._getLastSourceReference(trace)!,
+        sourceReference,
       };
 
       return [...stacktrace, nonContractCalledFrame];
@@ -749,12 +782,8 @@ export class ErrorInferrer {
 
   private _isFunctionNotPayableError(
     trace: DecodedCallMessageTrace,
-    calledFunction: ContractFunction | undefined
+    calledFunction: ContractFunction
   ): boolean {
-    if (calledFunction === undefined) {
-      return false;
-    }
-
     // This error doesn't return data
     if (trace.returnData.length > 0) {
       return false;
@@ -1057,7 +1086,14 @@ export class ErrorInferrer {
         continue;
       }
 
-      return sourceLocationToSourceReference(trace.bytecode, inst.location);
+      const sourceReference = sourceLocationToSourceReference(
+        trace.bytecode,
+        inst.location
+      );
+
+      if (sourceReference !== undefined) {
+        return sourceReference;
+      }
     }
 
     return undefined;
@@ -1105,14 +1141,35 @@ export class ErrorInferrer {
     trace: DecodedEvmMessageTrace,
     inst: Instruction
   ): RevertErrorStackTraceEntry {
+    const sourceReference = sourceLocationToSourceReference(
+      trace.bytecode,
+      inst.location
+    );
+    assertHardhatInvariant(
+      sourceReference !== undefined,
+      "Expected source reference to be defined"
+    );
+
     return {
       type: StackTraceEntryType.REVERT_ERROR,
-      sourceReference: sourceLocationToSourceReference(
-        trace.bytecode,
-        inst.location
-      )!,
+      sourceReference,
       message: new ReturnData(trace.returnData),
       isInvalidOpcodeError: inst.opcode === Opcode.INVALID,
+    };
+  }
+
+  private _instructionWithinFunctionToUnmappedSolc063RevertErrorStackTraceEntry(
+    trace: DecodedEvmMessageTrace,
+    inst: Instruction
+  ): UnmappedSolc063RevertErrorStackTraceEntry {
+    const sourceReference = sourceLocationToSourceReference(
+      trace.bytecode,
+      inst.location
+    );
+
+    return {
+      type: StackTraceEntryType.UNMAPPED_SOLC_0_6_3_REVERT_ERROR,
+      sourceReference,
     };
   }
 
@@ -1121,11 +1178,12 @@ export class ErrorInferrer {
     inst: Instruction,
     errorCode: bigint
   ): PanicErrorStackTraceEntry {
+    const lastSourceReference = this._getLastSourceReference(trace);
     return {
       type: StackTraceEntryType.PANIC_ERROR,
       sourceReference:
         sourceLocationToSourceReference(trace.bytecode, inst.location) ??
-        this._getLastSourceReference(trace)!,
+        lastSourceReference,
       errorCode,
     };
   }
@@ -1135,11 +1193,18 @@ export class ErrorInferrer {
     inst: Instruction,
     message: string
   ): CustomErrorStackTraceEntry {
+    const lastSourceReference = this._getLastSourceReference(trace);
+
+    assertHardhatInvariant(
+      lastSourceReference !== undefined,
+      "Expected last source reference to be defined"
+    );
+
     return {
       type: StackTraceEntryType.CUSTOM_ERROR,
       sourceReference:
         sourceLocationToSourceReference(trace.bytecode, inst.location) ??
-        this._getLastSourceReference(trace)!,
+        lastSourceReference,
       message,
     };
   }
@@ -1251,16 +1316,16 @@ export class ErrorInferrer {
   ): UnmappedSolc063RevertErrorStackTraceEntry | undefined {
     // If we are within a function there's a last valid location. It may
     // be the entire contract.
-    const prevInst = this._getLastInstructionWithValidLocation(trace)!;
+    const prevInst = this._getLastInstructionWithValidLocation(trace);
     const lastStep = trace.steps[trace.steps.length - 1] as EvmStep;
     const nextInstPc = lastStep.pc + 1;
     const hasNextInst = trace.bytecode.hasInstruction(nextInstPc);
 
     if (hasNextInst) {
       const nextInst = trace.bytecode.getInstruction(nextInstPc);
-      const prevLoc = prevInst.location!;
+      const prevLoc = prevInst?.location;
       const nextLoc = nextInst.location;
-      const prevFunc = prevLoc.getContainingFunction();
+      const prevFunc = prevLoc?.getContainingFunction();
       const nextFunc = nextLoc?.getContainingFunction();
 
       // This is probably a require. This means that we have the exact
@@ -1270,37 +1335,31 @@ export class ErrorInferrer {
       if (
         prevFunc !== undefined &&
         nextLoc !== undefined &&
+        prevLoc !== undefined &&
         prevLoc.equals(nextLoc)
       ) {
-        return {
-          ...this._instructionWithinFunctionToRevertStackTraceEntry(
-            trace,
-            nextInst
-          ),
-          type: StackTraceEntryType.UNMAPPED_SOLC_0_6_3_REVERT_ERROR,
-        };
+        return this._instructionWithinFunctionToUnmappedSolc063RevertErrorStackTraceEntry(
+          trace,
+          nextInst
+        );
       }
 
       let revertFrame: UnmappedSolc063RevertErrorStackTraceEntry | undefined;
 
       // If the previous and next location don't match, we try to use the
       // previous one if it's inside a function, otherwise we use the next one
-      if (prevFunc !== undefined) {
-        revertFrame = {
-          ...this._instructionWithinFunctionToRevertStackTraceEntry(
+      if (prevFunc !== undefined && prevInst !== undefined) {
+        revertFrame =
+          this._instructionWithinFunctionToUnmappedSolc063RevertErrorStackTraceEntry(
             trace,
             prevInst
-          ),
-          type: StackTraceEntryType.UNMAPPED_SOLC_0_6_3_REVERT_ERROR,
-        };
+          );
       } else if (nextFunc !== undefined) {
-        revertFrame = {
-          ...this._instructionWithinFunctionToRevertStackTraceEntry(
+        revertFrame =
+          this._instructionWithinFunctionToUnmappedSolc063RevertErrorStackTraceEntry(
             trace,
             nextInst
-          ),
-          type: StackTraceEntryType.UNMAPPED_SOLC_0_6_3_REVERT_ERROR,
-        };
+          );
       }
 
       if (revertFrame !== undefined) {
@@ -1310,18 +1369,15 @@ export class ErrorInferrer {
       return revertFrame;
     }
 
-    if (isCreateTrace(trace)) {
+    if (isCreateTrace(trace) && prevInst !== undefined) {
       // Solidity is smart enough to stop emitting extra instructions after
       // an unconditional revert happens in a constructor. If this is the case
       // we just return a special error.
       const constructorRevertFrame: UnmappedSolc063RevertErrorStackTraceEntry =
-        {
-          ...this._instructionWithinFunctionToRevertStackTraceEntry(
-            trace,
-            prevInst
-          ),
-          type: StackTraceEntryType.UNMAPPED_SOLC_0_6_3_REVERT_ERROR,
-        };
+        this._instructionWithinFunctionToUnmappedSolc063RevertErrorStackTraceEntry(
+          trace,
+          prevInst
+        );
 
       // When the latest instruction is not within a function we need
       // some default sourceReference to show to the user
@@ -1349,24 +1405,22 @@ export class ErrorInferrer {
       return constructorRevertFrame;
     }
 
-    // We may as well just be in a function or modifier and just happen
-    // to be at the last instruction of the runtime bytecode.
-    // In this case we just return whatever the last mapped intruction
-    // points to.
-    const latestInstructionRevertFrame: UnmappedSolc063RevertErrorStackTraceEntry =
-      {
-        ...this._instructionWithinFunctionToRevertStackTraceEntry(
+    if (prevInst !== undefined) {
+      // We may as well just be in a function or modifier and just happen
+      // to be at the last instruction of the runtime bytecode.
+      // In this case we just return whatever the last mapped intruction
+      // points to.
+      const latestInstructionRevertFrame: UnmappedSolc063RevertErrorStackTraceEntry =
+        this._instructionWithinFunctionToUnmappedSolc063RevertErrorStackTraceEntry(
           trace,
           prevInst
-        ),
-        type: StackTraceEntryType.UNMAPPED_SOLC_0_6_3_REVERT_ERROR,
-      };
+        );
 
-    if (latestInstructionRevertFrame.sourceReference !== undefined) {
-      this._solidity063CorrectLineNumber(latestInstructionRevertFrame);
+      if (latestInstructionRevertFrame.sourceReference !== undefined) {
+        this._solidity063CorrectLineNumber(latestInstructionRevertFrame);
+      }
+      return latestInstructionRevertFrame;
     }
-
-    return latestInstructionRevertFrame;
   }
 
   private _isContractTooLargeError(trace: DecodedCreateMessageTrace) {
@@ -1376,6 +1430,10 @@ export class ErrorInferrer {
   private _solidity063CorrectLineNumber(
     revertFrame: UnmappedSolc063RevertErrorStackTraceEntry
   ) {
+    if (revertFrame.sourceReference === undefined) {
+      return;
+    }
+
     const lines = revertFrame.sourceReference.sourceContent.split("\n");
 
     const currentLine = lines[revertFrame.sourceReference.line - 1];
@@ -1443,13 +1501,19 @@ export class ErrorInferrer {
     bytecode: Bytecode,
     callInst: Instruction
   ): CallFailedErrorStackTraceEntry {
+    const sourceReference = sourceLocationToSourceReference(
+      bytecode,
+      callInst.location
+    );
+    assertHardhatInvariant(
+      sourceReference !== undefined,
+      "Expected source reference to be defined"
+    );
+
     // Calls only happen within functions
     return {
       type: StackTraceEntryType.CALL_FAILED_ERROR,
-      sourceReference: sourceLocationToSourceReference(
-        bytecode,
-        callInst.location
-      )!,
+      sourceReference,
     };
   }
 
@@ -1498,10 +1562,16 @@ export class ErrorInferrer {
     const callOpcodeStep = trace.steps[callSubtraceStepIndex - 1] as EvmStep;
     const callInst = trace.bytecode.getInstruction(callOpcodeStep.pc);
 
+    // Calls are always made from within functions
+    assertHardhatInvariant(
+      callInst.location !== undefined,
+      "Expected call instruction location to be defined"
+    );
+
     return this._isLastLocation(
       trace,
       callSubtraceStepIndex + 1,
-      callInst.location! // Calls are always made from within functions
+      callInst.location
     );
   }
 
@@ -1510,7 +1580,14 @@ export class ErrorInferrer {
     instIndex: number,
     callInstruction: Instruction
   ): boolean {
-    const callLocation = callInstruction.location!; // Calls are always made from within functions
+    const callLocation = callInstruction.location;
+
+    // Calls are always made from within functions
+    assertHardhatInvariant(
+      callLocation !== undefined,
+      "Expected call location to be defined"
+    );
+
     return this._isLastLocation(trace, instIndex, callLocation);
   }
 
@@ -1681,30 +1758,41 @@ export function instructionToCallstackStackTraceEntry(
     };
   }
 
-  const func = inst.location!.getContainingFunction();
+  const func = inst.location?.getContainingFunction();
 
   if (func !== undefined) {
+    const sourceReference = sourceLocationToSourceReference(
+      bytecode,
+      inst.location
+    );
+    assertHardhatInvariant(
+      sourceReference !== undefined,
+      "Expected source reference to be defined"
+    );
+
     return {
       type: StackTraceEntryType.CALLSTACK_ENTRY,
-      sourceReference: sourceLocationToSourceReference(
-        bytecode,
-        inst.location
-      )!,
+      sourceReference,
       functionType: func.type,
     };
   }
+
+  assertHardhatInvariant(
+    inst.location !== undefined,
+    "Expected instruction location to be defined"
+  );
 
   return {
     type: StackTraceEntryType.CALLSTACK_ENTRY,
     sourceReference: {
       function: undefined,
       contract: bytecode.contract.name,
-      sourceName: inst.location!.file.sourceName,
-      sourceContent: inst.location!.file.content,
-      line: inst.location!.getStartingLineNumber(),
+      sourceName: inst.location.file.sourceName,
+      sourceContent: inst.location.file.content,
+      line: inst.location.getStartingLineNumber(),
       range: [
-        inst.location!.offset,
-        inst.location!.offset + inst.location!.length,
+        inst.location.offset,
+        inst.location.offset + inst.location.length,
       ],
     },
     functionType: ContractFunctionType.FUNCTION,

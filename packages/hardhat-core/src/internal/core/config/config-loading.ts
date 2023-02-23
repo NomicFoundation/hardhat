@@ -10,6 +10,7 @@ import {
   HardhatArguments,
   HardhatConfig,
   HardhatUserConfig,
+  SolcConfig,
 } from "../../../types";
 import { HardhatContext } from "../../context";
 import { findClosestPackageJson } from "../../util/packageInfo";
@@ -286,13 +287,8 @@ Learn more about compiler configuration at https://hardhat.org/config
 }
 
 function checkUnsupportedSolidityConfig(resolvedConfig: HardhatConfig) {
-  const compilerVersions = resolvedConfig.solidity.compilers.map(
-    (x) => x.version
-  );
-  const overrideVersions = Object.values(resolvedConfig.solidity.overrides).map(
-    (x) => x.version
-  );
-  const solcVersions = [...compilerVersions, ...overrideVersions];
+  const configuredCompilers = getConfiguredCompilers(resolvedConfig.solidity);
+  const solcVersions = configuredCompilers.map((x) => x.version);
 
   const unsupportedVersions: string[] = [];
   for (const solcVersion of solcVersions) {
@@ -337,4 +333,12 @@ Learn more about compiler configuration at https://hardhat.org/config
       )
     );
   }
+}
+
+export function getConfiguredCompilers(
+  solidityConfig: HardhatConfig["solidity"]
+): SolcConfig[] {
+  const compilerVersions = solidityConfig.compilers;
+  const overrideVersions = Object.values(solidityConfig.overrides);
+  return [...compilerVersions, ...overrideVersions];
 }

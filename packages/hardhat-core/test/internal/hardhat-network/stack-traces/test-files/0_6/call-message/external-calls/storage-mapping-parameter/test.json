@@ -1,5 +1,5 @@
 {
-  "solc": "^0.6.5",
+  "solc": ">=0.6.5 <=0.6.8",
   "transactions": [
     {
       "file": "c.sol",
@@ -20,7 +20,7 @@
           "functionType": 1
         },
         {
-          "type": "REVERT_ERROR",
+          "type": "UNMAPPED_SOLC_0_6_3_REVERT_ERROR",
           "sourceReference": {
             "function": "internalFunction",
             "contract": "C",

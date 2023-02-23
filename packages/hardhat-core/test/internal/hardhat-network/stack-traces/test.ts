@@ -40,9 +40,13 @@ import { SUPPORTED_SOLIDITY_VERSION_RANGE } from "../../../../src/internal/hardh
 import {
   compileFiles,
   COMPILER_DOWNLOAD_TIMEOUT,
-  CompilerOptions,
   downloadCompiler,
 } from "./compilation";
+import {
+  SolidityCompiler,
+  SolidityCompilerOptimizer,
+  solidityCompilers,
+} from "./compilers-list";
 import {
   encodeCall,
   encodeConstructorParams,
@@ -65,6 +69,7 @@ interface StackFrameDescription {
 
 interface TestDefinition {
   skip?: boolean;
+  skipViaIR?: boolean;
   only?: boolean;
   print?: boolean;
   solc?: string;
@@ -117,8 +122,7 @@ function defineTest(
   dirPath: string,
   testDefinition: TestDefinition,
   sources: string[],
-  compilerOptions: CompilerOptions,
-  runs?: number
+  compilerOptions: SolidityCompiler
 ) {
   const desc: string =
     testDefinition.description !== undefined
@@ -132,14 +136,13 @@ function defineTest(
   const func = async function (this: Mocha.Context) {
     this.timeout(TEST_TIMEOUT_MILLIS);
 
-    await runTest(dirPath, testDefinition, sources, {
-      ...compilerOptions,
-      runs,
-    });
+    await runTest(dirPath, testDefinition, sources, compilerOptions);
   };
 
   if (
-    (testDefinition.skip !== undefined && testDefinition.skip) ||
+    testDefinition.skip === true ||
+    (testDefinition.skipViaIR === true &&
+      compilerOptions.optimizer?.viaIR === true) ||
     solcVersionDoesntMatch
   ) {
     it.skip(desc, func);
@@ -151,7 +154,7 @@ function defineTest(
   }
 }
 
-function defineDirTests(dirPath: string, compilerOptions: CompilerOptions) {
+function defineDirTests(dirPath: string, compilerOptions: SolidityCompiler) {
   describe(path.basename(dirPath), function () {
     const files = fs.readdirSync(dirPath).map((f) => path.join(dirPath, f));
 
@@ -171,7 +174,18 @@ function defineDirTests(dirPath: string, compilerOptions: CompilerOptions) {
         }
       }
 
-      describe("Without optimizations", function () {
+      let description: string;
+      if (compilerOptions.optimizer === undefined) {
+        description = "Without optimizations";
+      } else {
+        if (compilerOptions.optimizer.viaIR) {
+          description = "With viaIR enabled";
+        } else {
+          description = `With optimizations (${compilerOptions.optimizer.runs} runs)`;
+        }
+      }
+
+      describe(description, function () {
         defineTest(dirPath, testDefinition, sources, compilerOptions);
       });
 
@@ -180,7 +194,13 @@ function defineDirTests(dirPath: string, compilerOptions: CompilerOptions) {
 
         for (const runs of runsNumbers) {
           describe(`With optimizations (${runs} run)`, function () {
-            defineTest(dirPath, testDefinition, sources, compilerOptions, runs);
+            defineTest(dirPath, testDefinition, sources, {
+              ...compilerOptions,
+              optimizer: {
+                viaIR: false,
+                runs,
+              },
+            });
           });
         }
       }
@@ -195,9 +215,9 @@ function defineDirTests(dirPath: string, compilerOptions: CompilerOptions) {
 async function compileIfNecessary(
   testDir: string,
   sources: string[],
-  compilerOptions: CompilerOptions
+  compilerOptions: SolidityCompiler
 ): Promise<[CompilerInput, CompilerOutput]> {
-  const { solidityVersion, runs } = compilerOptions;
+  const { solidityVersion, optimizer } = compilerOptions;
   const maxSourceCtime = sources
     .map((s) => fs.statSync(s).ctimeMs)
     .reduce((t1, t2) => Math.max(t1, t2), 0);
@@ -209,8 +229,16 @@ async function compileIfNecessary(
 
   fsExtra.ensureDirSync(artifacts);
 
-  const optimizerModifier =
-    runs !== undefined ? `optimized-with-runs-${runs}` : "unoptimized";
+  let optimizerModifier: string;
+  if (optimizer !== undefined) {
+    if (optimizer.viaIR) {
+      optimizerModifier = `optimized-with-viair-and-runs-${optimizer.runs}`;
+    } else {
+      optimizerModifier = `optimized-with-runs-${optimizer.runs}`;
+    }
+  } else {
+    optimizerModifier = "unoptimized";
+  }
 
   const inputPath = path.join(
     artifacts,
@@ -254,8 +282,25 @@ function compareStackTraces(
   txIndex: number,
   trace: SolidityStackTraceEntry[],
   description: StackFrameDescription[],
-  runs: number | undefined
+  optimizer: SolidityCompilerOptimizer | undefined
 ) {
+  const isViaIR = optimizer?.viaIR === true;
+
+  // if IR is enabled, we ignore callstack entries in the comparison
+  if (isViaIR) {
+    trace = trace.filter(
+      (frame) => frame.type !== StackTraceEntryType.CALLSTACK_ENTRY
+    );
+    description = description.filter(
+      (frame) => frame.type !== "CALLSTACK_ENTRY"
+    );
+  }
+
+  if (trace.length !== description.length) {
+    console.log(trace);
+    console.log(description);
+  }
+
   assert.equal(
     trace.length,
     description.length,
@@ -266,10 +311,23 @@ function compareStackTraces(
     const actual = trace[i];
     const expected = description[i];
 
+    const actualErrorType = StackTraceEntryType[actual.type];
+    const expectedErrorType = expected.type;
+
+    if (
+      isViaIR &&
+      (actualErrorType === "REVERT_ERROR" ||
+        actualErrorType === "OTHER_EXECUTION_ERROR")
+    ) {
+      // when viaIR is enabled, we consider a generic REVERT_ERROR or
+      // OTHER_EXECUTION_ERROR enough and don't compare its contents
+      continue;
+    }
+
     assert.equal(
-      StackTraceEntryType[actual.type],
-      expected.type,
-      `Stack trace of tx ${txIndex} entry ${i} type is incorrect`
+      actualErrorType,
+      expectedErrorType,
+      `Stack trace of tx ${txIndex} entry ${i} type is incorrect: expected ${expectedErrorType}, got ${actualErrorType}`
     );
 
     const actualMessage = (actual as any).message as
@@ -353,30 +411,36 @@ function compareStackTraces(
         `Stack trace of tx ${txIndex} entry ${i} shouldn't have a sourceReference`
       );
     } else {
-      assert.equal(
-        actual.sourceReference!.contract,
-        expected.sourceReference.contract,
-        `Stack trace of tx ${txIndex} entry ${i} have different contract names`
-      );
-
-      assert.equal(
-        actual.sourceReference!.sourceName,
-        expected.sourceReference.file,
-        `Stack trace of tx ${txIndex} entry ${i} have different file names`
-      );
-
-      assert.equal(
-        actual.sourceReference!.function,
-        expected.sourceReference.function,
-        `Stack trace of tx ${txIndex} entry ${i} have different function names`
-      );
-
-      if (runs === undefined) {
+      if (actual.sourceReference === undefined) {
+        if (!isViaIR) {
+          assert.fail("Expected a source reference");
+        }
+      } else {
         assert.equal(
-          actual.sourceReference!.line,
-          expected.sourceReference.line,
-          `Stack trace of tx ${txIndex} entry ${i} have different line numbers`
+          actual.sourceReference.contract,
+          expected.sourceReference.contract,
+          `Stack trace of tx ${txIndex} entry ${i} have different contract names`
         );
+
+        assert.equal(
+          actual.sourceReference.sourceName,
+          expected.sourceReference.file,
+          `Stack trace of tx ${txIndex} entry ${i} have different file names`
+        );
+
+        assert.equal(
+          actual.sourceReference.function,
+          expected.sourceReference.function,
+          `Stack trace of tx ${txIndex} entry ${i} have different function names`
+        );
+
+        if (optimizer === undefined) {
+          assert.equal(
+            actual.sourceReference!.line,
+            expected.sourceReference.line,
+            `Stack trace of tx ${txIndex} entry ${i} have different line numbers`
+          );
+        }
       }
     }
   }
@@ -408,7 +472,7 @@ async function runTest(
   testDir: string,
   testDefinition: TestDefinition,
   sources: string[],
-  compilerOptions: CompilerOptions
+  compilerOptions: SolidityCompiler
 ) {
   const [compilerInput, compilerOutput] = await compileIfNecessary(
     testDir,
@@ -506,7 +570,7 @@ async function runTest(
           txIndex,
           stackTrace,
           tx.stackTrace!,
-          compilerOptions.runs
+          compilerOptions.optimizer
         );
         if (testDefinition.print !== undefined && testDefinition.print) {
           console.log(`Transaction ${txIndex} stack trace`);
@@ -652,168 +716,6 @@ async function runCallTransactionTest(
   return trace as CallMessageTrace;
 }
 
-interface SolidityCompiler {
-  solidityVersion: string;
-  compilerPath: string;
-  latestSolcVersion?: boolean;
-}
-
-const solidityCompilers: SolidityCompiler[] = [
-  // 0.5
-  {
-    solidityVersion: "0.5.1",
-    compilerPath: "soljson-v0.5.1+commit.c8a2cb62.js",
-  },
-  {
-    solidityVersion: "0.5.17",
-    compilerPath: "soljson-v0.5.17+commit.d19bba13.js",
-  },
-
-  // 0.6
-  {
-    solidityVersion: "0.6.0",
-    compilerPath: "soljson-v0.6.0+commit.26b70077.js",
-  },
-  // {
-  //   solidityVersion: "0.6.1",
-  //   compilerPath: "soljson-v0.6.1+commit.e6f7d5a4.js",
-  // },
-  // {
-  //   solidityVersion: "0.6.2",
-  //   compilerPath: "soljson-v0.6.2+commit.bacdbe57.js",
-  // },
-  // This version is enabled because it contains of a huge change in how
-  // sourcemaps work
-  {
-    solidityVersion: "0.6.3",
-    compilerPath: "soljson-v0.6.3+commit.8dda9521.js",
-  },
-  // {
-  //   solidityVersion: "0.6.4",
-  //   compilerPath: "soljson-v0.6.4+commit.1dca32f3.js",
-  // },
-  // {
-  //   solidityVersion: "0.6.5",
-  //   compilerPath: "soljson-v0.6.5+commit.f956cc89.js",
-  // },
-  // {
-  //   solidityVersion: "0.6.6",
-  //   compilerPath: "soljson-v0.6.6+commit.6c089d02.js",
-  // },
-  // {
-  //   solidityVersion: "0.6.7",
-  //   compilerPath: "soljson-v0.6.7+commit.b8d736ae.js",
-  // },
-  // {
-  //   solidityVersion: "0.6.8",
-  //   compilerPath: "soljson-v0.6.8+commit.0bbfe453.js",
-  // },
-  // {
-  //   solidityVersion: "0.6.9",
-  //   compilerPath: "soljson-v0.6.9+commit.3e3065ac.js",
-  // },
-  // {
-  //   solidityVersion: "0.6.10",
-  //   compilerPath: "soljson-v0.6.10+commit.00c0fcaf.js",
-  // },
-  // {
-  //   solidityVersion: "0.6.11",
-  //   compilerPath: "soljson-v0.6.11+commit.5ef660b1.js",
-  // },
-  {
-    solidityVersion: "0.6.12",
-    compilerPath: "soljson-v0.6.12+commit.27d51765.js",
-  },
-
-  // 0.7
-  // {
-  //   solidityVersion: "0.7.0",
-  //   compilerPath: "soljson-v0.7.0+commit.9e61f92b.js",
-  // },
-  // {
-  //   solidityVersion: "0.7.1",
-  //   compilerPath: "soljson-v0.7.1+commit.f4a555be.js",
-  // },
-  {
-    solidityVersion: "0.7.4",
-    compilerPath: "soljson-v0.7.4+commit.3f05b770.js",
-  },
-  {
-    solidityVersion: "0.7.6",
-    compilerPath: "soljson-v0.7.6+commit.7338295f.js",
-    latestSolcVersion: true,
-  },
-
-  // 0.8
-  {
-    solidityVersion: "0.8.1",
-    compilerPath: "soljson-v0.8.1+commit.df193b15.js",
-  },
-  {
-    solidityVersion: "0.8.4",
-    compilerPath: "soljson-v0.8.4+commit.c7e474f2.js",
-  },
-  {
-    solidityVersion: "0.8.5",
-    compilerPath: "soljson-v0.8.5+commit.a4f2e591.js",
-  },
-  {
-    solidityVersion: "0.8.6",
-    compilerPath: "soljson-v0.8.6+commit.11564f7e.js",
-  },
-  {
-    solidityVersion: "0.8.7",
-    compilerPath: "soljson-v0.8.7+commit.e28d00a7.js",
-  },
-  {
-    solidityVersion: "0.8.8",
-    compilerPath: "soljson-v0.8.8+commit.dddeac2f.js",
-  },
-  {
-    solidityVersion: "0.8.9",
-    compilerPath: "soljson-v0.8.9+commit.e5eed63a.js",
-  },
-  {
-    solidityVersion: "0.8.10",
-    compilerPath: "soljson-v0.8.10+commit.fc410830.js",
-  },
-  {
-    solidityVersion: "0.8.11",
-    compilerPath: "soljson-v0.8.11+commit.d7f03943.js",
-  },
-  {
-    solidityVersion: "0.8.12",
-    compilerPath: "soljson-v0.8.12+commit.f00d7308.js",
-  },
-  {
-    solidityVersion: "0.8.13",
-    compilerPath: "soljson-v0.8.13+commit.abaa5c0e.js",
-  },
-  {
-    solidityVersion: "0.8.14",
-    compilerPath: "soljson-v0.8.14+commit.80d49f37.js",
-  },
-  {
-    solidityVersion: "0.8.15",
-    compilerPath: "soljson-v0.8.15+commit.e14f2714.js",
-  },
-  {
-    solidityVersion: "0.8.16",
-    compilerPath: "soljson-v0.8.16+commit.07a7930e.js",
-    latestSolcVersion: true,
-  },
-  {
-    solidityVersion: "0.8.17",
-    compilerPath: "soljson-v0.8.17+commit.8df45f5f.js",
-    latestSolcVersion: true,
-  },
-  {
-    solidityVersion: "0.8.18",
-    compilerPath: "soljson-v0.8.18+commit.87f61d96.js",
-    latestSolcVersion: true,
-  },
-];
-
 const onlyLatestSolcVersions =
   process.env.HARDHAT_TESTS_ALL_SOLC_VERSIONS === undefined;
 
@@ -910,7 +812,6 @@ describe("Stack traces", function () {
     );
 
     for (const { solidityVersion } of solidityCompilersToDownload) {
-      console.log("Downloading solc", solidityVersion);
       await downloadCompiler(solidityVersion);
     }
   });
@@ -955,11 +856,14 @@ describe("Solidity support", function () {
 });
 
 function defineTestForSolidityMajorVersion(
-  solcVersionsCompilerOptions: CompilerOptions[],
+  solcVersionsCompilerOptions: SolidityCompiler[],
   testsPath: string
 ) {
   for (const compilerOptions of solcVersionsCompilerOptions) {
-    describe(`Use compiler ${compilerOptions.compilerPath}`, function () {
+    // eslint-disable-next-line no-only-tests/no-only-tests
+    const describeFn = compilerOptions.only === true ? describe.only : describe;
+
+    describeFn(`Use compiler ${compilerOptions.compilerPath}`, function () {
       defineDirTests(
         path.join(__dirname, "test-files", testsPath),
         compilerOptions

@@ -261,11 +261,21 @@ export class ContractFunction {
     public readonly contract?: Contract,
     public readonly visibility?: ContractFunctionVisibility,
     public readonly isPayable?: boolean,
-    public selector?: Buffer
+    public selector?: Buffer,
+    public readonly paramTypes?: any[]
   ) {
     if (contract !== undefined && !contract.location.contains(location)) {
       throw new Error("Incompatible contract and function location");
     }
+  }
+
+  public isValidCalldata(calldata: Buffer): boolean {
+    if (this.paramTypes === undefined) {
+      // if we don't know the param types, we just assume that the call is valid
+      return true;
+    }
+
+    return AbiHelpers.isValidCalldata(this.paramTypes, calldata);
   }
 }
 
