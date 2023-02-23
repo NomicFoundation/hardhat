@@ -116,7 +116,12 @@ export async function getContractFactory(
 function isFactoryOptions(
   signerOrOptions?: ethers.Signer | FactoryOptions
 ): signerOrOptions is FactoryOptions {
-  if (signerOrOptions === undefined || ["Wallet", "SignerWithAddress", "Signer"].includes(signerOrOptions.constructor.name)) {
+  if (
+    signerOrOptions === undefined ||
+    ["Wallet", "SignerWithAddress", "Signer"].includes(
+      signerOrOptions.constructor.name
+    )
+  ) {
     return false;
   }
 
