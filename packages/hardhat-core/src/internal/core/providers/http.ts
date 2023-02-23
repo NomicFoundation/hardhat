@@ -78,10 +78,6 @@ export class HttpProvider extends EventEmitter implements EIP1193Provider {
   }
 
   public async request(args: RequestArguments): Promise<unknown> {
-    // We create the error here to capture the stack traces at this point,
-    // the async call that follows would probably loose of the stack trace
-    const stackSavingError = new ProviderError("HttpProviderError", -1);
-
     const jsonRpcRequest = this._getJsonRpcRequest(
       args.method,
       args.params as any[]
@@ -91,8 +87,7 @@ export class HttpProvider extends EventEmitter implements EIP1193Provider {
     if (isErrorResponse(jsonRpcResponse)) {
       const error = new ProviderError(
         jsonRpcResponse.error.message,
-        jsonRpcResponse.error.code,
-        stackSavingError
+        jsonRpcResponse.error.code
       );
       error.data = jsonRpcResponse.error.data;
       // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
