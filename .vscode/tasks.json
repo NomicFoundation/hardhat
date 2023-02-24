@@ -9,9 +9,6 @@
       "presentation": {
         "reveal": "never",
         "panel": "new"
-      },
-      "runOptions": {
-        "runOn": "folderOpen"
       }
     },
     {
