@@ -2,4 +2,4 @@
 "hardhat": patch
 ---
 
-Set "resolveJsonModule": true in sample tsconfig
+The `resolveJsonModule` compiler option is now enabled by default in the sample tsconfig (thanks @mlshv!)
