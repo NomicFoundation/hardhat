@@ -725,6 +725,13 @@ const communityPlugins: IPlugin[] = [
       "This Hardhat plugin provides two tasks and two functions to help you manage and optimize your transactions on Ethereum compatible blockchain. The two tasks include the ability to retry a transaction and retrieve the current gas cost.",
     tags: ["transaction", "gasPrice", "retry", "helper"],
   },
+  {
+    name: "hardhat-fireblocks",
+    author: "Fireblocks",
+    authorUrl: "https://github.com/fireblocks",
+    description: "Hardhat plugin for integrating with Fireblocks",
+    tags: ["Deployment", "Security"],
+  },
 ];
 
 const officialPlugins: IPlugin[] = [
