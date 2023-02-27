@@ -17,7 +17,7 @@ pub struct Trace {
 /// A single EVM step.
 pub struct Step {
     /// The executed op code
-    pub opcode: u8,
+    pub op: u8,
     /// The amount of gas that was used by the step
     pub gas_cost: u64,
     /// The amount of gas that was refunded by the step
@@ -28,17 +28,17 @@ pub struct Step {
 
 impl Trace {
     /// Adds a VM step to the trace.
-    pub fn add_step(&mut self, opcode: u8, gas: &Gas, exit_code: InstructionResult) {
+    pub fn add_step(&mut self, op: u8, gas: &Gas, exit_code: InstructionResult) {
         let step = if let Some(old_gas) = self.gas.replace(*gas) {
             Step {
-                opcode,
+                op,
                 gas_cost: gas.spend() - old_gas.spend(),
                 gas_refunded: gas.refunded() - old_gas.refunded(),
                 exit_code,
             }
         } else {
             Step {
-                opcode,
+                op,
                 gas_cost: gas.spend(),
                 gas_refunded: gas.refunded(),
                 exit_code,

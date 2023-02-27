@@ -21,7 +21,7 @@ impl From<rethnet_evm::trace::Trace> for Trace {
 
 #[napi(object)]
 pub struct Step {
-    pub opcode: u8,
+    pub op: u8,
     pub gas_cost: BigInt,
     pub gas_refunded: i64,
     pub exit_code: u8,
@@ -30,7 +30,7 @@ pub struct Step {
 impl From<rethnet_evm::trace::Step> for Step {
     fn from(value: rethnet_evm::trace::Step) -> Self {
         Self {
-            opcode: value.opcode,
+            op: value.op,
             gas_cost: BigInt::from(value.gas_cost),
             gas_refunded: value.gas_refunded,
             exit_code: value.exit_code as u8,
