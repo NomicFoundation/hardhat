@@ -26,8 +26,7 @@ pub struct Transaction {
     pub hash: B256,
     pub nonce: U256,
     pub block_hash: Option<B256>,
-    #[serde(deserialize_with = "optional_u64_from_hex")]
-    pub block_number: Option<u64>,
+    pub block_number: Option<U256>,
     #[serde(deserialize_with = "optional_u64_from_hex")]
     pub transaction_index: Option<u64>,
     pub from: Address,
@@ -84,11 +83,8 @@ pub struct Log {
     pub data: Bytes,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub block_hash: Option<B256>,
-    #[serde(
-        skip_serializing_if = "Option::is_none",
-        deserialize_with = "optional_u64_from_hex"
-    )]
-    pub block_number: Option<u64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub block_number: Option<U256>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub transaction_hash: Option<B256>,
     #[serde(
@@ -111,8 +107,7 @@ pub struct Log {
 #[serde(rename_all = "camelCase")]
 pub struct TransactionReceipt {
     pub block_hash: Option<B256>,
-    #[serde(deserialize_with = "optional_u64_from_hex")]
-    pub block_number: Option<u64>,
+    pub block_number: Option<U256>,
     pub contract_address: Option<Address>,
     pub cumulative_gas_used: U256,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -152,8 +147,7 @@ where
     pub state_root: B256,
     pub transactions_root: B256,
     pub receipts_root: B256,
-    #[serde(deserialize_with = "optional_u64_from_hex")]
-    pub number: Option<u64>,
+    pub number: Option<U256>,
     pub gas_used: U256,
     pub gas_limit: U256,
     pub extra_data: Bytes,

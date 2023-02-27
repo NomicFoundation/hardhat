@@ -13,7 +13,7 @@ use rethnet_eth::{
 pub struct RemoteDatabase {
     client: RpcClient,
     runtime: Option<Runtime>,
-    block_number: u64,
+    block_number: U256,
 }
 
 /// Errors that might be returned from RemoteDatabase
@@ -30,7 +30,7 @@ pub enum RemoteDatabaseError {
 impl RemoteDatabase {
     /// Construct a new RemoteDatabse given the URL of a remote Ethereum node and a
     /// block number from which data will be pulled.
-    pub fn new(url: &str, block_number: u64) -> Self {
+    pub fn new(url: &str, block_number: U256) -> Self {
         Self {
             client: RpcClient::new(url),
             runtime: match Handle::try_current() {
@@ -58,7 +58,7 @@ impl RemoteDatabase {
     }
 
     /// Retrieve the state root of the given block
-    pub fn state_root(&self, block_number: u64) -> Result<B256, RemoteDatabaseError> {
+    pub fn state_root(&self, block_number: U256) -> Result<B256, RemoteDatabaseError> {
         Ok(tokio::task::block_in_place(move || {
             self.runtime().block_on(
                 self.client
@@ -118,7 +118,7 @@ mod tests {
         let dai_address = Address::from_str("0x6b175474e89094c44da98b954eedeac495271d0f")
             .expect("failed to parse address");
 
-        let account_info: AccountInfo = RemoteDatabase::new(&alchemy_url, 16643427)
+        let account_info: AccountInfo = RemoteDatabase::new(&alchemy_url, U256::from(16643427))
             .basic(dai_address)
             .expect("should succeed")
             .unwrap();

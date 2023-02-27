@@ -20,7 +20,7 @@ pub struct ForkState {
     account_info_cache: HashMap<Address, AccountInfo>,
     code_by_hash_cache: HashMap<B256, Bytecode>,
     storage_cache: HashMap<(Address, U256), U256>,
-    fork_block_number: u64,
+    fork_block_number: U256,
     fork_block_state_root_cache: Option<B256>,
 }
 
@@ -29,7 +29,7 @@ impl ForkState {
     pub fn new(
         url: &str,
         accounts: HashMap<Address, AccountInfo>,
-        fork_block_number: Option<u64>,
+        fork_block_number: Option<U256>,
     ) -> Self {
         let rpc_client = RpcClient::new(url);
 
@@ -40,10 +40,13 @@ impl ForkState {
             .expect("failed to construct async runtime");
 
         let fork_block_number = fork_block_number
-            .or(async_runtime
-                .block_on(rpc_client.get_latest_block())
-                .expect("failed to get latest block")
-                .number)
+            .or_else(|| {
+                async_runtime
+                    .block_on(rpc_client.get_latest_block())
+                    .expect("failed to get latest block")
+                    .number
+                    .map(U256::from)
+            })
             .unwrap();
 
         let remote_db = RemoteDatabase::new(url, fork_block_number);
@@ -264,7 +267,7 @@ mod tests {
         let mut fork_db = ForkState::new(
             &get_alchemy_url().expect("failed to get alchemy url"),
             HashMap::default(),
-            Some(16220843),
+            Some(U256::from(16220843)),
         );
         let account_info =
             revm::db::State::basic(&mut fork_db, dai_address).expect("should have succeeded");

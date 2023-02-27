@@ -80,11 +80,40 @@ where
     seq.end()
 }
 
+/// a custom implementation because the one from ruint includes leading zeroes and the JSON-RPC
+/// server implementations reject that.
+fn serialize_u256<S>(x: &U256, s: S) -> Result<S::Ok, S::Error>
+where
+    S: serde::Serializer,
+{
+    let bytes = x.to_be_bytes_vec();
+    let mut result = String::with_capacity(2 * U256::BYTES + 2);
+    result.push_str("0x");
+    let mut found_nonzero = false;
+    for byte in bytes {
+        if found_nonzero || byte != 0 {
+            let formatted_byte = format!("{:02x}", byte);
+            let mut nibbles = formatted_byte.chars();
+
+            let first_nibble = nibbles.next().unwrap();
+            if found_nonzero || first_nibble != char::from_digit(0, 10).unwrap() {
+                result.push(first_nibble);
+            }
+
+            let second_nibble = nibbles.next().unwrap();
+            result.push(second_nibble);
+
+            found_nonzero = true;
+        }
+    }
+    s.serialize_str(&result)
+}
+
 /// For specifying a block
 #[derive(Clone)]
 pub enum BlockSpec {
     /// as a block number
-    Number(u64),
+    Number(U256),
     /// as a block tag (eg "latest")
     Tag(String),
 }
@@ -93,7 +122,8 @@ pub enum BlockSpec {
 #[serde(untagged)]
 enum SerializableBlockSpec {
     /// as a block number
-    Number(U64),
+    #[serde(serialize_with = "serialize_u256")]
+    Number(U256),
     /// as a block tag (eg "latest")
     Tag(String),
 }
@@ -101,7 +131,7 @@ enum SerializableBlockSpec {
 impl From<BlockSpec> for SerializableBlockSpec {
     fn from(block_spec: BlockSpec) -> SerializableBlockSpec {
         match block_spec {
-            BlockSpec::Number(n) => SerializableBlockSpec::Number(U64::from(n)),
+            BlockSpec::Number(n) => SerializableBlockSpec::Number(U256::from(n)),
             BlockSpec::Tag(s) => SerializableBlockSpec::Tag(s),
         }
     }
@@ -446,7 +476,7 @@ mod tests {
         );
         assert_eq!(
             tx.block_number,
-            Some(u64::from_str_radix("a74fde", 16).expect("couldn't parse data"))
+            Some(U256::from_str_radix("a74fde", 16).expect("couldn't parse data"))
         );
         assert_eq!(tx.hash, hash);
         assert_eq!(
@@ -575,7 +605,7 @@ mod tests {
         );
         assert_eq!(
             receipt.block_number,
-            Some(u64::from_str_radix("a74fde", 16).expect("couldn't parse data"))
+            Some(U256::from_str_radix("a74fde", 16).expect("couldn't parse data"))
         );
         assert_eq!(receipt.contract_address, None);
         assert_eq!(
@@ -659,8 +689,8 @@ mod tests {
         let alchemy_url = get_alchemy_url();
         let logs = RpcClient::new(&alchemy_url)
             .get_logs(
-                BlockSpec::Number(10496585),
-                BlockSpec::Number(10496585),
+                BlockSpec::Number(U256::from(10496585)),
+                BlockSpec::Number(U256::from(10496585)),
                 &Address::from_str("0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2")
                     .expect("failed to parse data"),
             )
@@ -694,7 +724,7 @@ mod tests {
     async fn get_block_by_number_success() {
         let alchemy_url = get_alchemy_url();
 
-        let block_number = 16222385;
+        let block_number = U256::from(16222385);
 
         let block = RpcClient::new(&alchemy_url)
             .get_block_by_number(BlockSpec::Number(block_number), true)
@@ -721,7 +751,7 @@ mod tests {
                     16,
                 )
                 .expect("failed to parse storage location"),
-                BlockSpec::Number(16220843),
+                BlockSpec::Number(U256::from(16220843)),
             )
             .await
             .expect("should have succeeded");
@@ -769,7 +799,7 @@ mod tests {
             .expect("failed to parse address");
 
         let transaction_count = RpcClient::new(&alchemy_url)
-            .get_transaction_count(&dai_address, BlockSpec::Number(16220843))
+            .get_transaction_count(&dai_address, BlockSpec::Number(U256::from(16220843)))
             .await
             .expect("should have succeeded");
 
@@ -785,7 +815,7 @@ mod tests {
             .expect("failed to parse address");
 
         let account_info = RpcClient::new(&alchemy_url)
-            .get_account_info(&dai_address, BlockSpec::Number(16220843))
+            .get_account_info(&dai_address, BlockSpec::Number(U256::from(16220843)))
             .await
             .expect("should have succeeded");
 

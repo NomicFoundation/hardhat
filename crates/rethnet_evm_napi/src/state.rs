@@ -117,12 +117,9 @@ impl StateManager {
         accounts: Vec<GenesisAccount>,
         fork_block_number: Option<JsNumber>,
     ) -> napi::Result<Self> {
-        let fork_block_number: Option<u64> = if fork_block_number.is_some() {
+        let fork_block_number: Option<U256> = if fork_block_number.is_some() {
             let fork_block_number: i64 = fork_block_number.unwrap().try_into()?;
-            Some(
-                u64::try_from(fork_block_number)
-                    .expect("couldn't safely convert fork_block_number to u64"),
-            )
+            Some(U256::from(fork_block_number))
         } else {
             None
         };
