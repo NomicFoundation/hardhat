@@ -275,62 +275,59 @@ export class Environment implements HardhatRuntimeEnvironment {
     const previousRunSuper: any = globalAsAny.runSuper;
     globalAsAny.runSuper = runSuper;
 
-    // We create a modified version of `this`, as we want to keep track of the
+    // We create a proxied version of `this`, as we want to keep track of the
     // `subtaskArguments` and `taskProfile` through `run` invocations. This
     // way we keep track of callers's data, even when tasks are run in parallel.
-    //
-    // Note that for this to work we need to set the prototype later
-    let modifiedHre: any = {
-      ...this,
-      run: (
-        _name: string,
-        _taskArguments: TaskArguments,
-        _subtaskArguments: SubtaskArguments
-      ) =>
-        (this as any).run(
-          _name,
-          _taskArguments,
-          { ..._subtaskArguments, ...subtaskArguments }, // parent subtask args take precedence
-          taskProfile
-        ),
-    };
+    const proxiedHre = new Proxy<Environment>(this, {
+      get(target: Environment, p: string | symbol, receiver: any): any {
+        if (p === "run") {
+          return (
+            _name: string,
+            _taskArguments: TaskArguments,
+            _subtaskArguments: SubtaskArguments
+          ) =>
+            (target as any).run(
+              _name,
+              _taskArguments,
+              { ..._subtaskArguments, ...subtaskArguments }, // parent subtask args take precedence
+              taskProfile
+            );
+        }
+
+        return Reflect.get(target, p, receiver);
+      },
+    });
 
     if (this.hardhatArguments.flamegraph === true) {
       // We modify the `this` again to add  a few utility methods.
-      modifiedHre = {
-        ...modifiedHre,
-        adhocProfile: async (_name: string, f: () => Promise<any>) => {
-          const adhocProfile = createTaskProfile(_name);
-          taskProfile!.children.push(adhocProfile);
-          try {
-            return await f();
-          } finally {
-            completeTaskProfile(adhocProfile);
-          }
-        },
-        adhocProfileSync: (_name: string, f: () => any) => {
-          const adhocProfile = createTaskProfile(_name);
-          taskProfile!.children.push(adhocProfile);
-          try {
-            return f();
-          } finally {
-            completeTaskProfile(adhocProfile);
-          }
-        },
+      (proxiedHre as any).adhocProfile = async (
+        _name: string,
+        f: () => Promise<any>
+      ) => {
+        const adhocProfile = createTaskProfile(_name);
+        taskProfile!.children.push(adhocProfile);
+        try {
+          return await f();
+        } finally {
+          completeTaskProfile(adhocProfile);
+        }
+      };
+
+      (proxiedHre as any).adhocProfileSync = (_name: string, f: () => any) => {
+        const adhocProfile = createTaskProfile(_name);
+        taskProfile!.children.push(adhocProfile);
+        try {
+          return f();
+        } finally {
+          completeTaskProfile(adhocProfile);
+        }
       };
     }
 
-    Object.setPrototypeOf(modifiedHre, Object.getPrototypeOf(this));
-
-    const uninjectFromGlobal =
-      modifiedHre?.injectToGlobal() ?? this.injectToGlobal();
+    const uninjectFromGlobal = proxiedHre?.injectToGlobal();
 
     try {
-      return await taskDefinition.action(
-        taskArguments,
-        modifiedHre ?? this,
-        runSuper
-      );
+      return await taskDefinition.action(taskArguments, proxiedHre, runSuper);
     } finally {
       uninjectFromGlobal();
       globalAsAny.runSuper = previousRunSuper;
