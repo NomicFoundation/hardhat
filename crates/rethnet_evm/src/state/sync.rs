@@ -277,6 +277,21 @@ where
 
         receiver.await.unwrap()
     }
+
+    /// Sets the database to have the context of the block specified by block_number.
+    pub async fn set_block_context(&self, block_number: U256, state_root: &B256) -> Result<(), E> {
+        let (sender, receiver) = oneshot::channel();
+
+        self.request_sender
+            .send(Request::SetBlockContext {
+                block_number,
+                state_root: *state_root,
+                sender,
+            })
+            .expect("Failed to send request");
+
+        receiver.await.unwrap()
+    }
 }
 
 impl<E> Drop for AsyncState<E>
@@ -382,6 +397,20 @@ where
         task::block_in_place(move || {
             self.runtime.block_on(AsyncState::set_account_storage_slot(
                 *self, address, index, value,
+            ))
+        })
+    }
+
+    fn set_block_context(
+        &mut self,
+        block_number: U256,
+        state_root: &B256,
+    ) -> Result<(), Self::Error> {
+        task::block_in_place(move || {
+            self.runtime.block_on(AsyncState::set_block_context(
+                *self,
+                block_number,
+                state_root,
             ))
         })
     }

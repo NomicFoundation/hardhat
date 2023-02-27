@@ -9,7 +9,7 @@ use rethnet_eth::{
 
 use crate::state::{
     layered_state::{LayeredState, RethnetLayer},
-    remote::RemoteDatabase,
+    remote::{RemoteDatabase, RemoteDatabaseError},
 };
 
 /// A database integrating the state from a remote node and the state from a local layered
@@ -17,12 +17,23 @@ use crate::state::{
 pub struct ForkState {
     layered_db: LayeredState<RethnetLayer>,
     remote_db: RemoteDatabase,
-    account_info_cache: HashMap<Address, AccountInfo>,
+    /// mapping of (address, block_number) to AccountInfo
+    account_info_cache: HashMap<(Address, U256), AccountInfo>,
     code_by_hash_cache: HashMap<B256, Bytecode>,
     storage_cache: HashMap<(Address, U256), U256>,
     fork_block_number: U256,
-    fork_block_state_root_cache: Option<B256>,
+    /// client-facing state root (pseudorandomly generated) mapped to internal (layered_db) state root
+    state_root_to_state: HashMap<B256, B256>,
+    /// for mapping historical blocks to their state roots
+    state_root_to_block_number: HashMap<B256, U256>,
+    latest_state_root: B256,
 }
+
+use crate::random::RandomHashGenerator;
+use once_cell::sync::Lazy;
+use std::sync::Mutex;
+static RANDOM_HASH_GENERATOR: Lazy<Mutex<RandomHashGenerator>> =
+    Lazy::new(|| Mutex::new(RandomHashGenerator::with_seed("seed")));
 
 impl ForkState {
     /// instantiate a new ForkState
@@ -69,7 +80,6 @@ impl ForkState {
 
         let mut layered_db =
             LayeredState::with_layer(RethnetLayer::with_genesis_accounts(initialized_accounts));
-
         crate::state::StateDebug::checkpoint(&mut layered_db).unwrap();
 
         Self {
@@ -79,7 +89,33 @@ impl ForkState {
             code_by_hash_cache: HashMap::new(),
             storage_cache: HashMap::new(),
             fork_block_number,
-            fork_block_state_root_cache: None,
+            state_root_to_state: HashMap::new(),
+            latest_state_root: RANDOM_HASH_GENERATOR.lock().unwrap().next(),
+            state_root_to_block_number: HashMap::new(),
+        }
+    }
+
+    /// if not already cached, fetches from remote then caches; then returns cached
+    fn get_remote_account_info(
+        &mut self,
+        address: &Address,
+        block_number: U256,
+    ) -> Result<Option<AccountInfo>, RemoteDatabaseError> {
+        use revm::db::StateRef; // for basic()
+        if let Some(cached) = self.account_info_cache.get(&(*address, block_number)) {
+            Ok(Some(cached.clone()))
+        } else if let Some(remote) = self.remote_db.basic(*address)? {
+            self.account_info_cache
+                .insert((*address, block_number), remote.clone());
+
+            if remote.code.is_some() {
+                self.code_by_hash_cache
+                    .insert(remote.code_hash, remote.code.clone().unwrap());
+            }
+
+            Ok(Some(remote))
+        } else {
+            Ok(None)
         }
     }
 }
@@ -88,19 +124,16 @@ impl revm::db::State for ForkState {
     type Error = super::StateError;
 
     fn basic(&mut self, address: Address) -> Result<Option<AccountInfo>, Self::Error> {
-        use revm::db::StateRef; // for basic()
-        if let Some(layered) = self.layered_db.basic(address)? {
+        let block_number = self
+            .state_root_to_block_number
+            .get(&self.latest_state_root)
+            .unwrap_or(&self.fork_block_number);
+        if block_number < &self.fork_block_number {
+            self.get_remote_account_info(&address, *block_number)
+                .map_err(Self::Error::Remote)
+        } else if let Some(layered) = self.layered_db.basic(address)? {
             Ok(Some(layered))
-        } else if let Some(cached) = self.account_info_cache.get(&address) {
-            Ok(Some(cached.clone()))
-        } else if let Some(remote) = self.remote_db.basic(address).map_err(Self::Error::Remote)? {
-            self.account_info_cache.insert(address, remote.clone());
-
-            if remote.code.is_some() {
-                self.code_by_hash_cache
-                    .insert(remote.code_hash, remote.code.clone().unwrap());
-            }
-
+        } else if let Some(remote) = self.get_remote_account_info(&address, *block_number)? {
             Ok(Some(remote))
         } else {
             Ok(None)
@@ -167,28 +200,20 @@ impl crate::state::debug::StateDebug for ForkState {
         address: Address,
         modifier: crate::state::AccountModifierFn,
     ) -> Result<(), Self::Error> {
-        use revm::db::{State, StateRef}; // for basic() (from both)
+        use revm::db::State; // for basic()
 
         if (self.layered_db.basic(address)?).is_none() {
-            let account_info = if let Some(cached) = self.account_info_cache.get(&address) {
-                Some(cached.clone())
-            } else if let Some(remote) = self.remote_db.basic(address)? {
-                self.account_info_cache.insert(address, remote.clone());
-
-                if remote.code.is_some() {
-                    self.code_by_hash_cache
-                        .insert(remote.code_hash, remote.code.clone().unwrap());
-                }
-
-                Some(remote)
-            } else {
-                None
-            };
-            if let Some(account_info) = account_info {
-                self.layered_db.insert_account(address, account_info)?
+            if let Some(remote_account_info) =
+                self.get_remote_account_info(&address, self.fork_block_number)?
+            {
+                self.layered_db
+                    .insert_account(address, remote_account_info)?
             }
         }
-        self.layered_db.modify_account(address, modifier)
+
+        self.layered_db.modify_account(address, modifier)?;
+
+        Ok(())
     }
 
     /// Removes and returns the account at the specified address, if it exists.
@@ -207,27 +232,53 @@ impl crate::state::debug::StateDebug for ForkState {
             .set_account_storage_slot(address, index, value)
     }
 
+    fn set_block_context(
+        &mut self,
+        block_number: U256,
+        state_root: &B256,
+    ) -> Result<(), Self::Error> {
+        self.state_root_to_block_number
+            .insert(*state_root, block_number);
+        self.set_state_root(state_root)?;
+        Ok(())
+    }
+
     /// Reverts the state to match the specified state root.
     fn set_state_root(&mut self, state_root: &B256) -> Result<(), Self::Error> {
-        self.layered_db.set_state_root(state_root)
+        if let Some(state) = self.state_root_to_state.get(state_root) {
+            self.layered_db.set_state_root(state)?;
+            self.latest_state_root = *state_root;
+            Ok(())
+        } else if self.state_root_to_block_number.get(state_root).is_some() {
+            self.latest_state_root = *state_root;
+            Ok(())
+        } else {
+            Err(Self::Error::InvalidStateRoot(*state_root))
+        }
     }
 
     /// Retrieves the storage root of the database.
     fn state_root(&mut self) -> Result<B256, Self::Error> {
-        if self.layered_db.iter().next().is_some() {
-            Ok(self.layered_db.state_root()?)
-        } else if let Some(cached) = self.fork_block_state_root_cache {
-            Ok(cached)
-        } else {
-            self.fork_block_state_root_cache =
-                Some(self.remote_db.state_root(self.fork_block_number)?);
-            Ok(self.fork_block_state_root_cache.unwrap())
+        if let Ok(state) = self.layered_db.state_root() {
+            if let Some(mapped_state) = self.state_root_to_state.get(&self.latest_state_root) {
+                if state != *mapped_state {
+                    let next_state_root = RANDOM_HASH_GENERATOR.lock().unwrap().next();
+                    self.state_root_to_state.insert(next_state_root, state);
+                    self.latest_state_root = next_state_root;
+                }
+            }
         }
+        Ok(self.latest_state_root)
     }
 
     /// Creates a checkpoint that can be reverted to using [`revert`].
     fn checkpoint(&mut self) -> Result<(), Self::Error> {
-        self.layered_db.checkpoint()
+        self.layered_db.checkpoint()?;
+        let my_state_root = RANDOM_HASH_GENERATOR.lock().unwrap().next();
+        let state = self.layered_db.state_root()?;
+        self.state_root_to_state.insert(my_state_root, state);
+        self.latest_state_root = my_state_root;
+        Ok(())
     }
 
     /// Reverts to the previous checkpoint, created using [`checkpoint`].

@@ -46,7 +46,8 @@ export class RethnetAdapter implements VMAdapter {
     private _state: RethnetStateManager,
     private _rethnet: Rethnet,
     private readonly _selectHardfork: (blockNumber: bigint) => string,
-    common: Common
+    common: Common,
+    private _isForked: boolean
   ) {
     this._vmTracer = new VMTracer(common, false);
   }
@@ -90,7 +91,8 @@ export class RethnetAdapter implements VMAdapter {
       state,
       rethnet,
       selectHardfork,
-      common
+      common,
+      isForkedNodeConfig(config)
     );
   }
 
@@ -270,9 +272,16 @@ export class RethnetAdapter implements VMAdapter {
     block: Block,
     irregularStateOrUndefined: Buffer | undefined
   ): Promise<void> {
-    return this._state.setStateRoot(
-      irregularStateOrUndefined ?? block.header.stateRoot
-    );
+    if (this._isForked) {
+      return this._state.setBlockContext(
+        block.header.number,
+        irregularStateOrUndefined ?? block.header.stateRoot
+      );
+    } else {
+      return this._state.setStateRoot(
+        irregularStateOrUndefined ?? block.header.stateRoot
+      );
+    }
   }
 
   /**

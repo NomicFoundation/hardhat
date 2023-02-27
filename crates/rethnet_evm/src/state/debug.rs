@@ -57,4 +57,11 @@ pub trait StateDebug {
 
     /// Removes the snapshot corresponding to the specified state root, if it exists. Returns whether a snapshot was removed.
     fn remove_snapshot(&mut self, state_root: &B256) -> bool;
+
+    /// Sets the database to have the context of the block specified by block_number.
+    fn set_block_context(
+        &mut self,
+        block_number: U256,
+        state_root: &B256,
+    ) -> Result<(), Self::Error>;
 }

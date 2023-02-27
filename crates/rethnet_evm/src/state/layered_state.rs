@@ -571,4 +571,12 @@ impl StateDebug for LayeredState<RethnetLayer> {
             Err(StateError::CannotRevert)
         }
     }
+
+    fn set_block_context(
+        &mut self,
+        _block_number: U256,
+        _state_root: &B256,
+    ) -> Result<(), Self::Error> {
+        Err(Self::Error::NotImplemented)
+    }
 }

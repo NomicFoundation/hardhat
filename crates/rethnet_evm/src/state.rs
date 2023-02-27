@@ -27,6 +27,9 @@ pub enum StateError {
     /// Specified state root does not exist
     #[error("State root `{0}` does not exist.")]
     InvalidStateRoot(B256),
+    /// Not implemented
+    #[error("Method not implemented")]
+    NotImplemented,
     /// Error from the underlying remote state
     #[error(transparent)]
     Remote(#[from] remote::RemoteDatabaseError),

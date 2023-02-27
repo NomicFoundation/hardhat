@@ -62,7 +62,7 @@ impl RemoteDatabase {
         Ok(tokio::task::block_in_place(move || {
             self.runtime().block_on(
                 self.client
-                    .get_block_by_number(BlockSpec::Number(block_number), false),
+                    .get_block_by_number(BlockSpec::Number(block_number), true),
             )
         })?
         .state_root)

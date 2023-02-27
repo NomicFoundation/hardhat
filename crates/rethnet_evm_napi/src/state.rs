@@ -379,4 +379,18 @@ impl StateManager {
             .await
             .map_err(|e| napi::Error::new(Status::GenericFailure, e.to_string()))
     }
+
+    #[napi]
+    pub async fn set_block_context(
+        &self,
+        block_number: BigInt,
+        state_root: Buffer,
+    ) -> napi::Result<()> {
+        let state_root = B256::from_slice(&state_root);
+
+        self.state
+            .set_block_context(BigInt::try_cast(block_number)?, &state_root)
+            .await
+            .map_err(|e| napi::Error::new(Status::GenericFailure, e.to_string()))
+    }
 }

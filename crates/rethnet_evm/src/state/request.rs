@@ -59,6 +59,11 @@ where
     Revert {
         sender: oneshot::Sender<Result<(), E>>,
     },
+    SetBlockContext {
+        block_number: U256,
+        state_root: B256,
+        sender: oneshot::Sender<Result<(), E>>,
+    },
     SetStorageSlot {
         address: Address,
         index: U256,
@@ -125,6 +130,13 @@ where
                 sender.send(state.remove_snapshot(&state_root)).unwrap()
             }
             Request::Revert { sender } => sender.send(state.revert()).unwrap(),
+            Request::SetBlockContext {
+                block_number,
+                state_root,
+                sender,
+            } => sender
+                .send(state.set_block_context(block_number, &state_root))
+                .unwrap(),
             Request::SetStorageSlot {
                 address,
                 index,
@@ -213,6 +225,16 @@ where
                 .field("sender", sender)
                 .finish(),
             Self::Revert { sender } => f.debug_struct("Revert").field("sender", sender).finish(),
+            Self::SetBlockContext {
+                block_number,
+                state_root,
+                sender,
+            } => f
+                .debug_struct("SetBlockContext")
+                .field("block_number", block_number)
+                .field("state_root", state_root)
+                .field("sender", sender)
+                .finish(),
             Self::SetStorageSlot {
                 address,
                 index,

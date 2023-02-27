@@ -144,4 +144,11 @@ export class RethnetStateManager {
   public async setStateRoot(stateRoot: Buffer): Promise<void> {
     return this._state.setStateRoot(stateRoot);
   }
+
+  public async setBlockContext(
+    blockNumber: BigInt,
+    stateRoot: Buffer
+  ): Promise<void> {
+    return this._state.setBlockContext(blockNumber.valueOf(), stateRoot);
+  }
 }
