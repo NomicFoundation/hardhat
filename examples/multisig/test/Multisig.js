@@ -8,7 +8,6 @@ const ACCOUNT_0 = "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266";
 describe("Multisig", function () {
   describe("a deploy broken up by an external call", () => {
     let multisig;
-    let event;
 
     this.beforeAll(async () => {
       const journal = new MemoryCommandJournal();
@@ -33,7 +32,6 @@ describe("Multisig", function () {
       });
 
       multisig = moduleResult.multisig;
-      event = moduleResult.event;
     });
 
     it("should confirm a stored transaction", async function () {
@@ -43,11 +41,6 @@ describe("Multisig", function () {
       );
 
       expect(isConfirmed).to.equal(true);
-    });
-
-    it("should emit the sender and transaction id after confirming a stored transaction", async function () {
-      expect(event.sender).to.equal(ACCOUNT_0);
-      expect(ethers.BigNumber.from("0").eq(event.transactionId)).to.be.true;
     });
 
     it("should execute a confirmed transaction", async function () {

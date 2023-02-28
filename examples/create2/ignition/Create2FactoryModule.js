@@ -34,7 +34,7 @@ module.exports = buildModule("Create2Factory", (m) => {
     after: [barEvent],
   });
 
-  return { create2, foo, bar, fooEvent, barEvent };
+  return { create2, foo, bar };
 });
 
 function toBytes32(n) {

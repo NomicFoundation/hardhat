@@ -24,7 +24,7 @@ import {
 } from "./future";
 import { AdjacencyList, VertexDescriptor } from "./graph";
 import { Artifact } from "./hardhat";
-import { ModuleDict } from "./module";
+import { ModuleDict, Subgraph } from "./module";
 
 export interface ScopeData {
   before: Virtual;
@@ -175,61 +175,59 @@ export interface IDeploymentBuilder {
   chainId: number;
   graph: IDeploymentGraph;
 
-  contract: (
+  contract(contractName: string, options?: ContractOptions): HardhatContract;
+  contract(
     contractName: string,
-    artifactOrOptions?: Artifact | ContractOptions,
+    artifact: Artifact,
     options?: ContractOptions
-  ) => HardhatContract | ArtifactContract;
+  ): ArtifactContract;
 
-  contractAt: (
+  contractAt(
     contractName: string,
     address: string | EventParamFuture,
     abi: any[],
     options?: { after?: DeploymentGraphFuture[] }
-  ) => DeployedContract;
+  ): DeployedContract;
 
-  library: (
+  library(contractName: string, options?: ContractOptions): HardhatLibrary;
+  library(
     contractName: string,
-    artifactOrOptions?: Artifact | ContractOptions,
+    artifact: Artifact,
     options?: ContractOptions
-  ) => HardhatLibrary | ArtifactLibrary;
+  ): ArtifactLibrary;
 
-  call: (
+  call(
     contractFuture: DeploymentGraphFuture,
     functionName: string,
     options: CallOptions
-  ) => ContractCall;
+  ): ContractCall;
 
-  event: (
+  event(
     contractFuture: ArtifactFuture,
     eventName: string,
     options: AwaitOptions
-  ) => EventFuture;
+  ): EventFuture;
 
-  sendETH: (sendTo: AddressResolvable, options: SendOptions) => SendFuture;
+  sendETH(sendTo: AddressResolvable, options: SendOptions): SendFuture;
 
-  getParam: (paramName: string) => RequiredParameter;
+  getParam(paramName: string): RequiredParameter;
 
-  getOptionalParam: (
+  getOptionalParam(
     paramName: string,
     defaultValue: ParameterValue
-  ) => OptionalParameter;
+  ): OptionalParameter;
 
-  getBytesForArtifact: (artifactName: string) => BytesFuture;
+  getBytesForArtifact(artifactName: string): BytesFuture;
 
-  useSubgraph: <T extends FutureDict>(
+  useSubgraph<T extends FutureDict>(
     subgraph: Subgraph<T>,
     options?: UseSubgraphOptions
-  ) => Virtual & T;
-  useModule: <T extends ModuleDict>(
+  ): Virtual & T;
+
+  useModule<T extends ModuleDict>(
     module: Subgraph<T>,
     options?: UseSubgraphOptions
-  ) => Virtual & T;
-}
-
-export interface Subgraph<T extends FutureDict> {
-  name: string;
-  action: (builder: IDeploymentBuilder) => T;
+  ): Virtual & T;
 }
 
 export interface DeploymentBuilderOptions {

@@ -8,6 +8,7 @@ import { ExecutionGraph } from "execution/ExecutionGraph";
 import { execute } from "execution/execute";
 import { Services, TransactionOptions } from "services/types";
 import { ExecutionVertex } from "types/executionGraph";
+import { VertexResultEnum } from "types/graph";
 import { Artifact } from "types/hardhat";
 import { ICommandJournal } from "types/journal";
 
@@ -73,7 +74,7 @@ describe("Execution - dispatch", () => {
     }
 
     assert.deepStrictEqual(response.result.get(0), {
-      _kind: "success",
+      _kind: VertexResultEnum.SUCCESS,
       result: {
         abi: [],
         address: "0xAddr",
@@ -133,7 +134,7 @@ describe("Execution - dispatch", () => {
     }
 
     assert.deepStrictEqual(response.result.get(0), {
-      _kind: "success",
+      _kind: VertexResultEnum.SUCCESS,
       result: {
         abi: [],
         address: "0xAddr",
@@ -234,7 +235,7 @@ describe("Execution - dispatch", () => {
     }
 
     assert.deepStrictEqual(response.result.get(1), {
-      _kind: "success",
+      _kind: VertexResultEnum.SUCCESS,
       result: {
         hash: "0x2",
       },
@@ -366,7 +367,7 @@ describe("Execution - dispatch", () => {
       }
 
       assert.deepStrictEqual(response.result.get(2), {
-        _kind: "success",
+        _kind: VertexResultEnum.SUCCESS,
         result: {
           topics: ["0x0000000000000000000000000000000000000003"],
         },
@@ -421,7 +422,7 @@ describe("Execution - dispatch", () => {
     }
 
     assert.deepStrictEqual(response.result.get(0), {
-      _kind: "success",
+      _kind: VertexResultEnum.SUCCESS,
       result: {
         name: "Foo",
         abi: [],

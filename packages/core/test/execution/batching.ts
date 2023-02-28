@@ -5,8 +5,12 @@ import { BigNumber } from "ethers";
 import { Deployment } from "deployment/Deployment";
 import { ExecutionGraph } from "execution/ExecutionGraph";
 import { executeInBatches } from "execution/execute";
-import { ContractDeploy, ExecutionVertex } from "types/executionGraph";
-import { VertexVisitResult } from "types/graph";
+import type {
+  ContractDeploy,
+  ExecutionVertex,
+  ExecutionVertexVisitResult,
+} from "types/executionGraph";
+import { VertexResultEnum } from "types/graph";
 import { ICommandJournal } from "types/journal";
 
 import { buildAdjacencyListFrom } from "../graph/helpers";
@@ -48,8 +52,8 @@ describe("Execution - batching", () => {
     const result = await executeInBatches(
       deployment,
       executionGraph,
-      async (): Promise<VertexVisitResult> => {
-        return { _kind: "success", result: true };
+      async (): Promise<ExecutionVertexVisitResult> => {
+        return { _kind: VertexResultEnum.SUCCESS, result: {} as any };
       },
       {} as any
     );

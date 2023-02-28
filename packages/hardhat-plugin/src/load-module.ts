@@ -34,7 +34,7 @@ export function loadModule(
 
   const module = require(fullpathToModule);
 
-  return module;
+  return module.default ?? module;
 }
 
 function resolveFullPathToModule(

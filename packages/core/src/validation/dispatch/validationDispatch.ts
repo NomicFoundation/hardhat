@@ -1,6 +1,9 @@
 import { Services } from "services/types";
 import { DeploymentGraphVertex } from "types/deploymentGraph";
-import { ResultsAccumulator, VertexVisitResult } from "types/graph";
+import {
+  ValidationResultsAccumulator,
+  ValidationVertexVisitResult,
+} from "types/validation";
 import { assertUnknownDeploymentVertexType } from "utils/guards";
 
 import { validateArtifactContract } from "./validateArtifactContract";
@@ -15,9 +18,9 @@ import { validateVirtual } from "./validateVirtual";
 
 export function validationDispatch(
   deploymentVertex: DeploymentGraphVertex,
-  resultAccumulator: ResultsAccumulator,
+  resultAccumulator: ValidationResultsAccumulator,
   context: { services: Services }
-): Promise<VertexVisitResult> {
+): Promise<ValidationVertexVisitResult> {
   switch (deploymentVertex.type) {
     case "ArtifactContract":
       return validateArtifactContract(

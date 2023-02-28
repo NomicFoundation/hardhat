@@ -1,19 +1,16 @@
 import setupDebug from "debug";
 
 import { ExecutionGraph } from "execution/ExecutionGraph";
-import { Services } from "services/types";
-import {
+import type { Services } from "services/types";
+import type {
   DeployState,
   UpdateUiAction,
   DeployStateCommand,
   DeployStateExecutionCommand,
 } from "types/deployment";
-import {
-  VertexDescriptor,
-  VertexVisitResult,
-  VertexVisitResultFailure,
-} from "types/graph";
-import { ICommandJournal } from "types/journal";
+import type { ExecutionVertexVisitResult } from "types/executionGraph";
+import type { VertexDescriptor, VertexVisitResultFailure } from "types/graph";
+import type { ICommandJournal } from "types/journal";
 import { IgnitionError } from "utils/errors";
 
 import {
@@ -126,7 +123,10 @@ export class Deployment {
     });
   }
 
-  public async updateVertexResult(vertexId: number, result: VertexVisitResult) {
+  public async updateVertexResult(
+    vertexId: number,
+    result: ExecutionVertexVisitResult
+  ) {
     return this._runDeploymentCommand(
       [`Update current with batch result for ${vertexId}`, [result]],
       {

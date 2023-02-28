@@ -1,5 +1,7 @@
-import { ArgValue } from "types/executionGraph";
-import { ResultsAccumulator } from "types/graph";
+import type {
+  ArgValue,
+  ExecutionResultsAccumulator,
+} from "types/executionGraph";
 import { IgnitionError } from "utils/errors";
 import { isDependable, isEventParam, isProxy } from "utils/guards";
 
@@ -11,11 +13,14 @@ export function toAddress(v: any) {
   return v;
 }
 
-export function resolveFrom(context: ResultsAccumulator) {
+export function resolveFrom(context: ExecutionResultsAccumulator) {
   return (arg: ArgValue) => resolveFromContext(context, arg);
 }
 
-function resolveFromContext(context: ResultsAccumulator, arg: ArgValue): any {
+function resolveFromContext(
+  context: ExecutionResultsAccumulator,
+  arg: ArgValue
+): any {
   if (isProxy(arg)) {
     return resolveFromContext(context, arg.value);
   }
@@ -44,7 +49,7 @@ function resolveFromContext(context: ResultsAccumulator, arg: ArgValue): any {
     );
   }
 
-  if (isEventParam(arg)) {
+  if (isEventParam(arg) && "topics" in entry.result) {
     return entry.result.topics[arg.label];
   }
 

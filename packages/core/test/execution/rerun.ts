@@ -104,7 +104,7 @@ describe("Reruning execution", () => {
 
     it("should record complete on first run", async () => {
       // Act
-      const [result] = await ignition.deploy(myModule, {} as any);
+      const result = await ignition.deploy(myModule, {} as any);
 
       // Assert
       assert.equal(result._kind, "success");
@@ -118,7 +118,7 @@ describe("Reruning execution", () => {
       await ignition.deploy(myModule, {} as any);
 
       // Act
-      const [redeployResult] = await ignition.deploy(myModule, {} as any);
+      const redeployResult = await ignition.deploy(myModule, {} as any);
 
       // Assert
       assert.equal(redeployResult._kind, "success");
@@ -135,12 +135,12 @@ describe("Reruning execution", () => {
         return assert.fail("Not a successful deploy");
       }
 
-      if (redeployResult.result.token._kind !== "contract") {
+      if (!redeployResult.result.token.address) {
         return assert.fail("Unable to retrieve the token contract result");
       }
 
       assert.equal(
-        redeployResult.result.token.value.address,
+        redeployResult.result.token.address,
         "0x1F98431c8aD98523631AE4a59f267346ea31F984"
       );
     });
@@ -150,7 +150,7 @@ describe("Reruning execution", () => {
       await ignition.deploy(myModule, {} as any);
 
       // Act
-      const [redeployResult] = await ignition.deploy(myModule, {
+      const redeployResult = await ignition.deploy(myModule, {
         force: true,
       } as any);
 
@@ -231,7 +231,7 @@ describe("Reruning execution", () => {
 
     it("should record hold on first run", async () => {
       // Act
-      const [result] = await ignition.deploy(myModule, {} as any);
+      const result = await ignition.deploy(myModule, {} as any);
 
       // Assert
       assert.equal(result._kind, "hold");
@@ -252,7 +252,7 @@ describe("Reruning execution", () => {
       await ignition.deploy(myModule, {} as any);
 
       // Act
-      const [redeployResult] = await ignition.deploy(myModule, {} as any);
+      const redeployResult = await ignition.deploy(myModule, {} as any);
 
       // Assert
       // only the original two transactions, no more
@@ -265,12 +265,12 @@ describe("Reruning execution", () => {
         return assert.fail("Not a successful deploy");
       }
 
-      if (redeployResult.result.token._kind !== "contract") {
+      if (!redeployResult.result.token.address) {
         return assert.fail("Unable to retrieve the token contract result");
       }
 
       assert.equal(
-        redeployResult.result.token.value.address,
+        redeployResult.result.token.address,
         "0x1F98431c8aD98523631AE4a59f267346ea31F984"
       );
     });
@@ -294,7 +294,7 @@ describe("Reruning execution", () => {
         journal: new MemoryCommandJournal(),
       });
 
-      const [result] = await ignition.deploy(myModule, {} as any);
+      const result = await ignition.deploy(myModule, {} as any);
 
       assert.equal(result._kind, "hold");
     });
@@ -357,7 +357,7 @@ describe("Reruning execution", () => {
 
     it("should record fail on first run", async () => {
       // Act
-      const [result] = await ignition.deploy(myModule, {} as any);
+      const result = await ignition.deploy(myModule, {} as any);
 
       // Assert
       assert.equal(result._kind, "failure");
@@ -383,7 +383,7 @@ describe("Reruning execution", () => {
       await ignition.deploy(myModule, {} as any);
 
       // Act
-      const [redeployResult] = await ignition.deploy(myModule, {} as any);
+      const redeployResult = await ignition.deploy(myModule, {} as any);
 
       // Assert
       // the second transaction is successfully sent
@@ -394,12 +394,12 @@ describe("Reruning execution", () => {
         return assert.fail("Not a successful deploy");
       }
 
-      if (redeployResult.result.token._kind !== "contract") {
+      if (!redeployResult.result.token.address) {
         return assert.fail("Unable to retrieve the token contract result");
       }
 
       assert.equal(
-        redeployResult.result.token.value.address,
+        redeployResult.result.token.address,
         "0x1F98431c8aD98523631AE4a59f267346ea31F984"
       );
     });
@@ -425,7 +425,7 @@ describe("Reruning execution", () => {
       await ignition.deploy(someModule, {} as any);
 
       // Act
-      const [modifiedResult] = await ignition.deploy(modifiedModule, {} as any);
+      const modifiedResult = await ignition.deploy(modifiedModule, {} as any);
 
       // Assert
       // the second transaction is not sent

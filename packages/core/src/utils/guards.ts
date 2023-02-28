@@ -24,6 +24,7 @@ import type {
   ContractFuture,
 } from "types/future";
 import { Artifact } from "types/hardhat";
+import { ModuleDict } from "types/module";
 
 import { IgnitionError } from "./errors";
 
@@ -144,6 +145,28 @@ export function isContract(
   }
 
   return future.type === "contract";
+}
+
+export function isLibrary(
+  future: DeploymentGraphFuture
+): future is ContractFuture {
+  if (isProxy(future)) {
+    return isLibrary(future.value);
+  }
+
+  return future.type === "library";
+}
+
+export function assertModuleReturnTypes<T extends ModuleDict>(moduleResult: T) {
+  for (const future of Object.values(moduleResult)) {
+    if (isContract(future) || isLibrary(future)) {
+      continue;
+    }
+
+    throw new IgnitionError(
+      `Cannot return Future of type "${future.type}" from a module`
+    );
+  }
 }
 
 export function assertUnknownDeploymentVertexType(

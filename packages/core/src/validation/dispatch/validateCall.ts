@@ -2,7 +2,11 @@ import { ethers, BigNumber } from "ethers";
 
 import { Services } from "services/types";
 import { CallDeploymentVertex } from "types/deploymentGraph";
-import { ResultsAccumulator, VertexVisitResult } from "types/graph";
+import { VertexResultEnum } from "types/graph";
+import {
+  ValidationResultsAccumulator,
+  ValidationVertexVisitResult,
+} from "types/validation";
 import { IgnitionError, InvalidArtifactError } from "utils/errors";
 import { isParameter } from "utils/guards";
 
@@ -13,12 +17,12 @@ import {
 
 export async function validateCall(
   vertex: CallDeploymentVertex,
-  _resultAccumulator: ResultsAccumulator,
+  _resultAccumulator: ValidationResultsAccumulator,
   context: { services: Services }
-): Promise<VertexVisitResult> {
+): Promise<ValidationVertexVisitResult> {
   if (!BigNumber.isBigNumber(vertex.value) && !isParameter(vertex.value)) {
     return {
-      _kind: "failure",
+      _kind: VertexResultEnum.FAILURE,
       failure: new IgnitionError(`For call 'value' must be a BigNumber`),
     };
   }
@@ -41,7 +45,7 @@ export async function validateCall(
 
   if (artifactAbi === undefined) {
     return {
-      _kind: "failure",
+      _kind: VertexResultEnum.FAILURE,
       failure: new InvalidArtifactError(contractName),
     };
   }
@@ -60,8 +64,8 @@ export async function validateCall(
 
   if (functionFragments.length === 0) {
     return {
-      _kind: "failure",
-      failure: new Error(
+      _kind: VertexResultEnum.FAILURE,
+      failure: new IgnitionError(
         `Contract '${contractName}' doesn't have a function ${vertex.method}`
       ),
     };
@@ -74,15 +78,15 @@ export async function validateCall(
   if (matchingFunctionFragments.length === 0) {
     if (functionFragments.length === 1) {
       return {
-        _kind: "failure",
-        failure: new Error(
+        _kind: VertexResultEnum.FAILURE,
+        failure: new IgnitionError(
           `Function ${vertex.method} in contract ${contractName} expects ${functionFragments[0].inputs.length} arguments but ${argsLength} were given`
         ),
       };
     } else {
       return {
-        _kind: "failure",
-        failure: new Error(
+        _kind: VertexResultEnum.FAILURE,
+        failure: new IgnitionError(
           `Function ${vertex.method} in contract ${contractName} is overloaded, but no overload expects ${argsLength} arguments`
         ),
       };
@@ -90,7 +94,7 @@ export async function validateCall(
   }
 
   return {
-    _kind: "success",
+    _kind: VertexResultEnum.SUCCESS,
     result: undefined,
   };
 }

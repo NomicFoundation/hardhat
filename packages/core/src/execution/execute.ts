@@ -1,14 +1,14 @@
 import type { Deployment } from "deployment/Deployment";
 import { viewExecutionResults } from "deployment/utils";
-import { Services } from "services/types";
+import type { Services } from "services/types";
 import type { ExecutionOptions, ExecutionState } from "types/deployment";
-import { ExecutionVertexDispatcher } from "types/execution";
-import { ExecutionVertex } from "types/executionGraph";
+import type { ExecutionVertexDispatcher } from "types/execution";
 import type {
-  ResultsAccumulator,
-  VertexVisitResult,
-  VisitResult,
-} from "types/graph";
+  ExecutionResultsAccumulator,
+  ExecutionVertexVisitResult,
+  ExecutionVisitResult,
+  ExecutionVertex,
+} from "types/executionGraph";
 import { IgnitionError } from "utils/errors";
 
 import { ExecutionGraph } from "./ExecutionGraph";
@@ -18,7 +18,7 @@ import { allDependenciesCompleted, hashExecutionGraph } from "./utils";
 export async function execute(
   deployment: Deployment,
   options: ExecutionOptions
-): Promise<VisitResult> {
+): Promise<ExecutionVisitResult> {
   if (deployment.state.transform.executionGraph === null) {
     throw new IgnitionError("Cannot execute without an execution graph");
   }
@@ -36,7 +36,7 @@ export async function executeInBatches(
   executionGraph: ExecutionGraph,
   executionVertexDispatcher: ExecutionVertexDispatcher,
   options: ExecutionOptions
-): Promise<VisitResult> {
+): Promise<ExecutionVisitResult> {
   const executionGraphHash = hashExecutionGraph(executionGraph);
 
   await deployment.startExecutionPhase(executionGraphHash, options.force);
@@ -111,10 +111,10 @@ function calculateNextBatch(
 async function executeBatch(
   batch: number[],
   executionGraph: ExecutionGraph,
-  resultsAccumulator: ResultsAccumulator,
+  resultsAccumulator: ExecutionResultsAccumulator,
   deploymentStateUpdate: (
     vertexId: number,
-    result: VertexVisitResult
+    result: ExecutionVertexVisitResult
   ) => Promise<void>,
   { services }: { services: Services },
   executionVertexDispatcher: ExecutionVertexDispatcher,

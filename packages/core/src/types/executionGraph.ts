@@ -1,4 +1,4 @@
-import type { BigNumber } from "ethers";
+import type { BigNumber, ethers } from "ethers";
 
 import { LibraryMap } from "./deploymentGraph";
 import {
@@ -7,7 +7,13 @@ import {
   DeploymentGraphFuture,
   EventParamFuture,
 } from "./future";
-import { AdjacencyList, VertexDescriptor } from "./graph";
+import {
+  AdjacencyList,
+  ResultsAccumulator,
+  VertexDescriptor,
+  VertexVisitResult,
+  VisitResult,
+} from "./graph";
 import { Artifact } from "./hardhat";
 
 export interface IExecutionGraph {
@@ -80,3 +86,53 @@ export interface SentETH extends VertexDescriptor {
   address: AddressResolvable;
   value: BigNumber;
 }
+
+export interface ContractDeploySuccess {
+  name: string;
+  abi: any[];
+  bytecode: string;
+  address: string;
+  value: ethers.BigNumber;
+}
+
+export interface DeployedContractSuccess {
+  name: string;
+  abi: any[];
+  address: string;
+}
+
+export interface LibraryDeploySuccess {
+  name: string;
+  abi: any[];
+  bytecode: string;
+  address: string;
+}
+
+export interface AwaitedEventSuccess {
+  topics: ethers.utils.Result;
+}
+
+export interface ContractCallSuccess {
+  hash: string;
+}
+
+export interface SendETHSuccess {
+  hash: string;
+  value: ethers.BigNumber;
+}
+
+export type VertexVisitResultSuccessResult =
+  | ContractDeploySuccess
+  | DeployedContractSuccess
+  | LibraryDeploySuccess
+  | AwaitedEventSuccess
+  | ContractCallSuccess
+  | SendETHSuccess;
+
+export type ExecutionVertexVisitResult =
+  VertexVisitResult<VertexVisitResultSuccessResult>;
+
+export type ExecutionResultsAccumulator =
+  ResultsAccumulator<VertexVisitResultSuccessResult>;
+
+export type ExecutionVisitResult = VisitResult<VertexVisitResultSuccessResult>;

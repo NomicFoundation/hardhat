@@ -2,7 +2,11 @@ import { ethers, BigNumber } from "ethers";
 
 import { Services } from "services/types";
 import { HardhatContractDeploymentVertex } from "types/deploymentGraph";
-import { ResultsAccumulator, VertexVisitResult } from "types/graph";
+import { VertexResultEnum } from "types/graph";
+import {
+  ValidationResultsAccumulator,
+  ValidationVertexVisitResult,
+} from "types/validation";
 import { IgnitionError, InvalidArtifactError } from "utils/errors";
 import { isParameter } from "utils/guards";
 
@@ -10,12 +14,12 @@ import { validateBytesForArtifact } from "./helpers";
 
 export async function validateHardhatContract(
   vertex: HardhatContractDeploymentVertex,
-  _resultAccumulator: ResultsAccumulator,
+  _resultAccumulator: ValidationResultsAccumulator,
   { services }: { services: Services }
-): Promise<VertexVisitResult> {
+): Promise<ValidationVertexVisitResult> {
   if (!BigNumber.isBigNumber(vertex.value) && !isParameter(vertex.value)) {
     return {
-      _kind: "failure",
+      _kind: VertexResultEnum.FAILURE,
       failure: new IgnitionError(`For contract 'value' must be a BigNumber`),
     };
   }
@@ -32,7 +36,7 @@ export async function validateHardhatContract(
 
   if (!artifactExists) {
     return {
-      _kind: "failure",
+      _kind: VertexResultEnum.FAILURE,
       failure: new InvalidArtifactError(vertex.contractName),
     };
   }
@@ -45,15 +49,15 @@ export async function validateHardhatContract(
 
   if (argsLength !== expectedArgsLength) {
     return {
-      _kind: "failure",
-      failure: new Error(
+      _kind: VertexResultEnum.FAILURE,
+      failure: new IgnitionError(
         `The constructor of the contract '${vertex.contractName}' expects ${expectedArgsLength} arguments but ${argsLength} were given`
       ),
     };
   }
 
   return {
-    _kind: "success",
+    _kind: VertexResultEnum.SUCCESS,
     result: undefined,
   };
 }

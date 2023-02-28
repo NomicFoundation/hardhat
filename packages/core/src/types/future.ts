@@ -1,4 +1,4 @@
-import { Artifact } from "./hardhat";
+import type { Artifact } from "./hardhat";
 
 export interface HardhatContract {
   vertexId: number;

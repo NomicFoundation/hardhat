@@ -1,24 +1,24 @@
 import {
   IGraph,
-  ResultsAccumulator,
   VertexVisitResult,
+  ResultsAccumulator,
   VisitResult,
 } from "types/graph";
 import { IgnitionError } from "utils/errors";
 
-export async function visit<T, C>(
+export async function visit<T, C, TResult>(
   phase: "Execution" | "Validation",
   orderedVertexIds: number[],
   graph: IGraph<T>,
   context: C,
-  resultAccumulator: ResultsAccumulator,
+  resultAccumulator: ResultsAccumulator<TResult>,
   vistitorAction: (
     vertex: T,
-    resultAccumulator: ResultsAccumulator,
+    resultAccumulator: ResultsAccumulator<TResult>,
     context: C
-  ) => Promise<VertexVisitResult>,
+  ) => Promise<VertexVisitResult<TResult>>,
   afterAction?: (vertex: T, kind: "success" | "failure", err?: unknown) => void
-): Promise<VisitResult> {
+): Promise<VisitResult<TResult>> {
   for (const vertexId of orderedVertexIds) {
     const vertex = graph.vertexes.get(vertexId);
 
@@ -50,7 +50,7 @@ export async function visit<T, C>(
       };
     }
 
-    resultAccumulator.set(vertexId, vertexVisitResult.result);
+    resultAccumulator.set(vertexId, vertexVisitResult);
 
     if (afterAction !== undefined) {
       afterAction(vertex, "success");

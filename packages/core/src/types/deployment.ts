@@ -1,36 +1,28 @@
 import type { BigNumber } from "ethers";
 
-import { Services } from "services/types";
+import type { Services } from "services/types";
 
-import { ExecutionVertex } from "./executionGraph";
-import {
+import type {
+  ExecutionVertex,
+  ExecutionVertexVisitResult,
+  VertexVisitResultSuccessResult,
+} from "./executionGraph";
+import type {
   IGraph,
   VertexDescriptor,
-  VertexVisitResult,
   VertexVisitResultFailure,
   VertexVisitResultSuccess,
 } from "./graph";
-import { ModuleParams } from "./module";
-import {
-  SerializedDeploymentResult,
-  SerializedFutureResult,
-} from "./serialization";
+import type { ModuleDict, ModuleParams } from "./module";
+import type { SerializedDeploymentResult } from "./serialization";
 
 export type UpdateUiAction = (deployState: DeployState) => void;
 export type UiParamsClosure = (moduleParams?: ModuleParams) => UpdateUiAction;
 
-export interface IgnitionModuleResults {
-  load: (moduleId: string) => Promise<SerializedFutureResult | undefined>;
-  save: (
-    moduleId: string,
-    moduleResult: SerializedFutureResult
-  ) => Promise<void>;
-}
-
-export type DeploymentResult =
+export type DeploymentResult<T extends ModuleDict = ModuleDict> =
   | { _kind: "failure"; failures: [string, Error[]] }
   | { _kind: "hold"; holds: VertexDescriptor[] }
-  | { _kind: "success"; result: SerializedDeploymentResult };
+  | { _kind: "success"; result: SerializedDeploymentResult<T> };
 
 export type DeployPhase =
   | "uninitialized"
@@ -56,7 +48,7 @@ export type DeployStateExecutionCommand =
   | {
       type: "EXECUTION::SET_VERTEX_RESULT";
       vertexId: number;
-      result: VertexVisitResult;
+      result: ExecutionVertexVisitResult;
     };
 
 export type DeployStateCommand =
@@ -111,7 +103,7 @@ export interface VertexExecutionStateUnstarted {
 
 export interface VertexExecutionStateCompleted {
   status: VertexExecutionStatusCompleted;
-  result: VertexVisitResultSuccess;
+  result: VertexVisitResultSuccess<VertexVisitResultSuccessResult>;
 }
 
 export interface VertexExecutionStateFailed {

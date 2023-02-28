@@ -8,8 +8,9 @@ import {
   createServices,
   ICommandJournal,
   IgnitionError,
+  SerializedDeploymentResult,
 } from "@ignored/ignition-core";
-import { Contract, ethers } from "ethers";
+import type { Contract } from "ethers";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 
 import { CommandJournal } from "./CommandJournal";
@@ -17,9 +18,9 @@ import { initializeRenderState, renderToCli } from "./ui/renderToCli";
 
 type HardhatEthers = HardhatRuntimeEnvironment["ethers"];
 
-interface DeployResult {
-  [key: string]: string | number | Contract | ethers.utils.Result;
-}
+type DeployResult<T extends ModuleDict> = {
+  [K in keyof T]: Contract;
+};
 
 export class IgnitionWrapper {
   constructor(
@@ -40,7 +41,7 @@ export class IgnitionWrapper {
       journal?: ICommandJournal;
       force?: boolean;
     }
-  ): Promise<DeployResult> {
+  ): Promise<DeployResult<T>> {
     const showUi = deployParams?.ui ?? false;
     const force = deployParams?.force ?? false;
 
@@ -63,7 +64,7 @@ export class IgnitionWrapper {
       await this._providers.config.setParams(deployParams.parameters);
     }
 
-    const [deploymentResult] = await ignition.deploy(ignitionModule, {
+    const deploymentResult = await ignition.deploy(ignitionModule, {
       ...this._deployOptions,
       force,
     });
@@ -94,31 +95,7 @@ export class IgnitionWrapper {
       );
     }
 
-    const resolvedOutput: {
-      [key: string]: string | number | Contract | ethers.utils.Result;
-    } = {};
-    for (const [key, serializedFutureResult] of Object.entries(
-      deploymentResult.result
-    )) {
-      if (
-        serializedFutureResult._kind === "string" ||
-        serializedFutureResult._kind === "number"
-      ) {
-        resolvedOutput[key] = serializedFutureResult.value;
-      } else if (serializedFutureResult._kind === "tx") {
-        resolvedOutput[key] = serializedFutureResult.value.hash;
-      } else if (serializedFutureResult._kind === "event") {
-        resolvedOutput[key] = serializedFutureResult.value.topics;
-      } else {
-        const { abi, address } = serializedFutureResult.value;
-
-        const contract: any = await this._ethers.getContractAt(abi, address);
-        contract.abi = abi;
-        resolvedOutput[key] = contract;
-      }
-    }
-
-    return resolvedOutput;
+    return this._toDeploymentResult(deploymentResult.result);
   }
 
   public async plan<T extends ModuleDict>(ignitionModule: Module<T>) {
@@ -127,5 +104,19 @@ export class IgnitionWrapper {
     });
 
     return ignition.plan(ignitionModule);
+  }
+
+  private async _toDeploymentResult<T extends ModuleDict>(
+    serializedDeploymentResult: SerializedDeploymentResult<T>
+  ): Promise<DeployResult<T>> {
+    const resolvedOutput: { [k: string]: Contract } = {};
+
+    for (const [key, { abi, address }] of Object.entries(
+      serializedDeploymentResult
+    )) {
+      resolvedOutput[key] = await this._ethers.getContractAt(abi, address);
+    }
+
+    return resolvedOutput as DeployResult<T>;
   }
 }

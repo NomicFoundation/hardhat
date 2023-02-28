@@ -22,11 +22,7 @@ describe("libraries", () => {
     });
 
     assert.isDefined(result);
-    const math = result.rubbishMath;
     const contractThatDependsOnLib = result.dependsOnLib;
-
-    const addition = await math.add(1, 2);
-    assert.equal(addition, 3);
 
     const libBasedAddtion = await contractThatDependsOnLib.addThreeNumbers(
       1,
@@ -56,11 +52,7 @@ describe("libraries", () => {
     });
 
     assert.isDefined(result);
-    const math = result.rubbishMath;
     const contractThatDependsOnLib = result.dependsOnLib;
-
-    const addition = await math.add(1, 2);
-    assert.equal(addition, 3);
 
     const libBasedAddtion = await contractThatDependsOnLib.addThreeNumbers(
       1,

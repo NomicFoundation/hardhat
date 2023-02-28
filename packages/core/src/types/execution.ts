@@ -1,11 +1,14 @@
-import { ExecutionContext } from "./deployment";
-import { ExecutionVertex } from "./executionGraph";
-import { ResultsAccumulator, VertexVisitResult } from "./graph";
+import type { ExecutionContext } from "./deployment";
+import type {
+  ExecutionResultsAccumulator,
+  ExecutionVertex,
+  ExecutionVertexVisitResult,
+} from "./executionGraph";
 
 export type BatcherResult =
   | {
       _kind: "success";
-      context: Map<number, VertexVisitResult>;
+      context: Map<number, ExecutionVertexVisitResult>;
     }
   | {
       _kind: "failure";
@@ -14,6 +17,6 @@ export type BatcherResult =
 
 export type ExecutionVertexDispatcher = (
   vertex: ExecutionVertex,
-  resultAccumulator: ResultsAccumulator,
+  resultAccumulator: ExecutionResultsAccumulator,
   context: ExecutionContext
-) => Promise<VertexVisitResult>;
+) => Promise<ExecutionVertexVisitResult>;

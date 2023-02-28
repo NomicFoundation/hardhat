@@ -7,10 +7,11 @@ export { serializeReplacer } from "utils/serialize";
 export { IgnitionError } from "utils/errors";
 export { TransactionsService } from "services/TransactionsService";
 export { ContractsService } from "services/ContractsService";
+export { VertexResultEnum } from "types/graph";
 
 export type {
   SerializedDeploymentResult,
-  SerializedFutureResult,
+  ContractInfo,
 } from "types/serialization";
 export type { Services } from "services/types";
 export type {
@@ -24,9 +25,8 @@ export type {
   DeploymentResult,
   UpdateUiAction,
 } from "types/deployment";
-export type { Module, ModuleDict, ModuleParams } from "types/module";
+export type { Module, ModuleDict, ModuleParams, Subgraph } from "types/module";
 export type {
-  Subgraph,
   ExternalParamValue,
   IDeploymentBuilder,
 } from "types/deploymentGraph";

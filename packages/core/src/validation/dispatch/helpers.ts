@@ -1,7 +1,7 @@
 import type { Services } from "services/types";
 import { InternalParamValue } from "types/deploymentGraph";
 import type { CallableFuture } from "types/future";
-import { VertexVisitResultFailure } from "types/graph";
+import { VertexResultEnum, VertexVisitResultFailure } from "types/graph";
 import { IgnitionError, InvalidArtifactError } from "utils/errors";
 import { isBytesArg } from "utils/guards";
 import { resolveProxyValue } from "utils/proxy";
@@ -69,7 +69,7 @@ export async function validateBytesForArtifact(
   }
 
   return {
-    _kind: "failure",
+    _kind: VertexResultEnum.FAILURE,
     failure: new InvalidArtifactError(bytesArgs[bytesDoesNotExistIndex].label),
   };
 }

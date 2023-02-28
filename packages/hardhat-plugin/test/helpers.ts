@@ -1,5 +1,4 @@
 import {
-  SerializedFutureResult,
   SerializedDeploymentResult,
   DeploymentResult,
   Module,
@@ -43,9 +42,9 @@ type ExpectedDeploymentState = Record<string, ExpectedModuleResult>;
  * result of each future is of the correct type, and it can also run
  * some custom predicate logic on the result to further verify it.
  */
-export async function assertDeploymentState(
+export async function assertDeploymentState<T extends ModuleDict>(
   hre: any,
-  result: SerializedDeploymentResult,
+  result: SerializedDeploymentResult<T>,
   expectedResult: ExpectedDeploymentState
 ) {
   const modulesResults = Object.entries(result);
@@ -114,10 +113,10 @@ export async function deployModules<T extends ModuleDict>(
   hre: any,
   userModules: Array<Module<T>>,
   expectedBlocks: number[]
-): Promise<SerializedDeploymentResult> {
+): Promise<SerializedDeploymentResult<T>> {
   await hre.run("compile", { quiet: true });
 
-  const deploymentResultPromise: Promise<DeploymentResult> = hre.run(
+  const deploymentResultPromise: Promise<DeploymentResult<T>> = hre.run(
     "deploy:deploy-modules",
     {
       userModules,
@@ -180,7 +179,7 @@ async function waitForPendingTxs(
   }
 }
 
-async function assertContract(hre: any, futureResult: SerializedFutureResult) {
+async function assertContract(hre: any, futureResult: any) {
   if (futureResult._kind !== "contract") {
     assert.fail(
       `Expected future result to be a contract, but got ${futureResult._kind}`

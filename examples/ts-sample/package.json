@@ -1,0 +1,35 @@
+{
+  "name": "@nomicfoundation/ignition-ts-sample-example",
+  "private": true,
+  "version": "0.0.1",
+  "scripts": {
+    "test:examples": "hardhat test",
+    "lint": "npm run prettier -- --check && npm run eslint",
+    "lint:fix": "npm run prettier -- --write && npm run eslint -- --fix",
+    "eslint": "eslint \"ignition/**/*.{js,jsx,ts,tsx}\" \"test/**/*.{js,jsx,ts,tsx}\"",
+    "prettier": "prettier \"*.{js,ts,md,json}\" \"ignition/*.{js,ts,md,json}\" \"test/*.{js,ts,md,json}\""
+  },
+  "devDependencies": {
+    "@ethersproject/abi": "5.7.0",
+    "@ethersproject/providers": "5.7.2",
+    "@ignored/hardhat-ignition": "^0.0.8",
+    "@nomicfoundation/hardhat-chai-matchers": "1.0.4",
+    "@nomicfoundation/hardhat-network-helpers": "1.0.6",
+    "@nomicfoundation/hardhat-toolbox": "2.0.0",
+    "@nomiclabs/hardhat-ethers": "2.2.1",
+    "@nomiclabs/hardhat-etherscan": "3.1.2",
+    "@typechain/ethers-v5": "10.1.1",
+    "@typechain/hardhat": "6.1.4",
+    "@typescript-eslint/eslint-plugin": "^5.52.0",
+    "@typescript-eslint/parser": "^5.52.0",
+    "chai": "4.3.7",
+    "eslint-import-resolver-typescript": "^3.5.3",
+    "eslint-plugin-import": "^2.27.5",
+    "ethers": "5.7.2",
+    "hardhat": "^2.12.0",
+    "hardhat-gas-reporter": "1.0.9",
+    "solidity-coverage": "0.8.2",
+    "typechain": "8.1.1",
+    "typescript": "^4.7.4"
+  }
+}

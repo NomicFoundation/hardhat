@@ -33,5 +33,5 @@ module.exports = buildModule("MultisigModule", (m) => {
     after: [event],
   });
 
-  return { multisig, event };
+  return { multisig };
 });

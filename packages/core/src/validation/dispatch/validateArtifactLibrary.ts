@@ -2,16 +2,21 @@ import { ethers } from "ethers";
 
 import { Services } from "services/types";
 import { ArtifactLibraryDeploymentVertex } from "types/deploymentGraph";
-import { ResultsAccumulator, VertexVisitResult } from "types/graph";
+import { VertexResultEnum } from "types/graph";
+import {
+  ValidationResultsAccumulator,
+  ValidationVertexVisitResult,
+} from "types/validation";
+import { IgnitionError } from "utils/errors";
 import { isArtifact } from "utils/guards";
 
 import { validateBytesForArtifact } from "./helpers";
 
 export async function validateArtifactLibrary(
   vertex: ArtifactLibraryDeploymentVertex,
-  _resultAccumulator: ResultsAccumulator,
+  _resultAccumulator: ValidationResultsAccumulator,
   _context: { services: Services }
-): Promise<VertexVisitResult> {
+): Promise<ValidationVertexVisitResult> {
   const invalidBytes = await validateBytesForArtifact(
     vertex.args,
     _context.services
@@ -25,8 +30,10 @@ export async function validateArtifactLibrary(
 
   if (!artifactExists) {
     return {
-      _kind: "failure",
-      failure: new Error(`Artifact not provided for library '${vertex.label}'`),
+      _kind: VertexResultEnum.FAILURE,
+      failure: new IgnitionError(
+        `Artifact not provided for library '${vertex.label}'`
+      ),
     };
   }
 
@@ -37,15 +44,15 @@ export async function validateArtifactLibrary(
 
   if (argsLength !== expectedArgsLength) {
     return {
-      _kind: "failure",
-      failure: new Error(
+      _kind: VertexResultEnum.FAILURE,
+      failure: new IgnitionError(
         `The constructor of the library '${vertex.label}' expects ${expectedArgsLength} arguments but ${argsLength} were given`
       ),
     };
   }
 
   return {
-    _kind: "success",
+    _kind: VertexResultEnum.SUCCESS,
     result: undefined,
   };
 }

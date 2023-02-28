@@ -10,6 +10,11 @@ describe("existing contract", () => {
   it("should be able to use an existing contract", async function () {
     await this.hre.run("compile", { quiet: true });
 
+    const { abi: barAbi } = await this.hre.artifacts.readArtifact("Bar");
+    const { abi: usesContractAbi } = await this.hre.artifacts.readArtifact(
+      "UsesContract"
+    );
+
     const firstResult = await deployModule(this.hre, (m) => {
       const bar = m.contract("Bar");
       const usesContract = m.contract("UsesContract", {
@@ -22,9 +27,7 @@ describe("existing contract", () => {
     assert.isDefined(firstResult.bar.address);
     assert.isDefined(firstResult.usesContract.address);
     const barAddress: string = firstResult.bar.address;
-    const barAbi: any[] = firstResult.bar.abi;
     const usesContractAddress: string = firstResult.usesContract.address;
-    const usesContractAbi: any[] = firstResult.usesContract.abi;
 
     const result = await deployModule(this.hre, (m) => {
       const bar = m.contractAt("Bar", barAddress, barAbi);

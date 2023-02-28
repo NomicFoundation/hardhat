@@ -3,7 +3,10 @@ import type {
   DeployStateCommand,
   DeployStateExecutionCommand,
 } from "types/deployment";
-import { ResultsAccumulator, VertexVisitResult } from "types/graph";
+import type {
+  ExecutionResultsAccumulator,
+  ExecutionVertexVisitResult,
+} from "types/executionGraph";
 import { IgnitionError } from "utils/errors";
 
 export function isDeployStateExecutionCommand(
@@ -22,13 +25,11 @@ export function assertNeverMessageType(action: never) {
 
 export function viewExecutionResults(
   deployState: DeployState
-): ResultsAccumulator {
-  const entries: Array<[number, VertexVisitResult | null]> = Object.entries(
-    deployState.execution.vertexes
-  ).map(([vertexId, vertexState]) => [
-    parseInt(vertexId, 10),
-    vertexState.result,
-  ]);
+): ExecutionResultsAccumulator {
+  const entries: Array<[number, ExecutionVertexVisitResult | null]> =
+    Object.entries(deployState.execution.vertexes).map(
+      ([vertexId, vertexState]) => [parseInt(vertexId, 10), vertexState.result]
+    );
 
-  return new Map<number, VertexVisitResult | null>(entries);
+  return new Map<number, ExecutionVertexVisitResult | null>(entries);
 }

@@ -1,6 +1,9 @@
-import { ExecutionContext } from "types/deployment";
-import { ExecutionVertex } from "types/executionGraph";
-import { ResultsAccumulator, VertexVisitResult } from "types/graph";
+import type { ExecutionContext } from "types/deployment";
+import type {
+  ExecutionResultsAccumulator,
+  ExecutionVertex,
+  ExecutionVertexVisitResult,
+} from "types/executionGraph";
 import { IgnitionError } from "utils/errors";
 
 import { executeAwaitedEvent } from "./executeAwaitedEvent";
@@ -12,9 +15,9 @@ import { executeSendETH } from "./executeSendETH";
 
 export function executionDispatch(
   executionVertex: ExecutionVertex,
-  resultAccumulator: ResultsAccumulator,
+  resultAccumulator: ExecutionResultsAccumulator,
   context: ExecutionContext
-): Promise<VertexVisitResult> {
+): Promise<ExecutionVertexVisitResult> {
   switch (executionVertex.type) {
     case "ContractDeploy":
       return executeContractDeploy(executionVertex, resultAccumulator, context);

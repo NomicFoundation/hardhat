@@ -3,6 +3,7 @@ import { assert } from "chai";
 
 import { buildModule } from "dsl/buildModule";
 import { generateDeploymentGraphFrom } from "process/generateDeploymentGraphFrom";
+import { IgnitionError } from "utils/errors";
 
 describe("deployment builder - buildModule", () => {
   it("should throw if build module is given an async callback", () => {
@@ -20,7 +21,7 @@ describe("deployment builder - buildModule", () => {
   it("should throw if build module throws an exception", () => {
     assert.throws(() => {
       const badAsyncModule = buildModule("BadAsyncModule", () => {
-        throw new Error("User thrown error");
+        throw new IgnitionError("User thrown error");
       });
 
       return generateDeploymentGraphFrom(badAsyncModule, {

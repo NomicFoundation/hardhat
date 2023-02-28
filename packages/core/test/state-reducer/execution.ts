@@ -7,6 +7,7 @@ import {
 } from "deployment/deployStateReducer";
 import { buildModule } from "dsl/buildModule";
 import { DeployState } from "types/deployment";
+import { VertexResultEnum } from "types/graph";
 
 import { applyActions, resolveExecutionGraphFor } from "./utils";
 
@@ -122,8 +123,8 @@ describe("deployment state reducer", () => {
           type: "EXECUTION::SET_VERTEX_RESULT",
           vertexId: 0,
           result: {
-            _kind: "success",
-            result: { someValue: "example" },
+            _kind: VertexResultEnum.SUCCESS,
+            result: { hash: "example" },
           },
         },
       ]);
@@ -135,8 +136,8 @@ describe("deployment state reducer", () => {
       assert.deepStrictEqual(state.execution.vertexes[0], {
         status: "COMPLETED",
         result: {
-          _kind: "success",
-          result: { someValue: "example" },
+          _kind: VertexResultEnum.SUCCESS,
+          result: { hash: "example" },
         },
       });
     });
@@ -158,8 +159,8 @@ describe("deployment state reducer", () => {
           type: "EXECUTION::SET_VERTEX_RESULT",
           vertexId: 0,
           result: {
-            _kind: "success",
-            result: { someValue: "example" },
+            _kind: VertexResultEnum.SUCCESS,
+            result: { hash: "example" },
           },
         },
       ]);
@@ -170,8 +171,8 @@ describe("deployment state reducer", () => {
       assert.deepStrictEqual(state.execution.vertexes[0], {
         status: "COMPLETED",
         result: {
-          _kind: "success",
-          result: { someValue: "example" },
+          _kind: VertexResultEnum.SUCCESS,
+          result: { hash: "example" },
         },
       });
     });
@@ -194,8 +195,8 @@ describe("deployment state reducer", () => {
           type: "EXECUTION::SET_VERTEX_RESULT",
           vertexId: 0,
           result: {
-            _kind: "success",
-            result: { someValue: "example" },
+            _kind: VertexResultEnum.SUCCESS,
+            result: { hash: "example" },
           },
         },
 
@@ -207,16 +208,16 @@ describe("deployment state reducer", () => {
           type: "EXECUTION::SET_VERTEX_RESULT",
           vertexId: 1,
           result: {
-            _kind: "success",
-            result: { someValue: "example" },
+            _kind: VertexResultEnum.SUCCESS,
+            result: { hash: "example" },
           },
         },
         {
           type: "EXECUTION::SET_VERTEX_RESULT",
           vertexId: 2,
           result: {
-            _kind: "success",
-            result: { someValue: "example" },
+            _kind: VertexResultEnum.SUCCESS,
+            result: { hash: "example" },
           },
         },
 
@@ -228,8 +229,8 @@ describe("deployment state reducer", () => {
           type: "EXECUTION::SET_VERTEX_RESULT",
           vertexId: 3,
           result: {
-            _kind: "success",
-            result: { someValue: "example" },
+            _kind: VertexResultEnum.SUCCESS,
+            result: { hash: "example" },
           },
         },
       ]);
@@ -268,8 +269,8 @@ describe("deployment state reducer", () => {
           type: "EXECUTION::SET_VERTEX_RESULT",
           vertexId: 0,
           result: {
-            _kind: "success",
-            result: { someValue: "example" },
+            _kind: VertexResultEnum.SUCCESS,
+            result: { hash: "example" },
           },
         },
 
@@ -281,7 +282,7 @@ describe("deployment state reducer", () => {
           type: "EXECUTION::SET_VERTEX_RESULT",
           vertexId: 1,
           result: {
-            _kind: "hold",
+            _kind: VertexResultEnum.HOLD,
           },
         },
       ]);
@@ -318,8 +319,8 @@ describe("deployment state reducer", () => {
           type: "EXECUTION::SET_VERTEX_RESULT",
           vertexId: 0,
           result: {
-            _kind: "success",
-            result: { someValue: "example" },
+            _kind: VertexResultEnum.SUCCESS,
+            result: { hash: "example" },
           },
         },
 
@@ -331,7 +332,7 @@ describe("deployment state reducer", () => {
           type: "EXECUTION::SET_VERTEX_RESULT",
           vertexId: 1,
           result: {
-            _kind: "failure",
+            _kind: VertexResultEnum.FAILURE,
             failure: new Error("No connection"),
           },
         },
@@ -348,7 +349,7 @@ describe("deployment state reducer", () => {
       assert.deepStrictEqual(state.execution.vertexes[1], {
         status: "FAILED",
         result: {
-          _kind: "failure",
+          _kind: VertexResultEnum.FAILURE,
           failure: new Error("No connection"),
         },
       });

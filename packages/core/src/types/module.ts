@@ -1,17 +1,28 @@
-import type { ExternalParamValue, Subgraph } from "./deploymentGraph";
+import type { ExternalParamValue, IDeploymentBuilder } from "./deploymentGraph";
 import type {
-  CallableFuture,
-  EventFuture,
+  ContractFuture,
   FutureDict,
+  LibraryFuture,
   ProxyFuture,
   Virtual,
 } from "./future";
 
-export interface ModuleDict extends FutureDict {
-  [key: string]: CallableFuture | Virtual | ProxyFuture | EventFuture;
+export type ModuleReturnValue =
+  | ContractFuture
+  | LibraryFuture
+  | Virtual
+  | ProxyFuture;
+
+export interface ModuleDict {
+  [key: string]: ModuleReturnValue;
 }
 
 export type Module<T extends ModuleDict> = Subgraph<T>;
+
+export interface Subgraph<T extends FutureDict> {
+  name: string;
+  action: (builder: IDeploymentBuilder) => T;
+}
 
 export interface ModuleData {
   result: Virtual & ModuleDict;

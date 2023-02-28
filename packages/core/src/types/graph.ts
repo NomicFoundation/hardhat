@@ -15,29 +15,35 @@ export interface IGraph<T> {
 
 export type VertexGraph = IGraph<VertexDescriptor>;
 
-export interface VertexVisitResultSuccess {
-  _kind: "success";
-  result: any;
+export enum VertexResultEnum {
+  SUCCESS = "success",
+  FAILURE = "failure",
+  HOLD = "hold",
+}
+
+export interface VertexVisitResultSuccess<T> {
+  _kind: VertexResultEnum.SUCCESS;
+  result: T;
 }
 
 export interface VertexVisitResultFailure {
-  _kind: "failure";
+  _kind: VertexResultEnum.FAILURE;
   failure: Error;
 }
 
 export interface VertexVisitResultHold {
-  _kind: "hold";
+  _kind: VertexResultEnum.HOLD;
 }
 
-export type VertexVisitResult =
-  | VertexVisitResultSuccess
+export type VertexVisitResult<T> =
+  | VertexVisitResultSuccess<T>
   | VertexVisitResultFailure
   | VertexVisitResultHold;
 
-export type VisitResult =
+export type VisitResult<T> =
   | {
       _kind: "success";
-      result: ResultsAccumulator;
+      result: ResultsAccumulator<T>;
     }
   | {
       _kind: "failure";
@@ -48,4 +54,4 @@ export type VisitResult =
       holds: VertexDescriptor[];
     };
 
-export type ResultsAccumulator = Map<number, VertexVisitResult | null>;
+export type ResultsAccumulator<T> = Map<number, VertexVisitResult<T> | null>;

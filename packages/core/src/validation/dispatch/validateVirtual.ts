@@ -1,14 +1,18 @@
 import { Services } from "services/types";
 import { DeploymentGraphVertex } from "types/deploymentGraph";
-import { ResultsAccumulator, VertexVisitResult } from "types/graph";
+import { VertexResultEnum } from "types/graph";
+import {
+  ValidationResultsAccumulator,
+  ValidationVertexVisitResult,
+} from "types/validation";
 
 export async function validateVirtual(
   _deploymentVertex: DeploymentGraphVertex,
-  _resultAccumulator: ResultsAccumulator,
+  _resultAccumulator: ValidationResultsAccumulator,
   _context: { services: Services }
-): Promise<VertexVisitResult> {
+): Promise<ValidationVertexVisitResult> {
   return {
-    _kind: "success",
+    _kind: VertexResultEnum.SUCCESS,
     result: undefined,
   };
 }

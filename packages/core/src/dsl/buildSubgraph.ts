@@ -1,5 +1,6 @@
-import type { IDeploymentBuilder, Subgraph } from "types/deploymentGraph";
+import type { IDeploymentBuilder } from "types/deploymentGraph";
 import type { FutureDict } from "types/future";
+import { Subgraph } from "types/module";
 
 export function buildSubgraph<T extends FutureDict>(
   subgraphName: string,

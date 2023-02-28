@@ -11,6 +11,7 @@
     "esModuleInterop": true,
     "moduleResolution": "node",
     "declaration": true,
+    "declarationMap": true,
     "types": [],
     "sourceMap": true
   }
