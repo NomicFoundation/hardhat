@@ -136,3 +136,6 @@ dist
 
 # Custom workspace settings for VSCode
 .vscode/settings.json
+
+# Webstorm files
+.idea/
