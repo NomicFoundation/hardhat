@@ -1,5 +1,6 @@
 import { assert } from "chai";
 import { unlink, writeFile, writeJson } from "fs-extra";
+import sinon from "sinon";
 
 import { useEnvironment } from "./helpers";
 
@@ -33,6 +34,13 @@ describe("Solhint plugin", function () {
         // and it was failing very often when solhint released new versions
         reports[0].reports.length >= 5
       );
+    });
+
+    it("should run the check task without throwing an error", async function () {
+      const consoleLogStub = sinon.stub(console, "log");
+      await this.env.run("check");
+      assert.isTrue(consoleLogStub.calledOnce);
+      consoleLogStub.restore();
     });
   });
 

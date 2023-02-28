@@ -13,7 +13,7 @@ function getFormatter(formatterName = "stylish") {
   try {
     const solhintPath = require.resolve("solhint");
     const formatterPath = require.resolve(
-      `eslint/lib/formatters/${formatterName}`,
+      `solhint/lib/formatters/${formatterName}`,
       { paths: [solhintPath] }
     );
     return require(formatterPath);
