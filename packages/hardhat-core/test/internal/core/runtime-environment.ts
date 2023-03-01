@@ -335,6 +335,65 @@ describe("Environment", () => {
       await env.run("with-subtask");
     });
 
+    it("Should preserve added fields in the HRE after running a sub-task", async () => {
+      dsl.task(
+        "with-subtask",
+        "description",
+        async ({}, hre, _runSuper: any) => {
+          const modifiedHre = hre as any;
+          modifiedHre.newField = 123;
+
+          await modifiedHre.run("example");
+          await hre.run("example");
+
+          assert.equal(modifiedHre.newField, 123);
+        }
+      );
+
+      await env.run("with-subtask");
+    });
+
+    it("Should preserve monkey-patched fields in the HRE after running a sub-task", async () => {
+      dsl.task(
+        "with-subtask",
+        "description",
+        async ({}, hre, _runSuper: any) => {
+          const modifiedHre = hre as any;
+          modifiedHre.network = 123;
+
+          await modifiedHre.run("example");
+          await hre.run("example");
+
+          assert.equal(modifiedHre.network, 123);
+        }
+      );
+
+      await env.run("with-subtask");
+    });
+
+    it("Should pass new fields in the HRE after running a sub-task", async () => {
+      dsl.task(
+        "with-subtask",
+        "description",
+        async ({}, hre, _runSuper: any) => {
+          const modifiedHre = hre as any;
+          modifiedHre.newField = 123;
+
+          await modifiedHre.run("subtask");
+
+          assert.equal(modifiedHre.newField, 123);
+        }
+      );
+
+      dsl.task("subtask", "description", async ({}, hre, _runSuper: any) => {
+        const theHre = hre as any;
+
+        assert.equal(theHre.newField, 123);
+      });
+
+      await env.run("with-subtask");
+    });
+
     it("Should define the network field correctly", () => {
       assert.isDefined(env.network);
       assert.equal(env.network.name, "localhost");
