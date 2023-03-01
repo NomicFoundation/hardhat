@@ -14,6 +14,7 @@ import {
   TASK_VERIFY_GET_MINIMUM_BUILD,
 } from "../../src/constants";
 import { deployContract, getRandomString, useEnvironment } from "../helpers";
+import { EtherscanNetworkEntry } from "../../src/types";
 
 // These are skipped because they can't currently be run in CI
 describe("Plugin integration tests", function () {
@@ -336,12 +337,6 @@ describe("Plugin integration tests", function () {
       // This avoids failure due to compiler downloads.
       await this.env.run(TASK_COMPILE, { quiet: true });
 
-      const { task }: { task: typeof taskT } = require("hardhat/config");
-
-      // We override this task to avoid posting to an actual endpoint and to avoid our own sanity checks.
-      task(TASK_VERIFY_GET_ETHERSCAN_ENDPOINT).setAction(async () => {
-        return "http://127.0.0.1:54321";
-      });
       const { ethers } = this.env as any;
       const signers = await ethers.getSigners();
       signer = signers[0];
