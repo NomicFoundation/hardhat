@@ -324,7 +324,7 @@ export class Environment implements HardhatRuntimeEnvironment {
       };
     }
 
-    const uninjectFromGlobal = proxiedHre?.injectToGlobal();
+    const uninjectFromGlobal = proxiedHre.injectToGlobal();
 
     try {
       return await taskDefinition.action(taskArguments, proxiedHre, runSuper);
