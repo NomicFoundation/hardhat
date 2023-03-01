@@ -11,10 +11,8 @@ function getDefaultConfig() {
 
 function getFormatter(formatterName = "stylish") {
   try {
-    const solhintPath = require.resolve("solhint");
     const formatterPath = require.resolve(
-      `solhint/lib/formatters/${formatterName}`,
-      { paths: [solhintPath] }
+      `solhint/lib/formatters/${formatterName}`
     );
     return require(formatterPath);
   } catch (ex: any) {
