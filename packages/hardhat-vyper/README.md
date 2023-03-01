@@ -75,9 +75,3 @@ There are no additional steps you need to take for this plugin to work.
 ### Additional notes
 
 The oldest vyper version supported by this plugin is 0.2.0. Versions older than this will not work and will throw an error.
-
-### Using this plugin in GitHub Actions
-
-This plugin downloads the Vyper compiler from GitHub. This can lead to your GitHub Actions being rate-limited by GitHub.
-
-To avoid this, you need to set up your [GITHUB_TOKEN](https://docs.github.com/en/actions/security-guides/automatic-token-authenticationg) as an [environment variable in the steps running Hardhat](https://docs.github.com/en/actions/learn-github-actions/variables).
