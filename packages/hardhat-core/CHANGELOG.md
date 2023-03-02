@@ -1,5 +1,27 @@
 # hardhat
 
+## 2.13.0
+
+### Minor Changes
+
+- 83ef755f3: Hardhat's task runner now allows you to override the arguments passed to subtasks.
+- 50779cd10: Added support for writing scripts and tests as ES modules.
+
+  To learn how to start using ESM with Hardhat read [this guide](https://hardhat.org/hardhat-runner/docs/advanced/using-esm).
+
+### Patch Changes
+
+- f55a3a769: Reduce the amount of ETH sent to the Lock contract in the sample project's deploy script (Thanks @mutedSpectre!)
+- 929b26849: The `resolveJsonModule` compiler option is now enabled by default in the sample tsconfig (thanks @mlshv!)
+- 071e6bc89: Stop colorizing the entire message when an error is printed
+- 0fa7ac548: Make Hardhat more tolerant to unsupported Node.js versions
+- 7a5bc5512: Send less ETH and lock it for less time on sample deployment scripts.
+- 7ceb5f90d: Added basic support for solc `viaIR` setting
+- e6f07b4b6: Fixed an issue with a warning showing the same solc version multiple times (thanks @shark0der!)
+- 6e51edf4d: Added support for Solidity 0.8.18 (thanks @taxio!)
+- b9c34f36f: Fix an error that could happen when a download failed.
+- 1c833bf04: Propagate HttpProviderError exception messages.
+
 ## 2.12.7
 
 ### Patch Changes
