@@ -26,6 +26,5 @@ yyyy-mm-dd` release.
 10. On a successful check, `rebase merge` the release branch into main
 11. Switch to main branch and pull the latest changes
 12. Git tag the version, `g tag -a v0.x.x -m "v0.x.x"` and push the tag `git push --follow-tags`
-13. Publish `core` if appropriate: `npm publish`
-14. Publish `hardhat-plugin` if appropriate: `npm publish`
-15. Create a release on github off of the pushed tag
+13. Publish `@ignored/ignition-core` and `@ignored/hardhat-ignition` : `npm publish -w @ignored/ignition-core -w @ignored/hardhat-ignition`
+14. Create a release on github off of the pushed tag
