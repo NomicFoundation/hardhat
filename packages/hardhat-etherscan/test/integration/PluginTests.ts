@@ -9,12 +9,8 @@ import {
 import { NomicLabsHardhatPluginError } from "hardhat/plugins";
 import path from "path";
 
-import {
-  TASK_VERIFY_GET_ETHERSCAN_ENDPOINT,
-  TASK_VERIFY_GET_MINIMUM_BUILD,
-} from "../../src/constants";
+import { TASK_VERIFY_GET_MINIMUM_BUILD } from "../../src/constants";
 import { deployContract, getRandomString, useEnvironment } from "../helpers";
-import { EtherscanNetworkEntry } from "../../src/types";
 
 // These are skipped because they can't currently be run in CI
 describe("Plugin integration tests", function () {
