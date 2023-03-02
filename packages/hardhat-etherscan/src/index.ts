@@ -225,7 +225,13 @@ If your constructor has no arguments pass an empty array. E.g:
     verificationNetwork
   );
 
-  if (await isAlreadyVerified(etherscanAPIKey, address)) {
+  const alreadyVerified = await isAlreadyVerified(
+    etherscanAPIEndpoints.apiURL,
+    etherscanAPIKey,
+    address
+  );
+
+  if (alreadyVerified) {
     console.log(`The contract ${address} has already been verified`);
     return;
   }

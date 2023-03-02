@@ -1,7 +1,4 @@
-import {
-  HARDHAT_NETWORK_NAME,
-  NomicLabsHardhatPluginError,
-} from "hardhat/plugins";
+import { NomicLabsHardhatPluginError } from "hardhat/plugins";
 import { EthereumProvider } from "hardhat/types";
 
 import { pluginName } from "../constants";
@@ -14,13 +11,6 @@ export async function getEtherscanEndpoints(
   chainConfig: ChainConfig,
   customChains: CustomChain[]
 ): Promise<EtherscanNetworkEntry> {
-  if (networkName === HARDHAT_NETWORK_NAME) {
-    throw new NomicLabsHardhatPluginError(
-      pluginName,
-      `The selected network is ${networkName}. Please select a network supported by Etherscan.`
-    );
-  }
-
   const chainIdsToNames = new Map(
     entries(chainConfig).map(([chainName, config]) => [
       config.chainId,

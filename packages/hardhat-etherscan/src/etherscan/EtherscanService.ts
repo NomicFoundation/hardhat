@@ -156,12 +156,21 @@ export class EtherscanResponse {
 }
 
 export async function isAlreadyVerified(
+  apiURL: string,
   apiKey: string,
   address: string
 ): Promise<boolean> {
-  const url = `https://api.etherscan.io/api?module=contract&action=getsourcecode&address=${address}&apikey=${apiKey}`;
+  const parameters = new URLSearchParams({
+    module: "contract",
+    action: "getsourcecode",
+    address,
+    apikey: apiKey,
+  });
 
-  const response = await sendGetRequest(new URL(url));
+  const url = new URL(apiURL);
+  url.search = parameters.toString();
+
+  const response = await sendGetRequest(url);
   const json = await response.body.json();
 
   if (json.message !== "OK") {
