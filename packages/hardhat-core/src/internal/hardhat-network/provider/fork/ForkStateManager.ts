@@ -17,7 +17,7 @@ import { keccak256 } from "../../../util/keccak";
 import { JsonRpcClient } from "../../jsonrpc/client";
 import { GenesisAccount } from "../node-types";
 import { makeAccount } from "../utils/makeAccount";
-import { randomHash } from "../utils/random";
+import { RandomBufferGenerator } from "../utils/random";
 
 import {
   AccountState,
@@ -41,6 +41,14 @@ const notCheckpointedError = (method: string) =>
 
 const notSupportedError = (method: string) =>
   new Error(`${method} is not supported when forking from remote network`);
+
+const generator = RandomBufferGenerator.create("seed");
+const randomHashBuffer = (): Buffer => {
+  return generator.next();
+};
+const randomHash = () => {
+  return bufferToHex(randomHashBuffer());
+};
 
 export class ForkStateManager implements StateManager {
   private _state: State = ImmutableMap<string, ImmutableRecord<AccountState>>();
