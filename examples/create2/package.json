@@ -1,7 +1,7 @@
 {
   "name": "@nomicfoundation/ignition-create2-example",
   "private": true,
-  "version": "0.0.1",
+  "version": "0.0.9",
   "scripts": {
     "test:examples": "hardhat test",
     "lint": "npm run prettier -- --check && npm run eslint",
@@ -11,7 +11,7 @@
   },
   "devDependencies": {
     "hardhat": "^2.10.0",
-    "@ignored/hardhat-ignition": "^0.0.8"
+    "@ignored/hardhat-ignition": "^0.0.9"
   },
   "dependencies": {
     "@openzeppelin/contracts": "4.7.3"

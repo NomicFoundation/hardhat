@@ -1,7 +1,7 @@
 {
   "name": "@nomicfoundation/ignition-ts-sample-example",
   "private": true,
-  "version": "0.0.1",
+  "version": "0.0.9",
   "scripts": {
     "test:examples": "hardhat test",
     "lint": "npm run prettier -- --check && npm run eslint",
@@ -12,7 +12,7 @@
   "devDependencies": {
     "@ethersproject/abi": "5.7.0",
     "@ethersproject/providers": "5.7.2",
-    "@ignored/hardhat-ignition": "^0.0.8",
+    "@ignored/hardhat-ignition": "^0.0.9",
     "@nomicfoundation/hardhat-chai-matchers": "1.0.4",
     "@nomicfoundation/hardhat-network-helpers": "1.0.6",
     "@nomicfoundation/hardhat-toolbox": "2.0.0",

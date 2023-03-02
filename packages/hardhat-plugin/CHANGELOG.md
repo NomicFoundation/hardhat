@@ -4,6 +4,17 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## 0.0.9 - 2023-03-02
+
+### Added
+
+- Support defining modules in typescript ([#101](https://github.com/NomicFoundation/ignition/issues/101))
+- Allow rerunning deployment while ignoring journal history through a `--force` flag ([#132](https://github.com/NomicFoundation/ignition/issues/132))
+
+### Changed
+
+- Do not ask for confirmation when deploying to a hardhat node ([#134](https://github.com/NomicFoundation/ignition/issues/134))
+
 ## 0.0.8 - 2023-02-16
 
 ### Added
