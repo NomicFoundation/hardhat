@@ -56,7 +56,10 @@ extendConfig((config, userConfig) => {
   const userSourcesPath = userConfig.paths?.sources;
   const foundrySourcesPath = foundryConfig.src;
 
-  if (userSourcesPath !== undefined && userSourcesPath !== foundrySourcesPath) {
+  if (
+    userSourcesPath !== undefined &&
+    path.resolve(userSourcesPath) !== path.resolve(foundrySourcesPath)
+  ) {
     throw new HardhatFoundryError(
       `User-configured sources path (${userSourcesPath}) doesn't match path configured in foundry (${foundrySourcesPath})`
     );
