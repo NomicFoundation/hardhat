@@ -974,7 +974,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
       id,
       date: new Date(),
       latestBlock: await this.getLatestBlock(),
-      stateRoot: await this._vm.makeSnapshot(),
+      stateRoot: (await this._vm.makeSnapshot())[0],
       txPoolSnapshotId: this._txPool.snapshot(),
       blockTimeOffsetSeconds: this.getTimeIncrement(),
       nextBlockTimestamp: this.getNextBlockTimestamp(),
@@ -1042,7 +1042,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
 
     // We delete this and the following snapshots, as they can only be used
     // once in Ganache
-    this._snapshots.splice(snapshotIndex);
+    await this._removeSnapshot(snapshotIndex);
 
     return true;
   }
@@ -1520,18 +1520,22 @@ Hardhat Network's forking functionality only works with blocks from at least spu
   private async _mineTransactionAndPending(
     tx: TypedTransaction
   ): Promise<MineBlockResult[]> {
-    const snapshotId = await this.takeSnapshot();
+    const id = await this.takeSnapshot();
 
     let result;
     try {
       const txHash = await this._addPendingTransaction(tx);
       result = await this._mineBlocksUntilTransactionIsIncluded(txHash);
     } catch (err) {
-      await this.revertToSnapshot(snapshotId);
+      await this.revertToSnapshot(id);
       throw err;
     }
 
-    this._removeSnapshot(snapshotId);
+    const snapshotIndex = this._getSnapshotIndex(id);
+    if (snapshotIndex !== undefined) {
+      await this._removeSnapshot(id);
+    }
+
     return result;
   }
 
@@ -1779,12 +1783,12 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     return undefined;
   }
 
-  private _removeSnapshot(id: number) {
-    const snapshotIndex = this._getSnapshotIndex(id);
-    if (snapshotIndex === undefined) {
-      return;
+  private async _removeSnapshot(snapshotIndex: number) {
+    const deletedSnapshots = this._snapshots.splice(snapshotIndex);
+
+    for (const deletedSnapshot of deletedSnapshots) {
+      await this._vm.removeSnapshot(deletedSnapshot.stateRoot);
     }
-    this._snapshots.splice(snapshotIndex);
   }
 
   private _initLocalAccounts(genesisAccounts: GenesisAccount[]) {
@@ -2064,12 +2068,16 @@ Hardhat Network's forking functionality only works with blocks from at least spu
       );
     }
 
-    const currentStateRoot = await this._vm.getStateRoot();
+    const [snapshot, existed] = await this._vm.makeSnapshot();
     await this._setBlockContext(block);
     try {
       return await action();
     } finally {
-      await this._vm.restoreContext(currentStateRoot);
+      await this._vm.restoreContext(snapshot);
+
+      if (!existed) {
+        await this._vm.removeSnapshot(snapshot);
+      }
     }
   }
 
