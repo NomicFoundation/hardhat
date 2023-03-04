@@ -1,5 +1,12 @@
 # @nomiclabs/hardhat-etherscan
 
+## 3.1.7
+
+### Patch Changes
+
+- 17de12666: Don't try to verify contracts that have already been verified
+- 6f94b851d: Add support for Gnosis Chain's Chiado testnet
+
 ## 3.1.6
 
 ### Patch Changes
