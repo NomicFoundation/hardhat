@@ -369,14 +369,6 @@ const communityPlugins: IPlugin[] = [
     tags: ["Blockscout", "Deployment", "Solidity", "Verification"],
   },
   {
-    name: "@georacle/hardhat-georacle",
-    author: "Georacle",
-    authorUrl: "https://georacle.io",
-    description:
-      "A Hardhat plugin for integrating smart contracts with Georacle.",
-    tags: ["Georacle", "oracle", "geospatial"],
-  },
-  {
     name: "@muzamint/hardhat-etherspot",
     author: "muzamint",
     authorUrl: "https://github.com/muzamint",
