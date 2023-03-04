@@ -84,7 +84,7 @@ function printReport(reports: any) {
 subtask("hardhat-solhint:run-solhint", async (_, { config }) => {
   const { processPath } = require("solhint/lib/index");
   return processPath(
-    join(config.paths.sources, "**", "*.sol"),
+    join(config.paths.sources, "**", "*.sol").replace(/\\/g, "/"),
     await getSolhintConfig(config.paths.root)
   );
 });
