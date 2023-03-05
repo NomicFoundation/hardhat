@@ -1,7 +1,7 @@
 import * as fs from "fs";
 import { subtask, task } from "hardhat/config";
 import { NomicLabsHardhatPluginError } from "hardhat/internal/core/errors";
-import { join } from "path";
+import { join, relative } from "path";
 
 function getDefaultConfig() {
   return {
@@ -43,6 +43,19 @@ async function hasConfigFile(rootDirectory: string) {
   return false;
 }
 
+function readIgnore(rootDirectory: string) {
+  try {
+    return fs
+      .readFileSync(join(rootDirectory, ".solhintignore"))
+      .toString()
+      .split("\n")
+      .map((i) => i.trim())
+      .filter(Boolean);
+  } catch (e) {
+    return [];
+  }
+}
+
 async function getSolhintConfig(rootDirectory: string) {
   let solhintConfig;
   const {
@@ -73,6 +86,14 @@ async function getSolhintConfig(rootDirectory: string) {
     );
   }
 
+  const configExcludeFiles = Array.isArray(solhintConfig.excludedFiles)
+    ? solhintConfig.excludedFiles
+    : [];
+  solhintConfig.excludedFiles = [
+    ...configExcludeFiles,
+    ...readIgnore(rootDirectory),
+  ];
+
   return solhintConfig;
 }
 
@@ -84,7 +105,10 @@ function printReport(reports: any) {
 subtask("hardhat-solhint:run-solhint", async (_, { config }) => {
   const { processPath } = require("solhint/lib/index");
   return processPath(
-    join(config.paths.sources, "**", "*.sol").replace(/\\/g, "/"),
+    relative(
+      config.paths.root,
+      join(config.paths.sources, "**", "*.sol")
+    ).replace(/\\/g, "/"),
     await getSolhintConfig(config.paths.root)
   );
 });
