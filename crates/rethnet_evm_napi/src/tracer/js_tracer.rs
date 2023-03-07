@@ -1,5 +1,6 @@
 use std::{
     fmt::Debug,
+    mem,
     sync::mpsc::{channel, Sender},
 };
 
@@ -9,12 +10,9 @@ use napi::{
 };
 use napi_derive::napi;
 use rethnet_eth::{Address, Bytes, U256};
-use rethnet_evm::{
-    opcode, return_revert, Bytecode, Gas, InstructionResult, SuccessOrHalt, OPCODE_JUMPMAP,
-};
+use rethnet_evm::{opcode, return_revert, Bytecode, Gas, InstructionResult, SuccessOrHalt};
 
 use crate::{
-    account::Account,
     sync::{await_void_promise, handle_error},
     threadsafe_function::{ThreadSafeCallContext, ThreadsafeFunction, ThreadsafeFunctionCallMode},
     transaction::result::{ExceptionalHalt, ExecutionResult},
@@ -56,33 +54,33 @@ pub struct TracingStep {
     /// The program counter
     #[napi(readonly)]
     pub pc: BigInt,
-    /// The executed op code
-    #[napi(readonly)]
-    pub opcode: String,
+    // /// The executed op code
+    // #[napi(readonly)]
+    // pub opcode: String,
     // /// The return value of the step
     // #[napi(readonly)]
     // pub return_value: u8,
-    /// The amount of gas that was used by the step
-    #[napi(readonly)]
-    pub gas_cost: BigInt,
-    /// The amount of gas that was refunded by the step
-    #[napi(readonly)]
-    pub gas_refunded: BigInt,
-    /// The amount of gas left
-    #[napi(readonly)]
-    pub gas_left: BigInt,
-    /// The stack
-    #[napi(readonly)]
-    pub stack: Vec<BigInt>,
-    /// The memory
-    #[napi(readonly)]
-    pub memory: Buffer,
-    /// The contract being executed
-    #[napi(readonly)]
-    pub contract: Account,
-    /// The address of the contract
-    #[napi(readonly)]
-    pub contract_address: Buffer,
+    // /// The amount of gas that was used by the step
+    // #[napi(readonly)]
+    // pub gas_cost: BigInt,
+    // /// The amount of gas that was refunded by the step
+    // #[napi(readonly)]
+    // pub gas_refunded: BigInt,
+    // /// The amount of gas left
+    // #[napi(readonly)]
+    // pub gas_left: BigInt,
+    // /// The stack
+    // #[napi(readonly)]
+    // pub stack: Vec<BigInt>,
+    // /// The memory
+    // #[napi(readonly)]
+    // pub memory: Buffer,
+    // /// The contract being executed
+    // #[napi(readonly)]
+    // pub contract: Account,
+    // /// The address of the contract
+    // #[napi(readonly)]
+    // pub contract_address: Buffer,
     // /// The address of the code being executed
     // #[napi(readonly)]
     // pub code_address: Buffer,
@@ -168,7 +166,7 @@ impl JsTracer {
             env.raw(),
             unsafe { callbacks.before_message.raw() },
             0,
-            |ctx: ThreadSafeCallContext<BeforeMessageHandlerCall>| {
+            |mut ctx: ThreadSafeCallContext<BeforeMessageHandlerCall>| {
                 let sender = ctx.value.sender.clone();
 
                 let mut tracing_message = ctx.env.create_object()?;
@@ -191,9 +189,26 @@ impl JsTracer {
                     )
                     .and_then(|to| tracing_message.set_named_property("to", to))?;
 
+                let data = ctx.value.message.data;
+
                 ctx.env
-                    .create_buffer_copy(&ctx.value.message.data)
-                    .and_then(|data| tracing_message.set_named_property("data", data.into_raw()))?;
+                    .adjust_external_memory(data.len() as i64)
+                    .expect("Failed to adjust external memory");
+
+                unsafe {
+                    ctx.env.create_buffer_with_borrowed_data(
+                        data.as_ptr(),
+                        data.len(),
+                        data,
+                        |data: Bytes, mut env| {
+                            env.adjust_external_memory(-(data.len() as i64))
+                                .expect("Failed to adjust external memory");
+
+                            mem::forget(data);
+                        },
+                    )
+                }
+                .and_then(|data| tracing_message.set_named_property("data", data.into_raw()))?;
 
                 ctx.env
                     .create_bigint_from_words(false, ctx.value.message.value.as_limbs().to_vec())
@@ -215,21 +230,32 @@ impl JsTracer {
                         tracing_message.set_named_property("codeAddress", code_address)
                     })?;
 
-                ctx.value
-                    .message
-                    .code
-                    .as_ref()
-                    .map_or_else(
-                        || ctx.env.get_undefined().map(JsUndefined::into_unknown),
-                        |code| {
-                            ctx.env
-                                .create_buffer_copy(&code.bytes()[..code.len()])
-                                .map(JsBufferValue::into_unknown)
-                        },
-                    )
-                    .and_then(|code_address| {
-                        tracing_message.set_named_property("code", code_address)
-                    })?;
+                if let Some(code) = &ctx.value.message.code {
+                    let code = code.original_bytes();
+                    ctx.env
+                        .adjust_external_memory(code.len() as i64)
+                        .expect("Failed to adjust external memory");
+
+                    unsafe {
+                        ctx.env.create_buffer_with_borrowed_data(
+                            code.as_ptr(),
+                            code.len(),
+                            code,
+                            |code: Bytes, mut env| {
+                                env.adjust_external_memory(-(code.len() as i64))
+                                    .expect("Failed to adjust external memory");
+
+                                mem::forget(code);
+                            },
+                        )
+                    }
+                    .map(JsBufferValue::into_unknown)
+                } else {
+                    ctx.env.get_undefined().map(JsUndefined::into_unknown)
+                }
+                .and_then(|code_address| {
+                    tracing_message.set_named_property("code", code_address)
+                })?;
 
                 let next = ctx.env.create_object()?;
 
@@ -257,9 +283,9 @@ impl JsTracer {
                     .create_bigint_from_u64(ctx.value.pc)
                     .and_then(|pc| tracing_step.set_named_property("pc", pc))?;
 
-                ctx.env
-                    .create_string(OPCODE_JUMPMAP[usize::from(ctx.value.opcode)].unwrap_or(""))
-                    .and_then(|opcode| tracing_step.set_named_property("opcode", opcode))?;
+                // ctx.env
+                //     .create_string(OPCODE_JUMPMAP[usize::from(ctx.value.opcode)].unwrap_or(""))
+                //     .and_then(|opcode| tracing_step.set_named_property("opcode", opcode))?;
 
                 // ctx.env
                 //     .create_uint32((ctx.value.return_value as u8).into())
@@ -303,44 +329,44 @@ impl JsTracer {
                 //         tracing_step.set_named_property("memory", memory.into_raw())
                 //     })?;
 
-                let mut contract = ctx.env.create_object()?;
+                // let mut contract = ctx.env.create_object()?;
 
-                ctx.env
-                    .create_bigint_from_words(false, ctx.value.contract.balance.as_limbs().to_vec())
-                    .and_then(|balance| contract.set_named_property("balance", balance))?;
+                // ctx.env
+                //     .create_bigint_from_words(false, ctx.value.contract.balance.as_limbs().to_vec())
+                //     .and_then(|balance| contract.set_named_property("balance", balance))?;
 
-                let nonce = ctx.env.create_bigint_from_u64(ctx.value.contract.nonce)?;
-                contract.set_named_property("nonce", nonce)?;
+                // let nonce = ctx.env.create_bigint_from_u64(ctx.value.contract.nonce)?;
+                // contract.set_named_property("nonce", nonce)?;
 
-                ctx.env
-                    .create_buffer_copy(ctx.value.contract.code_hash)
-                    .and_then(|code_hash| {
-                        contract.set_named_property("codeHash", code_hash.into_unknown())
-                    })?;
+                // ctx.env
+                //     .create_buffer_copy(ctx.value.contract.code_hash)
+                //     .and_then(|code_hash| {
+                //         contract.set_named_property("codeHash", code_hash.into_unknown())
+                //     })?;
 
-                ctx.value
-                    .contract
-                    .code
-                    .as_ref()
-                    .map_or_else(
-                        || ctx.env.get_undefined().map(JsUndefined::into_unknown),
-                        |code| {
-                            ctx.env
-                                .create_buffer_copy(&code.bytes()[..code.len()])
-                                .map(|code| code.into_unknown())
-                        },
-                    )
-                    .and_then(|code| contract.set_named_property("code", code))?;
+                // ctx.value
+                //     .contract
+                //     .code
+                //     .as_ref()
+                //     .map_or_else(
+                //         || ctx.env.get_undefined().map(JsUndefined::into_unknown),
+                //         |code| {
+                //             ctx.env
+                //                 .create_buffer_copy(&code.bytes()[..code.len()])
+                //                 .map(|code| code.into_unknown())
+                //         },
+                //     )
+                //     .and_then(|code| contract.set_named_property("code", code))?;
 
-                tracing_step.set_named_property("contract", contract)?;
+                // tracing_step.set_named_property("contract", contract)?;
 
-                let contract_address = &ctx.value.contract_address;
-                ctx.env
-                    .create_buffer_copy(contract_address)
-                    .and_then(|contract_address| {
-                        tracing_step
-                            .set_named_property("contractAddress", contract_address.into_unknown())
-                    })?;
+                // let contract_address = &ctx.value.contract_address;
+                // ctx.env
+                //     .create_buffer_copy(contract_address)
+                //     .and_then(|contract_address| {
+                //         tracing_step
+                //             .set_named_property("contractAddress", contract_address.into_unknown())
+                //     })?;
 
                 let next = ctx.env.create_object()?;
 
@@ -355,7 +381,7 @@ impl JsTracer {
             env.raw(),
             unsafe { callbacks.after_message.raw() },
             0,
-            |ctx: ThreadSafeCallContext<AfterMessageHandlerCall>| {
+            |mut ctx: ThreadSafeCallContext<AfterMessageHandlerCall>| {
                 let sender = ctx.value.sender.clone();
 
                 let mut tracing_message_result = ctx.env.create_object()?;
@@ -412,7 +438,24 @@ impl JsTracer {
                                             log_object.set_named_property("topics", topics)
                                         })?;
 
-                                    ctx.env.create_buffer_copy(&log.data).and_then(|data| {
+                                    ctx.env
+                                        .adjust_external_memory(log.data.len() as i64)
+                                        .expect("Failed to adjust external memory");
+
+                                    unsafe {
+                                        ctx.env.create_buffer_with_borrowed_data(
+                                            log.data.as_ptr(),
+                                            log.data.len(),
+                                            log.data,
+                                            |data: Bytes, mut env| {
+                                                env.adjust_external_memory(-(data.len() as i64))
+                                                    .expect("Failed to adjust external memory");
+
+                                                mem::forget(data);
+                                            },
+                                        )
+                                    }
+                                    .and_then(|data| {
                                         log_object.set_named_property("data", data.into_raw())
                                     })?;
 
@@ -431,11 +474,26 @@ impl JsTracer {
                         let mut transaction_output = ctx.env.create_object()?;
 
                         ctx.env
-                            .create_buffer_copy(output)
-                            .map(JsBufferValue::into_unknown)
-                            .and_then(|output| {
-                                transaction_output.set_named_property("returnValue", output)
-                            })?;
+                            .adjust_external_memory(output.len() as i64)
+                            .expect("Failed to adjust external memory");
+
+                        unsafe {
+                            ctx.env.create_buffer_with_borrowed_data(
+                                output.as_ptr(),
+                                output.len(),
+                                output,
+                                |output: Bytes, mut env| {
+                                    env.adjust_external_memory(-(output.len() as i64))
+                                        .expect("Failed to adjust external memory");
+
+                                    mem::forget(output);
+                                },
+                            )
+                        }
+                        .map(JsBufferValue::into_unknown)
+                        .and_then(|output| {
+                            transaction_output.set_named_property("returnValue", output)
+                        })?;
 
                         address
                             .map_or_else(
@@ -456,9 +514,24 @@ impl JsTracer {
                     }
                     rethnet_evm::ExecutionResult::Revert { gas_used, output } => {
                         ctx.env
-                            .create_buffer_copy(output)
-                            .map(JsBufferValue::into_unknown)
-                            .and_then(|output| result.set_named_property("output", output))?;
+                            .adjust_external_memory(output.len() as i64)
+                            .expect("Failed to adjust external memory");
+
+                        unsafe {
+                            ctx.env.create_buffer_with_borrowed_data(
+                                output.as_ptr(),
+                                output.len(),
+                                output,
+                                |output: Bytes, mut env| {
+                                    env.adjust_external_memory(-(output.len() as i64))
+                                        .expect("Failed to adjust external memory");
+
+                                    mem::forget(output);
+                                },
+                            )
+                        }
+                        .map(JsBufferValue::into_unknown)
+                        .and_then(|output| result.set_named_property("output", output))?;
 
                         gas_used
                     }
