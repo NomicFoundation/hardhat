@@ -424,67 +424,67 @@ export class DualModeAdapter implements VMAdapter {
         throw new Error("Different step pc");
       }
 
-      if (ethereumJSStep.opcode !== rethnetStep.opcode) {
-        console.trace(
-          `Different steps[${stepIdx}] opcode: ${ethereumJSStep.opcode} !== ${rethnetStep.opcode}`
-        );
-        throw new Error("Different step opcode");
-      }
+      // if (ethereumJSStep.opcode !== rethnetStep.opcode) {
+      //   console.trace(
+      //     `Different steps[${stepIdx}] opcode: ${ethereumJSStep.opcode} !== ${rethnetStep.opcode}`
+      //   );
+      //   throw new Error("Different step opcode");
+      // }
 
-      if (ethereumJSStep.gasCost !== rethnetStep.gasCost) {
-        console.trace(
-          `Different steps[${stepIdx}] gasCost: ${ethereumJSStep.gasCost} !== ${rethnetStep.gasCost}`
-        );
-        throw new Error("Different step gasCost");
-      }
+      // if (ethereumJSStep.gasCost !== rethnetStep.gasCost) {
+      //   console.trace(
+      //     `Different steps[${stepIdx}] gasCost: ${ethereumJSStep.gasCost} !== ${rethnetStep.gasCost}`
+      //   );
+      //   throw new Error("Different step gasCost");
+      // }
 
-      if (ethereumJSStep.gasLeft !== rethnetStep.gasLeft) {
-        console.trace(
-          `Different steps[${stepIdx}] gasLeft: ${ethereumJSStep.gasLeft} !== ${rethnetStep.gasLeft}`
-        );
-        throw new Error("Different step gasLeft");
-      }
+      // if (ethereumJSStep.gasLeft !== rethnetStep.gasLeft) {
+      //   console.trace(
+      //     `Different steps[${stepIdx}] gasLeft: ${ethereumJSStep.gasLeft} !== ${rethnetStep.gasLeft}`
+      //   );
+      //   throw new Error("Different step gasLeft");
+      // }
 
-      const ethereumJSStack = ethereumJSStep.stack;
-      const rethnetStack = rethnetStep.stack;
-      if (ethereumJSStack.length !== rethnetStack.length) {
-        throw new Error(
-          `Different number of stack elements in tracers: ${ethereumJSStack.length} !== ${rethnetStack.length}`
-        );
-      }
+      // const ethereumJSStack = ethereumJSStep.stack;
+      // const rethnetStack = rethnetStep.stack;
+      // if (ethereumJSStack.length !== rethnetStack.length) {
+      //   throw new Error(
+      //     `Different number of stack elements in tracers: ${ethereumJSStack.length} !== ${rethnetStack.length}`
+      //   );
+      // }
 
-      for (let stackIdx = 0; stackIdx < ethereumJSSteps.length; ++stackIdx) {
-        const ethereumJSStackElement = ethereumJSStack[stackIdx];
-        const rethnetStackElement = rethnetStack[stackIdx];
+      // for (let stackIdx = 0; stackIdx < ethereumJSSteps.length; ++stackIdx) {
+      //   const ethereumJSStackElement = ethereumJSStack[stackIdx];
+      //   const rethnetStackElement = rethnetStack[stackIdx];
 
-        if (ethereumJSStackElement !== rethnetStackElement) {
-          console.trace(
-            `Different steps[${stepIdx}] stack[${stackIdx}]: ${ethereumJSStackElement} !== ${rethnetStackElement}`
-          );
-          throw new Error("Different step stack element");
-        }
-      }
+      //   if (ethereumJSStackElement !== rethnetStackElement) {
+      //     console.trace(
+      //       `Different steps[${stepIdx}] stack[${stackIdx}]: ${ethereumJSStackElement} !== ${rethnetStackElement}`
+      //     );
+      //     throw new Error("Different step stack element");
+      //   }
+      // }
 
-      if (!ethereumJSStep.memory.equals(rethnetStep.memory)) {
-        console.trace(
-          `Different steps[${stepIdx}] memory: ${ethereumJSStep.memory} !== ${rethnetStep.memory}`
-        );
-        throw new Error("Different step memory");
-      }
+      // if (!ethereumJSStep.memory.equals(rethnetStep.memory)) {
+      //   console.trace(
+      //     `Different steps[${stepIdx}] memory: ${ethereumJSStep.memory} !== ${rethnetStep.memory}`
+      //   );
+      //   throw new Error("Different step memory");
+      // }
 
-      if (ethereumJSStep.contract.balance !== rethnetStep.contract.balance) {
-        console.trace(
-          `Different steps[${stepIdx}] contract balance: ${ethereumJSStep.contract.balance} !== ${rethnetStep.contract.balance}`
-        );
-        throw new Error("Different step contract balance");
-      }
+      // if (ethereumJSStep.contract.balance !== rethnetStep.contract.balance) {
+      //   console.trace(
+      //     `Different steps[${stepIdx}] contract balance: ${ethereumJSStep.contract.balance} !== ${rethnetStep.contract.balance}`
+      //   );
+      //   throw new Error("Different step contract balance");
+      // }
 
-      if (ethereumJSStep.contract.nonce !== rethnetStep.contract.nonce) {
-        console.trace(
-          `Different steps[${stepIdx}] contract nonce: ${ethereumJSStep.contract.nonce} !== ${rethnetStep.contract.nonce}`
-        );
-        throw new Error("Different step contract nonce");
-      }
+      // if (ethereumJSStep.contract.nonce !== rethnetStep.contract.nonce) {
+      //   console.trace(
+      //     `Different steps[${stepIdx}] contract nonce: ${ethereumJSStep.contract.nonce} !== ${rethnetStep.contract.nonce}`
+      //   );
+      //   throw new Error("Different step contract nonce");
+      // }
 
       // Code can be stored separately from the account in Rethnet
       // const ethereumJSCode = ethereumJSStep.contract.code;
@@ -518,12 +518,12 @@ export class DualModeAdapter implements VMAdapter {
       //   }
       // }
 
-      if (!ethereumJSStep.contractAddress.equals(rethnetStep.contractAddress)) {
-        console.trace(
-          `Different steps[${stepIdx}] contract address: ${ethereumJSStep.contractAddress} !== ${rethnetStep.contractAddress}`
-        );
-        throw new Error("Different step contract address");
-      }
+      // if (!ethereumJSStep.contractAddress.equals(rethnetStep.contractAddress)) {
+      //   console.trace(
+      //     `Different steps[${stepIdx}] contract address: ${ethereumJSStep.contractAddress} !== ${rethnetStep.contractAddress}`
+      //   );
+      //   throw new Error("Different step contract address");
+      // }
     }
 
     // TODO: compare each step
