@@ -85,8 +85,6 @@ Here is a faucet for _Goerli_ ETH:
 
 You'll have to change Metamask's network to Goerli before transacting.
 
-----
-
 If you're deploying to the _Sepolia_ testnet, here is a faucet for _Sepolia_ETH:
 
 - [Alchemy Sepolia Faucet](https://sepoliafaucet.com/)
