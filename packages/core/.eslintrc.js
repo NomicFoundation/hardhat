@@ -8,7 +8,6 @@ module.exports = {
     createDefaultProgram: true,
   },
   rules: {
-    "@nomiclabs/hardhat-internal-rules/only-hardhat-plugin-error": "error",
     "no-console": "error",
   },
   ignorePatterns: ["post-build.js"],

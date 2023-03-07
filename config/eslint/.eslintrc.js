@@ -20,12 +20,7 @@ module.exports = {
     project: "./tsconfig.json",
     tsConfigRootDir: "./",
   },
-  plugins: [
-    "@nomiclabs/eslint-plugin-hardhat-internal-rules",
-    "eslint-plugin-import",
-    "@typescript-eslint",
-    "mocha",
-  ],
+  plugins: ["eslint-plugin-import", "@typescript-eslint", "mocha"],
   rules: {
     "import/no-unused-modules": [
       1,

@@ -1,15 +1,16 @@
 import { BigNumber } from "ethers";
-import { HardhatPluginError } from "hardhat/plugins";
 
-export class IgnitionError extends HardhatPluginError {
+export class IgnitionError extends Error {
   constructor(message: string) {
-    super("ignition", message);
+    super(message);
+
+    this.name = this.constructor.name;
   }
 }
 
-export class IgnitionValidationError extends HardhatPluginError {
+export class IgnitionValidationError extends IgnitionError {
   constructor(message: string) {
-    super("ignition", message);
+    super(message);
 
     // This is required to allow calls to `resetStackFrom`,
     // otherwise the function is not available on the
@@ -23,18 +24,10 @@ export class IgnitionValidationError extends HardhatPluginError {
    * api, so that the stack leads directly to the line in the module
    * the user called (i.e. `m.contract(...)`)
    *
-   * This is a hack to workaround the stack manipulation
-   * that `HardhatPluginError` does.
-   *
    * @param f the function to hide all of the stacktrace above
    */
   public resetStackFrom(f: () => any) {
     Error.captureStackTrace(this, f);
-
-    // the base custom error from HH stores off the stack
-    // it uses to `_stack`, so we need to override this
-    // as well ... even though it is private.
-    (this as any)._stack = this.stack ?? "";
   }
 }
 
