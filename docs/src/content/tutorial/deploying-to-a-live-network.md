@@ -93,7 +93,7 @@ If you're deploying to the _Sepolia_ testnet, here is a faucet for _Sepolia_ETH:
 
 :::tip
 
-You can learn more about other testnets and find links to their faucets on the [ethereum.org site](https://ethereum.org/en/developers/docs/networks/#ethereum-testnets). 
+You can learn more about other testnets and find links to their faucets on the [ethereum.org site](https://ethereum.org/en/developers/docs/networks/#ethereum-testnets).
 
 :::
 
