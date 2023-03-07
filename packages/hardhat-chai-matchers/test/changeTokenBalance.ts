@@ -108,6 +108,12 @@ describe("INTEGRATION: changeTokenBalance and changeTokenBalances matchers", fun
           sender.sendTransaction({ to: receiver.address })
         ).to.not.changeTokenBalance(mockToken, sender, 1);
 
+        await expect(
+          sender.sendTransaction({ to: receiver.address })
+        ).to.not.changeTokenBalance(mockToken, sender, (diff: BigNumber) =>
+          diff.gt(0)
+        );
+
         await expect(() =>
           sender.sendTransaction({ to: receiver.address })
         ).to.not.changeTokenBalances(mockToken, [sender, receiver], [0, 1]);
@@ -133,6 +139,19 @@ describe("INTEGRATION: changeTokenBalance and changeTokenBalances matchers", fun
           );
         });
 
+        it("doesn't satisfy the condition", async function () {
+          await expect(
+            expect(
+              sender.sendTransaction({ to: receiver.address })
+            ).to.changeTokenBalance(mockToken, sender, (diff: BigNumber) =>
+              diff.gt(0)
+            )
+          ).to.be.rejectedWith(
+            AssertionError,
+            /Expected the balance of MCK tokens for "0x\w{40}" satisfies the condition, but it changed by 1, and violated the condition/
+          );
+        });
+
         it("changes balance in the way it was not expected", async function () {
           await expect(
             expect(
@@ -141,6 +160,19 @@ describe("INTEGRATION: changeTokenBalance and changeTokenBalances matchers", fun
           ).to.be.rejectedWith(
             AssertionError,
             /Expected the balance of MCK tokens for "0x\w{40}" NOT to change by 0, but it did/
+          );
+        });
+
+        it("unexpected condition", async function () {
+          await expect(
+            expect(
+              sender.sendTransaction({ to: receiver.address })
+            ).to.not.changeTokenBalance(mockToken, sender, (diff: BigNumber) =>
+              diff.lt(1)
+            )
+          ).to.be.rejectedWith(
+            AssertionError,
+            /Expected the balance of MCK tokens for "0x\w{40}" NOT satisfies the condition, but it did/
           );
         });
 

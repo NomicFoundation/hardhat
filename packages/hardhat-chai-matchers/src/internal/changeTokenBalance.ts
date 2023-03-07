@@ -17,7 +17,9 @@ export function supportChangeTokenBalance(Assertion: Chai.AssertionStatic) {
       this: any,
       token: Token,
       account: Account | string,
-      balanceChange: EthersT.BigNumberish
+      balanceChange:
+        | EthersT.BigNumberish
+        | ((change: EthersT.BigNumber) => boolean)
     ) {
       const ethers = require("ethers") as typeof EthersT;
 
@@ -38,11 +40,19 @@ export function supportChangeTokenBalance(Assertion: Chai.AssertionStatic) {
       ]) => {
         const assert = buildAssert(negated, checkBalanceChange);
 
-        assert(
-          actualChange.eq(ethers.BigNumber.from(balanceChange)),
-          `Expected the balance of ${tokenDescription} tokens for "${address}" to change by ${balanceChange.toString()}, but it changed by ${actualChange.toString()}`,
-          `Expected the balance of ${tokenDescription} tokens for "${address}" NOT to change by ${balanceChange.toString()}, but it did`
-        );
+        if (typeof balanceChange === "function") {
+          assert(
+            balanceChange(actualChange),
+            `Expected the balance of ${tokenDescription} tokens for "${address}" satisfies the condition, but it changed by ${actualChange.toString()} and violated the condition`,
+            `Expected the balance of ${tokenDescription} tokens for "${address}" NOT satisfies the condition, but it did`
+          );
+        } else {
+          assert(
+            actualChange.eq(ethers.BigNumber.from(balanceChange)),
+            `Expected the balance of ${tokenDescription} tokens for "${address}" to change by ${balanceChange.toString()}, but it changed by ${actualChange.toString()}`,
+            `Expected the balance of ${tokenDescription} tokens for "${address}" NOT to change by ${balanceChange.toString()}, but it did`
+          );
+        }
       };
 
       const derivedPromise = Promise.all([
