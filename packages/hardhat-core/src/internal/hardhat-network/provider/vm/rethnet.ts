@@ -130,10 +130,10 @@ export class RethnetAdapter implements VMAdapter {
 
     try {
       const result = rethnetResultToRunTxResult(
-        rethnetResult.execResult,
+        rethnetResult,
         blockContext.header.gasUsed
       );
-      return [result, rethnetResult.execResult.trace];
+      return [result, rethnetResult.trace];
     } catch (e) {
       // console.log("Rethnet trace");
       // console.log(rethnetResult.execResult.trace);
