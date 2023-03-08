@@ -117,7 +117,7 @@ function isFactoryOptions(
   signerOrOptions?: ethers.Signer | FactoryOptions
 ): signerOrOptions is FactoryOptions {
   const { Signer } = require("ethers") as typeof ethers;
-  return !Signer.isSigner(signerOrOptions);
+  return signerOrOptions !== undefined && !Signer.isSigner(signerOrOptions);
 }
 
 export async function getContractFactoryFromArtifact(
