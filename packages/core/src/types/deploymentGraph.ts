@@ -233,3 +233,7 @@ export interface IDeploymentBuilder {
 export interface DeploymentBuilderOptions {
   chainId: number;
 }
+
+export interface CallPoints {
+  [key: number]: Error;
+}

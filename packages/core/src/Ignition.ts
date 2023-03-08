@@ -136,7 +136,7 @@ export class Ignition {
 
     const chainId = await this._services.network.getChainId();
 
-    const { graph: deploymentGraph } = generateDeploymentGraphFrom(
+    const { graph: deploymentGraph, callPoints } = generateDeploymentGraphFrom(
       deploymentModule,
       {
         chainId,
@@ -145,6 +145,7 @@ export class Ignition {
 
     const validationResult = await validateDeploymentGraph(
       deploymentGraph,
+      callPoints,
       this._services
     );
 
@@ -171,14 +172,18 @@ export class Ignition {
     ignitionModule: Module<T>
   ): Promise<{ result: any; moduleOutputs: T }> {
     log("Generate deployment graph from module");
-    const { graph: deploymentGraph, moduleOutputs } =
-      generateDeploymentGraphFrom(ignitionModule, {
-        chainId: deployment.state.details.chainId,
-      });
+    const {
+      graph: deploymentGraph,
+      callPoints,
+      moduleOutputs,
+    } = generateDeploymentGraphFrom(ignitionModule, {
+      chainId: deployment.state.details.chainId,
+    });
 
     await deployment.startValidation();
     const validationResult = await validateDeploymentGraph(
       deploymentGraph,
+      callPoints,
       deployment.services
     );
 

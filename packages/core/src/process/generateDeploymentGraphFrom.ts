@@ -1,5 +1,6 @@
 import { DeploymentBuilder } from "dsl/DeploymentBuilder";
 import type {
+  CallPoints,
   DeploymentBuilderOptions,
   IDeploymentGraph,
 } from "types/deploymentGraph";
@@ -10,7 +11,7 @@ import { assertModuleReturnTypes } from "utils/guards";
 export function generateDeploymentGraphFrom<T extends ModuleDict>(
   ignitionModule: Module<T>,
   builderOptions: DeploymentBuilderOptions
-): { graph: IDeploymentGraph; moduleOutputs: T } {
+): { graph: IDeploymentGraph; callPoints: CallPoints; moduleOutputs: T } {
   const graphBuilder = new DeploymentBuilder(builderOptions);
 
   const moduleOutputs = ignitionModule.action(graphBuilder);
@@ -23,7 +24,11 @@ export function generateDeploymentGraphFrom<T extends ModuleDict>(
 
   assertModuleReturnTypes(moduleOutputs);
 
-  return { graph: graphBuilder.graph, moduleOutputs };
+  return {
+    graph: graphBuilder.graph,
+    callPoints: graphBuilder.callPoints,
+    moduleOutputs,
+  };
 }
 
 function isPromise(promise: any) {

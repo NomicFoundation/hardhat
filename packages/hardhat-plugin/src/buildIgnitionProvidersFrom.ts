@@ -7,7 +7,13 @@ export function buildIgnitionProvidersFrom(hre: HardhatRuntimeEnvironment) {
   const providers: Providers = {
     artifacts: {
       getArtifact: (name: string) => hre.artifacts.readArtifact(name),
-      hasArtifact: (name: string) => hre.artifacts.artifactExists(name),
+      hasArtifact: async (name: string) => {
+        try {
+          return await hre.artifacts.artifactExists(name);
+        } catch (err) {
+          return false;
+        }
+      },
     },
     gasProvider: {
       estimateGasLimit: async (tx: any) => {

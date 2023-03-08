@@ -6,9 +6,13 @@ import sinon from "sinon";
 import { buildModule } from "dsl/buildModule";
 import { buildSubgraph } from "dsl/buildSubgraph";
 import { generateDeploymentGraphFrom } from "process/generateDeploymentGraphFrom";
+import { Services } from "services/types";
 import type { IDeploymentBuilder } from "types/deploymentGraph";
 import { ArtifactContract } from "types/future";
 import { Artifact } from "types/hardhat";
+import { Module, ModuleDict } from "types/module";
+import { ValidationVisitResult } from "types/validation";
+import { IgnitionValidationError } from "utils/errors";
 import { validateDeploymentGraph } from "validation/validateDeploymentGraph";
 
 import { getMockServices } from "./helpers";
@@ -29,18 +33,7 @@ describe("Validation", () => {
         return { example };
       });
 
-      const { graph } = generateDeploymentGraphFrom(singleModule, {
-        chainId: 31337,
-      });
-
-      const mockServices = {
-        ...getMockServices(),
-      } as any;
-
-      const validationResult = await validateDeploymentGraph(
-        graph,
-        mockServices
-      );
+      const validationResult = await runValidation(singleModule);
 
       assert.equal(validationResult._kind, "success");
     });
@@ -54,30 +47,10 @@ describe("Validation", () => {
         return { example };
       });
 
-      const { graph } = generateDeploymentGraphFrom(singleModule, {
-        chainId: 31337,
-      });
+      const validationResult = await runValidation(singleModule);
 
-      const mockServices = {
-        ...getMockServices(),
-      } as any;
-
-      const validationResult = await validateDeploymentGraph(
-        graph,
-        mockServices
-      );
-
-      if (validationResult._kind !== "failure") {
-        return assert.fail("validation should have failed");
-      }
-
-      const {
-        failures: [text, [error]],
-      } = validationResult;
-
-      assert.equal(text, "Validation failed");
-      assert.equal(
-        error.message,
+      assertValidationError(
+        validationResult,
         "The constructor of the contract 'Example' expects 0 arguments but 3 were given"
       );
     });
@@ -92,29 +65,12 @@ describe("Validation", () => {
         return { example };
       });
 
-      const { graph } = generateDeploymentGraphFrom(singleModule, {
-        chainId: 31337,
-      });
+      const validationResult = await runValidation(singleModule);
 
-      const mockServices = {
-        ...getMockServices(),
-      } as any;
-
-      const validationResult = await validateDeploymentGraph(
-        graph,
-        mockServices
+      assertValidationError(
+        validationResult,
+        "For contract 'value' must be a BigNumber"
       );
-
-      if (validationResult._kind !== "failure") {
-        return assert.fail("validation should have failed");
-      }
-
-      const {
-        failures: [text, [error]],
-      } = validationResult;
-
-      assert.equal(text, "Validation failed");
-      assert.equal(error.message, "For contract 'value' must be a BigNumber");
     });
 
     it("should not validate a artifact contract deploy with a non-existent bytes artifact arg", async () => {
@@ -126,10 +82,6 @@ describe("Validation", () => {
         return { example };
       });
 
-      const { graph } = generateDeploymentGraphFrom(singleModule, {
-        chainId: 31337,
-      });
-
       const mockServices = {
         ...getMockServices(),
         artifacts: {
@@ -139,22 +91,10 @@ describe("Validation", () => {
         },
       } as any;
 
-      const validationResult = await validateDeploymentGraph(
-        graph,
-        mockServices
-      );
+      const validationResult = await runValidation(singleModule, mockServices);
 
-      if (validationResult._kind !== "failure") {
-        return assert.fail("validation should have failed");
-      }
-
-      const {
-        failures: [text, [error]],
-      } = validationResult;
-
-      assert.equal(text, "Validation failed");
-      assert.equal(
-        error.message,
+      assertValidationError(
+        validationResult,
         "Artifact with name 'Nonexistant' doesn't exist"
       );
     });
@@ -168,18 +108,7 @@ describe("Validation", () => {
         return { example };
       });
 
-      const { graph } = generateDeploymentGraphFrom(singleModule, {
-        chainId: 31337,
-      });
-
-      const mockServices = {
-        ...getMockServices(),
-      } as any;
-
-      const validationResult = await validateDeploymentGraph(
-        graph,
-        mockServices
-      );
+      const validationResult = await runValidation(singleModule);
 
       assert.equal(validationResult._kind, "success");
     });
@@ -193,30 +122,10 @@ describe("Validation", () => {
         return { example };
       });
 
-      const { graph } = generateDeploymentGraphFrom(singleModule, {
-        chainId: 31337,
-      });
+      const validationResult = await runValidation(singleModule);
 
-      const mockServices = {
-        ...getMockServices(),
-      } as any;
-
-      const validationResult = await validateDeploymentGraph(
-        graph,
-        mockServices
-      );
-
-      if (validationResult._kind !== "failure") {
-        return assert.fail("validation should have failed");
-      }
-
-      const {
-        failures: [text, [error]],
-      } = validationResult;
-
-      assert.equal(text, "Validation failed");
-      assert.equal(
-        error.message,
+      assertValidationError(
+        validationResult,
         "The constructor of the library 'Example' expects 0 arguments but 3 were given"
       );
     });
@@ -230,10 +139,6 @@ describe("Validation", () => {
         return { example };
       });
 
-      const { graph } = generateDeploymentGraphFrom(singleModule, {
-        chainId: 31337,
-      });
-
       const mockServices = {
         ...getMockServices(),
         artifacts: {
@@ -243,22 +148,10 @@ describe("Validation", () => {
         },
       } as any;
 
-      const validationResult = await validateDeploymentGraph(
-        graph,
-        mockServices
-      );
+      const validationResult = await runValidation(singleModule, mockServices);
 
-      if (validationResult._kind !== "failure") {
-        return assert.fail("validation should have failed");
-      }
-
-      const {
-        failures: [text, [error]],
-      } = validationResult;
-
-      assert.equal(text, "Validation failed");
-      assert.equal(
-        error.message,
+      assertValidationError(
+        validationResult,
         "Artifact with name 'Nonexistant' doesn't exist"
       );
     });
@@ -356,10 +249,6 @@ describe("Validation", () => {
         return { example };
       });
 
-      const { graph } = generateDeploymentGraphFrom(singleModule, {
-        chainId: 31337,
-      });
-
       const mockServices = {
         ...getMockServices(),
         artifacts: {
@@ -368,10 +257,8 @@ describe("Validation", () => {
         },
       } as any;
 
-      const validationResult = await validateDeploymentGraph(
-        graph,
-        mockServices
-      );
+      const validationResult = await runValidation(singleModule, mockServices);
+
       assert.equal(validationResult._kind, "success");
     });
 
@@ -384,10 +271,6 @@ describe("Validation", () => {
         return { example };
       });
 
-      const { graph } = generateDeploymentGraphFrom(singleModule, {
-        chainId: 31337,
-      });
-
       const mockServices = {
         ...getMockServices(),
         artifacts: {
@@ -396,10 +279,8 @@ describe("Validation", () => {
         },
       } as any;
 
-      const validationResult = await validateDeploymentGraph(
-        graph,
-        mockServices
-      );
+      const validationResult = await runValidation(singleModule, mockServices);
+
       assert.equal(validationResult._kind, "success");
     });
 
@@ -412,10 +293,6 @@ describe("Validation", () => {
         return { example };
       });
 
-      const { graph } = generateDeploymentGraphFrom(singleModule, {
-        chainId: 31337,
-      });
-
       const mockServices = {
         ...getMockServices(),
         artifacts: {
@@ -424,22 +301,10 @@ describe("Validation", () => {
         },
       } as any;
 
-      const validationResult = await validateDeploymentGraph(
-        graph,
-        mockServices
-      );
+      const validationResult = await runValidation(singleModule, mockServices);
 
-      if (validationResult._kind !== "failure") {
-        return assert.fail("validation should have failed");
-      }
-
-      const {
-        failures: [text, [error]],
-      } = validationResult;
-
-      assert.equal(text, "Validation failed");
-      assert.equal(
-        error.message,
+      assertValidationError(
+        validationResult,
         "Contract 'Foo' doesn't have a function nonexistant"
       );
     });
@@ -453,10 +318,6 @@ describe("Validation", () => {
         return { example };
       });
 
-      const { graph } = generateDeploymentGraphFrom(singleModule, {
-        chainId: 31337,
-      });
-
       const mockServices = {
         ...getMockServices(),
         artifacts: {
@@ -465,22 +326,10 @@ describe("Validation", () => {
         },
       } as any;
 
-      const validationResult = await validateDeploymentGraph(
-        graph,
-        mockServices
-      );
+      const validationResult = await runValidation(singleModule, mockServices);
 
-      if (validationResult._kind !== "failure") {
-        return assert.fail("validation should have failed");
-      }
-
-      const {
-        failures: [text, [error]],
-      } = validationResult;
-
-      assert.equal(text, "Validation failed");
-      assert.equal(
-        error.message,
+      assertValidationError(
+        validationResult,
         "Function sub in contract Foo expects 1 arguments but 0 were given"
       );
     });
@@ -494,10 +343,6 @@ describe("Validation", () => {
         return { example };
       });
 
-      const { graph } = generateDeploymentGraphFrom(singleModule, {
-        chainId: 31337,
-      });
-
       const mockServices = {
         ...getMockServices(),
         artifacts: {
@@ -506,22 +351,10 @@ describe("Validation", () => {
         },
       } as any;
 
-      const validationResult = await validateDeploymentGraph(
-        graph,
-        mockServices
-      );
+      const validationResult = await runValidation(singleModule, mockServices);
 
-      if (validationResult._kind !== "failure") {
-        return assert.fail("validation should have failed");
-      }
-
-      const {
-        failures: [text, [error]],
-      } = validationResult;
-
-      assert.equal(text, "Validation failed");
-      assert.equal(
-        error.message,
+      assertValidationError(
+        validationResult,
         "Function inc in contract MyContract is overloaded, but no overload expects 0 arguments"
       );
     });
@@ -535,10 +368,6 @@ describe("Validation", () => {
         return { example };
       });
 
-      const { graph } = generateDeploymentGraphFrom(singleModule, {
-        chainId: 31337,
-      });
-
       const mockServices = {
         ...getMockServices(),
         artifacts: {
@@ -547,21 +376,12 @@ describe("Validation", () => {
         },
       } as any;
 
-      const validationResult = await validateDeploymentGraph(
-        graph,
-        mockServices
+      const validationResult = await runValidation(singleModule, mockServices);
+
+      assertValidationError(
+        validationResult,
+        "For call 'value' must be a BigNumber"
       );
-
-      if (validationResult._kind !== "failure") {
-        return assert.fail("validation should have failed");
-      }
-
-      const {
-        failures: [text, [error]],
-      } = validationResult;
-
-      assert.equal(text, "Validation failed");
-      assert.equal(error.message, "For call 'value' must be a BigNumber");
     });
 
     it("should fail a call with a non-existent bytes artifact arg", async () => {
@@ -573,10 +393,6 @@ describe("Validation", () => {
         });
 
         return { example };
-      });
-
-      const { graph } = generateDeploymentGraphFrom(singleModule, {
-        chainId: 31337,
       });
 
       const fakeHasArtifact = sinon.stub();
@@ -591,21 +407,12 @@ describe("Validation", () => {
         },
       } as any;
 
-      const validationResult = await validateDeploymentGraph(
-        graph,
-        mockServices
+      const validationResult = await runValidation(singleModule, mockServices);
+
+      assertValidationError(
+        validationResult,
+        "Artifact with name 'Bar' doesn't exist"
       );
-
-      if (validationResult._kind !== "failure") {
-        return assert.fail("validation should have failed");
-      }
-
-      const {
-        failures: [text, [error]],
-      } = validationResult;
-
-      assert.equal(text, "Validation failed");
-      assert.equal(error.message, "Artifact with name 'Bar' doesn't exist");
     });
   });
 
@@ -637,10 +444,6 @@ describe("Validation", () => {
         return { example };
       });
 
-      const { graph } = generateDeploymentGraphFrom(singleModule, {
-        chainId: 31337,
-      });
-
       const mockServices = {
         ...getMockServices(),
         artifacts: {
@@ -649,10 +452,8 @@ describe("Validation", () => {
         },
       } as any;
 
-      const validationResult = await validateDeploymentGraph(
-        graph,
-        mockServices
-      );
+      const validationResult = await runValidation(singleModule, mockServices);
+
       assert.equal(validationResult._kind, "success");
     });
 
@@ -666,10 +467,6 @@ describe("Validation", () => {
         return { example };
       });
 
-      const { graph } = generateDeploymentGraphFrom(singleModule, {
-        chainId: 31337,
-      });
-
       const mockServices = {
         ...getMockServices(),
         artifacts: {
@@ -678,21 +475,12 @@ describe("Validation", () => {
         },
       } as any;
 
-      const validationResult = await validateDeploymentGraph(
-        graph,
-        mockServices
+      const validationResult = await runValidation(singleModule, mockServices);
+
+      assertValidationError(
+        validationResult,
+        `"0xnull" is not a valid address`
       );
-
-      if (validationResult._kind !== "failure") {
-        return assert.fail("validation should have failed");
-      }
-
-      const {
-        failures: [text, [error]],
-      } = validationResult;
-
-      assert.equal(text, "Validation failed");
-      assert.equal(error.message, `"0xnull" is not a valid address`);
     });
 
     it("should fail a call on a non-BigNumber as value", async () => {
@@ -704,10 +492,6 @@ describe("Validation", () => {
         return { example };
       });
 
-      const { graph } = generateDeploymentGraphFrom(singleModule, {
-        chainId: 31337,
-      });
-
       const mockServices = {
         ...getMockServices(),
         artifacts: {
@@ -716,21 +500,12 @@ describe("Validation", () => {
         },
       } as any;
 
-      const validationResult = await validateDeploymentGraph(
-        graph,
-        mockServices
+      const validationResult = await runValidation(singleModule, mockServices);
+
+      assertValidationError(
+        validationResult,
+        "For send 'value' must be a BigNumber"
       );
-
-      if (validationResult._kind !== "failure") {
-        return assert.fail("validation should have failed");
-      }
-
-      const {
-        failures: [text, [error]],
-      } = validationResult;
-
-      assert.equal(text, "Validation failed");
-      assert.equal(error.message, "For send 'value' must be a BigNumber");
     });
   });
 
@@ -783,10 +558,6 @@ describe("Validation", () => {
         return { example };
       });
 
-      const { graph } = generateDeploymentGraphFrom(singleModule, {
-        chainId: 31337,
-      });
-
       const mockServices = {
         ...getMockServices(),
         artifacts: {
@@ -795,10 +566,8 @@ describe("Validation", () => {
         },
       } as any;
 
-      const validationResult = await validateDeploymentGraph(
-        graph,
-        mockServices
-      );
+      const validationResult = await runValidation(singleModule, mockServices);
+
       assert.equal(validationResult._kind, "success");
     });
 
@@ -816,10 +585,6 @@ describe("Validation", () => {
         return { example };
       });
 
-      const { graph } = generateDeploymentGraphFrom(singleModule, {
-        chainId: 31337,
-      });
-
       const mockServices = {
         ...getMockServices(),
         artifacts: {
@@ -828,22 +593,10 @@ describe("Validation", () => {
         },
       } as any;
 
-      const validationResult = await validateDeploymentGraph(
-        graph,
-        mockServices
-      );
+      const validationResult = await runValidation(singleModule, mockServices);
 
-      if (validationResult._kind !== "failure") {
-        return assert.fail("validation should have failed");
-      }
-
-      const {
-        failures: [text, [error]],
-      } = validationResult;
-
-      assert.equal(text, "Validation failed");
-      assert.equal(
-        error.message,
+      assertValidationError(
+        validationResult,
         "Contract 'Test' doesn't have an event Nonexistant"
       );
     });
@@ -862,10 +615,6 @@ describe("Validation", () => {
         return { example };
       });
 
-      const { graph } = generateDeploymentGraphFrom(singleModule, {
-        chainId: 31337,
-      });
-
       const mockServices = {
         ...getMockServices(),
         artifacts: {
@@ -874,22 +623,10 @@ describe("Validation", () => {
         },
       } as any;
 
-      const validationResult = await validateDeploymentGraph(
-        graph,
-        mockServices
-      );
+      const validationResult = await runValidation(singleModule, mockServices);
 
-      if (validationResult._kind !== "failure") {
-        return assert.fail("validation should have failed");
-      }
-
-      const {
-        failures: [text, [error]],
-      } = validationResult;
-
-      assert.equal(text, "Validation failed");
-      assert.equal(
-        error.message,
+      assertValidationError(
+        validationResult,
         "Event SomeEvent in contract Test expects 1 arguments but 4 were given"
       );
     });
@@ -907,18 +644,7 @@ describe("Validation", () => {
         return { existing };
       });
 
-      const { graph } = generateDeploymentGraphFrom(singleModule, {
-        chainId: 31337,
-      });
-
-      const mockServices = {
-        ...getMockServices(),
-      } as any;
-
-      const validationResult = await validateDeploymentGraph(
-        graph,
-        mockServices
-      );
+      const validationResult = await runValidation(singleModule);
 
       assert.equal(validationResult._kind, "success");
     });
@@ -930,30 +656,10 @@ describe("Validation", () => {
         return { existing };
       });
 
-      const { graph } = generateDeploymentGraphFrom(singleModule, {
-        chainId: 31337,
-      });
+      const validationResult = await runValidation(singleModule);
 
-      const mockServices = {
-        ...getMockServices(),
-      } as any;
-
-      const validationResult = await validateDeploymentGraph(
-        graph,
-        mockServices
-      );
-
-      if (validationResult._kind !== "failure") {
-        return assert.fail("validation should have failed");
-      }
-
-      const {
-        failures: [text, [error]],
-      } = validationResult;
-
-      assert.equal(text, "Validation failed");
-      assert.equal(
-        error.message,
+      assertValidationError(
+        validationResult,
         "The existing contract Example has an invalid address 0xBAD"
       );
     });
@@ -967,10 +673,6 @@ describe("Validation", () => {
         return { example };
       });
 
-      const { graph } = generateDeploymentGraphFrom(singleModule, {
-        chainId: 31337,
-      });
-
       const mockServices = {
         ...getMockServices(),
         artifacts: {
@@ -979,10 +681,7 @@ describe("Validation", () => {
         },
       } as any;
 
-      const validationResult = await validateDeploymentGraph(
-        graph,
-        mockServices
-      );
+      const validationResult = await runValidation(singleModule, mockServices);
 
       assert.equal(validationResult._kind, "success");
     });
@@ -994,10 +693,6 @@ describe("Validation", () => {
         return { nonexistant };
       });
 
-      const { graph } = generateDeploymentGraphFrom(singleModule, {
-        chainId: 31337,
-      });
-
       const mockServices = {
         ...getMockServices(),
         artifacts: {
@@ -1005,23 +700,11 @@ describe("Validation", () => {
         },
       } as any;
 
-      const validationResult = await validateDeploymentGraph(
-        graph,
-        mockServices
-      );
+      const validationResult = await runValidation(singleModule, mockServices);
 
-      if (validationResult._kind !== "failure") {
-        return assert.fail("validation should have failed");
-      }
-
-      const {
-        failures: [text, [error]],
-      } = validationResult;
-
-      assert.equal(text, "Validation failed");
-      assert.equal(
-        error.message,
-        "Artifact with name 'Nonexistant' doesn't exist"
+      assertValidationError(
+        validationResult,
+        "Contract with name 'Nonexistant' doesn't exist"
       );
     });
 
@@ -1032,10 +715,6 @@ describe("Validation", () => {
         return { nonexistant };
       });
 
-      const { graph } = generateDeploymentGraphFrom(singleModule, {
-        chainId: 31337,
-      });
-
       const mockServices = {
         ...getMockServices(),
         artifacts: {
@@ -1043,21 +722,12 @@ describe("Validation", () => {
         },
       } as any;
 
-      const validationResult = await validateDeploymentGraph(
-        graph,
-        mockServices
+      const validationResult = await runValidation(singleModule, mockServices);
+
+      assertValidationError(
+        validationResult,
+        "For contract 'value' must be a BigNumber"
       );
-
-      if (validationResult._kind !== "failure") {
-        return assert.fail("validation should have failed");
-      }
-
-      const {
-        failures: [text, [error]],
-      } = validationResult;
-
-      assert.equal(text, "Validation failed");
-      assert.equal(error.message, "For contract 'value' must be a BigNumber");
     });
 
     it("should not validate a contract with non-existing bytes artifact arg", async () => {
@@ -1069,10 +739,6 @@ describe("Validation", () => {
         return { nonexistant };
       });
 
-      const { graph } = generateDeploymentGraphFrom(singleModule, {
-        chainId: 31337,
-      });
-
       const mockServices = {
         ...getMockServices(),
         artifacts: {
@@ -1080,22 +746,10 @@ describe("Validation", () => {
         },
       } as any;
 
-      const validationResult = await validateDeploymentGraph(
-        graph,
-        mockServices
-      );
+      const validationResult = await runValidation(singleModule, mockServices);
 
-      if (validationResult._kind !== "failure") {
-        return assert.fail("validation should have failed");
-      }
-
-      const {
-        failures: [text, [error]],
-      } = validationResult;
-
-      assert.equal(text, "Validation failed");
-      assert.equal(
-        error.message,
+      assertValidationError(
+        validationResult,
         "Artifact with name 'Nonexistant' doesn't exist"
       );
     });
@@ -1109,10 +763,6 @@ describe("Validation", () => {
         return { example };
       });
 
-      const { graph } = generateDeploymentGraphFrom(singleModule, {
-        chainId: 31337,
-      });
-
       const mockServices = {
         ...getMockServices(),
         artifacts: {
@@ -1121,10 +771,7 @@ describe("Validation", () => {
         },
       } as any;
 
-      const validationResult = await validateDeploymentGraph(
-        graph,
-        mockServices
-      );
+      const validationResult = await runValidation(singleModule, mockServices);
 
       assert.equal(validationResult._kind, "success");
     });
@@ -1136,10 +783,6 @@ describe("Validation", () => {
         return { nonexistant };
       });
 
-      const { graph } = generateDeploymentGraphFrom(singleModule, {
-        chainId: 31337,
-      });
-
       const mockServices = {
         ...getMockServices(),
         artifacts: {
@@ -1147,23 +790,34 @@ describe("Validation", () => {
         },
       } as any;
 
-      const validationResult = await validateDeploymentGraph(
-        graph,
-        mockServices
+      const validationResult = await runValidation(singleModule, mockServices);
+
+      assertValidationError(
+        validationResult,
+        "Library with name 'Nonexistant' doesn't exist"
       );
+    });
 
-      if (validationResult._kind !== "failure") {
-        return assert.fail("validation should have failed");
-      }
+    it("should not validate a library deployed with the wrong number of args", async () => {
+      const singleModule = buildModule("single", (m: IDeploymentBuilder) => {
+        const example = m.library("Example", { args: [1, 2] });
 
-      const {
-        failures: [text, [error]],
-      } = validationResult;
+        return { example };
+      });
 
-      assert.equal(text, "Validation failed");
-      assert.equal(
-        error.message,
-        "Artifact with name 'Nonexistant' doesn't exist"
+      const mockServices = {
+        ...getMockServices(),
+        artifacts: {
+          hasArtifact: () => true,
+          getArtifact: () => exampleArtifact,
+        },
+      } as any;
+
+      const validationResult = await runValidation(singleModule, mockServices);
+
+      assertValidationError(
+        validationResult,
+        "The constructor of the library 'Example' expects 0 arguments but 2 were given"
       );
     });
   });
@@ -1182,10 +836,6 @@ describe("Validation", () => {
         return {};
       });
 
-      const { graph } = generateDeploymentGraphFrom(singleModule, {
-        chainId: 31337,
-      });
-
       const mockServices = {
         ...getMockServices(),
         artifacts: {
@@ -1194,12 +844,49 @@ describe("Validation", () => {
         },
       } as any;
 
-      const validationResult = await validateDeploymentGraph(
-        graph,
-        mockServices
-      );
+      const validationResult = await runValidation(singleModule, mockServices);
 
       assert.equal(validationResult._kind, "success");
     });
   });
 });
+
+async function runValidation<T extends ModuleDict>(
+  ignitionModule: Module<T>,
+  givenMockServices?: Services | undefined
+) {
+  const mockServices: Services =
+    givenMockServices ??
+    ({
+      ...getMockServices(),
+    } as any);
+
+  const { graph, callPoints } = generateDeploymentGraphFrom(ignitionModule, {
+    chainId: 31337,
+  });
+
+  const validationResult = await validateDeploymentGraph(
+    graph,
+    callPoints,
+    mockServices
+  );
+
+  return validationResult;
+}
+
+function assertValidationError(
+  validationResult: ValidationVisitResult,
+  expectedMessage: string
+) {
+  if (validationResult._kind !== "failure") {
+    return assert.fail("validation should have failed");
+  }
+
+  const {
+    failures: [text, [error]],
+  } = validationResult;
+
+  assert.equal(text, "Validation failed");
+  assert.equal(error.message, expectedMessage);
+  assert.isTrue(error instanceof IgnitionValidationError);
+}

@@ -1,7 +1,7 @@
 import { getSortedVertexIdsFrom } from "graph/utils";
 import { visit } from "graph/visit";
 import { Services } from "services/types";
-import { IDeploymentGraph } from "types/deploymentGraph";
+import { CallPoints, IDeploymentGraph } from "types/deploymentGraph";
 import { ValidationVisitResult } from "types/validation";
 import { IgnitionError } from "utils/errors";
 
@@ -9,6 +9,7 @@ import { validationDispatch } from "./dispatch/validationDispatch";
 
 export async function validateDeploymentGraph(
   deploymentGraph: IDeploymentGraph,
+  callPoints: CallPoints,
   services: Services
 ): Promise<ValidationVisitResult> {
   try {
@@ -18,7 +19,7 @@ export async function validateDeploymentGraph(
       "Validation",
       orderedVertexIds,
       deploymentGraph,
-      { services },
+      { services, callPoints },
       new Map<number, null>(),
       validationDispatch
     );

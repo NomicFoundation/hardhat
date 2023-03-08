@@ -1,16 +1,16 @@
 import { ethers, BigNumber } from "ethers";
 
-import { Services } from "services/types";
 import { CallDeploymentVertex } from "types/deploymentGraph";
 import { VertexResultEnum } from "types/graph";
 import {
+  ValidationDispatchContext,
   ValidationResultsAccumulator,
   ValidationVertexVisitResult,
 } from "types/validation";
-import { IgnitionError, InvalidArtifactError } from "utils/errors";
 import { isParameter } from "utils/guards";
 
 import {
+  buildValidationError,
   resolveArtifactForCallableFuture,
   validateBytesForArtifact,
 } from "./helpers";
@@ -18,19 +18,21 @@ import {
 export async function validateCall(
   vertex: CallDeploymentVertex,
   _resultAccumulator: ValidationResultsAccumulator,
-  context: { services: Services }
+  context: ValidationDispatchContext
 ): Promise<ValidationVertexVisitResult> {
   if (!BigNumber.isBigNumber(vertex.value) && !isParameter(vertex.value)) {
-    return {
-      _kind: VertexResultEnum.FAILURE,
-      failure: new IgnitionError(`For call 'value' must be a BigNumber`),
-    };
+    return buildValidationError(
+      vertex,
+      `For call 'value' must be a BigNumber`,
+      context.callPoints
+    );
   }
 
-  const invalidBytes = await validateBytesForArtifact(
-    vertex.args,
-    context.services
-  );
+  const invalidBytes = await validateBytesForArtifact({
+    vertex,
+    callPoints: context.callPoints,
+    services: context.services,
+  });
 
   if (invalidBytes !== null) {
     return invalidBytes;
@@ -44,10 +46,11 @@ export async function validateCall(
   );
 
   if (artifactAbi === undefined) {
-    return {
-      _kind: VertexResultEnum.FAILURE,
-      failure: new InvalidArtifactError(contractName),
-    };
+    return buildValidationError(
+      vertex,
+      `Artifact with name '${contractName}' doesn't exist`,
+      context.callPoints
+    );
   }
 
   const argsLength = vertex.args.length;
@@ -63,12 +66,11 @@ export async function validateCall(
     .concat(funcs);
 
   if (functionFragments.length === 0) {
-    return {
-      _kind: VertexResultEnum.FAILURE,
-      failure: new IgnitionError(
-        `Contract '${contractName}' doesn't have a function ${vertex.method}`
-      ),
-    };
+    return buildValidationError(
+      vertex,
+      `Contract '${contractName}' doesn't have a function ${vertex.method}`,
+      context.callPoints
+    );
   }
 
   const matchingFunctionFragments = functionFragments.filter(
@@ -77,19 +79,17 @@ export async function validateCall(
 
   if (matchingFunctionFragments.length === 0) {
     if (functionFragments.length === 1) {
-      return {
-        _kind: VertexResultEnum.FAILURE,
-        failure: new IgnitionError(
-          `Function ${vertex.method} in contract ${contractName} expects ${functionFragments[0].inputs.length} arguments but ${argsLength} were given`
-        ),
-      };
+      return buildValidationError(
+        vertex,
+        `Function ${vertex.method} in contract ${contractName} expects ${functionFragments[0].inputs.length} arguments but ${argsLength} were given`,
+        context.callPoints
+      );
     } else {
-      return {
-        _kind: VertexResultEnum.FAILURE,
-        failure: new IgnitionError(
-          `Function ${vertex.method} in contract ${contractName} is overloaded, but no overload expects ${argsLength} arguments`
-        ),
-      };
+      return buildValidationError(
+        vertex,
+        `Function ${vertex.method} in contract ${contractName} is overloaded, but no overload expects ${argsLength} arguments`,
+        context.callPoints
+      );
     }
   }
 

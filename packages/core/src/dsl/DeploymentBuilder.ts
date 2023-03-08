@@ -14,6 +14,7 @@ import {
   ScopeData,
   AwaitOptions,
   SendOptions,
+  CallPoints,
 } from "types/deploymentGraph";
 import type {
   DeploymentGraphFuture,
@@ -42,7 +43,7 @@ import type {
 } from "types/future";
 import type { Artifact } from "types/hardhat";
 import type { ModuleCache, ModuleDict, Subgraph } from "types/module";
-import { IgnitionError } from "utils/errors";
+import { IgnitionError, IgnitionValidationError } from "utils/errors";
 import {
   assertModuleReturnTypes,
   assertUnknownDeploymentVertexType,
@@ -56,6 +57,15 @@ import { resolveProxyDependency } from "utils/proxy";
 
 import { DeploymentGraph } from "./DeploymentGraph";
 import { ScopeStack } from "./ScopeStack";
+
+type DeploymentApiPublicFunctions =
+  | InstanceType<typeof DeploymentBuilder>["contract"]
+  | InstanceType<typeof DeploymentBuilder>["library"]
+  | InstanceType<typeof DeploymentBuilder>["contractAt"]
+  | InstanceType<typeof DeploymentBuilder>["call"]
+  | InstanceType<typeof DeploymentBuilder>["event"]
+  | InstanceType<typeof DeploymentBuilder>["sendETH"]
+  | InstanceType<typeof DeploymentBuilder>["useModule"];
 
 const DEFAULT_VALUE = ethers.utils.parseUnits("0");
 
@@ -86,7 +96,9 @@ function parseEventParams(
 
 export class DeploymentBuilder implements IDeploymentBuilder {
   public chainId: number;
-  public graph: IDeploymentGraph = new DeploymentGraph();
+  public graph: IDeploymentGraph;
+  public callPoints: CallPoints;
+
   private idCounter: number = 0;
   private moduleCache: ModuleCache = {};
   private useSubgraphInvocationCounter: number = 0;
@@ -94,7 +106,10 @@ export class DeploymentBuilder implements IDeploymentBuilder {
 
   constructor(options: DeploymentBuilderOptions) {
     this.chainId = options.chainId;
+    this.graph = new DeploymentGraph();
+    this.callPoints = {};
   }
+
   public library(
     libraryName: string,
     options?: ContractOptions
@@ -122,7 +137,7 @@ export class DeploymentBuilder implements IDeploymentBuilder {
         _future: true,
       };
 
-      DeploymentBuilder._addVertex(this.graph, {
+      DeploymentBuilder._addVertex(this.graph, this.callPoints, this.library, {
         id: artifactContractFuture.vertexId,
         label: libraryName,
         type: "ArtifactLibrary",
@@ -145,7 +160,7 @@ export class DeploymentBuilder implements IDeploymentBuilder {
         _future: true,
       };
 
-      DeploymentBuilder._addVertex(this.graph, {
+      DeploymentBuilder._addVertex(this.graph, this.callPoints, this.library, {
         id: libraryFuture.vertexId,
         label: libraryName,
         type: "HardhatLibrary",
@@ -186,7 +201,7 @@ export class DeploymentBuilder implements IDeploymentBuilder {
         _future: true,
       };
 
-      DeploymentBuilder._addVertex(this.graph, {
+      DeploymentBuilder._addVertex(this.graph, this.callPoints, this.contract, {
         id: artifactContractFuture.vertexId,
         label: contractName,
         type: "ArtifactContract",
@@ -211,7 +226,7 @@ export class DeploymentBuilder implements IDeploymentBuilder {
         _future: true,
       };
 
-      DeploymentBuilder._addVertex(this.graph, {
+      DeploymentBuilder._addVertex(this.graph, this.callPoints, this.contract, {
         id: contractFuture.vertexId,
         label: contractName,
         type: "HardhatContract",
@@ -243,7 +258,7 @@ export class DeploymentBuilder implements IDeploymentBuilder {
       _future: true,
     };
 
-    DeploymentBuilder._addVertex(this.graph, {
+    DeploymentBuilder._addVertex(this.graph, this.callPoints, this.contractAt, {
       id: deployedFuture.vertexId,
       label: contractName,
       type: "DeployedContract",
@@ -295,7 +310,7 @@ export class DeploymentBuilder implements IDeploymentBuilder {
       );
     }
 
-    DeploymentBuilder._addVertex(this.graph, {
+    DeploymentBuilder._addVertex(this.graph, this.callPoints, this.call, {
       id: callFuture.vertexId,
       label: callFuture.label,
       type: "Call",
@@ -349,7 +364,7 @@ export class DeploymentBuilder implements IDeploymentBuilder {
 
     eventFuture.params = parseEventParams(abi, eventFuture);
 
-    DeploymentBuilder._addVertex(this.graph, {
+    DeploymentBuilder._addVertex(this.graph, this.callPoints, this.event, {
       id: eventFuture.vertexId,
       label: eventFuture.label,
       type: "Event",
@@ -403,7 +418,7 @@ export class DeploymentBuilder implements IDeploymentBuilder {
       address = sendTo;
     }
 
-    DeploymentBuilder._addVertex(this.graph, {
+    DeploymentBuilder._addVertex(this.graph, this.callPoints, this.sendETH, {
       id: vertexId,
       label: sendFuture.label,
       type: "SendETH",
@@ -515,20 +530,20 @@ export class DeploymentBuilder implements IDeploymentBuilder {
     label: string,
     after: DeploymentGraphFuture[] = []
   ): Virtual {
-    const afterLabel = `${label}::before`;
+    const beforeLabel = `${label}::before`;
 
     const virtualFuture: Virtual = {
       vertexId: this._resolveNextId(),
-      label: afterLabel,
+      label: beforeLabel,
       type: "virtual",
       _future: true,
     };
 
     const scopeLabel = this.scopes.getScopedLabel();
 
-    DeploymentBuilder._addVertex(this.graph, {
+    DeploymentBuilder._addVertex(this.graph, this.callPoints, this.useModule, {
       id: virtualFuture.vertexId,
-      label: afterLabel,
+      label: beforeLabel,
       type: "Virtual",
       after,
       scopeAdded: scopeLabel,
@@ -552,7 +567,7 @@ export class DeploymentBuilder implements IDeploymentBuilder {
 
     const scopeLabel = this.scopes.getScopedLabel();
 
-    DeploymentBuilder._addVertex(this.graph, {
+    DeploymentBuilder._addVertex(this.graph, this.callPoints, this.useModule, {
       id: virtualFuture.vertexId,
       label: afterLabel,
       type: "Virtual",
@@ -567,10 +582,24 @@ export class DeploymentBuilder implements IDeploymentBuilder {
     return this.idCounter++;
   }
 
+  private static _captureCallPoint(
+    callPoints: CallPoints,
+    f: DeploymentApiPublicFunctions,
+    vertexId: number
+  ) {
+    const potentialValidationError = new IgnitionValidationError("");
+    potentialValidationError.resetStackFrom(f as any);
+    callPoints[vertexId] = potentialValidationError;
+  }
+
   private static _addVertex(
     graph: DeploymentGraph,
+    callPoints: CallPoints,
+    f: DeploymentApiPublicFunctions,
     depNode: DeploymentGraphVertex
   ) {
+    DeploymentBuilder._captureCallPoint(callPoints, f, depNode.id);
+
     graph.vertexes.set(depNode.id, depNode);
     ensureVertex(graph.adjacencyList, depNode.id);
 

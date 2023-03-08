@@ -83,7 +83,11 @@ export class IgnitionWrapper {
     }
 
     if (deploymentResult._kind === "failure") {
-      const [moduleId, failures] = deploymentResult.failures;
+      const [failureType, failures] = deploymentResult.failures;
+
+      if (failures.length === 1) {
+        throw failures[0];
+      }
 
       let failuresMessage = "";
       for (const failure of failures) {
@@ -91,7 +95,7 @@ export class IgnitionWrapper {
       }
 
       throw new IgnitionError(
-        `Execution failed for module '${moduleId}':\n\n${failuresMessage}`
+        `${failureType} for module '${ignitionModule.name}':\n\n${failuresMessage}`
       );
     }
 

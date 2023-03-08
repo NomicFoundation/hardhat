@@ -38,6 +38,7 @@ export async function resolveExecutionGraphFor(module: Module<any>) {
 
   const { _kind: validationKind } = await validateDeploymentGraph(
     deploymentGraph,
+    {},
     mockServices
   );
 

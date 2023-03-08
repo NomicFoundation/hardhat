@@ -1,30 +1,34 @@
 import { ethers, BigNumber } from "ethers";
 
-import { Services } from "services/types";
 import { HardhatContractDeploymentVertex } from "types/deploymentGraph";
 import { VertexResultEnum } from "types/graph";
 import {
+  ValidationDispatchContext,
   ValidationResultsAccumulator,
   ValidationVertexVisitResult,
 } from "types/validation";
-import { IgnitionError, InvalidArtifactError } from "utils/errors";
 import { isParameter } from "utils/guards";
 
-import { validateBytesForArtifact } from "./helpers";
+import { buildValidationError, validateBytesForArtifact } from "./helpers";
 
 export async function validateHardhatContract(
   vertex: HardhatContractDeploymentVertex,
   _resultAccumulator: ValidationResultsAccumulator,
-  { services }: { services: Services }
+  { services, callPoints }: ValidationDispatchContext
 ): Promise<ValidationVertexVisitResult> {
   if (!BigNumber.isBigNumber(vertex.value) && !isParameter(vertex.value)) {
-    return {
-      _kind: VertexResultEnum.FAILURE,
-      failure: new IgnitionError(`For contract 'value' must be a BigNumber`),
-    };
+    return buildValidationError(
+      vertex,
+      `For contract 'value' must be a BigNumber`,
+      callPoints
+    );
   }
 
-  const invalidBytes = await validateBytesForArtifact(vertex.args, services);
+  const invalidBytes = await validateBytesForArtifact({
+    vertex,
+    callPoints,
+    services,
+  });
 
   if (invalidBytes !== null) {
     return invalidBytes;
@@ -35,10 +39,11 @@ export async function validateHardhatContract(
   );
 
   if (!artifactExists) {
-    return {
-      _kind: VertexResultEnum.FAILURE,
-      failure: new InvalidArtifactError(vertex.contractName),
-    };
+    return buildValidationError(
+      vertex,
+      `Contract with name '${vertex.contractName}' doesn't exist`,
+      callPoints
+    );
   }
 
   const artifact = await services.artifacts.getArtifact(vertex.contractName);
@@ -48,12 +53,11 @@ export async function validateHardhatContract(
   const expectedArgsLength = iface.deploy.inputs.length;
 
   if (argsLength !== expectedArgsLength) {
-    return {
-      _kind: VertexResultEnum.FAILURE,
-      failure: new IgnitionError(
-        `The constructor of the contract '${vertex.contractName}' expects ${expectedArgsLength} arguments but ${argsLength} were given`
-      ),
-    };
+    return buildValidationError(
+      vertex,
+      `The constructor of the contract '${vertex.contractName}' expects ${expectedArgsLength} arguments but ${argsLength} were given`,
+      callPoints
+    );
   }
 
   return {

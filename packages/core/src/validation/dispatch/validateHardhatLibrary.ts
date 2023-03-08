@@ -1,22 +1,25 @@
 import { ethers } from "ethers";
 
-import { Services } from "services/types";
 import { HardhatLibraryDeploymentVertex } from "types/deploymentGraph";
 import { VertexResultEnum } from "types/graph";
 import {
+  ValidationDispatchContext,
   ValidationResultsAccumulator,
   ValidationVertexVisitResult,
 } from "types/validation";
-import { IgnitionError, InvalidArtifactError } from "utils/errors";
 
-import { validateBytesForArtifact } from "./helpers";
+import { buildValidationError, validateBytesForArtifact } from "./helpers";
 
 export async function validateHardhatLibrary(
   vertex: HardhatLibraryDeploymentVertex,
   _resultAccumulator: ValidationResultsAccumulator,
-  { services }: { services: Services }
+  { callPoints, services }: ValidationDispatchContext
 ): Promise<ValidationVertexVisitResult> {
-  const invalidBytes = await validateBytesForArtifact(vertex.args, services);
+  const invalidBytes = await validateBytesForArtifact({
+    vertex,
+    callPoints,
+    services,
+  });
 
   if (invalidBytes !== null) {
     return invalidBytes;
@@ -27,10 +30,11 @@ export async function validateHardhatLibrary(
   );
 
   if (!artifactExists) {
-    return {
-      _kind: VertexResultEnum.FAILURE,
-      failure: new InvalidArtifactError(vertex.libraryName),
-    };
+    return buildValidationError(
+      vertex,
+      `Library with name '${vertex.libraryName}' doesn't exist`,
+      callPoints
+    );
   }
 
   const artifact = await services.artifacts.getArtifact(vertex.libraryName);
@@ -40,12 +44,11 @@ export async function validateHardhatLibrary(
   const expectedArgsLength = iface.deploy.inputs.length;
 
   if (argsLength !== expectedArgsLength) {
-    return {
-      _kind: VertexResultEnum.FAILURE,
-      failure: new IgnitionError(
-        `The constructor of the library '${vertex.libraryName}' expects ${expectedArgsLength} arguments but ${argsLength} were given`
-      ),
-    };
+    return buildValidationError(
+      vertex,
+      `The constructor of the library '${vertex.libraryName}' expects ${expectedArgsLength} arguments but ${argsLength} were given`,
+      callPoints
+    );
   }
 
   return {

@@ -1,26 +1,26 @@
 import { isAddress } from "@ethersproject/address";
 
-import { Services } from "services/types";
 import { DeployedContractDeploymentVertex } from "types/deploymentGraph";
 import { VertexResultEnum } from "types/graph";
 import {
+  ValidationDispatchContext,
   ValidationResultsAccumulator,
   ValidationVertexVisitResult,
 } from "types/validation";
-import { IgnitionError } from "utils/errors";
+
+import { buildValidationError } from "./helpers";
 
 export async function validateDeployedContract(
   vertex: DeployedContractDeploymentVertex,
   _resultAccumulator: ValidationResultsAccumulator,
-  _context: { services: Services }
+  { callPoints }: ValidationDispatchContext
 ): Promise<ValidationVertexVisitResult> {
   if (typeof vertex.address === "string" && !isAddress(vertex.address)) {
-    return {
-      _kind: VertexResultEnum.FAILURE,
-      failure: new IgnitionError(
-        `The existing contract ${vertex.label} has an invalid address ${vertex.address}`
-      ),
-    };
+    return buildValidationError(
+      vertex,
+      `The existing contract ${vertex.label} has an invalid address ${vertex.address}`,
+      callPoints
+    );
   }
 
   return {

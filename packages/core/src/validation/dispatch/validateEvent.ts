@@ -1,15 +1,15 @@
 import { ethers } from "ethers";
 
-import { Services } from "services/types";
 import { EventVertex } from "types/deploymentGraph";
 import { VertexResultEnum } from "types/graph";
 import {
+  ValidationDispatchContext,
   ValidationResultsAccumulator,
   ValidationVertexVisitResult,
 } from "types/validation";
-import { IgnitionError } from "utils/errors";
 
 import {
+  buildValidationError,
   resolveArtifactForCallableFuture,
   validateBytesForArtifact,
 } from "./helpers";
@@ -17,12 +17,13 @@ import {
 export async function validateEvent(
   vertex: EventVertex,
   _resultAccumulator: ValidationResultsAccumulator,
-  context: { services: Services }
+  { callPoints, services }: ValidationDispatchContext
 ): Promise<ValidationVertexVisitResult> {
-  const invalidBytes = await validateBytesForArtifact(
-    vertex.args,
-    context.services
-  );
+  const invalidBytes = await validateBytesForArtifact({
+    vertex,
+    callPoints,
+    services,
+  });
 
   if (invalidBytes !== null) {
     return invalidBytes;
@@ -31,26 +32,25 @@ export async function validateEvent(
   let artifactAbi: any[] | undefined;
   if (typeof vertex.address === "string") {
     if (!ethers.utils.isAddress(vertex.address)) {
-      return {
-        _kind: VertexResultEnum.FAILURE,
-        failure: new IgnitionError(`Invalid address ${vertex.address}`),
-      };
+      return buildValidationError(
+        vertex,
+        `Invalid address ${vertex.address}`,
+        callPoints
+      );
     }
 
     artifactAbi = vertex.abi;
   } else if (vertex.address.type === "contract") {
-    artifactAbi = await resolveArtifactForCallableFuture(
-      vertex.address,
-      context
-    );
+    artifactAbi = await resolveArtifactForCallableFuture(vertex.address, {
+      services,
+    });
 
     if (artifactAbi === undefined) {
-      return {
-        _kind: VertexResultEnum.FAILURE,
-        failure: new IgnitionError(
-          `Artifact with name '${vertex.address.label}' doesn't exist`
-        ),
-      };
+      return buildValidationError(
+        vertex,
+        `Contract with name '${vertex.address.label}' doesn't exist`,
+        callPoints
+      );
     }
   }
 
@@ -69,12 +69,11 @@ export async function validateEvent(
   if (eventFragments.length === 0) {
     const contractName = vertex.label.split("/")[0];
 
-    return {
-      _kind: VertexResultEnum.FAILURE,
-      failure: new IgnitionError(
-        `Contract '${contractName}' doesn't have an event ${vertex.event}`
-      ),
-    };
+    return buildValidationError(
+      vertex,
+      `Contract '${contractName}' doesn't have an event ${vertex.event}`,
+      callPoints
+    );
   }
 
   const matchingEventFragments = eventFragments.filter(
@@ -85,19 +84,17 @@ export async function validateEvent(
     if (eventFragments.length === 1) {
       const contractName = vertex.label.split("/")[0];
 
-      return {
-        _kind: VertexResultEnum.FAILURE,
-        failure: new IgnitionError(
-          `Event ${vertex.event} in contract ${contractName} expects ${eventFragments[0].inputs.length} arguments but ${argsLength} were given`
-        ),
-      };
+      return buildValidationError(
+        vertex,
+        `Event ${vertex.event} in contract ${contractName} expects ${eventFragments[0].inputs.length} arguments but ${argsLength} were given`,
+        callPoints
+      );
     } else {
-      return {
-        _kind: VertexResultEnum.FAILURE,
-        failure: new IgnitionError(
-          `Event ${vertex.event} in contract is overloaded, but no overload expects ${argsLength} arguments`
-        ),
-      };
+      return buildValidationError(
+        vertex,
+        `Event ${vertex.event} in contract is overloaded, but no overload expects ${argsLength} arguments`,
+        callPoints
+      );
     }
   }
 

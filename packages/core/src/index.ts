@@ -4,7 +4,7 @@ export { buildSubgraph } from "dsl/buildSubgraph";
 export { viewExecutionResults } from "deployment/utils";
 export { createServices } from "services/createServices";
 export { serializeReplacer } from "utils/serialize";
-export { IgnitionError } from "utils/errors";
+export { IgnitionError, IgnitionValidationError } from "utils/errors";
 export { TransactionsService } from "services/TransactionsService";
 export { ContractsService } from "services/ContractsService";
 export { VertexResultEnum } from "types/graph";

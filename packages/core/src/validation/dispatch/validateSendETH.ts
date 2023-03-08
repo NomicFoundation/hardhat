@@ -3,31 +3,36 @@ import { ethers, BigNumber } from "ethers";
 import { SendVertex } from "types/deploymentGraph";
 import { VertexResultEnum } from "types/graph";
 import {
+  ValidationDispatchContext,
   ValidationResultsAccumulator,
   ValidationVertexVisitResult,
 } from "types/validation";
-import { IgnitionError } from "utils/errors";
 import { isParameter } from "utils/guards";
+
+import { buildValidationError } from "./helpers";
 
 export async function validateSendETH(
   vertex: SendVertex,
-  _resultAccumulator: ValidationResultsAccumulator
+  _resultAccumulator: ValidationResultsAccumulator,
+  { callPoints }: ValidationDispatchContext
 ): Promise<ValidationVertexVisitResult> {
   if (!BigNumber.isBigNumber(vertex.value) && !isParameter(vertex.value)) {
-    return {
-      _kind: VertexResultEnum.FAILURE,
-      failure: new IgnitionError(`For send 'value' must be a BigNumber`),
-    };
+    return buildValidationError(
+      vertex,
+      `For send 'value' must be a BigNumber`,
+      callPoints
+    );
   }
 
   if (
     typeof vertex.address === "string" &&
     !ethers.utils.isAddress(vertex.address)
   ) {
-    return {
-      _kind: VertexResultEnum.FAILURE,
-      failure: new IgnitionError(`"${vertex.address}" is not a valid address`),
-    };
+    return buildValidationError(
+      vertex,
+      `"${vertex.address}" is not a valid address`,
+      callPoints
+    );
   }
 
   return {
