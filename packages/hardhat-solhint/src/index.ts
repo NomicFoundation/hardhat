@@ -105,6 +105,19 @@ function printReport(reports: any) {
 subtask("hardhat-solhint:run-solhint", async (_, { config }) => {
   const { processPath } = require("solhint/lib/index");
   return processPath(
+    /**
+     * Solhint passes the following path to the `node-glob` library.
+     * `path.join()` and `path.relative()` return back-slashes as path separator on Windows.
+     * However, glob pattern paths must use forward-slashes as path separators, since "\" is an escape character to match literal glob pattern characters.
+     * That's why we replace back-slashes with forward-slashes below.
+     *
+     * @see https://github.com/isaacs/node-glob/tree/v8.0.3#windows
+     *
+     * The files paths matching the glob pattern are then passed to `node-ignore`, which requires relative pathnames.
+     * For this reason, we pass a relative pathname to `processPath()`.
+     *
+     * @see https://github.com/kaelzhang/node-ignore/tree/5.2.4#1-pathname-should-be-a-pathrelatived-pathname
+     */
     relative(
       config.paths.root,
       join(config.paths.sources, "**", "*.sol")
