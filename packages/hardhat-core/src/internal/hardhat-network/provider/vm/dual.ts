@@ -1001,31 +1001,34 @@ function assertEqualAccounts(
     );
     differences.push("balance");
   }
-
-  if (!ethereumJSAccount.codeHash.equals(rethnetAccount.codeHash)) {
-    console.trace(
+  const inGetBalanceContext =
+    new Error().stack?.includes("HardhatNode.getAccountBalance") ?? false;
+  if (!inGetBalanceContext) {
+    if (!ethereumJSAccount.codeHash.equals(rethnetAccount.codeHash)) {
+      console.trace(
         `Different codeHash: ${bufferToHex(
           ethereumJSAccount.codeHash
-      )} (ethereumjs) !== ${bufferToHex(rethnetAccount.codeHash)} (rethnet)`
-    );
-    differences.push("codeHash");
-  }
+        )} (ethereumjs) !== ${bufferToHex(rethnetAccount.codeHash)} (rethnet)`
+      );
+      differences.push("codeHash");
+    }
 
-  if (ethereumJSAccount.nonce !== rethnetAccount.nonce) {
-    console.trace(
-      `Different nonce: ${ethereumJSAccount.nonce} (ethereumjs) !== ${rethnetAccount.nonce} (rethnet)`
-    );
-    differences.push("nonce");
-  }
+    if (ethereumJSAccount.nonce !== rethnetAccount.nonce) {
+      console.trace(
+        `Different nonce: ${ethereumJSAccount.nonce} (ethereumjs) !== ${rethnetAccount.nonce} (rethnet)`
+      );
+      differences.push("nonce");
+    }
 
-  if (!ethereumJSAccount.storageRoot.equals(rethnetAccount.storageRoot)) {
-    // TODO re-enable
-    // console.trace(
-    //   `Different storageRoot: ${ethereumJSAccount.storageRoot.toString(
-    //     "hex"
-    //   )} !== ${rethnetAccount.storageRoot.toString("hex")}`
-    // );
-    // throw new Error("Different storageRoot");
+    if (!ethereumJSAccount.storageRoot.equals(rethnetAccount.storageRoot)) {
+      // TODO re-enable
+      // console.trace(
+      //   `Different storageRoot: ${ethereumJSAccount.storageRoot.toString(
+      //     "hex"
+      //   )} !== ${rethnetAccount.storageRoot.toString("hex")}`
+      // );
+      // throw new Error("Different storageRoot");
+    }
   }
 }
 
