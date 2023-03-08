@@ -116,16 +116,8 @@ export async function getContractFactory(
 function isFactoryOptions(
   signerOrOptions?: ethers.Signer | FactoryOptions
 ): signerOrOptions is FactoryOptions {
-  if (
-    signerOrOptions === undefined ||
-    ["Wallet", "SignerWithAddress", "Signer"].includes(
-      signerOrOptions.constructor.name
-    )
-  ) {
-    return false;
-  }
-
-  return true;
+  const { Signer } = require("ethers") as typeof ethers;
+  return !Signer.isSigner(signerOrOptions);
 }
 
 export async function getContractFactoryFromArtifact(
