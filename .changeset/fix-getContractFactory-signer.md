@@ -2,4 +2,4 @@
 "@nomiclabs/hardhat-ethers": patch
 ---
 
-fix: ethers.Signer check in getContractFactory
+Make getContractFactory's params validation more flexible.
