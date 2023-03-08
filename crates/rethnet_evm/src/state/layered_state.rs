@@ -579,4 +579,8 @@ impl StateDebug for LayeredState<RethnetLayer> {
     ) -> Result<(), Self::Error> {
         Err(Self::Error::NotImplemented)
     }
+
+    fn restore_fork_block_context(&mut self, _state_root: &B256) -> Result<(), Self::Error> {
+        Err(StateError::NotImplemented)
+    }
 }

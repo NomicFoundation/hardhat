@@ -64,6 +64,10 @@ where
         state_root: B256,
         sender: oneshot::Sender<Result<(), E>>,
     },
+    RestoreForkBlockContext {
+        state_root: B256,
+        sender: oneshot::Sender<Result<(), E>>,
+    },
     SetStorageSlot {
         address: Address,
         index: U256,
@@ -136,6 +140,9 @@ where
                 sender,
             } => sender
                 .send(state.set_block_context(block_number, &state_root))
+                .unwrap(),
+            Request::RestoreForkBlockContext { state_root, sender } => sender
+                .send(state.restore_fork_block_context(&state_root))
                 .unwrap(),
             Request::SetStorageSlot {
                 address,
@@ -232,6 +239,11 @@ where
             } => f
                 .debug_struct("SetBlockContext")
                 .field("block_number", block_number)
+                .field("state_root", state_root)
+                .field("sender", sender)
+                .finish(),
+            Self::RestoreForkBlockContext { state_root, sender } => f
+                .debug_struct("RestoreForkBlockContext")
                 .field("state_root", state_root)
                 .field("sender", sender)
                 .finish(),

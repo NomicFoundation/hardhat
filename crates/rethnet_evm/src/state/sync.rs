@@ -292,6 +292,20 @@ where
 
         receiver.await.unwrap()
     }
+
+    /// Sets the database to have the context of the block specified by block_number.
+    pub async fn restore_fork_block_context(&self, state_root: &B256) -> Result<(), E> {
+        let (sender, receiver) = oneshot::channel();
+
+        self.request_sender
+            .send(Request::RestoreForkBlockContext {
+                state_root: *state_root,
+                sender,
+            })
+            .expect("Failed to send request");
+
+        receiver.await.unwrap()
+    }
 }
 
 impl<E> Drop for AsyncState<E>
@@ -442,6 +456,13 @@ where
         task::block_in_place(move || {
             self.runtime
                 .block_on(AsyncState::remove_snapshot(*self, *state_root))
+        })
+    }
+
+    fn restore_fork_block_context(&mut self, state_root: &B256) -> Result<(), Self::Error> {
+        task::block_in_place(move || {
+            self.runtime
+                .block_on(AsyncState::restore_fork_block_context(*self, state_root))
         })
     }
 }

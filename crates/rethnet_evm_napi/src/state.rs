@@ -393,4 +393,14 @@ impl StateManager {
             .await
             .map_err(|e| napi::Error::new(Status::GenericFailure, e.to_string()))
     }
+
+    #[napi]
+    pub async fn restore_fork_block_context(&self, state_root: Buffer) -> napi::Result<()> {
+        let state_root = B256::from_slice(&state_root);
+
+        self.state
+            .restore_fork_block_context(&state_root)
+            .await
+            .map_err(|e| napi::Error::new(Status::GenericFailure, e.to_string()))
+    }
 }

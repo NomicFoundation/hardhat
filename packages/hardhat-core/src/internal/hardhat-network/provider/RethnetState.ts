@@ -151,4 +151,8 @@ export class RethnetStateManager {
   ): Promise<void> {
     return this._state.setBlockContext(blockNumber.valueOf(), stateRoot);
   }
+
+  public async restoreForkBlockContext(stateRoot: Buffer): Promise<void> {
+    return this._state.restoreForkBlockContext(stateRoot);
+  }
 }

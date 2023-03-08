@@ -64,4 +64,7 @@ pub trait StateDebug {
         block_number: U256,
         state_root: &B256,
     ) -> Result<(), Self::Error>;
+
+    /// Restores the database's block context to that of the forked block.
+    fn restore_fork_block_context(&mut self, state_root: &B256) -> Result<(), Self::Error>;
 }

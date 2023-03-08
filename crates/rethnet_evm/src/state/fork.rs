@@ -243,6 +243,10 @@ impl crate::state::debug::StateDebug for ForkState {
         Ok(())
     }
 
+    fn restore_fork_block_context(&mut self, state_root: &B256) -> Result<(), Self::Error> {
+        self.set_state_root(state_root)
+    }
+
     /// Reverts the state to match the specified state root.
     fn set_state_root(&mut self, state_root: &B256) -> Result<(), Self::Error> {
         if let Some(state) = self.state_root_to_state.get(state_root) {

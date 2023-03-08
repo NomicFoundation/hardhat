@@ -290,7 +290,11 @@ export class RethnetAdapter implements VMAdapter {
    * Throw if it can't.
    */
   public async restoreContext(stateRoot: Buffer): Promise<void> {
-    return this._state.setStateRoot(stateRoot);
+    if (this._isForked) {
+      return this._state.restoreForkBlockContext(stateRoot);
+    } else {
+      return this._state.setStateRoot(stateRoot);
+    }
   }
 
   /**
