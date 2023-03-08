@@ -24,6 +24,10 @@ import {
 
 describe("deployment builder - useModule", () => {
   let deploymentGraph: IDeploymentGraph;
+  const options = {
+    chainId: 31,
+    accounts: [],
+  };
 
   describe("use one module from another", () => {
     before(() => {
@@ -52,9 +56,7 @@ describe("deployment builder - useModule", () => {
         return { token, token2 };
       });
 
-      const { graph } = generateDeploymentGraphFrom(WrapModule, {
-        chainId: 31,
-      });
+      const { graph } = generateDeploymentGraphFrom(WrapModule, options);
 
       deploymentGraph = graph;
     });
@@ -87,9 +89,7 @@ describe("deployment builder - useModule", () => {
         return { foo };
       });
 
-      const { graph } = generateDeploymentGraphFrom(WrapModule, {
-        chainId: 31,
-      });
+      const { graph } = generateDeploymentGraphFrom(WrapModule, options);
 
       deploymentGraph = graph;
     });
@@ -168,9 +168,7 @@ describe("deployment builder - useModule", () => {
         return { foo };
       });
 
-      const { graph } = generateDeploymentGraphFrom(WrapModule, {
-        chainId: 31,
-      });
+      const { graph } = generateDeploymentGraphFrom(WrapModule, options);
 
       deploymentGraph = graph;
     });
@@ -218,9 +216,7 @@ describe("deployment builder - useModule", () => {
         return { foo, bar, baz };
       });
 
-      const { graph } = generateDeploymentGraphFrom(WrapModule, {
-        chainId: 31,
-      });
+      const { graph } = generateDeploymentGraphFrom(WrapModule, options);
 
       deploymentGraph = graph;
     });
@@ -319,9 +315,7 @@ describe("deployment builder - useModule", () => {
         return { foo: fooModule.foo, bar };
       });
 
-      const { graph } = generateDeploymentGraphFrom(WrapModule, {
-        chainId: 31,
-      });
+      const { graph } = generateDeploymentGraphFrom(WrapModule, options);
 
       deploymentGraph = graph;
     });
@@ -402,9 +396,7 @@ describe("deployment builder - useModule", () => {
         return { foo, bar };
       });
 
-      const { graph } = generateDeploymentGraphFrom(TopModule, {
-        chainId: 31,
-      });
+      const { graph } = generateDeploymentGraphFrom(TopModule, options);
 
       deploymentGraph = graph;
     });
@@ -481,10 +473,7 @@ describe("deployment builder - useModule", () => {
 
     it("should throw", () => {
       assert.throws(
-        () =>
-          generateDeploymentGraphFrom(differentParamsModule, {
-            chainId: 31,
-          }),
+        () => generateDeploymentGraphFrom(differentParamsModule, options),
         /`useModule` cannot be invoked on the same module using different parameters/
       );
     });
@@ -530,6 +519,7 @@ describe("deployment builder - useModule", () => {
           // @ts-ignore
           generateDeploymentGraphFrom(returnsWrongFutureTypeModule, {
             chainId: 31,
+            accounts: [],
           }),
         /Cannot return Future of type "parameter" from a module/
       );

@@ -23,6 +23,7 @@ describe("deployment builder - chainId", () => {
       m.call(exchange, "addToken", {
         args: [token],
         after: [another],
+        from: m.accounts[0],
       });
 
       return {};
@@ -30,6 +31,7 @@ describe("deployment builder - chainId", () => {
 
     const { graph } = generateDeploymentGraphFrom(callModule, {
       chainId: 31337,
+      accounts: ["0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266"],
     });
 
     deploymentGraph = graph;
@@ -177,5 +179,22 @@ describe("deployment builder - chainId", () => {
         _future: true,
       },
     ]);
+  });
+
+  it("should record the address to send from for the call node Exchange at Exchange/addToken", () => {
+    const depNode = getDeploymentVertexByLabel(
+      deploymentGraph,
+      "Exchange/addToken"
+    );
+
+    if (depNode === undefined) {
+      return assert.isDefined(depNode);
+    }
+
+    if (!isCall(depNode)) {
+      return assert.fail("Not a call dependency node");
+    }
+
+    assert.equal(depNode.from, "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266");
   });
 });

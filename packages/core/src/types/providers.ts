@@ -8,9 +8,9 @@ export interface Providers {
   artifacts: ArtifactsProvider;
   ethereumProvider: EIP1193Provider;
   gasProvider: GasProvider;
-  signers: SignersProvider;
   transactions: TransactionsProvider;
   config: ConfigProvider;
+  accounts: AccountsProvider;
 }
 
 export interface ArtifactsProvider {
@@ -27,10 +27,6 @@ export interface GasProvider {
     tx: ethers.providers.TransactionRequest
   ) => Promise<ethers.BigNumber>;
   estimateGasPrice: () => Promise<ethers.BigNumber>;
-}
-
-export interface SignersProvider {
-  getDefaultSigner(): Promise<IgnitionSigner>;
 }
 
 export interface TransactionsProvider {
@@ -57,8 +53,7 @@ export interface ConfigProvider {
   hasParam(paramName: string): Promise<HasParamResult>;
 }
 
-export interface IgnitionSigner {
-  sendTransaction: (
-    tx: ethers.providers.TransactionRequest
-  ) => Promise<ethers.providers.TransactionResponse>;
+export interface AccountsProvider {
+  getAccounts(): Promise<string[]>;
+  getSigner(address: string): Promise<ethers.Signer>;
 }

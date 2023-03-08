@@ -17,6 +17,7 @@ export function initializeDeployState(moduleName: string): DeployState {
       moduleName,
       chainId: 0,
       networkName: "",
+      accounts: [],
     },
     validation: {
       errors: [],
@@ -56,6 +57,14 @@ export function deployStateReducer(
         details: {
           ...state.details,
           networkName: action.networkName,
+        },
+      };
+    case "SET_ACCOUNTS":
+      return {
+        ...state,
+        details: {
+          ...state.details,
+          accounts: action.accounts,
         },
       };
     case "START_VALIDATION":

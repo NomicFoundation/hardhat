@@ -1,5 +1,6 @@
 import { ethers } from "ethers";
 
+import { IAccountsService } from "./AccountsService";
 import { IArtifactsService } from "./ArtifactsService";
 import { IConfigService } from "./ConfigService";
 import { IContractsService } from "./ContractsService";
@@ -12,6 +13,7 @@ export interface TransactionOptions {
   maxRetries: number;
   gasPriceIncrementPerRetry: ethers.BigNumber | null;
   pollingInterval: number;
+  signer: ethers.Signer;
 }
 
 export interface Services {
@@ -20,4 +22,5 @@ export interface Services {
   artifacts: IArtifactsService;
   transactions: ITransactionsService;
   config: IConfigService;
+  accounts: IAccountsService;
 }

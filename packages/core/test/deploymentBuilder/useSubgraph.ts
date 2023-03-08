@@ -18,6 +18,10 @@ import {
 
 describe("deployment builder - useSubgraph", () => {
   let deploymentGraph: IDeploymentGraph;
+  const options = {
+    chainId: 31,
+    accounts: [],
+  };
 
   describe("use subgraph from within a module", () => {
     before(() => {
@@ -44,9 +48,7 @@ describe("deployment builder - useSubgraph", () => {
         return { foo, bar };
       });
 
-      const { graph } = generateDeploymentGraphFrom(WrapModule, {
-        chainId: 31,
-      });
+      const { graph } = generateDeploymentGraphFrom(WrapModule, options);
 
       deploymentGraph = graph;
     });
@@ -121,9 +123,7 @@ describe("deployment builder - useSubgraph", () => {
         return { foo: fooSubgraph.foo, bar };
       });
 
-      const { graph } = generateDeploymentGraphFrom(WrapModule, {
-        chainId: 31,
-      });
+      const { graph } = generateDeploymentGraphFrom(WrapModule, options);
 
       deploymentGraph = graph;
     });

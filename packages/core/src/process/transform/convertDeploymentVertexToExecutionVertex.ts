@@ -1,4 +1,4 @@
-import { BigNumber } from "ethers";
+import { BigNumber, ethers } from "ethers";
 
 import { Services } from "services/types";
 import {
@@ -85,6 +85,8 @@ async function convertHardhatContractToContractDeploy(
 ): Promise<ContractDeploy> {
   const artifact: Artifact =
     await transformContext.services.artifacts.getArtifact(vertex.contractName);
+  const signer: ethers.Signer =
+    await transformContext.services.accounts.getSigner(vertex.from);
 
   return {
     type: "ContractDeploy",
@@ -97,6 +99,7 @@ async function convertHardhatContractToContractDeploy(
       vertex.value,
       transformContext
     )) as BigNumber,
+    signer,
   };
 }
 
@@ -104,6 +107,9 @@ async function convertArtifactContractToContractDeploy(
   vertex: ArtifactContractDeploymentVertex,
   transformContext: TransformContext
 ): Promise<ContractDeploy> {
+  const signer: ethers.Signer =
+    await transformContext.services.accounts.getSigner(vertex.from);
+
   return {
     type: "ContractDeploy",
     id: vertex.id,
@@ -115,6 +121,7 @@ async function convertArtifactContractToContractDeploy(
       vertex.value,
       transformContext
     )) as BigNumber,
+    signer,
   };
 }
 
@@ -135,6 +142,9 @@ async function convertCallToContractCall(
   vertex: CallDeploymentVertex,
   transformContext: TransformContext
 ): Promise<ContractCall> {
+  const signer: ethers.Signer =
+    await transformContext.services.accounts.getSigner(vertex.from);
+
   return {
     type: "ContractCall",
     id: vertex.id,
@@ -146,6 +156,7 @@ async function convertCallToContractCall(
       vertex.value,
       transformContext
     )) as BigNumber,
+    signer,
   };
 }
 
@@ -155,6 +166,8 @@ async function convertHardhatLibraryToLibraryDeploy(
 ): Promise<LibraryDeploy> {
   const artifact: Artifact =
     await transformContext.services.artifacts.getArtifact(vertex.libraryName);
+  const signer: ethers.Signer =
+    await transformContext.services.accounts.getSigner(vertex.from);
 
   return {
     type: "LibraryDeploy",
@@ -162,6 +175,7 @@ async function convertHardhatLibraryToLibraryDeploy(
     label: vertex.label,
     artifact,
     args: await convertArgs(vertex.args, transformContext),
+    signer,
   };
 }
 
@@ -169,12 +183,16 @@ async function convertArtifactLibraryToLibraryDeploy(
   vertex: ArtifactLibraryDeploymentVertex,
   transformContext: TransformContext
 ): Promise<LibraryDeploy> {
+  const signer: ethers.Signer =
+    await transformContext.services.accounts.getSigner(vertex.from);
+
   return {
     type: "LibraryDeploy",
     id: vertex.id,
     label: vertex.label,
     artifact: vertex.artifact,
     args: await convertArgs(vertex.args, transformContext),
+    signer,
   };
 }
 
@@ -197,6 +215,9 @@ async function convertSendToSentETH(
   vertex: SendVertex,
   transformContext: TransformContext
 ): Promise<SentETH> {
+  const signer: ethers.Signer =
+    await transformContext.services.accounts.getSigner(vertex.from);
+
   return {
     type: "SentETH",
     id: vertex.id,
@@ -206,6 +227,7 @@ async function convertSendToSentETH(
       vertex.value,
       transformContext
     )) as BigNumber,
+    signer,
   };
 }
 

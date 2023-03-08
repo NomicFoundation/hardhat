@@ -54,6 +54,7 @@ export type DeployStateExecutionCommand =
 export type DeployStateCommand =
   | { type: "SET_CHAIN_ID"; chainId: number }
   | { type: "SET_NETWORK_NAME"; networkName: string }
+  | { type: "SET_ACCOUNTS"; accounts: string[] }
   | {
       type: "START_VALIDATION";
     }
@@ -135,6 +136,7 @@ export interface DeployNetworkConfig {
   moduleName: string;
   chainId: number;
   networkName: string;
+  accounts: string[];
 }
 
 export interface DeployState {

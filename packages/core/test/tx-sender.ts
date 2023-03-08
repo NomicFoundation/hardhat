@@ -3,10 +3,10 @@ import { assert } from "chai";
 import { ethers } from "ethers";
 import sinon from "sinon";
 
-import { GasProvider, IgnitionSigner } from "types/providers";
+import { GasProvider } from "types/providers";
 import { TxSender } from "utils/tx-sender";
 
-class SignerSpy implements IgnitionSigner {
+class SignerSpy {
   private _index = -1;
 
   public async sendTransaction(_tx: ethers.providers.TransactionRequest) {
@@ -46,12 +46,12 @@ function runTests() {
 
     const signerStub = createSignerSpy();
     const mockTx1 = createMockTx();
-    const hash1 = await txSender.send(signerStub, mockTx1);
+    const hash1 = await txSender.send(signerStub as any, mockTx1);
     assert.equal(hash1, "hash-0");
     assert.isTrue(signerStub.sendTransaction.calledWith(mockTx1));
 
     const mockTx2 = createMockTx();
-    const hash2 = await txSender.send(signerStub, mockTx2);
+    const hash2 = await txSender.send(signerStub as any, mockTx2);
     assert.equal(hash2, "hash-1");
     assert.isTrue(signerStub.sendTransaction.calledWith(mockTx2));
   });

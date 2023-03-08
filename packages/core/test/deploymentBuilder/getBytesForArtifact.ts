@@ -26,6 +26,7 @@ describe("deployment builder - getBytesForArtifact", () => {
 
     const { graph } = generateDeploymentGraphFrom(callModule, {
       chainId: 31337,
+      accounts: [],
     });
 
     deploymentGraph = graph;

@@ -18,6 +18,7 @@
   - [Transfering _Eth_ outside of a call](./creating-modules-for-deployment.md#transfering-eth-outside-of-a-call)
   - [Using the results of a call with a deferred value (TBD)](./creating-modules-for-deployment.md#using-the-results-of-a-call-with-a-deferred-value-tbd)
   - [Waiting for on-chain events](./creating-modules-for-deployment.md#waiting-for-on-chain-events)
+- [Network Accounts Management](./creating-modules-for-deployment.md#network-accounts-management)
 - [Including modules within modules](./creating-modules-for-deployment.md#including-modules-within-modules)
 - [Module Parameters](./creating-modules-for-deployment.md#module-parameters)
 - [Switching based on the _Network Chain ID_](./creating-modules-for-deployment.md#switching-based-on-the-network-chain-id)
@@ -260,6 +261,35 @@ The `event` during deployment will check whether an event matching the given fil
 Upon execution, the `EventFuture` will be resolved to the values of the params emitted by the given event. You can then use those values in tests or other modules as expected.
 
 A full example of the `event` function can be seen in our [Multisig example](../examples/multisig/README.md).
+
+## Network Accounts Management
+
+All accounts configured for the current network can be accessed from within an **Ignition** module via `m.accounts`:
+
+```tsx
+module.exports = buildModule("Multisig", (m) => {
+  const [owner] = m.accounts; // typeof m.accounts === string[]
+});
+```
+
+You can then use these addresses anywhere you normally would, such as constructor or function args. Additionally, you can pass them as a value to the `from` option in order to specify which account you would like a specific transaction sent from:
+
+```tsx
+module.exports = buildModule("Multisig", (m) => {
+  const [owner, alsoAnOwner, notAnOwner] = m.accounts; // typeof m.accounts === string[]
+
+  const multisig = m.deploy("Multisig", { args: [owner, alsoAnOwner], { from: owner }});
+
+  const value = ethers.utils.parseUnits("100");
+  const fund = m.sendETH(multisig, { value, from: notAnOwner })
+
+  const call = m.call(multisig, "authorize", { from: alsoAnOwner });
+});
+```
+
+Note that if `from` is not provided, **Ignition** will default to sending transactions using the first configured account (`m.accounts[0]`).
+
+A more complete example of the `from` option can be found in our [Multisig example](../examples/multisig/README.md)
 
 ## Including modules within modules
 

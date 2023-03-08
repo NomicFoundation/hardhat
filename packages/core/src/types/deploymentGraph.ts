@@ -71,6 +71,7 @@ export interface HardhatContractDeploymentVertex extends VertexDescriptor {
   libraries: LibraryMap;
   after: DeploymentGraphFuture[];
   value: BigNumber | ParameterFuture;
+  from: string;
 }
 
 export interface ArtifactContractDeploymentVertex extends VertexDescriptor {
@@ -81,6 +82,7 @@ export interface ArtifactContractDeploymentVertex extends VertexDescriptor {
   libraries: LibraryMap;
   after: DeploymentGraphFuture[];
   value: BigNumber | ParameterFuture;
+  from: string;
 }
 
 export interface DeployedContractDeploymentVertex extends VertexDescriptor {
@@ -97,6 +99,7 @@ export interface HardhatLibraryDeploymentVertex extends VertexDescriptor {
   scopeAdded: string;
   args: InternalParamValue[];
   after: DeploymentGraphFuture[];
+  from: string;
 }
 
 export interface ArtifactLibraryDeploymentVertex extends VertexDescriptor {
@@ -105,6 +108,7 @@ export interface ArtifactLibraryDeploymentVertex extends VertexDescriptor {
   artifact: Artifact;
   args: InternalParamValue[];
   after: DeploymentGraphFuture[];
+  from: string;
 }
 
 export interface CallDeploymentVertex extends VertexDescriptor {
@@ -115,6 +119,7 @@ export interface CallDeploymentVertex extends VertexDescriptor {
   args: InternalParamValue[];
   after: DeploymentGraphFuture[];
   value: BigNumber | ParameterFuture;
+  from: string;
 }
 
 export interface VirtualVertex extends VertexDescriptor {
@@ -139,6 +144,7 @@ export interface SendVertex extends VertexDescriptor {
   address: AddressResolvable;
   value: BigNumber | ParameterFuture;
   after: DeploymentGraphFuture[];
+  from: string;
 }
 
 export interface ContractOptions {
@@ -148,12 +154,14 @@ export interface ContractOptions {
   };
   after?: DeploymentGraphFuture[];
   value?: BigNumber | ParameterFuture;
+  from?: string;
 }
 
 export interface CallOptions {
   args: InternalParamValue[];
   after?: DeploymentGraphFuture[];
   value?: BigNumber | ParameterFuture;
+  from?: string;
 }
 
 export interface AwaitOptions {
@@ -164,6 +172,7 @@ export interface AwaitOptions {
 export interface SendOptions {
   value: BigNumber | ParameterFuture;
   after?: DeploymentGraphFuture[];
+  from?: string;
 }
 
 export interface UseSubgraphOptions {
@@ -173,6 +182,7 @@ export interface UseSubgraphOptions {
 
 export interface IDeploymentBuilder {
   chainId: number;
+  accounts: string[];
   graph: IDeploymentGraph;
 
   contract(contractName: string, options?: ContractOptions): HardhatContract;
@@ -232,6 +242,7 @@ export interface IDeploymentBuilder {
 
 export interface DeploymentBuilderOptions {
   chainId: number;
+  accounts: string[];
 }
 
 export interface CallPoints {

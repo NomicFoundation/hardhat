@@ -20,13 +20,14 @@ describe("deployment builder - send ETH", () => {
       const token = m.contract("Token");
       const value = ethers.utils.parseUnits("10");
 
-      m.sendETH(token, { value, after: [token] });
+      m.sendETH(token, { value, after: [token], from: m.accounts[0] });
 
       return {};
     });
 
     const { graph } = generateDeploymentGraphFrom(sendModule, {
       chainId: 31337,
+      accounts: ["0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266"],
     });
 
     deploymentGraph = graph;
@@ -103,5 +104,19 @@ describe("deployment builder - send ETH", () => {
     }
 
     assert.deepStrictEqual(depNode.args, []);
+  });
+
+  it("should record the correct address to send from", () => {
+    const depNode = getDeploymentVertexByLabel(deploymentGraph, "Token");
+
+    if (depNode === undefined) {
+      return assert.isDefined(depNode);
+    }
+
+    if (!isHardhatContract(depNode)) {
+      return assert.fail("Not a hardhat contract dependency node");
+    }
+
+    assert.equal(depNode.from, "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266");
   });
 });

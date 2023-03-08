@@ -51,6 +51,7 @@ export interface ContractDeploy extends VertexDescriptor {
   args: ArgValue[];
   libraries: LibraryMap;
   value: BigNumber;
+  signer: ethers.Signer;
 }
 
 export interface DeployedContract extends VertexDescriptor {
@@ -63,6 +64,7 @@ export interface LibraryDeploy extends VertexDescriptor {
   type: "LibraryDeploy";
   artifact: Artifact;
   args: ArgValue[];
+  signer: ethers.Signer;
 }
 
 export interface ContractCall extends VertexDescriptor {
@@ -71,6 +73,7 @@ export interface ContractCall extends VertexDescriptor {
   method: string;
   args: ArgValue[];
   value: BigNumber;
+  signer: ethers.Signer;
 }
 
 export interface AwaitedEvent extends VertexDescriptor {
@@ -85,6 +88,7 @@ export interface SentETH extends VertexDescriptor {
   type: "SentETH";
   address: AddressResolvable;
   value: BigNumber;
+  signer: ethers.Signer;
 }
 
 export interface ContractDeploySuccess {

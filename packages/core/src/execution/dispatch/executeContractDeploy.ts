@@ -12,7 +12,7 @@ import { collectLibrariesAndLink } from "utils/collectLibrariesAndLink";
 import { resolveFrom, toAddress } from "./utils";
 
 export async function executeContractDeploy(
-  { artifact, args, libraries, value }: ContractDeploy,
+  { artifact, args, libraries, value, signer }: ContractDeploy,
   resultAccumulator: ExecutionResultsAccumulator,
   { services, options }: ExecutionContext
 ): Promise<ExecutionVertexVisitResult> {
@@ -40,7 +40,10 @@ export async function executeContractDeploy(
       value,
     });
 
-    txHash = await services.contracts.sendTx(deployTransaction, options);
+    txHash = await services.contracts.sendTx(deployTransaction, {
+      ...options,
+      signer,
+    });
   } catch (err) {
     return {
       _kind: VertexResultEnum.FAILURE,

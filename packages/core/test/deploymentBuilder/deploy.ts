@@ -20,19 +20,22 @@ import {
 } from "./helpers";
 
 describe("deployment builder - deploy", function () {
+  const options = {
+    chainId: 31337,
+    accounts: ["0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266"],
+  };
+
   describe("single contract", () => {
     let deploymentGraph: IDeploymentGraph;
 
     before(() => {
       const singleModule = buildModule("single", (m: IDeploymentBuilder) => {
-        const example = m.contract("Example");
+        const example = m.contract("Example", { from: m.accounts[0] });
 
         return { example };
       });
 
-      const { graph } = generateDeploymentGraphFrom(singleModule, {
-        chainId: 31337,
-      });
+      const { graph } = generateDeploymentGraphFrom(singleModule, options);
 
       deploymentGraph = graph;
     });
@@ -77,6 +80,20 @@ describe("deployment builder - deploy", function () {
 
       assert.deepStrictEqual(depNode.args, []);
     });
+
+    it("should record the correct address to send from", () => {
+      const depNode = getDeploymentVertexByLabel(deploymentGraph, "Example");
+
+      if (depNode === undefined) {
+        return assert.isDefined(depNode);
+      }
+
+      if (!isHardhatContract(depNode)) {
+        return assert.fail("Not a hardhat contract dependency node");
+      }
+
+      assert.equal(depNode.from, "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266");
+    });
   });
 
   describe("two unrelated contracts", () => {
@@ -93,9 +110,10 @@ describe("deployment builder - deploy", function () {
         }
       );
 
-      const { graph } = generateDeploymentGraphFrom(twoContractsModule, {
-        chainId: 31337,
-      });
+      const { graph } = generateDeploymentGraphFrom(
+        twoContractsModule,
+        options
+      );
 
       deploymentGraph = graph;
     });
@@ -158,9 +176,10 @@ describe("deployment builder - deploy", function () {
         }
       );
 
-      const { graph } = generateDeploymentGraphFrom(withConstructorArgsModule, {
-        chainId: 31337,
-      });
+      const { graph } = generateDeploymentGraphFrom(
+        withConstructorArgsModule,
+        options
+      );
 
       deploymentGraph = graph;
     });
@@ -228,9 +247,7 @@ describe("deployment builder - deploy", function () {
 
       const { graph } = generateDeploymentGraphFrom(
         depsBetweenContractsModule,
-        {
-          chainId: 31337,
-        }
+        options
       );
 
       deploymentGraph = graph;
@@ -322,9 +339,7 @@ describe("deployment builder - deploy", function () {
         return { uniswap };
       });
 
-      const { graph } = generateDeploymentGraphFrom(uniswapModule, {
-        chainId: 31337,
-      });
+      const { graph } = generateDeploymentGraphFrom(uniswapModule, options);
 
       deploymentGraph = graph;
     });
@@ -387,9 +402,10 @@ describe("deployment builder - deploy", function () {
         }
       );
 
-      const { graph } = generateDeploymentGraphFrom(fromArtifactModule, {
-        chainId: 31337,
-      });
+      const { graph } = generateDeploymentGraphFrom(
+        fromArtifactModule,
+        options
+      );
 
       deploymentGraph = graph;
     });

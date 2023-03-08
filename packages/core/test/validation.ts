@@ -73,6 +73,25 @@ describe("Validation", () => {
       );
     });
 
+    it("should not validate a artifact contract deploy with a non-address `from`", async () => {
+      const singleModule = buildModule("single", (m: IDeploymentBuilder) => {
+        const example = m.contract("Example", exampleArtifact, {
+          args: [1, 2, 3],
+          value: ethers.utils.parseUnits("42"),
+          from: 1 as any,
+        });
+
+        return { example };
+      });
+
+      const validationResult = await runValidation(singleModule);
+
+      assertValidationError(
+        validationResult,
+        "For contract 'from' must be a valid address string"
+      );
+    });
+
     it("should not validate a artifact contract deploy with a non-existent bytes artifact arg", async () => {
       const singleModule = buildModule("single", (m: IDeploymentBuilder) => {
         const example = m.contract("Example", exampleArtifact, {
@@ -127,6 +146,24 @@ describe("Validation", () => {
       assertValidationError(
         validationResult,
         "The constructor of the library 'Example' expects 0 arguments but 3 were given"
+      );
+    });
+
+    it("should not validate a artifact library deploy with a non-address `from`", async () => {
+      const singleModule = buildModule("single", (m: IDeploymentBuilder) => {
+        const example = m.library("Example", exampleArtifact, {
+          args: [],
+          from: 1 as any,
+        });
+
+        return { example };
+      });
+
+      const validationResult = await runValidation(singleModule);
+
+      assertValidationError(
+        validationResult,
+        "For library 'from' must be a valid address string"
       );
     });
 
@@ -384,6 +421,35 @@ describe("Validation", () => {
       );
     });
 
+    it("should fail a call sent from an invalid address", async () => {
+      const singleModule = buildModule("single", (m: IDeploymentBuilder) => {
+        const example = m.contract("Foo");
+
+        m.call(example, "nonexistant", {
+          args: [],
+          value: ethers.utils.parseUnits("42"),
+          from: 1 as any,
+        });
+
+        return { example };
+      });
+
+      const mockServices = {
+        ...getMockServices(),
+        artifacts: {
+          hasArtifact: () => true,
+          getArtifact: () => exampleCallArtifact,
+        },
+      } as any;
+
+      const validationResult = await runValidation(singleModule, mockServices);
+
+      assertValidationError(
+        validationResult,
+        "For call 'from' must be a valid address string"
+      );
+    });
+
     it("should fail a call with a non-existent bytes artifact arg", async () => {
       const singleModule = buildModule("single", (m: IDeploymentBuilder) => {
         const example = m.contract("Foo");
@@ -505,6 +571,34 @@ describe("Validation", () => {
       assertValidationError(
         validationResult,
         "For send 'value' must be a BigNumber"
+      );
+    });
+
+    it("should fail a send from an invalid address", async () => {
+      const singleModule = buildModule("single", (m: IDeploymentBuilder) => {
+        const example = m.contract("Foo");
+
+        m.sendETH(example, {
+          value: ethers.utils.parseUnits("42"),
+          from: 1 as any,
+        });
+
+        return { example };
+      });
+
+      const mockServices = {
+        ...getMockServices(),
+        artifacts: {
+          hasArtifact: () => true,
+          getArtifact: () => exampleCallArtifact,
+        },
+      } as any;
+
+      const validationResult = await runValidation(singleModule, mockServices);
+
+      assertValidationError(
+        validationResult,
+        "For send 'from' must be a valid address string"
       );
     });
   });
@@ -730,6 +824,28 @@ describe("Validation", () => {
       );
     });
 
+    it("should not validate a contract deployed from an invalid address", async () => {
+      const singleModule = buildModule("single", (m: IDeploymentBuilder) => {
+        const nonexistant = m.contract("Nonexistant", { from: 1 as any });
+
+        return { nonexistant };
+      });
+
+      const mockServices = {
+        ...getMockServices(),
+        artifacts: {
+          hasArtifact: () => false,
+        },
+      } as any;
+
+      const validationResult = await runValidation(singleModule, mockServices);
+
+      assertValidationError(
+        validationResult,
+        "For contract 'from' must be a valid address string"
+      );
+    });
+
     it("should not validate a contract with non-existing bytes artifact arg", async () => {
       const singleModule = buildModule("single", (m: IDeploymentBuilder) => {
         const nonexistant = m.contract("Nonexistant", {
@@ -820,6 +936,29 @@ describe("Validation", () => {
         "The constructor of the library 'Example' expects 0 arguments but 2 were given"
       );
     });
+
+    it("should not validate a library deployed from an invalid address", async () => {
+      const singleModule = buildModule("single", (m: IDeploymentBuilder) => {
+        const example = m.library("Example", { args: [], from: 1 as any });
+
+        return { example };
+      });
+
+      const mockServices = {
+        ...getMockServices(),
+        artifacts: {
+          hasArtifact: () => true,
+          getArtifact: () => exampleArtifact,
+        },
+      } as any;
+
+      const validationResult = await runValidation(singleModule, mockServices);
+
+      assertValidationError(
+        validationResult,
+        "For library 'from' must be a valid address string"
+      );
+    });
   });
 
   describe("virtual", () => {
@@ -863,6 +1002,7 @@ async function runValidation<T extends ModuleDict>(
 
   const { graph, callPoints } = generateDeploymentGraphFrom(ignitionModule, {
     chainId: 31337,
+    accounts: ["0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266"],
   });
 
   const validationResult = await validateDeploymentGraph(

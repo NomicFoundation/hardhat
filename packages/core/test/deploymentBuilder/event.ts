@@ -83,6 +83,7 @@ describe("deployment builder - await event", () => {
 
     const { graph } = generateDeploymentGraphFrom(eventModule, {
       chainId: 31337,
+      accounts: [],
     });
 
     deploymentGraph = graph;

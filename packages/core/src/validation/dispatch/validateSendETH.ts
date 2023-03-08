@@ -24,6 +24,14 @@ export async function validateSendETH(
     );
   }
 
+  if (!ethers.utils.isAddress(vertex.from)) {
+    return buildValidationError(
+      vertex,
+      `For send 'from' must be a valid address string`,
+      callPoints
+    );
+  }
+
   if (
     typeof vertex.address === "string" &&
     !ethers.utils.isAddress(vertex.address)

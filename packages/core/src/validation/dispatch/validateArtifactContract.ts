@@ -24,6 +24,14 @@ export async function validateArtifactContract(
     );
   }
 
+  if (!ethers.utils.isAddress(vertex.from)) {
+    return buildValidationError(
+      vertex,
+      `For contract 'from' must be a valid address string`,
+      callPoints
+    );
+  }
+
   const invalidBytes = await validateBytesForArtifact({
     vertex,
     callPoints,

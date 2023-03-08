@@ -30,8 +30,6 @@ const MAX_INCENTIVE_DURATION = ONE_YEAR_SECONDS * 2;
 
 const ADDRESS_ZERO = "0x0000000000000000000000000000000000000000";
 
-const ACCOUNT_0 = "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266";
-
 function isAscii(str) {
   return /^[\x00-\x7F]*$/.test(str);
 }
@@ -45,7 +43,7 @@ function asciiStringToBytes32(str) {
 }
 
 module.exports = buildModule("Uniswap", (m) => {
-  const owner = ACCOUNT_0;
+  const owner = m.accounts[0];
   const v2CoreFactoryAddress = ADDRESS_ZERO;
 
   const weth9 = m.contract("WETH9");

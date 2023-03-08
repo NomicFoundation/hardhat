@@ -27,12 +27,6 @@ export function buildIgnitionProvidersFrom(hre: HardhatRuntimeEnvironment) {
       },
     },
     ethereumProvider: hre.network.provider,
-    signers: {
-      getDefaultSigner: async () => {
-        const [signer] = await hre.ethers.getSigners();
-        return signer;
-      },
-    },
     transactions: {
       isConfirmed: async (txHash: any) => {
         const blockNumber = await hre.ethers.provider.getBlockNumber();
@@ -49,6 +43,16 @@ export function buildIgnitionProvidersFrom(hre: HardhatRuntimeEnvironment) {
       },
     },
     config: new ConfigWrapper(),
+    accounts: {
+      getAccounts: async () => {
+        return (await hre.network.provider.request({
+          method: "eth_accounts",
+        })) as string[];
+      },
+      getSigner: async (address) => {
+        return hre.ethers.getSigner(address);
+      },
+    },
   };
 
   return providers;

@@ -1,5 +1,6 @@
 import { ethers } from "ethers";
 
+import { IAccountsService } from "services/AccountsService";
 import { IArtifactsService } from "services/ArtifactsService";
 import { IConfigService } from "services/ConfigService";
 import { IContractsService } from "services/ContractsService";
@@ -17,6 +18,7 @@ export function getMockServices() {
     artifacts: new MockArtifactsService(),
     transactions: new MockTransactionService(),
     config: new MockConfigService(),
+    accounts: new MockAccountsService(),
   };
 
   return mockServices;
@@ -74,6 +76,16 @@ class MockConfigService implements IConfigService {
   }
 
   public hasParam(_paramName: string): Promise<HasParamResult> {
+    throw new IgnitionError("Method not implemented.");
+  }
+}
+
+class MockAccountsService implements IAccountsService {
+  public getAccounts(): Promise<string[]> {
+    throw new IgnitionError("Method not implemented.");
+  }
+
+  public getSigner(_address: string): Promise<ethers.Signer> {
     throw new IgnitionError("Method not implemented.");
   }
 }

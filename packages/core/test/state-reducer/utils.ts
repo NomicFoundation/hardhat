@@ -1,3 +1,5 @@
+import { ethers } from "ethers";
+
 import { deployStateReducer } from "deployment/deployStateReducer";
 import { generateDeploymentGraphFrom } from "process/generateDeploymentGraphFrom";
 import { transformDeploymentGraphToExecutionGraph } from "process/transformDeploymentGraphToExecutionGraph";
@@ -17,6 +19,7 @@ export function applyActions(
 export async function resolveExecutionGraphFor(module: Module<any>) {
   const { graph: deploymentGraph } = generateDeploymentGraphFrom(module, {
     chainId: 31337,
+    accounts: ["0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266"],
   });
 
   const mockServices = {
@@ -33,6 +36,14 @@ export async function resolveExecutionGraphFor(module: Module<any>) {
         linkReferences: {},
         deployedLinkReferences: {},
       }),
+    },
+    accounts: {
+      getAccounts: () => {
+        return ["0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266"];
+      },
+      getSigner: (_address: string) => {
+        return new ethers.VoidSigner(_address);
+      },
     },
   } as any;
 

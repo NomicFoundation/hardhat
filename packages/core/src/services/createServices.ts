@@ -3,6 +3,7 @@ import { ethers } from "ethers";
 import { Providers } from "types/providers";
 import { TxSender } from "utils/tx-sender";
 
+import { AccountsService } from "./AccountsService";
 import { ArtifactsService } from "./ArtifactsService";
 import { ConfigService } from "./ConfigService";
 import { ContractsService } from "./ContractsService";
@@ -19,7 +20,6 @@ export function createServices(providers: Providers): Services {
     contracts: new ContractsService(
       {
         gasProvider: providers.gasProvider,
-        signersProvider: providers.signers,
         transactionsProvider: providers.transactions,
         web3Provider: new ethers.providers.Web3Provider(
           providers.ethereumProvider
@@ -29,6 +29,7 @@ export function createServices(providers: Providers): Services {
     ),
     transactions: new TransactionsService(providers),
     config: new ConfigService(providers),
+    accounts: new AccountsService(providers),
   };
 
   return services;

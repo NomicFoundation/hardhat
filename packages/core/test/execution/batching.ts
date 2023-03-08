@@ -75,5 +75,6 @@ function createFakeContractDeployVertex(
     args: [],
     libraries: {},
     value: BigNumber.from(0),
+    signer: {} as any,
   };
 }

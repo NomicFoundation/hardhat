@@ -96,6 +96,7 @@ function parseEventParams(
 
 export class DeploymentBuilder implements IDeploymentBuilder {
   public chainId: number;
+  public accounts: string[];
   public graph: IDeploymentGraph;
   public callPoints: CallPoints;
 
@@ -106,6 +107,7 @@ export class DeploymentBuilder implements IDeploymentBuilder {
 
   constructor(options: DeploymentBuilderOptions) {
     this.chainId = options.chainId;
+    this.accounts = options.accounts;
     this.graph = new DeploymentGraph();
     this.callPoints = {};
   }
@@ -145,6 +147,7 @@ export class DeploymentBuilder implements IDeploymentBuilder {
         args: options?.args ?? [],
         scopeAdded: this.scopes.getScopedLabel(),
         after: options?.after ?? [],
+        from: options?.from ?? this.accounts[0],
       });
 
       return artifactContractFuture;
@@ -168,6 +171,7 @@ export class DeploymentBuilder implements IDeploymentBuilder {
         args: options?.args ?? [],
         scopeAdded: this.scopes.getScopedLabel(),
         after: options?.after ?? [],
+        from: options?.from ?? this.accounts[0],
       });
 
       return libraryFuture;
@@ -211,6 +215,7 @@ export class DeploymentBuilder implements IDeploymentBuilder {
         scopeAdded: this.scopes.getScopedLabel(),
         after: options?.after ?? [],
         value: options?.value ?? DEFAULT_VALUE,
+        from: options?.from ?? this.accounts[0],
       });
 
       return artifactContractFuture;
@@ -236,6 +241,7 @@ export class DeploymentBuilder implements IDeploymentBuilder {
         scopeAdded: this.scopes.getScopedLabel(),
         after: options?.after ?? [],
         value: options?.value ?? DEFAULT_VALUE,
+        from: options?.from ?? this.accounts[0],
       });
 
       return contractFuture;
@@ -274,7 +280,7 @@ export class DeploymentBuilder implements IDeploymentBuilder {
   public call(
     contractFuture: DeploymentGraphFuture,
     functionName: string,
-    { args, after, value }: CallOptions
+    { args, after, value, from }: CallOptions
   ): ContractCall {
     const callFuture: ContractCall = {
       vertexId: this._resolveNextId(),
@@ -320,6 +326,7 @@ export class DeploymentBuilder implements IDeploymentBuilder {
       after: after ?? [],
       scopeAdded: this.scopes.getScopedLabel(),
       value: value ?? DEFAULT_VALUE,
+      from: from ?? this.accounts[0],
     });
 
     return callFuture;
@@ -426,6 +433,7 @@ export class DeploymentBuilder implements IDeploymentBuilder {
       value: options.value,
       after: options.after ?? [],
       scopeAdded: this.scopes.getScopedLabel(),
+      from: options?.from ?? this.accounts[0],
     });
 
     return sendFuture;

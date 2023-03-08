@@ -16,6 +16,14 @@ export async function validateArtifactLibrary(
   _resultAccumulator: ValidationResultsAccumulator,
   context: ValidationDispatchContext
 ): Promise<ValidationVertexVisitResult> {
+  if (!ethers.utils.isAddress(vertex.from)) {
+    return buildValidationError(
+      vertex,
+      `For library 'from' must be a valid address string`,
+      context.callPoints
+    );
+  }
+
   const invalidBytes = await validateBytesForArtifact({
     vertex,
     callPoints: context.callPoints,

@@ -12,7 +12,7 @@ import { Ignition } from "../../src/Ignition";
 import { getMockServices } from "../helpers";
 import { MemoryCommandJournal } from "../util/MemoryCommandJournal";
 
-describe("Reruning execution", () => {
+describe("Rerunning execution", () => {
   const tokenArtifact: Artifact = {
     contractName: "Token",
     abi: [
@@ -47,7 +47,7 @@ describe("Reruning execution", () => {
     linkReferences: {},
   };
 
-  describe("when a deploment is already complete", () => {
+  describe("when a deployment is already complete", () => {
     let sentTransactionCount: number;
     let ignition: Ignition;
     let myModule: any;
@@ -95,6 +95,14 @@ describe("Reruning execution", () => {
               }
 
               throw new Error(`Unexpected transaction sent: ${tx}`);
+            },
+          },
+          accounts: {
+            getAccounts: () => {
+              return ["0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266"];
+            },
+            getSigner: (_address: string) => {
+              return new ethers.VoidSigner(_address);
             },
           },
         } as any,
@@ -224,6 +232,14 @@ describe("Reruning execution", () => {
               }
             },
           },
+          accounts: {
+            getAccounts: () => {
+              return ["0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266"];
+            },
+            getSigner: (_address: string) => {
+              return new ethers.VoidSigner(_address);
+            },
+          },
         } as any,
         journal: new MemoryCommandJournal(),
       });
@@ -290,6 +306,14 @@ describe("Reruning execution", () => {
             getArtifact: () => tokenArtifact,
           },
           transactions: new TransactionsService({} as Providers),
+          accounts: {
+            getAccounts: () => {
+              return ["0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266"];
+            },
+            getSigner: (_address: string) => {
+              return new ethers.VoidSigner(_address);
+            },
+          },
         } as any,
         journal: new MemoryCommandJournal(),
       });
@@ -348,6 +372,14 @@ describe("Reruning execution", () => {
               return {
                 contractAddress: "0x1F98431c8aD98523631AE4a59f267346ea31F984",
               };
+            },
+          },
+          accounts: {
+            getAccounts: () => {
+              return ["0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266"];
+            },
+            getSigner: (_address: string) => {
+              return new ethers.VoidSigner(_address);
             },
           },
         } as any,

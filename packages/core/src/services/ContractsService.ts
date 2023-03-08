@@ -1,12 +1,7 @@
 import setupDebug from "debug";
 import { ethers } from "ethers";
 
-import {
-  GasProvider,
-  IgnitionSigner,
-  SignersProvider,
-  TransactionsProvider,
-} from "types/providers";
+import { GasProvider, TransactionsProvider } from "types/providers";
 import { IgnitionError } from "utils/errors";
 import { sleep } from "utils/sleep";
 import { TxSender } from "utils/tx-sender";
@@ -22,7 +17,6 @@ export interface IContractsService {
 
 export interface ContractsServiceProviders {
   web3Provider: ethers.providers.Web3Provider;
-  signersProvider: SignersProvider;
   transactionsProvider: TransactionsProvider;
   gasProvider: GasProvider;
 }
@@ -45,13 +39,11 @@ export class ContractsService implements IContractsService {
       this._debug("Deploying contract");
     }
 
-    const signer = await this._providers.signersProvider.getDefaultSigner();
-
-    return this._sendTx(signer, deployTransaction, txOptions);
+    return this._sendTx(txOptions.signer, deployTransaction, txOptions);
   }
 
   private async _sendTx(
-    signer: IgnitionSigner,
+    signer: ethers.Signer,
     tx: ethers.providers.TransactionRequest,
     txOptions: TransactionOptions
   ): Promise<string> {
@@ -110,7 +102,7 @@ export class ContractsService implements IContractsService {
 
   private async _bump(
     _txHash: string,
-    _signer: IgnitionSigner,
+    _signer: ethers.Signer,
     previousTxRequest: ethers.providers.TransactionRequest,
     previousTxHash: string,
     gasPriceIncrementPerRetry: ethers.BigNumber | null

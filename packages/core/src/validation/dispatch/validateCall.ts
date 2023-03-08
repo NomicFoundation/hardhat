@@ -28,6 +28,14 @@ export async function validateCall(
     );
   }
 
+  if (!ethers.utils.isAddress(vertex.from)) {
+    return buildValidationError(
+      vertex,
+      `For call 'from' must be a valid address string`,
+      context.callPoints
+    );
+  }
+
   const invalidBytes = await validateBytesForArtifact({
     vertex,
     callPoints: context.callPoints,

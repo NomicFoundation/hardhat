@@ -27,6 +27,7 @@ describe("deployment builder - libraries", () => {
           const safeMath = m.library("SafeMath", {
             args: [42],
             after: [someother],
+            from: m.accounts[0],
           });
 
           const contract = m.contract("Contract", {
@@ -41,6 +42,7 @@ describe("deployment builder - libraries", () => {
 
       const { graph } = generateDeploymentGraphFrom(librariesModule, {
         chainId: 31,
+        accounts: ["0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266"],
       });
 
       deploymentGraph = graph;
@@ -112,6 +114,20 @@ describe("deployment builder - libraries", () => {
       }
 
       assert.deepStrictEqual(depNode.args, [42]);
+    });
+
+    it("should record the correct address to deploy from", () => {
+      const depNode = getDeploymentVertexByLabel(deploymentGraph, "SafeMath");
+
+      if (depNode === undefined) {
+        return assert.isDefined(depNode);
+      }
+
+      if (!isHardhatLibrary(depNode)) {
+        return assert.fail("Not a hardhat library dependency node");
+      }
+
+      assert.equal(depNode.from, "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266");
     });
   });
 });

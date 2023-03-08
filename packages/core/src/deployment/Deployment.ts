@@ -66,6 +66,16 @@ export class Deployment {
     );
   }
 
+  public setAccounts(accounts: string[]) {
+    return this._runDeploymentCommand(
+      `Accounts resolved as '${accounts.join(", ")}'`,
+      {
+        type: "SET_ACCOUNTS",
+        accounts,
+      }
+    );
+  }
+
   public startValidation() {
     return this._runDeploymentCommand("Validate deployment graph", {
       type: "START_VALIDATION",

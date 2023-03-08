@@ -10,7 +10,7 @@ import { VertexResultEnum } from "types/graph";
 import { resolveFrom, toAddress } from "./utils";
 
 export async function executeContractCall(
-  { method, contract, args, value }: ContractCall,
+  { method, contract, args, value, signer }: ContractCall,
   resultAccumulator: Map<number, ExecutionVertexVisitResult | null>,
   { services, options }: ExecutionContext
 ): Promise<ExecutionVertexVisitResult> {
@@ -29,7 +29,10 @@ export async function executeContractCall(
       { value }
     );
 
-    txHash = await services.contracts.sendTx(unsignedTx, options);
+    txHash = await services.contracts.sendTx(unsignedTx, {
+      ...options,
+      signer,
+    });
   } catch (err) {
     return {
       _kind: VertexResultEnum.FAILURE,

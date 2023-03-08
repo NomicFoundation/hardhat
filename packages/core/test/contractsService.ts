@@ -18,25 +18,6 @@ const txSender: TxSender = {
 } as TxSender;
 
 const providersFake = {
-  signersProvider: {
-    async getDefaultSigner() {
-      return {
-        async sendTransaction(_) {
-          return {
-            hash: "",
-            blockHash: "",
-            blockNumber: 0,
-            nonce: 0,
-            gasLimit: 100,
-            confirmations: 0,
-            chainId: 0,
-            data: "",
-            from: "",
-          } as unknown as ethers.providers.TransactionResponse;
-        },
-      };
-    },
-  },
   web3Provider: {
     n: 0,
     async getBlockNumber() {
@@ -81,6 +62,7 @@ describe("ContractsService", function () {
         maxRetries: 4,
         gasPriceIncrementPerRetry: null,
         pollingInterval: 10,
+        signer: {} as any,
       }),
       /Transaction not confirmed within max retry limit/
     );

@@ -1,7 +1,7 @@
 import setupDebug, { IDebugger } from "debug";
 import { ethers } from "ethers";
 
-import { GasProvider, IgnitionSigner } from "types/providers";
+import { GasProvider } from "types/providers";
 
 /**
  * Sends, replaces and keeps track of transactions.
@@ -22,7 +22,7 @@ export class TxSender {
    * Returns the index of the transaction in the journal and its hash.
    */
   public async send(
-    signer: IgnitionSigner,
+    signer: ethers.Signer,
     tx: ethers.providers.TransactionRequest
   ): Promise<string> {
     this._debug(`sending transaction`, [tx]);
@@ -38,7 +38,7 @@ export class TxSender {
    * Returns the hash of the new transaction.
    */
   public async sendAndReplace(
-    signer: IgnitionSigner,
+    signer: ethers.Signer,
     tx: ethers.providers.TransactionRequest
   ): Promise<string> {
     const sentTx = await this._send(signer, tx);
@@ -47,7 +47,7 @@ export class TxSender {
   }
 
   private async _send(
-    signer: IgnitionSigner,
+    signer: ethers.Signer,
     tx: ethers.providers.TransactionRequest
   ): Promise<ethers.providers.TransactionResponse> {
     if (tx.gasLimit === undefined) {

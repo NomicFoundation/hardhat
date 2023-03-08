@@ -39,6 +39,7 @@ describe("Execution - dispatch", () => {
       args: [],
       libraries: {},
       value: ethers.utils.parseUnits("0"),
+      signer: {} as any,
     };
 
     const mockServices = {
@@ -100,6 +101,7 @@ describe("Execution - dispatch", () => {
       label: "Foo",
       artifact: fakeArtifact,
       args: [],
+      signer: {} as any,
     };
 
     const mockServices = {
@@ -188,6 +190,7 @@ describe("Execution - dispatch", () => {
       args: [],
       libraries: {},
       value: ethers.utils.parseUnits("0"),
+      signer: {} as any,
     };
 
     const contractCall: ExecutionVertex = {
@@ -198,6 +201,7 @@ describe("Execution - dispatch", () => {
       method: "inc",
       args: [1],
       value: ethers.utils.parseUnits("0"),
+      signer: {} as any,
     };
 
     const sendTxStub = sinon.stub();
@@ -286,6 +290,7 @@ describe("Execution - dispatch", () => {
         args: [],
         libraries: {},
         value: ethers.utils.parseUnits("0"),
+        signer: {} as any,
       };
 
       contractCall = {
@@ -301,6 +306,7 @@ describe("Execution - dispatch", () => {
         method: "test",
         args: [],
         value: ethers.utils.parseUnits("0"),
+        signer: {} as any,
       };
 
       awaitedEvent = {

@@ -16,11 +16,9 @@ const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
 const ZERO_HASH =
   "0x0000000000000000000000000000000000000000000000000000000000000000";
 
-const ACCOUNT_0 = "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266";
-
 const setupResolver = buildSubgraph("RESOLVER", (m) => {
   const ens = m.getParam("ENS");
-  const account = m.getOptionalParam("ACCOUNT", ACCOUNT_0);
+  const account = m.getOptionalParam("ACCOUNT", m.accounts[0]);
 
   // Setup resolver
   const resolver = m.contract("PublicResolver", {
@@ -46,7 +44,7 @@ const setupResolver = buildSubgraph("RESOLVER", (m) => {
 const setupReverseRegistrar = buildSubgraph("REVERSEREGISTRAR", (m) => {
   const ens = m.getParam("ENS");
   const resolver = m.getParam("RESOLVER");
-  const account = m.getOptionalParam("ACCOUNT", ACCOUNT_0);
+  const account = m.getOptionalParam("ACCOUNT", m.accounts[0]);
 
   // Setup Reverse Registrar
   const reverseRegistrar = m.contract("ReverseRegistrar", {
@@ -67,7 +65,7 @@ const setupReverseRegistrar = buildSubgraph("REVERSEREGISTRAR", (m) => {
 });
 
 module.exports = buildModule("ENS", (m) => {
-  const owner = ACCOUNT_0;
+  const owner = m.accounts[0];
 
   const ens = m.contract("ENSRegistry");
 

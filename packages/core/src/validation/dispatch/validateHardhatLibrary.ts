@@ -15,6 +15,14 @@ export async function validateHardhatLibrary(
   _resultAccumulator: ValidationResultsAccumulator,
   { callPoints, services }: ValidationDispatchContext
 ): Promise<ValidationVertexVisitResult> {
+  if (!ethers.utils.isAddress(vertex.from)) {
+    return buildValidationError(
+      vertex,
+      `For library 'from' must be a valid address string`,
+      callPoints
+    );
+  }
+
   const invalidBytes = await validateBytesForArtifact({
     vertex,
     callPoints,

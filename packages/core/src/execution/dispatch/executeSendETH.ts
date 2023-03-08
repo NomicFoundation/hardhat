@@ -7,7 +7,7 @@ import { VertexResultEnum } from "types/graph";
 import { resolveFrom, toAddress } from "./utils";
 
 export async function executeSendETH(
-  { address, value }: SentETH,
+  { address, value, signer }: SentETH,
   resultAccumulator: Map<number, ExecutionVertexVisitResult | null>,
   { services, options }: ExecutionContext
 ): Promise<ExecutionVertexVisitResult> {
@@ -19,7 +19,10 @@ export async function executeSendETH(
   try {
     const tx: PopulatedTransaction = { to, value };
 
-    txHash = await services.contracts.sendTx(tx, options);
+    txHash = await services.contracts.sendTx(tx, {
+      ...options,
+      signer,
+    });
   } catch (err) {
     return {
       _kind: VertexResultEnum.FAILURE,
