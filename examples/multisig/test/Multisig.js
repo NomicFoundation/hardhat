@@ -4,6 +4,7 @@ const { ethers } = require("ethers");
 const Multisig = require("../ignition/MultisigModule");
 
 const ACCOUNT_0 = "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266";
+const ACCOUNT_1 = "0x70997970c51812dc3a010c7d01b50e0d17dc79c8";
 
 describe("Multisig", function () {
   describe("a deploy broken up by an external call", () => {
@@ -20,13 +21,6 @@ describe("Multisig", function () {
         // ignore
       }
 
-      const artifact = await hre.artifacts.readArtifact("Multisig");
-      const multisigInstance = await hre.ethers.getContractAt(
-        artifact.abi,
-        "0x5FbDB2315678afecb367f032d93F642f64180aa3"
-      );
-      await multisigInstance.confirmTransaction(0);
-
       const moduleResult = await ignition.deploy(Multisig, {
         journal,
       });
@@ -35,12 +29,18 @@ describe("Multisig", function () {
     });
 
     it("should confirm a stored transaction", async function () {
-      const [isConfirmed] = await multisig.functions.confirmations(
+      const [isConfirmed0] = await multisig.functions.confirmations(
         0,
         ACCOUNT_0
       );
 
-      expect(isConfirmed).to.equal(true);
+      const [isConfirmed1] = await multisig.functions.confirmations(
+        0,
+        ACCOUNT_1
+      );
+
+      expect(isConfirmed0).to.equal(true);
+      expect(isConfirmed1).to.equal(true);
     });
 
     it("should execute a confirmed transaction", async function () {

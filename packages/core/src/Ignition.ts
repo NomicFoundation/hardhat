@@ -75,9 +75,12 @@ export class Ignition {
         this._services.accounts.getAccounts(),
       ]);
 
-      await deployment.setChainId(chainId);
-      await deployment.setNetworkName(options.networkName);
-      await deployment.setAccounts(accounts);
+      await deployment.setDeploymentDetails({
+        accounts,
+        chainId,
+        networkName: options.networkName,
+        force: options.force,
+      });
 
       const { result: constructResult, moduleOutputs } =
         await this._constructExecutionGraphFrom(deployment, ignitionModule);
@@ -111,7 +114,6 @@ export class Ignition {
         gasPriceIncrementPerRetry: options.gasPriceIncrementPerRetry,
         pollingInterval: options.pollingInterval,
         eventDuration: options.eventDuration,
-        force: options.force,
       });
 
       return this._buildOutputFrom(executionResult, moduleOutputs);
@@ -269,6 +271,10 @@ export class Ignition {
   private _checkSafeDeployment(
     deployment: Deployment
   ): DeploymentResult | { _kind: "success" } {
+    if (deployment.state.details.force) {
+      return { _kind: "success" };
+    }
+
     if (deployment.state.transform.executionGraph === null) {
       throw new IgnitionError(
         "Execution graph must be set to check safe deployment"

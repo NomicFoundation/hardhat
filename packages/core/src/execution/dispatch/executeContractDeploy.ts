@@ -34,7 +34,7 @@ export async function executeContractDeploy(
       resolvedLibraries
     );
 
-    const Factory = new ContractFactory(artifact.abi, linkedByteCode);
+    const Factory = new ContractFactory(artifact.abi, linkedByteCode, signer);
 
     const deployTransaction = Factory.getDeployTransaction(...resolvedArgs, {
       value,

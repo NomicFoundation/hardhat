@@ -17,7 +17,11 @@ export async function executeSendETH(
 
   let txHash: string;
   try {
-    const tx: PopulatedTransaction = { to, value };
+    const tx: PopulatedTransaction = {
+      to,
+      value,
+      from: await signer.getAddress(),
+    };
 
     txHash = await services.contracts.sendTx(tx, {
       ...options,

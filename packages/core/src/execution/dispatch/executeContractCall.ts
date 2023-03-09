@@ -22,11 +22,11 @@ export async function executeContractCall(
 
   let txHash: string;
   try {
-    const contractInstance = new Contract(address, abi);
+    const contractInstance = new Contract(address, abi, signer);
 
     const unsignedTx = await contractInstance.populateTransaction[method](
       ...resolvedArgs,
-      { value }
+      { value, from: await signer.getAddress() }
     );
 
     txHash = await services.contracts.sendTx(unsignedTx, {

@@ -39,7 +39,6 @@ export type DeployStateExecutionCommand =
   | {
       type: "EXECUTION::START";
       executionGraphHash: string;
-      force: boolean;
     }
   | {
       type: "EXECUTION::SET_BATCH";
@@ -52,9 +51,11 @@ export type DeployStateExecutionCommand =
     };
 
 export type DeployStateCommand =
+  | { type: "SET_DETAILS"; config: Partial<DeployNetworkConfig> }
   | { type: "SET_CHAIN_ID"; chainId: number }
   | { type: "SET_NETWORK_NAME"; networkName: string }
   | { type: "SET_ACCOUNTS"; accounts: string[] }
+  | { type: "SET_FORCE_FLAG"; force: boolean }
   | {
       type: "START_VALIDATION";
     }
@@ -137,6 +138,7 @@ export interface DeployNetworkConfig {
   chainId: number;
   networkName: string;
   accounts: string[];
+  force: boolean;
 }
 
 export interface DeployState {
@@ -157,7 +159,6 @@ export interface ExecutionOptions {
   gasPriceIncrementPerRetry: BigNumber | null;
   pollingInterval: number;
   eventDuration: number;
-  force: boolean;
 }
 
 export interface ExecutionContext {

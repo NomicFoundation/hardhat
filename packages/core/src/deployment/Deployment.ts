@@ -7,6 +7,7 @@ import type {
   UpdateUiAction,
   DeployStateCommand,
   DeployStateExecutionCommand,
+  DeployNetworkConfig,
 } from "types/deployment";
 import type { ExecutionVertexVisitResult } from "types/executionGraph";
 import type { VertexDescriptor, VertexVisitResultFailure } from "types/graph";
@@ -49,6 +50,13 @@ export class Deployment {
     }
   }
 
+  public setDeploymentDetails(config: Partial<DeployNetworkConfig>) {
+    return this._runDeploymentCommand(
+      `DeploymentDetails resolved as ${JSON.stringify(config)}`,
+      { type: "SET_DETAILS", config }
+    );
+  }
+
   public setChainId(chainId: number) {
     return this._runDeploymentCommand(`ChainId resolved as '${chainId}'`, {
       type: "SET_CHAIN_ID",
@@ -74,6 +82,13 @@ export class Deployment {
         accounts,
       }
     );
+  }
+
+  public setForceFlag(force: boolean) {
+    return this._runDeploymentCommand(`Force resolved as '${force}'`, {
+      type: "SET_FORCE_FLAG",
+      force,
+    });
   }
 
   public startValidation() {
@@ -118,11 +133,10 @@ export class Deployment {
     });
   }
 
-  public startExecutionPhase(executionGraphHash: string, force: boolean) {
+  public startExecutionPhase(executionGraphHash: string) {
     return this._runDeploymentCommand("Starting Execution", {
       type: "EXECUTION::START",
       executionGraphHash,
-      force,
     });
   }
 

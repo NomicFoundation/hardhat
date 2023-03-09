@@ -22,7 +22,7 @@ describe("File based command journal", () => {
     const journal = new CommandJournal(31337, tempCommandFilePath);
 
     const commands: DeployStateExecutionCommand[] = [
-      { type: "EXECUTION::START", executionGraphHash: "XXX", force: false },
+      { type: "EXECUTION::START", executionGraphHash: "XXX" },
       { type: "EXECUTION::SET_BATCH", batch: [0, 1, 2, 3] },
       {
         type: "EXECUTION::SET_VERTEX_RESULT",
@@ -96,7 +96,7 @@ describe("File based command journal", () => {
     );
 
     const commands: DeployStateExecutionCommand[] = [
-      { type: "EXECUTION::START", executionGraphHash: "XXX", force: false },
+      { type: "EXECUTION::START", executionGraphHash: "XXX" },
     ];
 
     for (const command of commands) {

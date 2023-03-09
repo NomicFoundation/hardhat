@@ -39,7 +39,9 @@ describe("Execution - dispatch", () => {
       args: [],
       libraries: {},
       value: ethers.utils.parseUnits("0"),
-      signer: {} as any,
+      signer: new ethers.VoidSigner(
+        "0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266"
+      ),
     };
 
     const mockServices = {
@@ -101,7 +103,9 @@ describe("Execution - dispatch", () => {
       label: "Foo",
       artifact: fakeArtifact,
       args: [],
-      signer: {} as any,
+      signer: new ethers.VoidSigner(
+        "0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266"
+      ),
     };
 
     const mockServices = {
@@ -190,7 +194,9 @@ describe("Execution - dispatch", () => {
       args: [],
       libraries: {},
       value: ethers.utils.parseUnits("0"),
-      signer: {} as any,
+      signer: new ethers.VoidSigner(
+        "0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266"
+      ),
     };
 
     const contractCall: ExecutionVertex = {
@@ -201,7 +207,9 @@ describe("Execution - dispatch", () => {
       method: "inc",
       args: [1],
       value: ethers.utils.parseUnits("0"),
-      signer: {} as any,
+      signer: new ethers.VoidSigner(
+        "0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266"
+      ),
     };
 
     const sendTxStub = sinon.stub();
@@ -290,7 +298,9 @@ describe("Execution - dispatch", () => {
         args: [],
         libraries: {},
         value: ethers.utils.parseUnits("0"),
-        signer: {} as any,
+        signer: new ethers.VoidSigner(
+          "0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266"
+        ),
       };
 
       contractCall = {
@@ -306,7 +316,9 @@ describe("Execution - dispatch", () => {
         method: "test",
         args: [],
         value: ethers.utils.parseUnits("0"),
-        signer: {} as any,
+        signer: new ethers.VoidSigner(
+          "0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266"
+        ),
       };
 
       awaitedEvent = {

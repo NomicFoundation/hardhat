@@ -18,6 +18,7 @@ export function initializeDeployState(moduleName: string): DeployState {
       chainId: 0,
       networkName: "",
       accounts: [],
+      force: false,
     },
     validation: {
       errors: [],
@@ -43,6 +44,14 @@ export function deployStateReducer(
   action: DeployStateCommand
 ): DeployState {
   switch (action.type) {
+    case "SET_DETAILS":
+      return {
+        ...state,
+        details: {
+          ...state.details,
+          ...action.config,
+        },
+      };
     case "SET_CHAIN_ID":
       return {
         ...state,
@@ -65,6 +74,14 @@ export function deployStateReducer(
         details: {
           ...state.details,
           accounts: action.accounts,
+        },
+      };
+    case "SET_FORCE_FLAG":
+      return {
+        ...state,
+        details: {
+          ...state.details,
+          force: action.force,
         },
       };
     case "START_VALIDATION":
@@ -106,7 +123,7 @@ export function deployStateReducer(
           state.transform.executionGraph,
           action.executionGraphHash,
           state.execution,
-          action.force
+          state.details.force
         ),
         action
       );

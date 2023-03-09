@@ -148,7 +148,7 @@ contract Multisig {
         bytes memory data
     ) public returns (uint transactionId) {
         transactionId = addTransaction(destination, value, data);
-        // confirmTransaction(transactionId);
+        confirmTransaction(transactionId);
     }
 
     function confirmTransaction(
