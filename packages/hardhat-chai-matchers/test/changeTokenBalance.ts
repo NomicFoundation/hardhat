@@ -148,7 +148,7 @@ describe("INTEGRATION: changeTokenBalance and changeTokenBalances matchers", fun
             )
           ).to.be.rejectedWith(
             AssertionError,
-            /Expected the balance of MCK tokens for "0x\w{40}" satisfies the condition, but it changed by 1, and violated the condition/
+            /Expected the balance of MCK tokens for "0x\w{40}" satisfies the condition, but it changed by 0 and violated the condition/
           );
         });
 
