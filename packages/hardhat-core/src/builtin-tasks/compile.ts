@@ -141,7 +141,7 @@ subtask(TASK_COMPILE_SOLIDITY_GET_SOURCE_NAMES)
       { config }
     ): Promise<string[]> => {
       const sourceNames = await Promise.all(
-        sourcePaths.map((p) => localPathToSourceName(config.paths.root, p))
+        sourcePaths.map((p) => localPathToSourceName(config.paths.sources, p))
       );
 
       return sourceNames;
@@ -190,7 +190,7 @@ subtask(TASK_COMPILE_SOLIDITY_GET_DEPENDENCY_GRAPH)
     ): Promise<taskTypes.DependencyGraph> => {
       const parser = new Parser(solidityFilesCache);
       const resolver = new Resolver(
-        config.paths.root,
+        config.paths.sources,
         parser,
         (absolutePath: string) =>
           run(TASK_COMPILE_SOLIDITY_READ_FILE, { absolutePath }),
