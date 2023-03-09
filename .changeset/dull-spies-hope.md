@@ -2,4 +2,4 @@
 "@nomiclabs/hardhat-solhint": minor
 ---
 
-Load .solhintignore file.
+Added support for `.solhintignore` files (thanks @yhuard!)
