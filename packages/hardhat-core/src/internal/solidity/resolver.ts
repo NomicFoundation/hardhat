@@ -299,7 +299,6 @@ export class Resolver {
       const packageRoot = path.dirname(packageJsonPath);
       const pattern = new RegExp(`^${libraryName}/?`);
       const fileName = sourceName.replace(pattern, "");
-      absolutePath = path.join(packageRoot, fileName);
 
       await this._validateSourceNameExistenceAndCasing(
         packageRoot,
@@ -308,6 +307,7 @@ export class Resolver {
         fileName,
         true
       );
+      absolutePath = path.join(packageRoot, fileName);
     } else {
       await this._validateSourceNameExistenceAndCasing(
         nodeModulesPath,
