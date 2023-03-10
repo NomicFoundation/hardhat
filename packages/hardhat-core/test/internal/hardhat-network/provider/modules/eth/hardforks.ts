@@ -706,7 +706,7 @@ describe("Eth module - hardfork dependant tests", function () {
             [tx]
           );
 
-          assert.isDefined(receipt.root);
+          assert.isDefined(receipt.root, "receipt does not have a root");
           assert.isUndefined(receipt.status);
           assert.isUndefined(receipt.type);
         });
