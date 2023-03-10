@@ -254,13 +254,7 @@ impl State for LayeredState<RethnetLayer> {
             .cloned()
             .flatten();
 
-        // TODO: Move this out of LayeredState when forking
-        Ok(account.or(Some(AccountInfo {
-            balance: U256::ZERO,
-            nonce: 0,
-            code_hash: KECCAK_EMPTY,
-            code: None,
-        })))
+        Ok(account)
     }
 
     fn code_by_hash(&mut self, code_hash: B256) -> Result<Bytecode, Self::Error> {
