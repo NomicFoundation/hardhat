@@ -254,7 +254,6 @@ impl State for LayeredState<RethnetLayer> {
             .cloned()
             .flatten();
 
-        // TODO: Move this out of LayeredState when forking
         Ok(account)
     }
 
