@@ -22,9 +22,9 @@ pub struct Log {
     pub data: Bytes,
 }
 
-impl From<revm::Log> for Log {
-    fn from(log: revm::Log) -> Self {
-        let revm::Log {
+impl From<revm_primitives::Log> for Log {
+    fn from(log: revm_primitives::Log) -> Self {
+        let revm_primitives::Log {
             address,
             topics,
             data,
@@ -37,14 +37,14 @@ impl From<revm::Log> for Log {
     }
 }
 
-impl From<Log> for revm::Log {
+impl From<Log> for revm_primitives::Log {
     fn from(log: Log) -> Self {
         let Log {
             address,
             topics,
             data,
         } = log;
-        revm::Log {
+        revm_primitives::Log {
             address,
             topics,
             data,

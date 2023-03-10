@@ -14,7 +14,8 @@ hex-literal = { version = "0.3", default-features = false }
 open-fastrlp = { version = "0.1.2", default-features = false, features = ["derive"], optional = true }
 primitive-types = { version = "0.11.1", default-features = false, features = ["rlp"] }
 reqwest = { version = "0.11", features = ["blocking", "json"] }
-revm = { git = "https://github.com/wodann/revm", rev = "7c28358", version = "2.3", default-features = false, features = ["k256"] }
+revm-primitives = { git = "https://github.com/bluealloy/revm", rev = "8e6f4f2", version = "1.0", default-features = false }
+# revm-primitives = { path = "../../../revm/crates/primitives", version = "1.0", default-features = false }
 rlp = { version = "0.5.2", default-features = false, features = ["derive"] }
 ruint = { version = "1.7.0", default-features = false }
 secp256k1 = { version = "0.24.0", default-features = false, features = ["alloc", "recovery"] }
@@ -25,10 +26,11 @@ thiserror = { version = "1.0.37", default-features = false }
 triehash = { version = "0.8.4", default-features = false }
 
 [dev-dependencies]
+test-with = { version = "0.9.1", default-features = false }
 tokio = { version = "1.23.0", features = ["macros"] }
 
 [features]
 default = ["std"]
 # fastrlp = ["dep:open-fastrlp", "ruint/fastrlp"] Broken due to lack of support for fastrlp in primitive-types
-serde = ["dep:serde", "bytes/serde", "ethbloom/serialize", "hashbrown/serde", "primitive-types/serde", "revm/with-serde", "ruint/serde", "serde_json"]
-std = ["bytes/std", "ethbloom/std", "hash256-std-hasher/std", "hash-db/std", "hex/std", "open-fastrlp?/std", "primitive-types/std", "rlp/std", "secp256k1/std", "serde?/std", "sha3/std", "triehash/std"]
+serde = ["dep:serde", "bytes/serde", "ethbloom/serialize", "hashbrown/serde", "primitive-types/serde", "revm-primitives/serde", "ruint/serde", "serde_json"]
+std = ["bytes/std", "ethbloom/std", "hash256-std-hasher/std", "hash-db/std", "hex/std", "open-fastrlp?/std", "primitive-types/std", "revm-primitives/std", "rlp/std", "secp256k1/std", "serde?/std", "sha3/std", "triehash/std"]

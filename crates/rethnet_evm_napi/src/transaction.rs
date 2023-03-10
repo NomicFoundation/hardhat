@@ -1,3 +1,5 @@
+pub mod result;
+
 use napi::bindgen_prelude::{BigInt, Buffer};
 use napi_derive::napi;
 use rethnet_eth::{Address, Bytes, U256};
@@ -87,29 +89,4 @@ impl TryFrom<Transaction> for rethnet_evm::TxEnv {
 #[napi(object)]
 pub struct TransactionConfig {
     pub disable_balance_check: Option<bool>,
-}
-
-#[napi(object)]
-pub struct TransactionOutput {
-    /// Return value from Call or Create transactions
-    #[napi(readonly)]
-    pub output: Option<Buffer>,
-    /// Optionally, a 160-bit address from Create transactions
-    #[napi(readonly)]
-    pub address: Option<Buffer>,
-}
-
-impl From<rethnet_evm::TransactOut> for TransactionOutput {
-    fn from(value: rethnet_evm::TransactOut) -> Self {
-        let (output, address) = match value {
-            rethnet_evm::TransactOut::None => (None, None),
-            rethnet_evm::TransactOut::Call(output) => (Some(Buffer::from(output.as_ref())), None),
-            rethnet_evm::TransactOut::Create(output, address) => (
-                Some(Buffer::from(output.as_ref())),
-                address.map(|address| Buffer::from(address.as_bytes())),
-            ),
-        };
-
-        Self { output, address }
-    }
 }

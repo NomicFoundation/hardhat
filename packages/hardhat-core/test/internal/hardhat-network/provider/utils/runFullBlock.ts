@@ -69,7 +69,8 @@ export async function runFullBlock(
     }
   );
 
-  forkedNode["_vmTracer"].disableTracing();
+  // TODO uncomment and fix this
+  // forkedNode["_vmTracer"].disableTracing();
 
   const afterBlockEvent = await runBlockAndGetAfterBlockEvent(
     // TODO remove "as any" and make this work with VMAdapter
@@ -88,7 +89,7 @@ export async function runFullBlock(
   await (forkedNode["_vm"] as any).putBlock(modifiedBlock);
   await forkedNode["_saveBlockAsSuccessfullyRun"](
     modifiedBlock,
-    afterBlockEvent
+    afterBlockEvent as any // TODO remove this as any
   );
 
   const newBlock = await forkedNode.getBlockByNumber(blockToRun);

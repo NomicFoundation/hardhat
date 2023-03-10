@@ -6,7 +6,7 @@
 
 //! transaction related data
 
-use revm::common::keccak256;
+use revm_primitives::keccak256;
 use rlp::{Decodable, DecoderError, Encodable, Rlp, RlpStream};
 use ruint::aliases::U160;
 

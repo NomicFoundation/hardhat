@@ -1,9 +1,24 @@
 import { Block } from "@nomicfoundation/ethereumjs-block";
-import { Account, Address } from "@nomicfoundation/ethereumjs-util";
+import { Common } from "@nomicfoundation/ethereumjs-common";
+import {
+  Account,
+  Address,
+  KECCAK256_NULL,
+} from "@nomicfoundation/ethereumjs-util";
 import { TypedTransaction } from "@nomicfoundation/ethereumjs-tx";
-import { BlockBuilder, Blockchain, Rethnet } from "rethnet-evm";
+import {
+  Account as RethnetAccount,
+  BlockBuilder,
+  Blockchain,
+  Bytecode,
+  Rethnet,
+  Tracer,
+  TracingMessage,
+  TracingMessageResult,
+  TracingStep,
+} from "rethnet-evm";
 
-import { NodeConfig } from "../node-types";
+import { isForkedNodeConfig, NodeConfig } from "../node-types";
 import {
   ethereumjsHeaderDataToRethnet,
   ethereumjsTransactionToRethnet,
@@ -11,28 +26,42 @@ import {
   rethnetResultToRunTxResult,
 } from "../utils/convertToRethnet";
 import { hardforkGte, HardforkName } from "../../../util/hardforks";
+import { keccak256 } from "../../../util/keccak";
 import { RpcDebugTraceOutput } from "../output";
 import { RethnetStateManager } from "../RethnetState";
 import { RpcDebugTracingConfig } from "../../../core/jsonrpc/types/input/debugTraceTransaction";
+import { MessageTrace } from "../../stack-traces/message-trace";
+import { VMTracer } from "../../stack-traces/vm-tracer";
 
-import { RunTxResult, Trace, TracingCallbacks, VMAdapter } from "./vm-adapter";
+import { RunTxResult, Trace, VMAdapter } from "./vm-adapter";
 
 /* eslint-disable @nomiclabs/hardhat-internal-rules/only-hardhat-error */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 
 export class RethnetAdapter implements VMAdapter {
+  private _vmTracer: VMTracer;
+
   constructor(
     private _blockchain: Blockchain,
     private _state: RethnetStateManager,
     private _rethnet: Rethnet,
-    private readonly _selectHardfork: (blockNumber: bigint) => string
-  ) {}
+    private readonly _selectHardfork: (blockNumber: bigint) => string,
+    common: Common
+  ) {
+    this._vmTracer = new VMTracer(common, false);
+  }
 
   public static async create(
     config: NodeConfig,
     selectHardfork: (blockNumber: bigint) => string,
-    getBlockHash: (blockNumber: bigint) => Promise<Buffer>
+    getBlockHash: (blockNumber: bigint) => Promise<Buffer>,
+    common: Common
   ): Promise<RethnetAdapter> {
+    if (isForkedNodeConfig(config)) {
+      // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
+      throw new Error("Forking is not supported for Rethnet yet");
+    }
+
     const blockchain = new Blockchain(getBlockHash);
 
     const limitContractCodeSize =
@@ -50,7 +79,13 @@ export class RethnetAdapter implements VMAdapter {
       disableEip3607: true,
     });
 
-    return new RethnetAdapter(blockchain, state, rethnet, selectHardfork);
+    return new RethnetAdapter(
+      blockchain,
+      state,
+      rethnet,
+      selectHardfork,
+      common
+    );
   }
 
   /**
@@ -72,16 +107,26 @@ export class RethnetAdapter implements VMAdapter {
       blockContext.header.mixHash
     );
 
-    const rethnetResult = await this._rethnet.guaranteedDryRun(rethnetTx, {
-      number: blockContext.header.number,
-      coinbase: blockContext.header.coinbase.buf,
-      timestamp: blockContext.header.timestamp,
-      basefee:
-        forceBaseFeeZero === true ? 0n : blockContext.header.baseFeePerGas,
-      gasLimit: blockContext.header.gasLimit,
-      difficulty,
-      prevrandao: prevRandao,
+    const tracer = new Tracer({
+      beforeMessage: this._beforeMessageHandler,
+      step: this._stepHandler,
+      afterMessage: this._afterMessageHandler,
     });
+
+    const rethnetResult = await this._rethnet.guaranteedDryRun(
+      rethnetTx,
+      {
+        number: blockContext.header.number,
+        coinbase: blockContext.header.coinbase.buf,
+        timestamp: blockContext.header.timestamp,
+        basefee:
+          forceBaseFeeZero === true ? 0n : blockContext.header.baseFeePerGas,
+        gasLimit: blockContext.header.gasLimit,
+        difficulty,
+        prevrandao: prevRandao,
+      },
+      tracer
+    );
 
     try {
       const result = rethnetResultToRunTxResult(
@@ -90,8 +135,8 @@ export class RethnetAdapter implements VMAdapter {
       );
       return [result, rethnetResult.execResult.trace];
     } catch (e) {
-      console.log("Rethnet trace");
-      console.log(rethnetResult.execResult.trace);
+      // console.log("Rethnet trace");
+      // console.log(rethnetResult.execResult.trace);
       throw e;
     }
   }
@@ -100,7 +145,14 @@ export class RethnetAdapter implements VMAdapter {
    * Get the account info for the given address.
    */
   public async getAccount(address: Address): Promise<Account> {
-    return this._state.getAccount(address);
+    const account = await this._state.getAccount(address);
+    const storageRoot = await this._state.getAccountStorageRoot(address);
+    return new Account(
+      account?.nonce,
+      account?.balance,
+      storageRoot ?? undefined,
+      account?.code?.hash
+    );
   }
 
   /**
@@ -116,16 +168,7 @@ export class RethnetAdapter implements VMAdapter {
   /**
    * Get the contract code at the given address.
    */
-  public async getContractCode(
-    address: Address,
-    ethJsOnly?: boolean
-  ): Promise<Buffer> {
-    if (ethJsOnly === true) {
-      throw new Error(
-        "Calling RethnetAdapter.getContractCode with ethJsOnly=true, this shouldn't happen"
-      );
-    }
-
+  public async getContractCode(address: Address): Promise<Buffer> {
     return this._state.getContractCode(address);
   }
 
@@ -133,14 +176,66 @@ export class RethnetAdapter implements VMAdapter {
    * Update the account info for the given address.
    */
   public async putAccount(address: Address, account: Account): Promise<void> {
-    return this._state.putAccount(address, account);
+    const contractCode =
+      account.codeHash === KECCAK256_NULL
+        ? undefined
+        : await this._state.getContractCode(address);
+
+    return this._state.modifyAccount(
+      address,
+      async function (
+        balance: bigint,
+        nonce: bigint,
+        code: Bytecode | undefined
+      ): Promise<RethnetAccount> {
+        const newCode: Bytecode | undefined =
+          account.codeHash === KECCAK256_NULL
+            ? undefined
+            : account.codeHash === code?.hash
+            ? code
+            : {
+                hash: account.codeHash,
+                code: contractCode!,
+              };
+
+        return {
+          balance: account.balance,
+          nonce: account.nonce,
+          code: newCode,
+        };
+      }
+    );
   }
 
   /**
    * Update the contract code for the given address.
    */
   public async putContractCode(address: Address, value: Buffer): Promise<void> {
-    return this._state.putContractCode(address, value);
+    const codeHash = keccak256(value);
+    return this._state.modifyAccount(
+      address,
+      async function (
+        balance: bigint,
+        nonce: bigint,
+        code: Bytecode | undefined
+      ): Promise<RethnetAccount> {
+        const newCode: Bytecode | undefined =
+          codeHash === KECCAK256_NULL
+            ? undefined
+            : codeHash === code?.hash
+            ? code
+            : {
+                hash: codeHash,
+                code: value,
+              };
+
+        return {
+          balance,
+          nonce,
+          code: newCode,
+        };
+      }
+    );
   }
 
   /**
@@ -206,9 +301,16 @@ export class RethnetAdapter implements VMAdapter {
       block.header.mixHash
     );
 
+    const tracer = new Tracer({
+      beforeMessage: this._beforeMessageHandler,
+      step: this._stepHandler,
+      afterMessage: this._afterMessageHandler,
+    });
+
     const rethnetResult = await this._rethnet.run(
       rethnetTx,
-      ethereumjsHeaderDataToRethnet(block.header, difficulty, prevRandao)
+      ethereumjsHeaderDataToRethnet(block.header, difficulty, prevRandao),
+      tracer
     );
 
     try {
@@ -218,8 +320,8 @@ export class RethnetAdapter implements VMAdapter {
       );
       return [result, rethnetResult.trace];
     } catch (e) {
-      console.log("Rethnet trace");
-      console.log(rethnetResult.trace);
+      // console.log("Rethnet trace");
+      // console.log(rethnetResult.trace);
       throw e;
     }
   }
@@ -230,7 +332,7 @@ export class RethnetAdapter implements VMAdapter {
   public async addBlockRewards(
     rewards: Array<[Address, bigint]>
   ): Promise<void> {
-    const blockBuilder = await BlockBuilder.new(
+    const blockBuilder = BlockBuilder.new(
       this._blockchain,
       this._state.asInner(),
       {},
@@ -284,25 +386,25 @@ export class RethnetAdapter implements VMAdapter {
     block: Block,
     config: RpcDebugTracingConfig
   ): Promise<RpcDebugTraceOutput> {
-    throw new Error("not implemented");
-  }
-
-  /**
-   * Start tracing the VM execution with the given callbacks.
-   */
-  public enableTracing(callbacks: TracingCallbacks): void {
-    throw new Error("not implemented");
-  }
-
-  /**
-   * Stop tracing the execution.
-   */
-  public disableTracing(): void {
-    throw new Error("not implemented");
+    throw new Error("traceTransaction not implemented for Rethnet");
   }
 
   public async makeSnapshot(): Promise<Buffer> {
     return this._state.makeSnapshot();
+  }
+
+  public getLastTrace(): {
+    trace: MessageTrace | undefined;
+    error: Error | undefined;
+  } {
+    const trace = this._vmTracer.getLastTopLevelMessageTrace();
+    const error = this._vmTracer.getLastError();
+
+    return { trace, error };
+  }
+
+  public clearLastError() {
+    this._vmTracer.clearLastError();
   }
 
   private _getBlockEnvDifficulty(
@@ -340,4 +442,22 @@ export class RethnetAdapter implements VMAdapter {
 
     return undefined;
   }
+
+  private _beforeMessageHandler = async (
+    message: TracingMessage,
+    next: any
+  ) => {
+    await this._vmTracer.addBeforeMessage(message);
+  };
+
+  private _stepHandler = async (step: TracingStep, _next: any) => {
+    await this._vmTracer.addStep(step);
+  };
+
+  private _afterMessageHandler = async (
+    result: TracingMessageResult,
+    _next: any
+  ) => {
+    await this._vmTracer.addAfterMessage(result);
+  };
 }

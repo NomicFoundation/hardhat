@@ -4,37 +4,37 @@
 //! Virtual Machine (or EVM).
 #![warn(missing_docs)]
 
-use rethnet_eth::Address;
-
 pub use hashbrown::HashMap;
+
 pub use revm::{
-    blockchain::{Blockchain, BlockchainRef},
-    db::EmptyDB,
-    Account, AccountInfo, BlockEnv, Bytecode, CfgEnv, CreateScheme, Database, DatabaseCommit,
-    ExecutionResult, Log, Return, SpecId, TransactOut, TransactTo, TxEnv, EVM,
+    db::{
+        BlockHash, BlockHashRef, Database, DatabaseCommit, DatabaseComponentError,
+        DatabaseComponents, State as StateMut, StateRef,
+    },
+    interpreter::{
+        instruction_result::SuccessOrHalt, opcode, return_revert, CallInputs, CreateInputs, Gas,
+        InstructionResult, Interpreter, OPCODE_JUMPMAP,
+    },
+    primitives::*,
+    EVMData, Inspector,
 };
 
 pub use crate::{
     block::{BlockBuilder, HeaderData},
-    debug::DatabaseDebug,
-    runtime::Rethnet,
-    transaction::PendingTransaction,
+    runtime::{AsyncDatabase, Rethnet},
+    transaction::{PendingTransaction, TransactionError},
 };
-
-/// State mapping of addresses to accounts.
-pub type State = HashMap<Address, Account>;
 
 /// Types for managing Ethereum blockchain
 pub mod blockchain;
 
 /// Database types for managing Ethereum state
-pub mod db;
+pub mod state;
 
 /// Types used for tracing EVM calls
 pub mod trace;
 
 mod block;
-mod debug;
 pub(crate) mod evm;
 mod inspector;
 pub(crate) mod random;

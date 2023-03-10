@@ -1,9 +1,13 @@
+use revm::{
+    db::StateRef,
+    primitives::{AccountInfo, Bytecode},
+};
 use tokio::runtime::{Builder, Runtime};
 
-use rethnet_eth::remote::{RpcClient, RpcClientError};
-use rethnet_eth::{Address, B256, U256};
-
-use revm::{db::DatabaseRef, AccountInfo, Bytecode};
+use rethnet_eth::{
+    remote::{RpcClient, RpcClientError},
+    Address, B256, U256,
+};
 
 /// An revm database backed by a remote Ethereum node
 pub struct RemoteDatabase {
@@ -44,7 +48,7 @@ impl RemoteDatabase {
     }
 }
 
-impl DatabaseRef for RemoteDatabase {
+impl StateRef for RemoteDatabase {
     type Error = RemoteDatabaseError;
 
     fn basic(&self, address: Address) -> Result<Option<AccountInfo>, Self::Error> {
@@ -73,6 +77,7 @@ mod tests {
 
     use std::str::FromStr;
 
+    #[test_with::env(ALCHEMY_URL)]
     #[test]
     fn basic_success() {
         let alchemy_url = std::env::var_os("ALCHEMY_URL")

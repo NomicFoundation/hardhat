@@ -1,35 +1,40 @@
 use std::{fmt::Debug, sync::Arc};
 
-use revm::{BlockEnv, CfgEnv, ExecutionResult, SpecId, TxEnv};
-
-use crate::{
-    blockchain::AsyncBlockchain, db::AsyncDatabase, evm::build_evm, inspector::RethnetInspector,
-    trace::Trace, transaction::TransactionError, State,
+use revm::{
+    db::DatabaseComponents,
+    primitives::{BlockEnv, CfgEnv, ExecutionResult, SpecId, TxEnv},
+    Inspector,
 };
 
+use crate::{
+    blockchain::AsyncBlockchain, evm::run_transaction, state::AsyncState, trace::Trace,
+    transaction::TransactionError, State,
+};
+
+/// Asynchronous implementation of the Database super-trait
+pub type AsyncDatabase<BE, SE> = DatabaseComponents<Arc<AsyncState<SE>>, Arc<AsyncBlockchain<BE>>>;
+
 /// The asynchronous Rethnet runtime.
-pub struct Rethnet<E>
+pub struct Rethnet<BE, SE>
 where
-    E: Debug + Send + 'static,
+    BE: Debug + Send + 'static,
+    SE: Debug + Send + 'static,
 {
-    blockchain: Arc<AsyncBlockchain<E>>,
-    db: Arc<AsyncDatabase<E>>,
+    blockchain: Arc<AsyncBlockchain<BE>>,
+    state: Arc<AsyncState<SE>>,
     cfg: CfgEnv,
 }
 
-impl<E> Rethnet<E>
+impl<BE, SE> Rethnet<BE, SE>
 where
-    E: Debug + Send + 'static,
+    BE: Debug + Send + 'static,
+    SE: Debug + Send + 'static,
 {
     /// Constructs a new [`Rethnet`] instance.
-    pub fn new(
-        blockchain: Arc<AsyncBlockchain<E>>,
-        db: Arc<AsyncDatabase<E>>,
-        cfg: CfgEnv,
-    ) -> Self {
+    pub fn new(blockchain: Arc<AsyncBlockchain<BE>>, db: Arc<AsyncState<SE>>, cfg: CfgEnv) -> Self {
         Self {
             blockchain,
-            db,
+            state: db,
             cfg,
         }
     }
@@ -39,27 +44,24 @@ where
         &self,
         transaction: TxEnv,
         block: BlockEnv,
-    ) -> Result<(ExecutionResult, State, Trace), TransactionError> {
+        inspector: Option<Box<dyn Inspector<AsyncDatabase<BE, SE>> + Send>>,
+    ) -> Result<(ExecutionResult, State, Trace), TransactionError<BE, SE>> {
         if self.cfg.spec_id > SpecId::MERGE && block.prevrandao.is_none() {
             return Err(TransactionError::MissingPrevrandao);
         }
 
-        let blockchain = self.blockchain.clone();
-        let db = self.db.clone();
-        let cfg = self.cfg.clone();
-
-        Ok(self
-            .db
-            .runtime()
-            .spawn(async move {
-                let mut evm = build_evm(&blockchain, &db, cfg, transaction, block);
-
-                let mut inspector = RethnetInspector::default();
-                let (result, state) = evm.inspect(&mut inspector);
-                (result, state, inspector.into_trace())
-            })
-            .await
-            .unwrap())
+        run_transaction(
+            self.state.runtime(),
+            self.blockchain.clone(),
+            self.state.clone(),
+            self.cfg.clone(),
+            transaction,
+            block,
+            inspector,
+        )
+        .await
+        .unwrap()
+        .map_err(TransactionError::from)
     }
 
     /// Runs a transaction without committing the state, while disabling balance checks and creating accounts for new addresses.
@@ -67,29 +69,27 @@ where
         &self,
         transaction: TxEnv,
         block: BlockEnv,
-    ) -> Result<(ExecutionResult, State, Trace), TransactionError> {
+        inspector: Option<Box<dyn Inspector<AsyncDatabase<BE, SE>> + Send>>,
+    ) -> Result<(ExecutionResult, State, Trace), TransactionError<BE, SE>> {
         if self.cfg.spec_id > SpecId::MERGE && block.prevrandao.is_none() {
             return Err(TransactionError::MissingPrevrandao);
         }
 
-        let blockchain = self.blockchain.clone();
-        let db = self.db.clone();
-
         let mut cfg = self.cfg.clone();
         cfg.disable_balance_check = true;
 
-        Ok(self
-            .db
-            .runtime()
-            .spawn(async move {
-                let mut evm = build_evm(&blockchain, &db, cfg, transaction, block);
-
-                let mut inspector = RethnetInspector::default();
-                let (result, state) = evm.inspect(&mut inspector);
-                (result, state, inspector.into_trace())
-            })
-            .await
-            .unwrap())
+        run_transaction(
+            self.state.runtime(),
+            self.blockchain.clone(),
+            self.state.clone(),
+            cfg,
+            transaction,
+            block,
+            inspector,
+        )
+        .await
+        .unwrap()
+        .map_err(TransactionError::from)
     }
 
     /// Runs a transaction, committing the state in the process.
@@ -97,10 +97,11 @@ where
         &self,
         transaction: TxEnv,
         block: BlockEnv,
-    ) -> Result<(ExecutionResult, Trace), TransactionError> {
-        let (result, changes, trace) = self.dry_run(transaction, block).await?;
+        inspector: Option<Box<dyn Inspector<AsyncDatabase<BE, SE>> + Send>>,
+    ) -> Result<(ExecutionResult, Trace), TransactionError<BE, SE>> {
+        let (result, changes, trace) = self.dry_run(transaction, block, inspector).await?;
 
-        self.db.apply(changes).await;
+        self.state.apply(changes).await;
 
         Ok((result, trace))
     }

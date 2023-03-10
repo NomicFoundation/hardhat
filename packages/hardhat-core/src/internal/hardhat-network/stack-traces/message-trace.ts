@@ -1,5 +1,12 @@
 import type { Bytecode } from "./model";
 import type { Exit } from "../provider/vm/exit";
+import {
+  CallOutput,
+  CreateOutput,
+  HaltResult,
+  RevertResult,
+  SuccessResult,
+} from "rethnet-evm";
 
 export type MessageTrace =
   | CreateMessageTrace
@@ -90,4 +97,35 @@ export type MessageTraceStep = MessageTrace | EvmStep;
 
 export interface EvmStep {
   pc: number;
+}
+
+export function isCallOutput(
+  output: CallOutput | CreateOutput
+): output is CallOutput {
+  return !isCreateOutput(output);
+}
+
+export function isCreateOutput(
+  output: CallOutput | CreateOutput
+): output is CreateOutput {
+  return "address" in output;
+}
+
+export function isSuccessResult(
+  result: SuccessResult | RevertResult | HaltResult
+): result is SuccessResult {
+  // Only need to check for one unique field
+  return "gasRefunded" in result;
+}
+
+export function isRevertResult(
+  result: SuccessResult | RevertResult | HaltResult
+): result is RevertResult {
+  return !("reason" in result);
+}
+
+export function isHaltResult(
+  result: SuccessResult | RevertResult | HaltResult
+): result is HaltResult {
+  return !("output" in result);
 }

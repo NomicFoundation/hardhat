@@ -1,7 +1,7 @@
 use std::{fmt::Debug, io};
 
 use rethnet_eth::{B256, U256};
-use revm::blockchain::Blockchain;
+use revm::db::{BlockHash, BlockHashRef};
 use tokio::{
     runtime::{Builder, Runtime},
     sync::{
@@ -14,7 +14,7 @@ use tokio::{
 use super::request::Request;
 
 /// Trait that meets all requirements for a synchronous database that can be used by [`AsyncBlockchain`].
-pub trait SyncBlockchain<E>: Blockchain<Error = E> + Send + Sync + 'static
+pub trait SyncBlockchain<E>: BlockHash<Error = E> + Send + Sync + 'static
 where
     E: Debug + Send,
 {
@@ -22,7 +22,7 @@ where
 
 impl<B, E> SyncBlockchain<E> for B
 where
-    B: Blockchain<Error = E> + Send + Sync + 'static,
+    B: BlockHash<Error = E> + Send + Sync + 'static,
     E: Debug + Send,
 {
 }
@@ -111,13 +111,13 @@ where
     }
 }
 
-impl<'b, E> Blockchain for &'b AsyncBlockchain<E>
+impl<E> BlockHashRef for AsyncBlockchain<E>
 where
     E: Debug + Send + 'static,
 {
     type Error = E;
 
-    fn block_hash(&mut self, number: U256) -> Result<B256, Self::Error> {
+    fn block_hash(&self, number: U256) -> Result<B256, Self::Error> {
         task::block_in_place(move || self.runtime.block_on(self.block_hash_by_number(number)))
     }
 }
