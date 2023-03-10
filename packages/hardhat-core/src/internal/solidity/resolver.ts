@@ -287,15 +287,35 @@ export class Resolver {
       }
     }
 
-    let packageRoot = path.dirname(packageJsonPath);
-    let pattern = new RegExp(`^${libraryName}/?`);
-    let fileName = sourceName.replace(pattern, "");
+    let nodeModulesPath = path.dirname(path.dirname(packageJsonPath));
+    if (this._isScopedPackage(sourceName)) {
+      nodeModulesPath = path.dirname(nodeModulesPath);
+    }
 
-    await this._validateSourceNameExistenceAndCasing(
-      packageRoot,
-      fileName,
-      true
-    );
+    let absolutePath: string;
+    if (path.basename(nodeModulesPath) !== NODE_MODULES) {
+      // this can happen in monorepos that use PnP, in those
+      // cases we handle resolution differently
+      const packageRoot = path.dirname(packageJsonPath);
+      const pattern = new RegExp(`^${libraryName}/?`);
+      const fileName = sourceName.replace(pattern, "");
+      absolutePath = path.join(packageRoot, fileName);
+
+      await this._validateSourceNameExistenceAndCasing(
+        packageRoot,
+        // TODO: this is _not_ a source name; we should handle this scenario in
+        // a better way
+        fileName,
+        true
+      );
+    } else {
+      await this._validateSourceNameExistenceAndCasing(
+        nodeModulesPath,
+        sourceName,
+        true
+      );
+      absolutePath = path.join(nodeModulesPath, sourceName);
+    }
 
     const packageInfo: {
       name: string;
@@ -306,7 +326,7 @@ export class Resolver {
     return this._resolveFile(
       sourceName,
       // We resolve to the real path here, as we may be resolving a linked library
-      await getRealPath(path.join(packageRoot, fileName)),
+      await getRealPath(absolutePath),
       libraryName,
       libraryVersion
     );
