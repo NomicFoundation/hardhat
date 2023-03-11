@@ -43,8 +43,8 @@ export function supportChangeTokenBalance(Assertion: Chai.AssertionStatic) {
         if (typeof balanceChange === "function") {
           assert(
             balanceChange(actualChange),
-            `Expected the balance of ${tokenDescription} tokens for "${address}" satisfies the condition, but it changed by ${actualChange.toString()} and violated the condition`,
-            `Expected the balance of ${tokenDescription} tokens for "${address}" NOT satisfies the condition, but it did`
+            `Expected the balance of ${tokenDescription} tokens for "${address}" satisfies the predicate, but it changed by ${actualChange.toString()} and violated the predicate`,
+            `Expected the balance of ${tokenDescription} tokens for "${address}" NOT satisfies the predicate, but it did`
           );
         } else {
           assert(

@@ -139,7 +139,7 @@ describe("INTEGRATION: changeTokenBalance and changeTokenBalances matchers", fun
           );
         });
 
-        it("doesn't satisfy the condition", async function () {
+        it("new balance doesn't satisfy the predicate", async function () {
           await expect(
             expect(
               sender.sendTransaction({ to: receiver.address })
@@ -148,7 +148,7 @@ describe("INTEGRATION: changeTokenBalance and changeTokenBalances matchers", fun
             )
           ).to.be.rejectedWith(
             AssertionError,
-            /Expected the balance of MCK tokens for "0x\w{40}" satisfies the condition, but it changed by 0 and violated the condition/
+            /Expected the balance of MCK tokens for "0x\w{40}" satisfies the predicate, but it changed by 0 and violated the predicate/
           );
         });
 
@@ -163,7 +163,7 @@ describe("INTEGRATION: changeTokenBalance and changeTokenBalances matchers", fun
           );
         });
 
-        it("unexpected condition", async function () {
+        it("changes balance doesn't have to satisfy the predicate, but it did", async function () {
           await expect(
             expect(
               sender.sendTransaction({ to: receiver.address })
@@ -172,7 +172,7 @@ describe("INTEGRATION: changeTokenBalance and changeTokenBalances matchers", fun
             )
           ).to.be.rejectedWith(
             AssertionError,
-            /Expected the balance of MCK tokens for "0x\w{40}" NOT satisfies the condition, but it did/
+            /Expected the balance of MCK tokens for "0x\w{40}" NOT satisfies the predicate, but it did/
           );
         });
 
