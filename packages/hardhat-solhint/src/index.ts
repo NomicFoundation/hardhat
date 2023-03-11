@@ -108,9 +108,9 @@ subtask("hardhat-solhint:run-solhint", async (_, { config }) => {
   // Create a glob pattern that matches all the .sol files within the sources folder
   const solFilesGlob = join(config.paths.sources, "**", "*.sol");
 
-  // Make glob pattern relative to the current working directory
+  // Make glob pattern relative to Hardhat's root directory
   // See https://github.com/kaelzhang/node-ignore/tree/5.2.4#1-pathname-should-be-a-pathrelatived-pathname
-  const relativeGlob = relative(process.cwd(), solFilesGlob);
+  const relativeGlob = relative(config.paths.root, solFilesGlob);
 
   // Fix for Windows users: replace back-slashes with forward-slashes
   // See https://github.com/isaacs/node-glob/tree/v8.0.3#windows
