@@ -1,7 +1,7 @@
 import { expect } from "chai";
 import { Address, KECCAK256_NULL } from "@nomicfoundation/ethereumjs-util";
 
-import { AccountData, StateManager } from "../..";
+import { Account, Bytecode, StateManager } from "../..";
 
 describe("State Manager", () => {
   const caller = Address.fromString(
@@ -22,7 +22,6 @@ describe("State Manager", () => {
     await stateManager.insertAccount(caller.buf, {
       nonce: 0n,
       balance: 0n,
-      codeHash: KECCAK256_NULL,
     });
     let account = await stateManager.getAccountByAddress(caller.buf);
 
@@ -34,7 +33,6 @@ describe("State Manager", () => {
     await stateManager.insertAccount(caller.buf, {
       nonce: 0n,
       balance: 0n,
-      codeHash: KECCAK256_NULL,
     });
 
     await stateManager.modifyAccount(
@@ -42,8 +40,8 @@ describe("State Manager", () => {
       async function (
         _balance: bigint,
         nonce: bigint,
-        code: Buffer | undefined
-      ): Promise<AccountData> {
+        code: Bytecode | undefined
+      ): Promise<Account> {
         return {
           balance: 100n,
           nonce,
@@ -56,14 +54,12 @@ describe("State Manager", () => {
 
     expect(account?.balance).to.equal(100n);
     expect(account?.nonce).to.equal(0n);
-    expect(account?.codeHash).to.eql(KECCAK256_NULL);
   });
 
   it("setAccountNonce", async () => {
     await stateManager.insertAccount(caller.buf, {
       nonce: 0n,
       balance: 0n,
-      codeHash: KECCAK256_NULL,
     });
 
     await stateManager.modifyAccount(
@@ -71,8 +67,8 @@ describe("State Manager", () => {
       async function (
         balance: bigint,
         nonce: bigint,
-        code: Buffer | undefined
-      ): Promise<AccountData> {
+        code: Bytecode | undefined
+      ): Promise<Account> {
         return {
           balance,
           nonce: 5n,
@@ -85,6 +81,5 @@ describe("State Manager", () => {
 
     expect(account?.balance).to.equal(0n);
     expect(account?.nonce).to.equal(5n);
-    expect(account?.codeHash).to.eql(KECCAK256_NULL);
   });
 });

@@ -96,11 +96,12 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: ["ubuntu-latest", "windows-latest", "macOS-latest"]
+        # "windows-latest" removed from the following lines pending https://github.com/napi-rs/napi-rs/issues/1405
+        os: ["ubuntu-latest", "macOS-latest"]
         include:
           - RUSTFLAGS: "-Dwarnings"
-          - os: "windows-latest"
-            RUSTFLAGS: "-Dwarnings -Ctarget-feature=+crt-static"
+          #- os: "windows-latest"
+          #  RUSTFLAGS: "-Dwarnings -Ctarget-feature=+crt-static"
     steps:
       - uses: actions/checkout@v3
 

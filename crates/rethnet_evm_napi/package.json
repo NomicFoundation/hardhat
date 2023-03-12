@@ -11,7 +11,8 @@
     "scripts": {
         "build": "napi build --release",
         "build:debug": "napi build",
-        "test": "mocha --recursive \"test/**/*.ts\" --exit"
+        "test": "yarn tsc && mocha --recursive \"test/**/*.ts\" --exit",
+        "clean": "rm -rf rethnet-evm.node"
     },
     "devDependencies": {
         "@napi-rs/cli": "^2.11.4",
