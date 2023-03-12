@@ -22,7 +22,6 @@ describe("State Manager", () => {
     await stateManager.insertAccount(caller.buf, {
       nonce: 0n,
       balance: 0n,
-      codeHash: KECCAK256_NULL,
     });
     let account = await stateManager.getAccountByAddress(caller.buf);
 
@@ -34,7 +33,6 @@ describe("State Manager", () => {
     await stateManager.insertAccount(caller.buf, {
       nonce: 0n,
       balance: 0n,
-      codeHash: KECCAK256_NULL,
     });
 
     await stateManager.modifyAccount(
@@ -56,14 +54,12 @@ describe("State Manager", () => {
 
     expect(account?.balance).to.equal(100n);
     expect(account?.nonce).to.equal(0n);
-    expect(account?.codeHash).to.eql(KECCAK256_NULL);
   });
 
   it("setAccountNonce", async () => {
     await stateManager.insertAccount(caller.buf, {
       nonce: 0n,
       balance: 0n,
-      codeHash: KECCAK256_NULL,
     });
 
     await stateManager.modifyAccount(
@@ -85,6 +81,5 @@ describe("State Manager", () => {
 
     expect(account?.balance).to.equal(0n);
     expect(account?.nonce).to.equal(5n);
-    expect(account?.codeHash).to.eql(KECCAK256_NULL);
   });
 });

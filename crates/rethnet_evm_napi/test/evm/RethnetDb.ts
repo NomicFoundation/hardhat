@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import { Address, KECCAK256_NULL } from "@nomicfoundation/ethereumjs-util";
+import { Address } from "@nomicfoundation/ethereumjs-util";
 
 import {
   Blockchain,
@@ -46,7 +46,6 @@ describe("Rethnet", () => {
     await stateManager.insertAccount(caller.buf, {
       nonce: 0n,
       balance: BigInt("0xffffffff"),
-      codeHash: KECCAK256_NULL,
     });
 
     // send some value
