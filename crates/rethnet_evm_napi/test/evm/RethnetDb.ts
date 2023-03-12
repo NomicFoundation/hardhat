@@ -2,7 +2,6 @@ import { expect } from "chai";
 import { Address, KECCAK256_NULL } from "@nomicfoundation/ethereumjs-util";
 
 import {
-  AccountData,
   Blockchain,
   BlockConfig,
   Config,

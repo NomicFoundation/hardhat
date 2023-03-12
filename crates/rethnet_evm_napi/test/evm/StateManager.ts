@@ -1,7 +1,7 @@
 import { expect } from "chai";
 import { Address, KECCAK256_NULL } from "@nomicfoundation/ethereumjs-util";
 
-import { AccountData, StateManager } from "../..";
+import { Account, StateManager } from "../..";
 
 describe("State Manager", () => {
   const caller = Address.fromString(
@@ -43,7 +43,7 @@ describe("State Manager", () => {
         _balance: bigint,
         nonce: bigint,
         code: Buffer | undefined
-      ): Promise<AccountData> {
+      ): Promise<Account> {
         return {
           balance: 100n,
           nonce,
@@ -72,7 +72,7 @@ describe("State Manager", () => {
         balance: bigint,
         nonce: bigint,
         code: Buffer | undefined
-      ): Promise<AccountData> {
+      ): Promise<Account> {
         return {
           balance,
           nonce: 5n,
