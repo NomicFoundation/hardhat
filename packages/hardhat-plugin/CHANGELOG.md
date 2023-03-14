@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## 0.0.10 - 2023-04-14
+
+### Added
+
+- Make Hardhat network accounts available within modules ([#166](https://github.com/NomicFoundation/ignition/pull/166))
+
+### Changed
+
+- Show file/line/column against validation errors, so that module problems can more easily be traced back to the source code ([#160](https://github.com/NomicFoundation/ignition/pull/160))
+
 ## 0.0.9 - 2023-03-02
 
 ### Added
