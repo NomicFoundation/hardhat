@@ -1,6 +1,6 @@
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { expect, AssertionError } from "chai";
-import { BigNumber, Contract } from "ethers";
+import { BigNumber, Contract, BigNumberish } from "ethers";
 import path from "path";
 import util from "util";
 
@@ -95,6 +95,15 @@ describe("INTEGRATION: changeEtherBalance matcher", function () {
           ).to.changeEtherBalance(sender, BigNumber.from("-200"));
         });
 
+        it("Should pass when given a predicate", async () => {
+          await expect(() =>
+            sender.sendTransaction({
+              to: receiver.address,
+              value: 200,
+            })
+          ).to.changeEtherBalance(sender, (diff: BigNumber) => diff.eq(-200));
+        });
+
         it("Should pass when expected balance change is passed as int and is equal to an actual", async () => {
           await expect(() =>
             sender.sendTransaction({
@@ -114,6 +123,22 @@ describe("INTEGRATION: changeEtherBalance matcher", function () {
           ).to.changeEtherBalance(sender, -(txGasFees + 200), {
             includeFee: true,
           });
+        });
+
+        it("Should take into account transaction fee when given a predicate", async () => {
+          await expect(() =>
+            sender.sendTransaction({
+              to: receiver.address,
+              gasPrice: 1,
+              value: 200,
+            })
+          ).to.changeEtherBalance(
+            sender,
+            (diff: BigNumber) => diff.eq(-(txGasFees + 200)),
+            {
+              includeFee: true,
+            }
+          );
         });
 
         it("Should ignore fee if receiver's wallet is being checked and includeFee was set", async () => {
@@ -154,6 +179,17 @@ describe("INTEGRATION: changeEtherBalance matcher", function () {
           ).to.not.changeEtherBalance(receiver, BigNumber.from(300));
         });
 
+        it("Should pass on negative case when expected balance is not satisfies the predicate", async () => {
+          await expect(() =>
+            sender.sendTransaction({
+              to: receiver.address,
+              value: 200,
+            })
+          ).to.not.changeEtherBalance(receiver, (diff: BigNumber) =>
+            diff.eq(300)
+          );
+        });
+
         it("Should throw when fee was not calculated correctly", async () => {
           await expect(
             expect(() =>
@@ -185,6 +221,20 @@ describe("INTEGRATION: changeEtherBalance matcher", function () {
           );
         });
 
+        it("Should throw when actual balance change value has not satisfied the predicate", async () => {
+          await expect(
+            expect(() =>
+              sender.sendTransaction({
+                to: receiver.address,
+                value: 200,
+              })
+            ).to.changeEtherBalance(sender, (diff: BigNumber) => diff.eq(-500))
+          ).to.be.eventually.rejectedWith(
+            AssertionError,
+            `Expected the ether balance of "${sender.address}" should satisfy the predicate, but it changed by -200 wei and violated the predicate`
+          );
+        });
+
         it("Should throw in negative case when expected balance change value was equal to an actual", async () => {
           await expect(
             expect(() =>
@@ -196,6 +246,22 @@ describe("INTEGRATION: changeEtherBalance matcher", function () {
           ).to.be.eventually.rejectedWith(
             AssertionError,
             `Expected the ether balance of "${sender.address}" NOT to change by -200 wei, but it did`
+          );
+        });
+
+        it("Should throw in negative case when expected balance change value was satisfies the predicate", async () => {
+          await expect(
+            expect(() =>
+              sender.sendTransaction({
+                to: receiver.address,
+                value: 200,
+              })
+            ).to.not.changeEtherBalance(sender, (diff: BigNumber) =>
+              diff.eq(-200)
+            )
+          ).to.be.eventually.rejectedWith(
+            AssertionError,
+            `Expected the ether balance of "${sender.address}" NOT to change by -200 wei and NOT satisfies the predicate, but it did`
           );
         });
 

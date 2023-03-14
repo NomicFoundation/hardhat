@@ -1,4 +1,4 @@
-import type { BigNumberish, providers } from "ethers";
+import type { BigNumberish, BigNumber, providers } from "ethers";
 
 import { buildAssert } from "../utils";
 import { ensure } from "./calledOnContract/utils";
@@ -11,7 +11,7 @@ export function supportChangeEtherBalance(Assertion: Chai.AssertionStatic) {
     function (
       this: any,
       account: Account | string,
-      balanceChange: BigNumberish,
+      balanceChange: BigNumberish | ((change: BigNumber) => boolean),
       options?: BalanceChangeOptions
     ) {
       const { BigNumber } = require("ethers");
@@ -26,11 +26,19 @@ export function supportChangeEtherBalance(Assertion: Chai.AssertionStatic) {
       ]) => {
         const assert = buildAssert(negated, checkBalanceChange);
 
-        assert(
-          actualChange.eq(BigNumber.from(balanceChange)),
-          `Expected the ether balance of "${address}" to change by ${balanceChange.toString()} wei, but it changed by ${actualChange.toString()} wei`,
-          `Expected the ether balance of "${address}" NOT to change by ${balanceChange.toString()} wei, but it did`
-        );
+        if (typeof balanceChange === "function") {
+          assert(
+            balanceChange(actualChange),
+            `Expected the ether balance of "${address}" should satisfy the predicate, but it changed by ${actualChange.toString()} wei and violated the predicate`,
+            `Expected the ether balance of "${address}" NOT to change by ${actualChange.toString()} wei and NOT satisfies the predicate, but it did`
+          );
+        } else {
+          assert(
+            actualChange.eq(BigNumber.from(balanceChange)),
+            `Expected the ether balance of "${address}" to change by ${balanceChange.toString()} wei, but it changed by ${actualChange.toString()} wei`,
+            `Expected the ether balance of "${address}" NOT to change by ${balanceChange.toString()} wei, but it did`
+          );
+        }
       };
 
       const derivedPromise = Promise.all([
