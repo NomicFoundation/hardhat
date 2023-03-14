@@ -534,7 +534,7 @@ where
     ) -> (InstructionResult, Gas, rethnet_eth::Bytes) {
         self.validate_before_message();
 
-        let code = data
+        let code: rethnet_evm::Bytecode = data
             .journaled_state
             .state
             .get(&inputs.context.code_address)
@@ -546,10 +546,27 @@ where
                 }
             })
             .unwrap_or_else(|| {
-                let account = data.db.basic(inputs.context.code_address).unwrap().unwrap();
-                account
-                    .code
-                    .unwrap_or_else(|| data.db.code_by_hash(account.code_hash).unwrap())
+                if let Some(account) = data.db.basic(inputs.context.code_address).unwrap() {
+                    account.code.unwrap_or_else(|| {
+                        if let Ok(code_hash) = data.db.code_by_hash(account.code_hash) {
+                            code_hash
+                        } else {
+                            println!(
+                                "WARNING!: data.db.code_by_hash({:?}) returned None!\n{}",
+                                account.code_hash,
+                                std::backtrace::Backtrace::capture()
+                            );
+                            rethnet_evm::Bytecode::new()
+                        }
+                    })
+                } else {
+                    println!(
+                        "WARNING!: data.db.basic({:?}) returned None!\n{}",
+                        inputs.context.code_address,
+                        std::backtrace::Backtrace::capture()
+                    );
+                    rethnet_evm::Bytecode::new()
+                }
             });
 
         self.pending_before = Some(BeforeMessage {
