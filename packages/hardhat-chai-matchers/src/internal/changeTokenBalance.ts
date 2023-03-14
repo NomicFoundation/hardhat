@@ -74,7 +74,9 @@ export function supportChangeTokenBalance(Assertion: Chai.AssertionStatic) {
       this: any,
       token: Token,
       accounts: Array<Account | string>,
-      balanceChanges: EthersT.BigNumberish[]
+      balanceChanges:
+        | EthersT.BigNumberish[]
+        | Array<(change: EthersT.BigNumber) => boolean>
     ) {
       const ethers = require("ethers") as typeof EthersT;
 
@@ -107,9 +109,15 @@ export function supportChangeTokenBalance(Assertion: Chai.AssertionStatic) {
         const assert = buildAssert(negated, checkBalanceChanges);
 
         assert(
-          actualChanges.every((change, ind) =>
-            change.eq(ethers.BigNumber.from(balanceChanges[ind]))
-          ),
+          actualChanges.every((change, ind) => {
+            if (typeof balanceChanges[ind] === "function") {
+              return (
+                balanceChanges[ind] as (change: EthersT.BigNumber) => boolean
+              )(change);
+            } else {
+              return change.eq(ethers.BigNumber.from(balanceChanges[ind]));
+            }
+          }),
           `Expected the balances of ${tokenDescription} tokens for ${
             addresses as any
           } to change by ${
