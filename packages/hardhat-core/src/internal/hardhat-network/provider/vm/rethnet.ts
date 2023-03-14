@@ -58,11 +58,6 @@ export class RethnetAdapter implements VMAdapter {
     getBlockHash: (blockNumber: bigint) => Promise<Buffer>,
     common: Common
   ): Promise<RethnetAdapter> {
-    if (isForkedNodeConfig(config)) {
-      // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
-      throw new Error("Forking is not supported for Rethnet yet");
-    }
-
     const blockchain = new Blockchain(getBlockHash);
 
     const limitContractCodeSize =
