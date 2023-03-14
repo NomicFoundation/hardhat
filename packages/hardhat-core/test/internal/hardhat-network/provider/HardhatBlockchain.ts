@@ -79,9 +79,12 @@ describe("HardhatBlockchain", () => {
       assert.equal(await blockchain.getBlock(1n), one);
     });
 
-    it("returns undefined non-existent block", async () => {
-      assert.equal(await blockchain.getBlock(0), undefined);
-      assert.equal(await blockchain.getBlock(randomHashBuffer()), undefined);
+    it("throws error for non-existent block", async () => {
+      await assert.isRejected(blockchain.getBlock(0), "Block not found");
+      await assert.isRejected(
+        blockchain.getBlock(randomHashBuffer()),
+        "Block not found"
+      );
     });
   });
 
@@ -152,9 +155,18 @@ describe("HardhatBlockchain", () => {
 
       blockchain.deleteBlock(blockOne.hash());
 
-      assert.equal(await blockchain.getBlock(blockOne.hash()), undefined);
-      assert.equal(await blockchain.getBlock(blockTwo.hash()), undefined);
-      assert.equal(await blockchain.getBlock(blockThree.hash()), undefined);
+      await assert.isRejected(
+        blockchain.getBlock(blockOne.hash()),
+        "Block not found"
+      );
+      await assert.isRejected(
+        blockchain.getBlock(blockTwo.hash()),
+        "Block not found"
+      );
+      await assert.isRejected(
+        blockchain.getBlock(blockThree.hash()),
+        "Block not found"
+      );
     });
 
     it("updates the latest block number", async () => {
@@ -206,8 +218,14 @@ describe("HardhatBlockchain", () => {
       blockchain.deleteLaterBlocks(blockOne);
 
       assert.equal(await blockchain.getBlock(blockOne.hash()), blockOne);
-      assert.equal(await blockchain.getBlock(blockTwo.hash()), undefined);
-      assert.equal(await blockchain.getBlock(blockThree.hash()), undefined);
+      await assert.isRejected(
+        blockchain.getBlock(blockTwo.hash()),
+        "Block not found"
+      );
+      await assert.isRejected(
+        blockchain.getBlock(blockThree.hash()),
+        "Block not found"
+      );
     });
 
     it("throws if given block is not present in blockchain", async () => {

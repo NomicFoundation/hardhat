@@ -889,13 +889,21 @@ Hardhat Network's forking functionality only works with blocks from at least spu
       );
     }
 
-    const block = await this._blockchain.getBlock(blockNumberOrPending);
-    return block ?? undefined;
+    try {
+      const block = await this._blockchain.getBlock(blockNumberOrPending);
+      return block;
+    } catch {
+      return undefined;
+    }
   }
 
   public async getBlockByHash(blockHash: Buffer): Promise<Block | undefined> {
-    const block = await this._blockchain.getBlock(blockHash);
-    return block ?? undefined;
+    try {
+      const block = await this._blockchain.getBlock(blockHash);
+      return block;
+    } catch {
+      return undefined;
+    }
   }
 
   public async getBlockByTransactionHash(

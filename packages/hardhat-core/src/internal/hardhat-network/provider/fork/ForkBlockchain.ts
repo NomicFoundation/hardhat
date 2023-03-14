@@ -48,9 +48,7 @@ export class ForkBlockchain
     return this._latestBlockNumber;
   }
 
-  public async getBlock(
-    blockHashOrNumber: Buffer | bigint
-  ): Promise<Block | null> {
+  public async getBlock(blockHashOrNumber: Buffer | bigint): Promise<Block> {
     if (
       typeof blockHashOrNumber === "bigint" &&
       this._data.isReservedBlock(blockHashOrNumber)
@@ -61,11 +59,17 @@ export class ForkBlockchain
     let block: Block | undefined | null;
     if (Buffer.isBuffer(blockHashOrNumber)) {
       block = await this._getBlockByHash(blockHashOrNumber);
-      return block ?? null;
+      if (block === undefined) {
+        throw new Error("Block not found");
+      }
+      return block;
     }
 
     block = await this._getBlockByNumber(BigInt(blockHashOrNumber));
-    return block ?? null;
+    if (block === undefined) {
+      throw new Error("Block not found");
+    }
+    return block;
   }
 
   public async addBlock(block: Block): Promise<Block> {
@@ -131,10 +135,10 @@ export class ForkBlockchain
     if (td !== undefined) {
       return td;
     }
-    const block = await this.getBlock(blockHash);
-    if (block === null) {
-      throw new Error("Block not found");
-    }
+
+    // fetch block to check if it exists
+    await this.getBlock(blockHash);
+
     td = this._data.getTotalDifficulty(blockHash);
     if (td === undefined) {
       throw new Error("This should never happen");
@@ -232,10 +236,12 @@ export class ForkBlockchain
     if (blockNumber > this._latestBlockNumber) {
       return undefined;
     }
-    const block = await super.getBlock(blockNumber);
-    if (block !== null) {
+
+    try {
+      const block = await super.getBlock(blockNumber);
       return block;
-    }
+    } catch {}
+
     const rpcBlock = await this._jsonRpcClient.getBlockByNumber(
       blockNumber,
       true
