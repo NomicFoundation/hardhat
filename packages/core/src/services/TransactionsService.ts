@@ -1,6 +1,6 @@
 import { ethers } from "ethers";
 
-import { Providers } from "types/providers";
+import { Providers } from "../types/providers";
 
 export interface ITransactionsService {
   wait(txHash: string): Promise<ethers.providers.TransactionReceipt>;

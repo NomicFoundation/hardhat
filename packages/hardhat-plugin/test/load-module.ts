@@ -11,14 +11,20 @@ describe("loadModule", function () {
   it("should return the module given the module name", () => {
     const module = loadModule("ignition", "TestModule");
 
-    assert.isDefined(module);
+    if (module === undefined) {
+      assert.fail("Module was not loaded");
+    }
+
     assert.equal(module.name, "testing123");
   });
 
   it("should return the module given the module name and extension", () => {
     const module = loadModule("ignition", "TestModule.js");
 
-    assert.isDefined(module);
+    if (module === undefined) {
+      assert.fail("Module was not loaded");
+    }
+
     assert.equal(module.name, "testing123");
   });
 

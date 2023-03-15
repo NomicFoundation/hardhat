@@ -3,7 +3,6 @@ import {
   ExecutionVertex,
   ExecutionVertexType,
   VertexVisitResultFailure,
-  IgnitionError,
 } from "@ignored/ignition-core";
 
 interface VertexSuccess {
@@ -183,16 +182,10 @@ export class DeploymentState {
         return "Failed awaited event";
       case "SentETH":
         return "Failed to send ETH";
-      default:
-        return assertNeverUiVertexType(vertex.type);
     }
   }
 }
 
 export interface AddressMap {
   [label: string]: string;
-}
-
-function assertNeverUiVertexType(type: never): string {
-  throw new IgnitionError(`Unexpected ui vertex type ${type}`);
 }

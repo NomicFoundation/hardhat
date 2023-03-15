@@ -6,12 +6,10 @@ import type {
   VertexExecutionStatusFailed,
   VertexExecutionStatusCompleted,
   VertexExecutionStatusHold,
-} from "types/deployment";
-import type { ExecutionVertexVisitResult } from "types/executionGraph";
-import { VertexResultEnum } from "types/graph";
-import { IgnitionError } from "utils/errors";
+} from "../types/deployment";
+import type { ExecutionVertexVisitResult } from "../types/executionGraph";
 
-import { assertNeverMessageType } from "./utils";
+import { VertexResultEnum } from "../types/graph";
 
 export function deployExecutionStateReducer(
   state: ExecutionState,
@@ -50,9 +48,6 @@ export function deployExecutionStateReducer(
         ...state,
         vertexes: updatedVertexes,
       };
-    default:
-      assertNeverMessageType(action);
-      return state;
   }
 }
 
@@ -67,7 +62,7 @@ function updateExecutionStateWithNewBatch(
       ...vertexes,
       [id]: {
         status: "RUNNING" as VertexExecutionStatusUnstarted,
-        result: null,
+        result: undefined,
       },
     }),
     state.vertexes
@@ -97,15 +92,7 @@ function convertTo(
     case VertexResultEnum.HOLD:
       return {
         status: "HOLD" as VertexExecutionStatusHold,
-        result: null,
+        result: undefined,
       };
-    default:
-      return assertNeverKind(vertexVisitResult);
   }
-}
-
-function assertNeverKind(kind: never): VertexExecutionState {
-  throw new IgnitionError(
-    `Unknown visit result kind: ${JSON.stringify(kind, null, 2)}`
-  );
 }

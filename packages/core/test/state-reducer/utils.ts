@@ -1,12 +1,11 @@
 import { ethers } from "ethers";
 
-import { deployStateReducer } from "deployment/deployStateReducer";
-import { generateDeploymentGraphFrom } from "process/generateDeploymentGraphFrom";
-import { transformDeploymentGraphToExecutionGraph } from "process/transformDeploymentGraphToExecutionGraph";
-import { DeployState, DeployStateCommand } from "types/deployment";
-import { Module } from "types/module";
-import { validateDeploymentGraph } from "validation/validateDeploymentGraph";
-
+import { deployStateReducer } from "../../src/deployment/deployStateReducer";
+import { generateDeploymentGraphFrom } from "../../src/process/generateDeploymentGraphFrom";
+import { transformDeploymentGraphToExecutionGraph } from "../../src/process/transformDeploymentGraphToExecutionGraph";
+import { DeployState, DeployStateCommand } from "../../src/types/deployment";
+import { Module } from "../../src/types/module";
+import { validateDeploymentGraph } from "../../src/validation/validateDeploymentGraph";
 import { getMockServices } from "../helpers";
 
 export function applyActions(

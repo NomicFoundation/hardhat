@@ -1,5 +1,5 @@
-import { ExternalParamValue } from "types/deploymentGraph";
-import { HasParamResult, Providers } from "types/providers";
+import { ExternalParamValue } from "../types/deploymentGraph";
+import { HasParamResult, Providers } from "../types/providers";
 
 export interface IConfigService {
   getParam(paramName: string): Promise<ExternalParamValue>;

@@ -3,12 +3,11 @@
 import { assert } from "chai";
 import { ethers } from "ethers";
 
-import { buildModule } from "dsl/buildModule";
-import { TransactionsService } from "services/TransactionsService";
-import { Artifact } from "types/hardhat";
-import { Providers } from "types/providers";
-
 import { Ignition } from "../../src/Ignition";
+import { buildModule } from "../../src/dsl/buildModule";
+import { TransactionsService } from "../../src/services/TransactionsService";
+import { Artifact } from "../../src/types/hardhat";
+import { Providers } from "../../src/types/providers";
 import { getMockServices } from "../helpers";
 import { MemoryCommandJournal } from "../util/MemoryCommandJournal";
 
@@ -71,7 +70,7 @@ describe("Rerunning execution", () => {
             getArtifact: () => tokenArtifact,
           },
           transactions: {
-            wait: (tx) => {
+            wait: (tx: string) => {
               sentTransactionCount++;
 
               if (tx === "0x00001") {
@@ -143,10 +142,6 @@ describe("Rerunning execution", () => {
         return assert.fail("Not a successful deploy");
       }
 
-      if (!redeployResult.result.token.address) {
-        return assert.fail("Unable to retrieve the token contract result");
-      }
-
       assert.equal(
         redeployResult.result.token.address,
         "0x1F98431c8aD98523631AE4a59f267346ea31F984"
@@ -205,7 +200,7 @@ describe("Rerunning execution", () => {
             getArtifact: () => tokenArtifact,
           },
           transactions: {
-            wait: (tx) => {
+            wait: (tx: string) => {
               sentTransactionCount++;
 
               if (tx === "0x00001") {
@@ -281,10 +276,6 @@ describe("Rerunning execution", () => {
         return assert.fail("Not a successful deploy");
       }
 
-      if (!redeployResult.result.token.address) {
-        return assert.fail("Unable to retrieve the token contract result");
-      }
-
       assert.equal(
         redeployResult.result.token.address,
         "0x1F98431c8aD98523631AE4a59f267346ea31F984"
@@ -325,7 +316,7 @@ describe("Rerunning execution", () => {
   });
 
   describe("when a deployment fails", () => {
-    let sentTransactionCount;
+    let sentTransactionCount: number;
     let ignition: Ignition;
     let myModule: any;
 
@@ -358,11 +349,11 @@ describe("Rerunning execution", () => {
                   configureCallErroredBefore = true;
                   throw new Error("Revert: All the apes have gone!");
                 } else {
-                  return `0x0000${this.contractCount}`;
+                  return `0x0000${this.transactionCount}`;
                 }
               }
 
-              return `0x0000${this.contractCount}`;
+              return `0x0000${this.transactionCount}`;
             },
           },
           transactions: {
@@ -424,10 +415,6 @@ describe("Rerunning execution", () => {
       assert.equal(redeployResult._kind, "success");
       if (redeployResult._kind !== "success") {
         return assert.fail("Not a successful deploy");
-      }
-
-      if (!redeployResult.result.token.address) {
-        return assert.fail("Unable to retrieve the token contract result");
       }
 
       assert.equal(

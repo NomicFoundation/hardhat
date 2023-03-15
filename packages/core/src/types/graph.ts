@@ -54,4 +54,7 @@ export type VisitResult<T> =
       holds: VertexDescriptor[];
     };
 
-export type ResultsAccumulator<T> = Map<number, VertexVisitResult<T> | null>;
+export type ResultsAccumulator<T> = Map<
+  number,
+  VertexVisitResult<T> | undefined
+>;

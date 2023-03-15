@@ -3,15 +3,14 @@ import { assert } from "chai";
 import { ethers } from "ethers";
 import sinon from "sinon";
 
-import { Deployment } from "deployment/Deployment";
-import { ExecutionGraph } from "execution/ExecutionGraph";
-import { execute } from "execution/execute";
-import { Services, TransactionOptions } from "services/types";
-import { ExecutionVertex } from "types/executionGraph";
-import { VertexResultEnum } from "types/graph";
-import { Artifact } from "types/hardhat";
-import { ICommandJournal } from "types/journal";
-
+import { Deployment } from "../../src/deployment/Deployment";
+import { ExecutionGraph } from "../../src/execution/ExecutionGraph";
+import { execute } from "../../src/execution/execute";
+import { Services, TransactionOptions } from "../../src/services/types";
+import { ExecutionVertex } from "../../src/types/executionGraph";
+import { VertexResultEnum } from "../../src/types/graph";
+import { Artifact } from "../../src/types/hardhat";
+import { ICommandJournal } from "../../src/types/journal";
 import { buildAdjacencyListFrom } from "../graph/helpers";
 import { getMockServices } from "../helpers";
 
@@ -463,7 +462,7 @@ async function runExecuteOnSingleVertex(
   const mockUpdateUiAction = () => {};
   const mockJournal: ICommandJournal = {
     record: async () => {},
-    read: () => null,
+    async *read() {},
   };
 
   const deployment = new Deployment(
@@ -482,7 +481,7 @@ async function runExecuteOnDependentVertex(
   vertexes: ExecutionVertex[],
   mockServices: Services
 ) {
-  const obj = {};
+  const obj: { [key: number]: number[] } = {};
   const len = vertexes.length;
   for (let i = 0; i < len; i++) {
     obj[i] = i === len - 1 ? [] : [i + 1];
@@ -498,7 +497,7 @@ async function runExecuteOnDependentVertex(
   const mockUpdateUiAction = () => {};
   const mockJournal: ICommandJournal = {
     record: async () => {},
-    read: () => null,
+    async *read() {},
   };
 
   const deployment = new Deployment(

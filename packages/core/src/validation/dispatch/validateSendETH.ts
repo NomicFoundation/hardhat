@@ -1,13 +1,13 @@
 import { ethers, BigNumber } from "ethers";
 
-import { SendVertex } from "types/deploymentGraph";
-import { VertexResultEnum } from "types/graph";
+import { SendVertex } from "../../types/deploymentGraph";
+import { VertexResultEnum } from "../../types/graph";
 import {
   ValidationDispatchContext,
   ValidationResultsAccumulator,
   ValidationVertexVisitResult,
-} from "types/validation";
-import { isParameter } from "utils/guards";
+} from "../../types/validation";
+import { isParameter } from "../../utils/guards";
 
 import { buildValidationError } from "./helpers";
 

@@ -143,20 +143,29 @@ export function getActions(graph: VertexGraph): string {
 }
 
 export function getParams(vertex: VertexDescriptor): string {
-  if (!vertex?.args || vertex.args.length === 0) {
+  if (vertex?.args === undefined || vertex.args.length === 0) {
     return "None";
   }
 
   const items = vertex.args
-    .map((a: any) => {
-      return `<li>${
-        a.defaultValue ?? a._future
-          ? `Future &lt; ${a.label} &gt; ${
-              a.type === "contract" ? "address" : a.type
-            } parameter`
-          : a
-      }</li>`;
-    })
+    .map(
+      (a: {
+        defaultValue: string;
+        _future: boolean;
+        label: string;
+        type: string;
+        toString: () => string;
+      }) => {
+        return `<li>${
+          a.defaultValue ??
+          (a._future
+            ? `Future &lt; ${a.label} &gt; ${
+                a.type === "contract" ? "address" : a.type
+              } parameter`
+            : a.toString())
+        }</li>`;
+      }
+    )
     .join("\n");
 
   return `

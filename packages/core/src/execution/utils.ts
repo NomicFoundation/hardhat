@@ -1,8 +1,8 @@
 import hash from "object-hash";
 
-import { ExecutionGraph } from "execution/ExecutionGraph";
-import { getDependenciesFor } from "graph/adjacencyList";
-import { serializeReplacer } from "utils/serialize";
+import { ExecutionGraph } from "../execution/ExecutionGraph";
+import { getDependenciesFor } from "../graph/adjacencyList";
+import { serializeReplacer } from "../utils/serialize";
 
 export function allDependenciesCompleted(
   vertexId: number,

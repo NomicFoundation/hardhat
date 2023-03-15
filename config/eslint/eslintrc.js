@@ -1,14 +1,4 @@
 module.exports = {
-  settings: {
-    "import/resolver": {
-      typescript: {
-        project: [
-          "packages/core/tsconfig.json",
-          "packages/hardhat-plugin/tsconfig.json",
-        ],
-      },
-    },
-  },
   env: {
     browser: false,
     es6: true,
@@ -16,16 +6,13 @@ module.exports = {
   },
   extends: ["plugin:prettier/recommended"],
   parser: "@typescript-eslint/parser",
-  parserOptions: {
-    project: "./tsconfig.json",
-    tsConfigRootDir: "./",
-  },
-  plugins: ["eslint-plugin-import", "@typescript-eslint", "mocha"],
+  plugins: [
+    "@nomiclabs/eslint-plugin-hardhat-internal-rules",
+    "eslint-plugin-import",
+    "no-only-tests",
+    "@typescript-eslint",
+  ],
   rules: {
-    "import/no-unused-modules": [
-      1,
-      { unusedExports: true, missingExports: true },
-    ],
     "@typescript-eslint/adjacent-overload-signatures": "error",
     "@typescript-eslint/array-type": [
       "error",
@@ -88,7 +75,7 @@ module.exports = {
         trailingUnderscore: "allow",
       },
       {
-        selector: "classProperty",
+        selector: ["classProperty"],
         format: ["camelCase", "UPPER_CASE"],
         leadingUnderscore: "allow",
       },
@@ -103,7 +90,11 @@ module.exports = {
         leadingUnderscore: "require",
       },
       {
-        selector: ["objectLiteralProperty", "objectLiteralMethod"],
+        selector: ["objectLiteralProperty"],
+        format: null,
+      },
+      {
+        selector: ["objectLiteralMethod"],
         format: ["camelCase", "PascalCase", "snake_case", "UPPER_CASE"],
         leadingUnderscore: "allow",
       },
@@ -115,6 +106,11 @@ module.exports = {
       {
         selector: "typeLike",
         format: ["PascalCase"],
+      },
+      {
+        selector: "typeProperty",
+        filter: "__hardhatContext",
+        format: null,
       },
     ],
     "@typescript-eslint/no-empty-interface": "error",
@@ -141,12 +137,22 @@ module.exports = {
     "@typescript-eslint/prefer-function-type": "error",
     "@typescript-eslint/prefer-namespace-keyword": "error",
     "@typescript-eslint/restrict-plus-operands": "error",
-    "@typescript-eslint/strict-boolean-expressions": [
+    "@typescript-eslint/restrict-template-expressions": [
       "error",
       {
         allowAny: true,
       },
     ],
+    "@typescript-eslint/strict-boolean-expressions": [
+      "error",
+      {
+        allowString: false,
+        allowNumber: false,
+        allowNullableObject: false,
+        allowAny: false,
+      },
+    ],
+    "@typescript-eslint/switch-exhaustiveness-check": "error",
     "@typescript-eslint/triple-slash-reference": [
       "error",
       {
@@ -175,6 +181,7 @@ module.exports = {
           order: "asc",
         },
         groups: [
+          "type",
           "object",
           ["builtin", "external"],
           "internal",
@@ -185,10 +192,10 @@ module.exports = {
         "newlines-between": "always",
       },
     ],
+    "import/no-default-export": "error",
     "no-bitwise": "error",
     "no-caller": "error",
     "no-cond-assign": "error",
-    "no-return-assign": ["error", "always"],
     "no-debugger": "error",
     "no-duplicate-case": "error",
     "no-duplicate-imports": "error",
@@ -196,7 +203,9 @@ module.exports = {
     "no-extra-bind": "error",
     "no-new-func": "error",
     "no-new-wrappers": "error",
+    "no-only-tests/no-only-tests": "error",
     "no-return-await": "off",
+    "@typescript-eslint/return-await": "error",
     "no-sequences": "error",
     "no-sparse-arrays": "error",
     "no-template-curly-in-string": "error",
@@ -220,7 +229,11 @@ module.exports = {
       },
     ],
     "use-isnan": "error",
-    "mocha/no-skipped-tests": "error",
-    "mocha/no-exclusive-tests": "error",
+    "no-restricted-imports": [
+      "error",
+      {
+        patterns: ["hardhat/src", "@nomiclabs/*/src"],
+      },
+    ],
   },
 };

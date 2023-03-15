@@ -1,12 +1,12 @@
+import type { TransactionOptions } from "./types";
+
 import setupDebug from "debug";
 import { ethers } from "ethers";
 
-import { GasProvider, TransactionsProvider } from "types/providers";
-import { IgnitionError } from "utils/errors";
-import { sleep } from "utils/sleep";
-import { TxSender } from "utils/tx-sender";
-
-import type { TransactionOptions } from "./types";
+import { GasProvider, TransactionsProvider } from "../types/providers";
+import { IgnitionError } from "../utils/errors";
+import { sleep } from "../utils/sleep";
+import { TxSender } from "../utils/tx-sender";
 
 export interface IContractsService {
   sendTx(
@@ -117,14 +117,15 @@ export class ContractsService implements IContractsService {
     if (previousTx.gasPrice !== undefined) {
       // Increase 10%, and add 1 to be sure it's at least rounded up
       // or add by user's config value if present
-      const newGasPrice = gasPriceIncrementPerRetry
-        ? ethers.BigNumber.from(previousTx.gasPrice).add(
-            gasPriceIncrementPerRetry
-          )
-        : ethers.BigNumber.from(previousTx.gasPrice)
-            .mul(110000)
-            .div(100000)
-            .add(1);
+      const newGasPrice =
+        gasPriceIncrementPerRetry !== null
+          ? ethers.BigNumber.from(previousTx.gasPrice).add(
+              gasPriceIncrementPerRetry
+            )
+          : ethers.BigNumber.from(previousTx.gasPrice)
+              .mul(110000)
+              .div(100000)
+              .add(1);
 
       return {
         ...previousTxRequest,

@@ -1,19 +1,20 @@
 /* eslint-disable import/no-unused-modules */
+import type { IDeploymentBuilder } from "../src/types/deploymentGraph";
+
 import { assert } from "chai";
 import { ethers } from "ethers";
 import sinon from "sinon";
 
-import { buildModule } from "dsl/buildModule";
-import { buildSubgraph } from "dsl/buildSubgraph";
-import { generateDeploymentGraphFrom } from "process/generateDeploymentGraphFrom";
-import { Services } from "services/types";
-import type { IDeploymentBuilder } from "types/deploymentGraph";
-import { ArtifactContract } from "types/future";
-import { Artifact } from "types/hardhat";
-import { Module, ModuleDict } from "types/module";
-import { ValidationVisitResult } from "types/validation";
-import { IgnitionValidationError } from "utils/errors";
-import { validateDeploymentGraph } from "validation/validateDeploymentGraph";
+import { buildModule } from "../src/dsl/buildModule";
+import { buildSubgraph } from "../src/dsl/buildSubgraph";
+import { generateDeploymentGraphFrom } from "../src/process/generateDeploymentGraphFrom";
+import { Services } from "../src/services/types";
+import { ArtifactContract } from "../src/types/future";
+import { Artifact } from "../src/types/hardhat";
+import { Module, ModuleDict } from "../src/types/module";
+import { ValidationVisitResult } from "../src/types/validation";
+import { IgnitionValidationError } from "../src/utils/errors";
+import { validateDeploymentGraph } from "../src/validation/validateDeploymentGraph";
 
 import { getMockServices } from "./helpers";
 

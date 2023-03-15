@@ -1,5 +1,5 @@
-import { Deployment } from "deployment/Deployment";
-import { ICommandJournal } from "types/journal";
+import { Deployment } from "../deployment/Deployment";
+import { ICommandJournal } from "../types/journal";
 
 /**
  * Update the deployment execution state with the previous runs in the journal.

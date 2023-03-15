@@ -1,14 +1,15 @@
 /* eslint-disable import/no-unused-modules */
-import { assert } from "chai";
-import { ethers } from "ethers";
-
-import { buildModule } from "dsl/buildModule";
-import { generateDeploymentGraphFrom } from "process/generateDeploymentGraphFrom";
 import type {
   IDeploymentGraph,
   IDeploymentBuilder,
-} from "types/deploymentGraph";
-import { isCall, isHardhatContract } from "utils/guards";
+} from "../../src/types/deploymentGraph";
+
+import { assert } from "chai";
+import { ethers } from "ethers";
+
+import { buildModule } from "../../src/dsl/buildModule";
+import { generateDeploymentGraphFrom } from "../../src/process/generateDeploymentGraphFrom";
+import { isCall, isHardhatContract } from "../../src/utils/guards";
 
 import { getDeploymentVertexByLabel } from "./helpers";
 
@@ -45,7 +46,10 @@ describe("deployment builder - accounts", () => {
   it("should default to the first account if not given a from parameter", () => {
     const depNode = getDeploymentVertexByLabel(deploymentGraph, "Token");
 
-    assert.isDefined(depNode);
+    if (depNode === undefined) {
+      return assert.fail("depNode not retrieved");
+    }
+
     if (!isHardhatContract(depNode)) {
       return assert.fail("unknown error");
     }
@@ -56,7 +60,10 @@ describe("deployment builder - accounts", () => {
   it("should deploy with a given from address", () => {
     const depNode = getDeploymentVertexByLabel(deploymentGraph, "Exchange");
 
-    assert.isDefined(depNode);
+    if (depNode === undefined) {
+      return assert.fail("depNode not retrieved");
+    }
+
     if (!isHardhatContract(depNode)) {
       return assert.fail("unknown error");
     }
@@ -70,7 +77,10 @@ describe("deployment builder - accounts", () => {
       "Exchange/addToken"
     );
 
-    assert.isDefined(depNode);
+    if (depNode === undefined) {
+      return assert.fail("depNode not retrieved");
+    }
+
     if (!isCall(depNode)) {
       return assert.fail("unknown error");
     }

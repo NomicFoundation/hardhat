@@ -1,15 +1,16 @@
-import type { Deployment } from "deployment/Deployment";
-import { viewExecutionResults } from "deployment/utils";
-import type { Services } from "services/types";
-import type { ExecutionOptions, ExecutionState } from "types/deployment";
-import type { ExecutionVertexDispatcher } from "types/execution";
+import type { Deployment } from "../deployment/Deployment";
+import type { Services } from "../services/types";
+import type { ExecutionOptions, ExecutionState } from "../types/deployment";
+import type { ExecutionVertexDispatcher } from "../types/execution";
 import type {
   ExecutionResultsAccumulator,
   ExecutionVertexVisitResult,
   ExecutionVisitResult,
   ExecutionVertex,
-} from "types/executionGraph";
-import { IgnitionError } from "utils/errors";
+} from "../types/executionGraph";
+
+import { viewExecutionResults } from "../deployment/utils";
+import { IgnitionError } from "../utils/errors";
 
 import { ExecutionGraph } from "./ExecutionGraph";
 import { executionDispatch } from "./dispatch/executionDispatch";

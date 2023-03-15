@@ -1,4 +1,4 @@
 {
-  "require": ["ts-node/register/transpile-only", "tsconfig-paths/register"],
+  "require": ["ts-node/register/transpile-only"],
   "file": "./test/setup.ts"
 }

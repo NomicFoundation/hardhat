@@ -1,10 +1,11 @@
-import type { Services } from "services/types";
+import type { Services } from "../../services/types";
 import type {
   DeployedContract,
   ExecutionResultsAccumulator,
   ExecutionVertexVisitResult,
-} from "types/executionGraph";
-import { VertexResultEnum } from "types/graph";
+} from "../../types/executionGraph";
+
+import { VertexResultEnum } from "../../types/graph";
 
 import { resolveFrom, toAddress } from "./utils";
 

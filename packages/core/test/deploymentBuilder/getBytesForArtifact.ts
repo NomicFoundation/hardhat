@@ -1,10 +1,13 @@
 /* eslint-disable import/no-unused-modules */
 import { assert } from "chai";
 
-import { buildModule } from "dsl/buildModule";
-import { generateDeploymentGraphFrom } from "process/generateDeploymentGraphFrom";
-import { IDeploymentBuilder, IDeploymentGraph } from "types/deploymentGraph";
-import { isCall, isHardhatContract } from "utils/guards";
+import { buildModule } from "../../src/dsl/buildModule";
+import { generateDeploymentGraphFrom } from "../../src/process/generateDeploymentGraphFrom";
+import {
+  IDeploymentBuilder,
+  IDeploymentGraph,
+} from "../../src/types/deploymentGraph";
+import { isCall, isHardhatContract } from "../../src/utils/guards";
 
 import { getDeploymentVertexByLabel } from "./helpers";
 

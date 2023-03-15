@@ -12,8 +12,8 @@ This repository is a monorepo handled with `npm` workspaces.
 
 There are two packages:
 
-* [**core**](./packages/core/README.md) - containing the ignition library for orchestrating deployments
-* [**hardhat-plugin**](./packages/hardhat-plugin/README.md) - containing the Hardhat plugin wrapper for the core library
+- [**core**](./packages/core/README.md) - containing the ignition library for orchestrating deployments
+- [**hardhat-plugin**](./packages/hardhat-plugin/README.md) - containing the Hardhat plugin wrapper for the core library
 
 ## Design
 

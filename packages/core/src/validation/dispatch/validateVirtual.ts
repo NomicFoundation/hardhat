@@ -1,10 +1,10 @@
-import { DeploymentGraphVertex } from "types/deploymentGraph";
-import { VertexResultEnum } from "types/graph";
+import { DeploymentGraphVertex } from "../../types/deploymentGraph";
+import { VertexResultEnum } from "../../types/graph";
 import {
   ValidationDispatchContext,
   ValidationResultsAccumulator,
   ValidationVertexVisitResult,
-} from "types/validation";
+} from "../../types/validation";
 
 export async function validateVirtual(
   _deploymentVertex: DeploymentGraphVertex,

@@ -1,12 +1,12 @@
 import { isAddress } from "@ethersproject/address";
 
-import { DeployedContractDeploymentVertex } from "types/deploymentGraph";
-import { VertexResultEnum } from "types/graph";
+import { DeployedContractDeploymentVertex } from "../../types/deploymentGraph";
+import { VertexResultEnum } from "../../types/graph";
 import {
   ValidationDispatchContext,
   ValidationResultsAccumulator,
   ValidationVertexVisitResult,
-} from "types/validation";
+} from "../../types/validation";
 
 import { buildValidationError } from "./helpers";
 

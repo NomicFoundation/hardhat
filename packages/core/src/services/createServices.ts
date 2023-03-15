@@ -1,7 +1,7 @@
 import { ethers } from "ethers";
 
-import { Providers } from "types/providers";
-import { TxSender } from "utils/tx-sender";
+import { Providers } from "../types/providers";
+import { TxSender } from "../utils/tx-sender";
 
 import { AccountsService } from "./AccountsService";
 import { ArtifactsService } from "./ArtifactsService";

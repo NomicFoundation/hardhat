@@ -2,11 +2,10 @@ import {
   DeployState,
   ExecutionVertex,
   viewExecutionResults,
-  IgnitionError,
 } from "@ignored/ignition-core";
 import { Box, Text } from "ink";
 
-import { DeploymentError, DeploymentHold } from "ui/types";
+import { DeploymentError, DeploymentHold } from "../../types";
 
 import { AddressResults } from "./AddressResults";
 import { Divider } from "./Divider";
@@ -190,14 +189,8 @@ const resolveFailureTypeFrom = (vertex: ExecutionVertex): string => {
       return "Failed awaited event";
     case "SentETH":
       return "Failed to send ETH";
-    default:
-      return assertNeverUiVertexType(vertex);
   }
 };
-
-function assertNeverUiVertexType(vertex: never): string {
-  throw new IgnitionError(`Unexpected ui vertex type ${vertex}`);
-}
 
 const DepError = ({
   deploymentError,

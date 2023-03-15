@@ -11,5 +11,5 @@ Currently our api isn't flexible enough to support direct cli use of `create2` f
 To run the hardhat tests using ignition:
 
 ```shell
-npm run test:examples
+npm run test
 ```

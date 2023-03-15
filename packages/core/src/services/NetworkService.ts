@@ -1,4 +1,4 @@
-import { Providers } from "types/providers";
+import { Providers } from "../types/providers";
 
 export interface INetworkService {
   getChainId(): Promise<number>;

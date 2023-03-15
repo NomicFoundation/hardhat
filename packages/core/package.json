@@ -18,23 +18,23 @@
   "engines": {
     "node": "^14.0.0 || ^16.0.0 || ^18.0.0"
   },
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "main": "dist/src/index.js",
+  "types": "dist/src/index.d.ts",
   "scripts": {
-    "build": "tsc --build && node post-build.js",
+    "build": "tsc --build",
     "lint": "npm run prettier -- --check && npm run eslint",
     "lint:fix": "npm run prettier -- --write && npm run eslint -- --fix",
     "eslint": "eslint \"src/**/*.{ts,tsx}\" \"test/**/*.{ts,tsx}\"",
-    "prettier": "prettier \"**/*.{js,md,json}\"",
+    "prettier": "prettier \"**/*.{js,ts,md,json}\"",
     "test": "mocha --recursive \"test/**/*.ts\"",
     "test:debug": "DEBUG='ignition:*' npm run test",
     "test:build": "tsc --project ./test/",
-    "ui-samples": "TS_NODE_TRANSPILE_ONLY=1 ts-node ui-samples/index.tsx",
     "test:coverage": "nyc mocha --recursive \"test/**/*.ts\"",
     "clean": "rimraf .nyc_output coverage dist tsconfig.tsbuildinfo"
   },
   "devDependencies": {
     "@istanbuljs/nyc-config-typescript": "1.0.2",
+    "@nomiclabs/eslint-plugin-hardhat-internal-rules": "^1.0.2",
     "@types/chai": "^4.2.22",
     "@types/chai-as-promised": "^7.1.5",
     "@types/debug": "^4.1.7",
@@ -54,6 +54,7 @@
     "eslint-import-resolver-typescript": "^3.5.1",
     "eslint-plugin-import": "2.24.2",
     "eslint-plugin-mocha": "^9.0.0",
+    "eslint-plugin-no-only-tests": "3.1.0",
     "eslint-plugin-prettier": "4.0.0",
     "fast-glob": "^3.2.12",
     "mocha": "^9.1.3",
@@ -62,8 +63,7 @@
     "rimraf": "3.0.2",
     "sinon": "^12.0.1",
     "tmp": "^0.2.1",
-    "ts-node": "10.8.1",
-    "tsconfig-paths": "^4.1.0",
+    "ts-node": "10.9.1",
     "typescript": "^4.7.4"
   },
   "dependencies": {

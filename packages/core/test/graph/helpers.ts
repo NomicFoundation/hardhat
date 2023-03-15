@@ -2,7 +2,7 @@ import {
   addEdge,
   ensureVertex,
   constructEmptyAdjacencyList,
-} from "graph/adjacencyList";
+} from "../../src/graph/adjacencyList";
 
 export function constructAdjacencyList(
   edges: Array<{ from: number; to: number }>

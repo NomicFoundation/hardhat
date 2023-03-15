@@ -1,18 +1,22 @@
-import setupDebug from "debug";
-
-import { ExecutionGraph } from "execution/ExecutionGraph";
-import type { Services } from "services/types";
+import type { Services } from "../services/types";
 import type {
   DeployState,
   UpdateUiAction,
   DeployStateCommand,
   DeployStateExecutionCommand,
   DeployNetworkConfig,
-} from "types/deployment";
-import type { ExecutionVertexVisitResult } from "types/executionGraph";
-import type { VertexDescriptor, VertexVisitResultFailure } from "types/graph";
-import type { ICommandJournal } from "types/journal";
-import { IgnitionError } from "utils/errors";
+} from "../types/deployment";
+import type { ExecutionVertexVisitResult } from "../types/executionGraph";
+import type {
+  VertexDescriptor,
+  VertexVisitResultFailure,
+} from "../types/graph";
+import type { ICommandJournal } from "../types/journal";
+
+import setupDebug from "debug";
+
+import { ExecutionGraph } from "../execution/ExecutionGraph";
+import { IgnitionError } from "../utils/errors";
 
 import {
   initializeDeployState,
@@ -85,10 +89,13 @@ export class Deployment {
   }
 
   public setForceFlag(force: boolean) {
-    return this._runDeploymentCommand(`Force resolved as '${force}'`, {
-      type: "SET_FORCE_FLAG",
-      force,
-    });
+    return this._runDeploymentCommand(
+      `Force resolved as '${force.toString()}'`,
+      {
+        type: "SET_FORCE_FLAG",
+        force,
+      }
+    );
   }
 
   public startValidation() {
@@ -209,7 +216,7 @@ export class Deployment {
 
         return descriptor;
       })
-      .filter((x): x is VertexDescriptor => Boolean(x));
+      .filter((x): x is VertexDescriptor => x !== null);
   }
 
   public hasUnstarted(): boolean {

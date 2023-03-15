@@ -72,20 +72,23 @@ export async function assertDeploymentState<T extends ModuleDict>(
     for (const [futureId, futureResult] of Object.entries(moduleResult)) {
       const expectedFutureResult = expectedModule[futureId];
 
-      if (expectedFutureResult.kind === "contract") {
-        const contract = await assertContract(hre, futureResult);
+      switch (expectedFutureResult.kind) {
+        case "contract":
+          const contract = await assertContract(hre, futureResult);
 
-        await expectedFutureResult.predicate(contract);
-      } else if (expectedFutureResult.kind === "transaction") {
-        if (futureResult._kind !== "tx") {
-          assert.fail(
-            `Expected future result to be a transaction, but got ${futureResult._kind}`
-          );
-        }
-        assert.isDefined(futureResult.value.hash);
-        await assertTxMined(hre, futureResult.value.hash);
-      } else {
-        assertNeverFutureResult(expectedFutureResult);
+          await expectedFutureResult.predicate(contract);
+          break;
+        case "transaction":
+          if (futureResult._kind !== "tx") {
+            assert.fail(
+              `Expected future result to be a transaction, but got ${futureResult._kind}`
+            );
+          }
+
+          assert.isDefined(futureResult.value.hash);
+          await assertTxMined(hre, futureResult.value.hash);
+
+          break;
       }
     }
   }
@@ -215,8 +218,4 @@ export async function deployModule(
   const result = await deployPromise;
 
   return result;
-}
-
-function assertNeverFutureResult(expectedFutureResult: never) {
-  throw new Error(`Unexpected future result ${expectedFutureResult}`);
 }

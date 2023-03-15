@@ -87,8 +87,6 @@ const StatusBadge = ({ vertex }: { vertex: UiVertex }) => {
     case "RUNNING":
       badge = <Spinner />;
       break;
-    default:
-      return assertNeverVertexStatus(vertex.status);
   }
 
   return (
@@ -150,8 +148,6 @@ function resolveVertexColors(vertex: UiVertex): {
         borderStyle: "bold",
         textColor: "white",
       };
-    default:
-      return assertNeverVertexStatus(vertex.status);
   }
 }
 
@@ -213,7 +209,3 @@ const determineStatusOf = (
 
   throw new IgnitionError(`Unable to determine vertex status for ${vertexId}`);
 };
-
-function assertNeverVertexStatus(status: never): any {
-  throw new IgnitionError(`Unexpected vertex status ${status}`);
-}

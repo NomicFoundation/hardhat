@@ -2,12 +2,11 @@ import type {
   DeployState,
   DeployStateCommand,
   DeployStateExecutionCommand,
-} from "types/deployment";
+} from "../types/deployment";
 import type {
   ExecutionResultsAccumulator,
   ExecutionVertexVisitResult,
-} from "types/executionGraph";
-import { IgnitionError } from "utils/errors";
+} from "../types/executionGraph";
 
 export function isDeployStateExecutionCommand(
   command: DeployStateCommand
@@ -19,17 +18,13 @@ export function isDeployStateExecutionCommand(
   ].includes(command.type);
 }
 
-export function assertNeverMessageType(action: never) {
-  throw new IgnitionError(`Unexpected message type ${action}`);
-}
-
 export function viewExecutionResults(
   deployState: DeployState
 ): ExecutionResultsAccumulator {
-  const entries: Array<[number, ExecutionVertexVisitResult | null]> =
+  const entries: Array<[number, ExecutionVertexVisitResult | undefined]> =
     Object.entries(deployState.execution.vertexes).map(
       ([vertexId, vertexState]) => [parseInt(vertexId, 10), vertexState.result]
     );
 
-  return new Map<number, ExecutionVertexVisitResult | null>(entries);
+  return new Map<number, ExecutionVertexVisitResult | undefined>(entries);
 }

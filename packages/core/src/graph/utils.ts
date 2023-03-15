@@ -1,4 +1,4 @@
-import { IGraph } from "types/graph";
+import { IGraph } from "../types/graph";
 
 import { topologicalSort } from "./adjacencyList";
 

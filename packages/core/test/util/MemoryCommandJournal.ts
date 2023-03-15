@@ -1,5 +1,5 @@
-import { DeployStateExecutionCommand } from "types/deployment";
-import { ICommandJournal } from "types/journal";
+import { DeployStateExecutionCommand } from "../../src/types/deployment";
+import { ICommandJournal } from "../../src/types/journal";
 
 export class MemoryCommandJournal implements ICommandJournal {
   private entries: string[];

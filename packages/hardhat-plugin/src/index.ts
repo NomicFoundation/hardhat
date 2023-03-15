@@ -22,7 +22,7 @@ export interface IgnitionConfig {
   eventDuration: number;
 }
 
-const DISPLAY_UI = !Boolean(process.env.DEBUG);
+const DISPLAY_UI = process.env.DEBUG === undefined;
 
 /* ignition config defaults */
 const IGNITION_DIR = "ignition";
@@ -109,7 +109,7 @@ task("deploy")
           initial: false,
         });
 
-        if (!prompt.networkConfirmation) {
+        if (prompt.networkConfirmation !== true) {
           console.log("Deploy cancelled");
           return;
         }

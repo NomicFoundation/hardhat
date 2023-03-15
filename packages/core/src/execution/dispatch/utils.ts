@@ -1,9 +1,10 @@
 import type {
   ArgValue,
   ExecutionResultsAccumulator,
-} from "types/executionGraph";
-import { IgnitionError } from "utils/errors";
-import { isDependable, isEventParam, isProxy } from "utils/guards";
+} from "../../types/executionGraph";
+
+import { IgnitionError } from "../../utils/errors";
+import { isDependable, isEventParam, isProxy } from "../../utils/guards";
 
 export function toAddress(v: any) {
   if (typeof v === "object" && "address" in v) {
@@ -31,7 +32,7 @@ function resolveFromContext(
 
   const entry = context.get(arg.vertexId);
 
-  if (!entry) {
+  if (entry === undefined) {
     throw new IgnitionError(
       `No context entry for ${arg.vertexId} (${arg.label})`
     );

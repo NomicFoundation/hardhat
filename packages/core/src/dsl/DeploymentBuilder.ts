@@ -1,21 +1,3 @@
-import { BigNumber, ethers } from "ethers";
-import hash from "object-hash";
-
-import { addEdge, ensureVertex } from "graph/adjacencyList";
-import {
-  CallOptions,
-  ContractOptions,
-  InternalParamValue,
-  IDeploymentGraph,
-  IDeploymentBuilder,
-  DeploymentBuilderOptions,
-  DeploymentGraphVertex,
-  UseSubgraphOptions,
-  ScopeData,
-  AwaitOptions,
-  SendOptions,
-  CallPoints,
-} from "types/deploymentGraph";
 import type {
   DeploymentGraphFuture,
   HardhatContract,
@@ -40,20 +22,47 @@ import type {
   SendFuture,
   ContractFuture,
   AddressResolvable,
-} from "types/future";
-import type { Artifact } from "types/hardhat";
-import type { ModuleCache, ModuleDict, Subgraph } from "types/module";
-import { IgnitionError, IgnitionValidationError } from "utils/errors";
+} from "../types/future";
+import type { Artifact } from "../types/hardhat";
+import type { ModuleCache, ModuleDict, Subgraph } from "../types/module";
+
+import { BigNumber, ethers } from "ethers";
+import hash from "object-hash";
+
+import { addEdge, ensureVertex } from "../graph/adjacencyList";
+import {
+  CallOptions,
+  ContractOptions,
+  InternalParamValue,
+  IDeploymentGraph,
+  IDeploymentBuilder,
+  DeploymentBuilderOptions,
+  DeploymentGraphVertex,
+  UseSubgraphOptions,
+  ScopeData,
+  AwaitOptions,
+  SendOptions,
+  CallPoints,
+  HardhatContractDeploymentVertex,
+  ArtifactContractDeploymentVertex,
+  DeployedContractDeploymentVertex,
+  HardhatLibraryDeploymentVertex,
+  ArtifactLibraryDeploymentVertex,
+  CallDeploymentVertex,
+  EventVertex,
+  SendVertex,
+  VirtualVertex,
+} from "../types/deploymentGraph";
+import { IgnitionError, IgnitionValidationError } from "../utils/errors";
 import {
   assertModuleReturnTypes,
-  assertUnknownDeploymentVertexType,
   isArtifact,
   isCallable,
   isContract,
   isDependable,
   isParameter,
-} from "utils/guards";
-import { resolveProxyDependency } from "utils/proxy";
+} from "../utils/guards";
+import { resolveProxyDependency } from "../utils/proxy";
 
 import { DeploymentGraph } from "./DeploymentGraph";
 import { ScopeStack } from "./ScopeStack";
@@ -77,7 +86,7 @@ function parseEventParams(
 
   const abiEvent = abi.find((v) => v.type === "event" && v.name === eventName);
 
-  if (!abiEvent) {
+  if (abiEvent === undefined) {
     return {};
   }
 
@@ -605,104 +614,139 @@ export class DeploymentBuilder implements IDeploymentBuilder {
     callPoints: CallPoints,
     f: DeploymentApiPublicFunctions,
     depNode: DeploymentGraphVertex
-  ) {
+  ): void {
     DeploymentBuilder._captureCallPoint(callPoints, f, depNode.id);
 
     graph.vertexes.set(depNode.id, depNode);
+
     ensureVertex(graph.adjacencyList, depNode.id);
 
-    if (depNode.type === "HardhatContract") {
-      DeploymentBuilder._addEdgesBasedOn(depNode.args, graph, depNode);
-      DeploymentBuilder._addEdgesBasedOn(
-        Object.values(depNode.libraries),
-        graph,
-        depNode
-      );
-      DeploymentBuilder._addEdgesBasedOn(depNode.after, graph, depNode);
-      return;
+    switch (depNode.type) {
+      case "HardhatContract":
+        return DeploymentBuilder._addHardhatContractVertex(depNode, graph);
+      case "ArtifactContract":
+        return DeploymentBuilder._addArtifactContractVertex(depNode, graph);
+      case "DeployedContract":
+        return DeploymentBuilder._addDeployedContractVertex(depNode, graph);
+      case "HardhatLibrary":
+        return DeploymentBuilder._addHardhatLibraryVertex(depNode, graph);
+      case "ArtifactLibrary":
+        return DeploymentBuilder._addArtifactLibraryVertex(depNode, graph);
+      case "Call":
+        return DeploymentBuilder._addCallVertex(depNode, graph);
+      case "Event":
+        return DeploymentBuilder._addEventVertex(depNode, graph);
+      case "SendETH":
+        return DeploymentBuilder._addSendETHVertex(depNode, graph);
+      case "Virtual":
+        return DeploymentBuilder._addVirtualVertex(depNode, graph);
     }
+  }
 
-    if (depNode.type === "ArtifactContract") {
-      DeploymentBuilder._addEdgesBasedOn(depNode.args, graph, depNode);
-      DeploymentBuilder._addEdgesBasedOn(
-        Object.values(depNode.libraries),
-        graph,
-        depNode
-      );
-      DeploymentBuilder._addEdgesBasedOn(depNode.after, graph, depNode);
-      return;
-    }
+  private static _addVirtualVertex(
+    depNode: VirtualVertex,
+    graph: DeploymentGraph
+  ) {
+    DeploymentBuilder._addEdgesBasedOn(
+      Object.values(depNode.after),
+      graph,
+      depNode
+    );
+  }
 
-    if (depNode.type === "DeployedContract") {
-      DeploymentBuilder._addEdgesBasedOn(depNode.after, graph, depNode);
-      return;
-    }
+  private static _addSendETHVertex(
+    depNode: SendVertex,
+    graph: DeploymentGraph
+  ) {
+    DeploymentBuilder._addEdgeBasedOn(depNode.address, graph, depNode);
 
-    if (depNode.type === "HardhatLibrary") {
-      DeploymentBuilder._addEdgesBasedOn(depNode.args, graph, depNode);
-      DeploymentBuilder._addEdgesBasedOn(depNode.after, graph, depNode);
-      return;
-    }
+    DeploymentBuilder._addEdgesBasedOn(
+      Object.values(depNode.after),
+      graph,
+      depNode
+    );
+  }
 
-    if (depNode.type === "ArtifactLibrary") {
-      DeploymentBuilder._addEdgesBasedOn(depNode.args, graph, depNode);
-      DeploymentBuilder._addEdgesBasedOn(depNode.after, graph, depNode);
-      return;
-    }
+  private static _addEventVertex(depNode: EventVertex, graph: DeploymentGraph) {
+    DeploymentBuilder._addEdgeBasedOn(depNode.address, graph, depNode);
 
-    if (depNode.type === "Call") {
-      DeploymentBuilder._addEdgeBasedOn(depNode.contract, graph, depNode);
+    DeploymentBuilder._addEdgesBasedOn(
+      Object.values(depNode.args),
+      graph,
+      depNode
+    );
+    DeploymentBuilder._addEdgesBasedOn(
+      Object.values(depNode.after),
+      graph,
+      depNode
+    );
+  }
 
-      DeploymentBuilder._addEdgesBasedOn(
-        Object.values(depNode.args),
-        graph,
-        depNode
-      );
-      DeploymentBuilder._addEdgesBasedOn(
-        Object.values(depNode.after),
-        graph,
-        depNode
-      );
-      return;
-    }
+  private static _addCallVertex(
+    depNode: CallDeploymentVertex,
+    graph: DeploymentGraph
+  ) {
+    DeploymentBuilder._addEdgeBasedOn(depNode.contract, graph, depNode);
 
-    if (depNode.type === "Event") {
-      DeploymentBuilder._addEdgeBasedOn(depNode.address, graph, depNode);
+    DeploymentBuilder._addEdgesBasedOn(
+      Object.values(depNode.args),
+      graph,
+      depNode
+    );
+    DeploymentBuilder._addEdgesBasedOn(
+      Object.values(depNode.after),
+      graph,
+      depNode
+    );
+  }
 
-      DeploymentBuilder._addEdgesBasedOn(
-        Object.values(depNode.args),
-        graph,
-        depNode
-      );
-      DeploymentBuilder._addEdgesBasedOn(
-        Object.values(depNode.after),
-        graph,
-        depNode
-      );
-      return;
-    }
+  private static _addArtifactLibraryVertex(
+    depNode: ArtifactLibraryDeploymentVertex,
+    graph: DeploymentGraph
+  ) {
+    DeploymentBuilder._addEdgesBasedOn(depNode.args, graph, depNode);
+    DeploymentBuilder._addEdgesBasedOn(depNode.after, graph, depNode);
+  }
 
-    if (depNode.type === "SendETH") {
-      DeploymentBuilder._addEdgeBasedOn(depNode.address, graph, depNode);
+  private static _addHardhatLibraryVertex(
+    depNode: HardhatLibraryDeploymentVertex,
+    graph: DeploymentGraph
+  ) {
+    DeploymentBuilder._addEdgesBasedOn(depNode.args, graph, depNode);
+    DeploymentBuilder._addEdgesBasedOn(depNode.after, graph, depNode);
+  }
 
-      DeploymentBuilder._addEdgesBasedOn(
-        Object.values(depNode.after),
-        graph,
-        depNode
-      );
-      return;
-    }
+  private static _addDeployedContractVertex(
+    depNode: DeployedContractDeploymentVertex,
+    graph: DeploymentGraph
+  ) {
+    DeploymentBuilder._addEdgesBasedOn(depNode.after, graph, depNode);
+  }
 
-    if (depNode.type === "Virtual") {
-      DeploymentBuilder._addEdgesBasedOn(
-        Object.values(depNode.after),
-        graph,
-        depNode
-      );
-      return;
-    }
+  private static _addArtifactContractVertex(
+    depNode: ArtifactContractDeploymentVertex,
+    graph: DeploymentGraph
+  ) {
+    DeploymentBuilder._addEdgesBasedOn(depNode.args, graph, depNode);
+    DeploymentBuilder._addEdgesBasedOn(
+      Object.values(depNode.libraries),
+      graph,
+      depNode
+    );
+    DeploymentBuilder._addEdgesBasedOn(depNode.after, graph, depNode);
+  }
 
-    assertUnknownDeploymentVertexType(depNode);
+  private static _addHardhatContractVertex(
+    depNode: HardhatContractDeploymentVertex,
+    graph: DeploymentGraph
+  ) {
+    DeploymentBuilder._addEdgesBasedOn(depNode.args, graph, depNode);
+    DeploymentBuilder._addEdgesBasedOn(
+      Object.values(depNode.libraries),
+      graph,
+      depNode
+    );
+    DeploymentBuilder._addEdgesBasedOn(depNode.after, graph, depNode);
   }
 
   private static _addEdgesBasedOn(

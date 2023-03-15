@@ -1,7 +1,4 @@
-import type { BigNumber } from "ethers";
-
-import type { Services } from "services/types";
-
+import type { Services } from "../services/types";
 import type {
   ExecutionVertex,
   ExecutionVertexVisitResult,
@@ -15,6 +12,7 @@ import type {
 } from "./graph";
 import type { ModuleDict, ModuleParams } from "./module";
 import type { SerializedDeploymentResult } from "./serialization";
+import type { BigNumber } from "ethers";
 
 export type UpdateUiAction = (deployState: DeployState) => void;
 export type UiParamsClosure = (moduleParams?: ModuleParams) => UpdateUiAction;
@@ -95,12 +93,12 @@ export type VertexExecutionStatus =
 
 export interface VertexExecutionStateRunning {
   status: VertexExecutionStatusUnstarted;
-  result: null;
+  result: undefined;
 }
 
 export interface VertexExecutionStateUnstarted {
   status: VertexExecutionStatusRunning;
-  result: null;
+  result: undefined;
 }
 
 export interface VertexExecutionStateCompleted {
@@ -115,7 +113,7 @@ export interface VertexExecutionStateFailed {
 
 export interface VertexExecutionStateHold {
   status: VertexExecutionStatusHold;
-  result: null;
+  result: undefined;
 }
 
 export type VertexExecutionState =

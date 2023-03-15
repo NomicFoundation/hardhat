@@ -1,7 +1,7 @@
 import { DeployState, viewExecutionResults } from "@ignored/ignition-core";
 import { Box, Spacer, Text } from "ink";
 
-import { AddressMap } from "ui/types";
+import { AddressMap } from "../../types";
 
 import { NetworkInfo } from "./NetworkInfo";
 
@@ -39,7 +39,7 @@ const resolveDeployAddresses = (deployState: DeployState) => {
 
   for (const value of viewExecutionResults(deployState).values()) {
     if (
-      value !== null &&
+      value !== undefined &&
       value._kind === "success" &&
       "name" in value.result &&
       "address" in value.result

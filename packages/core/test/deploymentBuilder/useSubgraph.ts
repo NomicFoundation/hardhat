@@ -1,15 +1,16 @@
 /* eslint-disable import/no-unused-modules */
-import { assert } from "chai";
-
-import { buildModule } from "dsl/buildModule";
-import { buildSubgraph } from "dsl/buildSubgraph";
-import { generateDeploymentGraphFrom } from "process/generateDeploymentGraphFrom";
 import type {
   IDeploymentGraph,
   IDeploymentBuilder,
-} from "types/deploymentGraph";
-import { IgnitionError } from "utils/errors";
-import { isCallable } from "utils/guards";
+} from "../../src/types/deploymentGraph";
+
+import { assert } from "chai";
+
+import { buildModule } from "../../src/dsl/buildModule";
+import { buildSubgraph } from "../../src/dsl/buildSubgraph";
+import { generateDeploymentGraphFrom } from "../../src/process/generateDeploymentGraphFrom";
+import { IgnitionError } from "../../src/utils/errors";
+import { isCallable } from "../../src/utils/guards";
 
 import {
   getDependenciesForVertex,

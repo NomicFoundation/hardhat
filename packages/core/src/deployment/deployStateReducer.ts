@@ -1,14 +1,14 @@
-import { ExecutionGraph } from "execution/ExecutionGraph";
 import type {
   DeployPhase,
   DeployState,
   ExecutionState,
   DeployStateCommand,
   VertexExecutionState,
-} from "types/deployment";
+} from "../types/deployment";
+
+import { ExecutionGraph } from "../execution/ExecutionGraph";
 
 import { deployExecutionStateReducer } from "./deployExecutionStateReducer";
-import { assertNeverMessageType } from "./utils";
 
 export function initializeDeployState(moduleName: string): DeployState {
   return {
@@ -149,9 +149,6 @@ export function deployStateReducer(
         phase: resolvePhaseFrom(updatedExecution),
         execution: updatedExecution,
       };
-    default:
-      assertNeverMessageType(action);
-      return state;
   }
 }
 
@@ -168,7 +165,7 @@ function initialiseExecutionStateFrom(
       return { ...acc, [id]: previousExecutionState.vertexes[id] };
     }
 
-    return { ...acc, [id]: { status: "UNSTARTED", result: null } };
+    return { ...acc, [id]: { status: "UNSTARTED", result: undefined } };
   }, {});
 
   const executionState: ExecutionState = {

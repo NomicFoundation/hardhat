@@ -1,12 +1,12 @@
 import { ethers } from "ethers";
 
-import { HardhatLibraryDeploymentVertex } from "types/deploymentGraph";
-import { VertexResultEnum } from "types/graph";
+import { HardhatLibraryDeploymentVertex } from "../../types/deploymentGraph";
+import { VertexResultEnum } from "../../types/graph";
 import {
   ValidationDispatchContext,
   ValidationResultsAccumulator,
   ValidationVertexVisitResult,
-} from "types/validation";
+} from "../../types/validation";
 
 import { buildValidationError, validateBytesForArtifact } from "./helpers";
 

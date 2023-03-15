@@ -1,6 +1,6 @@
-import { DeploymentGraph } from "dsl/DeploymentGraph";
-import { eliminate } from "graph/adjacencyList";
-import { DeploymentGraphVertex } from "types/deploymentGraph";
+import { DeploymentGraph } from "../../dsl/DeploymentGraph";
+import { eliminate } from "../../graph/adjacencyList";
+import { DeploymentGraphVertex } from "../../types/deploymentGraph";
 
 /**
  * Deployment graphs can have virtual vertex that represent the

@@ -1,12 +1,13 @@
 /* eslint-disable import/no-unused-modules */
+import type { TxSender } from "../src/utils/tx-sender";
+
 import { assert } from "chai";
 import { ethers } from "ethers";
 
 import {
   ContractsService,
   ContractsServiceProviders,
-} from "services/ContractsService";
-import type { TxSender } from "utils/tx-sender";
+} from "../src/services/ContractsService";
 
 const txSender: TxSender = {
   async send(..._) {
@@ -18,6 +19,25 @@ const txSender: TxSender = {
 } as TxSender;
 
 const providersFake = {
+  signersProvider: {
+    async getDefaultSigner() {
+      return {
+        async sendTransaction(_: {}) {
+          return {
+            hash: "",
+            blockHash: "",
+            blockNumber: 0,
+            nonce: 0,
+            gasLimit: 100,
+            confirmations: 0,
+            chainId: 0,
+            data: "",
+            from: "",
+          } as unknown as ethers.providers.TransactionResponse;
+        },
+      };
+    },
+  },
   web3Provider: {
     n: 0,
     async getBlockNumber() {
@@ -34,15 +54,15 @@ const providersFake = {
     },
   },
   transactionsProvider: {
-    async isConfirmed(_) {
+    async isConfirmed(_: {}) {
       return false;
     },
-    async isMined(_) {
+    async isMined(_: {}) {
       return false;
     },
   },
   gasProvider: {
-    async estimateGasLimit(_) {
+    async estimateGasLimit(_: {}) {
       return ethers.BigNumber.from(0);
     },
     async estimateGasPrice() {

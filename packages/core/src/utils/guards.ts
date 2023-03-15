@@ -1,5 +1,3 @@
-import { BigNumber } from "ethers";
-
 import type {
   DeploymentGraphVertex,
   HardhatContractDeploymentVertex,
@@ -10,7 +8,7 @@ import type {
   ArtifactLibraryDeploymentVertex,
   EventVertex,
   InternalParamValue,
-} from "types/deploymentGraph";
+} from "../types/deploymentGraph";
 import type {
   CallableFuture,
   DependableFuture,
@@ -22,9 +20,12 @@ import type {
   BytesFuture,
   EventParamFuture,
   ContractFuture,
-} from "types/future";
-import { Artifact } from "types/hardhat";
-import { ModuleDict } from "types/module";
+} from "../types/future";
+
+import { BigNumber } from "ethers";
+
+import { Artifact } from "../types/hardhat";
+import { ModuleDict } from "../types/module";
 
 import { IgnitionError } from "./errors";
 
@@ -167,14 +168,4 @@ export function assertModuleReturnTypes<T extends ModuleDict>(moduleResult: T) {
       `Cannot return Future of type "${future.type}" from a module`
     );
   }
-}
-
-export function assertUnknownDeploymentVertexType(
-  deploymentVertex: never
-): never {
-  const vertex = deploymentVertex as any;
-
-  const forReport = "type" in vertex ? vertex.type : vertex;
-
-  throw new IgnitionError(`Unknown deployment vertex type: ${forReport}`);
 }

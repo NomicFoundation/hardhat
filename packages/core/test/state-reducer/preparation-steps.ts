@@ -4,10 +4,10 @@ import { assert } from "chai";
 import {
   deployStateReducer,
   initializeDeployState,
-} from "deployment/deployStateReducer";
-import { buildModule } from "dsl/buildModule";
-import { DeployState } from "types/deployment";
-import { IExecutionGraph } from "types/executionGraph";
+} from "../../src/deployment/deployStateReducer";
+import { buildModule } from "../../src/dsl/buildModule";
+import { DeployState } from "../../src/types/deployment";
+import { IExecutionGraph } from "../../src/types/executionGraph";
 
 import { applyActions, resolveExecutionGraphFor } from "./utils";
 
@@ -123,7 +123,10 @@ describe("deployment state reducer", () => {
       });
 
       it("should set the execution graph", () => {
-        assert.isDefined(state.transform.executionGraph);
+        if (state.transform.executionGraph === null) {
+          assert.fail();
+        }
+
         assert.equal(state.transform.executionGraph.vertexes.size, 1);
       });
     });

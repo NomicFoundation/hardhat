@@ -1,14 +1,9 @@
 {
-  "extends": "../tsconfig.settings.json",
-  "references": [{ "path": "../core" }],
+  "extends": "../../config/typescript/tsconfig.json",
   "compilerOptions": {
-    "composite": true,
     "outDir": "dist",
-    "rootDir": "src",
-    "baseUrl": "src",
-    "jsx": "react-jsx",
-    "lib": ["es2021", "DOM", "DOM.Iterable"],
-    "skipLibCheck": true
+    "composite": true,
+    "jsx": "react-jsx"
   },
-  "include": ["src"]
+  "references": [{ "path": "../core" }]
 }

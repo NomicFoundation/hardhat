@@ -1,18 +1,19 @@
 /* eslint-disable import/no-unused-modules */
-import { assert } from "chai";
-
-import { buildModule } from "dsl/buildModule";
-import { generateDeploymentGraphFrom } from "process/generateDeploymentGraphFrom";
 import type {
   IDeploymentGraph,
   IDeploymentBuilder,
-} from "types/deploymentGraph";
-import { Artifact } from "types/hardhat";
+} from "../../src/types/deploymentGraph";
+
+import { assert } from "chai";
+
+import { buildModule } from "../../src/dsl/buildModule";
+import { generateDeploymentGraphFrom } from "../../src/process/generateDeploymentGraphFrom";
+import { Artifact } from "../../src/types/hardhat";
 import {
   isArtifactContract,
   isDeployedContract,
   isHardhatContract,
-} from "utils/guards";
+} from "../../src/utils/guards";
 
 import {
   getDependenciesForVertex,

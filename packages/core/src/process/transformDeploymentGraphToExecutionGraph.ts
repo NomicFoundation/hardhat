@@ -1,9 +1,12 @@
-import { ExecutionGraph } from "execution/ExecutionGraph";
-import { clone } from "graph/adjacencyList";
-import { Services } from "services/types";
-import { IDeploymentGraph, DeploymentGraphVertex } from "types/deploymentGraph";
-import { ExecutionVertex, IExecutionGraph } from "types/executionGraph";
-import { TransformResult } from "types/process";
+import { ExecutionGraph } from "../execution/ExecutionGraph";
+import { clone } from "../graph/adjacencyList";
+import { Services } from "../services/types";
+import {
+  IDeploymentGraph,
+  DeploymentGraphVertex,
+} from "../types/deploymentGraph";
+import { ExecutionVertex, IExecutionGraph } from "../types/executionGraph";
+import { TransformResult } from "../types/process";
 
 import { convertDeploymentVertexToExecutionVertex as convertDeploymentVertexToExecutionVertex } from "./transform/convertDeploymentVertexToExecutionVertex";
 import { reduceDeploymentGraphByEliminatingVirtualVertexes } from "./transform/reduceDeploymentGraphByEliminatingVirtualVertexes";

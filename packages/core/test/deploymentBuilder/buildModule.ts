@@ -1,9 +1,9 @@
 /* eslint-disable import/no-unused-modules */
 import { assert } from "chai";
 
-import { buildModule } from "dsl/buildModule";
-import { generateDeploymentGraphFrom } from "process/generateDeploymentGraphFrom";
-import { IgnitionError } from "utils/errors";
+import { buildModule } from "../../src/dsl/buildModule";
+import { generateDeploymentGraphFrom } from "../../src/process/generateDeploymentGraphFrom";
+import { IgnitionError } from "../../src/utils/errors";
 
 describe("deployment builder - buildModule", () => {
   it("should throw if build module is given an async callback", () => {

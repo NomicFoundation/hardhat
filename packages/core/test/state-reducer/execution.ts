@@ -4,10 +4,10 @@ import { assert } from "chai";
 import {
   deployStateReducer,
   initializeDeployState,
-} from "deployment/deployStateReducer";
-import { buildModule } from "dsl/buildModule";
-import { DeployState } from "types/deployment";
-import { VertexResultEnum } from "types/graph";
+} from "../../src/deployment/deployStateReducer";
+import { buildModule } from "../../src/dsl/buildModule";
+import { DeployState } from "../../src/types/deployment";
+import { VertexResultEnum } from "../../src/types/graph";
 
 import { applyActions, resolveExecutionGraphFor } from "./utils";
 
@@ -67,19 +67,19 @@ describe("deployment state reducer", () => {
       assert.deepStrictEqual(state.execution.vertexes, {
         "0": {
           status: "UNSTARTED",
-          result: null,
+          result: undefined,
         },
         "1": {
           status: "UNSTARTED",
-          result: null,
+          result: undefined,
         },
         "2": {
           status: "UNSTARTED",
-          result: null,
+          result: undefined,
         },
         "3": {
           status: "UNSTARTED",
-          result: null,
+          result: undefined,
         },
       });
     });
@@ -240,7 +240,7 @@ describe("deployment state reducer", () => {
 
       assert.equal(
         Object.values(state.execution.vertexes).every(
-          (v) => v.status === "COMPLETED" && Boolean(v.result)
+          (v) => v.status === "COMPLETED" && v.result !== undefined
         ),
         true
       );
@@ -291,7 +291,7 @@ describe("deployment state reducer", () => {
 
       assert.deepStrictEqual(state.execution.vertexes[1], {
         status: "HOLD",
-        result: null,
+        result: undefined,
       });
     });
   });

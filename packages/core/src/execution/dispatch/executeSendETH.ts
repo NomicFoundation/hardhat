@@ -1,14 +1,17 @@
+import type { ExecutionContext } from "../../types/deployment";
+import type {
+  ExecutionVertexVisitResult,
+  SentETH,
+} from "../../types/executionGraph";
 import type { PopulatedTransaction } from "ethers";
 
-import type { ExecutionContext } from "types/deployment";
-import type { ExecutionVertexVisitResult, SentETH } from "types/executionGraph";
-import { VertexResultEnum } from "types/graph";
+import { VertexResultEnum } from "../../types/graph";
 
 import { resolveFrom, toAddress } from "./utils";
 
 export async function executeSendETH(
   { address, value, signer }: SentETH,
-  resultAccumulator: Map<number, ExecutionVertexVisitResult | null>,
+  resultAccumulator: Map<number, ExecutionVertexVisitResult | undefined>,
   { services, options }: ExecutionContext
 ): Promise<ExecutionVertexVisitResult> {
   const resolve = resolveFrom(resultAccumulator);

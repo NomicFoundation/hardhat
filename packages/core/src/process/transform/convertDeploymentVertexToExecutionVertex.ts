@@ -1,6 +1,6 @@
 import { BigNumber, ethers } from "ethers";
 
-import { Services } from "services/types";
+import { Services } from "../../services/types";
 import {
   ArtifactContractDeploymentVertex,
   ArtifactLibraryDeploymentVertex,
@@ -13,7 +13,7 @@ import {
   ExternalParamValue,
   EventVertex,
   SendVertex,
-} from "types/deploymentGraph";
+} from "../../types/deploymentGraph";
 import {
   AwaitedEvent,
   ContractCall,
@@ -22,15 +22,15 @@ import {
   ExecutionVertex,
   LibraryDeploy,
   SentETH,
-} from "types/executionGraph";
+} from "../../types/executionGraph";
 import {
   BytesFuture,
   DeploymentGraphFuture,
   EventParamFuture,
-} from "types/future";
-import { Artifact } from "types/hardhat";
-import { IgnitionError } from "utils/errors";
-import { isBytesArg, isFuture } from "utils/guards";
+} from "../../types/future";
+import { Artifact } from "../../types/hardhat";
+import { IgnitionError } from "../../utils/errors";
+import { isBytesArg, isFuture } from "../../utils/guards";
 
 interface TransformContext {
   services: Services;
@@ -73,8 +73,6 @@ export function convertDeploymentVertexToExecutionVertex(
         throw new IgnitionError(
           `Virtual vertex should be removed ${deploymentVertex.id} (${deploymentVertex.label})`
         );
-      default:
-        return assertDeploymentVertexNotExpected(deploymentVertex);
     }
   };
 }
@@ -231,16 +229,6 @@ async function convertSendToSentETH(
   };
 }
 
-function assertDeploymentVertexNotExpected(
-  vertex: never
-): Promise<ExecutionVertex> {
-  const v: any = vertex;
-
-  const obj = typeof v === "object" && "type" in v ? v.type : v;
-
-  throw new IgnitionError(`Type not expected: ${obj}`);
-}
-
 async function convertArgs(
   args: Array<
     | boolean
@@ -306,8 +294,6 @@ async function resolveParameter<T extends DeploymentGraphFuture>(
         );
       case "param-missing":
         throw new IgnitionError(`No parameter provided for "${arg.label}"`);
-      default:
-        assertNeverParamResult(hasParamResult.errorCode);
     }
   }
 
@@ -321,8 +307,4 @@ async function resolveBytesForArtifact(
   const artifact = await services.artifacts.getArtifact(arg.label);
 
   return artifact.bytecode;
-}
-
-function assertNeverParamResult(hasParamResult: never) {
-  throw new IgnitionError(`Unexpected error code ${hasParamResult}`);
 }

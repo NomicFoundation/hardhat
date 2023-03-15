@@ -1,14 +1,15 @@
-import type { Services } from "services/types";
+import type { Services } from "../../services/types";
+import type { CallableFuture } from "../../types/future";
+
 import {
   CallPoints,
   DeploymentGraphVertex,
   InternalParamValue,
-} from "types/deploymentGraph";
-import type { CallableFuture } from "types/future";
-import { VertexResultEnum, VertexVisitResultFailure } from "types/graph";
-import { IgnitionError } from "utils/errors";
-import { isBytesArg } from "utils/guards";
-import { resolveProxyValue } from "utils/proxy";
+} from "../../types/deploymentGraph";
+import { VertexResultEnum, VertexVisitResultFailure } from "../../types/graph";
+import { IgnitionError } from "../../utils/errors";
+import { isBytesArg } from "../../utils/guards";
+import { resolveProxyValue } from "../../utils/proxy";
 
 export async function resolveArtifactForCallableFuture(
   givenFuture: CallableFuture,
@@ -28,8 +29,6 @@ export async function resolveArtifactForCallableFuture(
             future.contractName
           );
           return artifact.abi;
-        default:
-          return assertNeverDeploymentFuture(future);
       }
     case "library":
       switch (future.subtype) {
@@ -40,8 +39,6 @@ export async function resolveArtifactForCallableFuture(
             future.libraryName
           );
           return artifact.abi;
-        default:
-          return assertNeverDeploymentFuture(future);
       }
     case "virtual":
       throw new IgnitionError(`Cannot call virtual future`);
@@ -51,8 +48,6 @@ export async function resolveArtifactForCallableFuture(
       throw new IgnitionError(`Cannot call await future`);
     case "send":
       throw new IgnitionError(`Cannot call send future`);
-    default:
-      return assertNeverDeploymentFuture(future);
   }
 }
 
@@ -97,10 +92,4 @@ export function buildValidationError(
     _kind: VertexResultEnum.FAILURE,
     failure,
   };
-}
-
-function assertNeverDeploymentFuture(f: never): undefined {
-  throw new IgnitionError(
-    `Unexpected deployment future type/subtype ${JSON.stringify(f)}`
-  );
 }

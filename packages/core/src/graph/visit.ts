@@ -3,8 +3,8 @@ import {
   VertexVisitResult,
   ResultsAccumulator,
   VisitResult,
-} from "types/graph";
-import { IgnitionError } from "utils/errors";
+} from "../types/graph";
+import { IgnitionError } from "../utils/errors";
 
 export async function visit<T, C, TResult>(
   phase: "Execution" | "Validation",

@@ -1,13 +1,13 @@
 import { ethers } from "ethers";
 
-import { ArtifactLibraryDeploymentVertex } from "types/deploymentGraph";
-import { VertexResultEnum } from "types/graph";
+import { ArtifactLibraryDeploymentVertex } from "../../types/deploymentGraph";
+import { VertexResultEnum } from "../../types/graph";
 import {
   ValidationDispatchContext,
   ValidationResultsAccumulator,
   ValidationVertexVisitResult,
-} from "types/validation";
-import { isArtifact } from "utils/guards";
+} from "../../types/validation";
+import { isArtifact } from "../../utils/guards";
 
 import { buildValidationError, validateBytesForArtifact } from "./helpers";
 

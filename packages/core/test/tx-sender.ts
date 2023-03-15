@@ -3,8 +3,8 @@ import { assert } from "chai";
 import { ethers } from "ethers";
 import sinon from "sinon";
 
-import { GasProvider } from "types/providers";
-import { TxSender } from "utils/tx-sender";
+import { GasProvider } from "../src/types/providers";
+import { TxSender } from "../src/utils/tx-sender";
 
 class SignerSpy {
   private _index = -1;

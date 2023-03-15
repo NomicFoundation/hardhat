@@ -1,17 +1,18 @@
-import { Contract, ethers } from "ethers";
-
-import type { ExecutionContext } from "types/deployment";
+import type { ExecutionContext } from "../../types/deployment";
 import type {
   AwaitedEvent,
   ExecutionVertexVisitResult,
-} from "types/executionGraph";
-import { VertexResultEnum } from "types/graph";
+} from "../../types/executionGraph";
+
+import { Contract, ethers } from "ethers";
+
+import { VertexResultEnum } from "../../types/graph";
 
 import { resolveFrom, toAddress } from "./utils";
 
 export async function executeAwaitedEvent(
   { event, address, abi, args }: AwaitedEvent,
-  resultAccumulator: Map<number, ExecutionVertexVisitResult | null>,
+  resultAccumulator: Map<number, ExecutionVertexVisitResult | undefined>,
   { services, options }: ExecutionContext
 ): Promise<ExecutionVertexVisitResult> {
   const resolve = resolveFrom(resultAccumulator);

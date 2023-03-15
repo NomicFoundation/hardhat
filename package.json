@@ -10,17 +10,16 @@
     ]
   },
   "scripts": {
-    "build": "npm run build -w packages/core -w packages/hardhat-plugin",
+    "build": "npm run build -w packages",
     "lint": "npm run lint --workspaces",
-    "postlint": "prettier --check ./docs/*.md ./config/eslint/.eslintrc.js",
+    "postlint": "prettier --check *.{md,json} ./docs/*.md ./config/**/*.{js,json}",
     "lint:fix": "npm run lint:fix --workspaces",
-    "postlint:fix": "prettier --write ./docs/*.md ./config/eslint/.eslintrc.js",
-    "test": "npm run test -w packages/core -w packages/hardhat-plugin",
-    "test:coverage": "npm run test:coverage -w packages/core -w packages/hardhat-plugin",
-    "test:examples": "npm run test:examples --workspaces --if-present",
-    "test:build": "npm run test:build --workspaces --if-present",
+    "postlint:fix": "prettier --write *.{md,json} ./docs/*.md ./config/**/*.{js,json}",
+    "test": "npm run test -w packages",
+    "test:coverage": "npm run test:coverage -w packages",
+    "test:examples": "npm run test -w examples --if-present",
     "watch": "tsc --build --watch packages/core packages/hardhat-plugin",
-    "fullcheck": "npm run build && npm run lint && npm run test:build && npm run test:coverage && npm run test:examples",
+    "fullcheck": "npm run build && npm run lint && npm run test:coverage && npm run test:examples",
     "clean": "npm run clean --workspaces --if-present"
   },
   "devDependencies": {

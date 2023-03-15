@@ -3,7 +3,6 @@ import "hardhat/types/config";
 import "hardhat/types/runtime";
 
 import type { IgnitionWrapper } from "./ignition-wrapper";
-
 import type { IgnitionConfig } from "./index";
 
 declare module "hardhat/types/config" {

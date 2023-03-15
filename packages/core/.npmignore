@@ -2,8 +2,10 @@ coverage/
 .nyc_output/
 *.tsbuildinfo
 **/.eslintrc.js
-post-build.js
 .mocharc.json
 .nycrc
 .prettierignore
 .prettierrc
+dist/test
+test
+src

@@ -39,5 +39,5 @@ npx hardhat deploy MultisigModule.js --network localhost
 To run the hardhat tests using ignition:
 
 ```shell
-npm run test:examples
+npm run test
 ```

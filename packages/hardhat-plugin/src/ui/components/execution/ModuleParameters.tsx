@@ -1,4 +1,5 @@
 import type { ModuleParams } from "@ignored/ignition-core";
+
 import { Text, Newline } from "ink";
 
 export const ModuleParameters = ({
@@ -6,7 +7,7 @@ export const ModuleParameters = ({
 }: {
   moduleParams?: ModuleParams;
 }) => {
-  if (!moduleParams) {
+  if (moduleParams === undefined) {
     return null;
   }
 

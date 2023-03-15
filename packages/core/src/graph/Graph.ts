@@ -1,4 +1,4 @@
-import { AdjacencyList, IGraph } from "types/graph";
+import { AdjacencyList, IGraph } from "../types/graph";
 
 import { constructEmptyAdjacencyList } from "./adjacencyList";
 

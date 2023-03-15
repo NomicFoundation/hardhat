@@ -78,7 +78,6 @@ function isInModuleDirectory(modulesDirectory: string, modulePath: string) {
   );
 
   return (
-    Boolean(moduleRelativeToModuleDir) &&
     !moduleRelativeToModuleDir.startsWith("..") &&
     !path.isAbsolute(moduleRelativeToModuleDir)
   );
