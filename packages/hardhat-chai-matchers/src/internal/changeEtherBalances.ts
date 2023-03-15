@@ -15,7 +15,7 @@ export function supportChangeEtherBalances(Assertion: Chai.AssertionStatic) {
     function (
       this: any,
       accounts: Array<Account | string>,
-      balanceChanges: BigNumberish[],
+      balanceChanges: BigNumberish[] | Array<(change: BigNumber) => boolean>,
       options?: BalanceChangeOptions
     ) {
       const { BigNumber } = require("ethers");
@@ -35,22 +35,42 @@ export function supportChangeEtherBalances(Assertion: Chai.AssertionStatic) {
         const assert = buildAssert(negated, checkBalanceChanges);
 
         assert(
-          actualChanges.every((change, ind) =>
-            change.eq(BigNumber.from(balanceChanges[ind]))
-          ),
+          actualChanges.every((change, ind) => {
+            if (typeof balanceChanges[ind] === "function") {
+              return (balanceChanges[ind] as (change: BigNumber) => boolean)(
+                change
+              );
+            } else {
+              return change.eq(BigNumber.from(balanceChanges[ind]));
+            }
+          }),
           () => {
             const lines: string[] = [];
             actualChanges.forEach((change: BigNumber, i) => {
-              if (!change.eq(BigNumber.from(balanceChanges[i]))) {
-                lines.push(
-                  `Expected the ether balance of ${
-                    accountAddresses[i]
-                  } (the ${ordinal(
-                    i + 1
-                  )} address in the list) to change by ${balanceChanges[
-                    i
-                  ].toString()} wei, but it changed by ${change.toString()} wei`
-                );
+              if (typeof balanceChanges[i] === "function") {
+                if (
+                  !(balanceChanges[i] as (change: BigNumber) => boolean)(change)
+                ) {
+                  lines.push(
+                    `Expected the ether balance of ${
+                      accountAddresses[i]
+                    } (the ${ordinal(
+                      i + 1
+                    )} address in the list) should satisfy the predicate, but it changed by ${change.toString()} wei and violated it`
+                  );
+                }
+              } else {
+                if (!change.eq(BigNumber.from(balanceChanges[i]))) {
+                  lines.push(
+                    `Expected the ether balance of ${
+                      accountAddresses[i]
+                    } (the ${ordinal(
+                      i + 1
+                    )} address in the list) to change by ${balanceChanges[
+                      i
+                    ].toString()} wei, but it changed by ${change.toString()} wei`
+                  );
+                }
               }
             });
             return lines.join("\n");
@@ -58,16 +78,30 @@ export function supportChangeEtherBalances(Assertion: Chai.AssertionStatic) {
           () => {
             const lines: string[] = [];
             actualChanges.forEach((change: BigNumber, i) => {
-              if (change.eq(BigNumber.from(balanceChanges[i]))) {
-                lines.push(
-                  `Expected the ether balance of ${
-                    accountAddresses[i]
-                  } (the ${ordinal(
-                    i + 1
-                  )} address in the list) NOT to change by ${balanceChanges[
-                    i
-                  ].toString()} wei, but it did`
-                );
+              if (typeof balanceChanges[i] === "function") {
+                if (
+                  (balanceChanges[i] as (change: BigNumber) => boolean)(change)
+                ) {
+                  lines.push(
+                    `Expected the ether balance of ${
+                      accountAddresses[i]
+                    } (the ${ordinal(
+                      i + 1
+                    )} address in the list) should NOT satisfy the predicate, but it did`
+                  );
+                }
+              } else {
+                if (change.eq(BigNumber.from(balanceChanges[i]))) {
+                  lines.push(
+                    `Expected the ether balance of ${
+                      accountAddresses[i]
+                    } (the ${ordinal(
+                      i + 1
+                    )} address in the list) NOT to change by ${balanceChanges[
+                      i
+                    ].toString()} wei, but it did`
+                  );
+                }
               }
             });
             return lines.join("\n");

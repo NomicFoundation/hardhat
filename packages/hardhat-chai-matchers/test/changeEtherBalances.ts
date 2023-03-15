@@ -58,7 +58,7 @@ describe("INTEGRATION: changeEtherBalances matcher", function () {
             contract.transferTo(receiver.address, { value: 200 })
           ).to.changeEtherBalances(
             [sender, contract, receiver],
-            [-200, 0, 200]
+            [-200, (change: BigNumber) => change.isZero(), 200]
           );
         });
       });
@@ -110,6 +110,22 @@ describe("INTEGRATION: changeEtherBalances matcher", function () {
           ).to.changeEtherBalances(
             [sender, receiver],
             [BigNumber.from("-200"), BigNumber.from(200)]
+          );
+        });
+
+        it("Should pass when given predicate", async () => {
+          await expect(() =>
+            sender.sendTransaction({
+              to: receiver.address,
+              gasPrice: 1,
+              value: 200,
+            })
+          ).to.changeEtherBalances(
+            [sender, receiver],
+            [
+              (change: BigNumber) => change.eq(-200),
+              (change: BigNumber) => change.eq(200),
+            ]
           );
         });
 
@@ -189,6 +205,36 @@ describe("INTEGRATION: changeEtherBalances matcher", function () {
                 gasPrice: 1,
                 value: 200,
               })
+            ).to.changeEtherBalances(
+              [sender, receiver],
+              [-200, (change: BigNumber) => change.eq(201)]
+            )
+          ).to.be.eventually.rejectedWith(
+            AssertionError,
+            `Expected the ether balance of ${receiver.address} (the 2nd address in the list) should satisfy the predicate, but it changed by 200 wei and violated it`
+          );
+          await expect(
+            expect(() =>
+              sender.sendTransaction({
+                to: receiver.address,
+                gasPrice: 1,
+                value: 200,
+              })
+            ).to.changeEtherBalances(
+              [sender, receiver],
+              [(change: BigNumber) => change.eq(-201), 200]
+            )
+          ).to.be.eventually.rejectedWith(
+            AssertionError,
+            `Expected the ether balance of ${sender.address} (the 1st address in the list) should satisfy the predicate, but it changed by -200 wei and violated it`
+          );
+          await expect(
+            expect(() =>
+              sender.sendTransaction({
+                to: receiver.address,
+                gasPrice: 1,
+                value: 200,
+              })
             ).to.changeEtherBalances([sender, receiver], [-201, 200])
           ).to.be.eventually.rejectedWith(
             AssertionError,
@@ -208,6 +254,22 @@ describe("INTEGRATION: changeEtherBalances matcher", function () {
           ).to.be.eventually.rejectedWith(
             AssertionError,
             `Expected the ether balance of ${sender.address} (the 1st address in the list) NOT to change by -200 wei`
+          );
+          await expect(
+            expect(() =>
+              sender.sendTransaction({
+                to: receiver.address,
+                gasPrice: 1,
+                value: 200,
+              })
+            ).to.not.changeEtherBalances(
+              [sender, receiver],
+              [-200, (diff: BigNumber) => diff.eq(200)]
+            )
+          ).to.be.eventually.rejectedWith(
+            AssertionError,
+            `Expected the ether balance of ${sender.address} (the 1st address in the list) NOT to change by -200 wei`,
+            `Expected the ether balance of ${receiver.address} (the 2st address in the list) should NOT satisfy the predicate, but it did`
           );
         });
       });
@@ -286,6 +348,34 @@ describe("INTEGRATION: changeEtherBalances matcher", function () {
               value: 200,
             })
           ).to.not.changeEtherBalances([sender, receiver], [-200, 201]);
+        });
+
+        it("Should pass when negated and predicate returns false", async () => {
+          await expect(
+            await sender.sendTransaction({
+              to: receiver.address,
+              value: 200,
+            })
+          ).to.not.changeEtherBalances(
+            [sender, receiver],
+            [
+              (change: BigNumber) => change.eq(-201),
+              (change: BigNumber) => change.eq(200),
+            ]
+          );
+
+          await expect(
+            await sender.sendTransaction({
+              to: receiver.address,
+              value: 200,
+            })
+          ).to.not.changeEtherBalances(
+            [sender, receiver],
+            [
+              (change: BigNumber) => change.eq(-200),
+              (change: BigNumber) => change.eq(201),
+            ]
+          );
         });
 
         it("Should throw when fee was not calculated correctly", async () => {
