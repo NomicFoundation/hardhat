@@ -48,7 +48,8 @@ export function serializeTransaction(
 
 export function deserializeTransaction(
   tx: SerializedTransaction,
-  common: Common
+  common: Common,
+  { allowUnlimitedContractSize }: { allowUnlimitedContractSize: boolean }
 ): OrderedTransaction {
   const rlpSerialization = tx.get("data");
   const fakeFrom = tx.get("fakeFrom");
@@ -63,24 +64,25 @@ export function deserializeTransaction(
         FakeSenderAccessListEIP2930Transaction.fromSenderAndRlpSerializedTx(
           sender,
           serialization,
-          { common }
+          { common, disableMaxInitCodeSizeCheck: allowUnlimitedContractSize }
         );
     } else if (tx.get("txType") === 2) {
       data = FakeSenderEIP1559Transaction.fromSenderAndRlpSerializedTx(
         sender,
         serialization,
-        { common }
+        { common, disableMaxInitCodeSizeCheck: allowUnlimitedContractSize }
       );
     } else {
       data = FakeSenderTransaction.fromSenderAndRlpSerializedTx(
         sender,
         serialization,
-        { common }
+        { common, disableMaxInitCodeSizeCheck: allowUnlimitedContractSize }
       );
     }
   } else {
     data = TransactionFactory.fromSerializedData(toBuffer(rlpSerialization), {
       common,
+      disableMaxInitCodeSizeCheck: allowUnlimitedContractSize,
     });
   }
 
@@ -103,12 +105,14 @@ export class TxPool {
   constructor(
     private readonly _stateManager: StateManager,
     blockGasLimit: bigint,
-    common: Common
+    common: Common,
+    { allowUnlimitedContractSize }: { allowUnlimitedContractSize: boolean }
   ) {
     this._state = makePoolState({
       blockGasLimit: BigIntUtils.toHex(blockGasLimit),
     });
-    this._deserializeTransaction = (tx) => deserializeTransaction(tx, common);
+    this._deserializeTransaction = (tx) =>
+      deserializeTransaction(tx, common, { allowUnlimitedContractSize });
   }
 
   public async addTransaction(tx: TypedTransaction) {

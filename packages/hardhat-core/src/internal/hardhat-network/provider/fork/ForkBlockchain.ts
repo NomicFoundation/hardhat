@@ -39,7 +39,8 @@ export class ForkBlockchain
   constructor(
     private _jsonRpcClient: JsonRpcClient,
     private _forkBlockNumber: bigint,
-    common: Common
+    common: Common,
+    private _options: { allowUnlimitedContractSize: boolean }
   ) {
     super(common);
   }
@@ -286,22 +287,28 @@ export class ForkBlockchain
       skipConsensusFormatValidation: true,
     });
 
+    const disableMaxInitCodeSizeCheck =
+      this._options.allowUnlimitedContractSize;
+
     for (const transaction of rpcBlock.transactions) {
       let tx;
       if (transaction.type === undefined || transaction.type === 0n) {
         tx = new ReadOnlyValidTransaction(
           new Address(transaction.from),
-          rpcToTxData(transaction)
+          rpcToTxData(transaction),
+          { disableMaxInitCodeSizeCheck }
         );
       } else if (transaction.type === 1n) {
         tx = new ReadOnlyValidEIP2930Transaction(
           new Address(transaction.from),
-          rpcToTxData(transaction)
+          rpcToTxData(transaction),
+          { disableMaxInitCodeSizeCheck }
         );
       } else if (transaction.type === 2n) {
         tx = new ReadOnlyValidEIP1559Transaction(
           new Address(transaction.from),
-          rpcToTxData(transaction) as FeeMarketEIP1559TxData
+          rpcToTxData(transaction) as FeeMarketEIP1559TxData,
+          { disableMaxInitCodeSizeCheck }
         );
       } else {
         // we try to interpret unknown txs as legacy transactions, to support
@@ -310,7 +317,8 @@ export class ForkBlockchain
           tx = new ReadOnlyValidUnknownTypeTransaction(
             new Address(transaction.from),
             Number(transaction.type),
-            rpcToTxData(transaction)
+            rpcToTxData(transaction),
+            { disableMaxInitCodeSizeCheck }
           );
         } catch (e: any) {
           throw new InternalError(
@@ -346,7 +354,8 @@ export class ForkBlockchain
 
     const transaction = new ReadOnlyValidTransaction(
       new Address(rpcTransaction.from),
-      rpcToTxData(rpcTransaction)
+      rpcToTxData(rpcTransaction),
+      { disableMaxInitCodeSizeCheck: this._options.allowUnlimitedContractSize }
     );
 
     this._data.addTransaction(transaction);

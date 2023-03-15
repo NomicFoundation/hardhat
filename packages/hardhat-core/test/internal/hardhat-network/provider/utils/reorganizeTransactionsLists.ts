@@ -21,7 +21,9 @@ function retrieveNonce(tx: SerializedTransaction) {
   // We create this tx to get the same common
   const txForCommon = createTestOrderedTransaction({ orderId: 0 });
 
-  return deserializeTransaction(tx, txForCommon.data.common).data.nonce;
+  return deserializeTransaction(tx, txForCommon.data.common, {
+    allowUnlimitedContractSize: false,
+  }).data.nonce;
 }
 
 describe("reorganizeTransactionsLists", () => {

@@ -59,7 +59,9 @@ describe("ForkBlockchain", () => {
     common = new Common({ chain: "mainnet" });
     common.setHardfork(common.getHardforkByBlockNumber(forkBlockNumber));
 
-    fb = new ForkBlockchain(client, forkBlockNumber, common);
+    fb = new ForkBlockchain(client, forkBlockNumber, common, {
+      allowUnlimitedContractSize: false,
+    });
   });
 
   it("can be constructed", () => {
@@ -125,7 +127,9 @@ describe("ForkBlockchain", () => {
     });
 
     it("cannot get remote blocks that are newer than forkBlockNumber", async () => {
-      fb = new ForkBlockchain(client, forkBlockNumber - 10n, common);
+      fb = new ForkBlockchain(client, forkBlockNumber - 10n, common, {
+        allowUnlimitedContractSize: false,
+      });
       const newerBlock = await client.getBlockByNumber(forkBlockNumber - 5n);
 
       assert.equal(await fb.getBlock(newerBlock!.hash!), undefined);
@@ -144,7 +148,9 @@ describe("ForkBlockchain", () => {
 
   describe("getLatestBlock", () => {
     it("returns the block at which we fork if no blocks were added", async () => {
-      fb = new ForkBlockchain(client, BLOCK_NUMBER_OF_10496585, common);
+      fb = new ForkBlockchain(client, BLOCK_NUMBER_OF_10496585, common, {
+        allowUnlimitedContractSize: false,
+      });
       const block = await fb.getLatestBlock();
 
       assert.isTrue(block?.hash().equals(BLOCK_HASH_OF_10496585));
@@ -436,7 +442,9 @@ describe("ForkBlockchain", () => {
     });
 
     it("returns undefined for newer remote transactions", async () => {
-      fb = new ForkBlockchain(client, BLOCK_NUMBER_OF_10496585 - 1n, common);
+      fb = new ForkBlockchain(client, BLOCK_NUMBER_OF_10496585 - 1n, common, {
+        allowUnlimitedContractSize: false,
+      });
       assert.equal(
         await fb.getTransaction(FIRST_TX_HASH_OF_10496585),
         undefined
@@ -481,7 +489,9 @@ describe("ForkBlockchain", () => {
     });
 
     it("returns undefined for newer remote transactions", async () => {
-      fb = new ForkBlockchain(client, BLOCK_NUMBER_OF_10496585 - 1n, common);
+      fb = new ForkBlockchain(client, BLOCK_NUMBER_OF_10496585 - 1n, common, {
+        allowUnlimitedContractSize: false,
+      });
       assert.equal(
         await fb.getBlockByTransactionHash(FIRST_TX_HASH_OF_10496585),
         undefined
@@ -544,7 +554,9 @@ describe("ForkBlockchain", () => {
     });
 
     it("returns undefined for newer remote receipts", async () => {
-      fb = new ForkBlockchain(client, BLOCK_NUMBER_OF_10496585 - 1n, common);
+      fb = new ForkBlockchain(client, BLOCK_NUMBER_OF_10496585 - 1n, common, {
+        allowUnlimitedContractSize: false,
+      });
 
       assert.equal(
         await fb.getTransactionReceipt(FIRST_TX_HASH_OF_10496585),
@@ -630,7 +642,9 @@ describe("ForkBlockchain", () => {
     });
 
     it("can fetch both remote and local logs simultaneously", async () => {
-      fb = new ForkBlockchain(client, BLOCK_NUMBER_OF_10496585, common);
+      fb = new ForkBlockchain(client, BLOCK_NUMBER_OF_10496585, common, {
+        allowUnlimitedContractSize: false,
+      });
 
       const block1 = createBlock(await fb.getLatestBlock());
       const number = block1.header.number;
