@@ -261,13 +261,17 @@ export class ForkBlockchain
     }
 
     const common = this._common.copy();
-    // We set the common's hardfork to Berlin if the remote block doesn't have
-    // EIP-1559 activated. The reason for this is that ethereumjs throws if we
-    // have a base fee for an older hardfork, and set a default one for London.
-    if (rpcBlock.baseFeePerGas !== undefined) {
-      common.setHardfork("london"); // TODO: consider changing this to "latest hardfork"
-    } else {
+    // We set the common's hardfork depending on the remote block fields, to
+    // prevent ethereumjs from throwing if unsupported fields are passed.
+    // We use "berlin" for pre-EIP-1559 blocks (blocks without baseFeePerGas),
+    // "merge" for blocks that have baseFeePerGas but not withdrawals,
+    // and "shanghai" for blocks with withdrawals
+    if (rpcBlock.baseFeePerGas === undefined) {
       common.setHardfork("berlin");
+    } else if (rpcBlock.withdrawals === undefined) {
+      common.setHardfork("merge");
+    } else {
+      common.setHardfork("shanghai");
     }
 
     // we don't include the transactions to add our own custom tx objects,
