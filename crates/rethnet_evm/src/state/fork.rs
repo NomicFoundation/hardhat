@@ -270,6 +270,9 @@ impl crate::state::debug::StateDebug for ForkState {
                     self.state_root_to_state.insert(next_state_root, state);
                     self.latest_state_root = next_state_root;
                 }
+            } else {
+                self.state_root_to_state
+                    .insert(self.latest_state_root, state);
             }
         }
         Ok(self.latest_state_root)
@@ -292,7 +295,8 @@ impl crate::state::debug::StateDebug for ForkState {
 
     /// Makes a snapshot of the database that's retained until [`remove_snapshot`] is called. Returns the snapshot's identifier.
     fn make_snapshot(&mut self) -> B256 {
-        self.layered_db.make_snapshot()
+        self.layered_db.make_snapshot();
+        self.state_root().expect("should have been able to generate a new state root after triggering a snapshot in the underlying state")
     }
 
     /// Removes the snapshot corresponding to the specified id, if it exists. Returns whether a snapshot was removed.
