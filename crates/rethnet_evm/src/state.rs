@@ -25,7 +25,7 @@ pub enum StateError {
     #[error("Contract with code hash `{0}` does not exist.")]
     InvalidCodeHash(B256),
     /// Specified state root does not exist
-    #[error("State root `{0}` does not exist.")]
+    #[error("State root `{0:?}` does not exist.")]
     InvalidStateRoot(B256),
     /// Not implemented
     #[error("Method not implemented")]
