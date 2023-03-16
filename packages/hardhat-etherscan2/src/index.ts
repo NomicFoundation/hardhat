@@ -1,14 +1,24 @@
-import chalk from "chalk";
 import { extendConfig, subtask, task, types } from "hardhat/config";
+import { TASK_COMPILE } from "hardhat/builtin-tasks/task-names";
+import { HardhatEtherscanError } from "./errors";
 import {
   TASK_VERIFY,
   TASK_VERIFY_GET_VERIFICATION_SUBTASKS,
+  TASK_VERIFY_PROCESS_ARGUMENTS,
+  TASK_VERIFY_VERIFY,
   TASK_VERIFY_VERIFY_ETHERSCAN,
 } from "./task-names";
-import "./type-extensions";
-import { EtherscanConfig } from "./types";
+import { etherscanConfigExtender } from "./config";
+import {
+  isFullyQualifiedName,
+  printSupportedNetworks,
+  resolveConstructorArguments,
+  resolveLibraries,
+} from "./utilities";
 
-interface VerificationArgs {
+import "./type-extensions";
+
+interface VerifyTaskArgs {
   address?: string;
   constructorArgsParams: string[];
   constructorArgs?: string;
@@ -18,31 +28,16 @@ interface VerificationArgs {
   noCompile: boolean;
 }
 
-extendConfig((config, userConfig) => {
-  const defaultConfig: EtherscanConfig = {
-    apiKey: "",
-    customChains: [],
-  };
+interface VerificationArgs {
+  address: string;
+  constructorArgs: string[];
+  libraries: Record<string, string>;
+  contract?: string;
+  listNetworks: boolean;
+  noCompile: boolean;
+}
 
-  if (userConfig.etherscan !== undefined) {
-    const cloneDeep = require("lodash.clonedeep");
-    const customConfig = cloneDeep(userConfig.etherscan);
-
-    config.etherscan = { ...defaultConfig, ...customConfig };
-  } else {
-    config.etherscan = defaultConfig;
-
-    // check that there is no etherscan entry in the networks object, since
-    // this is a common mistake done by users
-    if (config.networks?.etherscan !== undefined) {
-      console.warn(
-        chalk.yellow(
-          "WARNING: you have an 'etherscan' entry in your networks configuration. This is likely a mistake. The etherscan configuration should be at the root of the configuration, not within the networks object."
-        )
-      );
-    }
-  }
-});
+extendConfig(etherscanConfigExtender);
 
 /**
  * Main verification task.
@@ -78,7 +73,12 @@ task(TASK_VERIFY, "Verifies a contract on Etherscan")
   )
   .addFlag("listNetworks", "Print the list of supported networks")
   .addFlag("noCompile", "Don't compile before running the task")
-  .setAction(async (verificationArgs: VerificationArgs, { run }) => {
+  .setAction(async (taskArgs: VerifyTaskArgs, { run }) => {
+    const verificationArgs: VerificationArgs = await run(
+      TASK_VERIFY_PROCESS_ARGUMENTS,
+      taskArgs
+    );
+
     const verificationSubtasks: string[] = await run(
       TASK_VERIFY_GET_VERIFICATION_SUBTASKS
     );
@@ -87,6 +87,58 @@ task(TASK_VERIFY, "Verifies a contract on Etherscan")
       await run(verificationSubtask, verificationArgs);
     }
   });
+
+subtask(TASK_VERIFY_PROCESS_ARGUMENTS)
+  .addParam("address")
+  .addOptionalParam("constructorArgsParams", undefined, [])
+  .addOptionalParam("constructorArgs", undefined, undefined, types.inputFile)
+  .addOptionalParam("libraries", undefined, undefined, types.inputFile)
+  .addOptionalParam("contract")
+  .setAction(
+    async ({
+      address,
+      constructorArgsParams,
+      constructorArgs: constructorArgsModule,
+      contract,
+      libraries: librariesModule,
+      listNetworks,
+      noCompile,
+    }: VerifyTaskArgs): Promise<VerificationArgs> => {
+      if (address === undefined) {
+        throw new HardhatEtherscanError(
+          "You didn’t provide any address. Please re-run the 'verify' task with the address of the contract you want to verify."
+        );
+      }
+
+      const { isAddress } = await import("@ethersproject/address");
+      if (!isAddress(address)) {
+        throw new HardhatEtherscanError(`${address} is an invalid address.`);
+      }
+
+      if (contract !== undefined && !isFullyQualifiedName(contract)) {
+        throw new HardhatEtherscanError(
+          `A valid fully qualified name was expected. Fully qualified names look like this: "contracts/AContract.sol:TheContract"
+Instead, this name was received: ${contract}`
+        );
+      }
+
+      const constructorArgs = await resolveConstructorArguments(
+        constructorArgsParams,
+        constructorArgsModule
+      );
+
+      const libraries = await resolveLibraries(librariesModule);
+
+      return {
+        address,
+        constructorArgs,
+        libraries,
+        contract,
+        listNetworks,
+        noCompile,
+      };
+    }
+  );
 
 /**
  * Returns a list of verification subtasks.
@@ -102,11 +154,102 @@ subtask(TASK_VERIFY_GET_VERIFICATION_SUBTASKS, async (): Promise<string[]> => {
  * to contract verification.
  */
 subtask(TASK_VERIFY_VERIFY_ETHERSCAN)
-  .addOptionalPositionalParam("address")
-  .addOptionalVariadicPositionalParam("constructorArgsParams", undefined, [])
-  .addOptionalParam("constructorArgs")
-  .addOptionalParam("libraries")
+  .addParam("address")
+  .addOptionalParam("constructorArgsParams", undefined, [])
+  .addOptionalParam("constructorArgs", undefined, undefined, types.inputFile)
+  .addOptionalParam("libraries", undefined, undefined, types.inputFile)
   .addOptionalParam("contract")
   .addFlag("listNetworks")
   .addFlag("noCompile")
-  .setAction(async (verificationArgs: VerificationArgs, { run }) => {});
+  .setAction(
+    async (
+      {
+        address,
+        constructorArgs,
+        libraries,
+        contract,
+        listNetworks,
+        noCompile,
+      }: VerificationArgs,
+      { config, run }
+    ) => {
+      if (listNetworks) {
+        await printSupportedNetworks(config.etherscan.customChains);
+        return;
+      }
+
+      // Make sure that contract artifacts are up-to-date
+      if (!noCompile) {
+        await run(TASK_COMPILE, { quiet: true });
+      }
+    }
+  );
+
+/**
+ * This subtask is used for backwards compatibility.
+ * It validates the parameters as it is done in TASK_VERIFY_PROCESS_ARGUMENTS
+ * and calls TASK_VERIFY_VERIFY_ETHERSCAN directly.
+ */
+subtask(TASK_VERIFY_VERIFY)
+  .addParam("address")
+  .addOptionalParam("constructorArguments", undefined, [])
+  .addOptionalParam("libraries", undefined, {})
+  .addOptionalParam("contract")
+  .addFlag("noCompile")
+  .setAction(
+    async (
+      { address, constructorArguments, libraries, contract, noCompile },
+      { run }
+    ) => {
+      if (address === undefined) {
+        throw new HardhatEtherscanError(
+          "You didn’t provide any address. Please re-run the 'verify' task with the address of the contract you want to verify."
+        );
+      }
+
+      const { isAddress } = await import("@ethersproject/address");
+      if (!isAddress(address)) {
+        throw new HardhatEtherscanError(`${address} is an invalid address.`);
+      }
+
+      if (contract !== undefined && !isFullyQualifiedName(contract)) {
+        throw new HardhatEtherscanError(
+          `A valid fully qualified name was expected. Fully qualified names look like this: "contracts/AContract.sol:TheContract"
+Instead, this name was received: ${contract}`
+        );
+      }
+
+      // This can only happen if the subtask is invoked from within Hardhat by a user script or another task.
+      if (!Array.isArray(constructorArguments)) {
+        throw new HardhatEtherscanError(
+          `The constructorArguments parameter should be an array.
+If your constructor has no arguments pass an empty array. E.g:
+
+  await run("${TASK_VERIFY_VERIFY}", {
+    <other args>,
+    constructorArguments: []
+  };`
+        );
+      }
+
+      if (typeof libraries !== "object" || Array.isArray(libraries)) {
+        throw new HardhatEtherscanError(
+          `The libraries parameter should be a dictionary.
+If your contract does not have undetectable libraries pass an empty object or omit the argument. E.g:
+
+  await run("${TASK_VERIFY_VERIFY}", {
+    <other args>,
+    libraries: {}
+  };`
+        );
+      }
+
+      await run(TASK_VERIFY_VERIFY_ETHERSCAN, {
+        address,
+        constructorArgsParams: constructorArguments,
+        libraryDictionary: libraries,
+        contract,
+        noCompile,
+      });
+    }
+  );

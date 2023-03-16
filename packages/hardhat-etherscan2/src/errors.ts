@@ -1,7 +1,7 @@
-import { CustomError } from "hardhat/common";
+import { NomicLabsHardhatPluginError } from "hardhat/plugins";
 
-export class HardhatEtherscanError extends CustomError {
-  constructor(message: string) {
-    super(message);
+export class HardhatEtherscanError extends NomicLabsHardhatPluginError {
+  constructor(message: string, parent?: Error) {
+    super("@nomiclabs/hardhat-etherscan", message, parent);
   }
 }
