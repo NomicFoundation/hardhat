@@ -1,30 +1,35 @@
-import {
+import type {
   VertexGraph,
   VertexDescriptor,
-  IgnitionError,
+  DeploymentGraphVertex,
 } from "@ignored/ignition-core";
 
-export function parseType(v: VertexDescriptor): string {
-  let type: string;
-  switch (v.type) {
+type DisplayType =
+  | "deploy-contract"
+  | "deploy-library"
+  | "call"
+  | "transfer"
+  | "event";
+
+export function parseType(v: VertexDescriptor): DisplayType {
+  const depVertex = v as DeploymentGraphVertex;
+  switch (depVertex.type) {
     case "HardhatContract":
     case "ArtifactContract":
-      type = "deploy";
-      break;
+    case "DeployedContract":
+      return "deploy-contract";
+    case "HardhatLibrary":
+    case "ArtifactLibrary":
+      return "deploy-library";
     case "Call":
-      type = "call";
-      break;
+      return "call";
     case "SendETH":
-      type = "transfer";
-      break;
+      return "transfer";
     case "Event":
-      type = "event";
-      break;
-    default:
-      throw new IgnitionError(`Unknown vertex type: ${v.type}`);
+      return "event";
+    case "Virtual":
+      throw new Error("Virtual vertex unexpected in plan");
   }
-
-  return type;
 }
 
 function getVertexes(graph: VertexGraph): VertexDescriptor[] {
@@ -119,18 +124,34 @@ export function wrapInMermaidDiv(text: string): string {
 `;
 }
 
+export function toTypeText(type: DisplayType) {
+  switch (type) {
+    case "deploy-contract":
+      return "Contract deploy";
+    case "deploy-library":
+      return "Library deploy";
+    case "call":
+      return "Contract call";
+    case "transfer":
+      return "Transfer";
+    case "event":
+      return "Contract event";
+  }
+}
+
 export function getActions(graph: VertexGraph): string {
   const vertexes = getVertexes(graph);
 
   const items = vertexes.map((v) => {
     const type = parseType(v);
+    const typeText = toTypeText(type);
 
     return `
 <li
   id="action-${type}-${v.id}"
   onclick="window.location.assign('module/${v.id}.html')"
 >
-  Contract ${type} ${v.label}
+  ${typeText} ${v.label}
 </li>
 `;
   });

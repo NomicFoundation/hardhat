@@ -8,7 +8,6 @@ export { IgnitionError, IgnitionValidationError } from "./utils/errors";
 export { TransactionsService } from "./services/TransactionsService";
 export { ContractsService } from "./services/ContractsService";
 export { VertexResultEnum } from "./types/graph";
-
 export type {
   SerializedDeploymentResult,
   ContractInfo,
@@ -34,6 +33,7 @@ export type {
 export type {
   ExternalParamValue,
   IDeploymentBuilder,
+  DeploymentGraphVertex,
 } from "./types/deploymentGraph";
 export type { FutureDict } from "./types/future";
 export type { IgnitionPlan } from "./types/plan";

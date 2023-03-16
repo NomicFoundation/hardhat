@@ -88,6 +88,7 @@ export class Renderer {
 
     for (const vertex of this.plan.deploymentGraph.vertexes.values()) {
       const type = utils.parseType(vertex);
+      const typeText = utils.toTypeText(type);
       const label = vertex.label;
 
       const params = utils.getParams(vertex);
@@ -103,7 +104,15 @@ export class Renderer {
 
       const vertexOutput = this._templates.vertex.replace(
         regex,
-        utils.replacer({ type, label, networkName, networkId, params, value })
+        utils.replacer({
+          type,
+          typeText,
+          label,
+          networkName,
+          networkId,
+          params,
+          value,
+        })
       );
 
       this._writeModuleHTML(vertex.id, vertexOutput);
