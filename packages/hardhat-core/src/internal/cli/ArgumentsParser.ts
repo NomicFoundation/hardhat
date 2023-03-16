@@ -77,7 +77,8 @@ export class ArgumentsParser {
           rawCLAs,
           i,
           hardhatParamDefinitions,
-          hardhatArguments
+          hardhatArguments,
+          taskName
         );
       } else {
         if (!this._isCLAParamName(arg, hardhatParamDefinitions)) {
@@ -89,7 +90,8 @@ export class ArgumentsParser {
           rawCLAs,
           i,
           hardhatParamDefinitions,
-          hardhatArguments
+          hardhatArguments,
+          taskName
         );
       }
     }
@@ -145,7 +147,8 @@ export class ArgumentsParser {
         rawCLAs,
         i,
         taskDefinition.paramDefinitions,
-        paramArguments
+        paramArguments,
+        taskDefinition.name
       );
     }
 
@@ -178,6 +181,7 @@ export class ArgumentsParser {
       if (!definition.isOptional) {
         throw new HardhatError(ERRORS.ARGUMENTS.MISSING_TASK_ARGUMENT, {
           param: ArgumentsParser.paramNameToCLA(paramName),
+          task: taskDefinition.name,
         });
       }
 
@@ -202,7 +206,8 @@ export class ArgumentsParser {
     rawCLAs: string[],
     index: number,
     paramDefinitions: ParamDefinitionsMap,
-    parsedArguments: TaskArguments
+    parsedArguments: TaskArguments,
+    taskName?: string
   ) {
     const claArg = rawCLAs[index];
     const paramName = ArgumentsParser.cLAToParamName(claArg);
@@ -223,6 +228,7 @@ export class ArgumentsParser {
       if (value === undefined) {
         throw new HardhatError(ERRORS.ARGUMENTS.MISSING_TASK_ARGUMENT, {
           param: ArgumentsParser.paramNameToCLA(paramName),
+          task: taskName ?? "help",
         });
       }
 

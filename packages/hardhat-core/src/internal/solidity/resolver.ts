@@ -8,6 +8,7 @@ import {
   ResolvedFile as IResolvedFile,
 } from "../../types/builtin-tasks";
 import {
+  includesOwnPackageName,
   isAbsolutePathSourceName,
   isLocalSourceName,
   normalizeSourceName,
@@ -19,6 +20,7 @@ import { assertHardhatInvariant, HardhatError } from "../core/errors";
 import { ERRORS } from "../core/errors-list";
 import { createNonCryptographicHashBasedIdentifier } from "../util/hash";
 
+import { getRealPath } from "../util/fs-utils";
 import { Parser } from "./parse";
 
 export interface ResolvedFilesMap {
@@ -62,10 +64,15 @@ export class ResolvedFile implements IResolvedFile {
 }
 
 export class Resolver {
+  private readonly _cache: Map<string, ResolvedFile> = new Map();
+
   constructor(
     private readonly _projectRoot: string,
     private readonly _parser: Parser,
-    private readonly _readFile: (absolutePath: string) => Promise<string>
+    private readonly _readFile: (absolutePath: string) => Promise<string>,
+    private readonly _transformImportName: (
+      importName: string
+    ) => Promise<string>
   ) {}
 
   /**
@@ -74,24 +81,36 @@ export class Resolver {
    * @param sourceName The source name as it would be provided to solc.
    */
   public async resolveSourceName(sourceName: string): Promise<ResolvedFile> {
-    validateSourceNameFormat(sourceName);
-
-    if (await isLocalSourceName(this._projectRoot, sourceName)) {
-      return this._resolveLocalSourceName(sourceName);
+    const cached = this._cache.get(sourceName);
+    if (cached !== undefined) {
+      return cached;
     }
 
-    return this._resolveLibrarySourceName(sourceName);
+    validateSourceNameFormat(sourceName);
+
+    let resolvedFile: ResolvedFile;
+
+    if (await isLocalSourceName(this._projectRoot, sourceName)) {
+      resolvedFile = await this._resolveLocalSourceName(sourceName);
+    } else {
+      resolvedFile = await this._resolveLibrarySourceName(sourceName);
+    }
+
+    this._cache.set(sourceName, resolvedFile);
+    return resolvedFile;
   }
 
   /**
    * Resolves an import from an already resolved file.
    * @param from The file were the import statement is present.
-   * @param imported The path in the import statement.
+   * @param importName The path in the import statement.
    */
   public async resolveImport(
     from: ResolvedFile,
-    imported: string
+    importName: string
   ): Promise<ResolvedFile> {
+    const imported = await this._transformImportName(importName);
+
     const scheme = this._getUriScheme(imported);
     if (scheme !== undefined) {
       throw new HardhatError(ERRORS.RESOLVER.INVALID_IMPORT_PROTOCOL, {
@@ -115,24 +134,48 @@ export class Resolver {
       });
     }
 
+    // Edge-case where an import can contain the current package's name in monorepos.
+    // The path can be resolved because there's a symlink in the node modules.
+    if (await includesOwnPackageName(imported)) {
+      throw new HardhatError(ERRORS.RESOLVER.INCLUDES_OWN_PACKAGE_NAME, {
+        from: from.sourceName,
+        imported,
+      });
+    }
+
     try {
-      if (!this._isRelativeImport(imported)) {
-        return await this.resolveSourceName(normalizeSourceName(imported));
+      let sourceName: string;
+
+      const isRelativeImport = this._isRelativeImport(imported);
+
+      if (isRelativeImport) {
+        sourceName = await this._relativeImportToSourceName(from, imported);
+      } else {
+        sourceName = normalizeSourceName(imported);
       }
 
-      const sourceName = await this._relativeImportToSourceName(from, imported);
+      const cached = this._cache.get(sourceName);
+      if (cached !== undefined) {
+        return cached;
+      }
+
+      let resolvedFile: ResolvedFile;
 
       // We have this special case here, because otherwise local relative
       // imports can be treated as library imports. For example if
       // `contracts/c.sol` imports `../non-existent/a.sol`
       if (
         from.library === undefined &&
+        isRelativeImport &&
         !this._isRelativeImportToLibrary(from, imported)
       ) {
-        return await this._resolveLocalSourceName(sourceName);
+        resolvedFile = await this._resolveLocalSourceName(sourceName);
+      } else {
+        resolvedFile = await this.resolveSourceName(sourceName);
       }
 
-      return await this.resolveSourceName(sourceName);
+      this._cache.set(sourceName, resolvedFile);
+      return resolvedFile;
     } catch (error) {
       if (
         HardhatError.isHardhatErrorType(
@@ -144,14 +187,26 @@ export class Resolver {
           ERRORS.RESOLVER.LIBRARY_FILE_NOT_FOUND
         )
       ) {
-        throw new HardhatError(
-          ERRORS.RESOLVER.IMPORTED_FILE_NOT_FOUND,
-          {
-            imported,
-            from: from.sourceName,
-          },
-          error
-        );
+        if (imported !== importName) {
+          throw new HardhatError(
+            ERRORS.RESOLVER.IMPORTED_MAPPED_FILE_NOT_FOUND,
+            {
+              imported,
+              importName,
+              from: from.sourceName,
+            },
+            error
+          );
+        } else {
+          throw new HardhatError(
+            ERRORS.RESOLVER.IMPORTED_FILE_NOT_FOUND,
+            {
+              imported,
+              from: from.sourceName,
+            },
+            error
+          );
+        }
       }
 
       if (
@@ -237,11 +292,30 @@ export class Resolver {
       nodeModulesPath = path.dirname(nodeModulesPath);
     }
 
-    await this._validateSourceNameExistenceAndCasing(
-      nodeModulesPath,
-      sourceName,
-      true
-    );
+    let absolutePath: string;
+    if (path.basename(nodeModulesPath) !== NODE_MODULES) {
+      // this can happen in monorepos that use PnP, in those
+      // cases we handle resolution differently
+      const packageRoot = path.dirname(packageJsonPath);
+      const pattern = new RegExp(`^${libraryName}/?`);
+      const fileName = sourceName.replace(pattern, "");
+
+      await this._validateSourceNameExistenceAndCasing(
+        packageRoot,
+        // TODO: this is _not_ a source name; we should handle this scenario in
+        // a better way
+        fileName,
+        true
+      );
+      absolutePath = path.join(packageRoot, fileName);
+    } else {
+      await this._validateSourceNameExistenceAndCasing(
+        nodeModulesPath,
+        sourceName,
+        true
+      );
+      absolutePath = path.join(nodeModulesPath, sourceName);
+    }
 
     const packageInfo: {
       name: string;
@@ -252,7 +326,7 @@ export class Resolver {
     return this._resolveFile(
       sourceName,
       // We resolve to the real path here, as we may be resolving a linked library
-      await fsExtra.realpath(path.join(nodeModulesPath, sourceName)),
+      await getRealPath(absolutePath),
       libraryName,
       libraryVersion
     );

@@ -1,5 +1,3 @@
-import { BN } from "ethereumjs-util";
-
 import { HardhatNetworkChainsConfig } from "../../../../src/types/config";
 import { defaultHardhatNetworkParams } from "../../../../src/internal/core/config/default-config";
 import { BackwardsCompatibilityProviderAdapter } from "../../../../src/internal/core/providers/backwards-compatibility";
@@ -24,7 +22,6 @@ import {
   DEFAULT_HARDFORK,
   DEFAULT_MINING_CONFIG,
   DEFAULT_NETWORK_ID,
-  DEFAULT_NETWORK_NAME,
   DEFAULT_MEMPOOL_CONFIG,
   DEFAULT_USE_JSON_RPC,
 } from "./providers";
@@ -45,13 +42,13 @@ export interface UseProviderOptions {
   forkConfig?: ForkConfig;
   mining?: HardhatNetworkMiningConfig;
   hardfork?: string;
-  networkName?: string;
   chainId?: number;
   networkId?: number;
-  blockGasLimit?: number;
-  accounts?: Array<{ privateKey: string; balance: BN }>;
+  blockGasLimit?: bigint;
+  accounts?: Array<{ privateKey: string; balance: bigint }>;
   allowUnlimitedContractSize?: boolean;
-  initialBaseFeePerGas?: number;
+  allowBlocksWithSameTimestamp?: boolean;
+  initialBaseFeePerGas?: bigint;
   mempool?: HardhatNetworkMempoolConfig;
   coinbase?: string;
   chains?: HardhatNetworkChainsConfig;
@@ -63,12 +60,12 @@ export function useProvider({
   forkConfig,
   mining = DEFAULT_MINING_CONFIG,
   hardfork = DEFAULT_HARDFORK,
-  networkName = DEFAULT_NETWORK_NAME,
   chainId = DEFAULT_CHAIN_ID,
   networkId = DEFAULT_NETWORK_ID,
   blockGasLimit = DEFAULT_BLOCK_GAS_LIMIT,
   accounts = DEFAULT_ACCOUNTS,
   allowUnlimitedContractSize = DEFAULT_ALLOW_UNLIMITED_CONTRACT_SIZE,
+  allowBlocksWithSameTimestamp = false,
   initialBaseFeePerGas,
   mempool = DEFAULT_MEMPOOL_CONFIG,
   coinbase,
@@ -77,27 +74,29 @@ export function useProvider({
   beforeEach("Initialize provider", async function () {
     this.logger = new FakeModulesLogger(loggerEnabled);
     this.hardhatNetworkProvider = new HardhatNetworkProvider(
-      hardfork,
-      networkName,
-      chainId,
-      networkId,
-      blockGasLimit,
-      initialBaseFeePerGas,
-      new BN(0), // minGasPrice
-      true,
-      true,
-      mining.auto,
-      mining.interval,
-      mempool.order as MempoolOrder,
-      chains,
-      this.logger,
-      accounts,
-      undefined,
-      allowUnlimitedContractSize,
-      undefined,
-      undefined,
-      forkConfig,
-      coinbase
+      {
+        hardfork,
+        chainId,
+        networkId,
+        blockGasLimit: Number(blockGasLimit),
+        initialBaseFeePerGas:
+          initialBaseFeePerGas === undefined
+            ? undefined
+            : Number(initialBaseFeePerGas),
+        minGasPrice: 0n,
+        throwOnTransactionFailures: true,
+        throwOnCallFailures: true,
+        automine: mining.auto,
+        intervalMining: mining.interval,
+        mempoolOrder: mempool.order as MempoolOrder,
+        chains,
+        genesisAccounts: accounts,
+        allowUnlimitedContractSize,
+        forkConfig,
+        coinbase,
+        allowBlocksWithSameTimestamp,
+      },
+      this.logger
     );
     this.provider = new BackwardsCompatibilityProviderAdapter(
       this.hardhatNetworkProvider
@@ -106,7 +105,7 @@ export function useProvider({
     if (useJsonRpc) {
       this.server = new JsonRpcServer({
         port: 0,
-        hostname: "localhost",
+        hostname: "127.0.0.1",
         provider: this.provider,
       });
       this.serverInfo = await this.server.listen();
@@ -126,7 +125,17 @@ export function useProvider({
     delete (this as any).hardhatNetworkProvider;
 
     if (this.server !== undefined) {
+      // close server and fail if it takes too long
+      const beforeClose = Date.now();
       await this.server.close();
+      const afterClose = Date.now();
+      const elapsedTime = afterClose - beforeClose;
+      if (elapsedTime > 1500) {
+        throw new Error(
+          `Closing the server took more than 1 second (${elapsedTime}ms), which can lead to incredibly slow tests. Please fix it.`
+        );
+      }
+
       delete this.server;
       delete this.serverInfo;
     }

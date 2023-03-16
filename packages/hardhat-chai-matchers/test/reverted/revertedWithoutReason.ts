@@ -1,5 +1,7 @@
 import { AssertionError, expect } from "chai";
 import { ProviderError } from "hardhat/internal/core/providers/errors";
+import path from "path";
+import util from "util";
 
 import {
   runSuccessfulAsserts,
@@ -8,7 +10,7 @@ import {
   useEnvironmentWithNode,
 } from "../helpers";
 
-import "../../src";
+import "../../src/internal/add-chai-matchers";
 
 describe("INTEGRATION: Reverted without reason", function () {
   describe("with the in-process hardhat network", function () {
@@ -52,7 +54,9 @@ describe("INTEGRATION: Reverted without reason", function () {
       });
     });
 
-    describe("calling a method that reverts without a reason", function () {
+    // depends on a bug being fixed on ethers.js
+    // see https://github.com/NomicFoundation/hardhat/issues/3446
+    describe.skip("calling a method that reverts without a reason", function () {
       it("successful asserts", async function () {
         await runSuccessfulAsserts({
           matchers,
@@ -164,6 +168,25 @@ describe("INTEGRATION: Reverted without reason", function () {
           ProviderError,
           "sender doesn't have enough funds to send tx"
         );
+      });
+    });
+
+    describe("stack traces", function () {
+      // smoke test for stack traces
+      it("includes test file", async function () {
+        try {
+          await expect(
+            matchers.revertsWithoutReason()
+          ).to.not.be.revertedWithoutReason();
+        } catch (e: any) {
+          expect(util.inspect(e)).to.include(
+            path.join("test", "reverted", "revertedWithoutReason.ts")
+          );
+
+          return;
+        }
+
+        expect.fail("Expected an exception but none was thrown");
       });
     });
   }

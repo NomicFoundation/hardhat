@@ -1,15 +1,14 @@
 import { assert } from "chai";
-import fsExtra from "fs-extra";
 import path from "path";
 import sinon from "sinon";
 
+import fs from "fs";
 import { TASK_CLEAN } from "../../../../src/builtin-tasks/task-names";
 import { HardhatContext } from "../../../../src/internal/context";
 import { loadConfigAndTasks } from "../../../../src/internal/core/config/config-loading";
 import { DEFAULT_SOLC_VERSION } from "../../../../src/internal/core/config/default-config";
 import { ERRORS } from "../../../../src/internal/core/errors-list";
 import { resetHardhatContext } from "../../../../src/internal/reset";
-import { glob } from "../../../../src/internal/util/glob";
 import { useEnvironment } from "../../../helpers/environment";
 import {
   expectHardhatError,
@@ -19,10 +18,26 @@ import {
   getFixtureProjectPath,
   useFixtureProject,
 } from "../../../helpers/project";
+import {
+  getAllFilesMatching,
+  getRealPathSync,
+} from "../../../../src/internal/util/fs-utils";
 
 describe("config loading", function () {
   describe("default config path", function () {
     useFixtureProject("config-project");
+    useEnvironment();
+
+    it("should load the default config if none is given", function () {
+      assert.isDefined(this.env.config.networks.localhost);
+      assert.deepEqual(this.env.config.networks.localhost.accounts, [
+        "0xa95f9e3e7ae4e4865c5968828fe7c03fffa8a9f3bb52d36d26243f4c868ee166",
+      ]);
+    });
+  });
+
+  describe("can load CJS config path inside an esm project", function () {
+    useFixtureProject("esm/cjs-config");
     useEnvironment();
 
     it("should load the default config if none is given", function () {
@@ -320,11 +335,16 @@ Hardhat plugin instead.`
     });
 
     it("Should keep track of all the files imported when loading the config", async function () {
-      const builtinTasksFiles = await glob(
-        "../../../../src/builtin-tasks/*.ts"
+      const builtinTasksFiles = await getAllFilesMatching(
+        // We use realpathSync and not getRealPathSync as that's what node uses
+        // internally.
+        fs.realpathSync(
+          path.join(__dirname, "..", "..", "..", "..", "src", "builtin-tasks")
+        ),
+        (f) => f.endsWith(".ts")
       );
 
-      const projectPath = await fsExtra.realpath(".");
+      const projectPath = getRealPathSync(".");
 
       // We run this twice to make sure that the cache is cleaned properly
       for (let i = 0; i < 2; i++) {
@@ -334,13 +354,22 @@ Hardhat plugin instead.`
 
         const files = ctx.getFilesLoadedDuringConfig();
 
+        const filesJson = JSON.stringify(files, undefined, 2);
+
         for (const file of builtinTasksFiles) {
-          // The task names may have been loaded before, so we ignore it.
-          if (file.endsWith("task-names.ts")) {
+          // The task names and the utils may have been loaded before, so we ignore them.
+          if (
+            file.endsWith("task-names.ts") ||
+            file.includes(path.join(path.sep, "utils", path.sep))
+          ) {
             continue;
           }
 
-          assert.include(files, file);
+          assert.include(
+            files,
+            file,
+            `${file} should be included in ${filesJson}`
+          );
         }
 
         // Must include the config file and the files directly and
@@ -489,6 +518,43 @@ Hardhat plugin instead.`
         consoleWarnStub.args[0][0],
         "remappings are not currently supported"
       );
+    });
+  });
+
+  describe("ESM project", function () {
+    describe(".js config file", function () {
+      useFixtureProject("esm/js-config");
+
+      beforeEach(function () {
+        HardhatContext.createHardhatContext();
+      });
+
+      afterEach(function () {
+        resetHardhatContext();
+      });
+
+      it("Should throw the right error", function () {
+        expectHardhatError(
+          () => loadConfigAndTasks(),
+          ERRORS.GENERAL.ESM_PROJECT_WITHOUT_CJS_CONFIG
+        );
+      });
+    });
+
+    describe(".cjs config file", function () {
+      useFixtureProject("esm/cjs-config");
+
+      beforeEach(function () {
+        HardhatContext.createHardhatContext();
+      });
+
+      afterEach(function () {
+        resetHardhatContext();
+      });
+
+      it("Should not throw", function () {
+        loadConfigAndTasks();
+      });
     });
   });
 });

@@ -1,12 +1,11 @@
-import { TypedTransaction } from "@ethereumjs/tx";
-import { BN } from "ethereumjs-util";
+import { TypedTransaction } from "@nomicfoundation/ethereumjs-tx";
 import {
   List as ImmutableList,
   Map as ImmutableMap,
   Record as ImmutableRecord,
 } from "immutable";
 
-import { bnToHex } from "./utils/bnToHex";
+import * as BigIntUtils from "../../util/bigint";
 
 export interface OrderedTransaction {
   orderId: number;
@@ -45,5 +44,5 @@ export const makePoolState = ImmutableRecord<PoolState>({
   pendingTransactions: ImmutableMap<string, SenderTransactions>(),
   queuedTransactions: ImmutableMap<string, SenderTransactions>(),
   hashToTransaction: ImmutableMap<string, SerializedTransaction>(),
-  blockGasLimit: bnToHex(new BN(9500000)),
+  blockGasLimit: BigIntUtils.toHex(9500000),
 });

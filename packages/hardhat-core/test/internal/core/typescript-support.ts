@@ -1,5 +1,4 @@
 import { assert } from "chai";
-import fsExtra from "fs-extra";
 
 import { TASK_TEST_GET_TEST_FILES } from "../../../src/builtin-tasks/task-names";
 import { resetHardhatContext } from "../../../src/internal/reset";
@@ -7,6 +6,7 @@ import { useEnvironment } from "../../helpers/environment";
 import { useFixtureProject } from "../../helpers/project";
 import { expectHardhatError } from "../../helpers/errors";
 import { ERRORS } from "../../../src/internal/core/errors-list";
+import { getRealPath } from "../../../src/internal/util/fs-utils";
 
 describe("Typescript support", function () {
   describe("strict typescript config", function () {
@@ -54,8 +54,8 @@ describe("Typescript support", function () {
       });
 
       assert.deepEqual(tests.sort(), [
-        await fsExtra.realpath("test/js-test.js"),
-        await fsExtra.realpath("test/ts-test.ts"),
+        await getRealPath("test/js-test.js"),
+        await getRealPath("test/ts-test.ts"),
       ]);
     });
   });

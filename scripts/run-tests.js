@@ -32,9 +32,10 @@ function runTests() {
   console.time("Total test time");
 
   try {
-    shell.exec(
-      `yarn wsrun --serial --fast-exit --exclude-missing ${ignoredPackages} test`
-    );
+    const fastExit = process.env.NO_FAST_EXIT ? "" : "--fast-exit";
+    const command = `yarn wsrun --serial ${fastExit} --exclude-missing ${ignoredPackages} test`;
+
+    shell.exec(command);
   } finally {
     console.timeEnd("Total test time");
   }

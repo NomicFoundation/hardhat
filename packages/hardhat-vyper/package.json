@@ -1,9 +1,9 @@
 {
   "name": "@nomiclabs/hardhat-vyper",
-  "version": "3.0.0",
+  "version": "3.0.3",
   "description": "Hardhat plugin to develop smart contracts in Vyper",
   "repository": "github:nomiclabs/hardhat",
-  "homepage": "https://github.com/nomiclabs/hardhat/tree/master/packages/hardhat-vyper",
+  "homepage": "https://github.com/nomiclabs/hardhat/tree/main/packages/hardhat-vyper",
   "author": "Nomic Labs LLC",
   "license": "MIT",
   "main": "dist/src/index.js",
@@ -22,6 +22,7 @@
     "prettier": "prettier \"**/*.{js,md,json}\"",
     "test": "mocha --recursive \"test/**/*.ts\"",
     "build": "tsc --build .",
+    "prepublishOnly": "yarn build",
     "clean": "rimraf dist"
   },
   "files": [
@@ -41,21 +42,22 @@
     "@types/chai": "^4.2.0",
     "@types/fs-extra": "^5.1.0",
     "@types/lodash": "^4.14.123",
-    "@types/mocha": "^9.1.0",
-    "@types/node": "^12.0.0",
-    "@typescript-eslint/eslint-plugin": "4.29.2",
-    "@typescript-eslint/parser": "4.29.2",
+    "@types/mocha": ">=9.1.0",
+    "@types/node": "^14.0.0",
+    "@typescript-eslint/eslint-plugin": "5.53.0",
+    "@typescript-eslint/parser": "5.53.0",
     "chai": "^4.2.0",
     "eslint": "^7.29.0",
     "eslint-config-prettier": "8.3.0",
     "eslint-plugin-import": "2.24.1",
+    "eslint-plugin-no-only-tests": "3.0.0",
     "eslint-plugin-prettier": "3.4.0",
     "hardhat": "^2.8.3",
-    "mocha": "^9.2.0",
+    "mocha": "^10.0.0",
     "prettier": "2.4.1",
     "rimraf": "^3.0.2",
-    "ts-node": "^8.1.0",
-    "typescript": "~4.5.2"
+    "ts-node": "^10.8.0",
+    "typescript": "~4.7.4"
   },
   "peerDependencies": {
     "hardhat": "^2.8.3"

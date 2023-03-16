@@ -10,6 +10,7 @@ import {
 } from "../../../src/internal/core/project-structure";
 import { expectHardhatError } from "../../helpers/errors";
 import { useFixtureProject } from "../../helpers/project";
+import { getRealPath } from "../../../src/internal/util/fs-utils";
 
 describe("project structure", () => {
   describe("isCwdInsideProject", () => {
@@ -45,7 +46,7 @@ describe("project structure", () => {
 
       before("get root path", async () => {
         // TODO: This is no longer needed once PR #71 gets merged
-        const pathToFixtureRoot = await fsExtra.realpath(
+        const pathToFixtureRoot = await getRealPath(
           path.join(
             __dirname,
             "..",
@@ -55,7 +56,7 @@ describe("project structure", () => {
           )
         );
 
-        configPath = await fsExtra.realpath(
+        configPath = await getRealPath(
           path.join(pathToFixtureRoot, "hardhat.config.js")
         );
       });
@@ -68,6 +69,26 @@ describe("project structure", () => {
         process.chdir("contracts");
         assert.equal(getUserConfigPath(), configPath);
       });
+    });
+  });
+
+  describe("Inside an ESM project", () => {
+    useFixtureProject("esm/cjs-config");
+    let configPath: string;
+
+    before("get root path", async () => {
+      configPath = await getRealPath(
+        path.join(process.cwd(), "hardhat.config.cjs")
+      );
+    });
+
+    it("should work from the project root", () => {
+      assert.equal(getUserConfigPath(), configPath);
+    });
+
+    it("should work from deeper inside the project", () => {
+      process.chdir("contracts");
+      assert.equal(getUserConfigPath(), configPath);
     });
   });
 });

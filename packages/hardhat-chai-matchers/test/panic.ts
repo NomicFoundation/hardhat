@@ -1,7 +1,10 @@
 import { assert } from "chai";
 import { BigNumber } from "ethers";
 
-import { PANIC_CODES, panicErrorCodeToReason } from "../src/reverted/panic";
+import {
+  PANIC_CODES,
+  panicErrorCodeToReason,
+} from "../src/internal/reverted/panic";
 
 describe("panic codes", function () {
   it("all exported panic codes should have a description", async function () {

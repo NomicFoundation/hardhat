@@ -1,5 +1,3 @@
-import * as fs from "fs";
-
 import { subtask, task, types } from "../internal/core/config/config-env";
 import { HardhatError } from "../internal/core/errors";
 import { ERRORS } from "../internal/core/errors-list";
@@ -7,6 +5,7 @@ import { DependencyGraph } from "../internal/solidity/dependencyGraph";
 import { ResolvedFile, ResolvedFilesMap } from "../internal/solidity/resolver";
 import { getPackageJson } from "../internal/util/packageInfo";
 
+import { getRealPathSync } from "../internal/util/fs-utils";
 import {
   TASK_COMPILE_SOLIDITY_GET_DEPENDENCY_GRAPH,
   TASK_COMPILE_SOLIDITY_GET_SOURCE_NAMES,
@@ -20,12 +19,23 @@ function getSortedFiles(dependenciesGraph: DependencyGraph) {
   const tsort = require("tsort");
   const graph = tsort();
 
+  // sort the graph entries to make the results deterministic
+  const dependencies = dependenciesGraph
+    .entries()
+    .sort(([a], [b]) => a.sourceName.localeCompare(b.sourceName));
+
   const filesMap: ResolvedFilesMap = {};
-  const resolvedFiles = dependenciesGraph.getResolvedFiles();
+  const resolvedFiles = dependencies.map(([file, _deps]) => file);
+
   resolvedFiles.forEach((f) => (filesMap[f.sourceName] = f));
 
-  for (const [from, deps] of dependenciesGraph.entries()) {
-    for (const to of deps) {
+  for (const [from, deps] of dependencies) {
+    // sort the dependencies to make the results deterministic
+    const sortedDeps = [...deps].sort((a, b) =>
+      a.sourceName.localeCompare(b.sourceName)
+    );
+
+    for (const to of sortedDeps) {
       graph.add(to.sourceName, from.sourceName);
     }
   }
@@ -44,7 +54,7 @@ function getSortedFiles(dependenciesGraph: DependencyGraph) {
   } catch (error) {
     if (error instanceof Error) {
       if (error.toString().includes("Error: There is a cycle in the graph.")) {
-        throw new HardhatError(ERRORS.BUILTIN_TASKS.FLATTEN_CYCLE, error);
+        throw new HardhatError(ERRORS.BUILTIN_TASKS.FLATTEN_CYCLE, {}, error);
       }
     }
 
@@ -97,7 +107,7 @@ subtask(TASK_FLATTEN_GET_DEPENDENCY_GRAPH)
     const sourcePaths: string[] =
       files === undefined
         ? await run(TASK_COMPILE_SOLIDITY_GET_SOURCE_PATHS)
-        : files.map((f) => fs.realpathSync(f));
+        : files.map((f) => getRealPathSync(f));
 
     const sourceNames: string[] = await run(
       TASK_COMPILE_SOLIDITY_GET_SOURCE_NAMES,
@@ -114,7 +124,10 @@ subtask(TASK_FLATTEN_GET_DEPENDENCY_GRAPH)
     return dependencyGraph;
   });
 
-task(TASK_FLATTEN, "Flattens and prints contracts and their dependencies")
+task(
+  TASK_FLATTEN,
+  "Flattens and prints contracts and their dependencies. If no file is passed, all the contracts in the project will be flattened."
+)
   .addOptionalVariadicPositionalParam(
     "files",
     "The files to flatten",

@@ -7,9 +7,16 @@ describe("Chain Config", () => {
       (config) => config.chainId
     );
 
-    const uniqueIds = [...new Set(chainIds)];
+    // check that xdai/gnosis is the only duplicate
+    const xdaiGnosisChains = chainIds.filter((obj) => obj === 100);
+    assert.lengthOf(xdaiGnosisChains, 2);
+
+    // check that there are no duplicates in the rest of the list
+    const filteredChainIds = chainIds.filter((obj) => obj !== 100);
+
+    const uniqueIds = [...new Set(filteredChainIds)];
 
     assert.notEqual(0, uniqueIds.length);
-    assert.equal(uniqueIds.length, chainIds.length);
+    assert.equal(uniqueIds.length, filteredChainIds.length);
   });
 });

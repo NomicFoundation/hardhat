@@ -1,5 +1,7 @@
 import { AssertionError, expect } from "chai";
 import { ProviderError } from "hardhat/internal/core/providers/errors";
+import path from "path";
+import util from "util";
 
 import {
   runSuccessfulAsserts,
@@ -8,7 +10,7 @@ import {
   useEnvironmentWithNode,
 } from "../helpers";
 
-import "../../src";
+import "../../src/internal/add-chai-matchers";
 
 describe("INTEGRATION: Reverted with", function () {
   describe("with the in-process hardhat network", function () {
@@ -76,7 +78,9 @@ describe("INTEGRATION: Reverted with", function () {
         });
       });
 
-      it("failed asserts", async function () {
+      // depends on a bug being fixed on ethers.js
+      // see https://github.com/NomicFoundation/hardhat/issues/3446
+      it.skip("failed asserts", async function () {
         await runFailedAsserts({
           matchers,
           method: "revertsWithoutReason",
@@ -94,6 +98,14 @@ describe("INTEGRATION: Reverted with", function () {
           method: "revertsWith",
           args: ["some reason"],
           successfulAssert: (x) => expect(x).to.be.revertedWith("some reason"),
+        });
+
+        await runSuccessfulAsserts({
+          matchers,
+          method: "revertsWith",
+          args: ["regular expression reason"],
+          successfulAssert: (x) =>
+            expect(x).to.be.revertedWith(/regular .* reason/),
         });
 
         await runSuccessfulAsserts({
@@ -124,6 +136,18 @@ describe("INTEGRATION: Reverted with", function () {
           failedAssert: (x) => expect(x).to.be.revertedWith("some reason"),
           failedAssertReason:
             "Expected transaction to be reverted with reason 'some reason', but it reverted with reason 'another reason'",
+        });
+      });
+
+      it("failed asserts: expected a different regular expression reason ", async function () {
+        await runFailedAsserts({
+          matchers,
+          method: "revertsWith",
+          args: ["another regular expression reason"],
+          failedAssert: (x) =>
+            expect(x).to.be.revertedWith(/some regular .* reason/),
+          failedAssertReason:
+            "Expected transaction to be reverted with reason 'some regular .* reason', but it reverted with reason 'another regular expression reason'",
         });
       });
     });
@@ -185,7 +209,7 @@ describe("INTEGRATION: Reverted with", function () {
           expect(hash).to.be.revertedWith(10)
         ).to.throw(
           TypeError,
-          "Expected a string as the expected reason string"
+          "Expected the revert reason to be a string or a regular expression"
         );
       });
 
@@ -210,6 +234,23 @@ describe("INTEGRATION: Reverted with", function () {
           ProviderError,
           "sender doesn't have enough funds to send tx"
         );
+      });
+    });
+
+    describe("stack traces", function () {
+      // smoke test for stack traces
+      it("includes test file", async function () {
+        try {
+          await expect(matchers.revertsWith("bar")).to.be.revertedWith("foo");
+        } catch (e: any) {
+          expect(util.inspect(e)).to.include(
+            path.join("test", "reverted", "revertedWith.ts")
+          );
+
+          return;
+        }
+
+        expect.fail("Expected an exception but none was thrown");
       });
     });
   }

@@ -1,5 +1,5 @@
+import { bufferToHex, toBuffer } from "@nomicfoundation/ethereumjs-util";
 import { assert } from "chai";
-import { BN, bufferToHex, toBuffer } from "ethereumjs-util";
 
 import {
   numberToRpcQuantity,
@@ -70,7 +70,7 @@ describe("Eth module", function () {
                   to: contractAddress,
                   from: DEFAULT_ACCOUNTS_ADDRESSES[0],
                   data: `${EXAMPLE_CONTRACT.selectors.modifiesState}000000000000000000000000000000000000000000000000000000000000000a`,
-                  gas: `0x${new BN(150_000).toString(16)}`,
+                  gas: `0x${150_000n.toString(16)}`,
                 },
               ])
             )
@@ -177,9 +177,9 @@ describe("Eth module", function () {
             to: undefined,
             from: toBuffer(DEFAULT_ACCOUNTS_ADDRESSES[1]),
             data: toBuffer("0x60006000fd"),
-            nonce: new BN(0),
-            value: new BN(123),
-            gasLimit: new BN(250000),
+            nonce: 0n,
+            value: 123n,
+            gasLimit: 250_000n,
             gasPrice: await getPendingBaseFeePerGas(this.provider),
           };
 

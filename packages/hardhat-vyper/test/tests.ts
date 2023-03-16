@@ -93,4 +93,18 @@ describe("Vyper plugin", function () {
       }, "The Vyper version pragma statement in this file doesn't match any of the configured compilers in your config.");
     });
   });
+
+  describe("project produces abi without gas field", function () {
+    useFixtureProject("generates-gas-field");
+    useEnvironment();
+
+    it("Should remove the gas field", async function () {
+      await this.env.run(TASK_COMPILE);
+
+      assert.isUndefined(
+        JSON.parse(JSON.stringify(this.env.artifacts.readArtifactSync("A").abi))
+          .gas
+      );
+    });
+  });
 });

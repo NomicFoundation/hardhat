@@ -9,8 +9,10 @@ import {
   getContractAtFromArtifact,
   getContractFactory,
   getContractFactoryFromArtifact,
+  getImpersonatedSigner,
   getSigner,
   getSigners,
+  deployContract,
 } from "./helpers";
 import "./type-extensions";
 
@@ -40,6 +42,8 @@ extendEnvironment((hre) => {
 
       getSigner: (address: string) => getSigner(hre, address),
       getSigners: () => getSigners(hre),
+      getImpersonatedSigner: (address: string) =>
+        getImpersonatedSigner(hre, address),
       // We cast to any here as we hit a limitation of Function#bind and
       // overloads. See: https://github.com/microsoft/TypeScript/issues/28582
       getContractFactory: getContractFactory.bind(null, hre) as any,
@@ -49,6 +53,7 @@ extendEnvironment((hre) => {
       ),
       getContractAt: getContractAt.bind(null, hre),
       getContractAtFromArtifact: getContractAtFromArtifact.bind(null, hre),
+      deployContract: deployContract.bind(null, hre) as any,
     };
   });
 });

@@ -54,4 +54,4 @@ module.exports = {};
 
 And then run `npx hardhat accounts` to try it.
 
-Read the documentation on the [Hardhat Runtime Environment](https://hardhat.org/advanced/hardhat-runtime-environment.html) to learn how to access the HRE in different ways to use Web3.js from anywhere the HRE is accessible.
+Read the documentation on the [Hardhat Runtime Environment](https://hardhat.org/hardhat-runner/docs/advanced/hardhat-runtime-environment) to learn how to access the HRE in different ways to use Web3.js from anywhere the HRE is accessible.

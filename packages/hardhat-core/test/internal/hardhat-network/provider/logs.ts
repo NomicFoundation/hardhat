@@ -1,10 +1,9 @@
 import { assert } from "chai";
 import chalk from "chalk";
 
-import { BN } from "ethereumjs-util";
 import {
   numberToRpcQuantity,
-  rpcQuantityToBN,
+  rpcQuantityToBigInt,
 } from "../../../../src/internal/core/jsonrpc/types/base-types";
 import { workaroundWindowsCiFailures } from "../../../utils/workaround-windows-ci-failures";
 import { EXAMPLE_CONTRACT, EXAMPLE_READ_CONTRACT } from "../helpers/contracts";
@@ -28,11 +27,10 @@ describe("Provider logs", function () {
       useProvider();
       useHelpers();
 
-      let gasPrice: BN;
+      let gasPrice: bigint;
       beforeEach(async function () {
-        gasPrice = rpcQuantityToBN(
-          await this.provider.send("eth_gasPrice")
-        ).muln(2);
+        gasPrice =
+          2n * rpcQuantityToBigInt(await this.provider.send("eth_gasPrice"));
 
         this.logger.reset();
       });
@@ -183,7 +181,7 @@ describe("Provider logs", function () {
 
         describe("eth_sendRawTransaction", function () {
           // set lower baseFeePerGas to avoid having to re-create the raw tx
-          useProvider({ initialBaseFeePerGas: 1 });
+          useProvider({ initialBaseFeePerGas: 1n });
 
           it("should print a successful transaction", async function () {
             // send 0 eth from the DEFAULT_ACCOUNTS[1]

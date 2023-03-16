@@ -1,9 +1,8 @@
-import { use } from "chai";
-import chaiAsPromised from "chai-as-promised";
+import "@nomiclabs/hardhat-ethers";
 
 import "./types";
 
-import { hardhatChaiMatchers } from "./hardhatChaiMatchers";
+import { hardhatWaffleIncompatibilityCheck } from "./internal/hardhatWaffleIncompatibilityCheck";
+import "./internal/add-chai-matchers";
 
-use(hardhatChaiMatchers);
-use(chaiAsPromised);
+hardhatWaffleIncompatibilityCheck();

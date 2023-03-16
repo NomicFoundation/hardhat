@@ -2,18 +2,19 @@ name: Hardhat Network Tracing Capabilities CI
 
 on:
   push:
-    branches: [$default-branch, pre-release-testing-branch]
+    branches: [$default-branch]
     paths:
       - "packages/hardhat-core/**"
       - "packages/hardhat-common/**"
       - "config/**"
   pull_request:
     branches:
-      - "*"
+      - "**"
     paths:
       - "packages/hardhat-core/**"
       - "packages/hardhat-common/**"
       - "config/**"
+  workflow_dispatch:
 
 defaults:
   run:
@@ -29,7 +30,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node: [12, 14, 16]
+        node: [14, 16, 18]
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v2
@@ -44,8 +45,8 @@ jobs:
         uses: actions/cache@v2
         with:
           path: |
-            packages/hardhat-core/test/internal/hardhat-network/stack-traces/test-files/**/artifacts
-          key: hardhat-network-stack-traces-tests-${{ hashFiles('yarn.lock') }}-${{ hashFiles('packages/hardhat-core/test/internal/hardhat-network/stack-traces/test-files/**/*.sol') }}-${{ hashFiles('packages/hardhat-core/test/internal/hardhat-network/stack-traces/test-files/**/test.json') }}-${{ hashFiles('packages/hardhat-core/test/internal/hardhat-network/stack-traces/**/*.ts') }}
+            packages/hardhat-core/test/internal/hardhat-network/stack-traces/test-files/artifacts
+          key: hardhat-network-stack-traces-tests-${{ hashFiles('packages/hardhat-core/test/internal/hardhat-network/stack-traces/test-files/**/*.sol') }}-${{ hashFiles('packages/hardhat-core/test/internal/hardhat-network/stack-traces/test-files/**/test.json') }}-${{ hashFiles('packages/hardhat-core/test/internal/hardhat-network/stack-traces/**/*.ts') }}
       - name: Run tests
         env:
           DO_NOT_SET_THIS_ENV_VAR____IS_HARDHAT_CI: true

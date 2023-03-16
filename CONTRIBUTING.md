@@ -6,15 +6,13 @@ This document contains some tips on how to collaborate in this project.
 
 If you find a bug or want to propose a new feature, please [open an issue](https://github.com/nomiclabs/hardhat/issues/new). Pull requests are welcome, but we recommend you discuss it in an issue first, especially for big changes. This will increase the odds that we can accept your PR.
 
-## Issues auto-assignment
+## GitHub project
 
-Every issue gets automatically assigned to a team member. This person will act as the point of contact between the user that opened the issue and the team.
-
-An issue being assigned does not mean that we are actively working on addressing it, so if you are interested in addressing one add a comment mentioning it.
+We use a [GitHub project](https://github.com/orgs/NomicFoundation/projects/4/views/11) to triage new issues and plan our work. You can check our list of [good first issues](https://github.com/orgs/NomicFoundation/projects/4/views/7) there.
 
 ## Project structure
 
-This repository is a monorepo handled with [Yarn workspaces](https://classic.yarnpkg.com/en/docs/workspaces/).
+This repository is a monorepo handled with [Yarn v1](https://classic.yarnpkg.com/lang/en/) and [Yarn workspaces](https://classic.yarnpkg.com/en/docs/workspaces/).
 
 There's a folder for each subproject in `packages/`. All of them are plugins, except for `/packages/hardhat-core` which is the main project (i.e. the one that's published as [hardhat](https://npmjs.com/package/hardhat) in npm).
 
@@ -48,19 +46,19 @@ The linter is always run in the CI, so make sure it passes before pushing code. 
 
 ## Branching
 
-We work on two branches, [`master`](https://github.com/nomiclabs/hardhat/tree/master) and [`development`](https://github.com/nomiclabs/hardhat/tree/development).
+We work on two branches, [`main`](https://github.com/nomiclabs/hardhat/tree/main) and [`development`](https://github.com/nomiclabs/hardhat/tree/development).
 
-The `master` branch is meant to be kept in sync with the latest released version of each package. Most pull requests are based on `master`, so when in doubt use this branch.
+The `main` branch is meant to be kept in sync with the latest released version of each package. Most pull requests are based on `main`, so when in doubt use this branch.
 
-The development branch is meant to be used for major, risky changes that are ready, but we can't or don't want to release yet. We never release new versions from development. When we want to release the changes from development, we go through a stricter QA process, merge those changes into master, and release from master. Examples of things that should be based on development are features that require significant changes to the codebase, or bug fixes that involve a major refactor.
+The development branch is meant to be used for major, risky changes that are ready, but we can't or don't want to release yet. We never release new versions from development. When we want to release the changes from development, we go through a stricter QA process, merge those changes into main, and release from main. Examples of things that should be based on development are features that require significant changes to the codebase, or bug fixes that involve a major refactor.
 
 ### Website and documentation branching
 
 If you are modifying the default config, adding a feature, or doing any kind of technical work that should be reflected in the documentation, the documentation change should be contained in the same branch and PR as the change.
 
-If you are working purely on the website or documentation, not as a result of a technical change, you should branch from [`master`](https://github.com/nomiclabs/hardhat/tree/master) and use it as the base branch in your pull request.
+If you are working purely on the website or documentation, not as a result of a technical change, you should branch from [`main`](https://github.com/nomiclabs/hardhat/tree/main) and use it as the base branch in your pull request.
 
-Note that the `master` branch is automatically deployed, so take care when merging into it.
+Note that the `main` branch is automatically deployed, so take care when merging into it.
 
 ## Dependencies
 
@@ -74,7 +72,7 @@ Hardhat and its plugins are optimized for keeping startup time low.
 
 This is done by selectively requiring dependencies when needed using `import` or `require` following this criteria:
 
-1. If something is only imported for its type, and NOT its value, use a top-level `import ... from "mod"`
+1. If something is only imported for its type, and NOT its value, use a top-level `import ... from "mod"`.
 1. If a module is in the "Essential modules" list below, use a top-level `import ... from "mod"`.
 1. Otherwise, use `await import` or `require` locally in the functions that use it:
    1. If the function is sync, use node's `require`

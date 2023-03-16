@@ -1,6 +1,6 @@
 import { expect, AssertionError } from "chai";
 
-import "../src";
+import "../src/internal/add-chai-matchers";
 
 /* eslint-disable @typescript-eslint/no-unused-expressions */
 
@@ -14,6 +14,8 @@ describe("Proper address", () => {
     expect("28FAA621c3348823D6c6548981a19716bcDc740e").not.to.be.properAddress;
     expect("0x28FAA621c3348823D6c6548981a19716bcDc740").to.not.be.properAddress;
     expect("0x846C66cf71C43f80403B51fE3906B3599D63336g").to.not.be
+      .properAddress;
+    expect("0x846C66cf71C43f80403B51fE3906B3599D6333-f").to.not.be
       .properAddress;
   });
 
@@ -34,7 +36,7 @@ describe("Proper address", () => {
           .properAddress
     ).to.throw(
       AssertionError,
-      'Expected "0x28FAA621c3348823D6c6548981a19716bcDc740e" not to be a proper address'
+      'Expected "0x28FAA621c3348823D6c6548981a19716bcDc740e" NOT to be a proper address'
     );
   });
 });

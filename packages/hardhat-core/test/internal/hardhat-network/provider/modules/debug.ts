@@ -1,5 +1,4 @@
 import { assert } from "chai";
-import { BN } from "ethereumjs-util";
 import _ from "lodash";
 
 import { defaultHardhatNetworkParams } from "../../../../../src/internal/core/config/default-config";
@@ -9,11 +8,12 @@ import { ForkConfig } from "../../../../../src/internal/hardhat-network/provider
 import { RpcDebugTraceOutput } from "../../../../../src/internal/hardhat-network/provider/output";
 import { HardhatNetworkProvider } from "../../../../../src/internal/hardhat-network/provider/provider";
 import { EthereumProvider } from "../../../../../src/types";
+import { trace as mainnetPostLondonTxTrace } from "../../../../fixture-debug-traces/mainnetPostLondonTxTrace";
 import { trace as mainnetReturnsDataTrace } from "../../../../fixture-debug-traces/mainnetReturnsDataTrace";
 import { trace as mainnetReturnsDataTraceGeth } from "../../../../fixture-debug-traces/mainnetReturnsDataTraceGeth";
 import { trace as mainnetRevertTrace } from "../../../../fixture-debug-traces/mainnetRevertTrace";
 import { trace as modifiesStateTrace } from "../../../../fixture-debug-traces/modifiesStateTrace";
-import { ALCHEMY_URL } from "../../../../setup";
+import { INFURA_URL } from "../../../../setup";
 import { assertInvalidInputError } from "../../helpers/assertions";
 import { FORK_TESTS_CACHE_PATH } from "../../helpers/constants";
 import { EXAMPLE_CONTRACT } from "../../helpers/contracts";
@@ -25,7 +25,6 @@ import {
   DEFAULT_CHAIN_ID,
   DEFAULT_HARDFORK,
   DEFAULT_NETWORK_ID,
-  DEFAULT_NETWORK_NAME,
   PROVIDERS,
 } from "../../helpers/providers";
 import { sendDummyTransaction } from "../../helpers/sendDummyTransaction";
@@ -60,7 +59,7 @@ describe("Debug module", function () {
             [txHash]
           );
           assert.deepEqual(trace, {
-            gas: 21000,
+            gas: 21_000,
             failed: false,
             returnValue: "",
             structLogs: [],
@@ -98,7 +97,7 @@ describe("Debug module", function () {
             [txHash]
           );
           assert.deepEqual(trace, {
-            gas: 21000,
+            gas: 21_000,
             failed: false,
             returnValue: "",
             structLogs: [],
@@ -127,6 +126,31 @@ describe("Debug module", function () {
           assertEqualTraces(trace, modifiesStateTrace);
         });
 
+        it("should trace an OOG transaction sent to a precompile", async function () {
+          await sendDummyTransaction(this.provider, 0, {
+            from: DEFAULT_ACCOUNTS_ADDRESSES[1],
+            to: "0x0000000000000000000000000000000000000001",
+          }).catch(() => {});
+
+          const block = await this.provider.send("eth_getBlockByNumber", [
+            "latest",
+            false,
+          ]);
+
+          const txHash = block.transactions[0];
+
+          const trace: RpcDebugTraceOutput = await this.provider.send(
+            "debug_traceTransaction",
+            [txHash]
+          );
+          assert.deepEqual(trace, {
+            gas: 21_000,
+            failed: true,
+            returnValue: "",
+            structLogs: [],
+          });
+        });
+
         describe("berlin", function () {
           useProvider({ hardfork: "berlin" });
 
@@ -148,7 +172,7 @@ describe("Debug module", function () {
               [txHash]
             );
             assert.deepEqual(trace, {
-              gas: 23400,
+              gas: 23_400,
               failed: false,
               returnValue: "",
               structLogs: [],
@@ -159,44 +183,42 @@ describe("Debug module", function () {
     });
   });
 
-  describe("fork tests", function () {
+  describe("fork tests (pre-berlin)", function () {
     this.timeout(240000);
 
     let provider: EthereumProvider;
 
     beforeEach(function () {
-      if (ALCHEMY_URL === undefined) {
+      if (INFURA_URL === undefined) {
         this.skip();
       }
       const forkConfig: ForkConfig = {
-        jsonRpcUrl: ALCHEMY_URL!,
-        blockNumber: 11954000,
+        jsonRpcUrl: INFURA_URL!,
+        blockNumber: 11_954_000,
       };
 
       const logger = new ModulesLogger(false);
 
       const hardhatNetworkProvider = new HardhatNetworkProvider(
-        DEFAULT_HARDFORK,
-        DEFAULT_NETWORK_NAME,
-        DEFAULT_CHAIN_ID,
-        DEFAULT_NETWORK_ID,
-        13000000,
-        undefined,
-        new BN(0),
-        true,
-        true,
-        false, // mining.auto
-        0, // mining.interval
-        "priority", // mining.mempool.order
-        defaultHardhatNetworkParams.chains,
-        logger,
-        DEFAULT_ACCOUNTS,
-        undefined,
-        DEFAULT_ALLOW_UNLIMITED_CONTRACT_SIZE,
-        undefined,
-        undefined,
-        forkConfig,
-        FORK_TESTS_CACHE_PATH
+        {
+          hardfork: DEFAULT_HARDFORK,
+          chainId: DEFAULT_CHAIN_ID,
+          networkId: DEFAULT_NETWORK_ID,
+          blockGasLimit: 13000000,
+          minGasPrice: 0n,
+          throwOnTransactionFailures: true,
+          throwOnCallFailures: true,
+          automine: false,
+          intervalMining: 0,
+          mempoolOrder: "priority",
+          chains: defaultHardhatNetworkParams.chains,
+          genesisAccounts: DEFAULT_ACCOUNTS,
+          allowUnlimitedContractSize: DEFAULT_ALLOW_UNLIMITED_CONTRACT_SIZE,
+          forkConfig,
+          forkCachePath: FORK_TESTS_CACHE_PATH,
+          allowBlocksWithSameTimestamp: false,
+        },
+        logger
       );
 
       provider = new BackwardsCompatibilityProviderAdapter(
@@ -284,6 +306,60 @@ describe("Debug module", function () {
         ...mainnetRevertTrace,
         structLogs,
       });
+    });
+  });
+
+  describe("fork tests (post-london)", function () {
+    let provider: EthereumProvider;
+
+    beforeEach(function () {
+      if (INFURA_URL === undefined) {
+        this.skip();
+      }
+      const forkConfig: ForkConfig = {
+        jsonRpcUrl: INFURA_URL!,
+        blockNumber: 15_204_358,
+      };
+
+      const logger = new ModulesLogger(false);
+
+      const hardhatNetworkProvider = new HardhatNetworkProvider(
+        {
+          hardfork: DEFAULT_HARDFORK,
+          chainId: DEFAULT_CHAIN_ID,
+          networkId: DEFAULT_NETWORK_ID,
+          blockGasLimit: 13000000,
+          minGasPrice: 0n,
+          throwOnTransactionFailures: true,
+          throwOnCallFailures: true,
+          automine: false,
+          intervalMining: 0,
+          mempoolOrder: "priority",
+          chains: defaultHardhatNetworkParams.chains,
+          genesisAccounts: DEFAULT_ACCOUNTS,
+          allowUnlimitedContractSize: DEFAULT_ALLOW_UNLIMITED_CONTRACT_SIZE,
+          forkConfig,
+          forkCachePath: FORK_TESTS_CACHE_PATH,
+          allowBlocksWithSameTimestamp: false,
+        },
+        logger
+      );
+
+      provider = new BackwardsCompatibilityProviderAdapter(
+        hardhatNetworkProvider
+      );
+    });
+
+    // see https://github.com/NomicFoundation/hardhat/issues/3519
+    it.skip("Should return the right values for a successful tx", async function () {
+      const trace: RpcDebugTraceOutput = await provider.send(
+        "debug_traceTransaction",
+        ["0xe0b1f8e11eb822107ddc35ce2d944147cc043acf680c39332ee95dd6508d107e"]
+      );
+
+      console.log(trace.structLogs.length);
+
+      assertEqualTraces(trace, mainnetPostLondonTxTrace);
     });
   });
 });

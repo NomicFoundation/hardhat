@@ -1,12 +1,12 @@
+import { bufferToBigInt, toBuffer } from "@nomicfoundation/ethereumjs-util";
 import { assert } from "chai";
-import { BN, toBuffer } from "ethereumjs-util";
 import fsExtra from "fs-extra";
 import sinon from "sinon";
 
 import { RpcTransaction } from "../../../../src/internal/core/jsonrpc/types/output/transaction";
 import { HttpProvider } from "../../../../src/internal/core/providers/http";
 import { JsonRpcClient } from "../../../../src/internal/hardhat-network/jsonrpc/client";
-import { randomHashBuffer } from "../../../../src/internal/hardhat-network/provider/fork/random";
+import { randomHashBuffer } from "../../../../src/internal/hardhat-network/provider/utils/random";
 import { makeForkClient } from "../../../../src/internal/hardhat-network/provider/utils/makeForkClient";
 import { useTmpDir } from "../../../helpers/fs";
 import { workaroundWindowsCiFailures } from "../../../utils/workaround-windows-ci-failures";
@@ -48,11 +48,11 @@ describe("JsonRpcClient", () => {
       let fakeProvider: FakeProvider;
       let clientWithFakeProvider: JsonRpcClient;
 
-      function getStorageAt(blockNumber: number) {
+      function getStorageAt(blockNumber: bigint) {
         return clientWithFakeProvider.getStorageAt(
           DAI_ADDRESS,
-          new BN(DAI_TOTAL_SUPPLY_STORAGE_POSITION),
-          new BN(blockNumber)
+          bufferToBigInt(DAI_TOTAL_SUPPLY_STORAGE_POSITION),
+          blockNumber
         );
       }
 
@@ -73,12 +73,12 @@ describe("JsonRpcClient", () => {
         clientWithFakeProvider = new JsonRpcClient(
           fakeProvider as any,
           1,
-          123,
-          3
+          123n,
+          3n
         );
 
-        assertBufferContents(await getStorageAt(121), response1);
-        assertBufferContents(await getStorageAt(121), response2);
+        assertBufferContents(await getStorageAt(121n), response1);
+        assertBufferContents(await getStorageAt(121n), response2);
 
         assert.isTrue((fakeProvider.request as sinon.SinonStub).calledTwice);
       });
@@ -87,12 +87,12 @@ describe("JsonRpcClient", () => {
         clientWithFakeProvider = new JsonRpcClient(
           fakeProvider as any,
           1,
-          123,
-          3
+          123n,
+          3n
         );
 
-        assertBufferContents(await getStorageAt(120), response1);
-        assertBufferContents(await getStorageAt(120), response1);
+        assertBufferContents(await getStorageAt(120n), response1);
+        assertBufferContents(await getStorageAt(120n), response1);
 
         assert.isTrue((fakeProvider.request as sinon.SinonStub).calledOnce);
       });
@@ -101,15 +101,15 @@ describe("JsonRpcClient", () => {
         clientWithFakeProvider = new JsonRpcClient(
           fakeProvider as any,
           1,
-          123,
-          3
+          123n,
+          3n
         );
 
-        assertBufferContents(await getStorageAt(110), response1);
-        assertBufferContents(await getStorageAt(120), response2);
+        assertBufferContents(await getStorageAt(110n), response1);
+        assertBufferContents(await getStorageAt(120n), response2);
 
-        assertBufferContents(await getStorageAt(110), response1);
-        assertBufferContents(await getStorageAt(120), response2);
+        assertBufferContents(await getStorageAt(110n), response1);
+        assertBufferContents(await getStorageAt(120n), response2);
 
         assert.isTrue((fakeProvider.request as sinon.SinonStub).calledTwice);
       });
@@ -121,14 +121,14 @@ describe("JsonRpcClient", () => {
           clientWithFakeProvider = new JsonRpcClient(
             fakeProvider as any,
             1,
-            123,
-            3,
+            123n,
+            3n,
             this.tmpDir
           );
         });
 
         async function makeCall() {
-          assertBufferContents(await getStorageAt(120), response1);
+          assertBufferContents(await getStorageAt(120n), response1);
           assert.isTrue((fakeProvider.request as sinon.SinonStub).calledOnce);
         }
 
@@ -148,8 +148,8 @@ describe("JsonRpcClient", () => {
           clientWithFakeProvider = new JsonRpcClient(
             fakeProvider as any,
             1,
-            123,
-            3,
+            123n,
+            3n,
             this.tmpDir
           );
 
@@ -182,14 +182,14 @@ describe("JsonRpcClient", () => {
         const clientWithFakeProvider = new JsonRpcClient(
           fakeProvider as any,
           1,
-          123,
-          3
+          123n,
+          3n
         );
 
         const value = await clientWithFakeProvider.getStorageAt(
           DAI_ADDRESS,
-          new BN(DAI_TOTAL_SUPPLY_STORAGE_POSITION),
-          new BN(120)
+          bufferToBigInt(DAI_TOTAL_SUPPLY_STORAGE_POSITION),
+          120n
         );
         assert.equal((fakeProvider.request as sinon.SinonStub).callCount, 2);
         assert.isTrue(value.equals(toBuffer(response)));
@@ -212,15 +212,15 @@ describe("JsonRpcClient", () => {
         const clientWithFakeProvider = new JsonRpcClient(
           fakeProvider as any,
           1,
-          123,
-          3
+          123n,
+          3n
         );
 
         await assert.isRejected(
           clientWithFakeProvider.getStorageAt(
             DAI_ADDRESS,
-            new BN(DAI_TOTAL_SUPPLY_STORAGE_POSITION),
-            new BN(120)
+            bufferToBigInt(DAI_TOTAL_SUPPLY_STORAGE_POSITION),
+            120n
           ),
           "header not found"
         );
@@ -241,14 +241,14 @@ describe("JsonRpcClient", () => {
         const clientWithFakeProvider = new JsonRpcClient(
           fakeProvider as any,
           1,
-          123,
-          3
+          123n,
+          3n
         );
         await assert.isRejected(
           clientWithFakeProvider.getStorageAt(
             DAI_ADDRESS,
-            new BN(DAI_TOTAL_SUPPLY_STORAGE_POSITION),
-            new BN(120)
+            bufferToBigInt(DAI_TOTAL_SUPPLY_STORAGE_POSITION),
+            120n
           ),
           "different error"
         );
@@ -269,14 +269,14 @@ describe("JsonRpcClient", () => {
         const clientWithFakeProvider = new JsonRpcClient(
           fakeProvider as any,
           1,
-          123,
-          3
+          123n,
+          3n
         );
         await assert.isRejected(
           clientWithFakeProvider.getStorageAt(
             DAI_ADDRESS,
-            new BN(DAI_TOTAL_SUPPLY_STORAGE_POSITION),
-            new BN(120)
+            bufferToBigInt(DAI_TOTAL_SUPPLY_STORAGE_POSITION),
+            120n
           ),
           "header not found"
         );
@@ -290,7 +290,7 @@ describe("JsonRpcClient", () => {
 
       describe(`Using ${rpcProvider}`, () => {
         let client: JsonRpcClient;
-        let forkNumber: BN;
+        let forkNumber: bigint;
 
         beforeEach(async () => {
           const clientResult = await makeForkClient({ jsonRpcUrl });
@@ -311,9 +311,11 @@ describe("JsonRpcClient", () => {
               )
             );
 
-            const blockNumber = tx?.blockNumber?.toNumber();
-            assert.isNotNull(blockNumber);
-            assert.isAtLeast(blockNumber as number, 10964958);
+            const blockNumber = tx?.blockNumber;
+            if (blockNumber === null || blockNumber === undefined) {
+              assert.fail();
+            }
+            assert.isTrue(blockNumber >= 10964958n);
           });
         });
 
@@ -343,9 +345,13 @@ describe("JsonRpcClient", () => {
             );
           });
 
-          it("returns null for non-existent block", async () => {
+          it("returns null for non-existent block", async function () {
+            if (rpcProvider === "Alchemy") {
+              // skipped because of https://github.com/NomicFoundation/hardhat/issues/3712
+              this.skip();
+            }
             const block = await client.getBlockByNumber(
-              forkNumber.addn(1000),
+              forkNumber + 1000n,
               true
             );
             assert.isNull(block);
@@ -386,31 +392,31 @@ describe("JsonRpcClient", () => {
           it("can fetch value from storage of an existing contract", async () => {
             const totalSupply = await client.getStorageAt(
               DAI_ADDRESS,
-              new BN(DAI_TOTAL_SUPPLY_STORAGE_POSITION),
+              bufferToBigInt(DAI_TOTAL_SUPPLY_STORAGE_POSITION),
               forkNumber
             );
-            const totalSupplyBN = new BN(totalSupply);
-            assert.isTrue(totalSupplyBN.gtn(0));
+            const totalSupplyBN = bufferToBigInt(totalSupply);
+            assert.isTrue(totalSupplyBN > 0n);
           });
 
           it("can fetch empty value from storage of an existing contract", async () => {
             const value = await client.getStorageAt(
               DAI_ADDRESS,
-              new BN("baddcafe", 16),
+              BigInt("0xbaddcafe"),
               forkNumber
             );
-            const valueBN = new BN(value);
-            assert.isTrue(valueBN.eqn(0));
+            const valueBN = bufferToBigInt(value);
+            assert.isTrue(valueBN === 0n);
           });
 
           it("can fetch empty value from storage of a non-existent contract", async () => {
             const value = await client.getStorageAt(
               EMPTY_ACCOUNT_ADDRESS,
-              new BN(1),
+              1n,
               forkNumber
             );
-            const valueBN = new BN(value);
-            assert.isTrue(valueBN.eqn(0));
+            const valueBN = bufferToBigInt(value);
+            assert.isTrue(valueBN === 0n);
           });
         });
 
@@ -441,9 +447,9 @@ describe("JsonRpcClient", () => {
             assert.isTrue(
               receipt?.transactionHash.equals(FIRST_TX_HASH_OF_10496585)
             );
-            assert.isTrue(receipt?.transactionIndex?.eqn(0));
+            assert.isTrue(receipt?.transactionIndex === 0n);
             assert.isTrue(receipt?.blockHash?.equals(BLOCK_HASH_OF_10496585));
-            assert.isTrue(receipt?.blockNumber?.eq(BLOCK_NUMBER_OF_10496585));
+            assert.isTrue(receipt?.blockNumber === BLOCK_NUMBER_OF_10496585);
           });
 
           it("returns null for non-existent transactions", async () => {
@@ -468,8 +474,8 @@ describe("JsonRpcClient", () => {
         describe("getAccountData", () => {
           it("Should return the right data", async function () {
             const data = await client.getAccountData(DAI_ADDRESS, forkNumber);
-            assert.equal(data.balance.toNumber(), 0);
-            assert.equal(data.transactionCount.toNumber(), 1);
+            assert.equal(data.balance, 0n);
+            assert.equal(data.transactionCount, 1n);
             assert.lengthOf(data.code, DAI_CONTRACT_LENGTH);
           });
         });

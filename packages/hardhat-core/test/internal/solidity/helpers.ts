@@ -1,4 +1,3 @@
-import * as fs from "fs";
 import fsExtra from "fs-extra";
 import path from "path";
 
@@ -9,8 +8,9 @@ import {
   Resolver,
 } from "../../../src/internal/solidity/resolver";
 import * as taskTypes from "../../../src/types/builtin-tasks";
+import { getRealPathSync } from "../../../src/internal/util/fs-utils";
 
-const projectRoot = fs.realpathSync(".");
+const projectRoot = getRealPathSync(".");
 
 export class MockFile {
   public readonly sourceName: string;
@@ -76,7 +76,8 @@ export async function createMockData(
     projectRoot,
     new Parser(),
     (absolutePath: string) =>
-      fsExtra.readFile(absolutePath, { encoding: "utf8" })
+      fsExtra.readFile(absolutePath, { encoding: "utf8" }),
+    async (sourceName: string) => sourceName
   );
   resolver.resolveImport = async (from: ResolvedFile, imported: string) => {
     const importedFile = importsMap.get(imported);

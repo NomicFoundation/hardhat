@@ -1,5 +1,5 @@
+import { zeroAddress } from "@nomicfoundation/ethereumjs-util";
 import { assert } from "chai";
-import { zeroAddress } from "ethereumjs-util";
 import { ethers } from "ethers";
 
 import { numberToRpcQuantity } from "../../../../../../../src/internal/core/jsonrpc/types/base-types";

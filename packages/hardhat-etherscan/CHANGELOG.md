@@ -1,5 +1,62 @@
 # @nomiclabs/hardhat-etherscan
 
+## 3.1.7
+
+### Patch Changes
+
+- 17de12666: Don't try to verify contracts that have already been verified
+- 6f94b851d: Add support for Gnosis Chain's Chiado testnet
+
+## 3.1.6
+
+### Patch Changes
+
+- 070abb7f5: Added support for the `http_proxy` environment variable. When this variable is set, `hardhat-etherscan` will use the given proxy to send the verification requests.
+
+## 3.1.5
+
+### Patch Changes
+
+- 7e013fa19: Upgrade undici
+
+## 3.1.4
+
+### Patch Changes
+
+- fdeba783f: A warning is now shown when there is an etherscan entry in the networks object.
+
+## 3.1.3
+
+### Patch Changes
+
+- 17b275de3: Add `--no-compile` flag to the `verify` task
+
+## 3.1.2
+
+### Patch Changes
+
+- eb3f7a7bd: - Added Arbitrum Goerli to the list of supported networks.
+  - Fixed the Optimism Goerli URLs.
+
+## 3.1.1
+
+### Patch Changes
+
+- adb075d42: Added gnosis as an alias for xdai (thanks @alebanzas!)
+- a30dcee88: Added Optimism Goerli and removed Optimism Kovan
+
+## 3.1.0
+
+### Minor Changes
+
+- c4283f816: Added support for verifying contracts on custom explorers. Thanks to @no2chem for the idea and initial implementation of this feature.
+
+## 3.0.4
+
+### Patch Changes
+
+- e3dcfde4a: Add support for Sepolia (Thanks @pcaversaccio!)
+
 ## 3.0.3
 
 ### Patch Changes

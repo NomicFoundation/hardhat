@@ -1,1 +1,0 @@
-../../packages/hardhat-solpp/README.md

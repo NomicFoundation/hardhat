@@ -4,7 +4,10 @@ import {
   Compiler,
   NativeCompiler,
 } from "../../../../src/internal/solidity/compiler";
-import { CompilerDownloader } from "../../../../src/internal/solidity/compiler/downloader";
+import {
+  CompilerDownloader,
+  CompilerPlatform,
+} from "../../../../src/internal/solidity/compiler/downloader";
 import { CompilerInput } from "../../../../src/types";
 import { useTmpDir } from "../../../helpers/fs";
 
@@ -26,10 +29,12 @@ describe("Compiler", () => {
     });
 
     beforeEach(async function () {
-      downloader = new CompilerDownloader(this.tmpDir);
-      const compilerPathResult = await downloader.getDownloadedCompilerPath(
-        solcVersion
+      downloader = new CompilerDownloader(
+        CompilerDownloader.getCompilerPlatform(),
+        this.tmpDir
       );
+      await downloader.downloadCompiler(solcVersion);
+      const compilerPathResult = await downloader.getCompiler(solcVersion);
       solcPath = compilerPathResult!.compilerPath;
     });
 
@@ -120,12 +125,9 @@ contract A {}
     });
 
     beforeEach(async function () {
-      downloader = new CompilerDownloader(this.tmpDir, {
-        forceSolcJs: true,
-      });
-      const compilerPathResult = await downloader.getDownloadedCompilerPath(
-        solcVersion
-      );
+      downloader = new CompilerDownloader(CompilerPlatform.WASM, this.tmpDir);
+      await downloader.downloadCompiler(solcVersion);
+      const compilerPathResult = await downloader.getCompiler(solcVersion);
       solcPath = compilerPathResult!.compilerPath;
     });
 

@@ -1,4 +1,4 @@
-import Common from "@ethereumjs/common";
+import { Common } from "@nomicfoundation/ethereumjs-common";
 
 import { numberToRpcQuantity } from "../../../core/jsonrpc/types/base-types";
 import { validateParams } from "../../../core/jsonrpc/types/input/validation";

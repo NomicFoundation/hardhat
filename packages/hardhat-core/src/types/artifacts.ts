@@ -42,6 +42,11 @@ export interface Artifacts {
   getBuildInfo(fullyQualifiedName: string): Promise<BuildInfo | undefined>;
 
   /**
+   * Synchronous version of getBuildInfo.
+   */
+  getBuildInfoSync(fullyQualifiedName: string): BuildInfo | undefined;
+
+  /**
    * Returns an array with the absolute paths of all the existing artifacts.
    *
    * Note that there's an artifact per contract.
@@ -90,6 +95,34 @@ export interface Artifacts {
     input: CompilerInput,
     output: CompilerOutput
   ): Promise<string>;
+
+  /**
+   * Returns the absolute path to the given artifact.
+   *
+   * @param fullyQualifiedName The FQN of the artifact.
+   */
+  formArtifactPathFromFullyQualifiedName(fullyQualifiedName: string): string;
+
+  /**
+   * Starting with Hardhat 2.11.0, the artifacts object caches the information
+   * about paths that it fetches from the filesystem (e.g. the list of
+   * artifacts, the path that an artifact name resolves to, etc.). The artifacts
+   * and buildInfos themselves are not cached, only their paths.
+   *
+   * This method, if present, clears that cache.
+   */
+  clearCache?: () => void;
+
+  /**
+   * This method, if present, disables the artifact paths cache.
+   *
+   * We recommend NOT using this method. The only reason it exists is for
+   * backwards compatibility. If your app was assuming no cache, you can use it
+   * (e.g. from an HRE extender).
+   *
+   * @see clearCache
+   */
+  disableCache?: () => void;
 }
 
 /**
@@ -149,7 +182,16 @@ export interface CompilerInput {
   language: string;
   sources: { [sourceName: string]: { content: string } };
   settings: {
-    optimizer: { runs?: number; enabled?: boolean };
+    viaIR?: boolean;
+    optimizer: {
+      runs?: number;
+      enabled?: boolean;
+      details?: {
+        yulDetails: {
+          optimizerSteps: string;
+        };
+      };
+    };
     metadata?: { useLiteralContent: boolean };
     outputSelection: {
       [sourceName: string]: {
@@ -162,6 +204,7 @@ export interface CompilerInput {
         [libraryName: string]: string;
       };
     };
+    remappings?: string[];
   };
 }
 
@@ -200,7 +243,7 @@ export interface CompilerOutputBytecode {
   sourceMap: string;
   linkReferences: {
     [sourceName: string]: {
-      [libraryName: string]: Array<{ start: 0; length: 20 }>;
+      [libraryName: string]: Array<{ start: number; length: 20 }>;
     };
   };
   immutableReferences?: {

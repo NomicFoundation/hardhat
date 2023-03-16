@@ -10,8 +10,6 @@ import {
   AutomaticGasProvider,
   FixedGasPriceProvider,
   FixedGasProvider,
-  GANACHE_GAS_MULTIPLIER,
-  GanacheGasMultiplierProvider,
 } from "../../../../src/internal/core/providers/gas-providers";
 import { EIP1193Provider } from "../../../../src/types";
 
@@ -247,7 +245,9 @@ describe("AutomaticGasPriceProvider", () => {
         const expectedBaseFee = Math.floor(
           latestBaseFeeInMockedProvider *
             (9 / 8) **
-              AutomaticGasPriceProvider.EIP1559_BASE_FEE_MAX_FULL_BLOCKS_PREFERENCE
+              Number(
+                AutomaticGasPriceProvider.EIP1559_BASE_FEE_MAX_FULL_BLOCKS_PREFERENCE
+              )
         );
 
         const [tx] = mockedProvider.getLatestParams("eth_sendTransaction");
@@ -491,62 +491,5 @@ describe("FixedGasPriceProvider", () => {
 
     const params = mockedProvider.getLatestParams("A");
     assert.deepEqual(params, input);
-  });
-});
-
-describe("GanacheGasMultiplierProvider", () => {
-  it("Should multiply the gas if connected to Ganache", async () => {
-    const mockedProvider = new MockedProvider();
-    mockedProvider.setReturnValue("eth_estimateGas", numberToRpcQuantity(123));
-    mockedProvider.setReturnValue(
-      "web3_clientVersion",
-      "EthereumJS TestRPC/v2.5.5/ethereum-js"
-    );
-    mockedProvider.setReturnValue("eth_getBlockByNumber", {
-      gasLimit: numberToRpcQuantity(12300000),
-    });
-
-    const wrapped = new GanacheGasMultiplierProvider(mockedProvider);
-
-    const estimation = (await wrapped.request({
-      method: "eth_estimateGas",
-      params: [
-        {
-          from: "0x0000000000000000000000000000000000000011",
-          to: "0x0000000000000000000000000000000000000011",
-          value: 1,
-        },
-      ],
-    })) as string;
-
-    const gas = rpcQuantityToNumber(estimation);
-    assert.equal(gas, Math.floor(123 * GANACHE_GAS_MULTIPLIER));
-  });
-
-  it("Should not multiply the gas if connected to other node", async () => {
-    const mockedProvider = new MockedProvider();
-    mockedProvider.setReturnValue("eth_estimateGas", numberToRpcQuantity(123));
-    mockedProvider.setReturnValue(
-      "web3_clientVersion",
-      "Parity-Ethereum//v2.5.1-beta-e0141f8-20190510/x86_64-linux-gnu/rustc1.34.1"
-    );
-    mockedProvider.setReturnValue("eth_getBlockByNumber", {
-      gasLimit: numberToRpcQuantity(12300000),
-    });
-    const wrapped = new GanacheGasMultiplierProvider(mockedProvider);
-
-    const estimation = (await wrapped.request({
-      method: "eth_estimateGas",
-      params: [
-        {
-          from: "0x0000000000000000000000000000000000000011",
-          to: "0x0000000000000000000000000000000000000011",
-          value: 1,
-        },
-      ],
-    })) as string;
-
-    const gas = rpcQuantityToNumber(estimation);
-    assert.equal(gas, 123);
   });
 });

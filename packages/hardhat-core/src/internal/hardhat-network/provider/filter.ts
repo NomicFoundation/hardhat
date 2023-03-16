@@ -1,9 +1,9 @@
-import Bloom from "@ethereumjs/vm/dist/bloom";
-import { BN, bufferToHex, toBuffer } from "ethereumjs-util";
+import { bufferToHex, toBuffer } from "@nomicfoundation/ethereumjs-util";
+import { Bloom } from "@nomicfoundation/ethereumjs-vm";
 
 import { RpcLogOutput } from "./output";
 
-export const LATEST_BLOCK = new BN(-1);
+export const LATEST_BLOCK = -1n;
 
 export enum Type {
   LOGS_SUBSCRIPTION = 0,
@@ -12,14 +12,14 @@ export enum Type {
 }
 
 export interface FilterCriteria {
-  fromBlock: BN;
-  toBlock: BN;
+  fromBlock: bigint;
+  toBlock: bigint;
   addresses: Buffer[];
   normalizedTopics: Array<Array<Buffer | null> | null>;
 }
 
 export interface Filter {
-  id: BN;
+  id: bigint;
   type: Type;
   criteria?: FilterCriteria;
   deadline: Date;
@@ -73,15 +73,12 @@ export function filterLogs(
 ): RpcLogOutput[] {
   const filteredLogs: RpcLogOutput[] = [];
   for (const log of logs) {
-    const blockNumber = new BN(toBuffer(log.blockNumber!));
-    if (blockNumber.lt(criteria.fromBlock)) {
+    const blockNumber = BigInt(log.blockNumber!);
+    if (blockNumber < criteria.fromBlock) {
       continue;
     }
 
-    if (
-      !criteria.toBlock.eq(LATEST_BLOCK) &&
-      blockNumber.gt(criteria.toBlock)
-    ) {
+    if (criteria.toBlock !== LATEST_BLOCK && blockNumber > criteria.toBlock) {
       continue;
     }
 

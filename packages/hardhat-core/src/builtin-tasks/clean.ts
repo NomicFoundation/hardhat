@@ -12,10 +12,13 @@ subtask(TASK_CLEAN_GLOBAL, async () => {
 
 task(TASK_CLEAN, "Clears the cache and deletes all artifacts")
   .addFlag("global", "Clear the global cache")
-  .setAction(async ({ global }: { global: boolean }, { config, run }) => {
-    if (global) {
-      return run(TASK_CLEAN_GLOBAL);
+  .setAction(
+    async ({ global }: { global: boolean }, { config, run, artifacts }) => {
+      if (global) {
+        return run(TASK_CLEAN_GLOBAL);
+      }
+      await fsExtra.emptyDir(config.paths.cache);
+      await fsExtra.remove(config.paths.artifacts);
+      artifacts.clearCache?.();
     }
-    await fsExtra.emptyDir(config.paths.cache);
-    await fsExtra.remove(config.paths.artifacts);
-  });
+  );

@@ -1,5 +1,35 @@
 # @nomiclabs/hardhat-ethers
 
+## 2.2.2
+
+### Patch Changes
+
+- 7e013fa19: Upgrade undici
+
+## 2.2.1
+
+### Patch Changes
+
+- 136f25a9e: `getContractAt` doesn't throw anymore if the given address is not a contract.
+
+## 2.2.0
+
+### Minor Changes
+
+- f0310ec91: Add a `deployContract` helper
+
+## 2.1.1
+
+### Patch Changes
+
+- fa2a98c8a: getContractAt() now throws an error if the address is not of a contract.
+
+## 2.1.0
+
+### Minor Changes
+
+- 0d4a68043: Added new helper `getImpersonatedSigner()`, a shorthand for invoking the `hardhat_impersonateAccount` JSON-RPC method followed immediately by `ethers.getSigner()`.
+
 ## 2.0.6
 
 ### Patch Changes

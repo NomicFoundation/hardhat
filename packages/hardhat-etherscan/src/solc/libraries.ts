@@ -78,7 +78,7 @@ ${missingLibraryNames}`;
     if (missingLibraries.length === undetectableLibraries.length) {
       message += `
 
-Visit https://hardhat.org/plugins/nomiclabs-hardhat-etherscan.html#libraries-with-undetectable-addresses to learn how to solve this.`;
+Visit https://hardhat.org/hardhat-runner/plugins/nomiclabs-hardhat-etherscan#libraries-with-undetectable-addresses to learn how to solve this.`;
     } else {
       message += `
 

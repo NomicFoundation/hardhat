@@ -7,10 +7,9 @@ import type {
   RequestArguments,
 } from "../../../types";
 
-import Common from "@ethereumjs/common";
+import { Common } from "@nomicfoundation/ethereumjs-common";
 import chalk from "chalk";
 import debug from "debug";
-import { BN } from "ethereumjs-util";
 import { EventEmitter } from "events";
 import fsExtra from "fs-extra";
 import semver from "semver";
@@ -25,9 +24,9 @@ import {
   MethodNotSupportedError,
   ProviderError,
 } from "../../core/providers/errors";
-import { FIRST_SOLC_VERSION_SUPPORTED } from "../stack-traces/solidityTracer";
-import { Mutex } from "../vendor/await-semaphore";
+import { Mutex } from "../../vendor/await-semaphore";
 
+import { FIRST_SOLC_VERSION_SUPPORTED } from "../stack-traces/constants";
 import { MiningTimer } from "./MiningTimer";
 import { DebugModule } from "./modules/debug";
 import { EthModule } from "./modules/eth";
@@ -59,11 +58,34 @@ const PRIVATE_RPC_METHODS = new Set([
 
 export const DEFAULT_COINBASE = "0xc014ba5ec014ba5ec014ba5ec014ba5ec014ba5e";
 
+interface HardhatNetworkProviderConfig {
+  hardfork: string;
+  chainId: number;
+  networkId: number;
+  blockGasLimit: number;
+  minGasPrice: bigint;
+  automine: boolean;
+  intervalMining: IntervalMiningConfig;
+  mempoolOrder: MempoolOrder;
+  chains: HardhatNetworkChainsConfig;
+  genesisAccounts: GenesisAccount[];
+  allowUnlimitedContractSize: boolean;
+  throwOnTransactionFailures: boolean;
+  throwOnCallFailures: boolean;
+  allowBlocksWithSameTimestamp: boolean;
+
+  initialBaseFeePerGas?: number;
+  initialDate?: Date;
+  coinbase?: string;
+  experimentalHardhatNetworkMessageTraceHooks?: BoundExperimentalHardhatNetworkMessageTraceHook[];
+  forkConfig?: ForkConfig;
+  forkCachePath?: string;
+}
+
 export class HardhatNetworkProvider
   extends EventEmitter
   implements EIP1193Provider
 {
-  private _common?: Common;
   private _node?: HardhatNode;
   private _ethModule?: EthModule;
   private _netModule?: NetModule;
@@ -73,30 +95,13 @@ export class HardhatNetworkProvider
   private _debugModule?: DebugModule;
   private _personalModule?: PersonalModule;
   private readonly _mutex = new Mutex();
+  // this field is not used here but it's used in the tests
+  private _common?: Common;
 
   constructor(
-    private readonly _hardfork: string,
-    private readonly _networkName: string,
-    private readonly _chainId: number,
-    private readonly _networkId: number,
-    private readonly _blockGasLimit: number,
-    private readonly _initialBaseFeePerGas: number | undefined,
-    private readonly _minGasPrice: BN,
-    private readonly _throwOnTransactionFailures: boolean,
-    private readonly _throwOnCallFailures: boolean,
-    private readonly _automine: boolean,
-    private readonly _intervalMining: IntervalMiningConfig,
-    private readonly _mempoolOrder: MempoolOrder,
-    private readonly _chains: HardhatNetworkChainsConfig,
+    private readonly _config: HardhatNetworkProviderConfig,
     private readonly _logger: ModulesLogger,
-    private readonly _genesisAccounts: GenesisAccount[] = [],
-    private readonly _artifacts?: Artifacts,
-    private readonly _allowUnlimitedContractSize = false,
-    private readonly _initialDate?: Date,
-    private readonly _experimentalHardhatNetworkMessageTraceHooks: BoundExperimentalHardhatNetworkMessageTraceHook[] = [],
-    private _forkConfig?: ForkConfig,
-    private readonly _forkCachePath?: string,
-    private readonly _coinbase = DEFAULT_COINBASE
+    private readonly _artifacts?: Artifacts
   ) {
     super();
   }
@@ -228,24 +233,26 @@ export class HardhatNetworkProvider
     }
 
     const config: NodeConfig = {
-      automine: this._automine,
-      blockGasLimit: this._blockGasLimit,
-      minGasPrice: this._minGasPrice,
-      genesisAccounts: this._genesisAccounts,
-      allowUnlimitedContractSize: this._allowUnlimitedContractSize,
+      automine: this._config.automine,
+      blockGasLimit: this._config.blockGasLimit,
+      minGasPrice: this._config.minGasPrice,
+      genesisAccounts: this._config.genesisAccounts,
+      allowUnlimitedContractSize: this._config.allowUnlimitedContractSize,
       tracingConfig: await this._makeTracingConfig(),
-      initialBaseFeePerGas: this._initialBaseFeePerGas,
-      mempoolOrder: this._mempoolOrder,
-      hardfork: this._hardfork,
-      networkName: this._networkName,
-      chainId: this._chainId,
-      networkId: this._networkId,
-      initialDate: this._initialDate,
-      forkConfig: this._forkConfig,
+      initialBaseFeePerGas: this._config.initialBaseFeePerGas,
+      mempoolOrder: this._config.mempoolOrder,
+      hardfork: this._config.hardfork,
+      chainId: this._config.chainId,
+      networkId: this._config.networkId,
+      initialDate: this._config.initialDate,
+      forkConfig: this._config.forkConfig,
       forkCachePath:
-        this._forkConfig !== undefined ? this._forkCachePath : undefined,
-      coinbase: this._coinbase,
-      chains: this._chains,
+        this._config.forkConfig !== undefined
+          ? this._config.forkCachePath
+          : undefined,
+      coinbase: this._config.coinbase ?? DEFAULT_COINBASE,
+      chains: this._config.chains,
+      allowBlocksWithSameTimestamp: this._config.allowBlocksWithSameTimestamp,
     };
 
     const [common, node] = await HardhatNode.create(config);
@@ -256,21 +263,22 @@ export class HardhatNetworkProvider
     this._ethModule = new EthModule(
       common,
       node,
-      this._throwOnTransactionFailures,
-      this._throwOnCallFailures,
+      this._config.throwOnTransactionFailures,
+      this._config.throwOnCallFailures,
       this._logger,
-      this._experimentalHardhatNetworkMessageTraceHooks
+      this._config.experimentalHardhatNetworkMessageTraceHooks
     );
 
     const miningTimer = this._makeMiningTimer();
 
     this._netModule = new NetModule(common);
-    this._web3Module = new Web3Module();
+    this._web3Module = new Web3Module(node);
     this._evmModule = new EvmModule(
       node,
       miningTimer,
       this._logger,
-      this._experimentalHardhatNetworkMessageTraceHooks
+      this._config.allowBlocksWithSameTimestamp,
+      this._config.experimentalHardhatNetworkMessageTraceHooks
     );
     this._hardhatModule = new HardhatModule(
       node,
@@ -279,7 +287,7 @@ export class HardhatNetworkProvider
         this._logger.setEnabled(loggingEnabled);
       },
       this._logger,
-      this._experimentalHardhatNetworkMessageTraceHooks
+      this._config.experimentalHardhatNetworkMessageTraceHooks
     );
     this._debugModule = new DebugModule(node);
     this._personalModule = new PersonalModule(node);
@@ -320,13 +328,16 @@ export class HardhatNetworkProvider
   }
 
   private _makeMiningTimer(): MiningTimer {
-    const miningTimer = new MiningTimer(this._intervalMining, async () => {
-      try {
-        await this.request({ method: "hardhat_intervalMine" });
-      } catch (e) {
-        console.error("Unexpected error calling hardhat_intervalMine:", e);
+    const miningTimer = new MiningTimer(
+      this._config.intervalMining,
+      async () => {
+        try {
+          await this.request({ method: "hardhat_intervalMine" });
+        } catch (e) {
+          console.error("Unexpected error calling hardhat_intervalMine:", e);
+        }
       }
-    });
+    );
 
     miningTimer.start();
 
@@ -334,7 +345,7 @@ export class HardhatNetworkProvider
   }
 
   private async _reset(miningTimer: MiningTimer, forkConfig?: ForkConfig) {
-    this._forkConfig = forkConfig;
+    this._config.forkConfig = forkConfig;
     if (this._node !== undefined) {
       this._stopForwardingNodeEvents(this._node);
     }
@@ -353,7 +364,7 @@ export class HardhatNetworkProvider
     node.removeListener("ethEvent", this._ethEventListener);
   }
 
-  private _ethEventListener = (payload: { filterId: BN; result: any }) => {
+  private _ethEventListener = (payload: { filterId: bigint; result: any }) => {
     const subscription = `0x${payload.filterId.toString(16)}`;
     const result = payload.result;
     this._emitLegacySubscriptionEvent(subscription, result);

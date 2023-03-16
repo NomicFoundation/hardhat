@@ -12,8 +12,6 @@
 // fields), we don't use `extends` as that can interfere with plugin authors
 // trying to augment the config types.
 
-import type { BN } from "ethereumjs-util";
-
 // Networks config
 
 export interface NetworksUserConfig {
@@ -53,6 +51,7 @@ export interface HardhatNetworkUserConfig {
   throwOnTransactionFailures?: boolean;
   throwOnCallFailures?: boolean;
   allowUnlimitedContractSize?: boolean;
+  allowBlocksWithSameTimestamp?: boolean;
   initialDate?: string;
   loggingEnabled?: boolean;
   forking?: HardhatNetworkForkingUserConfig;
@@ -90,6 +89,7 @@ export interface HardhatNetworkForkingUserConfig {
   enabled?: boolean;
   url: string;
   blockNumber?: number;
+  httpHeaders?: { [name: string]: string };
 }
 
 export type HttpNetworkAccountsUserConfig =
@@ -143,7 +143,7 @@ export interface HardhatNetworkConfig {
   mining: HardhatNetworkMiningConfig;
   accounts: HardhatNetworkAccountsConfig;
   blockGasLimit: number;
-  minGasPrice: BN;
+  minGasPrice: bigint;
   throwOnTransactionFailures: boolean;
   throwOnCallFailures: boolean;
   allowUnlimitedContractSize: boolean;
@@ -152,6 +152,7 @@ export interface HardhatNetworkConfig {
   forking?: HardhatNetworkForkingConfig;
   coinbase?: string;
   chains: HardhatNetworkChainsConfig;
+  allowBlocksWithSameTimestamp?: boolean;
 }
 
 export type HardhatNetworkAccountsConfig =
@@ -176,6 +177,7 @@ export interface HardhatNetworkForkingConfig {
   enabled: boolean;
   url: string;
   blockNumber?: number;
+  httpHeaders?: { [name: string]: string };
 }
 
 export interface HttpNetworkConfig {

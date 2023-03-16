@@ -1,15 +1,15 @@
-import { Block } from "@ethereumjs/block";
-import Common from "@ethereumjs/common";
-import { TxData, TypedTransaction } from "@ethereumjs/tx";
-import VM from "@ethereumjs/vm";
-import { AfterBlockEvent, RunBlockOpts } from "@ethereumjs/vm/dist/runBlock";
+import { Common } from "@nomicfoundation/ethereumjs-common";
+import { TxData, TypedTransaction } from "@nomicfoundation/ethereumjs-tx";
 import { assert } from "chai";
-import { Address, BN, bufferToHex, toBuffer } from "ethereumjs-util";
+import {
+  Address,
+  bufferToHex,
+  toBuffer,
+} from "@nomicfoundation/ethereumjs-util";
 import { ethers } from "ethers";
 import sinon from "sinon";
 
 import { defaultHardhatNetworkParams } from "../../../../src/internal/core/config/default-config";
-import { rpcToBlockData } from "../../../../src/internal/hardhat-network/provider/fork/rpcToBlockData";
 import { HardhatNode } from "../../../../src/internal/hardhat-network/provider/node";
 import {
   ForkedNodeConfig,
@@ -17,14 +17,13 @@ import {
   RunCallResult,
 } from "../../../../src/internal/hardhat-network/provider/node-types";
 import { FakeSenderTransaction } from "../../../../src/internal/hardhat-network/provider/transactions/FakeSenderTransaction";
-import { getCurrentTimestamp } from "../../../../src/internal/hardhat-network/provider/utils/getCurrentTimestamp";
-import { makeForkClient } from "../../../../src/internal/hardhat-network/provider/utils/makeForkClient";
+import { getCurrentTimestampBigInt } from "../../../../src/internal/hardhat-network/provider/utils/getCurrentTimestamp";
 import { HardforkName } from "../../../../src/internal/util/hardforks";
 import {
   HardhatNetworkChainConfig,
   HardhatNetworkChainsConfig,
 } from "../../../../src/types";
-import { ALCHEMY_URL } from "../../../setup";
+import { INFURA_URL } from "../../../setup";
 import { assertQuantity } from "../helpers/assertions";
 import {
   EMPTY_ACCOUNT_ADDRESS,
@@ -38,17 +37,14 @@ import {
   DEFAULT_CHAIN_ID,
   DEFAULT_HARDFORK,
   DEFAULT_NETWORK_ID,
-  DEFAULT_NETWORK_NAME,
 } from "../helpers/providers";
-
-import { assertEqualBlocks } from "./utils/assertEqualBlocks";
-
-/* eslint-disable @typescript-eslint/dot-notation */
+import { sleep } from "../helpers/sleep";
+import { runFullBlock } from "./utils/runFullBlock";
 
 interface ForkedBlock {
   networkName: string;
   url: string;
-  blockToRun: number;
+  blockToRun: bigint;
   chainId: number;
 }
 
@@ -72,16 +68,16 @@ describe("HardhatNode", () => {
   const config: NodeConfig = {
     automine: false,
     hardfork: DEFAULT_HARDFORK,
-    networkName: DEFAULT_NETWORK_NAME,
     chainId: DEFAULT_CHAIN_ID,
     networkId: DEFAULT_NETWORK_ID,
-    blockGasLimit: DEFAULT_BLOCK_GAS_LIMIT,
-    minGasPrice: new BN(0),
+    blockGasLimit: Number(DEFAULT_BLOCK_GAS_LIMIT),
+    minGasPrice: 0n,
     genesisAccounts: DEFAULT_ACCOUNTS,
     initialBaseFeePerGas: 10,
     mempoolOrder: "priority",
     coinbase: "0x0000000000000000000000000000000000000000",
     chains: defaultHardhatNetworkParams.chains,
+    allowBlocksWithSameTimestamp: false,
   };
   const gasPrice = 20;
   let node: HardhatNode;
@@ -155,7 +151,7 @@ describe("HardhatNode", () => {
         const beforeBlock = node.getLatestBlockNumber();
         await node.mineBlock();
         const currentBlock = node.getLatestBlockNumber();
-        assert.equal(currentBlock.toString(), beforeBlock.addn(1).toString());
+        assert.equal(currentBlock.toString(), (beforeBlock + 1n).toString());
       });
 
       it("can mine a block with one transaction", async () => {
@@ -339,13 +335,13 @@ describe("HardhatNode", () => {
         assertQuantity(tx2Receipt?.gasUsed, 21_000);
 
         const block = await node.getLatestBlock();
-        assert.equal(block.header.gasUsed.toNumber(), 42_000);
+        assert.equal(block.header.gasUsed, 42_000n);
       });
 
       it("assigns miner rewards", async () => {
-        const gasPriceBN = new BN(1);
+        const gasPriceBN = 1n;
 
-        let baseFeePerGas = new BN(0);
+        let baseFeePerGas = 0n;
         const pendingBlock = await node.getBlockByNumber("pending");
         if (pendingBlock.header.baseFeePerGas !== undefined) {
           baseFeePerGas = pendingBlock.header.baseFeePerGas;
@@ -354,19 +350,19 @@ describe("HardhatNode", () => {
         const miner = node.getCoinbaseAddress();
         const initialMinerBalance = await node.getAccountBalance(miner);
 
-        const oneEther = new BN(10).pow(new BN(18));
-        const txFee = gasPriceBN.add(baseFeePerGas).muln(21_000);
-        const burnedTxFee = baseFeePerGas.muln(21_000);
+        const oneEther = 10n ** 18n;
+        const txFee = (gasPriceBN + baseFeePerGas) * 21_000n;
+        const burnedTxFee = baseFeePerGas * 21_000n;
 
         // the miner reward is 2 ETH plus the tx fee, minus the part
         // of the fee that is burned
-        const minerReward = oneEther.muln(2).add(txFee).sub(burnedTxFee);
+        const minerReward = 2n * oneEther + txFee - burnedTxFee;
 
         const tx = createTestTransaction({
           nonce: 0,
           from: DEFAULT_ACCOUNTS_ADDRESSES[0],
           to: EMPTY_ACCOUNT_ADDRESS,
-          gasPrice: gasPriceBN.add(baseFeePerGas),
+          gasPrice: gasPriceBN + baseFeePerGas,
           gasLimit: 21_000,
           value: 1234,
         });
@@ -374,10 +370,7 @@ describe("HardhatNode", () => {
         await node.mineBlock();
 
         const minerBalance = await node.getAccountBalance(miner);
-        assert.equal(
-          minerBalance.toString(),
-          initialMinerBalance.add(minerReward).toString()
-        );
+        assert.equal(minerBalance, initialMinerBalance + minerReward);
       });
     });
 
@@ -485,16 +478,16 @@ describe("HardhatNode", () => {
     describe("timestamp tests", () => {
       let clock: sinon.SinonFakeTimers;
 
-      const assertIncreaseTime = async (expectedTime: number) => {
+      const assertIncreaseTime = async (expectedTime: bigint) => {
         const block = await node.getLatestBlock();
-        const blockTimestamp = block.header.timestamp.toNumber();
+        const blockTimestamp = block.header.timestamp;
 
         // We check that the time increased at least what we had expected
         // but allow a little bit of POSITIVE difference(i.e. that the
         // actual timestamp is a little bit bigger) because time may have ellapsed
         // We assume that the test CAN NOT have taken more than a second
-        assert.isAtLeast(blockTimestamp, expectedTime);
-        assert.isAtMost(blockTimestamp, expectedTime + 1);
+        assert.isTrue(blockTimestamp >= expectedTime);
+        assert.isTrue(blockTimestamp <= expectedTime + 1n);
       };
 
       beforeEach(() => {
@@ -507,55 +500,55 @@ describe("HardhatNode", () => {
 
       it("mines a block with the current timestamp", async () => {
         clock.tick(15_000);
-        const now = getCurrentTimestamp();
+        const now = getCurrentTimestampBigInt();
 
         await node.mineBlock();
         const block = await node.getLatestBlock();
 
-        assert.equal(block.header.timestamp.toNumber(), now);
+        assert.equal(block.header.timestamp, now);
       });
 
       it("mines a block with an incremented timestamp if it clashes with the previous block", async () => {
         const firstBlock = await node.getLatestBlock();
-        const firstBlockTimestamp = firstBlock.header.timestamp.toNumber();
+        const firstBlockTimestamp = firstBlock.header.timestamp;
 
         await node.mineBlock();
         const latestBlock = await node.getLatestBlock();
-        const latestBlockTimestamp = latestBlock.header.timestamp.toNumber();
+        const latestBlockTimestamp = latestBlock.header.timestamp;
 
-        assert.equal(latestBlockTimestamp, firstBlockTimestamp + 1);
+        assert.equal(latestBlockTimestamp, firstBlockTimestamp + 1n);
       });
 
       it("assigns an incremented timestamp to each new block mined within the same second", async () => {
         const firstBlock = await node.getLatestBlock();
-        const firstBlockTimestamp = firstBlock.header.timestamp.toNumber();
+        const firstBlockTimestamp = firstBlock.header.timestamp;
 
         await node.mineBlock();
         const secondBlock = await node.getLatestBlock();
-        const secondBlockTimestamp = secondBlock.header.timestamp.toNumber();
+        const secondBlockTimestamp = secondBlock.header.timestamp;
 
         await node.mineBlock();
         const thirdBlock = await node.getLatestBlock();
-        const thirdBlockTimestamp = thirdBlock.header.timestamp.toNumber();
+        const thirdBlockTimestamp = thirdBlock.header.timestamp;
 
-        assert.equal(secondBlockTimestamp, firstBlockTimestamp + 1);
-        assert.equal(thirdBlockTimestamp, secondBlockTimestamp + 1);
+        assert.equal(secondBlockTimestamp, firstBlockTimestamp + 1n);
+        assert.equal(thirdBlockTimestamp, secondBlockTimestamp + 1n);
       });
 
       it("mines a block with a preset timestamp", async () => {
-        const now = getCurrentTimestamp();
-        const timestamp = new BN(now).addn(30);
+        const now = getCurrentTimestampBigInt();
+        const timestamp = BigInt(now) + 30n;
         node.setNextBlockTimestamp(timestamp);
         await node.mineBlock();
 
         const block = await node.getLatestBlock();
-        const blockTimestamp = block.header.timestamp.toNumber();
-        assert.equal(blockTimestamp, timestamp.toNumber());
+        const blockTimestamp = block.header.timestamp;
+        assert.equal(blockTimestamp, timestamp);
       });
 
       it("mines the next block normally after a block with preset timestamp", async () => {
-        const now = getCurrentTimestamp();
-        const timestamp = new BN(now).addn(30);
+        const now = getCurrentTimestampBigInt();
+        const timestamp = BigInt(now) + 30n;
         node.setNextBlockTimestamp(timestamp);
         await node.mineBlock();
 
@@ -563,69 +556,117 @@ describe("HardhatNode", () => {
         await node.mineBlock();
 
         const block = await node.getLatestBlock();
-        const blockTimestamp = block.header.timestamp.toNumber();
-        assert.equal(blockTimestamp, timestamp.toNumber() + 3);
+        const blockTimestamp = block.header.timestamp;
+        assert.equal(blockTimestamp, timestamp + 3n);
       });
 
       it("mines a block with the timestamp passed as a parameter irrespective of the preset timestamp", async () => {
-        const now = getCurrentTimestamp();
-        const presetTimestamp = new BN(now).addn(30);
+        const now = getCurrentTimestampBigInt();
+        const presetTimestamp = BigInt(now) + 30n;
         node.setNextBlockTimestamp(presetTimestamp);
-        const timestamp = new BN(now).addn(60);
+        const timestamp = BigInt(now) + 60n;
         await node.mineBlock(timestamp);
 
         const block = await node.getLatestBlock();
-        const blockTimestamp = block.header.timestamp.toNumber();
-        assert.equal(blockTimestamp, timestamp.toNumber());
+        const blockTimestamp = block.header.timestamp;
+        assert.equal(blockTimestamp, timestamp);
       });
 
       it("mines a block with correct timestamp after time increase", async () => {
-        const now = getCurrentTimestamp();
-        const delta = 30;
-        node.increaseTime(new BN(delta));
+        const now = getCurrentTimestampBigInt();
+        const delta = 30n;
+        node.increaseTime(delta);
         await node.mineBlock();
 
         await assertIncreaseTime(now + delta);
       });
 
       it("mining a block having increaseTime called twice counts both calls", async () => {
-        const now = getCurrentTimestamp();
-        const delta = 30;
-        node.increaseTime(new BN(delta));
-        node.increaseTime(new BN(delta));
+        const now = getCurrentTimestampBigInt();
+        const delta = 30n;
+        node.increaseTime(delta);
+        node.increaseTime(delta);
         await node.mineBlock();
-        await assertIncreaseTime(now + delta * 2);
+        await assertIncreaseTime(now + 2n * delta);
       });
 
       it("mining a block having called increaseTime takes into account 'real' passing time", async () => {
-        const now = getCurrentTimestamp();
-        const delta = 30;
-        const elapsedTimeInSeconds = 3;
-        node.increaseTime(new BN(delta));
-        clock.tick(elapsedTimeInSeconds * 1_000);
+        const now = getCurrentTimestampBigInt();
+        const delta = 30n;
+        const elapsedTimeInSeconds = 3n;
+        node.increaseTime(delta);
+        clock.tick(Number(elapsedTimeInSeconds * 1_000n));
         await node.mineBlock();
 
         await assertIncreaseTime(now + delta + elapsedTimeInSeconds);
       });
 
+      it("mines blocks with the same timestamp if allowBlocksWithSameTimestamp is set", async () => {
+        [, node] = await HardhatNode.create({
+          ...config,
+          allowBlocksWithSameTimestamp: true,
+        });
+
+        const timestamps = [];
+
+        for (let i = 0; i < 10; i++) {
+          await node.mineBlock();
+          timestamps.push((await node.getLatestBlock()).header.timestamp);
+        }
+
+        let differentTimestamps = 0;
+
+        for (let i = 0; i + 1 < timestamps.length; i++) {
+          if (timestamps[i] !== timestamps[i + 1]) {
+            differentTimestamps++;
+          }
+        }
+
+        // There is a small chance that two of the mined blocks were mined in a
+        // different second.
+        // This number shouldn't be bigger than 1 if we are running these tests
+        // on a computer from this century.
+        assert.isAtMost(differentTimestamps, 1);
+      });
+
+      it("timestamps can be increased even if allowBlocksWithSameTimestamp is set", async () => {
+        // we restore the clock to be able to use setTimeout
+        clock.restore();
+
+        [, node] = await HardhatNode.create({
+          ...config,
+          allowBlocksWithSameTimestamp: true,
+        });
+
+        await node.mineBlock();
+        const firsBlockTimestamp = (await node.getLatestBlock()).header
+          .timestamp;
+        await sleep(1100);
+        await node.mineBlock();
+        const secondBlockTimestamp = (await node.getLatestBlock()).header
+          .timestamp;
+
+        assert.notEqual(firsBlockTimestamp, secondBlockTimestamp);
+      });
+
       describe("when time is increased by 30s", () => {
-        function testPresetTimestamp(offset: number) {
+        function testPresetTimestamp(offset: bigint) {
           it("mines a block with the preset timestamp", async () => {
-            const now = getCurrentTimestamp();
-            const timestamp = new BN(now).addn(offset);
-            node.increaseTime(new BN(30));
+            const now = getCurrentTimestampBigInt();
+            const timestamp = BigInt(now + offset);
+            node.increaseTime(30n);
             node.setNextBlockTimestamp(timestamp);
             await node.mineBlock();
 
             const block = await node.getLatestBlock();
-            const blockTimestamp = block.header.timestamp.toNumber();
-            assert.equal(blockTimestamp, timestamp.toNumber());
+            const blockTimestamp = block.header.timestamp;
+            assert.equal(blockTimestamp, timestamp);
           });
 
           it("mining a block with a preset timestamp changes the time offset", async () => {
-            const now = getCurrentTimestamp();
-            const timestamp = new BN(now).addn(offset);
-            node.increaseTime(new BN(30));
+            const now = getCurrentTimestampBigInt();
+            const timestamp = BigInt(now + offset);
+            node.increaseTime(30n);
             node.setNextBlockTimestamp(timestamp);
             await node.mineBlock();
 
@@ -633,24 +674,24 @@ describe("HardhatNode", () => {
             await node.mineBlock();
 
             const block = await node.getLatestBlock();
-            const blockTimestamp = block.header.timestamp.toNumber();
-            assert.equal(blockTimestamp, timestamp.toNumber() + 3);
+            const blockTimestamp = block.header.timestamp;
+            assert.equal(blockTimestamp, timestamp + 3n);
           });
         }
 
         describe("when preset timestamp is 20s into the future", () => {
-          testPresetTimestamp(20);
+          testPresetTimestamp(20n);
         });
 
         describe("when preset timestamp is 40s into the future", () => {
-          testPresetTimestamp(40);
+          testPresetTimestamp(40n);
         });
       });
     });
   });
 
   describe("full block", function () {
-    if (ALCHEMY_URL === undefined) {
+    if (INFURA_URL === undefined) {
       return;
     }
 
@@ -659,51 +700,33 @@ describe("HardhatNode", () => {
       // its receipts contain the state root, and we can't compute it
       {
         networkName: "mainnet",
-        url: ALCHEMY_URL,
-        blockToRun: 4370001,
+        url: INFURA_URL,
+        blockToRun: 4370001n,
         chainId: 1,
       },
       {
         networkName: "mainnet",
-        url: ALCHEMY_URL,
-        blockToRun: 7280001,
+        url: INFURA_URL,
+        blockToRun: 7280001n,
         chainId: 1,
       },
       {
         networkName: "mainnet",
-        url: ALCHEMY_URL,
-        blockToRun: 9069001,
+        url: INFURA_URL,
+        blockToRun: 9069001n,
         chainId: 1,
       },
       {
         networkName: "mainnet",
-        url: ALCHEMY_URL,
-        blockToRun: 9300077,
+        url: INFURA_URL,
+        blockToRun: 9300077n,
         chainId: 1,
       },
       {
-        networkName: "kovan",
-        url: ALCHEMY_URL.replace("mainnet", "kovan"),
-        blockToRun: 23115227,
-        chainId: 42,
-      },
-      {
-        networkName: "rinkeby",
-        url: ALCHEMY_URL.replace("mainnet", "rinkeby"),
-        blockToRun: 8004365,
-        chainId: 4,
-      },
-      {
-        networkName: "ropsten",
-        url: ALCHEMY_URL.replace("mainnet", "ropsten"),
-        blockToRun: 9812365, // this block has a EIP-2930 tx
-        chainId: 3,
-      },
-      {
-        networkName: "ropsten",
-        url: ALCHEMY_URL.replace("mainnet", "ropsten"),
-        blockToRun: 10499406, // this block has a EIP-1559 tx
-        chainId: 3,
+        networkName: "goerli",
+        url: INFURA_URL.replace("mainnet", "goerli"),
+        blockToRun: 7728449n, // this block has both EIP-2930 and EIP-1559 txs
+        chainId: 5,
       },
     ];
 
@@ -714,83 +737,7 @@ describe("HardhatNode", () => {
       it(`should run a ${networkName} block from ${hardfork} and produce the same results`, async function () {
         this.timeout(240000);
 
-        const forkConfig = {
-          jsonRpcUrl: url,
-          blockNumber: blockToRun - 1,
-        };
-
-        const { forkClient } = await makeForkClient(forkConfig);
-
-        const rpcBlock = await forkClient.getBlockByNumber(
-          new BN(blockToRun),
-          true
-        );
-
-        if (rpcBlock === null) {
-          assert.fail();
-        }
-
-        const forkedNodeConfig: ForkedNodeConfig = {
-          automine: true,
-          networkName: "mainnet",
-          chainId,
-          networkId: 1,
-          hardfork,
-          forkConfig,
-          forkCachePath: FORK_TESTS_CACHE_PATH,
-          blockGasLimit: rpcBlock.gasLimit.toNumber(),
-          minGasPrice: new BN(0),
-          genesisAccounts: [],
-          mempoolOrder: "priority",
-          coinbase: "0x0000000000000000000000000000000000000000",
-          chains: defaultHardhatNetworkParams.chains,
-        };
-
-        const [common, forkedNode] = await HardhatNode.create(forkedNodeConfig);
-
-        const block = Block.fromBlockData(
-          rpcToBlockData({
-            ...rpcBlock,
-            // We wipe the receipt root to make sure we get a new one
-            receiptsRoot: Buffer.alloc(32, 0),
-          }),
-          {
-            common,
-            freeze: false,
-          }
-        );
-
-        forkedNode["_vmTracer"].disableTracing();
-
-        const afterBlockEvent = await runBlockAndGetAfterBlockEvent(
-          forkedNode["_vm"],
-          {
-            block,
-            generate: true,
-            skipBlockValidation: true,
-          }
-        );
-
-        const modifiedBlock = afterBlockEvent.block;
-
-        await forkedNode["_vm"].blockchain.putBlock(modifiedBlock);
-        await forkedNode["_saveBlockAsSuccessfullyRun"](
-          modifiedBlock,
-          afterBlockEvent
-        );
-
-        const newBlock = await forkedNode.getBlockByNumber(new BN(blockToRun));
-
-        if (newBlock === undefined) {
-          assert.fail();
-        }
-
-        await assertEqualBlocks(
-          newBlock,
-          afterBlockEvent,
-          rpcBlock,
-          forkClient
-        );
+        await runFullBlock(url, blockToRun, chainId, hardfork);
       });
     }
   });
@@ -798,27 +745,21 @@ describe("HardhatNode", () => {
   describe("mineBlocks", function () {
     it("shouldn't break getLatestBlock()", async function () {
       const previousLatestBlockNumber = node.getLatestBlockNumber();
-      await node.mineBlocks(new BN(10));
+      await node.mineBlocks(10n);
       const latestBlock = await node.getLatestBlock();
-      assert.equal(
-        latestBlock.header.number.toString(),
-        previousLatestBlockNumber.addn(10).toString()
-      );
+      assert.equal(latestBlock.header.number, previousLatestBlockNumber + 10n);
     });
 
     it("shouldn't break getLatestBlockNumber()", async function () {
       const previousLatestBlockNumber = node.getLatestBlockNumber();
-      await node.mineBlocks(new BN(10));
+      await node.mineBlocks(10n);
       const latestBlockNumber = node.getLatestBlockNumber();
-      assert.equal(
-        latestBlockNumber.toString(),
-        previousLatestBlockNumber.addn(10).toString()
-      );
+      assert.equal(latestBlockNumber, previousLatestBlockNumber + 10n);
     });
 
     describe("shouldn't break snapshotting", async function () {
       it("when doing mineBlocks() before a snapshot", async function () {
-        await node.mineBlocks(new BN(10));
+        await node.mineBlocks(10n);
 
         const latestBlockNumberBeforeSnapshot = node.getLatestBlockNumber();
 
@@ -832,7 +773,7 @@ describe("HardhatNode", () => {
             gasLimit: 21000,
           })
         );
-        await node.mineBlocks(new BN(1));
+        await node.mineBlocks(1n);
 
         await node.revertToSnapshot(snapshotId);
 
@@ -866,10 +807,10 @@ describe("HardhatNode", () => {
           originalLatestBlockNumber.toString()
         );
 
-        await node.mineBlocks(new BN(10));
+        await node.mineBlocks(10n);
         assert.equal(
-          node.getLatestBlockNumber().toString(),
-          latestBlockNumberBeforeSnapshot.addn(10).toString()
+          node.getLatestBlockNumber(),
+          latestBlockNumberBeforeSnapshot + 10n
         );
 
         await node.revertToSnapshot(snapshotId);
@@ -885,8 +826,8 @@ describe("HardhatNode", () => {
   /** execute a call to method Hello() on contract HelloWorld, deployed to
    * mainnet years ago, which should return a string, "Hello World". */
   async function runCall(
-    gasParams: { gasPrice?: BN; maxFeePerGas?: BN },
-    block: number,
+    gasParams: { gasPrice?: bigint; maxFeePerGas?: bigint },
+    block: bigint,
     targetNode: HardhatNode
   ): Promise<string> {
     const contractInterface = new ethers.utils.Interface([
@@ -896,9 +837,9 @@ describe("HardhatNode", () => {
     const callOpts = {
       to: toBuffer("0xe36613A299bA695aBA8D0c0011FCe95e681f6dD3"),
       from: toBuffer(DEFAULT_ACCOUNTS_ADDRESSES[0]),
-      value: new BN(0),
+      value: 0n,
       data: toBuffer(contractInterface.encodeFunctionData("Hello", [])),
-      gasLimit: new BN(1_000_000),
+      gasLimit: 1_000_000n,
     };
 
     function decodeResult(runCallResult: RunCallResult) {
@@ -909,43 +850,43 @@ describe("HardhatNode", () => {
     }
 
     return decodeResult(
-      await targetNode.runCall({ ...callOpts, ...gasParams }, new BN(block))
+      await targetNode.runCall({ ...callOpts, ...gasParams }, BigInt(block))
     );
   }
 
   describe("should run calls in the right hardfork context", async function () {
     this.timeout(10000);
     before(function () {
-      if (ALCHEMY_URL === undefined) {
+      if (INFURA_URL === undefined) {
         this.skip();
         return;
       }
     });
 
-    const eip1559ActivationBlock = 12965000;
+    const eip1559ActivationBlock = 12965000n;
     // some shorthand for code below:
     const post1559Block = eip1559ActivationBlock;
-    const blockBefore1559 = eip1559ActivationBlock - 1;
-    const pre1559GasOpts = { gasPrice: new BN(0) };
-    const post1559GasOpts = { maxFeePerGas: new BN(0) };
+    const blockBefore1559 = eip1559ActivationBlock - 1n;
+    const pre1559GasOpts = { gasPrice: 0n };
+    const post1559GasOpts = { maxFeePerGas: 0n };
 
     const baseNodeConfig: ForkedNodeConfig = {
       automine: true,
-      networkName: "mainnet",
       chainId: 1,
       networkId: 1,
       hardfork: "london",
       forkConfig: {
-        jsonRpcUrl: ALCHEMY_URL!,
-        blockNumber: eip1559ActivationBlock,
+        jsonRpcUrl: INFURA_URL!,
+        blockNumber: Number(eip1559ActivationBlock),
       },
       forkCachePath: FORK_TESTS_CACHE_PATH,
       blockGasLimit: 1_000_000,
-      minGasPrice: new BN(0),
+      minGasPrice: 0n,
       genesisAccounts: [],
       chains: defaultHardhatNetworkParams.chains,
       mempoolOrder: "priority",
       coinbase: "0x0000000000000000000000000000000000000000",
+      allowBlocksWithSameTimestamp: false,
     };
 
     describe("when forking with a default hardfork activation history", function () {
@@ -1000,7 +941,7 @@ describe("HardhatNode", () => {
         };
         chainConfig.hardforkHistory.set(
           HardforkName.LONDON,
-          eip1559ActivationBlock - 1
+          eip1559ActivationBlock - 1n
         );
 
         nodeConfig.chains.set(1, chainConfig);
@@ -1019,7 +960,7 @@ describe("HardhatNode", () => {
         await expectErrorAsync(async () => {
           await runCall(
             post1559GasOpts,
-            blockBefore1559 - 1,
+            blockBefore1559 - 1n,
             nodeWithEarlyLondon
           );
         }, /Cannot run transaction: EIP 1559 is not activated./);
@@ -1059,7 +1000,7 @@ describe("HardhatNode", () => {
       });
       it("should throw when making a call with a block below the only hardfork activation", async function () {
         await expectErrorAsync(async () => {
-          await runCall(pre1559GasOpts, 99, hardhatNode);
+          await runCall(pre1559GasOpts, 99n, hardhatNode);
         }, /Could not find a hardfork to run for block 99, after having looked for one in the HardhatNode's hardfork activation history/);
       });
     });
@@ -1091,63 +1032,41 @@ describe("HardhatNode", () => {
   });
 
   it("should support a historical call in the context of a block added via mineBlocks()", async function () {
-    if (ALCHEMY_URL === undefined) {
+    if (INFURA_URL === undefined) {
       this.skip();
       return;
     }
     const nodeConfig: ForkedNodeConfig = {
       automine: true,
-      networkName: "mainnet",
       chainId: 1,
       networkId: 1,
       hardfork: "london",
       forkConfig: {
-        jsonRpcUrl: ALCHEMY_URL,
+        jsonRpcUrl: INFURA_URL,
         blockNumber: 12965000, // eip1559ActivationBlock
       },
       forkCachePath: FORK_TESTS_CACHE_PATH,
       blockGasLimit: 1_000_000,
-      minGasPrice: new BN(0),
+      minGasPrice: 0n,
       genesisAccounts: [],
       chains: defaultHardhatNetworkParams.chains,
       mempoolOrder: "priority",
       coinbase: "0x0000000000000000000000000000000000000000",
+      allowBlocksWithSameTimestamp: false,
     };
     const [, hardhatNode] = await HardhatNode.create(nodeConfig);
 
     const oldLatestBlockNumber = hardhatNode.getLatestBlockNumber();
 
-    await hardhatNode.mineBlocks(new BN(100));
+    await hardhatNode.mineBlocks(100n);
 
     assert.equal(
       "Hello World",
       await runCall(
-        { maxFeePerGas: new BN(0) },
-        oldLatestBlockNumber.addn(50).toNumber(),
+        { maxFeePerGas: 0n },
+        oldLatestBlockNumber + 50n,
         hardhatNode
       )
     );
   });
 });
-
-async function runBlockAndGetAfterBlockEvent(
-  vm: VM,
-  runBlockOpts: RunBlockOpts
-): Promise<AfterBlockEvent> {
-  let results: AfterBlockEvent;
-
-  function handler(event: AfterBlockEvent) {
-    results = event;
-  }
-
-  try {
-    vm.once("afterBlock", handler);
-    await vm.runBlock(runBlockOpts);
-  } finally {
-    // We need this in case `runBlock` throws before emitting the event.
-    // Otherwise we'd be leaking the listener until the next call to runBlock.
-    vm.removeListener("afterBlock", handler);
-  }
-
-  return results!;
-}

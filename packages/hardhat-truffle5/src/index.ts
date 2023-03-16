@@ -5,14 +5,12 @@ import {
 } from "hardhat/builtin-tasks/task-names";
 import { extendEnvironment, subtask } from "hardhat/config";
 import { normalizeHardhatNetworkAccountsConfig } from "hardhat/internal/core/providers/util";
-import { glob } from "hardhat/internal/util/glob";
 import {
   HARDHAT_NETWORK_NAME,
   lazyFunction,
   NomicLabsHardhatPluginError,
 } from "hardhat/plugins";
 import { HardhatNetworkConfig } from "hardhat/types";
-import { join } from "path";
 
 import { TruffleEnvironmentArtifacts } from "./artifacts";
 import {
@@ -20,6 +18,7 @@ import {
   hasMigrations,
   hasTruffleFixture,
 } from "./fixture";
+import { getSolidityFiles } from "./glob";
 import { LazyTruffleContractProvisioner } from "./provisioner";
 import { RUN_TRUFFLE_FIXTURE_TASK } from "./task-names";
 import "./type-extensions";
@@ -179,7 +178,8 @@ subtask(
   TASK_COMPILE_SOLIDITY_GET_SOURCE_PATHS,
   async (_, { config }, runSuper) => {
     const sources = await runSuper();
-    const testSources = await glob(join(config.paths.tests, "**", "*.sol"));
+    const testSources = await getSolidityFiles(config.paths.tests);
+
     return [...sources, ...testSources];
   }
 );

@@ -5,7 +5,7 @@ import BN from "bn.js";
 
 import { HardhatError } from "hardhat/internal/core/errors";
 
-import "../src";
+import "../src/internal/add-chai-matchers";
 
 type SupportedNumber = number | bigint | BN | BigNumberEthers | BigNumberJs;
 
@@ -103,7 +103,7 @@ describe("BigNumber matchers", function () {
     });
 
     interface FailureCase extends SuccessCase {
-      msg: string;
+      msg: string | RegExp;
     }
 
     const positiveFailureCases: FailureCase[] = [
@@ -115,7 +115,7 @@ describe("BigNumber matchers", function () {
       {
         obj: new Set([1, 2, 3]),
         len: 2,
-        msg: "expected {} to have a size of 2 but got 3",
+        msg: /expected .* to have a size of 2 but got 3/,
       },
       {
         obj: new Map([
@@ -123,7 +123,7 @@ describe("BigNumber matchers", function () {
           [3, 4],
         ]),
         len: 3,
-        msg: "expected {} to have a size of 3 but got 2",
+        msg: /expected .* to have a size of 3 but got 2/,
       },
     ];
     describe("positive, failing assertions should throw the proper error message", function () {

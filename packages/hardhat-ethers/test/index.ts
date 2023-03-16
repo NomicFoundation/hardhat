@@ -1,5 +1,6 @@
-import { assert } from "chai";
-import { ethers } from "ethers";
+import chai, { assert } from "chai";
+import chaiAsPromised from "chai-as-promised";
+import { ethers, Signer } from "ethers";
 import { NomicLabsHardhatPluginError } from "hardhat/plugins";
 import { Artifact } from "hardhat/types";
 import util from "util";
@@ -7,6 +8,8 @@ import util from "util";
 import { EthersProviderWrapper } from "../src/internal/ethers-provider-wrapper";
 
 import { useEnvironment } from "./helpers";
+
+chai.use(chaiAsPromised);
 
 describe("Ethers plugin", function () {
   describe("ganache", function () {
@@ -17,6 +20,7 @@ describe("Ethers plugin", function () {
         assert.containsAllKeys(this.env.ethers, [
           "provider",
           "getSigners",
+          "getImpersonatedSigner",
           "getContractFactory",
           "getContractAt",
           ...Object.keys(ethers),
@@ -143,8 +147,26 @@ describe("Ethers plugin", function () {
         });
       });
 
+      describe("getImpersonatedSigner", function () {
+        it("should invoke hardhat_impersonateAccount", async function () {
+          const address = `0x${"ff".repeat(20)}`;
+          // TODO: We are testing this plugin against Ganache, so this fails.
+          //  We should test it using Hardhat Network instead.
+          await assert.isRejected(
+            this.env.ethers.getImpersonatedSigner(address),
+            "Method hardhat_impersonateAccount not supported"
+          );
+        });
+        it("should return the working impersonated signer", async function () {});
+      });
+
       describe("signer", function () {
-        it("should sign a message", async function () {
+        /**
+         * this test has been skipped pending the removal of ganache from this
+         * test suite, which is being tracked at
+         * https://github.com/NomicFoundation/hardhat/issues/3447
+         */
+        it.skip("should sign a message", async function () {
           const [sig] = await this.env.ethers.getSigners();
 
           const result = await sig.signMessage("hello");
@@ -384,11 +406,11 @@ describe("Ethers plugin", function () {
                 },
               });
             } catch (reason: any) {
-              assert.instanceOf(
-                reason,
-                NomicLabsHardhatPluginError,
-                "getContractFactory should fail with a hardhat plugin error"
-              );
+              if (!(reason instanceof NomicLabsHardhatPluginError)) {
+                assert.fail(
+                  "getContractFactory should fail with a hardhat plugin error"
+                );
+              }
               assert.isTrue(
                 reason.message.includes("is ambiguous for the contract"),
                 "getContractFactory should report the ambiguous name resolution as the cause"
@@ -688,6 +710,12 @@ describe("Ethers plugin", function () {
         });
 
         describe("by name and address", function () {
+          it("Should not throw if address does not belong to a contract", async function () {
+            const address = await signers[0].getAddress();
+            // shouldn't throw
+            await this.env.ethers.getContractAt("Greeter", address);
+          });
+
           it("Should return an instance of a contract", async function () {
             const contract = await this.env.ethers.getContractAt(
               "Greeter",
@@ -911,6 +939,78 @@ describe("Ethers plugin", function () {
           });
         });
       });
+
+      describe("deployContract", function () {
+        it("should deploy and return a contract with default signer", async function () {
+          const contract = await this.env.ethers.deployContract("Greeter");
+
+          await assertContract(contract, signers[0]);
+        });
+
+        it("should deploy and return a contract with custom signer passed directly", async function () {
+          const contract = await this.env.ethers.deployContract(
+            "Greeter",
+            signers[1]
+          );
+
+          await assertContract(contract, signers[1]);
+        });
+
+        it("should deploy and return a contract with custom signer passed as an option", async function () {
+          const contract = await this.env.ethers.deployContract("Greeter", {
+            signer: signers[1],
+          });
+
+          await assertContract(contract, signers[1]);
+        });
+
+        it("should deploy with args and return a contract", async function () {
+          const contract = await this.env.ethers.deployContract(
+            "GreeterWithConstructorArg",
+            ["Hello"]
+          );
+
+          await assertContract(contract, signers[0]);
+          assert(await contract.greet(), "Hello");
+        });
+
+        it("should deploy with args and return a contract with custom signer", async function () {
+          const contract = await this.env.ethers.deployContract(
+            "GreeterWithConstructorArg",
+            ["Hello"],
+            signers[1]
+          );
+
+          await assertContract(contract, signers[1]);
+          assert(await contract.greet(), "Hello");
+        });
+
+        it("should deploy with args and return a contract with custom signer as an option", async function () {
+          const contract = await this.env.ethers.deployContract(
+            "GreeterWithConstructorArg",
+            ["Hello"],
+            { signer: signers[1] }
+          );
+
+          await assertContract(contract, signers[1]);
+          assert(await contract.greet(), "Hello");
+        });
+
+        async function assertContract(
+          contract: ethers.Contract,
+          signer: Signer
+        ) {
+          assert.containsAllKeys(contract.interface.functions, [
+            "setGreeting(string)",
+            "greet()",
+          ]);
+
+          assert.equal(
+            await contract.signer.getAddress(),
+            await signer.getAddress()
+          );
+        }
+      });
     });
   });
 
@@ -927,7 +1027,7 @@ describe("Ethers plugin", function () {
         // see also
         // https://github.com/ethers-io/ethers.js/issues/615#issuecomment-848991047
         const provider = deployedGreeter.provider as EthersProviderWrapper;
-        provider.pollingInterval = 100;
+        provider.pollingInterval = 200;
 
         let eventEmitted = false;
         deployedGreeter.on("GreetingUpdated", () => {
@@ -938,7 +1038,7 @@ describe("Ethers plugin", function () {
 
         // wait for 1.5 polling intervals for the event to fire
         await new Promise((resolve) =>
-          setTimeout(resolve, provider.pollingInterval * 1.5)
+          setTimeout(resolve, provider.pollingInterval * 2)
         );
 
         assert.equal(eventEmitted, true);
@@ -1225,7 +1325,7 @@ describe("Ethers plugin", function () {
       const deployedGreeter: ethers.Contract = await Greeter.deploy();
 
       const readonlyContract = deployedGreeter.connect(
-        new ethers.providers.WebSocketProvider("ws://localhost:8545")
+        new ethers.providers.WebSocketProvider("ws://127.0.0.1:8545")
       );
       let emitted = false;
       readonlyContract.on("GreetingUpdated", () => {

@@ -1,5 +1,197 @@
 # hardhat
 
+## 2.13.0
+
+### Minor Changes
+
+- 83ef755f3: Hardhat's task runner now allows you to override the arguments passed to subtasks.
+- 50779cd10: Added support for writing scripts and tests as ES modules.
+
+  To learn how to start using ESM with Hardhat read [this guide](https://hardhat.org/hardhat-runner/docs/advanced/using-esm).
+
+### Patch Changes
+
+- f55a3a769: Reduce the amount of ETH sent to the Lock contract in the sample project's deploy script (Thanks @mutedSpectre!)
+- 929b26849: The `resolveJsonModule` compiler option is now enabled by default in the sample tsconfig (thanks @mlshv!)
+- 071e6bc89: Stop colorizing the entire message when an error is printed
+- 0fa7ac548: Make Hardhat more tolerant to unsupported Node.js versions
+- 7a5bc5512: Send less ETH and lock it for less time on sample deployment scripts.
+- 7ceb5f90d: Added basic support for solc `viaIR` setting
+- e6f07b4b6: Fixed an issue with a warning showing the same solc version multiple times (thanks @shark0der!)
+- 6e51edf4d: Added support for Solidity 0.8.18 (thanks @taxio!)
+- b9c34f36f: Fix an error that could happen when a download failed.
+- 1c833bf04: Propagate HttpProviderError exception messages.
+
+## 2.12.7
+
+### Patch Changes
+
+- e443b3667: Added an option in Hardhat Network to allow mining blocks with the same timestamp
+- c23a1cac4: Added support for the `http_proxy` environment variable. When this variable is set, Hardhat will send its requests through the given proxy for things like JSON-RPC requests, mainnet forking and downloading compilers.
+
+  We also removed support for the `HTTP_PROXY` and `HTTPS_PROXY` environment variables, since `http_proxy` is the most commonly used environment variable for this kind of thing. Those variables could only be used for downloading compilers.
+
+  Finally, we also added support for `no_proxy`, which accepts a comma separated list of hosts or `"*"`. Any host included in this list will not be proxied.
+
+  Note that requests to `"localhost"` or `"127.0.0.1"` are never proxied.
+
+- 69546655e: Added support for sending batch requests through WebSocket to the Hardhat node (thanks @tenbits!)
+- 6bf1673bb: Added a config validation for the number of optimizer runs used (thanks @konarshankar07!)
+
+## 2.12.6
+
+### Patch Changes
+
+- 7e013fa19: Upgrade undici
+- 025aa3660: Added support for pnpm during project creation (thanks @Hopsken!)
+- 3798f0d72: Added a `version` field to the HRE
+- c228ef56c: Fixed problem with impersonated-sender transactions sometimes resulting in duplicate transaction hashes (#1963)
+- 7ca111982: Added a minor clarification to the `flatten` task help.
+- 10a928c4c: Upgraded mocha and @types/mocha dependencies in Hardhat and Hardhat Toolbox
+- a200a667b: Removed the message linking to the 2022 solidity survey
+- 7adb62b2a: Added a new subtask to the compile task to support the `hardhat-foundry` plugin
+
+## 2.12.5
+
+### Patch Changes
+
+- 051bedf01: Added an experimental environment variable flag to disable the local installation check
+- 3fcdd3bb2: The selector of unrecognized custom errors is now shown as part of the error message (thanks @vivianjeng!)
+- aa721398e: Fixed a bug that was causing the flatten task to produce non-deterministic results
+- 5dc9b7c99: Fixed a bug when `gasPrice` was set to `"auto"`, which is the default configuration when connecting to a JSON-RPC network. This bug was preventing the results from `eth_feeHistory` from being used when they should.
+- 23a594a59: The full return data of unrecognized custom errors is now shown in error messages
+- 7e81377fc: Accept extra headers in the internal download module
+
+## 2.12.4
+
+### Patch Changes
+
+- 7154371e3: Fixed an issue that caused compilation with solcjs to not work when Hardhat is bundled
+- 2fc9a2cb8: Show a message with a link to the Solidity Developer Survey
+
+## 2.12.3
+
+### Patch Changes
+
+- 13433f176: Fixed an edge case where Hardhat would hang if `debug_traceTransaction` was used with an OOG transaction sent to a precompile.
+- c9809e182: Trim leading and trailing spaces in mnemonics.
+- a1d43109a: Pending blocks now include the `bloom` field.
+- 818107821: Added a new `hardhat_metadata` RPC method
+- 937d15e51: A better error is show if a Solidity file makes an import throug its own package name.
+- 4cf9a6d58: Added a `getBuildInfoSync` function to the `hre.artifacts` object (thanks @emretepedev!)
+
+## 2.12.2
+
+### Patch Changes
+
+- f6c74bc31: Fixed an issue that was causing build-info file names to not be deterministic.
+- 2022bed0d: Fixed an issue when forking networks like Arbitrum Nitro that use non-standard transaction types (#2995, #3194).
+
+## 2.12.1
+
+### Patch Changes
+
+- 145b12c7d: Fixed a problem that was preventing Hardhat from being used in Alpine Linux.
+
+## 2.12.0
+
+### Minor Changes
+
+- aebec509e: Use `"merge"` hardfork setting by default in Hardhat Network
+
+### Patch Changes
+
+- 3db5334b9: Fix compiler downloader
+- 6d2edac4e: Upgrade `solidity-analyzer` and handle NPM's issue #4828.
+
+## 2.11.2
+
+### Patch Changes
+
+- 1cfee28db: Make `eth_getStorageAt` more permissive
+- 1375e1cc3: When forking, the disk cache is now used for any network
+- 8aec687e9: Support Solidity 0.8.17
+- 7e6a69561: Fixed a breaking change in the configuration type that was accidentally introduced in Hardhat 2.9.8.
+- f4fd6a27e: Upgraded dependencies in sample projects
+- 0d236ba73: Fix an error in the README files generated by the sample projects.
+- c4c1d2fe0: Always show stack traces on CI servers
+- 191c8ebbe: Improved the way we detect errors related to deploying contracts with a code that is too large.
+
+## 2.11.1
+
+### Patch Changes
+
+- f4101d1be: Fixed a problem when the wasm version of the solidity compiler was downloaded.
+- 1a1fa4cd5: Fix an error when forking from non-POW chains
+
+## 2.11.0
+
+### Minor Changes
+
+- f3ba15ca8: - Added support for the merge
+  - Added a new `hardhat_setPrevRandao` RPC method
+  - Optimized the compilation task
+  - Typechecking is now opt-in instead of opt-out
+  - Added a new `--flamegraph` flag for performance profiling
+  - Artifact paths are now cached
+- d93ab3198: Added support for the merge.
+
+## 2.10.2
+
+### Patch Changes
+
+- f799e7e41: - Fixed a bug that was causing `console.log()` to print `undefined` instead of an empty line (issue #2721)
+  - Made `console.log` ABI-compliant (issue #2666)
+- 36ca875dc: The selector is now shown in the "Unrecognized custom error" message
+- 3e3fe7bf0: Added support for Solidity versions up through 0.8.16
+
+## 2.10.1
+
+### Patch Changes
+
+- 3d571e40b: Better Solidity errors propagation
+
+## 2.10.0
+
+### Minor Changes
+
+- 5b29b0e0b: Update sample projects to use the Hardhat Toolbox
+
+### Patch Changes
+
+- 3dcc802b3: Add support for Node 18
+- 3dcc802b3: Upgrade Mocha to 10.x
+- 3dcc802b3: Upgrade ethereum-cryptography to 1.x
+- f5afa18d3: Removed a workaround to past Ganache's gas estimation problems.
+- 3dcc802b3: Drop support for Node 12
+
+## 2.9.9
+
+### Patch Changes
+
+- ce6136b2a: Fix incorrect peerDependency
+- 3fd3756e6: Specify ts-node and typescript as optional peerDependencies
+
+## 2.9.8
+
+### Patch Changes
+
+- 5bd775a8b: Added support for HTTP headers in the forking config (thanks @TimDaub!)
+- 3770a5bbc: Expose a missing method in the Artifacts interface
+
+## 2.9.7
+
+### Patch Changes
+
+- 73beb279b: Fixed `block.chainid` returning 0 in view functions
+
+## 2.9.6
+
+### Patch Changes
+
+- fde08e0c: Updates `node` task to terminate when the server closes.
+- 736e850a: Fixed an issue that was preventing compilation from working on Windows (#2712)
+
 ## 2.9.5
 
 ### Patch Changes

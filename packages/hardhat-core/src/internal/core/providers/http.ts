@@ -1,4 +1,4 @@
-import type { Dispatcher, Pool as PoolT } from "undici";
+import type * as Undici from "undici";
 
 import { EventEmitter } from "events";
 
@@ -17,6 +17,7 @@ import {
 import { getHardhatVersion } from "../../util/packageInfo";
 import { HardhatError } from "../errors";
 import { ERRORS } from "../errors-list";
+import { shouldUseProxy } from "../../util/proxy";
 
 import { ProviderError } from "./errors";
 
@@ -33,7 +34,7 @@ const hardhatVersion = getHardhatVersion();
 
 export class HttpProvider extends EventEmitter implements EIP1193Provider {
   private _nextRequestId = 1;
-  private _dispatcher: Dispatcher;
+  private _dispatcher: Undici.Dispatcher;
   private _path: string;
   private _authHeader: string | undefined;
 
@@ -42,11 +43,11 @@ export class HttpProvider extends EventEmitter implements EIP1193Provider {
     private readonly _networkName: string,
     private readonly _extraHeaders: { [name: string]: string } = {},
     private readonly _timeout = 20000,
-    client: Dispatcher | undefined = undefined
+    client: Undici.Dispatcher | undefined = undefined
   ) {
     super();
 
-    const { Pool } = require("undici") as { Pool: typeof PoolT };
+    const { Pool, ProxyAgent } = require("undici") as typeof Undici;
 
     const url = new URL(this._url);
     this._path = url.pathname;
@@ -59,6 +60,10 @@ export class HttpProvider extends EventEmitter implements EIP1193Provider {
           ).toString("base64")}`;
     try {
       this._dispatcher = client ?? new Pool(url.origin);
+
+      if (process.env.http_proxy !== undefined && shouldUseProxy(url.origin)) {
+        this._dispatcher = new ProxyAgent(process.env.http_proxy);
+      }
     } catch (e) {
       if (e instanceof TypeError && e.message === "Invalid URL") {
         e.message += ` ${url.origin}`;
@@ -73,10 +78,6 @@ export class HttpProvider extends EventEmitter implements EIP1193Provider {
   }
 
   public async request(args: RequestArguments): Promise<unknown> {
-    // We create the error here to capture the stack traces at this point,
-    // the async call that follows would probably loose of the stack trace
-    const error = new ProviderError("HttpProviderError", -1);
-
     const jsonRpcRequest = this._getJsonRpcRequest(
       args.method,
       args.params as any[]
@@ -84,8 +85,10 @@ export class HttpProvider extends EventEmitter implements EIP1193Provider {
     const jsonRpcResponse = await this._fetchJsonRpcResponse(jsonRpcRequest);
 
     if (isErrorResponse(jsonRpcResponse)) {
-      error.message = jsonRpcResponse.error.message;
-      error.code = jsonRpcResponse.error.code;
+      const error = new ProviderError(
+        jsonRpcResponse.error.message,
+        jsonRpcResponse.error.code
+      );
       error.data = jsonRpcResponse.error.data;
       // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
       throw error;
@@ -109,7 +112,7 @@ export class HttpProvider extends EventEmitter implements EIP1193Provider {
   ): Promise<any[]> {
     // We create the errors here to capture the stack traces at this point,
     // the async call that follows would probably loose of the stack trace
-    const error = new ProviderError("HttpProviderError", -1);
+    const stackSavingError = new ProviderError("HttpProviderError", -1);
 
     // we need this to sort the responses
     const idToIndexMap: Record<string, number> = {};
@@ -124,8 +127,11 @@ export class HttpProvider extends EventEmitter implements EIP1193Provider {
 
     for (const response of jsonRpcResponses) {
       if (isErrorResponse(response)) {
-        error.message = response.error.message;
-        error.code = response.error.code;
+        const error = new ProviderError(
+          response.error.message,
+          response.error.code,
+          stackSavingError
+        );
         error.data = response.error.data;
         // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
         throw error;
@@ -163,22 +169,30 @@ export class HttpProvider extends EventEmitter implements EIP1193Provider {
     request: JsonRpcRequest | JsonRpcRequest[],
     retryNumber = 0
   ): Promise<JsonRpcResponse | JsonRpcResponse[]> {
+    const { request: sendRequest } = await import("undici");
+    const url = new URL(this._url);
+
+    const headers: { [name: string]: string } = {
+      "Content-Type": "application/json",
+      "User-Agent": `hardhat ${hardhatVersion}`,
+      ...this._extraHeaders,
+    };
+
+    if (this._authHeader !== undefined) {
+      headers.Authorization = this._authHeader;
+    }
+
     try {
-      const response = await this._dispatcher.request({
+      const response = await sendRequest(url, {
+        dispatcher: this._dispatcher,
         method: "POST",
-        path: this._path,
         body: JSON.stringify(request),
         maxRedirections: 10,
         headersTimeout:
           process.env.DO_NOT_SET_THIS_ENV_VAR____IS_HARDHAT_CI !== undefined
             ? 0
             : this._timeout,
-        headers: {
-          "Content-Type": "application/json",
-          "User-Agent": `hardhat ${hardhatVersion ?? "(unknown version)"}`,
-          Authorization: this._authHeader,
-          ...this._extraHeaders,
-        },
+        headers,
       });
 
       if (this._isRateLimitResponse(response)) {
@@ -193,8 +207,6 @@ export class HttpProvider extends EventEmitter implements EIP1193Provider {
         if (seconds !== undefined && this._shouldRetry(retryNumber, seconds)) {
           return await this._retry(request, seconds, retryNumber);
         }
-
-        const url = new URL(this._url);
 
         // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
         throw new ProviderError(
@@ -255,16 +267,16 @@ export class HttpProvider extends EventEmitter implements EIP1193Provider {
     return true;
   }
 
-  private _isRateLimitResponse(response: Dispatcher.ResponseData) {
+  private _isRateLimitResponse(response: Undici.Dispatcher.ResponseData) {
     return response.statusCode === TOO_MANY_REQUEST_STATUS;
   }
 
   private _getRetryAfterSeconds(
-    response: Dispatcher.ResponseData
+    response: Undici.Dispatcher.ResponseData
   ): number | undefined {
     const header = response.headers["retry-after"];
 
-    if (header === undefined || header === null) {
+    if (header === undefined || header === null || Array.isArray(header)) {
       return undefined;
     }
 

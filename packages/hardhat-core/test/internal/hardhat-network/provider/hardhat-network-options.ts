@@ -10,7 +10,7 @@ import { HardhatNetworkConfig } from "../../../../src/types";
 import { useEnvironment } from "../../../helpers/environment";
 import { expectErrorAsync } from "../../../helpers/errors";
 import { useFixtureProject } from "../../../helpers/project";
-import { ALCHEMY_URL } from "../../../setup";
+import { INFURA_URL } from "../../../setup";
 
 describe("Hardhat Network special options", function () {
   describe("allowUnlimitedContractSize", function () {
@@ -49,7 +49,7 @@ describe("Hardhat Network special options", function () {
                 data: CONTRACT_BYTECODE,
               },
             ]),
-          /out of gas/
+          /trying to deploy a contract whose code is too large/
         );
       });
     });
@@ -111,7 +111,7 @@ describe("Hardhat Network special options", function () {
     });
 
     describe("When forking", function () {
-      if (ALCHEMY_URL === undefined) {
+      if (INFURA_URL === undefined) {
         return;
       }
 

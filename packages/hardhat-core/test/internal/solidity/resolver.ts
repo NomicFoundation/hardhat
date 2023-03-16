@@ -1,7 +1,7 @@
 import { assert } from "chai";
 import * as fsExtra from "fs-extra";
 import path from "path";
-import slash from "slash";
+import sinon from "sinon";
 
 import { TASK_COMPILE } from "../../../src/builtin-tasks/task-names";
 import { ERRORS } from "../../../src/internal/core/errors-list";
@@ -10,6 +10,7 @@ import {
   ResolvedFile,
   Resolver,
 } from "../../../src/internal/solidity/resolver";
+import * as packageInfo from "../../../src/internal/util/packageInfo";
 import { LibraryInfo } from "../../../src/types/builtin-tasks";
 import { useEnvironment } from "../../helpers/environment";
 import { expectHardhatErrorAsync } from "../../helpers/errors";
@@ -17,6 +18,8 @@ import {
   getFixtureProjectPath,
   useFixtureProject,
 } from "../../helpers/project";
+import { replaceBackslashes } from "../../../src/utils/source-names";
+import { getRealPath } from "../../../src/internal/util/fs-utils";
 
 function assertResolvedFilePartiallyEquals(
   actual: ResolvedFile,
@@ -109,7 +112,7 @@ async function assertResolvedFileFromPath(
   libraryInfo?: LibraryInfo
 ) {
   const resolved = await resolverPromise;
-  const absolutePath = await fsExtra.realpath(filePath);
+  const absolutePath = await getRealPath(filePath);
 
   assert.equal(resolved.sourceName, expectedSourceName);
   assert.equal(resolved.absolutePath, absolutePath);
@@ -130,8 +133,11 @@ describe("Resolver", function () {
   });
 
   beforeEach("Init resolver", async function () {
-    resolver = new Resolver(projectPath, new Parser(), (absolutePath) =>
-      fsExtra.readFile(absolutePath, { encoding: "utf8" })
+    resolver = new Resolver(
+      projectPath,
+      new Parser(),
+      (absolutePath) => fsExtra.readFile(absolutePath, { encoding: "utf8" }),
+      async (sourceName: string) => sourceName
     );
   });
 
@@ -143,7 +149,7 @@ describe("Resolver", function () {
       );
 
       await expectHardhatErrorAsync(
-        () => resolver.resolveSourceName(slash(__dirname)),
+        () => resolver.resolveSourceName(replaceBackslashes(__dirname)),
         ERRORS.SOURCE_NAMES.INVALID_SOURCE_NAME_ABSOLUTE_PATH
       );
     });
@@ -363,6 +369,15 @@ describe("Resolver", function () {
           () => resolver.resolveImport(localFrom, "/asd"),
           ERRORS.RESOLVER.INVALID_IMPORT_ABSOLUTE_PATH
         );
+      });
+
+      it("shouldn't let you import something that starts with the own package name", async function () {
+        sinon.stub(packageInfo, "getPackageName").resolves("myPackageName");
+        await expectHardhatErrorAsync(
+          () => resolver.resolveImport(localFrom, "myPackageName/src/file"),
+          ERRORS.RESOLVER.INCLUDES_OWN_PACKAGE_NAME
+        );
+        sinon.restore();
       });
     });
 

@@ -90,7 +90,8 @@ export async function writeAnalyticsId(clientId: string) {
 
 export async function getCompilersDir() {
   const cache = await getCacheDir();
-  const compilersCache = path.join(cache, "compilers");
+  // Note: we introduce `-v2` to invalidate all the previous compilers at once
+  const compilersCache = path.join(cache, "compilers-v2");
   await fs.ensureDir(compilersCache);
   return compilersCache;
 }
@@ -119,4 +120,23 @@ export function writeTelemetryConsent(consent: boolean) {
   const telemetryConsentPath = path.join(configDir, "telemetry-consent.json");
 
   fs.writeJSONSync(telemetryConsentPath, { consent }, { spaces: 2 });
+}
+
+/**
+ * Checks if we have already prompted the user to install the Hardhat for VSCode extension.
+ */
+export function hasPromptedForHHVSCode(): boolean {
+  const configDir = getConfigDirSync();
+  const extensionPromptedPath = path.join(configDir, "extension-prompt.json");
+
+  const fileExists = fs.pathExistsSync(extensionPromptedPath);
+
+  return fileExists;
+}
+
+export function writePromptedForHHVSCode() {
+  const configDir = getConfigDirSync();
+  const extensionPromptedPath = path.join(configDir, "extension-prompt.json");
+
+  fs.writeFileSync(extensionPromptedPath, "{}");
 }

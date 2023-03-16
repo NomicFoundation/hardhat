@@ -11,7 +11,10 @@ export function deriveKeyFromMnemonicAndPath(
   }: {
     mnemonicToSeedSync: typeof mnemonicToSeedSyncT;
   } = require("ethereum-cryptography/bip39");
-  const seed = mnemonicToSeedSync(mnemonic, passphrase);
+  // NOTE: If mnemonic has space or newline at the beginning or end, it will be trimmed.
+  // This is because mnemonic containing them may generate different private keys.
+  const trimmedMnemonic = mnemonic.trim();
+  const seed = mnemonicToSeedSync(trimmedMnemonic, passphrase);
 
   const {
     HDKey,
@@ -22,5 +25,7 @@ export function deriveKeyFromMnemonicAndPath(
   const masterKey = HDKey.fromMasterSeed(seed);
   const derived = masterKey.derive(hdPath);
 
-  return derived.privateKey === null ? undefined : derived.privateKey;
+  return derived.privateKey === null
+    ? undefined
+    : Buffer.from(derived.privateKey);
 }

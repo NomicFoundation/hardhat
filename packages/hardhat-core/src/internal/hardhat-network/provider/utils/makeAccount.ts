@@ -1,22 +1,21 @@
 import {
   Account,
   Address,
-  BN,
   privateToAddress,
   toBuffer,
-} from "ethereumjs-util";
+} from "@nomicfoundation/ethereumjs-util";
 
 import { GenesisAccount } from "../node-types";
 
 import { isHexPrefixed } from "./isHexPrefixed";
 
 export function makeAccount(ga: GenesisAccount) {
-  let balance: BN;
+  let balance: bigint;
 
   if (typeof ga.balance === "string" && isHexPrefixed(ga.balance)) {
-    balance = new BN(toBuffer(ga.balance));
+    balance = BigInt(ga.balance);
   } else {
-    balance = new BN(ga.balance);
+    balance = BigInt(ga.balance);
   }
 
   const account = Account.fromAccountData({ balance });

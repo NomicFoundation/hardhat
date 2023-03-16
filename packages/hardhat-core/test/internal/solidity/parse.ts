@@ -23,9 +23,9 @@ import "lib/asd.sol";
       const parser = new Parser();
       const { imports } = parser.parse(
         `
-import * as from "./asd.sol";
+import * as asd from "./asd.sol";
 pragma experimental v0.5.0;
-import * as from "lib/asd.sol";
+import * as libAsd from "lib/asd.sol";
   `,
         "",
         ""
@@ -40,7 +40,7 @@ import * as from "lib/asd.sol";
         `
 import {symbol1} from "./asd.sol";
 pragma experimental v0.5.0;
-import {symbol1, symbol2} as from "lib/asd.sol";
+import {symbol1, symbol2} from "lib/asd.sol";
   `,
         "",
         ""
@@ -53,9 +53,9 @@ import {symbol1, symbol2} as from "lib/asd.sol";
       const parser = new Parser();
       const { imports } = parser.parse(
         `
-import {symbol1 as s1} as from "./asd.sol";
+import {symbol1 as s1} from "./asd.sol";
 pragma experimental v0.5.0;
-import {symbol1 as s1, symbol2} as from "lib/asd.sol";
+import {symbol1 as s1, symbol2} from "lib/asd.sol";
   `,
         "",
         ""
@@ -68,18 +68,18 @@ import {symbol1 as s1, symbol2} as from "lib/asd.sol";
       const parser = new Parser();
       const { imports } = parser.parse(
         `
-    asd
+    asd;
 import "./asd.sol";
 fgh {;
 
-(
+(}
 
 import "./1.sol";
             address a,
             uint256 b,
             bytes memory a
         ) = []
-      
+
     `,
         "",
         ""

@@ -1,4 +1,4 @@
-import type EthereumjsUtilT from "ethereumjs-util";
+import type EthereumjsUtilT from "@nomicfoundation/ethereumjs-util";
 
 import chalk from "chalk";
 import debug from "debug";
@@ -29,7 +29,7 @@ import {
   TASK_NODE_SERVER_CREATED,
   TASK_NODE_SERVER_READY,
 } from "./task-names";
-import { watchCompilerOutput } from "./utils/watch";
+import { watchCompilerOutput, Watcher } from "./utils/watch";
 
 const log = debug("hardhat:core:tasks:node");
 
@@ -51,8 +51,8 @@ function logHardhatNetworkAccounts(networkConfig: HardhatNetworkConfig) {
     !Array.isArray(networkConfig.accounts) &&
     networkConfig.accounts.mnemonic === HARDHAT_NETWORK_MNEMONIC;
 
-  const { BN, bufferToHex, privateToAddress, toBuffer } =
-    require("ethereumjs-util") as typeof EthereumjsUtilT;
+  const { bufferToHex, privateToAddress, toBuffer, toChecksumAddress } =
+    require("@nomicfoundation/ethereumjs-util") as typeof EthereumjsUtilT;
 
   console.log("Accounts");
   console.log("========");
@@ -68,11 +68,11 @@ function logHardhatNetworkAccounts(networkConfig: HardhatNetworkConfig) {
   );
 
   for (const [index, account] of accounts.entries()) {
-    const address = bufferToHex(privateToAddress(toBuffer(account.privateKey)));
+    const address = toChecksumAddress(
+      bufferToHex(privateToAddress(toBuffer(account.privateKey)))
+    );
 
-    const balance = new BN(account.balance)
-      .div(new BN(10).pow(new BN(18)))
-      .toString(10);
+    const balance = (BigInt(account.balance) / 10n ** 18n).toString(10);
 
     let entry = `Account #${index}: ${address} (${balance} ETH)`;
 
@@ -333,8 +333,9 @@ task(TASK_NODE, "Starts a JSON-RPC server on top of Hardhat Network")
 
         const { port: actualPort, address } = await server.listen();
 
+        let watcher: Watcher | undefined;
         try {
-          await watchCompilerOutput(provider, config.paths);
+          watcher = await watchCompilerOutput(provider, config.paths);
         } catch (error) {
           console.warn(
             chalk.yellow(
@@ -360,6 +361,7 @@ task(TASK_NODE, "Starts a JSON-RPC server on top of Hardhat Network")
         });
 
         await server.waitUntilClosed();
+        await watcher?.close();
       } catch (error) {
         if (HardhatError.isHardhatError(error)) {
           throw error;

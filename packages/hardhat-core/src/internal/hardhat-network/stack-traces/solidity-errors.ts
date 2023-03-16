@@ -1,4 +1,4 @@
-import { bufferToHex } from "ethereumjs-util";
+import { bufferToHex } from "@nomicfoundation/ethereumjs-util";
 
 import { panicErrorCodeToMessage } from "./panic-errors";
 import {
@@ -112,7 +112,6 @@ function encodeStackTraceEntry(
 
     case StackTraceEntryType.CALLSTACK_ENTRY:
     case StackTraceEntryType.REVERT_ERROR:
-    case StackTraceEntryType.PANIC_ERROR:
     case StackTraceEntryType.CUSTOM_ERROR:
     case StackTraceEntryType.FUNCTION_NOT_PAYABLE_ERROR:
     case StackTraceEntryType.INVALID_PARAMS_ERROR:
@@ -122,8 +121,6 @@ function encodeStackTraceEntry(
     case StackTraceEntryType.NONCONTRACT_ACCOUNT_CALLED_ERROR:
     case StackTraceEntryType.CALL_FAILED_ERROR:
     case StackTraceEntryType.DIRECT_LIBRARY_CALL_ERROR:
-    case StackTraceEntryType.UNMAPPED_SOLC_0_6_3_REVERT_ERROR:
-    case StackTraceEntryType.CONTRACT_TOO_LARGE_ERROR:
       return sourceReferenceToSolidityCallsite(stackTraceEntry.sourceReference);
 
     case StackTraceEntryType.UNRECOGNIZED_CREATE_CALLSTACK_ENTRY:
@@ -188,6 +185,9 @@ function encodeStackTraceEntry(
       );
 
     case StackTraceEntryType.OTHER_EXECUTION_ERROR:
+    case StackTraceEntryType.CONTRACT_TOO_LARGE_ERROR:
+    case StackTraceEntryType.PANIC_ERROR:
+    case StackTraceEntryType.UNMAPPED_SOLC_0_6_3_REVERT_ERROR:
       if (stackTraceEntry.sourceReference === undefined) {
         return new SolidityCallSite(
           undefined,
@@ -263,6 +263,23 @@ function getMessageFromLastStackTraceEntry(
         return `VM Exception while processing transaction: reverted with reason string '${stackTraceEntry.message.decodeError()}'`;
       }
 
+      if (stackTraceEntry.message.isPanicReturnData()) {
+        const message = panicErrorCodeToMessage(
+          stackTraceEntry.message.decodePanic()
+        );
+        return `VM Exception while processing transaction: ${message}`;
+      }
+
+      if (!stackTraceEntry.message.isEmpty()) {
+        const returnData = stackTraceEntry.message.value.toString("hex");
+
+        return `VM Exception while processing transaction: reverted with an unrecognized custom error (return data: 0x${returnData})`;
+      }
+
+      if (stackTraceEntry.isInvalidOpcodeError) {
+        return "VM Exception while processing transaction: invalid opcode";
+      }
+
       return "Transaction reverted without a reason string";
 
     case StackTraceEntryType.REVERT_ERROR:
@@ -285,7 +302,7 @@ function getMessageFromLastStackTraceEntry(
 
     case StackTraceEntryType.OTHER_EXECUTION_ERROR:
       // TODO: What if there was returnData?
-      return `Transaction reverted and Hardhat couldn't infer the reason. Please report this to help us improve Hardhat.`;
+      return `Transaction reverted and Hardhat couldn't infer the reason.`;
 
     case StackTraceEntryType.UNMAPPED_SOLC_0_6_3_REVERT_ERROR:
       return "Transaction reverted without a reason string and without a valid sourcemap provided by the compiler. Some line numbers may be off. We strongly recommend upgrading solc and always using revert reasons.";

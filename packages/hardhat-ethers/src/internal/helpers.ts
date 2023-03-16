@@ -66,6 +66,14 @@ export async function getSigner(
   return signerWithAddress;
 }
 
+export async function getImpersonatedSigner(
+  hre: HardhatRuntimeEnvironment,
+  address: string
+): Promise<SignerWithAddress> {
+  await hre.ethers.provider.send("hardhat_impersonateAccount", [address]);
+  return getSigner(hre, address);
+}
+
 export function getContractFactory(
   hre: HardhatRuntimeEnvironment,
   name: string,
@@ -109,11 +117,7 @@ function isFactoryOptions(
   signerOrOptions?: ethers.Signer | FactoryOptions
 ): signerOrOptions is FactoryOptions {
   const { Signer } = require("ethers") as typeof ethers;
-  if (signerOrOptions === undefined || signerOrOptions instanceof Signer) {
-    return false;
-  }
-
-  return true;
+  return signerOrOptions !== undefined && !Signer.isSigner(signerOrOptions);
 }
 
 export async function getContractFactoryFromArtifact(
@@ -260,7 +264,7 @@ Remove one of them and review your library links before proceeding.`
       `The contract ${artifact.contractName} is missing links for the following libraries:
 ${missingLibraries}
 
-Learn more about linking contracts at https://hardhat.org/plugins/nomiclabs-hardhat-ethers.html#library-linking
+Learn more about linking contracts at https://hardhat.org/hardhat-runner/plugins/nomiclabs-hardhat-ethers#library-linking
 `
     );
   }
@@ -319,6 +323,35 @@ export async function getContractAt(
   );
 
   return new Contract(address, abiWithAddedGas, signerOrProvider);
+}
+
+export async function deployContract(
+  hre: HardhatRuntimeEnvironment,
+  name: string,
+  args?: any[],
+  signerOrOptions?: ethers.Signer | FactoryOptions
+): Promise<ethers.Contract>;
+
+export async function deployContract(
+  hre: HardhatRuntimeEnvironment,
+  name: string,
+  signerOrOptions?: ethers.Signer | FactoryOptions
+): Promise<ethers.Contract>;
+
+export async function deployContract(
+  hre: HardhatRuntimeEnvironment,
+  name: string,
+  argsOrSignerOrOptions?: any[] | ethers.Signer | FactoryOptions,
+  signerOrOptions?: ethers.Signer | FactoryOptions
+): Promise<ethers.Contract> {
+  let args = [];
+  if (Array.isArray(argsOrSignerOrOptions)) {
+    args = argsOrSignerOrOptions;
+  } else {
+    signerOrOptions = argsOrSignerOrOptions;
+  }
+  const factory = await getContractFactory(hre, name, signerOrOptions);
+  return factory.deploy(...args);
 }
 
 export async function getContractAtFromArtifact(

@@ -1,13 +1,14 @@
+import type { Dispatcher } from "undici";
+
 import fs from "fs";
 import fsExtra from "fs-extra";
 import path from "path";
 import util from "util";
 
 import { getHardhatVersion } from "./packageInfo";
+import { shouldUseProxy } from "./proxy";
 
 const TEMP_FILE_PREFIX = "tmp-";
-
-const hardhatVersion = getHardhatVersion();
 
 function resolveTempFileName(filePath: string): string {
   const { dir, ext, name } = path.parse(filePath);
@@ -22,32 +23,31 @@ function resolveTempFileName(filePath: string): string {
 export async function download(
   url: string,
   filePath: string,
-  timeoutMillis = 10000
+  timeoutMillis = 10000,
+  extraHeaders: { [name: string]: string } = {}
 ) {
   const { pipeline } = await import("stream");
   const { getGlobalDispatcher, ProxyAgent, request } = await import("undici");
   const streamPipeline = util.promisify(pipeline);
 
-  function chooseDispatcher() {
-    if (process.env.HTTPS_PROXY !== undefined) {
-      return new ProxyAgent(process.env.HTTPS_PROXY);
-    }
-
-    if (process.env.HTTP_PROXY !== undefined) {
-      return new ProxyAgent(process.env.HTTP_PROXY);
-    }
-
-    return getGlobalDispatcher();
+  let dispatcher: Dispatcher;
+  if (process.env.http_proxy !== undefined && shouldUseProxy(url)) {
+    dispatcher = new ProxyAgent(process.env.http_proxy);
+  } else {
+    dispatcher = getGlobalDispatcher();
   }
+
+  const hardhatVersion = getHardhatVersion();
 
   // Fetch the url
   const response = await request(url, {
-    dispatcher: chooseDispatcher(),
+    dispatcher,
     headersTimeout: timeoutMillis,
     maxRedirections: 10,
     method: "GET",
     headers: {
-      "User-Agent": `hardhat ${hardhatVersion ?? "(unknown version)"}`,
+      ...extraHeaders,
+      "User-Agent": `hardhat ${hardhatVersion}`,
     },
   });
 
@@ -58,11 +58,11 @@ export async function download(
     await streamPipeline(response.body, fs.createWriteStream(tmpFilePath));
     return fsExtra.move(tmpFilePath, filePath, { overwrite: true });
   }
+  // undici's response bodies must always be consumed to prevent leaks
+  const text = await response.body.text();
 
   // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
   throw new Error(
-    `Failed to download ${url} - ${
-      response.statusCode
-    } received. ${await response.body.text()}`
+    `Failed to download ${url} - ${response.statusCode} received. ${text}`
   );
 }

@@ -1,12 +1,15 @@
-import { TypedTransaction } from "@ethereumjs/tx";
-import { BN } from "ethereumjs-util";
+import { TypedTransaction } from "@nomicfoundation/ethereumjs-tx";
 import Heap from "mnemonist/heap";
 
 import { InternalError, InvalidInputError } from "../../core/providers/errors";
+import * as BigIntUtils from "../../util/bigint";
 import { MempoolOrder } from "./node-types";
 import { OrderedTransaction } from "./PoolState";
 
-function getEffectiveMinerFee(tx: OrderedTransaction, baseFee?: BN): BN {
+function getEffectiveMinerFee(
+  tx: OrderedTransaction,
+  baseFee?: bigint
+): bigint {
   // This mimics the EIP-1559 normalize_transaction function
   const maxFeePerGas =
     "gasPrice" in tx.data ? tx.data.gasPrice : tx.data.maxFeePerGas;
@@ -18,18 +21,18 @@ function getEffectiveMinerFee(tx: OrderedTransaction, baseFee?: BN): BN {
     return maxFeePerGas;
   }
 
-  return BN.min(maxPriorityFeePerGas, maxFeePerGas.sub(baseFee));
+  return BigIntUtils.min(maxPriorityFeePerGas, maxFeePerGas - baseFee);
 }
 
 function decreasingOrderEffectiveMinerFeeComparator(
   left: OrderedTransaction,
   right: OrderedTransaction,
-  baseFee?: BN
+  baseFee?: bigint
 ) {
   const leftEffectiveMinerFee = getEffectiveMinerFee(left, baseFee);
   const rightEffectiveMinerFee = getEffectiveMinerFee(right, baseFee);
 
-  const cmp = rightEffectiveMinerFee.cmp(leftEffectiveMinerFee);
+  const cmp = BigIntUtils.cmp(rightEffectiveMinerFee, leftEffectiveMinerFee);
 
   if (cmp !== 0) {
     return cmp;
@@ -49,7 +52,7 @@ function decreasingOrderComparator(
 
 function getOrderedTransactionHeap(
   mempoolOrder: MempoolOrder,
-  baseFee?: BN
+  baseFee?: bigint
 ): Heap<OrderedTransaction> {
   switch (mempoolOrder) {
     case "priority":
@@ -98,7 +101,7 @@ export class TransactionQueue {
   constructor(
     pendingTransactions: Map<string, OrderedTransaction[]>,
     mempoolOrder: MempoolOrder,
-    baseFee?: BN
+    baseFee?: bigint
   ) {
     this._heap = getOrderedTransactionHeap(mempoolOrder, baseFee);
 

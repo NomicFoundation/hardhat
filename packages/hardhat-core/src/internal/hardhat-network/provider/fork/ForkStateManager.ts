@@ -1,29 +1,29 @@
-import { DefaultStateManager } from "@ethereumjs/vm/dist/state";
-import { EIP2929StateManager } from "@ethereumjs/vm/dist/state/interface";
+import { StateManager } from "@nomicfoundation/ethereumjs-statemanager";
 import {
   Account,
+  bigIntToHex,
+  bufferToBigInt,
   Address,
-  BN,
   bufferToHex,
-  keccak256,
   KECCAK256_NULL,
   toBuffer,
   unpadBuffer,
-} from "ethereumjs-util";
+} from "@nomicfoundation/ethereumjs-util";
 import { Map as ImmutableMap, Record as ImmutableRecord } from "immutable";
 
 import { assertHardhatInvariant } from "../../../core/errors";
 import { InternalError } from "../../../core/providers/errors";
+import { keccak256 } from "../../../util/keccak";
 import { JsonRpcClient } from "../../jsonrpc/client";
 import { GenesisAccount } from "../node-types";
 import { makeAccount } from "../utils/makeAccount";
+import { randomHash } from "../utils/random";
 
 import {
   AccountState,
   makeAccountState,
   makeEmptyAccountState,
 } from "./AccountState";
-import { randomHash } from "./random";
 
 const encodeStorageKey = (address: Buffer, position: Buffer): string => {
   return `${address.toString("hex")}${unpadBuffer(position).toString("hex")}`;
@@ -42,25 +42,19 @@ const notCheckpointedError = (method: string) =>
 const notSupportedError = (method: string) =>
   new Error(`${method} is not supported when forking from remote network`);
 
-export class ForkStateManager implements EIP2929StateManager {
+export class ForkStateManager implements StateManager {
   private _state: State = ImmutableMap<string, ImmutableRecord<AccountState>>();
   private _initialStateRoot: string = randomHash();
   private _stateRoot: string = this._initialStateRoot;
   private _stateRootToState: Map<string, State> = new Map();
   private _originalStorageCache: Map<string, Buffer> = new Map();
   private _stateCheckpoints: string[] = [];
-  private _contextBlockNumber = this._forkBlockNumber.clone();
+  private _contextBlockNumber = this._forkBlockNumber;
   private _contextChanged = false;
-
-  // used by the DefaultStateManager calls
-  private _accessedStorage: Array<Map<string, Set<string>>> = [new Map()];
-  private _accessedStorageReverted: Array<Map<string, Set<string>>> = [
-    new Map(),
-  ];
 
   constructor(
     private readonly _jsonRpcClient: JsonRpcClient,
-    private readonly _forkBlockNumber: BN
+    private readonly _forkBlockNumber: bigint
   ) {
     this._state = ImmutableMap<string, ImmutableRecord<AccountState>>();
 
@@ -69,7 +63,7 @@ export class ForkStateManager implements EIP2929StateManager {
 
   public async initializeGenesisAccounts(genesisAccounts: GenesisAccount[]) {
     const accounts: Array<{ address: Address; account: Account }> = [];
-    const noncesPromises: Array<Promise<BN>> = [];
+    const noncesPromises: Array<Promise<bigint>> = [];
 
     for (const ga of genesisAccounts) {
       const account = makeAccount(ga);
@@ -118,10 +112,10 @@ export class ForkStateManager implements EIP2929StateManager {
     const localBalance = localAccount?.get("balance");
     const localCode = localAccount?.get("code");
 
-    let nonce: Buffer | BN | undefined =
+    let nonce: Buffer | bigint | undefined =
       localNonce !== undefined ? toBuffer(localNonce) : undefined;
 
-    let balance: Buffer | BN | undefined =
+    let balance: Buffer | bigint | undefined =
       localBalance !== undefined ? toBuffer(localBalance) : undefined;
 
     let code: Buffer | undefined =
@@ -205,7 +199,7 @@ export class ForkStateManager implements EIP2929StateManager {
 
     const remoteValue = await this._jsonRpcClient.getStorageAt(
       address,
-      new BN(key),
+      bufferToBigInt(key),
       this._contextBlockNumber
     );
 
@@ -308,8 +302,8 @@ export class ForkStateManager implements EIP2929StateManager {
     // From https://eips.ethereum.org/EIPS/eip-161
     // An account is considered empty when it has no code and zero nonce and zero balance.
     return (
-      new BN(account.nonce).eqn(0) &&
-      new BN(account.balance).eqn(0) &&
+      account.nonce === 0n &&
+      account.balance === 0n &&
       account.codeHash.equals(KECCAK256_NULL)
     );
   }
@@ -322,7 +316,7 @@ export class ForkStateManager implements EIP2929StateManager {
 
   public setBlockContext(
     stateRoot: Buffer,
-    blockNumber: BN,
+    blockNumber: bigint,
     irregularState?: Buffer
   ) {
     if (this._stateCheckpoints.length !== 0) {
@@ -334,11 +328,11 @@ export class ForkStateManager implements EIP2929StateManager {
       return;
     }
 
-    if (blockNumber.eq(this._forkBlockNumber)) {
+    if (blockNumber === this._forkBlockNumber) {
       this._setStateRoot(toBuffer(this._initialStateRoot));
       return;
     }
-    if (blockNumber.gt(this._forkBlockNumber)) {
+    if (blockNumber > this._forkBlockNumber) {
       this._setStateRoot(stateRoot);
       return;
     }
@@ -396,45 +390,14 @@ export class ForkStateManager implements EIP2929StateManager {
     return value;
   }
 
-  // the following methods are copied verbatim from
-  // DefaultStateManager
-
-  public isWarmedAddress(address: Buffer): boolean {
-    return DefaultStateManager.prototype.isWarmedAddress.call(this, address);
-  }
-
-  public addWarmedAddress(address: Buffer): void {
-    return DefaultStateManager.prototype.addWarmedAddress.call(this, address);
-  }
-
-  public isWarmedStorage(address: Buffer, slot: Buffer): boolean {
-    return DefaultStateManager.prototype.isWarmedStorage.call(
-      this,
-      address,
-      slot
-    );
-  }
-
-  public addWarmedStorage(address: Buffer, slot: Buffer): void {
-    return DefaultStateManager.prototype.addWarmedStorage.call(
-      this,
-      address,
-      slot
-    );
-  }
-
-  public clearWarmedAccounts(): void {
-    return DefaultStateManager.prototype.clearWarmedAccounts.call(this);
-  }
-
   private _putAccount(address: Address, account: Account): void {
     // Because the vm only ever modifies the nonce, balance and codeHash using this
     // method we ignore the stateRoot property
     const hexAddress = address.toString();
     let localAccount = this._state.get(hexAddress) ?? makeAccountState();
     localAccount = localAccount
-      .set("nonce", bufferToHex(account.nonce.toBuffer()))
-      .set("balance", bufferToHex(account.balance.toBuffer()));
+      .set("nonce", bigIntToHex(account.nonce))
+      .set("balance", bigIntToHex(account.balance));
 
     // Code is set to empty string here to prevent unnecessary
     // JsonRpcClient.getCode calls in getAccount method
@@ -452,5 +415,26 @@ export class ForkStateManager implements EIP2929StateManager {
     }
     this._stateRoot = newRoot;
     this._state = state;
+  }
+
+  public async hasStateRoot(root: Buffer): Promise<boolean> {
+    return this._state.has(bufferToHex(root));
+  }
+
+  public async flush(): Promise<void> {
+    // not implemented
+  }
+
+  public async modifyAccountFields(
+    address: Address,
+    accountFields: any
+  ): Promise<void> {
+    // copied from BaseStateManager
+    const account = await this.getAccount(address);
+    account.nonce = accountFields.nonce ?? account.nonce;
+    account.balance = accountFields.balance ?? account.balance;
+    account.storageRoot = accountFields.storageRoot ?? account.storageRoot;
+    account.codeHash = accountFields.codeHash ?? account.codeHash;
+    await this.putAccount(address, account);
   }
 }

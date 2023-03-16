@@ -1,5 +1,9 @@
+import {
+  setLengthLeft,
+  toBuffer,
+  zeroAddress,
+} from "@nomicfoundation/ethereumjs-util";
 import { assert } from "chai";
-import { BN, setLengthLeft, toBuffer, zeroAddress } from "ethereumjs-util";
 
 import { numberToRpcQuantity } from "../../../../../../../src/internal/core/jsonrpc/types/base-types";
 import { TransactionParams } from "../../../../../../../src/internal/hardhat-network/provider/node-types";
@@ -75,9 +79,9 @@ describe("Eth module", function () {
             to: toBuffer(zeroAddress()),
             from: toBuffer(DEFAULT_ACCOUNTS_ADDRESSES[1]),
             data: toBuffer("0xaa"),
-            nonce: new BN(0),
-            value: new BN(123),
-            gasLimit: new BN(25000),
+            nonce: 0n,
+            value: 123n,
+            gasLimit: 25_000n,
             gasPrice: await getPendingBaseFeePerGas(this.provider),
           };
 
@@ -109,9 +113,9 @@ describe("Eth module", function () {
             to: toBuffer(zeroAddress()),
             from: toBuffer(DEFAULT_ACCOUNTS_ADDRESSES[1]),
             data: toBuffer([]),
-            nonce: new BN(1),
-            value: new BN(123),
-            gasLimit: new BN(80000),
+            nonce: 1n,
+            value: 123n,
+            gasLimit: 80_000n,
             gasPrice: await getPendingBaseFeePerGas(this.provider),
           };
 
@@ -146,9 +150,9 @@ describe("Eth module", function () {
             to: toBuffer(zeroAddress()),
             from: toBuffer(DEFAULT_ACCOUNTS_ADDRESSES[1]),
             data: toBuffer("0xaa"),
-            nonce: new BN(0),
-            value: new BN(123),
-            gasLimit: new BN(30000),
+            nonce: 0n,
+            value: 123n,
+            gasLimit: 30_000n,
             gasPrice: await getPendingBaseFeePerGas(this.provider),
             accessList: [
               [
@@ -194,11 +198,11 @@ describe("Eth module", function () {
             to: toBuffer(zeroAddress()),
             from: toBuffer(DEFAULT_ACCOUNTS_ADDRESSES[1]),
             data: toBuffer("0xaa"),
-            nonce: new BN(0),
-            value: new BN(123),
-            gasLimit: new BN(30000),
+            nonce: 0n,
+            value: 123n,
+            gasLimit: 30_000n,
             maxFeePerGas,
-            maxPriorityFeePerGas: maxFeePerGas.divn(2),
+            maxPriorityFeePerGas: maxFeePerGas / 2n,
             accessList: [
               [
                 toBuffer(zeroAddress()),

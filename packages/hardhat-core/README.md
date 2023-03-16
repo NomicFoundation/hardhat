@@ -1,4 +1,4 @@
-![](https://user-images.githubusercontent.com/176499/96893278-ebc67580-1460-11eb-9530-d5df3a3d65d0.png) [![NPM Package](https://img.shields.io/npm/v/hardhat.svg?style=flat-square)](https://www.npmjs.org/package/hardhat)
+![](https://user-images.githubusercontent.com/176499/96893278-ebc67580-1460-11eb-9530-d5df3a3d65d0.png) [![NPM Package](https://img.shields.io/npm/v/hardhat.svg?style=flat-square)](https://www.npmjs.org/package/hardhat) [![GitPOAP Badge](https://public-api.gitpoap.io/v1/repo/NomicFoundation/hardhat/badge)](https://www.gitpoap.io/gh/NomicFoundation/hardhat)
 
 ---
 

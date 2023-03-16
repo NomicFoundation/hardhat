@@ -7,18 +7,17 @@ import type {
   HDAccountsUserConfig,
   HttpNetworkAccountsUserConfig,
   HttpNetworkConfig,
-  HttpNetworkUserConfig,
   NetworkConfig,
   ProjectPathsConfig,
 } from "../../../types";
 
-import { HARDHAT_NETWORK_NAME } from "../../constants";
-import { ModulesLogger } from "../../hardhat-network/provider/modules/logger";
-import {
+import type {
   ForkConfig,
   MempoolOrder,
 } from "../../hardhat-network/provider/node-types";
-import { getForkCacheDirPath } from "../../hardhat-network/provider/utils/disk-cache";
+import type * as ModulesLoggerT from "../../hardhat-network/provider/modules/logger";
+import type * as DiskCacheT from "../../hardhat-network/provider/utils/disk-cache";
+import { HARDHAT_NETWORK_NAME } from "../../constants";
 import { parseDateString } from "../../util/date";
 
 import { normalizeHardhatNetworkAccountsConfig } from "./util";
@@ -73,6 +72,7 @@ export function createProvider(
       forkConfig = {
         jsonRpcUrl: hardhatNetConfig.forking?.url,
         blockNumber: hardhatNetConfig.forking?.blockNumber,
+        httpHeaders: hardhatNetConfig.forking.httpHeaders,
       };
     }
 
@@ -80,39 +80,49 @@ export function createProvider(
       hardhatNetConfig.accounts
     );
 
+    const { ModulesLogger } =
+      require("../../hardhat-network/provider/modules/logger") as typeof ModulesLoggerT;
+    const { getForkCacheDirPath } =
+      require("../../hardhat-network/provider/utils/disk-cache") as typeof DiskCacheT;
+
     eip1193Provider = new HardhatNetworkProvider(
-      hardhatNetConfig.hardfork,
-      HARDHAT_NETWORK_NAME,
-      hardhatNetConfig.chainId,
-      hardhatNetConfig.chainId,
-      hardhatNetConfig.blockGasLimit,
-      hardhatNetConfig.initialBaseFeePerGas,
-      hardhatNetConfig.minGasPrice,
-      hardhatNetConfig.throwOnTransactionFailures,
-      hardhatNetConfig.throwOnCallFailures,
-      hardhatNetConfig.mining.auto,
-      hardhatNetConfig.mining.interval,
-      // This cast is valid because of the config validation and resolution
-      hardhatNetConfig.mining.mempool.order as MempoolOrder,
-      hardhatNetConfig.chains,
+      {
+        chainId: hardhatNetConfig.chainId,
+        networkId: hardhatNetConfig.chainId,
+        hardfork: hardhatNetConfig.hardfork,
+        blockGasLimit: hardhatNetConfig.blockGasLimit,
+        initialBaseFeePerGas: hardhatNetConfig.initialBaseFeePerGas,
+        minGasPrice: hardhatNetConfig.minGasPrice,
+        throwOnTransactionFailures: hardhatNetConfig.throwOnTransactionFailures,
+        throwOnCallFailures: hardhatNetConfig.throwOnCallFailures,
+        automine: hardhatNetConfig.mining.auto,
+        intervalMining: hardhatNetConfig.mining.interval,
+        // This cast is valid because of the config validation and resolution
+        mempoolOrder: hardhatNetConfig.mining.mempool.order as MempoolOrder,
+        chains: hardhatNetConfig.chains,
+        coinbase: hardhatNetConfig.coinbase,
+        genesisAccounts: accounts,
+        allowUnlimitedContractSize: hardhatNetConfig.allowUnlimitedContractSize,
+        allowBlocksWithSameTimestamp:
+          hardhatNetConfig.allowBlocksWithSameTimestamp ?? false,
+        initialDate:
+          hardhatNetConfig.initialDate !== undefined
+            ? parseDateString(hardhatNetConfig.initialDate)
+            : undefined,
+        experimentalHardhatNetworkMessageTraceHooks,
+        forkConfig,
+        forkCachePath:
+          paths !== undefined ? getForkCacheDirPath(paths) : undefined,
+      },
       new ModulesLogger(hardhatNetConfig.loggingEnabled),
-      accounts,
-      artifacts,
-      hardhatNetConfig.allowUnlimitedContractSize,
-      hardhatNetConfig.initialDate !== undefined
-        ? parseDateString(hardhatNetConfig.initialDate)
-        : undefined,
-      experimentalHardhatNetworkMessageTraceHooks,
-      forkConfig,
-      paths !== undefined ? getForkCacheDirPath(paths) : undefined,
-      hardhatNetConfig.coinbase
+      artifacts
     );
   } else {
     const HttpProvider = importProvider<
       typeof import("./http"),
       "HttpProvider"
     >("./http", "HttpProvider");
-    const httpNetConfig = networkConfig as HttpNetworkUserConfig;
+    const httpNetConfig = networkConfig as HttpNetworkConfig;
 
     eip1193Provider = new HttpProvider(
       httpNetConfig.url!,
@@ -170,11 +180,6 @@ export function applyProviderWrappers(
     typeof import("./gas-providers"),
     "FixedGasPriceProvider"
   >("./gas-providers", "FixedGasPriceProvider");
-  const GanacheGasMultiplierProvider = importProvider<
-    typeof import("./gas-providers"),
-    "GanacheGasMultiplierProvider"
-  >("./gas-providers", "GanacheGasMultiplierProvider");
-
   const ChainIdValidatorProvider = importProvider<
     typeof import("./chainId"),
     "ChainIdValidatorProvider"
@@ -197,10 +202,6 @@ export function applyProviderWrappers(
     }
 
     // TODO: Add some extension mechanism for account plugins here
-
-    if (typeof netConfig.gas !== "number") {
-      provider = new GanacheGasMultiplierProvider(provider);
-    }
   }
 
   if (netConfig.from !== undefined) {

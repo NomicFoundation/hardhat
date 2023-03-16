@@ -1,9 +1,11 @@
 import { AssertionError, expect } from "chai";
 import { BigNumber } from "ethers";
 import { ProviderError } from "hardhat/internal/core/providers/errors";
+import path from "path";
+import util from "util";
 
-import "../../src";
-import { PANIC_CODES } from "../../src/reverted/panic";
+import "../../src/internal/add-chai-matchers";
+import { PANIC_CODES } from "../../src/panic";
 import {
   runSuccessfulAsserts,
   runFailedAsserts,
@@ -97,7 +99,9 @@ describe("INTEGRATION: Reverted with panic", function () {
         });
       });
 
-      it("failed asserts", async function () {
+      // depends on a bug being fixed on ethers.js
+      // see https://github.com/NomicFoundation/hardhat/issues/3446
+      it.skip("failed asserts", async function () {
         await runFailedAsserts({
           matchers,
           method: "revertsWithoutReason",
@@ -288,7 +292,7 @@ describe("INTEGRATION: Reverted with panic", function () {
 
         expect(() => expect(hash).to.be.revertedWithPanic("invalid")).to.throw(
           TypeError,
-          "Expected a number-like value as the expected panic code, but got 'invalid'"
+          "Expected the given panic code to be a number-like value, but got 'invalid'"
         );
       });
 
@@ -313,6 +317,23 @@ describe("INTEGRATION: Reverted with panic", function () {
           ProviderError,
           "sender doesn't have enough funds to send tx"
         );
+      });
+    });
+
+    describe("stack traces", function () {
+      // smoke test for stack traces
+      it("includes test file", async function () {
+        try {
+          await expect(matchers.panicAssert()).to.not.be.revertedWithPanic();
+        } catch (e: any) {
+          expect(util.inspect(e)).to.include(
+            path.join("test", "reverted", "revertedWithPanic.ts")
+          );
+
+          return;
+        }
+
+        expect.fail("Expected an exception but none was thrown");
       });
     });
   }

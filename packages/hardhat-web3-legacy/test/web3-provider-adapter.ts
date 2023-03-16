@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/strict-boolean-expressions */
 import { assert } from "chai";
 import Web3 from "web3";
 
@@ -30,7 +31,7 @@ describe("Web3 provider adapter", function () {
   useEnvironment("hardhat-project");
 
   beforeEach(function () {
-    realWeb3Provider = new Web3.providers.HttpProvider("http://localhost:8545");
+    realWeb3Provider = new Web3.providers.HttpProvider("http://127.0.0.1:8545");
     adaptedProvider = new Web3HTTPProviderAdapter(this.env.network.provider);
 
     assert.isDefined(this.env.web3);

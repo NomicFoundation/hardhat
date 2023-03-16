@@ -1,11 +1,11 @@
 import { assert } from "chai";
-import fsExtra from "fs-extra";
 import path from "path";
 
 import {
   getPackageJson,
   getPackageRoot,
 } from "../../../src/internal/util/packageInfo";
+import { getRealPath } from "../../../src/internal/util/fs-utils";
 
 describe("packageInfo", () => {
   it("Should give the right package.json", async () => {
@@ -16,7 +16,7 @@ describe("packageInfo", () => {
   });
 
   it("should give the right package root", async () => {
-    const root = await fsExtra.realpath(path.join(__dirname, "..", "..", ".."));
+    const root = await getRealPath(path.join(__dirname, "..", "..", ".."));
     assert.equal(getPackageRoot(), root);
   });
 });

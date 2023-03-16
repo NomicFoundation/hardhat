@@ -3,8 +3,8 @@ import { assert } from "chai";
 import { RpcDebugTraceOutput } from "../../../../../src/internal/hardhat-network/provider/output";
 
 export function assertEqualTraces(
-  expected: RpcDebugTraceOutput,
-  actual: RpcDebugTraceOutput
+  actual: RpcDebugTraceOutput,
+  expected: RpcDebugTraceOutput
 ) {
   assert.equal(actual.failed, expected.failed);
   assert.equal(actual.gas, expected.gas);
@@ -25,7 +25,7 @@ export function assertEqualTraces(
     assert.deepEqual(
       actual.structLogs[i],
       log,
-      `Different logs at ${i} (opcode: ${log.op}, gas: ${log.gas})`
+      `Different logs at ${i} (pc: ${log.pc}, opcode: ${log.op}, gas: ${log.gas})`
     );
   }
 }

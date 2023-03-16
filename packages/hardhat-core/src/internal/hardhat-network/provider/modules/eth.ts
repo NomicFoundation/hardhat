@@ -1,18 +1,17 @@
-import { Block } from "@ethereumjs/block";
-import Common from "@ethereumjs/common";
+import { Block } from "@nomicfoundation/ethereumjs-block";
+import { Common } from "@nomicfoundation/ethereumjs-common";
 import {
   Transaction,
   TransactionFactory,
   TypedTransaction,
-} from "@ethereumjs/tx";
+} from "@nomicfoundation/ethereumjs-tx";
 import {
   Address,
-  BN,
   bufferToHex,
   toBuffer,
   toRpcSig,
   zeroAddress,
-} from "ethereumjs-util";
+} from "@nomicfoundation/ethereumjs-util";
 import * as t from "io-ts";
 import cloneDeep from "lodash/cloneDeep";
 
@@ -86,6 +85,7 @@ import {
 
 import { assertHardhatNetworkInvariant } from "../utils/assertions";
 import { optional } from "../../../util/io-ts";
+import * as BigIntUtils from "../../../util/bigint";
 import { ModulesLogger } from "./logger";
 
 const EIP1559_MIN_HARDFORK = "london";
@@ -522,7 +522,7 @@ export class EthModule {
     }
 
     let block: Block | undefined;
-    let totalDifficulty: BN | undefined;
+    let totalDifficulty: bigint | undefined;
 
     if (numberOrPending === "pending") {
       [block, totalDifficulty] =
@@ -607,12 +607,12 @@ export class EthModule {
 
   // eth_getFilterChanges
 
-  private _getFilterChangesParams(params: any[]): [BN] {
+  private _getFilterChangesParams(params: any[]): [bigint] {
     return validateParams(params, rpcQuantity);
   }
 
   private async _getFilterChangesAction(
-    filterId: BN
+    filterId: bigint
   ): Promise<string[] | RpcLogOutput[] | null> {
     const changes = await this._node.getFilterChanges(filterId);
     if (changes === undefined) {
@@ -624,12 +624,12 @@ export class EthModule {
 
   // eth_getFilterLogs
 
-  private _getFilterLogsParams(params: any[]): [BN] {
+  private _getFilterLogsParams(params: any[]): [bigint] {
     return validateParams(params, rpcQuantity);
   }
 
   private async _getFilterLogsAction(
-    filterId: BN
+    filterId: bigint
   ): Promise<RpcLogOutput[] | null> {
     const changes = await this._node.getFilterLogs(filterId);
     if (changes === undefined) {
@@ -691,7 +691,7 @@ export class EthModule {
 
   private _getStorageAtParams(
     params: any[]
-  ): [Buffer, BN, OptionalRpcNewBlockTag] {
+  ): [Buffer, bigint, OptionalRpcNewBlockTag] {
     return validateParams(
       params,
       rpcAddress,
@@ -702,7 +702,7 @@ export class EthModule {
 
   private async _getStorageAtAction(
     address: Buffer,
-    slot: BN,
+    slot: bigint,
     blockTag: OptionalRpcNewBlockTag
   ): Promise<string> {
     const blockNumberOrPending = await this._resolveNewBlockTag(blockTag);
@@ -720,15 +720,15 @@ export class EthModule {
 
   private _getTransactionByBlockHashAndIndexParams(
     params: any[]
-  ): [Buffer, BN] {
+  ): [Buffer, bigint] {
     return validateParams(params, rpcHash, rpcQuantity);
   }
 
   private async _getTransactionByBlockHashAndIndexAction(
     hash: Buffer,
-    index: BN
+    index: bigint
   ): Promise<RpcTransactionOutput | null> {
-    const i = index.toNumber();
+    const i = Number(index);
     const block = await this._node.getBlockByHash(hash);
     if (block === undefined) {
       return null;
@@ -751,13 +751,13 @@ export class EthModule {
 
   private _getTransactionByBlockNumberAndIndexParams(
     params: any[]
-  ): [RpcOldBlockTag, BN] {
+  ): [RpcOldBlockTag, bigint] {
     return validateParams(params, rpcOldBlockTag, rpcQuantity);
   }
 
   private async _getTransactionByBlockNumberAndIndexAction(
     oldBlockTag: RpcOldBlockTag,
-    index: BN
+    index: bigint
   ): Promise<RpcTransactionOutput | null> {
     const numberOrPending = await this._resolveOldBlockTag(oldBlockTag);
     if (numberOrPending === undefined) {
@@ -765,7 +765,7 @@ export class EthModule {
     }
 
     const block = await this._node.getBlockByNumber(numberOrPending);
-    const i = index.toNumber();
+    const i = Number(index);
 
     if (block === undefined) {
       return null;
@@ -967,7 +967,7 @@ export class EthModule {
       // Please keep it updated.
 
       if (error instanceof Error) {
-        if (error.message === "invalid remainder") {
+        if (error.message === "invalid RLP: remainder must be zero") {
           throw new InvalidArgumentsError("Invalid transaction", error);
         }
 
@@ -986,7 +986,7 @@ export class EthModule {
         }
 
         if (error.message.includes("The chain ID does not match")) {
-          const chainId = this._common.chainIdBN().toString();
+          const chainId = this._common.chainId();
           throw new InvalidArgumentsError(
             `Trying to send a raw transaction with an invalid chainId. The expected chainId is ${chainId}`,
             error
@@ -1017,10 +1017,10 @@ export class EthModule {
   private async _sendTransactionAction(
     transactionRequest: RpcTransactionRequest
   ): Promise<string> {
-    const expectedChainId = this._common.chainIdBN();
+    const expectedChainId = this._common.chainId();
     if (
       transactionRequest.chainId !== undefined &&
-      !transactionRequest.chainId.eq(expectedChainId)
+      transactionRequest.chainId !== expectedChainId
     ) {
       throw new InvalidArgumentsError(
         `Invalid chainId ${transactionRequest.chainId.toString()} provided, expected ${expectedChainId.toString()} instead.`
@@ -1143,21 +1143,21 @@ export class EthModule {
 
   // eth_uninstallFilter
 
-  private _uninstallFilterParams(params: any): [BN] {
+  private _uninstallFilterParams(params: any): [bigint] {
     return validateParams(params, rpcQuantity);
   }
 
-  private async _uninstallFilterAction(filterId: BN): Promise<boolean> {
+  private async _uninstallFilterAction(filterId: bigint): Promise<boolean> {
     return this._node.uninstallFilter(filterId, false);
   }
 
   // eth_unsubscribe
 
-  private _unsubscribeParams(params: any[]): [BN] {
+  private _unsubscribeParams(params: any[]): [bigint] {
     return validateParams(params, rpcQuantity);
   }
 
-  private async _unsubscribeAction(filterId: BN): Promise<boolean> {
+  private async _unsubscribeAction(filterId: bigint): Promise<boolean> {
     return this._node.uninstallFilter(filterId, true);
   }
 
@@ -1165,7 +1165,7 @@ export class EthModule {
 
   private _feeHistoryParams(
     params: any[]
-  ): [BN, RpcNewBlockTag, number[] | undefined] {
+  ): [bigint, RpcNewBlockTag, number[] | undefined] {
     const [blockCount, newestBlock, rewardPercentiles] = validateParams(
       params,
       rpcQuantity,
@@ -1173,11 +1173,11 @@ export class EthModule {
       optional(t.array(rpcFloat))
     );
 
-    if (blockCount.ltn(1)) {
+    if (blockCount < 1n) {
       throw new InvalidInputError(`blockCount should be at least 1`);
     }
 
-    if (blockCount.gtn(1024)) {
+    if (blockCount > 1024n) {
       throw new InvalidInputError(`blockCount should be at most 1024`);
     }
 
@@ -1206,7 +1206,7 @@ export class EthModule {
   }
 
   private async _feeHistoryAction(
-    blockCount: BN,
+    blockCount: bigint,
     newestBlock: RpcNewBlockTag,
     rewardPercentiles?: number[]
   ) {
@@ -1251,7 +1251,7 @@ export class EthModule {
       data: rpcCall.data !== undefined ? rpcCall.data : toBuffer([]),
       gasLimit:
         rpcCall.gas !== undefined ? rpcCall.gas : this._node.getBlockGasLimit(),
-      value: rpcCall.value !== undefined ? rpcCall.value : new BN(0),
+      value: rpcCall.value !== undefined ? rpcCall.value : 0n,
       accessList:
         rpcCall.accessList !== undefined
           ? this._rpcAccessListToNodeAccessList(rpcCall.accessList)
@@ -1270,7 +1270,7 @@ export class EthModule {
       from: rpcTx.from,
       gasLimit:
         rpcTx.gas !== undefined ? rpcTx.gas : this._node.getBlockGasLimit(),
-      value: rpcTx.value !== undefined ? rpcTx.value : new BN(0),
+      value: rpcTx.value !== undefined ? rpcTx.value : 0n,
       data: rpcTx.data !== undefined ? rpcTx.data : toBuffer([]),
       nonce:
         rpcTx.nonce !== undefined
@@ -1298,7 +1298,7 @@ export class EthModule {
         // than that, we adjust the tip to make the tx valid
         if (
           rpcTx.maxFeePerGas !== undefined &&
-          rpcTx.maxFeePerGas.lt(rpcTx.maxPriorityFeePerGas)
+          rpcTx.maxFeePerGas < rpcTx.maxPriorityFeePerGas
         ) {
           rpcTx.maxPriorityFeePerGas = rpcTx.maxFeePerGas;
         }
@@ -1312,9 +1312,7 @@ export class EthModule {
           "EIP-1559 transactions should only be sent if the next block has baseFeePerGas"
         );
 
-        rpcTx.maxFeePerGas = baseFeePerGas
-          .muln(2)
-          .add(rpcTx.maxPriorityFeePerGas);
+        rpcTx.maxFeePerGas = 2n * baseFeePerGas + rpcTx.maxPriorityFeePerGas;
       }
 
       return {
@@ -1354,7 +1352,7 @@ export class EthModule {
 
   private async _resolveOldBlockTag(
     oldBlockTag: RpcOldBlockTag
-  ): Promise<BN | "pending" | undefined> {
+  ): Promise<bigint | "pending" | undefined> {
     if (oldBlockTag === undefined || oldBlockTag === "latest") {
       return this._node.getLatestBlockNumber();
     }
@@ -1364,7 +1362,13 @@ export class EthModule {
     }
 
     if (oldBlockTag === "earliest") {
-      return new BN(0);
+      return 0n;
+    }
+
+    if (oldBlockTag === "safe" || oldBlockTag === "finalized") {
+      this._checkPostMergeBlockTags(oldBlockTag);
+
+      return this._node.getLatestBlockNumber();
     }
 
     const block = await this._node.getBlockByNumber(oldBlockTag);
@@ -1374,7 +1378,7 @@ export class EthModule {
   private async _resolveNewBlockTag(
     newBlockTag: OptionalRpcNewBlockTag,
     defaultValue: RpcNewBlockTag = "latest"
-  ): Promise<BN | "pending"> {
+  ): Promise<bigint | "pending"> {
     if (newBlockTag === undefined) {
       newBlockTag = defaultValue;
     }
@@ -1388,23 +1392,31 @@ export class EthModule {
     }
 
     if (newBlockTag === "earliest") {
-      return new BN(0);
+      return 0n;
     }
 
-    if ("blockNumber" in newBlockTag && "blockHash" in newBlockTag) {
-      throw new InvalidArgumentsError(
-        "Invalid block tag received. Only one of hash or block number can be used."
-      );
+    if (newBlockTag === "safe" || newBlockTag === "finalized") {
+      this._checkPostMergeBlockTags(newBlockTag);
+
+      return this._node.getLatestBlockNumber();
     }
 
-    if ("blockNumber" in newBlockTag && "requireCanonical" in newBlockTag) {
-      throw new InvalidArgumentsError(
-        "Invalid block tag received. requireCanonical only works with hashes."
-      );
+    if (!BigIntUtils.isBigInt(newBlockTag)) {
+      if ("blockNumber" in newBlockTag && "blockHash" in newBlockTag) {
+        throw new InvalidArgumentsError(
+          "Invalid block tag received. Only one of hash or block number can be used."
+        );
+      }
+
+      if ("blockNumber" in newBlockTag && "requireCanonical" in newBlockTag) {
+        throw new InvalidArgumentsError(
+          "Invalid block tag received. requireCanonical only works with hashes."
+        );
+      }
     }
 
     let block: Block | undefined;
-    if (BN.isBN(newBlockTag)) {
+    if (BigIntUtils.isBigInt(newBlockTag)) {
       block = await this._node.getBlockByNumber(newBlockTag);
     } else if ("blockNumber" in newBlockTag) {
       block = await this._node.getBlockByNumber(newBlockTag.blockNumber);
@@ -1427,7 +1439,7 @@ export class EthModule {
 
   private async _normalizeOldBlockTagForFilterRequest(
     blockTag: OptionalRpcOldBlockTag
-  ): Promise<BN> {
+  ): Promise<bigint> {
     if (
       blockTag === undefined ||
       blockTag === "latest" ||
@@ -1436,8 +1448,14 @@ export class EthModule {
       return LATEST_BLOCK;
     }
 
+    if (blockTag === "safe" || blockTag === "finalized") {
+      this._checkPostMergeBlockTags(blockTag);
+
+      return LATEST_BLOCK;
+    }
+
     if (blockTag === "earliest") {
-      return new BN(0);
+      return 0n;
     }
 
     return blockTag;
@@ -1448,7 +1466,7 @@ export class EthModule {
       return tag;
     }
 
-    if (BN.isBN(tag)) {
+    if (BigIntUtils.isBigInt(tag)) {
       return tag.toString();
     }
 
@@ -1548,7 +1566,7 @@ export class EthModule {
     if (singleTransactionMined) {
       const block = results[0].block;
       const tx = block.transactions[0];
-      const txGasUsed = results[0].blockResult.results[0].gasUsed.toNumber();
+      const txGasUsed = results[0].blockResult.results[0].totalGasSpent;
       const trace = results[0].traces[0];
       await this._logSingleTransaction(tx, block, txGasUsed, trace);
 
@@ -1570,11 +1588,11 @@ export class EthModule {
         const blockNumber = sentTxResult.block.header.number;
         const code = await this._node.getCodeFromTrace(
           sentTxTrace.trace,
-          new BN(blockNumber)
+          blockNumber
         );
 
         const { block, blockResult } = sentTxResult;
-        const gasUsed = blockResult.results[sentTxIndex].gasUsed.toNumber();
+        const gasUsed = blockResult.results[sentTxIndex].totalGasSpent;
         this._logger.logCurrentlySentTransaction(
           sentTx,
           gasUsed,
@@ -1591,12 +1609,12 @@ export class EthModule {
   private async _logSingleTransaction(
     tx: TypedTransaction,
     block: Block,
-    txGasUsed: number,
+    txGasUsed: bigint,
     txTrace: GatherTracesResult
   ) {
     const code = await this._node.getCodeFromTrace(
       txTrace.trace,
-      new BN(block.header.number)
+      block.header.number
     );
     this._logger.logSingleTransaction(tx, block, txGasUsed, txTrace, code);
 
@@ -1610,7 +1628,7 @@ export class EthModule {
     for (const txTrace of traces) {
       const code = await this._node.getCodeFromTrace(
         txTrace.trace,
-        new BN(block.header.number)
+        block.header.number
       );
 
       codes.push(code);
@@ -1665,7 +1683,7 @@ export class EthModule {
         rpcRequest.maxPriorityFeePerGas !== undefined) &&
       !this._common.gteHardfork(EIP1559_MIN_HARDFORK)
     ) {
-      throw new InvalidArgumentsError(`EIP-1559 style fee params (maxFeePerGas or maxPriorityFeePerGas) received but they are not supported by the current hardfork. 
+      throw new InvalidArgumentsError(`EIP-1559 style fee params (maxFeePerGas or maxPriorityFeePerGas) received but they are not supported by the current hardfork.
 
 You can use them by running Hardhat Network with 'hardfork' ${EIP1559_MIN_HARDFORK} or later.`);
     }
@@ -1676,8 +1694,8 @@ You can use them by running Hardhat Network with 'hardfork' ${EIP1559_MIN_HARDFO
       rpcRequest.accessList !== undefined &&
       !this._common.gteHardfork(ACCESS_LIST_MIN_HARDFORK)
     ) {
-      throw new InvalidArgumentsError(`Access list received but is not supported by the current hardfork. 
-      
+      throw new InvalidArgumentsError(`Access list received but is not supported by the current hardfork.
+
 You can use them by running Hardhat Network with 'hardfork' ${ACCESS_LIST_MIN_HARDFORK} or later.`);
     }
 
@@ -1702,7 +1720,7 @@ You can use them by running Hardhat Network with 'hardfork' ${ACCESS_LIST_MIN_HA
     if (
       rpcRequest.maxFeePerGas !== undefined &&
       rpcRequest.maxPriorityFeePerGas !== undefined &&
-      rpcRequest.maxPriorityFeePerGas.gt(rpcRequest.maxFeePerGas)
+      rpcRequest.maxPriorityFeePerGas > rpcRequest.maxFeePerGas
     ) {
       throw new InvalidInputError(
         `maxPriorityFeePerGas (${rpcRequest.maxPriorityFeePerGas.toString()}) is bigger than maxFeePerGas (${rpcRequest.maxFeePerGas.toString()})`
@@ -1713,12 +1731,12 @@ You can use them by running Hardhat Network with 'hardfork' ${ACCESS_LIST_MIN_HA
   // TODO: Find a better place for this
   private _validateEip155HardforkRequirement(tx: Transaction) {
     // 27 and 28 are only valid for non-EIP-155 legacy txs
-    if (tx.v!.eqn(27) || tx.v!.eqn(28)) {
+    if (tx.v === 27n || tx.v === 28n) {
       return;
     }
 
     if (!this._common.gteHardfork(EIP155_MIN_HARDFORK)) {
-      throw new InvalidArgumentsError(`Trying to send an EIP-155 transaction, but they are not supported by the current hardfork.  
+      throw new InvalidArgumentsError(`Trying to send an EIP-155 transaction, but they are not supported by the current hardfork.
 
 You can use them by running Hardhat Network with 'hardfork' ${EIP155_MIN_HARDFORK} or later.`);
     }
@@ -1744,6 +1762,17 @@ You can use them by running Hardhat Network with 'hardfork' ${ACCESS_LIST_MIN_HA
         `Trying to send an EIP-1559 transaction but they are not supported by the current hard fork.
 
 You can use them by running Hardhat Network with 'hardfork' ${EIP1559_MIN_HARDFORK} or later.`
+      );
+    }
+  }
+
+  private _checkPostMergeBlockTags(blockTag: "safe" | "finalized") {
+    const isPostMerge = this._node.isPostMergeHardfork();
+    const hardfork = this._node.hardfork;
+
+    if (!isPostMerge) {
+      throw new InvalidArgumentsError(
+        `The '${blockTag}' block tag is not allowed in pre-merge hardforks. You are using the '${hardfork}' hardfork.`
       );
     }
   }

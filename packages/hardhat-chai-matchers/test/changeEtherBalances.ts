@@ -1,7 +1,10 @@
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { expect, AssertionError } from "chai";
 import { BigNumber, Contract } from "ethers";
+import path from "path";
+import util from "util";
 
+import "../src/internal/add-chai-matchers";
 import { useEnvironment, useEnvironmentWithNode } from "./helpers";
 
 describe("INTEGRATION: changeEtherBalances matcher", function () {
@@ -177,7 +180,7 @@ describe("INTEGRATION: changeEtherBalances matcher", function () {
             ).to.changeEtherBalances([sender, receiver], [-200, 201])
           ).to.be.eventually.rejectedWith(
             AssertionError,
-            `Expected ${receiver.address} (address #1 in the list) to change balance by 201 wei, but it has changed by 200 wei`
+            `Expected the ether balance of ${receiver.address} (the 2nd address in the list) to change by 201 wei, but it changed by 200 wei`
           );
           await expect(
             expect(() =>
@@ -189,7 +192,7 @@ describe("INTEGRATION: changeEtherBalances matcher", function () {
             ).to.changeEtherBalances([sender, receiver], [-201, 200])
           ).to.be.eventually.rejectedWith(
             AssertionError,
-            `Expected ${sender.address} (address #0 in the list) to change balance by -201 wei, but it has changed by -200 wei`
+            `Expected the ether balance of ${sender.address} (the 1st address in the list) to change by -201 wei, but it changed by -200 wei`
           );
         });
 
@@ -204,9 +207,27 @@ describe("INTEGRATION: changeEtherBalances matcher", function () {
             ).to.not.changeEtherBalances([sender, receiver], [-200, 200])
           ).to.be.eventually.rejectedWith(
             AssertionError,
-            `Expected ${sender.address} (address #0 in the list) not to change balance by -200 wei`
+            `Expected the ether balance of ${sender.address} (the 1st address in the list) NOT to change by -200 wei`
           );
         });
+      });
+
+      it("shouldn't run the transaction twice", async function () {
+        const receiverBalanceBefore = await receiver.getBalance();
+
+        await expect(() =>
+          sender.sendTransaction({
+            to: receiver.address,
+            gasPrice: 1,
+            value: 200,
+          })
+        ).to.changeEtherBalances([sender, receiver], [-200, 200]);
+
+        const receiverBalanceChange = (await receiver.getBalance()).sub(
+          receiverBalanceBefore
+        );
+
+        expect(receiverBalanceChange.toNumber()).to.equal(200);
       });
     });
 
@@ -280,9 +301,9 @@ describe("INTEGRATION: changeEtherBalances matcher", function () {
             })
           ).to.be.eventually.rejectedWith(
             AssertionError,
-            `Expected ${
+            `Expected the ether balance of ${
               sender.address
-            } (address #0 in the list) to change balance by -200 wei, but it has changed by -${
+            } (the 1st address in the list) to change by -200 wei, but it changed by -${
               txGasFees + 200
             } wei`
           );
@@ -298,7 +319,7 @@ describe("INTEGRATION: changeEtherBalances matcher", function () {
             ).to.changeEtherBalances([sender, receiver], [-200, 201])
           ).to.be.eventually.rejectedWith(
             AssertionError,
-            `Expected ${receiver.address} (address #1 in the list) to change balance by 201 wei, but it has changed by 200 wei`
+            `Expected the ether balance of ${receiver.address} (the 2nd address in the list) to change by 201 wei, but it changed by 200 wei`
           );
 
           await expect(
@@ -310,7 +331,7 @@ describe("INTEGRATION: changeEtherBalances matcher", function () {
             ).to.changeEtherBalances([sender, receiver], [-201, 200])
           ).to.be.eventually.rejectedWith(
             AssertionError,
-            `Expected ${sender.address} (address #0 in the list) to change balance by -201 wei, but it has changed by -200 wei`
+            `Expected the ether balance of ${sender.address} (the 1st address in the list) to change by -201 wei, but it changed by -200 wei`
           );
         });
 
@@ -324,9 +345,31 @@ describe("INTEGRATION: changeEtherBalances matcher", function () {
             ).to.not.changeEtherBalances([sender, receiver], [-200, 200])
           ).to.be.eventually.rejectedWith(
             AssertionError,
-            `Expected ${sender.address} (address #0 in the list) not to change balance by -200`
+            `Expected the ether balance of ${sender.address} (the 1st address in the list) NOT to change by -200`
           );
         });
+      });
+    });
+
+    describe("stack traces", function () {
+      // smoke test for stack traces
+      it("includes test file", async function () {
+        try {
+          await expect(() =>
+            sender.sendTransaction({
+              to: receiver.address,
+              value: 200,
+            })
+          ).to.changeEtherBalances([sender, receiver], [-100, 100]);
+        } catch (e: any) {
+          expect(util.inspect(e)).to.include(
+            path.join("test", "changeEtherBalances.ts")
+          );
+
+          return;
+        }
+
+        expect.fail("Expected an exception but none was thrown");
       });
     });
   }

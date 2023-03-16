@@ -10,7 +10,7 @@ This plugin brings to Hardhat TruffleContracts from Truffle 5. With it you can c
 
 ## Required plugins
 
-This plugin requires [hardhat-web3](https://github.com/nomiclabs/hardhat/tree/master/packages/hardhat-web3) as a prerequisite.
+This plugin requires [hardhat-web3](https://github.com/nomiclabs/hardhat/tree/main/packages/hardhat-web3) as a prerequisite.
 
 ## Installation
 
@@ -36,10 +36,10 @@ This plugin creates no additional tasks.
 
 ## Environment extensions
 
-An instance of [`TruffleEnvironmentArtifacts`](https://github.com/nomiclabs/hardhat/blob/master/packages/hardhat-truffle5/src/artifacts.ts) is injected into `env.artifacts` and the method `contract()` is injected into the global scope for using in tests.
+An instance of [`TruffleEnvironmentArtifacts`](https://github.com/nomiclabs/hardhat/blob/main/packages/hardhat-truffle5/src/artifacts.ts) is injected into `env.artifacts` and the method `contract()` is injected into the global scope for using in tests.
 
 ## Usage
 
 There are no additional steps you need to take for this plugin to work. Install it, run `npx hardhat test` and your Truffle tests should run with no need to make any modifications.
 
-Take a look at the [testing guide](https://hardhat.org/guides/truffle-testing.html) for a tutorial using it.
+Take a look at the [testing guide](https://hardhat.org/hardhat-runner/docs/other-guides/truffle-testing) for a tutorial using it.

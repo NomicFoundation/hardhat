@@ -1,5 +1,5 @@
-import Common from "@ethereumjs/common";
-import { TransactionFactory } from "@ethereumjs/tx";
+import { Common } from "@nomicfoundation/ethereumjs-common";
+import { TransactionFactory } from "@nomicfoundation/ethereumjs-tx";
 import { assert } from "chai";
 import { Client } from "undici";
 
@@ -112,7 +112,7 @@ describe("Eth module", function () {
         describe("Transaction hash returned within the error data", function () {
           describe("Set lower baseFeePerGas", function () {
             // setting a lower baseFeePerGas here to avoid having to re-create the raw tx
-            useProvider({ initialBaseFeePerGas: 1 });
+            useProvider({ initialBaseFeePerGas: 1n });
 
             it("Should return the hash of the failed transaction", async function () {
               if (!isJsonRpc || isFork) {
@@ -143,7 +143,7 @@ describe("Eth module", function () {
           }
 
           // We set an initial base fee too high for the raw tx
-          useProvider({ initialBaseFeePerGas: 100e9 });
+          useProvider({ initialBaseFeePerGas: 100n * 10n ** 9n });
 
           describe("With automining enabled", function () {
             it("Should reject txs that can't be mined in the next block", async function () {

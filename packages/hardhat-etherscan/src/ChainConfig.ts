@@ -9,20 +9,6 @@ export const chainConfig: ChainConfig = {
       browserURL: "https://etherscan.io",
     },
   },
-  harmony: {
-    chainId: 1666600000,
-    urls: {
-      apiURL: "https://ctrver.t.hmny.io/verify",
-      browserURL: "https://explorer.harmony.one",
-    },
-  },
-  harmonyTest: {
-    chainId: 1666700000,
-    urls: {
-      apiURL: "https://ctrver.t.hmny.io/verify?network=testnet",
-      browserURL: "https://explorer.pops.one",
-    },
-  },
   ropsten: {
     chainId: 3,
     urls: {
@@ -49,6 +35,13 @@ export const chainConfig: ChainConfig = {
     urls: {
       apiURL: "https://api-kovan.etherscan.io/api",
       browserURL: "https://kovan.etherscan.io",
+    },
+  },
+  sepolia: {
+    chainId: 11155111,
+    urls: {
+      apiURL: "https://api-sepolia.etherscan.io/api",
+      browserURL: "https://sepolia.etherscan.io",
     },
   },
   bsc: {
@@ -100,11 +93,11 @@ export const chainConfig: ChainConfig = {
       browserURL: "https://optimistic.etherscan.io/",
     },
   },
-  optimisticKovan: {
-    chainId: 69,
+  optimisticGoerli: {
+    chainId: 420,
     urls: {
-      apiURL: "https://api-kovan-optimistic.etherscan.io/api",
-      browserURL: "https://kovan-optimistic.etherscan.io/",
+      apiURL: "https://api-goerli-optimism.etherscan.io/api",
+      browserURL: "https://goerli-optimism.etherscan.io/",
     },
   },
   polygon: {
@@ -126,6 +119,13 @@ export const chainConfig: ChainConfig = {
     urls: {
       apiURL: "https://api.arbiscan.io/api",
       browserURL: "https://arbiscan.io/",
+    },
+  },
+  arbitrumGoerli: {
+    chainId: 421613,
+    urls: {
+      apiURL: "https://api-goerli.arbiscan.io/api",
+      browserURL: "https://goerli.arbiscan.io/",
     },
   },
   arbitrumTestnet: {
@@ -173,8 +173,22 @@ export const chainConfig: ChainConfig = {
   xdai: {
     chainId: 100,
     urls: {
-      apiURL: "https://blockscout.com/xdai/mainnet/api",
-      browserURL: "https://blockscout.com/xdai/mainnet",
+      apiURL: "https://api.gnosisscan.io/api",
+      browserURL: "https://gnosisscan.io",
+    },
+  },
+  gnosis: {
+    chainId: 100,
+    urls: {
+      apiURL: "https://api.gnosisscan.io/api",
+      browserURL: "https://gnosisscan.io",
+    },
+  },
+  chiado: {
+    chainId: 10200,
+    urls: {
+      apiURL: "https://blockscout.chiadochain.net/api",
+      browserURL: "https://blockscout.chiadochain.net",
     },
   },
   sokol: {
@@ -198,4 +212,21 @@ export const chainConfig: ChainConfig = {
       browserURL: "https://testnet.aurorascan.dev",
     },
   },
+  harmony: {
+    chainId: 1666600000,
+    urls: {
+      apiURL: "https://ctrver.t.hmny.io/verify",
+      browserURL: "https://explorer.harmony.one",
+    },
+  },
+  harmonyTest: {
+    chainId: 1666700000,
+    urls: {
+      apiURL: "https://ctrver.t.hmny.io/verify?network=testnet",
+      browserURL: "https://explorer.pops.one",
+    },
+  },
+  // We are not adding new networks to the core of hardhat-etherscan anymore.
+  // Please read this to learn how to manually add support for custom networks:
+  // https://github.com/NomicFoundation/hardhat/tree/main/packages/hardhat-etherscan#adding-support-for-other-networks
 };
