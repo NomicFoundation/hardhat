@@ -1448,10 +1448,18 @@ Hardhat Network's forking functionality only works with blocks from at least spu
         if (txHash.equals(hash)) {
           const vmDebugTracer = new VMDebugTracer(vm);
           return vmDebugTracer.trace(async () => {
-            await vm.runTx({ tx: txWithCommon, block });
+            await vm.runTx({
+              tx: txWithCommon,
+              block,
+              skipHardForkValidation: true,
+            });
           }, config);
         }
-        await vm.runTx({ tx: txWithCommon, block });
+        await vm.runTx({
+          tx: txWithCommon,
+          block,
+          skipHardForkValidation: true,
+        });
       }
       throw new TransactionExecutionError(
         `Unable to find a transaction in a block that contains that transaction, this should never happen`
@@ -2442,6 +2450,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
         skipNonce: true,
         skipBalance: true,
         skipBlockGasLimitValidation: true,
+        skipHardForkValidation: true,
       });
     } finally {
       if (originalCommon !== undefined) {
