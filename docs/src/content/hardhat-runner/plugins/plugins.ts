@@ -493,6 +493,13 @@ const communityPlugins: IPlugin[] = [
       "Handy set of utilities for testing contracts in Hardhat projects",
     tags: ["testing", "solidity"],
   },
+  {
+    name: "hardhat-deals",
+    author: "use less",
+    authorUrl: "https://github.com/Karuzzzo",
+    description: "Small hardhat task for debug money transfers 🤝💰",
+    tags: ["Deployment", "Testing", "Security", "Debug", "helper"],
+  },
 ];
 
 module.exports.officialPlugins = [
