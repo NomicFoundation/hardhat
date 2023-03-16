@@ -40,6 +40,8 @@ export interface RpcBlockOutput {
   transactionsRoot: string;
   uncles: string[];
   baseFeePerGas?: string;
+  withdrawals?: RpcWithdrawalItem[];
+  withdrawalsRoot?: string;
 }
 
 export type RpcTransactionOutput =
@@ -147,6 +149,13 @@ export interface RpcDebugTraceOutput {
   structLogs: RpcStructLog[];
 }
 
+export interface RpcWithdrawalItem {
+  index: string;
+  validatorIndex: string;
+  address: string;
+  amount: string;
+}
+
 /* eslint-disable @nomiclabs/hardhat-internal-rules/only-hardhat-error */
 
 export function getRpcBlock(
@@ -189,6 +198,17 @@ export function getRpcBlock(
 
   if (block.header.baseFeePerGas !== undefined) {
     output.baseFeePerGas = numberToRpcQuantity(block.header.baseFeePerGas);
+  }
+
+  if (block.header.withdrawalsRoot !== undefined) {
+    output.withdrawals = block.withdrawals?.map((withdrawal) => ({
+      index: numberToRpcQuantity(withdrawal.index),
+      validatorIndex: numberToRpcQuantity(withdrawal.validatorIndex),
+      address: bufferToRpcData(withdrawal.address.toBuffer()),
+      amount: numberToRpcQuantity(withdrawal.amount),
+    }));
+
+    output.withdrawalsRoot = bufferToRpcData(block.header.withdrawalsRoot);
   }
 
   return output;

@@ -5,6 +5,16 @@ import { rpcAddress, rpcData, rpcHash, rpcQuantity } from "../base-types";
 
 import { rpcTransaction } from "./transaction";
 
+const rpcWithdrawalItem = t.type(
+  {
+    index: rpcQuantity,
+    validatorIndex: rpcQuantity,
+    address: rpcAddress,
+    amount: rpcQuantity,
+  },
+  "RpcBlockWithdrawalItem"
+);
+
 const baseBlockResponse = {
   number: nullable(rpcQuantity),
   hash: nullable(rpcHash),
@@ -26,6 +36,8 @@ const baseBlockResponse = {
   uncles: t.array(rpcHash, "HASH Array"),
   mixHash: optional(rpcHash),
   baseFeePerGas: optional(rpcQuantity),
+  withdrawals: optional(t.array(rpcWithdrawalItem)),
+  withdrawalsRoot: optional(rpcHash),
 };
 
 export type RpcBlock = t.TypeOf<typeof rpcBlock>;
