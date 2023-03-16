@@ -1,4 +1,5 @@
 import { Block } from "@nomicfoundation/ethereumjs-block";
+import { Common } from "@nomicfoundation/ethereumjs-common";
 import {
   AfterBlockEvent,
   RunBlockOpts,
@@ -21,7 +22,7 @@ export async function runFullBlock(
   url: string,
   blockToRun: bigint,
   chainId: number,
-  hardfork: string
+  remoteCommon: Common
 ) {
   const forkConfig = {
     jsonRpcUrl: url,
@@ -31,6 +32,12 @@ export async function runFullBlock(
   const { forkClient } = await makeForkClient(forkConfig);
 
   const rpcBlock = await forkClient.getBlockByNumber(blockToRun, true);
+
+  const hardfork = remoteCommon.getHardforkByBlockNumber(
+    blockToRun,
+    undefined,
+    rpcBlock?.timestamp
+  );
 
   if (rpcBlock === null) {
     assert.fail();
