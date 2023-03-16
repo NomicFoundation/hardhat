@@ -1,4 +1,4 @@
-interface CustomChain {
+export interface ChainConfig {
   network: string;
   chainId: number;
   urls: {
@@ -9,5 +9,5 @@ interface CustomChain {
 
 export interface EtherscanConfig {
   apiKey: string | Record<string, string>;
-  customChains: CustomChain[];
+  customChains: ChainConfig[];
 }
