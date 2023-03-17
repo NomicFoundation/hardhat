@@ -1,7 +1,11 @@
 import chalk from "chalk";
 import path from "path";
 import { builtinChains } from "./chain-config";
-import { HardhatEtherscanError } from "./errors";
+import {
+  ImportingModuleError,
+  InvalidConstructorArgumentsModule,
+  InvalidLibrariesModule,
+} from "./errors";
 
 import { ChainConfig } from "./types";
 
@@ -81,20 +85,12 @@ export const resolveConstructorArguments = async (
       .default;
 
     if (!Array.isArray(constructorArguments)) {
-      throw new HardhatEtherscanError(
-        `The module ${constructorArgsModulePath} doesn't export a list. The module should look like this:
-
-module.exports = [ arg1, arg2, ... ];`
-      );
+      throw new InvalidConstructorArgumentsModule(constructorArgsModulePath);
     }
 
     return constructorArguments;
   } catch (error: any) {
-    throw new HardhatEtherscanError(
-      `Importing the module for the constructor arguments list failed.
-Reason: ${error.message}`,
-      error
-    );
+    throw new ImportingModuleError("constructor arguments list", error);
   }
 };
 
@@ -115,19 +111,11 @@ export const resolveLibraries = async (
     const libraries = (await import(librariesModulePath)).default;
 
     if (typeof libraries !== "object" || Array.isArray(libraries)) {
-      throw new HardhatEtherscanError(
-        `The module ${librariesModulePath} doesn't export a dictionary. The module should look like this:
-
-module.exports = { lib1: "0x...", lib2: "0x...", ... };`
-      );
+      throw new InvalidLibrariesModule(librariesModulePath);
     }
 
     return libraries;
   } catch (error: any) {
-    throw new HardhatEtherscanError(
-      `Importing the module for the libraries dictionary failed.
-Reason: ${error.message}`,
-      error
-    );
+    throw new ImportingModuleError("libraries dictionary", error);
   }
 };
