@@ -5,26 +5,17 @@ use revm::{
 use tokio::runtime::{Builder, Handle, Runtime};
 
 use rethnet_eth::{
-    remote::{BlockSpec, RpcClient, RpcClientError},
+    remote::{BlockSpec, RpcClient},
     Address, B256, U256,
 };
+
+use super::StateError;
 
 /// An revm database backed by a remote Ethereum node
 pub struct RemoteState {
     client: RpcClient,
     runtime: Option<Runtime>,
     block_number: U256,
-}
-
-/// Errors that might be returned from RemoteState
-#[derive(thiserror::Error, Debug)]
-pub enum RemoteStateError {
-    #[error(transparent)]
-    RpcError(#[from] RpcClientError),
-
-    /// Some other error from an underlying dependency
-    #[error(transparent)]
-    OtherError(#[from] std::io::Error),
 }
 
 impl RemoteState {
@@ -58,7 +49,7 @@ impl RemoteState {
     }
 
     /// Retrieve the state root of the given block
-    pub fn state_root(&self, block_number: U256) -> Result<B256, RemoteStateError> {
+    pub fn state_root(&self, block_number: U256) -> Result<B256, StateError> {
         Ok(tokio::task::block_in_place(move || {
             self.runtime().block_on(
                 self.client
@@ -70,7 +61,7 @@ impl RemoteState {
 }
 
 impl StateRef for RemoteState {
-    type Error = RemoteStateError;
+    type Error = StateError;
 
     fn basic(&self, address: Address) -> Result<Option<AccountInfo>, Self::Error> {
         Ok(Some(tokio::task::block_in_place(move || {
@@ -79,7 +70,7 @@ impl StateRef for RemoteState {
                     self.client
                         .get_account_info(&address, BlockSpec::Number(self.block_number)),
                 )
-                .map_err(RemoteStateError::RpcError)
+                .map_err(StateError::Remote)
         })?))
     }
 
@@ -96,7 +87,7 @@ impl StateRef for RemoteState {
                     index,
                     BlockSpec::Number(self.block_number),
                 ))
-                .map_err(RemoteStateError::RpcError)
+                .map_err(StateError::Remote)
         })
     }
 }

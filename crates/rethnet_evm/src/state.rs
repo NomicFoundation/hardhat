@@ -30,9 +30,9 @@ pub enum StateError {
     /// Not implemented
     #[error("Method not implemented")]
     NotImplemented,
-    /// Error from the underlying remote state
+    /// Error from the underlying RPC client
     #[error(transparent)]
-    Remote(#[from] remote::RemoteStateError),
+    Remote(#[from] rethnet_eth::remote::RpcClientError),
     /// Some other error from an underlying dependency
     #[error(transparent)]
     Other(#[from] std::io::Error),

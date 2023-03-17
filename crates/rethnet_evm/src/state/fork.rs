@@ -9,7 +9,7 @@ use rethnet_eth::{
 
 use crate::state::{
     layered_state::{LayeredState, RethnetLayer},
-    remote::{RemoteState, RemoteStateError},
+    remote::RemoteState,
 };
 
 /// A database integrating the state from a remote node and the state from a local layered
@@ -100,7 +100,7 @@ impl ForkState {
         &mut self,
         address: &Address,
         block_number: U256,
-    ) -> Result<Option<AccountInfo>, RemoteStateError> {
+    ) -> Result<Option<AccountInfo>, super::StateError> {
         use revm::db::StateRef; // for basic()
         if let Some(cached) = self.account_info_cache.get(&(*address, block_number)) {
             Ok(Some(cached.clone()))
@@ -130,7 +130,6 @@ impl revm::db::State for ForkState {
             .unwrap_or(&self.fork_block_number);
         if block_number < &self.fork_block_number {
             self.get_remote_account_info(&address, *block_number)
-                .map_err(Self::Error::Remote)
         } else if let Some(layered) = self.layered_db.basic(address)? {
             Ok(Some(layered))
         } else if let Some(remote) = self.get_remote_account_info(&address, *block_number)? {
@@ -160,10 +159,7 @@ impl revm::db::State for ForkState {
         } else if let Some(cached) = self.storage_cache.get(&(address, index)) {
             Ok(*cached)
         } else {
-            let remote = self
-                .remote_db
-                .storage(address, index)
-                .map_err(Self::Error::Remote)?;
+            let remote = self.remote_db.storage(address, index)?;
 
             self.storage_cache.insert((address, index), remote);
 
