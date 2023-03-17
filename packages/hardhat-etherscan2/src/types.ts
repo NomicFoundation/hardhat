@@ -8,6 +8,8 @@ export interface ChainConfig {
 }
 
 export interface EtherscanConfig {
-  apiKey: string | Record<string, string>;
+  apiKey: ApiKey;
   customChains: ChainConfig[];
 }
+
+export type ApiKey = string | Record<string, string>;
