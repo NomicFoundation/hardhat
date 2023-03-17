@@ -9,6 +9,9 @@ import {
 
 import { ChainConfig } from "./types";
 
+export const delay = async (ms: number): Promise<void> =>
+  new Promise((resolve) => setTimeout(resolve, ms));
+
 export const printSupportedNetworks = async (customChains: ChainConfig[]) => {
   const { table } = await import("table");
 

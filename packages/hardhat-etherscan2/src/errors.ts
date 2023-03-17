@@ -106,3 +106,61 @@ To see the list of supported networks, run this command:
   npx hardhat verify --list-networks`);
   }
 }
+
+export class ContractVerificationError extends HardhatEtherscanError {
+  constructor(url: string, error: Error) {
+    super(
+      `Failed to send contract verification request.
+Endpoint URL: ${url}
+Reason: ${error.message}`,
+      error
+    );
+  }
+}
+
+export class ContractVerificationInvalidStatusCodeError extends HardhatEtherscanError {
+  constructor(url: string, statusCode: number, responseText: string) {
+    super(`Failed to send contract verification request.
+Endpoint URL: ${url}
+The HTTP server response is not ok. Status code: ${statusCode} Response text: ${responseText}`);
+  }
+}
+
+export class ContractVerificationMissingBytecodeError extends HardhatEtherscanError {
+  constructor(url: string, contractAddress: string) {
+    super(`Failed to send contract verification request.
+Endpoint URL: ${url}
+Reason: The Etherscan API responded that the address ${contractAddress} does not have bytecode.
+This can happen if the contract was recently deployed and this fact hasn't propagated to the backend yet.
+Try waiting for a minute before verifying your contract. If you are invoking this from a script,
+try to wait for five confirmations of your contract deployment transaction before running the verification subtask.`);
+  }
+}
+
+export class ContractStatusPollingError extends HardhatEtherscanError {
+  constructor(url: string, error: Error) {
+    super(
+      `Failure during etherscan status polling. The verification may still succeed but
+should be checked manually.
+Endpoint URL: ${url}
+Reason: ${error.message}`,
+      error
+    );
+  }
+}
+
+export class ContractStatusPollingInvalidStatusCodeError extends HardhatEtherscanError {
+  constructor(statusCode: number, responseText: string) {
+    super(
+      `The HTTP server response is not ok. Status code: ${statusCode} Response text: ${responseText}`
+    );
+  }
+}
+
+export class ContractStatusPollingResponseNotOkError extends HardhatEtherscanError {
+  constructor(message: string) {
+    super(`The Etherscan API responded with a failure status.
+The verification may still succeed but should be checked manually.
+Reason: ${message}`);
+  }
+}
