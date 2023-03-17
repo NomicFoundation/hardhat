@@ -2,7 +2,7 @@
 
 Once you're ready to share your dApp with other people, you may want to deploy it to a live network. This way others can access an instance that's not running locally on your system.
 
-The "mainnet" Ethereum network deals with real money, but there are separate "testnet" networks that do not. These testnets provide shared staging environments that do a good job of mimicking the real world scenario without putting real money at stake, and [Ethereum has several](https://ethereum.org/en/developers/docs/networks/#ethereum-testnets), like _Goerli_ and _Sepolia_. We recommend you deploy your contracts to the _Goerli_ testnet.
+The "mainnet" Ethereum network deals with real money, but there are separate "testnet" networks that do not. These testnets provide shared staging environments that do a good job of mimicking the real world scenario without putting real money at stake, and [Ethereum has several](https://ethereum.org/en/developers/docs/networks/#ethereum-testnets), like _Sepolia_ and _Goerli_. We recommend you deploy your contracts to the _Sepolia_ testnet.
 
 At the software level, deploying to a testnet is the same as deploying to mainnet. The only difference is which network you connect to. Let's look into what the code to deploy your contracts using ethers.js would look like.
 
@@ -49,39 +49,77 @@ Token address: 0x5FbDB2315678afecb367f032d93F642f64180aa3
 
 ## Deploying to remote networks
 
-To deploy to a remote network such as mainnet or any testnet, you need to add a `network` entry to your `hardhat.config.js` file. We’ll use Goerli for this example, but you can add any network similarly:
+To deploy to a remote network such as mainnet or any testnet, you need to add a `network` entry to your `hardhat.config.js` file. We’ll use Sepolia for this example, but you can add any network similarly:
+
+::::tabsgroup{options=Infura,Alchemy}
+
+:::tab{value=Infura}
 
 ```js{5,11,15-20}
 require("@nomicfoundation/hardhat-toolbox");
 
-// Go to https://www.alchemyapi.io, sign up, create
-// a new App in its dashboard, and replace "KEY" with its key
-const ALCHEMY_API_KEY = "KEY";
+// Go to https://infura.io, sign up, create a new API key
+// in its dashboard, and replace "KEY" with it
+const INFURA_API_KEY = "KEY";
 
-// Replace this private key with your Goerli account private key
+// Replace this private key with your Sepolia account private key
 // To export your private key from Metamask, open Metamask and
 // go to Account Details > Export Private Key
 // Beware: NEVER put real Ether into testing accounts
-const GOERLI_PRIVATE_KEY = "YOUR GOERLI PRIVATE KEY";
+const SEPOLIA_PRIVATE_KEY = "YOUR SEPOLIA PRIVATE KEY";
 
 module.exports = {
   solidity: "0.8.9",
   networks: {
-    goerli: {
-      url: `https://eth-goerli.alchemyapi.io/v2/${ALCHEMY_API_KEY}`,
-      accounts: [GOERLI_PRIVATE_KEY]
+    sepolia: {
+      url: `https://sepolia.infura.io/v3/${INFURA_API_KEY}`,
+      accounts: [SEPOLIA_PRIVATE_KEY]
     }
   }
 };
 ```
 
-We're using [Alchemy](https://www.alchemyapi.io), but pointing `url` to any Ethereum node or gateway, like [Infura](https://www.infura.io/), would work. Go grab your `ALCHEMY_API_KEY` and come back.
+:::
 
-To deploy on Goerli you need to send some Goerli ether to the address that's going to be making the deployment. You can get testnet ether from a faucet, a service that distributes testing-ETH for free. Here is one for Goerli:
+:::tab{value=Alchemy}
 
-- [Alchemy Goerli Faucet](https://goerlifaucet.com/)
+```js{5,11,15-20}
+require("@nomicfoundation/hardhat-toolbox");
 
-You'll have to change Metamask's network to Goerli before transacting.
+// Go to https://alchemy.com, sign up, create a new App in
+// its dashboard, and replace "KEY" with its key
+const ALCHEMY_API_KEY = "KEY";
+
+// Replace this private key with your Sepolia account private key
+// To export your private key from Metamask, open Metamask and
+// go to Account Details > Export Private Key
+// Beware: NEVER put real Ether into testing accounts
+const SEPOLIA_PRIVATE_KEY = "YOUR SEPOLIA PRIVATE KEY";
+
+module.exports = {
+  solidity: "0.8.9",
+  networks: {
+    sepolia: {
+      url: `https://eth-sepolia.g.alchemy.com/v2/${ALCHEMY_API_KEY}`,
+      accounts: [SEPOLIA_PRIVATE_KEY]
+    }
+  }
+};
+```
+
+:::
+
+::::
+
+
+
+We're using [Infura](https://infura.io) or [Alchemy](https://alchemy.com/), but pointing `url` to any Ethereum node or gateway. Go grab your API key and come back.
+
+To deploy on Sepolia you need to send some Sepolia ether to the address that's going to be making the deployment. You can get testnet ether from a faucet, a service that distributes testing-ETH for free. Here is one for Sepolia:
+
+- [Alchemy Sepolia Faucet](https://sepoliafaucet.com/)
+
+You'll have to change Metamask's network to Sepolia before transacting.
 
 :::tip
 
@@ -92,7 +130,7 @@ You can learn more about other testnets and find links to their faucets on the [
 Finally, run:
 
 ```
-npx hardhat run scripts/deploy.js --network goerli
+npx hardhat run scripts/deploy.js --network sepolia
 ```
 
 If everything went well, you should see the deployed contract address.
