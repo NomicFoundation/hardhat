@@ -500,9 +500,6 @@ const communityPlugins: IPlugin[] = [
     description: "Small hardhat task for debug money transfers 🤝💰",
     tags: ["Deployment", "Testing", "Security", "Debug", "helper"],
   },
-];
-
-module.exports.officialPlugins = [
   {
     name: "@0xweb/hardhat",
     author: "Alex Kit",
