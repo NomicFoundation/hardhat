@@ -1,5 +1,5 @@
 import { EthereumProvider } from "hardhat/types";
-import { HardhatEtherscanError } from "./errors";
+import { ChainConfigNotFoundError } from "./errors";
 
 import { ChainConfig } from "./types";
 
@@ -16,15 +16,7 @@ export const getCurrentChainConfig = async (
   ].find(({ chainId }) => chainId === currentChainId);
 
   if (currentChainConfig === undefined) {
-    throw new HardhatEtherscanError(
-      `Trying to verify a contract in a network with chain id ${currentChainId}, but the plugin doesn't recognize it as a supported chain.
-
-      You can manually add support for it by following these instructions: https://hardhat.org/verify-custom-networks
-
-      To see the list of supported networks, run this command:
-
-        npx hardhat verify --list-networks`
-    );
+    throw new ChainConfigNotFoundError(currentChainId);
   }
 
   return currentChainConfig;

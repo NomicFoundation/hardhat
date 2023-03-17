@@ -11,9 +11,10 @@ import { getCurrentChainConfig } from "./chain-config";
 import { etherscanConfigExtender } from "./config";
 import {
   MissingAddressError,
-  HardhatEtherscanError,
   InvalidAddressError,
   InvalidContractNameError,
+  InvalidConstructorArguments,
+  InvalidLibraries,
 } from "./errors";
 import {
   isFullyQualifiedName,
@@ -231,27 +232,11 @@ subtask(TASK_VERIFY_VERIFY)
 
       // This can only happen if the subtask is invoked from within Hardhat by a user script or another task.
       if (!Array.isArray(constructorArguments)) {
-        throw new HardhatEtherscanError(
-          `The constructorArguments parameter should be an array.
-If your constructor has no arguments pass an empty array. E.g:
-
-  await run("${TASK_VERIFY_VERIFY}", {
-    <other args>,
-    constructorArguments: []
-  };`
-        );
+        throw new InvalidConstructorArguments();
       }
 
       if (typeof libraries !== "object" || Array.isArray(libraries)) {
-        throw new HardhatEtherscanError(
-          `The libraries parameter should be a dictionary.
-If your contract does not have undetectable libraries pass an empty object or omit the argument. E.g:
-
-  await run("${TASK_VERIFY_VERIFY}", {
-    <other args>,
-    libraries: {}
-  };`
-        );
+        throw new InvalidLibraries();
       }
 
       await run(TASK_VERIFY_VERIFY_ETHERSCAN, {
