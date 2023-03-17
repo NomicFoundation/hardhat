@@ -1,6 +1,5 @@
 import { extendConfig, subtask, task, types } from "hardhat/config";
 import { TASK_COMPILE } from "hardhat/builtin-tasks/task-names";
-import { HardhatEtherscanError } from "./errors";
 import {
   TASK_VERIFY,
   TASK_VERIFY_GET_VERIFICATION_SUBTASKS,
@@ -8,7 +7,14 @@ import {
   TASK_VERIFY_VERIFY,
   TASK_VERIFY_VERIFY_ETHERSCAN,
 } from "./task-names";
+import { getCurrentChainConfig } from "./chain-config";
 import { etherscanConfigExtender } from "./config";
+import {
+  MissingAddressError,
+  HardhatEtherscanError,
+  InvalidAddressError,
+  InvalidContractNameError,
+} from "./errors";
 import {
   isFullyQualifiedName,
   printSupportedNetworks,
@@ -17,6 +23,7 @@ import {
 } from "./utilities";
 
 import "./type-extensions";
+import { Etherscan } from "./etherscan";
 
 interface VerifyTaskArgs {
   address?: string;
@@ -105,21 +112,16 @@ subtask(TASK_VERIFY_PROCESS_ARGUMENTS)
       noCompile,
     }: VerifyTaskArgs): Promise<VerificationArgs> => {
       if (address === undefined) {
-        throw new HardhatEtherscanError(
-          "You didn’t provide any address. Please re-run the 'verify' task with the address of the contract you want to verify."
-        );
+        throw new MissingAddressError();
       }
 
       const { isAddress } = await import("@ethersproject/address");
       if (!isAddress(address)) {
-        throw new HardhatEtherscanError(`${address} is an invalid address.`);
+        throw new InvalidAddressError(address);
       }
 
       if (contract !== undefined && !isFullyQualifiedName(contract)) {
-        throw new HardhatEtherscanError(
-          `A valid fully qualified name was expected. Fully qualified names look like this: "contracts/AContract.sol:TheContract"
-Instead, this name was received: ${contract}`
-        );
+        throw new InvalidContractNameError(contract);
       }
 
       const constructorArgs = await resolveConstructorArguments(
@@ -171,10 +173,23 @@ subtask(TASK_VERIFY_VERIFY_ETHERSCAN)
         listNetworks,
         noCompile,
       }: VerificationArgs,
-      { config, run }
+      { config, network, run }
     ) => {
       if (listNetworks) {
         await printSupportedNetworks(config.etherscan.customChains);
+        return;
+      }
+
+      const chainConfig = await getCurrentChainConfig(
+        network.provider,
+        config.etherscan.customChains
+      );
+
+      const etherscan = new Etherscan(config.etherscan.apiKey, chainConfig);
+
+      const isVerified = await etherscan.isVerified(address);
+      if (isVerified) {
+        console.log(`The contract ${address} has already been verified`);
         return;
       }
 
@@ -202,21 +217,16 @@ subtask(TASK_VERIFY_VERIFY)
       { run }
     ) => {
       if (address === undefined) {
-        throw new HardhatEtherscanError(
-          "You didn’t provide any address. Please re-run the 'verify' task with the address of the contract you want to verify."
-        );
+        throw new MissingAddressError();
       }
 
       const { isAddress } = await import("@ethersproject/address");
       if (!isAddress(address)) {
-        throw new HardhatEtherscanError(`${address} is an invalid address.`);
+        throw new InvalidAddressError(address);
       }
 
       if (contract !== undefined && !isFullyQualifiedName(contract)) {
-        throw new HardhatEtherscanError(
-          `A valid fully qualified name was expected. Fully qualified names look like this: "contracts/AContract.sol:TheContract"
-Instead, this name was received: ${contract}`
-        );
+        throw new InvalidContractNameError(contract);
       }
 
       // This can only happen if the subtask is invoked from within Hardhat by a user script or another task.

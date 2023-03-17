@@ -5,7 +5,7 @@ import { HardhatEtherscanError } from "./errors";
 
 import { ChainConfig } from "./types";
 
-export async function printSupportedNetworks(customChains: ChainConfig[]) {
+export const printSupportedNetworks = async (customChains: ChainConfig[]) => {
   const { table } = await import("table");
 
   // supported networks
@@ -47,7 +47,7 @@ ${customNetworksTable}
 To learn how to add custom networks, follow these instructions: https://hardhat.org/verify-custom-networks
 `.trimStart()
   );
-}
+};
 
 /**
  * Returns true if the contract name is fully qualified.
@@ -55,18 +55,18 @@ To learn how to add custom networks, follow these instructions: https://hardhat.
  * Note that the fully qualified contract name is the path of its source
  * file and the contract name separated by a colon.
  */
-export function isFullyQualifiedName(name: string): boolean {
+export const isFullyQualifiedName = (name: string): boolean => {
   return /^[^:]+:[^:]+$/.test(name);
-}
+};
 
 /**
  * Returns the list of constructor arguments from the constructorArgsModule
  * or the constructorArgsParams if the first is not defined.
  */
-export async function resolveConstructorArguments(
+export const resolveConstructorArguments = async (
   constructorArgsParams: string[],
   constructorArgsModule?: string
-) {
+) => {
   if (constructorArgsModule === undefined) {
     return constructorArgsParams;
   }
@@ -96,15 +96,15 @@ Reason: ${error.message}`,
       error
     );
   }
-}
+};
 
 /**
  * Returns a dictionary of library addresses from the librariesModule or
  * an empty object if not defined.
  */
-export async function resolveLibraries(
+export const resolveLibraries = async (
   librariesModule?: string
-): Promise<Record<string, string>> {
+): Promise<Record<string, string>> => {
   if (librariesModule === undefined) {
     return {};
   }
@@ -130,4 +130,4 @@ Reason: ${error.message}`,
       error
     );
   }
-}
+};
