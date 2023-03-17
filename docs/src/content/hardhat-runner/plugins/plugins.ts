@@ -494,6 +494,13 @@ const communityPlugins: IPlugin[] = [
     tags: ["testing", "solidity"],
   },
   {
+    name: "hardhat-deals",
+    author: "use less",
+    authorUrl: "https://github.com/Karuzzzo",
+    description: "Small hardhat task for debug money transfers 🤝💰",
+    tags: ["Deployment", "Testing", "Security", "Debug", "helper"],
+  },
+  {
     name: "@0xweb/hardhat",
     author: "Alex Kit",
     authorUrl: "https://github.com/tenbits",
