@@ -507,9 +507,6 @@ const communityPlugins: IPlugin[] = [
     description: "Another small hardhat task for printing contract's storage layout 📐",
     tags: ["Deployment", "Testing", "Security", "Debug", "helper", "Tasks"],
   },
-];
-
-module.exports.officialPlugins = [
   {
     name: "@0xweb/hardhat",
     author: "Alex Kit",
