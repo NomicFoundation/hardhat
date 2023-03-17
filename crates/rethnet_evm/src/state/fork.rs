@@ -9,14 +9,14 @@ use rethnet_eth::{
 
 use crate::state::{
     layered_state::{LayeredState, RethnetLayer},
-    remote::{RemoteDatabase, RemoteDatabaseError},
+    remote::{RemoteState, RemoteStateError},
 };
 
 /// A database integrating the state from a remote node and the state from a local layered
 /// database.
 pub struct ForkState {
     layered_db: LayeredState<RethnetLayer>,
-    remote_db: RemoteDatabase,
+    remote_db: RemoteState,
     /// mapping of (address, block_number) to AccountInfo
     account_info_cache: HashMap<(Address, U256), AccountInfo>,
     code_by_hash_cache: HashMap<B256, Bytecode>,
@@ -60,7 +60,7 @@ impl ForkState {
             })
             .unwrap();
 
-        let remote_db = RemoteDatabase::new(url, fork_block_number);
+        let remote_db = RemoteState::new(url, fork_block_number);
 
         let mut initialized_accounts = accounts.clone();
         for (address, account_info) in accounts.iter() {
@@ -100,7 +100,7 @@ impl ForkState {
         &mut self,
         address: &Address,
         block_number: U256,
-    ) -> Result<Option<AccountInfo>, RemoteDatabaseError> {
+    ) -> Result<Option<AccountInfo>, RemoteStateError> {
         use revm::db::StateRef; // for basic()
         if let Some(cached) = self.account_info_cache.get(&(*address, block_number)) {
             Ok(Some(cached.clone()))

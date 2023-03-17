@@ -10,15 +10,15 @@ use rethnet_eth::{
 };
 
 /// An revm database backed by a remote Ethereum node
-pub struct RemoteDatabase {
+pub struct RemoteState {
     client: RpcClient,
     runtime: Option<Runtime>,
     block_number: U256,
 }
 
-/// Errors that might be returned from RemoteDatabase
+/// Errors that might be returned from RemoteState
 #[derive(thiserror::Error, Debug)]
-pub enum RemoteDatabaseError {
+pub enum RemoteStateError {
     #[error(transparent)]
     RpcError(#[from] RpcClientError),
 
@@ -27,7 +27,7 @@ pub enum RemoteDatabaseError {
     OtherError(#[from] std::io::Error),
 }
 
-impl RemoteDatabase {
+impl RemoteState {
     /// Construct a new RemoteDatabse given the URL of a remote Ethereum node and a
     /// block number from which data will be pulled.
     pub fn new(url: &str, block_number: U256) -> Self {
@@ -58,7 +58,7 @@ impl RemoteDatabase {
     }
 
     /// Retrieve the state root of the given block
-    pub fn state_root(&self, block_number: U256) -> Result<B256, RemoteDatabaseError> {
+    pub fn state_root(&self, block_number: U256) -> Result<B256, RemoteStateError> {
         Ok(tokio::task::block_in_place(move || {
             self.runtime().block_on(
                 self.client
@@ -69,8 +69,8 @@ impl RemoteDatabase {
     }
 }
 
-impl StateRef for RemoteDatabase {
-    type Error = RemoteDatabaseError;
+impl StateRef for RemoteState {
+    type Error = RemoteStateError;
 
     fn basic(&self, address: Address) -> Result<Option<AccountInfo>, Self::Error> {
         Ok(Some(tokio::task::block_in_place(move || {
@@ -79,7 +79,7 @@ impl StateRef for RemoteDatabase {
                     self.client
                         .get_account_info(&address, BlockSpec::Number(self.block_number)),
                 )
-                .map_err(RemoteDatabaseError::RpcError)
+                .map_err(RemoteStateError::RpcError)
         })?))
     }
 
@@ -96,7 +96,7 @@ impl StateRef for RemoteDatabase {
                     index,
                     BlockSpec::Number(self.block_number),
                 ))
-                .map_err(RemoteDatabaseError::RpcError)
+                .map_err(RemoteStateError::RpcError)
         })
     }
 }
@@ -118,7 +118,7 @@ mod tests {
         let dai_address = Address::from_str("0x6b175474e89094c44da98b954eedeac495271d0f")
             .expect("failed to parse address");
 
-        let account_info: AccountInfo = RemoteDatabase::new(&alchemy_url, U256::from(16643427))
+        let account_info: AccountInfo = RemoteState::new(&alchemy_url, U256::from(16643427))
             .basic(dai_address)
             .expect("should succeed")
             .unwrap();

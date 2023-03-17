@@ -11,7 +11,7 @@ pub use self::{
     debug::{AccountModifierFn, StateDebug},
     fork::ForkState,
     layered_state::{LayeredState, RethnetLayer},
-    remote::RemoteDatabase,
+    remote::RemoteState,
     sync::{AsyncState, SyncState},
 };
 
@@ -32,7 +32,7 @@ pub enum StateError {
     NotImplemented,
     /// Error from the underlying remote state
     #[error(transparent)]
-    Remote(#[from] remote::RemoteDatabaseError),
+    Remote(#[from] remote::RemoteStateError),
     /// Some other error from an underlying dependency
     #[error(transparent)]
     Other(#[from] std::io::Error),
