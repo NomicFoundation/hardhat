@@ -5,7 +5,7 @@ import { EthereumProvider } from "../../../../src/types";
 
 // This class has been copied from @nomiclabs/hardhat-ethers package to avoid circular dependency
 
-export class EthersProviderWrapper extends ethers.providers.JsonRpcProvider {
+export class EthersProviderWrapper extends ethers.providers.StaticJsonRpcProvider {
   private readonly _hardhatProvider: EthereumProvider;
 
   constructor(hardhatProvider: EthereumProvider) {
