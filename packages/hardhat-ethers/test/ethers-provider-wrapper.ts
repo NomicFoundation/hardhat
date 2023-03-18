@@ -6,13 +6,13 @@ import { EthersProviderWrapper } from "../src/internal/ethers-provider-wrapper";
 import { useEnvironment } from "./helpers";
 
 describe("Ethers provider wrapper", function () {
-  let realProvider: ethers.providers.JsonRpcProvider;
+  let realProvider: ethers.providers.StaticJsonRpcProvider;
   let wrapper: EthersProviderWrapper;
 
   useEnvironment("hardhat-project");
 
   beforeEach(function () {
-    realProvider = new ethers.providers.JsonRpcProvider(
+    realProvider = new ethers.providers.StaticJsonRpcProvider(
       "http://127.0.0.1:8545"
     );
     wrapper = new EthersProviderWrapper(this.env.network.provider);
