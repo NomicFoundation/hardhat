@@ -445,10 +445,14 @@ mod tests {
     use super::*;
 
     fn get_alchemy_url() -> String {
-        std::env::var_os("ALCHEMY_URL")
+        match std::env::var_os("ALCHEMY_URL")
             .expect("ALCHEMY_URL environment variable not defined")
             .into_string()
             .expect("Couldn't convert OsString into a String")
+        {
+            url if url.is_empty() => panic!("ALCHEMY_URL environment variable is empty"),
+            url => url,
+        }
     }
 
     #[test_with::env(ALCHEMY_URL)]
