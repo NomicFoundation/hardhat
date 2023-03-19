@@ -74,7 +74,7 @@ jobs:
           key: hardhat-network-forking-tests-${{ hashFiles('yarn.lock') }}-${{ hashFiles('packages/hardhat-core/test/internal/hardhat-network/provider/node.ts') }}
       - name: Run tests
         env:
-          INFURA_URL: ${{ secrets.INFURA_URL }}
+          # INFURA_URL: ${{ secrets.INFURA_URL }}
           ALCHEMY_URL: ${{ secrets.ALCHEMY_URL }}
           HARDHAT_EXPERIMENTAL_VM_MODE: rethnet
           DO_NOT_SET_THIS_ENV_VAR____IS_HARDHAT_CI: true
