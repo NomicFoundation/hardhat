@@ -164,3 +164,40 @@ The verification may still succeed but should be checked manually.
 Reason: ${message}`);
   }
 }
+
+export class EtherscanVersionNotSupportedError extends HardhatEtherscanError {
+  constructor() {
+    super(`Etherscan only supports compiler versions 0.4.11 and higher.
+See https://etherscan.io/solcversions for more information.`);
+  }
+}
+
+export class DeployedBytecodeNotFound extends HardhatEtherscanError {
+  constructor(address: string, network: string) {
+    super(`The address ${address} has no bytecode. Is the contract deployed to this network?
+The selected network is ${network}.`);
+  }
+}
+
+export class CompilerVersionsMismatchError extends HardhatEtherscanError {
+  constructor(
+    configCompilerVersions: string[],
+    inferredCompilerVersion: string,
+    network: string
+  ) {
+    const configuredCompilersFragment =
+      configCompilerVersions.length > 1
+        ? `your configured compiler versions are: ${configCompilerVersions.join(
+            ", "
+          )}`
+        : `your configured compiler version is: ${configCompilerVersions[0]}`;
+
+    super(`The contract you want to verify was compiled with solidity ${inferredCompilerVersion}, but ${configuredCompilersFragment}.
+
+Possible causes are:
+- You are not in the same commit that was used to deploy the contract.
+- Wrong compiler version selected in hardhat config.
+- The given address is wrong.
+- The selected network (${network}) is wrong.`);
+  }
+}

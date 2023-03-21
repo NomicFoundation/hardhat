@@ -1,7 +1,9 @@
 import chalk from "chalk";
 import path from "path";
+import { SolidityConfig } from "hardhat/types";
 import { builtinChains } from "./chain-config";
 import {
+  EtherscanVersionNotSupportedError,
   ImportingModuleError,
   InvalidConstructorArgumentsModule,
   InvalidLibrariesModule,
@@ -120,5 +122,33 @@ export const resolveLibraries = async (
     return libraries;
   } catch (error: any) {
     throw new ImportingModuleError("libraries dictionary", error);
+  }
+};
+
+export const getCompilerVersions = async ({
+  compilers,
+  overrides,
+}: SolidityConfig) => {
+  {
+    const compilerVersions = compilers.map(({ version }) => version);
+    if (overrides !== undefined) {
+      for (const { version } of Object.values(overrides)) {
+        compilerVersions.push(version);
+      }
+    }
+
+    // Etherscan only supports solidity versions higher than or equal to v0.4.11.
+    // See https://etherscan.io/solcversions
+    const supportedSolcVersionRange = ">=0.4.11";
+    const semver = await import("semver");
+    if (
+      compilerVersions.some(
+        (version) => !semver.satisfies(version, supportedSolcVersionRange)
+      )
+    ) {
+      throw new EtherscanVersionNotSupportedError();
+    }
+
+    return compilerVersions;
   }
 };
