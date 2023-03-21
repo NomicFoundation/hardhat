@@ -4,7 +4,7 @@ import { DeploymentGraphVertex } from "../../types/deploymentGraph";
 
 /**
  * Deployment graphs can have virtual vertex that represent the
- * execution of all vertex in a module/subgraph.
+ * execution of all vertexes in a module/subgraph.
  *
  * We reduce the graph to remove the virtual nodes, by adding
  * edges from any dependents to the virtual nodes dependents:

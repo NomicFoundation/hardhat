@@ -13,7 +13,7 @@ import { loadModule } from "./load-module";
 import { Renderer } from "./plan";
 import "./type-extensions";
 
-export { buildSubgraph, buildModule } from "@ignored/ignition-core";
+export { buildModule } from "@ignored/ignition-core";
 
 export interface IgnitionConfig {
   maxRetries: number;

@@ -7,7 +7,6 @@ import {
   ContractCall,
   DeployedContract,
   DeploymentGraphFuture,
-  FutureDict,
   HardhatContract,
   HardhatLibrary,
   OptionalParameter,
@@ -24,7 +23,7 @@ import {
 } from "./future";
 import { AdjacencyList, VertexDescriptor } from "./graph";
 import { Artifact } from "./hardhat";
-import { ModuleDict, Subgraph } from "./module";
+import { ModuleDict, Module } from "./module";
 
 export interface ScopeData {
   before: Virtual;
@@ -175,7 +174,7 @@ export interface SendOptions {
   from?: string;
 }
 
-export interface UseSubgraphOptions {
+export interface UseModuleOptions {
   parameters?: { [key: string]: number | string | DeploymentGraphFuture };
   after?: DeploymentGraphFuture[];
 }
@@ -229,14 +228,9 @@ export interface IDeploymentBuilder {
 
   getBytesForArtifact(artifactName: string): BytesFuture;
 
-  useSubgraph<T extends FutureDict>(
-    subgraph: Subgraph<T>,
-    options?: UseSubgraphOptions
-  ): Virtual & T;
-
   useModule<T extends ModuleDict>(
-    module: Subgraph<T>,
-    options?: UseSubgraphOptions
+    module: Module<T>,
+    options?: UseModuleOptions
   ): Virtual & T;
 }
 

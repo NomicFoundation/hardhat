@@ -1,6 +1,5 @@
 export { Ignition, IgnitionDeployOptions } from "./Ignition";
 export { buildModule } from "./dsl/buildModule";
-export { buildSubgraph } from "./dsl/buildSubgraph";
 export { viewExecutionResults } from "./deployment/utils";
 export { createServices } from "./services/createServices";
 export { serializeReplacer } from "./utils/serialize";
@@ -24,12 +23,7 @@ export type {
   DeploymentResult,
   UpdateUiAction,
 } from "./types/deployment";
-export type {
-  Module,
-  ModuleDict,
-  ModuleParams,
-  Subgraph,
-} from "./types/module";
+export type { Module, ModuleDict, ModuleParams } from "./types/module";
 export type {
   ExternalParamValue,
   IDeploymentBuilder,

@@ -6,7 +6,6 @@ import { ethers } from "ethers";
 import sinon from "sinon";
 
 import { buildModule } from "../src/dsl/buildModule";
-import { buildSubgraph } from "../src/dsl/buildSubgraph";
 import { generateDeploymentGraphFrom } from "../src/process/generateDeploymentGraphFrom";
 import { Services } from "../src/services/types";
 import { ArtifactContract } from "../src/types/future";
@@ -964,14 +963,14 @@ describe("Validation", () => {
 
   describe("virtual", () => {
     it("should validate", async () => {
-      const subgraph = buildSubgraph("sub", (m) => {
+      const submodule = buildModule("sub", (m) => {
         const example = m.contract("Example");
 
         return { example };
       });
 
       const singleModule = buildModule("single", (m: IDeploymentBuilder) => {
-        m.useSubgraph(subgraph);
+        m.useModule(submodule);
 
         return {};
       });

@@ -20,7 +20,7 @@ export class ConfigWrapper implements ConfigProvider {
   public async getParam(paramName: string): Promise<ExternalParamValue> {
     if (this.parameters === undefined) {
       throw new IgnitionError(
-        `No parameters object provided to deploy options, but module/subgraph requires parameter "${paramName}"`
+        `No parameters object provided to deploy options, but module requires parameter "${paramName}"`
       );
     }
 

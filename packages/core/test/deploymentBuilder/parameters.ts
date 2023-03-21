@@ -7,7 +7,6 @@ import type {
 import { assert } from "chai";
 
 import { buildModule } from "../../src/dsl/buildModule";
-import { buildSubgraph } from "../../src/dsl/buildSubgraph";
 import { generateDeploymentGraphFrom } from "../../src/process/generateDeploymentGraphFrom";
 import { IgnitionError } from "../../src/utils/errors";
 import { isCallable } from "../../src/utils/guards";
@@ -16,7 +15,7 @@ describe("deployment builder - parameters", function () {
   let deploymentGraph: IDeploymentGraph;
 
   before(() => {
-    const librariesSubgraph = buildSubgraph(
+    const librariesSubmodule = buildModule(
       "libraries",
       (m: IDeploymentBuilder) => {
         const symbol = m.getOptionalParam("tokenSymbol", "TKN");
@@ -30,7 +29,7 @@ describe("deployment builder - parameters", function () {
     );
 
     const WrapModule = buildModule("Wrap", (m) => {
-      const { token } = m.useSubgraph(librariesSubgraph, {
+      const { token } = m.useModule(librariesSubmodule, {
         parameters: { tokenSymbol: "EXAMPLE", tokenName: "Example" },
       });
 
