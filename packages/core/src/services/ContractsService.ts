@@ -1,25 +1,15 @@
-import type { TransactionOptions } from "./types";
+import type {
+  ContractsServiceProviders,
+  IContractsService,
+  TransactionOptions,
+} from "../types/services";
 
 import setupDebug from "debug";
 import { ethers } from "ethers";
 
-import { GasProvider, TransactionsProvider } from "../types/providers";
 import { IgnitionError } from "../utils/errors";
 import { sleep } from "../utils/sleep";
 import { TxSender } from "../utils/tx-sender";
-
-export interface IContractsService {
-  sendTx(
-    deployTransaction: ethers.providers.TransactionRequest,
-    txOptions?: TransactionOptions
-  ): Promise<string>;
-}
-
-export interface ContractsServiceProviders {
-  web3Provider: ethers.providers.Web3Provider;
-  transactionsProvider: TransactionsProvider;
-  gasProvider: GasProvider;
-}
 
 export class ContractsService implements IContractsService {
   private _debug = setupDebug("ignition:services:contracts-service");

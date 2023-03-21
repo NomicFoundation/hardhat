@@ -1,4 +1,3 @@
-import type { Services } from "../services/types";
 import type {
   DeployState,
   UpdateUiAction,
@@ -12,6 +11,7 @@ import type {
   VertexVisitResultFailure,
 } from "../types/graph";
 import type { ICommandJournal } from "../types/journal";
+import type { Services } from "../types/services";
 
 import setupDebug from "debug";
 

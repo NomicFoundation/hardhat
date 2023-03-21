@@ -8,7 +8,7 @@ interface Link {
   address: string;
 }
 
-export interface Libraries {
+interface Libraries {
   [libraryName: string]: string;
 }
 

@@ -7,10 +7,10 @@ import sinon from "sinon";
 
 import { buildModule } from "../src/dsl/buildModule";
 import { generateDeploymentGraphFrom } from "../src/process/generateDeploymentGraphFrom";
-import { Services } from "../src/services/types";
 import { ArtifactContract } from "../src/types/future";
 import { Artifact } from "../src/types/hardhat";
 import { Module, ModuleDict } from "../src/types/module";
+import { Services } from "../src/types/services";
 import { ValidationVisitResult } from "../src/types/validation";
 import { IgnitionValidationError } from "../src/utils/errors";
 import { validateDeploymentGraph } from "../src/validation/validateDeploymentGraph";

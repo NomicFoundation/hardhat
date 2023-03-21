@@ -1,10 +1,6 @@
 import type { Providers } from "../types/providers";
+import type { IAccountsService } from "../types/services";
 import type { ethers } from "ethers";
-
-export interface IAccountsService {
-  getAccounts(): Promise<string[]>;
-  getSigner(address: string): Promise<ethers.Signer>;
-}
 
 export class AccountsService implements IAccountsService {
   private _accounts: string[] = [];

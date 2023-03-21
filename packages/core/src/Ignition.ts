@@ -1,4 +1,8 @@
-import type { DeploymentResult, UpdateUiAction } from "./types/deployment";
+import type {
+  DeploymentResult,
+  IgnitionDeployOptions,
+  UpdateUiAction,
+} from "./types/deployment";
 import type {
   ExecutionResultsAccumulator,
   ExecutionVisitResult,
@@ -12,7 +16,6 @@ import type {
 } from "./types/serialization";
 
 import setupDebug from "debug";
-import { BigNumber } from "ethers";
 
 import { Deployment } from "./deployment/Deployment";
 import { execute } from "./execution/execute";
@@ -21,22 +24,12 @@ import { hashExecutionGraph } from "./execution/utils";
 import { NoopCommandJournal } from "./journal/NoopCommandJournal";
 import { generateDeploymentGraphFrom } from "./process/generateDeploymentGraphFrom";
 import { transformDeploymentGraphToExecutionGraph } from "./process/transformDeploymentGraphToExecutionGraph";
-import { Services } from "./services/types";
+import { Services } from "./types/services";
 import { IgnitionError } from "./utils/errors";
 import { resolveProxyValue } from "./utils/proxy";
 import { validateDeploymentGraph } from "./validation/validateDeploymentGraph";
 
 const log = setupDebug("ignition:main");
-
-export interface IgnitionDeployOptions {
-  txPollingInterval: number;
-  networkName: string;
-  maxRetries: number;
-  gasPriceIncrementPerRetry: BigNumber | null;
-  pollingInterval: number;
-  eventDuration: number;
-  force: boolean;
-}
 
 export class Ignition {
   private _services: Services;

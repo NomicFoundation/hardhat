@@ -1,9 +1,9 @@
-import type { Services } from "../../services/types";
 import type {
   DeployedContract,
   ExecutionResultsAccumulator,
   ExecutionVertexVisitResult,
 } from "../../types/executionGraph";
+import type { Services } from "../../types/services";
 
 import { VertexResultEnum } from "../../types/graph";
 

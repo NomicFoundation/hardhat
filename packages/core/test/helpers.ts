@@ -1,14 +1,17 @@
 import { ethers } from "ethers";
 
-import { IAccountsService } from "../src/services/AccountsService";
-import { IArtifactsService } from "../src/services/ArtifactsService";
-import { IConfigService } from "../src/services/ConfigService";
-import { IContractsService } from "../src/services/ContractsService";
-import { INetworkService } from "../src/services/NetworkService";
-import { ITransactionsService } from "../src/services/TransactionsService";
-import { Services, TransactionOptions } from "../src/services/types";
 import { Artifact } from "../src/types/hardhat";
 import { HasParamResult } from "../src/types/providers";
+import {
+  Services,
+  TransactionOptions,
+  ITransactionsService,
+  INetworkService,
+  IContractsService,
+  IConfigService,
+  IArtifactsService,
+  IAccountsService,
+} from "../src/types/services";
 import { IgnitionError } from "../src/utils/errors";
 
 export function getMockServices() {

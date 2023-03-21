@@ -1,6 +1,5 @@
 import { BigNumber, ethers } from "ethers";
 
-import { Services } from "../../services/types";
 import {
   ArtifactContractDeploymentVertex,
   ArtifactLibraryDeploymentVertex,
@@ -29,6 +28,7 @@ import {
   EventParamFuture,
 } from "../../types/future";
 import { Artifact } from "../../types/hardhat";
+import { Services } from "../../types/services";
 import { IgnitionError } from "../../utils/errors";
 import { isBytesArg, isFuture } from "../../utils/guards";
 

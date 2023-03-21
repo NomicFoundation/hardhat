@@ -1,14 +1,7 @@
+import type { Providers } from "../types/providers";
+import type { ITransactionsService } from "../types/services";
+
 import { ethers } from "ethers";
-
-import { Providers } from "../types/providers";
-
-export interface ITransactionsService {
-  wait(txHash: string): Promise<ethers.providers.TransactionReceipt>;
-  waitForEvent(
-    filter: ethers.EventFilter,
-    durationMs: number
-  ): Promise<ethers.providers.Log | null>;
-}
 
 export class TransactionsService implements ITransactionsService {
   constructor(private readonly _providers: Providers) {}

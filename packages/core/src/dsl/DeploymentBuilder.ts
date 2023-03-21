@@ -77,31 +77,6 @@ type DeploymentApiPublicFunctions =
 
 const DEFAULT_VALUE = ethers.utils.parseUnits("0");
 
-function parseEventParams(
-  abi: Array<{ type: string; name: string; inputs: any[] }>,
-  event: EventFuture
-): EventParams {
-  const [_, eventName] = event.label.split("/");
-
-  const abiEvent = abi.find((v) => v.type === "event" && v.name === eventName);
-
-  if (abiEvent === undefined) {
-    return {};
-  }
-
-  return abiEvent.inputs.reduce<EventParams>((acc, { name, type }) => {
-    acc[name] = {
-      vertexId: event.vertexId,
-      label: name,
-      type: "eventParam",
-      subtype: type,
-      _future: true,
-    };
-
-    return acc;
-  }, {});
-}
-
 export class DeploymentBuilder implements IDeploymentBuilder {
   public chainId: number;
   public accounts: string[];
@@ -377,7 +352,7 @@ export class DeploymentBuilder implements IDeploymentBuilder {
       address = artifactFuture.address;
     }
 
-    eventFuture.params = parseEventParams(abi, eventFuture);
+    eventFuture.params = this._parseEventParams(abi, eventFuture);
 
     DeploymentBuilder._addVertex(this.graph, this.callPoints, this.event, {
       id: eventFuture.vertexId,
@@ -875,5 +850,32 @@ export class DeploymentBuilder implements IDeploymentBuilder {
     this.scopes.pop();
 
     return { before: beforeVirtualVertex, result, after: afterVirtualVertex };
+  }
+
+  private _parseEventParams(
+    abi: Array<{ type: string; name: string; inputs: any[] }>,
+    event: EventFuture
+  ): EventParams {
+    const [_, eventName] = event.label.split("/");
+
+    const abiEvent = abi.find(
+      (v) => v.type === "event" && v.name === eventName
+    );
+
+    if (abiEvent === undefined) {
+      return {};
+    }
+
+    return abiEvent.inputs.reduce<EventParams>((acc, { name, type }) => {
+      acc[name] = {
+        vertexId: event.vertexId,
+        label: name,
+        type: "eventParam",
+        subtype: type,
+        _future: true,
+      };
+
+      return acc;
+    }, {});
   }
 }

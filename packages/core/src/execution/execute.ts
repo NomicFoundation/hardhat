@@ -1,5 +1,4 @@
 import type { Deployment } from "../deployment/Deployment";
-import type { Services } from "../services/types";
 import type { ExecutionOptions, ExecutionState } from "../types/deployment";
 import type { ExecutionVertexDispatcher } from "../types/execution";
 import type {
@@ -8,6 +7,7 @@ import type {
   ExecutionVisitResult,
   ExecutionVertex,
 } from "../types/executionGraph";
+import type { Services } from "../types/services";
 
 import { viewExecutionResults } from "../deployment/utils";
 import { IgnitionError } from "../utils/errors";
