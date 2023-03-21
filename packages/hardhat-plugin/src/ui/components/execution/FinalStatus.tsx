@@ -1,8 +1,5 @@
-import {
-  DeployState,
-  ExecutionVertex,
-  viewExecutionResults,
-} from "@ignored/ignition-core";
+import { DeployState, ExecutionVertex } from "@ignored/ignition-core";
+import { viewExecutionResults } from "@ignored/ignition-core/helpers";
 import { Box, Text } from "ink";
 
 import { DeploymentError, DeploymentHold } from "../../types";

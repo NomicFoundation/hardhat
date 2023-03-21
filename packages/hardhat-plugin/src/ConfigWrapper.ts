@@ -3,8 +3,8 @@ import {
   ExternalParamValue,
   HasParamResult,
   ModuleParams,
-  IgnitionError,
 } from "@ignored/ignition-core";
+import { IgnitionError } from "@ignored/ignition-core/helpers";
 
 export class ConfigWrapper implements ConfigProvider {
   public parameters: ModuleParams | undefined;

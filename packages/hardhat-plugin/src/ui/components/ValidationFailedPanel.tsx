@@ -1,4 +1,5 @@
-import { DeployState, IgnitionValidationError } from "@ignored/ignition-core";
+import { DeployState } from "@ignored/ignition-core";
+import { IgnitionValidationError } from "@ignored/ignition-core/helpers";
 import { Box, Text } from "ink";
 import { relative } from "path";
 

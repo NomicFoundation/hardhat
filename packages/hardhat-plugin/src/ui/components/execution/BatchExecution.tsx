@@ -1,4 +1,5 @@
-import { DeployState, IgnitionError } from "@ignored/ignition-core";
+import { DeployState } from "@ignored/ignition-core";
+import { IgnitionError } from "@ignored/ignition-core/helpers";
 import { Box, Text } from "ink";
 import Spinner from "ink-spinner";
 

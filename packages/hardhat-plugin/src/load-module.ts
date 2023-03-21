@@ -1,4 +1,5 @@
-import { IgnitionError, Module, ModuleDict } from "@ignored/ignition-core";
+import { Module, ModuleDict } from "@ignored/ignition-core";
+import { IgnitionError } from "@ignored/ignition-core/helpers";
 import setupDebug from "debug";
 import fsExtra from "fs-extra";
 import path from "path";

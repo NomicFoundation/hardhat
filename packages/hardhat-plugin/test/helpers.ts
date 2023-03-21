@@ -1,12 +1,5 @@
-import {
-  SerializedDeploymentResult,
-  DeploymentResult,
-  Module,
-  buildModule,
-  IDeploymentBuilder,
-} from "@ignored/ignition-core";
+import { buildModule, IDeploymentBuilder } from "@ignored/ignition-core";
 import { ModuleDict } from "@ignored/ignition-core/src/types/module";
-import { assert } from "chai";
 
 export const resultAssertions = {
   contract: (predicate?: ContractResultPredicate): ExpectedFutureResult => {
@@ -31,112 +24,6 @@ type ExpectedFutureResult =
   | {
       kind: "transaction";
     };
-type ExpectedModuleResult = Record<string, ExpectedFutureResult>;
-type ExpectedDeploymentState = Record<string, ExpectedModuleResult>;
-
-/**
- * Check that the given deployment result matches some conditions.
- *
- * `expectedResult` is an object with expected modules results, which have
- * expected futures results. These futures results assert that that the
- * result of each future is of the correct type, and it can also run
- * some custom predicate logic on the result to further verify it.
- */
-export async function assertDeploymentState<T extends ModuleDict>(
-  hre: any,
-  result: SerializedDeploymentResult<T>,
-  expectedResult: ExpectedDeploymentState
-) {
-  const modulesResults = Object.entries(result);
-  const expectedModules = Object.entries(expectedResult);
-
-  assert.equal(
-    modulesResults.length,
-    expectedModules.length,
-    "Expected result and actual result have a different number of modules"
-  );
-
-  for (const [moduleId, moduleResult] of modulesResults) {
-    const expectedModule = expectedResult[moduleId];
-
-    assert.isDefined(
-      expectedModule,
-      `Module ${moduleId} is not part of the expected result`
-    );
-
-    assert.equal(
-      Object.entries(moduleResult).length,
-      Object.entries(expectedModule).length
-    );
-
-    for (const [futureId, futureResult] of Object.entries(moduleResult)) {
-      const expectedFutureResult = expectedModule[futureId];
-
-      switch (expectedFutureResult.kind) {
-        case "contract":
-          const contract = await assertContract(hre, futureResult);
-
-          await expectedFutureResult.predicate(contract);
-          break;
-        case "transaction":
-          if (futureResult._kind !== "tx") {
-            assert.fail(
-              `Expected future result to be a transaction, but got ${futureResult._kind}`
-            );
-          }
-
-          assert.isDefined(futureResult.value.hash);
-          await assertTxMined(hre, futureResult.value.hash);
-
-          break;
-      }
-    }
-  }
-}
-
-async function assertHasCode(hre: any, address: string) {
-  const code = await hre.network.provider.send("eth_getCode", [address]);
-  assert.notEqual(code, "0x");
-}
-
-async function assertTxMined(hre: any, hash: string) {
-  const receipt = await hre.network.provider.send("eth_getTransactionReceipt", [
-    hash,
-  ]);
-  assert.isNotNull(receipt);
-}
-
-/**
- * Deploy all the modules in `userModuless`.
- *
- * Assert that `expectedBlocks.length` blocks are mined, and that
- * each mined block has `expectedBlocks[i]` transactions.
- */
-export async function deployModules<T extends ModuleDict>(
-  hre: any,
-  userModules: Array<Module<T>>,
-  expectedBlocks: number[]
-): Promise<SerializedDeploymentResult<T>> {
-  await hre.run("compile", { quiet: true });
-
-  const deploymentResultPromise: Promise<DeploymentResult<T>> = hre.run(
-    "deploy:deploy-modules",
-    {
-      userModules,
-    }
-  );
-
-  // eslint-disable-next-line @typescript-eslint/no-floating-promises
-  mineBlocks(hre, expectedBlocks, deploymentResultPromise);
-
-  const deploymentResult = await deploymentResultPromise;
-
-  if (deploymentResult._kind !== "success") {
-    assert.fail("Expected deployment result to be successful");
-  }
-
-  return deploymentResult.result;
-}
 
 export async function mineBlocks(
   hre: any,
@@ -180,23 +67,6 @@ async function waitForPendingTxs(
 
     await sleep(50);
   }
-}
-
-async function assertContract(hre: any, futureResult: any) {
-  if (futureResult._kind !== "contract") {
-    assert.fail(
-      `Expected future result to be a contract, but got ${futureResult._kind}`
-    );
-  }
-
-  await assertHasCode(hre, futureResult.value.address);
-
-  const contract = await hre.ethers.getContractAt(
-    futureResult.value.abi,
-    futureResult.value.address
-  );
-
-  return contract;
 }
 
 export async function deployModule(

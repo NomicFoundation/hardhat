@@ -1,6 +1,5 @@
 /* eslint-disable import/no-unused-modules */
 import { buildModule, IDeploymentBuilder } from "@ignored/ignition-core";
-import { isCallable } from "@ignored/ignition-core/src/utils/guards";
 import { assert } from "chai";
 
 import { mineBlocks } from "./helpers";
@@ -28,10 +27,6 @@ describe("useModule", function () {
         m.call(foo, "inc", {
           args: [],
         });
-
-        if (!isCallable(foo)) {
-          throw new Error("Not callable");
-        }
 
         return { foo };
       });

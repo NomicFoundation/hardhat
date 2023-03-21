@@ -1,8 +1,8 @@
 import {
   DeployStateExecutionCommand,
   ICommandJournal,
-  serializeReplacer,
 } from "@ignored/ignition-core";
+import { serializeReplacer } from "@ignored/ignition-core/helpers";
 import { BigNumber } from "ethers";
 import fs from "fs";
 import ndjson from "ndjson";

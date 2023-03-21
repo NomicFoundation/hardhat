@@ -1,5 +1,8 @@
 /* eslint-disable import/no-unused-modules */
-import { ContractsService, TransactionsService } from "@ignored/ignition-core";
+import {
+  ContractsService,
+  TransactionsService,
+} from "@ignored/ignition-core/helpers";
 import { assert } from "chai";
 import { BigNumber } from "ethers";
 import sinon from "sinon";

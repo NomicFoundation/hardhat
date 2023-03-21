@@ -1,8 +1,6 @@
 /* eslint-disable import/no-unused-modules */
-import {
-  DeployStateExecutionCommand,
-  VertexResultEnum,
-} from "@ignored/ignition-core";
+import { DeployStateExecutionCommand } from "@ignored/ignition-core";
+import { VertexResultEnum } from "@ignored/ignition-core/helpers";
 import { assert } from "chai";
 import { BigNumber } from "ethers";
 import fs from "fs";

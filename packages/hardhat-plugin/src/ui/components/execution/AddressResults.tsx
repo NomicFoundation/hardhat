@@ -1,4 +1,5 @@
-import { DeployState, viewExecutionResults } from "@ignored/ignition-core";
+import { DeployState } from "@ignored/ignition-core";
+import { viewExecutionResults } from "@ignored/ignition-core/helpers";
 import { Box, Spacer, Text } from "ink";
 
 import { AddressMap } from "../../types";

@@ -7,11 +7,10 @@ import {
   Module,
   ModuleDict,
   ModuleParams,
-  createServices,
   ICommandJournal,
-  IgnitionError,
   SerializedDeploymentResult,
 } from "@ignored/ignition-core";
+import { IgnitionError, createServices } from "@ignored/ignition-core/helpers";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 
 import { CommandJournal } from "./CommandJournal";
