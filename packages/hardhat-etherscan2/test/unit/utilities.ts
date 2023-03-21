@@ -1,6 +1,8 @@
 import { assert, expect } from "chai";
 import path from "path";
+import { SolidityConfig } from "hardhat/types";
 import {
+  getCompilerVersions,
   isFullyQualifiedName,
   resolveConstructorArguments,
   resolveLibraries,
@@ -109,6 +111,129 @@ describe("Utilities", () => {
         new RegExp(
           `The module ${librariesModulePath} doesn't export a dictionary.`
         )
+      );
+    });
+  });
+
+  describe("getCompilerVersions", () => {
+    it("should return the list of compiler versions defined in the hardhat config (compilers + overrides)", async () => {
+      const solidityConfig: SolidityConfig = {
+        compilers: [
+          {
+            version: "0.8.18",
+            settings: {},
+          },
+          {
+            version: "0.7.2",
+            settings: {},
+          },
+        ],
+        overrides: {
+          "contracts/Foo.sol": {
+            version: "0.5.5",
+            settings: {},
+          },
+          "contracts/Bar.sol": {
+            version: "0.6.4",
+            settings: {},
+          },
+        },
+      };
+      const expected = ["0.8.18", "0.7.2", "0.5.5", "0.6.4"];
+      const compilerVersions = await getCompilerVersions(solidityConfig);
+      assert.deepEqual(compilerVersions, expected);
+    });
+
+    it("should return the list of compiler versions defined in the hardhat config (compilers - no overrides)", async () => {
+      const solidityConfig = {
+        compilers: [
+          {
+            version: "0.8.18",
+            settings: {},
+          },
+          {
+            version: "0.7.2",
+            settings: {},
+          },
+          {
+            version: "0.4.11",
+            settings: {},
+          },
+        ],
+        overrides: {},
+      };
+      const expected = ["0.8.18", "0.7.2", "0.4.11"];
+      const compilerVersions = await getCompilerVersions(solidityConfig);
+      assert.deepEqual(compilerVersions, expected);
+    });
+
+    it("should return the list of compiler versions defined in the hardhat config (compilers + overrides (dup))", async () => {
+      const solidityConfig = {
+        compilers: [
+          {
+            version: "0.8.18",
+            settings: {},
+          },
+        ],
+        overrides: {
+          "contracts/Foo.sol": {
+            version: "0.8.18",
+            settings: {},
+          },
+        },
+      };
+      const expected = ["0.8.18", "0.8.18"];
+      const compilerVersions = await getCompilerVersions(solidityConfig);
+      assert.deepEqual(compilerVersions, expected);
+    });
+
+    it("should throw if any version is below Etherscan supported version (compilers)", async () => {
+      const solidityConfig = {
+        compilers: [
+          {
+            version: "0.8.18",
+            settings: {},
+          },
+          {
+            version: "0.4.10",
+            settings: {},
+          },
+        ],
+        overrides: {
+          "contracts/Foo.sol": {
+            version: "0.8.15",
+            settings: {},
+          },
+        },
+      };
+
+      await expect(getCompilerVersions(solidityConfig)).to.be.rejectedWith(
+        /Etherscan only supports compiler versions 0.4.11 and higher/
+      );
+    });
+
+    it("should throw if any version is below Etherscan supported version (overrides)", async () => {
+      const solidityConfig = {
+        compilers: [
+          {
+            version: "0.8.18",
+            settings: {},
+          },
+          {
+            version: "0.7.6",
+            settings: {},
+          },
+        ],
+        overrides: {
+          "contracts/Foo.sol": {
+            version: "0.3.5",
+            settings: {},
+          },
+        },
+      };
+
+      await expect(getCompilerVersions(solidityConfig)).to.be.rejectedWith(
+        /Etherscan only supports compiler versions 0.4.11 and higher/
       );
     });
   });
