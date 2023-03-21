@@ -15,8 +15,10 @@ import {
   InvalidContractNameError,
   InvalidConstructorArguments,
   InvalidLibraries,
+  CompilerVersionsMismatchError,
 } from "./errors";
 import {
+  getCompilerVersions,
   isFullyQualifiedName,
   printSupportedNetworks,
   resolveConstructorArguments,
@@ -25,6 +27,7 @@ import {
 
 import "./type-extensions";
 import { Etherscan } from "./etherscan";
+import { Bytecode } from "./solc/bytecode";
 
 interface VerifyTaskArgs {
   address?: string;
@@ -192,6 +195,25 @@ subtask(TASK_VERIFY_VERIFY_ETHERSCAN)
       if (isVerified) {
         console.log(`The contract ${address} has already been verified`);
         return;
+      }
+
+      const configCompilerVersions = await getCompilerVersions(config.solidity);
+
+      const contractBytecode = await Bytecode.getDeployedContractBytecode(
+        address,
+        network.provider,
+        network.name
+      );
+
+      const matchingCompilerVersions =
+        await contractBytecode.getMatchingVersions(configCompilerVersions);
+      // don't error if the bytecode appears to be OVM bytecode, because we can't infer a specific OVM solc version from the bytecode
+      if (matchingCompilerVersions.length === 0 && !contractBytecode.isOvm()) {
+        throw new CompilerVersionsMismatchError(
+          configCompilerVersions,
+          contractBytecode.getVersion(),
+          network.name
+        );
       }
 
       // Make sure that contract artifacts are up-to-date
