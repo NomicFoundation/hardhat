@@ -32,7 +32,7 @@ export class Bytecode {
     //     contract. As a result result, this _isOvm flag should only be used after trying to infer
     //     the solc version
     //   - We need this check because OVM bytecode has no metadata, so when verifying
-    //     OVM bytecode the check in `inferSolcVersion` will always return `METADATA_ABSENT_VERSION_RANGE`.
+    //     OVM bytecode the check in `inferSolcVersion` will always return `MISSING_METADATA_VERSION_RANGE`.
     this._isOvm = bytecode.includes(OVM_REPLACE_OPCODES);
   }
 
