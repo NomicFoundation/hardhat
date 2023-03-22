@@ -36,9 +36,7 @@ describe("Tx Pool", () => {
   beforeEach(() => {
     stateManager = new DefaultStateManager();
     const common = new Common({ chain: "mainnet" });
-    txPool = new TxPool(stateManager, blockGasLimit, common, {
-      allowUnlimitedContractSize: false,
-    });
+    txPool = new TxPool(stateManager, blockGasLimit, common);
   });
 
   describe("addTransaction", () => {

@@ -58,11 +58,7 @@ export class ReadOnlyValidEIP1559Transaction extends FeeMarketEIP1559Transaction
 
   private readonly _sender: Address;
 
-  constructor(
-    sender: Address,
-    data: FeeMarketEIP1559TxData = {},
-    opts: TxOptions = {}
-  ) {
+  constructor(sender: Address, data: FeeMarketEIP1559TxData = {}) {
     const fakeCommon = Common.custom(
       {
         chainId: BigIntUtils.fromBigIntLike(data.chainId),
@@ -72,7 +68,11 @@ export class ReadOnlyValidEIP1559Transaction extends FeeMarketEIP1559Transaction
       }
     );
 
-    super(data, { ...opts, freeze: false, common: fakeCommon });
+    super(data, {
+      freeze: false,
+      disableMaxInitCodeSizeCheck: true,
+      common: fakeCommon,
+    });
 
     this.common = fakeCommon;
     this._sender = sender;

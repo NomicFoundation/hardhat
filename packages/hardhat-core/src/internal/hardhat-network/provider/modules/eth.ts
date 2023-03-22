@@ -960,7 +960,7 @@ export class EthModule {
     try {
       tx = TransactionFactory.fromSerializedData(rawTx, {
         common: this._common,
-        disableMaxInitCodeSizeCheck: this._node.allowUnlimitedContractSize,
+        disableMaxInitCodeSizeCheck: true,
       });
     } catch (error) {
       // This section of the code is incredibly dependant of TransactionFactory.fromSerializedData

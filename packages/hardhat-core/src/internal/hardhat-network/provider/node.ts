@@ -197,9 +197,7 @@ export class HardhatNode extends EventEmitter {
       await forkStateManager.initializeGenesisAccounts(genesisAccounts);
       stateManager = forkStateManager;
 
-      blockchain = new ForkBlockchain(forkClient, forkBlockNumber, common, {
-        allowUnlimitedContractSize,
-      });
+      blockchain = new ForkBlockchain(forkClient, forkBlockNumber, common);
 
       initialBlockTimeOffset = BigInt(
         getDifferenceInSeconds(new Date(forkBlockTimestamp), new Date())
@@ -262,9 +260,7 @@ export class HardhatNode extends EventEmitter {
       blockchain = hardhatBlockchain;
     }
 
-    const txPool = new TxPool(stateManager, BigInt(blockGasLimit), common, {
-      allowUnlimitedContractSize,
-    });
+    const txPool = new TxPool(stateManager, BigInt(blockGasLimit), common);
 
     const eei = new EEI(stateManager, common, blockchain);
     const evm = await EVM.create({
@@ -461,17 +457,17 @@ Hardhat Network's forking functionality only works with blocks from at least spu
       if ("maxFeePerGas" in txParams) {
         tx = FeeMarketEIP1559Transaction.fromTxData(txParams, {
           common: this._vm._common,
-          disableMaxInitCodeSizeCheck: this.allowUnlimitedContractSize,
+          disableMaxInitCodeSizeCheck: true,
         });
       } else if ("accessList" in txParams) {
         tx = AccessListEIP2930Transaction.fromTxData(txParams, {
           common: this._vm._common,
-          disableMaxInitCodeSizeCheck: this.allowUnlimitedContractSize,
+          disableMaxInitCodeSizeCheck: true,
         });
       } else {
         tx = Transaction.fromTxData(txParams, {
           common: this._vm._common,
-          disableMaxInitCodeSizeCheck: this.allowUnlimitedContractSize,
+          disableMaxInitCodeSizeCheck: true,
         });
       }
 
@@ -1418,25 +1414,18 @@ Hardhat Network's forking functionality only works with blocks from at least spu
         if (tx.type === 0) {
           txWithCommon = new FakeSenderTransaction(sender, tx, {
             common: vm._common,
-            disableMaxInitCodeSizeCheck: this.allowUnlimitedContractSize,
           });
         } else if (tx.type === 1) {
           txWithCommon = new FakeSenderAccessListEIP2930Transaction(
             sender,
             tx,
-            {
-              common: vm._common,
-              disableMaxInitCodeSizeCheck: this.allowUnlimitedContractSize,
-            }
+            { common: vm._common }
           );
         } else if (tx.type === 2) {
           txWithCommon = new FakeSenderEIP1559Transaction(
             sender,
             { ...tx, gasPrice: undefined },
-            {
-              common: vm._common,
-              disableMaxInitCodeSizeCheck: this.allowUnlimitedContractSize,
-            }
+            { common: vm._common }
           );
         } else {
           throw new InternalError(
@@ -1895,20 +1884,17 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     if ("maxFeePerGas" in txParams && txParams.maxFeePerGas !== undefined) {
       return new FakeSenderEIP1559Transaction(sender, txParams, {
         common: this._vm._common,
-        disableMaxInitCodeSizeCheck: this.allowUnlimitedContractSize,
       });
     }
 
     if ("accessList" in txParams && txParams.accessList !== undefined) {
       return new FakeSenderAccessListEIP2930Transaction(sender, txParams, {
         common: this._vm._common,
-        disableMaxInitCodeSizeCheck: this.allowUnlimitedContractSize,
       });
     }
 
     return new FakeSenderTransaction(sender, txParams, {
       common: this._vm._common,
-      disableMaxInitCodeSizeCheck: this.allowUnlimitedContractSize,
     });
   }
 

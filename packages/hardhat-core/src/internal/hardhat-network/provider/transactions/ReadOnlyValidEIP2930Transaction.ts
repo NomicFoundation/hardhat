@@ -57,11 +57,7 @@ export class ReadOnlyValidEIP2930Transaction extends AccessListEIP2930Transactio
 
   private readonly _sender: Address;
 
-  constructor(
-    sender: Address,
-    data: AccessListEIP2930TxData = {},
-    opts: TxOptions = {}
-  ) {
+  constructor(sender: Address, data: AccessListEIP2930TxData = {}) {
     const fakeCommon = Common.custom(
       {
         chainId: BigIntUtils.fromBigIntLike(data.chainId),
@@ -71,7 +67,11 @@ export class ReadOnlyValidEIP2930Transaction extends AccessListEIP2930Transactio
       }
     );
 
-    super(data, { ...opts, freeze: false, common: fakeCommon });
+    super(data, {
+      freeze: false,
+      disableMaxInitCodeSizeCheck: true,
+      common: fakeCommon,
+    });
 
     this.common = fakeCommon;
     this._sender = sender;
