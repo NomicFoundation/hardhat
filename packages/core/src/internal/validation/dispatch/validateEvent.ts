@@ -11,7 +11,6 @@ import {
 import {
   buildValidationError,
   resolveArtifactForCallableFuture,
-  validateBytesForArtifact,
 } from "./helpers";
 
 export async function validateEvent(
@@ -19,16 +18,6 @@ export async function validateEvent(
   _resultAccumulator: ValidationResultsAccumulator,
   { callPoints, services }: ValidationDispatchContext
 ): Promise<ValidationVertexVisitResult> {
-  const invalidBytes = await validateBytesForArtifact({
-    vertex,
-    callPoints,
-    services,
-  });
-
-  if (invalidBytes !== null) {
-    return invalidBytes;
-  }
-
   let artifactAbi: any[] | undefined;
   if (typeof vertex.address === "string") {
     if (!ethers.utils.isAddress(vertex.address)) {

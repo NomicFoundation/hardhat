@@ -47,6 +47,7 @@ describe("deployment builder - libraries", () => {
       const { graph } = generateDeploymentGraphFrom(librariesModule, {
         chainId: 31,
         accounts: ["0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266"],
+        artifacts: [],
       });
 
       deploymentGraph = graph;

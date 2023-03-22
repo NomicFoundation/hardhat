@@ -171,11 +171,13 @@ Given the `create2` factory, you can deploy a contract via the factory by:
 module.exports = buildModule("Create2Example", (m) => {
   const create2 = m.contract("Create2Factory");
 
+  const fooArtifact = m.getArtifact("Foo");
+
   const fooAddress = m.call(create2, "deploy", {
     args: [
       0, // amount
       toBytes32(1), // salt
-      m.getBytesForArtifact("Foo"), // contract bytecode
+      fooArtifact.bytecode, // contract bytecode
     ],
   });
 

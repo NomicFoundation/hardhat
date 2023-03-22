@@ -58,6 +58,10 @@ class MockArtifactsService implements IArtifactsService {
   public getArtifact(_name: string): Promise<Artifact> {
     throw new IgnitionError("Method not implemented.");
   }
+
+  public getAllArtifacts(): Promise<Artifact[]> {
+    throw new IgnitionError("Method not implemented");
+  }
 }
 
 class MockTransactionService implements ITransactionsService {

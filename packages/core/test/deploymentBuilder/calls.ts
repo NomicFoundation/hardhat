@@ -35,6 +35,7 @@ describe("deployment builder - chainId", () => {
     const { graph } = generateDeploymentGraphFrom(callModule, {
       chainId: 31337,
       accounts: ["0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266"],
+      artifacts: [],
     });
 
     deploymentGraph = graph;

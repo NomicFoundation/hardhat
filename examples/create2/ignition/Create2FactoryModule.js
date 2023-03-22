@@ -1,14 +1,14 @@
 const { buildModule } = require("@ignored/hardhat-ignition");
 
-const Create2Artifact = require("../artifacts/contracts/Create2Factory.sol/Create2Factory.json");
-const BarArtifact = require("../artifacts/contracts/Bar.sol/Bar.json");
-const FooArtifact = require("../artifacts/contracts/Foo.sol/Foo.json");
-
 module.exports = buildModule("Create2Factory", (m) => {
+  const Create2Artifact = m.getArtifact("Create2Factory");
+  const BarArtifact = m.getArtifact("Bar");
+  const FooArtifact = m.getArtifact("Foo");
+
   const create2 = m.contract("Create2Factory", Create2Artifact, { args: [] });
 
   const fooCall = m.call(create2, "deploy", {
-    args: [0, toBytes32(1), m.getBytesForArtifact("Foo")],
+    args: [0, toBytes32(1), FooArtifact.bytecode],
   });
 
   const fooEvent = m.event(create2, "Deployed", {
@@ -17,7 +17,7 @@ module.exports = buildModule("Create2Factory", (m) => {
   });
 
   const barCall = m.call(create2, "deploy", {
-    args: [0, toBytes32(2), m.getBytesForArtifact("Bar")],
+    args: [0, toBytes32(2), BarArtifact.bytecode],
     after: [fooEvent],
   });
 

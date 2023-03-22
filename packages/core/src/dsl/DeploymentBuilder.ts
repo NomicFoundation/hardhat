@@ -14,7 +14,6 @@ import type {
   DependableFuture,
   ProxyFuture,
   EventFuture,
-  BytesFuture,
   EventParams,
   ArtifactFuture,
   EventParamFuture,
@@ -66,6 +65,10 @@ import { resolveProxyDependency } from "../internal/utils/proxy";
 import { DeploymentGraph } from "./DeploymentGraph";
 import { ScopeStack } from "./ScopeStack";
 
+interface ArtifactMap {
+  [contractName: string]: Artifact;
+}
+
 type DeploymentApiPublicFunctions =
   | InstanceType<typeof DeploymentBuilder>["contract"]
   | InstanceType<typeof DeploymentBuilder>["library"]
@@ -87,12 +90,17 @@ export class DeploymentBuilder implements IDeploymentBuilder {
   private moduleCache: ModuleCache = {};
   private useModuleInvocationCounter: number = 0;
   private scopes: ScopeStack = new ScopeStack();
+  private artifactMap: ArtifactMap = {};
 
   constructor(options: DeploymentBuilderOptions) {
     this.chainId = options.chainId;
     this.accounts = options.accounts;
     this.graph = new DeploymentGraph();
     this.callPoints = {};
+
+    for (const artifact of options.artifacts) {
+      this.artifactMap[artifact.contractName] = artifact;
+    }
   }
 
   public library(
@@ -450,14 +458,14 @@ export class DeploymentBuilder implements IDeploymentBuilder {
     return paramFuture;
   }
 
-  public getBytesForArtifact(artifactName: string): BytesFuture {
-    const bytesFuture: BytesFuture = {
-      label: artifactName,
-      type: "bytes",
-      _future: true,
-    };
+  public getArtifact(contractName: string): Artifact {
+    const artifact = this.artifactMap[contractName];
 
-    return bytesFuture;
+    if (artifact === undefined) {
+      throw new IgnitionError(`Artifact ${contractName} does not exist`);
+    }
+
+    return artifact;
   }
 
   public useModule<T extends ModuleDict>(

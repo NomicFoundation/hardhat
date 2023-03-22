@@ -3,7 +3,6 @@ import type { IDeploymentBuilder } from "../src/internal/types/deploymentGraph";
 
 import { assert } from "chai";
 import { ethers } from "ethers";
-import sinon from "sinon";
 
 import { buildModule } from "../src/dsl/buildModule";
 import { IgnitionValidationError } from "../src/errors";
@@ -91,32 +90,6 @@ describe("Validation", () => {
         "For contract 'from' must be a valid address string"
       );
     });
-
-    it("should not validate a artifact contract deploy with a non-existent bytes artifact arg", async () => {
-      const singleModule = buildModule("single", (m: IDeploymentBuilder) => {
-        const example = m.contract("Example", exampleArtifact, {
-          args: [1, 2, m.getBytesForArtifact("Nonexistant")],
-        });
-
-        return { example };
-      });
-
-      const mockServices = {
-        ...getMockServices(),
-        artifacts: {
-          hasArtifact(_name: string) {
-            return false;
-          },
-        },
-      } as any;
-
-      const validationResult = await runValidation(singleModule, mockServices);
-
-      assertValidationError(
-        validationResult,
-        "Artifact with name 'Nonexistant' doesn't exist"
-      );
-    });
   });
 
   describe("artifact library deploy", () => {
@@ -164,32 +137,6 @@ describe("Validation", () => {
       assertValidationError(
         validationResult,
         "For library 'from' must be a valid address string"
-      );
-    });
-
-    it("should not validate a artifact library deploy with a non-existent bytes artifact arg", async () => {
-      const singleModule = buildModule("single", (m: IDeploymentBuilder) => {
-        const example = m.library("Example", exampleArtifact, {
-          args: [1, 2, m.getBytesForArtifact("Nonexistant")],
-        });
-
-        return { example };
-      });
-
-      const mockServices = {
-        ...getMockServices(),
-        artifacts: {
-          hasArtifact(_name: string) {
-            return false;
-          },
-        },
-      } as any;
-
-      const validationResult = await runValidation(singleModule, mockServices);
-
-      assertValidationError(
-        validationResult,
-        "Artifact with name 'Nonexistant' doesn't exist"
       );
     });
   });
@@ -447,37 +394,6 @@ describe("Validation", () => {
       assertValidationError(
         validationResult,
         "For call 'from' must be a valid address string"
-      );
-    });
-
-    it("should fail a call with a non-existent bytes artifact arg", async () => {
-      const singleModule = buildModule("single", (m: IDeploymentBuilder) => {
-        const example = m.contract("Foo");
-
-        m.call(example, "nonexistant", {
-          args: [m.getBytesForArtifact("Bar")],
-        });
-
-        return { example };
-      });
-
-      const fakeHasArtifact = sinon.stub();
-      fakeHasArtifact.onFirstCall().resolves(true);
-      fakeHasArtifact.onSecondCall().resolves(false);
-
-      const mockServices = {
-        ...getMockServices(),
-        artifacts: {
-          hasArtifact: fakeHasArtifact,
-          getArtifact: () => exampleCallArtifact,
-        },
-      } as any;
-
-      const validationResult = await runValidation(singleModule, mockServices);
-
-      assertValidationError(
-        validationResult,
-        "Artifact with name 'Bar' doesn't exist"
       );
     });
   });
@@ -845,30 +761,6 @@ describe("Validation", () => {
         "For contract 'from' must be a valid address string"
       );
     });
-
-    it("should not validate a contract with non-existing bytes artifact arg", async () => {
-      const singleModule = buildModule("single", (m: IDeploymentBuilder) => {
-        const nonexistant = m.contract("Nonexistant", {
-          args: [m.getBytesForArtifact("Nonexistant")],
-        });
-
-        return { nonexistant };
-      });
-
-      const mockServices = {
-        ...getMockServices(),
-        artifacts: {
-          hasArtifact: () => false,
-        },
-      } as any;
-
-      const validationResult = await runValidation(singleModule, mockServices);
-
-      assertValidationError(
-        validationResult,
-        "Artifact with name 'Nonexistant' doesn't exist"
-      );
-    });
   });
 
   describe("hardhat library deploy", () => {
@@ -1003,6 +895,7 @@ async function runValidation<T extends ModuleDict>(
   const { graph, callPoints } = generateDeploymentGraphFrom(ignitionModule, {
     chainId: 31337,
     accounts: ["0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266"],
+    artifacts: [],
   });
 
   const validationResult = await validateDeploymentGraph(

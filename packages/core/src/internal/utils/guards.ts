@@ -1,28 +1,24 @@
 import type {
   CallableFuture,
+  ContractFuture,
   DependableFuture,
-  OptionalParameter,
   DeploymentGraphFuture,
+  EventParamFuture,
+  OptionalParameter,
+  ProxyFuture,
   RequiredParameter,
   Virtual,
-  ProxyFuture,
-  BytesFuture,
-  EventParamFuture,
-  ContractFuture,
 } from "../../types/future";
 import type {
-  DeploymentGraphVertex,
-  HardhatContractDeploymentVertex,
   ArtifactContractDeploymentVertex,
-  DeployedContractDeploymentVertex,
-  CallDeploymentVertex,
-  HardhatLibraryDeploymentVertex,
   ArtifactLibraryDeploymentVertex,
+  CallDeploymentVertex,
+  DeployedContractDeploymentVertex,
+  DeploymentGraphVertex,
   EventVertex,
-  InternalParamValue,
+  HardhatContractDeploymentVertex,
+  HardhatLibraryDeploymentVertex,
 } from "../types/deploymentGraph";
-
-import { BigNumber } from "ethers";
 
 import { IgnitionError } from "../../errors";
 import { Artifact } from "../../types/hardhat";
@@ -117,14 +113,6 @@ export function isParameter(
   future: DeploymentGraphFuture
 ): future is RequiredParameter | OptionalParameter {
   return future.type === "parameter";
-}
-
-export function isBytesArg(arg: InternalParamValue): arg is BytesFuture {
-  return (
-    typeof arg === "object" &&
-    !BigNumber.isBigNumber(arg) &&
-    arg.type === "bytes"
-  );
 }
 
 export function isCallable(

@@ -12,4 +12,8 @@ export class ArtifactsService implements IArtifactsService {
   public hasArtifact(name: string): Promise<boolean> {
     return this._providers.artifacts.hasArtifact(name);
   }
+
+  public getAllArtifacts(): Promise<Artifact[]> {
+    return this._providers.artifacts.getAllArtifacts();
+  }
 }

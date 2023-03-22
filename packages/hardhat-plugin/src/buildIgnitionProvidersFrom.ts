@@ -14,6 +14,15 @@ export function buildIgnitionProvidersFrom(hre: HardhatRuntimeEnvironment) {
           return false;
         }
       },
+      getAllArtifacts: async () => {
+        const names = await hre.artifacts.getAllFullyQualifiedNames();
+
+        const artifacts = await Promise.all(
+          names.map((n) => hre.artifacts.readArtifact(n))
+        );
+
+        return artifacts;
+      },
     },
     gasProvider: {
       estimateGasLimit: async (tx: any) => {

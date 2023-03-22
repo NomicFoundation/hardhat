@@ -22,6 +22,7 @@ export async function resolveExecutionGraphFor(module: Module<any>) {
   const { graph: deploymentGraph } = generateDeploymentGraphFrom(module, {
     chainId: 31337,
     accounts: ["0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266"],
+    artifacts: [],
   });
 
   const mockServices = {
@@ -38,6 +39,7 @@ export async function resolveExecutionGraphFor(module: Module<any>) {
         linkReferences: {},
         deployedLinkReferences: {},
       }),
+      getAllArtifacts: () => [],
     },
     accounts: {
       getAccounts: () => {

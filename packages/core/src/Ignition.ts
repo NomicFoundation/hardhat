@@ -64,14 +64,16 @@ export class Ignition {
     );
 
     try {
-      const [chainId, accounts] = await Promise.all([
+      const [chainId, accounts, artifacts] = await Promise.all([
         this._services.network.getChainId(),
         this._services.accounts.getAccounts(),
+        this._services.artifacts.getAllArtifacts(),
       ]);
 
       await deployment.setDeploymentDetails({
         accounts,
         chainId,
+        artifacts,
         networkName: options.networkName,
         force: options.force,
       });
@@ -135,9 +137,10 @@ export class Ignition {
   ): Promise<IgnitionPlan> {
     log(`Start plan`);
 
-    const [chainId, accounts] = await Promise.all([
+    const [chainId, accounts, artifacts] = await Promise.all([
       this._services.network.getChainId(),
       this._services.accounts.getAccounts(),
+      this._services.artifacts.getAllArtifacts(),
     ]);
 
     const { graph: deploymentGraph, callPoints } = generateDeploymentGraphFrom(
@@ -145,6 +148,7 @@ export class Ignition {
       {
         chainId,
         accounts,
+        artifacts,
       }
     );
 
@@ -184,6 +188,7 @@ export class Ignition {
     } = generateDeploymentGraphFrom(ignitionModule, {
       chainId: deployment.state.details.chainId,
       accounts: deployment.state.details.accounts,
+      artifacts: deployment.state.details.artifacts,
     });
 
     await deployment.startValidation();

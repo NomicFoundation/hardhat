@@ -9,7 +9,7 @@ import {
 } from "../../types/validation";
 import { isArtifact } from "../../utils/guards";
 
-import { buildValidationError, validateBytesForArtifact } from "./helpers";
+import { buildValidationError } from "./helpers";
 
 export async function validateArtifactLibrary(
   vertex: ArtifactLibraryDeploymentVertex,
@@ -22,16 +22,6 @@ export async function validateArtifactLibrary(
       `For library 'from' must be a valid address string`,
       context.callPoints
     );
-  }
-
-  const invalidBytes = await validateBytesForArtifact({
-    vertex,
-    callPoints: context.callPoints,
-    services: context.services,
-  });
-
-  if (invalidBytes !== null) {
-    return invalidBytes;
   }
 
   const artifactExists = isArtifact(vertex.artifact);

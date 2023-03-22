@@ -43,6 +43,7 @@ describe("deployment builder - parameters", function () {
     const { graph } = generateDeploymentGraphFrom(WrapModule, {
       chainId: 31,
       accounts: [],
+      artifacts: [],
     });
 
     deploymentGraph = graph;

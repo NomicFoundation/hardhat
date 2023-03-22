@@ -8,7 +8,7 @@ import {
   ValidationVertexVisitResult,
 } from "../../types/validation";
 
-import { buildValidationError, validateBytesForArtifact } from "./helpers";
+import { buildValidationError } from "./helpers";
 
 export async function validateHardhatLibrary(
   vertex: HardhatLibraryDeploymentVertex,
@@ -21,16 +21,6 @@ export async function validateHardhatLibrary(
       `For library 'from' must be a valid address string`,
       callPoints
     );
-  }
-
-  const invalidBytes = await validateBytesForArtifact({
-    vertex,
-    callPoints,
-    services,
-  });
-
-  if (invalidBytes !== null) {
-    return invalidBytes;
   }
 
   const artifactExists = await services.artifacts.hasArtifact(

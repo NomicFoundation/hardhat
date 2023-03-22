@@ -9,7 +9,7 @@ import {
 } from "../../types/validation";
 import { isParameter } from "../../utils/guards";
 
-import { buildValidationError, validateBytesForArtifact } from "./helpers";
+import { buildValidationError } from "./helpers";
 
 export async function validateHardhatContract(
   vertex: HardhatContractDeploymentVertex,
@@ -30,16 +30,6 @@ export async function validateHardhatContract(
       `For contract 'from' must be a valid address string`,
       callPoints
     );
-  }
-
-  const invalidBytes = await validateBytesForArtifact({
-    vertex,
-    callPoints,
-    services,
-  });
-
-  if (invalidBytes !== null) {
-    return invalidBytes;
   }
 
   const artifactExists = await services.artifacts.hasArtifact(
