@@ -23,7 +23,8 @@ import {
 } from "../../../helpers/providers";
 import {
   deployContract,
-  deployBytecode,
+  getTxToDeployBytecode,
+  sendDeploymentTx,
   sendTxToZeroAddress,
 } from "../../../helpers/transactions";
 import { useProvider as importedUseProvider } from "../../../helpers/useProvider";
@@ -31,6 +32,7 @@ import {
   EIP1559RpcTransactionOutput,
   RpcBlockOutput,
 } from "../../../../../../src/internal/hardhat-network/provider/output";
+import { InvalidArgumentsError } from "../../../../../../src/internal/core/providers/errors";
 import * as BigIntUtils from "../../../../../../src/internal/util/bigint";
 import {
   EXAMPLE_TOUCH_ADDRESS_CONTRACT,
@@ -1596,11 +1598,13 @@ describe("Eth module - hardfork dependant tests", function () {
         it("should allow initcodes larger than the EIP-3860 limit", async function () {
           const code = "ff".repeat(maxInitcodeSize + 100);
 
-          const contractAddress = await deployBytecode(
-            this.provider,
-            code,
-            maxCodeSize
-          );
+          const tx = getTxToDeployBytecode(code, maxCodeSize);
+
+          await this.provider.send("hardhat_setNextBlockBaseFeePerGas", [
+            "0x0",
+          ]);
+
+          const contractAddress = await sendDeploymentTx(this.provider, tx);
 
           const deployedCode = await this.provider.send("eth_getCode", [
             contractAddress,
@@ -1689,9 +1693,12 @@ describe("Eth module - hardfork dependant tests", function () {
           it("shouldn't allow initcodes larger than the EIP-3860 limit", async function () {
             const code = "ff".repeat(maxInitcodeSize + 100);
 
+            const tx = getTxToDeployBytecode(code, maxCodeSize);
+
             await assert.isRejected(
-              deployBytecode(this.provider, code, maxCodeSize),
-              "the initcode size of this transaction is too large"
+              sendDeploymentTx(this.provider, tx),
+              InvalidArgumentsError,
+              "Trying to send a deployment transaction whose init code length is"
             );
           });
 
@@ -1712,14 +1719,48 @@ describe("Eth module - hardfork dependant tests", function () {
               },
             ]);
 
+            const tx = getTxToDeployBytecode(
+              code,
+              maxCodeSize,
+              impersonatedAddress
+            );
+
             await assert.isRejected(
-              deployBytecode(
-                this.provider,
-                code,
-                maxCodeSize,
-                impersonatedAddress
-              ),
-              "the initcode size of this transaction is too large"
+              sendDeploymentTx(this.provider, tx),
+              InvalidArgumentsError,
+              "Trying to send a deployment transaction whose init code length is"
+            );
+          });
+
+          it("shouldn't allow initcodes larger than the EIP-3860 limit in raw transactions", async function () {
+            const code = "ff".repeat(maxInitcodeSize + 100);
+
+            const txData = getTxToDeployBytecode(code, maxCodeSize);
+
+            await this.provider.send("hardhat_setNextBlockBaseFeePerGas", [
+              "0x0",
+            ]);
+
+            const tx = Transaction.fromTxData(
+              {
+                gasLimit: txData.gas,
+                gasPrice: txData.gasPrice,
+                data: txData.data,
+              },
+              {
+                common: this.common,
+                disableMaxInitCodeSizeCheck: true,
+              }
+            );
+
+            const signedTx = tx.sign(privateKey);
+            const serialized = bufferToRpcData(signedTx.serialize());
+
+            await assertInvalidArgumentsError(
+              this.provider,
+              "eth_sendRawTransaction",
+              [serialized],
+              "Trying to send a deployment transaction whose init code length is"
             );
           });
         });
@@ -1732,11 +1773,13 @@ describe("Eth module - hardfork dependant tests", function () {
           it("should allow initcodes larger than the EIP-3860 limit", async function () {
             const code = "ff".repeat(maxInitcodeSize + 100);
 
-            const contractAddress = await deployBytecode(
-              this.provider,
-              code,
-              maxCodeSize
-            );
+            const tx = getTxToDeployBytecode(code, maxCodeSize);
+
+            await this.provider.send("hardhat_setNextBlockBaseFeePerGas", [
+              "0x0",
+            ]);
+
+            const contractAddress = await sendDeploymentTx(this.provider, tx);
 
             const deployedCode = await this.provider.send("eth_getCode", [
               contractAddress,
@@ -1753,9 +1796,14 @@ describe("Eth module - hardfork dependant tests", function () {
             const impersonatedAddress =
               "0x1234567890123456789012345678901234567890";
 
+            await this.provider.send("hardhat_setNextBlockBaseFeePerGas", [
+              "0x0",
+            ]);
             await this.provider.send("hardhat_impersonateAccount", [
               impersonatedAddress,
             ]);
+
+            // send some eth to the impersonated account
             await this.provider.send("eth_sendTransaction", [
               {
                 from: DEFAULT_ACCOUNTS_ADDRESSES[0],
@@ -1764,11 +1812,54 @@ describe("Eth module - hardfork dependant tests", function () {
               },
             ]);
 
-            const contractAddress = await deployBytecode(
-              this.provider,
+            const tx = getTxToDeployBytecode(
               code,
               maxCodeSize,
               impersonatedAddress
+            );
+
+            const contractAddress = await sendDeploymentTx(this.provider, tx);
+
+            const deployedCode = await this.provider.send("eth_getCode", [
+              contractAddress,
+              "latest",
+            ]);
+
+            const deployedCodeBytes = (deployedCode.length - 2) / 2;
+            assert.equal(deployedCodeBytes, maxCodeSize);
+          });
+
+          it("should allow initcodes larger than the EIP-3860 limit in raw transactions", async function () {
+            const code = "ff".repeat(maxInitcodeSize + 100);
+
+            const txData = getTxToDeployBytecode(code, maxCodeSize);
+
+            await this.provider.send("hardhat_setNextBlockBaseFeePerGas", [
+              "0x0",
+            ]);
+
+            const tx = Transaction.fromTxData(
+              {
+                gasLimit: txData.gas,
+                gasPrice: txData.gasPrice,
+                data: txData.data,
+              },
+              {
+                common: this.common,
+                disableMaxInitCodeSizeCheck: true,
+              }
+            );
+
+            const signedTx = tx.sign(privateKey);
+            const serialized = bufferToRpcData(signedTx.serialize());
+
+            const txHash = await this.provider.send("eth_sendRawTransaction", [
+              serialized,
+            ]);
+
+            const { contractAddress } = await this.provider.send(
+              "eth_getTransactionReceipt",
+              [txHash]
             );
 
             const deployedCode = await this.provider.send("eth_getCode", [

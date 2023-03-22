@@ -111,18 +111,17 @@ export async function getSignedTxHash(
 }
 
 /**
- * Sends a transaction that deploys a contract with bytecode `bytecode`.
+ * Returns a transaction that deploys a contract with bytecode `bytecode`.
  *
  * This helper is different from deployContract because that helper receives
  * the deployment bytecode, while this one receives the bytecode that we want
  * to deploy, plus the length of the slice of that bytecode we want deployed.
  */
-export async function deployBytecode(
-  provider: EthereumProvider,
+export function getTxToDeployBytecode(
   bytecode: string,
   bytecodeLength: number = bytecode.length / 2,
   from = DEFAULT_ACCOUNTS_ADDRESSES[0]
-): Promise<string> {
+) {
   const deployedCodeLengthHex = bytecodeLength.toString(16).padStart(4, "0");
 
   if (deployedCodeLengthHex.length > 4) {
@@ -140,13 +139,19 @@ export async function deployBytecode(
   // F3: RETURN
   const deploymentBytecode = `0x3d61${deployedCodeLengthHex}80600b3d3981f3${bytecode}`;
 
-  const hash = await provider.send("eth_sendTransaction", [
-    {
-      from,
-      data: deploymentBytecode,
-      gas: numberToRpcQuantity(DEFAULT_BLOCK_GAS_LIMIT),
-    },
-  ]);
+  return {
+    from,
+    data: deploymentBytecode,
+    gas: numberToRpcQuantity(DEFAULT_BLOCK_GAS_LIMIT),
+    gasPrice: numberToRpcQuantity(0),
+  };
+}
+
+export async function sendDeploymentTx(
+  provider: EthereumProvider,
+  tx: any
+): Promise<string> {
+  const hash = await provider.send("eth_sendTransaction", [tx]);
 
   const { contractAddress } = await provider.send("eth_getTransactionReceipt", [
     hash,
