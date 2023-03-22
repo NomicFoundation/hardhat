@@ -231,24 +231,70 @@ impl RpcClient {
         Ok(success.result)
     }
 
+    fn hash_string(input: &str) -> String {
+        use std::hash::Hasher;
+        let mut hasher = std::collections::hash_map::DefaultHasher::new();
+        hasher.write(input.as_bytes());
+        hasher.finish().to_string()
+    }
+
+    fn make_cache_path(&self, request_body: &str) -> std::path::PathBuf {
+        // TODO: consider using a better path for this directory. currently, for test runs,
+        // it's going to crates/rethnet_eth/remote_node_cache. shouldn't it be rooted somewhere
+        // more accessible/convenient?
+        let directory = format!("remote_node_cache/{}", Self::hash_string(&self.url));
+
+        // ensure directory exists
+        std::fs::DirBuilder::new()
+            .recursive(true)
+            .create(directory.clone())
+            .expect("failed to create on-disk RPC response cache");
+
+        std::path::Path::new(&directory).join(format!("{}.json", Self::hash_string(request_body)))
+    }
+
+    fn read_response_from_cache(&self, request_body: &str) -> Option<String> {
+        if let Ok(mut file) = std::fs::File::open(&self.make_cache_path(request_body)) {
+            let mut response = String::new();
+            if std::io::Read::read_to_string(&mut file, &mut response).is_ok() {
+                Some(response)
+            } else {
+                None
+            }
+        } else {
+            None
+        }
+    }
+
+    fn write_response_to_cache(&self, request_body: &str, response: &str) {
+        std::fs::write(&self.make_cache_path(request_body), response.as_bytes())
+            .expect("failed to write to on-disk RPC response cache")
+    }
+
     /// returns response text
     async fn send_request_body(&self, request_body: String) -> Result<String, RpcClientError> {
-        use RpcClientError::{ResponseError, SendError};
-        self.client
-            .post(self.url.to_string())
-            .body(request_body.to_string())
-            .send()
-            .await
-            .map_err(|err| SendError {
-                msg: err.to_string(),
-                request_body: request_body.to_string(),
-            })?
-            .text()
-            .await
-            .map_err(|err| ResponseError {
-                msg: err.to_string(),
-                request_body: request_body.to_string(),
-            })
+        if let Some(cached_response) = self.read_response_from_cache(&request_body) {
+            Ok(cached_response)
+        } else {
+            let response = self
+                .client
+                .post(self.url.to_string())
+                .body(request_body.to_string())
+                .send()
+                .await
+                .map_err(|err| RpcClientError::SendError {
+                    msg: err.to_string(),
+                    request_body: request_body.to_string(),
+                })?
+                .text()
+                .await
+                .map_err(|err| RpcClientError::ResponseError {
+                    msg: err.to_string(),
+                    request_body: request_body.to_string(),
+                })?;
+            self.write_response_to_cache(&request_body, &response);
+            Ok(response)
+        }
     }
 
     async fn call<T>(&self, input: &MethodInvocation) -> Result<T, RpcClientError>
@@ -547,7 +593,7 @@ mod tests {
         let alchemy_url = "https://xxxeth-mainnet.g.alchemy.com";
 
         let hash =
-            B256::from_str("0xc008e9f9bb92057dd0035496fbf4fb54f66b4b18b370928e46d6603933054d5a")
+            B256::from_str("0xc008e9f9bb92057dd0035496fbf4fb54f66b4b18b370928e46d6603933051111")
                 .expect("failed to parse hash from string");
 
         let error_string = format!(
@@ -568,7 +614,7 @@ mod tests {
         let alchemy_url = "https://eth-mainnet.g.alchemy.com/v2/abcdefg";
 
         let hash =
-            B256::from_str("0xc008e9f9bb92057dd0035496fbf4fb54f66b4b18b370928e46d6603933054d5a")
+            B256::from_str("0xc008e9f9bb92057dd0035496fbf4fb54f66b4b18b370928e46d6603933022222")
                 .expect("failed to parse hash from string");
 
         let error_string = format!(
@@ -650,7 +696,7 @@ mod tests {
         let alchemy_url = "https://xxxeth-mainnet.g.alchemy.com";
 
         let hash =
-            B256::from_str("0xc008e9f9bb92057dd0035496fbf4fb54f66b4b18b370928e46d6603933054d5a")
+            B256::from_str("0xc008e9f9bb92057dd0035496fbf4fb54f66b4b18b370928e46d6603933054d5f")
                 .expect("failed to parse hash from string");
 
         let error_string = format!(
@@ -671,7 +717,7 @@ mod tests {
         let alchemy_url = "https://eth-mainnet.g.alchemy.com/v2/abcdefg";
 
         let hash =
-            B256::from_str("0xc008e9f9bb92057dd0035496fbf4fb54f66b4b18b370928e46d6603933054d5a")
+            B256::from_str("0xc008e9f9bb92057dd0035496fbf4fb54f66b4b18b370928e46d6603933054d5b")
                 .expect("failed to parse hash from string");
 
         let error_string = format!(
