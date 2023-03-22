@@ -9,6 +9,7 @@
   - [Constructor arguments](./creating-modules-for-deployment.md#constructor-arguments)
   - [Adding an endowment of _Eth_](./creating-modules-for-deployment.md#adding-an-endowment-of-eth)
   - [Dependencies between contracts](./creating-modules-for-deployment.md#dependencies-between-contracts)
+  - [Retrieving an artifact](./creating-modules-for-deployment.md#retrieving-an-artifact)
   - [Using an existing contract](./creating-modules-for-deployment.md#using-an-existing-contract)
   - [Deploying from an artifact](./creating-modules-for-deployment.md#deploying-from-an-artifact)
   - [Linking libraries](./creating-modules-for-deployment.md#linking-libraries)
@@ -95,30 +96,40 @@ const b = m.contract("B", {
 });
 ```
 
+### Retrieving an artifact
+
+You can use the module system itself to retrieve any of your locally compiled contract artifacts. This allows you to access and use the artifact ABI and bytecode wherever you'd like:
+
+```tsx
+const artifact = m.getArtifact("Foo");
+```
+
 ### Using an existing contract
 
 A user might need to execute a method in a contract that wasn't deployed by Ignition. An existing contract can be leveraged by passing an address and abi:
 
 ```tsx
-const abi = [{...}]
-const uniswap = m.contractAt("UniswapRouter", "0x123...", abi)
+const artifact = m.getArtifact("UniswapRouter");
+const uniswap = m.contractAt("UniswapRouter", "0x123...", artifact.abi)
 
 m.call(uniswap, "swap", { ... })
 ```
 
 ### Deploying from an artifact
 
-To allow you to use your own mechanism for getting the contract artifact, `contract` supports passing an `Artifact` as an optional second parameter:
+Additionally, `contract` supports passing an `Artifact` as an optional second parameter:
 
 ```javascript
-const artifact = hre.artifacts.readArtifactSync("Foo");
-
 const userModule = buildModule("MyModule", (m) => {
+  const artifact = m.getArtifact("Foo");
+
   m.contract("Foo", artifact, {
     args: [0],
   });
 });
 ```
+
+This can be helpful when listening for [contract events](./creating-modules-for-deployment.md#waiting-for-on-chain-events)
 
 ### Linking libraries
 
@@ -246,7 +257,8 @@ Because `totalSupply` is not a number, it is a future.
 A deployment can be put `on-hold` until an on-chain event has been emitted (for instance a timelock or multisig approval):
 
 ```tsx
-const multisig = m.deploy("Multisig");
+const artifact = m.getArtifact("Multisig");
+const multisig = m.contract("Multisig", artifact, { args: [] });
 
 const call = m.call(multisig, "authorize");
 
