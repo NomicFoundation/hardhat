@@ -1,6 +1,6 @@
 import type { ExecutionContext } from "../../types/deployment";
 import type {
-  ContractDeploy,
+  ContractDeployExecutionVertex,
   ExecutionResultsAccumulator,
   ExecutionVertexVisitResult,
 } from "../../types/executionGraph";
@@ -13,7 +13,7 @@ import { collectLibrariesAndLink } from "../../utils/collectLibrariesAndLink";
 import { resolveFrom, toAddress } from "./utils";
 
 export async function executeContractDeploy(
-  { artifact, args, libraries, value, signer }: ContractDeploy,
+  { artifact, args, libraries, value, signer }: ContractDeployExecutionVertex,
   resultAccumulator: ExecutionResultsAccumulator,
   { services, options }: ExecutionContext
 ): Promise<ExecutionVertexVisitResult> {

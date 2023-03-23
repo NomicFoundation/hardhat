@@ -29,24 +29,35 @@ import { createServices } from "./internal/services/createServices";
 import { Services } from "./internal/types/services";
 import { resolveProxyValue } from "./internal/utils/proxy";
 import { validateDeploymentGraph } from "./internal/validation/validateDeploymentGraph";
-import { Providers } from "./types/providers";
+import {
+  IgnitionConstructorArgs,
+  IgnitionCreationArgs,
+} from "./types/ignition";
 
 const log = setupDebug("ignition:main");
 
+/**
+ * The entry point for deploying using _Ignition_.
+ *
+ * @internal
+ */
 export class Ignition {
   private _services: Services;
   private _uiRenderer: UpdateUiAction;
   private _journal: ICommandJournal;
 
+  /**
+   * A factory function to create a new Ignition instance based on the
+   * given providers.
+   *
+   * @param options - The setup options for Ignition.
+   * @returns The setup Ignition instance
+   */
   public static create({
     providers,
     uiRenderer = () => {},
     journal = new NoopCommandJournal(),
-  }: {
-    providers: Providers;
-    uiRenderer?: UpdateUiAction;
-    journal?: ICommandJournal;
-  }) {
+  }: IgnitionCreationArgs) {
     return new Ignition({
       services: createServices(providers),
       uiRenderer,
@@ -54,20 +65,36 @@ export class Ignition {
     });
   }
 
+  /**
+   * Creates a new Ignition instance that will manage and orchestrate a
+   * deployment.
+   *
+   * @param options - The service-based setup options for Ignition.
+   *
+   * @internal
+   */
   protected constructor({
     services,
     uiRenderer,
     journal,
-  }: {
-    services: Services;
-    uiRenderer: UpdateUiAction;
-    journal: ICommandJournal;
-  }) {
+  }: IgnitionConstructorArgs) {
     this._services = services;
     this._uiRenderer = uiRenderer;
     this._journal = journal;
   }
 
+  /**
+   * Run a deployment based on a given Ignition module on-chain,
+   * leveraging any configured journal to record.
+   *
+   * @param ignitionModule - An Ignition module
+   * @param options - Configuration options
+   * @returns A struct indicating whether the deployment was
+   * a success, failure or hold. A successful result will
+   * include the addresses of the deployed contracts.
+   *
+   * @internal
+   */
   public async deploy<T extends ModuleDict>(
     ignitionModule: Module<T>,
     options: IgnitionDeployOptions
@@ -150,6 +177,15 @@ export class Ignition {
     }
   }
 
+  /**
+   * Construct a plan (or dry run) describing how a deployment will be executed
+   * for the given module.
+   *
+   * @param deploymentModule - The Ignition module to be deployed
+   * @returns The deployment details as a plan
+   *
+   * @internal
+   */
   public async plan<T extends ModuleDict>(
     deploymentModule: Module<T>
   ): Promise<IgnitionPlan> {

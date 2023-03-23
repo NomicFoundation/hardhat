@@ -8,23 +8,44 @@ import type { ExternalParamValue } from "./deploymentGraph";
 
 import { ethers } from "ethers";
 
+/**
+ * Access a set of predefined ethereum accounts and their equivalent signers.
+ *
+ * @internal
+ */
 export interface IAccountsService {
   getAccounts(): Promise<string[]>;
   getSigner(address: string): Promise<ethers.Signer>;
 }
 
+/**
+ * Provide access to contract artifacts (i.e. the container for a contract's
+ * abi, bytecode and other key metadata).
+ *
+ * @internal
+ */
 export interface IArtifactsService {
   getArtifact(name: string): Promise<Artifact>;
   hasArtifact(name: string): Promise<boolean>;
   getAllArtifacts(): Promise<Artifact[]>;
 }
 
+/**
+ * Provide access to underlying configuration options.
+ *
+ * @internal
+ */
 export interface IConfigService {
   getParam(paramName: string): Promise<ExternalParamValue>;
 
   hasParam(paramName: string): Promise<HasParamResult>;
 }
 
+/**
+ * Allow the sending of transactions to smart contracts on-chain.
+ *
+ * @internal
+ */
 export interface IContractsService {
   sendTx(
     deployTransaction: ethers.providers.TransactionRequest,
@@ -32,10 +53,21 @@ export interface IContractsService {
   ): Promise<string>;
 }
 
+/**
+ * Provide access to details of the chain being deployed against.
+ *
+ * @internal
+ */
 export interface INetworkService {
   getChainId(): Promise<number>;
 }
 
+/**
+ * Provide general access to the target chains transaction and event
+ * processing.
+ *
+ * @internal
+ */
 export interface ITransactionsService {
   wait(txHash: string): Promise<ethers.providers.TransactionReceipt>;
   waitForEvent(
@@ -44,6 +76,12 @@ export interface ITransactionsService {
   ): Promise<ethers.providers.Log | null>;
 }
 
+/**
+ * Configuration options to be sent to the target chain with the transaction
+ * to be processed.
+ *
+ * @internal
+ */
 export interface TransactionOptions {
   gasLimit?: ethers.BigNumberish;
   gasPrice?: ethers.BigNumberish;
@@ -59,6 +97,13 @@ export interface ContractsServiceProviders {
   gasProvider: GasProvider;
 }
 
+/**
+ * Adapter implementations for the underlying services that represent
+ * Ignitions interactions with external systems (i.e. the target blockchain,
+ * the filesystem etc).
+ *
+ * @internal
+ */
 export interface Services {
   network: INetworkService;
   contracts: IContractsService;

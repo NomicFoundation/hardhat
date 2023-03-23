@@ -1,6 +1,6 @@
 import type { ExecutionContext } from "../../types/deployment";
 import type {
-  ContractCall,
+  ContractCallExecutionVertex,
   ExecutionVertexVisitResult,
 } from "../../types/executionGraph";
 
@@ -11,7 +11,7 @@ import { VertexResultEnum } from "../../types/graph";
 import { resolveFrom, toAddress } from "./utils";
 
 export async function executeContractCall(
-  { method, contract, args, value, signer }: ContractCall,
+  { method, contract, args, value, signer }: ContractCallExecutionVertex,
   resultAccumulator: Map<number, ExecutionVertexVisitResult | undefined>,
   { services, options }: ExecutionContext
 ): Promise<ExecutionVertexVisitResult> {

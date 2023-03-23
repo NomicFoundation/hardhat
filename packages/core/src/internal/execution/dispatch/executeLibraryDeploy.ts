@@ -2,7 +2,7 @@ import type { ExecutionContext } from "../../types/deployment";
 import type {
   ExecutionResultsAccumulator,
   ExecutionVertexVisitResult,
-  LibraryDeploy,
+  LibraryDeployExecutionVertex,
 } from "../../types/executionGraph";
 
 import { ContractFactory, ethers } from "ethers";
@@ -13,7 +13,7 @@ import { collectLibrariesAndLink } from "../../utils/collectLibrariesAndLink";
 import { resolveFrom, toAddress } from "./utils";
 
 export async function executeLibraryDeploy(
-  { artifact, args, signer }: LibraryDeploy,
+  { artifact, args, signer }: LibraryDeployExecutionVertex,
   resultAccumulator: ExecutionResultsAccumulator,
   { services, options }: ExecutionContext
 ): Promise<ExecutionVertexVisitResult> {

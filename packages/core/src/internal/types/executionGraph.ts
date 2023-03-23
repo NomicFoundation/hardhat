@@ -17,12 +17,22 @@ import {
   VisitResult,
 } from "./graph";
 
+/**
+ * A dependency graph for on-chain execution.
+ *
+ * @internal
+ */
 export interface IExecutionGraph {
   adjacencyList: AdjacencyList;
   vertexes: Map<number, ExecutionVertex>;
   getEdges(): Array<{ from: number; to: number }>;
 }
 
+/**
+ * The allowed values when passing an argument to a smart contract method call.
+ *
+ * @internal
+ */
 export type ArgValue =
   | boolean
   | string
@@ -30,6 +40,11 @@ export type ArgValue =
   | BigNumber
   | DeploymentGraphFuture;
 
+/**
+ * The different types of the vertexes of the execution graph.
+ *
+ * @internal
+ */
 export type ExecutionVertexType =
   | "ContractDeploy"
   | "DeployedContract"
@@ -38,15 +53,25 @@ export type ExecutionVertexType =
   | "AwaitedEvent"
   | "SentETH";
 
+/**
+ * The vertexes of the execution graph.
+ *
+ * @internal
+ */
 export type ExecutionVertex =
-  | ContractDeploy
-  | DeployedContract
-  | LibraryDeploy
-  | ContractCall
-  | AwaitedEvent
-  | SentETH;
+  | ContractDeployExecutionVertex
+  | DeployedContractExecutionVertex
+  | LibraryDeployExecutionVertex
+  | ContractCallExecutionVertex
+  | AwaitedEventExecutionVertex
+  | SentETHExecutionVertex;
 
-export interface ContractDeploy extends VertexDescriptor {
+/**
+ * Deploy a contract based on the given artifact.
+ *
+ * @internal
+ */
+export interface ContractDeployExecutionVertex extends VertexDescriptor {
   type: "ContractDeploy";
   artifact: Artifact;
   args: ArgValue[];
@@ -55,20 +80,36 @@ export interface ContractDeploy extends VertexDescriptor {
   signer: ethers.Signer;
 }
 
-export interface DeployedContract extends VertexDescriptor {
+/**
+ * Make no on-chain action but substitute an already known
+ * address and abi.
+ *
+ * @internal
+ */
+export interface DeployedContractExecutionVertex extends VertexDescriptor {
   type: "DeployedContract";
   address: string | EventParamFuture;
   abi: any[];
 }
 
-export interface LibraryDeploy extends VertexDescriptor {
+/**
+ * Deploy a library based on the given artifact.
+ *
+ * @internal
+ */
+export interface LibraryDeployExecutionVertex extends VertexDescriptor {
   type: "LibraryDeploy";
   artifact: Artifact;
   args: ArgValue[];
   signer: ethers.Signer;
 }
 
-export interface ContractCall extends VertexDescriptor {
+/**
+ * Make a method call to a smart chain contract.
+ *
+ * @internal
+ */
+export interface ContractCallExecutionVertex extends VertexDescriptor {
   type: "ContractCall";
   contract: any;
   method: string;
@@ -77,7 +118,12 @@ export interface ContractCall extends VertexDescriptor {
   signer: ethers.Signer;
 }
 
-export interface AwaitedEvent extends VertexDescriptor {
+/**
+ * Wait for the an Ethereum event to execute.
+ *
+ * @internal
+ */
+export interface AwaitedEventExecutionVertex extends VertexDescriptor {
   type: "AwaitedEvent";
   abi: any[];
   address: string | ArtifactContract | EventParamFuture;
@@ -85,13 +131,23 @@ export interface AwaitedEvent extends VertexDescriptor {
   args: ArgValue[];
 }
 
-export interface SentETH extends VertexDescriptor {
+/**
+ * Transfer ETH to a contract/address.
+ *
+ * @internal
+ */
+export interface SentETHExecutionVertex extends VertexDescriptor {
   type: "SentETH";
   address: AddressResolvable;
   value: BigNumber;
   signer: ethers.Signer;
 }
 
+/**
+ * The result of a successful contract deployment.
+ *
+ * @internal
+ */
 export interface ContractDeploySuccess {
   name: string;
   abi: any[];
@@ -100,12 +156,22 @@ export interface ContractDeploySuccess {
   value: ethers.BigNumber;
 }
 
+/**
+ * The result of a successful existing contract.
+ *
+ * @internal
+ */
 export interface DeployedContractSuccess {
   name: string;
   abi: any[];
   address: string;
 }
 
+/**
+ * The result of a successful library deployment.
+ *
+ * @internal
+ */
 export interface LibraryDeploySuccess {
   name: string;
   abi: any[];
@@ -113,19 +179,39 @@ export interface LibraryDeploySuccess {
   address: string;
 }
 
+/**
+ * The result of a successful wait on an Ethereum event.
+ *
+ * @internal
+ */
 export interface AwaitedEventSuccess {
   topics: ethers.utils.Result;
 }
 
+/**
+ * The result of a successful smart contract method invocation.
+ *
+ * @internal
+ */
 export interface ContractCallSuccess {
   hash: string;
 }
 
+/**
+ * The result of a successful transfer of ETH to a contract/address.
+ *
+ * @internal
+ */
 export interface SendETHSuccess {
   hash: string;
   value: ethers.BigNumber;
 }
 
+/**
+ * The result of a successful vertex execution.
+ *
+ * @internal
+ */
 export type VertexVisitResultSuccessResult =
   | ContractDeploySuccess
   | DeployedContractSuccess
@@ -134,6 +220,11 @@ export type VertexVisitResultSuccessResult =
   | ContractCallSuccess
   | SendETHSuccess;
 
+/**
+ * The result of a processing a vertex of the execution graph.
+ *
+ * @internal
+ */
 export type ExecutionVertexVisitResult =
   VertexVisitResult<VertexVisitResultSuccessResult>;
 

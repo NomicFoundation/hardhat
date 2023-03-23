@@ -1,7 +1,7 @@
 import type { ExecutionContext } from "../../types/deployment";
 import type {
   ExecutionVertexVisitResult,
-  SentETH,
+  SentETHExecutionVertex,
 } from "../../types/executionGraph";
 import type { PopulatedTransaction } from "ethers";
 
@@ -10,7 +10,7 @@ import { VertexResultEnum } from "../../types/graph";
 import { resolveFrom, toAddress } from "./utils";
 
 export async function executeSendETH(
-  { address, value, signer }: SentETH,
+  { address, value, signer }: SentETHExecutionVertex,
   resultAccumulator: Map<number, ExecutionVertexVisitResult | undefined>,
   { services, options }: ExecutionContext
 ): Promise<ExecutionVertexVisitResult> {

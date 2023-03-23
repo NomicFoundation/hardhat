@@ -1,6 +1,6 @@
 /* eslint-disable import/no-unused-modules */
 import type {
-  ContractDeploy,
+  ContractDeployExecutionVertex,
   ExecutionVertex,
   ExecutionVertexVisitResult,
 } from "../../src/internal/types/executionGraph";
@@ -66,7 +66,7 @@ describe("Execution - batching", () => {
 function createFakeContractDeployVertex(
   vertexId: number,
   label: string
-): ContractDeploy {
+): ContractDeployExecutionVertex {
   return {
     type: "ContractDeploy",
     id: vertexId,

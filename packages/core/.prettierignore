@@ -2,3 +2,4 @@
 /dist
 /coverage
 /.nyc_output
+/temp

@@ -1,5 +1,5 @@
 import type {
-  DeployedContract,
+  DeployedContractExecutionVertex,
   ExecutionResultsAccumulator,
   ExecutionVertexVisitResult,
 } from "../../types/executionGraph";
@@ -10,7 +10,7 @@ import { VertexResultEnum } from "../../types/graph";
 import { resolveFrom, toAddress } from "./utils";
 
 export async function executeDeployedContract(
-  { label, address, abi }: DeployedContract,
+  { label, address, abi }: DeployedContractExecutionVertex,
   _resultAccumulator: ExecutionResultsAccumulator,
   _: { services: Services }
 ): Promise<ExecutionVertexVisitResult> {

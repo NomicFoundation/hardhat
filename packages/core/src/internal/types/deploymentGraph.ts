@@ -1,36 +1,46 @@
 import type { BigNumber } from "ethers";
 
 import {
+  AddressResolvable,
   ArtifactContract,
+  ArtifactFuture,
   ArtifactLibrary,
-  EventFuture,
+  CallableFuture,
   ContractCall,
   DeployedContract,
   DeploymentGraphFuture,
+  EventFuture,
+  EventParamFuture,
   HardhatContract,
   HardhatLibrary,
   OptionalParameter,
+  ParameterFuture,
   ParameterValue,
   RequiredParameter,
-  CallableFuture,
-  Virtual,
-  ParameterFuture,
-  ArtifactFuture,
-  EventParamFuture,
   SendFuture,
-  AddressResolvable,
+  Virtual,
 } from "../../types/future";
 import { Artifact } from "../../types/hardhat";
-import { ModuleDict, Module } from "../../types/module";
+import { Module, ModuleDict } from "../../types/module";
 
 import { AdjacencyList, VertexDescriptor } from "./graph";
 
+/**
+ * Scope data to manage internal nested calls to submodules.
+ *
+ * @internal
+ */
 export interface ScopeData {
   before: Virtual;
   after?: Virtual;
   parameters?: { [key: string]: string | number | DeploymentGraphFuture };
 }
 
+/**
+ * A dependency graph that matches the deployment decribed by a Module.
+ *
+ * @internal
+ */
 export interface IDeploymentGraph {
   vertexes: Map<number, DeploymentGraphVertex>;
   adjacencyList: AdjacencyList;
@@ -40,17 +50,38 @@ export interface IDeploymentGraph {
   getEdges(): Array<{ from: number; to: number }>;
 }
 
+/**
+ * A mapping of library names to the future address
+ * of the deployed library.
+ *
+ * @internal
+ */
 export interface LibraryMap {
   [key: string]: DeploymentGraphFuture;
 }
 
+/**
+ * Allowed parameters that can be passed into a module.
+ *
+ * @internal
+ */
 export type ExternalParamValue = boolean | string | number | BigNumber;
 
+/**
+ * Allowed parameters across internal `useModule` boundaries.
+ *
+ * @internal
+ */
 export type InternalParamValue =
   | ExternalParamValue
   | DeploymentGraphFuture
   | EventParamFuture;
 
+/**
+ * A vertex representing an action specified in the Deployment api.
+ *
+ * @internal
+ */
 export type DeploymentGraphVertex =
   | HardhatContractDeploymentVertex
   | ArtifactContractDeploymentVertex
@@ -62,6 +93,12 @@ export type DeploymentGraphVertex =
   | EventVertex
   | SendVertex;
 
+/**
+ * Deploy a contract, where the contract will be retrieved by name
+ * from Hardhat's Artifact store.
+ *
+ * @internal
+ */
 export interface HardhatContractDeploymentVertex extends VertexDescriptor {
   type: "HardhatContract";
   scopeAdded: string;
@@ -73,6 +110,11 @@ export interface HardhatContractDeploymentVertex extends VertexDescriptor {
   from: string;
 }
 
+/**
+ * Deploy a contract based on a given Artifact.
+ *
+ * @internal
+ */
 export interface ArtifactContractDeploymentVertex extends VertexDescriptor {
   type: "ArtifactContract";
   scopeAdded: string;
@@ -84,6 +126,11 @@ export interface ArtifactContractDeploymentVertex extends VertexDescriptor {
   from: string;
 }
 
+/**
+ * Refer to an existing deployed contract, for later use in the Module.
+ *
+ * @internal
+ */
 export interface DeployedContractDeploymentVertex extends VertexDescriptor {
   type: "DeployedContract";
   scopeAdded: string;
@@ -92,6 +139,12 @@ export interface DeployedContractDeploymentVertex extends VertexDescriptor {
   after: DeploymentGraphFuture[];
 }
 
+/**
+ * Deploy a library, where the library will be retrieved by name
+ * from Hardhat's Artifact store.
+ *
+ * @internal
+ */
 export interface HardhatLibraryDeploymentVertex extends VertexDescriptor {
   type: "HardhatLibrary";
   libraryName: string;
@@ -101,6 +154,11 @@ export interface HardhatLibraryDeploymentVertex extends VertexDescriptor {
   from: string;
 }
 
+/**
+ * Deploy a library based on a given artifact.
+ *
+ * @internal
+ */
 export interface ArtifactLibraryDeploymentVertex extends VertexDescriptor {
   type: "ArtifactLibrary";
   scopeAdded: string;
@@ -110,6 +168,11 @@ export interface ArtifactLibraryDeploymentVertex extends VertexDescriptor {
   from: string;
 }
 
+/**
+ * Invoke a smart contract method.
+ *
+ * @internal
+ */
 export interface CallDeploymentVertex extends VertexDescriptor {
   type: "Call";
   scopeAdded: string;
@@ -121,12 +184,27 @@ export interface CallDeploymentVertex extends VertexDescriptor {
   from: string;
 }
 
+/**
+ * A non-action vertex used to represent group relationships. The virtual
+ * vertex can depend on many other vertexes, so a dependency on the virtual
+ * vertex will mean depending on all its dependents.
+ *
+ * The virtual vertex is removed during translation to a simplified
+ * execution graph.
+ *
+ * @internal
+ */
 export interface VirtualVertex extends VertexDescriptor {
   type: "Virtual";
   scopeAdded: string;
   after: DeploymentGraphFuture[];
 }
 
+/**
+ * Await on an on-chain Ethereum event.
+ *
+ * @internal
+ */
 export interface EventVertex extends VertexDescriptor {
   type: "Event";
   scopeAdded: string;
@@ -137,6 +215,11 @@ export interface EventVertex extends VertexDescriptor {
   after: DeploymentGraphFuture[];
 }
 
+/**
+ * Send ETH to a contract/address.
+ *
+ * @internal
+ */
 export interface SendVertex extends VertexDescriptor {
   type: "SendETH";
   scopeAdded: string;
@@ -146,6 +229,11 @@ export interface SendVertex extends VertexDescriptor {
   from: string;
 }
 
+/**
+ * The options for a Contract deploy.
+ *
+ * @internal
+ */
 export interface ContractOptions {
   args?: InternalParamValue[];
   libraries?: {
@@ -156,6 +244,11 @@ export interface ContractOptions {
   from?: string;
 }
 
+/**
+ * The options for a smart contract method call.
+ *
+ * @internal
+ */
 export interface CallOptions {
   args: InternalParamValue[];
   after?: DeploymentGraphFuture[];
@@ -163,22 +256,43 @@ export interface CallOptions {
   from?: string;
 }
 
+/**
+ * The options for an await action.
+ *
+ * @internal
+ */
 export interface AwaitOptions {
   args: InternalParamValue[];
   after?: DeploymentGraphFuture[];
 }
 
+/**
+ * The options for sending ETH to an address/contract.
+ *
+ * @internal
+ */
 export interface SendOptions {
   value: BigNumber | ParameterFuture;
   after?: DeploymentGraphFuture[];
   from?: string;
 }
 
+/**
+ * The options when using a module within another module.
+ *
+ * @internal
+ */
 export interface UseModuleOptions {
   parameters?: { [key: string]: number | string | DeploymentGraphFuture };
   after?: DeploymentGraphFuture[];
 }
 
+/**
+ * A builder object for specifying the different parts and
+ * dependencies of your deployment.
+ *
+ * @internal
+ */
 export interface IDeploymentBuilder {
   chainId: number;
   accounts: string[];

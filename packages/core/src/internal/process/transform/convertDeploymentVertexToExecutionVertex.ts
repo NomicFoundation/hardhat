@@ -17,13 +17,13 @@ import {
   SendVertex,
 } from "../../types/deploymentGraph";
 import {
-  AwaitedEvent,
-  ContractCall,
-  ContractDeploy,
-  DeployedContract,
+  AwaitedEventExecutionVertex,
+  ContractCallExecutionVertex,
+  ContractDeployExecutionVertex,
+  DeployedContractExecutionVertex,
   ExecutionVertex,
-  LibraryDeploy,
-  SentETH,
+  LibraryDeployExecutionVertex,
+  SentETHExecutionVertex,
 } from "../../types/executionGraph";
 import { Services } from "../../types/services";
 import { isFuture } from "../../utils/guards";
@@ -76,7 +76,7 @@ export function convertDeploymentVertexToExecutionVertex(
 async function convertHardhatContractToContractDeploy(
   vertex: HardhatContractDeploymentVertex,
   transformContext: TransformContext
-): Promise<ContractDeploy> {
+): Promise<ContractDeployExecutionVertex> {
   const artifact: Artifact =
     await transformContext.services.artifacts.getArtifact(vertex.contractName);
   const signer: ethers.Signer =
@@ -100,7 +100,7 @@ async function convertHardhatContractToContractDeploy(
 async function convertArtifactContractToContractDeploy(
   vertex: ArtifactContractDeploymentVertex,
   transformContext: TransformContext
-): Promise<ContractDeploy> {
+): Promise<ContractDeployExecutionVertex> {
   const signer: ethers.Signer =
     await transformContext.services.accounts.getSigner(vertex.from);
 
@@ -122,7 +122,7 @@ async function convertArtifactContractToContractDeploy(
 async function convertDeployedContractToDeployedDeploy(
   vertex: DeployedContractDeploymentVertex,
   _transformContext: TransformContext
-): Promise<DeployedContract> {
+): Promise<DeployedContractExecutionVertex> {
   return {
     type: "DeployedContract",
     id: vertex.id,
@@ -135,7 +135,7 @@ async function convertDeployedContractToDeployedDeploy(
 async function convertCallToContractCall(
   vertex: CallDeploymentVertex,
   transformContext: TransformContext
-): Promise<ContractCall> {
+): Promise<ContractCallExecutionVertex> {
   const signer: ethers.Signer =
     await transformContext.services.accounts.getSigner(vertex.from);
 
@@ -157,7 +157,7 @@ async function convertCallToContractCall(
 async function convertHardhatLibraryToLibraryDeploy(
   vertex: HardhatLibraryDeploymentVertex,
   transformContext: TransformContext
-): Promise<LibraryDeploy> {
+): Promise<LibraryDeployExecutionVertex> {
   const artifact: Artifact =
     await transformContext.services.artifacts.getArtifact(vertex.libraryName);
   const signer: ethers.Signer =
@@ -176,7 +176,7 @@ async function convertHardhatLibraryToLibraryDeploy(
 async function convertArtifactLibraryToLibraryDeploy(
   vertex: ArtifactLibraryDeploymentVertex,
   transformContext: TransformContext
-): Promise<LibraryDeploy> {
+): Promise<LibraryDeployExecutionVertex> {
   const signer: ethers.Signer =
     await transformContext.services.accounts.getSigner(vertex.from);
 
@@ -193,7 +193,7 @@ async function convertArtifactLibraryToLibraryDeploy(
 async function convertAwaitToAwaitedEvent(
   vertex: EventVertex,
   transformContext: TransformContext
-): Promise<AwaitedEvent> {
+): Promise<AwaitedEventExecutionVertex> {
   return {
     type: "AwaitedEvent",
     id: vertex.id,
@@ -208,7 +208,7 @@ async function convertAwaitToAwaitedEvent(
 async function convertSendToSentETH(
   vertex: SendVertex,
   transformContext: TransformContext
-): Promise<SentETH> {
+): Promise<SentETHExecutionVertex> {
   const signer: ethers.Signer =
     await transformContext.services.accounts.getSigner(vertex.from);
 

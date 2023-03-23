@@ -30,8 +30,23 @@ export interface Journal {
   delete(moduleId: string): Promise<void>;
 }
 
+/**
+ * An adapter to record and retrieve a transaction log of deployment state
+ * changes.
+ *
+ * @internal
+ */
 export interface ICommandJournal {
+  /**
+   * Store a record of the given command
+   * @param command - The deployment update command to record
+   *
+   * @internal
+   */
   record(command: DeployStateExecutionCommand): Promise<void>;
 
+  /**
+   * Read out the stored deployment update commands.
+   */
   read(): AsyncGenerator<DeployStateExecutionCommand, void, unknown>;
 }

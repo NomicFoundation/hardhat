@@ -1,28 +1,28 @@
 import type {
-  DeploymentGraphFuture,
-  HardhatContract,
-  ArtifactLibrary,
-  HardhatLibrary,
+  AddressResolvable,
   ArtifactContract,
-  DeployedContract,
+  ArtifactFuture,
+  ArtifactLibrary,
+  CallableFuture,
   ContractCall,
-  RequiredParameter,
+  ContractFuture,
+  DependableFuture,
+  DeployedContract,
+  DeploymentGraphFuture,
+  EventFuture,
+  EventParamFuture,
+  EventParams,
+  HardhatContract,
+  HardhatLibrary,
   OptionalParameter,
   ParameterValue,
-  CallableFuture,
-  Virtual,
-  DependableFuture,
   ProxyFuture,
-  EventFuture,
-  EventParams,
-  ArtifactFuture,
-  EventParamFuture,
+  RequiredParameter,
   SendFuture,
-  ContractFuture,
-  AddressResolvable,
+  Virtual,
 } from "../types/future";
 import type { Artifact } from "../types/hardhat";
-import type { ModuleCache, ModuleDict, Module } from "../types/module";
+import type { Module, ModuleCache, ModuleDict } from "../types/module";
 
 import { BigNumber, ethers } from "ethers";
 import hash from "object-hash";
@@ -30,26 +30,26 @@ import hash from "object-hash";
 import { IgnitionError, IgnitionValidationError } from "../errors";
 import { addEdge, ensureVertex } from "../internal/graph/adjacencyList";
 import {
+  ArtifactContractDeploymentVertex,
+  ArtifactLibraryDeploymentVertex,
+  AwaitOptions,
+  CallDeploymentVertex,
   CallOptions,
+  CallPoints,
   ContractOptions,
-  InternalParamValue,
-  IDeploymentGraph,
-  IDeploymentBuilder,
+  DeployedContractDeploymentVertex,
   DeploymentBuilderOptions,
   DeploymentGraphVertex,
-  UseModuleOptions,
-  ScopeData,
-  AwaitOptions,
-  SendOptions,
-  CallPoints,
-  HardhatContractDeploymentVertex,
-  ArtifactContractDeploymentVertex,
-  DeployedContractDeploymentVertex,
-  HardhatLibraryDeploymentVertex,
-  ArtifactLibraryDeploymentVertex,
-  CallDeploymentVertex,
   EventVertex,
+  HardhatContractDeploymentVertex,
+  HardhatLibraryDeploymentVertex,
+  IDeploymentBuilder,
+  IDeploymentGraph,
+  InternalParamValue,
+  ScopeData,
+  SendOptions,
   SendVertex,
+  UseModuleOptions,
   VirtualVertex,
 } from "../internal/types/deploymentGraph";
 import {
@@ -80,10 +80,37 @@ type DeploymentApiPublicFunctions =
 
 const DEFAULT_VALUE = ethers.utils.parseUnits("0");
 
+/**
+ * A builder object for specifying the different parts and
+ * dependencies of your deployment.
+ */
 export class DeploymentBuilder implements IDeploymentBuilder {
+  /**
+   * The `chainId` of the network being deployed to.
+   */
   public chainId: number;
+
+  /**
+   * The Hardhat accounts as defined in the `Hardhat.config.{js,ts}` file,
+   * deployment actions can leverage these accounts to specify which
+   * account the on-chain transaction that underlies the action will
+   * execute under.
+   */
   public accounts: string[];
+
+  /**
+   * The deployment graph built from the configuration actions.
+   * @internal
+   */
   public graph: IDeploymentGraph;
+
+  /**
+   * A mapping of deployment graph vertexes to the source code
+   * position of the DeploymentBuilder action that created
+   * them. Used during validation to provide better error
+   * messages.
+   * @internal
+   */
   public callPoints: CallPoints;
 
   private idCounter: number = 0;
@@ -103,6 +130,11 @@ export class DeploymentBuilder implements IDeploymentBuilder {
     }
   }
 
+  /**
+   * Deploy a
+   * @param libraryName
+   * @param options
+   */
   public library(
     libraryName: string,
     options?: ContractOptions

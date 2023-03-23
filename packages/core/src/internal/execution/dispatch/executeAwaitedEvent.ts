@@ -1,6 +1,6 @@
 import type { ExecutionContext } from "../../types/deployment";
 import type {
-  AwaitedEvent,
+  AwaitedEventExecutionVertex,
   ExecutionVertexVisitResult,
 } from "../../types/executionGraph";
 
@@ -11,7 +11,7 @@ import { VertexResultEnum } from "../../types/graph";
 import { resolveFrom, toAddress } from "./utils";
 
 export async function executeAwaitedEvent(
-  { event, address, abi, args }: AwaitedEvent,
+  { event, address, abi, args }: AwaitedEventExecutionVertex,
   resultAccumulator: Map<number, ExecutionVertexVisitResult | undefined>,
   { services, options }: ExecutionContext
 ): Promise<ExecutionVertexVisitResult> {
