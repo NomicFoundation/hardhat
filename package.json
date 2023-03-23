@@ -20,6 +20,7 @@
     "test:examples": "npm run test -w examples --if-present",
     "watch": "tsc --build --watch packages/core packages/hardhat-plugin",
     "fullcheck": "npm run build && npm run lint && npm run test:coverage && npm run test:examples",
+    "typedocs": "typedoc --entryPointStrategy packages --out ./typedocs ./packages/core && open-cli ./typedocs/index.html",
     "clean": "npm run clean --workspaces --if-present"
   },
   "devDependencies": {
@@ -31,7 +32,9 @@
     "eslint-plugin-import": "2.24.2",
     "eslint-plugin-mocha": "^9.0.0",
     "eslint-plugin-prettier": "4.0.0",
+    "open-cli": "7.2.0",
     "prettier": "2.4.1",
+    "typedoc": "0.23.28",
     "typescript": "^4.7.4"
   }
 }
