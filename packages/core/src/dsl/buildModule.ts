@@ -2,9 +2,9 @@ import type { IDeploymentBuilder } from "../internal/types/deploymentGraph";
 import type { Module, ModuleDict } from "../types/module";
 
 import {
-  assertStringParam,
   assertFunctionParam,
-} from "../internal/utils/errors";
+  assertStringParam,
+} from "../internal/utils/paramAssertions";
 
 export function buildModule<T extends ModuleDict>(
   moduleName: string,

@@ -15,8 +15,8 @@ import type { Services } from "../types/services";
 
 import setupDebug from "debug";
 
+import { IgnitionError } from "../../errors";
 import { ExecutionGraph } from "../execution/ExecutionGraph";
-import { IgnitionError } from "../utils/errors";
 
 import {
   initializeDeployState,

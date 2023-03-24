@@ -1,13 +1,13 @@
 import type { CallableFuture } from "../../../types/future";
 import type { Services } from "../../types/services";
 
+import { IgnitionError } from "../../../errors";
 import {
   CallPoints,
   DeploymentGraphVertex,
   InternalParamValue,
 } from "../../types/deploymentGraph";
 import { VertexResultEnum, VertexVisitResultFailure } from "../../types/graph";
-import { IgnitionError } from "../../utils/errors";
 import { isBytesArg } from "../../utils/guards";
 import { resolveProxyValue } from "../../utils/proxy";
 

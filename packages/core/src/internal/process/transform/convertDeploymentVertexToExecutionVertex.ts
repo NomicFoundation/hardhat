@@ -1,5 +1,6 @@
 import { BigNumber, ethers } from "ethers";
 
+import { IgnitionError } from "../../../errors";
 import {
   BytesFuture,
   DeploymentGraphFuture,
@@ -29,7 +30,6 @@ import {
   SentETH,
 } from "../../types/executionGraph";
 import { Services } from "../../types/services";
-import { IgnitionError } from "../../utils/errors";
 import { isBytesArg, isFuture } from "../../utils/guards";
 
 interface TransformContext {

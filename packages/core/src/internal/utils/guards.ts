@@ -24,10 +24,9 @@ import type {
 
 import { BigNumber } from "ethers";
 
+import { IgnitionError } from "../../errors";
 import { Artifact } from "../../types/hardhat";
 import { ModuleDict } from "../../types/module";
-
-import { IgnitionError } from "./errors";
 
 export function isArtifact(artifact: any): artifact is Artifact {
   return (

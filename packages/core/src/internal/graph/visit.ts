@@ -1,10 +1,10 @@
+import { IgnitionError } from "../../errors";
 import {
   IGraph,
   VertexVisitResult,
   ResultsAccumulator,
   VisitResult,
 } from "../types/graph";
-import { IgnitionError } from "../utils/errors";
 
 export async function visit<T, C, TResult>(
   phase: "Execution" | "Validation",

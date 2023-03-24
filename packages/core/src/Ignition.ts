@@ -17,6 +17,7 @@ import type {
 
 import setupDebug from "debug";
 
+import { IgnitionError } from "./errors";
 import { Deployment } from "./internal/deployment/Deployment";
 import { execute } from "./internal/execution/execute";
 import { loadJournalInto } from "./internal/execution/loadJournalInto";
@@ -25,7 +26,6 @@ import { NoopCommandJournal } from "./internal/journal/NoopCommandJournal";
 import { generateDeploymentGraphFrom } from "./internal/process/generateDeploymentGraphFrom";
 import { transformDeploymentGraphToExecutionGraph } from "./internal/process/transformDeploymentGraphToExecutionGraph";
 import { Services } from "./internal/types/services";
-import { IgnitionError } from "./internal/utils/errors";
 import { resolveProxyValue } from "./internal/utils/proxy";
 import { validateDeploymentGraph } from "./internal/validation/validateDeploymentGraph";
 

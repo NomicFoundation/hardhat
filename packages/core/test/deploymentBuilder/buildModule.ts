@@ -2,8 +2,8 @@
 import { assert } from "chai";
 
 import { buildModule } from "../../src/dsl/buildModule";
+import { IgnitionError } from "../../src/errors";
 import { generateDeploymentGraphFrom } from "../../src/internal/process/generateDeploymentGraphFrom";
-import { IgnitionError } from "../../src/internal/utils/errors";
 
 describe("deployment builder - buildModule", () => {
   it("should throw if build module is given an async callback", () => {

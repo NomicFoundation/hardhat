@@ -7,7 +7,7 @@ import type {
 import setupDebug from "debug";
 import { ethers } from "ethers";
 
-import { IgnitionError } from "../utils/errors";
+import { IgnitionError } from "../../errors";
 import { sleep } from "../utils/sleep";
 import { TxSender } from "../utils/tx-sender";
 

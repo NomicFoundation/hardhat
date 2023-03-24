@@ -1,7 +1,7 @@
 import { DiGraph, TopologicalSort } from "js-graph-algorithms";
 
+import { IgnitionError } from "../../errors";
 import { AdjacencyList } from "../types/graph";
-import { IgnitionError } from "../utils/errors";
 
 export function constructEmptyAdjacencyList(): AdjacencyList {
   return new Map<number, Set<number>>();

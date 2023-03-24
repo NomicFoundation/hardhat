@@ -10,7 +10,8 @@ import {
   ICommandJournal,
   SerializedDeploymentResult,
 } from "@ignored/ignition-core";
-import { IgnitionError, createServices } from "@ignored/ignition-core/helpers";
+import { IgnitionError } from "@ignored/ignition-core/errors";
+import { createServices } from "@ignored/ignition-core/helpers";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 
 import { CommandJournal } from "./CommandJournal";

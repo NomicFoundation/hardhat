@@ -28,6 +28,7 @@ import type { ModuleCache, ModuleDict, Module } from "../types/module";
 import { BigNumber, ethers } from "ethers";
 import hash from "object-hash";
 
+import { IgnitionError, IgnitionValidationError } from "../errors";
 import { addEdge, ensureVertex } from "../internal/graph/adjacencyList";
 import {
   CallOptions,
@@ -52,10 +53,6 @@ import {
   SendVertex,
   VirtualVertex,
 } from "../internal/types/deploymentGraph";
-import {
-  IgnitionError,
-  IgnitionValidationError,
-} from "../internal/utils/errors";
 import {
   assertModuleReturnTypes,
   isArtifact,

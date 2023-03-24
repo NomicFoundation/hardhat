@@ -1,5 +1,7 @@
-import { BigNumber } from "ethers";
-
+/**
+ * All exceptions intenionally thrown with Ignition-core
+ * extend this class.
+ */
 export class IgnitionError extends Error {
   constructor(message: string) {
     super(message);
@@ -8,6 +10,12 @@ export class IgnitionError extends Error {
   }
 }
 
+/**
+ * This error class represents issue detected by Ignition-cores
+ * validation phase on the user inputed module. Validation errors
+ * capture the stack to the action within the offending module,
+ * to enhance the locality of the validation error message.
+ */
 export class IgnitionValidationError extends IgnitionError {
   constructor(message: string) {
     super(message);
@@ -28,25 +36,5 @@ export class IgnitionValidationError extends IgnitionError {
    */
   public resetStackFrom(f: () => any) {
     Error.captureStackTrace(this, f);
-  }
-}
-
-export function assertStringParam(param: any, paramName: string) {
-  if (typeof param !== "string") {
-    throw new IgnitionError(`\`${paramName}\` must be a string`);
-  }
-}
-
-export function assertFunctionParam(param: any, paramName: string) {
-  if (typeof param !== "function") {
-    throw new IgnitionError(`\`${paramName}\` must be a function`);
-  }
-}
-
-export function assertBigNumberParam(param: any, paramName: string) {
-  if (param !== undefined) {
-    if (!BigNumber.isBigNumber(param)) {
-      throw new IgnitionError(`\`${paramName}\` must be a BigNumber`);
-    }
   }
 }

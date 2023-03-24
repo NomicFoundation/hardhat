@@ -7,8 +7,8 @@ import type {
 import { assert } from "chai";
 
 import { buildModule } from "../../src/dsl/buildModule";
+import { IgnitionError } from "../../src/errors";
 import { generateDeploymentGraphFrom } from "../../src/internal/process/generateDeploymentGraphFrom";
-import { IgnitionError } from "../../src/internal/utils/errors";
 import { isCallable } from "../../src/internal/utils/guards";
 
 describe("deployment builder - parameters", function () {

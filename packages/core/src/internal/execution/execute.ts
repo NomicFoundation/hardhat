@@ -9,8 +9,8 @@ import type {
 } from "../types/executionGraph";
 import type { Services } from "../types/services";
 
+import { IgnitionError } from "../../errors";
 import { viewExecutionResults } from "../deployment/utils";
-import { IgnitionError } from "../utils/errors";
 
 import { ExecutionGraph } from "./ExecutionGraph";
 import { executionDispatch } from "./dispatch/executionDispatch";
