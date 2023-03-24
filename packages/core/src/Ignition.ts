@@ -2,12 +2,12 @@ import type {
   DeploymentResult,
   IgnitionDeployOptions,
   UpdateUiAction,
-} from "./types/deployment";
+} from "./internal/types/deployment";
 import type {
   ExecutionResultsAccumulator,
   ExecutionVisitResult,
-} from "./types/executionGraph";
-import type { ICommandJournal } from "./types/journal";
+} from "./internal/types/executionGraph";
+import type { ICommandJournal } from "./internal/types/journal";
 import type { Module, ModuleDict } from "./types/module";
 import type { IgnitionPlan } from "./types/plan";
 import type {
@@ -17,17 +17,17 @@ import type {
 
 import setupDebug from "debug";
 
-import { Deployment } from "./deployment/Deployment";
-import { execute } from "./execution/execute";
-import { loadJournalInto } from "./execution/loadJournalInto";
-import { hashExecutionGraph } from "./execution/utils";
-import { NoopCommandJournal } from "./journal/NoopCommandJournal";
-import { generateDeploymentGraphFrom } from "./process/generateDeploymentGraphFrom";
-import { transformDeploymentGraphToExecutionGraph } from "./process/transformDeploymentGraphToExecutionGraph";
-import { Services } from "./types/services";
-import { IgnitionError } from "./utils/errors";
-import { resolveProxyValue } from "./utils/proxy";
-import { validateDeploymentGraph } from "./validation/validateDeploymentGraph";
+import { Deployment } from "./internal/deployment/Deployment";
+import { execute } from "./internal/execution/execute";
+import { loadJournalInto } from "./internal/execution/loadJournalInto";
+import { hashExecutionGraph } from "./internal/execution/utils";
+import { NoopCommandJournal } from "./internal/journal/NoopCommandJournal";
+import { generateDeploymentGraphFrom } from "./internal/process/generateDeploymentGraphFrom";
+import { transformDeploymentGraphToExecutionGraph } from "./internal/process/transformDeploymentGraphToExecutionGraph";
+import { Services } from "./internal/types/services";
+import { IgnitionError } from "./internal/utils/errors";
+import { resolveProxyValue } from "./internal/utils/proxy";
+import { validateDeploymentGraph } from "./internal/validation/validateDeploymentGraph";
 
 const log = setupDebug("ignition:main");
 

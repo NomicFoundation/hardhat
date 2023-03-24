@@ -3,12 +3,12 @@ import { assert } from "chai";
 import { ethers } from "ethers";
 
 import { buildModule } from "../../src/dsl/buildModule";
-import { generateDeploymentGraphFrom } from "../../src/process/generateDeploymentGraphFrom";
+import { generateDeploymentGraphFrom } from "../../src/internal/process/generateDeploymentGraphFrom";
 import {
   IDeploymentBuilder,
   IDeploymentGraph,
-} from "../../src/types/deploymentGraph";
-import { isHardhatContract } from "../../src/utils/guards";
+} from "../../src/internal/types/deploymentGraph";
+import { isHardhatContract } from "../../src/internal/utils/guards";
 
 import {
   getDependenciesForVertex,

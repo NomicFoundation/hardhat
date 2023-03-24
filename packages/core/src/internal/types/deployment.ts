@@ -1,3 +1,5 @@
+import type { ModuleDict, ModuleParams } from "../../types/module";
+import type { SerializedDeploymentResult } from "../../types/serialization";
 import type {
   ExecutionVertex,
   ExecutionVertexVisitResult,
@@ -9,8 +11,6 @@ import type {
   VertexVisitResultFailure,
   VertexVisitResultSuccess,
 } from "./graph";
-import type { ModuleDict, ModuleParams } from "./module";
-import type { SerializedDeploymentResult } from "./serialization";
 import type { Services } from "./services";
 import type { BigNumber } from "ethers";
 

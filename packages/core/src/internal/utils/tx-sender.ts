@@ -1,7 +1,7 @@
 import setupDebug, { IDebugger } from "debug";
 import { ethers } from "ethers";
 
-import { GasProvider } from "../types/providers";
+import { GasProvider } from "../../types/providers";
 
 /**
  * Sends, replaces and keeps track of transactions.

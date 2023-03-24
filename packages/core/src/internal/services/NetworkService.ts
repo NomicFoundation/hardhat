@@ -1,4 +1,4 @@
-import { Providers } from "../types/providers";
+import { Providers } from "../../types/providers";
 import { INetworkService } from "../types/services";
 
 export class NetworkService implements INetworkService {

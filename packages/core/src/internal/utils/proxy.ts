@@ -5,7 +5,7 @@ import {
   Virtual,
   EventFuture,
   SendFuture,
-} from "../types/future";
+} from "../../types/future";
 
 import { isProxy } from "./guards";
 

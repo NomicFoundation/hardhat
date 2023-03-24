@@ -1,4 +1,4 @@
-import type { CallableFuture } from "../../types/future";
+import type { CallableFuture } from "../../../types/future";
 import type { Services } from "../../types/services";
 
 import {

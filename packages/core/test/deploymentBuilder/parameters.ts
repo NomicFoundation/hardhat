@@ -2,14 +2,14 @@
 import type {
   IDeploymentGraph,
   IDeploymentBuilder,
-} from "../../src/types/deploymentGraph";
+} from "../../src/internal/types/deploymentGraph";
 
 import { assert } from "chai";
 
 import { buildModule } from "../../src/dsl/buildModule";
-import { generateDeploymentGraphFrom } from "../../src/process/generateDeploymentGraphFrom";
-import { IgnitionError } from "../../src/utils/errors";
-import { isCallable } from "../../src/utils/guards";
+import { generateDeploymentGraphFrom } from "../../src/internal/process/generateDeploymentGraphFrom";
+import { IgnitionError } from "../../src/internal/utils/errors";
+import { isCallable } from "../../src/internal/utils/guards";
 
 describe("deployment builder - parameters", function () {
   let deploymentGraph: IDeploymentGraph;

@@ -2,13 +2,16 @@
 import type {
   IDeploymentGraph,
   IDeploymentBuilder,
-} from "../../src/types/deploymentGraph";
+} from "../../src/internal/types/deploymentGraph";
 
 import { assert } from "chai";
 
 import { buildModule } from "../../src/dsl/buildModule";
-import { generateDeploymentGraphFrom } from "../../src/process/generateDeploymentGraphFrom";
-import { isHardhatContract, isHardhatLibrary } from "../../src/utils/guards";
+import { generateDeploymentGraphFrom } from "../../src/internal/process/generateDeploymentGraphFrom";
+import {
+  isHardhatContract,
+  isHardhatLibrary,
+} from "../../src/internal/utils/guards";
 
 import {
   getDependenciesForVertex,

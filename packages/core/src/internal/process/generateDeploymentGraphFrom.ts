@@ -4,8 +4,8 @@ import type {
   IDeploymentGraph,
 } from "../types/deploymentGraph";
 
-import { DeploymentBuilder } from "../dsl/DeploymentBuilder";
-import { Module, ModuleDict } from "../types/module";
+import { DeploymentBuilder } from "../../dsl/DeploymentBuilder";
+import { Module, ModuleDict } from "../../types/module";
 import { IgnitionError } from "../utils/errors";
 import { assertModuleReturnTypes } from "../utils/guards";
 

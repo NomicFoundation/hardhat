@@ -1,6 +1,7 @@
 // eslint-disable-next-line import/no-extraneous-dependencies
-import { Artifact } from "../types/hardhat";
-import { IgnitionError } from "../utils/errors";
+import { Artifact } from "../../types/hardhat";
+
+import { IgnitionError } from "./errors";
 
 interface Link {
   sourceName: string;

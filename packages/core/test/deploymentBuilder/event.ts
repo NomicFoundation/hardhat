@@ -2,17 +2,17 @@
 import { assert } from "chai";
 
 import { buildModule } from "../../src/dsl/buildModule";
-import { generateDeploymentGraphFrom } from "../../src/process/generateDeploymentGraphFrom";
+import { generateDeploymentGraphFrom } from "../../src/internal/process/generateDeploymentGraphFrom";
 import {
   IDeploymentBuilder,
   IDeploymentGraph,
-} from "../../src/types/deploymentGraph";
-import { ArtifactContract } from "../../src/types/future";
+} from "../../src/internal/types/deploymentGraph";
 import {
   isAwaitedEvent,
   isCall,
   isArtifactContract,
-} from "../../src/utils/guards";
+} from "../../src/internal/utils/guards";
+import { ArtifactContract } from "../../src/types/future";
 
 import {
   getDependenciesForVertex,

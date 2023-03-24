@@ -1,13 +1,13 @@
 /* eslint-disable import/no-unused-modules */
 import { assert } from "chai";
 
+import { buildModule } from "../../src/dsl/buildModule";
 import {
   deployStateReducer,
   initializeDeployState,
-} from "../../src/deployment/deployStateReducer";
-import { buildModule } from "../../src/dsl/buildModule";
-import { DeployState } from "../../src/types/deployment";
-import { IExecutionGraph } from "../../src/types/executionGraph";
+} from "../../src/internal/deployment/deployStateReducer";
+import { DeployState } from "../../src/internal/types/deployment";
+import { IExecutionGraph } from "../../src/internal/types/executionGraph";
 
 import { applyActions, resolveExecutionGraphFor } from "./utils";
 

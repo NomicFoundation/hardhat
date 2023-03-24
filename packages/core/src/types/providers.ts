@@ -1,4 +1,4 @@
-import type { ExternalParamValue } from "./deploymentGraph";
+import type { ExternalParamValue } from "../internal/types/deploymentGraph";
 import type { Artifact } from "./hardhat";
 import type { ethers } from "ethers";
 

@@ -2,8 +2,8 @@
 import { assert } from "chai";
 
 import { buildModule } from "../../src/dsl/buildModule";
-import { generateDeploymentGraphFrom } from "../../src/process/generateDeploymentGraphFrom";
-import { IDeploymentBuilder } from "../../src/types/deploymentGraph";
+import { generateDeploymentGraphFrom } from "../../src/internal/process/generateDeploymentGraphFrom";
+import { IDeploymentBuilder } from "../../src/internal/types/deploymentGraph";
 
 describe("deployment builder - metadata", () => {
   it("should inject the chainId via the builder", () => {

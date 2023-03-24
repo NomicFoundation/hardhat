@@ -3,14 +3,17 @@ import { assert } from "chai";
 import { ethers } from "ethers";
 import sinon from "sinon";
 
-import { Deployment } from "../../src/deployment/Deployment";
-import { ExecutionGraph } from "../../src/execution/ExecutionGraph";
-import { execute } from "../../src/execution/execute";
-import { ExecutionVertex } from "../../src/types/executionGraph";
-import { VertexResultEnum } from "../../src/types/graph";
+import { Deployment } from "../../src/internal/deployment/Deployment";
+import { ExecutionGraph } from "../../src/internal/execution/ExecutionGraph";
+import { execute } from "../../src/internal/execution/execute";
+import { ExecutionVertex } from "../../src/internal/types/executionGraph";
+import { VertexResultEnum } from "../../src/internal/types/graph";
+import { ICommandJournal } from "../../src/internal/types/journal";
+import {
+  Services,
+  TransactionOptions,
+} from "../../src/internal/types/services";
 import { Artifact } from "../../src/types/hardhat";
-import { ICommandJournal } from "../../src/types/journal";
-import { Services, TransactionOptions } from "../../src/types/services";
 import { buildAdjacencyListFrom } from "../graph/helpers";
 import { getMockServices } from "../helpers";
 

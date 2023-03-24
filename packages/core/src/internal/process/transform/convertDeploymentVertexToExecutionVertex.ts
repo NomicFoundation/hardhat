@@ -1,6 +1,12 @@
 import { BigNumber, ethers } from "ethers";
 
 import {
+  BytesFuture,
+  DeploymentGraphFuture,
+  EventParamFuture,
+} from "../../../types/future";
+import { Artifact } from "../../../types/hardhat";
+import {
   ArtifactContractDeploymentVertex,
   ArtifactLibraryDeploymentVertex,
   CallDeploymentVertex,
@@ -22,12 +28,6 @@ import {
   LibraryDeploy,
   SentETH,
 } from "../../types/executionGraph";
-import {
-  BytesFuture,
-  DeploymentGraphFuture,
-  EventParamFuture,
-} from "../../types/future";
-import { Artifact } from "../../types/hardhat";
 import { Services } from "../../types/services";
 import { IgnitionError } from "../../utils/errors";
 import { isBytesArg, isFuture } from "../../utils/guards";

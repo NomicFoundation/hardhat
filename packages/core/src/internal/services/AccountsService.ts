@@ -1,4 +1,4 @@
-import type { Providers } from "../types/providers";
+import type { Providers } from "../../types/providers";
 import type { IAccountsService } from "../types/services";
 import type { ethers } from "ethers";
 

@@ -28,7 +28,7 @@ import type { ModuleCache, ModuleDict, Module } from "../types/module";
 import { BigNumber, ethers } from "ethers";
 import hash from "object-hash";
 
-import { addEdge, ensureVertex } from "../graph/adjacencyList";
+import { addEdge, ensureVertex } from "../internal/graph/adjacencyList";
 import {
   CallOptions,
   ContractOptions,
@@ -51,8 +51,11 @@ import {
   EventVertex,
   SendVertex,
   VirtualVertex,
-} from "../types/deploymentGraph";
-import { IgnitionError, IgnitionValidationError } from "../utils/errors";
+} from "../internal/types/deploymentGraph";
+import {
+  IgnitionError,
+  IgnitionValidationError,
+} from "../internal/utils/errors";
 import {
   assertModuleReturnTypes,
   isArtifact,
@@ -60,8 +63,8 @@ import {
   isContract,
   isDependable,
   isParameter,
-} from "../utils/guards";
-import { resolveProxyDependency } from "../utils/proxy";
+} from "../internal/utils/guards";
+import { resolveProxyDependency } from "../internal/utils/proxy";
 
 import { DeploymentGraph } from "./DeploymentGraph";
 import { ScopeStack } from "./ScopeStack";

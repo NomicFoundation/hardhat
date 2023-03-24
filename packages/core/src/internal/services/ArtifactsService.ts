@@ -1,7 +1,6 @@
-import type { Artifact } from "../types/hardhat";
-import type { Providers } from "../types/providers";
-
-import { IArtifactsService } from "../types/services";
+import type { Artifact } from "../../types/hardhat";
+import type { Providers } from "../../types/providers";
+import type { IArtifactsService } from "../types/services";
 
 export class ArtifactsService implements IArtifactsService {
   constructor(private readonly _providers: Providers) {}

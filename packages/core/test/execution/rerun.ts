@@ -5,7 +5,7 @@ import { ethers } from "ethers";
 
 import { Ignition } from "../../src/Ignition";
 import { buildModule } from "../../src/dsl/buildModule";
-import { TransactionsService } from "../../src/services/TransactionsService";
+import { TransactionsService } from "../../src/internal/services/TransactionsService";
 import { Artifact } from "../../src/types/hardhat";
 import { Providers } from "../../src/types/providers";
 import { getMockServices } from "../helpers";

@@ -2,19 +2,19 @@
 import type {
   IDeploymentGraph,
   IDeploymentBuilder,
-} from "../../src/types/deploymentGraph";
+} from "../../src/internal/types/deploymentGraph";
 import type { Artifact } from "../../src/types/hardhat";
 
 import { assert } from "chai";
 import { ethers } from "ethers";
 
 import { buildModule } from "../../src/dsl/buildModule";
-import { generateDeploymentGraphFrom } from "../../src/process/generateDeploymentGraphFrom";
+import { generateDeploymentGraphFrom } from "../../src/internal/process/generateDeploymentGraphFrom";
 import {
   isArtifactContract,
   isHardhatContract,
   isCall,
-} from "../../src/utils/guards";
+} from "../../src/internal/utils/guards";
 
 import { getDeploymentVertexByLabel } from "./helpers";
 

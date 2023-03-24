@@ -1,4 +1,7 @@
-import type { ExternalParamValue, IDeploymentBuilder } from "./deploymentGraph";
+import type {
+  ExternalParamValue,
+  IDeploymentBuilder,
+} from "../internal/types/deploymentGraph";
 import type {
   ContractFuture,
   LibraryFuture,

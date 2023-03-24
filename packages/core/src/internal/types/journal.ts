@@ -1,4 +1,4 @@
-import type { DeployStateExecutionCommand } from "../types/deployment";
+import type { DeployStateExecutionCommand } from "./deployment";
 
 export interface JournalEntry {
   txHash: string;

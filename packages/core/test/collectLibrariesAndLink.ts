@@ -1,7 +1,7 @@
 /* eslint-disable import/no-unused-modules */
 import { expect } from "chai";
 
-import { collectLibrariesAndLink } from "../src/utils/collectLibrariesAndLink";
+import { collectLibrariesAndLink } from "../src/internal/utils/collectLibrariesAndLink";
 
 describe("collectLibrariesAndLink", function () {
   describe("library linking needed", () => {

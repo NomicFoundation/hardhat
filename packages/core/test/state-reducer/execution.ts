@@ -1,13 +1,13 @@
 /* eslint-disable import/no-unused-modules */
 import { assert } from "chai";
 
+import { buildModule } from "../../src/dsl/buildModule";
 import {
   deployStateReducer,
   initializeDeployState,
-} from "../../src/deployment/deployStateReducer";
-import { buildModule } from "../../src/dsl/buildModule";
-import { DeployState } from "../../src/types/deployment";
-import { VertexResultEnum } from "../../src/types/graph";
+} from "../../src/internal/deployment/deployStateReducer";
+import { DeployState } from "../../src/internal/types/deployment";
+import { VertexResultEnum } from "../../src/internal/types/graph";
 
 import { applyActions, resolveExecutionGraphFor } from "./utils";
 

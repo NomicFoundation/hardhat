@@ -1,19 +1,19 @@
 /* eslint-disable import/no-unused-modules */
-import type { IDeploymentBuilder } from "../src/types/deploymentGraph";
+import type { IDeploymentBuilder } from "../src/internal/types/deploymentGraph";
 
 import { assert } from "chai";
 import { ethers } from "ethers";
 import sinon from "sinon";
 
 import { buildModule } from "../src/dsl/buildModule";
-import { generateDeploymentGraphFrom } from "../src/process/generateDeploymentGraphFrom";
+import { generateDeploymentGraphFrom } from "../src/internal/process/generateDeploymentGraphFrom";
+import { Services } from "../src/internal/types/services";
+import { ValidationVisitResult } from "../src/internal/types/validation";
+import { IgnitionValidationError } from "../src/internal/utils/errors";
+import { validateDeploymentGraph } from "../src/internal/validation/validateDeploymentGraph";
 import { ArtifactContract } from "../src/types/future";
 import { Artifact } from "../src/types/hardhat";
 import { Module, ModuleDict } from "../src/types/module";
-import { Services } from "../src/types/services";
-import { ValidationVisitResult } from "../src/types/validation";
-import { IgnitionValidationError } from "../src/utils/errors";
-import { validateDeploymentGraph } from "../src/validation/validateDeploymentGraph";
 
 import { getMockServices } from "./helpers";
 

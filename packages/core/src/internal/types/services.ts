@@ -1,10 +1,10 @@
-import type { ExternalParamValue } from "./deploymentGraph";
-import type { Artifact } from "./hardhat";
+import type { Artifact } from "../../types/hardhat";
 import type {
   GasProvider,
   HasParamResult,
   TransactionsProvider,
-} from "./providers";
+} from "../../types/providers";
+import type { ExternalParamValue } from "./deploymentGraph";
 
 import { ethers } from "ethers";
 

@@ -13,22 +13,22 @@ export type {
   DeploymentResult,
   UpdateUiAction,
   IgnitionDeployOptions,
-} from "./types/deployment";
+} from "./internal/types/deployment";
 export type { Module, ModuleDict, ModuleParams } from "./types/module";
 export type {
   ExternalParamValue,
   IDeploymentBuilder,
   DeploymentGraphVertex,
-} from "./types/deploymentGraph";
+} from "./internal/types/deploymentGraph";
 export type { IgnitionPlan } from "./types/plan";
 export type {
   VertexGraph,
   VertexDescriptor,
   VertexVisitResultFailure,
-} from "./types/graph";
+} from "./internal/types/graph";
 export type {
   ExecutionVertex,
   ExecutionVertexType,
-} from "./types/executionGraph";
-export type { ICommandJournal } from "./types/journal";
-export type { DeployStateExecutionCommand } from "./types/deployment";
+} from "./internal/types/executionGraph";
+export type { ICommandJournal } from "./internal/types/journal";
+export type { DeployStateExecutionCommand } from "./internal/types/deployment";

@@ -1,15 +1,4 @@
 import type {
-  DeploymentGraphVertex,
-  HardhatContractDeploymentVertex,
-  ArtifactContractDeploymentVertex,
-  DeployedContractDeploymentVertex,
-  CallDeploymentVertex,
-  HardhatLibraryDeploymentVertex,
-  ArtifactLibraryDeploymentVertex,
-  EventVertex,
-  InternalParamValue,
-} from "../types/deploymentGraph";
-import type {
   CallableFuture,
   DependableFuture,
   OptionalParameter,
@@ -20,12 +9,23 @@ import type {
   BytesFuture,
   EventParamFuture,
   ContractFuture,
-} from "../types/future";
+} from "../../types/future";
+import type {
+  DeploymentGraphVertex,
+  HardhatContractDeploymentVertex,
+  ArtifactContractDeploymentVertex,
+  DeployedContractDeploymentVertex,
+  CallDeploymentVertex,
+  HardhatLibraryDeploymentVertex,
+  ArtifactLibraryDeploymentVertex,
+  EventVertex,
+  InternalParamValue,
+} from "../types/deploymentGraph";
 
 import { BigNumber } from "ethers";
 
-import { Artifact } from "../types/hardhat";
-import { ModuleDict } from "../types/module";
+import { Artifact } from "../../types/hardhat";
+import { ModuleDict } from "../../types/module";
 
 import { IgnitionError } from "./errors";
 
