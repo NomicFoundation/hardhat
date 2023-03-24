@@ -116,30 +116,6 @@ describe("INTEGRATION: changeTokenBalance and changeTokenBalances matchers", fun
 
         await expect(() =>
           sender.sendTransaction({ to: receiver.address })
-        ).to.not.changeTokenBalances(
-          mockToken,
-          [sender, receiver],
-          [0, (diff: BigNumber) => diff.gt(0)]
-        );
-
-        await expect(() =>
-          sender.sendTransaction({ to: receiver.address })
-        ).to.not.changeTokenBalances(
-          mockToken,
-          [sender, receiver],
-          [(diff: BigNumber) => diff.gt(0), 0]
-        );
-
-        await expect(() =>
-          sender.sendTransaction({ to: receiver.address })
-        ).to.not.changeTokenBalances(
-          mockToken,
-          [sender, receiver],
-          [(diff: BigNumber) => diff.gt(0), (diff: BigNumber) => diff.gt(0)]
-        );
-
-        await expect(() =>
-          sender.sendTransaction({ to: receiver.address })
         ).to.not.changeTokenBalances(mockToken, [sender, receiver], [0, 1]);
 
         await expect(() =>
@@ -208,35 +184,11 @@ describe("INTEGRATION: changeTokenBalance and changeTokenBalances matchers", fun
           ).to.be.rejectedWith(AssertionError);
         });
 
-        it("the balance change of first account doesn't satisfies the predicate", async function () {
-          await expect(
-            expect(
-              sender.sendTransaction({ to: receiver.address })
-            ).to.changeTokenBalances(
-              mockToken,
-              [sender, receiver],
-              [(diff: BigNumber) => diff.gt(0), 0]
-            )
-          ).to.be.rejectedWith(AssertionError);
-        });
-
         it("the second account doesn't change its balance as expected", async function () {
           await expect(
             expect(
               sender.sendTransaction({ to: receiver.address })
             ).to.changeTokenBalances(mockToken, [sender, receiver], [0, 1])
-          ).to.be.rejectedWith(AssertionError);
-        });
-
-        it("the balance change of second account doesn't satisfies the predicate", async function () {
-          await expect(
-            expect(
-              sender.sendTransaction({ to: receiver.address })
-            ).to.changeTokenBalances(
-              mockToken,
-              [sender, receiver],
-              [0, (diff: BigNumber) => diff.gt(0)]
-            )
           ).to.be.rejectedWith(AssertionError);
         });
 
@@ -248,18 +200,6 @@ describe("INTEGRATION: changeTokenBalance and changeTokenBalances matchers", fun
           ).to.be.rejectedWith(AssertionError);
         });
 
-        it("neither account balance changes doesn't satisfies the predicate", async function () {
-          await expect(
-            expect(
-              sender.sendTransaction({ to: receiver.address })
-            ).to.changeTokenBalances(
-              mockToken,
-              [sender, receiver],
-              [(diff: BigNumber) => diff.gt(0), (diff: BigNumber) => diff.gt(0)]
-            )
-          ).to.be.rejectedWith(AssertionError);
-        });
-
         it("accounts change their balance in the way it was not expected", async function () {
           await expect(
             expect(
@@ -267,6 +207,38 @@ describe("INTEGRATION: changeTokenBalance and changeTokenBalances matchers", fun
             ).to.not.changeTokenBalances(mockToken, [sender, receiver], [0, 0])
           ).to.be.rejectedWith(AssertionError);
         });
+      });
+    });
+
+    describe("Transaction Callback", function () {
+      it("Should pass when given predicate", async () => {
+        await expect(() =>
+          mockToken.transfer(receiver.address, 75)
+        ).to.changeTokenBalances(
+          mockToken,
+          [sender, receiver],
+          ([senderDiff, receiverDiff]: BigNumber[]) => {
+            expect(senderDiff).to.eq(-75);
+            expect(receiverDiff).to.eq(75);
+          }
+        );
+      });
+
+      it("Should pass when predicate has passed", async () => {
+        await expect(() =>
+          mockToken.transfer(receiver.address, 112)
+        ).to.changeTokenBalances(
+          mockToken,
+          [sender, receiver],
+          async ([senderDiff, receiverDiff]: BigNumber[]) => {
+            expect(senderDiff).to.eq(-112);
+            await expect(
+              expect(receiverDiff).to.eq(113)
+            ).to.be.eventually.rejectedWith(
+              `expected 112 to equal 113. The numerical values of the given "ethers.BigNumber" and "number" inputs were compared, and they differed`
+            );
+          }
+        );
       });
     });
 

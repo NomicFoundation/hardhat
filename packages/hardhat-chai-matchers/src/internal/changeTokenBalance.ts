@@ -76,7 +76,7 @@ export function supportChangeTokenBalance(Assertion: Chai.AssertionStatic) {
       accounts: Array<Account | string>,
       balanceChanges:
         | EthersT.BigNumberish[]
-        | Array<(change: EthersT.BigNumber) => boolean>
+        | ((changes: EthersT.BigNumber[]) => Promise<void> | void)
     ) {
       const ethers = require("ethers") as typeof EthersT;
 
@@ -90,10 +90,18 @@ export function supportChangeTokenBalance(Assertion: Chai.AssertionStatic) {
 
       checkToken(token, "changeTokenBalances");
 
-      if (accounts.length !== balanceChanges.length) {
-        throw new Error(
-          `The number of accounts (${accounts.length}) is different than the number of expected balance changes (${balanceChanges.length})`
-        );
+      if (typeof balanceChanges === "function") {
+        if (negated === true) {
+          throw new Error(
+            `ChangeTokenBalances with predicate do not support for negated flag`
+          );
+        }
+      } else {
+        if (accounts.length !== balanceChanges.length) {
+          throw new Error(
+            `The number of accounts (${accounts.length}) is different than the number of expected balance changes (${balanceChanges.length})`
+          );
+        }
       }
 
       const balanceChangesPromise = Promise.all(
@@ -108,27 +116,25 @@ export function supportChangeTokenBalance(Assertion: Chai.AssertionStatic) {
       ]: [EthersT.BigNumber[], string[], string]) => {
         const assert = buildAssert(negated, checkBalanceChanges);
 
-        assert(
-          actualChanges.every((change, ind) => {
-            if (typeof balanceChanges[ind] === "function") {
-              return (
-                balanceChanges[ind] as (change: EthersT.BigNumber) => boolean
-              )(change);
-            } else {
-              return change.eq(ethers.BigNumber.from(balanceChanges[ind]));
-            }
-          }),
-          `Expected the balances of ${tokenDescription} tokens for ${
-            addresses as any
-          } to change by ${
-            balanceChanges as any
-          }, respectively, but they changed by ${actualChanges as any}`,
-          `Expected the balances of ${tokenDescription} tokens for ${
-            addresses as any
-          } NOT to change by ${
-            balanceChanges as any
-          }, respectively, but they did`
-        );
+        if (typeof balanceChanges === "function") {
+          void balanceChanges(actualChanges);
+        } else {
+          assert(
+            actualChanges.every((change, ind) =>
+              change.eq(ethers.BigNumber.from(balanceChanges[ind]))
+            ),
+            `Expected the balances of ${tokenDescription} tokens for ${
+              addresses as any
+            } to change by ${
+              balanceChanges as any
+            }, respectively, but they changed by ${actualChanges as any}`,
+            `Expected the balances of ${tokenDescription} tokens for ${
+              addresses as any
+            } NOT to change by ${
+              balanceChanges as any
+            }, respectively, but they did`
+          );
+        }
       };
 
       const derivedPromise = Promise.all([
