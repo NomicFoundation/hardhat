@@ -252,7 +252,7 @@ export class DeployedBytecodeMultipleMatchesError extends HardhatEtherscanError 
   constructor(fqnMatches: string[]) {
     super(`More than one contract was found to match the deployed bytecode.
 Please use the contract parameter with one of the following contracts:
-${fqnMatches.map((fqName) => `  * ${fqName}`).join("\n")}
+${fqnMatches.map((x) => `  * ${x}`).join("\n")}
 
 For example:
 
@@ -264,5 +264,120 @@ await run("${TASK_VERIFY_VERIFY}", {
 <other args>,
 contract: "contracts/Example.sol:ExampleContract"
 };`);
+  }
+}
+
+export class DeployedBytecodeDoesNotMatchFQNError extends HardhatEtherscanError {
+  constructor(contractFQN: string, network: string) {
+    super(`The address provided as argument contains a contract, but its bytecode doesn't match the contract ${contractFQN}.
+
+Possible causes are:
+  - Contract code changed after the deployment was executed. This includes code for seemingly unrelated contracts.
+  - A solidity file was added, moved, deleted or renamed after the deployment was executed. This includes files for seemingly unrelated contracts.
+  - Solidity compiler settings were modified after the deployment was executed (like the optimizer, target EVM, etc.).
+  - The given address is wrong.
+  - The selected network (${network}) is wrong.`);
+  }
+}
+
+export class InvalidLibraryAddressError extends HardhatEtherscanError {
+  constructor(
+    contractName: string,
+    libraryName: string,
+    libraryAddress: string
+  ) {
+    super(
+      `You gave a link for the contract ${contractName} with the library ${libraryName}, but provided this invalid address: ${libraryAddress}`
+    );
+  }
+}
+
+export class DuplicatedLibraryError extends HardhatEtherscanError {
+  constructor(libraryName: string, libraryFQN: string) {
+    super(
+      `The library names ${libraryName} and ${libraryFQN} refer to the same library and were given as two entries in the libraries dictionary.
+Remove one of them and review your libraries dictionary before proceeding.`
+    );
+  }
+}
+
+export class LibraryNotFoundError extends HardhatEtherscanError {
+  constructor(
+    contractName: string,
+    libraryName: string,
+    allLibraries: string[],
+    detectableLibraries: string[],
+    undetectableLibraries: string[]
+  ) {
+    const contractLibrariesDetails = `This contract uses the following external libraries:
+${undetectableLibraries.map((x) => `  * ${x}`).join("\n")}
+${detectableLibraries.map((x) => `  * ${x} (optional)`).join("\n")}
+${
+  detectableLibraries.length > 0
+    ? "Libraries marked as optional don't need to be specified since their addresses are autodetected by the plugin."
+    : ""
+}`;
+
+    super(`You gave an address for the library ${libraryName} in the libraries dictionary, which is not one of the libraries of contract ${contractName}.
+    ${
+      allLibraries.length > 0
+        ? contractLibrariesDetails
+        : "This contract doesn't use any external libraries."
+    }`);
+  }
+}
+
+export class LibraryMultipleMatchesError extends HardhatEtherscanError {
+  constructor(contractName: string, libraryName: string, fqnMatches: string[]) {
+    super(`The library name ${libraryName} is ambiguous for the contract ${contractName}.
+It may resolve to one of the following libraries:
+${fqnMatches.map((x) => `  * ${x}`).join("\n")}
+
+To fix this, choose one of these fully qualified library names and replace it in your libraries dictionary.`);
+  }
+}
+
+export class MissingLibrariesError extends HardhatEtherscanError {
+  constructor(
+    contractName: string,
+    allLibraries: string[],
+    mergedLibraries: string[],
+    undetectableLibraries: string[]
+  ) {
+    const missingLibraries = allLibraries.filter(
+      (lib) => !mergedLibraries.some((mergedLib) => lib === mergedLib)
+    );
+
+    super(`The contract ${contractName} has one or more library addresses that cannot be detected from deployed bytecode.
+This can occur if the library is only called in the contract constructor. The missing libraries are:
+${missingLibraries.map((x) => `  * ${x}`).join("\n")}
+
+${
+  missingLibraries.length === undetectableLibraries.length
+    ? "Visit https://hardhat.org/hardhat-runner/plugins/nomiclabs-hardhat-etherscan#libraries-with-undetectable-addresses to learn how to solve this."
+    : "To solve this, you can add them to your --libraries dictionary with their corresponding addresses."
+}`);
+  }
+}
+
+export class LibraryAddressesMismatchError extends HardhatEtherscanError {
+  constructor(
+    conflicts: Array<{
+      library: string;
+      detectedAddress: string;
+      inputAddress: string;
+    }>
+  ) {
+    super(`The following detected library addresses are different from the ones provided:
+${conflicts
+  .map(
+    ({ library, inputAddress, detectedAddress }) =>
+      `  * ${library}
+given address: ${inputAddress}
+detected address: ${detectedAddress}`
+  )
+  .join("\n")}
+
+You can either fix these addresses in your libraries dictionary or simply remove them to let the plugin autodetect them.`);
   }
 }

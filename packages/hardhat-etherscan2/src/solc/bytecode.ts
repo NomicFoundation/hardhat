@@ -1,9 +1,4 @@
-import {
-  CompilerInput,
-  CompilerOutputBytecode,
-  CompilerOutputContract,
-  EthereumProvider,
-} from "hardhat/types";
+import { CompilerOutputBytecode, EthereumProvider } from "hardhat/types";
 import { DeployedBytecodeNotFound } from "../errors";
 import {
   getMetadataSectionLength,
@@ -15,8 +10,8 @@ import {
 import {
   ByteOffset,
   getCallProtectionOffsets,
-  getImmutableValuesOffsets,
-  getLibrariesOffsets,
+  getImmutableOffsets,
+  getLibraryOffsets,
 } from "./artifacts";
 
 // If the compiler output bytecode is OVM bytecode, we need to make a fix to account for a bug in some versions of
@@ -31,14 +26,6 @@ const OVM_FIND_OPCODES =
   "336000905af158601d01573d60011458600c01573d6000803e3d621234565260ea61109c52";
 const OVM_REPLACE_OPCODES =
   "336000905af158600e01573d6000803e3d6000fd5b3d6001141558600a015760016000f35b";
-
-export interface ContractInformation {
-  compilerInput: CompilerInput;
-  solcVersion: string;
-  sourceName: string;
-  contractName: string;
-  contractOutput: CompilerOutputContract;
-}
 
 export class Bytecode {
   private _bytecode: string;
@@ -86,6 +73,10 @@ export class Bytecode {
     }
 
     return new Bytecode(deployedBytecode);
+  }
+
+  public stringify() {
+    return this._bytecode;
   }
 
   public getVersion() {
@@ -175,8 +166,8 @@ const nullifyBytecodeOffsets = (
   }: CompilerOutputBytecode
 ): string => {
   const offsets = [
-    ...getLibrariesOffsets(linkReferences),
-    ...getImmutableValuesOffsets(immutableReferences),
+    ...getLibraryOffsets(linkReferences),
+    ...getImmutableOffsets(immutableReferences),
     ...getCallProtectionOffsets(bytecode, referenceBytecode),
   ];
 

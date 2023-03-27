@@ -21,6 +21,7 @@ import {
   ContractNotFoundError,
   BuildInfoNotFoundError,
   BuildInfoCompilerVersionMismatchError,
+  DeployedBytecodeDoesNotMatchFQNError,
 } from "./errors";
 import {
   getCompilerVersions,
@@ -28,11 +29,18 @@ import {
   resolveConstructorArguments,
   resolveLibraries,
 } from "./utilities";
-
-import "./type-extensions";
 import { Etherscan } from "./etherscan";
 import { Bytecode } from "./solc/bytecode";
-import { extractMatchingContractInformation } from "./solc/artifacts";
+import {
+  ContractInformation,
+  ExtendedContractInformation,
+  extractInferredContractInformation,
+  extractMatchingContractInformation,
+  getLibraryInformation,
+  LibraryToAddress,
+} from "./solc/artifacts";
+
+import "./type-extensions";
 
 // Main task args
 interface VerifyTaskArgs {
@@ -49,7 +57,7 @@ interface VerifyTaskArgs {
 interface VerifySubtaskArgs {
   address?: string;
   constructorArguments: string[];
-  libraries: Record<string, string>;
+  libraries: LibraryToAddress;
   contract?: string;
   noCompile: boolean;
 }
@@ -58,7 +66,7 @@ interface VerifySubtaskArgs {
 interface VerificationArgs {
   address: string;
   constructorArgs: string[];
-  libraries: Record<string, string>;
+  libraries: LibraryToAddress;
   contractFQN?: string;
   listNetworks: boolean;
   noCompile: boolean;
@@ -68,7 +76,7 @@ interface GetContractInformationArgs {
   contractFQN?: string;
   deployedBytecode: Bytecode;
   matchingCompilerVersions: string[];
-  libraries: Record<string, string>;
+  libraries: LibraryToAddress;
 }
 
 extendConfig(etherscanConfigExtender);
@@ -244,7 +252,7 @@ subtask(TASK_VERIFY_VERIFY_ETHERSCAN)
         await run(TASK_COMPILE, { quiet: true });
       }
 
-      const contractInformation /* : ExtendedContractInformation */ = await run(
+      const contractInformation: ExtendedContractInformation = await run(
         TASK_VERIFY_GET_CONTRACT_INFORMATION,
         {
           contractFQN,
@@ -270,7 +278,9 @@ subtask(TASK_VERIFY_GET_CONTRACT_INFORMATION)
         libraries,
       }: GetContractInformationArgs,
       { network, artifacts }
-    ) /* : Promise<ExtendedContractInformation> */ => {
+    ): Promise<ExtendedContractInformation> => {
+      let contractInformation: ContractInformation | null;
+
       if (contractFQN !== undefined) {
         if (!(await artifacts.artifactExists(contractFQN))) {
           throw new ContractNotFoundError(contractFQN);
@@ -294,19 +304,37 @@ subtask(TASK_VERIFY_GET_CONTRACT_INFORMATION)
           );
         }
 
-        const contractInformation = extractMatchingContractInformation(
+        contractInformation = extractMatchingContractInformation(
           contractFQN,
           buildInfo,
           deployedBytecode
         );
+
+        if (contractInformation === null) {
+          throw new DeployedBytecodeDoesNotMatchFQNError(
+            contractFQN,
+            network.name
+          );
+        }
       } else {
+        contractInformation = await extractInferredContractInformation(
+          artifacts,
+          network,
+          matchingCompilerVersions,
+          deployedBytecode
+        );
       }
 
       // map contractInformation libraries
-      /*       const { libraryLinks, undetectableLibraries } = await getLibraryLinks(
+      const libraryInformation = await getLibraryInformation(
         contractInformation,
         libraries
-      ); */
+      );
+
+      return {
+        ...contractInformation,
+        ...libraryInformation,
+      };
     }
   );
 

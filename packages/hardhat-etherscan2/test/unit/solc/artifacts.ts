@@ -3,12 +3,12 @@ import { CompilerOutputBytecode } from "hardhat/types";
 import {
   ByteOffset,
   getCallProtectionOffsets,
-  getImmutableValuesOffsets,
-  getLibrariesOffsets,
+  getImmutableOffsets,
+  getLibraryOffsets,
 } from "../../../src/solc/artifacts";
 
 describe("artifacts", () => {
-  describe("getLibrariesOffsets", () => {
+  describe("getLibraryOffsets", () => {
     it("should return a single offset for a single library", () => {
       const linkReferences: CompilerOutputBytecode["linkReferences"] = {
         "contracts/TestContract.sol": {
@@ -26,7 +26,7 @@ describe("artifacts", () => {
           start: 146,
         },
       ];
-      assert.deepEqual(getLibrariesOffsets(linkReferences), expected);
+      assert.deepEqual(getLibraryOffsets(linkReferences), expected);
     });
 
     it("should return all the offsets for the library", () => {
@@ -54,7 +54,7 @@ describe("artifacts", () => {
           start: 347,
         },
       ];
-      assert.deepEqual(getLibrariesOffsets(linkReferences), expected);
+      assert.deepEqual(getLibraryOffsets(linkReferences), expected);
     });
 
     it("should return the offsets for multiple libraries", () => {
@@ -92,27 +92,24 @@ describe("artifacts", () => {
           start: 645,
         },
       ];
-      assert.deepEqual(getLibrariesOffsets(linkReferences), expected);
+      assert.deepEqual(getLibraryOffsets(linkReferences), expected);
     });
 
     it("should return an empty array if there's no libraries", () => {
       const linkReferences: CompilerOutputBytecode["linkReferences"] = {};
       const expected: ByteOffset[] = [];
-      assert.deepEqual(getLibrariesOffsets(linkReferences), expected);
+      assert.deepEqual(getLibraryOffsets(linkReferences), expected);
     });
   });
 
-  describe("getImmutableValuesOffsets", () => {
+  describe("getImmutableOffsets", () => {
     it("should return a single offset for a single immutable value", () => {
       const immutableReferences: CompilerOutputBytecode["immutableReferences"] =
         {
           "280": [{ length: 32, start: 2018 }],
         };
       const expected: ByteOffset[] = [{ length: 32, start: 2018 }];
-      assert.deepEqual(
-        getImmutableValuesOffsets(immutableReferences),
-        expected
-      );
+      assert.deepEqual(getImmutableOffsets(immutableReferences), expected);
     });
 
     it("should return all the offsets for the immutable value", () => {
@@ -127,10 +124,7 @@ describe("artifacts", () => {
         { length: 32, start: 2018 },
         { length: 32, start: 2545 },
       ];
-      assert.deepEqual(
-        getImmutableValuesOffsets(immutableReferences),
-        expected
-      );
+      assert.deepEqual(getImmutableOffsets(immutableReferences), expected);
     });
 
     it("should return the offsets for multiple immutable values", () => {
@@ -157,20 +151,14 @@ describe("artifacts", () => {
         { length: 32, start: 3252 },
         { length: 32, start: 3582 },
       ];
-      assert.deepEqual(
-        getImmutableValuesOffsets(immutableReferences),
-        expected
-      );
+      assert.deepEqual(getImmutableOffsets(immutableReferences), expected);
     });
 
     it("should return an empty array if there's no immutable values", () => {
       const immutableReferences: CompilerOutputBytecode["immutableReferences"] =
         {};
       const expected: ByteOffset[] = [];
-      assert.deepEqual(
-        getImmutableValuesOffsets(immutableReferences),
-        expected
-      );
+      assert.deepEqual(getImmutableOffsets(immutableReferences), expected);
     });
   });
 

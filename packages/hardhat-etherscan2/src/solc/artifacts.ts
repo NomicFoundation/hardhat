@@ -2,21 +2,50 @@ import { parseFullyQualifiedName } from "hardhat/utils/contract-names";
 import {
   Artifacts,
   BuildInfo,
+  CompilerInput,
   CompilerOutputBytecode,
+  CompilerOutputContract,
   Network,
 } from "hardhat/types";
 import {
   DeployedBytecodeMismatchError,
   DeployedBytecodeMultipleMatchesError,
+  DuplicatedLibraryError,
+  InvalidLibraryAddressError,
+  LibraryAddressesMismatchError,
+  LibraryMultipleMatchesError,
+  LibraryNotFoundError,
+  MissingLibrariesError,
 } from "../errors";
-import { Bytecode, ContractInformation } from "./bytecode";
+import { Bytecode } from "./bytecode";
+
+export interface ContractInformation {
+  compilerInput: CompilerInput;
+  solcVersion: string;
+  sourceName: string;
+  contractName: string;
+  contractOutput: CompilerOutputContract;
+  deployedBytecode: string;
+}
+
+interface LibraryInformation {
+  libraries: SourceToLibraryToAddress;
+  undetectableLibraries: string[];
+}
+
+export type ExtendedContractInformation = ContractInformation &
+  LibraryInformation;
+
+export type LibraryToAddress = Record<string, string>;
+
+export type SourceToLibraryToAddress = Record<string, LibraryToAddress>;
 
 export interface ByteOffset {
   start: number;
   length: number;
 }
 
-export const getLibrariesOffsets = (
+export const getLibraryOffsets = (
   linkReferences: CompilerOutputBytecode["linkReferences"] = {}
 ): ByteOffset[] => {
   const offsets: ByteOffset[] = [];
@@ -28,12 +57,12 @@ export const getLibrariesOffsets = (
   return offsets;
 };
 
-export const getImmutableValuesOffsets = (
+export const getImmutableOffsets = (
   immutableReferences: CompilerOutputBytecode["immutableReferences"] = {}
 ): ByteOffset[] => {
   const offsets: ByteOffset[] = [];
-  for (const immutableValueOffset of Object.values(immutableReferences)) {
-    offsets.push(...immutableValueOffset);
+  for (const immutableOffset of Object.values(immutableReferences)) {
+    offsets.push(...immutableOffset);
   }
   return offsets;
 };
@@ -76,6 +105,7 @@ export const extractMatchingContractInformation = (
       sourceName,
       contractName,
       contractOutput,
+      deployedBytecode: bytecode.stringify(),
     };
   }
 
@@ -106,6 +136,52 @@ export const extractInferredContractInformation = async (
   }
 
   return contractMatches[0];
+};
+
+export const getLibraryInformation = async (
+  contractInformation: ContractInformation,
+  userLibraries: LibraryToAddress
+): Promise<LibraryInformation> => {
+  const allLibraries = getLibraryFQNames(
+    contractInformation.contractOutput.evm.bytecode.linkReferences
+  );
+  const detectableLibraries = getLibraryFQNames(
+    contractInformation.contractOutput.evm.deployedBytecode.linkReferences
+  );
+  const undetectableLibraries = allLibraries.filter(
+    (lib) => !detectableLibraries.some((detLib) => detLib === lib)
+  );
+
+  // Resolve and normalize library links given by user
+  const normalizedLibraries = await normalizeLibraries(
+    allLibraries,
+    detectableLibraries,
+    undetectableLibraries,
+    userLibraries,
+    contractInformation.contractName
+  );
+
+  const libraryAddresses = getLibraryAddressesFromBytecode(
+    contractInformation.contractOutput.evm.deployedBytecode.linkReferences,
+    contractInformation.deployedBytecode
+  );
+
+  const mergedLibraryLinks = mergeLibraries(
+    normalizedLibraries,
+    libraryAddresses
+  );
+
+  const mergedLibraries = getLibraryFQNames(mergedLibraryLinks);
+  if (mergedLibraries.length < allLibraries.length) {
+    throw new MissingLibrariesError(
+      `${contractInformation.sourceName}:${contractInformation.contractName}`,
+      allLibraries,
+      mergedLibraries,
+      undetectableLibraries
+    );
+  }
+
+  return { libraries: mergedLibraryLinks, undetectableLibraries };
 };
 
 const lookupMatchingBytecode = async (
@@ -142,4 +218,169 @@ const lookupMatchingBytecode = async (
   }
 
   return contractMatches;
+};
+
+const getLibraryFQNames = (
+  libraries: CompilerOutputBytecode["linkReferences"] | SourceToLibraryToAddress
+): string[] => {
+  const libraryNames: string[] = [];
+  for (const [sourceName, sourceLibraries] of Object.entries(libraries)) {
+    for (const libraryName of Object.keys(sourceLibraries)) {
+      libraryNames.push(`${sourceName}:${libraryName}`);
+    }
+  }
+
+  return libraryNames;
+};
+
+const normalizeLibraries = async (
+  allLibraries: string[],
+  detectableLibraries: string[],
+  undetectableLibraries: string[],
+  userLibraries: LibraryToAddress,
+  contractName: string
+): Promise<SourceToLibraryToAddress> => {
+  const { isAddress } = await import("@ethersproject/address");
+
+  const libraryFQNs: Set<string> = new Set();
+  const normalizedLibraries: SourceToLibraryToAddress = {};
+  for (const [userLibName, userLibAddress] of Object.entries(userLibraries)) {
+    if (!isAddress(userLibAddress)) {
+      throw new InvalidLibraryAddressError(
+        contractName,
+        userLibName,
+        userLibAddress
+      );
+    }
+
+    const foundLibraryFQN = lookupLibrary(
+      allLibraries,
+      detectableLibraries,
+      undetectableLibraries,
+      userLibName,
+      contractName
+    );
+    const { sourceName: foundLibSource, contractName: foundLibName } =
+      parseFullyQualifiedName(foundLibraryFQN);
+
+    // The only way for this library to be already mapped is
+    // for it to be given twice in the libraries user input:
+    // once as a library name and another as a fully qualified library name.
+    if (libraryFQNs.has(foundLibraryFQN)) {
+      throw new DuplicatedLibraryError(foundLibName, foundLibraryFQN);
+    }
+
+    libraryFQNs.add(foundLibraryFQN);
+    if (normalizedLibraries[foundLibSource] === undefined) {
+      normalizedLibraries[foundLibSource] = {};
+    }
+    normalizedLibraries[foundLibSource][foundLibName] = userLibAddress;
+  }
+
+  return normalizedLibraries;
+};
+
+const lookupLibrary = (
+  allLibraries: string[],
+  detectableLibraries: string[],
+  undetectableLibraries: string[],
+  userLibraryName: string,
+  contractName: string
+): string => {
+  const matchingLibraries = allLibraries.filter(
+    (lib) => lib === userLibraryName || lib.split(":")[1] === userLibraryName
+  );
+
+  if (matchingLibraries.length === 0) {
+    throw new LibraryNotFoundError(
+      contractName,
+      userLibraryName,
+      allLibraries,
+      detectableLibraries,
+      undetectableLibraries
+    );
+  }
+
+  if (matchingLibraries.length > 1) {
+    throw new LibraryMultipleMatchesError(
+      contractName,
+      userLibraryName,
+      matchingLibraries
+    );
+  }
+
+  const [foundLibraryFQN] = matchingLibraries;
+  return foundLibraryFQN;
+};
+
+const getLibraryAddressesFromBytecode = (
+  linkReferences: CompilerOutputBytecode["linkReferences"] = {},
+  bytecode: string
+): SourceToLibraryToAddress => {
+  const sourceToLibraryToAddress: SourceToLibraryToAddress = {};
+  for (const [sourceName, libs] of Object.entries(linkReferences)) {
+    if (sourceToLibraryToAddress[sourceName] === undefined) {
+      sourceToLibraryToAddress[sourceName] = {};
+    }
+    for (const [libraryName, [{ start, length }]] of Object.entries(libs)) {
+      sourceToLibraryToAddress[sourceName][libraryName] = `0x${bytecode.slice(
+        start * 2,
+        (start + length) * 2
+      )}`;
+    }
+  }
+  return sourceToLibraryToAddress;
+};
+
+const mergeLibraries = (
+  normalizedLibraries: SourceToLibraryToAddress,
+  detectedLibraries: SourceToLibraryToAddress
+): SourceToLibraryToAddress => {
+  const conflicts: Array<{
+    library: string;
+    detectedAddress: string;
+    inputAddress: string;
+  }> = [];
+  for (const [sourceName, libraries] of Object.entries(normalizedLibraries)) {
+    for (const [libraryName, libraryAddress] of Object.entries(libraries)) {
+      if (
+        sourceName in detectedLibraries &&
+        libraryName in detectedLibraries[sourceName]
+      ) {
+        const detectedAddress = detectedLibraries[sourceName][libraryName];
+        // Our detection logic encodes bytes into lowercase hex.
+        if (libraryAddress.toLowerCase() !== detectedAddress) {
+          conflicts.push({
+            library: `${sourceName}:${libraryName}`,
+            detectedAddress,
+            inputAddress: libraryAddress,
+          });
+        }
+      }
+    }
+  }
+
+  if (conflicts.length > 0) {
+    throw new LibraryAddressesMismatchError(conflicts);
+  }
+
+  // Actual merge function, used internally
+  const merge = (
+    targetLibraries: SourceToLibraryToAddress,
+    newLibraries: SourceToLibraryToAddress
+  ) => {
+    for (const [sourceName, libraries] of Object.entries(newLibraries)) {
+      if (targetLibraries[sourceName] === undefined) {
+        targetLibraries[sourceName] = {};
+      }
+      for (const [libraryName, libraryAddress] of Object.entries(libraries)) {
+        targetLibraries[sourceName][libraryName] = libraryAddress;
+      }
+    }
+  };
+  const mergedLibraries: SourceToLibraryToAddress = {};
+  merge(mergedLibraries, normalizedLibraries);
+  merge(mergedLibraries, detectedLibraries);
+
+  return mergedLibraries;
 };
