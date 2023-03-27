@@ -59,16 +59,6 @@ To learn how to add custom networks, follow these instructions: https://hardhat.
 };
 
 /**
- * Returns true if the contract name is fully qualified.
- *
- * Note that the fully qualified contract name is the path of its source
- * file and the contract name separated by a colon.
- */
-export const isFullyQualifiedName = (name: string): boolean => {
-  return /^[^:]+:[^:]+$/.test(name);
-};
-
-/**
  * Returns the list of constructor arguments from the constructorArgsModule
  * or the constructorArgsParams if the first is not defined.
  */

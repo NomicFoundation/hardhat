@@ -1,7 +1,9 @@
 import { extendConfig, subtask, task, types } from "hardhat/config";
+import { isFullyQualifiedName } from "hardhat/utils/contract-names";
 import { TASK_COMPILE } from "hardhat/builtin-tasks/task-names";
 import {
   TASK_VERIFY,
+  TASK_VERIFY_GET_CONTRACT_INFORMATION,
   TASK_VERIFY_GET_VERIFICATION_SUBTASKS,
   TASK_VERIFY_PROCESS_ARGUMENTS,
   TASK_VERIFY_VERIFY,
@@ -16,10 +18,12 @@ import {
   InvalidConstructorArguments,
   InvalidLibraries,
   CompilerVersionsMismatchError,
+  ContractNotFoundError,
+  BuildInfoNotFoundError,
+  BuildInfoCompilerVersionMismatchError,
 } from "./errors";
 import {
   getCompilerVersions,
-  isFullyQualifiedName,
   printSupportedNetworks,
   resolveConstructorArguments,
   resolveLibraries,
@@ -28,7 +32,9 @@ import {
 import "./type-extensions";
 import { Etherscan } from "./etherscan";
 import { Bytecode } from "./solc/bytecode";
+import { extractMatchingContractInformation } from "./solc/artifacts";
 
+// Main task args
 interface VerifyTaskArgs {
   address?: string;
   constructorArgsParams: string[];
@@ -39,13 +45,30 @@ interface VerifyTaskArgs {
   noCompile: boolean;
 }
 
+// verify:verify subtask args
+interface VerifySubtaskArgs {
+  address?: string;
+  constructorArguments: string[];
+  libraries: Record<string, string>;
+  contract?: string;
+  noCompile: boolean;
+}
+
+// parsed verification args
 interface VerificationArgs {
   address: string;
   constructorArgs: string[];
   libraries: Record<string, string>;
-  contract?: string;
+  contractFQN?: string;
   listNetworks: boolean;
   noCompile: boolean;
+}
+
+interface GetContractInformationArgs {
+  contractFQN?: string;
+  deployedBytecode: Bytecode;
+  matchingCompilerVersions: string[];
+  libraries: Record<string, string>;
 }
 
 extendConfig(etherscanConfigExtender);
@@ -139,7 +162,7 @@ subtask(TASK_VERIFY_PROCESS_ARGUMENTS)
         address,
         constructorArgs,
         libraries,
-        contract,
+        contractFQN: contract,
         listNetworks,
         noCompile,
       };
@@ -173,7 +196,7 @@ subtask(TASK_VERIFY_VERIFY_ETHERSCAN)
         address,
         constructorArgs,
         libraries,
-        contract,
+        contractFQN,
         listNetworks,
         noCompile,
       }: VerificationArgs,
@@ -220,6 +243,70 @@ subtask(TASK_VERIFY_VERIFY_ETHERSCAN)
       if (!noCompile) {
         await run(TASK_COMPILE, { quiet: true });
       }
+
+      const contractInformation /* : ExtendedContractInformation */ = await run(
+        TASK_VERIFY_GET_CONTRACT_INFORMATION,
+        {
+          contractFQN,
+          contractBytecode,
+          matchingCompilerVersions,
+          libraries,
+        }
+      );
+    }
+  );
+
+subtask(TASK_VERIFY_GET_CONTRACT_INFORMATION)
+  .addParam("deployedBytecode", undefined, undefined, types.any)
+  .addParam("matchingCompilerVersions", undefined, undefined, types.any)
+  .addParam("libraries", undefined, undefined, types.any)
+  .addOptionalParam("contractFQN", undefined, undefined, types.string)
+  .setAction(
+    async (
+      {
+        contractFQN,
+        deployedBytecode,
+        matchingCompilerVersions,
+        libraries,
+      }: GetContractInformationArgs,
+      { network, artifacts }
+    ) /* : Promise<ExtendedContractInformation> */ => {
+      if (contractFQN !== undefined) {
+        if (!(await artifacts.artifactExists(contractFQN))) {
+          throw new ContractNotFoundError(contractFQN);
+        }
+
+        const buildInfo = await artifacts.getBuildInfo(contractFQN);
+        if (buildInfo === undefined) {
+          throw new BuildInfoNotFoundError(contractFQN);
+        }
+
+        if (
+          !matchingCompilerVersions.includes(buildInfo.solcVersion) &&
+          !deployedBytecode.isOvm()
+        ) {
+          throw new BuildInfoCompilerVersionMismatchError(
+            contractFQN,
+            deployedBytecode.getVersion(),
+            deployedBytecode.hasVersionRange(),
+            buildInfo.solcVersion,
+            network.name
+          );
+        }
+
+        const contractInformation = extractMatchingContractInformation(
+          contractFQN,
+          buildInfo,
+          deployedBytecode
+        );
+      } else {
+      }
+
+      // map contractInformation libraries
+      /*       const { libraryLinks, undetectableLibraries } = await getLibraryLinks(
+        contractInformation,
+        libraries
+      ); */
     }
   );
 
@@ -236,7 +323,13 @@ subtask(TASK_VERIFY_VERIFY)
   .addFlag("noCompile")
   .setAction(
     async (
-      { address, constructorArguments, libraries, contract, noCompile },
+      {
+        address,
+        constructorArguments,
+        libraries,
+        contract,
+        noCompile,
+      }: VerifySubtaskArgs,
       { run }
     ) => {
       if (address === undefined) {
@@ -265,7 +358,7 @@ subtask(TASK_VERIFY_VERIFY)
         address,
         constructorArgsParams: constructorArguments,
         libraryDictionary: libraries,
-        contract,
+        contractFQN: contract,
         noCompile,
       });
     }

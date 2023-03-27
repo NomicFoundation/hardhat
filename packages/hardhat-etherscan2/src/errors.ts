@@ -185,19 +185,84 @@ export class CompilerVersionsMismatchError extends HardhatEtherscanError {
     inferredCompilerVersion: string,
     network: string
   ) {
-    const configuredCompilersFragment =
+    const versionDetails =
       configCompilerVersions.length > 1
-        ? `your configured compiler versions are: ${configCompilerVersions.join(
-            ", "
-          )}`
-        : `your configured compiler version is: ${configCompilerVersions[0]}`;
+        ? `versions are: ${configCompilerVersions.join(", ")}`
+        : `version is: ${configCompilerVersions[0]}`;
 
-    super(`The contract you want to verify was compiled with solidity ${inferredCompilerVersion}, but ${configuredCompilersFragment}.
+    super(`The contract you want to verify was compiled with solidity ${inferredCompilerVersion}, but your configured compiler ${versionDetails}.
 
 Possible causes are:
 - You are not in the same commit that was used to deploy the contract.
 - Wrong compiler version selected in hardhat config.
 - The given address is wrong.
 - The selected network (${network}) is wrong.`);
+  }
+}
+
+export class ContractNotFoundError extends HardhatEtherscanError {
+  constructor(contractFQN: string) {
+    super(`The contract ${contractFQN} is not present in your project.`);
+  }
+}
+
+export class BuildInfoNotFoundError extends HardhatEtherscanError {
+  constructor(contractFQN: string) {
+    super(`The contract ${contractFQN} is present in your project, but we couldn't find its sources.
+Please make sure that it has been compiled by Hardhat and that it is written in Solidity.`);
+  }
+}
+
+export class BuildInfoCompilerVersionMismatchError extends HardhatEtherscanError {
+  constructor(
+    contractFQN: string,
+    compilerVersion: string,
+    isVersionRange: boolean,
+    buildInfoCompilerVersion: string,
+    network: string
+  ) {
+    const versionDetails = isVersionRange
+      ? `a solidity version in the range ${compilerVersion}`
+      : `the solidity version ${compilerVersion}`;
+
+    super(`The contract ${contractFQN} is being compiled with ${buildInfoCompilerVersion}.
+However, the contract found in the address provided as argument has its bytecode marked with ${versionDetails}.
+
+Possible causes are:
+- Solidity compiler version settings were modified after the deployment was executed.
+- The given address is wrong.
+- The selected network (${network}) is wrong.`);
+  }
+}
+
+export class DeployedBytecodeMismatchError extends HardhatEtherscanError {
+  constructor(network: string) {
+    super(`The address provided as argument contains a contract, but its bytecode doesn't match any of your local contracts.
+
+Possible causes are:
+  - Contract code changed after the deployment was executed. This includes code for seemingly unrelated contracts.
+  - A solidity file was added, moved, deleted or renamed after the deployment was executed. This includes files for seemingly unrelated contracts.
+  - Solidity compiler settings were modified after the deployment was executed (like the optimizer, target EVM, etc.).
+  - The given address is wrong.
+  - The selected network (${network}) is wrong.`);
+  }
+}
+
+export class DeployedBytecodeMultipleMatchesError extends HardhatEtherscanError {
+  constructor(fqnMatches: string[]) {
+    super(`More than one contract was found to match the deployed bytecode.
+Please use the contract parameter with one of the following contracts:
+${fqnMatches.map((fqName) => `  * ${fqName}`).join("\n")}
+
+For example:
+
+hardhat verify --contract contracts/Example.sol:ExampleContract <other args>
+
+If you are running the verify subtask from within Hardhat instead:
+
+await run("${TASK_VERIFY_VERIFY}", {
+<other args>,
+contract: "contracts/Example.sol:ExampleContract"
+};`);
   }
 }
