@@ -15,7 +15,6 @@ import {
   CallableFuture,
   Virtual,
   ParameterFuture,
-  BytesFuture,
   ArtifactFuture,
   EventParamFuture,
   SendFuture,
@@ -227,7 +226,7 @@ export interface IDeploymentBuilder {
     defaultValue: ParameterValue
   ): OptionalParameter;
 
-  getBytesForArtifact(artifactName: string): BytesFuture;
+  getArtifact(contractName: string): Artifact;
 
   useModule<T extends ModuleDict>(
     module: Module<T>,
@@ -238,6 +237,7 @@ export interface IDeploymentBuilder {
 export interface DeploymentBuilderOptions {
   chainId: number;
   accounts: string[];
+  artifacts: Artifact[];
 }
 
 export interface CallPoints {

@@ -12,7 +12,10 @@ import type {
   VertexVisitResultSuccess,
 } from "./graph";
 import type { Services } from "./services";
-import type { BigNumber } from "ethers";
+
+import { BigNumber } from "ethers";
+
+import { Artifact } from "../../types/hardhat";
 
 export type UpdateUiAction = (deployState: DeployState) => void;
 export type UiParamsClosure = (moduleParams?: ModuleParams) => UpdateUiAction;
@@ -146,6 +149,7 @@ export interface DeployNetworkConfig {
   chainId: number;
   networkName: string;
   accounts: string[];
+  artifacts: Artifact[];
   force: boolean;
 }
 

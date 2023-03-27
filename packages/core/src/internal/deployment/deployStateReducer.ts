@@ -18,6 +18,7 @@ export function initializeDeployState(moduleName: string): DeployState {
       chainId: 0,
       networkName: "",
       accounts: [],
+      artifacts: [],
       force: false,
     },
     validation: {

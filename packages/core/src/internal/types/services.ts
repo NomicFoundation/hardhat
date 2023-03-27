@@ -16,6 +16,7 @@ export interface IAccountsService {
 export interface IArtifactsService {
   getArtifact(name: string): Promise<Artifact>;
   hasArtifact(name: string): Promise<boolean>;
+  getAllArtifacts(): Promise<Artifact[]>;
 }
 
 export interface IConfigService {

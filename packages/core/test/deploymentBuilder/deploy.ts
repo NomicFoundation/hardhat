@@ -24,6 +24,7 @@ describe("deployment builder - deploy", function () {
   const options = {
     chainId: 31337,
     accounts: ["0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266"],
+    artifacts: [],
   };
 
   describe("single contract", () => {

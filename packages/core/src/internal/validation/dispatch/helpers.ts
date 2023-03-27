@@ -2,13 +2,8 @@ import type { CallableFuture } from "../../../types/future";
 import type { Services } from "../../types/services";
 
 import { IgnitionError } from "../../../errors";
-import {
-  CallPoints,
-  DeploymentGraphVertex,
-  InternalParamValue,
-} from "../../types/deploymentGraph";
+import { CallPoints, DeploymentGraphVertex } from "../../types/deploymentGraph";
 import { VertexResultEnum, VertexVisitResultFailure } from "../../types/graph";
-import { isBytesArg } from "../../utils/guards";
 import { resolveProxyValue } from "../../utils/proxy";
 
 export async function resolveArtifactForCallableFuture(
@@ -49,34 +44,6 @@ export async function resolveArtifactForCallableFuture(
     case "send":
       throw new IgnitionError(`Cannot call send future`);
   }
-}
-
-export async function validateBytesForArtifact({
-  vertex,
-  callPoints,
-  services,
-}: {
-  vertex: DeploymentGraphVertex & { args: InternalParamValue[] };
-  callPoints: CallPoints;
-  services: Services;
-}): Promise<VertexVisitResultFailure | null> {
-  const bytesArgs = vertex.args.filter(isBytesArg);
-
-  const bytesExists = await Promise.all(
-    bytesArgs.map((v) => services.artifacts.hasArtifact(v.label))
-  );
-
-  const bytesDoesNotExistIndex = bytesExists.findIndex((v) => !v);
-
-  if (bytesDoesNotExistIndex === -1) {
-    return null;
-  }
-
-  return buildValidationError(
-    vertex,
-    `Artifact with name '${bytesArgs[bytesDoesNotExistIndex].label}' doesn't exist`,
-    callPoints
-  );
 }
 
 export function buildValidationError(

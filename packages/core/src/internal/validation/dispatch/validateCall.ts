@@ -12,7 +12,6 @@ import { isParameter } from "../../utils/guards";
 import {
   buildValidationError,
   resolveArtifactForCallableFuture,
-  validateBytesForArtifact,
 } from "./helpers";
 
 export async function validateCall(
@@ -34,16 +33,6 @@ export async function validateCall(
       `For call 'from' must be a valid address string`,
       context.callPoints
     );
-  }
-
-  const invalidBytes = await validateBytesForArtifact({
-    vertex,
-    callPoints: context.callPoints,
-    services: context.services,
-  });
-
-  if (invalidBytes !== null) {
-    return invalidBytes;
   }
 
   const contractName = vertex.contract.label;

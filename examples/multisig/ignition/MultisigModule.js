@@ -1,9 +1,9 @@
 const { ethers } = require("ethers");
 const { buildModule } = require("@ignored/hardhat-ignition");
 
-const MultisigArtifact = require("../artifacts/contracts/Multisig.sol/Multisig.json");
-
 module.exports = buildModule("MultisigModule", (m) => {
+  const MultisigArtifact = m.getArtifact("Multisig");
+
   const [ACCOUNT_0, ACCOUNT_1] = m.accounts;
 
   const owners = [ACCOUNT_0, ACCOUNT_1];

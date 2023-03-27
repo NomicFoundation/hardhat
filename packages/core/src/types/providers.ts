@@ -16,6 +16,7 @@ export interface Providers {
 export interface ArtifactsProvider {
   getArtifact: (name: string) => Promise<Artifact>;
   hasArtifact: (name: string) => Promise<boolean>;
+  getAllArtifacts: () => Promise<Artifact[]>;
 }
 
 export interface EIP1193Provider {

@@ -28,6 +28,7 @@ describe("deployment builder - useModule", () => {
   const options = {
     chainId: 31,
     accounts: [],
+    artifacts: [],
   };
 
   describe("use one module from another", () => {
@@ -521,6 +522,7 @@ describe("deployment builder - useModule", () => {
           generateDeploymentGraphFrom(returnsWrongFutureTypeModule, {
             chainId: 31,
             accounts: [],
+            artifacts: [],
           }),
         /Cannot return Future of type "parameter" from a module/
       );

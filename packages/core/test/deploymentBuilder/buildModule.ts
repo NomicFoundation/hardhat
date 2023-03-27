@@ -15,6 +15,7 @@ describe("deployment builder - buildModule", () => {
       return generateDeploymentGraphFrom(badAsyncModule, {
         chainId: 31337,
         accounts: [],
+        artifacts: [],
       });
     }, /The callback passed to 'buildModule' for BadAsyncModule returns a Promise; async callbacks are not allowed in 'buildModule'./);
   });
@@ -28,6 +29,7 @@ describe("deployment builder - buildModule", () => {
       return generateDeploymentGraphFrom(badAsyncModule, {
         chainId: 31337,
         accounts: [],
+        artifacts: [],
       });
     }, /User thrown error/);
   });

@@ -9,12 +9,12 @@ import {
 } from "../../types/validation";
 import { isArtifact, isParameter } from "../../utils/guards";
 
-import { buildValidationError, validateBytesForArtifact } from "./helpers";
+import { buildValidationError } from "./helpers";
 
 export async function validateArtifactContract(
   vertex: ArtifactContractDeploymentVertex,
   _resultAccumulator: ValidationResultsAccumulator,
-  { callPoints, services }: ValidationDispatchContext
+  { callPoints }: ValidationDispatchContext
 ): Promise<ValidationVertexVisitResult> {
   if (!BigNumber.isBigNumber(vertex.value) && !isParameter(vertex.value)) {
     return buildValidationError(
@@ -30,16 +30,6 @@ export async function validateArtifactContract(
       `For contract 'from' must be a valid address string`,
       callPoints
     );
-  }
-
-  const invalidBytes = await validateBytesForArtifact({
-    vertex,
-    callPoints,
-    services,
-  });
-
-  if (invalidBytes !== null) {
-    return invalidBytes;
   }
 
   const artifactExists = isArtifact(vertex.artifact);

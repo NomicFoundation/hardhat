@@ -15,7 +15,11 @@ describe("deployment builder - metadata", () => {
       assert.fail("Chain id was not injected");
     });
 
-    generateDeploymentGraphFrom(chainIdModule, { chainId: 42, accounts: [] });
+    generateDeploymentGraphFrom(chainIdModule, {
+      chainId: 42,
+      accounts: [],
+      artifacts: [],
+    });
   });
 
   it("should inject the accounts via the builder", () => {
@@ -30,6 +34,7 @@ describe("deployment builder - metadata", () => {
     generateDeploymentGraphFrom(accountsModule, {
       chainId: 42,
       accounts: ["0x1", "0x2"],
+      artifacts: [],
     });
   });
 });

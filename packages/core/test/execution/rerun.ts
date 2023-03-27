@@ -68,6 +68,7 @@ describe("Rerunning execution", () => {
           artifacts: {
             hasArtifact: () => true,
             getArtifact: () => tokenArtifact,
+            getAllArtifacts: () => [tokenArtifact],
           },
           transactions: {
             wait: (tx: string) => {
@@ -198,6 +199,7 @@ describe("Rerunning execution", () => {
           artifacts: {
             hasArtifact: () => true,
             getArtifact: () => tokenArtifact,
+            getAllArtifacts: () => [tokenArtifact],
           },
           transactions: {
             wait: (tx: string) => {
@@ -295,6 +297,7 @@ describe("Rerunning execution", () => {
           artifacts: {
             hasArtifact: () => true,
             getArtifact: () => tokenArtifact,
+            getAllArtifacts: () => [tokenArtifact],
           },
           transactions: new TransactionsService({} as Providers),
           accounts: {
@@ -338,6 +341,7 @@ describe("Rerunning execution", () => {
           artifacts: {
             hasArtifact: () => true,
             getArtifact: () => tokenArtifact,
+            getAllArtifacts: () => [tokenArtifact],
           },
           contracts: {
             transactionCount: 0,

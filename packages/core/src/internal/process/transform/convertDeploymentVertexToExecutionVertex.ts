@@ -1,23 +1,19 @@
 import { BigNumber, ethers } from "ethers";
 
 import { IgnitionError } from "../../../errors";
-import {
-  BytesFuture,
-  DeploymentGraphFuture,
-  EventParamFuture,
-} from "../../../types/future";
+import { DeploymentGraphFuture, EventParamFuture } from "../../../types/future";
 import { Artifact } from "../../../types/hardhat";
 import {
   ArtifactContractDeploymentVertex,
   ArtifactLibraryDeploymentVertex,
   CallDeploymentVertex,
   DeployedContractDeploymentVertex,
+  DeploymentGraphVertex,
+  EventVertex,
+  ExternalParamValue,
   HardhatContractDeploymentVertex,
   HardhatLibraryDeploymentVertex,
   IDeploymentGraph,
-  DeploymentGraphVertex,
-  ExternalParamValue,
-  EventVertex,
   SendVertex,
 } from "../../types/deploymentGraph";
 import {
@@ -30,7 +26,7 @@ import {
   SentETH,
 } from "../../types/executionGraph";
 import { Services } from "../../types/services";
-import { isBytesArg, isFuture } from "../../utils/guards";
+import { isFuture } from "../../utils/guards";
 
 interface TransformContext {
   services: Services;
@@ -245,9 +241,7 @@ async function convertArgs(
   const resolvedArgs = [];
 
   for (const arg of args) {
-    const resolvedArg = isBytesArg(arg)
-      ? await resolveBytesForArtifact(arg, transformContext.services)
-      : await resolveParameter(arg, transformContext);
+    const resolvedArg = await resolveParameter(arg, transformContext);
 
     resolvedArgs.push(resolvedArg);
   }
@@ -298,13 +292,4 @@ async function resolveParameter<T extends DeploymentGraphFuture>(
   }
 
   return services.config.getParam(arg.label);
-}
-
-async function resolveBytesForArtifact(
-  arg: BytesFuture,
-  services: Services
-): Promise<string> {
-  const artifact = await services.artifacts.getArtifact(arg.label);
-
-  return artifact.bytecode;
 }
