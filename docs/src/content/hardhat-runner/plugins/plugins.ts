@@ -504,7 +504,8 @@ const communityPlugins: IPlugin[] = [
     name: "hardhat-contract-dumper",
     author: "use less",
     authorUrl: "https://github.com/Karuzzzo",
-    description: "Another small hardhat task for printing contract's storage layout 📐",
+    description:
+      "Another small hardhat task for printing contract's storage layout 📐",
     tags: ["Deployment", "Testing", "Security", "Debug", "helper", "Tasks"],
   },
   {
