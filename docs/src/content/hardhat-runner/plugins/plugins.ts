@@ -498,7 +498,15 @@ const communityPlugins: IPlugin[] = [
     author: "use less",
     authorUrl: "https://github.com/Karuzzzo",
     description: "Small hardhat task for debug money transfers 🤝💰",
-    tags: ["Deployment", "Testing", "Security", "Debug", "helper"],
+    tags: ["Deployment", "Testing", "Security", "Debug", "helper", "Tasks"],
+  },
+  {
+    name: "hardhat-contract-dumper",
+    author: "use less",
+    authorUrl: "https://github.com/Karuzzzo",
+    description:
+      "Another small hardhat task for printing contract's storage layout 📐",
+    tags: ["Deployment", "Testing", "Security", "Debug", "helper", "Tasks"],
   },
   {
     name: "@0xweb/hardhat",

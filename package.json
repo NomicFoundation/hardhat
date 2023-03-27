@@ -21,7 +21,7 @@
     "test": "node scripts/run-tests.js",
     "lint": "wsrun --exclude-missing --stages lint && yarn prettier --check",
     "lint:fix": "wsrun --exclude-missing --stages lint:fix && yarn prettier --write",
-    "prettier": "prettier *.md \"{docs,.github}/**/*.{md,yml}\" \"scripts/**/*.js\""
+    "prettier": "prettier *.md \"{docs,.github}/**/*.{md,yml,ts}\" \"scripts/**/*.js\""
   },
   "dependencies": {},
   "resolutions": {
