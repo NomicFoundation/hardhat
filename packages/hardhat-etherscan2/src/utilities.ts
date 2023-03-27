@@ -10,6 +10,7 @@ import {
 } from "./errors";
 
 import { ChainConfig } from "./types";
+import { LibraryToAddress } from "./solc/artifacts";
 
 export const delay = async (ms: number): Promise<void> =>
   new Promise((resolve) => setTimeout(resolve, ms));
@@ -95,7 +96,7 @@ export const resolveConstructorArguments = async (
  */
 export const resolveLibraries = async (
   librariesModule?: string
-): Promise<Record<string, string>> => {
+): Promise<LibraryToAddress> => {
   if (librariesModule === undefined) {
     return {};
   }
