@@ -3,27 +3,11 @@ import path from "path";
 import { SolidityConfig } from "hardhat/types";
 import {
   getCompilerVersions,
-  isFullyQualifiedName,
   resolveConstructorArguments,
   resolveLibraries,
 } from "../../src/utilities";
 
 describe("Utilities", () => {
-  describe("isFullyQualifiedName", () => {
-    it("should return true if the contract name is fully qualified", () => {
-      assert(isFullyQualifiedName("path/to/contract.sol:Contract"));
-      assert(isFullyQualifiedName("path-to-contract-sol:Contract"));
-      assert(isFullyQualifiedName("a:b"));
-      assert(!isFullyQualifiedName("path/to:contract.sol:Contract"));
-      assert(!isFullyQualifiedName(":path/to/contract.sol:Contract"));
-      assert(!isFullyQualifiedName("path/to/contract.sol:Contract:"));
-      assert(!isFullyQualifiedName("path/to/contract.solContract"));
-      assert(!isFullyQualifiedName("path/to/contract.sol:"));
-      assert(!isFullyQualifiedName(":Contract"));
-      assert(!isFullyQualifiedName(":"));
-    });
-  });
-
   describe("resolveConstructorArguments", () => {
     it("should return the constructorArgsParams if constructorArgsModule is not defined", async () => {
       const constructorArgsParams = ["1", "arg2", "false"];

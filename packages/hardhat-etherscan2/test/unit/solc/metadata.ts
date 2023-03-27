@@ -1,5 +1,8 @@
 import { assert } from "chai";
-import { inferCompilerVersion } from "../../../src/solc/metadata";
+import {
+  getMetadataSectionLength,
+  inferCompilerVersion,
+} from "../../../src/solc/metadata";
 
 describe("Metadata Decoder", () => {
   describe("inferCompilerVersion", () => {
@@ -47,6 +50,17 @@ describe("Metadata Decoder", () => {
 
       assert.equal(inferCompilerVersion(solc047Bytecode), "0.4.7 - 0.5.8");
       assert.equal(inferCompilerVersion(solc058Bytecode), "0.4.7 - 0.5.8");
+    });
+  });
+
+  describe("getMetadataSectionLength", () => {
+    it("should return the length of the metadata section", () => {
+      const solc0819Bytecode = Buffer.from(
+        "6080604052348015600f57600080fd5b50603f80601d6000396000f3fe6080604052600080fdfea26469706673582212205a428cebe312fc68fec73aec069d4922dd88c8404183b33f93424ee0ee18423b64736f6c63430008130033",
+        "hex"
+      );
+
+      assert.equal(getMetadataSectionLength(solc0819Bytecode), 53);
     });
   });
 });
