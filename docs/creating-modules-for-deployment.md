@@ -117,19 +117,17 @@ m.call(uniswap, "swap", { ... })
 
 ### Deploying from an artifact
 
-Additionally, `contract` supports passing an `Artifact` as an optional second parameter:
+To allow you to use your own mechanism for getting the contract artifact, `contract` supports passing an `Artifact` as an optional second parameter:
 
 ```javascript
-const userModule = buildModule("MyModule", (m) => {
-  const artifact = m.getArtifact("Foo");
+const artifact = hre.artifacts.readArtifactSync("Foo");
 
+const userModule = buildModule("MyModule", (m) => {
   m.contract("Foo", artifact, {
     args: [0],
   });
 });
 ```
-
-This can be helpful when listening for [contract events](./creating-modules-for-deployment.md#waiting-for-on-chain-events)
 
 ### Linking libraries
 
