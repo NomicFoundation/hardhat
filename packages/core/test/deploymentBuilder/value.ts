@@ -1,8 +1,5 @@
 /* eslint-disable import/no-unused-modules */
-import type {
-  IDeploymentGraph,
-  IDeploymentBuilder,
-} from "../../src/internal/types/deploymentGraph";
+import type { IDeploymentGraph } from "../../src/internal/types/deploymentGraph";
 import type { Artifact } from "../../src/types/hardhat";
 
 import { assert } from "chai";
@@ -12,9 +9,10 @@ import { buildModule } from "../../src/dsl/buildModule";
 import { generateDeploymentGraphFrom } from "../../src/internal/process/generateDeploymentGraphFrom";
 import {
   isArtifactContract,
-  isHardhatContract,
   isCall,
+  isHardhatContract,
 } from "../../src/internal/utils/guards";
+import { IDeploymentBuilder } from "../../src/types/dsl";
 
 import { getDeploymentVertexByLabel } from "./helpers";
 

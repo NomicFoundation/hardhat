@@ -32,24 +32,17 @@ import { addEdge, ensureVertex } from "../internal/graph/adjacencyList";
 import {
   ArtifactContractDeploymentVertex,
   ArtifactLibraryDeploymentVertex,
-  AwaitOptions,
   CallDeploymentVertex,
-  CallOptions,
   CallPoints,
-  ContractOptions,
   DeployedContractDeploymentVertex,
   DeploymentBuilderOptions,
   DeploymentGraphVertex,
   EventVertex,
   HardhatContractDeploymentVertex,
   HardhatLibraryDeploymentVertex,
-  IDeploymentBuilder,
   IDeploymentGraph,
-  InternalParamValue,
   ScopeData,
-  SendOptions,
   SendVertex,
-  UseModuleOptions,
   VirtualVertex,
 } from "../internal/types/deploymentGraph";
 import {
@@ -61,6 +54,15 @@ import {
   isParameter,
 } from "../internal/utils/guards";
 import { resolveProxyDependency } from "../internal/utils/proxy";
+import {
+  AwaitOptions,
+  CallOptions,
+  ContractOptions,
+  IDeploymentBuilder,
+  InternalParamValue,
+  SendOptions,
+  UseModuleOptions,
+} from "../types/dsl";
 
 import { DeploymentGraph } from "./DeploymentGraph";
 import { ScopeStack } from "./ScopeStack";
@@ -81,25 +83,19 @@ type DeploymentApiPublicFunctions =
 const DEFAULT_VALUE = ethers.utils.parseUnits("0");
 
 /**
- * A builder object for specifying the different parts and
- * dependencies of your deployment.
+ * A builder object for specifying the different parts  of your deployment
+ * and their interdependencies.
  */
 export class DeploymentBuilder implements IDeploymentBuilder {
-  /**
-   * The `chainId` of the network being deployed to.
-   */
+  /** {@inheritDoc IDeploymentBuilder.chainId} */
   public chainId: number;
 
-  /**
-   * The Hardhat accounts as defined in the `Hardhat.config.{js,ts}` file,
-   * deployment actions can leverage these accounts to specify which
-   * account the on-chain transaction that underlies the action will
-   * execute under.
-   */
+  /** {@inheritDoc IDeploymentBuilder.accounts} */
   public accounts: string[];
 
   /**
    * The deployment graph built from the configuration actions.
+   *
    * @internal
    */
   public graph: IDeploymentGraph;
@@ -109,6 +105,7 @@ export class DeploymentBuilder implements IDeploymentBuilder {
    * position of the DeploymentBuilder action that created
    * them. Used during validation to provide better error
    * messages.
+   *
    * @internal
    */
   public callPoints: CallPoints;
@@ -130,11 +127,6 @@ export class DeploymentBuilder implements IDeploymentBuilder {
     }
   }
 
-  /**
-   * Deploy a
-   * @param libraryName
-   * @param options
-   */
   public library(
     libraryName: string,
     options?: ContractOptions

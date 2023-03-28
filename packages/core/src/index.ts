@@ -25,24 +25,16 @@ export type {
 export type {
   ArtifactContractDeploymentVertex,
   ArtifactLibraryDeploymentVertex,
-  AwaitOptions,
   CallDeploymentVertex,
-  CallOptions,
-  ContractOptions,
   DeployedContractDeploymentVertex,
   DeploymentGraphVertex,
   EventVertex,
-  ExternalParamValue,
   HardhatContractDeploymentVertex,
   HardhatLibraryDeploymentVertex,
-  IDeploymentBuilder,
   IDeploymentGraph,
-  InternalParamValue,
   LibraryMap,
   ScopeData,
-  SendOptions,
   SendVertex,
-  UseModuleOptions,
   VirtualVertex,
 } from "./internal/types/deploymentGraph";
 export type {
@@ -87,6 +79,16 @@ export type {
   Services,
   TransactionOptions,
 } from "./internal/types/services";
+export {
+  AwaitOptions,
+  CallOptions,
+  ContractOptions,
+  ExternalParamValue,
+  IDeploymentBuilder,
+  InternalParamValue,
+  SendOptions,
+  UseModuleOptions,
+} from "./types/dsl";
 export type {
   AddressResolvable,
   ArtifactContract,

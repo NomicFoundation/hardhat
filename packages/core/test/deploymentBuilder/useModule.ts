@@ -1,13 +1,11 @@
 /* eslint-disable import/no-unused-modules */
-import type {
-  IDeploymentGraph,
-  IDeploymentBuilder,
-} from "../../src/internal/types/deploymentGraph";
+import type { IDeploymentGraph } from "../../src/internal/types/deploymentGraph";
 
 import { assert } from "chai";
 
 import { buildModule } from "../../src/dsl/buildModule";
 import { generateDeploymentGraphFrom } from "../../src/internal/process/generateDeploymentGraphFrom";
+import { IDeploymentBuilder } from "../../src/types/dsl";
 import {
   ArtifactContract,
   CallableFuture,

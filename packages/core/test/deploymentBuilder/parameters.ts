@@ -1,8 +1,5 @@
 /* eslint-disable import/no-unused-modules */
-import type {
-  IDeploymentGraph,
-  IDeploymentBuilder,
-} from "../../src/internal/types/deploymentGraph";
+import type { IDeploymentGraph } from "../../src/internal/types/deploymentGraph";
 
 import { assert } from "chai";
 
@@ -10,6 +7,7 @@ import { buildModule } from "../../src/dsl/buildModule";
 import { IgnitionError } from "../../src/errors";
 import { generateDeploymentGraphFrom } from "../../src/internal/process/generateDeploymentGraphFrom";
 import { isCallable } from "../../src/internal/utils/guards";
+import { IDeploymentBuilder } from "../../src/types/dsl";
 
 describe("deployment builder - parameters", function () {
   let deploymentGraph: IDeploymentGraph;

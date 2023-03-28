@@ -1,6 +1,7 @@
 import { BigNumber, ethers } from "ethers";
 
 import { IgnitionError } from "../../../errors";
+import { ExternalParamValue } from "../../../types/dsl";
 import { DeploymentGraphFuture, EventParamFuture } from "../../../types/future";
 import { Artifact } from "../../../types/hardhat";
 import {
@@ -10,7 +11,6 @@ import {
   DeployedContractDeploymentVertex,
   DeploymentGraphVertex,
   EventVertex,
-  ExternalParamValue,
   HardhatContractDeploymentVertex,
   HardhatLibraryDeploymentVertex,
   IDeploymentGraph,

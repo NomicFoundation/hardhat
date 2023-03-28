@@ -1,13 +1,12 @@
-import type {
-  ExternalParamValue,
-  IDeploymentBuilder,
-} from "../internal/types/deploymentGraph";
+import type { ExternalParamValue } from "../types/dsl";
 import type {
   ContractFuture,
   LibraryFuture,
   ProxyFuture,
   Virtual,
 } from "./future";
+
+import { IDeploymentBuilder } from "./dsl";
 
 /**
  * The potential return results of deploying a module.

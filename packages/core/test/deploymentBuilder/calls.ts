@@ -3,11 +3,9 @@ import { assert } from "chai";
 
 import { buildModule } from "../../src/dsl/buildModule";
 import { generateDeploymentGraphFrom } from "../../src/internal/process/generateDeploymentGraphFrom";
-import {
-  IDeploymentBuilder,
-  IDeploymentGraph,
-} from "../../src/internal/types/deploymentGraph";
+import { IDeploymentGraph } from "../../src/internal/types/deploymentGraph";
 import { isCall, isHardhatContract } from "../../src/internal/utils/guards";
+import { IDeploymentBuilder } from "../../src/types/dsl";
 
 import {
   getDependenciesForVertex,

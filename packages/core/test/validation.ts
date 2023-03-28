@@ -1,5 +1,4 @@
 /* eslint-disable import/no-unused-modules */
-import type { IDeploymentBuilder } from "../src/internal/types/deploymentGraph";
 
 import { assert } from "chai";
 import { ethers } from "ethers";
@@ -10,6 +9,7 @@ import { generateDeploymentGraphFrom } from "../src/internal/process/generateDep
 import { Services } from "../src/internal/types/services";
 import { ValidationVisitResult } from "../src/internal/types/validation";
 import { validateDeploymentGraph } from "../src/internal/validation/validateDeploymentGraph";
+import { IDeploymentBuilder } from "../src/types/dsl";
 import { ArtifactContract } from "../src/types/future";
 import { Artifact } from "../src/types/hardhat";
 import { Module, ModuleDict } from "../src/types/module";

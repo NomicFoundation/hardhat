@@ -1,7 +1,7 @@
 import { ethers } from "ethers";
 
 import { IgnitionError } from "../../src/errors";
-import { ExternalParamValue } from "../../src/internal/types/deploymentGraph";
+import { ExternalParamValue } from "../../src/types/dsl";
 import { Artifact } from "../../src/types/hardhat";
 import { ModuleParams } from "../../src/types/module";
 import {

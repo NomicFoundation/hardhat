@@ -3,15 +3,13 @@ import { assert } from "chai";
 
 import { buildModule } from "../../src/dsl/buildModule";
 import { generateDeploymentGraphFrom } from "../../src/internal/process/generateDeploymentGraphFrom";
+import { IDeploymentGraph } from "../../src/internal/types/deploymentGraph";
 import {
-  IDeploymentBuilder,
-  IDeploymentGraph,
-} from "../../src/internal/types/deploymentGraph";
-import {
+  isArtifactContract,
   isAwaitedEvent,
   isCall,
-  isArtifactContract,
 } from "../../src/internal/utils/guards";
+import { IDeploymentBuilder } from "../../src/types/dsl";
 import { ArtifactContract } from "../../src/types/future";
 
 import {

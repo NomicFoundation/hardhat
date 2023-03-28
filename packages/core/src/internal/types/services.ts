@@ -4,7 +4,7 @@ import type {
   HasParamResult,
   TransactionsProvider,
 } from "../../types/providers";
-import type { ExternalParamValue } from "./deploymentGraph";
+import type { ExternalParamValue } from "./../../types/dsl";
 
 import { ethers } from "ethers";
 

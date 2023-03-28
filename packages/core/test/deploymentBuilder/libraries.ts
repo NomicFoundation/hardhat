@@ -1,8 +1,5 @@
 /* eslint-disable import/no-unused-modules */
-import type {
-  IDeploymentGraph,
-  IDeploymentBuilder,
-} from "../../src/internal/types/deploymentGraph";
+import type { IDeploymentGraph } from "../../src/internal/types/deploymentGraph";
 
 import { assert } from "chai";
 
@@ -12,6 +9,7 @@ import {
   isHardhatContract,
   isHardhatLibrary,
 } from "../../src/internal/utils/guards";
+import { IDeploymentBuilder } from "../../src/types/dsl";
 
 import {
   getDependenciesForVertex,

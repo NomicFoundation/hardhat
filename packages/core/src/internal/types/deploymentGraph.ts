@@ -1,27 +1,16 @@
 import type { BigNumber } from "ethers";
 
+import { InternalParamValue } from "../../types/dsl";
 import {
   AddressResolvable,
   ArtifactContract,
-  ArtifactFuture,
-  ArtifactLibrary,
   CallableFuture,
-  ContractCall,
-  DeployedContract,
   DeploymentGraphFuture,
-  EventFuture,
   EventParamFuture,
-  HardhatContract,
-  HardhatLibrary,
-  OptionalParameter,
   ParameterFuture,
-  ParameterValue,
-  RequiredParameter,
-  SendFuture,
   Virtual,
 } from "../../types/future";
 import { Artifact } from "../../types/hardhat";
-import { Module, ModuleDict } from "../../types/module";
 
 import { AdjacencyList, VertexDescriptor } from "./graph";
 
@@ -59,23 +48,6 @@ export interface IDeploymentGraph {
 export interface LibraryMap {
   [key: string]: DeploymentGraphFuture;
 }
-
-/**
- * Allowed parameters that can be passed into a module.
- *
- * @alpha
- */
-export type ExternalParamValue = boolean | string | number | BigNumber;
-
-/**
- * Allowed parameters across internal `useModule` boundaries.
- *
- * @alpha
- */
-export type InternalParamValue =
-  | ExternalParamValue
-  | DeploymentGraphFuture
-  | EventParamFuture;
 
 /**
  * A vertex representing an action specified in the Deployment api.
@@ -227,124 +199,6 @@ export interface SendVertex extends VertexDescriptor {
   value: BigNumber | ParameterFuture;
   after: DeploymentGraphFuture[];
   from: string;
-}
-
-/**
- * The options for a Contract deploy.
- *
- * @alpha
- */
-export interface ContractOptions {
-  args?: InternalParamValue[];
-  libraries?: {
-    [key: string]: DeploymentGraphFuture;
-  };
-  after?: DeploymentGraphFuture[];
-  value?: BigNumber | ParameterFuture;
-  from?: string;
-}
-
-/**
- * The options for a smart contract method call.
- *
- * @alpha
- */
-export interface CallOptions {
-  args: InternalParamValue[];
-  after?: DeploymentGraphFuture[];
-  value?: BigNumber | ParameterFuture;
-  from?: string;
-}
-
-/**
- * The options for an await action.
- *
- * @alpha
- */
-export interface AwaitOptions {
-  args: InternalParamValue[];
-  after?: DeploymentGraphFuture[];
-}
-
-/**
- * The options for sending ETH to an address/contract.
- *
- * @alpha
- */
-export interface SendOptions {
-  value: BigNumber | ParameterFuture;
-  after?: DeploymentGraphFuture[];
-  from?: string;
-}
-
-/**
- * The options when using a module within another module.
- *
- * @alpha
- */
-export interface UseModuleOptions {
-  parameters?: { [key: string]: number | string | DeploymentGraphFuture };
-  after?: DeploymentGraphFuture[];
-}
-
-/**
- * A builder object for specifying the different parts and
- * dependencies of your deployment.
- *
- * @alpha
- */
-export interface IDeploymentBuilder {
-  chainId: number;
-  accounts: string[];
-
-  contract(contractName: string, options?: ContractOptions): HardhatContract;
-  contract(
-    contractName: string,
-    artifact: Artifact,
-    options?: ContractOptions
-  ): ArtifactContract;
-
-  contractAt(
-    contractName: string,
-    address: string | EventParamFuture,
-    abi: any[],
-    options?: { after?: DeploymentGraphFuture[] }
-  ): DeployedContract;
-
-  library(contractName: string, options?: ContractOptions): HardhatLibrary;
-  library(
-    contractName: string,
-    artifact: Artifact,
-    options?: ContractOptions
-  ): ArtifactLibrary;
-
-  call(
-    contractFuture: DeploymentGraphFuture,
-    functionName: string,
-    options: CallOptions
-  ): ContractCall;
-
-  event(
-    contractFuture: ArtifactFuture,
-    eventName: string,
-    options: AwaitOptions
-  ): EventFuture;
-
-  sendETH(sendTo: AddressResolvable, options: SendOptions): SendFuture;
-
-  getParam(paramName: string): RequiredParameter;
-
-  getOptionalParam(
-    paramName: string,
-    defaultValue: ParameterValue
-  ): OptionalParameter;
-
-  getArtifact(contractName: string): Artifact;
-
-  useModule<T extends ModuleDict>(
-    module: Module<T>,
-    options?: UseModuleOptions
-  ): Virtual & T;
 }
 
 export interface DeploymentBuilderOptions {
