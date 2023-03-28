@@ -68,7 +68,8 @@ export const getImmutableOffsets = (
 };
 
 /**
- * To normalize a library object we need to take into account its call protection mechanism.
+ * To normalize a library object we need to take into account its call
+ * protection mechanism.
  * See https://solidity.readthedocs.io/en/latest/contracts.html#call-protection-for-libraries
  */
 export const getCallProtectionOffsets = (
@@ -88,6 +89,12 @@ export const getCallProtectionOffsets = (
   return offsets;
 };
 
+/**
+ * Given a contract's fully qualified name, obtains the corresponding contract
+ * information from the build-info by comparing the provided bytecode with the
+ * deployed bytecode. If the bytecodes match, the function returns the contract
+ * information. Otherwise, it returns null.
+ */
 export const extractMatchingContractInformation = (
   contractFQN: string,
   buildInfo: BuildInfo,
@@ -112,6 +119,11 @@ export const extractMatchingContractInformation = (
   return null;
 };
 
+/**
+ * Searches through the artifacts for a contract that matches the given
+ * deployed bytecode. If it finds a match, the function returns the contract
+ * information.
+ */
 export const extractInferredContractInformation = async (
   artifacts: Artifacts,
   network: Network,
@@ -138,6 +150,12 @@ export const extractInferredContractInformation = async (
   return contractMatches[0];
 };
 
+/**
+ * Retrieves the libraries from the contract information and combines them
+ * with the libraries provided by the user. Returns a list containing all
+ * the libraries required by the contract. Additionally, it returns a list of
+ * undetectable libraries for debugging purposes.
+ */
 export const getLibraryInformation = async (
   contractInformation: ContractInformation,
   userLibraries: LibraryToAddress

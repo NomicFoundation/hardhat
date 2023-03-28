@@ -15,6 +15,10 @@ import { LibraryToAddress } from "./solc/artifacts";
 export const delay = async (ms: number): Promise<void> =>
   new Promise((resolve) => setTimeout(resolve, ms));
 
+/**
+ * Prints a table of networks supported by hardhat-etherscan, including both
+ * built-in and custom networks.
+ */
 export const printSupportedNetworks = async (customChains: ChainConfig[]) => {
   const { table } = await import("table");
 
@@ -116,6 +120,12 @@ export const resolveLibraries = async (
   }
 };
 
+/**
+ * Retrieves the list of Solidity compiler versions for a given Solidity
+ * configuration.
+ * It checks that the versions are supported by Etherscan, and throws an
+ * error if any are not.
+ */
 export const getCompilerVersions = async ({
   compilers,
   overrides,
