@@ -27,6 +27,11 @@ export type IgnitionWrapperOptions = Omit<
   keyof { force?: boolean }
 >;
 
+/**
+ * Hardhat entry into Ignition.
+ *
+ * @alpha
+ */
 export class IgnitionWrapper {
   constructor(
     private _providers: Providers,
@@ -34,6 +39,13 @@ export class IgnitionWrapper {
     public options: IgnitionWrapperOptions
   ) {}
 
+  /**
+   * Run a deployment of the given Ignition module.
+   * @param ignitionModule - the Ignition module to deploy
+   * @param deployParams - the configuration parameters to control the
+   * deployment run.
+   * @returns the deployed contracts as Ethers contract objects
+   */
   public async deploy<T extends ModuleDict>(
     ignitionModule: Module<T>,
     deployParams?: {
@@ -105,6 +117,14 @@ export class IgnitionWrapper {
     return this._toDeploymentResult(deploymentResult.result);
   }
 
+  /**
+   * Construct a plan (or dry run) describing how a deployment will be executed
+   * for the given module.
+   *
+   * @param ignitionModule - the Ignition module to plan out
+   * @returns the a description of the modules deployment, including the
+   * execution dependency graph.
+   */
   public async plan<T extends ModuleDict>(ignitionModule: Module<T>) {
     const ignition = Ignition.create({
       providers: this._providers,
