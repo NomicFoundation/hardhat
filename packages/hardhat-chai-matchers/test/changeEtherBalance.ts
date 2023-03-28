@@ -1,6 +1,6 @@
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { expect, AssertionError } from "chai";
-import { BigNumber, Contract, BigNumberish } from "ethers";
+import { BigNumber, Contract } from "ethers";
 import path from "path";
 import util from "util";
 
