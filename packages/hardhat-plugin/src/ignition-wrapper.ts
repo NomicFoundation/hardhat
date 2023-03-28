@@ -23,14 +23,16 @@ type DeployResult<T extends ModuleDict> = {
   [K in keyof T]: Contract;
 };
 
+export type IgnitionWrapperOptions = Omit<
+  IgnitionDeployOptions,
+  keyof { force?: boolean }
+>;
+
 export class IgnitionWrapper {
   constructor(
     private _providers: Providers,
     private _ethers: HardhatEthers,
-    private _deployOptions: Omit<
-      IgnitionDeployOptions,
-      keyof { force?: boolean }
-    >
+    public options: IgnitionWrapperOptions
   ) {}
 
   public async deploy<T extends ModuleDict>(
@@ -68,7 +70,7 @@ export class IgnitionWrapper {
     }
 
     const deploymentResult = await ignition.deploy(ignitionModule, {
-      ...this._deployOptions,
+      ...this.options,
       force,
     });
 
