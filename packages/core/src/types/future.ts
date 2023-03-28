@@ -4,7 +4,7 @@ import type { Artifact } from "./hardhat";
  * A future representing the address of a contract deployed using the
  * Hardhat Artifact system.
  *
- * @internal
+ * @alpha
  */
 export interface HardhatContract {
   vertexId: number;
@@ -19,7 +19,7 @@ export interface HardhatContract {
  * A future representing the value of a contract deployed using a given
  * artifact.
  *
- * @internal
+ * @alpha
  */
 export interface ArtifactContract {
   vertexId: number;
@@ -33,7 +33,7 @@ export interface ArtifactContract {
 /**
  * A future representing the address of an already deployed contract.
  *
- * @internal
+ * @alpha
  */
 export interface DeployedContract {
   vertexId: number;
@@ -49,7 +49,7 @@ export interface DeployedContract {
  * A future representing the address of a library deployed using Hardhat's
  * artifact system.
  *
- * @internal
+ * @alpha
  */
 export interface HardhatLibrary {
   vertexId: number;
@@ -64,7 +64,7 @@ export interface HardhatLibrary {
  * A future representing the address of a library deployed using a given
  * artifact.
  *
- * @internal
+ * @alpha
  */
 export interface ArtifactLibrary {
   vertexId: number;
@@ -78,7 +78,7 @@ export interface ArtifactLibrary {
 /**
  * A future representing an on-chain smart contract method invocation.
  *
- * @internal
+ * @alpha
  */
 export interface ContractCall {
   vertexId: number;
@@ -90,7 +90,7 @@ export interface ContractCall {
 /**
  * A future representing an on-chain Ethereum event.
  *
- * @internal
+ * @alpha
  */
 export interface EventFuture {
   vertexId: number;
@@ -104,7 +104,7 @@ export interface EventFuture {
 /**
  * A future representing the sending of Eth to a contract/address.
  *
- * @internal
+ * @alpha
  */
 export interface SendFuture {
   vertexId: number;
@@ -117,7 +117,7 @@ export interface SendFuture {
 /**
  * A mapping of named parameter labels to future parameter values.
  *
- * @internal
+ * @alpha
  */
 export interface EventParams {
   [eventParam: string]: EventParamFuture;
@@ -126,7 +126,7 @@ export interface EventParams {
 /**
  * A future representing a parameter of an on-chain Ethereum event.
  *
- * @internal
+ * @alpha
  */
 export interface EventParamFuture {
   vertexId: number;
@@ -139,7 +139,7 @@ export interface EventParamFuture {
 /**
  * A value that can be used as a Module parameter.
  *
- * @internal
+ * @alpha
  */
 export type ParameterValue = string | number | DeploymentGraphFuture;
 
@@ -147,7 +147,7 @@ export type ParameterValue = string | number | DeploymentGraphFuture;
  * A future representing a parameter value that _must_ be provided to the module
  * for it to execute.
  *
- * @internal
+ * @alpha
  */
 export interface RequiredParameter {
   label: string;
@@ -161,7 +161,7 @@ export interface RequiredParameter {
  * A future representing a parameter value that _may_ be provided to the module
  * for it to execute. In its absence the `defaultValue` will be used.
  *
- * @internal
+ * @alpha
  */
 export interface OptionalParameter {
   label: string;
@@ -175,7 +175,7 @@ export interface OptionalParameter {
 /**
  * A future representing a virtual node used for grouping other actions.
  *
- * @internal
+ * @alpha
  */
 export interface Virtual {
   vertexId: number;
@@ -193,7 +193,7 @@ export interface Virtual {
  * dependency on it can be made to depend on the Virtual vertex that
  * represents the entire submodule.
  *
- * @internal
+ * @alpha
  */
 export interface ProxyFuture {
   label: string;
@@ -210,14 +210,14 @@ export interface ProxyFuture {
  * @privateRemarks
  * TODO: is this needed?
  *
- * @internal
+ * @alpha
  */
 export type ArtifactFuture = ArtifactContract | DeployedContract;
 
 /**
  * A future representing the address of a deployed Contract.
  *
- * @internal
+ * @alpha
  */
 export type ContractFuture =
   | HardhatContract
@@ -227,21 +227,21 @@ export type ContractFuture =
 /**
  * The future representing the address of a deployed library.
  *
- * @internal
+ * @alpha
  */
 export type LibraryFuture = HardhatLibrary | ArtifactLibrary;
 
 /**
  * The future representing the value of calling a smart contract method.
  *
- * @internal
+ * @alpha
  */
 export type CallableFuture = ContractFuture | LibraryFuture;
 
 /**
  * A future value from an on-chain action that.
  *
- * @internal
+ * @alpha
  */
 export type DependableFuture =
   | CallableFuture
@@ -254,7 +254,7 @@ export type DependableFuture =
 /**
  * A future value representing an Ethereum address.
  *
- * @internal
+ * @alpha
  */
 export type AddressResolvable =
   | string
@@ -265,14 +265,14 @@ export type AddressResolvable =
 /**
  * The future value of a passed parameter to a Module.
  *
- * @internal
+ * @alpha
  */
 export type ParameterFuture = RequiredParameter | OptionalParameter;
 
 /**
  * The future values usable within the Module api.
  *
- * @internal
+ * @alpha
  */
 export type DeploymentGraphFuture =
   | DependableFuture

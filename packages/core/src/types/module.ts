@@ -12,7 +12,7 @@ import type {
 /**
  * The potential return results of deploying a module.
  *
- * @internal
+ * @alpha
  */
 export type ModuleReturnValue =
   | ContractFuture
@@ -23,7 +23,7 @@ export type ModuleReturnValue =
 /**
  * The results of deploying a module.
  *
- * @internal
+ * @alpha
  */
 export interface ModuleDict {
   [key: string]: ModuleReturnValue;
@@ -32,7 +32,7 @@ export interface ModuleDict {
 /**
  * An Ignition module that can be deployed.
  *
- * @internal
+ * @alpha
  */
 export interface Module<T extends ModuleDict> {
   name: string;

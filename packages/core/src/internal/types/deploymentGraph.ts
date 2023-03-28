@@ -63,14 +63,14 @@ export interface LibraryMap {
 /**
  * Allowed parameters that can be passed into a module.
  *
- * @internal
+ * @alpha
  */
 export type ExternalParamValue = boolean | string | number | BigNumber;
 
 /**
  * Allowed parameters across internal `useModule` boundaries.
  *
- * @internal
+ * @alpha
  */
 export type InternalParamValue =
   | ExternalParamValue
@@ -232,7 +232,7 @@ export interface SendVertex extends VertexDescriptor {
 /**
  * The options for a Contract deploy.
  *
- * @internal
+ * @alpha
  */
 export interface ContractOptions {
   args?: InternalParamValue[];
@@ -247,7 +247,7 @@ export interface ContractOptions {
 /**
  * The options for a smart contract method call.
  *
- * @internal
+ * @alpha
  */
 export interface CallOptions {
   args: InternalParamValue[];
@@ -259,7 +259,7 @@ export interface CallOptions {
 /**
  * The options for an await action.
  *
- * @internal
+ * @alpha
  */
 export interface AwaitOptions {
   args: InternalParamValue[];
@@ -269,7 +269,7 @@ export interface AwaitOptions {
 /**
  * The options for sending ETH to an address/contract.
  *
- * @internal
+ * @alpha
  */
 export interface SendOptions {
   value: BigNumber | ParameterFuture;
@@ -280,7 +280,7 @@ export interface SendOptions {
 /**
  * The options when using a module within another module.
  *
- * @internal
+ * @alpha
  */
 export interface UseModuleOptions {
   parameters?: { [key: string]: number | string | DeploymentGraphFuture };
@@ -291,12 +291,11 @@ export interface UseModuleOptions {
  * A builder object for specifying the different parts and
  * dependencies of your deployment.
  *
- * @internal
+ * @alpha
  */
 export interface IDeploymentBuilder {
   chainId: number;
   accounts: string[];
-  graph: IDeploymentGraph;
 
   contract(contractName: string, options?: ContractOptions): HardhatContract;
   contract(

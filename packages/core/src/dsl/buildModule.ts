@@ -16,7 +16,7 @@ import {
  * deployment.
  * @returns An Ignition module that can be deployed.
  *
- * @internal
+ * @alpha
  */
 export function buildModule<T extends ModuleDict>(
   moduleName: string,

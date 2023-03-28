@@ -1,7 +1,7 @@
 /**
  * The key data for interacting with an Ethereum smart contract on-chain.
  *
- * @internal
+ * @alpha
  */
 export interface Artifact {
   contractName: string;
