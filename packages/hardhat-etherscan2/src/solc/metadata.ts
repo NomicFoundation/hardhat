@@ -49,13 +49,13 @@ export const inferCompilerVersion = (bytecode: Buffer): string => {
   return SOLC_NOT_FOUND_IN_METADATA_VERSION_RANGE;
 };
 
-export const getMetadataSectionLength = (bytecode: Buffer) =>
+export const getMetadataSectionLength = (bytecode: Buffer): number =>
   bytecode.slice(-METADATA_LENGTH).readUInt16BE(0) + METADATA_LENGTH;
 
 /**
  * Decode the bytecode metadata and return the solc version.
  */
-const decodeSolcMetadata = (bytecode: Buffer) => {
+const decodeSolcMetadata = (bytecode: Buffer): any => {
   const metadataSectionLength = getMetadataSectionLength(bytecode);
   // The metadata and its length are in the last few bytes of the bytecode.
   const metadataPayload = bytecode.slice(

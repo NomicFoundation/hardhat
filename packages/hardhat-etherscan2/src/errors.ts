@@ -1,4 +1,9 @@
 import { NomicLabsHardhatPluginError } from "hardhat/plugins";
+import {
+  ABIArgumentLengthErrorType,
+  ABIArgumentOverflowErrorType,
+  ABIArgumentTypeErrorType,
+} from "./abi-validation";
 import { TASK_VERIFY_VERIFY } from "./task-names";
 
 export class HardhatEtherscanError extends NomicLabsHardhatPluginError {
@@ -379,5 +384,49 @@ detected address: ${detectedAddress}`
   .join("\n")}
 
 You can either fix these addresses in your libraries dictionary or simply remove them to let the plugin autodetect them.`);
+  }
+}
+
+export class UnexpectedNumberOfFilesError extends HardhatEtherscanError {
+  constructor() {
+    super("The plugin found an unexpected number of files for this contract.");
+  }
+}
+
+export class ABIArgumentLengthError extends HardhatEtherscanError {
+  constructor(
+    sourceName: string,
+    contractName: string,
+    error: ABIArgumentLengthErrorType
+  ) {
+    const { types: requiredArgs, values: providedArgs } = error.count;
+    super(
+      `The constructor for ${sourceName}:${contractName} has ${requiredArgs} parameters
+  but ${providedArgs} arguments were provided instead.`,
+      error
+    );
+  }
+}
+
+export class ABIArgumentTypeError extends HardhatEtherscanError {
+  constructor(error: ABIArgumentTypeErrorType) {
+    const { value: argValue, argument: argName, reason } = error;
+    super(
+      `Value ${argValue} cannot be encoded for the parameter ${argName}.
+Encoder error reason: ${reason}`,
+      error
+    );
+  }
+}
+
+export class ABIArgumentOverflowError extends HardhatEtherscanError {
+  constructor(error: ABIArgumentOverflowErrorType) {
+    const { value: argValue, fault: reason, operation } = error;
+    super(
+      `Value ${argValue} is not a safe integer and cannot be encoded.
+Use a string instead of a plain number.
+Encoder error reason: ${reason} fault in ${operation}`,
+      error
+    );
   }
 }
