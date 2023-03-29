@@ -100,23 +100,33 @@ export class TxPool {
     tx: SerializedTransaction
   ) => OrderedTransaction;
 
-  constructor(
-    private readonly _getAccount: (address: Address) => Promise<Account>,
-    blockGasLimit: bigint,
-    common: Common
-  ) {
+  constructor(blockGasLimit: bigint, common: Common) {
     this._state = makePoolState({
       blockGasLimit: BigIntUtils.toHex(blockGasLimit),
     });
     this._deserializeTransaction = (tx) => deserializeTransaction(tx, common);
   }
 
-  public async addTransaction(tx: TypedTransaction) {
+  public async addTransaction(
+    getAccount: (address: Address) => Promise<Account>,
+    tx: TypedTransaction
+  ) {
     const senderAddress = this._getSenderAddress(tx);
-    const nextConfirmedNonce = await this._getNextConfirmedNonce(senderAddress);
-    const nextPendingNonce = await this.getNextPendingNonce(senderAddress);
+    const nextConfirmedNonce = await this._getNextConfirmedNonce(
+      getAccount,
+      senderAddress
+    );
+    const nextPendingNonce = await this.getNextPendingNonce(
+      getAccount,
+      senderAddress
+    );
 
-    await this._validateTransaction(tx, senderAddress, nextConfirmedNonce);
+    await this._validateTransaction(
+      getAccount,
+      tx,
+      senderAddress,
+      nextConfirmedNonce
+    );
 
     const txNonce = tx.nonce;
 
@@ -245,12 +255,15 @@ export class TxPool {
    * Returns the next available nonce for an address, taking into account
    * its pending transactions.
    */
-  public async getNextPendingNonce(accountAddress: Address): Promise<bigint> {
+  public async getNextPendingNonce(
+    getAccount: (address: Address) => Promise<Account>,
+    accountAddress: Address
+  ): Promise<bigint> {
     const pendingTxs = this._getPendingForAddress(accountAddress.toString());
     const lastPendingTx = pendingTxs?.last(undefined);
 
     if (lastPendingTx === undefined) {
-      return this._getNextConfirmedNonce(accountAddress);
+      return this._getNextConfirmedNonce(getAccount, accountAddress);
     }
 
     const lastPendingTxNonce =
@@ -273,12 +286,14 @@ export class TxPool {
   /**
    * Updates the pending and queued list of all addresses
    */
-  public async updatePendingAndQueued() {
+  public async updatePendingAndQueued(
+    getAccount: (address: Address) => Promise<Account>
+  ) {
     let newPending = this._getPending();
 
     // update pending transactions
     for (const [address, txs] of newPending) {
-      const senderAccount = await this._getAccount(Address.fromString(address));
+      const senderAccount = await getAccount(Address.fromString(address));
       const senderNonce = senderAccount.nonce;
       const senderBalance = senderAccount.balance;
 
@@ -314,7 +329,7 @@ export class TxPool {
     // update queued addresses
     let newQueued = this._getQueued();
     for (const [address, txs] of newQueued) {
-      const senderAccount = await this._getAccount(Address.fromString(address));
+      const senderAccount = await getAccount(Address.fromString(address));
       const senderNonce = senderAccount.nonce;
       const senderBalance = senderAccount.balance;
 
@@ -421,6 +436,7 @@ export class TxPool {
   }
 
   private async _validateTransaction(
+    getAccount: (address: Address) => Promise<Account>,
     tx: TypedTransaction,
     senderAddress: Address,
     senderNonce: bigint
@@ -440,7 +456,7 @@ export class TxPool {
       );
     }
 
-    const senderAccount = await this._getAccount(senderAddress);
+    const senderAccount = await getAccount(senderAddress);
     const senderBalance = senderAccount.balance;
 
     const maxFee = "gasPrice" in tx ? tx.gasPrice : tx.maxFeePerGas;
@@ -584,9 +600,10 @@ export class TxPool {
    * pending transactions.
    */
   private async _getNextConfirmedNonce(
+    getAccount: (address: Address) => Promise<Account>,
     accountAddress: Address
   ): Promise<bigint> {
-    const account = await this._getAccount(accountAddress);
+    const account = await getAccount(accountAddress);
     return account.nonce;
   }
 

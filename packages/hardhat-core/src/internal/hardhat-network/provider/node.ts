@@ -239,11 +239,7 @@ export class HardhatNode extends EventEmitter {
       );
     }
 
-    const txPool = new TxPool(
-      (address) => vm.getAccount(address),
-      BigInt(blockGasLimit),
-      common
-    );
+    const txPool = new TxPool(BigInt(blockGasLimit), common);
 
     const instanceId = bufferToBigInt(randomBytes(32));
 
@@ -647,7 +643,10 @@ Hardhat Network's forking functionality only works with blocks from at least spu
   }
 
   public async getAccountNextPendingNonce(address: Address): Promise<bigint> {
-    return this._txPool.getNextPendingNonce(address);
+    return this._txPool.getNextPendingNonce(
+      this._vm.getAccount.bind(this._vm),
+      address
+    );
   }
 
   public async getCodeFromTrace(
@@ -1225,7 +1224,9 @@ Hardhat Network's forking functionality only works with blocks from at least spu
 
   public async setBlockGasLimit(gasLimit: bigint | number) {
     this._txPool.setBlockGasLimit(gasLimit);
-    await this._txPool.updatePendingAndQueued();
+    await this._txPool.updatePendingAndQueued(
+      this._vm.getAccount.bind(this._vm)
+    );
   }
 
   public async setMinGasPrice(minGasPrice: bigint) {
@@ -1505,7 +1506,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
   }
 
   private async _addPendingTransaction(tx: TypedTransaction): Promise<string> {
-    await this._txPool.addTransaction(tx);
+    await this._txPool.addTransaction(this._vm.getAccount.bind(this._vm), tx);
     await this._notifyPendingTransaction(tx);
     return bufferToHex(tx.hash());
   }
@@ -1601,7 +1602,10 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     }
 
     // validate nonce
-    const nextPendingNonce = await this._txPool.getNextPendingNonce(sender);
+    const nextPendingNonce = await this._txPool.getNextPendingNonce(
+      this._vm.getAccount.bind(this._vm),
+      sender
+    );
     const txNonce = tx.nonce;
 
     const expectedNonceMsg = `Expected nonce to be ${nextPendingNonce.toString()} but got ${txNonce.toString()}.`;
@@ -1717,7 +1721,9 @@ Hardhat Network's forking functionality only works with blocks from at least spu
       const block = await blockBuilder.seal();
       await this._blockchain.putBlock(block);
 
-      await this._txPool.updatePendingAndQueued();
+      await this._txPool.updatePendingAndQueued(
+        this._vm.getAccount.bind(this._vm)
+      );
 
       return {
         block,
