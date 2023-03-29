@@ -1,8 +1,12 @@
 import chalk from "chalk";
 import path from "path";
 import { SolidityConfig } from "hardhat/types";
+import { JsonFragment } from "@ethersproject/abi";
 import { builtinChains } from "./chain-config";
 import {
+  ABIArgumentLengthError,
+  ABIArgumentOverflowError,
+  ABIArgumentTypeError,
   EtherscanVersionNotSupportedError,
   ImportingModuleError,
   InvalidConstructorArgumentsModule,
@@ -11,6 +15,11 @@ import {
 
 import { ChainConfig } from "./types";
 import { LibraryToAddress } from "./solc/artifacts";
+import {
+  isABIArgumentLengthError,
+  isABIArgumentOverflowError,
+  isABIArgumentTypeError,
+} from "./abi-validation";
 
 export const delay = async (ms: number): Promise<void> =>
   new Promise((resolve) => setTimeout(resolve, ms));
@@ -19,7 +28,9 @@ export const delay = async (ms: number): Promise<void> =>
  * Prints a table of networks supported by hardhat-etherscan, including both
  * built-in and custom networks.
  */
-export const printSupportedNetworks = async (customChains: ChainConfig[]) => {
+export const printSupportedNetworks = async (
+  customChains: ChainConfig[]
+): Promise<void> => {
   const { table } = await import("table");
 
   // supported networks
@@ -70,7 +81,7 @@ To learn how to add custom networks, follow these instructions: https://hardhat.
 export const resolveConstructorArguments = async (
   constructorArgsParams: string[],
   constructorArgsModule?: string
-) => {
+): Promise<string[]> => {
   if (constructorArgsModule === undefined) {
     return constructorArgsParams;
   }
@@ -129,7 +140,7 @@ export const resolveLibraries = async (
 export const getCompilerVersions = async ({
   compilers,
   overrides,
-}: SolidityConfig) => {
+}: SolidityConfig): Promise<string[]> => {
   {
     const compilerVersions = compilers.map(({ version }) => version);
     if (overrides !== undefined) {
@@ -152,4 +163,36 @@ export const getCompilerVersions = async ({
 
     return compilerVersions;
   }
+};
+
+export const encodeArguments = async (
+  abi: JsonFragment[],
+  sourceName: string,
+  contractName: string,
+  constructorArguments: string[]
+): Promise<string> => {
+  const { Interface } = await import("@ethersproject/abi");
+
+  const contractInterface = new Interface(abi);
+  let encodedDeployArguments;
+  try {
+    encodedDeployArguments = contractInterface
+      .encodeDeploy(constructorArguments)
+      .replace("0x", "");
+  } catch (error) {
+    if (isABIArgumentLengthError(error)) {
+      throw new ABIArgumentLengthError(sourceName, contractName, error);
+    }
+    if (isABIArgumentTypeError(error)) {
+      throw new ABIArgumentTypeError(error);
+    }
+    if (isABIArgumentOverflowError(error)) {
+      throw new ABIArgumentOverflowError(error);
+    }
+
+    // Should be unreachable.
+    throw error;
+  }
+
+  return encodedDeployArguments;
 };

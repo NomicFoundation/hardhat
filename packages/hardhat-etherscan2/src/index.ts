@@ -1,9 +1,16 @@
 import { extendConfig, subtask, task, types } from "hardhat/config";
 import { isFullyQualifiedName } from "hardhat/utils/contract-names";
-import { TASK_COMPILE } from "hardhat/builtin-tasks/task-names";
+import {
+  TASK_COMPILE,
+  TASK_COMPILE_SOLIDITY_GET_COMPILATION_JOB_FOR_FILE,
+  TASK_COMPILE_SOLIDITY_GET_COMPILER_INPUT,
+  TASK_COMPILE_SOLIDITY_GET_DEPENDENCY_GRAPH,
+} from "hardhat/builtin-tasks/task-names";
+import { CompilationJob, CompilerInput, DependencyGraph } from "hardhat/types";
 import {
   TASK_VERIFY,
   TASK_VERIFY_GET_CONTRACT_INFORMATION,
+  TASK_VERIFY_GET_MINIMAL_INPUT,
   TASK_VERIFY_GET_VERIFICATION_SUBTASKS,
   TASK_VERIFY_PROCESS_ARGUMENTS,
   TASK_VERIFY_VERIFY,
@@ -22,8 +29,10 @@ import {
   BuildInfoNotFoundError,
   BuildInfoCompilerVersionMismatchError,
   DeployedBytecodeDoesNotMatchFQNError,
+  UnexpectedNumberOfFilesError,
 } from "./errors";
 import {
+  encodeArguments,
   getCompilerVersions,
   printSupportedNetworks,
   resolveConstructorArguments,
@@ -77,6 +86,10 @@ interface GetContractInformationArgs {
   deployedBytecode: Bytecode;
   matchingCompilerVersions: string[];
   libraries: LibraryToAddress;
+}
+
+interface GetMinimalInputArgs {
+  sourceName: string;
 }
 
 extendConfig(etherscanConfigExtender);
@@ -192,10 +205,9 @@ subtask(TASK_VERIFY_GET_VERIFICATION_SUBTASKS, async (): Promise<string[]> => {
  */
 subtask(TASK_VERIFY_VERIFY_ETHERSCAN)
   .addParam("address")
-  .addOptionalParam("constructorArgsParams", undefined, [])
-  .addOptionalParam("constructorArgs", undefined, undefined, types.inputFile)
-  .addOptionalParam("libraries", undefined, undefined, types.inputFile)
-  .addOptionalParam("contract")
+  .addOptionalParam("constructorArgs")
+  .addOptionalParam("libraries")
+  .addOptionalParam("contractFQN")
   .addFlag("listNetworks")
   .addFlag("noCompile")
   .setAction(
@@ -261,6 +273,20 @@ subtask(TASK_VERIFY_VERIFY_ETHERSCAN)
           libraries,
         }
       );
+
+      const minimalInput: CompilerInput = await run(
+        TASK_VERIFY_GET_MINIMAL_INPUT,
+        {
+          sourceName: contractInformation.sourceName,
+        }
+      );
+
+      const encodedDeployArguments = await encodeArguments(
+        contractInformation.contractOutput.abi,
+        contractInformation.sourceName,
+        contractInformation.contractName,
+        constructorArgs
+      );
     }
   );
 
@@ -268,7 +294,7 @@ subtask(TASK_VERIFY_GET_CONTRACT_INFORMATION)
   .addParam("deployedBytecode", undefined, undefined, types.any)
   .addParam("matchingCompilerVersions", undefined, undefined, types.any)
   .addParam("libraries", undefined, undefined, types.any)
-  .addOptionalParam("contractFQN", undefined, undefined, types.string)
+  .addOptionalParam("contractFQN")
   .setAction(
     async (
       {
@@ -338,6 +364,40 @@ subtask(TASK_VERIFY_GET_CONTRACT_INFORMATION)
     }
   );
 
+subtask(TASK_VERIFY_GET_MINIMAL_INPUT)
+  .addParam("sourceName")
+  .setAction(async ({ sourceName }: GetMinimalInputArgs, { run }) => {
+    const dependencyGraph: DependencyGraph = await run(
+      TASK_COMPILE_SOLIDITY_GET_DEPENDENCY_GRAPH,
+      { sourceNames: [sourceName] }
+    );
+
+    const resolvedFiles = dependencyGraph
+      .getResolvedFiles()
+      .filter((resolvedFile) => resolvedFile.sourceName === sourceName);
+
+    if (resolvedFiles.length !== 1) {
+      throw new UnexpectedNumberOfFilesError();
+    }
+
+    const compilationJob: CompilationJob = await run(
+      TASK_COMPILE_SOLIDITY_GET_COMPILATION_JOB_FOR_FILE,
+      {
+        dependencyGraph,
+        file: resolvedFiles[0],
+      }
+    );
+
+    const minimalInput: CompilerInput = await run(
+      TASK_COMPILE_SOLIDITY_GET_COMPILER_INPUT,
+      {
+        compilationJob,
+      }
+    );
+
+    return minimalInput;
+  });
+
 /**
  * This subtask is used for backwards compatibility.
  * It validates the parameters as it is done in TASK_VERIFY_PROCESS_ARGUMENTS
@@ -384,7 +444,7 @@ subtask(TASK_VERIFY_VERIFY)
 
       await run(TASK_VERIFY_VERIFY_ETHERSCAN, {
         address,
-        constructorArgsParams: constructorArguments,
+        constructorArgs: constructorArguments,
         libraryDictionary: libraries,
         contractFQN: contract,
         noCompile,

@@ -15,13 +15,12 @@ import { ChainConfig, ApiKey } from "./types";
 import { delay } from "./utilities";
 
 interface EtherscanVerifyRequestParams {
-  apiKey: string;
   contractAddress: string;
   sourceCode: string;
   sourceName: string;
   contractName: string;
   compilerVersion: string;
-  constructorArguments: string;
+  encodedConstructorArguments: string;
 }
 
 // Used for polling the result of the contract verification.
@@ -61,16 +60,15 @@ export class Etherscan {
   }
 
   public async verify({
-    apiKey,
     contractAddress,
     sourceCode,
     sourceName,
     contractName,
     compilerVersion,
-    constructorArguments,
+    encodedConstructorArguments,
   }: EtherscanVerifyRequestParams): Promise<EtherscanResponse> {
     const parameters = new URLSearchParams({
-      apikey: apiKey,
+      apikey: this._apiKey,
       module: "contract",
       action: "verifysourcecode",
       contractaddress: contractAddress,
@@ -78,7 +76,7 @@ export class Etherscan {
       codeformat: "solidity-standard-json-input",
       contractname: `${sourceName}:${contractName}`,
       compilerversion: compilerVersion,
-      constructorArguements: constructorArguments,
+      constructorArguements: encodedConstructorArguments,
     });
 
     let response: Dispatcher.ResponseData;

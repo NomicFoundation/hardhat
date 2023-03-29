@@ -21,7 +21,7 @@ import { Bytecode } from "./bytecode";
 
 export interface ContractInformation {
   compilerInput: CompilerInput;
-  solcVersion: string;
+  solcLongVersion: string;
   sourceName: string;
   contractName: string;
   contractOutput: CompilerOutputContract;
@@ -108,7 +108,7 @@ export const extractMatchingContractInformation = (
   if (bytecode.compare(compilerOutputDeployedBytecode)) {
     return {
       compilerInput: buildInfo.input,
-      solcVersion: buildInfo.solcVersion,
+      solcLongVersion: buildInfo.solcLongVersion,
       sourceName,
       contractName,
       contractOutput,
