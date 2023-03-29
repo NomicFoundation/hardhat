@@ -4,7 +4,17 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
-## 0.0.10 - 2023-04-14
+## 0.0.11 - 2023-03-29
+
+### Changed
+
+- Replace `m.getBytesForArtifact("Foo")` with `m.getArtifact("Foo")` in the module api ([#155](https://github.com/NomicFoundation/ignition/issues/155))
+
+### Fixed
+
+- Fix libraries in plan ([#131](https://github.com/NomicFoundation/ignition/issues/131))
+
+## 0.0.10 - 2023-03-14
 
 ### Added
 
