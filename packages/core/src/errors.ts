@@ -1,6 +1,8 @@
 /**
  * All exceptions intenionally thrown with Ignition-core
  * extend this class.
+ *
+ * @alpha
  */
 export class IgnitionError extends Error {
   constructor(message: string) {
@@ -15,6 +17,8 @@ export class IgnitionError extends Error {
  * validation phase on the user inputed module. Validation errors
  * capture the stack to the action within the offending module,
  * to enhance the locality of the validation error message.
+ *
+ * * @alpha
  */
 export class IgnitionValidationError extends IgnitionError {
   constructor(message: string) {
@@ -32,7 +36,9 @@ export class IgnitionValidationError extends IgnitionError {
    * api, so that the stack leads directly to the line in the module
    * the user called (i.e. `m.contract(...)`)
    *
-   * @param f the function to hide all of the stacktrace above
+   * @param f - the function to hide all of the stacktrace above
+   *
+   * @internal
    */
   public resetStackFrom(f: () => any) {
     Error.captureStackTrace(this, f);

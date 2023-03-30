@@ -1,56 +1,104 @@
-import type { ICommandJournal } from "./internal/types/journal";
-import type { Module, ModuleDict } from "./types/module";
-import type { IgnitionPlan } from "./types/plan";
+import type { Module, ModuleDict } from "../types/module";
+import type { IgnitionPlan } from "../types/plan";
 import type {
   ContractInfo,
   SerializedDeploymentResult,
-} from "./types/serialization";
+} from "../types/serialization";
+import type { ICommandJournal } from "./types/journal";
 
 import setupDebug from "debug";
 
-import { IgnitionError } from "./errors";
-import { Deployment } from "./internal/deployment/Deployment";
-import { execute } from "./internal/execution/execute";
-import { loadJournalInto } from "./internal/execution/loadJournalInto";
-import { hashExecutionGraph } from "./internal/execution/utils";
-import { NoopCommandJournal } from "./internal/journal/NoopCommandJournal";
-import { generateDeploymentGraphFrom } from "./internal/process/generateDeploymentGraphFrom";
-import { transformDeploymentGraphToExecutionGraph } from "./internal/process/transformDeploymentGraphToExecutionGraph";
-import { createServices } from "./internal/services/createServices";
+import { IgnitionError } from "../errors";
+import { Ignition, IgnitionDeployOptions } from "../types/ignition";
+import { ProcessStepResult } from "../types/process";
+import { Providers } from "../types/providers";
+
+import { Deployment } from "./deployment/Deployment";
+import { execute } from "./execution/execute";
+import { loadJournalInto } from "./execution/loadJournalInto";
+import { hashExecutionGraph } from "./execution/utils";
+import { NoopCommandJournal } from "./journal/NoopCommandJournal";
+import { generateDeploymentGraphFrom } from "./process/generateDeploymentGraphFrom";
+import { transformDeploymentGraphToExecutionGraph } from "./process/transformDeploymentGraphToExecutionGraph";
+import { createServices } from "./services/createServices";
 import {
   DeploymentResult,
   DeploymentResultState,
-  IgnitionDeployOptions,
   UpdateUiAction,
-} from "./internal/types/deployment";
+} from "./types/deployment";
 import {
   ExecutionResultsAccumulator,
   ExecutionVisitResult,
   IExecutionGraph,
-} from "./internal/types/executionGraph";
-import { VertexResultEnum, VisitResultState } from "./internal/types/graph";
-import { Services } from "./internal/types/services";
+} from "./types/executionGraph";
+import { VertexResultEnum, VisitResultState } from "./types/graph";
+import { Services } from "./types/services";
 import {
   isFailure,
   processStepFailed,
   processStepSucceeded,
-} from "./internal/utils/process-results";
-import { resolveProxyValue } from "./internal/utils/proxy";
-import { validateDeploymentGraph } from "./internal/validation/validateDeploymentGraph";
-import {
-  IgnitionConstructorArgs,
-  IgnitionCreationArgs,
-} from "./types/ignition";
-import { ProcessStepResult } from "./types/process";
+} from "./utils/process-results";
+import { resolveProxyValue } from "./utils/proxy";
+import { validateDeploymentGraph } from "./validation/validateDeploymentGraph";
 
 const log = setupDebug("ignition:main");
+
+/**
+ * The setup options for the Ignition.
+ *
+ * @internal
+ */
+export interface IgnitionCreationArgs {
+  /**
+   * The adapters that allows Ignition to communicate with external systems
+   * like the target blockchain or local filesystem.
+   */
+  providers: Providers;
+
+  /**
+   * An optional UI update function that will be invoked with the current
+   * Ignition state on each major state change.
+   */
+  uiRenderer?: UpdateUiAction;
+
+  /**
+   * An optional journal that will be used to store a record of the current
+   * run and to access the history of previous runs.
+   */
+  journal?: ICommandJournal;
+}
+
+/**
+ * The setup options for Ignition
+ *
+ * @internal
+ */
+export interface IgnitionConstructorArgs {
+  /**
+   * An adapter that allows Ignition to communicate with external services
+   * like the target blockchain or local filesystem.
+   */
+  services: Services;
+
+  /**
+   * A UI update function that will be invoked with the current
+   * Ignition state on each major state change.
+   */
+  uiRenderer: UpdateUiAction;
+
+  /**
+   * A journal that will be used to store a record of the current
+   * run and to access the history of previous runs.
+   */
+  journal: ICommandJournal;
+}
 
 /**
  * The entry point for deploying using _Ignition_.
  *
  * @internal
  */
-export class Ignition {
+export class IgnitionImplementation implements Ignition {
   private _services: Services;
   private _uiRenderer: UpdateUiAction;
   private _journal: ICommandJournal;
@@ -67,10 +115,10 @@ export class Ignition {
     uiRenderer = () => {},
     journal = new NoopCommandJournal(),
   }: IgnitionCreationArgs) {
-    return new Ignition({
+    return new IgnitionImplementation({
       services: createServices(providers),
-      uiRenderer,
-      journal,
+      uiRenderer: uiRenderer as UpdateUiAction,
+      journal: journal as ICommandJournal,
     });
   }
 

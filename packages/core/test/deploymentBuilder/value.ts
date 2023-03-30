@@ -5,7 +5,7 @@ import type { Artifact } from "../../src/types/hardhat";
 import { assert } from "chai";
 import { ethers } from "ethers";
 
-import { buildModule } from "../../src/dsl/buildModule";
+import { buildModule } from "../../src/buildModule";
 import { generateDeploymentGraphFrom } from "../../src/internal/process/generateDeploymentGraphFrom";
 import {
   isArtifactContract,

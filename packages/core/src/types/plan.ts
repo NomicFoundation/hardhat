@@ -1,12 +1,6 @@
-import { IDeploymentGraph } from "../internal/types/deploymentGraph";
-import { IExecutionGraph } from "../internal/types/executionGraph";
-
 /**
- * The planned deployment.
+ * The planned deployment, including a summary of its current status.
  *
- * @internal
+ * @alpha
  */
-export interface IgnitionPlan {
-  deploymentGraph: IDeploymentGraph;
-  executionGraph: IExecutionGraph;
-}
+export type IgnitionPlan = unknown;

@@ -3,9 +3,9 @@
 import { assert } from "chai";
 import { ethers } from "ethers";
 
-import { Ignition } from "../../src/Ignition";
-import { buildModule } from "../../src/dsl/buildModule";
+import { buildModule } from "../../src/buildModule";
 import { IgnitionError } from "../../src/errors";
+import { IgnitionImplementation } from "../../src/internal/Ignition";
 import { TransactionsService } from "../../src/internal/services/TransactionsService";
 import { DeploymentResultState } from "../../src/internal/types/deployment";
 import { Artifact } from "../../src/types/hardhat";
@@ -51,7 +51,7 @@ describe("Rerunning execution", () => {
 
   describe("when a deployment is already complete", () => {
     let sentTransactionCount: number;
-    let ignition: Ignition;
+    let ignition: IgnitionImplementation;
     let myModule: any;
 
     beforeEach(() => {
@@ -168,7 +168,7 @@ describe("Rerunning execution", () => {
   describe("when a deployment is on hold", () => {
     let sentTransactionCount: number;
     let eventQueryCount: number;
-    let ignition: Ignition;
+    let ignition: IgnitionImplementation;
     let myModule: any;
 
     beforeEach(() => {
@@ -322,7 +322,7 @@ describe("Rerunning execution", () => {
 
   describe("when a deployment fails", () => {
     let sentTransactionCount: number;
-    let ignition: Ignition;
+    let ignition: IgnitionImplementation;
     let myModule: any;
 
     beforeEach(() => {

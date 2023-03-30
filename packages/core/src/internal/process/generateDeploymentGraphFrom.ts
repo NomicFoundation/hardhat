@@ -4,10 +4,10 @@ import type {
   IDeploymentGraph,
 } from "../types/deploymentGraph";
 
-import { DeploymentBuilder } from "../../dsl/DeploymentBuilder";
 import { IgnitionError } from "../../errors";
 import { Module, ModuleDict } from "../../types/module";
 import { ProcessStepResult } from "../../types/process";
+import { DeploymentBuilder } from "../dsl/DeploymentBuilder";
 import { assertModuleReturnTypes } from "../utils/guards";
 import {
   processStepErrored,

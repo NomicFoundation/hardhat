@@ -3,7 +3,7 @@
 import { assert } from "chai";
 import { ethers } from "ethers";
 
-import { buildModule } from "../src/dsl/buildModule";
+import { buildModule } from "../src/buildModule";
 import { IgnitionValidationError } from "../src/errors";
 import { generateDeploymentGraphFrom } from "../src/internal/process/generateDeploymentGraphFrom";
 import { ResultsAccumulator } from "../src/internal/types/graph";

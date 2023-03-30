@@ -27,22 +27,6 @@ export type UpdateUiAction = (deployState: DeployState) => void;
 export type UiParamsClosure = (moduleParams?: ModuleParams) => UpdateUiAction;
 
 /**
- * The configuration options that control how on-chain execution will happen
- * during the deploy.
- *
- * @internal
- */
-export interface IgnitionDeployOptions {
-  txPollingInterval: number;
-  networkName: string;
-  maxRetries: number;
-  gasPriceIncrementPerRetry: BigNumber | null;
-  pollingInterval: number;
-  eventDuration: number;
-  force: boolean;
-}
-
-/**
  * The possible deployment states.
  *
  * @internal

@@ -1,4 +1,4 @@
-import { DeploymentGraph } from "../../src/dsl/DeploymentGraph";
+import { DeploymentGraph } from "../../src/internal/dsl/DeploymentGraph";
 import { getDependenciesFor } from "../../src/internal/graph/adjacencyList";
 import { DeploymentGraphVertex } from "../../src/internal/types/deploymentGraph";
 import { VertexDescriptor } from "../../src/internal/types/graph";
