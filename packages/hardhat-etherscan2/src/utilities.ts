@@ -165,11 +165,14 @@ export const getCompilerVersions = async ({
   }
 };
 
+/**
+ * Encodes the constructor arguments for a given contract.
+ */
 export const encodeArguments = async (
   abi: JsonFragment[],
   sourceName: string,
   contractName: string,
-  constructorArguments: string[]
+  constructorArguments: any[]
 ): Promise<string> => {
   const { Interface } = await import("@ethersproject/abi");
 

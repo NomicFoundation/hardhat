@@ -1,7 +1,9 @@
-import { assert, expect } from "chai";
 import path from "path";
+import { assert, expect } from "chai";
 import { SolidityConfig } from "hardhat/types";
+import { JsonFragment } from "@ethersproject/abi";
 import {
+  encodeArguments,
   getCompilerVersions,
   resolveConstructorArguments,
   resolveLibraries,
@@ -218,6 +220,263 @@ describe("Utilities", () => {
 
       await expect(getCompilerVersions(solidityConfig)).to.be.rejectedWith(
         /Etherscan only supports compiler versions 0.4.11 and higher/
+      );
+    });
+  });
+
+  describe("encodeArguments", () => {
+    const sourceName = "TheContract.sol";
+    const contractName = "TheContract";
+
+    it("should correctly encode a single constructor argument", async () => {
+      const abi: JsonFragment[] = [
+        {
+          inputs: [
+            {
+              name: "amount",
+              type: "uint256",
+            },
+          ],
+          stateMutability: "nonpayable",
+          type: "constructor",
+        },
+      ];
+      const constructorArguments: any[] = [50];
+      const encodedArguments = await encodeArguments(
+        abi,
+        sourceName,
+        contractName,
+        constructorArguments
+      );
+      assert.equal(
+        encodedArguments,
+        "0000000000000000000000000000000000000000000000000000000000000032"
+      );
+    });
+
+    it("should correctly encode multiple constructor arguments", async () => {
+      const abi: JsonFragment[] = [
+        {
+          inputs: [
+            {
+              name: "amount",
+              type: "uint256",
+            },
+            {
+              name: "amount",
+              type: "string",
+            },
+            {
+              name: "amount",
+              type: "address",
+            },
+          ],
+          stateMutability: "nonpayable",
+          type: "constructor",
+        },
+      ];
+      const constructorArguments: any[] = [
+        50,
+        "initializer",
+        "0x752C8191E6b1Db38B41A8c8921F7a703F2969d18",
+      ];
+      const encodedArguments = await encodeArguments(
+        abi,
+        sourceName,
+        contractName,
+        constructorArguments
+      );
+      const expectedArguments = [
+        "0000000000000000000000000000000000000000000000000000000000000032",
+        "0000000000000000000000000000000000000000000000000000000000000060",
+        "000000000000000000000000752c8191e6b1db38b41a8c8921f7a703f2969d18",
+        "000000000000000000000000000000000000000000000000000000000000000b",
+        "696e697469616c697a6572000000000000000000000000000000000000000000",
+      ].join("");
+      assert.equal(encodedArguments, expectedArguments);
+    });
+
+    it("should correctly encode ABIv2 nested tuples", async () => {
+      const abi: JsonFragment[] = [
+        {
+          inputs: [
+            {
+              name: "t",
+              type: "tuple",
+              components: [
+                {
+                  name: "x",
+                  type: "uint256",
+                },
+                {
+                  name: "y",
+                  type: "uint256",
+                },
+                {
+                  name: "nestedProperty",
+                  type: "tuple",
+                  components: [
+                    {
+                      name: "x",
+                      type: "uint256",
+                    },
+                    {
+                      name: "y",
+                      type: "uint256",
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+          stateMutability: "nonpayable",
+          type: "constructor",
+        },
+      ];
+      const constructorArguments: any[] = [
+        {
+          x: 8,
+          y: 8 + 16,
+          nestedProperty: {
+            x: 8 + 16 * 2,
+            y: 8 + 16 * 3,
+          },
+        },
+      ];
+      const encodedArguments = await encodeArguments(
+        abi,
+        sourceName,
+        contractName,
+        constructorArguments
+      );
+      const expectedArguments = [
+        "0000000000000000000000000000000000000000000000000000000000000008",
+        "0000000000000000000000000000000000000000000000000000000000000018",
+        "0000000000000000000000000000000000000000000000000000000000000028",
+        "0000000000000000000000000000000000000000000000000000000000000038",
+      ].join("");
+      assert.equal(encodedArguments, expectedArguments);
+    });
+
+    it("should return an empty string when there are no constructor arguments", async () => {
+      const abi: JsonFragment[] = [
+        {
+          inputs: [],
+          stateMutability: "nonpayable",
+          type: "constructor",
+        },
+      ];
+      const constructorArguments: any[] = [];
+      const encodedArguments = await encodeArguments(
+        abi,
+        sourceName,
+        contractName,
+        constructorArguments
+      );
+      assert.equal(encodedArguments, "");
+    });
+
+    it("should throw when there are less arguments than expected", async () => {
+      const abi: JsonFragment[] = [
+        {
+          inputs: [
+            {
+              name: "amount",
+              type: "uint256",
+            },
+            {
+              name: "anotherAmount",
+              type: "uint256",
+            },
+          ],
+          stateMutability: "nonpayable",
+          type: "constructor",
+        },
+      ];
+      const constructorArguments: any[] = [50];
+      await expect(
+        encodeArguments(abi, sourceName, contractName, constructorArguments)
+      ).to.be
+        .rejectedWith(`The constructor for ${sourceName}:${contractName} has 2 parameters
+but 1 arguments were provided instead.`);
+    });
+
+    it("should throw when there are more arguments than expected", async () => {
+      const abi: JsonFragment[] = [
+        {
+          inputs: [
+            {
+              name: "amount",
+              type: "uint256",
+            },
+          ],
+          stateMutability: "nonpayable",
+          type: "constructor",
+        },
+      ];
+      const constructorArguments: any[] = [50, 100];
+      await expect(
+        encodeArguments(abi, sourceName, contractName, constructorArguments)
+      ).to.be
+        .rejectedWith(`The constructor for ${sourceName}:${contractName} has 1 parameters
+but 2 arguments were provided instead.`);
+    });
+
+    it("should throw when a parameter type does not match its expected type", async () => {
+      const abi: JsonFragment[] = [
+        {
+          inputs: [
+            {
+              name: "amount",
+              type: "uint256",
+            },
+            {
+              name: "amount",
+              type: "string",
+            },
+            {
+              name: "amount",
+              type: "address",
+            },
+          ],
+          stateMutability: "nonpayable",
+          type: "constructor",
+        },
+      ];
+      const constructorArguments: any[] = [
+        50,
+        "initializer",
+        "0x752c8191e6b1db38b41a752C8191E6b1Db38B41A8c8921F7a703F2969d18", // Invalid address
+      ];
+      await expect(
+        encodeArguments(abi, sourceName, contractName, constructorArguments)
+      ).to.be.rejectedWith(
+        /Value 0x752c8191e6b1db38b41a752C8191E6b1Db38B41A8c8921F7a703F2969d18 cannot be encoded for the parameter amount./
+      );
+    });
+
+    it("should throw when an unsafe integer is provided as an argument", async () => {
+      const abi: JsonFragment[] = [
+        {
+          inputs: [
+            {
+              name: "amount",
+              type: "uint256",
+            },
+          ],
+          stateMutability: "nonpayable",
+          type: "constructor",
+        },
+      ];
+
+      const amount = 1000000000000000000;
+      assert.isFalse(Number.isSafeInteger(amount));
+      const constructorArguments: any[] = [amount];
+
+      await expect(
+        encodeArguments(abi, sourceName, contractName, constructorArguments)
+      ).to.be.rejectedWith(
+        /Value 1000000000000000000 is not a safe integer and cannot be encoded./
       );
     });
   });
