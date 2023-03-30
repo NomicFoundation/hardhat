@@ -324,11 +324,11 @@ ${
 }`;
 
     super(`You gave an address for the library ${libraryName} in the libraries dictionary, which is not one of the libraries of contract ${contractName}.
-    ${
-      allLibraries.length > 0
-        ? contractLibrariesDetails
-        : "This contract doesn't use any external libraries."
-    }`);
+${
+  allLibraries.length > 0
+    ? contractLibrariesDetails
+    : "This contract doesn't use any external libraries."
+}`);
   }
 }
 
@@ -402,7 +402,7 @@ export class ABIArgumentLengthError extends HardhatEtherscanError {
     const { types: requiredArgs, values: providedArgs } = error.count;
     super(
       `The constructor for ${sourceName}:${contractName} has ${requiredArgs} parameters
-  but ${providedArgs} arguments were provided instead.`,
+but ${providedArgs} arguments were provided instead.`,
       error
     );
   }
