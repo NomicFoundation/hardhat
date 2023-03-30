@@ -9,6 +9,7 @@ import { TransactionsService } from "../../src/internal/services/TransactionsSer
 import { Artifact } from "../../src/types/hardhat";
 import { Providers } from "../../src/types/providers";
 import { getMockServices } from "../helpers";
+import { setupIgnitionWith } from "../helpers/setupIgnitionWith";
 import { MemoryCommandJournal } from "../util/MemoryCommandJournal";
 
 describe("Rerunning execution", () => {
@@ -62,7 +63,7 @@ describe("Rerunning execution", () => {
         return { token };
       });
 
-      ignition = new Ignition({
+      ignition = setupIgnitionWith({
         services: {
           ...getMockServices(),
           artifacts: {
@@ -193,7 +194,7 @@ describe("Rerunning execution", () => {
         ["0x0000000000000000000000000000000000000003"]
       );
 
-      ignition = new Ignition({
+      ignition = setupIgnitionWith({
         services: {
           ...getMockServices(),
           artifacts: {
@@ -291,7 +292,7 @@ describe("Rerunning execution", () => {
         return { token };
       });
 
-      ignition = new Ignition({
+      ignition = setupIgnitionWith({
         services: {
           ...getMockServices(),
           artifacts: {
@@ -335,7 +336,7 @@ describe("Rerunning execution", () => {
         return { token };
       });
 
-      ignition = new Ignition({
+      ignition = setupIgnitionWith({
         services: {
           ...getMockServices(),
           artifacts: {

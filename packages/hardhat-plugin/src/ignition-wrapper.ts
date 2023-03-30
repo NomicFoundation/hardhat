@@ -1,17 +1,16 @@
 import type { Contract } from "ethers";
 
 import {
+  ICommandJournal,
   Ignition,
   IgnitionDeployOptions,
-  Providers,
   Module,
   ModuleDict,
   ModuleParams,
-  ICommandJournal,
+  Providers,
   SerializedDeploymentResult,
 } from "@ignored/ignition-core";
 import { IgnitionError } from "@ignored/ignition-core/errors";
-import { createServices } from "@ignored/ignition-core/helpers";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 
 import { CommandJournal } from "./CommandJournal";
@@ -48,8 +47,7 @@ export class IgnitionWrapper {
     const showUi = deployParams?.ui ?? false;
     const force = deployParams?.force ?? false;
 
-    const services = createServices(this._providers);
-    const chainId = await services.network.getChainId();
+    const chainId = await this._getChainId(this._providers);
 
     const journal =
       deployParams?.journal ??
@@ -57,8 +55,8 @@ export class IgnitionWrapper {
         ? new CommandJournal(chainId, deployParams?.journalPath)
         : undefined);
 
-    const ignition = new Ignition({
-      services,
+    const ignition = Ignition.create({
+      providers: this._providers,
       uiRenderer: showUi
         ? renderToCli(initializeRenderState(), deployParams?.parameters)
         : undefined,
@@ -108,8 +106,8 @@ export class IgnitionWrapper {
   }
 
   public async plan<T extends ModuleDict>(ignitionModule: Module<T>) {
-    const ignition = new Ignition({
-      services: createServices(this._providers),
+    const ignition = Ignition.create({
+      providers: this._providers,
     });
 
     return ignition.plan(ignitionModule);
@@ -127,5 +125,13 @@ export class IgnitionWrapper {
     }
 
     return resolvedOutput as DeployResult<T>;
+  }
+
+  private async _getChainId(providers: Providers) {
+    const result = await providers.ethereumProvider.request({
+      method: "eth_chainId",
+    });
+
+    return Number(result);
   }
 }

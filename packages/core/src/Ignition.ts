@@ -25,9 +25,11 @@ import { hashExecutionGraph } from "./internal/execution/utils";
 import { NoopCommandJournal } from "./internal/journal/NoopCommandJournal";
 import { generateDeploymentGraphFrom } from "./internal/process/generateDeploymentGraphFrom";
 import { transformDeploymentGraphToExecutionGraph } from "./internal/process/transformDeploymentGraphToExecutionGraph";
+import { createServices } from "./internal/services/createServices";
 import { Services } from "./internal/types/services";
 import { resolveProxyValue } from "./internal/utils/proxy";
 import { validateDeploymentGraph } from "./internal/validation/validateDeploymentGraph";
+import { Providers } from "./types/providers";
 
 const log = setupDebug("ignition:main");
 
@@ -36,18 +38,34 @@ export class Ignition {
   private _uiRenderer: UpdateUiAction;
   private _journal: ICommandJournal;
 
-  constructor({
+  public static create({
+    providers,
+    uiRenderer = () => {},
+    journal = new NoopCommandJournal(),
+  }: {
+    providers: Providers;
+    uiRenderer?: UpdateUiAction;
+    journal?: ICommandJournal;
+  }) {
+    return new Ignition({
+      services: createServices(providers),
+      uiRenderer,
+      journal,
+    });
+  }
+
+  protected constructor({
     services,
     uiRenderer,
     journal,
   }: {
     services: Services;
-    uiRenderer?: UpdateUiAction;
-    journal?: ICommandJournal;
+    uiRenderer: UpdateUiAction;
+    journal: ICommandJournal;
   }) {
     this._services = services;
-    this._uiRenderer = uiRenderer ?? (() => {});
-    this._journal = journal ?? new NoopCommandJournal();
+    this._uiRenderer = uiRenderer;
+    this._journal = journal;
   }
 
   public async deploy<T extends ModuleDict>(
