@@ -7,6 +7,7 @@ import { ethers } from "ethers";
 import { buildModule } from "../../src/dsl/buildModule";
 import { generateDeploymentGraphFrom } from "../../src/internal/process/generateDeploymentGraphFrom";
 import { isCall, isHardhatContract } from "../../src/internal/utils/guards";
+import { isFailure } from "../../src/internal/utils/process-results";
 import { IDeploymentBuilder } from "../../src/types/dsl";
 
 import { getDeploymentVertexByLabel } from "./helpers";
@@ -30,7 +31,7 @@ describe("deployment builder - accounts", () => {
       return { token, exchange };
     });
 
-    const { graph } = generateDeploymentGraphFrom(accountsModule, {
+    const constructionResult = generateDeploymentGraphFrom(accountsModule, {
       chainId: 31337,
       accounts: [
         "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
@@ -39,7 +40,11 @@ describe("deployment builder - accounts", () => {
       artifacts: [],
     });
 
-    deploymentGraph = graph;
+    if (isFailure(constructionResult)) {
+      assert.fail("Failure to construct deployment garph");
+    }
+
+    deploymentGraph = constructionResult.result.graph;
   });
 
   it("should default to the first account if not given a from parameter", () => {

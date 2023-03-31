@@ -1,32 +1,43 @@
+import { ProcessStepResult } from "../../types/process";
 import { ExecutionGraph } from "../execution/ExecutionGraph";
 import { clone } from "../graph/adjacencyList";
 import {
-  IDeploymentGraph,
   DeploymentGraphVertex,
+  IDeploymentGraph,
 } from "../types/deploymentGraph";
 import { ExecutionVertex, IExecutionGraph } from "../types/executionGraph";
-import { TransformResult } from "../types/process";
 import { Services } from "../types/services";
+import {
+  processStepErrored,
+  processStepSucceeded,
+} from "../utils/process-results";
 
-import { convertDeploymentVertexToExecutionVertex as convertDeploymentVertexToExecutionVertex } from "./transform/convertDeploymentVertexToExecutionVertex";
+import { convertDeploymentVertexToExecutionVertex } from "./transform/convertDeploymentVertexToExecutionVertex";
 import { reduceDeploymentGraphByEliminatingVirtualVertexes } from "./transform/reduceDeploymentGraphByEliminatingVirtualVertexes";
 
 export async function transformDeploymentGraphToExecutionGraph(
   deploymentGraph: IDeploymentGraph,
   services: Services
-): Promise<TransformResult> {
-  const reducedDeploymentGraph =
-    reduceDeploymentGraphByEliminatingVirtualVertexes(deploymentGraph);
+): Promise<ProcessStepResult<{ executionGraph: IExecutionGraph }>> {
+  try {
+    const reducedDeploymentGraph =
+      reduceDeploymentGraphByEliminatingVirtualVertexes(deploymentGraph);
 
-  const executionGraph: IExecutionGraph = await convertDeploymentToExecution(
-    reducedDeploymentGraph,
-    convertDeploymentVertexToExecutionVertex({
-      services,
-      graph: reducedDeploymentGraph,
-    })
-  );
+    const executionGraph: IExecutionGraph = await convertDeploymentToExecution(
+      reducedDeploymentGraph,
+      convertDeploymentVertexToExecutionVertex({
+        services,
+        graph: reducedDeploymentGraph,
+      })
+    );
 
-  return { _kind: "success", executionGraph };
+    return processStepSucceeded({ executionGraph });
+  } catch (err) {
+    return processStepErrored(
+      err,
+      "Graph transformation and simplification failed"
+    );
+  }
 }
 
 async function convertDeploymentToExecution(

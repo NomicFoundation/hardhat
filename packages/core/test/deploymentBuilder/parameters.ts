@@ -7,6 +7,7 @@ import { buildModule } from "../../src/dsl/buildModule";
 import { IgnitionError } from "../../src/errors";
 import { generateDeploymentGraphFrom } from "../../src/internal/process/generateDeploymentGraphFrom";
 import { isCallable } from "../../src/internal/utils/guards";
+import { isFailure } from "../../src/internal/utils/process-results";
 import { IDeploymentBuilder } from "../../src/types/dsl";
 
 describe("deployment builder - parameters", function () {
@@ -38,13 +39,20 @@ describe("deployment builder - parameters", function () {
       return { token };
     });
 
-    const { graph } = generateDeploymentGraphFrom(WrapModule, {
-      chainId: 31,
-      accounts: [],
-      artifacts: [],
-    });
+    const constructDeploymentGraphResult = generateDeploymentGraphFrom(
+      WrapModule,
+      {
+        chainId: 31,
+        accounts: [],
+        artifacts: [],
+      }
+    );
 
-    deploymentGraph = graph;
+    if (isFailure(constructDeploymentGraphResult)) {
+      assert.fail("Construction of deployment graph failed");
+    }
+
+    deploymentGraph = constructDeploymentGraphResult.result.graph;
   });
 
   it("should create a graph", () => {

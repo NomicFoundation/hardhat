@@ -4,7 +4,9 @@ import type { IDeploymentGraph } from "../../src/internal/types/deploymentGraph"
 import { assert } from "chai";
 
 import { buildModule } from "../../src/dsl/buildModule";
+import { IgnitionError } from "../../src/errors";
 import { generateDeploymentGraphFrom } from "../../src/internal/process/generateDeploymentGraphFrom";
+import { isFailure } from "../../src/internal/utils/process-results";
 import { IDeploymentBuilder } from "../../src/types/dsl";
 import {
   ArtifactContract,
@@ -15,6 +17,7 @@ import {
   Virtual,
 } from "../../src/types/future";
 import { Module } from "../../src/types/module";
+import { ProcessResultKind } from "../../src/types/process";
 
 import {
   getDependenciesForVertex,
@@ -56,9 +59,16 @@ describe("deployment builder - useModule", () => {
         return { token, token2 };
       });
 
-      const { graph } = generateDeploymentGraphFrom(WrapModule, options);
+      const constructDeploymentGraphResult = generateDeploymentGraphFrom(
+        WrapModule,
+        options
+      );
 
-      deploymentGraph = graph;
+      if (isFailure(constructDeploymentGraphResult)) {
+        assert.fail("Construction of deployment graph failed");
+      }
+
+      deploymentGraph = constructDeploymentGraphResult.result.graph;
     });
 
     it("should create a graph", () => {
@@ -89,9 +99,16 @@ describe("deployment builder - useModule", () => {
         return { foo };
       });
 
-      const { graph } = generateDeploymentGraphFrom(WrapModule, options);
+      const constructDeploymentGraphResult = generateDeploymentGraphFrom(
+        WrapModule,
+        options
+      );
 
-      deploymentGraph = graph;
+      if (isFailure(constructDeploymentGraphResult)) {
+        assert.fail("Construction of deployment graph failed");
+      }
+
+      deploymentGraph = constructDeploymentGraphResult.result.graph;
     });
 
     it("should create a graph", () => {
@@ -168,9 +185,16 @@ describe("deployment builder - useModule", () => {
         return { foo };
       });
 
-      const { graph } = generateDeploymentGraphFrom(WrapModule, options);
+      const constructDeploymentGraphResult = generateDeploymentGraphFrom(
+        WrapModule,
+        options
+      );
 
-      deploymentGraph = graph;
+      if (isFailure(constructDeploymentGraphResult)) {
+        assert.fail("Construction of deployment graph failed");
+      }
+
+      deploymentGraph = constructDeploymentGraphResult.result.graph;
     });
 
     it("should create a graph", () => {
@@ -216,9 +240,16 @@ describe("deployment builder - useModule", () => {
         return { foo, bar, baz };
       });
 
-      const { graph } = generateDeploymentGraphFrom(WrapModule, options);
+      const constructDeploymentGraphResult = generateDeploymentGraphFrom(
+        WrapModule,
+        options
+      );
 
-      deploymentGraph = graph;
+      if (isFailure(constructDeploymentGraphResult)) {
+        assert.fail("Construction of deployment graph failed");
+      }
+
+      deploymentGraph = constructDeploymentGraphResult.result.graph;
     });
 
     it("should create a graph", () => {
@@ -315,9 +346,16 @@ describe("deployment builder - useModule", () => {
         return { foo: fooModule.foo, bar };
       });
 
-      const { graph } = generateDeploymentGraphFrom(WrapModule, options);
+      const constructDeploymentGraphResult = generateDeploymentGraphFrom(
+        WrapModule,
+        options
+      );
 
-      deploymentGraph = graph;
+      if (isFailure(constructDeploymentGraphResult)) {
+        assert.fail("Construction of deployment graph failed");
+      }
+
+      deploymentGraph = constructDeploymentGraphResult.result.graph;
     });
 
     it("should create a graph", () => {
@@ -396,9 +434,16 @@ describe("deployment builder - useModule", () => {
         return { foo, bar };
       });
 
-      const { graph } = generateDeploymentGraphFrom(TopModule, options);
+      const constructDeploymentGraphResult = generateDeploymentGraphFrom(
+        TopModule,
+        options
+      );
 
-      deploymentGraph = graph;
+      if (isFailure(constructDeploymentGraphResult)) {
+        assert.fail("Construction of deployment graph failed");
+      }
+
+      deploymentGraph = constructDeploymentGraphResult.result.graph;
     });
 
     it("should create a graph", () => {
@@ -471,11 +516,21 @@ describe("deployment builder - useModule", () => {
       });
     });
 
-    it("should throw", () => {
-      assert.throws(
-        () => generateDeploymentGraphFrom(differentParamsModule, options),
-        /`useModule` cannot be invoked on the same module using different parameters/
+    it("should fail with an error", () => {
+      const result = generateDeploymentGraphFrom(
+        differentParamsModule,
+        options
       );
+
+      assert.deepStrictEqual(result, {
+        _kind: ProcessResultKind.FAILURE,
+        message: "Deployment graph construction failed",
+        failures: [
+          new IgnitionError(
+            "`useModule` cannot be invoked on the same module using different parameters"
+          ),
+        ],
+      });
     });
   });
 
@@ -513,17 +568,26 @@ describe("deployment builder - useModule", () => {
       );
     });
 
-    it("should throw", () => {
-      assert.throws(
-        () =>
-          // @ts-ignore
-          generateDeploymentGraphFrom(returnsWrongFutureTypeModule, {
-            chainId: 31,
-            accounts: [],
-            artifacts: [],
-          }),
-        /Cannot return Future of type "parameter" from a module/
+    it("should fail with an error", () => {
+      const result = generateDeploymentGraphFrom(
+        // @ts-ignore
+        returnsWrongFutureTypeModule,
+        {
+          chainId: 31,
+          accounts: [],
+          artifacts: [],
+        }
       );
+
+      assert.deepStrictEqual(result, {
+        _kind: ProcessResultKind.FAILURE,
+        message: "Deployment graph construction failed",
+        failures: [
+          new IgnitionError(
+            'Cannot return Future of type "parameter" from a module'
+          ),
+        ],
+      });
     });
   });
 });

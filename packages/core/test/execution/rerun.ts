@@ -5,6 +5,7 @@ import { ethers } from "ethers";
 
 import { Ignition } from "../../src/Ignition";
 import { buildModule } from "../../src/dsl/buildModule";
+import { IgnitionError } from "../../src/errors";
 import { TransactionsService } from "../../src/internal/services/TransactionsService";
 import { Artifact } from "../../src/types/hardhat";
 import { Providers } from "../../src/types/providers";
@@ -458,10 +459,10 @@ describe("Rerunning execution", () => {
       assert.deepStrictEqual(modifiedResult, {
         _kind: "failure",
         failures: [
-          "module change failure",
+          "Module reconciliation failed",
           [
-            new Error(
-              "The module has been modified since the last run. Delete the journal file to start again."
+            new IgnitionError(
+              "The module has been modified since the last run. You can ignore the previous runs with the '--force' flag."
             ),
           ],
         ],

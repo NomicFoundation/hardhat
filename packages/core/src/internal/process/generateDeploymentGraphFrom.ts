@@ -7,27 +7,40 @@ import type {
 import { DeploymentBuilder } from "../../dsl/DeploymentBuilder";
 import { IgnitionError } from "../../errors";
 import { Module, ModuleDict } from "../../types/module";
+import { ProcessStepResult } from "../../types/process";
 import { assertModuleReturnTypes } from "../utils/guards";
+import {
+  processStepErrored,
+  processStepSucceeded,
+} from "../utils/process-results";
 
 export function generateDeploymentGraphFrom<T extends ModuleDict>(
   ignitionModule: Module<T>,
   builderOptions: DeploymentBuilderOptions
-): { graph: IDeploymentGraph; callPoints: CallPoints; moduleOutputs: T } {
-  const graphBuilder = new DeploymentBuilder(builderOptions);
+): ProcessStepResult<{
+  graph: IDeploymentGraph;
+  callPoints: CallPoints;
+  moduleOutputs: T;
+}> {
+  try {
+    const graphBuilder = new DeploymentBuilder(builderOptions);
 
-  const moduleOutputs = ignitionModule.action(graphBuilder);
+    const moduleOutputs = ignitionModule.action(graphBuilder);
 
-  if (moduleOutputs instanceof Promise) {
-    throw new IgnitionError(
-      `The callback passed to 'buildModule' for ${ignitionModule.name} returns a Promise; async callbacks are not allowed in 'buildModule'.`
-    );
+    if (moduleOutputs instanceof Promise) {
+      throw new IgnitionError(
+        `The callback passed to 'buildModule' for ${ignitionModule.name} returns a Promise; async callbacks are not allowed in 'buildModule'.`
+      );
+    }
+
+    assertModuleReturnTypes(moduleOutputs);
+
+    return processStepSucceeded({
+      graph: graphBuilder.graph,
+      callPoints: graphBuilder.callPoints,
+      moduleOutputs,
+    });
+  } catch (error) {
+    return processStepErrored(error, "Deployment graph construction failed");
   }
-
-  assertModuleReturnTypes(moduleOutputs);
-
-  return {
-    graph: graphBuilder.graph,
-    callPoints: graphBuilder.callPoints,
-    moduleOutputs,
-  };
 }

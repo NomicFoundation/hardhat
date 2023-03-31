@@ -3,10 +3,6 @@ import type {
   IgnitionDeployOptions,
   UpdateUiAction,
 } from "./internal/types/deployment";
-import type {
-  ExecutionResultsAccumulator,
-  ExecutionVisitResult,
-} from "./internal/types/executionGraph";
 import type { ICommandJournal } from "./internal/types/journal";
 import type { Module, ModuleDict } from "./types/module";
 import type { IgnitionPlan } from "./types/plan";
@@ -26,13 +22,24 @@ import { NoopCommandJournal } from "./internal/journal/NoopCommandJournal";
 import { generateDeploymentGraphFrom } from "./internal/process/generateDeploymentGraphFrom";
 import { transformDeploymentGraphToExecutionGraph } from "./internal/process/transformDeploymentGraphToExecutionGraph";
 import { createServices } from "./internal/services/createServices";
+import {
+  ExecutionResultsAccumulator,
+  ExecutionVisitResult,
+  IExecutionGraph,
+} from "./internal/types/executionGraph";
 import { Services } from "./internal/types/services";
+import {
+  isFailure,
+  processStepFailed,
+  processStepSucceeded,
+} from "./internal/utils/process-results";
 import { resolveProxyValue } from "./internal/utils/proxy";
 import { validateDeploymentGraph } from "./internal/validation/validateDeploymentGraph";
 import {
   IgnitionConstructorArgs,
   IgnitionCreationArgs,
 } from "./types/ignition";
+import { ProcessStepResult } from "./types/process";
 
 const log = setupDebug("ignition:main");
 
@@ -123,16 +130,26 @@ export class Ignition {
         force: options.force,
       });
 
-      const { result: constructResult, moduleOutputs } =
+      const constructExecutionGraphResult =
         await this._constructExecutionGraphFrom(deployment, ignitionModule);
 
-      if (constructResult._kind === "failure") {
+      if (isFailure(constructExecutionGraphResult)) {
         log("Failed to construct execution graph");
-        return constructResult;
+
+        return {
+          _kind: "failure",
+          failures: [
+            constructExecutionGraphResult.message,
+            constructExecutionGraphResult.failures,
+          ],
+        };
       }
 
+      const { executionGraph, moduleOutputs } =
+        constructExecutionGraphResult.result;
+
       log("Execution graph constructed");
-      await deployment.transformComplete(constructResult.executionGraph);
+      await deployment.transformComplete(executionGraph);
 
       // rebuild previous execution state based on journal
       log("Load journal entries for network");
@@ -142,11 +159,14 @@ export class Ignition {
       log("Reconciling previous runs with current module");
       const moduleChangeResult = this._checkSafeDeployment(deployment);
 
-      if (moduleChangeResult?._kind === "failure") {
+      if (isFailure(moduleChangeResult)) {
         log("Failed to reconcile");
         await deployment.failReconciliation();
 
-        return moduleChangeResult;
+        return {
+          _kind: "failure",
+          failures: [moduleChangeResult.message, moduleChangeResult.failures],
+        };
       }
 
       log("Execute based on execution graph");
@@ -197,14 +217,17 @@ export class Ignition {
       this._services.artifacts.getAllArtifacts(),
     ]);
 
-    const { graph: deploymentGraph, callPoints } = generateDeploymentGraphFrom(
-      deploymentModule,
-      {
-        chainId,
-        accounts,
-        artifacts,
-      }
-    );
+    const constructionResult = generateDeploymentGraphFrom(deploymentModule, {
+      chainId,
+      accounts,
+      artifacts,
+    });
+
+    if (isFailure(constructionResult)) {
+      throw new IgnitionError(constructionResult.message);
+    }
+
+    const { graph: deploymentGraph, callPoints } = constructionResult.result;
 
     const validationResult = await validateDeploymentGraph(
       deploymentGraph,
@@ -212,8 +235,8 @@ export class Ignition {
       this._services
     );
 
-    if (validationResult._kind === "failure") {
-      throw new IgnitionError(validationResult.failures[0]);
+    if (isFailure(validationResult)) {
+      throw new IgnitionError(validationResult.message);
     }
 
     const transformResult = await transformDeploymentGraphToExecutionGraph(
@@ -221,11 +244,11 @@ export class Ignition {
       this._services
     );
 
-    if (transformResult._kind === "failure") {
-      throw new IgnitionError(transformResult.failures[0]);
+    if (isFailure(transformResult)) {
+      throw new IgnitionError(transformResult.message);
     }
 
-    const { executionGraph } = transformResult;
+    const { executionGraph } = transformResult.result;
 
     return { deploymentGraph, executionGraph };
   }
@@ -233,17 +256,32 @@ export class Ignition {
   private async _constructExecutionGraphFrom<T extends ModuleDict>(
     deployment: Deployment,
     ignitionModule: Module<T>
-  ): Promise<{ result: any; moduleOutputs: T }> {
+  ): Promise<
+    ProcessStepResult<{ executionGraph: IExecutionGraph; moduleOutputs: T }>
+  > {
     log("Generate deployment graph from module");
+    const deploymentGraphConstructionResult = generateDeploymentGraphFrom(
+      ignitionModule,
+      {
+        chainId: deployment.state.details.chainId,
+        accounts: deployment.state.details.accounts,
+        artifacts: deployment.state.details.artifacts,
+      }
+    );
+
+    if (isFailure(deploymentGraphConstructionResult)) {
+      await deployment.failUnexpected(
+        deploymentGraphConstructionResult.failures
+      );
+
+      return deploymentGraphConstructionResult;
+    }
+
     const {
       graph: deploymentGraph,
       callPoints,
       moduleOutputs,
-    } = generateDeploymentGraphFrom(ignitionModule, {
-      chainId: deployment.state.details.chainId,
-      accounts: deployment.state.details.accounts,
-      artifacts: deployment.state.details.artifacts,
-    });
+    } = deploymentGraphConstructionResult.result;
 
     await deployment.startValidation();
     const validationResult = await validateDeploymentGraph(
@@ -252,10 +290,10 @@ export class Ignition {
       deployment.services
     );
 
-    if (validationResult._kind === "failure") {
-      await deployment.failValidation(validationResult.failures[1]);
+    if (isFailure(validationResult)) {
+      await deployment.failValidation(validationResult.failures);
 
-      return { result: validationResult, moduleOutputs };
+      return validationResult;
     }
 
     log("Transform deployment graph to execution graph");
@@ -264,13 +302,16 @@ export class Ignition {
       deployment.services
     );
 
-    if (transformResult._kind === "failure") {
-      await deployment.failUnexpected(transformResult.failures[1]);
+    if (isFailure(transformResult)) {
+      await deployment.failUnexpected(transformResult.failures);
 
-      return { result: transformResult, moduleOutputs };
+      return transformResult;
     }
 
-    return { result: transformResult, moduleOutputs };
+    return processStepSucceeded({
+      executionGraph: transformResult.result.executionGraph,
+      moduleOutputs,
+    });
   }
 
   private _buildOutputFrom<T extends ModuleDict>(
@@ -323,22 +364,24 @@ export class Ignition {
 
   private _checkSafeDeployment(
     deployment: Deployment
-  ): DeploymentResult | { _kind: "success" } {
+  ): ProcessStepResult<boolean> {
     if (deployment.state.details.force) {
-      return { _kind: "success" };
+      return processStepSucceeded(true);
     }
 
     if (deployment.state.transform.executionGraph === null) {
-      throw new IgnitionError(
-        "Execution graph must be set to check safe deployment"
-      );
+      return processStepFailed("Module reconciliation failed", [
+        new IgnitionError(
+          "Execution graph must be set to check safe deployment"
+        ),
+      ]);
     }
 
     const previousExecutionGraphHash =
       deployment.state.execution.executionGraphHash;
 
     if (previousExecutionGraphHash === "") {
-      return { _kind: "success" };
+      return processStepSucceeded(true);
     }
 
     const currentExecutionGraphHash = hashExecutionGraph(
@@ -346,19 +389,13 @@ export class Ignition {
     );
 
     if (previousExecutionGraphHash === currentExecutionGraphHash) {
-      return { _kind: "success" };
+      return processStepSucceeded(true);
     }
 
-    return {
-      _kind: "failure",
-      failures: [
-        "module change failure",
-        [
-          new Error(
-            "The module has been modified since the last run. Delete the journal file to start again."
-          ),
-        ],
-      ],
-    };
+    return processStepFailed("Module reconciliation failed", [
+      new IgnitionError(
+        "The module has been modified since the last run. You can ignore the previous runs with the '--force' flag."
+      ),
+    ]);
   }
 }

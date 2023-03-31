@@ -1,9 +1,9 @@
 import type {
+  DeployNetworkConfig,
   DeployState,
-  UpdateUiAction,
   DeployStateCommand,
   DeployStateExecutionCommand,
-  DeployNetworkConfig,
+  UpdateUiAction,
 } from "../types/deployment";
 import type { ExecutionVertexVisitResult } from "../types/executionGraph";
 import type {
@@ -19,8 +19,8 @@ import { IgnitionError } from "../../errors";
 import { ExecutionGraph } from "../execution/ExecutionGraph";
 
 import {
-  initializeDeployState,
   deployStateReducer,
+  initializeDeployState,
 } from "./deployStateReducer";
 import { isDeployStateExecutionCommand } from "./utils";
 

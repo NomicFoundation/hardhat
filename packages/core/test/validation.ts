@@ -6,13 +6,15 @@ import { ethers } from "ethers";
 import { buildModule } from "../src/dsl/buildModule";
 import { IgnitionValidationError } from "../src/errors";
 import { generateDeploymentGraphFrom } from "../src/internal/process/generateDeploymentGraphFrom";
+import { ResultsAccumulator } from "../src/internal/types/graph";
 import { Services } from "../src/internal/types/services";
-import { ValidationVisitResult } from "../src/internal/types/validation";
+import { isFailure } from "../src/internal/utils/process-results";
 import { validateDeploymentGraph } from "../src/internal/validation/validateDeploymentGraph";
 import { IDeploymentBuilder } from "../src/types/dsl";
 import { ArtifactContract } from "../src/types/future";
 import { Artifact } from "../src/types/hardhat";
 import { Module, ModuleDict } from "../src/types/module";
+import { ProcessStepResult } from "../src/types/process";
 
 import { getMockServices } from "./helpers";
 
@@ -892,11 +894,20 @@ async function runValidation<T extends ModuleDict>(
       ...getMockServices(),
     } as any);
 
-  const { graph, callPoints } = generateDeploymentGraphFrom(ignitionModule, {
-    chainId: 31337,
-    accounts: ["0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266"],
-    artifacts: [],
-  });
+  const constructDeploymentGraphResult = generateDeploymentGraphFrom(
+    ignitionModule,
+    {
+      chainId: 31337,
+      accounts: ["0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266"],
+      artifacts: [],
+    }
+  );
+
+  if (isFailure(constructDeploymentGraphResult)) {
+    assert.fail("Failure while constructing deployment graph");
+  }
+
+  const { graph, callPoints } = constructDeploymentGraphResult.result;
 
   const validationResult = await validateDeploymentGraph(
     graph,
@@ -908,18 +919,16 @@ async function runValidation<T extends ModuleDict>(
 }
 
 function assertValidationError(
-  validationResult: ValidationVisitResult,
+  validationResult: ProcessStepResult<ResultsAccumulator<undefined>>,
   expectedMessage: string
 ) {
-  if (validationResult._kind !== "failure") {
+  if (!isFailure(validationResult)) {
     return assert.fail("validation should have failed");
   }
 
-  const {
-    failures: [text, [error]],
-  } = validationResult;
+  assert.equal(validationResult.message, "Validation failed");
 
-  assert.equal(text, "Validation failed");
+  const error = validationResult.failures[0];
   assert.equal(error.message, expectedMessage);
   assert.isTrue(error instanceof IgnitionValidationError);
 }
