@@ -3,9 +3,9 @@
 import { assert } from "chai";
 import { ethers } from "ethers";
 
-import { Ignition } from "../../src/Ignition";
 import { buildModule } from "../../src/dsl/buildModule";
 import { IgnitionError } from "../../src/errors";
+import { Ignition } from "../../src/Ignition";
 import { TransactionsService } from "../../src/internal/services/TransactionsService";
 import { DeploymentResultState } from "../../src/internal/types/deployment";
 import { Artifact } from "../../src/types/hardhat";
@@ -418,8 +418,7 @@ describe("Rerunning execution", () => {
       // the second transaction is successfully sent
       assert.equal(sentTransactionCount, 2, "postconditition after rerun");
 
-      assert.equal(redeployResult._kind, "success");
-      if (redeployResult._kind !== "success") {
+      if (redeployResult._kind !== DeploymentResultState.SUCCESS) {
         return assert.fail("Not a successful deploy");
       }
 

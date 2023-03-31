@@ -5,13 +5,18 @@ import {
   VertexVisitResultFailure,
 } from "@ignored/ignition-core";
 
+enum VertexStatusState {
+  SUCCESS = "success",
+  FAILURE = "failure",
+}
+
 interface VertexSuccess {
-  status: "success";
+  status: VertexStatusState.SUCCESS;
   vertex: ExecutionVertex;
 }
 
 interface VertexFailure {
-  status: "failure";
+  status: VertexStatusState.FAILURE;
   vertex: ExecutionVertex;
   error: unknown;
 }
@@ -100,14 +105,14 @@ export class DeploymentState {
   public setExeuctionVertexAsSuccess(vertex: ExecutionVertex) {
     this.executionVertexes[vertex.id] = {
       vertex,
-      status: "success",
+      status: VertexStatusState.SUCCESS,
     };
   }
 
   public setExecutionVertexAsFailure(vertex: ExecutionVertex, err: unknown) {
     this.executionVertexes[vertex.id] = {
       vertex,
-      status: "failure",
+      status: VertexStatusState.FAILURE,
       error: err,
     };
   }
