@@ -14,7 +14,7 @@ import { IDeploymentBuilder } from "../src/types/dsl";
 import { ArtifactContract } from "../src/types/future";
 import { Artifact } from "../src/types/hardhat";
 import { Module, ModuleDict } from "../src/types/module";
-import { ProcessStepResult } from "../src/types/process";
+import { ProcessResultKind, ProcessStepResult } from "../src/types/process";
 
 import { getMockServices } from "./helpers";
 
@@ -36,7 +36,7 @@ describe("Validation", () => {
 
       const validationResult = await runValidation(singleModule);
 
-      assert.equal(validationResult._kind, "success");
+      assert.equal(validationResult._kind, ProcessResultKind.SUCCESS);
     });
 
     it("should not validate a artifact contract deploy with the wrong number of args", async () => {
@@ -104,7 +104,7 @@ describe("Validation", () => {
 
       const validationResult = await runValidation(singleModule);
 
-      assert.equal(validationResult._kind, "success");
+      assert.equal(validationResult._kind, ProcessResultKind.SUCCESS);
     });
 
     it("should not validate a artifact library deploy with the wrong number of args", async () => {
@@ -245,7 +245,7 @@ describe("Validation", () => {
 
       const validationResult = await runValidation(singleModule, mockServices);
 
-      assert.equal(validationResult._kind, "success");
+      assert.equal(validationResult._kind, ProcessResultKind.SUCCESS);
     });
 
     it("should validate an overriden call", async () => {
@@ -267,7 +267,7 @@ describe("Validation", () => {
 
       const validationResult = await runValidation(singleModule, mockServices);
 
-      assert.equal(validationResult._kind, "success");
+      assert.equal(validationResult._kind, ProcessResultKind.SUCCESS);
     });
 
     it("should fail a call on a nonexistant function", async () => {
@@ -438,7 +438,7 @@ describe("Validation", () => {
 
       const validationResult = await runValidation(singleModule, mockServices);
 
-      assert.equal(validationResult._kind, "success");
+      assert.equal(validationResult._kind, ProcessResultKind.SUCCESS);
     });
 
     it("should fail a send with an invalid address", async () => {
@@ -580,7 +580,7 @@ describe("Validation", () => {
 
       const validationResult = await runValidation(singleModule, mockServices);
 
-      assert.equal(validationResult._kind, "success");
+      assert.equal(validationResult._kind, ProcessResultKind.SUCCESS);
     });
 
     it("should fail awaiting a nonexistant event", async () => {
@@ -658,7 +658,7 @@ describe("Validation", () => {
 
       const validationResult = await runValidation(singleModule);
 
-      assert.equal(validationResult._kind, "success");
+      assert.equal(validationResult._kind, ProcessResultKind.SUCCESS);
     });
 
     it("should not validate a deployed contract with an invalid address", async () => {
@@ -695,7 +695,7 @@ describe("Validation", () => {
 
       const validationResult = await runValidation(singleModule, mockServices);
 
-      assert.equal(validationResult._kind, "success");
+      assert.equal(validationResult._kind, ProcessResultKind.SUCCESS);
     });
 
     it("should not validate a contract deploy on a non-existant hardhat contract", async () => {
@@ -783,7 +783,7 @@ describe("Validation", () => {
 
       const validationResult = await runValidation(singleModule, mockServices);
 
-      assert.equal(validationResult._kind, "success");
+      assert.equal(validationResult._kind, ProcessResultKind.SUCCESS);
     });
 
     it("should not validate a library deploy on a non-existant hardhat library", async () => {
@@ -879,7 +879,7 @@ describe("Validation", () => {
 
       const validationResult = await runValidation(singleModule, mockServices);
 
-      assert.equal(validationResult._kind, "success");
+      assert.equal(validationResult._kind, ProcessResultKind.SUCCESS);
     });
   });
 });
