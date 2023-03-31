@@ -3,7 +3,7 @@ import { ProcessStepResult } from "../../types/process";
 import { getSortedVertexIdsFrom } from "../graph/utils";
 import { visit } from "../graph/visit";
 import { CallPoints, IDeploymentGraph } from "../types/deploymentGraph";
-import { ResultsAccumulator } from "../types/graph";
+import { ResultsAccumulator, VisitResultState } from "../types/graph";
 import { Services } from "../types/services";
 import {
   processStepErrored,
@@ -31,11 +31,11 @@ export async function validateDeploymentGraph(
     );
 
     switch (visitResult._kind) {
-      case "success":
+      case VisitResultState.SUCCESS:
         return processStepSucceeded(visitResult.result);
-      case "failure":
+      case VisitResultState.FAILURE:
         return processStepFailed("Validation failed", visitResult.failures[1]);
-      case "hold":
+      case VisitResultState.HOLD:
         throw new IgnitionError("Holds not exepected in validation");
     }
   } catch (err) {

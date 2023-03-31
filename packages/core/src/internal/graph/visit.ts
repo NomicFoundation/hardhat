@@ -1,9 +1,10 @@
 import { IgnitionError } from "../../errors";
 import {
   IGraph,
-  VertexVisitResult,
   ResultsAccumulator,
+  VertexVisitResult,
   VisitResult,
+  VisitResultState,
 } from "../types/graph";
 
 export async function visit<T, C, TResult>(
@@ -38,14 +39,14 @@ export async function visit<T, C, TResult>(
       }
 
       return {
-        _kind: "failure",
+        _kind: VisitResultState.FAILURE,
         failures: [`${phase} failed`, [vertexVisitResult.failure]],
       };
     }
 
     if (vertexVisitResult._kind === "hold") {
       return {
-        _kind: "hold",
+        _kind: VisitResultState.HOLD,
         holds: [vertex as any],
       };
     }
@@ -57,5 +58,5 @@ export async function visit<T, C, TResult>(
     }
   }
 
-  return { _kind: "success", result: resultAccumulator };
+  return { _kind: VisitResultState.SUCCESS, result: resultAccumulator };
 }

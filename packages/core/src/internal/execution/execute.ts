@@ -3,14 +3,15 @@ import type { ExecutionOptions, ExecutionState } from "../types/deployment";
 import type { ExecutionVertexDispatcher } from "../types/execution";
 import type {
   ExecutionResultsAccumulator,
+  ExecutionVertex,
   ExecutionVertexVisitResult,
   ExecutionVisitResult,
-  ExecutionVertex,
 } from "../types/executionGraph";
 import type { Services } from "../types/services";
 
 import { IgnitionError } from "../../errors";
 import { viewExecutionResults } from "../deployment/utils";
+import { VisitResultState } from "../types/graph";
 
 import { ExecutionGraph } from "./ExecutionGraph";
 import { executionDispatch } from "./dispatch/executionDispatch";
@@ -64,7 +65,7 @@ export async function executeInBatches(
       const errors = deployment.readExecutionErrors();
 
       return {
-        _kind: "failure",
+        _kind: VisitResultState.FAILURE,
         failures: [
           "execution failed",
           Object.values(errors).map((err) => err.failure),
@@ -76,14 +77,14 @@ export async function executeInBatches(
       const holds = deployment.readExecutionHolds();
 
       return {
-        _kind: "hold",
+        _kind: VisitResultState.HOLD,
         holds,
       };
     }
   }
 
   return {
-    _kind: "success",
+    _kind: VisitResultState.SUCCESS,
     result: viewExecutionResults(deployment.state),
   };
 }
