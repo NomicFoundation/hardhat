@@ -28,6 +28,7 @@ import {
   ExecutionVisitResult,
   IExecutionGraph,
 } from "./internal/types/executionGraph";
+import { VertexResultEnum, VisitResultState } from "./internal/types/graph";
 import { Services } from "./internal/types/services";
 import {
   isFailure,
@@ -319,14 +320,14 @@ export class Ignition {
     executionResult: ExecutionVisitResult,
     moduleOutputs: T
   ): DeploymentResult<T> {
-    if (executionResult._kind === "failure") {
+    if (executionResult._kind === VisitResultState.FAILURE) {
       return {
         _kind: DeploymentResultState.FAILURE,
         failures: executionResult.failures,
       };
     }
 
-    if (executionResult._kind === "hold") {
+    if (executionResult._kind === VisitResultState.HOLD) {
       return {
         _kind: DeploymentResultState.HOLD,
         holds: executionResult.holds,
@@ -359,8 +360,8 @@ export class Ignition {
       if (
         executionResultValue === undefined ||
         executionResultValue === null ||
-        executionResultValue._kind === "failure" ||
-        executionResultValue._kind === "hold" ||
+        executionResultValue._kind === VertexResultEnum.FAILURE ||
+        executionResultValue._kind === VertexResultEnum.HOLD ||
         future.type !== "contract"
       ) {
         continue;

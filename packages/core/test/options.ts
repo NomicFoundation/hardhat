@@ -4,6 +4,7 @@ import { assert } from "chai";
 import { BigNumber, ethers } from "ethers";
 
 import { buildModule, Ignition } from "../src";
+import { DeploymentResultState } from "../src/internal/types/deployment";
 import { Artifact } from "../src/types/hardhat";
 
 import { getMockServices } from "./helpers";
@@ -113,7 +114,7 @@ describe("deploy options", () => {
       txPollingInterval: 4,
     });
 
-    assert.equal(result._kind, "success");
+    assert.equal(result._kind, DeploymentResultState.SUCCESS);
   });
 
   it("should pass the options through to the transaction service", async function () {

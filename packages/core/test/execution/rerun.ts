@@ -3,9 +3,9 @@
 import { assert } from "chai";
 import { ethers } from "ethers";
 
+import { Ignition } from "../../src/Ignition";
 import { buildModule } from "../../src/dsl/buildModule";
 import { IgnitionError } from "../../src/errors";
-import { Ignition } from "../../src/Ignition";
 import { TransactionsService } from "../../src/internal/services/TransactionsService";
 import { DeploymentResultState } from "../../src/internal/types/deployment";
 import { Artifact } from "../../src/types/hardhat";
@@ -249,7 +249,7 @@ describe("Rerunning execution", () => {
       const result = await ignition.deploy(myModule, {} as any);
 
       // Assert
-      assert.equal(result._kind, "hold");
+      assert.equal(result._kind, DeploymentResultState.HOLD);
 
       // two calls sent
       assert.equal(
@@ -316,7 +316,7 @@ describe("Rerunning execution", () => {
 
       const result = await ignition.deploy(myModule, {} as any);
 
-      assert.equal(result._kind, "hold");
+      assert.equal(result._kind, DeploymentResultState.HOLD);
     });
   });
 

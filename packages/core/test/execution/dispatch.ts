@@ -410,7 +410,7 @@ describe("Execution - dispatch", () => {
       );
 
       assert(
-        response._kind === "hold",
+        response._kind === VisitResultState.HOLD,
         `response should be hold, not: ${response._kind}`
       );
     });
