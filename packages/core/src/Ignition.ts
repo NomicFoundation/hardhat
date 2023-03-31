@@ -1,8 +1,3 @@
-import type {
-  DeploymentResult,
-  IgnitionDeployOptions,
-  UpdateUiAction,
-} from "./internal/types/deployment";
 import type { ICommandJournal } from "./internal/types/journal";
 import type { Module, ModuleDict } from "./types/module";
 import type { IgnitionPlan } from "./types/plan";
@@ -22,6 +17,12 @@ import { NoopCommandJournal } from "./internal/journal/NoopCommandJournal";
 import { generateDeploymentGraphFrom } from "./internal/process/generateDeploymentGraphFrom";
 import { transformDeploymentGraphToExecutionGraph } from "./internal/process/transformDeploymentGraphToExecutionGraph";
 import { createServices } from "./internal/services/createServices";
+import {
+  DeploymentResult,
+  DeploymentResultState,
+  IgnitionDeployOptions,
+  UpdateUiAction,
+} from "./internal/types/deployment";
 import {
   ExecutionResultsAccumulator,
   ExecutionVisitResult,
@@ -137,7 +138,7 @@ export class Ignition {
         log("Failed to construct execution graph");
 
         return {
-          _kind: "failure",
+          _kind: DeploymentResultState.FAILURE,
           failures: [
             constructExecutionGraphResult.message,
             constructExecutionGraphResult.failures,
@@ -164,7 +165,7 @@ export class Ignition {
         await deployment.failReconciliation();
 
         return {
-          _kind: "failure",
+          _kind: DeploymentResultState.FAILURE,
           failures: [moduleChangeResult.message, moduleChangeResult.failures],
         };
       }
@@ -184,14 +185,14 @@ export class Ignition {
 
         await deployment.failUnexpected([unexpectedError]);
         return {
-          _kind: "failure",
+          _kind: DeploymentResultState.FAILURE,
           failures: ["Unexpected error", [unexpectedError]],
         };
       }
 
       await deployment.failUnexpected([err]);
       return {
-        _kind: "failure",
+        _kind: DeploymentResultState.FAILURE,
         failures: ["Unexpected error", [err]],
       };
     }
@@ -319,11 +320,17 @@ export class Ignition {
     moduleOutputs: T
   ): DeploymentResult<T> {
     if (executionResult._kind === "failure") {
-      return executionResult;
+      return {
+        _kind: DeploymentResultState.FAILURE,
+        failures: executionResult.failures,
+      };
     }
 
     if (executionResult._kind === "hold") {
-      return executionResult;
+      return {
+        _kind: DeploymentResultState.HOLD,
+        holds: executionResult.holds,
+      };
     }
 
     const serializedDeploymentResult = this._serialize(
@@ -331,7 +338,10 @@ export class Ignition {
       executionResult.result
     );
 
-    return { _kind: "success", result: serializedDeploymentResult };
+    return {
+      _kind: DeploymentResultState.SUCCESS,
+      result: serializedDeploymentResult,
+    };
   }
 
   private _serialize<T extends ModuleDict>(

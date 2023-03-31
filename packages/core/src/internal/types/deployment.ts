@@ -43,6 +43,17 @@ export interface IgnitionDeployOptions {
 }
 
 /**
+ * The possible deployment states.
+ *
+ * @internal
+ */
+export enum DeploymentResultState {
+  SUCCESS = "success",
+  FAILURE = "failure",
+  HOLD = "hold",
+}
+
+/**
  * The outcome of a deployment run. A deployment can either:
  * - `success` with a set of deployed contract information as the result
  * - `failure` with a list of errors
@@ -52,9 +63,12 @@ export interface IgnitionDeployOptions {
  * @internal
  */
 export type DeploymentResult<T extends ModuleDict = ModuleDict> =
-  | { _kind: "failure"; failures: [string, Error[]] }
-  | { _kind: "hold"; holds: VertexDescriptor[] }
-  | { _kind: "success"; result: SerializedDeploymentResult<T> };
+  | { _kind: DeploymentResultState.FAILURE; failures: [string, Error[]] }
+  | { _kind: DeploymentResultState.HOLD; holds: VertexDescriptor[] }
+  | {
+      _kind: DeploymentResultState.SUCCESS;
+      result: SerializedDeploymentResult<T>;
+    };
 
 /**
  * The different phases a deployment will move through:

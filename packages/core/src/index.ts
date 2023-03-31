@@ -2,6 +2,7 @@ export { buildModule } from "./dsl/buildModule";
 export { Ignition } from "./Ignition";
 export type {
   DeploymentResult,
+  DeploymentResultState,
   DeployNetworkConfig,
   DeployPhase,
   DeployState,

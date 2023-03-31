@@ -7,6 +7,7 @@ import { Ignition } from "../../src/Ignition";
 import { buildModule } from "../../src/dsl/buildModule";
 import { IgnitionError } from "../../src/errors";
 import { TransactionsService } from "../../src/internal/services/TransactionsService";
+import { DeploymentResultState } from "../../src/internal/types/deployment";
 import { Artifact } from "../../src/types/hardhat";
 import { Providers } from "../../src/types/providers";
 import { getMockServices } from "../helpers";
@@ -399,7 +400,7 @@ describe("Rerunning execution", () => {
       );
 
       assert.deepStrictEqual(result, {
-        _kind: "failure",
+        _kind: DeploymentResultState.FAILURE,
         failures: [
           "execution failed",
           [new Error("Revert: All the apes have gone!")],
@@ -457,7 +458,7 @@ describe("Rerunning execution", () => {
       assert.equal(sentTransactionCount, 1, "postconditition after rerun");
 
       assert.deepStrictEqual(modifiedResult, {
-        _kind: "failure",
+        _kind: DeploymentResultState.FAILURE,
         failures: [
           "Module reconciliation failed",
           [
