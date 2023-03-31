@@ -11,7 +11,10 @@ import { BigNumber } from "ethers";
 import { Deployment } from "../../src/internal/deployment/Deployment";
 import { ExecutionGraph } from "../../src/internal/execution/ExecutionGraph";
 import { executeInBatches } from "../../src/internal/execution/execute";
-import { VertexResultEnum } from "../../src/internal/types/graph";
+import {
+  VertexResultEnum,
+  VisitResultState,
+} from "../../src/internal/types/graph";
 import { ICommandJournal } from "../../src/internal/types/journal";
 import { buildAdjacencyListFrom } from "../graph/helpers";
 
@@ -59,7 +62,7 @@ describe("Execution - batching", () => {
     );
 
     assert.isDefined(result);
-    assert.equal(result._kind, "success");
+    assert.equal(result._kind, VisitResultState.SUCCESS);
   });
 });
 

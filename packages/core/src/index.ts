@@ -1,8 +1,8 @@
 export { buildModule } from "./dsl/buildModule";
 export { Ignition } from "./Ignition";
+export { DeploymentResultState } from "./internal/types/deployment";
 export type {
   DeploymentResult,
-  DeploymentResultState,
   DeployNetworkConfig,
   DeployPhase,
   DeployState,
@@ -60,12 +60,12 @@ export type {
   BaseArgValue,
   StructuredArgValue,
 } from "./internal/types/executionGraph";
+export { VertexResultEnum } from "./internal/types/graph";
 export type {
   AdjacencyList,
   IGraph,
   VertexDescriptor,
   VertexGraph,
-  VertexResultEnum,
   VertexVisitResult,
   VertexVisitResultFailure,
   VertexVisitResultHold,

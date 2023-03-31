@@ -118,7 +118,7 @@ describe("Rerunning execution", () => {
       const result = await ignition.deploy(myModule, {} as any);
 
       // Assert
-      assert.equal(result._kind, "success");
+      assert.equal(result._kind, DeploymentResultState.SUCCESS);
 
       // two transactions have been sent
       assert.equal(sentTransactionCount, 2, "precondition before rerun");
@@ -132,7 +132,7 @@ describe("Rerunning execution", () => {
       const redeployResult = await ignition.deploy(myModule, {} as any);
 
       // Assert
-      assert.equal(redeployResult._kind, "success");
+      assert.equal(redeployResult._kind, DeploymentResultState.SUCCESS);
 
       // only two on-chain transactions happen, none from the rerun
       assert.equal(
@@ -141,8 +141,7 @@ describe("Rerunning execution", () => {
         "postcondition on-chain transactions"
       );
 
-      assert.equal(redeployResult._kind, "success");
-      if (redeployResult._kind !== "success") {
+      if (redeployResult._kind !== DeploymentResultState.SUCCESS) {
         return assert.fail("Not a successful deploy");
       }
 
@@ -162,7 +161,7 @@ describe("Rerunning execution", () => {
       } as any);
 
       // Assert
-      assert.equal(redeployResult._kind, "success");
+      assert.equal(redeployResult._kind, DeploymentResultState.SUCCESS);
     });
   });
 
@@ -277,7 +276,7 @@ describe("Rerunning execution", () => {
       // additional query call on second run
       assert.equal(eventQueryCount, 2, "Wrong number of on-chain queries");
 
-      if (redeployResult._kind !== "success") {
+      if (redeployResult._kind !== DeploymentResultState.SUCCESS) {
         return assert.fail("Not a successful deploy");
       }
 

@@ -1,4 +1,8 @@
-import { DeployState, ExecutionVertex } from "@ignored/ignition-core";
+import {
+  DeployState,
+  ExecutionVertex,
+  VertexResultEnum,
+} from "@ignored/ignition-core";
 import { viewExecutionResults } from "@ignored/ignition-core/helpers";
 import { Box, Text } from "ink";
 
@@ -111,8 +115,8 @@ const getDeploymentErrors = (deployState: DeployState): DeploymentError[] => {
       if (
         vertexResult === undefined ||
         vertexResult === null ||
-        vertexResult._kind === "success" ||
-        vertexResult._kind === "hold"
+        vertexResult._kind === VertexResultEnum.SUCCESS ||
+        vertexResult._kind === VertexResultEnum.HOLD
       ) {
         return null;
       }
