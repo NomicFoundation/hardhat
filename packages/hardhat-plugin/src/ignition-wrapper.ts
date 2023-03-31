@@ -98,7 +98,7 @@ export class IgnitionWrapper {
       );
     }
 
-    if (deploymentResult._kind === "failure") {
+    if (deploymentResult._kind === DeploymentResultState.FAILURE) {
       const [failureType, failures] = deploymentResult.failures;
 
       if (failures.length === 1) {

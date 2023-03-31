@@ -389,7 +389,7 @@ describe("Rerunning execution", () => {
       const result = await ignition.deploy(myModule, {} as any);
 
       // Assert
-      assert.equal(result._kind, "failure");
+      assert.equal(result._kind, DeploymentResultState.FAILURE);
 
       // one calls sent
       assert.equal(

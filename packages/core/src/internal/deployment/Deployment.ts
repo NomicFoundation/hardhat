@@ -6,10 +6,6 @@ import type {
   UpdateUiAction,
 } from "../types/deployment";
 import type { ExecutionVertexVisitResult } from "../types/executionGraph";
-import type {
-  VertexDescriptor,
-  VertexVisitResultFailure,
-} from "../types/graph";
 import type { ICommandJournal } from "../types/journal";
 import type { Services } from "../types/services";
 
@@ -17,6 +13,11 @@ import setupDebug from "debug";
 
 import { IgnitionError } from "../../errors";
 import { ExecutionGraph } from "../execution/ExecutionGraph";
+import {
+  VertexDescriptor,
+  VertexResultEnum,
+  VertexVisitResultFailure,
+} from "../types/graph";
 
 import {
   deployStateReducer,
@@ -179,7 +180,7 @@ export class Deployment {
           if (
             result === undefined ||
             result === null ||
-            result._kind !== "failure"
+            result._kind !== VertexResultEnum.FAILURE
           ) {
             return acc;
           }

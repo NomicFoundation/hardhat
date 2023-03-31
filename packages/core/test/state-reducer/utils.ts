@@ -11,6 +11,7 @@ import {
 import { isFailure } from "../../src/internal/utils/process-results";
 import { validateDeploymentGraph } from "../../src/internal/validation/validateDeploymentGraph";
 import { Module } from "../../src/types/module";
+import { ProcessResultKind } from "../../src/types/process";
 import { getMockServices } from "../helpers";
 
 export function applyActions(
@@ -65,7 +66,7 @@ export async function resolveExecutionGraphFor(module: Module<any>) {
     mockServices
   );
 
-  if (validationKind === "failure") {
+  if (validationKind === ProcessResultKind.FAILURE) {
     throw new Error("Cannot resolve graph, failed validation");
   }
 

@@ -1,4 +1,4 @@
-import { DeployState } from "@ignored/ignition-core";
+import { DeployState, VertexResultEnum } from "@ignored/ignition-core";
 import { viewExecutionResults } from "@ignored/ignition-core/helpers";
 import { Box, Spacer, Text } from "ink";
 
@@ -41,7 +41,7 @@ const resolveDeployAddresses = (deployState: DeployState) => {
   for (const value of viewExecutionResults(deployState).values()) {
     if (
       value !== undefined &&
-      value._kind === "success" &&
+      value._kind === VertexResultEnum.SUCCESS &&
       "name" in value.result &&
       "address" in value.result
     ) {
