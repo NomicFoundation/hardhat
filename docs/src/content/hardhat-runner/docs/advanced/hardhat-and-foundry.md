@@ -64,7 +64,7 @@ require("@nomicfoundation/hardhat-foundry");
 
 ::::
 
-To complete the setup, run `npx hardhat init-foundry`. This task will create a `foundry.toml` file with the right configuration and install [`forge-std`](https://github.com/foundry-rs/forge-std).
+To complete the setup, initiate a git repository with `git init` and run `npx hardhat init-foundry`. This task will create a `foundry.toml` file with the right configuration and install [`forge-std`](https://github.com/foundry-rs/forge-std).
 
 ### Adding Hardhat to a Foundry project
 
