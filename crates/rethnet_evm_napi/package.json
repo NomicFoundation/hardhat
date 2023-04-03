@@ -11,6 +11,7 @@
     "scripts": {
         "build": "napi build --release",
         "build:debug": "napi build",
+        "build:tracing": "napi build --release --features tracing",
         "test": "yarn tsc && mocha --recursive \"test/**/*.ts\" --exit",
         "clean": "rm -rf rethnet-evm.node"
     },

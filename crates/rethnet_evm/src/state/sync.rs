@@ -22,7 +22,7 @@ use super::request::Request;
 
 /// Trait that meets all requirements for a synchronous database that can be used by [`AsyncDatabase`].
 pub trait SyncState<E>:
-    State<Error = E> + DatabaseCommit + StateDebug<Error = E> + Send + Sync + 'static
+    State<Error = E> + DatabaseCommit + StateDebug<Error = E> + Debug + Send + Sync + 'static
 where
     E: Debug + Send,
 {
@@ -30,7 +30,7 @@ where
 
 impl<S, E> SyncState<E> for S
 where
-    S: State<Error = E> + DatabaseCommit + StateDebug<Error = E> + Send + Sync + 'static,
+    S: State<Error = E> + DatabaseCommit + StateDebug<Error = E> + Debug + Send + Sync + 'static,
     E: Debug + Send,
 {
 }
@@ -38,6 +38,8 @@ where
 /// A helper class for converting a synchronous database into an asynchronous database.
 ///
 /// Requires the inner database to implement [`Database`], [`DatabaseCommit`], and [`DatabaseDebug`].
+
+#[derive(Debug)]
 pub struct AsyncState<E>
 where
     E: Debug + Send,
@@ -52,6 +54,7 @@ where
     E: Debug + Send + 'static,
 {
     /// Constructs an [`AsyncDatabase`] instance with the provided database.
+    #[cfg_attr(feature = "tracing", tracing::instrument)]
     pub fn new<S: SyncState<E>>(mut state: S) -> io::Result<Self> {
         let runtime = Builder::new_multi_thread().build()?;
 
@@ -78,6 +81,7 @@ where
     }
 
     /// Retrieves the account corresponding to the specified address.
+    #[cfg_attr(feature = "tracing", tracing::instrument)]
     pub async fn account_by_address(&self, address: Address) -> Result<Option<AccountInfo>, E> {
         let (sender, receiver) = oneshot::channel();
 
@@ -89,6 +93,7 @@ where
     }
 
     /// Retrieves the storage root of the account at the specified address.
+    #[cfg_attr(feature = "tracing", tracing::instrument)]
     pub async fn account_storage_root(&self, address: &Address) -> Result<Option<B256>, E> {
         let (sender, receiver) = oneshot::channel();
 
@@ -103,6 +108,7 @@ where
     }
 
     /// Retrieves the storage slot corresponding to the specified address and index.
+    #[cfg_attr(feature = "tracing", tracing::instrument)]
     pub async fn account_storage_slot(&self, address: Address, index: U256) -> Result<U256, E> {
         let (sender, receiver) = oneshot::channel();
 
@@ -118,6 +124,7 @@ where
     }
 
     /// Applies the provided changes to the state.
+    #[cfg_attr(feature = "tracing", tracing::instrument)]
     pub async fn apply(&self, changes: HashMap<Address, Account>) {
         let (sender, receiver) = oneshot::channel();
 
@@ -129,6 +136,7 @@ where
     }
 
     /// Creates a state checkpoint that can be reverted to using [`revert`].
+    #[cfg_attr(feature = "tracing", tracing::instrument)]
     pub async fn checkpoint(&self) -> Result<(), E> {
         let (sender, receiver) = oneshot::channel();
 
@@ -140,6 +148,7 @@ where
     }
 
     /// Retrieves the code corresponding to the specified hash.
+    #[cfg_attr(feature = "tracing", tracing::instrument)]
     pub async fn code_by_hash(&self, code_hash: B256) -> Result<Bytecode, E> {
         let (sender, receiver) = oneshot::channel();
 
@@ -151,6 +160,7 @@ where
     }
 
     /// Inserts the specified account into the state.
+    #[cfg_attr(feature = "tracing", tracing::instrument)]
     pub async fn insert_account(
         &self,
         address: Address,
@@ -170,6 +180,7 @@ where
     }
 
     /// Makes a snapshot of the database that's retained until [`remove_snapshot`] is called. Returns the snapshot's identifier.
+    #[cfg_attr(feature = "tracing", tracing::instrument)]
     pub async fn make_snapshot(&self) -> (B256, bool) {
         let (sender, receiver) = oneshot::channel();
 
@@ -181,6 +192,7 @@ where
     }
 
     /// Modifies the account at the specified address using the provided function.
+    #[cfg_attr(feature = "tracing", tracing::instrument)]
     pub async fn modify_account(
         &self,
         address: Address,
@@ -200,6 +212,7 @@ where
     }
 
     /// Removes and returns the account at the specified address, if it exists.
+    #[cfg_attr(feature = "tracing", tracing::instrument)]
     pub async fn remove_account(&self, address: Address) -> Result<Option<AccountInfo>, E> {
         let (sender, receiver) = oneshot::channel();
 
@@ -211,6 +224,7 @@ where
     }
 
     /// Removes the snapshot corresponding to the specified id, if it exists. Returns whether a snapshot was removed.
+    #[cfg_attr(feature = "tracing", tracing::instrument)]
     pub async fn remove_snapshot(&self, state_root: B256) -> bool {
         let (sender, receiver) = oneshot::channel();
 
@@ -222,6 +236,7 @@ where
     }
 
     /// Reverts to the previous checkpoint, created using [`checkpoint`].
+    #[cfg_attr(feature = "tracing", tracing::instrument)]
     pub async fn revert(&self) -> Result<(), E> {
         let (sender, receiver) = oneshot::channel();
 
@@ -233,6 +248,7 @@ where
     }
 
     /// Sets the storage slot at the specified address and index to the provided value.
+    #[cfg_attr(feature = "tracing", tracing::instrument)]
     pub async fn set_account_storage_slot(
         &self,
         address: Address,
@@ -254,6 +270,7 @@ where
     }
 
     /// Reverts the state to match the specified state root.
+    #[cfg_attr(feature = "tracing", tracing::instrument)]
     pub async fn set_state_root(&self, state_root: &B256) -> Result<(), E> {
         let (sender, receiver) = oneshot::channel();
 
@@ -268,6 +285,7 @@ where
     }
 
     /// Retrieves the state's root.
+    #[cfg_attr(feature = "tracing", tracing::instrument)]
     pub async fn state_root(&self) -> Result<B256, E> {
         let (sender, receiver) = oneshot::channel();
 
@@ -283,6 +301,7 @@ impl<E> Drop for AsyncState<E>
 where
     E: Debug + Send,
 {
+    #[cfg_attr(feature = "tracing", tracing::instrument)]
     fn drop(&mut self) {
         if let Some(handle) = self.db_handle.take() {
             self.request_sender
@@ -300,6 +319,7 @@ where
 {
     type Error = E;
 
+    #[cfg_attr(feature = "tracing", tracing::instrument)]
     fn basic(&self, address: Address) -> Result<Option<AccountInfo>, Self::Error> {
         task::block_in_place(move || {
             self.runtime
@@ -307,6 +327,7 @@ where
         })
     }
 
+    #[cfg_attr(feature = "tracing", tracing::instrument)]
     fn code_by_hash(&self, code_hash: B256) -> Result<Bytecode, Self::Error> {
         task::block_in_place(move || {
             self.runtime
@@ -314,6 +335,7 @@ where
         })
     }
 
+    #[cfg_attr(feature = "tracing", tracing::instrument)]
     fn storage(&self, address: Address, index: U256) -> Result<U256, Self::Error> {
         task::block_in_place(move || {
             self.runtime
@@ -326,6 +348,7 @@ impl<'d, E> DatabaseCommit for &'d AsyncState<E>
 where
     E: Debug + Send + 'static,
 {
+    #[cfg_attr(feature = "tracing", tracing::instrument)]
     fn commit(&mut self, changes: HashMap<Address, Account>) {
         task::block_in_place(move || self.runtime.block_on(self.apply(changes)))
     }
@@ -337,6 +360,7 @@ where
 {
     type Error = E;
 
+    #[cfg_attr(feature = "tracing", tracing::instrument)]
     fn account_storage_root(&mut self, address: &Address) -> Result<Option<B256>, Self::Error> {
         task::block_in_place(move || {
             self.runtime
@@ -344,6 +368,7 @@ where
         })
     }
 
+    #[cfg_attr(feature = "tracing", tracing::instrument)]
     fn insert_account(
         &mut self,
         address: Address,
@@ -355,10 +380,11 @@ where
         })
     }
 
+    #[cfg_attr(feature = "tracing", tracing::instrument)]
     fn modify_account(
         &mut self,
         address: Address,
-        modifier: Box<dyn Fn(&mut U256, &mut u64, &mut Option<Bytecode>) + Send>,
+        modifier: AccountModifierFn,
     ) -> Result<(), Self::Error> {
         task::block_in_place(move || {
             self.runtime
@@ -366,6 +392,7 @@ where
         })
     }
 
+    #[cfg_attr(feature = "tracing", tracing::instrument)]
     fn remove_account(&mut self, address: Address) -> Result<Option<AccountInfo>, Self::Error> {
         task::block_in_place(move || {
             self.runtime
@@ -386,6 +413,12 @@ where
         })
     }
 
+    #[cfg_attr(feature = "tracing", tracing::instrument)]
+    fn state_root(&mut self) -> Result<B256, Self::Error> {
+        task::block_in_place(move || self.runtime.block_on(AsyncState::state_root(*self)))
+    }
+
+    #[cfg_attr(feature = "tracing", tracing::instrument)]
     fn set_state_root(&mut self, state_root: &B256) -> Result<(), Self::Error> {
         task::block_in_place(move || {
             self.runtime
@@ -393,22 +426,22 @@ where
         })
     }
 
-    fn state_root(&mut self) -> Result<B256, Self::Error> {
-        task::block_in_place(move || self.runtime.block_on(AsyncState::state_root(*self)))
-    }
-
+    #[cfg_attr(feature = "tracing", tracing::instrument)]
     fn checkpoint(&mut self) -> Result<(), Self::Error> {
         task::block_in_place(move || self.runtime.block_on(AsyncState::checkpoint(*self)))
     }
 
+    #[cfg_attr(feature = "tracing", tracing::instrument)]
     fn revert(&mut self) -> Result<(), Self::Error> {
         task::block_in_place(move || self.runtime.block_on(AsyncState::revert(*self)))
     }
 
+    #[cfg_attr(feature = "tracing", tracing::instrument)]
     fn make_snapshot(&mut self) -> (B256, bool) {
         task::block_in_place(move || self.runtime.block_on(AsyncState::make_snapshot(*self)))
     }
 
+    #[cfg_attr(feature = "tracing", tracing::instrument)]
     fn remove_snapshot(&mut self, state_root: &B256) -> bool {
         task::block_in_place(move || {
             self.runtime

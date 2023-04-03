@@ -1,9 +1,38 @@
+use std::{fmt::Debug, ops::Deref};
+
 use auto_impl::auto_impl;
 use rethnet_eth::{Address, B256, U256};
 use revm::primitives::{AccountInfo, Bytecode};
 
-/// Function type for modifying account information.
-pub type AccountModifierFn = Box<dyn Fn(&mut U256, &mut u64, &mut Option<Bytecode>) + Send>;
+/// Debuggable function type for modifying account information.
+pub struct AccountModifierFn {
+    inner: Box<dyn Fn(&mut U256, &mut u64, &mut Option<Bytecode>) + Send>,
+}
+
+impl AccountModifierFn {
+    /// Constructs an [`AccountModifierDebuggableFn`] from the provided function.
+    pub fn new(func: Box<dyn Fn(&mut U256, &mut u64, &mut Option<Bytecode>) + Send>) -> Self {
+        Self { inner: func }
+    }
+}
+
+impl Debug for AccountModifierFn {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "{}",
+            std::any::type_name::<dyn Fn(&mut U256, &mut u64, &mut Option<Bytecode>)>()
+        )
+    }
+}
+
+impl Deref for AccountModifierFn {
+    type Target = dyn Fn(&mut U256, &mut u64, &mut Option<Bytecode>);
+
+    fn deref(&self) -> &Self::Target {
+        self.inner.as_ref()
+    }
+}
 
 /// A trait for debug operation on a database.
 #[auto_impl(Box)]

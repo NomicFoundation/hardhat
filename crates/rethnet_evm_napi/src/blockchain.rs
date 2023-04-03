@@ -1,6 +1,6 @@
 mod js_blockchain;
 
-use std::sync::Arc;
+use std::{fmt::Debug, sync::Arc};
 
 use napi::{bindgen_prelude::Buffer, Env, JsFunction, NapiRaw, Status};
 use napi_derive::napi;
@@ -8,6 +8,7 @@ use rethnet_eth::B256;
 use rethnet_evm::blockchain::{AsyncBlockchain, SyncBlockchain};
 
 use crate::{
+    logger::enable_logging,
     sync::{await_promise, handle_error},
     threadsafe_function::{ThreadSafeCallContext, ThreadsafeFunction},
 };
@@ -16,6 +17,7 @@ use self::js_blockchain::{GetBlockHashCall, JsBlockchain};
 
 /// The Rethnet blockchain
 #[napi]
+#[derive(Debug)]
 pub struct Blockchain {
     inner: Arc<AsyncBlockchain<napi::Error>>,
 }
@@ -31,11 +33,14 @@ impl Blockchain {
 impl Blockchain {
     /// Constructs a new blockchain that queries the blockhash using a callback.
     #[napi(constructor)]
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     pub fn new(
         env: Env,
         #[napi(ts_arg_type = "(blockNumber: bigint) => Promise<Buffer>")]
         get_block_hash_fn: JsFunction,
     ) -> napi::Result<Self> {
+        enable_logging();
+
         let get_block_hash_fn = ThreadsafeFunction::create(
             env.raw(),
             unsafe { get_block_hash_fn.raw() },
@@ -57,6 +62,7 @@ impl Blockchain {
         Self::with_blockchain(JsBlockchain { get_block_hash_fn })
     }
 
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     fn with_blockchain<B>(blockchain: B) -> napi::Result<Self>
     where
         B: SyncBlockchain<napi::Error>,

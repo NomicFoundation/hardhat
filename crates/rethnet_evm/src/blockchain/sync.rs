@@ -30,6 +30,7 @@ where
 /// A helper class for converting a synchronous blockchain into an asynchronous blockchain.
 ///
 /// Requires the inner blockchain to implement [`Blockchain`].
+#[derive(Debug)]
 pub struct AsyncBlockchain<E>
 where
     E: Debug + Send,
