@@ -9,16 +9,22 @@ pub type State = HashMap<Address, BasicAccount>;
 pub type Storage = HashMap<U256, U256>;
 
 /// Calculates the state root hash of the provided state.
-pub fn state_root(state: &State) -> B256 {
-    sec_trie_root(state.iter().map(|(address, account)| {
+pub fn state_root<'a, I>(state: I) -> B256
+where
+    I: IntoIterator<Item = (&'a Address, &'a BasicAccount)>,
+{
+    sec_trie_root(state.into_iter().map(|(address, account)| {
         let account = rlp::encode(account);
         (address, account)
     }))
 }
 
 /// Calculates the storage root hash of the provided storage.
-pub fn storage_root(storage: &Storage) -> B256 {
-    sec_trie_root(storage.iter().map(|(index, value)| {
+pub fn storage_root<'a, I>(storage: I) -> B256
+where
+    I: IntoIterator<Item = (&'a U256, &'a U256)>,
+{
+    sec_trie_root(storage.into_iter().map(|(index, value)| {
         let value = rlp::encode(value);
         (index.to_be_bytes::<32>(), value)
     }))

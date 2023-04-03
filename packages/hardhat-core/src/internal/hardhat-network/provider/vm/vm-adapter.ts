@@ -84,4 +84,7 @@ export interface VMAdapter {
   // methods for snapshotting
   makeSnapshot(): Promise<[Buffer, boolean]>;
   removeSnapshot(stateRoot: Buffer): Promise<boolean>;
+
+  // for debugging purposes
+  printState(): Promise<void>;
 }

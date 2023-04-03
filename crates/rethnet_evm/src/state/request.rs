@@ -3,13 +3,15 @@ use std::fmt::Debug;
 use hashbrown::HashMap;
 use rethnet_eth::{Address, B256, U256};
 use revm::{
-    db::State,
+    db::StateRef,
     primitives::{Account, AccountInfo, Bytecode},
     DatabaseCommit,
 };
 use tokio::sync::oneshot;
 
 use crate::state::{AccountModifierFn, StateDebug};
+
+use super::history::StateHistory;
 
 /// The request type used internally by a [`SyncDatabase`].
 #[derive(Debug)]
@@ -57,6 +59,9 @@ pub enum Request<E> {
     Revert {
         sender: oneshot::Sender<Result<(), E>>,
     },
+    Serialize {
+        sender: oneshot::Sender<String>,
+    },
     SetStorageSlot {
         address: Address,
         index: U256,
@@ -85,7 +90,11 @@ where
     #[cfg_attr(feature = "tracing", tracing::instrument)]
     pub fn handle<S>(self, state: &mut S) -> bool
     where
-        S: State<Error = E> + DatabaseCommit + StateDebug<Error = E> + Debug,
+        S: StateRef<Error = E>
+            + DatabaseCommit
+            + StateDebug<Error = E>
+            + StateHistory<Error = E>
+            + Debug,
     {
         match self {
             Request::AccountByAddress { address, sender } => {
@@ -124,6 +133,7 @@ where
                 sender.send(state.remove_snapshot(&state_root)).unwrap()
             }
             Request::Revert { sender } => sender.send(state.revert()).unwrap(),
+            Request::Serialize { sender } => sender.send(state.serialize()).unwrap(),
             Request::SetStorageSlot {
                 address,
                 index,

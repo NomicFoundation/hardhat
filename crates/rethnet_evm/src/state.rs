@@ -1,14 +1,21 @@
+mod account;
+mod contract;
 mod debug;
-mod layered_state;
+mod history;
+mod hybrid;
+mod layered;
 mod remote;
 mod request;
 mod sync;
+mod trie;
 
 use rethnet_eth::B256;
 
 pub use self::{
     debug::{AccountModifierFn, StateDebug},
-    layered_state::{LayeredState, RethnetLayer},
+    history::StateHistory,
+    hybrid::HybridState,
+    layered::{LayeredState, RethnetLayer},
     remote::RemoteDatabase,
     sync::{AsyncState, SyncState},
 };
