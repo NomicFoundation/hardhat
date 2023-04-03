@@ -5,12 +5,17 @@ edition = "2021"
 
 [dependencies]
 auto_impl = { version = "1.0.1", default-features = false }
+cita_trie = { git = "https://github.com/Wodann/cita-trie", rev = "60efef5", version = "4.0.0", default-features = false }
 hashbrown = { version = "0.13", default-features = false, features = ["ahash", "serde"] }
+hasher = { git = "https://github.com/Wodann/hasher", rev = "89d3fc9", version = "0.1.4", default-features = false, features = ["hash-keccak"] }
 log = { version = "0.4.17", default-features = false }
 parking_lot = { version = "0.12.1", default-features = false }
 rethnet_eth = { version = "0.1.0-dev", path = "../rethnet_eth", features = ["serde"] }
 revm = { git = "https://github.com/bluealloy/revm", rev = "3789509", version = "3.0", default-features = false, features = ["dev", "serde", "std"] }
 # revm = { path = "../../../revm/crates/revm", version = "3.0", default-features = false, features = ["dev", "serde", "std"] }
+rlp = { version = "0.5.2", default-features = false }
+serde = { version = "1.0.158", default-features = false, features = ["std"] }
+serde_json = { version = "1.0.94", default-features = false, features = ["std"] }
 thiserror = { version = "1.0.38", default-features = false }
 tokio = { version = "1.21.2", default-features = false, features = ["rt-multi-thread", "sync"] }
 tracing = { version = "0.1.37", features = ["attributes", "std"], optional = true }

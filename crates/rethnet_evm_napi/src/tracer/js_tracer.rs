@@ -634,7 +634,11 @@ where
                 }
             })
             .unwrap_or_else(|| {
-                let account = data.db.basic(inputs.context.code_address).unwrap().unwrap();
+                let account = data
+                    .db
+                    .basic(inputs.context.code_address)
+                    .unwrap()
+                    .unwrap_or_default();
                 account
                     .code
                     .unwrap_or_else(|| data.db.code_by_hash(account.code_hash).unwrap())

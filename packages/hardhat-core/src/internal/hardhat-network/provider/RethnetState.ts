@@ -129,4 +129,8 @@ export class RethnetStateManager {
   public async setStateRoot(stateRoot: Buffer): Promise<void> {
     return this._state.setStateRoot(stateRoot);
   }
+
+  public async serialize(): Promise<string> {
+    return this._state.serialize();
+  }
 }

@@ -38,11 +38,72 @@ import { FakeSenderTransaction } from "../transactions/FakeSenderTransaction";
 import { HardhatBlockchainInterface } from "../types/HardhatBlockchainInterface";
 import { Bloom } from "../utils/bloom";
 import { makeForkClient } from "../utils/makeForkClient";
+import { makeAccount } from "../utils/makeAccount";
 import { makeStateTrie } from "../utils/makeStateTrie";
 import { Exit } from "./exit";
 import { RunTxResult, Trace, VMAdapter } from "./vm-adapter";
 
 /* eslint-disable @nomiclabs/hardhat-internal-rules/only-hardhat-error */
+
+// temporary wrapper class used to print the whole storage
+class DefaultStateManagerWithAddresses extends DefaultStateManager {
+  public addresses: Set<string> = new Set();
+
+  public putAccount(address: Address, account: Account): Promise<void> {
+    this.addresses.add(address.toString());
+    return super.putAccount(address, account);
+  }
+
+  public deleteAccount(address: Address): Promise<void> {
+    this.addresses.add(address.toString());
+    return super.deleteAccount(address);
+  }
+
+  public modifyAccountFields(
+    address: Address,
+    accountFields: any
+  ): Promise<void> {
+    this.addresses.add(address.toString());
+    return super.modifyAccountFields(address, accountFields);
+  }
+
+  public putContractCode(address: Address, value: Buffer): Promise<void> {
+    this.addresses.add(address.toString());
+    return super.putContractCode(address, value);
+  }
+
+  public putContractStorage(
+    address: Address,
+    key: Buffer,
+    value: Buffer
+  ): Promise<void> {
+    this.addresses.add(address.toString());
+    return super.putContractStorage(address, key, value);
+  }
+
+  public clearContractStorage(address: Address): Promise<void> {
+    this.addresses.add(address.toString());
+    return super.clearContractStorage(address);
+  }
+}
+
+interface Storage {
+  [address: string]: {
+    balance: string;
+    nonce: number;
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    code_hash: string;
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    storage_root: string;
+    storage: {
+      [storageSlot: string]: string;
+    };
+  };
+}
+
+type StateManagerWithAddresses = StateManager & {
+  addresses: Set<string>;
+};
 
 export class EthereumJSAdapter implements VMAdapter {
   private _blockStartStateRoot: Buffer | undefined;
@@ -51,7 +112,7 @@ export class EthereumJSAdapter implements VMAdapter {
 
   constructor(
     private readonly _vm: VM,
-    private readonly _stateManager: StateManager,
+    public readonly _stateManager: StateManagerWithAddresses,
     private readonly _blockchain: HardhatBlockchainInterface,
     private readonly _common: Common,
     private readonly _configNetworkId: number,
@@ -84,7 +145,7 @@ export class EthereumJSAdapter implements VMAdapter {
     config: NodeConfig,
     selectHardfork: (blockNumber: bigint) => string
   ): Promise<EthereumJSAdapter> {
-    let stateManager: StateManager;
+    let stateManager: StateManagerWithAddresses;
     let forkBlockNum: bigint | undefined;
     let forkNetworkId: number | undefined;
 
@@ -107,9 +168,14 @@ export class EthereumJSAdapter implements VMAdapter {
     } else {
       const stateTrie = await makeStateTrie(config.genesisAccounts);
 
-      stateManager = new DefaultStateManager({
+      stateManager = new DefaultStateManagerWithAddresses({
         trie: stateTrie,
       });
+
+      for (const genesisAccount of config.genesisAccounts) {
+        const { address } = makeAccount(genesisAccount);
+        stateManager.addresses.add(address.toString());
+      }
     }
 
     const eei = new EEI(stateManager, common, blockchain);
@@ -465,6 +531,80 @@ export class EthereumJSAdapter implements VMAdapter {
 
   public clearLastError() {
     this._vmTracer.clearLastError();
+  }
+
+  public async printState() {
+    const storage: Storage = {};
+
+    for (const address of this._stateManager.addresses) {
+      const account = await this._stateManager.getAccount(
+        Address.fromString(address)
+      );
+
+      const nonce = Number(account.nonce);
+      const balance = `0x${account.balance.toString(16).padStart(64, "0")}`;
+      const codeHash = `0x${account.codeHash
+        .toString("hex")
+        .padStart(64, "0")}`;
+
+      const storageRoot = `0x${account.storageRoot
+        .toString("hex")
+        .padStart(64, "0")}`;
+
+      const dumpedAccountStorage = await this._stateManager.dumpStorage(
+        Address.fromString(address)
+      );
+
+      const accountStorage: Record<string, string> = {};
+
+      for (const [key, value] of Object.entries(dumpedAccountStorage)) {
+        accountStorage[`0x${key.padStart(64, "0")}`] = `0x${value.padStart(
+          64,
+          "0"
+        )}`;
+      }
+
+      if (
+        nonce === 0 &&
+        account.balance === 0n &&
+        // empty code
+        codeHash ===
+          "0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470" &&
+        // empty storage
+        storageRoot ===
+          "0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421"
+      ) {
+        if (Object.entries(accountStorage).length > 0) {
+          // sanity check
+          throw new Error(
+            "Assertion error: storage root is empty but storage has data"
+          );
+        }
+
+        // we don't add empty accounts
+        continue;
+      }
+
+      storage[address] = {
+        nonce,
+        balance,
+        code_hash: codeHash,
+        storage_root: storageRoot,
+        storage: accountStorage,
+      };
+    }
+
+    const replacer = (_key: any, value: any) =>
+      typeof value === "object" && !Array.isArray(value) && value !== null
+        ? Object.keys(value)
+            .sort()
+            .reduce((sorted: any, key: any) => {
+              sorted[key] = value[key];
+              return sorted;
+            }, {})
+        : value;
+
+    console.log(JSON.stringify(storage, replacer, 2));
   }
 
   private _getCommonForTracing(networkId: number, blockNumber: bigint): Common {
