@@ -3,7 +3,7 @@ use std::{fmt::Debug, io};
 use hashbrown::HashMap;
 use rethnet_eth::{Address, B256, U256};
 use revm::{
-    db::{State, StateRef},
+    db::StateRef,
     primitives::{Account, AccountInfo, Bytecode},
     DatabaseCommit,
 };
@@ -18,11 +18,18 @@ use tokio::{
 
 use crate::state::{AccountModifierFn, StateDebug};
 
-use super::request::Request;
+use super::{history::StateHistory, request::Request};
 
 /// Trait that meets all requirements for a synchronous database that can be used by [`AsyncDatabase`].
 pub trait SyncState<E>:
-    State<Error = E> + DatabaseCommit + StateDebug<Error = E> + Debug + Send + Sync + 'static
+    StateRef<Error = E>
+    + DatabaseCommit
+    + StateDebug<Error = E>
+    + StateHistory<Error = E>
+    + Debug
+    + Send
+    + Sync
+    + 'static
 where
     E: Debug + Send,
 {
@@ -30,7 +37,14 @@ where
 
 impl<S, E> SyncState<E> for S
 where
-    S: State<Error = E> + DatabaseCommit + StateDebug<Error = E> + Debug + Send + Sync + 'static,
+    S: StateRef<Error = E>
+        + DatabaseCommit
+        + StateDebug<Error = E>
+        + StateHistory<Error = E>
+        + Debug
+        + Send
+        + Sync
+        + 'static,
     E: Debug + Send,
 {
 }
@@ -247,6 +261,18 @@ where
         receiver.await.unwrap()
     }
 
+    /// Serializes the state using ordering of addresses and storage indices.
+    #[cfg_attr(feature = "tracing", tracing::instrument)]
+    pub async fn serialize(&self) -> String {
+        let (sender, receiver) = oneshot::channel();
+
+        self.request_sender
+            .send(Request::Serialize { sender })
+            .expect("Failed to send request");
+
+        receiver.await.unwrap()
+    }
+
     /// Sets the storage slot at the specified address and index to the provided value.
     #[cfg_attr(feature = "tracing", tracing::instrument)]
     pub async fn set_account_storage_slot(
@@ -400,6 +426,12 @@ where
         })
     }
 
+    #[cfg_attr(feature = "tracing", tracing::instrument)]
+    fn serialize(&mut self) -> String {
+        task::block_in_place(move || self.runtime.block_on(AsyncState::serialize(*self)))
+    }
+
+    #[cfg_attr(feature = "tracing", tracing::instrument)]
     fn set_account_storage_slot(
         &mut self,
         address: Address,
@@ -417,6 +449,13 @@ where
     fn state_root(&mut self) -> Result<B256, Self::Error> {
         task::block_in_place(move || self.runtime.block_on(AsyncState::state_root(*self)))
     }
+}
+
+impl<'d, E> StateHistory for &'d AsyncState<E>
+where
+    E: Debug + Send + 'static,
+{
+    type Error = E;
 
     #[cfg_attr(feature = "tracing", tracing::instrument)]
     fn set_state_root(&mut self, state_root: &B256) -> Result<(), Self::Error> {

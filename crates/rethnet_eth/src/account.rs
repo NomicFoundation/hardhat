@@ -5,14 +5,10 @@
 
 //! Ethereum account types
 
-use hex_literal::hex;
-
 use crate::{trie::KECCAK_NULL_RLP, B256, U256};
 
-/// The KECCAK for empty code.
-pub const KECCAK_EMPTY: revm_primitives::B256 = revm_primitives::B256(hex!(
-    "c5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470"
-));
+use revm_primitives::AccountInfo;
+pub use revm_primitives::KECCAK_EMPTY;
 
 /// Basic account type.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -22,7 +18,7 @@ pub const KECCAK_EMPTY: revm_primitives::B256 = revm_primitives::B256(hex!(
 )]
 pub struct BasicAccount {
     /// Nonce of the account.
-    pub nonce: U256,
+    pub nonce: u64,
     /// Balance of the account.
     pub balance: U256,
     /// Storage root of the account.
@@ -35,9 +31,31 @@ impl Default for BasicAccount {
     fn default() -> Self {
         BasicAccount {
             balance: U256::ZERO,
-            nonce: U256::ZERO,
+            nonce: 0,
             code_hash: KECCAK_EMPTY,
             storage_root: KECCAK_NULL_RLP,
+        }
+    }
+}
+
+impl From<BasicAccount> for AccountInfo {
+    fn from(account: BasicAccount) -> Self {
+        Self {
+            balance: account.balance,
+            nonce: account.nonce,
+            code_hash: account.code_hash,
+            code: None,
+        }
+    }
+}
+
+impl From<(&AccountInfo, B256)> for BasicAccount {
+    fn from((account_info, storage_root): (&AccountInfo, B256)) -> Self {
+        Self {
+            nonce: account_info.nonce,
+            balance: account_info.balance,
+            storage_root,
+            code_hash: account_info.code_hash,
         }
     }
 }

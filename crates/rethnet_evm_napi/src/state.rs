@@ -10,10 +10,7 @@ use napi::{bindgen_prelude::*, JsFunction, JsObject, NapiRaw, Status};
 use napi_derive::napi;
 use rethnet_eth::{signature::private_key_to_address, Address, Bytes, B256, U256};
 use rethnet_evm::{
-    state::{
-        AccountModifierFn, AsyncState, LayeredState, RethnetLayer, StateDebug, StateError,
-        SyncState,
-    },
+    state::{AccountModifierFn, AsyncState, HybridState, StateError, StateHistory, SyncState},
     AccountInfo, Bytecode, HashMap, KECCAK_EMPTY,
 };
 use secp256k1::Secp256k1;
@@ -100,7 +97,7 @@ impl StateManager {
             accounts.insert(address, AccountInfo::default());
         }
 
-        let mut state = LayeredState::with_layer(RethnetLayer::with_genesis_accounts(accounts));
+        let mut state = HybridState::with_accounts(accounts);
 
         state.checkpoint().unwrap();
 
@@ -375,6 +372,13 @@ impl StateManager {
         let state_root = B256::from_slice(&state_root);
 
         self.state.remove_snapshot(state_root).await
+    }
+
+    /// Serializes the state using ordering of addresses and storage indices.
+    #[napi]
+    #[cfg_attr(feature = "tracing", tracing::instrument)]
+    pub async fn serialize(&self) -> String {
+        self.state.serialize().await
     }
 
     /// Sets the storage slot at the specified address and index to the provided value.

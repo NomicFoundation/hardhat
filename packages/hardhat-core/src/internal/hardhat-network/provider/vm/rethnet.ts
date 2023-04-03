@@ -411,6 +411,10 @@ export class RethnetAdapter implements VMAdapter {
     this._vmTracer.clearLastError();
   }
 
+  public async printState() {
+    console.log(await this._state.serialize());
+  }
+
   private _getBlockEnvDifficulty(
     difficulty: bigint | undefined
   ): bigint | undefined {
