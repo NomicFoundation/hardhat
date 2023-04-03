@@ -1,6 +1,5 @@
 use napi::Status;
 use napi_derive::napi;
-use once_cell::sync::OnceCell;
 use rethnet_evm::{
     state::StateError, BlockEnv, CfgEnv, InvalidTransaction, TransactionError, TxEnv,
 };
@@ -14,14 +13,9 @@ use crate::{
     transaction::{result::ExecutionResult, Transaction},
 };
 
-struct Logger;
-
-unsafe impl Sync for Logger {}
-
-static LOGGER: OnceCell<Logger> = OnceCell::new();
-
 /// The Rethnet runtime, which can execute individual transactions.
 #[napi]
+#[derive(Debug)]
 pub struct Rethnet {
     runtime: rethnet_evm::Rethnet<napi::Error, StateError>,
 }
@@ -30,16 +24,12 @@ pub struct Rethnet {
 impl Rethnet {
     /// Constructs a `Rethnet` runtime.
     #[napi(constructor)]
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     pub fn new(
         blockchain: &Blockchain,
         state_manager: &StateManager,
         cfg: Config,
     ) -> napi::Result<Self> {
-        let _logger = LOGGER.get_or_init(|| {
-            pretty_env_logger::init();
-            Logger
-        });
-
         let cfg = CfgEnv::try_from(cfg)?;
 
         let runtime = rethnet_evm::Rethnet::new(
@@ -53,6 +43,7 @@ impl Rethnet {
 
     /// Executes the provided transaction without changing state.
     #[napi]
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     pub async fn dry_run(
         &self,
         transaction: Transaction,
@@ -75,6 +66,7 @@ impl Rethnet {
 
     /// Executes the provided transaction without changing state, ignoring validation checks in the process.
     #[napi]
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     pub async fn guaranteed_dry_run(
         &self,
         transaction: Transaction,
@@ -97,6 +89,7 @@ impl Rethnet {
 
     /// Executes the provided transaction, changing state in the process.
     #[napi]
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     pub async fn run(
         &self,
         transaction: Transaction,

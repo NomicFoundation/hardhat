@@ -33,7 +33,9 @@
     "test:tracing": "mocha --recursive \"test/internal/hardhat-network/{helpers,stack-traces}/**/*.ts\"",
     "test:forking": "mocha --recursive \"test/internal/hardhat-network/{helpers,jsonrpc,provider}/**/*.ts\"",
     "prebuild": "cd ../../crates/rethnet_evm_napi && yarn build",
+    "prebuild:tracing": "cd ../../crates/rethnet_evm_napi && yarn build:tracing",
     "build": "tsc --build .",
+    "build:tracing": "tsc --build .",
     "prepublishOnly": "yarn build",
     "clean": "rimraf builtin-tasks internal types utils *.d.ts *.map *.js build-test tsconfig.tsbuildinfo test/internal/hardhat-network/provider/.hardhat_node_test_cache"
   },

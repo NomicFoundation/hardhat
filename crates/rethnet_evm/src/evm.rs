@@ -15,8 +15,17 @@ use crate::{
     trace::{Trace, TraceCollector},
 };
 
+/// Super trait for an inspector of an `AsyncDatabase` that's debuggable.
+pub trait AsyncInspector<BE, SE>: Inspector<AsyncDatabase<BE, SE>> + Debug + Send
+where
+    BE: Debug + Send + 'static,
+    SE: Debug + Send + 'static,
+{
+}
+
 /// Creates an evm from the provided database, config, transaction, and block.
 #[allow(clippy::type_complexity)]
+#[cfg_attr(feature = "tracing", tracing::instrument)]
 fn build_evm<BE, SE>(
     blockchain: Arc<AsyncBlockchain<BE>>,
     state: Arc<AsyncState<SE>>,
@@ -41,6 +50,7 @@ where
 }
 
 #[allow(clippy::type_complexity)]
+#[cfg_attr(feature = "tracing", tracing::instrument)]
 pub fn run_transaction<BE, SE>(
     runtime: &Runtime,
     blockchain: Arc<AsyncBlockchain<BE>>,
@@ -48,7 +58,7 @@ pub fn run_transaction<BE, SE>(
     cfg: CfgEnv,
     transaction: TxEnv,
     block: BlockEnv,
-    inspector: Option<Box<dyn Inspector<AsyncDatabase<BE, SE>> + Send>>,
+    inspector: Option<Box<dyn AsyncInspector<BE, SE>>>,
 ) -> JoinHandle<Result<(ExecutionResult, State, Trace), EVMError<DatabaseComponentError<SE, BE>>>>
 where
     BE: Debug + Send + 'static,

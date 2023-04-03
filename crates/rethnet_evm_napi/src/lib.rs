@@ -8,6 +8,7 @@ mod blockchain;
 mod cast;
 mod config;
 mod log;
+mod logger;
 mod receipt;
 /// Rethnet runtime for executing individual transactions
 mod runtime;

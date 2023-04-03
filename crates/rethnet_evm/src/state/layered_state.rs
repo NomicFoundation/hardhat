@@ -11,7 +11,7 @@ use revm::{
     DatabaseCommit,
 };
 
-use super::{StateDebug, StateError};
+use super::{AccountModifierFn, StateDebug, StateError};
 
 /// A state consisting of layers.
 #[derive(Clone, Debug)]
@@ -356,7 +356,7 @@ impl StateDebug for LayeredState<RethnetLayer> {
     fn modify_account(
         &mut self,
         address: Address,
-        modifier: Box<dyn Fn(&mut U256, &mut u64, &mut Option<Bytecode>) + Send>,
+        modifier: AccountModifierFn,
     ) -> Result<(), Self::Error> {
         let account_info = self.account_or_insert_mut(&address);
         let old_code_hash = account_info.code_hash;

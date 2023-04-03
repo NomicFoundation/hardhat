@@ -10,7 +10,9 @@ use napi::{
 };
 use napi_derive::napi;
 use rethnet_eth::{Address, Bytes, U256};
-use rethnet_evm::{opcode, return_revert, Bytecode, Gas, InstructionResult, SuccessOrHalt};
+use rethnet_evm::{
+    opcode, return_revert, AsyncInspector, Bytecode, Gas, InstructionResult, SuccessOrHalt,
+};
 
 use crate::{
     sync::{await_void_promise, handle_error},
@@ -592,6 +594,19 @@ impl JsTracer {
                 .expect("Failed call to BeforeMessageHandler");
         }
     }
+}
+
+impl Debug for JsTracer {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("JsTracer").finish()
+    }
+}
+
+impl<BE, SE> AsyncInspector<BE, SE> for JsTracer
+where
+    BE: Debug + Send + 'static,
+    SE: Debug + Send + 'static,
+{
 }
 
 impl<D> rethnet_evm::Inspector<D> for JsTracer

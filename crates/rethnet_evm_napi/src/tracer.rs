@@ -2,7 +2,7 @@ mod js_tracer;
 
 use napi::Env;
 use napi_derive::napi;
-use rethnet_evm::{state::StateError, AsyncDatabase, Inspector};
+use rethnet_evm::{state::StateError, AsyncInspector};
 
 use self::js_tracer::{JsTracer, TracingCallbacks};
 
@@ -12,9 +12,7 @@ pub struct Tracer {
 }
 
 impl Tracer {
-    pub fn as_dyn_inspector(
-        &self,
-    ) -> Box<(dyn Inspector<AsyncDatabase<napi::Error, StateError>> + Send + 'static)> {
+    pub fn as_dyn_inspector(&self) -> Box<dyn AsyncInspector<napi::Error, StateError>> {
         self.inner.clone()
     }
 }
