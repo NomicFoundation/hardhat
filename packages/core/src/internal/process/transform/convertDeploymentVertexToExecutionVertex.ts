@@ -1,8 +1,8 @@
 import { BigNumber, ethers } from "ethers";
 
 import { IgnitionError } from "../../../errors";
-import { ExternalParamValue } from "../../../types/dsl";
-import { DeploymentGraphFuture, EventParamFuture } from "../../../types/future";
+import { ExternalParamValue, InternalParamValue } from "../../../types/dsl";
+import { DeploymentGraphFuture } from "../../../types/future";
 import { Artifact } from "../../../types/hardhat";
 import {
   ArtifactContractDeploymentVertex,
@@ -17,6 +17,7 @@ import {
   SendVertex,
 } from "../../types/deploymentGraph";
 import {
+  ArgValue,
   AwaitedEventExecutionVertex,
   ContractCallExecutionVertex,
   ContractDeployExecutionVertex,
@@ -226,18 +227,9 @@ async function convertSendToSentETH(
 }
 
 async function convertArgs(
-  args: Array<
-    | boolean
-    | string
-    | number
-    | BigNumber
-    | DeploymentGraphFuture
-    | EventParamFuture
-  >,
+  args: InternalParamValue[],
   transformContext: TransformContext
-): Promise<
-  Array<boolean | string | number | BigNumber | DeploymentGraphFuture>
-> {
+): Promise<ArgValue[]> {
   const resolvedArgs = [];
 
   for (const arg of args) {
@@ -252,7 +244,7 @@ async function convertArgs(
 async function resolveParameter<T extends DeploymentGraphFuture>(
   arg: ExternalParamValue | T,
   { services, graph }: TransformContext
-): Promise<ExternalParamValue | T> {
+): Promise<ArgValue> {
   if (!isFuture(arg)) {
     return arg;
   }

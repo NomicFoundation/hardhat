@@ -30,6 +30,55 @@ describe("calls", () => {
     assert.equal(usedAddress, result.bar.address);
   });
 
+  it("should be able to call contracts with array args", async function () {
+    const result = await deployModule(this.hre, (m) => {
+      const captureArraysContract = m.contract("CaptureArraysContract");
+
+      m.call(captureArraysContract, "recordArrays", {
+        args: [
+          [1, 2, 3],
+          ["a", "b", "c"],
+          [true, false, true],
+        ],
+      });
+
+      return { captureArraysContract };
+    });
+
+    assert.isDefined(result.captureArraysContract);
+
+    const captureSuceeded = await result.captureArraysContract.arraysCaptured();
+
+    assert(captureSuceeded);
+  });
+
+  it("should be able to call contracts with arrays nested in objects args", async function () {
+    const result = await deployModule(this.hre, (m) => {
+      const captureComplexObjectContract = m.contract(
+        "CaptureComplexObjectContract"
+      );
+
+      m.call(captureComplexObjectContract, "testComplexObject", {
+        args: [
+          {
+            firstBool: true,
+            secondArray: [1, 2, 3],
+            thirdSubcomplex: { sub: "sub" },
+          },
+        ],
+      });
+
+      return { captureComplexObjectContract };
+    });
+
+    assert.isDefined(result.captureComplexObjectContract);
+
+    const captureSuceeded =
+      await result.captureComplexObjectContract.complexArgCaptured();
+
+    assert(captureSuceeded);
+  });
+
   it("should be able to make calls in order", async function () {
     const result = await deployModule(this.hre, (m) => {
       const trace = m.contract("Trace", {

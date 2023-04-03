@@ -267,11 +267,21 @@ export interface UseModuleOptions {
 }
 
 /**
+ * Paramater value types
+ *
+ * @alpha
+ */
+export type BaseArgumentType = number | BigNumber | string | boolean;
+
+/**
  * Allowed parameters that can be passed into a module.
  *
  * @alpha
  */
-export type ExternalParamValue = boolean | string | number | BigNumber;
+export type ExternalParamValue =
+  | BaseArgumentType
+  | ExternalParamValue[]
+  | { [field: string]: ExternalParamValue };
 
 /**
  * Allowed parameters across internal `useModule` boundaries.

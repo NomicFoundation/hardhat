@@ -56,6 +56,8 @@ export type {
   SendETHSuccess,
   SentETHExecutionVertex,
   VertexVisitResultSuccessResult,
+  BaseArgValue,
+  StructuredArgValue,
 } from "./internal/types/executionGraph";
 export type {
   AdjacencyList,
@@ -81,6 +83,7 @@ export type {
 } from "./internal/types/services";
 export {
   AwaitOptions,
+  BaseArgumentType,
   CallOptions,
   ContractOptions,
   ExternalParamValue,

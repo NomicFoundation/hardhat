@@ -29,15 +29,31 @@ export interface IExecutionGraph {
 }
 
 /**
+ * The base value that Ethereum ABIs accept.
+ *
+ * @internal
+ */
+export type BaseArgValue = number | BigNumber | string | boolean;
+
+/**
+ * A composite (i.e. arrays and nested objects) of base value that Ethereum
+ * ABIs accept.
+ *
+ * @internal
+ */
+export type StructuredArgValue =
+  | BaseArgValue
+  | StructuredArgValue[]
+  | { [field: string]: StructuredArgValue };
+
+/**
  * The allowed values when passing an argument to a smart contract method call.
  *
  * @internal
  */
 export type ArgValue =
-  | boolean
-  | string
-  | number
-  | BigNumber
+  | BaseArgValue
+  | StructuredArgValue
   | DeploymentGraphFuture;
 
 /**

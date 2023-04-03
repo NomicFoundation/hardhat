@@ -51,6 +51,7 @@ import {
   isCallable,
   isContract,
   isDependable,
+  isFuture,
   isParameter,
 } from "../internal/utils/guards";
 import { resolveProxyDependency } from "../internal/utils/proxy";
@@ -765,7 +766,8 @@ export class DeploymentBuilder implements IDeploymentBuilder {
       typeof arg === "string" ||
       typeof arg === "number" ||
       typeof arg === "boolean" ||
-      BigNumber.isBigNumber(arg)
+      BigNumber.isBigNumber(arg) ||
+      !isFuture(arg)
     ) {
       return;
     }
