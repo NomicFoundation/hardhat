@@ -10,6 +10,7 @@ use rethnet_eth::{
 };
 
 /// An revm database backed by a remote Ethereum node
+#[derive(Debug)]
 pub struct RemoteDatabase {
     client: RpcClient,
     runtime: Runtime,
@@ -28,6 +29,7 @@ pub enum RemoteDatabaseError {
 
 impl RemoteDatabase {
     /// Construct a new RemoteDatabse given the URL of a remote Ethereum node.
+    #[cfg_attr(feature = "tracing", tracing::instrument)]
     pub fn new(url: &str) -> Self {
         Self {
             client: RpcClient::new(url),
@@ -51,6 +53,7 @@ impl RemoteDatabase {
 impl StateRef for RemoteDatabase {
     type Error = RemoteDatabaseError;
 
+    #[cfg_attr(feature = "tracing", tracing::instrument)]
     fn basic(&self, address: Address) -> Result<Option<AccountInfo>, Self::Error> {
         Ok(Some(
             self.runtime
@@ -64,6 +67,7 @@ impl StateRef for RemoteDatabase {
         unimplemented!();
     }
 
+    #[cfg_attr(feature = "tracing", tracing::instrument)]
     fn storage(&self, address: Address, index: U256) -> Result<U256, Self::Error> {
         self.runtime
             .block_on(self.client.get_storage_at(&address, index, None))

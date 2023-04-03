@@ -3,18 +3,22 @@ use std::{fmt::Debug, sync::Arc};
 use revm::{
     db::DatabaseComponents,
     primitives::{BlockEnv, CfgEnv, ExecutionResult, SpecId, TxEnv},
-    Inspector,
 };
 
 use crate::{
-    blockchain::AsyncBlockchain, evm::run_transaction, state::AsyncState, trace::Trace,
-    transaction::TransactionError, State,
+    blockchain::AsyncBlockchain,
+    evm::{run_transaction, AsyncInspector},
+    state::AsyncState,
+    trace::Trace,
+    transaction::TransactionError,
+    State,
 };
 
 /// Asynchronous implementation of the Database super-trait
 pub type AsyncDatabase<BE, SE> = DatabaseComponents<Arc<AsyncState<SE>>, Arc<AsyncBlockchain<BE>>>;
 
 /// The asynchronous Rethnet runtime.
+#[derive(Debug)]
 pub struct Rethnet<BE, SE>
 where
     BE: Debug + Send + 'static,
@@ -40,11 +44,12 @@ where
     }
 
     /// Runs a transaction without committing the state.
+    #[cfg_attr(feature = "tracing", tracing::instrument)]
     pub async fn dry_run(
         &self,
         transaction: TxEnv,
         block: BlockEnv,
-        inspector: Option<Box<dyn Inspector<AsyncDatabase<BE, SE>> + Send>>,
+        inspector: Option<Box<dyn AsyncInspector<BE, SE>>>,
     ) -> Result<(ExecutionResult, State, Trace), TransactionError<BE, SE>> {
         if self.cfg.spec_id > SpecId::MERGE && block.prevrandao.is_none() {
             return Err(TransactionError::MissingPrevrandao);
@@ -65,11 +70,12 @@ where
     }
 
     /// Runs a transaction without committing the state, while disabling balance checks and creating accounts for new addresses.
+    #[cfg_attr(feature = "tracing", tracing::instrument)]
     pub async fn guaranteed_dry_run(
         &self,
         transaction: TxEnv,
         block: BlockEnv,
-        inspector: Option<Box<dyn Inspector<AsyncDatabase<BE, SE>> + Send>>,
+        inspector: Option<Box<dyn AsyncInspector<BE, SE>>>,
     ) -> Result<(ExecutionResult, State, Trace), TransactionError<BE, SE>> {
         if self.cfg.spec_id > SpecId::MERGE && block.prevrandao.is_none() {
             return Err(TransactionError::MissingPrevrandao);
@@ -93,11 +99,12 @@ where
     }
 
     /// Runs a transaction, committing the state in the process.
+    #[cfg_attr(feature = "tracing", tracing::instrument)]
     pub async fn run(
         &self,
         transaction: TxEnv,
         block: BlockEnv,
-        inspector: Option<Box<dyn Inspector<AsyncDatabase<BE, SE>> + Send>>,
+        inspector: Option<Box<dyn AsyncInspector<BE, SE>>>,
     ) -> Result<(ExecutionResult, Trace), TransactionError<BE, SE>> {
         let (result, changes, trace) = self.dry_run(transaction, block, inspector).await?;
 

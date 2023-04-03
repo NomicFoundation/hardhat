@@ -12,10 +12,8 @@ use tokio::sync::oneshot;
 use crate::state::{AccountModifierFn, StateDebug};
 
 /// The request type used internally by a [`SyncDatabase`].
-pub enum Request<E>
-where
-    E: Debug,
-{
+#[derive(Debug)]
+pub enum Request<E> {
     AccountByAddress {
         address: Address,
         sender: oneshot::Sender<Result<Option<AccountInfo>, E>>,
@@ -84,9 +82,10 @@ impl<E> Request<E>
 where
     E: Debug,
 {
+    #[cfg_attr(feature = "tracing", tracing::instrument)]
     pub fn handle<S>(self, state: &mut S) -> bool
     where
-        S: State<Error = E> + DatabaseCommit + StateDebug<Error = E>,
+        S: State<Error = E> + DatabaseCommit + StateDebug<Error = E> + Debug,
     {
         match self {
             Request::AccountByAddress { address, sender } => {
@@ -146,104 +145,5 @@ where
         }
 
         true
-    }
-}
-
-impl<E> Debug for Request<E>
-where
-    E: Debug,
-{
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::AccountByAddress { address, sender } => f
-                .debug_struct("AccountByAddress")
-                .field("address", address)
-                .field("sender", sender)
-                .finish(),
-            Self::AccountStorageRoot { address, sender } => f
-                .debug_struct("AccountStorageRoot")
-                .field("address", address)
-                .field("sender", sender)
-                .finish(),
-            Self::Checkpoint { sender } => f
-                .debug_struct("Checkpoint")
-                .field("sender", sender)
-                .finish(),
-            Self::CodeByHash { code_hash, sender } => f
-                .debug_struct("CodeByHash")
-                .field("code_hash", code_hash)
-                .field("sender", sender)
-                .finish(),
-            Self::Commit { changes, sender } => f
-                .debug_struct("Commit")
-                .field("changes", changes)
-                .field("sender", sender)
-                .finish(),
-            Self::InsertAccount {
-                address,
-                account_info,
-                sender,
-            } => f
-                .debug_struct("InsertAccount")
-                .field("address", address)
-                .field("account_info", account_info)
-                .field("sender", sender)
-                .finish(),
-            Self::MakeSnapshot { sender } => f
-                .debug_struct("MakeSnapshot")
-                .field("sender", sender)
-                .finish(),
-            Self::ModifyAccount {
-                address,
-                modifier: _modifier,
-                sender,
-            } => f
-                .debug_struct("ModifyAccount")
-                .field("address", address)
-                .field("sender", sender)
-                .finish(),
-            Self::RemoveAccount { address, sender } => f
-                .debug_struct("RemoveAccount")
-                .field("address", address)
-                .field("sender", sender)
-                .finish(),
-            Self::RemoveSnapshot { state_root, sender } => f
-                .debug_struct("RemoveSnapshot")
-                .field("state_root", state_root)
-                .field("sender", sender)
-                .finish(),
-            Self::Revert { sender } => f.debug_struct("Revert").field("sender", sender).finish(),
-            Self::SetStorageSlot {
-                address,
-                index,
-                value,
-                sender,
-            } => f
-                .debug_struct("SetStorageSlot")
-                .field("address", address)
-                .field("index", index)
-                .field("value", value)
-                .field("sender", sender)
-                .finish(),
-            Self::SetStateRoot { state_root, sender } => f
-                .debug_struct("SetStateRoot")
-                .field("state_root", state_root)
-                .field("sender", sender)
-                .finish(),
-            Self::StateRoot { sender } => {
-                f.debug_struct("StateRoot").field("sender", sender).finish()
-            }
-            Self::StorageSlot {
-                address,
-                index,
-                sender,
-            } => f
-                .debug_struct("StorageSlot")
-                .field("address", address)
-                .field("index", index)
-                .field("sender", sender)
-                .finish(),
-            Self::Terminate => write!(f, "Terminate"),
-        }
     }
 }

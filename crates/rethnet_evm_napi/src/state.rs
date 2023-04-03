@@ -10,7 +10,10 @@ use napi::{bindgen_prelude::*, JsFunction, JsObject, NapiRaw, Status};
 use napi_derive::napi;
 use rethnet_eth::{signature::private_key_to_address, Address, Bytes, B256, U256};
 use rethnet_evm::{
-    state::{AsyncState, LayeredState, RethnetLayer, StateDebug, StateError, SyncState},
+    state::{
+        AccountModifierFn, AsyncState, LayeredState, RethnetLayer, StateDebug, StateError,
+        SyncState,
+    },
     AccountInfo, Bytecode, HashMap, KECCAK_EMPTY,
 };
 use secp256k1::Secp256k1;
@@ -18,6 +21,7 @@ use secp256k1::Secp256k1;
 use crate::{
     account::Account,
     cast::TryCast,
+    logger::enable_logging,
     sync::{await_promise, handle_error},
     threadsafe_function::{ThreadSafeCallContext, ThreadsafeFunction, ThreadsafeFunctionCallMode},
 };
@@ -49,6 +53,7 @@ pub struct SnapshotId {
 
 /// The Rethnet state
 #[napi]
+#[derive(Debug)]
 pub struct StateManager {
     pub(super) state: Arc<AsyncState<StateError>>,
 }
@@ -57,12 +62,14 @@ pub struct StateManager {
 impl StateManager {
     /// Constructs a [`StateManager`] with an empty state.
     #[napi(constructor)]
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     pub fn new() -> napi::Result<Self> {
         Self::with_accounts(HashMap::default())
     }
 
     /// Constructs a [`StateManager`] with the provided accounts present in the genesis state.
     #[napi(factory)]
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     pub fn with_genesis_accounts(accounts: Vec<GenesisAccount>) -> napi::Result<Self> {
         let context = Secp256k1::signing_only();
         let genesis_accounts = accounts
@@ -84,6 +91,7 @@ impl StateManager {
         Self::with_accounts(genesis_accounts)
     }
 
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     fn with_accounts(mut accounts: HashMap<Address, AccountInfo>) -> napi::Result<Self> {
         // Mimic precompiles activation
         for idx in 1..=8 {
@@ -99,10 +107,13 @@ impl StateManager {
         Self::with_state(state)
     }
 
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     fn with_state<S>(state: S) -> napi::Result<Self>
     where
         S: SyncState<StateError>,
     {
+        enable_logging();
+
         let state: Box<dyn SyncState<StateError>> = Box::new(state);
         let state = AsyncState::new(state)
             .map_err(|e| napi::Error::new(Status::GenericFailure, e.to_string()))?;
@@ -114,15 +125,19 @@ impl StateManager {
 
     /// Creates a state checkpoint that can be reverted to using [`revert`].
     #[napi]
+    #[cfg_attr(feature = "tracing", tracing::instrument)]
     pub async fn checkpoint(&self) -> napi::Result<()> {
         self.state
             .checkpoint()
             .await
-            .map_err(|e| napi::Error::new(Status::GenericFailure, e.to_string()))
+            .map_err(|e| napi::Error::new(Status::GenericFailure, e.to_string()))?;
+
+        Ok(())
     }
 
     /// Reverts to the previous checkpoint, created using [`checkpoint`].
     #[napi]
+    #[cfg_attr(feature = "tracing", tracing::instrument)]
     pub async fn revert(&self) -> napi::Result<()> {
         self.state
             .revert()
@@ -132,6 +147,7 @@ impl StateManager {
 
     /// Retrieves the account corresponding to the specified address.
     #[napi]
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     pub async fn get_account_by_address(&self, address: Buffer) -> napi::Result<Option<Account>> {
         let address = Address::from_slice(&address);
 
@@ -157,6 +173,7 @@ impl StateManager {
 
     /// Retrieves the storage root of the account at the specified address.
     #[napi]
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     pub async fn get_account_storage_root(&self, address: Buffer) -> napi::Result<Option<Buffer>> {
         let address = Address::from_slice(&address);
 
@@ -168,6 +185,7 @@ impl StateManager {
 
     /// Retrieves the storage slot at the specified address and index.
     #[napi]
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     pub async fn get_account_storage_slot(
         &self,
         address: Buffer,
@@ -192,6 +210,7 @@ impl StateManager {
 
     /// Retrieves the storage root of the database.
     #[napi]
+    #[cfg_attr(feature = "tracing", tracing::instrument)]
     pub async fn get_state_root(&self) -> napi::Result<Buffer> {
         self.state.state_root().await.map_or_else(
             |e| Err(napi::Error::new(Status::GenericFailure, e.to_string())),
@@ -201,6 +220,7 @@ impl StateManager {
 
     /// Inserts the provided account at the specified address.
     #[napi]
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     pub async fn insert_account(&self, address: Buffer, account: Account) -> napi::Result<()> {
         let address = Address::from_slice(&address);
         let account: AccountInfo = account.try_cast()?;
@@ -213,6 +233,7 @@ impl StateManager {
 
     /// Makes a snapshot of the database that's retained until [`removeSnapshot`] is called. Returns the snapshot's identifier.
     #[napi]
+    #[cfg_attr(feature = "tracing", tracing::instrument)]
     pub async fn make_snapshot(&self) -> SnapshotId {
         let (state_root, existed) = self.state.make_snapshot().await;
 
@@ -226,6 +247,7 @@ impl StateManager {
     /// The modifier function receives the current values as individual parameters and will update the account's values
     /// to the returned `Account` values.
     #[napi(ts_return_type = "Promise<void>")]
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     pub fn modify_account(
         &self,
         env: Env,
@@ -302,7 +324,7 @@ impl StateManager {
             let result = db
                 .modify_account(
                     address,
-                    Box::new(
+                    AccountModifierFn::new(Box::new(
                         move |balance: &mut U256, nonce: &mut u64, code: &mut Option<Bytecode>| {
                             let (sender, receiver) = channel();
 
@@ -323,7 +345,7 @@ impl StateManager {
                             *nonce = new_account.nonce;
                             *code = new_account.code;
                         },
-                    ),
+                    )),
                 )
                 .await
                 .map_err(|e| napi::Error::new(Status::GenericFailure, e.to_string()));
@@ -336,6 +358,7 @@ impl StateManager {
 
     /// Removes and returns the account at the specified address, if it exists.
     #[napi]
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     pub async fn remove_account(&self, address: Buffer) -> napi::Result<Option<Account>> {
         let address = Address::from_slice(&address);
 
@@ -347,6 +370,7 @@ impl StateManager {
 
     /// Removes the snapshot corresponding to the specified state root, if it exists. Returns whether a snapshot was removed.
     #[napi]
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     pub async fn remove_snapshot(&self, state_root: Buffer) -> bool {
         let state_root = B256::from_slice(&state_root);
 
@@ -355,6 +379,7 @@ impl StateManager {
 
     /// Sets the storage slot at the specified address and index to the provided value.
     #[napi]
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     pub async fn set_account_storage_slot(
         &self,
         address: Buffer,
@@ -373,6 +398,7 @@ impl StateManager {
 
     /// Reverts the state to match the specified state root.
     #[napi]
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     pub async fn set_state_root(&self, state_root: Buffer) -> napi::Result<()> {
         let state_root = B256::from_slice(&state_root);
 
