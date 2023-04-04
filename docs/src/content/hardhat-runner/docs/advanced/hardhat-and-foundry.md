@@ -7,6 +7,11 @@ This guide explains how to combine Hardhat and [Foundry](https://book.getfoundry
 How to set up a project that combines Hardhat and Foundry depends on whether you have an existing Hardhat project or an existing Foundry project.
 
 ### Adding Foundry to a Hardhat project
+:::tip
+
+Foundry relies on Git to work properly. Make sure your project is already imported in Git, or type `git init` in your project directory.
+
+:::
 
 If you have an existing Hardhat project and you want to use Foundry in it, you should follow these steps.
 
@@ -64,7 +69,7 @@ require("@nomicfoundation/hardhat-foundry");
 
 ::::
 
-To complete the setup, initiate a git repository with `git init` and run `npx hardhat init-foundry`. This task will create a `foundry.toml` file with the right configuration and install [`forge-std`](https://github.com/foundry-rs/forge-std).
+To complete the setup, run `npx hardhat init-foundry`. This task will create a `foundry.toml` file with the right configuration and install [`forge-std`](https://github.com/foundry-rs/forge-std).
 
 ### Adding Hardhat to a Foundry project
 
