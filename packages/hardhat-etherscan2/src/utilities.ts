@@ -177,9 +177,9 @@ export const encodeArguments = async (
   const { Interface } = await import("@ethersproject/abi");
 
   const contractInterface = new Interface(abi);
-  let encodedDeployArguments;
+  let encodedConstructorArguments;
   try {
-    encodedDeployArguments = contractInterface
+    encodedConstructorArguments = contractInterface
       .encodeDeploy(constructorArguments)
       .replace("0x", "");
   } catch (error) {
@@ -197,5 +197,5 @@ export const encodeArguments = async (
     throw error;
   }
 
-  return encodedDeployArguments;
+  return encodedConstructorArguments;
 };

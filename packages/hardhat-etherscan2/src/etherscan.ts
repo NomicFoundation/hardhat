@@ -2,7 +2,7 @@ import { Dispatcher } from "undici";
 import {
   ContractStatusPollingError,
   ContractStatusPollingInvalidStatusCodeError,
-  ContractVerificationError,
+  ContractVerificationRequestError,
   ContractVerificationMissingBytecodeError,
   ContractVerificationInvalidStatusCodeError,
   HardhatEtherscanError,
@@ -15,7 +15,7 @@ import { ChainConfig, ApiKey } from "./types";
 import { delay } from "./utilities";
 
 interface EtherscanVerifyRequestParams {
-  contractAddress: string;
+  address: string;
   sourceCode: string;
   sourceName: string;
   contractName: string;
@@ -60,7 +60,7 @@ export class Etherscan {
   }
 
   public async verify({
-    contractAddress,
+    address,
     sourceCode,
     sourceName,
     contractName,
@@ -71,7 +71,7 @@ export class Etherscan {
       apikey: this._apiKey,
       module: "contract",
       action: "verifysourcecode",
-      contractaddress: contractAddress,
+      contractaddress: address,
       sourceCode,
       codeformat: "solidity-standard-json-input",
       contractname: `${sourceName}:${contractName}`,
@@ -86,7 +86,7 @@ export class Etherscan {
         parameters.toString()
       );
     } catch (error: any) {
-      throw new ContractVerificationError(this._apiUrl, error);
+      throw new ContractVerificationRequestError(this._apiUrl, error);
     }
 
     if (!(response.statusCode >= 200 && response.statusCode <= 299)) {
@@ -102,10 +102,7 @@ export class Etherscan {
     const etherscanResponse = new EtherscanResponse(await response.body.json());
 
     if (etherscanResponse.isBytecodeMissingInNetworkError()) {
-      throw new ContractVerificationMissingBytecodeError(
-        this._apiUrl,
-        contractAddress
-      );
+      throw new ContractVerificationMissingBytecodeError(this._apiUrl, address);
     }
 
     if (!etherscanResponse.isOk()) {
@@ -150,7 +147,7 @@ export class Etherscan {
       return this.getVerificationStatus(guid);
     }
 
-    if (etherscanResponse.isVerificationFailure()) {
+    if (etherscanResponse.isFailure()) {
       return etherscanResponse;
     }
 
@@ -182,11 +179,11 @@ class EtherscanResponse {
     return this.message === "Pending in queue";
   }
 
-  public isVerificationFailure() {
+  public isFailure() {
     return this.message === "Fail - Unable to verify";
   }
 
-  public isVerificationSuccess() {
+  public isSuccess() {
     return this.message === "Pass - Verified";
   }
 
