@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## 0.0.12 - 2023-04-04
+
+### Fixed
+
+- Support recursive types in `m.call` args ([#186](https://github.com/NomicFoundation/ignition/issues/186))
+
 ## 0.0.11 - 2023-03-29
 
 ### Changed

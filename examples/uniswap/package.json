@@ -1,7 +1,7 @@
 {
   "name": "@nomicfoundation/ignition-uniswap-example",
   "private": true,
-  "version": "0.0.11",
+  "version": "0.0.12",
   "scripts": {
     "test": "hardhat test",
     "lint": "npm run prettier -- --check && npm run eslint",
@@ -10,7 +10,7 @@
     "prettier": "prettier \"*.{js,md,json}\" \"ignition/*.{js,md,json}\" \"test/*.{js,md,json}\""
   },
   "devDependencies": {
-    "@ignored/hardhat-ignition": "^0.0.11",
+    "@ignored/hardhat-ignition": "^0.0.12",
     "@nomicfoundation/hardhat-toolbox": "2.0.2",
     "hardhat": "2.13.0"
   },
