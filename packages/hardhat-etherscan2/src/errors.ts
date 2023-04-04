@@ -112,7 +112,7 @@ To see the list of supported networks, run this command:
   }
 }
 
-export class ContractVerificationError extends HardhatEtherscanError {
+export class ContractVerificationRequestError extends HardhatEtherscanError {
   constructor(url: string, error: Error) {
     super(
       `Failed to send contract verification request.
@@ -428,5 +428,29 @@ Use a string instead of a plain number.
 Encoder error reason: ${reason} fault in ${operation}`,
       error
     );
+  }
+}
+
+export class VerificationAPIUnexpectedMessageError extends HardhatEtherscanError {
+  constructor(message: string) {
+    super(`The API responded with an unexpected message.
+Contract verification may have succeeded and should be checked manually.
+Message: ${message}`);
+  }
+}
+
+export class ContractVerificationFailedError extends HardhatEtherscanError {
+  constructor(message: string, undetectableLibraries: string[]) {
+    super(`The contract verification failed.
+Reason: ${message}
+${
+  undetectableLibraries.length > 0
+    ? `
+This contract makes use of libraries whose addresses are undetectable by the plugin.
+Keep in mind that this verification failure may be due to passing in the wrong
+address for one of these libraries:
+${undetectableLibraries.map((x) => `  * ${x}`).join("\n")}`
+    : ""
+}`);
   }
 }

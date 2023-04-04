@@ -9,6 +9,7 @@ import {
 import { CompilationJob, CompilerInput, DependencyGraph } from "hardhat/types";
 import {
   TASK_VERIFY,
+  TASK_VERIFY_ATTEMPT_VERIFICATION,
   TASK_VERIFY_GET_CONTRACT_INFORMATION,
   TASK_VERIFY_GET_MINIMAL_INPUT,
   TASK_VERIFY_GET_VERIFICATION_SUBTASKS,
@@ -30,8 +31,11 @@ import {
   BuildInfoCompilerVersionMismatchError,
   DeployedBytecodeDoesNotMatchFQNError,
   UnexpectedNumberOfFilesError,
+  VerificationAPIUnexpectedMessageError,
+  ContractVerificationFailedError,
 } from "./errors";
 import {
+  delay,
   encodeArguments,
   getCompilerVersions,
   printSupportedNetworks,
@@ -90,6 +94,19 @@ interface GetContractInformationArgs {
 
 interface GetMinimalInputArgs {
   sourceName: string;
+}
+
+interface AttemptVerificationArgs {
+  address: string;
+  compilerInput: CompilerInput;
+  contractInformation: ExtendedContractInformation;
+  verificationInterface: Etherscan;
+  encodedConstructorArguments: string;
+}
+
+interface VerificationResponse {
+  success: boolean;
+  message: string;
 }
 
 extendConfig(etherscanConfigExtender);
@@ -280,12 +297,56 @@ subtask(TASK_VERIFY_VERIFY_ETHERSCAN)
           sourceName: contractInformation.sourceName,
         }
       );
+      // Ensure the linking information is present in the compiler input;
+      minimalInput.settings.libraries = contractInformation.libraries;
 
-      const encodedDeployArguments = await encodeArguments(
+      const encodedConstructorArguments = await encodeArguments(
         contractInformation.contractOutput.abi,
         contractInformation.sourceName,
         contractInformation.contractName,
         constructorArgs
+      );
+
+      // First, try to verify the contract using the minimal input
+      const { success: minimalInputVerificationSuccess }: VerificationResponse =
+        await run(TASK_VERIFY_ATTEMPT_VERIFICATION, {
+          address,
+          compilerInput: minimalInput,
+          contractInformation,
+          verificationInterface: etherscan,
+          encodedConstructorArguments,
+        });
+
+      if (minimalInputVerificationSuccess) {
+        return;
+      }
+
+      console.log(
+        `We tried verifying your contract ${contractInformation.contractName} without including any unrelated one, but it failed.
+Trying again with the full solc input used to compile and deploy it.
+This means that unrelated contracts may be displayed on Etherscan...
+`
+      );
+
+      // If verifying with the minimal input failed, try again with the full compiler input
+      const {
+        success: fullCompilerInputVerificationSuccess,
+        message: verificationMessage,
+      }: VerificationResponse = await run(TASK_VERIFY_ATTEMPT_VERIFICATION, {
+        address,
+        compilerInput: contractInformation.compilerInput,
+        contractInformation,
+        verificationInterface: etherscan,
+        encodedConstructorArguments,
+      });
+
+      if (fullCompilerInputVerificationSuccess) {
+        return;
+      }
+
+      throw new ContractVerificationFailedError(
+        verificationMessage,
+        contractInformation.undetectableLibraries
       );
     }
   );
@@ -397,6 +458,63 @@ subtask(TASK_VERIFY_GET_MINIMAL_INPUT)
 
     return minimalInput;
   });
+
+subtask(TASK_VERIFY_ATTEMPT_VERIFICATION)
+  .addParam("address")
+  .addParam("compilerInput", undefined, undefined, types.any)
+  .addParam("contractInformation", undefined, undefined, types.any)
+  .addParam("verificationInterface", undefined, undefined, types.any)
+  .addParam("encodedConstructorArguments")
+  .setAction(
+    async ({
+      address,
+      compilerInput,
+      contractInformation,
+      verificationInterface,
+      encodedConstructorArguments,
+    }: AttemptVerificationArgs): Promise<VerificationResponse> => {
+      const { message: guid } = await verificationInterface.verify({
+        address,
+        sourceCode: JSON.stringify(compilerInput),
+        sourceName: contractInformation.sourceName,
+        contractName: contractInformation.contractName,
+        compilerVersion: contractInformation.solcLongVersion,
+        encodedConstructorArguments,
+      });
+
+      console.log(
+        `Successfully submitted source code for contract
+        ${contractInformation.sourceName}:${contractInformation.contractName} at ${address}
+        for verification on the block explorer. Waiting for verification result...
+        `
+      );
+
+      // Compilation is bound to take some time so there's no sense in requesting status immediately.
+      await delay(700);
+      const verificationStatus =
+        await verificationInterface.getVerificationStatus(guid);
+
+      if (!(verificationStatus.isFailure() || verificationStatus.isSuccess())) {
+        // Reaching this point shouldn't be possible unless the API is behaving in a new way.
+        throw new VerificationAPIUnexpectedMessageError(
+          verificationStatus.message
+        );
+      }
+
+      if (verificationStatus.isSuccess()) {
+        const contractURL = verificationInterface.getContractUrl(address);
+        console.log(
+          `Successfully verified contract ${contractInformation.contractName} on Etherscan.
+${contractURL}`
+        );
+      }
+
+      return {
+        success: verificationStatus.isSuccess(),
+        message: verificationStatus.message,
+      };
+    }
+  );
 
 /**
  * This subtask is used for backwards compatibility.
