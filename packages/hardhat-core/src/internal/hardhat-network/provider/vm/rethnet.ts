@@ -16,6 +16,7 @@ import {
   TracingMessage,
   TracingMessageResult,
   TracingStep,
+  RethnetContext,
 } from "rethnet-evm";
 
 import { isForkedNodeConfig, NodeConfig } from "../node-types";
@@ -37,6 +38,8 @@ import { RunTxResult, Trace, VMAdapter } from "./vm-adapter";
 
 /* eslint-disable @nomiclabs/hardhat-internal-rules/only-hardhat-error */
 /* eslint-disable @typescript-eslint/no-unused-vars */
+
+const globalContext = new RethnetContext();
 
 export class RethnetAdapter implements VMAdapter {
   private _vmTracer: VMTracer;
@@ -68,6 +71,7 @@ export class RethnetAdapter implements VMAdapter {
       config.allowUnlimitedContractSize === true ? 2n ** 64n - 1n : undefined;
 
     const state = RethnetStateManager.withGenesisAccounts(
+      globalContext,
       config.genesisAccounts
     );
 

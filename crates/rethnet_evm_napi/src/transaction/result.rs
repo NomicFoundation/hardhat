@@ -78,13 +78,14 @@ pub enum ExceptionalHalt {
     StackOverflow,
     OutOfOffset,
     CreateCollision,
-    OverflowPayment,
     PrecompileError,
     NonceOverflow,
     /// Create init code size exceeds limit (runtime).
     CreateContractSizeLimit,
     /// Error on created contract that begins with EF
     CreateContractStartingWithEF,
+    /// EIP-3860: Limit and meter initcode. Initcode size limit exceeded.
+    CreateInitcodeSizeLimit,
 }
 
 impl From<rethnet_evm::Halt> for ExceptionalHalt {
@@ -99,12 +100,19 @@ impl From<rethnet_evm::Halt> for ExceptionalHalt {
             rethnet_evm::Halt::StackOverflow => ExceptionalHalt::StackOverflow,
             rethnet_evm::Halt::OutOfOffset => ExceptionalHalt::OutOfOffset,
             rethnet_evm::Halt::CreateCollision => ExceptionalHalt::CreateCollision,
-            rethnet_evm::Halt::OverflowPayment => ExceptionalHalt::OverflowPayment,
             rethnet_evm::Halt::PrecompileError => ExceptionalHalt::PrecompileError,
             rethnet_evm::Halt::NonceOverflow => ExceptionalHalt::NonceOverflow,
             rethnet_evm::Halt::CreateContractSizeLimit => ExceptionalHalt::CreateContractSizeLimit,
             rethnet_evm::Halt::CreateContractStartingWithEF => {
                 ExceptionalHalt::CreateContractStartingWithEF
+            }
+            rethnet_evm::Halt::CreateInitcodeSizeLimit => ExceptionalHalt::CreateInitcodeSizeLimit,
+            rethnet_evm::Halt::OverflowPayment
+            | rethnet_evm::Halt::StateChangeDuringStaticCall
+            | rethnet_evm::Halt::CallNotAllowedInsideStatic
+            | rethnet_evm::Halt::OutOfFund
+            | rethnet_evm::Halt::CallTooDeep => {
+                unreachable!("Internal halts that can be only found inside Inspector")
             }
         }
     }

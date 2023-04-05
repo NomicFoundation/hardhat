@@ -2,13 +2,12 @@ mod js_blockchain;
 
 use std::{fmt::Debug, sync::Arc};
 
-use napi::{bindgen_prelude::Buffer, Env, JsFunction, NapiRaw, Status};
+use napi::{bindgen_prelude::Buffer, tokio::sync::RwLock, Env, JsFunction, NapiRaw};
 use napi_derive::napi;
 use rethnet_eth::B256;
-use rethnet_evm::blockchain::{AsyncBlockchain, SyncBlockchain};
+use rethnet_evm::blockchain::SyncBlockchain;
 
 use crate::{
-    logger::enable_logging,
     sync::{await_promise, handle_error},
     threadsafe_function::{ThreadSafeCallContext, ThreadsafeFunction},
 };
@@ -19,12 +18,12 @@ use self::js_blockchain::{GetBlockHashCall, JsBlockchain};
 #[napi]
 #[derive(Debug)]
 pub struct Blockchain {
-    inner: Arc<AsyncBlockchain<napi::Error>>,
+    inner: Arc<RwLock<Box<dyn SyncBlockchain<napi::Error>>>>,
 }
 
 impl Blockchain {
     /// Provides immutable access to the inner implementation.
-    pub fn as_inner(&self) -> &Arc<AsyncBlockchain<napi::Error>> {
+    pub fn as_inner(&self) -> &Arc<RwLock<Box<dyn SyncBlockchain<napi::Error>>>> {
         &self.inner
     }
 }
@@ -39,8 +38,6 @@ impl Blockchain {
         #[napi(ts_arg_type = "(blockNumber: bigint) => Promise<Buffer>")]
         get_block_hash_fn: JsFunction,
     ) -> napi::Result<Self> {
-        enable_logging();
-
         let get_block_hash_fn = ThreadsafeFunction::create(
             env.raw(),
             unsafe { get_block_hash_fn.raw() },
@@ -59,21 +56,19 @@ impl Blockchain {
             },
         )?;
 
-        Self::with_blockchain(JsBlockchain { get_block_hash_fn })
+        Ok(Self::with_blockchain(JsBlockchain { get_block_hash_fn }))
     }
 
     #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
-    fn with_blockchain<B>(blockchain: B) -> napi::Result<Self>
+    fn with_blockchain<B>(blockchain: B) -> Self
     where
         B: SyncBlockchain<napi::Error>,
     {
         let blockchain: Box<dyn SyncBlockchain<napi::Error>> = Box::new(blockchain);
-        let blockchain = AsyncBlockchain::new(blockchain)
-            .map_err(|e| napi::Error::new(Status::GenericFailure, e.to_string()))?;
 
-        Ok(Self {
-            inner: Arc::new(blockchain),
-        })
+        Self {
+            inner: Arc::new(RwLock::new(blockchain)),
+        }
     }
 
     // #[napi]
