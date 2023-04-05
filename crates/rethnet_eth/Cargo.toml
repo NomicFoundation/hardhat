@@ -13,7 +13,7 @@ hex = { version = "0.4.3", default-features = false, features = ["alloc"] }
 open-fastrlp = { version = "0.1.2", default-features = false, features = ["derive"], optional = true }
 primitive-types = { version = "0.11.1", default-features = false, features = ["rlp"] }
 reqwest = { version = "0.11", features = ["blocking", "json"] }
-revm-primitives = { git = "https://github.com/bluealloy/revm", rev = "3789509", version = "1.0", default-features = false }
+revm-primitives = { git = "https://github.com/Wodann/revm", rev = "a4550cc", version = "1.1", default-features = false }
 # revm-primitives = { path = "../../../revm/crates/primitives", version = "1.0", default-features = false }
 rlp = { version = "0.5.2", default-features = false, features = ["derive"] }
 ruint = { version = "1.7.0", default-features = false }

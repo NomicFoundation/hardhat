@@ -264,7 +264,7 @@ export class HttpProvider extends EventEmitter implements EIP1193Provider {
   ): number | undefined {
     const header = response.headers["retry-after"];
 
-    if (header === undefined || header === null) {
+    if (header === undefined || header === null || Array.isArray(header)) {
       return undefined;
     }
 
