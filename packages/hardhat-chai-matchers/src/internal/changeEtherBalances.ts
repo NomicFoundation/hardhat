@@ -15,9 +15,7 @@ export function supportChangeEtherBalances(Assertion: Chai.AssertionStatic) {
     function (
       this: any,
       accounts: Array<Account | string>,
-      balanceChanges:
-        | BigNumberish[]
-        | ((changes: BigNumber[]) => Promise<void> | void),
+      balanceChanges: BigNumberish[] | ((changes: BigNumber[]) => boolean),
       options?: BalanceChangeOptions
     ) {
       const { BigNumber } = require("ethers");
@@ -30,13 +28,7 @@ export function supportChangeEtherBalances(Assertion: Chai.AssertionStatic) {
         subject = subject();
       }
 
-      if (typeof balanceChanges === "function") {
-        if (negated === true) {
-          throw new Error(
-            `ChangeEtherBalances with predicate do not support for negated flag`
-          );
-        }
-      } else {
+      if (typeof balanceChanges !== "function") {
         if (accounts.length !== balanceChanges.length) {
           throw new Error(
             `The number of accounts (${accounts.length}) is different than the number of expected balance changes (${balanceChanges.length})`
@@ -51,7 +43,11 @@ export function supportChangeEtherBalances(Assertion: Chai.AssertionStatic) {
         const assert = buildAssert(negated, checkBalanceChanges);
 
         if (typeof balanceChanges === "function") {
-          void balanceChanges(actualChanges);
+          assert(
+            balanceChanges(actualChanges),
+            "Expected the balance changes of to satisfy the predicate, but they didn't",
+            "Expected the balance changes of to NOT satisfy the predicate, but they did"
+          );
         } else {
           assert(
             actualChanges.every((change, ind) =>

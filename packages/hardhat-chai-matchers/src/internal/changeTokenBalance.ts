@@ -76,7 +76,7 @@ export function supportChangeTokenBalance(Assertion: Chai.AssertionStatic) {
       accounts: Array<Account | string>,
       balanceChanges:
         | EthersT.BigNumberish[]
-        | ((changes: EthersT.BigNumber[]) => Promise<void> | void)
+        | ((changes: EthersT.BigNumber[]) => boolean)
     ) {
       const ethers = require("ethers") as typeof EthersT;
 
@@ -90,13 +90,7 @@ export function supportChangeTokenBalance(Assertion: Chai.AssertionStatic) {
 
       checkToken(token, "changeTokenBalances");
 
-      if (typeof balanceChanges === "function") {
-        if (negated === true) {
-          throw new Error(
-            `ChangeTokenBalances with predicate do not support for negated flag`
-          );
-        }
-      } else {
+      if (typeof balanceChanges !== "function") {
         if (accounts.length !== balanceChanges.length) {
           throw new Error(
             `The number of accounts (${accounts.length}) is different than the number of expected balance changes (${balanceChanges.length})`
@@ -117,7 +111,11 @@ export function supportChangeTokenBalance(Assertion: Chai.AssertionStatic) {
         const assert = buildAssert(negated, checkBalanceChanges);
 
         if (typeof balanceChanges === "function") {
-          void balanceChanges(actualChanges);
+          assert(
+            balanceChanges(actualChanges),
+            `Expected the balance changes of ${tokenDescription} to satisfy the predicate, but they didn't`,
+            `Expected the balance changes of ${tokenDescription} to NOT satisfy the predicate, but they did`
+          );
         } else {
           assert(
             actualChanges.every((change, ind) =>
