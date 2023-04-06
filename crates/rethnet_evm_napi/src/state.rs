@@ -330,6 +330,15 @@ impl StateManager {
             unsafe { modify_account_fn.raw() },
             0,
             |mut ctx: ThreadSafeCallContext<ModifyAccountCall>| {
+                #[cfg(feature = "tracing")]
+                let span = tracing::span!(
+                    tracing::Level::TRACE,
+                    "modify_account_threadsafe_function_call"
+                );
+
+                #[cfg(feature = "tracing")]
+                let _span_guard = span.enter();
+
                 let sender = ctx.value.sender.clone();
 
                 let balance = ctx

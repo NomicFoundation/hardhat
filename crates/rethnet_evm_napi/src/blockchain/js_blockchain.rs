@@ -21,6 +21,7 @@ pub struct JsBlockchain {
 impl BlockHashRef for JsBlockchain {
     type Error = napi::Error;
 
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     fn block_hash(&self, block_number: U256) -> Result<B256, Self::Error> {
         let (sender, receiver) = channel();
 
