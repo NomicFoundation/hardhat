@@ -24,6 +24,7 @@ pub struct BlockConfig {
 impl TryFrom<BlockConfig> for BlockEnv {
     type Error = napi::Error;
 
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     fn try_from(value: BlockConfig) -> std::result::Result<Self, Self::Error> {
         let default = BlockEnv::default();
 
@@ -63,6 +64,7 @@ impl TryFrom<BlockConfig> for BlockEnv {
 impl TryFrom<BlockConfig> for rethnet_evm::HeaderData {
     type Error = napi::Error;
 
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     fn try_from(value: BlockConfig) -> std::result::Result<Self, Self::Error> {
         Ok(Self {
             number: value
@@ -113,6 +115,7 @@ pub struct BlockHeader {
 impl TryFrom<BlockHeader> for rethnet_eth::block::Header {
     type Error = napi::Error;
 
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     fn try_from(value: BlockHeader) -> Result<Self, Self::Error> {
         Ok(Self {
             parent_hash: B256::from_slice(&value.parent_hash),

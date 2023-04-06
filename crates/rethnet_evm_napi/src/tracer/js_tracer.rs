@@ -613,6 +613,7 @@ impl<E> rethnet_evm::Inspector<E> for JsTracer
 where
     E: Debug,
 {
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     fn call(
         &mut self,
         data: &mut dyn rethnet_evm::EVMData<E>,
@@ -658,6 +659,7 @@ where
         (InstructionResult::Continue, Gas::new(0), Bytes::default())
     }
 
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     fn call_end(
         &mut self,
         data: &mut dyn rethnet_evm::EVMData<E>,
@@ -722,6 +724,7 @@ where
         (ret, remaining_gas, out)
     }
 
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     fn create(
         &mut self,
         data: &mut dyn rethnet_evm::EVMData<E>,
@@ -746,6 +749,7 @@ where
         )
     }
 
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     fn create_end(
         &mut self,
         data: &mut dyn rethnet_evm::EVMData<E>,
@@ -800,6 +804,7 @@ where
         (ret, address, remaining_gas, out)
     }
 
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     fn step(
         &mut self,
         interp: &mut rethnet_evm::Interpreter,

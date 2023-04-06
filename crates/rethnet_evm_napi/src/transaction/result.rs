@@ -137,6 +137,7 @@ pub struct ExecutionResult {
 }
 
 impl From<(rethnet_evm::ExecutionResult, rethnet_evm::trace::Trace)> for ExecutionResult {
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     fn from((result, trace): (rethnet_evm::ExecutionResult, rethnet_evm::trace::Trace)) -> Self {
         let result = match result {
             rethnet_evm::ExecutionResult::Success {
@@ -198,6 +199,7 @@ impl
 {
     type Error = napi::Error;
 
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     fn try_from(
         (result, state, trace): (
             rethnet_evm::ExecutionResult,
