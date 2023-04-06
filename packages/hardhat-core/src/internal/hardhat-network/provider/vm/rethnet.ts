@@ -149,13 +149,15 @@ export class RethnetAdapter implements VMAdapter {
    * Get the account info for the given address.
    */
   public async getAccount(address: Address): Promise<Account> {
-    const account = await this._state.getAccount(address);
-    const storageRoot = await this._state.getAccountStorageRoot(address);
+    const [accountInfo, storageRoot] = await Promise.all([
+      this._state.getAccount(address),
+      this._state.getAccountStorageRoot(address),
+    ]);
     return new Account(
-      account?.nonce,
-      account?.balance,
+      accountInfo?.nonce,
+      accountInfo?.balance,
       storageRoot ?? undefined,
-      account?.code?.hash
+      accountInfo?.code?.hash
     );
   }
 
