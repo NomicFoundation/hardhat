@@ -1,10 +1,12 @@
 import { assert } from "chai";
 import fsExtra from "fs-extra";
 import path from "path";
+import { promisify } from "util";
 import { ERRORS } from "../../../../src/internal/core/errors-list";
 import {
   CompilerDownloader,
   CompilerPlatform,
+  ConcurrencySafeCompilerDownloader,
 } from "../../../../src/internal/solidity/compiler/downloader";
 import { expectHardhatErrorAsync } from "../../../helpers/errors";
 import { useTmpDir } from "../../../helpers/fs";
@@ -234,5 +236,32 @@ describe("Compiler downloader", function () {
       await downloader.downloadCompiler("0.4.13");
       assert.isDefined(downloader.getCompiler("0.4.13"));
     });
+  });
+});
+
+describe("Concurrency safe compiler downloader", function () {
+  it("should be concurrency safe", async function () {
+    const sleep = promisify(setTimeout);
+    const results: number[] = [];
+    const safeDownloader = ConcurrencySafeCompilerDownloader.get(
+      CompilerPlatform.LINUX,
+      ""
+    );
+
+    safeDownloader.transaction(async () => {
+      await sleep(100);
+      results.push(1);
+    });
+    safeDownloader.transaction(async () => {
+      await sleep(50);
+      results.push(2);
+      results.push(3);
+    });
+    const done = safeDownloader.transaction(async () => {
+      results.push(4);
+    });
+
+    await done;
+    assert.deepEqual(results, [1, 2, 3, 4]);
   });
 });
