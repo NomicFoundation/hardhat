@@ -73,6 +73,73 @@ export interface ICompilerDownloader {
 }
 
 /**
+ * This class represents a concurrency-safe wrapper around the
+ * CompilerDownloader class, ensuring that multiple calls to the download
+ * method are executed sequentially without race conditions.
+ */
+export class ConcurrencySafeCompilerDownloader {
+  constructor(private _downloader: CompilerDownloader) {}
+
+  /**
+   * A Mutex instance to ensure exclusive access to the CompilerDownloader instance.
+   */
+  private readonly _mutex = new Mutex();
+
+  /**
+   * A static Map holding unique ConcurrencySafeCompilerDownloader instances
+   * for each platform and compilers directory combination.
+   */
+  private static _downloaderPerPlatform: Map<
+    string,
+    ConcurrencySafeCompilerDownloader
+  > = new Map();
+
+  /**
+   * Retrieves a ConcurrencySafeCompilerDownloader instance scoped by
+   * the concurrency key.
+   *
+   * If none exists, it will create one and store it in the static Map.
+   */
+  public static get(platform: CompilerPlatform, compilersDir: string) {
+    const key = this._createConcurrencyKey(platform, compilersDir);
+    if (!this._downloaderPerPlatform.has(key)) {
+      this._downloaderPerPlatform.set(
+        key,
+        new ConcurrencySafeCompilerDownloader(
+          new CompilerDownloader(platform, compilersDir)
+        )
+      );
+    }
+
+    return this._downloaderPerPlatform.get(key)!;
+  }
+
+  /**
+   * Creates a key for determining the critical section scope. All instances of
+   * ConcurrencySafeCompilerDownloader with the same concurrency key will share
+   * the same critical section.
+   */
+  private static _createConcurrencyKey(platform: string, compilersDir: string) {
+    const key = platform + compilersDir;
+
+    return key;
+  }
+
+  /**
+   * Executes a given function in a concurrency-safe manner, creating a
+   * critical section around the execution of the supplied function, scoped
+   * by the concurrency key.
+   */
+  public async transaction<T>(
+    f: (compiler: CompilerDownloader) => Promise<T>
+  ): Promise<T> {
+    return this._mutex.use(async () => {
+      return f(this._downloader);
+    });
+  }
+}
+
+/**
  * Default implementation of ICompilerDownloader.
  *
  * Important things to note:
@@ -102,30 +169,12 @@ export class CompilerDownloader implements ICompilerDownloader {
     }
   }
 
-  private static _downloaderPerPlatform: Map<string, CompilerDownloader> =
-    new Map();
-
-  public static getConcurrencySafeDownloader(
-    platform: CompilerPlatform,
-    compilersDir: string
-  ) {
-    const key = platform + compilersDir;
-
-    if (!this._downloaderPerPlatform.has(key)) {
-      this._downloaderPerPlatform.set(
-        key,
-        new CompilerDownloader(platform, compilersDir)
-      );
-    }
-
-    return this._downloaderPerPlatform.get(key)!;
-  }
-
   public static defaultCompilerListCachePeriod = 3_600_00;
-  private readonly _mutex = new Mutex();
 
   /**
-   * Use CompilerDownloader.getConcurrencySafeDownloader instead
+   * Use ConcurrencySafeCompilerDownloader instead.
+   *
+   * @deprecated
    */
   constructor(
     private readonly _platform: CompilerPlatform,
@@ -147,49 +196,43 @@ export class CompilerDownloader implements ICompilerDownloader {
   }
 
   public async downloadCompiler(version: string): Promise<void> {
-    await this._mutex.use(async () => {
-      let build = await this._getCompilerBuild(version);
+    let build = await this._getCompilerBuild(version);
 
-      if (build === undefined && (await this._shouldDownloadCompilerList())) {
-        try {
-          await this._downloadCompilerList();
-        } catch (e: any) {
-          throw new HardhatError(
-            ERRORS.SOLC.VERSION_LIST_DOWNLOAD_FAILED,
-            {},
-            e
-          );
-        }
-
-        build = await this._getCompilerBuild(version);
-      }
-
-      if (build === undefined) {
-        throw new HardhatError(ERRORS.SOLC.INVALID_VERSION, { version });
-      }
-
-      let downloadPath: string;
+    if (build === undefined && (await this._shouldDownloadCompilerList())) {
       try {
-        downloadPath = await this._downloadCompiler(build);
+        await this._downloadCompilerList();
       } catch (e: any) {
-        throw new HardhatError(
-          ERRORS.SOLC.DOWNLOAD_FAILED,
-          {
-            remoteVersion: build.longVersion,
-          },
-          e
-        );
+        throw new HardhatError(ERRORS.SOLC.VERSION_LIST_DOWNLOAD_FAILED, {}, e);
       }
 
-      const verified = await this._verifyCompilerDownload(build, downloadPath);
-      if (!verified) {
-        throw new HardhatError(ERRORS.SOLC.INVALID_DOWNLOAD, {
+      build = await this._getCompilerBuild(version);
+    }
+
+    if (build === undefined) {
+      throw new HardhatError(ERRORS.SOLC.INVALID_VERSION, { version });
+    }
+
+    let downloadPath: string;
+    try {
+      downloadPath = await this._downloadCompiler(build);
+    } catch (e: any) {
+      throw new HardhatError(
+        ERRORS.SOLC.DOWNLOAD_FAILED,
+        {
           remoteVersion: build.longVersion,
-        });
-      }
+        },
+        e
+      );
+    }
 
-      await this._postProcessCompilerDownload(build, downloadPath);
-    });
+    const verified = await this._verifyCompilerDownload(build, downloadPath);
+    if (!verified) {
+      throw new HardhatError(ERRORS.SOLC.INVALID_DOWNLOAD, {
+        remoteVersion: build.longVersion,
+      });
+    }
+
+    await this._postProcessCompilerDownload(build, downloadPath);
   }
 
   public async getCompiler(version: string): Promise<Compiler | undefined> {

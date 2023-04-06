@@ -22,6 +22,7 @@ import { getInputFromCompilationJob } from "../internal/solidity/compiler/compil
 import {
   CompilerDownloader,
   CompilerPlatform,
+  ConcurrencySafeCompilerDownloader,
 } from "../internal/solidity/compiler/downloader";
 import { DependencyGraph } from "../internal/solidity/dependencyGraph";
 import { Parser } from "../internal/solidity/parse";
@@ -547,34 +548,32 @@ subtask(TASK_COMPILE_SOLIDITY_GET_SOLC_BUILD)
       { run }
     ): Promise<SolcBuild> => {
       const compilersCache = await getCompilersDir();
-
       const compilerPlatform = CompilerDownloader.getCompilerPlatform();
-      const downloader = CompilerDownloader.getConcurrencySafeDownloader(
+
+      const compiler = await ConcurrencySafeCompilerDownloader.get(
         compilerPlatform,
         compilersCache
-      );
+      ).transaction(async (dl) => {
+        const isCompilerDownloaded = await dl.isCompilerDownloaded(solcVersion);
 
-      const isCompilerDownloaded = await downloader.isCompilerDownloaded(
-        solcVersion
-      );
+        if (!isCompilerDownloaded) {
+          await run(TASK_COMPILE_SOLIDITY_LOG_DOWNLOAD_COMPILER_START, {
+            solcVersion,
+            isCompilerDownloaded,
+            quiet,
+          });
 
-      if (!isCompilerDownloaded) {
-        await run(TASK_COMPILE_SOLIDITY_LOG_DOWNLOAD_COMPILER_START, {
-          solcVersion,
-          isCompilerDownloaded,
-          quiet,
-        });
+          await dl.downloadCompiler(solcVersion);
 
-        await downloader.downloadCompiler(solcVersion);
+          await run(TASK_COMPILE_SOLIDITY_LOG_DOWNLOAD_COMPILER_END, {
+            solcVersion,
+            isCompilerDownloaded,
+            quiet,
+          });
+        }
 
-        await run(TASK_COMPILE_SOLIDITY_LOG_DOWNLOAD_COMPILER_END, {
-          solcVersion,
-          isCompilerDownloaded,
-          quiet,
-        });
-      }
-
-      const compiler = await downloader.getCompiler(solcVersion);
+        return dl.getCompiler(solcVersion);
+      });
 
       if (compiler !== undefined) {
         return compiler;
@@ -584,32 +583,30 @@ subtask(TASK_COMPILE_SOLIDITY_GET_SOLC_BUILD)
         "Native solc binary doesn't work, using solcjs instead. Try running npx hardhat clean --global"
       );
 
-      const wasmDownloader = CompilerDownloader.getConcurrencySafeDownloader(
+      const wasmCompiler = await ConcurrencySafeCompilerDownloader.get(
         CompilerPlatform.WASM,
         compilersCache
-      );
+      ).transaction(async (dl) => {
+        const isCompilerDownloaded = await dl.isCompilerDownloaded(solcVersion);
 
-      const isWasmCompilerDownloader =
-        await wasmDownloader.isCompilerDownloaded(solcVersion);
+        if (!isCompilerDownloaded) {
+          await run(TASK_COMPILE_SOLIDITY_LOG_DOWNLOAD_COMPILER_START, {
+            solcVersion,
+            isCompilerDownloaded,
+            quiet,
+          });
 
-      if (!isWasmCompilerDownloader) {
-        await run(TASK_COMPILE_SOLIDITY_LOG_DOWNLOAD_COMPILER_START, {
-          solcVersion,
-          isCompilerDownloaded,
-          quiet,
-        });
+          await dl.downloadCompiler(solcVersion);
 
-        await wasmDownloader.downloadCompiler(solcVersion);
+          await run(TASK_COMPILE_SOLIDITY_LOG_DOWNLOAD_COMPILER_END, {
+            solcVersion,
+            isCompilerDownloaded,
+            quiet,
+          });
+        }
 
-        await run(TASK_COMPILE_SOLIDITY_LOG_DOWNLOAD_COMPILER_END, {
-          solcVersion,
-          isCompilerDownloaded,
-          quiet,
-        });
-      }
-
-      const wasmCompiler = await wasmDownloader.getCompiler(solcVersion);
-
+        return dl.getCompiler(solcVersion);
+      });
       assertHardhatInvariant(
         wasmCompiler !== undefined,
         `WASM build of solc ${solcVersion} isn't working`

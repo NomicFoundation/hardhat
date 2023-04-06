@@ -8,6 +8,7 @@ import {
 import {
   Compiler,
   CompilerDownloader,
+  ConcurrencySafeCompilerDownloader,
 } from "../../../../src/internal/solidity/compiler/downloader";
 import { getCompilersDir } from "../../../../src/internal/util/global-dir";
 
@@ -164,32 +165,32 @@ async function getCompilerForVersion(
 ): Promise<Compiler> {
   const compilersCache = await getCompilersDir();
   const compilerPlatform = CompilerDownloader.getCompilerPlatform();
-  const downloader = CompilerDownloader.getConcurrencySafeDownloader(
+
+  return ConcurrencySafeCompilerDownloader.get(
     compilerPlatform,
     compilersCache
-  );
-  const compiler = await downloader.getCompiler(solidityVersion);
-  if (compiler === undefined) {
-    throw new Error("Expected compiler to be downloaded");
-  }
+  ).transaction(async (dl) => {
+    const compiler = await dl.getCompiler(solidityVersion);
+    if (compiler === undefined) {
+      throw new Error("Expected compiler to be downloaded");
+    }
 
-  return compiler;
+    return compiler;
+  });
 }
 
 export async function downloadCompiler(solidityVersion: string) {
   const compilersCache = await getCompilersDir();
   const compilerPlatform = CompilerDownloader.getCompilerPlatform();
-  const downloader = CompilerDownloader.getConcurrencySafeDownloader(
+  return ConcurrencySafeCompilerDownloader.get(
     compilerPlatform,
     compilersCache
-  );
+  ).transaction(async (dl) => {
+    const isCompilerDownloaded = await dl.isCompilerDownloaded(solidityVersion);
 
-  const isCompilerDownloaded = await downloader.isCompilerDownloaded(
-    solidityVersion
-  );
-
-  if (!isCompilerDownloaded) {
-    console.log("Downloading solc", solidityVersion);
-    await downloader.downloadCompiler(solidityVersion);
-  }
+    if (!isCompilerDownloaded) {
+      console.log("Downloading solc", solidityVersion);
+      await dl.downloadCompiler(solidityVersion);
+    }
+  });
 }
