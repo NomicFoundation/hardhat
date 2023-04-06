@@ -11,7 +11,7 @@ describe("verify task", () => {
   });
 
   describe("verify:process-arguments", () => {
-    it("should throw if the address was not provided", async function () {
+    it("should throw if the address is not provided", async function () {
       await expect(
         this.hre.run(TASK_VERIFY_PROCESS_ARGUMENTS, {
           constructorArgsParams: [],

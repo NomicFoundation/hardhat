@@ -93,3 +93,5 @@ typings/
 # DynamoDB Local files
 .dynamodb/
 
+test/fixture-projects/*/artifacts
+test/fixture-projects/*/cache
