@@ -1,0 +1,40 @@
+{
+  "_format": "hh-sol-cache-2",
+  "files": {
+    "/home/lschaab/NomicFoundation/hardhat/packages/hardhat-etherscan2/test/fixture-projects/hardhat-project-undefined-config/contracts/TestContract.sol": {
+      "lastModificationDate": 1679054405060,
+      "contentHash": "575dc9bbd3608177390fbc773dad40ad",
+      "sourceName": "contracts/TestContract.sol",
+      "solcConfig": {
+        "version": "0.8.18",
+        "settings": {
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "0.8.18"
+      ],
+      "artifacts": [
+        "TestContract"
+      ]
+    }
+  }
+}
