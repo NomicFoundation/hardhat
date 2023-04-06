@@ -74,7 +74,7 @@ export function supportChangeTokenBalance(Assertion: Chai.AssertionStatic) {
       this: any,
       token: Token,
       accounts: Array<Account | string>,
-      balanceChanges:
+      expectedChanges:
         | EthersT.BigNumberish[]
         | ((changes: EthersT.BigNumber[]) => boolean)
     ) {
@@ -90,12 +90,13 @@ export function supportChangeTokenBalance(Assertion: Chai.AssertionStatic) {
 
       checkToken(token, "changeTokenBalances");
 
-      if (typeof balanceChanges !== "function") {
-        if (accounts.length !== balanceChanges.length) {
-          throw new Error(
-            `The number of accounts (${accounts.length}) is different than the number of expected balance changes (${balanceChanges.length})`
-          );
-        }
+      if (
+        typeof expectedChanges !== "function" &&
+        accounts.length !== expectedChanges.length
+      ) {
+        throw new Error(
+          `The number of accounts (${accounts.length}) is different than the number of expected balance changes (${expectedChanges.length})`
+        );
       }
 
       const balanceChangesPromise = Promise.all(
@@ -110,26 +111,26 @@ export function supportChangeTokenBalance(Assertion: Chai.AssertionStatic) {
       ]: [EthersT.BigNumber[], string[], string]) => {
         const assert = buildAssert(negated, checkBalanceChanges);
 
-        if (typeof balanceChanges === "function") {
+        if (typeof expectedChanges === "function") {
           assert(
-            balanceChanges(actualChanges),
+            expectedChanges(actualChanges),
             `Expected the balance changes of ${tokenDescription} to satisfy the predicate, but they didn't`,
             `Expected the balance changes of ${tokenDescription} to NOT satisfy the predicate, but they did`
           );
         } else {
           assert(
             actualChanges.every((change, ind) =>
-              change.eq(ethers.BigNumber.from(balanceChanges[ind]))
+              change.eq(ethers.BigNumber.from(expectedChanges[ind]))
             ),
             `Expected the balances of ${tokenDescription} tokens for ${
               addresses as any
             } to change by ${
-              balanceChanges as any
+              expectedChanges as any
             }, respectively, but they changed by ${actualChanges as any}`,
             `Expected the balances of ${tokenDescription} tokens for ${
               addresses as any
             } NOT to change by ${
-              balanceChanges as any
+              expectedChanges as any
             }, respectively, but they did`
           );
         }
