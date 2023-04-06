@@ -123,29 +123,48 @@ describe("INTEGRATION: changeEtherBalances matcher", function () {
           ).to.changeEtherBalances(
             [sender, receiver],
             ([senderDiff, receiverDiff]: BigNumber[]) => {
-              expect(senderDiff).to.eq(-200);
-              expect(receiverDiff).to.eq(200);
+              return senderDiff.eq(-200) && receiverDiff.eq(200);
             }
           );
         });
 
-        it("Should pass when predicate has passed", async () => {
-          await expect(() =>
-            sender.sendTransaction({
-              to: receiver.address,
-              gasPrice: 1,
-              value: 200,
-            })
-          ).to.changeEtherBalances(
-            [sender, receiver],
-            async ([senderDiff, receiverDiff]: BigNumber[]) => {
-              await expect(
-                expect(senderDiff).to.eq(-201)
-              ).to.be.eventually.rejectedWith(
-                `expected -200 to equal -201. The numerical values of the given "ethers.BigNumber" and "number" inputs were compared, and they differed`
-              );
-              expect(receiverDiff).to.eq(200);
-            }
+        it("Should fail when the predicate returns false", async () => {
+          await expect(
+            expect(() =>
+              sender.sendTransaction({
+                to: receiver.address,
+                gasPrice: 1,
+                value: 200,
+              })
+            ).to.changeEtherBalances(
+              [sender, receiver],
+              ([senderDiff, receiverDiff]: BigNumber[]) => {
+                return senderDiff.eq(-201) && receiverDiff.eq(200);
+              }
+            )
+          ).to.be.eventually.rejectedWith(
+            AssertionError,
+            "Expected the balance changes of to satisfy the predicate, but they didn't"
+          );
+        });
+
+        it("Should fail when the predicate returns true and the assertion is negated", async () => {
+          await expect(
+            expect(() =>
+              sender.sendTransaction({
+                to: receiver.address,
+                gasPrice: 1,
+                value: 200,
+              })
+            ).to.not.changeEtherBalances(
+              [sender, receiver],
+              ([senderDiff, receiverDiff]: BigNumber[]) => {
+                return senderDiff.eq(-200) && receiverDiff.eq(200);
+              }
+            )
+          ).to.be.eventually.rejectedWith(
+            AssertionError,
+            "Expected the balance changes of to NOT satisfy the predicate, but they did"
           );
         });
 

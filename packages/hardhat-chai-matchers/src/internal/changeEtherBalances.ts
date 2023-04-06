@@ -28,12 +28,13 @@ export function supportChangeEtherBalances(Assertion: Chai.AssertionStatic) {
         subject = subject();
       }
 
-      if (typeof balanceChanges !== "function") {
-        if (accounts.length !== balanceChanges.length) {
-          throw new Error(
-            `The number of accounts (${accounts.length}) is different than the number of expected balance changes (${balanceChanges.length})`
-          );
-        }
+      if (
+        typeof balanceChanges !== "function" &&
+        accounts.length !== balanceChanges.length
+      ) {
+        throw new Error(
+          `The number of accounts (${accounts.length}) is different than the number of expected balance changes (${balanceChanges.length})`
+        );
       }
 
       const checkBalanceChanges = ([actualChanges, accountAddresses]: [

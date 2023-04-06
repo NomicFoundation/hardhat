@@ -218,26 +218,42 @@ describe("INTEGRATION: changeTokenBalance and changeTokenBalances matchers", fun
           mockToken,
           [sender, receiver],
           ([senderDiff, receiverDiff]: BigNumber[]) => {
-            expect(senderDiff).to.eq(-75);
-            expect(receiverDiff).to.eq(75);
+            return senderDiff.eq(-75) && receiverDiff.eq(75);
           }
         );
       });
 
-      it("Should pass when predicate has passed", async () => {
-        await expect(() =>
-          mockToken.transfer(receiver.address, 112)
-        ).to.changeTokenBalances(
-          mockToken,
-          [sender, receiver],
-          async ([senderDiff, receiverDiff]: BigNumber[]) => {
-            expect(senderDiff).to.eq(-112);
-            await expect(
-              expect(receiverDiff).to.eq(113)
-            ).to.be.eventually.rejectedWith(
-              `expected 112 to equal 113. The numerical values of the given "ethers.BigNumber" and "number" inputs were compared, and they differed`
-            );
-          }
+      it("Should fail when the predicate returns false", async () => {
+        await expect(
+          expect(
+            mockToken.transfer(receiver.address, 75)
+          ).to.changeTokenBalances(
+            mockToken,
+            [sender, receiver],
+            ([senderDiff, receiverDiff]: BigNumber[]) => {
+              return senderDiff.eq(-74) && receiverDiff.eq(75);
+            }
+          )
+        ).to.be.eventually.rejectedWith(
+          AssertionError,
+          "Expected the balance changes of MCK to satisfy the predicate, but they didn't"
+        );
+      });
+
+      it("Should fail when the predicate returns true and the assertion is negated", async () => {
+        await expect(
+          expect(
+            mockToken.transfer(receiver.address, 75)
+          ).to.not.changeTokenBalances(
+            mockToken,
+            [sender, receiver],
+            ([senderDiff, receiverDiff]: BigNumber[]) => {
+              return senderDiff.eq(-75) && receiverDiff.eq(75);
+            }
+          )
+        ).to.be.eventually.rejectedWith(
+          AssertionError,
+          "Expected the balance changes of MCK to NOT satisfy the predicate, but they did"
         );
       });
     });

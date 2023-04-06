@@ -231,7 +231,7 @@ describe("INTEGRATION: changeEtherBalance matcher", function () {
             ).to.changeEtherBalance(sender, (diff: BigNumber) => diff.eq(-500))
           ).to.be.eventually.rejectedWith(
             AssertionError,
-            `Expected the ether balance of "${sender.address}" should satisfy the predicate, but it changed by -200 wei and violated the predicate`
+            `Expected the ether balance change of "${sender.address}" to satisfy the predicate, but it didn't (balance change: -200 wei)`
           );
         });
 
@@ -261,7 +261,7 @@ describe("INTEGRATION: changeEtherBalance matcher", function () {
             )
           ).to.be.eventually.rejectedWith(
             AssertionError,
-            `Expected the ether balance of "${sender.address}" NOT to change by -200 wei and NOT satisfies the predicate, but it did`
+            `Expected the ether balance change of "${sender.address}" to NOT satisfy the predicate, but it did (balance change: -200 wei)`
           );
         });
 
