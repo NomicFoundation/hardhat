@@ -147,7 +147,7 @@ const LockModule = require("../ignition/LockModule");
   }
 ```
 
-The **Hardhat** test command will automtically include the `ignition` object within the scope of test files when running tests:
+The **Hardhat** test command will automatically include the `ignition` object within the scope of test files when running tests:
 
 ```sh
 npx hardhat test

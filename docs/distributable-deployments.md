@@ -127,6 +127,6 @@ We may look at other distribution mechanisms but we want to support distribution
   - run the deployment on each chain you are deploying to
     - rerun on failures
     - recreate the deployment artifact if needed.
-  - commit your successful deployed contract list and the deployment artifact to the repo
+  - commit your successfully deployed contract list and the deployment artifact to the repo
 - Distribute your contracts
   - push the repo to npm including the deployment artifact and the deployment result's deployed contract list
