@@ -22,16 +22,12 @@
   "types": "./dist/src/index.d.ts",
   "exports": {
     ".": "./dist/src/index.js",
-    "./helpers": "./dist/src/helpers.js",
-    "./errors": "./dist/src/errors.js"
+    "./helpers": "./dist/src/helpers.js"
   },
   "typesVersions": {
     "*": {
       "helpers": [
         "./dist/src/helpers"
-      ],
-      "errors": [
-        "./dist/src/errors"
       ]
     }
   },
