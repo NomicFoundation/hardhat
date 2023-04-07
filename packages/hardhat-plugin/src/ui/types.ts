@@ -3,7 +3,7 @@ import {
   ExecutionVertex,
   ExecutionVertexType,
   VertexVisitResultFailure,
-} from "@ignored/ignition-core";
+} from "@ignored/ignition-core/soon-to-be-removed";
 
 enum VertexStatusState {
   SUCCESS = "success",

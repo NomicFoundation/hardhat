@@ -1,4 +1,5 @@
-import { DeployState, ModuleParams } from "@ignored/ignition-core";
+import { ModuleParams } from "@ignored/ignition-core";
+import { DeployState } from "@ignored/ignition-core/soon-to-be-removed";
 
 import { ReconciliationFailedPanel } from "./ReconciliationFailedPanel";
 import { StartingPanel } from "./StartingPanel";

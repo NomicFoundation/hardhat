@@ -1,8 +1,8 @@
-import type {
-  VertexGraph,
-  VertexDescriptor,
+import {
   DeploymentGraphVertex,
-} from "@ignored/ignition-core";
+  VertexDescriptor,
+  VertexGraph,
+} from "@ignored/ignition-core/soon-to-be-removed";
 
 type DisplayType =
   | "deploy-contract"

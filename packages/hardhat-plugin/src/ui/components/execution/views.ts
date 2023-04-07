@@ -1,4 +1,4 @@
-import { DeployState } from "@ignored/ignition-core";
+import { DeployState } from "@ignored/ignition-core/soon-to-be-removed";
 
 /**
  * Determine whether any on-chain executions happened in this

@@ -1,5 +1,6 @@
 import type { IgnitionPlan } from "@ignored/ignition-core";
 
+import { LegacyIgnitionPlan } from "@ignored/ignition-core/soon-to-be-removed";
 import { exec } from "child_process";
 import { ethers } from "ethers";
 import fs from "fs-extra";
@@ -38,12 +39,14 @@ const regex = /%(\w+)%/g;
 
 export class Renderer {
   private _templates: LoadedTemplates = {};
+  private _plan: LegacyIgnitionPlan;
 
   constructor(
     public moduleName: string,
-    public plan: IgnitionPlan,
+    plan: IgnitionPlan,
     public config: RendererConfig
   ) {
+    this._plan = plan as LegacyIgnitionPlan;
     // ensure `plan` file structure once on construction
     // so we don't have to before every write function later
     this._ensureDirectoryStructure();
@@ -61,8 +64,8 @@ export class Renderer {
     // summary
     const networkName = this.config.network.name;
     const networkId = this.config.network.id as string;
-    const txTotal = utils.getTxTotal(this.plan.deploymentGraph);
-    const summaryLists = utils.getSummaryLists(this.plan.deploymentGraph);
+    const txTotal = utils.getTxTotal(this._plan.deploymentGraph);
+    const summaryLists = utils.getSummaryLists(this._plan.deploymentGraph);
     const summary = this._templates.summary.replace(
       regex,
       utils.replacer({ networkName, networkId, txTotal, summaryLists })
@@ -70,9 +73,9 @@ export class Renderer {
 
     // plan
     const mermaid = utils.wrapInMermaidDiv(
-      utils.graphToMermaid(this.plan.deploymentGraph)
+      utils.graphToMermaid(this._plan.deploymentGraph)
     );
-    const actions = utils.getActions(this.plan.deploymentGraph);
+    const actions = utils.getActions(this._plan.deploymentGraph);
     const plan = this._templates.plan.replace(
       regex,
       utils.replacer({ mermaid, actions })
@@ -86,7 +89,7 @@ export class Renderer {
 
     this._writeMainHTML(mainOutput);
 
-    for (const vertex of this.plan.deploymentGraph.vertexes.values()) {
+    for (const vertex of this._plan.deploymentGraph.vertexes.values()) {
       const type = utils.parseType(vertex);
       const typeText = utils.toTypeText(type);
       const label = vertex.label;
