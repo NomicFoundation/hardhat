@@ -15,8 +15,8 @@
   - [Linking libraries](./creating-modules-for-deployment.md#linking-libraries)
   - [Create2](./creating-modules-for-deployment.md#create2)
 - [Calling contract methods](./creating-modules-for-deployment.md#calling-contract-methods)
-  - [Transfering _Eth_ as part of a call](./creating-modules-for-deployment.md#transfering-eth-as-part-of-a-call)
-  - [Transfering _Eth_ outside of a call](./creating-modules-for-deployment.md#transfering-eth-outside-of-a-call)
+  - [Transferring _Eth_ as part of a call](./creating-modules-for-deployment.md#transfering-eth-as-part-of-a-call)
+  - [Transferring _Eth_ outside of a call](./creating-modules-for-deployment.md#transfering-eth-outside-of-a-call)
   - [Using the results of a call with a deferred value (TBD)](./creating-modules-for-deployment.md#using-the-results-of-a-call-with-a-deferred-value-tbd)
   - [Waiting for on-chain events](./creating-modules-for-deployment.md#waiting-for-on-chain-events)
 - [Network Accounts Management](./creating-modules-for-deployment.md#network-accounts-management)
@@ -207,7 +207,7 @@ m.call(exchange, "addToken", {
 });
 ```
 
-### Transfering _Eth_ as part of a call
+### Transferring _Eth_ as part of a call
 
 Similar to `ethers`, a call can transfer `Eth` by passing a `value` under the options:
 
