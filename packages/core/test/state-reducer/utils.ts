@@ -1,3 +1,4 @@
+import { assert } from "chai";
 import { ethers } from "ethers";
 
 import { deployStateReducer } from "../../src/internal/deployment/deployStateReducer";
@@ -7,8 +8,10 @@ import {
   DeployState,
   DeployStateCommand,
 } from "../../src/internal/types/deployment";
+import { isFailure } from "../../src/internal/utils/process-results";
 import { validateDeploymentGraph } from "../../src/internal/validation/validateDeploymentGraph";
 import { Module } from "../../src/types/module";
+import { ProcessResultKind } from "../../src/types/process";
 import { getMockServices } from "../helpers";
 
 export function applyActions(
@@ -19,11 +22,17 @@ export function applyActions(
 }
 
 export async function resolveExecutionGraphFor(module: Module<any>) {
-  const { graph: deploymentGraph } = generateDeploymentGraphFrom(module, {
+  const constructDeploymentGraphResult = generateDeploymentGraphFrom(module, {
     chainId: 31337,
     accounts: ["0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266"],
     artifacts: [],
   });
+
+  if (isFailure(constructDeploymentGraphResult)) {
+    assert.fail("Failure constructing deployment graph");
+  }
+
+  const { graph: deploymentGraph } = constructDeploymentGraphResult.result;
 
   const mockServices = {
     ...getMockServices(),
@@ -57,7 +66,7 @@ export async function resolveExecutionGraphFor(module: Module<any>) {
     mockServices
   );
 
-  if (validationKind === "failure") {
+  if (validationKind === ProcessResultKind.FAILURE) {
     throw new Error("Cannot resolve graph, failed validation");
   }
 
@@ -66,9 +75,9 @@ export async function resolveExecutionGraphFor(module: Module<any>) {
     mockServices
   );
 
-  if (transformResult._kind === "failure") {
+  if (isFailure(transformResult)) {
     throw new Error("Cannot resolve graph, failed transform");
   }
 
-  return transformResult.executionGraph;
+  return transformResult.result.executionGraph;
 }

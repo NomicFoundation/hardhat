@@ -5,7 +5,9 @@ import { ethers } from "ethers";
 
 import { Ignition } from "../../src/Ignition";
 import { buildModule } from "../../src/dsl/buildModule";
+import { IgnitionError } from "../../src/errors";
 import { TransactionsService } from "../../src/internal/services/TransactionsService";
+import { DeploymentResultState } from "../../src/internal/types/deployment";
 import { Artifact } from "../../src/types/hardhat";
 import { Providers } from "../../src/types/providers";
 import { getMockServices } from "../helpers";
@@ -116,7 +118,7 @@ describe("Rerunning execution", () => {
       const result = await ignition.deploy(myModule, {} as any);
 
       // Assert
-      assert.equal(result._kind, "success");
+      assert.equal(result._kind, DeploymentResultState.SUCCESS);
 
       // two transactions have been sent
       assert.equal(sentTransactionCount, 2, "precondition before rerun");
@@ -130,7 +132,7 @@ describe("Rerunning execution", () => {
       const redeployResult = await ignition.deploy(myModule, {} as any);
 
       // Assert
-      assert.equal(redeployResult._kind, "success");
+      assert.equal(redeployResult._kind, DeploymentResultState.SUCCESS);
 
       // only two on-chain transactions happen, none from the rerun
       assert.equal(
@@ -139,8 +141,7 @@ describe("Rerunning execution", () => {
         "postcondition on-chain transactions"
       );
 
-      assert.equal(redeployResult._kind, "success");
-      if (redeployResult._kind !== "success") {
+      if (redeployResult._kind !== DeploymentResultState.SUCCESS) {
         return assert.fail("Not a successful deploy");
       }
 
@@ -160,7 +161,7 @@ describe("Rerunning execution", () => {
       } as any);
 
       // Assert
-      assert.equal(redeployResult._kind, "success");
+      assert.equal(redeployResult._kind, DeploymentResultState.SUCCESS);
     });
   });
 
@@ -248,7 +249,7 @@ describe("Rerunning execution", () => {
       const result = await ignition.deploy(myModule, {} as any);
 
       // Assert
-      assert.equal(result._kind, "hold");
+      assert.equal(result._kind, DeploymentResultState.HOLD);
 
       // two calls sent
       assert.equal(
@@ -275,7 +276,7 @@ describe("Rerunning execution", () => {
       // additional query call on second run
       assert.equal(eventQueryCount, 2, "Wrong number of on-chain queries");
 
-      if (redeployResult._kind !== "success") {
+      if (redeployResult._kind !== DeploymentResultState.SUCCESS) {
         return assert.fail("Not a successful deploy");
       }
 
@@ -315,7 +316,7 @@ describe("Rerunning execution", () => {
 
       const result = await ignition.deploy(myModule, {} as any);
 
-      assert.equal(result._kind, "hold");
+      assert.equal(result._kind, DeploymentResultState.HOLD);
     });
   });
 
@@ -388,7 +389,7 @@ describe("Rerunning execution", () => {
       const result = await ignition.deploy(myModule, {} as any);
 
       // Assert
-      assert.equal(result._kind, "failure");
+      assert.equal(result._kind, DeploymentResultState.FAILURE);
 
       // one calls sent
       assert.equal(
@@ -398,7 +399,7 @@ describe("Rerunning execution", () => {
       );
 
       assert.deepStrictEqual(result, {
-        _kind: "failure",
+        _kind: DeploymentResultState.FAILURE,
         failures: [
           "execution failed",
           [new Error("Revert: All the apes have gone!")],
@@ -417,8 +418,7 @@ describe("Rerunning execution", () => {
       // the second transaction is successfully sent
       assert.equal(sentTransactionCount, 2, "postconditition after rerun");
 
-      assert.equal(redeployResult._kind, "success");
-      if (redeployResult._kind !== "success") {
+      if (redeployResult._kind !== DeploymentResultState.SUCCESS) {
         return assert.fail("Not a successful deploy");
       }
 
@@ -456,12 +456,12 @@ describe("Rerunning execution", () => {
       assert.equal(sentTransactionCount, 1, "postconditition after rerun");
 
       assert.deepStrictEqual(modifiedResult, {
-        _kind: "failure",
+        _kind: DeploymentResultState.FAILURE,
         failures: [
-          "module change failure",
+          "Module reconciliation failed",
           [
-            new Error(
-              "The module has been modified since the last run. Delete the journal file to start again."
+            new IgnitionError(
+              "The module has been modified since the last run. You can ignore the previous runs with the '--force' flag."
             ),
           ],
         ],

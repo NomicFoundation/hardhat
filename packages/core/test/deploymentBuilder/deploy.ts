@@ -10,6 +10,7 @@ import {
   isDeployedContract,
   isHardhatContract,
 } from "../../src/internal/utils/guards";
+import { isFailure } from "../../src/internal/utils/process-results";
 import { IDeploymentBuilder } from "../../src/types/dsl";
 import { Artifact } from "../../src/types/hardhat";
 
@@ -35,9 +36,16 @@ describe("deployment builder - deploy", function () {
         return { example };
       });
 
-      const { graph } = generateDeploymentGraphFrom(singleModule, options);
+      const constructDeploymentGraphResult = generateDeploymentGraphFrom(
+        singleModule,
+        options
+      );
 
-      deploymentGraph = graph;
+      if (isFailure(constructDeploymentGraphResult)) {
+        assert.fail("Failure to construct deployment graph");
+      }
+
+      deploymentGraph = constructDeploymentGraphResult.result.graph;
     });
 
     it("should create a graph", () => {
@@ -110,12 +118,16 @@ describe("deployment builder - deploy", function () {
         }
       );
 
-      const { graph } = generateDeploymentGraphFrom(
+      const constructDeploymentGraphResult = generateDeploymentGraphFrom(
         twoContractsModule,
         options
       );
 
-      deploymentGraph = graph;
+      if (isFailure(constructDeploymentGraphResult)) {
+        assert.fail("Failure to construct deployment graph");
+      }
+
+      deploymentGraph = constructDeploymentGraphResult.result.graph;
     });
 
     it("should create a graph", () => {
@@ -176,12 +188,16 @@ describe("deployment builder - deploy", function () {
         }
       );
 
-      const { graph } = generateDeploymentGraphFrom(
+      const constructDeploymentGraphResult = generateDeploymentGraphFrom(
         withConstructorArgsModule,
         options
       );
 
-      deploymentGraph = graph;
+      if (isFailure(constructDeploymentGraphResult)) {
+        assert.fail("Failure to construct deployment graph");
+      }
+
+      deploymentGraph = constructDeploymentGraphResult.result.graph;
     });
 
     it("should create a graph", () => {
@@ -245,12 +261,16 @@ describe("deployment builder - deploy", function () {
         }
       );
 
-      const { graph } = generateDeploymentGraphFrom(
+      const constructDeploymentGraphResult = generateDeploymentGraphFrom(
         depsBetweenContractsModule,
         options
       );
 
-      deploymentGraph = graph;
+      if (isFailure(constructDeploymentGraphResult)) {
+        assert.fail("Failure to construct deployment graph");
+      }
+
+      deploymentGraph = constructDeploymentGraphResult.result.graph;
     });
 
     it("should create a graph", () => {
@@ -339,9 +359,16 @@ describe("deployment builder - deploy", function () {
         return { uniswap };
       });
 
-      const { graph } = generateDeploymentGraphFrom(uniswapModule, options);
+      const constructDeploymentGraphResult = generateDeploymentGraphFrom(
+        uniswapModule,
+        options
+      );
 
-      deploymentGraph = graph;
+      if (isFailure(constructDeploymentGraphResult)) {
+        assert.fail("Failure to construct deployment graph");
+      }
+
+      deploymentGraph = constructDeploymentGraphResult.result.graph;
     });
 
     it("should create a graph", () => {
@@ -402,12 +429,16 @@ describe("deployment builder - deploy", function () {
         }
       );
 
-      const { graph } = generateDeploymentGraphFrom(
+      const constructDeploymentGraphResult = generateDeploymentGraphFrom(
         fromArtifactModule,
         options
       );
 
-      deploymentGraph = graph;
+      if (isFailure(constructDeploymentGraphResult)) {
+        assert.fail("Failure to construct deployment graph");
+      }
+
+      deploymentGraph = constructDeploymentGraphResult.result.graph;
     });
 
     it("should create a graph", () => {

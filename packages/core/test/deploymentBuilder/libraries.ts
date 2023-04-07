@@ -9,6 +9,7 @@ import {
   isHardhatContract,
   isHardhatLibrary,
 } from "../../src/internal/utils/guards";
+import { isFailure } from "../../src/internal/utils/process-results";
 import { IDeploymentBuilder } from "../../src/types/dsl";
 
 import {
@@ -42,13 +43,20 @@ describe("deployment builder - libraries", () => {
         }
       );
 
-      const { graph } = generateDeploymentGraphFrom(librariesModule, {
-        chainId: 31,
-        accounts: ["0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266"],
-        artifacts: [],
-      });
+      const constructDeploymentGraphResult = generateDeploymentGraphFrom(
+        librariesModule,
+        {
+          chainId: 31,
+          accounts: ["0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266"],
+          artifacts: [],
+        }
+      );
 
-      deploymentGraph = graph;
+      if (isFailure(constructDeploymentGraphResult)) {
+        assert.fail("Construction of deployment graph failed");
+      }
+
+      deploymentGraph = constructDeploymentGraphResult.result.graph;
     });
 
     it("should create a graph", () => {

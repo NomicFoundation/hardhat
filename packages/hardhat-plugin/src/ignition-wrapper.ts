@@ -1,6 +1,7 @@
 import type { Contract } from "ethers";
 
 import {
+  DeploymentResultState,
   ICommandJournal,
   Ignition,
   IgnitionDeployOptions,
@@ -84,7 +85,7 @@ export class IgnitionWrapper {
       force,
     });
 
-    if (deploymentResult._kind === "hold") {
+    if (deploymentResult._kind === DeploymentResultState.HOLD) {
       const heldVertexes = deploymentResult.holds;
 
       let heldMessage = "";
@@ -97,7 +98,7 @@ export class IgnitionWrapper {
       );
     }
 
-    if (deploymentResult._kind === "failure") {
+    if (deploymentResult._kind === DeploymentResultState.FAILURE) {
       const [failureType, failures] = deploymentResult.failures;
 
       if (failures.length === 1) {

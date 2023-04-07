@@ -4,6 +4,7 @@ import type {
 } from "../../types/executionGraph";
 
 import { IgnitionError } from "../../../errors";
+import { VertexResultEnum } from "../../types/graph";
 import { isDependable, isEventParam, isProxy } from "../../utils/guards";
 
 export function toAddress(v: any) {
@@ -38,13 +39,13 @@ function resolveFromContext(
     );
   }
 
-  if (entry._kind === "failure") {
+  if (entry._kind === VertexResultEnum.FAILURE) {
     throw new IgnitionError(
       `Looking up context on a failed vertex - violation of constraint`
     );
   }
 
-  if (entry._kind === "hold") {
+  if (entry._kind === VertexResultEnum.HOLD) {
     throw new IgnitionError(
       `Looking up context on a on hold - violation of constraint`
     );

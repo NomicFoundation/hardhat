@@ -12,6 +12,7 @@ import {
   isCall,
   isHardhatContract,
 } from "../../src/internal/utils/guards";
+import { isFailure } from "../../src/internal/utils/process-results";
 import { IDeploymentBuilder } from "../../src/types/dsl";
 
 import { getDeploymentVertexByLabel } from "./helpers";
@@ -41,13 +42,20 @@ describe("deployment builder - value", () => {
       return { foo };
     });
 
-    const { graph } = generateDeploymentGraphFrom(callModule, {
-      chainId: 31337,
-      accounts: [],
-      artifacts: [],
-    });
+    const constructDeploymentGraphResult = generateDeploymentGraphFrom(
+      callModule,
+      {
+        chainId: 31337,
+        accounts: [],
+        artifacts: [],
+      }
+    );
 
-    deploymentGraph = graph;
+    if (isFailure(constructDeploymentGraphResult)) {
+      assert.fail("Construction of deployment graph failed");
+    }
+
+    deploymentGraph = constructDeploymentGraphResult.result.graph;
   });
 
   it("should default to zero value if not given a value parameter", () => {

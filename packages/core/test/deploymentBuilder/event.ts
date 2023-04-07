@@ -9,6 +9,7 @@ import {
   isAwaitedEvent,
   isCall,
 } from "../../src/internal/utils/guards";
+import { isFailure } from "../../src/internal/utils/process-results";
 import { IDeploymentBuilder } from "../../src/types/dsl";
 import { ArtifactContract } from "../../src/types/future";
 
@@ -86,13 +87,20 @@ describe("deployment builder - await event", () => {
       return {};
     });
 
-    const { graph } = generateDeploymentGraphFrom(eventModule, {
-      chainId: 31337,
-      accounts: [],
-      artifacts: [],
-    });
+    const constructDeploymentGraphResult = generateDeploymentGraphFrom(
+      eventModule,
+      {
+        chainId: 31337,
+        accounts: [],
+        artifacts: [],
+      }
+    );
 
-    deploymentGraph = graph;
+    if (isFailure(constructDeploymentGraphResult)) {
+      assert.fail("Construction of deployment graph failed");
+    }
+
+    deploymentGraph = constructDeploymentGraphResult.result.graph;
   });
 
   it("should create a graph", () => {

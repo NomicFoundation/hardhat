@@ -7,7 +7,10 @@ import { Deployment } from "../../src/internal/deployment/Deployment";
 import { ExecutionGraph } from "../../src/internal/execution/ExecutionGraph";
 import { execute } from "../../src/internal/execution/execute";
 import { ExecutionVertex } from "../../src/internal/types/executionGraph";
-import { VertexResultEnum } from "../../src/internal/types/graph";
+import {
+  VertexResultEnum,
+  VisitResultState,
+} from "../../src/internal/types/graph";
 import { ICommandJournal } from "../../src/internal/types/journal";
 import {
   Services,
@@ -74,7 +77,7 @@ describe("Execution - dispatch", () => {
 
     assert.isDefined(response);
 
-    if (response._kind !== "success") {
+    if (response._kind !== VisitResultState.SUCCESS) {
       return assert.fail("deploy failed");
     }
 
@@ -137,7 +140,7 @@ describe("Execution - dispatch", () => {
     );
 
     assert.isDefined(response);
-    if (response._kind !== "success") {
+    if (response._kind !== VisitResultState.SUCCESS) {
       return assert.fail("deploy failed");
     }
 
@@ -244,7 +247,7 @@ describe("Execution - dispatch", () => {
     );
 
     assert.isDefined(response);
-    if (response._kind !== "success") {
+    if (response._kind !== VisitResultState.SUCCESS) {
       return assert.fail("deploy failed");
     }
 
@@ -382,7 +385,7 @@ describe("Execution - dispatch", () => {
         mockServices
       );
 
-      if (response._kind !== "success") {
+      if (response._kind !== VisitResultState.SUCCESS) {
         return assert.fail("deploy failed");
       }
 
@@ -407,7 +410,7 @@ describe("Execution - dispatch", () => {
       );
 
       assert(
-        response._kind === "hold",
+        response._kind === VisitResultState.HOLD,
         `response should be hold, not: ${response._kind}`
       );
     });
@@ -437,7 +440,7 @@ describe("Execution - dispatch", () => {
     );
 
     assert.isDefined(response);
-    if (response._kind !== "success") {
+    if (response._kind !== VisitResultState.SUCCESS) {
       return assert.fail("deploy failed");
     }
 

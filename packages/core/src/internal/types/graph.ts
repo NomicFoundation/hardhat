@@ -89,17 +89,28 @@ export type VertexVisitResult<T> =
   | VertexVisitResultFailure
   | VertexVisitResultHold;
 
+/**
+ * The possible state of processing a visit pass.
+ *
+ * @internal
+ */
+export enum VisitResultState {
+  SUCCESS = "success",
+  FAILURE = "failure",
+  HOLD = "hold",
+}
+
 export type VisitResult<T> =
   | {
-      _kind: "success";
+      _kind: VisitResultState.SUCCESS;
       result: ResultsAccumulator<T>;
     }
   | {
-      _kind: "failure";
+      _kind: VisitResultState.FAILURE;
       failures: [string, Error[]];
     }
   | {
-      _kind: "hold";
+      _kind: VisitResultState.HOLD;
       holds: VertexDescriptor[];
     };
 

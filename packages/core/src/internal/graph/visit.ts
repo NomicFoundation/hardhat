@@ -1,9 +1,11 @@
 import { IgnitionError } from "../../errors";
 import {
   IGraph,
-  VertexVisitResult,
   ResultsAccumulator,
+  VertexResultEnum,
+  VertexVisitResult,
   VisitResult,
+  VisitResultState,
 } from "../types/graph";
 
 export async function visit<T, C, TResult>(
@@ -16,8 +18,7 @@ export async function visit<T, C, TResult>(
     vertex: T,
     resultAccumulator: ResultsAccumulator<TResult>,
     context: C
-  ) => Promise<VertexVisitResult<TResult>>,
-  afterAction?: (vertex: T, kind: "success" | "failure", err?: unknown) => void
+  ) => Promise<VertexVisitResult<TResult>>
 ): Promise<VisitResult<TResult>> {
   for (const vertexId of orderedVertexIds) {
     const vertex = graph.vertexes.get(vertexId);
@@ -32,30 +33,22 @@ export async function visit<T, C, TResult>(
       context
     );
 
-    if (vertexVisitResult._kind === "failure") {
-      if (afterAction !== undefined) {
-        afterAction(vertex, "failure", vertexVisitResult.failure);
-      }
-
+    if (vertexVisitResult._kind === VertexResultEnum.FAILURE) {
       return {
-        _kind: "failure",
+        _kind: VisitResultState.FAILURE,
         failures: [`${phase} failed`, [vertexVisitResult.failure]],
       };
     }
 
-    if (vertexVisitResult._kind === "hold") {
+    if (vertexVisitResult._kind === VertexResultEnum.HOLD) {
       return {
-        _kind: "hold",
+        _kind: VisitResultState.HOLD,
         holds: [vertex as any],
       };
     }
 
     resultAccumulator.set(vertexId, vertexVisitResult);
-
-    if (afterAction !== undefined) {
-      afterAction(vertex, "success");
-    }
   }
 
-  return { _kind: "success", result: resultAccumulator };
+  return { _kind: VisitResultState.SUCCESS, result: resultAccumulator };
 }

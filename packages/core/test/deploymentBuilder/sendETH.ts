@@ -6,6 +6,7 @@ import { buildModule } from "../../src/dsl/buildModule";
 import { generateDeploymentGraphFrom } from "../../src/internal/process/generateDeploymentGraphFrom";
 import { IDeploymentGraph } from "../../src/internal/types/deploymentGraph";
 import { isHardhatContract } from "../../src/internal/utils/guards";
+import { isFailure } from "../../src/internal/utils/process-results";
 import { IDeploymentBuilder } from "../../src/types/dsl";
 
 import {
@@ -26,13 +27,20 @@ describe("deployment builder - send ETH", () => {
       return {};
     });
 
-    const { graph } = generateDeploymentGraphFrom(sendModule, {
-      chainId: 31337,
-      accounts: ["0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266"],
-      artifacts: [],
-    });
+    const constructDeploymentGraphResult = generateDeploymentGraphFrom(
+      sendModule,
+      {
+        chainId: 31337,
+        accounts: ["0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266"],
+        artifacts: [],
+      }
+    );
 
-    deploymentGraph = graph;
+    if (isFailure(constructDeploymentGraphResult)) {
+      assert.fail("Construction of deployment graph failed");
+    }
+
+    deploymentGraph = constructDeploymentGraphResult.result.graph;
   });
 
   it("should create a graph", () => {
