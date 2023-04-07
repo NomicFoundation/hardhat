@@ -10,16 +10,13 @@ declare module "mocha" {
   }
 }
 
-export const useEnvironment = (
-  fixtureProjectName: string,
-  networkName = "hardhat"
-): void => {
+export const useEnvironment = (fixtureProjectName: string): void => {
   const currentDir = __dirname;
   before("Loading hardhat environment", function () {
     process.chdir(
       path.join(currentDir, "fixture-projects", fixtureProjectName)
     );
-    process.env.HARDHAT_NETWORK = networkName;
+    process.env.HARDHAT_NETWORK = "hardhat";
 
     this.hre = require("hardhat");
   });
@@ -53,3 +50,6 @@ export const deployContract = async (
   await contract.deployTransaction.wait(confirmations);
   return contract.address;
 };
+
+export const getRandomAddress = (hre: HardhatRuntimeEnvironment): string =>
+  hre.ethers.Wallet.createRandom().address;

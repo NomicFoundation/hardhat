@@ -37,12 +37,13 @@ export class Etherscan {
     this._browserUrl = chainConfig.urls.browserURL.trim().replace(/\/$/, "");
   }
 
+  // https://docs.etherscan.io/api-endpoints/contracts#get-contract-source-code-for-verified-contract-source-codes
   public async isVerified(address: string) {
     const parameters = new URLSearchParams({
+      apikey: this._apiKey,
       module: "contract",
       action: "getsourcecode",
       address,
-      apikey: this._apiKey,
     });
 
     const url = new URL(this._apiUrl);
@@ -59,6 +60,7 @@ export class Etherscan {
     return sourceCode !== undefined && sourceCode !== "";
   }
 
+  // https://docs.etherscan.io/api-endpoints/contracts#verify-source-code
   public async verify({
     address,
     sourceCode,
@@ -112,6 +114,7 @@ export class Etherscan {
     return etherscanResponse;
   }
 
+  // https://docs.etherscan.io/api-endpoints/contracts#check-source-code-verification-submission-status
   public async getVerificationStatus(guid: string): Promise<EtherscanResponse> {
     const parameters = new URLSearchParams({
       apikey: this._apiKey,

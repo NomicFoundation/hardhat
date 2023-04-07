@@ -39,6 +39,7 @@ export const inferCompilerVersion = (bytecode: Buffer): string => {
       log(`Solc version detected in bytecode: ${solcVersion}`);
       return solcVersion;
     }
+    // probably unreachable
     log(
       `Found solc version field with ${solcMetadata.length} elements instead of three!`
     );

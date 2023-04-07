@@ -1,22 +1,45 @@
-import { useEnvironment } from "../helpers";
+import sinon from "sinon";
+import { assert, expect } from "chai";
+import { setGlobalDispatcher } from "undici";
+import { TASK_VERIFY } from "../../src/task-names";
+import { getRandomAddress, useEnvironment } from "../helpers";
+import EtherscanMockAgent from "./mocks/etherscan";
+
+import "../../src/type-extensions";
 
 describe("verify task", function () {
-  this.timeout(1000000);
+  // this.timeout(1000000);
+  useEnvironment("hardhat-project");
+  setGlobalDispatcher(EtherscanMockAgent);
 
-  before(function () {
-    if (process.env.RUN_ETHERSCAN_TESTS !== "yes") {
-      this.skip();
-    } else {
-      if (
-        process.env.WALLET_PRIVATE_KEY === undefined ||
-        process.env.WALLET_PRIVATE_KEY === ""
-      ) {
-        throw new Error("missing WALLET_PRIVATE_KEY env variable");
-      }
-    }
+  it("should return after printing the supported networks", async function () {
+    const logStub = sinon.stub(console, "log");
+    const taskResponse = await this.hre.run(TASK_VERIFY, {
+      address: getRandomAddress(this.hre),
+      constructorArgsParams: [],
+      listNetworks: true,
+    });
+
+    expect(logStub).to.be.calledOnceWith(
+      sinon.match(/Networks supported by hardhat-etherscan/)
+    );
+    logStub.restore();
+    assert.isUndefined(taskResponse);
   });
 
-  describe("verify:process-arguments", () => {
-    useEnvironment("hardhat-project-undefined-config");
+  it("should return if the contract is already verified", async function () {
+    const logStub = sinon.stub(console, "log");
+    const address = getRandomAddress(this.hre);
+
+    const taskResponse = await this.hre.run(TASK_VERIFY, {
+      address,
+      constructorArgsParams: [],
+    });
+
+    expect(logStub).to.be.calledOnceWith(
+      `The contract ${address} has already been verified`
+    );
+    logStub.restore();
+    assert.isUndefined(taskResponse);
   });
 });

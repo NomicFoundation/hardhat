@@ -1,7 +1,7 @@
 import { assert } from "chai";
 import { HardhatConfig, HardhatUserConfig } from "hardhat/types";
-import { etherscanConfigExtender } from "../src/config";
-import { EtherscanConfig } from "../src/types";
+import { etherscanConfigExtender } from "../../src/config";
+import { EtherscanConfig } from "../../src/types";
 
 describe("Chain Config", () => {
   it("should extend the hardhat config with the user config", async () => {

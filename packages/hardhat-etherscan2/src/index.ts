@@ -161,11 +161,13 @@ task(TASK_VERIFY, "Verifies a contract on Etherscan")
   });
 
 subtask(TASK_VERIFY_PROCESS_ARGUMENTS)
-  .addParam("address")
-  .addOptionalParam("constructorArgsParams", undefined, [])
+  .addOptionalParam("address")
+  .addOptionalParam("constructorArgsParams", undefined, [], types.any)
   .addOptionalParam("constructorArgs", undefined, undefined, types.inputFile)
   .addOptionalParam("libraries", undefined, undefined, types.inputFile)
   .addOptionalParam("contract")
+  .addFlag("listNetworks")
+  .addFlag("noCompile")
   .setAction(
     async ({
       address,
@@ -222,8 +224,8 @@ subtask(TASK_VERIFY_GET_VERIFICATION_SUBTASKS, async (): Promise<string[]> => {
  */
 subtask(TASK_VERIFY_VERIFY_ETHERSCAN)
   .addParam("address")
-  .addOptionalParam("constructorArgs")
-  .addOptionalParam("libraries")
+  .addParam("constructorArgs", undefined, [], types.any)
+  .addParam("libraries", undefined, {}, types.any)
   .addOptionalParam("contractFQN")
   .addFlag("listNetworks")
   .addFlag("noCompile")
@@ -522,9 +524,9 @@ ${contractURL}`
  * and calls TASK_VERIFY_VERIFY_ETHERSCAN directly.
  */
 subtask(TASK_VERIFY_VERIFY)
-  .addParam("address")
-  .addOptionalParam("constructorArguments", undefined, [])
-  .addOptionalParam("libraries", undefined, {})
+  .addOptionalParam("address")
+  .addOptionalParam("constructorArguments", undefined, [], types.any)
+  .addOptionalParam("libraries", undefined, {}, types.any)
   .addOptionalParam("contract")
   .addFlag("noCompile")
   .setAction(
