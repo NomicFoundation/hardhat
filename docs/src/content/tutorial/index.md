@@ -27,6 +27,6 @@ To follow this tutorial you should be able to:
 - Operate a [terminal](https://en.wikipedia.org/wiki/Terminal_emulator)
 - Use [git](https://git-scm.com/doc)
 - Understand the basics of how [smart contracts](https://ethereum.org/learn/#smart-contracts) work
-- Set up a [Metamask](https://metamask.io/) wallet
+- Set up a [Coinbase](https://www.coinbase.com/wallet) or [Metamask](https://metamask.io/) wallet
 
 If you can't do any of the above, follow the links and take some time to learn the basics.
