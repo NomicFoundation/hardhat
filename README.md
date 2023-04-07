@@ -51,10 +51,10 @@ See our [Getting started guide](./docs/getting-started-guide.md) for a worked ex
 
 This repo contains example projects that show **Ignition** features in context (under `./examples`):
 
-- [Sample](./examples/sample/README.md) - the **Hardhat** starter project enhanced with Ignition
-- [ENS](./examples/ens/README.md) - deploy ENS and its registry for local testing
-- [Create2](./examples/create2/README.md) - deploy contracts using a `create2` factory
-- [Uniswap](./examples/uniswap/README.md) - deploy Uniswap and test swaps
+- [Sample](./examples/sample) - the **Hardhat** starter project enhanced with Ignition
+- [ENS](./examples/ens) - deploy ENS and its registry for local testing
+- [Create2](./examples/create2) - deploy contracts using a `create2` factory
+- [Uniswap](./examples/uniswap) - deploy Uniswap and test swaps
 
 ## Contributing
 
