@@ -113,7 +113,7 @@ impl DatabaseCommit for TrieState {
 impl StateDebug for TrieState {
     type Error = StateError;
 
-    fn account_storage_root(&mut self, address: &Address) -> Result<Option<B256>, Self::Error> {
+    fn account_storage_root(&self, address: &Address) -> Result<Option<B256>, Self::Error> {
         Ok(self.accounts.storage_root(address))
     }
 
@@ -199,7 +199,7 @@ impl StateDebug for TrieState {
         }))
     }
 
-    fn serialize(&mut self) -> String {
+    fn serialize(&self) -> String {
         self.accounts.serialize()
     }
 
@@ -215,7 +215,7 @@ impl StateDebug for TrieState {
         Ok(())
     }
 
-    fn state_root(&mut self) -> Result<B256, Self::Error> {
+    fn state_root(&self) -> Result<B256, Self::Error> {
         Ok(self.accounts.state_root())
     }
 }

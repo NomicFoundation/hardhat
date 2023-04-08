@@ -77,7 +77,7 @@ impl StateDebug for HybridState<RethnetLayer> {
     type Error = StateError;
 
     #[cfg_attr(feature = "tracing", tracing::instrument)]
-    fn account_storage_root(&mut self, address: &Address) -> Result<Option<B256>, Self::Error> {
+    fn account_storage_root(&self, address: &Address) -> Result<Option<B256>, Self::Error> {
         self.trie.account_storage_root(address)
     }
 
@@ -157,7 +157,7 @@ impl StateDebug for HybridState<RethnetLayer> {
     }
 
     #[cfg_attr(feature = "tracing", tracing::instrument)]
-    fn serialize(&mut self) -> String {
+    fn serialize(&self) -> String {
         self.trie.serialize()
     }
 
@@ -179,7 +179,7 @@ impl StateDebug for HybridState<RethnetLayer> {
     }
 
     #[cfg_attr(feature = "tracing", tracing::instrument)]
-    fn state_root(&mut self) -> Result<B256, Self::Error> {
+    fn state_root(&self) -> Result<B256, Self::Error> {
         self.trie.state_root()
     }
 }
