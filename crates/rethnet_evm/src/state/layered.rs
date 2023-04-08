@@ -82,7 +82,7 @@ impl StateDebug for LayeredState<RethnetLayer> {
     type Error = StateError;
 
     #[cfg_attr(feature = "tracing", tracing::instrument)]
-    fn account_storage_root(&mut self, address: &Address) -> Result<Option<B256>, Self::Error> {
+    fn account_storage_root(&self, address: &Address) -> Result<Option<B256>, Self::Error> {
         Ok(self
             .changes
             .account(address)
@@ -150,7 +150,7 @@ impl StateDebug for LayeredState<RethnetLayer> {
     }
 
     #[cfg_attr(feature = "tracing", tracing::instrument)]
-    fn serialize(&mut self) -> String {
+    fn serialize(&self) -> String {
         self.changes.serialize()
     }
 
@@ -170,7 +170,7 @@ impl StateDebug for LayeredState<RethnetLayer> {
     }
 
     #[cfg_attr(feature = "tracing", tracing::instrument)]
-    fn state_root(&mut self) -> Result<B256, Self::Error> {
+    fn state_root(&self) -> Result<B256, Self::Error> {
         let mut state = HashMap::new();
 
         self.changes
