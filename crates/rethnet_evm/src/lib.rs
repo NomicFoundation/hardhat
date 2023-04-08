@@ -16,7 +16,7 @@ pub use revm::{
         InstructionResult, Interpreter, OPCODE_JUMPMAP,
     },
     primitives::*,
-    EVMData, Inspector,
+    Inspector,
 };
 
 pub use crate::{
@@ -37,7 +37,6 @@ pub mod trace;
 
 mod block;
 pub(crate) mod evm;
-mod inspector;
 pub(crate) mod random;
 mod runtime;
 mod transaction;

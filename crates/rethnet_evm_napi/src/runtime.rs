@@ -1,7 +1,8 @@
 use napi::Status;
 use napi_derive::napi;
 use rethnet_evm::{
-    state::StateError, BlockEnv, CfgEnv, InvalidTransaction, TransactionError, TxEnv,
+    state::StateError, trace::TraceCollector, BlockEnv, CfgEnv, InvalidTransaction, ResultAndState,
+    SyncInspector, TransactionError, TxEnv,
 };
 
 use crate::{
@@ -9,8 +10,7 @@ use crate::{
     blockchain::Blockchain,
     config::Config,
     state::StateManager,
-    tracer::Tracer,
-    transaction::{result::ExecutionResult, Transaction},
+    transaction::{result::TransactionResult, Transaction},
 };
 
 /// The Rethnet runtime, which can execute individual transactions.
@@ -48,20 +48,28 @@ impl Rethnet {
         &self,
         transaction: Transaction,
         block: BlockConfig,
-        tracer: Option<&Tracer>,
-    ) -> napi::Result<ExecutionResult> {
+        with_trace: bool,
+    ) -> napi::Result<TransactionResult> {
         let transaction = TxEnv::try_from(transaction)?;
         let block = BlockEnv::try_from(block)?;
 
-        let inspector = tracer.map(|tracer| tracer.as_dyn_inspector());
+        let mut tracer = TraceCollector::default();
+        let inspector: Option<&mut dyn SyncInspector<napi::Error, StateError>> =
+            if with_trace { Some(&mut tracer) } else { None };
 
-        let (result, _state, trace) = self
+        let ResultAndState { result, state } = self
             .runtime
             .dry_run(transaction, block, inspector)
             .await
             .map_err(|e| napi::Error::new(Status::GenericFailure, e.to_string()))?;
 
-        Ok(ExecutionResult::from((result, trace)))
+        let trace = if with_trace {
+            Some(tracer.into_trace())
+        } else {
+            None
+        };
+
+        Ok(TransactionResult::new(result, Some(state), trace))
     }
 
     /// Executes the provided transaction without changing state, ignoring validation checks in the process.
@@ -71,20 +79,28 @@ impl Rethnet {
         &self,
         transaction: Transaction,
         block: BlockConfig,
-        tracer: Option<&Tracer>,
-    ) -> napi::Result<ExecutionResult> {
+        with_trace: bool,
+    ) -> napi::Result<TransactionResult> {
         let transaction = TxEnv::try_from(transaction)?;
         let block = BlockEnv::try_from(block)?;
 
-        let inspector = tracer.map(|tracer| tracer.as_dyn_inspector());
+        let mut tracer = TraceCollector::default();
+        let inspector: Option<&mut dyn SyncInspector<napi::Error, StateError>> =
+            if with_trace { Some(&mut tracer) } else { None };
 
-        let (result, _state, trace) = self
+        let ResultAndState { result, state } = self
             .runtime
             .guaranteed_dry_run(transaction, block, inspector)
             .await
             .map_err(|e| napi::Error::new(Status::GenericFailure, e.to_string()))?;
 
-        Ok(ExecutionResult::from((result, trace)))
+        let trace = if with_trace {
+            Some(tracer.into_trace())
+        } else {
+            None
+        };
+
+        Ok(TransactionResult::new(result, Some(state), trace))
     }
 
     /// Executes the provided transaction, changing state in the process.
@@ -94,27 +110,37 @@ impl Rethnet {
         &self,
         transaction: Transaction,
         block: BlockConfig,
-        tracer: Option<&Tracer>,
-    ) -> napi::Result<ExecutionResult> {
+        with_trace: bool,
+    ) -> napi::Result<TransactionResult> {
         let transaction = TxEnv::try_from(transaction)?;
         let block = BlockEnv::try_from(block)?;
 
-        let inspector = tracer.map(|tracer| tracer.as_dyn_inspector());
+        let mut tracer = TraceCollector::default();
+        let inspector: Option<&mut dyn SyncInspector<napi::Error, StateError>> =
+            if with_trace { Some(&mut tracer) } else { None };
 
-        Ok(ExecutionResult::from(self
-            .runtime
-            .run(transaction, block, inspector)
-            .await
-            .map_err(|e| {
-                napi::Error::new(
-                    Status::GenericFailure,
-                    match e {
-                        TransactionError::InvalidTransaction(
-                            InvalidTransaction::LackOfFundForGasLimit { gas_limit, balance },
-                        ) => format!("sender doesn't have enough funds to send tx. The max upfront cost is: {} and the sender's account only has: {}", gas_limit, balance),
-                        e => e.to_string(),
-                    },
-                )
-            })?))
+        let result = self
+        .runtime
+        .run(transaction, block, inspector)
+        .await
+        .map_err(|e| {
+            napi::Error::new(
+                Status::GenericFailure,
+                match e {
+                    TransactionError::InvalidTransaction(
+                        InvalidTransaction::LackOfFundForGasLimit { gas_limit, balance },
+                    ) => format!("sender doesn't have enough funds to send tx. The max upfront cost is: {} and the sender's account only has: {}", gas_limit, balance),
+                    e => e.to_string(),
+                },
+            )
+        })?;
+
+        let trace = if with_trace {
+            Some(tracer.into_trace())
+        } else {
+            None
+        };
+
+        Ok(TransactionResult::new(result, None, trace))
     }
 }

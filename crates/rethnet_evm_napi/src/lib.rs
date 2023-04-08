@@ -16,5 +16,4 @@ mod state;
 mod sync;
 mod threadsafe_function;
 mod trace;
-mod tracer;
 mod transaction;
