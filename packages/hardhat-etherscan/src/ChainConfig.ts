@@ -226,6 +226,15 @@ export const chainConfig: ChainConfig = {
       browserURL: "https://explorer.pops.one",
     },
   },
+  base_goerli: {
+    chainId: 84531,
+    urls: {
+      apiURL: "https://api-goerli.basescan.org/api",
+      browserURL: "https://goerli.basescan.org",
+    },
+  }
+
+  
   // We are not adding new networks to the core of hardhat-etherscan anymore.
   // Please read this to learn how to manually add support for custom networks:
   // https://github.com/NomicFoundation/hardhat/tree/main/packages/hardhat-etherscan#adding-support-for-other-networks

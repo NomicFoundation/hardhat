@@ -45,7 +45,12 @@ describe("Etherscan API Key resolution", () => {
         expectedBadApiKeyMessage
       );
     });
-
+    it("should return epmty apiKey  if api key root is empty string and network is base-goerli", () => {
+      assert.equal(
+         resolveEtherscanApiKey("", "base_goerli"),
+        ""
+      );
+    });
     it("should throw if network subkey is undefined", () => {
       assert.throws(
         // @ts-expect-error

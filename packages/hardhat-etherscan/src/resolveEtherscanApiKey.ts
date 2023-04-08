@@ -6,7 +6,14 @@ export const resolveEtherscanApiKey = (
   apiKey: EtherscanConfig["apiKey"],
   network: string
 ): string => {
+
+
+  if(apiKey === "" && network==="base_goerli"){
+      return apiKey;
+  }
+
   if (apiKey === undefined || apiKey === "") {
+   
     throwMissingApiKeyError(network);
   }
 
