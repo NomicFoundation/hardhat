@@ -69,5 +69,13 @@ describe("HttpProvider", function () {
       assert.equal(result, successResponse.result);
       assert(tooManyRequestsReturned);
     });
+    it("should throw error if the url is empty",async function(){
+
+      const provider = new HttpProvider("", networkName, {}, 20000);
+      await expectErrorAsync(async () => {
+        await provider.request({ method: "net_version" });
+      }, "Only absolute urls are supported");
+
+    })
   });
 });

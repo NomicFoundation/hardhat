@@ -437,6 +437,13 @@ Please double check your transactions' parameters.`,
 Please check that you are sending an \`address\` parameter.`,
       shouldBeReported: false,
     },
+    EMPTY_URL:{
+      number:117,
+      message:"Only Absolute URLs are supported",
+      title:"Empty URL",
+      description:" An empty url is passed for the selected network in deploy.js file",
+      shouldBeReported:true
+    }
   },
   TASK_DEFINITIONS: {
     PARAM_AFTER_VARIADIC: {
