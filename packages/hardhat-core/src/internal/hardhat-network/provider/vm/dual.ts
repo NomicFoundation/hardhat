@@ -300,10 +300,9 @@ export class DualModeAdapter implements VMAdapter {
     return this._ethereumJSAdapter.revertBlock();
   }
 
-  public async makeSnapshot(): Promise<[Buffer, boolean]> {
-    const [ethereumJSRoot, _] = await this._ethereumJSAdapter.makeSnapshot();
-    const [rethnetRoot, rethnetExisted] =
-      await this._rethnetAdapter.makeSnapshot();
+  public async makeSnapshot(): Promise<Buffer> {
+    const ethereumJSRoot = await this._ethereumJSAdapter.makeSnapshot();
+    const rethnetRoot = await this._rethnetAdapter.makeSnapshot();
 
     if (!ethereumJSRoot.equals(rethnetRoot)) {
       console.trace(
@@ -315,16 +314,12 @@ export class DualModeAdapter implements VMAdapter {
       throw new Error("Different snapshot state root");
     }
 
-    return [rethnetRoot, rethnetExisted];
+    return rethnetRoot;
   }
 
-  public async removeSnapshot(stateRoot: Buffer): Promise<boolean> {
-    const _ethereumJSSuccess = await this._ethereumJSAdapter.removeSnapshot(
-      stateRoot
-    );
-    const rethnetSuccess = await this._rethnetAdapter.removeSnapshot(stateRoot);
-
-    return rethnetSuccess;
+  public async removeSnapshot(stateRoot: Buffer): Promise<void> {
+    await this._ethereumJSAdapter.removeSnapshot(stateRoot);
+    await this._rethnetAdapter.removeSnapshot(stateRoot);
   }
 
   public getLastTrace(): {

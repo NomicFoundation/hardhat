@@ -18,8 +18,8 @@ pub trait StateHistory {
 
     /// Makes a snapshot of the database that's retained until [`remove_snapshot`] is called. Returns the snapshot's identifier and whether
     /// that snapshot already existed.
-    fn make_snapshot(&mut self) -> (B256, bool);
+    fn make_snapshot(&mut self) -> B256;
 
     /// Removes the snapshot corresponding to the specified state root, if it exists. Returns whether a snapshot was removed.
-    fn remove_snapshot(&mut self, state_root: &B256) -> bool;
+    fn remove_snapshot(&mut self, state_root: &B256);
 }

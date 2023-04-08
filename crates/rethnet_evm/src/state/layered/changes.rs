@@ -6,7 +6,10 @@ use hasher::HasherKeccak;
 use rethnet_eth::{account::KECCAK_EMPTY, state::storage_root, Address, B256, U256};
 use revm::primitives::{Account, AccountInfo, Bytecode};
 
-use crate::state::{account::RethnetAccount, contract::ContractStorage};
+use crate::{
+    collections::{SharedMap, SharedMapEntry},
+    state::account::RethnetAccount,
+};
 
 #[derive(Clone, Debug)]
 pub struct LayeredChanges<Layer> {
@@ -78,12 +81,12 @@ impl<Layer: Default> Default for LayeredChanges<Layer> {
 }
 
 /// A layer with information needed for [`Rethnet`].
-#[derive(Clone, Debug, Default)]
+#[derive(Clone, Debug)]
 pub struct RethnetLayer {
     /// Accounts, where the Option signals deletion.
     accounts: HashMap<Address, Option<RethnetAccount>>,
     /// Code hash -> Address
-    contracts: ContractStorage<false>,
+    contracts: SharedMap<B256, Bytecode, false>,
     /// Cached state root
     state_root: Option<B256>,
 }
@@ -95,7 +98,7 @@ impl RethnetLayer {
     }
 
     /// Retrieves the contract storage
-    pub fn contracts(&self) -> &ContractStorage<false> {
+    pub fn contracts(&self) -> &SharedMap<B256, Bytecode, false> {
         &self.contracts
     }
 
@@ -115,6 +118,19 @@ impl RethnetLayer {
     }
 }
 
+impl Default for RethnetLayer {
+    fn default() -> Self {
+        let mut contracts = SharedMap::default();
+        contracts.insert(KECCAK_EMPTY, Bytecode::new());
+
+        Self {
+            accounts: HashMap::default(),
+            contracts,
+            state_root: None,
+        }
+    }
+}
+
 impl From<HashMap<Address, AccountInfo>> for RethnetLayer {
     fn from(accounts: HashMap<Address, AccountInfo>) -> Self {
         let mut accounts: HashMap<Address, Option<RethnetAccount>> = accounts
@@ -122,7 +138,7 @@ impl From<HashMap<Address, AccountInfo>> for RethnetLayer {
             .map(|(address, account_info)| (address, Some(account_info.into())))
             .collect();
 
-        let mut contracts = ContractStorage::default();
+        let mut contracts = SharedMap::default();
 
         accounts
             .values_mut()
@@ -133,9 +149,11 @@ impl From<HashMap<Address, AccountInfo>> for RethnetLayer {
             })
             .for_each(|code| {
                 if code.hash() != KECCAK_EMPTY {
-                    contracts.insert_code(code);
+                    contracts.insert(code.hash(), code);
                 }
             });
+
+        contracts.insert(KECCAK_EMPTY, Bytecode::new());
 
         Self {
             accounts,
@@ -247,7 +265,7 @@ impl LayeredChanges<RethnetLayer> {
 
                 let code_hash = account.info.code_hash;
 
-                self.last_layer_mut().contracts.remove_code(&code_hash);
+                self.last_layer_mut().contracts.remove(&code_hash);
             }
 
             // Insert `None` to signal that the account was deleted
@@ -319,11 +337,34 @@ impl LayeredChanges<RethnetLayer> {
 
     /// Inserts the provided bytecode using its hash, potentially overwriting an existing value.
     pub fn insert_code(&mut self, code: Bytecode) {
-        self.last_layer_mut().contracts.insert_code(code);
+        self.last_layer_mut().contracts.insert(code.hash(), code);
     }
 
     /// Removes the code corresponding to the provided hash, if it exists.
     pub fn remove_code(&mut self, code_hash: &B256) {
-        self.last_layer_mut().contracts.remove_code(code_hash);
+        self.last_layer_mut().contracts.remove(code_hash);
+    }
+}
+
+impl From<&LayeredChanges<RethnetLayer>> for SharedMap<B256, Bytecode, true> {
+    fn from(changes: &LayeredChanges<RethnetLayer>) -> Self {
+        let mut storage = Self::default();
+
+        changes.iter().for_each(|layer| {
+            layer.contracts().iter().for_each(|(code_hash, entry)| {
+                if entry.occurences() > 0 {
+                    storage.as_inner_mut().insert(
+                        *code_hash,
+                        SharedMapEntry::with_occurences(entry.value().clone(), entry.occurences()),
+                    );
+                } else {
+                    storage.as_inner_mut().remove(code_hash);
+                }
+            })
+        });
+
+        storage.insert(KECCAK_EMPTY, Bytecode::new());
+
+        storage
     }
 }
