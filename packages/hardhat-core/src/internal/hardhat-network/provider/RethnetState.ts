@@ -60,12 +60,11 @@ export class RethnetStateManager {
     await this._state.removeAccount(address.buf);
   }
 
-  public async makeSnapshot(): Promise<[Buffer, boolean]> {
-    const snapshot = await this._state.makeSnapshot();
-    return [snapshot.stateRoot, snapshot.existed];
+  public async makeSnapshot(): Promise<Buffer> {
+    return this._state.makeSnapshot();
   }
 
-  public async removeSnapshot(stateRoot: Buffer): Promise<boolean> {
+  public async removeSnapshot(stateRoot: Buffer): Promise<void> {
     return this._state.removeSnapshot(stateRoot);
   }
 

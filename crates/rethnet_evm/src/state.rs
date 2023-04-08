@@ -1,5 +1,4 @@
 mod account;
-mod contract;
 mod debug;
 mod history;
 mod hybrid;

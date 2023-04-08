@@ -36,6 +36,7 @@ pub mod state;
 pub mod trace;
 
 mod block;
+pub(crate) mod collections;
 pub(crate) mod evm;
 pub(crate) mod random;
 mod runtime;
