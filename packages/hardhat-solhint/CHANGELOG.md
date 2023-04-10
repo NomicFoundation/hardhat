@@ -1,5 +1,11 @@
 # @nomiclabs/hardhat-solhint
 
+## 3.0.1
+
+### Patch Changes
+
+- 6b3c59961: Update solhint to v3.4.0 and fix error with ESLint formatter not found.
+
 ## 3.0.0
 
 ### Major Changes
