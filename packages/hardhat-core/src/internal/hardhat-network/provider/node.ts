@@ -140,7 +140,6 @@ export class HardhatNode extends EventEmitter {
       automine,
       genesisAccounts,
       blockGasLimit,
-      allowUnlimitedContractSize,
       tracingConfig,
       minGasPrice,
       mempoolOrder,
@@ -148,6 +147,9 @@ export class HardhatNode extends EventEmitter {
       chainId,
       allowBlocksWithSameTimestamp,
     } = config;
+
+    const allowUnlimitedContractSize =
+      config.allowUnlimitedContractSize ?? false;
 
     let stateManager: StateManager;
     let blockchain: HardhatBlockchainInterface;
@@ -294,6 +296,7 @@ export class HardhatNode extends EventEmitter {
       hardfork,
       hardforkActivations,
       mixHashGenerator,
+      allowUnlimitedContractSize,
       allowBlocksWithSameTimestamp,
       tracingConfig,
       forkNetworkId,
@@ -380,6 +383,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     public readonly hardfork: HardforkName,
     private readonly _hardforkActivations: HardforkHistoryConfig,
     private _mixHashGenerator: RandomBufferGenerator,
+    public readonly allowUnlimitedContractSize: boolean,
     private _allowBlocksWithSameTimestamp: boolean,
     tracingConfig?: TracingConfig,
     private _forkNetworkId?: number,
@@ -453,13 +457,18 @@ Hardhat Network's forking functionality only works with blocks from at least spu
       if ("maxFeePerGas" in txParams) {
         tx = FeeMarketEIP1559Transaction.fromTxData(txParams, {
           common: this._vm._common,
+          disableMaxInitCodeSizeCheck: true,
         });
       } else if ("accessList" in txParams) {
         tx = AccessListEIP2930Transaction.fromTxData(txParams, {
           common: this._vm._common,
+          disableMaxInitCodeSizeCheck: true,
         });
       } else {
-        tx = Transaction.fromTxData(txParams, { common: this._vm._common });
+        tx = Transaction.fromTxData(txParams, {
+          common: this._vm._common,
+          disableMaxInitCodeSizeCheck: true,
+        });
       }
 
       return tx.sign(pk);
@@ -889,13 +898,21 @@ Hardhat Network's forking functionality only works with blocks from at least spu
       );
     }
 
-    const block = await this._blockchain.getBlock(blockNumberOrPending);
-    return block ?? undefined;
+    try {
+      const block = await this._blockchain.getBlock(blockNumberOrPending);
+      return block;
+    } catch {
+      return undefined;
+    }
   }
 
   public async getBlockByHash(blockHash: Buffer): Promise<Block | undefined> {
-    const block = await this._blockchain.getBlock(blockHash);
-    return block ?? undefined;
+    try {
+      const block = await this._blockchain.getBlock(blockHash);
+      return block;
+    } catch {
+      return undefined;
+    }
   }
 
   public async getBlockByTransactionHash(
@@ -1402,17 +1419,13 @@ Hardhat Network's forking functionality only works with blocks from at least spu
           txWithCommon = new FakeSenderAccessListEIP2930Transaction(
             sender,
             tx,
-            {
-              common: vm._common,
-            }
+            { common: vm._common }
           );
         } else if (tx.type === 2) {
           txWithCommon = new FakeSenderEIP1559Transaction(
             sender,
             { ...tx, gasPrice: undefined },
-            {
-              common: vm._common,
-            }
+            { common: vm._common }
           );
         } else {
           throw new InternalError(
@@ -1424,10 +1437,18 @@ Hardhat Network's forking functionality only works with blocks from at least spu
         if (txHash.equals(hash)) {
           const vmDebugTracer = new VMDebugTracer(vm);
           return vmDebugTracer.trace(async () => {
-            await vm.runTx({ tx: txWithCommon, block });
+            await vm.runTx({
+              tx: txWithCommon,
+              block,
+              skipHardForkValidation: true,
+            });
           }, config);
         }
-        await vm.runTx({ tx: txWithCommon, block });
+        await vm.runTx({
+          tx: txWithCommon,
+          block,
+          skipHardForkValidation: true,
+        });
       }
       throw new TransactionExecutionError(
         `Unable to find a transaction in a block that contains that transaction, this should never happen`
@@ -2415,6 +2436,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
         skipNonce: true,
         skipBalance: true,
         skipBlockGasLimitValidation: true,
+        skipHardForkValidation: true,
       });
     } finally {
       if (originalCommon !== undefined) {

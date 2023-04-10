@@ -40,7 +40,7 @@ describe("ForkBlockchain", () => {
           difficulty,
         },
       },
-      { common }
+      { common, skipConsensusFormatValidation: true }
     );
   }
 
@@ -103,9 +103,17 @@ describe("ForkBlockchain", () => {
       assert.equal(blockThree, blockFour);
     });
 
-    it("returns undefined for non-existent block", async () => {
-      assert.equal(await fb.getBlock(randomHashBuffer()), undefined);
-      assert.equal(await fb.getBlock(forkBlockNumber + 100n), undefined);
+    it("throws for non-existent block", async () => {
+      await assert.isRejected(
+        fb.getBlock(randomHashBuffer()),
+        Error,
+        "Block not found"
+      );
+      await assert.isRejected(
+        fb.getBlock(forkBlockNumber + 100n),
+        Error,
+        "Block not found"
+      );
     });
 
     it("can get remote block object with create transaction", async () => {
@@ -128,10 +136,26 @@ describe("ForkBlockchain", () => {
       fb = new ForkBlockchain(client, forkBlockNumber - 10n, common);
       const newerBlock = await client.getBlockByNumber(forkBlockNumber - 5n);
 
-      assert.equal(await fb.getBlock(newerBlock!.hash!), undefined);
-      assert.equal(await fb.getBlock(newerBlock!.hash!), undefined);
-      assert.equal(await fb.getBlock(forkBlockNumber - 5n), undefined);
-      assert.equal(await fb.getBlock(forkBlockNumber - 5n), undefined);
+      await assert.isRejected(
+        fb.getBlock(newerBlock!.hash!),
+        Error,
+        "Block not found"
+      );
+      await assert.isRejected(
+        fb.getBlock(newerBlock!.hash!),
+        Error,
+        "Block not found"
+      );
+      await assert.isRejected(
+        fb.getBlock(forkBlockNumber - 5n),
+        Error,
+        "Block not found"
+      );
+      await assert.isRejected(
+        fb.getBlock(forkBlockNumber - 5n),
+        Error,
+        "Block not found"
+      );
     });
 
     it("can retrieve inserted block by hash", async () => {
@@ -224,9 +248,21 @@ describe("ForkBlockchain", () => {
 
       fb.deleteBlock(blockOne.hash());
 
-      assert.equal(await fb.getBlock(blockOne.hash()), undefined);
-      assert.equal(await fb.getBlock(blockTwo.hash()), undefined);
-      assert.equal(await fb.getBlock(blockThree.hash()), undefined);
+      await assert.isRejected(
+        fb.getBlock(blockOne.hash()),
+        Error,
+        "Block not found"
+      );
+      await assert.isRejected(
+        fb.getBlock(blockTwo.hash()),
+        Error,
+        "Block not found"
+      );
+      await assert.isRejected(
+        fb.getBlock(blockThree.hash()),
+        Error,
+        "Block not found"
+      );
     });
 
     it("updates the latest block number", async () => {
@@ -306,8 +342,16 @@ describe("ForkBlockchain", () => {
       fb.deleteLaterBlocks(blockOne);
 
       assert.equal(await fb.getBlock(blockOne.hash()), blockOne);
-      assert.equal(await fb.getBlock(blockTwo.hash()), undefined);
-      assert.equal(await fb.getBlock(blockThree.hash()), undefined);
+      await assert.isRejected(
+        fb.getBlock(blockTwo.hash()),
+        Error,
+        "Block not found"
+      );
+      await assert.isRejected(
+        fb.getBlock(blockThree.hash()),
+        Error,
+        "Block not found"
+      );
     });
 
     it("throws if given block is not present in blockchain", async () => {
@@ -480,11 +524,12 @@ describe("ForkBlockchain", () => {
       assert.equal(result, block);
     });
 
-    it("returns undefined for newer remote transactions", async () => {
+    it("throws for newer remote transactions", async () => {
       fb = new ForkBlockchain(client, BLOCK_NUMBER_OF_10496585 - 1n, common);
-      assert.equal(
-        await fb.getBlockByTransactionHash(FIRST_TX_HASH_OF_10496585),
-        undefined
+      await assert.isRejected(
+        fb.getBlockByTransactionHash(FIRST_TX_HASH_OF_10496585),
+        Error,
+        "Block not found"
       );
     });
 

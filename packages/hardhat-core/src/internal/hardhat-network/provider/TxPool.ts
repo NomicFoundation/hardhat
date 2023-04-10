@@ -81,6 +81,7 @@ export function deserializeTransaction(
   } else {
     data = TransactionFactory.fromSerializedData(toBuffer(rlpSerialization), {
       common,
+      disableMaxInitCodeSizeCheck: true,
     });
   }
 

@@ -47,7 +47,7 @@ export class ReadOnlyValidUnknownTypeTransaction extends Transaction {
   private readonly _actualType: number;
 
   constructor(sender: Address, type: number, data: TxData = {}) {
-    super(data, { freeze: false });
+    super(data, { freeze: false, disableMaxInitCodeSizeCheck: true });
 
     this.common = this._getCommon();
     this._sender = sender;

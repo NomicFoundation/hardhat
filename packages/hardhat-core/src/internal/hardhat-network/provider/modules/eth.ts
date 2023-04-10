@@ -86,11 +86,13 @@ import {
 import { assertHardhatNetworkInvariant } from "../utils/assertions";
 import { optional } from "../../../util/io-ts";
 import * as BigIntUtils from "../../../util/bigint";
+import { HardforkName } from "../../../util/hardforks";
 import { ModulesLogger } from "./logger";
 
-const EIP1559_MIN_HARDFORK = "london";
-const ACCESS_LIST_MIN_HARDFORK = "berlin";
-const EIP155_MIN_HARDFORK = "spuriousDragon";
+const EIP1559_MIN_HARDFORK = HardforkName.LONDON;
+const ACCESS_LIST_MIN_HARDFORK = HardforkName.BERLIN;
+const EIP155_MIN_HARDFORK = HardforkName.SPURIOUS_DRAGON;
+const EIP3860_MIN_HARDFORK = HardforkName.SHANGHAI;
 
 /* eslint-disable @nomiclabs/hardhat-internal-rules/only-hardhat-error */
 export class EthModule {
@@ -960,7 +962,10 @@ export class EthModule {
     try {
       tx = TransactionFactory.fromSerializedData(rawTx, {
         common: this._common,
+        disableMaxInitCodeSizeCheck: true,
       });
+
+      this._validateEip3860MaxInitCodeSize(tx.to?.toBuffer(), tx.data);
     } catch (error) {
       // This section of the code is incredibly dependant of TransactionFactory.fromSerializedData
       // AccessListEIP2930Transaction.fromSerializedTx and Transaction.fromSerializedTx
@@ -1017,6 +1022,11 @@ export class EthModule {
   private async _sendTransactionAction(
     transactionRequest: RpcTransactionRequest
   ): Promise<string> {
+    this._validateEip3860MaxInitCodeSize(
+      transactionRequest.to,
+      transactionRequest.data ?? Buffer.from([])
+    );
+
     const expectedChainId = this._common.chainId();
     if (
       transactionRequest.chainId !== undefined &&
@@ -1739,6 +1749,33 @@ You can use them by running Hardhat Network with 'hardfork' ${ACCESS_LIST_MIN_HA
       throw new InvalidArgumentsError(`Trying to send an EIP-155 transaction, but they are not supported by the current hardfork.
 
 You can use them by running Hardhat Network with 'hardfork' ${EIP155_MIN_HARDFORK} or later.`);
+    }
+  }
+
+  private _validateEip3860MaxInitCodeSize(
+    to: Buffer | undefined,
+    data: Buffer
+  ) {
+    if (!this._common.gteHardfork(EIP3860_MIN_HARDFORK)) {
+      // this check is only relevant after shanghai
+      return;
+    }
+
+    if (to !== undefined) {
+      // this check is only relevant for deployments
+      return;
+    }
+
+    if (this._node.allowUnlimitedContractSize) {
+      // this check is not performed if allowUnlimitedContractSize is enabled
+      return;
+    }
+
+    const maxInitCodeSize = this._common.param("vm", "maxInitCodeSize");
+    if (data.length > maxInitCodeSize) {
+      throw new InvalidArgumentsError(`Trying to send a deployment transaction whose init code length is ${data.length}. The max length allowed by EIP-3860 is ${maxInitCodeSize}.
+
+Enable the 'allowUnlimitedContractSize' option to allow init codes of any length.`);
     }
   }
 
