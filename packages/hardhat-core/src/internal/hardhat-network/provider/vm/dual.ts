@@ -255,22 +255,21 @@ export class DualModeAdapter implements VMAdapter {
     tx: TypedTransaction,
     block: Block
   ): Promise<[RunTxResult, Trace]> {
-    const ethereumJSResultPromise = this._ethereumJSAdapter.runTxInBlock(
-      tx,
-      block
-    );
-
-    const rethnetResultPromise = this._rethnetAdapter.runTxInBlock(tx, block);
-
     const [
-      [ethereumJSResult, ethereumJSTrace],
-      [rethnetResult, _rethnetTrace],
-    ] = await Promise.all([ethereumJSResultPromise, rethnetResultPromise]);
+      [ethereumJSResult, ethereumJSDebugTrace],
+      [rethnetResult, _rethnetDebugTrace],
+    ] = await Promise.all([
+      this._ethereumJSAdapter.runTxInBlock(tx, block),
+      this._rethnetAdapter.runTxInBlock(tx, block),
+    ]);
 
     try {
       assertEqualRunTxResults(ethereumJSResult, rethnetResult);
 
-      return [ethereumJSResult, ethereumJSTrace];
+      // Validate trace
+      const _trace = this.getLastTrace();
+
+      return [ethereumJSResult, ethereumJSDebugTrace];
     } catch (e) {
       // if the results didn't match, print the traces
       // console.log("EthereumJS trace");
@@ -298,6 +297,8 @@ export class DualModeAdapter implements VMAdapter {
   public async revertBlock(): Promise<void> {
     await this._rethnetAdapter.revertBlock();
     return this._ethereumJSAdapter.revertBlock();
+
+    const _stateRoot = this.getStateRoot();
   }
 
   public async makeSnapshot(): Promise<Buffer> {
