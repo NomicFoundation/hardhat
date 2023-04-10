@@ -747,6 +747,24 @@ const communityPlugins: IPlugin[] = [
       "Hardhat plugin for Uniswap V2 (pancakeswap protocol) testing and deployment. You can use it to test features such as pair creation, liquidity provisioning, and swaps.",
     tags: ["uniswap", "pancakeswap", "testing", "deployment", "automated"],
   },
+  {
+    name: "hardhat-deal",
+    author: "Rubilmax",
+    authorUrl: "https://github.com/rubilmax/hardhat-deal",
+    description:
+      "Hardhat plugin to ease dealing ERC20 tokens in hardhat forks.",
+    tags: [
+      "erc20",
+      "deal",
+      "foundry",
+      "forge",
+      "mock",
+      "balanceOf",
+      "fork",
+      "testing",
+      "tests",
+    ],
+  },
 ];
 
 const officialPlugins: IPlugin[] = [
