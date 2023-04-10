@@ -743,8 +743,19 @@ const communityPlugins: IPlugin[] = [
     name: "hardhat-deal",
     author: "Rubilmax",
     authorUrl: "https://github.com/rubilmax/hardhat-deal",
-    description: "Hardhat plugin to ease dealing ERC20 tokens in hardhat forks.",
-    tags: ["erc20", "deal", "foundry", "forge", "mock", "balanceOf", "fork", "testing", "tests"],
+    description:
+      "Hardhat plugin to ease dealing ERC20 tokens in hardhat forks.",
+    tags: [
+      "erc20",
+      "deal",
+      "foundry",
+      "forge",
+      "mock",
+      "balanceOf",
+      "fork",
+      "testing",
+      "tests",
+    ],
   },
 ];
 
