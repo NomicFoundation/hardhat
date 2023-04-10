@@ -337,6 +337,26 @@ describe(".to.emit (contract events)", () => {
             "expected 1 to equal 3"
           );
         });
+
+        it("Should fail when the arrays don't have the same length", async function () {
+          await expect(
+            expect(contract.emitUintArray(1, 2))
+              .to.emit(contract, "WithUintArray")
+              .withArgs([1])
+          ).to.be.eventually.rejectedWith(
+            AssertionError,
+            'Expected the 1st argument of the "WithUintArray" event to have 1 element, but it has 2'
+          );
+
+          await expect(
+            expect(contract.emitUintArray(1, 2))
+              .to.emit(contract, "WithUintArray")
+              .withArgs([1, 2, 3])
+          ).to.be.eventually.rejectedWith(
+            AssertionError,
+            'Expected the 1st argument of the "WithUintArray" event to have 3 elements, but it has 2'
+          );
+        });
       });
 
       describe("with a bytes32 array argument", function () {
