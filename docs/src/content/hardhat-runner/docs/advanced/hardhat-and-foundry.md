@@ -10,7 +10,7 @@ How to set up a project that combines Hardhat and Foundry depends on whether you
 
 :::tip
 
-Foundry relies on Git to work properly. Make sure your project is already imported in Git, or type `git init` in your project directory.
+Foundry relies on Git to work properly. Make sure your project is already a Git repository, or type `git init` to initialize one.
 
 :::
 
