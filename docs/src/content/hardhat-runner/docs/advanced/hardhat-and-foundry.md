@@ -8,6 +8,12 @@ How to set up a project that combines Hardhat and Foundry depends on whether you
 
 ### Adding Foundry to a Hardhat project
 
+:::tip
+
+Foundry relies on Git to work properly. Make sure your project is already a Git repository, or type `git init` to initialize one.
+
+:::
+
 If you have an existing Hardhat project and you want to use Foundry in it, you should follow these steps.
 
 First, run `forge --version` to make sure that you have Foundry installed. If you don't, go [here](https://getfoundry.sh/) to get it.
