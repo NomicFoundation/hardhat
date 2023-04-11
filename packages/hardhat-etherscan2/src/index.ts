@@ -261,19 +261,19 @@ subtask(TASK_VERIFY_VERIFY_ETHERSCAN)
 
       const configCompilerVersions = await getCompilerVersions(config.solidity);
 
-      const contractBytecode = await Bytecode.getDeployedContractBytecode(
+      const deployedBytecode = await Bytecode.getDeployedContractBytecode(
         address,
         network.provider,
         network.name
       );
 
       const matchingCompilerVersions =
-        await contractBytecode.getMatchingVersions(configCompilerVersions);
+        await deployedBytecode.getMatchingVersions(configCompilerVersions);
       // don't error if the bytecode appears to be OVM bytecode, because we can't infer a specific OVM solc version from the bytecode
-      if (matchingCompilerVersions.length === 0 && !contractBytecode.isOvm()) {
+      if (matchingCompilerVersions.length === 0 && !deployedBytecode.isOvm()) {
         throw new CompilerVersionsMismatchError(
           configCompilerVersions,
-          contractBytecode.getVersion(),
+          deployedBytecode.getVersion(),
           network.name
         );
       }
@@ -287,7 +287,7 @@ subtask(TASK_VERIFY_VERIFY_ETHERSCAN)
         TASK_VERIFY_GET_CONTRACT_INFORMATION,
         {
           contractFQN,
-          contractBytecode,
+          deployedBytecode,
           matchingCompilerVersions,
           libraries,
         }
@@ -371,7 +371,14 @@ subtask(TASK_VERIFY_GET_CONTRACT_INFORMATION)
       let contractInformation: ContractInformation | null;
 
       if (contractFQN !== undefined) {
-        if (!(await artifacts.artifactExists(contractFQN))) {
+        let artifactExists;
+        try {
+          artifactExists = await artifacts.artifactExists(contractFQN);
+        } catch (error) {
+          artifactExists = false;
+        }
+
+        if (!artifactExists) {
           throw new ContractNotFoundError(contractFQN);
         }
 
