@@ -323,12 +323,10 @@ subtask(TASK_VERIFY_VERIFY_ETHERSCAN)
         return;
       }
 
-      console.log(
-        `We tried verifying your contract ${contractInformation.contractName} without including any unrelated one, but it failed.
+      console.log(`We tried verifying your contract ${contractInformation.contractName} without including any unrelated one, but it failed.
 Trying again with the full solc input used to compile and deploy it.
 This means that unrelated contracts may be displayed on Etherscan...
-`
-      );
+`);
 
       // If verifying with the minimal input failed, try again with the full compiler input
       const {
@@ -491,12 +489,10 @@ subtask(TASK_VERIFY_ATTEMPT_VERIFICATION)
         encodedConstructorArguments,
       });
 
-      console.log(
-        `Successfully submitted source code for contract
-        ${contractInformation.sourceName}:${contractInformation.contractName} at ${address}
-        for verification on the block explorer. Waiting for verification result...
-        `
-      );
+      console.log(`Successfully submitted source code for contract
+${contractInformation.sourceName}:${contractInformation.contractName} at ${address}
+for verification on the block explorer. Waiting for verification result...
+`);
 
       // Compilation is bound to take some time so there's no sense in requesting status immediately.
       await delay(700);
@@ -512,10 +508,8 @@ subtask(TASK_VERIFY_ATTEMPT_VERIFICATION)
 
       if (verificationStatus.isSuccess()) {
         const contractURL = verificationInterface.getContractUrl(address);
-        console.log(
-          `Successfully verified contract ${contractInformation.contractName} on Etherscan.
-${contractURL}`
-        );
+        console.log(`Successfully verified contract ${contractInformation.contractName} on Etherscan.
+${contractURL}`);
       }
 
       return {

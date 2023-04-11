@@ -3,9 +3,15 @@ import path from "path";
 import sinon from "sinon";
 import chai, { assert, expect } from "chai";
 import { TASK_CLEAN, TASK_COMPILE } from "hardhat/builtin-tasks/task-names";
+import { SolcConfig } from "hardhat/types/config";
 import { TASK_VERIFY } from "../../src/task-names";
 import { deployContract, getRandomAddress, useEnvironment } from "../helpers";
-import { interceptIsVerified, mockEnvironment } from "./mocks/etherscan";
+import {
+  interceptGetStatus,
+  interceptIsVerified,
+  interceptVerify,
+  mockEnvironment,
+} from "./mocks/etherscan";
 
 import "../../src/type-extensions";
 chai.config.truncateThreshold = 0;
@@ -73,29 +79,39 @@ describe("verify task integration tests", () => {
       );
     });
 
-    it("should throw if the deployed contract version does not match the configured version", async function () {
-      const deployedAddress = await deployContract("NewContract", [], this.hre);
-      const originalCompilers = this.hre.config.solidity.compilers;
-      this.hre.config.solidity.compilers = [
-        { version: "0.8.19", settings: "" },
-      ];
+    describe("with overriden config", () => {
+      let originalCompilers: SolcConfig[];
 
-      await expect(
-        this.hre.run(TASK_VERIFY, {
-          address: deployedAddress,
-          constructorArgsParams: [],
-        })
-      ).to.be.rejectedWith(
-        /The contract you want to verify was compiled with solidity 0.7.5, but your configured compiler version is: 0.8.19./
-      );
+      it("should throw if the deployed contract version does not match the configured version", async function () {
+        const deployedAddress = await deployContract(
+          "SimpleContract",
+          [],
+          this.hre
+        );
+        originalCompilers = this.hre.config.solidity.compilers;
+        this.hre.config.solidity.compilers = [
+          { version: "0.8.19", settings: {} },
+        ];
 
-      this.hre.config.solidity.compilers = originalCompilers;
+        await expect(
+          this.hre.run(TASK_VERIFY, {
+            address: deployedAddress,
+            constructorArgsParams: [],
+          })
+        ).to.be.rejectedWith(
+          /The contract you want to verify was compiled with solidity 0.7.5, but your configured compiler version is: 0.8.19./
+        );
+      });
+
+      afterEach(function () {
+        this.hre.config.solidity.compilers = originalCompilers;
+      });
     });
 
     describe("with deleted artifacts", () => {
       it("should not compile the project when the noCompile is provided", async function () {
         const deployedAddress = await deployContract(
-          "NewContract",
+          "SimpleContract",
           [],
           this.hre
         );
@@ -139,8 +155,12 @@ describe("verify task integration tests", () => {
     });
 
     it("should throw if the provided contract FQN does not match any contract", async function () {
-      const deployedAddress = await deployContract("NewContract", [], this.hre);
-      const contractFQN = "contracts/NewContract.sol:NotFound";
+      const deployedAddress = await deployContract(
+        "SimpleContract",
+        [],
+        this.hre
+      );
+      const contractFQN = "contracts/SimpleContract.sol:NotFound";
 
       await expect(
         this.hre.run(TASK_VERIFY, {
@@ -153,6 +173,197 @@ describe("verify task integration tests", () => {
           `The contract ${contractFQN} is not present in your project.`
         )
       );
+    });
+
+    it("should throw if there is an invalid address in the libraries parameter", async function () {
+      const deployedAddress = await deployContract(
+        "SimpleContract",
+        [],
+        this.hre
+      );
+
+      await expect(
+        this.hre.run(TASK_VERIFY, {
+          address: deployedAddress,
+          constructorArgsParams: [],
+          libraries: "invalid-libraries.js",
+        })
+      ).to.be.rejectedWith(
+        "You gave a link for the contract SimpleContract with the library SomeLibrary, but provided this invalid address: notAnAddress"
+      );
+    });
+
+    it("should throw if the specified library is not used by the contract", async function () {
+      const deployedAddress = await deployContract(
+        "SimpleContract",
+        [],
+        this.hre
+      );
+
+      await expect(
+        this.hre.run(TASK_VERIFY, {
+          address: deployedAddress,
+          constructorArgsParams: [],
+          libraries: "not-used-libraries.js",
+        })
+      ).to.be.rejectedWith(
+        /You gave an address for the library SomeLibrary in the libraries dictionary, which is not one of the libraries of contract SimpleContract./
+      );
+    });
+
+    it("should throw if the specified library is listed more than once in the libraries parameter", async function () {
+      const deployedLibAddress = await deployContract(
+        "NormalLib",
+        [],
+        this.hre
+      );
+      const deployedAddress = await deployContract(
+        "OnlyNormalLib",
+        [],
+        this.hre,
+        undefined,
+        { libraries: { NormalLib: deployedLibAddress } }
+      );
+
+      await expect(
+        this.hre.run(TASK_VERIFY, {
+          address: deployedAddress,
+          constructorArgsParams: [],
+          libraries: "duplicated-libraries.js",
+        })
+      ).to.be.rejectedWith(
+        /The library names NormalLib and contracts\/WithLibs.sol:NormalLib refer to the same library/
+      );
+    });
+
+    it("should throw if deployed library address does not match the address defined in the libraries parameter", async function () {
+      const deployedLibAddress = await deployContract(
+        "NormalLib",
+        [],
+        this.hre
+      );
+      const deployedAddress = await deployContract(
+        "OnlyNormalLib",
+        [],
+        this.hre,
+        undefined,
+        { libraries: { NormalLib: deployedLibAddress } }
+      );
+
+      await expect(
+        this.hre.run(TASK_VERIFY, {
+          address: deployedAddress,
+          constructorArgsParams: [],
+          libraries: "mismatched-address-libraries.js",
+        })
+      ).to.be.rejectedWith(
+        /contracts\/WithLibs.sol:NormalLib\ngiven address: 0x4B0d52f889e9a18506ee9412cd659abF48F8FEad\ndetected address: 0x0165878a594ca255338adfa4d48449f69242eb8f/
+      );
+    });
+
+    it("should throw if the verification request fails", async function () {
+      // do not intercept the verifysourcecode request so it throws an error
+      const deployedAddress = await deployContract(
+        "SimpleContract",
+        [],
+        this.hre
+      );
+      await expect(
+        this.hre.run(TASK_VERIFY, {
+          address: deployedAddress,
+          constructorArgsParams: [],
+        })
+      ).to.be.rejectedWith(
+        /Failed to send contract verification request.\nEndpoint URL: https:\/\/api-hardhat.etherscan.io\/api\nReason: Mock dispatch not matched for path/
+      );
+    });
+
+    it("should throw if the verification response has a non-OK status code", async function () {
+      interceptVerify({ error: "error verifying contract" }, 500);
+      const deployedAddress = await deployContract(
+        "SimpleContract",
+        [],
+        this.hre
+      );
+      await expect(
+        this.hre.run(TASK_VERIFY, {
+          address: deployedAddress,
+          constructorArgsParams: [],
+        })
+      ).to.be.rejectedWith(`Failed to send contract verification request.
+Endpoint URL: https://api-hardhat.etherscan.io/api
+The HTTP server response is not ok. Status code: 500 Response text: {"error":"error verifying contract"}`);
+    });
+
+    it("should throw if the etherscan api can't find the bytecode at the contract address", async function () {
+      interceptVerify({
+        status: 0,
+        result: "Unable to locate ContractCode at 0x...",
+      });
+      const deployedAddress = await deployContract(
+        "SimpleContract",
+        [],
+        this.hre
+      );
+      await expect(
+        this.hre.run(TASK_VERIFY, {
+          address: deployedAddress,
+          constructorArgsParams: [],
+        })
+      ).to.be.rejectedWith(
+        new RegExp(
+          `The Etherscan API responded that the address ${deployedAddress} does not have bytecode.`
+        )
+      );
+    });
+
+    it("should throw if the verification response status is not ok", async function () {
+      interceptVerify({
+        status: 0,
+        result: "Failed to verify the contract...",
+      });
+      const deployedAddress = await deployContract(
+        "SimpleContract",
+        [],
+        this.hre
+      );
+      await expect(
+        this.hre.run(TASK_VERIFY, {
+          address: deployedAddress,
+          constructorArgsParams: [],
+        })
+      ).to.be.rejectedWith("Failed to verify the contract...");
+    });
+
+    it("should throw if the get verification status request fails", async function () {
+      interceptVerify({
+        status: 1,
+        result: "ezq878u486pzijkvvmerl6a9mzwhv6sefgvqi5tkwceejc7tvn",
+      });
+      // do not intercept the checkverifystatus request so it throws an error
+      const logStub = sinon.stub(console, "log");
+      const deployedAddress = await deployContract(
+        "SimpleContract",
+        [],
+        this.hre
+      );
+      await expect(
+        this.hre.run(TASK_VERIFY, {
+          address: deployedAddress,
+          constructorArgsParams: [],
+        })
+      ).to.be.rejectedWith(/Failure during etherscan status polling./);
+
+      expect(logStub).to.be
+        .calledOnceWith(`Successfully submitted source code for contract
+contracts/SimpleContract.sol:SimpleContract at ${deployedAddress}
+for verification on the block explorer. Waiting for verification result...
+`);
+      logStub.restore();
+    });
+
+    after(async function () {
+      await this.hre.run(TASK_CLEAN);
     });
   });
 });
