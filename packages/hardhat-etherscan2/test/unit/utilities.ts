@@ -376,7 +376,7 @@ describe("Utilities", () => {
       assert.equal(encodedArguments, "");
     });
 
-    it("should throw when there are less arguments than expected", async () => {
+    it("should throw if there are less arguments than expected", async () => {
       const abi: JsonFragment[] = [
         {
           inputs: [
@@ -401,7 +401,7 @@ describe("Utilities", () => {
 but 1 arguments were provided instead.`);
     });
 
-    it("should throw when there are more arguments than expected", async () => {
+    it("should throw if there are more arguments than expected", async () => {
       const abi: JsonFragment[] = [
         {
           inputs: [
@@ -422,7 +422,7 @@ but 1 arguments were provided instead.`);
 but 2 arguments were provided instead.`);
     });
 
-    it("should throw when a parameter type does not match its expected type", async () => {
+    it("should throw if a parameter type does not match its expected type", async () => {
       const abi: JsonFragment[] = [
         {
           inputs: [
@@ -455,7 +455,7 @@ but 2 arguments were provided instead.`);
       );
     });
 
-    it("should throw when an unsafe integer is provided as an argument", async () => {
+    it("should throw if an unsafe integer is provided as an argument", async () => {
       const abi: JsonFragment[] = [
         {
           inputs: [

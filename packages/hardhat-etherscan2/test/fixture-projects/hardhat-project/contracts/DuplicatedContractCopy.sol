@@ -2,7 +2,7 @@
 
 pragma solidity ^0.7.5;
 
-contract NewContract {
+contract DuplicatedContract {
     string public mark = "placeholder";
 
     constructor() {}

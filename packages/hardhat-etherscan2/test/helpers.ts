@@ -11,11 +11,8 @@ declare module "mocha" {
 }
 
 export const useEnvironment = (fixtureProjectName: string): void => {
-  const currentDir = __dirname;
   before("Loading hardhat environment", function () {
-    process.chdir(
-      path.join(currentDir, "fixture-projects", fixtureProjectName)
-    );
+    process.chdir(path.join(__dirname, "fixture-projects", fixtureProjectName));
     process.env.HARDHAT_NETWORK = "hardhat";
 
     this.hre = require("hardhat");
@@ -32,19 +29,9 @@ export const deployContract = async (
   contractName: string,
   constructorArguments: any[],
   { ethers }: HardhatRuntimeEnvironment,
-  confirmations: number = 5,
+  confirmations: number = 1,
   options: FactoryOptions = {}
 ): Promise<string> => {
-  if (options.signer === undefined) {
-    if (process.env.WALLET_PRIVATE_KEY === undefined) {
-      throw new Error("No wallet or signer defined for deployment.");
-    }
-    options.signer = new ethers.Wallet(
-      process.env.WALLET_PRIVATE_KEY,
-      ethers.provider
-    );
-  }
-
   const factory = await ethers.getContractFactory(contractName, options);
   const contract = await factory.deploy(...constructorArguments);
   await contract.deployTransaction.wait(confirmations);
