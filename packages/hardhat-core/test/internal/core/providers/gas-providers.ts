@@ -256,6 +256,44 @@ describe("AutomaticGasPriceProvider", () => {
       });
     });
 
+    describe("When eth_feeHistory is available and EIP1559 is supported but recent block is empty", function () {
+      const latestBaseFeeInMockedProvider = 80;
+
+      beforeEach(function () {
+        mockedProvider.setReturnValue("eth_feeHistory", {
+          baseFeePerGas: [
+            numberToRpcQuantity(latestBaseFeeInMockedProvider),
+            numberToRpcQuantity(
+              Math.floor((latestBaseFeeInMockedProvider * 9) / 8)
+            ),
+          ],
+          reward: [["0x0"]],
+        });
+
+        mockedProvider.setReturnValue("eth_getBlockByNumber", {
+          baseFeePerGas: "0x1",
+        });
+      });
+
+      it("should set maxPriorityFeePerGas to at least 1 to avoid FeeTooLow error", async function () {
+        await provider.request({
+          method: "eth_sendTransaction",
+          params: [
+            {
+              from: "0x0000000000000000000000000000000000000011",
+              to: "0x0000000000000000000000000000000000000011",
+              value: 1,
+              maxFeePerGas: "0x99",
+            },
+          ],
+        });
+
+        const [tx] = mockedProvider.getLatestParams("eth_sendTransaction");
+        assert.equal(tx.maxPriorityFeePerGas, "0x1");
+        assert.equal(tx.maxFeePerGas, "0x99");
+      });
+    });
+
     describe("When eth_feeHistory is available and EIP1559 is not supported", function () {
       const latestBaseFeeInMockedProvider = 80;
 
