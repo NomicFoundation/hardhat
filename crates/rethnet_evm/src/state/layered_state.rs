@@ -13,20 +13,10 @@ use revm::{
 
 use super::{StateDebug, StateError};
 
-#[derive(Clone, Debug)]
-struct RevertedLayers<Layer: Clone> {
-    /// The parent layer's state root
-    pub parent_state_root: B256,
-    /// The reverted layers
-    pub stack: Vec<Layer>,
-}
-
 /// A state consisting of layers.
 #[derive(Clone, Debug)]
 pub struct LayeredState<Layer: Clone> {
     stack: Vec<Layer>,
-    /// The old parent layer state root and the reverted layers
-    reverted_layers: Option<RevertedLayers<Layer>>,
     /// Snapshots
     snapshots: HashMap<B256, Vec<Layer>>, // naive implementation
 }
@@ -36,7 +26,6 @@ impl<Layer: Clone> LayeredState<Layer> {
     pub fn with_layer(layer: Layer) -> Self {
         Self {
             stack: vec![layer],
-            reverted_layers: None,
             snapshots: HashMap::new(),
         }
     }
@@ -85,7 +74,6 @@ impl<Layer: Clone + Default> Default for LayeredState<Layer> {
     fn default() -> Self {
         Self {
             stack: vec![Layer::default()],
-            reverted_layers: None,
             snapshots: HashMap::new(),
         }
     }
@@ -348,17 +336,21 @@ impl StateDebug for LayeredState<RethnetLayer> {
         Ok(())
     }
 
-    fn make_snapshot(&mut self) -> B256 {
+    fn make_snapshot(&mut self) -> (B256, bool) {
         let state_root = self.state_root().unwrap();
-        let mut snapshot = self.stack.clone();
-        if let Some(layer) = snapshot.last_mut() {
-            layer.state_root.replace(state_root);
-        }
 
-        // Currently overwrites old snapshots
-        self.snapshots.insert(state_root, snapshot);
+        let mut exists = true;
+        self.snapshots.entry(state_root).or_insert_with(|| {
+            exists = false;
 
-        state_root
+            let mut snapshot = self.stack.clone();
+            if let Some(layer) = snapshot.last_mut() {
+                layer.state_root.replace(state_root);
+            }
+            snapshot
+        });
+
+        (state_root, exists)
     }
 
     fn modify_account(
@@ -435,46 +427,11 @@ impl StateDebug for LayeredState<RethnetLayer> {
             self.last_layer_mut().state_root.replace(state_root);
         }
 
-        if let Some(snapshot) = self.snapshots.get(state_root) {
-            // Retain all layers except the first
-            self.reverted_layers = Some(RevertedLayers {
-                parent_state_root: self.stack.first().unwrap().state_root.unwrap(),
-                stack: self.stack.split_off(1),
-            });
-            self.stack = snapshot.clone();
+        if let Some(snapshot) = self.snapshots.remove(state_root) {
+            self.stack = snapshot;
 
             return Ok(());
         }
-
-        // Check whether the state root is contained in the previously reverted layers
-        let reinstated_layers = self.reverted_layers.take().and_then(|mut reverted_layers| {
-            let layer_id =
-                reverted_layers
-                    .stack
-                    .iter()
-                    .enumerate()
-                    .find_map(|(layer_id, layer)| {
-                        if layer.state_root.unwrap() == *state_root {
-                            Some(layer_id)
-                        } else {
-                            None
-                        }
-                    });
-
-            if let Some(layer_id) = layer_id {
-                reverted_layers.stack.truncate(layer_id + 1);
-
-                Some(reverted_layers)
-            } else {
-                None
-            }
-        });
-
-        let state_root = reinstated_layers
-            .as_ref()
-            .map_or(state_root, |reinstated_layers| {
-                &reinstated_layers.parent_state_root
-            });
 
         let layer_id = self.stack.iter().enumerate().find_map(|(layer_id, layer)| {
             if layer.state_root.unwrap() == *state_root {
@@ -485,23 +442,7 @@ impl StateDebug for LayeredState<RethnetLayer> {
         });
 
         if let Some(layer_id) = layer_id {
-            let reverted_layers = self.stack.split_off(layer_id + 1);
-            let parent_state_root = self.stack.last().unwrap().state_root.unwrap();
-
-            if let Some(mut reinstated_layers) = reinstated_layers {
-                self.stack.append(&mut reinstated_layers.stack);
-            }
-
-            self.add_layer_default();
-
-            self.reverted_layers = if reverted_layers.is_empty() {
-                None
-            } else {
-                Some(RevertedLayers {
-                    parent_state_root,
-                    stack: reverted_layers,
-                })
-            };
+            self.stack.truncate(layer_id + 1);
 
             Ok(())
         } else {

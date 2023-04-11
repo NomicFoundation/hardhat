@@ -41,7 +41,7 @@ where
         sender: oneshot::Sender<Result<(), E>>,
     },
     MakeSnapshot {
-        sender: oneshot::Sender<B256>,
+        sender: oneshot::Sender<(B256, bool)>,
     },
     ModifyAccount {
         address: Address,

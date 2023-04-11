@@ -82,5 +82,6 @@ export interface VMAdapter {
   ): Promise<RpcDebugTraceOutput>;
 
   // methods for snapshotting
-  makeSnapshot(): Promise<Buffer>;
+  makeSnapshot(): Promise<[Buffer, boolean]>;
+  removeSnapshot(stateRoot: Buffer): Promise<boolean>;
 }

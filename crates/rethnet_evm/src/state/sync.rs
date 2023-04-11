@@ -170,7 +170,7 @@ where
     }
 
     /// Makes a snapshot of the database that's retained until [`remove_snapshot`] is called. Returns the snapshot's identifier.
-    pub async fn make_snapshot(&self) -> B256 {
+    pub async fn make_snapshot(&self) -> (B256, bool) {
         let (sender, receiver) = oneshot::channel();
 
         self.request_sender
@@ -405,7 +405,7 @@ where
         task::block_in_place(move || self.runtime.block_on(AsyncState::revert(*self)))
     }
 
-    fn make_snapshot(&mut self) -> B256 {
+    fn make_snapshot(&mut self) -> (B256, bool) {
         task::block_in_place(move || self.runtime.block_on(AsyncState::make_snapshot(*self)))
     }
 

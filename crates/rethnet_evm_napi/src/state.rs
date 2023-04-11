@@ -35,6 +35,15 @@ pub struct GenesisAccount {
     pub balance: BigInt,
 }
 
+/// An identifier for a snapshot of the state
+#[napi(object)]
+pub struct SnapshotId {
+    /// Snapshot's state root
+    pub state_root: Buffer,
+    /// Whether the snapshot already existed.
+    pub existed: bool,
+}
+
 /// The Rethnet state
 #[napi]
 pub struct StateManager {
@@ -201,8 +210,13 @@ impl StateManager {
 
     /// Makes a snapshot of the database that's retained until [`removeSnapshot`] is called. Returns the snapshot's identifier.
     #[napi]
-    pub async fn make_snapshot(&self) -> Buffer {
-        <B256 as AsRef<[u8]>>::as_ref(&self.state.make_snapshot().await).into()
+    pub async fn make_snapshot(&self) -> SnapshotId {
+        let (state_root, existed) = self.state.make_snapshot().await;
+
+        SnapshotId {
+            state_root: <B256 as AsRef<[u8]>>::as_ref(&state_root).into(),
+            existed,
+        }
     }
 
     /// Modifies the account with the provided address using the specified modifier function.

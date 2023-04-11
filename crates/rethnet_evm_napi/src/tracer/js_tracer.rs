@@ -546,17 +546,21 @@ where
                 }
             })
             .unwrap_or_else(|| {
-                let account = data.db.basic(inputs.context.code_address).unwrap().unwrap();
-                account
-                    .code
-                    .unwrap_or_else(|| data.db.code_by_hash(account.code_hash).unwrap())
+                data.db.basic(inputs.context.code_address).unwrap().map_or(
+                    Bytecode::new(),
+                    |account_info| {
+                        account_info.code.unwrap_or_else(|| {
+                            data.db.code_by_hash(account_info.code_hash).unwrap()
+                        })
+                    },
+                )
             });
 
         self.pending_before = Some(BeforeMessage {
             depth: data.journaled_state.depth,
             to: Some(inputs.context.address),
             data: inputs.input.clone(),
-            value: inputs.transfer.value,
+            value: inputs.context.apparent_value,
             code_address: Some(inputs.context.code_address),
             code: Some(code),
         });
