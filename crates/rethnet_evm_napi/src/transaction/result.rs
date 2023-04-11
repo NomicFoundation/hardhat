@@ -1,5 +1,5 @@
 use napi::{
-    bindgen_prelude::{BigInt, Buffer, Either3, ToNapiValue},
+    bindgen_prelude::{BigInt, Buffer, Either3, FromNapiValue, ToNapiValue},
     Either,
 };
 use napi_derive::napi;

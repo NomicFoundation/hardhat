@@ -1,5 +1,5 @@
 use napi::{
-    bindgen_prelude::{BigInt, ToNapiValue},
+    bindgen_prelude::{BigInt, FromNapiValue, ToNapiValue},
     Status,
 };
 use napi_derive::napi;
