@@ -2,7 +2,8 @@
 
 pragma solidity ^0.7.5;
 
-contract NewContract {
+contract SimpleContract {
+    string public property = "property";
     string public mark = "placeholder";
 
     constructor() {}
