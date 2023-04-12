@@ -1,9 +1,8 @@
+import { ModuleParams, IgnitionError } from "@ignored/ignition-core";
 import {
   DeployState,
-  ModuleParams,
   UpdateUiAction,
-} from "@ignored/ignition-core";
-import { IgnitionError } from "@ignored/ignition-core/errors";
+} from "@ignored/ignition-core/soon-to-be-removed";
 import { render } from "ink";
 
 import { IgnitionUi } from "./components";

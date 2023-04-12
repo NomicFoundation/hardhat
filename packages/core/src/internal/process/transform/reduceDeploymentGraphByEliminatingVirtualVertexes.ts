@@ -1,4 +1,4 @@
-import { DeploymentGraph } from "../../../dsl/DeploymentGraph";
+import { DeploymentGraph } from "../../dsl/DeploymentGraph";
 import { eliminate } from "../../graph/adjacencyList";
 import { DeploymentGraphVertex } from "../../types/deploymentGraph";
 

@@ -3,7 +3,7 @@ import type { IDeploymentGraph } from "../../src/internal/types/deploymentGraph"
 
 import { assert } from "chai";
 
-import { buildModule } from "../../src/dsl/buildModule";
+import { buildModule } from "../../src/buildModule";
 import { generateDeploymentGraphFrom } from "../../src/internal/process/generateDeploymentGraphFrom";
 import {
   isArtifactContract,

@@ -1,7 +1,7 @@
 /* eslint-disable import/no-unused-modules */
 import { assert } from "chai";
 
-import { buildModule } from "../../src/dsl/buildModule";
+import { buildModule } from "../../src/buildModule";
 import { generateDeploymentGraphFrom } from "../../src/internal/process/generateDeploymentGraphFrom";
 import { IDeploymentGraph } from "../../src/internal/types/deploymentGraph";
 import {

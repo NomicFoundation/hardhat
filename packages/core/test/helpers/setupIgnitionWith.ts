@@ -1,9 +1,9 @@
-import { ICommandJournal } from "../../src";
-import { Ignition } from "../../src/Ignition";
+import { IgnitionImplementation } from "../../src/internal/Ignition";
 import { NoopCommandJournal } from "../../src/internal/journal/NoopCommandJournal";
+import { ICommandJournal } from "../../src/internal/types/journal";
 import { Services } from "../../src/internal/types/services";
 
-class TestIgnition extends Ignition {
+class TestIgnition extends IgnitionImplementation {
   constructor({
     services,
     journal = new NoopCommandJournal(),

@@ -23,15 +23,15 @@
   "exports": {
     ".": "./dist/src/index.js",
     "./helpers": "./dist/src/helpers.js",
-    "./errors": "./dist/src/errors.js"
+    "./soon-to-be-removed": "./dist/src/soon-to-be-removed.js"
   },
   "typesVersions": {
     "*": {
       "helpers": [
         "./dist/src/helpers"
       ],
-      "errors": [
-        "./dist/src/errors"
+      "soon-to-be-removed": [
+        "./dist/src/soon-to-be-removed"
       ]
     }
   },

@@ -1,17 +1,20 @@
 import type { Contract } from "ethers";
 
 import {
-  DeploymentResultState,
-  ICommandJournal,
-  Ignition,
   IgnitionDeployOptions,
+  IgnitionError,
+  initializeIgnition,
   Module,
   ModuleDict,
   ModuleParams,
   Providers,
   SerializedDeploymentResult,
 } from "@ignored/ignition-core";
-import { IgnitionError } from "@ignored/ignition-core/errors";
+import {
+  ICommandJournal,
+  DeploymentResult,
+  DeploymentResultState,
+} from "@ignored/ignition-core/soon-to-be-removed";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 
 import { CommandJournal } from "./CommandJournal";
@@ -68,7 +71,7 @@ export class IgnitionWrapper {
         ? new CommandJournal(chainId, deployParams?.journalPath)
         : undefined);
 
-    const ignition = Ignition.create({
+    const ignition = initializeIgnition({
       providers: this._providers,
       uiRenderer: showUi
         ? renderToCli(initializeRenderState(), deployParams?.parameters)
@@ -80,10 +83,10 @@ export class IgnitionWrapper {
       await this._providers.config.setParams(deployParams.parameters);
     }
 
-    const deploymentResult = await ignition.deploy(ignitionModule, {
+    const deploymentResult = (await ignition.deploy(ignitionModule, {
       ...this.options,
       force,
-    });
+    })) as DeploymentResult;
 
     if (deploymentResult._kind === DeploymentResultState.HOLD) {
       const heldVertexes = deploymentResult.holds;
@@ -115,7 +118,9 @@ export class IgnitionWrapper {
       );
     }
 
-    return this._toDeploymentResult(deploymentResult.result);
+    return this._toDeploymentResult(
+      deploymentResult.result as any // TODO: This `as any` should be removed once we have a proper type for the result of deploy
+    );
   }
 
   /**
@@ -127,7 +132,7 @@ export class IgnitionWrapper {
    * execution dependency graph.
    */
   public async plan<T extends ModuleDict>(ignitionModule: Module<T>) {
-    const ignition = Ignition.create({
+    const ignition = initializeIgnition({
       providers: this._providers,
     });
 

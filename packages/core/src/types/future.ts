@@ -278,7 +278,3 @@ export type DeploymentGraphFuture =
   | DependableFuture
   | ParameterFuture
   | EventParamFuture;
-
-export interface FutureDict {
-  [key: string]: DeploymentGraphFuture;
-}

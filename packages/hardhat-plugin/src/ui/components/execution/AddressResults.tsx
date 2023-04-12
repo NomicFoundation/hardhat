@@ -1,5 +1,8 @@
-import { DeployState, VertexResultEnum } from "@ignored/ignition-core";
 import { viewExecutionResults } from "@ignored/ignition-core/helpers";
+import {
+  DeployState,
+  VertexResultEnum,
+} from "@ignored/ignition-core/soon-to-be-removed";
 import { Box, Spacer, Text } from "ink";
 
 import { AddressMap } from "../../types";

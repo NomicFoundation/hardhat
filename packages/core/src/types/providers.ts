@@ -9,7 +9,7 @@ import { ModuleParams } from "./module";
  * The low level adapters that allow Ignition to interact with external services
  * like the target chain or the local filesystem.
  *
- * @internal
+ * @alpha
  */
 export interface Providers {
   artifacts: ArtifactsProvider;
@@ -23,7 +23,7 @@ export interface Providers {
 /**
  * Provide access to contract artifacts based on a label.
  *
- * @internal
+ * @alpha
  */
 export interface ArtifactsProvider {
   getArtifact: (name: string) => Promise<Artifact>;
@@ -34,7 +34,7 @@ export interface ArtifactsProvider {
 /**
  * Provide access to the target Ethereum chain via requests.
  *
- * @internal
+ * @alpha
  */
 export interface EIP1193Provider {
   request: (args: { method: string; params?: unknown[] }) => Promise<unknown>;
@@ -43,7 +43,7 @@ export interface EIP1193Provider {
 /**
  * Provide access to Ethereum gas information for the target chain.
  *
- * @internal
+ * @alpha
  */
 export interface GasProvider {
   estimateGasLimit: (
@@ -55,7 +55,7 @@ export interface GasProvider {
 /**
  * Provide access to transaction information for the target chain.
  *
- * @internal
+ * @alpha
  */
 export interface TransactionsProvider {
   isConfirmed(txHash: string): Promise<boolean>;
@@ -65,14 +65,14 @@ export interface TransactionsProvider {
 /**
  * Allowed error codes for a parameter lookup.
  *
- * @internal
+ * @alpha
  */
 export type HasParamErrorCode = "no-params" | "param-missing";
 
 /**
  * The results of a parameter look up.
  *
- * @internal
+ * @alpha
  */
 export type HasParamResult =
   | {
@@ -84,7 +84,7 @@ export type HasParamResult =
 /**
  * Provide access to configuration options for Ignition execution.
  *
- * @internal
+ * @alpha
  */
 export interface ConfigProvider {
   parameters: ModuleParams | undefined;
@@ -100,7 +100,7 @@ export interface ConfigProvider {
  * Provide a set of usable Ethereum accounts that can be made available within
  * the Module api.
  *
- * @internal
+ * @alpha
  */
 export interface AccountsProvider {
   getAccounts(): Promise<string[]>;

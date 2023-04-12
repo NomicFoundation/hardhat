@@ -1,5 +1,6 @@
-import type { DeployState, ModuleParams } from "@ignored/ignition-core";
+import type { ModuleParams } from "@ignored/ignition-core";
 
+import { DeployState } from "@ignored/ignition-core/soon-to-be-removed";
 import { Box } from "ink";
 
 import { BatchExecution } from "./BatchExecution";

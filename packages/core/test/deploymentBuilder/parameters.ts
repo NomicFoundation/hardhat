@@ -3,7 +3,7 @@ import type { IDeploymentGraph } from "../../src/internal/types/deploymentGraph"
 
 import { assert } from "chai";
 
-import { buildModule } from "../../src/dsl/buildModule";
+import { buildModule } from "../../src/buildModule";
 import { IgnitionError } from "../../src/errors";
 import { generateDeploymentGraphFrom } from "../../src/internal/process/generateDeploymentGraphFrom";
 import { isCallable } from "../../src/internal/utils/guards";

@@ -1,55 +1,79 @@
-import { UpdateUiAction } from "../internal/types/deployment";
-import { ICommandJournal } from "../internal/types/journal";
-import { Services } from "../internal/types/services";
+import { BigNumber } from "ethers";
 
-import { Providers } from "./providers";
+import { Module, ModuleDict } from "./module";
+import { IgnitionPlan } from "./plan";
 
 /**
- * The setup options for the Ignition.
+ * The type of the CommandJournal that Ignition uses.
  *
- * @internal
+ * @alpha
  */
-export interface IgnitionCreationArgs {
-  /**
-   * The adapters that allows Ignition to communicate with external systems
-   * like the target blockchain or local filesystem.
-   */
-  providers: Providers;
+export type ICommandJournalT = unknown;
 
-  /**
-   * An optional UI update function that will be invoked with the current
-   * Ignition state on each major state change.
-   */
-  uiRenderer?: UpdateUiAction;
+/**
+ * The type of a callback to update the UI.
+ *
+ * @alpha
+ */
+export type UpdateUiActionT = unknown;
 
-  /**
-   * An optional journal that will be used to store a record of the current
-   * run and to access the history of previous runs.
-   */
-  journal?: ICommandJournal;
+/**
+ * The configuration options that control how on-chain execution will happen
+ * during the deploy.
+ *
+ * @alpha
+ */
+export interface IgnitionDeployOptions {
+  txPollingInterval: number;
+  networkName: string;
+  maxRetries: number;
+  gasPriceIncrementPerRetry: BigNumber | null;
+  pollingInterval: number;
+  eventDuration: number;
+  force: boolean;
 }
 
 /**
- * The setup options for Ignition
+ * The result of a deployment operation.
  *
- * @internal
+ * @alpha
  */
-export interface IgnitionConstructorArgs {
+export type DeploymentResultT<ModuleT extends ModuleDict = ModuleDict> = // eslint-disable-line @typescript-eslint/no-unused-vars
+  unknown;
+
+/**
+ * Ignition's main interface.
+ *
+ * @alpha
+ */
+export interface Ignition {
   /**
-   * An adapter that allows Ignition to communicate with external services
-   * like the target blockchain or local filesystem.
+   * Run a deployment based on a given Ignition module on-chain,
+   * leveraging any configured journal to record.
+   *
+   * @param ignitionModule - An Ignition module
+   * @param options - Configuration options
+   * @returns A struct indicating whether the deployment was
+   * a success, failure or hold. A successful result will
+   * include the addresses of the deployed contracts.
+   *
+   * @alpha
    */
-  services: Services;
+  deploy<T extends ModuleDict>(
+    ignitionModule: Module<T>,
+    options: IgnitionDeployOptions
+  ): Promise<DeploymentResultT<T>>;
 
   /**
-   * A UI update function that will be invoked with the current
-   * Ignition state on each major state change.
+   * Construct a plan (or dry run) describing how a deployment will be executed
+   * for the given module.
+   *
+   * @param deploymentModule - The Ignition module to be deployed
+   * @returns The deployment details as a plan
+   *
+   * @alpha
    */
-  uiRenderer: UpdateUiAction;
-
-  /**
-   * A journal that will be used to store a record of the current
-   * run and to access the history of previous runs.
-   */
-  journal: ICommandJournal;
+  plan<T extends ModuleDict>(
+    deploymentModule: Module<T>
+  ): Promise<IgnitionPlan>;
 }

@@ -1,9 +1,9 @@
+import { viewExecutionResults } from "@ignored/ignition-core/helpers";
 import {
   DeployState,
   ExecutionVertex,
   VertexResultEnum,
-} from "@ignored/ignition-core";
-import { viewExecutionResults } from "@ignored/ignition-core/helpers";
+} from "@ignored/ignition-core/soon-to-be-removed";
 import { Box, Text } from "ink";
 
 import { DeploymentError, DeploymentHold } from "../../types";
