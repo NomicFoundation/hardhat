@@ -14,9 +14,9 @@ import {
 } from "./mocks/etherscan";
 
 import "../../src/type-extensions";
+
 chai.config.truncateThreshold = 0;
 describe("verify task integration tests", () => {
-  // this.timeout(1000000);
   useEnvironment("hardhat-project");
   mockEnvironment();
 
@@ -360,6 +360,239 @@ contracts/SimpleContract.sol:SimpleContract at ${deployedAddress}
 for verification on the block explorer. Waiting for verification result...
 `);
       logStub.restore();
+    });
+
+    it("should throw if the get verification status response has a non-OK status code", async function () {
+      interceptVerify({
+        status: 1,
+        result: "ezq878u486pzijkvvmerl6a9mzwhv6sefgvqi5tkwceejc7tvn",
+      });
+      interceptGetStatus({ error: "error checking verification status" }, 500);
+      const logStub = sinon.stub(console, "log");
+      const deployedAddress = await deployContract(
+        "SimpleContract",
+        [],
+        this.hre
+      );
+      await expect(
+        this.hre.run(TASK_VERIFY, {
+          address: deployedAddress,
+          constructorArgsParams: [],
+        })
+      ).to.be.rejectedWith(
+        `The HTTP server response is not ok. Status code: 500 Response text: {"error":"error checking verification status"}`
+      );
+
+      expect(logStub).to.be
+        .calledOnceWith(`Successfully submitted source code for contract
+contracts/SimpleContract.sol:SimpleContract at ${deployedAddress}
+for verification on the block explorer. Waiting for verification result...
+`);
+      logStub.restore();
+    });
+
+    it("should throw if the get verification status response status is not ok", async function () {
+      interceptVerify({
+        status: 1,
+        result: "ezq878u486pzijkvvmerl6a9mzwhv6sefgvqi5tkwceejc7tvn",
+      });
+      interceptGetStatus({
+        status: 0,
+        result: "Failed to check verification status...",
+      });
+      const logStub = sinon.stub(console, "log");
+      const deployedAddress = await deployContract(
+        "SimpleContract",
+        [],
+        this.hre
+      );
+      await expect(
+        this.hre.run(TASK_VERIFY, {
+          address: deployedAddress,
+          constructorArgsParams: [],
+        })
+      ).to.be.rejectedWith(
+        /The Etherscan API responded with a failure status.\nThe verification may still succeed but should be checked manually./
+      );
+
+      expect(logStub).to.be
+        .calledOnceWith(`Successfully submitted source code for contract
+contracts/SimpleContract.sol:SimpleContract at ${deployedAddress}
+for verification on the block explorer. Waiting for verification result...
+`);
+      logStub.restore();
+    });
+
+    it("should throw if the etherscan API response changes", async function () {
+      interceptVerify({
+        status: 1,
+        result: "ezq878u486pzijkvvmerl6a9mzwhv6sefgvqi5tkwceejc7tvn",
+      });
+      interceptGetStatus({
+        status: 1,
+        result: "a new API response",
+      });
+      const logStub = sinon.stub(console, "log");
+      const deployedAddress = await deployContract(
+        "SimpleContract",
+        [],
+        this.hre
+      );
+      await expect(
+        this.hre.run(TASK_VERIFY, {
+          address: deployedAddress,
+          constructorArgsParams: [],
+        })
+      ).to.be.rejectedWith(/The API responded with an unexpected message./);
+
+      expect(logStub).to.be
+        .calledOnceWith(`Successfully submitted source code for contract
+contracts/SimpleContract.sol:SimpleContract at ${deployedAddress}
+for verification on the block explorer. Waiting for verification result...
+`);
+      logStub.restore();
+    });
+
+    it("should validate a contract using the minimal input", async function () {
+      interceptVerify({
+        status: 1,
+        result: "ezq878u486pzijkvvmerl6a9mzwhv6sefgvqi5tkwceejc7tvn",
+      });
+      interceptGetStatus(() => {
+        return {
+          status: 1,
+          result: "Pass - Verified",
+        };
+      });
+      const logStub = sinon.stub(console, "log");
+      const deployedAddress = await deployContract(
+        "SimpleContract",
+        [],
+        this.hre
+      );
+      const taskResponse = await this.hre.run(TASK_VERIFY, {
+        address: deployedAddress,
+        constructorArgsParams: [],
+      });
+
+      assert.equal(logStub.callCount, 2);
+      expect(logStub.getCall(0)).to.be
+        .calledWith(`Successfully submitted source code for contract
+contracts/SimpleContract.sol:SimpleContract at ${deployedAddress}
+for verification on the block explorer. Waiting for verification result...
+`);
+      expect(logStub.getCall(1)).to.be
+        .calledWith(`Successfully verified contract SimpleContract on Etherscan.
+https://hardhat.etherscan.io/address/${deployedAddress}#code`);
+      logStub.restore();
+      assert.isUndefined(taskResponse);
+    });
+
+    it("should validate a contract using the full build", async function () {
+      let verifyCallCount = 0;
+      interceptVerify(() => {
+        verifyCallCount++;
+        return {
+          status: 1,
+          result: "ezq878u486pzijkvvmerl6a9mzwhv6sefgvqi5tkwceejc7tvn",
+        };
+      }).times(2);
+      let getStatusCallCount = 0;
+      interceptGetStatus(() => {
+        getStatusCallCount++;
+        return {
+          status: getStatusCallCount > 1 ? 1 : 0,
+          result:
+            getStatusCallCount > 1
+              ? "Pass - Verified"
+              : "Fail - Unable to verify",
+        };
+      }).times(2);
+      const logStub = sinon.stub(console, "log");
+      const deployedAddress = await deployContract(
+        "SimpleContract",
+        [],
+        this.hre
+      );
+      const taskResponse = await this.hre.run(TASK_VERIFY, {
+        address: deployedAddress,
+        constructorArgsParams: [],
+      });
+
+      assert.equal(logStub.callCount, 4);
+      expect(logStub.getCall(0)).to.be
+        .calledWith(`Successfully submitted source code for contract
+contracts/SimpleContract.sol:SimpleContract at ${deployedAddress}
+for verification on the block explorer. Waiting for verification result...
+`);
+      expect(logStub.getCall(1)).to.be
+        .calledWith(`We tried verifying your contract SimpleContract without including any unrelated one, but it failed.
+Trying again with the full solc input used to compile and deploy it.
+This means that unrelated contracts may be displayed on Etherscan...
+`);
+      expect(logStub.getCall(2)).to.be
+        .calledWith(`Successfully submitted source code for contract
+contracts/SimpleContract.sol:SimpleContract at ${deployedAddress}
+for verification on the block explorer. Waiting for verification result...
+`);
+      expect(logStub.getCall(3)).to.be
+        .calledWith(`Successfully verified contract SimpleContract on Etherscan.
+https://hardhat.etherscan.io/address/${deployedAddress}#code`);
+      logStub.restore();
+      assert.equal(verifyCallCount, 2);
+      assert.equal(getStatusCallCount, 2);
+      assert.isUndefined(taskResponse);
+    });
+
+    it("should fail if it can't validate the contract", async function () {
+      let verifyCallCount = 0;
+      interceptVerify(() => {
+        verifyCallCount++;
+        return {
+          status: 1,
+          result: "ezq878u486pzijkvvmerl6a9mzwhv6sefgvqi5tkwceejc7tvn",
+        };
+      }).times(2);
+      let getStatusCallCount = 0;
+      interceptGetStatus(() => {
+        getStatusCallCount++;
+        return {
+          status: getStatusCallCount > 1 ? 1 : 0,
+          result: "Fail - Unable to verify",
+        };
+      }).times(2);
+      const logStub = sinon.stub(console, "log");
+      const deployedAddress = await deployContract(
+        "SimpleContract",
+        [],
+        this.hre
+      );
+      await expect(
+        this.hre.run(TASK_VERIFY, {
+          address: deployedAddress,
+          constructorArgsParams: [],
+        })
+      ).to.be.rejectedWith(/The contract verification failed./);
+
+      assert.equal(logStub.callCount, 3);
+      expect(logStub.getCall(0)).to.be
+        .calledWith(`Successfully submitted source code for contract
+contracts/SimpleContract.sol:SimpleContract at ${deployedAddress}
+for verification on the block explorer. Waiting for verification result...
+`);
+      expect(logStub.getCall(1)).to.be
+        .calledWith(`We tried verifying your contract SimpleContract without including any unrelated one, but it failed.
+Trying again with the full solc input used to compile and deploy it.
+This means that unrelated contracts may be displayed on Etherscan...
+`);
+      expect(logStub.getCall(2)).to.be
+        .calledWith(`Successfully submitted source code for contract
+contracts/SimpleContract.sol:SimpleContract at ${deployedAddress}
+for verification on the block explorer. Waiting for verification result...
+`);
+      logStub.restore();
+      assert.equal(verifyCallCount, 2);
+      assert.equal(getStatusCallCount, 2);
     });
 
     after(async function () {
