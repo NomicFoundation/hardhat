@@ -59,8 +59,50 @@ describe("verify task integration tests", () => {
   });
 
   describe("with a non-verified contract", () => {
+    let simpleContractAddress: string;
+    let duplicatedContractAddress: string;
+    let normalLibAddress: string;
+    let constructorLibAddress: string;
+    let onlyNormalLibContractAddress: string;
+    let bothLibsContractAddress: string;
+
     before(async function () {
       await this.hre.run(TASK_COMPILE, { force: true, quiet: true });
+      simpleContractAddress = await deployContract(
+        "SimpleContract",
+        [],
+        this.hre
+      );
+      duplicatedContractAddress = await deployContract(
+        "contracts/DuplicatedContract.sol:DuplicatedContract",
+        [],
+        this.hre
+      );
+      normalLibAddress = await deployContract("NormalLib", [], this.hre);
+      constructorLibAddress = await deployContract(
+        "ConstructorLib",
+        [],
+        this.hre
+      );
+      onlyNormalLibContractAddress = await deployContract(
+        "OnlyNormalLib",
+        [],
+        this.hre,
+        undefined,
+        { libraries: { NormalLib: normalLibAddress } }
+      );
+      bothLibsContractAddress = await deployContract(
+        "BothLibs",
+        [50],
+        this.hre,
+        undefined,
+        {
+          libraries: {
+            NormalLib: normalLibAddress,
+            ConstructorLib: constructorLibAddress,
+          },
+        }
+      );
     });
 
     beforeEach(() => {
@@ -84,11 +126,6 @@ describe("verify task integration tests", () => {
       let originalCompilers: SolcConfig[];
 
       it("should throw if the deployed contract version does not match the configured version", async function () {
-        const deployedAddress = await deployContract(
-          "SimpleContract",
-          [],
-          this.hre
-        );
         originalCompilers = this.hre.config.solidity.compilers;
         this.hre.config.solidity.compilers = [
           { version: "0.8.19", settings: {} },
@@ -96,7 +133,7 @@ describe("verify task integration tests", () => {
 
         await expect(
           this.hre.run(TASK_VERIFY, {
-            address: deployedAddress,
+            address: simpleContractAddress,
             constructorArgsParams: [],
           })
         ).to.be.rejectedWith(
@@ -111,18 +148,12 @@ describe("verify task integration tests", () => {
 
     describe("with deleted artifacts", () => {
       it("should not compile the project when the noCompile is provided", async function () {
-        const deployedAddress = await deployContract(
-          "SimpleContract",
-          [],
-          this.hre
-        );
-
         await this.hre.run(TASK_CLEAN);
 
         // task will fail since we deleted all the artifacts
         await expect(
           this.hre.run(TASK_VERIFY, {
-            address: deployedAddress,
+            address: simpleContractAddress,
             constructorArgsParams: [],
             noCompile: true,
           })
@@ -139,15 +170,9 @@ describe("verify task integration tests", () => {
     });
 
     it("should throw if the deployed bytecode matches more than one contract", async function () {
-      const deployedAddress = await deployContract(
-        "contracts/DuplicatedContract.sol:DuplicatedContract",
-        [],
-        this.hre
-      );
-
       await expect(
         this.hre.run(TASK_VERIFY, {
-          address: deployedAddress,
+          address: duplicatedContractAddress,
           constructorArgsParams: [],
         })
       ).to.be.rejectedWith(
@@ -156,16 +181,11 @@ describe("verify task integration tests", () => {
     });
 
     it("should throw if the provided contract FQN does not match any contract", async function () {
-      const deployedAddress = await deployContract(
-        "SimpleContract",
-        [],
-        this.hre
-      );
       const contractFQN = "contracts/SimpleContract.sol:NotFound";
 
       await expect(
         this.hre.run(TASK_VERIFY, {
-          address: deployedAddress,
+          address: simpleContractAddress,
           constructorArgsParams: [],
           contract: contractFQN,
         })
@@ -177,15 +197,9 @@ describe("verify task integration tests", () => {
     });
 
     it("should throw if there is an invalid address in the libraries parameter", async function () {
-      const deployedAddress = await deployContract(
-        "SimpleContract",
-        [],
-        this.hre
-      );
-
       await expect(
         this.hre.run(TASK_VERIFY, {
-          address: deployedAddress,
+          address: simpleContractAddress,
           constructorArgsParams: [],
           libraries: "invalid-libraries.js",
         })
@@ -195,32 +209,9 @@ describe("verify task integration tests", () => {
     });
 
     it("should throw if the specified library is not used by the contract", async function () {
-      const deployedNormalLibAddress = await deployContract(
-        "NormalLib",
-        [],
-        this.hre
-      );
-      const deployedConstructorLibAddress = await deployContract(
-        "ConstructorLib",
-        [],
-        this.hre
-      );
-      const deployedAddress = await deployContract(
-        "BothLibs",
-        [50],
-        this.hre,
-        undefined,
-        {
-          libraries: {
-            NormalLib: deployedNormalLibAddress,
-            ConstructorLib: deployedConstructorLibAddress,
-          },
-        }
-      );
-
       await expect(
         this.hre.run(TASK_VERIFY, {
-          address: deployedAddress,
+          address: bothLibsContractAddress,
           constructorArgsParams: [],
           libraries: "not-used-libraries.js",
         })
@@ -230,22 +221,9 @@ describe("verify task integration tests", () => {
     });
 
     it("should throw if the specified library is listed more than once in the libraries parameter", async function () {
-      const deployedLibAddress = await deployContract(
-        "NormalLib",
-        [],
-        this.hre
-      );
-      const deployedAddress = await deployContract(
-        "OnlyNormalLib",
-        [],
-        this.hre,
-        undefined,
-        { libraries: { NormalLib: deployedLibAddress } }
-      );
-
       await expect(
         this.hre.run(TASK_VERIFY, {
-          address: deployedAddress,
+          address: onlyNormalLibContractAddress,
           constructorArgsParams: [],
           libraries: "duplicated-libraries.js",
         })
@@ -255,59 +233,23 @@ describe("verify task integration tests", () => {
     });
 
     it("should throw if deployed library address does not match the address defined in the libraries parameter", async function () {
-      const deployedLibAddress = await deployContract(
-        "NormalLib",
-        [],
-        this.hre
-      );
-      const deployedAddress = await deployContract(
-        "OnlyNormalLib",
-        [],
-        this.hre,
-        undefined,
-        { libraries: { NormalLib: deployedLibAddress } }
-      );
-
       await expect(
         this.hre.run(TASK_VERIFY, {
-          address: deployedAddress,
+          address: onlyNormalLibContractAddress,
           constructorArgsParams: [],
           libraries: "mismatched-address-libraries.js",
         })
       ).to.be.rejectedWith(
         new RegExp(
-          `NormalLib\ngiven address: 0x4B0d52f889e9a18506ee9412cd659abF48F8FEad\ndetected address: ${deployedLibAddress.toLowerCase()}`
+          `NormalLib\ngiven address: 0x4B0d52f889e9a18506ee9412cd659abF48F8FEad\ndetected address: ${normalLibAddress.toLowerCase()}`
         )
       );
     });
 
     it("should throw if there are undetectable libraries not specified by the libraries parameter", async function () {
-      const deployedNormalLibAddress = await deployContract(
-        "NormalLib",
-        [],
-        this.hre
-      );
-      const deployedConstructorLibAddress = await deployContract(
-        "ConstructorLib",
-        [],
-        this.hre
-      );
-      const deployedAddress = await deployContract(
-        "BothLibs",
-        [50],
-        this.hre,
-        undefined,
-        {
-          libraries: {
-            NormalLib: deployedNormalLibAddress,
-            ConstructorLib: deployedConstructorLibAddress,
-          },
-        }
-      );
-
       await expect(
         this.hre.run(TASK_VERIFY, {
-          address: deployedAddress,
+          address: bothLibsContractAddress,
           constructorArgsParams: [],
           libraries: "missing-undetectable-libraries.js",
         })
@@ -320,14 +262,9 @@ This can occur if the library is only called in the contract constructor. The mi
 
     it("should throw if the verification request fails", async function () {
       // do not intercept the verifysourcecode request so it throws an error
-      const deployedAddress = await deployContract(
-        "SimpleContract",
-        [],
-        this.hre
-      );
       await expect(
         this.hre.run(TASK_VERIFY, {
-          address: deployedAddress,
+          address: simpleContractAddress,
           constructorArgsParams: [],
         })
       ).to.be.rejectedWith(
@@ -337,14 +274,10 @@ This can occur if the library is only called in the contract constructor. The mi
 
     it("should throw if the verification response has a non-OK status code", async function () {
       interceptVerify({ error: "error verifying contract" }, 500);
-      const deployedAddress = await deployContract(
-        "SimpleContract",
-        [],
-        this.hre
-      );
+
       await expect(
         this.hre.run(TASK_VERIFY, {
-          address: deployedAddress,
+          address: simpleContractAddress,
           constructorArgsParams: [],
         })
       ).to.be.rejectedWith(`Failed to send contract verification request.
@@ -357,19 +290,15 @@ The HTTP server response is not ok. Status code: 500 Response text: {"error":"er
         status: 0,
         result: "Unable to locate ContractCode at 0x...",
       });
-      const deployedAddress = await deployContract(
-        "SimpleContract",
-        [],
-        this.hre
-      );
+
       await expect(
         this.hre.run(TASK_VERIFY, {
-          address: deployedAddress,
+          address: simpleContractAddress,
           constructorArgsParams: [],
         })
       ).to.be.rejectedWith(
         new RegExp(
-          `The Etherscan API responded that the address ${deployedAddress} does not have bytecode.`
+          `The Etherscan API responded that the address ${simpleContractAddress} does not have bytecode.`
         )
       );
     });
@@ -379,14 +308,10 @@ The HTTP server response is not ok. Status code: 500 Response text: {"error":"er
         status: 0,
         result: "Failed to verify the contract...",
       });
-      const deployedAddress = await deployContract(
-        "SimpleContract",
-        [],
-        this.hre
-      );
+
       await expect(
         this.hre.run(TASK_VERIFY, {
-          address: deployedAddress,
+          address: simpleContractAddress,
           constructorArgsParams: [],
         })
       ).to.be.rejectedWith("Failed to verify the contract...");
@@ -399,21 +324,17 @@ The HTTP server response is not ok. Status code: 500 Response text: {"error":"er
       });
       // do not intercept the checkverifystatus request so it throws an error
       const logStub = sinon.stub(console, "log");
-      const deployedAddress = await deployContract(
-        "SimpleContract",
-        [],
-        this.hre
-      );
+
       await expect(
         this.hre.run(TASK_VERIFY, {
-          address: deployedAddress,
+          address: simpleContractAddress,
           constructorArgsParams: [],
         })
       ).to.be.rejectedWith(/Failure during etherscan status polling./);
 
       expect(logStub).to.be
         .calledOnceWith(`Successfully submitted source code for contract
-contracts/SimpleContract.sol:SimpleContract at ${deployedAddress}
+contracts/SimpleContract.sol:SimpleContract at ${simpleContractAddress}
 for verification on the block explorer. Waiting for verification result...
 `);
       logStub.restore();
@@ -426,14 +347,10 @@ for verification on the block explorer. Waiting for verification result...
       });
       interceptGetStatus({ error: "error checking verification status" }, 500);
       const logStub = sinon.stub(console, "log");
-      const deployedAddress = await deployContract(
-        "SimpleContract",
-        [],
-        this.hre
-      );
+
       await expect(
         this.hre.run(TASK_VERIFY, {
-          address: deployedAddress,
+          address: simpleContractAddress,
           constructorArgsParams: [],
         })
       ).to.be.rejectedWith(
@@ -442,7 +359,7 @@ for verification on the block explorer. Waiting for verification result...
 
       expect(logStub).to.be
         .calledOnceWith(`Successfully submitted source code for contract
-contracts/SimpleContract.sol:SimpleContract at ${deployedAddress}
+contracts/SimpleContract.sol:SimpleContract at ${simpleContractAddress}
 for verification on the block explorer. Waiting for verification result...
 `);
       logStub.restore();
@@ -458,14 +375,10 @@ for verification on the block explorer. Waiting for verification result...
         result: "Failed to check verification status...",
       });
       const logStub = sinon.stub(console, "log");
-      const deployedAddress = await deployContract(
-        "SimpleContract",
-        [],
-        this.hre
-      );
+
       await expect(
         this.hre.run(TASK_VERIFY, {
-          address: deployedAddress,
+          address: simpleContractAddress,
           constructorArgsParams: [],
         })
       ).to.be.rejectedWith(
@@ -474,7 +387,7 @@ for verification on the block explorer. Waiting for verification result...
 
       expect(logStub).to.be
         .calledOnceWith(`Successfully submitted source code for contract
-contracts/SimpleContract.sol:SimpleContract at ${deployedAddress}
+contracts/SimpleContract.sol:SimpleContract at ${simpleContractAddress}
 for verification on the block explorer. Waiting for verification result...
 `);
       logStub.restore();
@@ -490,21 +403,17 @@ for verification on the block explorer. Waiting for verification result...
         result: "a new API response",
       });
       const logStub = sinon.stub(console, "log");
-      const deployedAddress = await deployContract(
-        "SimpleContract",
-        [],
-        this.hre
-      );
+
       await expect(
         this.hre.run(TASK_VERIFY, {
-          address: deployedAddress,
+          address: simpleContractAddress,
           constructorArgsParams: [],
         })
       ).to.be.rejectedWith(/The API responded with an unexpected message./);
 
       expect(logStub).to.be
         .calledOnceWith(`Successfully submitted source code for contract
-contracts/SimpleContract.sol:SimpleContract at ${deployedAddress}
+contracts/SimpleContract.sol:SimpleContract at ${simpleContractAddress}
 for verification on the block explorer. Waiting for verification result...
 `);
       logStub.restore();
@@ -522,25 +431,21 @@ for verification on the block explorer. Waiting for verification result...
         };
       });
       const logStub = sinon.stub(console, "log");
-      const deployedAddress = await deployContract(
-        "SimpleContract",
-        [],
-        this.hre
-      );
+
       const taskResponse = await this.hre.run(TASK_VERIFY, {
-        address: deployedAddress,
+        address: simpleContractAddress,
         constructorArgsParams: [],
       });
 
       assert.equal(logStub.callCount, 2);
       expect(logStub.getCall(0)).to.be
         .calledWith(`Successfully submitted source code for contract
-contracts/SimpleContract.sol:SimpleContract at ${deployedAddress}
+contracts/SimpleContract.sol:SimpleContract at ${simpleContractAddress}
 for verification on the block explorer. Waiting for verification result...
 `);
       expect(logStub.getCall(1)).to.be
         .calledWith(`Successfully verified contract SimpleContract on Etherscan.
-https://hardhat.etherscan.io/address/${deployedAddress}#code`);
+https://hardhat.etherscan.io/address/${simpleContractAddress}#code`);
       logStub.restore();
       assert.isUndefined(taskResponse);
     });
@@ -566,20 +471,16 @@ https://hardhat.etherscan.io/address/${deployedAddress}#code`);
         };
       }).times(2);
       const logStub = sinon.stub(console, "log");
-      const deployedAddress = await deployContract(
-        "SimpleContract",
-        [],
-        this.hre
-      );
+
       const taskResponse = await this.hre.run(TASK_VERIFY, {
-        address: deployedAddress,
+        address: simpleContractAddress,
         constructorArgsParams: [],
       });
 
       assert.equal(logStub.callCount, 4);
       expect(logStub.getCall(0)).to.be
         .calledWith(`Successfully submitted source code for contract
-contracts/SimpleContract.sol:SimpleContract at ${deployedAddress}
+contracts/SimpleContract.sol:SimpleContract at ${simpleContractAddress}
 for verification on the block explorer. Waiting for verification result...
 `);
       expect(logStub.getCall(1)).to.be
@@ -589,12 +490,12 @@ This means that unrelated contracts may be displayed on Etherscan...
 `);
       expect(logStub.getCall(2)).to.be
         .calledWith(`Successfully submitted source code for contract
-contracts/SimpleContract.sol:SimpleContract at ${deployedAddress}
+contracts/SimpleContract.sol:SimpleContract at ${simpleContractAddress}
 for verification on the block explorer. Waiting for verification result...
 `);
       expect(logStub.getCall(3)).to.be
         .calledWith(`Successfully verified contract SimpleContract on Etherscan.
-https://hardhat.etherscan.io/address/${deployedAddress}#code`);
+https://hardhat.etherscan.io/address/${simpleContractAddress}#code`);
       logStub.restore();
       assert.equal(verifyCallCount, 2);
       assert.equal(getStatusCallCount, 2);
@@ -619,31 +520,10 @@ https://hardhat.etherscan.io/address/${deployedAddress}#code`);
         };
       }).times(2);
       const logStub = sinon.stub(console, "log");
-      const deployedNormalLibAddress = await deployContract(
-        "NormalLib",
-        [],
-        this.hre
-      );
-      const deployedConstructorLibAddress = await deployContract(
-        "ConstructorLib",
-        [],
-        this.hre
-      );
-      const deployedAddress = await deployContract(
-        "BothLibs",
-        [50],
-        this.hre,
-        undefined,
-        {
-          libraries: {
-            NormalLib: deployedNormalLibAddress,
-            ConstructorLib: deployedConstructorLibAddress,
-          },
-        }
-      );
+
       await expect(
         this.hre.run(TASK_VERIFY, {
-          address: deployedAddress,
+          address: bothLibsContractAddress,
           constructorArgsParams: ["50"],
           libraries: "libraries.js",
         })
@@ -652,7 +532,7 @@ https://hardhat.etherscan.io/address/${deployedAddress}#code`);
       assert.equal(logStub.callCount, 3);
       expect(logStub.getCall(0)).to.be
         .calledWith(`Successfully submitted source code for contract
-contracts/WithLibs.sol:BothLibs at ${deployedAddress}
+contracts/WithLibs.sol:BothLibs at ${bothLibsContractAddress}
 for verification on the block explorer. Waiting for verification result...
 `);
       expect(logStub.getCall(1)).to.be
@@ -662,7 +542,7 @@ This means that unrelated contracts may be displayed on Etherscan...
 `);
       expect(logStub.getCall(2)).to.be
         .calledWith(`Successfully submitted source code for contract
-contracts/WithLibs.sol:BothLibs at ${deployedAddress}
+contracts/WithLibs.sol:BothLibs at ${bothLibsContractAddress}
 for verification on the block explorer. Waiting for verification result...
 `);
       logStub.restore();
@@ -682,34 +562,13 @@ for verification on the block explorer. Waiting for verification result...
         };
       });
       const logStub = sinon.stub(console, "log");
-      const deployedNormalLibAddress = await deployContract(
-        "NormalLib",
-        [],
-        this.hre
-      );
-      const deployedConstructorLibAddress = await deployContract(
-        "ConstructorLib",
-        [],
-        this.hre
-      );
-      const deployedAddress = await deployContract(
-        "BothLibs",
-        [50],
-        this.hre,
-        undefined,
-        {
-          libraries: {
-            NormalLib: deployedNormalLibAddress,
-            ConstructorLib: deployedConstructorLibAddress,
-          },
-        }
-      );
+
       const taskResponse = await this.hre.run(TASK_VERIFY_VERIFY, {
-        address: deployedAddress,
+        address: bothLibsContractAddress,
         constructorArguments: ["50"],
         libraries: {
-          NormalLib: "0x7a2088a1bfc9d81c55368ae168c2c02570cb814f",
-          ConstructorLib: "0xa513E6E4b8f2a923D98304ec87F64353C4D5C853",
+          NormalLib: "0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0",
+          ConstructorLib: "0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9",
         },
         noCompile: true,
       });
@@ -717,12 +576,12 @@ for verification on the block explorer. Waiting for verification result...
       assert.equal(logStub.callCount, 2);
       expect(logStub.getCall(0)).to.be
         .calledWith(`Successfully submitted source code for contract
-contracts/WithLibs.sol:BothLibs at ${deployedAddress}
+contracts/WithLibs.sol:BothLibs at ${bothLibsContractAddress}
 for verification on the block explorer. Waiting for verification result...
 `);
       expect(logStub.getCall(1)).to.be
         .calledWith(`Successfully verified contract BothLibs on Etherscan.
-https://hardhat.etherscan.io/address/${deployedAddress}#code`);
+https://hardhat.etherscan.io/address/${bothLibsContractAddress}#code`);
       logStub.restore();
       assert.isUndefined(taskResponse);
     });
