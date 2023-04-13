@@ -35,6 +35,7 @@ export const deployContract = async (
   const factory = await ethers.getContractFactory(contractName, options);
   const contract = await factory.deploy(...constructorArguments);
   await contract.deployTransaction.wait(confirmations);
+  console.log(`Deployed ${contractName} at ${contract.address}`);
   return contract.address;
 };
 
