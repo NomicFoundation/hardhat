@@ -566,7 +566,7 @@ subtask(TASK_VERIFY_VERIFY)
       await run(TASK_VERIFY_VERIFY_ETHERSCAN, {
         address,
         constructorArgs: constructorArguments,
-        libraryDictionary: libraries,
+        libraries,
         contractFQN: contract,
         noCompile,
       });

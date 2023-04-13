@@ -1,4 +1,5 @@
-import { assert } from "chai";
+import sinon from "sinon";
+import { assert, expect } from "chai";
 import { HardhatConfig, HardhatUserConfig } from "hardhat/types";
 import { etherscanConfigExtender } from "../../src/config";
 import { EtherscanConfig } from "../../src/types";
@@ -125,5 +126,28 @@ describe("Chain Config", () => {
     await etherscanConfigExtender(hardhatConfig, userConfig);
 
     assert.deepEqual(hardhatConfig.etherscan, expected);
+  });
+
+  it("should display a warning message if there is an etherscan entry in the networks object", async () => {
+    const warnStub = sinon.stub(console, "warn");
+    const hardhatConfig = {
+      networks: {
+        etherscan: {
+          apiKey: {
+            goerli: "<goerli-api-key>",
+          },
+        },
+      },
+    };
+    const userConfig: HardhatUserConfig = {};
+
+    // @ts-expect-error
+    await etherscanConfigExtender(hardhatConfig, userConfig);
+    expect(warnStub).to.be.calledOnceWith(
+      sinon.match(
+        /WARNING: you have an 'etherscan' entry in your networks configuration./
+      )
+    );
+    warnStub.restore();
   });
 });
