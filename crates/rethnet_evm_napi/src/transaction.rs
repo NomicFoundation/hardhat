@@ -38,6 +38,7 @@ pub struct Transaction {
 impl TryFrom<Transaction> for rethnet_evm::TxEnv {
     type Error = napi::Error;
 
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     fn try_from(value: Transaction) -> std::result::Result<Self, Self::Error> {
         let caller = if let Some(from) = value.from.as_ref() {
             Address::from_slice(from)

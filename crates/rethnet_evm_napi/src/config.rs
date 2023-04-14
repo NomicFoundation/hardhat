@@ -1,5 +1,5 @@
 use napi::{
-    bindgen_prelude::{BigInt, ToNapiValue},
+    bindgen_prelude::{BigInt, FromNapiValue, ToNapiValue},
     Status,
 };
 use napi_derive::napi;
@@ -94,6 +94,7 @@ pub struct Config {
 impl TryFrom<Config> for CfgEnv {
     type Error = napi::Error;
 
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     fn try_from(value: Config) -> std::result::Result<Self, Self::Error> {
         let default = CfgEnv::default();
         let chain_id = value

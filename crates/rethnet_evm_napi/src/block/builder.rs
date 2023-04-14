@@ -7,15 +7,16 @@ use napi::{
 };
 use napi_derive::napi;
 use rethnet_eth::{block::Header, Address, U256};
-use rethnet_evm::{state::StateError, CfgEnv, HeaderData, TxEnv};
+use rethnet_evm::{
+    state::StateError, trace::TraceCollector, CfgEnv, HeaderData, SyncInspector, TxEnv,
+};
 
 use crate::{
     blockchain::Blockchain,
     cast::TryCast,
     config::Config,
     state::StateManager,
-    tracer::Tracer,
-    transaction::{result::ExecutionResult, Transaction},
+    transaction::{result::TransactionResult, Transaction},
 };
 
 use super::{BlockConfig, BlockHeader};
@@ -28,6 +29,7 @@ pub struct BlockBuilder {
 #[napi]
 impl BlockBuilder {
     #[napi]
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     pub fn new(
         blockchain: &Blockchain,
         state_manager: &StateManager,
@@ -53,23 +55,32 @@ impl BlockBuilder {
     }
 
     #[napi]
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     pub async fn add_transaction(
         &self,
         transaction: Transaction,
-        tracer: Option<&Tracer>,
-    ) -> napi::Result<ExecutionResult> {
+        with_trace: bool,
+    ) -> napi::Result<TransactionResult> {
         let mut builder = self.builder.lock().await;
         if let Some(builder) = builder.as_mut() {
             let transaction = TxEnv::try_from(transaction)?;
 
-            let inspector = tracer.map(|tracer| tracer.as_dyn_inspector());
+            let mut tracer = TraceCollector::default();
+            let inspector: Option<&mut dyn SyncInspector<napi::Error, StateError>> =
+                if with_trace { Some(&mut tracer) } else { None };
 
             let result = builder
                 .add_transaction(transaction, inspector)
                 .await
                 .map_err(|e| napi::Error::new(Status::GenericFailure, e.to_string()))?;
 
-            Ok(result.into())
+            let trace = if with_trace {
+                Some(tracer.into_trace())
+            } else {
+                None
+            };
+
+            Ok(TransactionResult::new(result, None, trace))
         } else {
             Err(napi::Error::new(
                 Status::InvalidArg,
@@ -81,6 +92,7 @@ impl BlockBuilder {
     /// This call consumes the [`BlockBuilder`] object in Rust. Afterwards, you can no longer call
     /// methods on the JS object.
     #[napi]
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     pub async fn finalize(&self, rewards: Vec<(Buffer, BigInt)>) -> napi::Result<()> {
         let mut builder = self.builder.lock().await;
         if let Some(builder) = builder.take() {
@@ -107,6 +119,7 @@ impl BlockBuilder {
     /// This call consumes the [`BlockBuilder`] object in Rust. Afterwards, you can no longer call
     /// methods on the JS object.
     #[napi]
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     pub async fn abort(&self) -> napi::Result<()> {
         let mut builder = self.builder.lock().await;
         if let Some(builder) = builder.take() {

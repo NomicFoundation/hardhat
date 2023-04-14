@@ -1,10 +1,15 @@
+use std::mem;
+
 use napi::{
-    bindgen_prelude::{BigInt, Buffer, Either3, ToNapiValue},
-    Either,
+    bindgen_prelude::{BigInt, Buffer, Either3, FromNapiValue, ToNapiValue},
+    Either, Env, JsBuffer, JsBufferValue,
 };
 use napi_derive::napi;
 
-use crate::{log::Log, trace::Trace};
+use crate::{
+    log::Log,
+    trace::{TracingMessage, TracingMessageResult, TracingStep},
+};
 
 /// The possible reasons for successful termination of the EVM.
 #[napi]
@@ -30,13 +35,13 @@ impl From<rethnet_evm::Eval> for SuccessReason {
 #[napi(object)]
 pub struct CallOutput {
     /// Return value
-    pub return_value: Buffer,
+    pub return_value: JsBuffer,
 }
 
 #[napi(object)]
 pub struct CreateOutput {
     /// Return value
-    pub return_value: Buffer,
+    pub return_value: JsBuffer,
     /// Optionally, a 160-bit address
     pub address: Option<Buffer>,
 }
@@ -62,7 +67,7 @@ pub struct RevertResult {
     /// The amount of gas used
     pub gas_used: BigInt,
     /// The transaction output
-    pub output: Buffer,
+    pub output: JsBuffer,
 }
 
 /// Indicates that the EVM has experienced an exceptional halt. This causes execution to
@@ -78,13 +83,14 @@ pub enum ExceptionalHalt {
     StackOverflow,
     OutOfOffset,
     CreateCollision,
-    OverflowPayment,
     PrecompileError,
     NonceOverflow,
     /// Create init code size exceeds limit (runtime).
     CreateContractSizeLimit,
     /// Error on created contract that begins with EF
     CreateContractStartingWithEF,
+    /// EIP-3860: Limit and meter initcode. Initcode size limit exceeded.
+    CreateInitcodeSizeLimit,
 }
 
 impl From<rethnet_evm::Halt> for ExceptionalHalt {
@@ -99,12 +105,19 @@ impl From<rethnet_evm::Halt> for ExceptionalHalt {
             rethnet_evm::Halt::StackOverflow => ExceptionalHalt::StackOverflow,
             rethnet_evm::Halt::OutOfOffset => ExceptionalHalt::OutOfOffset,
             rethnet_evm::Halt::CreateCollision => ExceptionalHalt::CreateCollision,
-            rethnet_evm::Halt::OverflowPayment => ExceptionalHalt::OverflowPayment,
             rethnet_evm::Halt::PrecompileError => ExceptionalHalt::PrecompileError,
             rethnet_evm::Halt::NonceOverflow => ExceptionalHalt::NonceOverflow,
             rethnet_evm::Halt::CreateContractSizeLimit => ExceptionalHalt::CreateContractSizeLimit,
             rethnet_evm::Halt::CreateContractStartingWithEF => {
                 ExceptionalHalt::CreateContractStartingWithEF
+            }
+            rethnet_evm::Halt::CreateInitcodeSizeLimit => ExceptionalHalt::CreateInitcodeSizeLimit,
+            rethnet_evm::Halt::OverflowPayment
+            | rethnet_evm::Halt::StateChangeDuringStaticCall
+            | rethnet_evm::Halt::CallNotAllowedInsideStatic
+            | rethnet_evm::Halt::OutOfFund
+            | rethnet_evm::Halt::CallTooDeep => {
+                unreachable!("Internal halts that can be only found inside Inspector")
             }
         }
     }
@@ -124,12 +137,10 @@ pub struct HaltResult {
 pub struct ExecutionResult {
     /// The transaction result
     pub result: Either3<SuccessResult, RevertResult, HaltResult>,
-    /// The transaction trace
-    pub trace: Trace,
 }
 
-impl From<(rethnet_evm::ExecutionResult, rethnet_evm::trace::Trace)> for ExecutionResult {
-    fn from((result, trace): (rethnet_evm::ExecutionResult, rethnet_evm::trace::Trace)) -> Self {
+impl ExecutionResult {
+    pub fn new(env: &Env, result: &rethnet_evm::ExecutionResult) -> napi::Result<Self> {
         let result = match result {
             rethnet_evm::ExecutionResult::Success {
                 reason,
@@ -138,68 +149,141 @@ impl From<(rethnet_evm::ExecutionResult, rethnet_evm::trace::Trace)> for Executi
                 logs,
                 output,
             } => {
-                let logs = logs.into_iter().map(Log::from).collect();
+                let logs = logs
+                    .iter()
+                    .map(|log| Log::new(env, log))
+                    .collect::<napi::Result<_>>()?;
 
                 Either3::A(SuccessResult {
-                    reason: reason.into(),
-                    gas_used: BigInt::from(gas_used),
-                    gas_refunded: BigInt::from(gas_refunded),
+                    reason: SuccessReason::from(*reason),
+                    gas_used: BigInt::from(*gas_used),
+                    gas_refunded: BigInt::from(*gas_refunded),
                     logs,
                     output: match output {
-                        rethnet_evm::Output::Call(return_value) => Either::A(CallOutput {
-                            return_value: Buffer::from(return_value.as_ref()),
-                        }),
+                        rethnet_evm::Output::Call(return_value) => {
+                            let return_value = return_value.clone();
+                            Either::A(CallOutput {
+                                return_value: unsafe {
+                                    env.create_buffer_with_borrowed_data(
+                                        return_value.as_ptr(),
+                                        return_value.len(),
+                                        return_value,
+                                        |return_value: rethnet_eth::Bytes, _env| {
+                                            mem::drop(return_value);
+                                        },
+                                    )
+                                }
+                                .map(JsBufferValue::into_raw)?,
+                            })
+                        }
                         rethnet_evm::Output::Create(return_value, address) => {
+                            let return_value = return_value.clone();
+
                             Either::B(CreateOutput {
-                                return_value: Buffer::from(return_value.as_ref()),
+                                return_value: unsafe {
+                                    env.create_buffer_with_borrowed_data(
+                                        return_value.as_ptr(),
+                                        return_value.len(),
+                                        return_value,
+                                        |return_value: rethnet_eth::Bytes, _env| {
+                                            mem::drop(return_value);
+                                        },
+                                    )
+                                }
+                                .map(JsBufferValue::into_raw)?,
                                 address: address.map(|address| Buffer::from(address.as_bytes())),
                             })
                         }
                     },
                 })
             }
-            rethnet_evm::ExecutionResult::Revert { gas_used, output } => Either3::B(RevertResult {
-                gas_used: BigInt::from(gas_used),
-                output: Buffer::from(output.as_ref()),
-            }),
+            rethnet_evm::ExecutionResult::Revert { gas_used, output } => {
+                let output = output.clone();
+                Either3::B(RevertResult {
+                    gas_used: BigInt::from(*gas_used),
+                    output: unsafe {
+                        env.create_buffer_with_borrowed_data(
+                            output.as_ptr(),
+                            output.len(),
+                            output,
+                            |output: rethnet_eth::Bytes, _env| {
+                                mem::drop(output);
+                            },
+                        )
+                    }
+                    .map(JsBufferValue::into_raw)?,
+                })
+            }
             rethnet_evm::ExecutionResult::Halt { reason, gas_used } => Either3::C(HaltResult {
-                reason: reason.into(),
-                gas_used: BigInt::from(gas_used),
+                reason: ExceptionalHalt::from(*reason),
+                gas_used: BigInt::from(*gas_used),
             }),
         };
 
+        Ok(Self { result })
+    }
+}
+
+#[napi]
+pub struct TransactionResult {
+    inner: rethnet_evm::ExecutionResult,
+    state: Option<rethnet_evm::State>,
+    trace: Option<rethnet_evm::trace::Trace>,
+}
+
+impl TransactionResult {
+    /// Constructs a new [`TransactionResult`] instance.
+    pub fn new(
+        result: rethnet_evm::ExecutionResult,
+        state: Option<rethnet_evm::State>,
+        trace: Option<rethnet_evm::trace::Trace>,
+    ) -> Self {
         Self {
-            result,
-            trace: trace.into(),
+            inner: result,
+            state,
+            trace,
         }
     }
 }
 
-#[napi(object)]
-pub struct TransactionResult {
-    pub exec_result: ExecutionResult,
-    pub state: serde_json::Value,
-}
+#[napi]
+impl TransactionResult {
+    #[napi(getter)]
+    pub fn result(&self, env: Env) -> napi::Result<ExecutionResult> {
+        ExecutionResult::new(&env, &self.inner)
+    }
 
-impl
-    TryFrom<(
-        rethnet_evm::ExecutionResult,
-        rethnet_evm::State,
-        rethnet_evm::trace::Trace,
-    )> for TransactionResult
-{
-    type Error = napi::Error;
+    #[napi(getter)]
+    pub fn state(&self) -> napi::Result<Option<serde_json::Value>> {
+        serde_json::to_value(&self.state)
+            .map(Some)
+            .map_err(From::from)
+    }
 
-    fn try_from(
-        (result, state, trace): (
-            rethnet_evm::ExecutionResult,
-            rethnet_evm::State,
-            rethnet_evm::trace::Trace,
-        ),
-    ) -> std::result::Result<Self, Self::Error> {
-        let exec_result = (result, trace).into();
-        let state = serde_json::to_value(state)?;
-
-        Ok(Self { exec_result, state })
+    #[napi(getter)]
+    pub fn trace(
+        &self,
+        env: Env,
+    ) -> napi::Result<Option<Vec<Either3<TracingMessage, TracingStep, TracingMessageResult>>>> {
+        self.trace.as_ref().map_or(Ok(None), |trace| {
+            trace
+                .messages
+                .iter()
+                .map(|message| match message {
+                    rethnet_evm::trace::TraceMessage::Before(message) => {
+                        TracingMessage::new(&env, message).map(Either3::A)
+                    }
+                    rethnet_evm::trace::TraceMessage::Step(step) => {
+                        Ok(Either3::B(TracingStep::new(step)))
+                    }
+                    rethnet_evm::trace::TraceMessage::After(result) => {
+                        ExecutionResult::new(&env, result).map(|execution_result| {
+                            Either3::C(TracingMessageResult { execution_result })
+                        })
+                    }
+                })
+                .collect::<napi::Result<_>>()
+                .map(Some)
+        })
     }
 }

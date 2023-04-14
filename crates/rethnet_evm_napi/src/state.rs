@@ -1,13 +1,20 @@
-use std::sync::{
-    mpsc::{channel, Sender},
-    Arc,
+use std::{
+    mem,
+    sync::{
+        mpsc::{channel, Sender},
+        Arc,
+    },
 };
 
-use napi::{bindgen_prelude::*, JsFunction, JsNumber, JsObject, JsString, NapiRaw, Status};
+use napi::{
+    bindgen_prelude::{BigInt, Buffer, ObjectFinalize},
+    tokio::sync::RwLock,
+    Env, JsFunction, JsObject, JsString, NapiRaw, Status,
+};
 use napi_derive::napi;
-use rethnet_eth::{signature::private_key_to_address, Address, B256, U256};
+use rethnet_eth::{signature::private_key_to_address, Address, Bytes, B256, U256};
 use rethnet_evm::{
-    state::{AsyncState, ForkState, LayeredState, RethnetLayer, StateDebug, StateError, SyncState},
+    state::{AccountModifierFn, ForkState, HybridState, StateError, StateHistory, SyncState},
     AccountInfo, Bytecode, HashMap, KECCAK_EMPTY,
 };
 use secp256k1::Secp256k1;
@@ -15,9 +22,14 @@ use secp256k1::Secp256k1;
 use crate::{
     account::Account,
     cast::TryCast,
+    context::{Context, RethnetContext},
     sync::{await_promise, handle_error},
     threadsafe_function::{ThreadSafeCallContext, ThreadsafeFunction, ThreadsafeFunctionCallMode},
 };
+
+// An arbitrarily large amount of memory to signal to the javascript garbage collector that it needs to
+// attempt to free the state object's memory.
+const STATE_MEMORY_SIZE: i64 = 10_000;
 
 struct ModifyAccountCall {
     pub balance: U256,
@@ -35,159 +47,202 @@ pub struct GenesisAccount {
     pub balance: BigInt,
 }
 
+#[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
+fn genesis_accounts(
+    accounts: Option<Vec<GenesisAccount>>,
+) -> napi::Result<HashMap<Address, AccountInfo>> {
+    let signer = Secp256k1::signing_only();
+
+    let mut accounts = accounts.map_or_else(
+        || Ok(HashMap::default()),
+        |accounts| {
+            accounts
+                .into_iter()
+                .map(|account| {
+                    let address = private_key_to_address(&signer, &account.private_key)
+                        .map_err(|e| napi::Error::new(Status::InvalidArg, e.to_string()))?;
+                    TryCast::<U256>::try_cast(account.balance).map(|balance| {
+                        let account_info = AccountInfo {
+                            balance,
+                            ..Default::default()
+                        };
+
+                        (address, account_info)
+                    })
+                })
+                .collect::<napi::Result<HashMap<Address, AccountInfo>>>()
+        },
+    )?;
+
+    // Mimic precompiles activation
+    for idx in 1..=8 {
+        let mut address = Address::zero();
+        address.0[19] = idx;
+        accounts.insert(address, AccountInfo::default());
+    }
+
+    Ok(accounts)
+}
+
 /// The Rethnet state
-#[napi]
+#[napi(custom_finalize)]
+#[derive(Debug)]
 pub struct StateManager {
-    pub(super) state: Arc<AsyncState<StateError>>,
+    pub(super) state: Arc<RwLock<Box<dyn SyncState<StateError>>>>,
+    context: Arc<Context>,
 }
 
 #[napi]
 impl StateManager {
     /// Constructs a [`StateManager`] with an empty state.
     #[napi(constructor)]
-    pub fn new() -> napi::Result<Self> {
-        Self::with_accounts(HashMap::default())
-    }
-
-    fn map_accounts(accounts: Vec<GenesisAccount>) -> Result<HashMap<Address, AccountInfo>> {
-        let context = Secp256k1::signing_only();
-        accounts
-            .into_iter()
-            .map(|account| {
-                let address = private_key_to_address(&context, &account.private_key)
-                    .map_err(|e| napi::Error::new(Status::InvalidArg, e.to_string()))?;
-                TryCast::<U256>::try_cast(account.balance).map(|balance| {
-                    let account_info = AccountInfo {
-                        balance,
-                        ..Default::default()
-                    };
-
-                    (address, account_info)
-                })
-            })
-            .collect::<napi::Result<HashMap<Address, AccountInfo>>>()
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
+    pub fn new(mut env: Env, context: &RethnetContext) -> napi::Result<Self> {
+        let accounts = genesis_accounts(None)?;
+        Self::with_state(&mut env, context, HybridState::with_accounts(accounts))
     }
 
     /// Constructs a [`StateManager`] with the provided accounts present in the genesis state.
     #[napi(factory)]
-    pub fn with_genesis_accounts(accounts: Vec<GenesisAccount>) -> napi::Result<Self> {
-        let genesis_accounts = Self::map_accounts(accounts)?;
-
-        Self::with_accounts(genesis_accounts)
-    }
-
-    fn init_precompiles(accounts: HashMap<Address, AccountInfo>) -> HashMap<Address, AccountInfo> {
-        // Mimic precompiles activation
-        let mut accounts = accounts;
-        for idx in 1..=8 {
-            let mut address = Address::zero();
-            address.0[19] = idx;
-            accounts.insert(address, AccountInfo::default());
-        }
-        accounts
-    }
-
-    fn with_accounts(accounts: HashMap<Address, AccountInfo>) -> napi::Result<Self> {
-        let accounts = Self::init_precompiles(accounts);
-        let mut state = LayeredState::with_layer(RethnetLayer::with_genesis_accounts(accounts));
-
-        state.checkpoint().unwrap();
-
-        Self::with_state(state)
-    }
-
-    fn with_state<S>(state: S) -> napi::Result<Self>
-    where
-        S: SyncState<StateError>,
-    {
-        let state: Box<dyn SyncState<StateError>> = Box::new(state);
-        let state = AsyncState::new(state)
-            .map_err(|e| napi::Error::new(Status::GenericFailure, e.to_string()))?;
-
-        Ok(Self {
-            state: Arc::new(state),
-        })
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
+    pub fn with_genesis_accounts(
+        mut env: Env,
+        context: &RethnetContext,
+        accounts: Vec<GenesisAccount>,
+    ) -> napi::Result<Self> {
+        let accounts = genesis_accounts(Some(accounts))?;
+        Self::with_state(&mut env, context, HybridState::with_accounts(accounts))
     }
 
     /// Constructs a [`StateManager`] that uses the remote node and block number as the basis for
     /// its state.
     #[napi(factory)]
-    pub fn with_fork(
+    pub fn fork_remote(
+        mut env: Env,
+        context: &RethnetContext,
         remote_node_url: JsString,
+        fork_block_number: Option<BigInt>,
         accounts: Vec<GenesisAccount>,
-        fork_block_number: Option<JsNumber>,
     ) -> napi::Result<Self> {
-        let fork_block_number: Option<U256> = if fork_block_number.is_some() {
-            let fork_block_number: i64 = fork_block_number.unwrap().try_into()?;
-            Some(U256::from(fork_block_number))
-        } else {
-            None
-        };
-        let accounts = Self::map_accounts(accounts)?;
-        let accounts = Self::init_precompiles(accounts);
-        Self::with_state(ForkState::new(
-            remote_node_url.into_utf8()?.as_str()?,
-            accounts,
-            fork_block_number,
-        ))
+        let fork_block_number: Option<U256> = fork_block_number.map_or(Ok(None), |number| {
+            BigInt::try_cast(number).map(Option::Some)
+        })?;
+
+        let accounts = genesis_accounts(Some(accounts))?;
+        Self::with_state(
+            &mut env,
+            context,
+            ForkState::new(
+                context.as_inner().runtime(),
+                remote_node_url.into_utf8()?.as_str()?,
+                accounts,
+                fork_block_number,
+            ),
+        )
+    }
+
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
+    fn with_state<S>(env: &mut Env, context: &RethnetContext, mut state: S) -> napi::Result<Self>
+    where
+        S: SyncState<StateError>,
+    {
+        state.checkpoint().unwrap();
+        let state: Box<dyn SyncState<StateError>> = Box::new(state);
+
+        env.adjust_external_memory(STATE_MEMORY_SIZE)?;
+
+        Ok(Self {
+            state: Arc::new(RwLock::new(state)),
+            context: context.as_inner().clone(),
+        })
     }
 
     /// Creates a state checkpoint that can be reverted to using [`revert`].
     #[napi]
+    #[cfg_attr(feature = "tracing", tracing::instrument)]
     pub async fn checkpoint(&self) -> napi::Result<()> {
-        self.state
-            .checkpoint()
+        let state = self.state.clone();
+        self.context
+            .runtime()
+            .spawn(async move {
+                let mut state = state.write().await;
+                state.checkpoint()
+            })
             .await
+            .unwrap()
             .map_err(|e| napi::Error::new(Status::GenericFailure, e.to_string()))
     }
 
     /// Reverts to the previous checkpoint, created using [`checkpoint`].
     #[napi]
+    #[cfg_attr(feature = "tracing", tracing::instrument)]
     pub async fn revert(&self) -> napi::Result<()> {
-        self.state
-            .revert()
+        let state = self.state.clone();
+        self.context
+            .runtime()
+            .spawn(async move {
+                let mut state = state.write().await;
+                state.revert()
+            })
             .await
+            .unwrap()
             .map_err(|e| napi::Error::new(Status::GenericFailure, e.to_string()))
     }
 
     /// Retrieves the account corresponding to the specified address.
     #[napi]
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     pub async fn get_account_by_address(&self, address: Buffer) -> napi::Result<Option<Account>> {
         let address = Address::from_slice(&address);
 
-        let mut account_info = self
-            .state
-            .account_by_address(address)
+        let state = self.state.clone();
+        self.context
+            .runtime()
+            .spawn(async move {
+                let state = state.read().await;
+
+                state.basic(address).and_then(|account_info| {
+                    account_info.map_or(Ok(None), |mut account_info| {
+                        if account_info.code_hash != KECCAK_EMPTY {
+                            account_info.code = Some(state.code_by_hash(account_info.code_hash)?);
+                        }
+
+                        Ok(Some(account_info))
+                    })
+                })
+            })
             .await
-            .map_err(|e| napi::Error::new(Status::GenericFailure, e.to_string()))?;
-
-        if let Some(account_info) = &mut account_info {
-            if account_info.code.is_none() && account_info.code_hash != KECCAK_EMPTY {
-                account_info.code = Some(
-                    self.state
-                        .code_by_hash(account_info.code_hash)
-                        .await
-                        .map_err(|e| napi::Error::new(Status::GenericFailure, e.to_string()))?,
-                );
-            }
-        }
-
-        Ok(account_info.map(Account::from))
+            .unwrap()
+            .map_or_else(
+                |e| Err(napi::Error::new(Status::GenericFailure, e.to_string())),
+                |account_info| Ok(account_info.map(Account::from)),
+            )
     }
 
     /// Retrieves the storage root of the account at the specified address.
     #[napi]
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     pub async fn get_account_storage_root(&self, address: Buffer) -> napi::Result<Option<Buffer>> {
         let address = Address::from_slice(&address);
 
-        self.state.account_storage_root(&address).await.map_or_else(
-            |e| Err(napi::Error::new(Status::GenericFailure, e.to_string())),
-            |root| Ok(root.map(|root| Buffer::from(root.as_ref()))),
-        )
+        let state = self.state.clone();
+        self.context
+            .runtime()
+            .spawn(async move {
+                let state = state.read().await;
+                state.account_storage_root(&address)
+            })
+            .await
+            .unwrap()
+            .map_or_else(
+                |e| Err(napi::Error::new(Status::GenericFailure, e.to_string())),
+                |root| Ok(root.map(|root| Buffer::from(root.as_ref()))),
+            )
     }
 
     /// Retrieves the storage slot at the specified address and index.
     #[napi]
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     pub async fn get_account_storage_slot(
         &self,
         address: Buffer,
@@ -196,9 +251,15 @@ impl StateManager {
         let address = Address::from_slice(&address);
         let index: U256 = BigInt::try_cast(index)?;
 
-        self.state
-            .account_storage_slot(address, index)
+        let state = self.state.clone();
+        self.context
+            .runtime()
+            .spawn(async move {
+                let state = state.read().await;
+                state.storage(address, index)
+            })
             .await
+            .unwrap()
             .map_or_else(
                 |e| Err(napi::Error::new(Status::GenericFailure, e.to_string())),
                 |value| {
@@ -212,35 +273,65 @@ impl StateManager {
 
     /// Retrieves the storage root of the database.
     #[napi]
+    #[cfg_attr(feature = "tracing", tracing::instrument)]
     pub async fn get_state_root(&self) -> napi::Result<Buffer> {
-        self.state.state_root().await.map_or_else(
-            |e| Err(napi::Error::new(Status::GenericFailure, e.to_string())),
-            |root| Ok(Buffer::from(root.as_ref())),
-        )
+        let state = self.state.clone();
+        self.context
+            .runtime()
+            .spawn(async move {
+                let state = state.read().await;
+                state.state_root()
+            })
+            .await
+            .unwrap()
+            .map_or_else(
+                |e| Err(napi::Error::new(Status::GenericFailure, e.to_string())),
+                |root| Ok(Buffer::from(root.as_ref())),
+            )
     }
 
     /// Inserts the provided account at the specified address.
     #[napi]
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     pub async fn insert_account(&self, address: Buffer, account: Account) -> napi::Result<()> {
         let address = Address::from_slice(&address);
-        let account: AccountInfo = account.try_cast()?;
+        let account_info: AccountInfo = account.try_cast()?;
 
-        self.state
-            .insert_account(address, account)
+        let state = self.state.clone();
+        self.context
+            .runtime()
+            .spawn(async move {
+                let mut state = state.write().await;
+                state.insert_account(address, account_info)
+            })
             .await
+            .unwrap()
             .map_err(|e| napi::Error::new(Status::GenericFailure, e.to_string()))
     }
 
     /// Makes a snapshot of the database that's retained until [`removeSnapshot`] is called. Returns the snapshot's identifier.
     #[napi]
+    #[cfg_attr(feature = "tracing", tracing::instrument)]
     pub async fn make_snapshot(&self) -> Buffer {
-        <B256 as AsRef<[u8]>>::as_ref(&self.state.make_snapshot().await).into()
+        let state = self.state.clone();
+        let state_root = self
+            .context
+            .runtime()
+            .spawn(async move {
+                let mut state = state.write().await;
+                state.make_snapshot()
+            })
+            .await
+            .unwrap();
+
+        Buffer::from(state_root.as_ref())
     }
 
     /// Modifies the account with the provided address using the specified modifier function.
     /// The modifier function receives the current values as individual parameters and will update the account's values
     /// to the returned `Account` values.
     #[napi(ts_return_type = "Promise<void>")]
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     pub fn modify_account(
         &self,
         env: Env,
@@ -256,7 +347,16 @@ impl StateManager {
             env.raw(),
             unsafe { modify_account_fn.raw() },
             0,
-            |ctx: ThreadSafeCallContext<ModifyAccountCall>| {
+            |mut ctx: ThreadSafeCallContext<ModifyAccountCall>| {
+                #[cfg(feature = "tracing")]
+                let span = tracing::span!(
+                    tracing::Level::TRACE,
+                    "modify_account_threadsafe_function_call"
+                );
+
+                #[cfg(feature = "tracing")]
+                let _span_guard = span.enter();
+
                 let sender = ctx.value.sender.clone();
 
                 let balance = ctx
@@ -276,9 +376,26 @@ impl StateManager {
                         .create_buffer_copy(code.hash())
                         .and_then(|hash| bytecode.set_named_property("hash", hash.into_raw()))?;
 
+                    let code = code.original_bytes();
+
                     ctx.env
-                        .create_buffer_copy(&code.bytes()[..code.len()])
-                        .and_then(|code| bytecode.set_named_property("code", code.into_raw()))?;
+                        .adjust_external_memory(code.len() as i64)
+                        .expect("Failed to adjust external memory");
+
+                    unsafe {
+                        ctx.env.create_buffer_with_borrowed_data(
+                            code.as_ptr(),
+                            code.len(),
+                            code,
+                            |code: Bytes, mut env| {
+                                env.adjust_external_memory(-(code.len() as i64))
+                                    .expect("Failed to adjust external memory");
+
+                                mem::forget(code);
+                            },
+                        )
+                    }
+                    .and_then(|code| bytecode.set_named_property("code", code.into_raw()))?;
 
                     bytecode.into_unknown()
                 } else {
@@ -294,13 +411,14 @@ impl StateManager {
         )?;
 
         let (deferred, promise) = env.create_deferred()?;
-        let db = self.state.clone();
+        let state = self.state.clone();
+        self.context.runtime().spawn(async move {
+            let mut state = state.write().await;
 
-        self.state.runtime().spawn(async move {
-            let result = db
+            let result = state
                 .modify_account(
                     address,
-                    Box::new(
+                    AccountModifierFn::new(Box::new(
                         move |balance: &mut U256, nonce: &mut u64, code: &mut Option<Bytecode>| {
                             let (sender, receiver) = channel();
 
@@ -321,9 +439,8 @@ impl StateManager {
                             *nonce = new_account.nonce;
                             *code = new_account.code;
                         },
-                    ),
+                    )),
                 )
-                .await
                 .map_err(|e| napi::Error::new(Status::GenericFailure, e.to_string()));
 
             deferred.resolve(|_| result);
@@ -334,25 +451,60 @@ impl StateManager {
 
     /// Removes and returns the account at the specified address, if it exists.
     #[napi]
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     pub async fn remove_account(&self, address: Buffer) -> napi::Result<Option<Account>> {
         let address = Address::from_slice(&address);
 
-        self.state.remove_account(address).await.map_or_else(
-            |e| Err(napi::Error::new(Status::GenericFailure, e.to_string())),
-            |account| Ok(account.map(Account::from)),
-        )
+        let state = self.state.clone();
+        self.context
+            .runtime()
+            .spawn(async move {
+                let mut state = state.write().await;
+                state.remove_account(address)
+            })
+            .await
+            .unwrap()
+            .map_or_else(
+                |e| Err(napi::Error::new(Status::GenericFailure, e.to_string())),
+                |account| Ok(account.map(Account::from)),
+            )
     }
 
     /// Removes the snapshot corresponding to the specified state root, if it exists. Returns whether a snapshot was removed.
     #[napi]
-    pub async fn remove_snapshot(&self, state_root: Buffer) -> bool {
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
+    pub async fn remove_snapshot(&self, state_root: Buffer) {
         let state_root = B256::from_slice(&state_root);
 
-        self.state.remove_snapshot(state_root).await
+        let state = self.state.clone();
+        self.context
+            .runtime()
+            .spawn(async move {
+                let mut state = state.write().await;
+                state.remove_snapshot(&state_root)
+            })
+            .await
+            .unwrap()
+    }
+
+    /// Serializes the state using ordering of addresses and storage indices.
+    #[napi]
+    #[cfg_attr(feature = "tracing", tracing::instrument)]
+    pub async fn serialize(&self) -> String {
+        let state = self.state.clone();
+        self.context
+            .runtime()
+            .spawn(async move {
+                let state = state.read().await;
+                state.serialize()
+            })
+            .await
+            .unwrap()
     }
 
     /// Sets the storage slot at the specified address and index to the provided value.
     #[napi]
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     pub async fn set_account_storage_slot(
         &self,
         address: Buffer,
@@ -363,44 +515,49 @@ impl StateManager {
         let index: U256 = BigInt::try_cast(index)?;
         let value: U256 = BigInt::try_cast(value)?;
 
-        self.state
-            .set_account_storage_slot(address, index, value)
+        let state = self.state.clone();
+        self.context
+            .runtime()
+            .spawn(async move {
+                let mut state = state.write().await;
+                state.set_account_storage_slot(address, index, value)
+            })
             .await
+            .unwrap()
             .map_err(|e| napi::Error::new(Status::GenericFailure, e.to_string()))
     }
 
     /// Reverts the state to match the specified state root.
     #[napi]
-    pub async fn set_state_root(&self, state_root: Buffer) -> napi::Result<()> {
-        let state_root = B256::from_slice(&state_root);
-
-        self.state
-            .set_state_root(&state_root)
-            .await
-            .map_err(|e| napi::Error::new(Status::GenericFailure, e.to_string()))
-    }
-
-    #[napi]
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     pub async fn set_block_context(
         &self,
-        block_number: BigInt,
         state_root: Buffer,
+        block_number: Option<BigInt>,
     ) -> napi::Result<()> {
         let state_root = B256::from_slice(&state_root);
+        let block_number: Option<U256> = block_number.map_or(Ok(None), |number| {
+            BigInt::try_cast(number).map(Option::Some)
+        })?;
 
-        self.state
-            .set_block_context(BigInt::try_cast(block_number)?, &state_root)
+        let state = self.state.clone();
+        self.context
+            .runtime()
+            .spawn(async move {
+                let mut state = state.write().await;
+                state.set_block_context(&state_root, block_number)
+            })
             .await
+            .unwrap()
             .map_err(|e| napi::Error::new(Status::GenericFailure, e.to_string()))
     }
+}
 
-    #[napi]
-    pub async fn restore_fork_block_context(&self, state_root: Buffer) -> napi::Result<()> {
-        let state_root = B256::from_slice(&state_root);
+impl ObjectFinalize for StateManager {
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
+    fn finalize(self, mut env: Env) -> napi::Result<()> {
+        env.adjust_external_memory(-STATE_MEMORY_SIZE)?;
 
-        self.state
-            .restore_fork_block_context(&state_root)
-            .await
-            .map_err(|e| napi::Error::new(Status::GenericFailure, e.to_string()))
+        Ok(())
     }
 }

@@ -16,12 +16,13 @@ pub use revm::{
         InstructionResult, Interpreter, OPCODE_JUMPMAP,
     },
     primitives::*,
-    EVMData, Inspector,
+    Inspector,
 };
 
 pub use crate::{
     block::{BlockBuilder, HeaderData},
-    runtime::{AsyncDatabase, Rethnet},
+    evm::SyncInspector,
+    runtime::{Rethnet, SyncDatabase},
     transaction::{PendingTransaction, TransactionError},
 };
 
@@ -35,8 +36,8 @@ pub mod state;
 pub mod trace;
 
 mod block;
+pub(crate) mod collections;
 pub(crate) mod evm;
-mod inspector;
 pub(crate) mod random;
 mod runtime;
 mod transaction;

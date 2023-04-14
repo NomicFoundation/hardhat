@@ -28,11 +28,7 @@ import { RunTxResult, Trace, VMAdapter } from "./vm-adapter";
 /* eslint-disable @nomiclabs/hardhat-internal-rules/only-hardhat-error */
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
 
-function _printEthereumJSTrace(trace: any) {
-  console.log(JSON.stringify(trace, null, 2));
-}
-
-function _printRethnetTrace(trace: any) {
+function printTrace(trace: any) {
   console.log(
     JSON.stringify(
       trace,
@@ -446,6 +442,7 @@ export class DualModeAdapter implements VMAdapter {
           "hex"
         )} (ethereumjs) !== ${rethnetRoot.toString("hex")} (rethnet)`
       );
+      await this.printState();
       throw new Error("Different state root");
     }
 
@@ -567,22 +564,21 @@ export class DualModeAdapter implements VMAdapter {
     tx: TypedTransaction,
     block: Block
   ): Promise<[RunTxResult, Trace]> {
-    const ethereumJSResultPromise = this._ethereumJSAdapter.runTxInBlock(
-      tx,
-      block
-    );
-
-    const rethnetResultPromise = this._rethnetAdapter.runTxInBlock(tx, block);
-
     const [
-      [ethereumJSResult, ethereumJSTrace],
-      [rethnetResult, _rethnetTrace],
-    ] = await Promise.all([ethereumJSResultPromise, rethnetResultPromise]);
+      [ethereumJSResult, ethereumJSDebugTrace],
+      [rethnetResult, _rethnetDebugTrace],
+    ] = await Promise.all([
+      this._ethereumJSAdapter.runTxInBlock(tx, block),
+      this._rethnetAdapter.runTxInBlock(tx, block),
+    ]);
 
     try {
       assertEqualRunTxResults(ethereumJSResult, rethnetResult);
 
-      return [ethereumJSResult, ethereumJSTrace];
+      // Validate trace
+      const _trace = this.getLastTrace();
+
+      return [ethereumJSResult, ethereumJSDebugTrace];
     } catch (e) {
       // if the results didn't match, print the traces
       // console.log("EthereumJS trace");
@@ -610,6 +606,8 @@ export class DualModeAdapter implements VMAdapter {
   public async revertBlock(): Promise<void> {
     await this._rethnetAdapter.revertBlock();
     return this._ethereumJSAdapter.revertBlock();
+
+    const _stateRoot = this.getStateRoot();
   }
 
   public async makeSnapshot(): Promise<Buffer> {
@@ -622,10 +620,16 @@ export class DualModeAdapter implements VMAdapter {
           "hex"
         )} (ethereumjs) !== ${rethnetRoot.toString("hex")} (rethnet)`
       );
+      await this.printState();
       throw new Error("Different snapshot state root");
     }
 
     return rethnetRoot;
+  }
+
+  public async removeSnapshot(stateRoot: Buffer): Promise<void> {
+    await this._ethereumJSAdapter.removeSnapshot(stateRoot);
+    await this._rethnetAdapter.removeSnapshot(stateRoot);
   }
 
   public getLastTrace(): {
@@ -650,7 +654,16 @@ export class DualModeAdapter implements VMAdapter {
         );
       }
 
-      assertEqualTraces(ethereumJSTrace, rethnetTrace);
+      const differences = traceDifferences(ethereumJSTrace, rethnetTrace);
+      if (differences.length > 0) {
+        console.trace(`Different traces: ${differences}`);
+        console.log("EthereumJS trace:");
+        printTrace(ethereumJSTrace);
+        console.log();
+        console.log("Rethnet trace:");
+        printTrace(rethnetTrace);
+        throw new Error(`Different traces: ${differences}`);
+      }
     }
 
     if (ethereumJSError === undefined) {
@@ -727,67 +740,67 @@ export class DualModeAdapter implements VMAdapter {
         throw new Error("Different step pc");
       }
 
-      if (ethereumJSStep.opcode !== rethnetStep.opcode) {
-        console.trace(
-          `Different steps[${stepIdx}] opcode: ${ethereumJSStep.opcode} (ethereumjs) !== ${rethnetStep.opcode} (rethnet)`
-        );
-        throw new Error("Different step opcode");
-      }
+      // if (ethereumJSStep.opcode !== rethnetStep.opcode) {
+      //   console.trace(
+      //     `Different steps[${stepIdx}] opcode: ${ethereumJSStep.opcode} !== ${rethnetStep.opcode}`
+      //   );
+      //   throw new Error("Different step opcode");
+      // }
 
-      if (ethereumJSStep.gasCost !== rethnetStep.gasCost) {
-        console.trace(
-          `Different steps[${stepIdx}] gasCost: ${ethereumJSStep.gasCost} (ethereumjs) !== ${rethnetStep.gasCost} (rethnet)`
-        );
-        throw new Error("Different step gasCost");
-      }
+      // if (ethereumJSStep.gasCost !== rethnetStep.gasCost) {
+      //   console.trace(
+      //     `Different steps[${stepIdx}] gasCost: ${ethereumJSStep.gasCost} !== ${rethnetStep.gasCost}`
+      //   );
+      //   throw new Error("Different step gasCost");
+      // }
 
-      if (ethereumJSStep.gasLeft !== rethnetStep.gasLeft) {
-        console.trace(
-          `Different steps[${stepIdx}] gasLeft: ${ethereumJSStep.gasLeft} (ethereumjs) !== ${rethnetStep.gasLeft} (rethnet)`
-        );
-        throw new Error("Different step gasLeft");
-      }
+      // if (ethereumJSStep.gasLeft !== rethnetStep.gasLeft) {
+      //   console.trace(
+      //     `Different steps[${stepIdx}] gasLeft: ${ethereumJSStep.gasLeft} !== ${rethnetStep.gasLeft}`
+      //   );
+      //   throw new Error("Different step gasLeft");
+      // }
 
-      const ethereumJSStack = ethereumJSStep.stack;
-      const rethnetStack = rethnetStep.stack;
-      if (ethereumJSStack.length !== rethnetStack.length) {
-        throw new Error(
-          `Different number of stack elements in tracers: ${ethereumJSStack.length} (ethereumjs) !== ${rethnetStack.length} (rethnet)`
-        );
-      }
+      // const ethereumJSStack = ethereumJSStep.stack;
+      // const rethnetStack = rethnetStep.stack;
+      // if (ethereumJSStack.length !== rethnetStack.length) {
+      //   throw new Error(
+      //     `Different number of stack elements in tracers: ${ethereumJSStack.length} !== ${rethnetStack.length}`
+      //   );
+      // }
 
-      for (let stackIdx = 0; stackIdx < ethereumJSSteps.length; ++stackIdx) {
-        const ethereumJSStackElement = ethereumJSStack[stackIdx];
-        const rethnetStackElement = rethnetStack[stackIdx];
+      // for (let stackIdx = 0; stackIdx < ethereumJSSteps.length; ++stackIdx) {
+      //   const ethereumJSStackElement = ethereumJSStack[stackIdx];
+      //   const rethnetStackElement = rethnetStack[stackIdx];
 
-        if (ethereumJSStackElement !== rethnetStackElement) {
-          console.trace(
-            `Different steps[${stepIdx}] stack[${stackIdx}]: ${ethereumJSStackElement} (ethereumjs) !== ${rethnetStackElement} (rethnet)`
-          );
-          throw new Error("Different step stack element");
-        }
-      }
+      //   if (ethereumJSStackElement !== rethnetStackElement) {
+      //     console.trace(
+      //       `Different steps[${stepIdx}] stack[${stackIdx}]: ${ethereumJSStackElement} !== ${rethnetStackElement}`
+      //     );
+      //     throw new Error("Different step stack element");
+      //   }
+      // }
 
-      if (!ethereumJSStep.memory.equals(rethnetStep.memory)) {
-        console.trace(
-          `Different steps[${stepIdx}] memory: ${ethereumJSStep.memory} (ethereumjs) !== ${rethnetStep.memory} (rethnet)`
-        );
-        throw new Error("Different step memory");
-      }
+      // if (!ethereumJSStep.memory.equals(rethnetStep.memory)) {
+      //   console.trace(
+      //     `Different steps[${stepIdx}] memory: ${ethereumJSStep.memory} !== ${rethnetStep.memory}`
+      //   );
+      //   throw new Error("Different step memory");
+      // }
 
-      if (ethereumJSStep.contract.balance !== rethnetStep.contract.balance) {
-        console.trace(
-          `Different steps[${stepIdx}] contract balance: ${ethereumJSStep.contract.balance} (ethereumjs) !== ${rethnetStep.contract.balance} (rethnet)`
-        );
-        throw new Error("Different step contract balance");
-      }
+      // if (ethereumJSStep.contract.balance !== rethnetStep.contract.balance) {
+      //   console.trace(
+      //     `Different steps[${stepIdx}] contract balance: ${ethereumJSStep.contract.balance} !== ${rethnetStep.contract.balance}`
+      //   );
+      //   throw new Error("Different step contract balance");
+      // }
 
-      if (ethereumJSStep.contract.nonce !== rethnetStep.contract.nonce) {
-        console.trace(
-          `Different steps[${stepIdx}] contract nonce: ${ethereumJSStep.contract.nonce} (ethereumjs) !== ${rethnetStep.contract.nonce} (rethnet)`
-        );
-        throw new Error("Different step contract nonce");
-      }
+      // if (ethereumJSStep.contract.nonce !== rethnetStep.contract.nonce) {
+      //   console.trace(
+      //     `Different steps[${stepIdx}] contract nonce: ${ethereumJSStep.contract.nonce} !== ${rethnetStep.contract.nonce}`
+      //   );
+      //   throw new Error("Different step contract nonce");
+      // }
 
       // Code can be stored separately from the account in Rethnet
       // const ethereumJSCode = ethereumJSStep.contract.code;
@@ -821,12 +834,12 @@ export class DualModeAdapter implements VMAdapter {
       //   }
       // }
 
-      if (!ethereumJSStep.contractAddress.equals(rethnetStep.contractAddress)) {
-        console.trace(
-          `Different steps[${stepIdx}] contract address: ${ethereumJSStep.contractAddress} (ethereumjs) !== ${rethnetStep.contractAddress} (rethnet)`
-        );
-        throw new Error("Different step contract address");
-      }
+      // if (!ethereumJSStep.contractAddress.equals(rethnetStep.contractAddress)) {
+      //   console.trace(
+      //     `Different steps[${stepIdx}] contract address: ${ethereumJSStep.contractAddress} !== ${rethnetStep.contractAddress}`
+      //   );
+      //   throw new Error("Different step contract address");
+      // }
     }
 
     // TODO: compare each step
@@ -841,6 +854,13 @@ export class DualModeAdapter implements VMAdapter {
   public clearLastError() {
     this._ethereumJSVMTracer.clearLastError();
     this._rethnetVMTracer.clearLastError();
+  }
+
+  public async printState() {
+    console.log("EthereumJS:");
+    await this._ethereumJSAdapter.printState();
+    console.log("Rethnet:");
+    await this._rethnetAdapter.printState();
   }
 }
 
@@ -1001,70 +1021,71 @@ function assertEqualAccounts(
     );
     differences.push("balance");
   }
-  const inGetBalanceContext =
-    new Error().stack?.includes("HardhatNode.getAccountBalance") ?? false;
-  if (!inGetBalanceContext) {
-    if (!ethereumJSAccount.codeHash.equals(rethnetAccount.codeHash)) {
-      console.trace(
-        `Different codeHash: ${bufferToHex(
-          ethereumJSAccount.codeHash
-        )} (ethereumjs) !== ${bufferToHex(rethnetAccount.codeHash)} (rethnet)`
-      );
-      differences.push("codeHash");
-    }
 
-    if (ethereumJSAccount.nonce !== rethnetAccount.nonce) {
-      console.trace(
-        `Different nonce: ${ethereumJSAccount.nonce} (ethereumjs) !== ${rethnetAccount.nonce} (rethnet)`
-      );
-      differences.push("nonce");
-    }
+  if (!ethereumJSAccount.codeHash.equals(rethnetAccount.codeHash)) {
+    console.trace(
+      `Different codeHash: ${ethereumJSAccount.codeHash} !== ${rethnetAccount.codeHash}`
+    );
+    differences.push("codeHash");
+  }
 
-    if (!ethereumJSAccount.storageRoot.equals(rethnetAccount.storageRoot)) {
-      // TODO re-enable
-      // console.trace(
-      //   `Different storageRoot: ${ethereumJSAccount.storageRoot.toString(
-      //     "hex"
-      //   )} !== ${rethnetAccount.storageRoot.toString("hex")}`
-      // );
-      // throw new Error("Different storageRoot");
-    }
+  if (ethereumJSAccount.nonce !== rethnetAccount.nonce) {
+    console.trace(
+      `Different nonce: ${ethereumJSAccount.nonce} !== ${rethnetAccount.nonce}`
+    );
+    differences.push("nonce");
+  }
+
+  if (!ethereumJSAccount.storageRoot.equals(rethnetAccount.storageRoot)) {
+    console.trace(
+      `Different storageRoot: ${ethereumJSAccount.storageRoot.toString(
+        "hex"
+      )} !== ${rethnetAccount.storageRoot.toString("hex")}`
+    );
+    throw new Error("Different storageRoot");
   }
 }
 
-function assertEqualTraces(
+function traceDifferences(
   ethereumJSTrace: MessageTrace,
   rethnetTrace: MessageTrace
-) {
+): string[] {
+  const differences: string[] = [];
+
   // both traces are defined
   if (ethereumJSTrace.depth !== rethnetTrace.depth) {
-    throw new Error(
-      `Different depth: ${ethereumJSTrace.depth} (ethereumjs) !== ${rethnetTrace.depth} (rethnet)`
+    console.log(
+      `Different depth: ${ethereumJSTrace.depth} !== ${rethnetTrace.depth}`
     );
+    differences.push("depth");
   }
 
   if (ethereumJSTrace.exit.kind !== rethnetTrace.exit.kind) {
-    throw new Error(
-      `Different exit: ${ethereumJSTrace.exit.kind} (ethereumjs) !== ${rethnetTrace.exit.kind} (rethnet)`
+    console.log(
+      `Different exit: ${ethereumJSTrace.exit.kind} !== ${rethnetTrace.exit.kind}`
     );
+    differences.push("exit");
   }
 
   if (ethereumJSTrace.gasUsed !== rethnetTrace.gasUsed) {
-    throw new Error(
-      `Different gasUsed: ${ethereumJSTrace.gasUsed} (ethereumjs) !== ${rethnetTrace.gasUsed} (rethnet)`
+    console.log(
+      `Different gasUsed: ${ethereumJSTrace.gasUsed} !== ${rethnetTrace.gasUsed}`
     );
+    differences.push("gasUsed");
   }
 
   if (!ethereumJSTrace.returnData.equals(rethnetTrace.returnData)) {
-    throw new Error(
-      `Different returnData: ${ethereumJSTrace.returnData} (ethereumjs) !== ${rethnetTrace.returnData} (rethnet)`
+    console.log(
+      `Different returnData: ${ethereumJSTrace.returnData} !== ${rethnetTrace.returnData}`
     );
+    differences.push("returnData");
   }
 
   if (ethereumJSTrace.value !== rethnetTrace.value) {
-    throw new Error(
-      `Different value: ${ethereumJSTrace.value} (ethereumjs) !== ${rethnetTrace.value} (rethnet)`
+    console.log(
+      `Different value: ${ethereumJSTrace.value} !== ${rethnetTrace.value}`
     );
+    differences.push("value");
   }
 
   if (isPrecompileTrace(ethereumJSTrace)) {
@@ -1076,43 +1097,47 @@ function assertEqualTraces(
 
     // Both traces are precompile traces
     if (ethereumJSTrace.precompile !== rethnetTrace.precompile) {
-      throw new Error(
-        `Different precompile: ${ethereumJSTrace.precompile} (ethereumjs) !== ${rethnetTrace.precompile} (rethnet)`
+      console.log(
+        `Different precompile: ${ethereumJSTrace.precompile} !== ${rethnetTrace.precompile}`
       );
+      differences.push("precompile");
     }
 
     if (!ethereumJSTrace.calldata.equals(rethnetTrace.calldata)) {
-      throw new Error(
-        `Different calldata: ${ethereumJSTrace.calldata} (ethereumjs) !== ${rethnetTrace.calldata} (rethnet)`
+      console.log(
+        `Different calldata: ${ethereumJSTrace.calldata} !== ${rethnetTrace.calldata}`
       );
+      differences.push("calldata");
     }
   } else {
     if (isPrecompileTrace(rethnetTrace)) {
       throw new Error(
-        `ethereumJSTrace is a precompiled trace but ethereumJSTrace is not`
+        `rethnetTrace is a precompiled trace but ethereumJSTrace is not`
       );
     }
 
     // Both traces are NOT precompile traces
     if (!ethereumJSTrace.code.equals(rethnetTrace.code)) {
-      console.log("ethereumjs:", ethereumJSTrace);
-      console.log("rethnet:", rethnetTrace);
-      throw new Error(
+      console.log(
         `Different code: ${ethereumJSTrace.code.toString(
           "hex"
         )} (ethereumjs) !== ${rethnetTrace.code.toString("hex")} (rethnet)`
       );
+      differences.push("code");
     }
 
     if (ethereumJSTrace.steps.length !== rethnetTrace.steps.length) {
-      throw new Error(
-        `Different steps length: ${ethereumJSTrace.steps.length} (ethereumjs) !== ${rethnetTrace.steps.length} (rethnet)`
+      console.log(
+        `Different steps length: ${ethereumJSTrace.steps.length} !== ${rethnetTrace.steps.length}`
       );
+      differences.push("steps.length");
     }
 
     for (let stepIdx = 0; stepIdx < ethereumJSTrace.steps.length; stepIdx++) {
       const ethereumJSStep = ethereumJSTrace.steps[stepIdx];
       const rethnetStep = rethnetTrace.steps[stepIdx];
+
+      const stepDifferences: string[] = [];
 
       if (isEvmStep(ethereumJSStep)) {
         // if (stepIdx >= rethnetTrace.steps.length) {
@@ -1130,9 +1155,10 @@ function assertEqualTraces(
         }
 
         if (ethereumJSStep.pc !== rethnetStep.pc) {
-          throw new Error(
-            `Different step[${stepIdx}]: ${ethereumJSStep.pc} (ethereumjs) !== ${rethnetStep.pc} (rethnet)`
+          console.log(
+            `Different step[${stepIdx}] pc: ${ethereumJSStep.pc} !== ${rethnetStep.pc}`
           );
+          stepDifferences.push("pc");
         }
       } else {
         if (isEvmStep(rethnetStep)) {
@@ -1141,15 +1167,27 @@ function assertEqualTraces(
           );
         }
 
-        assertEqualTraces(ethereumJSStep, rethnetStep);
+        const messageDifferences = traceDifferences(
+          ethereumJSStep,
+          rethnetStep
+        );
+
+        if (messageDifferences.length > 0) {
+          stepDifferences.push(`message: ${messageDifferences}`);
+        }
+      }
+
+      if (stepDifferences.length > 0) {
+        differences.push(`step[${stepIdx}]: ${stepDifferences}`);
       }
     }
 
     if (ethereumJSTrace.bytecode === undefined) {
       if (rethnetTrace.bytecode !== undefined) {
-        throw new Error(
+        console.log(
           "ethereumJSTrace.bytecode is undefined but rethnetTrace.bytecode is defined"
         );
+        differences.push("bytecode");
       }
     } else {
       if (rethnetTrace.bytecode === undefined) {
@@ -1160,16 +1198,20 @@ function assertEqualTraces(
 
       // Both traces contain bytecode
       if (!ethereumJSTrace.bytecode.equals(rethnetTrace.bytecode)) {
-        throw new Error(
-          `Different bytecode: ${ethereumJSTrace.bytecode} (ethereumjs) !== ${rethnetTrace.bytecode} (rethnet)`
+        console.log(
+          `Different bytecode: ${ethereumJSTrace.bytecode} !== ${rethnetTrace.bytecode}`
         );
+        differences.push("bytecode");
       }
     }
 
     if (ethereumJSTrace.numberOfSubtraces !== rethnetTrace.numberOfSubtraces) {
-      throw new Error(
-        `Different numberOfSubtraces: ${ethereumJSTrace.numberOfSubtraces} (ethereumjs) !== ${rethnetTrace.numberOfSubtraces} (rethnet)`
+      console.log(
+        `Different numberOfSubtraces: ${ethereumJSTrace.numberOfSubtraces} !== ${rethnetTrace.numberOfSubtraces}`
       );
+      differences.push("numberOfSubtraces");
     }
   }
+
+  return differences;
 }

@@ -1,7 +1,7 @@
 import { expect } from "chai";
 import { Address, KECCAK256_NULL } from "@nomicfoundation/ethereumjs-util";
 
-import { Account, Bytecode, StateManager } from "../..";
+import { Account, Bytecode, RethnetContext, StateManager } from "../..";
 
 describe("State Manager", () => {
   const caller = Address.fromString(
@@ -11,18 +11,25 @@ describe("State Manager", () => {
     "0x70997970C51812dc3A010C7d01b50e0d17dc79C8"
   );
 
-  const stateManagers = [{name: "default", getStateManager: () => new StateManager()}];
+  const context = new RethnetContext();
+  const stateManagers = [
+    { name: "default", getStateManager: () => new StateManager(context) },
+  ];
 
   const alchemyUrl = process.env.ALCHEMY_URL;
   if (alchemyUrl === undefined) {
-    console.log("WARNING: skipping fork tests because the ALCHEMY_URL environment variable is undefined");
-  } else {
-    stateManagers.push(
-      {name: "fork", getStateManager: () => StateManager.withFork(alchemyUrl, [], 16220843)}
+    console.log(
+      "WARNING: skipping fork tests because the ALCHEMY_URL environment variable is undefined"
     );
+  } else {
+    stateManagers.push({
+      name: "fork",
+      getStateManager: () =>
+        StateManager.forkRemote(context, alchemyUrl, BigInt(16220843), []),
+    });
   }
 
-  for (const {name, getStateManager} of stateManagers) {
+  for (const { name, getStateManager } of stateManagers) {
     describe(`With the ${name} StateManager`, () => {
       let stateManager: StateManager;
 
@@ -53,8 +60,8 @@ describe("State Manager", () => {
           async function (
             _balance: bigint,
             nonce: bigint,
-        code: Bytecode | undefined
-      ): Promise<Account> {
+            code: Bytecode | undefined
+          ): Promise<Account> {
             return {
               balance: 100n,
               nonce,
@@ -80,8 +87,8 @@ describe("State Manager", () => {
           async function (
             balance: bigint,
             nonce: bigint,
-        code: Bytecode | undefined
-      ): Promise<Account> {
+            code: Bytecode | undefined
+          ): Promise<Account> {
             return {
               balance,
               nonce: 5n,

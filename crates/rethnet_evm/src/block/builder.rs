@@ -6,14 +6,18 @@ use rethnet_eth::{
 };
 use revm::{
     db::DatabaseComponentError,
-    primitives::{BlockEnv, CfgEnv, EVMError, ExecutionResult, InvalidTransaction, SpecId, TxEnv},
-    Inspector,
+    primitives::{
+        BlockEnv, CfgEnv, EVMError, ExecutionResult, InvalidTransaction, ResultAndState, SpecId,
+        TxEnv,
+    },
 };
-use tokio::runtime::Runtime;
+use tokio::sync::RwLock;
 
 use crate::{
-    blockchain::AsyncBlockchain, evm::run_transaction, runtime::AsyncDatabase, state::AsyncState,
-    trace::Trace, HeaderData,
+    blockchain::SyncBlockchain,
+    evm::{build_evm, run_transaction, SyncInspector},
+    state::{AccountModifierFn, SyncState},
+    HeaderData,
 };
 
 #[derive(Debug, thiserror::Error)]
@@ -49,8 +53,8 @@ where
     BE: Debug + Send + 'static,
     SE: Debug + Send + 'static,
 {
-    blockchain: Arc<AsyncBlockchain<BE>>,
-    state: Arc<AsyncState<SE>>,
+    blockchain: Arc<RwLock<Box<dyn SyncBlockchain<BE>>>>,
+    state: Arc<RwLock<Box<dyn SyncState<SE>>>>,
     header: PartialHeader,
     transactions: Vec<TxEnv>,
     cfg: CfgEnv,
@@ -63,8 +67,8 @@ where
 {
     /// Creates an intance of [`BlockBuilder`], creating a checkpoint in the process.
     pub fn new(
-        blockchain: Arc<AsyncBlockchain<BE>>,
-        state: Arc<AsyncState<SE>>,
+        blockchain: Arc<RwLock<Box<dyn SyncBlockchain<BE>>>>,
+        state: Arc<RwLock<Box<dyn SyncState<SE>>>>,
         cfg: CfgEnv,
         parent: Header,
         header: HeaderData,
@@ -89,11 +93,6 @@ where
         }
     }
 
-    /// Retrieves the runtime of the [`BlockBuilder`].
-    pub fn runtime(&self) -> &Runtime {
-        self.state.runtime()
-    }
-
     /// Retrieves the amount of gas used in the block, so far.
     pub fn gas_used(&self) -> U256 {
         self.header.gas_used
@@ -116,8 +115,8 @@ where
     pub async fn add_transaction(
         &mut self,
         transaction: TxEnv,
-        inspector: Option<Box<dyn Inspector<AsyncDatabase<BE, SE>> + Send>>,
-    ) -> Result<(ExecutionResult, Trace), BlockTransactionError<BE, SE>> {
+        inspector: Option<&mut dyn SyncInspector<BE, SE>>,
+    ) -> Result<ExecutionResult, BlockTransactionError<BE, SE>> {
         //  transaction's gas limit cannot be greater than the remaining gas in the block
         if U256::from(transaction.gas_limit) > self.gas_remaining() {
             return Err(BlockTransactionError::ExceedsBlockGasLimit);
@@ -138,36 +137,35 @@ where
             },
         };
 
-        let (result, changes, trace) = run_transaction(
-            self.state.runtime(),
-            self.blockchain.clone(),
-            self.state.clone(),
-            self.cfg.clone(),
-            transaction,
-            block,
-            inspector,
-        )
-        .await
-        .unwrap()?;
+        let mut state = self.state.write().await;
+        let blockchain = self.blockchain.read().await;
 
-        self.state.apply(changes).await;
+        let evm = build_evm(&*blockchain, &*state, self.cfg.clone(), transaction, block);
+
+        let ResultAndState {
+            result,
+            state: changes,
+        } = run_transaction(evm, inspector)?;
+
+        state.commit(changes);
 
         self.header.gas_used += U256::from(result.gas_used());
 
         // TODO: store receipt
-        Ok((result, trace))
+        Ok(result)
     }
 
     /// Finalizes the block, returning the state root.
     /// TODO: Build a full block
     pub async fn finalize(self, rewards: Vec<(Address, U256)>) -> Result<(), SE> {
+        let mut state = self.state.write().await;
         for (address, reward) in rewards {
-            self.state
-                .modify_account(
-                    address,
-                    Box::new(move |balance, _nonce, _code| *balance += reward),
-                )
-                .await?;
+            state.modify_account(
+                address,
+                AccountModifierFn::new(Box::new(move |balance, _nonce, _code| {
+                    *balance += reward;
+                })),
+            )?;
         }
 
         Ok(())
@@ -175,6 +173,7 @@ where
 
     /// Aborts building of the block, reverting all transactions in the process.
     pub async fn abort(self) -> Result<(), SE> {
-        self.state.revert().await
+        let mut state = self.state.write().await;
+        state.revert()
     }
 }

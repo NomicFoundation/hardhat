@@ -12,10 +12,10 @@ import {
   Blockchain,
   Bytecode,
   Rethnet,
-  Tracer,
   TracingMessage,
   TracingMessageResult,
   TracingStep,
+  RethnetContext,
 } from "rethnet-evm";
 
 import { isForkedNodeConfig, NodeConfig } from "../node-types";
@@ -37,6 +37,8 @@ import { RunTxResult, Trace, VMAdapter } from "./vm-adapter";
 
 /* eslint-disable @nomiclabs/hardhat-internal-rules/only-hardhat-error */
 /* eslint-disable @typescript-eslint/no-unused-vars */
+
+const globalContext = new RethnetContext();
 
 export class RethnetAdapter implements VMAdapter {
   private _vmTracer: VMTracer;
@@ -65,12 +67,16 @@ export class RethnetAdapter implements VMAdapter {
 
     let state: RethnetStateManager;
     if (isForkedNodeConfig(config)) {
-      state = RethnetStateManager.withFork(
+      state = RethnetStateManager.forkRemote(
+        globalContext,
         config.forkConfig,
         config.genesisAccounts
       );
     } else {
-      state = RethnetStateManager.withGenesisAccounts(config.genesisAccounts);
+      state = RethnetStateManager.withGenesisAccounts(
+        globalContext,
+        config.genesisAccounts
+      );
     }
 
     const rethnet = new Rethnet(blockchain, state.asInner(), {
@@ -110,12 +116,6 @@ export class RethnetAdapter implements VMAdapter {
       blockContext.header.mixHash
     );
 
-    const tracer = new Tracer({
-      beforeMessage: this._beforeMessageHandler,
-      step: this._stepHandler,
-      afterMessage: this._afterMessageHandler,
-    });
-
     const rethnetResult = await this._rethnet.guaranteedDryRun(
       rethnetTx,
       {
@@ -128,15 +128,26 @@ export class RethnetAdapter implements VMAdapter {
         difficulty,
         prevrandao: prevRandao,
       },
-      tracer
+      true
     );
+
+    const trace = rethnetResult.trace!;
+    for (const traceItem of trace) {
+      if ("pc" in traceItem) {
+        await this._vmTracer.addStep(traceItem);
+      } else if ("executionResult" in traceItem) {
+        await this._vmTracer.addAfterMessage(traceItem);
+      } else {
+        await this._vmTracer.addBeforeMessage(traceItem);
+      }
+    }
 
     try {
       const result = rethnetResultToRunTxResult(
-        rethnetResult.execResult,
+        rethnetResult.result,
         blockContext.header.gasUsed
       );
-      return [result, rethnetResult.execResult.trace];
+      return [result, trace];
     } catch (e) {
       // console.log("Rethnet trace");
       // console.log(rethnetResult.execResult.trace);
@@ -148,13 +159,15 @@ export class RethnetAdapter implements VMAdapter {
    * Get the account info for the given address.
    */
   public async getAccount(address: Address): Promise<Account> {
-    const account = await this._state.getAccount(address);
-    const storageRoot = await this._state.getAccountStorageRoot(address);
+    const [accountInfo, storageRoot] = await Promise.all([
+      this._state.getAccount(address),
+      this._state.getAccountStorageRoot(address),
+    ]);
     return new Account(
-      account?.nonce,
-      account?.balance,
+      accountInfo?.nonce,
+      accountInfo?.balance,
       storageRoot ?? undefined,
-      account?.code?.hash
+      accountInfo?.code?.hash
     );
   }
 
@@ -267,16 +280,10 @@ export class RethnetAdapter implements VMAdapter {
     block: Block,
     irregularStateOrUndefined: Buffer | undefined
   ): Promise<void> {
-    if (this._isForked) {
-      return this._state.setBlockContext(
-        block.header.number,
-        irregularStateOrUndefined ?? block.header.stateRoot
-      );
-    } else {
-      return this._state.setStateRoot(
-        irregularStateOrUndefined ?? block.header.stateRoot
-      );
-    }
+    return this._state.setBlockContext(
+      irregularStateOrUndefined ?? block.header.stateRoot,
+      block.header.number
+    );
   }
 
   /**
@@ -285,11 +292,7 @@ export class RethnetAdapter implements VMAdapter {
    * Throw if it can't.
    */
   public async restoreContext(stateRoot: Buffer): Promise<void> {
-    if (this._isForked) {
-      return this._state.restoreForkBlockContext(stateRoot);
-    } else {
-      return this._state.setStateRoot(stateRoot);
-    }
+    return this._state.setBlockContext(stateRoot);
   }
 
   /**
@@ -315,24 +318,29 @@ export class RethnetAdapter implements VMAdapter {
       block.header.mixHash
     );
 
-    const tracer = new Tracer({
-      beforeMessage: this._beforeMessageHandler,
-      step: this._stepHandler,
-      afterMessage: this._afterMessageHandler,
-    });
-
     const rethnetResult = await this._rethnet.run(
       rethnetTx,
       ethereumjsHeaderDataToRethnet(block.header, difficulty, prevRandao),
-      tracer
+      true
     );
+
+    const trace = rethnetResult.trace!;
+    for (const traceItem of trace) {
+      if ("pc" in traceItem) {
+        await this._vmTracer.addStep(traceItem);
+      } else if ("executionResult" in traceItem) {
+        await this._vmTracer.addAfterMessage(traceItem);
+      } else {
+        await this._vmTracer.addBeforeMessage(traceItem);
+      }
+    }
 
     try {
       const result = rethnetResultToRunTxResult(
-        rethnetResult,
+        rethnetResult.result,
         block.header.gasUsed
       );
-      return [result, rethnetResult.trace];
+      return [result, this._vmTracer.getLastTopLevelMessageTrace()];
     } catch (e) {
       // console.log("Rethnet trace");
       // console.log(rethnetResult.trace);
@@ -407,6 +415,10 @@ export class RethnetAdapter implements VMAdapter {
     return this._state.makeSnapshot();
   }
 
+  public async removeSnapshot(stateRoot: Buffer): Promise<void> {
+    return this._state.removeSnapshot(stateRoot);
+  }
+
   public getLastTrace(): {
     trace: MessageTrace | undefined;
     error: Error | undefined;
@@ -419,6 +431,10 @@ export class RethnetAdapter implements VMAdapter {
 
   public clearLastError() {
     this._vmTracer.clearLastError();
+  }
+
+  public async printState() {
+    console.log(await this._state.serialize());
   }
 
   private _getBlockEnvDifficulty(
@@ -456,22 +472,4 @@ export class RethnetAdapter implements VMAdapter {
 
     return undefined;
   }
-
-  private _beforeMessageHandler = async (
-    message: TracingMessage,
-    next: any
-  ) => {
-    await this._vmTracer.addBeforeMessage(message);
-  };
-
-  private _stepHandler = async (step: TracingStep, _next: any) => {
-    await this._vmTracer.addStep(step);
-  };
-
-  private _afterMessageHandler = async (
-    result: TracingMessageResult,
-    _next: any
-  ) => {
-    await this._vmTracer.addAfterMessage(result);
-  };
 }

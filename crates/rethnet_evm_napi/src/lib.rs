@@ -7,6 +7,7 @@ mod block;
 mod blockchain;
 mod cast;
 mod config;
+mod context;
 mod log;
 mod receipt;
 /// Rethnet runtime for executing individual transactions
@@ -15,5 +16,4 @@ mod state;
 mod sync;
 mod threadsafe_function;
 mod trace;
-mod tracer;
 mod transaction;

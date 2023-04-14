@@ -1,29 +1,38 @@
-use std::{fmt::Debug, sync::Arc};
+use std::fmt::Debug;
 
 use revm::{
     db::{DatabaseComponentError, DatabaseComponents},
-    primitives::{BlockEnv, CfgEnv, EVMError, ExecutionResult, ResultAndState, State, TxEnv},
+    primitives::{BlockEnv, CfgEnv, EVMError, ResultAndState, TxEnv},
     Inspector,
 };
-use tokio::{runtime::Runtime, task::JoinHandle};
 
-use crate::{
-    blockchain::AsyncBlockchain,
-    inspector::DualInspector,
-    runtime::AsyncDatabase,
-    state::AsyncState,
-    trace::{Trace, TraceCollector},
-};
+use crate::{blockchain::SyncBlockchain, state::SyncState, SyncDatabase};
+
+/// Super trait for an inspector of an `AsyncDatabase` that's debuggable.
+pub trait SyncInspector<BE, SE>: Inspector<DatabaseComponentError<SE, BE>> + Debug + Send
+where
+    BE: Debug + Send + 'static,
+    SE: Debug + Send + 'static,
+{
+}
+
+impl<I, BE, SE> SyncInspector<BE, SE> for I
+where
+    I: Inspector<DatabaseComponentError<SE, BE>> + Debug + Send,
+    BE: Debug + Send + 'static,
+    SE: Debug + Send + 'static,
+{
+}
 
 /// Creates an evm from the provided database, config, transaction, and block.
-#[allow(clippy::type_complexity)]
-fn build_evm<BE, SE>(
-    blockchain: Arc<AsyncBlockchain<BE>>,
-    state: Arc<AsyncState<SE>>,
+#[cfg_attr(feature = "tracing", tracing::instrument)]
+pub fn build_evm<'b, 's, BE, SE>(
+    blockchain: &'b dyn SyncBlockchain<BE>,
+    state: &'s dyn SyncState<SE>,
     cfg: CfgEnv,
     transaction: TxEnv,
     block: BlockEnv,
-) -> revm::EVM<AsyncDatabase<BE, SE>>
+) -> revm::EVM<SyncDatabase<'b, 's, BE, SE>>
 where
     BE: Debug + Send + 'static,
     SE: Debug + Send + 'static,
@@ -40,35 +49,18 @@ where
     evm
 }
 
-#[allow(clippy::type_complexity)]
+#[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
 pub fn run_transaction<BE, SE>(
-    runtime: &Runtime,
-    blockchain: Arc<AsyncBlockchain<BE>>,
-    state: Arc<AsyncState<SE>>,
-    cfg: CfgEnv,
-    transaction: TxEnv,
-    block: BlockEnv,
-    inspector: Option<Box<dyn Inspector<AsyncDatabase<BE, SE>> + Send>>,
-) -> JoinHandle<Result<(ExecutionResult, State, Trace), EVMError<DatabaseComponentError<SE, BE>>>>
+    evm: revm::EVM<SyncDatabase<'_, '_, BE, SE>>,
+    inspector: Option<&mut dyn SyncInspector<BE, SE>>,
+) -> Result<ResultAndState, EVMError<DatabaseComponentError<SE, BE>>>
 where
     BE: Debug + Send + 'static,
     SE: Debug + Send + 'static,
 {
-    runtime.spawn(async move {
-        let mut evm = build_evm(blockchain, state, cfg, transaction, block);
-
-        let (result, state, tracer) = if let Some(inspector) = inspector {
-            let mut inspector = DualInspector::new(TraceCollector::default(), inspector);
-
-            let ResultAndState { result, state } = evm.inspect(&mut inspector)?;
-            (result, state, inspector.into_parts().0)
-        } else {
-            let mut inspector = TraceCollector::default();
-            let ResultAndState { result, state } = evm.inspect(&mut inspector)?;
-
-            (result, state, inspector)
-        };
-
-        Ok((result, state, tracer.into_trace()))
-    })
+    if let Some(inspector) = inspector {
+        evm.inspect_ref(inspector)
+    } else {
+        evm.transact_ref()
+    }
 }

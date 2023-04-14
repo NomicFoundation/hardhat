@@ -12,6 +12,7 @@ use rethnet_eth::{
 use super::StateError;
 
 /// An revm database backed by a remote Ethereum node
+#[derive(Debug)]
 pub struct RemoteState {
     client: RpcClient,
     runtime: Option<Runtime>,
@@ -63,6 +64,7 @@ impl RemoteState {
 impl StateRef for RemoteState {
     type Error = StateError;
 
+    #[cfg_attr(feature = "tracing", tracing::instrument)]
     fn basic(&self, address: Address) -> Result<Option<AccountInfo>, Self::Error> {
         Ok(Some(tokio::task::block_in_place(move || {
             self.runtime()
@@ -79,6 +81,7 @@ impl StateRef for RemoteState {
         unimplemented!();
     }
 
+    #[cfg_attr(feature = "tracing", tracing::instrument)]
     fn storage(&self, address: Address, index: U256) -> Result<U256, Self::Error> {
         tokio::task::block_in_place(move || {
             self.runtime()
