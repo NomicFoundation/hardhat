@@ -555,11 +555,9 @@ for verification on the block explorer. Waiting for verification result...
         status: 1,
         result: "ezq878u486pzijkvvmerl6a9mzwhv6sefgvqi5tkwceejc7tvn",
       });
-      interceptGetStatus(() => {
-        return {
-          status: 1,
-          result: "Pass - Verified",
-        };
+      interceptGetStatus({
+        status: 1,
+        result: "Pass - Verified",
       });
       const logStub = sinon.stub(console, "log");
 
@@ -570,7 +568,7 @@ for verification on the block explorer. Waiting for verification result...
           NormalLib: "0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0",
           ConstructorLib: "0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9",
         },
-        noCompile: true,
+        // noCompile: true,
       });
 
       assert.equal(logStub.callCount, 2);
