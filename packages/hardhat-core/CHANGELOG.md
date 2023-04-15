@@ -1,5 +1,11 @@
 # hardhat
 
+## 2.14.0
+
+### Minor Changes
+
+- d69020f72: Set Shanghai as the default hardfork
+
 ## 2.13.1
 
 ### Patch Changes
