@@ -49,7 +49,7 @@ describe("Eth module", function () {
       setCWD();
 
       describe("eth_sendTransaction", async function () {
-        useProvider();
+        useProvider({ hardfork: "london" });
         useHelpers();
 
         const getFirstBlock = async () =>
@@ -1175,7 +1175,7 @@ describe("Eth module", function () {
       });
 
       describe("eth_sendTransaction http JSON-RPC response", function () {
-        useProvider();
+        useProvider({ hardfork: "london" });
 
         let client: Client;
 

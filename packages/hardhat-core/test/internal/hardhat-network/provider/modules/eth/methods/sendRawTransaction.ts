@@ -29,7 +29,7 @@ describe("Eth module", function () {
 
     describe(`${name} provider`, function () {
       setCWD();
-      useProvider();
+      useProvider({ hardfork: "london" });
 
       describe("eth_sendRawTransaction", async function () {
         it("Should throw if the data isn't a proper transaction", async function () {
