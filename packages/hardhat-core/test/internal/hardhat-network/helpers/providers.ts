@@ -139,7 +139,7 @@ if (INFURA_URL !== undefined) {
       useProvider({
         useJsonRpc: false,
         loggerEnabled: true,
-        forkConfig: { jsonRpcUrl: url },
+        forkConfig: { jsonRpcUrl: url, blockNumber: options.forkBlockNumber },
         ...options,
       });
     },
@@ -153,7 +153,7 @@ if (INFURA_URL !== undefined) {
       useProvider({
         useJsonRpc: false,
         loggerEnabled: true,
-        forkConfig: { jsonRpcUrl: url },
+        forkConfig: { jsonRpcUrl: url, blockNumber: options.forkBlockNumber },
         mining: {
           auto: false,
           interval: 10000,
@@ -171,7 +171,7 @@ if (INFURA_URL !== undefined) {
       useProvider({
         useJsonRpc: false,
         loggerEnabled: true,
-        forkConfig: { jsonRpcUrl: url },
+        forkConfig: { jsonRpcUrl: url, blockNumber: options.forkBlockNumber },
         ...options,
       });
     },
@@ -188,7 +188,7 @@ if (ALCHEMY_URL !== undefined) {
       useProvider({
         useJsonRpc: false,
         loggerEnabled: true,
-        forkConfig: { jsonRpcUrl: url },
+        forkConfig: { jsonRpcUrl: url, blockNumber: options.forkBlockNumber },
         ...options,
       });
     },

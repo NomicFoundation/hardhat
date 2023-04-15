@@ -2387,6 +2387,30 @@ Hardhat Network's forking functionality only works with blocks from at least spu
         // know anything about the txs in the current block
       }
 
+      // If this VM is running without EIP4895, but the block has withdrawals,
+      // we remove them and the withdrawal root from the block
+      if (
+        !this.isEip4895Active(blockNumberOrPending) &&
+        blockContext.withdrawals !== undefined
+      ) {
+        blockContext = Block.fromBlockData(
+          {
+            ...blockContext,
+            withdrawals: undefined,
+            header: {
+              ...blockContext.header,
+              withdrawalsRoot: undefined,
+            },
+          },
+          {
+            freeze: false,
+            common: this._vm._common,
+
+            skipConsensusFormatValidation: true,
+          }
+        );
+      }
+
       // NOTE: This is a workaround of both an @nomicfoundation/ethereumjs-vm limitation, and
       //   a bug in Hardhat Network.
       //
@@ -2548,6 +2572,19 @@ Hardhat Network's forking functionality only works with blocks from at least spu
       );
     }
     return this._vm._common.gteHardfork("london");
+  }
+
+  public isEip4895Active(blockNumberOrPending?: bigint | "pending"): boolean {
+    if (
+      blockNumberOrPending !== undefined &&
+      blockNumberOrPending !== "pending"
+    ) {
+      return this._vm._common.hardforkGteHardfork(
+        this._selectHardfork(blockNumberOrPending),
+        "shanghai"
+      );
+    }
+    return this._vm._common.gteHardfork("shanghai");
   }
 
   public isPostMergeHardfork(): boolean {

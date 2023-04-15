@@ -52,6 +52,7 @@ export interface UseProviderOptions {
   mempool?: HardhatNetworkMempoolConfig;
   coinbase?: string;
   chains?: HardhatNetworkChainsConfig;
+  forkBlockNumber?: number;
 }
 
 export function useProvider({
