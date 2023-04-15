@@ -79,7 +79,7 @@ describe("Hardhat module", function () {
             {
               from: DEFAULT_ACCOUNTS_ADDRESSES[0],
               to: impersonatedAddress,
-              value: "0x100",
+              value: numberToRpcQuantity(10n ** 18n),
             },
           ]);
 
@@ -137,7 +137,7 @@ describe("Hardhat module", function () {
             {
               from: DEFAULT_ACCOUNTS_ADDRESSES[0],
               to: impersonatedAddress,
-              value: "0x100",
+              value: numberToRpcQuantity(10n ** 18n),
             },
           ]);
 

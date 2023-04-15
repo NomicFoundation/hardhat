@@ -338,7 +338,10 @@ describe("HardhatNode", () => {
         assert.equal(block.header.gasUsed, 42_000n);
       });
 
-      it("assigns miner rewards", async () => {
+      // TODO: skipped because miner rewards are not assigned after the merge
+      // hardfork, but we should keep this test and run it with a pre-merge
+      // hardfork
+      it.skip("assigns miner rewards", async () => {
         const gasPriceBN = 1n;
 
         let baseFeePerGas = 0n;
@@ -720,6 +723,12 @@ describe("HardhatNode", () => {
         networkName: "mainnet",
         url: INFURA_URL,
         blockToRun: 9300077n,
+        chainId: 1,
+      },
+      {
+        networkName: "mainnet",
+        url: INFURA_URL,
+        blockToRun: 17_050_001n, // post-shanghai
         chainId: 1,
       },
       {
