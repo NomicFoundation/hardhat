@@ -726,6 +726,12 @@ describe("HardhatNode", () => {
         chainId: 1,
       },
       {
+        networkName: "mainnet",
+        url: INFURA_URL,
+        blockToRun: 17_050_001n, // post-shanghai
+        chainId: 1,
+      },
+      {
         networkName: "goerli",
         url: INFURA_URL.replace("mainnet", "goerli"),
         blockToRun: 7728449n, // this block has both EIP-2930 and EIP-1559 txs
