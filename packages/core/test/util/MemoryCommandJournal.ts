@@ -24,6 +24,19 @@ export class MemoryCommandJournal implements ICommandJournal {
     }
   }
 
+  public async *readAll(): AsyncGenerator<
+    DeployStateExecutionCommand & { chainId: number },
+    void,
+    unknown
+  > {
+    for (const entry of this.entries) {
+      const command: DeployStateExecutionCommand & { chainId: number } =
+        JSON.parse(entry);
+
+      yield command;
+    }
+  }
+
   public clear() {
     this.entries = [];
   }

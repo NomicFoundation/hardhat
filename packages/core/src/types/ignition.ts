@@ -1,5 +1,6 @@
 import { BigNumber } from "ethers";
 
+import { ModuleInfoData } from "./info";
 import { Module, ModuleDict } from "./module";
 import { IgnitionPlan } from "./plan";
 
@@ -76,4 +77,14 @@ export interface Ignition {
   plan<T extends ModuleDict>(
     deploymentModule: Module<T>
   ): Promise<IgnitionPlan>;
+
+  /**
+   * Retrieve information about the given deployed module
+   *
+   * @param moduleName - The name of the Ignition module to retrieve data about
+   * @returns The addresses of the deployed contracts across any relevant networks
+   *
+   * @alpha
+   */
+  info(moduleName: string): Promise<ModuleInfoData[]>;
 }

@@ -469,6 +469,7 @@ async function runExecuteOnSingleVertex(
   const mockJournal: ICommandJournal = {
     record: async () => {},
     async *read() {},
+    async *readAll() {},
   };
 
   const deployment = new Deployment(
@@ -504,6 +505,7 @@ async function runExecuteOnDependentVertex(
   const mockJournal: ICommandJournal = {
     record: async () => {},
     async *read() {},
+    async *readAll() {},
   };
 
   const deployment = new Deployment(

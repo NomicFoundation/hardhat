@@ -12,6 +12,7 @@ import { IgnitionWrapper } from "./ignition-wrapper";
 import { loadModule } from "./load-module";
 import { Renderer } from "./plan";
 import "./type-extensions";
+import { renderInfo } from "./ui/components/info";
 
 export { buildModule } from "@ignored/ignition-core";
 
@@ -192,7 +193,7 @@ task("plan")
       const renderer = new Renderer(userModule.name, plan, {
         cachePath: hre.config.paths.cache,
         network: {
-          name: hre.network.name,
+          name: (plan as { networkName: string }).networkName,
           id: hre.network.config.chainId ?? "unknown",
         },
       });
@@ -203,6 +204,32 @@ task("plan")
         console.log(`Plan written to ${renderer.planPath}/index.html`);
         renderer.open();
       }
+    }
+  );
+
+task("ignition-info")
+  .addPositionalParam("moduleNameOrPath")
+  .setDescription("Lists the status of all deployments")
+  .setAction(
+    async ({ moduleNameOrPath }: { moduleNameOrPath: string }, hre) => {
+      const userModule: Module<ModuleDict> | undefined = loadModule(
+        hre.config.paths.ignition,
+        moduleNameOrPath
+      );
+
+      if (userModule === undefined) {
+        console.warn("No Ignition modules found");
+        process.exit(0);
+      }
+
+      const journalPath = resolveJournalPath(
+        userModule?.name,
+        hre.config.paths.ignition
+      );
+
+      const moduleInfo = await hre.ignition.info(userModule.name, journalPath);
+
+      renderInfo(Object.values(moduleInfo));
     }
   );
 

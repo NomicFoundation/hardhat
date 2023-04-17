@@ -49,4 +49,9 @@ export interface ICommandJournal {
    * Read out the stored deployment update commands.
    */
   read(): AsyncGenerator<DeployStateExecutionCommand, void, unknown>;
+  readAll(): AsyncGenerator<
+    DeployStateExecutionCommand & { chainId: number },
+    void,
+    unknown
+  >;
 }

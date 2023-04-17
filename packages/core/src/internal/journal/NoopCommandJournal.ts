@@ -9,6 +9,14 @@ export class NoopCommandJournal implements ICommandJournal {
   public read(): AsyncGenerator<DeployStateExecutionCommand, void, unknown> {
     return fakeRead();
   }
+
+  public readAll(): AsyncGenerator<
+    DeployStateExecutionCommand & { chainId: number },
+    void,
+    unknown
+  > {
+    return fakeRead();
+  }
 }
 
 async function* fakeRead() {

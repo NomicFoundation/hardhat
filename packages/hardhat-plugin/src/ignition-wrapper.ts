@@ -139,6 +139,17 @@ export class IgnitionWrapper {
     return ignition.plan(ignitionModule);
   }
 
+  public async info(moduleName: string, journalPath: string) {
+    const journal = new CommandJournal(0, journalPath);
+
+    const ignition = initializeIgnition({
+      providers: this._providers,
+      journal,
+    });
+
+    return ignition.info(moduleName);
+  }
+
   private async _toDeploymentResult<T extends ModuleDict>(
     serializedDeploymentResult: SerializedDeploymentResult<T>
   ): Promise<DeployResult<T>> {

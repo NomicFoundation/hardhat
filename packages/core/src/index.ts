@@ -6,6 +6,7 @@ export * from "./types/future";
 export * from "./types/future";
 export * from "./types/hardhat";
 export * from "./types/ignition";
+export * from "./types/info";
 export * from "./types/module";
 export * from "./types/plan";
 export * from "./types/providers";

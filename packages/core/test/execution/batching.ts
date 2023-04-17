@@ -42,6 +42,7 @@ describe("Execution - batching", () => {
     const mockJournal: ICommandJournal = {
       record: async () => {},
       async *read() {},
+      async *readAll() {},
     };
     const mockUpdateUiAction = () => {};
 

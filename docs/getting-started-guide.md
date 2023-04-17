@@ -5,8 +5,9 @@
 ### Table of Contents
 
 - [Setup](./getting-started-guide.md#setup)
-- [Writing Your First Deployment Module](./getting-started-guide.md#writing-your-first-deployment-module)
+- [Writing your first deployment module](./getting-started-guide.md#writing-your-first-deployment-module)
 - [Deploying the module](./getting-started-guide.md#deploying-the-module)
+- [Getting info about previous deployments](./getting-started-guide.md#getting-info-about-previous-deployments)
 - [Using the module within **Hardhat** tests](./getting-started-guide.md#using-the-module-within-hardhat-tests)
 
 ---
@@ -115,7 +116,24 @@ npx hardhat node
 npx hardhat deploy --network localhost LockModule
 ```
 
-### Using the Module within Hardhat Tests
+### Getting Info About Previous Deployments
+
+Run the `ignition-info` task to display info about your successfully deployed contracts (non-ephemeral nodes only):
+
+```bash
+npx hardhat ignition-info LockModule
+
+# example output:
+ LockModule
+ ___________
+
+ hardhat (31337)
+ -------
+
+ Lock   deployed   0x5FbDB2315678afecb367f032d93F642f64180aa3
+```
+
+### Using the Module Within Hardhat Tests
 
 Ignition modules can be used in **Hardhat** tests to simplify test setup. In the Hardhat quick start guide the `./test/Lock.js` test file can be leverage **Ignition** by updating the `deployOneYearLockFixture` fixture:
 

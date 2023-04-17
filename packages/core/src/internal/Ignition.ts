@@ -1,3 +1,8 @@
+import type {
+  ModuleInfoData,
+  NetworkInfoData,
+  ContractInfoData,
+} from "../types/info";
 import type { Module, ModuleDict } from "../types/module";
 import type { IgnitionPlan } from "../types/plan";
 import type {
@@ -22,6 +27,7 @@ import { generateDeploymentGraphFrom } from "./process/generateDeploymentGraphFr
 import { transformDeploymentGraphToExecutionGraph } from "./process/transformDeploymentGraphToExecutionGraph";
 import { createServices } from "./services/createServices";
 import {
+  DeployStateExecutionCommand,
   DeploymentResult,
   DeploymentResultState,
   UpdateUiAction,
@@ -33,6 +39,7 @@ import {
 } from "./types/executionGraph";
 import { VertexResultEnum, VisitResultState } from "./types/graph";
 import { Services } from "./types/services";
+import { networkNameByChainId } from "./utils/networkNames";
 import {
   isFailure,
   processStepFailed,
@@ -176,7 +183,7 @@ export class IgnitionImplementation implements Ignition {
         accounts,
         chainId,
         artifacts,
-        networkName: options.networkName,
+        networkName: networkNameByChainId[chainId] ?? "unknown",
         force: options.force,
       });
 
@@ -300,7 +307,97 @@ export class IgnitionImplementation implements Ignition {
 
     const { executionGraph } = transformResult.result;
 
-    return { deploymentGraph, executionGraph };
+    return {
+      deploymentGraph,
+      executionGraph,
+      networkName: networkNameByChainId[chainId] ?? "unknown",
+    };
+  }
+
+  /**
+   * Retrieve information about the given deployed module
+   *
+   * @param moduleName - The name of the Ignition module to retrieve data about
+   * @returns The addresses of the deployed contracts across any relevant networks
+   *
+   * @internal
+   */
+  public async info(moduleName: string): Promise<ModuleInfoData[]> {
+    log(`Start info`);
+
+    const journalData: {
+      [networkTag: string]: Array<
+        DeployStateExecutionCommand & { chainId: number }
+      >;
+    } = {};
+    for await (const command of this._journal.readAll()) {
+      const network = networkNameByChainId[command.chainId] ?? "unknown";
+      const networkTag = `${network}:${command.chainId}`;
+
+      if (journalData[networkTag] === undefined) {
+        journalData[networkTag] = [];
+      }
+
+      journalData[networkTag].push(command);
+    }
+
+    const deployments: Deployment[] = [];
+    for (const [networkTag, commands] of Object.entries(journalData)) {
+      const deployment = new Deployment(
+        moduleName,
+        this._services,
+        this._journal
+      );
+
+      const [networkName, chainId] = networkTag.split(":");
+      await deployment.setDeploymentDetails({
+        networkName,
+        chainId: +chainId,
+      });
+
+      await deployment.load(commands);
+
+      deployments.push(deployment);
+    }
+
+    const moduleInfoData: { [moduleName: string]: ModuleInfoData } = {};
+    for (const deployment of deployments) {
+      const {
+        networkName,
+        chainId,
+        moduleName: deploymentName,
+      } = deployment.state.details;
+
+      const contracts: ContractInfoData[] = [];
+      for (const vertex of Object.values(deployment.state.execution.vertexes)) {
+        if (
+          vertex.status === "COMPLETED" &&
+          "bytecode" in vertex.result.result &&
+          "value" in vertex.result.result
+        ) {
+          contracts.push({
+            contractName: vertex.result.result.name,
+            status: "deployed",
+            address: vertex.result.result.address,
+          });
+        }
+      }
+
+      if (contracts.length > 0) {
+        const networkInfo: NetworkInfoData = {
+          networkName,
+          chainId,
+          contracts,
+        };
+        moduleInfoData[deploymentName] ??= {
+          moduleName: deploymentName,
+          networks: [],
+        };
+        moduleInfoData[deploymentName].networks.push(networkInfo);
+      }
+    }
+
+    return Object.values(moduleInfoData);
   }
 
   private async _constructExecutionGraphFrom<T extends ModuleDict>(

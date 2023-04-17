@@ -25,6 +25,14 @@ export class CommandJournal implements ICommandJournal {
     return this._readFromNdjsonFile(this._path);
   }
 
+  public readAll(): AsyncGenerator<
+    DeployStateExecutionCommand & { chainId: number },
+    void,
+    unknown
+  > {
+    return this._readAllFromNdjsonFile(this._path);
+  }
+
   private async *_readFromNdjsonFile(ndjsonFilePath: string) {
     if (!fs.existsSync(ndjsonFilePath)) {
       return;
@@ -51,6 +59,32 @@ export class CommandJournal implements ICommandJournal {
       delete deserializedChunk.chainId;
 
       yield deserializedChunk as DeployStateExecutionCommand;
+    }
+  }
+
+  private async *_readAllFromNdjsonFile(ndjsonFilePath: string) {
+    if (!fs.existsSync(ndjsonFilePath)) {
+      return;
+    }
+
+    const stream = fs.createReadStream(ndjsonFilePath).pipe(ndjson.parse());
+
+    for await (const chunk of stream) {
+      // TODO: we need to pull out ndjson, and come up with a different
+      // line level deserializer to avoid this serialize/deserialize step
+      const json = JSON.stringify(chunk);
+      const deserializedChunk = JSON.parse(
+        json,
+        this._deserializeReplace.bind(this)
+      );
+
+      if (!("chainId" in deserializedChunk)) {
+        continue;
+      }
+
+      yield deserializedChunk as DeployStateExecutionCommand & {
+        chainId: number;
+      };
     }
   }
 
