@@ -8,6 +8,7 @@ type DisplayType =
   | "deploy-contract"
   | "deploy-library"
   | "call"
+  | "static-call"
   | "transfer"
   | "event";
 
@@ -23,6 +24,8 @@ export function parseType(v: VertexDescriptor): DisplayType {
       return "deploy-library";
     case "Call":
       return "call";
+    case "StaticCall":
+      return "static-call";
     case "SendETH":
       return "transfer";
     case "Event":
@@ -132,6 +135,8 @@ export function toTypeText(type: DisplayType) {
       return "Library deploy";
     case "call":
       return "Contract call";
+    case "static-call":
+      return "Static contract call";
     case "transfer":
       return "Transfer";
     case "event":

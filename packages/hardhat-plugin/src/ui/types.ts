@@ -177,6 +177,8 @@ export class DeploymentState {
     switch (vertex.type) {
       case "ContractCall":
         return "Failed contract call";
+      case "StaticContractCall":
+        return "Failed static contract call";
       case "ContractDeploy":
         return "Failed contract deploy";
       case "DeployedContract":

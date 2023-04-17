@@ -4,7 +4,10 @@ import { assert } from "chai";
 import { buildModule } from "../../src/buildModule";
 import { generateDeploymentGraphFrom } from "../../src/internal/process/generateDeploymentGraphFrom";
 import { IDeploymentGraph } from "../../src/internal/types/deploymentGraph";
-import { isCall, isHardhatContract } from "../../src/internal/utils/guards";
+import {
+  isStaticCall,
+  isHardhatContract,
+} from "../../src/internal/utils/guards";
 import { isFailure } from "../../src/internal/utils/process-results";
 import { IDeploymentBuilder } from "../../src/types/dsl";
 
@@ -13,23 +16,22 @@ import {
   getDeploymentVertexByLabel,
 } from "./helpers";
 
-describe("deployment builder - calls", () => {
+describe("deployment builder - static calls", () => {
   describe("with basic value args", () => {
     let deploymentGraph: IDeploymentGraph;
 
     before(() => {
       const callModule = buildModule("call", (m: IDeploymentBuilder) => {
         const token = m.contract("Token");
-        const exchange = m.contract("Exchange");
-        const another = m.contract("Another");
 
-        m.call(exchange, "addToken", {
+        const totalSupply = m.staticCall(token, "totalSupply", {
           args: [token],
-          after: [another],
           from: m.accounts[0],
         });
 
-        return {};
+        const exchange = m.contract("Exchange", { args: [totalSupply] });
+
+        return { token, exchange };
       });
 
       const constructDeploymentGraphResult = generateDeploymentGraphFrom(
@@ -52,8 +54,8 @@ describe("deployment builder - calls", () => {
       assert.isDefined(deploymentGraph);
     });
 
-    it("should have four nodes", () => {
-      assert.equal(deploymentGraph.vertexes.size, 4);
+    it("should have three nodes", () => {
+      assert.equal(deploymentGraph.vertexes.size, 3);
     });
 
     it("should have the contract node Token", () => {
@@ -77,18 +79,18 @@ describe("deployment builder - calls", () => {
       assert(isHardhatContract(depNode));
     });
 
-    it("should have the call node Exchange/addToken", () => {
+    it("should have the static call node Token/totalSupply", () => {
       const depNode = getDeploymentVertexByLabel(
         deploymentGraph,
-        "Exchange/addToken"
+        "Token/totalSupply"
       );
 
       if (depNode === undefined) {
         return assert.isDefined(depNode);
       }
 
-      assert.equal(depNode?.label, "Exchange/addToken");
-      assert(isCall(depNode));
+      assert.equal(depNode?.label, "Token/totalSupply");
+      assert(isStaticCall(depNode));
     });
 
     it("should show no dependencies for the contract node Token", () => {
@@ -103,7 +105,7 @@ describe("deployment builder - calls", () => {
       assert.deepStrictEqual(deps, []);
     });
 
-    it("should show no dependencies for the contract node Exchange", () => {
+    it("should show one dependency for the contract node Exchange", () => {
       const depNode = getDeploymentVertexByLabel(deploymentGraph, "Exchange");
 
       if (depNode === undefined) {
@@ -112,13 +114,15 @@ describe("deployment builder - calls", () => {
 
       const deps = getDependenciesForVertex(deploymentGraph, depNode);
 
-      assert.deepStrictEqual(deps, []);
+      assert.deepStrictEqual(deps, [
+        { id: 1, label: "Token/totalSupply", type: "" },
+      ]);
     });
 
-    it("should show three dependencies for the call node Exchange/addToken", () => {
+    it("should show one dependency for the static call node Token/totalSupply", () => {
       const depNode = getDeploymentVertexByLabel(
         deploymentGraph,
-        "Exchange/addToken"
+        "Token/totalSupply"
       );
 
       if (depNode === undefined) {
@@ -133,8 +137,6 @@ describe("deployment builder - calls", () => {
           label: "Token",
           type: "",
         },
-        { id: 1, label: "Exchange", type: "" },
-        { id: 2, label: "Another", type: "" },
       ]);
     });
 
@@ -152,7 +154,7 @@ describe("deployment builder - calls", () => {
       assert.deepStrictEqual(depNode.args, []);
     });
 
-    it("should record the argument list for the contract node Exchange as empty", () => {
+    it("should record the argument list for the contract node Exchange", () => {
       const depNode = getDeploymentVertexByLabel(deploymentGraph, "Exchange");
 
       if (depNode === undefined) {
@@ -163,21 +165,28 @@ describe("deployment builder - calls", () => {
         return assert.fail("Not a hardhat contract dependency node");
       }
 
-      assert.deepStrictEqual(depNode.args, []);
+      assert.deepStrictEqual(depNode.args, [
+        {
+          vertexId: 1,
+          label: "Token/totalSupply",
+          type: "static-call",
+          _future: true,
+        },
+      ]);
     });
 
-    it("should record the argument list for the call node Exchange at Exchange/addToken", () => {
+    it("should record the argument list for the call node Token at Token/totalSupply", () => {
       const depNode = getDeploymentVertexByLabel(
         deploymentGraph,
-        "Exchange/addToken"
+        "Token/totalSupply"
       );
 
       if (depNode === undefined) {
         return assert.isDefined(depNode);
       }
 
-      if (!isCall(depNode)) {
-        return assert.fail("Not a call dependency node");
+      if (!isStaticCall(depNode)) {
+        return assert.fail("Not a static call dependency node");
       }
 
       assert.deepStrictEqual(depNode.args, [
@@ -192,18 +201,18 @@ describe("deployment builder - calls", () => {
       ]);
     });
 
-    it("should record the address to send from for the call node Exchange at Exchange/addToken", () => {
+    it("should record the address to send from for the static call node Token at Token/totalSupply", () => {
       const depNode = getDeploymentVertexByLabel(
         deploymentGraph,
-        "Exchange/addToken"
+        "Token/totalSupply"
       );
 
       if (depNode === undefined) {
         return assert.isDefined(depNode);
       }
 
-      if (!isCall(depNode)) {
-        return assert.fail("Not a call dependency node");
+      if (!isStaticCall(depNode)) {
+        return assert.fail("Not a static call dependency node");
       }
 
       assert.equal(depNode.from, "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266");
@@ -217,7 +226,7 @@ describe("deployment builder - calls", () => {
       const callModule = buildModule("call", (m: IDeploymentBuilder) => {
         const captureArraysContracts = m.contract("CaptureArraysContract");
 
-        m.call(captureArraysContracts, "recordArrays", {
+        m.staticCall(captureArraysContracts, "recordArrays", {
           args: [
             [1, 2, 3],
             ["a", "b", "c"],
@@ -267,7 +276,7 @@ describe("deployment builder - calls", () => {
       assert(isHardhatContract(depNode));
     });
 
-    it("should have the call node CaptureArraysContract/recordArrays", () => {
+    it("should have the static call node CaptureArraysContract/recordArrays", () => {
       const depNode = getDeploymentVertexByLabel(
         deploymentGraph,
         "CaptureArraysContract/recordArrays"
@@ -278,7 +287,7 @@ describe("deployment builder - calls", () => {
       }
 
       assert.equal(depNode?.label, "CaptureArraysContract/recordArrays");
-      assert(isCall(depNode));
+      assert(isStaticCall(depNode));
     });
 
     it("should show no dependencies for the contract node Token", () => {
@@ -344,8 +353,8 @@ describe("deployment builder - calls", () => {
         return assert.isDefined(depNode);
       }
 
-      if (!isCall(depNode)) {
-        return assert.fail("Not a call dependency node");
+      if (!isStaticCall(depNode)) {
+        return assert.fail("Not a static call dependency node");
       }
 
       assert.deepStrictEqual(depNode.args, [
@@ -365,8 +374,8 @@ describe("deployment builder - calls", () => {
         return assert.isDefined(depNode);
       }
 
-      if (!isCall(depNode)) {
-        return assert.fail("Not a call dependency node");
+      if (!isStaticCall(depNode)) {
+        return assert.fail("Not a static call dependency node");
       }
 
       assert.equal(depNode.from, "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266");

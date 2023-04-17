@@ -5,7 +5,12 @@ import type {
 
 import { IgnitionError } from "../../../errors";
 import { VertexResultEnum } from "../../types/graph";
-import { isDependable, isEventParam, isProxy } from "../../utils/guards";
+import {
+  isDependable,
+  isEventParam,
+  isProxy,
+  isStaticCallFuture,
+} from "../../utils/guards";
 
 export function toAddress(v: any) {
   if (typeof v === "object" && "address" in v) {
@@ -53,6 +58,10 @@ function resolveFromContext(
 
   if (isEventParam(arg) && "topics" in entry.result) {
     return entry.result.topics[arg.label];
+  }
+
+  if (isStaticCallFuture(arg) && "data" in entry.result) {
+    return entry.result.data;
   }
 
   return entry.result;

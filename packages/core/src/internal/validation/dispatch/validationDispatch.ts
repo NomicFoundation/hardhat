@@ -13,6 +13,7 @@ import { validateEvent } from "./validateEvent";
 import { validateHardhatContract } from "./validateHardhatContract";
 import { validateHardhatLibrary } from "./validateHardhatLibrary";
 import { validateSendETH } from "./validateSendETH";
+import { validateStaticCall } from "./validateStaticCall";
 import { validateVirtual } from "./validateVirtual";
 
 export function validationDispatch(
@@ -41,6 +42,8 @@ export function validationDispatch(
       );
     case "Call":
       return validateCall(deploymentVertex, resultAccumulator, context);
+    case "StaticCall":
+      return validateStaticCall(deploymentVertex, resultAccumulator, context);
     case "HardhatLibrary":
       return validateHardhatLibrary(
         deploymentVertex,

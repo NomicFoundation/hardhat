@@ -11,6 +11,7 @@ import { executeContractDeploy } from "./executeContractDeploy";
 import { executeDeployedContract } from "./executeDeployedContract";
 import { executeLibraryDeploy } from "./executeLibraryDeploy";
 import { executeSendETH } from "./executeSendETH";
+import { executeStaticContractCall } from "./executeStaticContractCall";
 
 export function executionDispatch(
   executionVertex: ExecutionVertex,
@@ -28,6 +29,8 @@ export function executionDispatch(
       );
     case "ContractCall":
       return executeContractCall(executionVertex, resultAccumulator, context);
+    case "StaticContractCall":
+      return executeStaticContractCall(executionVertex, resultAccumulator);
     case "LibraryDeploy":
       return executeLibraryDeploy(executionVertex, resultAccumulator, context);
     case "AwaitedEvent":

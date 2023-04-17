@@ -88,6 +88,18 @@ export interface ContractCall {
 }
 
 /**
+ * A future representing a retrieval of data from statically calling an on-chain smart contract method.
+ *
+ * @alpha
+ */
+export interface StaticContractCall {
+  vertexId: number;
+  label: string;
+  type: "static-call";
+  _future: true;
+}
+
+/**
  * A future representing an on-chain Ethereum event.
  *
  * @alpha
@@ -246,6 +258,7 @@ export type CallableFuture = ContractFuture | LibraryFuture;
 export type DependableFuture =
   | CallableFuture
   | ContractCall
+  | StaticContractCall
   | Virtual
   | ProxyFuture
   | EventFuture
@@ -277,4 +290,5 @@ export type ParameterFuture = RequiredParameter | OptionalParameter;
 export type DeploymentGraphFuture =
   | DependableFuture
   | ParameterFuture
-  | EventParamFuture;
+  | EventParamFuture
+  | StaticContractCall;

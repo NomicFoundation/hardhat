@@ -66,6 +66,7 @@ export type ExecutionVertexType =
   | "DeployedContract"
   | "LibraryDeploy"
   | "ContractCall"
+  | "StaticContractCall"
   | "AwaitedEvent"
   | "SentETH";
 
@@ -79,6 +80,7 @@ export type ExecutionVertex =
   | DeployedContractExecutionVertex
   | LibraryDeployExecutionVertex
   | ContractCallExecutionVertex
+  | StaticContractCallExecutionVertex
   | AwaitedEventExecutionVertex
   | SentETHExecutionVertex;
 
@@ -131,6 +133,19 @@ export interface ContractCallExecutionVertex extends VertexDescriptor {
   method: string;
   args: ArgValue[];
   value: BigNumber;
+  signer: ethers.Signer;
+}
+
+/**
+ * Make a static call to a read-only method of a smart chain contract.
+ *
+ * @internal
+ */
+export interface StaticContractCallExecutionVertex extends VertexDescriptor {
+  type: "StaticContractCall";
+  contract: any;
+  method: string;
+  args: ArgValue[];
   signer: ethers.Signer;
 }
 
@@ -214,6 +229,15 @@ export interface ContractCallSuccess {
 }
 
 /**
+ * The result of a successful smart contract static call.
+ *
+ * @internal
+ */
+export interface StaticContractCallSuccess {
+  data: BaseArgValue | ethers.utils.Result;
+}
+
+/**
  * The result of a successful transfer of ETH to a contract/address.
  *
  * @internal
@@ -234,6 +258,7 @@ export type VertexVisitResultSuccessResult =
   | LibraryDeploySuccess
   | AwaitedEventSuccess
   | ContractCallSuccess
+  | StaticContractCallSuccess
   | SendETHSuccess;
 
 /**

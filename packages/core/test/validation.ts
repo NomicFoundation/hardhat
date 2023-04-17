@@ -400,6 +400,215 @@ describe("Validation", () => {
     });
   });
 
+  describe("static call", () => {
+    const exampleCallArtifact = {
+      _format: "hh-sol-artifact-1",
+      contractName: "Foo",
+      sourceName: "contracts/Foo.sol",
+      abi: [
+        {
+          inputs: [
+            {
+              internalType: "bool",
+              name: "b",
+              type: "bool",
+            },
+          ],
+          name: "inc",
+          outputs: [],
+          stateMutability: "nonpayable",
+          type: "function",
+        },
+        {
+          inputs: [
+            {
+              internalType: "bool",
+              name: "b",
+              type: "bool",
+            },
+            {
+              internalType: "uint256",
+              name: "n",
+              type: "uint256",
+            },
+          ],
+          name: "inc",
+          outputs: [],
+          stateMutability: "nonpayable",
+          type: "function",
+        },
+        {
+          inputs: [
+            {
+              internalType: "uint256",
+              name: "n",
+              type: "uint256",
+            },
+          ],
+          name: "inc",
+          outputs: [],
+          stateMutability: "nonpayable",
+          type: "function",
+        },
+        {
+          inputs: [
+            {
+              internalType: "uint256",
+              name: "n",
+              type: "uint256",
+            },
+          ],
+          name: "sub",
+          outputs: [],
+          stateMutability: "nonpayable",
+          type: "function",
+        },
+        {
+          inputs: [],
+          name: "x",
+          outputs: [
+            {
+              internalType: "uint256",
+              name: "",
+              type: "uint256",
+            },
+          ],
+          stateMutability: "view",
+          type: "function",
+        },
+      ],
+      bytecode: "0x0",
+      deployedBytecode: "0x0",
+      linkReferences: {},
+      deployedLinkReferences: {},
+    };
+
+    it("should validate a correct static call", async () => {
+      const singleModule = buildModule("single", (m: IDeploymentBuilder) => {
+        const example = m.contract("Foo");
+
+        m.staticCall(example, "x", { args: [] });
+
+        return { example };
+      });
+
+      const mockServices = {
+        ...getMockServices(),
+        artifacts: {
+          hasArtifact: () => true,
+          getArtifact: () => exampleCallArtifact,
+        },
+      } as any;
+
+      const validationResult = await runValidation(singleModule, mockServices);
+
+      assert.equal(validationResult._kind, ProcessResultKind.SUCCESS);
+    });
+
+    it("should fail a static call on a nonexistant function", async () => {
+      const singleModule = buildModule("single", (m: IDeploymentBuilder) => {
+        const example = m.contract("Foo");
+
+        m.staticCall(example, "nonexistant", { args: [] });
+
+        return { example };
+      });
+
+      const mockServices = {
+        ...getMockServices(),
+        artifacts: {
+          hasArtifact: () => true,
+          getArtifact: () => exampleCallArtifact,
+        },
+      } as any;
+
+      const validationResult = await runValidation(singleModule, mockServices);
+
+      assertValidationError(
+        validationResult,
+        "Contract 'Foo' doesn't have a function nonexistant"
+      );
+    });
+
+    it("should fail a static call with wrong number of arguments", async () => {
+      const singleModule = buildModule("single", (m: IDeploymentBuilder) => {
+        const example = m.contract("Foo");
+
+        m.staticCall(example, "x", { args: [1] });
+
+        return { example };
+      });
+
+      const mockServices = {
+        ...getMockServices(),
+        artifacts: {
+          hasArtifact: () => true,
+          getArtifact: () => exampleCallArtifact,
+        },
+      } as any;
+
+      const validationResult = await runValidation(singleModule, mockServices);
+
+      assertValidationError(
+        validationResult,
+        "Function x in contract Foo expects 0 arguments but 1 were given"
+      );
+    });
+
+    it("should fail a call sent from an invalid address", async () => {
+      const singleModule = buildModule("single", (m: IDeploymentBuilder) => {
+        const example = m.contract("Foo");
+
+        m.staticCall(example, "nonexistant", {
+          args: [],
+          from: 1 as any,
+        });
+
+        return { example };
+      });
+
+      const mockServices = {
+        ...getMockServices(),
+        artifacts: {
+          hasArtifact: () => true,
+          getArtifact: () => exampleCallArtifact,
+        },
+      } as any;
+
+      const validationResult = await runValidation(singleModule, mockServices);
+
+      assertValidationError(
+        validationResult,
+        "For static call 'from' must be a valid address string"
+      );
+    });
+
+    it("should fail a static call on a non-readonly function", async () => {
+      const singleModule = buildModule("single", (m: IDeploymentBuilder) => {
+        const example = m.contract("Foo");
+
+        m.staticCall(example, "sub", { args: [1] });
+
+        return { example };
+      });
+
+      const mockServices = {
+        ...getMockServices(),
+        artifacts: {
+          hasArtifact: () => true,
+          getArtifact: () => exampleCallArtifact,
+        },
+      } as any;
+
+      const validationResult = await runValidation(singleModule, mockServices);
+
+      assertValidationError(
+        validationResult,
+        "Function sub in contract Foo is not 'pure' or 'view' and cannot be statically called"
+      );
+    });
+  });
+
   describe("sendETH", () => {
     const exampleCallArtifact = {
       _format: "hh-sol-artifact-1",

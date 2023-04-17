@@ -61,6 +61,7 @@ export type DeploymentGraphVertex =
   | HardhatLibraryDeploymentVertex
   | ArtifactLibraryDeploymentVertex
   | CallDeploymentVertex
+  | StaticCallDeploymentVertex
   | VirtualVertex
   | EventVertex
   | SendVertex;
@@ -153,6 +154,21 @@ export interface CallDeploymentVertex extends VertexDescriptor {
   args: InternalParamValue[];
   after: DeploymentGraphFuture[];
   value: BigNumber | ParameterFuture;
+  from: string;
+}
+
+/**
+ * Read from a smart contract method.
+ *
+ * @internal
+ */
+export interface StaticCallDeploymentVertex extends VertexDescriptor {
+  type: "StaticCall";
+  scopeAdded: string;
+  contract: CallableFuture;
+  method: string;
+  args: InternalParamValue[];
+  after: DeploymentGraphFuture[];
   from: string;
 }
 

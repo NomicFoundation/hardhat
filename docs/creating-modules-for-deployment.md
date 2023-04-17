@@ -17,7 +17,7 @@
 - [Calling contract methods](./creating-modules-for-deployment.md#calling-contract-methods)
   - [Transferring _Eth_ as part of a call](./creating-modules-for-deployment.md#transferring-eth-as-part-of-a-call)
   - [Transferring _Eth_ outside of a call](./creating-modules-for-deployment.md#transferring-eth-outside-of-a-call)
-  - [Using the results of a call with a deferred value (TBD)](./creating-modules-for-deployment.md#using-the-results-of-a-call-with-a-deferred-value-tbd)
+  - [Using the results of statically calling a contract method](./creating-modules-for-deployment.md#using-the-results-of-statically-calling-a-contract-method)
   - [Waiting for on-chain events](./creating-modules-for-deployment.md#waiting-for-on-chain-events)
 - [Network Accounts Management](./creating-modules-for-deployment.md#network-accounts-management)
 - [Including modules within modules](./creating-modules-for-deployment.md#including-modules-within-modules)
@@ -227,13 +227,13 @@ m.sendETH(exchange, {
 });
 ```
 
-### Using the results of a call with a deferred value (TBD)
+### Using the results of statically calling a contract method
 
 A contract might need the result of some other contract method as an input:
 
 ```tsx
 const token = m.contract("Token");
-const totalSupply = m.call(token, "totalSupply");
+const totalSupply = m.staticCall(token, "totalSupply");
 
 const someContract = m.contract("ContractName", {
   args: [totalSupply],

@@ -17,6 +17,7 @@ import {
   ParameterValue,
   RequiredParameter,
   SendFuture,
+  StaticContractCall,
   Virtual,
 } from "./future";
 import { Artifact } from "./hardhat";
@@ -57,6 +58,21 @@ export interface IDeploymentBuilder {
     functionName: string,
     options: CallOptions
   ): ContractCall;
+
+  /**
+   * Statically call a contract method.
+   *
+   * @param contractFuture - A contract future
+   * @param functionName - the name of the read-only method to be called
+   * @param options - The options to control the method invocation.
+   *
+   * @alpha
+   */
+  staticCall(
+    contractFuture: DeploymentGraphFuture,
+    functionName: string,
+    options: StaticCallOptions
+  ): StaticContractCall;
 
   /**
    * Deploy a named contract from Hardhat's contracts folder.
@@ -231,6 +247,17 @@ export interface CallOptions {
 }
 
 /**
+ * The options for a smart contract stati call.
+ *
+ * @alpha
+ */
+export interface StaticCallOptions {
+  args: InternalParamValue[];
+  after?: DeploymentGraphFuture[];
+  from?: string;
+}
+
+/**
  * The options for a Contract deploy.
  *
  * @alpha
@@ -288,7 +315,4 @@ export type ExternalParamValue =
  *
  * @alpha
  */
-export type InternalParamValue =
-  | ExternalParamValue
-  | DeploymentGraphFuture
-  | EventParamFuture;
+export type InternalParamValue = ExternalParamValue | DeploymentGraphFuture;

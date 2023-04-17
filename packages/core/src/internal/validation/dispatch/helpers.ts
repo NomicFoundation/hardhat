@@ -39,6 +39,8 @@ export async function resolveArtifactForCallableFuture(
       throw new IgnitionError(`Cannot call virtual future`);
     case "call":
       throw new IgnitionError(`Cannot call call future`);
+    case "static-call":
+      throw new IgnitionError(`Cannot call static-call future`);
     case "await":
       throw new IgnitionError(`Cannot call await future`);
     case "send":

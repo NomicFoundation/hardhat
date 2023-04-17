@@ -19,6 +19,7 @@ import type {
   ProxyFuture,
   RequiredParameter,
   SendFuture,
+  StaticContractCall,
   Virtual,
 } from "../../types/future";
 import type { Artifact } from "../../types/hardhat";
@@ -42,6 +43,7 @@ import {
   IDeploymentGraph,
   ScopeData,
   SendVertex,
+  StaticCallDeploymentVertex,
   VirtualVertex,
 } from "../../internal/types/deploymentGraph";
 import {
@@ -61,6 +63,7 @@ import {
   IDeploymentBuilder,
   InternalParamValue,
   SendOptions,
+  StaticCallOptions,
   UseModuleOptions,
 } from "../../types/dsl";
 import { addEdge, ensureVertex } from "../graph/adjacencyList";
@@ -96,6 +99,7 @@ type DeploymentApiPublicFunctions =
   | InstanceType<typeof DeploymentBuilder>["library"]
   | InstanceType<typeof DeploymentBuilder>["contractAt"]
   | InstanceType<typeof DeploymentBuilder>["call"]
+  | InstanceType<typeof DeploymentBuilder>["staticCall"]
   | InstanceType<typeof DeploymentBuilder>["event"]
   | InstanceType<typeof DeploymentBuilder>["sendETH"]
   | InstanceType<typeof DeploymentBuilder>["useModule"];
@@ -365,6 +369,60 @@ export class DeploymentBuilder implements IDeploymentBuilder {
     });
 
     return callFuture;
+  }
+
+  public staticCall(
+    contractFuture: DeploymentGraphFuture,
+    functionName: string,
+    { args, after, from }: StaticCallOptions
+  ): StaticContractCall {
+    const staticCallFuture: StaticContractCall = {
+      vertexId: this._resolveNextId(),
+      label: `${contractFuture.label}/${functionName}`,
+      type: "static-call",
+      _future: true,
+    };
+
+    let contract: CallableFuture;
+    if (isParameter(contractFuture)) {
+      const parameter = contractFuture;
+      const scope = parameter.scope;
+
+      const scopeData = this.graph.scopeData[scope];
+
+      if (
+        scopeData === undefined ||
+        scopeData.parameters === undefined ||
+        !(parameter.label in scopeData.parameters)
+      ) {
+        throw new IgnitionError("Could not resolve contract from parameter");
+      }
+
+      contract = scopeData.parameters[parameter.label] as
+        | HardhatContract
+        | ArtifactContract
+        | DeployedContract;
+    } else if (isCallable(contractFuture)) {
+      contract = contractFuture;
+    } else {
+      throw new IgnitionError(
+        `Not a callable future ${contractFuture.label} (${contractFuture.type})`
+      );
+    }
+
+    DeploymentBuilder._addVertex(this.graph, this.callPoints, this.call, {
+      id: staticCallFuture.vertexId,
+      label: staticCallFuture.label,
+      type: "StaticCall",
+      contract,
+      method: functionName,
+      args: args ?? [],
+      after: after ?? [],
+      scopeAdded: this.scopes.getScopedLabel(),
+      from: from ?? this.accounts[0],
+    });
+
+    return staticCallFuture;
   }
 
   public event(
@@ -651,6 +709,8 @@ export class DeploymentBuilder implements IDeploymentBuilder {
         return DeploymentBuilder._addArtifactLibraryVertex(depNode, graph);
       case "Call":
         return DeploymentBuilder._addCallVertex(depNode, graph);
+      case "StaticCall":
+        return DeploymentBuilder._addStaticCallVertex(depNode, graph);
       case "Event":
         return DeploymentBuilder._addEventVertex(depNode, graph);
       case "SendETH":
@@ -701,6 +761,24 @@ export class DeploymentBuilder implements IDeploymentBuilder {
 
   private static _addCallVertex(
     depNode: CallDeploymentVertex,
+    graph: DeploymentGraph
+  ) {
+    DeploymentBuilder._addEdgeBasedOn(depNode.contract, graph, depNode);
+
+    DeploymentBuilder._addEdgesBasedOn(
+      Object.values(depNode.args),
+      graph,
+      depNode
+    );
+    DeploymentBuilder._addEdgesBasedOn(
+      Object.values(depNode.after),
+      graph,
+      depNode
+    );
+  }
+
+  private static _addStaticCallVertex(
+    depNode: StaticCallDeploymentVertex,
     graph: DeploymentGraph
   ) {
     DeploymentBuilder._addEdgeBasedOn(depNode.contract, graph, depNode);

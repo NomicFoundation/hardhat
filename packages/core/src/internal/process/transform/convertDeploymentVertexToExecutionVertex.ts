@@ -15,6 +15,7 @@ import {
   HardhatLibraryDeploymentVertex,
   IDeploymentGraph,
   SendVertex,
+  StaticCallDeploymentVertex,
 } from "../../types/deploymentGraph";
 import {
   ArgValue,
@@ -25,6 +26,7 @@ import {
   ExecutionVertex,
   LibraryDeployExecutionVertex,
   SentETHExecutionVertex,
+  StaticContractCallExecutionVertex,
 } from "../../types/executionGraph";
 import { Services } from "../../types/services";
 import { isFuture } from "../../utils/guards";
@@ -58,6 +60,8 @@ export function convertDeploymentVertexToExecutionVertex(
         );
       case "Call":
         return convertCallToContractCall(deploymentVertex, context);
+      case "StaticCall":
+        return convertStaticCallToStaticContractCall(deploymentVertex, context);
       case "HardhatLibrary":
         return convertHardhatLibraryToLibraryDeploy(deploymentVertex, context);
       case "ArtifactLibrary":
@@ -151,6 +155,24 @@ async function convertCallToContractCall(
       vertex.value,
       transformContext
     )) as BigNumber,
+    signer,
+  };
+}
+
+async function convertStaticCallToStaticContractCall(
+  vertex: StaticCallDeploymentVertex,
+  transformContext: TransformContext
+): Promise<StaticContractCallExecutionVertex> {
+  const signer: ethers.Signer =
+    await transformContext.services.accounts.getSigner(vertex.from);
+
+  return {
+    type: "StaticContractCall",
+    id: vertex.id,
+    label: vertex.label,
+    contract: await resolveParameter(vertex.contract, transformContext),
+    method: vertex.method,
+    args: await convertArgs(vertex.args, transformContext),
     signer,
   };
 }
