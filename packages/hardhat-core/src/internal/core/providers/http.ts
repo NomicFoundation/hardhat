@@ -65,7 +65,7 @@ export class HttpProvider extends EventEmitter implements EIP1193Provider {
         this._dispatcher = new ProxyAgent(process.env.http_proxy);
       }
     } catch (e) {
-      if (e instanceof TypeError && e.message === "Invalid URL") {
+      if (e instanceof TypeError && e.message === "Invalid URL: The provided URL is empty or undefined. Please provide a valid URL and try again.") {
         e.message += ` ${url.origin}`;
       }
       // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
