@@ -14,7 +14,8 @@ const client = mockAgent.get("https://api-hardhat.etherscan.io");
 
 export const mockEnvironment = () => {
   let globalDispatcher: Dispatcher;
-  mockAgent.disableNetConnect();
+  // enable network connections for everything but etherscan API
+  mockAgent.enableNetConnect(/^(?!https:\/\/api-hardhat\.etherscan\.io)/);
 
   before(() => {
     globalDispatcher = getGlobalDispatcher();

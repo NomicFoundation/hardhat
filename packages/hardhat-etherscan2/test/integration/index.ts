@@ -268,7 +268,7 @@ This can occur if the library is only called in the contract constructor. The mi
           constructorArgsParams: [],
         })
       ).to.be.rejectedWith(
-        /Failed to send contract verification request.\nEndpoint URL: https:\/\/api-hardhat.etherscan.io\/api\nReason: Mock dispatch not matched for path/
+        /Failed to send contract verification request.\nEndpoint URL: https:\/\/api-hardhat.etherscan.io\/api\nReason: getaddrinfo ENOTFOUND api-hardhat.etherscan.io/
       );
     });
 
