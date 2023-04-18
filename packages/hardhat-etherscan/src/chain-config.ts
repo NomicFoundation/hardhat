@@ -252,7 +252,7 @@ export const builtinChains: ChainConfig[] = [
     network: "aurora",
     chainId: 1313161554,
     urls: {
-      apiURL: "https://api.aurorascan.dev/api",
+      apiURL: "https://explorer.mainnet.aurora.dev/api",
       browserURL: "https://aurorascan.dev/",
     },
   },
@@ -260,7 +260,7 @@ export const builtinChains: ChainConfig[] = [
     network: "auroraTestnet",
     chainId: 1313161555,
     urls: {
-      apiURL: "https://api-testnet.aurorascan.dev/api",
+      apiURL: "https://explorer.testnet.aurora.dev/api",
       browserURL: "https://testnet.aurorascan.dev",
     },
   },
