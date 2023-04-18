@@ -35,9 +35,6 @@ Hardhat for Visual Studio Code is a VS Code extension that adds language support
 
 Hardhat Chai Matchers adds Ethereum-specific capabilities to the [Chai](https://www.chaijs.com/) assertion library, making your smart contract tests easy to write and read. Among other things, you can assert that a contract fired certain events, or that it exhibited a specific revert, or that a transaction resulted in specific changes to a wallet's 
 
-:::TIP
-Ether or token balance.hardhat-chai-matchers is meant to be used with ethers.
-:::
 
 
  [Learn more.](/hardhat-chai-matchers)
