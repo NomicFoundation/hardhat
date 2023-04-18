@@ -1,6 +1,6 @@
 import type * as Undici from "undici";
 
-function getDispatcher(): Undici.Dispatcher {
+const getDispatcher = (): Undici.Dispatcher => {
   const { ProxyAgent, getGlobalDispatcher } =
     require("undici") as typeof Undici;
   if (process.env.http_proxy !== undefined) {
@@ -8,11 +8,11 @@ function getDispatcher(): Undici.Dispatcher {
   }
 
   return getGlobalDispatcher();
-}
+};
 
-export async function sendGetRequest(
+export const sendGetRequest = async (
   url: URL
-): Promise<Undici.Dispatcher.ResponseData> {
+): Promise<Undici.Dispatcher.ResponseData> => {
   const { request } = await import("undici");
   const dispatcher = getDispatcher();
 
@@ -20,12 +20,12 @@ export async function sendGetRequest(
     dispatcher,
     method: "GET",
   });
-}
+};
 
-export async function sendPostRequest(
+export const sendPostRequest = async (
   url: URL,
   body: string
-): Promise<Undici.Dispatcher.ResponseData> {
+): Promise<Undici.Dispatcher.ResponseData> => {
   const { request } = await import("undici");
   const dispatcher = getDispatcher();
 
@@ -35,4 +35,4 @@ export async function sendPostRequest(
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
     body,
   });
-}
+};

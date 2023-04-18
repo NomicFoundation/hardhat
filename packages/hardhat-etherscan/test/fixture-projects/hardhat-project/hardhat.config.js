@@ -3,9 +3,6 @@ require("@nomiclabs/hardhat-ethers");
 require("../../../src/index");
 
 module.exports = {
-  etherscan: {
-    apiKey: process.env.ETHERSCAN_API_KEY,
-  },
   solidity: {
     compilers: [
       {
@@ -16,12 +13,19 @@ module.exports = {
       },
     ],
   },
-  networks: {
-    testnet: {
-      url: process.env.TESTNET_NETWORK_URL,
+  etherscan: {
+    apiKey: {
+      hardhat: "hardhatApiKey",
     },
-  },
-  paths: {
-    artifacts: "artifacts-dir",
+    customChains: [
+      {
+        network: "hardhat",
+        chainId: 31337,
+        urls: {
+          apiURL: "https://api-hardhat.etherscan.io/api",
+          browserURL: "https://hardhat.etherscan.io",
+        },
+      },
+    ],
   },
 };
