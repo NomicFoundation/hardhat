@@ -4,9 +4,10 @@
   "author": "Nomic Labs LLC",
   "license": "SEE LICENSE IN EACH PACKAGE'S LICENSE FILE",
   "private": true,
-  "workspaces": [
-    "packages/*"
-  ],
+  "workspaces": {
+    "packages": ["packages/*"],
+    "nohoist": ["**/find-up", "**/find-up/**"]
+  },
   "devDependencies": {
     "@changesets/cli": "^2.16.0",
     "prettier": "2.4.1",
