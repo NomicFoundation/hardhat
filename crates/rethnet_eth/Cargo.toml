@@ -10,6 +10,7 @@ hash-db = { version = "0.15.2", default-features = false }
 hash256-std-hasher = { version = "0.15.2", default-features = false }
 hashbrown = { version = "0.13", default-features = false, features = ["ahash"] }
 hex = { version = "0.4.3", default-features = false, features = ["alloc"] }
+itertools = { version = "0.10.5", default-features = false, features = ["use_alloc"] }
 open-fastrlp = { version = "0.1.2", default-features = false, features = ["derive"], optional = true }
 primitive-types = { version = "0.11.1", default-features = false, features = ["rlp"] }
 reqwest = { version = "0.11", features = ["blocking", "json"] }
@@ -32,4 +33,4 @@ tokio = { version = "1.23.0", features = ["macros"] }
 default = ["std"]
 # fastrlp = ["dep:open-fastrlp", "ruint/fastrlp"] Broken due to lack of support for fastrlp in primitive-types
 serde = ["dep:serde", "bytes/serde", "ethbloom/serialize", "hashbrown/serde", "primitive-types/serde", "revm-primitives/serde", "ruint/serde", "serde_json"]
-std = ["bytes/std", "ethbloom/std", "hash256-std-hasher/std", "hash-db/std", "hex/std", "open-fastrlp?/std", "primitive-types/std", "revm-primitives/std", "rlp/std", "secp256k1/std", "serde?/std", "sha3/std", "triehash/std"]
+std = ["bytes/std", "ethbloom/std", "hash256-std-hasher/std", "hash-db/std", "hex/std", "itertools/use_std", "open-fastrlp?/std", "primitive-types/std", "revm-primitives/std", "rlp/std", "secp256k1/std", "serde?/std", "sha3/std", "triehash/std"]

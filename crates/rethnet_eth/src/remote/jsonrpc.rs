@@ -6,18 +6,46 @@
 
 use serde::{Deserialize, Serialize};
 
-/// Represents JSON-RPC 2.0 success response.
+/// Represents a JSON-RPC error.
+#[derive(thiserror::Error, Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[error("The response reported error `{code}`: `{message}`. (optional data: {data:?})")]
+pub struct Error {
+    pub code: i16,
+    pub message: String,
+    pub data: Option<serde_json::Value>,
+}
+
+/// Represents a JSON-RPC 2.0 response.
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
-pub struct Success<T = serde_json::Value> {
+pub struct Response<T> {
     /// A String specifying the version of the JSON-RPC protocol.
     pub jsonrpc: Version,
-    /// Successful execution result.
-    pub result: T,
+    //
     /// Correlation id.
     ///
     /// It **MUST** be the same as the value of the id member in the Request Object.
     pub id: Id,
+    /// Response data.
+    #[serde(flatten)]
+    pub data: ResponseData<T>,
+}
+
+/// Represents JSON-RPC 2.0 success response.
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[serde(untagged)]
+pub enum ResponseData<T> {
+    Success { result: T },
+    Error { error: Error },
+}
+
+impl<T> ResponseData<T> {
+    /// Returns a [`Result`] where `Success` is mapped to `Ok` and `Error` to `Err`.
+    pub fn into_result(self) -> Result<T, Error> {
+        match self {
+            ResponseData::Success { result } => Ok(result),
+            ResponseData::Error { error } => Err(error),
+        }
+    }
 }
 
 /// Represents JSON-RPC request/response id.
@@ -65,6 +93,7 @@ impl<'a> Deserialize<'a> for Version {
 }
 
 struct VersionVisitor;
+
 impl<'a> serde::de::Visitor<'a> for VersionVisitor {
     type Value = Version;
 
@@ -86,7 +115,7 @@ impl<'a> serde::de::Visitor<'a> for VersionVisitor {
 }
 
 pub struct ZeroXPrefixedBytes {
-    pub bytes: bytes::Bytes,
+    pub inner: bytes::Bytes,
 }
 
 impl<'a> Deserialize<'a> for ZeroXPrefixedBytes {
@@ -116,7 +145,7 @@ impl<'a> serde::de::Visitor<'a> for ZeroXPrefixedBytesVisitor {
             ))
         } else {
             Ok(ZeroXPrefixedBytes {
-                bytes: bytes::Bytes::from(
+                inner: bytes::Bytes::from(
                     hex::decode(value[2..].to_string()).expect("failed to decode hex string"),
                 ),
             })

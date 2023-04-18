@@ -168,7 +168,9 @@ where
     pub nonce: Option<U256>,
     pub base_fee_per_gas: Option<U256>,
     pub miner: Address,
+    #[serde(default)]
     pub withdrawals: Vec<Withdrawal>,
+    #[serde(default)]
     pub withdrawals_root: B256,
 }
 
