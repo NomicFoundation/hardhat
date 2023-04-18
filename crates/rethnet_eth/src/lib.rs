@@ -25,14 +25,14 @@ pub mod transaction;
 pub mod trie;
 /// Ethereum utility functions
 pub mod utils;
+/// Ethereum withdrawal types
+pub mod withdrawal;
 
 pub use bytes::Bytes;
 pub use ethbloom::Bloom;
-pub use revm_primitives::{B160, B256};
+pub use revm_primitives::{Address, B160, B256};
 pub use ruint::aliases::{B512, B64, U256, U64};
 
-/// An Ethereum address
-pub type Address = B160;
 /// A secret key
 pub type Secret = B256;
 /// A public key

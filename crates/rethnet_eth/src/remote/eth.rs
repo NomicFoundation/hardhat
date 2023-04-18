@@ -8,7 +8,7 @@
 
 use std::fmt::Debug;
 
-use crate::{Address, Bloom, Bytes, B256, U256};
+use crate::{withdrawal::Withdrawal, Address, Bloom, Bytes, B256, U256};
 
 #[derive(Clone, Debug, PartialEq, Eq, Default, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
@@ -168,6 +168,8 @@ where
     pub nonce: Option<U256>,
     pub base_fee_per_gas: Option<U256>,
     pub miner: Address,
+    pub withdrawals: Vec<Withdrawal>,
+    pub withdrawals_root: B256,
 }
 
 fn deserialize_null_default<'de, D, T>(deserializer: D) -> Result<T, D::Error>
