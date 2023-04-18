@@ -21,7 +21,7 @@ use crate::collections::SharedMap;
 use super::{history::StateHistory, AccountModifierFn, StateDebug, StateError};
 
 /// A state consisting of layers.
-#[derive(Debug, Default)]
+#[derive(Clone, Debug, Default)]
 pub struct LayeredState<Layer> {
     changes: LayeredChanges<Layer>,
     snapshots: SharedMap<B256, LayeredChanges<Layer>, true>,

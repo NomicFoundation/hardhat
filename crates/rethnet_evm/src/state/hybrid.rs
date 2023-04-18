@@ -17,14 +17,14 @@ use super::{
     AccountModifierFn, RethnetLayer, StateDebug, StateError,
 };
 
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 struct Snapshot<Layer> {
     pub changes: LayeredChanges<Layer>,
     pub trie: TrieState,
 }
 
 /// A state consisting of layers.
-#[derive(Debug, Default)]
+#[derive(Clone, Debug, Default)]
 pub struct HybridState<Layer> {
     trie: TrieState,
     changes: LayeredChanges<Layer>,
