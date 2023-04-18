@@ -36,6 +36,28 @@ describe("verify task integration tests", () => {
     assert.isUndefined(taskResponse);
   });
 
+  it("should throw if the chain is hardhat", async function () {
+    const address = getRandomAddress(this.hre);
+
+    // cleanup the etherscan config since we have hardhat defined as custom chain
+    const originalConfig = this.hre.config.etherscan;
+    this.hre.config.etherscan = {
+      apiKey: "",
+      customChains: [],
+    };
+
+    await expect(
+      this.hre.run(TASK_VERIFY, {
+        address,
+        constructorArgsParams: [],
+      })
+    ).to.be.rejectedWith(
+      /Trying to verify a contract in a network with chain id 31337, but the plugin doesn\'t recognize it as a supported chain./
+    );
+
+    this.hre.config.etherscan = originalConfig;
+  });
+
   describe("with a verified contract", () => {
     beforeEach(() => {
       interceptIsVerified({ message: "OK", result: [{ SourceCode: "code" }] });
