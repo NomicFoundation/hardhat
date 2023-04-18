@@ -61,7 +61,7 @@ npm run start
 
 Then open [http://127.0.0.1:3000/](http://127.0.0.1:3000/) in your browser and you should see this: ![](/front-5.png)
 
-If you are using MetaMask, set your network to `127.0.0.1:8545` and click the button in the web app. If you are using Coinbase Wallet, first click the button, then select the "Hardhat (localhost)" network in the wallet, and then click the button again.
+Click the button to connect your wallet. If you are using MetaMask, make sure you have selected the `Localhost 8545` network.
 
 After connecting your wallet, you should see this:
 
