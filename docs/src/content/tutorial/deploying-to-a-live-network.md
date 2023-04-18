@@ -63,6 +63,8 @@ require("@nomicfoundation/hardhat-toolbox");
 const INFURA_API_KEY = "KEY";
 
 // Replace this private key with your Sepolia account private key
+// To export your private key from Coinbase Wallet, go to
+// Settings > Developer Settings > Show private key
 // To export your private key from Metamask, open Metamask and
 // go to Account Details > Export Private Key
 // Beware: NEVER put real Ether into testing accounts
@@ -91,6 +93,8 @@ require("@nomicfoundation/hardhat-toolbox");
 const ALCHEMY_API_KEY = "KEY";
 
 // Replace this private key with your Sepolia account private key
+// To export your private key from Coinbase Wallet, go to
+// Settings > Developer Settings > Show private key
 // To export your private key from Metamask, open Metamask and
 // go to Account Details > Export Private Key
 // Beware: NEVER put real Ether into testing accounts
@@ -116,8 +120,9 @@ We're using [Infura](https://infura.io) or [Alchemy](https://alchemy.com/), but 
 To deploy on Sepolia you need to send some Sepolia ether to the address that's going to be making the deployment. You can get testnet ether from a faucet, a service that distributes testing-ETH for free. Here is one for Sepolia:
 
 - [Alchemy Sepolia Faucet](https://sepoliafaucet.com/)
+- [Coinbase Sepolia Faucet](https://coinbase.com/faucets/ethereum-sepolia-faucet) (only works if you are using the Coinbase Wallet)
 
-You'll have to change Metamask's network to Sepolia before transacting.
+You'll have to change your wallet's network to Sepolia before transacting.
 
 :::tip
 

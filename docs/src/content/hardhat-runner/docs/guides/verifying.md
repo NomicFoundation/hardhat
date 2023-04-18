@@ -56,6 +56,8 @@ We are going to use the [Sepolia testnet](https://ethereum.org/en/developers/doc
 const INFURA_API_KEY = "KEY";
 
 // Replace this private key with your Sepolia account private key
+// To export your private key from Coinbase Wallet, go to
+// Settings > Developer Settings > Show private key
 // To export your private key from Metamask, open Metamask and
 // go to Account Details > Export Private Key
 // Beware: NEVER put real Ether into testing accounts
@@ -82,6 +84,8 @@ module.exports = {
 const ALCHEMY_API_KEY = "KEY";
 
 // Replace this private key with your Sepolia account private key
+// To export your private key from Coinbase Wallet, go to
+// Settings > Developer Settings > Show private key
 // To export your private key from Metamask, open Metamask and
 // go to Account Details > Export Private Key
 // Beware: NEVER put real Ether into testing accounts
