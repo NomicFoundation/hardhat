@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## 0.0.13 - 2023-04-18
+
+### Added
+
+- Support static calls in the Module API ([#85](https://github.com/NomicFoundation/ignition/issues/85))
+- Add command, `ignition-info`, to list previously deployed contracts ([#111](https://github.com/NomicFoundation/ignition/issues/111))
+
 ## 0.0.12 - 2023-04-04
 
 ### Fixed
