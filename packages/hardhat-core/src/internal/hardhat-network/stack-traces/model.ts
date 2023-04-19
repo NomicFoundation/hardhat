@@ -2,6 +2,8 @@ import { bufferToHex } from "@nomicfoundation/ethereumjs-util";
 
 import { AbiHelpers } from "../../util/abi-helpers";
 
+import { DecodedEvmMessageTrace } from "./message-trace";
+
 import { Opcode } from "./opcodes";
 
 /* eslint-disable @nomiclabs/hardhat-internal-rules/only-hardhat-error */
@@ -33,6 +35,13 @@ export enum ContractFunctionVisibility {
   INTERNAL,
   PUBLIC,
   EXTERNAL,
+}
+
+export function getNonContractAccountAddress(
+  decodedTrace: DecodedEvmMessageTrace
+): Buffer {
+  let callDataBuffer = decodedTrace.calldata?.toString("hex");
+  return Buffer.from("0x" + callDataBuffer?.slice(32), "utf-8");
 }
 
 export class SourceFile {

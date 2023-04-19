@@ -30,6 +30,7 @@ export interface BaseEvmMessageTrace extends BaseMessageTrace {
   code: Buffer;
   value: bigint;
   returnData: Buffer;
+  calldata?: Buffer;
   error?: EvmError;
   steps: MessageTraceStep[];
   bytecode?: Bytecode;

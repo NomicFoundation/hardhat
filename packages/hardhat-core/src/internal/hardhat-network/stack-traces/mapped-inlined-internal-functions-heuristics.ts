@@ -32,6 +32,8 @@ import {
   StackTraceEntryType,
 } from "./solidity-stack-trace";
 
+import { getNonContractAccountAddress } from "./model";
+
 const FIRST_SOLC_VERSION_WITH_MAPPED_SMALL_INTERNAL_FUNCTIONS = "0.6.9";
 
 export function stackTraceMayRequireAdjustments(
@@ -63,11 +65,13 @@ export function adjustStackTrace(
   const [revert] = stackTrace.slice(-1);
 
   if (isNonContractAccountCalledError(decodedTrace)) {
+    let address = getNonContractAccountAddress(decodedTrace);
     return [
       ...start,
       {
         type: StackTraceEntryType.NONCONTRACT_ACCOUNT_CALLED_ERROR,
         sourceReference: revert.sourceReference!,
+        address,
       },
     ];
   }
