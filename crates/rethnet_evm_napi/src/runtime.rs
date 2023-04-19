@@ -11,10 +11,7 @@ use crate::{
     config::Config,
     state::StateManager,
     tracer::Tracer,
-    transaction::{
-        result::{ExecutionResult, TransactionResult},
-        Transaction,
-    },
+    transaction::{result::ExecutionResult, Transaction},
 };
 
 struct Logger;
@@ -61,18 +58,19 @@ impl Rethnet {
         transaction: Transaction,
         block: BlockConfig,
         tracer: Option<&Tracer>,
-    ) -> napi::Result<TransactionResult> {
+    ) -> napi::Result<ExecutionResult> {
         let transaction = TxEnv::try_from(transaction)?;
         let block = BlockEnv::try_from(block)?;
 
         let inspector = tracer.map(|tracer| tracer.as_dyn_inspector());
 
-        TransactionResult::try_from(
-            self.runtime
-                .dry_run(transaction, block, inspector)
-                .await
-                .map_err(|e| napi::Error::new(Status::GenericFailure, e.to_string()))?,
-        )
+        let (result, _state, trace) = self
+            .runtime
+            .dry_run(transaction, block, inspector)
+            .await
+            .map_err(|e| napi::Error::new(Status::GenericFailure, e.to_string()))?;
+
+        Ok(ExecutionResult::from((result, trace)))
     }
 
     /// Executes the provided transaction without changing state, ignoring validation checks in the process.
@@ -82,18 +80,19 @@ impl Rethnet {
         transaction: Transaction,
         block: BlockConfig,
         tracer: Option<&Tracer>,
-    ) -> napi::Result<TransactionResult> {
+    ) -> napi::Result<ExecutionResult> {
         let transaction = TxEnv::try_from(transaction)?;
         let block = BlockEnv::try_from(block)?;
 
         let inspector = tracer.map(|tracer| tracer.as_dyn_inspector());
 
-        TransactionResult::try_from(
-            self.runtime
-                .guaranteed_dry_run(transaction, block, inspector)
-                .await
-                .map_err(|e| napi::Error::new(Status::GenericFailure, e.to_string()))?,
-        )
+        let (result, _state, trace) = self
+            .runtime
+            .guaranteed_dry_run(transaction, block, inspector)
+            .await
+            .map_err(|e| napi::Error::new(Status::GenericFailure, e.to_string()))?;
+
+        Ok(ExecutionResult::from((result, trace)))
     }
 
     /// Executes the provided transaction, changing state in the process.

@@ -1,11 +1,14 @@
-use std::sync::{
-    mpsc::{channel, Sender},
-    Arc,
+use std::{
+    mem,
+    sync::{
+        mpsc::{channel, Sender},
+        Arc,
+    },
 };
 
 use napi::{bindgen_prelude::*, JsFunction, JsObject, NapiRaw, Status};
 use napi_derive::napi;
-use rethnet_eth::{signature::private_key_to_address, Address, B256, U256};
+use rethnet_eth::{signature::private_key_to_address, Address, Bytes, B256, U256};
 use rethnet_evm::{
     state::{AsyncState, LayeredState, RethnetLayer, StateDebug, StateError, SyncState},
     AccountInfo, Bytecode, HashMap, KECCAK_EMPTY,
@@ -238,7 +241,7 @@ impl StateManager {
             env.raw(),
             unsafe { modify_account_fn.raw() },
             0,
-            |ctx: ThreadSafeCallContext<ModifyAccountCall>| {
+            |mut ctx: ThreadSafeCallContext<ModifyAccountCall>| {
                 let sender = ctx.value.sender.clone();
 
                 let balance = ctx
@@ -258,9 +261,26 @@ impl StateManager {
                         .create_buffer_copy(code.hash())
                         .and_then(|hash| bytecode.set_named_property("hash", hash.into_raw()))?;
 
+                    let code = code.original_bytes();
+
                     ctx.env
-                        .create_buffer_copy(&code.bytes()[..code.len()])
-                        .and_then(|code| bytecode.set_named_property("code", code.into_raw()))?;
+                        .adjust_external_memory(code.len() as i64)
+                        .expect("Failed to adjust external memory");
+
+                    unsafe {
+                        ctx.env.create_buffer_with_borrowed_data(
+                            code.as_ptr(),
+                            code.len(),
+                            code,
+                            |code: Bytes, mut env| {
+                                env.adjust_external_memory(-(code.len() as i64))
+                                    .expect("Failed to adjust external memory");
+
+                                mem::forget(code);
+                            },
+                        )
+                    }
+                    .and_then(|code| bytecode.set_named_property("code", code.into_raw()))?;
 
                     bytecode.into_unknown()
                 } else {
