@@ -199,7 +199,7 @@ impl StateManager {
         self.context
             .runtime()
             .spawn(async move {
-                let mut state = state.write().await;
+                let state = state.read().await;
                 state.account_storage_root(&address)
             })
             .await
@@ -249,7 +249,7 @@ impl StateManager {
         self.context
             .runtime()
             .spawn(async move {
-                let mut state = state.write().await;
+                let state = state.read().await;
                 state.state_root()
             })
             .await
@@ -465,7 +465,7 @@ impl StateManager {
         self.context
             .runtime()
             .spawn(async move {
-                let mut state = state.write().await;
+                let state = state.read().await;
                 state.serialize()
             })
             .await

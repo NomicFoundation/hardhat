@@ -43,7 +43,7 @@ pub trait StateDebug {
     type Error;
 
     /// Retrieves the storage root of the account at the specified address.
-    fn account_storage_root(&mut self, address: &Address) -> Result<Option<B256>, Self::Error>;
+    fn account_storage_root(&self, address: &Address) -> Result<Option<B256>, Self::Error>;
 
     /// Inserts the provided account at the specified address.
     fn insert_account(
@@ -64,7 +64,7 @@ pub trait StateDebug {
     fn remove_account(&mut self, address: Address) -> Result<Option<AccountInfo>, Self::Error>;
 
     /// Serializes the state using ordering of addresses and storage indices.
-    fn serialize(&mut self) -> String;
+    fn serialize(&self) -> String;
 
     /// Sets the storage slot at the specified address and index to the provided value.
     fn set_account_storage_slot(
@@ -75,5 +75,5 @@ pub trait StateDebug {
     ) -> Result<(), Self::Error>;
 
     /// Retrieves the storage root of the database.
-    fn state_root(&mut self) -> Result<B256, Self::Error>;
+    fn state_root(&self) -> Result<B256, Self::Error>;
 }
