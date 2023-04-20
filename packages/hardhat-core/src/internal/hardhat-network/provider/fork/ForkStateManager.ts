@@ -43,6 +43,9 @@ const notSupportedError = (method: string) =>
   new Error(`${method} is not supported when forking from remote network`);
 
 export class ForkStateManager implements StateManager {
+  // temporary, used to print the whole storage
+  // should be removed
+  public addresses: Set<string> = new Set();
   private _state: State = ImmutableMap<string, ImmutableRecord<AccountState>>();
   private _initialStateRoot: string = randomHash();
   private _stateRoot: string = this._initialStateRoot;
@@ -154,6 +157,7 @@ export class ForkStateManager implements StateManager {
   }
 
   public async putContractCode(address: Address, value: Buffer): Promise<void> {
+    this.addresses.add(address.toString());
     const hexAddress = address.toString();
     const account = (this._state.get(hexAddress) ?? makeAccountState()).set(
       "code",
@@ -211,6 +215,7 @@ export class ForkStateManager implements StateManager {
     key: Buffer,
     value: Buffer
   ): Promise<void> {
+    this.addresses.add(address.toString());
     if (key.length !== 32) {
       throw new Error("Storage key must be 32 bytes long");
     }
@@ -241,6 +246,7 @@ export class ForkStateManager implements StateManager {
   }
 
   public async clearContractStorage(address: Address): Promise<void> {
+    this.addresses.add(address.toString());
     const hexAddress = address.toString();
     let account = this._state.get(hexAddress) ?? makeAccountState();
     account = account
@@ -366,6 +372,7 @@ export class ForkStateManager implements StateManager {
     // we set an empty account instead of deleting it to avoid
     // re-fetching the state from the remote node.
     // This is only valid post spurious dragon, but we don't support older hardforks when forking.
+    this.addresses.add(address.toString());
     const emptyAccount = makeEmptyAccountState();
     this._state = this._state.set(address.toString(), emptyAccount);
   }
@@ -391,6 +398,7 @@ export class ForkStateManager implements StateManager {
   }
 
   private _putAccount(address: Address, account: Account): void {
+    this.addresses.add(address.toString());
     // Because the vm only ever modifies the nonce, balance and codeHash using this
     // method we ignore the stateRoot property
     const hexAddress = address.toString();
@@ -429,6 +437,7 @@ export class ForkStateManager implements StateManager {
     address: Address,
     accountFields: any
   ): Promise<void> {
+    this.addresses.add(address.toString());
     // copied from BaseStateManager
     const account = await this.getAccount(address);
     account.nonce = accountFields.nonce ?? account.nonce;

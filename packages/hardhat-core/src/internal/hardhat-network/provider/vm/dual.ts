@@ -133,6 +133,7 @@ export class DualModeAdapter implements VMAdapter {
           "hex"
         )} !== ${rethnetRoot.toString("hex")}`
       );
+      await this.printState();
       throw new Error("Different state root");
     }
 
@@ -310,6 +311,7 @@ export class DualModeAdapter implements VMAdapter {
           "hex"
         )} !== ${rethnetRoot.toString("hex")}`
       );
+      await this.printState();
       throw new Error("Different snapshot state root");
     }
 
@@ -538,6 +540,13 @@ export class DualModeAdapter implements VMAdapter {
   public clearLastError() {
     this._ethereumJSVMTracer.clearLastError();
     this._rethnetVMTracer.clearLastError();
+  }
+
+  public async printState() {
+    console.log("EthereumJS:");
+    await this._ethereumJSAdapter.printState();
+    console.log("Rethnet:");
+    await this._rethnetAdapter.printState();
   }
 }
 
