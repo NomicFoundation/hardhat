@@ -12,9 +12,6 @@ import {
   Blockchain,
   Bytecode,
   Rethnet,
-  TracingMessage,
-  TracingMessageResult,
-  TracingStep,
   RethnetContext,
 } from "rethnet-evm";
 
