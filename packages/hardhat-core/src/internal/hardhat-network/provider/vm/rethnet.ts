@@ -108,9 +108,9 @@ export class RethnetAdapter implements VMAdapter {
     );
 
     const tracer = new Tracer({
-      beforeMessage: this._beforeMessageHandler,
-      step: this._stepHandler,
-      afterMessage: this._afterMessageHandler,
+      beforeMessage: this._beforeMessageHandler.bind(this),
+      step: this._stepHandler.bind(this),
+      afterMessage: this._afterMessageHandler.bind(this),
     });
 
     const rethnetResult = await this._rethnet.guaranteedDryRun(
@@ -302,9 +302,9 @@ export class RethnetAdapter implements VMAdapter {
     );
 
     const tracer = new Tracer({
-      beforeMessage: this._beforeMessageHandler,
-      step: this._stepHandler,
-      afterMessage: this._afterMessageHandler,
+      beforeMessage: this._beforeMessageHandler.bind(this),
+      step: this._stepHandler.bind(this),
+      afterMessage: this._afterMessageHandler.bind(this),
     });
 
     const rethnetResult = await this._rethnet.run(
@@ -447,21 +447,21 @@ export class RethnetAdapter implements VMAdapter {
     return undefined;
   }
 
-  private _beforeMessageHandler = async (
+  private async _beforeMessageHandler(
     message: TracingMessage,
     next: any
-  ) => {
+  ): Promise<void> {
     await this._vmTracer.addBeforeMessage(message);
-  };
+  }
 
-  private _stepHandler = async (step: TracingStep, _next: any) => {
+  private async _stepHandler(step: TracingStep, _next: any): Promise<void> {
     await this._vmTracer.addStep(step);
-  };
+  }
 
-  private _afterMessageHandler = async (
+  private async _afterMessageHandler(
     result: TracingMessageResult,
     _next: any
-  ) => {
+  ): Promise<void> {
     await this._vmTracer.addAfterMessage(result);
-  };
+  }
 }

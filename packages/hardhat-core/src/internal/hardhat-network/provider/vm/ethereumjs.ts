@@ -67,9 +67,15 @@ export class EthereumJSAdapter implements VMAdapter {
       "EVM should have an 'events' property"
     );
 
-    this._vm.evm.events.on("beforeMessage", this._beforeMessageHandler);
-    this._vm.evm.events.on("step", this._stepHandler);
-    this._vm.evm.events.on("afterMessage", this._afterMessageHandler);
+    this._vm.evm.events.on(
+      "beforeMessage",
+      this._beforeMessageHandler.bind(this)
+    );
+    this._vm.evm.events.on("step", this._stepHandler.bind(this));
+    this._vm.evm.events.on(
+      "afterMessage",
+      this._afterMessageHandler.bind(this)
+    );
   }
 
   public static async create(
@@ -494,7 +500,10 @@ export class EthereumJSAdapter implements VMAdapter {
     return this._common.gteHardfork("london");
   }
 
-  private _beforeMessageHandler = async (message: Message, next: any) => {
+  private async _beforeMessageHandler(
+    message: Message,
+    next: any
+  ): Promise<void> {
     try {
       const code =
         message.to !== undefined
@@ -512,9 +521,9 @@ export class EthereumJSAdapter implements VMAdapter {
     } catch (e) {
       return next(e);
     }
-  };
+  }
 
-  private _stepHandler = async (step: InterpreterStep, next: any) => {
+  private async _stepHandler(step: InterpreterStep, next: any): Promise<void> {
     try {
       await this._vmTracer.addStep({
         depth: step.depth,
@@ -541,9 +550,12 @@ export class EthereumJSAdapter implements VMAdapter {
     } catch (e) {
       return next(e);
     }
-  };
+  }
 
-  private _afterMessageHandler = async (result: EVMResult, next: any) => {
+  private async _afterMessageHandler(
+    result: EVMResult,
+    next: any
+  ): Promise<void> {
     try {
       const gasUsed = result.execResult.executionGasUsed;
 
@@ -611,5 +623,5 @@ export class EthereumJSAdapter implements VMAdapter {
     } catch (e) {
       return next(e);
     }
-  };
+  }
 }
