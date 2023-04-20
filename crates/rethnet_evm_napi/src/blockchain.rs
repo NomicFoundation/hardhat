@@ -8,6 +8,7 @@ use rethnet_eth::B256;
 use rethnet_evm::blockchain::SyncBlockchain;
 
 use crate::{
+    logger::enable_logging,
     sync::{await_promise, handle_error},
     threadsafe_function::{ThreadSafeCallContext, ThreadsafeFunction},
 };
@@ -38,6 +39,8 @@ impl Blockchain {
         #[napi(ts_arg_type = "(blockNumber: bigint) => Promise<Buffer>")]
         get_block_hash_fn: JsFunction,
     ) -> napi::Result<Self> {
+        enable_logging();
+
         let get_block_hash_fn = ThreadsafeFunction::create(
             env.raw(),
             unsafe { get_block_hash_fn.raw() },
