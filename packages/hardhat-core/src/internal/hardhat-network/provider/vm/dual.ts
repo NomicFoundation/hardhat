@@ -707,13 +707,12 @@ function assertEqualAccounts(
   }
 
   if (!ethereumJSAccount.storageRoot.equals(rethnetAccount.storageRoot)) {
-    // TODO re-enable
-    // console.trace(
-    //   `Different storageRoot: ${ethereumJSAccount.storageRoot.toString(
-    //     "hex"
-    //   )} !== ${rethnetAccount.storageRoot.toString("hex")}`
-    // );
-    // throw new Error("Different storageRoot");
+    console.trace(
+      `Different storageRoot: ${ethereumJSAccount.storageRoot.toString(
+        "hex"
+      )} !== ${rethnetAccount.storageRoot.toString("hex")}`
+    );
+    throw new Error("Different storageRoot");
   }
 }
 
