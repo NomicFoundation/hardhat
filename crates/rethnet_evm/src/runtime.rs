@@ -2,7 +2,7 @@ use std::{fmt::Debug, sync::Arc};
 
 use revm::{
     db::DatabaseComponents,
-    primitives::{BlockEnv, CfgEnv, ExecutionResult, SpecId, TxEnv},
+    primitives::{BlockEnv, CfgEnv, ExecutionResult, ResultAndState, SpecId, TxEnv},
 };
 use tokio::sync::RwLock;
 
@@ -10,9 +10,7 @@ use crate::{
     blockchain::SyncBlockchain,
     evm::{build_evm, run_transaction, SyncInspector},
     state::SyncState,
-    trace::Trace,
     transaction::TransactionError,
-    State,
 };
 
 /// Asynchronous implementation of the Database super-trait
@@ -55,8 +53,8 @@ where
         &self,
         transaction: TxEnv,
         block: BlockEnv,
-        inspector: Option<Box<dyn SyncInspector<BE, SE>>>,
-    ) -> Result<(ExecutionResult, State, Trace), TransactionError<BE, SE>> {
+        inspector: Option<&mut dyn SyncInspector<BE, SE>>,
+    ) -> Result<ResultAndState, TransactionError<BE, SE>> {
         if self.cfg.spec_id > SpecId::MERGE && block.prevrandao.is_none() {
             return Err(TransactionError::MissingPrevrandao);
         }
@@ -75,8 +73,8 @@ where
         &self,
         transaction: TxEnv,
         block: BlockEnv,
-        inspector: Option<Box<dyn SyncInspector<BE, SE>>>,
-    ) -> Result<(ExecutionResult, State, Trace), TransactionError<BE, SE>> {
+        inspector: Option<&mut dyn SyncInspector<BE, SE>>,
+    ) -> Result<ResultAndState, TransactionError<BE, SE>> {
         if self.cfg.spec_id > SpecId::MERGE && block.prevrandao.is_none() {
             return Err(TransactionError::MissingPrevrandao);
         }
@@ -98,8 +96,8 @@ where
         &self,
         transaction: TxEnv,
         block: BlockEnv,
-        inspector: Option<Box<dyn SyncInspector<BE, SE>>>,
-    ) -> Result<(ExecutionResult, Trace), TransactionError<BE, SE>> {
+        inspector: Option<&mut dyn SyncInspector<BE, SE>>,
+    ) -> Result<ExecutionResult, TransactionError<BE, SE>> {
         if self.cfg.spec_id > SpecId::MERGE && block.prevrandao.is_none() {
             return Err(TransactionError::MissingPrevrandao);
         }
@@ -109,11 +107,13 @@ where
 
         let evm = build_evm(&*blockchain, &*state, self.cfg.clone(), transaction, block);
 
-        let (result, changes, trace) =
-            run_transaction(evm, inspector).map_err(TransactionError::from)?;
+        let ResultAndState {
+            result,
+            state: changes,
+        } = run_transaction(evm, inspector).map_err(TransactionError::from)?;
 
         state.commit(changes);
 
-        Ok((result, trace))
+        Ok(result)
     }
 }

@@ -1,4 +1,6 @@
-use napi::bindgen_prelude::Buffer;
+use std::mem;
+
+use napi::{bindgen_prelude::Buffer, Env, JsBuffer, JsBufferValue};
 use napi_derive::napi;
 
 /// Ethereum log.
@@ -6,21 +8,34 @@ use napi_derive::napi;
 pub struct Log {
     pub address: Buffer,
     pub topics: Vec<Buffer>,
-    pub data: Buffer,
+    pub data: JsBuffer,
 }
 
-impl From<rethnet_evm::Log> for Log {
-    fn from(log: rethnet_evm::Log) -> Self {
+impl Log {
+    pub fn new(env: &Env, log: &rethnet_evm::Log) -> napi::Result<Self> {
         let topics = log
             .topics
-            .into_iter()
+            .iter()
             .map(|topic| Buffer::from(topic.as_bytes()))
             .collect();
 
-        Self {
+        let data = log.data.clone();
+        let data = unsafe {
+            env.create_buffer_with_borrowed_data(
+                data.as_ptr(),
+                data.len(),
+                data,
+                |data: rethnet_eth::Bytes, _env| {
+                    mem::drop(data);
+                },
+            )
+        }
+        .map(JsBufferValue::into_raw)?;
+
+        Ok(Self {
             address: Buffer::from(log.address.as_bytes()),
             topics,
-            data: Buffer::from(log.data.as_ref()),
-        }
+            data,
+        })
     }
 }
