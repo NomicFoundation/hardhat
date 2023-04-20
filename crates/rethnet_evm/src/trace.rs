@@ -1,7 +1,7 @@
 use rethnet_eth::Bytes;
 use revm::{
     interpreter::{opcode, Gas, InstructionResult, Interpreter},
-    Database, EVMData, Inspector,
+    EVMData, Inspector,
 };
 
 /// A trace for an EVM call.
@@ -63,14 +63,11 @@ impl TraceCollector {
     }
 }
 
-impl<D> Inspector<D> for TraceCollector
-where
-    D: Database,
-{
+impl<E> Inspector<E> for TraceCollector {
     fn step(
         &mut self,
         interp: &mut Interpreter,
-        _data: &mut EVMData<'_, D>,
+        _data: &mut dyn EVMData<E>,
         _is_static: bool,
     ) -> InstructionResult {
         self.opcode_stack.push(interp.current_opcode());
@@ -81,7 +78,7 @@ where
     fn step_end(
         &mut self,
         interp: &mut Interpreter,
-        _data: &mut EVMData<'_, D>,
+        _data: &mut dyn revm::EVMData<E>,
         _is_static: bool,
         exit_code: InstructionResult,
     ) -> InstructionResult {

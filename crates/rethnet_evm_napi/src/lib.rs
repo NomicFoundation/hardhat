@@ -7,6 +7,7 @@ mod block;
 mod blockchain;
 mod cast;
 mod config;
+mod context;
 mod log;
 mod logger;
 mod receipt;

@@ -1,7 +1,7 @@
 import { expect } from "chai";
 import { Address, KECCAK256_NULL } from "@nomicfoundation/ethereumjs-util";
 
-import { Account, Bytecode, StateManager } from "../..";
+import { Account, Bytecode, RethnetContext, StateManager } from "../..";
 
 describe("State Manager", () => {
   const caller = Address.fromString(
@@ -11,10 +11,12 @@ describe("State Manager", () => {
     "0x70997970C51812dc3A010C7d01b50e0d17dc79C8"
   );
 
+  const context = new RethnetContext();
+
   let stateManager: StateManager;
 
   beforeEach(function () {
-    stateManager = new StateManager();
+    stateManager = new StateManager(context);
   });
 
   // TODO: insertBlock, setAccountCode, setAccountStorageSlot

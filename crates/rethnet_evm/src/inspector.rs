@@ -1,6 +1,6 @@
 use std::marker::PhantomData;
 
-use revm::{Database, Inspector};
+use revm::Inspector;
 
 // TODO: Improve this design by introducing a InspectorMut trait
 
@@ -8,22 +8,20 @@ use revm::{Database, Inspector};
 /// first, followed by the mutable inspector. To ensure both inspectors observe a valid state, you
 /// have to ensure that only the mutable inspector modifies state. The returned values are solely
 /// determined by the mutable inspector.
-pub struct DualInspector<A, B, DB>
+pub struct DualInspector<A, B, E>
 where
-    A: Inspector<DB>,
-    B: Inspector<DB>,
-    DB: Database,
+    A: Inspector<E>,
+    B: Inspector<E>,
 {
     immutable: A,
     mutable: B,
-    phantom: PhantomData<DB>,
+    phantom: PhantomData<E>,
 }
 
-impl<A, B, DB> DualInspector<A, B, DB>
+impl<A, B, E> DualInspector<A, B, E>
 where
-    A: Inspector<DB>,
-    B: Inspector<DB>,
-    DB: Database,
+    A: Inspector<E>,
+    B: Inspector<E>,
 {
     /// Constructs a `DualInspector` from the provided inspectors.
     pub fn new(immutable: A, mutable: B) -> Self {
@@ -40,16 +38,15 @@ where
     }
 }
 
-impl<A, B, DB> Inspector<DB> for DualInspector<A, B, DB>
+impl<A, B, E> Inspector<E> for DualInspector<A, B, E>
 where
-    A: Inspector<DB>,
-    B: Inspector<DB>,
-    DB: Database,
+    A: Inspector<E>,
+    B: Inspector<E>,
 {
     fn initialize_interp(
         &mut self,
         interp: &mut revm::interpreter::Interpreter,
-        data: &mut revm::EVMData<'_, DB>,
+        data: &mut dyn revm::EVMData<E>,
         is_static: bool,
     ) -> revm::interpreter::InstructionResult {
         self.immutable.initialize_interp(interp, data, is_static);
@@ -59,7 +56,7 @@ where
     fn step(
         &mut self,
         interp: &mut revm::interpreter::Interpreter,
-        data: &mut revm::EVMData<'_, DB>,
+        data: &mut dyn revm::EVMData<E>,
         is_static: bool,
     ) -> revm::interpreter::InstructionResult {
         self.immutable.step(interp, data, is_static);
@@ -68,7 +65,7 @@ where
 
     fn log(
         &mut self,
-        evm_data: &mut revm::EVMData<'_, DB>,
+        evm_data: &mut dyn revm::EVMData<E>,
         address: &rethnet_eth::B160,
         topics: &[rethnet_eth::B256],
         data: &rethnet_eth::Bytes,
@@ -80,7 +77,7 @@ where
     fn step_end(
         &mut self,
         interp: &mut revm::interpreter::Interpreter,
-        data: &mut revm::EVMData<'_, DB>,
+        data: &mut dyn revm::EVMData<E>,
         is_static: bool,
         eval: revm::interpreter::InstructionResult,
     ) -> revm::interpreter::InstructionResult {
@@ -90,7 +87,7 @@ where
 
     fn call(
         &mut self,
-        data: &mut revm::EVMData<'_, DB>,
+        data: &mut dyn revm::EVMData<E>,
         inputs: &mut revm::interpreter::CallInputs,
         is_static: bool,
     ) -> (
@@ -104,7 +101,7 @@ where
 
     fn call_end(
         &mut self,
-        data: &mut revm::EVMData<'_, DB>,
+        data: &mut dyn revm::EVMData<E>,
         inputs: &revm::interpreter::CallInputs,
         remaining_gas: revm::interpreter::Gas,
         ret: revm::interpreter::InstructionResult,
@@ -123,7 +120,7 @@ where
 
     fn create(
         &mut self,
-        data: &mut revm::EVMData<'_, DB>,
+        data: &mut dyn revm::EVMData<E>,
         inputs: &mut revm::interpreter::CreateInputs,
     ) -> (
         revm::interpreter::InstructionResult,
@@ -137,7 +134,7 @@ where
 
     fn create_end(
         &mut self,
-        data: &mut revm::EVMData<'_, DB>,
+        data: &mut dyn revm::EVMData<E>,
         inputs: &revm::interpreter::CreateInputs,
         ret: revm::interpreter::InstructionResult,
         address: Option<rethnet_eth::B160>,
@@ -155,8 +152,8 @@ where
             .create_end(data, inputs, ret, address, remaining_gas, out)
     }
 
-    fn selfdestruct(&mut self) {
-        self.immutable.selfdestruct();
-        self.mutable.selfdestruct();
+    fn selfdestruct(&mut self, contract: rethnet_eth::B160, target: rethnet_eth::B160) {
+        self.immutable.selfdestruct(contract, target);
+        self.mutable.selfdestruct(contract, target);
     }
 }

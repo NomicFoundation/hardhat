@@ -21,8 +21,8 @@ pub use revm::{
 
 pub use crate::{
     block::{BlockBuilder, HeaderData},
-    evm::AsyncInspector,
-    runtime::{AsyncDatabase, Rethnet},
+    evm::SyncInspector,
+    runtime::{Rethnet, SyncDatabase},
     transaction::{PendingTransaction, TransactionError},
 };
 

@@ -11,7 +11,7 @@ hasher = { git = "https://github.com/Wodann/hasher", rev = "89d3fc9", version = 
 log = { version = "0.4.17", default-features = false }
 parking_lot = { version = "0.12.1", default-features = false }
 rethnet_eth = { version = "0.1.0-dev", path = "../rethnet_eth", features = ["serde"] }
-revm = { git = "https://github.com/bluealloy/revm", rev = "3789509", version = "3.0", default-features = false, features = ["dev", "serde", "std"] }
+revm = { git = "https://github.com/Wodann/revm", rev = "a4550cc", version = "3.1", default-features = false, features = ["dev", "secp256k1", "serde", "std"] }
 # revm = { path = "../../../revm/crates/revm", version = "3.0", default-features = false, features = ["dev", "serde", "std"] }
 rlp = { version = "0.5.2", default-features = false }
 serde = { version = "1.0.158", default-features = false, features = ["std"] }
