@@ -272,12 +272,12 @@ export class HardhatNetworkProvider
       this._logger,
       this._experimentalHardhatNetworkMessageTraceHooks
     );
+
+    const provider = new WeakRef(this);
     this._hardhatModule = new HardhatModule(
       node,
-      (forkConfig?: ForkConfig) => this._reset(miningTimer, forkConfig),
-      (loggingEnabled: boolean) => {
-        this._logger.setEnabled(loggingEnabled);
-      },
+      (forkConfig?: ForkConfig) =>
+        provider.deref()!._reset(miningTimer, forkConfig),
       this._logger,
       this._experimentalHardhatNetworkMessageTraceHooks
     );
@@ -320,9 +320,10 @@ export class HardhatNetworkProvider
   }
 
   private _makeMiningTimer(): MiningTimer {
+    const provider = new WeakRef(this);
     const miningTimer = new MiningTimer(this._intervalMining, async () => {
       try {
-        await this.request({ method: "hardhat_intervalMine" });
+        await provider.deref()!.request({ method: "hardhat_intervalMine" });
       } catch (e) {
         console.error("Unexpected error calling hardhat_intervalMine:", e);
       }
