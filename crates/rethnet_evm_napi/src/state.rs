@@ -6,7 +6,10 @@ use std::{
     },
 };
 
-use napi::{bindgen_prelude::*, JsFunction, JsObject, NapiRaw, Status};
+use napi::{
+    bindgen_prelude::{BigInt, Buffer, ObjectFinalize},
+    Env, JsFunction, JsObject, NapiRaw, Status,
+};
 use napi_derive::napi;
 use rethnet_eth::{signature::private_key_to_address, Address, Bytes, B256, U256};
 use rethnet_evm::{
@@ -22,6 +25,10 @@ use crate::{
     sync::{await_promise, handle_error},
     threadsafe_function::{ThreadSafeCallContext, ThreadsafeFunction, ThreadsafeFunctionCallMode},
 };
+
+// An arbitrarily large amount of memory to signal to the javascript garbage collector that it needs to
+// attempt to free the state object's memory.
+const STATE_MEMORY_SIZE: i64 = 10_000;
 
 struct ModifyAccountCall {
     pub balance: U256,
@@ -49,7 +56,7 @@ pub struct SnapshotId {
 }
 
 /// The Rethnet state
-#[napi]
+#[napi(custom_finalize)]
 #[derive(Debug)]
 pub struct StateManager {
     pub(super) state: Arc<AsyncState<StateError>>,
@@ -60,14 +67,17 @@ impl StateManager {
     /// Constructs a [`StateManager`] with an empty state.
     #[napi(constructor)]
     #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
-    pub fn new() -> napi::Result<Self> {
-        Self::with_accounts(HashMap::default())
+    pub fn new(mut env: Env) -> napi::Result<Self> {
+        Self::with_accounts(&mut env, HashMap::default())
     }
 
     /// Constructs a [`StateManager`] with the provided accounts present in the genesis state.
     #[napi(factory)]
     #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
-    pub fn with_genesis_accounts(accounts: Vec<GenesisAccount>) -> napi::Result<Self> {
+    pub fn with_genesis_accounts(
+        mut env: Env,
+        accounts: Vec<GenesisAccount>,
+    ) -> napi::Result<Self> {
         let context = Secp256k1::signing_only();
         let genesis_accounts = accounts
             .into_iter()
@@ -85,11 +95,14 @@ impl StateManager {
             })
             .collect::<napi::Result<HashMap<Address, AccountInfo>>>()?;
 
-        Self::with_accounts(genesis_accounts)
+        Self::with_accounts(&mut env, genesis_accounts)
     }
 
     #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
-    fn with_accounts(mut accounts: HashMap<Address, AccountInfo>) -> napi::Result<Self> {
+    fn with_accounts(
+        env: &mut Env,
+        mut accounts: HashMap<Address, AccountInfo>,
+    ) -> napi::Result<Self> {
         // Mimic precompiles activation
         for idx in 1..=8 {
             let mut address = Address::zero();
@@ -101,11 +114,11 @@ impl StateManager {
 
         state.checkpoint().unwrap();
 
-        Self::with_state(state)
+        Self::with_state(env, state)
     }
 
     #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
-    fn with_state<S>(state: S) -> napi::Result<Self>
+    fn with_state<S>(env: &mut Env, state: S) -> napi::Result<Self>
     where
         S: SyncState<StateError>,
     {
@@ -114,6 +127,8 @@ impl StateManager {
         let state: Box<dyn SyncState<StateError>> = Box::new(state);
         let state = AsyncState::new(state)
             .map_err(|e| napi::Error::new(Status::GenericFailure, e.to_string()))?;
+
+        env.adjust_external_memory(STATE_MEMORY_SIZE)?;
 
         Ok(Self {
             state: Arc::new(state),
@@ -410,5 +425,14 @@ impl StateManager {
             .set_state_root(&state_root)
             .await
             .map_err(|e| napi::Error::new(Status::GenericFailure, e.to_string()))
+    }
+}
+
+impl ObjectFinalize for StateManager {
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
+    fn finalize(self, mut env: Env) -> napi::Result<()> {
+        env.adjust_external_memory(-STATE_MEMORY_SIZE)?;
+
+        Ok(())
     }
 }
