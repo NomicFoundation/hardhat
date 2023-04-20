@@ -47,6 +47,7 @@ pub enum RpcClientError {
 }
 
 /// A client for executing RPC methods on a remote Ethereum node
+#[derive(Debug)]
 pub struct RpcClient {
     url: String,
     client: reqwest::Client,

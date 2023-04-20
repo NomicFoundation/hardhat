@@ -7,13 +7,15 @@ use rethnet_eth::{
 use revm::{
     db::DatabaseComponentError,
     primitives::{BlockEnv, CfgEnv, EVMError, ExecutionResult, InvalidTransaction, SpecId, TxEnv},
-    Inspector,
 };
 use tokio::runtime::Runtime;
 
 use crate::{
-    blockchain::AsyncBlockchain, evm::run_transaction, runtime::AsyncDatabase, state::AsyncState,
-    trace::Trace, HeaderData,
+    blockchain::AsyncBlockchain,
+    evm::{run_transaction, AsyncInspector},
+    state::{AccountModifierFn, AsyncState},
+    trace::Trace,
+    HeaderData,
 };
 
 #[derive(Debug, thiserror::Error)]
@@ -116,7 +118,7 @@ where
     pub async fn add_transaction(
         &mut self,
         transaction: TxEnv,
-        inspector: Option<Box<dyn Inspector<AsyncDatabase<BE, SE>> + Send>>,
+        inspector: Option<Box<dyn AsyncInspector<BE, SE>>>,
     ) -> Result<(ExecutionResult, Trace), BlockTransactionError<BE, SE>> {
         //  transaction's gas limit cannot be greater than the remaining gas in the block
         if U256::from(transaction.gas_limit) > self.gas_remaining() {
@@ -165,7 +167,9 @@ where
             self.state
                 .modify_account(
                     address,
-                    Box::new(move |balance, _nonce, _code| *balance += reward),
+                    AccountModifierFn::new(Box::new(move |balance, _nonce, _code| {
+                        *balance += reward;
+                    })),
                 )
                 .await?;
         }
