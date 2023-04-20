@@ -22,6 +22,7 @@ pub use revm::{
 pub use crate::{
     block::{BlockBuilder, HeaderData},
     evm::SyncInspector,
+    random::RandomHashGenerator,
     runtime::{Rethnet, SyncDatabase},
     transaction::{PendingTransaction, TransactionError},
 };

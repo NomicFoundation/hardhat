@@ -107,7 +107,7 @@ impl RpcClient {
     }
 
     fn read_response_from_cache(&self, request_body: &str) -> Option<String> {
-        if let Ok(mut file) = std::fs::File::open(&self.make_cache_path(request_body)) {
+        if let Ok(mut file) = std::fs::File::open(self.make_cache_path(request_body)) {
             let mut response = String::new();
             if io::Read::read_to_string(&mut file, &mut response).is_ok() {
                 Some(response)
@@ -120,7 +120,7 @@ impl RpcClient {
     }
 
     fn write_response_to_cache(&self, request_body: &str, response: &str) {
-        std::fs::write(&self.make_cache_path(request_body), response.as_bytes())
+        std::fs::write(self.make_cache_path(request_body), response.as_bytes())
             .expect("failed to write to on-disk RPC response cache")
     }
 

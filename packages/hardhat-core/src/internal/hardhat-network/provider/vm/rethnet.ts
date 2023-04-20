@@ -3,6 +3,7 @@ import { Common } from "@nomicfoundation/ethereumjs-common";
 import {
   Account,
   Address,
+  bufferToHex,
   KECCAK256_NULL,
 } from "@nomicfoundation/ethereumjs-util";
 import { TypedTransaction } from "@nomicfoundation/ethereumjs-tx";
@@ -12,9 +13,6 @@ import {
   Blockchain,
   Bytecode,
   Rethnet,
-  TracingMessage,
-  TracingMessageResult,
-  TracingStep,
   RethnetContext,
 } from "rethnet-evm";
 
@@ -38,7 +36,7 @@ import { RunTxResult, Trace, VMAdapter } from "./vm-adapter";
 /* eslint-disable @nomiclabs/hardhat-internal-rules/only-hardhat-error */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 
-const globalContext = new RethnetContext();
+export const globalRethnetContext = new RethnetContext();
 
 export class RethnetAdapter implements VMAdapter {
   private _vmTracer: VMTracer;
@@ -48,8 +46,7 @@ export class RethnetAdapter implements VMAdapter {
     private _state: RethnetStateManager,
     private _rethnet: Rethnet,
     private readonly _selectHardfork: (blockNumber: bigint) => string,
-    common: Common,
-    private _isForked: boolean
+    common: Common
   ) {
     this._vmTracer = new VMTracer(common, false);
   }
@@ -67,14 +64,14 @@ export class RethnetAdapter implements VMAdapter {
 
     let state: RethnetStateManager;
     if (isForkedNodeConfig(config)) {
-      state = RethnetStateManager.forkRemote(
-        globalContext,
+      state = await RethnetStateManager.forkRemote(
+        globalRethnetContext,
         config.forkConfig,
         config.genesisAccounts
       );
     } else {
       state = RethnetStateManager.withGenesisAccounts(
-        globalContext,
+        globalRethnetContext,
         config.genesisAccounts
       );
     }
@@ -92,8 +89,7 @@ export class RethnetAdapter implements VMAdapter {
       state,
       rethnet,
       selectHardfork,
-      common,
-      isForkedNodeConfig(config)
+      common
     );
   }
 
@@ -442,7 +438,7 @@ export class RethnetAdapter implements VMAdapter {
   ): bigint | undefined {
     const MAX_DIFFICULTY = 2n ** 32n - 1n;
     if (difficulty !== undefined && difficulty > MAX_DIFFICULTY) {
-      console.debug(
+      console.warn(
         "Difficulty is larger than U256::max:",
         difficulty.toString(16)
       );

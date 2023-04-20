@@ -8,7 +8,7 @@ use revm::primitives::{Account, AccountInfo, Bytecode};
 
 use crate::{
     collections::{SharedMap, SharedMapEntry},
-    state::account::RethnetAccount,
+    state::{account::RethnetAccount, StateError},
 };
 
 #[derive(Clone, Debug)]
@@ -42,6 +42,11 @@ impl<Layer> LayeredChanges<Layer> {
     pub fn rev(&self) -> impl Iterator<Item = &Layer> {
         self.stack.iter()
     }
+
+    /// Appends the provided layers.
+    pub fn append(&mut self, layers: &mut Vec<Layer>) {
+        self.stack.append(layers);
+    }
 }
 
 impl<Layer: Debug> LayeredChanges<Layer> {
@@ -57,9 +62,9 @@ impl<Layer: Debug> LayeredChanges<Layer> {
     /// Reverts to the layer with specified `layer_id`, removing all
     /// layers above it.
     #[cfg_attr(feature = "tracing", tracing::instrument)]
-    pub fn revert_to_layer(&mut self, layer_id: usize) {
+    pub fn revert_to_layer(&mut self, layer_id: usize) -> Vec<Layer> {
         assert!(layer_id < self.stack.len(), "Invalid layer id.");
-        self.stack.truncate(layer_id + 1);
+        self.stack.split_off(layer_id + 1)
     }
 }
 
@@ -174,8 +179,12 @@ impl LayeredChanges<RethnetLayer> {
 
     /// Retrieves a mutable reference to the account corresponding to the address, if it exists.
     /// Otherwise, inserts a new account.
-    #[cfg_attr(feature = "tracing", tracing::instrument)]
-    pub fn account_or_insert_mut(&mut self, address: &Address) -> &mut RethnetAccount {
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip(default_account_fn)))]
+    pub fn account_or_insert_mut(
+        &mut self,
+        address: &Address,
+        default_account_fn: &dyn Fn() -> Result<AccountInfo, StateError>,
+    ) -> &mut RethnetAccount {
         // WORKAROUND: https://blog.rust-lang.org/2022/08/05/nll-by-default.html
         if self.last_layer_mut().accounts.contains_key(address) {
             let was_deleted = self
@@ -196,7 +205,11 @@ impl LayeredChanges<RethnetLayer> {
             }
         }
 
-        let account = self.account(address).cloned().unwrap_or_default();
+        let account = self.account(address).cloned().unwrap_or_else(|| {
+            default_account_fn()
+                .expect("Default account construction is not allowed to fail")
+                .into()
+        });
 
         self.last_layer_mut()
             .accounts
@@ -214,7 +227,12 @@ impl LayeredChanges<RethnetLayer> {
                 // Removes account only if it exists, so safe to use for empty, touched accounts
                 self.remove_account(address);
             } else {
-                let old_account = self.account_or_insert_mut(address);
+                let old_account = self.account_or_insert_mut(address, &|| {
+                    Ok(AccountInfo {
+                        code: None,
+                        ..AccountInfo::default()
+                    })
+                });
 
                 if account.storage_cleared {
                     old_account.storage.clear();
@@ -222,11 +240,7 @@ impl LayeredChanges<RethnetLayer> {
 
                 account.storage.iter().for_each(|(index, value)| {
                     let value = value.present_value();
-                    if value == U256::ZERO {
-                        old_account.storage.remove(index);
-                    } else {
-                        old_account.storage.insert(*index, value);
-                    }
+                    old_account.storage.insert(*index, value);
                 });
 
                 let mut account_info = account.info.clone();

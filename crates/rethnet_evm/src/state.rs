@@ -1,5 +1,6 @@
 mod account;
 mod debug;
+mod default_storage;
 mod fork;
 mod history;
 mod hybrid;
@@ -9,11 +10,12 @@ mod trie;
 
 use std::fmt::Debug;
 
-use rethnet_eth::B256;
+use rethnet_eth::{remote::RpcClientError, B256, U256};
 use revm::{db::StateRef, DatabaseCommit};
 
 pub use self::{
     debug::{AccountModifierFn, StateDebug},
+    default_storage::DefaultStorageState,
     fork::ForkState,
     history::StateHistory,
     hybrid::HybridState,
@@ -31,14 +33,22 @@ pub enum StateError {
     #[error("Contract with code hash `{0}` does not exist.")]
     InvalidCodeHash(B256),
     /// Specified state root does not exist
-    #[error("State root `{0:?}` does not exist.")]
-    InvalidStateRoot(B256),
+    #[error("State root `{state_root:?}` does not exist (fork: {fork_identifier}).")]
+    InvalidStateRoot {
+        /// Requested state root
+        state_root: B256,
+        /// Whether the state root was intended for a fork
+        fork_identifier: bool,
+    },
+    /// Storage slot with specified index does not exist
+    #[error("Storage slot with index `{0}` does not exist.")]
+    InvalidStorageSlot(U256),
     /// Not implemented
     #[error("Method not implemented")]
     NotImplemented,
     /// Error from the underlying RPC client
     #[error(transparent)]
-    Remote(#[from] rethnet_eth::remote::RpcClientError),
+    Remote(#[from] RpcClientError),
     /// Some other error from an underlying dependency
     #[error(transparent)]
     Other(#[from] std::io::Error),

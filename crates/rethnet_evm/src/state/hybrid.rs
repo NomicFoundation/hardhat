@@ -17,21 +17,32 @@ use super::{
     AccountModifierFn, RethnetLayer, StateDebug, StateError,
 };
 
+#[derive(Clone, Debug)]
+struct RevertedLayers<Layer> {
+    /// The parent layer's state root
+    pub parent_state_root: B256,
+    /// The reverted layers
+    pub stack: Vec<Layer>,
+}
+
 #[derive(Debug)]
-struct Snapshot<Layer> {
+struct Snapshot<Layer, const REMOVE_ZERO_SLOTS: bool> {
     pub changes: LayeredChanges<Layer>,
-    pub trie: TrieState,
+    pub trie: TrieState<REMOVE_ZERO_SLOTS>,
 }
 
 /// A state consisting of layers.
 #[derive(Debug, Default)]
-pub struct HybridState<Layer> {
-    trie: TrieState,
+pub struct HybridState<Layer, const REMOVE_ZERO_SLOTS: bool = true> {
+    trie: TrieState<REMOVE_ZERO_SLOTS>,
     changes: LayeredChanges<Layer>,
-    snapshots: SharedMap<B256, Snapshot<Layer>, true>,
+    reverted_layers: Option<RevertedLayers<Layer>>,
+    snapshots: SharedMap<B256, Snapshot<Layer, REMOVE_ZERO_SLOTS>, true>,
 }
 
-impl<Layer: From<HashMap<Address, AccountInfo>>> HybridState<Layer> {
+impl<Layer: From<HashMap<Address, AccountInfo>>, const REMOVE_ZERO_SLOTS: bool>
+    HybridState<Layer, REMOVE_ZERO_SLOTS>
+{
     /// Creates a [`HybridState`] with the provided layer at the bottom.
     #[cfg_attr(feature = "tracing", tracing::instrument)]
     pub fn with_accounts(accounts: HashMap<Address, AccountInfo>) -> Self {
@@ -41,12 +52,13 @@ impl<Layer: From<HashMap<Address, AccountInfo>>> HybridState<Layer> {
         Self {
             trie: latest_state,
             changes: LayeredChanges::with_layer(layer),
+            reverted_layers: None,
             snapshots: SharedMap::default(),
         }
     }
 }
 
-impl StateRef for HybridState<RethnetLayer> {
+impl<const REMOVE_ZERO_SLOTS: bool> StateRef for HybridState<RethnetLayer, REMOVE_ZERO_SLOTS> {
     type Error = StateError;
 
     #[cfg_attr(feature = "tracing", tracing::instrument)]
@@ -65,7 +77,9 @@ impl StateRef for HybridState<RethnetLayer> {
     }
 }
 
-impl DatabaseCommit for HybridState<RethnetLayer> {
+impl<const REMOVE_ZERO_SLOTS: bool> DatabaseCommit
+    for HybridState<RethnetLayer, REMOVE_ZERO_SLOTS>
+{
     #[cfg_attr(feature = "tracing", tracing::instrument)]
     fn commit(&mut self, changes: HashMap<Address, Account>) {
         self.changes.apply(&changes);
@@ -73,7 +87,7 @@ impl DatabaseCommit for HybridState<RethnetLayer> {
     }
 }
 
-impl StateDebug for HybridState<RethnetLayer> {
+impl<const REMOVE_ZERO_SLOTS: bool> StateDebug for HybridState<RethnetLayer, REMOVE_ZERO_SLOTS> {
     type Error = StateError;
 
     #[cfg_attr(feature = "tracing", tracing::instrument)]
@@ -88,23 +102,27 @@ impl StateDebug for HybridState<RethnetLayer> {
         account_info: AccountInfo,
     ) -> Result<(), Self::Error> {
         self.trie.insert_account(address, account_info.clone())?;
-        self.changes.account_or_insert_mut(&address).info = account_info;
+        self.changes
+            .account_or_insert_mut(&address, &|| {
+                Ok(AccountInfo {
+                    code: None,
+                    ..AccountInfo::default()
+                })
+            })
+            .info = account_info;
 
         Ok(())
     }
 
-    #[cfg_attr(feature = "tracing", tracing::instrument)]
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip(default_account_fn)))]
     fn modify_account(
         &mut self,
         address: Address,
         modifier: AccountModifierFn,
+        default_account_fn: &dyn Fn() -> Result<AccountInfo, Self::Error>,
     ) -> Result<(), Self::Error> {
-        let mut account_info = self.trie.basic(address)?.map_or_else(
-            || AccountInfo {
-                code: None,
-                ..AccountInfo::default()
-            },
-            |mut account_info| {
+        let mut account_info = match self.trie.basic(address)? {
+            Some(mut account_info) => {
                 // Fill the bytecode
                 if account_info.code_hash != KECCAK_EMPTY {
                     account_info.code = Some(
@@ -115,8 +133,9 @@ impl StateDebug for HybridState<RethnetLayer> {
                 }
 
                 account_info
-            },
-        );
+            }
+            None => default_account_fn()?,
+        };
 
         let old_code_hash = account_info.code_hash;
 
@@ -142,7 +161,14 @@ impl StateDebug for HybridState<RethnetLayer> {
         }
 
         self.trie.insert_account(address, account_info.clone())?;
-        self.changes.account_or_insert_mut(&address).info = account_info;
+        self.changes
+            .account_or_insert_mut(&address, &|| {
+                Ok(AccountInfo {
+                    code: None,
+                    ..AccountInfo::default()
+                })
+            })
+            .info = account_info;
 
         Ok(())
     }
@@ -171,7 +197,12 @@ impl StateDebug for HybridState<RethnetLayer> {
         self.trie.set_account_storage_slot(address, index, value)?;
 
         self.changes
-            .account_or_insert_mut(&address)
+            .account_or_insert_mut(&address, &|| {
+                Ok(AccountInfo {
+                    code: None,
+                    ..AccountInfo::default()
+                })
+            })
             .storage
             .insert(index, value);
 
@@ -184,7 +215,7 @@ impl StateDebug for HybridState<RethnetLayer> {
     }
 }
 
-impl StateHistory for HybridState<RethnetLayer> {
+impl<const REMOVE_ZERO_SLOTS: bool> StateHistory for HybridState<RethnetLayer, REMOVE_ZERO_SLOTS> {
     type Error = StateError;
 
     #[cfg_attr(feature = "tracing", tracing::instrument)]
@@ -226,6 +257,15 @@ impl StateHistory for HybridState<RethnetLayer> {
             trie: latest_state,
         }) = self.snapshots.get(state_root)
         {
+            // Retain all layers except the first
+            let stack = self.changes.revert_to_layer(0);
+            let parent_state_root = self.changes.last_layer_mut().state_root().cloned().unwrap();
+
+            self.reverted_layers = Some(RevertedLayers {
+                parent_state_root,
+                stack,
+            });
+
             self.trie = latest_state.clone();
             self.changes = changes.clone();
 
@@ -233,6 +273,37 @@ impl StateHistory for HybridState<RethnetLayer> {
 
             return Ok(());
         }
+
+        // Check whether the state root is contained in the previously reverted layers
+        let reinstated_layers = self.reverted_layers.take().and_then(|mut reverted_layers| {
+            let layer_id = reverted_layers
+                .stack
+                .iter()
+                .rev()
+                .enumerate()
+                .find_map(|(layer_id, layer)| {
+                    if *layer.state_root().unwrap() == *state_root {
+                        Some(layer_id)
+                    } else {
+                        None
+                    }
+                })
+                .map(|inverted_layer_id| reverted_layers.stack.len() - inverted_layer_id - 1);
+
+            if let Some(layer_id) = layer_id {
+                reverted_layers.stack.truncate(layer_id + 1);
+
+                Some(reverted_layers)
+            } else {
+                None
+            }
+        });
+
+        let state_root = reinstated_layers
+            .as_ref()
+            .map_or(state_root, |reinstated_layers| {
+                &reinstated_layers.parent_state_root
+            });
 
         let inverted_layer_id = self
             .changes
@@ -249,12 +320,30 @@ impl StateHistory for HybridState<RethnetLayer> {
         if let Some(layer_id) = inverted_layer_id {
             let layer_id = self.changes.last_layer_id() - layer_id;
 
-            self.changes.revert_to_layer(layer_id);
+            let reverted_layers = self.changes.revert_to_layer(layer_id);
+            let parent_state_root = self.changes.last_layer_mut().state_root().cloned().unwrap();
+
+            if let Some(mut reinstated_layers) = reinstated_layers {
+                self.changes.append(&mut reinstated_layers.stack);
+            }
+
+            self.reverted_layers = if reverted_layers.is_empty() {
+                None
+            } else {
+                Some(RevertedLayers {
+                    parent_state_root,
+                    stack: reverted_layers,
+                })
+            };
+
             self.trie = TrieState::from(&self.changes);
 
             Ok(())
         } else {
-            Err(StateError::InvalidStateRoot(*state_root))
+            Err(StateError::InvalidStateRoot {
+                state_root: *state_root,
+                fork_identifier: false,
+            })
         }
     }
 

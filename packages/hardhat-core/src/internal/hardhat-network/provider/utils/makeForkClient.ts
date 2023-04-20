@@ -23,6 +23,66 @@ import {
 //  anymore, so this really should be revisited.
 const FORK_HTTP_TIMEOUT = 35000;
 
+export async function makeForkProvider(forkConfig: ForkConfig): Promise<{
+  forkProvider: HttpProvider;
+  networkId: number;
+  forkBlockNumber: bigint;
+  latestBlockNumber: bigint;
+  maxReorg: bigint;
+}> {
+  const forkProvider = new HttpProvider(
+    forkConfig.jsonRpcUrl,
+    HARDHAT_NETWORK_NAME,
+    forkConfig.httpHeaders,
+    FORK_HTTP_TIMEOUT
+  );
+
+  const networkId = await getNetworkId(forkProvider);
+  const actualMaxReorg = getLargestPossibleReorg(networkId);
+  const maxReorg = actualMaxReorg ?? FALLBACK_MAX_REORG;
+
+  const latestBlockNumber = await getLatestBlockNumber(forkProvider);
+  const lastSafeBlockNumber = latestBlockNumber - maxReorg;
+
+  let forkBlockNumber;
+  if (forkConfig.blockNumber !== undefined) {
+    if (forkConfig.blockNumber > latestBlockNumber) {
+      // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
+      throw new Error(
+        `Trying to initialize a provider with block ${forkConfig.blockNumber} but the current block is ${latestBlockNumber}`
+      );
+    }
+
+    if (forkConfig.blockNumber > lastSafeBlockNumber) {
+      const confirmations =
+        latestBlockNumber - BigInt(forkConfig.blockNumber) + 1n;
+      const requiredConfirmations = maxReorg + 1n;
+      console.warn(
+        chalk.yellow(
+          `You are forking from block ${
+            forkConfig.blockNumber
+          }, which has less than ${requiredConfirmations} confirmations, and will affect Hardhat Network's performance.
+Please use block number ${lastSafeBlockNumber} or wait for the block to get ${
+            requiredConfirmations - confirmations
+          } more confirmations.`
+        )
+      );
+    }
+
+    forkBlockNumber = BigInt(forkConfig.blockNumber);
+  } else {
+    forkBlockNumber = BigInt(lastSafeBlockNumber);
+  }
+
+  return {
+    forkProvider,
+    networkId,
+    forkBlockNumber,
+    latestBlockNumber,
+    maxReorg,
+  };
+}
+
 export async function makeForkClient(
   forkConfig: ForkConfig,
   forkCachePath?: string
@@ -32,50 +92,15 @@ export async function makeForkClient(
   forkBlockTimestamp: number;
   forkBlockHash: string;
 }> {
-  const provider = new HttpProvider(
-    forkConfig.jsonRpcUrl,
-    HARDHAT_NETWORK_NAME,
-    forkConfig.httpHeaders,
-    FORK_HTTP_TIMEOUT
-  );
+  const {
+    forkProvider,
+    networkId,
+    forkBlockNumber,
+    latestBlockNumber,
+    maxReorg,
+  } = await makeForkProvider(forkConfig);
 
-  const networkId = await getNetworkId(provider);
-  const actualMaxReorg = getLargestPossibleReorg(networkId);
-  const maxReorg = actualMaxReorg ?? FALLBACK_MAX_REORG;
-
-  const latestBlock = await getLatestBlockNumber(provider);
-  const lastSafeBlock = latestBlock - maxReorg;
-
-  let forkBlockNumber;
-  if (forkConfig.blockNumber !== undefined) {
-    if (forkConfig.blockNumber > latestBlock) {
-      // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
-      throw new Error(
-        `Trying to initialize a provider with block ${forkConfig.blockNumber} but the current block is ${latestBlock}`
-      );
-    }
-
-    if (forkConfig.blockNumber > lastSafeBlock) {
-      const confirmations = latestBlock - BigInt(forkConfig.blockNumber) + 1n;
-      const requiredConfirmations = maxReorg + 1n;
-      console.warn(
-        chalk.yellow(
-          `You are forking from block ${
-            forkConfig.blockNumber
-          }, which has less than ${requiredConfirmations} confirmations, and will affect Hardhat Network's performance.
-Please use block number ${lastSafeBlock} or wait for the block to get ${
-            requiredConfirmations - confirmations
-          } more confirmations.`
-        )
-      );
-    }
-
-    forkBlockNumber = BigInt(forkConfig.blockNumber);
-  } else {
-    forkBlockNumber = BigInt(lastSafeBlock);
-  }
-
-  const block = await getBlockByNumber(provider, forkBlockNumber);
+  const block = await getBlockByNumber(forkProvider, forkBlockNumber);
 
   const forkBlockTimestamp = rpcQuantityToNumber(block.timestamp) * 1000;
 
@@ -83,9 +108,9 @@ Please use block number ${lastSafeBlock} or wait for the block to get ${
     forkConfig.blockNumber !== undefined && forkCachePath !== undefined;
 
   const forkClient = new JsonRpcClient(
-    provider,
+    forkProvider,
     networkId,
-    latestBlock,
+    latestBlockNumber,
     maxReorg,
     cacheToDiskEnabled ? forkCachePath : undefined
   );

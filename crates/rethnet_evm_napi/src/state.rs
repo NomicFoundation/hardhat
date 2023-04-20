@@ -14,7 +14,10 @@ use napi::{
 use napi_derive::napi;
 use rethnet_eth::{signature::private_key_to_address, Address, Bytes, B256, U256};
 use rethnet_evm::{
-    state::{AccountModifierFn, ForkState, HybridState, StateError, StateHistory, SyncState},
+    state::{
+        AccountModifierFn, DefaultStorageState, ForkState, HybridState, RethnetLayer, StateError,
+        StateHistory, SyncState,
+    },
     AccountInfo, Bytecode, HashMap, KECCAK_EMPTY,
 };
 use secp256k1::Secp256k1;
@@ -48,40 +51,33 @@ pub struct GenesisAccount {
 }
 
 #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
-fn genesis_accounts(
-    accounts: Option<Vec<GenesisAccount>>,
-) -> napi::Result<HashMap<Address, AccountInfo>> {
+fn genesis_accounts(accounts: Vec<GenesisAccount>) -> napi::Result<HashMap<Address, AccountInfo>> {
     let signer = Secp256k1::signing_only();
 
-    let mut accounts = accounts.map_or_else(
-        || Ok(HashMap::default()),
-        |accounts| {
-            accounts
-                .into_iter()
-                .map(|account| {
-                    let address = private_key_to_address(&signer, &account.private_key)
-                        .map_err(|e| napi::Error::new(Status::InvalidArg, e.to_string()))?;
-                    TryCast::<U256>::try_cast(account.balance).map(|balance| {
-                        let account_info = AccountInfo {
-                            balance,
-                            ..Default::default()
-                        };
+    accounts
+        .into_iter()
+        .map(|account| {
+            let address = private_key_to_address(&signer, &account.private_key)
+                .map_err(|e| napi::Error::new(Status::InvalidArg, e.to_string()))?;
+            TryCast::<U256>::try_cast(account.balance).map(|balance| {
+                let account_info = AccountInfo {
+                    balance,
+                    ..Default::default()
+                };
 
-                        (address, account_info)
-                    })
-                })
-                .collect::<napi::Result<HashMap<Address, AccountInfo>>>()
-        },
-    )?;
+                (address, account_info)
+            })
+        })
+        .collect::<napi::Result<HashMap<Address, AccountInfo>>>()
+}
 
-    // Mimic precompiles activation
+// Mimic precompiles activation
+fn add_precompiles(accounts: &mut HashMap<Address, AccountInfo>) {
     for idx in 1..=8 {
         let mut address = Address::zero();
         address.0[19] = idx;
         accounts.insert(address, AccountInfo::default());
     }
-
-    Ok(accounts)
 }
 
 /// The Rethnet state
@@ -98,8 +94,14 @@ impl StateManager {
     #[napi(constructor)]
     #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     pub fn new(mut env: Env, context: &RethnetContext) -> napi::Result<Self> {
-        let accounts = genesis_accounts(None)?;
-        Self::with_state(&mut env, context, HybridState::with_accounts(accounts))
+        let mut accounts = HashMap::new();
+        add_precompiles(&mut accounts);
+
+        let mut state: DefaultStorageState<HybridState<RethnetLayer>> =
+            DefaultStorageState::new(HybridState::with_accounts(accounts));
+        state.checkpoint().unwrap();
+
+        Self::with_state(&mut env, context, state)
     }
 
     /// Constructs a [`StateManager`] with the provided accounts present in the genesis state.
@@ -110,8 +112,14 @@ impl StateManager {
         context: &RethnetContext,
         accounts: Vec<GenesisAccount>,
     ) -> napi::Result<Self> {
-        let accounts = genesis_accounts(Some(accounts))?;
-        Self::with_state(&mut env, context, HybridState::with_accounts(accounts))
+        let mut accounts = genesis_accounts(accounts)?;
+        add_precompiles(&mut accounts);
+
+        let mut state: DefaultStorageState<HybridState<RethnetLayer>> =
+            DefaultStorageState::new(HybridState::with_accounts(accounts));
+        state.checkpoint().unwrap();
+
+        Self::with_state(&mut env, context, state)
     }
 
     /// Constructs a [`StateManager`] that uses the remote node and block number as the basis for
@@ -121,32 +129,30 @@ impl StateManager {
         mut env: Env,
         context: &RethnetContext,
         remote_node_url: JsString,
-        fork_block_number: Option<BigInt>,
+        fork_block_number: BigInt,
         accounts: Vec<GenesisAccount>,
     ) -> napi::Result<Self> {
-        let fork_block_number: Option<U256> = fork_block_number.map_or(Ok(None), |number| {
-            BigInt::try_cast(number).map(Option::Some)
-        })?;
+        let fork_block_number: U256 = BigInt::try_cast(fork_block_number)?;
 
-        let accounts = genesis_accounts(Some(accounts))?;
+        let accounts = genesis_accounts(accounts)?;
         Self::with_state(
             &mut env,
             context,
             ForkState::new(
-                context.as_inner().runtime(),
+                context.as_inner().runtime().clone(),
+                context.as_inner().hash_generator().clone(),
                 remote_node_url.into_utf8()?.as_str()?,
-                accounts,
                 fork_block_number,
+                accounts,
             ),
         )
     }
 
     #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
-    fn with_state<S>(env: &mut Env, context: &RethnetContext, mut state: S) -> napi::Result<Self>
+    fn with_state<S>(env: &mut Env, context: &RethnetContext, state: S) -> napi::Result<Self>
     where
         S: SyncState<StateError>,
     {
-        state.checkpoint().unwrap();
         let state: Box<dyn SyncState<StateError>> = Box::new(state);
 
         env.adjust_external_memory(STATE_MEMORY_SIZE)?;
@@ -440,6 +446,12 @@ impl StateManager {
                             *code = new_account.code;
                         },
                     )),
+                    &|| {
+                        Ok(AccountInfo {
+                            code: None,
+                            ..AccountInfo::default()
+                        })
+                    },
                 )
                 .map_err(|e| napi::Error::new(Status::GenericFailure, e.to_string()));
 

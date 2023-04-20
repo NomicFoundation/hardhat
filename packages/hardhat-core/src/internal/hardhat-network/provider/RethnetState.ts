@@ -5,6 +5,7 @@ import {
 } from "@nomicfoundation/ethereumjs-util";
 import { StateManager, Account, Bytecode, RethnetContext } from "rethnet-evm";
 import { ForkConfig, GenesisAccount } from "./node-types";
+import { makeForkProvider } from "./utils/makeForkClient";
 
 /* eslint-disable @nomiclabs/hardhat-internal-rules/only-hardhat-error */
 /* eslint-disable @typescript-eslint/no-unused-vars */
@@ -29,14 +30,17 @@ export class RethnetStateManager {
     );
   }
 
-  public static forkRemote(
+  public static async forkRemote(
     context: RethnetContext,
     forkConfig: ForkConfig,
     genesisAccounts: GenesisAccount[]
-  ): RethnetStateManager {
+  ): Promise<RethnetStateManager> {
     let blockNumber;
     if (forkConfig.blockNumber !== undefined) {
       blockNumber = BigInt(forkConfig.blockNumber);
+    } else {
+      const { forkBlockNumber } = await makeForkProvider(forkConfig);
+      blockNumber = forkBlockNumber;
     }
 
     return new RethnetStateManager(

@@ -95,18 +95,30 @@ impl StateDebug for LayeredState<RethnetLayer> {
         address: Address,
         account_info: AccountInfo,
     ) -> Result<(), Self::Error> {
-        self.changes.account_or_insert_mut(&address).info = account_info;
+        self.changes
+            .account_or_insert_mut(&address, &|| {
+                Ok(AccountInfo {
+                    code: None,
+                    ..AccountInfo::default()
+                })
+            })
+            .info = account_info;
 
         Ok(())
     }
 
-    #[cfg_attr(feature = "tracing", tracing::instrument)]
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip(default_account_fn)))]
     fn modify_account(
         &mut self,
         address: Address,
         modifier: AccountModifierFn,
+        default_account_fn: &dyn Fn() -> Result<AccountInfo, Self::Error>,
     ) -> Result<(), Self::Error> {
-        let mut account_info = self.changes.account_or_insert_mut(&address).info.clone();
+        let mut account_info = self
+            .changes
+            .account_or_insert_mut(&address, default_account_fn)
+            .info
+            .clone();
 
         // Fill the bytecode
         if account_info.code_hash != KECCAK_EMPTY {
@@ -139,7 +151,14 @@ impl StateDebug for LayeredState<RethnetLayer> {
             self.changes.remove_code(&old_code_hash);
         }
 
-        self.changes.account_or_insert_mut(&address).info = account_info;
+        self.changes
+            .account_or_insert_mut(&address, &|| {
+                Ok(AccountInfo {
+                    code: None,
+                    ..AccountInfo::default()
+                })
+            })
+            .info = account_info;
 
         Ok(())
     }
@@ -162,7 +181,12 @@ impl StateDebug for LayeredState<RethnetLayer> {
         value: U256,
     ) -> Result<(), Self::Error> {
         self.changes
-            .account_or_insert_mut(&address)
+            .account_or_insert_mut(&address, &|| {
+                Ok(AccountInfo {
+                    code: None,
+                    ..AccountInfo::default()
+                })
+            })
             .storage
             .insert(index, value);
 
@@ -255,7 +279,10 @@ impl StateHistory for LayeredState<RethnetLayer> {
 
             Ok(())
         } else {
-            Err(StateError::InvalidStateRoot(*state_root))
+            Err(StateError::InvalidStateRoot {
+                state_root: *state_root,
+                fork_identifier: false,
+            })
         }
     }
 

@@ -49,6 +49,9 @@ const randomHashBuffer = (): Buffer => {
 const randomHash = () => {
   return bufferToHex(randomHashBuffer());
 };
+export const randomHashSeed = (): Buffer => {
+  return generator.seed();
+};
 
 export class ForkStateManager implements StateManager {
   // temporary, used to print the whole storage

@@ -2342,7 +2342,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
   private async _persistIrregularWorldState(): Promise<void> {
     this._irregularStatesByBlockNumber.set(
       this.getLatestBlockNumber(),
-      await this._vm.getStateRoot()
+      await this._vm.makeSnapshot()
     );
   }
 

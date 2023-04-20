@@ -19,6 +19,7 @@ serde_json = { version = "1.0.85", default-features = false, features = ["alloc"
 tracing = { version = "0.1.37", default-features = false, features = ["std"] }
 tracing-flame = { version = "0.2.0", default-features = false, features = ["smallvec"] }
 tracing-subscriber = { version = "0.3.16", default-features = false, features = ["ansi", "env-filter", "fmt", "parking_lot", "smallvec", "std"] }
+parking_lot = { version = "0.12.1", default-features = false }
 
 [build-dependencies]
 napi-build = "2.0.1"

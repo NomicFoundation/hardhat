@@ -554,17 +554,19 @@ export class EthereumJSAdapter implements VMAdapter {
         .toString("hex")
         .padStart(64, "0")}`;
 
-      const dumpedAccountStorage = await this._stateManager.dumpStorage(
-        Address.fromString(address)
-      );
-
       const accountStorage: Record<string, string> = {};
 
-      for (const [key, value] of Object.entries(dumpedAccountStorage)) {
-        accountStorage[`0x${key.padStart(64, "0")}`] = `0x${value.padStart(
-          64,
-          "0"
-        )}`;
+      if (this._forkBlockNumber === undefined) {
+        const dumpedAccountStorage = await this._stateManager.dumpStorage(
+          Address.fromString(address)
+        );
+
+        for (const [key, value] of Object.entries(dumpedAccountStorage)) {
+          accountStorage[`0x${key.padStart(64, "0")}`] = `0x${value.padStart(
+            64,
+            "0"
+          )}`;
+        }
       }
 
       if (

@@ -20,15 +20,15 @@ use super::{layered::LayeredChanges, RethnetLayer, StateDebug, StateError};
 
 /// An implementation of revm's state that uses a trie.
 #[derive(Clone, Debug)]
-pub struct TrieState {
-    accounts: AccountTrie,
+pub struct TrieState<const REMOVE_ZERO_SLOTS: bool> {
+    accounts: AccountTrie<REMOVE_ZERO_SLOTS>,
     contracts: SharedMap<B256, Bytecode, true>,
 }
 
-impl TrieState {
+impl<const REMOVE_ZERO_SLOTS: bool> TrieState<REMOVE_ZERO_SLOTS> {
     /// Constructs a [`TrieState`] from the provided [`AccountTrie`].
     #[cfg_attr(feature = "tracing", tracing::instrument)]
-    pub fn with_accounts(accounts: AccountTrie) -> Self {
+    pub fn with_accounts(accounts: AccountTrie<REMOVE_ZERO_SLOTS>) -> Self {
         Self {
             accounts,
             ..TrieState::default()
@@ -48,7 +48,7 @@ impl TrieState {
     }
 }
 
-impl Default for TrieState {
+impl<const REMOVE_ZERO_SLOTS: bool> Default for TrieState<REMOVE_ZERO_SLOTS> {
     fn default() -> Self {
         let mut contracts = SharedMap::default();
         contracts.insert(KECCAK_EMPTY, Bytecode::new());
@@ -60,7 +60,7 @@ impl Default for TrieState {
     }
 }
 
-impl StateRef for TrieState {
+impl<const REMOVE_ZERO_SLOTS: bool> StateRef for TrieState<REMOVE_ZERO_SLOTS> {
     type Error = StateError;
 
     fn basic(&self, address: Address) -> Result<Option<AccountInfo>, Self::Error> {
@@ -75,14 +75,13 @@ impl StateRef for TrieState {
     }
 
     fn storage(&self, address: B160, index: U256) -> Result<U256, Self::Error> {
-        Ok(self
-            .accounts
+        self.accounts
             .account_storage_slot(&address, &index)
-            .unwrap_or(U256::ZERO))
+            .ok_or(StateError::InvalidStorageSlot(index))
     }
 }
 
-impl DatabaseCommit for TrieState {
+impl<const REMOVE_ZERO_SLOTS: bool> DatabaseCommit for TrieState<REMOVE_ZERO_SLOTS> {
     fn commit(&mut self, mut changes: HashMap<B160, Account>) {
         changes.iter_mut().for_each(|(address, account)| {
             if account.is_destroyed {
@@ -110,7 +109,7 @@ impl DatabaseCommit for TrieState {
     }
 }
 
-impl StateDebug for TrieState {
+impl<const REMOVE_ZERO_SLOTS: bool> StateDebug for TrieState<REMOVE_ZERO_SLOTS> {
     type Error = StateError;
 
     fn account_storage_root(&self, address: &Address) -> Result<Option<B256>, Self::Error> {
@@ -137,13 +136,10 @@ impl StateDebug for TrieState {
         &mut self,
         address: Address,
         modifier: super::AccountModifierFn,
+        default_account_fn: &dyn Fn() -> Result<AccountInfo, Self::Error>,
     ) -> Result<(), Self::Error> {
-        let mut account_info = self.accounts.account(&address).map_or_else(
-            || AccountInfo {
-                code: None,
-                ..AccountInfo::default()
-            },
-            |account| {
+        let mut account_info = match self.accounts.account(&address) {
+            Some(account) => {
                 let mut account_info = AccountInfo::from(account);
 
                 // Fill the bytecode
@@ -155,8 +151,9 @@ impl StateDebug for TrieState {
                 }
 
                 account_info
-            },
-        );
+            }
+            None => default_account_fn()?,
+        };
 
         let old_code_hash = account_info.code_hash;
 
@@ -220,7 +217,9 @@ impl StateDebug for TrieState {
     }
 }
 
-impl From<&LayeredChanges<RethnetLayer>> for TrieState {
+impl<const REMOVE_ZERO_SLOTS: bool> From<&LayeredChanges<RethnetLayer>>
+    for TrieState<REMOVE_ZERO_SLOTS>
+{
     fn from(changes: &LayeredChanges<RethnetLayer>) -> Self {
         let accounts = AccountTrie::from_changes(changes.rev().map(|layer| {
             layer.accounts().map(|(address, account)| {

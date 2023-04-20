@@ -1,10 +1,14 @@
 use std::{io, sync::Arc};
 
 use napi::{
+    bindgen_prelude::Buffer,
     tokio::runtime::{Builder, Runtime},
     Status,
 };
 use napi_derive::napi;
+use parking_lot::Mutex;
+use rethnet_eth::B256;
+use rethnet_evm::RandomHashGenerator;
 use tracing_subscriber::{prelude::*, EnvFilter, Registry};
 
 #[napi]
@@ -32,11 +36,20 @@ impl RethnetContext {
             inner: Arc::new(context),
         })
     }
+
+    /// Skips a hash in the generator
+    #[napi]
+    pub fn set_hash_generator_seed(&self, seed: Buffer) {
+        let seed = B256::from_slice(&seed);
+
+        self.inner.hash_generator.lock().set_next(seed);
+    }
 }
 
 #[derive(Debug)]
 pub struct Context {
     runtime: Arc<Runtime>,
+    hash_generator: Arc<Mutex<RandomHashGenerator>>,
     #[cfg(feature = "tracing")]
     _tracing_write_guard: tracing_flame::FlushGuard<std::io::BufWriter<std::fs::File>>,
 }
@@ -74,15 +87,23 @@ impl Context {
             .enable_time()
             .build()?;
 
+        let hash_generator = Arc::new(Mutex::new(RandomHashGenerator::with_seed("seed")));
+
         Ok(Self {
             runtime: Arc::new(runtime),
+            hash_generator,
             #[cfg(feature = "tracing")]
             _tracing_write_guard: guard,
         })
     }
 
+    /// Retrieves the context's hash generator.
+    pub fn hash_generator(&self) -> &Arc<Mutex<RandomHashGenerator>> {
+        &self.hash_generator
+    }
+
     /// Retrieves the context's runtime.
-    pub fn runtime(&self) -> &Runtime {
+    pub fn runtime(&self) -> &Arc<Runtime> {
         &self.runtime
     }
 }

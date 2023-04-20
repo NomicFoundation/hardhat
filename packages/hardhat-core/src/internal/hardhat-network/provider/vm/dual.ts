@@ -18,11 +18,12 @@ import {
 import { VMTracer } from "../../stack-traces/vm-tracer";
 import { isForkedNodeConfig, NodeConfig } from "../node-types";
 import { RpcDebugTraceOutput } from "../output";
+import { randomHashSeed } from "../fork/ForkStateManager";
 import { HardhatBlockchainInterface } from "../types/HardhatBlockchainInterface";
 
 import { EthereumJSAdapter } from "./ethereumjs";
 import { ExitCode } from "./exit";
-import { RethnetAdapter } from "./rethnet";
+import { globalRethnetContext, RethnetAdapter } from "./rethnet";
 import { RunTxResult, Trace, VMAdapter } from "./vm-adapter";
 
 /* eslint-disable @nomiclabs/hardhat-internal-rules/only-hardhat-error */
@@ -412,6 +413,9 @@ export class DualModeAdapter implements VMAdapter {
       forceBaseFeeZero
     );
 
+    // Matches EthereumJS' runCall checkpoint call
+    globalRethnetContext.setHashGeneratorSeed(randomHashSeed());
+
     const [
       [ethereumJSResult, _ethereumJSTrace],
       [rethnetResult, rethnetTrace],
@@ -455,7 +459,7 @@ export class DualModeAdapter implements VMAdapter {
 
     assertEqualAccounts(address, ethereumJSAccount, rethnetAccount);
 
-    return ethereumJSAccount;
+    return rethnetAccount;
   }
 
   public async getContractStorage(
@@ -572,13 +576,16 @@ export class DualModeAdapter implements VMAdapter {
       this._rethnetAdapter.runTxInBlock(tx, block),
     ]);
 
+    // Matches EthereumJS' runCall checkpoint call
+    globalRethnetContext.setHashGeneratorSeed(randomHashSeed());
+
     try {
       assertEqualRunTxResults(ethereumJSResult, rethnetResult);
 
       // Validate trace
       const _trace = this.getLastTrace();
 
-      return [ethereumJSResult, ethereumJSDebugTrace];
+      return [rethnetResult, ethereumJSDebugTrace];
     } catch (e) {
       // if the results didn't match, print the traces
       // console.log("EthereumJS trace");
@@ -595,19 +602,17 @@ export class DualModeAdapter implements VMAdapter {
     rewards: Array<[Address, bigint]>
   ): Promise<void> {
     await this._rethnetAdapter.addBlockRewards(rewards);
-    return this._ethereumJSAdapter.addBlockRewards(rewards);
+    await this._ethereumJSAdapter.addBlockRewards(rewards);
   }
 
   public async sealBlock(): Promise<void> {
     await this._rethnetAdapter.sealBlock();
-    return this._ethereumJSAdapter.sealBlock();
+    await this._ethereumJSAdapter.sealBlock();
   }
 
   public async revertBlock(): Promise<void> {
     await this._rethnetAdapter.revertBlock();
-    return this._ethereumJSAdapter.revertBlock();
-
-    const _stateRoot = this.getStateRoot();
+    await this._ethereumJSAdapter.revertBlock();
   }
 
   public async makeSnapshot(): Promise<Buffer> {

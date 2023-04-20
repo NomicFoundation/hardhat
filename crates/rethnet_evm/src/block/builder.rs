@@ -7,8 +7,8 @@ use rethnet_eth::{
 use revm::{
     db::DatabaseComponentError,
     primitives::{
-        BlockEnv, CfgEnv, EVMError, ExecutionResult, InvalidTransaction, ResultAndState, SpecId,
-        TxEnv,
+        AccountInfo, BlockEnv, CfgEnv, EVMError, ExecutionResult, InvalidTransaction,
+        ResultAndState, SpecId, TxEnv,
     },
 };
 use tokio::sync::RwLock;
@@ -26,7 +26,7 @@ pub enum BlockTransactionError<BE, SE> {
     BlockHash(BE),
     #[error("Transaction has a higher gas limit than the remaining gas in the block")]
     ExceedsBlockGasLimit,
-    #[error("Invalid transaction")]
+    #[error("Invalid transaction: {0:?}")]
     InvalidTransaction(InvalidTransaction),
     #[error(transparent)]
     State(SE),
@@ -165,6 +165,12 @@ where
                 AccountModifierFn::new(Box::new(move |balance, _nonce, _code| {
                     *balance += reward;
                 })),
+                &|| {
+                    Ok(AccountInfo {
+                        code: None,
+                        ..AccountInfo::default()
+                    })
+                },
             )?;
         }
 

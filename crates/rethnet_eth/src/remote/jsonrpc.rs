@@ -146,7 +146,7 @@ impl<'a> serde::de::Visitor<'a> for ZeroXPrefixedBytesVisitor {
         } else {
             Ok(ZeroXPrefixedBytes {
                 inner: bytes::Bytes::from(
-                    hex::decode(value[2..].to_string()).expect("failed to decode hex string"),
+                    hex::decode(&value[2..]).expect("failed to decode hex string"),
                 ),
             })
         }
