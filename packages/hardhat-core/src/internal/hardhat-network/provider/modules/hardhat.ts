@@ -40,9 +40,6 @@ export class HardhatModule {
   constructor(
     private readonly _node: HardhatNode,
     private readonly _resetCallback: (forkConfig?: ForkConfig) => Promise<void>,
-    private readonly _setLoggingEnabledCallback: (
-      loggingEnabled: boolean
-    ) => void,
     private readonly _logger: ModulesLogger,
     private readonly _experimentalHardhatNetworkMessageTraceHooks: BoundExperimentalHardhatNetworkMessageTraceHook[] = []
   ) {}
@@ -241,7 +238,7 @@ export class HardhatModule {
   private async _setLoggingEnabledAction(
     loggingEnabled: boolean
   ): Promise<true> {
-    this._setLoggingEnabledCallback(loggingEnabled);
+    this._logger.setEnabled(loggingEnabled);
     return true;
   }
 
