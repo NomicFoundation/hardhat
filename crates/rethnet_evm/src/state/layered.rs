@@ -24,7 +24,6 @@ use super::{history::StateHistory, AccountModifierFn, StateDebug, StateError};
 #[derive(Debug, Default)]
 pub struct LayeredState<Layer> {
     changes: LayeredChanges<Layer>,
-    /// Snapshots
     snapshots: SharedMap<B256, LayeredChanges<Layer>, true>,
 }
 
