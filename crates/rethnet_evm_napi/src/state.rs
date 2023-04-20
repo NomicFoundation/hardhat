@@ -47,15 +47,6 @@ pub struct GenesisAccount {
     pub balance: BigInt,
 }
 
-/// An identifier for a snapshot of the state
-#[napi(object)]
-pub struct SnapshotId {
-    /// Snapshot's state root
-    pub state_root: Buffer,
-    /// Whether the snapshot already existed.
-    pub existed: bool,
-}
-
 /// The Rethnet state
 #[napi(custom_finalize)]
 #[derive(Debug)]
@@ -291,9 +282,9 @@ impl StateManager {
     /// Makes a snapshot of the database that's retained until [`removeSnapshot`] is called. Returns the snapshot's identifier.
     #[napi]
     #[cfg_attr(feature = "tracing", tracing::instrument)]
-    pub async fn make_snapshot(&self) -> SnapshotId {
+    pub async fn make_snapshot(&self) -> Buffer {
         let state = self.state.clone();
-        let (state_root, existed) = self
+        let state_root = self
             .context
             .runtime()
             .spawn(async move {
@@ -303,10 +294,7 @@ impl StateManager {
             .await
             .unwrap();
 
-        SnapshotId {
-            state_root: <B256 as AsRef<[u8]>>::as_ref(&state_root).into(),
-            existed,
-        }
+        Buffer::from(state_root.as_ref())
     }
 
     /// Modifies the account with the provided address using the specified modifier function.
@@ -455,7 +443,7 @@ impl StateManager {
     /// Removes the snapshot corresponding to the specified state root, if it exists. Returns whether a snapshot was removed.
     #[napi]
     #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
-    pub async fn remove_snapshot(&self, state_root: Buffer) -> bool {
+    pub async fn remove_snapshot(&self, state_root: Buffer) {
         let state_root = B256::from_slice(&state_root);
 
         let state = self.state.clone();

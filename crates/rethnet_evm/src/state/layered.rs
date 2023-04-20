@@ -16,14 +16,15 @@ use revm::{
     DatabaseCommit,
 };
 
+use crate::collections::SharedMap;
+
 use super::{history::StateHistory, AccountModifierFn, StateDebug, StateError};
 
 /// A state consisting of layers.
 #[derive(Debug, Default)]
 pub struct LayeredState<Layer> {
     changes: LayeredChanges<Layer>,
-    /// Snapshots
-    snapshots: HashMap<B256, LayeredChanges<Layer>>,
+    snapshots: SharedMap<B256, LayeredChanges<Layer>, true>,
 }
 
 impl<Layer: From<HashMap<Address, AccountInfo>>> LayeredState<Layer> {
@@ -34,7 +35,7 @@ impl<Layer: From<HashMap<Address, AccountInfo>>> LayeredState<Layer> {
 
         Self {
             changes: LayeredChanges::with_layer(layer),
-            snapshots: HashMap::new(),
+            snapshots: SharedMap::default(),
         }
     }
 }
@@ -197,25 +198,22 @@ impl StateHistory for LayeredState<RethnetLayer> {
     type Error = StateError;
 
     #[cfg_attr(feature = "tracing", tracing::instrument)]
-    fn make_snapshot(&mut self) -> (B256, bool) {
+    fn make_snapshot(&mut self) -> B256 {
         let state_root = self.state_root().unwrap();
 
-        let mut exists = true;
-        self.snapshots.entry(state_root).or_insert_with(|| {
-            exists = false;
-
+        self.snapshots.insert_with(state_root, || {
             let mut snapshot = self.changes.clone();
             snapshot.last_layer_mut().set_state_root(state_root);
 
             snapshot
         });
 
-        (state_root, exists)
+        state_root
     }
 
     #[cfg_attr(feature = "tracing", tracing::instrument)]
-    fn remove_snapshot(&mut self, state_root: &B256) -> bool {
-        self.snapshots.remove(state_root).is_some()
+    fn remove_snapshot(&mut self, state_root: &B256) {
+        self.snapshots.remove(state_root)
     }
 
     #[cfg_attr(feature = "tracing", tracing::instrument)]
@@ -226,8 +224,10 @@ impl StateHistory for LayeredState<RethnetLayer> {
             self.changes.last_layer_mut().set_state_root(state_root);
         }
 
-        if let Some(snapshot) = self.snapshots.remove(state_root) {
-            self.changes = snapshot;
+        if let Some(snapshot) = self.snapshots.get(state_root) {
+            self.changes = snapshot.clone();
+
+            self.snapshots.remove(state_root);
 
             return Ok(());
         }

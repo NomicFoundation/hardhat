@@ -1,5 +1,7 @@
 mod account;
 
+use crate::collections::SharedMap;
+
 pub use self::account::AccountTrie;
 
 use hashbrown::HashMap;
@@ -14,15 +16,13 @@ use revm::{
     DatabaseCommit,
 };
 
-use super::{
-    contract::ContractStorage, layered::LayeredChanges, RethnetLayer, StateDebug, StateError,
-};
+use super::{layered::LayeredChanges, RethnetLayer, StateDebug, StateError};
 
 /// An implementation of revm's state that uses a trie.
-#[derive(Clone, Debug, Default)]
+#[derive(Clone, Debug)]
 pub struct TrieState {
     accounts: AccountTrie,
-    contracts: ContractStorage<true>,
+    contracts: SharedMap<B256, Bytecode, true>,
 }
 
 impl TrieState {
@@ -37,13 +37,25 @@ impl TrieState {
 
     /// Inserts the provided bytecode using its hash, potentially overwriting an existing value.
     pub fn insert_code(&mut self, code: Bytecode) {
-        self.contracts.insert_code(code);
+        self.contracts.insert(code.hash(), code);
     }
 
     /// Removes the code corresponding to the provided hash, if it exists.
     pub fn remove_code(&mut self, code_hash: &B256) {
         if *code_hash != KECCAK_EMPTY {
-            self.contracts.remove_code(code_hash);
+            self.contracts.remove(code_hash);
+        }
+    }
+}
+
+impl Default for TrieState {
+    fn default() -> Self {
+        let mut contracts = SharedMap::default();
+        contracts.insert(KECCAK_EMPTY, Bytecode::new());
+
+        Self {
+            accounts: AccountTrie::default(),
+            contracts,
         }
     }
 }
@@ -224,7 +236,7 @@ impl From<&LayeredChanges<RethnetLayer>> for TrieState {
             })
         }));
 
-        let contracts = ContractStorage::from(changes);
+        let contracts = SharedMap::from(changes);
 
         Self {
             accounts,

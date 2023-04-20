@@ -8,6 +8,8 @@ use revm::{
     DatabaseCommit,
 };
 
+use crate::collections::SharedMap;
+
 use super::{
     history::StateHistory,
     layered::LayeredChanges,
@@ -26,7 +28,7 @@ struct Snapshot<Layer> {
 pub struct HybridState<Layer> {
     trie: TrieState,
     changes: LayeredChanges<Layer>,
-    snapshots: HashMap<B256, Snapshot<Layer>>,
+    snapshots: SharedMap<B256, Snapshot<Layer>, true>,
 }
 
 impl<Layer: From<HashMap<Address, AccountInfo>>> HybridState<Layer> {
@@ -39,7 +41,7 @@ impl<Layer: From<HashMap<Address, AccountInfo>>> HybridState<Layer> {
         Self {
             trie: latest_state,
             changes: LayeredChanges::with_layer(layer),
-            snapshots: HashMap::new(),
+            snapshots: SharedMap::default(),
         }
     }
 }
@@ -186,13 +188,10 @@ impl StateHistory for HybridState<RethnetLayer> {
     type Error = StateError;
 
     #[cfg_attr(feature = "tracing", tracing::instrument)]
-    fn make_snapshot(&mut self) -> (B256, bool) {
+    fn make_snapshot(&mut self) -> B256 {
         let state_root = self.state_root().unwrap();
 
-        let mut exists = true;
-        self.snapshots.entry(state_root).or_insert_with(|| {
-            exists = false;
-
+        self.snapshots.insert_with(state_root, || {
             let mut changes = self.changes.clone();
             changes.last_layer_mut().set_state_root(state_root);
 
@@ -202,12 +201,12 @@ impl StateHistory for HybridState<RethnetLayer> {
             }
         });
 
-        (state_root, exists)
+        state_root
     }
 
     #[cfg_attr(feature = "tracing", tracing::instrument)]
-    fn remove_snapshot(&mut self, state_root: &B256) -> bool {
-        self.snapshots.remove(state_root).is_some()
+    fn remove_snapshot(&mut self, state_root: &B256) {
+        self.snapshots.remove(state_root)
     }
 
     #[cfg_attr(feature = "tracing", tracing::instrument)]
@@ -221,10 +220,12 @@ impl StateHistory for HybridState<RethnetLayer> {
         if let Some(Snapshot {
             changes,
             trie: latest_state,
-        }) = self.snapshots.remove(state_root)
+        }) = self.snapshots.get(state_root)
         {
-            self.trie = latest_state;
-            self.changes = changes;
+            self.trie = latest_state.clone();
+            self.changes = changes.clone();
+
+            self.snapshots.remove(state_root);
 
             return Ok(());
         }
