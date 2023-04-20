@@ -133,8 +133,6 @@ impl StateManager {
 
         env.adjust_external_memory(STATE_MEMORY_SIZE)?;
 
-        env.adjust_external_memory(STATE_MEMORY_SIZE)?;
-
         Ok(Self {
             state: Arc::new(RwLock::new(state)),
             context: context.as_inner().clone(),
