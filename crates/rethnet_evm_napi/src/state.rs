@@ -23,7 +23,6 @@ use crate::{
     account::Account,
     cast::TryCast,
     context::{Context, RethnetContext},
-    logger::enable_logging,
     sync::{await_promise, handle_error},
     threadsafe_function::{ThreadSafeCallContext, ThreadsafeFunction, ThreadsafeFunctionCallMode},
 };
@@ -127,8 +126,6 @@ impl StateManager {
     where
         S: SyncState<StateError>,
     {
-        enable_logging();
-
         let state: Box<dyn SyncState<StateError>> = Box::new(state);
 
         env.adjust_external_memory(STATE_MEMORY_SIZE)?;
@@ -333,6 +330,15 @@ impl StateManager {
             unsafe { modify_account_fn.raw() },
             0,
             |mut ctx: ThreadSafeCallContext<ModifyAccountCall>| {
+                #[cfg(feature = "tracing")]
+                let span = tracing::span!(
+                    tracing::Level::TRACE,
+                    "modify_account_threadsafe_function_call"
+                );
+
+                #[cfg(feature = "tracing")]
+                let _span_guard = span.enter();
+
                 let sender = ctx.value.sender.clone();
 
                 let balance = ctx

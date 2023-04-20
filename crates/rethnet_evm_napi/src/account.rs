@@ -50,6 +50,7 @@ impl From<rethnet_evm::Bytecode> for Bytecode {
 }
 
 impl From<AccountInfo> for Account {
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     fn from(account_info: AccountInfo) -> Self {
         let code = if account_info.code_hash == KECCAK_EMPTY {
             None

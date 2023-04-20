@@ -28,6 +28,7 @@ pub struct BlockBuilder {
 #[napi]
 impl BlockBuilder {
     #[napi]
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     pub fn new(
         blockchain: &Blockchain,
         state_manager: &StateManager,
@@ -53,6 +54,7 @@ impl BlockBuilder {
     }
 
     #[napi]
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     pub async fn add_transaction(
         &self,
         transaction: Transaction,
@@ -81,6 +83,7 @@ impl BlockBuilder {
     /// This call consumes the [`BlockBuilder`] object in Rust. Afterwards, you can no longer call
     /// methods on the JS object.
     #[napi]
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     pub async fn finalize(&self, rewards: Vec<(Buffer, BigInt)>) -> napi::Result<()> {
         let mut builder = self.builder.lock().await;
         if let Some(builder) = builder.take() {
@@ -107,6 +110,7 @@ impl BlockBuilder {
     /// This call consumes the [`BlockBuilder`] object in Rust. Afterwards, you can no longer call
     /// methods on the JS object.
     #[napi]
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     pub async fn abort(&self) -> napi::Result<()> {
         let mut builder = self.builder.lock().await;
         if let Some(builder) = builder.take() {

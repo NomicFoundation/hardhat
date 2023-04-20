@@ -52,10 +52,16 @@ impl Context {
             .with_level(true)
             .with_filter(EnvFilter::from_default_env());
 
-        #[cfg(feature = "tracing")]
-        let (flame_layer, guard) = tracing_flame::FlameLayer::with_file("tracing.folded").unwrap();
-
         let subscriber = Registry::default().with(fmt_layer);
+
+        #[cfg(feature = "tracing")]
+        let (flame_layer, guard) = {
+            let (flame_layer, guard) =
+                tracing_flame::FlameLayer::with_file("tracing.folded").unwrap();
+
+            let flame_layer = flame_layer.with_empty_samples(false);
+            (flame_layer, guard)
+        };
 
         #[cfg(feature = "tracing")]
         let subscriber = subscriber.with(flame_layer);
