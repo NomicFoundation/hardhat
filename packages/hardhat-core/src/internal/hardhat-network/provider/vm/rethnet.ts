@@ -330,7 +330,7 @@ export class RethnetAdapter implements VMAdapter {
         rethnetResult.result,
         block.header.gasUsed
       );
-      return [result, trace];
+      return [result, this._vmTracer.getLastTopLevelMessageTrace()];
     } catch (e) {
       // console.log("Rethnet trace");
       // console.log(rethnetResult.trace);
