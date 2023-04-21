@@ -38,6 +38,10 @@ export class JsonRpcClient {
     return this._networkId;
   }
 
+  public get httpProvider(): HttpProvider {
+    return this._httpProvider;
+  }
+
   public async getDebugTraceTransaction(transactionHash: Buffer): Promise<any> {
     return this._perform(
       "debug_traceTransaction",

@@ -2634,6 +2634,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
         chainId: this._forkNetworkId,
         forkBlockNumber: Number(this._forkBlockNumber),
         forkBlockHash: this._forkBlockHash,
+        forkUrl: this._forkClient!.httpProvider.url
       };
     }
 
