@@ -60,6 +60,54 @@ describe("TasksDSL", () => {
     );
   });
 
+  it("should add a task with scope", () => {
+    const task = dsl.task({ name: "compile", scope: "solidity" });
+    assert.equal(task.scope, "solidity");
+    assert.equal(task.name, "compile");
+
+    let tasks = dsl.getTaskDefinitions();
+    assert.isUndefined(tasks["compile"]);
+
+    let scopedTasks = dsl.getScopedTaskDefinitions();
+    assert.isDefined(scopedTasks["solidity"]["compile"]);
+  });
+
+  it("should add a task with scope and change scope", () => {
+    const task = dsl.task({ name: "compile", scope: "solidity" });
+    assert.equal(task.scope, "solidity");
+    assert.equal(task.name, "compile");
+
+    task.setScope("solidity2");
+    assert.equal(task.scope, "solidity2");
+    assert.equal(task.name, "compile");
+
+    let tasks = dsl.getTaskDefinitions();
+    assert.isUndefined(tasks["compile"]);
+
+    let scopedTasks = dsl.getScopedTaskDefinitions();
+    assert.isUndefined(scopedTasks["solidity"]["compile"]);
+    assert.isDefined(scopedTasks["solidity2"]["compile"]);
+  });
+
+  it("should add a task without scope and then add scope", () => {
+    const task = dsl.task("compile");
+    assert.equal(task.scope, undefined);
+    assert.equal(task.name, "compile");
+
+    let tasks = dsl.getTaskDefinitions();
+    assert.isDefined(tasks["compile"]);
+
+    task.setScope("hello");
+    assert.equal(task.scope, "hello");
+    assert.equal(task.name, "compile");
+
+    // removes from tasks map and adds to scoped tasks map
+    assert.isUndefined(tasks["compile"]);
+
+    let scopedTasks = dsl.getScopedTaskDefinitions();
+    assert.isDefined(scopedTasks["hello"]["compile"]);
+  });
+
   it("should override task", () => {
     const action = async () => {};
 

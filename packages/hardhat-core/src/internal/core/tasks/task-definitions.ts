@@ -6,11 +6,13 @@ import {
   ParamDefinitionsMap,
   TaskArguments,
   TaskDefinition,
+  TaskIdentifier,
 } from "../../../types";
 import { HardhatError } from "../errors";
 import { ErrorDescriptor, ERRORS } from "../errors-list";
 import * as types from "../params/argumentTypes";
 import { HARDHAT_PARAM_DEFINITIONS } from "../params/hardhat-params";
+import { parseTaskIdentifier } from "./util";
 
 function isCLIArgumentType(
   type: ArgumentType<any>
@@ -26,6 +28,12 @@ function isCLIArgumentType(
  *
  */
 export class SimpleTaskDefinition implements TaskDefinition {
+  public get name() {
+    return this._name;
+  }
+  public get scope() {
+    return this._scope;
+  }
   public get description() {
     return this._description;
   }
@@ -36,6 +44,8 @@ export class SimpleTaskDefinition implements TaskDefinition {
   private _positionalParamNames: Set<string>;
   private _hasVariadicParam: boolean;
   private _hasOptionalPositionalParam: boolean;
+  private _name: string;
+  private _scope?: string;
   private _description?: string;
 
   /**
@@ -43,21 +53,42 @@ export class SimpleTaskDefinition implements TaskDefinition {
    *
    * This definition will have no params, and will throw a HH205 if executed.
    *
-   * @param name The task's name.
+   * @param taskIdentifier The task's identifier.
    * @param isSubtask `true` if the task is a subtask, `false` otherwise.
+   * @param _setScopeCallback fn to call while setting the scope.
    */
   constructor(
-    public readonly name: string,
-    public readonly isSubtask: boolean = false
+    taskIdentifier: TaskIdentifier,
+    public readonly isSubtask: boolean = false,
+    private readonly _setScopeCallback?: (
+      oldScope: string | undefined,
+      newScope: string
+    ) => void
   ) {
     this._positionalParamNames = new Set();
     this._hasVariadicParam = false;
     this._hasOptionalPositionalParam = false;
+    const { scope, name } = parseTaskIdentifier(taskIdentifier);
+    this._name = name;
+    this._scope = scope;
     this.action = () => {
       throw new HardhatError(ERRORS.TASK_DEFINITIONS.ACTION_NOT_SET, {
-        taskName: name,
+        taskName: this._name,
       });
     };
+  }
+
+  /**
+   * Sets the task's scope.
+   * @param newScope The new scope.
+   */
+  public setScope(newScope: string) {
+    if (this._setScopeCallback) {
+      // test if this works
+      this._setScopeCallback(this.scope, newScope);
+    }
+    this._scope = newScope;
+    return this;
   }
 
   /**
@@ -562,6 +593,20 @@ export class OverriddenTaskDefinition implements TaskDefinition {
     this.parentTaskDefinition = parentTaskDefinition;
   }
 
+  /**
+   * Sets the task's scope.
+   * @param scope The scope.
+   */
+  public setScope(_scope: string): this {
+    throw new HardhatError(ERRORS.TASK_DEFINITIONS.OVERRIDE_TASK_SCOPE, {
+      taskName: this.name,
+    });
+  }
+
+  /**
+   * Sets the task's description.
+   * @param description The description.
+   */
   public setDescription(description: string) {
     this._description = description;
     return this;
@@ -577,6 +622,13 @@ export class OverriddenTaskDefinition implements TaskDefinition {
     // TODO: There's probably something bad here. See types.ts for more info.
     this._action = action;
     return this;
+  }
+
+  /**
+   * Retrieves the parent task's scope.
+   */
+  public get scope() {
+    return this.parentTaskDefinition.scope;
   }
 
   /**

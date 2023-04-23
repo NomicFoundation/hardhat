@@ -1,7 +1,9 @@
 import {
   ActionType,
+  ScopedTasksMap,
   TaskArguments,
   TaskDefinition,
+  TaskIdentifier,
   TasksMap,
 } from "../../../types";
 
@@ -9,6 +11,7 @@ import {
   OverriddenTaskDefinition,
   SimpleTaskDefinition,
 } from "./task-definitions";
+import { parseTaskIdentifier } from "./util";
 
 /**
  * This class defines the DSL used in Hardhat config files
@@ -18,19 +21,20 @@ export class TasksDSL {
   public readonly internalTask = this.subtask;
 
   private readonly _tasks: TasksMap = {};
+  private readonly _scopedTasks: ScopedTasksMap = {};
 
   /**
    * Creates a task, overriding any previous task with the same name.
    *
    * @remarks The action must await every async call made within it.
    *
-   * @param name The task's name.
+   * @param taskIdentifier The task's identifier.
    * @param description The task's description.
    * @param action The task's action.
    * @returns A task definition.
    */
   public task<TaskArgumentsT extends TaskArguments>(
-    name: string,
+    taskIdentifier: TaskIdentifier,
     description?: string,
     action?: ActionType<TaskArgumentsT>
   ): TaskDefinition;
@@ -41,22 +45,22 @@ export class TasksDSL {
    *
    * @remarks The action must await every async call made within it.
    *
-   * @param name The task's name.
+   * @param taskIdentifier The task's identifier.
    * @param action The task's action.
    *
    * @returns A task definition.
    */
   public task<TaskArgumentsT extends TaskArguments>(
-    name: string,
+    taskIdentifier: TaskIdentifier,
     action: ActionType<TaskArgumentsT>
   ): TaskDefinition;
 
   public task<TaskArgumentsT extends TaskArguments>(
-    name: string,
+    taskIdentifier: TaskIdentifier,
     descriptionOrAction?: string | ActionType<TaskArgumentsT>,
     action?: ActionType<TaskArgumentsT>
   ): TaskDefinition {
-    return this._addTask(name, descriptionOrAction, action, false);
+    return this._addTask(taskIdentifier, descriptionOrAction, action, false);
   }
 
   /**
@@ -65,13 +69,13 @@ export class TasksDSL {
    * @remarks The subtasks won't be displayed in the CLI help messages.
    * @remarks The action must await every async call made within it.
    *
-   * @param name The task's name.
+   * @param taskIdentifier The task's identifier.
    * @param description The task's description.
    * @param action The task's action.
    * @returns A task definition.
    */
   public subtask<TaskArgumentsT extends TaskArguments>(
-    name: string,
+    taskIdentifier: TaskIdentifier,
     description?: string,
     action?: ActionType<TaskArgumentsT>
   ): TaskDefinition;
@@ -83,20 +87,20 @@ export class TasksDSL {
    * @remarks The subtasks won't be displayed in the CLI help messages.
    * @remarks The action must await every async call made within it.
    *
-   * @param name The task's name.
+   * @param taskIdentifier The task's identifier.
    * @param action The task's action.
    * @returns A task definition.
    */
   public subtask<TaskArgumentsT extends TaskArguments>(
-    name: string,
+    taskIdentifier: TaskIdentifier,
     action: ActionType<TaskArgumentsT>
   ): TaskDefinition;
   public subtask<TaskArgumentsT extends TaskArguments>(
-    name: string,
+    taskIdentifier: TaskIdentifier,
     descriptionOrAction?: string | ActionType<TaskArgumentsT>,
     action?: ActionType<TaskArgumentsT>
   ): TaskDefinition {
-    return this._addTask(name, descriptionOrAction, action, true);
+    return this._addTask(taskIdentifier, descriptionOrAction, action, true);
   }
 
   /**
@@ -108,12 +112,22 @@ export class TasksDSL {
     return this._tasks;
   }
 
+  /**
+   * Retrieves the scoped task definitions.
+   *
+   * @returns The scoped tasks container.
+   */
+  public getScopedTaskDefinitions(): ScopedTasksMap {
+    return this._scopedTasks;
+  }
+
   private _addTask<TaskArgumentsT extends TaskArguments>(
-    name: string,
+    taskIdentifier: TaskIdentifier,
     descriptionOrAction?: string | ActionType<TaskArgumentsT>,
     action?: ActionType<TaskArgumentsT>,
     isSubtask?: boolean
   ) {
+    const { name, scope } = parseTaskIdentifier(taskIdentifier);
     const parentTaskDefinition = this._tasks[name];
 
     let taskDefinition: TaskDefinition;
@@ -124,7 +138,13 @@ export class TasksDSL {
         isSubtask
       );
     } else {
-      taskDefinition = new SimpleTaskDefinition(name, isSubtask);
+      taskDefinition = new SimpleTaskDefinition(
+        taskIdentifier,
+        isSubtask,
+        (oldScope, newScope) => {
+          this._moveTaskToNewScope(name, oldScope, newScope);
+        }
+      );
     }
 
     if (descriptionOrAction instanceof Function) {
@@ -140,7 +160,31 @@ export class TasksDSL {
       taskDefinition.setAction(action);
     }
 
-    this._tasks[name] = taskDefinition;
+    if (scope === undefined) {
+      this._tasks[name] = taskDefinition;
+    } else {
+      this._scopedTasks[scope] = this._scopedTasks[scope] ?? {};
+      this._scopedTasks[scope][name] = taskDefinition;
+    }
+
     return taskDefinition;
+  }
+
+  private _moveTaskToNewScope(
+    taskName: string,
+    oldScope: string | undefined,
+    newScope: string
+  ): void {
+    let definition;
+    if (oldScope === undefined) {
+      definition = this._tasks[taskName];
+      delete this._tasks[taskName];
+    } else {
+      definition = this._scopedTasks[oldScope][taskName];
+      delete this._scopedTasks[oldScope][taskName];
+    }
+
+    this._scopedTasks[newScope] = this._scopedTasks[newScope] ?? {};
+    this._scopedTasks[newScope][taskName] = definition;
   }
 }

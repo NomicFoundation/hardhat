@@ -64,6 +64,49 @@ describe("SimpleTaskDefinition", () => {
       assert.isUndefined(taskDefinition.description);
     });
 
+    it("starts without any scope", () => {
+      assert.isUndefined(taskDefinition.scope);
+    });
+
+    it("starts with an action that throws", () => {
+      expectHardhatError(
+        () => taskDefinition.action({}, {} as any, runSuperNop),
+        ERRORS.TASK_DEFINITIONS.ACTION_NOT_SET
+      );
+    });
+  });
+
+  describe("construction with task identifiers", () => {
+    let taskDefinition: SimpleTaskDefinition;
+
+    before("init taskDefinition", () => {
+      taskDefinition = new SimpleTaskDefinition(
+        { name: "name", scope: "scope" },
+        true
+      );
+    });
+
+    it("gets the right name", () => {
+      assert.equal(taskDefinition.name, "name");
+    });
+
+    it("gets the right scope", () => {
+      assert.equal(taskDefinition.scope, "scope");
+    });
+
+    it("gets the right isSubtask flag", () => {
+      assert.isTrue(taskDefinition.isSubtask);
+    });
+
+    it("starts without any param defined", () => {
+      assert.deepEqual(taskDefinition.paramDefinitions, {});
+      assert.isEmpty(taskDefinition.positionalParamDefinitions);
+    });
+
+    it("starts without any description", () => {
+      assert.isUndefined(taskDefinition.description);
+    });
+
     it("starts with an action that throws", () => {
       expectHardhatError(
         () => taskDefinition.action({}, {} as any, runSuperNop),
@@ -82,6 +125,40 @@ describe("SimpleTaskDefinition", () => {
 
       taskDefinition.setDescription("B");
       assert.equal(taskDefinition.description, "B");
+    });
+  });
+
+  describe("setScope", () => {
+    it("Should change the scope", () => {
+      const taskDefinition = new SimpleTaskDefinition("name");
+      assert.isUndefined(taskDefinition.description);
+
+      taskDefinition.setScope("A");
+      assert.equal(taskDefinition.scope, "A");
+
+      taskDefinition.setScope("B");
+      assert.equal(taskDefinition.scope, "B");
+    });
+
+    it("Should change the scope and call callback", () => {
+      let calledArgs: any = undefined;
+      const taskDefinition = new SimpleTaskDefinition(
+        "name",
+        true,
+        (...args) => {
+          calledArgs = args;
+        }
+      );
+      assert.isUndefined(taskDefinition.description);
+      assert.isUndefined(calledArgs);
+
+      taskDefinition.setScope("A");
+      assert.equal(taskDefinition.scope, "A");
+      assert.deepEqual(calledArgs, [undefined, "A"]);
+
+      taskDefinition.setScope("B");
+      assert.equal(taskDefinition.scope, "B");
+      assert.deepEqual(calledArgs, ["A", "B"]);
     });
   });
 

@@ -43,6 +43,8 @@ export interface CLIArgumentType<T> extends ArgumentType<T> {
 export interface ConfigurableTaskDefinition {
   setDescription(description: string): this;
 
+  setScope(newScope: string): this;
+
   setAction(action: ActionType<TaskArguments>): this;
 
   addParam<T>(
@@ -118,6 +120,7 @@ export interface ParamDefinitionsMap {
 }
 
 export interface TaskDefinition extends ConfigurableTaskDefinition {
+  readonly scope?: string;
   readonly name: string;
   readonly description?: string;
   readonly action: ActionType<TaskArguments>;
@@ -129,6 +132,8 @@ export interface TaskDefinition extends ConfigurableTaskDefinition {
 
   readonly positionalParamDefinitions: Array<ParamDefinition<any>>;
 }
+
+export type TaskIdentifier = string | { scope?: string; name: string };
 
 /**
  * @type TaskArguments {object-like} - the input arguments for a task.
@@ -186,6 +191,10 @@ export type HardhatParamDefinitions = {
 
 export interface TasksMap {
   [name: string]: TaskDefinition;
+}
+
+export interface ScopedTasksMap {
+  [scopeName: string]: { [taskName: string]: TaskDefinition };
 }
 
 export type RunTaskFunction = (

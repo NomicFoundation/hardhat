@@ -576,6 +576,15 @@ Please double check your task definitions.`,
 What makes these types special is that they can be represented as strings, so you can write them down in the terminal.`,
       shouldBeReported: false,
     },
+    OVERRIDE_TASK_SCOPE: {
+      number: 213,
+      message:
+        "Reassigning task %taskName% scope failed. Unsupported operation setting scope in an overridden task.",
+      title: "Attempted to add mandatory params to an overridden task",
+      description: `You can't set scope in an overridden task.
+Please double check your task definitions.`,
+      shouldBeReported: false,
+    },
   },
   ARGUMENTS: {
     INVALID_ENV_VAR_VALUE: {
