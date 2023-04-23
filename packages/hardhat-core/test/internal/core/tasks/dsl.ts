@@ -89,6 +89,22 @@ describe("TasksDSL", () => {
     assert.isDefined(scopedTasks["solidity2"]["compile"]);
   });
 
+  it("should add a task with scope when a task with same name and no scope exists", () => {
+    dsl.task({ name: "compile" }); // no scope
+
+    const task = dsl.task({ name: "compile", scope: "solidity" });
+    assert.equal(task.scope, "solidity");
+    assert.equal(task.name, "compile");
+
+    let tasks = dsl.getTaskDefinitions();
+    assert.isDefined(tasks["compile"]);
+    assert.notEqual(task, tasks["compile"]);
+
+    let scopedTasks = dsl.getScopedTaskDefinitions();
+    assert.isDefined(scopedTasks["solidity"]["compile"]);
+    assert.equal(task, scopedTasks["solidity"]["compile"]);
+  });
+
   it("should add a task without scope and then add scope", () => {
     const task = dsl.task("compile");
     assert.equal(task.scope, undefined);

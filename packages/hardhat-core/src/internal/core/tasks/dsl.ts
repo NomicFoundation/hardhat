@@ -121,6 +121,17 @@ export class TasksDSL {
     return this._scopedTasks;
   }
 
+  public getTaskDefinition(
+    scope: string | undefined,
+    name: string
+  ): TaskDefinition | undefined {
+    if (scope === undefined) {
+      return this._tasks[name];
+    } else {
+      return this._scopedTasks[scope]?.[name];
+    }
+  }
+
   private _addTask<TaskArgumentsT extends TaskArguments>(
     taskIdentifier: TaskIdentifier,
     descriptionOrAction?: string | ActionType<TaskArgumentsT>,
@@ -128,7 +139,7 @@ export class TasksDSL {
     isSubtask?: boolean
   ) {
     const { name, scope } = parseTaskIdentifier(taskIdentifier);
-    const parentTaskDefinition = this._tasks[name];
+    const parentTaskDefinition = this.getTaskDefinition(scope, name);
 
     let taskDefinition: TaskDefinition;
 
