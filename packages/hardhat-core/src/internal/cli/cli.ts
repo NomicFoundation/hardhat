@@ -230,6 +230,7 @@ async function main() {
 
     const envExtenders = ctx.extendersManager.getExtenders();
     const taskDefinitions = ctx.tasksDSL.getTaskDefinitions();
+    const scopedTaskDefinitions = ctx.tasksDSL.getScopedTaskDefinitions();
 
     const [abortAnalytics, hitPromise] = await analytics.sendTaskHit(taskName);
 
@@ -264,6 +265,7 @@ async function main() {
       resolvedConfig,
       hardhatArguments,
       taskDefinitions,
+      scopedTaskDefinitions,
       envExtenders,
       ctx.experimentalHardhatNetworkMessageTraceHooks,
       userConfig

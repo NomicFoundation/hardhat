@@ -198,7 +198,7 @@ export interface ScopedTasksMap {
 }
 
 export type RunTaskFunction = (
-  name: string,
+  taskIdentifier: TaskIdentifier,
   taskArguments?: TaskArguments,
   subtaskArguments?: SubtaskArguments
 ) => Promise<any>;

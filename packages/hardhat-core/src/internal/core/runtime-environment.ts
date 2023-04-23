@@ -16,6 +16,7 @@ import {
   TaskArguments,
   TaskDefinition,
   TasksMap,
+  ScopedTasksMap,
 } from "../../types";
 import { Artifacts } from "../artifacts";
 import { MessageTrace } from "../hardhat-network/stack-traces/message-trace";
@@ -33,6 +34,7 @@ import {
   createTaskProfile,
   TaskProfile,
 } from "./task-profiling";
+import { parseTaskIdentifier } from "./tasks/util";
 
 const log = debug("hardhat:core:hre");
 
@@ -64,12 +66,14 @@ export class Environment implements HardhatRuntimeEnvironment {
    * @param config The hardhat's config object.
    * @param hardhatArguments The parsed hardhat's arguments.
    * @param tasks A map of tasks.
+   * @param scopedTasks A map of scoped tasks.
    * @param extenders A list of extenders.
    */
   constructor(
     public readonly config: HardhatConfig,
     public readonly hardhatArguments: HardhatArguments,
     public readonly tasks: TasksMap,
+    public readonly scopedTasks: ScopedTasksMap,
     extenders: EnvironmentExtender[] = [],
     experimentalHardhatNetworkMessageTraceHooks: ExperimentalHardhatNetworkMessageTraceHook[] = [],
     public readonly userConfig: HardhatUserConfig = {}
@@ -127,14 +131,21 @@ export class Environment implements HardhatRuntimeEnvironment {
    * @returns a promise with the task's execution result.
    */
   public readonly run: RunTaskFunction = async (
-    name,
+    taskIdentifier,
     taskArguments = {},
     subtaskArguments = {},
     callerTaskProfile?: TaskProfile
   ) => {
-    const taskDefinition = this.tasks[name];
+    const { name, scope } = parseTaskIdentifier(taskIdentifier);
 
-    log("Running task %s", name);
+    let taskDefinition;
+    if (scope === undefined) {
+      taskDefinition = this.tasks[name];
+      log("Running task %s", name);
+    } else {
+      taskDefinition = this.scopedTasks[scope][name];
+      log("Running task %s:%s", scope, name);
+    }
 
     if (taskDefinition === undefined) {
       throw new HardhatError(ERRORS.ARGUMENTS.UNRECOGNIZED_TASK, {
