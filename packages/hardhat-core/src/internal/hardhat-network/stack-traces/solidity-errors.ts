@@ -260,45 +260,45 @@ function getMessageFromLastStackTraceEntry(
     case StackTraceEntryType.UNRECOGNIZED_CREATE_ERROR:
     case StackTraceEntryType.UNRECOGNIZED_CONTRACT_ERROR:
       if (stackTraceEntry.message.isErrorReturnData()) {
-        return `VM Exception while processing transaction: reverted with reason string '${stackTraceEntry.message.decodeError()}'`;
+        return `reverted with reason string '${stackTraceEntry.message.decodeError()}'`;
       }
 
       if (stackTraceEntry.message.isPanicReturnData()) {
         const message = panicErrorCodeToMessage(
           stackTraceEntry.message.decodePanic()
         );
-        return `VM Exception while processing transaction: ${message}`;
+        return `${message}`;
       }
 
       if (!stackTraceEntry.message.isEmpty()) {
         const returnData = stackTraceEntry.message.value.toString("hex");
 
-        return `VM Exception while processing transaction: reverted with an unrecognized custom error (return data: 0x${returnData})`;
+        return `reverted with an unrecognized custom error (return data: 0x${returnData})`;
       }
 
       if (stackTraceEntry.isInvalidOpcodeError) {
-        return "VM Exception while processing transaction: invalid opcode";
+        return "invalid opcode";
       }
 
       return "Transaction reverted without a reason string";
 
     case StackTraceEntryType.REVERT_ERROR:
       if (stackTraceEntry.message.isErrorReturnData()) {
-        return `VM Exception while processing transaction: reverted with reason string '${stackTraceEntry.message.decodeError()}'`;
+        return `reverted with reason string '${stackTraceEntry.message.decodeError()}'`;
       }
 
       if (stackTraceEntry.isInvalidOpcodeError) {
-        return "VM Exception while processing transaction: invalid opcode";
+        return "invalid opcode";
       }
 
       return "Transaction reverted without a reason string";
 
     case StackTraceEntryType.PANIC_ERROR:
       const panicMessage = panicErrorCodeToMessage(stackTraceEntry.errorCode);
-      return `VM Exception while processing transaction: ${panicMessage}`;
+      return `${panicMessage}`;
 
     case StackTraceEntryType.CUSTOM_ERROR:
-      return `VM Exception while processing transaction: ${stackTraceEntry.message}`;
+      return `${stackTraceEntry.message}`;
 
     case StackTraceEntryType.OTHER_EXECUTION_ERROR:
       // TODO: What if there was returnData?
