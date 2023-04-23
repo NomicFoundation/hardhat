@@ -52,10 +52,12 @@ export class ArgumentsParser {
     hardhatArguments: HardhatArguments;
     taskName?: string;
     unparsedCLAs: string[];
+    allUnparsedCLAs: string[];
   } {
     const hardhatArguments: Partial<HardhatArguments> = {};
     let taskName: string | undefined;
     const unparsedCLAs: string[] = [];
+    const allUnparsedCLAs: string[] = [];
 
     for (let i = 0; i < rawCLAs.length; i++) {
       const arg = rawCLAs[i];
@@ -63,6 +65,7 @@ export class ArgumentsParser {
       if (taskName === undefined) {
         if (!this._hasCLAParamNameFormat(arg)) {
           taskName = arg;
+          allUnparsedCLAs.push(arg);
           continue;
         }
 
@@ -83,6 +86,7 @@ export class ArgumentsParser {
       } else {
         if (!this._isCLAParamName(arg, hardhatParamDefinitions)) {
           unparsedCLAs.push(arg);
+          allUnparsedCLAs.push(arg);
           continue;
         }
 
@@ -102,8 +106,9 @@ export class ArgumentsParser {
         envVariableArguments,
         hardhatArguments
       ),
-      taskName,
-      unparsedCLAs,
+      taskName, // TODO remove
+      unparsedCLAs, // TODO remove
+      allUnparsedCLAs,
     };
   }
 

@@ -124,15 +124,12 @@ async function main() {
 
     const argumentsParser = new ArgumentsParser();
 
-    const {
-      hardhatArguments,
-      taskName: parsedTaskName,
-      unparsedCLAs,
-    } = argumentsParser.parseHardhatArguments(
-      HARDHAT_PARAM_DEFINITIONS,
-      envVariableArguments,
-      process.argv.slice(2)
-    );
+    const { hardhatArguments, allUnparsedCLAs } =
+      argumentsParser.parseHardhatArguments(
+        HARDHAT_PARAM_DEFINITIONS,
+        envVariableArguments,
+        process.argv.slice(2)
+      );
 
     if (hardhatArguments.verbose) {
       Reporter.setVerbose(true);
@@ -190,10 +187,8 @@ async function main() {
       }
     }
 
-    let taskName = parsedTaskName ?? TASK_HELP;
-
     const showEmptyConfigWarning = true;
-    const showSolidityConfigWarnings = taskName === TASK_COMPILE;
+    const showSolidityConfigWarnings = allUnparsedCLAs[0] === TASK_COMPILE;
 
     const ctx = HardhatContext.createHardhatContext();
 
@@ -204,6 +199,34 @@ async function main() {
         showSolidityConfigWarnings,
       }
     );
+
+    const envExtenders = ctx.extendersManager.getExtenders();
+    const taskDefinitions = ctx.tasksDSL.getTaskDefinitions();
+    const scopedTaskDefinitions = ctx.tasksDSL.getScopedTaskDefinitions();
+
+    let taskName, scopeName;
+    if (
+      allUnparsedCLAs.length > 1 &&
+      scopedTaskDefinitions[allUnparsedCLAs[0]]?.[allUnparsedCLAs[1]]
+    ) {
+      scopeName = allUnparsedCLAs[0];
+      taskName = allUnparsedCLAs[1];
+    } else if (
+      allUnparsedCLAs.length > 0 &&
+      taskDefinitions[allUnparsedCLAs[0]]
+    ) {
+      scopeName = undefined;
+      taskName = allUnparsedCLAs[0];
+    } else {
+      scopeName = undefined;
+      taskName = undefined;
+    }
+
+    if (taskName === undefined) {
+      taskName = TASK_HELP;
+    }
+
+    console.log({ taskName, scopeName });
 
     let telemetryConsent: boolean | undefined = hasConsentedTelemetry();
 
@@ -228,10 +251,6 @@ async function main() {
       Reporter.setEnabled(true);
     }
 
-    const envExtenders = ctx.extendersManager.getExtenders();
-    const taskDefinitions = ctx.tasksDSL.getTaskDefinitions();
-    const scopedTaskDefinitions = ctx.tasksDSL.getScopedTaskDefinitions();
-
     const [abortAnalytics, hitPromise] = await analytics.sendTaskHit(taskName);
 
     let taskArguments: TaskArguments;
@@ -241,7 +260,10 @@ async function main() {
       taskArguments = { task: taskName };
       taskName = TASK_HELP;
     } else {
-      const taskDefinition = taskDefinitions[taskName];
+      const taskDefinition = ctx.tasksDSL.getTaskDefinition(
+        scopeName,
+        taskName
+      );
 
       if (taskDefinition === undefined) {
         throw new HardhatError(ERRORS.ARGUMENTS.UNRECOGNIZED_TASK, {
@@ -257,7 +279,9 @@ async function main() {
 
       taskArguments = argumentsParser.parseTaskArguments(
         taskDefinition,
-        unparsedCLAs
+        scopeName === undefined
+          ? allUnparsedCLAs.slice(1)
+          : allUnparsedCLAs.slice(2)
       );
     }
 
@@ -276,7 +300,7 @@ async function main() {
     try {
       const timestampBeforeRun = new Date().getTime();
 
-      await env.run(taskName, taskArguments);
+      await env.run({ name: taskName, scope: scopeName }, taskArguments);
 
       const timestampAfterRun = new Date().getTime();
 

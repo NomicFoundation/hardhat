@@ -113,7 +113,7 @@ describe("ArgumentsParser", () => {
         "--task-param",
       ];
 
-      const { hardhatArguments, taskName, unparsedCLAs } =
+      const { hardhatArguments, taskName, unparsedCLAs, allUnparsedCLAs } =
         argumentsParser.parseHardhatArguments(
           HARDHAT_PARAM_DEFINITIONS,
           envArgs,
@@ -125,6 +125,9 @@ describe("ArgumentsParser", () => {
       assert.equal(hardhatArguments.emoji, false);
       assert.equal(unparsedCLAs.length, 1);
       assert.equal("--task-param", unparsedCLAs[0]);
+      assert.equal(allUnparsedCLAs.length, 2);
+      assert.equal("compile", allUnparsedCLAs[0]);
+      assert.equal("--task-param", allUnparsedCLAs[1]);
     });
 
     it("should parse hardhat arguments after taskname", () => {
