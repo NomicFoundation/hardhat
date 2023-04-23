@@ -6,6 +6,8 @@ import {
   TaskIdentifier,
   TasksMap,
 } from "../../../types";
+import { HardhatError } from "../errors";
+import { ERRORS } from "../errors-list";
 
 import {
   OverriddenTaskDefinition,
@@ -141,6 +143,8 @@ export class TasksDSL {
     const { name, scope } = parseTaskIdentifier(taskIdentifier);
     const parentTaskDefinition = this.getTaskDefinition(scope, name);
 
+    this._checkClash(name, scope);
+
     let taskDefinition: TaskDefinition;
 
     if (parentTaskDefinition !== undefined) {
@@ -197,5 +201,19 @@ export class TasksDSL {
 
     this._scopedTasks[newScope] = this._scopedTasks[newScope] ?? {};
     this._scopedTasks[newScope][taskName] = definition;
+  }
+
+  private _checkClash(taskName: string, scopeName: string | undefined): void {
+    if (this._scopedTasks[taskName]) {
+      throw new HardhatError(ERRORS.TASK_DEFINITIONS.SCOPE_TASK_CLASH, {
+        taskName,
+      });
+    }
+    if (scopeName && this._tasks[scopeName]) {
+      throw new HardhatError(ERRORS.TASK_DEFINITIONS.TASK_SCOPE_CLASH, {
+        taskName,
+        scopeName,
+      });
+    }
   }
 }

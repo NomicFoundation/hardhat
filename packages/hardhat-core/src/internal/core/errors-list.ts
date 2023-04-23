@@ -585,6 +585,24 @@ What makes these types special is that they can be represented as strings, so yo
 Please double check your task definitions.`,
       shouldBeReported: false,
     },
+    TASK_SCOPE_CLASH: {
+      number: 214,
+      message:
+        "A clash was found while creating task %taskName% with scope %scopeName% since a task with %taskName% exists already.",
+      title: "Attempted to create a new scope with name already used by a task",
+      description: `You can't create a scope if a task with the name already exists.
+Please double check your task definitions.`,
+      shouldBeReported: false,
+    },
+    SCOPE_TASK_CLASH: {
+      number: 215,
+      message:
+        "A clash was found while creating task %taskName% with no scope, since a scope with same name exists already.",
+      title: "Attempted to create a new task with name already used by a scope",
+      description: `You can't create a task with no scope, if a scope with the name already exists.
+Please double check your task definitions. You can add a scope to your task.`,
+      shouldBeReported: false,
+    },
   },
   ARGUMENTS: {
     INVALID_ENV_VAR_VALUE: {

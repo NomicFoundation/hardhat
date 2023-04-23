@@ -2,7 +2,10 @@ import { assert } from "chai";
 
 import { ERRORS } from "../../../../src/internal/core/errors-list";
 import { TasksDSL } from "../../../../src/internal/core/tasks/dsl";
-import { expectHardhatErrorAsync } from "../../../helpers/errors";
+import {
+  expectHardhatError,
+  expectHardhatErrorAsync,
+} from "../../../helpers/errors";
 
 describe("TasksDSL", () => {
   let dsl: TasksDSL;
@@ -122,6 +125,26 @@ describe("TasksDSL", () => {
 
     let scopedTasks = dsl.getScopedTaskDefinitions();
     assert.isDefined(scopedTasks["hello"]["compile"]);
+  });
+
+  it("should not create task with scope if scope clash with existing task", () => {
+    dsl.task("compile"); // no scope
+
+    expectHardhatError(
+      () => dsl.task({ scope: "compile", name: "temp" }),
+      ERRORS.TASK_DEFINITIONS.TASK_SCOPE_CLASH,
+      "HH214: A clash was found while creating task temp with scope compile since a task with temp exists already."
+    );
+  });
+
+  it("should not create task with no scope if task clash with existing scope", () => {
+    dsl.task({ scope: "compile", name: "temp" });
+
+    expectHardhatError(
+      () => dsl.task("compile"),
+      ERRORS.TASK_DEFINITIONS.SCOPE_TASK_CLASH,
+      "HH215: A clash was found while creating task compile with no scope, since a scope with same name exists already."
+    );
   });
 
   it("should override task", () => {
