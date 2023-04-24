@@ -3,10 +3,10 @@ import { ChainConfigNotFoundError } from "./errors";
 
 import { ChainConfig } from "./types";
 
-export const getCurrentChainConfig = async (
+export async function getCurrentChainConfig(
   provider: EthereumProvider,
   customChains: ChainConfig[]
-): Promise<ChainConfig> => {
+): Promise<ChainConfig> {
   const currentChainId = parseInt(await provider.send("eth_chainId"), 16);
 
   const currentChainConfig = [
@@ -20,7 +20,7 @@ export const getCurrentChainConfig = async (
   }
 
   return currentChainConfig;
-};
+}
 
 // See https://github.com/ethereum/EIPs/blob/master/EIPS/eip-155.md#list-of-chain-ids
 export const builtinChains: ChainConfig[] = [

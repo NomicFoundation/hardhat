@@ -157,14 +157,14 @@ export class Bytecode {
   }
 }
 
-const nullifyBytecodeOffsets = (
+function nullifyBytecodeOffsets(
   bytecode: string,
   {
     object: referenceBytecode,
     linkReferences,
     immutableReferences,
   }: CompilerOutputBytecode
-): string => {
+): string {
   const offsets = [
     ...getLibraryOffsets(linkReferences),
     ...getImmutableOffsets(immutableReferences),
@@ -180,7 +180,7 @@ const nullifyBytecodeOffsets = (
   }
 
   return bytecode;
-};
+}
 
 /**
  * This function returns the executable section without actually
@@ -189,7 +189,7 @@ const nullifyBytecodeOffsets = (
  * This is useful because the runtime object emitted by the compiler
  * may contain nonhexadecimal characters due to link placeholders.
  */
-const inferExecutableSection = (bytecode: string): string => {
+function inferExecutableSection(bytecode: string): string {
   if (bytecode.startsWith("0x")) {
     bytecode = bytecode.slice(2);
   }
@@ -210,4 +210,4 @@ const inferExecutableSection = (bytecode: string): string => {
   const metadataSectionLength = getMetadataSectionLength(metadataLengthSlice);
 
   return bytecode.slice(0, bytecode.length - metadataSectionLength * 2);
-};
+}

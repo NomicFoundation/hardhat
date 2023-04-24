@@ -2,15 +2,10 @@ import chalk from "chalk";
 import { HardhatConfig, HardhatUserConfig } from "hardhat/types";
 import { EtherscanConfig } from "./types";
 
-type EtherscanConfigExtender = (
+export async function etherscanConfigExtender(
   config: HardhatConfig,
   userConfig: Readonly<HardhatUserConfig>
-) => Promise<void>;
-
-export const etherscanConfigExtender: EtherscanConfigExtender = async (
-  config,
-  userConfig
-) => {
+): Promise<void> {
   const defaultConfig: EtherscanConfig = {
     apiKey: "",
     customChains: [],
@@ -34,4 +29,4 @@ export const etherscanConfigExtender: EtherscanConfigExtender = async (
       );
     }
   }
-};
+}

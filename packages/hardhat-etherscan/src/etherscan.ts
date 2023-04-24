@@ -199,7 +199,7 @@ class EtherscanResponse {
   }
 }
 
-const resolveApiKey = (apiKey: ApiKey | undefined, network: string) => {
+function resolveApiKey(apiKey: ApiKey | undefined, network: string) {
   if (apiKey === undefined || apiKey === "") {
     throw new MissingApiKeyError(network);
   }
@@ -215,4 +215,4 @@ const resolveApiKey = (apiKey: ApiKey | undefined, network: string) => {
   }
 
   return key;
-};
+}

@@ -21,16 +21,17 @@ import {
   isABIArgumentTypeError,
 } from "./abi-validation";
 
-export const delay = async (ms: number): Promise<void> =>
-  new Promise((resolve) => setTimeout(resolve, ms));
+export async function delay(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
 
 /**
  * Prints a table of networks supported by hardhat-etherscan, including both
  * built-in and custom networks.
  */
-export const printSupportedNetworks = async (
+export async function printSupportedNetworks(
   customChains: ChainConfig[]
-): Promise<void> => {
+): Promise<void> {
   const { table } = await import("table");
 
   // supported networks
@@ -72,16 +73,16 @@ ${customNetworksTable}
 To learn how to add custom networks, follow these instructions: https://hardhat.org/verify-custom-networks
 `.trimStart()
   );
-};
+}
 
 /**
  * Returns the list of constructor arguments from the constructorArgsModule
  * or the constructorArgsParams if the first is not defined.
  */
-export const resolveConstructorArguments = async (
+export async function resolveConstructorArguments(
   constructorArgsParams: string[],
   constructorArgsModule?: string
-): Promise<string[]> => {
+): Promise<string[]> {
   if (constructorArgsModule === undefined) {
     return constructorArgsParams;
   }
@@ -103,15 +104,15 @@ export const resolveConstructorArguments = async (
   } catch (error: any) {
     throw new ImportingModuleError("constructor arguments list", error);
   }
-};
+}
 
 /**
  * Returns a dictionary of library addresses from the librariesModule or
  * an empty object if not defined.
  */
-export const resolveLibraries = async (
+export async function resolveLibraries(
   librariesModule?: string
-): Promise<LibraryToAddress> => {
+): Promise<LibraryToAddress> {
   if (librariesModule === undefined) {
     return {};
   }
@@ -129,7 +130,7 @@ export const resolveLibraries = async (
   } catch (error: any) {
     throw new ImportingModuleError("libraries dictionary", error);
   }
-};
+}
 
 /**
  * Retrieves the list of Solidity compiler versions for a given Solidity
@@ -137,10 +138,10 @@ export const resolveLibraries = async (
  * It checks that the versions are supported by Etherscan, and throws an
  * error if any are not.
  */
-export const getCompilerVersions = async ({
+export async function getCompilerVersions({
   compilers,
   overrides,
-}: SolidityConfig): Promise<string[]> => {
+}: SolidityConfig): Promise<string[]> {
   {
     const compilerVersions = compilers.map(({ version }) => version);
     if (overrides !== undefined) {
@@ -163,17 +164,17 @@ export const getCompilerVersions = async ({
 
     return compilerVersions;
   }
-};
+}
 
 /**
  * Encodes the constructor arguments for a given contract.
  */
-export const encodeArguments = async (
+export async function encodeArguments(
   abi: JsonFragment[],
   sourceName: string,
   contractName: string,
   constructorArguments: any[]
-): Promise<string> => {
+): Promise<string> {
   const { Interface } = await import("@ethersproject/abi");
 
   const contractInterface = new Interface(abi);
@@ -198,4 +199,4 @@ export const encodeArguments = async (
   }
 
   return encodedConstructorArguments;
-};
+}

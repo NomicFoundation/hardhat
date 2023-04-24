@@ -45,9 +45,9 @@ export interface ByteOffset {
   length: number;
 }
 
-export const getLibraryOffsets = (
+export function getLibraryOffsets(
   linkReferences: CompilerOutputBytecode["linkReferences"] = {}
-): ByteOffset[] => {
+): ByteOffset[] {
   const offsets: ByteOffset[] = [];
   for (const libraries of Object.values(linkReferences)) {
     for (const libraryOffset of Object.values(libraries)) {
@@ -55,27 +55,27 @@ export const getLibraryOffsets = (
     }
   }
   return offsets;
-};
+}
 
-export const getImmutableOffsets = (
+export function getImmutableOffsets(
   immutableReferences: CompilerOutputBytecode["immutableReferences"] = {}
-): ByteOffset[] => {
+): ByteOffset[] {
   const offsets: ByteOffset[] = [];
   for (const immutableOffset of Object.values(immutableReferences)) {
     offsets.push(...immutableOffset);
   }
   return offsets;
-};
+}
 
 /**
  * To normalize a library object we need to take into account its call
  * protection mechanism.
  * See https://solidity.readthedocs.io/en/latest/contracts.html#call-protection-for-libraries
  */
-export const getCallProtectionOffsets = (
+export function getCallProtectionOffsets(
   bytecode: string,
   referenceBytecode: string
-): ByteOffset[] => {
+): ByteOffset[] {
   const offsets: ByteOffset[] = [];
   const addressSize = 20;
   const push20OpcodeHex = "73";
@@ -87,7 +87,7 @@ export const getCallProtectionOffsets = (
     offsets.push({ start: 1, length: addressSize });
   }
   return offsets;
-};
+}
 
 /**
  * Given a contract's fully qualified name, obtains the corresponding contract
@@ -95,11 +95,11 @@ export const getCallProtectionOffsets = (
  * deployed bytecode. If the bytecodes match, the function returns the contract
  * information. Otherwise, it returns null.
  */
-export const extractMatchingContractInformation = (
+export function extractMatchingContractInformation(
   contractFQN: string,
   buildInfo: BuildInfo,
   bytecode: Bytecode
-): ContractInformation | null => {
+): ContractInformation | null {
   const { sourceName, contractName } = parseFullyQualifiedName(contractFQN);
   const contractOutput = buildInfo.output.contracts[sourceName][contractName];
   // Normalize deployed bytecode according to this object
@@ -117,19 +117,19 @@ export const extractMatchingContractInformation = (
   }
 
   return null;
-};
+}
 
 /**
  * Searches through the artifacts for a contract that matches the given
  * deployed bytecode. If it finds a match, the function returns the contract
  * information.
  */
-export const extractInferredContractInformation = async (
+export async function extractInferredContractInformation(
   artifacts: Artifacts,
   network: Network,
   matchingCompilerVersions: string[],
   bytecode: Bytecode
-): Promise<ContractInformation> => {
+): Promise<ContractInformation> {
   const contractMatches = await lookupMatchingBytecode(
     artifacts,
     matchingCompilerVersions,
@@ -148,7 +148,7 @@ export const extractInferredContractInformation = async (
   }
 
   return contractMatches[0];
-};
+}
 
 /**
  * Retrieves the libraries from the contract information and combines them
@@ -156,10 +156,10 @@ export const extractInferredContractInformation = async (
  * the libraries required by the contract. Additionally, it returns a list of
  * undetectable libraries for debugging purposes.
  */
-export const getLibraryInformation = async (
+export async function getLibraryInformation(
   contractInformation: ContractInformation,
   userLibraries: LibraryToAddress
-): Promise<LibraryInformation> => {
+): Promise<LibraryInformation> {
   const allLibraries = getLibraryFQNames(
     contractInformation.contractOutput.evm.bytecode.linkReferences
   );
@@ -200,13 +200,13 @@ export const getLibraryInformation = async (
   }
 
   return { libraries: mergedLibraryLinks, undetectableLibraries };
-};
+}
 
-const lookupMatchingBytecode = async (
+async function lookupMatchingBytecode(
   artifacts: Artifacts,
   matchingCompilerVersions: string[],
   bytecode: Bytecode
-): Promise<ContractInformation[]> => {
+): Promise<ContractInformation[]> {
   const contractMatches: ContractInformation[] = [];
   const fqNames = await artifacts.getAllFullyQualifiedNames();
 
@@ -236,11 +236,11 @@ const lookupMatchingBytecode = async (
   }
 
   return contractMatches;
-};
+}
 
-const getLibraryFQNames = (
+function getLibraryFQNames(
   libraries: CompilerOutputBytecode["linkReferences"] | SourceToLibraryToAddress
-): string[] => {
+): string[] {
   const libraryNames: string[] = [];
   for (const [sourceName, sourceLibraries] of Object.entries(libraries)) {
     for (const libraryName of Object.keys(sourceLibraries)) {
@@ -249,15 +249,15 @@ const getLibraryFQNames = (
   }
 
   return libraryNames;
-};
+}
 
-const normalizeLibraries = async (
+async function normalizeLibraries(
   allLibraries: string[],
   detectableLibraries: string[],
   undetectableLibraries: string[],
   userLibraries: LibraryToAddress,
   contractName: string
-): Promise<SourceToLibraryToAddress> => {
+): Promise<SourceToLibraryToAddress> {
   const { isAddress } = await import("@ethersproject/address");
 
   const libraryFQNs: Set<string> = new Set();
@@ -296,15 +296,15 @@ const normalizeLibraries = async (
   }
 
   return normalizedLibraries;
-};
+}
 
-const lookupLibrary = (
+function lookupLibrary(
   allLibraries: string[],
   detectableLibraries: string[],
   undetectableLibraries: string[],
   userLibraryName: string,
   contractName: string
-): string => {
+): string {
   const matchingLibraries = allLibraries.filter(
     (lib) => lib === userLibraryName || lib.split(":")[1] === userLibraryName
   );
@@ -329,12 +329,12 @@ const lookupLibrary = (
 
   const [foundLibraryFQN] = matchingLibraries;
   return foundLibraryFQN;
-};
+}
 
-const getLibraryAddressesFromBytecode = (
+function getLibraryAddressesFromBytecode(
   linkReferences: CompilerOutputBytecode["linkReferences"] = {},
   bytecode: string
-): SourceToLibraryToAddress => {
+): SourceToLibraryToAddress {
   const sourceToLibraryToAddress: SourceToLibraryToAddress = {};
   for (const [sourceName, libs] of Object.entries(linkReferences)) {
     if (sourceToLibraryToAddress[sourceName] === undefined) {
@@ -348,12 +348,12 @@ const getLibraryAddressesFromBytecode = (
     }
   }
   return sourceToLibraryToAddress;
-};
+}
 
-const mergeLibraries = (
+function mergeLibraries(
   normalizedLibraries: SourceToLibraryToAddress,
   detectedLibraries: SourceToLibraryToAddress
-): SourceToLibraryToAddress => {
+): SourceToLibraryToAddress {
   const conflicts: Array<{
     library: string;
     detectedAddress: string;
@@ -401,4 +401,4 @@ const mergeLibraries = (
   merge(mergedLibraries, detectedLibraries);
 
   return mergedLibraries;
-};
+}

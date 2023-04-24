@@ -21,7 +21,7 @@ const log = debug("hardhat:hardhat-etherscan:metadata");
  * Solc v0.6.0 features compiler version metadata.
  * See https://docs.soliditylang.org/en/v0.6.0/metadata.html#encoding-of-the-metadata-hash-in-the-bytecode
  */
-export const inferCompilerVersion = (bytecode: Buffer): string => {
+export function inferCompilerVersion(bytecode: Buffer): string {
   let solcMetadata;
   try {
     solcMetadata = decodeSolcMetadata(bytecode);
@@ -48,15 +48,16 @@ export const inferCompilerVersion = (bytecode: Buffer): string => {
   // The embedded metadata was successfully decoded but there was no solc version in it.
   log(`Could not detect solidity version in metadata.`);
   return SOLC_NOT_FOUND_IN_METADATA_VERSION_RANGE;
-};
+}
 
-export const getMetadataSectionLength = (bytecode: Buffer): number =>
-  bytecode.slice(-METADATA_LENGTH).readUInt16BE(0) + METADATA_LENGTH;
+export function getMetadataSectionLength(bytecode: Buffer): number {
+  return bytecode.slice(-METADATA_LENGTH).readUInt16BE(0) + METADATA_LENGTH;
+}
 
 /**
  * Decode the bytecode metadata and return the solc version.
  */
-const decodeSolcMetadata = (bytecode: Buffer): any => {
+function decodeSolcMetadata(bytecode: Buffer): any {
   const metadataSectionLength = getMetadataSectionLength(bytecode);
   // The metadata and its length are in the last few bytes of the bytecode.
   const metadataPayload = bytecode.slice(
@@ -78,4 +79,4 @@ const decodeSolcMetadata = (bytecode: Buffer): any => {
   log(`Metadata decoded: ${util.inspect(decodedMetadata)}`);
 
   return decodedMetadata.solc;
-};
+}
