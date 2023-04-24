@@ -67,7 +67,7 @@ fn bench_insert_account(c: &mut Criterion) {
                                 AccountInfo::default(),
                             )
                         },
-                        BatchSize::LargeInput,
+                        BatchSize::SmallInput,
                     );
                 });
             }
@@ -90,7 +90,7 @@ fn bench_checkpoint(c: &mut Criterion) {
                     b.iter_batched(
                         || state_factory(),
                         |mut state| state.checkpoint(),
-                        BatchSize::LargeInput,
+                        BatchSize::SmallInput,
                     );
                 });
             }
@@ -120,14 +120,13 @@ fn bench_basic(c: &mut Criterion) {
                                 .unwrap();
                         }
                     },
-                    BatchSize::LargeInput,
+                    BatchSize::SmallInput,
                 )
             });
         }
     }
 }
 
-criterion_group! {
     name = benches;
     config = Criterion::default().significance_level(0.1).sample_size(10);
     targets = bench_insert_account, bench_checkpoint, bench_basic
