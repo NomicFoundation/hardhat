@@ -10,8 +10,8 @@ import {
   EtherscanVersionNotSupportedError,
   ExclusiveConstructorArgumentsError,
   ImportingModuleError,
-  InvalidConstructorArgumentsModule,
-  InvalidLibrariesModule,
+  InvalidConstructorArgumentsModuleError,
+  InvalidLibrariesModuleError,
 } from "./errors";
 
 import { ChainConfig } from "./types";
@@ -102,7 +102,9 @@ export async function resolveConstructorArguments(
       .default;
 
     if (!Array.isArray(constructorArguments)) {
-      throw new InvalidConstructorArgumentsModule(constructorArgsModulePath);
+      throw new InvalidConstructorArgumentsModuleError(
+        constructorArgsModulePath
+      );
     }
 
     return constructorArguments;
@@ -128,7 +130,7 @@ export async function resolveLibraries(
     const libraries = (await import(librariesModulePath)).default;
 
     if (typeof libraries !== "object" || Array.isArray(libraries)) {
-      throw new InvalidLibrariesModule(librariesModulePath);
+      throw new InvalidLibrariesModuleError(librariesModulePath);
     }
 
     return libraries;

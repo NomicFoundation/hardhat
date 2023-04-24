@@ -23,8 +23,8 @@ import {
   MissingAddressError,
   InvalidAddressError,
   InvalidContractNameError,
-  InvalidConstructorArguments,
-  InvalidLibraries,
+  InvalidConstructorArgumentsError,
+  InvalidLibrariesError,
   CompilerVersionsMismatchError,
   ContractNotFoundError,
   BuildInfoNotFoundError,
@@ -558,11 +558,11 @@ subtask(TASK_VERIFY_VERIFY)
 
       // This can only happen if the subtask is invoked from within Hardhat by a user script or another task.
       if (!Array.isArray(constructorArguments)) {
-        throw new InvalidConstructorArguments();
+        throw new InvalidConstructorArgumentsError();
       }
 
       if (typeof libraries !== "object" || Array.isArray(libraries)) {
-        throw new InvalidLibraries();
+        throw new InvalidLibrariesError();
       }
 
       await run(TASK_VERIFY_VERIFY_ETHERSCAN, {

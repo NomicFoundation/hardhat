@@ -1,5 +1,5 @@
 import { CompilerOutputBytecode, EthereumProvider } from "hardhat/types";
-import { DeployedBytecodeNotFound } from "../errors";
+import { DeployedBytecodeNotFoundError } from "../errors";
 import {
   getMetadataSectionLength,
   inferCompilerVersion,
@@ -69,7 +69,7 @@ export class Bytecode {
     const deployedBytecode = response.replace(/^0x/, "");
 
     if (deployedBytecode === "") {
-      throw new DeployedBytecodeNotFound(address, network);
+      throw new DeployedBytecodeNotFoundError(address, network);
     }
 
     return new Bytecode(deployedBytecode);

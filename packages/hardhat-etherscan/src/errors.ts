@@ -50,7 +50,7 @@ See https://etherscan.io/apis`);
   }
 }
 
-export class InvalidConstructorArguments extends HardhatEtherscanError {
+export class InvalidConstructorArgumentsError extends HardhatEtherscanError {
   constructor() {
     super(`The constructorArguments parameter should be an array.
 If your constructor has no arguments pass an empty array. E.g:
@@ -70,7 +70,7 @@ export class ExclusiveConstructorArgumentsError extends HardhatEtherscanError {
   }
 }
 
-export class InvalidConstructorArgumentsModule extends HardhatEtherscanError {
+export class InvalidConstructorArgumentsModuleError extends HardhatEtherscanError {
   constructor(constructorArgsModulePath: string) {
     super(`The module ${constructorArgsModulePath} doesn't export a list. The module should look like this:
 
@@ -78,7 +78,7 @@ module.exports = [ arg1, arg2, ... ];`);
   }
 }
 
-export class InvalidLibraries extends HardhatEtherscanError {
+export class InvalidLibrariesError extends HardhatEtherscanError {
   constructor() {
     super(`The libraries parameter should be a dictionary.
 If your contract does not have undetectable libraries pass an empty object or omit the argument. E.g:
@@ -90,7 +90,7 @@ If your contract does not have undetectable libraries pass an empty object or om
   }
 }
 
-export class InvalidLibrariesModule extends HardhatEtherscanError {
+export class InvalidLibrariesModuleError extends HardhatEtherscanError {
   constructor(librariesModulePath: string) {
     super(`The module ${librariesModulePath} doesn't export a dictionary. The module should look like this:
 
@@ -185,7 +185,7 @@ See https://etherscan.io/solcversions for more information.`);
   }
 }
 
-export class DeployedBytecodeNotFound extends HardhatEtherscanError {
+export class DeployedBytecodeNotFoundError extends HardhatEtherscanError {
   constructor(address: string, network: string) {
     super(`The address ${address} has no bytecode. Is the contract deployed to this network?
 The selected network is ${network}.`);
