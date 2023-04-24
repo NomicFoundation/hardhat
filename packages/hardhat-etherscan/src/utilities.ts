@@ -8,6 +8,7 @@ import {
   ABIArgumentOverflowError,
   ABIArgumentTypeError,
   EtherscanVersionNotSupportedError,
+  ExclusiveConstructorArgumentsError,
   ImportingModuleError,
   InvalidConstructorArgumentsModule,
   InvalidLibrariesModule,
@@ -85,6 +86,10 @@ export async function resolveConstructorArguments(
 ): Promise<string[]> {
   if (constructorArgsModule === undefined) {
     return constructorArgsParams;
+  }
+
+  if (constructorArgsParams.length > 0) {
+    throw new ExclusiveConstructorArgumentsError();
   }
 
   const constructorArgsModulePath = path.resolve(

@@ -62,6 +62,14 @@ If your constructor has no arguments pass an empty array. E.g:
   }
 }
 
+export class ExclusiveConstructorArgumentsError extends HardhatEtherscanError {
+  constructor() {
+    super(
+      "The parameters constructorArgsParams and constructorArgsModule are exclusive. Please provide only one of them."
+    );
+  }
+}
+
 export class InvalidConstructorArgumentsModule extends HardhatEtherscanError {
   constructor(constructorArgsModulePath: string) {
     super(`The module ${constructorArgsModulePath} doesn't export a list. The module should look like this:

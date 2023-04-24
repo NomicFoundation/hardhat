@@ -19,7 +19,6 @@ describe("Utilities", () => {
     });
 
     it("should return the constructor arguments exported in constructorArgsModule", async () => {
-      const constructorArgsParams = ["1", "arg2", "false"];
       const constructorArgsModule = "test/unit/mocks/valid-constructor-args.js";
       const expected = [
         50,
@@ -30,14 +29,10 @@ describe("Utilities", () => {
         },
         "0xabcdef",
       ];
-      let result = await resolveConstructorArguments(
-        constructorArgsParams,
+      const result = await resolveConstructorArguments(
+        [],
         constructorArgsModule
       );
-
-      assert.deepEqual(result, expected);
-
-      result = await resolveConstructorArguments([], constructorArgsModule);
 
       assert.deepEqual(result, expected);
     });
@@ -61,6 +56,19 @@ describe("Utilities", () => {
         new RegExp(
           `The module ${constructorArgsModulePath} doesn't export a list.`
         )
+      );
+    });
+
+    it("should throw an error if both parameters are provided", async () => {
+      const constructorArgsParams = ["1", "arg2", "false"];
+      const constructorArgsModule = "test/unit/mocks/valid-constructor-args.js";
+      await expect(
+        resolveConstructorArguments(
+          constructorArgsParams,
+          constructorArgsModule
+        )
+      ).to.be.rejectedWith(
+        "The parameters constructorArgsParams and constructorArgsModule are exclusive. Please provide only one of them."
       );
     });
   });
