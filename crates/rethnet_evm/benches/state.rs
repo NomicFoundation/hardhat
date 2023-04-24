@@ -3,9 +3,7 @@ use revm::{db::StateRef, primitives::AccountInfo};
 use std::{clone::Clone, str::FromStr};
 
 use rethnet_eth::Address;
-use rethnet_evm::state::{
-    HybridState, LayeredState, RethnetLayer, StateDebug, StateError, SyncState,
-};
+use rethnet_evm::state::{HybridState, LayeredState, RethnetLayer, StateError, SyncState};
 
 #[derive(Default)]
 struct RethnetStates {
