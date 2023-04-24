@@ -397,7 +397,9 @@ You can either fix these addresses in your libraries dictionary or simply remove
 
 export class UnexpectedNumberOfFilesError extends HardhatEtherscanError {
   constructor() {
-    super("The plugin found an unexpected number of files for this contract.");
+    super(
+      "The plugin found an unexpected number of files for this contract. Please report this issue to the Hardhat team."
+    );
   }
 }
 
@@ -442,6 +444,7 @@ Encoder error reason: ${reason} fault in ${operation}`,
 export class VerificationAPIUnexpectedMessageError extends HardhatEtherscanError {
   constructor(message: string) {
     super(`The API responded with an unexpected message.
+Please report this issue to the Hardhat team.
 Contract verification may have succeeded and should be checked manually.
 Message: ${message}`);
   }
