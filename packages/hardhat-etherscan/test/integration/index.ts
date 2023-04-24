@@ -73,7 +73,8 @@ describe("verify task integration tests", () => {
       });
 
       expect(logStub).to.be.calledOnceWith(
-        `The contract ${address} has already been verified`
+        `The contract ${address} has already been verified.
+https://hardhat.etherscan.io/address/${address}#code`
       );
       logStub.restore();
       assert.isUndefined(taskResponse);

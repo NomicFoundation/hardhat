@@ -255,7 +255,9 @@ subtask(TASK_VERIFY_VERIFY_ETHERSCAN)
 
       const isVerified = await etherscan.isVerified(address);
       if (isVerified) {
-        console.log(`The contract ${address} has already been verified`);
+        const contractURL = etherscan.getContractUrl(address);
+        console.log(`The contract ${address} has already been verified.
+${contractURL}`);
         return;
       }
 
