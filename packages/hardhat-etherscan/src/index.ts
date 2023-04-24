@@ -224,8 +224,8 @@ subtask(TASK_VERIFY_GET_VERIFICATION_SUBTASKS, async (): Promise<string[]> => {
  */
 subtask(TASK_VERIFY_VERIFY_ETHERSCAN)
   .addParam("address")
-  .addParam("constructorArgs", undefined, [], types.any)
-  .addParam("libraries", undefined, {}, types.any)
+  .addParam("constructorArgs", undefined, undefined, types.any)
+  .addParam("libraries", undefined, undefined, types.any)
   .addOptionalParam("contractFQN")
   .addFlag("listNetworks")
   .addFlag("noCompile")
