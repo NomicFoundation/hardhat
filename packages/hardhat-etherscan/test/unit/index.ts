@@ -1,6 +1,6 @@
 import { assert, expect } from "chai";
 import {
-  TASK_VERIFY_PROCESS_ARGUMENTS,
+  TASK_VERIFY_RESOLVE_ARGUMENTS,
   TASK_VERIFY_VERIFY,
 } from "../../src/task-names";
 import { getRandomAddress, useEnvironment } from "../helpers";
@@ -8,10 +8,10 @@ import { getRandomAddress, useEnvironment } from "../helpers";
 describe("verify task", () => {
   useEnvironment("hardhat-project");
 
-  describe("verify:process-arguments", () => {
+  describe("verify:resolve-arguments", () => {
     it("should throw if address is not provided", async function () {
       await expect(
-        this.hre.run(TASK_VERIFY_PROCESS_ARGUMENTS, {
+        this.hre.run(TASK_VERIFY_RESOLVE_ARGUMENTS, {
           constructorArgsParams: [],
           constructorArgs: "constructor-args.js",
           libraries: "libraries.js",
@@ -21,7 +21,7 @@ describe("verify task", () => {
 
     it("should throw if address is invalid", async function () {
       await expect(
-        this.hre.run(TASK_VERIFY_PROCESS_ARGUMENTS, {
+        this.hre.run(TASK_VERIFY_RESOLVE_ARGUMENTS, {
           address: "invalidAddress",
           constructorArgsParams: [],
           constructorArgs: "constructor-args.js",
@@ -32,7 +32,7 @@ describe("verify task", () => {
 
     it("should throw if contract is not a fully qualified name", async function () {
       await expect(
-        this.hre.run(TASK_VERIFY_PROCESS_ARGUMENTS, {
+        this.hre.run(TASK_VERIFY_RESOLVE_ARGUMENTS, {
           address: getRandomAddress(this.hre),
           constructorArgsParams: [],
           constructorArgs: "constructor-args.js",
@@ -63,7 +63,7 @@ describe("verify task", () => {
         listNetworks: true,
         noCompile: true,
       };
-      const proccesedArgs = await this.hre.run(TASK_VERIFY_PROCESS_ARGUMENTS, {
+      const proccesedArgs = await this.hre.run(TASK_VERIFY_RESOLVE_ARGUMENTS, {
         address,
         constructorArgsParams: [],
         constructorArgs: "constructor-args.js",

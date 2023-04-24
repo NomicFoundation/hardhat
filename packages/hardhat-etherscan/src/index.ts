@@ -13,7 +13,7 @@ import {
   TASK_VERIFY_GET_CONTRACT_INFORMATION,
   TASK_VERIFY_GET_MINIMAL_INPUT,
   TASK_VERIFY_GET_VERIFICATION_SUBTASKS,
-  TASK_VERIFY_PROCESS_ARGUMENTS,
+  TASK_VERIFY_RESOLVE_ARGUMENTS,
   TASK_VERIFY_VERIFY,
   TASK_VERIFY_VERIFY_ETHERSCAN,
 } from "./task-names";
@@ -147,7 +147,7 @@ task(TASK_VERIFY, "Verifies a contract on Etherscan")
   .addFlag("noCompile", "Don't compile before running the task")
   .setAction(async (taskArgs: VerifyTaskArgs, { run }) => {
     const verificationArgs: VerificationArgs = await run(
-      TASK_VERIFY_PROCESS_ARGUMENTS,
+      TASK_VERIFY_RESOLVE_ARGUMENTS,
       taskArgs
     );
 
@@ -160,7 +160,7 @@ task(TASK_VERIFY, "Verifies a contract on Etherscan")
     }
   });
 
-subtask(TASK_VERIFY_PROCESS_ARGUMENTS)
+subtask(TASK_VERIFY_RESOLVE_ARGUMENTS)
   .addOptionalParam("address")
   .addOptionalParam("constructorArgsParams", undefined, [], types.any)
   .addOptionalParam("constructorArgs", undefined, undefined, types.inputFile)
@@ -521,7 +521,7 @@ ${contractURL}`);
 
 /**
  * This subtask is used for backwards compatibility.
- * It validates the parameters as it is done in TASK_VERIFY_PROCESS_ARGUMENTS
+ * It validates the parameters as it is done in TASK_VERIFY_RESOLVE_ARGUMENTS
  * and calls TASK_VERIFY_VERIFY_ETHERSCAN directly.
  */
 subtask(TASK_VERIFY_VERIFY)
