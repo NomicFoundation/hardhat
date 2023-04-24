@@ -77,7 +77,7 @@ export class Etherscan {
       sourceCode,
       codeformat: "solidity-standard-json-input",
       contractname: `${sourceName}:${contractName}`,
-      compilerversion: compilerVersion,
+      compilerversion: `v${compilerVersion}`,
       constructorArguements: encodedConstructorArguments,
     });
 
