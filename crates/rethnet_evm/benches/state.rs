@@ -83,7 +83,7 @@ fn bench_checkpoint(c: &mut Criterion) {
 
             for (label, state_factory) in rethnet_states.make_clone_factories().into_iter() {
                 c.benchmark_group(format!(
-                    "StateDebug::checkpoint() with {} accounts with {} layer(s) per account",
+                    "SyncState::checkpoint() with {} accounts with {} layer(s) per account",
                     *number_of_accounts, layers_per_account,
                 ))
                 .bench_function(label, |b| {
@@ -107,7 +107,7 @@ fn bench_basic(c: &mut Criterion) {
 
         for (label, state_factory) in rethnet_states.make_clone_factories().into_iter() {
             c.benchmark_group(format!(
-                "StateRef::basic() with {} accounts with {} layer(s) per account",
+                "SyncState::basic() with {} accounts with {} layer(s) per account",
                 *number_of_accounts, layers_per_account,
             ))
             .bench_function(label, |b| {
