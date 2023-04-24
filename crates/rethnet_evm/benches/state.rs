@@ -127,8 +127,5 @@ fn bench_basic(c: &mut Criterion) {
     }
 }
 
-    name = benches;
-    config = Criterion::default().significance_level(0.1).sample_size(10);
-    targets = bench_insert_account, bench_checkpoint, bench_basic
-}
+criterion_group!(benches, bench_insert_account, bench_checkpoint, bench_basic);
 criterion_main!(benches);
