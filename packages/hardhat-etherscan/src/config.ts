@@ -21,7 +21,7 @@ export function etherscanConfigExtender(
     config.etherscan = defaultConfig;
 
     // check that there is no etherscan entry in the networks object, since
-    // this is a common mistake done by users
+    // this is a common mistake made by users
     if (config.networks?.etherscan !== undefined) {
       console.warn(
         chalk.yellow(
