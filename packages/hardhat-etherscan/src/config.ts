@@ -1,18 +1,19 @@
+import type LodashCloneDeepT from "lodash.clonedeep";
 import chalk from "chalk";
 import { HardhatConfig, HardhatUserConfig } from "hardhat/types";
 import { EtherscanConfig } from "./types";
 
-export async function etherscanConfigExtender(
+export function etherscanConfigExtender(
   config: HardhatConfig,
   userConfig: Readonly<HardhatUserConfig>
-): Promise<void> {
+): void {
   const defaultConfig: EtherscanConfig = {
     apiKey: "",
     customChains: [],
   };
 
   if (userConfig.etherscan !== undefined) {
-    const cloneDeep = (await import("lodash.clonedeep")).default;
+    const cloneDeep = require("lodash.clonedeep") as typeof LodashCloneDeepT;
     const customConfig = cloneDeep(userConfig.etherscan);
 
     config.etherscan = { ...defaultConfig, ...customConfig };
