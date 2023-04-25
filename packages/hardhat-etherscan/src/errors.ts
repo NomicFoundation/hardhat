@@ -3,7 +3,7 @@ import {
   ABIArgumentLengthErrorType,
   ABIArgumentOverflowErrorType,
   ABIArgumentTypeErrorType,
-} from "./abi-validation";
+} from "./abi-validation-extras";
 import { TASK_VERIFY_VERIFY } from "./task-names";
 
 export class HardhatEtherscanError extends NomicLabsHardhatPluginError {

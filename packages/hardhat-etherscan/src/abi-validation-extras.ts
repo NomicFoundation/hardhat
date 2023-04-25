@@ -1,3 +1,6 @@
+// This file contains helpers to detect and handle various
+// errors that may be thrown by @ethersproject/abi
+
 export interface ABIArgumentLengthErrorType extends Error {
   code: "INVALID_ARGUMENT";
   count: {

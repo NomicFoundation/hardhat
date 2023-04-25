@@ -21,7 +21,7 @@ import {
   isABIArgumentLengthError,
   isABIArgumentOverflowError,
   isABIArgumentTypeError,
-} from "./abi-validation";
+} from "./abi-validation-extras";
 
 export async function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
