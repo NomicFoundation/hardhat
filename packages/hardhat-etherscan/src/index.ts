@@ -1,3 +1,5 @@
+import type LodashCloneDeepT from "lodash.clonedeep";
+
 import { extendConfig, subtask, task, types } from "hardhat/config";
 import { isFullyQualifiedName } from "hardhat/utils/contract-names";
 import {
@@ -437,6 +439,7 @@ subtask(TASK_VERIFY_GET_CONTRACT_INFORMATION)
 subtask(TASK_VERIFY_GET_MINIMAL_INPUT)
   .addParam("sourceName")
   .setAction(async ({ sourceName }: GetMinimalInputArgs, { run }) => {
+    const cloneDeep = require("lodash.clonedeep") as typeof LodashCloneDeepT;
     const dependencyGraph: DependencyGraph = await run(
       TASK_COMPILE_SOLIDITY_GET_DEPENDENCY_GRAPH,
       { sourceNames: [sourceName] }
@@ -465,7 +468,7 @@ subtask(TASK_VERIFY_GET_MINIMAL_INPUT)
       }
     );
 
-    return minimalInput;
+    return cloneDeep(minimalInput);
   });
 
 subtask(TASK_VERIFY_ATTEMPT_VERIFICATION)
