@@ -141,7 +141,7 @@ describe("SimpleTaskDefinition", () => {
     });
 
     it("Should change the scope and call callback", () => {
-      let calledArgs: any = undefined;
+      let calledArgs: any;
       const taskDefinition = new SimpleTaskDefinition(
         "name",
         true,

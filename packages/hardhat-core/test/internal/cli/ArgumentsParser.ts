@@ -303,7 +303,7 @@ describe("ArgumentsParser", () => {
 
   describe("scope and task names", () => {
     it("should parse scope and task names 1", () => {
-      let dummy = {} as TaskDefinition;
+      const dummy = {} as TaskDefinition;
 
       const { scopeName, taskName, unparsedCLAs } =
         argumentsParser.parseScopeAndTaskNames(
@@ -318,7 +318,7 @@ describe("ArgumentsParser", () => {
     });
 
     it("should parse scope and task names 2", () => {
-      let dummy = {} as TaskDefinition;
+      const dummy = {} as TaskDefinition;
 
       const { scopeName, taskName, unparsedCLAs } =
         argumentsParser.parseScopeAndTaskNames(
@@ -333,7 +333,7 @@ describe("ArgumentsParser", () => {
     });
 
     it("should parse scope and task names 3", () => {
-      let dummy = {} as TaskDefinition;
+      const dummy = {} as TaskDefinition;
 
       const { scopeName, taskName, unparsedCLAs } =
         argumentsParser.parseScopeAndTaskNames(
@@ -348,7 +348,7 @@ describe("ArgumentsParser", () => {
     });
 
     it("should parse scope and task names 3", () => {
-      let dummy = {} as TaskDefinition;
+      const dummy = {} as TaskDefinition;
 
       const { scopeName, taskName, unparsedCLAs } =
         argumentsParser.parseScopeAndTaskNames(

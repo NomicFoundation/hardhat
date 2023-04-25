@@ -83,7 +83,7 @@ export class SimpleTaskDefinition implements TaskDefinition {
    * @param newScope The new scope.
    */
   public setScope(newScope: string) {
-    if (this._setScopeCallback) {
+    if (this._setScopeCallback != null) {
       // test if this works
       this._setScopeCallback(this.scope, newScope);
     }

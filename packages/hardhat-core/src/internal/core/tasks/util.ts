@@ -4,7 +4,8 @@ export function parseTaskIdentifier(taskIdentifier: TaskIdentifier): {
   scope: string | undefined;
   name: string;
 } {
-  let scope: string | undefined, name: string;
+  let scope: string | undefined;
+  let name: string;
   if (typeof taskIdentifier === "string") {
     name = taskIdentifier;
     scope = undefined;
