@@ -1,6 +1,7 @@
+import type CborT from "cbor";
+
 import debug from "debug";
 import util from "util";
-import { decodeFirstSync } from "cbor";
 
 export const METADATA_LENGTH = 2;
 export const SOLC_NOT_FOUND_IN_METADATA_VERSION_RANGE = "0.4.7 - 0.5.8";
@@ -58,6 +59,8 @@ export function getMetadataSectionLength(bytecode: Buffer): number {
  * Decode the bytecode metadata and return the solc version.
  */
 function decodeSolcMetadata(bytecode: Buffer): any {
+  const { decodeFirstSync } = require("cbor") as typeof CborT;
+
   const metadataSectionLength = getMetadataSectionLength(bytecode);
   // The metadata and its length are in the last few bytes of the bytecode.
   const metadataPayload = bytecode.slice(

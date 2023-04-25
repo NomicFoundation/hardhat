@@ -1,7 +1,8 @@
+import type { JsonFragment } from "@ethersproject/abi";
+
 import chalk from "chalk";
 import path from "path";
 import { SolidityConfig } from "hardhat/types";
-import { JsonFragment } from "@ethersproject/abi";
 import { builtinChains } from "./chain-config";
 import {
   ABIArgumentLengthError,

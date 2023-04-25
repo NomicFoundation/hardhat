@@ -1,4 +1,5 @@
-import { Dispatcher } from "undici";
+import type { Dispatcher } from "undici";
+
 import {
   ContractStatusPollingError,
   ContractStatusPollingInvalidStatusCodeError,
