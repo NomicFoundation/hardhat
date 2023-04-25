@@ -1,11 +1,14 @@
+import { TASK_COMPILE, TASK_HELP } from "../../builtin-tasks/task-names";
 import {
   CLIArgumentType,
   HardhatArguments,
   HardhatParamDefinitions,
   ParamDefinition,
   ParamDefinitionsMap,
+  ScopedTasksMap,
   TaskArguments,
   TaskDefinition,
+  TasksMap,
 } from "../../types";
 import { HardhatError } from "../core/errors";
 import { ERRORS } from "../core/errors-list";
@@ -50,13 +53,11 @@ export class ArgumentsParser {
     rawCLAs: string[]
   ): {
     hardhatArguments: HardhatArguments;
-    taskName?: string;
-    unparsedCLAs: string[];
+    isCompileTask: boolean;
     allUnparsedCLAs: string[];
   } {
     const hardhatArguments: Partial<HardhatArguments> = {};
     let taskName: string | undefined;
-    const unparsedCLAs: string[] = [];
     const allUnparsedCLAs: string[] = [];
 
     for (let i = 0; i < rawCLAs.length; i++) {
@@ -85,7 +86,6 @@ export class ArgumentsParser {
         );
       } else {
         if (!this._isCLAParamName(arg, hardhatParamDefinitions)) {
-          unparsedCLAs.push(arg);
           allUnparsedCLAs.push(arg);
           continue;
         }
@@ -106,9 +106,52 @@ export class ArgumentsParser {
         envVariableArguments,
         hardhatArguments
       ),
-      taskName, // TODO remove
-      unparsedCLAs, // TODO remove
+      isCompileTask: taskName === TASK_COMPILE,
       allUnparsedCLAs,
+    };
+  }
+
+  public parseScopeAndTaskNames(
+    allUnparsedCLAs: string[],
+    taskDefinitions: TasksMap,
+    scopedTaskDefinitions: ScopedTasksMap
+  ): {
+    scopeName?: string;
+    taskName: string;
+    unparsedCLAs: string[];
+  } {
+    let scopeName: string | undefined;
+    let taskName: string | undefined;
+    let unparsedCLAs: string[];
+
+    if (
+      allUnparsedCLAs.length > 1 &&
+      scopedTaskDefinitions[allUnparsedCLAs[0]]?.[allUnparsedCLAs[1]]
+    ) {
+      scopeName = allUnparsedCLAs[0];
+      taskName = allUnparsedCLAs[1];
+      unparsedCLAs = allUnparsedCLAs.slice(2);
+    } else if (
+      allUnparsedCLAs.length > 0 &&
+      taskDefinitions[allUnparsedCLAs[0]]
+    ) {
+      scopeName = undefined;
+      taskName = allUnparsedCLAs[0];
+      unparsedCLAs = allUnparsedCLAs.slice(1);
+    } else {
+      scopeName = undefined;
+      taskName = undefined;
+      unparsedCLAs = allUnparsedCLAs.slice(); // shallow copy
+    }
+
+    if (taskName === undefined) {
+      taskName = TASK_HELP;
+    }
+
+    return {
+      scopeName,
+      taskName,
+      unparsedCLAs,
     };
   }
 

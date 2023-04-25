@@ -124,7 +124,7 @@ async function main() {
 
     const argumentsParser = new ArgumentsParser();
 
-    const { hardhatArguments, allUnparsedCLAs } =
+    const { hardhatArguments, isCompileTask, allUnparsedCLAs } =
       argumentsParser.parseHardhatArguments(
         HARDHAT_PARAM_DEFINITIONS,
         envVariableArguments,
@@ -187,16 +187,13 @@ async function main() {
       }
     }
 
-    const showEmptyConfigWarning = true;
-    const showSolidityConfigWarnings = allUnparsedCLAs[0] === TASK_COMPILE;
-
     const ctx = HardhatContext.createHardhatContext();
 
     const { resolvedConfig, userConfig } = loadConfigAndTasks(
       hardhatArguments,
       {
-        showEmptyConfigWarning,
-        showSolidityConfigWarnings,
+        showEmptyConfigWarning: true,
+        showSolidityConfigWarnings: isCompileTask,
       }
     );
 
@@ -204,29 +201,12 @@ async function main() {
     const taskDefinitions = ctx.tasksDSL.getTaskDefinitions();
     const scopedTaskDefinitions = ctx.tasksDSL.getScopedTaskDefinitions();
 
-    let taskName, scopeName;
-    if (
-      allUnparsedCLAs.length > 1 &&
-      scopedTaskDefinitions[allUnparsedCLAs[0]]?.[allUnparsedCLAs[1]]
-    ) {
-      scopeName = allUnparsedCLAs[0];
-      taskName = allUnparsedCLAs[1];
-    } else if (
-      allUnparsedCLAs.length > 0 &&
-      taskDefinitions[allUnparsedCLAs[0]]
-    ) {
-      scopeName = undefined;
-      taskName = allUnparsedCLAs[0];
-    } else {
-      scopeName = undefined;
-      taskName = undefined;
-    }
-
-    if (taskName === undefined) {
-      taskName = TASK_HELP;
-    }
-
-    console.log({ taskName, scopeName });
+    let { scopeName, taskName, unparsedCLAs } =
+      argumentsParser.parseScopeAndTaskNames(
+        allUnparsedCLAs,
+        taskDefinitions,
+        scopedTaskDefinitions
+      );
 
     let telemetryConsent: boolean | undefined = hasConsentedTelemetry();
 
@@ -279,9 +259,7 @@ async function main() {
 
       taskArguments = argumentsParser.parseTaskArguments(
         taskDefinition,
-        scopeName === undefined
-          ? allUnparsedCLAs.slice(1)
-          : allUnparsedCLAs.slice(2)
+        unparsedCLAs
       );
     }
 

@@ -104,7 +104,7 @@ describe("ArgumentsParser", () => {
   });
 
   describe("hardhat arguments", () => {
-    it("should parse hardhat arguments with task", () => {
+    it("should parse hardhat arguments with compile task", () => {
       const rawCLAs: string[] = [
         "--show-stack-traces",
         "--network",
@@ -113,24 +113,22 @@ describe("ArgumentsParser", () => {
         "--task-param",
       ];
 
-      const { hardhatArguments, taskName, unparsedCLAs, allUnparsedCLAs } =
+      const { hardhatArguments, isCompileTask, allUnparsedCLAs } =
         argumentsParser.parseHardhatArguments(
           HARDHAT_PARAM_DEFINITIONS,
           envArgs,
           rawCLAs
         );
-      assert.equal(taskName, "compile");
+      assert.isTrue(isCompileTask);
       assert.equal(hardhatArguments.showStackTraces, true);
       assert.equal(hardhatArguments.network, "local");
       assert.equal(hardhatArguments.emoji, false);
-      assert.equal(unparsedCLAs.length, 1);
-      assert.equal("--task-param", unparsedCLAs[0]);
       assert.equal(allUnparsedCLAs.length, 2);
       assert.equal("compile", allUnparsedCLAs[0]);
       assert.equal("--task-param", allUnparsedCLAs[1]);
     });
 
-    it("should parse hardhat arguments after taskname", () => {
+    it("should parse hardhat arguments after compile taskname", () => {
       const rawCLAs: string[] = [
         "compile",
         "--task-param",
@@ -139,18 +137,65 @@ describe("ArgumentsParser", () => {
         "local",
       ];
 
-      const { hardhatArguments, taskName, unparsedCLAs } =
+      const { hardhatArguments, isCompileTask, allUnparsedCLAs } =
         argumentsParser.parseHardhatArguments(
           HARDHAT_PARAM_DEFINITIONS,
           envArgs,
           rawCLAs
         );
-      assert.equal(taskName, "compile");
+      assert.isTrue(isCompileTask);
       assert.equal(hardhatArguments.showStackTraces, true);
       assert.equal(hardhatArguments.network, "local");
       assert.equal(hardhatArguments.emoji, false);
-      assert.equal(unparsedCLAs.length, 1);
-      assert.equal("--task-param", unparsedCLAs[0]);
+      assert.equal(allUnparsedCLAs.length, 2);
+      assert.equal("--task-param", allUnparsedCLAs[1]);
+    });
+
+    it("should parse hardhat arguments with non-compile task", () => {
+      const rawCLAs: string[] = [
+        "--show-stack-traces",
+        "--network",
+        "local",
+        "compile2",
+        "--task-param",
+      ];
+
+      const { hardhatArguments, isCompileTask, allUnparsedCLAs } =
+        argumentsParser.parseHardhatArguments(
+          HARDHAT_PARAM_DEFINITIONS,
+          envArgs,
+          rawCLAs
+        );
+      assert.isFalse(isCompileTask);
+      assert.equal(hardhatArguments.showStackTraces, true);
+      assert.equal(hardhatArguments.network, "local");
+      assert.equal(hardhatArguments.emoji, false);
+      assert.equal(allUnparsedCLAs.length, 2);
+      assert.equal("compile2", allUnparsedCLAs[0]);
+      assert.equal("--task-param", allUnparsedCLAs[1]);
+    });
+
+    it("should parse hardhat arguments after non-compile taskname", () => {
+      const rawCLAs: string[] = [
+        "compile2",
+        "--task-param",
+        "--show-stack-traces",
+        "--network",
+        "local",
+      ];
+
+      const { hardhatArguments, isCompileTask, allUnparsedCLAs } =
+        argumentsParser.parseHardhatArguments(
+          HARDHAT_PARAM_DEFINITIONS,
+          envArgs,
+          rawCLAs
+        );
+      assert.isFalse(isCompileTask);
+      assert.equal(hardhatArguments.showStackTraces, true);
+      assert.equal(hardhatArguments.network, "local");
+      assert.equal(hardhatArguments.emoji, false);
+      assert.equal(allUnparsedCLAs.length, 2);
+      assert.equal("--task-param", allUnparsedCLAs[1]);
     });
 
     it("should fail trying to parse task arguments before taskname", () => {
@@ -253,6 +298,68 @@ describe("ArgumentsParser", () => {
 
       assert.isTrue(hardhatArguments.showStackTraces);
       assert.isFalse(hardhatArguments.emoji);
+    });
+  });
+
+  describe("scope and task names", () => {
+    it("should parse scope and task names 1", () => {
+      let dummy = {} as TaskDefinition;
+
+      const { scopeName, taskName, unparsedCLAs } =
+        argumentsParser.parseScopeAndTaskNames(
+          ["compile"],
+          { compile: dummy },
+          { scope: { compile: dummy } }
+        );
+
+      assert.isUndefined(scopeName);
+      assert.equal(taskName, "compile");
+      assert.equal(unparsedCLAs.length, 0);
+    });
+
+    it("should parse scope and task names 2", () => {
+      let dummy = {} as TaskDefinition;
+
+      const { scopeName, taskName, unparsedCLAs } =
+        argumentsParser.parseScopeAndTaskNames(
+          ["compile", "hello"],
+          { compile: dummy },
+          { scope: { compile: dummy } }
+        );
+
+      assert.isUndefined(scopeName);
+      assert.equal(taskName, "compile");
+      assert.equal(unparsedCLAs.length, 1);
+    });
+
+    it("should parse scope and task names 3", () => {
+      let dummy = {} as TaskDefinition;
+
+      const { scopeName, taskName, unparsedCLAs } =
+        argumentsParser.parseScopeAndTaskNames(
+          ["scope", "compile", "hello", "wagmi"],
+          { compile: dummy },
+          { scope: { compile: dummy } }
+        );
+
+      assert.equal(scopeName, "scope");
+      assert.equal(taskName, "compile");
+      assert.equal(unparsedCLAs.length, 2);
+    });
+
+    it("should parse scope and task names 3", () => {
+      let dummy = {} as TaskDefinition;
+
+      const { scopeName, taskName, unparsedCLAs } =
+        argumentsParser.parseScopeAndTaskNames(
+          ["wen", "moon"],
+          { compile: dummy },
+          { scope: { compile: dummy } }
+        );
+
+      assert.isUndefined(scopeName);
+      assert.equal(taskName, "help");
+      assert.equal(unparsedCLAs.length, 2);
     });
   });
 
