@@ -12,7 +12,7 @@ struct RethnetStates {
 }
 
 impl RethnetStates {
-    fn fill(&mut self, number_of_accounts: u64, number_of_layers_per_account: u64) {
+    fn fill(&mut self, number_of_accounts: u64, number_of_accounts_per_checkpoint: u64) {
         let mut states: [&mut dyn SyncState<StateError>; 2] = [&mut self.layered, &mut self.hybrid];
         for state in states.iter_mut() {
             for i in 1..=number_of_accounts {
@@ -22,7 +22,7 @@ impl RethnetStates {
                         AccountInfo::default(),
                     )
                     .unwrap();
-                for _ in 1..=number_of_layers_per_account {
+                if i % number_of_accounts_per_checkpoint == 0 {
                     state.checkpoint().unwrap();
                 }
             }
@@ -44,18 +44,18 @@ impl RethnetStates {
 }
 
 const ADDRESS_SCALES: [u64; 4] = [100, 500, 1000, 2000];
-const LAYER_SCALES: [u64; 4] = [1, 2, 4, 8];
+const CHECKPOINT_SCALES: [u64; 4] = [1, 2, 4, 8];
 
 fn bench_insert_account(c: &mut Criterion) {
     for number_of_accounts in ADDRESS_SCALES.iter() {
-        for layers_per_account in LAYER_SCALES.iter() {
+        for accounts_per_checkpoint in CHECKPOINT_SCALES.iter() {
             let mut rethnet_states = RethnetStates::default();
-            rethnet_states.fill(*number_of_accounts, *layers_per_account);
+            rethnet_states.fill(*number_of_accounts, *accounts_per_checkpoint);
 
             for (label, state_factory) in rethnet_states.make_clone_factories().into_iter() {
                 c.benchmark_group(format!(
-                    "StateRef::insert_account() with {} accounts with {} layer(s) per account",
-                    *number_of_accounts, layers_per_account,
+                    "StateRef::insert_account() with {} accounts and with {} account(s) per checkpoint",
+                    *number_of_accounts, accounts_per_checkpoint,
                 ))
                 .bench_function(label, |b| {
                     b.iter_batched(
@@ -77,14 +77,14 @@ fn bench_insert_account(c: &mut Criterion) {
 
 fn bench_checkpoint(c: &mut Criterion) {
     for number_of_accounts in ADDRESS_SCALES.iter() {
-        for layers_per_account in LAYER_SCALES.iter() {
+        for accounts_per_checkpoint in CHECKPOINT_SCALES.iter() {
             let mut rethnet_states = RethnetStates::default();
-            rethnet_states.fill(*number_of_accounts, *layers_per_account);
+            rethnet_states.fill(*number_of_accounts, *accounts_per_checkpoint);
 
             for (label, state_factory) in rethnet_states.make_clone_factories().into_iter() {
                 c.benchmark_group(format!(
-                    "SyncState::checkpoint() with {} accounts with {} layer(s) per account",
-                    *number_of_accounts, layers_per_account,
+                    "SyncState::checkpoint() with {} accounts and with {} account(s) per checkpoint",
+                    *number_of_accounts, accounts_per_checkpoint,
                 ))
                 .bench_function(label, |b| {
                     b.iter_batched(
@@ -100,15 +100,15 @@ fn bench_checkpoint(c: &mut Criterion) {
 
 fn bench_basic(c: &mut Criterion) {
     for number_of_accounts in ADDRESS_SCALES.iter() {
-        let layers_per_account = 1;
+        let accounts_per_checkpoint = 1;
 
         let mut rethnet_states = RethnetStates::default();
-        rethnet_states.fill(*number_of_accounts, layers_per_account);
+        rethnet_states.fill(*number_of_accounts, accounts_per_checkpoint);
 
         for (label, state_factory) in rethnet_states.make_clone_factories().into_iter() {
             c.benchmark_group(format!(
-                "SyncState::basic() with {} accounts with {} layer(s) per account",
-                *number_of_accounts, layers_per_account,
+                "SyncState::basic() with {} accounts and with {} accounts(s) per checkpoint",
+                *number_of_accounts, accounts_per_checkpoint,
             ))
             .bench_function(label, |b| {
                 b.iter_batched(
