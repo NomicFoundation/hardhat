@@ -102,30 +102,29 @@ fn bench_checkpoint(c: &mut Criterion) {
 }
 
 fn bench_basic(c: &mut Criterion) {
+    let mut group = c.benchmark_group("StateRef::basic()");
     for number_of_accounts in ADDRESS_SCALES.iter() {
-        let accounts_per_checkpoint = 1;
-
         let mut rethnet_states = RethnetStates::default();
-        rethnet_states.fill(*number_of_accounts, accounts_per_checkpoint);
+        rethnet_states.fill(*number_of_accounts, *number_of_accounts);
 
         for (label, state_factory) in rethnet_states.make_clone_factories().into_iter() {
-            c.benchmark_group(format!(
-                "SyncState::basic() with {} accounts and with {} accounts(s) per checkpoint",
-                *number_of_accounts, accounts_per_checkpoint,
-            ))
-            .bench_function(label, |b| {
-                b.iter_batched(
-                    || state_factory(),
-                    |state| {
-                        for i in *number_of_accounts..=1 {
-                            state
-                                .basic(Address::from_str(&format!("0x{:0>40x}", i)).unwrap())
-                                .unwrap();
-                        }
-                    },
-                    BatchSize::SmallInput,
-                )
-            });
+            group.bench_with_input(
+                BenchmarkId::new(label, number_of_accounts),
+                number_of_accounts,
+                |b, number_of_accounts| {
+                    b.iter_batched(
+                        || state_factory(),
+                        |state| {
+                            for i in *number_of_accounts..=1 {
+                                state
+                                    .basic(Address::from_str(&format!("0x{:0>40x}", i)).unwrap())
+                                    .unwrap();
+                            }
+                        },
+                        BatchSize::SmallInput,
+                    )
+                },
+            );
         }
     }
 }
