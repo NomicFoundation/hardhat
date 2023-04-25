@@ -11,13 +11,13 @@ import {
 import { CompilationJob, CompilerInput, DependencyGraph } from "hardhat/types";
 import {
   TASK_VERIFY,
-  TASK_VERIFY_ATTEMPT_VERIFICATION,
-  TASK_VERIFY_GET_CONTRACT_INFORMATION,
-  TASK_VERIFY_GET_MINIMAL_INPUT,
+  TASK_VERIFY_ETHERSCAN_ATTEMPT_VERIFICATION,
+  TASK_VERIFY_ETHERSCAN_GET_CONTRACT_INFORMATION,
+  TASK_VERIFY_ETHERSCAN_GET_MINIMAL_INPUT,
   TASK_VERIFY_GET_VERIFICATION_SUBTASKS,
   TASK_VERIFY_RESOLVE_ARGUMENTS,
   TASK_VERIFY_VERIFY,
-  TASK_VERIFY_VERIFY_ETHERSCAN,
+  TASK_VERIFY_ETHERSCAN,
 } from "./task-names";
 import { getCurrentChainConfig } from "./chain-config";
 import { etherscanConfigExtender } from "./config";
@@ -215,7 +215,7 @@ subtask(TASK_VERIFY_RESOLVE_ARGUMENTS)
  * Returns a list of verification subtasks.
  */
 subtask(TASK_VERIFY_GET_VERIFICATION_SUBTASKS, async (): Promise<string[]> => {
-  return [TASK_VERIFY_VERIFY_ETHERSCAN];
+  return [TASK_VERIFY_ETHERSCAN];
 });
 
 /**
@@ -224,7 +224,7 @@ subtask(TASK_VERIFY_GET_VERIFICATION_SUBTASKS, async (): Promise<string[]> => {
  * Verifies a contract in Etherscan by coordinating various subtasks related
  * to contract verification.
  */
-subtask(TASK_VERIFY_VERIFY_ETHERSCAN)
+subtask(TASK_VERIFY_ETHERSCAN)
   .addParam("address")
   .addParam("constructorArgs", undefined, undefined, types.any)
   .addParam("libraries", undefined, undefined, types.any)
@@ -288,7 +288,7 @@ ${contractURL}`);
       }
 
       const contractInformation: ExtendedContractInformation = await run(
-        TASK_VERIFY_GET_CONTRACT_INFORMATION,
+        TASK_VERIFY_ETHERSCAN_GET_CONTRACT_INFORMATION,
         {
           contractFQN,
           deployedBytecode,
@@ -298,7 +298,7 @@ ${contractURL}`);
       );
 
       const minimalInput: CompilerInput = await run(
-        TASK_VERIFY_GET_MINIMAL_INPUT,
+        TASK_VERIFY_ETHERSCAN_GET_MINIMAL_INPUT,
         {
           sourceName: contractInformation.sourceName,
         }
@@ -315,7 +315,7 @@ ${contractURL}`);
 
       // First, try to verify the contract using the minimal input
       const { success: minimalInputVerificationSuccess }: VerificationResponse =
-        await run(TASK_VERIFY_ATTEMPT_VERIFICATION, {
+        await run(TASK_VERIFY_ETHERSCAN_ATTEMPT_VERIFICATION, {
           address,
           compilerInput: minimalInput,
           contractInformation,
@@ -336,13 +336,16 @@ This means that unrelated contracts may be displayed on Etherscan...
       const {
         success: fullCompilerInputVerificationSuccess,
         message: verificationMessage,
-      }: VerificationResponse = await run(TASK_VERIFY_ATTEMPT_VERIFICATION, {
-        address,
-        compilerInput: contractInformation.compilerInput,
-        contractInformation,
-        verificationInterface: etherscan,
-        encodedConstructorArguments,
-      });
+      }: VerificationResponse = await run(
+        TASK_VERIFY_ETHERSCAN_ATTEMPT_VERIFICATION,
+        {
+          address,
+          compilerInput: contractInformation.compilerInput,
+          contractInformation,
+          verificationInterface: etherscan,
+          encodedConstructorArguments,
+        }
+      );
 
       if (fullCompilerInputVerificationSuccess) {
         return;
@@ -355,7 +358,7 @@ This means that unrelated contracts may be displayed on Etherscan...
     }
   );
 
-subtask(TASK_VERIFY_GET_CONTRACT_INFORMATION)
+subtask(TASK_VERIFY_ETHERSCAN_GET_CONTRACT_INFORMATION)
   .addParam("deployedBytecode", undefined, undefined, types.any)
   .addParam("matchingCompilerVersions", undefined, undefined, types.any)
   .addParam("libraries", undefined, undefined, types.any)
@@ -436,7 +439,7 @@ subtask(TASK_VERIFY_GET_CONTRACT_INFORMATION)
     }
   );
 
-subtask(TASK_VERIFY_GET_MINIMAL_INPUT)
+subtask(TASK_VERIFY_ETHERSCAN_GET_MINIMAL_INPUT)
   .addParam("sourceName")
   .setAction(async ({ sourceName }: GetMinimalInputArgs, { run }) => {
     const cloneDeep = require("lodash.clonedeep") as typeof LodashCloneDeepT;
@@ -471,7 +474,7 @@ subtask(TASK_VERIFY_GET_MINIMAL_INPUT)
     return cloneDeep(minimalInput);
   });
 
-subtask(TASK_VERIFY_ATTEMPT_VERIFICATION)
+subtask(TASK_VERIFY_ETHERSCAN_ATTEMPT_VERIFICATION)
   .addParam("address")
   .addParam("compilerInput", undefined, undefined, types.any)
   .addParam("contractInformation", undefined, undefined, types.any)
@@ -527,7 +530,7 @@ ${contractURL}`);
 /**
  * This subtask is used for backwards compatibility.
  * It validates the parameters as it is done in TASK_VERIFY_RESOLVE_ARGUMENTS
- * and calls TASK_VERIFY_VERIFY_ETHERSCAN directly.
+ * and calls TASK_VERIFY_ETHERSCAN directly.
  */
 subtask(TASK_VERIFY_VERIFY)
   .addOptionalParam("address")
@@ -568,7 +571,7 @@ subtask(TASK_VERIFY_VERIFY)
         throw new InvalidLibrariesError();
       }
 
-      await run(TASK_VERIFY_VERIFY_ETHERSCAN, {
+      await run(TASK_VERIFY_ETHERSCAN, {
         address,
         constructorArgs: constructorArguments,
         libraries,
