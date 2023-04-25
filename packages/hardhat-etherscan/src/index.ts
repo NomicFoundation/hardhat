@@ -121,7 +121,7 @@ task(TASK_VERIFY, "Verifies a contract on Etherscan")
   .addOptionalPositionalParam("address", "Address of the contract to verify")
   .addOptionalVariadicPositionalParam(
     "constructorArgsParams",
-    "Contract constructor arguments. Ignored if the --constructor-args option is provided",
+    "Contract constructor arguments. Cannot be used if the --constructor-args option is provided",
     []
   )
   .addOptionalParam(
