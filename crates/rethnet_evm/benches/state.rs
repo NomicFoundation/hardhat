@@ -15,16 +15,17 @@ impl RethnetStates {
     fn fill(&mut self, number_of_accounts: u64, number_of_accounts_per_checkpoint: u64) {
         let mut states: [&mut dyn SyncState<StateError>; 2] = [&mut self.layered, &mut self.hybrid];
         for state in states.iter_mut() {
-            for i in 1..=number_of_accounts {
-                state
-                    .insert_account(
-                        Address::from_str(&format!("0x{:0>40x}", i)).unwrap(),
-                        AccountInfo::default(),
-                    )
-                    .unwrap();
-                if i % number_of_accounts_per_checkpoint == 0 {
-                    state.checkpoint().unwrap();
+            let number_of_checkpoints = number_of_accounts / number_of_accounts_per_checkpoint;
+            for _ in 0..=number_of_checkpoints {
+                for i in 1..=number_of_accounts {
+                    state
+                        .insert_account(
+                            Address::from_str(&format!("0x{:0>40x}", i)).unwrap(),
+                            AccountInfo::default(),
+                        )
+                        .unwrap();
                 }
+                state.checkpoint().unwrap();
             }
         }
     }
