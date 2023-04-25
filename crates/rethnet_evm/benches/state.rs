@@ -1,4 +1,4 @@
-use criterion::{criterion_group, criterion_main, BatchSize, Criterion};
+use criterion::{criterion_group, criterion_main, BatchSize, BenchmarkId, Criterion};
 use revm::{db::StateRef, primitives::AccountInfo};
 use std::{clone::Clone, str::FromStr};
 
@@ -46,56 +46,58 @@ impl RethnetStates {
 const ADDRESS_SCALES: [u64; 4] = [100, 500, 1000, 2000];
 const CHECKPOINT_SCALES: [u64; 4] = [1, 2, 4, 8];
 
-fn bench_insert_account(c: &mut Criterion) {
-    for number_of_accounts in ADDRESS_SCALES.iter() {
-        for accounts_per_checkpoint in CHECKPOINT_SCALES.iter() {
+fn bench_sync_state_method<O, R>(c: &mut Criterion, method_name: &str, mut method_invocation: R)
+where
+    R: FnMut(Box<dyn SyncState<StateError>>, u64) -> O,
+{
+    let mut group = c.benchmark_group(method_name);
+    for accounts_per_checkpoint in CHECKPOINT_SCALES.iter() {
+        for number_of_accounts in ADDRESS_SCALES.iter() {
             let mut rethnet_states = RethnetStates::default();
             rethnet_states.fill(*number_of_accounts, *accounts_per_checkpoint);
 
             for (label, state_factory) in rethnet_states.make_clone_factories().into_iter() {
-                c.benchmark_group(format!(
-                    "StateRef::insert_account() with {} accounts and with {} account(s) per checkpoint",
-                    *number_of_accounts, accounts_per_checkpoint,
-                ))
-                .bench_function(label, |b| {
-                    b.iter_batched(
-                        || state_factory(),
-                        |mut state| {
-                            state.insert_account(
-                                Address::from_str(&format!("0x{:0>40x}", number_of_accounts + 1))
-                                    .unwrap(),
-                                AccountInfo::default(),
-                            )
-                        },
-                        BatchSize::SmallInput,
-                    );
-                });
+                group.bench_with_input(
+                    BenchmarkId::new(
+                        format!(
+                            "{},{} account(s) per checkpoint",
+                            label, *accounts_per_checkpoint
+                        ),
+                        *number_of_accounts,
+                    ),
+                    number_of_accounts,
+                    |b, number_of_accounts| {
+                        b.iter_batched(
+                            || state_factory(),
+                            |state| method_invocation(state, *number_of_accounts),
+                            BatchSize::SmallInput,
+                        );
+                    },
+                );
             }
         }
     }
 }
 
-fn bench_checkpoint(c: &mut Criterion) {
-    for number_of_accounts in ADDRESS_SCALES.iter() {
-        for accounts_per_checkpoint in CHECKPOINT_SCALES.iter() {
-            let mut rethnet_states = RethnetStates::default();
-            rethnet_states.fill(*number_of_accounts, *accounts_per_checkpoint);
+fn bench_insert_account(c: &mut Criterion) {
+    bench_sync_state_method(
+        c,
+        "StateDebug::insert_account()",
+        |mut state, number_of_accounts| {
+            state.insert_account(
+                Address::from_str(&format!("0x{:0>40x}", number_of_accounts + 1)).unwrap(),
+                AccountInfo::default(),
+            )
+        },
+    );
+}
 
-            for (label, state_factory) in rethnet_states.make_clone_factories().into_iter() {
-                c.benchmark_group(format!(
-                    "SyncState::checkpoint() with {} accounts and with {} account(s) per checkpoint",
-                    *number_of_accounts, accounts_per_checkpoint,
-                ))
-                .bench_function(label, |b| {
-                    b.iter_batched(
-                        || state_factory(),
-                        |mut state| state.checkpoint(),
-                        BatchSize::SmallInput,
-                    );
-                });
-            }
-        }
-    }
+fn bench_checkpoint(c: &mut Criterion) {
+    bench_sync_state_method(
+        c,
+        "StateHistory::checkpoint()",
+        |mut state, _number_of_accounts| state.checkpoint(),
+    );
 }
 
 fn bench_basic(c: &mut Criterion) {
