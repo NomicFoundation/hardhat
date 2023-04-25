@@ -39,7 +39,7 @@ describe("Chain Config", () => {
         },
       ],
     };
-    await etherscanConfigExtender(hardhatConfig, userConfig);
+    etherscanConfigExtender(hardhatConfig, userConfig);
 
     assert.deepEqual(hardhatConfig.etherscan, expected);
   });
@@ -111,7 +111,7 @@ describe("Chain Config", () => {
         },
       ],
     };
-    await etherscanConfigExtender(hardhatConfig, userConfig);
+    etherscanConfigExtender(hardhatConfig, userConfig);
 
     assert.deepEqual(hardhatConfig.etherscan, expected);
   });
@@ -123,7 +123,7 @@ describe("Chain Config", () => {
       apiKey: "",
       customChains: [],
     };
-    await etherscanConfigExtender(hardhatConfig, userConfig);
+    etherscanConfigExtender(hardhatConfig, userConfig);
 
     assert.deepEqual(hardhatConfig.etherscan, expected);
   });
@@ -142,7 +142,7 @@ describe("Chain Config", () => {
     const userConfig: HardhatUserConfig = {};
 
     // @ts-expect-error
-    await etherscanConfigExtender(hardhatConfig, userConfig);
+    etherscanConfigExtender(hardhatConfig, userConfig);
     expect(warnStub).to.be.calledOnceWith(
       sinon.match(
         /WARNING: you have an 'etherscan' entry in your networks configuration./
