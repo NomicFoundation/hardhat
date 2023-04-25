@@ -35,7 +35,7 @@ import {
   ContractVerificationFailedError,
 } from "./errors";
 import {
-  delay,
+  sleep,
   encodeArguments,
   getCompilerVersions,
   printSupportedNetworks,
@@ -497,7 +497,7 @@ for verification on the block explorer. Waiting for verification result...
 `);
 
       // Compilation is bound to take some time so there's no sense in requesting status immediately.
-      await delay(700);
+      await sleep(700);
       const verificationStatus =
         await verificationInterface.getVerificationStatus(guid);
 

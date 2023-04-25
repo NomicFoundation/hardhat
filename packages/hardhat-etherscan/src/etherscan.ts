@@ -13,7 +13,7 @@ import {
 import { sendGetRequest, sendPostRequest } from "./undici";
 
 import { ChainConfig, ApiKey } from "./types";
-import { delay } from "./utilities";
+import { sleep } from "./utilities";
 
 interface EtherscanVerifyRequestParams {
   address: string;
@@ -146,7 +146,7 @@ export class Etherscan {
     const etherscanResponse = new EtherscanResponse(await response.body.json());
 
     if (etherscanResponse.isPending()) {
-      await delay(VERIFICATION_STATUS_POLLING_TIME);
+      await sleep(VERIFICATION_STATUS_POLLING_TIME);
 
       return this.getVerificationStatus(guid);
     }

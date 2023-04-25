@@ -23,7 +23,7 @@ import {
   isABIArgumentTypeError,
 } from "./abi-validation";
 
-export async function delay(ms: number): Promise<void> {
+export async function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
