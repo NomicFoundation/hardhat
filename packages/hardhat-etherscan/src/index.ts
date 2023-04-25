@@ -1,4 +1,9 @@
 import type LodashCloneDeepT from "lodash.clonedeep";
+import type {
+  CompilationJob,
+  CompilerInput,
+  DependencyGraph,
+} from "hardhat/types";
 
 import { extendConfig, subtask, task, types } from "hardhat/config";
 import { isFullyQualifiedName } from "hardhat/utils/contract-names";
@@ -8,7 +13,6 @@ import {
   TASK_COMPILE_SOLIDITY_GET_COMPILER_INPUT,
   TASK_COMPILE_SOLIDITY_GET_DEPENDENCY_GRAPH,
 } from "hardhat/builtin-tasks/task-names";
-import { CompilationJob, CompilerInput, DependencyGraph } from "hardhat/types";
 import {
   TASK_VERIFY,
   TASK_VERIFY_ETHERSCAN_ATTEMPT_VERIFICATION,
@@ -249,7 +253,7 @@ subtask(TASK_VERIFY_ETHERSCAN)
       }
 
       const chainConfig = await getCurrentChainConfig(
-        network.provider,
+        network,
         config.etherscan.customChains
       );
 

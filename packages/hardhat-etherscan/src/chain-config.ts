@@ -1,10 +1,11 @@
-import { EthereumProvider } from "hardhat/types";
-import { ChainConfigNotFoundError } from "./errors";
+import type { Network } from "hardhat/types";
+import type { ChainConfig } from "./types";
 
-import { ChainConfig } from "./types";
+import { HARDHAT_NETWORK_NAME } from "hardhat/plugins";
+import { ChainConfigNotFoundError, NetworkNotSupportedError } from "./errors";
 
 export async function getCurrentChainConfig(
-  provider: EthereumProvider,
+  { name, provider }: Network,
   customChains: ChainConfig[]
 ): Promise<ChainConfig> {
   const currentChainId = parseInt(await provider.send("eth_chainId"), 16);
@@ -16,6 +17,10 @@ export async function getCurrentChainConfig(
   ].find(({ chainId }) => chainId === currentChainId);
 
   if (currentChainConfig === undefined) {
+    if (name === HARDHAT_NETWORK_NAME) {
+      throw new NetworkNotSupportedError(name);
+    }
+
     throw new ChainConfigNotFoundError(currentChainId);
   }
 

@@ -1,7 +1,7 @@
 import fs from "fs";
 import path from "path";
 import sinon from "sinon";
-import chai, { assert, expect } from "chai";
+import { assert, expect } from "chai";
 import { TASK_CLEAN, TASK_COMPILE } from "hardhat/builtin-tasks/task-names";
 import { SolcConfig } from "hardhat/types/config";
 import { TASK_VERIFY, TASK_VERIFY_VERIFY } from "../../src/task-names";
@@ -14,8 +14,6 @@ import {
 } from "./mocks/etherscan";
 
 import "../../src/type-extensions";
-
-chai.config.truncateThreshold = 0;
 
 describe("verify task integration tests", () => {
   useEnvironment("hardhat-project");
@@ -52,7 +50,7 @@ describe("verify task integration tests", () => {
         constructorArgsParams: [],
       })
     ).to.be.rejectedWith(
-      /Trying to verify a contract in a network with chain id 31337, but the plugin doesn\'t recognize it as a supported chain./
+      "The selected network is hardhat. Please select a network supported by Etherscan."
     );
 
     this.hre.config.etherscan = originalConfig;

@@ -108,6 +108,14 @@ Reason: ${parent.message}`,
   }
 }
 
+export class NetworkNotSupportedError extends HardhatEtherscanError {
+  constructor(network: string) {
+    super(
+      `The selected network is ${network}. Please select a network supported by Etherscan.`
+    );
+  }
+}
+
 export class ChainConfigNotFoundError extends HardhatEtherscanError {
   constructor(chainId: number) {
     super(`Trying to verify a contract in a network with chain id ${chainId}, but the plugin doesn't recognize it as a supported chain.
