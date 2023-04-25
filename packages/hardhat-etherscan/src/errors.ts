@@ -99,11 +99,11 @@ module.exports = { lib1: "0x...", lib2: "0x...", ... };`);
 }
 
 export class ImportingModuleError extends HardhatEtherscanError {
-  constructor(module: string, error: Error) {
+  constructor(module: string, parent: Error) {
     super(
       `Importing the module for the ${module} failed.
-Reason: ${error.message}`,
-      error
+Reason: ${parent.message}`,
+      parent
     );
   }
 }
@@ -121,12 +121,12 @@ To see the list of supported networks, run this command:
 }
 
 export class ContractVerificationRequestError extends HardhatEtherscanError {
-  constructor(url: string, error: Error) {
+  constructor(url: string, parent: Error) {
     super(
       `Failed to send contract verification request.
 Endpoint URL: ${url}
-Reason: ${error.message}`,
-      error
+Reason: ${parent.message}`,
+      parent
     );
   }
 }
@@ -151,13 +151,13 @@ try to wait for five confirmations of your contract deployment transaction befor
 }
 
 export class ContractStatusPollingError extends HardhatEtherscanError {
-  constructor(url: string, error: Error) {
+  constructor(url: string, parent: Error) {
     super(
       `Failure during etherscan status polling. The verification may still succeed but
 should be checked manually.
 Endpoint URL: ${url}
-Reason: ${error.message}`,
-      error
+Reason: ${parent.message}`,
+      parent
     );
   }
 }
