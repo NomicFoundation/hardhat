@@ -1,10 +1,10 @@
-name: hardhat-etherscan CI
+name: hardhat-verify CI
 
 on:
   push:
     branches: [$default-branch]
     paths:
-      - "packages/hardhat-etherscan/**"
+      - "packages/hardhat-verify/**"
       - "packages/hardhat-core/**"
       - "packages/hardhat-common/**"
       - "config/**"
@@ -12,14 +12,14 @@ on:
     branches:
       - "**"
     paths:
-      - "packages/hardhat-etherscan/**"
+      - "packages/hardhat-verify/**"
       - "packages/hardhat-core/**"
       - "packages/hardhat-common/**"
       - "config/**"
 
 defaults:
   run:
-    working-directory: packages/hardhat-etherscan
+    working-directory: packages/hardhat-verify
 
 concurrency:
   group: ${{github.workflow}}-${{github.ref}}
@@ -27,7 +27,7 @@ concurrency:
 
 jobs:
   test_on_windows:
-    name: Test hardhat-etherscan on Windows with Node 14
+    name: Test hardhat-verify on Windows with Node 14
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v2
@@ -43,7 +43,7 @@ jobs:
         run: yarn test
 
   test_on_macos:
-    name: Test hardhat-etherscan on MacOS with Node 14
+    name: Test hardhat-verify on MacOS with Node 14
     runs-on: macos-latest
     # disable until actions/virtual-environments#4896 is fixed
     if: ${{ false }}
@@ -61,7 +61,7 @@ jobs:
         run: yarn test
 
   test_on_linux:
-    name: Test hardhat-etherscan on Ubuntu with Node ${{ matrix.node }}
+    name: Test hardhat-verify on Ubuntu with Node ${{ matrix.node }}
     runs-on: ubuntu-latest
     strategy:
       matrix:

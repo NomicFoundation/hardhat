@@ -5,8 +5,13 @@
   "license": "SEE LICENSE IN EACH PACKAGE'S LICENSE FILE",
   "private": true,
   "workspaces": {
-    "packages": ["packages/*"],
-    "nohoist": ["**/find-up", "**/find-up/**"]
+    "packages": [
+      "packages/*"
+    ],
+    "nohoist": [
+      "**/find-up",
+      "**/find-up/**"
+    ]
   },
   "devDependencies": {
     "@changesets/cli": "^2.16.0",
@@ -16,8 +21,8 @@
     "wsrun": "^5.2.2"
   },
   "scripts": {
-    "build": "tsc --build packages/hardhat-core packages/hardhat-ethers packages/hardhat-etherscan packages/hardhat-solhint packages/hardhat-solpp packages/hardhat-truffle4 packages/hardhat-truffle5 packages/hardhat-vyper packages/hardhat-web3 packages/hardhat-web3-legacy packages/hardhat-chai-matchers packages/hardhat-network-helpers packages/hardhat-toolbox packages/hardhat-foundry",
-    "watch": "tsc --build --watch packages/hardhat-core/src packages/hardhat-ethers packages/hardhat-etherscan packages/hardhat-solhint packages/hardhat-solpp packages/hardhat-truffle4 packages/hardhat-truffle5 packages/hardhat-vyper packages/hardhat-web3 packages/hardhat-web3-legacy packages/hardhat-chai-matchers packages/hardhat-network-helpers packages/hardhat-toolbox packages/hardhat-foundry",
+    "build": "tsc --build packages/hardhat-core packages/hardhat-ethers packages/hardhat-verify packages/hardhat-solhint packages/hardhat-solpp packages/hardhat-truffle4 packages/hardhat-truffle5 packages/hardhat-vyper packages/hardhat-web3 packages/hardhat-web3-legacy packages/hardhat-chai-matchers packages/hardhat-network-helpers packages/hardhat-toolbox packages/hardhat-foundry",
+    "watch": "tsc --build --watch packages/hardhat-core/src packages/hardhat-ethers packages/hardhat-verify packages/hardhat-solhint packages/hardhat-solpp packages/hardhat-truffle4 packages/hardhat-truffle5 packages/hardhat-vyper packages/hardhat-web3 packages/hardhat-web3-legacy packages/hardhat-chai-matchers packages/hardhat-network-helpers packages/hardhat-toolbox packages/hardhat-foundry",
     "clean": "wsrun --exclude-missing clean",
     "test": "node scripts/run-tests.js",
     "lint": "wsrun --exclude-missing --stages lint && yarn prettier --check",
