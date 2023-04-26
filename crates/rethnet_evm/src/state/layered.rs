@@ -286,14 +286,12 @@ mod tests {
     fn code_by_hash_success() {
         let mut state = LayeredState::<RethnetLayer>::default();
         let inserted_bytecode = Bytecode::new_raw(Bytes::from("0x11"));
-        state.insert_account(
-            Address::from_low_u64_ne(1234),
-            AccountInfo::new(
-                U256::from(0),
-                0,
-                inserted_bytecode.clone(),
-            ),
-        ).unwrap();
+        state
+            .insert_account(
+                Address::from_low_u64_ne(1234),
+                AccountInfo::new(U256::from(0), 0, inserted_bytecode.clone()),
+            )
+            .unwrap();
         let retrieved_bytecode = state.code_by_hash(inserted_bytecode.hash()).unwrap();
         assert_eq!(retrieved_bytecode, inserted_bytecode);
     }
