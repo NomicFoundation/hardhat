@@ -179,7 +179,7 @@ export class TasksDSL {
       this._tasks[name] = taskDefinition;
     } else {
       this._scopedTasks[scope] = this._scopedTasks[scope] ?? {};
-      this._scopedTasks[scope]![name] = taskDefinition;
+      this._scopedTasks[scope][name] = taskDefinition;
     }
 
     return taskDefinition;
@@ -195,12 +195,12 @@ export class TasksDSL {
       definition = this._tasks[taskName];
       delete this._tasks[taskName];
     } else {
-      definition = this._scopedTasks[oldScope]![taskName];
-      delete this._scopedTasks[oldScope]![taskName];
+      definition = this._scopedTasks[oldScope][taskName];
+      delete this._scopedTasks[oldScope][taskName];
     }
 
     this._scopedTasks[newScope] = this._scopedTasks[newScope] ?? {};
-    this._scopedTasks[newScope]![taskName] = definition;
+    this._scopedTasks[newScope][taskName] = definition;
   }
 
   private _checkClash(taskName: string, scopeName: string | undefined): void {

@@ -38,7 +38,7 @@ export class HelpPrinter {
 
     for (const scopeName of Object.keys(this._scopedTasks)) {
       console.log(`\n\nAVAILABLE TASKS UNDER SCOPE ${scopeName}:\n`);
-      this._printTasks(this._scopedTasks[scopeName]!, includeSubtasks);
+      this._printTasks(this._scopedTasks[scopeName], includeSubtasks);
     }
 
     console.log("");
@@ -57,7 +57,7 @@ export class HelpPrinter {
       });
     }
 
-    this._printTasks(this._scopedTasks[scopeName]!, includeSubtasks);
+    this._printTasks(this._scopedTasks[scopeName], includeSubtasks);
 
     console.log(
       `\nFor global options help run: ${this._executableName} help\n`
