@@ -485,7 +485,7 @@ mod tests {
             .expect_err("should have failed to connect to a garbage domain name");
 
         if let RpcClientError::FailedToSend(error) = error {
-            assert_eq!(error.to_string(), format!("error sending request for url ({alchemy_url}): error trying to connect: dns error: No such host is known. (os error 11001)"));
+            assert!(error.to_string().contains(&format!("error sending request for url ({alchemy_url}): error trying to connect: dns error: ")));
         } else {
             unreachable!("Invalid error");
         }
@@ -589,7 +589,7 @@ mod tests {
             .expect_err("should have failed to connect to a garbage domain name");
 
         if let RpcClientError::FailedToSend(error) = error {
-            assert_eq!(error.to_string(), format!("error sending request for url ({alchemy_url}): error trying to connect: dns error: No such host is known. (os error 11001)"));
+            assert!(error.to_string().contains(&format!("error sending request for url ({alchemy_url}): error trying to connect: dns error: ")));
         } else {
             unreachable!("Invalid error");
         }
