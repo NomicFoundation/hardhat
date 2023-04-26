@@ -1,9 +1,9 @@
-use criterion::{criterion_group, criterion_main, BatchSize, BenchmarkId, Criterion};
-use revm::{db::StateRef, primitives::AccountInfo};
 use std::{clone::Clone, str::FromStr};
 
+use criterion::{criterion_group, criterion_main, BatchSize, BenchmarkId, Criterion};
 use rethnet_eth::Address;
 use rethnet_evm::state::{HybridState, LayeredState, RethnetLayer, StateError, SyncState};
+use revm::{db::StateRef, primitives::AccountInfo};
 
 #[derive(Default)]
 struct RethnetStates {
