@@ -1,9 +1,12 @@
 use std::{clone::Clone, str::FromStr};
 
 use criterion::{criterion_group, criterion_main, BatchSize, BenchmarkId, Criterion};
-use rethnet_eth::Address;
+use rethnet_eth::{Address, Bytes, U256};
 use rethnet_evm::state::{HybridState, LayeredState, RethnetLayer, StateError, SyncState};
-use revm::{db::StateRef, primitives::AccountInfo};
+use revm::{
+    db::StateRef,
+    primitives::{AccountInfo, Bytecode},
+};
 
 #[derive(Default)]
 struct RethnetStates {
@@ -16,10 +19,20 @@ impl RethnetStates {
         let mut states: [&mut dyn SyncState<StateError>; 2] = [&mut self.layered, &mut self.hybrid];
         for state in states.iter_mut() {
             let number_of_checkpoints = number_of_accounts / number_of_accounts_per_checkpoint;
-            for _ in 0..=number_of_checkpoints {
-                for i in 1..=number_of_accounts_per_checkpoint {
+            for checkpoint_number in 0..number_of_checkpoints {
+                for account_number in 1..=number_of_accounts_per_checkpoint {
+                    let account_number =
+                        (checkpoint_number * number_of_accounts_per_checkpoint) + account_number;
+                    let address = Address::from_low_u64_ne(account_number);
                     state
-                        .insert_account(Address::from_low_u64_ne(i), AccountInfo::default())
+                        .insert_account(
+                            address,
+                            AccountInfo::new(
+                                U256::from(account_number),
+                                account_number,
+                                Bytecode::new_raw(Bytes::copy_from_slice(address.as_bytes())),
+                            ),
+                        )
                         .unwrap();
                 }
                 state.checkpoint().unwrap();
@@ -115,5 +128,26 @@ fn bench_basic(c: &mut Criterion) {
     });
 }
 
-criterion_group!(benches, bench_insert_account, bench_checkpoint, bench_basic);
+fn bench_code_by_hash(c: &mut Criterion) {
+    bench_sync_state_method(c, "StateRef::code_by_hash", |state, number_of_accounts| {
+        for i in (1..=number_of_accounts).rev() {
+            state
+                .code_by_hash(
+                    Bytecode::new_raw(Bytes::copy_from_slice(
+                        Address::from_low_u64_ne(i).as_bytes(),
+                    ))
+                    .hash(),
+                )
+                .unwrap();
+        }
+    });
+}
+
+criterion_group!(
+    benches,
+    bench_insert_account,
+    bench_checkpoint,
+    bench_basic,
+    bench_code_by_hash
+);
 criterion_main!(benches);
