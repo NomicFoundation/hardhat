@@ -8,7 +8,7 @@ import { TASK_VERIFY_VERIFY } from "./task-names";
 
 export class HardhatEtherscanError extends NomicLabsHardhatPluginError {
   constructor(message: string, parent?: Error) {
-    super("@nomiclabs/hardhat-etherscan", message, parent);
+    super("@nomicfoundation/hardhat-verify", message, parent);
   }
 }
 
