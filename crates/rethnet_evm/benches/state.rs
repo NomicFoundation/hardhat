@@ -47,7 +47,7 @@ impl RethnetStates {
 const NUM_SCALES: usize = 4;
 const CHECKPOINT_SCALES: [u64; NUM_SCALES] = [1, 5, 10, 20];
 const MAX_CHECKPOINT_SCALE: u64 = CHECKPOINT_SCALES[NUM_SCALES - 1];
-const ADDRESS_SCALES: [u64; 4] =  [
+const ADDRESS_SCALES: [u64; 4] = [
     MAX_CHECKPOINT_SCALE * 5,
     MAX_CHECKPOINT_SCALE * 25,
     MAX_CHECKPOINT_SCALE * 50,
@@ -109,31 +109,13 @@ fn bench_checkpoint(c: &mut Criterion) {
 }
 
 fn bench_basic(c: &mut Criterion) {
-    let mut group = c.benchmark_group("StateRef::basic()");
-    for number_of_accounts in ADDRESS_SCALES.iter() {
-        let mut rethnet_states = RethnetStates::default();
-        rethnet_states.fill(*number_of_accounts, *number_of_accounts);
-
-        for (label, state_factory) in rethnet_states.make_clone_factories().into_iter() {
-            group.bench_with_input(
-                BenchmarkId::new(label, number_of_accounts),
-                number_of_accounts,
-                |b, number_of_accounts| {
-                    b.iter_batched(
-                        || state_factory(),
-                        |state| {
-                            for i in *number_of_accounts..=1 {
-                                state
-                                    .basic(Address::from_str(&format!("0x{:0>40x}", i)).unwrap())
-                                    .unwrap();
-                            }
-                        },
-                        BatchSize::SmallInput,
-                    )
-                },
-            );
+    bench_sync_state_method(c, "StateRef::basic()", |state, number_of_accounts| {
+        for i in number_of_accounts..=1 {
+            state
+                .basic(Address::from_str(&format!("0x{:0>40x}", i)).unwrap())
+                .unwrap();
         }
-    }
+    });
 }
 
 criterion_group!(benches, bench_insert_account, bench_checkpoint, bench_basic);
