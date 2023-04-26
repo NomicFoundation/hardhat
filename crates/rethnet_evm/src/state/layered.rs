@@ -285,7 +285,7 @@ mod tests {
     #[test]
     fn code_by_hash_success() {
         let mut state = LayeredState::<RethnetLayer>::default();
-        let inserted_bytecode = Bytecode::new_raw(Bytes::from(format!("0x11")));
+        let inserted_bytecode = Bytecode::new_raw(Bytes::from("0x11"));
         state.insert_account(
             Address::from_low_u64_ne(1234),
             AccountInfo::new(
