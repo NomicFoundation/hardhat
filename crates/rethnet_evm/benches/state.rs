@@ -17,7 +17,7 @@ impl RethnetStates {
         for state in states.iter_mut() {
             let number_of_checkpoints = number_of_accounts / number_of_accounts_per_checkpoint;
             for _ in 0..=number_of_checkpoints {
-                for i in 1..=number_of_accounts {
+                for i in 1..=number_of_accounts_per_checkpoint {
                     state
                         .insert_account(
                             Address::from_str(&format!("0x{:0>40x}", i)).unwrap(),
