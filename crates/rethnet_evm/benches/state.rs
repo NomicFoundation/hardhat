@@ -107,7 +107,7 @@ fn bench_checkpoint(c: &mut Criterion) {
 
 fn bench_basic(c: &mut Criterion) {
     bench_sync_state_method(c, "StateRef::basic()", |state, number_of_accounts| {
-        for i in number_of_accounts..=1 {
+        for i in (1..=number_of_accounts).rev() {
             state
                 .basic(Address::from_str(&format!("0x{:0>40x}", i)).unwrap())
                 .unwrap();
