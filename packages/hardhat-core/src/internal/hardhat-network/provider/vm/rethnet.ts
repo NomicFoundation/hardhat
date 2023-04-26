@@ -3,7 +3,6 @@ import { Common } from "@nomicfoundation/ethereumjs-common";
 import {
   Account,
   Address,
-  bufferToHex,
   KECCAK256_NULL,
 } from "@nomicfoundation/ethereumjs-util";
 import { TypedTransaction } from "@nomicfoundation/ethereumjs-tx";

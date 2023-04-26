@@ -25,14 +25,14 @@ struct RevertedLayers<Layer> {
     pub stack: Vec<Layer>,
 }
 
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 struct Snapshot<Layer, const REMOVE_ZERO_SLOTS: bool> {
     pub changes: LayeredChanges<Layer>,
     pub trie: TrieState<REMOVE_ZERO_SLOTS>,
 }
 
 /// A state consisting of layers.
-#[derive(Debug, Default)]
+#[derive(Clone, Debug, Default)]
 pub struct HybridState<Layer, const REMOVE_ZERO_SLOTS: bool = true> {
     trie: TrieState<REMOVE_ZERO_SLOTS>,
     changes: LayeredChanges<Layer>,

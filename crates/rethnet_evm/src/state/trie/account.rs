@@ -505,8 +505,6 @@ mod tests {
         accounts
     }
 
-    // TODO: Add test to validate whether removing zero slots changes storage and state roots
-
     #[test]
     fn clone_empty() {
         let state: AccountTrie = AccountTrie::default();

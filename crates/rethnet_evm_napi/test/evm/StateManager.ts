@@ -12,6 +12,7 @@ describe("State Manager", () => {
   );
 
   const context = new RethnetContext();
+
   const stateManagers = [
     { name: "default", getStateManager: () => new StateManager(context) },
   ];
