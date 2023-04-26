@@ -19,10 +19,7 @@ impl RethnetStates {
             for _ in 0..=number_of_checkpoints {
                 for i in 1..=number_of_accounts_per_checkpoint {
                     state
-                        .insert_account(
-                            Address::from_str(&format!("0x{:0>40x}", i)).unwrap(),
-                            AccountInfo::default(),
-                        )
+                        .insert_account(Address::from_low_u64_ne(i), AccountInfo::default())
                         .unwrap();
                 }
                 state.checkpoint().unwrap();
@@ -93,7 +90,7 @@ fn bench_insert_account(c: &mut Criterion) {
         "StateDebug::insert_account()",
         |mut state, number_of_accounts| {
             state.insert_account(
-                Address::from_str(&format!("0x{:0>40x}", number_of_accounts + 1)).unwrap(),
+                Address::from_low_u64_ne(number_of_accounts),
                 AccountInfo::default(),
             )
         },
