@@ -33,10 +33,10 @@ task(TASK_HELP, "Prints this message")
         scopedTasks
       );
 
-      if (first !== undefined) {
+      if (first !== undefined && first !== TASK_HELP) {
         if (scopedTasks[first] !== undefined) {
           // first is a valid scope
-          if (second !== undefined) {
+          if (second !== undefined && second !== TASK_HELP) {
             if (scopedTasks[first]![second] !== undefined) {
               // second is a valid task under the scope
               helpPrinter.printTaskHelp(scopedTasks[first]![second]);
