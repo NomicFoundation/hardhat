@@ -208,6 +208,7 @@ export interface HardhatRuntimeEnvironment {
   readonly userConfig: HardhatUserConfig;
   readonly hardhatArguments: HardhatArguments;
   readonly tasks: TasksMap;
+  readonly scopedTasks: ScopedTasksMap;
   readonly run: RunTaskFunction;
   readonly network: Network;
   readonly artifacts: Artifacts;

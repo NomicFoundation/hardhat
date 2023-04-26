@@ -738,6 +738,24 @@ This is not supported. Please run the help task to see the available options.`,
 This flag can only be used in typescript projects.`,
       shouldBeReported: false,
     },
+    UNRECOGNIZED_SCOPE: {
+      number: 314,
+      message: "Unrecognized scope %scope%",
+      title: "Unrecognized scope",
+      description: `Tried to use a nonexistent scope.
+
+Please double check the name of the scope you are trying to use.`,
+      shouldBeReported: false,
+    },
+    UNRECOGNIZED_SCOPED_TASK: {
+      number: 315,
+      message: "Unrecognized task %task% under scope %scope%",
+      title: "Unrecognized scoped task",
+      description: `Tried to run a nonexistent scoped task.
+
+Please double check the name of the task you are trying to run.`,
+      shouldBeReported: false,
+    },
   },
   RESOLVER: {
     FILE_NOT_FOUND: {
