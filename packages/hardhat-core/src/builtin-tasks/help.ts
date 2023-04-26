@@ -33,13 +33,13 @@ task(TASK_HELP, "Prints this message")
         scopedTasks
       );
 
-      if (first) {
-        if (scopedTasks[first]) {
+      if (first !== undefined) {
+        if (scopedTasks[first] !== undefined) {
           // first is a valid scope
-          if (second) {
-            if (scopedTasks[first][second]) {
+          if (second !== undefined) {
+            if (scopedTasks[first]![second] !== undefined) {
               // second is a valid task under the scope
-              helpPrinter.printTaskHelp(scopedTasks[first][second]);
+              helpPrinter.printTaskHelp(scopedTasks[first]![second]);
               return;
             } else {
               // task second is not present under this scope
@@ -53,7 +53,7 @@ task(TASK_HELP, "Prints this message")
             helpPrinter.printScopeHelp(first);
             return;
           }
-        } else if (tasks[first]) {
+        } else if (tasks[first] !== undefined) {
           // first is a valid task
           helpPrinter.printTaskHelp(tasks[first]);
           return;

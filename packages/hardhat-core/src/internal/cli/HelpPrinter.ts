@@ -38,7 +38,7 @@ export class HelpPrinter {
 
     for (const scopeName of Object.keys(this._scopedTasks)) {
       console.log(`\n\nAVAILABLE TASKS UNDER SCOPE ${scopeName}:\n`);
-      this._printTasks(this._scopedTasks[scopeName], includeSubtasks);
+      this._printTasks(this._scopedTasks[scopeName]!, includeSubtasks);
     }
 
     console.log("");
@@ -51,13 +51,13 @@ export class HelpPrinter {
   public printScopeHelp(scopeName: string, includeSubtasks = false) {
     console.log(`\n\nAVAILABLE TASKS UNDER SCOPE ${scopeName}:\n`);
 
-    if (!this._scopedTasks[scopeName]) {
+    if (this._scopedTasks[scopeName] === undefined) {
       throw new HardhatError(ERRORS.ARGUMENTS.UNRECOGNIZED_SCOPE, {
         scope: scopeName,
       });
     }
 
-    this._printTasks(this._scopedTasks[scopeName], includeSubtasks);
+    this._printTasks(this._scopedTasks[scopeName]!, includeSubtasks);
 
     console.log(
       `\nFor global options help run: ${this._executableName} help\n`

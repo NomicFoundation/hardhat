@@ -194,7 +194,7 @@ export interface TasksMap {
 }
 
 export interface ScopedTasksMap {
-  [scopeName: string]: { [taskName: string]: TaskDefinition };
+  [scopeName: string]: TasksMap | undefined;
 }
 
 export type RunTaskFunction = (

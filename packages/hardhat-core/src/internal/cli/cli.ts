@@ -201,6 +201,7 @@ async function main() {
     const taskDefinitions = ctx.tasksDSL.getTaskDefinitions();
     const scopedTaskDefinitions = ctx.tasksDSL.getScopedTaskDefinitions();
 
+    // eslint-disable-next-line prefer-const
     let { scopeName, taskName, unparsedCLAs } =
       argumentsParser.parseScopeAndTaskNames(
         allUnparsedCLAs,

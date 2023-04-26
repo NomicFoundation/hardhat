@@ -126,13 +126,15 @@ export class ArgumentsParser {
 
     if (
       allUnparsedCLAs.length > 1 &&
-      scopedTaskDefinitions[allUnparsedCLAs[0]]?.[allUnparsedCLAs[1]]
+      scopedTaskDefinitions[allUnparsedCLAs[0]]?.[allUnparsedCLAs[1]] !==
+        undefined
     ) {
       scopeName = allUnparsedCLAs[0];
       taskName = allUnparsedCLAs[1];
       unparsedCLAs = allUnparsedCLAs.slice(2);
     } else if (
       allUnparsedCLAs.length > 0 &&
+      // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
       taskDefinitions[allUnparsedCLAs[0]]
     ) {
       scopeName = undefined;

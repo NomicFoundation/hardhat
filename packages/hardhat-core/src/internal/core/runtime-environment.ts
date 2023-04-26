@@ -143,7 +143,7 @@ export class Environment implements HardhatRuntimeEnvironment {
       taskDefinition = this.tasks[name];
       log("Running task %s", name);
     } else {
-      taskDefinition = this.scopedTasks[scope][name];
+      taskDefinition = this.scopedTasks[scope]?.[name];
       log("Running task %s:%s", scope, name);
     }
 
