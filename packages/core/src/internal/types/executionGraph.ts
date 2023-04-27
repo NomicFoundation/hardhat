@@ -5,6 +5,7 @@ import {
   ArtifactContract,
   DeploymentGraphFuture,
   EventParamFuture,
+  HardhatContract,
 } from "../../types/future";
 import { Artifact } from "../../types/hardhat";
 
@@ -157,7 +158,7 @@ export interface StaticContractCallExecutionVertex extends VertexDescriptor {
 export interface AwaitedEventExecutionVertex extends VertexDescriptor {
   type: "AwaitedEvent";
   abi: any[];
-  address: string | ArtifactContract | EventParamFuture;
+  address: string | ArtifactContract | HardhatContract | EventParamFuture;
   event: string;
   args: ArgValue[];
 }

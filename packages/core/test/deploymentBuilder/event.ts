@@ -8,10 +8,10 @@ import {
   isArtifactContract,
   isAwaitedEvent,
   isCall,
+  isHardhatContract,
 } from "../../src/internal/utils/guards";
 import { isFailure } from "../../src/internal/utils/process-results";
 import { IDeploymentBuilder } from "../../src/types/dsl";
-import { ArtifactContract } from "../../src/types/future";
 
 import {
   getDependenciesForVertex,
@@ -72,16 +72,22 @@ describe("deployment builder - await event", () => {
   before(() => {
     const eventModule = buildModule("event", (m: IDeploymentBuilder) => {
       const testContract = m.contract("Test", artifact);
+      const testContract2 = m.contract("Token");
 
       const call = m.call(testContract, "test", { args: [] });
 
-      const event = m.event(testContract as ArtifactContract, "SomeEvent", {
+      const event = m.event(testContract, "SomeEvent", {
         args: [testContract],
         after: [call],
       });
 
+      const event2 = m.event(testContract2, "SomeEvent", {
+        args: [testContract2],
+        after: [call],
+      });
+
       m.call(testContract, "verify", {
-        args: [event.params.value],
+        args: [event.params.value, event2.params.value],
       });
 
       return {};
@@ -92,7 +98,7 @@ describe("deployment builder - await event", () => {
       {
         chainId: 31337,
         accounts: [],
-        artifacts: [],
+        artifacts: [artifact],
       }
     );
 
@@ -107,8 +113,8 @@ describe("deployment builder - await event", () => {
     assert.isDefined(deploymentGraph);
   });
 
-  it("should have four nodes", () => {
-    assert.equal(deploymentGraph.vertexes.size, 4);
+  it("should have six nodes", () => {
+    assert.equal(deploymentGraph.vertexes.size, 6);
   });
 
   it("should have the contract node Test", () => {
@@ -120,6 +126,17 @@ describe("deployment builder - await event", () => {
 
     assert.equal(depNode?.label, "Test");
     assert(isArtifactContract(depNode));
+  });
+
+  it("should have the contract node Token", () => {
+    const depNode = getDeploymentVertexByLabel(deploymentGraph, "Token");
+
+    if (depNode === undefined) {
+      return assert.isDefined(depNode);
+    }
+
+    assert.equal(depNode?.label, "Token");
+    assert(isHardhatContract(depNode));
   });
 
   it("should have the call node Test/test", () => {
@@ -147,6 +164,20 @@ describe("deployment builder - await event", () => {
     assert(isAwaitedEvent(depNode));
   });
 
+  it("should have the await event node Token/SomeEvent", () => {
+    const depNode = getDeploymentVertexByLabel(
+      deploymentGraph,
+      "Token/SomeEvent"
+    );
+
+    if (depNode === undefined) {
+      return assert.isDefined(depNode);
+    }
+
+    assert.equal(depNode?.label, "Token/SomeEvent");
+    assert(isAwaitedEvent(depNode));
+  });
+
   it("should have the call node Test/verify", () => {
     const depNode = getDeploymentVertexByLabel(deploymentGraph, "Test/verify");
 
@@ -160,6 +191,18 @@ describe("deployment builder - await event", () => {
 
   it("should show no dependencies for the contract node Test", () => {
     const depNode = getDeploymentVertexByLabel(deploymentGraph, "Test");
+
+    if (depNode === undefined) {
+      return assert.isDefined(depNode);
+    }
+
+    const deps = getDependenciesForVertex(deploymentGraph, depNode);
+
+    assert.deepStrictEqual(deps, []);
+  });
+
+  it("should show no dependencies for the contract node Token", () => {
+    const depNode = getDeploymentVertexByLabel(deploymentGraph, "Token");
 
     if (depNode === undefined) {
       return assert.isDefined(depNode);
@@ -207,14 +250,40 @@ describe("deployment builder - await event", () => {
         type: "",
       },
       {
-        id: 1,
+        id: 2,
         label: "Test/test",
         type: "",
       },
     ]);
   });
 
-  it("should show two dependencies for the call node Test/verify", () => {
+  it("should show two dependencies for the event node Token/SomeEvent", () => {
+    const depNode = getDeploymentVertexByLabel(
+      deploymentGraph,
+      "Token/SomeEvent"
+    );
+
+    if (depNode === undefined) {
+      return assert.isDefined(depNode);
+    }
+
+    const deps = getDependenciesForVertex(deploymentGraph, depNode);
+
+    assert.deepStrictEqual(deps, [
+      {
+        id: 1,
+        label: "Token",
+        type: "",
+      },
+      {
+        id: 2,
+        label: "Test/test",
+        type: "",
+      },
+    ]);
+  });
+
+  it("should show three dependencies for the call node Test/verify", () => {
     const depNode = getDeploymentVertexByLabel(deploymentGraph, "Test/verify");
 
     if (depNode === undefined) {
@@ -230,8 +299,13 @@ describe("deployment builder - await event", () => {
         type: "",
       },
       {
-        id: 2,
+        id: 3,
         label: "Test/SomeEvent",
+        type: "",
+      },
+      {
+        id: 4,
+        label: "Token/SomeEvent",
         type: "",
       },
     ]);
@@ -245,6 +319,20 @@ describe("deployment builder - await event", () => {
     }
 
     if (!isArtifactContract(depNode)) {
+      return assert.fail("Not a hardhat contract dependency node");
+    }
+
+    assert.deepStrictEqual(depNode.args, []);
+  });
+
+  it("should record the argument list for the contract node Token as empty", () => {
+    const depNode = getDeploymentVertexByLabel(deploymentGraph, "Token");
+
+    if (depNode === undefined) {
+      return assert.isDefined(depNode);
+    }
+
+    if (!isHardhatContract(depNode)) {
       return assert.fail("Not a hardhat contract dependency node");
     }
 
@@ -291,6 +379,32 @@ describe("deployment builder - await event", () => {
     ]);
   });
 
+  it("should record the argument list for the event node Token/SomeEvent", () => {
+    const depNode = getDeploymentVertexByLabel(
+      deploymentGraph,
+      "Token/SomeEvent"
+    );
+
+    if (depNode === undefined) {
+      return assert.isDefined(depNode);
+    }
+
+    if (!isAwaitedEvent(depNode)) {
+      return assert.fail("Not an awaited event dependency node");
+    }
+
+    assert.deepStrictEqual(depNode.args, [
+      {
+        vertexId: 1,
+        contractName: "Token",
+        label: "Token",
+        type: "contract",
+        subtype: "hardhat",
+        _future: true,
+      },
+    ]);
+  });
+
   it("should record the argument list for the call node Test/verify", () => {
     const depNode = getDeploymentVertexByLabel(deploymentGraph, "Test/verify");
 
@@ -304,7 +418,14 @@ describe("deployment builder - await event", () => {
 
     assert.deepStrictEqual(depNode.args, [
       {
-        vertexId: 2,
+        vertexId: 3,
+        label: "value",
+        type: "eventParam",
+        subtype: "uint256",
+        _future: true,
+      },
+      {
+        vertexId: 4,
         label: "value",
         type: "eventParam",
         subtype: "uint256",

@@ -3,7 +3,6 @@ import { BigNumber } from "ethers";
 import {
   AddressResolvable,
   ArtifactContract,
-  ArtifactFuture,
   ArtifactLibrary,
   ContractCall,
   DeployedContract,
@@ -132,7 +131,7 @@ export interface IDeploymentBuilder {
    * @alpha
    */
   event(
-    contractFuture: ArtifactFuture,
+    contractFuture: DeploymentGraphFuture,
     eventName: string,
     options: AwaitOptions
   ): EventFuture;
