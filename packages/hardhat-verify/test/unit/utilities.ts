@@ -46,10 +46,10 @@ describe("Utilities", () => {
     it("should throw if the constructor arguments exported in constructorArgsModule are not an array", async () => {
       const constructorArgsModule =
         "test/unit/mocks/invalid-constructor-args.js";
-      const constructorArgsModulePath = path.resolve(
-        process.cwd(),
-        constructorArgsModule
-      );
+      const constructorArgsModulePath = path
+        .resolve(process.cwd(), constructorArgsModule)
+        // make test work on windows
+        .replace(/\\/g, "\\\\");
       await expect(
         resolveConstructorArguments([], constructorArgsModule)
       ).to.be.rejectedWith(
@@ -100,7 +100,11 @@ describe("Utilities", () => {
 
     it("should throw if the libraries exported in librariesModule are not a dictionary", async () => {
       const librariesModule = "test/unit/mocks/invalid-libraries.js";
-      const librariesModulePath = path.resolve(process.cwd(), librariesModule);
+      const librariesModulePath = path
+        .resolve(process.cwd(), librariesModule)
+        // make test work on windows
+        .replace(/\\/g, "\\\\");
+
       await expect(resolveLibraries(librariesModule)).to.be.rejectedWith(
         new RegExp(
           `The module ${librariesModulePath} doesn't export a dictionary.`
