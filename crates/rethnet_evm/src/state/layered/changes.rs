@@ -344,6 +344,13 @@ impl LayeredChanges<RethnetLayer> {
     pub fn remove_code(&mut self, code_hash: &B256) {
         self.last_layer_mut().contracts.remove(code_hash);
     }
+
+    pub fn insert_account(&mut self, address: &Address, account_info: &AccountInfo) {
+        self.account_or_insert_mut(address).info = account_info.clone();
+        if let Some(code) = account_info.code.clone() {
+            self.insert_code(code);
+        }
+    }
 }
 
 impl From<&LayeredChanges<RethnetLayer>> for SharedMap<B256, Bytecode, true> {
