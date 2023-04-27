@@ -14,6 +14,7 @@ import {
   IgnitionModuleImplementation,
   NamedContractDeploymentFutureImplementation,
 } from "./module";
+import { isFuture } from "./utils";
 
 export class IgnitionModuleBuilderImplementation<
   ModuleIdT extends string,
@@ -31,21 +32,26 @@ export class IgnitionModuleBuilderImplementation<
 
   public contract<ContractNameT extends string>(
     contractName: ContractNameT,
-    args: SolidityParamsType,
+    args: SolidityParamsType = [],
     id = contractName
   ): NamedContractDeploymentFuture<ContractNameT> {
     // Some things that should be done here:
-    //   - create the future.
-    //   - add it to the set of futures of the module
+    //   - create the future. - done
+    //   - add it to the set of futures of the module - done
     //   - add any dependency (e.g. futures in `args` or `after`)
     //   - validate that the id is not repeated
     const futureId = `${this._module.id}:${id}`;
+
     const future = new NamedContractDeploymentFutureImplementation(
       futureId,
       this._module,
       contractName,
       args
     );
+
+    for (const arg of args.filter(isFuture)) {
+      future.dependencies.add(arg);
+    }
 
     this._module.futures.add(future);
 

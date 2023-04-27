@@ -10,7 +10,7 @@ import {
 export interface IgnitionModuleBuilder {
   contract<ContractNameT extends string>(
     contractName: ContractNameT,
-    args: SolidityParamsType
+    args?: SolidityParamsType
   ): NamedContractDeploymentFuture<ContractNameT>;
 
   contractFromArtifact(
