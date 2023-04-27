@@ -165,6 +165,17 @@ function assertArgsArraysEqual(
       expectedArgs[index]?.length !== undefined &&
       typeof expectedArgs[index] !== "string"
     ) {
+      const expectedLength = expectedArgs[index].length;
+      const actualLength = actualArgs[index].length;
+      assert(
+        expectedLength === actualLength,
+        `Expected the ${ordinal(
+          index + 1
+        )} argument of the "${eventName}" event to have ${expectedLength} ${
+          expectedLength === 1 ? "element" : "elements"
+        }, but it has ${actualLength}`
+      );
+
       for (let j = 0; j < expectedArgs[index].length; j++) {
         new Assertion(actualArgs[index][j], undefined, ssfi, true).equal(
           expectedArgs[index][j]
