@@ -1,12 +1,12 @@
 [![npm](https://img.shields.io/npm/v/@nomicfoundation/hardhat-verify.svg)](https://www.npmjs.com/package/@nomicfoundation/hardhat-verify) [![hardhat](https://hardhat.org/buidler-plugin-badge.svg?1)](https://hardhat.org)
 
-# hardhat-etherscan
+# hardhat-verify
 
-[Hardhat](https://hardhat.org) plugin for integration with [Etherscan](https://etherscan.io)'s contract verification service.
+[Hardhat](https://hardhat.org) plugin to verify the source of code of deployed contracts.
 
 ## What
 
-This plugin helps you verify the source code for your Solidity contracts on [Etherscan](https://etherscan.io).
+This plugin helps you verify the source code for your Solidity contracts. At the moment, it supports [Etherscan](https://etherscan.io)-based explorers and explorers compatible with its API like [Blockscout](https://www.blockscout.com/).
 
 It's smart and it tries to do as much as possible to facilitate the process:
 
