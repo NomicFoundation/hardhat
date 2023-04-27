@@ -996,7 +996,7 @@ if the URL of the JSON-RPC wasn't set.`,
 
 The first supported version is %firstSupportedVersion%`,
       title: "Unsupported solc version",
-      description: `This version of solidity is not supported by Hardhtat.
+      description: `This version of solidity is not supported by Hardhat.
 Please use a newer, supported version.`,
       shouldBeReported: true,
     },
