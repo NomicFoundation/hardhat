@@ -4,7 +4,7 @@ order:
   - "@nomicfoundation/hardhat-toolbox"
   - "@nomicfoundation/hardhat-chai-matchers"
   - "@nomiclabs/hardhat-ethers"
-  - "@nomiclabs/hardhat-etherscan"
+  - "@nomicfoundation/hardhat-verify"
   - "@nomicfoundation/hardhat-foundry"
   - "@nomiclabs/hardhat-vyper"
   - "@nomiclabs/hardhat-solhint"

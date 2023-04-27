@@ -63,12 +63,12 @@ const customRedirects = [
   },
   {
     source: "/verify-custom-networks",
-    destination: "/plugins/nomiclabs-hardhat-etherscan#adding-support-for-other-networks",
+    destination: "/plugins/nomicfoundation-hardhat-verify#adding-support-for-other-networks",
     permanent: false
   },
   {
     source: "/verify-multiple-networks",
-    destination: "plugins/nomiclabs-hardhat-etherscan.html#multiple-api-keys-and-alternative-block-explorers",
+    destination: "plugins/nomicfoundation-hardhat-verify.html#multiple-api-keys-and-alternative-block-explorers",
     permanent: false
   },
   {
@@ -259,6 +259,11 @@ const customRedirects = [
   {
     source: "/network-helpers/:slug",
     destination: "/hardhat-network-helpers/docs/:slug",
+    permanent: false
+  },
+  {
+    source: "/hardhat-runner/plugins/nomiclabs-hardhat-etherscan",
+    destination: "/hardhat-runner/plugins/nomicfoundation-hardhat-verify",
     permanent: false
   },
   ...loadErrorRedirects()
