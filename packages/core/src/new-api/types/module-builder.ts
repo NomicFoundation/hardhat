@@ -2,15 +2,21 @@ import { ArtifactType, SolidityParamsType } from "../stubs";
 
 import {
   ArtifactContractDeploymentFuture,
+  Future,
   IgnitionModule,
   IgnitionModuleResult,
   NamedContractDeploymentFuture,
 } from "./module";
 
+export interface ContractOptions {
+  after?: Future[];
+}
+
 export interface IgnitionModuleBuilder {
   contract<ContractNameT extends string>(
     contractName: ContractNameT,
-    args?: SolidityParamsType
+    args?: SolidityParamsType,
+    options?: ContractOptions
   ): NamedContractDeploymentFuture<ContractNameT>;
 
   contractFromArtifact(

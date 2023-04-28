@@ -62,16 +62,10 @@ describe("new api", () => {
       assert(anotherFuture.dependencies.has(exampleFuture!));
     });
 
-    // TODO: confirm after syntax
-    it.skip("should be able to pass one contract as an after dependency of another", () => {
+    it("should be able to pass one contract as an after dependency of another", () => {
       const moduleWithDependentContracts = buildModule("Module1", (m) => {
         const example = m.contract("Example");
-        const another = m.contract(
-          "Another",
-          []
-          // proposed after syntax
-          // { after: [example] }
-        );
+        const another = m.contract("Another", [], { after: [example] });
 
         return { example, another };
       });

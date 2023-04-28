@@ -7,7 +7,10 @@ import {
   IgnitionModuleResult,
   NamedContractDeploymentFuture,
 } from "../types/module";
-import { IgnitionModuleBuilder } from "../types/module-builder";
+import {
+  ContractOptions,
+  IgnitionModuleBuilder,
+} from "../types/module-builder";
 
 import {
   ArtifactContractDeploymentFutureImplementation,
@@ -33,6 +36,7 @@ export class IgnitionModuleBuilderImplementation<
   public contract<ContractNameT extends string>(
     contractName: ContractNameT,
     args: SolidityParamsType = [],
+    options: ContractOptions = {},
     id = contractName
   ): NamedContractDeploymentFuture<ContractNameT> {
     // Some things that should be done here:
@@ -51,6 +55,10 @@ export class IgnitionModuleBuilderImplementation<
 
     for (const arg of args.filter(isFuture)) {
       future.dependencies.add(arg);
+    }
+
+    for (const afterFuture of (options.after ?? []).filter(isFuture)) {
+      future.dependencies.add(afterFuture);
     }
 
     this._module.futures.add(future);
