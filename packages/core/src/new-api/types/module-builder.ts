@@ -9,6 +9,7 @@ import {
 } from "./module";
 
 export interface ContractOptions {
+  id?: string;
   after?: Future[];
 }
 

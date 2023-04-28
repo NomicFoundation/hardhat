@@ -90,45 +90,54 @@ describe("new api", () => {
       assert(anotherFuture.dependencies.has(exampleFuture!));
     });
 
-    // TODO: determine whether this should throw due to id duplication
-    // on the contract calls or whether we should auto-infer
-    // the id as something like:
-    //   Module1:SameContract:1
-    //   Module1:SameContract:2
-    it.skip("should be able to deploy the same contract twice", () => {
-      const moduleWithSameContractTwice = buildModule("Module1", (m) => {
-        const sameContract1 = m.contract("SameContract");
-        const sameContract2 = m.contract("SameContract");
+    describe("passing id", () => {
+      it("should be able to deploy the same contract twice by passing an id", () => {
+        const moduleWithSameContractTwice = buildModule("Module1", (m) => {
+          const sameContract1 = m.contract("SameContract", [], { id: "first" });
+          const sameContract2 = m.contract("SameContract", [], {
+            id: "second",
+          });
 
-        return { sameContract1, sameContract2 };
+          return { sameContract1, sameContract2 };
+        });
+
+        // Sets ids based on module id and contract name
+        assert.equal(moduleWithSameContractTwice.id, "Module1");
+        assert.equal(
+          moduleWithSameContractTwice.results.sameContract1.id,
+          "Module1:first" // TODO: what should the id be here?
+        );
+        assert.equal(
+          moduleWithSameContractTwice.results.sameContract2.id,
+          "Module1:second"
+        );
       });
 
-      assert.isDefined(moduleWithSameContractTwice);
+      it("should throw if the same contract is deployed twice without differentiating ids", () => {
+        assert.throws(() => {
+          buildModule("Module1", (m) => {
+            const sameContract1 = m.contract("SameContract");
+            const sameContract2 = m.contract("SameContract");
 
-      // Sets ids based on module id and contract name
-      assert.equal(moduleWithSameContractTwice.id, "Module1");
-      assert.equal(
-        moduleWithSameContractTwice.results.sameContract1.id,
-        "Module1:SameContract" // TODO: what should the id be here?
-      );
-      assert.equal(
-        moduleWithSameContractTwice.results.sameContract2.id,
-        "Module1:SameContract"
-      );
+            return { sameContract1, sameContract2 };
+          });
+        }, /Contracts must have unique ids, Module1:SameContract has already been used/);
+      });
 
-      // 2 contract futures
-      assert.equal(moduleWithSameContractTwice.futures.size, 2);
-      assert.equal(
-        [...moduleWithSameContractTwice.futures][0].type,
-        FutureType.NAMED_CONTRACT_DEPLOYMENT
-      );
-      assert.equal(
-        [...moduleWithSameContractTwice.futures][1].type,
-        FutureType.NAMED_CONTRACT_DEPLOYMENT
-      );
+      it("should throw if a contract tries to pass the same id twice", () => {
+        assert.throws(() => {
+          buildModule("Module1", (m) => {
+            const sameContract1 = m.contract("SameContract", [], {
+              id: "same",
+            });
+            const sameContract2 = m.contract("SameContract", [], {
+              id: "same",
+            });
 
-      // No submodules
-      assert.equal(moduleWithSameContractTwice.submodules.size, 0);
+            return { sameContract1, sameContract2 };
+          });
+        }, /Contracts must have unique ids, Module1:same has already been used/);
+      });
     });
   });
 });

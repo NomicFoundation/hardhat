@@ -1,5 +1,6 @@
 import assert from "assert";
 
+import { IgnitionValidationError } from "../../errors";
 import { ArtifactType, SolidityParamsType } from "../stubs";
 import {
   ArtifactContractDeploymentFuture,
@@ -25,26 +26,27 @@ export class IgnitionModuleBuilderImplementation<
   IgnitionModuleResultsT extends IgnitionModuleResult<ResultsContractNameT>
 > implements IgnitionModuleBuilder
 {
+  private _futureIds: Set<string>;
+
   constructor(
     private readonly _module: IgnitionModuleImplementation<
       ModuleIdT,
       ResultsContractNameT,
       IgnitionModuleResultsT
     >
-  ) {}
+  ) {
+    this._futureIds = new Set<string>();
+  }
 
   public contract<ContractNameT extends string>(
     contractName: ContractNameT,
     args: SolidityParamsType = [],
-    options: ContractOptions = {},
-    id = contractName
+    options: ContractOptions = {}
   ): NamedContractDeploymentFuture<ContractNameT> {
-    // Some things that should be done here:
-    //   - create the future. - done
-    //   - add it to the set of futures of the module - done
-    //   - add any dependency (e.g. futures in `args` or `after`)
-    //   - validate that the id is not repeated
+    const id = options.id ?? contractName;
     const futureId = `${this._module.id}:${id}`;
+
+    this._assertUniqueContractId(futureId);
 
     const future = new NamedContractDeploymentFutureImplementation(
       futureId,
@@ -110,5 +112,20 @@ export class IgnitionModuleBuilderImplementation<
     this._module.submodules.add(ignitionModule);
 
     return ignitionModule.results;
+  }
+
+  private _assertUniqueContractId(futureId: string) {
+    if (this._futureIds.has(futureId)) {
+      const validationError = new IgnitionValidationError(
+        `Contracts must have unique ids, ${futureId} has already been used, ensure the id passed is unique \`m.contract("MyContract", [], { id: "MyId"})\``
+      );
+
+      // Improve the stack trace to stop on module api level
+      Error.captureStackTrace(validationError, this.contract);
+
+      throw validationError;
+    }
+
+    this._futureIds.add(futureId);
   }
 }
