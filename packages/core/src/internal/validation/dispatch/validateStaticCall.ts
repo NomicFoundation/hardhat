@@ -10,7 +10,7 @@ import {
 
 import {
   buildValidationError,
-  resolveArtifactForCallableFuture,
+  resolveArtifactForContractFuture,
 } from "./helpers";
 
 export async function validateStaticCall(
@@ -28,7 +28,7 @@ export async function validateStaticCall(
 
   const contractName = vertex.contract.label;
 
-  const artifactAbi = await resolveArtifactForCallableFuture(
+  const artifactAbi = await resolveArtifactForContractFuture(
     vertex.contract,
     context
   );

@@ -34,19 +34,6 @@ export async function validateArtifactLibrary(
     );
   }
 
-  const argsLength = vertex.args.length;
-
-  const iface = new ethers.utils.Interface(vertex.artifact.abi);
-  const expectedArgsLength = iface.deploy.inputs.length;
-
-  if (argsLength !== expectedArgsLength) {
-    return buildValidationError(
-      vertex,
-      `The constructor of the library '${vertex.label}' expects ${expectedArgsLength} arguments but ${argsLength} were given`,
-      context.callPoints
-    );
-  }
-
   return {
     _kind: VertexResultEnum.SUCCESS,
     result: undefined,

@@ -2,7 +2,6 @@ import type {
   AddressResolvable,
   ArtifactContract,
   ArtifactLibrary,
-  CallableFuture,
   ContractCall,
   ContractFuture,
   DependableFuture,
@@ -48,7 +47,6 @@ import {
 import {
   assertModuleReturnTypes,
   isArtifact,
-  isCallable,
   isContract,
   isDependable,
   isFuture,
@@ -327,7 +325,7 @@ export class DeploymentBuilder implements IDeploymentBuilder {
       _future: true,
     };
 
-    let contract: CallableFuture;
+    let contract: ContractFuture;
     if (isParameter(contractFuture)) {
       const parameter = contractFuture;
       const scope = parameter.scope;
@@ -346,11 +344,11 @@ export class DeploymentBuilder implements IDeploymentBuilder {
         | HardhatContract
         | ArtifactContract
         | DeployedContract;
-    } else if (isCallable(contractFuture)) {
+    } else if (isContract(contractFuture)) {
       contract = contractFuture;
     } else {
       throw new IgnitionError(
-        `Not a callable future ${contractFuture.label} (${contractFuture.type})`
+        `Not a contract future ${contractFuture.label} (${contractFuture.type})`
       );
     }
 
@@ -382,7 +380,7 @@ export class DeploymentBuilder implements IDeploymentBuilder {
       _future: true,
     };
 
-    let contract: CallableFuture;
+    let contract: ContractFuture;
     if (isParameter(contractFuture)) {
       const parameter = contractFuture;
       const scope = parameter.scope;
@@ -401,11 +399,11 @@ export class DeploymentBuilder implements IDeploymentBuilder {
         | HardhatContract
         | ArtifactContract
         | DeployedContract;
-    } else if (isCallable(contractFuture)) {
+    } else if (isContract(contractFuture)) {
       contract = contractFuture;
     } else {
       throw new IgnitionError(
-        `Not a callable future ${contractFuture.label} (${contractFuture.type})`
+        `Not a contract future ${contractFuture.label} (${contractFuture.type})`
       );
     }
 
@@ -440,7 +438,7 @@ export class DeploymentBuilder implements IDeploymentBuilder {
       params: {},
     };
 
-    let contract: CallableFuture;
+    let contract: ContractFuture;
     if (isParameter(contractFuture)) {
       const parameter = contractFuture;
       const scope = parameter.scope;
@@ -460,13 +458,13 @@ export class DeploymentBuilder implements IDeploymentBuilder {
         | ArtifactContract
         | DeployedContract;
     } else if (
-      isCallable(contractFuture) &&
+      isContract(contractFuture) &&
       contractFuture.type === "contract"
     ) {
       contract = contractFuture;
     } else {
       throw new IgnitionError(
-        `Not a callable future ${contractFuture.label} (${contractFuture.type})`
+        `Not a contract future ${contractFuture.label} (${contractFuture.type})`
       );
     }
 

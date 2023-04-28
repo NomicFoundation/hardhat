@@ -325,7 +325,7 @@ module.exports = buildModule("`TEST` registrar", (m) => {
 
 Calls to `useModule` memoize the results object, assuming the same parameters are passed. Multiple calls to the same module with different parameters are banned.
 
-Only `CallableFuture` types can be returned when building a module, so contracts or libraries (not calls).
+Only contract or library types can be returned when building a module.
 
 ## Module parameters
 

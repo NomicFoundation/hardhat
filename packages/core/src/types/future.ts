@@ -233,19 +233,13 @@ export type ContractFuture =
 export type LibraryFuture = HardhatLibrary | ArtifactLibrary;
 
 /**
- * The future representing the value of calling a smart contract method.
- *
- * @alpha
- */
-export type CallableFuture = ContractFuture | LibraryFuture;
-
-/**
  * A future value from an on-chain action that.
  *
  * @alpha
  */
 export type DependableFuture =
-  | CallableFuture
+  | ContractFuture
+  | LibraryFuture
   | ContractCall
   | StaticContractCall
   | Virtual

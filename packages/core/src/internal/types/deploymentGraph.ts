@@ -4,7 +4,7 @@ import { InternalParamValue } from "../../types/dsl";
 import {
   AddressResolvable,
   ArtifactContract,
-  CallableFuture,
+  ContractFuture,
   DeploymentGraphFuture,
   EventParamFuture,
   HardhatContract,
@@ -150,7 +150,7 @@ export interface ArtifactLibraryDeploymentVertex extends VertexDescriptor {
 export interface CallDeploymentVertex extends VertexDescriptor {
   type: "Call";
   scopeAdded: string;
-  contract: CallableFuture;
+  contract: ContractFuture;
   method: string;
   args: InternalParamValue[];
   after: DeploymentGraphFuture[];
@@ -166,7 +166,7 @@ export interface CallDeploymentVertex extends VertexDescriptor {
 export interface StaticCallDeploymentVertex extends VertexDescriptor {
   type: "StaticCall";
   scopeAdded: string;
-  contract: CallableFuture;
+  contract: ContractFuture;
   method: string;
   args: InternalParamValue[];
   after: DeploymentGraphFuture[];
