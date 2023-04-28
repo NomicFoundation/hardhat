@@ -30,16 +30,15 @@ export class HelpPrinter {
 
     console.log("GLOBAL OPTIONS:\n");
 
-    this._printParamDetails(this._hardhatParamDefinitions);
+    let length = this._printParamDetails(this._hardhatParamDefinitions);
 
     console.log("\n\nAVAILABLE TASKS:\n");
 
-    this._printTasks(this._tasks, includeSubtasks);
+    length = this._printTasks(this._tasks, includeSubtasks, length);
 
-    for (const scopeName of Object.keys(this._scopes)) {
-      console.log(`\n\nAVAILABLE TASKS UNDER SCOPE ${scopeName}:\n`);
-      this._printTasks(this._scopes[scopeName].tasks, includeSubtasks);
-    }
+    console.log("\n\nAVAILABLE SCOPES:\n");
+
+    this._printScopes(this._scopes, length);
 
     console.log("");
 
@@ -104,7 +103,11 @@ export class HelpPrinter {
     console.log(`For global options help run: ${this._executableName} help\n`);
   }
 
-  private _printTasks(tasksMap: TasksMap, includeSubtasks: boolean) {
+  private _printTasks(
+    tasksMap: TasksMap,
+    includeSubtasks: boolean,
+    length: number = 0
+  ) {
     const taskNameList = Object.entries(tasksMap)
       .filter(
         ([, taskDefinition]) => includeSubtasks || !taskDefinition.isSubtask
@@ -114,13 +117,33 @@ export class HelpPrinter {
 
     const nameLength = taskNameList
       .map((n) => n.length)
-      .reduce((a, b) => Math.max(a, b), 0);
+      .reduce((a, b) => Math.max(a, b), length);
 
     for (const name of taskNameList) {
       const { description = "" } = tasksMap[name];
 
       console.log(`  ${name.padEnd(nameLength)}\t${description}`);
     }
+
+    return nameLength;
+  }
+
+  private _printScopes(scopesMap: ScopesMap, length: number) {
+    const scopeNamesList = Object.entries(scopesMap)
+      .map(([scopeName]) => scopeName)
+      .sort();
+
+    const nameLength = scopeNamesList
+      .map((n) => n.length)
+      .reduce((a, b) => Math.max(a, b), length);
+
+    for (const name of scopeNamesList) {
+      const { description = "" } = scopesMap[name];
+
+      console.log(`  ${name.padEnd(nameLength)}\t${description}`);
+    }
+
+    return nameLength;
   }
 
   private _getParamValueDescription<T>(paramDefinition: ParamDefinition<T>) {
@@ -182,7 +205,7 @@ export class HelpPrinter {
     return paramsList;
   }
 
-  private _printParamDetails(paramDefinitions: ParamDefinitionsMap) {
+  private _printParamDetails(paramDefinitions: ParamDefinitionsMap): number {
     const paramsNameLength = Object.keys(paramDefinitions)
       .map((n) => ArgumentsParser.paramNameToCLA(n).length)
       .reduce((a, b) => Math.max(a, b), 0);
@@ -205,6 +228,8 @@ export class HelpPrinter {
 
       console.log(msg);
     }
+
+    return paramsNameLength;
   }
 
   private _printPositionalParamDetails(
