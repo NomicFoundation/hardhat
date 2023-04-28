@@ -5,7 +5,7 @@ import {
   HardhatParamDefinitions,
   ParamDefinition,
   ParamDefinitionsMap,
-  ScopedTasksMap,
+  ScopesMap,
   TaskArguments,
   TaskDefinition,
   TasksMap,
@@ -114,7 +114,7 @@ export class ArgumentsParser {
   public parseScopeAndTaskNames(
     allUnparsedCLAs: string[],
     taskDefinitions: TasksMap,
-    scopedTaskDefinitions: ScopedTasksMap
+    scopeDefinitions: ScopesMap
   ): {
     scopeName?: string;
     taskName: string;
@@ -126,7 +126,7 @@ export class ArgumentsParser {
 
     if (
       allUnparsedCLAs.length > 1 &&
-      scopedTaskDefinitions[allUnparsedCLAs[0]]?.[allUnparsedCLAs[1]] !==
+      scopeDefinitions[allUnparsedCLAs[0]]?.tasks?.[allUnparsedCLAs[1]] !==
         undefined
     ) {
       scopeName = allUnparsedCLAs[0];

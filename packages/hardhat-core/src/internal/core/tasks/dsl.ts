@@ -1,6 +1,6 @@
 import {
   ActionType,
-  ScopedTasksMap,
+  ScopesMap,
   TaskArguments,
   TaskDefinition,
   TaskIdentifier,
@@ -23,7 +23,7 @@ export class TasksDSL {
   public readonly internalTask = this.subtask;
 
   private readonly _tasks: TasksMap = {};
-  private readonly _scopedTasks: ScopedTasksMap = {};
+  private readonly _scopes: ScopesMap = {};
 
   /**
    * Creates a task, overriding any previous task with the same name.
@@ -119,8 +119,8 @@ export class TasksDSL {
    *
    * @returns The scoped tasks container.
    */
-  public getScopedTaskDefinitions(): ScopedTasksMap {
-    return this._scopedTasks;
+  public getScopesDefinitions(): ScopesMap {
+    return this._scopes;
   }
 
   public getTaskDefinition(
@@ -130,7 +130,7 @@ export class TasksDSL {
     if (scope === undefined) {
       return this._tasks[name];
     } else {
-      return this._scopedTasks[scope]?.[name];
+      return this._scopes[scope]?.tasks?.[name];
     }
   }
 
@@ -178,8 +178,8 @@ export class TasksDSL {
     if (scope === undefined) {
       this._tasks[name] = taskDefinition;
     } else {
-      this._scopedTasks[scope] = this._scopedTasks[scope] ?? {};
-      this._scopedTasks[scope][name] = taskDefinition;
+      this._scopes[scope] = this._scopes[scope] ?? { tasks: {} };
+      this._scopes[scope].tasks[name] = taskDefinition;
     }
 
     return taskDefinition;
@@ -195,16 +195,16 @@ export class TasksDSL {
       definition = this._tasks[taskName];
       delete this._tasks[taskName];
     } else {
-      definition = this._scopedTasks[oldScope][taskName];
-      delete this._scopedTasks[oldScope][taskName];
+      definition = this._scopes[oldScope].tasks[taskName];
+      delete this._scopes[oldScope].tasks[taskName];
     }
 
-    this._scopedTasks[newScope] = this._scopedTasks[newScope] ?? {};
-    this._scopedTasks[newScope][taskName] = definition;
+    this._scopes[newScope] = this._scopes[newScope] ?? { tasks: {} };
+    this._scopes[newScope].tasks[taskName] = definition;
   }
 
   private _checkClash(taskName: string, scopeName: string | undefined): void {
-    if (this._scopedTasks[taskName] !== undefined) {
+    if (this._scopes[taskName] !== undefined) {
       throw new HardhatError(ERRORS.TASK_DEFINITIONS.SCOPE_TASK_CLASH, {
         taskName,
       });

@@ -193,8 +193,11 @@ export interface TasksMap {
   [name: string]: TaskDefinition;
 }
 
-export interface ScopedTasksMap {
-  [scopeName: string]: TasksMap;
+export interface ScopesMap {
+  [scopeName: string]: {
+    description?: string;
+    tasks: TasksMap;
+  };
 }
 
 export type RunTaskFunction = (
@@ -208,7 +211,7 @@ export interface HardhatRuntimeEnvironment {
   readonly userConfig: HardhatUserConfig;
   readonly hardhatArguments: HardhatArguments;
   readonly tasks: TasksMap;
-  readonly scopedTasks: ScopedTasksMap;
+  readonly scopes: ScopesMap;
   readonly run: RunTaskFunction;
   readonly network: Network;
   readonly artifacts: Artifacts;

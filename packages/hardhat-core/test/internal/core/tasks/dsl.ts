@@ -71,8 +71,8 @@ describe("TasksDSL", () => {
     const tasks = dsl.getTaskDefinitions();
     assert.isUndefined(tasks.compile);
 
-    const scopedTasks = dsl.getScopedTaskDefinitions();
-    assert.isDefined(scopedTasks.solidity?.compile);
+    const scopes = dsl.getScopesDefinitions();
+    assert.isDefined(scopes.solidity?.tasks?.compile);
   });
 
   it("should add a task with scope and change scope", () => {
@@ -87,9 +87,9 @@ describe("TasksDSL", () => {
     const tasks = dsl.getTaskDefinitions();
     assert.isUndefined(tasks.compile);
 
-    const scopedTasks = dsl.getScopedTaskDefinitions();
-    assert.isUndefined(scopedTasks.solidity?.compile);
-    assert.isDefined(scopedTasks.solidity2?.compile);
+    const scopes = dsl.getScopesDefinitions();
+    assert.isUndefined(scopes.solidity?.tasks?.compile);
+    assert.isDefined(scopes.solidity2?.tasks?.compile);
   });
 
   it("should add a task with scope when a task with same name and no scope exists", () => {
@@ -103,9 +103,9 @@ describe("TasksDSL", () => {
     assert.isDefined(tasks.compile);
     assert.notEqual(task, tasks.compile);
 
-    const scopedTasks = dsl.getScopedTaskDefinitions();
-    assert.isDefined(scopedTasks.solidity?.compile);
-    assert.equal(task, scopedTasks.solidity?.compile);
+    const scopes = dsl.getScopesDefinitions();
+    assert.isDefined(scopes.solidity?.tasks?.compile);
+    assert.equal(task, scopes.solidity?.tasks?.compile);
   });
 
   it("should add a task without scope and then add scope", () => {
@@ -123,8 +123,8 @@ describe("TasksDSL", () => {
     // removes from tasks map and adds to scoped tasks map
     assert.isUndefined(tasks.compile);
 
-    const scopedTasks = dsl.getScopedTaskDefinitions();
-    assert.isDefined(scopedTasks.hello?.compile);
+    const scopes = dsl.getScopesDefinitions();
+    assert.isDefined(scopes.hello?.tasks?.compile);
   });
 
   it("should not create task with scope if scope clash with existing task", () => {

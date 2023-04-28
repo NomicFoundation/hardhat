@@ -2,7 +2,7 @@ import {
   HardhatParamDefinitions,
   ParamDefinition,
   ParamDefinitionsMap,
-  ScopedTasksMap,
+  ScopesMap,
   TaskDefinition,
   TasksMap,
 } from "../../types";
@@ -18,7 +18,7 @@ export class HelpPrinter {
     private readonly _version: string,
     private readonly _hardhatParamDefinitions: HardhatParamDefinitions,
     private readonly _tasks: TasksMap,
-    private readonly _scopedTasks: ScopedTasksMap
+    private readonly _scopes: ScopesMap
   ) {}
 
   public printGlobalHelp(includeSubtasks = false) {
@@ -36,9 +36,9 @@ export class HelpPrinter {
 
     this._printTasks(this._tasks, includeSubtasks);
 
-    for (const scopeName of Object.keys(this._scopedTasks)) {
+    for (const scopeName of Object.keys(this._scopes)) {
       console.log(`\n\nAVAILABLE TASKS UNDER SCOPE ${scopeName}:\n`);
-      this._printTasks(this._scopedTasks[scopeName], includeSubtasks);
+      this._printTasks(this._scopes[scopeName].tasks, includeSubtasks);
     }
 
     console.log("");
@@ -51,13 +51,13 @@ export class HelpPrinter {
   public printScopeHelp(scopeName: string, includeSubtasks = false) {
     console.log(`\n\nAVAILABLE TASKS UNDER SCOPE ${scopeName}:\n`);
 
-    if (this._scopedTasks[scopeName] === undefined) {
+    if (this._scopes[scopeName] === undefined) {
       throw new HardhatError(ERRORS.ARGUMENTS.UNRECOGNIZED_SCOPE, {
         scope: scopeName,
       });
     }
 
-    this._printTasks(this._scopedTasks[scopeName], includeSubtasks);
+    this._printTasks(this._scopes[scopeName].tasks, includeSubtasks);
 
     console.log(
       `\nFor global options help run: ${this._executableName} help\n`

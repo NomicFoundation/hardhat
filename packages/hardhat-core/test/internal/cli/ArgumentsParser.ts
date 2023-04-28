@@ -309,7 +309,7 @@ describe("ArgumentsParser", () => {
         argumentsParser.parseScopeAndTaskNames(
           ["compile"],
           { compile: dummy },
-          { scope: { compile: dummy } }
+          { scope: { tasks: { compile: dummy } } }
         );
 
       assert.isUndefined(scopeName);
@@ -324,7 +324,7 @@ describe("ArgumentsParser", () => {
         argumentsParser.parseScopeAndTaskNames(
           ["compile", "hello"],
           { compile: dummy },
-          { scope: { compile: dummy } }
+          { scope: { tasks: { compile: dummy } } }
         );
 
       assert.isUndefined(scopeName);
@@ -339,7 +339,7 @@ describe("ArgumentsParser", () => {
         argumentsParser.parseScopeAndTaskNames(
           ["scope", "compile", "hello", "wagmi"],
           { compile: dummy },
-          { scope: { compile: dummy } }
+          { scope: { tasks: { compile: dummy } } }
         );
 
       assert.equal(scopeName, "scope");
@@ -354,7 +354,7 @@ describe("ArgumentsParser", () => {
         argumentsParser.parseScopeAndTaskNames(
           ["wen", "moon"],
           { compile: dummy },
-          { scope: { compile: dummy } }
+          { scope: { tasks: { compile: dummy } } }
         );
 
       assert.isUndefined(scopeName);

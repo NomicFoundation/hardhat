@@ -199,14 +199,14 @@ async function main() {
 
     const envExtenders = ctx.extendersManager.getExtenders();
     const taskDefinitions = ctx.tasksDSL.getTaskDefinitions();
-    const scopedTaskDefinitions = ctx.tasksDSL.getScopedTaskDefinitions();
+    const scopesDefinitions = ctx.tasksDSL.getScopesDefinitions();
 
     // eslint-disable-next-line prefer-const
     let { scopeName, taskName, unparsedCLAs } =
       argumentsParser.parseScopeAndTaskNames(
         allUnparsedCLAs,
         taskDefinitions,
-        scopedTaskDefinitions
+        scopesDefinitions
       );
 
     let telemetryConsent: boolean | undefined = hasConsentedTelemetry();
@@ -268,7 +268,7 @@ async function main() {
       resolvedConfig,
       hardhatArguments,
       taskDefinitions,
-      scopedTaskDefinitions,
+      scopesDefinitions,
       envExtenders,
       ctx.experimentalHardhatNetworkMessageTraceHooks,
       userConfig

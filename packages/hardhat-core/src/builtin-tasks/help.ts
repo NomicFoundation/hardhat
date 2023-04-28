@@ -22,7 +22,7 @@ task(TASK_HELP, "Prints this message")
         scopeOrTask: first,
         task: second,
       }: { scopeOrTask?: string; task?: string },
-      { tasks, scopedTasks, version }
+      { tasks, scopes, version }
     ) => {
       const helpPrinter = new HelpPrinter(
         HARDHAT_NAME,
@@ -30,16 +30,16 @@ task(TASK_HELP, "Prints this message")
         version,
         HARDHAT_PARAM_DEFINITIONS,
         tasks,
-        scopedTasks
+        scopes
       );
 
       if (first !== undefined && first !== TASK_HELP) {
-        if (scopedTasks[first] !== undefined) {
+        if (scopes[first] !== undefined) {
           // first is a valid scope
           if (second !== undefined && second !== TASK_HELP) {
-            if (scopedTasks[first][second] !== undefined) {
+            if (scopes[first].tasks[second] !== undefined) {
               // second is a valid task under the scope
-              helpPrinter.printTaskHelp(scopedTasks[first][second]);
+              helpPrinter.printTaskHelp(scopes[first].tasks[second]);
               return;
             } else {
               // task second is not present under this scope

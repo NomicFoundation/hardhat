@@ -17,7 +17,7 @@ import {
   HardhatConfig,
   HardhatRuntimeEnvironment,
   ParamDefinition,
-  ScopedTasksMap,
+  ScopesMap,
   TasksMap,
 } from "../../../src/types";
 import {
@@ -81,7 +81,7 @@ describe("Environment", () => {
   };
 
   let tasks: TasksMap;
-  let scopedTasks: ScopedTasksMap;
+  let scopes: ScopesMap;
   let env: HardhatRuntimeEnvironment;
   let dsl: TasksDSL;
 
@@ -139,9 +139,9 @@ describe("Environment", () => {
       .setAction(async (_args: any[]) => _args);
 
     tasks = ctx.tasksDSL.getTaskDefinitions();
-    scopedTasks = ctx.tasksDSL.getScopedTaskDefinitions();
+    scopes = ctx.tasksDSL.getScopesDefinitions();
 
-    env = new Environment(config, args, tasks, scopedTasks);
+    env = new Environment(config, args, tasks, scopes);
     ctx.setHardhatRuntimeEnvironment(env);
   });
 
@@ -324,8 +324,8 @@ describe("Environment", () => {
         return 28;
       });
       tasks = dsl.getTaskDefinitions();
-      scopedTasks = dsl.getScopedTaskDefinitions();
-      const localEnv = new Environment(config, args, tasks, scopedTasks);
+      scopes = dsl.getScopesDefinitions();
+      const localEnv = new Environment(config, args, tasks, scopes);
       assert.equal(await localEnv.run("example"), 28);
     });
 
@@ -426,7 +426,7 @@ describe("Environment", () => {
           config,
           { ...args, network: "NOPE" },
           tasks,
-          scopedTasks,
+          scopes,
           ctx.extendersManager.getExtenders()
         );
       }, ERRORS.NETWORK.CONFIG_NOT_FOUND);
@@ -438,7 +438,7 @@ describe("Environment", () => {
         config,
         { ...args, network: undefined },
         tasks,
-        scopedTasks,
+        scopes,
         ctx.extendersManager.getExtenders()
       );
 
@@ -546,7 +546,7 @@ describe("Environment", () => {
         config,
         args,
         tasks,
-        scopedTasks,
+        scopes,
         ctx.extendersManager.getExtenders()
       );
       assert.equal((env as any).__test_key, "a value");

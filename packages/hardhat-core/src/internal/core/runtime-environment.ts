@@ -16,7 +16,7 @@ import {
   TaskArguments,
   TaskDefinition,
   TasksMap,
-  ScopedTasksMap,
+  ScopesMap,
 } from "../../types";
 import { Artifacts } from "../artifacts";
 import { MessageTrace } from "../hardhat-network/stack-traces/message-trace";
@@ -66,14 +66,14 @@ export class Environment implements HardhatRuntimeEnvironment {
    * @param config The hardhat's config object.
    * @param hardhatArguments The parsed hardhat's arguments.
    * @param tasks A map of tasks.
-   * @param scopedTasks A map of scoped tasks.
+   * @param scopes A map of scopes.
    * @param extenders A list of extenders.
    */
   constructor(
     public readonly config: HardhatConfig,
     public readonly hardhatArguments: HardhatArguments,
     public readonly tasks: TasksMap,
-    public readonly scopedTasks: ScopedTasksMap,
+    public readonly scopes: ScopesMap,
     extenders: EnvironmentExtender[] = [],
     experimentalHardhatNetworkMessageTraceHooks: ExperimentalHardhatNetworkMessageTraceHook[] = [],
     public readonly userConfig: HardhatUserConfig = {}
@@ -143,7 +143,7 @@ export class Environment implements HardhatRuntimeEnvironment {
       taskDefinition = this.tasks[name];
       log("Running task %s", name);
     } else {
-      taskDefinition = this.scopedTasks[scope]?.[name];
+      taskDefinition = this.scopes[scope]?.tasks?.[name];
       log("Running task %s:%s", scope, name);
     }
 
