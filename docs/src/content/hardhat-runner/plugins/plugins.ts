@@ -798,10 +798,10 @@ const officialPlugins: IPlugin[] = [
     tags: ["Ethers.js", "Testing", "Tasks", "Scripts"],
   },
   {
-    name: "@nomiclabs/hardhat-etherscan",
+    name: "@nomicfoundation/hardhat-verify",
     author: "Nomic Foundation",
     authorUrl: "https://twitter.com/NomicFoundation",
-    description: "Automatically verify contracts on Etherscan",
+    description: "Automatically verify contracts",
     tags: ["Etherscan", "Verification"],
   },
   {
