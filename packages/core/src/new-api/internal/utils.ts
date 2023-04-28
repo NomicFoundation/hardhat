@@ -1,6 +1,7 @@
+import { Future } from "../types/module";
+
 import { BaseFuture } from "./module";
 
-// TODO: convert this to type guard, but how do we type that?
-export function isFuture(potential: unknown): boolean {
+export function isFuture(potential: unknown): potential is Future {
   return potential instanceof BaseFuture;
 }
