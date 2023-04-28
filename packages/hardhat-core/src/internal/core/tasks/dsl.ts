@@ -156,8 +156,13 @@ export class TasksDSL {
       taskDefinition = new SimpleTaskDefinition(
         taskIdentifier,
         isSubtask,
-        (oldScope, newScope) => {
-          this._moveTaskToNewScope(name, oldScope, newScope);
+        (oldScope, newScope, newScopeDescription) => {
+          this._moveTaskToNewScope(
+            name,
+            oldScope,
+            newScope,
+            newScopeDescription
+          );
         }
       );
     }
@@ -188,7 +193,8 @@ export class TasksDSL {
   private _moveTaskToNewScope(
     taskName: string,
     oldScope: string | undefined,
-    newScope: string
+    newScope: string,
+    newScopeDescription: string | undefined
   ): void {
     let definition;
     if (oldScope === undefined) {
@@ -201,6 +207,10 @@ export class TasksDSL {
 
     this._scopes[newScope] = this._scopes[newScope] ?? { tasks: {} };
     this._scopes[newScope].tasks[taskName] = definition;
+
+    if (newScopeDescription !== undefined) {
+      this._scopes[newScope].description = newScopeDescription;
+    }
   }
 
   private _checkClash(taskName: string, scopeName: string | undefined): void {

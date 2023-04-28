@@ -116,9 +116,13 @@ describe("TasksDSL", () => {
     const tasks = dsl.getTaskDefinitions();
     assert.isDefined(tasks.compile);
 
-    task.setScope("hello");
+    task.setScope("hello", "scope description");
     assert.equal(task.scope, "hello");
     assert.equal(task.name, "compile");
+    assert.equal(
+      dsl.getScopesDefinitions().hello.description,
+      "scope description"
+    );
 
     // removes from tasks map and adds to scoped tasks map
     assert.isUndefined(tasks.compile);

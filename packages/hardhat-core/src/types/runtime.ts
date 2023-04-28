@@ -43,7 +43,7 @@ export interface CLIArgumentType<T> extends ArgumentType<T> {
 export interface ConfigurableTaskDefinition {
   setDescription(description: string): this;
 
-  setScope(newScope: string): this;
+  setScope(newScope: string, scopeDescription?: string): this;
 
   setAction(action: ActionType<TaskArguments>): this;
 

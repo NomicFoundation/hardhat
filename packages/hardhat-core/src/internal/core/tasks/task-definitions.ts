@@ -61,8 +61,9 @@ export class SimpleTaskDefinition implements TaskDefinition {
     taskIdentifier: TaskIdentifier,
     public readonly isSubtask: boolean = false,
     private readonly _setScopeCallback?: (
-      oldScope: string | undefined,
-      newScope: string
+      oldScopeName: string | undefined,
+      newScopeName: string,
+      newScopeDescription?: string
     ) => void
   ) {
     this._positionalParamNames = new Set();
@@ -80,14 +81,15 @@ export class SimpleTaskDefinition implements TaskDefinition {
 
   /**
    * Sets the task's scope.
-   * @param newScope The new scope.
+   * @param newScope The new scope name.
+   * @param newDescription The new scope description.
    */
-  public setScope(newScope: string) {
+  public setScope(newScopeName: string, newScopeDescription?: string) {
     if (this._setScopeCallback !== undefined) {
       // test if this works
-      this._setScopeCallback(this.scope, newScope);
+      this._setScopeCallback(this.scope, newScopeName, newScopeDescription);
     }
-    this._scope = newScope;
+    this._scope = newScopeName;
     return this;
   }
 
@@ -597,7 +599,7 @@ export class OverriddenTaskDefinition implements TaskDefinition {
    * Sets the task's scope.
    * @param scope The scope.
    */
-  public setScope(_scope: string): this {
+  public setScope(_scope: string, _scopeDescription?: string): this {
     throw new HardhatError(ERRORS.TASK_DEFINITIONS.OVERRIDE_TASK_SCOPE, {
       taskName: this.name,
     });
