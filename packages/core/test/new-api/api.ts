@@ -160,7 +160,7 @@ describe("new api", () => {
       assert(moduleWithSubmodule.submodules.has(submodule));
     });
 
-    it("should return cached version on second run", () => {
+    it("returns the same result set (object equal) for each usage", () => {
       const submodule = buildModule("Submodule1", (m) => {
         const contract1 = m.contract("Contract1");
 
@@ -181,6 +181,28 @@ describe("new api", () => {
 
       assert.equal(moduleWithSubmodule.submodules.size, 1);
       assert(moduleWithSubmodule.submodules.has(submodule));
+    });
+
+    it("supports dependending on returned results", () => {
+      const submodule = buildModule("Submodule1", (m) => {
+        const contract1 = m.contract("Contract1");
+
+        return { contract1 };
+      });
+
+      const moduleWithSubmodule = buildModule("Module1", (m) => {
+        const { contract1 } = m.useModule(submodule);
+
+        const contract2 = m.contract("Contract2", [contract1]);
+
+        return { contract2 };
+      });
+
+      assert(
+        moduleWithSubmodule.results.contract2.dependencies.has(
+          submodule.results.contract1
+        )
+      );
     });
   });
 });
