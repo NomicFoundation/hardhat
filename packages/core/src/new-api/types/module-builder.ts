@@ -13,6 +13,11 @@ export interface ContractOptions {
   after?: Future[];
 }
 
+export interface ContractFromArtifactOptions {
+  id?: string;
+  after?: Future[];
+}
+
 export interface IgnitionModuleBuilder {
   contract<ContractNameT extends string>(
     contractName: ContractNameT,
@@ -23,7 +28,8 @@ export interface IgnitionModuleBuilder {
   contractFromArtifact(
     contractName: string,
     artifact: ArtifactType,
-    args: SolidityParamsType
+    args?: SolidityParamsType,
+    options?: ContractFromArtifactOptions
   ): ArtifactContractDeploymentFuture;
 
   useModule<

@@ -9,6 +9,7 @@ import {
   NamedContractDeploymentFuture,
 } from "../types/module";
 import {
+  ContractFromArtifactOptions,
   ContractOptions,
   IgnitionModuleBuilder,
 } from "../types/module-builder";
@@ -71,11 +72,14 @@ export class IgnitionModuleBuilderImplementation<
   public contractFromArtifact(
     contractName: string,
     artifact: ArtifactType,
-    args: SolidityParamsType,
-    id = contractName
+    args: SolidityParamsType = [],
+    options: ContractFromArtifactOptions = {}
   ): ArtifactContractDeploymentFuture {
-    // See `contract`
+    const id = options.id ?? contractName;
     const futureId = `${this._module.id}:${id}`;
+
+    this._assertUniqueContractId(futureId);
+
     const future = new ArtifactContractDeploymentFutureImplementation(
       futureId,
       this._module,
@@ -85,6 +89,14 @@ export class IgnitionModuleBuilderImplementation<
     );
 
     this._module.futures.add(future);
+
+    for (const arg of args.filter(isFuture)) {
+      future.dependencies.add(arg);
+    }
+
+    for (const afterFuture of (options.after ?? []).filter(isFuture)) {
+      future.dependencies.add(afterFuture);
+    }
 
     return future;
   }
