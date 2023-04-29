@@ -75,9 +75,10 @@ impl<const REMOVE_ZERO_SLOTS: bool> StateRef for TrieState<REMOVE_ZERO_SLOTS> {
     }
 
     fn storage(&self, address: B160, index: U256) -> Result<U256, Self::Error> {
-        self.accounts
+        Ok(self
+            .accounts
             .account_storage_slot(&address, &index)
-            .ok_or(StateError::InvalidStorageSlot(index))
+            .unwrap_or(U256::ZERO))
     }
 }
 

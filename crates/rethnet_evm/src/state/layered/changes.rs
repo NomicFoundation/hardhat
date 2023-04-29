@@ -240,7 +240,11 @@ impl LayeredChanges<RethnetLayer> {
 
                 account.storage.iter().for_each(|(index, value)| {
                     let value = value.present_value();
-                    old_account.storage.insert(*index, value);
+                    if value == U256::ZERO {
+                        old_account.storage.remove(index);
+                    } else {
+                        old_account.storage.insert(*index, value);
+                    }
                 });
 
                 let mut account_info = account.info.clone();

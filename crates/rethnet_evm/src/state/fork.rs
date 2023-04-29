@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use hashbrown::HashMap;
+use hashbrown::{HashMap, HashSet};
 use parking_lot::{Mutex, RwLock, RwLockUpgradableReadGuard};
 use rethnet_eth::{
     remote::{BlockSpec, RpcClient},
@@ -24,8 +24,9 @@ use super::{
 /// database.
 #[derive(Debug)]
 pub struct ForkState {
-    local_state: HybridState<RethnetLayer, false>,
+    local_state: HybridState<RethnetLayer>,
     remote_state: Arc<Mutex<CachedRemoteState>>,
+    removed_storage_slots: HashSet<(Address, U256)>,
     fork_block_number: U256,
     /// client-facing state root (pseudorandomly generated) mapped to internal (layered_state) state root
     state_root_to_state: RwLock<HashMap<B256, B256>>,
@@ -69,6 +70,7 @@ impl ForkState {
         Self {
             local_state,
             remote_state: Arc::new(Mutex::new(CachedRemoteState::new(remote_state))),
+            removed_storage_slots: HashSet::new(),
             fork_block_number,
             state_root_to_state: RwLock::new(state_root_to_state),
             current_state: RwLock::new((generated_state_root, local_root)),
@@ -98,7 +100,8 @@ impl StateRef for ForkState {
     }
 
     fn storage(&self, address: Address, index: U256) -> Result<U256, Self::Error> {
-        if let Ok(local) = self.local_state.storage(address, index) {
+        let local = self.local_state.storage(address, index)?;
+        if local != U256::ZERO || self.removed_storage_slots.contains(&(address, index)) {
             Ok(local)
         } else {
             self.remote_state.lock().storage(address, index)
@@ -108,6 +111,14 @@ impl StateRef for ForkState {
 
 impl DatabaseCommit for ForkState {
     fn commit(&mut self, changes: HashMap<Address, Account>) {
+        changes.iter().for_each(|(address, account)| {
+            account.storage.iter().for_each(|(index, value)| {
+                if value.present_value() == U256::ZERO {
+                    self.removed_storage_slots.insert((*address, *index));
+                }
+            });
+        });
+
         self.local_state.commit(changes)
     }
 }
@@ -157,6 +168,10 @@ impl StateDebug for ForkState {
         index: U256,
         value: U256,
     ) -> Result<(), Self::Error> {
+        if value == U256::ZERO {
+            self.removed_storage_slots.insert((address, index));
+        }
+
         self.local_state
             .set_account_storage_slot(address, index, value)
     }
