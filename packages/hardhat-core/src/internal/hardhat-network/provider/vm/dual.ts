@@ -29,7 +29,7 @@ import { RunTxResult, Trace, VMAdapter } from "./vm-adapter";
 /* eslint-disable @nomiclabs/hardhat-internal-rules/only-hardhat-error */
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
 
-function printTrace(trace: any) {
+function _printTrace(trace: any) {
   console.log(
     JSON.stringify(
       trace,
@@ -662,11 +662,11 @@ export class DualModeAdapter implements VMAdapter {
       const differences = traceDifferences(ethereumJSTrace, rethnetTrace);
       if (differences.length > 0) {
         console.trace(`Different traces: ${differences}`);
-        console.log("EthereumJS trace:");
-        printTrace(ethereumJSTrace);
-        console.log();
-        console.log("Rethnet trace:");
-        printTrace(rethnetTrace);
+        // console.log("EthereumJS trace:");
+        // printTrace(ethereumJSTrace);
+        // console.log();
+        // console.log("Rethnet trace:");
+        // printTrace(rethnetTrace);
         throw new Error(`Different traces: ${differences}`);
       }
     }
