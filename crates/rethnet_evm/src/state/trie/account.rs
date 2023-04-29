@@ -15,13 +15,13 @@ type Trie = PatriciaTrie<MemoryDB, HasherKeccak>;
 
 /// A trie for maintaining the state of accounts and their storage.
 #[derive(Debug)]
-pub struct AccountTrie<const REMOVE_ZERO_SLOTS: bool = true> {
+pub struct AccountTrie {
     state_root: B256,
     state_trie_db: Arc<MemoryDB>,
     storage_trie_dbs: AccountStorageTries,
 }
 
-impl<const REMOVE_ZERO_SLOTS: bool> AccountTrie<REMOVE_ZERO_SLOTS> {
+impl AccountTrie {
     /// Constructs a `TrieState` from an (address -> account) mapping.
     #[cfg_attr(feature = "tracing", tracing::instrument)]
     pub fn with_accounts(accounts: &HashMap<Address, AccountInfo>) -> Self {
@@ -62,33 +62,45 @@ impl<const REMOVE_ZERO_SLOTS: bool> AccountTrie<REMOVE_ZERO_SLOTS> {
         C: IntoIterator<Item = AccountChange<'a>>,
     {
         let state_trie_db = Arc::new(MemoryDB::new(true));
-        let hasher = Arc::new(HasherKeccak::new());
 
         let mut storage_trie_dbs = HashMap::new();
 
         let state_root = {
-            let mut state_trie = Trie::new(state_trie_db.clone(), hasher.clone());
+            let mut state_trie = Trie::new(state_trie_db.clone(), Arc::new(HasherKeccak::new()));
 
             layers.into_iter().for_each(|layer| {
                 layer.into_iter().for_each(|(address, change)| {
                     if let Some((mut account, storage)) = change {
-                        let storage_trie_db = Arc::new(MemoryDB::new(true));
+                        let (storage_trie_db, storage_root) =
+                            storage_trie_dbs.entry(*address).or_insert_with(|| {
+                                let storage_trie_db = Arc::new(MemoryDB::new(true));
+                                let storage_root = {
+                                    let mut storage_trie = Trie::new(
+                                        storage_trie_db.clone(),
+                                        Arc::new(HasherKeccak::new()),
+                                    );
+                                    B256::from_slice(&storage_trie.root().unwrap())
+                                };
 
-                        let storage_root = {
-                            let mut storage_trie =
-                                Trie::new(storage_trie_db.clone(), hasher.clone());
+                                (storage_trie_db, storage_root)
+                            });
 
-                            storage.iter().for_each(|(index, value): (&U256, &U256)| {
+                        {
+                            let mut storage_trie = Trie::from(
+                                storage_trie_db.clone(),
+                                Arc::new(HasherKeccak::new()),
+                                storage_root.as_bytes(),
+                            )
+                            .expect("Invalid storage root");
+
+                            storage.iter().for_each(|(index, value)| {
                                 Self::set_account_storage_slot_in(index, value, &mut storage_trie);
                             });
 
-                            B256::from_slice(&storage_trie.root().unwrap())
+                            *storage_root = B256::from_slice(&storage_trie.root().unwrap());
                         };
 
-                        // Overwrites any existing storage in the process, as we receive the complete storage every change
-                        storage_trie_dbs.insert(*address, (storage_trie_db, storage_root));
-
-                        account.storage_root = storage_root;
+                        account.storage_root = *storage_root;
 
                         let hashed_address = HasherKeccak::new().digest(address.as_bytes());
                         state_trie
@@ -417,7 +429,7 @@ impl<const REMOVE_ZERO_SLOTS: bool> AccountTrie<REMOVE_ZERO_SLOTS> {
     #[cfg_attr(feature = "tracing", tracing::instrument)]
     fn set_account_storage_slot_in(index: &U256, value: &U256, storage_trie: &mut Trie) {
         let hashed_index = HasherKeccak::new().digest(&index.to_be_bytes::<32>());
-        if REMOVE_ZERO_SLOTS && *value == U256::ZERO {
+        if *value == U256::ZERO {
             if storage_trie.contains(&hashed_index).unwrap() {
                 storage_trie.remove(&hashed_index).unwrap();
             }
@@ -441,7 +453,7 @@ impl<const REMOVE_ZERO_SLOTS: bool> AccountTrie<REMOVE_ZERO_SLOTS> {
     }
 }
 
-impl<const REMOVE_ZERO_SLOTS: bool> Clone for AccountTrie<REMOVE_ZERO_SLOTS> {
+impl Clone for AccountTrie {
     #[cfg_attr(feature = "tracing", tracing::instrument)]
     fn clone(&self) -> Self {
         let state_trie_db = Arc::new((*self.state_trie_db).clone());
@@ -464,7 +476,7 @@ impl<const REMOVE_ZERO_SLOTS: bool> Clone for AccountTrie<REMOVE_ZERO_SLOTS> {
     }
 }
 
-impl<const REMOVE_ZERO_SLOTS: bool> Default for AccountTrie<REMOVE_ZERO_SLOTS> {
+impl Default for AccountTrie {
     #[cfg_attr(feature = "tracing", tracing::instrument)]
     fn default() -> Self {
         let state_trie_db = Arc::new(MemoryDB::new(true));
@@ -507,7 +519,7 @@ mod tests {
 
     #[test]
     fn clone_empty() {
-        let state: AccountTrie = AccountTrie::default();
+        let state = AccountTrie::default();
         let cloned_state = state.clone();
 
         assert_eq!(state.state_root(), cloned_state.state_root());
@@ -517,7 +529,7 @@ mod tests {
     fn clone_precompiles() {
         let accounts = precompiled_contracts();
 
-        let state: AccountTrie = AccountTrie::with_accounts(&accounts);
+        let state = AccountTrie::with_accounts(&accounts);
         let cloned_state = state.clone();
 
         assert_eq!(state.state_root(), cloned_state.state_root());
@@ -525,7 +537,7 @@ mod tests {
 
     #[test]
     fn default_empty() {
-        let state: AccountTrie = AccountTrie::default();
+        let state = AccountTrie::default();
 
         assert_eq!(state.state_root(), KECCAK_NULL_RLP);
     }
@@ -533,7 +545,7 @@ mod tests {
     #[test]
     fn with_accounts_empty() {
         let accounts = HashMap::new();
-        let state: AccountTrie = AccountTrie::with_accounts(&accounts);
+        let state = AccountTrie::with_accounts(&accounts);
 
         assert_eq!(state.state_root(), KECCAK_NULL_RLP);
     }
@@ -559,7 +571,7 @@ mod tests {
 
         let old = state_root(old.iter());
 
-        let state: AccountTrie = AccountTrie::with_accounts(&accounts);
+        let state = AccountTrie::with_accounts(&accounts);
 
         assert_eq!(state.state_root(), old);
     }
@@ -567,7 +579,7 @@ mod tests {
     #[test]
     fn from_changes_empty() {
         let changes: Vec<Vec<AccountChange<'_>>> = Vec::new();
-        let state: AccountTrie = AccountTrie::from_changes(changes);
+        let state = AccountTrie::from_changes(changes);
 
         assert_eq!(state.state_root(), KECCAK_NULL_RLP);
     }
@@ -596,7 +608,7 @@ mod tests {
             &expected_address,
             Some((expected_account.clone(), &expected_storage)),
         )]];
-        let state: AccountTrie = AccountTrie::from_changes(changes);
+        let state = AccountTrie::from_changes(changes);
 
         let account = state.account(&expected_address);
         assert_eq!(account, Some(expected_account));
@@ -643,7 +655,7 @@ mod tests {
                 Some((expected_account.clone(), &storage_layer2)),
             )],
         ];
-        let state: AccountTrie = AccountTrie::from_changes(changes);
+        let state = AccountTrie::from_changes(changes);
 
         let account = state.account(&expected_address);
         assert_eq!(account, Some(expected_account));
@@ -653,52 +665,7 @@ mod tests {
     }
 
     #[test]
-    fn from_changes_zero_storage_slot_insert() {
-        const DUMMY_ADDRESS: [u8; 20] = [1u8; 20];
-        const DUMMY_STORAGE_SLOT_INDEX: u64 = 100;
-        const DUMMY_STORAGE_SLOT_VALUE: u64 = 100;
-
-        let expected_address = Address::from(DUMMY_ADDRESS);
-        let expected_index = U256::from(DUMMY_STORAGE_SLOT_INDEX);
-
-        let mut storage_layer1 = Storage::new();
-        storage_layer1.insert(expected_index, U256::from(DUMMY_STORAGE_SLOT_VALUE));
-
-        let init_account = BasicAccount {
-            nonce: 1,
-            balance: U256::from(100u32),
-            storage_root: storage_root(storage_layer1.iter()),
-            code_hash: KECCAK_EMPTY,
-        };
-
-        let mut storage_layer2 = Storage::new();
-        storage_layer2.insert(U256::from(100), U256::ZERO);
-
-        let expected_account = BasicAccount {
-            nonce: 2,
-            balance: U256::from(200u32),
-            storage_root: storage_root(storage_layer2.iter()),
-            code_hash: KECCAK_EMPTY,
-        };
-
-        let changes: Vec<Vec<AccountChange<'_>>> = vec![
-            vec![(&expected_address, Some((init_account, &storage_layer1)))],
-            vec![(
-                &expected_address,
-                Some((expected_account.clone(), &storage_layer2)),
-            )],
-        ];
-        let state: AccountTrie<false> = AccountTrie::from_changes(changes);
-
-        let account = state.account(&expected_address);
-        assert_eq!(account, Some(expected_account));
-
-        let storage_value = state.account_storage_slot(&expected_address, &expected_index);
-        assert_eq!(storage_value, Some(U256::ZERO));
-    }
-
-    #[test]
-    fn from_changes_zero_storage_slot_remove() {
+    fn from_changes_remove_zeroed_storage_slot() {
         const DUMMY_ADDRESS: [u8; 20] = [1u8; 20];
         const DUMMY_STORAGE_SLOT_INDEX: u64 = 100;
         const DUMMY_STORAGE_SLOT_VALUE: u64 = 100;
@@ -737,7 +704,7 @@ mod tests {
                 Some((expected_account.clone(), &storage_layer2)),
             )],
         ];
-        let state: AccountTrie = AccountTrie::from_changes(changes);
+        let state = AccountTrie::from_changes(changes);
 
         let account = state.account(&expected_address);
         assert_eq!(account, Some(expected_account));

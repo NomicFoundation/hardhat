@@ -26,23 +26,21 @@ struct RevertedLayers<Layer> {
 }
 
 #[derive(Clone, Debug)]
-struct Snapshot<Layer, const REMOVE_ZERO_SLOTS: bool> {
+struct Snapshot<Layer> {
     pub changes: LayeredChanges<Layer>,
-    pub trie: TrieState<REMOVE_ZERO_SLOTS>,
+    pub trie: TrieState,
 }
 
 /// A state consisting of layers.
 #[derive(Clone, Debug, Default)]
-pub struct HybridState<Layer, const REMOVE_ZERO_SLOTS: bool = true> {
-    trie: TrieState<REMOVE_ZERO_SLOTS>,
+pub struct HybridState<Layer> {
+    trie: TrieState,
     changes: LayeredChanges<Layer>,
     reverted_layers: Option<RevertedLayers<Layer>>,
-    snapshots: SharedMap<B256, Snapshot<Layer, REMOVE_ZERO_SLOTS>, true>,
+    snapshots: SharedMap<B256, Snapshot<Layer>, true>,
 }
 
-impl<Layer: From<HashMap<Address, AccountInfo>>, const REMOVE_ZERO_SLOTS: bool>
-    HybridState<Layer, REMOVE_ZERO_SLOTS>
-{
+impl<Layer: From<HashMap<Address, AccountInfo>>> HybridState<Layer> {
     /// Creates a [`HybridState`] with the provided layer at the bottom.
     #[cfg_attr(feature = "tracing", tracing::instrument)]
     pub fn with_accounts(accounts: HashMap<Address, AccountInfo>) -> Self {
@@ -56,9 +54,14 @@ impl<Layer: From<HashMap<Address, AccountInfo>>, const REMOVE_ZERO_SLOTS: bool>
             snapshots: SharedMap::default(),
         }
     }
+
+    /// Returns the changes that allow reconstructing the state.
+    pub fn changes(&self) -> &LayeredChanges<Layer> {
+        &self.changes
+    }
 }
 
-impl<const REMOVE_ZERO_SLOTS: bool> StateRef for HybridState<RethnetLayer, REMOVE_ZERO_SLOTS> {
+impl StateRef for HybridState<RethnetLayer> {
     type Error = StateError;
 
     #[cfg_attr(feature = "tracing", tracing::instrument)]
@@ -77,9 +80,7 @@ impl<const REMOVE_ZERO_SLOTS: bool> StateRef for HybridState<RethnetLayer, REMOV
     }
 }
 
-impl<const REMOVE_ZERO_SLOTS: bool> DatabaseCommit
-    for HybridState<RethnetLayer, REMOVE_ZERO_SLOTS>
-{
+impl DatabaseCommit for HybridState<RethnetLayer> {
     #[cfg_attr(feature = "tracing", tracing::instrument)]
     fn commit(&mut self, changes: HashMap<Address, Account>) {
         self.changes.apply(&changes);
@@ -87,7 +88,7 @@ impl<const REMOVE_ZERO_SLOTS: bool> DatabaseCommit
     }
 }
 
-impl<const REMOVE_ZERO_SLOTS: bool> StateDebug for HybridState<RethnetLayer, REMOVE_ZERO_SLOTS> {
+impl StateDebug for HybridState<RethnetLayer> {
     type Error = StateError;
 
     #[cfg_attr(feature = "tracing", tracing::instrument)]
@@ -195,16 +196,8 @@ impl<const REMOVE_ZERO_SLOTS: bool> StateDebug for HybridState<RethnetLayer, REM
         value: U256,
     ) -> Result<(), Self::Error> {
         self.trie.set_account_storage_slot(address, index, value)?;
-
         self.changes
-            .account_or_insert_mut(&address, &|| {
-                Ok(AccountInfo {
-                    code: None,
-                    ..AccountInfo::default()
-                })
-            })
-            .storage
-            .insert(index, value);
+            .set_account_storage_slot(&address, &index, value);
 
         Ok(())
     }
@@ -215,7 +208,7 @@ impl<const REMOVE_ZERO_SLOTS: bool> StateDebug for HybridState<RethnetLayer, REM
     }
 }
 
-impl<const REMOVE_ZERO_SLOTS: bool> StateHistory for HybridState<RethnetLayer, REMOVE_ZERO_SLOTS> {
+impl StateHistory for HybridState<RethnetLayer> {
     type Error = StateError;
 
     #[cfg_attr(feature = "tracing", tracing::instrument)]

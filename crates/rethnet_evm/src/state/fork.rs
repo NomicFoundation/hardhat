@@ -78,6 +78,26 @@ impl ForkState {
             hash_generator,
         }
     }
+
+    fn update_removed_storage_slots(&mut self) {
+        self.removed_storage_slots.clear();
+
+        self.local_state
+            .changes()
+            .rev()
+            .flat_map(|layer| layer.accounts())
+            .for_each(|(address, account)| {
+                // We never need to remove zero entries as a "removed" entry means that the lookup for
+                // a value in the hybrid state succeeded.
+                if let Some(account) = account {
+                    account.storage.iter().for_each(|(index, value)| {
+                        if *value == U256::ZERO {
+                            self.removed_storage_slots.insert((*address, *index));
+                        }
+                    });
+                }
+            })
+    }
 }
 
 impl StateRef for ForkState {
@@ -113,6 +133,8 @@ impl DatabaseCommit for ForkState {
     fn commit(&mut self, changes: HashMap<Address, Account>) {
         changes.iter().for_each(|(address, account)| {
             account.storage.iter().for_each(|(index, value)| {
+                // We never need to remove zero entries as a "removed" entry means that the lookup for
+                // a value in the hybrid state succeeded.
                 if value.present_value() == U256::ZERO {
                     self.removed_storage_slots.insert((*address, *index));
                 }
@@ -168,6 +190,8 @@ impl StateDebug for ForkState {
         index: U256,
         value: U256,
     ) -> Result<(), Self::Error> {
+        // We never need to remove zero entries as a "removed" entry means that the lookup for
+        // a value in the hybrid state succeeded.
         if value == U256::ZERO {
             self.removed_storage_slots.insert((address, index));
         }
@@ -257,6 +281,8 @@ impl StateHistory for ForkState {
             });
         }
 
+        self.update_removed_storage_slots();
+
         Ok(())
     }
 
@@ -338,5 +364,94 @@ mod tests {
             B256::from_str("0x4e36f96ee1667a663dfaac57c4d185a0e369a3a217e0079d49620f34f85d1ac7")
                 .expect("failed to parse")
         );
+    }
+
+    #[test_with::env(ALCHEMY_URL)]
+    #[test]
+    fn set_block_context_with_zeroed_storage_slots() {
+        let runtime = Arc::new(
+            Builder::new_multi_thread()
+                .enable_io()
+                .enable_time()
+                .build()
+                .expect("failed to construct async runtime"),
+        );
+
+        let hash_generator = Arc::new(Mutex::new(RandomHashGenerator::with_seed("seed")));
+
+        let mut fork_state = ForkState::new(
+            runtime,
+            hash_generator,
+            &get_alchemy_url().expect("failed to get alchemy url"),
+            U256::from(16220843),
+            HashMap::default(),
+        );
+
+        let dai_address = Address::from_str("0x6b175474e89094c44da98b954eedeac495271d0f")
+            .expect("failed to parse address");
+
+        const STORAGE_SLOT_INDEX: u64 = 1;
+        const DUMMY_STORAGE_VALUE: u64 = 1000;
+
+        let storage_slot_index = U256::from(STORAGE_SLOT_INDEX);
+        let dummy_storage_value = U256::from(DUMMY_STORAGE_VALUE);
+        let initial_state_root = fork_state.initial_state_root;
+
+        // Validate remote storage slot value
+        assert_eq!(
+            fork_state.storage(dai_address, storage_slot_index).unwrap(),
+            U256::from_str("0x000000000000000000000000000000000000000010a596ae049e066d4991945c")
+                .unwrap()
+        );
+
+        // Set storage slot to zero
+        fork_state
+            .set_account_storage_slot(dai_address, storage_slot_index, U256::ZERO)
+            .unwrap();
+
+        // Validate storage slot equals zero
+        let fork_storage_slot = fork_state.storage(dai_address, storage_slot_index).unwrap();
+        assert_eq!(fork_storage_slot, U256::ZERO);
+
+        // Retrieve the state root that we want to revert to later on
+        let zeroed_state_root = fork_state.state_root().unwrap();
+
+        // Create layers with modified storage slot values that will be reverted
+        fork_state.checkpoint().unwrap();
+
+        fork_state
+            .set_account_storage_slot(dai_address, storage_slot_index, dummy_storage_value)
+            .unwrap();
+
+        fork_state.checkpoint().unwrap();
+
+        let dummy_storage_state_root = fork_state.make_snapshot();
+
+        // Validate storage slot equals zero after reverting to zeroed storage slot state
+        fork_state
+            .set_block_context(&zeroed_state_root, None)
+            .unwrap();
+
+        let fork_storage_slot = fork_state.storage(dai_address, storage_slot_index).unwrap();
+        assert_eq!(fork_storage_slot, U256::ZERO);
+
+        // Validate remote storage slot value after reverting to initial state
+        fork_state
+            .set_block_context(&initial_state_root, None)
+            .unwrap();
+
+        assert_eq!(
+            fork_state.storage(dai_address, storage_slot_index).unwrap(),
+            U256::from_str("0x000000000000000000000000000000000000000010a596ae049e066d4991945c")
+                .unwrap()
+        );
+
+        // Validate that the dummy value is returned after fast-forward to that state
+        fork_state
+            .set_block_context(&dummy_storage_state_root, None)
+            .unwrap();
+
+        let fork_storage_slot = fork_state.storage(dai_address, storage_slot_index).unwrap();
+        assert_eq!(fork_storage_slot, dummy_storage_value);
     }
 }

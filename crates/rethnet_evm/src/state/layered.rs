@@ -5,11 +5,7 @@ pub use changes::{LayeredChanges, RethnetLayer};
 use std::fmt::Debug;
 
 use hashbrown::HashMap;
-use rethnet_eth::{
-    account::BasicAccount,
-    state::{state_root, storage_root},
-    Address, B256, U256,
-};
+use rethnet_eth::{Address, B256, U256};
 use revm::{
     db::StateRef,
     primitives::{Account, AccountInfo, Bytecode, KECCAK_EMPTY},
@@ -83,10 +79,7 @@ impl StateDebug for LayeredState<RethnetLayer> {
 
     #[cfg_attr(feature = "tracing", tracing::instrument)]
     fn account_storage_root(&self, address: &Address) -> Result<Option<B256>, Self::Error> {
-        Ok(self
-            .changes
-            .account(address)
-            .map(|account| storage_root(&account.storage)))
+        Ok(self.changes.storage_root(address))
     }
 
     #[cfg_attr(feature = "tracing", tracing::instrument)]
@@ -181,41 +174,14 @@ impl StateDebug for LayeredState<RethnetLayer> {
         value: U256,
     ) -> Result<(), Self::Error> {
         self.changes
-            .account_or_insert_mut(&address, &|| {
-                Ok(AccountInfo {
-                    code: None,
-                    ..AccountInfo::default()
-                })
-            })
-            .storage
-            .insert(index, value);
+            .set_account_storage_slot(&address, &index, value);
 
         Ok(())
     }
 
     #[cfg_attr(feature = "tracing", tracing::instrument)]
     fn state_root(&self) -> Result<B256, Self::Error> {
-        let mut state = HashMap::new();
-
-        self.changes
-            .iter()
-            .flat_map(|layer| layer.accounts())
-            .for_each(|(address, account)| {
-                state
-                    .entry(*address)
-                    .or_insert(account.as_ref().map(|account| BasicAccount {
-                        nonce: account.info.nonce,
-                        balance: account.info.balance,
-                        storage_root: storage_root(&account.storage),
-                        code_hash: account.info.code_hash,
-                    }));
-            });
-
-        let state = state
-            .iter()
-            .filter_map(|(address, account)| account.as_ref().map(|account| (address, account)));
-
-        Ok(state_root(state))
+        Ok(self.changes.state_root())
     }
 }
 

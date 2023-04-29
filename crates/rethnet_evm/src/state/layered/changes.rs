@@ -3,7 +3,11 @@ use std::{collections::BTreeMap, fmt::Debug};
 use cita_trie::Hasher;
 use hashbrown::HashMap;
 use hasher::HasherKeccak;
-use rethnet_eth::{account::KECCAK_EMPTY, state::storage_root, Address, B256, U256};
+use rethnet_eth::{
+    account::{BasicAccount, KECCAK_EMPTY},
+    state::{state_root, storage_root, Storage},
+    Address, B256, U256,
+};
 use revm::primitives::{Account, AccountInfo, Bytecode};
 
 use crate::{
@@ -98,8 +102,10 @@ pub struct RethnetLayer {
 
 impl RethnetLayer {
     /// Retrieves an iterator over all accounts.
-    pub fn accounts(&self) -> impl Iterator<Item = (&Address, &Option<RethnetAccount>)> {
-        self.accounts.iter()
+    pub fn accounts(&self) -> impl Iterator<Item = (&Address, Option<&RethnetAccount>)> {
+        self.accounts
+            .iter()
+            .map(|(address, account)| (address, account.as_ref()))
     }
 
     /// Retrieves the contract storage
@@ -239,12 +245,7 @@ impl LayeredChanges<RethnetLayer> {
                 }
 
                 account.storage.iter().for_each(|(index, value)| {
-                    let value = value.present_value();
-                    if value == U256::ZERO {
-                        old_account.storage.remove(index);
-                    } else {
-                        old_account.storage.insert(*index, value);
-                    }
+                    old_account.storage.insert(*index, value.present_value());
                 });
 
                 let mut account_info = account.info.clone();
@@ -298,7 +299,26 @@ impl LayeredChanges<RethnetLayer> {
     /// Serializes the state using ordering of addresses and storage indices.
     #[cfg_attr(feature = "tracing", tracing::instrument)]
     pub fn serialize(&self) -> String {
-        let mut state = BTreeMap::new();
+        let mut state = HashMap::new();
+
+        self.rev()
+            .flat_map(|layer| layer.accounts())
+            .for_each(|(address, account)| {
+                if let Some(new_account) = account {
+                    state
+                        .entry(*address)
+                        .and_modify(|account: &mut RethnetAccount| {
+                            account.info = new_account.info.clone();
+
+                            new_account.storage.iter().for_each(|(index, value)| {
+                                account.storage.insert(*index, *value);
+                            });
+                        })
+                        .or_insert_with(|| new_account.clone());
+                } else {
+                    state.remove(address);
+                }
+            });
 
         #[derive(serde::Serialize)]
         struct StateAccount {
@@ -314,43 +334,119 @@ impl LayeredChanges<RethnetLayer> {
             pub storage_root: B256,
         }
 
-        self.iter()
-            .flat_map(|layer| layer.accounts())
-            .for_each(|(address, account)| {
-                state.entry(*address).or_insert_with(|| {
-                    account.as_ref().map(|account| {
-                        let storage_root = storage_root(&account.storage);
-
-                        // Sort entries
-                        let storage: BTreeMap<B256, U256> = account
-                            .storage
-                            .iter()
-                            .map(|(index, value)| {
-                                let hashed_index =
-                                    HasherKeccak::new().digest(&index.to_be_bytes::<32>());
-
-                                (B256::from_slice(&hashed_index), *value)
-                            })
-                            .collect();
-
-                        StateAccount {
-                            balance: account.info.balance,
-                            nonce: account.info.nonce,
-                            code_hash: account.info.code_hash,
-                            storage_root,
-                            storage,
-                        }
-                    })
-                });
-            });
-
-        // Remove deleted entries
         let state: BTreeMap<_, _> = state
             .into_iter()
-            .filter_map(|(address, account)| account.map(|account| (address, account)))
+            .map(|(address, mut account)| {
+                account.storage.retain(|_index, value| *value != U256::ZERO);
+
+                let storage_root = storage_root(&account.storage);
+
+                // Sort entries
+                let storage: BTreeMap<B256, U256> = account
+                    .storage
+                    .iter()
+                    .map(|(index, value)| {
+                        let hashed_index = HasherKeccak::new().digest(&index.to_be_bytes::<32>());
+
+                        (B256::from_slice(&hashed_index), *value)
+                    })
+                    .collect();
+
+                let account = StateAccount {
+                    balance: account.info.balance,
+                    nonce: account.info.nonce,
+                    code_hash: account.info.code_hash,
+                    storage_root,
+                    storage,
+                };
+
+                (address, account)
+            })
             .collect();
 
         serde_json::to_string_pretty(&state).unwrap()
+    }
+
+    /// Sets the storage slot at the specified address and index to the provided value.
+    #[cfg_attr(feature = "tracing", tracing::instrument)]
+    pub fn set_account_storage_slot(&mut self, address: &Address, index: &U256, value: U256) {
+        self.account_or_insert_mut(address, &|| {
+            Ok(AccountInfo {
+                code: None,
+                ..AccountInfo::default()
+            })
+        })
+        .storage
+        .insert(*index, value);
+    }
+
+    /// Retrieves the trie's state root.
+    #[cfg_attr(feature = "tracing", tracing::instrument)]
+    pub fn state_root(&self) -> B256 {
+        let mut state = HashMap::new();
+
+        self.rev()
+            .flat_map(|layer| layer.accounts())
+            .for_each(|(address, account)| {
+                if let Some(new_account) = account {
+                    state
+                        .entry(*address)
+                        .and_modify(|account: &mut RethnetAccount| {
+                            account.info = new_account.info.clone();
+
+                            new_account.storage.iter().for_each(|(index, value)| {
+                                account.storage.insert(*index, *value);
+                            });
+                        })
+                        .or_insert_with(|| new_account.clone());
+                } else {
+                    state.remove(address);
+                }
+            });
+
+        let state: HashMap<_, _> = state
+            .into_iter()
+            .map(|(address, account)| {
+                let account = BasicAccount {
+                    nonce: account.info.nonce,
+                    balance: account.info.balance,
+                    storage_root: storage_root(&account.storage),
+                    code_hash: account.info.code_hash,
+                };
+                (address, account)
+            })
+            .collect();
+
+        state_root(&state)
+    }
+
+    /// Retrieves the storage root of the account at the specified address.
+    #[cfg_attr(feature = "tracing", tracing::instrument)]
+    pub fn storage_root(&self, address: &Address) -> Option<B256> {
+        let mut exists = false;
+        let mut storage = Storage::default();
+
+        self.rev()
+            .flat_map(|layer| layer.accounts.get(address))
+            .for_each(|account| {
+                if let Some(account) = account {
+                    account.storage.iter().for_each(|(index, value)| {
+                        storage.insert(*index, *value);
+                    });
+
+                    exists = true;
+                } else {
+                    storage.clear();
+                }
+            });
+
+        if exists {
+            storage.retain(|_index, value| *value != U256::ZERO);
+
+            Some(storage_root(&storage))
+        } else {
+            None
+        }
     }
 
     /// Inserts the provided bytecode using its hash, potentially overwriting an existing value.
