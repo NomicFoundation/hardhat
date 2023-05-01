@@ -216,17 +216,6 @@ export interface ProxyFuture {
 }
 
 /**
- * A future representing an artifact deployment or an already existing deployed
- * contract.
- *
- * @privateRemarks
- * TODO: is this needed?
- *
- * @alpha
- */
-export type ArtifactFuture = ArtifactContract | DeployedContract;
-
-/**
  * A future representing the address of a deployed Contract.
  *
  * @alpha

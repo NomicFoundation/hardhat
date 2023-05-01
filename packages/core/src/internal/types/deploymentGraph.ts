@@ -7,6 +7,7 @@ import {
   CallableFuture,
   DeploymentGraphFuture,
   EventParamFuture,
+  HardhatContract,
   ParameterFuture,
   Virtual,
 } from "../../types/future";
@@ -197,7 +198,7 @@ export interface EventVertex extends VertexDescriptor {
   type: "Event";
   scopeAdded: string;
   abi: any[];
-  address: string | ArtifactContract | EventParamFuture;
+  address: string | ArtifactContract | HardhatContract | EventParamFuture;
   event: string;
   args: InternalParamValue[];
   after: DeploymentGraphFuture[];

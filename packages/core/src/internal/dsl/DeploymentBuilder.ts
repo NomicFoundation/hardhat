@@ -1,7 +1,6 @@
 import type {
   AddressResolvable,
   ArtifactContract,
-  ArtifactFuture,
   ArtifactLibrary,
   CallableFuture,
   ContractCall,
@@ -426,7 +425,7 @@ export class DeploymentBuilder implements IDeploymentBuilder {
   }
 
   public event(
-    artifactFuture: ArtifactFuture,
+    contractFuture: DeploymentGraphFuture,
     eventName: string,
     { args, after }: AwaitOptions
   ): EventFuture {
@@ -434,32 +433,54 @@ export class DeploymentBuilder implements IDeploymentBuilder {
 
     const eventFuture: EventFuture = {
       vertexId,
-      label: `${artifactFuture.label}/${eventName}`,
+      label: `${contractFuture.label}/${eventName}`,
       type: "await",
       subtype: "event",
       _future: true,
       params: {},
     };
 
-    if (
-      artifactFuture.subtype !== "artifact" &&
-      artifactFuture.subtype !== "deployed"
-    ) {
-      const future = artifactFuture as any;
+    let contract: CallableFuture;
+    if (isParameter(contractFuture)) {
+      const parameter = contractFuture;
+      const scope = parameter.scope;
 
+      const scopeData = this.graph.scopeData[scope];
+
+      if (
+        scopeData === undefined ||
+        scopeData.parameters === undefined ||
+        !(parameter.label in scopeData.parameters)
+      ) {
+        throw new IgnitionError("Could not resolve contract from parameter");
+      }
+
+      contract = scopeData.parameters[parameter.label] as
+        | HardhatContract
+        | ArtifactContract
+        | DeployedContract;
+    } else if (
+      isCallable(contractFuture) &&
+      contractFuture.type === "contract"
+    ) {
+      contract = contractFuture;
+    } else {
       throw new IgnitionError(
-        `Not an artifact future ${future.label} (${future.type})`
+        `Not a callable future ${contractFuture.label} (${contractFuture.type})`
       );
     }
 
     let abi: any[];
-    let address: string | ArtifactContract | EventParamFuture;
-    if (artifactFuture.subtype === "artifact") {
-      abi = artifactFuture.artifact.abi;
-      address = artifactFuture;
+    let address: string | ArtifactContract | HardhatContract | EventParamFuture;
+    if (contract.subtype === "artifact") {
+      abi = contract.artifact.abi;
+      address = contract;
+    } else if (contract.subtype === "deployed") {
+      abi = contract.abi;
+      address = contract.address;
     } else {
-      abi = artifactFuture.abi;
-      address = artifactFuture.address;
+      abi = this.artifactMap[contract.contractName].abi;
+      address = contract;
     }
 
     eventFuture.params = this._parseEventParams(abi, eventFuture);
