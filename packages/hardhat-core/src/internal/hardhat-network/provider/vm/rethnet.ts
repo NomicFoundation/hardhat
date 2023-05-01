@@ -5,7 +5,7 @@ import {
   Address,
   KECCAK256_NULL,
 } from "@nomicfoundation/ethereumjs-util";
-import { TypedTransaction } from "@nomicfoundation/ethereumjs-tx";
+import { Capability, TypedTransaction } from "@nomicfoundation/ethereumjs-tx";
 import {
   Account as RethnetAccount,
   BlockBuilder,
@@ -100,6 +100,16 @@ export class RethnetAdapter implements VMAdapter {
     blockContext: Block,
     forceBaseFeeZero?: boolean
   ): Promise<[RunTxResult, Trace]> {
+    if (
+      tx.supports(Capability.EIP1559FeeMarket) &&
+      !blockContext._common.hardforkGteHardfork(
+        this._selectHardfork(blockContext.header.number),
+        "london"
+      )
+    ) {
+      throw new Error("Cannot run transaction: EIP 1559 is not activated.");
+    }
+
     const rethnetTx = ethereumjsTransactionToRethnet(tx);
 
     const difficulty = this._getBlockEnvDifficulty(
@@ -304,6 +314,16 @@ export class RethnetAdapter implements VMAdapter {
     tx: TypedTransaction,
     block: Block
   ): Promise<[RunTxResult, Trace]> {
+    if (
+      tx.supports(Capability.EIP1559FeeMarket) &&
+      !block._common.hardforkGteHardfork(
+        this._selectHardfork(block.header.number),
+        "london"
+      )
+    ) {
+      throw new Error("Cannot run transaction: EIP 1559 is not activated.");
+    }
+
     const rethnetTx = ethereumjsTransactionToRethnet(tx);
 
     const difficulty = this._getBlockEnvDifficulty(block.header.difficulty);
