@@ -10,7 +10,7 @@ import {
 
 import {
   buildValidationError,
-  resolveArtifactForCallableFuture,
+  resolveArtifactForContractFuture,
 } from "./helpers";
 
 export async function validateEvent(
@@ -30,7 +30,7 @@ export async function validateEvent(
 
     artifactAbi = vertex.abi;
   } else if (vertex.address.type === "contract") {
-    artifactAbi = await resolveArtifactForCallableFuture(vertex.address, {
+    artifactAbi = await resolveArtifactForContractFuture(vertex.address, {
       services,
     });
 

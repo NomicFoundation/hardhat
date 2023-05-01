@@ -1,4 +1,4 @@
-import type { CallableFuture } from "../../../types/future";
+import type { ContractFuture } from "../../../types/future";
 import type { Services } from "../../types/services";
 
 import { IgnitionError } from "../../../errors";
@@ -6,8 +6,8 @@ import { CallPoints, DeploymentGraphVertex } from "../../types/deploymentGraph";
 import { VertexResultEnum, VertexVisitResultFailure } from "../../types/graph";
 import { resolveProxyValue } from "../../utils/proxy";
 
-export async function resolveArtifactForCallableFuture(
-  givenFuture: CallableFuture,
+export async function resolveArtifactForContractFuture(
+  givenFuture: ContractFuture,
   { services }: { services: Services }
 ): Promise<any[] | undefined> {
   const future = resolveProxyValue(givenFuture);

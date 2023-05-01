@@ -6,7 +6,7 @@ import { assert } from "chai";
 import { buildModule } from "../../src/buildModule";
 import { IgnitionError } from "../../src/errors";
 import { generateDeploymentGraphFrom } from "../../src/internal/process/generateDeploymentGraphFrom";
-import { isCallable } from "../../src/internal/utils/guards";
+import { isContract } from "../../src/internal/utils/guards";
 import { isFailure } from "../../src/internal/utils/process-results";
 import { IDeploymentBuilder } from "../../src/types/dsl";
 
@@ -32,8 +32,8 @@ describe("deployment builder - parameters", function () {
         parameters: { tokenSymbol: "EXAMPLE", tokenName: "Example" },
       });
 
-      if (!isCallable(token)) {
-        throw new IgnitionError("Not callable");
+      if (!isContract(token)) {
+        throw new IgnitionError("Not contract");
       }
 
       return { token };

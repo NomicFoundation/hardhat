@@ -1,5 +1,4 @@
 import type {
-  CallableFuture,
   ContractFuture,
   DependableFuture,
   DeploymentGraphFuture,
@@ -128,16 +127,6 @@ export function isParameter(
   future: DeploymentGraphFuture
 ): future is RequiredParameter | OptionalParameter {
   return future.type === "parameter";
-}
-
-export function isCallable(
-  future: DeploymentGraphFuture
-): future is CallableFuture {
-  if (isProxy(future)) {
-    return isCallable(future.value);
-  }
-
-  return future.type === "contract" || future.type === "library";
 }
 
 export function isContract(

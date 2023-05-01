@@ -10,9 +10,10 @@ import { isFailure } from "../../src/internal/utils/process-results";
 import { IDeploymentBuilder } from "../../src/types/dsl";
 import {
   ArtifactContract,
-  CallableFuture,
+  ContractFuture,
   EventFuture,
   HardhatContract,
+  LibraryFuture,
   ProxyFuture,
   Virtual,
 } from "../../src/types/future";
@@ -537,7 +538,12 @@ describe("deployment builder - useModule", () => {
   describe("returning non contract futures from within a module", () => {
     // @ts-ignore
     let returnsWrongFutureTypeModule: Module<{
-      token: CallableFuture | Virtual | ProxyFuture | EventFuture;
+      token:
+        | ContractFuture
+        | LibraryFuture
+        | Virtual
+        | ProxyFuture
+        | EventFuture;
     }>;
 
     before(() => {

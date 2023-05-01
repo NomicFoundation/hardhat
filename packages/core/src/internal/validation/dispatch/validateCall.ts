@@ -11,7 +11,7 @@ import { isParameter } from "../../utils/guards";
 
 import {
   buildValidationError,
-  resolveArtifactForCallableFuture,
+  resolveArtifactForContractFuture,
 } from "./helpers";
 
 export async function validateCall(
@@ -37,7 +37,7 @@ export async function validateCall(
 
   const contractName = vertex.contract.label;
 
-  const artifactAbi = await resolveArtifactForCallableFuture(
+  const artifactAbi = await resolveArtifactForContractFuture(
     vertex.contract,
     context
   );

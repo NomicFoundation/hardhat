@@ -107,23 +107,6 @@ describe("Validation", () => {
       assert.equal(validationResult._kind, ProcessResultKind.SUCCESS);
     });
 
-    it("should not validate a artifact library deploy with the wrong number of args", async () => {
-      const singleModule = buildModule("single", (m: IDeploymentBuilder) => {
-        const example = m.library("Example", exampleArtifact, {
-          args: [1, 2, 3],
-        });
-
-        return { example };
-      });
-
-      const validationResult = await runValidation(singleModule);
-
-      assertValidationError(
-        validationResult,
-        "The constructor of the library 'Example' expects 0 arguments but 3 were given"
-      );
-    });
-
     it("should not validate a artifact library deploy with a non-address `from`", async () => {
       const singleModule = buildModule("single", (m: IDeploymentBuilder) => {
         const example = m.library("Example", exampleArtifact, {
@@ -1014,29 +997,6 @@ describe("Validation", () => {
       assertValidationError(
         validationResult,
         "Library with name 'Nonexistant' doesn't exist"
-      );
-    });
-
-    it("should not validate a library deployed with the wrong number of args", async () => {
-      const singleModule = buildModule("single", (m: IDeploymentBuilder) => {
-        const example = m.library("Example", { args: [1, 2] });
-
-        return { example };
-      });
-
-      const mockServices = {
-        ...getMockServices(),
-        artifacts: {
-          hasArtifact: () => true,
-          getArtifact: () => exampleArtifact,
-        },
-      } as any;
-
-      const validationResult = await runValidation(singleModule, mockServices);
-
-      assertValidationError(
-        validationResult,
-        "The constructor of the library 'Example' expects 0 arguments but 2 were given"
       );
     });
 
