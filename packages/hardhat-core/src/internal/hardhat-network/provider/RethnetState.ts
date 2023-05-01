@@ -35,7 +35,7 @@ export class RethnetStateManager {
     forkConfig: ForkConfig,
     genesisAccounts: GenesisAccount[]
   ): Promise<RethnetStateManager> {
-    let blockNumber;
+    let blockNumber: bigint;
     if (forkConfig.blockNumber !== undefined) {
       blockNumber = BigInt(forkConfig.blockNumber);
     } else {

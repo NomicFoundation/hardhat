@@ -75,12 +75,7 @@ export async function runFullBlock(
   });
   await blockBuilder.startBlock();
 
-  for (const [i, tx] of block.transactions.entries()) {
-    console.log(
-      `[runFullBlock] Running transaction ${i + 1} of ${
-        block.transactions.length
-      }`
-    );
+  for (const tx of block.transactions.values()) {
     await blockBuilder.addTransaction(tx);
   }
 

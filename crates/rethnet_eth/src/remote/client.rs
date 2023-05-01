@@ -11,13 +11,11 @@ use super::{eth, jsonrpc, BlockSpec, GetLogsInput, MethodInvocation, Serializabl
 /// Specialized error types
 #[derive(thiserror::Error, Debug)]
 pub enum RpcClientError {
-    /// The remote node's response did not conform to the expected format
-    #[error("Response body `{body}` did not contain the expected type: `{expected_type}`: {msg}")]
-    InterpretationError {
+    /// The remote node's response is invalid JSON
+    #[error("Response body `{body}` was malformed: {msg}")]
+    DeserializationError {
         /// The error message
         msg: String,
-        /// The Rust type which was expected to be decoded from the JSON received
-        expected_type: &'static str,
         /// The body of the response given by the remote node
         body: String,
     },
@@ -54,7 +52,6 @@ struct Request<'a> {
 
 struct BatchResponse {
     text: String,
-    request_ids: Vec<jsonrpc::Id>,
     request_strings: Vec<String>,
 }
 
@@ -167,19 +164,18 @@ impl RpcClient {
         &self,
         inputs: &[MethodInvocation],
     ) -> Result<BatchResponse, RpcClientError> {
-        let (request_strings, request_ids): (Vec<String>, Vec<jsonrpc::Id>) = inputs
+        let request_strings: Vec<String> = inputs
             .iter()
             .map(|i| {
-                let id = jsonrpc::Id::Num(self.next_id.fetch_add(1, Ordering::Relaxed));
-                let json = serde_json::json!(Request {
+                let request_id = self.next_id.fetch_add(1, Ordering::Relaxed);
+                serde_json::json!(Request {
                     version: crate::remote::jsonrpc::Version::V2_0,
-                    id: &id,
+                    id: &jsonrpc::Id::Num(request_id),
                     method: i,
                 })
-                .to_string();
-                (json, id)
+                .to_string()
             })
-            .unzip();
+            .collect();
 
         let request_body = format!("[{}]", request_strings.join(","));
 
@@ -187,7 +183,6 @@ impl RpcClient {
             .await
             .map(|response| BatchResponse {
                 text: response,
-                request_ids,
                 request_strings,
             })
     }
@@ -307,17 +302,36 @@ impl RpcClient {
             jsonrpc::Response<jsonrpc::ZeroXPrefixedBytes>,
         );
 
-        let results: BatchResult = serde_json::from_str(&response.text).map_err(|err| {
-            RpcClientError::InterpretationError {
-                msg: err.to_string(),
-                expected_type: std::any::type_name::<BatchResult>(),
-                body: response.text.to_owned(),
-            }
-        })?;
+        let responses: Vec<serde_json::Value> =
+            serde_json::from_str(&response.text).map_err(|err| {
+                RpcClientError::DeserializationError {
+                    msg: err.to_string(),
+                    body: response.text.clone(),
+                }
+            })?;
 
-        debug_assert_eq!(results.0.id, response.request_ids[0]);
-        debug_assert_eq!(results.1.id, response.request_ids[1]);
-        debug_assert_eq!(results.2.id, response.request_ids[2]);
+        let response_ids: Vec<u64> = responses
+            .iter()
+            .map(|value| {
+                value
+                    .get("id")
+                    .expect("Response must have ID")
+                    .as_u64()
+                    .expect("Response ID must be a `u64`")
+            })
+            .collect();
+
+        let (balance_response, nonce_response, code_response) = responses
+            .into_iter()
+            .zip(response_ids.into_iter())
+            .sorted_by(|(_, id1), (_, id2)| id1.cmp(id2))
+            .map(|(response, _)| response)
+            .tuples()
+            .next()
+            .ok_or_else(|| RpcClientError::DeserializationError {
+                msg: String::from("Batch response must contain 3 elements"),
+                body: response.text.clone(),
+            })?;
 
         let (balance_request, nonce_request, code_request) = response
             .request_strings
@@ -326,35 +340,55 @@ impl RpcClient {
             .next()
             .expect("request strings must contain 3 elements");
 
-        let balance =
-            results
-                .0
-                .data
-                .into_result()
-                .map_err(|error| RpcClientError::JsonRpcError {
-                    error,
-                    request: balance_request,
+        let balance = serde_json::from_value::<jsonrpc::Response<U256>>(balance_response)
+            .map_err(|err| RpcClientError::DeserializationError {
+                msg: err.to_string(),
+                body: response.text.clone(),
+            })
+            .and_then(|response| {
+                response
+                    .data
+                    .into_result()
+                    .map_err(|error| RpcClientError::JsonRpcError {
+                        error,
+                        request: balance_request,
+                    })
+            })?;
+
+        let nonce = serde_json::from_value::<jsonrpc::Response<U256>>(nonce_response)
+            .map_err(|err| RpcClientError::DeserializationError {
+                msg: err.to_string(),
+                body: response.text.clone(),
+            })
+            .and_then(|response| {
+                response.data.into_result().map_or_else(
+                    |error| {
+                        Err(RpcClientError::JsonRpcError {
+                            error,
+                            request: nonce_request,
+                        })
+                    },
+                    |nonce| Ok(nonce.to()),
+                )
+            })?;
+
+        let code =
+            serde_json::from_value::<jsonrpc::Response<jsonrpc::ZeroXPrefixedBytes>>(code_response)
+                .map_err(|err| RpcClientError::DeserializationError {
+                    msg: err.to_string(),
+                    body: response.text.clone(),
+                })
+                .and_then(|response| {
+                    response.data.into_result().map_or_else(
+                        |error| {
+                            Err(RpcClientError::JsonRpcError {
+                                error,
+                                request: code_request,
+                            })
+                        },
+                        |bytes| Ok(Bytecode::new_raw(bytes.inner)),
+                    )
                 })?;
-
-        let nonce = results.1.data.into_result().map_or_else(
-            |error| {
-                Err(RpcClientError::JsonRpcError {
-                    error,
-                    request: nonce_request,
-                })
-            },
-            |nonce| Ok(nonce.to()),
-        )?;
-
-        let code = results.2.data.into_result().map_or_else(
-            |error| {
-                Err(RpcClientError::JsonRpcError {
-                    error,
-                    request: code_request,
-                })
-            },
-            |bytes| Ok(Bytecode::new_raw(bytes.inner)),
-        )?;
 
         Ok(AccountInfo {
             balance,

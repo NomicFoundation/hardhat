@@ -69,22 +69,19 @@ export class DualModeAdapter implements VMAdapter {
       selectHardfork
     );
 
-    // if the fork node config doesn't specify a fork block number, then the
-    // ethereum-js VM used the latest block number from the forked chain. here
-    // we get that number from that VM so it can be passed into the rethnet VM;
-    // otherwise, the rethnet VM's determination of "latest" might be a later
-    // number, resulting in a different fork block.
+    // If the fork node config doesn't specify a block number, then the
+    // ethereumjs adapter will fetch and use the latest block number. We re-use
+    // that value here; otherwise, rethnet would also fetch it and we could have
+    // a race condition if the latest block changed in the meantime.
     if (
       isForkedNodeConfig(config) &&
       config.forkConfig.blockNumber === undefined
     ) {
       const forkBlockNumber = ethereumJSAdapter.getForkBlockNumber();
-      if (forkBlockNumber !== undefined) {
-        config.forkConfig.blockNumber = parseInt(
-          forkBlockNumber.toString(10),
-          10
-        );
-      }
+      config.forkConfig.blockNumber = parseInt(
+        forkBlockNumber!.toString(10),
+        10
+      );
     }
 
     const rethnetAdapter = await RethnetAdapter.create(
