@@ -289,7 +289,7 @@ mod tests {
         state
             .insert_account(
                 Address::from_low_u64_ne(1234),
-                AccountInfo::new(U256::from(0), 0, inserted_bytecode.clone()),
+                AccountInfo::new(U256::ZERO, 0, inserted_bytecode.clone()),
             )
             .unwrap();
         let retrieved_bytecode = state.code_by_hash(inserted_bytecode.hash()).unwrap();
