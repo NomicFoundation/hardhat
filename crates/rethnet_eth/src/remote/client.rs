@@ -506,6 +506,23 @@ mod tests {
 
     #[test_with::env(ALCHEMY_URL)]
     #[tokio::test]
+    async fn get_tx_by_hash_bad_hash() {
+        let alchemy_url = get_alchemy_url();
+
+        let hash =
+            B256::from_str("0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff")
+                .expect("failed to parse hash from string");
+
+        RpcClient::new(&alchemy_url)
+            .get_tx_by_hash(&hash)
+            .await
+            .expect("failed to get transaction by hash");
+
+        // TODO: handle recoverable error when it's implemented
+    }
+
+    #[test_with::env(ALCHEMY_URL)]
+    #[tokio::test]
     async fn get_tx_by_hash_dns_error() {
         let alchemy_url = "https://xxxeth-mainnet.g.alchemy.com/";
 
