@@ -11,15 +11,6 @@ use super::{eth, jsonrpc, BlockSpec, GetLogsInput, MethodInvocation, Serializabl
 /// Specialized error types
 #[derive(thiserror::Error, Debug)]
 pub enum RpcClientError {
-    /// The remote node's response is invalid JSON
-    #[error("Response body `{body}` was malformed: {msg}")]
-    DeserializationError {
-        /// The error message
-        msg: String,
-        /// The body of the response given by the remote node
-        body: String,
-    },
-
     /// The message could not be sent to the remote node
     #[error(transparent)]
     FailedToSend(reqwest::Error),
@@ -50,6 +41,7 @@ struct Request<'a> {
     id: &'a jsonrpc::Id,
 }
 
+#[derive(Debug)]
 struct BatchResponse {
     text: String,
     request_strings: Vec<String>,
@@ -217,13 +209,10 @@ impl RpcClient {
             jsonrpc::Response<jsonrpc::ZeroXPrefixedBytes>,
         );
 
-        let responses: Vec<serde_json::Value> =
-            serde_json::from_str(&response.text).map_err(|err| {
-                RpcClientError::DeserializationError {
-                    msg: err.to_string(),
-                    body: response.text.clone(),
-                }
-            })?;
+        let responses: Vec<serde_json::Value> = serde_json::from_str(&response.text)
+            .unwrap_or_else(|error| {
+                panic!("Batch response `{response:?}` failed to parse due to error: {error}")
+            });
 
         let response_ids: Vec<u64> = responses
             .iter()
@@ -243,10 +232,12 @@ impl RpcClient {
             .map(|(response, _)| response)
             .tuples()
             .next()
-            .ok_or_else(|| RpcClientError::DeserializationError {
-                msg: String::from("Batch response must contain 3 elements"),
-                body: response.text.clone(),
-            })?;
+            .unwrap_or_else(|| {
+                panic!(
+                    "Batch response must contain 3 elements. Response: {}",
+                    response.text.clone(),
+                )
+            });
 
         let (balance_request, nonce_request, code_request) = response
             .request_strings
@@ -256,9 +247,12 @@ impl RpcClient {
             .expect("request strings must contain 3 elements");
 
         let balance = serde_json::from_value::<jsonrpc::Response<U256>>(balance_response)
-            .map_err(|err| RpcClientError::DeserializationError {
-                msg: err.to_string(),
-                body: response.text.clone(),
+            .map_err(|err| {
+                panic!(
+                    "Failed to deserialize balance due to error: {:?}. Response: {}",
+                    err,
+                    response.text.clone()
+                )
             })
             .and_then(|response| {
                 response
@@ -271,9 +265,12 @@ impl RpcClient {
             })?;
 
         let nonce = serde_json::from_value::<jsonrpc::Response<U256>>(nonce_response)
-            .map_err(|err| RpcClientError::DeserializationError {
-                msg: err.to_string(),
-                body: response.text.clone(),
+            .map_err(|err| {
+                panic!(
+                    "Failed to deserialize nonce due to error: {:?}. Response: {}",
+                    err,
+                    response.text.clone()
+                )
             })
             .and_then(|response| {
                 response.data.into_result().map_or_else(
@@ -289,9 +286,12 @@ impl RpcClient {
 
         let code =
             serde_json::from_value::<jsonrpc::Response<jsonrpc::ZeroXPrefixedBytes>>(code_response)
-                .map_err(|err| RpcClientError::DeserializationError {
-                    msg: err.to_string(),
-                    body: response.text.clone(),
+                .map_err(|err| {
+                    panic!(
+                        "Failed to deserialize code due to error: {:?}. Response: {}",
+                        err,
+                        response.text.clone(),
+                    )
                 })
                 .and_then(|response| {
                     response.data.into_result().map_or_else(
