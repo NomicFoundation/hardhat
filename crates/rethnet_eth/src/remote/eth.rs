@@ -8,7 +8,9 @@
 
 use std::fmt::Debug;
 
-use crate::{withdrawal::Withdrawal, Address, Bloom, Bytes, B256, U256};
+use crate::{Address, Bloom, Bytes, B256, U256};
+
+use super::withdrawal::Withdrawal;
 
 #[derive(Clone, Debug, PartialEq, Eq, Default, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]

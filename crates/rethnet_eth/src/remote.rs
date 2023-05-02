@@ -1,6 +1,7 @@
 mod client;
 mod eth;
 mod jsonrpc;
+mod withdrawal;
 
 use std::fmt::Write;
 

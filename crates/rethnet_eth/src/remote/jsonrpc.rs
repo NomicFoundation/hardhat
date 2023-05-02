@@ -34,8 +34,8 @@ pub struct Response<T> {
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum ResponseData<T> {
-    Success { result: T },
     Error { error: Error },
+    Success { result: T },
 }
 
 impl<T> ResponseData<T> {

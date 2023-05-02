@@ -25,8 +25,6 @@ pub mod transaction;
 pub mod trie;
 /// Ethereum utility functions
 pub mod utils;
-/// Ethereum withdrawal types
-pub mod withdrawal;
 
 pub use bytes::Bytes;
 pub use ethbloom::Bloom;
