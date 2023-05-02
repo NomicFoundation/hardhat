@@ -94,7 +94,7 @@ impl StateDebug for LayeredState<RethnetLayer> {
         address: Address,
         account_info: AccountInfo,
     ) -> Result<(), Self::Error> {
-        self.changes.insert_account(&address, &account_info);
+        self.changes.insert_account(&address, account_info);
 
         Ok(())
     }

@@ -345,11 +345,12 @@ impl LayeredChanges<RethnetLayer> {
         self.last_layer_mut().contracts.remove(code_hash);
     }
 
-    pub fn insert_account(&mut self, address: &Address, account_info: &AccountInfo) {
-        self.account_or_insert_mut(address).info = account_info.clone();
-        if let Some(code) = account_info.code.clone() {
+    pub fn insert_account(&mut self, address: &Address, mut account_info: AccountInfo) {
+        if let Some(code) = account_info.code.take() {
             self.insert_code(code);
         }
+
+        self.account_or_insert_mut(address).info = account_info;
     }
 }
 
