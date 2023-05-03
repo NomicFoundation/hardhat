@@ -51,7 +51,7 @@ impl RemoteState {
         Ok(tokio::task::block_in_place(move || {
             self.runtime.block_on(
                 self.client
-                    .get_block_by_number(BlockSpec::Number(block_number), true),
+                    .get_block_by_number(BlockSpec::Number(block_number)),
             )
         })?
         .state_root)

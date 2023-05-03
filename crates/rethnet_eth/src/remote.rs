@@ -78,6 +78,13 @@ pub enum BlockSpec {
     Tag(String),
 }
 
+impl BlockSpec {
+    /// Constructs a `BlockSpec` for the latest block.
+    pub fn latest() -> Self {
+        Self::Tag(String::from("latest"))
+    }
+}
+
 #[derive(serde::Serialize)]
 #[serde(untagged)]
 enum SerializableBlockSpec {
@@ -125,13 +132,13 @@ enum MethodInvocation {
     BlockByHash(
         /// hash
         B256,
-        /// include transactions
+        /// include transaction data
         bool,
     ),
     #[serde(rename = "eth_getBlockByNumber")]
     Block(
         SerializableBlockSpec,
-        /// include transactions
+        /// include transaction data
         bool,
     ),
     #[serde(rename = "eth_getCode")]

@@ -395,11 +395,14 @@ mod tests {
         let dummy_storage_value = U256::from(DUMMY_STORAGE_VALUE);
         let initial_state_root = fork_state.initial_state_root;
 
+        let remote_value =
+            U256::from_str("0x000000000000000000000000000000000000000010a596ae049e066d4991945c")
+                .unwrap();
+
         // Validate remote storage slot value
         assert_eq!(
             fork_state.storage(dai_address, storage_slot_index).unwrap(),
-            U256::from_str("0x000000000000000000000000000000000000000010a596ae049e066d4991945c")
-                .unwrap()
+            remote_value
         );
 
         // Set storage slot to zero
@@ -440,8 +443,7 @@ mod tests {
 
         assert_eq!(
             fork_state.storage(dai_address, storage_slot_index).unwrap(),
-            U256::from_str("0x000000000000000000000000000000000000000010a596ae049e066d4991945c")
-                .unwrap()
+            remote_value
         );
 
         // Validate that the dummy value is returned after fast-forward to that state

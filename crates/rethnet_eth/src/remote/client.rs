@@ -6,7 +6,7 @@ use std::{
 use itertools::Itertools;
 use revm_primitives::{AccountInfo, Address, Bytecode, B256, KECCAK_EMPTY, U256};
 
-use super::{eth, jsonrpc, BlockSpec, GetLogsInput, MethodInvocation, SerializableBlockSpec};
+use super::{eth, jsonrpc, BlockSpec, GetLogsInput, MethodInvocation};
 
 /// Specialized error types
 #[derive(thiserror::Error, Debug)]
@@ -319,36 +319,38 @@ impl RpcClient {
         })
     }
 
-    /// eth_getBlockByHash
+    /// Calls `eth_getBlockByHash` and returns the transaction's hash.
     pub async fn get_block_by_hash(
         &self,
         hash: &B256,
-        include_transactions: bool,
-    ) -> Result<Option<eth::Block<eth::Transaction>>, RpcClientError> {
-        self.call(&MethodInvocation::BlockByHash(*hash, include_transactions))
+    ) -> Result<Option<eth::Block<B256>>, RpcClientError> {
+        self.call(&MethodInvocation::BlockByHash(*hash, false))
             .await
     }
 
-    /// eth_getBlockByNumber
-    pub async fn get_block_by_number(
+    /// Calls `eth_getBlockByHash` and returns the transaction's data.
+    pub async fn get_block_by_hash_with_transaction_data(
         &self,
-        number: BlockSpec,
-        include_transactions: bool,
-    ) -> Result<eth::Block<eth::Transaction>, RpcClientError> {
-        self.call(&MethodInvocation::Block(
-            number.into(),
-            include_transactions,
-        ))
-        .await
+        hash: &B256,
+    ) -> Result<Option<eth::Block<eth::Transaction>>, RpcClientError> {
+        self.call(&MethodInvocation::BlockByHash(*hash, true)).await
     }
 
-    /// eth_getBlockByNumber("latest")
-    pub async fn get_latest_block(&self) -> Result<eth::Block<B256>, RpcClientError> {
-        self.call(&MethodInvocation::Block(
-            SerializableBlockSpec::Tag("latest".to_string()),
-            false,
-        ))
-        .await
+    /// Calls `eth_getBlockByNumber` and returns the transaction's hash.
+    pub async fn get_block_by_number(
+        &self,
+        spec: BlockSpec,
+    ) -> Result<eth::Block<B256>, RpcClientError> {
+        self.call(&MethodInvocation::Block(spec.into(), false))
+            .await
+    }
+
+    /// Calls `eth_getBlockByNumber` and returns the transaction's data.
+    pub async fn get_block_by_number_with_transaction_data(
+        &self,
+        spec: BlockSpec,
+    ) -> Result<eth::Block<eth::Transaction>, RpcClientError> {
+        self.call(&MethodInvocation::Block(spec.into(), true)).await
     }
 
     /// eth_getLogs
@@ -553,7 +555,7 @@ mod tests {
                 .expect("failed to parse hash from string");
 
         let block = RpcClient::new(&alchemy_url)
-            .get_block_by_hash(&hash, true)
+            .get_block_by_hash(&hash)
             .await
             .expect("should have succeeded");
 
@@ -573,7 +575,43 @@ mod tests {
                 .expect("failed to parse hash from string");
 
         let block = RpcClient::new(&alchemy_url)
-            .get_block_by_hash(&hash, true)
+            .get_block_by_hash(&hash)
+            .await
+            .expect("should have succeeded");
+
+        assert!(block.is_none());
+    }
+
+    #[tokio::test]
+    async fn get_block_by_hash_with_transaction_data_some() {
+        let alchemy_url = get_alchemy_url();
+
+        let hash =
+            B256::from_str("0x71d5e7c8ff9ea737034c16e333a75575a4a94d29482e0c2b88f0a6a8369c1812")
+                .expect("failed to parse hash from string");
+
+        let block = RpcClient::new(&alchemy_url)
+            .get_block_by_hash_with_transaction_data(&hash)
+            .await
+            .expect("should have succeeded");
+
+        assert!(block.is_some());
+        let block = block.unwrap();
+
+        assert_eq!(block.hash, Some(hash));
+        assert_eq!(block.transactions.len(), 192);
+    }
+
+    #[tokio::test]
+    async fn get_block_by_hash_with_transaction_data_none() {
+        let alchemy_url = get_alchemy_url();
+
+        let hash =
+            B256::from_str("0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff")
+                .expect("failed to parse hash from string");
+
+        let block = RpcClient::new(&alchemy_url)
+            .get_block_by_hash_with_transaction_data(&hash)
             .await
             .expect("should have succeeded");
 
@@ -587,7 +625,7 @@ mod tests {
         let block_number = U256::from(16222385);
 
         let block = RpcClient::new(&alchemy_url)
-            .get_block_by_number(BlockSpec::Number(block_number), true)
+            .get_block_by_number(BlockSpec::Number(block_number))
             .await
             .expect("should have succeeded");
 
@@ -602,7 +640,45 @@ mod tests {
         let block_number = U256::MAX;
 
         let error = RpcClient::new(&alchemy_url)
-            .get_block_by_number(BlockSpec::Number(block_number), true)
+            .get_block_by_number(BlockSpec::Number(block_number))
+            .await
+            .expect_err("should have failed to retrieve non-existent block number");
+
+        if let RpcClientError::JsonRpcError { error, .. } = error {
+            assert_eq!(error.code, -32602);
+            assert_eq!(
+                error.message,
+                "invalid 1st argument: block_number value was not valid block tag or block number"
+            );
+            assert!(error.data.is_none());
+        } else {
+            unreachable!("Invalid error");
+        }
+    }
+
+    #[tokio::test]
+    async fn get_block_by_number_with_transaction_data_some() {
+        let alchemy_url = get_alchemy_url();
+
+        let block_number = U256::from(16222385);
+
+        let block = RpcClient::new(&alchemy_url)
+            .get_block_by_number(BlockSpec::Number(block_number))
+            .await
+            .expect("should have succeeded");
+
+        assert_eq!(block.number, Some(block_number));
+        assert_eq!(block.transactions.len(), 102);
+    }
+
+    #[tokio::test]
+    async fn get_block_by_number_with_transaction_data_none() {
+        let alchemy_url = get_alchemy_url();
+
+        let block_number = U256::MAX;
+
+        let error = RpcClient::new(&alchemy_url)
+            .get_block_by_number(BlockSpec::Number(block_number))
             .await
             .expect_err("should have failed to retrieve non-existent block number");
 
@@ -623,7 +699,7 @@ mod tests {
         let alchemy_url = get_alchemy_url();
 
         let _block = RpcClient::new(&alchemy_url)
-            .get_latest_block()
+            .get_block_by_number(BlockSpec::latest())
             .await
             .expect("should have succeeded");
     }
@@ -991,7 +1067,7 @@ mod tests {
         let dai_address = Address::from_str("0x6b175474e89094c44da98b954eedeac495271d0f")
             .expect("failed to parse address");
 
-        let total_supply = RpcClient::new(&alchemy_url)
+        let _total_supply = RpcClient::new(&alchemy_url)
             .get_storage_at(
                 &dai_address,
                 U256::from_str_radix(
@@ -999,12 +1075,10 @@ mod tests {
                     16,
                 )
                 .expect("failed to parse storage location"),
-                BlockSpec::Tag("latest".to_string()),
+                BlockSpec::latest(),
             )
             .await
             .expect("should have succeeded");
-
-        assert!(total_supply > U256::from(0));
     }
 
     #[tokio::test]
