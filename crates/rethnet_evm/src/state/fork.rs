@@ -308,7 +308,7 @@ impl StateHistory for ForkState {
     }
 }
 
-#[cfg(test)]
+#[cfg(all(test, not(feature = "test-disable-remote")))]
 mod tests {
     use std::str::FromStr;
 
@@ -327,7 +327,6 @@ mod tests {
         }
     }
 
-    #[test_with::env(ALCHEMY_URL)]
     #[test]
     fn basic_success() {
         let runtime = Arc::new(
@@ -366,7 +365,6 @@ mod tests {
         );
     }
 
-    #[test_with::env(ALCHEMY_URL)]
     #[test]
     fn set_block_context_with_zeroed_storage_slots() {
         let runtime = Arc::new(

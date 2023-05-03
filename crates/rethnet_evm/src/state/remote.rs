@@ -91,7 +91,7 @@ impl StateRef for RemoteState {
     }
 }
 
-#[cfg(test)]
+#[cfg(all(test, not(feature = "test-disable-remote")))]
 mod tests {
     use std::str::FromStr;
 
@@ -99,7 +99,6 @@ mod tests {
 
     use super::*;
 
-    #[test_with::env(ALCHEMY_URL)]
     #[test]
     fn basic_success() {
         let runtime = Arc::new(
