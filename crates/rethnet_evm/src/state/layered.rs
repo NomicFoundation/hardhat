@@ -88,14 +88,7 @@ impl StateDebug for LayeredState<RethnetLayer> {
         address: Address,
         account_info: AccountInfo,
     ) -> Result<(), Self::Error> {
-        self.changes
-            .account_or_insert_mut(&address, &|| {
-                Ok(AccountInfo {
-                    code: None,
-                    ..AccountInfo::default()
-                })
-            })
-            .info = account_info;
+        self.changes.insert_account(&address, account_info);
 
         Ok(())
     }
@@ -271,5 +264,26 @@ impl StateHistory for LayeredState<RethnetLayer> {
         } else {
             Err(StateError::CannotRevert)
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    use rethnet_eth::Bytes;
+
+    #[test]
+    fn code_by_hash_success() {
+        let mut state = LayeredState::<RethnetLayer>::default();
+        let inserted_bytecode = Bytecode::new_raw(Bytes::from("0x11"));
+        state
+            .insert_account(
+                Address::from_low_u64_ne(1234),
+                AccountInfo::new(U256::ZERO, 0, inserted_bytecode.clone()),
+            )
+            .unwrap();
+        let retrieved_bytecode = state.code_by_hash(inserted_bytecode.hash()).unwrap();
+        assert_eq!(retrieved_bytecode, inserted_bytecode);
     }
 }

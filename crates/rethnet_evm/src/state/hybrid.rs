@@ -103,14 +103,7 @@ impl StateDebug for HybridState<RethnetLayer> {
         account_info: AccountInfo,
     ) -> Result<(), Self::Error> {
         self.trie.insert_account(address, account_info.clone())?;
-        self.changes
-            .account_or_insert_mut(&address, &|| {
-                Ok(AccountInfo {
-                    code: None,
-                    ..AccountInfo::default()
-                })
-            })
-            .info = account_info;
+        self.changes.insert_account(&address, account_info);
 
         Ok(())
     }
