@@ -37,7 +37,7 @@ impl RethnetContext {
         })
     }
 
-    /// Skips a hash in the generator
+    /// Overwrites the next value generated with the provided seed.
     #[napi]
     pub fn set_hash_generator_seed(&self, seed: Buffer) {
         let seed = B256::from_slice(&seed);

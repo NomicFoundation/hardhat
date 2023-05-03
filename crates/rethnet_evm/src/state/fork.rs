@@ -263,7 +263,7 @@ impl StateHistory for ForkState {
                 } else {
                     return Err(Self::Error::InvalidStateRoot {
                         state_root: *state_root,
-                        fork_identifier: true,
+                        is_fork: true,
                     });
                 }
             }
@@ -277,7 +277,7 @@ impl StateHistory for ForkState {
         } else {
             return Err(Self::Error::InvalidStateRoot {
                 state_root: *state_root,
-                fork_identifier: true,
+                is_fork: true,
             });
         }
 

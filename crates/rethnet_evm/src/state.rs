@@ -9,7 +9,7 @@ mod trie;
 
 use std::fmt::Debug;
 
-use rethnet_eth::{remote::RpcClientError, B256, U256};
+use rethnet_eth::{remote::RpcClientError, B256};
 use revm::{db::StateRef, DatabaseCommit};
 
 pub use self::{
@@ -31,25 +31,16 @@ pub enum StateError {
     #[error("Contract with code hash `{0}` does not exist.")]
     InvalidCodeHash(B256),
     /// Specified state root does not exist
-    #[error("State root `{state_root:?}` does not exist (fork: {fork_identifier}).")]
+    #[error("State root `{state_root:?}` does not exist (fork: {is_fork}).")]
     InvalidStateRoot {
         /// Requested state root
         state_root: B256,
         /// Whether the state root was intended for a fork
-        fork_identifier: bool,
+        is_fork: bool,
     },
-    /// Storage slot with specified index does not exist
-    #[error("Storage slot with index `{0}` does not exist.")]
-    InvalidStorageSlot(U256),
-    /// Not implemented
-    #[error("Method not implemented")]
-    NotImplemented,
     /// Error from the underlying RPC client
     #[error(transparent)]
     Remote(#[from] RpcClientError),
-    /// Some other error from an underlying dependency
-    #[error(transparent)]
-    Other(#[from] std::io::Error),
 }
 
 /// Trait that meets all requirements for a synchronous database that can be used by [`AsyncDatabase`].

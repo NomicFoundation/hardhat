@@ -335,7 +335,7 @@ impl StateHistory for HybridState<RethnetLayer> {
         } else {
             Err(StateError::InvalidStateRoot {
                 state_root: *state_root,
-                fork_identifier: false,
+                is_fork: false,
             })
         }
     }

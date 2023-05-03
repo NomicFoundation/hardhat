@@ -13,7 +13,9 @@ use super::RemoteState;
 #[derive(Debug)]
 pub struct CachedRemoteState {
     remote: RemoteState,
+    /// Mapping of block numbers to cached accounts
     account_cache: HashMap<U256, HashMap<Address, RethnetAccount>>,
+    /// Mapping of block numbers to cached code
     code_cache: HashMap<U256, HashMap<B256, Bytecode>>,
 }
 
