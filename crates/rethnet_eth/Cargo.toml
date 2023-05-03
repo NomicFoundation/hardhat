@@ -26,6 +26,7 @@ thiserror = { version = "1.0.37", default-features = false }
 triehash = { version = "0.8.4", default-features = false }
 
 [dev-dependencies]
+mockito = { version = "1.0.2", default-features = false }
 tokio = { version = "1.23.0", features = ["macros"] }
 
 [features]
