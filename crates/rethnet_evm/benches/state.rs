@@ -21,15 +21,16 @@ impl RethnetStates {
             let number_of_checkpoints = number_of_accounts / number_of_accounts_per_checkpoint;
             for checkpoint_number in 0..=number_of_checkpoints {
                 for account_number in 1..=number_of_accounts_per_checkpoint {
-                    let address =
+                    let account_number =
                         (checkpoint_number * number_of_accounts_per_checkpoint) + account_number;
+                    let address = Address::from_low_u64_ne(account_number);
                     state
                         .insert_account(
-                            Address::from_low_u64_ne(address),
+                            address,
                             AccountInfo::new(
-                                U256::from(address),
-                                address,
-                                Bytecode::new_raw(Bytes::from(format!("0x{address:x}"))),
+                                U256::from(account_number),
+                                account_number,
+                                Bytecode::new_raw(Bytes::from(address[..].to_vec())),
                             ),
                         )
                         .unwrap();
@@ -131,7 +132,9 @@ fn bench_code_by_hash(c: &mut Criterion) {
     bench_sync_state_method(c, "StateRef::code_by_hash", |state, number_of_accounts| {
         for i in (1..=number_of_accounts).rev() {
             state
-                .code_by_hash(Bytecode::new_raw(Bytes::from(format!("0x{i:x}"))).hash())
+                .code_by_hash(
+                    Bytecode::new_raw(Bytes::from(Address::from_low_u64_ne(i)[..].to_vec())).hash(),
+                )
                 .unwrap();
         }
     });
