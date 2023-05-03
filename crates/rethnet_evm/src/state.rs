@@ -1,6 +1,5 @@
 mod account;
 mod debug;
-mod default_storage;
 mod fork;
 mod history;
 mod hybrid;
@@ -15,7 +14,6 @@ use revm::{db::StateRef, DatabaseCommit};
 
 pub use self::{
     debug::{AccountModifierFn, StateDebug},
-    default_storage::DefaultStorageState,
     fork::ForkState,
     history::StateHistory,
     hybrid::HybridState,

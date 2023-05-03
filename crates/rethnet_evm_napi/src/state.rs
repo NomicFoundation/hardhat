@@ -14,10 +14,7 @@ use napi::{
 use napi_derive::napi;
 use rethnet_eth::{signature::private_key_to_address, Address, Bytes, B256, U256};
 use rethnet_evm::{
-    state::{
-        AccountModifierFn, DefaultStorageState, ForkState, HybridState, RethnetLayer, StateError,
-        StateHistory, SyncState,
-    },
+    state::{AccountModifierFn, ForkState, HybridState, StateError, StateHistory, SyncState},
     AccountInfo, Bytecode, HashMap, KECCAK_EMPTY,
 };
 use secp256k1::Secp256k1;
@@ -97,8 +94,7 @@ impl StateManager {
         let mut accounts = HashMap::new();
         add_precompiles(&mut accounts);
 
-        let mut state: DefaultStorageState<HybridState<RethnetLayer>> =
-            DefaultStorageState::new(HybridState::with_accounts(accounts));
+        let mut state = HybridState::with_accounts(accounts);
         state.checkpoint().unwrap();
 
         Self::with_state(&mut env, context, state)
@@ -115,8 +111,7 @@ impl StateManager {
         let mut accounts = genesis_accounts(accounts)?;
         add_precompiles(&mut accounts);
 
-        let mut state: DefaultStorageState<HybridState<RethnetLayer>> =
-            DefaultStorageState::new(HybridState::with_accounts(accounts));
+        let mut state = HybridState::with_accounts(accounts);
         state.checkpoint().unwrap();
 
         Self::with_state(&mut env, context, state)
