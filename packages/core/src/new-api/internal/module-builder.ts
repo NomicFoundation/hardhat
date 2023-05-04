@@ -5,21 +5,27 @@ import { IgnitionValidationError } from "../../errors";
 import { ArtifactType, SolidityParamsType } from "../stubs";
 import {
   ArtifactContractDeploymentFuture,
+  ArtifactLibraryDeploymentFuture,
   IgnitionModule,
   IgnitionModuleResult,
   NamedContractDeploymentFuture,
+  NamedLibraryDeploymentFuture,
 } from "../types/module";
 import {
   ContractFromArtifactOptions,
   ContractOptions,
   IgnitionModuleBuilder,
   IgnitionModuleDefinition,
+  LibraryFromArtifactOptions,
+  LibraryOptions,
 } from "../types/module-builder";
 
 import {
   ArtifactContractDeploymentFutureImplementation,
+  ArtifactLibraryDeploymentFutureImplementation,
   IgnitionModuleImplementation,
   NamedContractDeploymentFutureImplementation,
+  NamedLibraryDeploymentFutureImplementation,
 } from "./module";
 import { isFuture } from "./utils";
 
@@ -121,6 +127,12 @@ export class IgnitionModuleBuilderImplementation<
       future.dependencies.add(afterFuture);
     }
 
+    for (const libraryFuture of Object.values(options.libraries ?? {}).filter(
+      isFuture
+    )) {
+      future.dependencies.add(libraryFuture);
+    }
+
     this._module.futures.add(future);
 
     return future;
@@ -150,6 +162,56 @@ export class IgnitionModuleBuilderImplementation<
     for (const arg of args.filter(isFuture)) {
       future.dependencies.add(arg);
     }
+
+    for (const afterFuture of (options.after ?? []).filter(isFuture)) {
+      future.dependencies.add(afterFuture);
+    }
+
+    return future;
+  }
+
+  public library<LibraryNameT extends string>(
+    libraryName: LibraryNameT,
+    options: LibraryOptions = {}
+  ): NamedLibraryDeploymentFuture<LibraryNameT> {
+    const id = options.id ?? libraryName;
+    const futureId = `${this._module.id}:${id}`;
+
+    this._assertUniqueContractId(futureId);
+
+    const future = new NamedLibraryDeploymentFutureImplementation(
+      futureId,
+      this._module,
+      libraryName
+    );
+
+    for (const afterFuture of (options.after ?? []).filter(isFuture)) {
+      future.dependencies.add(afterFuture);
+    }
+
+    this._module.futures.add(future);
+
+    return future;
+  }
+
+  public libraryFromArtifact(
+    libraryName: string,
+    artifact: ArtifactType,
+    options: LibraryFromArtifactOptions = {}
+  ): ArtifactLibraryDeploymentFuture {
+    const id = options.id ?? libraryName;
+    const futureId = `${this._module.id}:${id}`;
+
+    this._assertUniqueContractId(futureId);
+
+    const future = new ArtifactLibraryDeploymentFutureImplementation(
+      futureId,
+      this._module,
+      libraryName,
+      artifact
+    );
+
+    this._module.futures.add(future);
 
     for (const afterFuture of (options.after ?? []).filter(isFuture)) {
       future.dependencies.add(afterFuture);

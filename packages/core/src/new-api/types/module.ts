@@ -3,6 +3,8 @@ import { ArtifactType, SolidityParamsType } from "../stubs";
 export enum FutureType {
   NAMED_CONTRACT_DEPLOYMENT,
   ARTIFACT_CONTRACT_DEPLOYMENT,
+  NAMED_LIBRARY_DEPLOYMENT,
+  ARTIFACT_LIBRARY_DEPLOYMENT,
 }
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -26,6 +28,12 @@ export interface ContractFuture<ContractNameT extends string>
   contractName: ContractNameT;
 }
 
+// A future representing a library. Either an existing one or one that will be deployed
+export interface LibraryFuture<LibraryNameT extends string>
+  extends Future<string> {
+  libraryName: LibraryNameT;
+}
+
 // A future representing the deployment of a contract that belongs to this project
 export interface NamedContractDeploymentFuture<ContractNameT extends string>
   extends ContractFuture<ContractNameT> {
@@ -40,6 +48,19 @@ export interface ArtifactContractDeploymentFuture
   type: FutureType.ARTIFACT_CONTRACT_DEPLOYMENT;
   artifact: ArtifactType;
   constructorArgs: SolidityParamsType;
+}
+
+// A future representing the deployment of a library that belongs to this project
+export interface NamedLibraryDeploymentFuture<LibraryNameT extends string>
+  extends LibraryFuture<LibraryNameT> {
+  type: FutureType.NAMED_LIBRARY_DEPLOYMENT;
+}
+
+// A future representing the deployment of a library that we only know its artifact.
+// It may not belong to this project, and we may struggle to type.
+export interface ArtifactLibraryDeploymentFuture extends LibraryFuture<string> {
+  type: FutureType.ARTIFACT_LIBRARY_DEPLOYMENT;
+  artifact: ArtifactType;
 }
 
 // The results of deploying a module must be a dictionary of contract futures

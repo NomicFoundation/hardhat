@@ -8,6 +8,8 @@ import {
   NamedContractDeploymentFuture,
   ArtifactContractDeploymentFuture,
   IgnitionModuleResult,
+  NamedLibraryDeploymentFuture,
+  ArtifactLibraryDeploymentFuture,
 } from "../types/module";
 
 export abstract class BaseFuture<
@@ -66,6 +68,37 @@ export class ArtifactContractDeploymentFutureImplementation<
     public readonly artifact: ArtifactType
   ) {
     super(id, FutureType.ARTIFACT_CONTRACT_DEPLOYMENT, module);
+  }
+}
+
+export class NamedLibraryDeploymentFutureImplementation<
+    LibraryNameT extends string
+  >
+  extends BaseFuture<FutureType.NAMED_LIBRARY_DEPLOYMENT, string>
+  implements NamedLibraryDeploymentFuture<LibraryNameT>
+{
+  constructor(
+    public readonly id: string,
+    public readonly module: IgnitionModuleImplementation,
+    public readonly libraryName: LibraryNameT
+  ) {
+    super(id, FutureType.NAMED_LIBRARY_DEPLOYMENT, module);
+  }
+}
+
+export class ArtifactLibraryDeploymentFutureImplementation<
+    LibraryNameT extends string
+  >
+  extends BaseFuture<FutureType.ARTIFACT_LIBRARY_DEPLOYMENT, string>
+  implements ArtifactLibraryDeploymentFuture
+{
+  constructor(
+    public readonly id: string,
+    public readonly module: IgnitionModuleImplementation,
+    public readonly libraryName: LibraryNameT,
+    public readonly artifact: ArtifactType
+  ) {
+    super(id, FutureType.ARTIFACT_LIBRARY_DEPLOYMENT, module);
   }
 }
 
