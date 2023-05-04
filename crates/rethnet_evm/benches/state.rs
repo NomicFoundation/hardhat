@@ -30,7 +30,7 @@ impl RethnetStates {
                             AccountInfo::new(
                                 U256::from(account_number),
                                 account_number,
-                                Bytecode::new_raw(Bytes::from(address[..].to_vec())),
+                                Bytecode::new_raw(Bytes::copy_from_slice(address.as_bytes())),
                             ),
                         )
                         .unwrap();
@@ -133,7 +133,10 @@ fn bench_code_by_hash(c: &mut Criterion) {
         for i in (1..=number_of_accounts).rev() {
             state
                 .code_by_hash(
-                    Bytecode::new_raw(Bytes::from(Address::from_low_u64_ne(i)[..].to_vec())).hash(),
+                    Bytecode::new_raw(Bytes::copy_from_slice(
+                        Address::from_low_u64_ne(i).as_bytes(),
+                    ))
+                    .hash(),
                 )
                 .unwrap();
         }
