@@ -286,7 +286,7 @@ jobs:
           ALCHEMY_URL: ${{ secrets.ALCHEMY_URL }}
         with:
           command: nextest
-          args: run --workspace --all-features
+          args: run --workspace --all-features --all-targets
 
   rethnet-style:
     name: Check Rethnet Style
