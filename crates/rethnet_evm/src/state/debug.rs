@@ -52,12 +52,14 @@ pub trait StateDebug {
         account_info: AccountInfo,
     ) -> Result<(), Self::Error>;
 
-    /// Modifies the account at the specified address using the provided function. If the address
-    /// points to an empty account, that will be modified instead.
+    /// Modifies the account at the specified address using the provided function. If no account
+    /// exists for the specified address, an account will be generated using the `default_account_fn`
+    /// and modified.
     fn modify_account(
         &mut self,
         address: Address,
         modifier: AccountModifierFn,
+        default_account_fn: &dyn Fn() -> Result<AccountInfo, Self::Error>,
     ) -> Result<(), Self::Error>;
 
     /// Removes and returns the account at the specified address, if it exists.

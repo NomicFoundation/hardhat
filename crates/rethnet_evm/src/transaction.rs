@@ -22,7 +22,7 @@ pub enum TransactionError<BE, SE> {
     #[error(transparent)]
     BlockHash(BE),
     /// Corrupt transaction data
-    #[error("Invalid transaction")]
+    #[error("Invalid transaction: {0:?}")]
     InvalidTransaction(InvalidTransaction),
     /// The transaction is expected to have a prevrandao, as the executor's config is on a post-merge hardfork.
     #[error("Post-merge transaction is missing prevrandao")]

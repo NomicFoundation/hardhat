@@ -13,75 +13,96 @@ describe("State Manager", () => {
 
   const context = new RethnetContext();
 
-  let stateManager: StateManager;
+  const stateManagers = [
+    { name: "default", getStateManager: () => new StateManager(context) },
+  ];
 
-  beforeEach(function () {
-    stateManager = new StateManager(context);
-  });
-
-  // TODO: insertBlock, setAccountCode, setAccountStorageSlot
-  it("getAccountByAddress", async () => {
-    await stateManager.insertAccount(caller.buf, {
-      nonce: 0n,
-      balance: 0n,
-    });
-    let account = await stateManager.getAccountByAddress(caller.buf);
-
-    expect(account?.balance).to.equal(0n);
-    expect(account?.nonce).to.equal(0n);
-  });
-
-  it("setAccountBalance", async () => {
-    await stateManager.insertAccount(caller.buf, {
-      nonce: 0n,
-      balance: 0n,
-    });
-
-    await stateManager.modifyAccount(
-      caller.buf,
-      async function (
-        _balance: bigint,
-        nonce: bigint,
-        code: Bytecode | undefined
-      ): Promise<Account> {
-        return {
-          balance: 100n,
-          nonce,
-          code,
-        };
-      }
+  const alchemyUrl = process.env.ALCHEMY_URL;
+  if (alchemyUrl === undefined) {
+    console.log(
+      "WARNING: skipping fork tests because the ALCHEMY_URL environment variable is undefined"
     );
-
-    let account = await stateManager.getAccountByAddress(caller.buf);
-
-    expect(account?.balance).to.equal(100n);
-    expect(account?.nonce).to.equal(0n);
-  });
-
-  it("setAccountNonce", async () => {
-    await stateManager.insertAccount(caller.buf, {
-      nonce: 0n,
-      balance: 0n,
+  } else {
+    stateManagers.push({
+      name: "fork",
+      getStateManager: () =>
+        StateManager.forkRemote(context, alchemyUrl, BigInt(16220843), []),
     });
+  }
 
-    await stateManager.modifyAccount(
-      caller.buf,
-      async function (
-        balance: bigint,
-        nonce: bigint,
-        code: Bytecode | undefined
-      ): Promise<Account> {
-        return {
-          balance,
-          nonce: 5n,
-          code,
-        };
-      }
-    );
+  for (const { name, getStateManager } of stateManagers) {
+    describe(`With the ${name} StateManager`, () => {
+      let stateManager: StateManager;
 
-    let account = await stateManager.getAccountByAddress(caller.buf);
+      beforeEach(function () {
+        stateManager = getStateManager();
+      });
 
-    expect(account?.balance).to.equal(0n);
-    expect(account?.nonce).to.equal(5n);
-  });
+      // TODO: insertBlock, setAccountCode, setAccountStorageSlot
+      it("getAccountByAddress", async () => {
+        await stateManager.insertAccount(caller.buf, {
+          nonce: 0n,
+          balance: 0n,
+        });
+        let account = await stateManager.getAccountByAddress(caller.buf);
+
+        expect(account?.balance).to.equal(0n);
+        expect(account?.nonce).to.equal(0n);
+      });
+
+      it("setAccountBalance", async () => {
+        await stateManager.insertAccount(caller.buf, {
+          nonce: 0n,
+          balance: 0n,
+        });
+
+        await stateManager.modifyAccount(
+          caller.buf,
+          async function (
+            _balance: bigint,
+            nonce: bigint,
+            code: Bytecode | undefined
+          ): Promise<Account> {
+            return {
+              balance: 100n,
+              nonce,
+              code,
+            };
+          }
+        );
+
+        let account = await stateManager.getAccountByAddress(caller.buf);
+
+        expect(account?.balance).to.equal(100n);
+        expect(account?.nonce).to.equal(0n);
+      });
+
+      it("setAccountNonce", async () => {
+        await stateManager.insertAccount(caller.buf, {
+          nonce: 0n,
+          balance: 0n,
+        });
+
+        await stateManager.modifyAccount(
+          caller.buf,
+          async function (
+            balance: bigint,
+            nonce: bigint,
+            code: Bytecode | undefined
+          ): Promise<Account> {
+            return {
+              balance,
+              nonce: 5n,
+              code,
+            };
+          }
+        );
+
+        let account = await stateManager.getAccountByAddress(caller.buf);
+
+        expect(account?.balance).to.equal(0n);
+        expect(account?.nonce).to.equal(5n);
+      });
+    });
+  }
 });

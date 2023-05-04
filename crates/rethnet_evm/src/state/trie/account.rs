@@ -62,33 +62,45 @@ impl AccountTrie {
         C: IntoIterator<Item = AccountChange<'a>>,
     {
         let state_trie_db = Arc::new(MemoryDB::new(true));
-        let hasher = Arc::new(HasherKeccak::new());
 
         let mut storage_trie_dbs = HashMap::new();
 
         let state_root = {
-            let mut state_trie = Trie::new(state_trie_db.clone(), hasher.clone());
+            let mut state_trie = Trie::new(state_trie_db.clone(), Arc::new(HasherKeccak::new()));
 
             layers.into_iter().for_each(|layer| {
                 layer.into_iter().for_each(|(address, change)| {
                     if let Some((mut account, storage)) = change {
-                        let storage_trie_db = Arc::new(MemoryDB::new(true));
+                        let (storage_trie_db, storage_root) =
+                            storage_trie_dbs.entry(*address).or_insert_with(|| {
+                                let storage_trie_db = Arc::new(MemoryDB::new(true));
+                                let storage_root = {
+                                    let mut storage_trie = Trie::new(
+                                        storage_trie_db.clone(),
+                                        Arc::new(HasherKeccak::new()),
+                                    );
+                                    B256::from_slice(&storage_trie.root().unwrap())
+                                };
 
-                        let storage_root = {
-                            let mut storage_trie =
-                                Trie::new(storage_trie_db.clone(), hasher.clone());
+                                (storage_trie_db, storage_root)
+                            });
 
-                            storage.iter().for_each(|(index, value): (&U256, &U256)| {
+                        {
+                            let mut storage_trie = Trie::from(
+                                storage_trie_db.clone(),
+                                Arc::new(HasherKeccak::new()),
+                                storage_root.as_bytes(),
+                            )
+                            .expect("Invalid storage root");
+
+                            storage.iter().for_each(|(index, value)| {
                                 Self::set_account_storage_slot_in(index, value, &mut storage_trie);
                             });
 
-                            B256::from_slice(&storage_trie.root().unwrap())
+                            *storage_root = B256::from_slice(&storage_trie.root().unwrap());
                         };
 
-                        // Overwrites any existing storage in the process, as we receive the complete storage every change
-                        storage_trie_dbs.insert(*address, (storage_trie_db, storage_root));
-
-                        account.storage_root = storage_root;
+                        account.storage_root = *storage_root;
 
                         let hashed_address = HasherKeccak::new().digest(address.as_bytes());
                         state_trie
@@ -486,7 +498,7 @@ impl Default for AccountTrie {
 mod tests {
     use rethnet_eth::{
         account::KECCAK_EMPTY,
-        state::{state_root, Storage},
+        state::{state_root, storage_root, Storage},
         trie::KECCAK_NULL_RLP,
     };
 
@@ -575,14 +587,20 @@ mod tests {
     #[test]
     fn from_changes_one_layer() {
         const DUMMY_ADDRESS: [u8; 20] = [1u8; 20];
+        const DUMMY_STORAGE_SLOT_INDEX: u64 = 100;
+        const DUMMY_STORAGE_SLOT_VALUE: u64 = 100;
 
         let expected_address = Address::from(DUMMY_ADDRESS);
-        let expected_storage = Storage::new();
+        let expected_index = U256::from(DUMMY_STORAGE_SLOT_INDEX);
+        let expected_storage_value = U256::from(DUMMY_STORAGE_SLOT_VALUE);
+
+        let mut expected_storage = Storage::new();
+        expected_storage.insert(expected_index, expected_storage_value);
 
         let expected_account = BasicAccount {
             nonce: 1,
             balance: U256::from(100u32),
-            storage_root: KECCAK_NULL_RLP,
+            storage_root: storage_root(expected_storage.iter()),
             code_hash: KECCAK_EMPTY,
         };
 
@@ -592,67 +610,106 @@ mod tests {
         )]];
         let state = AccountTrie::from_changes(changes);
 
-        let state_trie = Trie::from(
-            state.state_trie_db.clone(),
-            Arc::new(HasherKeccak::new()),
-            state.state_root.as_bytes(),
-        )
-        .expect("Invalid state root");
+        let account = state.account(&expected_address);
+        assert_eq!(account, Some(expected_account));
 
-        let account = state_trie
-            .get(&HasherKeccak::new().digest(expected_address.as_bytes()))
-            .unwrap()
-            .expect("Account must exist");
-
-        let account: BasicAccount = rlp::decode(&account).expect("Failed to decode account");
-
-        assert_eq!(account, expected_account);
+        let storage_value = state.account_storage_slot(&expected_address, &expected_index);
+        assert_eq!(storage_value, Some(expected_storage_value));
     }
 
     #[test]
     fn from_changes_two_layers() {
         const DUMMY_ADDRESS: [u8; 20] = [1u8; 20];
+        const DUMMY_STORAGE_SLOT_INDEX: u64 = 100;
+        const DUMMY_STORAGE_SLOT_VALUE1: u64 = 50;
+        const DUMMY_STORAGE_SLOT_VALUE2: u64 = 100;
 
         let expected_address = Address::from(DUMMY_ADDRESS);
-        let expected_storage = Storage::new();
+        let expected_index = U256::from(DUMMY_STORAGE_SLOT_INDEX);
+        let expected_storage_value = U256::from(DUMMY_STORAGE_SLOT_VALUE2);
 
-        let account_layer1 = BasicAccount {
+        let mut storage_layer1 = Storage::new();
+        storage_layer1.insert(expected_index, U256::from(DUMMY_STORAGE_SLOT_VALUE1));
+
+        let init_account = BasicAccount {
             nonce: 1,
             balance: U256::from(100u32),
-            storage_root: KECCAK_NULL_RLP,
+            storage_root: storage_root(storage_layer1.iter()),
             code_hash: KECCAK_EMPTY,
         };
 
-        let account_layer2 = BasicAccount {
+        let mut storage_layer2 = Storage::new();
+        storage_layer2.insert(expected_index, expected_storage_value);
+
+        let expected_account = BasicAccount {
             nonce: 2,
             balance: U256::from(200u32),
-            storage_root: KECCAK_NULL_RLP,
+            storage_root: storage_root(storage_layer2.iter()),
             code_hash: KECCAK_EMPTY,
         };
 
         let changes: Vec<Vec<AccountChange<'_>>> = vec![
-            vec![(&expected_address, Some((account_layer1, &expected_storage)))],
+            vec![(&expected_address, Some((init_account, &storage_layer1)))],
             vec![(
                 &expected_address,
-                Some((account_layer2.clone(), &expected_storage)),
+                Some((expected_account.clone(), &storage_layer2)),
             )],
         ];
         let state = AccountTrie::from_changes(changes);
 
-        let state_trie = Trie::from(
-            state.state_trie_db.clone(),
-            Arc::new(HasherKeccak::new()),
-            state.state_root.as_bytes(),
-        )
-        .expect("Invalid state root");
+        let account = state.account(&expected_address);
+        assert_eq!(account, Some(expected_account));
 
-        let account = state_trie
-            .get(&HasherKeccak::new().digest(expected_address.as_bytes()))
-            .unwrap()
-            .expect("Account must exist");
+        let storage_value = state.account_storage_slot(&expected_address, &expected_index);
+        assert_eq!(storage_value, Some(expected_storage_value));
+    }
 
-        let account: BasicAccount = rlp::decode(&account).expect("Failed to decode account");
+    #[test]
+    fn from_changes_remove_zeroed_storage_slot() {
+        const DUMMY_ADDRESS: [u8; 20] = [1u8; 20];
+        const DUMMY_STORAGE_SLOT_INDEX: u64 = 100;
+        const DUMMY_STORAGE_SLOT_VALUE: u64 = 100;
 
-        assert_eq!(account, account_layer2);
+        let expected_address = Address::from(DUMMY_ADDRESS);
+        let expected_index = U256::from(DUMMY_STORAGE_SLOT_INDEX);
+
+        let mut storage_layer1 = Storage::new();
+        storage_layer1.insert(expected_index, U256::from(DUMMY_STORAGE_SLOT_VALUE));
+
+        let init_account = BasicAccount {
+            nonce: 1,
+            balance: U256::from(100u32),
+            storage_root: storage_root(storage_layer1.iter()),
+            code_hash: KECCAK_EMPTY,
+        };
+
+        let mut storage_layer2 = Storage::new();
+        storage_layer2.insert(U256::from(100), U256::ZERO);
+
+        let expected_account = BasicAccount {
+            nonce: 2,
+            balance: U256::from(200u32),
+            storage_root: storage_root(
+                storage_layer2
+                    .iter()
+                    .filter(|(_index, value)| **value != U256::ZERO),
+            ),
+            code_hash: KECCAK_EMPTY,
+        };
+
+        let changes: Vec<Vec<AccountChange<'_>>> = vec![
+            vec![(&expected_address, Some((init_account, &storage_layer1)))],
+            vec![(
+                &expected_address,
+                Some((expected_account.clone(), &storage_layer2)),
+            )],
+        ];
+        let state = AccountTrie::from_changes(changes);
+
+        let account = state.account(&expected_address);
+        assert_eq!(account, Some(expected_account));
+
+        let storage_value = state.account_storage_slot(&expected_address, &expected_index);
+        assert_eq!(storage_value, None);
     }
 }

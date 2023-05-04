@@ -5,11 +5,7 @@ pub use changes::{LayeredChanges, RethnetLayer};
 use std::fmt::Debug;
 
 use hashbrown::HashMap;
-use rethnet_eth::{
-    account::BasicAccount,
-    state::{state_root, storage_root},
-    Address, B256, U256,
-};
+use rethnet_eth::{Address, B256, U256};
 use revm::{
     db::StateRef,
     primitives::{Account, AccountInfo, Bytecode, KECCAK_EMPTY},
@@ -24,6 +20,7 @@ use super::{history::StateHistory, AccountModifierFn, StateDebug, StateError};
 #[derive(Clone, Debug, Default)]
 pub struct LayeredState<Layer> {
     changes: LayeredChanges<Layer>,
+    /// Snapshots
     snapshots: SharedMap<B256, LayeredChanges<Layer>, true>,
 }
 
@@ -82,10 +79,7 @@ impl StateDebug for LayeredState<RethnetLayer> {
 
     #[cfg_attr(feature = "tracing", tracing::instrument)]
     fn account_storage_root(&self, address: &Address) -> Result<Option<B256>, Self::Error> {
-        Ok(self
-            .changes
-            .account(address)
-            .map(|account| storage_root(&account.storage)))
+        Ok(self.changes.storage_root(address))
     }
 
     #[cfg_attr(feature = "tracing", tracing::instrument)]
@@ -99,13 +93,18 @@ impl StateDebug for LayeredState<RethnetLayer> {
         Ok(())
     }
 
-    #[cfg_attr(feature = "tracing", tracing::instrument)]
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip(default_account_fn)))]
     fn modify_account(
         &mut self,
         address: Address,
         modifier: AccountModifierFn,
+        default_account_fn: &dyn Fn() -> Result<AccountInfo, Self::Error>,
     ) -> Result<(), Self::Error> {
-        let mut account_info = self.changes.account_or_insert_mut(&address).info.clone();
+        let mut account_info = self
+            .changes
+            .account_or_insert_mut(&address, default_account_fn)
+            .info
+            .clone();
 
         // Fill the bytecode
         if account_info.code_hash != KECCAK_EMPTY {
@@ -138,7 +137,14 @@ impl StateDebug for LayeredState<RethnetLayer> {
             self.changes.remove_code(&old_code_hash);
         }
 
-        self.changes.account_or_insert_mut(&address).info = account_info;
+        self.changes
+            .account_or_insert_mut(&address, &|| {
+                Ok(AccountInfo {
+                    code: None,
+                    ..AccountInfo::default()
+                })
+            })
+            .info = account_info;
 
         Ok(())
     }
@@ -161,36 +167,14 @@ impl StateDebug for LayeredState<RethnetLayer> {
         value: U256,
     ) -> Result<(), Self::Error> {
         self.changes
-            .account_or_insert_mut(&address)
-            .storage
-            .insert(index, value);
+            .set_account_storage_slot(&address, &index, value);
 
         Ok(())
     }
 
     #[cfg_attr(feature = "tracing", tracing::instrument)]
     fn state_root(&self) -> Result<B256, Self::Error> {
-        let mut state = HashMap::new();
-
-        self.changes
-            .iter()
-            .flat_map(|layer| layer.accounts())
-            .for_each(|(address, account)| {
-                state
-                    .entry(*address)
-                    .or_insert(account.as_ref().map(|account| BasicAccount {
-                        nonce: account.info.nonce,
-                        balance: account.info.balance,
-                        storage_root: storage_root(&account.storage),
-                        code_hash: account.info.code_hash,
-                    }));
-            });
-
-        let state = state
-            .iter()
-            .filter_map(|(address, account)| account.as_ref().map(|account| (address, account)));
-
-        Ok(state_root(state))
+        Ok(self.changes.state_root())
     }
 }
 
@@ -217,7 +201,11 @@ impl StateHistory for LayeredState<RethnetLayer> {
     }
 
     #[cfg_attr(feature = "tracing", tracing::instrument)]
-    fn set_state_root(&mut self, state_root: &B256) -> Result<(), Self::Error> {
+    fn set_block_context(
+        &mut self,
+        state_root: &B256,
+        _block_number: Option<U256>,
+    ) -> Result<(), Self::Error> {
         // Ensure the last layer has a state root
         if !self.changes.last_layer_mut().has_state_root() {
             let state_root = self.state_root()?;
@@ -250,7 +238,10 @@ impl StateHistory for LayeredState<RethnetLayer> {
 
             Ok(())
         } else {
-            Err(StateError::InvalidStateRoot(*state_root))
+            Err(StateError::InvalidStateRoot {
+                state_root: *state_root,
+                is_fork: false,
+            })
         }
     }
 

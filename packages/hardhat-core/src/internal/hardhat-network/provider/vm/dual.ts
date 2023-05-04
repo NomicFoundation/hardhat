@@ -15,24 +15,34 @@ import {
   isPrecompileTrace,
   MessageTrace,
 } from "../../stack-traces/message-trace";
+import { opcodeName } from "../../stack-traces/opcodes";
 import { VMTracer } from "../../stack-traces/vm-tracer";
-import { NodeConfig } from "../node-types";
+import { isForkedNodeConfig, NodeConfig } from "../node-types";
 import { RpcDebugTraceOutput } from "../output";
+import { randomHashSeed } from "../fork/ForkStateManager";
 import { HardhatBlockchainInterface } from "../types/HardhatBlockchainInterface";
 
 import { EthereumJSAdapter } from "./ethereumjs";
 import { ExitCode } from "./exit";
-import { RethnetAdapter } from "./rethnet";
+import { globalRethnetContext, RethnetAdapter } from "./rethnet";
 import { RunTxResult, Trace, VMAdapter } from "./vm-adapter";
 
 /* eslint-disable @nomiclabs/hardhat-internal-rules/only-hardhat-error */
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
 
-function printTrace(trace: any) {
+function _printTrace(trace: any) {
   console.log(
     JSON.stringify(
       trace,
-      (key, value) => (typeof value === "bigint" ? value.toString() : value),
+      function (key, value) {
+        if (key === "op") {
+          return opcodeName(value);
+        } else if (typeof value === "bigint") {
+          return value.toString();
+        } else {
+          return value;
+        }
+      },
       2
     )
   );
@@ -58,6 +68,21 @@ export class DualModeAdapter implements VMAdapter {
       config,
       selectHardfork
     );
+
+    // If the fork node config doesn't specify a block number, then the
+    // ethereumjs adapter will fetch and use the latest block number. We re-use
+    // that value here; otherwise, rethnet would also fetch it and we could have
+    // a race condition if the latest block changed in the meantime.
+    if (
+      isForkedNodeConfig(config) &&
+      config.forkConfig.blockNumber === undefined
+    ) {
+      const forkBlockNumber = ethereumJSAdapter.getForkBlockNumber();
+      config.forkConfig.blockNumber = parseInt(
+        forkBlockNumber!.toString(10),
+        10
+      );
+    }
 
     const rethnetAdapter = await RethnetAdapter.create(
       config,
@@ -99,6 +124,9 @@ export class DualModeAdapter implements VMAdapter {
       forceBaseFeeZero
     );
 
+    // Matches EthereumJS' runCall checkpoint call
+    globalRethnetContext.setHashGeneratorSeed(randomHashSeed());
+
     const [
       [ethereumJSResult, _ethereumJSTrace],
       [rethnetResult, rethnetTrace],
@@ -127,7 +155,7 @@ export class DualModeAdapter implements VMAdapter {
       console.trace(
         `Different state root: ${ethereumJSRoot.toString(
           "hex"
-        )} !== ${rethnetRoot.toString("hex")}`
+        )} (ethereumjs) !== ${rethnetRoot.toString("hex")} (rethnet)`
       );
       await this.printState();
       throw new Error("Different state root");
@@ -142,7 +170,7 @@ export class DualModeAdapter implements VMAdapter {
 
     assertEqualAccounts(address, ethereumJSAccount, rethnetAccount);
 
-    return ethereumJSAccount;
+    return rethnetAccount;
   }
 
   public async getContractStorage(
@@ -167,7 +195,7 @@ export class DualModeAdapter implements VMAdapter {
         console.trace(
           `Different storage slot: ${bufferToHex(
             ethereumJSStorageSlot
-          )} !== ${bufferToHex(rethnetStorageSlot)}`
+          )} (ethereumjs) !== ${bufferToHex(rethnetStorageSlot)} (rethnet)`
         );
         throw new Error("Different storage slot");
       }
@@ -187,7 +215,7 @@ export class DualModeAdapter implements VMAdapter {
       console.trace(
         `Different contract code: ${ethereumJSCode.toString(
           "hex"
-        )} !== ${rethnetCode.toString("hex")}`
+        )} (ethereumjs) !== ${rethnetCode.toString("hex")} (rethnet)`
       );
       throw new Error("Different contract code");
     }
@@ -259,13 +287,16 @@ export class DualModeAdapter implements VMAdapter {
       this._rethnetAdapter.runTxInBlock(tx, block),
     ]);
 
+    // Matches EthereumJS' runCall checkpoint call
+    globalRethnetContext.setHashGeneratorSeed(randomHashSeed());
+
     try {
       assertEqualRunTxResults(ethereumJSResult, rethnetResult);
 
       // Validate trace
       const _trace = this.getLastTrace();
 
-      return [ethereumJSResult, ethereumJSDebugTrace];
+      return [rethnetResult, ethereumJSDebugTrace];
     } catch (e) {
       // if the results didn't match, print the traces
       // console.log("EthereumJS trace");
@@ -282,19 +313,17 @@ export class DualModeAdapter implements VMAdapter {
     rewards: Array<[Address, bigint]>
   ): Promise<void> {
     await this._rethnetAdapter.addBlockRewards(rewards);
-    return this._ethereumJSAdapter.addBlockRewards(rewards);
+    await this._ethereumJSAdapter.addBlockRewards(rewards);
   }
 
   public async sealBlock(): Promise<void> {
     await this._rethnetAdapter.sealBlock();
-    return this._ethereumJSAdapter.sealBlock();
+    await this._ethereumJSAdapter.sealBlock();
   }
 
   public async revertBlock(): Promise<void> {
     await this._rethnetAdapter.revertBlock();
-    return this._ethereumJSAdapter.revertBlock();
-
-    const _stateRoot = this.getStateRoot();
+    await this._ethereumJSAdapter.revertBlock();
   }
 
   public async makeSnapshot(): Promise<Buffer> {
@@ -305,7 +334,7 @@ export class DualModeAdapter implements VMAdapter {
       console.trace(
         `Different snapshot state root: ${ethereumJSRoot.toString(
           "hex"
-        )} !== ${rethnetRoot.toString("hex")}`
+        )} (ethereumjs) !== ${rethnetRoot.toString("hex")} (rethnet)`
       );
       await this.printState();
       throw new Error("Different snapshot state root");
@@ -344,11 +373,11 @@ export class DualModeAdapter implements VMAdapter {
       const differences = traceDifferences(ethereumJSTrace, rethnetTrace);
       if (differences.length > 0) {
         console.trace(`Different traces: ${differences}`);
-        console.log("EthereumJS trace:");
-        printTrace(ethereumJSTrace);
-        console.log();
-        console.log("Rethnet trace:");
-        printTrace(rethnetTrace);
+        // console.log("EthereumJS trace:");
+        // printTrace(ethereumJSTrace);
+        // console.log();
+        // console.log("Rethnet trace:");
+        // printTrace(rethnetTrace);
         throw new Error(`Different traces: ${differences}`);
       }
     }
@@ -369,13 +398,13 @@ export class DualModeAdapter implements VMAdapter {
       // both errors are defined
       if (ethereumJSError.name !== rethnetError.name) {
         throw new Error(
-          `Different error name: ${ethereumJSError.name} !== ${rethnetError.name}`
+          `Different error name: ${ethereumJSError.name} (ethereumjs) !== ${rethnetError.name} (rethnet)`
         );
       }
 
       if (ethereumJSError.message !== rethnetError.message) {
         throw new Error(
-          `Different error message: ${ethereumJSError.message} !== ${rethnetError.message}`
+          `Different error message: ${ethereumJSError.message} (ethereumjs) !== ${rethnetError.message} (rethnet)`
         );
       }
 
@@ -395,7 +424,7 @@ export class DualModeAdapter implements VMAdapter {
         // both error stacks are defined
         if (ethereumJSError.stack !== rethnetError.stack) {
           throw new Error(
-            `Different error stack: ${ethereumJSError.stack} !== ${rethnetError.stack}`
+            `Different error stack: ${ethereumJSError.stack} (ethereumjs) !== ${rethnetError.stack} (rethnet)`
           );
         }
       }
@@ -405,7 +434,7 @@ export class DualModeAdapter implements VMAdapter {
     const rethnetSteps = this._rethnetVMTracer.tracingSteps;
     if (ethereumJSSteps.length !== rethnetSteps.length) {
       throw new Error(
-        `Different number of steps in tracers: ${this._ethereumJSVMTracer.tracingSteps.length} !== ${this._rethnetVMTracer.tracingSteps.length}`
+        `Different number of steps in tracers: ${this._ethereumJSVMTracer.tracingSteps.length} (ethereumjs) !== ${this._rethnetVMTracer.tracingSteps.length} (rethnet)`
       );
     }
 
@@ -415,14 +444,14 @@ export class DualModeAdapter implements VMAdapter {
 
       if (ethereumJSStep.depth !== rethnetStep.depth) {
         console.trace(
-          `Different steps[${stepIdx}] depth: ${ethereumJSStep.depth} !== ${rethnetStep.depth}`
+          `Different steps[${stepIdx}] depth: ${ethereumJSStep.depth} (ethereumjs) !== ${rethnetStep.depth} (rethnet) (rethnet)`
         );
         throw new Error("Different step depth");
       }
 
       if (ethereumJSStep.pc !== rethnetStep.pc) {
         console.trace(
-          `Different steps[${stepIdx}] pc: ${ethereumJSStep.pc} !== ${rethnetStep.pc}`
+          `Different steps[${stepIdx}] pc: ${ethereumJSStep.pc} (ethereumjs) !== ${rethnetStep.pc} (rethnet) (rethnet)`
         );
         throw new Error("Different step pc");
       }
@@ -559,14 +588,14 @@ function assertEqualRunTxResults(
 
   if (ethereumJSResult.exit.kind !== rethnetResult.exit.kind) {
     console.trace(
-      `Different exceptionError.error: ${ethereumJSResult.exit.kind} !== ${rethnetResult.exit.kind}`
+      `Different exceptionError.error: ${ethereumJSResult.exit.kind} (ethereumjs) !== ${rethnetResult.exit.kind} (rethnet)`
     );
     differences.push("exceptionError.error");
   }
 
   if (ethereumJSResult.gasUsed !== rethnetResult.gasUsed) {
     console.trace(
-      `Different totalGasSpent: ${ethereumJSResult.gasUsed} !== ${rethnetResult.gasUsed}`
+      `Different totalGasSpent: ${ethereumJSResult.gasUsed} (ethereumjs) !== ${rethnetResult.gasUsed} (rethnet)`
     );
     differences.push("totalGasSpent");
   }
@@ -584,7 +613,9 @@ function assertEqualRunTxResults(
       console.trace(
         `Different returnValue: ${ethereumJSResult.returnValue.toString(
           "hex"
-        )} !== ${rethnetResult.returnValue.toString("hex")}`
+        )} (ethereumjs) !== ${rethnetResult.returnValue.toString(
+          "hex"
+        )} (rethnet)`
       );
       differences.push("returnValue");
     }
@@ -592,7 +623,7 @@ function assertEqualRunTxResults(
 
     if (!ethereumJSResult.bloom.equals(rethnetResult.bloom)) {
       console.trace(
-        `Different bloom: ${ethereumJSResult.bloom} !== ${rethnetResult.bloom}`
+        `Different bloom: ${ethereumJSResult.bloom} (ethereumjs) !== ${rethnetResult.bloom} (rethnet)`
       );
       differences.push("bloom");
     }
@@ -603,7 +634,7 @@ function assertEqualRunTxResults(
       )
     ) {
       console.trace(
-        `Different receipt bitvector: ${ethereumJSResult.receipt.bitvector} !== ${rethnetResult.receipt.bitvector}`
+        `Different receipt bitvector: ${ethereumJSResult.receipt.bitvector} (ethereumjs) !== ${rethnetResult.receipt.bitvector} (rethnet)`
       );
       differences.push("receipt.bitvector");
     }
@@ -613,7 +644,7 @@ function assertEqualRunTxResults(
       rethnetResult.receipt.cumulativeBlockGasUsed
     ) {
       console.trace(
-        `Different receipt cumulativeBlockGasUsed: ${ethereumJSResult.receipt.cumulativeBlockGasUsed} !== ${rethnetResult.receipt.cumulativeBlockGasUsed}`
+        `Different receipt cumulativeBlockGasUsed: ${ethereumJSResult.receipt.cumulativeBlockGasUsed} (ethereumjs) !== ${rethnetResult.receipt.cumulativeBlockGasUsed} (rethnet)`
       );
       differences.push("receipt.cumulativeBlockGasUsed");
     }
@@ -632,7 +663,7 @@ function assertEqualRunTxResults(
       )
     ) {
       console.trace(
-        `Different createdAddress: ${ethereumJSResult.createdAddress?.toString()} !== ${rethnetResult.createdAddress?.toString()}`
+        `Different createdAddress: ${ethereumJSResult.createdAddress?.toString()} (ethereumjs) !== ${rethnetResult.createdAddress?.toString()} (rethnet)`
       );
       differences.push("createdAddress");
     }
@@ -648,7 +679,7 @@ function assertEqualLogs(ethereumJSLogs: Log[], rethnetLogs: Log[]) {
 
   if (ethereumJSLogs.length !== rethnetLogs.length) {
     console.trace(
-      `Different logs length: ${ethereumJSLogs.length} !== ${rethnetLogs.length}`
+      `Different logs length: ${ethereumJSLogs.length} (ethereumjs) !== ${rethnetLogs.length} (rethnet)`
     );
     differences.push("length");
   }
@@ -656,7 +687,7 @@ function assertEqualLogs(ethereumJSLogs: Log[], rethnetLogs: Log[]) {
   for (let logIdx = 0; logIdx < ethereumJSLogs.length; ++logIdx) {
     if (!ethereumJSLogs[logIdx][0].equals(rethnetLogs[logIdx][0])) {
       console.trace(
-        `Different log[${logIdx}] address: ${ethereumJSLogs[logIdx][0]} !== ${rethnetLogs[logIdx][0]}`
+        `Different log[${logIdx}] address: ${ethereumJSLogs[logIdx][0]} (ethereumjs) !== ${rethnetLogs[logIdx][0]} (rethnet)`
       );
       differences.push("address");
     }
@@ -665,7 +696,7 @@ function assertEqualLogs(ethereumJSLogs: Log[], rethnetLogs: Log[]) {
     const rethnetTopics = rethnetLogs[logIdx][1];
     if (ethereumJSTopics.length !== rethnetTopics.length) {
       console.trace(
-        `Different log[${logIdx}] topics length: ${ethereumJSTopics.length} !== ${rethnetTopics.length}`
+        `Different log[${logIdx}] topics length: ${ethereumJSTopics.length} (ethereumjs) !== ${rethnetTopics.length} (rethnet)`
       );
       differences.push("topics length");
     }
@@ -673,7 +704,7 @@ function assertEqualLogs(ethereumJSLogs: Log[], rethnetLogs: Log[]) {
     for (let topicIdx = 0; topicIdx < ethereumJSTopics.length; ++topicIdx) {
       if (!ethereumJSTopics[topicIdx].equals(rethnetTopics[topicIdx])) {
         console.trace(
-          `Different log[${logIdx}] topic[${topicIdx}]: ${ethereumJSTopics[topicIdx]} !== ${rethnetTopics[topicIdx]}`
+          `Different log[${logIdx}] topic[${topicIdx}]: ${ethereumJSTopics[topicIdx]} (ethereumjs) !== ${rethnetTopics[topicIdx]} (rethnet)`
         );
         differences.push("topic");
       }
@@ -681,7 +712,7 @@ function assertEqualLogs(ethereumJSLogs: Log[], rethnetLogs: Log[]) {
 
     if (!ethereumJSLogs[logIdx][2].equals(rethnetLogs[logIdx][2])) {
       console.trace(
-        `Different log[${logIdx}] data: ${ethereumJSLogs[logIdx][2]} !== ${rethnetLogs[logIdx][2]}`
+        `Different log[${logIdx}] data: ${ethereumJSLogs[logIdx][2]} (ethereumjs) !== ${rethnetLogs[logIdx][2]} (rethnet)`
       );
       differences.push("data");
     }
@@ -702,7 +733,7 @@ function assertEqualAccounts(
   if (ethereumJSAccount.balance !== rethnetAccount.balance) {
     console.trace(`Account: ${address}`);
     console.trace(
-      `Different balance: ${ethereumJSAccount.balance} !== ${rethnetAccount.balance}`
+      `Different balance: ${ethereumJSAccount.balance} (ethereumjs) !== ${rethnetAccount.balance} (rethnet)`
     );
     differences.push("balance");
   }
@@ -806,7 +837,7 @@ function traceDifferences(
       console.log(
         `Different code: ${ethereumJSTrace.code.toString(
           "hex"
-        )} !== ${rethnetTrace.code.toString("hex")}`
+        )} (ethereumjs) !== ${rethnetTrace.code.toString("hex")} (rethnet)`
       );
       differences.push("code");
     }

@@ -1,5 +1,6 @@
 mod account;
 mod debug;
+mod fork;
 mod history;
 mod hybrid;
 mod layered;
@@ -8,15 +9,16 @@ mod trie;
 
 use std::fmt::Debug;
 
-use rethnet_eth::B256;
+use rethnet_eth::{remote::RpcClientError, B256};
 use revm::{db::StateRef, DatabaseCommit};
 
 pub use self::{
     debug::{AccountModifierFn, StateDebug},
+    fork::ForkState,
     history::StateHistory,
     hybrid::HybridState,
     layered::{LayeredState, RethnetLayer},
-    remote::RemoteDatabase,
+    remote::RemoteState,
 };
 
 /// Combinatorial error for the database API
@@ -29,8 +31,16 @@ pub enum StateError {
     #[error("Contract with code hash `{0}` does not exist.")]
     InvalidCodeHash(B256),
     /// Specified state root does not exist
-    #[error("State root `{0}` does not exist.")]
-    InvalidStateRoot(B256),
+    #[error("State root `{state_root:?}` does not exist (fork: {is_fork}).")]
+    InvalidStateRoot {
+        /// Requested state root
+        state_root: B256,
+        /// Whether the state root was intended for a fork
+        is_fork: bool,
+    },
+    /// Error from the underlying RPC client
+    #[error(transparent)]
+    Remote(#[from] RpcClientError),
 }
 
 /// Trait that meets all requirements for a synchronous database that can be used by [`AsyncDatabase`].

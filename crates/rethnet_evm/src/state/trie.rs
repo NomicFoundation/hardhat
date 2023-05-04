@@ -137,13 +137,10 @@ impl StateDebug for TrieState {
         &mut self,
         address: Address,
         modifier: super::AccountModifierFn,
+        default_account_fn: &dyn Fn() -> Result<AccountInfo, Self::Error>,
     ) -> Result<(), Self::Error> {
-        let mut account_info = self.accounts.account(&address).map_or_else(
-            || AccountInfo {
-                code: None,
-                ..AccountInfo::default()
-            },
-            |account| {
+        let mut account_info = match self.accounts.account(&address) {
+            Some(account) => {
                 let mut account_info = AccountInfo::from(account);
 
                 // Fill the bytecode
@@ -155,8 +152,9 @@ impl StateDebug for TrieState {
                 }
 
                 account_info
-            },
-        );
+            }
+            None => default_account_fn()?,
+        };
 
         let old_code_hash = account_info.code_hash;
 

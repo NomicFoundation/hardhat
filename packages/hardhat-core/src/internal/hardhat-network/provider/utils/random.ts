@@ -22,6 +22,10 @@ export class RandomBufferGenerator {
     return valueToReturn;
   }
 
+  public seed(): Buffer {
+    return this._nextValue;
+  }
+
   public setNext(nextValue: Buffer) {
     this._nextValue = Buffer.from(nextValue);
   }

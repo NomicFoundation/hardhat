@@ -6,18 +6,46 @@
 
 use serde::{Deserialize, Serialize};
 
-/// Represents JSON-RPC 2.0 success response.
+/// Represents a JSON-RPC error.
+#[derive(thiserror::Error, Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[error("The response reported error `{code}`: `{message}`. (optional data: {data:?})")]
+pub struct Error {
+    pub code: i16,
+    pub message: String,
+    pub data: Option<serde_json::Value>,
+}
+
+/// Represents a JSON-RPC 2.0 response.
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
-pub struct Success<T = serde_json::Value> {
+pub struct Response<T> {
     /// A String specifying the version of the JSON-RPC protocol.
     pub jsonrpc: Version,
-    /// Successful execution result.
-    pub result: T,
+    //
     /// Correlation id.
     ///
     /// It **MUST** be the same as the value of the id member in the Request Object.
     pub id: Id,
+    /// Response data.
+    #[serde(flatten)]
+    pub data: ResponseData<T>,
+}
+
+/// Represents JSON-RPC 2.0 success response.
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[serde(untagged)]
+pub enum ResponseData<T> {
+    Error { error: Error },
+    Success { result: T },
+}
+
+impl<T> ResponseData<T> {
+    /// Returns a [`Result`] where `Success` is mapped to `Ok` and `Error` to `Err`.
+    pub fn into_result(self) -> Result<T, Error> {
+        match self {
+            ResponseData::Success { result } => Ok(result),
+            ResponseData::Error { error } => Err(error),
+        }
+    }
 }
 
 /// Represents JSON-RPC request/response id.
@@ -65,6 +93,7 @@ impl<'a> Deserialize<'a> for Version {
 }
 
 struct VersionVisitor;
+
 impl<'a> serde::de::Visitor<'a> for VersionVisitor {
     type Value = Version;
 
@@ -81,6 +110,45 @@ impl<'a> serde::de::Visitor<'a> for VersionVisitor {
             _ => Err(serde::de::Error::custom(
                 "Invalid JSON-RPC protocol version",
             )),
+        }
+    }
+}
+
+pub struct ZeroXPrefixedBytes {
+    pub inner: bytes::Bytes,
+}
+
+impl<'a> Deserialize<'a> for ZeroXPrefixedBytes {
+    fn deserialize<D>(deserializer: D) -> Result<ZeroXPrefixedBytes, D::Error>
+    where
+        D: serde::Deserializer<'a>,
+    {
+        deserializer.deserialize_identifier(ZeroXPrefixedBytesVisitor)
+    }
+}
+
+struct ZeroXPrefixedBytesVisitor;
+impl<'a> serde::de::Visitor<'a> for ZeroXPrefixedBytesVisitor {
+    type Value = ZeroXPrefixedBytes;
+
+    fn expecting(&self, formatter: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        formatter.write_str("a 0x-prefixed string of hex digits")
+    }
+
+    fn visit_str<E>(self, value: &str) -> Result<Self::Value, E>
+    where
+        E: serde::de::Error,
+    {
+        if &value[0..1] == "0x" {
+            Err(serde::de::Error::custom(
+                "string does not have a '0x' prefix",
+            ))
+        } else {
+            Ok(ZeroXPrefixedBytes {
+                inner: bytes::Bytes::from(
+                    hex::decode(&value[2..]).expect("failed to decode hex string"),
+                ),
+            })
         }
     }
 }

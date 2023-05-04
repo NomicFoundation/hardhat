@@ -176,6 +176,10 @@ export class BlockBuilder {
     this._state = "reverted";
   }
 
+  public getTransactionResults(): RunTxResult[] {
+    return this._transactionResults;
+  }
+
   private async _getTransactionsTrie(): Promise<Buffer> {
     const trie = new Trie();
     for (const [i, tx] of this._transactions.entries()) {

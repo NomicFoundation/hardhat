@@ -4,7 +4,8 @@ import {
   toBuffer,
 } from "@nomicfoundation/ethereumjs-util";
 import { StateManager, Account, Bytecode, RethnetContext } from "rethnet-evm";
-import { GenesisAccount } from "./node-types";
+import { ForkConfig, GenesisAccount } from "./node-types";
+import { makeForkProvider } from "./utils/makeForkClient";
 
 /* eslint-disable @nomiclabs/hardhat-internal-rules/only-hardhat-error */
 /* eslint-disable @typescript-eslint/no-unused-vars */
@@ -26,6 +27,36 @@ export class RethnetStateManager {
           };
         })
       )
+    );
+  }
+
+  public static async forkRemote(
+    context: RethnetContext,
+    forkConfig: ForkConfig,
+    genesisAccounts: GenesisAccount[]
+  ): Promise<RethnetStateManager> {
+    let blockNumber: bigint;
+    if (forkConfig.blockNumber !== undefined) {
+      blockNumber = BigInt(forkConfig.blockNumber);
+    } else {
+      const { forkBlockNumber } = await makeForkProvider(forkConfig);
+      blockNumber = forkBlockNumber;
+    }
+
+    return new RethnetStateManager(
+      StateManager.forkRemote(
+        context,
+        forkConfig.jsonRpcUrl,
+        blockNumber,
+        genesisAccounts.map((account) => {
+          return {
+            privateKey: account.privateKey,
+            balance: BigInt(account.balance),
+          };
+        })
+      )
+      // TODO: consider changing StateManager.withFork() to also support
+      // passing in (and of course using) forkConfig.httpHeaders.
     );
   }
 
@@ -127,8 +158,11 @@ export class RethnetStateManager {
     return this._state.getStateRoot();
   }
 
-  public async setStateRoot(stateRoot: Buffer): Promise<void> {
-    return this._state.setStateRoot(stateRoot);
+  public async setBlockContext(
+    stateRoot: Buffer,
+    blockNumber?: bigint
+  ): Promise<void> {
+    return this._state.setBlockContext(stateRoot, blockNumber);
   }
 
   public async serialize(): Promise<string> {

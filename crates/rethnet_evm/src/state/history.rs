@@ -1,5 +1,5 @@
 use auto_impl::auto_impl;
-use rethnet_eth::B256;
+use rethnet_eth::{B256, U256};
 
 /// A trait for debug operation on a database.
 #[auto_impl(Box)]
@@ -7,8 +7,12 @@ pub trait StateHistory {
     /// The database's error type.
     type Error;
 
-    /// Reverts the state to match the specified state root.
-    fn set_state_root(&mut self, state_root: &B256) -> Result<(), Self::Error>;
+    /// Reverts the state to match the specified block.
+    fn set_block_context(
+        &mut self,
+        state_root: &B256,
+        block_number: Option<U256>,
+    ) -> Result<(), Self::Error>;
 
     /// Creates a checkpoint that can be reverted to using [`revert`].
     fn checkpoint(&mut self) -> Result<(), Self::Error>;

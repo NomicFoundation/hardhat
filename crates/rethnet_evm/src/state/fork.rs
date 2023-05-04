@@ -1,298 +1,457 @@
-use hashbrown::HashMap;
-use revm::{db::DatabaseRef, Account, AccountInfo, Bytecode};
+use std::sync::Arc;
 
-use rethnet_eth::{Address, B256, U256};
+use hashbrown::{HashMap, HashSet};
+use parking_lot::{Mutex, RwLock, RwLockUpgradableReadGuard};
+use rethnet_eth::{
+    remote::{BlockSpec, RpcClient},
+    Address, B256, U256,
+};
+use revm::{
+    db::{State, StateRef},
+    primitives::{Account, AccountInfo, Bytecode},
+    DatabaseCommit,
+};
+use tokio::runtime::Runtime;
 
-use crate::db::{
-    layered_db::{LayeredDatabase, RethnetLayer},
-    remote::{RemoteDatabase, RemoteDatabaseError},
+use crate::random::RandomHashGenerator;
+
+use super::{
+    remote::CachedRemoteState, HybridState, RemoteState, RethnetLayer, StateDebug, StateError,
+    StateHistory,
 };
 
 /// A database integrating the state from a remote node and the state from a local layered
 /// database.
-pub struct ForkDatabase {
-    layered_db: LayeredDatabase<RethnetLayer>,
-    remote_db: RemoteDatabase,
-    account_info_cache: HashMap<Address, AccountInfo>,
-    code_by_hash_cache: HashMap<B256, Bytecode>,
-    storage_cache: HashMap<(Address, U256), U256>,
-    fork_block_number: u64,
-    fork_block_state_root_cache: Option<B256>,
+#[derive(Debug)]
+pub struct ForkState {
+    local_state: HybridState<RethnetLayer>,
+    remote_state: Arc<Mutex<CachedRemoteState>>,
+    removed_storage_slots: HashSet<(Address, U256)>,
+    fork_block_number: U256,
+    /// client-facing state root (pseudorandomly generated) mapped to internal (layered_state) state root
+    state_root_to_state: RwLock<HashMap<B256, B256>>,
+    /// A pair of the generated state root and local state root
+    current_state: RwLock<(B256, B256)>,
+    initial_state_root: B256,
+    hash_generator: Arc<Mutex<RandomHashGenerator>>,
 }
 
-/// An error emitted by ForkDatabase
-#[derive(thiserror::Error, Debug)]
-pub enum ForkDatabaseError {
-    /// An error from the underlying RemoteDatabase
-    #[error(transparent)]
-    RemoteDatabase(#[from] RemoteDatabaseError),
+impl ForkState {
+    /// instantiate a new ForkState
+    pub fn new(
+        runtime: Arc<Runtime>,
+        hash_generator: Arc<Mutex<RandomHashGenerator>>,
+        url: &str,
+        fork_block_number: U256,
+        mut accounts: HashMap<Address, AccountInfo>,
+    ) -> Self {
+        let rpc_client = RpcClient::new(url);
 
-    /// An error from the underlying LayeredDatabase
-    #[error(transparent)]
-    LayeredDatabase(#[from] <LayeredDatabase<RethnetLayer> as revm::Database>::Error),
+        let remote_state = RemoteState::new(runtime.clone(), url, fork_block_number);
 
-    /// Code hash not found in cache of remote database
-    #[error("Cache of remote database does not contain contract with code hash: {0}.")]
-    NoSuchCodeHash(B256),
+        accounts.iter_mut().for_each(|(address, mut account_info)| {
+            let nonce = runtime
+                .block_on(
+                    rpc_client.get_transaction_count(address, BlockSpec::Number(fork_block_number)),
+                )
+                .expect("failed to retrieve remote account info for local account initialization");
 
-    /// Some other error from an underlying dependency
-    #[error(transparent)]
-    OtherError(#[from] std::io::Error),
-}
+            account_info.nonce = nonce.to();
+        });
 
-impl ForkDatabase {
-    /// instantiate a new ForkDatabase
-    pub fn new(url: &str, fork_block_number: u64) -> Self {
-        let remote_db = RemoteDatabase::new(url);
+        let mut local_state = HybridState::with_accounts(accounts);
+        local_state.checkpoint().unwrap();
 
-        let layered_db = LayeredDatabase::<RethnetLayer>::default();
+        let generated_state_root = hash_generator.lock().next_value();
+        let mut state_root_to_state = HashMap::new();
+        let local_root = local_state.state_root().unwrap();
+        state_root_to_state.insert(generated_state_root, local_root);
 
         Self {
-            layered_db,
-            remote_db,
-            account_info_cache: HashMap::new(),
-            code_by_hash_cache: HashMap::new(),
-            storage_cache: HashMap::new(),
+            local_state,
+            remote_state: Arc::new(Mutex::new(CachedRemoteState::new(remote_state))),
+            removed_storage_slots: HashSet::new(),
             fork_block_number,
-            fork_block_state_root_cache: None,
+            state_root_to_state: RwLock::new(state_root_to_state),
+            current_state: RwLock::new((generated_state_root, local_root)),
+            initial_state_root: generated_state_root,
+            hash_generator,
+        }
+    }
+
+    fn update_removed_storage_slots(&mut self) {
+        self.removed_storage_slots.clear();
+
+        self.local_state
+            .changes()
+            .rev()
+            .flat_map(|layer| layer.accounts())
+            .for_each(|(address, account)| {
+                // We never need to remove zero entries as a "removed" entry means that the lookup for
+                // a value in the hybrid state succeeded.
+                if let Some(account) = account {
+                    account.storage.iter().for_each(|(index, value)| {
+                        if *value == U256::ZERO {
+                            self.removed_storage_slots.insert((*address, *index));
+                        }
+                    });
+                }
+            })
+    }
+}
+
+impl StateRef for ForkState {
+    type Error = StateError;
+
+    fn basic(&self, address: Address) -> Result<Option<AccountInfo>, Self::Error> {
+        if let Some(local) = self.local_state.basic(address)? {
+            Ok(Some(local))
+        } else {
+            self.remote_state.lock().basic(address)
+        }
+    }
+
+    fn code_by_hash(&self, code_hash: B256) -> Result<Bytecode, Self::Error> {
+        if let Ok(layered) = self.local_state.code_by_hash(code_hash) {
+            Ok(layered)
+        } else {
+            self.remote_state.lock().code_by_hash(code_hash)
+        }
+    }
+
+    fn storage(&self, address: Address, index: U256) -> Result<U256, Self::Error> {
+        let local = self.local_state.storage(address, index)?;
+        if local != U256::ZERO || self.removed_storage_slots.contains(&(address, index)) {
+            Ok(local)
+        } else {
+            self.remote_state.lock().storage(address, index)
         }
     }
 }
 
-impl revm::Database for ForkDatabase {
-    type Error = ForkDatabaseError;
-
-    fn basic(&mut self, address: Address) -> Result<Option<AccountInfo>, Self::Error> {
-        if let Some(layered) = self
-            .layered_db
-            .basic(address)
-            .map_err(ForkDatabaseError::LayeredDatabase)?
-        {
-            Ok(Some(layered))
-        } else if let Some(cached) = self.account_info_cache.get(&address) {
-            Ok(Some(cached.clone()))
-        } else if let Some(remote) = self
-            .remote_db
-            .basic(address)
-            .map_err(ForkDatabaseError::RemoteDatabase)?
-        {
-            self.account_info_cache.insert(address, remote.clone());
-
-            if remote.code.is_some() {
-                self.code_by_hash_cache
-                    .insert(remote.code_hash, remote.code.clone().unwrap());
-            }
-
-            Ok(Some(remote))
-        } else {
-            Ok(None)
-        }
-    }
-
-    fn code_by_hash(&mut self, code_hash: B256) -> Result<Bytecode, Self::Error> {
-        if let Ok(layered) = self.layered_db.code_by_hash(code_hash) {
-            Ok(layered)
-        } else if let Some(cached) = self.code_by_hash_cache.get(&code_hash) {
-            Ok(cached.clone())
-        } else {
-            // remote_db doesn't support code_by_hash, so there's no delegation to it here.
-            Err(ForkDatabaseError::NoSuchCodeHash(code_hash))
-        }
-    }
-
-    fn storage(&mut self, address: Address, index: U256) -> Result<U256, Self::Error> {
-        let layered = self
-            .layered_db
-            .storage(address, index)
-            .map_err(ForkDatabaseError::LayeredDatabase)?;
-
-        if layered != U256::from(0) {
-            Ok(layered)
-        } else if let Some(cached) = self.storage_cache.get(&(address, index)) {
-            Ok(*cached)
-        } else {
-            let remote = self
-                .remote_db
-                .storage(address, index)
-                .map_err(ForkDatabaseError::RemoteDatabase)?;
-
-            self.storage_cache.insert((address, index), remote);
-
-            Ok(remote)
-        }
-    }
-}
-
-impl revm::DatabaseCommit for ForkDatabase {
+impl DatabaseCommit for ForkState {
     fn commit(&mut self, changes: HashMap<Address, Account>) {
-        self.layered_db.commit(changes)
+        changes.iter().for_each(|(address, account)| {
+            account.storage.iter().for_each(|(index, value)| {
+                // We never need to remove zero entries as a "removed" entry means that the lookup for
+                // a value in the hybrid state succeeded.
+                if value.present_value() == U256::ZERO {
+                    self.removed_storage_slots.insert((*address, *index));
+                }
+            });
+        });
+
+        self.local_state.commit(changes)
     }
 }
 
-impl crate::DatabaseDebug for ForkDatabase {
-    type Error = ForkDatabaseError;
+impl StateDebug for ForkState {
+    type Error = StateError;
 
-    fn account_storage_root(&mut self, address: &Address) -> Result<Option<B256>, Self::Error> {
-        self.layered_db
-            .account_storage_root(address)
-            .map_err(ForkDatabaseError::LayeredDatabase)
+    fn account_storage_root(&self, address: &Address) -> Result<Option<B256>, Self::Error> {
+        self.local_state.account_storage_root(address)
     }
 
-    /// Inserts an account with the specified address.
     fn insert_account(
         &mut self,
         address: Address,
         account_info: AccountInfo,
     ) -> Result<(), Self::Error> {
-        self.layered_db
-            .insert_account(address, account_info)
-            .map_err(ForkDatabaseError::LayeredDatabase)
+        self.local_state.insert_account(address, account_info)
     }
 
-    /// Modifies the account at the specified address using the provided function.
     fn modify_account(
         &mut self,
         address: Address,
-        modifier: crate::debug::ModifierFn,
+        modifier: crate::state::AccountModifierFn,
+        default_account_fn: &dyn Fn() -> Result<AccountInfo, Self::Error>,
     ) -> Result<(), Self::Error> {
-        use revm::Database; // for basic()
-
-        if (self
-            .layered_db
-            .basic(address)
-            .map_err(ForkDatabaseError::LayeredDatabase)?)
-        .is_none()
-        {
-            let account_info = if let Some(cached) = self.account_info_cache.get(&address) {
-                Some(cached.clone())
-            } else if let Some(remote) = self
-                .remote_db
-                .basic(address)
-                .map_err(ForkDatabaseError::RemoteDatabase)?
-            {
-                self.account_info_cache.insert(address, remote.clone());
-
-                if remote.code.is_some() {
-                    self.code_by_hash_cache
-                        .insert(remote.code_hash, remote.code.clone().unwrap());
-                }
-
-                Some(remote)
-            } else {
-                None
-            };
-            if let Some(account_info) = account_info {
-                self.layered_db.insert_account(address, account_info)?
-            }
-        }
-        self.layered_db
-            .modify_account(address, modifier)
-            .map_err(ForkDatabaseError::LayeredDatabase)
+        #[allow(clippy::redundant_closure)]
+        self.local_state.modify_account(address, modifier, &|| {
+            self.remote_state
+                .lock()
+                .basic(address)?
+                .map_or_else(|| default_account_fn(), Result::Ok)
+        })
     }
 
-    /// Removes and returns the account at the specified address, if it exists.
     fn remove_account(&mut self, address: Address) -> Result<Option<AccountInfo>, Self::Error> {
-        crate::DatabaseDebug::remove_account(&mut self.layered_db, address)
-            .map_err(ForkDatabaseError::LayeredDatabase)
+        self.local_state.remove_account(address)
     }
 
-    /// Sets the storage slot at the specified address and index to the provided value.
+    fn serialize(&self) -> String {
+        // TODO: Do we want to print history?
+        self.local_state.serialize()
+    }
+
     fn set_account_storage_slot(
         &mut self,
         address: Address,
         index: U256,
         value: U256,
     ) -> Result<(), Self::Error> {
-        self.layered_db
-            .set_account_storage_slot(address, index, value)
-            .map_err(ForkDatabaseError::LayeredDatabase)
-    }
-
-    /// Reverts the state to match the specified state root.
-    fn set_state_root(&mut self, state_root: &B256) -> Result<(), Self::Error> {
-        self.layered_db
-            .set_state_root(state_root)
-            .map_err(ForkDatabaseError::LayeredDatabase)
-    }
-
-    /// Retrieves the storage root of the database.
-    fn state_root(&mut self) -> Result<B256, Self::Error> {
-        if self.layered_db.iter().next().is_some() {
-            Ok(self
-                .layered_db
-                .state_root()
-                .map_err(ForkDatabaseError::LayeredDatabase)?)
-        } else if let Some(cached) = self.fork_block_state_root_cache {
-            Ok(cached)
-        } else {
-            self.fork_block_state_root_cache = Some(
-                self.remote_db
-                    .state_root(self.fork_block_number)
-                    .map_err(ForkDatabaseError::RemoteDatabase)
-                    .map_err(|e| anyhow::anyhow!(e))?,
-            );
-            Ok(self.fork_block_state_root_cache.unwrap())
+        // We never need to remove zero entries as a "removed" entry means that the lookup for
+        // a value in the hybrid state succeeded.
+        if value == U256::ZERO {
+            self.removed_storage_slots.insert((address, index));
         }
+
+        self.local_state
+            .set_account_storage_slot(address, index, value)
     }
 
-    /// Creates a checkpoint that can be reverted to using [`revert`].
-    fn checkpoint(&mut self) -> Result<(), Self::Error> {
-        self.layered_db
-            .checkpoint()
-            .map_err(ForkDatabaseError::LayeredDatabase)
-    }
+    fn state_root(&self) -> Result<B256, Self::Error> {
+        let local_root = self.local_state.state_root().unwrap();
 
-    /// Reverts to the previous checkpoint, created using [`checkpoint`].
-    fn revert(&mut self) -> Result<(), Self::Error> {
-        self.layered_db
-            .revert()
-            .map_err(ForkDatabaseError::LayeredDatabase)
-    }
+        let current_state = self.current_state.upgradable_read();
+        let state_root_to_state = self.state_root_to_state.upgradable_read();
 
-    /// Makes a snapshot of the database that's retained until [`remove_snapshot`] is called. Returns the snapshot's identifier.
-    fn make_snapshot(&mut self) -> B256 {
-        self.layered_db.make_snapshot()
-    }
+        Ok(if local_root != current_state.1 {
+            let next_state_root = self.hash_generator.lock().next_value();
 
-    /// Removes the snapshot corresponding to the specified id, if it exists. Returns whether a snapshot was removed.
-    fn remove_snapshot(&mut self, state_root: &B256) -> bool {
-        self.layered_db.remove_snapshot(state_root)
+            let mut state_root_to_state = RwLockUpgradableReadGuard::upgrade(state_root_to_state);
+            state_root_to_state.insert(next_state_root, local_root);
+
+            *RwLockUpgradableReadGuard::upgrade(current_state) = (next_state_root, local_root);
+
+            next_state_root
+        } else {
+            current_state.0
+        })
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
+impl StateHistory for ForkState {
+    type Error = StateError;
 
-    use std::str::FromStr;
+    fn set_block_context(
+        &mut self,
+        state_root: &B256,
+        block_number: Option<U256>,
+    ) -> Result<(), Self::Error> {
+        if let Some(block_number) = block_number {
+            if block_number < self.fork_block_number {
+                self.remote_state.lock().set_block_number(&block_number);
 
-    fn get_alchemy_url() -> Result<String, String> {
-        Ok(std::env::var_os("ALCHEMY_URL")
-            .expect("ALCHEMY_URL environment variable not defined")
-            .into_string()
-            .expect("couldn't convert OsString into a String"))
+                let local_root = self
+                    .state_root_to_state
+                    .get_mut()
+                    .get(&self.initial_state_root)
+                    .unwrap();
+
+                self.local_state.set_block_context(local_root, None)?;
+
+                *self.current_state.get_mut() = (self.initial_state_root, *local_root);
+            } else {
+                let state_root_to_state = self.state_root_to_state.get_mut();
+                let local_root = state_root_to_state.get(state_root).or_else(|| {
+                    if block_number == self.fork_block_number {
+                        state_root_to_state.get(&self.initial_state_root)
+                    } else {
+                        None
+                    }
+                });
+
+                if let Some(local_root) = local_root {
+                    self.local_state
+                        .set_block_context(local_root, Some(block_number))?;
+
+                    let block_number = block_number.min(self.fork_block_number);
+                    self.remote_state.lock().set_block_number(&block_number);
+
+                    *self.current_state.get_mut() = (*state_root, *local_root);
+                } else {
+                    return Err(Self::Error::InvalidStateRoot {
+                        state_root: *state_root,
+                        is_fork: true,
+                    });
+                }
+            }
+        } else if let Some(local_root) = self.state_root_to_state.get_mut().get(state_root) {
+            self.local_state.set_block_context(local_root, None)?;
+            self.remote_state
+                .lock()
+                .set_block_number(&self.fork_block_number);
+
+            *self.current_state.get_mut() = (*state_root, *local_root);
+        } else {
+            return Err(Self::Error::InvalidStateRoot {
+                state_root: *state_root,
+                is_fork: true,
+            });
+        }
+
+        self.update_removed_storage_slots();
+
+        Ok(())
     }
 
-    #[test_with::env(ALCHEMY_URL)]
+    fn checkpoint(&mut self) -> Result<(), Self::Error> {
+        // Ensure a potential state root is generated
+        self.state_root()?;
+
+        self.local_state.checkpoint()
+    }
+
+    fn revert(&mut self) -> Result<(), Self::Error> {
+        self.local_state.revert()
+    }
+
+    fn make_snapshot(&mut self) -> B256 {
+        self.local_state.make_snapshot();
+
+        self.state_root().expect("should have been able to generate a new state root after triggering a snapshot in the underlying state")
+    }
+
+    fn remove_snapshot(&mut self, state_root: &B256) {
+        self.local_state.remove_snapshot(state_root);
+    }
+}
+
+#[cfg(all(test, not(feature = "test-disable-remote")))]
+mod tests {
+    use std::str::FromStr;
+
+    use tokio::runtime::Builder;
+
+    use super::*;
+
+    fn get_alchemy_url() -> Result<String, String> {
+        match std::env::var_os("ALCHEMY_URL")
+            .expect("ALCHEMY_URL environment variable not defined")
+            .into_string()
+            .expect("couldn't convert OsString into a String")
+        {
+            url if url.is_empty() => panic!("ALCHEMY_URL environment variable is empty"),
+            url => Ok(url),
+        }
+    }
+
     #[test]
     fn basic_success() {
+        let runtime = Arc::new(
+            Builder::new_multi_thread()
+                .enable_io()
+                .enable_time()
+                .build()
+                .expect("failed to construct async runtime"),
+        );
+
+        let hash_generator = Arc::new(Mutex::new(RandomHashGenerator::with_seed("seed")));
+
+        let fork_state = ForkState::new(
+            runtime,
+            hash_generator,
+            &get_alchemy_url().expect("failed to get alchemy url"),
+            U256::from(16220843),
+            HashMap::default(),
+        );
+
         let dai_address = Address::from_str("0x6b175474e89094c44da98b954eedeac495271d0f")
             .expect("failed to parse address");
-        let mut fork_db = ForkDatabase::new(
-            &get_alchemy_url().expect("failed to get alchemy url"),
-            16220843,
-        );
-        let account_info =
-            revm::Database::basic(&mut fork_db, dai_address).expect("should have succeeded");
 
+        let account_info = fork_state
+            .basic(dai_address)
+            .expect("should have succeeded");
         assert!(account_info.is_some());
+
         let account_info = account_info.unwrap();
         assert_eq!(account_info.balance, U256::from(0));
         assert_eq!(account_info.nonce, 1);
         assert_eq!(
             account_info.code_hash,
-            B256::from_str("0x74280a6e975486b18c8a65edee16b3b7a2f4c24398a094648552810549cbf864")
+            B256::from_str("0x4e36f96ee1667a663dfaac57c4d185a0e369a3a217e0079d49620f34f85d1ac7")
                 .expect("failed to parse")
         );
+    }
+
+    #[test]
+    fn set_block_context_with_zeroed_storage_slots() {
+        let runtime = Arc::new(
+            Builder::new_multi_thread()
+                .enable_io()
+                .enable_time()
+                .build()
+                .expect("failed to construct async runtime"),
+        );
+
+        let hash_generator = Arc::new(Mutex::new(RandomHashGenerator::with_seed("seed")));
+
+        let mut fork_state = ForkState::new(
+            runtime,
+            hash_generator,
+            &get_alchemy_url().expect("failed to get alchemy url"),
+            U256::from(16220843),
+            HashMap::default(),
+        );
+
+        let dai_address = Address::from_str("0x6b175474e89094c44da98b954eedeac495271d0f")
+            .expect("failed to parse address");
+
+        const STORAGE_SLOT_INDEX: u64 = 1;
+        const DUMMY_STORAGE_VALUE: u64 = 1000;
+
+        let storage_slot_index = U256::from(STORAGE_SLOT_INDEX);
+        let dummy_storage_value = U256::from(DUMMY_STORAGE_VALUE);
+        let initial_state_root = fork_state.initial_state_root;
+
+        let remote_value =
+            U256::from_str("0x000000000000000000000000000000000000000010a596ae049e066d4991945c")
+                .unwrap();
+
+        // Validate remote storage slot value
+        assert_eq!(
+            fork_state.storage(dai_address, storage_slot_index).unwrap(),
+            remote_value
+        );
+
+        // Set storage slot to zero
+        fork_state
+            .set_account_storage_slot(dai_address, storage_slot_index, U256::ZERO)
+            .unwrap();
+
+        // Validate storage slot equals zero
+        let fork_storage_slot = fork_state.storage(dai_address, storage_slot_index).unwrap();
+        assert_eq!(fork_storage_slot, U256::ZERO);
+
+        // Retrieve the state root that we want to revert to later on
+        let zeroed_state_root = fork_state.state_root().unwrap();
+
+        // Create layers with modified storage slot values that will be reverted
+        fork_state.checkpoint().unwrap();
+
+        fork_state
+            .set_account_storage_slot(dai_address, storage_slot_index, dummy_storage_value)
+            .unwrap();
+
+        fork_state.checkpoint().unwrap();
+
+        let dummy_storage_state_root = fork_state.make_snapshot();
+
+        // Validate storage slot equals zero after reverting to zeroed storage slot state
+        fork_state
+            .set_block_context(&zeroed_state_root, None)
+            .unwrap();
+
+        let fork_storage_slot = fork_state.storage(dai_address, storage_slot_index).unwrap();
+        assert_eq!(fork_storage_slot, U256::ZERO);
+
+        // Validate remote storage slot value after reverting to initial state
+        fork_state
+            .set_block_context(&initial_state_root, None)
+            .unwrap();
+
+        assert_eq!(
+            fork_state.storage(dai_address, storage_slot_index).unwrap(),
+            remote_value
+        );
+
+        // Validate that the dummy value is returned after fast-forward to that state
+        fork_state
+            .set_block_context(&dummy_storage_state_root, None)
+            .unwrap();
+
+        let fork_storage_slot = fork_state.storage(dai_address, storage_slot_index).unwrap();
+        assert_eq!(fork_storage_slot, dummy_storage_value);
     }
 }

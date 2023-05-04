@@ -3,12 +3,16 @@ use std::{collections::BTreeMap, fmt::Debug};
 use cita_trie::Hasher;
 use hashbrown::HashMap;
 use hasher::HasherKeccak;
-use rethnet_eth::{account::KECCAK_EMPTY, state::storage_root, Address, B256, U256};
+use rethnet_eth::{
+    account::{BasicAccount, KECCAK_EMPTY},
+    state::{state_root, storage_root, Storage},
+    Address, B256, U256,
+};
 use revm::primitives::{Account, AccountInfo, Bytecode};
 
 use crate::{
     collections::{SharedMap, SharedMapEntry},
-    state::account::RethnetAccount,
+    state::{account::RethnetAccount, StateError},
 };
 
 #[derive(Clone, Debug)]
@@ -42,6 +46,11 @@ impl<Layer> LayeredChanges<Layer> {
     pub fn rev(&self) -> impl Iterator<Item = &Layer> {
         self.stack.iter()
     }
+
+    /// Appends the provided layers.
+    pub fn append(&mut self, layers: &mut Vec<Layer>) {
+        self.stack.append(layers);
+    }
 }
 
 impl<Layer: Debug> LayeredChanges<Layer> {
@@ -57,9 +66,9 @@ impl<Layer: Debug> LayeredChanges<Layer> {
     /// Reverts to the layer with specified `layer_id`, removing all
     /// layers above it.
     #[cfg_attr(feature = "tracing", tracing::instrument)]
-    pub fn revert_to_layer(&mut self, layer_id: usize) {
+    pub fn revert_to_layer(&mut self, layer_id: usize) -> Vec<Layer> {
         assert!(layer_id < self.stack.len(), "Invalid layer id.");
-        self.stack.truncate(layer_id + 1);
+        self.stack.split_off(layer_id + 1)
     }
 }
 
@@ -93,8 +102,10 @@ pub struct RethnetLayer {
 
 impl RethnetLayer {
     /// Retrieves an iterator over all accounts.
-    pub fn accounts(&self) -> impl Iterator<Item = (&Address, &Option<RethnetAccount>)> {
-        self.accounts.iter()
+    pub fn accounts(&self) -> impl Iterator<Item = (&Address, Option<&RethnetAccount>)> {
+        self.accounts
+            .iter()
+            .map(|(address, account)| (address, account.as_ref()))
     }
 
     /// Retrieves the contract storage
@@ -174,8 +185,12 @@ impl LayeredChanges<RethnetLayer> {
 
     /// Retrieves a mutable reference to the account corresponding to the address, if it exists.
     /// Otherwise, inserts a new account.
-    #[cfg_attr(feature = "tracing", tracing::instrument)]
-    pub fn account_or_insert_mut(&mut self, address: &Address) -> &mut RethnetAccount {
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip(default_account_fn)))]
+    pub fn account_or_insert_mut(
+        &mut self,
+        address: &Address,
+        default_account_fn: &dyn Fn() -> Result<AccountInfo, StateError>,
+    ) -> &mut RethnetAccount {
         // WORKAROUND: https://blog.rust-lang.org/2022/08/05/nll-by-default.html
         if self.last_layer_mut().accounts.contains_key(address) {
             let was_deleted = self
@@ -196,7 +211,11 @@ impl LayeredChanges<RethnetLayer> {
             }
         }
 
-        let account = self.account(address).cloned().unwrap_or_default();
+        let account = self.account(address).cloned().unwrap_or_else(|| {
+            default_account_fn()
+                .expect("Default account construction is not allowed to fail")
+                .into()
+        });
 
         self.last_layer_mut()
             .accounts
@@ -214,19 +233,19 @@ impl LayeredChanges<RethnetLayer> {
                 // Removes account only if it exists, so safe to use for empty, touched accounts
                 self.remove_account(address);
             } else {
-                let old_account = self.account_or_insert_mut(address);
+                let old_account = self.account_or_insert_mut(address, &|| {
+                    Ok(AccountInfo {
+                        code: None,
+                        ..AccountInfo::default()
+                    })
+                });
 
                 if account.storage_cleared {
                     old_account.storage.clear();
                 }
 
                 account.storage.iter().for_each(|(index, value)| {
-                    let value = value.present_value();
-                    if value == U256::ZERO {
-                        old_account.storage.remove(index);
-                    } else {
-                        old_account.storage.insert(*index, value);
-                    }
+                    old_account.storage.insert(*index, value.present_value());
                 });
 
                 let mut account_info = account.info.clone();
@@ -280,7 +299,26 @@ impl LayeredChanges<RethnetLayer> {
     /// Serializes the state using ordering of addresses and storage indices.
     #[cfg_attr(feature = "tracing", tracing::instrument)]
     pub fn serialize(&self) -> String {
-        let mut state = BTreeMap::new();
+        let mut state = HashMap::new();
+
+        self.rev()
+            .flat_map(|layer| layer.accounts())
+            .for_each(|(address, account)| {
+                if let Some(new_account) = account {
+                    state
+                        .entry(*address)
+                        .and_modify(|account: &mut RethnetAccount| {
+                            account.info = new_account.info.clone();
+
+                            new_account.storage.iter().for_each(|(index, value)| {
+                                account.storage.insert(*index, *value);
+                            });
+                        })
+                        .or_insert_with(|| new_account.clone());
+                } else {
+                    state.remove(address);
+                }
+            });
 
         #[derive(serde::Serialize)]
         struct StateAccount {
@@ -296,43 +334,119 @@ impl LayeredChanges<RethnetLayer> {
             pub storage_root: B256,
         }
 
-        self.iter()
-            .flat_map(|layer| layer.accounts())
-            .for_each(|(address, account)| {
-                state.entry(*address).or_insert_with(|| {
-                    account.as_ref().map(|account| {
-                        let storage_root = storage_root(&account.storage);
-
-                        // Sort entries
-                        let storage: BTreeMap<B256, U256> = account
-                            .storage
-                            .iter()
-                            .map(|(index, value)| {
-                                let hashed_index =
-                                    HasherKeccak::new().digest(&index.to_be_bytes::<32>());
-
-                                (B256::from_slice(&hashed_index), *value)
-                            })
-                            .collect();
-
-                        StateAccount {
-                            balance: account.info.balance,
-                            nonce: account.info.nonce,
-                            code_hash: account.info.code_hash,
-                            storage_root,
-                            storage,
-                        }
-                    })
-                });
-            });
-
-        // Remove deleted entries
         let state: BTreeMap<_, _> = state
             .into_iter()
-            .filter_map(|(address, account)| account.map(|account| (address, account)))
+            .map(|(address, mut account)| {
+                account.storage.retain(|_index, value| *value != U256::ZERO);
+
+                let storage_root = storage_root(&account.storage);
+
+                // Sort entries
+                let storage: BTreeMap<B256, U256> = account
+                    .storage
+                    .iter()
+                    .map(|(index, value)| {
+                        let hashed_index = HasherKeccak::new().digest(&index.to_be_bytes::<32>());
+
+                        (B256::from_slice(&hashed_index), *value)
+                    })
+                    .collect();
+
+                let account = StateAccount {
+                    balance: account.info.balance,
+                    nonce: account.info.nonce,
+                    code_hash: account.info.code_hash,
+                    storage_root,
+                    storage,
+                };
+
+                (address, account)
+            })
             .collect();
 
         serde_json::to_string_pretty(&state).unwrap()
+    }
+
+    /// Sets the storage slot at the specified address and index to the provided value.
+    #[cfg_attr(feature = "tracing", tracing::instrument)]
+    pub fn set_account_storage_slot(&mut self, address: &Address, index: &U256, value: U256) {
+        self.account_or_insert_mut(address, &|| {
+            Ok(AccountInfo {
+                code: None,
+                ..AccountInfo::default()
+            })
+        })
+        .storage
+        .insert(*index, value);
+    }
+
+    /// Retrieves the trie's state root.
+    #[cfg_attr(feature = "tracing", tracing::instrument)]
+    pub fn state_root(&self) -> B256 {
+        let mut state = HashMap::new();
+
+        self.rev()
+            .flat_map(|layer| layer.accounts())
+            .for_each(|(address, account)| {
+                if let Some(new_account) = account {
+                    state
+                        .entry(*address)
+                        .and_modify(|account: &mut RethnetAccount| {
+                            account.info = new_account.info.clone();
+
+                            new_account.storage.iter().for_each(|(index, value)| {
+                                account.storage.insert(*index, *value);
+                            });
+                        })
+                        .or_insert_with(|| new_account.clone());
+                } else {
+                    state.remove(address);
+                }
+            });
+
+        let state: HashMap<_, _> = state
+            .into_iter()
+            .map(|(address, account)| {
+                let account = BasicAccount {
+                    nonce: account.info.nonce,
+                    balance: account.info.balance,
+                    storage_root: storage_root(&account.storage),
+                    code_hash: account.info.code_hash,
+                };
+                (address, account)
+            })
+            .collect();
+
+        state_root(&state)
+    }
+
+    /// Retrieves the storage root of the account at the specified address.
+    #[cfg_attr(feature = "tracing", tracing::instrument)]
+    pub fn storage_root(&self, address: &Address) -> Option<B256> {
+        let mut exists = false;
+        let mut storage = Storage::default();
+
+        self.rev()
+            .flat_map(|layer| layer.accounts.get(address))
+            .for_each(|account| {
+                if let Some(account) = account {
+                    account.storage.iter().for_each(|(index, value)| {
+                        storage.insert(*index, *value);
+                    });
+
+                    exists = true;
+                } else {
+                    storage.clear();
+                }
+            });
+
+        if exists {
+            storage.retain(|_index, value| *value != U256::ZERO);
+
+            Some(storage_root(&storage))
+        } else {
+            None
+        }
     }
 
     /// Inserts the provided bytecode using its hash, potentially overwriting an existing value.
@@ -350,7 +464,13 @@ impl LayeredChanges<RethnetLayer> {
             self.insert_code(code);
         }
 
-        self.account_or_insert_mut(address).info = account_info;
+        self.account_or_insert_mut(address, &|| {
+            Ok(AccountInfo {
+                code: None,
+                ..AccountInfo::default()
+            })
+        })
+        .info = account_info;
     }
 }
 

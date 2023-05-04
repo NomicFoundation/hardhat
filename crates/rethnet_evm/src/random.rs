@@ -19,7 +19,7 @@ impl RandomHashGenerator {
     }
 
     /// Returns the next hash, generated the future next hash, and caches it.
-    pub fn next(&mut self) -> B256 {
+    pub fn next_value(&mut self) -> B256 {
         let mut next_value = keccak256(self.next_value.as_bytes());
 
         std::mem::swap(&mut self.next_value, &mut next_value);

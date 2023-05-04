@@ -140,7 +140,6 @@ pub struct ExecutionResult {
 }
 
 impl ExecutionResult {
-    #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     pub fn new(env: &Env, result: &rethnet_evm::ExecutionResult) -> napi::Result<Self> {
         let result = match result {
             rethnet_evm::ExecutionResult::Success {

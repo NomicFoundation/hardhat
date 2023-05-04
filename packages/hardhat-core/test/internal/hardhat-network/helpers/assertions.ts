@@ -186,7 +186,11 @@ export async function assertTransactionFailure(
     }
 
     if (message !== undefined) {
-      assert.include(error.message, message);
+      assert.include(
+        error.message,
+        message,
+        `"${message}" not found in "${error.message}"`
+      );
     }
 
     return;

@@ -1665,6 +1665,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
         ? "0x0000000000000000"
         : "0x0000000000000042",
       timestamp: blockTimestamp,
+      number: this.getLatestBlockNumber() + 1n,
     };
 
     if (this.isPostMergeHardfork()) {
@@ -1679,6 +1680,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     });
     await blockBuilder.startBlock();
 
+    let sealed = false;
     try {
       const traces: GatherTracesResult[] = [];
 
@@ -1719,6 +1721,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
       const minerReward = this._common.param("pow", "minerReward");
       await blockBuilder.addRewards([[coinbase, minerReward]]);
       const block = await blockBuilder.seal();
+      sealed = true;
       await this._blockchain.putBlock(block);
 
       await this._txPool.updatePendingAndQueued(
@@ -1738,7 +1741,9 @@ Hardhat Network's forking functionality only works with blocks from at least spu
         traces,
       };
     } catch (err) {
-      await blockBuilder.revert();
+      if (!sealed) {
+        await blockBuilder.revert();
+      }
       throw err;
     }
   }
@@ -2337,7 +2342,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
   private async _persistIrregularWorldState(): Promise<void> {
     this._irregularStatesByBlockNumber.set(
       this.getLatestBlockNumber(),
-      await this._vm.getStateRoot()
+      await this._vm.makeSnapshot()
     );
   }
 

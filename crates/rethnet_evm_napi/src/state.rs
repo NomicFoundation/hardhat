@@ -9,12 +9,12 @@ use std::{
 use napi::{
     bindgen_prelude::{BigInt, Buffer, ObjectFinalize},
     tokio::sync::RwLock,
-    Env, JsFunction, JsObject, NapiRaw, Status,
+    Env, JsFunction, JsObject, JsString, NapiRaw, Status,
 };
 use napi_derive::napi;
 use rethnet_eth::{signature::private_key_to_address, Address, Bytes, B256, U256};
 use rethnet_evm::{
-    state::{AccountModifierFn, HybridState, StateError, StateHistory, SyncState},
+    state::{AccountModifierFn, ForkState, HybridState, StateError, StateHistory, SyncState},
     AccountInfo, Bytecode, HashMap, KECCAK_EMPTY,
 };
 use secp256k1::Secp256k1;
@@ -47,6 +47,36 @@ pub struct GenesisAccount {
     pub balance: BigInt,
 }
 
+#[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
+fn genesis_accounts(accounts: Vec<GenesisAccount>) -> napi::Result<HashMap<Address, AccountInfo>> {
+    let signer = Secp256k1::signing_only();
+
+    accounts
+        .into_iter()
+        .map(|account| {
+            let address = private_key_to_address(&signer, &account.private_key)
+                .map_err(|e| napi::Error::new(Status::InvalidArg, e.to_string()))?;
+            TryCast::<U256>::try_cast(account.balance).map(|balance| {
+                let account_info = AccountInfo {
+                    balance,
+                    ..Default::default()
+                };
+
+                (address, account_info)
+            })
+        })
+        .collect::<napi::Result<HashMap<Address, AccountInfo>>>()
+}
+
+// Mimic precompiles activation
+fn add_precompiles(accounts: &mut HashMap<Address, AccountInfo>) {
+    for idx in 1..=8 {
+        let mut address = Address::zero();
+        address.0[19] = idx;
+        accounts.insert(address, AccountInfo::default());
+    }
+}
+
 /// The Rethnet state
 #[napi(custom_finalize)]
 #[derive(Debug)]
@@ -61,7 +91,13 @@ impl StateManager {
     #[napi(constructor)]
     #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     pub fn new(mut env: Env, context: &RethnetContext) -> napi::Result<Self> {
-        Self::with_accounts(&mut env, context, HashMap::default())
+        let mut accounts = HashMap::new();
+        add_precompiles(&mut accounts);
+
+        let mut state = HybridState::with_accounts(accounts);
+        state.checkpoint().unwrap();
+
+        Self::with_state(&mut env, context, state)
     }
 
     /// Constructs a [`StateManager`] with the provided accounts present in the genesis state.
@@ -72,44 +108,39 @@ impl StateManager {
         context: &RethnetContext,
         accounts: Vec<GenesisAccount>,
     ) -> napi::Result<Self> {
-        let signer = Secp256k1::signing_only();
-        let genesis_accounts = accounts
-            .into_iter()
-            .map(|account| {
-                let address = private_key_to_address(&signer, &account.private_key)
-                    .map_err(|e| napi::Error::new(Status::InvalidArg, e.to_string()))?;
-                TryCast::<U256>::try_cast(account.balance).map(|balance| {
-                    let account_info = AccountInfo {
-                        balance,
-                        ..Default::default()
-                    };
-
-                    (address, account_info)
-                })
-            })
-            .collect::<napi::Result<HashMap<Address, AccountInfo>>>()?;
-
-        Self::with_accounts(&mut env, context, genesis_accounts)
-    }
-
-    #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
-    fn with_accounts(
-        env: &mut Env,
-        context: &RethnetContext,
-        mut accounts: HashMap<Address, AccountInfo>,
-    ) -> napi::Result<Self> {
-        // Mimic precompiles activation
-        for idx in 1..=8 {
-            let mut address = Address::zero();
-            address.0[19] = idx;
-            accounts.insert(address, AccountInfo::default());
-        }
+        let mut accounts = genesis_accounts(accounts)?;
+        add_precompiles(&mut accounts);
 
         let mut state = HybridState::with_accounts(accounts);
-
         state.checkpoint().unwrap();
 
-        Self::with_state(env, context, state)
+        Self::with_state(&mut env, context, state)
+    }
+
+    /// Constructs a [`StateManager`] that uses the remote node and block number as the basis for
+    /// its state.
+    #[napi(factory)]
+    pub fn fork_remote(
+        mut env: Env,
+        context: &RethnetContext,
+        remote_node_url: JsString,
+        fork_block_number: BigInt,
+        accounts: Vec<GenesisAccount>,
+    ) -> napi::Result<Self> {
+        let fork_block_number: U256 = BigInt::try_cast(fork_block_number)?;
+
+        let accounts = genesis_accounts(accounts)?;
+        Self::with_state(
+            &mut env,
+            context,
+            ForkState::new(
+                context.as_inner().runtime().clone(),
+                context.as_inner().hash_generator().clone(),
+                remote_node_url.into_utf8()?.as_str()?,
+                fork_block_number,
+                accounts,
+            ),
+        )
     }
 
     #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
@@ -410,6 +441,12 @@ impl StateManager {
                             *code = new_account.code;
                         },
                     )),
+                    &|| {
+                        Ok(AccountInfo {
+                            code: None,
+                            ..AccountInfo::default()
+                        })
+                    },
                 )
                 .map_err(|e| napi::Error::new(Status::GenericFailure, e.to_string()));
 
@@ -500,15 +537,22 @@ impl StateManager {
     /// Reverts the state to match the specified state root.
     #[napi]
     #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
-    pub async fn set_state_root(&self, state_root: Buffer) -> napi::Result<()> {
+    pub async fn set_block_context(
+        &self,
+        state_root: Buffer,
+        block_number: Option<BigInt>,
+    ) -> napi::Result<()> {
         let state_root = B256::from_slice(&state_root);
+        let block_number: Option<U256> = block_number.map_or(Ok(None), |number| {
+            BigInt::try_cast(number).map(Option::Some)
+        })?;
 
         let state = self.state.clone();
         self.context
             .runtime()
             .spawn(async move {
                 let mut state = state.write().await;
-                state.set_state_root(&state_root)
+                state.set_block_context(&state_root, block_number)
             })
             .await
             .unwrap()
