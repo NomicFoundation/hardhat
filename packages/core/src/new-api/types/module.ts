@@ -65,7 +65,7 @@ export interface ArtifactLibraryDeploymentFuture extends LibraryFuture<string> {
 
 // The results of deploying a module must be a dictionary of contract futures
 export interface IgnitionModuleResult<ContractNameT extends string> {
-  [contract: string]: ContractFuture<ContractNameT>;
+  [name: string]: ContractFuture<ContractNameT> | LibraryFuture<ContractNameT>;
 }
 
 export interface IgnitionModule<
