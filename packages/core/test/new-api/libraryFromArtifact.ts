@@ -7,148 +7,115 @@ describe("libraryFromArtifact", () => {
 
   it("should be able to deploy with a library based on an artifact", () => {
     const moduleWithContractFromArtifact = buildModule("Module1", (m) => {
-      const library1 = m.contractFromArtifact("Library1", fakeArtifact, [
-        1,
-        "a",
-        BigInt("9007199254740991"),
-      ]);
+      const library1 = m.libraryFromArtifact("Library1", fakeArtifact);
 
-      return { contract1: library1 };
+      return { library1 };
     });
 
     assert.isDefined(moduleWithContractFromArtifact);
 
-    // // Sets ids based on module id and contract name
-    // assert.equal(moduleWithContractFromArtifact.id, "Module1");
-    // assert.equal(
-    //   moduleWithContractFromArtifact.results.contract1.id,
-    //   "Module1:Contract1"
-    // );
+    // Sets ids based on module id and contract name
+    assert.equal(moduleWithContractFromArtifact.id, "Module1");
+    assert.equal(
+      moduleWithContractFromArtifact.results.library1.id,
+      "Module1:Library1"
+    );
 
-    // // Stores the arguments
-    // assert.deepStrictEqual(
-    //   moduleWithContractFromArtifact.results.contract1.constructorArgs,
-    //   [1, "a", BigInt("9007199254740991")]
-    // );
+    // 1 contract future
+    assert.equal(moduleWithContractFromArtifact.futures.size, 1);
 
-    // // 1 contract future
-    // assert.equal(moduleWithContractFromArtifact.futures.size, 1);
-
-    // // No submodules
-    // assert.equal(moduleWithContractFromArtifact.submodules.size, 0);
+    // No submodules
+    assert.equal(moduleWithContractFromArtifact.submodules.size, 0);
   });
 
-  // it("should be able to pass an arg dependency", () => {
-  //   const moduleWithDependentContracts = buildModule("Module1", (m) => {
-  //     const example = m.contract("Example");
-  //     const another = m.contractFromArtifact("Another", fakeArtifact, [
-  //       example,
-  //     ]);
+  it("should be able to pass an after dependency", () => {
+    const moduleWithDependentContracts = buildModule("Module1", (m) => {
+      const example = m.library("Example");
+      const another = m.libraryFromArtifact("Another", fakeArtifact, {
+        after: [example],
+      });
 
-  //     return { example, another };
-  //   });
+      return { example, another };
+    });
 
-  //   assert.equal(moduleWithDependentContracts.futures.size, 2);
+    assert.equal(moduleWithDependentContracts.futures.size, 2);
 
-  //   const exampleFuture = moduleWithDependentContracts.results.example;
-  //   const anotherFuture = moduleWithDependentContracts.results.another;
+    const exampleFuture = moduleWithDependentContracts.results.example;
+    const anotherFuture = moduleWithDependentContracts.results.another;
 
-  //   assert.equal(anotherFuture.dependencies.size, 1);
-  //   assert(anotherFuture.dependencies.has(exampleFuture!));
-  // });
+    assert.equal(anotherFuture.dependencies.size, 1);
+    assert(anotherFuture.dependencies.has(exampleFuture!));
+  });
 
-  // it("should be able to pass an after dependency", () => {
-  //   const moduleWithDependentContracts = buildModule("Module1", (m) => {
-  //     const example = m.contract("Example");
-  //     const another = m.contractFromArtifact("Another", fakeArtifact, [], {
-  //       after: [example],
-  //     });
+  describe("passing id", () => {
+    it("should use library from artifact twice by passing an id", () => {
+      const moduleWithSameContractTwice = buildModule("Module1", (m) => {
+        const sameContract1 = m.libraryFromArtifact(
+          "SameContract",
+          fakeArtifact,
+          { id: "first" }
+        );
+        const sameContract2 = m.libraryFromArtifact(
+          "SameContract",
+          fakeArtifact,
+          {
+            id: "second",
+          }
+        );
 
-  //     return { example, another };
-  //   });
+        return { sameContract1, sameContract2 };
+      });
 
-  //   assert.equal(moduleWithDependentContracts.futures.size, 2);
+      // Sets ids based on module id and contract name
+      assert.equal(moduleWithSameContractTwice.id, "Module1");
+      assert.equal(
+        moduleWithSameContractTwice.results.sameContract1.id,
+        "Module1:first"
+      );
+      assert.equal(
+        moduleWithSameContractTwice.results.sameContract2.id,
+        "Module1:second"
+      );
+    });
 
-  //   const exampleFuture = moduleWithDependentContracts.results.example;
-  //   const anotherFuture = moduleWithDependentContracts.results.another;
+    it("should throw if the same library is deployed twice without differentiating ids", () => {
+      assert.throws(() => {
+        buildModule("Module1", (m) => {
+          const sameContract1 = m.libraryFromArtifact(
+            "SameContract",
+            fakeArtifact
+          );
+          const sameContract2 = m.libraryFromArtifact(
+            "SameContract",
+            fakeArtifact
+          );
 
-  //   assert.equal(anotherFuture.dependencies.size, 1);
-  //   assert(anotherFuture.dependencies.has(exampleFuture!));
-  // });
+          return { sameContract1, sameContract2 };
+        });
+      }, /Contracts must have unique ids, Module1:SameContract has already been used/);
+    });
 
-  // describe("passing id", () => {
-  //   it("should use library from artifact twice by passing an id", () => {
-  //     const moduleWithSameContractTwice = buildModule("Module1", (m) => {
-  //       const sameContract1 = m.contractFromArtifact(
-  //         "SameContract",
-  //         fakeArtifact,
-  //         [],
-  //         { id: "first" }
-  //       );
-  //       const sameContract2 = m.contractFromArtifact(
-  //         "SameContract",
-  //         fakeArtifact,
-  //         [],
-  //         {
-  //           id: "second",
-  //         }
-  //       );
+    it("should throw if a library tries to pass the same id twice", () => {
+      assert.throws(() => {
+        buildModule("Module1", (m) => {
+          const sameContract1 = m.libraryFromArtifact(
+            "SameContract",
+            fakeArtifact,
+            {
+              id: "same",
+            }
+          );
+          const sameContract2 = m.libraryFromArtifact(
+            "SameContract",
+            fakeArtifact,
+            {
+              id: "same",
+            }
+          );
 
-  //       return { sameContract1, sameContract2 };
-  //     });
-
-  //     // Sets ids based on module id and contract name
-  //     assert.equal(moduleWithSameContractTwice.id, "Module1");
-  //     assert.equal(
-  //       moduleWithSameContractTwice.results.sameContract1.id,
-  //       "Module1:first"
-  //     );
-  //     assert.equal(
-  //       moduleWithSameContractTwice.results.sameContract2.id,
-  //       "Module1:second"
-  //     );
-  //   });
-
-  //   it("should throw if the same library is deployed twice without differentiating ids", () => {
-  //     assert.throws(() => {
-  //       buildModule("Module1", (m) => {
-  //         const sameContract1 = m.contractFromArtifact(
-  //           "SameContract",
-  //           fakeArtifact
-  //         );
-  //         const sameContract2 = m.contractFromArtifact(
-  //           "SameContract",
-  //           fakeArtifact
-  //         );
-
-  //         return { sameContract1, sameContract2 };
-  //       });
-  //     }, /Contracts must have unique ids, Module1:SameContract has already been used/);
-  //   });
-
-  //   it("should throw if a library tries to pass the same id twice", () => {
-  //     assert.throws(() => {
-  //       buildModule("Module1", (m) => {
-  //         const sameContract1 = m.contractFromArtifact(
-  //           "SameContract",
-  //           fakeArtifact,
-  //           [],
-  //           {
-  //             id: "same",
-  //           }
-  //         );
-  //         const sameContract2 = m.contractFromArtifact(
-  //           "SameContract",
-  //           fakeArtifact,
-  //           [],
-  //           {
-  //             id: "same",
-  //           }
-  //         );
-
-  //         return { sameContract1, sameContract2 };
-  //       });
-  //     }, /Contracts must have unique ids, Module1:same has already been used/);
-  //   });
-  // });
+          return { sameContract1, sameContract2 };
+        });
+      }, /Contracts must have unique ids, Module1:same has already been used/);
+    });
+  });
 });

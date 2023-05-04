@@ -4,7 +4,7 @@ import { buildModule } from "../../src/new-api/build-module";
 import { NamedLibraryDeploymentFutureImplementation } from "../../src/new-api/internal/module";
 import { FutureType } from "../../src/new-api/types/module";
 
-describe.only("library", () => {
+describe("library", () => {
   it("should be able to setup a deploy library call", () => {
     const moduleWithASingleContract = buildModule("Module1", (m) => {
       const library1 = m.library("Library1");
