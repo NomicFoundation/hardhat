@@ -34,6 +34,13 @@ impl RethnetStates {
                             ),
                         )
                         .unwrap();
+                    state
+                        .set_account_storage_slot(
+                            address,
+                            U256::from(account_number),
+                            U256::from(account_number),
+                        )
+                        .unwrap();
                 }
                 state.checkpoint().unwrap();
             }
@@ -143,11 +150,22 @@ fn bench_code_by_hash(c: &mut Criterion) {
     });
 }
 
+fn bench_storage(c: &mut Criterion) {
+    bench_sync_state_method(c, "StateRef::storage", |state, number_of_accounts| {
+        for i in (1..=number_of_accounts).rev() {
+            state
+                .storage(Address::from_low_u64_ne(i), U256::from(i))
+                .unwrap();
+        }
+    });
+}
+
 criterion_group!(
     benches,
     bench_insert_account,
     bench_checkpoint,
     bench_basic,
-    bench_code_by_hash
+    bench_code_by_hash,
+    bench_storage,
 );
 criterion_main!(benches);
