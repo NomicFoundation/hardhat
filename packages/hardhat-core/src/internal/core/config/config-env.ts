@@ -4,6 +4,7 @@ import {
   ConfigurableTaskDefinition,
   EnvironmentExtender,
   ExperimentalHardhatNetworkMessageTraceHook,
+  ProviderExtender,
   TaskArguments,
 } from "../../../types";
 import { HardhatContext } from "../../context";
@@ -133,6 +134,18 @@ export function extendEnvironment(extender: EnvironmentExtender) {
 export function extendConfig(extender: ConfigExtender) {
   const ctx = HardhatContext.getHardhatContext();
   ctx.configExtenders.push(extender);
+}
+
+/**
+ * Register a provider extender what will be run after the
+ * Hardhat Runtime Environment is initialized.
+ *
+ * @param extender A function that receives the current provider
+ * and returns a new one.
+ */
+export function extendProvider(extender: ProviderExtender) {
+  const ctx = HardhatContext.getHardhatContext();
+  ctx.providerExtendersManager.add(extender);
 }
 
 // NOTE: This is experimental and will be removed. Please contact our team

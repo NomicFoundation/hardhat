@@ -1,6 +1,6 @@
 import { Artifacts } from "./artifacts";
 import { HardhatConfig, HardhatUserConfig, NetworkConfig } from "./config";
-import { EthereumProvider } from "./provider";
+import { EIP1193Provider, EthereumProvider } from "./provider";
 
 /**
  * This class is used to dynamically validate task's argument types.
@@ -216,3 +216,9 @@ export interface Network {
  * modify its properties or add new ones.
  */
 export type EnvironmentExtender = (env: HardhatRuntimeEnvironment) => void;
+
+/**
+ * A function that receives a provider, crafts a returns a new one.
+ * Adding and modifing the current provider is preferred from ignoring it and returning a new instance.
+ */
+export type ProviderExtender = (provider: EIP1193Provider) => EIP1193Provider;

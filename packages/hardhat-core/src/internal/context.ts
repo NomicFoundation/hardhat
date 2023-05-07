@@ -1,7 +1,9 @@
 import {
   ConfigExtender,
+  EnvironmentExtender,
   ExperimentalHardhatNetworkMessageTraceHook,
   HardhatRuntimeEnvironment,
+  ProviderExtender,
 } from "../types";
 
 import { ExtenderManager } from "./core/config/extenders";
@@ -45,8 +47,10 @@ export class HardhatContext {
   }
 
   public readonly tasksDSL = new TasksDSL();
-  public readonly extendersManager = new ExtenderManager();
+  public readonly extendersManager = new ExtenderManager<EnvironmentExtender>(); // TODO: Rename to environmentExtendersManager ? @nico
   public environment?: HardhatRuntimeEnvironment;
+  public readonly providerExtendersManager =
+    new ExtenderManager<ProviderExtender>();
   public readonly configExtenders: ConfigExtender[] = [];
 
   // NOTE: This is experimental and will be removed. Please contact our team if

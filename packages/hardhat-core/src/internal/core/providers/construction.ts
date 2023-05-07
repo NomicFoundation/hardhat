@@ -9,6 +9,7 @@ import type {
   HttpNetworkConfig,
   NetworkConfig,
   ProjectPathsConfig,
+  ProviderExtender,
 } from "../../../types";
 
 import type {
@@ -51,7 +52,8 @@ export function createProvider(
   networkConfig: NetworkConfig,
   paths?: ProjectPathsConfig,
   artifacts?: Artifacts,
-  experimentalHardhatNetworkMessageTraceHooks: BoundExperimentalHardhatNetworkMessageTraceHook[] = []
+  experimentalHardhatNetworkMessageTraceHooks: BoundExperimentalHardhatNetworkMessageTraceHook[] = [],
+  extenders: ProviderExtender[] = []
 ): EthereumProvider {
   let eip1193Provider: EIP1193Provider;
 
@@ -132,7 +134,11 @@ export function createProvider(
     );
   }
 
-  const wrappedProvider = applyProviderWrappers(eip1193Provider, networkConfig);
+  let wrappedProvider = applyProviderWrappers(eip1193Provider, networkConfig);
+
+  for (const extender of extenders) {
+    wrappedProvider = extender(wrappedProvider);
+  }
 
   const BackwardsCompatibilityProviderAdapter = importProvider<
     typeof import("./backwards-compatibility"),

@@ -1,13 +1,13 @@
-import { EnvironmentExtender } from "../../../types";
+import { EnvironmentExtender, ProviderExtender } from "../../../types";
 
-export class ExtenderManager {
-  private readonly _extenders: EnvironmentExtender[] = [];
+export class ExtenderManager<T extends EnvironmentExtender | ProviderExtender> {
+  private readonly _extenders: T[] = [];
 
-  public add(extender: EnvironmentExtender) {
+  public add(extender: T) {
     this._extenders.push(extender);
   }
 
-  public getExtenders(): EnvironmentExtender[] {
+  public getExtenders(): T[] {
     return this._extenders;
   }
 }

@@ -16,6 +16,7 @@ import {
   TaskArguments,
   TaskDefinition,
   TasksMap,
+  ProviderExtender,
 } from "../../types";
 import { Artifacts } from "../artifacts";
 import { MessageTrace } from "../hardhat-network/stack-traces/message-trace";
@@ -48,7 +49,7 @@ export class Environment implements HardhatRuntimeEnvironment {
 
   public artifacts: IArtifacts;
 
-  private readonly _extenders: EnvironmentExtender[];
+  private readonly _extenders: EnvironmentExtender[]; // TODO: Rename to environmentExtenders ? @nico
 
   public entryTaskProfile?: TaskProfile;
 
@@ -64,15 +65,17 @@ export class Environment implements HardhatRuntimeEnvironment {
    * @param config The hardhat's config object.
    * @param hardhatArguments The parsed hardhat's arguments.
    * @param tasks A map of tasks.
-   * @param extenders A list of extenders.
+   * @param extenders A list of environment extenders.
+   * @param providerExtenders A list of provider extenders.
    */
   constructor(
     public readonly config: HardhatConfig,
     public readonly hardhatArguments: HardhatArguments,
     public readonly tasks: TasksMap,
-    extenders: EnvironmentExtender[] = [],
+    extenders: EnvironmentExtender[] = [], // TODO: Rename to environmentExtenders ? @nico
     experimentalHardhatNetworkMessageTraceHooks: ExperimentalHardhatNetworkMessageTraceHook[] = [],
-    public readonly userConfig: HardhatUserConfig = {}
+    public readonly userConfig: HardhatUserConfig = {},
+    providerExtenders: ProviderExtender[] = []
   ) {
     log("Creating HardhatRuntimeEnvironment");
 
@@ -101,7 +104,8 @@ export class Environment implements HardhatRuntimeEnvironment {
         experimentalHardhatNetworkMessageTraceHooks.map(
           (hook) => (trace: MessageTrace, isCallMessageTrace: boolean) =>
             hook(this, trace, isCallMessageTrace)
-        )
+        ),
+        providerExtenders
       );
     });
 
