@@ -55,6 +55,11 @@ export interface StaticCallOptions {
   after?: Future[];
 }
 
+export interface CallOptions {
+  id?: string;
+  after?: Future[];
+}
+
 export interface IgnitionModuleBuilder {
   contract<ContractNameT extends string>(
     contractName: ContractNameT,
