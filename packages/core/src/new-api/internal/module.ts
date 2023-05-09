@@ -10,7 +10,9 @@ import {
   IgnitionModuleResult,
   NamedLibraryDeploymentFuture,
   ArtifactLibraryDeploymentFuture,
+  NamedContractCallFuture,
   ContractFuture,
+  NamedStaticCallFuture,
 } from "../types/module";
 
 export abstract class BaseFuture<
@@ -104,6 +106,42 @@ export class ArtifactLibraryDeploymentFutureImplementation<
     public readonly libraries: Record<string, ContractFuture<string>>
   ) {
     super(id, FutureType.ARTIFACT_LIBRARY_DEPLOYMENT, module);
+  }
+}
+
+export class NamedContractCallFutureImplementation<
+    ContractNameT extends string,
+    FunctionNameT extends string
+  >
+  extends BaseFuture<FutureType.NAMED_CONTRACT_CALL, string>
+  implements NamedContractCallFuture<ContractNameT, FunctionNameT>
+{
+  constructor(
+    public readonly id: string,
+    public readonly module: IgnitionModuleImplementation,
+    public readonly functionName: FunctionNameT,
+    public readonly contract: ContractFuture<ContractNameT>,
+    public readonly args: SolidityParamsType
+  ) {
+    super(id, FutureType.NAMED_CONTRACT_CALL, module);
+  }
+}
+
+export class NamedStaticCallFutureImplementation<
+    ContractNameT extends string,
+    FunctionNameT extends string
+  >
+  extends BaseFuture<FutureType.NAMED_STATIC_CALL, string>
+  implements NamedStaticCallFuture<ContractNameT, FunctionNameT>
+{
+  constructor(
+    public readonly id: string,
+    public readonly module: IgnitionModuleImplementation,
+    public readonly functionName: FunctionNameT,
+    public readonly contract: ContractFuture<ContractNameT>,
+    public readonly args: SolidityParamsType
+  ) {
+    super(id, FutureType.NAMED_STATIC_CALL, module);
   }
 }
 

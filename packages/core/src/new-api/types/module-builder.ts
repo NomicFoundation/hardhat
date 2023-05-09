@@ -6,8 +6,10 @@ import {
   ContractFuture,
   Future,
   IgnitionModuleResult,
+  NamedContractCallFuture,
   NamedContractDeploymentFuture,
   NamedLibraryDeploymentFuture,
+  NamedStaticCallFuture,
 } from "./module";
 
 export interface IgnitionModuleDefinition<
@@ -43,6 +45,11 @@ export interface LibraryFromArtifactOptions {
   libraries?: Record<string, ContractFuture<string>>;
 }
 
+export interface CallOptions {
+  id?: string;
+  after?: Future[];
+}
+
 export interface IgnitionModuleBuilder {
   contract<ContractNameT extends string>(
     contractName: ContractNameT,
@@ -67,6 +74,20 @@ export interface IgnitionModuleBuilder {
     artifact: ArtifactType,
     options?: LibraryFromArtifactOptions
   ): ArtifactLibraryDeploymentFuture;
+
+  call<ContractNameT extends string, FunctionNameT extends string>(
+    contractFuture: ContractFuture<ContractNameT>,
+    functionName: FunctionNameT,
+    args?: SolidityParamsType,
+    options?: CallOptions
+  ): NamedContractCallFuture<ContractNameT, FunctionNameT>;
+
+  staticCall<ContractNameT extends string, FunctionNameT extends string>(
+    contractFuture: ContractFuture<ContractNameT>,
+    functionName: FunctionNameT,
+    args?: SolidityParamsType,
+    options?: CallOptions
+  ): NamedStaticCallFuture<ContractNameT, FunctionNameT>;
 
   useModule<
     ModuleIdT extends string,
