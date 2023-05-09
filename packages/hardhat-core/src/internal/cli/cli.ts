@@ -228,8 +228,8 @@ async function main() {
       Reporter.setEnabled(true);
     }
 
-    const envExtenders = ctx.extendersManager.getExtenders();
-    const providerExtenders = ctx.providerExtendersManager.getExtenders();
+    const envExtenders = ctx.extendersManager;
+    const providerExtenders = ctx.providerExtendersManager;
     const taskDefinitions = ctx.tasksDSL.getTaskDefinitions();
 
     const [abortAnalytics, hitPromise] = await analytics.sendTaskHit(taskName);

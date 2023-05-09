@@ -127,10 +127,16 @@ export const types = argumentTypes;
  */
 export function extendEnvironment(extender: EnvironmentExtender) {
   const ctx = HardhatContext.getHardhatContext();
-  const extenderManager = ctx.extendersManager;
-  extenderManager.add(extender);
+  ctx.extendersManager.push(extender);
 }
 
+/**
+ * Register a config extender what will be run after the
+ * Hardhat Runtime Environment is initialized.
+ *
+ * @param extender A function that receives the resolved config
+ * to be modified and the config provided by the user
+ */
 export function extendConfig(extender: ConfigExtender) {
   const ctx = HardhatContext.getHardhatContext();
   ctx.configExtenders.push(extender);
@@ -145,7 +151,7 @@ export function extendConfig(extender: ConfigExtender) {
  */
 export function extendProvider(extender: ProviderExtender) {
   const ctx = HardhatContext.getHardhatContext();
-  ctx.providerExtendersManager.add(extender);
+  ctx.providerExtendersManager.push(extender);
 }
 
 // NOTE: This is experimental and will be removed. Please contact our team
