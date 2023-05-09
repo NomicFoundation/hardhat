@@ -121,9 +121,10 @@ fn bench_insert_account_already_exists(c: &mut Criterion) {
         c,
         "StateDebug::insert_account(), account already exists",
         |mut state, number_of_accounts| {
-            state.insert_account(
-                Address::from_low_u64_ne(number_of_accounts),
-                AccountInfo::default(),
+            let address = Address::from_low_u64_ne(number_of_accounts);
+            debug_assert!(state.basic(address).unwrap().is_some());
+            let result = state.insert_account(address, AccountInfo::default());
+            debug_assert!(result.is_ok())
             )
         },
     );
@@ -133,16 +134,18 @@ fn bench_checkpoint(c: &mut Criterion) {
     bench_sync_state_method(
         c,
         "StateHistory::checkpoint()",
-        |mut state, _number_of_accounts| state.checkpoint(),
+        |mut state, _number_of_accounts| {
+            let result = state.checkpoint();
+            debug_assert!(result.is_ok());
+        },
     );
 }
 
 fn bench_basic(c: &mut Criterion) {
     bench_sync_state_method(c, "StateRef::basic()", |state, number_of_accounts| {
         for i in (1..=number_of_accounts).rev() {
-            state
-                .basic(Address::from_str(&format!("0x{:0>40x}", i)).unwrap())
-                .unwrap();
+            let result = state.basic(Address::from_str(&format!("0x{:0>40x}", i)).unwrap());
+            debug_assert!(result.is_ok());
         }
     });
 }
@@ -150,14 +153,13 @@ fn bench_basic(c: &mut Criterion) {
 fn bench_code_by_hash(c: &mut Criterion) {
     bench_sync_state_method(c, "StateRef::code_by_hash", |state, number_of_accounts| {
         for i in (1..=number_of_accounts).rev() {
-            state
-                .code_by_hash(
-                    Bytecode::new_raw(Bytes::copy_from_slice(
-                        Address::from_low_u64_ne(i).as_bytes(),
-                    ))
-                    .hash(),
-                )
-                .unwrap();
+            let result = state.code_by_hash(
+                Bytecode::new_raw(Bytes::copy_from_slice(
+                    Address::from_low_u64_ne(i).as_bytes(),
+                ))
+                .hash(),
+            );
+            debug_assert!(result.is_ok());
         }
     });
 }
@@ -165,9 +167,8 @@ fn bench_code_by_hash(c: &mut Criterion) {
 fn bench_storage(c: &mut Criterion) {
     bench_sync_state_method(c, "StateRef::storage", |state, number_of_accounts| {
         for i in (1..=number_of_accounts).rev() {
-            state
-                .storage(Address::from_low_u64_ne(i), U256::from(i))
-                .unwrap();
+            let result = state.storage(Address::from_low_u64_ne(i), U256::from(i));
+            debug_assert!(result.is_ok());
         }
     });
 }
