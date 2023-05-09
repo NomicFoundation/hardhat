@@ -244,7 +244,10 @@ describe("Gas multiplier", function () {
 
     const gasLimit = tx.gas;
 
-    assert.equal(gasLimit, Math.floor(web3Estimation * multiplier));
+    assert.equal(
+      gasLimit,
+      String(Math.floor(Number(web3Estimation) * multiplier))
+    );
   }
 
   async function assertItWorksForFunctions(
@@ -280,7 +283,10 @@ describe("Gas multiplier", function () {
     const tx = await env.web3.eth.getTransaction(txResult.tx);
 
     const gasLimit = tx.gas;
-    assert.equal(gasLimit, Math.floor(web3Estimation * multiplier));
+    assert.equal(
+      gasLimit,
+      String(Math.floor(Number(web3Estimation) * multiplier))
+    );
   }
 
   describe("When it's set in the network", function () {

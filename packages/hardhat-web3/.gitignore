@@ -93,3 +93,5 @@ typings/
 # DynamoDB Local files
 .dynamodb/
 
+artifacts
+cache
