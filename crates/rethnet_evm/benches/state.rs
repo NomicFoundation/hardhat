@@ -116,10 +116,10 @@ where
     }
 }
 
-fn bench_insert_account(c: &mut Criterion) {
+fn bench_insert_account_already_exists(c: &mut Criterion) {
     bench_sync_state_method(
         c,
-        "StateDebug::insert_account()",
+        "StateDebug::insert_account(), account already exists",
         |mut state, number_of_accounts| {
             state.insert_account(
                 Address::from_low_u64_ne(number_of_accounts),
@@ -174,7 +174,7 @@ fn bench_storage(c: &mut Criterion) {
 
 criterion_group!(
     benches,
-    bench_insert_account,
+    bench_insert_account_already_exists,
     bench_checkpoint,
     bench_basic,
     bench_code_by_hash,
