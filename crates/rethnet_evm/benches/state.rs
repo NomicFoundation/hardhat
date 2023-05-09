@@ -85,9 +85,11 @@ mod config {
 
 use config::*;
 
-fn bench_sync_state_method<O, R>(c: &mut Criterion, method_name: &str, mut method_invocation: R)
+
+fn bench_sync_state_method<O, R, Prep>(c: &mut Criterion, method_name: &str, mut prep: Prep, mut method_invocation: R)
 where
     R: FnMut(Box<dyn SyncState<StateError>>, u64) -> O,
+    Prep: FnMut(&mut dyn SyncState<StateError>, u64),
 {
     let mut group = c.benchmark_group(method_name);
     for accounts_per_checkpoint in CHECKPOINT_SCALES.iter() {
@@ -107,7 +109,11 @@ where
                     number_of_accounts,
                     |b, number_of_accounts| {
                         b.iter_batched(
-                            || state_factory(),
+                            || {
+                                let mut state = state_factory();
+                                prep(&mut state, *number_of_accounts);
+                                state
+                            },
                             |state| method_invocation(state, *number_of_accounts),
                             BatchSize::SmallInput,
                         );
@@ -118,10 +124,13 @@ where
     }
 }
 
+fn prep_no_op(_s: &mut dyn SyncState<StateError>, _i: u64) {}
+
 fn bench_account_storage_root_account_doesnt_exist(c: &mut Criterion) {
     bench_sync_state_method(
         c,
         "StateDebug::account_storage_root(), account doesn't exist",
+        prep_no_op,
         |state, number_of_accounts| {
             let address = Address::from_low_u64_ne(number_of_accounts + 1);
             debug_assert!(state.basic(address).unwrap().is_none());
@@ -136,6 +145,7 @@ fn bench_account_storage_root_account_exists(c: &mut Criterion) {
     bench_sync_state_method(
         c,
         "StateDebug::account_storage_root(), account exists",
+        prep_no_op,
         |state, number_of_accounts| {
             let address = Address::from_low_u64_ne(number_of_accounts);
             debug_assert!(state.basic(address).unwrap().is_some());
@@ -150,6 +160,7 @@ fn bench_insert_account_already_exists(c: &mut Criterion) {
     bench_sync_state_method(
         c,
         "StateDebug::insert_account(), account already exists",
+        prep_no_op,
         |mut state, number_of_accounts| {
             let address = Address::from_low_u64_ne(number_of_accounts);
             debug_assert!(state.basic(address).unwrap().is_some());
@@ -163,6 +174,7 @@ fn bench_insert_account_doesnt_exist(c: &mut Criterion) {
     bench_sync_state_method(
         c,
         "StateDebug::insert_account(), account doesn't yet exist",
+        prep_no_op,
         |mut state, number_of_accounts| {
             let address = Address::from_low_u64_ne(number_of_accounts + 1);
             debug_assert!(state.basic(address).unwrap().is_none());
@@ -176,6 +188,7 @@ fn bench_modify_account_doesnt_exist(c: &mut Criterion) {
     bench_sync_state_method(
         c,
         "StateDebug::modify_account(), account doesn't exist",
+        prep_no_op,
         |mut state, number_of_accounts| {
             let address = Address::from_low_u64_ne(number_of_accounts + 1);
             debug_assert!(state.basic(address).unwrap().is_none());
@@ -196,6 +209,7 @@ fn bench_modify_account_exists_with_code_no_change(c: &mut Criterion) {
     bench_sync_state_method(
         c,
         "StateDebug::modify_account(), account already exists, with code, no code change",
+        prep_no_op,
         |mut state, number_of_accounts| {
             let address = Address::from_low_u64_ne(number_of_accounts);
             debug_assert!(state.basic(address).unwrap().is_some());
@@ -215,6 +229,7 @@ fn bench_modify_account_exists_with_code_changed_to_empty(c: &mut Criterion) {
     bench_sync_state_method(
         c,
         "StateDebug::modify_account(), account already exists, with code, code changed to empty",
+        prep_no_op,
         |mut state, number_of_accounts| {
             let address = Address::from_low_u64_ne(number_of_accounts);
             debug_assert!(state.basic(address).unwrap().is_some());
@@ -236,6 +251,7 @@ fn bench_modify_account_exists_with_code_changed(c: &mut Criterion) {
     bench_sync_state_method(
         c,
         "StateDebug::modify_account(), account already exists, with code, code changed/inserted",
+        prep_no_op,
         |mut state, number_of_accounts| {
             let address = Address::from_low_u64_ne(number_of_accounts);
             debug_assert!(state.basic(address).unwrap().is_some());
@@ -259,6 +275,7 @@ fn bench_remove_account_with_code(c: &mut Criterion) {
     bench_sync_state_method(
         c,
         "StateDebug::remove_account() existing account with code",
+        prep_no_op,
         |mut state, number_of_accounts| {
             let address = Address::from_low_u64_ne(number_of_accounts);
             debug_assert!(state.basic(address).unwrap().is_some());
@@ -277,6 +294,7 @@ fn bench_serialize(c: &mut Criterion) {
     bench_sync_state_method(
         c,
         "StateDebug::serialize()",
+        prep_no_op,
         |state, _number_of_accounts| {
             state.serialize();
         },
@@ -287,6 +305,7 @@ fn bench_set_account_storage_slot_account_doesnt_exist(c: &mut Criterion) {
     bench_sync_state_method(
         c,
         "StateDebug::set_account_storage_slot(), account doesn't exist",
+        prep_no_op,
         |mut state, number_of_accounts| {
             let address = Address::from_low_u64_ne(number_of_accounts + 1);
             debug_assert!(state.basic(address).unwrap().is_none());
@@ -300,6 +319,7 @@ fn bench_set_account_storage_slot_account_exists(c: &mut Criterion) {
     bench_sync_state_method(
         c,
         "StateDebug::set_account_storage_slot(), account exists",
+        prep_no_op,
         |mut state, number_of_accounts| {
             let address = Address::from_low_u64_ne(number_of_accounts);
             debug_assert!(state.basic(address).unwrap().is_some());
@@ -313,6 +333,7 @@ fn bench_state_root(c: &mut Criterion) {
     bench_sync_state_method(
         c,
         "StateDebug::state_root()",
+        prep_no_op,
         |state, _number_of_accounts| {
             let result = state.state_root();
             debug_assert!(result.is_ok());
@@ -324,6 +345,7 @@ fn bench_checkpoint(c: &mut Criterion) {
     bench_sync_state_method(
         c,
         "StateHistory::checkpoint()",
+        prep_no_op,
         |mut state, _number_of_accounts| {
             let result = state.checkpoint();
             debug_assert!(result.is_ok());
@@ -332,7 +354,7 @@ fn bench_checkpoint(c: &mut Criterion) {
 }
 
 fn bench_basic(c: &mut Criterion) {
-    bench_sync_state_method(c, "StateRef::basic()", |state, number_of_accounts| {
+    bench_sync_state_method(c, "StateRef::basic()", prep_no_op, |state, number_of_accounts| {
         for i in (1..=number_of_accounts).rev() {
             let result = state.basic(Address::from_str(&format!("0x{:0>40x}", i)).unwrap());
             debug_assert!(result.is_ok());
@@ -341,7 +363,7 @@ fn bench_basic(c: &mut Criterion) {
 }
 
 fn bench_code_by_hash(c: &mut Criterion) {
-    bench_sync_state_method(c, "StateRef::code_by_hash", |state, number_of_accounts| {
+    bench_sync_state_method(c, "StateRef::code_by_hash", prep_no_op, |state, number_of_accounts| {
         for i in (1..=number_of_accounts).rev() {
             let result = state.code_by_hash(
                 Bytecode::new_raw(Bytes::copy_from_slice(
@@ -355,7 +377,7 @@ fn bench_code_by_hash(c: &mut Criterion) {
 }
 
 fn bench_storage(c: &mut Criterion) {
-    bench_sync_state_method(c, "StateRef::storage", |state, number_of_accounts| {
+    bench_sync_state_method(c, "StateRef::storage", prep_no_op, |state, number_of_accounts| {
         for i in (1..=number_of_accounts).rev() {
             let result = state.storage(Address::from_low_u64_ne(i), U256::from(i));
             debug_assert!(result.is_ok());
