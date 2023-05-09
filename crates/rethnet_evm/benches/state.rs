@@ -205,9 +205,6 @@ fn bench_modify_account_doesnt_exist(c: &mut Criterion) {
     );
 }
 
-// TODO: "StateDebug::modify_account(), account already exists, without code, no code change",
-// TODO: "StateDebug::modify_account(), account already exists, without code, code changed/inserted",
-
 fn bench_modify_account_exists_with_code_no_change(c: &mut Criterion) {
     bench_sync_state_method(
         c,
@@ -274,6 +271,68 @@ fn bench_modify_account_exists_with_code_changed(c: &mut Criterion) {
     );
 }
 
+fn bench_modify_account_exists_without_code_code_changed(c: &mut Criterion) {
+    bench_sync_state_method(
+        c,
+        "StateDebug::modify_account(), account already exists, without code, code changed/inserted",
+        |state, number_of_accounts| {
+            let address = Address::from_low_u64_ne(number_of_accounts);
+            state
+                .modify_account(
+                    address,
+                    AccountModifierFn::new(Box::new(|_balance, _nonce, code| {
+                        code.take();
+                    })),
+                    &|| Ok(AccountInfo::default()),
+                )
+                .unwrap();
+        },
+        |mut state, number_of_accounts| {
+            let address = Address::from_low_u64_ne(number_of_accounts);
+            debug_assert!(state.basic(address).unwrap().is_some());
+            let result = state.modify_account(
+                address,
+                AccountModifierFn::new(Box::new(move |_balance, &mut _nonce, code| {
+                    code.replace(Bytecode::new_raw(Bytes::copy_from_slice(
+                        Address::from_low_u64_ne(number_of_accounts + 1).as_bytes(),
+                    )));
+                })),
+                &|| Ok(AccountInfo::default()),
+            );
+            debug_assert!(result.is_ok());
+        },
+    );
+}
+
+fn bench_modify_account_exists_without_code_no_code_change(c: &mut Criterion) {
+    bench_sync_state_method(
+        c,
+        "StateDebug::modify_account(), account already exists, without code, no code change",
+        |state, number_of_accounts| {
+            let address = Address::from_low_u64_ne(number_of_accounts);
+            state
+                .modify_account(
+                    address,
+                    AccountModifierFn::new(Box::new(|_balance, _nonce, code| {
+                        code.take();
+                    })),
+                    &|| Ok(AccountInfo::default()),
+                )
+                .unwrap();
+        },
+        |mut state, number_of_accounts| {
+            let address = Address::from_low_u64_ne(number_of_accounts);
+            debug_assert!(state.basic(address).unwrap().is_some());
+            let result = state.modify_account(
+                address,
+                AccountModifierFn::new(Box::new(|_balance, &mut _nonce, _code| {})),
+                &|| Ok(AccountInfo::default()),
+            );
+            debug_assert!(result.is_ok());
+        },
+    );
+}
+
 fn bench_remove_account_with_code(c: &mut Criterion) {
     bench_sync_state_method(
         c,
@@ -291,7 +350,31 @@ fn bench_remove_account_with_code(c: &mut Criterion) {
     );
 }
 
-// TODO: bench_remove_account_without_code
+fn bench_remove_account_without_code(c: &mut Criterion) {
+    bench_sync_state_method(
+        c,
+        "StateDebug::remove_account() existing account without code",
+        |state, number_of_accounts| {
+            let address = Address::from_low_u64_ne(number_of_accounts);
+            state
+                .modify_account(
+                    address,
+                    AccountModifierFn::new(Box::new(|_balance, _nonce, code| {
+                        code.take();
+                    })),
+                    &|| Ok(AccountInfo::default()),
+                )
+                .unwrap();
+        },
+        |mut state, number_of_accounts| {
+            let address = Address::from_low_u64_ne(number_of_accounts);
+            debug_assert!(state.basic(address).unwrap().unwrap().code.is_none());
+            let result = state.remove_account(address);
+            debug_assert!(result.is_ok());
+            debug_assert!(result.unwrap().is_some());
+        },
+    );
+}
 
 fn bench_serialize(c: &mut Criterion) {
     bench_sync_state_method(
@@ -413,7 +496,10 @@ criterion_group!(
     bench_modify_account_exists_with_code_no_change,
     bench_modify_account_exists_with_code_changed_to_empty,
     bench_modify_account_exists_with_code_changed,
+    bench_modify_account_exists_without_code_code_changed,
+    bench_modify_account_exists_without_code_no_code_change,
     bench_remove_account_with_code,
+    bench_remove_account_without_code,
     bench_serialize,
     bench_set_account_storage_slot_account_doesnt_exist,
     bench_set_account_storage_slot_account_exists,
