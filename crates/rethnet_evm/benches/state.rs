@@ -85,9 +85,12 @@ mod config {
 
 use config::*;
 
-
-fn bench_sync_state_method<O, R, Prep>(c: &mut Criterion, method_name: &str, mut prep: Prep, mut method_invocation: R)
-where
+fn bench_sync_state_method<O, R, Prep>(
+    c: &mut Criterion,
+    method_name: &str,
+    mut prep: Prep,
+    mut method_invocation: R,
+) where
     R: FnMut(Box<dyn SyncState<StateError>>, u64) -> O,
     Prep: FnMut(&mut dyn SyncState<StateError>, u64),
 {
@@ -354,35 +357,50 @@ fn bench_checkpoint(c: &mut Criterion) {
 }
 
 fn bench_basic(c: &mut Criterion) {
-    bench_sync_state_method(c, "StateRef::basic()", prep_no_op, |state, number_of_accounts| {
-        for i in (1..=number_of_accounts).rev() {
-            let result = state.basic(Address::from_str(&format!("0x{:0>40x}", i)).unwrap());
-            debug_assert!(result.is_ok());
-        }
-    });
+    bench_sync_state_method(
+        c,
+        "StateRef::basic()",
+        prep_no_op,
+        |state, number_of_accounts| {
+            for i in (1..=number_of_accounts).rev() {
+                let result = state.basic(Address::from_str(&format!("0x{:0>40x}", i)).unwrap());
+                debug_assert!(result.is_ok());
+            }
+        },
+    );
 }
 
 fn bench_code_by_hash(c: &mut Criterion) {
-    bench_sync_state_method(c, "StateRef::code_by_hash", prep_no_op, |state, number_of_accounts| {
-        for i in (1..=number_of_accounts).rev() {
-            let result = state.code_by_hash(
-                Bytecode::new_raw(Bytes::copy_from_slice(
-                    Address::from_low_u64_ne(i).as_bytes(),
-                ))
-                .hash(),
-            );
-            debug_assert!(result.is_ok());
-        }
-    });
+    bench_sync_state_method(
+        c,
+        "StateRef::code_by_hash",
+        prep_no_op,
+        |state, number_of_accounts| {
+            for i in (1..=number_of_accounts).rev() {
+                let result = state.code_by_hash(
+                    Bytecode::new_raw(Bytes::copy_from_slice(
+                        Address::from_low_u64_ne(i).as_bytes(),
+                    ))
+                    .hash(),
+                );
+                debug_assert!(result.is_ok());
+            }
+        },
+    );
 }
 
 fn bench_storage(c: &mut Criterion) {
-    bench_sync_state_method(c, "StateRef::storage", prep_no_op, |state, number_of_accounts| {
-        for i in (1..=number_of_accounts).rev() {
-            let result = state.storage(Address::from_low_u64_ne(i), U256::from(i));
-            debug_assert!(result.is_ok());
-        }
-    });
+    bench_sync_state_method(
+        c,
+        "StateRef::storage",
+        prep_no_op,
+        |state, number_of_accounts| {
+            for i in (1..=number_of_accounts).rev() {
+                let result = state.storage(Address::from_low_u64_ne(i), U256::from(i));
+                debug_assert!(result.is_ok());
+            }
+        },
+    );
 }
 
 criterion_group!(
