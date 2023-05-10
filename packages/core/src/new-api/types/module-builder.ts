@@ -50,6 +50,11 @@ export interface CallOptions {
   after?: Future[];
 }
 
+export interface StaticCallOptions {
+  id?: string;
+  after?: Future[];
+}
+
 export interface IgnitionModuleBuilder {
   contract<ContractNameT extends string>(
     contractName: ContractNameT,
@@ -86,7 +91,7 @@ export interface IgnitionModuleBuilder {
     contractFuture: ContractFuture<ContractNameT>,
     functionName: FunctionNameT,
     args?: SolidityParamsType,
-    options?: CallOptions
+    options?: StaticCallOptions
   ): NamedStaticCallFuture<ContractNameT, FunctionNameT>;
 
   useModule<
