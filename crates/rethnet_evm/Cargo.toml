@@ -34,3 +34,7 @@ tracing = ["dep:tracing"]
 [[bench]]
 name = "state"
 harness = false
+
+[[bench]]
+name = "state_debug"
+harness = false
