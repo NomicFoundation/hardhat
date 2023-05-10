@@ -62,6 +62,8 @@ export interface ContractAtOptions {
 }
 
 export interface IgnitionModuleBuilder {
+  chainId: number;
+
   contract<ContractNameT extends string>(
     contractName: ContractNameT,
     args?: SolidityParamsType,

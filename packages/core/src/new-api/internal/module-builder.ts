@@ -106,7 +106,8 @@ export class IgnitionModuleBuilderImplementation<
       ModuleIdT,
       ResultsContractNameT,
       IgnitionModuleResultsT
-    >
+    >,
+    public readonly chainId: number
   ) {
     this._futureIds = new Set<string>();
   }
