@@ -253,9 +253,8 @@ jobs:
         os: ["ubuntu-latest", "macos-latest"]
         include:
           - RUSTFLAGS: "-Dwarnings"
-          # disable until https://github.com/napi-rs/napi-rs/issues/1405 is resolved
-          # - os: "windows-latest"
-          #   RUSTFLAGS: "-Dwarnings -Ctarget-feature=+crt-static"
+          - os: "windows-latest"
+            RUSTFLAGS: "-Dwarnings -Ctarget-feature=+crt-static"
     steps:
       - uses: actions/checkout@v3
 
@@ -267,6 +266,14 @@ jobs:
 
       - uses: Swatinem/rust-cache@v2
 
+      - name: Run cargo test
+        uses: actions-rs/cargo@v1
+        env:
+          RUSTFLAGS: ${{ matrix.RUSTFLAGS }}
+        with:
+          command: test
+          args: --workspace --all-features --all-targets
+
       - name: Doctests
         uses: actions-rs/cargo@v1
         env:
@@ -275,18 +282,24 @@ jobs:
           command: test
           args: --doc --workspace --all-features
 
-      - name: Install latest nextest release
-        uses: taiki-e/install-action@nextest
+      # disable until:
+      # 1) https://github.com/napi-rs/napi-rs/issues/1405 is resolved (Windows-only)
+      # 2) https://github.com/nextest-rs/nextest/issues/871 (all platforms)
+      # when re-enabled, remove "Run cargo test"
 
-      - name: Test with latest nextest release
-        uses: actions-rs/cargo@v1
-        env:
-          RUSTFLAGS: ${{ matrix.RUSTFLAGS }}
-          CARGO_INCREMENTAL: ${{ matrix.CARGO_INCREMENTAL }}
-          ALCHEMY_URL: ${{ secrets.ALCHEMY_URL }}
-        with:
-          command: nextest
-          args: run --workspace --all-features --all-targets
+      # Nextest
+      # - name: Install latest nextest release
+      #   uses: taiki-e/install-action@nextest
+
+      # - name: Test with latest nextest release
+      #   uses: actions-rs/cargo@v1
+      #   env:
+      #     RUSTFLAGS: ${{ matrix.RUSTFLAGS }}
+      #     CARGO_INCREMENTAL: ${{ matrix.CARGO_INCREMENTAL }}
+      #     ALCHEMY_URL: ${{ secrets.ALCHEMY_URL }}
+      #   with:
+      #     command: nextest
+      #     args: run --workspace --all-features --all-targets
 
   rethnet-style:
     name: Check Rethnet Style
