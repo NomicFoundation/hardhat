@@ -489,10 +489,8 @@ mod tests {
                 .await
                 .expect_err("should have failed to interpret response as a Transaction");
 
-            if let RpcClientError::JsonRpcError { error, .. } = error {
-                assert_eq!(error.code, -32000);
-                assert_eq!(error.message, "Must be authenticated!");
-                assert!(error.data.is_none());
+            if let RpcClientError::HttpStatus(error) = error {
+                assert_eq!(error.status(), Some(StatusCode::from_u16(401).unwrap()));
             } else {
                 unreachable!("Invalid error: {error}");
             }
@@ -694,13 +692,8 @@ mod tests {
                 .await
                 .expect_err("should have failed to retrieve non-existent block number");
 
-            if let RpcClientError::JsonRpcError { error, .. } = error {
-                assert_eq!(error.code, -32602);
-                assert_eq!(
-                error.message,
-                "invalid 1st argument: block_number value was not valid block tag or block number"
-            );
-                assert!(error.data.is_none());
+            if let RpcClientError::HttpStatus(error) = error {
+                assert_eq!(error.status(), Some(StatusCode::from_u16(400).unwrap()));
             } else {
                 unreachable!("Invalid error: {error}");
             }
@@ -732,13 +725,8 @@ mod tests {
                 .await
                 .expect_err("should have failed to retrieve non-existent block number");
 
-            if let RpcClientError::JsonRpcError { error, .. } = error {
-                assert_eq!(error.code, -32602);
-                assert_eq!(
-                error.message,
-                "invalid 1st argument: block_number value was not valid block tag or block number"
-            );
-                assert!(error.data.is_none());
+            if let RpcClientError::HttpStatus(error) = error {
+                assert_eq!(error.status(), Some(StatusCode::from_u16(400).unwrap()));
             } else {
                 unreachable!("Invalid error: {error}");
             }
@@ -785,10 +773,8 @@ mod tests {
                 .await
                 .expect_err("should have failed to get logs");
 
-            if let RpcClientError::JsonRpcError { error, .. } = error {
-                assert_eq!(error.code, -32602);
-                assert_eq!(error.message, "invalid 1st argument: filter 'fromBlock': value was not valid block tag or block number");
-                assert!(error.data.is_none());
+            if let RpcClientError::HttpStatus(error) = error {
+                assert_eq!(error.status(), Some(StatusCode::from_u16(400).unwrap()));
             } else {
                 unreachable!("Invalid error: {error}");
             }
@@ -807,10 +793,8 @@ mod tests {
                 .await
                 .expect_err("should have failed to get logs");
 
-            if let RpcClientError::JsonRpcError { error, .. } = error {
-                assert_eq!(error.code, -32602);
-                assert_eq!(error.message, "invalid 1st argument: filter 'toBlock': value was not valid block tag or block number");
-                assert!(error.data.is_none());
+            if let RpcClientError::HttpStatus(error) = error {
+                assert_eq!(error.status(), Some(StatusCode::from_u16(400).unwrap()));
             } else {
                 unreachable!("Invalid error: {error}");
             }
