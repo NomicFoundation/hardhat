@@ -25,7 +25,7 @@ export class Compiler implements ICompiler {
       return this._loadedSolc;
     }
 
-    const { default: solcWrapper } = await import("solc/wrapper");
+    const solcWrapper = require("solc/wrapper");
     this._loadedSolc = solcWrapper(
       this._loadCompilerSources(this._pathToSolcJs)
     );

@@ -23,6 +23,8 @@ import {
 } from "../../../helpers/providers";
 import {
   deployContract,
+  getTxToDeployBytecode,
+  sendDeploymentTx,
   sendTxToZeroAddress,
 } from "../../../helpers/transactions";
 import { useProvider as importedUseProvider } from "../../../helpers/useProvider";
@@ -30,15 +32,20 @@ import {
   EIP1559RpcTransactionOutput,
   RpcBlockOutput,
 } from "../../../../../../src/internal/hardhat-network/provider/output";
+import { InvalidArgumentsError } from "../../../../../../src/internal/core/providers/errors";
 import * as BigIntUtils from "../../../../../../src/internal/util/bigint";
 import {
+  EXAMPLE_TOUCH_ADDRESS_CONTRACT,
   EXAMPLE_DIFFICULTY_CONTRACT,
   EXAMPLE_READ_CONTRACT,
 } from "../../../helpers/contracts";
 
 describe("Eth module - hardfork dependant tests", function () {
-  function useProviderAndCommon(hardfork: string) {
-    importedUseProvider({ hardfork });
+  function useProviderAndCommon(
+    hardfork: string,
+    { allowUnlimitedContractSize } = { allowUnlimitedContractSize: false }
+  ) {
+    importedUseProvider({ hardfork, allowUnlimitedContractSize });
     beforeEach(async function () {
       // TODO: Find out a better way to obtain the common here
 
@@ -1529,6 +1536,380 @@ describe("Eth module - hardfork dependant tests", function () {
             toBlock: "finalized",
           },
         ]);
+      });
+    });
+  });
+
+  describe("shanghai hardfork", function () {
+    const maxCodeSize = 24576;
+    const maxInitcodeSize = 2 * maxCodeSize;
+
+    describe("pre-shanghai hardfork", function () {
+      useProviderAndCommon("merge");
+
+      describe("warm COINBASE (EIP-3651)", function () {
+        it("shouldn't be warm", async function () {
+          const contractAddress = await deployContract(
+            this.provider,
+            `0x${EXAMPLE_TOUCH_ADDRESS_CONTRACT.bytecode.object}`
+          );
+
+          const txHash = await this.provider.send("eth_sendTransaction", [
+            {
+              to: contractAddress,
+              from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+              data: `${EXAMPLE_TOUCH_ADDRESS_CONTRACT.selectors.touchAddress}000000000000000000000000c014ba5ec014ba5ec014ba5ec014ba5ec014ba5e`,
+            },
+          ]);
+
+          const receipt = await this.provider.send(
+            "eth_getTransactionReceipt",
+            [txHash]
+          );
+
+          const gasUsed = rpcQuantityToBigInt(receipt.gasUsed);
+
+          assert.equal(gasUsed, 24478n);
+        });
+      });
+
+      describe("limit and meter initcode (EIP-3860)", function () {
+        it("shouldn't apply initcode word cost", async function () {
+          const bytecode = EXAMPLE_READ_CONTRACT.bytecode.object;
+
+          const txHash = await this.provider.send("eth_sendTransaction", [
+            {
+              from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+              to: null,
+              data: `0x${bytecode}`,
+            },
+          ]);
+
+          const receipt = await this.provider.send(
+            "eth_getTransactionReceipt",
+            [txHash]
+          );
+
+          const gasUsed = rpcQuantityToBigInt(receipt.gasUsed);
+
+          assert.equal(gasUsed, 166849n);
+        });
+
+        it("should allow initcodes larger than the EIP-3860 limit", async function () {
+          const code = "ff".repeat(maxInitcodeSize + 100);
+
+          const tx = getTxToDeployBytecode(code, maxCodeSize);
+
+          await this.provider.send("hardhat_setNextBlockBaseFeePerGas", [
+            "0x0",
+          ]);
+
+          const contractAddress = await sendDeploymentTx(this.provider, tx);
+
+          const deployedCode = await this.provider.send("eth_getCode", [
+            contractAddress,
+            "latest",
+          ]);
+
+          const deployedCodeBytes = (deployedCode.length - 2) / 2;
+          assert.equal(deployedCodeBytes, maxCodeSize);
+        });
+      });
+
+      describe("withdrawal fields in returned blocks", function () {
+        it("shouldn't include withdrawal fields", async function () {
+          const block: RpcBlockOutput = await this.provider.send(
+            "eth_getBlockByNumber",
+            ["latest", false]
+          );
+
+          assert.isUndefined(block.withdrawals);
+          assert.isUndefined(block.withdrawalsRoot);
+        });
+      });
+    });
+
+    describe("post-shanghai hardfork", function () {
+      useProviderAndCommon("shanghai");
+
+      describe("warm COINBASE (EIP-3651)", function () {
+        it("should be warm", async function () {
+          const contractAddress = await deployContract(
+            this.provider,
+            `0x${EXAMPLE_TOUCH_ADDRESS_CONTRACT.bytecode.object}`
+          );
+
+          const txHash = await this.provider.send("eth_sendTransaction", [
+            {
+              to: contractAddress,
+              from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+              data: `${EXAMPLE_TOUCH_ADDRESS_CONTRACT.selectors.touchAddress}000000000000000000000000c014ba5ec014ba5ec014ba5ec014ba5ec014ba5e`,
+            },
+          ]);
+
+          const receipt = await this.provider.send(
+            "eth_getTransactionReceipt",
+            [txHash]
+          );
+
+          const gasUsed = rpcQuantityToBigInt(receipt.gasUsed);
+
+          // This is 2500 less than the equivalent test with a pre-shanghai
+          // hardfork.
+          // 2500 is COLD_ACCOUNT_ACCESS_COST - WARM_STORAGE_READ_COST,
+          // see https://eips.ethereum.org/EIPS/eip-2929
+          assert.equal(gasUsed, 21978n);
+        });
+
+        it("other addresses should be cold", async function () {
+          const contractAddress = await deployContract(
+            this.provider,
+            `0x${EXAMPLE_TOUCH_ADDRESS_CONTRACT.bytecode.object}`
+          );
+
+          const txHash = await this.provider.send("eth_sendTransaction", [
+            {
+              to: contractAddress,
+              from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+              // we use an address with the same amount of zeros as the coinbase
+              // address
+              data: `${EXAMPLE_TOUCH_ADDRESS_CONTRACT.selectors.touchAddress}000000000000000000000000f0fffffff0fffffff0fffffff0fffffff0ffffff`,
+            },
+          ]);
+
+          const receipt = await this.provider.send(
+            "eth_getTransactionReceipt",
+            [txHash]
+          );
+
+          const gasUsed = rpcQuantityToBigInt(receipt.gasUsed);
+
+          assert.equal(gasUsed, 24478n);
+        });
+      });
+
+      describe("limit and meter initcode (EIP-3860)", function () {
+        describe("without allowUnlimitedContractSize", function () {
+          it("shouldn't allow initcodes larger than the EIP-3860 limit", async function () {
+            const code = "ff".repeat(maxInitcodeSize + 100);
+
+            const tx = getTxToDeployBytecode(code, maxCodeSize);
+
+            await assert.isRejected(
+              sendDeploymentTx(this.provider, tx),
+              InvalidArgumentsError,
+              "Trying to send a deployment transaction whose init code length is"
+            );
+          });
+
+          it("shouldn't allow initcodes larger than the EIP-3860 limit from impersonated accounts", async function () {
+            const code = "ff".repeat(maxInitcodeSize + 100);
+
+            const impersonatedAddress =
+              "0x1234567890123456789012345678901234567890";
+
+            await this.provider.send("hardhat_impersonateAccount", [
+              impersonatedAddress,
+            ]);
+            await this.provider.send("eth_sendTransaction", [
+              {
+                from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+                to: impersonatedAddress,
+                value: numberToRpcQuantity(10n ** 18n),
+              },
+            ]);
+
+            const tx = getTxToDeployBytecode(
+              code,
+              maxCodeSize,
+              impersonatedAddress
+            );
+
+            await assert.isRejected(
+              sendDeploymentTx(this.provider, tx),
+              InvalidArgumentsError,
+              "Trying to send a deployment transaction whose init code length is"
+            );
+          });
+
+          it("shouldn't allow initcodes larger than the EIP-3860 limit in raw transactions", async function () {
+            const code = "ff".repeat(maxInitcodeSize + 100);
+
+            const txData = getTxToDeployBytecode(code, maxCodeSize);
+
+            await this.provider.send("hardhat_setNextBlockBaseFeePerGas", [
+              "0x0",
+            ]);
+
+            const tx = Transaction.fromTxData(
+              {
+                gasLimit: txData.gas,
+                gasPrice: txData.gasPrice,
+                data: txData.data,
+              },
+              {
+                common: this.common,
+                disableMaxInitCodeSizeCheck: true,
+              }
+            );
+
+            const signedTx = tx.sign(privateKey);
+            const serialized = bufferToRpcData(signedTx.serialize());
+
+            await assertInvalidArgumentsError(
+              this.provider,
+              "eth_sendRawTransaction",
+              [serialized],
+              "Trying to send a deployment transaction whose init code length is"
+            );
+          });
+        });
+
+        describe("with allowUnlimitedContractSize", function () {
+          useProviderAndCommon("shanghai", {
+            allowUnlimitedContractSize: true,
+          });
+
+          it("should allow initcodes larger than the EIP-3860 limit", async function () {
+            const code = "ff".repeat(maxInitcodeSize + 100);
+
+            const tx = getTxToDeployBytecode(code, maxCodeSize);
+
+            await this.provider.send("hardhat_setNextBlockBaseFeePerGas", [
+              "0x0",
+            ]);
+
+            const contractAddress = await sendDeploymentTx(this.provider, tx);
+
+            const deployedCode = await this.provider.send("eth_getCode", [
+              contractAddress,
+              "latest",
+            ]);
+
+            const deployedCodeBytes = (deployedCode.length - 2) / 2;
+            assert.equal(deployedCodeBytes, maxCodeSize);
+          });
+
+          it("should allow initcodes larger than the EIP-3860 limit from impersonated accounts", async function () {
+            const code = "ff".repeat(maxInitcodeSize + 100);
+
+            const impersonatedAddress =
+              "0x1234567890123456789012345678901234567890";
+
+            await this.provider.send("hardhat_setNextBlockBaseFeePerGas", [
+              "0x0",
+            ]);
+            await this.provider.send("hardhat_impersonateAccount", [
+              impersonatedAddress,
+            ]);
+
+            // send some eth to the impersonated account
+            await this.provider.send("eth_sendTransaction", [
+              {
+                from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+                to: impersonatedAddress,
+                value: numberToRpcQuantity(10n ** 18n),
+              },
+            ]);
+
+            const tx = getTxToDeployBytecode(
+              code,
+              maxCodeSize,
+              impersonatedAddress
+            );
+
+            const contractAddress = await sendDeploymentTx(this.provider, tx);
+
+            const deployedCode = await this.provider.send("eth_getCode", [
+              contractAddress,
+              "latest",
+            ]);
+
+            const deployedCodeBytes = (deployedCode.length - 2) / 2;
+            assert.equal(deployedCodeBytes, maxCodeSize);
+          });
+
+          it("should allow initcodes larger than the EIP-3860 limit in raw transactions", async function () {
+            const code = "ff".repeat(maxInitcodeSize + 100);
+
+            const txData = getTxToDeployBytecode(code, maxCodeSize);
+
+            await this.provider.send("hardhat_setNextBlockBaseFeePerGas", [
+              "0x0",
+            ]);
+
+            const tx = Transaction.fromTxData(
+              {
+                gasLimit: txData.gas,
+                gasPrice: txData.gasPrice,
+                data: txData.data,
+              },
+              {
+                common: this.common,
+                disableMaxInitCodeSizeCheck: true,
+              }
+            );
+
+            const signedTx = tx.sign(privateKey);
+            const serialized = bufferToRpcData(signedTx.serialize());
+
+            const txHash = await this.provider.send("eth_sendRawTransaction", [
+              serialized,
+            ]);
+
+            const { contractAddress } = await this.provider.send(
+              "eth_getTransactionReceipt",
+              [txHash]
+            );
+
+            const deployedCode = await this.provider.send("eth_getCode", [
+              contractAddress,
+              "latest",
+            ]);
+
+            const deployedCodeBytes = (deployedCode.length - 2) / 2;
+            assert.equal(deployedCodeBytes, maxCodeSize);
+          });
+        });
+
+        it("should apply initcode word cost", async function () {
+          const bytecode = EXAMPLE_READ_CONTRACT.bytecode.object;
+
+          const words = Math.ceil(bytecode.length / 2 / 32);
+          const initcodeWordCost = BigInt(2 * words);
+
+          const txHash = await this.provider.send("eth_sendTransaction", [
+            {
+              from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+              to: null,
+              data: `0x${bytecode}`,
+            },
+          ]);
+
+          const receipt = await this.provider.send(
+            "eth_getTransactionReceipt",
+            [txHash]
+          );
+
+          const gasUsed = rpcQuantityToBigInt(receipt.gasUsed);
+
+          // This is the same value as the test with a pre-shanghai hardfork,
+          // plus the initcode word cost.
+          // See https://eips.ethereum.org/EIPS/eip-3860
+          assert.equal(gasUsed, 166849n + initcodeWordCost);
+        });
+      });
+
+      describe("withdrawal fields in returned blocks", function () {
+        it("should include withdrawal fields", async function () {
+          const block: RpcBlockOutput = await this.provider.send(
+            "eth_getBlockByNumber",
+            ["latest", false]
+          );
+
+          assert.isDefined(block.withdrawals);
+          assert.isDefined(block.withdrawalsRoot);
+        });
       });
     });
   });

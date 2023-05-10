@@ -14,7 +14,7 @@ The HRE has a role of centralizing coordination across all Hardhat components. T
 
 By default, the HRE gives you programmatic access to the task runner and the config system, and exports an [EIP1193-compatible](https://eips.ethereum.org/EIPS/eip-1193) Ethereum provider.
 
-Plugins can extend the HRE. For example, [hardhat-ethers](https://github.com/NomicFoundation/hardhat/tree/main/packages/hardhat-ethers) adds a Ethers.js instance to it, making it available to tasks, tests and scripts.
+Plugins can extend the HRE. For example, [hardhat-ethers](https://github.com/NomicFoundation/hardhat/tree/main/packages/hardhat-ethers) adds an Ethers.js instance to it, making it available to tasks, tests and scripts.
 
 ### As global variables
 

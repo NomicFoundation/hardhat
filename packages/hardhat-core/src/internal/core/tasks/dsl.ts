@@ -29,10 +29,10 @@ export class TasksDSL {
    * @param action The task's action.
    * @returns A task definition.
    */
-  public task<ArgsT extends TaskArguments>(
+  public task<TaskArgumentsT extends TaskArguments>(
     name: string,
     description?: string,
-    action?: ActionType<ArgsT>
+    action?: ActionType<TaskArgumentsT>
   ): TaskDefinition;
 
   /**
@@ -46,15 +46,15 @@ export class TasksDSL {
    *
    * @returns A task definition.
    */
-  public task<ArgsT extends TaskArguments>(
+  public task<TaskArgumentsT extends TaskArguments>(
     name: string,
-    action: ActionType<ArgsT>
+    action: ActionType<TaskArgumentsT>
   ): TaskDefinition;
 
-  public task<ArgsT extends TaskArguments>(
+  public task<TaskArgumentsT extends TaskArguments>(
     name: string,
-    descriptionOrAction?: string | ActionType<ArgsT>,
-    action?: ActionType<ArgsT>
+    descriptionOrAction?: string | ActionType<TaskArgumentsT>,
+    action?: ActionType<TaskArgumentsT>
   ): TaskDefinition {
     return this._addTask(name, descriptionOrAction, action, false);
   }
@@ -70,10 +70,10 @@ export class TasksDSL {
    * @param action The task's action.
    * @returns A task definition.
    */
-  public subtask<ArgsT extends TaskArguments>(
+  public subtask<TaskArgumentsT extends TaskArguments>(
     name: string,
     description?: string,
-    action?: ActionType<ArgsT>
+    action?: ActionType<TaskArgumentsT>
   ): TaskDefinition;
 
   /**
@@ -87,14 +87,14 @@ export class TasksDSL {
    * @param action The task's action.
    * @returns A task definition.
    */
-  public subtask<ArgsT extends TaskArguments>(
+  public subtask<TaskArgumentsT extends TaskArguments>(
     name: string,
-    action: ActionType<ArgsT>
+    action: ActionType<TaskArgumentsT>
   ): TaskDefinition;
-  public subtask<ArgsT extends TaskArguments>(
+  public subtask<TaskArgumentsT extends TaskArguments>(
     name: string,
-    descriptionOrAction?: string | ActionType<ArgsT>,
-    action?: ActionType<ArgsT>
+    descriptionOrAction?: string | ActionType<TaskArgumentsT>,
+    action?: ActionType<TaskArgumentsT>
   ): TaskDefinition {
     return this._addTask(name, descriptionOrAction, action, true);
   }
@@ -108,10 +108,10 @@ export class TasksDSL {
     return this._tasks;
   }
 
-  private _addTask<ArgT extends TaskArguments>(
+  private _addTask<TaskArgumentsT extends TaskArguments>(
     name: string,
-    descriptionOrAction?: string | ActionType<ArgT>,
-    action?: ActionType<ArgT>,
+    descriptionOrAction?: string | ActionType<TaskArgumentsT>,
+    action?: ActionType<TaskArgumentsT>,
     isSubtask?: boolean
   ) {
     const parentTaskDefinition = this._tasks[name];

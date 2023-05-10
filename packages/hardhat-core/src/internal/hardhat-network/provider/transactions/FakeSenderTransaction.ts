@@ -107,7 +107,7 @@ export class FakeSenderTransaction extends Transaction {
         r: data.r ?? fakeSignature.r,
         s: data.s ?? fakeSignature.s,
       },
-      { ...opts, freeze: false }
+      { ...opts, freeze: false, disableMaxInitCodeSizeCheck: true }
     );
 
     this.common = this._getCommon(opts?.common);

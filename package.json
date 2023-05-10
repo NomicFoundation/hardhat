@@ -4,26 +4,26 @@
   "author": "Nomic Labs LLC",
   "license": "SEE LICENSE IN EACH PACKAGE'S LICENSE FILE",
   "private": true,
-  "workspaces": [
-    "packages/*",
-    "crates/rethnet_evm_napi"
-  ],
+  "workspaces": {
+    "packages": ["packages/*", "crates/rethnet_evm_napi"],
+    "nohoist": ["**/find-up", "**/find-up/**"]
+  },
   "devDependencies": {
     "@changesets/cli": "^2.16.0",
     "@open-rpc/typings": "^1.12.1",
     "prettier": "2.4.1",
     "shelljs": "^0.8.5",
-    "typescript": "~4.5.2",
+    "typescript": "~4.7.4",
     "wsrun": "^5.2.2"
   },
   "scripts": {
     "prebuild": "cd crates/rethnet_evm_napi && yarn build",
-    "build": "tsc --build packages/hardhat-core packages/hardhat-docker packages/hardhat-ethers packages/hardhat-etherscan packages/hardhat-ganache packages/hardhat-solhint packages/hardhat-solpp packages/hardhat-truffle4 packages/hardhat-truffle5 packages/hardhat-vyper packages/hardhat-waffle packages/hardhat-web3 packages/hardhat-web3-legacy packages/hardhat-chai-matchers packages/hardhat-network-helpers packages/hardhat-toolbox packages/hardhat-foundry",
-    "watch": "tsc --build --watch packages/hardhat-core/src packages/hardhat-docker packages/hardhat-ethers packages/hardhat-etherscan packages/hardhat-ganache packages/hardhat-solhint packages/hardhat-solpp packages/hardhat-truffle4 packages/hardhat-truffle5 packages/hardhat-vyper packages/hardhat-waffle packages/hardhat-web3 packages/hardhat-web3-legacy packages/hardhat-chai-matchers packages/hardhat-network-helpers packages/hardhat-toolbox packages/hardhat-foundry",
+    "build": "tsc --build packages/hardhat-core packages/hardhat-ethers packages/hardhat-verify packages/hardhat-solhint packages/hardhat-solpp packages/hardhat-truffle4 packages/hardhat-truffle5 packages/hardhat-vyper packages/hardhat-web3 packages/hardhat-web3-legacy packages/hardhat-chai-matchers packages/hardhat-network-helpers packages/hardhat-toolbox packages/hardhat-foundry",
+    "watch": "tsc --build --watch packages/hardhat-core/src packages/hardhat-ethers packages/hardhat-verify packages/hardhat-solhint packages/hardhat-solpp packages/hardhat-truffle4 packages/hardhat-truffle5 packages/hardhat-vyper packages/hardhat-web3 packages/hardhat-web3-legacy packages/hardhat-chai-matchers packages/hardhat-network-helpers packages/hardhat-toolbox packages/hardhat-foundry",
     "clean": "wsrun --exclude-missing clean",
     "test": "node scripts/run-tests.js",
     "lint": "wsrun --exclude-missing --stages lint && yarn prettier --check",
     "lint:fix": "wsrun --exclude-missing --stages lint:fix && yarn prettier --write",
-    "prettier": "prettier *.md \"{docs,.github}/**/*.{md,yml}\" \"scripts/**/*.js\""
+    "prettier": "prettier *.md \"{docs,.github}/**/*.{md,yml,ts}\" \"scripts/**/*.js\""
   }
 }

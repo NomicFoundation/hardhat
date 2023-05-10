@@ -284,7 +284,7 @@ Lock with 1 ETH deployed to: 0x5FbDB2315678afecb367f032d93F642f64180aa3
 
 ### Connecting a wallet or Dapp to Hardhat Network
 
-By default, Hardhat will spin up a new in-memory instance of Hardhat Network on startup. It's also possible to run Hardhat Network in a standalone fashion so that external clients can connect to it. This could be MetaMask, your Dapp front-end, or a script.
+By default, Hardhat will spin up a new in-memory instance of Hardhat Network on startup. It's also possible to run Hardhat Network in a standalone fashion so that external clients can connect to it. This could be a wallet, your Dapp front-end, or a script.
 
 To run Hardhat Network in this way, run `npx hardhat node`:
 

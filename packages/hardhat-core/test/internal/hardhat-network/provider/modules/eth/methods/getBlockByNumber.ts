@@ -28,7 +28,7 @@ describe("Eth module", function () {
 
     describe(`${name} provider`, function () {
       setCWD();
-      useProvider();
+      useProvider({ hardfork: "london" });
 
       const getFirstBlock = async () =>
         isFork ? retrieveForkBlockNumber(this.ctx.hardhatNetworkProvider) : 0;

@@ -36,6 +36,18 @@ describe("config loading", function () {
     });
   });
 
+  describe("can load CJS config path inside an esm project", function () {
+    useFixtureProject("esm/cjs-config");
+    useEnvironment();
+
+    it("should load the default config if none is given", function () {
+      assert.isDefined(this.env.config.networks.localhost);
+      assert.deepEqual(this.env.config.networks.localhost.accounts, [
+        "0xa95f9e3e7ae4e4865c5968828fe7c03fffa8a9f3bb52d36d26243f4c868ee166",
+      ]);
+    });
+  });
+
   describe("Config validation", function () {
     describe("When the config is invalid", function () {
       useFixtureProject("invalid-config");
@@ -506,6 +518,43 @@ Hardhat plugin instead.`
         consoleWarnStub.args[0][0],
         "remappings are not currently supported"
       );
+    });
+  });
+
+  describe("ESM project", function () {
+    describe(".js config file", function () {
+      useFixtureProject("esm/js-config");
+
+      beforeEach(function () {
+        HardhatContext.createHardhatContext();
+      });
+
+      afterEach(function () {
+        resetHardhatContext();
+      });
+
+      it("Should throw the right error", function () {
+        expectHardhatError(
+          () => loadConfigAndTasks(),
+          ERRORS.GENERAL.ESM_PROJECT_WITHOUT_CJS_CONFIG
+        );
+      });
+    });
+
+    describe(".cjs config file", function () {
+      useFixtureProject("esm/cjs-config");
+
+      beforeEach(function () {
+        HardhatContext.createHardhatContext();
+      });
+
+      afterEach(function () {
+        resetHardhatContext();
+      });
+
+      it("Should not throw", function () {
+        loadConfigAndTasks();
+      });
     });
   });
 });

@@ -23,7 +23,7 @@ import {
   HardhatNetworkChainConfig,
   HardhatNetworkChainsConfig,
 } from "../../../../src/types";
-import { INFURA_URL } from "../../../setup";
+import { ALCHEMY_URL } from "../../../setup";
 import { assertQuantity } from "../helpers/assertions";
 import {
   EMPTY_ACCOUNT_ADDRESS,
@@ -37,8 +37,8 @@ import {
   DEFAULT_CHAIN_ID,
   DEFAULT_HARDFORK,
   DEFAULT_NETWORK_ID,
-  DEFAULT_NETWORK_NAME,
 } from "../helpers/providers";
+import { sleep } from "../helpers/sleep";
 import { runFullBlock } from "./utils/runFullBlock";
 
 interface ForkedBlock {
@@ -68,7 +68,6 @@ describe("HardhatNode", () => {
   const config: NodeConfig = {
     automine: false,
     hardfork: DEFAULT_HARDFORK,
-    networkName: DEFAULT_NETWORK_NAME,
     chainId: DEFAULT_CHAIN_ID,
     networkId: DEFAULT_NETWORK_ID,
     blockGasLimit: Number(DEFAULT_BLOCK_GAS_LIMIT),
@@ -78,6 +77,7 @@ describe("HardhatNode", () => {
     mempoolOrder: "priority",
     coinbase: "0x0000000000000000000000000000000000000000",
     chains: defaultHardhatNetworkParams.chains,
+    allowBlocksWithSameTimestamp: false,
   };
   const gasPrice = 20;
   let node: HardhatNode;
@@ -338,7 +338,10 @@ describe("HardhatNode", () => {
         assert.equal(block.header.gasUsed, 42_000n);
       });
 
-      it("assigns miner rewards", async () => {
+      // TODO: skipped because miner rewards are not assigned after the merge
+      // hardfork, but we should keep this test and run it with a pre-merge
+      // hardfork
+      it.skip("assigns miner rewards", async () => {
         const gasPriceBN = 1n;
 
         let baseFeePerGas = 0n;
@@ -601,6 +604,54 @@ describe("HardhatNode", () => {
         await assertIncreaseTime(now + delta + elapsedTimeInSeconds);
       });
 
+      it("mines blocks with the same timestamp if allowBlocksWithSameTimestamp is set", async () => {
+        [, node] = await HardhatNode.create({
+          ...config,
+          allowBlocksWithSameTimestamp: true,
+        });
+
+        const timestamps = [];
+
+        for (let i = 0; i < 10; i++) {
+          await node.mineBlock();
+          timestamps.push((await node.getLatestBlock()).header.timestamp);
+        }
+
+        let differentTimestamps = 0;
+
+        for (let i = 0; i + 1 < timestamps.length; i++) {
+          if (timestamps[i] !== timestamps[i + 1]) {
+            differentTimestamps++;
+          }
+        }
+
+        // There is a small chance that two of the mined blocks were mined in a
+        // different second.
+        // This number shouldn't be bigger than 1 if we are running these tests
+        // on a computer from this century.
+        assert.isAtMost(differentTimestamps, 1);
+      });
+
+      it("timestamps can be increased even if allowBlocksWithSameTimestamp is set", async () => {
+        // we restore the clock to be able to use setTimeout
+        clock.restore();
+
+        [, node] = await HardhatNode.create({
+          ...config,
+          allowBlocksWithSameTimestamp: true,
+        });
+
+        await node.mineBlock();
+        const firsBlockTimestamp = (await node.getLatestBlock()).header
+          .timestamp;
+        await sleep(1100);
+        await node.mineBlock();
+        const secondBlockTimestamp = (await node.getLatestBlock()).header
+          .timestamp;
+
+        assert.notEqual(firsBlockTimestamp, secondBlockTimestamp);
+      });
+
       describe("when time is increased by 30s", () => {
         function testPresetTimestamp(offset: bigint) {
           it("mines a block with the preset timestamp", async () => {
@@ -643,7 +694,7 @@ describe("HardhatNode", () => {
   });
 
   describe("full block", function () {
-    if (INFURA_URL === undefined) {
+    if (ALCHEMY_URL === undefined) {
       return;
     }
 
@@ -652,44 +703,56 @@ describe("HardhatNode", () => {
       // its receipts contain the state root, and we can't compute it
       {
         networkName: "mainnet",
-        url: INFURA_URL,
+        url: ALCHEMY_URL,
         blockToRun: 4370001n,
         chainId: 1,
       },
       {
         networkName: "mainnet",
-        url: INFURA_URL,
+        url: ALCHEMY_URL,
         blockToRun: 7280001n,
         chainId: 1,
       },
       {
         networkName: "mainnet",
-        url: INFURA_URL,
+        url: ALCHEMY_URL,
         blockToRun: 9069001n,
         chainId: 1,
       },
       {
         networkName: "mainnet",
-        url: INFURA_URL,
+        url: ALCHEMY_URL,
         blockToRun: 9300077n,
         chainId: 1,
       },
       {
+        networkName: "mainnet",
+        url: ALCHEMY_URL,
+        blockToRun: 17_050_001n, // post-shanghai
+        chainId: 1,
+      },
+      {
         networkName: "goerli",
-        url: INFURA_URL.replace("mainnet", "goerli"),
+        url: ALCHEMY_URL.replace("mainnet", "goerli"),
         blockToRun: 7728449n, // this block has both EIP-2930 and EIP-1559 txs
         chainId: 5,
+      },
+      {
+        networkName: "sepolia",
+        url: ALCHEMY_URL.replace("alchemyapi.io", "g.alchemy.com") // temporary fix until we fix our github secret
+          .replace("mainnet", "sepolia"),
+        blockToRun: 3095000n, // this block is post-shanghai
+        chainId: 11155111,
       },
     ];
 
     for (const { url, blockToRun, networkName, chainId } of forkedBlocks) {
       const remoteCommon = new Common({ chain: chainId });
-      const hardfork = remoteCommon.getHardforkByBlockNumber(blockToRun);
 
-      it(`should run a ${networkName} block from ${hardfork} and produce the same results`, async function () {
+      it(`should run ${networkName} block ${blockToRun} and produce the same results`, async function () {
         this.timeout(240000);
 
-        await runFullBlock(url, blockToRun, chainId, hardfork);
+        await runFullBlock(url, blockToRun, chainId, remoteCommon);
       });
     }
   });
@@ -809,7 +872,7 @@ describe("HardhatNode", () => {
   describe("should run calls in the right hardfork context", async function () {
     this.timeout(10000);
     before(function () {
-      if (INFURA_URL === undefined) {
+      if (ALCHEMY_URL === undefined) {
         this.skip();
         return;
       }
@@ -824,12 +887,11 @@ describe("HardhatNode", () => {
 
     const baseNodeConfig: ForkedNodeConfig = {
       automine: true,
-      networkName: "mainnet",
       chainId: 1,
       networkId: 1,
       hardfork: "london",
       forkConfig: {
-        jsonRpcUrl: INFURA_URL!,
+        jsonRpcUrl: ALCHEMY_URL!,
         blockNumber: Number(eip1559ActivationBlock),
       },
       forkCachePath: FORK_TESTS_CACHE_PATH,
@@ -839,6 +901,7 @@ describe("HardhatNode", () => {
       chains: defaultHardhatNetworkParams.chains,
       mempoolOrder: "priority",
       coinbase: "0x0000000000000000000000000000000000000000",
+      allowBlocksWithSameTimestamp: false,
     };
 
     describe("when forking with a default hardfork activation history", function () {
@@ -984,18 +1047,17 @@ describe("HardhatNode", () => {
   });
 
   it("should support a historical call in the context of a block added via mineBlocks()", async function () {
-    if (INFURA_URL === undefined) {
+    if (ALCHEMY_URL === undefined) {
       this.skip();
       return;
     }
     const nodeConfig: ForkedNodeConfig = {
       automine: true,
-      networkName: "mainnet",
       chainId: 1,
       networkId: 1,
       hardfork: "london",
       forkConfig: {
-        jsonRpcUrl: INFURA_URL,
+        jsonRpcUrl: ALCHEMY_URL,
         blockNumber: 12965000, // eip1559ActivationBlock
       },
       forkCachePath: FORK_TESTS_CACHE_PATH,
@@ -1005,6 +1067,7 @@ describe("HardhatNode", () => {
       chains: defaultHardhatNetworkParams.chains,
       mempoolOrder: "priority",
       coinbase: "0x0000000000000000000000000000000000000000",
+      allowBlocksWithSameTimestamp: false,
     };
     const [, hardhatNode] = await HardhatNode.create(nodeConfig);
 

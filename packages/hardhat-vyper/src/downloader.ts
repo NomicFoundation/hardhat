@@ -9,11 +9,11 @@ import {
   CompilerPlatform,
   CompilerRelease,
 } from "./types";
-import { GITHUB_RELEASES_URL } from "./constants";
 import { VyperPluginError, getLogger } from "./util";
 
 const log = getLogger("downloader");
 
+const VYPER_RELEASES_MIRROR_URL = "https://vyper-releases-mirror.hardhat.org";
 const DOWNLOAD_TIMEOUT_MS = 30_000;
 
 async function downloadFile(
@@ -22,19 +22,7 @@ async function downloadFile(
 ): Promise<void> {
   const { download } = await import("hardhat/internal/util/download");
   log(`Downloading from ${url} to ${destinationFile}`);
-
-  const headers: { [name: string]: string } = {};
-  // If we are running in GitHub Actions we use the GitHub token as auth to
-  // avoid hitting a rate limit.
-  // Inspired by https://github.com/vyperlang/vvm/blob/5c37a2f4bbebc8c5f7f1dbb8ff89a4df1070ec44/vvm/install.py#L139
-  if (process.env.GITHUB_TOKEN !== undefined) {
-    const base64 = Buffer.from(process.env.GITHUB_TOKEN, "ascii").toString(
-      "base64"
-    );
-    headers.Authorization = `Basic ${base64}`;
-  }
-
-  await download(url, destinationFile, DOWNLOAD_TIMEOUT_MS, headers);
+  await download(url, destinationFile, DOWNLOAD_TIMEOUT_MS);
 }
 
 type DownloadFunction = (url: string, destinationFile: string) => Promise<void>;
@@ -73,7 +61,7 @@ export class CompilerDownloader {
   }
 
   public async initCompilersList(
-    { forceDownload } = { forceDownload: true }
+    { forceDownload } = { forceDownload: false }
   ): Promise<void> {
     if (forceDownload || !this.compilersListExists) {
       await this._downloadCompilersList();
@@ -146,11 +134,14 @@ export class CompilerDownloader {
 
   private async _downloadCompilersList(): Promise<void> {
     try {
-      await this._download(GITHUB_RELEASES_URL, this.compilersListPath);
-    } catch {
+      await this._download(
+        `${VYPER_RELEASES_MIRROR_URL}/list.json`,
+        this.compilersListPath
+      );
+    } catch (e: unknown) {
       throw new VyperPluginError(
         "Failed to download compiler list",
-        undefined,
+        e as Error,
         true
       );
     }
@@ -174,11 +165,13 @@ export class CompilerDownloader {
     const version = compilerAsset.name.split("+")[0].replace("vyper.", "");
     log(`Downloading compiler version ${version} platform ${this._platform}`);
 
+    const urlParts = compilerAsset.browser_download_url.split("/");
+    const mirroredUrl = `${VYPER_RELEASES_MIRROR_URL}/${
+      urlParts[urlParts.length - 1]
+    }`;
+
     try {
-      await this._download(
-        compilerAsset.browser_download_url,
-        downloadedFilePath
-      );
+      await this._download(mirroredUrl, downloadedFilePath);
     } catch (e: unknown) {
       throw new VyperPluginError("Compiler download failed", e as Error);
     }

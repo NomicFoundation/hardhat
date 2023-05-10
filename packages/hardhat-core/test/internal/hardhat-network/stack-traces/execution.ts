@@ -7,7 +7,6 @@ import {
   privateToAddress,
   bigIntToBuffer,
 } from "@nomicfoundation/ethereumjs-util";
-import abi from "ethereumjs-abi";
 import { HardhatBlockchain } from "../../../../src/internal/hardhat-network/provider/HardhatBlockchain";
 
 import { VMAdapter } from "../../../../src/internal/hardhat-network/provider/vm/vm-adapter";
@@ -15,6 +14,8 @@ import { MessageTrace } from "../../../../src/internal/hardhat-network/stack-tra
 import { defaultHardhatNetworkParams } from "../../../../src/internal/core/config/default-config";
 import { BlockBuilder } from "../../../../src/internal/hardhat-network/provider/vm/block-builder";
 import { createVm } from "../../../../src/internal/hardhat-network/provider/vm/creation";
+
+const abi = require("ethereumjs-abi");
 
 const senderPrivateKey = Buffer.from(
   "e331b6d69882b4cb4ea581d88e0b604039a3de5967688d3dcffdd2270c0fd109",
@@ -25,7 +26,7 @@ const senderAddress = privateToAddress(senderPrivateKey);
 export async function instantiateVm(): Promise<[VMAdapter, Common]> {
   const account = Account.fromAccountData({ balance: 1e15 });
 
-  const common = new Common({ chain: "mainnet" });
+  const common = new Common({ chain: "mainnet", hardfork: "shanghai" });
   const blockchain = new HardhatBlockchain(common);
   await blockchain.addBlock(
     Block.fromBlockData({
@@ -46,10 +47,10 @@ export async function instantiateVm(): Promise<[VMAdapter, Common]> {
       hardfork: "london",
       minGasPrice: 0n,
       networkId: 1,
-      networkName: "mainnet",
       mempoolOrder: "priority",
       coinbase: "0x0000000000000000000000000000000000000000",
       chains: defaultHardhatNetworkParams.chains,
+      allowBlocksWithSameTimestamp: false,
     },
     () => "london"
   );

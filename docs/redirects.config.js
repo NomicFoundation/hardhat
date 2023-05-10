@@ -63,12 +63,12 @@ const customRedirects = [
   },
   {
     source: "/verify-custom-networks",
-    destination: "/plugins/nomiclabs-hardhat-etherscan#adding-support-for-other-networks",
+    destination: "/plugins/nomicfoundation-hardhat-verify#adding-support-for-other-networks",
     permanent: false
   },
   {
     source: "/verify-multiple-networks",
-    destination: "plugins/nomiclabs-hardhat-etherscan.html#multiple-api-keys-and-alternative-block-explorers",
+    destination: "plugins/nomicfoundation-hardhat-verify.html#multiple-api-keys-and-alternative-block-explorers",
     permanent: false
   },
   {
@@ -78,7 +78,7 @@ const customRedirects = [
   },
   {
     source: "/migrate-from-waffle",
-    destination: "/hardhat-chai-matchers/docs/migrate-from-waffle",
+    destination: "/hardhat-runner/docs/guides/migrating-from-hardhat-waffle",
     permanent: false
   },
   {
@@ -89,6 +89,11 @@ const customRedirects = [
   {
     source: "/solidity-survey-2022",
     destination: "https://cryptpad.fr/form/#/2/form/view/HuPIRv4gvziSV0dPV1SJncKzYJXTVc8LGCaMfLUoj2c/",
+    permanent: false
+  },
+  {
+    source: "/solc-viair",
+    destination: "/hardhat-runner/docs/reference/solidity-support#support-for-ir-based-codegen",
     permanent: false
   },
 
@@ -254,6 +259,11 @@ const customRedirects = [
   {
     source: "/network-helpers/:slug",
     destination: "/hardhat-network-helpers/docs/:slug",
+    permanent: false
+  },
+  {
+    source: "/hardhat-runner/plugins/nomiclabs-hardhat-etherscan",
+    destination: "/hardhat-runner/plugins/nomicfoundation-hardhat-verify",
     permanent: false
   },
   ...loadErrorRedirects()

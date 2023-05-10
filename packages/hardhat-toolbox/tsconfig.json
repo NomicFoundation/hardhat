@@ -18,7 +18,7 @@
       "path": "../hardhat-ethers/src"
     },
     {
-      "path": "../hardhat-etherscan"
+      "path": "../hardhat-verify"
     }
   ]
 }

@@ -1,12 +1,7 @@
 import type { NumberLike } from "../../types";
 
-import {
-  getHardhatProvider,
-  toRpcQuantity,
-  assertLargerThan,
-} from "../../utils";
+import { getHardhatProvider, toRpcQuantity } from "../../utils";
 
-import { latest } from "./latest";
 import { millis } from "./duration";
 
 /**
@@ -21,14 +16,6 @@ export async function setNextBlockTimestamp(
 
   const timestampRpc = toRpcQuantity(
     timestamp instanceof Date ? millis(timestamp.valueOf()) : timestamp
-  );
-
-  const latestTimestampRpc = toRpcQuantity(await latest());
-
-  assertLargerThan(
-    BigInt(timestampRpc),
-    BigInt(latestTimestampRpc),
-    "timestamp"
   );
 
   await provider.request({

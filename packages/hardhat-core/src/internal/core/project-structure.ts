@@ -6,12 +6,15 @@ import { getPackageRoot } from "../util/packageInfo";
 
 import { HardhatError } from "./errors";
 import { ERRORS } from "./errors-list";
+
 const JS_CONFIG_FILENAME = "hardhat.config.js";
+const CJS_CONFIG_FILENAME = "hardhat.config.cjs";
 const TS_CONFIG_FILENAME = "hardhat.config.ts";
 
 export function isCwdInsideProject() {
   return (
     findUp.sync(TS_CONFIG_FILENAME) !== null ||
+    findUp.sync(CJS_CONFIG_FILENAME) !== null ||
     findUp.sync(JS_CONFIG_FILENAME) !== null
   );
 }
@@ -20,6 +23,11 @@ export function getUserConfigPath() {
   const tsConfigPath = findUp.sync(TS_CONFIG_FILENAME);
   if (tsConfigPath !== null) {
     return tsConfigPath;
+  }
+
+  const cjsConfigPath = findUp.sync(CJS_CONFIG_FILENAME);
+  if (cjsConfigPath !== null) {
+    return cjsConfigPath;
   }
 
   const pathToConfigFile = findUp.sync(JS_CONFIG_FILENAME);

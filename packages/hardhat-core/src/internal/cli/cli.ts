@@ -1,7 +1,5 @@
-#!/usr/bin/env node
 import chalk from "chalk";
 import debug from "debug";
-import semver from "semver";
 import "source-map-support/register";
 
 import {
@@ -9,10 +7,13 @@ import {
   TASK_HELP,
   TASK_TEST,
 } from "../../builtin-tasks/task-names";
-import { TaskArguments } from "../../types";
+import { HardhatConfig, TaskArguments } from "../../types";
 import { HARDHAT_NAME } from "../constants";
 import { HardhatContext } from "../context";
-import { loadConfigAndTasks } from "../core/config/config-loading";
+import {
+  getConfiguredCompilers,
+  loadConfigAndTasks,
+} from "../core/config/config-loading";
 import {
   assertHardhatInvariant,
   HardhatError,
@@ -33,7 +34,7 @@ import {
   writePromptedForHHVSCode,
   writeTelemetryConsent,
 } from "../util/global-dir";
-import { getPackageJson, PackageJson } from "../util/packageInfo";
+import { getPackageJson } from "../util/packageInfo";
 
 import { saveFlamegraph } from "../core/flamegraph";
 import { Analytics } from "./analytics";
@@ -52,23 +53,9 @@ const log = debug("hardhat:core:cli");
 const ANALYTICS_SLOW_TASK_THRESHOLD = 300;
 const SHOULD_SHOW_STACK_TRACES_BY_DEFAULT = isRunningOnCiServer();
 
-async function printVersionMessage(packageJson: PackageJson) {
+async function printVersionMessage() {
+  const packageJson = await getPackageJson();
   console.log(packageJson.version);
-}
-
-function printWarningAboutNodeJsVersionIfNecessary(packageJson: PackageJson) {
-  const requirement = packageJson.engines.node;
-  if (!semver.satisfies(process.version, requirement)) {
-    console.warn(
-      chalk.yellow(
-        `You are using a version of Node.js that is not supported by Hardhat, and it may work incorrectly, or not work at all.
-
-Please, make sure you are using a supported version of Node.js.
-
-To learn more about which versions of Node.js are supported go to https://hardhat.org/nodejs-versions`
-      )
-    );
-  }
 }
 
 async function suggestInstallingHardhatVscode() {
@@ -104,6 +91,24 @@ async function suggestInstallingHardhatVscode() {
   }
 }
 
+function showViaIRWarning(resolvedConfig: HardhatConfig) {
+  const configuredCompilers = getConfiguredCompilers(resolvedConfig.solidity);
+  const viaIREnabled = configuredCompilers.some(
+    (compiler) => compiler.settings?.viaIR === true
+  );
+
+  if (viaIREnabled) {
+    console.warn();
+    console.warn(
+      chalk.yellow(
+        `Your solidity settings have viaIR enabled, which is not fully supported yet. You can still use Hardhat, but some features, like stack traces, might not work correctly.
+
+Learn more at https://hardhat.org/solc-viair`
+      )
+    );
+  }
+}
+
 async function main() {
   // We first accept this argument anywhere, so we know if the user wants
   // stack traces before really parsing the arguments.
@@ -112,10 +117,6 @@ async function main() {
     SHOULD_SHOW_STACK_TRACES_BY_DEFAULT;
 
   try {
-    const packageJson = await getPackageJson();
-
-    printWarningAboutNodeJsVersionIfNecessary(packageJson);
-
     const envVariableArguments = getEnvHardhatArguments(
       HARDHAT_PARAM_DEFINITIONS,
       process.env
@@ -146,7 +147,7 @@ async function main() {
 
     // --version is a special case
     if (hardhatArguments.version) {
-      await printVersionMessage(packageJson);
+      await printVersionMessage();
       return;
     }
 
@@ -305,6 +306,11 @@ async function main() {
       process.stdout.isTTY === true
     ) {
       await suggestInstallingHardhatVscode();
+
+      // we show the viaIR warning only if the tests failed
+      if (process.exitCode !== 0) {
+        showViaIRWarning(resolvedConfig);
+      }
     }
 
     log(`Killing Hardhat after successfully running task ${taskName}`);
@@ -313,11 +319,15 @@ async function main() {
 
     if (HardhatError.isHardhatError(error)) {
       isHardhatError = true;
-      console.error(chalk.red(`Error ${error.message}`));
+      console.error(
+        chalk.red.bold("Error"),
+        error.message.replace(/^\w+:/, (t) => chalk.red.bold(t))
+      );
     } else if (HardhatPluginError.isHardhatPluginError(error)) {
       isHardhatError = true;
       console.error(
-        chalk.red(`Error in plugin ${error.pluginName}: ${error.message}`)
+        chalk.red.bold(`Error in plugin ${error.pluginName}:`),
+        error.message
       );
     } else if (error instanceof Error) {
       console.error(chalk.red("An unexpected error occurred:"));

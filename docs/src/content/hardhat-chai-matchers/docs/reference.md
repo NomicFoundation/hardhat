@@ -223,7 +223,7 @@ await expect(factory.create(9999))
   .withArgs(anyValue, 9999);
 ```
 
-Predicates are just function that return true if the value is correct, and return false if it isn't, so you can create your own predicates:
+Predicates are just functions that return true if the value is correct, and return false if it isn't, so you can create your own predicates:
 
 ```ts
 function isEven(x: BigNumber): boolean {

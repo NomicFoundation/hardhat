@@ -32,6 +32,7 @@ export class EvmModule {
     private readonly _node: HardhatNode,
     private readonly _miningTimer: MiningTimer,
     private readonly _logger: ModulesLogger,
+    private readonly _allowBlocksWithSameTimestamp: boolean,
     private readonly _experimentalHardhatNetworkMessageTraceHooks: BoundExperimentalHardhatNetworkMessageTraceHook[] = []
   ) {}
 
@@ -86,12 +87,23 @@ export class EvmModule {
     const latestBlock = await this._node.getLatestBlock();
     const increment = BigInt(timestamp) - latestBlock.header.timestamp;
 
-    if (increment <= 0n) {
+    if (increment < 0n) {
       throw new InvalidInputError(
-        `Timestamp ${timestamp.toString()} is lower than or equal to previous block's timestamp` +
-          ` ${latestBlock.header.timestamp}`
+        `Timestamp ${timestamp.toString()} is lower than the previous block's timestamp ${
+          latestBlock.header.timestamp
+        }`
       );
     }
+
+    if (!this._allowBlocksWithSameTimestamp && increment === 0n) {
+      throw new InvalidInputError(
+        `Timestamp ${timestamp.toString()} is equal to the previous block's timestamp.
+
+Enable the "allowBlocksWithSameTimestamp" option in the Hardhat network configuration to allow this.
+`
+      );
+    }
+
     this._node.setNextBlockTimestamp(BigInt(timestamp));
     return timestamp.toString();
   }

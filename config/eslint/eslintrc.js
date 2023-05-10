@@ -91,7 +91,7 @@ module.exports = {
       },
       {
         selector: ["objectLiteralProperty"],
-        format: null
+        format: null,
       },
       {
         selector: ["objectLiteralMethod"],
@@ -137,9 +137,12 @@ module.exports = {
     "@typescript-eslint/prefer-function-type": "error",
     "@typescript-eslint/prefer-namespace-keyword": "error",
     "@typescript-eslint/restrict-plus-operands": "error",
-    "@typescript-eslint/restrict-template-expressions": ["error", {
-      allowAny: true,
-    }],
+    "@typescript-eslint/restrict-template-expressions": [
+      "error",
+      {
+        allowAny: true,
+      },
+    ],
     "@typescript-eslint/strict-boolean-expressions": [
       "error",
       {
@@ -219,8 +222,11 @@ module.exports = {
       },
     ],
     "use-isnan": "error",
-    "no-restricted-imports": ["error", {
-      patterns: ["hardhat/src", "@nomiclabs/*/src"]
-    }],
+    "no-restricted-imports": [
+      "error",
+      {
+        patterns: ["hardhat/src", "@nomiclabs/*/src"],
+      },
+    ],
   },
 };

@@ -63,7 +63,7 @@ export abstract class BlockchainBase {
 
   public async getBlock(
     blockHashOrNumber: Buffer | bigint | number
-  ): Promise<Block | null> {
+  ): Promise<Block> {
     if (
       (typeof blockHashOrNumber === "number" ||
         BigIntUtils.isBigInt(blockHashOrNumber)) &&
@@ -73,22 +73,32 @@ export abstract class BlockchainBase {
     }
 
     if (typeof blockHashOrNumber === "number") {
-      return this._data.getBlockByNumber(BigInt(blockHashOrNumber)) ?? null;
+      const blockByNumber = this._data.getBlockByNumber(
+        BigInt(blockHashOrNumber)
+      );
+      if (blockByNumber === undefined) {
+        throw new Error("Block not found");
+      }
+      return blockByNumber;
     }
     if (BigIntUtils.isBigInt(blockHashOrNumber)) {
-      return this._data.getBlockByNumber(blockHashOrNumber) ?? null;
+      const blockByNumber = this._data.getBlockByNumber(blockHashOrNumber);
+      if (blockByNumber === undefined) {
+        throw new Error("Block not found");
+      }
+      return blockByNumber;
     }
-    return this._data.getBlockByHash(blockHashOrNumber) ?? null;
+    const blockByHash = this._data.getBlockByHash(blockHashOrNumber);
+    if (blockByHash === undefined) {
+      throw new Error("Block not found");
+    }
+    return blockByHash;
   }
 
   public abstract getLatestBlockNumber(): bigint;
 
   public async getLatestBlock(): Promise<Block> {
-    const block = await this.getBlock(this.getLatestBlockNumber());
-    if (block === null) {
-      throw new Error("Block not found");
-    }
-    return block;
+    return this.getBlock(this.getLatestBlockNumber());
   }
 
   public getLocalTransaction(
@@ -162,7 +172,6 @@ export abstract class BlockchainBase {
     }
 
     const parentBlock = await this.getBlock(blockNumber - 1n);
-    assertHardhatInvariant(parentBlock !== null, "Parent block should exist");
 
     const parentHash = parentBlock.hash();
     const parentTD = this._data.getTotalDifficulty(parentHash);

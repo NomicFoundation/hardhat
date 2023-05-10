@@ -1,1 +1,0 @@
-declare module "ethereumjs-abi";

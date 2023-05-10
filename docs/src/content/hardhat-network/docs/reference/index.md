@@ -7,9 +7,12 @@
 - petersburg
 - istanbul
 - muirGlacier
+- berlin
 - london
 - arrowGlacier
+- grayGlacier
 - merge
+- shanghai
 
 ## Config
 
@@ -62,7 +65,7 @@ The block gas limit to use in Hardhat Network's blockchain. Default value: `30_0
 
 #### `hardfork`
 
-This setting changes how Hardhat Network works, to mimic Ethereum's mainnet at a given hardfork. It must be one of `"byzantium"`, `"constantinople"`, `"petersburg"`, `"istanbul"`, `"muirGlacier"`, `"berlin"`, `"london"`, `"arrowGlacier"`, `"grayGlacier"` and `"merge"`. Default value: `"merge"`
+This setting changes how Hardhat Network works, to mimic Ethereum's mainnet at a given hardfork. It must be one of `"byzantium"`, `"constantinople"`, `"petersburg"`, `"istanbul"`, `"muirGlacier"`, `"berlin"`, `"london"`, `"arrowGlacier"`, `"grayGlacier"`, `"merge"` and `"shanghai"`. Default value: `"shanghai"`
 
 #### `throwOnTransactionFailures`
 
@@ -83,6 +86,10 @@ An optional string setting the date of the blockchain. Valid values are [Javascr
 #### `allowUnlimitedContractSize`
 
 An optional boolean that disables the contract size limit imposed by the [EIP 170](https://eips.ethereum.org/EIPS/eip-170). Default value: `false`
+
+#### `allowBlocksWithSameTimestamp`
+
+A boolean to allow mining blocks that have the same timestamp. This is not allowed by default because Ethereum's consensus rules specify that each block should have a different timestamp. Default value: `false`
 
 #### `forking`
 
@@ -207,7 +214,7 @@ networks: {
 - `console.log` implements the same formatting options that can be found in Node.js' [`console.log`](https://nodejs.org/dist/latest-v12.x/docs/api/console.html#console_console_log_data_args), which in turn uses [`util.format`](https://nodejs.org/dist/latest-v12.x/docs/api/util.html#util_util_format_format_args).
   - Example: `console.log("Changing owner from %s to %s", currentOwner, newOwner)`
 - `console.log` is implemented in standard Solidity and then detected in Hardhat Network. This makes its compilation work with any other tools (like Remix, Waffle or Truffle).
-- `console.log` calls can run in other networks, like mainnet, goerli, sepolia, etc. They do nothing in those networks, but do spend a minimal amount of gas.
+- `console.log` calls can run in other networks, like mainnet, sepolia, goerli, etc. They do nothing in those networks, but do spend a minimal amount of gas.
 - `console.log` output can also be viewed for testnets and mainnet via [Tenderly](https://tenderly.co/).
 - `console.log` works by sending static calls to a well-known contract address. At runtime, Hardhat Network detects calls to that address, decodes the input data to the calls, and writes it to the console.
 
@@ -378,7 +385,7 @@ Remove a transaction from the mempool
 
 Hardhat Network allows you to send transactions impersonating specific account and contract addresses.
 
-To impersonate an account use the this method, passing the address to impersonate as its parameter:
+To impersonate an account use this method, passing the address to impersonate as its parameter:
 
 ```tsx
 await hre.network.provider.request({
@@ -440,19 +447,45 @@ Also note that blocks created via `hardhat_mine` may not trigger new-block event
 
 You can manipulate forking during runtime to reset back to a fresh forked state, fork from another block number or disable forking by calling `hardhat_reset`:
 
+::::tabsgroup{options=Infura,Alchemy}
+
+:::tab{value=Infura}
+
 ```ts
 await network.provider.request({
   method: "hardhat_reset",
   params: [
     {
       forking: {
-        jsonRpcUrl: "https://eth-mainnet.alchemyapi.io/v2/<key>",
+        jsonRpcUrl: "https://mainnet.infura.io/v3/<key>",
         blockNumber: 14390000,
       },
     },
   ],
 });
 ```
+
+:::
+
+:::tab{value=Alchemy}
+
+```ts
+await network.provider.request({
+  method: "hardhat_reset",
+  params: [
+    {
+      forking: {
+        jsonRpcUrl: "https://eth-mainnet.g.alchemy.com/v2/<key>",
+        blockNumber: 14390000,
+      },
+    },
+  ],
+});
+```
+
+:::
+
+::::
 
 You can disable forking by passing empty params:
 

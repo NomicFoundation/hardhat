@@ -41,7 +41,7 @@ subtask(
     { config }: { config: HardhatConfig }
   ) => {
     const processedPaths: string[] = [];
-    const solpp = await import("solpp");
+    const solpp = require("solpp");
     for (const [filePath, content] of files) {
       const processedFilePath = path.join(
         config.paths.cache,

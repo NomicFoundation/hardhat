@@ -23,8 +23,10 @@ export function rpcToBlockData(rpcBlock: RpcBlockWithTransactions): BlockData {
       mixHash: rpcBlock.mixHash,
       nonce: rpcBlock.nonce,
       baseFeePerGas: rpcBlock.baseFeePerGas,
+      withdrawalsRoot: rpcBlock.withdrawalsRoot,
     },
     transactions: rpcBlock.transactions.map(rpcToTxData),
+    withdrawals: rpcBlock.withdrawals,
     // uncleHeaders are not fetched and set here as provider methods for getting them are not supported
   };
 }

@@ -67,7 +67,11 @@ export class ReadOnlyValidEIP2930Transaction extends AccessListEIP2930Transactio
       }
     );
 
-    super(data, { freeze: false, common: fakeCommon });
+    super(data, {
+      freeze: false,
+      disableMaxInitCodeSizeCheck: true,
+      common: fakeCommon,
+    });
 
     this.common = fakeCommon;
     this._sender = sender;

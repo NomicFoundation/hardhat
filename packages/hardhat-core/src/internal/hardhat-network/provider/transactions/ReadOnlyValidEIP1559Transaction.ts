@@ -68,7 +68,11 @@ export class ReadOnlyValidEIP1559Transaction extends FeeMarketEIP1559Transaction
       }
     );
 
-    super(data, { freeze: false, common: fakeCommon });
+    super(data, {
+      freeze: false,
+      disableMaxInitCodeSizeCheck: true,
+      common: fakeCommon,
+    });
 
     this.common = fakeCommon;
     this._sender = sender;

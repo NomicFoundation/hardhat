@@ -174,7 +174,7 @@ const reviewsBlockContent = [
     position: "CTO  at  Aragon One",
     personImage: reviewsBlock.brett,
     companyImage: "/images/reveiws-logo/aone.svg",
-    alt: "Aragone One logo",
+    alt: "Aragon One logo",
     comment:
       '"Our interest in Hardhat was driven by our own experience of building and maintaining developer tooling for the Aragon ecosystem. Not only were these efforts time consuming, difficult, and error-prone, we also found ourselves constantly re-inventing the wheel in areas we did not want to care about or force opinions on (e.g. Ganache connections, Truffle providers, test strategy). Hardhat, with its plugin ecosystem, has effectively eliminated many of these problems for us. We feel confident piggybacking on the best for the underlying layers so that we can focus our attention on exposing the power of the Aragon ecosystem to our community."',
   },

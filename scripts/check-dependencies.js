@@ -13,7 +13,7 @@ const IGNORE_SAME_VERSION_FOR_PACKAGES = {
     "@nomiclabs/hardhat-truffle4",
     "@nomiclabs/hardhat-truffle5",
   ],
-  ethers: ["@nomiclabs/hardhat-etherscan"],
+  ethers: ["@nomicfoundation/hardhat-verify"],
   ["@types/node"]: ["docs"],
   ["@typescript-eslint/eslint-plugin"]: ["docs"],
   ["@typescript-eslint/parser"]: ["docs"],
