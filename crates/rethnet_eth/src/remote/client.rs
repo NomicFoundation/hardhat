@@ -452,7 +452,7 @@ mod tests {
                 Some(StatusCode::from_u16(STATUS_CODE).unwrap())
             );
         } else {
-            unreachable!("Invalid error");
+            unreachable!("Invalid error: {}", error);
         }
 
         mock.assert_async().await;
@@ -494,7 +494,7 @@ mod tests {
                 assert_eq!(error.message, "Must be authenticated!");
                 assert!(error.data.is_none());
             } else {
-                unreachable!("Invalid error");
+                unreachable!("Invalid error: {}", error);
             }
         }
 
@@ -515,7 +515,7 @@ mod tests {
             if let RpcClientError::FailedToSend(error) = error {
                 assert!(error.to_string().contains(&format!("error sending request for url ({alchemy_url}): error trying to connect: dns error: ")));
             } else {
-                unreachable!("Invalid error");
+                unreachable!("Invalid error: {}", error);
             }
         }
 
@@ -572,7 +572,7 @@ mod tests {
                 assert_eq!(error.message, "header for hash not found");
                 assert!(error.data.is_none());
             } else {
-                unreachable!("Invalid error");
+                unreachable!("Invalid error: {}", error);
             }
         }
 
@@ -702,7 +702,7 @@ mod tests {
             );
                 assert!(error.data.is_none());
             } else {
-                unreachable!("Invalid error");
+                unreachable!("Invalid error: {}", error);
             }
         }
 
@@ -740,7 +740,7 @@ mod tests {
             );
                 assert!(error.data.is_none());
             } else {
-                unreachable!("Invalid error");
+                unreachable!("Invalid error: {}", error);
             }
         }
 
@@ -790,7 +790,7 @@ mod tests {
                 assert_eq!(error.message, "invalid 1st argument: filter 'fromBlock': value was not valid block tag or block number");
                 assert!(error.data.is_none());
             } else {
-                unreachable!("Invalid error");
+                unreachable!("Invalid error: {}", error);
             }
         }
 
@@ -812,7 +812,7 @@ mod tests {
                 assert_eq!(error.message, "invalid 1st argument: filter 'toBlock': value was not valid block tag or block number");
                 assert!(error.data.is_none());
             } else {
-                unreachable!("Invalid error");
+                unreachable!("Invalid error: {}", error);
             }
         }
 
@@ -985,7 +985,7 @@ mod tests {
                 assert_eq!(error.message, "header for hash not found");
                 assert!(error.data.is_none());
             } else {
-                unreachable!("Invalid error");
+                unreachable!("Invalid error: {}", error);
             }
         }
 
@@ -1152,7 +1152,7 @@ mod tests {
                 assert_eq!(error.message, "header for hash not found");
                 assert!(error.data.is_none());
             } else {
-                unreachable!("Invalid error");
+                unreachable!("Invalid error: {}", error);
             }
         }
     }
