@@ -6,6 +6,7 @@ import { ArtifactType, SolidityParamsType } from "../stubs";
 import {
   ArtifactContractDeploymentFuture,
   ArtifactLibraryDeploymentFuture,
+  ContractAtFuture,
   ContractFuture,
   IgnitionModule,
   IgnitionModuleResult,
@@ -16,6 +17,7 @@ import {
 } from "../types/module";
 import {
   CallOptions,
+  ContractAtOptions,
   ContractFromArtifactOptions,
   ContractOptions,
   IgnitionModuleBuilder,
@@ -27,6 +29,7 @@ import {
 import {
   ArtifactContractDeploymentFutureImplementation,
   ArtifactLibraryDeploymentFutureImplementation,
+  ContractAtFutureImplementation,
   IgnitionModuleImplementation,
   NamedContractCallFutureImplementation,
   NamedContractDeploymentFutureImplementation,
@@ -378,6 +381,34 @@ export class IgnitionModuleBuilderImplementation<
     for (const arg of args.filter(isFuture)) {
       future.dependencies.add(arg);
     }
+
+    for (const afterFuture of (options.after ?? []).filter(isFuture)) {
+      future.dependencies.add(afterFuture);
+    }
+
+    this._module.futures.add(future);
+
+    return future;
+  }
+
+  public contractAt(
+    contractName: string,
+    address: string,
+    artifact: ArtifactType,
+    options: ContractAtOptions = {}
+  ): ContractAtFuture {
+    const id = options.id ?? contractName;
+    const futureId = `${this._module.id}:${id}`;
+
+    this._assertUniqueContractId(futureId);
+
+    const future = new ContractAtFutureImplementation(
+      futureId,
+      this._module,
+      contractName,
+      address,
+      artifact
+    );
 
     for (const afterFuture of (options.after ?? []).filter(isFuture)) {
       future.dependencies.add(afterFuture);

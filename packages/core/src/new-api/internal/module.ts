@@ -13,6 +13,7 @@ import {
   NamedContractCallFuture,
   ContractFuture,
   NamedStaticCallFuture,
+  ContractAtFuture,
 } from "../types/module";
 
 export abstract class BaseFuture<
@@ -142,6 +143,21 @@ export class NamedStaticCallFutureImplementation<
     public readonly args: SolidityParamsType
   ) {
     super(id, FutureType.NAMED_STATIC_CALL, module);
+  }
+}
+
+export class ContractAtFutureImplementation<ContractNameT extends string>
+  extends BaseFuture<FutureType.CONTRACT_AT, string>
+  implements ContractAtFuture
+{
+  constructor(
+    public readonly id: string,
+    public readonly module: IgnitionModuleImplementation,
+    public readonly contractName: ContractNameT,
+    public readonly address: string,
+    public readonly artifact: ArtifactType
+  ) {
+    super(id, FutureType.CONTRACT_AT, module);
   }
 }
 

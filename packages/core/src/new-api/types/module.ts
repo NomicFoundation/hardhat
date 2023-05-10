@@ -7,6 +7,7 @@ export enum FutureType {
   ARTIFACT_LIBRARY_DEPLOYMENT,
   NAMED_CONTRACT_CALL,
   NAMED_STATIC_CALL,
+  CONTRACT_AT,
 }
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -114,6 +115,14 @@ export interface NamedStaticCallFuture<
   type: FutureType.NAMED_STATIC_CALL;
   contract: ContractFuture<ContractNameT>;
   args: SolidityParamsType;
+}
+
+// A future representing a previously deployed contract at a known address.
+// It may not belong to this project, and we may struggle to type.
+export interface ContractAtFuture extends ContractFuture<string> {
+  type: FutureType.CONTRACT_AT;
+  address: string;
+  artifact: ArtifactType;
 }
 
 // The results of deploying a module must be a dictionary of contract futures
