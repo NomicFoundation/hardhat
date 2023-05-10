@@ -151,6 +151,14 @@ export interface NamedStaticCallFuture<
   args: SolidityParamsType;
 }
 
+// A future representing a previously deployed contract at a known address.
+// It may not belong to this project, and we may struggle to type.
+export interface ContractAtFuture extends ContractFuture<string> {
+  type: FutureType.CONTRACT_AT;
+  address: string;
+  artifact: ArtifactType;
+}
+
 // The results of deploying a module must be a dictionary of contract futures
 export interface IgnitionModuleResult<ContractNameT extends string> {
   [name: string]: ContractFuture<ContractNameT>;
