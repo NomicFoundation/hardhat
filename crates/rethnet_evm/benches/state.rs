@@ -61,10 +61,23 @@ impl RethnetStates {
     }
 }
 
+#[cfg(test)]
+const CHECKPOINT_SCALES: [u64; 1] = [1];
+
+#[cfg(test)]
+const ADDRESS_SCALES: [u64; 1] = [1];
+
+#[cfg(not(test))]
 const NUM_SCALES: usize = 4;
+
+#[cfg(not(test))]
 const CHECKPOINT_SCALES: [u64; NUM_SCALES] = [1, 5, 10, 20];
+
+#[cfg(not(test))]
 const MAX_CHECKPOINT_SCALE: u64 = CHECKPOINT_SCALES[NUM_SCALES - 1];
-const ADDRESS_SCALES: [u64; 4] = [
+
+#[cfg(not(test))]
+const ADDRESS_SCALES: [u64; NUM_SCALES] = [
     MAX_CHECKPOINT_SCALE * 5,
     MAX_CHECKPOINT_SCALE * 25,
     MAX_CHECKPOINT_SCALE * 50,
