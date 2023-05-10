@@ -106,7 +106,6 @@ jobs:
     needs: check-rethnet
     strategy:
       fail-fast: false
-      max-parallel: 1
       matrix:
         node: [18]
         # disable until actions/virtual-environments#4896 is fixed
