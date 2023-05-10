@@ -11,7 +11,7 @@ import { JsonRpcClient } from "../../../../../src/internal/hardhat-network/jsonr
 import { ForkBlockchain } from "../../../../../src/internal/hardhat-network/provider/fork/ForkBlockchain";
 import { randomHashBuffer } from "../../../../../src/internal/hardhat-network/provider/utils/random";
 import { makeForkClient } from "../../../../../src/internal/hardhat-network/provider/utils/makeForkClient";
-import { INFURA_URL } from "../../../../setup";
+import { ALCHEMY_URL } from "../../../../setup";
 import {
   createTestLog,
   createTestReceipt,
@@ -45,14 +45,14 @@ describe("ForkBlockchain", () => {
   }
 
   before(async function () {
-    if (INFURA_URL === undefined) {
+    if (ALCHEMY_URL === undefined) {
       this.skip();
       return;
     }
   });
 
   beforeEach(async () => {
-    const clientResult = await makeForkClient({ jsonRpcUrl: INFURA_URL! });
+    const clientResult = await makeForkClient({ jsonRpcUrl: ALCHEMY_URL! });
     client = clientResult.forkClient;
     forkBlockNumber = clientResult.forkBlockNumber;
 

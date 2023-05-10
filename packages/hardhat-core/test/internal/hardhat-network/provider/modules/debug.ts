@@ -13,7 +13,7 @@ import { trace as mainnetReturnsDataTrace } from "../../../../fixture-debug-trac
 import { trace as mainnetReturnsDataTraceGeth } from "../../../../fixture-debug-traces/mainnetReturnsDataTraceGeth";
 import { trace as mainnetRevertTrace } from "../../../../fixture-debug-traces/mainnetRevertTrace";
 import { trace as modifiesStateTrace } from "../../../../fixture-debug-traces/modifiesStateTrace";
-import { INFURA_URL } from "../../../../setup";
+import { ALCHEMY_URL } from "../../../../setup";
 import { assertInvalidInputError } from "../../helpers/assertions";
 import { FORK_TESTS_CACHE_PATH } from "../../helpers/constants";
 import { EXAMPLE_CONTRACT } from "../../helpers/contracts";
@@ -191,11 +191,11 @@ describe.skip("Debug module", function () {
     let provider: EthereumProvider;
 
     beforeEach(function () {
-      if (INFURA_URL === undefined) {
+      if (ALCHEMY_URL === undefined) {
         this.skip();
       }
       const forkConfig: ForkConfig = {
-        jsonRpcUrl: INFURA_URL!,
+        jsonRpcUrl: ALCHEMY_URL!,
         blockNumber: 11_954_000,
       };
 
@@ -315,11 +315,11 @@ describe.skip("Debug module", function () {
     let provider: EthereumProvider;
 
     beforeEach(function () {
-      if (INFURA_URL === undefined) {
+      if (ALCHEMY_URL === undefined) {
         this.skip();
       }
       const forkConfig: ForkConfig = {
-        jsonRpcUrl: INFURA_URL!,
+        jsonRpcUrl: ALCHEMY_URL!,
         blockNumber: 15_204_358,
       };
 

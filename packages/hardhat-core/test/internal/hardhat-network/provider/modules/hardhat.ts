@@ -11,7 +11,7 @@ import {
 } from "../../../../../src/internal/core/jsonrpc/types/base-types";
 import { CompilerOutputContract } from "../../../../../src/types/artifacts";
 import { expectErrorAsync } from "../../../../helpers/errors";
-import { INFURA_URL } from "../../../../setup";
+import { ALCHEMY_URL } from "../../../../setup";
 import { workaroundWindowsCiFailures } from "../../../../utils/workaround-windows-ci-failures";
 import {
   assertInternalError,
@@ -1305,7 +1305,7 @@ describe("Hardhat module", function () {
 
       describe("hardhat_reset", function () {
         before(function () {
-          if (INFURA_URL === undefined) {
+          if (ALCHEMY_URL === undefined) {
             this.skip();
           }
         });
@@ -1334,7 +1334,7 @@ describe("Hardhat module", function () {
           await assertInvalidArgumentsError(this.provider, "hardhat_reset", [
             {
               forking: {
-                jsonRpcUrl: INFURA_URL,
+                jsonRpcUrl: ALCHEMY_URL,
                 blockNumber: "0",
               },
             },
@@ -1345,7 +1345,7 @@ describe("Hardhat module", function () {
           const result = await this.provider.send("hardhat_reset", [
             {
               forking: {
-                jsonRpcUrl: INFURA_URL,
+                jsonRpcUrl: ALCHEMY_URL,
                 blockNumber: safeBlockInThePast,
               },
             },
@@ -1435,7 +1435,7 @@ describe("Hardhat module", function () {
             await this.provider.send("hardhat_reset", [
               {
                 forking: {
-                  jsonRpcUrl: INFURA_URL,
+                  jsonRpcUrl: ALCHEMY_URL,
                   blockNumber: safeBlockInThePast,
                 },
               },
@@ -1448,13 +1448,13 @@ describe("Hardhat module", function () {
             await this.provider.send("hardhat_reset", [
               {
                 forking: {
-                  jsonRpcUrl: INFURA_URL,
+                  jsonRpcUrl: ALCHEMY_URL,
                   blockNumber: safeBlockInThePast,
                 },
               },
             ]);
             await this.provider.send("hardhat_reset", [
-              { forking: { jsonRpcUrl: INFURA_URL } },
+              { forking: { jsonRpcUrl: ALCHEMY_URL } },
             ]);
 
             // This condition is rather loose as Infura can sometimes return
@@ -1483,7 +1483,7 @@ describe("Hardhat module", function () {
             await this.provider.send("hardhat_reset", [
               {
                 forking: {
-                  jsonRpcUrl: INFURA_URL,
+                  jsonRpcUrl: ALCHEMY_URL,
                   blockNumber: safeBlockInThePast,
                 },
               },
@@ -1495,7 +1495,7 @@ describe("Hardhat module", function () {
             await this.provider.send("hardhat_reset", [
               {
                 forking: {
-                  jsonRpcUrl: INFURA_URL,
+                  jsonRpcUrl: ALCHEMY_URL,
                   blockNumber: safeBlockInThePast,
                 },
               },
