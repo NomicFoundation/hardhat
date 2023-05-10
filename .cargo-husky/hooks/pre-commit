@@ -1,0 +1,11 @@
+#!/bin/sh -x
+#
+# Intended to be in sync with .github/workflows/hardhat-core-ci.yml's
+# test-rethnet-rs
+
+set -e
+
+cargo test --workspace --all-targets --features tracing,bench-once
+cargo test --doc --workspace --features tracing
+cargo clippy --all -- -D warnings
+cargo fmt --all -- --check
