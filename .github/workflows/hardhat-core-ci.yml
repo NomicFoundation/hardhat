@@ -272,7 +272,7 @@ jobs:
           RUSTFLAGS: ${{ matrix.RUSTFLAGS }}
         with:
           command: test
-          args: --workspace --all-features --all-targets
+          args: --workspace --all-targets --features tracing,bench-once
 
       - name: Doctests
         uses: actions-rs/cargo@v1
@@ -280,7 +280,7 @@ jobs:
           RUSTFLAGS: ${{ matrix.RUSTFLAGS }}
         with:
           command: test
-          args: --doc --workspace --all-features
+          args: --doc --workspace --features tracing
 
       # disable until:
       # 1) https://github.com/napi-rs/napi-rs/issues/1405 is resolved (Windows-only)
