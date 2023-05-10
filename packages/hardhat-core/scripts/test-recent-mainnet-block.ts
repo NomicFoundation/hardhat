@@ -4,11 +4,11 @@ import { makeForkClient } from "../src/internal/hardhat-network/provider/utils/m
 import { runFullBlock } from "../test/internal/hardhat-network/provider/utils/runFullBlock";
 
 async function main() {
-  const rpcUrl = process.env.INFURA_URL;
+  const rpcUrl = process.env.ALCHEMY_URL;
 
   if (rpcUrl === undefined || rpcUrl === "") {
     console.error(
-      "[test-recent-mainnet-block] Missing INFURA_URL environment variable"
+      "[test-recent-mainnet-block] Missing ALCHEMY_URL environment variable"
     );
     process.exit(1);
   }

@@ -10,7 +10,7 @@ import { HardhatNetworkConfig } from "../../../../src/types";
 import { useEnvironment } from "../../../helpers/environment";
 import { expectErrorAsync } from "../../../helpers/errors";
 import { useFixtureProject } from "../../../helpers/project";
-import { INFURA_URL } from "../../../setup";
+import { ALCHEMY_URL } from "../../../setup";
 
 describe("Hardhat Network special options", function () {
   describe("allowUnlimitedContractSize", function () {
@@ -111,7 +111,7 @@ describe("Hardhat Network special options", function () {
     });
 
     describe("When forking", function () {
-      if (INFURA_URL === undefined) {
+      if (ALCHEMY_URL === undefined) {
         return;
       }
 

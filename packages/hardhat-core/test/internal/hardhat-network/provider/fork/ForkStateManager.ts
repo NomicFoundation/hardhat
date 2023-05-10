@@ -17,7 +17,7 @@ import {
 } from "../../../../../src/internal/hardhat-network/provider/utils/random";
 import { makeForkClient } from "../../../../../src/internal/hardhat-network/provider/utils/makeForkClient";
 import { keccak256 } from "../../../../../src/internal/util/keccak";
-import { INFURA_URL } from "../../../../setup";
+import { ALCHEMY_URL } from "../../../../setup";
 import {
   DAI_ADDRESS,
   DAI_TOTAL_SUPPLY_STORAGE_POSITION,
@@ -32,14 +32,14 @@ describe("ForkStateManager", () => {
   let fsm: ForkStateManager;
 
   before(async function () {
-    if (INFURA_URL === undefined) {
+    if (ALCHEMY_URL === undefined) {
       this.skip();
       return;
     }
   });
 
   beforeEach(async () => {
-    const clientResult = await makeForkClient({ jsonRpcUrl: INFURA_URL! });
+    const clientResult = await makeForkClient({ jsonRpcUrl: ALCHEMY_URL! });
     client = clientResult.forkClient;
     forkBlockNumber = clientResult.forkBlockNumber;
 
