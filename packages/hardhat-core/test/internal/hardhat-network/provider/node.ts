@@ -739,7 +739,8 @@ describe("HardhatNode", () => {
       },
       {
         networkName: "sepolia",
-        url: ALCHEMY_URL.replace("mainnet", "sepolia"),
+        url: ALCHEMY_URL.replace("alchemyapi.io", "g.alchemy.com") // temporary fix until we fix our github secret
+          .replace("mainnet", "sepolia"),
         blockToRun: 3095000n, // this block is post-shanghai
         chainId: 11155111,
       },
