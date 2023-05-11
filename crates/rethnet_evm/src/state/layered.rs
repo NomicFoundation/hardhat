@@ -286,4 +286,40 @@ mod tests {
         let retrieved_bytecode = state.code_by_hash(inserted_bytecode.hash()).unwrap();
         assert_eq!(retrieved_bytecode, inserted_bytecode);
     }
+
+    #[test]
+    fn account_inserted_keeps_code() {
+        let mut state = LayeredState::<RethnetLayer>::default();
+        let inserted_bytecode = Bytecode::new_raw(Bytes::from("0x11"));
+        let address = Address::from_low_u64_ne(1234);
+        state
+            .insert_account(
+                address,
+                AccountInfo::new(U256::ZERO, 0, inserted_bytecode.clone()),
+            )
+            .unwrap();
+        let result = state.basic(address).unwrap();
+        assert!(result.is_some());
+        let retrieved_account = result.unwrap();
+        assert!(retrieved_account.code.is_some());
+        assert_eq!(retrieved_account.code.unwrap(), inserted_bytecode);
+    }
+
+    #[test]
+    fn account_removed_yields_code() {
+        let mut state = LayeredState::<RethnetLayer>::default();
+        let inserted_bytecode = Bytecode::new_raw(Bytes::from("0x11"));
+        let address = Address::from_low_u64_ne(1234);
+        state
+            .insert_account(
+                address,
+                AccountInfo::new(U256::ZERO, 0, inserted_bytecode.clone()),
+            )
+            .unwrap();
+        let result = state.remove_account(address).unwrap();
+        assert!(result.is_some());
+        let removed_account = result.unwrap();
+        assert!(removed_account.code.is_some());
+        assert_eq!(removed_account.code.unwrap(), inserted_bytecode);
+    }
 }
