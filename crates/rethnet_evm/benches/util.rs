@@ -3,7 +3,7 @@ use std::clone::Clone;
 use criterion::{BatchSize, BenchmarkId, Criterion};
 use rethnet_eth::{Address, Bytes, U256};
 use rethnet_evm::state::{HybridState, LayeredState, RethnetLayer, StateError, SyncState};
-use revm::primitives::{AccountInfo, Bytecode};
+use revm::primitives::{AccountInfo, Bytecode, KECCAK_EMPTY};
 
 #[derive(Default)]
 struct RethnetStates {
@@ -123,3 +123,17 @@ pub fn bench_sync_state_method<O, R, Prep>(
 }
 
 pub fn prep_no_op(_s: &mut dyn SyncState<StateError>, _i: u64) {}
+
+pub fn account_has_code(state: &dyn SyncState<StateError>, address: &Address) -> bool {
+    let account_info = state
+        .basic(*address)
+        .expect("basic should succeed")
+        .expect("account should exist");
+    account_info.code_hash != KECCAK_EMPTY
+        && state
+            .code_by_hash(account_info.code_hash)
+            .expect("code_by_hash should succeed")
+            .bytecode
+            .len()
+            > 0
+}
