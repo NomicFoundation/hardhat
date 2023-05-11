@@ -46,7 +46,7 @@ jobs:
     name: Test hardhat-chai-matchers on MacOS with Node 18
     runs-on: macos-latest
     # disable until actions/virtual-environments#4896 is fixed
-    if: ${{ false }}
+    # if: ${{ false }}
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v2
