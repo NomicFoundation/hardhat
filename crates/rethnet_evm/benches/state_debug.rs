@@ -78,7 +78,7 @@ fn bench_modify_account_doesnt_exist(c: &mut Criterion) {
             debug_assert!(state.basic(address).unwrap().is_none());
             let result = state.modify_account(
                 address,
-                AccountModifierFn::new(Box::new(|_balance, &mut _nonce, _code| {})),
+                AccountModifierFn::new(Box::new(|_balance, _nonce, _code| {})),
                 &|| Ok(AccountInfo::default()),
             );
             debug_assert!(result.is_ok());
@@ -98,7 +98,7 @@ fn bench_modify_account_exists_with_code_no_change(c: &mut Criterion) {
             //debug_assert!(state.basic(address).unwrap().unwrap().code.is_some());
             let result = state.modify_account(
                 address,
-                AccountModifierFn::new(Box::new(|_balance, &mut _nonce, _code| {})),
+                AccountModifierFn::new(Box::new(|_balance, _nonce, _code| {})),
                 &|| Ok(AccountInfo::default()),
             );
             debug_assert!(result.is_ok());
@@ -118,7 +118,7 @@ fn bench_modify_account_exists_with_code_changed_to_empty(c: &mut Criterion) {
             //debug_assert!(state.basic(address).unwrap().unwrap().code.is_some());
             let result = state.modify_account(
                 address,
-                AccountModifierFn::new(Box::new(|_balance, &mut _nonce, code| {
+                AccountModifierFn::new(Box::new(|_balance, _nonce, code| {
                     code.take();
                 })),
                 &|| Ok(AccountInfo::default()),
@@ -140,7 +140,7 @@ fn bench_modify_account_exists_with_code_changed(c: &mut Criterion) {
             //debug_assert!(state.basic(address).unwrap().unwrap().code.is_some());
             let result = state.modify_account(
                 address,
-                AccountModifierFn::new(Box::new(move |_balance, &mut _nonce, code| {
+                AccountModifierFn::new(Box::new(move |_balance, _nonce, code| {
                     code.replace(Bytecode::new_raw(Bytes::copy_from_slice(
                         Address::from_low_u64_ne(number_of_accounts + 1).as_bytes(),
                     )));
@@ -173,7 +173,7 @@ fn bench_modify_account_exists_without_code_code_changed(c: &mut Criterion) {
             debug_assert!(state.basic(address).unwrap().is_some());
             let result = state.modify_account(
                 address,
-                AccountModifierFn::new(Box::new(move |_balance, &mut _nonce, code| {
+                AccountModifierFn::new(Box::new(move |_balance, _nonce, code| {
                     code.replace(Bytecode::new_raw(Bytes::copy_from_slice(
                         Address::from_low_u64_ne(number_of_accounts + 1).as_bytes(),
                     )));
@@ -206,7 +206,7 @@ fn bench_modify_account_exists_without_code_no_code_change(c: &mut Criterion) {
             debug_assert!(state.basic(address).unwrap().is_some());
             let result = state.modify_account(
                 address,
-                AccountModifierFn::new(Box::new(|_balance, &mut _nonce, _code| {})),
+                AccountModifierFn::new(Box::new(|_balance, _nonce, _code| {})),
                 &|| Ok(AccountInfo::default()),
             );
             debug_assert!(result.is_ok());
