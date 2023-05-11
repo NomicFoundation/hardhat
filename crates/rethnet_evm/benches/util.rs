@@ -151,6 +151,7 @@ pub fn bench_sync_state_method<O, R, Prep>(
 
 pub fn prep_no_op(_s: &mut dyn SyncState<StateError>, _i: u64) {}
 
+#[allow(dead_code)]
 pub fn account_has_code(state: &dyn SyncState<StateError>, address: &Address) -> bool {
     let account_info = state
         .basic(*address)
