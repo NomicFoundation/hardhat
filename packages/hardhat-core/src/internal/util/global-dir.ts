@@ -93,7 +93,6 @@ export async function getCompilersDir() {
   // Note: we introduce `-v2` to invalidate all the previous compilers at once
   const compilersCache = path.join(cache, "compilers-v2");
   await fs.ensureDir(compilersCache);
-  console.log("====================>", compilersCache);
   return compilersCache;
 }
 
