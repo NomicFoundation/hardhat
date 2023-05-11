@@ -42,10 +42,17 @@ impl StateRef for LayeredState<RethnetLayer> {
 
     #[cfg_attr(feature = "tracing", tracing::instrument)]
     fn basic(&self, address: Address) -> Result<Option<AccountInfo>, Self::Error> {
-        Ok(self
-            .changes
-            .account(&address)
-            .map(|account| account.info.clone()))
+        Ok(self.changes.account(&address).map(|account| {
+            let mut account_info = account.info.clone();
+            // Fill the bytecode
+            if account_info.code_hash != KECCAK_EMPTY {
+                account_info.code = Some(
+                    self.code_by_hash(account_info.code_hash)
+                        .expect("Code must exist"),
+                );
+            }
+            account_info
+        }))
     }
 
     #[cfg_attr(feature = "tracing", tracing::instrument)]

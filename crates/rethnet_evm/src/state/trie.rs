@@ -64,7 +64,17 @@ impl StateRef for TrieState {
     type Error = StateError;
 
     fn basic(&self, address: Address) -> Result<Option<AccountInfo>, Self::Error> {
-        Ok(self.accounts.account(&address).map(AccountInfo::from))
+        Ok(self.accounts.account(&address).map(|basic_account| {
+            let mut account_info = AccountInfo::from(basic_account);
+            // Fill the bytecode
+            if account_info.code_hash != KECCAK_EMPTY {
+                account_info.code = Some(
+                    self.code_by_hash(account_info.code_hash)
+                        .expect("Code must exist"),
+                );
+            }
+            account_info
+        }))
     }
 
     fn code_by_hash(&self, code_hash: B256) -> Result<Bytecode, Self::Error> {

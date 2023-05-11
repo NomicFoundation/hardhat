@@ -94,8 +94,7 @@ fn bench_modify_account_exists_with_code_no_change(c: &mut Criterion) {
         |mut state, number_of_accounts| {
             let address = Address::from_low_u64_ne(number_of_accounts);
             debug_assert!(state.basic(address).unwrap().is_some());
-            // TODO: figure out why the following assert is failing
-            //debug_assert!(state.basic(address).unwrap().unwrap().code.is_some());
+            debug_assert!(state.basic(address).unwrap().unwrap().code.is_some());
             let result = state.modify_account(
                 address,
                 AccountModifierFn::new(Box::new(|_balance, &mut _nonce, _code| {})),
@@ -114,8 +113,7 @@ fn bench_modify_account_exists_with_code_changed_to_empty(c: &mut Criterion) {
         |mut state, number_of_accounts| {
             let address = Address::from_low_u64_ne(number_of_accounts);
             debug_assert!(state.basic(address).unwrap().is_some());
-            // TODO: figure out why the following assert is failing
-            //debug_assert!(state.basic(address).unwrap().unwrap().code.is_some());
+            debug_assert!(state.basic(address).unwrap().unwrap().code.is_some());
             let result = state.modify_account(
                 address,
                 AccountModifierFn::new(Box::new(|_balance, &mut _nonce, code| {
@@ -136,8 +134,7 @@ fn bench_modify_account_exists_with_code_changed(c: &mut Criterion) {
         |mut state, number_of_accounts| {
             let address = Address::from_low_u64_ne(number_of_accounts);
             debug_assert!(state.basic(address).unwrap().is_some());
-            // TODO: figure out why the following assert is failing
-            //debug_assert!(state.basic(address).unwrap().unwrap().code.is_some());
+            debug_assert!(state.basic(address).unwrap().unwrap().code.is_some());
             let result = state.modify_account(
                 address,
                 AccountModifierFn::new(Box::new(move |_balance, &mut _nonce, code| {
@@ -222,11 +219,11 @@ fn bench_remove_account_with_code(c: &mut Criterion) {
         |mut state, number_of_accounts| {
             let address = Address::from_low_u64_ne(number_of_accounts);
             debug_assert!(state.basic(address).unwrap().is_some());
-            // TODO: figure out why the following assert is failing
-            //debug_assert!(state.basic(address).unwrap().unwrap().code.is_some());
+            debug_assert!(state.basic(address).unwrap().unwrap().code.is_some());
             let result = state.remove_account(address);
             debug_assert!(result.is_ok());
-            debug_assert!(result.unwrap().is_some());
+            debug_assert!(result.as_ref().unwrap().is_some());
+            debug_assert!(result.unwrap().unwrap().code.is_some());
         },
     );
 }
@@ -252,7 +249,8 @@ fn bench_remove_account_without_code(c: &mut Criterion) {
             debug_assert!(state.basic(address).unwrap().unwrap().code.is_none());
             let result = state.remove_account(address);
             debug_assert!(result.is_ok());
-            debug_assert!(result.unwrap().is_some());
+            debug_assert!(result.as_ref().unwrap().is_some());
+            debug_assert!(result.unwrap().unwrap().code.is_none());
         },
     );
 }

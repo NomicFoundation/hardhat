@@ -277,12 +277,16 @@ impl LayeredChanges<RethnetLayer> {
     #[cfg_attr(feature = "tracing", tracing::instrument)]
     pub fn remove_account(&mut self, address: &Address) -> Option<AccountInfo> {
         if let Some(account) = self.account(address) {
-            let account_info = account.info.clone();
+            let mut account_info = account.info.clone();
 
             if account.info.code_hash != KECCAK_EMPTY {
                 debug_assert!(account.info.code.is_none());
-
                 let code_hash = account.info.code_hash;
+
+                // Fill the bytecode
+                if let Some(code) = self.code_by_hash(&code_hash) {
+                    account_info.code = Some(code.clone());
+                }
 
                 self.last_layer_mut().contracts.remove(&code_hash);
             }
