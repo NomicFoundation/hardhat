@@ -249,17 +249,6 @@ fn bench_remove_account_without_code(c: &mut Criterion) {
     );
 }
 
-fn bench_serialize(c: &mut Criterion) {
-    bench_sync_state_method(
-        c,
-        "StateDebug::serialize()",
-        prep_no_op,
-        |state, _number_of_accounts| {
-            state.serialize();
-        },
-    );
-}
-
 fn bench_set_account_storage_slot_account_doesnt_exist(c: &mut Criterion) {
     bench_sync_state_method(
         c,
@@ -314,7 +303,6 @@ criterion_group!(
     bench_modify_account_exists_without_code_no_code_change,
     bench_remove_account_with_code,
     bench_remove_account_without_code,
-    bench_serialize,
     bench_set_account_storage_slot_account_doesnt_exist,
     bench_set_account_storage_slot_account_exists,
     bench_state_root,
