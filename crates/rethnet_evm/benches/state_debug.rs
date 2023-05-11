@@ -54,15 +54,37 @@ fn bench_insert_account_already_exists(c: &mut Criterion) {
     );
 }
 
-fn bench_insert_account_doesnt_exist(c: &mut Criterion) {
+fn bench_insert_account_doesnt_exist_without_code(c: &mut Criterion) {
     bench_sync_state_method(
         c,
-        "StateDebug::insert_account(), account doesn't yet exist",
+        "StateDebug::insert_account() without code, account doesn't yet exist",
         prep_no_op,
         |mut state, number_of_accounts| {
             let address = Address::from_low_u64_ne(number_of_accounts + 1);
             debug_assert!(state.basic(address).unwrap().is_none());
             let result = state.insert_account(address, AccountInfo::default());
+            debug_assert!(result.is_ok());
+        },
+    );
+}
+
+fn bench_insert_account_doesnt_exist_with_code(c: &mut Criterion) {
+    bench_sync_state_method(
+        c,
+        "StateDebug::insert_account() with code, account doesn't yet exist",
+        prep_no_op,
+        |mut state, number_of_accounts| {
+            let address = Address::from_low_u64_ne(number_of_accounts + 1);
+            debug_assert!(state.basic(address).unwrap().is_none());
+            let result = state.insert_account(
+                address,
+                AccountInfo {
+                    code: Some(Bytecode::new_raw(Bytes::copy_from_slice(
+                        address.as_bytes(),
+                    ))),
+                    ..AccountInfo::default()
+                },
+            );
             debug_assert!(result.is_ok());
         },
     );
@@ -294,7 +316,8 @@ criterion_group!(
     bench_account_storage_root_account_doesnt_exist,
     bench_account_storage_root_account_exists,
     bench_insert_account_already_exists,
-    bench_insert_account_doesnt_exist,
+    bench_insert_account_doesnt_exist_with_code,
+    bench_insert_account_doesnt_exist_without_code,
     bench_modify_account_doesnt_exist,
     bench_modify_account_exists_with_code_no_change,
     bench_modify_account_exists_with_code_changed_to_empty,
