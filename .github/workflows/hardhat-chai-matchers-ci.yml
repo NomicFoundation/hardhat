@@ -41,6 +41,12 @@ jobs:
         env:
           FORCE_COLOR: 3
         run: yarn test:ci
+      - name: Cache downloaded compilers
+        uses: actions/cache@v2
+        with:
+          path: |
+            C:\Users\runneradmin\AppData\Local\hardhat-nodejs\Cache\compilers-v2
+          key: downloaded-compilers-v2
 
   test_on_macos:
     name: Test hardhat-chai-matchers on MacOS with Node 18
@@ -61,6 +67,12 @@ jobs:
         env:
           FORCE_COLOR: 3
         run: yarn test:ci
+      - name: Cache downloaded compilers
+        uses: actions/cache@v2
+        with:
+          path: |
+            /Users/runner/Library/Caches/hardhat-nodejs/compilers-v2
+          key: downloaded-compilers-v2
 
   test_on_linux:
     name: Test hardhat-chai-matchers on Ubuntu with Node ${{ matrix.node }}
@@ -82,3 +94,9 @@ jobs:
         env:
           FORCE_COLOR: 3
         run: yarn test:ci
+      - name: Cache downloaded compilers
+        uses: actions/cache@v2
+        with:
+          path: |
+            /home/runner/.cache/hardhat-nodejs/compilers-v2
+          key: downloaded-compilers-v2
