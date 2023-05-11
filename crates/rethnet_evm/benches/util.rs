@@ -37,13 +37,13 @@ impl RethnetStates {
                         )
                         .unwrap();
                     for storage_slot in 0..number_of_storage_slots_per_account {
-                    state
-                        .set_account_storage_slot(
-                            address,
-                            U256::from(storage_slot),
-                            U256::from(account_number),
-                        )
-                        .unwrap();
+                        state
+                            .set_account_storage_slot(
+                                address,
+                                U256::from(storage_slot),
+                                U256::from(account_number),
+                            )
+                            .unwrap();
                     }
                 }
                 state.checkpoint().unwrap();
@@ -114,33 +114,37 @@ pub fn bench_sync_state_method<O, R, Prep>(
             }
             .iter()
             {
-            let mut rethnet_states = RethnetStates::default();
-            rethnet_states.fill(*number_of_accounts, *accounts_per_checkpoint, *storage_slots_per_account);
-
-            for (label, state_factory) in rethnet_states.make_clone_factories().into_iter() {
-                group.bench_with_input(
-                    BenchmarkId::new(
-                        format!(
-                            "{},{} account(s) per checkpoint, {} storage slots per account",
-                            label, *accounts_per_checkpoint, *storage_slots_per_account
-                        ),
-                        *number_of_accounts,
-                    ),
-                    number_of_accounts,
-                    |b, number_of_accounts| {
-                        b.iter_batched(
-                            || {
-                                let mut state = state_factory();
-                                prep(&mut state, *number_of_accounts);
-                                state
-                            },
-                            |state| method_invocation(state, *number_of_accounts),
-                            BatchSize::SmallInput,
-                        );
-                    },
+                let mut rethnet_states = RethnetStates::default();
+                rethnet_states.fill(
+                    *number_of_accounts,
+                    *accounts_per_checkpoint,
+                    *storage_slots_per_account,
                 );
+
+                for (label, state_factory) in rethnet_states.make_clone_factories().into_iter() {
+                    group.bench_with_input(
+                        BenchmarkId::new(
+                            format!(
+                                "{},{} account(s) per checkpoint, {} storage slots per account",
+                                label, *accounts_per_checkpoint, *storage_slots_per_account
+                            ),
+                            *number_of_accounts,
+                        ),
+                        number_of_accounts,
+                        |b, number_of_accounts| {
+                            b.iter_batched(
+                                || {
+                                    let mut state = state_factory();
+                                    prep(&mut state, *number_of_accounts);
+                                    state
+                                },
+                                |state| method_invocation(state, *number_of_accounts),
+                                BatchSize::SmallInput,
+                            );
+                        },
+                    );
+                }
             }
-        }
         }
     }
 }
