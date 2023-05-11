@@ -8,7 +8,7 @@ use rethnet_eth::{Address, Bytes, U256};
 use rethnet_evm::state::AccountModifierFn;
 
 mod util;
-use util::{account_has_code, bench_sync_state_method, prep_no_op};
+use util::{account_has_code, bench_sync_state_method, prep_no_op, VaryStorageSlots};
 
 fn bench_account_storage_root_account_doesnt_exist(c: &mut Criterion) {
     bench_sync_state_method(
@@ -22,6 +22,7 @@ fn bench_account_storage_root_account_doesnt_exist(c: &mut Criterion) {
             debug_assert!(result.is_ok());
             debug_assert!(result.unwrap().is_none());
         },
+        VaryStorageSlots::Yes,
     );
 }
 
@@ -37,6 +38,7 @@ fn bench_account_storage_root_account_exists(c: &mut Criterion) {
             debug_assert!(result.is_ok());
             debug_assert!(result.unwrap().is_some());
         },
+        VaryStorageSlots::Yes,
     );
 }
 
@@ -51,6 +53,7 @@ fn bench_insert_account_already_exists(c: &mut Criterion) {
             let result = state.insert_account(address, AccountInfo::default());
             debug_assert!(result.is_ok())
         },
+        VaryStorageSlots::No,
     );
 }
 
@@ -65,6 +68,7 @@ fn bench_insert_account_doesnt_exist_without_code(c: &mut Criterion) {
             let result = state.insert_account(address, AccountInfo::default());
             debug_assert!(result.is_ok());
         },
+        VaryStorageSlots::No,
     );
 }
 
@@ -87,6 +91,7 @@ fn bench_insert_account_doesnt_exist_with_code(c: &mut Criterion) {
             );
             debug_assert!(result.is_ok());
         },
+        VaryStorageSlots::No,
     );
 }
 
@@ -108,6 +113,7 @@ fn bench_modify_account_doesnt_exist(c: &mut Criterion) {
             );
             debug_assert!(result.is_ok());
         },
+        VaryStorageSlots::No,
     );
 }
 
@@ -129,6 +135,7 @@ fn bench_modify_account_exists_with_code_no_change(c: &mut Criterion) {
             );
             debug_assert!(result.is_ok());
         },
+        VaryStorageSlots::No,
     );
 }
 
@@ -149,6 +156,7 @@ fn bench_modify_account_exists_with_code_changed_to_empty(c: &mut Criterion) {
             );
             debug_assert!(result.is_ok());
         },
+        VaryStorageSlots::No,
     );
 }
 
@@ -171,6 +179,7 @@ fn bench_modify_account_exists_with_code_changed(c: &mut Criterion) {
             );
             debug_assert!(result.is_ok());
         },
+        VaryStorageSlots::No,
     );
 }
 
@@ -204,6 +213,7 @@ fn bench_modify_account_exists_without_code_code_changed(c: &mut Criterion) {
             );
             debug_assert!(result.is_ok());
         },
+        VaryStorageSlots::No,
     );
 }
 
@@ -236,6 +246,7 @@ fn bench_modify_account_exists_without_code_no_code_change(c: &mut Criterion) {
             );
             debug_assert!(result.is_ok());
         },
+        VaryStorageSlots::No,
     );
 }
 
@@ -251,6 +262,7 @@ fn bench_remove_account_with_code(c: &mut Criterion) {
             debug_assert!(result.is_ok());
             debug_assert!(result.unwrap().is_some());
         },
+        VaryStorageSlots::No,
     );
 }
 
@@ -277,6 +289,7 @@ fn bench_remove_account_without_code(c: &mut Criterion) {
             debug_assert!(result.is_ok());
             debug_assert!(result.unwrap().is_some());
         },
+        VaryStorageSlots::No,
     );
 }
 
@@ -291,6 +304,7 @@ fn bench_set_account_storage_slot_account_doesnt_exist(c: &mut Criterion) {
             let result = state.set_account_storage_slot(address, U256::from(1), U256::from(1));
             debug_assert!(result.is_ok())
         },
+        VaryStorageSlots::Yes,
     );
 }
 
@@ -305,6 +319,7 @@ fn bench_set_account_storage_slot_account_exists(c: &mut Criterion) {
             let result = state.set_account_storage_slot(address, U256::from(1), U256::from(1));
             debug_assert!(result.is_ok())
         },
+        VaryStorageSlots::Yes,
     );
 }
 
@@ -317,6 +332,7 @@ fn bench_state_root(c: &mut Criterion) {
             let result = state.state_root();
             debug_assert!(result.is_ok());
         },
+        VaryStorageSlots::Yes,
     );
 }
 

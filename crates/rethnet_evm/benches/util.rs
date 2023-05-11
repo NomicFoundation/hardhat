@@ -12,7 +12,12 @@ struct RethnetStates {
 }
 
 impl RethnetStates {
-    fn fill(&mut self, number_of_accounts: u64, number_of_accounts_per_checkpoint: u64) {
+    fn fill(
+        &mut self,
+        number_of_accounts: u64,
+        number_of_accounts_per_checkpoint: u64,
+        number_of_storage_slots_per_account: u64,
+    ) {
         let mut states: [&mut dyn SyncState<StateError>; 2] = [&mut self.layered, &mut self.hybrid];
         for state in states.iter_mut() {
             let number_of_checkpoints = number_of_accounts / number_of_accounts_per_checkpoint;
@@ -31,13 +36,15 @@ impl RethnetStates {
                             ),
                         )
                         .unwrap();
+                    for storage_slot in 0..number_of_storage_slots_per_account {
                     state
                         .set_account_storage_slot(
                             address,
-                            U256::from(account_number),
+                            U256::from(storage_slot),
                             U256::from(account_number),
                         )
                         .unwrap();
+                    }
                 }
                 state.checkpoint().unwrap();
             }
@@ -62,6 +69,7 @@ impl RethnetStates {
 mod config {
     pub const CHECKPOINT_SCALES: [u64; 1] = [1];
     pub const ADDRESS_SCALES: [u64; 1] = [1];
+    pub const STORAGE_SCALES: [u64; 1] = [1];
 }
 
 #[cfg(not(feature = "bench-once"))]
@@ -76,15 +84,23 @@ mod config {
         MAX_CHECKPOINT_SCALE * 50,
         MAX_CHECKPOINT_SCALE * 100,
     ];
+
+    pub const STORAGE_SCALES: [u64; 4] = [1, 10, 100, 1000];
 }
 
 use config::*;
+
+pub enum VaryStorageSlots {
+    Yes,
+    No,
+}
 
 pub fn bench_sync_state_method<O, R, Prep>(
     c: &mut Criterion,
     method_name: &str,
     mut prep: Prep,
     mut method_invocation: R,
+    vary_storage_slots: VaryStorageSlots,
 ) where
     R: FnMut(Box<dyn SyncState<StateError>>, u64) -> O,
     Prep: FnMut(&mut dyn SyncState<StateError>, u64),
@@ -92,15 +108,21 @@ pub fn bench_sync_state_method<O, R, Prep>(
     let mut group = c.benchmark_group(method_name);
     for accounts_per_checkpoint in CHECKPOINT_SCALES.iter() {
         for number_of_accounts in ADDRESS_SCALES.iter() {
+            for storage_slots_per_account in match vary_storage_slots {
+                VaryStorageSlots::Yes => STORAGE_SCALES.to_vec(),
+                VaryStorageSlots::No => [1].to_vec(),
+            }
+            .iter()
+            {
             let mut rethnet_states = RethnetStates::default();
-            rethnet_states.fill(*number_of_accounts, *accounts_per_checkpoint);
+            rethnet_states.fill(*number_of_accounts, *accounts_per_checkpoint, *storage_slots_per_account);
 
             for (label, state_factory) in rethnet_states.make_clone_factories().into_iter() {
                 group.bench_with_input(
                     BenchmarkId::new(
                         format!(
-                            "{},{} account(s) per checkpoint",
-                            label, *accounts_per_checkpoint
+                            "{},{} account(s) per checkpoint, {} storage slots per account",
+                            label, *accounts_per_checkpoint, *storage_slots_per_account
                         ),
                         *number_of_accounts,
                     ),
@@ -118,6 +140,7 @@ pub fn bench_sync_state_method<O, R, Prep>(
                     },
                 );
             }
+        }
         }
     }
 }
