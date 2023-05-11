@@ -37,10 +37,24 @@ jobs:
         run: yarn --frozen-lockfile
       - name: Build
         run: yarn build
+      - name: Restore downloaded compilers cache
+        uses: actions/cache/restore@v3
+        with:
+          path: C:\Users\runneradmin\AppData\Local\hardhat-nodejs\Cache\compilers-v2
+          key: nonexistent-key-to-use-restore-keys
+          restore-keys: |
+            windows-downloaded-compilers-chai-matchers-
       - name: Run tests
         env:
           FORCE_COLOR: 3
         run: yarn test:ci
+      - name: Get today's date
+        run: echo "TODAY=$(date +'%Y%m%d')" >> "$GITHUB_ENV"
+      - name: Save downloaded compilers cache
+        uses: actions/cache/save@v3
+        with:
+          path: C:\Users\runneradmin\AppData\Local\hardhat-nodejs\Cache\compilers-v2
+          key: windows-downloaded-compilers-chai-matchers-${{ env.TODAY }}
 
   test_on_macos:
     name: Test hardhat-chai-matchers on MacOS with Node 14
@@ -57,10 +71,24 @@ jobs:
         run: yarn --frozen-lockfile
       - name: Build
         run: yarn build
+      - name: Restore downloaded compilers cache
+        uses: actions/cache/restore@v3
+        with:
+          path: /Users/runner/Library/Caches/hardhat-nodejs/compilers-v2
+          key: nonexistent-key-to-use-restore-keys
+          restore-keys: |
+            macos-downloaded-compilers-chai-matchers-
       - name: Run tests
         env:
           FORCE_COLOR: 3
         run: yarn test:ci
+      - name: Get today's date
+        run: echo "TODAY=$(date +'%Y%m%d')" >> "$GITHUB_ENV"
+      - name: Save downloaded compilers cache
+        uses: actions/cache/save@v3
+        with:
+          path: /Users/runner/Library/Caches/hardhat-nodejs/compilers-v2
+          key: macos-downloaded-compilers-chai-matchers-${{ env.TODAY }}
 
   test_on_linux:
     name: Test hardhat-chai-matchers on Ubuntu with Node ${{ matrix.node }}
@@ -78,7 +106,21 @@ jobs:
         run: yarn --frozen-lockfile
       - name: Build
         run: yarn build
+      - name: Restore downloaded compilers cache
+        uses: actions/cache/restore@v3
+        with:
+          path: /home/runner/.cache/hardhat-nodejs/compilers-v2
+          key: nonexistent-key-to-use-restore-keys
+          restore-keys: |
+            ubuntu-downloaded-compilers-chai-matchers-
       - name: Run tests
         env:
           FORCE_COLOR: 3
         run: yarn test:ci
+      - name: Get today's date
+        run: echo "TODAY=$(date +'%Y%m%d')" >> "$GITHUB_ENV"
+      - name: Save downloaded compilers cache
+        uses: actions/cache/save@v3
+        with:
+          path: /home/runner/.cache/hardhat-nodejs/compilers-v2
+          key: ubuntu-downloaded-compilers-chai-matchers-${{ env.TODAY }}
