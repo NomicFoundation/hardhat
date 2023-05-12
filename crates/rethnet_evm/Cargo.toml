@@ -27,6 +27,7 @@ tracing = { version = "0.1.37", features = ["attributes", "std"], optional = tru
 criterion = { version = "0.4.0", default-features = false, features = ["cargo_bench_support", "html_reports", "plotters"] }
 
 [features]
+bench-once = [] # limits the benchmark variants to one
 test-disable-remote = []
 tracing = ["dep:tracing"]
 

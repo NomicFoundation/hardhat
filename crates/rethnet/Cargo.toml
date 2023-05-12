@@ -11,4 +11,4 @@ pretty_env_logger = { version = "0.4.0", default-features = false }
 [dev-dependencies.cargo-husky]
 version = "1.5.0"
 default-features = false
-features = ["precommit-hook", "run-cargo-test", "run-cargo-fmt", "run-cargo-clippy", "run-for-all"]
+features = ["user-hooks"]

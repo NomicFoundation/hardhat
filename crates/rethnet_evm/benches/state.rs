@@ -61,15 +61,27 @@ impl RethnetStates {
     }
 }
 
-const NUM_SCALES: usize = 4;
-const CHECKPOINT_SCALES: [u64; NUM_SCALES] = [1, 5, 10, 20];
-const MAX_CHECKPOINT_SCALE: u64 = CHECKPOINT_SCALES[NUM_SCALES - 1];
-const ADDRESS_SCALES: [u64; 4] = [
-    MAX_CHECKPOINT_SCALE * 5,
-    MAX_CHECKPOINT_SCALE * 25,
-    MAX_CHECKPOINT_SCALE * 50,
-    MAX_CHECKPOINT_SCALE * 100,
-];
+#[cfg(feature = "bench-once")]
+mod config {
+    pub const CHECKPOINT_SCALES: [u64; 1] = [1];
+    pub const ADDRESS_SCALES: [u64; 1] = [1];
+}
+
+#[cfg(not(feature = "bench-once"))]
+mod config {
+    const NUM_SCALES: usize = 4;
+    pub const CHECKPOINT_SCALES: [u64; NUM_SCALES] = [1, 5, 10, 20];
+
+    const MAX_CHECKPOINT_SCALE: u64 = CHECKPOINT_SCALES[NUM_SCALES - 1];
+    pub const ADDRESS_SCALES: [u64; NUM_SCALES] = [
+        MAX_CHECKPOINT_SCALE * 5,
+        MAX_CHECKPOINT_SCALE * 25,
+        MAX_CHECKPOINT_SCALE * 50,
+        MAX_CHECKPOINT_SCALE * 100,
+    ];
+}
+
+use config::*;
 
 fn bench_sync_state_method<O, R>(c: &mut Criterion, method_name: &str, mut method_invocation: R)
 where
