@@ -147,7 +147,7 @@ export class IgnitionModuleBuilderImplementation<
     const id = options.id ?? contractName;
     const futureId = `${this._module.id}:${id}`;
 
-    this._assertUniqueContractId(futureId);
+    this._assertUniqueArtifactContractId(futureId);
 
     const future = new ArtifactContractDeploymentFutureImplementation(
       futureId,
@@ -177,7 +177,7 @@ export class IgnitionModuleBuilderImplementation<
     const id = options.id ?? libraryName;
     const futureId = `${this._module.id}:${id}`;
 
-    this._assertUniqueContractId(futureId);
+    this._assertUniqueLibraryId(futureId);
 
     const future = new NamedLibraryDeploymentFutureImplementation(
       futureId,
@@ -202,7 +202,7 @@ export class IgnitionModuleBuilderImplementation<
     const id = options.id ?? libraryName;
     const futureId = `${this._module.id}:${id}`;
 
-    this._assertUniqueContractId(futureId);
+    this._assertUniqueArtifactLibraryId(futureId);
 
     const future = new ArtifactLibraryDeploymentFutureImplementation(
       futureId,
@@ -247,18 +247,52 @@ export class IgnitionModuleBuilderImplementation<
     return submodule.results;
   }
 
-  private _assertUniqueContractId(futureId: string) {
+  private _assertUniqueFutureId(
+    futureId: string,
+    message: string,
+    func: (...[]: any[]) => any
+  ) {
     if (this._futureIds.has(futureId)) {
-      const validationError = new IgnitionValidationError(
-        `Contracts must have unique ids, ${futureId} has already been used, ensure the id passed is unique \`m.contract("MyContract", [], { id: "MyId"})\``
-      );
+      const validationError = new IgnitionValidationError(message);
 
       // Improve the stack trace to stop on module api level
-      Error.captureStackTrace(validationError, this.contract);
+      Error.captureStackTrace(validationError, func);
 
       throw validationError;
     }
 
     this._futureIds.add(futureId);
+  }
+
+  private _assertUniqueContractId(futureId: string) {
+    return this._assertUniqueFutureId(
+      futureId,
+      `Contracts must have unique ids, ${futureId} has already been used, ensure the id passed is unique \`m.contract("MyContract", [], { id: "MyId"})\``,
+      this.contract
+    );
+  }
+
+  private _assertUniqueArtifactContractId(futureId: string) {
+    return this._assertUniqueFutureId(
+      futureId,
+      `Contracts must have unique ids, ${futureId} has already been used, ensure the id passed is unique \`m.contractFromArtifact("MyContract", artifact, [], { id: "MyId"})\``,
+      this.contractFromArtifact
+    );
+  }
+
+  private _assertUniqueLibraryId(futureId: string) {
+    return this._assertUniqueFutureId(
+      futureId,
+      `Libraries must have unique ids, ${futureId} has already been used, ensure the id passed is unique \`m.library("MyLibrary", { id: "MyId"})\``,
+      this.library
+    );
+  }
+
+  private _assertUniqueArtifactLibraryId(futureId: string) {
+    return this._assertUniqueFutureId(
+      futureId,
+      `Libraries must have unique ids, ${futureId} has already been used, ensure the id passed is unique \`m.libraryFromArtifact("MyLibrary", artifact, { id: "MyId"})\``,
+      this.libraryFromArtifact
+    );
   }
 }

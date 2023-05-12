@@ -90,7 +90,7 @@ describe("library", () => {
 
           return { sameContract1, sameContract2 };
         });
-      }, /Contracts must have unique ids, Module1:SameContract has already been used/);
+      }, /Libraries must have unique ids, Module1:SameContract has already been used/);
     });
 
     it("should throw if a library tries to pass the same id twice", () => {
@@ -105,7 +105,7 @@ describe("library", () => {
 
           return { sameContract1, sameContract2 };
         });
-      }, /Contracts must have unique ids, Module1:same has already been used/);
+      }, /Libraries must have unique ids, Module1:same has already been used/);
     });
   });
 });
