@@ -88,19 +88,15 @@ mod config {
     pub const STORAGE_SCALES: [u64; 4] = [1, 10, 100, 1000];
 }
 
+pub use config::STORAGE_SCALES;
 use config::*;
-
-pub enum VaryStorageSlots {
-    Yes,
-    No,
-}
 
 pub fn bench_sync_state_method<O, R, Prep>(
     c: &mut Criterion,
     method_name: &str,
     mut prep: Prep,
     mut method_invocation: R,
-    vary_storage_slots: VaryStorageSlots,
+    storage_scales: &[u64],
 ) where
     R: FnMut(Box<dyn SyncState<StateError>>, u64) -> O,
     Prep: FnMut(&mut dyn SyncState<StateError>, u64),
@@ -108,12 +104,7 @@ pub fn bench_sync_state_method<O, R, Prep>(
     let mut group = c.benchmark_group(method_name);
     for accounts_per_checkpoint in CHECKPOINT_SCALES.iter() {
         for number_of_accounts in ADDRESS_SCALES.iter() {
-            for storage_slots_per_account in match vary_storage_slots {
-                VaryStorageSlots::Yes => STORAGE_SCALES.to_vec(),
-                VaryStorageSlots::No => [1].to_vec(),
-            }
-            .iter()
-            {
+            for storage_slots_per_account in storage_scales.iter() {
                 let mut rethnet_states = RethnetStates::default();
                 rethnet_states.fill(
                     *number_of_accounts,

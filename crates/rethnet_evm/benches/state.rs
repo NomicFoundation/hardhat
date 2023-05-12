@@ -6,7 +6,7 @@ use revm::{db::StateRef, primitives::Bytecode};
 use rethnet_eth::{Address, Bytes, U256};
 
 mod util;
-use util::{bench_sync_state_method, prep_no_op, VaryStorageSlots};
+use util::{bench_sync_state_method, prep_no_op, STORAGE_SCALES};
 
 fn bench_checkpoint(c: &mut Criterion) {
     bench_sync_state_method(
@@ -17,7 +17,7 @@ fn bench_checkpoint(c: &mut Criterion) {
             let result = state.checkpoint();
             debug_assert!(result.is_ok());
         },
-        VaryStorageSlots::No,
+        &[0],
     );
 }
 
@@ -32,7 +32,7 @@ fn bench_basic(c: &mut Criterion) {
                 debug_assert!(result.is_ok());
             }
         },
-        VaryStorageSlots::No,
+        &[0],
     );
 }
 
@@ -52,7 +52,7 @@ fn bench_code_by_hash(c: &mut Criterion) {
                 debug_assert!(result.is_ok());
             }
         },
-        VaryStorageSlots::No,
+        &[0],
     );
 }
 
@@ -67,7 +67,7 @@ fn bench_storage(c: &mut Criterion) {
                 debug_assert!(result.is_ok());
             }
         },
-        VaryStorageSlots::Yes,
+        &STORAGE_SCALES,
     );
 }
 
