@@ -2,7 +2,10 @@
 import { assert } from "chai";
 
 import { buildModule } from "../../src/new-api/build-module";
-import { NamedStaticCallFutureImplementation } from "../../src/new-api/internal/module";
+import {
+  NamedContractCallFutureImplementation,
+  NamedStaticCallFutureImplementation,
+} from "../../src/new-api/internal/module";
 import { FutureType } from "../../src/new-api/types/module";
 
 describe("static call", () => {
@@ -105,6 +108,35 @@ describe("static call", () => {
     assert(callFuture.dependencies.has(anotherFuture!));
   });
 
+  it("should be able to pass its result into another call", () => {
+    const moduleWithASingleContract = buildModule("Module1", (m) => {
+      const contract1 = m.contract("Contract1");
+
+      const data = m.staticCall(contract1, "test");
+
+      m.call(contract1, "test2", [data]);
+
+      return { contract1 };
+    });
+
+    assert.isDefined(moduleWithASingleContract);
+
+    const staticCallFuture = [...moduleWithASingleContract.futures].find(
+      ({ id }) => id === "Module1:Contract1:test"
+    );
+
+    const callFuture = [...moduleWithASingleContract.futures].find(
+      ({ id }) => id === "Module1:Contract1:test2"
+    );
+
+    if (!(callFuture instanceof NamedContractCallFutureImplementation)) {
+      assert.fail("Not a named contract deployment");
+    }
+
+    assert.equal(callFuture.dependencies.size, 2);
+    assert(callFuture.dependencies.has(staticCallFuture!));
+  });
+
   describe("passing id", () => {
     it("should be able to statically call the same function twice by passing an id", () => {
       const moduleWithSameCallTwice = buildModule("Module1", (m) => {
@@ -139,7 +171,7 @@ describe("static call", () => {
 
           return { sameContract1 };
         });
-      }, /Contracts must have unique ids, Module1:SameContract:test has already been used/);
+      }, /Static calls must have unique ids, Module1:SameContract:test has already been used/);
     });
 
     it("should throw if a static call tries to pass the same id twice", () => {
@@ -150,7 +182,7 @@ describe("static call", () => {
           m.staticCall(sameContract1, "test", [], { id: "first" });
           return { sameContract1 };
         });
-      }, /Contracts must have unique ids, Module1:SameContract:first has already been used/);
+      }, /Static calls must have unique ids, Module1:SameContract:first has already been used/);
     });
   });
 });

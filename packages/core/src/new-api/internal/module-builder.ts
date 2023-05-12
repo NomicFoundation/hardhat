@@ -261,7 +261,7 @@ export class IgnitionModuleBuilderImplementation<
     const id = options.id ?? functionName;
     const futureId = `${this._module.id}:${contractFuture.contractName}:${id}`;
 
-    this._assertUniqueContractId(futureId);
+    this._assertUniqueCallId(futureId);
 
     const future = new NamedContractCallFutureImplementation(
       futureId,
@@ -295,7 +295,7 @@ export class IgnitionModuleBuilderImplementation<
     const id = options.id ?? functionName;
     const futureId = `${this._module.id}:${contractFuture.contractName}:${id}`;
 
-    this._assertUniqueContractId(futureId);
+    this._assertUniqueStaticCallId(futureId);
 
     const future = new NamedStaticCallFutureImplementation(
       futureId,
@@ -393,6 +393,22 @@ export class IgnitionModuleBuilderImplementation<
       futureId,
       `Duplicated id ${futureId} found in module ${this._module.id}, ensure the id passed is unique \`m.libraryFromArtifact("MyLibrary", artifact, { id: "MyId"})\``,
       this.libraryFromArtifact
+    );
+  }
+
+  private _assertUniqueCallId(futureId: string) {
+    return this._assertUniqueFutureId(
+      futureId,
+      `Calls must have unique ids, ${futureId} has already been used, ensure the id passed is unique \`m.call(myContract, "myFunction", [], { id: "MyId"})\``,
+      this.call
+    );
+  }
+
+  private _assertUniqueStaticCallId(futureId: string) {
+    return this._assertUniqueFutureId(
+      futureId,
+      `Static calls must have unique ids, ${futureId} has already been used, ensure the id passed is unique \`m.staticCall(myContract, "myFunction", [], { id: "MyId"})\``,
+      this.staticCall
     );
   }
 }

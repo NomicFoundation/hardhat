@@ -139,7 +139,7 @@ describe("call", () => {
 
           return { sameContract1 };
         });
-      }, /Contracts must have unique ids, Module1:SameContract:test has already been used/);
+      }, /Calls must have unique ids, Module1:SameContract:test has already been used/);
     });
 
     it("should throw if a call tries to pass the same id twice", () => {
@@ -150,7 +150,7 @@ describe("call", () => {
           m.call(sameContract1, "test", [], { id: "first" });
           return { sameContract1 };
         });
-      }, /Contracts must have unique ids, Module1:SameContract:first has already been used/);
+      }, /Calls must have unique ids, Module1:SameContract:first has already been used/);
     });
   });
 });
