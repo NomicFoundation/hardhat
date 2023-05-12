@@ -191,7 +191,7 @@ module.exports = {
     "no-cond-assign": "error",
     "no-debugger": "error",
     "no-duplicate-case": "error",
-    "no-duplicate-imports": "error",
+    "@typescript-eslint/no-duplicate-imports": "error",
     "no-eval": "error",
     "no-extra-bind": "error",
     "no-new-func": "error",

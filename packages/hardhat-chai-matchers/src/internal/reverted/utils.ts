@@ -1,4 +1,4 @@
-import type { BigNumber } from "ethers";
+import type EthersT from "ethers";
 
 import { AssertionError } from "chai";
 
@@ -51,7 +51,7 @@ type DecodedReturnData =
     }
   | {
       kind: "Panic";
-      code: BigNumber;
+      code: bigint;
       description: string;
     }
   | {
@@ -61,7 +61,9 @@ type DecodedReturnData =
     };
 
 export function decodeReturnData(returnData: string): DecodedReturnData {
-  const { defaultAbiCoder: abi } = require("@ethersproject/abi");
+  const { AbiCoder } = require("ethers") as typeof EthersT;
+  const abi = new AbiCoder();
+
   if (returnData === "0x") {
     return { kind: "Empty" };
   } else if (returnData.startsWith(ERROR_STRING_PREFIX)) {
@@ -79,7 +81,7 @@ export function decodeReturnData(returnData: string): DecodedReturnData {
     };
   } else if (returnData.startsWith(PANIC_CODE_PREFIX)) {
     const encodedReason = returnData.slice(PANIC_CODE_PREFIX.length);
-    let code: BigNumber;
+    let code: bigint;
     try {
       code = abi.decode(["uint256"], `0x${encodedReason}`)[0];
     } catch (e: any) {
@@ -100,4 +102,26 @@ export function decodeReturnData(returnData: string): DecodedReturnData {
     id: returnData.slice(0, 10),
     data: `0x${returnData.slice(10)}`,
   };
+}
+
+/**
+ * Takes an ethers result object and converts it into a (potentially nested) array.
+ *
+ * For example, given this error:
+ *
+ *   struct Point(uint x, uint y)
+ *   error MyError(string, Point)
+ *
+ *   revert MyError("foo", Point(1, 2))
+ *
+ * The resulting array will be: ["foo", [1n, 2n]]
+ */
+export function resultToArray(result: EthersT.Result): any[] {
+  return result
+    .toArray()
+    .map((x) =>
+      typeof x === "object" && x !== null && "toArray" in x
+        ? resultToArray(x)
+        : x
+    );
 }

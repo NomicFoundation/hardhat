@@ -11,6 +11,7 @@ import {
 } from "../helpers";
 
 import "../../src/internal/add-chai-matchers";
+import { MatchersContract } from "../contracts";
 
 describe("INTEGRATION: Reverted without reason", function () {
   describe("with the in-process hardhat network", function () {
@@ -27,9 +28,12 @@ describe("INTEGRATION: Reverted without reason", function () {
 
   function runTests() {
     // deploy Matchers contract before each test
-    let matchers: any;
+    let matchers: MatchersContract;
     beforeEach("deploy matchers contract", async function () {
-      const Matchers = await this.hre.ethers.getContractFactory("Matchers");
+      const Matchers = await this.hre.ethers.getContractFactory<
+        [],
+        MatchersContract
+      >("Matchers");
       matchers = await Matchers.deploy();
     });
 
@@ -155,12 +159,15 @@ describe("INTEGRATION: Reverted without reason", function () {
           randomPrivateKey,
           this.hre.ethers.provider
         );
+        const matchersFromSenderWithoutFunds = matchers.connect(
+          signer
+        ) as MatchersContract;
 
         // this transaction will fail because of lack of funds, not because of a
         // revert
         await expect(
           expect(
-            matchers.connect(signer).revertsWithoutReason({
+            matchersFromSenderWithoutFunds.revertsWithoutReason({
               gasLimit: 1_000_000,
             })
           ).to.not.be.revertedWithoutReason()
@@ -179,7 +186,11 @@ describe("INTEGRATION: Reverted without reason", function () {
             matchers.revertsWithoutReason()
           ).to.not.be.revertedWithoutReason();
         } catch (e: any) {
-          expect(util.inspect(e)).to.include(
+          const errorString = util.inspect(e);
+          expect(errorString).to.include(
+            "Expected transaction NOT to be reverted without a reason, but it was"
+          );
+          expect(errorString).to.include(
             path.join("test", "reverted", "revertedWithoutReason.ts")
           );
 
