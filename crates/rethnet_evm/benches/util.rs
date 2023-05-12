@@ -17,6 +17,7 @@ impl RethnetStates {
         number_of_accounts: u64,
         number_of_accounts_per_checkpoint: u64,
         number_of_storage_slots_per_account: u64,
+        number_of_snapshots: u64,
     ) {
         let mut states: [&mut dyn SyncState<StateError>; 2] = [&mut self.layered, &mut self.hybrid];
         for state in states.iter_mut() {
@@ -48,6 +49,9 @@ impl RethnetStates {
                 }
                 state.checkpoint().unwrap();
             }
+            for _ in 0..number_of_snapshots {
+                state.make_snapshot();
+            }
         }
     }
 
@@ -71,6 +75,7 @@ mod config {
     pub const CHECKPOINT_SCALES: [u64; 1] = [1];
     pub const ADDRESS_SCALES: [u64; 1] = [1];
     pub const STORAGE_SCALES: [u64; 1] = [1];
+    pub const SNAPSHOT_SCALES: [u64; 1] = [0];
 }
 
 #[cfg(not(feature = "bench-once"))]
@@ -87,10 +92,12 @@ mod config {
     ];
 
     pub const STORAGE_SCALES: [u64; 4] = [1, 10, 100, 1000];
+
+    pub const SNAPSHOT_SCALES: [u64; 4] = [1, 10, 100, 1000];
 }
 
-pub use config::STORAGE_SCALES;
 use config::*;
+pub use config::{SNAPSHOT_SCALES, STORAGE_SCALES};
 
 pub fn bench_sync_state_method<O, R, Prep>(
     c: &mut Criterion,
@@ -98,6 +105,7 @@ pub fn bench_sync_state_method<O, R, Prep>(
     mut prep: Prep,
     mut method_invocation: R,
     storage_scales: &[u64],
+    snapshot_scales: &[u64],
 ) where
     R: FnMut(Box<dyn SyncState<StateError>>, u64) -> O,
     Prep: FnMut(&mut dyn SyncState<StateError>, u64),
@@ -106,35 +114,39 @@ pub fn bench_sync_state_method<O, R, Prep>(
     for accounts_per_checkpoint in CHECKPOINT_SCALES.iter() {
         for number_of_accounts in ADDRESS_SCALES.iter() {
             for storage_slots_per_account in storage_scales.iter() {
-                let mut rethnet_states = RethnetStates::default();
-                rethnet_states.fill(
-                    *number_of_accounts,
-                    *accounts_per_checkpoint,
-                    *storage_slots_per_account,
-                );
-
-                for (label, state_factory) in rethnet_states.make_clone_factories().into_iter() {
-                    group.bench_with_input(
-                        BenchmarkId::new(
-                            format!(
-                                "{},{} account(s) per checkpoint, {} storage slots per account",
-                                label, *accounts_per_checkpoint, *storage_slots_per_account
-                            ),
-                            *number_of_accounts,
-                        ),
-                        number_of_accounts,
-                        |b, number_of_accounts| {
-                            b.iter_batched(
-                                || {
-                                    let mut state = state_factory();
-                                    prep(&mut state, *number_of_accounts);
-                                    state
-                                },
-                                |state| method_invocation(state, *number_of_accounts),
-                                BatchSize::SmallInput,
-                            );
-                        },
+                for number_of_snapshots in snapshot_scales.iter() {
+                    let mut rethnet_states = RethnetStates::default();
+                    rethnet_states.fill(
+                        *number_of_accounts,
+                        *accounts_per_checkpoint,
+                        *storage_slots_per_account,
+                        *number_of_snapshots,
                     );
+
+                    for (label, state_factory) in rethnet_states.make_clone_factories().into_iter()
+                    {
+                        group.bench_with_input(
+                            BenchmarkId::new(
+                                format!(
+                                    "{},{} account(s) per checkpoint, {} storage slots per account",
+                                    label, *accounts_per_checkpoint, *storage_slots_per_account
+                                ),
+                                *number_of_accounts,
+                            ),
+                            number_of_accounts,
+                            |b, number_of_accounts| {
+                                b.iter_batched(
+                                    || {
+                                        let mut state = state_factory();
+                                        prep(&mut state, *number_of_accounts);
+                                        state
+                                    },
+                                    |state| method_invocation(state, *number_of_accounts),
+                                    BatchSize::SmallInput,
+                                );
+                            },
+                        );
+                    }
                 }
             }
         }

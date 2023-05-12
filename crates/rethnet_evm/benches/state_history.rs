@@ -13,6 +13,7 @@ fn bench_checkpoint(c: &mut Criterion) {
             debug_assert!(result.is_ok());
         },
         &[0],
+        &[0],
     );
 }
 

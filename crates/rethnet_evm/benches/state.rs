@@ -20,6 +20,7 @@ fn bench_basic(c: &mut Criterion) {
             }
         },
         &[0],
+        &[0],
     );
 }
 
@@ -40,6 +41,7 @@ fn bench_code_by_hash(c: &mut Criterion) {
             }
         },
         &[0],
+        &[0],
     );
 }
 
@@ -55,6 +57,7 @@ fn bench_storage(c: &mut Criterion) {
             }
         },
         &STORAGE_SCALES,
+        &[0],
     );
 }
 

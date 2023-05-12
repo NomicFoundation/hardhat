@@ -23,6 +23,7 @@ fn bench_account_storage_root_account_doesnt_exist(c: &mut Criterion) {
             debug_assert!(result.unwrap().is_none());
         },
         &STORAGE_SCALES,
+        &[0],
     );
 }
 
@@ -39,6 +40,7 @@ fn bench_account_storage_root_account_exists(c: &mut Criterion) {
             debug_assert!(result.unwrap().is_some());
         },
         &STORAGE_SCALES,
+        &[0],
     );
 }
 
@@ -54,6 +56,7 @@ fn bench_insert_account_already_exists(c: &mut Criterion) {
             debug_assert!(result.is_ok())
         },
         &[0],
+        &[0],
     );
 }
 
@@ -68,6 +71,7 @@ fn bench_insert_account_doesnt_exist_without_code(c: &mut Criterion) {
             let result = state.insert_account(address, AccountInfo::default());
             debug_assert!(result.is_ok());
         },
+        &[0],
         &[0],
     );
 }
@@ -92,6 +96,7 @@ fn bench_insert_account_doesnt_exist_with_code(c: &mut Criterion) {
             debug_assert!(result.is_ok());
         },
         &[0],
+        &[0],
     );
 }
 
@@ -113,6 +118,7 @@ fn bench_modify_account_doesnt_exist(c: &mut Criterion) {
             );
             debug_assert!(result.is_ok());
         },
+        &[0],
         &[0],
     );
 }
@@ -136,6 +142,7 @@ fn bench_modify_account_exists_with_code_no_change(c: &mut Criterion) {
             debug_assert!(result.is_ok());
         },
         &[0],
+        &[0],
     );
 }
 
@@ -156,6 +163,7 @@ fn bench_modify_account_exists_with_code_changed_to_empty(c: &mut Criterion) {
             );
             debug_assert!(result.is_ok());
         },
+        &[0],
         &[0],
     );
 }
@@ -179,6 +187,7 @@ fn bench_modify_account_exists_with_code_changed(c: &mut Criterion) {
             );
             debug_assert!(result.is_ok());
         },
+        &[0],
         &[0],
     );
 }
@@ -214,6 +223,7 @@ fn bench_modify_account_exists_without_code_code_changed(c: &mut Criterion) {
             debug_assert!(result.is_ok());
         },
         &[0],
+        &[0],
     );
 }
 
@@ -247,6 +257,7 @@ fn bench_modify_account_exists_without_code_no_code_change(c: &mut Criterion) {
             debug_assert!(result.is_ok());
         },
         &[0],
+        &[0],
     );
 }
 
@@ -262,6 +273,7 @@ fn bench_remove_account_with_code(c: &mut Criterion) {
             debug_assert!(result.is_ok());
             debug_assert!(result.unwrap().is_some());
         },
+        &[0],
         &[0],
     );
 }
@@ -290,6 +302,7 @@ fn bench_remove_account_without_code(c: &mut Criterion) {
             debug_assert!(result.unwrap().is_some());
         },
         &[0],
+        &[0],
     );
 }
 
@@ -305,6 +318,7 @@ fn bench_set_account_storage_slot_account_doesnt_exist(c: &mut Criterion) {
             debug_assert!(result.is_ok())
         },
         &STORAGE_SCALES,
+        &[0],
     );
 }
 
@@ -320,6 +334,7 @@ fn bench_set_account_storage_slot_account_exists(c: &mut Criterion) {
             debug_assert!(result.is_ok())
         },
         &STORAGE_SCALES,
+        &[0],
     );
 }
 
@@ -333,6 +348,7 @@ fn bench_state_root(c: &mut Criterion) {
             debug_assert!(result.is_ok());
         },
         &STORAGE_SCALES,
+        &[0],
     );
 }
 
