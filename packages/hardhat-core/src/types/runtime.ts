@@ -221,4 +221,6 @@ export type EnvironmentExtender = (env: HardhatRuntimeEnvironment) => void;
  * A function that receives a provider, crafts a returns a new one.
  * Adding and modifing the current provider is preferred from ignoring it and returning a new instance.
  */
-export type ProviderExtender = (provider: EIP1193Provider) => EIP1193Provider;
+export type ProviderExtender = (
+  provider: EIP1193Provider
+) => Promise<EIP1193Provider>;

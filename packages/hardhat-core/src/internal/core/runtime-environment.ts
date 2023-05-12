@@ -20,13 +20,13 @@ import {
 } from "../../types";
 import { Artifacts } from "../artifacts";
 import { MessageTrace } from "../hardhat-network/stack-traces/message-trace";
-import { lazyObject } from "../util/lazy";
 
 import { getHardhatVersion } from "../util/packageInfo";
 import { analyzeModuleNotFoundError } from "./config/config-loading";
 import { HardhatError } from "./errors";
 import { ERRORS } from "./errors-list";
 import { createProvider } from "./providers/construction";
+import { LazyInitializationProvider } from "./providers/lazy-initialization";
 import { OverriddenTaskDefinition } from "./tasks/task-definitions";
 import {
   completeTaskProfile,
@@ -94,7 +94,7 @@ export class Environment implements HardhatRuntimeEnvironment {
 
     this.artifacts = new Artifacts(config.paths.artifacts);
 
-    const provider = lazyObject(() => {
+    const provider = new LazyInitializationProvider(async () => {
       log(`Creating provider for network ${networkName}`);
       return createProvider(
         networkName,
@@ -108,6 +108,21 @@ export class Environment implements HardhatRuntimeEnvironment {
         providerExtenders
       );
     });
+
+    // const provider2 = lazyObject(async () => {
+    //   log(`Creating provider for network ${networkName}`);
+    //   return createProvider(
+    //     networkName,
+    //     networkConfig,
+    //     this.config.paths,
+    //     this.artifacts,
+    //     experimentalHardhatNetworkMessageTraceHooks.map(
+    //       (hook) => (trace: MessageTrace, isCallMessageTrace: boolean) =>
+    //         hook(this, trace, isCallMessageTrace)
+    //     ),
+    //     providerExtenders
+    //   );
+    // });
 
     this.network = {
       name: networkName,

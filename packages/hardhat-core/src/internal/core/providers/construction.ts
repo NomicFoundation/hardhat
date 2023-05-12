@@ -47,14 +47,14 @@ function importProvider<ModuleT, ProviderNameT extends keyof ModuleT>(
   return mod[name];
 }
 
-export function createProvider(
+export async function createProvider(
   networkName: string,
   networkConfig: NetworkConfig,
   paths?: ProjectPathsConfig,
   artifacts?: Artifacts,
   experimentalHardhatNetworkMessageTraceHooks: BoundExperimentalHardhatNetworkMessageTraceHook[] = [],
   extenders: ProviderExtender[] = []
-): EthereumProvider {
+): Promise<EthereumProvider> {
   let eip1193Provider: EIP1193Provider;
 
   if (networkName === HARDHAT_NETWORK_NAME) {
@@ -137,7 +137,7 @@ export function createProvider(
   let wrappedProvider = applyProviderWrappers(eip1193Provider, networkConfig);
 
   for (const extender of extenders) {
-    wrappedProvider = extender(wrappedProvider);
+    wrappedProvider = await extender(wrappedProvider);
   }
 
   const BackwardsCompatibilityProviderAdapter = importProvider<
