@@ -1771,6 +1771,11 @@ describe("Eth module - hardfork dependant tests", function () {
           });
 
           it("should allow initcodes larger than the EIP-3860 limit", async function () {
+            if (process.env.HARDHAT_EXPERIMENTAL_VM_MODE !== "ethereumjs") {
+              // disabled until we can disable the initcode check in revm
+              this.skip();
+            }
+
             const code = "ff".repeat(maxInitcodeSize + 100);
 
             const tx = getTxToDeployBytecode(code, maxCodeSize);
@@ -1791,6 +1796,11 @@ describe("Eth module - hardfork dependant tests", function () {
           });
 
           it("should allow initcodes larger than the EIP-3860 limit from impersonated accounts", async function () {
+            if (process.env.HARDHAT_EXPERIMENTAL_VM_MODE !== "ethereumjs") {
+              // disabled until we can disable the initcode check in revm
+              this.skip();
+            }
+
             const code = "ff".repeat(maxInitcodeSize + 100);
 
             const impersonatedAddress =
@@ -1830,6 +1840,11 @@ describe("Eth module - hardfork dependant tests", function () {
           });
 
           it("should allow initcodes larger than the EIP-3860 limit in raw transactions", async function () {
+            if (process.env.HARDHAT_EXPERIMENTAL_VM_MODE !== "ethereumjs") {
+              // disabled until we can disable the initcode check in revm
+              this.skip();
+            }
+
             const code = "ff".repeat(maxInitcodeSize + 100);
 
             const txData = getTxToDeployBytecode(code, maxCodeSize);
