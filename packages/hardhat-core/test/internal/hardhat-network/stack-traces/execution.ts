@@ -44,7 +44,7 @@ export async function instantiateVm(): Promise<[VMAdapter, Common]> {
       blockGasLimit: 1_000_000,
       chainId: 1,
       genesisAccounts: [],
-      hardfork: "london",
+      hardfork: "shanghai",
       minGasPrice: 0n,
       networkId: 1,
       mempoolOrder: "priority",
@@ -52,7 +52,7 @@ export async function instantiateVm(): Promise<[VMAdapter, Common]> {
       chains: defaultHardhatNetworkParams.chains,
       allowBlocksWithSameTimestamp: false,
     },
-    () => "london"
+    () => "shanghai"
   );
 
   await vm.putAccount(new Address(senderAddress), account);
