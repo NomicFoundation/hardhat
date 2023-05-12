@@ -8,19 +8,6 @@ use rethnet_eth::{Address, Bytes, U256};
 mod util;
 use util::{bench_sync_state_method, prep_no_op, STORAGE_SCALES};
 
-fn bench_checkpoint(c: &mut Criterion) {
-    bench_sync_state_method(
-        c,
-        "StateHistory::checkpoint()",
-        prep_no_op,
-        |mut state, _number_of_accounts| {
-            let result = state.checkpoint();
-            debug_assert!(result.is_ok());
-        },
-        &[0],
-    );
-}
-
 fn bench_basic(c: &mut Criterion) {
     bench_sync_state_method(
         c,
@@ -71,11 +58,5 @@ fn bench_storage(c: &mut Criterion) {
     );
 }
 
-criterion_group!(
-    benches,
-    bench_checkpoint,
-    bench_basic,
-    bench_code_by_hash,
-    bench_storage,
-);
+criterion_group!(benches, bench_basic, bench_code_by_hash, bench_storage);
 criterion_main!(benches);

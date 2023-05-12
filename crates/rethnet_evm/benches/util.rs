@@ -66,6 +66,7 @@ impl RethnetStates {
 }
 
 #[cfg(feature = "bench-once")]
+#[allow(dead_code)]
 mod config {
     pub const CHECKPOINT_SCALES: [u64; 1] = [1];
     pub const ADDRESS_SCALES: [u64; 1] = [1];
