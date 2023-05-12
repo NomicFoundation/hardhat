@@ -47,6 +47,11 @@ where
         }
     }
 
+    /// Retrieves the runtime's config.
+    pub fn config(&self) -> &CfgEnv {
+        &self.cfg
+    }
+
     /// Runs a transaction without committing the state.
     #[cfg_attr(feature = "tracing", tracing::instrument)]
     pub async fn dry_run(

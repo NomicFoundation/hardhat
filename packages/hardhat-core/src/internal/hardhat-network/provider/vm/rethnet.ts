@@ -8,7 +8,6 @@ import {
 import { Capability, TypedTransaction } from "@nomicfoundation/ethereumjs-tx";
 import {
   Account as RethnetAccount,
-  BlockBuilder,
   Blockchain,
   Bytecode,
   Rethnet,
@@ -17,8 +16,8 @@ import {
 
 import { isForkedNodeConfig, NodeConfig } from "../node-types";
 import {
-  ethereumjsHeaderDataToRethnet,
-  ethereumjsTransactionToRethnet,
+  ethereumjsHeaderDataToRethnetBlockConfig,
+  ethereumjsTransactionToRethnetTransactionRequest,
   ethereumsjsHardforkToRethnet,
   rethnetResultToRunTxResult,
 } from "../utils/convertToRethnet";
@@ -31,6 +30,8 @@ import { MessageTrace } from "../../stack-traces/message-trace";
 import { VMTracer } from "../../stack-traces/vm-tracer";
 
 import { RunTxResult, Trace, VMAdapter } from "./vm-adapter";
+import { BlockBuilderAdapter, BuildBlockOpts } from "./block-builder";
+import { RethnetBlockBuilder } from "./block-builder/rethnet";
 
 /* eslint-disable @nomiclabs/hardhat-internal-rules/only-hardhat-error */
 /* eslint-disable @typescript-eslint/no-unused-vars */
@@ -110,7 +111,7 @@ export class RethnetAdapter implements VMAdapter {
       throw new Error("Cannot run transaction: EIP 1559 is not activated.");
     }
 
-    const rethnetTx = ethereumjsTransactionToRethnet(tx);
+    const rethnetTx = ethereumjsTransactionToRethnetTransactionRequest(tx);
 
     const difficulty = this._getBlockEnvDifficulty(
       blockContext.header.difficulty
@@ -125,13 +126,13 @@ export class RethnetAdapter implements VMAdapter {
       rethnetTx,
       {
         number: blockContext.header.number,
-        coinbase: blockContext.header.coinbase.buf,
+        beneficiary: blockContext.header.coinbase.buf,
         timestamp: blockContext.header.timestamp,
-        basefee:
+        baseFee:
           forceBaseFeeZero === true ? 0n : blockContext.header.baseFeePerGas,
         gasLimit: blockContext.header.gasLimit,
         difficulty,
-        prevrandao: prevRandao,
+        mixHash: prevRandao,
       },
       true
     );
@@ -301,14 +302,7 @@ export class RethnetAdapter implements VMAdapter {
   }
 
   /**
-   * Start a new block and accept transactions sent with `runTxInBlock`.
-   */
-  public async startBlock(): Promise<void> {
-    await this._state.checkpoint();
-  }
-
-  /**
-   * Must be called after `startBlock`, and before `addBlockRewards`.
+   * Must be called after `startBlock`, and before `seal`.
    */
   public async runTxInBlock(
     tx: TypedTransaction,
@@ -324,7 +318,7 @@ export class RethnetAdapter implements VMAdapter {
       throw new Error("Cannot run transaction: EIP 1559 is not activated.");
     }
 
-    const rethnetTx = ethereumjsTransactionToRethnet(tx);
+    const rethnetTx = ethereumjsTransactionToRethnetTransactionRequest(tx);
 
     const difficulty = this._getBlockEnvDifficulty(block.header.difficulty);
 
@@ -335,7 +329,11 @@ export class RethnetAdapter implements VMAdapter {
 
     const rethnetResult = await this._rethnet.run(
       rethnetTx,
-      ethereumjsHeaderDataToRethnet(block.header, difficulty, prevRandao),
+      ethereumjsHeaderDataToRethnetBlockConfig(
+        block.header,
+        difficulty,
+        prevRandao
+      ),
       true
     );
 
@@ -361,57 +359,6 @@ export class RethnetAdapter implements VMAdapter {
       // console.log(rethnetResult.trace);
       throw e;
     }
-  }
-
-  /**
-   * Must be called after `startBlock` and all `runTxInBlock` calls.
-   */
-  public async addBlockRewards(
-    rewards: Array<[Address, bigint]>
-  ): Promise<void> {
-    const blockBuilder = BlockBuilder.new(
-      this._blockchain,
-      this._state.asInner(),
-      {},
-      {
-        // Dummy values
-        parentHash: Buffer.alloc(32, 0),
-        ommersHash: Buffer.alloc(32, 0),
-        beneficiary: Buffer.alloc(20, 0),
-        stateRoot: Buffer.alloc(32, 0),
-        transactionsRoot: Buffer.alloc(32, 0),
-        receiptsRoot: Buffer.alloc(32, 0),
-        logsBloom: Buffer.alloc(256, 0),
-        difficulty: 0n,
-        number: 0n,
-        gasLimit: 0n,
-        gasUsed: 0n,
-        timestamp: 0n,
-        extraData: Buffer.allocUnsafe(0),
-        mixHash: Buffer.alloc(32, 0),
-        nonce: 0n,
-      },
-      {}
-    );
-
-    await blockBuilder.finalize(
-      rewards.map(([address, reward]) => {
-        return [address.buf, reward];
-      })
-    );
-  }
-
-  /**
-   * Finish the block successfully. Must be called after `addBlockRewards`.
-   */
-  public async sealBlock(): Promise<void> {}
-
-  /**
-   * Revert the block and discard the changes to the state. Can be called
-   * at any point after `startBlock`.
-   */
-  public async revertBlock(): Promise<void> {
-    await this._state.revert();
   }
 
   /**
@@ -450,6 +397,22 @@ export class RethnetAdapter implements VMAdapter {
 
   public async printState() {
     console.log(await this._state.serialize());
+  }
+
+  public async createBlockBuilder(
+    common: Common,
+    opts: BuildBlockOpts
+  ): Promise<BlockBuilderAdapter> {
+    await this._state.checkpoint();
+
+    return RethnetBlockBuilder.create(
+      this._blockchain,
+      this._state,
+      this._vmTracer,
+      this._rethnet.config(),
+      common,
+      opts
+    );
   }
 
   private _getBlockEnvDifficulty(

@@ -1,4 +1,5 @@
 import type { Block } from "@nomicfoundation/ethereumjs-block";
+import type { Common } from "@nomicfoundation/ethereumjs-common";
 import type { TypedTransaction } from "@nomicfoundation/ethereumjs-tx";
 import type { Account, Address } from "@nomicfoundation/ethereumjs-util";
 import type { TxReceipt } from "@nomicfoundation/ethereumjs-vm";
@@ -9,6 +10,7 @@ import { MessageTrace } from "../../stack-traces/message-trace";
 import { Bloom } from "../utils/bloom";
 
 import { Exit } from "./exit";
+import { BlockBuilderAdapter, BuildBlockOpts } from "./block-builder";
 
 export type Trace = any;
 
@@ -60,14 +62,10 @@ export interface VMAdapter {
   restoreContext(stateRoot: Buffer): Promise<void>;
 
   // methods for block-building
-  startBlock(): Promise<void>;
   runTxInBlock(
     tx: TypedTransaction,
     block: Block
   ): Promise<[RunTxResult, Trace]>;
-  addBlockRewards(rewards: Array<[Address, bigint]>): Promise<void>;
-  sealBlock(): Promise<void>;
-  revertBlock(): Promise<void>;
 
   // methods for tracing
   getLastTrace(): {
@@ -87,4 +85,9 @@ export interface VMAdapter {
 
   // for debugging purposes
   printState(): Promise<void>;
+
+  createBlockBuilder(
+    common: Common,
+    opts: BuildBlockOpts
+  ): Promise<BlockBuilderAdapter>;
 }

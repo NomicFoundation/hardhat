@@ -5,122 +5,11 @@
 
 #![allow(missing_docs)]
 
-use rlp::{Decodable, DecoderError, Encodable, Rlp, RlpStream};
-use ruint::aliases::U160;
+mod eip658;
 
-use crate::{utils::enveloped, Address, Bloom, Bytes, B256, U256};
+use crate::{utils::enveloped, Bloom, U256};
 
-#[derive(Clone, Debug, PartialEq, Eq)]
-#[cfg_attr(
-    feature = "fastrlp",
-    derive(open_fastrlp::RlpEncodable, open_fastrlp::RlpDecodable)
-)]
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-pub struct Log {
-    pub address: Address,
-    pub topics: Vec<B256>,
-    pub data: Bytes,
-}
-
-impl From<revm_primitives::Log> for Log {
-    fn from(log: revm_primitives::Log) -> Self {
-        let revm_primitives::Log {
-            address,
-            topics,
-            data,
-        } = log;
-        Log {
-            address,
-            topics,
-            data,
-        }
-    }
-}
-
-impl From<Log> for revm_primitives::Log {
-    fn from(log: Log) -> Self {
-        let Log {
-            address,
-            topics,
-            data,
-        } = log;
-        revm_primitives::Log {
-            address,
-            topics,
-            data,
-        }
-    }
-}
-
-impl Encodable for Log {
-    fn rlp_append(&self, stream: &mut rlp::RlpStream) {
-        let topics = self
-            .topics
-            .iter()
-            .map(|topic| ruint::aliases::B256::from_be_bytes(topic.0))
-            .collect::<Vec<ruint::aliases::B256>>();
-
-        stream.begin_list(3);
-        stream.append(&ruint::aliases::B160::from_be_bytes(self.address.0));
-        stream.append_list(&topics);
-        stream.append(&self.data.as_ref());
-    }
-}
-
-impl Decodable for Log {
-    fn decode(rlp: &Rlp) -> Result<Self, DecoderError> {
-        let result = Log {
-            address: {
-                let address = rlp.val_at::<U160>(0)?.to_be_bytes();
-                Address::from(address)
-            },
-            topics: {
-                let topics = rlp.list_at::<U256>(1)?;
-                topics
-                    .into_iter()
-                    .map(|topic| B256::from(topic.to_be_bytes()))
-                    .collect()
-            },
-            data: rlp.val_at::<Vec<u8>>(2)?.into(),
-        };
-        Ok(result)
-    }
-}
-
-#[derive(Clone, Debug, PartialEq, Eq)]
-#[cfg_attr(
-    feature = "fastrlp",
-    derive(open_fastrlp::RlpEncodable, open_fastrlp::RlpDecodable)
-)]
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-pub struct EIP658Receipt {
-    pub status_code: u8,
-    pub gas_used: U256,
-    pub logs_bloom: Bloom,
-    pub logs: Vec<Log>,
-}
-
-impl Encodable for EIP658Receipt {
-    fn rlp_append(&self, stream: &mut RlpStream) {
-        stream.begin_list(4);
-        stream.append(&self.status_code);
-        stream.append(&self.gas_used);
-        stream.append(&self.logs_bloom);
-        stream.append_list(&self.logs);
-    }
-}
-
-impl Decodable for EIP658Receipt {
-    fn decode(rlp: &Rlp) -> Result<Self, DecoderError> {
-        let result = EIP658Receipt {
-            status_code: rlp.val_at(0)?,
-            gas_used: rlp.val_at(1)?,
-            logs_bloom: rlp.val_at(2)?,
-            logs: rlp.list_at(3)?,
-        };
-        Ok(result)
-    }
-}
+pub use self::eip658::EIP658Receipt;
 
 // same underlying data structure
 pub type EIP2930Receipt = EIP658Receipt;
@@ -157,8 +46,8 @@ impl TypedReceipt {
     }
 }
 
-impl Encodable for TypedReceipt {
-    fn rlp_append(&self, s: &mut RlpStream) {
+impl rlp::Encodable for TypedReceipt {
+    fn rlp_append(&self, s: &mut rlp::RlpStream) {
         match self {
             TypedReceipt::Legacy(r) => r.rlp_append(s),
             TypedReceipt::EIP2930(r) => enveloped(1, r, s),
@@ -167,19 +56,21 @@ impl Encodable for TypedReceipt {
     }
 }
 
-impl Decodable for TypedReceipt {
-    fn decode(rlp: &Rlp) -> Result<Self, DecoderError> {
+impl rlp::Decodable for TypedReceipt {
+    fn decode(rlp: &rlp::Rlp) -> Result<Self, rlp::DecoderError> {
         let slice = rlp.data()?;
 
-        let first = *slice.first().ok_or(DecoderError::Custom("empty receipt"))?;
+        let first = *slice
+            .first()
+            .ok_or(rlp::DecoderError::Custom("empty receipt"))?;
 
         if rlp.is_list() {
-            return Ok(TypedReceipt::Legacy(Decodable::decode(rlp)?));
+            return Ok(TypedReceipt::Legacy(rlp::Decodable::decode(rlp)?));
         }
 
         let s = slice
             .get(1..)
-            .ok_or(DecoderError::Custom("no receipt content"))?;
+            .ok_or(rlp::DecoderError::Custom("no receipt content"))?;
 
         if first == 0x01 {
             return rlp::decode(s).map(TypedReceipt::EIP2930);
@@ -189,7 +80,7 @@ impl Decodable for TypedReceipt {
             return rlp::decode(s).map(TypedReceipt::EIP1559);
         }
 
-        Err(DecoderError::Custom("unknown receipt type"))
+        Err(rlp::DecoderError::Custom("unknown receipt type"))
     }
 }
 

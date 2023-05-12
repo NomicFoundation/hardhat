@@ -5,7 +5,7 @@
 
 use revm_primitives::keccak256;
 use rlp::{Decodable, DecoderError, Encodable, Rlp, RlpStream};
-use ruint::aliases::U160;
+use ruint::aliases::{U160, U64};
 
 use crate::{transaction::SignedTransaction, trie, Address, Bloom, Bytes, B256, B64, U256};
 
@@ -91,7 +91,7 @@ pub struct Header {
     /// The amount of gas used by the block
     pub gas_used: U256,
     /// The block's timestamp
-    pub timestamp: u64,
+    pub timestamp: U256,
     /// The block's extra data
     pub extra_data: Bytes,
     /// The block's mix hash
@@ -195,9 +195,9 @@ impl rlp::Encodable for Header {
         s.append(&self.gas_limit);
         s.append(&self.gas_used);
         s.append(&self.timestamp);
-        s.append(&self.extra_data.as_ref());
+        s.append(&self.extra_data);
         s.append(&ruint::aliases::B256::from_be_bytes(self.mix_hash.0));
-        s.append(&self.nonce);
+        s.append(&self.nonce.to_le_bytes::<8>().as_ref());
         if let Some(ref base_fee) = self.base_fee_per_gas {
             s.append(base_fee);
         }
@@ -221,7 +221,7 @@ impl rlp::Decodable for Header {
             timestamp: rlp.val_at(11)?,
             extra_data: rlp.val_at::<Vec<u8>>(12)?.into(),
             mix_hash: B256::from(rlp.val_at::<U256>(13)?.to_be_bytes()),
-            nonce: rlp.val_at(14)?,
+            nonce: B64::from_le_bytes(rlp.val_at::<U64>(14)?.to_be_bytes::<8>()),
             base_fee_per_gas: if let Ok(base_fee) = rlp.at(15) {
                 Some(<U256 as Decodable>::decode(&base_fee)?)
             } else {
@@ -325,7 +325,7 @@ pub struct PartialHeader {
     /// The amount of gas used by the block
     pub gas_used: U256,
     /// The block's timestamp
-    pub timestamp: u64,
+    pub timestamp: U256,
     /// The block's extra data
     pub extra_data: Bytes,
     /// The block's mix hash
@@ -379,7 +379,7 @@ mod tests {
             number: U256::from(124),
             gas_limit: Default::default(),
             gas_used: U256::from(1337),
-            timestamp: 0,
+            timestamp: U256::ZERO,
             extra_data: Default::default(),
             mix_hash: Default::default(),
             nonce: B64::from(uint!(99_U64)),
@@ -500,7 +500,7 @@ mod tests {
             number: U256::from(0x01u64),
             gas_limit: U256::from_str("0x016345785d8a0000").unwrap(),
             gas_used: U256::from(0x015534u64),
-            timestamp: 0x079eu64,
+            timestamp: U256::from(0x079eu64),
             extra_data: hex::decode("42").unwrap().into(),
             mix_hash: B256::from_str(
                 "0000000000000000000000000000000000000000000000000000000000000000",

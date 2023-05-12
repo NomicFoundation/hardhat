@@ -42,6 +42,8 @@ import { makeAccount } from "../utils/makeAccount";
 import { makeStateTrie } from "../utils/makeStateTrie";
 import { Exit } from "./exit";
 import { RunTxResult, Trace, VMAdapter } from "./vm-adapter";
+import { BlockBuilderAdapter, BuildBlockOpts } from "./block-builder";
+import { HardhatBlockBuilder } from "./block-builder/hardhat";
 
 /* eslint-disable @nomiclabs/hardhat-internal-rules/only-hardhat-error */
 
@@ -106,8 +108,6 @@ type StateManagerWithAddresses = StateManager & {
 };
 
 export class EthereumJSAdapter implements VMAdapter {
-  private _blockStartStateRoot: Buffer | undefined;
-
   private _vmTracer: VMTracer;
 
   constructor(
@@ -444,14 +444,6 @@ export class EthereumJSAdapter implements VMAdapter {
     );
   }
 
-  public async startBlock(): Promise<void> {
-    if (this._blockStartStateRoot !== undefined) {
-      throw new Error("a block is already started");
-    }
-
-    this._blockStartStateRoot = await this.getStateRoot();
-  }
-
   public async runTxInBlock(
     tx: TypedTransaction,
     block: Block
@@ -485,33 +477,6 @@ export class EthereumJSAdapter implements VMAdapter {
     };
 
     return [result, trace];
-  }
-
-  public async addBlockRewards(
-    rewards: Array<[Address, bigint]>
-  ): Promise<void> {
-    for (const [address, reward] of rewards) {
-      const account = await this._stateManager.getAccount(address);
-      account.balance += reward;
-      await this._stateManager.putAccount(address, account);
-    }
-  }
-
-  public async sealBlock(): Promise<void> {
-    if (this._blockStartStateRoot === undefined) {
-      throw new Error("Cannot seal a block that wasn't started");
-    }
-
-    this._blockStartStateRoot = undefined;
-  }
-
-  public async revertBlock(): Promise<void> {
-    if (this._blockStartStateRoot === undefined) {
-      throw new Error("Cannot revert a block that wasn't started");
-    }
-
-    await this._stateManager.setStateRoot(this._blockStartStateRoot);
-    this._blockStartStateRoot = undefined;
   }
 
   public async makeSnapshot(): Promise<Buffer> {
@@ -610,6 +575,13 @@ export class EthereumJSAdapter implements VMAdapter {
         : value;
 
     console.log(JSON.stringify(storage, replacer, 2));
+  }
+
+  public async createBlockBuilder(
+    common: Common,
+    opts: BuildBlockOpts
+  ): Promise<BlockBuilderAdapter> {
+    return HardhatBlockBuilder.create(this, common, opts);
   }
 
   private _getCommonForTracing(networkId: number, blockNumber: bigint): Common {

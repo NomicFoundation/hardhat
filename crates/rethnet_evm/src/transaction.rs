@@ -1,7 +1,7 @@
 use std::fmt::Debug;
 
 use rethnet_eth::{
-    receipt::Log,
+    log::Log,
     signature::SignatureError,
     transaction::{
         EIP1559SignedTransaction, EIP2930SignedTransaction, LegacySignedTransaction,
@@ -63,6 +63,7 @@ pub struct TransactionInfo {
 }
 
 /// A transaction that's pending inclusion in a block.
+#[derive(Clone)]
 pub struct PendingTransaction {
     /// A signed transaction
     pub transaction: SignedTransaction,
@@ -82,6 +83,11 @@ impl PendingTransaction {
             transaction,
             caller,
         }
+    }
+
+    /// Retursn the inner transaction and caller
+    pub fn into_inner(self) -> (SignedTransaction, Address) {
+        (self.transaction, self.caller)
     }
 }
 

@@ -110,7 +110,6 @@ import { putGenesisBlock } from "./utils/putGenesisBlock";
 import { txMapToArray } from "./utils/txMapToArray";
 import { RandomBufferGenerator } from "./utils/random";
 import { RunBlockResult, RunTxResult, VMAdapter } from "./vm/vm-adapter";
-import { BlockBuilder } from "./vm/block-builder";
 import { ExitCode, Exit } from "./vm/exit";
 import { createVm } from "./vm/creation";
 
@@ -1674,13 +1673,11 @@ Hardhat Network's forking functionality only works with blocks from at least spu
 
     headerData.baseFeePerGas = await this.getNextBlockBaseFeePerGas();
 
-    const blockBuilder = new BlockBuilder(this._vm, this._common, {
+    const blockBuilder = await this._vm.createBlockBuilder(this._common, {
       parentBlock,
       headerData,
     });
-    await blockBuilder.startBlock();
 
-    let sealed = false;
     try {
       const traces: GatherTracesResult[] = [];
 
@@ -1699,12 +1696,12 @@ Hardhat Network's forking functionality only works with blocks from at least spu
       const receipts = [];
 
       while (
-        blockGasLimit - blockBuilder.getGasUsed() >= minTxFee &&
+        blockGasLimit - (await blockBuilder.getGasUsed()) >= minTxFee &&
         tx !== undefined
       ) {
         if (
           !this._isTxMinable(tx, headerData.baseFeePerGas) ||
-          tx.gasLimit > blockGasLimit - blockBuilder.getGasUsed()
+          tx.gasLimit > blockGasLimit - (await blockBuilder.getGasUsed())
         ) {
           transactionQueue.removeLastSenderTransactions();
         } else {
@@ -1719,9 +1716,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
       }
 
       const minerReward = this._common.param("pow", "minerReward");
-      await blockBuilder.addRewards([[coinbase, minerReward]]);
-      const block = await blockBuilder.seal();
-      sealed = true;
+      const block = await blockBuilder.finalize([[coinbase, minerReward]]);
       await this._blockchain.putBlock(block);
 
       await this._txPool.updatePendingAndQueued(
@@ -1741,9 +1736,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
         traces,
       };
     } catch (err) {
-      if (!sealed) {
-        await blockBuilder.revert();
-      }
+      await blockBuilder.revert();
       throw err;
     }
   }

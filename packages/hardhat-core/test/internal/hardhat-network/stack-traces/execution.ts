@@ -13,7 +13,6 @@ import { HardhatBlockchain } from "../../../../src/internal/hardhat-network/prov
 import { VMAdapter } from "../../../../src/internal/hardhat-network/provider/vm/vm-adapter";
 import { MessageTrace } from "../../../../src/internal/hardhat-network/stack-traces/message-trace";
 import { defaultHardhatNetworkParams } from "../../../../src/internal/core/config/default-config";
-import { BlockBuilder } from "../../../../src/internal/hardhat-network/provider/vm/block-builder";
 import { createVm } from "../../../../src/internal/hardhat-network/provider/vm/creation";
 import { makeCommon } from "../../../../src/internal/hardhat-network/provider/utils/makeCommon";
 import { NodeConfig } from "../../../../src/internal/hardhat-network/provider/node-types";
@@ -105,7 +104,7 @@ export async function traceTransaction(
   const signedTx = tx.sign(senderPrivateKey);
 
   try {
-    const blockBuilder = new BlockBuilder(vm, common, {
+    const blockBuilder = await vm.createBlockBuilder(common, {
       parentBlock: Block.fromBlockData(
         {},
         {
@@ -116,10 +115,8 @@ export async function traceTransaction(
         gasLimit: 10_000_000n,
       },
     });
-    await blockBuilder.startBlock();
     await blockBuilder.addTransaction(signedTx);
-    await blockBuilder.addRewards([]);
-    await blockBuilder.seal();
+    await blockBuilder.finalize([]);
 
     const { trace, error } = vm.getLastTrace();
     if (trace === undefined) {

@@ -76,9 +76,50 @@ impl From<SpecId> for rethnet_evm::SpecId {
     }
 }
 
+/// A wrapper type around Rethnet's EVM config type.
+#[napi]
+pub struct Config {
+    inner: CfgEnv,
+}
+
+impl Config {
+    /// Constructs a new [`Config`] instance.
+    pub fn new(cfg: CfgEnv) -> Self {
+        Self { inner: cfg }
+    }
+
+    /// Returns an immutable reference to the inner [`CfgEnv`].
+    pub fn as_inner(&self) -> &CfgEnv {
+        &self.inner
+    }
+}
+
+#[napi]
+impl Config {
+    /// Retrieves the configs contract code size limit
+    #[napi(getter)]
+    pub fn limit_contract_code_size(&self) -> Option<BigInt> {
+        self.inner
+            .limit_contract_code_size
+            .map(|size| BigInt::from(size as u64))
+    }
+
+    /// Returns whether the block gas limit is disabled.
+    #[napi(getter)]
+    pub fn disable_block_gas_limit(&self) -> bool {
+        self.inner.disable_block_gas_limit
+    }
+
+    /// Returns whether EIP-3607 is disabled.
+    #[napi(getter)]
+    pub fn disable_eip3607(&self) -> bool {
+        self.inner.disable_eip3607
+    }
+}
+
 /// If not set, uses defaults from [`CfgEnv`].
 #[napi(object)]
-pub struct Config {
+pub struct ConfigOptions {
     /// The blockchain's ID
     pub chain_id: Option<BigInt>,
     /// Identifier for the Ethereum spec
@@ -91,11 +132,11 @@ pub struct Config {
     pub disable_eip3607: Option<bool>,
 }
 
-impl TryFrom<Config> for CfgEnv {
+impl TryFrom<ConfigOptions> for CfgEnv {
     type Error = napi::Error;
 
     #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
-    fn try_from(value: Config) -> std::result::Result<Self, Self::Error> {
+    fn try_from(value: ConfigOptions) -> std::result::Result<Self, Self::Error> {
         let default = CfgEnv::default();
         let chain_id = value
             .chain_id

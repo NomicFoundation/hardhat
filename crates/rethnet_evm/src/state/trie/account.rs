@@ -330,7 +330,7 @@ impl AccountTrie {
         let state: BTreeMap<Address, StateAccount> = self
             .storage_trie_dbs
             .iter()
-            .map(|(address, (storage_trie_db, storage_root))| {
+            .filter_map(|(address, (storage_trie_db, storage_root))| {
                 let hashed_address = HasherKeccak::new().digest(address.as_bytes());
                 let account = state_trie
                     .get(&hashed_address)
@@ -339,32 +339,35 @@ impl AccountTrie {
 
                 let account: BasicAccount = rlp::decode(&account).unwrap();
 
-                let storage_trie = Trie::from(
-                    storage_trie_db.clone(),
-                    Arc::new(HasherKeccak::new()),
-                    storage_root.as_bytes(),
-                )
-                .expect("Invalid storage root");
+                if account == BasicAccount::default() {
+                    None
+                } else {
+                    let storage_trie = Trie::from(
+                        storage_trie_db.clone(),
+                        Arc::new(HasherKeccak::new()),
+                        storage_root.as_bytes(),
+                    )
+                    .expect("Invalid storage root");
 
-                let storage = storage_trie
-                    .iter()
-                    .map(|(hashed_index, encoded_value)| {
-                        let value: U256 = rlp::decode(&encoded_value).unwrap();
-                        assert_eq!(hashed_index.len(), 32);
-                        (B256::from_slice(&hashed_index), value)
-                    })
-                    .collect();
+                    let storage = storage_trie
+                        .iter()
+                        .map(|(hashed_index, encoded_value)| {
+                            let value: U256 = rlp::decode(&encoded_value).unwrap();
+                            assert_eq!(hashed_index.len(), 32);
+                            (B256::from_slice(&hashed_index), value)
+                        })
+                        .collect();
 
-                let account = StateAccount {
-                    balance: account.balance,
-                    code_hash: account.code_hash,
-                    nonce: account.nonce,
-                    storage,
-                    storage_root: *storage_root,
-                };
+                    let account = StateAccount {
+                        balance: account.balance,
+                        code_hash: account.code_hash,
+                        nonce: account.nonce,
+                        storage,
+                        storage_root: *storage_root,
+                    };
 
-                (*address, account)
-            })
+                    Some((*address, account))
+            }})
             .collect();
 
         serde_json::to_string_pretty(&state).unwrap()

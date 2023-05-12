@@ -12,6 +12,7 @@ mod log;
 mod receipt;
 /// Rethnet runtime for executing individual transactions
 mod runtime;
+mod signature;
 mod state;
 mod sync;
 mod threadsafe_function;
