@@ -10,6 +10,7 @@ import {
   HardhatArguments,
   HardhatConfig,
   HardhatUserConfig,
+  SolcConfig,
 } from "../../../types";
 import { HardhatContext } from "../../context";
 import { findClosestPackageJson } from "../../util/packageInfo";
@@ -25,8 +26,21 @@ import { DEFAULT_SOLC_VERSION } from "./default-config";
 const log = debug("hardhat:core:config");
 
 function importCsjOrEsModule(filePath: string): any {
-  const imported = require(filePath);
-  return imported.default !== undefined ? imported.default : imported;
+  try {
+    const imported = require(filePath);
+    return imported.default !== undefined ? imported.default : imported;
+  } catch (e: any) {
+    if (e.code === "ERR_REQUIRE_ESM") {
+      throw new HardhatError(
+        ERRORS.GENERAL.ESM_PROJECT_WITHOUT_CJS_CONFIG,
+        {},
+        e
+      );
+    }
+
+    // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
+    throw e;
+  }
 }
 
 export function resolveConfigPath(configPath: string | undefined) {
@@ -167,6 +181,8 @@ export function analyzeModuleNotFoundError(error: any, configPath: string) {
   const throwingFile = stackTrace
     .filter((x) => x.file !== null)
     .map((x) => x.file!)
+    // ignore frames related to source map support
+    .filter((x) => !x.includes(path.join("@cspotcode", "source-map-support")))
     .find((x) => path.isAbsolute(x));
 
   if (throwingFile === null || throwingFile === undefined) {
@@ -271,17 +287,15 @@ Learn more about compiler configuration at https://hardhat.org/config
 }
 
 function checkUnsupportedSolidityConfig(resolvedConfig: HardhatConfig) {
-  const compilerVersions = resolvedConfig.solidity.compilers.map(
-    (x) => x.version
-  );
-  const overrideVersions = Object.values(resolvedConfig.solidity.overrides).map(
-    (x) => x.version
-  );
-  const solcVersions = [...compilerVersions, ...overrideVersions];
+  const configuredCompilers = getConfiguredCompilers(resolvedConfig.solidity);
+  const solcVersions = configuredCompilers.map((x) => x.version);
 
   const unsupportedVersions: string[] = [];
   for (const solcVersion of solcVersions) {
-    if (!semver.satisfies(solcVersion, SUPPORTED_SOLIDITY_VERSION_RANGE)) {
+    if (
+      !semver.satisfies(solcVersion, SUPPORTED_SOLIDITY_VERSION_RANGE) &&
+      !unsupportedVersions.includes(solcVersion)
+    ) {
       unsupportedVersions.push(solcVersion);
     }
   }
@@ -319,4 +333,12 @@ Learn more about compiler configuration at https://hardhat.org/config
       )
     );
   }
+}
+
+export function getConfiguredCompilers(
+  solidityConfig: HardhatConfig["solidity"]
+): SolcConfig[] {
+  const compilerVersions = solidityConfig.compilers;
+  const overrideVersions = Object.values(solidityConfig.overrides);
+  return [...compilerVersions, ...overrideVersions];
 }

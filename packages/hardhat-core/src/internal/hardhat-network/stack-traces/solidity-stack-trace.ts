@@ -81,7 +81,7 @@ export interface RevertErrorStackTraceEntry {
 export interface PanicErrorStackTraceEntry {
   type: StackTraceEntryType.PANIC_ERROR;
   errorCode: bigint;
-  sourceReference: SourceReference;
+  sourceReference?: SourceReference;
 }
 
 export interface CustomErrorStackTraceEntry {
@@ -93,7 +93,7 @@ export interface CustomErrorStackTraceEntry {
 
 export interface UnmappedSolc063RevertErrorStackTraceEntry {
   type: StackTraceEntryType.UNMAPPED_SOLC_0_6_3_REVERT_ERROR;
-  sourceReference: SourceReference;
+  sourceReference?: SourceReference;
 }
 
 export interface FunctionNotPayableErrorStackTraceEntry {

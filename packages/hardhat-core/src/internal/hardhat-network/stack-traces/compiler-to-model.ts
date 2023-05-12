@@ -1,5 +1,4 @@
 import debug from "debug";
-import abi from "ethereumjs-abi";
 
 import {
   CompilerInput,
@@ -24,7 +23,18 @@ import {
 } from "./model";
 import { decodeInstructions } from "./source-maps";
 
+const abi = require("ethereumjs-abi");
+
 const log = debug("hardhat:core:hardhat-network:compiler-to-model");
+
+interface ContractAbiEntry {
+  name?: string;
+  inputs?: Array<{
+    type: string;
+  }>;
+}
+
+type ContractAbi = ContractAbiEntry[];
 
 export function createModelsAndDecodeBytecodes(
   solcVersion: string,
@@ -61,7 +71,20 @@ function createSourcesModelFromAst(
 ) {
   const contractIdToLinearizedBaseContractIds = new Map<number, number[]>();
 
+  // Create a `sourceName => contract => abi` mapping
+  const sourceNameToContractToAbi = new Map<string, Map<string, ContractAbi>>();
+  for (const [sourceName, contracts] of Object.entries(
+    compilerOutput.contracts
+  )) {
+    const contractToAbi = new Map<string, ContractAbi>();
+    sourceNameToContractToAbi.set(sourceName, contractToAbi);
+    for (const [contractName, contract] of Object.entries(contracts)) {
+      contractToAbi.set(contractName, contract.abi);
+    }
+  }
+
   for (const [sourceName, source] of Object.entries(compilerOutput.sources)) {
+    const contractToAbi = sourceNameToContractToAbi.get(sourceName);
     const file = new SourceFile(
       sourceName,
       compilerInput.sources[sourceName].content
@@ -77,13 +100,16 @@ function createSourcesModelFromAst(
           continue;
         }
 
+        const contractAbi = contractToAbi?.get(node.name);
+
         processContractAstNode(
           file,
           node,
           fileIdToSourceFile,
           contractType,
           contractIdToContract,
-          contractIdToLinearizedBaseContractIds
+          contractIdToLinearizedBaseContractIds,
+          contractAbi
         );
       }
 
@@ -111,7 +137,8 @@ function processContractAstNode(
   fileIdToSourceFile: Map<number, SourceFile>,
   contractType: ContractType,
   contractIdToContract: Map<number, Contract>,
-  contractIdToLinearizedBaseContractIds: Map<number, number[]>
+  contractIdToLinearizedBaseContractIds: Map<number, number[]>,
+  contractAbi?: ContractAbi
 ) {
   const contractLocation = astSrcToSourceLocation(
     contractNode.src,
@@ -134,11 +161,16 @@ function processContractAstNode(
 
   for (const node of contractNode.nodes) {
     if (node.nodeType === "FunctionDefinition") {
+      const functionAbis = contractAbi?.filter(
+        (abiEntry) => abiEntry.name === node.name
+      );
+
       processFunctionDefinitionAstNode(
         node,
         fileIdToSourceFile,
         contract,
-        file
+        file,
+        functionAbis
       );
     } else if (node.nodeType === "ModifierDefinition") {
       processModifierDefinitionAstNode(
@@ -148,11 +180,15 @@ function processContractAstNode(
         file
       );
     } else if (node.nodeType === "VariableDeclaration") {
+      const getterAbi = contractAbi?.find(
+        (abiEntry) => abiEntry.name === node.name
+      );
       processVariableDeclarationAstNode(
         node,
         fileIdToSourceFile,
         contract,
-        file
+        file,
+        getterAbi
       );
     }
   }
@@ -162,7 +198,8 @@ function processFunctionDefinitionAstNode(
   functionDefinitionNode: any,
   fileIdToSourceFile: Map<number, SourceFile>,
   contract: Contract | undefined,
-  file: SourceFile
+  file: SourceFile,
+  functionAbis?: ContractAbiEntry[]
 ) {
   if (functionDefinitionNode.implemented === false) {
     return;
@@ -188,6 +225,26 @@ function processFunctionDefinitionAstNode(
     selector = astFunctionDefinitionToSelector(functionDefinitionNode);
   }
 
+  // function can be overloaded, match the abi by the selector
+  const matchingFunctionAbi = functionAbis?.find((functionAbi) => {
+    if (functionAbi.name === undefined) {
+      return false;
+    }
+
+    const functionAbiSelector = abi.methodID(
+      functionAbi.name,
+      functionAbi.inputs?.map((input) => input.type) ?? []
+    );
+
+    if (selector === undefined || functionAbiSelector === undefined) {
+      return false;
+    }
+
+    return selector.equals(functionAbiSelector);
+  });
+
+  const paramTypes = matchingFunctionAbi?.inputs?.map((input) => input.type);
+
   const cf = new ContractFunction(
     functionDefinitionNode.name,
     functionType,
@@ -195,7 +252,8 @@ function processFunctionDefinitionAstNode(
     contract,
     visibility,
     functionDefinitionNode.stateMutability === "payable",
-    selector
+    selector,
+    paramTypes
   );
 
   if (contract !== undefined) {
@@ -279,7 +337,8 @@ function processVariableDeclarationAstNode(
   variableDeclarationNode: any,
   fileIdToSourceFile: Map<number, SourceFile>,
   contract: Contract,
-  file: SourceFile
+  file: SourceFile,
+  getterAbi?: ContractAbiEntry
 ) {
   const visibility = astVisibilityToVisibility(
     variableDeclarationNode.visibility
@@ -295,6 +354,8 @@ function processVariableDeclarationAstNode(
     fileIdToSourceFile
   )!;
 
+  const paramTypes = getterAbi?.inputs?.map((input) => input.type);
+
   const cf = new ContractFunction(
     variableDeclarationNode.name,
     ContractFunctionType.GETTER,
@@ -302,7 +363,8 @@ function processVariableDeclarationAstNode(
     contract,
     visibility,
     false, // Getters aren't payable
-    getPublicVariableSelectorFromDeclarationAstNode(variableDeclarationNode)
+    getPublicVariableSelectorFromDeclarationAstNode(variableDeclarationNode),
+    paramTypes
   );
 
   contract.addLocalFunction(cf);

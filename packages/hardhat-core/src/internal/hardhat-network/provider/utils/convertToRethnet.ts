@@ -85,6 +85,8 @@ export function ethereumsjsHardforkToRethnet(hardfork: HardforkName): SpecId {
       return SpecId.GrayGlacier;
     case HardforkName.MERGE:
       return SpecId.Merge;
+    case HardforkName.SHANGHAI:
+      return SpecId.Shanghai;
     default:
       const _exhaustiveCheck: never = hardfork;
       throw new Error(

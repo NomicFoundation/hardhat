@@ -7,7 +7,6 @@
     "sourceMap": true,
     "strict": true,
     "esModuleInterop": true,
-    "typeRoots": ["../../node_modules/@types", "./@types"],
     "noEmitOnError": true,
     "skipDefaultLibCheck": true,
     "skipLibCheck": true

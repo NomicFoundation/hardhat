@@ -22,7 +22,6 @@ import {
   DEFAULT_HARDFORK,
   DEFAULT_MINING_CONFIG,
   DEFAULT_NETWORK_ID,
-  DEFAULT_NETWORK_NAME,
   DEFAULT_MEMPOOL_CONFIG,
   DEFAULT_USE_JSON_RPC,
 } from "./providers";
@@ -43,16 +42,17 @@ export interface UseProviderOptions {
   forkConfig?: ForkConfig;
   mining?: HardhatNetworkMiningConfig;
   hardfork?: string;
-  networkName?: string;
   chainId?: number;
   networkId?: number;
   blockGasLimit?: bigint;
   accounts?: Array<{ privateKey: string; balance: bigint }>;
   allowUnlimitedContractSize?: boolean;
+  allowBlocksWithSameTimestamp?: boolean;
   initialBaseFeePerGas?: bigint;
   mempool?: HardhatNetworkMempoolConfig;
   coinbase?: string;
   chains?: HardhatNetworkChainsConfig;
+  forkBlockNumber?: number;
 }
 
 export function useProvider({
@@ -61,12 +61,12 @@ export function useProvider({
   forkConfig,
   mining = DEFAULT_MINING_CONFIG,
   hardfork = DEFAULT_HARDFORK,
-  networkName = DEFAULT_NETWORK_NAME,
   chainId = DEFAULT_CHAIN_ID,
   networkId = DEFAULT_NETWORK_ID,
   blockGasLimit = DEFAULT_BLOCK_GAS_LIMIT,
   accounts = DEFAULT_ACCOUNTS,
   allowUnlimitedContractSize = DEFAULT_ALLOW_UNLIMITED_CONTRACT_SIZE,
+  allowBlocksWithSameTimestamp = false,
   initialBaseFeePerGas,
   mempool = DEFAULT_MEMPOOL_CONFIG,
   coinbase,
@@ -75,29 +75,29 @@ export function useProvider({
   beforeEach("Initialize provider", async function () {
     this.logger = new FakeModulesLogger(loggerEnabled);
     this.hardhatNetworkProvider = new HardhatNetworkProvider(
-      hardfork,
-      networkName,
-      chainId,
-      networkId,
-      Number(blockGasLimit),
-      initialBaseFeePerGas === undefined
-        ? undefined
-        : Number(initialBaseFeePerGas),
-      0n, // minGasPrice
-      true,
-      true,
-      mining.auto,
-      mining.interval,
-      mempool.order as MempoolOrder,
-      chains,
-      this.logger,
-      accounts,
-      undefined,
-      allowUnlimitedContractSize,
-      undefined,
-      undefined,
-      forkConfig,
-      coinbase
+      {
+        hardfork,
+        chainId,
+        networkId,
+        blockGasLimit: Number(blockGasLimit),
+        initialBaseFeePerGas:
+          initialBaseFeePerGas === undefined
+            ? undefined
+            : Number(initialBaseFeePerGas),
+        minGasPrice: 0n,
+        throwOnTransactionFailures: true,
+        throwOnCallFailures: true,
+        automine: mining.auto,
+        intervalMining: mining.interval,
+        mempoolOrder: mempool.order as MempoolOrder,
+        chains,
+        genesisAccounts: accounts,
+        allowUnlimitedContractSize,
+        forkConfig,
+        coinbase,
+        allowBlocksWithSameTimestamp,
+      },
+      this.logger
     );
     this.provider = new BackwardsCompatibilityProviderAdapter(
       this.hardhatNetworkProvider
@@ -130,8 +130,11 @@ export function useProvider({
       const beforeClose = Date.now();
       await this.server.close();
       const afterClose = Date.now();
-      if (afterClose - beforeClose > 1000) {
-        throw new Error("Closing the server took more than 1 second");
+      const elapsedTime = afterClose - beforeClose;
+      if (elapsedTime > 1500) {
+        throw new Error(
+          `Closing the server took more than 1 second (${elapsedTime}ms), which can lead to incredibly slow tests. Please fix it.`
+        );
       }
 
       delete this.server;

@@ -92,7 +92,7 @@ export const SidebarContainer = styled.aside<{ isSidebarOpen: boolean }>`
   left: ${({ isSidebarOpen }) => (isSidebarOpen ? "0px" : "-120vw")};
   height: calc(100vh - 136px);
   display: flex;
-  overflow-y: scroll;
+  overflow-y: auto;
   transition: all ease-out 0.25s;
   z-index: 50;
   background-color: ${tm(({ colors }) => colors.neutral0)};

@@ -317,6 +317,26 @@ describe("INTEGRATION: Reverted with custom error", function () {
         );
       });
 
+      it("should fail when the arrays don't have the same length", async function () {
+        await expect(
+          expect(matchers.revertWithCustomErrorWithPair(1, 2))
+            .to.be.revertedWithCustomError(matchers, "CustomErrorWithPair")
+            .withArgs([1])
+        ).to.be.rejectedWith(
+          AssertionError,
+          'Expected the 1st argument of the "CustomErrorWithPair" custom error to have 1 element, but it has 2'
+        );
+
+        await expect(
+          expect(matchers.revertWithCustomErrorWithPair(1, 2))
+            .to.be.revertedWithCustomError(matchers, "CustomErrorWithPair")
+            .withArgs([1, 2, 3])
+        ).to.be.rejectedWith(
+          AssertionError,
+          'Expected the 1st argument of the "CustomErrorWithPair" custom error to have 3 elements, but it has 2'
+        );
+      });
+
       it("Should fail when used with .not.", async function () {
         expect(() =>
           expect(matchers.revertWithSomeCustomError())

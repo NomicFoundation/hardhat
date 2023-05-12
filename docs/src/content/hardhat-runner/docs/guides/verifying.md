@@ -42,31 +42,33 @@ module.exports = {
 
 ::::
 
-## Deploying and verifying a contract in the Goerli testnet
+## Deploying and verifying a contract in the Sepolia testnet
 
-We are going to use the [Goerli testnet](https://ethereum.org/en/developers/docs/networks/#goerli) to deploy and verify our contract, so you need to add this network in your Hardhat config. Here we are using [Alchemy](https://www.alchemy.com/) to connect to the network, but you can use an alternative JSON-RPC URL like [Infura](https://www.infura.io/) if you want.
+We are going to use the [Sepolia testnet](https://ethereum.org/en/developers/docs/networks/#sepolia) to deploy and verify our contract, so you need to add this network in your Hardhat config. Here we are using [Infura](https://infura.io/) to connect to the network, but you can use an alternative JSON-RPC URL like [Alchemy](https://alchemy.com/) if you want.
 
-::::tabsgroup{options=TypeScript,JavaScript}
+::::tabsgroup{options=Infura,Alchemy}
 
-:::tab{value=TypeScript}
+:::tab{value=Infura}
 
-```ts
-// Go to https://www.alchemyapi.io, sign up, create
-// a new App in its dashboard, and replace "KEY" with its key
-const ALCHEMY_API_KEY = "KEY";
+```js
+// Go to https://infura.io, sign up, create a new API key
+// in its dashboard, and replace "KEY" with it
+const INFURA_API_KEY = "KEY";
 
-// Replace this private key with your Goerli account private key.
+// Replace this private key with your Sepolia account private key
+// To export your private key from Coinbase Wallet, go to
+// Settings > Developer Settings > Show private key
 // To export your private key from Metamask, open Metamask and
-// go to Account Details > Export Private Key.
+// go to Account Details > Export Private Key
 // Beware: NEVER put real Ether into testing accounts
-const GOERLI_PRIVATE_KEY = "YOUR GOERLI PRIVATE KEY";
+const SEPOLIA_PRIVATE_KEY = "YOUR SEPOLIA PRIVATE KEY";
 
-export default {
+module.exports = {
   // ...rest of your config...
   networks: {
-    goerli: {
-      url: `https://eth-goerli.alchemyapi.io/v2/${ALCHEMY_API_KEY}`,
-      accounts: [GOERLI_PRIVATE_KEY],
+    sepolia: {
+      url: `https://sepolia.infura.io/v3/${INFURA_API_KEY}`,
+      accounts: [SEPOLIA_PRIVATE_KEY],
     },
   },
 };
@@ -74,25 +76,27 @@ export default {
 
 :::
 
-:::tab{value=JavaScript}
+:::tab{value=Alchemy}
 
 ```js
-// Go to https://www.alchemyapi.io, sign up, create
-// a new App in its dashboard, and replace "KEY" with its key
+// Go to https://alchemy.com, sign up, create a new App in
+// its dashboard, and replace "KEY" with its key
 const ALCHEMY_API_KEY = "KEY";
 
-// Replace this private key with your Goerli account private key
+// Replace this private key with your Sepolia account private key
+// To export your private key from Coinbase Wallet, go to
+// Settings > Developer Settings > Show private key
 // To export your private key from Metamask, open Metamask and
 // go to Account Details > Export Private Key
 // Beware: NEVER put real Ether into testing accounts
-const GOERLI_PRIVATE_KEY = "YOUR GOERLI PRIVATE KEY";
+const SEPOLIA_PRIVATE_KEY = "YOUR SEPOLIA PRIVATE KEY";
 
 module.exports = {
   // ...rest of your config...
   networks: {
-    goerli: {
-      url: `https://eth-goerli.alchemyapi.io/v2/${ALCHEMY_API_KEY}`,
-      accounts: [GOERLI_PRIVATE_KEY],
+    sepolia: {
+      url: `https://eth-sepolia.g.alchemy.com/v2/${ALCHEMY_API_KEY}`,
+      accounts: [SEPOLIA_PRIVATE_KEY],
     },
   },
 };
@@ -102,12 +106,11 @@ module.exports = {
 
 ::::
 
-To deploy on Goerli you need to send some Goerli ether to the address that's going to be making the deployment. You can get testnet ether from a faucet, a service that distributes testing-ETH for free. Here are some for Goerli:
+To deploy on Sepolia you need to send some Sepolia ether to the address that's going to be making the deployment. You can get testnet ether from a faucet, a service that distributes testing-ETH for free. Here is one for Sepolia:
 
-- [Chainlink faucet](https://faucets.chain.link/)
-- [Alchemy Goerli Faucet](https://goerlifaucet.com/)
+- [Alchemy Sepolia Faucet](https://sepoliafaucet.com/)
 
-Now you are ready to deploy your contract, but first we are going to make the source code of our contract unique. The reason we need to do this is that the sample code from the previous section is already verified in Goerli, so if you try to verify it you'll get an error.
+Now you are ready to deploy your contract, but first we are going to make the source code of our contract unique. The reason we need to do this is that the sample code from the previous section is already verified in Sepolia, so if you try to verify it you'll get an error.
 
 Open your contract and add a comment with something unique, like your GitHub's username. Keep in mind that whatever you include here will be, like the rest of the code, publicly available on Etherscan:
 
@@ -116,14 +119,14 @@ Open your contract and add a comment with something unique, like your GitHub's u
 contract Lock {
 ```
 
-You can now run the deploy script using the newly added Goerli network:
+You can now run the deploy script using the newly added Sepolia network:
 
 ::::tabsgroup{options=TypeScript,JavaScript}
 
 :::tab{value=TypeScript}
 
 ```
-npx hardhat run scripts/deploy.ts --network goerli
+npx hardhat run scripts/deploy.ts --network sepolia
 ```
 
 :::
@@ -131,7 +134,7 @@ npx hardhat run scripts/deploy.ts --network goerli
 :::tab{value=JavaScript}
 
 ```
-npx hardhat run scripts/deploy.js --network goerli
+npx hardhat run scripts/deploy.js --network sepolia
 ```
 
 :::
@@ -141,7 +144,7 @@ npx hardhat run scripts/deploy.js --network goerli
 Take note of the address and the unlock time and run the `verify` task with them:
 
 ```
-npx hardhat verify --network goerli <address> <unlock time>
+npx hardhat verify --network sepolia <address> <unlock time>
 ```
 
 :::tip
@@ -152,4 +155,4 @@ If you get an error saying that the address does not have bytecode, it probably 
 
 After the task is successfully executed, you'll see a link to the publicly verified code of your contract.
 
-To learn more about verifying, read the [hardhat-etherscan](/hardhat-runner/plugins/nomiclabs-hardhat-etherscan) documentation.
+To learn more about verifying, read the [hardhat-verify](/hardhat-runner/plugins/nomicfoundation-hardhat-verify) documentation.

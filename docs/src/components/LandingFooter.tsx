@@ -141,7 +141,7 @@ const LandingFooter = () => {
         </span>
       </SupportedBy>
       <Legal>
-        Copyright 2022 Nomic Foundation |
+        Copyright {new Date().getFullYear()} Nomic Foundation |
         <Link href={PRIVACY_POLICY_PATH} passHref>
           <PrivacyPolicyLink>Privacy Policy</PrivacyPolicyLink>
         </Link>

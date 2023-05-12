@@ -1,9 +1,10 @@
 #!/usr/bin/env node
-import tabtab from "@fvictorio/tabtab";
 import debug from "debug";
 import * as fs from "fs";
 import * as path from "path";
 import semver from "semver";
+
+const tabtab = require("@fvictorio/tabtab");
 
 const log = debug("hh");
 

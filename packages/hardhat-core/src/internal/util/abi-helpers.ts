@@ -26,6 +26,15 @@ export class AbiHelpers {
     }
   }
 
+  public static isValidCalldata(inputs: any[], calldata: Buffer): boolean {
+    try {
+      abi.defaultAbiCoder.decode(inputs, calldata);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
   public static formatValues(values: any[]): string {
     return values.map((x) => AbiHelpers._formatValue(x)).join(", ");
   }

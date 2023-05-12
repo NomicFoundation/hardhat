@@ -56,7 +56,7 @@ export class ReadOnlyValidTransaction extends Transaction {
   private readonly _sender: Address;
 
   constructor(sender: Address, data: TxData = {}) {
-    super(data, { freeze: false });
+    super(data, { freeze: false, disableMaxInitCodeSizeCheck: true });
 
     this.common = this._getCommon();
     this._sender = sender;

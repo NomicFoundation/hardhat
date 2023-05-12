@@ -1,4 +1,5 @@
 import { bufferToHex } from "@nomicfoundation/ethereumjs-util";
+import chalk from "chalk";
 
 import {
   CallMessageTrace,
@@ -146,7 +147,7 @@ function traceSteps(
         if (isJump(inst.opcode)) {
           const jump =
             inst.jumpType !== JumpType.NOT_JUMP
-              ? `\x1b[1m(${JumpType[inst.jumpType]})\x1b[0m`
+              ? chalk.bold(`(${JumpType[inst.jumpType]})`)
               : "";
 
           console.log(
@@ -209,5 +210,11 @@ export function printStackTrace(trace: SolidityStackTrace) {
     sourceReference: flattenSourceReference(entry.sourceReference),
   }));
 
-  console.log(JSON.stringify(withFlattenedSourceReferences, undefined, 2));
+  console.log(
+    JSON.stringify(
+      withFlattenedSourceReferences,
+      (key, value) => (typeof value === "bigint" ? value.toString() : value),
+      2
+    )
+  );
 }

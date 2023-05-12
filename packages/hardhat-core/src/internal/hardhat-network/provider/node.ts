@@ -131,7 +131,11 @@ export class HardhatNode extends EventEmitter {
       mempoolOrder,
       networkId,
       chainId,
+      allowBlocksWithSameTimestamp,
     } = config;
+
+    const allowUnlimitedContractSize =
+      config.allowUnlimitedContractSize ?? false;
 
     let blockchain: HardhatBlockchainInterface;
     let initialBlockTimeOffset: bigint | undefined;
@@ -260,6 +264,8 @@ export class HardhatNode extends EventEmitter {
       chainId,
       hardfork,
       mixHashGenerator,
+      allowUnlimitedContractSize,
+      allowBlocksWithSameTimestamp,
       tracingConfig,
       forkNetworkId,
       forkBlockNum,
@@ -344,6 +350,8 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     private readonly _configChainId: number,
     public readonly hardfork: HardforkName,
     private _mixHashGenerator: RandomBufferGenerator,
+    public readonly allowUnlimitedContractSize: boolean,
+    private _allowBlocksWithSameTimestamp: boolean,
     tracingConfig?: TracingConfig,
     private _forkNetworkId?: number,
     private _forkBlockNumber?: bigint,
@@ -409,13 +417,18 @@ Hardhat Network's forking functionality only works with blocks from at least spu
       if ("maxFeePerGas" in txParams) {
         tx = FeeMarketEIP1559Transaction.fromTxData(txParams, {
           common: this._common,
+          disableMaxInitCodeSizeCheck: true,
         });
       } else if ("accessList" in txParams) {
         tx = AccessListEIP2930Transaction.fromTxData(txParams, {
           common: this._common,
+          disableMaxInitCodeSizeCheck: true,
         });
       } else {
-        tx = Transaction.fromTxData(txParams, { common: this._common });
+        tx = Transaction.fromTxData(txParams, {
+          common: this._common,
+          disableMaxInitCodeSizeCheck: true,
+        });
       }
 
       return tx.sign(pk);
@@ -453,7 +466,8 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     const [, offsetShouldChange, newOffset] = timestampAndOffset;
 
     const needsTimestampIncrease =
-      await this._timestampClashesWithPreviousBlockOne(blockTimestamp);
+      !this._allowBlocksWithSameTimestamp &&
+      (await this._timestampClashesWithPreviousBlockOne(blockTimestamp));
     if (needsTimestampIncrease) {
       blockTimestamp += 1n;
     }
@@ -844,13 +858,21 @@ Hardhat Network's forking functionality only works with blocks from at least spu
       );
     }
 
-    const block = await this._blockchain.getBlock(blockNumberOrPending);
-    return block ?? undefined;
+    try {
+      const block = await this._blockchain.getBlock(blockNumberOrPending);
+      return block;
+    } catch {
+      return undefined;
+    }
   }
 
   public async getBlockByHash(blockHash: Buffer): Promise<Block | undefined> {
-    const block = await this._blockchain.getBlock(blockHash);
-    return block ?? undefined;
+    try {
+      const block = await this._blockchain.getBlock(blockHash);
+      return block;
+    } catch {
+      return undefined;
+    }
   }
 
   public async getBlockByTransactionHash(
@@ -2362,6 +2384,24 @@ Hardhat Network's forking functionality only works with blocks from at least spu
       );
     }
     return this._common.gteHardfork("london");
+  }
+
+  public isEip4895Active(blockNumberOrPending?: bigint | "pending"): boolean {
+    if (
+      blockNumberOrPending !== undefined &&
+      blockNumberOrPending !== "pending"
+    ) {
+      return this._common.hardforkGteHardfork(
+        selectHardfork(
+          blockNumberOrPending,
+          this._common.hardfork(),
+          this._hardforkActivations,
+          blockNumberOrPending
+        ),
+        "shanghai"
+      );
+    }
+    return this._common.gteHardfork("shanghai");
   }
 
   public isPostMergeHardfork(): boolean {

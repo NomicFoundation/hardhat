@@ -10,14 +10,18 @@ To set up your config, you have to export an object from `hardhat.config.js`.
 
 This object can have entries like `defaultNetwork`, [`networks`](#networks-configuration), [`solidity`](#solidity-configuration), [`paths`](#path-configuration) and [`mocha`](#mocha-configuration). For example:
 
+::::tabsgroup{options=Infura,Alchemy}
+
+:::tab{value=Infura}
+
 ```js
 module.exports = {
-  defaultNetwork: "goerli",
+  defaultNetwork: "sepolia",
   networks: {
     hardhat: {
     },
-    goerli: {
-      url: "https://eth-goerli.alchemyapi.io/v2/123abc123abc123abc123abc123abcde",
+    sepolia: {
+      url: "https://sepolia.infura.io/v3/<key>",
       accounts: [privateKey1, privateKey2, ...]
     }
   },
@@ -42,6 +46,46 @@ module.exports = {
 }
 ```
 
+:::
+
+:::tab{value=Alchemy}
+
+```js
+module.exports = {
+  defaultNetwork: "sepolia",
+  networks: {
+    hardhat: {
+    },
+    sepolia: {
+      url: "https://eth-sepolia.g.alchemy.com/v2/<key>",
+      accounts: [privateKey1, privateKey2, ...]
+    }
+  },
+  solidity: {
+    version: "0.5.15",
+    settings: {
+      optimizer: {
+        enabled: true,
+        runs: 200
+      }
+    }
+  },
+  paths: {
+    sources: "./contracts",
+    tests: "./test",
+    cache: "./cache",
+    artifacts: "./artifacts"
+  },
+  mocha: {
+    timeout: 40000
+  }
+}
+```
+
+:::
+
+::::
+
 ## Networks configuration
 
 The `networks` config field is an optional object where network names map to their configuration.
@@ -60,7 +104,7 @@ See [the Hardhat Network Configuration Reference](/hardhat-network/docs/referenc
 
 ### JSON-RPC based networks
 
-These are networks that connect to an external node. Nodes can be running in your computer, like Ganache, or remotely, like Alchemy or Infura.
+These are networks that connect to an external node. Nodes can be running in your computer, like Ganache, or remotely, like Infura or Alchemy.
 
 This kind of network is configured with objects with the following fields:
 
@@ -101,7 +145,7 @@ For example:
 ```js
 module.exports = {
   networks: {
-    goerli: {
+    sepolia: {
       url: "...",
       accounts: {
         mnemonic: "test test test test test test test test test test test junk",
