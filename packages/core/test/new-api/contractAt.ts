@@ -19,7 +19,7 @@ describe("contractAt", () => {
     assert.equal(moduleWithContractFromArtifact.id, "Module1");
     assert.equal(
       moduleWithContractFromArtifact.results.contract1.id,
-      "Module1:Contract1"
+      "Module1:Contract1:0xtest"
     );
 
     // Stores the address
@@ -81,11 +81,11 @@ describe("contractAt", () => {
       assert.equal(moduleWithSameContractTwice.id, "Module1");
       assert.equal(
         moduleWithSameContractTwice.results.sameContract1.id,
-        "Module1:first"
+        "Module1:SameContract:first"
       );
       assert.equal(
         moduleWithSameContractTwice.results.sameContract2.id,
-        "Module1:second"
+        "Module1:SameContract:second"
       );
     });
 
@@ -105,7 +105,7 @@ describe("contractAt", () => {
 
           return { sameContract1, sameContract2 };
         });
-      }, /Contracts must have unique ids, Module1:SameContract has already been used/);
+      }, /Contracts must have unique ids, Module1:SameContract:0xtest has already been used/);
     });
 
     it("should throw if a contract tries to pass the same id twice", () => {
@@ -130,7 +130,7 @@ describe("contractAt", () => {
 
           return { sameContract1, sameContract2 };
         });
-      }, /Contracts must have unique ids, Module1:same has already been used/);
+      }, /Contracts must have unique ids, Module1:SameContract:same has already been used/);
     });
   });
 });
