@@ -141,29 +141,39 @@ describe("contract", () => {
     });
 
     it("should throw if the same contract is deployed twice without differentiating ids", () => {
-      assert.throws(() => {
-        buildModule("Module1", (m) => {
-          const sameContract1 = m.contract("SameContract");
-          const sameContract2 = m.contract("SameContract");
+      const moduleDefinition = buildModule("Module1", (m) => {
+        const sameContract1 = m.contract("SameContract");
+        const sameContract2 = m.contract("SameContract");
 
-          return { sameContract1, sameContract2 };
-        });
-      }, /Contracts must have unique ids, Module1:SameContract has already been used/);
+        return { sameContract1, sameContract2 };
+      });
+
+      const constructor = new ModuleConstructor();
+
+      assert.throws(
+        () => constructor.construct(moduleDefinition),
+        /Contracts must have unique ids, Module1:SameContract has already been used/
+      );
     });
 
     it("should throw if a contract tries to pass the same id twice", () => {
-      assert.throws(() => {
-        buildModule("Module1", (m) => {
-          const sameContract1 = m.contract("SameContract", [], {
-            id: "same",
-          });
-          const sameContract2 = m.contract("SameContract", [], {
-            id: "same",
-          });
-
-          return { sameContract1, sameContract2 };
+      const moduleDefinition = buildModule("Module1", (m) => {
+        const sameContract1 = m.contract("SameContract", [], {
+          id: "same",
         });
-      }, /Contracts must have unique ids, Module1:same has already been used/);
+        const sameContract2 = m.contract("SameContract", [], {
+          id: "same",
+        });
+
+        return { sameContract1, sameContract2 };
+      });
+
+      const constructor = new ModuleConstructor();
+
+      assert.throws(
+        () => constructor.construct(moduleDefinition),
+        /Contracts must have unique ids, Module1:same has already been used/
+      );
     });
   });
 });
