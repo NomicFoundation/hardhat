@@ -83,7 +83,7 @@ export class ModuleConstructor {
     >(moduleDefintion.id, STUB_MODULE_RESULTS as any);
 
     (mod as any).results = moduleDefintion.moduleDefintionFunction(
-      new IgnitionModuleBuilderImplementation(this, mod)
+      new IgnitionModuleBuilderImplementation(this, mod, 0) // todo: fix placeholder chainId
     );
 
     this._modules.set(moduleDefintion.id, mod);
