@@ -46,9 +46,9 @@ export class HardhatContext {
   }
 
   public readonly tasksDSL = new TasksDSL();
-  public readonly extendersManager: EnvironmentExtender[] = [];
+  public readonly environmentExtenders: EnvironmentExtender[] = [];
   public environment?: HardhatRuntimeEnvironment;
-  public readonly providerExtendersManager: ProviderExtender[] = [];
+  public readonly providerExtenders: ProviderExtender[] = [];
 
   public readonly configExtenders: ConfigExtender[] = [];
 

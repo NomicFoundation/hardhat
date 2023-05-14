@@ -127,7 +127,7 @@ export const types = argumentTypes;
  */
 export function extendEnvironment(extender: EnvironmentExtender) {
   const ctx = HardhatContext.getHardhatContext();
-  ctx.extendersManager.push(extender);
+  ctx.environmentExtenders.push(extender);
 }
 
 /**
@@ -151,7 +151,7 @@ export function extendConfig(extender: ConfigExtender) {
  */
 export function extendProvider(extender: ProviderExtender) {
   const ctx = HardhatContext.getHardhatContext();
-  ctx.providerExtendersManager.push(extender);
+  ctx.providerExtenders.push(extender);
 }
 
 // NOTE: This is experimental and will be removed. Please contact our team

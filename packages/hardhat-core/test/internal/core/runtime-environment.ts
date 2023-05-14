@@ -407,7 +407,7 @@ describe("Environment", () => {
           config,
           { ...args, network: "NOPE" },
           tasks,
-          ctx.extendersManager
+          ctx.environmentExtenders
         );
       }, ERRORS.NETWORK.CONFIG_NOT_FOUND);
     });
@@ -418,7 +418,7 @@ describe("Environment", () => {
         config,
         { ...args, network: undefined },
         tasks,
-        ctx.extendersManager
+        ctx.environmentExtenders
       );
 
       assert.equal(env.network.name, "default");
@@ -521,7 +521,7 @@ describe("Environment", () => {
     it("environment should contains plugin extensions", async () => {
       require(path.join(process.cwd(), "plugins", "example"));
       const ctx = HardhatContext.getHardhatContext();
-      env = new Environment(config, args, tasks, ctx.extendersManager);
+      env = new Environment(config, args, tasks, ctx.environmentExtenders);
       assert.equal((env as any).__test_key, "a value");
       assert.equal((env as any).__test_bleep(2), 4);
     });

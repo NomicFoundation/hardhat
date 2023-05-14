@@ -33,7 +33,7 @@ describe("Hardhat context", async function () {
 
     it("context initialize properly", async function () {
       const ctx = HardhatContext.createHardhatContext();
-      assert.isDefined(ctx.extendersManager);
+      assert.isDefined(ctx.environmentExtenders);
       assert.isDefined(ctx.tasksDSL);
       assert.isUndefined(ctx.environment);
     });
