@@ -3,10 +3,18 @@ import { ArtifactType, SolidityParamsType } from "../stubs";
 import {
   ArtifactContractDeploymentFuture,
   Future,
-  IgnitionModule,
   IgnitionModuleResult,
   NamedContractDeploymentFuture,
 } from "./module";
+
+export interface IgnitionModuleDefinition<
+  ModuleIdT extends string,
+  ContractNameT extends string,
+  IgnitionModuleResultsT extends IgnitionModuleResult<ContractNameT>
+> {
+  id: ModuleIdT;
+  moduleDefintionFunction: (m: IgnitionModuleBuilder) => IgnitionModuleResultsT;
+}
 
 export interface ContractOptions {
   id?: string;
@@ -37,7 +45,7 @@ export interface IgnitionModuleBuilder {
     ContractNameT extends string,
     IgnitionModuleResultsT extends IgnitionModuleResult<ContractNameT>
   >(
-    ignitionModule: IgnitionModule<
+    submoduleDefinition: IgnitionModuleDefinition<
       ModuleIdT,
       ContractNameT,
       IgnitionModuleResultsT
