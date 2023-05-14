@@ -56,3 +56,5 @@ export interface EthereumProvider extends EIP1193Provider {
     callback: (error: any, response: JsonRpcResponse) => void
   ): void;
 }
+
+export type ProviderFactory = () => Promise<EthereumProvider>;

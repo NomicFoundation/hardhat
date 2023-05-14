@@ -3,35 +3,29 @@ import {
   JsonRpcRequest,
   JsonRpcResponse,
   RequestArguments,
+  ProviderFactory,
 } from "../../../types";
-import { EventEmitterWrapper } from "../../util/event-emitter";
-
-// TODO: Move this to types.ts
-type ProviderFactory = () => Promise<EthereumProvider>;
 
 /**
- * TODO: Explain this with some documentation
+ * A class that delays the (async) creation of its internal provider until the first call
+ * to a JSON RPC method via request/send/sendAsync.
+ * Trying to use the EventEmitter API without calling request first (initializing the provider)
+ * will throw.
  */
-export class LazyInitializationProvider
-  extends EventEmitterWrapper
-  implements EthereumProvider
-{
+export class LazyInitializationProvider implements EthereumProvider {
   protected provider: EthereumProvider | undefined;
 
-  constructor(private providerFactory: ProviderFactory) {
-    // TODO: Explain what's going on here
-    super(undefined as any);
-  }
+  constructor(private providerFactory: ProviderFactory) {}
 
   // Provider methods
 
   public async request(args: RequestArguments): Promise<unknown> {
-    const provider = await this.getProvider();
+    const provider = await this.ensureProvider();
     return provider.request(args);
   }
 
   public async send(method: string, params?: any[]): Promise<any> {
-    const provider = await this.getProvider();
+    const provider = await this.ensureProvider();
     return provider.send(method, params);
   }
 
@@ -39,24 +33,20 @@ export class LazyInitializationProvider
     payload: JsonRpcRequest,
     callback: (error: any, response: JsonRpcResponse) => void
   ): void {
-    this.getProvider().then((provider) => {
+    this.ensureProvider().then((provider) => {
       provider.sendAsync(payload, callback);
     });
   }
 
   // EventEmitter methods
 
-  // TODO: Maybe add a decorator-esque wrapper to avoid repetition
-
   public addListener(event: string | symbol, listener: EventListener): this {
-    if (!this.provider) throw new UninitializedProviderError();
-    this.provider.addListener(event, listener);
+    this.getProvider().addListener(event, listener);
     return this;
   }
 
   public on(event: string | symbol, listener: EventListener): this {
-    if (!this.provider) throw new UninitializedProviderError();
-    this.provider.on(event, listener);
+    this.getProvider().on(event, listener);
     return this;
   }
 
@@ -64,8 +54,7 @@ export class LazyInitializationProvider
     event: string | symbol,
     listener: (...args: any[]) => void
   ): this {
-    if (!this.provider) throw new UninitializedProviderError();
-    this.provider.once(event, listener);
+    this.getProvider().once(event, listener);
     return this;
   }
 
@@ -73,8 +62,7 @@ export class LazyInitializationProvider
     event: string | symbol,
     listener: (...args: any[]) => void
   ): this {
-    if (!this.provider) throw new UninitializedProviderError();
-    this.provider.prependListener(event, listener);
+    this.getProvider().prependListener(event, listener);
     return this;
   }
 
@@ -82,8 +70,7 @@ export class LazyInitializationProvider
     event: string | symbol,
     listener: (...args: any[]) => void
   ): this {
-    if (!this.provider) throw new UninitializedProviderError();
-    this.provider.prependOnceListener(event, listener);
+    this.getProvider().prependOnceListener(event, listener);
     return this;
   }
 
@@ -91,71 +78,60 @@ export class LazyInitializationProvider
     event: string | symbol,
     listener: (...args: any[]) => void
   ): this {
-    if (!this.provider) throw new UninitializedProviderError();
-    this.provider.removeListener(event, listener);
+    this.getProvider().removeListener(event, listener);
     return this;
   }
 
   public off(event: string | symbol, listener: (...args: any[]) => void): this {
-    if (!this.provider) throw new UninitializedProviderError();
-    this.provider.off(event, listener);
+    this.getProvider().off(event, listener);
     return this;
   }
 
   public removeAllListeners(event?: string | symbol | undefined): this {
-    if (!this.provider) throw new UninitializedProviderError();
-    this.provider.removeAllListeners(event);
+    this.getProvider().removeAllListeners(event);
     return this;
   }
 
   public setMaxListeners(n: number): this {
-    if (!this.provider) throw new UninitializedProviderError();
-    this.provider.setMaxListeners(n);
+    this.getProvider().setMaxListeners(n);
     return this;
   }
 
   public getMaxListeners(): number {
-    if (!this.provider) throw new UninitializedProviderError();
-    return this.provider.getMaxListeners();
+    return this.getProvider().getMaxListeners();
   }
 
   public listeners(event: string | symbol): Function[] {
-    if (!this.provider) throw new UninitializedProviderError();
-    return this.provider.listeners(event);
+    return this.getProvider().listeners(event);
   }
 
   public rawListeners(event: string | symbol): Function[] {
-    if (!this.provider) throw new UninitializedProviderError();
-    return this.provider.rawListeners(event);
+    return this.getProvider().rawListeners(event);
   }
 
   public emit(event: string | symbol, ...args: any[]): boolean {
-    if (!this.provider) throw new UninitializedProviderError();
-    return this.provider.emit(event, ...args);
+    return this.getProvider().emit(event, ...args);
   }
 
   public eventNames(): Array<string | symbol> {
-    if (!this.provider) throw new UninitializedProviderError();
-    return this.provider.eventNames();
+    return this.getProvider().eventNames();
   }
 
   public listenerCount(type: string | symbol): number {
-    if (!this.provider) throw new UninitializedProviderError();
-    return this.provider.listenerCount(type);
+    return this.getProvider().listenerCount(type);
   }
 
-  private async getProvider(): Promise<EthereumProvider> {
+  private getProvider(): EthereumProvider {
+    if (!this.provider) {
+      throw new Error("You should've done something else");
+    }
+    return this.provider;
+  }
+
+  private async ensureProvider(): Promise<EthereumProvider> {
     if (!this.provider) {
       this.provider = await this.providerFactory();
     }
     return this.provider;
-  }
-}
-
-// TODO: Is this necessary? we could just use Error
-export class UninitializedProviderError extends Error {
-  constructor() {
-    // TODO: Better error message
-    super("You need to call request first");
   }
 }

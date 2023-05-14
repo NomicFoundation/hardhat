@@ -109,21 +109,6 @@ export class Environment implements HardhatRuntimeEnvironment {
       );
     });
 
-    // const provider2 = lazyObject(async () => {
-    //   log(`Creating provider for network ${networkName}`);
-    //   return createProvider(
-    //     networkName,
-    //     networkConfig,
-    //     this.config.paths,
-    //     this.artifacts,
-    //     experimentalHardhatNetworkMessageTraceHooks.map(
-    //       (hook) => (trace: MessageTrace, isCallMessageTrace: boolean) =>
-    //         hook(this, trace, isCallMessageTrace)
-    //     ),
-    //     providerExtenders
-    //   );
-    // });
-
     this.network = {
       name: networkName,
       config: config.networks[networkName],
