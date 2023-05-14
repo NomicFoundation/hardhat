@@ -5,6 +5,7 @@ import {
   RequestArguments,
   ProviderFactory,
 } from "../../../types";
+import { CustomError } from "../errors";
 
 /**
  * A class that delays the (async) creation of its internal provider until the first call
@@ -123,7 +124,7 @@ export class LazyInitializationProvider implements EthereumProvider {
 
   private getProvider(): EthereumProvider {
     if (!this.provider) {
-      throw new Error("You should've done something else");
+      throw new UninitializedProviderError();
     }
     return this.provider;
   }
@@ -133,5 +134,12 @@ export class LazyInitializationProvider implements EthereumProvider {
       this.provider = await this.providerFactory();
     }
     return this.provider;
+  }
+}
+
+export class UninitializedProviderError extends CustomError {
+  constructor() {
+    super(`You tried to access an uninitialized provider.
+To initialize the provider, make sure you first call any method that hits a node like request, send or sendAsync.`);
   }
 }
