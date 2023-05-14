@@ -1,4 +1,5 @@
 import assert from "assert";
+import { inspect } from "util";
 
 import { IgnitionValidationError } from "../../errors";
 import { ArtifactType, SolidityParamsType } from "../stubs";
@@ -12,6 +13,7 @@ import {
   ContractFromArtifactOptions,
   ContractOptions,
   IgnitionModuleBuilder,
+  IgnitionModuleDefinition,
 } from "../types/module-builder";
 
 import {
@@ -20,6 +22,60 @@ import {
   NamedContractDeploymentFutureImplementation,
 } from "./module";
 import { isFuture } from "./utils";
+
+const STUB_MODULE_RESULTS = {
+  [inspect.custom](): string {
+    return "<Module being constructed - No results available yet>";
+  },
+};
+
+/**
+ * This class is in charge of turning `IgnitionModuleDefinition`s into
+ * `IgnitionModule`s.
+ *
+ * Part of this class' responsibility is handling any concrete
+ * value that's only present during deployment (e.g. chain id, accounts, and
+ * module params).
+ *
+ * TODO: Add support for concrete values.
+ */
+export class ModuleConstructor {
+  private _modules: Map<string, IgnitionModule> = new Map();
+
+  public construct<
+    ModuleIdT extends string,
+    ContractNameT extends string,
+    IgnitionModuleResultsT extends IgnitionModuleResult<ContractNameT>
+  >(
+    moduleDefintion: IgnitionModuleDefinition<
+      ModuleIdT,
+      ContractNameT,
+      IgnitionModuleResultsT
+    >
+  ): IgnitionModule<ModuleIdT, ContractNameT, IgnitionModuleResultsT> {
+    const cachedModule = this._modules.get(moduleDefintion.id);
+    if (cachedModule !== undefined) {
+      // NOTE: This is actually unsafe, but we accept the risk.
+      //  A different module could have been cached with this id, and that would lead
+      //  to this method returning a module with a different type than that of its signature.
+      return cachedModule as any;
+    }
+
+    const mod = new IgnitionModuleImplementation<
+      ModuleIdT,
+      ContractNameT,
+      IgnitionModuleResultsT
+    >(moduleDefintion.id, STUB_MODULE_RESULTS as any);
+
+    (mod as any).results = moduleDefintion.moduleDefintionFunction(
+      new IgnitionModuleBuilderImplementation(this, mod)
+    );
+
+    this._modules.set(moduleDefintion.id, mod);
+
+    return mod;
+  }
+}
 
 export class IgnitionModuleBuilderImplementation<
   ModuleIdT extends string,
@@ -30,6 +86,7 @@ export class IgnitionModuleBuilderImplementation<
   private _futureIds: Set<string>;
 
   constructor(
+    private readonly _constructor: ModuleConstructor,
     private readonly _module: IgnitionModuleImplementation<
       ModuleIdT,
       ResultsContractNameT,
@@ -106,24 +163,26 @@ export class IgnitionModuleBuilderImplementation<
     SubmoduleContractNameT extends string,
     SubmoduleIgnitionModuleResultsT extends IgnitionModuleResult<SubmoduleContractNameT>
   >(
-    ignitionModule: IgnitionModule<
+    submoduleDefinition: IgnitionModuleDefinition<
       SubmoduleModuleIdT,
       SubmoduleContractNameT,
       SubmoduleIgnitionModuleResultsT
     >
   ): SubmoduleIgnitionModuleResultsT {
     assert(
-      ignitionModule !== undefined,
+      submoduleDefinition !== undefined,
       "Trying to use `undefined` as submodule. Make sure you don't have a circular dependency of modules."
     );
+
+    const submodule = this._constructor.construct(submoduleDefinition);
 
     // Some things that should be done here:
     //   - Keep track of the submodule
     //   - return the submodule's results
     //
-    this._module.submodules.add(ignitionModule);
+    this._module.submodules.add(submodule);
 
-    return ignitionModule.results;
+    return submodule.results;
   }
 
   private _assertUniqueContractId(futureId: string) {
