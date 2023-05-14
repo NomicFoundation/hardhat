@@ -6,17 +6,23 @@ import {
   NamedContractCallFutureImplementation,
   NamedStaticCallFutureImplementation,
 } from "../../src/new-api/internal/module";
+import { ModuleConstructor } from "../../src/new-api/internal/module-builder";
 import { FutureType } from "../../src/new-api/types/module";
 
 describe("static call", () => {
   it("should be able to setup a static call", () => {
-    const moduleWithASingleContract = buildModule("Module1", (m) => {
+    const moduleWithASingleContractDefinition = buildModule("Module1", (m) => {
       const contract1 = m.contract("Contract1");
 
       m.staticCall(contract1, "test");
 
       return { contract1 };
     });
+
+    const constructor = new ModuleConstructor();
+    const moduleWithASingleContract = constructor.construct(
+      moduleWithASingleContractDefinition
+    );
 
     assert.isDefined(moduleWithASingleContract);
 
@@ -43,14 +49,22 @@ describe("static call", () => {
   });
 
   it("should be able to pass one contract as an arg dependency to a static call", () => {
-    const moduleWithDependentContracts = buildModule("Module1", (m) => {
-      const example = m.contract("Example");
-      const another = m.contract("Another");
+    const moduleWithDependentContractsDefinition = buildModule(
+      "Module1",
+      (m) => {
+        const example = m.contract("Example");
+        const another = m.contract("Another");
 
-      m.staticCall(example, "test", [another]);
+        m.staticCall(example, "test", [another]);
 
-      return { example, another };
-    });
+        return { example, another };
+      }
+    );
+
+    const constructor = new ModuleConstructor();
+    const moduleWithDependentContracts = constructor.construct(
+      moduleWithDependentContractsDefinition
+    );
 
     assert.isDefined(moduleWithDependentContracts);
 
@@ -76,14 +90,22 @@ describe("static call", () => {
   });
 
   it("should be able to pass one contract as an after dependency of a static call", () => {
-    const moduleWithDependentContracts = buildModule("Module1", (m) => {
-      const example = m.contract("Example");
-      const another = m.contract("Another");
+    const moduleWithDependentContractsDefinition = buildModule(
+      "Module1",
+      (m) => {
+        const example = m.contract("Example");
+        const another = m.contract("Another");
 
-      m.staticCall(example, "test", [], { after: [another] });
+        m.staticCall(example, "test", [], { after: [another] });
 
-      return { example, another };
-    });
+        return { example, another };
+      }
+    );
+
+    const constructor = new ModuleConstructor();
+    const moduleWithDependentContracts = constructor.construct(
+      moduleWithDependentContractsDefinition
+    );
 
     assert.isDefined(moduleWithDependentContracts);
 
@@ -109,7 +131,7 @@ describe("static call", () => {
   });
 
   it("should be able to pass its result into another call", () => {
-    const moduleWithASingleContract = buildModule("Module1", (m) => {
+    const moduleWithASingleContractDefinition = buildModule("Module1", (m) => {
       const contract1 = m.contract("Contract1");
 
       const data = m.staticCall(contract1, "test");
@@ -118,6 +140,11 @@ describe("static call", () => {
 
       return { contract1 };
     });
+
+    const constructor = new ModuleConstructor();
+    const moduleWithASingleContract = constructor.construct(
+      moduleWithASingleContractDefinition
+    );
 
     assert.isDefined(moduleWithASingleContract);
 
@@ -139,7 +166,7 @@ describe("static call", () => {
 
   describe("passing id", () => {
     it("should be able to statically call the same function twice by passing an id", () => {
-      const moduleWithSameCallTwice = buildModule("Module1", (m) => {
+      const moduleWithSameCallTwiceDefinition = buildModule("Module1", (m) => {
         const sameContract1 = m.contract("Example");
 
         m.staticCall(sameContract1, "test", [], { id: "first" });
@@ -147,6 +174,11 @@ describe("static call", () => {
 
         return { sameContract1 };
       });
+
+      const constructor = new ModuleConstructor();
+      const moduleWithSameCallTwice = constructor.construct(
+        moduleWithSameCallTwiceDefinition
+      );
 
       assert.equal(moduleWithSameCallTwice.id, "Module1");
 
@@ -163,26 +195,36 @@ describe("static call", () => {
     });
 
     it("should throw if the same function is statically called twice without differentiating ids", () => {
-      assert.throws(() => {
-        buildModule("Module1", (m) => {
-          const sameContract1 = m.contract("SameContract");
-          m.staticCall(sameContract1, "test");
-          m.staticCall(sameContract1, "test");
+      const moduleDefinition = buildModule("Module1", (m) => {
+        const sameContract1 = m.contract("SameContract");
+        m.staticCall(sameContract1, "test");
+        m.staticCall(sameContract1, "test");
 
-          return { sameContract1 };
-        });
-      }, /Static calls must have unique ids, Module1:SameContract:test has already been used/);
+        return { sameContract1 };
+      });
+
+      const constructor = new ModuleConstructor();
+
+      assert.throws(
+        () => constructor.construct(moduleDefinition),
+        /Static calls must have unique ids, Module1:SameContract:test has already been used/
+      );
     });
 
     it("should throw if a static call tries to pass the same id twice", () => {
-      assert.throws(() => {
-        buildModule("Module1", (m) => {
-          const sameContract1 = m.contract("SameContract");
-          m.staticCall(sameContract1, "test", [], { id: "first" });
-          m.staticCall(sameContract1, "test", [], { id: "first" });
-          return { sameContract1 };
-        });
-      }, /Static calls must have unique ids, Module1:SameContract:first has already been used/);
+      const moduleDefinition = buildModule("Module1", (m) => {
+        const sameContract1 = m.contract("SameContract");
+        m.staticCall(sameContract1, "test", [], { id: "first" });
+        m.staticCall(sameContract1, "test", [], { id: "first" });
+        return { sameContract1 };
+      });
+
+      const constructor = new ModuleConstructor();
+
+      assert.throws(
+        () => constructor.construct(moduleDefinition),
+        /Static calls must have unique ids, Module1:SameContract:first has already been used/
+      );
     });
   });
 });
