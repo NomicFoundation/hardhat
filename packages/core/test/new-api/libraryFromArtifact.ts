@@ -1,16 +1,25 @@
 import { assert } from "chai";
 
 import { buildModule } from "../../src/new-api/build-module";
+import { ModuleConstructor } from "../../src/new-api/internal/module-builder";
 
 describe("libraryFromArtifact", () => {
   const fakeArtifact: any = {};
 
   it("should be able to deploy with a library based on an artifact", () => {
-    const moduleWithContractFromArtifact = buildModule("Module1", (m) => {
-      const library1 = m.libraryFromArtifact("Library1", fakeArtifact);
+    const moduleWithContractFromArtifactDefinition = buildModule(
+      "Module1",
+      (m) => {
+        const library1 = m.libraryFromArtifact("Library1", fakeArtifact);
 
-      return { library1 };
-    });
+        return { library1 };
+      }
+    );
+
+    const constructor = new ModuleConstructor();
+    const moduleWithContractFromArtifact = constructor.construct(
+      moduleWithContractFromArtifactDefinition
+    );
 
     assert.isDefined(moduleWithContractFromArtifact);
 
@@ -29,14 +38,22 @@ describe("libraryFromArtifact", () => {
   });
 
   it("should be able to pass an after dependency", () => {
-    const moduleWithDependentContracts = buildModule("Module1", (m) => {
-      const example = m.library("Example");
-      const another = m.libraryFromArtifact("Another", fakeArtifact, {
-        after: [example],
-      });
+    const moduleWithDependentContractsDefinition = buildModule(
+      "Module1",
+      (m) => {
+        const example = m.library("Example");
+        const another = m.libraryFromArtifact("Another", fakeArtifact, {
+          after: [example],
+        });
 
-      return { example, another };
-    });
+        return { example, another };
+      }
+    );
+
+    const constructor = new ModuleConstructor();
+    const moduleWithDependentContracts = constructor.construct(
+      moduleWithDependentContractsDefinition
+    );
 
     assert.equal(moduleWithDependentContracts.futures.size, 2);
 
@@ -49,22 +66,30 @@ describe("libraryFromArtifact", () => {
 
   describe("passing id", () => {
     it("should use library from artifact twice by passing an id", () => {
-      const moduleWithSameContractTwice = buildModule("Module1", (m) => {
-        const sameContract1 = m.libraryFromArtifact(
-          "SameContract",
-          fakeArtifact,
-          { id: "first" }
-        );
-        const sameContract2 = m.libraryFromArtifact(
-          "SameContract",
-          fakeArtifact,
-          {
-            id: "second",
-          }
-        );
+      const moduleWithSameContractTwiceDefinition = buildModule(
+        "Module1",
+        (m) => {
+          const sameContract1 = m.libraryFromArtifact(
+            "SameContract",
+            fakeArtifact,
+            { id: "first" }
+          );
+          const sameContract2 = m.libraryFromArtifact(
+            "SameContract",
+            fakeArtifact,
+            {
+              id: "second",
+            }
+          );
 
-        return { sameContract1, sameContract2 };
-      });
+          return { sameContract1, sameContract2 };
+        }
+      );
+
+      const constructor = new ModuleConstructor();
+      const moduleWithSameContractTwice = constructor.construct(
+        moduleWithSameContractTwiceDefinition
+      );
 
       // Sets ids based on module id and contract name
       assert.equal(moduleWithSameContractTwice.id, "Module1");

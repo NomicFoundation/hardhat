@@ -2,15 +2,21 @@ import { assert } from "chai";
 
 import { buildModule } from "../../src/new-api/build-module";
 import { NamedLibraryDeploymentFutureImplementation } from "../../src/new-api/internal/module";
+import { ModuleConstructor } from "../../src/new-api/internal/module-builder";
 import { FutureType } from "../../src/new-api/types/module";
 
 describe("library", () => {
   it("should be able to setup a deploy library call", () => {
-    const moduleWithASingleContract = buildModule("Module1", (m) => {
+    const moduleWithASingleContractDefinition = buildModule("Module1", (m) => {
       const library1 = m.library("Library1");
 
       return { library1 };
     });
+
+    const constructor = new ModuleConstructor();
+    const moduleWithASingleContract = constructor.construct(
+      moduleWithASingleContractDefinition
+    );
 
     assert.isDefined(moduleWithASingleContract);
 
@@ -33,12 +39,20 @@ describe("library", () => {
   });
 
   it("should be able to pass one library as an after dependency of another", () => {
-    const moduleWithDependentContracts = buildModule("Module1", (m) => {
-      const example = m.library("Example");
-      const another = m.library("Another", { after: [example] });
+    const moduleWithDependentContractsDefinition = buildModule(
+      "Module1",
+      (m) => {
+        const example = m.library("Example");
+        const another = m.library("Another", { after: [example] });
 
-      return { example, another };
-    });
+        return { example, another };
+      }
+    );
+
+    const constructor = new ModuleConstructor();
+    const moduleWithDependentContracts = constructor.construct(
+      moduleWithDependentContractsDefinition
+    );
 
     assert.isDefined(moduleWithDependentContracts);
 
@@ -62,14 +76,22 @@ describe("library", () => {
 
   describe("passing id", () => {
     it("should be able to deploy the same library twice by passing an id", () => {
-      const moduleWithSameContractTwice = buildModule("Module1", (m) => {
-        const sameContract1 = m.library("SameContract", { id: "first" });
-        const sameContract2 = m.library("SameContract", {
-          id: "second",
-        });
+      const moduleWithSameContractTwiceDefinition = buildModule(
+        "Module1",
+        (m) => {
+          const sameContract1 = m.library("SameContract", { id: "first" });
+          const sameContract2 = m.library("SameContract", {
+            id: "second",
+          });
 
-        return { sameContract1, sameContract2 };
-      });
+          return { sameContract1, sameContract2 };
+        }
+      );
+
+      const constructor = new ModuleConstructor();
+      const moduleWithSameContractTwice = constructor.construct(
+        moduleWithSameContractTwiceDefinition
+      );
 
       assert.equal(moduleWithSameContractTwice.id, "Module1");
       assert.equal(

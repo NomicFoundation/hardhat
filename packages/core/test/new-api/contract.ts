@@ -111,14 +111,22 @@ describe("contract", () => {
   });
 
   it("should be able to pass a library as a dependency of a contract", () => {
-    const moduleWithDependentContracts = buildModule("Module1", (m) => {
-      const example = m.library("Example");
-      const another = m.contract("Another", [], {
-        libraries: { Example: example },
-      });
+    const moduleWithDependentContractsDefinition = buildModule(
+      "Module1",
+      (m) => {
+        const example = m.library("Example");
+        const another = m.contract("Another", [], {
+          libraries: { Example: example },
+        });
 
-      return { example, another };
-    });
+        return { example, another };
+      }
+    );
+
+    const constructor = new ModuleConstructor();
+    const moduleWithDependentContracts = constructor.construct(
+      moduleWithDependentContractsDefinition
+    );
 
     assert.isDefined(moduleWithDependentContracts);
 
