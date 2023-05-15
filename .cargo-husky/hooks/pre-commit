@@ -5,6 +5,9 @@
 
 set -e
 
+export RUSTFLAGS=-Dwarnings
+
+cargo check --workspace --all-features --all-targets
 cargo test --workspace --all-targets --features tracing,bench-once
 cargo test --doc --workspace --features tracing
 cargo clippy --all -- -D warnings
