@@ -21,12 +21,14 @@ export class LazyInitializationProvider implements EthereumProvider {
   // Provider methods
 
   public async request(args: RequestArguments): Promise<unknown> {
-    const provider = await this.ensureProvider();
+    await this.initProvider();
+    const provider = this.getProvider();
     return provider.request(args);
   }
 
   public async send(method: string, params?: any[]): Promise<any> {
-    const provider = await this.ensureProvider();
+    await this.initProvider();
+    const provider = this.getProvider();
     return provider.send(method, params);
   }
 
@@ -34,7 +36,8 @@ export class LazyInitializationProvider implements EthereumProvider {
     payload: JsonRpcRequest,
     callback: (error: any, response: JsonRpcResponse) => void
   ): void {
-    this.ensureProvider().then((provider) => {
+    this.initProvider().then(() => {
+      const provider = this.getProvider();
       provider.sendAsync(payload, callback);
     });
   }
@@ -129,11 +132,10 @@ export class LazyInitializationProvider implements EthereumProvider {
     return this.provider;
   }
 
-  private async ensureProvider(): Promise<EthereumProvider> {
+  private async initProvider(): Promise<void> {
     if (!this.provider) {
       this.provider = await this.providerFactory();
     }
-    return this.provider;
   }
 }
 
