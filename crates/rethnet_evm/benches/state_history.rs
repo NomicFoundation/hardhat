@@ -50,7 +50,7 @@ fn bench_remove_snapshot(c: &mut Criterion) {
     );
 }
 
-fn bench_set_block_context_to_snapshot(c: &mut Criterion) {
+fn bench_set_block_context_to_latest_snapshot(c: &mut Criterion) {
     let snapshot: std::cell::RefCell<B256> = Default::default();
     bench_sync_state_method(
         c,
@@ -95,6 +95,6 @@ criterion_group!(
     bench_make_snapshot,
     bench_remove_snapshot,
     bench_revert,
-    bench_set_block_context_to_snapshot,
+    bench_set_block_context_to_latest_snapshot,
 );
 criterion_main!(state_history_benches);
