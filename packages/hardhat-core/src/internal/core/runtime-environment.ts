@@ -49,7 +49,7 @@ export class Environment implements HardhatRuntimeEnvironment {
 
   public artifacts: IArtifacts;
 
-  private readonly _extenders: EnvironmentExtender[]; // TODO: Rename to environmentExtenders ? @nico
+  private readonly environmentExtenders: EnvironmentExtender[];
 
   public entryTaskProfile?: TaskProfile;
 
@@ -65,14 +65,14 @@ export class Environment implements HardhatRuntimeEnvironment {
    * @param config The hardhat's config object.
    * @param hardhatArguments The parsed hardhat's arguments.
    * @param tasks A map of tasks.
-   * @param extenders A list of environment extenders.
+   * @param environmentExtenders A list of environment extenders.
    * @param providerExtenders A list of provider extenders.
    */
   constructor(
     public readonly config: HardhatConfig,
     public readonly hardhatArguments: HardhatArguments,
     public readonly tasks: TasksMap,
-    extenders: EnvironmentExtender[] = [], // TODO: Rename to environmentExtenders ? @nico
+    environmentExtenders: EnvironmentExtender[] = [],
     experimentalHardhatNetworkMessageTraceHooks: ExperimentalHardhatNetworkMessageTraceHook[] = [],
     public readonly userConfig: HardhatUserConfig = {},
     providerExtenders: ProviderExtender[] = []
@@ -115,9 +115,9 @@ export class Environment implements HardhatRuntimeEnvironment {
       provider,
     };
 
-    this._extenders = extenders;
+    this.environmentExtenders = environmentExtenders;
 
-    extenders.forEach((extender) => extender(this));
+    environmentExtenders.forEach((extender) => extender(this));
   }
 
   /**
