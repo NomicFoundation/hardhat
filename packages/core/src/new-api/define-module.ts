@@ -1,10 +1,10 @@
 import { IgnitionModuleResult } from "./types/module";
 import {
-  IgnitionModuleDefinition,
   IgnitionModuleBuilder,
+  IgnitionModuleDefinition,
 } from "./types/module-builder";
 
-export function buildModule<
+export function defineModule<
   ModuleIdT extends string,
   ContractNameT extends string,
   IgnitionModuleResultsT extends IgnitionModuleResult<ContractNameT>

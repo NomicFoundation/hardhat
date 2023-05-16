@@ -1,13 +1,13 @@
 import { assert } from "chai";
 
-import { buildModule } from "../../src/new-api/build-module";
+import { defineModule } from "../../src/new-api/define-module";
 import { NamedLibraryDeploymentFutureImplementation } from "../../src/new-api/internal/module";
 import { ModuleConstructor } from "../../src/new-api/internal/module-builder";
 import { FutureType } from "../../src/new-api/types/module";
 
 describe("library", () => {
   it("should be able to setup a deploy library call", () => {
-    const moduleWithASingleContractDefinition = buildModule("Module1", (m) => {
+    const moduleWithASingleContractDefinition = defineModule("Module1", (m) => {
       const library1 = m.library("Library1");
 
       return { library1 };
@@ -39,7 +39,7 @@ describe("library", () => {
   });
 
   it("should be able to pass one library as an after dependency of another", () => {
-    const moduleWithDependentContractsDefinition = buildModule(
+    const moduleWithDependentContractsDefinition = defineModule(
       "Module1",
       (m) => {
         const example = m.library("Example");
@@ -75,7 +75,7 @@ describe("library", () => {
   });
 
   it("should be able to pass a library as a dependency of a library", () => {
-    const moduleWithDependentContractsDefinition = buildModule(
+    const moduleWithDependentContractsDefinition = defineModule(
       "Module1",
       (m) => {
         const example = m.library("Example");
@@ -115,7 +115,7 @@ describe("library", () => {
 
   describe("passing id", () => {
     it("should be able to deploy the same library twice by passing an id", () => {
-      const moduleWithSameContractTwiceDefinition = buildModule(
+      const moduleWithSameContractTwiceDefinition = defineModule(
         "Module1",
         (m) => {
           const sameContract1 = m.library("SameContract", { id: "first" });
@@ -144,7 +144,7 @@ describe("library", () => {
     });
 
     it("should throw if the same library is deployed twice without differentiating ids", () => {
-      const moduleDefinition = buildModule("Module1", (m) => {
+      const moduleDefinition = defineModule("Module1", (m) => {
         const sameContract1 = m.library("SameContract");
         const sameContract2 = m.library("SameContract");
 
@@ -159,7 +159,7 @@ describe("library", () => {
     });
 
     it("should throw if a library tries to pass the same id twice", () => {
-      const moduleDefinition = buildModule("Module1", (m) => {
+      const moduleDefinition = defineModule("Module1", (m) => {
         const sameContract1 = m.library("SameContract", {
           id: "same",
         });

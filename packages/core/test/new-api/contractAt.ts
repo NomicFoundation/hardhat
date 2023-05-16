@@ -1,13 +1,13 @@
 import { assert } from "chai";
 
-import { buildModule } from "../../src/new-api/build-module";
+import { defineModule } from "../../src/new-api/define-module";
 import { ModuleConstructor } from "../../src/new-api/internal/module-builder";
 
 describe("contractAt", () => {
   const fakeArtifact: any = {};
 
   it("should be able to setup a contract at a given address", () => {
-    const moduleWithContractFromArtifactDefinition = buildModule(
+    const moduleWithContractFromArtifactDefinition = defineModule(
       "Module1",
       (m) => {
         const contract1 = m.contractAt("Contract1", "0xtest", fakeArtifact);
@@ -44,7 +44,7 @@ describe("contractAt", () => {
   });
 
   it("should be able to pass an after dependency", () => {
-    const moduleWithDependentContractsDefinition = buildModule(
+    const moduleWithDependentContractsDefinition = defineModule(
       "Module1",
       (m) => {
         const example = m.contract("Example");
@@ -72,7 +72,7 @@ describe("contractAt", () => {
 
   describe("passing id", () => {
     it("should use contract at twice by passing an id", () => {
-      const moduleWithSameContractTwiceDefinition = buildModule(
+      const moduleWithSameContractTwiceDefinition = defineModule(
         "Module1",
         (m) => {
           const sameContract1 = m.contractAt(
@@ -114,7 +114,7 @@ describe("contractAt", () => {
     });
 
     it("should throw if the same contract is deployed twice without differentiating ids", () => {
-      const moduleDefinition = buildModule("Module1", (m) => {
+      const moduleDefinition = defineModule("Module1", (m) => {
         const sameContract1 = m.contractAt(
           "SameContract",
           "0xtest",
@@ -138,7 +138,7 @@ describe("contractAt", () => {
     });
 
     it("should throw if a contract tries to pass the same id twice", () => {
-      const moduleDefinition = buildModule("Module1", (m) => {
+      const moduleDefinition = defineModule("Module1", (m) => {
         const sameContract1 = m.contractAt(
           "SameContract",
           "0xtest",

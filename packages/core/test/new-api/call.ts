@@ -1,13 +1,13 @@
 import { assert } from "chai";
 
-import { buildModule } from "../../src/new-api/build-module";
+import { defineModule } from "../../src/new-api/define-module";
 import { NamedContractCallFutureImplementation } from "../../src/new-api/internal/module";
 import { ModuleConstructor } from "../../src/new-api/internal/module-builder";
 import { FutureType } from "../../src/new-api/types/module";
 
 describe("call", () => {
   it("should be able to setup a contract call", () => {
-    const moduleWithASingleContractDefinition = buildModule("Module1", (m) => {
+    const moduleWithASingleContractDefinition = defineModule("Module1", (m) => {
       const contract1 = m.contract("Contract1");
 
       m.call(contract1, "test");
@@ -45,7 +45,7 @@ describe("call", () => {
   });
 
   it("should be able to pass one contract as an arg dependency to a call", () => {
-    const moduleWithDependentContractsDefinition = buildModule(
+    const moduleWithDependentContractsDefinition = defineModule(
       "Module1",
       (m) => {
         const example = m.contract("Example");
@@ -86,7 +86,7 @@ describe("call", () => {
   });
 
   it("should be able to pass one contract as an after dependency of a call", () => {
-    const moduleWithDependentContractsDefinition = buildModule(
+    const moduleWithDependentContractsDefinition = defineModule(
       "Module1",
       (m) => {
         const example = m.contract("Example");
@@ -128,7 +128,7 @@ describe("call", () => {
 
   describe("passing id", () => {
     it("should be able to call the same function twice by passing an id", () => {
-      const moduleWithSameCallTwiceDefinition = buildModule("Module1", (m) => {
+      const moduleWithSameCallTwiceDefinition = defineModule("Module1", (m) => {
         const sameContract1 = m.contract("Example");
 
         m.call(sameContract1, "test", [], { id: "first" });
@@ -157,7 +157,7 @@ describe("call", () => {
     });
 
     it("should throw if the same function is called twice without differentiating ids", () => {
-      const moduleDefinition = buildModule("Module1", (m) => {
+      const moduleDefinition = defineModule("Module1", (m) => {
         const sameContract1 = m.contract("SameContract");
         m.call(sameContract1, "test");
         m.call(sameContract1, "test");
@@ -174,7 +174,7 @@ describe("call", () => {
     });
 
     it("should throw if a call tries to pass the same id twice", () => {
-      const moduleDefinition = buildModule("Module1", (m) => {
+      const moduleDefinition = defineModule("Module1", (m) => {
         const sameContract1 = m.contract("SameContract");
         m.call(sameContract1, "test", [], { id: "first" });
         m.call(sameContract1, "test", [], { id: "first" });

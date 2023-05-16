@@ -2,17 +2,17 @@
 //  Future: representation of a future value, which may require on-chain interaction (e.g. deploy a contract, an already existing contract)
 //  FutureFactory: Methods exposed by IgnitionModuleBuidler which create factories
 
-import { buildModule } from "./build-module";
+import { defineModule } from "./define-module";
 
 // Examples
 
-const moduleWithASingleContract = buildModule("Module1", (m) => {
+const moduleWithASingleContract = defineModule("Module1", (m) => {
   const contract1 = m.contract("Contract1", []);
 
   return { contract1 };
 });
 
-const moduleWithUnexportedContract = buildModule("Module2", (m) => {
+const moduleWithUnexportedContract = defineModule("Module2", (m) => {
   const contract1 = m.contract("Contract1", [1, 2, 3]);
 
   // We don't export this, but we still need to run every future,
@@ -22,7 +22,7 @@ const moduleWithUnexportedContract = buildModule("Module2", (m) => {
   return { contract1 };
 });
 
-const moduleWithSubmodule = buildModule("Module3", (m) => {
+const moduleWithSubmodule = defineModule("Module3", (m) => {
   const { contract1 } = m.useModule(moduleWithASingleContract);
   // ^ This is typed 😎
 

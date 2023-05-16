@@ -1,13 +1,13 @@
 import { assert } from "chai";
 
-import { buildModule } from "../../src/new-api/build-module";
+import { defineModule } from "../../src/new-api/define-module";
 import { NamedContractDeploymentFutureImplementation } from "../../src/new-api/internal/module";
 import { ModuleConstructor } from "../../src/new-api/internal/module-builder";
 import { FutureType } from "../../src/new-api/types/module";
 
 describe("contract", () => {
   it("should be able to setup a deploy contract call", () => {
-    const moduleWithASingleContractDefinition = buildModule("Module1", (m) => {
+    const moduleWithASingleContractDefinition = defineModule("Module1", (m) => {
       const contract1 = m.contract("Contract1");
 
       return { contract1 };
@@ -39,7 +39,7 @@ describe("contract", () => {
   });
 
   it("should be able to pass one contract as an arg dependency to another", () => {
-    const moduleWithDependentContractsDefinition = buildModule(
+    const moduleWithDependentContractsDefinition = defineModule(
       "Module1",
       (m) => {
         const example = m.contract("Example");
@@ -75,7 +75,7 @@ describe("contract", () => {
   });
 
   it("should be able to pass one contract as an after dependency of another", () => {
-    const moduleWithDependentContractsDefinition = buildModule(
+    const moduleWithDependentContractsDefinition = defineModule(
       "Module1",
       (m) => {
         const example = m.contract("Example");
@@ -111,7 +111,7 @@ describe("contract", () => {
   });
 
   it("should be able to pass a library as a dependency of a contract", () => {
-    const moduleWithDependentContractsDefinition = buildModule(
+    const moduleWithDependentContractsDefinition = defineModule(
       "Module1",
       (m) => {
         const example = m.library("Example");
@@ -151,7 +151,7 @@ describe("contract", () => {
 
   describe("passing id", () => {
     it("should be able to deploy the same contract twice by passing an id", () => {
-      const moduleWithSameContractTwiceDefinition = buildModule(
+      const moduleWithSameContractTwiceDefinition = defineModule(
         "Module1",
         (m) => {
           const sameContract1 = m.contract("SameContract", [], { id: "first" });
@@ -180,7 +180,7 @@ describe("contract", () => {
     });
 
     it("should throw if the same contract is deployed twice without differentiating ids", () => {
-      const moduleDefinition = buildModule("Module1", (m) => {
+      const moduleDefinition = defineModule("Module1", (m) => {
         const sameContract1 = m.contract("SameContract");
         const sameContract2 = m.contract("SameContract");
 
@@ -196,7 +196,7 @@ describe("contract", () => {
     });
 
     it("should throw if a contract tries to pass the same id twice", () => {
-      const moduleDefinition = buildModule("Module1", (m) => {
+      const moduleDefinition = defineModule("Module1", (m) => {
         const sameContract1 = m.contract("SameContract", [], {
           id: "same",
         });

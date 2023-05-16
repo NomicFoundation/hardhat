@@ -1,17 +1,17 @@
 import { assert } from "chai";
 
-import { buildModule } from "../../src/new-api/build-module";
+import { defineModule } from "../../src/new-api/define-module";
 import { ModuleConstructor } from "../../src/new-api/internal/module-builder";
 
 describe("useModule", () => {
   it("should be able to use a submodule", () => {
-    const submoduleDefinition = buildModule("Submodule1", (m) => {
+    const submoduleDefinition = defineModule("Submodule1", (m) => {
       const contract1 = m.contract("Contract1");
 
       return { contract1 };
     });
 
-    const moduleWithSubmoduleDefinition = buildModule("Module1", (m) => {
+    const moduleWithSubmoduleDefinition = defineModule("Module1", (m) => {
       const { contract1 } = m.useModule(submoduleDefinition);
 
       return { contract1 };
@@ -29,13 +29,13 @@ describe("useModule", () => {
   });
 
   it("returns the same result set (object equal) for each usage", () => {
-    const submoduleDefinition = buildModule("Submodule1", (m) => {
+    const submoduleDefinition = defineModule("Submodule1", (m) => {
       const contract1 = m.contract("Contract1");
 
       return { contract1 };
     });
 
-    const moduleWithSubmoduleDefinition = buildModule("Module1", (m) => {
+    const moduleWithSubmoduleDefinition = defineModule("Module1", (m) => {
       const { contract1: first } = m.useModule(submoduleDefinition);
       const { contract1: second } = m.useModule(submoduleDefinition);
 
@@ -58,13 +58,13 @@ describe("useModule", () => {
   });
 
   it("supports dependending on returned results", () => {
-    const submoduleDefinition = buildModule("Submodule1", (m) => {
+    const submoduleDefinition = defineModule("Submodule1", (m) => {
       const contract1 = m.contract("Contract1");
 
       return { contract1 };
     });
 
-    const moduleWithSubmoduleDefinition = buildModule("Module1", (m) => {
+    const moduleWithSubmoduleDefinition = defineModule("Module1", (m) => {
       const { contract1 } = m.useModule(submoduleDefinition);
 
       const contract2 = m.contract("Contract2", [contract1]);

@@ -1,6 +1,6 @@
 import { assert } from "chai";
 
-import { buildModule } from "../../src/new-api/build-module";
+import { defineModule } from "../../src/new-api/define-module";
 import { ArtifactLibraryDeploymentFutureImplementation } from "../../src/new-api/internal/module";
 import { ModuleConstructor } from "../../src/new-api/internal/module-builder";
 
@@ -8,7 +8,7 @@ describe("libraryFromArtifact", () => {
   const fakeArtifact: any = {};
 
   it("should be able to deploy with a library based on an artifact", () => {
-    const moduleWithContractFromArtifactDefinition = buildModule(
+    const moduleWithContractFromArtifactDefinition = defineModule(
       "Module1",
       (m) => {
         const library1 = m.libraryFromArtifact("Library1", fakeArtifact);
@@ -39,7 +39,7 @@ describe("libraryFromArtifact", () => {
   });
 
   it("should be able to pass an after dependency", () => {
-    const moduleWithDependentContractsDefinition = buildModule(
+    const moduleWithDependentContractsDefinition = defineModule(
       "Module1",
       (m) => {
         const example = m.library("Example");
@@ -66,7 +66,7 @@ describe("libraryFromArtifact", () => {
   });
 
   it("should be able to pass a library as a dependency of a library", () => {
-    const moduleWithDependentContractsDefinition = buildModule(
+    const moduleWithDependentContractsDefinition = defineModule(
       "Module1",
       (m) => {
         const example = m.library("Example");
@@ -106,7 +106,7 @@ describe("libraryFromArtifact", () => {
 
   describe("passing id", () => {
     it("should use library from artifact twice by passing an id", () => {
-      const moduleWithSameContractTwiceDefinition = buildModule(
+      const moduleWithSameContractTwiceDefinition = defineModule(
         "Module1",
         (m) => {
           const sameContract1 = m.libraryFromArtifact(
@@ -144,7 +144,7 @@ describe("libraryFromArtifact", () => {
     });
 
     it("should throw if the same library is deployed twice without differentiating ids", () => {
-      const moduleDefinition = buildModule("Module1", (m) => {
+      const moduleDefinition = defineModule("Module1", (m) => {
         const sameContract1 = m.libraryFromArtifact(
           "SameContract",
           fakeArtifact
@@ -165,7 +165,7 @@ describe("libraryFromArtifact", () => {
     });
 
     it("should throw if a library tries to pass the same id twice", () => {
-      const moduleDefinition = buildModule("Module1", (m) => {
+      const moduleDefinition = defineModule("Module1", (m) => {
         const sameContract1 = m.libraryFromArtifact(
           "SameContract",
           fakeArtifact,
