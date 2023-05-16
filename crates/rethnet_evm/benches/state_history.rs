@@ -1,6 +1,10 @@
 use criterion::{criterion_group, criterion_main, Criterion};
 
-use rethnet_eth::B256;
+use rethnet_eth::{Address, B256, U256};
+use rethnet_evm::{
+    state::{AccountModifierFn, StateError, SyncState},
+    AccountInfo,
+};
 
 mod util;
 use util::{bench_sync_state_method, prep_no_op, SNAPSHOT_SCALES};
@@ -69,6 +73,110 @@ fn bench_set_block_context_to_latest_snapshot(c: &mut Criterion) {
     );
 }
 
+fn prep_snapshots(
+    state: &mut dyn SyncState<StateError>,
+    number_of_snapshots: u64,
+    account_to_modify: &Address,
+    snapshot_number_to_capture: u64,
+) -> B256 {
+    let mut return_value: B256 = Default::default();
+    for i in 0..number_of_snapshots {
+        // modify an arbitrary account
+        state
+            .modify_account(
+                *account_to_modify,
+                AccountModifierFn::new(Box::new(|balance, _nonce, _code| {
+                    *balance = *balance + U256::from(1);
+                })),
+                &|| Ok(AccountInfo::default()),
+            )
+            .unwrap();
+        if i == snapshot_number_to_capture {
+            return_value.assign_from_slice(state.state_root().unwrap().as_bytes());
+        }
+        state.checkpoint().unwrap();
+    }
+    return_value
+}
+
+fn bench_set_block_context_to_earliest_layer(c: &mut Criterion) {
+    let earliest_state_root: std::cell::RefCell<B256> = Default::default();
+    bench_sync_state_method(
+        c,
+        "StateHistory:set_block,earliest layer",
+        |state, number_of_accounts, number_of_snapshots| {
+            let address = Address::from_low_u64_ne(number_of_accounts);
+            debug_assert!(state.basic(address).unwrap().is_some());
+            earliest_state_root.borrow_mut().assign_from_slice(
+                prep_snapshots(state, number_of_snapshots, &address, 0).as_bytes(),
+            );
+        },
+        |mut state, _number_of_accounts| {
+            state
+                .set_block_context(&earliest_state_root.borrow(), None)
+                .unwrap();
+        },
+        &[0],
+        &SNAPSHOT_SCALES,
+    );
+}
+
+fn bench_set_block_context_to_latest_layer(c: &mut Criterion) {
+    let latest_state_root: std::cell::RefCell<B256> = Default::default();
+    bench_sync_state_method(
+        c,
+        "StateHistory:set_block,latest layer",
+        |state, number_of_accounts, number_of_snapshots| {
+            let address = Address::from_low_u64_ne(number_of_accounts);
+            debug_assert!(state.basic(address).unwrap().is_some());
+            latest_state_root.borrow_mut().assign_from_slice(
+                prep_snapshots(
+                    state,
+                    number_of_snapshots,
+                    &address,
+                    number_of_snapshots - 1,
+                )
+                .as_bytes(),
+            );
+        },
+        |mut state, _number_of_accounts| {
+            state
+                .set_block_context(&latest_state_root.borrow(), None)
+                .unwrap();
+        },
+        &[0],
+        &SNAPSHOT_SCALES,
+    );
+}
+
+fn bench_set_block_context_to_middle_layer(c: &mut Criterion) {
+    let middle_state_root: std::cell::RefCell<B256> = Default::default();
+    bench_sync_state_method(
+        c,
+        "StateHistory:set_block,middle layer",
+        |state, number_of_accounts, number_of_snapshots| {
+            let address = Address::from_low_u64_ne(number_of_accounts);
+            debug_assert!(state.basic(address).unwrap().is_some());
+            middle_state_root.borrow_mut().assign_from_slice(
+                prep_snapshots(
+                    state,
+                    number_of_snapshots,
+                    &address,
+                    number_of_snapshots / 2,
+                )
+                .as_bytes(),
+            );
+        },
+        |mut state, _number_of_accounts| {
+            state
+                .set_block_context(&middle_state_root.borrow(), None)
+                .unwrap();
+        },
+        &[0],
+        &SNAPSHOT_SCALES,
+    );
+}
+
 // TODO: consider whether we should have an additional benchmark of set_block_context that restores
 // to an older layer rather than a very recent one, and further, whether that additional benchmark
 // should also vary the age/depth of the older layer being reverted to.
@@ -96,5 +204,8 @@ criterion_group!(
     bench_remove_snapshot,
     bench_revert,
     bench_set_block_context_to_latest_snapshot,
+    bench_set_block_context_to_earliest_layer,
+    bench_set_block_context_to_latest_layer,
+    bench_set_block_context_to_middle_layer,
 );
 criterion_main!(state_history_benches);
