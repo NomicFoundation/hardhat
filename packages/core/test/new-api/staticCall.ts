@@ -18,7 +18,7 @@ describe("static call", () => {
       return { contract1 };
     });
 
-    const constructor = new ModuleConstructor(0);
+    const constructor = new ModuleConstructor(0, []);
     const moduleWithASingleContract = constructor.construct(
       moduleWithASingleContractDefinition
     );
@@ -60,7 +60,7 @@ describe("static call", () => {
       }
     );
 
-    const constructor = new ModuleConstructor(0);
+    const constructor = new ModuleConstructor(0, []);
     const moduleWithDependentContracts = constructor.construct(
       moduleWithDependentContractsDefinition
     );
@@ -101,7 +101,7 @@ describe("static call", () => {
       }
     );
 
-    const constructor = new ModuleConstructor(0);
+    const constructor = new ModuleConstructor(0, []);
     const moduleWithDependentContracts = constructor.construct(
       moduleWithDependentContractsDefinition
     );
@@ -140,7 +140,7 @@ describe("static call", () => {
       return { contract1 };
     });
 
-    const constructor = new ModuleConstructor(0);
+    const constructor = new ModuleConstructor(0, []);
     const moduleWithASingleContract = constructor.construct(
       moduleWithASingleContractDefinition
     );
@@ -174,7 +174,7 @@ describe("static call", () => {
         return { sameContract1 };
       });
 
-      const constructor = new ModuleConstructor(0);
+      const constructor = new ModuleConstructor(0, []);
       const moduleWithSameCallTwice = constructor.construct(
         moduleWithSameCallTwiceDefinition
       );
@@ -202,7 +202,7 @@ describe("static call", () => {
         return { sameContract1 };
       });
 
-      const constructor = new ModuleConstructor(0);
+      const constructor = new ModuleConstructor(0, []);
 
       assert.throws(
         () => constructor.construct(moduleDefinition),
@@ -218,7 +218,7 @@ describe("static call", () => {
         return { sameContract1 };
       });
 
-      const constructor = new ModuleConstructor(0);
+      const constructor = new ModuleConstructor(0, []);
 
       assert.throws(
         () => constructor.construct(moduleDefinition),

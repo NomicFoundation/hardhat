@@ -17,7 +17,7 @@ describe("libraryFromArtifact", () => {
       }
     );
 
-    const constructor = new ModuleConstructor(0);
+    const constructor = new ModuleConstructor(0, []);
     const moduleWithContractFromArtifact = constructor.construct(
       moduleWithContractFromArtifactDefinition
     );
@@ -51,7 +51,7 @@ describe("libraryFromArtifact", () => {
       }
     );
 
-    const constructor = new ModuleConstructor(0);
+    const constructor = new ModuleConstructor(0, []);
     const moduleWithDependentContracts = constructor.construct(
       moduleWithDependentContractsDefinition
     );
@@ -78,7 +78,7 @@ describe("libraryFromArtifact", () => {
       }
     );
 
-    const constructor = new ModuleConstructor(0);
+    const constructor = new ModuleConstructor(0, []);
     const moduleWithDependentContracts = constructor.construct(
       moduleWithDependentContractsDefinition
     );
@@ -126,7 +126,7 @@ describe("libraryFromArtifact", () => {
         }
       );
 
-      const constructor = new ModuleConstructor(0);
+      const constructor = new ModuleConstructor(0, []);
       const moduleWithSameContractTwice = constructor.construct(
         moduleWithSameContractTwiceDefinition
       );
@@ -156,7 +156,7 @@ describe("libraryFromArtifact", () => {
 
         return { sameContract1, sameContract2 };
       });
-      const constructor = new ModuleConstructor(0);
+      const constructor = new ModuleConstructor(0, []);
 
       assert.throws(
         () => constructor.construct(moduleDefinition),
@@ -183,7 +183,7 @@ describe("libraryFromArtifact", () => {
 
         return { sameContract1, sameContract2 };
       });
-      const constructor = new ModuleConstructor(0);
+      const constructor = new ModuleConstructor(0, []);
 
       assert.throws(
         () => constructor.construct(moduleDefinition),

@@ -63,6 +63,7 @@ export interface ContractAtOptions {
 
 export interface IgnitionModuleBuilder {
   chainId: number;
+  accounts: string[];
 
   contract<ContractNameT extends string>(
     contractName: ContractNameT,

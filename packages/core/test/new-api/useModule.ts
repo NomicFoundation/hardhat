@@ -17,7 +17,7 @@ describe("useModule", () => {
       return { contract1 };
     });
 
-    const constructor = new ModuleConstructor(0);
+    const constructor = new ModuleConstructor(0, []);
     const submodule = constructor.construct(submoduleDefinition);
     const moduleWithSubmodule = constructor.construct(
       moduleWithSubmoduleDefinition
@@ -42,7 +42,7 @@ describe("useModule", () => {
       return { first, second };
     });
 
-    const constructor = new ModuleConstructor(0);
+    const constructor = new ModuleConstructor(0, []);
     const submodule = constructor.construct(submoduleDefinition);
     const moduleWithSubmodule = constructor.construct(
       moduleWithSubmoduleDefinition
@@ -72,7 +72,7 @@ describe("useModule", () => {
       return { contract2 };
     });
 
-    const constructor = new ModuleConstructor(0);
+    const constructor = new ModuleConstructor(0, []);
     const submodule = constructor.construct(submoduleDefinition);
     const moduleWithSubmodule = constructor.construct(
       moduleWithSubmoduleDefinition

@@ -57,7 +57,10 @@ const STUB_MODULE_RESULTS = {
 export class ModuleConstructor {
   private _modules: Map<string, IgnitionModule> = new Map();
 
-  constructor(public readonly chainId: number) {}
+  constructor(
+    public readonly chainId: number,
+    public readonly accounts: string[]
+  ) {}
 
   public construct<
     ModuleIdT extends string,
@@ -85,7 +88,12 @@ export class ModuleConstructor {
     >(moduleDefintion.id, STUB_MODULE_RESULTS as any);
 
     (mod as any).results = moduleDefintion.moduleDefintionFunction(
-      new IgnitionModuleBuilderImplementation(this, mod, this.chainId)
+      new IgnitionModuleBuilderImplementation(
+        this,
+        mod,
+        this.chainId,
+        this.accounts
+      )
     );
 
     this._modules.set(moduleDefintion.id, mod);
@@ -109,7 +117,8 @@ export class IgnitionModuleBuilderImplementation<
       ResultsContractNameT,
       IgnitionModuleResultsT
     >,
-    public readonly chainId: number
+    public readonly chainId: number,
+    public readonly accounts: string[]
   ) {
     this._futureIds = new Set<string>();
   }
