@@ -36,10 +36,15 @@ export class LazyInitializationProvider implements EthereumProvider {
     payload: JsonRpcRequest,
     callback: (error: any, response: JsonRpcResponse) => void
   ): void {
-    this._initProvider().then(() => {
-      const provider = this._getProvider();
-      provider.sendAsync(payload, callback);
-    });
+    this._initProvider().then(
+      () => {
+        const provider = this._getProvider();
+        provider.sendAsync(payload, callback);
+      },
+      (e) => {
+        callback(e, null as any);
+      }
+    );
   }
 
   // EventEmitter methods
