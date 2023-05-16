@@ -259,7 +259,7 @@ export class IgnitionModuleBuilderImplementation<
     options: CallOptions = {}
   ): NamedContractCallFuture<ContractNameT, FunctionNameT> {
     const id = options.id ?? functionName;
-    const futureId = `${this._module.id}:${contractFuture.contractName}:${id}`;
+    const futureId = `${this._module.id}:${contractFuture.contractName}#${id}`;
 
     this._assertUniqueCallId(futureId);
 
@@ -293,7 +293,7 @@ export class IgnitionModuleBuilderImplementation<
     options: CallOptions = {}
   ): NamedStaticCallFuture<ContractNameT, FunctionNameT> {
     const id = options.id ?? functionName;
-    const futureId = `${this._module.id}:${contractFuture.contractName}:${id}`;
+    const futureId = `${this._module.id}:${contractFuture.contractName}#${id}`;
 
     this._assertUniqueStaticCallId(futureId);
 
@@ -399,7 +399,7 @@ export class IgnitionModuleBuilderImplementation<
   private _assertUniqueCallId(futureId: string) {
     return this._assertUniqueFutureId(
       futureId,
-      `Calls must have unique ids, ${futureId} has already been used, ensure the id passed is unique \`m.call(myContract, "myFunction", [], { id: "MyId"})\``,
+      `Duplicated id ${futureId} found in module ${this._module.id}, ensure the id passed is unique \`m.call(myContract, "myFunction", [], { id: "MyId"})\``,
       this.call
     );
   }
@@ -407,7 +407,7 @@ export class IgnitionModuleBuilderImplementation<
   private _assertUniqueStaticCallId(futureId: string) {
     return this._assertUniqueFutureId(
       futureId,
-      `Static calls must have unique ids, ${futureId} has already been used, ensure the id passed is unique \`m.staticCall(myContract, "myFunction", [], { id: "MyId"})\``,
+      `Duplicated id ${futureId} found in module ${this._module.id}, ensure the id passed is unique \`m.staticCall(myContract, "myFunction", [], { id: "MyId"})\``,
       this.staticCall
     );
   }

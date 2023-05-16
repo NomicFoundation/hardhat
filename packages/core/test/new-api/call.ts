@@ -73,7 +73,7 @@ describe("call", () => {
     );
 
     const callFuture = [...moduleWithDependentContracts.futures].find(
-      ({ id }) => id === "Module1:Example:test"
+      ({ id }) => id === "Module1:Example#test"
     );
 
     if (!(callFuture instanceof NamedContractCallFutureImplementation)) {
@@ -114,7 +114,7 @@ describe("call", () => {
     );
 
     const callFuture = [...moduleWithDependentContracts.futures].find(
-      ({ id }) => id === "Module1:Example:test"
+      ({ id }) => id === "Module1:Example#test"
     );
 
     if (!(callFuture instanceof NamedContractCallFutureImplementation)) {
@@ -145,11 +145,11 @@ describe("call", () => {
       assert.equal(moduleWithSameCallTwice.id, "Module1");
 
       const callFuture = [...moduleWithSameCallTwice.futures].find(
-        ({ id }) => id === "Module1:Example:first"
+        ({ id }) => id === "Module1:Example#first"
       );
 
       const callFuture2 = [...moduleWithSameCallTwice.futures].find(
-        ({ id }) => id === "Module1:Example:second"
+        ({ id }) => id === "Module1:Example#second"
       );
 
       assert.isDefined(callFuture);
@@ -169,7 +169,7 @@ describe("call", () => {
 
       assert.throws(
         () => constructor.construct(moduleDefinition),
-        /Calls must have unique ids, Module1:SameContract:test has already been used/
+        /Duplicated id Module1:SameContract#test found in module Module1/
       );
     });
 
@@ -185,7 +185,7 @@ describe("call", () => {
 
       assert.throws(
         () => constructor.construct(moduleDefinition),
-        /Calls must have unique ids, Module1:SameContract:first has already been used/
+        /Duplicated id Module1:SameContract#first found in module Module1/
       );
     });
   });
