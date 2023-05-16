@@ -59,39 +59,27 @@ export class LazyInitializationProvider implements EthereumProvider {
     return this;
   }
 
-  public once(
-    event: string | symbol,
-    listener: (...args: any[]) => void
-  ): this {
+  public once(event: string | symbol, listener: Listener): this {
     this._getEmitter().once(event, listener);
     return this;
   }
 
-  public prependListener(
-    event: string | symbol,
-    listener: (...args: any[]) => void
-  ): this {
+  public prependListener(event: string | symbol, listener: Listener): this {
     this._getEmitter().prependListener(event, listener);
     return this;
   }
 
-  public prependOnceListener(
-    event: string | symbol,
-    listener: (...args: any[]) => void
-  ): this {
+  public prependOnceListener(event: string | symbol, listener: Listener): this {
     this._getEmitter().prependOnceListener(event, listener);
     return this;
   }
 
-  public removeListener(
-    event: string | symbol,
-    listener: (...args: any[]) => void
-  ): this {
+  public removeListener(event: string | symbol, listener: Listener): this {
     this._getEmitter().removeListener(event, listener);
     return this;
   }
 
-  public off(event: string | symbol, listener: (...args: any[]) => void): this {
+  public off(event: string | symbol, listener: Listener): this {
     this._getEmitter().off(event, listener);
     return this;
   }
