@@ -24,22 +24,22 @@ export class LazyInitializationProvider implements EthereumProvider {
   // Provider methods
 
   public async request(args: RequestArguments): Promise<unknown> {
-    await this._initProvider();
-    return this.provider!.request(args);
+    const provider = await this._getOrInitProvider();
+    return provider.request(args);
   }
 
   public async send(method: string, params?: any[]): Promise<any> {
-    await this._initProvider();
-    return this.provider!.send(method, params);
+    const provider = await this._getOrInitProvider();
+    return provider.send(method, params);
   }
 
   public sendAsync(
     payload: JsonRpcRequest,
     callback: (error: any, response: JsonRpcResponse) => void
   ): void {
-    this._initProvider().then(
-      () => {
-        this.provider!.sendAsync(payload, callback);
+    this._getOrInitProvider().then(
+      (provider) => {
+        provider.sendAsync(payload, callback);
       },
       (e) => {
         callback(e, null as any);
@@ -126,7 +126,7 @@ export class LazyInitializationProvider implements EthereumProvider {
     return this.provider === undefined ? this._emitter : this.provider;
   }
 
-  private async _initProvider(): Promise<void> {
+  private async _getOrInitProvider(): Promise<EthereumProvider> {
     if (this.provider === undefined) {
       this.provider = await this._providerFactory();
 
@@ -143,5 +143,7 @@ export class LazyInitializationProvider implements EthereumProvider {
 
       this.provider.setMaxListeners(this._emitter.getMaxListeners());
     }
+
+    return this.provider;
   }
 }
