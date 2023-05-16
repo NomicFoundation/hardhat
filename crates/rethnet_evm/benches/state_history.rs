@@ -28,7 +28,7 @@ fn bench_make_snapshot(c: &mut Criterion) {
             state.make_snapshot();
         },
         &[0],
-        &SNAPSHOT_SCALES,
+        &[0],
     );
 }
 
