@@ -1,6 +1,6 @@
 import type { ModuleParams } from "@ignored/ignition-core";
 
-import { Text, Newline } from "ink";
+import { Newline, Text } from "ink";
 
 export const ModuleParameters = ({
   moduleParams,
@@ -20,7 +20,7 @@ export const ModuleParameters = ({
   const params = entries.map(([key, value]) => (
     <Text>
       <Text>
-        {key}: {value}
+        {key}: {value.toString()}
       </Text>
       <Newline />
     </Text>
