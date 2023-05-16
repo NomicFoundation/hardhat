@@ -131,14 +131,14 @@ export class LazyInitializationProvider implements EthereumProvider {
   }
 
   private _getProvider(): EthereumProvider {
-    if (!this.provider) {
+    if (this.provider === undefined) {
       throw new UninitializedProviderError();
     }
     return this.provider;
   }
 
   private async _initProvider(): Promise<void> {
-    if (!this.provider) {
+    if (this.provider === undefined) {
       this.provider = await this._providerFactory();
     }
   }
