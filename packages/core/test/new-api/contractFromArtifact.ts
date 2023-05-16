@@ -1,8 +1,8 @@
 import { assert } from "chai";
 
 import { buildModule } from "../../src/new-api/build-module";
-import { ModuleConstructor } from "../../src/new-api/internal/module-builder";
 import { ArtifactContractDeploymentFutureImplementation } from "../../src/new-api/internal/module";
+import { ModuleConstructor } from "../../src/new-api/internal/module-builder";
 
 describe("contractFromArtifact", () => {
   const fakeArtifact: any = {};
