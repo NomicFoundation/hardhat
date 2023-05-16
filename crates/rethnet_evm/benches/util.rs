@@ -17,7 +17,6 @@ impl RethnetStates {
         number_of_accounts: u64,
         number_of_accounts_per_checkpoint: u64,
         number_of_storage_slots_per_account: u64,
-        number_of_snapshots: u64,
     ) {
         let mut states: [&mut dyn SyncState<StateError>; 2] = [&mut self.layered, &mut self.hybrid];
         for state in states.iter_mut() {
@@ -48,9 +47,6 @@ impl RethnetStates {
                     }
                 }
                 state.checkpoint().unwrap();
-            }
-            for _ in 0..number_of_snapshots {
-                state.make_snapshot();
             }
         }
     }
@@ -108,7 +104,7 @@ pub fn bench_sync_state_method<O, R, Prep>(
     snapshot_scales: &[u64],
 ) where
     R: FnMut(Box<dyn SyncState<StateError>>, u64) -> O,
-    Prep: FnMut(&mut dyn SyncState<StateError>, u64),
+    Prep: FnMut(&mut dyn SyncState<StateError>, u64, u64),
 {
     let mut group = c.benchmark_group(method_name);
     for accounts_per_checkpoint in CHECKPOINT_SCALES.iter() {
@@ -120,7 +116,6 @@ pub fn bench_sync_state_method<O, R, Prep>(
                         *number_of_accounts,
                         *accounts_per_checkpoint,
                         *storage_slots_per_account,
-                        *number_of_snapshots,
                     );
 
                     for (label, state_factory) in rethnet_states.make_clone_factories().into_iter()
@@ -141,7 +136,7 @@ pub fn bench_sync_state_method<O, R, Prep>(
                                 b.iter_batched(
                                     || {
                                         let mut state = state_factory();
-                                        prep(&mut state, *number_of_accounts);
+                                        prep(&mut state, *number_of_accounts, *number_of_snapshots);
                                         state
                                     },
                                     |state| method_invocation(state, *number_of_accounts),
@@ -156,7 +151,7 @@ pub fn bench_sync_state_method<O, R, Prep>(
     }
 }
 
-pub fn prep_no_op(_s: &mut dyn SyncState<StateError>, _i: u64) {}
+pub fn prep_no_op(_s: &mut dyn SyncState<StateError>, _i: u64, _j: u64) {}
 
 #[allow(dead_code)]
 pub fn account_has_code(state: &dyn SyncState<StateError>, address: &Address) -> bool {
