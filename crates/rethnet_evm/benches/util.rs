@@ -75,7 +75,7 @@ mod config {
     pub const CHECKPOINT_SCALES: [u64; 1] = [1];
     pub const ADDRESS_SCALES: [u64; 1] = [1];
     pub const STORAGE_SCALES: [u64; 1] = [1];
-    pub const SNAPSHOT_SCALES: [u64; 1] = [0];
+    pub const SNAPSHOT_SCALES: [u64; 1] = [1];
 }
 
 #[cfg(not(feature = "bench-once"))]
