@@ -85,7 +85,7 @@ fn bench_revert(c: &mut Criterion) {
             debug_assert!(result.is_ok());
         },
         &[0],
-        &SNAPSHOT_SCALES,
+        &[0],
     );
 }
 
