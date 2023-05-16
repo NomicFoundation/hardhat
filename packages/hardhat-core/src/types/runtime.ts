@@ -218,8 +218,8 @@ export interface Network {
 export type EnvironmentExtender = (env: HardhatRuntimeEnvironment) => void;
 
 /**
- * A function that receives a provider, crafts a returns a new one.
- * Adding and modifing the current provider is preferred from ignoring it and returning a new instance.
+ * A function that receives a provider, crafts and returns a new one.
+ * Adding and modifying the current provider is preferred over ignoring it and returning a new instance.
  */
 export type ProviderExtender = (
   provider: EIP1193Provider
