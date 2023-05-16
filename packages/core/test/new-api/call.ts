@@ -15,7 +15,7 @@ describe("call", () => {
       return { contract1 };
     });
 
-    const constructor = new ModuleConstructor();
+    const constructor = new ModuleConstructor(0);
     const moduleWithASingleContract = constructor.construct(
       moduleWithASingleContractDefinition
     );
@@ -57,7 +57,7 @@ describe("call", () => {
       }
     );
 
-    const constructor = new ModuleConstructor();
+    const constructor = new ModuleConstructor(0);
     const moduleWithDependentContracts = constructor.construct(
       moduleWithDependentContractsDefinition
     );
@@ -98,7 +98,7 @@ describe("call", () => {
       }
     );
 
-    const constructor = new ModuleConstructor();
+    const constructor = new ModuleConstructor(0);
     const moduleWithDependentContracts = constructor.construct(
       moduleWithDependentContractsDefinition
     );
@@ -137,7 +137,7 @@ describe("call", () => {
         return { sameContract1 };
       });
 
-      const constructor = new ModuleConstructor();
+      const constructor = new ModuleConstructor(0);
       const moduleWithSameCallTwice = constructor.construct(
         moduleWithSameCallTwiceDefinition
       );
@@ -165,7 +165,7 @@ describe("call", () => {
         return { sameContract1 };
       });
 
-      const constructor = new ModuleConstructor();
+      const constructor = new ModuleConstructor(0);
 
       assert.throws(
         () => constructor.construct(moduleDefinition),
@@ -181,7 +181,7 @@ describe("call", () => {
         return { sameContract1 };
       });
 
-      const constructor = new ModuleConstructor();
+      const constructor = new ModuleConstructor(0);
 
       assert.throws(
         () => constructor.construct(moduleDefinition),

@@ -16,7 +16,7 @@ describe("contractAt", () => {
       }
     );
 
-    const constructor = new ModuleConstructor();
+    const constructor = new ModuleConstructor(0);
     const moduleWithContractFromArtifact = constructor.construct(
       moduleWithContractFromArtifactDefinition
     );
@@ -56,7 +56,7 @@ describe("contractAt", () => {
       }
     );
 
-    const constructor = new ModuleConstructor();
+    const constructor = new ModuleConstructor(0);
     const moduleWithDependentContracts = constructor.construct(
       moduleWithDependentContractsDefinition
     );
@@ -96,7 +96,7 @@ describe("contractAt", () => {
         }
       );
 
-      const constructor = new ModuleConstructor();
+      const constructor = new ModuleConstructor(0);
       const moduleWithSameContractTwice = constructor.construct(
         moduleWithSameContractTwiceDefinition
       );
@@ -129,7 +129,7 @@ describe("contractAt", () => {
         return { sameContract1, sameContract2 };
       });
 
-      const constructor = new ModuleConstructor();
+      const constructor = new ModuleConstructor(0);
 
       assert.throws(
         () => constructor.construct(moduleDefinition),
@@ -159,7 +159,7 @@ describe("contractAt", () => {
         return { sameContract1, sameContract2 };
       });
 
-      const constructor = new ModuleConstructor();
+      const constructor = new ModuleConstructor(0);
 
       assert.throws(
         () => constructor.construct(moduleDefinition),
