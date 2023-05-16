@@ -110,10 +110,14 @@ export class LazyInitializationProvider implements EthereumProvider {
     return this._getProvider().getMaxListeners();
   }
 
+  // disable ban-types to satisfy the EventEmitter interface
+  // eslint-disable-next-line @typescript-eslint/ban-types
   public listeners(event: string | symbol): Function[] {
     return this._getProvider().listeners(event);
   }
 
+  // disable ban-types to satisfy the EventEmitter interface
+  // eslint-disable-next-line @typescript-eslint/ban-types
   public rawListeners(event: string | symbol): Function[] {
     return this._getProvider().rawListeners(event);
   }
