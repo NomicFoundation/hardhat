@@ -49,7 +49,7 @@ export class Environment implements HardhatRuntimeEnvironment {
 
   public artifacts: IArtifacts;
 
-  private readonly environmentExtenders: EnvironmentExtender[];
+  private readonly _environmentExtenders: EnvironmentExtender[];
 
   public entryTaskProfile?: TaskProfile;
 
@@ -115,7 +115,7 @@ export class Environment implements HardhatRuntimeEnvironment {
       provider,
     };
 
-    this.environmentExtenders = environmentExtenders;
+    this._environmentExtenders = environmentExtenders;
 
     environmentExtenders.forEach((extender) => extender(this));
   }

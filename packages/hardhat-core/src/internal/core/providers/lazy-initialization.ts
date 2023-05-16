@@ -16,19 +16,19 @@ import { CustomError } from "../errors";
 export class LazyInitializationProvider implements EthereumProvider {
   protected provider: EthereumProvider | undefined;
 
-  constructor(private providerFactory: ProviderFactory) {}
+  constructor(private _providerFactory: ProviderFactory) {}
 
   // Provider methods
 
   public async request(args: RequestArguments): Promise<unknown> {
-    await this.initProvider();
-    const provider = this.getProvider();
+    await this._initProvider();
+    const provider = this._getProvider();
     return provider.request(args);
   }
 
   public async send(method: string, params?: any[]): Promise<any> {
-    await this.initProvider();
-    const provider = this.getProvider();
+    await this._initProvider();
+    const provider = this._getProvider();
     return provider.send(method, params);
   }
 
@@ -36,8 +36,8 @@ export class LazyInitializationProvider implements EthereumProvider {
     payload: JsonRpcRequest,
     callback: (error: any, response: JsonRpcResponse) => void
   ): void {
-    this.initProvider().then(() => {
-      const provider = this.getProvider();
+    this._initProvider().then(() => {
+      const provider = this._getProvider();
       provider.sendAsync(payload, callback);
     });
   }
@@ -45,12 +45,12 @@ export class LazyInitializationProvider implements EthereumProvider {
   // EventEmitter methods
 
   public addListener(event: string | symbol, listener: EventListener): this {
-    this.getProvider().addListener(event, listener);
+    this._getProvider().addListener(event, listener);
     return this;
   }
 
   public on(event: string | symbol, listener: EventListener): this {
-    this.getProvider().on(event, listener);
+    this._getProvider().on(event, listener);
     return this;
   }
 
@@ -58,7 +58,7 @@ export class LazyInitializationProvider implements EthereumProvider {
     event: string | symbol,
     listener: (...args: any[]) => void
   ): this {
-    this.getProvider().once(event, listener);
+    this._getProvider().once(event, listener);
     return this;
   }
 
@@ -66,7 +66,7 @@ export class LazyInitializationProvider implements EthereumProvider {
     event: string | symbol,
     listener: (...args: any[]) => void
   ): this {
-    this.getProvider().prependListener(event, listener);
+    this._getProvider().prependListener(event, listener);
     return this;
   }
 
@@ -74,7 +74,7 @@ export class LazyInitializationProvider implements EthereumProvider {
     event: string | symbol,
     listener: (...args: any[]) => void
   ): this {
-    this.getProvider().prependOnceListener(event, listener);
+    this._getProvider().prependOnceListener(event, listener);
     return this;
   }
 
@@ -82,59 +82,59 @@ export class LazyInitializationProvider implements EthereumProvider {
     event: string | symbol,
     listener: (...args: any[]) => void
   ): this {
-    this.getProvider().removeListener(event, listener);
+    this._getProvider().removeListener(event, listener);
     return this;
   }
 
   public off(event: string | symbol, listener: (...args: any[]) => void): this {
-    this.getProvider().off(event, listener);
+    this._getProvider().off(event, listener);
     return this;
   }
 
   public removeAllListeners(event?: string | symbol | undefined): this {
-    this.getProvider().removeAllListeners(event);
+    this._getProvider().removeAllListeners(event);
     return this;
   }
 
   public setMaxListeners(n: number): this {
-    this.getProvider().setMaxListeners(n);
+    this._getProvider().setMaxListeners(n);
     return this;
   }
 
   public getMaxListeners(): number {
-    return this.getProvider().getMaxListeners();
+    return this._getProvider().getMaxListeners();
   }
 
   public listeners(event: string | symbol): Function[] {
-    return this.getProvider().listeners(event);
+    return this._getProvider().listeners(event);
   }
 
   public rawListeners(event: string | symbol): Function[] {
-    return this.getProvider().rawListeners(event);
+    return this._getProvider().rawListeners(event);
   }
 
   public emit(event: string | symbol, ...args: any[]): boolean {
-    return this.getProvider().emit(event, ...args);
+    return this._getProvider().emit(event, ...args);
   }
 
   public eventNames(): Array<string | symbol> {
-    return this.getProvider().eventNames();
+    return this._getProvider().eventNames();
   }
 
   public listenerCount(type: string | symbol): number {
-    return this.getProvider().listenerCount(type);
+    return this._getProvider().listenerCount(type);
   }
 
-  private getProvider(): EthereumProvider {
+  private _getProvider(): EthereumProvider {
     if (!this.provider) {
       throw new UninitializedProviderError();
     }
     return this.provider;
   }
 
-  private async initProvider(): Promise<void> {
+  private async _initProvider(): Promise<void> {
     if (!this.provider) {
-      this.provider = await this.providerFactory();
+      this.provider = await this._providerFactory();
     }
   }
 }
