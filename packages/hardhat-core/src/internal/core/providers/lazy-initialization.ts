@@ -1,13 +1,13 @@
+import { EventEmitter } from "events";
 import {
   EthereumProvider,
   JsonRpcRequest,
   JsonRpcResponse,
   RequestArguments,
 } from "../../../types";
-import { HardhatError } from "../errors";
-import { ERRORS } from "../errors-list";
 
 export type ProviderFactory = () => Promise<EthereumProvider>;
+export type Listener = (...args: any[]) => void;
 
 /**
  * A class that delays the (async) creation of its internal provider until the first call
@@ -17,6 +17,7 @@ export type ProviderFactory = () => Promise<EthereumProvider>;
  */
 export class LazyInitializationProvider implements EthereumProvider {
   protected provider: EthereumProvider | undefined;
+  private _emitter: EventEmitter = new EventEmitter();
 
   constructor(private _providerFactory: ProviderFactory) {}
 
@@ -24,14 +25,12 @@ export class LazyInitializationProvider implements EthereumProvider {
 
   public async request(args: RequestArguments): Promise<unknown> {
     await this._initProvider();
-    const provider = this._getProvider();
-    return provider.request(args);
+    return this.provider!.request(args);
   }
 
   public async send(method: string, params?: any[]): Promise<any> {
     await this._initProvider();
-    const provider = this._getProvider();
-    return provider.send(method, params);
+    return this.provider!.send(method, params);
   }
 
   public sendAsync(
@@ -40,8 +39,7 @@ export class LazyInitializationProvider implements EthereumProvider {
   ): void {
     this._initProvider().then(
       () => {
-        const provider = this._getProvider();
-        provider.sendAsync(payload, callback);
+        this.provider!.sendAsync(payload, callback);
       },
       (e) => {
         callback(e, null as any);
@@ -52,12 +50,12 @@ export class LazyInitializationProvider implements EthereumProvider {
   // EventEmitter methods
 
   public addListener(event: string | symbol, listener: EventListener): this {
-    this._getProvider().addListener(event, listener);
+    this._getEmitter().addListener(event, listener);
     return this;
   }
 
   public on(event: string | symbol, listener: EventListener): this {
-    this._getProvider().on(event, listener);
+    this._getEmitter().on(event, listener);
     return this;
   }
 
@@ -65,7 +63,7 @@ export class LazyInitializationProvider implements EthereumProvider {
     event: string | symbol,
     listener: (...args: any[]) => void
   ): this {
-    this._getProvider().once(event, listener);
+    this._getEmitter().once(event, listener);
     return this;
   }
 
@@ -73,7 +71,7 @@ export class LazyInitializationProvider implements EthereumProvider {
     event: string | symbol,
     listener: (...args: any[]) => void
   ): this {
-    this._getProvider().prependListener(event, listener);
+    this._getEmitter().prependListener(event, listener);
     return this;
   }
 
@@ -81,7 +79,7 @@ export class LazyInitializationProvider implements EthereumProvider {
     event: string | symbol,
     listener: (...args: any[]) => void
   ): this {
-    this._getProvider().prependOnceListener(event, listener);
+    this._getEmitter().prependOnceListener(event, listener);
     return this;
   }
 
@@ -89,63 +87,73 @@ export class LazyInitializationProvider implements EthereumProvider {
     event: string | symbol,
     listener: (...args: any[]) => void
   ): this {
-    this._getProvider().removeListener(event, listener);
+    this._getEmitter().removeListener(event, listener);
     return this;
   }
 
   public off(event: string | symbol, listener: (...args: any[]) => void): this {
-    this._getProvider().off(event, listener);
+    this._getEmitter().off(event, listener);
     return this;
   }
 
   public removeAllListeners(event?: string | symbol | undefined): this {
-    this._getProvider().removeAllListeners(event);
+    this._getEmitter().removeAllListeners(event);
     return this;
   }
 
   public setMaxListeners(n: number): this {
-    this._getProvider().setMaxListeners(n);
+    this._getEmitter().setMaxListeners(n);
     return this;
   }
 
   public getMaxListeners(): number {
-    return this._getProvider().getMaxListeners();
+    return this._getEmitter().getMaxListeners();
   }
 
   // disable ban-types to satisfy the EventEmitter interface
   // eslint-disable-next-line @typescript-eslint/ban-types
   public listeners(event: string | symbol): Function[] {
-    return this._getProvider().listeners(event);
+    return this._getEmitter().listeners(event);
   }
 
   // disable ban-types to satisfy the EventEmitter interface
   // eslint-disable-next-line @typescript-eslint/ban-types
   public rawListeners(event: string | symbol): Function[] {
-    return this._getProvider().rawListeners(event);
+    return this._getEmitter().rawListeners(event);
   }
 
   public emit(event: string | symbol, ...args: any[]): boolean {
-    return this._getProvider().emit(event, ...args);
+    return this._getEmitter().emit(event, ...args);
   }
 
   public eventNames(): Array<string | symbol> {
-    return this._getProvider().eventNames();
+    return this._getEmitter().eventNames();
   }
 
   public listenerCount(type: string | symbol): number {
-    return this._getProvider().listenerCount(type);
+    return this._getEmitter().listenerCount(type);
   }
 
-  private _getProvider(): EthereumProvider {
-    if (this.provider === undefined) {
-      throw new HardhatError(ERRORS.GENERAL.UNINITIALIZED_PROVIDER);
-    }
-    return this.provider;
+  private _getEmitter(): EventEmitter {
+    return this.provider === undefined ? this._emitter : this.provider;
   }
 
   private async _initProvider(): Promise<void> {
     if (this.provider === undefined) {
       this.provider = await this._providerFactory();
+
+      // Copy any event emitter events before initialization over to the provider
+      const recordedEvents = this._emitter.eventNames();
+
+      for (const event of recordedEvents) {
+        const listeners = this._emitter.rawListeners(event) as Listener[];
+        for (const listener of listeners) {
+          this.provider.on(event, listener);
+          this._emitter.removeListener(event, listener);
+        }
+      }
+
+      this.provider.setMaxListeners(this._emitter.getMaxListeners());
     }
   }
 }
