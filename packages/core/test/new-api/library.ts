@@ -74,6 +74,45 @@ describe("library", () => {
     assert(anotherFuture.dependencies.has(exampleFuture!));
   });
 
+  it("should be able to pass a library as a dependency of a library", () => {
+    const moduleWithDependentContractsDefinition = buildModule(
+      "Module1",
+      (m) => {
+        const example = m.library("Example");
+        const another = m.library("Another", {
+          libraries: { Example: example },
+        });
+
+        return { example, another };
+      }
+    );
+
+    const constructor = new ModuleConstructor();
+    const moduleWithDependentContracts = constructor.construct(
+      moduleWithDependentContractsDefinition
+    );
+
+    assert.isDefined(moduleWithDependentContracts);
+
+    const exampleFuture = [...moduleWithDependentContracts.futures].find(
+      ({ id }) => id === "Module1:Example"
+    );
+
+    const anotherFuture = [...moduleWithDependentContracts.futures].find(
+      ({ id }) => id === "Module1:Another"
+    );
+
+    if (
+      !(anotherFuture instanceof NamedLibraryDeploymentFutureImplementation)
+    ) {
+      assert.fail("Not a named library deployment");
+    }
+
+    assert.equal(anotherFuture.dependencies.size, 1);
+    assert.equal(anotherFuture.libraries.Example.id, exampleFuture?.id);
+    assert(anotherFuture.dependencies.has(exampleFuture!));
+  });
+
   describe("passing id", () => {
     it("should be able to deploy the same library twice by passing an id", () => {
       const moduleWithSameContractTwiceDefinition = buildModule(
@@ -115,7 +154,7 @@ describe("library", () => {
 
       assert.throws(
         () => constructor.construct(moduleDefinition),
-        /Libraries must have unique ids, Module1:SameContract has already been used/
+        /Duplicated id Module1:SameContract found in module Module1/
       );
     });
 
@@ -134,7 +173,7 @@ describe("library", () => {
 
       assert.throws(
         () => constructor.construct(moduleDefinition),
-        /Libraries must have unique ids, Module1:same has already been used/
+        /Duplicated id Module1:same found in module Module1/
       );
     });
   });

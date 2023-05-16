@@ -145,6 +145,7 @@ describe("contract", () => {
     }
 
     assert.equal(anotherFuture.dependencies.size, 1);
+    assert.equal(anotherFuture.libraries.Example.id, exampleFuture?.id);
     assert(anotherFuture.dependencies.has(exampleFuture!));
   });
 
@@ -190,7 +191,7 @@ describe("contract", () => {
 
       assert.throws(
         () => constructor.construct(moduleDefinition),
-        /Contracts must have unique ids, Module1:SameContract has already been used/
+        /Duplicated id Module1:SameContract found in module Module1/
       );
     });
 
@@ -210,7 +211,7 @@ describe("contract", () => {
 
       assert.throws(
         () => constructor.construct(moduleDefinition),
-        /Contracts must have unique ids, Module1:same has already been used/
+        /Duplicated id Module1:same found in module Module1/
       );
     });
   });

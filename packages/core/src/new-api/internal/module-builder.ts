@@ -109,6 +109,7 @@ export class IgnitionModuleBuilderImplementation<
   ): NamedContractDeploymentFuture<ContractNameT> {
     const id = options.id ?? contractName;
     const futureId = `${this._module.id}:${id}`;
+    options.libraries ??= {};
 
     this._assertUniqueContractId(futureId);
 
@@ -116,7 +117,8 @@ export class IgnitionModuleBuilderImplementation<
       futureId,
       this._module,
       contractName,
-      args
+      args,
+      options.libraries
     );
 
     for (const arg of args.filter(isFuture)) {
@@ -127,7 +129,7 @@ export class IgnitionModuleBuilderImplementation<
       future.dependencies.add(afterFuture);
     }
 
-    for (const libraryFuture of Object.values(options.libraries ?? {}).filter(
+    for (const libraryFuture of Object.values(options.libraries).filter(
       isFuture
     )) {
       future.dependencies.add(libraryFuture);
@@ -146,6 +148,7 @@ export class IgnitionModuleBuilderImplementation<
   ): ArtifactContractDeploymentFuture {
     const id = options.id ?? contractName;
     const futureId = `${this._module.id}:${id}`;
+    options.libraries ??= {};
 
     this._assertUniqueArtifactContractId(futureId);
 
@@ -154,7 +157,8 @@ export class IgnitionModuleBuilderImplementation<
       this._module,
       contractName,
       args,
-      artifact
+      artifact,
+      options.libraries
     );
 
     this._module.futures.add(future);
@@ -167,6 +171,12 @@ export class IgnitionModuleBuilderImplementation<
       future.dependencies.add(afterFuture);
     }
 
+    for (const libraryFuture of Object.values(options.libraries).filter(
+      isFuture
+    )) {
+      future.dependencies.add(libraryFuture);
+    }
+
     return future;
   }
 
@@ -176,17 +186,25 @@ export class IgnitionModuleBuilderImplementation<
   ): NamedLibraryDeploymentFuture<LibraryNameT> {
     const id = options.id ?? libraryName;
     const futureId = `${this._module.id}:${id}`;
+    options.libraries ??= {};
 
     this._assertUniqueLibraryId(futureId);
 
     const future = new NamedLibraryDeploymentFutureImplementation(
       futureId,
       this._module,
-      libraryName
+      libraryName,
+      options.libraries
     );
 
     for (const afterFuture of (options.after ?? []).filter(isFuture)) {
       future.dependencies.add(afterFuture);
+    }
+
+    for (const libraryFuture of Object.values(options.libraries).filter(
+      isFuture
+    )) {
+      future.dependencies.add(libraryFuture);
     }
 
     this._module.futures.add(future);
@@ -201,6 +219,7 @@ export class IgnitionModuleBuilderImplementation<
   ): ArtifactLibraryDeploymentFuture {
     const id = options.id ?? libraryName;
     const futureId = `${this._module.id}:${id}`;
+    options.libraries ??= {};
 
     this._assertUniqueArtifactLibraryId(futureId);
 
@@ -208,14 +227,21 @@ export class IgnitionModuleBuilderImplementation<
       futureId,
       this._module,
       libraryName,
-      artifact
+      artifact,
+      options.libraries
     );
-
-    this._module.futures.add(future);
 
     for (const afterFuture of (options.after ?? []).filter(isFuture)) {
       future.dependencies.add(afterFuture);
     }
+
+    for (const libraryFuture of Object.values(options.libraries).filter(
+      isFuture
+    )) {
+      future.dependencies.add(libraryFuture);
+    }
+
+    this._module.futures.add(future);
 
     return future;
   }
@@ -267,7 +293,7 @@ export class IgnitionModuleBuilderImplementation<
   private _assertUniqueContractId(futureId: string) {
     return this._assertUniqueFutureId(
       futureId,
-      `Contracts must have unique ids, ${futureId} has already been used, ensure the id passed is unique \`m.contract("MyContract", [], { id: "MyId"})\``,
+      `Duplicated id ${futureId} found in module ${this._module.id}, ensure the id passed is unique \`m.contract("MyContract", [], { id: "MyId"})\``,
       this.contract
     );
   }
@@ -275,7 +301,7 @@ export class IgnitionModuleBuilderImplementation<
   private _assertUniqueArtifactContractId(futureId: string) {
     return this._assertUniqueFutureId(
       futureId,
-      `Contracts must have unique ids, ${futureId} has already been used, ensure the id passed is unique \`m.contractFromArtifact("MyContract", artifact, [], { id: "MyId"})\``,
+      `Duplicated id ${futureId} found in module ${this._module.id}, ensure the id passed is unique \`m.contractFromArtifact("MyContract", artifact, [], { id: "MyId"})\``,
       this.contractFromArtifact
     );
   }
@@ -283,7 +309,7 @@ export class IgnitionModuleBuilderImplementation<
   private _assertUniqueLibraryId(futureId: string) {
     return this._assertUniqueFutureId(
       futureId,
-      `Libraries must have unique ids, ${futureId} has already been used, ensure the id passed is unique \`m.library("MyLibrary", { id: "MyId"})\``,
+      `Duplicated id ${futureId} found in module ${this._module.id}, ensure the id passed is unique \`m.library("MyLibrary", { id: "MyId"})\``,
       this.library
     );
   }
@@ -291,7 +317,7 @@ export class IgnitionModuleBuilderImplementation<
   private _assertUniqueArtifactLibraryId(futureId: string) {
     return this._assertUniqueFutureId(
       futureId,
-      `Libraries must have unique ids, ${futureId} has already been used, ensure the id passed is unique \`m.libraryFromArtifact("MyLibrary", artifact, { id: "MyId"})\``,
+      `Duplicated id ${futureId} found in module ${this._module.id}, ensure the id passed is unique \`m.libraryFromArtifact("MyLibrary", artifact, { id: "MyId"})\``,
       this.libraryFromArtifact
     );
   }

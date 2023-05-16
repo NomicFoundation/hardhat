@@ -2,6 +2,7 @@ import { assert } from "chai";
 
 import { buildModule } from "../../src/new-api/build-module";
 import { ModuleConstructor } from "../../src/new-api/internal/module-builder";
+import { ArtifactContractDeploymentFutureImplementation } from "../../src/new-api/internal/module";
 
 describe("contractFromArtifact", () => {
   const fakeArtifact: any = {};
@@ -101,6 +102,45 @@ describe("contractFromArtifact", () => {
     assert(anotherFuture.dependencies.has(exampleFuture!));
   });
 
+  it("should be able to pass a library as a dependency of a contract", () => {
+    const moduleWithDependentContractsDefinition = buildModule(
+      "Module1",
+      (m) => {
+        const example = m.library("Example");
+        const another = m.contractFromArtifact("Another", fakeArtifact, [], {
+          libraries: { Example: example },
+        });
+
+        return { example, another };
+      }
+    );
+
+    const constructor = new ModuleConstructor();
+    const moduleWithDependentContracts = constructor.construct(
+      moduleWithDependentContractsDefinition
+    );
+
+    assert.isDefined(moduleWithDependentContracts);
+
+    const exampleFuture = [...moduleWithDependentContracts.futures].find(
+      ({ id }) => id === "Module1:Example"
+    );
+
+    const anotherFuture = [...moduleWithDependentContracts.futures].find(
+      ({ id }) => id === "Module1:Another"
+    );
+
+    if (
+      !(anotherFuture instanceof ArtifactContractDeploymentFutureImplementation)
+    ) {
+      assert.fail("Not an artifact contract deployment");
+    }
+
+    assert.equal(anotherFuture.dependencies.size, 1);
+    assert.equal(anotherFuture.libraries.Example.id, exampleFuture?.id);
+    assert(anotherFuture.dependencies.has(exampleFuture!));
+  });
+
   describe("passing id", () => {
     it("should use contract from artifact twice by passing an id", () => {
       const moduleWithSameContractTwiceDefinition = buildModule(
@@ -159,7 +199,7 @@ describe("contractFromArtifact", () => {
 
       assert.throws(
         () => constructor.construct(moduleDefinition),
-        /Contracts must have unique ids, Module1:SameContract has already been used/
+        /Duplicated id Module1:SameContract found in module Module1/
       );
     });
 
@@ -188,7 +228,7 @@ describe("contractFromArtifact", () => {
 
       assert.throws(
         () => constructor.construct(moduleDefinition),
-        /Contracts must have unique ids, Module1:same has already been used/
+        /Duplicated id Module1:same found in module Module1/
       );
     });
   });

@@ -28,17 +28,12 @@ export interface ContractFuture<ContractNameT extends string>
   contractName: ContractNameT;
 }
 
-// A future representing a library. Either an existing one or one that will be deployed
-export interface LibraryFuture<LibraryNameT extends string>
-  extends Future<string> {
-  libraryName: LibraryNameT;
-}
-
 // A future representing the deployment of a contract that belongs to this project
 export interface NamedContractDeploymentFuture<ContractNameT extends string>
   extends ContractFuture<ContractNameT> {
   type: FutureType.NAMED_CONTRACT_DEPLOYMENT;
   constructorArgs: SolidityParamsType;
+  libraries: Record<string, ContractFuture<string>>;
 }
 
 // A future representing the deployment of a contract that we only know its artifact.
@@ -48,24 +43,28 @@ export interface ArtifactContractDeploymentFuture
   type: FutureType.ARTIFACT_CONTRACT_DEPLOYMENT;
   artifact: ArtifactType;
   constructorArgs: SolidityParamsType;
+  libraries: Record<string, ContractFuture<string>>;
 }
 
 // A future representing the deployment of a library that belongs to this project
 export interface NamedLibraryDeploymentFuture<LibraryNameT extends string>
-  extends LibraryFuture<LibraryNameT> {
+  extends ContractFuture<LibraryNameT> {
   type: FutureType.NAMED_LIBRARY_DEPLOYMENT;
+  libraries: Record<string, ContractFuture<string>>;
 }
 
 // A future representing the deployment of a library that we only know its artifact.
 // It may not belong to this project, and we may struggle to type.
-export interface ArtifactLibraryDeploymentFuture extends LibraryFuture<string> {
+export interface ArtifactLibraryDeploymentFuture
+  extends ContractFuture<string> {
   type: FutureType.ARTIFACT_LIBRARY_DEPLOYMENT;
   artifact: ArtifactType;
+  libraries: Record<string, ContractFuture<string>>;
 }
 
 // The results of deploying a module must be a dictionary of contract futures
 export interface IgnitionModuleResult<ContractNameT extends string> {
-  [name: string]: ContractFuture<ContractNameT> | LibraryFuture<ContractNameT>;
+  [name: string]: ContractFuture<ContractNameT>;
 }
 
 export interface IgnitionModule<

@@ -10,6 +10,7 @@ import {
   IgnitionModuleResult,
   NamedLibraryDeploymentFuture,
   ArtifactLibraryDeploymentFuture,
+  ContractFuture,
 } from "../types/module";
 
 export abstract class BaseFuture<
@@ -48,7 +49,8 @@ export class NamedContractDeploymentFutureImplementation<
     public readonly id: string,
     public readonly module: IgnitionModuleImplementation,
     public readonly contractName: ContractNameT,
-    public readonly constructorArgs: SolidityParamsType
+    public readonly constructorArgs: SolidityParamsType,
+    public readonly libraries: Record<string, ContractFuture<string>>
   ) {
     super(id, FutureType.NAMED_CONTRACT_DEPLOYMENT, module);
   }
@@ -65,7 +67,8 @@ export class ArtifactContractDeploymentFutureImplementation<
     public readonly module: IgnitionModuleImplementation,
     public readonly contractName: ContractNameT,
     public readonly constructorArgs: SolidityParamsType,
-    public readonly artifact: ArtifactType
+    public readonly artifact: ArtifactType,
+    public readonly libraries: Record<string, ContractFuture<string>>
   ) {
     super(id, FutureType.ARTIFACT_CONTRACT_DEPLOYMENT, module);
   }
@@ -80,7 +83,8 @@ export class NamedLibraryDeploymentFutureImplementation<
   constructor(
     public readonly id: string,
     public readonly module: IgnitionModuleImplementation,
-    public readonly libraryName: LibraryNameT
+    public readonly contractName: LibraryNameT,
+    public readonly libraries: Record<string, ContractFuture<string>>
   ) {
     super(id, FutureType.NAMED_LIBRARY_DEPLOYMENT, module);
   }
@@ -95,8 +99,9 @@ export class ArtifactLibraryDeploymentFutureImplementation<
   constructor(
     public readonly id: string,
     public readonly module: IgnitionModuleImplementation,
-    public readonly libraryName: LibraryNameT,
-    public readonly artifact: ArtifactType
+    public readonly contractName: LibraryNameT,
+    public readonly artifact: ArtifactType,
+    public readonly libraries: Record<string, ContractFuture<string>>
   ) {
     super(id, FutureType.ARTIFACT_LIBRARY_DEPLOYMENT, module);
   }

@@ -2,6 +2,7 @@ import { assert } from "chai";
 
 import { buildModule } from "../../src/new-api/build-module";
 import { ModuleConstructor } from "../../src/new-api/internal/module-builder";
+import { ArtifactLibraryDeploymentFutureImplementation } from "../../src/new-api/internal/module";
 
 describe("libraryFromArtifact", () => {
   const fakeArtifact: any = {};
@@ -64,6 +65,45 @@ describe("libraryFromArtifact", () => {
     assert(anotherFuture.dependencies.has(exampleFuture!));
   });
 
+  it("should be able to pass a library as a dependency of a library", () => {
+    const moduleWithDependentContractsDefinition = buildModule(
+      "Module1",
+      (m) => {
+        const example = m.library("Example");
+        const another = m.libraryFromArtifact("Another", fakeArtifact, {
+          libraries: { Example: example },
+        });
+
+        return { example, another };
+      }
+    );
+
+    const constructor = new ModuleConstructor();
+    const moduleWithDependentContracts = constructor.construct(
+      moduleWithDependentContractsDefinition
+    );
+
+    assert.isDefined(moduleWithDependentContracts);
+
+    const exampleFuture = [...moduleWithDependentContracts.futures].find(
+      ({ id }) => id === "Module1:Example"
+    );
+
+    const anotherFuture = [...moduleWithDependentContracts.futures].find(
+      ({ id }) => id === "Module1:Another"
+    );
+
+    if (
+      !(anotherFuture instanceof ArtifactLibraryDeploymentFutureImplementation)
+    ) {
+      assert.fail("Not an artifact library deployment");
+    }
+
+    assert.equal(anotherFuture.dependencies.size, 1);
+    assert.equal(anotherFuture.libraries.Example.id, exampleFuture?.id);
+    assert(anotherFuture.dependencies.has(exampleFuture!));
+  });
+
   describe("passing id", () => {
     it("should use library from artifact twice by passing an id", () => {
       const moduleWithSameContractTwiceDefinition = buildModule(
@@ -120,7 +160,7 @@ describe("libraryFromArtifact", () => {
 
       assert.throws(
         () => constructor.construct(moduleDefinition),
-        /Libraries must have unique ids, Module1:SameContract has already been used/
+        /Duplicated id Module1:SameContract found in module Module1/
       );
     });
 
@@ -147,7 +187,7 @@ describe("libraryFromArtifact", () => {
 
       assert.throws(
         () => constructor.construct(moduleDefinition),
-        /Libraries must have unique ids, Module1:same has already been used/
+        /Duplicated id Module1:same found in module Module1/
       );
     });
   });
