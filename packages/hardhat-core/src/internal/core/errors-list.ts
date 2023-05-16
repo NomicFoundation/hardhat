@@ -269,6 +269,16 @@ Rename the file to use the .cjs to fix this problem.`,
       description: `Your project is an ESM project (you have "type": "module" set in your package.json) and you are trying to initialize a TypeScript project. This is not supported yet.`,
       shouldBeReported: false,
     },
+    UNINITIALIZED_PROVIDER: {
+      number: 21,
+      message:
+        "You tried to access an uninitialized provider. To initialize the provider, make sure you first call any method that hits a node like request, send or sendAsync.",
+      title: "Uninitialized provider",
+      description: `You tried to access an uninitialized provider. This is most likely caused by calling an EventEmitter method like '.on' on a provider before using it to send a request.
+
+To initialize the provider, make sure you first call any method that hits a node like request, send or sendAsync.`,
+      shouldBeReported: true,
+    },
   },
   NETWORK: {
     CONFIG_NOT_FOUND: {
