@@ -3,10 +3,11 @@ import {
   JsonRpcRequest,
   JsonRpcResponse,
   RequestArguments,
-  ProviderFactory,
 } from "../../../types";
 import { HardhatError } from "../errors";
 import { ERRORS } from "../errors-list";
+
+export type ProviderFactory = () => Promise<EthereumProvider>;
 
 /**
  * A class that delays the (async) creation of its internal provider until the first call
