@@ -46,7 +46,7 @@ fn bench_remove_snapshot(c: &mut Criterion) {
             state.remove_snapshot(&snapshot.borrow());
         },
         &[0],
-        &SNAPSHOT_SCALES,
+        &[0],
     );
 }
 
