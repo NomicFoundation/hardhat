@@ -63,8 +63,8 @@ impl RethnetStates {
         Box<dyn Fn() -> Box<dyn SyncState<StateError>> + '_>,
     )> {
         vec![
-            ("LayeredState", Box::new(|| Box::new(self.layered.clone()))),
-            ("HybridState", Box::new(|| Box::new(self.hybrid.clone()))),
+            ("Layered", Box::new(|| Box::new(self.layered.clone()))),
+            ("Hybrid", Box::new(|| Box::new(self.hybrid.clone()))),
         ]
     }
 }
@@ -128,8 +128,11 @@ pub fn bench_sync_state_method<O, R, Prep>(
                         group.bench_with_input(
                             BenchmarkId::new(
                                 format!(
-                                    "{},{} account(s) per checkpoint, {} storage slots per account",
-                                    label, *accounts_per_checkpoint, *storage_slots_per_account
+                                    "{},{} accts per chkpt,{} slots per acct,{} snapshots",
+                                    label,
+                                    *accounts_per_checkpoint,
+                                    *storage_slots_per_account,
+                                    *number_of_snapshots
                                 ),
                                 *number_of_accounts,
                             ),

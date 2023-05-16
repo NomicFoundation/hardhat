@@ -8,7 +8,7 @@ use util::{bench_sync_state_method, prep_no_op, SNAPSHOT_SCALES};
 fn bench_checkpoint(c: &mut Criterion) {
     bench_sync_state_method(
         c,
-        "StateHistory::checkpoint()",
+        "StateHistory:checkpoint()",
         prep_no_op,
         |mut state, _number_of_accounts| {
             let result = state.checkpoint();
@@ -22,7 +22,7 @@ fn bench_checkpoint(c: &mut Criterion) {
 fn bench_make_snapshot(c: &mut Criterion) {
     bench_sync_state_method(
         c,
-        "StateHistory::make_snapshot",
+        "StateHistory:make_snapshot",
         prep_no_op,
         |mut state, _number_of_accounts| {
             state.make_snapshot();
@@ -36,7 +36,7 @@ fn bench_remove_snapshot(c: &mut Criterion) {
     let snapshot: std::cell::RefCell<B256> = Default::default();
     bench_sync_state_method(
         c,
-        "StateHistory::remove_snapshot",
+        "StateHistory:remove_snapshot",
         |state, _| {
             snapshot
                 .borrow_mut()
@@ -54,7 +54,7 @@ fn bench_set_block_context_to_latest_snapshot(c: &mut Criterion) {
     let snapshot: std::cell::RefCell<B256> = Default::default();
     bench_sync_state_method(
         c,
-        "StateHistory::set_block_context",
+        "StateHistory:set_block,latest snapshot",
         |state, _| {
             snapshot
                 .borrow_mut()
@@ -76,7 +76,7 @@ fn bench_set_block_context_to_latest_snapshot(c: &mut Criterion) {
 fn bench_revert(c: &mut Criterion) {
     bench_sync_state_method(
         c,
-        "StateHistory::revert",
+        "StateHistory:revert",
         |state, _| {
             state.checkpoint().unwrap();
         },

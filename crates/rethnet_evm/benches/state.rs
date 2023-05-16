@@ -11,7 +11,7 @@ use util::{bench_sync_state_method, prep_no_op, STORAGE_SCALES};
 fn bench_basic(c: &mut Criterion) {
     bench_sync_state_method(
         c,
-        "StateRef::basic()",
+        "StateRef:basic",
         prep_no_op,
         |state, number_of_accounts| {
             for i in (1..=number_of_accounts).rev() {
@@ -27,7 +27,7 @@ fn bench_basic(c: &mut Criterion) {
 fn bench_code_by_hash(c: &mut Criterion) {
     bench_sync_state_method(
         c,
-        "StateRef::code_by_hash",
+        "StateRef:code_by_hash",
         prep_no_op,
         |state, number_of_accounts| {
             for i in (1..=number_of_accounts).rev() {
@@ -48,7 +48,7 @@ fn bench_code_by_hash(c: &mut Criterion) {
 fn bench_storage(c: &mut Criterion) {
     bench_sync_state_method(
         c,
-        "StateRef::storage",
+        "StateRef:storage",
         prep_no_op,
         |state, number_of_accounts| {
             for i in (1..=number_of_accounts).rev() {
