@@ -11,20 +11,49 @@ use rethnet_evm::{
 };
 use revm::primitives::{AccountInfo, Bytecode, KECCAK_EMPTY};
 
-struct RethnetStates {
+pub struct RethnetStates {
     layered: LayeredState<RethnetLayer>,
     layered_checkpoints: Vec<B256>,
     layered_snapshots: Vec<B256>,
     hybrid: HybridState<RethnetLayer>,
     hybrid_checkpoints: Vec<B256>,
     hybrid_snapshots: Vec<B256>,
-    fork: ForkState,
+    pub fork: ForkState,
     fork_checkpoints: Vec<B256>,
     fork_snapshots: Vec<B256>,
 }
 
 impl RethnetStates {
-    fn fill(
+    pub fn new(fork_block_number: U256) -> Self {
+        Self {
+            layered: LayeredState::<RethnetLayer>::default(),
+            layered_checkpoints: Vec::default(),
+            layered_snapshots: Vec::default(),
+            hybrid: HybridState::<RethnetLayer>::default(),
+            hybrid_checkpoints: Vec::default(),
+            hybrid_snapshots: Vec::default(),
+            fork: ForkState::new(
+                Arc::new(
+                    Builder::new_multi_thread()
+                        .enable_io()
+                        .enable_time()
+                        .build()
+                        .unwrap(),
+                ),
+                Arc::new(Mutex::new(RandomHashGenerator::with_seed("seed"))),
+                &std::env::var_os("ALCHEMY_URL")
+                    .expect("ALCHEMY_URL environment variable not defined")
+                    .into_string()
+                    .unwrap(),
+                fork_block_number,
+                HashMap::default(),
+            ),
+            fork_checkpoints: Vec::default(),
+            fork_snapshots: Vec::default(),
+        }
+    }
+
+    pub fn fill(
         &mut self,
         number_of_accounts: u64,
         number_of_checkpoints: u64,
@@ -152,8 +181,7 @@ mod config {
     pub const SNAPSHOT_SCALES: [u64; 4] = [1, 10, 100, 1000];
 }
 
-use config::*;
-pub use config::{SNAPSHOT_SCALES, STORAGE_SCALES};
+pub use config::{ADDRESS_SCALES, CHECKPOINT_SCALES, SNAPSHOT_SCALES, STORAGE_SCALES};
 
 pub fn bench_sync_state_method<O, R, Prep>(
     c: &mut Criterion,
@@ -171,32 +199,7 @@ pub fn bench_sync_state_method<O, R, Prep>(
         for number_of_accounts in ADDRESS_SCALES.iter() {
             for storage_slots_per_account in storage_scales.iter() {
                 for number_of_snapshots in snapshot_scales.iter() {
-                    let mut rethnet_states = RethnetStates {
-                        layered: LayeredState::<RethnetLayer>::default(),
-                        layered_checkpoints: Vec::default(),
-                        layered_snapshots: Vec::default(),
-                        hybrid: HybridState::<RethnetLayer>::default(),
-                        hybrid_checkpoints: Vec::default(),
-                        hybrid_snapshots: Vec::default(),
-                        fork: ForkState::new(
-                            Arc::new(
-                                Builder::new_multi_thread()
-                                    .enable_io()
-                                    .enable_time()
-                                    .build()
-                                    .unwrap(),
-                            ),
-                            Arc::new(Mutex::new(RandomHashGenerator::with_seed("seed"))),
-                            &std::env::var_os("ALCHEMY_URL")
-                                .expect("ALCHEMY_URL environment variable not defined")
-                                .into_string()
-                                .unwrap(),
-                            U256::from(17274563),
-                            HashMap::default(),
-                        ),
-                        fork_checkpoints: Vec::default(),
-                        fork_snapshots: Vec::default(),
-                    };
+                    let mut rethnet_states = RethnetStates::new(U256::from(17274563));
                     rethnet_states.fill(
                         *number_of_accounts,
                         *number_of_checkpoints,
