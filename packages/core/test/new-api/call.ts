@@ -156,6 +156,36 @@ describe("call", () => {
     assert.equal(callFuture.value, BigInt(42));
   });
 
+  it("should be able to pass from as an option", () => {
+    const moduleWithDependentContractsDefinition = defineModule(
+      "Module1",
+      (m) => {
+        const example = m.contract("Example");
+
+        m.call(example, "test", [], { from: m.accounts[1] });
+
+        return { example };
+      }
+    );
+
+    const constructor = new ModuleConstructor(0, ["0x1", "0x2"]);
+    const moduleWithDependentContracts = constructor.construct(
+      moduleWithDependentContractsDefinition
+    );
+
+    assert.isDefined(moduleWithDependentContracts);
+
+    const callFuture = [...moduleWithDependentContracts.futures].find(
+      ({ id }) => id === "Module1:Example#test"
+    );
+
+    if (!(callFuture instanceof NamedContractCallFutureImplementation)) {
+      assert.fail("Not a named contract deployment");
+    }
+
+    assert.equal(callFuture.from, "0x2");
+  });
+
   describe("passing id", () => {
     it("should be able to call the same function twice by passing an id", () => {
       const moduleWithSameCallTwiceDefinition = defineModule("Module1", (m) => {

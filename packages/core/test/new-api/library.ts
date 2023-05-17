@@ -113,6 +113,38 @@ describe("library", () => {
     assert(anotherFuture.dependencies.has(exampleFuture!));
   });
 
+  it("should be able to pass from as an option", () => {
+    const moduleWithDependentContractsDefinition = defineModule(
+      "Module1",
+      (m) => {
+        const another = m.library("Another", {
+          from: m.accounts[1],
+        });
+
+        return { another };
+      }
+    );
+
+    const constructor = new ModuleConstructor(0, ["0x1", "0x2"]);
+    const moduleWithDependentContracts = constructor.construct(
+      moduleWithDependentContractsDefinition
+    );
+
+    assert.isDefined(moduleWithDependentContracts);
+
+    const anotherFuture = [...moduleWithDependentContracts.futures].find(
+      ({ id }) => id === "Module1:Another"
+    );
+
+    if (
+      !(anotherFuture instanceof NamedLibraryDeploymentFutureImplementation)
+    ) {
+      assert.fail("Not a named library deployment");
+    }
+
+    assert.equal(anotherFuture.from, "0x2");
+  });
+
   describe("passing id", () => {
     it("should be able to deploy the same library twice by passing an id", () => {
       const moduleWithSameContractTwiceDefinition = defineModule(

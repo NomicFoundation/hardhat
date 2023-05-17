@@ -37,6 +37,7 @@ export interface ContractOptions {
   after?: Future[];
   libraries?: Record<string, ContractFuture<string>>;
   value?: BigInt;
+  from?: string;
 }
 
 /**
@@ -49,6 +50,7 @@ export interface ContractFromArtifactOptions {
   after?: Future[];
   libraries?: Record<string, ContractFuture<string>>;
   value?: BigInt;
+  from?: string;
 }
 
 /**
@@ -60,6 +62,7 @@ export interface LibraryOptions {
   id?: string;
   after?: Future[];
   libraries?: Record<string, ContractFuture<string>>;
+  from?: string;
 }
 
 /**
@@ -71,6 +74,7 @@ export interface LibraryFromArtifactOptions {
   id?: string;
   after?: Future[];
   libraries?: Record<string, ContractFuture<string>>;
+  from?: string;
 }
 
 /**
@@ -82,6 +86,7 @@ export interface CallOptions {
   id?: string;
   after?: Future[];
   value?: BigInt;
+  from?: string;
 }
 
 /**
@@ -92,6 +97,7 @@ export interface CallOptions {
 export interface StaticCallOptions {
   id?: string;
   after?: Future[];
+  from?: string;
 }
 
 /**

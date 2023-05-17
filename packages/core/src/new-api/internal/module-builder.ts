@@ -133,6 +133,7 @@ export class IgnitionModuleBuilderImplementation<
     const futureId = `${this._module.id}:${id}`;
     options.libraries ??= {};
     options.value ??= BigInt(0);
+    options.from ??= this.accounts[0];
 
     this._assertUniqueContractId(futureId);
 
@@ -142,7 +143,8 @@ export class IgnitionModuleBuilderImplementation<
       contractName,
       args,
       options.libraries,
-      options.value
+      options.value,
+      options.from
     );
 
     for (const arg of args.filter(isFuture)) {
@@ -174,6 +176,7 @@ export class IgnitionModuleBuilderImplementation<
     const futureId = `${this._module.id}:${id}`;
     options.libraries ??= {};
     options.value ??= BigInt(0);
+    options.from ??= this.accounts[0];
 
     this._assertUniqueArtifactContractId(futureId);
 
@@ -184,7 +187,8 @@ export class IgnitionModuleBuilderImplementation<
       args,
       artifact,
       options.libraries,
-      options.value
+      options.value,
+      options.from
     );
 
     this._module.futures.add(future);
@@ -213,6 +217,7 @@ export class IgnitionModuleBuilderImplementation<
     const id = options.id ?? libraryName;
     const futureId = `${this._module.id}:${id}`;
     options.libraries ??= {};
+    options.from ??= this.accounts[0];
 
     this._assertUniqueLibraryId(futureId);
 
@@ -220,7 +225,8 @@ export class IgnitionModuleBuilderImplementation<
       futureId,
       this._module,
       libraryName,
-      options.libraries
+      options.libraries,
+      options.from
     );
 
     for (const afterFuture of (options.after ?? []).filter(isFuture)) {
@@ -246,6 +252,7 @@ export class IgnitionModuleBuilderImplementation<
     const id = options.id ?? libraryName;
     const futureId = `${this._module.id}:${id}`;
     options.libraries ??= {};
+    options.from ??= this.accounts[0];
 
     this._assertUniqueArtifactLibraryId(futureId);
 
@@ -254,7 +261,8 @@ export class IgnitionModuleBuilderImplementation<
       this._module,
       libraryName,
       artifact,
-      options.libraries
+      options.libraries,
+      options.from
     );
 
     for (const afterFuture of (options.after ?? []).filter(isFuture)) {
@@ -281,6 +289,7 @@ export class IgnitionModuleBuilderImplementation<
     const id = options.id ?? functionName;
     const futureId = `${this._module.id}:${contractFuture.contractName}#${id}`;
     options.value ??= BigInt(0);
+    options.from ??= this.accounts[0];
 
     this._assertUniqueCallId(futureId);
 
@@ -290,7 +299,8 @@ export class IgnitionModuleBuilderImplementation<
       functionName,
       contractFuture,
       args,
-      options.value
+      options.value,
+      options.from
     );
 
     future.dependencies.add(contractFuture);
@@ -316,6 +326,7 @@ export class IgnitionModuleBuilderImplementation<
   ): NamedStaticCallFuture<ContractNameT, FunctionNameT> {
     const id = options.id ?? functionName;
     const futureId = `${this._module.id}:${contractFuture.contractName}#${id}`;
+    options.from ??= this.accounts[0];
 
     this._assertUniqueStaticCallId(futureId);
 
@@ -324,7 +335,8 @@ export class IgnitionModuleBuilderImplementation<
       this._module,
       functionName,
       contractFuture,
-      args
+      args,
+      options.from
     );
 
     future.dependencies.add(contractFuture);
