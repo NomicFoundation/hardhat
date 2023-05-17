@@ -47,6 +47,59 @@ Hello, Hardhat!
 
 This is literally all it takes to put together a plugin for Hardhat. Now `hi` is available to be used in the Hardhat console, your tasks, tests and other plugins.
 
+## Extending the Hardhat provider
+
+Next, we can take a look at how to add features on top of the default provider offered by Hardhat, found on `hre.network.provider`. Doing this, any extra functionality you add will be available everywhere, just as it would if you extend the [Hardhat Runtime Environment](#extending-the-hardhat-runtime-environment).
+
+The Hardhat provider is configured through a queue of extension functions that you can add to by using the `extendProvider()` function. It receives one parameter which is a callback to be executed after first call to `hre.network.provider.request()` is made. This happens only once. If `extendProvider` is called multiple times, its callbacks will be executed in order, and Hardhat will wait on each one to finish before executing the next one. Returning an entirely new provider is possible but not advisable.
+
+It's important to keep in mind that after all callbacks are executed, the provider will be wrapped by Hardhat one last time so it's backwards compatible with old non-standard implementations. This boils down to adding both `send` and `sendAsync` methods, which defer to the main `request`. Lastly, each callback added is `async`, so we should be careful when adding any functionality that might take a long time to resolve.
+
+For example, adding the following to `hardhat.config.js`:
+
+```js
+import { ProviderWrapper } from 'hardhat/plugins'
+
+class FixedGasProvider extends ProviderWrapper {
+  constructor(
+    public readonly gasPrice,
+    protected readonly _wrappedProvider
+  ) {
+    super(_wrappedProvider);
+  }
+
+  public async request(args) {
+    if (args.method === "eth_estimateGas") {
+      return this.gasPrice;
+    } else if (args.method === "eth_sendTransaction") {
+      const params = this._getParams(args);
+      const tx = params[0];
+
+      // let's pretend that EIP-1559 never happened
+      tx.gasPrice = this.gasPrice;
+    }
+
+    return this._wrappedProvider.request(args);
+  }
+}
+
+extendProvider(async (provider) => {
+  // We fix the gas price to a random high value
+  const newProvider = new FixedGasProvider("0x1000000", provider);
+  return newProvider;
+});
+```
+
+Will make the `hre` provider use that gas price value everywhere it's used:
+
+```js
+task("request", async (args, hre) => {
+  await hre.network.request(/*{ method arguments }*/); // this will run FixedGasProvider's request method above
+});
+
+module.exports = {};
+```
+
 ## Using the Hardhat TypeScript plugin boilerplate
 
 For a complete example of a plugin you can take a look at the [Hardhat TypeScript plugin boilerplate project](https://github.com/NomicFoundation/hardhat-ts-plugin-boilerplate/).
