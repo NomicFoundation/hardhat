@@ -188,7 +188,7 @@ fn bench_revert(c: &mut Criterion) {
             let result = state.revert();
             debug_assert!(result.is_ok());
         },
-        &[0],
+        &STORAGE_SCALES,
         &[0],
     );
 }
