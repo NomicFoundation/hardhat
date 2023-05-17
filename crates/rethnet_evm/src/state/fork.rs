@@ -34,6 +34,7 @@ pub struct ForkState {
     current_state: RwLock<(B256, B256)>,
     initial_state_root: B256,
     hash_generator: Arc<Mutex<RandomHashGenerator>>,
+    removed_remote_accounts: HashSet<Address>,
 }
 
 impl ForkState {
@@ -76,6 +77,7 @@ impl ForkState {
             current_state: RwLock::new((generated_state_root, local_root)),
             initial_state_root: generated_state_root,
             hash_generator,
+            removed_remote_accounts: HashSet::new(),
         }
     }
 
@@ -100,12 +102,30 @@ impl ForkState {
     }
 }
 
+impl Clone for ForkState {
+    fn clone(&self) -> Self {
+        Self {
+            local_state: self.local_state.clone(),
+            remote_state: self.remote_state.clone(),
+            removed_storage_slots: self.removed_storage_slots.clone(),
+            fork_block_number: self.fork_block_number,
+            state_root_to_state: RwLock::new(self.state_root_to_state.read().clone()),
+            current_state: RwLock::new(*self.current_state.read()),
+            initial_state_root: self.initial_state_root,
+            hash_generator: self.hash_generator.clone(),
+            removed_remote_accounts: self.removed_remote_accounts.clone(),
+        }
+    }
+}
+
 impl StateRef for ForkState {
     type Error = StateError;
 
     fn basic(&self, address: Address) -> Result<Option<AccountInfo>, Self::Error> {
         if let Some(local) = self.local_state.basic(address)? {
             Ok(Some(local))
+        } else if self.removed_remote_accounts.contains(&address) {
+            Ok(None)
         } else {
             self.remote_state.lock().basic(address)
         }
@@ -176,7 +196,16 @@ impl StateDebug for ForkState {
     }
 
     fn remove_account(&mut self, address: Address) -> Result<Option<AccountInfo>, Self::Error> {
-        self.local_state.remove_account(address)
+        if let Some(account_info) = self.local_state.remove_account(address)? {
+            Ok(Some(account_info))
+        } else if self.removed_remote_accounts.contains(&address) {
+            Ok(None)
+        } else if let Some(account_info) = self.remote_state.lock().basic(address)? {
+            self.removed_remote_accounts.insert(address);
+            Ok(Some(account_info))
+        } else {
+            Ok(None)
+        }
     }
 
     fn serialize(&self) -> String {
@@ -453,5 +482,33 @@ mod tests {
 
         let fork_storage_slot = fork_state.storage(dai_address, storage_slot_index).unwrap();
         assert_eq!(fork_storage_slot, dummy_storage_value);
+    }
+
+    #[test]
+    fn remove_remote_account_success() {
+        let runtime = Arc::new(
+            Builder::new_multi_thread()
+                .enable_io()
+                .enable_time()
+                .build()
+                .expect("failed to construct async runtime"),
+        );
+
+        let hash_generator = Arc::new(Mutex::new(RandomHashGenerator::with_seed("seed")));
+
+        let mut fork_state = ForkState::new(
+            runtime,
+            hash_generator,
+            &get_alchemy_url().expect("failed to get alchemy url"),
+            U256::from(16220843),
+            HashMap::default(),
+        );
+
+        let dai_address = Address::from_str("0x6b175474e89094c44da98b954eedeac495271d0f")
+            .expect("failed to parse address");
+
+        fork_state.remove_account(dai_address).unwrap();
+
+        assert_eq!(fork_state.basic(dai_address).unwrap(), None);
     }
 }

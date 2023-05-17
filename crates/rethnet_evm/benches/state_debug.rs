@@ -14,7 +14,11 @@ fn bench_account_storage_root_account_doesnt_exist(c: &mut Criterion) {
     bench_sync_state_method(
         c,
         "StateDebug:storage_root nonexist acct",
-        prep_no_op,
+        |state, number_of_accounts| {
+            // ensure account won't exist
+            let address = Address::from_low_u64_ne(number_of_accounts + 1);
+            state.remove_account(address).unwrap();
+        },
         |state, number_of_accounts, _, _| {
             let address = Address::from_low_u64_ne(number_of_accounts + 1);
             debug_assert!(state.basic(address).unwrap().is_none());
@@ -64,7 +68,11 @@ fn bench_insert_account_doesnt_exist_without_code(c: &mut Criterion) {
     bench_sync_state_method(
         c,
         "StateDebug:ins nonexist acct w.out code",
-        prep_no_op,
+        |state, number_of_accounts| {
+            // ensure account won't exist
+            let address = Address::from_low_u64_ne(number_of_accounts + 1);
+            state.remove_account(address).unwrap();
+        },
         |mut state, number_of_accounts, _, _| {
             let address = Address::from_low_u64_ne(number_of_accounts + 1);
             debug_assert!(state.basic(address).unwrap().is_none());
@@ -80,7 +88,11 @@ fn bench_insert_account_doesnt_exist_with_code(c: &mut Criterion) {
     bench_sync_state_method(
         c,
         "StateDebug:ins nonexist acct w.code",
-        prep_no_op,
+        |state, number_of_accounts| {
+            // ensure account won't exist
+            let address = Address::from_low_u64_ne(number_of_accounts + 1);
+            state.remove_account(address).unwrap();
+        },
         |mut state, number_of_accounts, _, _| {
             let address = Address::from_low_u64_ne(number_of_accounts + 1);
             debug_assert!(state.basic(address).unwrap().is_none());
@@ -104,7 +116,11 @@ fn bench_modify_account_doesnt_exist(c: &mut Criterion) {
     bench_sync_state_method(
         c,
         "StateDebug:mod nonexist acct no code chg",
-        prep_no_op,
+        |state, number_of_accounts| {
+            // ensure account won't exist
+            let address = Address::from_low_u64_ne(number_of_accounts + 1);
+            state.remove_account(address).unwrap();
+        },
         |mut state, number_of_accounts, _, _| {
             let address = Address::from_low_u64_ne(number_of_accounts + 1);
             debug_assert!(state.basic(address).unwrap().is_none());
@@ -310,7 +326,11 @@ fn bench_set_account_storage_slot_account_doesnt_exist(c: &mut Criterion) {
     bench_sync_state_method(
         c,
         "StateDebug:set_storage nonexist acct",
-        prep_no_op,
+        |state, number_of_accounts| {
+            // ensure account won't exist
+            let address = Address::from_low_u64_ne(number_of_accounts + 1);
+            state.remove_account(address).unwrap();
+        },
         |mut state, number_of_accounts, _, _| {
             let address = Address::from_low_u64_ne(number_of_accounts + 1);
             debug_assert!(state.basic(address).unwrap().is_none());

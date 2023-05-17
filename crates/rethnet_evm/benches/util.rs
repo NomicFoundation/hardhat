@@ -1,11 +1,16 @@
-use std::clone::Clone;
+use std::{clone::Clone, sync::Arc};
 
 use criterion::{BatchSize, BenchmarkId, Criterion};
+use parking_lot::Mutex;
+use tokio::runtime::Builder;
+
 use rethnet_eth::{Address, Bytes, B256, U256};
-use rethnet_evm::state::{HybridState, LayeredState, RethnetLayer, StateError, SyncState};
+use rethnet_evm::{
+    state::{ForkState, HybridState, LayeredState, RethnetLayer, StateError, SyncState},
+    HashMap, RandomHashGenerator,
+};
 use revm::primitives::{AccountInfo, Bytecode, KECCAK_EMPTY};
 
-#[derive(Default)]
 struct RethnetStates {
     layered: LayeredState<RethnetLayer>,
     layered_checkpoints: Vec<B256>,
@@ -13,6 +18,9 @@ struct RethnetStates {
     hybrid: HybridState<RethnetLayer>,
     hybrid_checkpoints: Vec<B256>,
     hybrid_snapshots: Vec<B256>,
+    fork: ForkState,
+    fork_checkpoints: Vec<B256>,
+    fork_snapshots: Vec<B256>,
 }
 
 impl RethnetStates {
@@ -27,7 +35,7 @@ impl RethnetStates {
             &mut dyn SyncState<StateError>,
             &mut Vec<B256>,
             &mut Vec<B256>,
-        ); 2] = [
+        ); 3] = [
             (
                 &mut self.layered,
                 &mut self.layered_checkpoints,
@@ -37,6 +45,11 @@ impl RethnetStates {
                 &mut self.hybrid,
                 &mut self.hybrid_checkpoints,
                 &mut self.hybrid_snapshots,
+            ),
+            (
+                &mut self.fork,
+                &mut self.fork_checkpoints,
+                &mut self.fork_snapshots,
             ),
         ];
         for (state, checkpoints, snapshots) in states_and_checkpoints_and_snapshots.iter_mut() {
@@ -102,6 +115,12 @@ impl RethnetStates {
                 &self.hybrid_checkpoints,
                 &self.hybrid_snapshots,
             ),
+            (
+                "Fork",
+                Box::new(|| Box::new(self.fork.clone())),
+                &self.fork_checkpoints,
+                &self.fork_snapshots,
+            ),
         ]
     }
 }
@@ -152,7 +171,32 @@ pub fn bench_sync_state_method<O, R, Prep>(
         for number_of_accounts in ADDRESS_SCALES.iter() {
             for storage_slots_per_account in storage_scales.iter() {
                 for number_of_snapshots in snapshot_scales.iter() {
-                    let mut rethnet_states = RethnetStates::default();
+                    let mut rethnet_states = RethnetStates {
+                        layered: LayeredState::<RethnetLayer>::default(),
+                        layered_checkpoints: Vec::default(),
+                        layered_snapshots: Vec::default(),
+                        hybrid: HybridState::<RethnetLayer>::default(),
+                        hybrid_checkpoints: Vec::default(),
+                        hybrid_snapshots: Vec::default(),
+                        fork: ForkState::new(
+                            Arc::new(
+                                Builder::new_multi_thread()
+                                    .enable_io()
+                                    .enable_time()
+                                    .build()
+                                    .unwrap(),
+                            ),
+                            Arc::new(Mutex::new(RandomHashGenerator::with_seed("seed"))),
+                            &std::env::var_os("ALCHEMY_URL")
+                                .expect("ALCHEMY_URL environment variable not defined")
+                                .into_string()
+                                .unwrap(),
+                            U256::from(17274563),
+                            HashMap::default(),
+                        ),
+                        fork_checkpoints: Vec::default(),
+                        fork_snapshots: Vec::default(),
+                    };
                     rethnet_states.fill(
                         *number_of_accounts,
                         *number_of_checkpoints,
