@@ -7,7 +7,7 @@ use rethnet_evm::{
 };
 
 mod util;
-use util::{bench_sync_state_method, prep_no_op, SNAPSHOT_SCALES};
+use util::{bench_sync_state_method, prep_no_op, SNAPSHOT_SCALES, STORAGE_SCALES};
 
 fn bench_checkpoint(c: &mut Criterion) {
     bench_sync_state_method(
@@ -18,7 +18,7 @@ fn bench_checkpoint(c: &mut Criterion) {
             let result = state.checkpoint();
             debug_assert!(result.is_ok());
         },
-        &[0],
+        &STORAGE_SCALES,
         &[0],
     );
 }
