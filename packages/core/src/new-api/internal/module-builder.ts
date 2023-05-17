@@ -132,6 +132,7 @@ export class IgnitionModuleBuilderImplementation<
     const id = options.id ?? contractName;
     const futureId = `${this._module.id}:${id}`;
     options.libraries ??= {};
+    options.value ??= BigInt(0);
 
     this._assertUniqueContractId(futureId);
 
@@ -140,7 +141,8 @@ export class IgnitionModuleBuilderImplementation<
       this._module,
       contractName,
       args,
-      options.libraries
+      options.libraries,
+      options.value
     );
 
     for (const arg of args.filter(isFuture)) {
@@ -171,6 +173,7 @@ export class IgnitionModuleBuilderImplementation<
     const id = options.id ?? contractName;
     const futureId = `${this._module.id}:${id}`;
     options.libraries ??= {};
+    options.value ??= BigInt(0);
 
     this._assertUniqueArtifactContractId(futureId);
 
@@ -180,7 +183,8 @@ export class IgnitionModuleBuilderImplementation<
       contractName,
       args,
       artifact,
-      options.libraries
+      options.libraries,
+      options.value
     );
 
     this._module.futures.add(future);
@@ -276,6 +280,7 @@ export class IgnitionModuleBuilderImplementation<
   ): NamedContractCallFuture<ContractNameT, FunctionNameT> {
     const id = options.id ?? functionName;
     const futureId = `${this._module.id}:${contractFuture.contractName}#${id}`;
+    options.value ??= BigInt(0);
 
     this._assertUniqueCallId(futureId);
 
@@ -284,7 +289,8 @@ export class IgnitionModuleBuilderImplementation<
       this._module,
       functionName,
       contractFuture,
-      args
+      args,
+      options.value
     );
 
     future.dependencies.add(contractFuture);

@@ -141,6 +141,38 @@ describe("contractFromArtifact", () => {
     assert(anotherFuture.dependencies.has(exampleFuture!));
   });
 
+  it("should be able to pass value as an option", () => {
+    const moduleWithDependentContractsDefinition = defineModule(
+      "Module1",
+      (m) => {
+        const another = m.contractFromArtifact("Another", fakeArtifact, [], {
+          value: BigInt(42),
+        });
+
+        return { another };
+      }
+    );
+
+    const constructor = new ModuleConstructor(0, []);
+    const moduleWithDependentContracts = constructor.construct(
+      moduleWithDependentContractsDefinition
+    );
+
+    assert.isDefined(moduleWithDependentContracts);
+
+    const anotherFuture = [...moduleWithDependentContracts.futures].find(
+      ({ id }) => id === "Module1:Another"
+    );
+
+    if (
+      !(anotherFuture instanceof ArtifactContractDeploymentFutureImplementation)
+    ) {
+      assert.fail("Not an artifact contract deployment");
+    }
+
+    assert.equal(anotherFuture.value, BigInt(42));
+  });
+
   describe("passing id", () => {
     it("should use contract from artifact twice by passing an id", () => {
       const moduleWithSameContractTwiceDefinition = defineModule(

@@ -36,6 +36,7 @@ export interface ContractOptions {
   id?: string;
   after?: Future[];
   libraries?: Record<string, ContractFuture<string>>;
+  value?: BigInt;
 }
 
 /**
@@ -47,6 +48,7 @@ export interface ContractFromArtifactOptions {
   id?: string;
   after?: Future[];
   libraries?: Record<string, ContractFuture<string>>;
+  value?: BigInt;
 }
 
 /**
@@ -79,6 +81,7 @@ export interface LibraryFromArtifactOptions {
 export interface CallOptions {
   id?: string;
   after?: Future[];
+  value?: BigInt;
 }
 
 /**

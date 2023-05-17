@@ -66,6 +66,7 @@ export interface NamedContractDeploymentFuture<ContractNameT extends string>
   type: FutureType.NAMED_CONTRACT_DEPLOYMENT;
   constructorArgs: SolidityParamsType;
   libraries: Record<string, ContractFuture<string>>;
+  value: BigInt;
 }
 
 /**
@@ -80,6 +81,7 @@ export interface ArtifactContractDeploymentFuture
   artifact: ArtifactType;
   constructorArgs: SolidityParamsType;
   libraries: Record<string, ContractFuture<string>>;
+  value: BigInt;
 }
 
 /**
@@ -118,6 +120,7 @@ export interface NamedContractCallFuture<
   type: FutureType.NAMED_CONTRACT_CALL;
   contract: ContractFuture<ContractNameT>;
   args: SolidityParamsType;
+  value: BigInt;
 }
 
 /**
