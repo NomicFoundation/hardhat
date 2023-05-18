@@ -67,12 +67,12 @@ export class EthereumMockedProvider
   extends EventEmitter
   implements EthereumProvider
 {
-  public async request(args: RequestArguments): Promise<any> {}
+  public async request(_args: RequestArguments): Promise<any> {}
 
-  async send(method: string, params: any[] = []) {}
+  public async send(_method: string, _params: any[] = []) {}
 
-  sendAsync(
-    payload: JsonRpcRequest,
+  public sendAsync(
+    _payload: JsonRpcRequest,
     callback: (error: any, response: JsonRpcResponse) => void
   ) {
     callback(null, {} as JsonRpcRequest); // this is here just to finish the "async" operation
