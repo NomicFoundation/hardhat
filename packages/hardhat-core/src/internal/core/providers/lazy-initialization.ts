@@ -18,6 +18,7 @@ export type Listener = (...args: any[]) => void;
 export class LazyInitializationProvider implements EthereumProvider {
   protected provider: EthereumProvider | undefined;
   private _emitter: EventEmitter = new EventEmitter();
+  private _initializingPromise: Promise<EthereumProvider> | undefined;
 
   constructor(private _providerFactory: ProviderFactory) {}
 
@@ -127,8 +128,15 @@ export class LazyInitializationProvider implements EthereumProvider {
   }
 
   private async _getOrInitProvider(): Promise<EthereumProvider> {
+    // This is here to avoid multiple calls to send async stacking and re-creating the provider
+    // over and over again. It shouldn't run for request or send
+    if (this._initializingPromise !== undefined) {
+      await this._initializingPromise;
+    }
+
     if (this.provider === undefined) {
-      this.provider = await this._providerFactory();
+      this._initializingPromise = this._providerFactory();
+      this.provider = await this._initializingPromise;
 
       // Copy any event emitter events before initialization over to the provider
       const recordedEvents = this._emitter.eventNames();
