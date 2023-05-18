@@ -13,14 +13,14 @@ fn bench_basic(c: &mut Criterion) {
         c,
         "StateRef:basic",
         prep_no_op,
-        |state, number_of_accounts| {
+        |state, number_of_accounts, _, _| {
             for i in (1..=number_of_accounts).rev() {
                 let result = state.basic(Address::from_str(&format!("0x{:0>40x}", i)).unwrap());
                 debug_assert!(result.is_ok());
             }
         },
         &[0],
-        &[0],
+        &[1],
     );
 }
 
@@ -29,7 +29,7 @@ fn bench_code_by_hash(c: &mut Criterion) {
         c,
         "StateRef:code_by_hash",
         prep_no_op,
-        |state, number_of_accounts| {
+        |state, number_of_accounts, _, _| {
             for i in (1..=number_of_accounts).rev() {
                 let result = state.code_by_hash(
                     Bytecode::new_raw(Bytes::copy_from_slice(
@@ -41,7 +41,7 @@ fn bench_code_by_hash(c: &mut Criterion) {
             }
         },
         &[0],
-        &[0],
+        &[1],
     );
 }
 
@@ -50,14 +50,14 @@ fn bench_storage(c: &mut Criterion) {
         c,
         "StateRef:storage",
         prep_no_op,
-        |state, number_of_accounts| {
+        |state, number_of_accounts, _, _| {
             for i in (1..=number_of_accounts).rev() {
                 let result = state.storage(Address::from_low_u64_ne(i), U256::from(i));
                 debug_assert!(result.is_ok());
             }
         },
         &STORAGE_SCALES,
-        &[0],
+        &[1],
     );
 }
 

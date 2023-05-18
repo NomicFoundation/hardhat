@@ -1,14 +1,18 @@
 use std::clone::Clone;
 
 use criterion::{BatchSize, BenchmarkId, Criterion};
-use rethnet_eth::{Address, Bytes, U256};
+use rethnet_eth::{Address, Bytes, B256, U256};
 use rethnet_evm::state::{HybridState, LayeredState, RethnetLayer, StateError, SyncState};
 use revm::primitives::{AccountInfo, Bytecode, KECCAK_EMPTY};
 
 #[derive(Default)]
 struct RethnetStates {
     layered: LayeredState<RethnetLayer>,
+    layered_checkpoints: Vec<B256>,
+    layered_snapshots: Vec<B256>,
     hybrid: HybridState<RethnetLayer>,
+    hybrid_checkpoints: Vec<B256>,
+    hybrid_snapshots: Vec<B256>,
 }
 
 impl RethnetStates {
@@ -16,11 +20,30 @@ impl RethnetStates {
         &mut self,
         number_of_accounts: u64,
         number_of_checkpoints: u64,
+        number_of_snapshots: u64,
         number_of_storage_slots_per_account: u64,
     ) {
-        let mut states: [&mut dyn SyncState<StateError>; 2] = [&mut self.layered, &mut self.hybrid];
-        for state in states.iter_mut() {
-            for checkpoint_number in 0..number_of_checkpoints {
+        let mut states_and_checkpoints_and_snapshots: [(
+            &mut dyn SyncState<StateError>,
+            &mut Vec<B256>,
+            &mut Vec<B256>,
+        ); 2] = [
+            (
+                &mut self.layered,
+                &mut self.layered_checkpoints,
+                &mut self.layered_snapshots,
+            ),
+            (
+                &mut self.hybrid,
+                &mut self.hybrid_checkpoints,
+                &mut self.hybrid_snapshots,
+            ),
+        ];
+        for (state, checkpoints, snapshots) in states_and_checkpoints_and_snapshots.iter_mut() {
+            let number_of_checkpoints_per_snapshot = number_of_checkpoints / number_of_snapshots;
+            for snapshot_number in 0..number_of_snapshots {
+            for checkpoint_number in 0..number_of_checkpoints_per_snapshot {
+                let checkpoint_number = snapshot_number * number_of_checkpoints_per_snapshot + checkpoint_number;
                 let number_of_accounts_per_checkpoint = number_of_accounts / number_of_checkpoints;
                 for account_number in 1..=number_of_accounts_per_checkpoint {
                     let account_number =
@@ -47,20 +70,35 @@ impl RethnetStates {
                     }
                 }
                 state.checkpoint().unwrap();
+                checkpoints.push(state.state_root().unwrap());
+            }
+                snapshots.push(state.make_snapshot());
             }
         }
     }
 
     /// Returns a set of factories, each member of which produces a clone of one of the state objects in this struct.
-    fn make_clone_factories(
+    fn make_state_refs(
         &self,
     ) -> Vec<(
         &'static str, // label of the type of state produced by this factory
         Box<dyn Fn() -> Box<dyn SyncState<StateError>> + '_>,
+        &Vec<B256>,
+        &Vec<B256>,
     )> {
         vec![
-            ("Layered", Box::new(|| Box::new(self.layered.clone()))),
-            ("Hybrid", Box::new(|| Box::new(self.hybrid.clone()))),
+            (
+                "Layered",
+                Box::new(|| Box::new(self.layered.clone())),
+                &self.layered_checkpoints,
+                &self.layered_snapshots,
+            ),
+            (
+                "Hybrid",
+                Box::new(|| Box::new(self.hybrid.clone())),
+                &self.hybrid_checkpoints,
+                &self.hybrid_snapshots,
+            ),
         ]
     }
 }
@@ -103,7 +141,7 @@ pub fn bench_sync_state_method<O, R, Prep>(
     storage_scales: &[u64],
     snapshot_scales: &[u64],
 ) where
-    R: FnMut(Box<dyn SyncState<StateError>>, u64) -> O,
+    R: FnMut(Box<dyn SyncState<StateError>>, u64, &Vec<B256>, &Vec<B256>) -> O,
     Prep: FnMut(&mut dyn SyncState<StateError>, u64, u64),
 {
     let mut group = c.benchmark_group(method_name);
@@ -115,10 +153,12 @@ pub fn bench_sync_state_method<O, R, Prep>(
                     rethnet_states.fill(
                         *number_of_accounts,
                         *number_of_checkpoints,
+                        *number_of_snapshots,
                         *storage_slots_per_account,
                     );
 
-                    for (label, state_factory) in rethnet_states.make_clone_factories().into_iter()
+                    for (label, state_factory, checkpoints, snapshots) in
+                        rethnet_states.make_state_refs().into_iter()
                     {
                         group.bench_with_input(
                             BenchmarkId::new(
@@ -139,7 +179,14 @@ pub fn bench_sync_state_method<O, R, Prep>(
                                         prep(&mut state, *number_of_accounts, *number_of_snapshots);
                                         state
                                     },
-                                    |state| method_invocation(state, *number_of_accounts),
+                                    |state| {
+                                        method_invocation(
+                                            state,
+                                            *number_of_accounts,
+                                            checkpoints,
+                                            snapshots,
+                                        )
+                                    },
                                     BatchSize::SmallInput,
                                 );
                             },
