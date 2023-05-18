@@ -1,16 +1,16 @@
 use criterion::{criterion_group, criterion_main, Criterion};
-#[cfg(all(test, not(feature = "test-disable-remote")))]
+#[cfg(all(test, feature = "test-remote"))]
 use criterion::{BatchSize, BenchmarkId};
 
-#[cfg(all(test, not(feature = "test-disable-remote")))]
+#[cfg(all(test, feature = "test-remote"))]
 use rethnet_eth::U256;
 
-#[cfg(all(test, not(feature = "test-disable-remote")))]
+#[cfg(all(test, feature = "test-remote"))]
 mod util;
-#[cfg(all(test, not(feature = "test-disable-remote")))]
+#[cfg(all(test, feature = "test-remote"))]
 use util::{RethnetStates, ADDRESS_SCALES, CHECKPOINT_SCALES, SNAPSHOT_SCALES};
 
-#[cfg(all(test, not(feature = "test-disable-remote")))]
+#[cfg(all(test, feature = "test-remote"))]
 fn bench_set_block_context_to_block_number(
     c: &mut Criterion,
     group_name: &str,
@@ -56,7 +56,7 @@ fn bench_set_block_context_to_block_number(
     }
 }
 
-#[cfg(all(test, not(feature = "test-disable-remote")))]
+#[cfg(all(test, feature = "test-remote"))]
 fn bench_set_block_context_to_number_before_fork_block(c: &mut Criterion) {
     let fork_block_number = U256::from(17274563);
     bench_set_block_context_to_block_number(
@@ -67,7 +67,7 @@ fn bench_set_block_context_to_number_before_fork_block(c: &mut Criterion) {
     );
 }
 
-#[cfg(all(test, not(feature = "test-disable-remote")))]
+#[cfg(all(test, feature = "test-remote"))]
 fn bench_set_block_context_to_number_after_fork_block(c: &mut Criterion) {
     let fork_block_number = U256::from(17274563);
     bench_set_block_context_to_block_number(
@@ -78,17 +78,17 @@ fn bench_set_block_context_to_number_after_fork_block(c: &mut Criterion) {
     );
 }
 
-#[cfg(all(test, feature = "test-disable-remote"))]
+#[cfg(all(test, not(feature = "test-remote")))]
 fn benchmark_nothing(_: &mut Criterion) {}
 
-#[cfg(all(test, not(feature = "test-disable-remote")))]
+#[cfg(all(test, feature = "test-remote"))]
 criterion_group!(
     state_history_block_context_benches,
     bench_set_block_context_to_number_before_fork_block,
     bench_set_block_context_to_number_after_fork_block,
 );
 
-#[cfg(all(test, feature = "test-disable-remote"))]
+#[cfg(all(test, not(feature = "test-remote")))]
 criterion_group!(state_history_block_context_benches, benchmark_nothing);
 
 criterion_main!(state_history_block_context_benches);

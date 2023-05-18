@@ -1,16 +1,16 @@
 use std::clone::Clone;
-#[cfg(all(test, not(feature = "test-disable-remote")))]
+#[cfg(all(test, feature = "test-remote"))]
 use std::sync::Arc;
 
 use criterion::{BatchSize, BenchmarkId, Criterion};
-#[cfg(all(test, not(feature = "test-disable-remote")))]
+#[cfg(all(test, feature = "test-remote"))]
 use parking_lot::Mutex;
-#[cfg(all(test, not(feature = "test-disable-remote")))]
+#[cfg(all(test, feature = "test-remote"))]
 use tokio::runtime::Builder;
 
 use rethnet_eth::{Address, Bytes, B256, U256};
 use rethnet_evm::state::{HybridState, LayeredState, RethnetLayer, StateError, SyncState};
-#[cfg(all(test, not(feature = "test-disable-remote")))]
+#[cfg(all(test, feature = "test-remote"))]
 use rethnet_evm::{state::ForkState, HashMap, RandomHashGenerator};
 use revm::primitives::{AccountInfo, Bytecode, KECCAK_EMPTY};
 
@@ -21,7 +21,7 @@ pub struct RethnetStates {
     hybrid: HybridState<RethnetLayer>,
     hybrid_checkpoints: Vec<B256>,
     hybrid_snapshots: Vec<B256>,
-    #[cfg(all(test, not(feature = "test-disable-remote")))]
+    #[cfg(all(test, feature = "test-remote"))]
     pub fork: ForkState,
     #[allow(dead_code)]
     fork_checkpoints: Vec<B256>,
@@ -39,7 +39,7 @@ impl RethnetStates {
             hybrid: HybridState::<RethnetLayer>::default(),
             hybrid_checkpoints: Vec::default(),
             hybrid_snapshots: Vec::default(),
-            #[cfg(all(test, not(feature = "test-disable-remote")))]
+            #[cfg(all(test, feature = "test-remote"))]
             fork: ForkState::new(
                 Arc::new(
                     Builder::new_multi_thread()
@@ -83,7 +83,7 @@ impl RethnetStates {
                 &mut self.hybrid_checkpoints,
                 &mut self.hybrid_snapshots,
             ),
-            #[cfg(all(test, not(feature = "test-disable-remote")))]
+            #[cfg(all(test, feature = "test-remote"))]
             (
                 &mut self.fork,
                 &mut self.fork_checkpoints,
@@ -154,7 +154,7 @@ impl RethnetStates {
                 &self.hybrid_checkpoints,
                 &self.hybrid_snapshots,
             ),
-            #[cfg(all(test, not(feature = "test-disable-remote")))]
+            #[cfg(all(test, feature = "test-remote"))]
             (
                 "Fork",
                 Box::new(|| Box::new(self.fork.clone())),

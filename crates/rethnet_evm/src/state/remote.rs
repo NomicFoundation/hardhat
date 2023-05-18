@@ -91,7 +91,7 @@ impl StateRef for RemoteState {
     }
 }
 
-#[cfg(all(test, not(feature = "test-disable-remote")))]
+#[cfg(all(test, feature = "test-remote"))]
 mod tests {
     use std::str::FromStr;
 

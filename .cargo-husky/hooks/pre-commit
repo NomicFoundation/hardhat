@@ -9,13 +9,15 @@ export RUSTFLAGS=-Dwarnings
 
 if [ -z "${ALCHEMY_URL}" ]; then
   echo WARNING: skipping remote tests because the ALCHEMY_URL environment variable is not defined. Local test results may differ from those in CI.
-  REMOTE=,test-disable-remote
+  TEST_REMOTE=
+  CHECK_FEATURE_FLAG="--features tracing,bench-once,serde,std"
 else
-  REMOTE=
+  TEST_REMOTE=,test-remote
+  CHECK_FEATURE_FLAG=--all-features
 fi
 
-cargo check --workspace --all-features --all-targets
-cargo test --workspace --all-targets --features tracing,bench-once${REMOTE}
+cargo check --workspace ${CHECK_FEATURE_FLAG} --all-targets
+cargo test --workspace --all-targets --features tracing,bench-once${TEST_REMOTE}
 cargo test --doc --workspace --features tracing
 cargo clippy --all -- -D warnings
 cargo fmt --all -- --check

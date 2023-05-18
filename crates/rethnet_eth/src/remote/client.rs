@@ -458,7 +458,7 @@ mod tests {
         mock.assert_async().await;
     }
 
-    #[cfg(not(feature = "test-disable-remote"))]
+    #[cfg(feature = "test-remote")]
     mod alchemy {
         use crate::Bytes;
 
