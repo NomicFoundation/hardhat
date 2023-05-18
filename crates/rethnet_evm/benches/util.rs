@@ -1,14 +1,17 @@
-use std::{clone::Clone, sync::Arc};
+use std::clone::Clone;
+#[cfg(all(test, not(feature = "test-disable-remote")))]
+use std::sync::Arc;
 
 use criterion::{BatchSize, BenchmarkId, Criterion};
+#[cfg(all(test, not(feature = "test-disable-remote")))]
 use parking_lot::Mutex;
+#[cfg(all(test, not(feature = "test-disable-remote")))]
 use tokio::runtime::Builder;
 
 use rethnet_eth::{Address, Bytes, B256, U256};
-use rethnet_evm::{
-    state::{ForkState, HybridState, LayeredState, RethnetLayer, StateError, SyncState},
-    HashMap, RandomHashGenerator,
-};
+use rethnet_evm::state::{HybridState, LayeredState, RethnetLayer, StateError, SyncState};
+#[cfg(all(test, not(feature = "test-disable-remote")))]
+use rethnet_evm::{state::ForkState, HashMap, RandomHashGenerator};
 use revm::primitives::{AccountInfo, Bytecode, KECCAK_EMPTY};
 
 pub struct RethnetStates {
@@ -18,12 +21,16 @@ pub struct RethnetStates {
     hybrid: HybridState<RethnetLayer>,
     hybrid_checkpoints: Vec<B256>,
     hybrid_snapshots: Vec<B256>,
+    #[cfg(all(test, not(feature = "test-disable-remote")))]
     pub fork: ForkState,
+    #[allow(dead_code)]
     fork_checkpoints: Vec<B256>,
+    #[allow(dead_code)]
     fork_snapshots: Vec<B256>,
 }
 
 impl RethnetStates {
+    #[allow(unused_variables)]
     pub fn new(fork_block_number: U256) -> Self {
         Self {
             layered: LayeredState::<RethnetLayer>::default(),
@@ -32,6 +39,7 @@ impl RethnetStates {
             hybrid: HybridState::<RethnetLayer>::default(),
             hybrid_checkpoints: Vec::default(),
             hybrid_snapshots: Vec::default(),
+            #[cfg(all(test, not(feature = "test-disable-remote")))]
             fork: ForkState::new(
                 Arc::new(
                     Builder::new_multi_thread()
@@ -60,11 +68,11 @@ impl RethnetStates {
         number_of_snapshots: u64,
         number_of_storage_slots_per_account: u64,
     ) {
-        let mut states_and_checkpoints_and_snapshots: [(
+        let mut states_and_checkpoints_and_snapshots: Vec<(
             &mut dyn SyncState<StateError>,
             &mut Vec<B256>,
             &mut Vec<B256>,
-        ); 3] = [
+        )> = vec![
             (
                 &mut self.layered,
                 &mut self.layered_checkpoints,
@@ -75,6 +83,7 @@ impl RethnetStates {
                 &mut self.hybrid_checkpoints,
                 &mut self.hybrid_snapshots,
             ),
+            #[cfg(all(test, not(feature = "test-disable-remote")))]
             (
                 &mut self.fork,
                 &mut self.fork_checkpoints,
@@ -123,6 +132,7 @@ impl RethnetStates {
     }
 
     /// Returns a set of factories, each member of which produces a clone of one of the state objects in this struct.
+    #[allow(dead_code)]
     fn make_state_refs(
         &self,
     ) -> Vec<(
@@ -144,6 +154,7 @@ impl RethnetStates {
                 &self.hybrid_checkpoints,
                 &self.hybrid_snapshots,
             ),
+            #[cfg(all(test, not(feature = "test-disable-remote")))]
             (
                 "Fork",
                 Box::new(|| Box::new(self.fork.clone())),
@@ -183,6 +194,7 @@ mod config {
 
 pub use config::{ADDRESS_SCALES, CHECKPOINT_SCALES, SNAPSHOT_SCALES, STORAGE_SCALES};
 
+#[allow(dead_code)]
 pub fn bench_sync_state_method<O, R, Prep>(
     c: &mut Criterion,
     method_name: &str,
@@ -248,6 +260,7 @@ pub fn bench_sync_state_method<O, R, Prep>(
     }
 }
 
+#[allow(dead_code)]
 pub fn prep_no_op(_state: &mut dyn SyncState<StateError>, _number_of_accounts: u64) {}
 
 #[allow(dead_code)]

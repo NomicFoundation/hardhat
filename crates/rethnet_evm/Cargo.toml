@@ -42,3 +42,7 @@ harness = false
 [[bench]]
 name = "state_history"
 harness = false
+
+[[bench]]
+name = "state_history_block_context"
+harness = false
