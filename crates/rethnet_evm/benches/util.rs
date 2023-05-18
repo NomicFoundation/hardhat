@@ -15,13 +15,13 @@ impl RethnetStates {
     fn fill(
         &mut self,
         number_of_accounts: u64,
-        number_of_accounts_per_checkpoint: u64,
+        number_of_checkpoints: u64,
         number_of_storage_slots_per_account: u64,
     ) {
         let mut states: [&mut dyn SyncState<StateError>; 2] = [&mut self.layered, &mut self.hybrid];
         for state in states.iter_mut() {
-            let number_of_checkpoints = number_of_accounts / number_of_accounts_per_checkpoint;
             for checkpoint_number in 0..number_of_checkpoints {
+                let number_of_accounts_per_checkpoint = number_of_accounts / number_of_checkpoints;
                 for account_number in 1..=number_of_accounts_per_checkpoint {
                     let account_number =
                         (checkpoint_number * number_of_accounts_per_checkpoint) + account_number;
@@ -107,14 +107,14 @@ pub fn bench_sync_state_method<O, R, Prep>(
     Prep: FnMut(&mut dyn SyncState<StateError>, u64, u64),
 {
     let mut group = c.benchmark_group(method_name);
-    for accounts_per_checkpoint in CHECKPOINT_SCALES.iter() {
+    for number_of_checkpoints in CHECKPOINT_SCALES.iter() {
         for number_of_accounts in ADDRESS_SCALES.iter() {
             for storage_slots_per_account in storage_scales.iter() {
                 for number_of_snapshots in snapshot_scales.iter() {
                     let mut rethnet_states = RethnetStates::default();
                     rethnet_states.fill(
                         *number_of_accounts,
-                        *accounts_per_checkpoint,
+                        *number_of_checkpoints,
                         *storage_slots_per_account,
                     );
 
@@ -123,9 +123,9 @@ pub fn bench_sync_state_method<O, R, Prep>(
                         group.bench_with_input(
                             BenchmarkId::new(
                                 format!(
-                                    "{},{} accts per chkpt,{} slots per acct,{} snapshots",
+                                    "{},{} chkpts,{} slots per acct,{} snapshots",
                                     label,
-                                    *accounts_per_checkpoint,
+                                    number_of_checkpoints,
                                     *storage_slots_per_account,
                                     *number_of_snapshots
                                 ),
