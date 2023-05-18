@@ -15,6 +15,8 @@ import { MessageTrace } from "../../../../src/internal/hardhat-network/stack-tra
 import { defaultHardhatNetworkParams } from "../../../../src/internal/core/config/default-config";
 import { BlockBuilder } from "../../../../src/internal/hardhat-network/provider/vm/block-builder";
 import { createVm } from "../../../../src/internal/hardhat-network/provider/vm/creation";
+import { makeCommon } from "../../../../src/internal/hardhat-network/provider/utils/makeCommon";
+import { NodeConfig } from "../../../../src/internal/hardhat-network/provider/node-types";
 
 const senderPrivateKey = Buffer.from(
   "e331b6d69882b4cb4ea581d88e0b604039a3de5967688d3dcffdd2270c0fd109",
@@ -25,7 +27,21 @@ const senderAddress = privateToAddress(senderPrivateKey);
 export async function instantiateVm(): Promise<[VMAdapter, Common]> {
   const account = Account.fromAccountData({ balance: 1e15 });
 
-  const common = new Common({ chain: "mainnet" });
+  const config: NodeConfig = {
+    automine: true,
+    blockGasLimit: 1_000_000,
+    chainId: 1,
+    genesisAccounts: [],
+    hardfork: "london",
+    minGasPrice: 0n,
+    networkId: 1,
+    networkName: "mainnet",
+    mempoolOrder: "priority",
+    coinbase: "0x0000000000000000000000000000000000000000",
+    chains: defaultHardhatNetworkParams.chains,
+  };
+
+  const common = makeCommon(config);
   const blockchain = new HardhatBlockchain(common);
   await blockchain.addBlock(
     Block.fromBlockData({
@@ -35,24 +51,7 @@ export async function instantiateVm(): Promise<[VMAdapter, Common]> {
     })
   );
 
-  const vm = await createVm(
-    common,
-    blockchain,
-    {
-      automine: true,
-      blockGasLimit: 1_000_000,
-      chainId: 1,
-      genesisAccounts: [],
-      hardfork: "london",
-      minGasPrice: 0n,
-      networkId: 1,
-      networkName: "mainnet",
-      mempoolOrder: "priority",
-      coinbase: "0x0000000000000000000000000000000000000000",
-      chains: defaultHardhatNetworkParams.chains,
-    },
-    () => "london"
-  );
+  const vm = await createVm(common, blockchain, config, () => "london");
 
   await vm.putAccount(new Address(senderAddress), account);
 
