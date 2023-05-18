@@ -89,7 +89,7 @@ describe("LazyInitializationProvider", () => {
       const requestParams = { method: "a-method" };
       await provider.request(requestParams); // init the inner provider calling the constructor function
 
-      assert.equal(requestSpy.callCount, 1);
+      assert.isTrue(requestSpy.calledOnce);
       assert.isTrue(requestSpy.calledOnceWith(requestParams));
     });
   });
@@ -114,7 +114,7 @@ describe("LazyInitializationProvider", () => {
       const sendParams = [1, 2, 44];
       await provider.send("method", sendParams); // init the inner provider calling the constructor function
 
-      assert.equal(sendSpy.callCount, 1);
+      assert.isTrue(sendSpy.calledOnce);
       assert.isTrue(sendSpy.calledOnceWith("method", sendParams));
     });
   });
@@ -151,7 +151,7 @@ describe("LazyInitializationProvider", () => {
         33,
       ]);
       const asyncCallback = () => {
-        assert.equal(sendAsyncSpy.callCount, 1);
+        assert.isTrue(sendAsyncSpy.calledOnce);
         assert.isTrue(
           sendAsyncSpy.calledOnceWith(sendAsyncParams, asyncCallback)
         );
