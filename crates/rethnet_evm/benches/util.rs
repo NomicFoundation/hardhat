@@ -42,36 +42,39 @@ impl RethnetStates {
         for (state, checkpoints, snapshots) in states_and_checkpoints_and_snapshots.iter_mut() {
             let number_of_checkpoints_per_snapshot = number_of_checkpoints / number_of_snapshots;
             for snapshot_number in 0..number_of_snapshots {
-            for checkpoint_number in 0..number_of_checkpoints_per_snapshot {
-                let checkpoint_number = snapshot_number * number_of_checkpoints_per_snapshot + checkpoint_number;
-                let number_of_accounts_per_checkpoint = number_of_accounts / number_of_checkpoints;
-                for account_number in 1..=number_of_accounts_per_checkpoint {
-                    let account_number =
-                        (checkpoint_number * number_of_accounts_per_checkpoint) + account_number;
-                    let address = Address::from_low_u64_ne(account_number);
-                    state
-                        .insert_account(
-                            address,
-                            AccountInfo::new(
-                                U256::from(account_number),
-                                account_number,
-                                Bytecode::new_raw(Bytes::copy_from_slice(address.as_bytes())),
-                            ),
-                        )
-                        .unwrap();
-                    for storage_slot in 0..number_of_storage_slots_per_account {
+                for checkpoint_number in 0..number_of_checkpoints_per_snapshot {
+                    let checkpoint_number =
+                        snapshot_number * number_of_checkpoints_per_snapshot + checkpoint_number;
+                    let number_of_accounts_per_checkpoint =
+                        number_of_accounts / number_of_checkpoints;
+                    for account_number in 1..=number_of_accounts_per_checkpoint {
+                        let account_number = (checkpoint_number
+                            * number_of_accounts_per_checkpoint)
+                            + account_number;
+                        let address = Address::from_low_u64_ne(account_number);
                         state
-                            .set_account_storage_slot(
+                            .insert_account(
                                 address,
-                                U256::from(storage_slot),
-                                U256::from(account_number),
+                                AccountInfo::new(
+                                    U256::from(account_number),
+                                    account_number,
+                                    Bytecode::new_raw(Bytes::copy_from_slice(address.as_bytes())),
+                                ),
                             )
                             .unwrap();
+                        for storage_slot in 0..number_of_storage_slots_per_account {
+                            state
+                                .set_account_storage_slot(
+                                    address,
+                                    U256::from(storage_slot),
+                                    U256::from(account_number),
+                                )
+                                .unwrap();
+                        }
                     }
+                    state.checkpoint().unwrap();
+                    checkpoints.push(state.state_root().unwrap());
                 }
-                state.checkpoint().unwrap();
-                checkpoints.push(state.state_root().unwrap());
-            }
                 snapshots.push(state.make_snapshot());
             }
         }
