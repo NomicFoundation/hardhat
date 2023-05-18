@@ -145,7 +145,7 @@ pub fn bench_sync_state_method<O, R, Prep>(
     snapshot_scales: &[u64],
 ) where
     R: FnMut(Box<dyn SyncState<StateError>>, u64, &Vec<B256>, &Vec<B256>) -> O,
-    Prep: FnMut(&mut dyn SyncState<StateError>, u64, u64),
+    Prep: FnMut(&mut dyn SyncState<StateError>, u64),
 {
     let mut group = c.benchmark_group(method_name);
     for number_of_checkpoints in CHECKPOINT_SCALES.iter() {
@@ -179,7 +179,7 @@ pub fn bench_sync_state_method<O, R, Prep>(
                                 b.iter_batched(
                                     || {
                                         let mut state = state_factory();
-                                        prep(&mut state, *number_of_accounts, *number_of_snapshots);
+                                        prep(&mut state, *number_of_accounts);
                                         state
                                     },
                                     |state| {
@@ -201,7 +201,7 @@ pub fn bench_sync_state_method<O, R, Prep>(
     }
 }
 
-pub fn prep_no_op(_s: &mut dyn SyncState<StateError>, _i: u64, _j: u64) {}
+pub fn prep_no_op(_state: &mut dyn SyncState<StateError>, _number_of_accounts: u64) {}
 
 #[allow(dead_code)]
 pub fn account_has_code(state: &dyn SyncState<StateError>, address: &Address) -> bool {

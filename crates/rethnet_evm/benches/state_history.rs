@@ -37,7 +37,7 @@ fn bench_remove_snapshot(c: &mut Criterion) {
     bench_sync_state_method(
         c,
         "StateHistory:remove_snapshot",
-        |state, _, _| {
+        |state, _| {
             snapshot
                 .borrow_mut()
                 .assign_from_slice(state.make_snapshot().as_bytes());
@@ -55,7 +55,7 @@ fn bench_set_block_context_to_latest_snapshot(c: &mut Criterion) {
     bench_sync_state_method(
         c,
         "StateHistory:set_block,latest snapshot",
-        |state, _, _| {
+        |state, _| {
             snapshot
                 .borrow_mut()
                 .assign_from_slice(state.make_snapshot().as_bytes());
@@ -115,7 +115,7 @@ fn bench_revert(c: &mut Criterion) {
     bench_sync_state_method(
         c,
         "StateHistory:revert",
-        |state, _, _| {
+        |state, _| {
             state.checkpoint().unwrap();
         },
         |mut state, _number_of_accounts, _, _| {

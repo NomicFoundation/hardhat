@@ -196,7 +196,7 @@ fn bench_modify_account_exists_without_code_code_changed(c: &mut Criterion) {
     bench_sync_state_method(
         c,
         "StateDebug:mod add code to acct w none",
-        |state, number_of_accounts, _| {
+        |state, number_of_accounts| {
             let address = Address::from_low_u64_ne(number_of_accounts);
             state
                 .modify_account(
@@ -231,7 +231,7 @@ fn bench_modify_account_exists_without_code_no_code_change(c: &mut Criterion) {
     bench_sync_state_method(
         c,
         "StateDebug:mod leave code unchanged",
-        |state, number_of_accounts, _| {
+        |state, number_of_accounts| {
             let address = Address::from_low_u64_ne(number_of_accounts);
             state
                 .modify_account(
@@ -282,7 +282,7 @@ fn bench_remove_account_without_code(c: &mut Criterion) {
     bench_sync_state_method(
         c,
         "StateDebug:rm exist acct w.out code",
-        |state, number_of_accounts, _| {
+        |state, number_of_accounts| {
             let address = Address::from_low_u64_ne(number_of_accounts);
             state
                 .modify_account(
