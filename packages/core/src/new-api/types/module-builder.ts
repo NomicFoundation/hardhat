@@ -12,6 +12,7 @@ import {
   NamedContractDeploymentFuture,
   NamedLibraryDeploymentFuture,
   NamedStaticCallFuture,
+  ReadEventArgumentFuture,
 } from "./module";
 
 /**
@@ -112,6 +113,30 @@ export interface ContractAtOptions {
 }
 
 /**
+ * The options for a `readEventArgument` call.
+ *
+ * @beta
+ */
+export interface ReadEventArgumentOptions {
+  /**
+   * The future id.
+   */
+  id?: string;
+
+  /**
+   * The contract that emitted the event. If omitted the contract associated with
+   * the future you are reading the event from will be used.
+   */
+  emitter?: ContractFuture<string>;
+
+  /**
+   * If multiple events with the same name were emitted by the contract, you can
+   * choose which of those to read from by specifying its index (0-indexed).
+   */
+  eventIndex?: number;
+}
+
+/**
  * The build api for configuring a deployment within a module.
  *
  * @beta
@@ -175,6 +200,16 @@ export interface IgnitionModuleBuilder {
     parameterName: string,
     defaultValue?: ParamType
   ): ParamType;
+
+  readEventArgument(
+    futureToReadFrom:
+      | NamedContractDeploymentFuture<string>
+      | ArtifactContractDeploymentFuture
+      | NamedContractCallFuture<string, string>,
+    eventName: string,
+    argumentName: string,
+    options?: ReadEventArgumentOptions
+  ): ReadEventArgumentFuture;
 
   useModule<
     ModuleIdT extends string,

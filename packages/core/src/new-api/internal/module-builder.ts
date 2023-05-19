@@ -16,6 +16,7 @@ import {
   NamedContractDeploymentFuture,
   NamedLibraryDeploymentFuture,
   NamedStaticCallFuture,
+  ReadEventArgumentFuture,
 } from "../types/module";
 import {
   CallOptions,
@@ -26,6 +27,7 @@ import {
   IgnitionModuleDefinition,
   LibraryFromArtifactOptions,
   LibraryOptions,
+  ReadEventArgumentOptions,
 } from "../types/module-builder";
 
 import {
@@ -38,6 +40,7 @@ import {
   NamedContractDeploymentFutureImplementation,
   NamedLibraryDeploymentFutureImplementation,
   NamedStaticCallFutureImplementation,
+  ReadEventArgumentFutureImplementation,
 } from "./module";
 import { isFuture } from "./utils";
 
@@ -432,6 +435,52 @@ export class IgnitionModuleBuilderImplementation<
     return param as ParamType;
   }
 
+  public readEventArgument(
+    futureToReadFrom:
+      | NamedContractDeploymentFuture<string>
+      | ArtifactContractDeploymentFuture
+      | NamedContractCallFuture<string, string>,
+    eventName: string,
+    argumentName: string,
+    options: ReadEventArgumentOptions = {}
+  ): ReadEventArgumentFuture {
+    const eventIndex = options.eventIndex ?? 0;
+
+    const futureToReadFromsContract =
+      "contract" in futureToReadFrom
+        ? futureToReadFrom.contract
+        : futureToReadFrom;
+
+    const emitter = options.emitter ?? futureToReadFromsContract;
+
+    const id =
+      options.id ??
+      `${emitter.contractName}#${eventName}#${argumentName}#${eventIndex}`;
+
+    const futureId = `${this._module.id}:${id}`;
+
+    this._assertUniqueReadEventArgumentId(futureId);
+
+    const future = new ReadEventArgumentFutureImplementation(
+      futureId,
+      this._module,
+      futureToReadFrom,
+      eventName,
+      argumentName,
+      emitter,
+      eventIndex
+    );
+
+    future.dependencies.add(futureToReadFrom);
+    if (options.emitter !== undefined) {
+      future.dependencies.add(options.emitter);
+    }
+
+    this._module.futures.add(future);
+
+    return future;
+  }
+
   public useModule<
     SubmoduleModuleIdT extends string,
     SubmoduleContractNameT extends string,
@@ -544,6 +593,14 @@ export class IgnitionModuleBuilderImplementation<
       futureId,
       `Duplicated id ${futureId} found in module ${this._module.id}, ensure the id passed is unique \`m.contractAtFromArtifact("MyContract", "0x123...", { id: "MyId"})\``,
       this.contractAtFromArtifact
+    );
+  }
+
+  private _assertUniqueReadEventArgumentId(futureId: string) {
+    return this._assertUniqueFutureId(
+      futureId,
+      `Duplicated id ${futureId} found in module ${this._module.id}, ensure the id passed is unique \`m.readEventArgument("MyContract", "0x123...", artifact, { id: "MyId"})\``,
+      this.contractAt
     );
   }
 }

@@ -14,6 +14,7 @@ export enum FutureType {
   NAMED_STATIC_CALL,
   NAMED_CONTRACT_AT,
   ARTIFACT_CONTRACT_AT,
+  READ_EVENT_ARGUMENT,
 }
 
 /**
@@ -165,6 +166,21 @@ export interface ArtifactContractAtFuture extends ContractFuture<string> {
   type: FutureType.ARTIFACT_CONTRACT_AT;
   address: string | NamedStaticCallFuture<string, string>;
   artifact: ArtifactType;
+}
+
+/**
+ * A future that represents reading an argument of an event emitted by the
+ * transaction that executed another future.
+ *
+ * @beta
+ */
+export interface ReadEventArgumentFuture extends Future<any> {
+  type: FutureType.READ_EVENT_ARGUMENT;
+  futureToReadFrom: Future<any>;
+  eventName: string;
+  argumentName: string;
+  emitter: ContractFuture<string>;
+  eventIndex: number;
 }
 
 /**

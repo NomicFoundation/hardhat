@@ -13,6 +13,7 @@ import {
   NamedContractDeploymentFuture,
   NamedLibraryDeploymentFuture,
   NamedStaticCallFuture,
+  ReadEventArgumentFuture,
 } from "../types/module";
 
 const customInspectSymbol = Symbol.for("nodejs.util.inspect.custom");
@@ -186,6 +187,23 @@ export class ArtifactContractAtFutureImplementation
     public readonly artifact: ArtifactType
   ) {
     super(id, FutureType.ARTIFACT_CONTRACT_AT, module);
+  }
+}
+
+export class ReadEventArgumentFutureImplementation
+  extends BaseFuture<FutureType.READ_EVENT_ARGUMENT, any>
+  implements ReadEventArgumentFuture
+{
+  constructor(
+    public readonly id: string,
+    public readonly module: IgnitionModuleImplementation,
+    public readonly futureToReadFrom: Future<any>,
+    public readonly eventName: string,
+    public readonly argumentName: string,
+    public readonly emitter: ContractFuture<string>,
+    public readonly eventIndex: number
+  ) {
+    super(id, FutureType.READ_EVENT_ARGUMENT, module);
   }
 }
 
