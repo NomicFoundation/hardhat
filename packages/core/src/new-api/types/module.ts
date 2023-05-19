@@ -1,4 +1,4 @@
-import { ArtifactType, SolidityParamsType } from "../stubs";
+import { ArtifactType, SolidityParamType, SolidityParamsType } from "../stubs";
 
 /**
  * The different future types supported by Ignition.
@@ -153,6 +153,15 @@ export interface ContractAtFuture extends ContractFuture<string> {
   type: FutureType.CONTRACT_AT;
   address: string;
   artifact: ArtifactType;
+}
+
+/**
+ * An object containing the parameters passed into the module.
+ *
+ * @beta
+ */
+export interface ModuleParameters {
+  [parameterName: string]: SolidityParamType;
 }
 
 /**

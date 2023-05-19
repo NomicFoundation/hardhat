@@ -2,7 +2,7 @@ import assert from "assert";
 import { inspect } from "util";
 
 import { IgnitionValidationError } from "../../errors";
-import { ArtifactType, SolidityParamsType } from "../stubs";
+import { ArtifactType, SolidityParamType, SolidityParamsType } from "../stubs";
 import {
   ArtifactContractDeploymentFuture,
   ArtifactLibraryDeploymentFuture,
@@ -10,6 +10,7 @@ import {
   ContractFuture,
   IgnitionModule,
   IgnitionModuleResult,
+  ModuleParameters,
   NamedContractCallFuture,
   NamedContractDeploymentFuture,
   NamedLibraryDeploymentFuture,
@@ -60,7 +61,8 @@ export class ModuleConstructor {
 
   constructor(
     public readonly chainId: number,
-    public readonly accounts: string[]
+    public readonly accounts: string[],
+    public readonly parameters: ModuleParameters = {}
   ) {}
 
   public construct<
@@ -93,7 +95,8 @@ export class ModuleConstructor {
         this,
         mod,
         this.chainId,
-        this.accounts
+        this.accounts,
+        this.parameters
       )
     );
 
@@ -119,7 +122,8 @@ export class IgnitionModuleBuilderImplementation<
       IgnitionModuleResultsT
     >,
     public readonly chainId: number,
-    public readonly accounts: string[]
+    public readonly accounts: string[],
+    public readonly parameters: ModuleParameters = {}
   ) {
     this._futureIds = new Set<string>();
   }
@@ -376,6 +380,22 @@ export class IgnitionModuleBuilderImplementation<
     return future;
   }
 
+  public getParameter<ParamType extends SolidityParamType>(
+    parameterName: string,
+    defaultValue?: ParamType
+  ): ParamType {
+    const param = this.parameters[parameterName] ?? defaultValue;
+
+    if (param === undefined) {
+      this._throwErrorWithStackTrace(
+        `Module parameter '${parameterName}' is required, but none was given`,
+        this.getParameter
+      );
+    }
+
+    return param as ParamType;
+  }
+
   public useModule<
     SubmoduleModuleIdT extends string,
     SubmoduleContractNameT extends string,
@@ -403,18 +423,25 @@ export class IgnitionModuleBuilderImplementation<
     return submodule.results;
   }
 
+  private _throwErrorWithStackTrace(
+    message: string,
+    func: (...[]: any[]) => any
+  ): never {
+    const validationError = new IgnitionValidationError(message);
+
+    // Improve the stack trace to stop on module api level
+    Error.captureStackTrace(validationError, func);
+
+    throw validationError;
+  }
+
   private _assertUniqueFutureId(
     futureId: string,
     message: string,
     func: (...[]: any[]) => any
   ) {
     if (this._futureIds.has(futureId)) {
-      const validationError = new IgnitionValidationError(message);
-
-      // Improve the stack trace to stop on module api level
-      Error.captureStackTrace(validationError, func);
-
-      throw validationError;
+      this._throwErrorWithStackTrace(message, func);
     }
 
     this._futureIds.add(futureId);

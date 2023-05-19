@@ -1,4 +1,4 @@
-import { ArtifactType, SolidityParamsType } from "../stubs";
+import { ArtifactType, SolidityParamType, SolidityParamsType } from "../stubs";
 
 import {
   ArtifactContractDeploymentFuture,
@@ -163,6 +163,11 @@ export interface IgnitionModuleBuilder {
     artifact: ArtifactType,
     options?: ContractAtOptions
   ): ContractAtFuture;
+
+  getParameter<ParamType extends SolidityParamType>(
+    parameterName: string,
+    defaultValue?: ParamType
+  ): ParamType;
 
   useModule<
     ModuleIdT extends string,
