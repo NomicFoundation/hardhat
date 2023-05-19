@@ -1,6 +1,6 @@
 import type { ExternalParamValue } from "../types/dsl";
 import type {
-  ContractFuture,
+  ContractFutureOld,
   LibraryFuture,
   ProxyFuture,
   Virtual,
@@ -14,7 +14,7 @@ import { IDeploymentBuilder } from "./dsl";
  * @alpha
  */
 export type ModuleReturnValue =
-  | ContractFuture
+  | ContractFutureOld
   | LibraryFuture
   | Virtual
   | ProxyFuture;

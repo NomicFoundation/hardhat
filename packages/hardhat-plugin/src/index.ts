@@ -1,5 +1,10 @@
+import {
+  Module,
+  ModuleConstructor,
+  ModuleDict,
+  ModuleParams,
+} from "@ignored/ignition-core";
 import "@nomiclabs/hardhat-ethers";
-import { Module, ModuleDict, ModuleParams } from "@ignored/ignition-core";
 import { BigNumber } from "ethers";
 import fs from "fs-extra";
 import { extendConfig, extendEnvironment, task } from "hardhat/config";
@@ -10,11 +15,12 @@ import prompts from "prompts";
 import { buildIgnitionProvidersFrom } from "./buildIgnitionProvidersFrom";
 import { IgnitionWrapper } from "./ignition-wrapper";
 import { loadModule } from "./load-module";
-import { Renderer } from "./plan";
+import { writePlan } from "./plan/write-plan";
 import "./type-extensions";
 import { renderInfo } from "./ui/components/info";
+import { open } from "./utils/open";
 
-export { buildModule } from "@ignored/ignition-core";
+export { buildModule, defineModule } from "@ignored/ignition-core";
 
 export interface IgnitionConfig {
   maxRetries: number;
@@ -178,7 +184,8 @@ task("plan")
     ) => {
       await hre.run("compile", { quiet: true });
 
-      const userModule: Module<ModuleDict> | undefined = loadModule(
+      // TODO: alter loadModule to return new-api modules at type level
+      const userModule: any = loadModule(
         hre.config.paths.ignition,
         moduleNameOrPath
       );
@@ -188,21 +195,40 @@ task("plan")
         process.exit(0);
       }
 
-      const plan = await hre.ignition.plan(userModule);
+      const chainId = Number(
+        await hre.network.provider.request({
+          method: "eth_chainId",
+        })
+      );
 
-      const renderer = new Renderer(userModule.name, plan, {
-        cachePath: hre.config.paths.cache,
-        network: {
-          name: (plan as { networkName: string }).networkName,
-          id: hre.network.config.chainId ?? "unknown",
+      const accounts = (await hre.network.provider.request({
+        method: "eth_accounts",
+      })) as string[];
+
+      const constructor = new ModuleConstructor(chainId, accounts);
+      const module = constructor.construct(userModule);
+
+      await writePlan(
+        {
+          details: {
+            networkName: hre.network.name,
+            chainId,
+          },
+          module,
         },
-      });
-
-      renderer.write();
+        { cacheDir: hre.config.paths.cache }
+      );
 
       if (!quiet) {
-        console.log(`Plan written to ${renderer.planPath}/index.html`);
-        renderer.open();
+        const indexFile = path.join(
+          hre.config.paths.cache,
+          "plan",
+          "index.html"
+        );
+
+        console.log(`Plan written to ${indexFile}`);
+
+        open(indexFile);
       }
     }
   );

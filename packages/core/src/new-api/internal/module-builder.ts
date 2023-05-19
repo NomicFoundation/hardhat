@@ -53,6 +53,7 @@ const STUB_MODULE_RESULTS = {
  * module params).
  *
  * TODO: Add support for concrete values.
+ * @beta
  */
 export class ModuleConstructor {
   private _modules: Map<string, IgnitionModule> = new Map();

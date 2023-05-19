@@ -23,12 +23,16 @@
   "exports": {
     ".": "./dist/src/index.js",
     "./helpers": "./dist/src/helpers.js",
+    "./ui-helpers": "./dist/src/ui-helpers.js",
     "./soon-to-be-removed": "./dist/src/soon-to-be-removed.js"
   },
   "typesVersions": {
     "*": {
       "helpers": [
         "./dist/src/helpers"
+      ],
+      "ui-helpers": [
+        "./dist/src/ui-helpers"
       ],
       "soon-to-be-removed": [
         "./dist/src/soon-to-be-removed"
@@ -87,7 +91,6 @@
     "@ethersproject/address": "5.6.1",
     "debug": "^4.3.2",
     "ethers": "^5.4.7",
-    "fs-extra": "^10.0.0",
     "js-graph-algorithms": "1.0.18",
     "object-hash": "^3.0.0",
     "serialize-error": "8.1.0"

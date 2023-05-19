@@ -1,13 +1,13 @@
-import type { ContractFuture } from "../../../types/future";
 import type { Services } from "../../types/services";
 
 import { IgnitionError } from "../../../errors";
+import { ContractFutureOld } from "../../../types/future";
 import { CallPoints, DeploymentGraphVertex } from "../../types/deploymentGraph";
 import { VertexResultEnum, VertexVisitResultFailure } from "../../types/graph";
 import { resolveProxyValue } from "../../utils/proxy";
 
 export async function resolveArtifactForContractFuture(
-  givenFuture: ContractFuture,
+  givenFuture: ContractFutureOld,
   { services }: { services: Services }
 ): Promise<any[] | undefined> {
   const future = resolveProxyValue(givenFuture);

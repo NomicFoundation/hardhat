@@ -220,7 +220,7 @@ export interface ProxyFuture {
  *
  * @alpha
  */
-export type ContractFuture =
+export type ContractFutureOld =
   | HardhatContract
   | ArtifactContract
   | DeployedContract;
@@ -233,12 +233,19 @@ export type ContractFuture =
 export type LibraryFuture = HardhatLibrary | ArtifactLibrary;
 
 /**
+ * The future representing the value of calling a smart contract method.
+ *
+ * @alpha
+ */
+export type CallableFuture = ContractFutureOld | LibraryFuture;
+
+/**
  * A future value from an on-chain action that.
  *
  * @alpha
  */
 export type DependableFuture =
-  | ContractFuture
+  | ContractFutureOld
   | LibraryFuture
   | ContractCall
   | StaticContractCall
@@ -256,7 +263,7 @@ export type AddressResolvable =
   | string
   | ParameterFuture
   | EventParamFuture
-  | ContractFuture;
+  | ContractFutureOld;
 
 /**
  * The future value of a passed parameter to a Module.

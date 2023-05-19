@@ -10,7 +10,7 @@ import { isFailure } from "../../src/internal/utils/process-results";
 import { IDeploymentBuilder } from "../../src/types/dsl";
 import {
   ArtifactContract,
-  ContractFuture,
+  ContractFutureOld,
   EventFuture,
   HardhatContract,
   LibraryFuture,
@@ -539,7 +539,7 @@ describe("deployment builder - useModule", () => {
     // @ts-ignore
     let returnsWrongFutureTypeModule: Module<{
       token:
-        | ContractFuture
+        | ContractFutureOld
         | LibraryFuture
         | Virtual
         | ProxyFuture

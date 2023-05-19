@@ -13,6 +13,11 @@ import {
   NamedStaticCallFuture,
 } from "./module";
 
+/**
+ * The definition used to construct an Ignition module.
+ *
+ * @beta
+ */
 export interface IgnitionModuleDefinition<
   ModuleIdT extends string,
   ContractNameT extends string,
@@ -22,45 +27,85 @@ export interface IgnitionModuleDefinition<
   moduleDefintionFunction: (m: IgnitionModuleBuilder) => IgnitionModuleResultsT;
 }
 
+/**
+ * The options for a `ContractOptions` call.
+ *
+ * @beta
+ */
 export interface ContractOptions {
   id?: string;
   after?: Future[];
   libraries?: Record<string, ContractFuture<string>>;
 }
 
+/**
+ * The options for a `contractFromArtifact` call.
+ *
+ * @beta
+ */
 export interface ContractFromArtifactOptions {
   id?: string;
   after?: Future[];
   libraries?: Record<string, ContractFuture<string>>;
 }
 
+/**
+ * The options for a `library` call.
+ *
+ * @beta
+ */
 export interface LibraryOptions {
   id?: string;
   after?: Future[];
   libraries?: Record<string, ContractFuture<string>>;
 }
 
+/**
+ * The options for a `libraryFromArtifact` call.
+ *
+ * @beta
+ */
 export interface LibraryFromArtifactOptions {
   id?: string;
   after?: Future[];
   libraries?: Record<string, ContractFuture<string>>;
 }
 
+/**
+ * The options for a `call` call.
+ *
+ * @beta
+ */
 export interface CallOptions {
   id?: string;
   after?: Future[];
 }
 
+/**
+ * The options for a `staticCall` call.
+ *
+ * @beta
+ */
 export interface StaticCallOptions {
   id?: string;
   after?: Future[];
 }
 
+/**
+ * The options for a `contractAt` call.
+ *
+ * @beta
+ */
 export interface ContractAtOptions {
   id?: string;
   after?: Future[];
 }
 
+/**
+ * The build api for configuring a deployment within a module.
+ *
+ * @beta
+ */
 export interface IgnitionModuleBuilder {
   chainId: number;
   accounts: string[];

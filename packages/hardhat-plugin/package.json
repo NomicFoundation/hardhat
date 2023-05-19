@@ -21,7 +21,7 @@
   "main": "dist/src/index.js",
   "types": "dist/src/index.d.ts",
   "scripts": {
-    "build": "tsc --build && node ./esbuild.js",
+    "build": "tsc --build",
     "lint": "npm run prettier -- --check && npm run eslint",
     "lint:fix": "npm run prettier -- --write && npm run eslint -- --fix",
     "eslint": "eslint \"src/**/*.{ts,tsx}\" \"test/**/*.{ts,tsx}\"",
@@ -34,6 +34,7 @@
   },
   "devDependencies": {
     "@ignored/ignition-core": "^0.0.13",
+    "@ignored/ignition-ui": "^0.0.13",
     "@istanbuljs/nyc-config-typescript": "1.0.2",
     "@nomiclabs/hardhat-ethers": "^2.0.2",
     "@types/chai": "^4.2.22",
@@ -72,6 +73,7 @@
   },
   "peerDependencies": {
     "@ignored/ignition-core": "^0.0.13",
+    "@ignored/ignition-ui": "^0.0.13",
     "@nomiclabs/hardhat-ethers": "^2.0.2",
     "hardhat": "^2.14.0"
   },

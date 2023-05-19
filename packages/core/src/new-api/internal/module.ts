@@ -1,20 +1,20 @@
-import { inspect } from "util";
-
 import { ArtifactType, SolidityParamsType } from "../stubs";
 import {
+  ArtifactContractDeploymentFuture,
+  ArtifactLibraryDeploymentFuture,
+  ContractAtFuture,
+  ContractFuture,
   Future,
   FutureType,
   IgnitionModule,
-  NamedContractDeploymentFuture,
-  ArtifactContractDeploymentFuture,
   IgnitionModuleResult,
-  NamedLibraryDeploymentFuture,
-  ArtifactLibraryDeploymentFuture,
   NamedContractCallFuture,
-  ContractFuture,
+  NamedContractDeploymentFuture,
+  NamedLibraryDeploymentFuture,
   NamedStaticCallFuture,
-  ContractAtFuture,
 } from "../types/module";
+
+const customInspectSymbol = Symbol.for("nodejs.util.inspect.custom");
 
 export abstract class BaseFuture<
   FutureTypeT extends FutureType,
@@ -29,16 +29,20 @@ export abstract class BaseFuture<
     public readonly module: IgnitionModuleImplementation
   ) {}
 
-  public [inspect.custom]() {
+  public [customInspectSymbol](
+    _depth: number,
+    _inspectOptions: {},
+    inspect: (arg: {}) => string
+  ) {
     const padding = " ".repeat(2);
 
     return `Future ${this.id} {
-  Type: ${FutureType[this.type]}
-  Module: ${this.module.id}
-  Dependencies: ${inspect(
-    Array.from(this.dependencies).map((f) => f.id)
-  ).replace(/\n/g, `\n${padding}`)}
-}`;
+    Type: ${FutureType[this.type]}
+    Module: ${this.module.id}
+    Dependencies: ${inspect(
+      Array.from(this.dependencies).map((f) => f.id)
+    ).replace(/\n/g, `\n${padding}`)}
+  }`;
   }
 }
 
@@ -175,16 +179,20 @@ export class IgnitionModuleImplementation<
     public readonly results: IgnitionModuleResultsT
   ) {}
 
-  public [inspect.custom]() {
+  public [customInspectSymbol](
+    _depth: number,
+    _inspectOptions: {},
+    inspect: (arg: {}) => string
+  ) {
     const padding = " ".repeat(2);
 
     return `IgnitionModule ${this.id} {
-  Futures: ${inspect(this.futures).replace(/\n/g, `\n${padding}`)}
-  Results: ${inspect(this.results).replace(/\n/g, `\n${padding}`)}
-  Submodules: ${inspect(Array.from(this.submodules).map((m) => m.id)).replace(
-    /\n/g,
-    `\n${padding}`
-  )}
-}`;
+    Futures: ${inspect(this.futures).replace(/\n/g, `\n${padding}`)}
+    Results: ${inspect(this.results).replace(/\n/g, `\n${padding}`)}
+    Submodules: ${inspect(Array.from(this.submodules).map((m) => m.id)).replace(
+      /\n/g,
+      `\n${padding}`
+    )}
+  }`;
   }
 }

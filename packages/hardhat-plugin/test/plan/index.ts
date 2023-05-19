@@ -6,10 +6,11 @@ import path from "path";
 import { useEnvironment } from "../useEnvironment";
 
 describe("plan", () => {
-  useEnvironment("minimal");
+  // TODO: rename back to minimal api once execution switched over
+  useEnvironment("minimal-new-api");
 
   it("should create a plan", async function () {
-    const planPath = path.resolve("../minimal/cache/plan");
+    const planPath = path.resolve("../minimal-new-api/cache/plan");
     fs.emptyDirSync(planPath);
 
     await this.hre.run("compile", { quiet: true });
