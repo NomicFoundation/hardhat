@@ -45,6 +45,95 @@ fn bench_code_by_hash(c: &mut Criterion) {
     );
 }
 
+fn bench_database_commit(c: &mut Criterion) {
+    use hashbrown::HashMap;
+    use revm::primitives::KECCAK_EMPTY;
+
+    use rethnet_eth::remote::optional_u64_from_hex;
+    use rethnet_evm::{Account, AccountInfo, StorageSlot};
+
+    #[derive(Debug, serde::Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    struct AccountState {
+        #[serde(deserialize_with = "optional_u64_from_hex")]
+        nonce: Option<u64>,
+        balance: Option<U256>,
+        storage: HashMap<U256, Option<U256>>,
+        code: Option<Bytes>,
+        storage_cleared: bool,
+    }
+
+    bench_sync_state_method(
+        c,
+        "DatabaseCommit:commit",
+        prep_no_op,
+        |state, _number_of_accounts, _, _| {
+            #[allow(unused_variables)]
+            let mut accounts_to_commit: HashMap<Address, Account> = HashMap::new();
+            let json_accounts: HashMap<Address, AccountState> = serde_json::from_str(
+                &std::fs::read_to_string("benches/accounts_changed_in_mainnet_block_17295357.json")
+                    .unwrap(),
+                // a fresh set of account updates can be retrieved via:
+                // HARDHAT_EXPERIMENTAL_VM_MODE=ethereumjs HARDHAT_RUN_FULL_BLOCK_DUMP_STATE_TO_FILE=./17295357.json yarn ts-node scripts/test-run-forked-block.ts $ALCHEMY_URL 17295357
+            )
+            .unwrap();
+            for (address, account_state) in json_accounts.iter() {
+                let mut storage: HashMap<U256, StorageSlot> = HashMap::new();
+                for (location, value) in account_state.storage.clone() {
+                    storage.insert(
+                        location,
+                        StorageSlot {
+                            original_value: U256::ZERO, // TODO: something better?
+                            present_value: value.unwrap_or(U256::ZERO),
+                        },
+                    );
+                }
+                let code = account_state
+                    .code
+                    .clone()
+                    .map(|bytes| Bytecode::new_raw(bytes));
+                accounts_to_commit.insert(
+                    *address,
+                    Account {
+                        info: AccountInfo {
+                            balance: account_state.balance.unwrap(),
+                            nonce: account_state.nonce.unwrap(),
+                            code: code.clone(),
+                            code_hash: code.map_or(KECCAK_EMPTY, |code| code.hash()),
+                        },
+                        storage,
+                        storage_cleared: account_state.storage_cleared,
+                        is_destroyed: false,
+                        is_touched: false,
+                        is_not_existing: false,
+                    },
+                );
+            }
+
+            state.commit(accounts_to_commit);
+
+            debug_assert!(json_accounts.iter().all(|(address, json)| {
+                if let Some(committed) = state.basic(*address).unwrap() {
+                    debug_assert!(committed.balance == json.balance.unwrap());
+                    debug_assert!(committed.nonce == json.nonce.unwrap());
+                    if let Some(json_code) = json.code.clone().map(|c| Bytecode::new_raw(c)) {
+                        debug_assert!(
+                            state.code_by_hash(committed.code_hash).unwrap() == json_code
+                        );
+                    } else {
+                        debug_assert!(committed.code.is_none());
+                    }
+                } else {
+                    debug_assert!(false);
+                }
+                true
+            }));
+        },
+        &[0],
+        &[1],
+    );
+}
+
 fn bench_storage(c: &mut Criterion) {
     bench_sync_state_method(
         c,
@@ -61,5 +150,11 @@ fn bench_storage(c: &mut Criterion) {
     );
 }
 
-criterion_group!(benches, bench_basic, bench_code_by_hash, bench_storage);
+criterion_group!(
+    benches,
+    bench_basic,
+    bench_code_by_hash,
+    bench_storage,
+    bench_database_commit
+);
 criterion_main!(benches);

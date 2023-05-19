@@ -69,6 +69,18 @@ where
     s.serialize_str(&result)
 }
 
+/// for use with serde's deserialize_with on fields of hexadecimal strings that should be
+/// parsed as Option<u64>
+pub fn optional_u64_from_hex<'de, D>(deserializer: D) -> Result<Option<u64>, D::Error>
+where
+    D: serde::Deserializer<'de>,
+{
+    let s: &str = serde::Deserialize::deserialize(deserializer)?;
+    Ok(Some(
+        u64::from_str_radix(&s[2..], 16).expect("failed to parse u64"),
+    ))
+}
+
 /// For specifying a block
 #[derive(Clone)]
 pub enum BlockSpec {
