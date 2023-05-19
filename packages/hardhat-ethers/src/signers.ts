@@ -25,7 +25,6 @@ export class HardhatEthersSigner implements ethers.Signer {
     const hre = await import("hardhat");
     let gasLimit: number | undefined;
     if (
-      hre.network.name === "hardhat" &&
       hre.network.config.gas !== "auto" &&
       hre.network.config.gas !== undefined
     ) {
