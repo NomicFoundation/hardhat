@@ -30,7 +30,7 @@ async function main(rpcUrl: string, blockNumber: bigint) {
   const remoteCommon = new Common({ chain: chainId });
   const hardfork = remoteCommon.getHardforkByBlockNumber(blockNumber);
 
-  await runFullBlock(rpcUrlArg, blockNumber, chainId, hardfork);
+  await runFullBlock(rpcUrlArg, blockNumber, chainId, remoteCommon);
 }
 
 main(rpcUrlArg, BigInt(blockNumberArg))
