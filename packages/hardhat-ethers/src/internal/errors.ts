@@ -2,7 +2,7 @@ import { NomicLabsHardhatPluginError } from "hardhat/plugins";
 
 export class HardhatEthersError extends NomicLabsHardhatPluginError {
   constructor(message: string, parent?: Error) {
-    super("@nomiclabs/hardhat-ethers", message, parent);
+    super("@nomicfoundation/hardhat-ethers", message, parent);
   }
 }
 

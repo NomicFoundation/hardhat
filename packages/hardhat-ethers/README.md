@@ -1,4 +1,4 @@
-[![npm](https://img.shields.io/npm/v/@nomiclabs/hardhat-ethers.svg)](https://www.npmjs.com/package/@nomiclabs/hardhat-ethers) [![hardhat](https://hardhat.org/buidler-plugin-badge.svg?1)](https://hardhat.org)
+[![npm](https://img.shields.io/npm/v/@nomicfoundation/hardhat-ethers.svg)](https://www.npmjs.com/package/@nomicfoundation/hardhat-ethers) [![hardhat](https://hardhat.org/buidler-plugin-badge.svg?1)](https://hardhat.org)
 
 # hardhat-ethers
 
@@ -11,19 +11,19 @@ This plugin brings to Hardhat the Ethereum library `ethers.js`, which allows you
 ## Installation
 
 ```bash
-npm install --save-dev @nomiclabs/hardhat-ethers 'ethers@^5.0.0'
+npm install --save-dev @nomicfoundation/hardhat-ethers 'ethers@^5.0.0'
 ```
 
 And add the following statement to your `hardhat.config.js`:
 
 ```js
-require("@nomiclabs/hardhat-ethers");
+require("@nomicfoundation/hardhat-ethers");
 ```
 
 Or, if you are using TypeScript, add this to your `hardhat.config.ts`:
 
 ```js
-import "@nomiclabs/hardhat-ethers";
+import "@nomicfoundation/hardhat-ethers";
 ```
 
 ## Tasks
@@ -90,7 +90,7 @@ There are no additional steps you need to take for this plugin to work.
 Install it and access ethers through the Hardhat Runtime Environment anywhere you need it (tasks, scripts, tests, etc). For example, in your `hardhat.config.js`:
 
 ```js
-require("@nomiclabs/hardhat-ethers");
+require("@nomicfoundation/hardhat-ethers");
 
 // task action function receives the Hardhat Runtime Environment as second argument
 task(
