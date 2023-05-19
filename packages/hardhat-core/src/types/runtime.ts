@@ -223,5 +223,6 @@ export type EnvironmentExtender = (env: HardhatRuntimeEnvironment) => void;
  */
 export type ProviderExtender = (
   provider: EIP1193Provider,
-  config: HardhatConfig
+  config: HardhatConfig,
+  network: string
 ) => Promise<EIP1193Provider>;

@@ -83,7 +83,7 @@ class FixedGasProvider extends ProviderWrapper {
   }
 }
 
-extendProvider(async (provider, config) => {
+extendProvider(async (provider, config, network) => {
   // We fix the gas price to be set by the config or to a random high value
   const gasPrice = config.fixedGasPrice || "0x1000000"
   const newProvider = new FixedGasProvider(gasPrice, provider);

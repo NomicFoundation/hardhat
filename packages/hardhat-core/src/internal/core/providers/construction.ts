@@ -138,7 +138,7 @@ export async function createProvider(
   let wrappedProvider = applyProviderWrappers(eip1193Provider, networkConfig);
 
   for (const extender of extenders) {
-    wrappedProvider = await extender(wrappedProvider, config);
+    wrappedProvider = await extender(wrappedProvider, config, networkName);
   }
 
   const BackwardsCompatibilityProviderAdapter = importProvider<
