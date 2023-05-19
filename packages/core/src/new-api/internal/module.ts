@@ -58,7 +58,7 @@ export class NamedContractDeploymentFutureImplementation<
     public readonly contractName: ContractNameT,
     public readonly constructorArgs: SolidityParamsType,
     public readonly libraries: Record<string, ContractFuture<string>>,
-    public readonly value: BigInt,
+    public readonly value: bigint,
     public readonly from: string
   ) {
     super(id, FutureType.NAMED_CONTRACT_DEPLOYMENT, module);
@@ -78,7 +78,7 @@ export class ArtifactContractDeploymentFutureImplementation<
     public readonly constructorArgs: SolidityParamsType,
     public readonly artifact: ArtifactType,
     public readonly libraries: Record<string, ContractFuture<string>>,
-    public readonly value: BigInt,
+    public readonly value: bigint,
     public readonly from: string
   ) {
     super(id, FutureType.ARTIFACT_CONTRACT_DEPLOYMENT, module);
@@ -133,7 +133,7 @@ export class NamedContractCallFutureImplementation<
     public readonly functionName: FunctionNameT,
     public readonly contract: ContractFuture<ContractNameT>,
     public readonly args: SolidityParamsType,
-    public readonly value: BigInt,
+    public readonly value: bigint,
     public readonly from: string
   ) {
     super(id, FutureType.NAMED_CONTRACT_CALL, module);
