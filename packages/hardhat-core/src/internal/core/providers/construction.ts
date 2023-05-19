@@ -3,12 +3,12 @@ import type {
   BoundExperimentalHardhatNetworkMessageTraceHook,
   EIP1193Provider,
   EthereumProvider,
+  HardhatConfig,
   HardhatNetworkConfig,
   HDAccountsUserConfig,
   HttpNetworkAccountsUserConfig,
   HttpNetworkConfig,
   NetworkConfig,
-  ProjectPathsConfig,
   ProviderExtender,
 } from "../../../types";
 
@@ -48,14 +48,15 @@ function importProvider<ModuleT, ProviderNameT extends keyof ModuleT>(
 }
 
 export async function createProvider(
+  config: HardhatConfig,
   networkName: string,
-  networkConfig: NetworkConfig,
-  paths?: ProjectPathsConfig,
   artifacts?: Artifacts,
   experimentalHardhatNetworkMessageTraceHooks: BoundExperimentalHardhatNetworkMessageTraceHook[] = [],
   extenders: ProviderExtender[] = []
 ): Promise<EthereumProvider> {
   let eip1193Provider: EIP1193Provider;
+  const networkConfig = config.networks[networkName];
+  const paths = config.paths;
 
   if (networkName === HARDHAT_NETWORK_NAME) {
     const hardhatNetConfig = networkConfig as HardhatNetworkConfig;
@@ -137,7 +138,7 @@ export async function createProvider(
   let wrappedProvider = applyProviderWrappers(eip1193Provider, networkConfig);
 
   for (const extender of extenders) {
-    wrappedProvider = await extender(wrappedProvider);
+    wrappedProvider = await extender(wrappedProvider, config);
   }
 
   const BackwardsCompatibilityProviderAdapter = importProvider<

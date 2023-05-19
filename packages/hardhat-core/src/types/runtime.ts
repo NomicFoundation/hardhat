@@ -222,5 +222,6 @@ export type EnvironmentExtender = (env: HardhatRuntimeEnvironment) => void;
  * Adding and modifying the current provider is preferred over ignoring it and returning a new instance.
  */
 export type ProviderExtender = (
-  provider: EIP1193Provider
+  provider: EIP1193Provider,
+  config: HardhatConfig
 ) => Promise<EIP1193Provider>;

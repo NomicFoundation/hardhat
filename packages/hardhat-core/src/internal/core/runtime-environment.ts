@@ -97,9 +97,8 @@ export class Environment implements HardhatRuntimeEnvironment {
     const provider = new LazyInitializationProvider(async () => {
       log(`Creating provider for network ${networkName}`);
       return createProvider(
+        config,
         networkName,
-        networkConfig,
-        this.config.paths,
         this.artifacts,
         experimentalHardhatNetworkMessageTraceHooks.map(
           (hook) => (trace: MessageTrace, isCallMessageTrace: boolean) =>
@@ -111,7 +110,7 @@ export class Environment implements HardhatRuntimeEnvironment {
 
     this.network = {
       name: networkName,
-      config: config.networks[networkName],
+      config: networkConfig,
       provider,
     };
 

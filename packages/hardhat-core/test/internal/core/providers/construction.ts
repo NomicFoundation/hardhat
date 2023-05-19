@@ -8,7 +8,10 @@ import {
 import { ERRORS } from "../../../../src/internal/core/errors-list";
 import { numberToRpcQuantity } from "../../../../src/internal/core/jsonrpc/types/base-types";
 import { BackwardsCompatibilityProviderAdapter } from "../../../../src/internal/core/providers/backwards-compatibility";
-import { BoundExperimentalHardhatNetworkMessageTraceHook } from "../../../../src/types";
+import {
+  BoundExperimentalHardhatNetworkMessageTraceHook,
+  HardhatConfig,
+} from "../../../../src/types";
 import { AutomaticGasPriceProvider } from "../../../../src/internal/core/providers/gas-providers";
 import {
   applyProviderWrappers,
@@ -29,26 +32,38 @@ describe("Network config typeguards", async () => {
 
 describe("Base provider creation", () => {
   it("Should create a valid HTTP provider and wrap it", async () => {
-    const provider = await createProvider("net", {
-      url: "http://127.0.0.1:8545",
-      ...defaultHttpNetworkParams,
-    });
+    const config = {
+      networks: {
+        net: {
+          url: "http://127.0.0.1:8545",
+          ...defaultHttpNetworkParams,
+        },
+      },
+    } as unknown as HardhatConfig;
+    const provider = await createProvider(config, "net");
 
     assert.instanceOf(provider, BackwardsCompatibilityProviderAdapter);
   });
 
   it("Should extend the base provider by calling each supplied extender", async () => {
-    const paths = undefined;
     const artifacts = undefined;
     const hooks: BoundExperimentalHardhatNetworkMessageTraceHook[] = [];
 
     const identity = (obj: any) => obj;
     const extenders = [sinon.spy(identity), sinon.spy(identity)];
 
+    const config = {
+      networks: {
+        net: {
+          url: "http://127.0.0.1:8545",
+          ...defaultHttpNetworkParams,
+        },
+      },
+      paths: undefined,
+    } as unknown as HardhatConfig;
     const provider = await createProvider(
+      config,
       "net",
-      { url: "http://127.0.0.1:8545", ...defaultHttpNetworkParams },
-      paths,
       artifacts,
       hooks,
       extenders

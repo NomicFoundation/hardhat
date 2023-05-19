@@ -83,9 +83,10 @@ class FixedGasProvider extends ProviderWrapper {
   }
 }
 
-extendProvider(async (provider) => {
-  // We fix the gas price to a random high value
-  const newProvider = new FixedGasProvider("0x1000000", provider);
+extendProvider(async (provider, config) => {
+  // We fix the gas price to be set by the config or to a random high value
+  const gasPrice = config.fixedGasPrice || "0x1000000"
+  const newProvider = new FixedGasProvider(gasPrice, provider);
   return newProvider;
 });
 ```
