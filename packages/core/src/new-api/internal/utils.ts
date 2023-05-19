@@ -1,3 +1,5 @@
+import { ethers } from "ethers";
+
 import { isFuture } from "../type-guards";
 import { ArgumentType, Future } from "../types/module";
 
@@ -19,4 +21,8 @@ function _getFutures(argument: ArgumentType): Future[] {
   }
 
   return [];
+}
+
+export function isAddress(address: string): boolean {
+  return ethers.utils.isAddress(address);
 }

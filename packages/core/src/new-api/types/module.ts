@@ -376,4 +376,5 @@ export interface IgnitionModule<
   futures: Set<Future>; // Future created in this module — All of them have to be deployed before returning the results. Note that not all of them are in results
   submodules: Set<IgnitionModule>; // Modules used by this module — Note that there's only one instance of each module
   results: IgnitionModuleResultsT; // The futures returned by the callback passed to buildModule
+  getFutures(): Future[];
 }

@@ -120,32 +120,63 @@ export interface DeploymentExecutionState
   > {
   storedArtifactPath: string; // As stored in the deployment directory.
   storedBuildInfoPath?: string; // As stored in the deployment directory. Optional as it's not always present
+  contractName: string;
   constructorArgs: ArgumentType[];
   libraries: Record<string, string>; // TODO: Do we need to store their future ids for the reconciliation process?
   value: bigint;
+  from: string | undefined;
   contractAddress?: string; // The result
-
-  // from: string; -- Will we support this in the beta? I'll ignore it for now, but we should decide it asap
 }
 
-type CallExecutionState = BaseExecutionState<FutureType.NAMED_CONTRACT_CALL>;
+export interface CallExecutionState
+  extends BaseExecutionState<FutureType.NAMED_CONTRACT_CALL> {
+  contractAddress: string;
+  functionName: string;
+  args: ArgumentType[];
+  value: bigint;
+  from: string | undefined;
+}
 
-type StaticCallExecutionState =
-  BaseExecutionState<FutureType.NAMED_STATIC_CALL>;
+export interface StaticCallExecutionState
+  extends BaseExecutionState<FutureType.NAMED_STATIC_CALL> {
+  contractAddress: string;
+  functionName: string;
+  args: ArgumentType[];
+  result?: ArgumentType;
+  from: string | undefined;
+}
 
-type ContractAtExecutionState = BaseExecutionState<
-  FutureType.NAMED_CONTRACT_AT | FutureType.ARTIFACT_CONTRACT_AT
->;
+export interface ContractAtExecutionState
+  extends BaseExecutionState<
+    FutureType.NAMED_CONTRACT_AT | FutureType.ARTIFACT_CONTRACT_AT
+  > {
+  contractName: string;
+  address: string;
+}
 
-type ReadEventArgumentExecutionState =
-  BaseExecutionState<FutureType.READ_EVENT_ARGUMENT>;
+export interface ReadEventArgumentExecutionState
+  extends BaseExecutionState<FutureType.READ_EVENT_ARGUMENT> {
+  eventName: string;
+  argumentName: string;
+  eventIndex: number;
+  emitter: string;
+}
+
+export interface SendDataExecutionState
+  extends BaseExecutionState<FutureType.SEND_DATA> {
+  to: string;
+  data: string | undefined;
+  value: bigint;
+  from: string | undefined;
+}
 
 export type ExecutionState =
   | DeploymentExecutionState
   | CallExecutionState
   | StaticCallExecutionState
   | ContractAtExecutionState
-  | ReadEventArgumentExecutionState;
+  | ReadEventArgumentExecutionState
+  | SendDataExecutionState;
 
 export interface ExecutionStateMap {
   [key: string]: ExecutionState;
