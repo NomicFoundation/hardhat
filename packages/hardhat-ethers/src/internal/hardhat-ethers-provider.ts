@@ -29,7 +29,7 @@ import {
   toQuantity,
 } from "ethers";
 import { EthereumProvider } from "hardhat/types";
-import { CustomEthersSigner } from "../signers";
+import { HardhatEthersSigner } from "../signers";
 import {
   copyRequest,
   formatBlock,
@@ -46,7 +46,7 @@ import {
   NotImplementedError,
 } from "./errors";
 
-export class CustomEthersProvider implements ethers.Provider {
+export class HardhatEthersProvider implements ethers.Provider {
   constructor(
     private readonly _hardhatProvider: EthereumProvider,
     private readonly _networkName: string
@@ -64,7 +64,7 @@ export class CustomEthersProvider implements ethers.Provider {
 
   public async getSigner(
     address?: number | string
-  ): Promise<CustomEthersSigner> {
+  ): Promise<HardhatEthersSigner> {
     if (address === null || address === undefined) {
       address = 0;
     }
@@ -77,11 +77,11 @@ export class CustomEthersProvider implements ethers.Provider {
       if (address >= accounts.length) {
         throw new AccountIndexOutOfRange(address, accounts.length);
       }
-      return CustomEthersSigner.create(this, accounts[address]);
+      return HardhatEthersSigner.create(this, accounts[address]);
     }
 
     if (typeof address === "string") {
-      return CustomEthersSigner.create(this, address);
+      return HardhatEthersSigner.create(this, address);
     }
 
     throw new HardhatEthersError(`Couldn't get account ${address as any}`);
@@ -293,7 +293,7 @@ export class CustomEthersProvider implements ethers.Provider {
   }
 
   public async getTransactionResult(_hash: string): Promise<string | null> {
-    throw new NotImplementedError("CustomEthersProvider.getTransactionResult");
+    throw new NotImplementedError("HardhatEthersProvider.getTransactionResult");
   }
 
   public async getLogs(
@@ -309,11 +309,11 @@ export class CustomEthersProvider implements ethers.Provider {
   }
 
   public async resolveName(_ensName: string): Promise<string | null> {
-    throw new NotImplementedError("CustomEthersProvider.resolveName");
+    throw new NotImplementedError("HardhatEthersProvider.resolveName");
   }
 
   public async lookupAddress(_address: string): Promise<string | null> {
-    throw new NotImplementedError("CustomEthersProvider.lookupAddress");
+    throw new NotImplementedError("HardhatEthersProvider.lookupAddress");
   }
 
   public async waitForTransaction(
@@ -321,13 +321,13 @@ export class CustomEthersProvider implements ethers.Provider {
     _confirms?: number | undefined,
     _timeout?: number | undefined
   ): Promise<ethers.TransactionReceipt | null> {
-    throw new NotImplementedError("CustomEthersProvider.waitForTransaction");
+    throw new NotImplementedError("HardhatEthersProvider.waitForTransaction");
   }
 
   public async waitForBlock(
     _blockTag?: BlockTag | undefined
   ): Promise<ethers.Block> {
-    throw new NotImplementedError("CustomEthersProvider.waitForBlock");
+    throw new NotImplementedError("HardhatEthersProvider.waitForBlock");
   }
 
   public async on(event: ProviderEvent, listener: Listener): Promise<this> {

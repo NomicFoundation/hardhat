@@ -2,7 +2,7 @@ import { assert } from "chai";
 import { TASK_COMPILE } from "hardhat/builtin-tasks/task-names";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 
-import { CustomEthersSigner } from "../src/signers";
+import { HardhatEthersSigner } from "../src/signers";
 
 import { useEnvironment } from "./helpers";
 
@@ -94,7 +94,7 @@ describe("hardhat-ethers plugin", function () {
         assert.isTrue(signers.every((aSigner) => aSigner.address !== address));
 
         const signer = await this.env.ethers.getSigner(address);
-        assert.instanceOf(signer, CustomEthersSigner);
+        assert.instanceOf(signer, HardhatEthersSigner);
         assert.strictEqual(signer.address, address);
       });
     });

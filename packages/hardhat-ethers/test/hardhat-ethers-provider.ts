@@ -10,7 +10,7 @@ import {
 
 use(chaiAsPromised);
 
-describe("custom provider", function () {
+describe("hardhat ethers provider", function () {
   usePersistentEnvironment("minimal-project");
 
   it("can access itself through .provider", async function () {

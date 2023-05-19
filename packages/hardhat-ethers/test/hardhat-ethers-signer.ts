@@ -7,7 +7,7 @@ import {
   usePersistentEnvironment,
 } from "./helpers";
 
-describe("custom signer", function () {
+describe("hardhat ethers signer", function () {
   describe("minimal project", function () {
     usePersistentEnvironment("minimal-project");
 

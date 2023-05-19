@@ -1,5 +1,5 @@
 import type { ethers as EthersT, BaseContract } from "ethers";
-import type { CustomEthersSigner } from "../signers";
+import type { HardhatEthersSigner } from "../signers";
 import type { FactoryOptions, Libraries } from "../types";
 
 import { Artifact, HardhatRuntimeEnvironment } from "hardhat/types";
@@ -35,7 +35,7 @@ function isArtifact(artifact: any): artifact is Artifact {
 
 export async function getSigners(
   hre: HardhatRuntimeEnvironment
-): Promise<CustomEthersSigner[]> {
+): Promise<HardhatEthersSigner[]> {
   const accounts: string[] = await hre.ethers.provider.send("eth_accounts", []);
 
   const signersWithAddress = await Promise.all(
@@ -48,8 +48,8 @@ export async function getSigners(
 export async function getSigner(
   hre: HardhatRuntimeEnvironment,
   address: string
-): Promise<CustomEthersSigner> {
-  const { CustomEthersSigner: SignerWithAddressImpl } = await import(
+): Promise<HardhatEthersSigner> {
+  const { HardhatEthersSigner: SignerWithAddressImpl } = await import(
     "../signers"
   );
 
@@ -64,7 +64,7 @@ export async function getSigner(
 export async function getImpersonatedSigner(
   hre: HardhatRuntimeEnvironment,
   address: string
-): Promise<CustomEthersSigner> {
+): Promise<HardhatEthersSigner> {
   await hre.ethers.provider.send("hardhat_impersonateAccount", [address]);
   return getSigner(hre, address);
 }

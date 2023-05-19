@@ -9,7 +9,7 @@ import {
   TransactionLike,
   TypedDataEncoder,
 } from "ethers";
-import { CustomEthersProvider } from "./internal/custom-ethers-provider";
+import { HardhatEthersProvider } from "./internal/hardhat-ethers-provider";
 import {
   copyRequest,
   getRpcTransaction,
@@ -17,11 +17,11 @@ import {
 } from "./internal/ethers-utils";
 import { HardhatEthersError, NotImplementedError } from "./internal/errors";
 
-export class CustomEthersSigner implements ethers.Signer {
+export class HardhatEthersSigner implements ethers.Signer {
   public readonly address: string;
-  public readonly provider: ethers.JsonRpcProvider | CustomEthersProvider;
+  public readonly provider: ethers.JsonRpcProvider | HardhatEthersProvider;
 
-  public static async create(provider: CustomEthersProvider, address: string) {
+  public static async create(provider: HardhatEthersProvider, address: string) {
     const hre = await import("hardhat");
     let gasLimit: number | undefined;
     if (
@@ -32,12 +32,12 @@ export class CustomEthersSigner implements ethers.Signer {
       gasLimit = hre.network.config.gas;
     }
 
-    return new CustomEthersSigner(address, provider, gasLimit);
+    return new HardhatEthersSigner(address, provider, gasLimit);
   }
 
   private constructor(
     address: string,
-    _provider: ethers.JsonRpcProvider | CustomEthersProvider,
+    _provider: ethers.JsonRpcProvider | HardhatEthersProvider,
     private readonly _gasLimit?: number
   ) {
     this.address = getAddress(address);
@@ -45,9 +45,9 @@ export class CustomEthersSigner implements ethers.Signer {
   }
 
   public connect(
-    provider: ethers.JsonRpcProvider | CustomEthersProvider
+    provider: ethers.JsonRpcProvider | HardhatEthersProvider
   ): ethers.Signer {
-    return new CustomEthersSigner(this.address, provider);
+    return new HardhatEthersSigner(this.address, provider);
   }
 
   public getNonce(blockTag?: BlockTag | undefined): Promise<number> {
@@ -82,7 +82,7 @@ export class CustomEthersSigner implements ethers.Signer {
     // TODO if we split the signer for the in-process and json-rpc networks,
     // we can enable this method when using the in-process network or when the
     // json-rpc network has a private key
-    throw new NotImplementedError("CustomEthersSigner.signTransaction");
+    throw new NotImplementedError("HardhatEthersSigner.signTransaction");
   }
 
   public async sendTransaction(
@@ -233,7 +233,7 @@ export class CustomEthersSigner implements ethers.Signer {
 }
 
 // exported as an alias to make migration easier
-export { CustomEthersSigner as SignerWithAddress };
+export { HardhatEthersSigner as SignerWithAddress };
 
 async function populate(
   signer: ethers.Signer,

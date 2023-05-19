@@ -1,7 +1,7 @@
 import type * as ethers from "ethers";
 import type { Artifact } from "hardhat/types";
-import type { CustomEthersProvider } from "../internal/custom-ethers-provider";
-import type { CustomEthersSigner } from "../signers";
+import type { HardhatEthersProvider } from "../internal/hardhat-ethers-provider";
+import type { HardhatEthersSigner } from "../signers";
 
 export interface Libraries {
   [libraryName: string]: string | ethers.Addressable;
@@ -48,7 +48,7 @@ export declare function getContractFactoryFromArtifact<
 ): Promise<ethers.ContractFactory<A, I>>;
 
 export interface HardhatEthersHelpers {
-  provider: CustomEthersProvider;
+  provider: HardhatEthersProvider;
 
   getContractFactory: typeof getContractFactory;
   getContractFactoryFromArtifact: typeof getContractFactoryFromArtifact;
@@ -62,8 +62,8 @@ export interface HardhatEthersHelpers {
     address: string,
     signer?: ethers.Signer
   ) => Promise<ethers.Contract>;
-  getSigner: (address: string) => Promise<CustomEthersSigner>;
-  getSigners: () => Promise<CustomEthersSigner[]>;
-  getImpersonatedSigner: (address: string) => Promise<CustomEthersSigner>;
+  getSigner: (address: string) => Promise<HardhatEthersSigner>;
+  getSigners: () => Promise<HardhatEthersSigner[]>;
+  getImpersonatedSigner: (address: string) => Promise<HardhatEthersSigner>;
   deployContract: typeof deployContract;
 }

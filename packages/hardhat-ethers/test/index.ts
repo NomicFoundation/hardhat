@@ -5,7 +5,7 @@ import { ethers } from "ethers";
 import { NomicLabsHardhatPluginError } from "hardhat/plugins";
 import { Artifact } from "hardhat/types";
 
-import { CustomEthersSigner } from "../src/signers";
+import { HardhatEthersSigner } from "../src/signers";
 import { GreeterContract, TestContractLib } from "./example-contracts";
 
 import { assertIsSigner, useEnvironment } from "./helpers";
@@ -44,7 +44,7 @@ describe("Ethers plugin", function () {
     });
 
     describe("Signers and contracts helpers", function () {
-      let signers: CustomEthersSigner[];
+      let signers: HardhatEthersSigner[];
       let greeterArtifact: Artifact;
       let iGreeterArtifact: Artifact;
 
@@ -454,8 +454,8 @@ describe("Ethers plugin", function () {
             assert.strictEqual(await greeter.greet(), "Hola");
           });
 
-          describe("with custom signer", function () {
-            it("should return a contract factory connected to the custom signer", async function () {
+          describe("with hardhat's signer", function () {
+            it("should return a contract factory connected to the hardhat's signer", async function () {
               // It's already compiled in artifacts/
               const contract = await this.env.ethers.getContractFactory(
                 "Greeter",
@@ -519,8 +519,8 @@ describe("Ethers plugin", function () {
             assert.strictEqual(await greeter.greet(), "Hola");
           });
 
-          describe("with custom signer", function () {
-            it("should return a contract factory connected to the custom signer", async function () {
+          describe("with hardhat's signer", function () {
+            it("should return a contract factory connected to the hardhat's signer", async function () {
               // It's already compiled in artifacts/
               const contract = await this.env.ethers.getContractFactory(
                 greeterArtifact.abi,
@@ -601,8 +601,8 @@ describe("Ethers plugin", function () {
           assert.strictEqual(await greeter.greet(), "Hola");
         });
 
-        describe("with custom signer", function () {
-          it("should return a contract factory connected to the custom signer", async function () {
+        describe("with hardhat's signer", function () {
+          it("should return a contract factory connected to the hardhat's signer", async function () {
             const contract =
               await this.env.ethers.getContractFactoryFromArtifact(
                 greeterArtifact,
@@ -681,8 +681,8 @@ describe("Ethers plugin", function () {
             assert.strictEqual(await greeter.greet(), "Hola");
           });
 
-          describe("with custom signer", function () {
-            it("Should return an instance of a contract associated to a custom signer", async function () {
+          describe("with hardhat's signer", function () {
+            it("Should return an instance of a contract associated to a hardhat's signer", async function () {
               const contract = await this.env.ethers.getContractAt(
                 "Greeter",
                 deployedGreeter.target,
@@ -767,8 +767,8 @@ describe("Ethers plugin", function () {
           //   assert.strictEqual(eventEmitted, true);
           // });
 
-          describe("with custom signer", function () {
-            it("Should return an instance of a contract associated to a custom signer", async function () {
+          describe("with hardhat's signer", function () {
+            it("Should return an instance of a contract associated to a hardhat's signer", async function () {
               const contract = await this.env.ethers.getContractAt(
                 greeterArtifact.abi,
                 deployedGreeter.target,
@@ -850,8 +850,8 @@ describe("Ethers plugin", function () {
             assert.strictEqual(await greeter.greet(), "Hola");
           });
 
-          describe("with custom signer", function () {
-            it("Should return an instance of a contract associated to a custom signer", async function () {
+          describe("with hardhat's signer", function () {
+            it("Should return an instance of a contract associated to a hardhat's signer", async function () {
               const contract = await this.env.ethers.getContractAtFromArtifact(
                 greeterArtifact,
                 await deployedGreeter.getAddress(),
@@ -875,7 +875,7 @@ describe("Ethers plugin", function () {
           await assertContract(contract, signers[0]);
         });
 
-        it("should deploy and return a contract with custom signer passed directly", async function () {
+        it("should deploy and return a contract with hardhat's signer passed directly", async function () {
           const contract = await this.env.ethers.deployContract(
             "Greeter",
             signers[1]
@@ -884,7 +884,7 @@ describe("Ethers plugin", function () {
           await assertContract(contract, signers[1]);
         });
 
-        it("should deploy and return a contract with custom signer passed as an option", async function () {
+        it("should deploy and return a contract with hardhat's signer passed as an option", async function () {
           const contract = await this.env.ethers.deployContract("Greeter", {
             signer: signers[1],
           });
@@ -902,7 +902,7 @@ describe("Ethers plugin", function () {
           assert(await contract.greet(), "Hello");
         });
 
-        it("should deploy with args and return a contract with custom signer", async function () {
+        it("should deploy with args and return a contract with hardhat's signer", async function () {
           const contract = await this.env.ethers.deployContract(
             "GreeterWithConstructorArg",
             ["Hello"],
@@ -913,7 +913,7 @@ describe("Ethers plugin", function () {
           assert(await contract.greet(), "Hello");
         });
 
-        it("should deploy with args and return a contract with custom signer as an option", async function () {
+        it("should deploy with args and return a contract with hardhat's signer as an option", async function () {
           const contract = await this.env.ethers.deployContract(
             "GreeterWithConstructorArg",
             ["Hello"],
@@ -926,7 +926,7 @@ describe("Ethers plugin", function () {
 
         async function assertContract(
           contract: EthersT.Contract,
-          signer: CustomEthersSigner
+          signer: HardhatEthersSigner
         ) {
           assert.isNotNull(contract.interface.getFunction("greet"));
           assert.isNotNull(contract.interface.getFunction("setGreeting"));
