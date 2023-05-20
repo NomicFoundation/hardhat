@@ -773,6 +773,14 @@ const communityPlugins: IPlugin[] = [
       "Enable project-specific features inside Truffle Dashboard, including advanced calldata decoding and more",
     tags: ["truffle-dashboard", "transaction", "signing", "decoding"],
   },
+  {
+    name: "hardhat-w3f",
+    author: "Gelato Network",
+    npmPackage: "@gelatonetwork/web3-functions-sdk/hardhat-plugin",
+    authorUrl: "https://github.com/gelatodigital/web3-functions-sdk",
+    description: "Thie hardhat-w3f plugin allows builders to build & run Web3 Functions connecting smart off-chain data with smart contracts ",
+    tags: ["Gelato", "w3f", "offchain","functions"],
+  },
 ];
 
 const officialPlugins: IPlugin[] = [
