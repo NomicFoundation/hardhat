@@ -40,7 +40,8 @@ networks: {
   hardhat: {
     forking: {
       url: "https://mainnet.infura.io/v3/<key>",
-    }
+    },
+    chainId: <chainId of the forking network>
   }
 }
 ```
@@ -54,7 +55,8 @@ networks: {
   hardhat: {
     forking: {
       url: "https://eth-mainnet.g.alchemy.com/v2/<key>",
-    }
+    },
+    chainId: <chainId of the forking network>
   }
 }
 ```
@@ -63,7 +65,7 @@ networks: {
 
 ::::
 
-(Note that you'll need to replace the `<key>` component of the URL with your personal Infura or Alchemy API key.)
+(Note that you'll need to replace the `<key>` component of the URL with your personal Infura or Alchemy API key. You may also want to specify `<chainId of the forking network>` to override hardhat default chainId 31337.)
 
 By accessing any state that exists on mainnet, Hardhat Network will pull the data and expose it transparently as if it was available locally.
 
