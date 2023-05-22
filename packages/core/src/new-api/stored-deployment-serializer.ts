@@ -1,10 +1,11 @@
 import { IgnitionError } from "../errors";
 
 import {
+  ArtifactContractAtFutureImplementation,
   ArtifactContractDeploymentFutureImplementation,
   ArtifactLibraryDeploymentFutureImplementation,
-  ContractAtFutureImplementation,
   IgnitionModuleImplementation,
+  NamedContractAtFutureImplementation,
   NamedContractCallFutureImplementation,
   NamedContractDeploymentFutureImplementation,
   NamedLibraryDeploymentFutureImplementation,
@@ -17,16 +18,18 @@ import {
   FutureType,
   IgnitionModule,
   IgnitionModuleResult,
+  NamedStaticCallFuture,
 } from "./types/module";
 import {
   BaseSerializedFuture,
   FutureToken,
   ModuleToken,
+  SerializedArtifactContractAtFuture,
   SerializedArtifactContractDeploymentFuture,
   SerializedArtifactLibraryDeploymentFuture,
-  SerializedContractAtFuture,
   SerializedFuture,
   SerializedLibraries,
+  SerializedNamedContractAtFuture,
   SerializedNamedContractCallFuture,
   SerializedNamedContractDeploymentFuture,
   SerializedNamedLibraryDeploymentFuture,
@@ -262,8 +265,32 @@ export class StoredDeploymentSerializer {
               .futureId
           ] as ContractFuture<string>
         );
-      } else if (future instanceof ContractAtFutureImplementation) {
-        // no future specific tokens to resolve
+      } else if (future instanceof NamedContractAtFutureImplementation) {
+        if (typeof future.address !== "string") {
+          this._overwriteReadonly(
+            future,
+            "address",
+            partialFutureLookup[
+              (
+                (serializedFuture as SerializedNamedContractAtFuture)
+                  .address as unknown as NamedStaticCallFuture<string, string>
+              ).id
+            ] as NamedStaticCallFuture<string, string>
+          );
+        }
+      } else if (future instanceof ArtifactContractAtFutureImplementation) {
+        if (typeof future.address !== "string") {
+          this._overwriteReadonly(
+            future,
+            "address",
+            partialFutureLookup[
+              (
+                (serializedFuture as SerializedArtifactContractAtFuture)
+                  .address as unknown as NamedStaticCallFuture<string, string>
+              ).id
+            ] as NamedStaticCallFuture<string, string>
+          );
+        }
       } else {
         throw new IgnitionError(
           `unknown future type: ${FutureType[future.type]}`
@@ -478,19 +505,38 @@ export class StoredDeploymentSerializer {
       };
 
       return serializedNamedStaticCallFuture;
-    } else if (future instanceof ContractAtFutureImplementation) {
-      const serializedContractAtFuture: SerializedContractAtFuture = {
+    } else if (future instanceof NamedContractAtFutureImplementation) {
+      const serializedNamedContractAtFuture: SerializedNamedContractAtFuture = {
         id: future.id,
         type: future.type,
         dependencies: Array.from(future.dependencies).map(
           StoredDeploymentSerializer._convertFutureToFutureToken
         ),
         contractName: future.contractName,
-        address: future.address,
-        artifact: future.artifact,
+        address:
+          typeof future.address === "string"
+            ? future.address
+            : this._convertFutureToFutureToken(future.address),
       };
 
-      return serializedContractAtFuture;
+      return serializedNamedContractAtFuture;
+    } else if (future instanceof ArtifactContractAtFutureImplementation) {
+      const serializedArtifactContractAtFuture: SerializedArtifactContractAtFuture =
+        {
+          id: future.id,
+          type: future.type,
+          dependencies: Array.from(future.dependencies).map(
+            StoredDeploymentSerializer._convertFutureToFutureToken
+          ),
+          contractName: future.contractName,
+          address:
+            typeof future.address === "string"
+              ? future.address
+              : this._convertFutureToFutureToken(future.address),
+          artifact: future.artifact,
+        };
+
+      return serializedArtifactContractAtFuture;
     } else {
       throw new IgnitionError(
         `Unknown future type while serializing: ${FutureType[future.type]}`
@@ -589,12 +635,19 @@ export class StoredDeploymentSerializer {
           serializedFuture.args,
           serializedFuture.from
         );
-      case FutureType.CONTRACT_AT:
-        return new ContractAtFutureImplementation(
+      case FutureType.NAMED_CONTRACT_AT:
+        return new NamedContractAtFutureImplementation(
           serializedFuture.id,
           placeholderModule,
           serializedFuture.contractName,
-          serializedFuture.address,
+          serializedFuture.address as any
+        );
+      case FutureType.ARTIFACT_CONTRACT_AT:
+        return new ArtifactContractAtFutureImplementation(
+          serializedFuture.id,
+          placeholderModule,
+          serializedFuture.contractName,
+          serializedFuture.address as any,
           serializedFuture.artifact
         );
     }

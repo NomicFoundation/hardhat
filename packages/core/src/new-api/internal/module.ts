@@ -1,13 +1,14 @@
 import { ArtifactType, SolidityParamsType } from "../stubs";
 import {
+  ArtifactContractAtFuture,
   ArtifactContractDeploymentFuture,
   ArtifactLibraryDeploymentFuture,
-  ContractAtFuture,
   ContractFuture,
   Future,
   FutureType,
   IgnitionModule,
   IgnitionModuleResult,
+  NamedContractAtFuture,
   NamedContractCallFuture,
   NamedContractDeploymentFuture,
   NamedLibraryDeploymentFuture,
@@ -159,18 +160,32 @@ export class NamedStaticCallFutureImplementation<
   }
 }
 
-export class ContractAtFutureImplementation<ContractNameT extends string>
-  extends BaseFuture<FutureType.CONTRACT_AT, string>
-  implements ContractAtFuture
+export class NamedContractAtFutureImplementation<ContractNameT extends string>
+  extends BaseFuture<FutureType.NAMED_CONTRACT_AT, string>
+  implements NamedContractAtFuture<ContractNameT>
 {
   constructor(
     public readonly id: string,
     public readonly module: IgnitionModuleImplementation,
     public readonly contractName: ContractNameT,
+    public readonly address: string | NamedStaticCallFuture<string, string>
+  ) {
+    super(id, FutureType.NAMED_CONTRACT_AT, module);
+  }
+}
+
+export class ArtifactContractAtFutureImplementation
+  extends BaseFuture<FutureType.ARTIFACT_CONTRACT_AT, string>
+  implements ArtifactContractAtFuture
+{
+  constructor(
+    public readonly id: string,
+    public readonly module: IgnitionModuleImplementation,
+    public readonly contractName: string,
     public readonly address: string | NamedStaticCallFuture<string, string>,
     public readonly artifact: ArtifactType
   ) {
-    super(id, FutureType.CONTRACT_AT, module);
+    super(id, FutureType.ARTIFACT_CONTRACT_AT, module);
   }
 }
 

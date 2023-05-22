@@ -3,14 +3,18 @@ import { assert } from "chai";
 import { defineModule } from "../../src/new-api/define-module";
 import { ModuleConstructor } from "../../src/new-api/internal/module-builder";
 
-describe("contractAt", () => {
+describe("contractAtFromArtifactFromArtifact", () => {
   const fakeArtifact: any = {};
 
   it("should be able to setup a contract at a given address", () => {
     const moduleWithContractFromArtifactDefinition = defineModule(
       "Module1",
       (m) => {
-        const contract1 = m.contractAt("Contract1", "0xtest");
+        const contract1 = m.contractAtFromArtifact(
+          "Contract1",
+          "0xtest",
+          fakeArtifact
+        );
 
         return { contract1 };
       }
@@ -48,9 +52,14 @@ describe("contractAt", () => {
       "Module1",
       (m) => {
         const example = m.contract("Example");
-        const another = m.contractAt("Another", "0xtest", {
-          after: [example],
-        });
+        const another = m.contractAtFromArtifact(
+          "Another",
+          "0xtest",
+          fakeArtifact,
+          {
+            after: [example],
+          }
+        );
 
         return { example, another };
       }
@@ -77,7 +86,7 @@ describe("contractAt", () => {
         const example = m.contract("Example");
         const call = m.staticCall(example, "getAddress");
 
-        const another = m.contractAt("Another", call);
+        const another = m.contractAtFromArtifact("Another", call, fakeArtifact);
 
         return { example, another };
       }
@@ -105,16 +114,16 @@ describe("contractAt", () => {
       const moduleWithSameContractTwiceDefinition = defineModule(
         "Module1",
         (m) => {
-          const sameContract1 = m.contractAt(
+          const sameContract1 = m.contractAtFromArtifact(
             "SameContract",
             "0x123",
-
+            fakeArtifact,
             { id: "first" }
           );
-          const sameContract2 = m.contractAt(
+          const sameContract2 = m.contractAtFromArtifact(
             "SameContract",
             "0x123",
-
+            fakeArtifact,
             {
               id: "second",
             }
@@ -142,12 +151,12 @@ describe("contractAt", () => {
 
     it("should throw if the same contract is deployed twice without differentiating ids", () => {
       const moduleDefinition = defineModule("Module1", (m) => {
-        const sameContract1 = m.contractAt(
+        const sameContract1 = m.contractAtFromArtifact(
           "SameContract",
           "0x123",
           fakeArtifact
         );
-        const sameContract2 = m.contractAt(
+        const sameContract2 = m.contractAtFromArtifact(
           "SameContract",
           "0x123",
           fakeArtifact
@@ -166,18 +175,18 @@ describe("contractAt", () => {
 
     it("should throw if a contract tries to pass the same id twice", () => {
       const moduleDefinition = defineModule("Module1", (m) => {
-        const sameContract1 = m.contractAt(
+        const sameContract1 = m.contractAtFromArtifact(
           "SameContract",
           "0x123",
-
+          fakeArtifact,
           {
             id: "same",
           }
         );
-        const sameContract2 = m.contractAt(
+        const sameContract2 = m.contractAtFromArtifact(
           "SameContract",
           "0x123",
-
+          fakeArtifact,
           {
             id: "same",
           }

@@ -12,7 +12,8 @@ export enum FutureType {
   ARTIFACT_LIBRARY_DEPLOYMENT,
   NAMED_CONTRACT_CALL,
   NAMED_STATIC_CALL,
-  CONTRACT_AT,
+  NAMED_CONTRACT_AT,
+  ARTIFACT_CONTRACT_AT,
 }
 
 /**
@@ -144,13 +145,24 @@ export interface NamedStaticCallFuture<
 }
 
 /**
- * A future representing a previously deployed contract at a known address.
+ * A future representing a previously deployed contract at a known address that belongs to this project.
+ *
+ * @beta
+ */
+export interface NamedContractAtFuture<ContractNameT extends string>
+  extends ContractFuture<ContractNameT> {
+  type: FutureType.NAMED_CONTRACT_AT;
+  address: string | NamedStaticCallFuture<string, string>;
+}
+
+/**
+ * A future representing a previously deployed contract at a known address with a given artifact.
  * It may not belong to this project, and we may struggle to type.
  *
  * @beta
  */
-export interface ContractAtFuture extends ContractFuture<string> {
-  type: FutureType.CONTRACT_AT;
+export interface ArtifactContractAtFuture extends ContractFuture<string> {
+  type: FutureType.ARTIFACT_CONTRACT_AT;
   address: string | NamedStaticCallFuture<string, string>;
   artifact: ArtifactType;
 }

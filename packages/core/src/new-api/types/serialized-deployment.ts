@@ -136,14 +136,26 @@ export interface SerializedNamedStaticCallFuture extends BaseSerializedFuture {
 }
 
 /**
- * The serialized version of ContractAtFuture.
+ * The serialized version of NamedContractAtFuture.
  *
  * @beta
  */
-export interface SerializedContractAtFuture extends BaseSerializedFuture {
-  type: FutureType.CONTRACT_AT;
+export interface SerializedNamedContractAtFuture extends BaseSerializedFuture {
+  type: FutureType.NAMED_CONTRACT_AT;
   contractName: string;
-  address: string;
+  address: string | FutureToken;
+}
+
+/**
+ * The serialized version of ArtifactContractAtFuture.
+ *
+ * @beta
+ */
+export interface SerializedArtifactContractAtFuture
+  extends BaseSerializedFuture {
+  type: FutureType.ARTIFACT_CONTRACT_AT;
+  contractName: string;
+  address: string | FutureToken;
   artifact: ArtifactType;
 }
 
@@ -240,4 +252,5 @@ export type SerializedFuture =
   | SerializedArtifactLibraryDeploymentFuture
   | SerializedNamedContractCallFuture
   | SerializedNamedStaticCallFuture
-  | SerializedContractAtFuture;
+  | SerializedNamedContractAtFuture
+  | SerializedArtifactContractAtFuture;
