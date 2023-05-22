@@ -6,20 +6,24 @@ import { ModuleConstructor } from "../../src/new-api/internal/module-builder";
 
 describe("getParameter", () => {
   it("should record given parameters", () => {
-    const constructor = new ModuleConstructor(0, [], { param1: 42 });
+    const constructor = new ModuleConstructor(0, [], {
+      TestModule: { param1: 42 },
+    });
 
-    assert.equal(constructor.parameters.param1, 42);
+    assert.equal(constructor.parameters.TestModule.param1, 42);
   });
 
   it("should allow a parameter to be passed as an arg", () => {
     const moduleWithParamsDefinition = defineModule("Module1", (m) => {
-      const arg1 = m.getParameter<string>("param1");
+      const arg1 = m.getParameter("param1");
       const contract1 = m.contract("Contract1", [arg1]);
 
       return { contract1 };
     });
 
-    const constructor = new ModuleConstructor(0, [], { param1: "arg1" });
+    const constructor = new ModuleConstructor(0, [], {
+      Module1: { param1: "arg1" },
+    });
     const moduleWithParams = constructor.construct(moduleWithParamsDefinition);
 
     assert.isDefined(moduleWithParams);
@@ -40,15 +44,17 @@ describe("getParameter", () => {
 
   it("should allow a parameter to have a default value", () => {
     const moduleWithParamsDefinition = defineModule("Module1", (m) => {
-      const arg1 = m.getParameter<string>("param1", "arg1");
-      const arg2 = m.getParameter<number>("param2", 42);
+      const arg1 = m.getParameter("param1", "arg1");
+      const arg2 = m.getParameter("param2", 42);
       const contract1 = m.contract("Contract1", [arg1, arg2]);
 
       return { contract1 };
     });
 
     const constructor = new ModuleConstructor(0, [], {
-      param1: "overriddenParam",
+      Module1: {
+        param1: "overriddenParam",
+      },
     });
     const moduleWithParams = constructor.construct(moduleWithParamsDefinition);
 

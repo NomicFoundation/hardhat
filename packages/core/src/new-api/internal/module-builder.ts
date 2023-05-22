@@ -62,7 +62,7 @@ export class ModuleConstructor {
   constructor(
     public readonly chainId: number,
     public readonly accounts: string[],
-    public readonly parameters: ModuleParameters = {}
+    public readonly parameters: { [moduleId: string]: ModuleParameters } = {}
   ) {}
 
   public construct<
@@ -96,7 +96,7 @@ export class ModuleConstructor {
         mod,
         this.chainId,
         this.accounts,
-        this.parameters
+        this.parameters[moduleDefintion.id]
       )
     );
 
