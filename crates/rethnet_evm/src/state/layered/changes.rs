@@ -456,7 +456,9 @@ impl LayeredChanges<RethnetLayer> {
 
     /// Removes the code corresponding to the provided hash, if it exists.
     pub fn remove_code(&mut self, code_hash: &B256) {
-        self.last_layer_mut().contracts.remove(code_hash);
+        if *code_hash != KECCAK_EMPTY {
+            self.last_layer_mut().contracts.remove(code_hash);
+        }
     }
 
     pub fn insert_account(&mut self, address: &Address, mut account_info: AccountInfo) {
