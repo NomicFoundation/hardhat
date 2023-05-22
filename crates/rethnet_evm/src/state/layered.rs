@@ -338,4 +338,30 @@ mod tests {
         take_code();
         add_code();
     }
+
+    #[test]
+    fn repro_repeated_remove_and_insert_account_has_no_effect() {
+        let state: std::cell::RefCell<LayeredState<RethnetLayer>> = Default::default();
+
+        let address = Address::from_low_u64_ne(1);
+
+        let insert_account = || {
+            state
+                .borrow_mut()
+                .insert_account(address, AccountInfo::default())
+                .unwrap();
+            assert!(state.borrow().basic(address).unwrap().is_some());
+        };
+
+        insert_account();
+
+        assert!(state
+            .borrow_mut()
+            .remove_account(address)
+            .unwrap()
+            .is_some());
+        assert!(state.borrow().basic(address).unwrap().is_none());
+
+        insert_account();
+    }
 }
