@@ -59,7 +59,7 @@ export class NamedContractDeploymentFutureImplementation<
     public readonly constructorArgs: SolidityParamsType,
     public readonly libraries: Record<string, ContractFuture<string>>,
     public readonly value: bigint,
-    public readonly from: string
+    public readonly from: string | undefined
   ) {
     super(id, FutureType.NAMED_CONTRACT_DEPLOYMENT, module);
   }
@@ -79,7 +79,7 @@ export class ArtifactContractDeploymentFutureImplementation<
     public readonly artifact: ArtifactType,
     public readonly libraries: Record<string, ContractFuture<string>>,
     public readonly value: bigint,
-    public readonly from: string
+    public readonly from: string | undefined
   ) {
     super(id, FutureType.ARTIFACT_CONTRACT_DEPLOYMENT, module);
   }
@@ -96,7 +96,7 @@ export class NamedLibraryDeploymentFutureImplementation<
     public readonly module: IgnitionModuleImplementation,
     public readonly contractName: LibraryNameT,
     public readonly libraries: Record<string, ContractFuture<string>>,
-    public readonly from: string
+    public readonly from: string | undefined
   ) {
     super(id, FutureType.NAMED_LIBRARY_DEPLOYMENT, module);
   }
@@ -114,7 +114,7 @@ export class ArtifactLibraryDeploymentFutureImplementation<
     public readonly contractName: LibraryNameT,
     public readonly artifact: ArtifactType,
     public readonly libraries: Record<string, ContractFuture<string>>,
-    public readonly from: string
+    public readonly from: string | undefined
   ) {
     super(id, FutureType.ARTIFACT_LIBRARY_DEPLOYMENT, module);
   }
@@ -134,7 +134,7 @@ export class NamedContractCallFutureImplementation<
     public readonly contract: ContractFuture<ContractNameT>,
     public readonly args: SolidityParamsType,
     public readonly value: bigint,
-    public readonly from: string
+    public readonly from: string | undefined
   ) {
     super(id, FutureType.NAMED_CONTRACT_CALL, module);
   }
@@ -153,7 +153,7 @@ export class NamedStaticCallFutureImplementation<
     public readonly functionName: FunctionNameT,
     public readonly contract: ContractFuture<ContractNameT>,
     public readonly args: SolidityParamsType,
-    public readonly from: string
+    public readonly from: string | undefined
   ) {
     super(id, FutureType.NAMED_STATIC_CALL, module);
   }

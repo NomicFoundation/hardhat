@@ -133,7 +133,6 @@ export class IgnitionModuleBuilderImplementation<
     const futureId = `${this._module.id}:${id}`;
     options.libraries ??= {};
     options.value ??= BigInt(0);
-    options.from ??= this.accounts[0];
 
     this._assertUniqueContractId(futureId);
 
@@ -176,7 +175,6 @@ export class IgnitionModuleBuilderImplementation<
     const futureId = `${this._module.id}:${id}`;
     options.libraries ??= {};
     options.value ??= BigInt(0);
-    options.from ??= this.accounts[0];
 
     this._assertUniqueArtifactContractId(futureId);
 
@@ -217,7 +215,6 @@ export class IgnitionModuleBuilderImplementation<
     const id = options.id ?? libraryName;
     const futureId = `${this._module.id}:${id}`;
     options.libraries ??= {};
-    options.from ??= this.accounts[0];
 
     this._assertUniqueLibraryId(futureId);
 
@@ -252,7 +249,6 @@ export class IgnitionModuleBuilderImplementation<
     const id = options.id ?? libraryName;
     const futureId = `${this._module.id}:${id}`;
     options.libraries ??= {};
-    options.from ??= this.accounts[0];
 
     this._assertUniqueArtifactLibraryId(futureId);
 
@@ -289,7 +285,6 @@ export class IgnitionModuleBuilderImplementation<
     const id = options.id ?? functionName;
     const futureId = `${this._module.id}:${contractFuture.contractName}#${id}`;
     options.value ??= BigInt(0);
-    options.from ??= this.accounts[0];
 
     this._assertUniqueCallId(futureId);
 
@@ -326,7 +321,6 @@ export class IgnitionModuleBuilderImplementation<
   ): NamedStaticCallFuture<ContractNameT, FunctionNameT> {
     const id = options.id ?? functionName;
     const futureId = `${this._module.id}:${contractFuture.contractName}#${id}`;
-    options.from ??= this.accounts[0];
 
     this._assertUniqueStaticCallId(futureId);
 
