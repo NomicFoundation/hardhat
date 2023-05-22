@@ -1,7 +1,7 @@
 import type { TransactionResponse } from "ethers";
 
 import assert from "assert";
-import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
+import { HardhatEthersSigner } from "@nomicfoundation/hardhat-ethers/signers";
 import { AssertionError, expect } from "chai";
 import path from "path";
 import util from "util";
@@ -32,8 +32,8 @@ describe("INTEGRATION: changeTokenBalance and changeTokenBalances matchers", fun
   });
 
   function runTests() {
-    let sender: SignerWithAddress;
-    let receiver: SignerWithAddress;
+    let sender: HardhatEthersSigner;
+    let receiver: HardhatEthersSigner;
     let mockToken: Token;
     let matchers: MatchersContract;
 
@@ -642,7 +642,7 @@ async function runAllAsserts(
     | (() => TransactionResponse)
     | (() => Promise<TransactionResponse>),
   token: Token,
-  accounts: Array<string | SignerWithAddress>,
+  accounts: Array<string | HardhatEthersSigner>,
   balances: Array<number | bigint>
 ) {
   // changeTokenBalances works for the given arrays

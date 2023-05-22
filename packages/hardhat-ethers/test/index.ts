@@ -8,12 +8,12 @@ import { Artifact } from "hardhat/types";
 import { HardhatEthersSigner } from "../src/signers";
 import { GreeterContract, TestContractLib } from "./example-contracts";
 
-import { assertIsSigner, useEnvironment } from "./helpers";
+import { assertIsNotNull, assertIsSigner, useEnvironment } from "./helpers";
 
 chai.use(chaiAsPromised);
 
 describe("Ethers plugin", function () {
-  describe("ganache", function () {
+  describe("hardhat node", function () {
     useEnvironment("hardhat-project", "localhost");
 
     describe("HRE extensions", function () {
@@ -38,7 +38,7 @@ describe("Ethers plugin", function () {
         );
         assert.strictEqual(
           accounts[0],
-          "0x90f8bf6a479f320ead074411a4b0e7944ea8c9c1"
+          "0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266"
         );
       });
     });
@@ -61,7 +61,7 @@ describe("Ethers plugin", function () {
           const sigs = await this.env.ethers.getSigners();
           assert.strictEqual(
             await sigs[0].getAddress(),
-            "0x90F8bf6A479f320ead074411a4B0e7944Ea8c9C1"
+            "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266"
           );
         });
 
@@ -69,38 +69,46 @@ describe("Ethers plugin", function () {
           const sigs = await this.env.ethers.getSigners();
           assert.strictEqual(
             sigs[0].address,
-            "0x90F8bf6A479f320ead074411a4B0e7944Ea8c9C1"
+            "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266"
           );
         });
       });
 
       describe("getImpersonatedSigner", function () {
-        it("should invoke hardhat_impersonateAccount", async function () {
+        it("should return the working impersonated signer", async function () {
+          const [signer] = await this.env.ethers.getSigners();
           const address = `0x${"ff".repeat(20)}`;
-          // TODO: We are testing this plugin against Ganache, so this fails.
-          //  We should test it using Hardhat Network instead.
-          await assert.isRejected(
-            this.env.ethers.getImpersonatedSigner(address),
-            "Method hardhat_impersonateAccount not supported"
+          const impersonatedSigner =
+            await this.env.ethers.getImpersonatedSigner(address);
+
+          assert.strictEqual(
+            impersonatedSigner.address,
+            "0xFFfFfFffFFfffFFfFFfFFFFFffFFFffffFfFFFfF"
           );
+
+          // fund impersonated account
+          await signer.sendTransaction({
+            to: impersonatedSigner,
+            value: 10n ** 18n,
+          });
+
+          // send a tx from impersonated account
+          await impersonatedSigner.sendTransaction({
+            to: this.env.ethers.ZeroAddress,
+            value: 10n ** 17n,
+          });
         });
-        it("should return the working impersonated signer", async function () {});
       });
 
       describe("signer", function () {
-        /**
-         * this test has been skipped pending the removal of ganache from this
-         * test suite, which is being tracked at
-         * https://github.com/NomicFoundation/hardhat/issues/3447
-         */
-        it.skip("should sign a message", async function () {
+        it("should sign a message", async function () {
           const [sig] = await this.env.ethers.getSigners();
 
           const result = await sig.signMessage("hello");
 
           assert.strictEqual(
             result,
-            "0x1845faa75f53acb0c3e7247dcf294ce045c139722418dc9638709b54bafffa093591aeaaa195e7dc53f7e774c80e9a7f1371f0647a100d1c9e81db83d8ddd47801"
+            "0xf16ea9a3478698f695fd1401bfe27e9e4a7e8e3da94aa72b021125e31fa899cc573c48ea3fe1d4ab61a9db10c19032026e3ed2dbccba5a178235ac27f94504311c"
           );
         });
 
@@ -125,17 +133,19 @@ describe("Ethers plugin", function () {
         });
 
         it("should return the balance of the account", async function () {
-          const [sig] = await this.env.ethers.getSigners();
+          // we use the second signer because the first one is used in previous tests
+          const [, secondSigner] = await this.env.ethers.getSigners();
           assert.strictEqual(
-            await this.env.ethers.provider.getBalance(sig),
-            100000000000000000000n
+            await this.env.ethers.provider.getBalance(secondSigner),
+            10_000n * 10n ** 18n
           );
         });
 
         it("should return the transaction count of the account", async function () {
-          const [sig] = await this.env.ethers.getSigners();
+          // we use the second signer because the first one is used in previous tests
+          const [, secondSigner] = await this.env.ethers.getSigners();
           assert.strictEqual(
-            await this.env.ethers.provider.getTransactionCount(sig),
+            await this.env.ethers.provider.getTransactionCount(secondSigner),
             0
           );
         });
@@ -181,13 +191,15 @@ describe("Ethers plugin", function () {
         it("should get the chainId", async function () {
           const { chainId } = await this.env.ethers.provider.getNetwork();
 
-          assert.strictEqual(chainId, 1337n);
+          assert.strictEqual(chainId, 31337n);
         });
 
         it("should get the gas price", async function () {
-          const feeData = await this.env.ethers.provider.getFeeData();
+          const feeData: EthersT.FeeData =
+            await this.env.ethers.provider.getFeeData();
 
-          assert.strictEqual(feeData.gasPrice, 20000000000n);
+          assertIsNotNull(feeData.gasPrice);
+          assert.isTrue(feeData.gasPrice > 0);
         });
 
         it("should populate a transaction", async function () {
@@ -1256,8 +1268,8 @@ describe("Ethers plugin", function () {
     });
   });
 
-  describe("ganache via WebSocket", function () {
-    useEnvironment("hardhat-project");
+  describe("hardhat node via WebSocket", function () {
+    useEnvironment("hardhat-project", "localhost");
     // TODO re-enable when we make .on("event") work
     // it("should be able to detect events", async function () {
     //   await this.env.run("compile", { quiet: true });

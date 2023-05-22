@@ -1,4 +1,4 @@
-import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
+import { HardhatEthersSigner } from "@nomicfoundation/hardhat-ethers/signers";
 import { expect, AssertionError } from "chai";
 import path from "path";
 import util from "util";
@@ -23,8 +23,8 @@ describe("INTEGRATION: changeEtherBalance matcher", function () {
   });
 
   function runTests() {
-    let sender: SignerWithAddress;
-    let receiver: SignerWithAddress;
+    let sender: HardhatEthersSigner;
+    let receiver: HardhatEthersSigner;
     let contract: ChangeEtherBalance;
     let txGasFees: number;
 
