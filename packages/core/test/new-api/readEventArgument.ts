@@ -6,7 +6,7 @@ import { ModuleConstructor } from "../../src/new-api/internal/module-builder";
 
 describe("Read event argument", () => {
   describe("creating modules with it", () => {
-    it("Should support reading arguments from all the futures that can emit them", () => {
+    it("should support reading arguments from all the futures that can emit them", () => {
       const fakeArtifact = {} as any;
 
       const defintion = defineModule("Module1", (m) => {
@@ -40,7 +40,7 @@ describe("Read event argument", () => {
       assert.equal(read3.futureToReadFrom, callFuture);
     });
 
-    it("Should infer the emitter from the future correctly", () => {
+    it("should infer the emitter from the future correctly", () => {
       const defintion = defineModule("Module1", (m) => {
         const contract = m.contract("Contract");
         const call = m.call(contract, "fuc");
@@ -62,7 +62,7 @@ describe("Read event argument", () => {
       assert.equal(read2.emitter, mod.results.contract);
     });
 
-    it("Should accept an explicit emitter", () => {
+    it("should accept an explicit emitter", () => {
       const defintion = defineModule("Module1", (m) => {
         const contract = m.contract("Contract");
         const call = m.call(contract, "fuc");
@@ -86,7 +86,7 @@ describe("Read event argument", () => {
       assert.equal(read2.emitter, mod.results.contract2);
     });
 
-    it("Should set the right eventName and argumentName", () => {
+    it("should set the right eventName and argumentName", () => {
       const defintion = defineModule("Module1", (m) => {
         const contract = m.contract("Contract");
         const call = m.call(contract, "fuc");
@@ -111,7 +111,7 @@ describe("Read event argument", () => {
       assert.equal(read2.argumentName, "arg2");
     });
 
-    it("Should default the eventIndex to 0", () => {
+    it("should default the eventIndex to 0", () => {
       const defintion = defineModule("Module1", (m) => {
         const contract = m.contract("Contract");
 
@@ -130,7 +130,7 @@ describe("Read event argument", () => {
       assert.equal(read1.eventIndex, 0);
     });
 
-    it("Should accept an explicit eventIndex", () => {
+    it("should accept an explicit eventIndex", () => {
       const defintion = defineModule("Module1", (m) => {
         const contract = m.contract("Contract");
 
@@ -155,7 +155,7 @@ describe("Read event argument", () => {
   });
 
   describe("passing ids", () => {
-    it("Should have a default id based on the emitter's contract name, the event name, argument and index", () => {
+    it("should have a default id based on the emitter's contract name, the event name, argument and index", () => {
       const defintion = defineModule("Module1", (m) => {
         const main = m.contract("Main");
         const emitter = m.contract("Emitter");
@@ -179,7 +179,7 @@ describe("Read event argument", () => {
       assert.include(futuresIds, "Module1:Emitter#EventName2#arg2#1");
     });
 
-    it("Should be able to read the same argument twice by passing a explicit id", () => {
+    it("should be able to read the same argument twice by passing a explicit id", () => {
       const moduleWithSameReadEventArgumentTwiceDefinition = defineModule(
         "Module1",
         (m) => {
