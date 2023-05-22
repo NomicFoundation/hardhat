@@ -151,7 +151,7 @@ export interface NamedStaticCallFuture<
  */
 export interface ContractAtFuture extends ContractFuture<string> {
   type: FutureType.CONTRACT_AT;
-  address: string;
+  address: string | NamedStaticCallFuture<string, string>;
   artifact: ArtifactType;
 }
 

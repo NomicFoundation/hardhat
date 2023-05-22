@@ -167,7 +167,7 @@ export class ContractAtFutureImplementation<ContractNameT extends string>
     public readonly id: string,
     public readonly module: IgnitionModuleImplementation,
     public readonly contractName: ContractNameT,
-    public readonly address: string,
+    public readonly address: string | NamedStaticCallFuture<string, string>,
     public readonly artifact: ArtifactType
   ) {
     super(id, FutureType.CONTRACT_AT, module);

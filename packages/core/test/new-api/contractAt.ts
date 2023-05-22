@@ -27,7 +27,7 @@ describe("contractAt", () => {
     assert.equal(moduleWithContractFromArtifact.id, "Module1");
     assert.equal(
       moduleWithContractFromArtifact.results.contract1.id,
-      "Module1:Contract1:0xtest"
+      "Module1:Contract1"
     );
 
     // Stores the address
@@ -70,22 +70,50 @@ describe("contractAt", () => {
     assert(anotherFuture.dependencies.has(exampleFuture!));
   });
 
+  it("should be able to pass a static call future as the address", () => {
+    const moduleWithDependentContractsDefinition = defineModule(
+      "Module1",
+      (m) => {
+        const example = m.contract("Example");
+        const call = m.staticCall(example, "getAddress");
+
+        const another = m.contractAt("Another", call, fakeArtifact);
+
+        return { example, another };
+      }
+    );
+
+    const constructor = new ModuleConstructor(0, []);
+    const moduleWithDependentContracts = constructor.construct(
+      moduleWithDependentContractsDefinition
+    );
+
+    assert.equal(moduleWithDependentContracts.futures.size, 3);
+
+    const anotherFuture = moduleWithDependentContracts.results.another;
+
+    const callFuture = [...moduleWithDependentContracts.futures].find(
+      ({ id }) => id === "Module1:Example#getAddress"
+    );
+
+    assert.equal(anotherFuture.dependencies.size, 1);
+    assert(anotherFuture.dependencies.has(callFuture!));
+  });
+
   describe("passing id", () => {
-    it("should use contract at twice by passing an id", () => {
+    it("should be able to deploy the same contract twice by passing an id", () => {
       const moduleWithSameContractTwiceDefinition = defineModule(
         "Module1",
         (m) => {
           const sameContract1 = m.contractAt(
             "SameContract",
-            "0xtest",
+            "0x123",
             fakeArtifact,
-            {
-              id: "first",
-            }
+            { id: "first" }
           );
           const sameContract2 = m.contractAt(
             "SameContract",
-            "0xtest",
+            "0x123",
             fakeArtifact,
             {
               id: "second",
@@ -101,15 +129,14 @@ describe("contractAt", () => {
         moduleWithSameContractTwiceDefinition
       );
 
-      // Sets ids based on module id and contract name
       assert.equal(moduleWithSameContractTwice.id, "Module1");
       assert.equal(
         moduleWithSameContractTwice.results.sameContract1.id,
-        "Module1:SameContract:first"
+        "Module1:first"
       );
       assert.equal(
         moduleWithSameContractTwice.results.sameContract2.id,
-        "Module1:SameContract:second"
+        "Module1:second"
       );
     });
 
@@ -117,12 +144,12 @@ describe("contractAt", () => {
       const moduleDefinition = defineModule("Module1", (m) => {
         const sameContract1 = m.contractAt(
           "SameContract",
-          "0xtest",
+          "0x123",
           fakeArtifact
         );
         const sameContract2 = m.contractAt(
           "SameContract",
-          "0xtest",
+          "0x123",
           fakeArtifact
         );
 
@@ -133,7 +160,7 @@ describe("contractAt", () => {
 
       assert.throws(
         () => constructor.construct(moduleDefinition),
-        /Contracts must have unique ids, Module1:SameContract:0xtest has already been used/
+        /Duplicated id Module1:SameContract found in module Module1/
       );
     });
 
@@ -141,7 +168,7 @@ describe("contractAt", () => {
       const moduleDefinition = defineModule("Module1", (m) => {
         const sameContract1 = m.contractAt(
           "SameContract",
-          "0xtest",
+          "0x123",
           fakeArtifact,
           {
             id: "same",
@@ -149,7 +176,7 @@ describe("contractAt", () => {
         );
         const sameContract2 = m.contractAt(
           "SameContract",
-          "0xtest",
+          "0x123",
           fakeArtifact,
           {
             id: "same",
@@ -163,7 +190,7 @@ describe("contractAt", () => {
 
       assert.throws(
         () => constructor.construct(moduleDefinition),
-        /Contracts must have unique ids, Module1:SameContract:same has already been used/
+        /Duplicated id Module1:same found in module Module1/
       );
     });
   });

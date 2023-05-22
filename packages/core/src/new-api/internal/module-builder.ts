@@ -354,12 +354,12 @@ export class IgnitionModuleBuilderImplementation<
 
   public contractAt(
     contractName: string,
-    address: string,
+    address: string | NamedStaticCallFuture<string, string>,
     artifact: ArtifactType,
     options: ContractAtOptions = {}
   ): ContractAtFuture {
-    const id = options.id ?? address;
-    const futureId = `${this._module.id}:${contractName}:${id}`;
+    const id = options.id ?? contractName;
+    const futureId = `${this._module.id}:${id}`;
 
     this._assertUniqueContractAtId(futureId);
 
@@ -373,6 +373,10 @@ export class IgnitionModuleBuilderImplementation<
 
     for (const afterFuture of (options.after ?? []).filter(isFuture)) {
       future.dependencies.add(afterFuture);
+    }
+
+    if (typeof address !== "string") {
+      future.dependencies.add(address);
     }
 
     this._module.futures.add(future);
@@ -498,7 +502,7 @@ export class IgnitionModuleBuilderImplementation<
   private _assertUniqueContractAtId(futureId: string) {
     return this._assertUniqueFutureId(
       futureId,
-      `Contracts must have unique ids, ${futureId} has already been used, ensure the id passed is unique \`m.contractAt("MyContract", "0x123...", artifact, { id: "MyId"})\``,
+      `Duplicated id ${futureId} found in module ${this._module.id}, ensure the id passed is unique \`m.contractAt("MyContract", "0x123...", artifact, { id: "MyId"})\``,
       this.contractAt
     );
   }

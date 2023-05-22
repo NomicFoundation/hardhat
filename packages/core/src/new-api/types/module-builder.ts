@@ -159,7 +159,7 @@ export interface IgnitionModuleBuilder {
 
   contractAt(
     contractName: string,
-    address: string,
+    address: string | NamedStaticCallFuture<string, string>,
     artifact: ArtifactType,
     options?: ContractAtOptions
   ): ContractAtFuture;
