@@ -382,6 +382,8 @@ export class StoredDeploymentSerializer {
           StoredDeploymentSerializer._convertArgToFutureToken(arg)
         ),
         libraries: this._convertLibrariesToLibraryTokens(future.libraries),
+        value: future.value.toString(),
+        from: future.from,
       };
 
       return serializedNamedContract;
@@ -401,6 +403,8 @@ export class StoredDeploymentSerializer {
           ),
           artifact: future.artifact,
           libraries: this._convertLibrariesToLibraryTokens(future.libraries),
+          value: future.value.toString(),
+          from: future.from,
         };
 
       return serializedArtifactContractDeploy;
@@ -417,6 +421,7 @@ export class StoredDeploymentSerializer {
             StoredDeploymentSerializer._convertLibrariesToLibraryTokens(
               future.libraries
             ),
+          from: future.from,
         };
 
       return serializedNamedLibraryDeploy;
@@ -436,6 +441,7 @@ export class StoredDeploymentSerializer {
             StoredDeploymentSerializer._convertLibrariesToLibraryTokens(
               future.libraries
             ),
+          from: future.from,
         };
 
       return serializedArtifactLibraryDeploy;
@@ -451,6 +457,8 @@ export class StoredDeploymentSerializer {
         args: Array.from(future.args).map(
           StoredDeploymentSerializer._convertArgToFutureToken
         ),
+        value: future.value.toString(),
+        from: future.from,
       };
 
       return serializedNamedContractCall;
@@ -466,6 +474,7 @@ export class StoredDeploymentSerializer {
         args: Array.from(future.args).map(
           StoredDeploymentSerializer._convertArgToFutureToken
         ),
+        from: future.from,
       };
 
       return serializedNamedStaticCallFuture;
@@ -529,7 +538,9 @@ export class StoredDeploymentSerializer {
           placeholderModule,
           serializedFuture.contractName,
           serializedFuture.constructorArgs,
-          {}
+          {},
+          BigInt(serializedFuture.value),
+          serializedFuture.from
         );
       case FutureType.ARTIFACT_CONTRACT_DEPLOYMENT:
         return new ArtifactContractDeploymentFutureImplementation(
@@ -538,14 +549,17 @@ export class StoredDeploymentSerializer {
           serializedFuture.contractName,
           serializedFuture.constructorArgs,
           serializedFuture.artifact,
-          {}
+          {},
+          BigInt(serializedFuture.value),
+          serializedFuture.from
         );
       case FutureType.NAMED_LIBRARY_DEPLOYMENT:
         return new NamedLibraryDeploymentFutureImplementation(
           serializedFuture.id,
           placeholderModule,
           serializedFuture.contractName,
-          {}
+          {},
+          serializedFuture.from
         );
       case FutureType.ARTIFACT_LIBRARY_DEPLOYMENT:
         return new ArtifactLibraryDeploymentFutureImplementation(
@@ -553,7 +567,8 @@ export class StoredDeploymentSerializer {
           placeholderModule,
           serializedFuture.contractName,
           serializedFuture.artifact,
-          {}
+          {},
+          serializedFuture.from
         );
       case FutureType.NAMED_CONTRACT_CALL:
         return new NamedContractCallFutureImplementation(
@@ -561,7 +576,9 @@ export class StoredDeploymentSerializer {
           placeholderModule,
           serializedFuture.functionName,
           serializedFuture.contract as any,
-          serializedFuture.args
+          serializedFuture.args,
+          BigInt(serializedFuture.value),
+          serializedFuture.from
         );
       case FutureType.NAMED_STATIC_CALL:
         return new NamedStaticCallFutureImplementation(
@@ -569,7 +586,8 @@ export class StoredDeploymentSerializer {
           placeholderModule,
           serializedFuture.functionName,
           serializedFuture.contract as any,
-          serializedFuture.args
+          serializedFuture.args,
+          serializedFuture.from
         );
       case FutureType.CONTRACT_AT:
         return new ContractAtFutureImplementation(

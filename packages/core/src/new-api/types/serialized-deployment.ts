@@ -60,6 +60,8 @@ export interface SerializedNamedContractDeploymentFuture
   contractName: string;
   constructorArgs: SerializedSolidityParamsType;
   libraries: SerializedLibraries;
+  value: string;
+  from: string | undefined;
 }
 
 /**
@@ -74,6 +76,8 @@ export interface SerializedArtifactContractDeploymentFuture
   constructorArgs: SerializedSolidityParamsType;
   artifact: ArtifactType;
   libraries: SerializedLibraries;
+  value: string;
+  from: string | undefined;
 }
 
 /**
@@ -86,6 +90,7 @@ export interface SerializedNamedLibraryDeploymentFuture
   type: FutureType.NAMED_LIBRARY_DEPLOYMENT;
   contractName: string;
   libraries: SerializedLibraries;
+  from: string | undefined;
 }
 
 /**
@@ -99,6 +104,7 @@ export interface SerializedArtifactLibraryDeploymentFuture
   contractName: string;
   artifact: ArtifactType;
   libraries: SerializedLibraries;
+  from: string | undefined;
 }
 
 /**
@@ -112,6 +118,8 @@ export interface SerializedNamedContractCallFuture
   functionName: string;
   contract: FutureToken;
   args: SerializedSolidityParamsType;
+  value: string;
+  from: string | undefined;
 }
 
 /**
@@ -124,6 +132,7 @@ export interface SerializedNamedStaticCallFuture extends BaseSerializedFuture {
   functionName: string;
   contract: FutureToken;
   args: SerializedSolidityParamsType;
+  from: string | undefined;
 }
 
 /**
