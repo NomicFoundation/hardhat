@@ -5,7 +5,6 @@ use rethnet_eth::{Address, Bytes, B256, U256};
 use rethnet_evm::state::{HybridState, LayeredState, RethnetLayer, StateError, SyncState};
 use revm::primitives::{AccountInfo, Bytecode, KECCAK_EMPTY};
 
-#[derive(Default)]
 struct RethnetStates {
     layered: LayeredState<RethnetLayer>,
     layered_checkpoints: Vec<B256>,
@@ -104,6 +103,39 @@ impl RethnetStates {
             ),
         ]
     }
+
+    fn assert_scale_divisibility() {
+        // CHECKPOINT_SCALES needs to be divisble (without remainder) by every scale of
+        // SNAPSHOT_SCALES or the benchmark will end up having fluctuations in number
+        // of accounts, etc. due to rounding. The same applies for ADDRESS_SCALES
+        // needing to be divisible (without remainder) by every scale of
+        // CHECKPOINT_SCALES.
+
+        for address_scale in ADDRESS_SCALES {
+            for checkpoint_scale in CHECKPOINT_SCALES {
+                assert!(address_scale % checkpoint_scale == 0, "all address scales must be evenly divisible by all checkpoint scales, but address scale {address_scale} is not evenly divisible by checkpoint scale {checkpoint_scale}");
+            }
+        }
+        for checkpoint_scale in CHECKPOINT_SCALES {
+            for snapshot_scale in SNAPSHOT_SCALES {
+                assert!(checkpoint_scale % snapshot_scale == 0, "all checkpoint scales must be evenly divisible by all snapshots scales, but checkpoint scale {checkpoint_scale} is not evenly divisible by snapshot scale {snapshot_scale}");
+            }
+        }
+    }
+}
+
+impl Default for RethnetStates {
+    fn default() -> Self {
+        Self::assert_scale_divisibility();
+        Self {
+            layered: Default::default(),
+            layered_checkpoints: Default::default(),
+            layered_snapshots: Default::default(),
+            hybrid: Default::default(),
+            hybrid_checkpoints: Default::default(),
+            hybrid_snapshots: Default::default(),
+        }
+    }
 }
 
 #[cfg(feature = "bench-once")]
@@ -118,19 +150,26 @@ mod config {
 #[cfg(not(feature = "bench-once"))]
 mod config {
     const NUM_SCALES: usize = 4;
-    pub const CHECKPOINT_SCALES: [u64; NUM_SCALES] = [1, 5, 10, 20];
 
+    pub const SNAPSHOT_SCALES: [u64; NUM_SCALES] = [1, 5, 10, 20];
+    const MAX_SNAPSHOT_SCALE: u64 = SNAPSHOT_SCALES[NUM_SCALES - 1];
+
+    pub const CHECKPOINT_SCALES: [u64; NUM_SCALES] = [
+        MAX_SNAPSHOT_SCALE,
+        MAX_SNAPSHOT_SCALE * 2,
+        MAX_SNAPSHOT_SCALE * 4,
+        MAX_SNAPSHOT_SCALE * 8,
+    ];
     const MAX_CHECKPOINT_SCALE: u64 = CHECKPOINT_SCALES[NUM_SCALES - 1];
+
     pub const ADDRESS_SCALES: [u64; NUM_SCALES] = [
+        MAX_CHECKPOINT_SCALE,
         MAX_CHECKPOINT_SCALE * 5,
         MAX_CHECKPOINT_SCALE * 25,
         MAX_CHECKPOINT_SCALE * 50,
-        MAX_CHECKPOINT_SCALE * 100,
     ];
 
     pub const STORAGE_SCALES: [u64; 4] = [1, 10, 100, 1000];
-
-    pub const SNAPSHOT_SCALES: [u64; 4] = [1, 10, 100, 1000];
 }
 
 use config::*;
