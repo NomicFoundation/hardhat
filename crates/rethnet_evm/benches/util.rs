@@ -199,14 +199,15 @@ pub fn bench_sync_state_method<O, R, Prep>(
     c: &mut Criterion,
     method_name: &str,
     mut prep: Prep,
-    mut method_invocation: R,
+    method_invocation: R,
     storage_scales: &[u64],
     snapshot_scales: &[u64],
 ) where
-    R: FnMut(Box<dyn SyncState<StateError>>, u64, &Vec<B256>, &Vec<B256>) -> O,
+    R: FnMut(&mut Box<dyn SyncState<StateError>>, u64, &Vec<B256>, &Vec<B256>) -> O,
     Prep: FnMut(&mut dyn SyncState<StateError>, u64),
 {
     let mut group = c.benchmark_group(method_name);
+    let method_invocation = std::cell::RefCell::<R>::new(method_invocation);
     for number_of_checkpoints in CHECKPOINT_SCALES.iter() {
         for number_of_accounts in ADDRESS_SCALES.iter() {
             for storage_slots_per_account in storage_scales.iter() {
@@ -238,12 +239,25 @@ pub fn bench_sync_state_method<O, R, Prep>(
                                 b.iter_batched(
                                     || {
                                         let mut state = state_factory();
+                                        // in order to prime any caches that the
+                                        // state object may be employing, run the
+                                        // method invocation here in the setup
+                                        // routine. note that we have to run prep
+                                        // before THIS invocation, and then AGAIN
+                                        // after it, for the "real" invocation.
+                                        prep(&mut state, *number_of_accounts);
+                                        method_invocation.borrow_mut()(
+                                            &mut state,
+                                            *number_of_accounts,
+                                            checkpoints,
+                                            snapshots,
+                                        );
                                         prep(&mut state, *number_of_accounts);
                                         state
                                     },
-                                    |state| {
-                                        method_invocation(
-                                            state,
+                                    |mut state| {
+                                        method_invocation.borrow_mut()(
+                                            &mut state,
                                             *number_of_accounts,
                                             checkpoints,
                                             snapshots,
