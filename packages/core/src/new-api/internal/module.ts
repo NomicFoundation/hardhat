@@ -18,9 +18,7 @@ import {
 
 const customInspectSymbol = Symbol.for("nodejs.util.inspect.custom");
 
-export abstract class BaseFutureImplementation<FutureTypeT extends FutureType>
-  implements Future
-{
+abstract class BaseFutureImplementation<FutureTypeT extends FutureType> {
   public readonly dependencies: Set<Future> = new Set();
 
   constructor(
