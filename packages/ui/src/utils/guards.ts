@@ -1,11 +1,11 @@
-import { Future, FutureType } from "@ignored/ignition-core/ui-helpers";
-import { UiCallFuture, UiContractFuture, UiFuture } from "../types";
+import {
+  Future,
+  FutureType,
+  DeploymentFuture,
+  FunctionCallFuture,
+} from "@ignored/ignition-core/ui-helpers";
 
-export function isUiFuture(f: Future): f is UiFuture {
-  return FutureType[f.type] !== undefined;
-}
-
-export function isContractFuture(f: Future): f is UiContractFuture {
+export function isDeploymentFuture(f: Future): f is DeploymentFuture<string> {
   const deployFutureTypeIds = [
     FutureType.NAMED_CONTRACT_DEPLOYMENT,
     FutureType.ARTIFACT_CONTRACT_DEPLOYMENT,
@@ -16,7 +16,9 @@ export function isContractFuture(f: Future): f is UiContractFuture {
   return deployFutureTypeIds.includes(f.type);
 }
 
-export function isCallFuture(f: Future): f is UiCallFuture {
+export function isFunctionCallFuture(
+  f: Future
+): f is FunctionCallFuture<string, string> {
   const callFutureIds = [
     FutureType.NAMED_CONTRACT_CALL,
     FutureType.NAMED_STATIC_CALL,

@@ -1,11 +1,10 @@
-import { FutureType } from "@ignored/ignition-core/ui-helpers";
+import { Future, FutureType } from "@ignored/ignition-core/ui-helpers";
 import React, { useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import styled, { css } from "styled-components";
-import { UiFuture } from "../../../types";
 
 export const Action: React.FC<{
-  future: UiFuture;
+  future: Future;
 }> = ({ future }) => {
   const navigate = useNavigate();
 
@@ -22,7 +21,7 @@ export const Action: React.FC<{
   );
 };
 
-function toDisplayText(future: UiFuture): string {
+function toDisplayText(future: Future): string {
   switch (future.type) {
     case FutureType.NAMED_CONTRACT_DEPLOYMENT:
       return `Contract deploy ${future.contractName}`;

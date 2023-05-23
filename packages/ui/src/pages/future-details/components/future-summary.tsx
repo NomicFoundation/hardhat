@@ -1,14 +1,14 @@
 import {
+  Future,
   FutureType,
   StoredDeployment,
 } from "@ignored/ignition-core/ui-helpers";
 import { PageTitle, Panel } from "../../../components/shared";
 import { SummaryHeader } from "../../../components/summary-header";
-import { UiFuture } from "../../../types";
 
 export const FutureSummary: React.FC<{
   deployment: StoredDeployment;
-  future: UiFuture;
+  future: Future;
 }> = ({ deployment, future }) => {
   const title = resolveTitleFor(future);
 
@@ -32,7 +32,7 @@ export const FutureSummary: React.FC<{
   );
 };
 
-function resolveTitleFor(future: UiFuture): string {
+function resolveTitleFor(future: Future): string {
   switch (future.type) {
     case FutureType.NAMED_CONTRACT_DEPLOYMENT:
       return `Contract deploy - ${future.contractName}`;
@@ -59,7 +59,7 @@ function resolveTitleFor(future: UiFuture): string {
   }
 }
 
-const FutureDetailsSection: React.FC<{ future: UiFuture }> = ({ future }) => {
+const FutureDetailsSection: React.FC<{ future: Future }> = ({ future }) => {
   switch (future.type) {
     case FutureType.NAMED_CONTRACT_DEPLOYMENT:
       return (

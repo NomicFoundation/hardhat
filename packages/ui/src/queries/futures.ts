@@ -1,11 +1,15 @@
-import { StoredDeployment } from "@ignored/ignition-core/ui-helpers";
-import { UiContractFuture, UiFuture } from "../types";
-import { isCallFuture, isContractFuture, isUiFuture } from "../utils/guards";
+import {
+  DeploymentFuture,
+  FunctionCallFuture,
+  Future,
+  StoredDeployment,
+} from "@ignored/ignition-core/ui-helpers";
+import { isFunctionCallFuture, isDeploymentFuture } from "../utils/guards";
 
 export function getFutureById(
   deployment: StoredDeployment,
   futureId: string | undefined
-): UiFuture | undefined {
+): Future | undefined {
   if (futureId === undefined) {
     return undefined;
   }
@@ -18,10 +22,6 @@ export function getFutureById(
     return undefined;
   }
 
-  if (!isUiFuture(f)) {
-    throw new Error("Not a future");
-  }
-
   return f;
 }
 
@@ -29,14 +29,12 @@ export function getFutureById(
 export function getAllFuturesForModule({
   futures,
   submodules,
-}: StoredDeployment["module"]): UiFuture[] {
-  return Array.from(futures)
-    .filter(isUiFuture)
-    .concat(
-      Array.from(submodules.values()).flatMap((submodule) =>
-        getAllFuturesForModule(submodule)
-      )
-    );
+}: StoredDeployment["module"]): Future[] {
+  return Array.from(futures).concat(
+    Array.from(submodules.values()).flatMap((submodule) =>
+      getAllFuturesForModule(submodule)
+    )
+  );
 }
 
 /**
@@ -48,13 +46,15 @@ export function getAllFuturesForModule({
  */
 export function getAllDeployFuturesFor(
   deployment: StoredDeployment
-): UiContractFuture[] {
-  return getAllFuturesForModule(deployment.module).filter(isContractFuture);
+): DeploymentFuture<string>[] {
+  return getAllFuturesForModule(deployment.module).filter(isDeploymentFuture);
 }
 
 /**
  * Get all calls in a module and its submodules
  */
-export function getAllCallFuturesFor(deployment: StoredDeployment): UiFuture[] {
-  return getAllFuturesForModule(deployment.module).filter(isCallFuture);
+export function getAllCallFuturesFor(
+  deployment: StoredDeployment
+): FunctionCallFuture<string, string>[] {
+  return getAllFuturesForModule(deployment.module).filter(isFunctionCallFuture);
 }

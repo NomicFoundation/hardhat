@@ -1,11 +1,11 @@
 import {
+  Future,
   FutureType,
   IgnitionModule,
   IgnitionModuleResult,
   StoredDeployment,
 } from "@ignored/ignition-core/ui-helpers";
 import { getAllFuturesForModule } from "../queries/futures";
-import { UiFuture } from "../types";
 
 export function toMermaid(deployment: StoredDeployment) {
   const modules = recursivelyListModulesAndSubmodulesFor(deployment.module);
@@ -38,7 +38,7 @@ function prettyPrintModule(
   lineIndent = ""
 ): string {
   const futureList = Array.from(module.futures)
-    .map((f) => `${lineIndent}${f.id}["${toLabel(f as UiFuture)}"]`)
+    .map((f) => `${lineIndent}${f.id}["${toLabel(f)}"]`)
     .join(`\n${lineIndent}`);
 
   return `${lineIndent}subgraph ${module.id}\n${lineIndent}    direction BT\n\n${lineIndent}${lineIndent}${futureList}\n${lineIndent}end`;
@@ -54,7 +54,7 @@ function recursivelyListModulesAndSubmodulesFor(
   );
 }
 
-function toLabel(f: UiFuture): string {
+function toLabel(f: Future): string {
   switch (f.type) {
     case FutureType.NAMED_CONTRACT_DEPLOYMENT:
       return `Deploy ${f.contractName}`;
