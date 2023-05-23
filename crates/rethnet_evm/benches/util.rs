@@ -5,6 +5,7 @@ use rethnet_eth::{Address, Bytes, B256, U256};
 use rethnet_evm::state::{HybridState, LayeredState, RethnetLayer, StateError, SyncState};
 use revm::primitives::{AccountInfo, Bytecode, KECCAK_EMPTY};
 
+#[derive(Default)]
 struct RethnetStates {
     layered: LayeredState<RethnetLayer>,
     layered_checkpoints: Vec<B256>,
@@ -103,58 +104,27 @@ impl RethnetStates {
             ),
         ]
     }
-
-    fn assert_scale_divisibility() {
-        // CHECKPOINT_SCALES needs to be divisble (without remainder) by every scale of
-        // SNAPSHOT_SCALES or the benchmark will end up having fluctuations in number
-        // of accounts, etc. due to rounding. The same applies for ADDRESS_SCALES
-        // needing to be divisible (without remainder) by every scale of
-        // CHECKPOINT_SCALES.
-
-        for address_scale in ADDRESS_SCALES {
-            for checkpoint_scale in CHECKPOINT_SCALES {
-                assert!(address_scale % checkpoint_scale == 0, "all address scales must be evenly divisible by all checkpoint scales, but address scale {address_scale} is not evenly divisible by checkpoint scale {checkpoint_scale}");
-            }
-        }
-        for checkpoint_scale in CHECKPOINT_SCALES {
-            for snapshot_scale in SNAPSHOT_SCALES {
-                assert!(checkpoint_scale % snapshot_scale == 0, "all checkpoint scales must be evenly divisible by all snapshots scales, but checkpoint scale {checkpoint_scale} is not evenly divisible by snapshot scale {snapshot_scale}");
-            }
-        }
-    }
 }
 
-impl Default for RethnetStates {
-    fn default() -> Self {
-        Self::assert_scale_divisibility();
-        Self {
-            layered: Default::default(),
-            layered_checkpoints: Default::default(),
-            layered_snapshots: Default::default(),
-            hybrid: Default::default(),
-            hybrid_checkpoints: Default::default(),
-            hybrid_snapshots: Default::default(),
-        }
-    }
-}
+pub struct Permutations;
 
 #[cfg(feature = "bench-once")]
-mod config {
-    pub const CHECKPOINT_SCALES: [u64; 1] = [1];
-    pub const ADDRESS_SCALES: [u64; 1] = [1];
-    pub const STORAGE_SCALES: [u64; 1] = [1];
-    #[allow(dead_code)]
-    pub const SNAPSHOT_SCALES: [u64; 1] = [1];
+impl Permutations {
+    const NUM_SCALES: usize = 1;
+    const CHECKPOINT_SCALES: [u64; 1] = [1];
+    const ADDRESS_SCALES: [u64; 1] = [1];
+    const STORAGE_SCALES: [u64; 1] = [1];
+    const SNAPSHOT_SCALES: [u64; 1] = [1];
 }
 
 #[cfg(not(feature = "bench-once"))]
-mod config {
+impl Permutations {
     const NUM_SCALES: usize = 4;
 
-    pub const SNAPSHOT_SCALES: [u64; NUM_SCALES] = [1, 5, 10, 20];
+    const SNAPSHOT_SCALES: [u64; NUM_SCALES] = [1, 5, 10, 20];
     const MAX_SNAPSHOT_SCALE: u64 = SNAPSHOT_SCALES[NUM_SCALES - 1];
 
-    pub const CHECKPOINT_SCALES: [u64; NUM_SCALES] = [
+    const CHECKPOINT_SCALES: [u64; NUM_SCALES] = [
         MAX_SNAPSHOT_SCALE,
         MAX_SNAPSHOT_SCALE * 2,
         MAX_SNAPSHOT_SCALE * 4,
@@ -162,18 +132,57 @@ mod config {
     ];
     const MAX_CHECKPOINT_SCALE: u64 = CHECKPOINT_SCALES[NUM_SCALES - 1];
 
-    pub const ADDRESS_SCALES: [u64; NUM_SCALES] = [
+    const ADDRESS_SCALES: [u64; NUM_SCALES] = [
         MAX_CHECKPOINT_SCALE,
         MAX_CHECKPOINT_SCALE * 5,
         MAX_CHECKPOINT_SCALE * 25,
         MAX_CHECKPOINT_SCALE * 50,
     ];
 
-    pub const STORAGE_SCALES: [u64; 4] = [1, 10, 100, 1000];
+    const STORAGE_SCALES: [u64; 4] = [1, 10, 100, 1000];
 }
 
-use config::*;
-pub use config::{SNAPSHOT_SCALES, STORAGE_SCALES};
+impl Permutations {
+    fn assert_scale_divisibility() {
+        // CHECKPOINT_SCALES needs to be divisble (without remainder) by every scale of
+        // SNAPSHOT_SCALES or the benchmark will end up having fluctuations in number
+        // of accounts, etc. due to rounding. The same applies for ADDRESS_SCALES
+        // needing to be divisible (without remainder) by every scale of
+        // CHECKPOINT_SCALES.
+
+        for address_scale in Self::ADDRESS_SCALES {
+            for checkpoint_scale in Self::CHECKPOINT_SCALES {
+                assert!(address_scale % checkpoint_scale == 0, "all address scales must be evenly divisible by all checkpoint scales, but address scale {address_scale} is not evenly divisible by checkpoint scale {checkpoint_scale}");
+            }
+        }
+        for checkpoint_scale in Self::CHECKPOINT_SCALES {
+            for snapshot_scale in Self::SNAPSHOT_SCALES {
+                assert!(checkpoint_scale % snapshot_scale == 0, "all checkpoint scales must be evenly divisible by all snapshots scales, but checkpoint scale {checkpoint_scale} is not evenly divisible by snapshot scale {snapshot_scale}");
+            }
+        }
+    }
+
+    pub fn address_scales() -> [u64; Self::NUM_SCALES] {
+        Self::assert_scale_divisibility();
+        Self::ADDRESS_SCALES
+    }
+
+    pub fn checkpoint_scales() -> [u64; Self::NUM_SCALES] {
+        Self::assert_scale_divisibility();
+        Self::CHECKPOINT_SCALES
+    }
+
+    #[allow(dead_code)]
+    pub fn snapshot_scales() -> [u64; Self::NUM_SCALES] {
+        Self::assert_scale_divisibility();
+        Self::SNAPSHOT_SCALES
+    }
+
+    pub fn storage_scales() -> [u64; Self::NUM_SCALES] {
+        Self::assert_scale_divisibility();
+        Self::STORAGE_SCALES
+    }
+}
 
 pub fn bench_sync_state_method<O, R, Prep>(
     c: &mut Criterion,
@@ -187,8 +196,8 @@ pub fn bench_sync_state_method<O, R, Prep>(
     Prep: FnMut(&mut dyn SyncState<StateError>, u64),
 {
     let mut group = c.benchmark_group(method_name);
-    for number_of_checkpoints in CHECKPOINT_SCALES.iter() {
-        for number_of_accounts in ADDRESS_SCALES.iter() {
+    for number_of_checkpoints in Permutations::checkpoint_scales().iter() {
+        for number_of_accounts in Permutations::address_scales().iter() {
             for storage_slots_per_account in storage_scales.iter() {
                 for number_of_snapshots in snapshot_scales.iter() {
                     let mut rethnet_states = RethnetStates::default();

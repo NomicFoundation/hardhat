@@ -8,7 +8,7 @@ use rethnet_eth::{Address, Bytes, U256};
 use rethnet_evm::state::AccountModifierFn;
 
 mod util;
-use util::{account_has_code, bench_sync_state_method, prep_no_op, STORAGE_SCALES};
+use util::{account_has_code, bench_sync_state_method, prep_no_op, Permutations};
 
 fn bench_account_storage_root_account_doesnt_exist(c: &mut Criterion) {
     bench_sync_state_method(
@@ -22,7 +22,7 @@ fn bench_account_storage_root_account_doesnt_exist(c: &mut Criterion) {
             debug_assert!(result.is_ok());
             debug_assert!(result.unwrap().is_none());
         },
-        &STORAGE_SCALES,
+        &Permutations::storage_scales(),
         &[1],
     );
 }
@@ -39,7 +39,7 @@ fn bench_account_storage_root_account_exists(c: &mut Criterion) {
             debug_assert!(result.is_ok());
             debug_assert!(result.unwrap().is_some());
         },
-        &STORAGE_SCALES,
+        &Permutations::storage_scales(),
         &[1],
     );
 }
@@ -317,7 +317,7 @@ fn bench_set_account_storage_slot_account_doesnt_exist(c: &mut Criterion) {
             let result = state.set_account_storage_slot(address, U256::from(1), U256::from(1));
             debug_assert!(result.is_ok())
         },
-        &STORAGE_SCALES,
+        &Permutations::storage_scales(),
         &[1],
     );
 }
@@ -333,7 +333,7 @@ fn bench_set_account_storage_slot_account_exists(c: &mut Criterion) {
             let result = state.set_account_storage_slot(address, U256::from(1), U256::from(1));
             debug_assert!(result.is_ok())
         },
-        &STORAGE_SCALES,
+        &Permutations::storage_scales(),
         &[1],
     );
 }
@@ -347,7 +347,7 @@ fn bench_state_root(c: &mut Criterion) {
             let result = state.state_root();
             debug_assert!(result.is_ok());
         },
-        &STORAGE_SCALES,
+        &Permutations::storage_scales(),
         &[1],
     );
 }

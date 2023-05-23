@@ -3,7 +3,7 @@ use criterion::{criterion_group, criterion_main, Criterion};
 use rethnet_eth::B256;
 
 mod util;
-use util::{bench_sync_state_method, prep_no_op, SNAPSHOT_SCALES, STORAGE_SCALES};
+use util::{bench_sync_state_method, prep_no_op, Permutations};
 
 fn bench_checkpoint(c: &mut Criterion) {
     bench_sync_state_method(
@@ -14,7 +14,7 @@ fn bench_checkpoint(c: &mut Criterion) {
             let result = state.checkpoint();
             debug_assert!(result.is_ok());
         },
-        &STORAGE_SCALES,
+        &Permutations::storage_scales(),
         &[1],
     );
 }
@@ -65,7 +65,7 @@ fn bench_set_block_context_to_latest_snapshot(c: &mut Criterion) {
             debug_assert!(result.is_ok());
         },
         &[0],
-        &SNAPSHOT_SCALES,
+        &Permutations::snapshot_scales(),
     );
 }
 fn bench_set_block_context_to_earliest_layer(c: &mut Criterion) {
@@ -77,7 +77,7 @@ fn bench_set_block_context_to_earliest_layer(c: &mut Criterion) {
             state.set_block_context(&checkpoints[0], None).unwrap();
         },
         &[0],
-        &SNAPSHOT_SCALES,
+        &Permutations::snapshot_scales(),
     );
 }
 
@@ -92,7 +92,7 @@ fn bench_set_block_context_to_latest_layer(c: &mut Criterion) {
                 .unwrap();
         },
         &[0],
-        &SNAPSHOT_SCALES,
+        &Permutations::snapshot_scales(),
     );
 }
 
@@ -107,7 +107,7 @@ fn bench_set_block_context_to_middle_layer(c: &mut Criterion) {
                 .unwrap();
         },
         &[0],
-        &SNAPSHOT_SCALES,
+        &Permutations::snapshot_scales(),
     );
 }
 
@@ -122,7 +122,7 @@ fn bench_revert(c: &mut Criterion) {
             let result = state.revert();
             debug_assert!(result.is_ok());
         },
-        &STORAGE_SCALES,
+        &Permutations::storage_scales(),
         &[1],
     );
 }
