@@ -10,6 +10,7 @@ import {
   NamedContractDeploymentFutureImplementation,
   NamedLibraryDeploymentFutureImplementation,
   NamedStaticCallFutureImplementation,
+  ReadEventArgumentFutureImplementation,
 } from "./internal/module";
 import { isFuture } from "./internal/utils";
 import {
@@ -34,6 +35,7 @@ import {
   SerializedNamedContractDeploymentFuture,
   SerializedNamedLibraryDeploymentFuture,
   SerializedNamedStaticCallFuture,
+  SerializedReadEventAgument,
   SerializedSolidityParamType,
   SerializedStoredDeployment,
   SerializedStoredModule,
@@ -291,6 +293,23 @@ export class StoredDeploymentSerializer {
             ] as NamedStaticCallFuture<string, string>
           );
         }
+      } else if (future instanceof ReadEventArgumentFutureImplementation) {
+        this._overwriteReadonly(
+          future,
+          "futureToReadFrom",
+          partialFutureLookup[
+            (serializedFuture as SerializedReadEventAgument).futureToReadFrom
+              .futureId
+          ] as Future<string>
+        );
+
+        this._overwriteReadonly(
+          future,
+          "emitter",
+          partialFutureLookup[
+            (serializedFuture as SerializedReadEventAgument).emitter.futureId
+          ] as ContractFuture<string>
+        );
       } else {
         throw new IgnitionError(
           `unknown future type: ${FutureType[future.type]}`
@@ -537,6 +556,23 @@ export class StoredDeploymentSerializer {
         };
 
       return serializedArtifactContractAtFuture;
+    } else if (future instanceof ReadEventArgumentFutureImplementation) {
+      const serializedReadEventArrgumentFuture: SerializedReadEventAgument = {
+        id: future.id,
+        type: future.type,
+        dependencies: Array.from(future.dependencies).map(
+          StoredDeploymentSerializer._convertFutureToFutureToken
+        ),
+        futureToReadFrom: this._convertFutureToFutureToken(
+          future.futureToReadFrom
+        ),
+        eventName: future.eventName,
+        argumentName: future.argumentName,
+        emitter: this._convertFutureToFutureToken(future.emitter),
+        eventIndex: future.eventIndex,
+      };
+
+      return serializedReadEventArrgumentFuture;
     } else {
       throw new IgnitionError(
         `Unknown future type while serializing: ${FutureType[future.type]}`
@@ -649,6 +685,16 @@ export class StoredDeploymentSerializer {
           serializedFuture.contractName,
           serializedFuture.address as any,
           serializedFuture.artifact
+        );
+      case FutureType.READ_EVENT_ARGUMENT:
+        return new ReadEventArgumentFutureImplementation(
+          serializedFuture.id,
+          placeholderModule,
+          serializedFuture.futureToReadFrom as any,
+          serializedFuture.eventName,
+          serializedFuture.argumentName,
+          serializedFuture.emitter as any,
+          serializedFuture.eventIndex
         );
     }
   }

@@ -442,6 +442,29 @@ describe("stored deployment serializer", () => {
         module,
       });
     });
+
+    it("Should serialize readEventArgument", () => {
+      const moduleDefinition = defineModule("Module1", (m) => {
+        const contract1 = m.contract("Contract1");
+        const emitter = m.contract("Emitter");
+
+        m.readEventArgument(contract1, "EventName", "argumentName", {
+          id: "customId",
+          emitter,
+          eventIndex: 123,
+        });
+
+        return { contract1 };
+      });
+
+      const constructor = new ModuleConstructor(0, []);
+      const module = constructor.construct(moduleDefinition);
+
+      assertSerializableModuleIn({
+        details,
+        module,
+      });
+    });
   });
 
   describe("useModule", () => {

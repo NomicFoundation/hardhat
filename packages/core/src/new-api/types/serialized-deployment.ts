@@ -160,6 +160,20 @@ export interface SerializedArtifactContractAtFuture
 }
 
 /**
+ * The serialized version of ReadEventArgumentFuture.
+ *
+ * @beta
+ */
+export interface SerializedReadEventAgument extends BaseSerializedFuture {
+  type: FutureType.READ_EVENT_ARGUMENT;
+  futureToReadFrom: FutureToken;
+  eventName: string;
+  argumentName: string;
+  emitter: FutureToken;
+  eventIndex: number;
+}
+
+/**
  * The details of a deployment that will be used in the UI.
  *
  * @beta
@@ -253,4 +267,5 @@ export type SerializedFuture =
   | SerializedNamedContractCallFuture
   | SerializedNamedStaticCallFuture
   | SerializedNamedContractAtFuture
-  | SerializedArtifactContractAtFuture;
+  | SerializedArtifactContractAtFuture
+  | SerializedReadEventAgument;
