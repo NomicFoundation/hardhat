@@ -1,7 +1,8 @@
 import {
+  ArtifactContractAtFuture,
   ArtifactContractDeploymentFuture,
   ArtifactLibraryDeploymentFuture,
-  ContractAtFuture,
+  NamedContractAtFuture,
   NamedContractCallFuture,
   NamedContractDeploymentFuture,
   NamedLibraryDeploymentFuture,
@@ -18,4 +19,8 @@ export type UiCallFuture =
   | NamedContractCallFuture<string, string>
   | NamedStaticCallFuture<string, string>;
 
-export type UiFuture = UiContractFuture | UiCallFuture | ContractAtFuture;
+export type UiContractAtFuture =
+  | NamedContractAtFuture<string>
+  | ArtifactContractAtFuture;
+
+export type UiFuture = UiContractFuture | UiCallFuture | UiContractAtFuture;

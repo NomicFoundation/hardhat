@@ -46,8 +46,14 @@ function resolveTitleFor(future: UiFuture): string {
       return `Call - ${future.contract.contractName}/${future.functionName}`;
     case FutureType.NAMED_STATIC_CALL:
       return `Static call - ${future.contract.contractName}/${future.functionName}`;
-    case FutureType.CONTRACT_AT:
-      return `Existing contract - ${future.contractName} (${future.address})`;
+    case FutureType.NAMED_CONTRACT_AT:
+      return `Existing contract - ${future.contractName} (${
+        typeof future.address === "string" ? future.address : future.address.id
+      })`;
+    case FutureType.ARTIFACT_CONTRACT_AT:
+      return `Existing contract from Artifact - ${future.contractName} (${
+        typeof future.address === "string" ? future.address : future.address.id
+      })`;
   }
 }
 
@@ -119,11 +125,29 @@ const FutureDetailsSection: React.FC<{ future: UiFuture }> = ({ future }) => {
           </ul>
         </div>
       );
-    case FutureType.CONTRACT_AT:
+    case FutureType.NAMED_CONTRACT_AT:
       return (
         <div>
           <p>Contract - {future.contractName}</p>
-          <p>Address - {future.address}</p>
+          <p>
+            Address -{" "}
+            {typeof future.address === "string"
+              ? future.address
+              : future.address.id}
+          </p>
+        </div>
+      );
+
+    case FutureType.ARTIFACT_CONTRACT_AT:
+      return (
+        <div>
+          <p>Contract - {future.contractName}</p>
+          <p>
+            Address -{" "}
+            {typeof future.address === "string"
+              ? future.address
+              : future.address.id}
+          </p>
         </div>
       );
   }

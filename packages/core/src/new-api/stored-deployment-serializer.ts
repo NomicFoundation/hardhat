@@ -273,8 +273,8 @@ export class StoredDeploymentSerializer {
             partialFutureLookup[
               (
                 (serializedFuture as SerializedNamedContractAtFuture)
-                  .address as unknown as NamedStaticCallFuture<string, string>
-              ).id
+                  .address as unknown as FutureToken
+              ).futureId
             ] as NamedStaticCallFuture<string, string>
           );
         }
@@ -286,8 +286,8 @@ export class StoredDeploymentSerializer {
             partialFutureLookup[
               (
                 (serializedFuture as SerializedArtifactContractAtFuture)
-                  .address as unknown as NamedStaticCallFuture<string, string>
-              ).id
+                  .address as unknown as FutureToken
+              ).futureId
             ] as NamedStaticCallFuture<string, string>
           );
         }

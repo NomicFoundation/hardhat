@@ -68,7 +68,13 @@ function toLabel(f: UiFuture): string {
       return `Call ${f.contract.contractName}/${f.functionName}`;
     case FutureType.NAMED_STATIC_CALL:
       return `Static call ${f.contract.contractName}/${f.functionName}`;
-    case FutureType.CONTRACT_AT:
-      return `Existing contract ${f.contractName} (${f.address})`;
+    case FutureType.NAMED_CONTRACT_AT:
+      return `Existing contract ${f.contractName} (${
+        typeof f.address === "string" ? f.address : f.address.id
+      })`;
+    case FutureType.ARTIFACT_CONTRACT_AT:
+      return `Existing contract from artifact ${f.contractName} (${
+        typeof f.address === "string" ? f.address : f.address.id
+      })`;
   }
 }

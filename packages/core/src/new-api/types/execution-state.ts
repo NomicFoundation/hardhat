@@ -135,7 +135,9 @@ type CallExecutionState = BaseExecutionState<FutureType.NAMED_CONTRACT_CALL>;
 type StaticCallExecutionState =
   BaseExecutionState<FutureType.NAMED_STATIC_CALL>;
 
-type ContractAtExecutionState = BaseExecutionState<FutureType.CONTRACT_AT>;
+type ContractAtExecutionState = BaseExecutionState<
+  FutureType.NAMED_CONTRACT_AT | FutureType.ARTIFACT_CONTRACT_AT
+>;
 
 export type ExecutionState =
   | DeploymentExecutionState

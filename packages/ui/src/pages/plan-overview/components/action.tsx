@@ -36,8 +36,14 @@ function toDisplayText(future: UiFuture): string {
       return `Call ${future.contract.contractName}/${future.functionName}`;
     case FutureType.NAMED_STATIC_CALL:
       return `Static call ${future.contract.contractName}/${future.functionName}`;
-    case FutureType.CONTRACT_AT:
-      return `Existing contract ${future.contractName} (${future.address})`;
+    case FutureType.NAMED_CONTRACT_AT:
+      return `Existing contract ${future.contractName} (${
+        typeof future.address === "string" ? future.address : future.address.id
+      })`;
+    case FutureType.ARTIFACT_CONTRACT_AT:
+      return `Existing contract ${future.contractName} from artifact (${
+        typeof future.address === "string" ? future.address : future.address.id
+      })`;
   }
 }
 
