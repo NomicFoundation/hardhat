@@ -105,11 +105,9 @@ describe("stored deployment serializer", () => {
   });
 
   describe("contractAt", () => {
-    const fakeArtifact = ["FAKE ARTIFACT"];
-
     it("should serialize a contractAt", () => {
       const moduleDefinition = defineModule("Module1", (m) => {
-        const contract1 = m.contractAt("Contract1", "0x0", fakeArtifact);
+        const contract1 = m.contractAt("Contract1", "0x0");
 
         return { contract1 };
       });
@@ -123,12 +121,108 @@ describe("stored deployment serializer", () => {
       });
     });
 
+    it("should serialize a contractAt with a future address", () => {
+      const moduleDefinition = defineModule("Module1", (m) => {
+        const contract1 = m.contractAt("Contract1", "0x0");
+        const call = m.staticCall(contract1, "getAddress");
+        const contract2 = m.contractAt("Contract2", call);
+
+        return { contract1, contract2 };
+      });
+
+      const constructor = new ModuleConstructor(0, []);
+      const module = constructor.construct(moduleDefinition);
+
+      assertSerializableModuleIn({
+        details,
+        module,
+      });
+    });
+
     it("should serialize a contractAt with dependency", () => {
       const moduleDefinition = defineModule("Module1", (m) => {
-        const contract1 = m.contractAt("Contract1", "0x0", fakeArtifact);
-        const contract2 = m.contractAt("Contract2", "0x0", fakeArtifact, {
+        const contract1 = m.contractAt("Contract1", "0x0");
+        const contract2 = m.contractAt("Contract2", "0x0", {
           after: [contract1],
         });
+
+        return { contract1, contract2 };
+      });
+
+      const constructor = new ModuleConstructor(0, []);
+      const module = constructor.construct(moduleDefinition);
+
+      assertSerializableModuleIn({
+        details,
+        module,
+      });
+    });
+  });
+
+  describe("contractAtFromArtifact", () => {
+    const fakeArtifact = ["FAKE ARTIFACT"];
+
+    it("should serialize a contractAt", () => {
+      const moduleDefinition = defineModule("Module1", (m) => {
+        const contract1 = m.contractAtFromArtifact(
+          "Contract1",
+          "0x0",
+          fakeArtifact
+        );
+
+        return { contract1 };
+      });
+
+      const constructor = new ModuleConstructor(0, []);
+      const module = constructor.construct(moduleDefinition);
+
+      assertSerializableModuleIn({
+        details,
+        module,
+      });
+    });
+
+    it("should serialize a contractAt with a future address", () => {
+      const moduleDefinition = defineModule("Module1", (m) => {
+        const contract1 = m.contractAtFromArtifact(
+          "Contract1",
+          "0x0",
+          fakeArtifact
+        );
+        const call = m.staticCall(contract1, "getAddress");
+        const contract2 = m.contractAtFromArtifact(
+          "Contract2",
+          call,
+          fakeArtifact
+        );
+
+        return { contract1, contract2 };
+      });
+
+      const constructor = new ModuleConstructor(0, []);
+      const module = constructor.construct(moduleDefinition);
+
+      assertSerializableModuleIn({
+        details,
+        module,
+      });
+    });
+
+    it("should serialize a contractAt with dependency", () => {
+      const moduleDefinition = defineModule("Module1", (m) => {
+        const contract1 = m.contractAtFromArtifact(
+          "Contract1",
+          "0x0",
+          fakeArtifact
+        );
+        const contract2 = m.contractAtFromArtifact(
+          "Contract2",
+          "0x0",
+          fakeArtifact,
+          {
+            after: [contract1],
+          }
+        );
 
         return { contract1, contract2 };
       });
