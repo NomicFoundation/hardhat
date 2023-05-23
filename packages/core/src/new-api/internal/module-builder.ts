@@ -446,12 +446,12 @@ export class IgnitionModuleBuilderImplementation<
   ): ReadEventArgumentFuture {
     const eventIndex = options.eventIndex ?? 0;
 
-    const futureToReadFromsContract =
+    const contractToReadFrom =
       "contract" in futureToReadFrom
         ? futureToReadFrom.contract
         : futureToReadFrom;
 
-    const emitter = options.emitter ?? futureToReadFromsContract;
+    const emitter = options.emitter ?? contractToReadFrom;
 
     const id =
       options.id ??
