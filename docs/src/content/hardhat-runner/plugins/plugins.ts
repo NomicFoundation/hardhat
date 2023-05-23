@@ -773,6 +773,14 @@ const communityPlugins: IPlugin[] = [
       "Enable project-specific features inside Truffle Dashboard, including advanced calldata decoding and more",
     tags: ["truffle-dashboard", "transaction", "signing", "decoding"],
   },
+  {
+    name: "@i0san/hardhat-nextjs",
+    author: "IoSan",
+    authorUrl: "https://github.com/I0San/",
+    description:
+      "Hardhat plugin that generates React hooks for smart contract functions and events.",
+    tags: ["react-hooks", "nextjs", "abi-optimizer"],
+  }
 ];
 
 const officialPlugins: IPlugin[] = [
