@@ -8,7 +8,7 @@ use rethnet_eth::U256;
 #[cfg(all(test, feature = "test-remote"))]
 mod util;
 #[cfg(all(test, feature = "test-remote"))]
-use util::{RethnetStates, ADDRESS_SCALES, CHECKPOINT_SCALES, SNAPSHOT_SCALES};
+use util::{Permutations, RethnetStates};
 
 #[cfg(all(test, feature = "test-remote"))]
 fn bench_set_block_context_to_block_number(
@@ -18,9 +18,9 @@ fn bench_set_block_context_to_block_number(
     context_block_number: U256,
 ) {
     let mut group = c.benchmark_group(group_name);
-    for number_of_checkpoints in CHECKPOINT_SCALES.iter() {
-        for number_of_accounts in ADDRESS_SCALES.iter() {
-            for number_of_snapshots in SNAPSHOT_SCALES.iter() {
+    for number_of_checkpoints in Permutations::checkpoint_scales().iter() {
+        for number_of_accounts in Permutations::address_scales().iter() {
+            for number_of_snapshots in Permutations::snapshot_scales().iter() {
                 let mut rethnet_states = RethnetStates::new(fork_block_number);
                 rethnet_states.fill(
                     *number_of_accounts,
