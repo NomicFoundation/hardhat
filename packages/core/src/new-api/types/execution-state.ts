@@ -139,11 +139,15 @@ type ContractAtExecutionState = BaseExecutionState<
   FutureType.NAMED_CONTRACT_AT | FutureType.ARTIFACT_CONTRACT_AT
 >;
 
+type ReadEventArgumentExecutionState =
+  BaseExecutionState<FutureType.READ_EVENT_ARGUMENT>;
+
 export type ExecutionState =
   | DeploymentExecutionState
   | CallExecutionState
   | StaticCallExecutionState
-  | ContractAtExecutionState;
+  | ContractAtExecutionState
+  | ReadEventArgumentExecutionState;
 
 export interface ExecutionStateMap {
   [key: string]: ExecutionState;
