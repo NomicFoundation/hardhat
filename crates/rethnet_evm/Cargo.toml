@@ -38,3 +38,7 @@ harness = false
 [[bench]]
 name = "state_debug"
 harness = false
+
+[[bench]]
+name = "state_history"
+harness = false
