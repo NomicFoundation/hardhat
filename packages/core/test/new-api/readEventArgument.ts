@@ -64,15 +64,14 @@ describe("Read event argument", () => {
 
     it("should accept an explicit emitter", () => {
       const defintion = defineModule("Module1", (m) => {
-        const contract = m.contract("Contract");
-        const call = m.call(contract, "fuc");
+        const contract = m.contract("ContractThatCallsEmitter");
+        const emitter = m.contract("ContractThatEmittsEvent2");
+        const call = m.call(contract, "doSomethingAndCallThEmitter", [emitter]);
 
-        const contract2 = m.contract("Contract2");
+        m.readEventArgument(contract, "EventEmittedDuringConstruction", "arg1");
+        m.readEventArgument(call, "Event2", "arg2", { emitter });
 
-        m.readEventArgument(contract, "EventName1", "arg1");
-        m.readEventArgument(call, "EventName2", "arg2", { emitter: contract2 });
-
-        return { contract, contract2 };
+        return { contract, emitter };
       });
 
       const constructor = new ModuleConstructor(0, []);
@@ -83,7 +82,7 @@ describe("Read event argument", () => {
       ) as ReadEventArgumentFuture[];
 
       assert.equal(read1.emitter, mod.results.contract);
-      assert.equal(read2.emitter, mod.results.contract2);
+      assert.equal(read2.emitter, mod.results.emitter);
     });
 
     it("should set the right eventName and argumentName", () => {
