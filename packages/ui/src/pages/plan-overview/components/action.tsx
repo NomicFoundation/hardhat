@@ -44,8 +44,6 @@ function toDisplayText(future: UiFuture): string {
       return `Existing contract ${future.contractName} from artifact (${
         typeof future.address === "string" ? future.address : future.address.id
       })`;
-    case FutureType.CONTRACT_AT:
-      return `Existing contract ${future.contractName} (${future.address})`;
     case FutureType.READ_EVENT_ARGUMENT:
       return `Read event from future ${future.futureToReadFrom.id} (event ${future.eventName} argument ${future.argumentName})`;
   }
