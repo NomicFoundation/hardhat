@@ -219,8 +219,11 @@ impl LayeredChanges<RethnetLayer> {
 
         self.last_layer_mut()
             .accounts
-            .insert_unique_unchecked(*address, Some(account))
-            .1
+            .insert(*address, Some(account));
+        self.last_layer_mut()
+            .accounts
+            .get_mut(address)
+            .unwrap()
             .as_mut()
             .unwrap()
     }
