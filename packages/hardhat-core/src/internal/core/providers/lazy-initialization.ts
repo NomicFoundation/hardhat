@@ -5,6 +5,8 @@ import {
   JsonRpcResponse,
   RequestArguments,
 } from "../../../types";
+import { HardhatError } from "../errors";
+import { ERRORS } from "../errors-list";
 
 export type ProviderFactory = () => Promise<EthereumProvider>;
 export type Listener = (...args: any[]) => void;
@@ -21,6 +23,24 @@ export class LazyInitializationProvider implements EthereumProvider {
   private _initializingPromise: Promise<EthereumProvider> | undefined;
 
   constructor(private _providerFactory: ProviderFactory) {}
+
+  /**
+   * Gets the internal wrapped provider.
+   * Using it directly is discouraged and should be done with care,
+   * use the public methods from the class like `request` and all event emitter methods instead
+   */
+  public get _wrapped(): EventEmitter {
+    if (this.provider === undefined) {
+      throw new HardhatError(ERRORS.GENERAL.UNINITIALIZED_PROVIDER);
+    }
+    return this.provider;
+  }
+
+  public async init(): Promise<EthereumProvider> {
+    this._initializingPromise = this._providerFactory();
+    this.provider = await this._initializingPromise;
+    return this.provider;
+  }
 
   // Provider methods
 
@@ -135,8 +155,7 @@ export class LazyInitializationProvider implements EthereumProvider {
     }
 
     if (this.provider === undefined) {
-      this._initializingPromise = this._providerFactory();
-      this.provider = await this._initializingPromise;
+      this.provider = await this.init();
 
       // Copy any event emitter events before initialization over to the provider
       const recordedEvents = this._emitter.eventNames();

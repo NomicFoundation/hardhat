@@ -3,6 +3,8 @@ import sinon from "sinon";
 
 import { LazyInitializationProvider } from "../../../../src/internal/core/providers/lazy-initialization";
 import { JsonRpcRequest } from "../../../../src/types";
+import { ERRORS } from "../../../../src/internal/core/errors-list";
+import { expectHardhatError } from "../../../helpers/errors";
 
 import { EthereumMockedProvider } from "./mocks";
 
@@ -27,6 +29,35 @@ describe("LazyInitializationProvider", () => {
     provider = new LazyInitializationProvider(async () => {
       initializationCount += 1;
       return mock;
+    });
+  });
+
+  describe("_wrapped", () => {
+    it("should throw if accessed before initialization", () => {
+      expectHardhatError(
+        () => provider._wrapped,
+        ERRORS.GENERAL.UNINITIALIZED_PROVIDER
+      );
+    });
+
+    it("should get the initialized provider", async () => {
+      await provider.init();
+      assert.equal(provider._wrapped, mock);
+    });
+  });
+
+  describe("init", () => {
+    it("should initialize the provider by calling the factory function", async () => {
+      await provider.init();
+      await provider.init();
+
+      assert.equal(initializationCount, 2);
+    });
+
+    it("should return the initialized the provider", async () => {
+      const initializedProvider = await provider.init();
+
+      assert.equal(initializedProvider, mock);
     });
   });
 
