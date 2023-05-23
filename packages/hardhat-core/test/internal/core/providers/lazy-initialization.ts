@@ -47,11 +47,11 @@ describe("LazyInitializationProvider", () => {
   });
 
   describe("init", () => {
-    it("should initialize the provider by calling the factory function", async () => {
+    it("should initialize the provider only once by calling the factory function", async () => {
       await provider.init();
       await provider.init();
 
-      assert.equal(initializationCount, 2);
+      assert.equal(initializationCount, 1);
     });
 
     it("should return the initialized the provider", async () => {
