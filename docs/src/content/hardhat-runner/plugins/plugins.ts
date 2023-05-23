@@ -776,10 +776,10 @@ const communityPlugins: IPlugin[] = [
   {
     name: "hardhat-w3f",
     author: "Gelato Network",
-    npmPackage: "@gelatonetwork/web3-functions-sdk/hardhat-plugin",
+    npmPackage: "@gelatonetwork/web3-functions-sdk",
     authorUrl: "https://github.com/gelatodigital/web3-functions-sdk",
     description:
-      "Thie hardhat-w3f plugin allows builders to build & run Web3 Functions connecting smart off-chain data with smart contracts ",
+      "The hardhat-w3f plugin allows builders to build & run Web3 Functions connecting smart off-chain data with smart contracts ",
     tags: ["Gelato", "w3f", "offchain", "functions"],
   },
 ];
