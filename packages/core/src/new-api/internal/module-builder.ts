@@ -599,7 +599,7 @@ export class IgnitionModuleBuilderImplementation<
   private _assertUniqueReadEventArgumentId(futureId: string) {
     return this._assertUniqueFutureId(
       futureId,
-      `Duplicated id ${futureId} found in module ${this._module.id}, ensure the id passed is unique \`m.readEventArgument("MyContract", "0x123...", artifact, { id: "MyId"})\``,
+      `Duplicated id ${futureId} found in module ${this._module.id}, ensure the id passed is unique \`m.readEventArgument(myContract, "MyEvent", "eventArg", { id: "MyId"})\``,
       this.contractAt
     );
   }
