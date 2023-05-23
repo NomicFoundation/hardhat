@@ -70,37 +70,17 @@ export type FunctionCallFuture<
   | NamedContractCallFuture<ContractNameT, FunctionNameT>
   | NamedStaticCallFuture<ContractNameT, FunctionNameT>;
 
-interface BaseFuture {
-  id: string; // Unique identifier of a future. My current proposal "<module-id>:<extra identifier created by each action>"
-
-  type: FutureType;
-
-  // The following fields define the deployment graph
-
-  // TODO: Not convinced about this circular dependency between module and future.
-  module: IgnitionModule;
-
-  // Any future that needs to be executed before this one
-  dependencies: Set<Future>;
-}
-
-interface BaseContractFuture<ContractNameT extends string> extends BaseFuture {
-  contractName: ContractNameT;
-}
-
-interface BaseFunctionCallFuture<FunctionNameT extends string>
-  extends BaseFuture {
-  functionName: FunctionNameT;
-}
-
 /**
  * A future representing the deployment of a contract that belongs to this project.
  *
  * @beta
  */
-export interface NamedContractDeploymentFuture<ContractNameT extends string>
-  extends BaseContractFuture<ContractNameT> {
+export interface NamedContractDeploymentFuture<ContractNameT extends string> {
   type: FutureType.NAMED_CONTRACT_DEPLOYMENT;
+  id: string;
+  module: IgnitionModule;
+  dependencies: Set<Future>;
+  contractName: ContractNameT;
   constructorArgs: SolidityParamsType;
   libraries: Record<string, ContractFuture<string>>;
   value: bigint;
@@ -113,9 +93,12 @@ export interface NamedContractDeploymentFuture<ContractNameT extends string>
  *
  * @beta
  */
-export interface ArtifactContractDeploymentFuture
-  extends BaseContractFuture<string> {
+export interface ArtifactContractDeploymentFuture {
   type: FutureType.ARTIFACT_CONTRACT_DEPLOYMENT;
+  id: string;
+  module: IgnitionModule;
+  dependencies: Set<Future>;
+  contractName: string;
   artifact: ArtifactType;
   constructorArgs: SolidityParamsType;
   libraries: Record<string, ContractFuture<string>>;
@@ -128,9 +111,12 @@ export interface ArtifactContractDeploymentFuture
  *
  * @beta
  */
-export interface NamedLibraryDeploymentFuture<LibraryNameT extends string>
-  extends BaseContractFuture<LibraryNameT> {
+export interface NamedLibraryDeploymentFuture<LibraryNameT extends string> {
   type: FutureType.NAMED_LIBRARY_DEPLOYMENT;
+  id: string;
+  module: IgnitionModule;
+  dependencies: Set<Future>;
+  contractName: LibraryNameT;
   libraries: Record<string, ContractFuture<string>>;
   from: string | undefined;
 }
@@ -141,9 +127,12 @@ export interface NamedLibraryDeploymentFuture<LibraryNameT extends string>
  *
  * @beta
  */
-export interface ArtifactLibraryDeploymentFuture
-  extends BaseContractFuture<string> {
+export interface ArtifactLibraryDeploymentFuture {
   type: FutureType.ARTIFACT_LIBRARY_DEPLOYMENT;
+  id: string;
+  module: IgnitionModule;
+  dependencies: Set<Future>;
+  contractName: string;
   artifact: ArtifactType;
   libraries: Record<string, ContractFuture<string>>;
   from: string | undefined;
@@ -157,9 +146,13 @@ export interface ArtifactLibraryDeploymentFuture
 export interface NamedContractCallFuture<
   ContractNameT extends string,
   FunctionNameT extends string
-> extends BaseFunctionCallFuture<FunctionNameT> {
+> {
   type: FutureType.NAMED_CONTRACT_CALL;
+  id: string;
+  module: IgnitionModule;
+  dependencies: Set<Future>;
   contract: ContractFuture<ContractNameT>;
+  functionName: FunctionNameT;
   args: SolidityParamsType;
   value: bigint;
   from: string | undefined;
@@ -173,9 +166,13 @@ export interface NamedContractCallFuture<
 export interface NamedStaticCallFuture<
   ContractNameT extends string,
   FunctionNameT extends string
-> extends BaseFunctionCallFuture<FunctionNameT> {
+> {
   type: FutureType.NAMED_STATIC_CALL;
+  id: string;
+  module: IgnitionModule;
+  dependencies: Set<Future>;
   contract: ContractFuture<ContractNameT>;
+  functionName: FunctionNameT;
   args: SolidityParamsType;
   from: string | undefined;
 }
@@ -185,10 +182,12 @@ export interface NamedStaticCallFuture<
  *
  * @beta
  */
-export interface NamedContractAtFuture<ContractNameT extends string>
-  extends BaseContractFuture<ContractNameT> {
+export interface NamedContractAtFuture<ContractNameT extends string> {
   type: FutureType.NAMED_CONTRACT_AT;
-
+  id: string;
+  module: IgnitionModule;
+  dependencies: Set<Future>;
+  contractName: ContractNameT;
   address: string | NamedStaticCallFuture<string, string>;
 }
 
@@ -198,8 +197,12 @@ export interface NamedContractAtFuture<ContractNameT extends string>
  *
  * @beta
  */
-export interface ArtifactContractAtFuture extends BaseContractFuture<string> {
+export interface ArtifactContractAtFuture {
   type: FutureType.ARTIFACT_CONTRACT_AT;
+  id: string;
+  module: IgnitionModule;
+  dependencies: Set<Future>;
+  contractName: string;
   address: string | NamedStaticCallFuture<string, string>;
   artifact: ArtifactType;
 }
@@ -210,8 +213,11 @@ export interface ArtifactContractAtFuture extends BaseContractFuture<string> {
  *
  * @beta
  */
-export interface ReadEventArgumentFuture extends BaseFuture {
+export interface ReadEventArgumentFuture {
   type: FutureType.READ_EVENT_ARGUMENT;
+  id: string;
+  module: IgnitionModule;
+  dependencies: Set<Future>;
   futureToReadFrom: Future;
   eventName: string;
   argumentName: string;
