@@ -18,7 +18,7 @@ import {
 
 const customInspectSymbol = Symbol.for("nodejs.util.inspect.custom");
 
-export abstract class BaseFuture<FutureTypeT extends FutureType>
+export abstract class BaseFutureImplementation<FutureTypeT extends FutureType>
   implements Future
 {
   public readonly dependencies: Set<Future> = new Set();
@@ -49,7 +49,7 @@ export abstract class BaseFuture<FutureTypeT extends FutureType>
 export class NamedContractDeploymentFutureImplementation<
     ContractNameT extends string
   >
-  extends BaseFuture<FutureType.NAMED_CONTRACT_DEPLOYMENT>
+  extends BaseFutureImplementation<FutureType.NAMED_CONTRACT_DEPLOYMENT>
   implements NamedContractDeploymentFuture<ContractNameT>
 {
   constructor(
@@ -68,7 +68,7 @@ export class NamedContractDeploymentFutureImplementation<
 export class ArtifactContractDeploymentFutureImplementation<
     ContractNameT extends string
   >
-  extends BaseFuture<FutureType.ARTIFACT_CONTRACT_DEPLOYMENT>
+  extends BaseFutureImplementation<FutureType.ARTIFACT_CONTRACT_DEPLOYMENT>
   implements ArtifactContractDeploymentFuture
 {
   constructor(
@@ -88,7 +88,7 @@ export class ArtifactContractDeploymentFutureImplementation<
 export class NamedLibraryDeploymentFutureImplementation<
     LibraryNameT extends string
   >
-  extends BaseFuture<FutureType.NAMED_LIBRARY_DEPLOYMENT>
+  extends BaseFutureImplementation<FutureType.NAMED_LIBRARY_DEPLOYMENT>
   implements NamedLibraryDeploymentFuture<LibraryNameT>
 {
   constructor(
@@ -105,7 +105,7 @@ export class NamedLibraryDeploymentFutureImplementation<
 export class ArtifactLibraryDeploymentFutureImplementation<
     LibraryNameT extends string
   >
-  extends BaseFuture<FutureType.ARTIFACT_LIBRARY_DEPLOYMENT>
+  extends BaseFutureImplementation<FutureType.ARTIFACT_LIBRARY_DEPLOYMENT>
   implements ArtifactLibraryDeploymentFuture
 {
   constructor(
@@ -124,7 +124,7 @@ export class NamedContractCallFutureImplementation<
     ContractNameT extends string,
     FunctionNameT extends string
   >
-  extends BaseFuture<FutureType.NAMED_CONTRACT_CALL>
+  extends BaseFutureImplementation<FutureType.NAMED_CONTRACT_CALL>
   implements NamedContractCallFuture<ContractNameT, FunctionNameT>
 {
   constructor(
@@ -144,7 +144,7 @@ export class NamedStaticCallFutureImplementation<
     ContractNameT extends string,
     FunctionNameT extends string
   >
-  extends BaseFuture<FutureType.NAMED_STATIC_CALL>
+  extends BaseFutureImplementation<FutureType.NAMED_STATIC_CALL>
   implements NamedStaticCallFuture<ContractNameT, FunctionNameT>
 {
   constructor(
@@ -160,7 +160,7 @@ export class NamedStaticCallFutureImplementation<
 }
 
 export class NamedContractAtFutureImplementation<ContractNameT extends string>
-  extends BaseFuture<FutureType.NAMED_CONTRACT_AT>
+  extends BaseFutureImplementation<FutureType.NAMED_CONTRACT_AT>
   implements NamedContractAtFuture<ContractNameT>
 {
   constructor(
@@ -174,7 +174,7 @@ export class NamedContractAtFutureImplementation<ContractNameT extends string>
 }
 
 export class ArtifactContractAtFutureImplementation
-  extends BaseFuture<FutureType.ARTIFACT_CONTRACT_AT>
+  extends BaseFutureImplementation<FutureType.ARTIFACT_CONTRACT_AT>
   implements ArtifactContractAtFuture
 {
   constructor(
@@ -189,7 +189,7 @@ export class ArtifactContractAtFutureImplementation
 }
 
 export class ReadEventArgumentFutureImplementation
-  extends BaseFuture<FutureType.READ_EVENT_ARGUMENT>
+  extends BaseFutureImplementation<FutureType.READ_EVENT_ARGUMENT>
   implements ReadEventArgumentFuture
 {
   constructor(
