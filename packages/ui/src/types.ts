@@ -7,6 +7,7 @@ import {
   NamedContractDeploymentFuture,
   NamedLibraryDeploymentFuture,
   NamedStaticCallFuture,
+  ReadEventArgumentFuture,
 } from "@ignored/ignition-core/ui-helpers";
 
 export type UiContractFuture =
@@ -23,4 +24,8 @@ export type UiContractAtFuture =
   | NamedContractAtFuture<string>
   | ArtifactContractAtFuture;
 
-export type UiFuture = UiContractFuture | UiCallFuture | UiContractAtFuture;
+export type UiFuture =
+  | UiContractFuture
+  | UiCallFuture
+  | UiContractAtFuture
+  | ReadEventArgumentFuture;

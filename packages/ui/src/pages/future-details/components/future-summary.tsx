@@ -54,6 +54,8 @@ function resolveTitleFor(future: UiFuture): string {
       return `Existing contract from Artifact - ${future.contractName} (${
         typeof future.address === "string" ? future.address : future.address.id
       })`;
+    case FutureType.READ_EVENT_ARGUMENT:
+      return `Read event argument from future - ${future.id}`;
   }
 }
 
@@ -148,6 +150,18 @@ const FutureDetailsSection: React.FC<{ future: UiFuture }> = ({ future }) => {
               ? future.address
               : future.address.id}
           </p>
+        </div>
+      );
+    case FutureType.READ_EVENT_ARGUMENT:
+      return (
+        <div>
+          <p>Future - {future.futureToReadFrom.id}</p>
+          {future.futureToReadFrom !== future.emitter ? (
+            <p>Emitter - {future.emitter.id}</p>
+          ) : null}
+          <p>Event - {future.eventName}</p>
+          <p>Event index - {future.eventIndex}</p>
+          <p>Argument - {future.argumentName}</p>
         </div>
       );
   }

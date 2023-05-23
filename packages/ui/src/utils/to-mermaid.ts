@@ -76,5 +76,7 @@ function toLabel(f: UiFuture): string {
       return `Existing contract from artifact ${f.contractName} (${
         typeof f.address === "string" ? f.address : f.address.id
       })`;
+    case FutureType.READ_EVENT_ARGUMENT:
+      return `Read event from future ${f.futureToReadFrom.id} (event ${f.eventName} argument ${f.argumentName})`;
   }
 }
