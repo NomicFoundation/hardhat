@@ -143,7 +143,7 @@ export class StoredDeploymentSerializer {
    */
   private static _partialDeserializeAllFuturesFor(
     deployment: SerializedStoredDeployment
-  ): { [key: string]: Future<unknown> } {
+  ): { [key: string]: Future } {
     const allSerializedFutures = this._getAllFuturesFor(deployment);
 
     const partialFutures = allSerializedFutures.map(
@@ -300,7 +300,7 @@ export class StoredDeploymentSerializer {
           partialFutureLookup[
             (serializedFuture as SerializedReadEventAgument).futureToReadFrom
               .futureId
-          ] as Future<string>
+          ] as Future
         );
 
         this._overwriteReadonly(
@@ -323,7 +323,7 @@ export class StoredDeploymentSerializer {
   private static _deserializePartialModule(
     serializedModule: SerializedStoredModule,
     allPartialFutures: {
-      [key: string]: Future<unknown>;
+      [key: string]: Future;
     }
   ): IgnitionModule<string, string, IgnitionModuleResult<string>> {
     const results = this._deserializeResultsFrom(
@@ -360,7 +360,7 @@ export class StoredDeploymentSerializer {
   private static _deserializeLibraries(
     libraries: SerializedLibraries,
     partialFutureLookup: {
-      [k: string]: Future<unknown>;
+      [k: string]: Future;
     }
   ): Record<string, ContractFuture<string>> {
     return Object.fromEntries(
@@ -593,7 +593,7 @@ export class StoredDeploymentSerializer {
 
   private static _deserializeResultsFrom(
     serializedResults: SerializedStoredResults,
-    futures: { [key: string]: Future<unknown> }
+    futures: { [key: string]: Future }
   ): IgnitionModuleResult<""> {
     const results = Object.fromEntries(
       Object.entries(serializedResults).map(([key, futureToken]) => [
@@ -728,7 +728,7 @@ export class StoredDeploymentSerializer {
   private static _deserializeArg(
     arg: number | string | FutureToken,
     futureLookup: {
-      [key: string]: Future<unknown>;
+      [key: string]: Future;
     }
   ) {
     if (!StoredDeploymentSerializer._isSerializedFutureToken(arg)) {

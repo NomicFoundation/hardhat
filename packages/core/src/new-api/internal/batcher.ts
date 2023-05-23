@@ -56,9 +56,7 @@ export class Batcher {
     return { adjacencyList, visitState };
   }
 
-  private static _recursiveGetFuturesFor(
-    module: IgnitionModule
-  ): Array<Future<unknown>> {
+  private static _recursiveGetFuturesFor(module: IgnitionModule): Future[] {
     return [...module.futures].concat(
       Array.from(module.submodules).flatMap((sub) =>
         this._recursiveGetFuturesFor(sub)
@@ -67,7 +65,7 @@ export class Batcher {
   }
 
   private static _intializeVisitStateFrom(
-    futures: Array<Future<unknown>>,
+    futures: Future[],
     executionStateMap: ExecutionStateMap
   ): VisitStatusMap {
     return Object.fromEntries(
@@ -90,9 +88,7 @@ export class Batcher {
     );
   }
 
-  private static _buildAdjacencyListFor(
-    futures: Array<Future<unknown>>
-  ): AdjacencyList {
+  private static _buildAdjacencyListFor(futures: Future[]): AdjacencyList {
     const dependencyGraph = new AdjacencyList();
 
     for (const future of futures) {
@@ -117,8 +113,8 @@ export class Batcher {
    */
   private static _optionallyAddDependenciesSubmoduleSiblings(
     dependencyGraph: AdjacencyList,
-    future: Future<unknown>,
-    dependency: Future<unknown>
+    future: Future,
+    dependency: Future
   ): void {
     if (future.module === dependency.module) {
       return;

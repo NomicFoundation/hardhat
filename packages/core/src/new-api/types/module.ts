@@ -22,8 +22,7 @@ export enum FutureType {
  *
  * @beta
  */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-export interface Future<ResultT = unknown> {
+export interface Future {
   id: string; // Unique identifier of a future. My current proposal "<module-id>:<extra identifier created by each action>"
 
   type: FutureType;
@@ -43,8 +42,7 @@ export interface Future<ResultT = unknown> {
  *
  * @beta
  */
-export interface ContractFuture<ContractNameT extends string>
-  extends Future<string> {
+export interface ContractFuture<ContractNameT extends string> extends Future {
   contractName: ContractNameT;
 }
 
@@ -54,7 +52,7 @@ export interface ContractFuture<ContractNameT extends string>
  * @beta
  */
 export interface FunctionCallFuture<FunctionNameT extends string>
-  extends Future<string> {
+  extends Future {
   functionName: FunctionNameT;
 }
 
@@ -174,9 +172,9 @@ export interface ArtifactContractAtFuture extends ContractFuture<string> {
  *
  * @beta
  */
-export interface ReadEventArgumentFuture extends Future<any> {
+export interface ReadEventArgumentFuture extends Future {
   type: FutureType.READ_EVENT_ARGUMENT;
-  futureToReadFrom: Future<any>;
+  futureToReadFrom: Future;
   eventName: string;
   argumentName: string;
   emitter: ContractFuture<string>;
