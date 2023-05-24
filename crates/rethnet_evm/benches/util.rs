@@ -181,22 +181,22 @@ impl Permutations {
 impl Permutations {
     const NUM_SCALES: usize = 4;
 
-    const SNAPSHOT_SCALES: [u64; NUM_SCALES] = [1, 5, 10, 20];
-    const MAX_SNAPSHOT_SCALE: u64 = SNAPSHOT_SCALES[NUM_SCALES - 1];
+    const SNAPSHOT_SCALES: [u64; Self::NUM_SCALES] = [1, 5, 10, 20];
+    const MAX_SNAPSHOT_SCALE: u64 = Self::SNAPSHOT_SCALES[Self::NUM_SCALES - 1];
 
-    const CHECKPOINT_SCALES: [u64; NUM_SCALES] = [
-        MAX_SNAPSHOT_SCALE,
-        MAX_SNAPSHOT_SCALE * 2,
-        MAX_SNAPSHOT_SCALE * 4,
-        MAX_SNAPSHOT_SCALE * 8,
+    const CHECKPOINT_SCALES: [u64; Self::NUM_SCALES] = [
+        Self::MAX_SNAPSHOT_SCALE,
+        Self::MAX_SNAPSHOT_SCALE * 2,
+        Self::MAX_SNAPSHOT_SCALE * 4,
+        Self::MAX_SNAPSHOT_SCALE * 8,
     ];
-    const MAX_CHECKPOINT_SCALE: u64 = CHECKPOINT_SCALES[NUM_SCALES - 1];
+    const MAX_CHECKPOINT_SCALE: u64 = Self::CHECKPOINT_SCALES[Self::NUM_SCALES - 1];
 
-    const ADDRESS_SCALES: [u64; NUM_SCALES] = [
-        MAX_CHECKPOINT_SCALE,
-        MAX_CHECKPOINT_SCALE * 5,
-        MAX_CHECKPOINT_SCALE * 25,
-        MAX_CHECKPOINT_SCALE * 50,
+    const ADDRESS_SCALES: [u64; Self::NUM_SCALES] = [
+        Self::MAX_CHECKPOINT_SCALE,
+        Self::MAX_CHECKPOINT_SCALE * 5,
+        Self::MAX_CHECKPOINT_SCALE * 25,
+        Self::MAX_CHECKPOINT_SCALE * 50,
     ];
 
     const STORAGE_SCALES: [u64; 4] = [1, 10, 100, 1000];
