@@ -34,7 +34,7 @@ export declare function deployContract(
 ): Promise<ethers.Contract>;
 
 export interface HardhatEthersHelpers {
-  provider: ethers.providers.JsonRpcProvider;
+  provider: ethers.providers.StaticJsonRpcProvider;
 
   getContractFactory: typeof getContractFactory;
   getContractFactoryFromArtifact: (
