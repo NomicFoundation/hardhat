@@ -54,6 +54,18 @@ describe("LazyInitializationProvider", () => {
       assert.equal(initializationCount, 1);
     });
 
+    it("should initialize the provider only once even if init is called several times at the same time", async function () {
+      await Promise.all([
+        provider.init(),
+        provider.init(),
+        provider.init(),
+        provider.init(),
+        provider.init(),
+      ]);
+
+      assert.equal(initializationCount, 1);
+    });
+
     it("should return the initialized the provider", async () => {
       const initializedProvider = await provider.init();
 

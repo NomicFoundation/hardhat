@@ -38,7 +38,9 @@ export class LazyInitializationProvider implements EthereumProvider {
 
   public async init(): Promise<EthereumProvider> {
     if (this.provider === undefined) {
-      this._initializingPromise = this._providerFactory();
+      if (this._initializingPromise === undefined) {
+        this._initializingPromise = this._providerFactory();
+      }
       this.provider = await this._initializingPromise;
     }
     return this.provider;
