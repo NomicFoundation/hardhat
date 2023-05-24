@@ -66,7 +66,7 @@ describe("LazyInitializationProvider", () => {
       assert.equal(initializationCount, 1);
     });
 
-    it("should return the initialized the provider", async () => {
+    it("should return the initialized provider", async () => {
       const initializedProvider = await provider.init();
 
       assert.equal(initializedProvider, mock);
@@ -127,6 +127,16 @@ describe("LazyInitializationProvider", () => {
       assert.equal(initializationCount, 1);
     });
 
+    it("should call the intialization function only once even if multiple requests are done at the same time", async () => {
+      await Promise.all([
+        provider.request({ method: "method1", params: [1, 2, 3] }),
+        provider.request({ method: "method2", params: [66, 77] }),
+        provider.request({ method: "method3", params: [99, 100] }),
+      ]);
+
+      assert.equal(initializationCount, 1);
+    });
+
     it("should forward the method to the initialized provider", async () => {
       const requestSpy = sinon.spy(mock, "request");
       const requestParams = { method: "a-method" };
@@ -163,27 +173,38 @@ describe("LazyInitializationProvider", () => {
   });
 
   describe("sendAsync", () => {
-    it("should call the intialization function when called", () => {
-      provider.sendAsync(createJsonRpcRequest("method1", [1, 2, 3]), () => {});
-
-      assert.equal(initializationCount, 1);
+    it("should call the intialization function when called", (done) => {
+      provider.sendAsync(createJsonRpcRequest("method1", [1, 2, 3]), () => {
+        assert.equal(initializationCount, 1);
+        done();
+      });
     });
 
-    it("should call the intialization function only once", () => {
+    it("should call the intialization function only once", (done) => {
       provider.sendAsync(createJsonRpcRequest("method1", [1, 2, 3]), () => {
         provider.sendAsync(createJsonRpcRequest("method2", [66, 77]), () => {
           provider.sendAsync(createJsonRpcRequest("method3", [99, 100]), () => {
             assert.equal(initializationCount, 1);
+            done();
           });
         });
       });
     });
 
-    it("should call the intialization function only once even for unresolved calls", () => {
-      provider.sendAsync(createJsonRpcRequest("method1", [1, 2, 3]), () => {});
-      provider.sendAsync(createJsonRpcRequest("method2", [66, 77]), () => {});
-      provider.sendAsync(createJsonRpcRequest("method3", [99, 100]), () => {});
-      assert.equal(initializationCount, 1);
+    it("should call the intialization function only once even for unresolved calls", (done) => {
+      let checkCalls = 0;
+      const check = () => {
+        assert.equal(initializationCount, 1);
+
+        checkCalls++;
+        if (checkCalls === 3) {
+          done();
+        }
+      };
+
+      provider.sendAsync(createJsonRpcRequest("method1", [1, 2, 3]), check);
+      provider.sendAsync(createJsonRpcRequest("method2", [66, 77]), check);
+      provider.sendAsync(createJsonRpcRequest("method3", [99, 100]), check);
     });
 
     it("should forward the method to the initialized provider", (done) => {
