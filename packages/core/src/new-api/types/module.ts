@@ -296,6 +296,48 @@ export type ModuleParameterType =
   | { [field: string]: ModuleParameterType };
 
 /**
+ * The different runtime values supported by Ignition.
+ *
+ * @beta
+ */
+export enum RuntimeValueType {
+  ACCOUNT,
+  MODULE_PARAMETER,
+}
+
+/**
+ * A value that's only available during deployment.
+ *
+ * @beta
+ */
+export type RuntimeValue =
+  | AccountRuntimeValue
+  | ModuleParameterRuntimeValue<ModuleParameterType>;
+
+/**
+ * A local account.
+ *
+ * @beta
+ */
+export interface AccountRuntimeValue {
+  type: RuntimeValueType.ACCOUNT;
+  accountIndex: number;
+}
+
+/**
+ * A module parameter.
+ *
+ * @beta
+ */
+export interface ModuleParameterRuntimeValue<
+  ParamTypeT extends ModuleParameterType
+> {
+  type: RuntimeValueType.MODULE_PARAMETER;
+  name: string;
+  defaultValue?: ParamTypeT;
+}
+
+/**
  * An object containing the parameters passed into the module.
  *
  * @beta

@@ -2,6 +2,8 @@ import {
   Future,
   FutureType,
   IgnitionModule,
+  RuntimeValue,
+  RuntimeValueType,
 } from "../../../src/new-api/types/module";
 
 type UnionToIntersection<U> = (U extends any ? (k: U) => void : never) extends (
@@ -17,6 +19,10 @@ interface BaseFuture {
   dependencies: Set<Future>;
 }
 
+interface BaseRuntimeValue {
+  type: RuntimeValueType;
+}
+
 function _testThatEveryFutureIsBaseFuture(f: Future): BaseFuture {
   return f;
 }
@@ -28,5 +34,23 @@ function _testThatBaseFutureIncludesAllSharedFieldsExceptType(
 }
 
 function _testThatEveryFutureTypeIsUsed(type: FutureType): Future["type"] {
+  return type;
+}
+
+function _testThatEveryRuntimeValueIsBaseRuntimeValue(
+  r: RuntimeValue
+): BaseRuntimeValue {
+  return r;
+}
+
+function _testThatBaseRuntimeValueIncludesAllSharedFieldsExceptType(
+  r: Omit<BaseRuntimeValue, "type">
+): UnionToIntersection<Omit<RuntimeValue, "type">> {
+  return r;
+}
+
+function _testThatEveryRuntimeValueTypeIsUsed(
+  type: RuntimeValueType
+): RuntimeValue["type"] {
   return type;
 }
