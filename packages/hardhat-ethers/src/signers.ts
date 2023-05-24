@@ -23,12 +23,43 @@ export class HardhatEthersSigner implements ethers.Signer {
 
   public static async create(provider: HardhatEthersProvider, address: string) {
     const hre = await import("hardhat");
+
+    // depending on the config, we set a fixed gas limit for all transactions
     let gasLimit: number | undefined;
-    if (
-      hre.network.config.gas !== "auto" &&
-      hre.network.config.gas !== undefined
-    ) {
-      gasLimit = hre.network.config.gas;
+
+    if (hre.network.name === "hardhat") {
+      // If we are connected to the in-process hardhat network and the config
+      // has a fixed number as the gas config, we use that.
+      // Hardhat core already sets this value to the block gas limit when the
+      // user doesn't specify a number.
+      if (hre.network.config.gas !== "auto") {
+        gasLimit = hre.network.config.gas;
+      }
+    } else if (hre.network.name === "localhost") {
+      const configuredGasLimit = hre.config.networks.localhost.gas;
+
+      if (configuredGasLimit !== "auto") {
+        // if the resolved gas config is a number, we use that
+        gasLimit = configuredGasLimit;
+      } else {
+        // if the resolved gas config is "auto", we need to check that
+        // the user config is undefined, because that's the default value;
+        // otherwise explicitly setting the gas to "auto" would have no effect
+        if (hre.userConfig.networks?.localhost?.gas === undefined) {
+          // finally, we check if we are connected to a hardhat network
+          let isHardhatNetwork = false;
+          try {
+            await hre.network.provider.send("hardhat_metadata");
+            isHardhatNetwork = true;
+          } catch {}
+
+          if (isHardhatNetwork) {
+            // WARNING: this assumes that the hardhat node is being run in the
+            // same project which might be wrong
+            gasLimit = hre.config.networks.hardhat.blockGasLimit;
+          }
+        }
+      }
     }
 
     return new HardhatEthersSigner(address, provider, gasLimit);

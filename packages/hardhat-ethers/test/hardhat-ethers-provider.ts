@@ -2,11 +2,8 @@ import { assert, use } from "chai";
 import chaiAsPromised from "chai-as-promised";
 
 import { ExampleContract, EXAMPLE_CONTRACT } from "./example-contracts";
-import {
-  assertIsNotNull,
-  assertWithin,
-  usePersistentEnvironment,
-} from "./helpers";
+import { usePersistentEnvironment } from "./environment";
+import { assertIsNotNull, assertWithin } from "./helpers";
 
 use(chaiAsPromised);
 

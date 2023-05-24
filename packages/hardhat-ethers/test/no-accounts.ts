@@ -4,7 +4,7 @@ import { HardhatRuntimeEnvironment } from "hardhat/types";
 
 import { HardhatEthersSigner } from "../src/signers";
 
-import { useEnvironment } from "./helpers";
+import { useEnvironment } from "./environment";
 
 describe("hardhat-ethers plugin", function () {
   describe("hardhat network with no accounts", function () {

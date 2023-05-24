@@ -6,9 +6,10 @@ import { NomicLabsHardhatPluginError } from "hardhat/plugins";
 import { Artifact } from "hardhat/types";
 
 import { HardhatEthersSigner } from "../src/signers";
-import { GreeterContract, TestContractLib } from "./example-contracts";
 
-import { assertIsNotNull, assertIsSigner, useEnvironment } from "./helpers";
+import { useEnvironment } from "./environment";
+import { GreeterContract, TestContractLib } from "./example-contracts";
+import { assertIsNotNull, assertIsSigner } from "./helpers";
 
 chai.use(chaiAsPromised);
 

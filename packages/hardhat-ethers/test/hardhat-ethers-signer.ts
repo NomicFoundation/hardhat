@@ -1,11 +1,8 @@
 import { assert } from "chai";
 
+import { usePersistentEnvironment } from "./environment";
 import { ExampleContract, EXAMPLE_CONTRACT } from "./example-contracts";
-import {
-  assertIsNotNull,
-  assertWithin,
-  usePersistentEnvironment,
-} from "./helpers";
+import { assertIsNotNull, assertWithin } from "./helpers";
 
 describe("hardhat ethers signer", function () {
   describe("minimal project", function () {
