@@ -58,6 +58,12 @@ jobs:
           command: check
           args: --workspace --all-features --all-targets
 
+      - name: Cargo check without all features
+        uses: actions-rs/cargo@v1
+        with:
+          command: check
+          args: --workspace --all-targets
+
   test-core:
     name: Test core (${{ matrix.os }}, Node ${{ matrix.node }}, ${{ matrix.vm }})
     runs-on: ${{ matrix.os }}

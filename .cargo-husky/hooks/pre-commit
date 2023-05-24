@@ -17,6 +17,7 @@ else
 fi
 
 cargo check --workspace ${CHECK_FEATURE_FLAG} --all-targets
+cargo check --workspace --all-targets
 cargo test --workspace --all-targets --features tracing,bench-once${TEST_REMOTE}
 cargo test --doc --workspace --features tracing
 cargo clippy --all -- -D warnings
