@@ -26,7 +26,7 @@ import { analyzeModuleNotFoundError } from "./config/config-loading";
 import { HardhatError } from "./errors";
 import { ERRORS } from "./errors-list";
 import { createProvider } from "./providers/construction";
-import { LazyInitializationProvider } from "./providers/lazy-initialization";
+import { LazyInitializationProviderAdapter } from "./providers/lazy-initialization";
 import { OverriddenTaskDefinition } from "./tasks/task-definitions";
 import {
   completeTaskProfile,
@@ -94,7 +94,7 @@ export class Environment implements HardhatRuntimeEnvironment {
 
     this.artifacts = new Artifacts(config.paths.artifacts);
 
-    const provider = new LazyInitializationProvider(async () => {
+    const provider = new LazyInitializationProviderAdapter(async () => {
       log(`Creating provider for network ${networkName}`);
       return createProvider(
         config,

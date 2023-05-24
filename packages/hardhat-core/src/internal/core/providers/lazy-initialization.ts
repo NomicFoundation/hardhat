@@ -17,7 +17,7 @@ export type Listener = (...args: any[]) => void;
  * Trying to use the EventEmitter API without calling request first (initializing the provider)
  * will throw.
  */
-export class LazyInitializationProvider implements EthereumProvider {
+export class LazyInitializationProviderAdapter implements EthereumProvider {
   protected provider: EthereumProvider | undefined;
   private _emitter: EventEmitter = new EventEmitter();
   private _initializingPromise: Promise<EthereumProvider> | undefined;

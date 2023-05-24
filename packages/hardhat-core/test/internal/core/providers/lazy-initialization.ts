@@ -1,16 +1,16 @@
 import { assert } from "chai";
 import sinon from "sinon";
 
-import { LazyInitializationProvider } from "../../../../src/internal/core/providers/lazy-initialization";
+import { LazyInitializationProviderAdapter } from "../../../../src/internal/core/providers/lazy-initialization";
 import { JsonRpcRequest } from "../../../../src/types";
 import { ERRORS } from "../../../../src/internal/core/errors-list";
 import { expectHardhatError } from "../../../helpers/errors";
 
 import { EthereumMockedProvider } from "./mocks";
 
-describe("LazyInitializationProvider", () => {
+describe("LazyInitializationProviderAdapter", () => {
   let mock: EthereumMockedProvider;
-  let provider: LazyInitializationProvider;
+  let provider: LazyInitializationProviderAdapter;
   let initializationCount: number;
   let id: number;
 
@@ -26,7 +26,7 @@ describe("LazyInitializationProvider", () => {
     id = 1;
 
     mock = new EthereumMockedProvider();
-    provider = new LazyInitializationProvider(async () => {
+    provider = new LazyInitializationProviderAdapter(async () => {
       initializationCount += 1;
       return mock;
     });
