@@ -13,9 +13,7 @@ export type Listener = (...args: any[]) => void;
 
 /**
  * A class that delays the (async) creation of its internal provider until the first call
- * to a JSON RPC method via request/send/sendAsync.
- * Trying to use the EventEmitter API without calling request first (initializing the provider)
- * will throw.
+ * to a JSON RPC method via request/send/sendAsync or the init method is called.
  */
 export class LazyInitializationProviderAdapter implements EthereumProvider {
   protected provider: EthereumProvider | undefined;
