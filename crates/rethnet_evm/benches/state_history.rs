@@ -10,7 +10,7 @@ fn bench_checkpoint(c: &mut Criterion) {
         c,
         "StateHistory:checkpoint()",
         prep_no_op,
-        |mut state, _number_of_accounts, _, _| {
+        |state, _number_of_accounts, _, _| {
             let result = state.checkpoint();
             debug_assert!(result.is_ok());
         },
@@ -24,7 +24,7 @@ fn bench_make_snapshot(c: &mut Criterion) {
         c,
         "StateHistory:make_snapshot",
         prep_no_op,
-        |mut state, _number_of_accounts, _, _| {
+        |state, _number_of_accounts, _, _| {
             state.make_snapshot();
         },
         &[0],
@@ -42,7 +42,7 @@ fn bench_remove_snapshot(c: &mut Criterion) {
                 .borrow_mut()
                 .assign_from_slice(state.make_snapshot().as_bytes());
         },
-        |mut state, _number_of_accounts, _, _| {
+        |state, _number_of_accounts, _, _| {
             state.remove_snapshot(&snapshot.borrow());
         },
         &[0],
@@ -60,7 +60,7 @@ fn bench_set_block_context_to_latest_snapshot(c: &mut Criterion) {
                 .borrow_mut()
                 .assign_from_slice(state.make_snapshot().as_bytes());
         },
-        |mut state, _number_of_accounts, _, _| {
+        |state, _number_of_accounts, _, _| {
             let result = state.set_block_context(&snapshot.borrow(), None);
             debug_assert!(result.is_ok());
         },
@@ -73,7 +73,7 @@ fn bench_set_block_context_to_earliest_layer(c: &mut Criterion) {
         c,
         "StateHistory:set_block,earliest layer",
         prep_no_op,
-        |mut state, _number_of_accounts, checkpoints, _| {
+        |state, _number_of_accounts, checkpoints, _| {
             state.set_block_context(&checkpoints[0], None).unwrap();
         },
         &[0],
@@ -86,7 +86,7 @@ fn bench_set_block_context_to_latest_layer(c: &mut Criterion) {
         c,
         "StateHistory:set_block,latest layer",
         prep_no_op,
-        |mut state, _number_of_accounts, checkpoints, _| {
+        |state, _number_of_accounts, checkpoints, _| {
             state
                 .set_block_context(&checkpoints[checkpoints.len() - 1], None)
                 .unwrap();
@@ -101,7 +101,7 @@ fn bench_set_block_context_to_middle_layer(c: &mut Criterion) {
         c,
         "StateHistory:set_block,middle layer",
         prep_no_op,
-        |mut state, _number_of_accounts, checkpoints, _| {
+        |state, _number_of_accounts, checkpoints, _| {
             state
                 .set_block_context(&checkpoints[checkpoints.len() / 2], None)
                 .unwrap();
@@ -118,7 +118,7 @@ fn bench_revert(c: &mut Criterion) {
         |state, _| {
             state.checkpoint().unwrap();
         },
-        |mut state, _number_of_accounts, _, _| {
+        |state, _number_of_accounts, _, _| {
             let result = state.revert();
             debug_assert!(result.is_ok());
         },

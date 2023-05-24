@@ -1,33 +1,78 @@
 use std::clone::Clone;
+#[cfg(all(test, feature = "test-remote"))]
+use std::sync::Arc;
 
 use criterion::{BatchSize, BenchmarkId, Criterion};
+#[cfg(all(test, feature = "test-remote"))]
+use parking_lot::Mutex;
+#[cfg(all(test, feature = "test-remote"))]
+use tokio::runtime::Builder;
+
 use rethnet_eth::{Address, Bytes, B256, U256};
 use rethnet_evm::state::{HybridState, LayeredState, RethnetLayer, StateError, SyncState};
+#[cfg(all(test, feature = "test-remote"))]
+use rethnet_evm::{state::ForkState, HashMap, RandomHashGenerator};
 use revm::primitives::{AccountInfo, Bytecode, KECCAK_EMPTY};
 
-#[derive(Default)]
-struct RethnetStates {
+pub struct RethnetStates {
     layered: LayeredState<RethnetLayer>,
     layered_checkpoints: Vec<B256>,
     layered_snapshots: Vec<B256>,
     hybrid: HybridState<RethnetLayer>,
     hybrid_checkpoints: Vec<B256>,
     hybrid_snapshots: Vec<B256>,
+    #[cfg(all(test, feature = "test-remote"))]
+    pub fork: ForkState,
+    #[allow(dead_code)]
+    fork_checkpoints: Vec<B256>,
+    #[allow(dead_code)]
+    fork_snapshots: Vec<B256>,
 }
 
 impl RethnetStates {
-    fn fill(
+    #[allow(unused_variables)]
+    pub fn new(fork_block_number: U256) -> Self {
+        Self {
+            layered: LayeredState::<RethnetLayer>::default(),
+            layered_checkpoints: Vec::default(),
+            layered_snapshots: Vec::default(),
+            hybrid: HybridState::<RethnetLayer>::default(),
+            hybrid_checkpoints: Vec::default(),
+            hybrid_snapshots: Vec::default(),
+            #[cfg(all(test, feature = "test-remote"))]
+            fork: ForkState::new(
+                Arc::new(
+                    Builder::new_multi_thread()
+                        .enable_io()
+                        .enable_time()
+                        .build()
+                        .unwrap(),
+                ),
+                Arc::new(Mutex::new(RandomHashGenerator::with_seed("seed"))),
+                &std::env::var_os("ALCHEMY_URL")
+                    .expect("ALCHEMY_URL environment variable not defined")
+                    .into_string()
+                    .unwrap(),
+                fork_block_number,
+                HashMap::default(),
+            ),
+            fork_checkpoints: Vec::default(),
+            fork_snapshots: Vec::default(),
+        }
+    }
+
+    pub fn fill(
         &mut self,
         number_of_accounts: u64,
         number_of_checkpoints: u64,
         number_of_snapshots: u64,
         number_of_storage_slots_per_account: u64,
     ) {
-        let mut states_and_checkpoints_and_snapshots: [(
+        let mut states_and_checkpoints_and_snapshots: Vec<(
             &mut dyn SyncState<StateError>,
             &mut Vec<B256>,
             &mut Vec<B256>,
-        ); 2] = [
+        )> = vec![
             (
                 &mut self.layered,
                 &mut self.layered_checkpoints,
@@ -37,6 +82,12 @@ impl RethnetStates {
                 &mut self.hybrid,
                 &mut self.hybrid_checkpoints,
                 &mut self.hybrid_snapshots,
+            ),
+            #[cfg(all(test, feature = "test-remote"))]
+            (
+                &mut self.fork,
+                &mut self.fork_checkpoints,
+                &mut self.fork_snapshots,
             ),
         ];
         for (state, checkpoints, snapshots) in states_and_checkpoints_and_snapshots.iter_mut() {
@@ -81,6 +132,7 @@ impl RethnetStates {
     }
 
     /// Returns a set of factories, each member of which produces a clone of one of the state objects in this struct.
+    #[allow(dead_code)]
     fn make_state_refs(
         &self,
     ) -> Vec<(
@@ -102,6 +154,13 @@ impl RethnetStates {
                 &self.hybrid_checkpoints,
                 &self.hybrid_snapshots,
             ),
+            #[cfg(all(test, feature = "test-remote"))]
+            (
+                "Fork",
+                Box::new(|| Box::new(self.fork.clone())),
+                &self.fork_checkpoints,
+                &self.fork_snapshots,
+            ),
         ]
     }
 }
@@ -113,6 +172,7 @@ impl Permutations {
     const NUM_SCALES: usize = 1;
     const CHECKPOINT_SCALES: [u64; 1] = [1];
     const ADDRESS_SCALES: [u64; 1] = [1];
+    #[allow(dead_code)]
     const STORAGE_SCALES: [u64; 1] = [1];
     const SNAPSHOT_SCALES: [u64; 1] = [1];
 }
@@ -121,22 +181,22 @@ impl Permutations {
 impl Permutations {
     const NUM_SCALES: usize = 4;
 
-    const SNAPSHOT_SCALES: [u64; NUM_SCALES] = [1, 5, 10, 20];
-    const MAX_SNAPSHOT_SCALE: u64 = SNAPSHOT_SCALES[NUM_SCALES - 1];
+    const SNAPSHOT_SCALES: [u64; Self::NUM_SCALES] = [1, 5, 10, 20];
+    const MAX_SNAPSHOT_SCALE: u64 = Self::SNAPSHOT_SCALES[Self::NUM_SCALES - 1];
 
-    const CHECKPOINT_SCALES: [u64; NUM_SCALES] = [
-        MAX_SNAPSHOT_SCALE,
-        MAX_SNAPSHOT_SCALE * 2,
-        MAX_SNAPSHOT_SCALE * 4,
-        MAX_SNAPSHOT_SCALE * 8,
+    const CHECKPOINT_SCALES: [u64; Self::NUM_SCALES] = [
+        Self::MAX_SNAPSHOT_SCALE,
+        Self::MAX_SNAPSHOT_SCALE * 2,
+        Self::MAX_SNAPSHOT_SCALE * 4,
+        Self::MAX_SNAPSHOT_SCALE * 8,
     ];
-    const MAX_CHECKPOINT_SCALE: u64 = CHECKPOINT_SCALES[NUM_SCALES - 1];
+    const MAX_CHECKPOINT_SCALE: u64 = Self::CHECKPOINT_SCALES[Self::NUM_SCALES - 1];
 
-    const ADDRESS_SCALES: [u64; NUM_SCALES] = [
-        MAX_CHECKPOINT_SCALE,
-        MAX_CHECKPOINT_SCALE * 5,
-        MAX_CHECKPOINT_SCALE * 25,
-        MAX_CHECKPOINT_SCALE * 50,
+    const ADDRESS_SCALES: [u64; Self::NUM_SCALES] = [
+        Self::MAX_CHECKPOINT_SCALE,
+        Self::MAX_CHECKPOINT_SCALE * 5,
+        Self::MAX_CHECKPOINT_SCALE * 25,
+        Self::MAX_CHECKPOINT_SCALE * 50,
     ];
 
     const STORAGE_SCALES: [u64; 4] = [1, 10, 100, 1000];
@@ -178,29 +238,32 @@ impl Permutations {
         Self::SNAPSHOT_SCALES
     }
 
+    #[allow(dead_code)]
     pub fn storage_scales() -> [u64; Self::NUM_SCALES] {
         Self::assert_scale_divisibility();
         Self::STORAGE_SCALES
     }
 }
 
+#[allow(dead_code)]
 pub fn bench_sync_state_method<O, R, Prep>(
     c: &mut Criterion,
     method_name: &str,
     mut prep: Prep,
-    mut method_invocation: R,
+    method_invocation: R,
     storage_scales: &[u64],
     snapshot_scales: &[u64],
 ) where
-    R: FnMut(Box<dyn SyncState<StateError>>, u64, &Vec<B256>, &Vec<B256>) -> O,
+    R: FnMut(&mut Box<dyn SyncState<StateError>>, u64, &Vec<B256>, &Vec<B256>) -> O,
     Prep: FnMut(&mut dyn SyncState<StateError>, u64),
 {
     let mut group = c.benchmark_group(method_name);
+    let method_invocation = std::cell::RefCell::<R>::new(method_invocation);
     for number_of_checkpoints in Permutations::checkpoint_scales().iter() {
         for number_of_accounts in Permutations::address_scales().iter() {
             for storage_slots_per_account in storage_scales.iter() {
                 for number_of_snapshots in snapshot_scales.iter() {
-                    let mut rethnet_states = RethnetStates::default();
+                    let mut rethnet_states = RethnetStates::new(U256::from(17274563));
                     rethnet_states.fill(
                         *number_of_accounts,
                         *number_of_checkpoints,
@@ -227,12 +290,25 @@ pub fn bench_sync_state_method<O, R, Prep>(
                                 b.iter_batched(
                                     || {
                                         let mut state = state_factory();
+                                        // in order to prime any caches that the
+                                        // state object may be employing, run the
+                                        // method invocation here in the setup
+                                        // routine. note that we have to run prep
+                                        // before THIS invocation, and then AGAIN
+                                        // after it, for the "real" invocation.
+                                        prep(&mut state, *number_of_accounts);
+                                        method_invocation.borrow_mut()(
+                                            &mut state,
+                                            *number_of_accounts,
+                                            checkpoints,
+                                            snapshots,
+                                        );
                                         prep(&mut state, *number_of_accounts);
                                         state
                                     },
-                                    |state| {
-                                        method_invocation(
-                                            state,
+                                    |mut state| {
+                                        method_invocation.borrow_mut()(
+                                            &mut state,
                                             *number_of_accounts,
                                             checkpoints,
                                             snapshots,
@@ -249,6 +325,7 @@ pub fn bench_sync_state_method<O, R, Prep>(
     }
 }
 
+#[allow(dead_code)]
 pub fn prep_no_op(_state: &mut dyn SyncState<StateError>, _number_of_accounts: u64) {}
 
 #[allow(dead_code)]

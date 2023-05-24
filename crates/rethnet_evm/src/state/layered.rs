@@ -286,4 +286,82 @@ mod tests {
         let retrieved_bytecode = state.code_by_hash(inserted_bytecode.hash()).unwrap();
         assert_eq!(retrieved_bytecode, inserted_bytecode);
     }
+
+    #[test]
+    fn repro_remove_code_panic_with_attempt_to_subtract_with_overflow() {
+        let state: std::cell::RefCell<LayeredState<RethnetLayer>> = Default::default();
+
+        let seed = 1;
+        let address = Address::from_low_u64_ne(seed);
+        state
+            .borrow_mut()
+            .insert_account(
+                address,
+                AccountInfo::new(
+                    U256::from(seed),
+                    seed,
+                    Bytecode::new_raw(Bytes::copy_from_slice(address.as_bytes())),
+                ),
+            )
+            .unwrap();
+        state.borrow_mut().checkpoint().unwrap();
+        state.borrow_mut().make_snapshot();
+        let take_code = || {
+            state
+                .borrow_mut()
+                .modify_account(
+                    address,
+                    AccountModifierFn::new(Box::new(|_balance, _nonce, code| {
+                        code.take();
+                    })),
+                    &|| Ok(AccountInfo::default()),
+                )
+                .unwrap();
+        };
+        let add_code = || {
+            state
+                .borrow_mut()
+                .modify_account(
+                    address,
+                    AccountModifierFn::new(Box::new(move |_balance, _nonce, code| {
+                        code.replace(Bytecode::new_raw(Bytes::copy_from_slice(
+                            Address::from_low_u64_ne(seed + 1).as_bytes(),
+                        )));
+                    })),
+                    &|| Ok(AccountInfo::default()),
+                )
+                .unwrap();
+        };
+
+        take_code();
+        add_code();
+        take_code();
+        add_code();
+    }
+
+    #[test]
+    fn repro_repeated_remove_and_insert_account_has_no_effect() {
+        let state: std::cell::RefCell<LayeredState<RethnetLayer>> = Default::default();
+
+        let address = Address::from_low_u64_ne(1);
+
+        let insert_account = || {
+            state
+                .borrow_mut()
+                .insert_account(address, AccountInfo::default())
+                .unwrap();
+            assert!(state.borrow().basic(address).unwrap().is_some());
+        };
+
+        insert_account();
+
+        assert!(state
+            .borrow_mut()
+            .remove_account(address)
+            .unwrap()
+            .is_some());
+        assert!(state.borrow().basic(address).unwrap().is_none());
+
+        insert_account();
+    }
 }
