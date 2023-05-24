@@ -11,6 +11,7 @@ import {
   NamedLibraryDeploymentFutureImplementation,
   NamedStaticCallFutureImplementation,
   ReadEventArgumentFutureImplementation,
+  SendDataFutureImplementation,
 } from "./internal/module";
 import { isFuture } from "./internal/utils";
 import {
@@ -35,7 +36,8 @@ import {
   SerializedNamedContractDeploymentFuture,
   SerializedNamedLibraryDeploymentFuture,
   SerializedNamedStaticCallFuture,
-  SerializedReadEventAgument,
+  SerializedReadEventArgumentFuture,
+  SerializedSendDataFuture,
   SerializedSolidityParamType,
   SerializedStoredDeployment,
   SerializedStoredModule,
@@ -298,8 +300,8 @@ export class StoredDeploymentSerializer {
           future,
           "futureToReadFrom",
           partialFutureLookup[
-            (serializedFuture as SerializedReadEventAgument).futureToReadFrom
-              .futureId
+            (serializedFuture as SerializedReadEventArgumentFuture)
+              .futureToReadFrom.futureId
           ] as Future
         );
 
@@ -307,7 +309,8 @@ export class StoredDeploymentSerializer {
           future,
           "emitter",
           partialFutureLookup[
-            (serializedFuture as SerializedReadEventAgument).emitter.futureId
+            (serializedFuture as SerializedReadEventArgumentFuture).emitter
+              .futureId
           ] as ContractFuture<string>
         );
       } else {
@@ -557,22 +560,40 @@ export class StoredDeploymentSerializer {
 
       return serializedArtifactContractAtFuture;
     } else if (future instanceof ReadEventArgumentFutureImplementation) {
-      const serializedReadEventArrgumentFuture: SerializedReadEventAgument = {
+      const serializedReadEventArgumentFuture: SerializedReadEventArgumentFuture =
+        {
+          id: future.id,
+          type: future.type,
+          dependencies: Array.from(future.dependencies).map(
+            StoredDeploymentSerializer._convertFutureToFutureToken
+          ),
+          futureToReadFrom: this._convertFutureToFutureToken(
+            future.futureToReadFrom
+          ),
+          eventName: future.eventName,
+          argumentName: future.argumentName,
+          emitter: this._convertFutureToFutureToken(future.emitter),
+          eventIndex: future.eventIndex,
+        };
+
+      return serializedReadEventArgumentFuture;
+    } else if (future instanceof SendDataFutureImplementation) {
+      const serializedSendDataFuture: SerializedSendDataFuture = {
         id: future.id,
         type: future.type,
         dependencies: Array.from(future.dependencies).map(
           StoredDeploymentSerializer._convertFutureToFutureToken
         ),
-        futureToReadFrom: this._convertFutureToFutureToken(
-          future.futureToReadFrom
-        ),
-        eventName: future.eventName,
-        argumentName: future.argumentName,
-        emitter: this._convertFutureToFutureToken(future.emitter),
-        eventIndex: future.eventIndex,
+        to:
+          typeof future.to === "string"
+            ? future.to
+            : this._convertFutureToFutureToken(future.to),
+        data: future.data,
+        value: future.value.toString(),
+        from: future.from,
       };
 
-      return serializedReadEventArrgumentFuture;
+      return serializedSendDataFuture;
     } else {
       throw new IgnitionError(
         `Unknown future type while serializing: ${FutureType[future.type]}`
@@ -695,6 +716,15 @@ export class StoredDeploymentSerializer {
           serializedFuture.argumentName,
           serializedFuture.emitter as any,
           serializedFuture.eventIndex
+        );
+      case FutureType.SEND_DATA:
+        return new SendDataFutureImplementation(
+          serializedFuture.id,
+          placeholderModule,
+          serializedFuture.to as any,
+          serializedFuture.data,
+          BigInt(serializedFuture.value),
+          serializedFuture.from
         );
     }
   }

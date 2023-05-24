@@ -4,6 +4,7 @@ import { inspect } from "util";
 import { IgnitionValidationError } from "../../errors";
 import { ArtifactType, SolidityParamType, SolidityParamsType } from "../stubs";
 import {
+  AddressResolvableFuture,
   ArtifactContractAtFuture,
   ArtifactContractDeploymentFuture,
   ArtifactLibraryDeploymentFuture,
@@ -17,6 +18,7 @@ import {
   NamedLibraryDeploymentFuture,
   NamedStaticCallFuture,
   ReadEventArgumentFuture,
+  SendDataFuture,
 } from "../types/module";
 import {
   CallOptions,
@@ -28,6 +30,7 @@ import {
   LibraryFromArtifactOptions,
   LibraryOptions,
   ReadEventArgumentOptions,
+  SendDataOptions,
 } from "../types/module-builder";
 
 import {
@@ -41,6 +44,7 @@ import {
   NamedLibraryDeploymentFutureImplementation,
   NamedStaticCallFutureImplementation,
   ReadEventArgumentFutureImplementation,
+  SendDataFutureImplementation,
 } from "./module";
 import { isFuture } from "./utils";
 
@@ -481,6 +485,39 @@ export class IgnitionModuleBuilderImplementation<
     return future;
   }
 
+  public send(
+    to: string | AddressResolvableFuture,
+    data: string,
+    options: SendDataOptions = {}
+  ): SendDataFuture {
+    const id = options.id ?? (typeof to === "string" ? to : to.id);
+    const futureId = `${this._module.id}:${id}`;
+    options.value ??= BigInt(0);
+
+    this._assertUniqueSendId(futureId);
+
+    const future = new SendDataFutureImplementation(
+      futureId,
+      this._module,
+      to,
+      data,
+      options.value,
+      options.from
+    );
+
+    if (typeof to !== "string") {
+      future.dependencies.add(to);
+    }
+
+    for (const afterFuture of (options.after ?? []).filter(isFuture)) {
+      future.dependencies.add(afterFuture);
+    }
+
+    this._module.futures.add(future);
+
+    return future;
+  }
+
   public useModule<
     SubmoduleModuleIdT extends string,
     SubmoduleContractNameT extends string,
@@ -600,7 +637,15 @@ export class IgnitionModuleBuilderImplementation<
     return this._assertUniqueFutureId(
       futureId,
       `Duplicated id ${futureId} found in module ${this._module.id}, ensure the id passed is unique \`m.readEventArgument(myContract, "MyEvent", "eventArg", { id: "MyId"})\``,
-      this.contractAt
+      this.readEventArgument
+    );
+  }
+
+  private _assertUniqueSendId(futureId: string) {
+    return this._assertUniqueFutureId(
+      futureId,
+      `Duplicated id ${futureId} found in module ${this._module.id}, ensure the id passed is unique \`m.send(myContract, "0xabcd", { id: "MyId"})\``,
+      this.send
     );
   }
 }

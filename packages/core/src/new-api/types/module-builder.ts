@@ -1,6 +1,7 @@
 import { ArtifactType, SolidityParamType, SolidityParamsType } from "../stubs";
 
 import {
+  AddressResolvableFuture,
   ArtifactContractAtFuture,
   ArtifactContractDeploymentFuture,
   ArtifactLibraryDeploymentFuture,
@@ -13,6 +14,7 @@ import {
   NamedLibraryDeploymentFuture,
   NamedStaticCallFuture,
   ReadEventArgumentFuture,
+  SendDataFuture,
 } from "./module";
 
 /**
@@ -137,6 +139,18 @@ export interface ReadEventArgumentOptions {
 }
 
 /**
+ * The options for a `send` call.
+ *
+ * @beta
+ */
+export interface SendDataOptions {
+  id?: string;
+  after?: Future[];
+  value?: bigint;
+  from?: string;
+}
+
+/**
  * The build api for configuring a deployment within a module.
  *
  * @beta
@@ -210,6 +224,12 @@ export interface IgnitionModuleBuilder {
     argumentName: string,
     options?: ReadEventArgumentOptions
   ): ReadEventArgumentFuture;
+
+  send(
+    to: string | AddressResolvableFuture,
+    data: string,
+    options?: SendDataOptions
+  ): SendDataFuture;
 
   useModule<
     ModuleIdT extends string,

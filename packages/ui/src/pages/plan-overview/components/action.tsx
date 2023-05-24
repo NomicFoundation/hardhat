@@ -45,6 +45,10 @@ function toDisplayText(future: Future): string {
       })`;
     case FutureType.READ_EVENT_ARGUMENT:
       return `Read event from future ${future.futureToReadFrom.id} (event ${future.eventName} argument ${future.argumentName})`;
+    case FutureType.SEND_DATA:
+      return `Send data to ${
+        typeof future.to === "string" ? future.to : future.to.id
+      }`;
   }
 }
 

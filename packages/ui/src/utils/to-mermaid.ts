@@ -78,5 +78,7 @@ function toLabel(f: Future): string {
       })`;
     case FutureType.READ_EVENT_ARGUMENT:
       return `Read event from future ${f.futureToReadFrom.id} (event ${f.eventName} argument ${f.argumentName})`;
+    case FutureType.SEND_DATA:
+      return `Send data to ${typeof f.to === "string" ? f.to : f.to.id}`;
   }
 }

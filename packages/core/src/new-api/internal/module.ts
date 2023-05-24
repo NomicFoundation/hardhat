@@ -1,5 +1,6 @@
 import { ArtifactType, SolidityParamsType } from "../stubs";
 import {
+  AddressResolvableFuture,
   ArtifactContractAtFuture,
   ArtifactContractDeploymentFuture,
   ArtifactLibraryDeploymentFuture,
@@ -14,6 +15,7 @@ import {
   NamedLibraryDeploymentFuture,
   NamedStaticCallFuture,
   ReadEventArgumentFuture,
+  SendDataFuture,
 } from "../types/module";
 
 const customInspectSymbol = Symbol.for("nodejs.util.inspect.custom");
@@ -200,6 +202,22 @@ export class ReadEventArgumentFutureImplementation
     public readonly eventIndex: number
   ) {
     super(id, FutureType.READ_EVENT_ARGUMENT, module);
+  }
+}
+
+export class SendDataFutureImplementation
+  extends BaseFutureImplementation<FutureType.SEND_DATA>
+  implements SendDataFuture
+{
+  constructor(
+    public readonly id: string,
+    public readonly module: IgnitionModuleImplementation,
+    public readonly to: string | AddressResolvableFuture,
+    public readonly data: string,
+    public readonly value: bigint,
+    public readonly from: string | undefined
+  ) {
+    super(id, FutureType.SEND_DATA, module);
   }
 }
 

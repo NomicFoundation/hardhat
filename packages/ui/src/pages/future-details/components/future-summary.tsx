@@ -56,6 +56,8 @@ function resolveTitleFor(future: Future): string {
       })`;
     case FutureType.READ_EVENT_ARGUMENT:
       return `Read event argument from future - ${future.id}`;
+    case FutureType.SEND_DATA:
+      return `Send data - ${future.id}`;
   }
 }
 
@@ -162,6 +164,13 @@ const FutureDetailsSection: React.FC<{ future: Future }> = ({ future }) => {
           <p>Event - {future.eventName}</p>
           <p>Event index - {future.eventIndex}</p>
           <p>Argument - {future.argumentName}</p>
+        </div>
+      );
+    case FutureType.SEND_DATA:
+      return (
+        <div>
+          <p>To - {typeof future.to === "string" ? future.to : future.to.id}</p>
+          <p>Data - {future.data}</p>
         </div>
       );
   }

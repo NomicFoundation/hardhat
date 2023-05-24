@@ -15,6 +15,7 @@ export enum FutureType {
   NAMED_CONTRACT_AT,
   ARTIFACT_CONTRACT_AT,
   READ_EVENT_ARGUMENT,
+  SEND_DATA,
 }
 
 /**
@@ -31,7 +32,8 @@ export type Future =
   | NamedStaticCallFuture<string, string>
   | NamedContractAtFuture<string>
   | ArtifactContractAtFuture
-  | ReadEventArgumentFuture;
+  | ReadEventArgumentFuture
+  | SendDataFuture;
 
 /**
  * A future representing a contract. Either an existing one or one
@@ -69,6 +71,18 @@ export type FunctionCallFuture<
 > =
   | NamedContractCallFuture<ContractNameT, FunctionNameT>
   | NamedStaticCallFuture<ContractNameT, FunctionNameT>;
+
+/**
+ * A future that can be resolved to a standard Ethereum address.
+ *
+ * @beta
+ */
+export type AddressResolvableFuture =
+  | NamedContractDeploymentFuture<string>
+  | ArtifactContractDeploymentFuture
+  | NamedContractAtFuture<string>
+  | ArtifactContractAtFuture
+  | NamedStaticCallFuture<string, string>;
 
 /**
  * A future representing the deployment of a contract that belongs to this project.
@@ -223,6 +237,22 @@ export interface ReadEventArgumentFuture {
   argumentName: string;
   emitter: ContractFuture<string>;
   eventIndex: number;
+}
+
+/**
+ * A future that represents sending arbitrary data to the EVM.
+ *
+ * @beta
+ */
+export interface SendDataFuture {
+  type: FutureType.SEND_DATA;
+  id: string;
+  module: IgnitionModule;
+  dependencies: Set<Future>;
+  to: string | AddressResolvableFuture;
+  data: string;
+  value: bigint;
+  from: string | undefined;
 }
 
 /**
