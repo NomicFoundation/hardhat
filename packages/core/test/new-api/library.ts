@@ -13,7 +13,7 @@ describe("library", () => {
       return { library1 };
     });
 
-    const constructor = new ModuleConstructor(0, []);
+    const constructor = new ModuleConstructor([]);
     const moduleWithASingleContract = constructor.construct(
       moduleWithASingleContractDefinition
     );
@@ -49,7 +49,7 @@ describe("library", () => {
       }
     );
 
-    const constructor = new ModuleConstructor(0, []);
+    const constructor = new ModuleConstructor([]);
     const moduleWithDependentContracts = constructor.construct(
       moduleWithDependentContractsDefinition
     );
@@ -87,7 +87,7 @@ describe("library", () => {
       }
     );
 
-    const constructor = new ModuleConstructor(0, []);
+    const constructor = new ModuleConstructor([]);
     const moduleWithDependentContracts = constructor.construct(
       moduleWithDependentContractsDefinition
     );
@@ -125,7 +125,7 @@ describe("library", () => {
       }
     );
 
-    const constructor = new ModuleConstructor(0, ["0x1", "0x2"]);
+    const constructor = new ModuleConstructor(["0x1", "0x2"]);
     const moduleWithDependentContracts = constructor.construct(
       moduleWithDependentContractsDefinition
     );
@@ -159,7 +159,7 @@ describe("library", () => {
         }
       );
 
-      const constructor = new ModuleConstructor(0, []);
+      const constructor = new ModuleConstructor([]);
       const moduleWithSameContractTwice = constructor.construct(
         moduleWithSameContractTwiceDefinition
       );
@@ -182,7 +182,7 @@ describe("library", () => {
 
         return { sameContract1, sameContract2 };
       });
-      const constructor = new ModuleConstructor(0, []);
+      const constructor = new ModuleConstructor([]);
 
       assert.throws(
         () => constructor.construct(moduleDefinition),
@@ -201,7 +201,7 @@ describe("library", () => {
 
         return { sameContract1, sameContract2 };
       });
-      const constructor = new ModuleConstructor(0, []);
+      const constructor = new ModuleConstructor([]);
 
       assert.throws(
         () => constructor.construct(moduleDefinition),

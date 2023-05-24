@@ -156,7 +156,6 @@ export interface SendDataOptions {
  * @beta
  */
 export interface IgnitionModuleBuilder {
-  chainId: number;
   accounts: string[];
 
   contract<ContractNameT extends string>(

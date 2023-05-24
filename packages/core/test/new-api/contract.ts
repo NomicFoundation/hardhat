@@ -13,7 +13,7 @@ describe("contract", () => {
       return { contract1 };
     });
 
-    const constructor = new ModuleConstructor(0, []);
+    const constructor = new ModuleConstructor([]);
     const moduleWithASingleContract = constructor.construct(
       moduleWithASingleContractDefinition
     );
@@ -49,7 +49,7 @@ describe("contract", () => {
       }
     );
 
-    const constructor = new ModuleConstructor(0, []);
+    const constructor = new ModuleConstructor([]);
     const moduleWithDependentContracts = constructor.construct(
       moduleWithDependentContractsDefinition
     );
@@ -85,7 +85,7 @@ describe("contract", () => {
       }
     );
 
-    const constructor = new ModuleConstructor(0, []);
+    const constructor = new ModuleConstructor([]);
     const moduleWithDependentContracts = constructor.construct(
       moduleWithDependentContractsDefinition
     );
@@ -123,7 +123,7 @@ describe("contract", () => {
       }
     );
 
-    const constructor = new ModuleConstructor(0, []);
+    const constructor = new ModuleConstructor([]);
     const moduleWithDependentContracts = constructor.construct(
       moduleWithDependentContractsDefinition
     );
@@ -159,7 +159,7 @@ describe("contract", () => {
       }
     );
 
-    const constructor = new ModuleConstructor(0, []);
+    const constructor = new ModuleConstructor([]);
     const moduleWithDependentContracts = constructor.construct(
       moduleWithDependentContractsDefinition
     );
@@ -189,7 +189,7 @@ describe("contract", () => {
       }
     );
 
-    const constructor = new ModuleConstructor(0, ["0x1", "0x2"]);
+    const constructor = new ModuleConstructor(["0x1", "0x2"]);
     const moduleWithDependentContracts = constructor.construct(
       moduleWithDependentContractsDefinition
     );
@@ -223,7 +223,7 @@ describe("contract", () => {
         }
       );
 
-      const constructor = new ModuleConstructor(0, []);
+      const constructor = new ModuleConstructor([]);
       const moduleWithSameContractTwice = constructor.construct(
         moduleWithSameContractTwiceDefinition
       );
@@ -247,7 +247,7 @@ describe("contract", () => {
         return { sameContract1, sameContract2 };
       });
 
-      const constructor = new ModuleConstructor(0, []);
+      const constructor = new ModuleConstructor([]);
 
       assert.throws(
         () => constructor.construct(moduleDefinition),
@@ -267,7 +267,7 @@ describe("contract", () => {
         return { sameContract1, sameContract2 };
       });
 
-      const constructor = new ModuleConstructor(0, []);
+      const constructor = new ModuleConstructor([]);
 
       assert.throws(
         () => constructor.construct(moduleDefinition),

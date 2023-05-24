@@ -17,7 +17,7 @@ describe("libraryFromArtifact", () => {
       }
     );
 
-    const constructor = new ModuleConstructor(0, []);
+    const constructor = new ModuleConstructor([]);
     const moduleWithContractFromArtifact = constructor.construct(
       moduleWithContractFromArtifactDefinition
     );
@@ -51,7 +51,7 @@ describe("libraryFromArtifact", () => {
       }
     );
 
-    const constructor = new ModuleConstructor(0, []);
+    const constructor = new ModuleConstructor([]);
     const moduleWithDependentContracts = constructor.construct(
       moduleWithDependentContractsDefinition
     );
@@ -78,7 +78,7 @@ describe("libraryFromArtifact", () => {
       }
     );
 
-    const constructor = new ModuleConstructor(0, []);
+    const constructor = new ModuleConstructor([]);
     const moduleWithDependentContracts = constructor.construct(
       moduleWithDependentContractsDefinition
     );
@@ -116,7 +116,7 @@ describe("libraryFromArtifact", () => {
       }
     );
 
-    const constructor = new ModuleConstructor(0, ["0x1", "0x2"]);
+    const constructor = new ModuleConstructor(["0x1", "0x2"]);
     const moduleWithDependentContracts = constructor.construct(
       moduleWithDependentContractsDefinition
     );
@@ -158,7 +158,7 @@ describe("libraryFromArtifact", () => {
         }
       );
 
-      const constructor = new ModuleConstructor(0, []);
+      const constructor = new ModuleConstructor([]);
       const moduleWithSameContractTwice = constructor.construct(
         moduleWithSameContractTwiceDefinition
       );
@@ -188,7 +188,7 @@ describe("libraryFromArtifact", () => {
 
         return { sameContract1, sameContract2 };
       });
-      const constructor = new ModuleConstructor(0, []);
+      const constructor = new ModuleConstructor([]);
 
       assert.throws(
         () => constructor.construct(moduleDefinition),
@@ -215,7 +215,7 @@ describe("libraryFromArtifact", () => {
 
         return { sameContract1, sameContract2 };
       });
-      const constructor = new ModuleConstructor(0, []);
+      const constructor = new ModuleConstructor([]);
 
       assert.throws(
         () => constructor.construct(moduleDefinition),

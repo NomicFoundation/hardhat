@@ -24,7 +24,7 @@ describe("Read event argument", () => {
         return { contract, contractFromArtifact };
       });
 
-      const constructor = new ModuleConstructor(0, []);
+      const constructor = new ModuleConstructor([]);
       const mod = constructor.construct(defintion);
 
       const callFuture = Array.from(mod.futures).find(
@@ -51,7 +51,7 @@ describe("Read event argument", () => {
         return { contract };
       });
 
-      const constructor = new ModuleConstructor(0, []);
+      const constructor = new ModuleConstructor([]);
       const mod = constructor.construct(defintion);
 
       const [read1, read2] = Array.from(mod.futures).filter(
@@ -74,7 +74,7 @@ describe("Read event argument", () => {
         return { contract, emitter };
       });
 
-      const constructor = new ModuleConstructor(0, []);
+      const constructor = new ModuleConstructor([]);
       const mod = constructor.construct(defintion);
 
       const [read1, read2] = Array.from(mod.futures).filter(
@@ -96,7 +96,7 @@ describe("Read event argument", () => {
         return { contract };
       });
 
-      const constructor = new ModuleConstructor(0, []);
+      const constructor = new ModuleConstructor([]);
       const mod = constructor.construct(defintion);
 
       const [read1, read2] = Array.from(mod.futures).filter(
@@ -119,7 +119,7 @@ describe("Read event argument", () => {
         return { contract };
       });
 
-      const constructor = new ModuleConstructor(0, []);
+      const constructor = new ModuleConstructor([]);
       const mod = constructor.construct(defintion);
 
       const [read1] = Array.from(mod.futures).filter(
@@ -138,7 +138,7 @@ describe("Read event argument", () => {
         return { contract };
       });
 
-      const constructor = new ModuleConstructor(0, []);
+      const constructor = new ModuleConstructor([]);
       const mod = constructor.construct(defintion);
 
       const [read1] = Array.from(mod.futures).filter(
@@ -168,7 +168,7 @@ describe("Read event argument", () => {
         return { main, emitter };
       });
 
-      const constructor = new ModuleConstructor(0, []);
+      const constructor = new ModuleConstructor([]);
       const mod = constructor.construct(defintion);
 
       assert.equal(mod.id, "Module1");
@@ -193,7 +193,7 @@ describe("Read event argument", () => {
         }
       );
 
-      const constructor = new ModuleConstructor(0, []);
+      const constructor = new ModuleConstructor([]);
       const moduleWithSameReadEventArgumentTwice = constructor.construct(
         moduleWithSameReadEventArgumentTwiceDefinition
       );

@@ -71,7 +71,6 @@ export class ModuleConstructor {
   private _modules: Map<string, IgnitionModule> = new Map();
 
   constructor(
-    public readonly chainId: number,
     public readonly accounts: string[],
     public readonly parameters: { [moduleId: string]: ModuleParameters } = {}
   ) {}
@@ -105,7 +104,6 @@ export class ModuleConstructor {
       new IgnitionModuleBuilderImplementation(
         this,
         mod,
-        this.chainId,
         this.accounts,
         this.parameters[moduleDefintion.id]
       )
@@ -132,7 +130,6 @@ export class IgnitionModuleBuilderImplementation<
       ResultsContractNameT,
       IgnitionModuleResultsT
     >,
-    public readonly chainId: number,
     public readonly accounts: string[],
     public readonly parameters: ModuleParameters = {}
   ) {

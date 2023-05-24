@@ -6,7 +6,7 @@ import { ModuleConstructor } from "../../src/new-api/internal/module-builder";
 
 describe("getParameter", () => {
   it("should record given parameters", () => {
-    const constructor = new ModuleConstructor(0, [], {
+    const constructor = new ModuleConstructor([], {
       TestModule: { param1: 42 },
     });
 
@@ -21,7 +21,7 @@ describe("getParameter", () => {
       return { contract1 };
     });
 
-    const constructor = new ModuleConstructor(0, [], {
+    const constructor = new ModuleConstructor([], {
       Module1: { param1: "arg1" },
     });
     const moduleWithParams = constructor.construct(moduleWithParamsDefinition);
@@ -51,7 +51,7 @@ describe("getParameter", () => {
       return { contract1 };
     });
 
-    const constructor = new ModuleConstructor(0, [], {
+    const constructor = new ModuleConstructor([], {
       Module1: {
         param1: "overriddenParam",
       },
@@ -83,7 +83,7 @@ describe("getParameter", () => {
       return { contract1 };
     });
 
-    const constructor = new ModuleConstructor(0, []);
+    const constructor = new ModuleConstructor([]);
 
     assert.throws(
       () => constructor.construct(moduleWithParamsDefinition),

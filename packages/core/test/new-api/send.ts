@@ -13,7 +13,7 @@ describe("send", () => {
       return {};
     });
 
-    const constructor = new ModuleConstructor(0, []);
+    const constructor = new ModuleConstructor([]);
     const moduleWithASingleContract = constructor.construct(
       moduleWithASingleContractDefinition
     );
@@ -52,7 +52,7 @@ describe("send", () => {
       }
     );
 
-    const constructor = new ModuleConstructor(0, []);
+    const constructor = new ModuleConstructor([]);
     const moduleWithDependentContracts = constructor.construct(
       moduleWithDependentContractsDefinition
     );
@@ -86,7 +86,7 @@ describe("send", () => {
       }
     );
 
-    const constructor = new ModuleConstructor(0, []);
+    const constructor = new ModuleConstructor([]);
     const moduleWithDependentContracts = constructor.construct(
       moduleWithDependentContractsDefinition
     );
@@ -119,7 +119,7 @@ describe("send", () => {
       }
     );
 
-    const constructor = new ModuleConstructor(0, []);
+    const constructor = new ModuleConstructor([]);
     const moduleWithDependentContracts = constructor.construct(
       moduleWithDependentContractsDefinition
     );
@@ -147,7 +147,7 @@ describe("send", () => {
       }
     );
 
-    const constructor = new ModuleConstructor(0, ["0x1", "0x2"]);
+    const constructor = new ModuleConstructor(["0x1", "0x2"]);
     const moduleWithDependentContracts = constructor.construct(
       moduleWithDependentContractsDefinition
     );
@@ -174,7 +174,7 @@ describe("send", () => {
         return {};
       });
 
-      const constructor = new ModuleConstructor(0, []);
+      const constructor = new ModuleConstructor([]);
       const moduleWithSameCallTwice = constructor.construct(
         moduleWithSameCallTwiceDefinition
       );
@@ -201,7 +201,7 @@ describe("send", () => {
         return {};
       });
 
-      const constructor = new ModuleConstructor(0, []);
+      const constructor = new ModuleConstructor([]);
 
       assert.throws(
         () => constructor.construct(moduleDefinition),
@@ -216,7 +216,7 @@ describe("send", () => {
         return {};
       });
 
-      const constructor = new ModuleConstructor(0, []);
+      const constructor = new ModuleConstructor([]);
 
       assert.throws(
         () => constructor.construct(moduleDefinition),
