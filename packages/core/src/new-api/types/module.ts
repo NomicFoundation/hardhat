@@ -1,4 +1,18 @@
-import { ArtifactType, SolidityParamType, SolidityParamsType } from "../stubs";
+import { ArtifactType } from "../stubs";
+
+export type BaseArgumentType =
+  | number
+  | bigint
+  | string
+  | boolean
+  | ContractFuture<string>
+  | NamedStaticCallFuture<string, string>
+  | ReadEventArgumentFuture;
+
+export type ArgumentType =
+  | BaseArgumentType
+  | ArgumentType[]
+  | { [field: string]: ArgumentType };
 
 /**
  * The different future types supported by Ignition.
@@ -95,7 +109,7 @@ export interface NamedContractDeploymentFuture<ContractNameT extends string> {
   module: IgnitionModule;
   dependencies: Set<Future>;
   contractName: ContractNameT;
-  constructorArgs: SolidityParamsType;
+  constructorArgs: ArgumentType[];
   libraries: Record<string, ContractFuture<string>>;
   value: bigint;
   from: string | undefined;
@@ -114,7 +128,7 @@ export interface ArtifactContractDeploymentFuture {
   dependencies: Set<Future>;
   contractName: string;
   artifact: ArtifactType;
-  constructorArgs: SolidityParamsType;
+  constructorArgs: ArgumentType[];
   libraries: Record<string, ContractFuture<string>>;
   value: bigint;
   from: string | undefined;
@@ -167,7 +181,7 @@ export interface NamedContractCallFuture<
   dependencies: Set<Future>;
   contract: ContractFuture<ContractNameT>;
   functionName: FunctionNameT;
-  args: SolidityParamsType;
+  args: ArgumentType[];
   value: bigint;
   from: string | undefined;
 }
@@ -187,7 +201,7 @@ export interface NamedStaticCallFuture<
   dependencies: Set<Future>;
   contract: ContractFuture<ContractNameT>;
   functionName: FunctionNameT;
-  args: SolidityParamsType;
+  args: ArgumentType[];
   from: string | undefined;
 }
 
