@@ -1,5 +1,11 @@
 import { ArtifactType } from "../stubs";
 
+/**
+ * Base argument type that smart contracts can receive in their constructors
+ * and functions.
+ *
+ * @beta
+ */
 export type BaseArgumentType =
   | number
   | bigint
@@ -9,6 +15,11 @@ export type BaseArgumentType =
   | NamedStaticCallFuture<string, string>
   | ReadEventArgumentFuture;
 
+/**
+ * Argument type that smart contracts can receive in their constructors and functions.
+ *
+ * @beta
+ */
 export type ArgumentType =
   | BaseArgumentType
   | ArgumentType[]
@@ -269,8 +280,18 @@ export interface SendDataFuture {
   from: string | undefined;
 }
 
+/**
+ * Base type of module parameters's values.
+ *
+ * @beta
+ */
 export type BaseModuleParameterType = number | bigint | string | boolean;
 
+/**
+ * Type of module parameters's values.
+ *
+ * @beta
+ */
 export type ModuleParameterType =
   | BaseModuleParameterType
   | ModuleParameterType[]
