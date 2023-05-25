@@ -250,8 +250,8 @@ export interface SendDataFuture {
   module: IgnitionModule;
   dependencies: Set<Future>;
   to: string | AddressResolvableFuture;
-  data: string;
   value: bigint;
+  data: string | undefined;
   from: string | undefined;
 }
 

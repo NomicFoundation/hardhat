@@ -486,13 +486,13 @@ export class IgnitionModuleBuilderImplementation<
   }
 
   public send(
+    id: string,
     to: string | AddressResolvableFuture,
-    data: string,
+    value?: bigint,
+    data?: string,
     options: SendDataOptions = {}
   ): SendDataFuture {
-    const id = options.id ?? (typeof to === "string" ? to : to.id);
-    const futureId = `${this._module.id}:${id}`;
-    options.value ??= BigInt(0);
+    const futureId = `${this._module.id}:${options.id ?? id}`;
 
     this._assertUniqueSendId(futureId);
 
@@ -500,8 +500,8 @@ export class IgnitionModuleBuilderImplementation<
       futureId,
       this._module,
       to,
+      value ?? BigInt(0),
       data,
-      options.value,
       options.from
     );
 

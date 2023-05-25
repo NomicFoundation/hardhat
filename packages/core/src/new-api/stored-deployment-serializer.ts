@@ -588,8 +588,8 @@ export class StoredDeploymentSerializer {
           typeof future.to === "string"
             ? future.to
             : this._convertFutureToFutureToken(future.to),
-        data: future.data,
         value: future.value.toString(),
+        data: future.data,
         from: future.from,
       };
 
@@ -722,8 +722,8 @@ export class StoredDeploymentSerializer {
           serializedFuture.id,
           placeholderModule,
           serializedFuture.to as any,
-          serializedFuture.data,
           BigInt(serializedFuture.value),
+          serializedFuture.data,
           serializedFuture.from
         );
     }

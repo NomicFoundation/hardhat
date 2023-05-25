@@ -8,7 +8,7 @@ import { FutureType } from "../../src/new-api/types/module";
 describe("send", () => {
   it("should be able to setup a send", () => {
     const moduleWithASingleContractDefinition = defineModule("Module1", (m) => {
-      m.send("0xtest", "test-data");
+      m.send("test send", "0xtest", 0n, "test-data");
 
       return {};
     });
@@ -31,7 +31,7 @@ describe("send", () => {
     assert.equal(moduleWithASingleContract.submodules.size, 0);
 
     const sendFuture = [...moduleWithASingleContract.futures].find(
-      ({ id }) => id === "Module1:0xtest"
+      ({ id }) => id === "Module1:test send"
     );
 
     if (!(sendFuture instanceof SendDataFutureImplementation)) {
@@ -46,7 +46,7 @@ describe("send", () => {
       "Module1",
       (m) => {
         const example = m.contract("Example");
-        m.send(example, "");
+        m.send("test send", example, 0n, "");
 
         return { example };
       }
@@ -64,7 +64,7 @@ describe("send", () => {
     );
 
     const sendFuture = [...moduleWithDependentContracts.futures].find(
-      ({ id }) => id === "Module1:Module1:Example"
+      ({ id }) => id === "Module1:test send"
     );
 
     if (!(sendFuture instanceof SendDataFutureImplementation)) {
@@ -80,7 +80,7 @@ describe("send", () => {
       "Module1",
       (m) => {
         const example = m.contract("Example");
-        m.send("0xtest", "", { after: [example] });
+        m.send("test send", "0xtest", 0n, "", { after: [example] });
 
         return { example };
       }
@@ -98,7 +98,7 @@ describe("send", () => {
     );
 
     const sendFuture = [...moduleWithDependentContracts.futures].find(
-      ({ id }) => id === "Module1:0xtest"
+      ({ id }) => id === "Module1:test send"
     );
 
     if (!(sendFuture instanceof SendDataFutureImplementation)) {
@@ -109,11 +109,11 @@ describe("send", () => {
     assert(sendFuture.dependencies.has(exampleFuture!));
   });
 
-  it("should be able to pass value as an option", () => {
+  it("should be able to pass a value", () => {
     const moduleWithDependentContractsDefinition = defineModule(
       "Module1",
       (m) => {
-        m.send("0xtest", "", { value: BigInt(42) });
+        m.send("test send", "0xtest", 42n, "");
 
         return {};
       }
@@ -127,7 +127,7 @@ describe("send", () => {
     assert.isDefined(moduleWithDependentContracts);
 
     const sendFuture = [...moduleWithDependentContracts.futures].find(
-      ({ id }) => id === "Module1:0xtest"
+      ({ id }) => id === "Module1:test send"
     );
 
     if (!(sendFuture instanceof SendDataFutureImplementation)) {
@@ -141,7 +141,7 @@ describe("send", () => {
     const moduleWithDependentContractsDefinition = defineModule(
       "Module1",
       (m) => {
-        m.send("0xtest", "", { from: m.accounts[1] });
+        m.send("test send", "0xtest", 0n, "", { from: m.accounts[1] });
 
         return {};
       }
@@ -155,7 +155,7 @@ describe("send", () => {
     assert.isDefined(moduleWithDependentContracts);
 
     const sendFuture = [...moduleWithDependentContracts.futures].find(
-      ({ id }) => id === "Module1:0xtest"
+      ({ id }) => id === "Module1:test send"
     );
 
     if (!(sendFuture instanceof SendDataFutureImplementation)) {
@@ -168,8 +168,8 @@ describe("send", () => {
   describe("passing id", () => {
     it("should be able to call the same function twice by passing an id", () => {
       const moduleWithSameCallTwiceDefinition = defineModule("Module1", (m) => {
-        m.send("0xtest", "test", { id: "first" });
-        m.send("0xtest", "test", { id: "second" });
+        m.send("test send", "0xtest", 0n, "test", { id: "first" });
+        m.send("test send", "0xtest", 0n, "test", { id: "second" });
 
         return {};
       });
@@ -195,8 +195,8 @@ describe("send", () => {
 
     it("should throw if the same function is called twice without differentiating ids", () => {
       const moduleDefinition = defineModule("Module1", (m) => {
-        m.send("0xtest", "test");
-        m.send("0xtest", "test");
+        m.send("test send", "0xtest", 0n, "test");
+        m.send("test send", "0xtest", 0n, "test");
 
         return {};
       });
@@ -205,14 +205,14 @@ describe("send", () => {
 
       assert.throws(
         () => constructor.construct(moduleDefinition),
-        /Duplicated id Module1:0xtest found in module Module1/
+        /Duplicated id Module1:test send found in module Module1/
       );
     });
 
     it("should throw if a call tries to pass the same id twice", () => {
       const moduleDefinition = defineModule("Module1", (m) => {
-        m.send("0xtest", "test", { id: "first" });
-        m.send("0xtest", "test", { id: "first" });
+        m.send("test send", "0xtest", 0n, "test", { id: "first" });
+        m.send("test send", "0xtest", 0n, "test", { id: "first" });
         return {};
       });
 

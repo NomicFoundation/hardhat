@@ -182,8 +182,8 @@ export interface SerializedReadEventArgumentFuture
 export interface SerializedSendDataFuture extends BaseSerializedFuture {
   type: FutureType.SEND_DATA;
   to: string | FutureToken;
-  data: string;
   value: string;
+  data: string | undefined;
   from: string | undefined;
 }
 

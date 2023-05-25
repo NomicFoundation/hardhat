@@ -146,7 +146,6 @@ export interface ReadEventArgumentOptions {
 export interface SendDataOptions {
   id?: string;
   after?: Future[];
-  value?: bigint;
   from?: string;
 }
 
@@ -226,8 +225,10 @@ export interface IgnitionModuleBuilder {
   ): ReadEventArgumentFuture;
 
   send(
+    id: string,
     to: string | AddressResolvableFuture,
-    data: string,
+    value?: bigint,
+    data?: string,
     options?: SendDataOptions
   ): SendDataFuture;
 
