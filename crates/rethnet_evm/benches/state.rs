@@ -63,11 +63,6 @@ fn bench_database_commit(c: &mut Criterion) {
         storage_cleared: bool,
     }
 
-    bench_sync_state_method(
-        c,
-        "DatabaseCommit:commit",
-        prep_no_op,
-        |state, _number_of_accounts, _, _| {
             #[allow(unused_variables)]
             let mut accounts_to_commit: HashMap<Address, Account> = HashMap::new();
             let json_accounts: HashMap<Address, AccountState> = serde_json::from_str(
@@ -117,7 +112,12 @@ fn bench_database_commit(c: &mut Criterion) {
                 );
             }
 
-            state.commit(accounts_to_commit);
+    bench_sync_state_method(
+        c,
+        "DatabaseCommit:commit",
+        prep_no_op,
+        |state, _number_of_accounts, _, _| {
+            state.commit(accounts_to_commit.clone());
 
             debug_assert!(json_accounts.iter().all(|(address, json)| {
                 if let Some(committed) = state.basic(*address).unwrap() {
