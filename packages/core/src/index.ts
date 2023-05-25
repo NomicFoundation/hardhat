@@ -6,11 +6,7 @@ export { defineModule } from "./new-api/define-module";
 export { ModuleConstructor } from "./new-api/internal/module-builder";
 export { StoredDeploymentSerializer } from "./new-api/stored-deployment-serializer";
 /* TODO: move out and concretize these stubs */
-export {
-  ArtifactType,
-  SolidityParamsType,
-  SolidityParamType,
-} from "./new-api/stubs";
+export { ArtifactType } from "./new-api/stubs";
 export * from "./new-api/types/module";
 export * from "./new-api/types/module-builder";
 export * from "./new-api/types/serialized-deployment";
