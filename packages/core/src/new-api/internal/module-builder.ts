@@ -48,7 +48,7 @@ import {
   ReadEventArgumentFutureImplementation,
   SendDataFutureImplementation,
 } from "./module";
-import { getFutures, isFuture } from "./utils";
+import { getFutures } from "./utils";
 
 const STUB_MODULE_RESULTS = {
   [inspect.custom](): string {
@@ -165,13 +165,11 @@ export class IgnitionModuleBuilderImplementation<
       future.dependencies.add(arg);
     }
 
-    for (const afterFuture of (options.after ?? []).filter(isFuture)) {
+    for (const afterFuture of options.after ?? []) {
       future.dependencies.add(afterFuture);
     }
 
-    for (const libraryFuture of Object.values(options.libraries).filter(
-      isFuture
-    )) {
+    for (const libraryFuture of Object.values(options.libraries)) {
       future.dependencies.add(libraryFuture);
     }
 
@@ -210,13 +208,11 @@ export class IgnitionModuleBuilderImplementation<
       future.dependencies.add(arg);
     }
 
-    for (const afterFuture of (options.after ?? []).filter(isFuture)) {
+    for (const afterFuture of options.after ?? []) {
       future.dependencies.add(afterFuture);
     }
 
-    for (const libraryFuture of Object.values(options.libraries).filter(
-      isFuture
-    )) {
+    for (const libraryFuture of Object.values(options.libraries)) {
       future.dependencies.add(libraryFuture);
     }
 
@@ -241,13 +237,11 @@ export class IgnitionModuleBuilderImplementation<
       options.from
     );
 
-    for (const afterFuture of (options.after ?? []).filter(isFuture)) {
+    for (const afterFuture of options.after ?? []) {
       future.dependencies.add(afterFuture);
     }
 
-    for (const libraryFuture of Object.values(options.libraries).filter(
-      isFuture
-    )) {
+    for (const libraryFuture of Object.values(options.libraries)) {
       future.dependencies.add(libraryFuture);
     }
 
@@ -276,13 +270,11 @@ export class IgnitionModuleBuilderImplementation<
       options.from
     );
 
-    for (const afterFuture of (options.after ?? []).filter(isFuture)) {
+    for (const afterFuture of options.after ?? []) {
       future.dependencies.add(afterFuture);
     }
 
-    for (const libraryFuture of Object.values(options.libraries).filter(
-      isFuture
-    )) {
+    for (const libraryFuture of Object.values(options.libraries)) {
       future.dependencies.add(libraryFuture);
     }
 
@@ -319,7 +311,7 @@ export class IgnitionModuleBuilderImplementation<
       future.dependencies.add(arg);
     }
 
-    for (const afterFuture of (options.after ?? []).filter(isFuture)) {
+    for (const afterFuture of options.after ?? []) {
       future.dependencies.add(afterFuture);
     }
 
@@ -354,7 +346,7 @@ export class IgnitionModuleBuilderImplementation<
       future.dependencies.add(arg);
     }
 
-    for (const afterFuture of (options.after ?? []).filter(isFuture)) {
+    for (const afterFuture of options.after ?? []) {
       future.dependencies.add(afterFuture);
     }
 
@@ -380,7 +372,7 @@ export class IgnitionModuleBuilderImplementation<
       address
     );
 
-    for (const afterFuture of (options.after ?? []).filter(isFuture)) {
+    for (const afterFuture of options.after ?? []) {
       future.dependencies.add(afterFuture);
     }
 
@@ -412,7 +404,7 @@ export class IgnitionModuleBuilderImplementation<
       artifact
     );
 
-    for (const afterFuture of (options.after ?? []).filter(isFuture)) {
+    for (const afterFuture of options.after ?? []) {
       future.dependencies.add(afterFuture);
     }
 
@@ -511,7 +503,7 @@ export class IgnitionModuleBuilderImplementation<
       future.dependencies.add(to);
     }
 
-    for (const afterFuture of (options.after ?? []).filter(isFuture)) {
+    for (const afterFuture of options.after ?? []) {
       future.dependencies.add(afterFuture);
     }
 
