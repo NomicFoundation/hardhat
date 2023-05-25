@@ -269,13 +269,20 @@ export interface SendDataFuture {
   from: string | undefined;
 }
 
+export type BaseModuleParameterType = number | bigint | string | boolean;
+
+export type ModuleParameterType =
+  | BaseModuleParameterType
+  | ModuleParameterType[]
+  | { [field: string]: ModuleParameterType };
+
 /**
  * An object containing the parameters passed into the module.
  *
  * @beta
  */
 export interface ModuleParameters {
-  [parameterName: string]: SolidityParamType;
+  [parameterName: string]: ModuleParameterType;
 }
 
 /**
