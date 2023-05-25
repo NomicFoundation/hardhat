@@ -11,6 +11,8 @@ declare module "mocha" {
   }
 }
 
+export const pluginName = "hardhat-ethers";
+
 export function useEnvironment(
   fixtureProjectName: string,
   networkName = "localhost"

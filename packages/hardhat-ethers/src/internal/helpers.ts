@@ -397,12 +397,25 @@ function addGasToAbiMethodsIfNecessary(
     return abi;
   }
 
+  // gas config value should be between 1,000,000 and 4,700,000. See: https://github.com/NomicFoundation/hardhat/issues/2364#issue-1130384646
+  // NOTE: `4700000 < networkConfig.gas` is disabled below because 
+  // blockGasLimit 30,000,000 is set as default networkConfig.gas in hardhat-core.
+  const lowerBound = 1000000;
+  if (networkConfig.gas < lowerBound /*|| 4700000 < networkConfig.gas*/) {
+    throw new NomicLabsHardhatPluginError(
+      pluginName,
+      `Invalid gas value ${networkConfig.gas} found in Hardhat config file. The gas value should be above 1,000,000 and 4,700,000.`
+    );
+  }
+
   // ethers adds 21000 to whatever the abi `gas` field has. This may lead to
   // OOG errors, as people may set the default gas to the same value as the
   // block gas limit, especially on Hardhat Network.
   // To avoid this, we substract 21000.
   // HOTFIX: We substract 1M for now. See: https://github.com/ethers-io/ethers.js/issues/1058#issuecomment-703175279
-  const gasLimit = BigNumber.from(networkConfig.gas).sub(1000000).toHexString();
+  const gasLimit = BigNumber.from(networkConfig.gas)
+    .sub(lowerBound)
+    .toHexString();
 
   const modifiedAbi: any[] = [];
 
