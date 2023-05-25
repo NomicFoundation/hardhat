@@ -297,7 +297,7 @@ export interface UseModuleOptions {
  *
  * @alpha
  */
-export type BaseArgumentType = number | BigNumber | string | boolean;
+export type BaseArgumentTypeOld = number | BigNumber | string | boolean;
 
 /**
  * Allowed parameters that can be passed into a module.
@@ -305,7 +305,7 @@ export type BaseArgumentType = number | BigNumber | string | boolean;
  * @alpha
  */
 export type ExternalParamValue =
-  | BaseArgumentType
+  | BaseArgumentTypeOld
   | ExternalParamValue[]
   | { [field: string]: ExternalParamValue };
 
