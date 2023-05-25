@@ -103,11 +103,9 @@ export type FunctionCallFuture<
  * @beta
  */
 export type AddressResolvableFuture =
-  | NamedContractDeploymentFuture<string>
-  | ArtifactContractDeploymentFuture
-  | NamedContractAtFuture<string>
-  | ArtifactContractAtFuture
-  | NamedStaticCallFuture<string, string>;
+  | ContractFuture<string>
+  | NamedStaticCallFuture<string, string>
+  | ReadEventArgumentFuture;
 
 /**
  * A future representing the deployment of a contract that belongs to this project.
@@ -227,7 +225,7 @@ export interface NamedContractAtFuture<ContractNameT extends string> {
   module: IgnitionModule;
   dependencies: Set<Future>;
   contractName: ContractNameT;
-  address: string | NamedStaticCallFuture<string, string>;
+  address: string | AddressResolvableFuture;
 }
 
 /**
@@ -242,7 +240,7 @@ export interface ArtifactContractAtFuture {
   module: IgnitionModule;
   dependencies: Set<Future>;
   contractName: string;
-  address: string | NamedStaticCallFuture<string, string>;
+  address: string | AddressResolvableFuture;
   artifact: ArtifactType;
 }
 
