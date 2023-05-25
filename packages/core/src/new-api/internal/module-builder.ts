@@ -2,15 +2,17 @@ import assert from "assert";
 import { inspect } from "util";
 
 import { IgnitionValidationError } from "../../errors";
-import { ArtifactType, SolidityParamType, SolidityParamsType } from "../stubs";
+import { ArtifactType } from "../stubs";
 import {
   AddressResolvableFuture,
+  ArgumentType,
   ArtifactContractAtFuture,
   ArtifactContractDeploymentFuture,
   ArtifactLibraryDeploymentFuture,
   ContractFuture,
   IgnitionModule,
   IgnitionModuleResult,
+  ModuleParameterType,
   ModuleParameters,
   NamedContractAtFuture,
   NamedContractCallFuture,
@@ -46,7 +48,7 @@ import {
   ReadEventArgumentFutureImplementation,
   SendDataFutureImplementation,
 } from "./module";
-import { isFuture } from "./utils";
+import { getFutures, isFuture } from "./utils";
 
 const STUB_MODULE_RESULTS = {
   [inspect.custom](): string {
@@ -139,7 +141,7 @@ export class IgnitionModuleBuilderImplementation<
 
   public contract<ContractNameT extends string>(
     contractName: ContractNameT,
-    args: SolidityParamsType = [],
+    args: ArgumentType[] = [],
     options: ContractOptions = {}
   ): NamedContractDeploymentFuture<ContractNameT> {
     const id = options.id ?? contractName;
@@ -159,7 +161,7 @@ export class IgnitionModuleBuilderImplementation<
       options.from
     );
 
-    for (const arg of args.filter(isFuture)) {
+    for (const arg of getFutures(args)) {
       future.dependencies.add(arg);
     }
 
@@ -181,7 +183,7 @@ export class IgnitionModuleBuilderImplementation<
   public contractFromArtifact(
     contractName: string,
     artifact: ArtifactType,
-    args: SolidityParamsType = [],
+    args: ArgumentType[] = [],
     options: ContractFromArtifactOptions = {}
   ): ArtifactContractDeploymentFuture {
     const id = options.id ?? contractName;
@@ -204,7 +206,7 @@ export class IgnitionModuleBuilderImplementation<
 
     this._module.futures.add(future);
 
-    for (const arg of args.filter(isFuture)) {
+    for (const arg of getFutures(args)) {
       future.dependencies.add(arg);
     }
 
@@ -292,7 +294,7 @@ export class IgnitionModuleBuilderImplementation<
   public call<ContractNameT extends string, FunctionNameT extends string>(
     contractFuture: ContractFuture<ContractNameT>,
     functionName: FunctionNameT,
-    args: SolidityParamsType = [],
+    args: ArgumentType[] = [],
     options: CallOptions = {}
   ): NamedContractCallFuture<ContractNameT, FunctionNameT> {
     const id = options.id ?? functionName;
@@ -313,7 +315,7 @@ export class IgnitionModuleBuilderImplementation<
 
     future.dependencies.add(contractFuture);
 
-    for (const arg of args.filter(isFuture)) {
+    for (const arg of getFutures(args)) {
       future.dependencies.add(arg);
     }
 
@@ -329,7 +331,7 @@ export class IgnitionModuleBuilderImplementation<
   public staticCall<ContractNameT extends string, FunctionNameT extends string>(
     contractFuture: ContractFuture<ContractNameT>,
     functionName: FunctionNameT,
-    args: SolidityParamsType = [],
+    args: ArgumentType[] = [],
     options: CallOptions = {}
   ): NamedStaticCallFuture<ContractNameT, FunctionNameT> {
     const id = options.id ?? functionName;
@@ -348,7 +350,7 @@ export class IgnitionModuleBuilderImplementation<
 
     future.dependencies.add(contractFuture);
 
-    for (const arg of args.filter(isFuture)) {
+    for (const arg of getFutures(args)) {
       future.dependencies.add(arg);
     }
 
@@ -423,7 +425,7 @@ export class IgnitionModuleBuilderImplementation<
     return future;
   }
 
-  public getParameter<ParamType extends SolidityParamType = any>(
+  public getParameter<ParamType extends ModuleParameterType = any>(
     parameterName: string,
     defaultValue?: ParamType
   ): ParamType {
