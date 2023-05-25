@@ -11,7 +11,7 @@ import {
   IArtifactsService,
   IAccountsService,
 } from "../src/internal/types/services";
-import { Artifact } from "../src/types/hardhat";
+import { ArtifactOld } from "../src/types/hardhat";
 import { HasParamResult } from "../src/types/providers";
 
 export function getMockServices() {
@@ -55,11 +55,11 @@ class MockArtifactsService implements IArtifactsService {
     return true;
   }
 
-  public getArtifact(_name: string): Promise<Artifact> {
+  public getArtifact(_name: string): Promise<ArtifactOld> {
     throw new IgnitionError("Method not implemented.");
   }
 
-  public getAllArtifacts(): Promise<Artifact[]> {
+  public getAllArtifacts(): Promise<ArtifactOld[]> {
     throw new IgnitionError("Method not implemented");
   }
 }

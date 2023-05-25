@@ -19,7 +19,7 @@ import {
   StaticContractCall,
   Virtual,
 } from "./future";
-import { Artifact } from "./hardhat";
+import { ArtifactOld } from "./hardhat";
 import { Module, ModuleDict } from "./module";
 
 /**
@@ -96,7 +96,7 @@ export interface IDeploymentBuilder {
    */
   contract(
     contractName: string,
-    artifact: Artifact,
+    artifact: ArtifactOld,
     options?: ContractOptionsOld
   ): ArtifactContract;
 
@@ -144,7 +144,7 @@ export interface IDeploymentBuilder {
    * the artifact for
    * @returns The artifact for the contract or library
    */
-  getArtifact(contractName: string): Artifact;
+  getArtifact(contractName: string): ArtifactOld;
 
   /**
    * Get the value of a named parameter that _can_ be passed into the currently
@@ -192,7 +192,7 @@ export interface IDeploymentBuilder {
    */
   library(
     libraryName: string,
-    artifact: Artifact,
+    artifact: ArtifactOld,
     options?: ContractOptionsOld
   ): ArtifactLibrary;
 

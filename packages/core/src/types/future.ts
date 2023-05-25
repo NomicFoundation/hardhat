@@ -1,4 +1,4 @@
-import type { Artifact } from "./hardhat";
+import type { ArtifactOld } from "./hardhat";
 
 /**
  * A future representing the address of a contract deployed using the
@@ -26,7 +26,7 @@ export interface ArtifactContract {
   label: string;
   type: "contract";
   subtype: "artifact";
-  artifact: Artifact;
+  artifact: ArtifactOld;
   _future: true;
 }
 
@@ -71,7 +71,7 @@ export interface ArtifactLibrary {
   label: string;
   type: "library";
   subtype: "artifact";
-  artifact: Artifact;
+  artifact: ArtifactOld;
   _future: true;
 }
 

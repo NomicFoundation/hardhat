@@ -12,7 +12,7 @@ import {
 } from "../../src/internal/utils/guards";
 import { isFailure } from "../../src/internal/utils/process-results";
 import { IDeploymentBuilder } from "../../src/types/dsl";
-import { Artifact } from "../../src/types/hardhat";
+import { ArtifactOld } from "../../src/types/hardhat";
 
 import {
   getDependenciesForVertex,
@@ -413,7 +413,7 @@ describe("deployment builder - deploy", function () {
     let deploymentGraph: IDeploymentGraph;
 
     before(() => {
-      const artifact = { abi: [], bytecode: "xxx" } as any as Artifact;
+      const artifact = { abi: [], bytecode: "xxx" } as any as ArtifactOld;
 
       const fromArtifactModule = buildModule(
         "FromArtifact",

@@ -2,7 +2,7 @@ import { ethers } from "ethers";
 
 import { IgnitionError } from "../../src/errors";
 import { ExternalParamValue } from "../../src/types/dsl";
-import { Artifact } from "../../src/types/hardhat";
+import { ArtifactOld } from "../../src/types/hardhat";
 import { ModuleParams } from "../../src/types/module";
 import {
   AccountsProvider,
@@ -29,10 +29,10 @@ export function getMockProviders(): Providers {
 }
 
 class MockArtifactsProvider implements ArtifactsProvider {
-  public async getArtifact(_name: string): Promise<Artifact> {
+  public async getArtifact(_name: string): Promise<ArtifactOld> {
     throw new IgnitionError("Method not implemented.");
   }
-  public async getAllArtifacts(): Promise<Artifact[]> {
+  public async getAllArtifacts(): Promise<ArtifactOld[]> {
     throw new IgnitionError("Method not implemented.");
   }
   public async hasArtifact(_name: string): Promise<boolean> {

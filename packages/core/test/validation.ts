@@ -12,14 +12,14 @@ import { isFailure } from "../src/internal/utils/process-results";
 import { validateDeploymentGraph } from "../src/internal/validation/validateDeploymentGraph";
 import { IDeploymentBuilder } from "../src/types/dsl";
 import { ArtifactContract } from "../src/types/future";
-import { Artifact } from "../src/types/hardhat";
+import { ArtifactOld } from "../src/types/hardhat";
 import { Module, ModuleDict } from "../src/types/module";
 import { ProcessResultKind, ProcessStepResult } from "../src/types/process";
 
 import { getMockServices } from "./helpers";
 
 describe("Validation", () => {
-  const exampleArtifact: Artifact = {
+  const exampleArtifact: ArtifactOld = {
     contractName: "Example",
     abi: [],
     bytecode: "0x0",

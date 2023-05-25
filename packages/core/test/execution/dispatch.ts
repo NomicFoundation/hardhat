@@ -16,7 +16,7 @@ import {
   Services,
   TransactionOptions,
 } from "../../src/internal/types/services";
-import { Artifact } from "../../src/types/hardhat";
+import { ArtifactOld } from "../../src/types/hardhat";
 import { buildAdjacencyListFrom } from "../graph/helpers";
 import { getMockServices } from "../helpers";
 
@@ -28,7 +28,7 @@ describe("Execution - dispatch", () => {
   });
 
   it("should execute a contract deploy", async () => {
-    const fakeArtifact: Artifact = {
+    const fakeArtifact: ArtifactOld = {
       contractName: "Foo",
       abi: [],
       bytecode:
@@ -94,7 +94,7 @@ describe("Execution - dispatch", () => {
   });
 
   it("should execute a library deploy", async () => {
-    const fakeArtifact: Artifact = {
+    const fakeArtifact: ArtifactOld = {
       contractName: "Foo",
       abi: [],
       bytecode:
@@ -156,7 +156,7 @@ describe("Execution - dispatch", () => {
   });
 
   it("should execute a contract call", async () => {
-    const fakeArtifact: Artifact = {
+    const fakeArtifact: ArtifactOld = {
       contractName: "Foo",
       abi: [
         {

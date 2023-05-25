@@ -1,6 +1,6 @@
 // eslint-disable-next-line import/no-extraneous-dependencies
 import { IgnitionError } from "../../errors";
-import { Artifact } from "../../types/hardhat";
+import { ArtifactOld } from "../../types/hardhat";
 
 interface Link {
   sourceName: string;
@@ -13,7 +13,7 @@ interface Libraries {
 }
 
 export async function collectLibrariesAndLink(
-  artifact: Artifact,
+  artifact: ArtifactOld,
   libraries: Libraries
 ) {
   const { utils } = await import("ethers");
@@ -117,7 +117,7 @@ Learn more about linking contracts at https://hardhat.org/plugins/nomiclabs-hard
   return linkBytecode(artifact, [...linksToApply.values()]);
 }
 
-function linkBytecode(artifact: Artifact, libraries: Link[]): string {
+function linkBytecode(artifact: ArtifactOld, libraries: Link[]): string {
   let bytecode = artifact.bytecode;
 
   for (const { sourceName, libraryName, address } of libraries) {

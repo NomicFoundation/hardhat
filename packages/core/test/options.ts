@@ -8,13 +8,13 @@ import {
   DeploymentResult,
   DeploymentResultState,
 } from "../src/internal/types/deployment";
-import { Artifact } from "../src/types/hardhat";
+import { ArtifactOld } from "../src/types/hardhat";
 
 import { getMockServices } from "./helpers";
 import { setupIgnitionWith } from "./helpers/setupIgnitionWith";
 
 describe("deploy options", () => {
-  const tokenArtifact: Artifact = {
+  const tokenArtifact: ArtifactOld = {
     contractName: "Token",
     abi: [
       {

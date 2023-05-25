@@ -1,6 +1,6 @@
 /* eslint-disable import/no-unused-modules */
 import type { IDeploymentGraph } from "../../src/internal/types/deploymentGraph";
-import type { Artifact } from "../../src/types/hardhat";
+import type { ArtifactOld } from "../../src/types/hardhat";
 
 import { assert } from "chai";
 import { ethers } from "ethers";
@@ -21,7 +21,7 @@ describe("deployment builder - value", () => {
   let deploymentGraph: IDeploymentGraph;
 
   before(() => {
-    const artifact = { abi: [], bytecode: "xxx" } as any as Artifact;
+    const artifact = { abi: [], bytecode: "xxx" } as any as ArtifactOld;
 
     const callModule = buildModule("call", (m: IDeploymentBuilder) => {
       const token = m.contract("Token");

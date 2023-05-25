@@ -22,10 +22,10 @@ import type {
 } from "../types/deploymentGraph";
 
 import { IgnitionError } from "../../errors";
-import { Artifact } from "../../types/hardhat";
+import { ArtifactOld } from "../../types/hardhat";
 import { ModuleDict } from "../../types/module";
 
-export function isArtifact(artifact: any): artifact is Artifact {
+export function isArtifact(artifact: any): artifact is ArtifactOld {
   return (
     artifact !== null &&
     artifact !== undefined &&

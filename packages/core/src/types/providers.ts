@@ -1,5 +1,5 @@
 import type { ExternalParamValue } from "../types/dsl";
-import type { Artifact } from "./hardhat";
+import type { ArtifactOld } from "./hardhat";
 
 import { ethers } from "ethers";
 
@@ -26,9 +26,9 @@ export interface Providers {
  * @alpha
  */
 export interface ArtifactsProvider {
-  getArtifact: (name: string) => Promise<Artifact>;
+  getArtifact: (name: string) => Promise<ArtifactOld>;
   hasArtifact: (name: string) => Promise<boolean>;
-  getAllArtifacts: () => Promise<Artifact[]>;
+  getAllArtifacts: () => Promise<ArtifactOld[]>;
 }
 
 /**

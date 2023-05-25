@@ -8,14 +8,14 @@ import { IgnitionError } from "../../src/errors";
 import { IgnitionImplementation } from "../../src/internal/Ignition";
 import { TransactionsService } from "../../src/internal/services/TransactionsService";
 import { DeploymentResultState } from "../../src/internal/types/deployment";
-import { Artifact } from "../../src/types/hardhat";
+import { ArtifactOld } from "../../src/types/hardhat";
 import { Providers } from "../../src/types/providers";
 import { getMockServices } from "../helpers";
 import { setupIgnitionWith } from "../helpers/setupIgnitionWith";
 import { MemoryCommandJournal } from "../util/MemoryCommandJournal";
 
 describe("Rerunning execution", () => {
-  const tokenArtifact: Artifact = {
+  const tokenArtifact: ArtifactOld = {
     contractName: "Token",
     abi: [
       {

@@ -1,4 +1,4 @@
-import type { Artifact } from "../../types/hardhat";
+import type { ArtifactOld } from "../../types/hardhat";
 import type {
   GasProvider,
   HasParamResult,
@@ -25,9 +25,9 @@ export interface IAccountsService {
  * @internal
  */
 export interface IArtifactsService {
-  getArtifact(name: string): Promise<Artifact>;
+  getArtifact(name: string): Promise<ArtifactOld>;
   hasArtifact(name: string): Promise<boolean>;
-  getAllArtifacts(): Promise<Artifact[]>;
+  getAllArtifacts(): Promise<ArtifactOld[]>;
 }
 
 /**

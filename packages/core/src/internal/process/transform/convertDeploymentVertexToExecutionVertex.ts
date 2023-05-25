@@ -3,7 +3,7 @@ import { BigNumber, ethers } from "ethers";
 import { IgnitionError } from "../../../errors";
 import { ExternalParamValue, InternalParamValue } from "../../../types/dsl";
 import { DeploymentGraphFuture } from "../../../types/future";
-import { Artifact } from "../../../types/hardhat";
+import { ArtifactOld } from "../../../types/hardhat";
 import {
   ArtifactContractDeploymentVertex,
   ArtifactLibraryDeploymentVertex,
@@ -82,7 +82,7 @@ async function convertHardhatContractToContractDeploy(
   vertex: HardhatContractDeploymentVertex,
   transformContext: TransformContext
 ): Promise<ContractDeployExecutionVertex> {
-  const artifact: Artifact =
+  const artifact: ArtifactOld =
     await transformContext.services.artifacts.getArtifact(vertex.contractName);
   const signer: ethers.Signer =
     await transformContext.services.accounts.getSigner(vertex.from);
@@ -181,7 +181,7 @@ async function convertHardhatLibraryToLibraryDeploy(
   vertex: HardhatLibraryDeploymentVertex,
   transformContext: TransformContext
 ): Promise<LibraryDeployExecutionVertex> {
-  const artifact: Artifact =
+  const artifact: ArtifactOld =
     await transformContext.services.artifacts.getArtifact(vertex.libraryName);
   const signer: ethers.Signer =
     await transformContext.services.accounts.getSigner(vertex.from);

@@ -1,9 +1,9 @@
 /**
- * The key data for interacting with an Ethereum smart contract on-chain.
+ * An compilation artifact representing a smart contract.
  *
  * @alpha
  */
-export interface Artifact {
+export interface ArtifactOld {
   contractName: string;
   bytecode: string;
   abi: any[];

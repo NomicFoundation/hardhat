@@ -15,7 +15,7 @@ import type { Services } from "./services";
 
 import { BigNumber } from "ethers";
 
-import { Artifact } from "../../types/hardhat";
+import { ArtifactOld } from "../../types/hardhat";
 
 /**
  * An UI update function that will be invoked on each internal change with the
@@ -268,7 +268,7 @@ export interface DeployNetworkConfig {
   chainId: number;
   networkName: string;
   accounts: string[];
-  artifacts: Artifact[];
+  artifacts: ArtifactOld[];
   force: boolean;
 }
 
