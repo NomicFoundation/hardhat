@@ -1,10 +1,12 @@
 import {
+  ArgumentType,
   Future,
   FutureType,
   StoredDeployment,
 } from "@ignored/ignition-core/ui-helpers";
 import { PageTitle, Panel } from "../../../components/shared";
 import { SummaryHeader } from "../../../components/summary-header";
+import { isFuture } from "../../../utils/guards";
 
 export const FutureSummary: React.FC<{
   deployment: StoredDeployment;
@@ -61,6 +63,24 @@ function resolveTitleFor(future: Future): string {
   }
 }
 
+function argumentTypeToString(argument: ArgumentType): string {
+  return JSON.stringify(
+    argument,
+    (_key, value) => {
+      if (typeof value === "bigint") {
+        return `<BigInt ${value.toString(10)}>`;
+      }
+
+      if (isFuture(value)) {
+        return `<Future ${value.id}>`;
+      }
+
+      return value;
+    },
+    2
+  );
+}
+
 const FutureDetailsSection: React.FC<{ future: Future }> = ({ future }) => {
   switch (future.type) {
     case FutureType.NAMED_CONTRACT_DEPLOYMENT:
@@ -71,7 +91,7 @@ const FutureDetailsSection: React.FC<{ future: Future }> = ({ future }) => {
           <ul>
             {Object.entries(future.constructorArgs).map(([key, value]) => (
               <li>
-                {key} - {value}
+                {key} - {argumentTypeToString(value)}
               </li>
             ))}
           </ul>
@@ -85,7 +105,7 @@ const FutureDetailsSection: React.FC<{ future: Future }> = ({ future }) => {
           <ul>
             {Object.entries(future.constructorArgs).map(([key, value]) => (
               <li>
-                {key} - {value}
+                {key} - {argumentTypeToString(value)}
               </li>
             ))}
           </ul>
@@ -111,7 +131,7 @@ const FutureDetailsSection: React.FC<{ future: Future }> = ({ future }) => {
           <p>Args</p>
           <ul>
             {Object.entries(future.args).map(([, value]) => (
-              <li>{value}</li>
+              <li>{argumentTypeToString(value)}</li>
             ))}
           </ul>
         </div>
@@ -124,7 +144,7 @@ const FutureDetailsSection: React.FC<{ future: Future }> = ({ future }) => {
           <p>Args</p>
           <ul>
             {Object.entries(future.args).map(([, value]) => (
-              <li>{value}</li>
+              <li>{argumentTypeToString(value)}</li>
             ))}
           </ul>
         </div>

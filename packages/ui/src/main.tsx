@@ -1,7 +1,7 @@
 import React from "react";
 
 import type { StoredDeployment } from "@ignored/ignition-core/ui-helpers";
-import { StoredDeploymentSerializer } from "@ignored/ignition-core/ui-helpers";
+import { StoredDeploymentDeserializer } from "@ignored/ignition-core/ui-helpers";
 import ReactDOM from "react-dom/client";
 import { RouterProvider, createHashRouter } from "react-router-dom";
 import { FutureDetails } from "./pages/future-details/future-details";
@@ -20,13 +20,13 @@ const loadDeploymentFromEmbeddedDiv = (): StoredDeployment | null => {
     return null;
   }
 
-  return StoredDeploymentSerializer.deserialize(data);
+  return StoredDeploymentDeserializer.deserialize(data);
 };
 
 const loadDeploymentFromDevFile = async () => {
   const response = await fetch("./deployment.json");
   const data = await response.json();
-  return StoredDeploymentSerializer.deserialize(data);
+  return StoredDeploymentDeserializer.deserialize(data);
 };
 
 const loadDeploymentData = () => {

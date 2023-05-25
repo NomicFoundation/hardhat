@@ -5,6 +5,15 @@ import {
   FunctionCallFuture,
 } from "@ignored/ignition-core/ui-helpers";
 
+export function isFuture(potential: unknown): potential is Future {
+  return (
+    potential instanceof Object &&
+    "type" in potential &&
+    typeof potential.type === "number" &&
+    FutureType[potential.type] !== undefined
+  );
+}
+
 export function isDeploymentFuture(f: Future): f is DeploymentFuture<string> {
   const deployFutureTypeIds = [
     FutureType.NAMED_CONTRACT_DEPLOYMENT,
