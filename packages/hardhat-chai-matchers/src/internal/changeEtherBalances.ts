@@ -1,3 +1,5 @@
+import type EthersT from "ethers";
+// eslint-disable-next-line no-duplicate-imports
 import type { BigNumber, BigNumberish, providers } from "ethers";
 import ordinal from "ordinal";
 
@@ -15,10 +17,10 @@ export function supportChangeEtherBalances(Assertion: Chai.AssertionStatic) {
     function (
       this: any,
       accounts: Array<Account | string>,
-      balanceChanges: BigNumberish[],
+      expectedChanges: BigNumberish[] | ((changes: BigNumber[]) => boolean),
       options?: BalanceChangeOptions
     ) {
-      const { BigNumber } = require("ethers");
+      const { BigNumber } = require("ethers") as typeof EthersT;
 
       // capture negated flag before async code executes; see buildAssert's jsdoc
       const negated = this.__flags.negate;
@@ -28,57 +30,74 @@ export function supportChangeEtherBalances(Assertion: Chai.AssertionStatic) {
         subject = subject();
       }
 
-      const checkBalanceChanges = ([actualChanges, accountAddresses]: [
-        Array<typeof BigNumber>,
-        string[]
-      ]) => {
+      if (
+        typeof expectedChanges !== "function" &&
+        accounts.length !== expectedChanges.length
+      ) {
+        throw new Error(
+          `The number of accounts (${accounts.length}) is different than the number of expected balance changes (${expectedChanges.length})`
+        );
+      }
+
+      const checkBalanceChanges = (
+        actualChanges: BigNumber[],
+        accountAddresses: string[]
+      ) => {
         const assert = buildAssert(negated, checkBalanceChanges);
 
-        assert(
-          actualChanges.every((change, ind) =>
-            change.eq(BigNumber.from(balanceChanges[ind]))
-          ),
-          () => {
-            const lines: string[] = [];
-            actualChanges.forEach((change: BigNumber, i) => {
-              if (!change.eq(BigNumber.from(balanceChanges[i]))) {
-                lines.push(
-                  `Expected the ether balance of ${
-                    accountAddresses[i]
-                  } (the ${ordinal(
-                    i + 1
-                  )} address in the list) to change by ${balanceChanges[
-                    i
-                  ].toString()} wei, but it changed by ${change.toString()} wei`
-                );
-              }
-            });
-            return lines.join("\n");
-          },
-          () => {
-            const lines: string[] = [];
-            actualChanges.forEach((change: BigNumber, i) => {
-              if (change.eq(BigNumber.from(balanceChanges[i]))) {
-                lines.push(
-                  `Expected the ether balance of ${
-                    accountAddresses[i]
-                  } (the ${ordinal(
-                    i + 1
-                  )} address in the list) NOT to change by ${balanceChanges[
-                    i
-                  ].toString()} wei, but it did`
-                );
-              }
-            });
-            return lines.join("\n");
-          }
-        );
+        if (typeof expectedChanges === "function") {
+          assert(
+            expectedChanges(actualChanges),
+            "Expected the balance changes of to satisfy the predicate, but they didn't",
+            "Expected the balance changes of to NOT satisfy the predicate, but they did"
+          );
+        } else {
+          assert(
+            actualChanges.every((change, ind) =>
+              change.eq(BigNumber.from(expectedChanges[ind]))
+            ),
+            () => {
+              const lines: string[] = [];
+              actualChanges.forEach((actualChange: BigNumber, i) => {
+                const expectedChange = BigNumber.from(expectedChanges[i]);
+                if (!actualChange.eq(expectedChange)) {
+                  lines.push(
+                    `Expected the ether balance of ${
+                      accountAddresses[i]
+                    } (the ${ordinal(
+                      i + 1
+                    )} address in the list) to change by ${expectedChange.toString()} wei, but it changed by ${actualChange.toString()} wei`
+                  );
+                }
+              });
+              return lines.join("\n");
+            },
+            () => {
+              const lines: string[] = [];
+              actualChanges.forEach((actualChange: BigNumber, i) => {
+                const expectedChange = BigNumber.from(expectedChanges[i]);
+                if (actualChange.eq(expectedChange)) {
+                  lines.push(
+                    `Expected the ether balance of ${
+                      accountAddresses[i]
+                    } (the ${ordinal(
+                      i + 1
+                    )} address in the list) NOT to change by ${expectedChange.toString()} wei, but it did`
+                  );
+                }
+              });
+              return lines.join("\n");
+            }
+          );
+        }
       };
 
       const derivedPromise = Promise.all([
         getBalanceChanges(subject, accounts, options),
         getAddresses(accounts),
-      ]).then(checkBalanceChanges);
+      ]).then(([balanceChanges, addresses]) =>
+        checkBalanceChanges(balanceChanges, addresses)
+      );
       this.then = derivedPromise.then.bind(derivedPromise);
       this.catch = derivedPromise.catch.bind(derivedPromise);
       this.promise = derivedPromise;
@@ -93,7 +112,7 @@ export async function getBalanceChanges(
     | Promise<providers.TransactionResponse>,
   accounts: Array<Account | string>,
   options?: BalanceChangeOptions
-) {
+): Promise<BigNumber[]> {
   const txResponse = await transaction;
 
   const txReceipt = await txResponse.wait();

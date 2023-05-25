@@ -17,7 +17,9 @@ export function supportChangeTokenBalance(Assertion: Chai.AssertionStatic) {
       this: any,
       token: Token,
       account: Account | string,
-      balanceChange: EthersT.BigNumberish
+      balanceChange:
+        | EthersT.BigNumberish
+        | ((change: EthersT.BigNumber) => boolean)
     ) {
       const ethers = require("ethers") as typeof EthersT;
 
@@ -38,11 +40,19 @@ export function supportChangeTokenBalance(Assertion: Chai.AssertionStatic) {
       ]) => {
         const assert = buildAssert(negated, checkBalanceChange);
 
-        assert(
-          actualChange.eq(ethers.BigNumber.from(balanceChange)),
-          `Expected the balance of ${tokenDescription} tokens for "${address}" to change by ${balanceChange.toString()}, but it changed by ${actualChange.toString()}`,
-          `Expected the balance of ${tokenDescription} tokens for "${address}" NOT to change by ${balanceChange.toString()}, but it did`
-        );
+        if (typeof balanceChange === "function") {
+          assert(
+            balanceChange(actualChange),
+            `Expected the balance of ${tokenDescription} tokens for "${address}" satisfies the predicate, but it changed by ${actualChange.toString()} and violated the predicate`,
+            `Expected the balance of ${tokenDescription} tokens for "${address}" NOT satisfies the predicate, but it did`
+          );
+        } else {
+          assert(
+            actualChange.eq(ethers.BigNumber.from(balanceChange)),
+            `Expected the balance of ${tokenDescription} tokens for "${address}" to change by ${balanceChange.toString()}, but it changed by ${actualChange.toString()}`,
+            `Expected the balance of ${tokenDescription} tokens for "${address}" NOT to change by ${balanceChange.toString()}, but it did`
+          );
+        }
       };
 
       const derivedPromise = Promise.all([
@@ -64,7 +74,9 @@ export function supportChangeTokenBalance(Assertion: Chai.AssertionStatic) {
       this: any,
       token: Token,
       accounts: Array<Account | string>,
-      balanceChanges: EthersT.BigNumberish[]
+      expectedChanges:
+        | EthersT.BigNumberish[]
+        | ((changes: EthersT.BigNumber[]) => boolean)
     ) {
       const ethers = require("ethers") as typeof EthersT;
 
@@ -78,9 +90,12 @@ export function supportChangeTokenBalance(Assertion: Chai.AssertionStatic) {
 
       checkToken(token, "changeTokenBalances");
 
-      if (accounts.length !== balanceChanges.length) {
+      if (
+        typeof expectedChanges !== "function" &&
+        accounts.length !== expectedChanges.length
+      ) {
         throw new Error(
-          `The number of accounts (${accounts.length}) is different than the number of expected balance changes (${balanceChanges.length})`
+          `The number of accounts (${accounts.length}) is different than the number of expected balance changes (${expectedChanges.length})`
         );
       }
 
@@ -96,21 +111,29 @@ export function supportChangeTokenBalance(Assertion: Chai.AssertionStatic) {
       ]: [EthersT.BigNumber[], string[], string]) => {
         const assert = buildAssert(negated, checkBalanceChanges);
 
-        assert(
-          actualChanges.every((change, ind) =>
-            change.eq(ethers.BigNumber.from(balanceChanges[ind]))
-          ),
-          `Expected the balances of ${tokenDescription} tokens for ${
-            addresses as any
-          } to change by ${
-            balanceChanges as any
-          }, respectively, but they changed by ${actualChanges as any}`,
-          `Expected the balances of ${tokenDescription} tokens for ${
-            addresses as any
-          } NOT to change by ${
-            balanceChanges as any
-          }, respectively, but they did`
-        );
+        if (typeof expectedChanges === "function") {
+          assert(
+            expectedChanges(actualChanges),
+            `Expected the balance changes of ${tokenDescription} to satisfy the predicate, but they didn't`,
+            `Expected the balance changes of ${tokenDescription} to NOT satisfy the predicate, but they did`
+          );
+        } else {
+          assert(
+            actualChanges.every((change, ind) =>
+              change.eq(ethers.BigNumber.from(expectedChanges[ind]))
+            ),
+            `Expected the balances of ${tokenDescription} tokens for ${
+              addresses as any
+            } to change by ${
+              expectedChanges as any
+            }, respectively, but they changed by ${actualChanges as any}`,
+            `Expected the balances of ${tokenDescription} tokens for ${
+              addresses as any
+            } NOT to change by ${
+              expectedChanges as any
+            }, respectively, but they did`
+          );
+        }
       };
 
       const derivedPromise = Promise.all([

@@ -113,6 +113,61 @@ describe("INTEGRATION: changeEtherBalances matcher", function () {
           );
         });
 
+        it("Should pass when given predicate", async () => {
+          await expect(() =>
+            sender.sendTransaction({
+              to: receiver.address,
+              gasPrice: 1,
+              value: 200,
+            })
+          ).to.changeEtherBalances(
+            [sender, receiver],
+            ([senderDiff, receiverDiff]: BigNumber[]) => {
+              return senderDiff.eq(-200) && receiverDiff.eq(200);
+            }
+          );
+        });
+
+        it("Should fail when the predicate returns false", async () => {
+          await expect(
+            expect(() =>
+              sender.sendTransaction({
+                to: receiver.address,
+                gasPrice: 1,
+                value: 200,
+              })
+            ).to.changeEtherBalances(
+              [sender, receiver],
+              ([senderDiff, receiverDiff]: BigNumber[]) => {
+                return senderDiff.eq(-201) && receiverDiff.eq(200);
+              }
+            )
+          ).to.be.eventually.rejectedWith(
+            AssertionError,
+            "Expected the balance changes of to satisfy the predicate, but they didn't"
+          );
+        });
+
+        it("Should fail when the predicate returns true and the assertion is negated", async () => {
+          await expect(
+            expect(() =>
+              sender.sendTransaction({
+                to: receiver.address,
+                gasPrice: 1,
+                value: 200,
+              })
+            ).to.not.changeEtherBalances(
+              [sender, receiver],
+              ([senderDiff, receiverDiff]: BigNumber[]) => {
+                return senderDiff.eq(-200) && receiverDiff.eq(200);
+              }
+            )
+          ).to.be.eventually.rejectedWith(
+            AssertionError,
+            "Expected the balance changes of to NOT satisfy the predicate, but they did"
+          );
+        });
+
         it("Should take into account transaction fee (legacy tx)", async () => {
           await expect(() =>
             sender.sendTransaction({
