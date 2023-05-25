@@ -37,6 +37,15 @@ where
     seq.end()
 }
 
+fn sequence_to_single<'de, D, T>(deserializer: D) -> Result<T, D::Error>
+where
+    D: serde::Deserializer<'de>,
+    T: serde::Deserialize<'de> + Clone,
+{
+    let s: Vec<T> = serde::de::Deserialize::deserialize(deserializer)?;
+    Ok(s[0].clone())
+}
+
 /// a custom implementation because the one from ruint includes leading zeroes and the JSON-RPC
 /// server implementations reject that.
 fn serialize_u256<S>(x: &U256, s: S) -> Result<S::Ok, S::Error>
@@ -97,7 +106,7 @@ impl BlockSpec {
     }
 }
 
-#[derive(serde::Serialize)]
+#[derive(Clone, Debug, PartialEq, serde::Deserialize, serde::Serialize)]
 #[serde(untagged)]
 enum SerializableBlockSpec {
     /// as a block number
@@ -116,7 +125,7 @@ impl From<BlockSpec> for SerializableBlockSpec {
     }
 }
 
-#[derive(serde::Serialize)]
+#[derive(Debug, PartialEq, serde::Deserialize, serde::Serialize)]
 #[serde(tag = "method", content = "params")]
 enum MethodInvocation {
     #[serde(rename = "eth_getStorageAt")]
@@ -128,15 +137,21 @@ enum MethodInvocation {
     ),
     #[serde(
         rename = "eth_getTransactionByHash",
-        serialize_with = "single_to_sequence"
+        serialize_with = "single_to_sequence",
+        deserialize_with = "sequence_to_single"
     )]
     TxByHash(B256),
     #[serde(
         rename = "eth_getTransactionReceipt",
-        serialize_with = "single_to_sequence"
+        serialize_with = "single_to_sequence",
+        deserialize_with = "sequence_to_single"
     )]
     TxReceipt(B256),
-    #[serde(rename = "eth_getLogs", serialize_with = "single_to_sequence")]
+    #[serde(
+        rename = "eth_getLogs",
+        serialize_with = "single_to_sequence",
+        deserialize_with = "sequence_to_single"
+    )]
     Logs(GetLogsInput),
     #[serde(rename = "eth_getBalance")]
     Balance(Address, SerializableBlockSpec),
@@ -159,10 +174,141 @@ enum MethodInvocation {
     TxCount(Address, SerializableBlockSpec),
 }
 
-#[derive(serde::Serialize)]
+#[derive(Clone, Debug, PartialEq, serde::Deserialize, serde::Serialize)]
 #[serde(rename_all = "camelCase")]
 struct GetLogsInput {
     from_block: SerializableBlockSpec,
     to_block: SerializableBlockSpec,
     address: Address,
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn help_test_method_invocation_serde(call: MethodInvocation) {
+        let json = serde_json::json!(call).to_string();
+        let call_decoded: MethodInvocation = serde_json::from_str(&json).expect(&format!(
+            "should have successfully deserialized json {json}"
+        ));
+        assert_eq!(call, call_decoded);
+    }
+
+    #[test]
+    fn test_serde_eth_get_balance_by_block_number() {
+        help_test_method_invocation_serde(MethodInvocation::Balance(
+            Address::from_low_u64_ne(1),
+            SerializableBlockSpec::Number(U256::from(100)),
+        ));
+    }
+
+    #[test]
+    fn test_serde_eth_get_balance_by_block_tag() {
+        help_test_method_invocation_serde(MethodInvocation::Balance(
+            Address::from_low_u64_ne(1),
+            SerializableBlockSpec::Tag(String::from("latest")),
+        ));
+    }
+
+    #[test]
+    fn test_serde_eth_get_block_by_number() {
+        help_test_method_invocation_serde(MethodInvocation::Block(
+            SerializableBlockSpec::Number(U256::from(100)),
+            true,
+        ));
+    }
+
+    #[test]
+    fn test_serde_eth_get_block_by_tag() {
+        help_test_method_invocation_serde(MethodInvocation::Block(
+            SerializableBlockSpec::Tag(String::from("latest")),
+            true,
+        ));
+    }
+
+    #[test]
+    fn test_serde_eth_get_block_by_hash() {
+        help_test_method_invocation_serde(MethodInvocation::BlockByHash(
+            B256::from_low_u64_ne(1),
+            true,
+        ));
+    }
+
+    #[test]
+    fn test_serde_eth_get_code_by_block_number() {
+        help_test_method_invocation_serde(MethodInvocation::Code(
+            Address::from_low_u64_ne(1),
+            SerializableBlockSpec::Number(U256::from(100)),
+        ));
+    }
+
+    #[test]
+    fn test_serde_eth_get_code_by_block_tag() {
+        help_test_method_invocation_serde(MethodInvocation::Code(
+            Address::from_low_u64_ne(1),
+            SerializableBlockSpec::Tag(String::from("latest")),
+        ));
+    }
+
+    #[test]
+    fn test_serde_eth_get_logs_by_block_numbers() {
+        help_test_method_invocation_serde(MethodInvocation::Logs(GetLogsInput {
+            address: Address::from_low_u64_ne(1),
+            from_block: SerializableBlockSpec::Number(U256::from(100)),
+            to_block: SerializableBlockSpec::Number(U256::from(102)),
+        }));
+    }
+
+    #[test]
+    fn test_serde_eth_get_logs_by_block_tags() {
+        help_test_method_invocation_serde(MethodInvocation::Logs(GetLogsInput {
+            address: Address::from_low_u64_ne(1),
+            from_block: SerializableBlockSpec::Tag(String::from("safe")),
+            to_block: SerializableBlockSpec::Tag(String::from("latest")),
+        }));
+    }
+
+    #[test]
+    fn test_serde_eth_get_storage_at_by_block_number() {
+        help_test_method_invocation_serde(MethodInvocation::StorageAt(
+            Address::from_low_u64_ne(1),
+            U256::ZERO,
+            SerializableBlockSpec::Number(U256::from(100)),
+        ));
+    }
+
+    #[test]
+    fn test_serde_eth_get_storage_at_by_block_tag() {
+        help_test_method_invocation_serde(MethodInvocation::StorageAt(
+            Address::from_low_u64_ne(1),
+            U256::ZERO,
+            SerializableBlockSpec::Tag(String::from("latest")),
+        ));
+    }
+
+    #[test]
+    fn test_serde_eth_get_tx_by_hash() {
+        help_test_method_invocation_serde(MethodInvocation::TxByHash(B256::from_low_u64_ne(1)));
+    }
+
+    #[test]
+    fn test_serde_eth_get_tx_count_by_block_number() {
+        help_test_method_invocation_serde(MethodInvocation::TxCount(
+            Address::from_low_u64_ne(1),
+            SerializableBlockSpec::Number(U256::from(100)),
+        ));
+    }
+
+    #[test]
+    fn test_serde_eth_get_tx_count_by_block_tag() {
+        help_test_method_invocation_serde(MethodInvocation::TxCount(
+            Address::from_low_u64_ne(1),
+            SerializableBlockSpec::Tag(String::from("latest")),
+        ));
+    }
+
+    #[test]
+    fn test_serde_eth_get_tx_receipt() {
+        help_test_method_invocation_serde(MethodInvocation::TxReceipt(B256::from_low_u64_ne(1)));
+    }
 }
