@@ -103,7 +103,9 @@ export async function runFullBlock(
       dumpFileTarget,
       JSON.stringify(
         (
-          (forkedNode["_vm"] as EthereumJSAdapter)["_stateManager"] as ForkStateManager
+          (forkedNode["_vm"] as EthereumJSAdapter)[
+            "_stateManager"
+          ] as ForkStateManager
         )["_state"]
       )
     );
