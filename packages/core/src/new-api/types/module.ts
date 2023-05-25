@@ -1,4 +1,4 @@
-import { ArtifactType } from "../stubs";
+import { Artifact } from "./artifact";
 
 /**
  * Base argument type that smart contracts can receive in their constructors
@@ -136,7 +136,7 @@ export interface ArtifactContractDeploymentFuture {
   module: IgnitionModule;
   dependencies: Set<Future>;
   contractName: string;
-  artifact: ArtifactType;
+  artifact: Artifact;
   constructorArgs: ArgumentType[];
   libraries: Record<string, ContractFuture<string>>;
   value: bigint;
@@ -170,7 +170,7 @@ export interface ArtifactLibraryDeploymentFuture {
   module: IgnitionModule;
   dependencies: Set<Future>;
   contractName: string;
-  artifact: ArtifactType;
+  artifact: Artifact;
   libraries: Record<string, ContractFuture<string>>;
   from: string | undefined;
 }
@@ -241,7 +241,7 @@ export interface ArtifactContractAtFuture {
   dependencies: Set<Future>;
   contractName: string;
   address: string | AddressResolvableFuture;
-  artifact: ArtifactType;
+  artifact: Artifact;
 }
 
 /**

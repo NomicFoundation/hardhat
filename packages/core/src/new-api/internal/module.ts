@@ -1,4 +1,4 @@
-import { ArtifactType } from "../stubs";
+import { Artifact } from "../types/artifact";
 import {
   AddressResolvableFuture,
   ArgumentType,
@@ -77,7 +77,7 @@ export class ArtifactContractDeploymentFutureImplementation<
     public readonly module: IgnitionModuleImplementation,
     public readonly contractName: ContractNameT,
     public readonly constructorArgs: ArgumentType[],
-    public readonly artifact: ArtifactType,
+    public readonly artifact: Artifact,
     public readonly libraries: Record<string, ContractFuture<string>>,
     public readonly value: bigint,
     public readonly from: string | undefined
@@ -113,7 +113,7 @@ export class ArtifactLibraryDeploymentFutureImplementation<
     public readonly id: string,
     public readonly module: IgnitionModuleImplementation,
     public readonly contractName: LibraryNameT,
-    public readonly artifact: ArtifactType,
+    public readonly artifact: Artifact,
     public readonly libraries: Record<string, ContractFuture<string>>,
     public readonly from: string | undefined
   ) {
@@ -183,7 +183,7 @@ export class ArtifactContractAtFutureImplementation
     public readonly module: IgnitionModuleImplementation,
     public readonly contractName: string,
     public readonly address: string | AddressResolvableFuture,
-    public readonly artifact: ArtifactType
+    public readonly artifact: Artifact
   ) {
     super(id, FutureType.ARTIFACT_CONTRACT_AT, module);
   }

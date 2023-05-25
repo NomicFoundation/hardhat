@@ -2,7 +2,7 @@ import assert from "assert";
 import { inspect } from "util";
 
 import { IgnitionValidationError } from "../../errors";
-import { ArtifactType } from "../stubs";
+import { Artifact } from "../types/artifact";
 import {
   AddressResolvableFuture,
   ArgumentType,
@@ -180,7 +180,7 @@ export class IgnitionModuleBuilderImplementation<
 
   public contractFromArtifact(
     contractName: string,
-    artifact: ArtifactType,
+    artifact: Artifact,
     args: ArgumentType[] = [],
     options: ContractFromArtifactOptions = {}
   ): ArtifactContractDeploymentFuture {
@@ -252,7 +252,7 @@ export class IgnitionModuleBuilderImplementation<
 
   public libraryFromArtifact(
     libraryName: string,
-    artifact: ArtifactType,
+    artifact: Artifact,
     options: LibraryFromArtifactOptions = {}
   ): ArtifactLibraryDeploymentFuture {
     const id = options.id ?? libraryName;
@@ -388,7 +388,7 @@ export class IgnitionModuleBuilderImplementation<
   public contractAtFromArtifact(
     contractName: string,
     address: string | NamedStaticCallFuture<string, string>,
-    artifact: ArtifactType,
+    artifact: Artifact,
     options: ContractAtOptions = {}
   ): ArtifactContractAtFuture {
     const id = options.id ?? contractName;

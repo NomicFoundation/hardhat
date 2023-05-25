@@ -1,5 +1,4 @@
-import { ArtifactType } from "../stubs";
-
+import { Artifact } from "./artifact";
 import { FutureType, IgnitionModule, IgnitionModuleResult } from "./module";
 
 /**
@@ -93,7 +92,7 @@ export interface SerializedArtifactContractDeploymentFuture
   type: FutureType.ARTIFACT_CONTRACT_DEPLOYMENT;
   contractName: string;
   constructorArgs: SerializedArgumentType[];
-  artifact: ArtifactType;
+  artifact: Artifact;
   libraries: SerializedLibraries;
   value: string;
   from: string | undefined;
@@ -121,7 +120,7 @@ export interface SerializedArtifactLibraryDeploymentFuture
   extends BaseSerializedFuture {
   type: FutureType.ARTIFACT_LIBRARY_DEPLOYMENT;
   contractName: string;
-  artifact: ArtifactType;
+  artifact: Artifact;
   libraries: SerializedLibraries;
   from: string | undefined;
 }
@@ -175,7 +174,7 @@ export interface SerializedArtifactContractAtFuture
   type: FutureType.ARTIFACT_CONTRACT_AT;
   contractName: string;
   address: string | FutureToken;
-  artifact: ArtifactType;
+  artifact: Artifact;
 }
 
 /**

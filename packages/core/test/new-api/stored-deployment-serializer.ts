@@ -62,7 +62,7 @@ describe("stored deployment serializer", () => {
   });
 
   describe("contractFromArtifact", () => {
-    const fakeArtifact = ["FAKE ARTIFACT"];
+    const fakeArtifact = ["FAKE ARTIFACT"] as any;
 
     it("should serialize a contractFromArtifact deployment", () => {
       const moduleDefinition = defineModule("Module1", (m) => {
@@ -164,7 +164,7 @@ describe("stored deployment serializer", () => {
   });
 
   describe("contractAtFromArtifact", () => {
-    const fakeArtifact = ["FAKE ARTIFACT"];
+    const fakeArtifact = ["FAKE ARTIFACT"] as any;
 
     it("should serialize a contractAt", () => {
       const moduleDefinition = defineModule("Module1", (m) => {
@@ -242,7 +242,7 @@ describe("stored deployment serializer", () => {
   });
 
   describe("library", () => {
-    const fakeArtifact = ["FAKE ARTIFACT"];
+    const fakeArtifact = ["FAKE ARTIFACT"] as any;
 
     it("should serialize a library deployment", () => {
       const moduleDefinition = defineModule("Module1", (m) => {
@@ -329,7 +329,7 @@ describe("stored deployment serializer", () => {
   });
 
   describe("libraryFromArtifact", () => {
-    const fakeArtifact = ["FAKE ARTIFACT"];
+    const fakeArtifact = ["FAKE ARTIFACT"] as any;
 
     it("should serialize a libraryFromArtifact deployment", () => {
       const moduleDefinition = defineModule("Module1", (m) => {

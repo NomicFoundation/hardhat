@@ -1,5 +1,4 @@
-import { ArtifactType } from "../stubs";
-
+import { Artifact } from "./artifact";
 import {
   AddressResolvableFuture,
   ArgumentType,
@@ -168,7 +167,7 @@ export interface IgnitionModuleBuilder {
 
   contractFromArtifact(
     contractName: string,
-    artifact: ArtifactType,
+    artifact: Artifact,
     args?: ArgumentType[],
     options?: ContractFromArtifactOptions
   ): ArtifactContractDeploymentFuture;
@@ -180,7 +179,7 @@ export interface IgnitionModuleBuilder {
 
   libraryFromArtifact(
     libraryName: string,
-    artifact: ArtifactType,
+    artifact: Artifact,
     options?: LibraryFromArtifactOptions
   ): ArtifactLibraryDeploymentFuture;
 
@@ -207,7 +206,7 @@ export interface IgnitionModuleBuilder {
   contractAtFromArtifact(
     contractName: string,
     address: string | NamedStaticCallFuture<string, string>,
-    artifact: ArtifactType,
+    artifact: Artifact,
     options?: ContractAtOptions
   ): ArtifactContractAtFuture;
 
