@@ -3,7 +3,7 @@ import { assert } from "chai";
 import { defineModule } from "../../src/new-api/define-module";
 import { SendDataFutureImplementation } from "../../src/new-api/internal/module";
 import { ModuleConstructor } from "../../src/new-api/internal/module-builder";
-import { FutureType } from "../../src/new-api/types/module";
+import { FutureType, RuntimeValueType } from "../../src/new-api/types/module";
 
 describe("send", () => {
   it("should be able to setup a send", () => {
@@ -13,7 +13,7 @@ describe("send", () => {
       return {};
     });
 
-    const constructor = new ModuleConstructor([]);
+    const constructor = new ModuleConstructor();
     const moduleWithASingleContract = constructor.construct(
       moduleWithASingleContractDefinition
     );
@@ -52,7 +52,7 @@ describe("send", () => {
       }
     );
 
-    const constructor = new ModuleConstructor([]);
+    const constructor = new ModuleConstructor();
     const moduleWithDependentContracts = constructor.construct(
       moduleWithDependentContractsDefinition
     );
@@ -86,7 +86,7 @@ describe("send", () => {
       }
     );
 
-    const constructor = new ModuleConstructor([]);
+    const constructor = new ModuleConstructor();
     const moduleWithDependentContracts = constructor.construct(
       moduleWithDependentContractsDefinition
     );
@@ -119,7 +119,7 @@ describe("send", () => {
       }
     );
 
-    const constructor = new ModuleConstructor([]);
+    const constructor = new ModuleConstructor();
     const moduleWithDependentContracts = constructor.construct(
       moduleWithDependentContractsDefinition
     );
@@ -137,17 +137,17 @@ describe("send", () => {
     assert.equal(sendFuture.value, BigInt(42));
   });
 
-  it("should be able to pass from as an option", () => {
+  it("should be able to pass a string as from option", () => {
     const moduleWithDependentContractsDefinition = defineModule(
       "Module1",
       (m) => {
-        m.send("test send", "0xtest", 0n, "", { from: m.accounts[1] });
+        m.send("test send", "0xtest", 0n, "", { from: "0x2" });
 
         return {};
       }
     );
 
-    const constructor = new ModuleConstructor(["0x1", "0x2"]);
+    const constructor = new ModuleConstructor();
     const moduleWithDependentContracts = constructor.construct(
       moduleWithDependentContractsDefinition
     );
@@ -165,6 +165,37 @@ describe("send", () => {
     assert.equal(sendFuture.from, "0x2");
   });
 
+  it("Should be able to pass an AccountRuntimeValue as from option", () => {
+    const moduleWithDependentContractsDefinition = defineModule(
+      "Module1",
+      (m) => {
+        m.send("test send", "0xtest", 0n, "", { from: m.getAccount(1) });
+
+        return {};
+      }
+    );
+
+    const constructor = new ModuleConstructor();
+    const moduleWithDependentContracts = constructor.construct(
+      moduleWithDependentContractsDefinition
+    );
+
+    assert.isDefined(moduleWithDependentContracts);
+
+    const sendFuture = [...moduleWithDependentContracts.futures].find(
+      ({ id }) => id === "Module1:test send"
+    );
+
+    if (!(sendFuture instanceof SendDataFutureImplementation)) {
+      assert.fail("Not a send data future");
+    }
+
+    assert.equal(sendFuture.from, {
+      type: RuntimeValueType.ACCOUNT,
+      accountIndex: 1,
+    });
+  });
+
   describe("passing id", () => {
     it("should be able to call the same function twice by passing an id", () => {
       const moduleWithSameCallTwiceDefinition = defineModule("Module1", (m) => {
@@ -174,7 +205,7 @@ describe("send", () => {
         return {};
       });
 
-      const constructor = new ModuleConstructor([]);
+      const constructor = new ModuleConstructor();
       const moduleWithSameCallTwice = constructor.construct(
         moduleWithSameCallTwiceDefinition
       );
@@ -201,7 +232,7 @@ describe("send", () => {
         return {};
       });
 
-      const constructor = new ModuleConstructor([]);
+      const constructor = new ModuleConstructor();
 
       assert.throws(
         () => constructor.construct(moduleDefinition),
@@ -216,7 +247,7 @@ describe("send", () => {
         return {};
       });
 
-      const constructor = new ModuleConstructor([]);
+      const constructor = new ModuleConstructor();
 
       assert.throws(
         () => constructor.construct(moduleDefinition),

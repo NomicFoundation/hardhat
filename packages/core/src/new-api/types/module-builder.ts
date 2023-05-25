@@ -1,5 +1,6 @@
 import { Artifact } from "./artifact";
 import {
+  AccountRuntimeValue,
   AddressResolvableFuture,
   ArgumentType,
   ArtifactContractAtFuture,
@@ -42,7 +43,7 @@ export interface ContractOptions {
   after?: Future[];
   libraries?: Record<string, ContractFuture<string>>;
   value?: bigint;
-  from?: string;
+  from?: string | AccountRuntimeValue;
 }
 
 /**
@@ -55,7 +56,7 @@ export interface ContractFromArtifactOptions {
   after?: Future[];
   libraries?: Record<string, ContractFuture<string>>;
   value?: bigint;
-  from?: string;
+  from?: string | AccountRuntimeValue;
 }
 
 /**
@@ -67,7 +68,7 @@ export interface LibraryOptions {
   id?: string;
   after?: Future[];
   libraries?: Record<string, ContractFuture<string>>;
-  from?: string;
+  from?: string | AccountRuntimeValue;
 }
 
 /**
@@ -79,7 +80,7 @@ export interface LibraryFromArtifactOptions {
   id?: string;
   after?: Future[];
   libraries?: Record<string, ContractFuture<string>>;
-  from?: string;
+  from?: string | AccountRuntimeValue;
 }
 
 /**
@@ -91,7 +92,7 @@ export interface CallOptions {
   id?: string;
   after?: Future[];
   value?: bigint;
-  from?: string;
+  from?: string | AccountRuntimeValue;
 }
 
 /**
@@ -102,7 +103,7 @@ export interface CallOptions {
 export interface StaticCallOptions {
   id?: string;
   after?: Future[];
-  from?: string;
+  from?: string | AccountRuntimeValue;
 }
 
 /**
@@ -147,7 +148,7 @@ export interface ReadEventArgumentOptions {
 export interface SendDataOptions {
   id?: string;
   after?: Future[];
-  from?: string;
+  from?: string | AccountRuntimeValue;
 }
 
 /**
@@ -156,7 +157,7 @@ export interface SendDataOptions {
  * @beta
  */
 export interface IgnitionModuleBuilder {
-  accounts: string[];
+  getAccount(accountIndex: number): AccountRuntimeValue;
 
   contract<ContractNameT extends string>(
     contractName: ContractNameT,

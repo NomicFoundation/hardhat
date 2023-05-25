@@ -187,7 +187,7 @@ function assertBatching(
   },
   expectedBatches: string[][]
 ) {
-  const constructor = new ModuleConstructor([]);
+  const constructor = new ModuleConstructor();
   const module = constructor.construct(moduleDefinition);
 
   assert.isDefined(module);

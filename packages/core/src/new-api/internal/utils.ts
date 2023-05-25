@@ -4,6 +4,8 @@ import {
   ContractFuture,
   Future,
   FutureType,
+  RuntimeValue,
+  RuntimeValueType,
 } from "../types/module";
 
 export function isFuture(potential: unknown): potential is Future {
@@ -61,4 +63,14 @@ function _getFutures(argument: ArgumentType): Future[] {
   }
 
   return [];
+}
+
+export function isRuntimeValue(potential: unknown): potential is RuntimeValue {
+  return (
+    typeof potential === "object" &&
+    potential !== null &&
+    "type" in potential &&
+    typeof potential.type === "number" &&
+    RuntimeValueType[potential.type] !== undefined
+  );
 }

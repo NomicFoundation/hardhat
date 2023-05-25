@@ -3,7 +3,7 @@ import { assert } from "chai";
 import { defineModule } from "../../src/new-api/define-module";
 import { NamedLibraryDeploymentFutureImplementation } from "../../src/new-api/internal/module";
 import { ModuleConstructor } from "../../src/new-api/internal/module-builder";
-import { FutureType } from "../../src/new-api/types/module";
+import { FutureType, RuntimeValueType } from "../../src/new-api/types/module";
 
 describe("library", () => {
   it("should be able to setup a deploy library call", () => {
@@ -13,7 +13,7 @@ describe("library", () => {
       return { library1 };
     });
 
-    const constructor = new ModuleConstructor([]);
+    const constructor = new ModuleConstructor();
     const moduleWithASingleContract = constructor.construct(
       moduleWithASingleContractDefinition
     );
@@ -49,7 +49,7 @@ describe("library", () => {
       }
     );
 
-    const constructor = new ModuleConstructor([]);
+    const constructor = new ModuleConstructor();
     const moduleWithDependentContracts = constructor.construct(
       moduleWithDependentContractsDefinition
     );
@@ -87,7 +87,7 @@ describe("library", () => {
       }
     );
 
-    const constructor = new ModuleConstructor([]);
+    const constructor = new ModuleConstructor();
     const moduleWithDependentContracts = constructor.construct(
       moduleWithDependentContractsDefinition
     );
@@ -113,19 +113,19 @@ describe("library", () => {
     assert(anotherFuture.dependencies.has(exampleFuture!));
   });
 
-  it("should be able to pass from as an option", () => {
+  it("should be able to pass a string as from option", () => {
     const moduleWithDependentContractsDefinition = defineModule(
       "Module1",
       (m) => {
         const another = m.library("Another", {
-          from: m.accounts[1],
+          from: "0x2",
         });
 
         return { another };
       }
     );
 
-    const constructor = new ModuleConstructor(["0x1", "0x2"]);
+    const constructor = new ModuleConstructor();
     const moduleWithDependentContracts = constructor.construct(
       moduleWithDependentContractsDefinition
     );
@@ -145,6 +145,41 @@ describe("library", () => {
     assert.equal(anotherFuture.from, "0x2");
   });
 
+  it("Should be able to pass an AccountRuntimeValue as from option", () => {
+    const moduleWithDependentContractsDefinition = defineModule(
+      "Module1",
+      (m) => {
+        const another = m.library("Another", {
+          from: m.getAccount(1),
+        });
+
+        return { another };
+      }
+    );
+
+    const constructor = new ModuleConstructor();
+    const moduleWithDependentContracts = constructor.construct(
+      moduleWithDependentContractsDefinition
+    );
+
+    assert.isDefined(moduleWithDependentContracts);
+
+    const anotherFuture = [...moduleWithDependentContracts.futures].find(
+      ({ id }) => id === "Module1:Another"
+    );
+
+    if (
+      !(anotherFuture instanceof NamedLibraryDeploymentFutureImplementation)
+    ) {
+      assert.fail("Not a named library deployment");
+    }
+
+    assert.equal(anotherFuture.from, {
+      type: RuntimeValueType.ACCOUNT,
+      accountIndex: 1,
+    });
+  });
+
   describe("passing id", () => {
     it("should be able to deploy the same library twice by passing an id", () => {
       const moduleWithSameContractTwiceDefinition = defineModule(
@@ -159,7 +194,7 @@ describe("library", () => {
         }
       );
 
-      const constructor = new ModuleConstructor([]);
+      const constructor = new ModuleConstructor();
       const moduleWithSameContractTwice = constructor.construct(
         moduleWithSameContractTwiceDefinition
       );
@@ -182,7 +217,7 @@ describe("library", () => {
 
         return { sameContract1, sameContract2 };
       });
-      const constructor = new ModuleConstructor([]);
+      const constructor = new ModuleConstructor();
 
       assert.throws(
         () => constructor.construct(moduleDefinition),
@@ -201,7 +236,7 @@ describe("library", () => {
 
         return { sameContract1, sameContract2 };
       });
-      const constructor = new ModuleConstructor([]);
+      const constructor = new ModuleConstructor();
 
       assert.throws(
         () => constructor.construct(moduleDefinition),

@@ -33,7 +33,7 @@ describe("stored deployment serializer", () => {
         return { contract1 };
       });
 
-      const constructor = new ModuleConstructor([]);
+      const constructor = new ModuleConstructor();
       const module = constructor.construct(moduleDefinition);
 
       assertSerializableModuleIn({
@@ -51,7 +51,7 @@ describe("stored deployment serializer", () => {
         return { contract1, contract2, contract3 };
       });
 
-      const constructor = new ModuleConstructor([]);
+      const constructor = new ModuleConstructor();
       const module = constructor.construct(moduleDefinition);
 
       assertSerializableModuleIn({
@@ -71,7 +71,7 @@ describe("stored deployment serializer", () => {
         return { contract1 };
       });
 
-      const constructor = new ModuleConstructor([]);
+      const constructor = new ModuleConstructor();
       const module = constructor.construct(moduleDefinition);
 
       assertSerializableModuleIn({
@@ -98,7 +98,7 @@ describe("stored deployment serializer", () => {
         return { contract1, contract2, contract3 };
       });
 
-      const constructor = new ModuleConstructor([]);
+      const constructor = new ModuleConstructor();
       const module = constructor.construct(moduleDefinition);
 
       assertSerializableModuleIn({
@@ -116,7 +116,7 @@ describe("stored deployment serializer", () => {
         return { contract1 };
       });
 
-      const constructor = new ModuleConstructor([]);
+      const constructor = new ModuleConstructor();
       const module = constructor.construct(moduleDefinition);
 
       assertSerializableModuleIn({
@@ -134,7 +134,7 @@ describe("stored deployment serializer", () => {
         return { contract1, contract2 };
       });
 
-      const constructor = new ModuleConstructor([]);
+      const constructor = new ModuleConstructor();
       const module = constructor.construct(moduleDefinition);
 
       assertSerializableModuleIn({
@@ -153,7 +153,7 @@ describe("stored deployment serializer", () => {
         return { contract1, contract2 };
       });
 
-      const constructor = new ModuleConstructor([]);
+      const constructor = new ModuleConstructor();
       const module = constructor.construct(moduleDefinition);
 
       assertSerializableModuleIn({
@@ -177,7 +177,7 @@ describe("stored deployment serializer", () => {
         return { contract1 };
       });
 
-      const constructor = new ModuleConstructor([]);
+      const constructor = new ModuleConstructor();
       const module = constructor.construct(moduleDefinition);
 
       assertSerializableModuleIn({
@@ -203,7 +203,7 @@ describe("stored deployment serializer", () => {
         return { contract1, contract2 };
       });
 
-      const constructor = new ModuleConstructor([]);
+      const constructor = new ModuleConstructor();
       const module = constructor.construct(moduleDefinition);
 
       assertSerializableModuleIn({
@@ -231,7 +231,7 @@ describe("stored deployment serializer", () => {
         return { contract1, contract2 };
       });
 
-      const constructor = new ModuleConstructor([]);
+      const constructor = new ModuleConstructor();
       const module = constructor.construct(moduleDefinition);
 
       assertSerializableModuleIn({
@@ -251,7 +251,7 @@ describe("stored deployment serializer", () => {
         return { library1 };
       });
 
-      const constructor = new ModuleConstructor([]);
+      const constructor = new ModuleConstructor();
       const module = constructor.construct(moduleDefinition);
 
       assertSerializableModuleIn({
@@ -271,7 +271,7 @@ describe("stored deployment serializer", () => {
         };
       });
 
-      const constructor = new ModuleConstructor([]);
+      const constructor = new ModuleConstructor();
       const module = constructor.construct(moduleDefinition);
 
       assertSerializableModuleIn({
@@ -318,7 +318,7 @@ describe("stored deployment serializer", () => {
         };
       });
 
-      const constructor = new ModuleConstructor([]);
+      const constructor = new ModuleConstructor();
       const module = constructor.construct(moduleDefinition);
 
       assertSerializableModuleIn({
@@ -338,7 +338,7 @@ describe("stored deployment serializer", () => {
         return { library1 };
       });
 
-      const constructor = new ModuleConstructor([]);
+      const constructor = new ModuleConstructor();
       const module = constructor.construct(moduleDefinition);
 
       assertSerializableModuleIn({
@@ -358,7 +358,7 @@ describe("stored deployment serializer", () => {
         return { library1, library2 };
       });
 
-      const constructor = new ModuleConstructor([]);
+      const constructor = new ModuleConstructor();
       const module = constructor.construct(moduleDefinition);
 
       assertSerializableModuleIn({
@@ -378,7 +378,7 @@ describe("stored deployment serializer", () => {
         return { contract1 };
       });
 
-      const constructor = new ModuleConstructor([]);
+      const constructor = new ModuleConstructor();
       const module = constructor.construct(moduleDefinition);
 
       assertSerializableModuleIn({
@@ -398,7 +398,7 @@ describe("stored deployment serializer", () => {
         return { contract1, contract2 };
       });
 
-      const constructor = new ModuleConstructor([]);
+      const constructor = new ModuleConstructor();
       const module = constructor.construct(moduleDefinition);
 
       assertSerializableModuleIn({
@@ -418,7 +418,7 @@ describe("stored deployment serializer", () => {
         return { contract1 };
       });
 
-      const constructor = new ModuleConstructor([]);
+      const constructor = new ModuleConstructor();
       const module = constructor.construct(moduleDefinition);
 
       assertSerializableModuleIn({
@@ -438,7 +438,7 @@ describe("stored deployment serializer", () => {
         return { contract1, contract2 };
       });
 
-      const constructor = new ModuleConstructor([]);
+      const constructor = new ModuleConstructor();
       const module = constructor.construct(moduleDefinition);
 
       assertSerializableModuleIn({
@@ -461,7 +461,7 @@ describe("stored deployment serializer", () => {
         return { contract1 };
       });
 
-      const constructor = new ModuleConstructor([]);
+      const constructor = new ModuleConstructor();
       const module = constructor.construct(moduleDefinition);
 
       assertSerializableModuleIn({
@@ -485,7 +485,7 @@ describe("stored deployment serializer", () => {
         return { contract1 };
       });
 
-      const constructor = new ModuleConstructor([]);
+      const constructor = new ModuleConstructor();
       const module = constructor.construct(moduleDefinition);
 
       assertSerializableModuleIn({
@@ -510,7 +510,7 @@ describe("stored deployment serializer", () => {
         return { contract1, contract2, contract3 };
       });
 
-      const constructor = new ModuleConstructor([]);
+      const constructor = new ModuleConstructor();
       const module = constructor.construct(moduleDefinition);
 
       assertSerializableModuleIn({
@@ -545,7 +545,7 @@ describe("stored deployment serializer", () => {
         return { leftContract, rightContract };
       });
 
-      const constructor = new ModuleConstructor([]);
+      const constructor = new ModuleConstructor();
       const module = constructor.construct(moduleDefinition);
 
       const deployment = {

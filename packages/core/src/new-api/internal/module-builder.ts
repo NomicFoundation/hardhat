@@ -4,6 +4,7 @@ import { inspect } from "util";
 import { IgnitionValidationError } from "../../errors";
 import { Artifact } from "../types/artifact";
 import {
+  AccountRuntimeValue,
   AddressResolvableFuture,
   ArgumentType,
   ArtifactContractAtFuture,
@@ -36,6 +37,7 @@ import {
 } from "../types/module-builder";
 
 import {
+  AccountRuntimeValueImplementation,
   ArtifactContractAtFutureImplementation,
   ArtifactContractDeploymentFutureImplementation,
   ArtifactLibraryDeploymentFutureImplementation,
@@ -71,7 +73,6 @@ export class ModuleConstructor {
   private _modules: Map<string, IgnitionModule> = new Map();
 
   constructor(
-    public readonly accounts: string[],
     public readonly parameters: { [moduleId: string]: ModuleParameters } = {}
   ) {}
 
@@ -104,7 +105,6 @@ export class ModuleConstructor {
       new IgnitionModuleBuilderImplementation(
         this,
         mod,
-        this.accounts,
         this.parameters[moduleDefintion.id]
       )
     );
@@ -130,10 +130,13 @@ export class IgnitionModuleBuilderImplementation<
       ResultsContractNameT,
       IgnitionModuleResultsT
     >,
-    public readonly accounts: string[],
     public readonly parameters: ModuleParameters = {}
   ) {
     this._futureIds = new Set<string>();
+  }
+
+  public getAccount(accountIndex: number): AccountRuntimeValue {
+    return new AccountRuntimeValueImplementation(accountIndex);
   }
 
   public contract<ContractNameT extends string>(

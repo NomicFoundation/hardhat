@@ -3,7 +3,7 @@ import { assert } from "chai";
 import { defineModule } from "../../src/new-api/define-module";
 import { NamedContractCallFutureImplementation } from "../../src/new-api/internal/module";
 import { ModuleConstructor } from "../../src/new-api/internal/module-builder";
-import { FutureType } from "../../src/new-api/types/module";
+import { FutureType, RuntimeValueType } from "../../src/new-api/types/module";
 
 describe("call", () => {
   it("should be able to setup a contract call", () => {
@@ -15,7 +15,7 @@ describe("call", () => {
       return { contract1 };
     });
 
-    const constructor = new ModuleConstructor([]);
+    const constructor = new ModuleConstructor();
     const moduleWithASingleContract = constructor.construct(
       moduleWithASingleContractDefinition
     );
@@ -57,7 +57,7 @@ describe("call", () => {
       }
     );
 
-    const constructor = new ModuleConstructor([]);
+    const constructor = new ModuleConstructor();
     const moduleWithDependentContracts = constructor.construct(
       moduleWithDependentContractsDefinition
     );
@@ -98,7 +98,7 @@ describe("call", () => {
       }
     );
 
-    const constructor = new ModuleConstructor([]);
+    const constructor = new ModuleConstructor();
     const moduleWithDependentContracts = constructor.construct(
       moduleWithDependentContractsDefinition
     );
@@ -138,7 +138,7 @@ describe("call", () => {
       }
     );
 
-    const constructor = new ModuleConstructor([]);
+    const constructor = new ModuleConstructor();
     const moduleWithDependentContracts = constructor.construct(
       moduleWithDependentContractsDefinition
     );
@@ -156,19 +156,19 @@ describe("call", () => {
     assert.equal(callFuture.value, BigInt(42));
   });
 
-  it("should be able to pass from as an option", () => {
+  it("should be able to pass a string as from option", () => {
     const moduleWithDependentContractsDefinition = defineModule(
       "Module1",
       (m) => {
         const example = m.contract("Example");
 
-        m.call(example, "test", [], { from: m.accounts[1] });
+        m.call(example, "test", [], { from: "0x2" });
 
         return { example };
       }
     );
 
-    const constructor = new ModuleConstructor(["0x1", "0x2"]);
+    const constructor = new ModuleConstructor();
     const moduleWithDependentContracts = constructor.construct(
       moduleWithDependentContractsDefinition
     );
@@ -186,6 +186,39 @@ describe("call", () => {
     assert.equal(callFuture.from, "0x2");
   });
 
+  it("Should be able to pass an AccountRuntimeValue as from option", () => {
+    const moduleWithDependentContractsDefinition = defineModule(
+      "Module1",
+      (m) => {
+        const example = m.contract("Example");
+
+        m.call(example, "test", [], { from: m.getAccount(1) });
+
+        return { example };
+      }
+    );
+
+    const constructor = new ModuleConstructor();
+    const moduleWithDependentContracts = constructor.construct(
+      moduleWithDependentContractsDefinition
+    );
+
+    assert.isDefined(moduleWithDependentContracts);
+
+    const callFuture = [...moduleWithDependentContracts.futures].find(
+      ({ id }) => id === "Module1:Example#test"
+    );
+
+    if (!(callFuture instanceof NamedContractCallFutureImplementation)) {
+      assert.fail("Not a named contract deployment");
+    }
+
+    assert.equal(callFuture.from, {
+      type: RuntimeValueType.ACCOUNT,
+      accountIndex: 1,
+    });
+  });
+
   describe("passing id", () => {
     it("should be able to call the same function twice by passing an id", () => {
       const moduleWithSameCallTwiceDefinition = defineModule("Module1", (m) => {
@@ -197,7 +230,7 @@ describe("call", () => {
         return { sameContract1 };
       });
 
-      const constructor = new ModuleConstructor([]);
+      const constructor = new ModuleConstructor();
       const moduleWithSameCallTwice = constructor.construct(
         moduleWithSameCallTwiceDefinition
       );
@@ -225,7 +258,7 @@ describe("call", () => {
         return { sameContract1 };
       });
 
-      const constructor = new ModuleConstructor([]);
+      const constructor = new ModuleConstructor();
 
       assert.throws(
         () => constructor.construct(moduleDefinition),
@@ -241,7 +274,7 @@ describe("call", () => {
         return { sameContract1 };
       });
 
-      const constructor = new ModuleConstructor([]);
+      const constructor = new ModuleConstructor();
 
       assert.throws(
         () => constructor.construct(moduleDefinition),

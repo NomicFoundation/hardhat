@@ -121,7 +121,7 @@ export interface NamedContractDeploymentFuture<ContractNameT extends string> {
   constructorArgs: ArgumentType[];
   libraries: Record<string, ContractFuture<string>>;
   value: bigint;
-  from: string | undefined;
+  from: string | AccountRuntimeValue | undefined;
 }
 
 /**
@@ -140,7 +140,7 @@ export interface ArtifactContractDeploymentFuture {
   constructorArgs: ArgumentType[];
   libraries: Record<string, ContractFuture<string>>;
   value: bigint;
-  from: string | undefined;
+  from: string | AccountRuntimeValue | undefined;
 }
 
 /**
@@ -155,7 +155,7 @@ export interface NamedLibraryDeploymentFuture<LibraryNameT extends string> {
   dependencies: Set<Future>;
   contractName: LibraryNameT;
   libraries: Record<string, ContractFuture<string>>;
-  from: string | undefined;
+  from: string | AccountRuntimeValue | undefined;
 }
 
 /**
@@ -172,7 +172,7 @@ export interface ArtifactLibraryDeploymentFuture {
   contractName: string;
   artifact: Artifact;
   libraries: Record<string, ContractFuture<string>>;
-  from: string | undefined;
+  from: string | AccountRuntimeValue | undefined;
 }
 
 /**
@@ -192,7 +192,7 @@ export interface NamedContractCallFuture<
   functionName: FunctionNameT;
   args: ArgumentType[];
   value: bigint;
-  from: string | undefined;
+  from: string | AccountRuntimeValue | undefined;
 }
 
 /**
@@ -211,7 +211,7 @@ export interface NamedStaticCallFuture<
   contract: ContractFuture<ContractNameT>;
   functionName: FunctionNameT;
   args: ArgumentType[];
-  from: string | undefined;
+  from: string | AccountRuntimeValue | undefined;
 }
 
 /**
@@ -275,7 +275,7 @@ export interface SendDataFuture {
   to: string | AddressResolvableFuture;
   value: bigint;
   data: string | undefined;
-  from: string | undefined;
+  from: string | AccountRuntimeValue | undefined;
 }
 
 /**

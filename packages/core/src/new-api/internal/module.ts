@@ -1,5 +1,6 @@
 import { Artifact } from "../types/artifact";
 import {
+  AccountRuntimeValue,
   AddressResolvableFuture,
   ArgumentType,
   ArtifactContractAtFuture,
@@ -16,6 +17,7 @@ import {
   NamedLibraryDeploymentFuture,
   NamedStaticCallFuture,
   ReadEventArgumentFuture,
+  RuntimeValueType,
   SendDataFuture,
 } from "../types/module";
 
@@ -60,7 +62,7 @@ export class NamedContractDeploymentFutureImplementation<
     public readonly constructorArgs: ArgumentType[],
     public readonly libraries: Record<string, ContractFuture<string>>,
     public readonly value: bigint,
-    public readonly from: string | undefined
+    public readonly from: string | AccountRuntimeValue | undefined
   ) {
     super(id, FutureType.NAMED_CONTRACT_DEPLOYMENT, module);
   }
@@ -80,7 +82,7 @@ export class ArtifactContractDeploymentFutureImplementation<
     public readonly artifact: Artifact,
     public readonly libraries: Record<string, ContractFuture<string>>,
     public readonly value: bigint,
-    public readonly from: string | undefined
+    public readonly from: string | AccountRuntimeValue | undefined
   ) {
     super(id, FutureType.ARTIFACT_CONTRACT_DEPLOYMENT, module);
   }
@@ -97,7 +99,7 @@ export class NamedLibraryDeploymentFutureImplementation<
     public readonly module: IgnitionModuleImplementation,
     public readonly contractName: LibraryNameT,
     public readonly libraries: Record<string, ContractFuture<string>>,
-    public readonly from: string | undefined
+    public readonly from: string | AccountRuntimeValue | undefined
   ) {
     super(id, FutureType.NAMED_LIBRARY_DEPLOYMENT, module);
   }
@@ -115,7 +117,7 @@ export class ArtifactLibraryDeploymentFutureImplementation<
     public readonly contractName: LibraryNameT,
     public readonly artifact: Artifact,
     public readonly libraries: Record<string, ContractFuture<string>>,
-    public readonly from: string | undefined
+    public readonly from: string | AccountRuntimeValue | undefined
   ) {
     super(id, FutureType.ARTIFACT_LIBRARY_DEPLOYMENT, module);
   }
@@ -135,7 +137,7 @@ export class NamedContractCallFutureImplementation<
     public readonly contract: ContractFuture<ContractNameT>,
     public readonly args: ArgumentType[],
     public readonly value: bigint,
-    public readonly from: string | undefined
+    public readonly from: string | AccountRuntimeValue | undefined
   ) {
     super(id, FutureType.NAMED_CONTRACT_CALL, module);
   }
@@ -154,7 +156,7 @@ export class NamedStaticCallFutureImplementation<
     public readonly functionName: FunctionNameT,
     public readonly contract: ContractFuture<ContractNameT>,
     public readonly args: ArgumentType[],
-    public readonly from: string | undefined
+    public readonly from: string | AccountRuntimeValue | undefined
   ) {
     super(id, FutureType.NAMED_STATIC_CALL, module);
   }
@@ -216,7 +218,7 @@ export class SendDataFutureImplementation
     public readonly to: string | AddressResolvableFuture,
     public readonly value: bigint,
     public readonly data: string | undefined,
-    public readonly from: string | undefined
+    public readonly from: string | AccountRuntimeValue | undefined
   ) {
     super(id, FutureType.SEND_DATA, module);
   }
@@ -251,5 +253,21 @@ export class IgnitionModuleImplementation<
       `\n${padding}`
     )}
   }`;
+  }
+}
+
+export class AccountRuntimeValueImplementation implements AccountRuntimeValue {
+  public readonly type = RuntimeValueType.ACCOUNT;
+
+  constructor(public readonly accountIndex: number) {}
+
+  public [customInspectSymbol](
+    _depth: number,
+    _inspectOptions: {},
+    _inspect: (arg: {}) => string
+  ) {
+    return `Account RuntimeValue {
+    accountIndex: ${this.accountIndex}
+}`;
   }
 }

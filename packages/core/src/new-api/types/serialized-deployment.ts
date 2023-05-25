@@ -1,5 +1,10 @@
 import { Artifact } from "./artifact";
-import { FutureType, IgnitionModule, IgnitionModuleResult } from "./module";
+import {
+  FutureType,
+  IgnitionModule,
+  IgnitionModuleResult,
+  RuntimeValueType,
+} from "./module";
 
 /**
  * A serialized bigint.
@@ -203,6 +208,11 @@ export interface SerializedSendDataFuture extends BaseSerializedFuture {
   value: SerializedBigInt;
   data: string | undefined;
   from: string | undefined;
+}
+
+export interface SerializedAccountRuntimeValue {
+  type: RuntimeValueType.ACCOUNT;
+  accountIndex: number;
 }
 
 /**
