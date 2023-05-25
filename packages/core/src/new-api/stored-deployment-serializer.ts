@@ -115,7 +115,7 @@ export class StoredDeploymentSerializer {
             ),
             from: future.from,
             libraries: this._convertLibrariesToLibraryTokens(future.libraries),
-            value: future.value.toString(10),
+            value: this._serializeBigint(future.value),
           };
         return serializedNamedContractDeploymentFuture;
 
@@ -135,7 +135,7 @@ export class StoredDeploymentSerializer {
             ),
             from: future.from,
             libraries: this._convertLibrariesToLibraryTokens(future.libraries),
-            value: future.value.toString(10),
+            value: this._serializeBigint(future.value),
           };
         return serializedArtifactContractDeploymentFuture;
 
@@ -182,7 +182,7 @@ export class StoredDeploymentSerializer {
             contract: this._convertFutureToFutureToken(future.contract),
             functionName: future.functionName,
             args: future.args.map((arg) => this._serializeArgument(arg)),
-            value: future.value.toString(10),
+            value: this._serializeBigint(future.value),
             from: future.from,
           };
         return serializedNamedContractCallFuture;
@@ -266,7 +266,7 @@ export class StoredDeploymentSerializer {
           to: isFuture(future.to)
             ? this._convertFutureToFutureToken(future.to)
             : future.to,
-          value: future.value.toString(10),
+          value: this._serializeBigint(future.value),
           data: future.data,
           from: future.from,
         };
@@ -577,7 +577,7 @@ export class StoredDeploymentDeserializer {
               lookup(contractFuturesLookup, lib.futureId),
             ])
           ),
-          BigInt(serializedFuture.value),
+          this._deserializedBigint(serializedFuture.value),
           serializedFuture.from
         );
       case FutureType.ARTIFACT_CONTRACT_DEPLOYMENT:
@@ -595,7 +595,7 @@ export class StoredDeploymentDeserializer {
               lookup(contractFuturesLookup, lib.futureId),
             ])
           ),
-          BigInt(serializedFuture.value),
+          this._deserializedBigint(serializedFuture.value),
           serializedFuture.from
         );
       case FutureType.NAMED_LIBRARY_DEPLOYMENT:
@@ -634,7 +634,7 @@ export class StoredDeploymentDeserializer {
           serializedFuture.args.map((arg) =>
             this._deserializeArgument(arg, futuresLookup)
           ),
-          BigInt(serializedFuture.value),
+          this._deserializedBigint(serializedFuture.value),
           serializedFuture.from
         );
       case FutureType.NAMED_STATIC_CALL:
@@ -693,7 +693,7 @@ export class StoredDeploymentDeserializer {
                 serializedFuture.to.futureId
               )
             : serializedFuture.to,
-          BigInt(serializedFuture.value),
+          this._deserializedBigint(serializedFuture.value),
           serializedFuture.data,
           serializedFuture.from
         );

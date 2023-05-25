@@ -78,7 +78,7 @@ export interface SerializedNamedContractDeploymentFuture
   contractName: string;
   constructorArgs: SerializedArgumentType[];
   libraries: SerializedLibraries;
-  value: string;
+  value: SerializedBigInt;
   from: string | undefined;
 }
 
@@ -94,7 +94,7 @@ export interface SerializedArtifactContractDeploymentFuture
   constructorArgs: SerializedArgumentType[];
   artifact: Artifact;
   libraries: SerializedLibraries;
-  value: string;
+  value: SerializedBigInt;
   from: string | undefined;
 }
 
@@ -136,7 +136,7 @@ export interface SerializedNamedContractCallFuture
   functionName: string;
   contract: FutureToken;
   args: SerializedArgumentType[];
-  value: string;
+  value: SerializedBigInt;
   from: string | undefined;
 }
 
@@ -200,7 +200,7 @@ export interface SerializedReadEventArgumentFuture
 export interface SerializedSendDataFuture extends BaseSerializedFuture {
   type: FutureType.SEND_DATA;
   to: string | FutureToken;
-  value: string;
+  value: SerializedBigInt;
   data: string | undefined;
   from: string | undefined;
 }
