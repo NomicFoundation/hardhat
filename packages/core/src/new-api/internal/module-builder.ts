@@ -644,7 +644,7 @@ export class IgnitionModuleBuilderImplementation<
   private _assertUniqueSendId(futureId: string) {
     return this._assertUniqueFutureId(
       futureId,
-      `Duplicated id ${futureId} found in module ${this._module.id}, ensure the id passed is unique \`m.send(myContract, "0xabcd", { id: "MyId"})\``,
+      `Duplicated id ${futureId} found in module ${this._module.id}, ensure the id passed is unique \`m.send("MyId", "0xabcd")\``,
       this.send
     );
   }
