@@ -1,6 +1,4 @@
-import { SolidityParamsType } from "../stubs";
-
-import { FutureType } from "./module";
+import { ArgumentType, FutureType } from "./module";
 
 /**
  * This interface represents a transaction that was sent to the network.
@@ -48,7 +46,7 @@ interface BaseOnchainInteraction<
 interface DeploymentOnchainInteraction
   extends BaseOnchainInteraction<OnchainInteractionType.DEPLOYMENT> {
   deploymentBytecode: string; // Maybe we want to optimize this out of the journal? In some cases it can be read from the artifact.
-  constructorArgs: SolidityParamsType;
+  constructorArgs: ArgumentType[];
   value: bigint;
 }
 
@@ -59,7 +57,7 @@ interface FunctionCallOnchainInteraction
   extends BaseOnchainInteraction<OnchainInteractionType.FUNCTION_CALL> {
   contractAddress: string;
   signature: string; // TODO: Maybe ABI fragment?
-  arguments: SolidityParamsType;
+  arguments: ArgumentType[];
   value: bigint;
 }
 
@@ -122,7 +120,7 @@ export interface DeploymentExecutionState
   > {
   storedArtifactPath: string; // As stored in the deployment directory.
   storedBuildInfoPath?: string; // As stored in the deployment directory. Optional as it's not always present
-  constructorArgs: SolidityParamsType;
+  constructorArgs: ArgumentType[];
   libraries: Record<string, string>; // TODO: Do we need to store their future ids for the reconciliation process?
   value: bigint;
   contractAddress?: string; // The result
