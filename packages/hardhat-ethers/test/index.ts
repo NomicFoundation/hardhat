@@ -1,4 +1,4 @@
-import chai, { assert } from "chai";
+import chai, { assert, expect } from "chai";
 import chaiAsPromised from "chai-as-promised";
 import { ethers, Signer } from "ethers";
 import { NomicLabsHardhatPluginError } from "hardhat/plugins";
@@ -7,7 +7,7 @@ import util from "util";
 
 import { EthersProviderWrapper } from "../src/internal/ethers-provider-wrapper";
 
-import { useEnvironment } from "./helpers";
+import { pluginName, useEnvironment } from "./helpers";
 
 chai.use(chaiAsPromised);
 
@@ -1315,7 +1315,18 @@ describe("Ethers plugin", function () {
       const signatureSizeInBytes = 65;
       assert.lengthOf(signature, signatureSizeInBytes * byteToHex + hexPrefix);
     });
+
+    it("should throw an error with low gas in config", async function () {
+      // set low gas in network config
+      this.env.network.config.gas = 50;
+
+      expect(this.env.ethers.getContractFactory("Greeter")).to.be.rejectedWith(new NomicLabsHardhatPluginError(
+        pluginName,
+        `Invalid gas value ${this.env.network.config.gas} found in Hardhat config file. The gas value should be between 1,000,000 and 4,700,000.`
+      ));
+    });
   });
+
   describe("ganache via WebSocket", function () {
     useEnvironment("hardhat-project");
     it("should be able to detect events", async function () {
