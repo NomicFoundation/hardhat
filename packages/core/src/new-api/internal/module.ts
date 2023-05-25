@@ -1,6 +1,7 @@
-import { ArtifactType, SolidityParamsType } from "../stubs";
+import { ArtifactType } from "../stubs";
 import {
   AddressResolvableFuture,
+  ArgumentType,
   ArtifactContractAtFuture,
   ArtifactContractDeploymentFuture,
   ArtifactLibraryDeploymentFuture,
@@ -56,7 +57,7 @@ export class NamedContractDeploymentFutureImplementation<
     public readonly id: string,
     public readonly module: IgnitionModuleImplementation,
     public readonly contractName: ContractNameT,
-    public readonly constructorArgs: SolidityParamsType,
+    public readonly constructorArgs: ArgumentType[],
     public readonly libraries: Record<string, ContractFuture<string>>,
     public readonly value: bigint,
     public readonly from: string | undefined
@@ -75,7 +76,7 @@ export class ArtifactContractDeploymentFutureImplementation<
     public readonly id: string,
     public readonly module: IgnitionModuleImplementation,
     public readonly contractName: ContractNameT,
-    public readonly constructorArgs: SolidityParamsType,
+    public readonly constructorArgs: ArgumentType[],
     public readonly artifact: ArtifactType,
     public readonly libraries: Record<string, ContractFuture<string>>,
     public readonly value: bigint,
@@ -132,7 +133,7 @@ export class NamedContractCallFutureImplementation<
     public readonly module: IgnitionModuleImplementation,
     public readonly functionName: FunctionNameT,
     public readonly contract: ContractFuture<ContractNameT>,
-    public readonly args: SolidityParamsType,
+    public readonly args: ArgumentType[],
     public readonly value: bigint,
     public readonly from: string | undefined
   ) {
@@ -152,7 +153,7 @@ export class NamedStaticCallFutureImplementation<
     public readonly module: IgnitionModuleImplementation,
     public readonly functionName: FunctionNameT,
     public readonly contract: ContractFuture<ContractNameT>,
-    public readonly args: SolidityParamsType,
+    public readonly args: ArgumentType[],
     public readonly from: string | undefined
   ) {
     super(id, FutureType.NAMED_STATIC_CALL, module);
