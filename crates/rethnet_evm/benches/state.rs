@@ -63,7 +63,6 @@ fn bench_database_commit(c: &mut Criterion) {
         storage_cleared: bool,
     }
 
-    #[allow(unused_variables)]
     let mut accounts_to_commit: HashMap<Address, Account> = HashMap::new();
     let json_accounts: HashMap<Address, AccountState> = serde_json::from_str(
         &std::fs::read_to_string(
