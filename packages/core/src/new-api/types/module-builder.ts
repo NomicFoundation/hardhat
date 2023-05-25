@@ -1,13 +1,15 @@
-import { ArtifactType, SolidityParamType, SolidityParamsType } from "../stubs";
+import { ArtifactType } from "../stubs";
 
 import {
   AddressResolvableFuture,
+  ArgumentType,
   ArtifactContractAtFuture,
   ArtifactContractDeploymentFuture,
   ArtifactLibraryDeploymentFuture,
   ContractFuture,
   Future,
   IgnitionModuleResult,
+  ModuleParameterType,
   NamedContractAtFuture,
   NamedContractCallFuture,
   NamedContractDeploymentFuture,
@@ -160,14 +162,14 @@ export interface IgnitionModuleBuilder {
 
   contract<ContractNameT extends string>(
     contractName: ContractNameT,
-    args?: SolidityParamsType,
+    args?: ArgumentType[],
     options?: ContractOptions
   ): NamedContractDeploymentFuture<ContractNameT>;
 
   contractFromArtifact(
     contractName: string,
     artifact: ArtifactType,
-    args?: SolidityParamsType,
+    args?: ArgumentType[],
     options?: ContractFromArtifactOptions
   ): ArtifactContractDeploymentFuture;
 
@@ -185,14 +187,14 @@ export interface IgnitionModuleBuilder {
   call<ContractNameT extends string, FunctionNameT extends string>(
     contractFuture: ContractFuture<ContractNameT>,
     functionName: FunctionNameT,
-    args?: SolidityParamsType,
+    args?: ArgumentType[],
     options?: CallOptions
   ): NamedContractCallFuture<ContractNameT, FunctionNameT>;
 
   staticCall<ContractNameT extends string, FunctionNameT extends string>(
     contractFuture: ContractFuture<ContractNameT>,
     functionName: FunctionNameT,
-    args?: SolidityParamsType,
+    args?: ArgumentType[],
     options?: StaticCallOptions
   ): NamedStaticCallFuture<ContractNameT, FunctionNameT>;
 
@@ -209,7 +211,7 @@ export interface IgnitionModuleBuilder {
     options?: ContractAtOptions
   ): ArtifactContractAtFuture;
 
-  getParameter<ParamType extends SolidityParamType>(
+  getParameter<ParamType extends ModuleParameterType>(
     parameterName: string,
     defaultValue?: ParamType
   ): ParamType;
