@@ -1,6 +1,5 @@
 import { assert } from "chai";
 
-import { StoredDeployment, StoredDeploymentSerializer } from "../../src/index";
 import { defineModule } from "../../src/new-api/define-module";
 import {
   ArtifactContractDeploymentFutureImplementation,
@@ -10,10 +9,15 @@ import {
 } from "../../src/new-api/internal/module";
 import { ModuleConstructor } from "../../src/new-api/internal/module-builder";
 import {
+  StoredDeploymentDeserializer,
+  StoredDeploymentSerializer,
+} from "../../src/new-api/stored-deployment-serializer";
+import {
   ContractFuture,
   IgnitionModule,
   IgnitionModuleResult,
 } from "../../src/new-api/types/module";
+import { StoredDeployment } from "../../src/new-api/types/serialized-deployment";
 
 describe("stored deployment serializer", () => {
   const details = {
@@ -551,9 +555,12 @@ describe("stored deployment serializer", () => {
 
       assertSerializableModuleIn(deployment);
 
-      const reserialized = StoredDeploymentSerializer.deserialize(
+      const reserialized = StoredDeploymentDeserializer.deserialize(
         JSON.parse(
-          JSON.stringify(StoredDeploymentSerializer.serialize(deployment))
+          JSON.stringify(
+            StoredDeploymentSerializer.serialize(deployment),
+            sortedKeysJsonStringifyReplacer
+          )
         )
       );
 
@@ -567,13 +574,17 @@ describe("stored deployment serializer", () => {
 
 function assertSerializableModuleIn(deployment: StoredDeployment) {
   const serialized = JSON.stringify(
-    StoredDeploymentSerializer.serialize(deployment)
+    StoredDeploymentSerializer.serialize(deployment),
+    sortedKeysJsonStringifyReplacer,
+    2
   );
 
   const reserialized = JSON.stringify(
     StoredDeploymentSerializer.serialize(
-      StoredDeploymentSerializer.deserialize(JSON.parse(serialized))
-    )
+      StoredDeploymentDeserializer.deserialize(JSON.parse(serialized))
+    ),
+    sortedKeysJsonStringifyReplacer,
+    2
   );
 
   assert.equal(
@@ -584,7 +595,7 @@ function assertSerializableModuleIn(deployment: StoredDeployment) {
 
   // Invariants
 
-  const ignitionModule = StoredDeploymentSerializer.deserialize(
+  const ignitionModule = StoredDeploymentDeserializer.deserialize(
     JSON.parse(reserialized)
   ).module;
 
@@ -687,4 +698,16 @@ function allFuturesHaveModuleIn(
   return Array.from(ignitionModule.submodules).every((submodule) =>
     allFuturesHaveModuleIn(submodule)
   );
+}
+
+function sortedKeysJsonStringifyReplacer(_key: string, value: any) {
+  if (!(value instanceof Object) || Array.isArray(value)) {
+    return value;
+  }
+  const sorted = {} as any;
+  for (const key of Object.keys(value).sort()) {
+    sorted[key] = value[key];
+  }
+
+  return sorted;
 }
