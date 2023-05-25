@@ -3,18 +3,36 @@ import { ArtifactType } from "../stubs";
 import { FutureType, IgnitionModule, IgnitionModuleResult } from "./module";
 
 /**
- * The serialized version of a Solidity method parameter.
+ * A serialized bigint.
  *
  * @beta
  */
-export type SerializedSolidityParamType = number | string | FutureToken;
+export interface SerializedBigInt {
+  _kind: "bigint";
+  value: string;
+}
 
 /**
- * An array of serialized params.
+ * The serialized version of BaseArgumentType
  *
  * @beta
  */
-export type SerializedSolidityParamsType = SerializedSolidityParamType[];
+export type SerializedBaseArgumentType =
+  | number
+  | SerializedBigInt
+  | string
+  | boolean
+  | FutureToken;
+
+/**
+ * The serialized version of ArgumentType
+ *
+ * @beta
+ */
+export type SerializedArgumentType =
+  | SerializedBaseArgumentType
+  | SerializedArgumentType[]
+  | { [field: string]: SerializedArgumentType };
 
 /**
  * In serialized form a pointer to a future stored at the top level
@@ -47,6 +65,7 @@ export interface BaseSerializedFuture {
   id: string;
   type: FutureType;
   dependencies: FutureToken[];
+  moduleId: string;
 }
 
 /**
@@ -58,7 +77,7 @@ export interface SerializedNamedContractDeploymentFuture
   extends BaseSerializedFuture {
   type: FutureType.NAMED_CONTRACT_DEPLOYMENT;
   contractName: string;
-  constructorArgs: SerializedSolidityParamsType;
+  constructorArgs: SerializedArgumentType[];
   libraries: SerializedLibraries;
   value: string;
   from: string | undefined;
@@ -73,7 +92,7 @@ export interface SerializedArtifactContractDeploymentFuture
   extends BaseSerializedFuture {
   type: FutureType.ARTIFACT_CONTRACT_DEPLOYMENT;
   contractName: string;
-  constructorArgs: SerializedSolidityParamsType;
+  constructorArgs: SerializedArgumentType[];
   artifact: ArtifactType;
   libraries: SerializedLibraries;
   value: string;
@@ -117,7 +136,7 @@ export interface SerializedNamedContractCallFuture
   type: FutureType.NAMED_CONTRACT_CALL;
   functionName: string;
   contract: FutureToken;
-  args: SerializedSolidityParamsType;
+  args: SerializedArgumentType[];
   value: string;
   from: string | undefined;
 }
@@ -131,7 +150,7 @@ export interface SerializedNamedStaticCallFuture extends BaseSerializedFuture {
   type: FutureType.NAMED_STATIC_CALL;
   functionName: string;
   contract: FutureToken;
-  args: SerializedSolidityParamsType;
+  args: SerializedArgumentType[];
   from: string | undefined;
 }
 
