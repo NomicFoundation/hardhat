@@ -157,11 +157,9 @@ fn bench_storage(c: &mut Criterion) {
 
 criterion_group!(
     benches,
-    /*
     bench_basic,
     bench_code_by_hash,
     bench_storage,
-    */
     bench_database_commit
 );
 criterion_main!(benches);
