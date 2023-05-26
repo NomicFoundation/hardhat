@@ -223,7 +223,10 @@ export class SendDataFutureImplementation
   constructor(
     public readonly id: string,
     public readonly module: IgnitionModuleImplementation,
-    public readonly to: string | AddressResolvableFuture,
+    public readonly to:
+      | string
+      | AddressResolvableFuture
+      | ModuleParameterRuntimeValue<string>,
     public readonly value: bigint,
     public readonly data: string | undefined,
     public readonly from: string | AccountRuntimeValue | undefined

@@ -200,7 +200,7 @@ export interface SerializedReadEventArgumentFuture
  */
 export interface SerializedSendDataFuture extends BaseSerializedFuture {
   type: FutureType.SEND_DATA;
-  to: string | FutureToken;
+  to: string | FutureToken | SerializedModuleParameterRuntimeValue;
   value: SerializedBigInt;
   data: string | undefined;
   from: string | SerializedAccountRuntimeValue | undefined;

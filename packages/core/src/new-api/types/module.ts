@@ -279,7 +279,7 @@ export interface SendDataFuture {
   id: string;
   module: IgnitionModule;
   dependencies: Set<Future>;
-  to: string | AddressResolvableFuture;
+  to: string | AddressResolvableFuture | ModuleParameterRuntimeValue<string>;
   value: bigint;
   data: string | undefined;
   from: string | AccountRuntimeValue | undefined;

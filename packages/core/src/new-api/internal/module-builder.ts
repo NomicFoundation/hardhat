@@ -488,7 +488,7 @@ export class IgnitionModuleBuilderImplementation<
 
   public send(
     id: string,
-    to: string | AddressResolvableFuture,
+    to: string | AddressResolvableFuture | ModuleParameterRuntimeValue<string>,
     value?: bigint,
     data?: string,
     options: SendDataOptions = {}
@@ -506,9 +506,11 @@ export class IgnitionModuleBuilderImplementation<
       options.from
     );
 
-    if (typeof to !== "string") {
+    if (isFuture(to)) {
       future.dependencies.add(to);
     }
+
+    // TODO: Validate the the runtime value's default type is string
 
     for (const afterFuture of options.after ?? []) {
       future.dependencies.add(afterFuture);

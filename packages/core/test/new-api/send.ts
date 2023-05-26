@@ -3,6 +3,7 @@ import { assert } from "chai";
 import { defineModule } from "../../src/new-api/define-module";
 import {
   AccountRuntimeValueImplementation,
+  ModuleParameterRuntimeValueImplementation,
   SendDataFutureImplementation,
 } from "../../src/new-api/internal/module";
 import { ModuleConstructor } from "../../src/new-api/internal/module-builder";
@@ -197,6 +198,37 @@ describe("send", () => {
 
     assertInstanceOf(sendFuture.from, AccountRuntimeValueImplementation);
     assert.equal(sendFuture.from.accountIndex, 1);
+  });
+
+  it("Should be able to pass a module param as address", () => {
+    const moduleDefinition = defineModule("Module", (m) => {
+      const paramWithDefault = m.getParameter("addressWithDefault", "0x000000");
+      const paramWithoutDefault = m.getParameter("addressWithoutDefault");
+
+      m.send("C", paramWithDefault);
+      m.send("C2", paramWithoutDefault);
+
+      return {};
+    });
+
+    const constructor = new ModuleConstructor();
+    const module = constructor.construct(moduleDefinition);
+
+    const futureC = Array.from(module.futures).find((f) => f.id === "Module:C");
+    assertInstanceOf(futureC, SendDataFutureImplementation);
+
+    const futureC2 = Array.from(module.futures).find(
+      (f) => f.id === "Module:C2"
+    );
+    assertInstanceOf(futureC2, SendDataFutureImplementation);
+
+    assertInstanceOf(futureC.to, ModuleParameterRuntimeValueImplementation);
+    assert.equal(futureC.to.name, "addressWithDefault");
+    assert.equal(futureC.to.defaultValue, "0x000000");
+
+    assertInstanceOf(futureC2.to, ModuleParameterRuntimeValueImplementation);
+    assert.equal(futureC2.to.name, "addressWithoutDefault");
+    assert.equal(futureC2.to.defaultValue, undefined);
   });
 
   describe("passing id", () => {

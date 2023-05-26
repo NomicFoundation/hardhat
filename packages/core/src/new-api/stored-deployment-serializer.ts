@@ -289,6 +289,8 @@ export class StoredDeploymentSerializer {
           ),
           to: isFuture(future.to)
             ? this._convertFutureToFutureToken(future.to)
+            : isRuntimeValue(future.to)
+            ? this._serializeModuleParamterRuntimeValue(future.to)
             : future.to,
           value: this._serializeBigint(future.value),
           data: future.data,
@@ -808,6 +810,10 @@ export class StoredDeploymentDeserializer {
                 addressResolvableFutureLookup,
                 serializedFuture.to.futureId
               )
+            : this._isSerializedModuleParameterRuntimeValue(serializedFuture.to)
+            ? (this._deserializeModuleParameterRuntimeValue(
+                serializedFuture.to
+              ) as ModuleParameterRuntimeValue<string>) // This is unsafe, but we only serialize valid valus
             : serializedFuture.to,
           this._deserializedBigint(serializedFuture.value),
           serializedFuture.data,
