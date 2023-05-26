@@ -21,7 +21,8 @@ export type SerializedBaseArgumentType =
   | SerializedBigInt
   | string
   | boolean
-  | FutureToken;
+  | FutureToken
+  | SerializedRuntimeValue;
 
 /**
  * The serialized version of ArgumentType
@@ -210,7 +211,9 @@ export interface SerializedSendDataFuture extends BaseSerializedFuture {
  *
  * @beta
  */
-export type SerializedRuntimeValue = SerializedAccountRuntimeValue;
+export type SerializedRuntimeValue =
+  | SerializedAccountRuntimeValue
+  | SerializedModuleParameterRuntimeValue;
 
 /**
  * The serialized version of AccountRuntimeValue.
@@ -220,6 +223,17 @@ export type SerializedRuntimeValue = SerializedAccountRuntimeValue;
 export interface SerializedAccountRuntimeValue {
   _kind: "AccountRuntimeValue";
   accountIndex: number;
+}
+
+/**
+ * The serialized version of ModuleParameterRuntimeValue.
+ *
+ * @beta
+ */
+export interface SerializedModuleParameterRuntimeValue {
+  _kind: "ModuleParameterRuntimeValue";
+  name: string;
+  defaultValue: string | undefined;
 }
 
 /**

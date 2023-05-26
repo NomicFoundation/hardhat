@@ -6,6 +6,7 @@ import {
   ArtifactContractDeploymentFutureImplementation,
   ArtifactLibraryDeploymentFutureImplementation,
   IgnitionModuleImplementation,
+  ModuleParameterRuntimeValueImplementation,
   NamedContractAtFutureImplementation,
   NamedContractCallFutureImplementation,
   NamedContractDeploymentFutureImplementation,
@@ -18,6 +19,7 @@ import {
   Graph,
   getNodesInTopologicalOrder,
 } from "./internal/topological-order";
+
 import {
   isAddressResolvableFuture,
   isContractFuture,
@@ -33,6 +35,10 @@ import {
   FutureType,
   IgnitionModule,
   IgnitionModuleResult,
+  ModuleParameterRuntimeValue,
+  ModuleParameterType,
+  RuntimeValue,
+  RuntimeValueType,
 } from "./types/module";
 import {
   FutureToken,
@@ -45,12 +51,14 @@ import {
   SerializedBigInt,
   SerializedFuture,
   SerializedLibraries,
+  SerializedModuleParameterRuntimeValue,
   SerializedNamedContractAtFuture,
   SerializedNamedContractCallFuture,
   SerializedNamedContractDeploymentFuture,
   SerializedNamedLibraryDeploymentFuture,
   SerializedNamedStaticCallFuture,
   SerializedReadEventArgumentFuture,
+  SerializedRuntimeValue,
   SerializedSendDataFuture,
   SerializedStoredDeployment,
   SerializedStoredModule,
@@ -310,6 +318,10 @@ export class StoredDeploymentSerializer {
       return this._convertFutureToFutureToken(arg);
     }
 
+    if (isRuntimeValue(arg)) {
+      return this._serializeRuntimeValue(arg);
+    }
+
     if (Array.isArray(arg)) {
       return arg.map((a) => this._serializeArgument(a));
     }
@@ -322,14 +334,47 @@ export class StoredDeploymentSerializer {
 
     return arg;
   }
+
+  private static _serializeRuntimeValue(
+    arg: RuntimeValue
+  ): SerializedRuntimeValue {
+    if (arg.type === RuntimeValueType.ACCOUNT) {
+      return this._serializeAccountRuntimeValue(arg);
+    }
+
+    return this._serializeModuleParamterRuntimeValue(arg);
+  }
+
   private static _serializeAccountRuntimeValue(
     arg: AccountRuntimeValue
   ): SerializedAccountRuntimeValue {
     return { _kind: "AccountRuntimeValue", accountIndex: arg.accountIndex };
   }
 
+  private static _serializeModuleParamterRuntimeValue(
+    arg: ModuleParameterRuntimeValue<ModuleParameterType>
+  ): SerializedModuleParameterRuntimeValue {
+    return {
+      _kind: "ModuleParameterRuntimeValue",
+      name: arg.name,
+      defaultValue:
+        arg.defaultValue === undefined
+          ? undefined
+          : this._jsonStringifyWithBigint(arg.defaultValue),
+    };
+  }
+
   private static _serializeBigint(n: bigint): SerializedBigInt {
     return { _kind: "bigint", value: n.toString(10) };
+  }
+
+  private static _jsonStringifyWithBigint(value: unknown, prettyPrint = true) {
+    return JSON.stringify(
+      value,
+      (_: string, v: any) =>
+        typeof v === "bigint" ? this._serializeBigint(v) : v,
+      prettyPrint ? 2 : undefined
+    );
   }
 
   private static _convertFutureToFutureToken(future: Future): FutureToken {
@@ -515,6 +560,14 @@ export class StoredDeploymentDeserializer {
       return swappedFuture;
     }
 
+    if (this._isSerializedAccountRuntimeValue(arg)) {
+      return this._deserializeAccountRuntimeValue(arg);
+    }
+
+    if (this._isSerializedModuleParameterRuntimeValue(arg)) {
+      return this._deserializeModuleParameterRuntimeValue(arg);
+    }
+
     if (this._isSerializedBigInt(arg)) {
       return this._deserializedBigint(arg);
     }
@@ -537,6 +590,16 @@ export class StoredDeploymentDeserializer {
 
   private static _deserializedBigint(n: SerializedBigInt): bigint {
     return BigInt(n.value);
+  }
+
+  private static _jsonParseWithBigint(jsonString: string): unknown {
+    return JSON.parse(jsonString, (k, v) => {
+      if (this._isSerializedBigInt(v)) {
+        return this._deserializedBigint(v);
+      }
+
+      return v;
+    });
   }
 
   private static _isSerializedFutureToken(
@@ -747,17 +810,40 @@ export class StoredDeploymentDeserializer {
     return value;
   }
 
+  private static _isSerializedAccountRuntimeValue(
+    v: unknown
+  ): v is SerializedAccountRuntimeValue {
+    return (
+      v instanceof Object && "_kind" in v && v._kind === "AccountRuntimeValue"
+    );
+  }
+
   private static _deserializeAccountRuntimeValue(
     serialized: SerializedAccountRuntimeValue
   ): AccountRuntimeValue {
     return new AccountRuntimeValueImplementation(serialized.accountIndex);
   }
 
-  private static _isSerializedAccountRuntimeValue(
+  private static _isSerializedModuleParameterRuntimeValue(
     v: unknown
-  ): v is SerializedAccountRuntimeValue {
+  ): v is SerializedModuleParameterRuntimeValue {
     return (
-      v instanceof Object && "_kind" in v && v._kind === "AccountRuntimeValue"
+      v instanceof Object &&
+      "_kind" in v &&
+      v._kind === "ModuleParameterRuntimeValue"
+    );
+  }
+
+  private static _deserializeModuleParameterRuntimeValue(
+    serialized: SerializedModuleParameterRuntimeValue
+  ): ModuleParameterRuntimeValue<ModuleParameterType> {
+    return new ModuleParameterRuntimeValueImplementation(
+      serialized.name,
+      serialized.defaultValue === undefined
+        ? undefined
+        : (this._jsonParseWithBigint(
+            serialized.defaultValue
+          ) as ModuleParameterType)
     );
   }
 }
