@@ -20,12 +20,3 @@ function _getFutures(argument: ArgumentType): Future[] {
 
   return [];
 }
-
-export function jsonStringifyWithBigint(value: unknown, prettyPrint = true) {
-  return JSON.stringify(
-    value,
-    (_: string, v: any) =>
-      typeof v === "bigint" ? { $bigint: v.toString(10) } : v,
-    prettyPrint ? 2 : undefined
-  );
-}

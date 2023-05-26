@@ -23,8 +23,6 @@ import {
   SendDataFuture,
 } from "../types/module";
 
-import { jsonStringifyWithBigint } from "./utils";
-
 const customInspectSymbol = Symbol.for("nodejs.util.inspect.custom");
 
 abstract class BaseFutureImplementation<FutureTypeT extends FutureType> {
@@ -290,13 +288,13 @@ export class ModuleParameterRuntimeValueImplementation<
   public [customInspectSymbol](
     _depth: number,
     _inspectOptions: {},
-    _inspect: (arg: {}) => string
+    inspect: (arg: {}) => string
   ) {
     return `Module Parameter RuntimeValue {
     name: ${this.name}${
       this.defaultValue !== undefined
         ? `
-    default value: ${jsonStringifyWithBigint(this.defaultValue)}`
+    default value: ${inspect(this.defaultValue)}`
         : ""
     }
 }`;
