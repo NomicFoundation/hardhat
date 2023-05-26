@@ -225,4 +225,4 @@ export type ProviderExtender = (
   provider: EIP1193Provider,
   config: HardhatConfig,
   network: string
-) => Promise<EIP1193Provider>;
+) => EIP1193Provider | Promise<EIP1193Provider>;
