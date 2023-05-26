@@ -580,7 +580,7 @@ describe("stored deployment serializer", () => {
         return { contract1, contract2 };
       });
 
-      const constructor = new ModuleConstructor(0, []);
+      const constructor = new ModuleConstructor();
       const module = constructor.construct(moduleDefinition);
 
       assertSerializableModuleIn({
@@ -596,7 +596,7 @@ describe("stored deployment serializer", () => {
         return { contract1 };
       });
 
-      const constructor = new ModuleConstructor(0, []);
+      const constructor = new ModuleConstructor();
       const module = constructor.construct(moduleDefinition);
 
       assertSerializableModuleIn({
@@ -611,14 +611,34 @@ describe("stored deployment serializer", () => {
           1n,
           [1, 1n, "asd", { a: ["asd", false] }],
         ]);
+
         const contract2 = m.contract("Contract2", [
-          { a: ["asd", false, { b: 1n, contract: contract1 }] },
+          {
+            a: ["asd", false, { b: 1n, contract: contract1 }],
+          },
         ]);
 
         return { contract1, contract2 };
       });
 
-      const constructor = new ModuleConstructor(0, []);
+      const constructor = new ModuleConstructor();
+      const module = constructor.construct(moduleDefinition);
+
+      assertSerializableModuleIn({
+        details,
+        module,
+      });
+    });
+
+    it("Should support AccountRuntimeValues as from", () => {
+      const moduleDefinition = defineModule("Module", (m) => {
+        const account1 = m.getAccount(1);
+        const contract1 = m.contract("Contract1", [], { from: account1 });
+
+        return { contract1 };
+      });
+
+      const constructor = new ModuleConstructor();
       const module = constructor.construct(moduleDefinition);
 
       assertSerializableModuleIn({

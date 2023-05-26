@@ -1,12 +1,12 @@
 import { assert } from "chai";
 
-import { RuntimeValueType } from "../../src";
 import { defineModule } from "../../src/new-api/define-module";
 import {
   AccountRuntimeValueImplementation,
   ArtifactLibraryDeploymentFutureImplementation,
 } from "../../src/new-api/internal/module";
 import { ModuleConstructor } from "../../src/new-api/internal/module-builder";
+
 import { assertInstanceOf } from "./helpers";
 
 describe("libraryFromArtifact", () => {

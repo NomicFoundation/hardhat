@@ -6,7 +6,8 @@ import {
   SendDataFutureImplementation,
 } from "../../src/new-api/internal/module";
 import { ModuleConstructor } from "../../src/new-api/internal/module-builder";
-import { FutureType, RuntimeValueType } from "../../src/new-api/types/module";
+import { FutureType } from "../../src/new-api/types/module";
+
 import { assertInstanceOf } from "./helpers";
 
 describe("send", () => {

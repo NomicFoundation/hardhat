@@ -1,10 +1,5 @@
 import { Artifact } from "./artifact";
-import {
-  FutureType,
-  IgnitionModule,
-  IgnitionModuleResult,
-  RuntimeValueType,
-} from "./module";
+import { FutureType, IgnitionModule, IgnitionModuleResult } from "./module";
 
 /**
  * A serialized bigint.
@@ -84,7 +79,7 @@ export interface SerializedNamedContractDeploymentFuture
   constructorArgs: SerializedArgumentType[];
   libraries: SerializedLibraries;
   value: SerializedBigInt;
-  from: string | undefined;
+  from: string | SerializedAccountRuntimeValue | undefined;
 }
 
 /**
@@ -100,7 +95,7 @@ export interface SerializedArtifactContractDeploymentFuture
   artifact: Artifact;
   libraries: SerializedLibraries;
   value: SerializedBigInt;
-  from: string | undefined;
+  from: string | SerializedAccountRuntimeValue | undefined;
 }
 
 /**
@@ -113,7 +108,7 @@ export interface SerializedNamedLibraryDeploymentFuture
   type: FutureType.NAMED_LIBRARY_DEPLOYMENT;
   contractName: string;
   libraries: SerializedLibraries;
-  from: string | undefined;
+  from: string | SerializedAccountRuntimeValue | undefined;
 }
 
 /**
@@ -127,7 +122,7 @@ export interface SerializedArtifactLibraryDeploymentFuture
   contractName: string;
   artifact: Artifact;
   libraries: SerializedLibraries;
-  from: string | undefined;
+  from: string | SerializedAccountRuntimeValue | undefined;
 }
 
 /**
@@ -142,7 +137,7 @@ export interface SerializedNamedContractCallFuture
   contract: FutureToken;
   args: SerializedArgumentType[];
   value: SerializedBigInt;
-  from: string | undefined;
+  from: string | SerializedAccountRuntimeValue | undefined;
 }
 
 /**
@@ -155,7 +150,7 @@ export interface SerializedNamedStaticCallFuture extends BaseSerializedFuture {
   functionName: string;
   contract: FutureToken;
   args: SerializedArgumentType[];
-  from: string | undefined;
+  from: string | SerializedAccountRuntimeValue | undefined;
 }
 
 /**
@@ -207,11 +202,23 @@ export interface SerializedSendDataFuture extends BaseSerializedFuture {
   to: string | FutureToken;
   value: SerializedBigInt;
   data: string | undefined;
-  from: string | undefined;
+  from: string | SerializedAccountRuntimeValue | undefined;
 }
 
+/**
+ * The srialized version of RuntimeValue.
+ *
+ * @beta
+ */
+export type SerializedRuntimeValue = SerializedAccountRuntimeValue;
+
+/**
+ * The serialized version of AccountRuntimeValue.
+ *
+ * @beta
+ */
 export interface SerializedAccountRuntimeValue {
-  type: RuntimeValueType.ACCOUNT;
+  _kind: "AccountRuntimeValue";
   accountIndex: number;
 }
 
