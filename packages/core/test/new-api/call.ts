@@ -222,6 +222,148 @@ describe("call", () => {
     assert.equal(callFuture.from.accountIndex, 1);
   });
 
+  describe("Arguments", () => {
+    it("Should support base values as arguments", () => {
+      const moduleDefinition = defineModule("Module", (m) => {
+        const contract1 = m.contract("Contract1");
+        m.call(contract1, "foo", [1, true, "string", 4n]);
+
+        return { contract1 };
+      });
+
+      const constructor = new ModuleConstructor();
+      const module = constructor.construct(moduleDefinition);
+
+      const future = [...module.futures].find(
+        ({ type }) => type === FutureType.NAMED_CONTRACT_CALL
+      );
+
+      assertInstanceOf(future, NamedContractCallFutureImplementation);
+      assert.deepEqual(future.args, [1, true, "string", 4n]);
+    });
+
+    it("Should support arrays as arguments", () => {
+      const moduleDefinition = defineModule("Module", (m) => {
+        const contract1 = m.contract("Contract1");
+        m.call(contract1, "foo", [[1, 2, 3n]]);
+
+        return { contract1 };
+      });
+
+      const constructor = new ModuleConstructor();
+      const module = constructor.construct(moduleDefinition);
+
+      const future = [...module.futures].find(
+        ({ type }) => type === FutureType.NAMED_CONTRACT_CALL
+      );
+
+      assertInstanceOf(future, NamedContractCallFutureImplementation);
+      assert.deepEqual(future.args, [[1, 2, 3n]]);
+    });
+
+    it("Should support objects as arguments", () => {
+      const moduleDefinition = defineModule("Module", (m) => {
+        const contract1 = m.contract("Contract1");
+        m.call(contract1, "foo", [{ a: 1, b: [1, 2] }]);
+
+        return { contract1 };
+      });
+
+      const constructor = new ModuleConstructor();
+      const module = constructor.construct(moduleDefinition);
+
+      const future = [...module.futures].find(
+        ({ type }) => type === FutureType.NAMED_CONTRACT_CALL
+      );
+
+      assertInstanceOf(future, NamedContractCallFutureImplementation);
+      assert.deepEqual(future.args, [{ a: 1, b: [1, 2] }]);
+    });
+
+    it("Should support futures as arguments", () => {
+      const moduleDefinition = defineModule("Module", (m) => {
+        const contract1 = m.contract("Contract1");
+        m.call(contract1, "foo", [contract1]);
+
+        return { contract1 };
+      });
+
+      const constructor = new ModuleConstructor();
+      const module = constructor.construct(moduleDefinition);
+
+      const future = [...module.futures].find(
+        ({ type }) => type === FutureType.NAMED_CONTRACT_CALL
+      );
+
+      assertInstanceOf(future, NamedContractCallFutureImplementation);
+      assert.equal(future.args[0], module.results.contract1);
+    });
+
+    it("should support nested futures as arguments", () => {
+      const moduleDefinition = defineModule("Module", (m) => {
+        const contract1 = m.contract("Contract1");
+        m.call(contract1, "foo", [{ arr: [contract1] }]);
+
+        return { contract1 };
+      });
+
+      const constructor = new ModuleConstructor();
+      const module = constructor.construct(moduleDefinition);
+
+      const future = [...module.futures].find(
+        ({ type }) => type === FutureType.NAMED_CONTRACT_CALL
+      );
+
+      assertInstanceOf(future, NamedContractCallFutureImplementation);
+      assert.equal((future.args[0] as any).arr[0], module.results.contract1);
+    });
+
+    it("should support AccountRuntimeValues as arguments", () => {
+      const moduleDefinition = defineModule("Module", (m) => {
+        const account1 = m.getAccount(1);
+        const contract1 = m.contract("Contract1");
+        m.call(contract1, "foo", [account1]);
+
+        return { contract1 };
+      });
+
+      const constructor = new ModuleConstructor();
+      const module = constructor.construct(moduleDefinition);
+
+      const future = [...module.futures].find(
+        ({ type }) => type === FutureType.NAMED_CONTRACT_CALL
+      );
+
+      assertInstanceOf(future, NamedContractCallFutureImplementation);
+      assertInstanceOf(future.args[0], AccountRuntimeValueImplementation);
+      assert.equal(future.args[0].accountIndex, 1);
+    });
+
+    it("should support nested AccountRuntimeValues as arguments", () => {
+      const moduleDefinition = defineModule("Module", (m) => {
+        const account1 = m.getAccount(1);
+        const contract1 = m.contract("Contract1");
+        m.call(contract1, "foo", [{ arr: [account1] }]);
+
+        return { contract1 };
+      });
+
+      const constructor = new ModuleConstructor();
+      const module = constructor.construct(moduleDefinition);
+
+      const future = [...module.futures].find(
+        ({ type }) => type === FutureType.NAMED_CONTRACT_CALL
+      );
+
+      assertInstanceOf(future, NamedContractCallFutureImplementation);
+      const account = (future.args[0] as any).arr[0];
+
+      assertInstanceOf(account, AccountRuntimeValueImplementation);
+
+      assert.equal(account.accountIndex, 1);
+    });
+  });
+
   describe("passing id", () => {
     it("should be able to call the same function twice by passing an id", () => {
       const moduleWithSameCallTwiceDefinition = defineModule("Module1", (m) => {
