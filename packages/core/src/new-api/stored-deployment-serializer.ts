@@ -19,7 +19,6 @@ import {
   Graph,
   getNodesInTopologicalOrder,
 } from "./internal/topological-order";
-
 import {
   isAddressResolvableFuture,
   isContractFuture,
@@ -466,19 +465,20 @@ export class StoredDeploymentDeserializer {
     for (const serializedModule of Object.values(
       serializedDeployment.modules
     )) {
+      const mod = this._lookup(modulesLookup, serializedModule.id);
+
       for (const [name, futureToken] of serializedModule.results) {
-        const mod = this._lookup(modulesLookup, serializedModule.id);
         const contract = this._lookup(
           contractFuturesLookup,
           futureToken.futureId
         );
 
         mod.results[name] = contract;
+      }
 
-        // Add futures to the module in the original order
-        for (const futureToken of serializedModule.futures) {
-          mod.futures.add(this._lookup(futuresLookup, futureToken.id));
-        }
+      // Add futures to the module in the original order
+      for (const futureToken of serializedModule.futures) {
+        mod.futures.add(this._lookup(futuresLookup, futureToken.id));
       }
     }
 
