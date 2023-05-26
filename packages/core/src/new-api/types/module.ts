@@ -13,7 +13,8 @@ export type BaseArgumentType =
   | boolean
   | ContractFuture<string>
   | NamedStaticCallFuture<string, string>
-  | ReadEventArgumentFuture;
+  | ReadEventArgumentFuture
+  | RuntimeValue;
 
 /**
  * Argument type that smart contracts can receive in their constructors and functions.
@@ -310,9 +311,7 @@ export enum RuntimeValueType {
  *
  * @beta
  */
-export type RuntimeValue =
-  | AccountRuntimeValue
-  | ModuleParameterRuntimeValue<ModuleParameterType>;
+export type RuntimeValue = AccountRuntimeValue;
 
 /**
  * A local account.
