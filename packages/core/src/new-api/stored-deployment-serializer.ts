@@ -343,16 +343,6 @@ export class StoredDeploymentSerializer {
   }
 }
 
-function lookup<T>(lookupTable: Map<string, T>, key: string): T {
-  const value = lookupTable.get(key);
-
-  if (value === undefined) {
-    throw new Error(`Lookahead value ${key} missing`);
-  }
-
-  return value;
-}
-
 /**
  * Deserialize a deployment that was previously serialized using StoredDeploymentSerialized.
  *
@@ -371,7 +361,7 @@ export class StoredDeploymentDeserializer {
       modulesLookup.set(mod.id, mod);
 
       for (const submoduleToken of serializedModule.submodules) {
-        const submodule = lookup(modulesLookup, submoduleToken.moduleId);
+        const submodule = this._lookup(modulesLookup, submoduleToken.moduleId);
         mod.submodules.add(submodule);
       }
     }
@@ -397,7 +387,7 @@ export class StoredDeploymentDeserializer {
       );
 
       for (const dependencyId of serializedFuture.dependencies) {
-        const dependency = lookup(futuresLookup, dependencyId.futureId);
+        const dependency = this._lookup(futuresLookup, dependencyId.futureId);
         future.dependencies.add(dependency);
       }
 
@@ -420,8 +410,11 @@ export class StoredDeploymentDeserializer {
       for (const [name, futureToken] of Object.entries(
         serializedModule.results
       )) {
-        const mod = lookup(modulesLookup, serializedModule.id);
-        const contract = lookup(contractFuturesLookup, futureToken.futureId);
+        const mod = this._lookup(modulesLookup, serializedModule.id);
+        const contract = this._lookup(
+          contractFuturesLookup,
+          futureToken.futureId
+        );
         mod.results[name] = contract;
       }
     }
@@ -430,7 +423,7 @@ export class StoredDeploymentDeserializer {
       details: {
         ...serializedDeployment.details,
       },
-      module: lookup(modulesLookup, serializedDeployment.startModule),
+      module: this._lookup(modulesLookup, serializedDeployment.startModule),
     };
   }
 
@@ -482,7 +475,7 @@ export class StoredDeploymentDeserializer {
     futureLookup: Map<string, Future>
   ): ArgumentType {
     if (this._isSerializedFutureToken(arg)) {
-      const swappedFuture = lookup(futureLookup, arg.futureId);
+      const swappedFuture = this._lookup(futureLookup, arg.futureId);
 
       if (swappedFuture === undefined) {
         throw new IgnitionError(
@@ -560,7 +553,7 @@ export class StoredDeploymentDeserializer {
     contractFuturesLookup: Map<string, ContractFuture<string>>,
     addressResolvableFutureLookup: Map<string, AddressResolvableFuture>
   ): Future {
-    const mod = lookup(modulesLookup, serializedFuture.moduleId);
+    const mod = this._lookup(modulesLookup, serializedFuture.moduleId);
 
     switch (serializedFuture.type) {
       case FutureType.NAMED_CONTRACT_DEPLOYMENT:
@@ -574,7 +567,7 @@ export class StoredDeploymentDeserializer {
           Object.fromEntries(
             Object.entries(serializedFuture.libraries).map(([name, lib]) => [
               name,
-              lookup(contractFuturesLookup, lib.futureId),
+              this._lookup(contractFuturesLookup, lib.futureId),
             ])
           ),
           this._deserializedBigint(serializedFuture.value),
@@ -592,7 +585,7 @@ export class StoredDeploymentDeserializer {
           Object.fromEntries(
             Object.entries(serializedFuture.libraries).map(([name, lib]) => [
               name,
-              lookup(contractFuturesLookup, lib.futureId),
+              this._lookup(contractFuturesLookup, lib.futureId),
             ])
           ),
           this._deserializedBigint(serializedFuture.value),
@@ -606,7 +599,7 @@ export class StoredDeploymentDeserializer {
           Object.fromEntries(
             Object.entries(serializedFuture.libraries).map(([name, lib]) => [
               name,
-              lookup(contractFuturesLookup, lib.futureId),
+              this._lookup(contractFuturesLookup, lib.futureId),
             ])
           ),
           serializedFuture.from
@@ -620,7 +613,7 @@ export class StoredDeploymentDeserializer {
           Object.fromEntries(
             Object.entries(serializedFuture.libraries).map(([name, lib]) => [
               name,
-              lookup(contractFuturesLookup, lib.futureId),
+              this._lookup(contractFuturesLookup, lib.futureId),
             ])
           ),
           serializedFuture.from
@@ -630,7 +623,10 @@ export class StoredDeploymentDeserializer {
           serializedFuture.id,
           mod,
           serializedFuture.functionName,
-          lookup(contractFuturesLookup, serializedFuture.contract.futureId),
+          this._lookup(
+            contractFuturesLookup,
+            serializedFuture.contract.futureId
+          ),
           serializedFuture.args.map((arg) =>
             this._deserializeArgument(arg, futuresLookup)
           ),
@@ -642,7 +638,10 @@ export class StoredDeploymentDeserializer {
           serializedFuture.id,
           mod,
           serializedFuture.functionName,
-          lookup(contractFuturesLookup, serializedFuture.contract.futureId),
+          this._lookup(
+            contractFuturesLookup,
+            serializedFuture.contract.futureId
+          ),
           serializedFuture.args.map((arg) =>
             this._deserializeArgument(arg, futuresLookup)
           ),
@@ -654,7 +653,7 @@ export class StoredDeploymentDeserializer {
           mod,
           serializedFuture.contractName,
           this._isSerializedFutureToken(serializedFuture.address)
-            ? lookup(
+            ? this._lookup(
                 addressResolvableFutureLookup,
                 serializedFuture.address.futureId
               )
@@ -666,7 +665,7 @@ export class StoredDeploymentDeserializer {
           mod,
           serializedFuture.contractName,
           this._isSerializedFutureToken(serializedFuture.address)
-            ? lookup(
+            ? this._lookup(
                 addressResolvableFutureLookup,
                 serializedFuture.address.futureId
               )
@@ -677,10 +676,16 @@ export class StoredDeploymentDeserializer {
         return new ReadEventArgumentFutureImplementation(
           serializedFuture.id,
           mod,
-          lookup(futuresLookup, serializedFuture.futureToReadFrom.futureId),
+          this._lookup(
+            futuresLookup,
+            serializedFuture.futureToReadFrom.futureId
+          ),
           serializedFuture.eventName,
           serializedFuture.argumentName,
-          lookup(contractFuturesLookup, serializedFuture.emitter.futureId),
+          this._lookup(
+            contractFuturesLookup,
+            serializedFuture.emitter.futureId
+          ),
           serializedFuture.eventIndex
         );
       case FutureType.SEND_DATA:
@@ -688,7 +693,7 @@ export class StoredDeploymentDeserializer {
           serializedFuture.id,
           mod,
           this._isSerializedFutureToken(serializedFuture.to)
-            ? lookup(
+            ? this._lookup(
                 addressResolvableFutureLookup,
                 serializedFuture.to.futureId
               )
@@ -698,5 +703,15 @@ export class StoredDeploymentDeserializer {
           serializedFuture.from
         );
     }
+  }
+
+  private static _lookup<T>(lookupTable: Map<string, T>, key: string): T {
+    const value = lookupTable.get(key);
+
+    if (value === undefined) {
+      throw new IgnitionError(`Lookahead value ${key} missing`);
+    }
+
+    return value;
   }
 }
