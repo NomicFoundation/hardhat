@@ -837,13 +837,17 @@ export class StoredDeploymentDeserializer {
   private static _deserializeModuleParameterRuntimeValue(
     serialized: SerializedModuleParameterRuntimeValue
   ): ModuleParameterRuntimeValue<ModuleParameterType> {
+    let defaultValue: ModuleParameterType | undefined = undefined;
+    if (serialized.defaultValue !== undefined) {
+      // We cast here because we receive an `unknow`, but we known it came from serializing a ModuleParameterType
+      defaultValue = this._jsonParseWithBigint(
+        serialized.defaultValue
+      ) as ModuleParameterType;
+    }
+
     return new ModuleParameterRuntimeValueImplementation(
       serialized.name,
-      serialized.defaultValue === undefined
-        ? undefined
-        : (this._jsonParseWithBigint(
-            serialized.defaultValue
-          ) as ModuleParameterType)
+      defaultValue
     );
   }
 }
