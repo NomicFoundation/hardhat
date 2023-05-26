@@ -9,6 +9,21 @@ import {
   RuntimeValueType,
 } from "./types/module";
 
+function isValidEnumValue(
+  theEnum: Record<string, string>,
+  value: string
+): boolean {
+  // Enums are objects that have entries that map:
+  //   1) keys to values
+  //   2) values to keys
+  const key = theEnum[value];
+  if (key === undefined) {
+    return false;
+  }
+
+  return theEnum[key] === value;
+}
+
 /**
  * Returns true if potential is of type FutureType.
  *
@@ -16,8 +31,7 @@ import {
  */
 export function isFutureType(potential: unknown): potential is FutureType {
   return (
-    typeof potential === "string" &&
-    (FutureType as any)[potential] !== undefined
+    typeof potential === "string" && isValidEnumValue(FutureType, potential)
   );
 }
 
@@ -112,7 +126,7 @@ export function isRuntimeValueType(
 ): potential is RuntimeValueType {
   return (
     typeof potential === "string" &&
-    (RuntimeValueType as any)[potential] !== undefined
+    isValidEnumValue(RuntimeValueType, potential)
   );
 }
 
