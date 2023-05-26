@@ -3,6 +3,7 @@ import { assert } from "chai";
 import { defineModule } from "../../src/new-api/define-module";
 import {
   AccountRuntimeValueImplementation,
+  ModuleParameterRuntimeValueImplementation,
   NamedContractCallFutureImplementation,
 } from "../../src/new-api/internal/module";
 import { ModuleConstructor } from "../../src/new-api/internal/module-builder";
@@ -361,6 +362,55 @@ describe("call", () => {
       assertInstanceOf(account, AccountRuntimeValueImplementation);
 
       assert.equal(account.accountIndex, 1);
+    });
+
+    it("should support ModuleParameterRuntimeValue as arguments", () => {
+      const moduleDefinition = defineModule("Module", (m) => {
+        const p = m.getParameter("p", 123);
+        const contract1 = m.contract("Contract1");
+        m.call(contract1, "foo", [p]);
+
+        return { contract1 };
+      });
+
+      const constructor = new ModuleConstructor();
+      const module = constructor.construct(moduleDefinition);
+
+      const future = [...module.futures].find(
+        ({ type }) => type === FutureType.NAMED_CONTRACT_CALL
+      );
+
+      assertInstanceOf(future, NamedContractCallFutureImplementation);
+      assertInstanceOf(
+        future.args[0],
+        ModuleParameterRuntimeValueImplementation
+      );
+      assert.equal(future.args[0].name, "p");
+      assert.equal(future.args[0].defaultValue, 123);
+    });
+
+    it("should support nested ModuleParameterRuntimeValue as arguments", () => {
+      const moduleDefinition = defineModule("Module", (m) => {
+        const p = m.getParameter("p", 123);
+        const contract1 = m.contract("Contract1");
+        m.call(contract1, "foo", [{ arr: [p] }]);
+
+        return { contract1 };
+      });
+
+      const constructor = new ModuleConstructor();
+      const module = constructor.construct(moduleDefinition);
+
+      const future = [...module.futures].find(
+        ({ type }) => type === FutureType.NAMED_CONTRACT_CALL
+      );
+
+      assertInstanceOf(future, NamedContractCallFutureImplementation);
+      const param = (future.args[0] as any).arr[0];
+
+      assertInstanceOf(param, ModuleParameterRuntimeValueImplementation);
+      assert.equal(param.name, "p");
+      assert.equal(param.defaultValue, 123);
     });
   });
 
