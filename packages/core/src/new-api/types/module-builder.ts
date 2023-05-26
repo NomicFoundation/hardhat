@@ -199,13 +199,13 @@ export interface IgnitionModuleBuilder {
 
   contractAt<ContractNameT extends string>(
     contractName: ContractNameT,
-    address: string | NamedStaticCallFuture<string, string>,
+    address: string | AddressResolvableFuture,
     options?: ContractAtOptions
   ): NamedContractAtFuture<ContractNameT>;
 
   contractAtFromArtifact(
     contractName: string,
-    address: string | NamedStaticCallFuture<string, string>,
+    address: string | AddressResolvableFuture,
     artifact: Artifact,
     options?: ContractAtOptions
   ): ArtifactContractAtFuture;

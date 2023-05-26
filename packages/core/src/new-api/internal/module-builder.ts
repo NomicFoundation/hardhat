@@ -357,7 +357,7 @@ export class IgnitionModuleBuilderImplementation<
 
   public contractAt<ContractNameT extends string>(
     contractName: ContractNameT,
-    address: string | NamedStaticCallFuture<string, string>,
+    address: string | AddressResolvableFuture,
     options: ContractAtOptions = {}
   ): NamedContractAtFuture<ContractNameT> {
     const id = options.id ?? contractName;
@@ -387,7 +387,7 @@ export class IgnitionModuleBuilderImplementation<
 
   public contractAtFromArtifact(
     contractName: string,
-    address: string | NamedStaticCallFuture<string, string>,
+    address: string | AddressResolvableFuture,
     artifact: Artifact,
     options: ContractAtOptions = {}
   ): ArtifactContractAtFuture {
