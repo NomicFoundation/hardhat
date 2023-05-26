@@ -570,6 +570,63 @@ describe("stored deployment serializer", () => {
       assert.equal(lc, rc);
     });
   });
+
+  describe("Complex arguments serialization", () => {
+    it("Should support futures as arguments", () => {
+      const moduleDefinition = defineModule("Module", (m) => {
+        const contract1 = m.contract("Contract1");
+        const contract2 = m.contract("Contract2", [contract1]);
+
+        return { contract1, contract2 };
+      });
+
+      const constructor = new ModuleConstructor(0, []);
+      const module = constructor.construct(moduleDefinition);
+
+      assertSerializableModuleIn({
+        details,
+        module,
+      });
+    });
+
+    it("Should support bigint as arguments", () => {
+      const moduleDefinition = defineModule("Module", (m) => {
+        const contract1 = m.contract("Contract1", [1n]);
+
+        return { contract1 };
+      });
+
+      const constructor = new ModuleConstructor(0, []);
+      const module = constructor.construct(moduleDefinition);
+
+      assertSerializableModuleIn({
+        details,
+        module,
+      });
+    });
+
+    it("Should support complex arguments as arguments", () => {
+      const moduleDefinition = defineModule("Module", (m) => {
+        const contract1 = m.contract("Contract1", [
+          1n,
+          [1, 1n, "asd", { a: ["asd", false] }],
+        ]);
+        const contract2 = m.contract("Contract2", [
+          { a: ["asd", false, { b: 1n, contract: contract1 }] },
+        ]);
+
+        return { contract1, contract2 };
+      });
+
+      const constructor = new ModuleConstructor(0, []);
+      const module = constructor.construct(moduleDefinition);
+
+      assertSerializableModuleIn({
+        details,
+        module,
+      });
+    });
+  });
 });
 
 function assertSerializableModuleIn(deployment: StoredDeployment) {
