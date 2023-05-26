@@ -23,6 +23,12 @@ interface BaseRuntimeValue {
   type: RuntimeValueType;
 }
 
+function _testThatTheValuesOfFutureTypeMatchTheKeys<ValueT extends FutureType>(
+  type: ValueT
+): FutureType {
+  return FutureType[type];
+}
+
 function _testThatEveryFutureIsBaseFuture(f: Future): BaseFuture {
   return f;
 }
@@ -53,4 +59,10 @@ function _testThatEveryRuntimeValueTypeIsUsed(
   type: RuntimeValueType
 ): RuntimeValue["type"] {
   return type;
+}
+
+function _testThatTheValuesOfRuntimeValueTypeMatchTheKeys<
+  ValueT extends RuntimeValueType
+>(type: ValueT): RuntimeValueType {
+  return RuntimeValueType[type];
 }
