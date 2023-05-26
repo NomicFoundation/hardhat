@@ -271,27 +271,21 @@ export interface SerializedStoredModule {
  *
  * @beta
  */
-export interface SerializedStoredSubmodules {
-  [key: string]: SerializedStoredModule;
-}
+export type SerializedStoredSubmodules = SerializedStoredModule[];
 
 /**
  * The serialized futures that are executed in deploying a module.
  *
  * @beta
  */
-export interface SerializedStoredFutures {
-  [key: string]: SerializedFuture;
-}
+export type SerializedStoredFutures = SerializedFuture[];
 
 /**
  * The serialized results of a module.
  *
  * @beta
  */
-export interface SerializedStoredResults {
-  [key: string]: FutureToken;
-}
+export type SerializedStoredResults = Array<[name: string, token: FutureToken]>;
 
 /**
  * The serialized libraries, where each library
@@ -299,9 +293,7 @@ export interface SerializedStoredResults {
  *
  * @beta
  */
-export interface SerializedLibraries {
-  [key: string]: FutureToken;
-}
+export type SerializedLibraries = Array<[name: string, token: FutureToken]>;
 
 /**
  * The set of serialized future types

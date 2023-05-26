@@ -84,21 +84,16 @@ export class StoredDeploymentSerializer {
   ): SerializedStoredModule {
     return {
       id: userModule.id,
-      futures: Object.fromEntries(
-        Array.from(userModule.futures).map((future) => [
-          future.id,
-          this._serializeFuture(future),
-        ])
+      futures: Array.from(userModule.futures).map((future) =>
+        this._serializeFuture(future)
       ),
       submodules: Array.from(userModule.submodules).map(
         this._convertModuleToModuleToken
       ),
-      results: Object.fromEntries(
-        Object.entries(userModule.results).map(([key, future]) => [
-          key,
-          this._convertFutureToFutureToken(future),
-        ])
-      ),
+      results: Object.entries(userModule.results).map(([key, future]) => [
+        key,
+        this._convertFutureToFutureToken(future),
+      ]),
     };
   }
 
@@ -300,12 +295,10 @@ export class StoredDeploymentSerializer {
   private static _convertLibrariesToLibraryTokens(
     libraries: Record<string, ContractFuture<string>>
   ): SerializedLibraries {
-    return Object.fromEntries(
-      Object.entries(libraries).map(([key, lib]) => [
-        key,
-        this._convertFutureToFutureToken(lib),
-      ])
-    );
+    return Object.entries(libraries).map(([key, lib]) => [
+      key,
+      this._convertFutureToFutureToken(lib),
+    ]);
   }
 
   private static _serializeArgument(arg: ArgumentType): SerializedArgumentType {
@@ -414,8 +407,6 @@ export class StoredDeploymentDeserializer {
         future.dependencies.add(dependency);
       }
 
-      future.module.futures.add(future);
-
       futuresLookup.set(future.id, future);
 
       if (isContractFuture(future)) {
@@ -430,15 +421,19 @@ export class StoredDeploymentDeserializer {
     for (const serializedModule of Object.values(
       serializedDeployment.modules
     )) {
-      for (const [name, futureToken] of Object.entries(
-        serializedModule.results
-      )) {
+      for (const [name, futureToken] of serializedModule.results) {
         const mod = this._lookup(modulesLookup, serializedModule.id);
         const contract = this._lookup(
           contractFuturesLookup,
           futureToken.futureId
         );
+
         mod.results[name] = contract;
+
+        // Add futures to the module in the original order
+        for (const futureToken of serializedModule.futures) {
+          mod.futures.add(this._lookup(futuresLookup, futureToken.id));
+        }
       }
     }
 
@@ -588,7 +583,7 @@ export class StoredDeploymentDeserializer {
             this._deserializeArgument(arg, futuresLookup)
           ),
           Object.fromEntries(
-            Object.entries(serializedFuture.libraries).map(([name, lib]) => [
+            serializedFuture.libraries.map(([name, lib]) => [
               name,
               this._lookup(contractFuturesLookup, lib.futureId),
             ])
@@ -608,7 +603,7 @@ export class StoredDeploymentDeserializer {
           ),
           serializedFuture.artifact,
           Object.fromEntries(
-            Object.entries(serializedFuture.libraries).map(([name, lib]) => [
+            serializedFuture.libraries.map(([name, lib]) => [
               name,
               this._lookup(contractFuturesLookup, lib.futureId),
             ])
@@ -624,7 +619,7 @@ export class StoredDeploymentDeserializer {
           mod,
           serializedFuture.contractName,
           Object.fromEntries(
-            Object.entries(serializedFuture.libraries).map(([name, lib]) => [
+            serializedFuture.libraries.map(([name, lib]) => [
               name,
               this._lookup(contractFuturesLookup, lib.futureId),
             ])
@@ -640,7 +635,7 @@ export class StoredDeploymentDeserializer {
           serializedFuture.contractName,
           serializedFuture.artifact,
           Object.fromEntries(
-            Object.entries(serializedFuture.libraries).map(([name, lib]) => [
+            serializedFuture.libraries.map(([name, lib]) => [
               name,
               this._lookup(contractFuturesLookup, lib.futureId),
             ])
