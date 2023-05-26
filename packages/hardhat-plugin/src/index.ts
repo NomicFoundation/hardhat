@@ -201,11 +201,7 @@ task("plan")
         })
       );
 
-      const accounts = (await hre.network.provider.request({
-        method: "eth_accounts",
-      })) as string[];
-
-      const constructor = new ModuleConstructor(chainId, accounts);
+      const constructor = new ModuleConstructor();
       const module = constructor.construct(userModule);
 
       await writePlan(

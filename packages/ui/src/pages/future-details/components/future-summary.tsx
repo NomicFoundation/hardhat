@@ -2,6 +2,7 @@ import {
   ArgumentType,
   Future,
   FutureType,
+  RuntimeValueType,
   StoredDeployment,
   isFuture,
   isRuntimeValue,
@@ -77,7 +78,17 @@ function argumentTypeToString(argument: ArgumentType): string {
       }
 
       if (isRuntimeValue(value)) {
-        return `<AccountRuntimeValue accountIndex ${value.accountIndex}>`;
+        if (value.type === RuntimeValueType.ACCOUNT) {
+          return `<AccountRuntimeValue accountIndex=${value.accountIndex}>`;
+        }
+
+        return `<ModuleParameterRuntimeValue name="${
+          value.name
+        }" defaultValue=${
+          value.defaultValue === undefined
+            ? "undefined"
+            : argumentTypeToString(value.defaultValue)
+        }>`;
       }
 
       return value;

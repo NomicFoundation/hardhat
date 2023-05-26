@@ -56,7 +56,7 @@ const Text = styled.p`
   margin: 0;
 `;
 
-const ActionBtn = styled.div<{ futureType: number }>`
+const ActionBtn = styled.div<{ futureType: FutureType }>`
   border: 1px solid black;
   padding: 1rem;
   font-weight: bold;
