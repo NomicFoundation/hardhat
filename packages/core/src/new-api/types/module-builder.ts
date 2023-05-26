@@ -9,6 +9,7 @@ import {
   ContractFuture,
   Future,
   IgnitionModuleResult,
+  ModuleParameterRuntimeValue,
   ModuleParameterType,
   NamedContractAtFuture,
   NamedContractCallFuture,
@@ -159,6 +160,11 @@ export interface SendDataOptions {
 export interface IgnitionModuleBuilder {
   getAccount(accountIndex: number): AccountRuntimeValue;
 
+  getParameter<ParamTypeT extends ModuleParameterType>(
+    parameterName: string,
+    defaultValue?: ParamTypeT
+  ): ModuleParameterRuntimeValue<ParamTypeT>;
+
   contract<ContractNameT extends string>(
     contractName: ContractNameT,
     args?: ArgumentType[],
@@ -209,11 +215,6 @@ export interface IgnitionModuleBuilder {
     artifact: Artifact,
     options?: ContractAtOptions
   ): ArtifactContractAtFuture;
-
-  getParameter<ParamType extends ModuleParameterType>(
-    parameterName: string,
-    defaultValue?: ParamType
-  ): ParamType;
 
   readEventArgument(
     futureToReadFrom:

@@ -1,93 +1,128 @@
 import { assert } from "chai";
 
 import { defineModule } from "../../src/new-api/define-module";
-import { NamedContractDeploymentFutureImplementation } from "../../src/new-api/internal/module";
+import { ModuleParameterRuntimeValueImplementation } from "../../src/new-api/internal/module";
 import { ModuleConstructor } from "../../src/new-api/internal/module-builder";
+import { ModuleParameterType } from "../../src/new-api/types/module";
+
+import { assertInstanceOf } from "./helpers";
 
 describe("getParameter", () => {
-  it("should record given parameters", () => {
-    const constructor = new ModuleConstructor({
-      TestModule: { param1: 42 },
-    });
+  describe("Without default value", function () {
+    it("should return the correct RuntimeValue", () => {
+      const defintion = defineModule("MyModule", (m) => {
+        const p = m.getParameter("p");
 
-    assert.equal(constructor.parameters.TestModule.param1, 42);
+        const contract = m.contract("Contract", [p]);
+
+        return { contract };
+      });
+
+      const constructor = new ModuleConstructor();
+      const mod = constructor.construct(defintion);
+
+      const param = mod.results.contract.constructorArgs[0];
+      assertInstanceOf(param, ModuleParameterRuntimeValueImplementation);
+      assert.equal(param.name, "p");
+      assert.equal(param.defaultValue, undefined);
+    });
   });
 
-  it("should allow a parameter to be passed as an arg", () => {
-    const moduleWithParamsDefinition = defineModule("Module1", (m) => {
-      const arg1 = m.getParameter("param1");
-      const contract1 = m.contract("Contract1", [arg1]);
+  describe("With default value", function () {
+    it("should accept base values as default", () => {
+      const defintion = defineModule("MyModule", (m) => {
+        const s = m.getParameter("string", "default");
+        const n = m.getParameter("number", 1);
+        const bi = m.getParameter("bigint", 1n);
+        const b = m.getParameter("boolean", true);
 
-      return { contract1 };
+        const contract = m.contract("Contract", [s, n, bi, b]);
+
+        return { contract };
+      });
+
+      const constructor = new ModuleConstructor();
+      const mod = constructor.construct(defintion);
+
+      const isS = mod.results.contract.constructorArgs[0];
+      const isN = mod.results.contract.constructorArgs[1];
+      const isBi = mod.results.contract.constructorArgs[2];
+      const isB = mod.results.contract.constructorArgs[3];
+
+      assertInstanceOf(isS, ModuleParameterRuntimeValueImplementation);
+      assert.equal(isS.name, "string");
+      assert.equal(isS.defaultValue, "default");
+
+      assertInstanceOf(isN, ModuleParameterRuntimeValueImplementation);
+      assert.equal(isN.name, "number");
+      assert.equal(isN.defaultValue, 1);
+
+      assertInstanceOf(isBi, ModuleParameterRuntimeValueImplementation);
+      assert.equal(isBi.name, "bigint");
+      assert.equal(isBi.defaultValue, 1n);
+
+      assertInstanceOf(isB, ModuleParameterRuntimeValueImplementation);
+      assert.equal(isB.name, "boolean");
+      assert.equal(isB.defaultValue, true);
     });
 
-    const constructor = new ModuleConstructor({
-      Module1: { param1: "arg1" },
-    });
-    const moduleWithParams = constructor.construct(moduleWithParamsDefinition);
+    it("Should accept arrays as deafult", () => {
+      const defaultValue: ModuleParameterType = [1, "dos", 3n, false];
+      const defintion = defineModule("MyModule", (m) => {
+        const p = m.getParameter("p", defaultValue);
 
-    assert.isDefined(moduleWithParams);
+        const contract = m.contract("Contract", [p]);
 
-    const contractFuture = [...moduleWithParams.futures].find(
-      ({ id }) => id === "Module1:Contract1"
-    );
+        return { contract };
+      });
 
-    if (
-      !(contractFuture instanceof NamedContractDeploymentFutureImplementation)
-    ) {
-      assert.fail("Not a named contract deployment");
-    }
+      const constructor = new ModuleConstructor();
+      const mod = constructor.construct(defintion);
 
-    assert.equal(contractFuture.constructorArgs.length, 1);
-    assert.equal(contractFuture.constructorArgs[0], "arg1");
-  });
-
-  it("should allow a parameter to have a default value", () => {
-    const moduleWithParamsDefinition = defineModule("Module1", (m) => {
-      const arg1 = m.getParameter("param1", "arg1");
-      const arg2 = m.getParameter("param2", 42);
-      const contract1 = m.contract("Contract1", [arg1, arg2]);
-
-      return { contract1 };
+      const param = mod.results.contract.constructorArgs[0];
+      assertInstanceOf(param, ModuleParameterRuntimeValueImplementation);
+      assert.equal(param.name, "p");
+      assert.deepEqual(param.defaultValue, defaultValue);
     });
 
-    const constructor = new ModuleConstructor({
-      Module1: {
-        param1: "overriddenParam",
-      },
-    });
-    const moduleWithParams = constructor.construct(moduleWithParamsDefinition);
+    it("Should accept objects as deafult", () => {
+      const defaultValue: ModuleParameterType = { a: 1, b: "dos", c: 3n };
+      const defintion = defineModule("MyModule", (m) => {
+        const p = m.getParameter("p", defaultValue);
 
-    assert.isDefined(moduleWithParams);
+        const contract = m.contract("Contract", [p]);
 
-    const contractFuture = [...moduleWithParams.futures].find(
-      ({ id }) => id === "Module1:Contract1"
-    );
+        return { contract };
+      });
 
-    if (
-      !(contractFuture instanceof NamedContractDeploymentFutureImplementation)
-    ) {
-      assert.fail("Not a named contract deployment");
-    }
+      const constructor = new ModuleConstructor();
+      const mod = constructor.construct(defintion);
 
-    assert.equal(contractFuture.constructorArgs.length, 2);
-    assert.equal(contractFuture.constructorArgs[0], "overriddenParam");
-    assert.equal(contractFuture.constructorArgs[1], 42);
-  });
-
-  it("should throw if a parameter has no value", () => {
-    const moduleWithParamsDefinition = defineModule("Module1", (m) => {
-      const arg1 = m.getParameter<string>("param1");
-      const contract1 = m.contract("Contract1", [arg1]);
-
-      return { contract1 };
+      const param = mod.results.contract.constructorArgs[0];
+      assertInstanceOf(param, ModuleParameterRuntimeValueImplementation);
+      assert.equal(param.name, "p");
+      assert.deepEqual(param.defaultValue, defaultValue);
     });
 
-    const constructor = new ModuleConstructor();
+    it("Should accept complex combinations as deafult", () => {
+      const defaultValue: ModuleParameterType = {
+        arr: [123, { a: [{ o: true }] }],
+      };
+      const defintion = defineModule("MyModule", (m) => {
+        const p = m.getParameter("p", defaultValue);
 
-    assert.throws(
-      () => constructor.construct(moduleWithParamsDefinition),
-      /Module parameter 'param1' is required, but none was given/
-    );
+        const contract = m.contract("Contract", [p]);
+
+        return { contract };
+      });
+
+      const constructor = new ModuleConstructor();
+      const mod = constructor.construct(defintion);
+
+      const param = mod.results.contract.constructorArgs[0];
+      assertInstanceOf(param, ModuleParameterRuntimeValueImplementation);
+      assert.equal(param.name, "p");
+      assert.deepEqual(param.defaultValue, defaultValue);
+    });
   });
 });

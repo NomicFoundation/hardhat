@@ -13,6 +13,7 @@ import {
   ContractFuture,
   IgnitionModule,
   IgnitionModuleResult,
+  ModuleParameterRuntimeValue,
   ModuleParameterType,
   ModuleParameters,
   NamedContractAtFuture,
@@ -42,6 +43,7 @@ import {
   ArtifactContractDeploymentFutureImplementation,
   ArtifactLibraryDeploymentFutureImplementation,
   IgnitionModuleImplementation,
+  ModuleParameterRuntimeValueImplementation,
   NamedContractAtFutureImplementation,
   NamedContractCallFutureImplementation,
   NamedContractDeploymentFutureImplementation,
@@ -137,6 +139,16 @@ export class IgnitionModuleBuilderImplementation<
 
   public getAccount(accountIndex: number): AccountRuntimeValue {
     return new AccountRuntimeValueImplementation(accountIndex);
+  }
+
+  public getParameter<ParamTypeT extends ModuleParameterType>(
+    parameterName: string,
+    defaultValue?: ParamTypeT
+  ): ModuleParameterRuntimeValue<ParamTypeT> {
+    return new ModuleParameterRuntimeValueImplementation(
+      parameterName,
+      defaultValue
+    );
   }
 
   public contract<ContractNameT extends string>(
@@ -415,22 +427,6 @@ export class IgnitionModuleBuilderImplementation<
     this._module.futures.add(future);
 
     return future;
-  }
-
-  public getParameter<ParamType extends ModuleParameterType = any>(
-    parameterName: string,
-    defaultValue?: ParamType
-  ): ParamType {
-    const param = this.parameters[parameterName] ?? defaultValue;
-
-    if (param === undefined) {
-      this._throwErrorWithStackTrace(
-        `Module parameter '${parameterName}' is required, but none was given`,
-        this.getParameter
-      );
-    }
-
-    return param as ParamType;
   }
 
   public readEventArgument(

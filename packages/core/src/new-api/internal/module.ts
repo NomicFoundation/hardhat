@@ -11,6 +11,8 @@ import {
   FutureType,
   IgnitionModule,
   IgnitionModuleResult,
+  ModuleParameterRuntimeValue,
+  ModuleParameterType,
   NamedContractAtFuture,
   NamedContractCallFuture,
   NamedContractDeploymentFuture,
@@ -20,6 +22,8 @@ import {
   RuntimeValueType,
   SendDataFuture,
 } from "../types/module";
+
+import { jsonStringifyWithBigint } from "./utils";
 
 const customInspectSymbol = Symbol.for("nodejs.util.inspect.custom");
 
@@ -268,6 +272,33 @@ export class AccountRuntimeValueImplementation implements AccountRuntimeValue {
   ) {
     return `Account RuntimeValue {
     accountIndex: ${this.accountIndex}
+}`;
+  }
+}
+
+export class ModuleParameterRuntimeValueImplementation<
+  ParamTypeT extends ModuleParameterType
+> implements ModuleParameterRuntimeValue<ParamTypeT>
+{
+  public readonly type = RuntimeValueType.MODULE_PARAMETER;
+
+  constructor(
+    public readonly name: string,
+    public readonly defaultValue: ParamTypeT | undefined
+  ) {}
+
+  public [customInspectSymbol](
+    _depth: number,
+    _inspectOptions: {},
+    _inspect: (arg: {}) => string
+  ) {
+    return `Module Parameter RuntimeValue {
+    name: ${this.name}${
+      this.defaultValue !== undefined
+        ? `
+    default value: ${jsonStringifyWithBigint(this.defaultValue)}`
+        : ""
+    }
 }`;
   }
 }

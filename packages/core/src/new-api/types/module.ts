@@ -311,7 +311,9 @@ export enum RuntimeValueType {
  *
  * @beta
  */
-export type RuntimeValue = AccountRuntimeValue;
+export type RuntimeValue =
+  | AccountRuntimeValue
+  | ModuleParameterRuntimeValue<ModuleParameterType>;
 
 /**
  * A local account.
@@ -333,7 +335,7 @@ export interface ModuleParameterRuntimeValue<
 > {
   type: RuntimeValueType.MODULE_PARAMETER;
   name: string;
-  defaultValue?: ParamTypeT;
+  defaultValue: ParamTypeT | undefined;
 }
 
 /**
