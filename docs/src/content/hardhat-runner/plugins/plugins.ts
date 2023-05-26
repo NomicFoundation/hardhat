@@ -813,6 +813,13 @@ const officialPlugins: IPlugin[] = [
     tags: ["Foundry"],
   },
   {
+    name: "@nomicfoundation/hardhat-ledger",
+    author: "Nomic Foundation",
+    authorUrl: "https://twitter.com/NomicFoundation",
+    description: "Hardhat plugin for the Ledger hardware wallet",
+    tags: ["Ledger", "Wallet"],
+  },
+  {
     name: "@nomiclabs/hardhat-vyper",
     author: "Nomic Foundation",
     authorUrl: "https://twitter.com/NomicFoundation",

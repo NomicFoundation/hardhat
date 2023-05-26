@@ -6,6 +6,7 @@ order:
   - "@nomiclabs/hardhat-ethers"
   - "@nomicfoundation/hardhat-verify"
   - "@nomicfoundation/hardhat-foundry"
+  - "@nomicfoundation/hardhat-ledger"
   - "@nomiclabs/hardhat-vyper"
   - "@nomiclabs/hardhat-solhint"
   - "@nomiclabs/hardhat-solpp"
