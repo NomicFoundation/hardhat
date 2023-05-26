@@ -9,6 +9,7 @@ export * from "./new-api/types/artifact";
 export * from "./new-api/types/module";
 export * from "./new-api/types/module-builder";
 export * from "./new-api/types/serialized-deployment";
+export * from "./new-api/type-guards";
 export * from "./types/dsl";
 export * from "./types/future";
 export * from "./types/hardhat";

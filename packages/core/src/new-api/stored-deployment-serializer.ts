@@ -23,7 +23,7 @@ import {
   isContractFuture,
   isFuture,
   isRuntimeValue,
-} from "./internal/utils";
+} from "./type-guards";
 import {
   AccountRuntimeValue,
   AddressResolvableFuture,
