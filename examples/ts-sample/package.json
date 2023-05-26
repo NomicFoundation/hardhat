@@ -12,6 +12,6 @@
   "devDependencies": {
     "@ignored/hardhat-ignition": "^0.0.13",
     "@nomicfoundation/hardhat-toolbox": "2.0.2",
-    "hardhat": "2.13.0"
+    "hardhat": "^2.14.0"
   }
 }
