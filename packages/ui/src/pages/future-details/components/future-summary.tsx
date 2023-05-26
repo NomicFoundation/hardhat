@@ -3,10 +3,11 @@ import {
   Future,
   FutureType,
   StoredDeployment,
+  isFuture,
+  isRuntimeValue,
 } from "@ignored/ignition-core/ui-helpers";
 import { PageTitle, Panel } from "../../../components/shared";
 import { SummaryHeader } from "../../../components/summary-header";
-import { isFuture } from "../../../utils/guards";
 
 export const FutureSummary: React.FC<{
   deployment: StoredDeployment;
@@ -73,6 +74,10 @@ function argumentTypeToString(argument: ArgumentType): string {
 
       if (isFuture(value)) {
         return `<Future ${value.id}>`;
+      }
+
+      if (isRuntimeValue(value)) {
+        return `<AccountRuntimeValue accountIndex ${value.accountIndex}>`;
       }
 
       return value;
