@@ -1,3 +1,4 @@
+import { Adapters } from "./types/adapters";
 import {
   AddressResolvableFuture,
   ContractFuture,
@@ -88,7 +89,7 @@ export function isAddressResolvableFuture(
 }
 
 /**
- * Returns true if future is of type FunctionCallFuture<string, string>.
+ * Returns true if future is of type FunctionCallFuture\<string, string\>.
  *
  * @beta
  */
@@ -124,6 +125,27 @@ export function isReadEventArgumentFuture(
 }
 
 /**
+ * Returns true if the type is of type DeploymentFuture<string>.
+ *
+ * @beta
+ */
+export function isDeploymentType(
+  potential: unknown
+): potential is DeploymentFuture<string>["type"] {
+  const deploymentTypes = [
+    FutureType.NAMED_CONTRACT_DEPLOYMENT,
+    FutureType.ARTIFACT_CONTRACT_DEPLOYMENT,
+    FutureType.NAMED_LIBRARY_DEPLOYMENT,
+    FutureType.ARTIFACT_LIBRARY_DEPLOYMENT,
+  ];
+
+  return (
+    typeof potential === "string" &&
+    deploymentTypes.includes(potential as FutureType)
+  );
+}
+
+/**
  * Returns true if future is of type DeploymentFuture<string>.
  *
  * @beta
@@ -131,12 +153,7 @@ export function isReadEventArgumentFuture(
 export function isDeploymentFuture(
   future: Future
 ): future is DeploymentFuture<string> {
-  return (
-    future.type === FutureType.NAMED_CONTRACT_DEPLOYMENT ||
-    future.type === FutureType.ARTIFACT_CONTRACT_DEPLOYMENT ||
-    future.type === FutureType.NAMED_LIBRARY_DEPLOYMENT ||
-    future.type === FutureType.ARTIFACT_LIBRARY_DEPLOYMENT
-  );
+  return isDeploymentType(future.type);
 }
 
 /**
@@ -164,5 +181,21 @@ export function isRuntimeValue(potential: unknown): potential is RuntimeValue {
     potential !== null &&
     "type" in potential &&
     isRuntimeValueType(potential.type)
+  );
+}
+
+/**
+ * Returns true if potential is a set of adapters
+ *
+ * @beta
+ */
+export function isAdapters(potential: unknown): potential is Adapters {
+  return (
+    typeof potential === "object" &&
+    potential !== null &&
+    /* TODO: make this type safe */
+    "signer" in potential &&
+    "gas" in potential &&
+    "transactions" in potential
   );
 }

@@ -1,4 +1,8 @@
 import {
+  Artifact,
+  Deployer,
+  FileJournal,
+  MemoryJournal,
   Module,
   ModuleConstructor,
   ModuleDict,
@@ -12,6 +16,7 @@ import { lazyObject } from "hardhat/plugins";
 import path from "path";
 import prompts from "prompts";
 
+import { buildAdaptersFrom } from "./buildAdaptersFrom";
 import { buildIgnitionProvidersFrom } from "./buildIgnitionProvidersFrom";
 import { IgnitionWrapper } from "./ignition-wrapper";
 import { loadModule } from "./load-module";
@@ -158,6 +163,121 @@ task("deploy")
           ui: DISPLAY_UI,
           force,
         });
+      } catch (err) {
+        if (DISPLAY_UI) {
+          // display of error or on hold is done
+          // based on state, thrown error display
+          // can be ignored
+          process.exit(1);
+        } else {
+          throw err;
+        }
+      }
+    }
+  );
+
+task("deploy2")
+  .addPositionalParam("moduleNameOrPath")
+  .addOptionalParam(
+    "parameters",
+    "A JSON object as a string, of the module parameters, or a relative path to a JSON file"
+  )
+  .addFlag("force", "restart the deployment ignoring previous history")
+  .setAction(
+    async (
+      {
+        moduleNameOrPath,
+        parameters: parametersInput,
+      }: { moduleNameOrPath: string; parameters?: string; force: boolean },
+      hre
+    ) => {
+      const chainId = Number(
+        await hre.network.provider.request({
+          method: "eth_chainId",
+        })
+      );
+
+      if (chainId !== 31337) {
+        const prompt = await prompts({
+          type: "confirm",
+          name: "networkConfirmation",
+          message: `Confirm deploy to network ${hre.network.name} (${chainId})?`,
+          initial: false,
+        });
+
+        if (prompt.networkConfirmation !== true) {
+          console.log("Deploy cancelled");
+          return;
+        }
+      }
+
+      await hre.run("compile", { quiet: true });
+
+      const userModule: Module<ModuleDict> | undefined = loadModule(
+        hre.config.paths.ignition,
+        moduleNameOrPath
+      );
+
+      if (userModule === undefined) {
+        console.warn("No Ignition modules found");
+        process.exit(0);
+      }
+
+      let parameters: ModuleParams | undefined;
+      if (parametersInput === undefined) {
+        parameters = resolveParametersFromModuleName(
+          userModule.name,
+          hre.config.paths.ignition
+        );
+      } else if (parametersInput.endsWith(".json")) {
+        parameters = resolveParametersFromFileName(parametersInput);
+      } else {
+        parameters = resolveParametersString(parametersInput);
+      }
+
+      const isHardhatNetwork = hre.network.name === "hardhat";
+
+      const journal = isHardhatNetwork
+        ? new MemoryJournal()
+        : new FileJournal(
+            resolveJournalPath(userModule.name, hre.config.paths.ignition)
+          );
+
+      const accounts = (await hre.network.provider.request({
+        method: "eth_accounts",
+      })) as string[];
+
+      try {
+        const artifactLoader = {
+          load: async (contractName: string): Promise<Artifact> =>
+            hre.artifacts.readArtifact(contractName),
+        };
+
+        const adapters = buildAdaptersFrom(hre);
+
+        const deployer = new Deployer({ journal, adapters, artifactLoader });
+
+        const result = await deployer.deploy(
+          userModule as any,
+          parameters as any,
+          accounts
+        );
+
+        if (result.status === "success") {
+          console.log("Deployment complete");
+          console.log("");
+
+          for (const [
+            futureId,
+            { contractName, contractAddress },
+          ] of Object.entries(result.contracts)) {
+            console.log(`${contractName} (${futureId}) - ${contractAddress}`);
+          }
+        } else if (result.status === "failed") {
+          console.log("Deployment failed");
+        } else if (result.status === "hold") {
+          console.log("Deployment held");
+        }
       } catch (err) {
         if (DISPLAY_UI) {
           // display of error or on hold is done
