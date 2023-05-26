@@ -8,7 +8,7 @@ use rethnet_eth::{Address, Bytes, U256};
 use rethnet_evm::state::AccountModifierFn;
 
 mod util;
-use util::{account_has_code, bench_sync_state_method, prep_no_op, Permutations};
+use util::{account_has_code, bench_sync_state_method, state_prep_no_op, Permutations};
 
 fn bench_account_storage_root_account_doesnt_exist(c: &mut Criterion) {
     bench_sync_state_method(
@@ -35,7 +35,7 @@ fn bench_account_storage_root_account_exists(c: &mut Criterion) {
     bench_sync_state_method(
         c,
         "StateDebug:storage_root exist acct",
-        prep_no_op,
+        state_prep_no_op,
         |state, number_of_accounts, _, _| {
             let address = Address::from_low_u64_ne(number_of_accounts);
             debug_assert!(state.basic(address).unwrap().is_some());
@@ -52,7 +52,7 @@ fn bench_insert_account_already_exists(c: &mut Criterion) {
     bench_sync_state_method(
         c,
         "StateDebug:ins exist acct",
-        prep_no_op,
+        state_prep_no_op,
         |state, number_of_accounts, _, _| {
             let address = Address::from_low_u64_ne(number_of_accounts);
             debug_assert!(state.basic(address).unwrap().is_some());
@@ -143,7 +143,7 @@ fn bench_modify_account_exists_with_code_no_change(c: &mut Criterion) {
     bench_sync_state_method(
         c,
         "StateDebug:mod non-code change",
-        prep_no_op,
+        state_prep_no_op,
         |state, number_of_accounts, _, _| {
             let address = Address::from_low_u64_ne(number_of_accounts);
             debug_assert!(account_has_code(state, &address));
@@ -202,7 +202,7 @@ fn bench_modify_account_exists_with_code_changed(c: &mut Criterion) {
     bench_sync_state_method(
         c,
         "StateDebug:mod replace acct code",
-        prep_no_op,
+        state_prep_no_op,
         |state, number_of_accounts, _, _| {
             let address = Address::from_low_u64_ne(number_of_accounts);
             debug_assert!(account_has_code(state, &address));
@@ -374,7 +374,7 @@ fn bench_set_account_storage_slot_account_exists(c: &mut Criterion) {
     bench_sync_state_method(
         c,
         "StateDebug:set_storage exist acct",
-        prep_no_op,
+        state_prep_no_op,
         |state, number_of_accounts, _, _| {
             let address = Address::from_low_u64_ne(number_of_accounts);
             debug_assert!(state.basic(address).unwrap().is_some());
@@ -390,7 +390,7 @@ fn bench_state_root(c: &mut Criterion) {
     bench_sync_state_method(
         c,
         "StateDebug:state_root",
-        prep_no_op,
+        state_prep_no_op,
         |state, _number_of_accounts, _, _| {
             let result = state.state_root();
             debug_assert!(result.is_ok());

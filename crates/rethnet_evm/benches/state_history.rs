@@ -3,13 +3,13 @@ use criterion::{criterion_group, criterion_main, Criterion};
 use rethnet_eth::B256;
 
 mod util;
-use util::{bench_sync_state_method, prep_no_op, Permutations};
+use util::{bench_sync_state_method, state_prep_no_op, Permutations};
 
 fn bench_checkpoint(c: &mut Criterion) {
     bench_sync_state_method(
         c,
         "StateHistory:checkpoint()",
-        prep_no_op,
+        state_prep_no_op,
         |state, _number_of_accounts, _, _| {
             let result = state.checkpoint();
             debug_assert!(result.is_ok());
@@ -23,7 +23,7 @@ fn bench_make_snapshot(c: &mut Criterion) {
     bench_sync_state_method(
         c,
         "StateHistory:make_snapshot",
-        prep_no_op,
+        state_prep_no_op,
         |state, _number_of_accounts, _, _| {
             state.make_snapshot();
         },
@@ -72,7 +72,7 @@ fn bench_set_block_context_to_earliest_layer(c: &mut Criterion) {
     bench_sync_state_method(
         c,
         "StateHistory:set_block,earliest layer",
-        prep_no_op,
+        state_prep_no_op,
         |state, _number_of_accounts, checkpoints, _| {
             state.set_block_context(&checkpoints[0], None).unwrap();
         },
@@ -85,7 +85,7 @@ fn bench_set_block_context_to_latest_layer(c: &mut Criterion) {
     bench_sync_state_method(
         c,
         "StateHistory:set_block,latest layer",
-        prep_no_op,
+        state_prep_no_op,
         |state, _number_of_accounts, checkpoints, _| {
             state
                 .set_block_context(&checkpoints[checkpoints.len() - 1], None)
@@ -100,7 +100,7 @@ fn bench_set_block_context_to_middle_layer(c: &mut Criterion) {
     bench_sync_state_method(
         c,
         "StateHistory:set_block,middle layer",
-        prep_no_op,
+        state_prep_no_op,
         |state, _number_of_accounts, checkpoints, _| {
             state
                 .set_block_context(&checkpoints[checkpoints.len() / 2], None)

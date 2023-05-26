@@ -6,13 +6,13 @@ use revm::{db::StateRef, primitives::Bytecode};
 use rethnet_eth::{Address, Bytes, U256};
 
 mod util;
-use util::{bench_sync_state_method, prep_no_op, Permutations};
+use util::{bench_sync_state_method, state_prep_no_op, Permutations};
 
 fn bench_basic(c: &mut Criterion) {
     bench_sync_state_method(
         c,
         "StateRef:basic",
-        prep_no_op,
+        state_prep_no_op,
         |state, number_of_accounts, _, _| {
             for i in (1..=number_of_accounts).rev() {
                 let result = state.basic(Address::from_str(&format!("0x{:0>40x}", i)).unwrap());
@@ -28,7 +28,7 @@ fn bench_code_by_hash(c: &mut Criterion) {
     bench_sync_state_method(
         c,
         "StateRef:code_by_hash",
-        prep_no_op,
+        state_prep_no_op,
         |state, number_of_accounts, _, _| {
             for i in (1..=number_of_accounts).rev() {
                 let result = state.code_by_hash(
@@ -114,7 +114,7 @@ fn bench_database_commit(c: &mut Criterion) {
     bench_sync_state_method(
         c,
         "DatabaseCommit:commit",
-        prep_no_op,
+        state_prep_no_op,
         |state, _number_of_accounts, _, _| {
             state.commit(accounts_to_commit.clone());
 
@@ -144,7 +144,7 @@ fn bench_storage(c: &mut Criterion) {
     bench_sync_state_method(
         c,
         "StateRef:storage",
-        prep_no_op,
+        state_prep_no_op,
         |state, number_of_accounts, _, _| {
             for i in (1..=number_of_accounts).rev() {
                 let result = state.storage(Address::from_low_u64_ne(i), U256::from(i));

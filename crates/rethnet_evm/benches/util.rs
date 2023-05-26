@@ -246,16 +246,16 @@ impl Permutations {
 }
 
 #[allow(dead_code)]
-pub fn bench_sync_state_method<O, R, Prep>(
+pub fn bench_sync_state_method<O, R, StatePrep>(
     c: &mut Criterion,
     method_name: &str,
-    mut prep: Prep,
+    mut prep_state: StatePrep,
     method_invocation: R,
     storage_scales: &[u64],
     snapshot_scales: &[u64],
 ) where
     R: FnMut(&mut Box<dyn SyncState<StateError>>, u64, &Vec<B256>, &Vec<B256>) -> O,
-    Prep: FnMut(&mut dyn SyncState<StateError>, u64),
+    StatePrep: FnMut(&mut dyn SyncState<StateError>, u64),
 {
     let mut group = c.benchmark_group(method_name);
     let method_invocation = std::cell::RefCell::<R>::new(method_invocation);
@@ -296,14 +296,14 @@ pub fn bench_sync_state_method<O, R, Prep>(
                                         // routine. note that we have to run prep
                                         // before THIS invocation, and then AGAIN
                                         // after it, for the "real" invocation.
-                                        prep(&mut state, *number_of_accounts);
+                                        prep_state(&mut state, *number_of_accounts);
                                         method_invocation.borrow_mut()(
                                             &mut state,
                                             *number_of_accounts,
                                             checkpoints,
                                             snapshots,
                                         );
-                                        prep(&mut state, *number_of_accounts);
+                                        prep_state(&mut state, *number_of_accounts);
                                         state
                                     },
                                     |mut state| {
@@ -326,7 +326,7 @@ pub fn bench_sync_state_method<O, R, Prep>(
 }
 
 #[allow(dead_code)]
-pub fn prep_no_op(_state: &mut dyn SyncState<StateError>, _number_of_accounts: u64) {}
+pub fn state_prep_no_op(_state: &mut dyn SyncState<StateError>, _number_of_accounts: u64) {}
 
 #[allow(dead_code)]
 pub fn account_has_code(state: &dyn SyncState<StateError>, address: &Address) -> bool {
