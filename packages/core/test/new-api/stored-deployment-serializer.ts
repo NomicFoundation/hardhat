@@ -572,6 +572,54 @@ describe("stored deployment serializer", () => {
   });
 
   describe("Complex arguments serialization", () => {
+    it("Should support base values as arguments", () => {
+      const moduleDefinition = defineModule("Module", (m) => {
+        const contract1 = m.contract("Contract1", [1, true, "string", 4n]);
+
+        return { contract1 };
+      });
+
+      const constructor = new ModuleConstructor();
+      const module = constructor.construct(moduleDefinition);
+
+      assertSerializableModuleIn({
+        details,
+        module,
+      });
+    });
+
+    it("Should support arrays as arguments", () => {
+      const moduleDefinition = defineModule("Module", (m) => {
+        const contract1 = m.contract("Contract1", [[1, 2, 3n]]);
+
+        return { contract1 };
+      });
+
+      const constructor = new ModuleConstructor();
+      const module = constructor.construct(moduleDefinition);
+
+      assertSerializableModuleIn({
+        details,
+        module,
+      });
+    });
+
+    it("Should support objects as arguments", () => {
+      const moduleDefinition = defineModule("Module", (m) => {
+        const contract1 = m.contract("Contract1", [{ a: 1, b: [1, 2] }]);
+
+        return { contract1 };
+      });
+
+      const constructor = new ModuleConstructor();
+      const module = constructor.construct(moduleDefinition);
+
+      assertSerializableModuleIn({
+        details,
+        module,
+      });
+    });
+
     it("Should support futures as arguments", () => {
       const moduleDefinition = defineModule("Module", (m) => {
         const contract1 = m.contract("Contract1");
@@ -589,9 +637,27 @@ describe("stored deployment serializer", () => {
       });
     });
 
-    it("Should support bigint as arguments", () => {
+    it("should support nested futures as arguments", () => {
       const moduleDefinition = defineModule("Module", (m) => {
-        const contract1 = m.contract("Contract1", [1n]);
+        const contract1 = m.contract("Contract1");
+        const contract2 = m.contract("Contract2", [{ arr: [contract1] }]);
+
+        return { contract1, contract2 };
+      });
+
+      const constructor = new ModuleConstructor();
+      const module = constructor.construct(moduleDefinition);
+
+      assert.equal(
+        (module.results.contract2.constructorArgs[0] as any).arr[0],
+        module.results.contract1
+      );
+    });
+
+    it("should support AccountRuntimeValues as arguments", () => {
+      const moduleDefinition = defineModule("Module", (m) => {
+        const account1 = m.getAccount(1);
+        const contract1 = m.contract("Contract1", [account1]);
 
         return { contract1 };
       });
@@ -605,20 +671,12 @@ describe("stored deployment serializer", () => {
       });
     });
 
-    it("Should support complex arguments as arguments", () => {
+    it("should support AccountRuntimeValues as from", () => {
       const moduleDefinition = defineModule("Module", (m) => {
-        const contract1 = m.contract("Contract1", [
-          1n,
-          [1, 1n, "asd", { a: ["asd", false] }],
-        ]);
+        const account1 = m.getAccount(1);
+        const contract1 = m.contract("Contract1", [], { from: account1 });
 
-        const contract2 = m.contract("Contract2", [
-          {
-            a: ["asd", false, { b: 1n, contract: contract1 }],
-          },
-        ]);
-
-        return { contract1, contract2 };
+        return { contract1 };
       });
 
       const constructor = new ModuleConstructor();
@@ -630,10 +688,10 @@ describe("stored deployment serializer", () => {
       });
     });
 
-    it("Should support AccountRuntimeValues as from", () => {
+    it("should support nested AccountRuntimeValues as arguments", () => {
       const moduleDefinition = defineModule("Module", (m) => {
         const account1 = m.getAccount(1);
-        const contract1 = m.contract("Contract1", [], { from: account1 });
+        const contract1 = m.contract("Contract1", [{ arr: [account1] }]);
 
         return { contract1 };
       });
