@@ -1,9 +1,13 @@
 import { assert } from "chai";
 
 import { defineModule } from "../../src/new-api/define-module";
-import { NamedLibraryDeploymentFutureImplementation } from "../../src/new-api/internal/module";
+import {
+  AccountRuntimeValueImplementation,
+  NamedLibraryDeploymentFutureImplementation,
+} from "../../src/new-api/internal/module";
 import { ModuleConstructor } from "../../src/new-api/internal/module-builder";
 import { FutureType, RuntimeValueType } from "../../src/new-api/types/module";
+import { assertInstanceOf } from "./helpers";
 
 describe("library", () => {
   it("should be able to setup a deploy library call", () => {
@@ -174,10 +178,8 @@ describe("library", () => {
       assert.fail("Not a named library deployment");
     }
 
-    assert.equal(anotherFuture.from, {
-      type: RuntimeValueType.ACCOUNT,
-      accountIndex: 1,
-    });
+    assertInstanceOf(anotherFuture.from, AccountRuntimeValueImplementation);
+    assert.equal(anotherFuture.from.accountIndex, 1);
   });
 
   describe("passing id", () => {

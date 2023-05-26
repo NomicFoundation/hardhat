@@ -1,9 +1,13 @@
 import { assert } from "chai";
 
 import { defineModule } from "../../src/new-api/define-module";
-import { NamedContractCallFutureImplementation } from "../../src/new-api/internal/module";
+import {
+  AccountRuntimeValueImplementation,
+  NamedContractCallFutureImplementation,
+} from "../../src/new-api/internal/module";
 import { ModuleConstructor } from "../../src/new-api/internal/module-builder";
 import { FutureType, RuntimeValueType } from "../../src/new-api/types/module";
+import { assertInstanceOf } from "./helpers";
 
 describe("call", () => {
   it("should be able to setup a contract call", () => {
@@ -213,10 +217,8 @@ describe("call", () => {
       assert.fail("Not a named contract deployment");
     }
 
-    assert.equal(callFuture.from, {
-      type: RuntimeValueType.ACCOUNT,
-      accountIndex: 1,
-    });
+    assertInstanceOf(callFuture.from, AccountRuntimeValueImplementation);
+    assert.equal(callFuture.from.accountIndex, 1);
   });
 
   describe("passing id", () => {

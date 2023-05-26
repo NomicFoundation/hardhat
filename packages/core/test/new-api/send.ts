@@ -1,9 +1,13 @@
 import { assert } from "chai";
 
 import { defineModule } from "../../src/new-api/define-module";
-import { SendDataFutureImplementation } from "../../src/new-api/internal/module";
+import {
+  AccountRuntimeValueImplementation,
+  SendDataFutureImplementation,
+} from "../../src/new-api/internal/module";
 import { ModuleConstructor } from "../../src/new-api/internal/module-builder";
 import { FutureType, RuntimeValueType } from "../../src/new-api/types/module";
+import { assertInstanceOf } from "./helpers";
 
 describe("send", () => {
   it("should be able to setup a send", () => {
@@ -190,10 +194,8 @@ describe("send", () => {
       assert.fail("Not a send data future");
     }
 
-    assert.equal(sendFuture.from, {
-      type: RuntimeValueType.ACCOUNT,
-      accountIndex: 1,
-    });
+    assertInstanceOf(sendFuture.from, AccountRuntimeValueImplementation);
+    assert.equal(sendFuture.from.accountIndex, 1);
   });
 
   describe("passing id", () => {

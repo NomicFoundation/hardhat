@@ -2,8 +2,12 @@ import { assert } from "chai";
 
 import { RuntimeValueType } from "../../src";
 import { defineModule } from "../../src/new-api/define-module";
-import { ArtifactContractDeploymentFutureImplementation } from "../../src/new-api/internal/module";
+import {
+  AccountRuntimeValueImplementation,
+  ArtifactContractDeploymentFutureImplementation,
+} from "../../src/new-api/internal/module";
 import { ModuleConstructor } from "../../src/new-api/internal/module-builder";
+import { assertInstanceOf } from "./helpers";
 
 describe("contractFromArtifact", () => {
   const fakeArtifact: any = {};
@@ -235,10 +239,8 @@ describe("contractFromArtifact", () => {
       assert.fail("Not an artifact contract deployment");
     }
 
-    assert.equal(anotherFuture.from, {
-      type: RuntimeValueType.ACCOUNT,
-      accountIndex: 1,
-    });
+    assertInstanceOf(anotherFuture.from, AccountRuntimeValueImplementation);
+    assert.equal(anotherFuture.from.accountIndex, 1);
   });
 
   describe("passing id", () => {
