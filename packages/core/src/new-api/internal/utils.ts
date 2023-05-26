@@ -8,13 +8,19 @@ import {
   RuntimeValueType,
 } from "../types/module";
 
+export function isFutureType(potential: unknown): potential is FutureType {
+  return (
+    typeof potential === "string" &&
+    (FutureType as any)[potential] !== undefined
+  );
+}
+
 export function isFuture(potential: unknown): potential is Future {
   return (
     typeof potential === "object" &&
     potential !== null &&
     "type" in potential &&
-    typeof potential.type === "number" &&
-    FutureType[potential.type] !== undefined
+    isFutureType(potential.type)
   );
 }
 
@@ -65,12 +71,20 @@ function _getFutures(argument: ArgumentType): Future[] {
   return [];
 }
 
+export function isRuntimeValueType(
+  potential: unknown
+): potential is RuntimeValueType {
+  return (
+    typeof potential === "string" &&
+    (RuntimeValueType as any)[potential] !== undefined
+  );
+}
+
 export function isRuntimeValue(potential: unknown): potential is RuntimeValue {
   return (
     typeof potential === "object" &&
     potential !== null &&
     "type" in potential &&
-    typeof potential.type === "number" &&
-    RuntimeValueType[potential.type] !== undefined
+    isRuntimeValueType(potential.type)
   );
 }
