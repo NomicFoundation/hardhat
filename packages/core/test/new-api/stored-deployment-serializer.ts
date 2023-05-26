@@ -710,14 +710,18 @@ describe("stored deployment serializer", () => {
 function assertSerializableModuleIn(deployment: StoredDeployment) {
   const serialized = JSON.stringify(
     StoredDeploymentSerializer.serialize(deployment),
+    // This is not actually needed, but we use it to be able to compare the
+    // serialized string, which can be easier to debug.
     sortedKeysJsonStringifyReplacer,
     2
   );
 
+  const deserialized = StoredDeploymentDeserializer.deserialize(
+    JSON.parse(serialized)
+  );
+
   const reserialized = JSON.stringify(
-    StoredDeploymentSerializer.serialize(
-      StoredDeploymentDeserializer.deserialize(JSON.parse(serialized))
-    ),
+    StoredDeploymentSerializer.serialize(deserialized),
     sortedKeysJsonStringifyReplacer,
     2
   );
@@ -725,6 +729,12 @@ function assertSerializableModuleIn(deployment: StoredDeployment) {
   assert.equal(
     serialized,
     reserialized,
+    "Module serialization not the same across serialization/deserialization"
+  );
+
+  assert.deepEqual(
+    deployment,
+    deserialized,
     "Module not the same across serialization/deserialization"
   );
 
