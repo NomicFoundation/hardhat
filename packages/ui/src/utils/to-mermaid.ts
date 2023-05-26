@@ -4,8 +4,10 @@ import {
   IgnitionModule,
   IgnitionModuleResult,
   StoredDeployment,
+  isFuture,
 } from "@ignored/ignition-core/ui-helpers";
 import { getAllFuturesForModule } from "../queries/futures";
+import { argumentTypeToString } from "./argumentTypeToString";
 
 export function toMermaid(deployment: StoredDeployment) {
   const modules = recursivelyListModulesAndSubmodulesFor(deployment.module);
@@ -70,15 +72,29 @@ function toLabel(f: Future): string {
       return `Static call ${f.contract.contractName}/${f.functionName}`;
     case FutureType.NAMED_CONTRACT_AT:
       return `Existing contract ${f.contractName} (${
-        typeof f.address === "string" ? f.address : f.address.id
+        typeof f.address === "string"
+          ? f.address
+          : isFuture(f.address)
+          ? f.address.id
+          : argumentTypeToString(f.address)
       })`;
     case FutureType.ARTIFACT_CONTRACT_AT:
       return `Existing contract from artifact ${f.contractName} (${
-        typeof f.address === "string" ? f.address : f.address.id
+        typeof f.address === "string"
+          ? f.address
+          : isFuture(f.address)
+          ? f.address.id
+          : argumentTypeToString(f.address)
       })`;
     case FutureType.READ_EVENT_ARGUMENT:
       return `Read event from future ${f.futureToReadFrom.id} (event ${f.eventName} argument ${f.argumentName})`;
     case FutureType.SEND_DATA:
-      return `Send data to ${typeof f.to === "string" ? f.to : f.to.id}`;
+      return `Send data to ${
+        typeof f.to === "string"
+          ? f.to
+          : isFuture(f.to)
+          ? f.to.id
+          : argumentTypeToString(f.to)
+      }`;
   }
 }

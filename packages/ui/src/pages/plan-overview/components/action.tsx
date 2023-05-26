@@ -1,7 +1,12 @@
-import { Future, FutureType } from "@ignored/ignition-core/ui-helpers";
+import {
+  Future,
+  FutureType,
+  isFuture,
+} from "@ignored/ignition-core/ui-helpers";
 import React, { useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import styled, { css } from "styled-components";
+import { argumentTypeToString } from "../../../utils/argumentTypeToString";
 
 export const Action: React.FC<{
   future: Future;
@@ -37,17 +42,29 @@ function toDisplayText(future: Future): string {
       return `Static call ${future.contract.contractName}/${future.functionName}`;
     case FutureType.NAMED_CONTRACT_AT:
       return `Existing contract ${future.contractName} (${
-        typeof future.address === "string" ? future.address : future.address.id
+        typeof future.address === "string"
+          ? future.address
+          : isFuture(future.address)
+          ? future.address.id
+          : argumentTypeToString(future.address)
       })`;
     case FutureType.ARTIFACT_CONTRACT_AT:
       return `Existing contract ${future.contractName} from artifact (${
-        typeof future.address === "string" ? future.address : future.address.id
+        typeof future.address === "string"
+          ? future.address
+          : isFuture(future.address)
+          ? future.address.id
+          : argumentTypeToString(future.address)
       })`;
     case FutureType.READ_EVENT_ARGUMENT:
       return `Read event from future ${future.futureToReadFrom.id} (event ${future.eventName} argument ${future.argumentName})`;
     case FutureType.SEND_DATA:
       return `Send data to ${
-        typeof future.to === "string" ? future.to : future.to.id
+        typeof future.to === "string"
+          ? future.to
+          : isFuture(future.to)
+          ? future.to.id
+          : argumentTypeToString(future.to)
       }`;
   }
 }

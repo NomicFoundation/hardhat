@@ -1,14 +1,12 @@
 import {
-  ArgumentType,
   Future,
   FutureType,
-  RuntimeValueType,
   StoredDeployment,
   isFuture,
-  isRuntimeValue,
 } from "@ignored/ignition-core/ui-helpers";
 import { PageTitle, Panel } from "../../../components/shared";
 import { SummaryHeader } from "../../../components/summary-header";
+import { argumentTypeToString } from "../../../utils/argumentTypeToString";
 
 export const FutureSummary: React.FC<{
   deployment: StoredDeployment;
@@ -52,49 +50,25 @@ function resolveTitleFor(future: Future): string {
       return `Static call - ${future.contract.contractName}/${future.functionName}`;
     case FutureType.NAMED_CONTRACT_AT:
       return `Existing contract - ${future.contractName} (${
-        typeof future.address === "string" ? future.address : future.address.id
+        typeof future.address === "string"
+          ? future.address
+          : isFuture(future.address)
+          ? future.address.id
+          : argumentTypeToString(future.address)
       })`;
     case FutureType.ARTIFACT_CONTRACT_AT:
       return `Existing contract from Artifact - ${future.contractName} (${
-        typeof future.address === "string" ? future.address : future.address.id
+        typeof future.address === "string"
+          ? future.address
+          : isFuture(future.address)
+          ? future.address.id
+          : argumentTypeToString(future.address)
       })`;
     case FutureType.READ_EVENT_ARGUMENT:
       return `Read event argument from future - ${future.id}`;
     case FutureType.SEND_DATA:
       return `Send data - ${future.id}`;
   }
-}
-
-function argumentTypeToString(argument: ArgumentType): string {
-  return JSON.stringify(
-    argument,
-    (_key, value) => {
-      if (typeof value === "bigint") {
-        return `<BigInt ${value.toString(10)}>`;
-      }
-
-      if (isFuture(value)) {
-        return `<Future ${value.id}>`;
-      }
-
-      if (isRuntimeValue(value)) {
-        if (value.type === RuntimeValueType.ACCOUNT) {
-          return `<AccountRuntimeValue accountIndex=${value.accountIndex}>`;
-        }
-
-        return `<ModuleParameterRuntimeValue name="${
-          value.name
-        }" defaultValue=${
-          value.defaultValue === undefined
-            ? "undefined"
-            : argumentTypeToString(value.defaultValue)
-        }>`;
-      }
-
-      return value;
-    },
-    2
-  );
 }
 
 const FutureDetailsSection: React.FC<{ future: Future }> = ({ future }) => {
@@ -173,7 +147,9 @@ const FutureDetailsSection: React.FC<{ future: Future }> = ({ future }) => {
             Address -{" "}
             {typeof future.address === "string"
               ? future.address
-              : future.address.id}
+              : isFuture(future.address)
+              ? future.address.id
+              : argumentTypeToString(future.address)}
           </p>
         </div>
       );
@@ -186,7 +162,9 @@ const FutureDetailsSection: React.FC<{ future: Future }> = ({ future }) => {
             Address -{" "}
             {typeof future.address === "string"
               ? future.address
-              : future.address.id}
+              : isFuture(future.address)
+              ? future.address.id
+              : argumentTypeToString(future.address)}
           </p>
         </div>
       );
@@ -205,7 +183,14 @@ const FutureDetailsSection: React.FC<{ future: Future }> = ({ future }) => {
     case FutureType.SEND_DATA:
       return (
         <div>
-          <p>To - {typeof future.to === "string" ? future.to : future.to.id}</p>
+          <p>
+            To -{" "}
+            {typeof future.to === "string"
+              ? future.to
+              : isFuture(future.to)
+              ? future.to.id
+              : argumentTypeToString(future.to)}
+          </p>
           <p>Data - {future.data}</p>
         </div>
       );
