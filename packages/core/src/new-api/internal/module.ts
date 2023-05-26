@@ -172,7 +172,10 @@ export class NamedContractAtFutureImplementation<ContractNameT extends string>
     public readonly id: string,
     public readonly module: IgnitionModuleImplementation,
     public readonly contractName: ContractNameT,
-    public readonly address: string | AddressResolvableFuture
+    public readonly address:
+      | string
+      | AddressResolvableFuture
+      | ModuleParameterRuntimeValue<string>
   ) {
     super(id, FutureType.NAMED_CONTRACT_AT, module);
   }
@@ -186,7 +189,10 @@ export class ArtifactContractAtFutureImplementation
     public readonly id: string,
     public readonly module: IgnitionModuleImplementation,
     public readonly contractName: string,
-    public readonly address: string | AddressResolvableFuture,
+    public readonly address:
+      | string
+      | AddressResolvableFuture
+      | ModuleParameterRuntimeValue<string>,
     public readonly artifact: Artifact
   ) {
     super(id, FutureType.ARTIFACT_CONTRACT_AT, module);

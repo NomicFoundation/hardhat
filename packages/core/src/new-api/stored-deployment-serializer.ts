@@ -233,6 +233,9 @@ export class StoredDeploymentSerializer {
             contractName: future.contractName,
             address: isFuture(future.address)
               ? this._convertFutureToFutureToken(future.address)
+              : isRuntimeValue(future.address) &&
+                future.address.type === RuntimeValueType.MODULE_PARAMETER
+              ? this._serializeModuleParamterRuntimeValue(future.address)
               : future.address,
           };
         return serializedNamedContractAtFuture;
@@ -250,6 +253,9 @@ export class StoredDeploymentSerializer {
             artifact: future.artifact,
             address: isFuture(future.address)
               ? this._convertFutureToFutureToken(future.address)
+              : isRuntimeValue(future.address) &&
+                future.address.type === RuntimeValueType.MODULE_PARAMETER
+              ? this._serializeModuleParamterRuntimeValue(future.address)
               : future.address,
           };
         return serializedArtifactContractAtFuture;
@@ -750,6 +756,12 @@ export class StoredDeploymentDeserializer {
                 addressResolvableFutureLookup,
                 serializedFuture.address.futureId
               )
+            : this._isSerializedModuleParameterRuntimeValue(
+                serializedFuture.address
+              )
+            ? (this._deserializeModuleParameterRuntimeValue(
+                serializedFuture.address
+              ) as ModuleParameterRuntimeValue<string>) // This is unsafe, but we only serialize valid valus
             : serializedFuture.address
         );
       case FutureType.ARTIFACT_CONTRACT_AT:
@@ -762,6 +774,12 @@ export class StoredDeploymentDeserializer {
                 addressResolvableFutureLookup,
                 serializedFuture.address.futureId
               )
+            : this._isSerializedModuleParameterRuntimeValue(
+                serializedFuture.address
+              )
+            ? (this._deserializeModuleParameterRuntimeValue(
+                serializedFuture.address
+              ) as ModuleParameterRuntimeValue<string>) // This is unsafe, but we only serialize valid valus
             : serializedFuture.address,
           serializedFuture.artifact
         );

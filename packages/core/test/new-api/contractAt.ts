@@ -1,7 +1,10 @@
 import { assert } from "chai";
 
 import { defineModule } from "../../src/new-api/define-module";
+import { ModuleParameterRuntimeValueImplementation } from "../../src/new-api/internal/module";
 import { ModuleConstructor } from "../../src/new-api/internal/module-builder";
+
+import { assertInstanceOf } from "./helpers";
 
 describe("contractAt", () => {
   const fakeArtifact: any = {};
@@ -98,6 +101,38 @@ describe("contractAt", () => {
 
     assert.equal(anotherFuture.dependencies.size, 1);
     assert(anotherFuture.dependencies.has(callFuture!));
+  });
+
+  it("Should be able to pass a module param as address", () => {
+    const moduleDefinition = defineModule("Module", (m) => {
+      const paramWithDefault = m.getParameter("addressWithDefault", "0x000000");
+      const paramWithoutDefault = m.getParameter("addressWithoutDefault");
+
+      const withDefault = m.contractAt("C", paramWithDefault);
+      const withoutDefault = m.contractAt("C2", paramWithoutDefault);
+
+      return { withDefault, withoutDefault };
+    });
+
+    const constructor = new ModuleConstructor();
+    const module = constructor.construct(moduleDefinition);
+
+    assertInstanceOf(
+      module.results.withDefault.address,
+      ModuleParameterRuntimeValueImplementation
+    );
+    assert.equal(module.results.withDefault.address.name, "addressWithDefault");
+    assert.equal(module.results.withDefault.address.defaultValue, "0x000000");
+
+    assertInstanceOf(
+      module.results.withoutDefault.address,
+      ModuleParameterRuntimeValueImplementation
+    );
+    assert.equal(
+      module.results.withoutDefault.address.name,
+      "addressWithoutDefault"
+    );
+    assert.equal(module.results.withoutDefault.address.defaultValue, undefined);
   });
 
   describe("passing id", () => {

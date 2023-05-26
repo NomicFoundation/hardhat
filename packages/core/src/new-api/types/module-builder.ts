@@ -160,7 +160,7 @@ export interface SendDataOptions {
 export interface IgnitionModuleBuilder {
   getAccount(accountIndex: number): AccountRuntimeValue;
 
-  getParameter<ParamTypeT extends ModuleParameterType>(
+  getParameter<ParamTypeT extends ModuleParameterType = any>(
     parameterName: string,
     defaultValue?: ParamTypeT
   ): ModuleParameterRuntimeValue<ParamTypeT>;
@@ -205,13 +205,19 @@ export interface IgnitionModuleBuilder {
 
   contractAt<ContractNameT extends string>(
     contractName: ContractNameT,
-    address: string | AddressResolvableFuture,
+    address:
+      | string
+      | AddressResolvableFuture
+      | ModuleParameterRuntimeValue<string>,
     options?: ContractAtOptions
   ): NamedContractAtFuture<ContractNameT>;
 
   contractAtFromArtifact(
     contractName: string,
-    address: string | AddressResolvableFuture,
+    address:
+      | string
+      | AddressResolvableFuture
+      | ModuleParameterRuntimeValue<string>,
     artifact: Artifact,
     options?: ContractAtOptions
   ): ArtifactContractAtFuture;

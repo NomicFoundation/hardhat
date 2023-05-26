@@ -162,7 +162,7 @@ export interface SerializedNamedStaticCallFuture extends BaseSerializedFuture {
 export interface SerializedNamedContractAtFuture extends BaseSerializedFuture {
   type: FutureType.NAMED_CONTRACT_AT;
   contractName: string;
-  address: string | FutureToken;
+  address: string | FutureToken | SerializedModuleParameterRuntimeValue;
 }
 
 /**
@@ -174,7 +174,7 @@ export interface SerializedArtifactContractAtFuture
   extends BaseSerializedFuture {
   type: FutureType.ARTIFACT_CONTRACT_AT;
   contractName: string;
-  address: string | FutureToken;
+  address: string | FutureToken | SerializedModuleParameterRuntimeValue;
   artifact: Artifact;
 }
 

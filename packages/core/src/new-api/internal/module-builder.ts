@@ -2,6 +2,7 @@ import assert from "assert";
 import { inspect } from "util";
 
 import { IgnitionValidationError } from "../../errors";
+import { isFuture } from "../type-guards";
 import { Artifact } from "../types/artifact";
 import {
   AccountRuntimeValue,
@@ -141,7 +142,7 @@ export class IgnitionModuleBuilderImplementation<
     return new AccountRuntimeValueImplementation(accountIndex);
   }
 
-  public getParameter<ParamTypeT extends ModuleParameterType>(
+  public getParameter<ParamTypeT extends ModuleParameterType = any>(
     parameterName: string,
     defaultValue?: ParamTypeT
   ): ModuleParameterRuntimeValue<ParamTypeT> {
@@ -369,7 +370,10 @@ export class IgnitionModuleBuilderImplementation<
 
   public contractAt<ContractNameT extends string>(
     contractName: ContractNameT,
-    address: string | AddressResolvableFuture,
+    address:
+      | string
+      | AddressResolvableFuture
+      | ModuleParameterRuntimeValue<string>,
     options: ContractAtOptions = {}
   ): NamedContractAtFuture<ContractNameT> {
     const id = options.id ?? contractName;
@@ -388,9 +392,11 @@ export class IgnitionModuleBuilderImplementation<
       future.dependencies.add(afterFuture);
     }
 
-    if (typeof address !== "string") {
+    if (isFuture(address)) {
       future.dependencies.add(address);
     }
+
+    // TODO: Validate the the runtime value's default type is string
 
     this._module.futures.add(future);
 
@@ -399,7 +405,10 @@ export class IgnitionModuleBuilderImplementation<
 
   public contractAtFromArtifact(
     contractName: string,
-    address: string | AddressResolvableFuture,
+    address:
+      | string
+      | AddressResolvableFuture
+      | ModuleParameterRuntimeValue<string>,
     artifact: Artifact,
     options: ContractAtOptions = {}
   ): ArtifactContractAtFuture {
@@ -420,9 +429,11 @@ export class IgnitionModuleBuilderImplementation<
       future.dependencies.add(afterFuture);
     }
 
-    if (typeof address !== "string") {
+    if (isFuture(address)) {
       future.dependencies.add(address);
     }
+
+    // TODO: Validate the the runtime value's default type is string
 
     this._module.futures.add(future);
 

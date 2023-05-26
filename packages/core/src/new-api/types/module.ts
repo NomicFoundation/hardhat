@@ -226,7 +226,10 @@ export interface NamedContractAtFuture<ContractNameT extends string> {
   module: IgnitionModule;
   dependencies: Set<Future>;
   contractName: ContractNameT;
-  address: string | AddressResolvableFuture;
+  address:
+    | string
+    | AddressResolvableFuture
+    | ModuleParameterRuntimeValue<string>;
 }
 
 /**
@@ -241,7 +244,10 @@ export interface ArtifactContractAtFuture {
   module: IgnitionModule;
   dependencies: Set<Future>;
   contractName: string;
-  address: string | AddressResolvableFuture;
+  address:
+    | string
+    | AddressResolvableFuture
+    | ModuleParameterRuntimeValue<string>;
   artifact: Artifact;
 }
 
