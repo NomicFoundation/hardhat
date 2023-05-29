@@ -52,6 +52,7 @@ export class LedgerProvider extends ProviderWrapperWithChainId {
   public async init() {
     if (!this._eth && !this._isCreatingTransport) {
       this._isCreatingTransport = true;
+
       const openTimeout =
         this.options.openTimeout || LedgerProvider.DEFAULT_TIMEOUT;
       const connectionTimeout =

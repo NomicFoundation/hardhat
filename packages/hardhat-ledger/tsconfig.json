@@ -1,13 +1,19 @@
 {
   "extends": "../../config/typescript/tsconfig.json",
   "compilerOptions": {
-    "outDir": "./dist",
+    "outDir": "./build-test",
+    "rootDirs": ["./test"],
     "composite": true
   },
-  "exclude": ["./dist", "./node_modules", "./test/**/hardhat.config.ts"],
+  "include": ["./test/**/*.ts"],
+  "exclude": [
+    "./test/**/hardhat.config.ts",
+    "./node_modules",
+    "./test/internal/hardhat-network/stack-traces/test-files"
+  ],
   "references": [
     {
-      "path": "../hardhat-core/src"
+      "path": "./src"
     }
   ]
 }
