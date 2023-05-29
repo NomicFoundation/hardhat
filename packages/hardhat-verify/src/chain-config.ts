@@ -118,6 +118,22 @@ export const builtinChains: ChainConfig[] = [
     },
   },
   {
+    network: "fuse",
+    chainId: 122,
+    urls: {
+      apiURL: "https://explorer.fuse.io/api",
+      browserURL: "https://explorer.fuse.io",
+    },
+  },
+  {
+    network: "fuseSpark",
+    chainId: 123,
+    urls: {
+      apiURL: "https://explorer.fusespark.io/api",
+      browserURL: "https://explorer.fusespark.io",
+    },
+  },
+  {
     network: "heco",
     chainId: 128,
     urls: {
