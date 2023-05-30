@@ -1,13 +1,5 @@
 # @nomicfoundation/hardhat-toolbox
 
-## 3.0.0
-
-### Patch Changes
-
-- Updated dependencies [06c4797a7]
-- Updated dependencies [523235b83]
-  - @nomicfoundation/hardhat-chai-matchers@2.0.0
-
 ## 2.0.2
 
 ### Patch Changes
