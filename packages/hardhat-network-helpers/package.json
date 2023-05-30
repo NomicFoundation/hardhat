@@ -52,7 +52,7 @@
     "eslint-plugin-import": "2.24.1",
     "eslint-plugin-no-only-tests": "3.0.0",
     "eslint-plugin-prettier": "3.4.0",
-    "ethers": "^5.0.0",
+    "ethers-v5": "npm:ethers@5",
     "hardhat": "^2.9.5",
     "mocha": "^10.0.0",
     "prettier": "2.4.1",
