@@ -14,14 +14,14 @@ export interface FactoryOptions {
 
 export declare function getContractFactory<
   A extends any[] = any[],
-  I = ethers.BaseContract
+  I = ethers.Contract
 >(
   name: string,
   signerOrOptions?: ethers.Signer | FactoryOptions
 ): Promise<ethers.ContractFactory<A, I>>;
 export declare function getContractFactory<
   A extends any[] = any[],
-  I = ethers.BaseContract
+  I = ethers.Contract
 >(
   abi: any[],
   bytecode: ethers.BytesLike,
@@ -41,7 +41,7 @@ export declare function deployContract(
 
 export declare function getContractFactoryFromArtifact<
   A extends any[] = any[],
-  I = ethers.BaseContract
+  I = ethers.Contract
 >(
   artifact: Artifact,
   signerOrOptions?: ethers.Signer | FactoryOptions

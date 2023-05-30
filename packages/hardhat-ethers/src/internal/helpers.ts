@@ -1,4 +1,4 @@
-import type { ethers as EthersT, BaseContract } from "ethers";
+import type { ethers as EthersT } from "ethers";
 import type { HardhatEthersSigner } from "../signers";
 import type { FactoryOptions, Libraries } from "../types";
 
@@ -69,13 +69,19 @@ export async function getImpersonatedSigner(
   return getSigner(hre, address);
 }
 
-export function getContractFactory<A extends any[] = any[], I = BaseContract>(
+export function getContractFactory<
+  A extends any[] = any[],
+  I = EthersT.Contract
+>(
   hre: HardhatRuntimeEnvironment,
   name: string,
   signerOrOptions?: EthersT.Signer | FactoryOptions
 ): Promise<EthersT.ContractFactory<A, I>>;
 
-export function getContractFactory<A extends any[] = any[], I = BaseContract>(
+export function getContractFactory<
+  A extends any[] = any[],
+  I = EthersT.Contract
+>(
   hre: HardhatRuntimeEnvironment,
   abi: any[],
   bytecode: EthersT.BytesLike,
@@ -84,7 +90,7 @@ export function getContractFactory<A extends any[] = any[], I = BaseContract>(
 
 export async function getContractFactory<
   A extends any[] = any[],
-  I = BaseContract
+  I = EthersT.Contract
 >(
   hre: HardhatRuntimeEnvironment,
   nameOrAbi: string | any[],
@@ -123,7 +129,7 @@ function isFactoryOptions(
 
 export async function getContractFactoryFromArtifact<
   A extends any[] = any[],
-  I = BaseContract
+  I = EthersT.Contract
 >(
   hre: HardhatRuntimeEnvironment,
   artifact: Artifact,
@@ -282,7 +288,7 @@ Learn more about linking contracts at https://hardhat.org/hardhat-runner/plugins
 
 async function getContractFactoryByAbiAndBytecode<
   A extends any[] = any[],
-  I = BaseContract
+  I = EthersT.Contract
 >(
   hre: HardhatRuntimeEnvironment,
   abi: any[],
