@@ -1,5 +1,11 @@
 # hardhat
 
+## 2.14.1
+
+### Patch Changes
+
+- e99498638: Added block numbers for all mainnet hardforks
+
 ## 2.14.0
 
 ### Minor Changes
