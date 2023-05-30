@@ -16,7 +16,7 @@ Among other things, you can assert that a contract fired certain events, or that
 :::tab{value="npm 7+"}
 
 ```
-npm install --save-dev @nomicfoundation/hardhat-chai-matchers
+npm install --save-dev @nomicfoundation/hardhat-chai-matchers@1
 ```
 
 :::
@@ -24,7 +24,7 @@ npm install --save-dev @nomicfoundation/hardhat-chai-matchers
 :::tab{value="npm 6"}
 
 ```
-npm install --save-dev @nomicfoundation/hardhat-chai-matchers
+npm install --save-dev @nomicfoundation/hardhat-chai-matchers@1
 ```
 
 :::
@@ -32,7 +32,7 @@ npm install --save-dev @nomicfoundation/hardhat-chai-matchers
 :::tab{value=yarn}
 
 ```
-yarn add --dev @nomicfoundation/hardhat-chai-matchers
+yarn add --dev @nomicfoundation/hardhat-chai-matchers@1
 ```
 
 :::
