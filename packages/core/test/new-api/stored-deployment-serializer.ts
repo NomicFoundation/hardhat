@@ -1,5 +1,6 @@
 import { assert } from "chai";
 
+import { Artifact } from "../../src";
 import { defineModule } from "../../src/new-api/define-module";
 import {
   ArtifactContractDeploymentFutureImplementation,
@@ -62,7 +63,12 @@ describe("stored deployment serializer", () => {
   });
 
   describe("contractFromArtifact", () => {
-    const fakeArtifact = ["FAKE ARTIFACT"] as any;
+    const fakeArtifact: Artifact = {
+      abi: [],
+      contractName: "",
+      bytecode: "",
+      linkReferences: {},
+    };
 
     it("should serialize a contractFromArtifact deployment", () => {
       const moduleDefinition = defineModule("Module1", (m) => {
@@ -164,7 +170,12 @@ describe("stored deployment serializer", () => {
   });
 
   describe("contractAtFromArtifact", () => {
-    const fakeArtifact = ["FAKE ARTIFACT"] as any;
+    const fakeArtifact: Artifact = {
+      abi: [],
+      contractName: "",
+      bytecode: "",
+      linkReferences: {},
+    };
 
     it("should serialize a contractAt", () => {
       const moduleDefinition = defineModule("Module1", (m) => {
@@ -242,7 +253,12 @@ describe("stored deployment serializer", () => {
   });
 
   describe("library", () => {
-    const fakeArtifact = ["FAKE ARTIFACT"] as any;
+    const fakeArtifact: Artifact = {
+      abi: [],
+      contractName: "",
+      bytecode: "",
+      linkReferences: {},
+    };
 
     it("should serialize a library deployment", () => {
       const moduleDefinition = defineModule("Module1", (m) => {
@@ -329,7 +345,12 @@ describe("stored deployment serializer", () => {
   });
 
   describe("libraryFromArtifact", () => {
-    const fakeArtifact = ["FAKE ARTIFACT"] as any;
+    const fakeArtifact: Artifact = {
+      abi: [],
+      contractName: "",
+      bytecode: "",
+      linkReferences: {},
+    };
 
     it("should serialize a libraryFromArtifact deployment", () => {
       const moduleDefinition = defineModule("Module1", (m) => {

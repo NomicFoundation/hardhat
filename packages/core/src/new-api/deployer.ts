@@ -13,6 +13,7 @@ import { ModuleConstructor } from "./internal/module-builder";
 import { Reconciler } from "./internal/reconciliation/reconciler";
 import { ExecutionStrategy } from "./internal/types/execution-engine";
 import { ExecutionStateMap } from "./internal/types/execution-state";
+import { validate } from "./internal/validation/validate";
 import { isAdapters } from "./type-guards";
 import { Adapters } from "./types/adapters";
 import { ArtifactResolver } from "./types/artifact";
@@ -30,25 +31,29 @@ export class Deployer {
   private _moduleConstructor: ModuleConstructor;
   private _executionEngine: ExecutionEngine;
   private _transactionService: TransactionService;
+  private _artifactLoader: ArtifactResolver;
   private _strategy: ExecutionStrategy;
 
   constructor(
-    options:
-      | { journal: Journal; transactionService: TransactionService }
+    options: { journal: Journal; artifactLoader: ArtifactResolver } & (
       | {
-          journal: Journal;
-          adapters: Adapters;
-          artifactLoader: ArtifactResolver;
+          transactionService: TransactionService;
         }
+      | {
+          adapters: Adapters;
+        }
+    )
   ) {
     this._journal = options.journal;
     this._strategy = new BasicExecutionStrategy();
 
-    if ("adapters" in options && isAdapters(options.adapters)) {
-      if (options.artifactLoader === undefined) {
-        throw new IgnitionError("Artifact loader must be provided");
-      }
+    if (options.artifactLoader === undefined) {
+      throw new IgnitionError("Artifact loader must be provided");
+    }
 
+    this._artifactLoader = options.artifactLoader;
+
+    if ("adapters" in options && isAdapters(options.adapters)) {
       const adapters: Adapters = options.adapters;
       this._transactionService = new TransactionServiceImplementation(
         options.artifactLoader,
@@ -78,6 +83,8 @@ export class Deployer {
     accounts: string[]
   ): Promise<DeploymentResult> {
     const module = this._moduleConstructor.construct(moduleDefinition);
+
+    await validate(module, this._artifactLoader);
 
     const previousStateMap = await this._loadExecutionStateFrom(this._journal);
 

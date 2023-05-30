@@ -290,4 +290,84 @@ describe("send", () => {
       );
     });
   });
+
+  describe("validation", () => {
+    it("should not validate a non-bignumber value option", () => {
+      const moduleWithDependentContractsDefinition = defineModule(
+        "Module1",
+        (m) => {
+          const another = m.contract("Another", []);
+          m.send("id", "test", 42 as any);
+
+          return { another };
+        }
+      );
+
+      const constructor = new ModuleConstructor();
+
+      assert.throws(
+        () => constructor.construct(moduleWithDependentContractsDefinition),
+        /Given value option '42' is not a `bigint`/
+      );
+    });
+
+    it("should not validate a non-string data option", () => {
+      const moduleWithDependentContractsDefinition = defineModule(
+        "Module1",
+        (m) => {
+          const another = m.contract("Another", []);
+          m.send("id", "test", 0n, 42 as any);
+
+          return { another };
+        }
+      );
+
+      const constructor = new ModuleConstructor();
+
+      assert.throws(
+        () => constructor.construct(moduleWithDependentContractsDefinition),
+        /Invalid data given/
+      );
+    });
+
+    it("should not validate a non-address from option", () => {
+      const moduleWithDependentContractsDefinition = defineModule(
+        "Module1",
+        (m) => {
+          const another = m.contract("Another", []);
+          m.send("id", another, 0n, "", { from: 1 as any });
+
+          return { another };
+        }
+      );
+
+      const constructor = new ModuleConstructor();
+
+      assert.throws(
+        () => constructor.construct(moduleWithDependentContractsDefinition),
+        /Invalid type for given option "from": number/
+      );
+    });
+
+    it("should not validate an invalid address", () => {
+      const moduleWithDependentContractsDefinition = defineModule(
+        "Module1",
+        (m) => {
+          const another = m.contract("Another", []);
+          const call = m.call(another, "test");
+
+          m.send("id", call as any, 0n, "");
+
+          return { another };
+        }
+      );
+
+      const constructor = new ModuleConstructor();
+
+      assert.throws(
+        () => constructor.construct(moduleWithDependentContractsDefinition),
+        /Invalid address given/
+      );
+    });
+  });
 });

@@ -1,5 +1,6 @@
 import { assert } from "chai";
 
+import { Artifact } from "../../src";
 import { defineModule } from "../../src/new-api/define-module";
 import {
   AccountRuntimeValueImplementation,
@@ -10,7 +11,12 @@ import { ModuleConstructor } from "../../src/new-api/internal/module-builder";
 import { assertInstanceOf } from "./helpers";
 
 describe("libraryFromArtifact", () => {
-  const fakeArtifact: any = {};
+  const fakeArtifact: Artifact = {
+    abi: [],
+    contractName: "",
+    bytecode: "",
+    linkReferences: {},
+  };
 
   it("should be able to deploy with a library based on an artifact", () => {
     const moduleWithContractFromArtifactDefinition = defineModule(
@@ -258,6 +264,69 @@ describe("libraryFromArtifact", () => {
       assert.throws(
         () => constructor.construct(moduleDefinition),
         /Duplicated id Module1:same found in module Module1/
+      );
+    });
+  });
+
+  describe("validation", () => {
+    it("should not validate a non-address from option", () => {
+      const moduleWithDependentContractsDefinition = defineModule(
+        "Module1",
+        (m) => {
+          const another = m.libraryFromArtifact("Another", fakeArtifact, {
+            from: 1 as any,
+          });
+
+          return { another };
+        }
+      );
+
+      const constructor = new ModuleConstructor();
+
+      assert.throws(
+        () => constructor.construct(moduleWithDependentContractsDefinition),
+        /Invalid type for given option "from": number/
+      );
+    });
+
+    it("should not validate a non-contract library", () => {
+      const moduleWithDependentContractsDefinition = defineModule(
+        "Module1",
+        (m) => {
+          const another = m.contract("Another", []);
+          const call = m.call(another, "test");
+
+          const test = m.libraryFromArtifact("Test", fakeArtifact, {
+            libraries: { Call: call as any },
+          });
+
+          return { another, test };
+        }
+      );
+
+      const constructor = new ModuleConstructor();
+
+      assert.throws(
+        () => constructor.construct(moduleWithDependentContractsDefinition),
+        /Given library 'Call' is not a valid Future/
+      );
+    });
+
+    it("should not validate an invalid artifact", () => {
+      const moduleWithDependentContractsDefinition = defineModule(
+        "Module1",
+        (m) => {
+          const another = m.libraryFromArtifact("Another", {} as Artifact);
+
+          return { another };
+        }
+      );
+
+      const constructor = new ModuleConstructor();
+
+      assert.throws(
+        () => constructor.construct(moduleWithDependentContractsDefinition),
+        /Invalid artifact given/
       );
     });
   });

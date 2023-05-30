@@ -6,6 +6,8 @@ import {
   NamedLibraryDeploymentFutureImplementation,
 } from "../../src/new-api/internal/module";
 import { ModuleConstructor } from "../../src/new-api/internal/module-builder";
+import { getFuturesFromModule } from "../../src/new-api/internal/utils/get-futures-from-module";
+import { validateNamedLibraryDeployment } from "../../src/new-api/internal/validation/futures/validateNamedLibraryDeployment";
 import { FutureType } from "../../src/new-api/types/module";
 
 import { assertInstanceOf } from "./helpers";
@@ -244,6 +246,73 @@ describe("library", () => {
       assert.throws(
         () => constructor.construct(moduleDefinition),
         /Duplicated id Module1:same found in module Module1/
+      );
+    });
+  });
+
+  describe("validation", () => {
+    it("should not validate a non-address from option", () => {
+      const moduleWithDependentContractsDefinition = defineModule(
+        "Module1",
+        (m) => {
+          const another = m.contract("Another", [], { from: 1 as any });
+
+          return { another };
+        }
+      );
+
+      const constructor = new ModuleConstructor();
+
+      assert.throws(
+        () => constructor.construct(moduleWithDependentContractsDefinition),
+        /Invalid type for given option "from": number/
+      );
+    });
+
+    it("should not validate a non-contract library", () => {
+      const moduleWithDependentContractsDefinition = defineModule(
+        "Module1",
+        (m) => {
+          const another = m.contract("Another", []);
+          const call = m.call(another, "test");
+
+          const test = m.library("Test", {
+            libraries: { Call: call as any },
+          });
+
+          return { another, test };
+        }
+      );
+
+      const constructor = new ModuleConstructor();
+
+      assert.throws(
+        () => constructor.construct(moduleWithDependentContractsDefinition),
+        /Given library 'Call' is not a valid Future/
+      );
+    });
+
+    it("should not validate an invalid artifact", async () => {
+      const moduleWithDependentContractsDefinition = defineModule(
+        "Module1",
+        (m) => {
+          const another = m.library("Another");
+
+          return { another };
+        }
+      );
+
+      const constructor = new ModuleConstructor();
+      const module = constructor.construct(
+        moduleWithDependentContractsDefinition
+      );
+      const [future] = getFuturesFromModule(module);
+
+      await assert.isRejected(
+        validateNamedLibraryDeployment(future as any, {
+          load: async () => ({} as any),
+        }),
+        /Artifact for contract 'Another' is invalid/
       );
     });
   });

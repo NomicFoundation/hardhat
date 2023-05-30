@@ -1,5 +1,6 @@
 import { assert } from "chai";
 
+import { Artifact } from "../../src";
 import { defineModule } from "../../src/new-api/define-module";
 import {
   AccountRuntimeValueImplementation,
@@ -7,6 +8,8 @@ import {
   NamedContractDeploymentFutureImplementation,
 } from "../../src/new-api/internal/module";
 import { ModuleConstructor } from "../../src/new-api/internal/module-builder";
+import { getFuturesFromModule } from "../../src/new-api/internal/utils/get-futures-from-module";
+import { validateNamedContractDeployment } from "../../src/new-api/internal/validation/futures/validateNamedContractDeployment";
 import { FutureType } from "../../src/new-api/types/module";
 
 import { assertInstanceOf } from "./helpers";
@@ -468,6 +471,122 @@ describe("contract", () => {
       assert.throws(
         () => constructor.construct(moduleDefinition),
         /Duplicated id Module1:same found in module Module1/
+      );
+    });
+  });
+
+  describe("validation", () => {
+    it("should not validate a non-bignumber value option", () => {
+      const moduleWithDependentContractsDefinition = defineModule(
+        "Module1",
+        (m) => {
+          const another = m.contract("Another", [], { value: 42 as any });
+
+          return { another };
+        }
+      );
+
+      const constructor = new ModuleConstructor();
+
+      assert.throws(
+        () => constructor.construct(moduleWithDependentContractsDefinition),
+        /Given value option '42' is not a `bigint`/
+      );
+    });
+
+    it("should not validate a non-address from option", () => {
+      const moduleWithDependentContractsDefinition = defineModule(
+        "Module1",
+        (m) => {
+          const another = m.contract("Another", [], { from: 1 as any });
+
+          return { another };
+        }
+      );
+
+      const constructor = new ModuleConstructor();
+
+      assert.throws(
+        () => constructor.construct(moduleWithDependentContractsDefinition),
+        /Invalid type for given option "from": number/
+      );
+    });
+
+    it("should not validate a non-contract library", () => {
+      const moduleWithDependentContractsDefinition = defineModule(
+        "Module1",
+        (m) => {
+          const another = m.contract("Another", []);
+          const call = m.call(another, "test");
+
+          const test = m.contract("Test", [], {
+            libraries: { Call: call as any },
+          });
+
+          return { another, test };
+        }
+      );
+
+      const constructor = new ModuleConstructor();
+
+      assert.throws(
+        () => constructor.construct(moduleWithDependentContractsDefinition),
+        /Given library 'Call' is not a valid Future/
+      );
+    });
+
+    it("should not validate an invalid artifact", async () => {
+      const moduleWithDependentContractsDefinition = defineModule(
+        "Module1",
+        (m) => {
+          const another = m.contract("Another");
+
+          return { another };
+        }
+      );
+
+      const constructor = new ModuleConstructor();
+      const module = constructor.construct(
+        moduleWithDependentContractsDefinition
+      );
+      const [future] = getFuturesFromModule(module);
+
+      await assert.isRejected(
+        validateNamedContractDeployment(future as any, {
+          load: async () => ({} as any),
+        }),
+        /Artifact for contract 'Another' is invalid/
+      );
+    });
+
+    it("should not validate an incorrect number of constructor args", async () => {
+      const fakeArtifact: Artifact = {
+        abi: [],
+        contractName: "",
+        bytecode: "",
+        linkReferences: {},
+      };
+
+      const moduleWithContractFromArtifactDefinition = defineModule(
+        "Module1",
+        (m) => {
+          const contract1 = m.contract("Test", [1, 2, 3]);
+
+          return { contract1 };
+        }
+      );
+
+      const constructor = new ModuleConstructor();
+      const module = constructor.construct(
+        moduleWithContractFromArtifactDefinition
+      );
+      const [future] = getFuturesFromModule(module);
+
+      await assert.isRejected(
+        validateNamedContractDeployment(future as any, {
+          load: async () => fakeArtifact,
+        }),
+        /The constructor of the contract 'Test' expects 0 arguments but 3 were given/
       );
     });
   });

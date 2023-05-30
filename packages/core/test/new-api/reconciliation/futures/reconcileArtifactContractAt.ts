@@ -1,5 +1,6 @@
 import { assert } from "chai";
 
+import { Artifact } from "../../../../src";
 import { defineModule } from "../../../../src/new-api/define-module";
 import {
   ContractAtExecutionState,
@@ -12,7 +13,12 @@ import { FutureType } from "../../../../src/new-api/types/module";
 import { assertSuccessReconciliation, reconcile } from "../helpers";
 
 describe("Reconciliation - artifact contract at", () => {
-  const fakeArtifact = ["Fake artifact"] as any;
+  const fakeArtifact: Artifact = {
+    abi: [],
+    contractName: "",
+    bytecode: "",
+    linkReferences: {},
+  };
 
   const exampleAddress = "0x1F98431c8aD98523631AE4a59f267346ea31F984";
   const differentAddress = "0xBA12222222228d8Ba445958a75a0704d566BF2C8";

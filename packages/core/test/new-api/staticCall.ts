@@ -1,5 +1,6 @@
 import { assert } from "chai";
 
+import { Artifact } from "../../src";
 import { defineModule } from "../../src/new-api/define-module";
 import {
   AccountRuntimeValueImplementation,
@@ -8,6 +9,8 @@ import {
   NamedStaticCallFutureImplementation,
 } from "../../src/new-api/internal/module";
 import { ModuleConstructor } from "../../src/new-api/internal/module-builder";
+import { getFuturesFromModule } from "../../src/new-api/internal/utils/get-futures-from-module";
+import { validateNamedStaticCall } from "../../src/new-api/internal/validation/futures/validateNamedStaticCall";
 import { FutureType } from "../../src/new-api/types/module";
 
 import { assertInstanceOf } from "./helpers";
@@ -479,6 +482,246 @@ describe("static call", () => {
       assert.throws(
         () => constructor.construct(moduleDefinition),
         /Duplicated id Module1:SameContract#first found in module Module1/
+      );
+    });
+  });
+
+  describe("validation", () => {
+    it("should not validate a non-address from option", () => {
+      const moduleWithDependentContractsDefinition = defineModule(
+        "Module1",
+        (m) => {
+          const another = m.contract("Another", []);
+          m.staticCall(another, "test", [], { from: 1 as any });
+
+          return { another };
+        }
+      );
+
+      const constructor = new ModuleConstructor();
+
+      assert.throws(
+        () => constructor.construct(moduleWithDependentContractsDefinition),
+        /Invalid type for given option "from": number/
+      );
+    });
+
+    it("should not validate a non-contract", () => {
+      const moduleWithDependentContractsDefinition = defineModule(
+        "Module1",
+        (m) => {
+          const another = m.contract("Another", []);
+          const call = m.call(another, "test");
+
+          m.staticCall(call as any, "test");
+
+          return { another };
+        }
+      );
+
+      const constructor = new ModuleConstructor();
+
+      assert.throws(
+        () => constructor.construct(moduleWithDependentContractsDefinition),
+        /Invalid contract given/
+      );
+    });
+
+    it("should not validate a non-existant hardhat contract", async () => {
+      const moduleDef = defineModule("Module1", (m) => {
+        const another = m.contract("Another", []);
+        m.staticCall(another, "test");
+
+        return { another };
+      });
+
+      const constructor = new ModuleConstructor();
+      const module = constructor.construct(moduleDef);
+      const future = getFuturesFromModule(module).find(
+        (v) => v.type === FutureType.NAMED_STATIC_CALL
+      );
+
+      await assert.isRejected(
+        validateNamedStaticCall(future as any, {
+          load: async () => ({} as any),
+        }),
+        /Artifact for contract 'Another' is invalid/
+      );
+    });
+
+    it("should not validate a non-existant function", async () => {
+      const fakeArtifact: Artifact = {
+        abi: [],
+        contractName: "",
+        bytecode: "",
+        linkReferences: {},
+      };
+
+      const moduleDef = defineModule("Module1", (m) => {
+        const another = m.contractFromArtifact("Another", fakeArtifact, []);
+        m.staticCall(another, "test");
+
+        return { another };
+      });
+
+      const constructor = new ModuleConstructor();
+      const module = constructor.construct(moduleDef);
+      const future = getFuturesFromModule(module).find(
+        (v) => v.type === FutureType.NAMED_STATIC_CALL
+      );
+
+      await assert.isRejected(
+        validateNamedStaticCall(future as any, {
+          load: async () => fakeArtifact,
+        }),
+        /Contract 'Another' doesn't have a function test/
+      );
+    });
+
+    it("should not validate a static call with wrong number of arguments", async () => {
+      const fakeArtifact: Artifact = {
+        abi: [
+          {
+            inputs: [
+              {
+                internalType: "bool",
+                name: "b",
+                type: "bool",
+              },
+            ],
+            name: "inc",
+            outputs: [],
+            stateMutability: "view",
+            type: "function",
+          },
+        ],
+        contractName: "",
+        bytecode: "",
+        linkReferences: {},
+      };
+
+      const moduleDef = defineModule("Module1", (m) => {
+        const another = m.contractFromArtifact("Another", fakeArtifact, []);
+        m.staticCall(another, "inc", [1, 2]);
+
+        return { another };
+      });
+
+      const constructor = new ModuleConstructor();
+      const module = constructor.construct(moduleDef);
+      const future = getFuturesFromModule(module).find(
+        (v) => v.type === FutureType.NAMED_STATIC_CALL
+      );
+
+      await assert.isRejected(
+        validateNamedStaticCall(future as any, {
+          load: async () => fakeArtifact,
+        }),
+        /Function inc in contract Another expects 1 arguments but 2 were given/
+      );
+    });
+
+    it("should not validate an overloaded call with wrong number of arguments", async () => {
+      const fakeArtifact: Artifact = {
+        abi: [
+          {
+            inputs: [
+              {
+                internalType: "bool",
+                name: "b",
+                type: "bool",
+              },
+            ],
+            name: "inc",
+            outputs: [],
+            stateMutability: "view",
+            type: "function",
+          },
+          {
+            inputs: [
+              {
+                internalType: "bool",
+                name: "b",
+                type: "bool",
+              },
+              {
+                internalType: "uint256",
+                name: "n",
+                type: "uint256",
+              },
+            ],
+            name: "inc",
+            outputs: [],
+            stateMutability: "view",
+            type: "function",
+          },
+        ],
+        contractName: "",
+        bytecode: "",
+        linkReferences: {},
+      };
+
+      const moduleDef = defineModule("Module1", (m) => {
+        const another = m.contractFromArtifact("Another", fakeArtifact, []);
+        m.staticCall(another, "inc", [1, 2, 3]);
+
+        return { another };
+      });
+
+      const constructor = new ModuleConstructor();
+      const module = constructor.construct(moduleDef);
+      const future = getFuturesFromModule(module).find(
+        (v) => v.type === FutureType.NAMED_STATIC_CALL
+      );
+
+      await assert.isRejected(
+        validateNamedStaticCall(future as any, {
+          load: async () => fakeArtifact,
+        }),
+        /Function inc in contract Another is overloaded, but no overload expects 3 arguments/
+      );
+    });
+
+    it("should not validate a non-readonly function", async () => {
+      const fakeArtifact: Artifact = {
+        abi: [
+          {
+            inputs: [
+              {
+                internalType: "bool",
+                name: "b",
+                type: "bool",
+              },
+            ],
+            name: "inc",
+            outputs: [],
+            stateMutability: "nonpayable",
+            type: "function",
+          },
+        ],
+        contractName: "",
+        bytecode: "",
+        linkReferences: {},
+      };
+
+      const moduleDef = defineModule("Module1", (m) => {
+        const another = m.contractFromArtifact("Another", fakeArtifact, []);
+        m.staticCall(another, "inc", [1]);
+
+        return { another };
+      });
+
+      const constructor = new ModuleConstructor();
+      const module = constructor.construct(moduleDef);
+      const future = getFuturesFromModule(module).find(
+        (v) => v.type === FutureType.NAMED_STATIC_CALL
+      );
+
+      await assert.isRejected(
+        validateNamedStaticCall(future as any, {
+          load: async () => fakeArtifact,
+        }),
+        /Function inc in contract Another is not 'pure' or 'view' and cannot be statically called/
       );
     });
   });

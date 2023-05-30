@@ -1,11 +1,14 @@
 import { Adapters } from "./types/adapters";
+import { Artifact } from "./types/artifact";
 import {
+  AccountRuntimeValue,
   AddressResolvableFuture,
   ContractFuture,
   DeploymentFuture,
   FunctionCallFuture,
   Future,
   FutureType,
+  ModuleParameterRuntimeValue,
   NamedStaticCallFuture,
   RuntimeValue,
   RuntimeValueType,
@@ -24,6 +27,26 @@ function isValidEnumValue(
   }
 
   return theEnum[key] === value;
+}
+
+/**
+ * Returns true if potential is of type Artifact.
+ *
+ * @beta
+ */
+export function isArtifactType(potential: unknown): potential is Artifact {
+  return (
+    typeof potential === "object" &&
+    potential !== null &&
+    "contractName" in potential &&
+    "bytecode" in potential &&
+    "abi" in potential &&
+    "linkReferences" in potential &&
+    typeof potential.contractName === "string" &&
+    typeof potential.bytecode === "string" &&
+    Array.isArray(potential.abi) &&
+    typeof potential.linkReferences === "object"
+  );
 }
 
 /**
@@ -197,5 +220,32 @@ export function isAdapters(potential: unknown): potential is Adapters {
     "signer" in potential &&
     "gas" in potential &&
     "transactions" in potential
+  );
+}
+
+/**
+ * Returns true if potential is of type AccountRuntimeValue.
+ *
+ * @beta
+ */
+export function isAccountRuntimeValue(
+  potential: unknown
+): potential is AccountRuntimeValue {
+  return (
+    isRuntimeValue(potential) && potential.type === RuntimeValueType.ACCOUNT
+  );
+}
+
+/**
+ * Returns true if potential is of type ModuleParameterRuntimeValue<any>.
+ *
+ * @beta
+ */
+export function isModuleParameterRuntimeValue(
+  potential: unknown
+): potential is ModuleParameterRuntimeValue<any> {
+  return (
+    isRuntimeValue(potential) &&
+    potential.type === RuntimeValueType.MODULE_PARAMETER
   );
 }
