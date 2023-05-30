@@ -2387,6 +2387,22 @@ Hardhat Network's forking functionality only works with blocks from at least spu
         // know anything about the txs in the current block
       }
 
+      originalCommon = (this._vm as any)._common;
+
+      (this._vm as any)._common = Common.custom(
+        {
+          chainId:
+            this._forkBlockNumber === undefined ||
+            blockContext.header.number >= this._forkBlockNumber
+              ? this._configChainId
+              : this._forkNetworkId,
+          networkId: this._forkNetworkId ?? this._configNetworkId,
+        },
+        {
+          hardfork: this._selectHardfork(blockContext.header.number),
+        }
+      );
+
       // If this VM is running without EIP4895, but the block has withdrawals,
       // we remove them and the withdrawal root from the block
       if (
@@ -2437,22 +2453,6 @@ Hardhat Network's forking functionality only works with blocks from at least spu
 
         (blockContext.header as any).baseFeePerGas = 0n;
       }
-
-      originalCommon = (this._vm as any)._common;
-
-      (this._vm as any)._common = Common.custom(
-        {
-          chainId:
-            this._forkBlockNumber === undefined ||
-            blockContext.header.number >= this._forkBlockNumber
-              ? this._configChainId
-              : this._forkNetworkId,
-          networkId: this._forkNetworkId ?? this._configNetworkId,
-        },
-        {
-          hardfork: this._selectHardfork(blockContext.header.number),
-        }
-      );
 
       return await this._vm.runTx({
         block: blockContext,

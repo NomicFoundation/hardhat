@@ -1,4 +1,7 @@
+import type EthersT from "ethers";
+
 import { buildAssert } from "../../utils";
+import { assertIsNotNull } from "../utils";
 import { decodeReturnData, getReturnDataFromError } from "./utils";
 
 export function supportReverted(Assertion: Chai.AssertionStatic) {
@@ -27,6 +30,7 @@ export function supportReverted(Assertion: Chai.AssertionStatic) {
 
         const receipt = await getTransactionReceipt(hash);
 
+        assertIsNotNull(receipt, "receipt");
         assert(
           receipt.status === 0,
           "Expected transaction to be reverted",
@@ -52,6 +56,7 @@ export function supportReverted(Assertion: Chai.AssertionStatic) {
     };
 
     const onError = (error: any) => {
+      const { toBeHex } = require("ethers") as typeof EthersT;
       const assert = buildAssert(negated, onError);
       const returnData = getReturnDataFromError(error);
       const decodedReturnData = decodeReturnData(returnData);
@@ -73,9 +78,9 @@ export function supportReverted(Assertion: Chai.AssertionStatic) {
         assert(
           true,
           undefined,
-          `Expected transaction NOT to be reverted, but it reverted with panic code ${decodedReturnData.code.toHexString()} (${
-            decodedReturnData.description
-          })`
+          `Expected transaction NOT to be reverted, but it reverted with panic code ${toBeHex(
+            decodedReturnData.code
+          )} (${decodedReturnData.description})`
         );
       } else {
         const _exhaustiveCheck: never = decodedReturnData;

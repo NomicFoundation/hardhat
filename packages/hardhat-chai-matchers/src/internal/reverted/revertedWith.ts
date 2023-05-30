@@ -1,3 +1,5 @@
+import type EthersT from "ethers";
+
 import { buildAssert } from "../../utils";
 import { decodeReturnData, getReturnDataFromError } from "./utils";
 
@@ -13,6 +15,9 @@ export function supportRevertedWith(Assertion: Chai.AssertionStatic) {
         !(expectedReason instanceof RegExp) &&
         typeof expectedReason !== "string"
       ) {
+        // if the input validation fails, we discard the subject since it could
+        // potentially be a rejected promise
+        Promise.resolve(this._obj).catch(() => {});
         throw new TypeError(
           "Expected the revert reason to be a string or a regular expression"
         );
@@ -33,6 +38,7 @@ export function supportRevertedWith(Assertion: Chai.AssertionStatic) {
       };
 
       const onError = (error: any) => {
+        const { toBeHex } = require("ethers") as typeof EthersT;
         const assert = buildAssert(negated, onError);
 
         const returnData = getReturnDataFromError(error);
@@ -57,9 +63,9 @@ export function supportRevertedWith(Assertion: Chai.AssertionStatic) {
         } else if (decodedReturnData.kind === "Panic") {
           assert(
             false,
-            `Expected transaction to be reverted with reason '${expectedReasonString}', but it reverted with panic code ${decodedReturnData.code.toHexString()} (${
-              decodedReturnData.description
-            })`
+            `Expected transaction to be reverted with reason '${expectedReasonString}', but it reverted with panic code ${toBeHex(
+              decodedReturnData.code
+            )} (${decodedReturnData.description})`
           );
         } else if (decodedReturnData.kind === "Custom") {
           assert(

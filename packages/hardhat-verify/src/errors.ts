@@ -375,7 +375,7 @@ ${missingLibraries.map((x) => `  * ${x}`).join("\n")}
 
 ${
   missingLibraries.length === undetectableLibraries.length
-    ? "Visit https://hardhat.org/hardhat-runner/plugins/nomiclabs-hardhat-etherscan#libraries-with-undetectable-addresses to learn how to solve this."
+    ? "Visit https://hardhat.org/hardhat-runner/plugins/nomicfoundation-hardhat-verify#libraries-with-undetectable-addresses to learn how to solve this."
     : "To solve this, you can add them to your --libraries dictionary with their corresponding addresses."
 }`);
   }
