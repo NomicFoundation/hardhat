@@ -49,8 +49,15 @@ export class LedgerProvider extends ProviderWrapperWithChainId {
     super(_wrappedProvider);
   }
 
+  public get eth(): Eth {
+    if (this._eth === undefined) {
+      throw new HardhatError(ERRORS.GENERAL.UNINITIALIZED_PROVIDER);
+    }
+    return this._eth;
+  }
+
   public async init() {
-    if (!this._eth && !this._isCreatingTransport) {
+    if (this._eth === undefined && this._isCreatingTransport === false) {
       this._isCreatingTransport = true;
 
       const openTimeout =
@@ -162,6 +169,7 @@ export class LedgerProvider extends ProviderWrapperWithChainId {
         let signature;
 
         try {
+          console.log("here");
           signature = await this._eth.signEIP712Message(
             this.options.path,
             typedMessage
