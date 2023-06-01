@@ -203,7 +203,7 @@ impl RpcClient {
     ) -> Result<AccountInfo, RpcClientError> {
         let inputs = Vec::from([
             MethodInvocation::GetBalance(*address, block.clone().into()),
-            MethodInvocation::GetTxCount(*address, block.clone().into()),
+            MethodInvocation::GetTransactionCount(*address, block.clone().into()),
             MethodInvocation::GetCode(*address, block.into()),
         ]);
 
@@ -381,7 +381,7 @@ impl RpcClient {
         &self,
         tx_hash: &B256,
     ) -> Result<Option<eth::Transaction>, RpcClientError> {
-        self.call(&MethodInvocation::GetTxByHash(*tx_hash)).await
+        self.call(&MethodInvocation::GetTransactionByHash(*tx_hash)).await
     }
 
     /// eth_getTransactionCount
@@ -390,7 +390,7 @@ impl RpcClient {
         address: &Address,
         block: BlockSpec,
     ) -> Result<U256, RpcClientError> {
-        self.call(&MethodInvocation::GetTxCount(*address, block.into()))
+        self.call(&MethodInvocation::GetTransactionCount(*address, block.into()))
             .await
     }
 
@@ -399,7 +399,7 @@ impl RpcClient {
         &self,
         tx_hash: &B256,
     ) -> Result<Option<eth::TransactionReceipt>, RpcClientError> {
-        self.call(&MethodInvocation::GetTxReceipt(*tx_hash)).await
+        self.call(&MethodInvocation::GetTransactionReceipt(*tx_hash)).await
     }
 
     /// eth_getStorageAt
@@ -444,7 +444,7 @@ mod tests {
                 .expect("failed to parse hash from string");
 
         let error = RpcClient::new(&server.url())
-            .call::<Option<eth::Transaction>>(&MethodInvocation::GetTxByHash(hash))
+            .call::<Option<eth::Transaction>>(&MethodInvocation::GetTransactionByHash(hash))
             .await
             .expect_err("should have failed to interpret response as a Transaction");
 
@@ -487,7 +487,7 @@ mod tests {
             .expect("failed to parse hash from string");
 
             let error = RpcClient::new(alchemy_url)
-                .call::<Option<eth::Transaction>>(&MethodInvocation::GetTxByHash(hash))
+                .call::<Option<eth::Transaction>>(&MethodInvocation::GetTransactionByHash(hash))
                 .await
                 .expect_err("should have failed to interpret response as a Transaction");
 
@@ -508,7 +508,7 @@ mod tests {
             .expect("failed to parse hash from string");
 
             let error = RpcClient::new(alchemy_url)
-                .call::<Option<eth::Transaction>>(&MethodInvocation::GetTxByHash(hash))
+                .call::<Option<eth::Transaction>>(&MethodInvocation::GetTransactionByHash(hash))
                 .await
                 .expect_err("should have failed to connect due to a garbage domain name");
 

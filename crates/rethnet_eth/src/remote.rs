@@ -163,15 +163,15 @@ enum MethodInvocation {
         serialize_with = "single_to_sequence",
         deserialize_with = "sequence_to_single"
     )]
-    GetTxByHash(B256),
+    GetTransactionByHash(B256),
     #[serde(rename = "eth_getTransactionCount")]
-    GetTxCount(Address, SerializableBlockSpec),
+    GetTransactionCount(Address, SerializableBlockSpec),
     #[serde(
         rename = "eth_getTransactionReceipt",
         serialize_with = "single_to_sequence",
         deserialize_with = "sequence_to_single"
     )]
-    GetTxReceipt(B256),
+    GetTransactionReceipt(B256),
 }
 
 #[derive(Clone, Debug, PartialEq, serde::Deserialize, serde::Serialize)]
@@ -288,12 +288,12 @@ mod tests {
 
     #[test]
     fn test_serde_eth_get_tx_by_hash() {
-        help_test_method_invocation_serde(MethodInvocation::GetTxByHash(B256::from_low_u64_ne(1)));
+        help_test_method_invocation_serde(MethodInvocation::GetTransactionByHash(B256::from_low_u64_ne(1)));
     }
 
     #[test]
     fn test_serde_eth_get_tx_count_by_block_number() {
-        help_test_method_invocation_serde(MethodInvocation::GetTxCount(
+        help_test_method_invocation_serde(MethodInvocation::GetTransactionCount(
             Address::from_low_u64_ne(1),
             SerializableBlockSpec::Number(U256::from(100)),
         ));
@@ -301,7 +301,7 @@ mod tests {
 
     #[test]
     fn test_serde_eth_get_tx_count_by_block_tag() {
-        help_test_method_invocation_serde(MethodInvocation::GetTxCount(
+        help_test_method_invocation_serde(MethodInvocation::GetTransactionCount(
             Address::from_low_u64_ne(1),
             SerializableBlockSpec::Tag(String::from("latest")),
         ));
@@ -309,6 +309,6 @@ mod tests {
 
     #[test]
     fn test_serde_eth_get_tx_receipt() {
-        help_test_method_invocation_serde(MethodInvocation::GetTxReceipt(B256::from_low_u64_ne(1)));
+        help_test_method_invocation_serde(MethodInvocation::GetTransactionReceipt(B256::from_low_u64_ne(1)));
     }
 }
