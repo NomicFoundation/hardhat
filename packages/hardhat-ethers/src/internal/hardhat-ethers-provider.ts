@@ -1,9 +1,10 @@
-import type { AddressLike } from "ethers/types/address";
 import type {
+  AddressLike,
   BlockTag,
   TransactionRequest,
   Filter,
   FilterByBlockHash,
+  Listener,
   ProviderEvent,
   PerformActionTransaction,
   TransactionResponseParams,
@@ -11,8 +12,7 @@ import type {
   TransactionReceiptParams,
   LogParams,
   PerformActionFilter,
-} from "ethers/types/providers";
-import type { Listener } from "ethers/types/utils";
+} from "ethers";
 
 import {
   Block,

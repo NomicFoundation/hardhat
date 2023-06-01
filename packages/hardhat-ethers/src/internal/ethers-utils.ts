@@ -8,7 +8,7 @@ import type {
   TransactionReceiptParams,
   LogParams,
   JsonRpcTransactionRequest,
-} from "ethers/types/providers";
+} from "ethers";
 
 import {
   accessListify,
