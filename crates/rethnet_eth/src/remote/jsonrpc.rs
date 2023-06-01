@@ -124,10 +124,6 @@ impl<'a> Deserialize<'a> for ZeroXPrefixedBytes {
     where
         D: serde::Deserializer<'a>,
     {
-        deserializer.deserialize_identifier(ZeroXPrefixedBytesVisitor)
-    }
-}
-
 struct ZeroXPrefixedBytesVisitor;
 impl<'a> serde::de::Visitor<'a> for ZeroXPrefixedBytesVisitor {
     type Value = ZeroXPrefixedBytes;
@@ -152,6 +148,10 @@ impl<'a> serde::de::Visitor<'a> for ZeroXPrefixedBytesVisitor {
                 ),
             })
         }
+    }
+}
+
+        deserializer.deserialize_identifier(ZeroXPrefixedBytesVisitor)
     }
 }
 
