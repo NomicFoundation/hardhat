@@ -290,32 +290,31 @@ impl RpcClient {
                 )
             })?;
 
-        let code =
-            serde_json::from_value::<jsonrpc::Response<ZeroXPrefixedBytes>>(code_response)
-                .map_err(|err| {
-                    panic!(
-                        "Failed to deserialize code due to error: {:?}. Response: {}",
-                        err,
-                        response.text.clone(),
-                    )
-                })
-                .and_then(|response| {
-                    response.data.into_result().map_or_else(
-                        |error| {
-                            Err(RpcClientError::JsonRpcError {
-                                error,
-                                request: code_request,
-                            })
-                        },
-                        |bytes| {
-                            Ok(if bytes.inner.is_empty() {
-                                None
-                            } else {
-                                Some(Bytecode::new_raw(bytes.inner))
-                            })
-                        },
-                    )
-                })?;
+        let code = serde_json::from_value::<jsonrpc::Response<ZeroXPrefixedBytes>>(code_response)
+            .map_err(|err| {
+                panic!(
+                    "Failed to deserialize code due to error: {:?}. Response: {}",
+                    err,
+                    response.text.clone(),
+                )
+            })
+            .and_then(|response| {
+                response.data.into_result().map_or_else(
+                    |error| {
+                        Err(RpcClientError::JsonRpcError {
+                            error,
+                            request: code_request,
+                        })
+                    },
+                    |bytes| {
+                        Ok(if bytes.inner.is_empty() {
+                            None
+                        } else {
+                            Some(Bytecode::new_raw(bytes.inner))
+                        })
+                    },
+                )
+            })?;
 
         Ok(AccountInfo {
             balance,
