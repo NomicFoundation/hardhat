@@ -6,7 +6,7 @@ use std::{
 use itertools::Itertools;
 use revm_primitives::{AccountInfo, Address, Bytecode, B256, KECCAK_EMPTY, U256};
 
-use super::{eth, jsonrpc, BlockSpec, GetLogsInput, MethodInvocation};
+use super::{eth, jsonrpc, BlockSpec, GetLogsInput, MethodInvocation, ZeroXPrefixedBytes};
 
 /// Specialized error types
 #[derive(thiserror::Error, Debug)]
@@ -212,7 +212,7 @@ impl RpcClient {
         type BatchResult = (
             jsonrpc::Response<U256>,
             jsonrpc::Response<U256>,
-            jsonrpc::Response<jsonrpc::ZeroXPrefixedBytes>,
+            jsonrpc::Response<ZeroXPrefixedBytes>,
         );
 
         let responses: Vec<serde_json::Value> = serde_json::from_str(&response.text)
@@ -291,7 +291,7 @@ impl RpcClient {
             })?;
 
         let code =
-            serde_json::from_value::<jsonrpc::Response<jsonrpc::ZeroXPrefixedBytes>>(code_response)
+            serde_json::from_value::<jsonrpc::Response<ZeroXPrefixedBytes>>(code_response)
                 .map_err(|err| {
                     panic!(
                         "Failed to deserialize code due to error: {:?}. Response: {}",

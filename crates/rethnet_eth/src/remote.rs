@@ -125,6 +125,57 @@ impl From<BlockSpec> for SerializableBlockSpec {
     }
 }
 
+#[derive(Clone, Debug, PartialEq)]
+struct ZeroXPrefixedBytes {
+    inner: bytes::Bytes,
+}
+
+impl<'a> serde::Deserialize<'a> for ZeroXPrefixedBytes {
+    fn deserialize<D>(deserializer: D) -> Result<ZeroXPrefixedBytes, D::Error>
+    where
+        D: serde::Deserializer<'a>,
+    {
+        struct ZeroXPrefixedBytesVisitor;
+        impl<'a> serde::de::Visitor<'a> for ZeroXPrefixedBytesVisitor {
+            type Value = ZeroXPrefixedBytes;
+
+            fn expecting(&self, formatter: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+                formatter.write_str("a 0x-prefixed string of hex digits")
+            }
+
+            fn visit_str<E>(self, value: &str) -> Result<Self::Value, E>
+            where
+                E: serde::de::Error,
+            {
+                if &value[0..1] == "0x" {
+                    Err(serde::de::Error::custom(
+                        "string does not have a '0x' prefix",
+                    ))
+                } else {
+                    Ok(ZeroXPrefixedBytes {
+                        inner: bytes::Bytes::from(
+                            hex::decode(&value[2..]).unwrap_or_else(|_| {
+                                panic!("failed to decode hex string \"{value}\"")
+                            }),
+                        ),
+                    })
+                }
+            }
+        }
+
+        deserializer.deserialize_identifier(ZeroXPrefixedBytesVisitor)
+    }
+}
+
+impl serde::Serialize for ZeroXPrefixedBytes {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        serializer.serialize_str(&format!("0x{}", hex::encode(self.inner.clone()),))
+    }
+}
+
 #[derive(Clone, Debug, PartialEq, serde::Deserialize, serde::Serialize)]
 struct TransactionInput {
     from: Option<Address>,
@@ -133,7 +184,7 @@ struct TransactionInput {
     #[serde(rename = "gasPrice")]
     gas_price: Option<U256>,
     value: Option<U256>,
-    data: Option<jsonrpc::ZeroXPrefixedBytes>,
+    data: Option<ZeroXPrefixedBytes>,
 }
 
 #[derive(Debug, PartialEq, serde::Deserialize, serde::Serialize)]
@@ -247,7 +298,7 @@ mod tests {
             gas: Some(U256::from(3)),
             gas_price: Some(U256::from(4)),
             value: Some(U256::from(123568919)),
-            data: Some(jsonrpc::ZeroXPrefixedBytes {
+            data: Some(ZeroXPrefixedBytes {
                 inner: bytes::Bytes::from(&b"whatever"[..]),
             }),
         };
@@ -279,7 +330,7 @@ mod tests {
             gas: Some(U256::from(3)),
             gas_price: Some(U256::from(4)),
             value: Some(U256::from(123568919)),
-            data: Some(jsonrpc::ZeroXPrefixedBytes {
+            data: Some(ZeroXPrefixedBytes {
                 inner: bytes::Bytes::from(&b"whatever"[..]),
             }),
         };
@@ -443,7 +494,7 @@ mod tests {
             gas: Some(U256::from(3)),
             gas_price: Some(U256::from(4)),
             value: Some(U256::from(123568919)),
-            data: Some(jsonrpc::ZeroXPrefixedBytes {
+            data: Some(ZeroXPrefixedBytes {
                 inner: bytes::Bytes::from(&b"whatever"[..]),
             }),
         }));
