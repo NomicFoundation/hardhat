@@ -339,7 +339,8 @@ impl RpcClient {
         &self,
         hash: &B256,
     ) -> Result<Option<eth::Block<eth::Transaction>>, RpcClientError> {
-        self.call(&MethodInvocation::GetBlockByHash(*hash, true)).await
+        self.call(&MethodInvocation::GetBlockByHash(*hash, true))
+            .await
     }
 
     /// Calls `eth_getBlockByNumber` and returns the transaction's hash.
@@ -356,7 +357,8 @@ impl RpcClient {
         &self,
         spec: BlockSpec,
     ) -> Result<eth::Block<eth::Transaction>, RpcClientError> {
-        self.call(&MethodInvocation::GetBlock(spec.into(), true)).await
+        self.call(&MethodInvocation::GetBlock(spec.into(), true))
+            .await
     }
 
     /// eth_getLogs
