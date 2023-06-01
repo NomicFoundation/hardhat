@@ -114,6 +114,7 @@ impl<'a> serde::de::Visitor<'a> for VersionVisitor {
     }
 }
 
+#[derive(Clone, Debug, PartialEq)]
 pub struct ZeroXPrefixedBytes {
     pub inner: bytes::Bytes,
 }
@@ -146,9 +147,19 @@ impl<'a> serde::de::Visitor<'a> for ZeroXPrefixedBytesVisitor {
         } else {
             Ok(ZeroXPrefixedBytes {
                 inner: bytes::Bytes::from(
-                    hex::decode(&value[2..]).expect("failed to decode hex string"),
+                    hex::decode(&value[2..])
+                        .unwrap_or_else(|_| panic!("failed to decode hex string \"{value}\"")),
                 ),
             })
         }
+    }
+}
+
+impl Serialize for ZeroXPrefixedBytes {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        serializer.serialize_str(&format!("0x{}", hex::encode(self.inner.clone()),))
     }
 }

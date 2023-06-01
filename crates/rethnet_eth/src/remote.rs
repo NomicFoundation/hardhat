@@ -125,6 +125,17 @@ impl From<BlockSpec> for SerializableBlockSpec {
     }
 }
 
+#[derive(Clone, Debug, PartialEq, serde::Deserialize, serde::Serialize)]
+struct TransactionInput {
+    from: Option<Address>,
+    to: Option<Address>,
+    gas: Option<U256>,
+    #[serde(rename = "gasPrice")]
+    gas_price: Option<U256>,
+    value: Option<U256>,
+    data: Option<jsonrpc::ZeroXPrefixedBytes>,
+}
+
 #[derive(Debug, PartialEq, serde::Deserialize, serde::Serialize)]
 #[serde(tag = "method", content = "params")]
 enum MethodInvocation {
@@ -132,10 +143,14 @@ enum MethodInvocation {
     Accounts(),
     #[serde(rename = "eth_blockNumber")]
     BlockNumber(),
+    #[serde(rename = "eth_call")]
+    Call(TransactionInput, SerializableBlockSpec),
     #[serde(rename = "eth_chainId")]
     ChainId(),
     #[serde(rename = "eth_coinbase")]
     Coinbase(),
+    #[serde(rename = "eth_estimateGas")]
+    EstimateGas(TransactionInput, SerializableBlockSpec),
     #[serde(rename = "eth_gasPrice")]
     GasPrice(),
     #[serde(rename = "eth_getBalance")]
@@ -188,6 +203,8 @@ enum MethodInvocation {
     NewBlockFilter(),
     #[serde(rename = "eth_newPendingTransactionFilter")]
     NewPendingTransactionFilter(),
+    #[serde(rename = "eth_sendTransaction")]
+    SendTransaction(TransactionInput),
     #[serde(rename = "eth_syncing")]
     Syncing(),
 }
@@ -223,6 +240,28 @@ mod tests {
     }
 
     #[test]
+    fn test_serde_eth_call() {
+        let tx = TransactionInput {
+            from: Some(Address::from_low_u64_ne(1)),
+            to: Some(Address::from_low_u64_ne(2)),
+            gas: Some(U256::from(3)),
+            gas_price: Some(U256::from(4)),
+            value: Some(U256::from(123568919)),
+            data: Some(jsonrpc::ZeroXPrefixedBytes {
+                inner: bytes::Bytes::from(&b"whatever"[..]),
+            }),
+        };
+        help_test_method_invocation_serde(MethodInvocation::Call(
+            tx.clone(),
+            SerializableBlockSpec::Tag(String::from("latest")),
+        ));
+        help_test_method_invocation_serde(MethodInvocation::Call(
+            tx,
+            SerializableBlockSpec::Number(U256::from(100)),
+        ));
+    }
+
+    #[test]
     fn test_serde_eth_chain_id() {
         help_test_method_invocation_serde(MethodInvocation::ChainId());
     }
@@ -230,6 +269,28 @@ mod tests {
     #[test]
     fn test_serde_eth_coinbase() {
         help_test_method_invocation_serde(MethodInvocation::Coinbase());
+    }
+
+    #[test]
+    fn test_serde_eth_estimate_gas() {
+        let tx = TransactionInput {
+            from: Some(Address::from_low_u64_ne(1)),
+            to: Some(Address::from_low_u64_ne(2)),
+            gas: Some(U256::from(3)),
+            gas_price: Some(U256::from(4)),
+            value: Some(U256::from(123568919)),
+            data: Some(jsonrpc::ZeroXPrefixedBytes {
+                inner: bytes::Bytes::from(&b"whatever"[..]),
+            }),
+        };
+        help_test_method_invocation_serde(MethodInvocation::EstimateGas(
+            tx.clone(),
+            SerializableBlockSpec::Tag(String::from("latest")),
+        ));
+        help_test_method_invocation_serde(MethodInvocation::EstimateGas(
+            tx,
+            SerializableBlockSpec::Number(U256::from(100)),
+        ));
     }
 
     #[test]
@@ -372,6 +433,20 @@ mod tests {
     #[test]
     fn test_serde_eth_new_pending_transaction_filter() {
         help_test_method_invocation_serde(MethodInvocation::NewPendingTransactionFilter());
+    }
+
+    #[test]
+    fn test_serde_eth_send_transaction() {
+        help_test_method_invocation_serde(MethodInvocation::SendTransaction(TransactionInput {
+            from: Some(Address::from_low_u64_ne(1)),
+            to: Some(Address::from_low_u64_ne(2)),
+            gas: Some(U256::from(3)),
+            gas_price: Some(U256::from(4)),
+            value: Some(U256::from(123568919)),
+            data: Some(jsonrpc::ZeroXPrefixedBytes {
+                inner: bytes::Bytes::from(&b"whatever"[..]),
+            }),
+        }));
     }
 
     #[test]
