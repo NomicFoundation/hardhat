@@ -10,7 +10,7 @@ use std::fmt::Debug;
 
 use crate::{Address, Bloom, Bytes, B256, U256};
 
-use super::withdrawal::Withdrawal;
+use super::{optional_u64_from_hex, withdrawal::Withdrawal};
 
 #[derive(Clone, Debug, PartialEq, Eq, Default, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
@@ -56,16 +56,6 @@ pub struct Transaction {
     pub max_fee_per_gas: Option<U256>,
     #[serde(default)]
     pub max_priority_fee_per_gas: Option<U256>,
-}
-
-fn optional_u64_from_hex<'de, D>(deserializer: D) -> Result<Option<u64>, D::Error>
-where
-    D: serde::Deserializer<'de>,
-{
-    let s: &str = serde::Deserialize::deserialize(deserializer)?;
-    Ok(Some(
-        u64::from_str_radix(&s[2..], 16).expect("failed to parse u64"),
-    ))
 }
 
 fn u64_from_hex<'de, D>(deserializer: D) -> Result<u64, D::Error>
