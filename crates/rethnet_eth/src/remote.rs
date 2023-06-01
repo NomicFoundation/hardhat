@@ -288,7 +288,9 @@ mod tests {
 
     #[test]
     fn test_serde_eth_get_tx_by_hash() {
-        help_test_method_invocation_serde(MethodInvocation::GetTransactionByHash(B256::from_low_u64_ne(1)));
+        help_test_method_invocation_serde(MethodInvocation::GetTransactionByHash(
+            B256::from_low_u64_ne(1),
+        ));
     }
 
     #[test]
@@ -309,6 +311,8 @@ mod tests {
 
     #[test]
     fn test_serde_eth_get_tx_receipt() {
-        help_test_method_invocation_serde(MethodInvocation::GetTransactionReceipt(B256::from_low_u64_ne(1)));
+        help_test_method_invocation_serde(MethodInvocation::GetTransactionReceipt(
+            B256::from_low_u64_ne(1),
+        ));
     }
 }

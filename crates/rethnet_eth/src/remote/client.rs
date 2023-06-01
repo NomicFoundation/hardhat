@@ -381,7 +381,8 @@ impl RpcClient {
         &self,
         tx_hash: &B256,
     ) -> Result<Option<eth::Transaction>, RpcClientError> {
-        self.call(&MethodInvocation::GetTransactionByHash(*tx_hash)).await
+        self.call(&MethodInvocation::GetTransactionByHash(*tx_hash))
+            .await
     }
 
     /// eth_getTransactionCount
@@ -390,8 +391,11 @@ impl RpcClient {
         address: &Address,
         block: BlockSpec,
     ) -> Result<U256, RpcClientError> {
-        self.call(&MethodInvocation::GetTransactionCount(*address, block.into()))
-            .await
+        self.call(&MethodInvocation::GetTransactionCount(
+            *address,
+            block.into(),
+        ))
+        .await
     }
 
     /// eth_getTransactionReceipt
@@ -399,7 +403,8 @@ impl RpcClient {
         &self,
         tx_hash: &B256,
     ) -> Result<Option<eth::TransactionReceipt>, RpcClientError> {
-        self.call(&MethodInvocation::GetTransactionReceipt(*tx_hash)).await
+        self.call(&MethodInvocation::GetTransactionReceipt(*tx_hash))
+            .await
     }
 
     /// eth_getStorageAt
