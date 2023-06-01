@@ -129,7 +129,7 @@ impl From<BlockSpec> for SerializableBlockSpec {
 #[serde(tag = "method", content = "params")]
 enum MethodInvocation {
     #[serde(rename = "eth_getStorageAt")]
-    StorageAt(
+    GetStorageAt(
         Address,
         /// position
         U256,
@@ -140,38 +140,38 @@ enum MethodInvocation {
         serialize_with = "single_to_sequence",
         deserialize_with = "sequence_to_single"
     )]
-    TxByHash(B256),
+    GetTxByHash(B256),
     #[serde(
         rename = "eth_getTransactionReceipt",
         serialize_with = "single_to_sequence",
         deserialize_with = "sequence_to_single"
     )]
-    TxReceipt(B256),
+    GetTxReceipt(B256),
     #[serde(
         rename = "eth_getLogs",
         serialize_with = "single_to_sequence",
         deserialize_with = "sequence_to_single"
     )]
-    Logs(GetLogsInput),
+    GetLogs(GetLogsInput),
     #[serde(rename = "eth_getBalance")]
-    Balance(Address, SerializableBlockSpec),
+    GetBalance(Address, SerializableBlockSpec),
     #[serde(rename = "eth_getBlockByHash")]
-    BlockByHash(
+    GetBlockByHash(
         /// hash
         B256,
         /// include transaction data
         bool,
     ),
     #[serde(rename = "eth_getBlockByNumber")]
-    Block(
+    GetBlock(
         SerializableBlockSpec,
         /// include transaction data
         bool,
     ),
     #[serde(rename = "eth_getCode")]
-    Code(Address, SerializableBlockSpec),
+    GetCode(Address, SerializableBlockSpec),
     #[serde(rename = "eth_getTransactionCount")]
-    TxCount(Address, SerializableBlockSpec),
+    GetTxCount(Address, SerializableBlockSpec),
 }
 
 #[derive(Clone, Debug, PartialEq, serde::Deserialize, serde::Serialize)]
@@ -196,7 +196,7 @@ mod tests {
 
     #[test]
     fn test_serde_eth_get_balance_by_block_number() {
-        help_test_method_invocation_serde(MethodInvocation::Balance(
+        help_test_method_invocation_serde(MethodInvocation::GetBalance(
             Address::from_low_u64_ne(1),
             SerializableBlockSpec::Number(U256::from(100)),
         ));
@@ -204,7 +204,7 @@ mod tests {
 
     #[test]
     fn test_serde_eth_get_balance_by_block_tag() {
-        help_test_method_invocation_serde(MethodInvocation::Balance(
+        help_test_method_invocation_serde(MethodInvocation::GetBalance(
             Address::from_low_u64_ne(1),
             SerializableBlockSpec::Tag(String::from("latest")),
         ));
@@ -212,7 +212,7 @@ mod tests {
 
     #[test]
     fn test_serde_eth_get_block_by_number() {
-        help_test_method_invocation_serde(MethodInvocation::Block(
+        help_test_method_invocation_serde(MethodInvocation::GetBlock(
             SerializableBlockSpec::Number(U256::from(100)),
             true,
         ));
@@ -220,7 +220,7 @@ mod tests {
 
     #[test]
     fn test_serde_eth_get_block_by_tag() {
-        help_test_method_invocation_serde(MethodInvocation::Block(
+        help_test_method_invocation_serde(MethodInvocation::GetBlock(
             SerializableBlockSpec::Tag(String::from("latest")),
             true,
         ));
@@ -228,7 +228,7 @@ mod tests {
 
     #[test]
     fn test_serde_eth_get_block_by_hash() {
-        help_test_method_invocation_serde(MethodInvocation::BlockByHash(
+        help_test_method_invocation_serde(MethodInvocation::GetBlockByHash(
             B256::from_low_u64_ne(1),
             true,
         ));
@@ -236,7 +236,7 @@ mod tests {
 
     #[test]
     fn test_serde_eth_get_code_by_block_number() {
-        help_test_method_invocation_serde(MethodInvocation::Code(
+        help_test_method_invocation_serde(MethodInvocation::GetCode(
             Address::from_low_u64_ne(1),
             SerializableBlockSpec::Number(U256::from(100)),
         ));
@@ -244,7 +244,7 @@ mod tests {
 
     #[test]
     fn test_serde_eth_get_code_by_block_tag() {
-        help_test_method_invocation_serde(MethodInvocation::Code(
+        help_test_method_invocation_serde(MethodInvocation::GetCode(
             Address::from_low_u64_ne(1),
             SerializableBlockSpec::Tag(String::from("latest")),
         ));
@@ -252,7 +252,7 @@ mod tests {
 
     #[test]
     fn test_serde_eth_get_logs_by_block_numbers() {
-        help_test_method_invocation_serde(MethodInvocation::Logs(GetLogsInput {
+        help_test_method_invocation_serde(MethodInvocation::GetLogs(GetLogsInput {
             address: Address::from_low_u64_ne(1),
             from_block: SerializableBlockSpec::Number(U256::from(100)),
             to_block: SerializableBlockSpec::Number(U256::from(102)),
@@ -261,7 +261,7 @@ mod tests {
 
     #[test]
     fn test_serde_eth_get_logs_by_block_tags() {
-        help_test_method_invocation_serde(MethodInvocation::Logs(GetLogsInput {
+        help_test_method_invocation_serde(MethodInvocation::GetLogs(GetLogsInput {
             address: Address::from_low_u64_ne(1),
             from_block: SerializableBlockSpec::Tag(String::from("safe")),
             to_block: SerializableBlockSpec::Tag(String::from("latest")),
@@ -270,7 +270,7 @@ mod tests {
 
     #[test]
     fn test_serde_eth_get_storage_at_by_block_number() {
-        help_test_method_invocation_serde(MethodInvocation::StorageAt(
+        help_test_method_invocation_serde(MethodInvocation::GetStorageAt(
             Address::from_low_u64_ne(1),
             U256::ZERO,
             SerializableBlockSpec::Number(U256::from(100)),
@@ -279,7 +279,7 @@ mod tests {
 
     #[test]
     fn test_serde_eth_get_storage_at_by_block_tag() {
-        help_test_method_invocation_serde(MethodInvocation::StorageAt(
+        help_test_method_invocation_serde(MethodInvocation::GetStorageAt(
             Address::from_low_u64_ne(1),
             U256::ZERO,
             SerializableBlockSpec::Tag(String::from("latest")),
@@ -288,12 +288,12 @@ mod tests {
 
     #[test]
     fn test_serde_eth_get_tx_by_hash() {
-        help_test_method_invocation_serde(MethodInvocation::TxByHash(B256::from_low_u64_ne(1)));
+        help_test_method_invocation_serde(MethodInvocation::GetTxByHash(B256::from_low_u64_ne(1)));
     }
 
     #[test]
     fn test_serde_eth_get_tx_count_by_block_number() {
-        help_test_method_invocation_serde(MethodInvocation::TxCount(
+        help_test_method_invocation_serde(MethodInvocation::GetTxCount(
             Address::from_low_u64_ne(1),
             SerializableBlockSpec::Number(U256::from(100)),
         ));
@@ -301,7 +301,7 @@ mod tests {
 
     #[test]
     fn test_serde_eth_get_tx_count_by_block_tag() {
-        help_test_method_invocation_serde(MethodInvocation::TxCount(
+        help_test_method_invocation_serde(MethodInvocation::GetTxCount(
             Address::from_low_u64_ne(1),
             SerializableBlockSpec::Tag(String::from("latest")),
         ));
@@ -309,6 +309,6 @@ mod tests {
 
     #[test]
     fn test_serde_eth_get_tx_receipt() {
-        help_test_method_invocation_serde(MethodInvocation::TxReceipt(B256::from_low_u64_ne(1)));
+        help_test_method_invocation_serde(MethodInvocation::GetTxReceipt(B256::from_low_u64_ne(1)));
     }
 }

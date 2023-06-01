@@ -202,9 +202,9 @@ impl RpcClient {
         block: BlockSpec,
     ) -> Result<AccountInfo, RpcClientError> {
         let inputs = Vec::from([
-            MethodInvocation::Balance(*address, block.clone().into()),
-            MethodInvocation::TxCount(*address, block.clone().into()),
-            MethodInvocation::Code(*address, block.into()),
+            MethodInvocation::GetBalance(*address, block.clone().into()),
+            MethodInvocation::GetTxCount(*address, block.clone().into()),
+            MethodInvocation::GetCode(*address, block.into()),
         ]);
 
         let response = self.batch_call(&inputs).await?;
@@ -330,7 +330,7 @@ impl RpcClient {
         &self,
         hash: &B256,
     ) -> Result<Option<eth::Block<B256>>, RpcClientError> {
-        self.call(&MethodInvocation::BlockByHash(*hash, false))
+        self.call(&MethodInvocation::GetBlockByHash(*hash, false))
             .await
     }
 
@@ -339,7 +339,7 @@ impl RpcClient {
         &self,
         hash: &B256,
     ) -> Result<Option<eth::Block<eth::Transaction>>, RpcClientError> {
-        self.call(&MethodInvocation::BlockByHash(*hash, true)).await
+        self.call(&MethodInvocation::GetBlockByHash(*hash, true)).await
     }
 
     /// Calls `eth_getBlockByNumber` and returns the transaction's hash.
@@ -347,7 +347,7 @@ impl RpcClient {
         &self,
         spec: BlockSpec,
     ) -> Result<eth::Block<B256>, RpcClientError> {
-        self.call(&MethodInvocation::Block(spec.into(), false))
+        self.call(&MethodInvocation::GetBlock(spec.into(), false))
             .await
     }
 
@@ -356,7 +356,7 @@ impl RpcClient {
         &self,
         spec: BlockSpec,
     ) -> Result<eth::Block<eth::Transaction>, RpcClientError> {
-        self.call(&MethodInvocation::Block(spec.into(), true)).await
+        self.call(&MethodInvocation::GetBlock(spec.into(), true)).await
     }
 
     /// eth_getLogs
@@ -366,7 +366,7 @@ impl RpcClient {
         to_block: BlockSpec,
         address: &Address,
     ) -> Result<Vec<eth::Log>, RpcClientError> {
-        self.call(&MethodInvocation::Logs(GetLogsInput {
+        self.call(&MethodInvocation::GetLogs(GetLogsInput {
             from_block: from_block.into(),
             to_block: to_block.into(),
             address: *address,
@@ -379,7 +379,7 @@ impl RpcClient {
         &self,
         tx_hash: &B256,
     ) -> Result<Option<eth::Transaction>, RpcClientError> {
-        self.call(&MethodInvocation::TxByHash(*tx_hash)).await
+        self.call(&MethodInvocation::GetTxByHash(*tx_hash)).await
     }
 
     /// eth_getTransactionCount
@@ -388,7 +388,7 @@ impl RpcClient {
         address: &Address,
         block: BlockSpec,
     ) -> Result<U256, RpcClientError> {
-        self.call(&MethodInvocation::TxCount(*address, block.into()))
+        self.call(&MethodInvocation::GetTxCount(*address, block.into()))
             .await
     }
 
@@ -397,7 +397,7 @@ impl RpcClient {
         &self,
         tx_hash: &B256,
     ) -> Result<Option<eth::TransactionReceipt>, RpcClientError> {
-        self.call(&MethodInvocation::TxReceipt(*tx_hash)).await
+        self.call(&MethodInvocation::GetTxReceipt(*tx_hash)).await
     }
 
     /// eth_getStorageAt
@@ -407,7 +407,7 @@ impl RpcClient {
         position: U256,
         block: BlockSpec,
     ) -> Result<U256, RpcClientError> {
-        self.call(&MethodInvocation::StorageAt(
+        self.call(&MethodInvocation::GetStorageAt(
             *address,
             position,
             block.into(),
@@ -442,7 +442,7 @@ mod tests {
                 .expect("failed to parse hash from string");
 
         let error = RpcClient::new(&server.url())
-            .call::<Option<eth::Transaction>>(&MethodInvocation::TxByHash(hash))
+            .call::<Option<eth::Transaction>>(&MethodInvocation::GetTxByHash(hash))
             .await
             .expect_err("should have failed to interpret response as a Transaction");
 
@@ -485,7 +485,7 @@ mod tests {
             .expect("failed to parse hash from string");
 
             let error = RpcClient::new(alchemy_url)
-                .call::<Option<eth::Transaction>>(&MethodInvocation::TxByHash(hash))
+                .call::<Option<eth::Transaction>>(&MethodInvocation::GetTxByHash(hash))
                 .await
                 .expect_err("should have failed to interpret response as a Transaction");
 
@@ -506,7 +506,7 @@ mod tests {
             .expect("failed to parse hash from string");
 
             let error = RpcClient::new(alchemy_url)
-                .call::<Option<eth::Transaction>>(&MethodInvocation::TxByHash(hash))
+                .call::<Option<eth::Transaction>>(&MethodInvocation::GetTxByHash(hash))
                 .await
                 .expect_err("should have failed to connect due to a garbage domain name");
 
