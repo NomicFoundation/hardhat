@@ -128,6 +128,29 @@ impl From<BlockSpec> for SerializableBlockSpec {
 #[derive(Debug, PartialEq, serde::Deserialize, serde::Serialize)]
 #[serde(tag = "method", content = "params")]
 enum MethodInvocation {
+    #[serde(rename = "eth_getBalance")]
+    GetBalance(Address, SerializableBlockSpec),
+    #[serde(rename = "eth_getBlockByNumber")]
+    GetBlock(
+        SerializableBlockSpec,
+        /// include transaction data
+        bool,
+    ),
+    #[serde(rename = "eth_getBlockByHash")]
+    GetBlockByHash(
+        /// hash
+        B256,
+        /// include transaction data
+        bool,
+    ),
+    #[serde(rename = "eth_getCode")]
+    GetCode(Address, SerializableBlockSpec),
+    #[serde(
+        rename = "eth_getLogs",
+        serialize_with = "single_to_sequence",
+        deserialize_with = "sequence_to_single"
+    )]
+    GetLogs(GetLogsInput),
     #[serde(rename = "eth_getStorageAt")]
     GetStorageAt(
         Address,
@@ -141,37 +164,14 @@ enum MethodInvocation {
         deserialize_with = "sequence_to_single"
     )]
     GetTxByHash(B256),
+    #[serde(rename = "eth_getTransactionCount")]
+    GetTxCount(Address, SerializableBlockSpec),
     #[serde(
         rename = "eth_getTransactionReceipt",
         serialize_with = "single_to_sequence",
         deserialize_with = "sequence_to_single"
     )]
     GetTxReceipt(B256),
-    #[serde(
-        rename = "eth_getLogs",
-        serialize_with = "single_to_sequence",
-        deserialize_with = "sequence_to_single"
-    )]
-    GetLogs(GetLogsInput),
-    #[serde(rename = "eth_getBalance")]
-    GetBalance(Address, SerializableBlockSpec),
-    #[serde(rename = "eth_getBlockByHash")]
-    GetBlockByHash(
-        /// hash
-        B256,
-        /// include transaction data
-        bool,
-    ),
-    #[serde(rename = "eth_getBlockByNumber")]
-    GetBlock(
-        SerializableBlockSpec,
-        /// include transaction data
-        bool,
-    ),
-    #[serde(rename = "eth_getCode")]
-    GetCode(Address, SerializableBlockSpec),
-    #[serde(rename = "eth_getTransactionCount")]
-    GetTxCount(Address, SerializableBlockSpec),
 }
 
 #[derive(Clone, Debug, PartialEq, serde::Deserialize, serde::Serialize)]
