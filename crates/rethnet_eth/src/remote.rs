@@ -128,6 +128,16 @@ impl From<BlockSpec> for SerializableBlockSpec {
 #[derive(Debug, PartialEq, serde::Deserialize, serde::Serialize)]
 #[serde(tag = "method", content = "params")]
 enum MethodInvocation {
+    #[serde(rename = "eth_accounts")]
+    Accounts(),
+    #[serde(rename = "eth_blockNumber")]
+    BlockNumber(),
+    #[serde(rename = "eth_chainId")]
+    ChainId(),
+    #[serde(rename = "eth_coinbase")]
+    Coinbase(),
+    #[serde(rename = "eth_gasPrice")]
+    GasPrice(),
     #[serde(rename = "eth_getBalance")]
     GetBalance(Address, SerializableBlockSpec),
     #[serde(rename = "eth_getBlockByNumber")]
@@ -172,6 +182,14 @@ enum MethodInvocation {
         deserialize_with = "sequence_to_single"
     )]
     GetTransactionReceipt(B256),
+    #[serde(rename = "eth_mining")]
+    Mining(),
+    #[serde(rename = "eth_newBlockFilter")]
+    NewBlockFilter(),
+    #[serde(rename = "eth_newPendingTransactionFilter")]
+    NewPendingTransactionFilter(),
+    #[serde(rename = "eth_syncing")]
+    Syncing(),
 }
 
 #[derive(Clone, Debug, PartialEq, serde::Deserialize, serde::Serialize)]
@@ -192,6 +210,31 @@ mod tests {
             "should have successfully deserialized json {json}"
         ));
         assert_eq!(call, call_decoded);
+    }
+
+    #[test]
+    fn test_serde_eth_accounts() {
+        help_test_method_invocation_serde(MethodInvocation::Accounts());
+    }
+
+    #[test]
+    fn test_serde_eth_block_number() {
+        help_test_method_invocation_serde(MethodInvocation::BlockNumber());
+    }
+
+    #[test]
+    fn test_serde_eth_chain_id() {
+        help_test_method_invocation_serde(MethodInvocation::ChainId());
+    }
+
+    #[test]
+    fn test_serde_eth_coinbase() {
+        help_test_method_invocation_serde(MethodInvocation::Coinbase());
+    }
+
+    #[test]
+    fn test_serde_eth_gas_price() {
+        help_test_method_invocation_serde(MethodInvocation::GasPrice());
     }
 
     #[test]
@@ -314,5 +357,25 @@ mod tests {
         help_test_method_invocation_serde(MethodInvocation::GetTransactionReceipt(
             B256::from_low_u64_ne(1),
         ));
+    }
+
+    #[test]
+    fn test_serde_eth_mining() {
+        help_test_method_invocation_serde(MethodInvocation::Mining());
+    }
+
+    #[test]
+    fn test_serde_eth_new_block_filter() {
+        help_test_method_invocation_serde(MethodInvocation::NewBlockFilter());
+    }
+
+    #[test]
+    fn test_serde_eth_new_pending_transaction_filter() {
+        help_test_method_invocation_serde(MethodInvocation::NewPendingTransactionFilter());
+    }
+
+    #[test]
+    fn test_serde_eth_syncing() {
+        help_test_method_invocation_serde(MethodInvocation::Syncing());
     }
 }
