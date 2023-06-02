@@ -1,6 +1,10 @@
 import type { ethers as EthersT } from "ethers";
 import type { HardhatEthersSigner } from "../signers";
-import type { FactoryOptions, Libraries } from "../types";
+import type {
+  DeployContractOptions,
+  FactoryOptions,
+  Libraries,
+} from "../types";
 
 import { Artifact, HardhatRuntimeEnvironment } from "hardhat/types";
 import { HardhatEthersError } from "./errors";
@@ -343,20 +347,20 @@ export async function deployContract(
   hre: HardhatRuntimeEnvironment,
   name: string,
   args?: any[],
-  signerOrOptions?: EthersT.Signer | FactoryOptions
+  signerOrOptions?: EthersT.Signer | DeployContractOptions
 ): Promise<EthersT.Contract>;
 
 export async function deployContract(
   hre: HardhatRuntimeEnvironment,
   name: string,
-  signerOrOptions?: EthersT.Signer | FactoryOptions
+  signerOrOptions?: EthersT.Signer | DeployContractOptions
 ): Promise<EthersT.Contract>;
 
 export async function deployContract(
   hre: HardhatRuntimeEnvironment,
   name: string,
-  argsOrSignerOrOptions?: any[] | EthersT.Signer | FactoryOptions,
-  signerOrOptions?: EthersT.Signer | FactoryOptions
+  argsOrSignerOrOptions?: any[] | EthersT.Signer | DeployContractOptions,
+  signerOrOptions?: EthersT.Signer | DeployContractOptions
 ): Promise<EthersT.Contract> {
   let args = [];
   if (Array.isArray(argsOrSignerOrOptions)) {
@@ -364,8 +368,44 @@ export async function deployContract(
   } else {
     signerOrOptions = argsOrSignerOrOptions;
   }
+
+  let overrides: EthersT.Overrides = {};
+  if (signerOrOptions !== undefined && !("getAddress" in signerOrOptions)) {
+    // the DeployContractOptions type combines the properties of FactoryOptions
+    // and of EthersT.Overrides, but we only want to use the latter.
+    //
+    // This seems to be the type-safest way to extract only those.
+    const overridesExplicitProperties: {
+      [K in keyof Required<EthersT.Overrides>]: EthersT.Overrides[K];
+    } = {
+      type: signerOrOptions.type,
+
+      from: signerOrOptions.from,
+
+      nonce: signerOrOptions.nonce,
+
+      gasLimit: signerOrOptions.gasLimit,
+      gasPrice: signerOrOptions.gasPrice,
+
+      maxPriorityFeePerGas: signerOrOptions.maxPriorityFeePerGas,
+      maxFeePerGas: signerOrOptions.maxFeePerGas,
+
+      value: signerOrOptions.value,
+      chainId: signerOrOptions.chainId,
+
+      accessList: signerOrOptions.accessList,
+
+      customData: signerOrOptions.customData,
+
+      blockTag: signerOrOptions.blockTag,
+      enableCcipRead: signerOrOptions.enableCcipRead,
+    };
+
+    overrides = overridesExplicitProperties;
+  }
+
   const factory = await getContractFactory(hre, name, signerOrOptions);
-  return factory.deploy(...args) as any;
+  return factory.deploy(...args, overrides);
 }
 
 export async function getContractAtFromArtifact(
