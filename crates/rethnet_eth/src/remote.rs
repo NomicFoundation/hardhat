@@ -283,6 +283,8 @@ enum MethodInvocation {
     SendTransaction(TransactionInput),
     #[serde(rename = "eth_sign")]
     Sign(Address, ZeroXPrefixedBytes),
+    #[serde(rename = "eth_signTypedData_v4")]
+    SignTypedDataV4(Address, eth::eip712::Message),
     #[serde(rename = "eth_syncing")]
     Syncing(),
     #[serde(rename = "eth_uninstallFilter")]
@@ -598,6 +600,31 @@ mod tests {
             Address::from_low_u64_ne(1),
             ZeroXPrefixedBytes {
                 inner: bytes::Bytes::from(&b"whatever"[..]),
+            },
+        ));
+    }
+
+    #[test]
+    fn test_serde_eth_sign_typed_data_v4() {
+        help_test_method_invocation_serde(MethodInvocation::SignTypedDataV4(
+            Address::from_low_u64_ne(1),
+            eth::eip712::Message {
+                types: hashbrown::HashMap::from([(
+                    String::from("typeA"),
+                    vec![eth::eip712::FieldType {
+                        name: String::from("A"),
+                        type_: String::from("whatever"),
+                    }],
+                )]),
+                primary_type: String::from("whatever"),
+                message: serde_json::Value::from(String::from("a message body")),
+                domain: eth::eip712::Domain {
+                    name: Some(String::from("my domain")),
+                    version: Some(String::from("1.0.0")),
+                    chain_id: Some(U256::from(1)),
+                    verifying_contract: Some(Address::from_low_u64_ne(1)),
+                    salt: Some(B256::from_low_u64_ne(1)),
+                },
             },
         ));
     }
