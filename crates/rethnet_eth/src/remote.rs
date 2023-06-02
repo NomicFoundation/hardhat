@@ -187,6 +187,15 @@ struct TransactionInput {
     data: Option<ZeroXPrefixedBytes>,
 }
 
+#[derive(Clone, Debug, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+struct FilterOptions {
+    from_block: Option<SerializableBlockSpec>,
+    to_block: Option<SerializableBlockSpec>,
+    address: Option<Address>,
+    topics: Option<Vec<ZeroXPrefixedBytes>>,
+}
+
 #[derive(Debug, PartialEq, serde::Deserialize, serde::Serialize)]
 #[serde(tag = "method", content = "params")]
 enum MethodInvocation {
@@ -273,6 +282,8 @@ enum MethodInvocation {
     Mining(),
     #[serde(rename = "eth_newBlockFilter")]
     NewBlockFilter(),
+    #[serde(rename = "eth_newFilter")]
+    NewFilter(FilterOptions),
     #[serde(rename = "eth_newPendingTransactionFilter")]
     NewPendingTransactionFilter(),
     #[serde(rename = "eth_pendingTransactions")]
@@ -559,6 +570,18 @@ mod tests {
     #[test]
     fn test_serde_eth_new_block_filter() {
         help_test_method_invocation_serde(MethodInvocation::NewBlockFilter());
+    }
+
+    #[test]
+    fn test_serde_eth_new_filter() {
+        help_test_method_invocation_serde(MethodInvocation::NewFilter(FilterOptions {
+            from_block: Some(SerializableBlockSpec::Number(U256::from(1000))),
+            to_block: Some(SerializableBlockSpec::Tag(String::from("latest"))),
+            address: Some(Address::from_low_u64_ne(1)),
+            topics: Some(vec![ZeroXPrefixedBytes {
+                inner: bytes::Bytes::from(&b"some topic"[..]),
+            }]),
+        }));
     }
 
     #[test]
