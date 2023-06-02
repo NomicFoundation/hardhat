@@ -202,6 +202,15 @@ enum MethodInvocation {
     Coinbase(),
     #[serde(rename = "eth_estimateGas")]
     EstimateGas(TransactionInput, SerializableBlockSpec),
+    #[serde(rename = "eth_feeHistory")]
+    FeeHistory(
+        /// block count
+        U256,
+        /// newest block
+        SerializableBlockSpec,
+        /// reward percentiles
+        Vec<f64>,
+    ),
     #[serde(rename = "eth_gasPrice")]
     GasPrice(),
     #[serde(rename = "eth_getBalance")]
@@ -359,6 +368,15 @@ mod tests {
         help_test_method_invocation_serde(MethodInvocation::EstimateGas(
             tx,
             SerializableBlockSpec::Number(U256::from(100)),
+        ));
+    }
+
+    #[test]
+    fn test_serde_eth_fee_history() {
+        help_test_method_invocation_serde(MethodInvocation::FeeHistory(
+            U256::from(3),
+            SerializableBlockSpec::Number(U256::from(100)),
+            vec![0.5_f64, 10_f64, 80_f64, 90_f64, 99.5_f64],
         ));
     }
 
