@@ -12,6 +12,8 @@ export interface FactoryOptions {
   libraries?: Libraries;
 }
 
+export type DeployContractOptions = FactoryOptions & ethers.Overrides;
+
 export declare function getContractFactory<
   A extends any[] = any[],
   I = ethers.Contract
@@ -30,13 +32,13 @@ export declare function getContractFactory<
 
 export declare function deployContract(
   name: string,
-  signerOrOptions?: ethers.Signer | FactoryOptions
+  signerOrOptions?: ethers.Signer | DeployContractOptions
 ): Promise<ethers.Contract>;
 
 export declare function deployContract(
   name: string,
   args: any[],
-  signerOrOptions?: ethers.Signer | FactoryOptions
+  signerOrOptions?: ethers.Signer | DeployContractOptions
 ): Promise<ethers.Contract>;
 
 export declare function getContractFactoryFromArtifact<
