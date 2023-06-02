@@ -4,8 +4,8 @@ export type Signature = {
   r: string;
 };
 
-export interface LedgerOptions {
-  path: string;
+export type LedgerOptions = {
   openTimeout?: number;
   connectionTimeout?: number;
-}
+  path: string;
+};

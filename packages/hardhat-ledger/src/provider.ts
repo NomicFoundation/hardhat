@@ -169,7 +169,6 @@ export class LedgerProvider extends ProviderWrapperWithChainId {
         let signature;
 
         try {
-          console.log("here");
           signature = await this._eth.signEIP712Message(
             this.options.path,
             typedMessage
@@ -261,6 +260,7 @@ export class LedgerProvider extends ProviderWrapperWithChainId {
           {},
           {}
         );
+
         const signature = await this._eth.signTransaction(
           this.options.path,
           txToSign,

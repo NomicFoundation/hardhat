@@ -7,6 +7,8 @@ import Transport from "@ledgerhq/hw-transport";
 import { EIP712Message } from "@ledgerhq/hw-app-eth/lib/modules/EIP712";
 import { TransportError } from "@ledgerhq/errors";
 
+import { RequestArguments } from "hardhat/types";
+
 import { LedgerProvider } from "../src/provider";
 import { EthereumMockedProvider } from "./mocks";
 import { LedgerOptions } from "../src/types";
@@ -74,11 +76,10 @@ describe("LedgerProvider", () => {
     it("should call the create method on TransportNodeHid", async () => {
       await provider.init();
 
-      assert.isTrue(
-        createStub.calledOnceWith(
-          LedgerProvider.DEFAULT_TIMEOUT,
-          LedgerProvider.DEFAULT_TIMEOUT
-        )
+      sinon.assert.calledOnceWithExactly(
+        createStub,
+        LedgerProvider.DEFAULT_TIMEOUT,
+        LedgerProvider.DEFAULT_TIMEOUT
       );
     });
 
@@ -87,11 +88,10 @@ describe("LedgerProvider", () => {
       await provider.init();
       await provider.init();
 
-      assert.isTrue(
-        createStub.calledOnceWith(
-          LedgerProvider.DEFAULT_TIMEOUT,
-          LedgerProvider.DEFAULT_TIMEOUT
-        )
+      sinon.assert.calledOnceWithExactly(
+        createStub,
+        LedgerProvider.DEFAULT_TIMEOUT,
+        LedgerProvider.DEFAULT_TIMEOUT
       );
     });
 
@@ -104,11 +104,10 @@ describe("LedgerProvider", () => {
       const newProvider = new LedgerProvider(options, mock);
       await newProvider.init();
 
-      assert.isTrue(
-        createStub.calledOnceWith(
-          options.openTimeout,
-          options.connectionTimeout
-        )
+      sinon.assert.calledOnceWithExactly(
+        createStub,
+        options.openTimeout,
+        options.connectionTimeout
       );
     });
 
@@ -152,6 +151,7 @@ describe("LedgerProvider", () => {
   describe("request", () => {
     let account: { address: string; publicKey: string };
     let rsv: { v: number; r: string; s: string };
+    let txRsv: { v: string; r: string; s: string };
     let signature: string;
     let dataToSign: string;
     let typedMessage: EIP712Message;
@@ -168,6 +168,11 @@ describe("LedgerProvider", () => {
         v: 55,
         r: "4f4c17305743700648bc4f6cd3038ec6f6af0df73e31757007b7f59df7bee88d",
         s: "7e1941b264348e80c78c4027afc65a87b0a5e43e86742b8ca0823584c6788fd0",
+      };
+      txRsv = {
+        v: "f4f5",
+        r: "4ab14d7e96a8bc7390cfffa0260d4b82848428ce7f5b8dd367d13bf31944b6c0",
+        s: "3cc226daa6a2f4e22334c59c2e04ac72672af72907ec9c4a601189858ba60069",
       };
       signature =
         "0x4f4c17305743700648bc4f6cd3038ec6f6af0df73e31757007b7f59df7bee88d7e1941b264348e80c78c4027afc65a87b0a5e43e86742b8ca0823584c6788fd01c";
@@ -220,7 +225,7 @@ describe("LedgerProvider", () => {
 
       const resultAccounts = await provider.request({ method: "eth_accounts" });
 
-      assert.isTrue(stub.calledWithExactly(path));
+      sinon.assert.calledOnceWithExactly(stub, path);
       assert.deepEqual([account.address], resultAccounts);
     });
     it("should call the ledger's getAddress method when the JSONRPC eth_requestAccounts method is called", async () => {
@@ -232,7 +237,7 @@ describe("LedgerProvider", () => {
         method: "eth_requestAccounts",
       });
 
-      assert.isTrue(stub.calledWithExactly(path));
+      sinon.assert.calledOnceWithExactly(stub, path);
       assert.deepEqual([account.address], resultAccounts);
     });
 
@@ -246,7 +251,7 @@ describe("LedgerProvider", () => {
         params: [dataToSign, account.address],
       });
 
-      assert.isTrue(stub.calledWithExactly(path, dataToSign.slice(2))); // slices 0x
+      sinon.assert.calledOnceWithExactly(stub, path, dataToSign.slice(2)); // slices 0x
       assert.deepEqual(signature, resultSignature);
     });
     it("should call the ledger's signPersonalMessage method when the JSONRPC eth_sign method is called", async () => {
@@ -259,7 +264,7 @@ describe("LedgerProvider", () => {
         params: [account.address, dataToSign],
       });
 
-      assert.isTrue(stub.calledWithExactly(path, dataToSign.slice(2))); // slices 0x
+      sinon.assert.calledOnceWithExactly(stub, path, dataToSign.slice(2)); // slices 0x
       assert.deepEqual(signature, resultSignature);
     });
 
@@ -275,7 +280,7 @@ describe("LedgerProvider", () => {
         params: [account.address, typedMessage],
       });
 
-      assert.isTrue(stub.calledWithExactly(path, typedMessage));
+      sinon.assert.calledOnceWithExactly(stub, path, typedMessage);
       assert.deepEqual(signature, resultSignature);
     });
     it("should call the ledger's signEIP712HashedMessage method when the JSONRPC eth_signTypedData_v4 method is called", async () => {
@@ -294,18 +299,81 @@ describe("LedgerProvider", () => {
         params: [account.address, typedMessage],
       });
 
-      assert.isTrue(
-        stub.calledWithExactly(
-          path,
-          "0xf2cee375fa42b42143804025fc449deafd50cc031ca257e0b194a650a912090f", // hash domain
-          "0xc52c0ee5d84264471806290a3f2c4cecfc5490626bf912d01f240d7a274b371e" // hash struct
-        )
+      sinon.assert.calledOnceWithExactly(
+        stub,
+        path,
+        "0xf2cee375fa42b42143804025fc449deafd50cc031ca257e0b194a650a912090f", // hash domain
+        "0xc52c0ee5d84264471806290a3f2c4cecfc5490626bf912d01f240d7a274b371e" // hash struct
       );
       assert.deepEqual(signature, resultSignature);
     });
 
-    it(
-      "should call the ledger's signTransaction method when the JSONRPC eth_sendTransaction method is called"
-    );
+    it("should call the ledger's signTransaction method when the JSONRPC eth_sendTransaction method is called", async () => {
+      const toAddress = "0x9f649FE750340A295dDdbBd7e1EC8f378cF24b43";
+      const tx =
+        "0xf8626464830f4240949f649fe750340a295dddbbd7e1ec8f378cf24b43648082f4f5a04ab14d7e96a8bc7390cfffa0260d4b82848428ce7f5b8dd367d13bf31944b6c0a03cc226daa6a2f4e22334c59c2e04ac72672af72907ec9c4a601189858ba60069";
+
+      const requestStub = sinon.stub();
+      sinon.replace(mock, "request", async (args: RequestArguments) => {
+        requestStub(args);
+
+        switch (args.method) {
+          case "eth_chainId":
+            return "0x7a69";
+          case "eth_getTransactionCount":
+            return "0x64";
+          case "eth_sendRawTransaction":
+            return tx;
+        }
+      });
+
+      const signTransactionStub = sinon
+        .stub(provider.eth, "signTransaction")
+        .returns(Promise.resolve(txRsv));
+
+      sinon.stub(provider.eth, "getAddress").returns(Promise.resolve(account)); // make it a controlled address
+
+      const resultTx = await provider.request({
+        method: "eth_sendTransaction",
+        params: [
+          {
+            from: account.address,
+            to: toAddress,
+            value: numberToRpcQuantity(100),
+            gas: numberToRpcQuantity(1000000),
+            gasPrice: numberToRpcQuantity(100),
+            gasLimit: numberToRpcQuantity(1000000),
+          },
+        ],
+      });
+
+      sinon.assert.calledOnceWithExactly(
+        signTransactionStub,
+        path,
+        "e26464830f4240949f649fe750340a295dddbbd7e1ec8f378cf24b436480827a698080",
+        {
+          nfts: [],
+          erc20Tokens: [],
+          externalPlugin: [],
+          plugin: [],
+          domains: [],
+        }
+      );
+      sinon.assert.calledWithExactly(requestStub, {
+        method: "eth_getTransactionCount",
+        params: ["0x9f649fe750340a295dddbbd7e1ec8f378cf24b43", "pending"],
+      });
+      sinon.assert.calledWithExactly(requestStub, {
+        method: "eth_sendRawTransaction",
+        params: [
+          "0xf8626464830f4240949f649fe750340a295dddbbd7e1ec8f378cf24b43648082f4f5a04ab14d7e96a8bc7390cfffa0260d4b82848428ce7f5b8dd367d13bf31944b6c0a03cc226daa6a2f4e22334c59c2e04ac72672af72907ec9c4a601189858ba60069",
+        ],
+      });
+      assert.equal(tx, resultTx);
+    });
+
+    function numberToRpcQuantity(n: number | bigint): string {
+      return `0x${n.toString(16)}`;
+    }
   });
 });
