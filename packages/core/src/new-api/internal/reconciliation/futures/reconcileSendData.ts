@@ -2,9 +2,10 @@ import { isEqual } from "lodash";
 
 import { SendDataFuture } from "../../../types/module";
 import { SendDataExecutionState } from "../../types/execution-state";
+import { resolveFromAddress } from "../../utils/resolveFromAddress";
 import { ExecutionStateResolver } from "../execution-state-resolver";
 import { ReconciliationContext, ReconciliationFutureResult } from "../types";
-import { addressToErrorString, fail, resolveFromAddress } from "../utils";
+import { addressToErrorString, fail } from "../utils";
 
 export function reconcileSendData(
   future: SendDataFuture,

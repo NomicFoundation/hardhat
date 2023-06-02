@@ -1,6 +1,9 @@
+import identity from "lodash/identity";
+
 import { IgnitionError } from "../../../errors";
 import { isDeploymentExecutionState } from "../../../internal/utils/guards";
 import { isRuntimeValue } from "../../type-guards";
+import { ArtifactResolver } from "../../types/artifact";
 import { DeploymentResult } from "../../types/deployer";
 import {
   ExecutionResultMessage,
@@ -10,14 +13,18 @@ import {
 } from "../../types/journal";
 import {
   AccountRuntimeValue,
+  ArgumentType,
   Future,
   FutureType,
+  ModuleParameters,
   RuntimeValueType,
 } from "../../types/module";
 import { accountRuntimeValueToErrorString } from "../reconciliation/utils";
 import { ExecutionEngineState } from "../types/execution-engine";
 import { ExecutionStateMap, ExecutionStatus } from "../types/execution-state";
 import { getFuturesFromModule } from "../utils/get-futures-from-module";
+import { replaceWithinArg } from "../utils/replace-within-arg";
+import { resolveModuleParameter } from "../utils/resolveModuleParameter";
 
 import { executionStateReducer } from "./executionStateReducer";
 import { isExecutionResult, isOnChainAction, isOnchainResult } from "./guards";
@@ -54,6 +61,7 @@ export class ExecutionEngine {
     return {
       status: "success",
       contracts: this._resolveDeployedContractsFrom(state),
+      module: state.module,
     };
   }
 
@@ -70,7 +78,11 @@ export class ExecutionEngine {
     future: Future,
     state: ExecutionEngineState
   ): Promise<ExecutionResultMessage> {
-    let current: JournalableMessage = this._startOrRestartFor(future, state);
+    let current: JournalableMessage = await this._startOrRestartFor(
+      future,
+      state
+    );
+
     await this._apply(state, current);
 
     const context = {
@@ -108,10 +120,10 @@ export class ExecutionEngine {
     return current;
   }
 
-  private _startOrRestartFor(
+  private async _startOrRestartFor(
     future: Future,
     state: ExecutionEngineState
-  ): FutureStartMessage | FutureRestartMessage {
+  ): Promise<FutureStartMessage | FutureRestartMessage> {
     const executionState = state.executionStateMap[future.id];
 
     if (executionState === undefined) {
@@ -158,10 +170,19 @@ export class ExecutionEngine {
     );
   }
 
-  private _initCommandFor(
+  private async _initCommandFor(
     future: Future,
-    { accounts }: { executionStateMap: ExecutionStateMap; accounts: string[] }
-  ): FutureStartMessage {
+    {
+      accounts,
+      artifactResolver,
+      deploymentParameters,
+    }: {
+      executionStateMap: ExecutionStateMap;
+      accounts: string[];
+      artifactResolver: ArtifactResolver;
+      deploymentParameters: { [key: string]: ModuleParameters };
+    }
+  ): Promise<FutureStartMessage> {
     const strategy = "basic";
     let state: FutureStartMessage;
 
@@ -175,7 +196,9 @@ export class ExecutionEngine {
           // status: ExecutionStatus.STARTED,
           dependencies: [...future.dependencies].map((f) => f.id),
           // history: [],
-          storedArtifactPath: "./artifact.json",
+          storedArtifactPath: await artifactResolver.resolvePath(
+            future.contractName
+          ),
           storedBuildInfoPath: "./build-info.json",
           contractName: future.contractName,
           value: future.value.toString(),
@@ -195,11 +218,16 @@ export class ExecutionEngine {
           // status: ExecutionStatus.STARTED,
           dependencies: [...future.dependencies].map((f) => f.id),
           // history: [],
-          storedArtifactPath: "./artifact.json",
+          storedArtifactPath: await artifactResolver.resolvePath(
+            future.contractName
+          ),
           storedBuildInfoPath: "./build-info.json",
           contractName: future.contractName,
           value: future.value.toString(),
-          constructorArgs: future.constructorArgs,
+          constructorArgs: this._resolveArgs(future.constructorArgs, {
+            accounts,
+            deploymentParameters,
+          }),
           libraries: Object.fromEntries(
             Object.entries(future.libraries).map(([key, lib]) => [key, lib.id])
           ),
@@ -215,7 +243,9 @@ export class ExecutionEngine {
           // status: ExecutionStatus.STARTED,
           dependencies: [...future.dependencies].map((f) => f.id),
           // history: [],
-          storedArtifactPath: "./artifact.json",
+          storedArtifactPath: await artifactResolver.resolvePath(
+            future.contractName
+          ),
           storedBuildInfoPath: "./build-info.json",
           contractName: future.contractName,
           value: "0",
@@ -235,7 +265,9 @@ export class ExecutionEngine {
           // status: ExecutionStatus.STARTED,
           dependencies: [...future.dependencies].map((f) => f.id),
           // history: [],
-          storedArtifactPath: "./artifact.json",
+          storedArtifactPath: await artifactResolver.resolvePath(
+            future.contractName
+          ),
           storedBuildInfoPath: "./build-info.json",
           contractName: future.contractName,
           value: "0",
@@ -257,6 +289,28 @@ export class ExecutionEngine {
     }
   }
 
+  private _resolveArgs(
+    args: ArgumentType[],
+    context: {
+      deploymentParameters: { [key: string]: ModuleParameters };
+      accounts: string[];
+    }
+  ) {
+    const replace = (arg: ArgumentType) =>
+      replaceWithinArg<ArgumentType>(arg, {
+        bigint: identity,
+        future: (_f) => {
+          return null as any;
+        },
+        accountRuntimeValue: (arv) => context.accounts[arv.accountIndex],
+        moduleParameterRuntimeValue: (mprv) => {
+          return resolveModuleParameter(mprv, context);
+        },
+      });
+
+    return args.map(replace);
+  }
+
   private _lookupFuture(futures: Future[], futureId: string): Future {
     const future = futures.find((f) => f.id === futureId);
 
@@ -271,7 +325,11 @@ export class ExecutionEngine {
     executionStateMap,
   }: ExecutionEngineState): Record<
     string,
-    { contractName: string; contractAddress: string }
+    {
+      contractName: string;
+      contractAddress: string;
+      storedArtifactPath: string;
+    }
   > {
     return Object.fromEntries(
       Object.values(executionStateMap)
@@ -282,6 +340,7 @@ export class ExecutionEngine {
           {
             contractName: des.contractName,
             contractAddress: des.contractAddress!,
+            storedArtifactPath: des.storedArtifactPath,
           },
         ])
     );

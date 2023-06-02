@@ -10,7 +10,7 @@ import { getFuturesFromModule } from "../../src/new-api/internal/utils/get-futur
 import { validateNamedLibraryDeployment } from "../../src/new-api/internal/validation/futures/validateNamedLibraryDeployment";
 import { FutureType } from "../../src/new-api/types/module";
 
-import { assertInstanceOf } from "./helpers";
+import { assertInstanceOf, setupMockArtifactResolver } from "./helpers";
 
 describe("library", () => {
   it("should be able to setup a deploy library call", () => {
@@ -309,9 +309,10 @@ describe("library", () => {
       const [future] = getFuturesFromModule(module);
 
       await assert.isRejected(
-        validateNamedLibraryDeployment(future as any, {
-          load: async () => ({} as any),
-        }),
+        validateNamedLibraryDeployment(
+          future as any,
+          setupMockArtifactResolver({} as any)
+        ),
         /Artifact for contract 'Another' is invalid/
       );
     });

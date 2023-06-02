@@ -1,5 +1,4 @@
 import {
-  Artifact,
   Deployer,
   FileJournal,
   MemoryJournal,
@@ -17,7 +16,9 @@ import path from "path";
 import prompts from "prompts";
 
 import { buildAdaptersFrom } from "./buildAdaptersFrom";
+import { buildArtifactResolverFrom } from "./buildArtifactResolverFrom";
 import { buildIgnitionProvidersFrom } from "./buildIgnitionProvidersFrom";
+import { IgnitionTestHelper } from "./ignition-test-helper";
 import { IgnitionWrapper } from "./ignition-wrapper";
 import { loadModule } from "./load-module";
 import { writePlan } from "./plan/write-plan";
@@ -88,6 +89,15 @@ extendEnvironment((hre) => {
       txPollingInterval,
       networkName: hre.network.name,
     });
+  });
+
+  hre.ignition2 = lazyObject(() => {
+    // const isHardhatNetwork = hre.network.name === "hardhat";
+
+    // TODO: rewire txPollingInterval
+    // const txPollingInterval = isHardhatNetwork ? 100 : 5000;
+
+    return new IgnitionTestHelper(hre);
   });
 });
 
@@ -235,7 +245,8 @@ task("deploy2")
         parameters = resolveParametersString(parametersInput);
       }
 
-      const isHardhatNetwork = hre.network.name === "hardhat";
+      // TODO: bring back check with file journaling proper
+      const isHardhatNetwork = true; // hre.network.name === "hardhat";
 
       const journal = isHardhatNetwork
         ? new MemoryJournal()
@@ -248,14 +259,10 @@ task("deploy2")
       })) as string[];
 
       try {
-        const artifactLoader = {
-          load: async (contractName: string): Promise<Artifact> =>
-            hre.artifacts.readArtifact(contractName),
-        };
-
+        const artifactResolver = buildArtifactResolverFrom(hre);
         const adapters = buildAdaptersFrom(hre);
 
-        const deployer = new Deployer({ journal, adapters, artifactLoader });
+        const deployer = new Deployer({ journal, adapters, artifactResolver });
 
         const result = await deployer.deploy(
           userModule as any,

@@ -12,7 +12,7 @@ import { getFuturesFromModule } from "../../src/new-api/internal/utils/get-futur
 import { validateNamedContractCall } from "../../src/new-api/internal/validation/futures/validateNamedContractCall";
 import { FutureType } from "../../src/new-api/types/module";
 
-import { assertInstanceOf } from "./helpers";
+import { assertInstanceOf, setupMockArtifactResolver } from "./helpers";
 
 describe("call", () => {
   it("should be able to setup a contract call", () => {
@@ -556,9 +556,10 @@ describe("call", () => {
       );
 
       await assert.isRejected(
-        validateNamedContractCall(future as any, {
-          load: async () => ({} as any),
-        }),
+        validateNamedContractCall(
+          future as any,
+          setupMockArtifactResolver({} as any)
+        ),
         /Artifact for contract 'Another' is invalid/
       );
     });
@@ -585,9 +586,10 @@ describe("call", () => {
       );
 
       await assert.isRejected(
-        validateNamedContractCall(future as any, {
-          load: async () => fakeArtifact,
-        }),
+        validateNamedContractCall(
+          future as any,
+          setupMockArtifactResolver(fakeArtifact)
+        ),
         /Contract 'Another' doesn't have a function test/
       );
     });
@@ -628,9 +630,10 @@ describe("call", () => {
       );
 
       await assert.isRejected(
-        validateNamedContractCall(future as any, {
-          load: async () => fakeArtifact,
-        }),
+        validateNamedContractCall(
+          future as any,
+          setupMockArtifactResolver(fakeArtifact)
+        ),
         /Function inc in contract Another expects 1 arguments but 2 were given/
       );
     });
@@ -689,9 +692,10 @@ describe("call", () => {
       );
 
       await assert.isRejected(
-        validateNamedContractCall(future as any, {
-          load: async () => fakeArtifact,
-        }),
+        validateNamedContractCall(
+          future as any,
+          setupMockArtifactResolver(fakeArtifact)
+        ),
         /Function inc in contract Another is overloaded, but no overload expects 3 arguments/
       );
     });

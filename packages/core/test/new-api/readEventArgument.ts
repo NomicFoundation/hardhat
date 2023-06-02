@@ -6,6 +6,8 @@ import { ModuleConstructor } from "../../src/new-api/internal/module-builder";
 import { getFuturesFromModule } from "../../src/new-api/internal/utils/get-futures-from-module";
 import { validateReadEventArgument } from "../../src/new-api/internal/validation/futures/validateReadEventArgument";
 
+import { setupMockArtifactResolver } from "./helpers";
+
 describe("Read event argument", () => {
   describe("creating modules with it", () => {
     it("should support reading arguments from all the futures that can emit them", () => {
@@ -231,9 +233,10 @@ describe("Read event argument", () => {
       );
 
       await assert.isRejected(
-        validateReadEventArgument(future as any, {
-          load: async () => ({} as any),
-        }),
+        validateReadEventArgument(
+          future as any,
+          setupMockArtifactResolver({} as any)
+        ),
         /Artifact for contract 'Another' is invalid/
       );
     });
@@ -260,9 +263,10 @@ describe("Read event argument", () => {
       );
 
       await assert.isRejected(
-        validateReadEventArgument(future as any, {
-          load: async () => fakeArtifact,
-        }),
+        validateReadEventArgument(
+          future as any,
+          setupMockArtifactResolver(fakeArtifact)
+        ),
         /Contract 'Another' doesn't have an event test/
       );
     });

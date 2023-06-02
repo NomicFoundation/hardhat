@@ -11,7 +11,7 @@ import { ModuleConstructor } from "../../src/new-api/internal/module-builder";
 import { getFuturesFromModule } from "../../src/new-api/internal/utils/get-futures-from-module";
 import { validateArtifactContractDeployment } from "../../src/new-api/internal/validation/futures/validateArtifactContractDeployment";
 
-import { assertInstanceOf } from "./helpers";
+import { assertInstanceOf, setupMockArtifactResolver } from "./helpers";
 
 describe("contractFromArtifact", () => {
   const fakeArtifact: Artifact = {
@@ -627,9 +627,10 @@ describe("contractFromArtifact", () => {
       const [future] = getFuturesFromModule(module);
 
       await assert.isRejected(
-        validateArtifactContractDeployment(future as any, {
-          load: async () => fakeArtifact,
-        }),
+        validateArtifactContractDeployment(
+          future as any,
+          setupMockArtifactResolver(fakeArtifact)
+        ),
         /The constructor of the contract 'Test' expects 0 arguments but 3 were given/
       );
     });

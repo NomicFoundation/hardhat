@@ -44,12 +44,13 @@ export type OnchainInteractionMessage = DeployContractInteractionMessage;
  * @beta
  */
 export interface DeployContractInteractionMessage {
-  value: string;
-  args: ArgumentType[];
-  from: string;
-  contractName: string;
   type: "onchain-action";
   subtype: "deploy-contract";
+  args: ArgumentType[];
+  contractName: string;
+  storedArtifactPath: string;
+  value: string;
+  from: string;
 }
 
 // #endregion

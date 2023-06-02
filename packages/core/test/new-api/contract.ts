@@ -12,7 +12,7 @@ import { getFuturesFromModule } from "../../src/new-api/internal/utils/get-futur
 import { validateNamedContractDeployment } from "../../src/new-api/internal/validation/futures/validateNamedContractDeployment";
 import { FutureType } from "../../src/new-api/types/module";
 
-import { assertInstanceOf } from "./helpers";
+import { assertInstanceOf, setupMockArtifactResolver } from "./helpers";
 
 describe("contract", () => {
   it("should be able to setup a deploy contract call", () => {
@@ -552,9 +552,10 @@ describe("contract", () => {
       const [future] = getFuturesFromModule(module);
 
       await assert.isRejected(
-        validateNamedContractDeployment(future as any, {
-          load: async () => ({} as any),
-        }),
+        validateNamedContractDeployment(
+          future as any,
+          setupMockArtifactResolver({} as any)
+        ),
         /Artifact for contract 'Another' is invalid/
       );
     });
@@ -583,9 +584,10 @@ describe("contract", () => {
       const [future] = getFuturesFromModule(module);
 
       await assert.isRejected(
-        validateNamedContractDeployment(future as any, {
-          load: async () => fakeArtifact,
-        }),
+        validateNamedContractDeployment(
+          future as any,
+          setupMockArtifactResolver(fakeArtifact)
+        ),
         /The constructor of the contract 'Test' expects 0 arguments but 3 were given/
       );
     });

@@ -51,7 +51,10 @@ export class BasicExecutionStrategy
       contractName: deploymentExecutionState.contractName,
       value: deploymentExecutionState.value.toString(),
       args: deploymentExecutionState.constructorArgs,
+      // TODO: the possibily of undefined for `from` needs
+      // a working resolution
       from: deploymentExecutionState.from ?? "n/a",
+      storedArtifactPath: deploymentExecutionState.storedArtifactPath,
     };
 
     if (result === null) {

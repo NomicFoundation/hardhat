@@ -6,7 +6,7 @@ import { ModuleConstructor } from "../../src/new-api/internal/module-builder";
 import { getFuturesFromModule } from "../../src/new-api/internal/utils/get-futures-from-module";
 import { validateNamedContractAt } from "../../src/new-api/internal/validation/futures/validateNamedContractAt";
 
-import { assertInstanceOf } from "./helpers";
+import { assertInstanceOf, setupMockArtifactResolver } from "./helpers";
 
 describe("contractAt", () => {
   const fakeArtifact: any = {};
@@ -268,9 +268,10 @@ describe("contractAt", () => {
       const [future] = getFuturesFromModule(module);
 
       await assert.isRejected(
-        validateNamedContractAt(future as any, {
-          load: async () => fakeArtifact,
-        }),
+        validateNamedContractAt(
+          future as any,
+          setupMockArtifactResolver(fakeArtifact)
+        ),
         /Artifact for contract 'Another' is invalid/
       );
     });

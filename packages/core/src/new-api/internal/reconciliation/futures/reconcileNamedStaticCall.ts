@@ -2,9 +2,10 @@ import { isEqual } from "lodash";
 
 import { NamedStaticCallFuture } from "../../../types/module";
 import { StaticCallExecutionState } from "../../types/execution-state";
+import { resolveFromAddress } from "../../utils/resolveFromAddress";
 import { ExecutionStateResolver } from "../execution-state-resolver";
 import { ReconciliationContext, ReconciliationFutureResult } from "../types";
-import { addressToErrorString, fail, resolveFromAddress } from "../utils";
+import { addressToErrorString, fail } from "../utils";
 
 export function reconcileNamedStaticCall(
   future: NamedStaticCallFuture<string, string>,

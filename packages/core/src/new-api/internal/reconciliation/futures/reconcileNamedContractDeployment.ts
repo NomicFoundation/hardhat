@@ -2,9 +2,10 @@ import { isEqual } from "lodash";
 
 import { NamedContractDeploymentFuture } from "../../../types/module";
 import { DeploymentExecutionState } from "../../types/execution-state";
+import { resolveFromAddress } from "../../utils/resolveFromAddress";
 import { ExecutionStateResolver } from "../execution-state-resolver";
 import { ReconciliationContext, ReconciliationFutureResult } from "../types";
-import { addressToErrorString, fail, resolveFromAddress } from "../utils";
+import { addressToErrorString, fail } from "../utils";
 
 export function reconcileNamedContractDeployment(
   future: NamedContractDeploymentFuture<string>,

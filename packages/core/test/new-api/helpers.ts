@@ -1,5 +1,7 @@
 import { assert } from "chai";
 
+import { Artifact, ArtifactResolver, IgnitionError } from "../../src";
+
 export const exampleAccounts: string[] = [
   "0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
   "0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC",
@@ -13,4 +15,20 @@ export function assertInstanceOf<ObjectT>(
   klass: new (...args: any[]) => ObjectT
 ): asserts obj is ObjectT {
   assert.instanceOf(obj, klass, `Not a valid instace of ${klass.name}`);
+}
+
+export function setupMockArtifactResolver(
+  artifact?: Artifact
+): ArtifactResolver {
+  return {
+    load: async () => {
+      if (artifact === undefined) {
+        throw new IgnitionError("Not implemented");
+      }
+
+      return artifact;
+    },
+    resolvePath: async (contractName: string) =>
+      `/user/path/${contractName}.json`,
+  };
 }

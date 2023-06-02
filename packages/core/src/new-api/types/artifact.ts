@@ -20,4 +20,5 @@ export interface Artifact {
  */
 export interface ArtifactResolver {
   load(contractName: string): Promise<Artifact>;
+  resolvePath(contractName: string): Promise<string>;
 }

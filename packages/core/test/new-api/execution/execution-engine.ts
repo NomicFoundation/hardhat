@@ -12,12 +12,15 @@ import {
   JournalableMessage,
 } from "../../../src/new-api/types/journal";
 import { TransactionService } from "../../../src/new-api/types/transaction-service";
-import { exampleAccounts } from "../helpers";
+import { exampleAccounts, setupMockArtifactResolver } from "../helpers";
 
 describe("execution engine", () => {
   it("should execute a contract deploy", async () => {
     const moduleDefinition = defineModule("Module1", (m) => {
-      const contract1 = m.contract("Contract1");
+      const account1 = m.getAccount(1);
+      const supply = m.getParameter("supply", 1000);
+
+      const contract1 = m.contract("Contract1", [account1, supply]);
 
       return { contract1 };
     });
@@ -35,6 +38,7 @@ describe("execution engine", () => {
     const journal = new MemoryJournal();
     const accounts: string[] = exampleAccounts;
     const mockTransactionService = setupMockTransactionService();
+    const mockArtifactResolver = setupMockArtifactResolver();
 
     const result = await executionEngine.execute({
       batches,
@@ -44,6 +48,8 @@ describe("execution engine", () => {
       strategy: new BasicExecutionStrategy(),
       journal,
       transactionService: mockTransactionService,
+      artifactResolver: mockArtifactResolver,
+      deploymentParameters: {},
     });
 
     assert.isDefined(result);
@@ -56,11 +62,11 @@ describe("execution engine", () => {
         futureType: FutureType.NAMED_CONTRACT_DEPLOYMENT,
         strategy: "basic",
         dependencies: [],
-        storedArtifactPath: "./artifact.json",
+        storedArtifactPath: "/user/path/Contract1.json",
         storedBuildInfoPath: "./build-info.json",
         contractName: "Contract1",
         value: BigInt(0).toString(),
-        constructorArgs: [],
+        constructorArgs: ["0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC", 1000],
         libraries: {},
         from: accounts[0],
       },
@@ -68,9 +74,10 @@ describe("execution engine", () => {
         type: "onchain-action",
         subtype: "deploy-contract",
         contractName: "Contract1",
-        args: [],
+        args: ["0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC", 1000],
         value: BigInt(0).toString(),
         from: exampleAccounts[0],
+        storedArtifactPath: "/user/path/Contract1.json",
       },
       {
         type: "onchain-result",
@@ -107,6 +114,7 @@ describe("execution engine", () => {
     const journal = new MemoryJournal();
     const accounts: string[] = exampleAccounts;
     const mockTransactionService = setupMockTransactionService();
+    const mockArtifactResolver = setupMockArtifactResolver();
 
     const result = await executionEngine.execute({
       batches,
@@ -116,6 +124,8 @@ describe("execution engine", () => {
       strategy: new BasicExecutionStrategy(),
       journal,
       transactionService: mockTransactionService,
+      artifactResolver: mockArtifactResolver,
+      deploymentParameters: {},
     });
 
     assert.isDefined(result);
@@ -128,7 +138,7 @@ describe("execution engine", () => {
         futureType: FutureType.NAMED_LIBRARY_DEPLOYMENT,
         strategy: "basic",
         dependencies: [],
-        storedArtifactPath: "./artifact.json",
+        storedArtifactPath: "/user/path/Library1.json",
         storedBuildInfoPath: "./build-info.json",
         contractName: "Library1",
         value: BigInt(0).toString(),
@@ -143,6 +153,7 @@ describe("execution engine", () => {
         args: [],
         value: BigInt(0).toString(),
         from: exampleAccounts[0],
+        storedArtifactPath: "/user/path/Library1.json",
       },
       {
         type: "onchain-result",
@@ -186,6 +197,7 @@ describe("execution engine", () => {
     const journal = new MemoryJournal();
     const accounts: string[] = exampleAccounts;
     const mockTransactionService = setupMockTransactionService();
+    const mockArtifactResolver = setupMockArtifactResolver();
 
     const result = await executionEngine.execute({
       batches,
@@ -195,6 +207,8 @@ describe("execution engine", () => {
       strategy: new BasicExecutionStrategy(),
       journal,
       transactionService: mockTransactionService,
+      artifactResolver: mockArtifactResolver,
+      deploymentParameters: {},
     });
 
     assert.isDefined(result);
@@ -207,7 +221,7 @@ describe("execution engine", () => {
         futureType: FutureType.ARTIFACT_CONTRACT_DEPLOYMENT,
         strategy: "basic",
         dependencies: [],
-        storedArtifactPath: "./artifact.json",
+        storedArtifactPath: "/user/path/Contract1.json",
         storedBuildInfoPath: "./build-info.json",
         contractName: "Contract1",
         value: BigInt(0).toString(),
@@ -222,6 +236,7 @@ describe("execution engine", () => {
         args: [],
         value: BigInt(0).toString(),
         from: exampleAccounts[0],
+        storedArtifactPath: "/user/path/Contract1.json",
       },
       {
         type: "onchain-result",

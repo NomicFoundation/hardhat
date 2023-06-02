@@ -25,9 +25,10 @@ import {
 import { isAddress } from "../utils";
 import { assertIgnitionInvariant } from "../utils/assertions";
 import { replaceWithinArg } from "../utils/replace-within-arg";
+import { resolveModuleParameter } from "../utils/resolveModuleParameter";
 
 import { ReconciliationContext } from "./types";
-import { moduleParameterToErrorString, resolveModuleParameter } from "./utils";
+import { moduleParameterToErrorString } from "./utils";
 
 // TODO: consider merging this into the execution state map
 export class ExecutionStateResolver {

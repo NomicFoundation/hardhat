@@ -31,11 +31,11 @@ export class Deployer {
   private _moduleConstructor: ModuleConstructor;
   private _executionEngine: ExecutionEngine;
   private _transactionService: TransactionService;
-  private _artifactLoader: ArtifactResolver;
   private _strategy: ExecutionStrategy;
+  private _artifactResolver: ArtifactResolver;
 
   constructor(
-    options: { journal: Journal; artifactLoader: ArtifactResolver } & (
+    options: { journal: Journal; artifactResolver: ArtifactResolver } & (
       | {
           transactionService: TransactionService;
         }
@@ -46,17 +46,12 @@ export class Deployer {
   ) {
     this._journal = options.journal;
     this._strategy = new BasicExecutionStrategy();
-
-    if (options.artifactLoader === undefined) {
-      throw new IgnitionError("Artifact loader must be provided");
-    }
-
-    this._artifactLoader = options.artifactLoader;
+    this._artifactResolver = options.artifactResolver;
 
     if ("adapters" in options && isAdapters(options.adapters)) {
       const adapters: Adapters = options.adapters;
       this._transactionService = new TransactionServiceImplementation(
-        options.artifactLoader,
+        options.artifactResolver,
         new EthersChainDispatcher(
           adapters.signer,
           adapters.gas,
@@ -84,7 +79,7 @@ export class Deployer {
   ): Promise<DeploymentResult> {
     const module = this._moduleConstructor.construct(moduleDefinition);
 
-    await validate(module, this._artifactLoader);
+    await validate(module, this._artifactResolver);
 
     const previousStateMap = await this._loadExecutionStateFrom(this._journal);
 
@@ -106,13 +101,15 @@ export class Deployer {
     const batches = Batcher.batch(module, previousStateMap);
 
     return this._executionEngine.execute({
+      strategy: this._strategy,
+      journal: this._journal,
+      transactionService: this._transactionService,
+      artifactResolver: this._artifactResolver,
       batches,
       module,
       executionStateMap: previousStateMap,
       accounts,
-      strategy: this._strategy,
-      journal: this._journal,
-      transactionService: this._transactionService,
+      deploymentParameters,
     });
   }
 
