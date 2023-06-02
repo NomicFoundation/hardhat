@@ -202,9 +202,9 @@ impl RpcClient {
         block: BlockSpec,
     ) -> Result<AccountInfo, RpcClientError> {
         let inputs = Vec::from([
-            MethodInvocation::GetBalance(*address, block.clone().into()),
-            MethodInvocation::GetTransactionCount(*address, block.clone().into()),
-            MethodInvocation::GetCode(*address, block.into()),
+            MethodInvocation::GetBalance(*address, block.clone()),
+            MethodInvocation::GetTransactionCount(*address, block.clone()),
+            MethodInvocation::GetCode(*address, block),
         ]);
 
         let response = self.batch_call(&inputs).await?;
@@ -347,8 +347,7 @@ impl RpcClient {
         &self,
         spec: BlockSpec,
     ) -> Result<eth::Block<B256>, RpcClientError> {
-        self.call(&MethodInvocation::GetBlock(spec.into(), false))
-            .await
+        self.call(&MethodInvocation::GetBlock(spec, false)).await
     }
 
     /// Calls `eth_getBlockByNumber` and returns the transaction's data.
@@ -356,8 +355,7 @@ impl RpcClient {
         &self,
         spec: BlockSpec,
     ) -> Result<eth::Block<eth::Transaction>, RpcClientError> {
-        self.call(&MethodInvocation::GetBlock(spec.into(), true))
-            .await
+        self.call(&MethodInvocation::GetBlock(spec, true)).await
     }
 
     /// eth_getLogs
@@ -368,8 +366,8 @@ impl RpcClient {
         address: &Address,
     ) -> Result<Vec<eth::Log>, RpcClientError> {
         self.call(&MethodInvocation::GetLogs(GetLogsInput {
-            from_block: from_block.into(),
-            to_block: to_block.into(),
+            from_block,
+            to_block,
             address: *address,
         }))
         .await
@@ -390,11 +388,8 @@ impl RpcClient {
         address: &Address,
         block: BlockSpec,
     ) -> Result<U256, RpcClientError> {
-        self.call(&MethodInvocation::GetTransactionCount(
-            *address,
-            block.into(),
-        ))
-        .await
+        self.call(&MethodInvocation::GetTransactionCount(*address, block))
+            .await
     }
 
     /// eth_getTransactionReceipt
@@ -413,12 +408,8 @@ impl RpcClient {
         position: U256,
         block: BlockSpec,
     ) -> Result<U256, RpcClientError> {
-        self.call(&MethodInvocation::GetStorageAt(
-            *address,
-            position,
-            block.into(),
-        ))
-        .await
+        self.call(&MethodInvocation::GetStorageAt(*address, position, block))
+            .await
     }
 }
 

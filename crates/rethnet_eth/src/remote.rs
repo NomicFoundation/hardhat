@@ -93,9 +93,11 @@ where
 }
 
 /// For specifying a block
-#[derive(Clone)]
+#[derive(Clone, Debug, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(untagged)]
 pub enum BlockSpec {
     /// as a block number
+    #[serde(serialize_with = "serialize_u256")]
     Number(U256),
     /// as a block tag (eg "latest")
     Tag(String),
@@ -105,25 +107,6 @@ impl BlockSpec {
     /// Constructs a `BlockSpec` for the latest block.
     pub fn latest() -> Self {
         Self::Tag(String::from("latest"))
-    }
-}
-
-#[derive(Clone, Debug, PartialEq, serde::Deserialize, serde::Serialize)]
-#[serde(untagged)]
-enum SerializableBlockSpec {
-    /// as a block number
-    #[serde(serialize_with = "serialize_u256")]
-    Number(U256),
-    /// as a block tag (eg "latest")
-    Tag(String),
-}
-
-impl From<BlockSpec> for SerializableBlockSpec {
-    fn from(block_spec: BlockSpec) -> SerializableBlockSpec {
-        match block_spec {
-            BlockSpec::Number(n) => SerializableBlockSpec::Number(U256::from(n)),
-            BlockSpec::Tag(s) => SerializableBlockSpec::Tag(s),
-        }
     }
 }
 
@@ -196,8 +179,8 @@ struct TransactionInput {
 #[derive(Clone, Debug, PartialEq, serde::Deserialize, serde::Serialize)]
 #[serde(rename_all = "camelCase")]
 struct FilterOptions {
-    from_block: Option<SerializableBlockSpec>,
-    to_block: Option<SerializableBlockSpec>,
+    from_block: Option<BlockSpec>,
+    to_block: Option<BlockSpec>,
     address: Option<Address>,
     topics: Option<Vec<ZeroXPrefixedBytes>>,
 }
@@ -210,29 +193,29 @@ enum MethodInvocation {
     #[serde(rename = "eth_blockNumber")]
     BlockNumber(),
     #[serde(rename = "eth_call")]
-    Call(TransactionInput, SerializableBlockSpec),
+    Call(TransactionInput, BlockSpec),
     #[serde(rename = "eth_chainId")]
     ChainId(),
     #[serde(rename = "eth_coinbase")]
     Coinbase(),
     #[serde(rename = "eth_estimateGas")]
-    EstimateGas(TransactionInput, SerializableBlockSpec),
+    EstimateGas(TransactionInput, BlockSpec),
     #[serde(rename = "eth_feeHistory")]
     FeeHistory(
         /// block count
         U256,
         /// newest block
-        SerializableBlockSpec,
+        BlockSpec,
         /// reward percentiles
         Vec<f64>,
     ),
     #[serde(rename = "eth_gasPrice")]
     GasPrice(),
     #[serde(rename = "eth_getBalance")]
-    GetBalance(Address, SerializableBlockSpec),
+    GetBalance(Address, BlockSpec),
     #[serde(rename = "eth_getBlockByNumber")]
     GetBlock(
-        SerializableBlockSpec,
+        BlockSpec,
         /// include transaction data
         bool,
     ),
@@ -246,9 +229,9 @@ enum MethodInvocation {
     #[serde(rename = "eth_getBlockTransactionCountByHash")]
     GetBlockTransactionCountByHash(B256),
     #[serde(rename = "eth_getBlockTransactionCountByNumber")]
-    GetBlockTransactionCountByNumber(SerializableBlockSpec),
+    GetBlockTransactionCountByNumber(BlockSpec),
     #[serde(rename = "eth_getCode")]
-    GetCode(Address, SerializableBlockSpec),
+    GetCode(Address, BlockSpec),
     #[serde(rename = "eth_getFilterChanges")]
     GetFilterChanges(U256),
     #[serde(rename = "eth_getFilterLogs")]
@@ -264,7 +247,7 @@ enum MethodInvocation {
         Address,
         /// position
         U256,
-        SerializableBlockSpec,
+        BlockSpec,
     ),
     #[serde(rename = "eth_getTransactionByBlockHashAndIndex")]
     GetTransactionByBlockHashAndIndex(B256, U256),
@@ -277,7 +260,7 @@ enum MethodInvocation {
     )]
     GetTransactionByHash(B256),
     #[serde(rename = "eth_getTransactionCount")]
-    GetTransactionCount(Address, SerializableBlockSpec),
+    GetTransactionCount(Address, BlockSpec),
     #[serde(
         rename = "eth_getTransactionReceipt",
         serialize_with = "single_to_sequence",
@@ -315,8 +298,8 @@ enum MethodInvocation {
 #[derive(Clone, Debug, PartialEq, serde::Deserialize, serde::Serialize)]
 #[serde(rename_all = "camelCase")]
 struct GetLogsInput {
-    from_block: SerializableBlockSpec,
-    to_block: SerializableBlockSpec,
+    from_block: BlockSpec,
+    to_block: BlockSpec,
     address: Address,
 }
 
@@ -354,11 +337,11 @@ mod tests {
         };
         help_test_method_invocation_serde(MethodInvocation::Call(
             tx.clone(),
-            SerializableBlockSpec::Tag(String::from("latest")),
+            BlockSpec::Tag(String::from("latest")),
         ));
         help_test_method_invocation_serde(MethodInvocation::Call(
             tx,
-            SerializableBlockSpec::Number(U256::from(100)),
+            BlockSpec::Number(U256::from(100)),
         ));
     }
 
@@ -384,11 +367,11 @@ mod tests {
         };
         help_test_method_invocation_serde(MethodInvocation::EstimateGas(
             tx.clone(),
-            SerializableBlockSpec::Tag(String::from("latest")),
+            BlockSpec::Tag(String::from("latest")),
         ));
         help_test_method_invocation_serde(MethodInvocation::EstimateGas(
             tx,
-            SerializableBlockSpec::Number(U256::from(100)),
+            BlockSpec::Number(U256::from(100)),
         ));
     }
 
@@ -396,7 +379,7 @@ mod tests {
     fn test_serde_eth_fee_history() {
         help_test_method_invocation_serde(MethodInvocation::FeeHistory(
             U256::from(3),
-            SerializableBlockSpec::Number(U256::from(100)),
+            BlockSpec::Number(U256::from(100)),
             vec![0.5_f64, 10_f64, 80_f64, 90_f64, 99.5_f64],
         ));
     }
@@ -410,7 +393,7 @@ mod tests {
     fn test_serde_eth_get_balance_by_block_number() {
         help_test_method_invocation_serde(MethodInvocation::GetBalance(
             Address::from_low_u64_ne(1),
-            SerializableBlockSpec::Number(U256::from(100)),
+            BlockSpec::Number(U256::from(100)),
         ));
     }
 
@@ -418,14 +401,14 @@ mod tests {
     fn test_serde_eth_get_balance_by_block_tag() {
         help_test_method_invocation_serde(MethodInvocation::GetBalance(
             Address::from_low_u64_ne(1),
-            SerializableBlockSpec::Tag(String::from("latest")),
+            BlockSpec::Tag(String::from("latest")),
         ));
     }
 
     #[test]
     fn test_serde_eth_get_block_by_number() {
         help_test_method_invocation_serde(MethodInvocation::GetBlock(
-            SerializableBlockSpec::Number(U256::from(100)),
+            BlockSpec::Number(U256::from(100)),
             true,
         ));
     }
@@ -433,7 +416,7 @@ mod tests {
     #[test]
     fn test_serde_eth_get_block_by_tag() {
         help_test_method_invocation_serde(MethodInvocation::GetBlock(
-            SerializableBlockSpec::Tag(String::from("latest")),
+            BlockSpec::Tag(String::from("latest")),
             true,
         ));
     }
@@ -456,7 +439,7 @@ mod tests {
     #[test]
     fn test_serde_eth_get_transaction_count_by_number() {
         help_test_method_invocation_serde(MethodInvocation::GetBlockTransactionCountByNumber(
-            SerializableBlockSpec::Number(U256::from(100)),
+            BlockSpec::Number(U256::from(100)),
         ));
     }
 
@@ -464,7 +447,7 @@ mod tests {
     fn test_serde_eth_get_code_by_block_number() {
         help_test_method_invocation_serde(MethodInvocation::GetCode(
             Address::from_low_u64_ne(1),
-            SerializableBlockSpec::Number(U256::from(100)),
+            BlockSpec::Number(U256::from(100)),
         ));
     }
 
@@ -472,7 +455,7 @@ mod tests {
     fn test_serde_eth_get_code_by_block_tag() {
         help_test_method_invocation_serde(MethodInvocation::GetCode(
             Address::from_low_u64_ne(1),
-            SerializableBlockSpec::Tag(String::from("latest")),
+            BlockSpec::Tag(String::from("latest")),
         ));
     }
 
@@ -490,8 +473,8 @@ mod tests {
     fn test_serde_eth_get_logs_by_block_numbers() {
         help_test_method_invocation_serde(MethodInvocation::GetLogs(GetLogsInput {
             address: Address::from_low_u64_ne(1),
-            from_block: SerializableBlockSpec::Number(U256::from(100)),
-            to_block: SerializableBlockSpec::Number(U256::from(102)),
+            from_block: BlockSpec::Number(U256::from(100)),
+            to_block: BlockSpec::Number(U256::from(102)),
         }));
     }
 
@@ -499,8 +482,8 @@ mod tests {
     fn test_serde_eth_get_logs_by_block_tags() {
         help_test_method_invocation_serde(MethodInvocation::GetLogs(GetLogsInput {
             address: Address::from_low_u64_ne(1),
-            from_block: SerializableBlockSpec::Tag(String::from("safe")),
-            to_block: SerializableBlockSpec::Tag(String::from("latest")),
+            from_block: BlockSpec::Tag(String::from("safe")),
+            to_block: BlockSpec::Tag(String::from("latest")),
         }));
     }
 
@@ -509,7 +492,7 @@ mod tests {
         help_test_method_invocation_serde(MethodInvocation::GetStorageAt(
             Address::from_low_u64_ne(1),
             U256::ZERO,
-            SerializableBlockSpec::Number(U256::from(100)),
+            BlockSpec::Number(U256::from(100)),
         ));
     }
 
@@ -518,7 +501,7 @@ mod tests {
         help_test_method_invocation_serde(MethodInvocation::GetStorageAt(
             Address::from_low_u64_ne(1),
             U256::ZERO,
-            SerializableBlockSpec::Tag(String::from("latest")),
+            BlockSpec::Tag(String::from("latest")),
         ));
     }
 
@@ -549,7 +532,7 @@ mod tests {
     fn test_serde_eth_get_tx_count_by_block_number() {
         help_test_method_invocation_serde(MethodInvocation::GetTransactionCount(
             Address::from_low_u64_ne(1),
-            SerializableBlockSpec::Number(U256::from(100)),
+            BlockSpec::Number(U256::from(100)),
         ));
     }
 
@@ -557,7 +540,7 @@ mod tests {
     fn test_serde_eth_get_tx_count_by_block_tag() {
         help_test_method_invocation_serde(MethodInvocation::GetTransactionCount(
             Address::from_low_u64_ne(1),
-            SerializableBlockSpec::Tag(String::from("latest")),
+            BlockSpec::Tag(String::from("latest")),
         ));
     }
 
@@ -581,8 +564,8 @@ mod tests {
     #[test]
     fn test_serde_eth_new_filter() {
         help_test_method_invocation_serde(MethodInvocation::NewFilter(FilterOptions {
-            from_block: Some(SerializableBlockSpec::Number(U256::from(1000))),
-            to_block: Some(SerializableBlockSpec::Tag(String::from("latest"))),
+            from_block: Some(BlockSpec::Number(U256::from(1000))),
+            to_block: Some(BlockSpec::Tag(String::from("latest"))),
             address: Some(Address::from_low_u64_ne(1)),
             topics: Some(vec![Bytes::from(&b"some topic"[..]).into()]),
         }));
