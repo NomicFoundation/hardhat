@@ -5,8 +5,8 @@ library console {
 	address constant CONSOLE_ADDRESS = 0x000000000000000000636F6e736F6c652e6c6f67;
 
 	function _sendLogPayload(bytes memory payload) private view {
-    address consoleAddress = CONSOLE_ADDRESS;
-    /// @solidity memory-safe-assembly
+		address consoleAddress = CONSOLE_ADDRESS;
+		/// @solidity memory-safe-assembly
 		assembly {
 			pop(staticcall(gas(), consoleAddress, add(payload, 32), mload(payload), 0, 0))
 		}
