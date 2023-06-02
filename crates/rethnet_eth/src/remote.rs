@@ -302,10 +302,14 @@ enum MethodInvocation {
     Sign(Address, ZeroXPrefixedBytes),
     #[serde(rename = "eth_signTypedData_v4")]
     SignTypedDataV4(Address, eth::eip712::Message),
+    #[serde(rename = "eth_subscribe")]
+    Subscribe(Vec<String>),
     #[serde(rename = "eth_syncing")]
     Syncing(),
     #[serde(rename = "eth_uninstallFilter")]
     UninstallFilter(U256),
+    #[serde(rename = "eth_unsubscribe")]
+    Unsubscribe(Vec<ZeroXPrefixedBytes>),
 }
 
 #[derive(Clone, Debug, PartialEq, serde::Deserialize, serde::Serialize)]
@@ -647,6 +651,15 @@ mod tests {
     }
 
     #[test]
+    fn test_serde_eth_subscribe() {
+        help_test_method_invocation_serde(MethodInvocation::Subscribe(vec![
+            String::from("newHeads"),
+            String::from("newPendingTransactions"),
+            String::from("logs"),
+        ]));
+    }
+
+    #[test]
     fn test_serde_eth_syncing() {
         help_test_method_invocation_serde(MethodInvocation::Syncing());
     }
@@ -654,5 +667,13 @@ mod tests {
     #[test]
     fn test_serde_eth_uninstall_filter() {
         help_test_method_invocation_serde(MethodInvocation::UninstallFilter(U256::from(100)));
+    }
+
+    #[test]
+    fn test_serde_eth_unsubscribe() {
+        help_test_method_invocation_serde(MethodInvocation::Unsubscribe(vec![Bytes::from(
+            &b"some subscription ID"[..],
+        )
+        .into()]));
     }
 }
