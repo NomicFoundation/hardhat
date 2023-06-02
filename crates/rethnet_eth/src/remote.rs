@@ -5,6 +5,8 @@ mod withdrawal;
 
 use std::fmt::Write;
 
+use bytes::Bytes;
+
 use crate::{Address, B256, U256};
 
 pub use client::{RpcClient, RpcClientError};
@@ -127,11 +129,11 @@ impl From<BlockSpec> for SerializableBlockSpec {
 
 #[derive(Clone, Debug, PartialEq)]
 struct ZeroXPrefixedBytes {
-    inner: bytes::Bytes,
+    inner: Bytes,
 }
 
-impl From<bytes::Bytes> for ZeroXPrefixedBytes {
-    fn from(b: bytes::Bytes) -> Self {
+impl From<Bytes> for ZeroXPrefixedBytes {
+    fn from(b: Bytes) -> Self {
         ZeroXPrefixedBytes { inner: b }
     }
 }
@@ -158,7 +160,7 @@ impl<'a> serde::Deserialize<'a> for ZeroXPrefixedBytes {
                         "string does not have a '0x' prefix",
                     ))
                 } else {
-                    Ok(bytes::Bytes::from(
+                    Ok(Bytes::from(
                         hex::decode(&value[2..])
                             .unwrap_or_else(|_| panic!("failed to decode hex string \"{value}\"")),
                     )
@@ -344,7 +346,7 @@ mod tests {
             gas: Some(U256::from(3)),
             gas_price: Some(U256::from(4)),
             value: Some(U256::from(123568919)),
-            data: Some(bytes::Bytes::from(&b"whatever"[..]).into()),
+            data: Some(Bytes::from(&b"whatever"[..]).into()),
         };
         help_test_method_invocation_serde(MethodInvocation::Call(
             tx.clone(),
@@ -374,7 +376,7 @@ mod tests {
             gas: Some(U256::from(3)),
             gas_price: Some(U256::from(4)),
             value: Some(U256::from(123568919)),
-            data: Some(bytes::Bytes::from(&b"whatever"[..]).into()),
+            data: Some(Bytes::from(&b"whatever"[..]).into()),
         };
         help_test_method_invocation_serde(MethodInvocation::EstimateGas(
             tx.clone(),
@@ -578,7 +580,7 @@ mod tests {
             from_block: Some(SerializableBlockSpec::Number(U256::from(1000))),
             to_block: Some(SerializableBlockSpec::Tag(String::from("latest"))),
             address: Some(Address::from_low_u64_ne(1)),
-            topics: Some(vec![bytes::Bytes::from(&b"some topic"[..]).into()]),
+            topics: Some(vec![Bytes::from(&b"some topic"[..]).into()]),
         }));
     }
 
@@ -595,7 +597,7 @@ mod tests {
     #[test]
     fn test_serde_eth_send_raw_transaction() {
         help_test_method_invocation_serde(MethodInvocation::SendRawTransaction(
-            bytes::Bytes::from(&b"whatever"[..]).into(),
+            Bytes::from(&b"whatever"[..]).into(),
         ));
     }
 
@@ -607,7 +609,7 @@ mod tests {
             gas: Some(U256::from(3)),
             gas_price: Some(U256::from(4)),
             value: Some(U256::from(123568919)),
-            data: Some(bytes::Bytes::from(&b"whatever"[..]).into()),
+            data: Some(Bytes::from(&b"whatever"[..]).into()),
         }));
     }
 
@@ -615,7 +617,7 @@ mod tests {
     fn test_serde_eth_sign() {
         help_test_method_invocation_serde(MethodInvocation::Sign(
             Address::from_low_u64_ne(1),
-            bytes::Bytes::from(&b"whatever"[..]).into(),
+            Bytes::from(&b"whatever"[..]).into(),
         ));
     }
 
