@@ -219,8 +219,16 @@ enum MethodInvocation {
         /// include transaction data
         bool,
     ),
+    #[serde(rename = "eth_getBlockTransactionCountByHash")]
+    GetBlockTransactionCountByHash(B256),
+    #[serde(rename = "eth_getBlockTransactionCountByNumber")]
+    GetBlockTransactionCountByNumber(SerializableBlockSpec),
     #[serde(rename = "eth_getCode")]
     GetCode(Address, SerializableBlockSpec),
+    #[serde(rename = "eth_getFilterChanges")]
+    GetFilterChanges(U256),
+    #[serde(rename = "eth_getFilterLogs")]
+    GetFilterLogs(U256),
     #[serde(
         rename = "eth_getLogs",
         serialize_with = "single_to_sequence",
@@ -234,6 +242,10 @@ enum MethodInvocation {
         U256,
         SerializableBlockSpec,
     ),
+    #[serde(rename = "eth_getTransactionByBlockHashAndIndex")]
+    GetTransactionByBlockHashAndIndex(B256, U256),
+    #[serde(rename = "eth_getTransactionByBlockNumberAndIndex")]
+    GetTransactionByBlockNumberAndIndex(U256, U256),
     #[serde(
         rename = "eth_getTransactionByHash",
         serialize_with = "single_to_sequence",
@@ -254,10 +266,16 @@ enum MethodInvocation {
     NewBlockFilter(),
     #[serde(rename = "eth_newPendingTransactionFilter")]
     NewPendingTransactionFilter(),
+    #[serde(rename = "eth_sendRawTransaction")]
+    SendRawTransaction(ZeroXPrefixedBytes),
     #[serde(rename = "eth_sendTransaction")]
     SendTransaction(TransactionInput),
+    #[serde(rename = "eth_sign")]
+    Sign(Address, ZeroXPrefixedBytes),
     #[serde(rename = "eth_syncing")]
     Syncing(),
+    #[serde(rename = "eth_uninstallFilter")]
+    UninstallFilter(U256),
 }
 
 #[derive(Clone, Debug, PartialEq, serde::Deserialize, serde::Serialize)]
@@ -390,6 +408,20 @@ mod tests {
     }
 
     #[test]
+    fn test_serde_eth_get_transaction_count_by_hash() {
+        help_test_method_invocation_serde(MethodInvocation::GetBlockTransactionCountByHash(
+            B256::from_low_u64_ne(1),
+        ));
+    }
+
+    #[test]
+    fn test_serde_eth_get_transaction_count_by_number() {
+        help_test_method_invocation_serde(MethodInvocation::GetBlockTransactionCountByNumber(
+            SerializableBlockSpec::Number(U256::from(100)),
+        ));
+    }
+
+    #[test]
     fn test_serde_eth_get_code_by_block_number() {
         help_test_method_invocation_serde(MethodInvocation::GetCode(
             Address::from_low_u64_ne(1),
@@ -403,6 +435,16 @@ mod tests {
             Address::from_low_u64_ne(1),
             SerializableBlockSpec::Tag(String::from("latest")),
         ));
+    }
+
+    #[test]
+    fn test_serde_eth_get_filter_changes() {
+        help_test_method_invocation_serde(MethodInvocation::GetFilterChanges(U256::from(100)));
+    }
+
+    #[test]
+    fn test_serde_eth_get_filter_logs() {
+        help_test_method_invocation_serde(MethodInvocation::GetFilterLogs(U256::from(100)));
     }
 
     #[test]
@@ -438,6 +480,22 @@ mod tests {
             Address::from_low_u64_ne(1),
             U256::ZERO,
             SerializableBlockSpec::Tag(String::from("latest")),
+        ));
+    }
+
+    #[test]
+    fn test_serde_eth_get_tx_by_block_hash_and_index() {
+        help_test_method_invocation_serde(MethodInvocation::GetTransactionByBlockHashAndIndex(
+            B256::from_low_u64_ne(1),
+            U256::from(1),
+        ));
+    }
+
+    #[test]
+    fn test_serde_eth_get_tx_by_block_number_and_index() {
+        help_test_method_invocation_serde(MethodInvocation::GetTransactionByBlockNumberAndIndex(
+            U256::from(100),
+            U256::from(1),
         ));
     }
 
@@ -487,6 +545,15 @@ mod tests {
     }
 
     #[test]
+    fn test_serde_eth_send_raw_transaction() {
+        help_test_method_invocation_serde(MethodInvocation::SendRawTransaction(
+            ZeroXPrefixedBytes {
+                inner: bytes::Bytes::from(&b"whatever"[..]),
+            },
+        ));
+    }
+
+    #[test]
     fn test_serde_eth_send_transaction() {
         help_test_method_invocation_serde(MethodInvocation::SendTransaction(TransactionInput {
             from: Some(Address::from_low_u64_ne(1)),
@@ -501,7 +568,22 @@ mod tests {
     }
 
     #[test]
+    fn test_serde_eth_sign() {
+        help_test_method_invocation_serde(MethodInvocation::Sign(
+            Address::from_low_u64_ne(1),
+            ZeroXPrefixedBytes {
+                inner: bytes::Bytes::from(&b"whatever"[..]),
+            },
+        ));
+    }
+
+    #[test]
     fn test_serde_eth_syncing() {
         help_test_method_invocation_serde(MethodInvocation::Syncing());
+    }
+
+    #[test]
+    fn test_serde_eth_uninstall_filter() {
+        help_test_method_invocation_serde(MethodInvocation::UninstallFilter(U256::from(100)));
     }
 }
