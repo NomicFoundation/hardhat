@@ -275,6 +275,8 @@ enum MethodInvocation {
     NewBlockFilter(),
     #[serde(rename = "eth_newPendingTransactionFilter")]
     NewPendingTransactionFilter(),
+    #[serde(rename = "eth_pendingTransactions")]
+    PendingTransactions(),
     #[serde(rename = "eth_sendRawTransaction")]
     SendRawTransaction(ZeroXPrefixedBytes),
     #[serde(rename = "eth_sendTransaction")]
@@ -560,6 +562,11 @@ mod tests {
     #[test]
     fn test_serde_eth_new_pending_transaction_filter() {
         help_test_method_invocation_serde(MethodInvocation::NewPendingTransactionFilter());
+    }
+
+    #[test]
+    fn test_serde_eth_pending_transactions() {
+        help_test_method_invocation_serde(MethodInvocation::PendingTransactions());
     }
 
     #[test]
