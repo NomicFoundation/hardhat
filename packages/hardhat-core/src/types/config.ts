@@ -142,6 +142,7 @@ export interface HardhatNetworkConfig {
   hardfork: string;
   mining: HardhatNetworkMiningConfig;
   accounts: HardhatNetworkAccountsConfig;
+  ledgerAccounts?: HardhatLedgerAccountsConfig;
   blockGasLimit: number;
   minGasPrice: bigint;
   throwOnTransactionFailures: boolean;
@@ -224,6 +225,8 @@ export interface HardhatNetworkMempoolConfig {
 export interface HardhatNetworkMempoolUserConfig {
   order?: string;
 }
+
+export type HardhatLedgerAccountsConfig = string[];
 
 // Project paths config
 

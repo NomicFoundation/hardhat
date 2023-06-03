@@ -1,4 +1,4 @@
-import { assert, expect } from "chai";
+import { assert } from "chai";
 import sinon from "sinon";
 
 import Eth from "@ledgerhq/hw-app-eth";
@@ -9,16 +9,17 @@ import { TransportError } from "@ledgerhq/errors";
 
 import { RequestArguments } from "hardhat/types";
 
+import * as ethWrapper from "../src/internal/wrap-transport";
 import { LedgerProvider } from "../src/provider";
 import { EthereumMockedProvider } from "./mocks";
-import { LedgerOptions } from "../src/types";
-
-import { NomicLabsHardhatPluginError } from "hardhat/src/internal/core/errors";
-import { ERRORS } from "hardhat/src/internal/core/errors-list";
+import { EthWrapper, LedgerOptions } from "../src/types";
+import { LedgerProviderError } from "../src/errors";
 
 describe("LedgerProvider", () => {
+  let accounts: string[];
   let path: string;
-  let mock: EthereumMockedProvider;
+  let mockedProvider: EthereumMockedProvider;
+  let ethInstanceStub: sinon.SinonStubbedInstance<EthWrapper>;
   let provider: LedgerProvider;
 
   function stubTransport(transport: Transport) {
@@ -28,23 +29,30 @@ describe("LedgerProvider", () => {
   }
 
   beforeEach(() => {
-    path = "44'/60'/0'/0";
-    mock = new EthereumMockedProvider();
+    accounts = [
+      "0xa809931e3b38059adae9bc5455bc567d0509ab92",
+      "0xda6a52afdae5ff66aa786da68754a227331f56e3",
+      "0xbc307688a80ec5ed0edc1279c44c1b34f7746bda",
+    ];
+    path = "44'/60'/0'/0'/0";
+    mockedProvider = new EthereumMockedProvider();
 
-    provider = new LedgerProvider({ path }, mock);
+    ethInstanceStub = sinon.createStubInstance(Eth);
+
+    ethInstanceStub.getAddress.returns(
+      Promise.resolve({
+        address: accounts[0],
+        publicKey: "0x1",
+      })
+    );
+
+    sinon.stub(ethWrapper, "wrapTransport").returns(ethInstanceStub);
+
+    provider = new LedgerProvider({ accounts }, mockedProvider);
   });
 
   afterEach(() => {
     sinon.restore();
-  });
-
-  describe("eth getter", () => {
-    it("should throw a hardhat error if init hasn't been called", () => {
-      assert.Throw(
-        () => provider.eth,
-        ERRORS.GENERAL.UNINITIALIZED_PROVIDER.message
-      );
-    });
   });
 
   describe("create", () => {
@@ -53,13 +61,16 @@ describe("LedgerProvider", () => {
     });
 
     it("should return a provider instance", async () => {
-      const newProvider = await LedgerProvider.create({ path }, mock);
+      const newProvider = await LedgerProvider.create(
+        { accounts },
+        mockedProvider
+      );
       assert.instanceOf(newProvider, LedgerProvider);
     });
 
     it("should init the provider", async () => {
       const spy = sinon.spy(LedgerProvider.prototype, "init");
-      await LedgerProvider.create({ path }, mock);
+      await LedgerProvider.create({ accounts }, mockedProvider);
       assert.isTrue(spy.calledOnce);
     });
   });
@@ -97,11 +108,11 @@ describe("LedgerProvider", () => {
 
     it("should pass the timeout options to the Transport creation", async () => {
       const options: LedgerOptions = {
-        path,
+        accounts,
         openTimeout: 1000,
         connectionTimeout: 5432,
       };
-      const newProvider = new LedgerProvider(options, mock);
+      const newProvider = new LedgerProvider(options, mockedProvider);
       await newProvider.init();
 
       sinon.assert.calledOnceWithExactly(
@@ -114,19 +125,17 @@ describe("LedgerProvider", () => {
     it("should create an eth instance", async () => {
       await provider.init();
       assert.instanceOf(provider.eth, Eth);
-      assert.equal(provider.eth.transport, transport);
     });
 
-    it("should throw a nomic labs hardhat error if create does", async () => {
+    it("should throw a ledger provider error if create does", async () => {
       const error = new Error("Test Error");
       createStub.throws(error);
 
       try {
         await provider.init();
       } catch (error) {
-        assert.instanceOf(error, NomicLabsHardhatPluginError);
         assert.equal(
-          (error as Error).message,
+          (error as LedgerProviderError).message,
           'There was an error trying to stablish a connection to the Ledger wallet: "Test Error".'
         );
       }
@@ -139,12 +148,74 @@ describe("LedgerProvider", () => {
       try {
         await provider.init();
       } catch (error) {
-        assert.instanceOf(error, NomicLabsHardhatPluginError);
         assert.equal(
-          (error as Error).message,
+          (error as LedgerProviderError).message,
           'There was an error trying to stablish a connection to the Ledger wallet: "Transport Error". The error id was: Transport Error Id'
         );
       }
+    });
+
+    describe("path derivation", () => {
+      let getAddressStub: sinon.SinonStub;
+      // let newMockedEthInstance: EthWrapper;
+
+      function replaceGetAddress(desiredPath: string, desiredAddress: string) {
+        ethInstanceStub.getAddress.callsFake(async (path: string) => {
+          getAddressStub(path);
+
+          return path === desiredPath
+            ? { address: desiredAddress, publicKey: "0x1" }
+            : { address: "0x3", publicKey: "0x2" };
+        });
+      }
+
+      beforeEach(() => {
+        getAddressStub = sinon.stub();
+        // newMockedEthInstance = sinon.createStubInstance(Eth);
+
+        // wrapTransportStub.restore();
+        // wrapTransportStub = sinon
+        //   .stub(ethWrapper, "wrapTransport")
+        //   .returns(newMockedEthInstance);
+      });
+
+      it("should derivate the path changing the account until an address from accounts is found", async () => {
+        replaceGetAddress("44'/60'/3'/0'/0", accounts[0]);
+        await provider.init();
+
+        sinon.assert.callOrder(
+          getAddressStub.withArgs("44'/60'/0'/0'/0"),
+          getAddressStub.withArgs("44'/60'/1'/0'/0"),
+          getAddressStub.withArgs("44'/60'/2'/0'/0"),
+          getAddressStub.withArgs("44'/60'/3'/0'/0")
+        );
+      });
+
+      it("should return the found path once de account matches", async () => {
+        const desiredPath = "44'/60'/5'/0'/0";
+
+        replaceGetAddress(desiredPath, accounts[2]);
+        await provider.init();
+
+        assert.equal(provider.path, desiredPath);
+      });
+
+      it("should throw if no address matches and the max derivation count is reached", async () => {
+        replaceGetAddress(
+          `44'/60'/${LedgerProvider.MAX_DERIVATION_ACCOUNTS + 1}'/0'/0`,
+          accounts[2]
+        );
+
+        try {
+          await provider.init();
+          provider.path;
+        } catch (error) {
+          assert.equal(
+            (error as LedgerProviderError).message,
+            `Could not find a valid derivation path for the supplied accounts. We search paths from m/44'/60'/0/0'/0 to m/44'/60'/${LedgerProvider.MAX_DERIVATION_ACCOUNTS}/0'/0`
+          );
+        }
+      });
     });
   });
 
@@ -219,32 +290,28 @@ describe("LedgerProvider", () => {
     });
 
     it("should call the ledger's getAddress method when the JSONRPC eth_accounts method is called", async () => {
-      const stub = sinon
-        .stub(provider.eth, "getAddress")
-        .returns(Promise.resolve(account));
+      const stub = ethInstanceStub.getAddress.returns(Promise.resolve(account));
 
       const resultAccounts = await provider.request({ method: "eth_accounts" });
 
-      sinon.assert.calledOnceWithExactly(stub, path);
+      sinon.assert.calledWithExactly(stub, path);
       assert.deepEqual([account.address], resultAccounts);
     });
     it("should call the ledger's getAddress method when the JSONRPC eth_requestAccounts method is called", async () => {
-      const stub = sinon
-        .stub(provider.eth, "getAddress")
-        .returns(Promise.resolve(account));
+      const stub = ethInstanceStub.getAddress.returns(Promise.resolve(account));
 
       const resultAccounts = await provider.request({
         method: "eth_requestAccounts",
       });
 
-      sinon.assert.calledOnceWithExactly(stub, path);
+      sinon.assert.calledWithExactly(stub, path);
       assert.deepEqual([account.address], resultAccounts);
     });
 
     it("should call the ledger's signPersonalMessage method when the JSONRPC personal_sign method is called", async () => {
-      const stub = sinon
-        .stub(provider.eth, "signPersonalMessage")
-        .returns(Promise.resolve(rsv));
+      const stub = ethInstanceStub.signPersonalMessage.returns(
+        Promise.resolve(rsv)
+      );
 
       const resultSignature = await provider.request({
         method: "personal_sign",
@@ -255,9 +322,9 @@ describe("LedgerProvider", () => {
       assert.deepEqual(signature, resultSignature);
     });
     it("should call the ledger's signPersonalMessage method when the JSONRPC eth_sign method is called", async () => {
-      const stub = sinon
-        .stub(provider.eth, "signPersonalMessage")
-        .returns(Promise.resolve(rsv));
+      const stub = ethInstanceStub.signPersonalMessage.returns(
+        Promise.resolve(rsv)
+      );
 
       const resultSignature = await provider.request({
         method: "eth_sign",
@@ -269,11 +336,11 @@ describe("LedgerProvider", () => {
     });
 
     it("should call the ledger's signEIP712Message method when the JSONRPC eth_signTypedData_v4 method is called", async () => {
-      const stub = sinon
-        .stub(provider.eth, "signEIP712Message")
-        .returns(Promise.resolve(rsv));
+      const stub = ethInstanceStub.signEIP712Message.returns(
+        Promise.resolve(rsv)
+      );
 
-      sinon.stub(provider.eth, "getAddress").returns(Promise.resolve(account)); // make it a controlled address
+      ethInstanceStub.getAddress.returns(Promise.resolve(account)); // make it a controlled address
 
       const resultSignature = await provider.request({
         method: "eth_signTypedData_v4",
@@ -284,15 +351,13 @@ describe("LedgerProvider", () => {
       assert.deepEqual(signature, resultSignature);
     });
     it("should call the ledger's signEIP712HashedMessage method when the JSONRPC eth_signTypedData_v4 method is called", async () => {
-      sinon
-        .stub(provider.eth, "signEIP712Message")
-        .throws("Unsupported Ledger");
+      ethInstanceStub.signEIP712Message.throws("Unsupported Ledger");
 
-      const stub = sinon
-        .stub(provider.eth, "signEIP712HashedMessage")
-        .returns(Promise.resolve(rsv));
+      const stub = ethInstanceStub.signEIP712HashedMessage.returns(
+        Promise.resolve(rsv)
+      );
 
-      sinon.stub(provider.eth, "getAddress").returns(Promise.resolve(account)); // make it a controlled address
+      ethInstanceStub.getAddress.returns(Promise.resolve(account)); // make it a controlled address
 
       const resultSignature = await provider.request({
         method: "eth_signTypedData_v4",
@@ -314,24 +379,28 @@ describe("LedgerProvider", () => {
         "0xf8626464830f4240949f649fe750340a295dddbbd7e1ec8f378cf24b43648082f4f5a04ab14d7e96a8bc7390cfffa0260d4b82848428ce7f5b8dd367d13bf31944b6c0a03cc226daa6a2f4e22334c59c2e04ac72672af72907ec9c4a601189858ba60069";
 
       const requestStub = sinon.stub();
-      sinon.replace(mock, "request", async (args: RequestArguments) => {
-        requestStub(args);
+      sinon.replace(
+        mockedProvider,
+        "request",
+        async (args: RequestArguments) => {
+          requestStub(args);
 
-        switch (args.method) {
-          case "eth_chainId":
-            return "0x7a69";
-          case "eth_getTransactionCount":
-            return "0x64";
-          case "eth_sendRawTransaction":
-            return tx;
+          switch (args.method) {
+            case "eth_chainId":
+              return "0x7a69";
+            case "eth_getTransactionCount":
+              return "0x64";
+            case "eth_sendRawTransaction":
+              return tx;
+          }
         }
-      });
+      );
 
-      const signTransactionStub = sinon
-        .stub(provider.eth, "signTransaction")
-        .returns(Promise.resolve(txRsv));
+      const signTransactionStub = ethInstanceStub.signTransaction.returns(
+        Promise.resolve(txRsv)
+      );
 
-      sinon.stub(provider.eth, "getAddress").returns(Promise.resolve(account)); // make it a controlled address
+      ethInstanceStub.getAddress.returns(Promise.resolve(account)); // make it a controlled address
 
       const resultTx = await provider.request({
         method: "eth_sendTransaction",

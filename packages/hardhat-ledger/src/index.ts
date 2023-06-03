@@ -1,6 +1,10 @@
 import { extendProvider } from "hardhat/config";
+import { HardhatNetworkConfig } from "hardhat/types";
 import { LedgerProvider } from "./provider";
 
-extendProvider((provider, _config) =>
-  LedgerProvider.create({ path: "44'/60'/0'/0" }, provider)
-);
+extendProvider((provider, config, network) => {
+  const networkConfig = config.networks[network] as HardhatNetworkConfig;
+  const ledgerAccounts = networkConfig.ledgerAccounts || [];
+
+  return LedgerProvider.create({ accounts: ledgerAccounts }, provider);
+});
