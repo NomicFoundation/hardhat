@@ -53,6 +53,8 @@ export class LedgerProvider extends ProviderWrapperWithChainId {
     this.options.accounts = this.options.accounts.map((account) =>
       account.toLowerCase()
     );
+
+    // TODO: Throw if accounts is empty
   }
 
   public get eth(): EthWrapper {
@@ -70,6 +72,7 @@ export class LedgerProvider extends ProviderWrapperWithChainId {
   }
 
   public async init(): Promise<void> {
+    // TODO: Only init once it's needed (not in eth_accounts nor on create)
     if (this._eth === undefined && this._isCreatingTransport === false) {
       this._isCreatingTransport = true;
 
@@ -101,6 +104,7 @@ export class LedgerProvider extends ProviderWrapperWithChainId {
     }
 
     if (this._path === undefined) {
+      // TODO: Cache this in the cache directory
       this._path = await this._derivePath();
     }
   }
@@ -116,6 +120,7 @@ export class LedgerProvider extends ProviderWrapperWithChainId {
       args.method === "eth_accounts" ||
       args.method === "eth_requestAccounts"
     ) {
+      // TODO: Return the configured accounts in this.options.accounts
       const wallet = await this._eth.getAddress(this.path);
       return [wallet.address];
     }
