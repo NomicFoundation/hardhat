@@ -49,7 +49,6 @@ export class LedgerProvider extends ProviderWrapperWithChainId {
   ) {
     super(_wrappedProvider);
 
-    // TODO: Test this
     this.options.accounts = this.options.accounts.map((account) =>
       account.toLowerCase()
     );

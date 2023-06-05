@@ -55,6 +55,22 @@ describe("LedgerProvider", () => {
     sinon.restore();
   });
 
+  describe("instance", () => {
+    it("should lowercase all accounts", () => {
+      const accounts = [
+        "0XA809931E3B38059ADAE9BC5455BC567D0509AB92",
+        "0XDA6A52AFDAE5FF66AA786DA68754A227331F56E3",
+        "0XBC307688A80EC5ED0EDC1279C44C1B34F7746BDA",
+      ];
+      const provider = new LedgerProvider({ accounts }, mockedProvider);
+      const lowercasedAccounts = accounts.map((account) =>
+        account.toLowerCase()
+      );
+
+      assert.deepEqual(provider.options.accounts, lowercasedAccounts);
+    });
+  });
+
   describe("create", () => {
     beforeEach(() => {
       stubTransport(new Transport());
