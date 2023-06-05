@@ -114,190 +114,19 @@ export class LedgerProvider extends ProviderWrapperWithChainId {
     }
 
     if (args.method === "eth_sign") {
-      if (params.length > 0) {
-        const [address, data] = validateParams(params, rpcAddress, rpcData);
-
-        if (address !== undefined) {
-          if (data === undefined) {
-            throw new HardhatError(ERRORS.NETWORK.ETHSIGN_MISSING_DATA_PARAM);
-          }
-
-          if (this._isControlledAddress(address)) {
-            const path = await this._derivePath(address);
-            const signature = await this.eth.signPersonalMessage(
-              path,
-              data.toString("hex")
-            );
-
-            return await this._toRpcSig(signature);
-          }
-        }
-      }
+      return this._ethSign(params);
     }
 
     if (args.method === "personal_sign") {
-      if (params.length > 0) {
-        const [data, address] = validateParams(params, rpcData, rpcAddress);
-
-        if (data !== undefined) {
-          if (address === undefined) {
-            throw new HardhatError(
-              ERRORS.NETWORK.PERSONALSIGN_MISSING_ADDRESS_PARAM
-            );
-          }
-
-          if (this._isControlledAddress(address)) {
-            const path = await this._derivePath(address);
-            const signature = await this.eth.signPersonalMessage(
-              path,
-              data.toString("hex")
-            );
-
-            return await this._toRpcSig(signature);
-          }
-        }
-      }
+      return this._personalSign(params);
     }
 
     if (args.method === "eth_signTypedData_v4") {
-      const [address, data] = validateParams(params, rpcAddress, t.any as any);
-
-      if (data === undefined) {
-        throw new HardhatError(ERRORS.NETWORK.ETHSIGN_MISSING_DATA_PARAM);
-      }
-
-      let typedMessage: EIP712Message;
-      try {
-        typedMessage = typeof data === "string" ? JSON.parse(data) : data;
-
-        if (!isEIP712Message(typedMessage)) {
-          throw new HardhatError(
-            ERRORS.NETWORK.ETHSIGN_TYPED_DATA_V4_INVALID_DATA_PARAM
-          );
-        }
-      } catch {
-        throw new HardhatError(
-          ERRORS.NETWORK.ETHSIGN_TYPED_DATA_V4_INVALID_DATA_PARAM
-        );
-      }
-
-      // If we don't manage the address, the method is forwarded
-      if (this._isControlledAddress(address)) {
-        const { types, domain, message, primaryType } = typedMessage;
-        const { EIP712Domain, ...structTypes } = types;
-
-        const path = await this._derivePath(address);
-
-        let signature: { v: number; s: string; r: string };
-        try {
-          signature = await this.eth.signEIP712Message(path, typedMessage);
-        } catch (error) {
-          signature = await this.eth.signEIP712HashedMessage(
-            path,
-            ethers.utils._TypedDataEncoder.hashDomain(domain),
-            ethers.utils._TypedDataEncoder.hashStruct(
-              primaryType,
-              structTypes,
-              message
-            )
-          );
-        }
-
-        return await this._toRpcSig(signature);
-      }
+      return this._ethSignTypedDataV4(params);
     }
 
     if (args.method === "eth_sendTransaction" && params.length > 0) {
-      const [txRequest] = validateParams(params, rpcTransactionRequest);
-
-      if (txRequest.gas === undefined) {
-        throw new HardhatError(
-          ERRORS.NETWORK.MISSING_TX_PARAM_TO_SIGN_LOCALLY,
-          { param: "gas" }
-        );
-      }
-
-      if (txRequest.from === undefined) {
-        throw new HardhatError(
-          ERRORS.NETWORK.MISSING_TX_PARAM_TO_SIGN_LOCALLY,
-          { param: "from" }
-        );
-      }
-
-      const hasGasPrice = txRequest.gasPrice !== undefined;
-      const hasEip1559Fields =
-        txRequest.maxFeePerGas !== undefined ||
-        txRequest.maxPriorityFeePerGas !== undefined;
-
-      if (!hasGasPrice && !hasEip1559Fields) {
-        throw new HardhatError(ERRORS.NETWORK.MISSING_FEE_PRICE_FIELDS);
-      }
-
-      if (hasGasPrice && hasEip1559Fields) {
-        throw new HardhatError(ERRORS.NETWORK.INCOMPATIBLE_FEE_PRICE_FIELDS);
-      }
-
-      if (hasEip1559Fields && txRequest.maxFeePerGas === undefined) {
-        throw new HardhatError(
-          ERRORS.NETWORK.MISSING_TX_PARAM_TO_SIGN_LOCALLY,
-          { param: "maxFeePerGas" }
-        );
-      }
-
-      if (hasEip1559Fields && txRequest.maxPriorityFeePerGas === undefined) {
-        throw new HardhatError(
-          ERRORS.NETWORK.MISSING_TX_PARAM_TO_SIGN_LOCALLY,
-          { param: "maxPriorityFeePerGas" }
-        );
-      }
-
-      // If we don't manage the address, the method is forwarded
-      if (this._isControlledAddress(txRequest.from)) {
-        const path = await this._derivePath(txRequest.from);
-
-        if (txRequest.nonce === undefined) {
-          txRequest.nonce = await this._getNonce(txRequest.from);
-        }
-
-        const chainId = await this._getChainId();
-
-        const baseTx: ethers.utils.UnsignedTransaction = {
-          chainId,
-          data: txRequest.data,
-          gasLimit: txRequest.gas,
-          gasPrice: txRequest.gasPrice,
-          nonce: Number(txRequest.nonce),
-          value: txRequest.value,
-        };
-        if (txRequest.to) {
-          baseTx.to = this._toHex(txRequest.to);
-        }
-
-        const txToSign = ethers.utils.serializeTransaction(baseTx).substring(2);
-
-        const resolution = await ledgerService.resolveTransaction(
-          txToSign,
-          {},
-          {}
-        );
-
-        const signature = await this.eth.signTransaction(
-          path,
-          txToSign,
-          resolution
-        );
-
-        const rawTransaction = ethers.utils.serializeTransaction(baseTx, {
-          v: ethers.BigNumber.from(this._toHex(signature.v)).toNumber(),
-          r: this._toHex(signature.r),
-          s: this._toHex(signature.s),
-        });
-
-        return this._wrappedProvider.request({
-          method: "eth_sendRawTransaction",
-          params: [rawTransaction],
-        });
-      }
+      return this._ethSendTransaction(params);
     }
 
     return this._wrappedProvider.request(args);
@@ -339,6 +168,189 @@ export class LedgerProvider extends ProviderWrapperWithChainId {
       "eth_signTypedData_v4",
       "eth_sendTransaction",
     ].includes(method);
+  }
+
+  private async _ethSign(params: any[]): Promise<unknown> {
+    if (params.length > 0) {
+      const [address, data] = validateParams(params, rpcAddress, rpcData);
+
+      if (address !== undefined) {
+        if (data === undefined) {
+          throw new HardhatError(ERRORS.NETWORK.ETHSIGN_MISSING_DATA_PARAM);
+        }
+
+        if (this._isControlledAddress(address)) {
+          const path = await this._derivePath(address);
+          const signature = await this.eth.signPersonalMessage(
+            path,
+            data.toString("hex")
+          );
+
+          return await this._toRpcSig(signature);
+        }
+      }
+    }
+  }
+
+  private async _personalSign(params: any[]): Promise<unknown> {
+    if (params.length > 0) {
+      const [data, address] = validateParams(params, rpcData, rpcAddress);
+
+      if (data !== undefined) {
+        if (address === undefined) {
+          throw new HardhatError(
+            ERRORS.NETWORK.PERSONALSIGN_MISSING_ADDRESS_PARAM
+          );
+        }
+
+        if (this._isControlledAddress(address)) {
+          const path = await this._derivePath(address);
+          const signature = await this.eth.signPersonalMessage(
+            path,
+            data.toString("hex")
+          );
+
+          return await this._toRpcSig(signature);
+        }
+      }
+    }
+  }
+
+  private async _ethSignTypedDataV4(params: any[]): Promise<unknown> {
+    const [address, data] = validateParams(params, rpcAddress, t.any as any);
+
+    if (data === undefined) {
+      throw new HardhatError(ERRORS.NETWORK.ETHSIGN_MISSING_DATA_PARAM);
+    }
+
+    let typedMessage: EIP712Message;
+    try {
+      typedMessage = typeof data === "string" ? JSON.parse(data) : data;
+
+      if (!isEIP712Message(typedMessage)) {
+        throw new HardhatError(
+          ERRORS.NETWORK.ETHSIGN_TYPED_DATA_V4_INVALID_DATA_PARAM
+        );
+      }
+    } catch {
+      throw new HardhatError(
+        ERRORS.NETWORK.ETHSIGN_TYPED_DATA_V4_INVALID_DATA_PARAM
+      );
+    }
+
+    // If we don't manage the address, the method is forwarded
+    if (this._isControlledAddress(address)) {
+      const { types, domain, message, primaryType } = typedMessage;
+      const { EIP712Domain, ...structTypes } = types;
+
+      const path = await this._derivePath(address);
+
+      let signature: { v: number; s: string; r: string };
+      try {
+        signature = await this.eth.signEIP712Message(path, typedMessage);
+      } catch (error) {
+        signature = await this.eth.signEIP712HashedMessage(
+          path,
+          ethers.utils._TypedDataEncoder.hashDomain(domain),
+          ethers.utils._TypedDataEncoder.hashStruct(
+            primaryType,
+            structTypes,
+            message
+          )
+        );
+      }
+
+      return await this._toRpcSig(signature);
+    }
+  }
+
+  private async _ethSendTransaction(params: any[]): Promise<unknown> {
+    const [txRequest] = validateParams(params, rpcTransactionRequest);
+
+    if (txRequest.gas === undefined) {
+      throw new HardhatError(ERRORS.NETWORK.MISSING_TX_PARAM_TO_SIGN_LOCALLY, {
+        param: "gas",
+      });
+    }
+
+    if (txRequest.from === undefined) {
+      throw new HardhatError(ERRORS.NETWORK.MISSING_TX_PARAM_TO_SIGN_LOCALLY, {
+        param: "from",
+      });
+    }
+
+    const hasGasPrice = txRequest.gasPrice !== undefined;
+    const hasEip1559Fields =
+      txRequest.maxFeePerGas !== undefined ||
+      txRequest.maxPriorityFeePerGas !== undefined;
+
+    if (!hasGasPrice && !hasEip1559Fields) {
+      throw new HardhatError(ERRORS.NETWORK.MISSING_FEE_PRICE_FIELDS);
+    }
+
+    if (hasGasPrice && hasEip1559Fields) {
+      throw new HardhatError(ERRORS.NETWORK.INCOMPATIBLE_FEE_PRICE_FIELDS);
+    }
+
+    if (hasEip1559Fields && txRequest.maxFeePerGas === undefined) {
+      throw new HardhatError(ERRORS.NETWORK.MISSING_TX_PARAM_TO_SIGN_LOCALLY, {
+        param: "maxFeePerGas",
+      });
+    }
+
+    if (hasEip1559Fields && txRequest.maxPriorityFeePerGas === undefined) {
+      throw new HardhatError(ERRORS.NETWORK.MISSING_TX_PARAM_TO_SIGN_LOCALLY, {
+        param: "maxPriorityFeePerGas",
+      });
+    }
+
+    // If we don't manage the address, the method is forwarded
+    if (this._isControlledAddress(txRequest.from)) {
+      const path = await this._derivePath(txRequest.from);
+
+      if (txRequest.nonce === undefined) {
+        txRequest.nonce = await this._getNonce(txRequest.from);
+      }
+
+      const chainId = await this._getChainId();
+
+      const baseTx: ethers.utils.UnsignedTransaction = {
+        chainId,
+        data: txRequest.data,
+        gasLimit: txRequest.gas,
+        gasPrice: txRequest.gasPrice,
+        nonce: Number(txRequest.nonce),
+        value: txRequest.value,
+      };
+      if (txRequest.to) {
+        baseTx.to = this._toHex(txRequest.to);
+      }
+
+      const txToSign = ethers.utils.serializeTransaction(baseTx).substring(2);
+
+      const resolution = await ledgerService.resolveTransaction(
+        txToSign,
+        {},
+        {}
+      );
+
+      const signature = await this.eth.signTransaction(
+        path,
+        txToSign,
+        resolution
+      );
+
+      const rawTransaction = ethers.utils.serializeTransaction(baseTx, {
+        v: ethers.BigNumber.from(this._toHex(signature.v)).toNumber(),
+        r: this._toHex(signature.r),
+        s: this._toHex(signature.s),
+      });
+
+      return this._wrappedProvider.request({
+        method: "eth_sendRawTransaction",
+        params: [rawTransaction],
+      });
+    }
   }
 
   private async _toRpcSig(signature: Signature): Promise<string> {
