@@ -49,11 +49,15 @@ export class LedgerProvider extends ProviderWrapperWithChainId {
   ) {
     super(_wrappedProvider);
 
-    this.options.accounts = this.options.accounts.map((account) =>
+    if (options.accounts.length === 0) {
+      throw new LedgerProviderError(
+        "You tried to initialize a LedgerProvider without supplying any account to the constructor. The provider cannot make any requests on the ledger behalf without an account."
+      );
+    }
+
+    this.options.accounts = options.accounts.map((account) =>
       account.toLowerCase()
     );
-
-    // TODO: Throw if accounts is empty
   }
 
   public get eth(): EthWrapper {
@@ -119,9 +123,7 @@ export class LedgerProvider extends ProviderWrapperWithChainId {
       args.method === "eth_accounts" ||
       args.method === "eth_requestAccounts"
     ) {
-      // TODO: Return the configured accounts in this.options.accounts
-      const wallet = await this._eth.getAddress(this.path);
-      return [wallet.address];
+      return this.options.accounts;
     }
 
     if (args.method === "personal_sign" || args.method === "eth_sign") {
@@ -308,6 +310,7 @@ export class LedgerProvider extends ProviderWrapperWithChainId {
       account++
     ) {
       const path = `44'/60'/${account}'/0'/0`;
+
       const wallet = await this.eth.getAddress(path);
       const address = wallet.address.toLowerCase();
 

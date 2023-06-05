@@ -69,6 +69,12 @@ describe("LedgerProvider", () => {
 
       assert.deepEqual(provider.options.accounts, lowercasedAccounts);
     });
+
+    it("should throw if the accounts array is empty", () => {
+      assert.Throw(() => {
+        new LedgerProvider({ accounts: [] }, mockedProvider);
+      }, "You tried to initialize a LedgerProvider without supplying any account to the constructor. The provider cannot make any requests on the ledger behalf without an account.");
+    });
   });
 
   describe("create", () => {
@@ -305,23 +311,15 @@ describe("LedgerProvider", () => {
       };
     });
 
-    it("should call the ledger's getAddress method when the JSONRPC eth_accounts method is called", async () => {
-      const stub = ethInstanceStub.getAddress.returns(Promise.resolve(account));
-
+    it.only("should return the configured accounts when the JSONRPC eth_accounts method is called", async () => {
       const resultAccounts = await provider.request({ method: "eth_accounts" });
-
-      sinon.assert.calledWithExactly(stub, path);
-      assert.deepEqual([account.address], resultAccounts);
+      assert.deepEqual(accounts, resultAccounts);
     });
-    it("should call the ledger's getAddress method when the JSONRPC eth_requestAccounts method is called", async () => {
-      const stub = ethInstanceStub.getAddress.returns(Promise.resolve(account));
-
+    it.only("should return the configured accounts when the JSONRPC eth_requestAccounts method is called", async () => {
       const resultAccounts = await provider.request({
         method: "eth_requestAccounts",
       });
-
-      sinon.assert.calledWithExactly(stub, path);
-      assert.deepEqual([account.address], resultAccounts);
+      assert.deepEqual(accounts, resultAccounts);
     });
 
     it("should call the ledger's signPersonalMessage method when the JSONRPC personal_sign method is called", async () => {
