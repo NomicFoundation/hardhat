@@ -17,7 +17,6 @@ import { LedgerProviderError } from "../src/errors";
 
 describe("LedgerProvider", () => {
   let accounts: string[];
-  let path: string;
   let mockedProvider: EthereumMockedProvider;
   let ethInstanceStub: sinon.SinonStubbedInstance<EthWrapper>;
   let provider: LedgerProvider;
@@ -34,17 +33,8 @@ describe("LedgerProvider", () => {
       "0xda6a52afdae5ff66aa786da68754a227331f56e3",
       "0xbc307688a80ec5ed0edc1279c44c1b34f7746bda",
     ];
-    path = "44'/60'/0'/0'/0";
     mockedProvider = new EthereumMockedProvider();
-
     ethInstanceStub = sinon.createStubInstance(Eth);
-
-    ethInstanceStub.getAddress.returns(
-      Promise.resolve({
-        address: accounts[0],
-        publicKey: "0x1",
-      })
-    );
 
     sinon.stub(ethWrapper, "wrapTransport").returns(ethInstanceStub);
 
@@ -176,72 +166,10 @@ describe("LedgerProvider", () => {
         );
       }
     });
-
-    describe("path derivation", () => {
-      let getAddressStub: sinon.SinonStub;
-      // let newMockedEthInstance: EthWrapper;
-
-      function replaceGetAddress(desiredPath: string, desiredAddress: string) {
-        ethInstanceStub.getAddress.callsFake(async (path: string) => {
-          getAddressStub(path);
-
-          return path === desiredPath
-            ? { address: desiredAddress, publicKey: "0x1" }
-            : { address: "0x3", publicKey: "0x2" };
-        });
-      }
-
-      beforeEach(() => {
-        getAddressStub = sinon.stub();
-        // newMockedEthInstance = sinon.createStubInstance(Eth);
-
-        // wrapTransportStub.restore();
-        // wrapTransportStub = sinon
-        //   .stub(ethWrapper, "wrapTransport")
-        //   .returns(newMockedEthInstance);
-      });
-
-      it("should derivate the path changing the account until an address from accounts is found", async () => {
-        replaceGetAddress("44'/60'/3'/0'/0", accounts[0]);
-        await provider.init();
-
-        sinon.assert.callOrder(
-          getAddressStub.withArgs("44'/60'/0'/0'/0"),
-          getAddressStub.withArgs("44'/60'/1'/0'/0"),
-          getAddressStub.withArgs("44'/60'/2'/0'/0"),
-          getAddressStub.withArgs("44'/60'/3'/0'/0")
-        );
-      });
-
-      it("should return the found path once de account matches", async () => {
-        const desiredPath = "44'/60'/5'/0'/0";
-
-        replaceGetAddress(desiredPath, accounts[2]);
-        await provider.init();
-
-        assert.equal(provider.path, desiredPath);
-      });
-
-      it("should throw if no address matches and the max derivation count is reached", async () => {
-        replaceGetAddress(
-          `44'/60'/${LedgerProvider.MAX_DERIVATION_ACCOUNTS + 1}'/0'/0`,
-          accounts[2]
-        );
-
-        try {
-          await provider.init();
-          provider.path;
-        } catch (error) {
-          assert.equal(
-            (error as LedgerProviderError).message,
-            `Could not find a valid derivation path for the supplied accounts. We search paths from m/44'/60'/0/0'/0 to m/44'/60'/${LedgerProvider.MAX_DERIVATION_ACCOUNTS}/0'/0`
-          );
-        }
-      });
-    });
   });
 
   describe("request", () => {
+    let path: string;
     let account: { address: string; publicKey: string };
     let rsv: { v: number; r: string; s: string };
     let txRsv: { v: string; r: string; s: string };
@@ -255,10 +183,14 @@ describe("LedgerProvider", () => {
 
       initSpy = sinon.spy(provider, "init");
 
+      path = "44'/60'/1'/0'/0";
       account = {
-        address: accounts[0],
+        address: accounts[1],
         publicKey: "0x1",
       };
+      ethInstanceStub.getAddress.callsFake(async (searchedPath: string) =>
+        searchedPath === path ? account : { address: "0x0", publicKey: "0x0" }
+      );
 
       rsv = {
         v: 55,

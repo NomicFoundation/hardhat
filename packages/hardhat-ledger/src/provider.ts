@@ -29,8 +29,8 @@ export class LedgerProvider extends ProviderWrapperWithChainId {
   public static readonly DEFAULT_TIMEOUT = 3000;
 
   public name: string = "LedgerProvider";
+  public readonly paths: Record<string, string> = {}; // { address: path }
 
-  protected _path: string | undefined;
   protected _eth: EthWrapper | undefined;
   private _isCreatingTransport = false;
 
@@ -67,13 +67,6 @@ export class LedgerProvider extends ProviderWrapperWithChainId {
     return this._eth;
   }
 
-  public get path(): string {
-    if (this._path === undefined) {
-      throw new HardhatError(ERRORS.GENERAL.UNINITIALIZED_PROVIDER);
-    }
-    return this._path;
-  }
-
   public async init(): Promise<void> {
     if (this._eth === undefined && this._isCreatingTransport === false) {
       this._isCreatingTransport = true;
@@ -104,11 +97,6 @@ export class LedgerProvider extends ProviderWrapperWithChainId {
       }
       this._isCreatingTransport = false;
     }
-
-    if (this._path === undefined) {
-      // TODO: Cache this in the cache directory
-      this._path = await this._derivePath();
-    }
   }
 
   public async request(args: RequestArguments): Promise<unknown> {
@@ -125,21 +113,31 @@ export class LedgerProvider extends ProviderWrapperWithChainId {
       await this.init();
     }
 
-    if (args.method === "personal_sign" || args.method === "eth_sign") {
+    if (args.method === "eth_sign") {
       if (params.length > 0) {
-        let data: Buffer;
-        let address: Buffer;
+        const [address, data] = validateParams(params, rpcAddress, rpcData);
 
-        if (args.method === "personal_sign") {
-          const validParams = validateParams(params, rpcData, rpcAddress);
-          data = validParams[0];
-          address = validParams[1];
-        } else {
-          // eth_sign
-          const validParams = validateParams(params, rpcAddress, rpcData);
-          data = validParams[1];
-          address = validParams[0];
+        if (address !== undefined) {
+          if (data === undefined) {
+            throw new HardhatError(ERRORS.NETWORK.ETHSIGN_MISSING_DATA_PARAM);
+          }
+
+          if (this._isControlledAddress(address)) {
+            const path = await this._derivePath(address);
+            const signature = await this.eth.signPersonalMessage(
+              path,
+              data.toString("hex")
+            );
+
+            return await this._toRpcSig(signature);
+          }
         }
+      }
+    }
+
+    if (args.method === "personal_sign") {
+      if (params.length > 0) {
+        const [data, address] = validateParams(params, rpcData, rpcAddress);
 
         if (data !== undefined) {
           if (address === undefined) {
@@ -148,18 +146,21 @@ export class LedgerProvider extends ProviderWrapperWithChainId {
             );
           }
 
-          const signature = await this.eth.signPersonalMessage(
-            this.path,
-            data.toString("hex")
-          );
+          if (this._isControlledAddress(address)) {
+            const path = await this._derivePath(address);
+            const signature = await this.eth.signPersonalMessage(
+              path,
+              data.toString("hex")
+            );
 
-          return await this._toRpcSig(signature);
+            return await this._toRpcSig(signature);
+          }
         }
       }
     }
 
     if (args.method === "eth_signTypedData_v4") {
-      const [_, data] = validateParams(params, rpcAddress, t.any as any);
+      const [address, data] = validateParams(params, rpcAddress, t.any as any);
 
       if (data === undefined) {
         throw new HardhatError(ERRORS.NETWORK.ETHSIGN_MISSING_DATA_PARAM);
@@ -180,26 +181,30 @@ export class LedgerProvider extends ProviderWrapperWithChainId {
         );
       }
 
-      const { types, domain, message, primaryType } = typedMessage;
-      const { EIP712Domain, ...structTypes } = types;
+      // If we don't manage the address, the method is forwarded
+      if (this._isControlledAddress(address)) {
+        const { types, domain, message, primaryType } = typedMessage;
+        const { EIP712Domain, ...structTypes } = types;
 
-      let signature;
+        const path = await this._derivePath(address);
 
-      try {
-        signature = await this.eth.signEIP712Message(this.path, typedMessage);
-      } catch (error) {
-        signature = await this.eth.signEIP712HashedMessage(
-          this.path,
-          ethers.utils._TypedDataEncoder.hashDomain(domain),
-          ethers.utils._TypedDataEncoder.hashStruct(
-            primaryType,
-            structTypes,
-            message
-          )
-        );
+        let signature: { v: number; s: string; r: string };
+        try {
+          signature = await this.eth.signEIP712Message(path, typedMessage);
+        } catch (error) {
+          signature = await this.eth.signEIP712HashedMessage(
+            path,
+            ethers.utils._TypedDataEncoder.hashDomain(domain),
+            ethers.utils._TypedDataEncoder.hashStruct(
+              primaryType,
+              structTypes,
+              message
+            )
+          );
+        }
+
+        return await this._toRpcSig(signature);
       }
-
-      return await this._toRpcSig(signature);
     }
 
     if (args.method === "eth_sendTransaction" && params.length > 0) {
@@ -246,54 +251,65 @@ export class LedgerProvider extends ProviderWrapperWithChainId {
         );
       }
 
-      if (txRequest.nonce === undefined) {
-        txRequest.nonce = await this._getNonce(txRequest.from);
+      // If we don't manage the address, the method is forwarded
+      if (this._isControlledAddress(txRequest.from)) {
+        const path = await this._derivePath(txRequest.from);
+
+        if (txRequest.nonce === undefined) {
+          txRequest.nonce = await this._getNonce(txRequest.from);
+        }
+
+        const chainId = await this._getChainId();
+
+        const baseTx: ethers.utils.UnsignedTransaction = {
+          chainId,
+          data: txRequest.data,
+          gasLimit: txRequest.gas,
+          gasPrice: txRequest.gasPrice,
+          nonce: Number(txRequest.nonce),
+          value: txRequest.value,
+        };
+        if (txRequest.to) {
+          baseTx.to = this._toHex(txRequest.to);
+        }
+
+        const txToSign = ethers.utils.serializeTransaction(baseTx).substring(2);
+
+        const resolution = await ledgerService.resolveTransaction(
+          txToSign,
+          {},
+          {}
+        );
+
+        const signature = await this.eth.signTransaction(
+          path,
+          txToSign,
+          resolution
+        );
+
+        const rawTransaction = ethers.utils.serializeTransaction(baseTx, {
+          v: ethers.BigNumber.from(this._toHex(signature.v)).toNumber(),
+          r: this._toHex(signature.r),
+          s: this._toHex(signature.s),
+        });
+
+        return this._wrappedProvider.request({
+          method: "eth_sendRawTransaction",
+          params: [rawTransaction],
+        });
       }
-
-      const chainId = await this._getChainId();
-
-      const baseTx: ethers.utils.UnsignedTransaction = {
-        chainId,
-        data: txRequest.data,
-        gasLimit: txRequest.gas,
-        gasPrice: txRequest.gasPrice,
-        nonce: Number(txRequest.nonce),
-        value: txRequest.value,
-      };
-      if (txRequest.to) {
-        baseTx.to = this._toHex(txRequest.to);
-      }
-
-      const txToSign = ethers.utils.serializeTransaction(baseTx).substring(2);
-
-      const resolution = await ledgerService.resolveTransaction(
-        txToSign,
-        {},
-        {}
-      );
-
-      const signature = await this.eth.signTransaction(
-        this.path,
-        txToSign,
-        resolution
-      );
-
-      const rawTransaction = ethers.utils.serializeTransaction(baseTx, {
-        v: ethers.BigNumber.from(this._toHex(signature.v)).toNumber(),
-        r: this._toHex(signature.r),
-        s: this._toHex(signature.s),
-      });
-
-      return this._wrappedProvider.request({
-        method: "eth_sendRawTransaction",
-        params: [rawTransaction],
-      });
     }
 
     return this._wrappedProvider.request(args);
   }
 
-  private async _derivePath(): Promise<string> {
+  private async _derivePath(addressToFindAsBuffer: Buffer): Promise<string> {
+    const addressToFind = this._toHex(addressToFindAsBuffer).toLowerCase();
+
+    if (this.paths[addressToFind]) {
+      return this.paths[addressToFind];
+    }
+
     for (
       let account = 0;
       account <= LedgerProvider.MAX_DERIVATION_ACCOUNTS;
@@ -304,13 +320,15 @@ export class LedgerProvider extends ProviderWrapperWithChainId {
       const wallet = await this.eth.getAddress(path);
       const address = wallet.address.toLowerCase();
 
-      if (this.options.accounts.includes(address)) {
+      if (address === addressToFind) {
+        // TODO: Cache this in the cache directory
+        this.paths[addressToFind] = path;
         return path;
       }
     }
 
     throw new LedgerProviderError(
-      `Could not find a valid derivation path for the supplied accounts. We search paths from m/44'/60'/0/0'/0 to m/44'/60'/${LedgerProvider.MAX_DERIVATION_ACCOUNTS}/0'/0`
+      `Could not find a valid derivation path for ${addressToFind}. Paths from m/44'/60'/0/0'/0 to m/44'/60'/${LedgerProvider.MAX_DERIVATION_ACCOUNTS}/0'/0 were searched.`
     );
   }
 
@@ -344,6 +362,10 @@ export class LedgerProvider extends ProviderWrapperWithChainId {
     })) as string;
 
     return rpcQuantityToBigInt(response);
+  }
+
+  private _isControlledAddress(address: Buffer): boolean {
+    return this.options.accounts.includes(this._toHex(address).toLowerCase());
   }
 
   private _toHex(value: string | Buffer) {
