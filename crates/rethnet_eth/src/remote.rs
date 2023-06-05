@@ -138,10 +138,10 @@ impl<'a> serde::Deserialize<'a> for ZeroXPrefixedBytes {
             where
                 E: serde::de::Error,
             {
-                if &value[0..1] == "0x" {
-                    Err(serde::de::Error::custom(
-                        "string does not have a '0x' prefix",
-                    ))
+                if &value[0..=1] != "0x" {
+                    Err(serde::de::Error::custom(format!(
+                        "string \"{value}\" does not have a '0x' prefix"
+                    )))
                 } else {
                     Ok(Bytes::from(
                         hex::decode(&value[2..])
