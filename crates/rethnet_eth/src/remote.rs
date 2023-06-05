@@ -226,15 +226,31 @@ enum MethodInvocation {
         /// include transaction data
         bool,
     ),
-    #[serde(rename = "eth_getBlockTransactionCountByHash")]
+    #[serde(
+        rename = "eth_getBlockTransactionCountByHash",
+        serialize_with = "single_to_sequence",
+        deserialize_with = "sequence_to_single"
+    )]
     GetBlockTransactionCountByHash(B256),
-    #[serde(rename = "eth_getBlockTransactionCountByNumber")]
+    #[serde(
+        rename = "eth_getBlockTransactionCountByNumber",
+        serialize_with = "single_to_sequence",
+        deserialize_with = "sequence_to_single"
+    )]
     GetBlockTransactionCountByNumber(BlockSpec),
     #[serde(rename = "eth_getCode")]
     GetCode(Address, BlockSpec),
-    #[serde(rename = "eth_getFilterChanges")]
+    #[serde(
+        rename = "eth_getFilterChanges",
+        serialize_with = "single_to_sequence",
+        deserialize_with = "sequence_to_single"
+    )]
     GetFilterChanges(U256),
-    #[serde(rename = "eth_getFilterLogs")]
+    #[serde(
+        rename = "eth_getFilterLogs",
+        serialize_with = "single_to_sequence",
+        deserialize_with = "sequence_to_single"
+    )]
     GetFilterLogs(U256),
     #[serde(
         rename = "eth_getLogs",
@@ -271,27 +287,51 @@ enum MethodInvocation {
     Mining(),
     #[serde(rename = "eth_newBlockFilter")]
     NewBlockFilter(),
-    #[serde(rename = "eth_newFilter")]
+    #[serde(
+        rename = "eth_newFilter",
+        serialize_with = "single_to_sequence",
+        deserialize_with = "sequence_to_single"
+    )]
     NewFilter(FilterOptions),
     #[serde(rename = "eth_newPendingTransactionFilter")]
     NewPendingTransactionFilter(),
     #[serde(rename = "eth_pendingTransactions")]
     PendingTransactions(),
-    #[serde(rename = "eth_sendRawTransaction")]
+    #[serde(
+        rename = "eth_sendRawTransaction",
+        serialize_with = "single_to_sequence",
+        deserialize_with = "sequence_to_single"
+    )]
     SendRawTransaction(ZeroXPrefixedBytes),
-    #[serde(rename = "eth_sendTransaction")]
+    #[serde(
+        rename = "eth_sendTransaction",
+        serialize_with = "single_to_sequence",
+        deserialize_with = "sequence_to_single"
+    )]
     SendTransaction(TransactionInput),
     #[serde(rename = "eth_sign")]
     Sign(Address, ZeroXPrefixedBytes),
     #[serde(rename = "eth_signTypedData_v4")]
     SignTypedDataV4(Address, eth::eip712::Message),
-    #[serde(rename = "eth_subscribe")]
+    #[serde(
+        rename = "eth_subscribe",
+        serialize_with = "single_to_sequence",
+        deserialize_with = "sequence_to_single"
+    )]
     Subscribe(Vec<String>),
     #[serde(rename = "eth_syncing")]
     Syncing(),
-    #[serde(rename = "eth_uninstallFilter")]
+    #[serde(
+        rename = "eth_uninstallFilter",
+        serialize_with = "single_to_sequence",
+        deserialize_with = "sequence_to_single"
+    )]
     UninstallFilter(U256),
-    #[serde(rename = "eth_unsubscribe")]
+    #[serde(
+        rename = "eth_unsubscribe",
+        serialize_with = "single_to_sequence",
+        deserialize_with = "sequence_to_single"
+    )]
     Unsubscribe(Vec<ZeroXPrefixedBytes>),
 }
 
