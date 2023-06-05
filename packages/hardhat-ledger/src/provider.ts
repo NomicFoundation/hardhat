@@ -75,7 +75,6 @@ export class LedgerProvider extends ProviderWrapperWithChainId {
   }
 
   public async init(): Promise<void> {
-    // TODO: Only init once it's needed (not in eth_accounts nor on create)
     if (this._eth === undefined && this._isCreatingTransport === false) {
       this._isCreatingTransport = true;
 
@@ -115,15 +114,15 @@ export class LedgerProvider extends ProviderWrapperWithChainId {
   public async request(args: RequestArguments): Promise<unknown> {
     const params = this._getParams(args);
 
-    if (this._eth === undefined) {
-      throw new HardhatError(ERRORS.GENERAL.UNINITIALIZED_PROVIDER);
-    }
-
     if (
       args.method === "eth_accounts" ||
       args.method === "eth_requestAccounts"
     ) {
       return this.options.accounts;
+    }
+
+    if (this._methodRequiresInit(args.method)) {
+      await this.init();
     }
 
     if (args.method === "personal_sign" || args.method === "eth_sign") {
@@ -149,7 +148,7 @@ export class LedgerProvider extends ProviderWrapperWithChainId {
             );
           }
 
-          const signature = await this._eth.signPersonalMessage(
+          const signature = await this.eth.signPersonalMessage(
             this.path,
             data.toString("hex")
           );
@@ -160,7 +159,7 @@ export class LedgerProvider extends ProviderWrapperWithChainId {
     }
 
     if (args.method === "eth_signTypedData_v4") {
-      const [address, data] = validateParams(params, rpcAddress, t.any as any);
+      const [_, data] = validateParams(params, rpcAddress, t.any as any);
 
       if (data === undefined) {
         throw new HardhatError(ERRORS.NETWORK.ETHSIGN_MISSING_DATA_PARAM);
@@ -181,32 +180,26 @@ export class LedgerProvider extends ProviderWrapperWithChainId {
         );
       }
 
-      // If we don't manage the address, the method is forwarded
-      if (await this._isControlledAddress(address)) {
-        const { types, domain, message, primaryType } = typedMessage;
-        const { EIP712Domain, ...structTypes } = types;
+      const { types, domain, message, primaryType } = typedMessage;
+      const { EIP712Domain, ...structTypes } = types;
 
-        let signature;
+      let signature;
 
-        try {
-          signature = await this._eth.signEIP712Message(
-            this.path,
-            typedMessage
-          );
-        } catch (error) {
-          signature = await this._eth.signEIP712HashedMessage(
-            this.path,
-            ethers.utils._TypedDataEncoder.hashDomain(domain),
-            ethers.utils._TypedDataEncoder.hashStruct(
-              primaryType,
-              structTypes,
-              message
-            )
-          );
-        }
-
-        return await this._toRpcSig(signature);
+      try {
+        signature = await this.eth.signEIP712Message(this.path, typedMessage);
+      } catch (error) {
+        signature = await this.eth.signEIP712HashedMessage(
+          this.path,
+          ethers.utils._TypedDataEncoder.hashDomain(domain),
+          ethers.utils._TypedDataEncoder.hashStruct(
+            primaryType,
+            structTypes,
+            message
+          )
+        );
       }
+
+      return await this._toRpcSig(signature);
     }
 
     if (args.method === "eth_sendTransaction" && params.length > 0) {
@@ -253,51 +246,48 @@ export class LedgerProvider extends ProviderWrapperWithChainId {
         );
       }
 
-      // If we don't manage the address, the method is forwarded
-      if (await this._isControlledAddress(txRequest.from)) {
-        if (txRequest.nonce === undefined) {
-          txRequest.nonce = await this._getNonce(txRequest.from);
-        }
-
-        const chainId = await this._getChainId();
-
-        const baseTx: ethers.utils.UnsignedTransaction = {
-          chainId,
-          data: txRequest.data,
-          gasLimit: txRequest.gas,
-          gasPrice: txRequest.gasPrice,
-          nonce: Number(txRequest.nonce),
-          value: txRequest.value,
-        };
-        if (txRequest.to) {
-          baseTx.to = this._toHex(txRequest.to);
-        }
-
-        const txToSign = ethers.utils.serializeTransaction(baseTx).substring(2);
-
-        const resolution = await ledgerService.resolveTransaction(
-          txToSign,
-          {},
-          {}
-        );
-
-        const signature = await this._eth.signTransaction(
-          this.path,
-          txToSign,
-          resolution
-        );
-
-        const rawTransaction = ethers.utils.serializeTransaction(baseTx, {
-          v: ethers.BigNumber.from(this._toHex(signature.v)).toNumber(),
-          r: this._toHex(signature.r),
-          s: this._toHex(signature.s),
-        });
-
-        return this._wrappedProvider.request({
-          method: "eth_sendRawTransaction",
-          params: [rawTransaction],
-        });
+      if (txRequest.nonce === undefined) {
+        txRequest.nonce = await this._getNonce(txRequest.from);
       }
+
+      const chainId = await this._getChainId();
+
+      const baseTx: ethers.utils.UnsignedTransaction = {
+        chainId,
+        data: txRequest.data,
+        gasLimit: txRequest.gas,
+        gasPrice: txRequest.gasPrice,
+        nonce: Number(txRequest.nonce),
+        value: txRequest.value,
+      };
+      if (txRequest.to) {
+        baseTx.to = this._toHex(txRequest.to);
+      }
+
+      const txToSign = ethers.utils.serializeTransaction(baseTx).substring(2);
+
+      const resolution = await ledgerService.resolveTransaction(
+        txToSign,
+        {},
+        {}
+      );
+
+      const signature = await this.eth.signTransaction(
+        this.path,
+        txToSign,
+        resolution
+      );
+
+      const rawTransaction = ethers.utils.serializeTransaction(baseTx, {
+        v: ethers.BigNumber.from(this._toHex(signature.v)).toNumber(),
+        r: this._toHex(signature.r),
+        s: this._toHex(signature.s),
+      });
+
+      return this._wrappedProvider.request({
+        method: "eth_sendRawTransaction",
+        params: [rawTransaction],
+      });
     }
 
     return this._wrappedProvider.request(args);
@@ -324,6 +314,15 @@ export class LedgerProvider extends ProviderWrapperWithChainId {
     );
   }
 
+  private _methodRequiresInit(method: string): boolean {
+    return [
+      "personal_sign",
+      "eth_sign",
+      "eth_signTypedData_v4",
+      "eth_sendTransaction",
+    ].includes(method);
+  }
+
   private async _toRpcSig(signature: Signature): Promise<string> {
     const { toRpcSig, toBuffer } = await import(
       "@nomicfoundation/ethereumjs-util"
@@ -345,16 +344,6 @@ export class LedgerProvider extends ProviderWrapperWithChainId {
     })) as string;
 
     return rpcQuantityToBigInt(response);
-  }
-
-  private async _isControlledAddress(address: Buffer): Promise<boolean> {
-    const [controlledAddress] = (await this.request({
-      method: "eth_accounts",
-    })) as string[];
-
-    return (
-      controlledAddress.toLowerCase() === this._toHex(address).toLowerCase()
-    );
   }
 
   private _toHex(value: string | Buffer) {

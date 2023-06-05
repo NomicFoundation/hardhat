@@ -6,5 +6,5 @@ extendProvider((provider, config, network) => {
   const networkConfig = config.networks[network] as HardhatNetworkConfig;
   const ledgerAccounts = networkConfig.ledgerAccounts || [];
 
-  return LedgerProvider.create({ accounts: ledgerAccounts }, provider);
+  return new LedgerProvider({ accounts: ledgerAccounts }, provider);
 });

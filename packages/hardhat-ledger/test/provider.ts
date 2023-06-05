@@ -58,9 +58,9 @@ describe("LedgerProvider", () => {
   describe("instance", () => {
     it("should lowercase all accounts", () => {
       const accounts = [
-        "0XA809931E3B38059ADAE9BC5455BC567D0509AB92",
-        "0XDA6A52AFDAE5FF66AA786DA68754A227331F56E3",
-        "0XBC307688A80EC5ED0EDC1279C44C1B34F7746BDA",
+        "0xA809931E3B38059ADAE9BC5455BC567D0509AB92",
+        "0xDA6A52AFDAE5FF66AA786DA68754A227331F56E3",
+        "0xBC307688A80EC5ED0EDC1279C44C1B34F7746BDA",
       ];
       const provider = new LedgerProvider({ accounts }, mockedProvider);
       const lowercasedAccounts = accounts.map((account) =>
@@ -248,13 +248,16 @@ describe("LedgerProvider", () => {
     let signature: string;
     let dataToSign: string;
     let typedMessage: EIP712Message;
+    let initSpy: sinon.SinonSpy;
 
     beforeEach(async () => {
       stubTransport(new Transport());
-      await provider.init();
+
+      initSpy = sinon.spy(provider, "init");
+
       account = {
-        address: "0x9f649FE750340A295dDdbBd7e1EC8f378cF24b43",
-        publicKey: "0x5",
+        address: accounts[0],
+        publicKey: "0x1",
       };
 
       rsv = {
@@ -311,15 +314,17 @@ describe("LedgerProvider", () => {
       };
     });
 
-    it.only("should return the configured accounts when the JSONRPC eth_accounts method is called", async () => {
+    it("should return the configured accounts when the JSONRPC eth_accounts method is called", async () => {
       const resultAccounts = await provider.request({ method: "eth_accounts" });
       assert.deepEqual(accounts, resultAccounts);
+      sinon.assert.notCalled(initSpy);
     });
-    it.only("should return the configured accounts when the JSONRPC eth_requestAccounts method is called", async () => {
+    it("should return the configured accounts when the JSONRPC eth_requestAccounts method is called", async () => {
       const resultAccounts = await provider.request({
         method: "eth_requestAccounts",
       });
       assert.deepEqual(accounts, resultAccounts);
+      sinon.assert.notCalled(initSpy);
     });
 
     it("should call the ledger's signPersonalMessage method when the JSONRPC personal_sign method is called", async () => {
@@ -334,6 +339,7 @@ describe("LedgerProvider", () => {
 
       sinon.assert.calledOnceWithExactly(stub, path, dataToSign.slice(2)); // slices 0x
       assert.deepEqual(signature, resultSignature);
+      sinon.assert.calledOnce(initSpy);
     });
     it("should call the ledger's signPersonalMessage method when the JSONRPC eth_sign method is called", async () => {
       const stub = ethInstanceStub.signPersonalMessage.returns(
@@ -347,14 +353,13 @@ describe("LedgerProvider", () => {
 
       sinon.assert.calledOnceWithExactly(stub, path, dataToSign.slice(2)); // slices 0x
       assert.deepEqual(signature, resultSignature);
+      sinon.assert.calledOnce(initSpy);
     });
 
     it("should call the ledger's signEIP712Message method when the JSONRPC eth_signTypedData_v4 method is called", async () => {
       const stub = ethInstanceStub.signEIP712Message.returns(
         Promise.resolve(rsv)
       );
-
-      ethInstanceStub.getAddress.returns(Promise.resolve(account)); // make it a controlled address
 
       const resultSignature = await provider.request({
         method: "eth_signTypedData_v4",
@@ -363,6 +368,7 @@ describe("LedgerProvider", () => {
 
       sinon.assert.calledOnceWithExactly(stub, path, typedMessage);
       assert.deepEqual(signature, resultSignature);
+      sinon.assert.calledOnce(initSpy);
     });
     it("should call the ledger's signEIP712HashedMessage method when the JSONRPC eth_signTypedData_v4 method is called", async () => {
       ethInstanceStub.signEIP712Message.throws("Unsupported Ledger");
@@ -370,8 +376,6 @@ describe("LedgerProvider", () => {
       const stub = ethInstanceStub.signEIP712HashedMessage.returns(
         Promise.resolve(rsv)
       );
-
-      ethInstanceStub.getAddress.returns(Promise.resolve(account)); // make it a controlled address
 
       const resultSignature = await provider.request({
         method: "eth_signTypedData_v4",
@@ -385,10 +389,10 @@ describe("LedgerProvider", () => {
         "0xc52c0ee5d84264471806290a3f2c4cecfc5490626bf912d01f240d7a274b371e" // hash struct
       );
       assert.deepEqual(signature, resultSignature);
+      sinon.assert.calledOnce(initSpy);
     });
 
     it("should call the ledger's signTransaction method when the JSONRPC eth_sendTransaction method is called", async () => {
-      const toAddress = "0x9f649FE750340A295dDdbBd7e1EC8f378cF24b43";
       const tx =
         "0xf8626464830f4240949f649fe750340a295dddbbd7e1ec8f378cf24b43648082f4f5a04ab14d7e96a8bc7390cfffa0260d4b82848428ce7f5b8dd367d13bf31944b6c0a03cc226daa6a2f4e22334c59c2e04ac72672af72907ec9c4a601189858ba60069";
 
@@ -414,14 +418,12 @@ describe("LedgerProvider", () => {
         Promise.resolve(txRsv)
       );
 
-      ethInstanceStub.getAddress.returns(Promise.resolve(account)); // make it a controlled address
-
       const resultTx = await provider.request({
         method: "eth_sendTransaction",
         params: [
           {
             from: account.address,
-            to: toAddress,
+            to: accounts[1],
             value: numberToRpcQuantity(100),
             gas: numberToRpcQuantity(1000000),
             gasPrice: numberToRpcQuantity(100),
@@ -433,7 +435,7 @@ describe("LedgerProvider", () => {
       sinon.assert.calledOnceWithExactly(
         signTransactionStub,
         path,
-        "e26464830f4240949f649fe750340a295dddbbd7e1ec8f378cf24b436480827a698080",
+        "e26464830f424094da6a52afdae5ff66aa786da68754a227331f56e36480827a698080",
         {
           nfts: [],
           erc20Tokens: [],
@@ -444,15 +446,16 @@ describe("LedgerProvider", () => {
       );
       sinon.assert.calledWithExactly(requestStub, {
         method: "eth_getTransactionCount",
-        params: ["0x9f649fe750340a295dddbbd7e1ec8f378cf24b43", "pending"],
+        params: [account.address, "pending"],
       });
       sinon.assert.calledWithExactly(requestStub, {
         method: "eth_sendRawTransaction",
         params: [
-          "0xf8626464830f4240949f649fe750340a295dddbbd7e1ec8f378cf24b43648082f4f5a04ab14d7e96a8bc7390cfffa0260d4b82848428ce7f5b8dd367d13bf31944b6c0a03cc226daa6a2f4e22334c59c2e04ac72672af72907ec9c4a601189858ba60069",
+          "0xf8626464830f424094da6a52afdae5ff66aa786da68754a227331f56e3648082f4f5a04ab14d7e96a8bc7390cfffa0260d4b82848428ce7f5b8dd367d13bf31944b6c0a03cc226daa6a2f4e22334c59c2e04ac72672af72907ec9c4a601189858ba60069",
         ],
       });
       assert.equal(tx, resultTx);
+      sinon.assert.calledOnce(initSpy);
     });
 
     function numberToRpcQuantity(n: number | bigint): string {
