@@ -161,7 +161,7 @@ impl serde::Serialize for ZeroXPrefixedBytes {
     where
         S: serde::Serializer,
     {
-        serializer.serialize_str(&format!("0x{}", hex::encode(self.inner.clone()),))
+        serializer.serialize_str(&format!("0x{}", hex::encode(&self.inner)))
     }
 }
 
