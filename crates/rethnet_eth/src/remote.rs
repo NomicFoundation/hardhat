@@ -368,6 +368,12 @@ mod tests {
     }
 
     #[test]
+    #[should_panic(expected = "string \\\"deadbeef\\\" does not have a '0x' prefix")]
+    fn test_zero_x_prefixed_bytes_deserialization_without_0x_prefix() {
+        serde_json::from_str::<ZeroXPrefixedBytes>("\"deadbeef\"").unwrap();
+    }
+
+    #[test]
     fn test_serde_eth_accounts() {
         help_test_method_invocation_serde(MethodInvocation::Accounts());
     }
