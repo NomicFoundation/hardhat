@@ -214,7 +214,7 @@ enum MethodInvocation {
     #[serde(rename = "eth_getBalance")]
     GetBalance(Address, BlockSpec),
     #[serde(rename = "eth_getBlockByNumber")]
-    GetBlock(
+    GetBlockByNumber(
         BlockSpec,
         /// include transaction data
         bool,
@@ -407,7 +407,7 @@ mod tests {
 
     #[test]
     fn test_serde_eth_get_block_by_number() {
-        help_test_method_invocation_serde(MethodInvocation::GetBlock(
+        help_test_method_invocation_serde(MethodInvocation::GetBlockByNumber(
             BlockSpec::Number(U256::from(100)),
             true,
         ));
@@ -415,7 +415,7 @@ mod tests {
 
     #[test]
     fn test_serde_eth_get_block_by_tag() {
-        help_test_method_invocation_serde(MethodInvocation::GetBlock(
+        help_test_method_invocation_serde(MethodInvocation::GetBlockByNumber(
             BlockSpec::Tag(String::from("latest")),
             true,
         ));
