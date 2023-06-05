@@ -46,6 +46,7 @@ export interface HardhatNetworkUserConfig {
   hardfork?: string;
   mining?: HardhatNetworkMiningUserConfig;
   accounts?: HardhatNetworkAccountsUserConfig;
+  ledgerAccounts?: HardhatLedgerAccountsConfig;
   blockGasLimit?: number;
   minGasPrice?: number | string;
   throwOnTransactionFailures?: boolean;
@@ -142,7 +143,6 @@ export interface HardhatNetworkConfig {
   hardfork: string;
   mining: HardhatNetworkMiningConfig;
   accounts: HardhatNetworkAccountsConfig;
-  ledgerAccounts?: HardhatLedgerAccountsConfig;
   blockGasLimit: number;
   minGasPrice: bigint;
   throwOnTransactionFailures: boolean;
