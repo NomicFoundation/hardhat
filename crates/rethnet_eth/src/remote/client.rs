@@ -6,7 +6,7 @@ use std::{
 use itertools::Itertools;
 use revm_primitives::{AccountInfo, Address, Bytecode, B256, KECCAK_EMPTY, U256};
 
-use super::{eth, jsonrpc, BlockSpec, GetLogsInput, MethodInvocation};
+use super::{eth, jsonrpc, BlockSpec, GetLogsInput, MethodInvocation, ZeroXPrefixedBytes};
 
 /// Specialized error types
 #[derive(thiserror::Error, Debug)]
@@ -202,9 +202,9 @@ impl RpcClient {
         block: BlockSpec,
     ) -> Result<AccountInfo, RpcClientError> {
         let inputs = Vec::from([
-            MethodInvocation::Balance(*address, block.clone().into()),
-            MethodInvocation::TxCount(*address, block.clone().into()),
-            MethodInvocation::Code(*address, block.into()),
+            MethodInvocation::GetBalance(*address, block.clone()),
+            MethodInvocation::GetTransactionCount(*address, block.clone()),
+            MethodInvocation::GetCode(*address, block),
         ]);
 
         let response = self.batch_call(&inputs).await?;
@@ -212,7 +212,7 @@ impl RpcClient {
         type BatchResult = (
             jsonrpc::Response<U256>,
             jsonrpc::Response<U256>,
-            jsonrpc::Response<jsonrpc::ZeroXPrefixedBytes>,
+            jsonrpc::Response<ZeroXPrefixedBytes>,
         );
 
         let responses: Vec<serde_json::Value> = serde_json::from_str(&response.text)
@@ -290,32 +290,31 @@ impl RpcClient {
                 )
             })?;
 
-        let code =
-            serde_json::from_value::<jsonrpc::Response<jsonrpc::ZeroXPrefixedBytes>>(code_response)
-                .map_err(|err| {
-                    panic!(
-                        "Failed to deserialize code due to error: {:?}. Response: {}",
-                        err,
-                        response.text.clone(),
-                    )
-                })
-                .and_then(|response| {
-                    response.data.into_result().map_or_else(
-                        |error| {
-                            Err(RpcClientError::JsonRpcError {
-                                error,
-                                request: code_request,
-                            })
-                        },
-                        |bytes| {
-                            Ok(if bytes.inner.is_empty() {
-                                None
-                            } else {
-                                Some(Bytecode::new_raw(bytes.inner))
-                            })
-                        },
-                    )
-                })?;
+        let code = serde_json::from_value::<jsonrpc::Response<ZeroXPrefixedBytes>>(code_response)
+            .map_err(|err| {
+                panic!(
+                    "Failed to deserialize code due to error: {:?}. Response: {}",
+                    err,
+                    response.text.clone(),
+                )
+            })
+            .and_then(|response| {
+                response.data.into_result().map_or_else(
+                    |error| {
+                        Err(RpcClientError::JsonRpcError {
+                            error,
+                            request: code_request,
+                        })
+                    },
+                    |bytes| {
+                        Ok(if bytes.inner.is_empty() {
+                            None
+                        } else {
+                            Some(Bytecode::new_raw(bytes.inner))
+                        })
+                    },
+                )
+            })?;
 
         Ok(AccountInfo {
             balance,
@@ -330,7 +329,7 @@ impl RpcClient {
         &self,
         hash: &B256,
     ) -> Result<Option<eth::Block<B256>>, RpcClientError> {
-        self.call(&MethodInvocation::BlockByHash(*hash, false))
+        self.call(&MethodInvocation::GetBlockByHash(*hash, false))
             .await
     }
 
@@ -339,7 +338,8 @@ impl RpcClient {
         &self,
         hash: &B256,
     ) -> Result<Option<eth::Block<eth::Transaction>>, RpcClientError> {
-        self.call(&MethodInvocation::BlockByHash(*hash, true)).await
+        self.call(&MethodInvocation::GetBlockByHash(*hash, true))
+            .await
     }
 
     /// Calls `eth_getBlockByNumber` and returns the transaction's hash.
@@ -347,7 +347,7 @@ impl RpcClient {
         &self,
         spec: BlockSpec,
     ) -> Result<eth::Block<B256>, RpcClientError> {
-        self.call(&MethodInvocation::Block(spec.into(), false))
+        self.call(&MethodInvocation::GetBlockByNumber(spec, false))
             .await
     }
 
@@ -356,7 +356,8 @@ impl RpcClient {
         &self,
         spec: BlockSpec,
     ) -> Result<eth::Block<eth::Transaction>, RpcClientError> {
-        self.call(&MethodInvocation::Block(spec.into(), true)).await
+        self.call(&MethodInvocation::GetBlockByNumber(spec, true))
+            .await
     }
 
     /// eth_getLogs
@@ -366,9 +367,9 @@ impl RpcClient {
         to_block: BlockSpec,
         address: &Address,
     ) -> Result<Vec<eth::Log>, RpcClientError> {
-        self.call(&MethodInvocation::Logs(GetLogsInput {
-            from_block: from_block.into(),
-            to_block: to_block.into(),
+        self.call(&MethodInvocation::GetLogs(GetLogsInput {
+            from_block,
+            to_block,
             address: *address,
         }))
         .await
@@ -379,7 +380,8 @@ impl RpcClient {
         &self,
         tx_hash: &B256,
     ) -> Result<Option<eth::Transaction>, RpcClientError> {
-        self.call(&MethodInvocation::TxByHash(*tx_hash)).await
+        self.call(&MethodInvocation::GetTransactionByHash(*tx_hash))
+            .await
     }
 
     /// eth_getTransactionCount
@@ -388,7 +390,7 @@ impl RpcClient {
         address: &Address,
         block: BlockSpec,
     ) -> Result<U256, RpcClientError> {
-        self.call(&MethodInvocation::TxCount(*address, block.into()))
+        self.call(&MethodInvocation::GetTransactionCount(*address, block))
             .await
     }
 
@@ -397,7 +399,8 @@ impl RpcClient {
         &self,
         tx_hash: &B256,
     ) -> Result<Option<eth::TransactionReceipt>, RpcClientError> {
-        self.call(&MethodInvocation::TxReceipt(*tx_hash)).await
+        self.call(&MethodInvocation::GetTransactionReceipt(*tx_hash))
+            .await
     }
 
     /// eth_getStorageAt
@@ -407,12 +410,8 @@ impl RpcClient {
         position: U256,
         block: BlockSpec,
     ) -> Result<U256, RpcClientError> {
-        self.call(&MethodInvocation::StorageAt(
-            *address,
-            position,
-            block.into(),
-        ))
-        .await
+        self.call(&MethodInvocation::GetStorageAt(*address, position, block))
+            .await
     }
 }
 
@@ -442,7 +441,7 @@ mod tests {
                 .expect("failed to parse hash from string");
 
         let error = RpcClient::new(&server.url())
-            .call::<Option<eth::Transaction>>(&MethodInvocation::TxByHash(hash))
+            .call::<Option<eth::Transaction>>(&MethodInvocation::GetTransactionByHash(hash))
             .await
             .expect_err("should have failed to interpret response as a Transaction");
 
@@ -485,7 +484,7 @@ mod tests {
             .expect("failed to parse hash from string");
 
             let error = RpcClient::new(alchemy_url)
-                .call::<Option<eth::Transaction>>(&MethodInvocation::TxByHash(hash))
+                .call::<Option<eth::Transaction>>(&MethodInvocation::GetTransactionByHash(hash))
                 .await
                 .expect_err("should have failed to interpret response as a Transaction");
 
@@ -506,7 +505,7 @@ mod tests {
             .expect("failed to parse hash from string");
 
             let error = RpcClient::new(alchemy_url)
-                .call::<Option<eth::Transaction>>(&MethodInvocation::TxByHash(hash))
+                .call::<Option<eth::Transaction>>(&MethodInvocation::GetTransactionByHash(hash))
                 .await
                 .expect_err("should have failed to connect due to a garbage domain name");
 
