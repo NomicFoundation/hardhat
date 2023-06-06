@@ -56,7 +56,7 @@ const PEER_DEPENDENCIES: Dependencies = {
   "solidity-coverage": "^0.8.0",
   "@typechain/hardhat": "^8.0.0",
   typechain: "^8.1.0",
-  "@typechain/ethers-v6": "^0.3.4",
+  "@typechain/ethers-v6": "^0.4.0",
 };
 
 const TYPESCRIPT_DEPENDENCIES: Dependencies = {};
