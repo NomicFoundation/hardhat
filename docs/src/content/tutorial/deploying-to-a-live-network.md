@@ -6,7 +6,7 @@ The "mainnet" Ethereum network deals with real money, but there are separate "te
 
 At the software level, deploying to a testnet is the same as deploying to mainnet. The only difference is which network you connect to. Let's look into what the code to deploy your contracts using ethers.js would look like.
 
-The main concepts used are `Signer`, `ContractFactory` and `Contract` which we explained back in the [testing](testing-contracts.md) section. There's nothing new that needs to be done when compared to testing, given that when you're testing your contracts you're _actually_ making a deployment to your development network. This makes the code very similar, or even the same.
+The main concepts used are `Signer` and `Contract` which we explained back in the [testing](testing-contracts.md) section. There's nothing new that needs to be done when compared to testing, given that when you're testing your contracts you're _actually_ making a deployment to your development network. This makes the code very similar, or even the same.
 
 Let's create a new directory `scripts` inside the project root's directory, and paste the following into a `deploy.js` file in that directory:
 
