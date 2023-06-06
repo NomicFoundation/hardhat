@@ -874,7 +874,7 @@ describe("BigNumber matchers", function () {
 
           // We are not checking the content of the arrays/objects because
           // it depends on the type of the numbers (plain numbers, native
-          // bigints, ethers's BigNumbers)
+          // bigints)
           // Ideally the output would be normalized and we could check the
           // actual content more easily.
 

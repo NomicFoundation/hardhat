@@ -90,8 +90,8 @@ This package provides the predicates `anyValue` and `anyUint`, but you can easil
 
 <!-- prettier-ignore -->
 ```js
-function isEven(x: BigNumber): boolean {
-  return x.mod(2).isZero();
+function isEven(x: bigint): boolean {
+  return x % 2n === 0n;
 }
 
 await expect(contract.emitUint(2))
