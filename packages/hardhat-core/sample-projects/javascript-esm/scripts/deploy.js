@@ -15,7 +15,7 @@ const lock = await ethers.deployContract("Lock", [unlockTime], {
   value: lockedAmount,
 });
 
-await lock.waitForDeploymet();
+await lock.waitForDeployment();
 
 console.log(
   `Lock with ${ethers.formatEther(
