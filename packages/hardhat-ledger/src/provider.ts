@@ -1,4 +1,5 @@
 import { ethers } from "ethers";
+import ora from "ora";
 
 import { isEIP712Message, ledgerService } from "@ledgerhq/hw-app-eth";
 import TransportNodeHid from "@ledgerhq/hw-transport-node-hid";
@@ -27,6 +28,8 @@ import { wrapTransport } from "./internal/wrap-transport";
 export class LedgerProvider extends ProviderWrapperWithChainId {
   public static readonly MAX_DERIVATION_ACCOUNTS = 20;
   public static readonly DEFAULT_TIMEOUT = 3000;
+
+  private _confirmationSpinner: ora.Ora;
 
   public name: string = "LedgerProvider";
   public readonly paths: Record<string, string> = {}; // { address: path }
@@ -58,6 +61,8 @@ export class LedgerProvider extends ProviderWrapperWithChainId {
     this.options.accounts = options.accounts.map((account) =>
       account.toLowerCase()
     );
+
+    this._confirmationSpinner = ora("Waiting for confirmation");
   }
 
   public get eth(): EthWrapper {
@@ -76,13 +81,17 @@ export class LedgerProvider extends ProviderWrapperWithChainId {
       const connectionTimeout =
         this.options.connectionTimeout || LedgerProvider.DEFAULT_TIMEOUT;
 
+      const spinner = ora("Connecting to Ledger wallet").start();
       try {
         const transport = await TransportNodeHid.create(
           openTimeout,
           connectionTimeout
         );
         this._eth = wrapTransport(transport);
+        spinner.succeed();
       } catch (error) {
+        spinner.fail();
+
         if (error instanceof Error) {
           let errorMessage = `There was an error trying to stablish a connection to the Ledger wallet: "${error.message}".`;
 
@@ -111,54 +120,41 @@ export class LedgerProvider extends ProviderWrapperWithChainId {
 
     if (this._methodRequiresInit(args.method)) {
       await this.init();
-    }
 
-    if (args.method === "eth_sign") {
-      return this._ethSign(params);
-    }
+      let result: unknown;
+      try {
+        if (args.method === "eth_sign") {
+          result = await this._ethSign(params);
+        }
 
-    if (args.method === "personal_sign") {
-      return this._personalSign(params);
-    }
+        if (args.method === "personal_sign") {
+          result = await this._personalSign(params);
+        }
 
-    if (args.method === "eth_signTypedData_v4") {
-      return this._ethSignTypedDataV4(params);
-    }
+        if (args.method === "eth_signTypedData_v4") {
+          result = await this._ethSignTypedDataV4(params);
+        }
 
-    if (args.method === "eth_sendTransaction" && params.length > 0) {
-      return this._ethSendTransaction(params);
-    }
+        if (args.method === "eth_sendTransaction" && params.length > 0) {
+          result = await this._ethSendTransaction(params);
+        }
 
-    return this._wrappedProvider.request(args);
-  }
+        this._confirmationSpinner.succeed();
 
-  private async _derivePath(addressToFindAsBuffer: Buffer): Promise<string> {
-    const addressToFind = this._toHex(addressToFindAsBuffer).toLowerCase();
+        return result;
+      } catch (error) {
+        if (this._confirmationSpinner.isSpinning) {
+          this._confirmationSpinner.fail();
+        }
 
-    if (this.paths[addressToFind]) {
-      return this.paths[addressToFind];
-    }
-
-    for (
-      let account = 0;
-      account <= LedgerProvider.MAX_DERIVATION_ACCOUNTS;
-      account++
-    ) {
-      const path = `44'/60'/${account}'/0'/0`;
-
-      const wallet = await this.eth.getAddress(path);
-      const address = wallet.address.toLowerCase();
-
-      if (address === addressToFind) {
-        // TODO: Cache this in the cache directory
-        this.paths[addressToFind] = path;
-        return path;
+        let errorMessage = (error as Error).message;
+        throw new LedgerProviderError(
+          `There was an error trying to request ${args.method}: "${errorMessage}".`
+        );
       }
     }
 
-    throw new LedgerProviderError(
-      `Could not find a valid derivation path for ${addressToFind}. Paths from m/44'/60'/0/0'/0 to m/44'/60'/${LedgerProvider.MAX_DERIVATION_ACCOUNTS}/0'/0 were searched.`
-    );
+    return this._wrappedProvider.request(args);
   }
 
   private _methodRequiresInit(method: string): boolean {
@@ -185,7 +181,6 @@ export class LedgerProvider extends ProviderWrapperWithChainId {
             path,
             data.toString("hex")
           );
-
           return await this._toRpcSig(signature);
         }
       }
@@ -351,6 +346,53 @@ export class LedgerProvider extends ProviderWrapperWithChainId {
         params: [rawTransaction],
       });
     }
+  }
+
+  private async _derivePath(addressToFindAsBuffer: Buffer): Promise<string> {
+    const addressToFind = this._toHex(addressToFindAsBuffer).toLowerCase();
+
+    if (this.paths[addressToFind]) {
+      this._confirmationSpinner.start();
+      return this.paths[addressToFind];
+    }
+
+    const spinner = ora("Finding derivation path").start();
+    let account = 0;
+    let path = "";
+    try {
+      for (
+        account;
+        account <= LedgerProvider.MAX_DERIVATION_ACCOUNTS;
+        account++
+      ) {
+        path = `44'/60'/${account}'/0'/0`;
+
+        spinner.text = `Deriving path "${path}"`;
+
+        const wallet = await this.eth.getAddress(path);
+        const address = wallet.address.toLowerCase();
+
+        if (address === addressToFind) {
+          // TODO: Cache this in the cache directory
+          this.paths[addressToFind] = path;
+          spinner.succeed();
+          this._confirmationSpinner.start();
+          return path;
+        }
+      }
+    } catch (error) {
+      const message = (error as Error).message;
+      spinner.fail();
+
+      throw new LedgerProviderError(
+        `There was an error trying to derivate path ${path}: "${message}". The wallet might be connected but locked or in the wrong app.`
+      );
+    }
+
+    spinner.fail();
+    throw new LedgerProviderError(
+      `Could not find a valid derivation path for ${addressToFind}. Paths from m/44'/60'/0/0'/0 to m/44'/60'/${LedgerProvider.MAX_DERIVATION_ACCOUNTS}/0'/0 were searched.`
+    );
   }
 
   private async _toRpcSig(signature: Signature): Promise<string> {
