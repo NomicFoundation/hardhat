@@ -1,6 +1,6 @@
 {
   "name": "@nomicfoundation/hardhat-toolbox",
-  "version": "3.0.0",
+  "version": "2.0.2",
   "description": "Nomic Foundation's recommended bundle of Hardhat plugins",
   "repository": "github:nomicfoundation/hardhat",
   "homepage": "https://github.com/nomicfoundation/hardhat/tree/main/packages/hardhat-toolbox",
