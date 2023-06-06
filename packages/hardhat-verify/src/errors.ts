@@ -257,8 +257,12 @@ Possible causes are:
 }
 
 export class DeployedBytecodeMismatchError extends HardhatVerifyError {
-  constructor(network: string) {
-    super(`The address provided as argument contains a contract, but its bytecode doesn't match any of your local contracts.
+  constructor(network: string, contractFQN?: string) {
+    const contractDetails =
+      typeof contractFQN === "string"
+        ? `the contract ${contractFQN}.`
+        : `any of your local contracts.`;
+    super(`The address provided as argument contains a contract, but its bytecode doesn't match ${contractDetails}
 
 Possible causes are:
   - The artifact for that contract is outdated or missing. You can try compiling the project again with the --force flag before re-running the verification.
@@ -285,19 +289,6 @@ await run("${TASK_VERIFY_VERIFY}", {
 <other args>,
 contract: "contracts/Example.sol:ExampleContract"
 };`);
-  }
-}
-
-export class DeployedBytecodeDoesNotMatchFQNError extends HardhatVerifyError {
-  constructor(contractFQN: string, network: string) {
-    super(`The address provided as argument contains a contract, but its bytecode doesn't match the contract ${contractFQN}.
-
-Possible causes are:
-  - The artifact for that contract is outdated or missing. You can try compiling the project again with the --force flag before re-running the verification.
-  - The contract's code changed after the deployment was executed. Sometimes this happens by changes in seemingly unrelated contracts.
-  - The solidity compiler settings were modified after the deployment was executed (like the optimizer, target EVM, etc.)
-  - The given address is wrong.
-  - The selected network (${network}) is wrong.`);
   }
 }
 

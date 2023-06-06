@@ -34,7 +34,7 @@ import {
   ContractNotFoundError,
   BuildInfoNotFoundError,
   BuildInfoCompilerVersionMismatchError,
-  DeployedBytecodeDoesNotMatchFQNError,
+  DeployedBytecodeMismatchError,
   UnexpectedNumberOfFilesError,
   VerificationAPIUnexpectedMessageError,
   ContractVerificationFailedError,
@@ -399,10 +399,7 @@ subtask(TASK_VERIFY_ETHERSCAN_GET_CONTRACT_INFORMATION)
         );
 
         if (contractInformation === null) {
-          throw new DeployedBytecodeDoesNotMatchFQNError(
-            contractFQN,
-            network.name
-          );
+          throw new DeployedBytecodeMismatchError(network.name, contractFQN);
         }
       } else {
         contractInformation = await extractInferredContractInformation(
