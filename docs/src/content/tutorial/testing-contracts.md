@@ -71,7 +71,7 @@ const ownerBalance = await hardhatToken.balanceOf(owner.address);
 
 Once the contract is deployed, we can call our contract methods on `hardhatToken`. Here we get the balance of the owner account by calling the contract's `balanceOf()` method.
 
-Recall that the account that deploys the token gets its entire supply. By default, `ContractFactory` and `Contract` instances are connected to the first signer. This means that the account in the `owner` variable executed the deployment, and `balanceOf()` should return the entire supply amount.
+Recall that the account that deploys the token gets its entire supply. By default, `Contract` instances are connected to the first signer. This means that the account in the `owner` variable executed the deployment, and `balanceOf()` should return the entire supply amount.
 
 ```js
 expect(await hardhatToken.totalSupply()).to.equal(ownerBalance);
