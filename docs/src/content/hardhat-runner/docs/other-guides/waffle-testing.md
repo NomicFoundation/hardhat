@@ -8,7 +8,7 @@ Read [this guide](/hardhat-runner/docs/guides/test-contracts.md) to learn about 
 
 Writing smart contract tests in Hardhat is done using JavaScript or TypeScript.
 
-In this guide, we'll show you how to use [Ethers.js](https://docs.ethers.io/), a JavaScript library to interact with Ethereum, and [Waffle](https://getwaffle.io/) a simple smart contract testing library built on top of it.
+In this guide, we'll show you how to use [Ethers.js](https://docs.ethers.org/v6/), a JavaScript library to interact with Ethereum, and [Waffle](https://getwaffle.io/) a simple smart contract testing library built on top of it.
 
 Let's see how to use it starting from an empty Hardhat project.
 

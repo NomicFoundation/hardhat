@@ -150,7 +150,7 @@ If you created a TypeScript project, this task will also generate TypeScript bin
 
 ### Testing your contracts
 
-Your project comes with tests that use [Mocha](https://mochajs.org), [Chai](https://www.chaijs.com), and [Ethers.js](https://docs.ethers.io/v6).
+Your project comes with tests that use [Mocha](https://mochajs.org), [Chai](https://www.chaijs.com), and [Ethers.js](https://docs.ethers.org/v6/).
 
 If you take a look in the `test/` folder, you'll see a test file:
 
