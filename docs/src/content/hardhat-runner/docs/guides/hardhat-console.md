@@ -25,7 +25,7 @@ For example, you'll have access in the global scope to the `config` object:
 >
 ```
 
-And if you followed the [Getting started guide](../getting-started) or installed `@nomiclabs/hardhat-ethers`, the `ethers` object:
+And if you followed the [Getting started guide](../getting-started) or installed `@nomicfoundation/hardhat-ethers`, the `ethers` object:
 
 ```
 > ethers

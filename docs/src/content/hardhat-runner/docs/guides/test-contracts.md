@@ -2,7 +2,7 @@
 
 After [compiling your contracts](./compile-contracts.md), the next step is to write some tests to verify that they work as intended.
 
-This guide explains our recommended approach for testing contracts in Hardhat. It relies on [ethers](https://docs.ethers.io/v5/) to connect to [Hardhat Network](/hardhat-network) and on [Mocha](https://mochajs.org/) and [Chai](https://www.chaijs.com/) for the tests. It also uses our custom [Chai matchers](/hardhat-chai-matchers) and our [Hardhat Network Helpers](/hardhat-network-helpers) to make it easier to write clean test code. These packages are part of the Hardhat Toolbox plugin; if you followed the previous guides, you should already have them installed.
+This guide explains our recommended approach for testing contracts in Hardhat. It relies on [ethers](https://docs.ethers.io/v6/) to connect to [Hardhat Network](/hardhat-network) and on [Mocha](https://mochajs.org/) and [Chai](https://www.chaijs.com/) for the tests. It also uses our custom [Chai matchers](/hardhat-chai-matchers) and our [Hardhat Network Helpers](/hardhat-network-helpers) to make it easier to write clean test code. These packages are part of the Hardhat Toolbox plugin; if you followed the previous guides, you should already have them installed.
 
 While this is our recommended test setup, Hardhat is flexible: you can customize the approach or take a completely different path with other tools.
 

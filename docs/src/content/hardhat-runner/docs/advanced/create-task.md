@@ -48,7 +48,7 @@ Let’s go through the process of creating one to interact with a smart contract
 
 Tasks in Hardhat are asynchronous JavaScript functions that get access to the [Hardhat Runtime Environment](../advanced/hardhat-runtime-environment.md), which exposes its configuration and parameters, as well as programmatic access to other tasks and any plugin objects that may have been injected.
 
-For our example, we will use the [`@nomicfoundation/hardhat-toolbox`](/hardhat-runner/plugins/nomicfoundation-hardhat-toolbox), which includes the [ethers.js](https://docs.ethers.io/v5/) library to interact with our contracts.
+For our example, we will use the [`@nomicfoundation/hardhat-toolbox`](/hardhat-runner/plugins/nomicfoundation-hardhat-toolbox), which includes the [ethers.js](https://docs.ethers.io/) library to interact with our contracts.
 
 ::::tabsgroup{options="npm 7+,npm 6,yarn"}
 
@@ -63,7 +63,7 @@ npm install --save-dev @nomicfoundation/hardhat-toolbox
 :::tab{value="npm 6"}
 
 ```
-npm install --save-dev @nomicfoundation/hardhat-toolbox @nomicfoundation/hardhat-network-helpers @nomicfoundation/hardhat-chai-matchers@1 @nomiclabs/hardhat-ethers @nomiclabs/hardhat-etherscan chai ethers@5 hardhat-gas-reporter solidity-coverage @typechain/hardhat typechain @typechain/ethers-v5 @ethersproject/abi @ethersproject/providers
+npm install --save-dev @nomicfoundation/hardhat-toolbox @nomicfoundation/hardhat-network-helpers @nomicfoundation/hardhat-chai-matchers @nomicfoundation/hardhat-ethers @nomicfoundation/hardhat-verify chai ethers hardhat-gas-reporter solidity-coverage @typechain/hardhat typechain @typechain/ethers-v6
 ```
 
 :::
@@ -71,7 +71,7 @@ npm install --save-dev @nomicfoundation/hardhat-toolbox @nomicfoundation/hardhat
 :::tab{value="yarn"}
 
 ```
-yarn add --dev @nomicfoundation/hardhat-toolbox @nomicfoundation/hardhat-network-helpers @nomicfoundation/hardhat-chai-matchers@1 @nomiclabs/hardhat-ethers @nomiclabs/hardhat-etherscan chai ethers@5 hardhat-gas-reporter solidity-coverage @typechain/hardhat typechain @typechain/ethers-v5 @ethersproject/abi @ethersproject/providers
+yarn add --dev @nomicfoundation/hardhat-toolbox @nomicfoundation/hardhat-network-helpers @nomicfoundation/hardhat-chai-matchers @nomicfoundation/hardhat-ethers @nomicfoundation/hardhat-verify chai ethers hardhat-gas-reporter solidity-coverage @typechain/hardhat typechain @typechain/ethers-v6
 ```
 
 :::
