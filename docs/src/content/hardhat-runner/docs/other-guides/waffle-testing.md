@@ -229,7 +229,7 @@ A `Signer` in Ethers.js is an object that represents an Ethereum account. It's u
 
 :::tip
 
-To learn more about `Signer`, you can look at the [Signers documentation](https://docs.ethers.io/v5/api/signer/#Wallet).
+To learn more about `Signer`, you can look at the [Signers documentation](https://docs.ethers.org/v6/api/providers/#Signer).
 
 :::
 

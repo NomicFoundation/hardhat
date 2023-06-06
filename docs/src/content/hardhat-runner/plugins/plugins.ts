@@ -800,7 +800,7 @@ const officialPlugins: IPlugin[] = [
     tags: ["Chai", "Testing"],
   },
   {
-    name: "@nomiclabs/hardhat-ethers",
+    name: "@nomicfoundation/hardhat-ethers",
     author: "Nomic Foundation",
     authorUrl: "https://twitter.com/NomicFoundation",
     description: "Injects ethers.js into the Hardhat Runtime Environment",
