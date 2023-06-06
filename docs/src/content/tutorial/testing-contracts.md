@@ -4,7 +4,7 @@ Writing automated tests when building smart contracts is of crucial importance, 
 
 To test our contract, we are going to use Hardhat Network, a local Ethereum network designed for development. It comes built-in with Hardhat, and it's used as the default network. You don't need to setup anything to use it.
 
-In our tests we're going to use [ethers.js](https://docs.ethers.io/v6/) to interact with the Ethereum contract we built in the previous section, and we'll use [Mocha](https://mochajs.org/) as our test runner.
+In our tests we're going to use [ethers.js](https://docs.ethers.org/v6/) to interact with the Ethereum contract we built in the previous section, and we'll use [Mocha](https://mochajs.org/) as our test runner.
 
 ## Writing tests
 
