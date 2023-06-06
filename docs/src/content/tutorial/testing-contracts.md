@@ -19,9 +19,7 @@ describe("Token contract", function () {
   it("Deployment should assign the total supply of tokens to the owner", async function () {
     const [owner] = await ethers.getSigners();
 
-    const Token = await ethers.getContractFactory("Token");
-
-    const hardhatToken = await Token.deploy();
+    const hardhatToken = await ethers.deployContract("Token");
 
     const ownerBalance = await hardhatToken.balanceOf(owner.address);
     expect(await hardhatToken.totalSupply()).to.equal(ownerBalance);
@@ -62,16 +60,10 @@ To learn more about `Signer`, you can look at the [Signers documentation](https:
 :::
 
 ```js
-const Token = await ethers.getContractFactory("Token");
+const hardhatToken = await ethers.deployContract("Token");
 ```
 
-A `ContractFactory` in ethers.js is an abstraction used to deploy new smart contracts, so `Token` here is a factory for instances of our token contract.
-
-```js
-const hardhatToken = await Token.deploy();
-```
-
-Calling `deploy()` on a `ContractFactory` will start the deployment, and return a `Promise` that resolves to a `Contract`. This is the object that has a method for each of your smart contract functions.
+Calling `ethers.deployContract("Token")` will start the deployment of our token contract, and return a `Promise` that resolves to a `Contract`. This is the object that has a method for each of your smart contract functions.
 
 ```js
 const ownerBalance = await hardhatToken.balanceOf(owner.address);
@@ -93,7 +85,7 @@ To do this we're using [Chai](https://www.chaijs.com/) which is a popular JavaSc
 
 If you need to test your code by sending a transaction from an account (or `Signer` in ethers.js terminology) other than the default one, you can use the `connect()` method on your ethers.js `Contract` object to connect it to a different account, like this:
 
-```js{18}
+```js{16}
 const { expect } = require("chai");
 
 describe("Token contract", function () {
@@ -102,9 +94,7 @@ describe("Token contract", function () {
   it("Should transfer tokens between accounts", async function() {
     const [owner, addr1, addr2] = await ethers.getSigners();
 
-    const Token = await ethers.getContractFactory("Token");
-
-    const hardhatToken = await Token.deploy();
+    const hardhatToken = await ethers.deployContract("Token");
 
     // Transfer 50 tokens from owner to addr1
     await hardhatToken.transfer(addr1.address, 50);
@@ -129,15 +119,12 @@ const { expect } = require("chai");
 
 describe("Token contract", function () {
   async function deployTokenFixture() {
-    const Token = await ethers.getContractFactory("Token");
     const [owner, addr1, addr2] = await ethers.getSigners();
 
-    const hardhatToken = await Token.deploy();
-
-    await hardhatToken.deployed();
+    const hardhatToken = await ethers.deployContract("Token");
 
     // Fixtures can return anything you consider useful for your tests
-    return { Token, hardhatToken, owner, addr1, addr2 };
+    return { hardhatToken, owner, addr1, addr2 };
   }
 
   it("Should assign the total supply of tokens to the owner", async function () {
@@ -198,19 +185,18 @@ describe("Token contract", function () {
   // loadFixture to run this setup once, snapshot that state, and reset Hardhat
   // Network to that snapshot in every test.
   async function deployTokenFixture() {
-    // Get the ContractFactory and Signers here.
-    const Token = await ethers.getContractFactory("Token");
+    // Get the Signers here.
     const [owner, addr1, addr2] = await ethers.getSigners();
 
-    // To deploy our contract, we just have to call Token.deploy() and await
-    // its deployed() method, which happens once its transaction has been
+    // To deploy our contract, we just have to call ethers.deployContract and await
+    // its waitForDeployment() method, which happens once its transaction has been
     // mined.
-    const hardhatToken = await Token.deploy();
+    const hardhatToken = await ethers.deployContract("Token");
 
-    await hardhatToken.deployed();
+    await hardhatToken.waitForDeployment();
 
     // Fixtures can return anything you consider useful for your tests
-    return { Token, hardhatToken, owner, addr1, addr2 };
+    return { hardhatToken, owner, addr1, addr2 };
   }
 
   // You can nest describe calls to create subsections.
