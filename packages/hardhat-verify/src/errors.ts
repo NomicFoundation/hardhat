@@ -6,13 +6,13 @@ import {
 } from "./abi-validation-extras";
 import { TASK_VERIFY_VERIFY } from "./task-names";
 
-export class HardhatEtherscanError extends NomicLabsHardhatPluginError {
+export class HardhatVerifyError extends NomicLabsHardhatPluginError {
   constructor(message: string, parent?: Error) {
     super("@nomicfoundation/hardhat-verify", message, parent);
   }
 }
 
-export class MissingAddressError extends HardhatEtherscanError {
+export class MissingAddressError extends HardhatVerifyError {
   constructor() {
     super(
       "You didn’t provide any address. Please re-run the 'verify' task with the address of the contract you want to verify."
@@ -20,20 +20,20 @@ export class MissingAddressError extends HardhatEtherscanError {
   }
 }
 
-export class InvalidAddressError extends HardhatEtherscanError {
+export class InvalidAddressError extends HardhatVerifyError {
   constructor(address: string) {
     super(`${address} is an invalid address.`);
   }
 }
 
-export class InvalidContractNameError extends HardhatEtherscanError {
+export class InvalidContractNameError extends HardhatVerifyError {
   constructor(contractName: string) {
     super(`A valid fully qualified name was expected. Fully qualified names look like this: "contracts/AContract.sol:TheContract"
 Instead, this name was received: ${contractName}`);
   }
 }
 
-export class MissingApiKeyError extends HardhatEtherscanError {
+export class MissingApiKeyError extends HardhatVerifyError {
   constructor(network: string) {
     super(`You are trying to verify a contract in '${network}', but no API token was found for this network. Please provide one in your hardhat config. For example:
 
@@ -50,7 +50,7 @@ See https://etherscan.io/apis`);
   }
 }
 
-export class InvalidConstructorArgumentsError extends HardhatEtherscanError {
+export class InvalidConstructorArgumentsError extends HardhatVerifyError {
   constructor() {
     super(`The constructorArguments parameter should be an array.
 If your constructor has no arguments pass an empty array. E.g:
@@ -62,7 +62,7 @@ If your constructor has no arguments pass an empty array. E.g:
   }
 }
 
-export class ExclusiveConstructorArgumentsError extends HardhatEtherscanError {
+export class ExclusiveConstructorArgumentsError extends HardhatVerifyError {
   constructor() {
     super(
       "The parameters constructorArgsParams and constructorArgsModule are exclusive. Please provide only one of them."
@@ -70,7 +70,7 @@ export class ExclusiveConstructorArgumentsError extends HardhatEtherscanError {
   }
 }
 
-export class InvalidConstructorArgumentsModuleError extends HardhatEtherscanError {
+export class InvalidConstructorArgumentsModuleError extends HardhatVerifyError {
   constructor(constructorArgsModulePath: string) {
     super(`The module ${constructorArgsModulePath} doesn't export a list. The module should look like this:
 
@@ -78,7 +78,7 @@ module.exports = [ arg1, arg2, ... ];`);
   }
 }
 
-export class InvalidLibrariesError extends HardhatEtherscanError {
+export class InvalidLibrariesError extends HardhatVerifyError {
   constructor() {
     super(`The libraries parameter should be a dictionary.
 If your contract does not have undetectable libraries pass an empty object or omit the argument. E.g:
@@ -90,7 +90,7 @@ If your contract does not have undetectable libraries pass an empty object or om
   }
 }
 
-export class InvalidLibrariesModuleError extends HardhatEtherscanError {
+export class InvalidLibrariesModuleError extends HardhatVerifyError {
   constructor(librariesModulePath: string) {
     super(`The module ${librariesModulePath} doesn't export a dictionary. The module should look like this:
 
@@ -98,7 +98,7 @@ module.exports = { lib1: "0x...", lib2: "0x...", ... };`);
   }
 }
 
-export class ImportingModuleError extends HardhatEtherscanError {
+export class ImportingModuleError extends HardhatVerifyError {
   constructor(module: string, parent: Error) {
     super(
       `Importing the module for the ${module} failed.
@@ -108,7 +108,7 @@ Reason: ${parent.message}`,
   }
 }
 
-export class NetworkNotSupportedError extends HardhatEtherscanError {
+export class NetworkNotSupportedError extends HardhatVerifyError {
   constructor(network: string) {
     super(
       `The selected network is ${network}. Please select a network supported by Etherscan.`
@@ -116,7 +116,7 @@ export class NetworkNotSupportedError extends HardhatEtherscanError {
   }
 }
 
-export class ChainConfigNotFoundError extends HardhatEtherscanError {
+export class ChainConfigNotFoundError extends HardhatVerifyError {
   constructor(chainId: number) {
     super(`Trying to verify a contract in a network with chain id ${chainId}, but the plugin doesn't recognize it as a supported chain.
 
@@ -128,7 +128,7 @@ To see the list of supported networks, run this command:
   }
 }
 
-export class ContractVerificationRequestError extends HardhatEtherscanError {
+export class ContractVerificationRequestError extends HardhatVerifyError {
   constructor(url: string, parent: Error) {
     super(
       `Failed to send contract verification request.
@@ -139,7 +139,7 @@ Reason: ${parent.message}`,
   }
 }
 
-export class ContractVerificationInvalidStatusCodeError extends HardhatEtherscanError {
+export class ContractVerificationInvalidStatusCodeError extends HardhatVerifyError {
   constructor(url: string, statusCode: number, responseText: string) {
     super(`Failed to send contract verification request.
 Endpoint URL: ${url}
@@ -147,7 +147,7 @@ The HTTP server response is not ok. Status code: ${statusCode} Response text: ${
   }
 }
 
-export class ContractVerificationMissingBytecodeError extends HardhatEtherscanError {
+export class ContractVerificationMissingBytecodeError extends HardhatVerifyError {
   constructor(url: string, contractAddress: string) {
     super(`Failed to send contract verification request.
 Endpoint URL: ${url}
@@ -158,7 +158,7 @@ try to wait for five confirmations of your contract deployment transaction befor
   }
 }
 
-export class ContractStatusPollingError extends HardhatEtherscanError {
+export class ContractStatusPollingError extends HardhatVerifyError {
   constructor(url: string, parent: Error) {
     super(
       `Failure during etherscan status polling. The verification may still succeed but
@@ -170,7 +170,7 @@ Reason: ${parent.message}`,
   }
 }
 
-export class ContractStatusPollingInvalidStatusCodeError extends HardhatEtherscanError {
+export class ContractStatusPollingInvalidStatusCodeError extends HardhatVerifyError {
   constructor(statusCode: number, responseText: string) {
     super(
       `The HTTP server response is not ok. Status code: ${statusCode} Response text: ${responseText}`
@@ -178,7 +178,7 @@ export class ContractStatusPollingInvalidStatusCodeError extends HardhatEthersca
   }
 }
 
-export class ContractStatusPollingResponseNotOkError extends HardhatEtherscanError {
+export class ContractStatusPollingResponseNotOkError extends HardhatVerifyError {
   constructor(message: string) {
     super(`The Etherscan API responded with a failure status.
 The verification may still succeed but should be checked manually.
@@ -186,21 +186,21 @@ Reason: ${message}`);
   }
 }
 
-export class EtherscanVersionNotSupportedError extends HardhatEtherscanError {
+export class EtherscanVersionNotSupportedError extends HardhatVerifyError {
   constructor() {
     super(`Etherscan only supports compiler versions 0.4.11 and higher.
 See https://etherscan.io/solcversions for more information.`);
   }
 }
 
-export class DeployedBytecodeNotFoundError extends HardhatEtherscanError {
+export class DeployedBytecodeNotFoundError extends HardhatVerifyError {
   constructor(address: string, network: string) {
     super(`The address ${address} has no bytecode. Is the contract deployed to this network?
 The selected network is ${network}.`);
   }
 }
 
-export class CompilerVersionsMismatchError extends HardhatEtherscanError {
+export class CompilerVersionsMismatchError extends HardhatVerifyError {
   constructor(
     configCompilerVersions: string[],
     inferredCompilerVersion: string,
@@ -221,20 +221,20 @@ Possible causes are:
   }
 }
 
-export class ContractNotFoundError extends HardhatEtherscanError {
+export class ContractNotFoundError extends HardhatVerifyError {
   constructor(contractFQN: string) {
     super(`The contract ${contractFQN} is not present in your project.`);
   }
 }
 
-export class BuildInfoNotFoundError extends HardhatEtherscanError {
+export class BuildInfoNotFoundError extends HardhatVerifyError {
   constructor(contractFQN: string) {
     super(`The contract ${contractFQN} is present in your project, but we couldn't find its sources.
 Please make sure that it has been compiled by Hardhat and that it is written in Solidity.`);
   }
 }
 
-export class BuildInfoCompilerVersionMismatchError extends HardhatEtherscanError {
+export class BuildInfoCompilerVersionMismatchError extends HardhatVerifyError {
   constructor(
     contractFQN: string,
     compilerVersion: string,
@@ -256,20 +256,20 @@ Possible causes are:
   }
 }
 
-export class DeployedBytecodeMismatchError extends HardhatEtherscanError {
+export class DeployedBytecodeMismatchError extends HardhatVerifyError {
   constructor(network: string) {
     super(`The address provided as argument contains a contract, but its bytecode doesn't match any of your local contracts.
 
 Possible causes are:
-  - Contract code changed after the deployment was executed. This includes code for seemingly unrelated contracts.
-  - A solidity file was added, moved, deleted or renamed after the deployment was executed. This includes files for seemingly unrelated contracts.
-  - Solidity compiler settings were modified after the deployment was executed (like the optimizer, target EVM, etc.).
+  - The artifact for that contract is outdated or missing. You can try compiling the project again with the --force flag before re-running the verification.
+  - The contract's code changed after the deployment was executed. Sometimes this happens by changes in seemingly unrelated contracts.
+  - The solidity compiler settings were modified after the deployment was executed (like the optimizer, target EVM, etc.)
   - The given address is wrong.
   - The selected network (${network}) is wrong.`);
   }
 }
 
-export class DeployedBytecodeMultipleMatchesError extends HardhatEtherscanError {
+export class DeployedBytecodeMultipleMatchesError extends HardhatVerifyError {
   constructor(fqnMatches: string[]) {
     super(`More than one contract was found to match the deployed bytecode.
 Please use the contract parameter with one of the following contracts:
@@ -288,20 +288,20 @@ contract: "contracts/Example.sol:ExampleContract"
   }
 }
 
-export class DeployedBytecodeDoesNotMatchFQNError extends HardhatEtherscanError {
+export class DeployedBytecodeDoesNotMatchFQNError extends HardhatVerifyError {
   constructor(contractFQN: string, network: string) {
     super(`The address provided as argument contains a contract, but its bytecode doesn't match the contract ${contractFQN}.
 
 Possible causes are:
-  - Contract code changed after the deployment was executed. This includes code for seemingly unrelated contracts.
-  - A solidity file was added, moved, deleted or renamed after the deployment was executed. This includes files for seemingly unrelated contracts.
-  - Solidity compiler settings were modified after the deployment was executed (like the optimizer, target EVM, etc.).
+  - The artifact for that contract is outdated or missing. You can try compiling the project again with the --force flag before re-running the verification.
+  - The contract's code changed after the deployment was executed. Sometimes this happens by changes in seemingly unrelated contracts.
+  - The solidity compiler settings were modified after the deployment was executed (like the optimizer, target EVM, etc.)
   - The given address is wrong.
   - The selected network (${network}) is wrong.`);
   }
 }
 
-export class InvalidLibraryAddressError extends HardhatEtherscanError {
+export class InvalidLibraryAddressError extends HardhatVerifyError {
   constructor(
     contractName: string,
     libraryName: string,
@@ -313,7 +313,7 @@ export class InvalidLibraryAddressError extends HardhatEtherscanError {
   }
 }
 
-export class DuplicatedLibraryError extends HardhatEtherscanError {
+export class DuplicatedLibraryError extends HardhatVerifyError {
   constructor(libraryName: string, libraryFQN: string) {
     super(
       `The library names ${libraryName} and ${libraryFQN} refer to the same library and were given as two entries in the libraries dictionary.
@@ -322,7 +322,7 @@ Remove one of them and review your libraries dictionary before proceeding.`
   }
 }
 
-export class LibraryNotFoundError extends HardhatEtherscanError {
+export class LibraryNotFoundError extends HardhatVerifyError {
   constructor(
     contractName: string,
     libraryName: string,
@@ -348,7 +348,7 @@ ${
   }
 }
 
-export class LibraryMultipleMatchesError extends HardhatEtherscanError {
+export class LibraryMultipleMatchesError extends HardhatVerifyError {
   constructor(contractName: string, libraryName: string, fqnMatches: string[]) {
     super(`The library name ${libraryName} is ambiguous for the contract ${contractName}.
 It may resolve to one of the following libraries:
@@ -358,7 +358,7 @@ To fix this, choose one of these fully qualified library names and replace it in
   }
 }
 
-export class MissingLibrariesError extends HardhatEtherscanError {
+export class MissingLibrariesError extends HardhatVerifyError {
   constructor(
     contractName: string,
     allLibraries: string[],
@@ -381,7 +381,7 @@ ${
   }
 }
 
-export class LibraryAddressesMismatchError extends HardhatEtherscanError {
+export class LibraryAddressesMismatchError extends HardhatVerifyError {
   constructor(
     conflicts: Array<{
       library: string;
@@ -403,7 +403,7 @@ You can either fix these addresses in your libraries dictionary or simply remove
   }
 }
 
-export class UnexpectedNumberOfFilesError extends HardhatEtherscanError {
+export class UnexpectedNumberOfFilesError extends HardhatVerifyError {
   constructor() {
     super(
       "The plugin found an unexpected number of files for this contract. Please report this issue to the Hardhat team."
@@ -411,7 +411,7 @@ export class UnexpectedNumberOfFilesError extends HardhatEtherscanError {
   }
 }
 
-export class ABIArgumentLengthError extends HardhatEtherscanError {
+export class ABIArgumentLengthError extends HardhatVerifyError {
   constructor(
     sourceName: string,
     contractName: string,
@@ -426,7 +426,7 @@ but ${providedArgs} arguments were provided instead.`,
   }
 }
 
-export class ABIArgumentTypeError extends HardhatEtherscanError {
+export class ABIArgumentTypeError extends HardhatVerifyError {
   constructor(error: ABIArgumentTypeErrorType) {
     const { value: argValue, argument: argName, reason } = error;
     super(
@@ -437,7 +437,7 @@ Encoder error reason: ${reason}`,
   }
 }
 
-export class ABIArgumentOverflowError extends HardhatEtherscanError {
+export class ABIArgumentOverflowError extends HardhatVerifyError {
   constructor(error: ABIArgumentOverflowErrorType) {
     const { value: argValue, fault: reason, operation } = error;
     super(
@@ -449,7 +449,7 @@ Encoder error reason: ${reason} fault in ${operation}`,
   }
 }
 
-export class VerificationAPIUnexpectedMessageError extends HardhatEtherscanError {
+export class VerificationAPIUnexpectedMessageError extends HardhatVerifyError {
   constructor(message: string) {
     super(`The API responded with an unexpected message.
 Please report this issue to the Hardhat team.
@@ -458,7 +458,7 @@ Message: ${message}`);
   }
 }
 
-export class ContractVerificationFailedError extends HardhatEtherscanError {
+export class ContractVerificationFailedError extends HardhatVerifyError {
   constructor(message: string, undetectableLibraries: string[]) {
     super(`The contract verification failed.
 Reason: ${message}
