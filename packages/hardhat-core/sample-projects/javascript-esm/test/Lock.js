@@ -1,7 +1,7 @@
 import {
   time,
   loadFixture,
-} from "@nomicfoundation/hardhat-toolbox/network-helpers";
+} from "@nomicfoundation/hardhat-toolbox/network-helpers.js";
 import { anyValue } from "@nomicfoundation/hardhat-chai-matchers/withArgs.js";
 import { expect } from "chai";
 
