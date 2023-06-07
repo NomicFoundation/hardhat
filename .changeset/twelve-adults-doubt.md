@@ -2,4 +2,4 @@
 "@nomicfoundation/hardhat-toolbox": major
 ---
 
-Use new plugin versions in the Toolbox
+The Toolbox and the plugins that it includes are now based on ethers v6
