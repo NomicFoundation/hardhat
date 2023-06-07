@@ -25,7 +25,7 @@
     "test": "mocha --recursive \"test/**/*.ts\" --exit",
     "build": "tsc --build .",
     "prepublishOnly": "yarn build",
-    "clean": "rimraf dist"
+    "clean": "rimraf dist *.{d.ts,js}{,.map} build-test tsconfig.tsbuildinfo"
   },
   "files": [
     "src/",

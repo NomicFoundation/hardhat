@@ -22,8 +22,7 @@ If you want to migrate an existing Hardhat project to use the Toolbox, read [our
 
 ### Network Helpers
 
-When the Toolbox is installed using npm 7 or later, its peer dependencies are automatically installed. However, these dependencies won't be listed in the `package.json`. As a result, directly importing the Network Helpers can be problematic for certain tools or IDEs.
-To address this issue, the Toolbox re-exports the Hardhat Network Helpers. You can use them like this:
+When the Toolbox is installed using npm 7 or later, its peer dependencies are automatically installed. However, these dependencies won't be listed in the `package.json`. As a result, directly importing the Network Helpers can be problematic for certain tools or IDEs. To address this issue, the Toolbox re-exports the Hardhat Network Helpers. You can use them like this:
 
 ```ts
 import helpers from "@nomicfoundation/hardhat-toolbox/network-helpers";
