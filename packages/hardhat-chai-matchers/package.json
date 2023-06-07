@@ -1,6 +1,6 @@
 {
   "name": "@nomicfoundation/hardhat-chai-matchers",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "Hardhat utils for testing",
   "homepage": "https://github.com/nomicfoundation/hardhat/tree/main/packages/hardhat-chai-matchers",
   "repository": "github:nomicfoundation/hardhat",
@@ -54,7 +54,7 @@
     "eslint-plugin-prettier": "3.4.0",
     "ethers": "^6.1.0",
     "get-port": "^5.1.1",
-    "hardhat": "^2.9.4",
+    "hardhat": "^2.15.0",
     "mocha": "^10.0.0",
     "prettier": "2.4.1",
     "rimraf": "^3.0.2",

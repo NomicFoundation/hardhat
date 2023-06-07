@@ -1,5 +1,11 @@
 # @nomiclabs/hardhat-ethers
 
+## 3.0.1
+
+### Patch Changes
+
+- a9c159f96: The `helper.deployContract` now accepts transaction overrides
+
 ## 2.2.3
 
 ### Patch Changes
