@@ -371,37 +371,14 @@ export async function deployContract(
 
   let overrides: EthersT.Overrides = {};
   if (signerOrOptions !== undefined && !("getAddress" in signerOrOptions)) {
-    // the DeployContractOptions type combines the properties of FactoryOptions
-    // and of EthersT.Overrides, but we only want to use the latter.
-    //
-    // This seems to be the type-safest way to extract only those.
-    const overridesExplicitProperties: {
-      [K in keyof Required<EthersT.Overrides>]: EthersT.Overrides[K];
-    } = {
-      type: signerOrOptions.type,
+    const overridesAndFactoryOptions = { ...signerOrOptions };
 
-      from: signerOrOptions.from,
+    // we delete the factory options properties in case ethers
+    // rejects unknown properties
+    delete overridesAndFactoryOptions.signer;
+    delete overridesAndFactoryOptions.libraries;
 
-      nonce: signerOrOptions.nonce,
-
-      gasLimit: signerOrOptions.gasLimit,
-      gasPrice: signerOrOptions.gasPrice,
-
-      maxPriorityFeePerGas: signerOrOptions.maxPriorityFeePerGas,
-      maxFeePerGas: signerOrOptions.maxFeePerGas,
-
-      value: signerOrOptions.value,
-      chainId: signerOrOptions.chainId,
-
-      accessList: signerOrOptions.accessList,
-
-      customData: signerOrOptions.customData,
-
-      blockTag: signerOrOptions.blockTag,
-      enableCcipRead: signerOrOptions.enableCcipRead,
-    };
-
-    overrides = overridesExplicitProperties;
+    overrides = overridesAndFactoryOptions;
   }
 
   const factory = await getContractFactory(hre, name, signerOrOptions);
