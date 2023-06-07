@@ -937,6 +937,40 @@ describe("Ethers plugin", function () {
           assert(await contract.greet(), "Hello");
         });
 
+        it("should accept overrides for the deployment transaction", async function () {
+          const contract = await this.env.ethers.deployContract("Greeter", {
+            gasLimit: 1_000_000,
+          });
+
+          await assertContract(contract, signers[0]);
+
+          const deploymentTx = contract.deploymentTransaction();
+          if (deploymentTx === null) {
+            assert.fail("Deployment transaction shouldn't be null");
+          }
+
+          assert.equal(deploymentTx.gasLimit, 1_000_000n);
+        });
+
+        it("should accept overrides for the deployment transaction when there are constructor args", async function () {
+          const contract = await this.env.ethers.deployContract(
+            "GreeterWithConstructorArg",
+            ["Hello"],
+            {
+              gasLimit: 1_000_000,
+            }
+          );
+
+          await assertContract(contract, signers[0]);
+
+          const deploymentTx = contract.deploymentTransaction();
+          if (deploymentTx === null) {
+            assert.fail("Deployment transaction shouldn't be null");
+          }
+
+          assert.equal(deploymentTx.gasLimit, 1_000_000n);
+        });
+
         async function assertContract(
           contract: EthersT.Contract,
           signer: HardhatEthersSigner

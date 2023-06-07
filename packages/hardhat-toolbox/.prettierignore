@@ -3,4 +3,9 @@
 /test/fixture-projects/**/artifacts
 /test/fixture-projects/**/artifacts-dir
 /test/fixture-projects/**/cache
+/*.d.ts
+/*.d.ts.map
+/*.js
+/*.js.map
+/build-test
 CHANGELOG.md
