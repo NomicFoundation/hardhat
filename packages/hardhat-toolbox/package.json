@@ -9,8 +9,8 @@
     "Nomic Foundation"
   ],
   "license": "MIT",
-  "main": "dist/src/index.js",
-  "types": "dist/src/index.d.ts",
+  "main": "index.js",
+  "types": "index.d.ts",
   "keywords": [
     "ethereum",
     "smart-contracts",
@@ -28,8 +28,11 @@
     "clean": "rimraf dist"
   },
   "files": [
-    "dist/src/",
     "src/",
+    "*.d.ts",
+    "*.d.ts.map",
+    "*.js",
+    "*.js.map",
     "LICENSE",
     "README.md"
   ],
