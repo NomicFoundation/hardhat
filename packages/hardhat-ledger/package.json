@@ -38,7 +38,8 @@
     "@ledgerhq/hw-transport-node-hid": "^6.27.13",
     "chalk": "^2.4.2",
     "debug": "^4.1.1",
-    "io-ts": "1.10.4"
+    "io-ts": "1.10.4",
+    "ora": "^5.4.1"
   },
   "devDependencies": {
     "@types/chai": "^4.2.0",
@@ -46,13 +47,13 @@
     "@types/node": "^14.0.0",
     "@typescript-eslint/eslint-plugin": "5.53.0",
     "@typescript-eslint/parser": "5.53.0",
-    "ethers": "^5.0.0",
     "chai": "^4.2.0",
     "eslint": "^7.29.0",
     "eslint-config-prettier": "8.3.0",
     "eslint-plugin-import": "2.24.1",
     "eslint-plugin-no-only-tests": "3.0.0",
     "eslint-plugin-prettier": "3.4.0",
+    "ethers": "^5.0.0",
     "hardhat": "^2.14.0",
     "mocha": "^10.0.0",
     "prettier": "2.4.1",

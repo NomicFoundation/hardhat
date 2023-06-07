@@ -1,8 +1,22 @@
-import { NomicLabsHardhatPluginError } from "hardhat/src/internal/core/errors";
+export class LedgerProviderError extends Error {
+  public pluginName: string;
 
-export class LedgerProviderError extends NomicLabsHardhatPluginError {
   constructor(message: string) {
+    super(message);
+
     // TODO: Test this name
-    super("@nomiclabs/hardhat-ledger", message);
+    this.pluginName = "@nomiclabs/hardhat-ledger";
+  }
+}
+
+export class ConfirmationError extends LedgerProviderError {
+  constructor(message: string) {
+    super(message);
+  }
+}
+
+export class DerivationPathError extends LedgerProviderError {
+  constructor(message: string, public path: string) {
+    super(message);
   }
 }
