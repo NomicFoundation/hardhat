@@ -27,7 +27,7 @@ For our first test we’ll deploy the `Lock` contract and assert that the unlock
 ```tsx
 import { expect } from "chai";
 import hre from "hardhat";
-import { time } from "@nomicfoundation/hardhat-network-helpers";
+import { time } from "@nomicfoundation/hardhat-toolbox/network-helpers";
 
 describe("Lock", function () {
   it("Should set the right unlockTime", async function () {
@@ -54,7 +54,7 @@ describe("Lock", function () {
 ```js
 const { expect } = require("chai");
 const hre = require("hardhat");
-const { time } = require("@nomicfoundation/hardhat-network-helpers");
+const { time } = require("@nomicfoundation/hardhat-toolbox/network-helpers");
 
 describe("Lock", function () {
   it("Should set the right unlockTime", async function () {
@@ -228,7 +228,7 @@ const hre = require("hardhat");
 const {
   loadFixture,
   time,
-} = require("@nomicfoundation/hardhat-network-helpers");
+} = require("@nomicfoundation/hardhat-toolbox/network-helpers");
 
 describe("Lock", function () {
   async function deployOneYearLockFixture() {
