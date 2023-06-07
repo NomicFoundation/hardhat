@@ -389,7 +389,7 @@ export class LedgerProvider extends ProviderWrapperWithChainId {
     try {
       this.emit("confirmation_start");
       const result = await func();
-      this.emit("confirmation_succees");
+      this.emit("confirmation_success");
 
       return result;
     } catch (error) {
