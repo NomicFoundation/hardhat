@@ -56,7 +56,7 @@
     "eslint-plugin-no-only-tests": "3.0.0",
     "eslint-plugin-prettier": "3.4.0",
     "ethers": "^6.4.0",
-    "hardhat": "^2.15.0",
+    "hardhat": "^2.11.0",
     "hardhat-gas-reporter": "^1.0.8",
     "mocha": "^10.0.0",
     "prettier": "2.4.1",
