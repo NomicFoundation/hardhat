@@ -114,7 +114,9 @@ The two tests that we wrote begin with their setup, which in this case means dep
 You can avoid code duplication and improve the performance of your test suite by using **fixtures**. A fixture is a setup function that is run only the first time it's invoked. On subsequent invocations, instead of re-running it, Hardhat will reset the state of the network to what it was at the point after the fixture was initially executed.
 
 ```js
-const { loadFixture } = require("@nomicfoundation/hardhat-toolbox/network-helpers");
+const {
+  loadFixture,
+} = require("@nomicfoundation/hardhat-toolbox/network-helpers");
 const { expect } = require("chai");
 
 describe("Token contract", function () {
@@ -171,7 +173,9 @@ const { expect } = require("chai");
 // We use `loadFixture` to share common setups (or fixtures) between tests.
 // Using this simplifies your tests and makes them run faster, by taking
 // advantage of Hardhat Network's snapshot functionality.
-const { loadFixture } = require("@nomicfoundation/hardhat-toolbox/network-helpers");
+const {
+  loadFixture,
+} = require("@nomicfoundation/hardhat-toolbox/network-helpers");
 
 // `describe` is a Mocha function that allows you to organize your tests.
 // Having your tests organized makes debugging them easier. All Mocha
