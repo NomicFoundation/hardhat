@@ -38,7 +38,7 @@
     "@ledgerhq/hw-app-eth": "^6.33.1",
     "@ledgerhq/hw-transport": "^6.28.4",
     "@ledgerhq/hw-transport-node-hid": "^6.27.13",
-    "@nomicfoundation/ethereumjs-util": "^9.0.1",
+    "@nomicfoundation/ethereumjs-util": "9.0.1",
     "@types/fs-extra": "^5.1.0",
     "chalk": "^2.4.2",
     "debug": "^4.1.1",
@@ -47,7 +47,7 @@
     "fs-extra": "^7.0.1",
     "io-ts": "1.10.4",
     "ora": "^5.4.1",
-    "sinon": "^15.1.0"
+    "sinon": "^9.0.0"
   },
   "devDependencies": {
     "@types/chai": "^4.2.0",
