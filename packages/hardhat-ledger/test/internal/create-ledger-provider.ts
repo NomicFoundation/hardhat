@@ -2,7 +2,7 @@ import { assert } from "chai";
 import sinon from "sinon";
 
 import { EthereumMockedProvider } from "../mocks";
-import { createLedgerProvider } from "../../src/internal/createLedgerProvider";
+import { createLedgerProvider } from "../../src/internal/create-ledger-provider";
 import * as spinners from "../../src/internal/with-spinners";
 
 describe("decorateProvider", () => {
