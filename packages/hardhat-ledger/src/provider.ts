@@ -20,9 +20,10 @@ import { ProviderWrapperWithChainId } from "hardhat/src/internal/core/providers/
 import { HardhatError } from "hardhat/src/internal/core/errors";
 import { ERRORS } from "hardhat/src/internal/core/errors-list";
 
+import { wrapTransport } from "./internal/wrap-transport";
+import * as cache from "./internal/cache";
 import { LedgerOptions, EthWrapper, Signature } from "./types";
 import { DerivationPathError, LedgerProviderError } from "./errors";
-import { wrapTransport } from "./internal/wrap-transport";
 
 export class LedgerProvider extends ProviderWrapperWithChainId {
   public static readonly MAX_DERIVATION_ACCOUNTS = 20;
@@ -103,6 +104,13 @@ export class LedgerProvider extends ProviderWrapperWithChainId {
       }
       this._isCreatingTransport = false;
     }
+
+    try {
+      const paths = await cache.read();
+      if (paths) {
+        Object.assign(this.paths, paths);
+      }
+    } catch (error) {}
   }
 
   public async request(args: RequestArguments): Promise<unknown> {
@@ -348,9 +356,11 @@ export class LedgerProvider extends ProviderWrapperWithChainId {
         const address = wallet.address.toLowerCase();
 
         if (address === addressToFind) {
-          // TODO: Cache this in the cache directory
           this.emit("derivation_success", path);
           this.paths[addressToFind] = path;
+
+          cache.write(this.paths); // hanging promise
+
           return path;
         }
       }

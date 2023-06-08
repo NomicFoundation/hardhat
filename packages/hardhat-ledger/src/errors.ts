@@ -1,12 +1,5 @@
 export class LedgerProviderError extends Error {
-  public pluginName: string;
-
-  constructor(message: string) {
-    super(message);
-
-    // TODO: Test this name
-    this.pluginName = "@nomiclabs/hardhat-ledger";
-  }
+  public pluginName: string = "@nomiclabs/hardhat-ledger";
 }
 
 export class DerivationPathError extends LedgerProviderError {

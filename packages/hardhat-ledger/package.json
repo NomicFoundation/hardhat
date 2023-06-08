@@ -21,7 +21,7 @@
     "lint:fix": "yarn prettier --write && yarn eslint --fix",
     "eslint": "eslint 'src/**/*.ts' 'test/**/*.ts'",
     "prettier": "prettier \"**/*.{js,md,json}\"",
-    "test": "mocha --recursive \"test/**/*.ts\" --exit",
+    "test": "mocha --recursive \"test/**/*.ts\" -c --exit",
     "coverage": "nyc yarn test -- --reporter min",
     "build": "tsc --build .",
     "prepublishOnly": "yarn build",
@@ -36,6 +36,9 @@
   "dependencies": {
     "@ledgerhq/hw-app-eth": "^6.33.1",
     "@ledgerhq/hw-transport-node-hid": "^6.27.13",
+    "@types/fs-extra": "^5.1.0",
+    "fs-extra": "^7.0.1",
+    "env-paths": "^2.2.0",
     "chalk": "^2.4.2",
     "debug": "^4.1.1",
     "io-ts": "1.10.4",

@@ -10,6 +10,7 @@ import { TransportError } from "@ledgerhq/errors";
 import { RequestArguments } from "hardhat/types";
 
 import * as ethWrapper from "../src/internal/wrap-transport";
+import * as cache from "../src/internal/cache";
 import { LedgerProvider } from "../src/provider";
 import { EthereumMockedProvider } from "./mocks";
 import { EthWrapper, LedgerOptions } from "../src/types";
@@ -37,6 +38,9 @@ describe("LedgerProvider", () => {
     ethInstanceStub = sinon.createStubInstance(Eth);
 
     sinon.stub(ethWrapper, "wrapTransport").returns(ethInstanceStub);
+
+    sinon.stub(cache, "read").returns(Promise.resolve(undefined));
+    sinon.stub(cache, "write");
 
     provider = new LedgerProvider({ accounts }, mockedProvider);
   });
