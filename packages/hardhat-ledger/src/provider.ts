@@ -21,19 +21,15 @@ import { HardhatError } from "hardhat/src/internal/core/errors";
 import { ERRORS } from "hardhat/src/internal/core/errors-list";
 
 import { LedgerOptions, EthWrapper, Signature } from "./types";
-import {
-  ConfirmationError,
-  DerivationPathError,
-  LedgerProviderError,
-} from "./errors";
+import { DerivationPathError, LedgerProviderError } from "./errors";
 import { wrapTransport } from "./internal/wrap-transport";
 
 export class LedgerProvider extends ProviderWrapperWithChainId {
   public static readonly MAX_DERIVATION_ACCOUNTS = 20;
   public static readonly DEFAULT_TIMEOUT = 3000;
 
-  public name: string = "LedgerProvider";
   public readonly paths: Record<string, string> = {}; // { address: path }
+  public name: string = "LedgerProvider";
 
   protected _eth: EthWrapper | undefined;
   private _isCreatingTransport = false;
@@ -82,11 +78,13 @@ export class LedgerProvider extends ProviderWrapperWithChainId {
 
       try {
         this.emit("connection_start");
+
         const transport = await TransportNodeHid.create(
           openTimeout,
           connectionTimeout
         );
         this._eth = wrapTransport(transport);
+
         this.emit("connection_success");
       } catch (error) {
         this.emit("connection_failure");
@@ -120,30 +118,20 @@ export class LedgerProvider extends ProviderWrapperWithChainId {
     if (this._methodRequiresInit(args.method)) {
       await this.init();
 
-      try {
-        if (args.method === "eth_sign") {
-          return await this._ethSign(params);
-        }
+      if (args.method === "eth_sign") {
+        return this._ethSign(params);
+      }
 
-        if (args.method === "personal_sign") {
-          return await this._personalSign(params);
-        }
+      if (args.method === "personal_sign") {
+        return this._personalSign(params);
+      }
 
-        if (args.method === "eth_signTypedData_v4") {
-          return await this._ethSignTypedDataV4(params);
-        }
+      if (args.method === "eth_signTypedData_v4") {
+        return this._ethSignTypedDataV4(params);
+      }
 
-        if (args.method === "eth_sendTransaction" && params.length > 0) {
-          return await this._ethSendTransaction(params);
-        }
-      } catch (error) {
-        if (error instanceof ConfirmationError) {
-          throw new LedgerProviderError(
-            `There was an error trying to request ${args.method}: "${error.message}".`
-          );
-        }
-
-        throw error;
+      if (args.method === "eth_sendTransaction" && params.length > 0) {
+        return this._ethSendTransaction(params);
       }
     }
 
@@ -343,7 +331,7 @@ export class LedgerProvider extends ProviderWrapperWithChainId {
       return this.paths[addressToFind];
     }
 
-    this.emit("derive_start");
+    this.emit("derivation_start");
 
     let path = "";
     try {
@@ -354,14 +342,14 @@ export class LedgerProvider extends ProviderWrapperWithChainId {
       ) {
         path = `44'/60'/${account}'/0'/0`;
 
-        this.emit("derive_progress", path);
+        this.emit("derivation_progress", path);
 
         const wallet = await this.eth.getAddress(path);
         const address = wallet.address.toLowerCase();
 
         if (address === addressToFind) {
           // TODO: Cache this in the cache directory
-          this.emit("derive_success", path);
+          this.emit("derivation_success", path);
           this.paths[addressToFind] = path;
           return path;
         }
@@ -369,16 +357,16 @@ export class LedgerProvider extends ProviderWrapperWithChainId {
     } catch (error) {
       const message = (error as Error).message;
 
-      this.emit("derive_failure");
+      this.emit("derivation_failure");
       throw new DerivationPathError(
         `There was an error trying to derivate path ${path}: "${message}". The wallet might be connected but locked or in the wrong app.`,
         path
       );
     }
 
-    this.emit("derive_failure");
+    this.emit("derivation_failure");
     throw new DerivationPathError(
-      `Could not find a valid derivation path for ${addressToFind}. Paths from m/44'/60'/0/0'/0 to m/44'/60'/${LedgerProvider.MAX_DERIVATION_ACCOUNTS}/0'/0 were searched.`,
+      `Could not find a valid derivation path for ${addressToFind}. Paths from m/44'/60'/0/0'/0 to m/44'/60'/${LedgerProvider.MAX_DERIVATION_ACCOUNTS}'/0'/0 were searched.`,
       path
     );
   }
@@ -394,7 +382,7 @@ export class LedgerProvider extends ProviderWrapperWithChainId {
       return result;
     } catch (error) {
       this.emit("confirmation_failure");
-      throw new ConfirmationError((error as Error).message);
+      throw new LedgerProviderError((error as Error).message);
     }
   }
 

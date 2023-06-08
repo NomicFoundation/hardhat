@@ -9,12 +9,6 @@ export class LedgerProviderError extends Error {
   }
 }
 
-export class ConfirmationError extends LedgerProviderError {
-  constructor(message: string) {
-    super(message);
-  }
-}
-
 export class DerivationPathError extends LedgerProviderError {
   constructor(message: string, public path: string) {
     super(message);

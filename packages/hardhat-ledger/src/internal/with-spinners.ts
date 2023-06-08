@@ -1,27 +1,27 @@
 import ora from "ora";
-
-import { LedgerProvider } from "../provider";
 import EventEmitter from "events";
 
-export function withSpinners(ledgerProvider: LedgerProvider) {
-  attachSpinner(ledgerProvider, {
+export function withSpinners<T extends EventEmitter>(emitter: T): T {
+  attachSpinner(emitter, {
     startText: "Connecting to Ledger wallet",
     eventPrefix: "connection",
   });
 
-  attachSpinner(ledgerProvider, {
+  attachSpinner(emitter, {
     startText: "Waiting for confirmation",
     eventPrefix: "confirmation",
   });
 
-  const derivationSpinner = attachSpinner(ledgerProvider, {
+  const derivationSpinner = attachSpinner(emitter, {
     startText: "Finding derivation path",
-    eventPrefix: "derive",
+    eventPrefix: "derivation",
   });
-  ledgerProvider.on(
+  emitter.on(
     "derive_progress",
     (path: string) => (derivationSpinner.text = `Deriving path "${path}"`)
   );
+
+  return emitter;
 }
 
 function attachSpinner(

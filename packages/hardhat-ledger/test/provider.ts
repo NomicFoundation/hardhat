@@ -13,7 +13,7 @@ import * as ethWrapper from "../src/internal/wrap-transport";
 import { LedgerProvider } from "../src/provider";
 import { EthereumMockedProvider } from "./mocks";
 import { EthWrapper, LedgerOptions } from "../src/types";
-import { LedgerProviderError } from "../src/errors";
+import { DerivationPathError, LedgerProviderError } from "../src/errors";
 
 describe("LedgerProvider", () => {
   let accounts: string[];
@@ -146,6 +146,7 @@ describe("LedgerProvider", () => {
       try {
         await provider.init();
       } catch (error) {
+        assert.instanceOf(error, LedgerProviderError);
         assert.equal(
           (error as LedgerProviderError).message,
           'There was an error trying to stablish a connection to the Ledger wallet: "Test Error".'
@@ -160,11 +161,38 @@ describe("LedgerProvider", () => {
       try {
         await provider.init();
       } catch (error) {
+        assert.instanceOf(error, LedgerProviderError);
         assert.equal(
           (error as LedgerProviderError).message,
           'There was an error trying to stablish a connection to the Ledger wallet: "Transport Error". The error id was: Transport Error Id'
         );
       }
+    });
+
+    describe("events", () => {
+      let emitSpy: sinon.SinonSpy;
+
+      beforeEach(() => {
+        emitSpy = sinon.spy(provider, "emit");
+      });
+
+      it("should emit the connection_start event", async () => {
+        await provider.init();
+        sinon.assert.calledWithExactly(emitSpy, "connection_start");
+      });
+
+      it("should emit the connection_success event if everything goes right", async () => {
+        await provider.init();
+        sinon.assert.calledWithExactly(emitSpy, "connection_start");
+      });
+
+      it("should emit the connection_failure if the connection fails", async () => {
+        try {
+          createStub.throws(new Error());
+          await provider.init();
+        } catch (error) {}
+        sinon.assert.calledWithExactly(emitSpy, "connection_failure");
+      });
     });
   });
 
@@ -246,6 +274,37 @@ describe("LedgerProvider", () => {
       };
     });
 
+    describe("unsupported methods", () => {
+      it("should not init the provider if and unsupported JSONRPC method is called", async () => {
+        sinon.stub(mockedProvider, "request");
+        await provider.request({ method: "eth_blockNumber" });
+        await provider.request({ method: "eth_getBlockByNumber" });
+        await provider.request({ method: "net_version" });
+
+        sinon.assert.notCalled(initSpy);
+      });
+
+      it("should forward unsupported JSONRPC methods to the wrapped provider", async () => {
+        const requestStub = sinon.stub(mockedProvider, "request");
+
+        const blockNumberArgs = {
+          method: "eth_blockNumber",
+          params: [1, 2, 3],
+        };
+        await provider.request(blockNumberArgs);
+
+        const netVersionArgs = {
+          method: "eth_getBlockByNumber",
+          params: ["2.0"],
+        };
+        await provider.request(netVersionArgs);
+
+        sinon.assert.calledTwice(requestStub);
+        sinon.assert.calledWith(requestStub.getCall(0), blockNumberArgs);
+        sinon.assert.calledWith(requestStub.getCall(1), netVersionArgs);
+      });
+    });
+
     it("should return the configured accounts when the JSONRPC eth_accounts method is called", async () => {
       const resultAccounts = await provider.request({ method: "eth_accounts" });
       assert.deepEqual(accounts, resultAccounts);
@@ -325,6 +384,8 @@ describe("LedgerProvider", () => {
     });
 
     it("should call the ledger's signTransaction method when the JSONRPC eth_sendTransaction method is called", async () => {
+      const numberToRpcQuantity = (n: number | bigint) => `0x${n.toString(16)}`;
+
       const tx =
         "0xf8626464830f4240949f649fe750340a295dddbbd7e1ec8f378cf24b43648082f4f5a04ab14d7e96a8bc7390cfffa0260d4b82848428ce7f5b8dd367d13bf31944b6c0a03cc226daa6a2f4e22334c59c2e04ac72672af72907ec9c4a601189858ba60069";
 
@@ -390,8 +451,177 @@ describe("LedgerProvider", () => {
       sinon.assert.calledOnce(initSpy);
     });
 
-    function numberToRpcQuantity(n: number | bigint): string {
-      return `0x${n.toString(16)}`;
-    }
+    describe("path derivation", () => {
+      async function requestPersonalSign() {
+        ethInstanceStub.signPersonalMessage.returns(Promise.resolve(rsv));
+        await provider.request({
+          method: "personal_sign",
+          params: [dataToSign, account.address],
+        });
+      }
+
+      it("should cache the derived path from the supplied accounts", async () => {
+        await requestPersonalSign();
+        await requestPersonalSign();
+        await requestPersonalSign();
+
+        sinon.assert.calledTwice(ethInstanceStub.getAddress);
+        sinon.assert.calledWith(ethInstanceStub.getAddress, "44'/60'/0'/0'/0");
+        sinon.assert.calledWith(ethInstanceStub.getAddress, "44'/60'/1'/0'/0");
+      });
+
+      it("should cache the path per address on the paths property", async () => {
+        await requestPersonalSign();
+        assert.deepEqual(provider.paths, {
+          [accounts[1]]: path,
+        });
+      });
+
+      it("should throw a DerivationPathError if trying to get the address fails", async () => {
+        const errorMessage = "Getting the address broke";
+        ethInstanceStub.getAddress.throws(new Error(errorMessage));
+        try {
+          await requestPersonalSign();
+        } catch (error) {
+          const errorPath = "44'/60'/0'/0'/0";
+          assert.instanceOf(error, DerivationPathError);
+          assert.equal((error as DerivationPathError).path, errorPath);
+          assert.equal(
+            (error as DerivationPathError).message,
+            `There was an error trying to derivate path ${errorPath}: "${errorMessage}". The wallet might be connected but locked or in the wrong app.`
+          );
+        }
+      });
+
+      it("should throw a DerivationPathError if the max number of derivations is searched without a result", async () => {
+        try {
+          ethInstanceStub.getAddress.callsFake(async () => ({
+            address: "0x0",
+            publicKey: "0x0",
+          }));
+          await requestPersonalSign();
+        } catch (error) {
+          const errorPath = `44'/60'/${LedgerProvider.MAX_DERIVATION_ACCOUNTS}'/0'/0`;
+          assert.instanceOf(error, DerivationPathError);
+          assert.equal((error as DerivationPathError).path, errorPath);
+          assert.equal(
+            (error as DerivationPathError).message,
+            `Could not find a valid derivation path for ${accounts[1]}. Paths from m/44'/60'/0/0'/0 to m/${errorPath} were searched.`
+          );
+        }
+      });
+    });
+
+    describe("events", () => {
+      let emitSpy: sinon.SinonSpy;
+
+      beforeEach(() => {
+        emitSpy = sinon.spy(provider, "emit");
+      });
+
+      describe("confirmation", () => {
+        it("should emit the confirmation_start event when a request for signing is made", async () => {
+          ethInstanceStub.signPersonalMessage.returns(Promise.resolve(rsv));
+          await provider.request({
+            method: "personal_sign",
+            params: [dataToSign, account.address],
+          });
+
+          sinon.assert.calledWithExactly(emitSpy, "confirmation_start");
+        });
+
+        it("should emit the confirmation_success event when a request for signing goes OK", async () => {
+          ethInstanceStub.signPersonalMessage.returns(Promise.resolve(rsv));
+          await provider.request({
+            method: "eth_sign",
+            params: [account.address, dataToSign],
+          });
+
+          sinon.assert.calledWithExactly(emitSpy, "confirmation_success");
+        });
+
+        it("should emit the confirmation_failure event when a request for signing breaks", async () => {
+          ethInstanceStub.signEIP712Message.throws(new Error());
+          ethInstanceStub.signEIP712HashedMessage.throws(new Error());
+          try {
+            await provider.request({
+              method: "eth_signTypedData_v4",
+              params: [account.address, typedMessage],
+            });
+          } catch (error) {}
+
+          sinon.assert.calledWithExactly(emitSpy, "confirmation_failure");
+        });
+      });
+
+      describe("derivation", () => {
+        async function requestSign() {
+          ethInstanceStub.signPersonalMessage.returns(Promise.resolve(rsv));
+          await provider.request({
+            method: "eth_sign",
+            params: [account.address, dataToSign],
+          });
+        }
+
+        it("should emit the derivation_start event when a request for signing is made", async () => {
+          await requestSign();
+          sinon.assert.calledWithExactly(emitSpy, "derivation_start");
+        });
+
+        it("should emit the derivation_progress event with the derived paths when a request for signing is made", async () => {
+          await requestSign();
+          sinon.assert.calledWithExactly(
+            emitSpy,
+            "derivation_progress",
+            "44'/60'/0'/0'/0"
+          );
+          sinon.assert.calledWithExactly(
+            emitSpy,
+            "derivation_progress",
+            "44'/60'/1'/0'/0"
+          );
+        });
+
+        it("should emit the derivation_success event with the path when a request for signing is made and succeeds", async () => {
+          await requestSign();
+          sinon.assert.calledWithExactly(
+            emitSpy,
+            "derivation_success",
+            "44'/60'/1'/0'/0"
+          );
+        });
+
+        it("should emit the derivation_failure event when a request for signing is made and breaks", async () => {
+          try {
+            ethInstanceStub.getAddress.throws(new Error());
+            await requestSign();
+          } catch (error) {}
+          sinon.assert.calledWithExactly(emitSpy, "derivation_failure");
+        });
+
+        it("should emit the derivation_failure event when a request for signing is made and can't find a valid path", async () => {
+          try {
+            ethInstanceStub.getAddress.callsFake(async () => ({
+              address: "0x0",
+              publicKey: "0x0",
+            }));
+            await requestSign();
+          } catch (error) {}
+          sinon.assert.calledWithExactly(emitSpy, "derivation_failure");
+        });
+      });
+
+      describe("eth_accounts", () => {
+        it("should not emit a connection or derivation event with eth_accounts", async () => {
+          await provider.request({ method: "eth_accounts" });
+          sinon.assert.notCalled(emitSpy);
+        });
+
+        it("should not emit a connection or derivation event with eth_requestAccounts", async () => {
+          await provider.request({ method: "eth_requestAccounts" });
+          sinon.assert.notCalled(emitSpy);
+        });
+      });
+    });
   });
 });
