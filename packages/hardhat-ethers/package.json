@@ -37,6 +37,9 @@
     "LICENSE",
     "README.md"
   ],
+  "dependencies": {
+    "debug": "^4.1.1"
+  },
   "devDependencies": {
     "@types/chai": "^4.2.0",
     "@types/chai-as-promised": "^7.1.3",
