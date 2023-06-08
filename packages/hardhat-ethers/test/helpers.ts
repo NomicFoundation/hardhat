@@ -24,3 +24,6 @@ export function assertIsSigner(
   assert.isTrue("getAddress" in value);
   assert.isTrue("signTransaction" in value);
 }
+
+export const sleep = (timeout: number) =>
+  new Promise((resolve) => setTimeout(resolve, timeout));
