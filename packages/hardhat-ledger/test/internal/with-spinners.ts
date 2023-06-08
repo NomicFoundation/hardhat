@@ -37,7 +37,7 @@ describe("withSpinners", () => {
         "derivation_start",
         "derivation_success",
         "derivation_failure",
-        "derive_progress",
+        "derivation_progress",
       ])
     );
   });

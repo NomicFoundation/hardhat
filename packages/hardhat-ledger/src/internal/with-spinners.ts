@@ -17,7 +17,7 @@ export function withSpinners<T extends EventEmitter>(emitter: T): T {
     eventPrefix: "derivation",
   });
   emitter.on(
-    "derive_progress",
+    "derivation_progress",
     (path: string) => (derivationSpinner.text = `Deriving path "${path}"`)
   );
 
