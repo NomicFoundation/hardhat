@@ -1,5 +1,11 @@
 # @nomiclabs/hardhat-ethers
 
+## 3.0.2
+
+### Patch Changes
+
+- eb1ae069b: Fixed a problem when `waitForDeployment` was used in live networks.
+
 ## 3.0.1
 
 ### Patch Changes
