@@ -34,15 +34,20 @@
     "README.md"
   ],
   "dependencies": {
+    "@ledgerhq/errors": "^6.12.6",
     "@ledgerhq/hw-app-eth": "^6.33.1",
+    "@ledgerhq/hw-transport": "^6.28.4",
     "@ledgerhq/hw-transport-node-hid": "^6.27.13",
+    "@nomicfoundation/ethereumjs-util": "^9.0.1",
     "@types/fs-extra": "^5.1.0",
-    "fs-extra": "^7.0.1",
-    "env-paths": "^2.2.0",
     "chalk": "^2.4.2",
     "debug": "^4.1.1",
+    "env-paths": "^2.2.0",
+    "ethers": "^5.0.0",
+    "fs-extra": "^7.0.1",
     "io-ts": "1.10.4",
-    "ora": "^5.4.1"
+    "ora": "^5.4.1",
+    "sinon": "^15.1.0"
   },
   "devDependencies": {
     "@types/chai": "^4.2.0",
@@ -56,7 +61,6 @@
     "eslint-plugin-import": "2.24.1",
     "eslint-plugin-no-only-tests": "3.0.0",
     "eslint-plugin-prettier": "3.4.0",
-    "ethers": "^5.0.0",
     "hardhat": "^2.14.0",
     "mocha": "^10.0.0",
     "prettier": "2.4.1",

@@ -8,14 +8,16 @@ export interface EthWrapper {
   signTransaction: Eth["signTransaction"];
 }
 
-export type Signature = {
+export interface Signature {
   v: number;
   s: string;
   r: string;
-};
+}
 
-export type LedgerOptions = {
+export interface LedgerOptions {
   openTimeout?: number;
   connectionTimeout?: number;
   accounts: string[];
-};
+}
+
+export type Paths = Record<string, string>; // { address: path }

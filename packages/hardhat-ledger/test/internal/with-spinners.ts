@@ -1,13 +1,12 @@
 import { assert } from "chai";
 import sinon from "sinon";
 import EventEmitter from "events";
-import ora from "ora";
 import * as spinners from "../../src/internal/with-spinners";
 
 describe("withSpinners", () => {
   let eventEmitter: EventEmitter;
 
-  function containsArray(baseArray: (string | symbol)[], values: string[]) {
+  function containsArray(baseArray: Array<string | symbol>, values: string[]) {
     return values.every((value) => baseArray.includes(value));
   }
 

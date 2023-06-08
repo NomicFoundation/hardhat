@@ -1,7 +1,7 @@
 import fs from "fs-extra";
 import path from "path";
 
-type CacheableJson = { [key: string]: string };
+type CacheableJson = Record<string, string>;
 
 const CACHE_FILE_NAME = "accounts.json";
 

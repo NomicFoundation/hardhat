@@ -16,26 +16,26 @@ import {
   rpcData,
   rpcQuantityToBigInt,
 } from "hardhat/internal/core/jsonrpc/types/base-types";
-import { ProviderWrapperWithChainId } from "hardhat/src/internal/core/providers/chainId";
-import { HardhatError } from "hardhat/src/internal/core/errors";
-import { ERRORS } from "hardhat/src/internal/core/errors-list";
+import { ProviderWrapperWithChainId } from "hardhat/internal/core/providers/chainId";
+import { HardhatError } from "hardhat/internal/core/errors";
+import { ERRORS } from "hardhat/internal/core/errors-list";
 
 import { wrapTransport } from "./internal/wrap-transport";
 import * as cache from "./internal/cache";
-import { LedgerOptions, EthWrapper, Signature } from "./types";
+import { LedgerOptions, EthWrapper, Signature, Paths } from "./types";
 import { DerivationPathError, LedgerProviderError } from "./errors";
 
 export class LedgerProvider extends ProviderWrapperWithChainId {
   public static readonly MAX_DERIVATION_ACCOUNTS = 20;
   public static readonly DEFAULT_TIMEOUT = 3000;
 
-  public readonly paths: Record<string, string> = {}; // { address: path }
+  public readonly paths: Paths = {}; // { address: path }
   public name: string = "LedgerProvider";
 
   protected _eth: EthWrapper | undefined;
   private _isCreatingTransport = false;
 
-  static async create(
+  public static async create(
     options: LedgerOptions,
     _wrappedProvider: EIP1193Provider
   ) {
@@ -73,9 +73,14 @@ export class LedgerProvider extends ProviderWrapperWithChainId {
       this._isCreatingTransport = true;
 
       const openTimeout =
-        this.options.openTimeout || LedgerProvider.DEFAULT_TIMEOUT;
+        this.options.openTimeout === undefined
+          ? LedgerProvider.DEFAULT_TIMEOUT
+          : this.options.openTimeout;
+
       const connectionTimeout =
-        this.options.connectionTimeout || LedgerProvider.DEFAULT_TIMEOUT;
+        this.options.connectionTimeout === undefined
+          ? LedgerProvider.DEFAULT_TIMEOUT
+          : this.options.connectionTimeout;
 
       try {
         this.emit("connection_start");
@@ -106,8 +111,8 @@ export class LedgerProvider extends ProviderWrapperWithChainId {
     }
 
     try {
-      const paths = await cache.read();
-      if (paths) {
+      const paths = await cache.read<Paths>();
+      if (paths === undefined) {
         Object.assign(this.paths, paths);
       }
     } catch (error) {}
@@ -169,7 +174,7 @@ export class LedgerProvider extends ProviderWrapperWithChainId {
           const signature = await this._withConfirmation(() =>
             this.eth.signPersonalMessage(path, data.toString("hex"))
           );
-          return await this._toRpcSig(signature);
+          return this._toRpcSig(signature);
         }
       }
     }
@@ -191,7 +196,7 @@ export class LedgerProvider extends ProviderWrapperWithChainId {
           const signature = await this._withConfirmation(() =>
             this.eth.signPersonalMessage(path, data.toString("hex"))
           );
-          return await this._toRpcSig(signature);
+          return this._toRpcSig(signature);
         }
       }
     }
@@ -222,14 +227,14 @@ export class LedgerProvider extends ProviderWrapperWithChainId {
     // If we don't manage the address, the method is forwarded
     if (this._isControlledAddress(address)) {
       const { types, domain, message, primaryType } = typedMessage;
-      const { EIP712Domain, ...structTypes } = types;
+      const { EIP712Domain: _, ...structTypes } = types;
 
       const path = await this._derivePath(address);
       const signature = await this._withConfirmation(async () => {
         try {
           return await this.eth.signEIP712Message(path, typedMessage);
         } catch (error) {
-          return await this.eth.signEIP712HashedMessage(
+          return this.eth.signEIP712HashedMessage(
             path,
             ethers.utils._TypedDataEncoder.hashDomain(domain),
             ethers.utils._TypedDataEncoder.hashStruct(
@@ -241,7 +246,7 @@ export class LedgerProvider extends ProviderWrapperWithChainId {
         }
       });
 
-      return await this._toRpcSig(signature);
+      return this._toRpcSig(signature);
     }
   }
 
@@ -303,7 +308,7 @@ export class LedgerProvider extends ProviderWrapperWithChainId {
         nonce: Number(txRequest.nonce),
         value: txRequest.value,
       };
-      if (txRequest.to) {
+      if (txRequest.to !== undefined) {
         baseTx.to = this._toHex(txRequest.to);
       }
 
@@ -335,7 +340,7 @@ export class LedgerProvider extends ProviderWrapperWithChainId {
   private async _derivePath(addressToFindAsBuffer: Buffer): Promise<string> {
     const addressToFind = this._toHex(addressToFindAsBuffer).toLowerCase();
 
-    if (this.paths[addressToFind]) {
+    if (this.paths[addressToFind] !== undefined) {
       return this.paths[addressToFind];
     }
 
@@ -359,7 +364,7 @@ export class LedgerProvider extends ProviderWrapperWithChainId {
           this.emit("derivation_success", path);
           this.paths[addressToFind] = path;
 
-          cache.write(this.paths); // hanging promise
+          void cache.write(this.paths); // hanging promise
 
           return path;
         }
@@ -381,7 +386,7 @@ export class LedgerProvider extends ProviderWrapperWithChainId {
     );
   }
 
-  async _withConfirmation<T extends (...args: any) => any>(
+  private async _withConfirmation<T extends (...args: any) => any>(
     func: T
   ): Promise<ReturnType<T>> {
     try {
@@ -427,6 +432,6 @@ export class LedgerProvider extends ProviderWrapperWithChainId {
     const stringValue =
       typeof value === "string" ? value : value.toString("hex");
 
-    return "0x" + stringValue;
+    return `0x${stringValue}`;
   }
 }

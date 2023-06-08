@@ -12,9 +12,9 @@ import { RequestArguments } from "hardhat/types";
 import * as ethWrapper from "../src/internal/wrap-transport";
 import * as cache from "../src/internal/cache";
 import { LedgerProvider } from "../src/provider";
-import { EthereumMockedProvider } from "./mocks";
 import { EthWrapper, LedgerOptions } from "../src/types";
 import { DerivationPathError, LedgerProviderError } from "../src/errors";
+import { EthereumMockedProvider } from "./mocks";
 
 describe("LedgerProvider", () => {
   let accounts: string[];
@@ -51,17 +51,20 @@ describe("LedgerProvider", () => {
 
   describe("instance", () => {
     it("should lowercase all accounts", () => {
-      const accounts = [
+      const uppercaseAccounts = [
         "0xA809931E3B38059ADAE9BC5455BC567D0509AB92",
         "0xDA6A52AFDAE5FF66AA786DA68754A227331F56E3",
         "0xBC307688A80EC5ED0EDC1279C44C1B34F7746BDA",
       ];
-      const provider = new LedgerProvider({ accounts }, mockedProvider);
-      const lowercasedAccounts = accounts.map((account) =>
+      const uppercaseProvider = new LedgerProvider(
+        { accounts: uppercaseAccounts },
+        mockedProvider
+      );
+      const lowercasedAccounts = uppercaseAccounts.map((account) =>
         account.toLowerCase()
       );
 
-      assert.deepEqual(provider.options.accounts, lowercasedAccounts);
+      assert.deepEqual(uppercaseProvider.options.accounts, lowercasedAccounts);
     });
 
     it("should throw if the accounts array is empty", () => {
@@ -144,8 +147,8 @@ describe("LedgerProvider", () => {
     });
 
     it("should throw a ledger provider error if create does", async () => {
-      const error = new Error("Test Error");
-      createStub.throws(error);
+      const createError = new Error("Test Error");
+      createStub.throws(createError);
 
       try {
         await provider.init();
@@ -153,14 +156,17 @@ describe("LedgerProvider", () => {
         assert.instanceOf(error, LedgerProviderError);
         assert.equal(
           (error as LedgerProviderError).message,
-          'There was an error trying to stablish a connection to the Ledger wallet: "Test Error".'
+          `There was an error trying to stablish a connection to the Ledger wallet: "${createError.message}".`
         );
       }
     });
 
     it("should throw an error with the proper explanation if a transport error is thrown", async () => {
-      const error = new TransportError("Transport Error", "Transport Error Id");
-      createStub.throws(error);
+      const createError = new TransportError(
+        "Transport Error",
+        "Transport Error Id"
+      );
+      createStub.throws(createError);
 
       try {
         await provider.init();
@@ -168,7 +174,7 @@ describe("LedgerProvider", () => {
         assert.instanceOf(error, LedgerProviderError);
         assert.equal(
           (error as LedgerProviderError).message,
-          'There was an error trying to stablish a connection to the Ledger wallet: "Transport Error". The error id was: Transport Error Id'
+          `There was an error trying to stablish a connection to the Ledger wallet: "${createError.message}". The error id was: ${createError.id}`
         );
       }
     });
