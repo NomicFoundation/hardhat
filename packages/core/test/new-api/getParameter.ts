@@ -104,7 +104,7 @@ describe("getParameter", () => {
       assert.deepEqual(param.defaultValue, defaultValue);
     });
 
-    it("Should accept complex combinations as deafult", () => {
+    it("Should accept complex combinations as default", () => {
       const defaultValue: ModuleParameterType = {
         arr: [123, { a: [{ o: true }] }],
       };
