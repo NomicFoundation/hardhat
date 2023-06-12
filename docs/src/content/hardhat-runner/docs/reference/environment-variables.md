@@ -30,7 +30,6 @@ HARDHAT_NETWORK=mainnet npx hardhat run --network localhost scripts/deploy.js
 
 then the `localhost` network is going to be used.
 
-
 ## Other environment variables
 
 Besides the environment variables that correspond to global parameters, there are some special environment variables that affect how Hardhat works. Variables starting with `HARDHAT_EXPERIMENTAL_` are experimental and could be removed in future versions.
