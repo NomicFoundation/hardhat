@@ -66,12 +66,6 @@ describe("LedgerProvider", () => {
 
       assert.deepEqual(uppercaseProvider.options.accounts, lowercasedAccounts);
     });
-
-    it("should throw if the accounts array is empty", () => {
-      assert.Throw(() => {
-        new LedgerProvider({ accounts: [] }, mockedProvider);
-      }, "You tried to initialize a LedgerProvider without supplying any account to the constructor. The provider cannot make any requests on the ledger behalf without an account.");
-    });
   });
 
   describe("create", () => {
@@ -315,16 +309,30 @@ describe("LedgerProvider", () => {
       });
     });
 
-    it("should return the configured accounts when the JSONRPC eth_accounts method is called", async () => {
+    it("should return the configured and base accounts when the JSONRPC eth_accounts method is called", async () => {
+      const baseAccounts = ["0x1", "0x2", "0x999"];
+      sinon.stub(mockedProvider, "request").callsFake(async (args) => {
+        if (args.method === "eth_accounts") {
+          return baseAccounts;
+        }
+      });
+
       const resultAccounts = await provider.request({ method: "eth_accounts" });
-      assert.deepEqual(accounts, resultAccounts);
+      assert.deepEqual([...baseAccounts, ...accounts], resultAccounts);
       sinon.assert.notCalled(initSpy);
     });
-    it("should return the configured accounts when the JSONRPC eth_requestAccounts method is called", async () => {
+    it("should return the configured and base accounts when the JSONRPC eth_requestAccounts method is called", async () => {
+      const baseAccounts = ["0x1111", "0x555", "0x999"];
+      sinon.stub(mockedProvider, "request").callsFake(async (args) => {
+        if (args.method === "eth_requestAccounts") {
+          return baseAccounts;
+        }
+      });
+
       const resultAccounts = await provider.request({
         method: "eth_requestAccounts",
       });
-      assert.deepEqual(accounts, resultAccounts);
+      assert.deepEqual([...baseAccounts, ...accounts], resultAccounts);
       sinon.assert.notCalled(initSpy);
     });
 
@@ -622,6 +630,11 @@ describe("LedgerProvider", () => {
       });
 
       describe("eth_accounts", () => {
+        beforeEach(() => {
+          // eth_accounts and eth_requestAccounts will be called to merge the accounts
+          sinon.stub(mockedProvider, "request").returns(Promise.resolve([]));
+        });
+
         it("should not emit a connection or derivation event with eth_accounts", async () => {
           await provider.request({ method: "eth_accounts" });
           sinon.assert.notCalled(emitSpy);

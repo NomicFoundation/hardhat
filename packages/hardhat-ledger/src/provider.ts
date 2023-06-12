@@ -50,12 +50,6 @@ export class LedgerProvider extends ProviderWrapperWithChainId {
   ) {
     super(_wrappedProvider);
 
-    if (options.accounts.length === 0) {
-      throw new LedgerProviderError(
-        "You tried to initialize a LedgerProvider without supplying any account to the constructor. The provider cannot make any requests on the ledger behalf without an account."
-      );
-    }
-
     this.options.accounts = options.accounts.map((account) =>
       account.toLowerCase()
     );
@@ -125,7 +119,8 @@ export class LedgerProvider extends ProviderWrapperWithChainId {
       args.method === "eth_accounts" ||
       args.method === "eth_requestAccounts"
     ) {
-      return this.options.accounts;
+      const accounts = (await this._wrappedProvider.request(args)) as string[];
+      return [...accounts, ...this.options.accounts];
     }
 
     if (this._methodRequiresInit(args.method)) {

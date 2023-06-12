@@ -5,7 +5,7 @@ import { EthereumMockedProvider } from "../mocks";
 import { createLedgerProvider } from "../../src/internal/create-ledger-provider";
 import * as spinners from "../../src/internal/with-spinners";
 
-describe("decorateProvider", () => {
+describe("createLedgerProvider", () => {
   let mockedProvider: EthereumMockedProvider;
 
   beforeEach(() => {
@@ -19,12 +19,6 @@ describe("decorateProvider", () => {
     });
 
     assert.deepEqual(ledgerProvider.options.accounts, ledgerAccounts);
-  });
-
-  it("should pass an empty array if there are no ledgerAccounts", () => {
-    assert.Throw(() => {
-      createLedgerProvider(mockedProvider, { ledgerAccounts: [] });
-    }, "You tried to initialize a LedgerProvider without supplying any account to the constructor. The provider cannot make any requests on the ledger behalf without an account.");
   });
 
   it("should pass the provider to the LedgerProvider", async () => {

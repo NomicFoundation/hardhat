@@ -11,6 +11,7 @@ export function createLedgerProvider(
     networkConfig.ledgerAccounts === undefined
       ? []
       : networkConfig.ledgerAccounts;
+
   const ledgerProvider = new LedgerProvider({ accounts }, provider);
 
   return withSpinners(ledgerProvider);
