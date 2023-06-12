@@ -13,7 +13,12 @@ describe("createLedgerProvider", () => {
   });
 
   it("should pass the ledgerAccounts from the config to the LedgerProvider", () => {
-    const ledgerAccounts = ["0x1", "0x13", "0x9", "0x5"];
+    const ledgerAccounts = [
+      "0x704ad3adfa9eae2be46c907ef5325d0fabe17353",
+      "0xf4416d306caa15dd4cdf4cd882cd764a6b2aa9b2",
+      "0xe149ff2797adc146aa2d68d3df3e819c3c38e762",
+      "0x343fe45cd2d785a5f2e97a00de8436f9c42ef444",
+    ];
     const ledgerProvider = createLedgerProvider(mockedProvider, {
       ledgerAccounts,
     });
@@ -23,7 +28,7 @@ describe("createLedgerProvider", () => {
 
   it("should pass the provider to the LedgerProvider", async () => {
     const ledgerProvider = createLedgerProvider(mockedProvider, {
-      ledgerAccounts: ["0x1"],
+      ledgerAccounts: ["0xf4416d306caa15dd4cdf4cd882cd764a6b2aa9b2"],
     });
     const requestStub = sinon.stub(mockedProvider, "request");
 
@@ -38,7 +43,7 @@ describe("createLedgerProvider", () => {
     const withSpinnerSpy = sinon.spy(spinners, "withSpinners");
 
     const ledgerProvider = createLedgerProvider(mockedProvider, {
-      ledgerAccounts: ["0x1"],
+      ledgerAccounts: ["0xe149ff2797adc146aa2d68d3df3e819c3c38e762"],
     });
 
     sinon.assert.calledOnceWithExactly(withSpinnerSpy, ledgerProvider);

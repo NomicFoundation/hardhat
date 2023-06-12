@@ -66,6 +66,23 @@ describe("LedgerProvider", () => {
 
       assert.deepEqual(uppercaseProvider.options.accounts, lowercasedAccounts);
     });
+
+    it("should check for valid ethereum addresses", () => {
+      assert.throws(
+        () =>
+          new LedgerProvider(
+            {
+              accounts: [
+                "0xe149ff2797adc146aa2d68d3df3e819c3c38e762",
+                "0x1",
+                "0x343fe45cd2d785a5F2e97a00de8436f9c42Ef444",
+              ],
+            },
+            mockedProvider
+          ),
+        "The following ledger address from the config is invalid: 0x1"
+      );
+    });
   });
 
   describe("create", () => {
@@ -310,7 +327,10 @@ describe("LedgerProvider", () => {
     });
 
     it("should return the configured and base accounts when the JSONRPC eth_accounts method is called", async () => {
-      const baseAccounts = ["0x1", "0x2", "0x999"];
+      const baseAccounts = [
+        "0x18225dbbd263d5a01ac537db4d1eefc12fae8b24",
+        "0x704ad3adfa9eae2be46c907ef5325d0fabe17353",
+      ];
       sinon.stub(mockedProvider, "request").callsFake(async (args) => {
         if (args.method === "eth_accounts") {
           return baseAccounts;
@@ -322,7 +342,10 @@ describe("LedgerProvider", () => {
       sinon.assert.notCalled(initSpy);
     });
     it("should return the configured and base accounts when the JSONRPC eth_requestAccounts method is called", async () => {
-      const baseAccounts = ["0x1111", "0x555", "0x999"];
+      const baseAccounts = [
+        "0x18225dbbd263d5a01ac537db4d1eefc12fae8b24",
+        "0x704ad3adfa9eae2be46c907ef5325d0fabe17353",
+      ];
       sinon.stub(mockedProvider, "request").callsFake(async (args) => {
         if (args.method === "eth_requestAccounts") {
           return baseAccounts;

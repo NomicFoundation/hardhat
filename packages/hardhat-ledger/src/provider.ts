@@ -1,14 +1,14 @@
 import { ethers } from "ethers";
+import * as t from "io-ts";
+
+import { isValidAddress } from "@nomicfoundation/ethereumjs-util";
 
 import { isEIP712Message, ledgerService } from "@ledgerhq/hw-app-eth";
 import TransportNodeHid from "@ledgerhq/hw-transport-node-hid";
 import { EIP712Message } from "@ledgerhq/hw-app-eth/lib/modules/EIP712";
 import { TransportError } from "@ledgerhq/errors";
 
-import * as t from "io-ts";
-
 import { EIP1193Provider, RequestArguments } from "hardhat/types";
-
 import { validateParams } from "hardhat/internal/core/jsonrpc/types/input/validation";
 import { rpcTransactionRequest } from "hardhat/internal/core/jsonrpc/types/input/transactionRequest";
 import {
@@ -50,9 +50,14 @@ export class LedgerProvider extends ProviderWrapperWithChainId {
   ) {
     super(_wrappedProvider);
 
-    this.options.accounts = options.accounts.map((account) =>
-      account.toLowerCase()
-    );
+    this.options.accounts = options.accounts.map((account) => {
+      if (isValidAddress(account) === false) {
+        throw new LedgerProviderError(
+          `The following ledger address from the config is invalid: ${account}`
+        );
+      }
+      return account.toLowerCase();
+    });
   }
 
   public get eth(): EthWrapper {
