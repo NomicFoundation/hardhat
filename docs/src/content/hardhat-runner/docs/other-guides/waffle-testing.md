@@ -8,7 +8,7 @@ Read [this guide](/hardhat-runner/docs/guides/test-contracts.md) to learn about 
 
 Writing smart contract tests in Hardhat is done using JavaScript or TypeScript.
 
-In this guide, we'll show you how to use [Ethers.js](https://docs.ethers.io/), a JavaScript library to interact with Ethereum, and [Waffle](https://getwaffle.io/) a simple smart contract testing library built on top of it.
+In this guide, we'll show you how to use [Ethers.js](https://docs.ethers.org/v6/), a JavaScript library to interact with Ethereum, and [Waffle](https://getwaffle.io/) a simple smart contract testing library built on top of it.
 
 Let's see how to use it starting from an empty Hardhat project.
 
@@ -59,7 +59,7 @@ npm install --save-dev chai @nomiclabs/hardhat-waffle
 :::tab{value="npm 6"}
 
 ```
-npm install --save-dev chai @nomiclabs/hardhat-waffle ethereum-waffle @nomiclabs/hardhat-ethers ethers
+npm install --save-dev chai @nomiclabs/hardhat-waffle ethereum-waffle @nomiclabs/hardhat-ethers ethers@5
 ```
 
 :::
@@ -67,7 +67,7 @@ npm install --save-dev chai @nomiclabs/hardhat-waffle ethereum-waffle @nomiclabs
 :::tab{value="yarn"}
 
 ```
-yarn add --dev chai @nomiclabs/hardhat-waffle ethereum-waffle @nomiclabs/hardhat-ethers ethers
+yarn add --dev chai @nomiclabs/hardhat-waffle ethereum-waffle @nomiclabs/hardhat-ethers ethers@5
 ```
 
 :::
@@ -229,7 +229,7 @@ A `Signer` in Ethers.js is an object that represents an Ethereum account. It's u
 
 :::tip
 
-To learn more about `Signer`, you can look at the [Signers documentation](https://docs.ethers.io/v5/api/signer/#Wallet).
+To learn more about `Signer`, you can look at the [Signers documentation](https://docs.ethers.org/v6/api/providers/#Signer).
 
 :::
 

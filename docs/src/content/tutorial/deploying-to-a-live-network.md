@@ -6,7 +6,7 @@ The "mainnet" Ethereum network deals with real money, but there are separate "te
 
 At the software level, deploying to a testnet is the same as deploying to mainnet. The only difference is which network you connect to. Let's look into what the code to deploy your contracts using ethers.js would look like.
 
-The main concepts used are `Signer`, `ContractFactory` and `Contract` which we explained back in the [testing](testing-contracts.md) section. There's nothing new that needs to be done when compared to testing, given that when you're testing your contracts you're _actually_ making a deployment to your development network. This makes the code very similar, or even the same.
+The main concepts used are `Signer` and `Contract` which we explained back in the [testing](testing-contracts.md) section. There's nothing new that needs to be done when compared to testing, given that when you're testing your contracts you're _actually_ making a deployment to your development network. This makes the code very similar, or even the same.
 
 Let's create a new directory `scripts` inside the project root's directory, and paste the following into a `deploy.js` file in that directory:
 
@@ -16,12 +16,9 @@ async function main() {
 
   console.log("Deploying contracts with the account:", deployer.address);
 
-  console.log("Account balance:", (await deployer.getBalance()).toString());
+  const token = await ethers.deployContract("Token");
 
-  const Token = await ethers.getContractFactory("Token");
-  const token = await Token.deploy();
-
-  console.log("Token address:", token.address);
+  console.log("Token address:", await token.getAddress());
 }
 
 main()
@@ -43,7 +40,6 @@ With our current configuration, running it without the `--network` parameter wou
 ```
 $ npx hardhat run scripts/deploy.js
 Deploying contracts with the account: 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266
-Account balance: 10000000000000000000000
 Token address: 0x5FbDB2315678afecb367f032d93F642f64180aa3
 ```
 
@@ -121,6 +117,7 @@ To deploy on Sepolia you need to send some Sepolia ether to the address that's g
 
 - [Alchemy Sepolia Faucet](https://sepoliafaucet.com/)
 - [Coinbase Sepolia Faucet](https://coinbase.com/faucets/ethereum-sepolia-faucet) (only works if you are using the Coinbase Wallet)
+- [Infura Sepolia Faucet](https://www.infura.io/faucet/sepolia)
 
 You'll have to change your wallet's network to Sepolia before transacting.
 

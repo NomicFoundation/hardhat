@@ -9,7 +9,7 @@ on:
       - "packages/hardhat-chai-matchers/**"
       - "packages/hardhat-network-helpers/**"
       - "packages/hardhat-ethers/**"
-      - "packages/hardhat-etherscan/**"
+      - "packages/hardhat-verify/**"
       - "packages/hardhat-common/**"
       - "config/**"
   pull_request:
@@ -21,7 +21,7 @@ on:
       - "packages/hardhat-chai-matchers/**"
       - "packages/hardhat-network-helpers/**"
       - "packages/hardhat-ethers/**"
-      - "packages/hardhat-etherscan/**"
+      - "packages/hardhat-verify/**"
       - "packages/hardhat-common/**"
       - "config/**"
 
@@ -73,7 +73,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node: [14, 16, 18]
+        node: [14, 16, 18.15]
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v2

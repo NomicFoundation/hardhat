@@ -1,5 +1,4 @@
 import { expect, AssertionError } from "chai";
-import { BigNumber as BigNumberEthers } from "ethers";
 import { BigNumber as BigNumberJs } from "bignumber.js";
 import BN from "bn.js";
 
@@ -7,11 +6,10 @@ import { HardhatError } from "hardhat/internal/core/errors";
 
 import "../src/internal/add-chai-matchers";
 
-type SupportedNumber = number | bigint | BN | BigNumberEthers | BigNumberJs;
+type SupportedNumber = number | bigint | BN | BigNumberJs;
 
 const numberToBigNumberConversions = [
   (n: number) => BigInt(n),
-  (n: number) => BigNumberEthers.from(n),
   (n: number) => new BN(n),
   (n: number) => new BigNumberJs(n),
 ];
@@ -21,8 +19,6 @@ describe("BigNumber matchers", function () {
     if (typeof n === "object") {
       if (n instanceof BN) {
         return "BN";
-      } else if (n instanceof BigNumberEthers) {
-        return "ethers.BigNumber";
       } else if (n instanceof BigNumberJs) {
         return "bignumber.js";
       }
@@ -582,7 +578,6 @@ describe("BigNumber matchers", function () {
           // a few particular combinations of types don't work:
           if (
             typeof convertedActual === "string" &&
-            !BigNumberEthers.isBigNumber(convertedExpected) &&
             !BN.isBN(convertedExpected) &&
             !BigNumberJs.isBigNumber(convertedExpected)
           ) {
@@ -879,7 +874,7 @@ describe("BigNumber matchers", function () {
 
           // We are not checking the content of the arrays/objects because
           // it depends on the type of the numbers (plain numbers, native
-          // bigints, ethers's BigNumbers)
+          // bigints)
           // Ideally the output would be normalized and we could check the
           // actual content more easily.
 
@@ -1208,11 +1203,6 @@ describe("BigNumber matchers", function () {
       "custom message"
     );
 
-    // number and ethers bignumber
-    expect(() =>
-      expect(1).to.equal(BigNumberEthers.from(2), "custom message")
-    ).to.throw(AssertionError, "custom message");
-
     // same but for deep comparisons
     expect(() => expect([1]).to.equal([2], "custom message")).to.throw(
       AssertionError,
@@ -1224,10 +1214,5 @@ describe("BigNumber matchers", function () {
       AssertionError,
       "custom message"
     );
-
-    // number and ethers bignumber
-    expect(() =>
-      expect([1]).to.equal([BigNumberEthers.from(2)], "custom message")
-    ).to.throw(AssertionError, "custom message");
   });
 });

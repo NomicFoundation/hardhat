@@ -168,7 +168,7 @@ https://hardhat.etherscan.io/address/${address}#code`
     });
 
     describe("with deleted artifacts", () => {
-      it("should not compile the project when the noCompile is provided", async function () {
+      it("should throw if the artifacts are missing", async function () {
         await this.hre.run(TASK_CLEAN);
 
         // task will fail since we deleted all the artifacts
@@ -176,7 +176,6 @@ https://hardhat.etherscan.io/address/${address}#code`
           this.hre.run(TASK_VERIFY, {
             address: simpleContractAddress,
             constructorArgsParams: [],
-            noCompile: true,
           })
         ).to.be.rejectedWith(
           /The address provided as argument contains a contract, but its bytecode doesn't match any of your local contracts./
@@ -589,7 +588,6 @@ for verification on the block explorer. Waiting for verification result...
           NormalLib: normalLibAddress,
           ConstructorLib: constructorLibAddress,
         },
-        // noCompile: true,
       });
 
       assert.equal(logStub.callCount, 2);

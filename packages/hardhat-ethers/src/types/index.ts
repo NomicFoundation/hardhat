@@ -1,10 +1,10 @@
 import type * as ethers from "ethers";
-import type { SignerWithAddress } from "../signers";
-
-import { Artifact } from "hardhat/types";
+import type { Artifact } from "hardhat/types";
+import type { HardhatEthersProvider } from "../internal/hardhat-ethers-provider";
+import type { HardhatEthersSigner } from "../signers";
 
 export interface Libraries {
-  [libraryName: string]: string;
+  [libraryName: string]: string | ethers.Addressable;
 }
 
 export interface FactoryOptions {
@@ -12,38 +12,51 @@ export interface FactoryOptions {
   libraries?: Libraries;
 }
 
-export declare function getContractFactory(
+export type DeployContractOptions = FactoryOptions & ethers.Overrides;
+
+export declare function getContractFactory<
+  A extends any[] = any[],
+  I = ethers.Contract
+>(
   name: string,
   signerOrOptions?: ethers.Signer | FactoryOptions
-): Promise<ethers.ContractFactory>;
-export declare function getContractFactory(
+): Promise<ethers.ContractFactory<A, I>>;
+export declare function getContractFactory<
+  A extends any[] = any[],
+  I = ethers.Contract
+>(
   abi: any[],
-  bytecode: ethers.utils.BytesLike,
+  bytecode: ethers.BytesLike,
   signer?: ethers.Signer
-): Promise<ethers.ContractFactory>;
+): Promise<ethers.ContractFactory<A, I>>;
 
 export declare function deployContract(
   name: string,
-  signerOrOptions?: ethers.Signer | FactoryOptions
+  signerOrOptions?: ethers.Signer | DeployContractOptions
 ): Promise<ethers.Contract>;
 
 export declare function deployContract(
   name: string,
   args: any[],
-  signerOrOptions?: ethers.Signer | FactoryOptions
+  signerOrOptions?: ethers.Signer | DeployContractOptions
 ): Promise<ethers.Contract>;
 
+export declare function getContractFactoryFromArtifact<
+  A extends any[] = any[],
+  I = ethers.Contract
+>(
+  artifact: Artifact,
+  signerOrOptions?: ethers.Signer | FactoryOptions
+): Promise<ethers.ContractFactory<A, I>>;
+
 export interface HardhatEthersHelpers {
-  provider: ethers.providers.JsonRpcProvider;
+  provider: HardhatEthersProvider;
 
   getContractFactory: typeof getContractFactory;
-  getContractFactoryFromArtifact: (
-    artifact: Artifact,
-    signerOrOptions?: ethers.Signer | FactoryOptions
-  ) => Promise<ethers.ContractFactory>;
+  getContractFactoryFromArtifact: typeof getContractFactoryFromArtifact;
   getContractAt: (
     nameOrAbi: string | any[],
-    address: string,
+    address: string | ethers.Addressable,
     signer?: ethers.Signer
   ) => Promise<ethers.Contract>;
   getContractAtFromArtifact: (
@@ -51,8 +64,8 @@ export interface HardhatEthersHelpers {
     address: string,
     signer?: ethers.Signer
   ) => Promise<ethers.Contract>;
-  getSigner: (address: string) => Promise<SignerWithAddress>;
-  getSigners: () => Promise<SignerWithAddress[]>;
-  getImpersonatedSigner: (address: string) => Promise<SignerWithAddress>;
+  getSigner: (address: string) => Promise<HardhatEthersSigner>;
+  getSigners: () => Promise<HardhatEthersSigner[]>;
+  getImpersonatedSigner: (address: string) => Promise<HardhatEthersSigner>;
   deployContract: typeof deployContract;
 }

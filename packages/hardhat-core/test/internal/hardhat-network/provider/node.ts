@@ -23,7 +23,7 @@ import {
   HardhatNetworkChainConfig,
   HardhatNetworkChainsConfig,
 } from "../../../../src/types";
-import { INFURA_URL } from "../../../setup";
+import { ALCHEMY_URL } from "../../../setup";
 import { assertQuantity } from "../helpers/assertions";
 import {
   EMPTY_ACCOUNT_ADDRESS,
@@ -694,7 +694,7 @@ describe("HardhatNode", () => {
   });
 
   describe("full block", function () {
-    if (INFURA_URL === undefined) {
+    if (ALCHEMY_URL === undefined) {
       return;
     }
 
@@ -703,43 +703,44 @@ describe("HardhatNode", () => {
       // its receipts contain the state root, and we can't compute it
       {
         networkName: "mainnet",
-        url: INFURA_URL,
+        url: ALCHEMY_URL,
         blockToRun: 4370001n,
         chainId: 1,
       },
       {
         networkName: "mainnet",
-        url: INFURA_URL,
+        url: ALCHEMY_URL,
         blockToRun: 7280001n,
         chainId: 1,
       },
       {
         networkName: "mainnet",
-        url: INFURA_URL,
+        url: ALCHEMY_URL,
         blockToRun: 9069001n,
         chainId: 1,
       },
       {
         networkName: "mainnet",
-        url: INFURA_URL,
+        url: ALCHEMY_URL,
         blockToRun: 9300077n,
         chainId: 1,
       },
       {
         networkName: "mainnet",
-        url: INFURA_URL,
+        url: ALCHEMY_URL,
         blockToRun: 17_050_001n, // post-shanghai
         chainId: 1,
       },
       {
         networkName: "goerli",
-        url: INFURA_URL.replace("mainnet", "goerli"),
+        url: ALCHEMY_URL.replace("mainnet", "goerli"),
         blockToRun: 7728449n, // this block has both EIP-2930 and EIP-1559 txs
         chainId: 5,
       },
       {
         networkName: "sepolia",
-        url: INFURA_URL.replace("mainnet", "sepolia"),
+        url: ALCHEMY_URL.replace("alchemyapi.io", "g.alchemy.com") // temporary fix until we fix our github secret
+          .replace("mainnet", "sepolia"),
         blockToRun: 3095000n, // this block is post-shanghai
         chainId: 11155111,
       },
@@ -844,7 +845,7 @@ describe("HardhatNode", () => {
     block: bigint,
     targetNode: HardhatNode
   ): Promise<string> {
-    const contractInterface = new ethers.utils.Interface([
+    const contractInterface = new ethers.Interface([
       "function Hello() public pure returns (string)",
     ]);
 
@@ -871,7 +872,7 @@ describe("HardhatNode", () => {
   describe("should run calls in the right hardfork context", async function () {
     this.timeout(10000);
     before(function () {
-      if (INFURA_URL === undefined) {
+      if (ALCHEMY_URL === undefined) {
         this.skip();
         return;
       }
@@ -890,7 +891,7 @@ describe("HardhatNode", () => {
       networkId: 1,
       hardfork: "london",
       forkConfig: {
-        jsonRpcUrl: INFURA_URL!,
+        jsonRpcUrl: ALCHEMY_URL!,
         blockNumber: Number(eip1559ActivationBlock),
       },
       forkCachePath: FORK_TESTS_CACHE_PATH,
@@ -1046,7 +1047,7 @@ describe("HardhatNode", () => {
   });
 
   it("should support a historical call in the context of a block added via mineBlocks()", async function () {
-    if (INFURA_URL === undefined) {
+    if (ALCHEMY_URL === undefined) {
       this.skip();
       return;
     }
@@ -1056,7 +1057,7 @@ describe("HardhatNode", () => {
       networkId: 1,
       hardfork: "london",
       forkConfig: {
-        jsonRpcUrl: INFURA_URL,
+        jsonRpcUrl: ALCHEMY_URL,
         blockNumber: 12965000, // eip1559ActivationBlock
       },
       forkCachePath: FORK_TESTS_CACHE_PATH,
