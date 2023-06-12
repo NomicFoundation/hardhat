@@ -1,6 +1,6 @@
-import { rawDecode } from "ethereumjs-abi";
-
 import { assertHardhatInvariant } from "../../core/errors";
+
+const { rawDecode } = require("ethereumjs-abi");
 
 // selector of Error(string)
 const ERROR_SELECTOR = "08c379a0";

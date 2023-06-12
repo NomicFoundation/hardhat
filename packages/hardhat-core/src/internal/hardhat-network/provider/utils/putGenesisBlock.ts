@@ -11,7 +11,7 @@ import { getCurrentTimestamp } from "./getCurrentTimestamp";
 export async function putGenesisBlock(
   blockchain: HardhatBlockchain,
   common: Common,
-  { initialDate, blockGasLimit }: LocalNodeConfig,
+  { initialDate, blockGasLimit: initialBlockGasLimit }: LocalNodeConfig,
   stateRoot: Buffer,
   hardfork: HardforkName,
   initialMixHash: Buffer,
@@ -26,7 +26,7 @@ export async function putGenesisBlock(
 
   const header: HeaderData = {
     timestamp: `0x${initialBlockTimestamp.toString(16)}`,
-    gasLimit: blockGasLimit,
+    gasLimit: initialBlockGasLimit,
     difficulty: isPostMerge ? 0 : 1,
     nonce: isPostMerge ? "0x0000000000000000" : "0x0000000000000042",
     extraData: "0x1234",

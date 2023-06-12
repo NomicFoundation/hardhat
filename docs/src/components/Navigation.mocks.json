@@ -162,8 +162,8 @@
         "href": "/plugins/nomiclabs-hardhat-waffle"
       },
       {
-        "label": "@nomiclabs/hardhat-etherscan",
-        "href": "/plugins/nomiclabs-hardhat-etherscan"
+        "label": "@nomicfoundation/hardhat-verify",
+        "href": "/plugins/nomicfoundation-hardhat-verify"
       },
       {
         "label": "@nomiclabs/hardhat-web3",
@@ -176,10 +176,6 @@
       {
         "label": "@nomiclabs/hardhat-solhint",
         "href": "/plugins/nomiclabs-hardhat-solhint"
-      },
-      {
-        "label": "@nomiclabs/hardhat-ganache",
-        "href": "/plugins/nomiclabs-hardhat-ganache"
       },
       {
         "label": "@nomiclabs/hardhat-solpp",

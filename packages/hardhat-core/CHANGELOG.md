@@ -1,5 +1,56 @@
 # hardhat
 
+## 2.14.0
+
+### Minor Changes
+
+- d69020f72: Set Shanghai as the default hardfork
+
+## 2.13.1
+
+### Patch Changes
+
+- 5d4d1edba: Fixed a problem when importing scoped packages in a Yarn Berry monorepo that uses PnP (thanks @zouguangxian!)
+- cdd9aa578: Added support for the shanghai hardfork
+
+## 2.13.0
+
+### Minor Changes
+
+- 83ef755f3: Hardhat's task runner now allows you to override the arguments passed to subtasks.
+- 50779cd10: Added support for writing scripts and tests as ES modules.
+
+  To learn how to start using ESM with Hardhat read [this guide](https://hardhat.org/hardhat-runner/docs/advanced/using-esm).
+
+### Patch Changes
+
+- f55a3a769: Reduce the amount of ETH sent to the Lock contract in the sample project's deploy script (Thanks @mutedSpectre!)
+- 929b26849: The `resolveJsonModule` compiler option is now enabled by default in the sample tsconfig (thanks @mlshv!)
+- 071e6bc89: Stop colorizing the entire message when an error is printed
+- 0fa7ac548: Make Hardhat more tolerant to unsupported Node.js versions
+- 7a5bc5512: Send less ETH and lock it for less time on sample deployment scripts.
+- 7ceb5f90d: Added basic support for solc `viaIR` setting
+- e6f07b4b6: Fixed an issue with a warning showing the same solc version multiple times (thanks @shark0der!)
+- 6e51edf4d: Added support for Solidity 0.8.18 (thanks @taxio!)
+- b9c34f36f: Fix an error that could happen when a download failed.
+- 1c833bf04: Propagate HttpProviderError exception messages.
+
+## 2.12.7
+
+### Patch Changes
+
+- e443b3667: Added an option in Hardhat Network to allow mining blocks with the same timestamp
+- c23a1cac4: Added support for the `http_proxy` environment variable. When this variable is set, Hardhat will send its requests through the given proxy for things like JSON-RPC requests, mainnet forking and downloading compilers.
+
+  We also removed support for the `HTTP_PROXY` and `HTTPS_PROXY` environment variables, since `http_proxy` is the most commonly used environment variable for this kind of thing. Those variables could only be used for downloading compilers.
+
+  Finally, we also added support for `no_proxy`, which accepts a comma separated list of hosts or `"*"`. Any host included in this list will not be proxied.
+
+  Note that requests to `"localhost"` or `"127.0.0.1"` are never proxied.
+
+- 69546655e: Added support for sending batch requests through WebSocket to the Hardhat node (thanks @tenbits!)
+- 6bf1673bb: Added a config validation for the number of optimizer runs used (thanks @konarshankar07!)
+
 ## 2.12.6
 
 ### Patch Changes

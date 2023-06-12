@@ -220,6 +220,30 @@ export class EthereumJSAdapter implements VMAdapter {
     let originalCommon: Common | undefined;
 
     try {
+      // If this VM is running without EIP4895, but the block has withdrawals,
+      // we remove them and the withdrawal root from the block
+      if (
+        !this._isEip4895Active(blockContext.header.number) &&
+        blockContext.withdrawals !== undefined
+      ) {
+        blockContext = Block.fromBlockData(
+          {
+            ...blockContext,
+            withdrawals: undefined,
+            header: {
+              ...blockContext.header,
+              withdrawalsRoot: undefined,
+            },
+          },
+          {
+            freeze: false,
+            common: this._vm._common,
+
+            skipConsensusFormatValidation: true,
+          }
+        );
+      }
+
       // NOTE: This is a workaround of both an @nomicfoundation/ethereumjs-vm limitation, and
       //   a bug in Hardhat Network.
       //
@@ -273,6 +297,7 @@ export class EthereumJSAdapter implements VMAdapter {
             skipNonce: true,
             skipBalance: true,
             skipBlockGasLimitValidation: true,
+            skipHardForkValidation: true,
           });
         },
         {
@@ -434,10 +459,14 @@ export class EthereumJSAdapter implements VMAdapter {
       if (txHash.equals(hash)) {
         const vmDebugTracer = new VMDebugTracer(vm);
         return vmDebugTracer.trace(async () => {
-          await vm.runTx({ tx: txWithCommon, block });
+          await vm.runTx({
+            tx: txWithCommon,
+            block,
+            skipHardForkValidation: true,
+          });
         }, config);
       }
-      await vm.runTx({ tx: txWithCommon, block });
+      await vm.runTx({ tx: txWithCommon, block, skipHardForkValidation: true });
     }
     throw new TransactionExecutionError(
       `Unable to find a transaction in a block that contains that transaction, this should never happen`
@@ -615,6 +644,19 @@ export class EthereumJSAdapter implements VMAdapter {
       );
     }
     return this._common.gteHardfork("london");
+  }
+
+  private _isEip4895Active(blockNumberOrPending?: bigint | "pending"): boolean {
+    if (
+      blockNumberOrPending !== undefined &&
+      blockNumberOrPending !== "pending"
+    ) {
+      return this._vm._common.hardforkGteHardfork(
+        this._selectHardfork(blockNumberOrPending),
+        "shanghai"
+      );
+    }
+    return this._vm._common.gteHardfork("shanghai");
   }
 
   private async _beforeMessageHandler(

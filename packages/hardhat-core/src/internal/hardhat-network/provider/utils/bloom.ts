@@ -11,7 +11,7 @@ import { assertHardhatInvariant } from "../../../core/errors";
 const BYTE_SIZE = 256;
 
 export class Bloom {
-  bitvector: Buffer;
+  public bitvector: Buffer;
 
   /**
    * Represents a Bloom filter.

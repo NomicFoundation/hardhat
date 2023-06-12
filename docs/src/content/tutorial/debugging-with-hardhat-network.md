@@ -1,6 +1,6 @@
 # 6. Debugging with Hardhat Network
 
-Hardhat comes built-in with Hardhat Network, a local Ethereum network designed for development. It allows you to deploy your contracts, run your tests and debug your code, all within the confines of your local machine. It's the default network Hardhat that connects to, so you don't need to set up anything for it to work. Just run your tests.
+Hardhat comes built-in with Hardhat Network, a local Ethereum network designed for development. It allows you to deploy your contracts, run your tests and debug your code, all within the confines of your local machine. It's the default network that Hardhat connects to, so you don't need to set up anything for it to work. Just run your tests.
 
 ## Solidity `console.log`
 

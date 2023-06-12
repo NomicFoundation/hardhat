@@ -134,7 +134,7 @@ export class FakeSenderAccessListEIP2930Transaction extends AccessListEIP2930Tra
         r: data.r ?? fakeSignature.r,
         s: data.s ?? fakeSignature.s,
       },
-      { ...opts, freeze: false }
+      { ...opts, freeze: false, disableMaxInitCodeSizeCheck: true }
     );
 
     this.common = this._getCommon(opts?.common);

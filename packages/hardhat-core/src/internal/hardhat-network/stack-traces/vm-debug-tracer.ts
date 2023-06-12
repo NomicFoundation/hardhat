@@ -315,6 +315,13 @@ export class VMDebugTracer {
   }
 
   private _getMemory(step: InterpreterStep): string[] {
+    // if disableMemory is true, we just return an empty array to
+    // avoid wasting (real) memory, since we are going to discard
+    // this later anyway
+    if (this._config?.disableMemory === true) {
+      return [];
+    }
+
     const memory = Buffer.from(step.memory)
       .toString("hex")
       .match(/.{1,64}/g);

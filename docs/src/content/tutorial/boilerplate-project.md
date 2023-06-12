@@ -45,7 +45,7 @@ npm install
 npx hardhat node
 ```
 
-Here we just install the npm project's dependencies, and by running `npx hardhat node` we spin up an instance of Hardhat Network that you can connect to using MetaMask. In a different terminal in the same directory, run:
+Here we just install the npm project's dependencies, and by running `npx hardhat node` we spin up an instance of Hardhat Network that you can connect to using your wallet. In a different terminal in the same directory, run:
 
 ```
 npx hardhat --network localhost run scripts/deploy.js
@@ -61,9 +61,9 @@ npm run start
 
 Then open [http://127.0.0.1:3000/](http://127.0.0.1:3000/) in your browser and you should see this: ![](/front-5.png)
 
-Set your network in MetaMask to `127.0.0.1:8545`.
+Click the button to connect your wallet. If you are using MetaMask, make sure you have selected the `Localhost 8545` network.
 
-Now click the button in the web app. You should then see this:
+After connecting your wallet, you should see this:
 
 ![](/front-2.png)
 

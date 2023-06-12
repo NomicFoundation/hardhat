@@ -11,6 +11,7 @@ Here are some links you might find useful throughout your journey:
 - [Ethers.js Documentation](https://docs.ethers.io/)
 - [Mocha Documentation](https://mochajs.org/)
 - [Chai Documentation](https://www.chaijs.com/)
+- [Alchemy's smart contract tutorial](https://docs.alchemy.com/docs/hello-world-smart-contract) to also learn how to use Metamask and Solidity as well as an RPC endpoint like the one that Alchemy provides.
 
 Further things to do with your smart contract using Hardhat:
 

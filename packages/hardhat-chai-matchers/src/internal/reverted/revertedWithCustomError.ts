@@ -1,4 +1,5 @@
 import { AssertionError } from "chai";
+import ordinal from "ordinal";
 
 import { buildAssert, Ssfi } from "../../utils";
 import { decodeReturnData, getReturnDataFromError } from "./utils";
@@ -193,6 +194,16 @@ export async function revertedWithCustomErrorWithArgs(
         throw e;
       }
     } else if (Array.isArray(expectedArg)) {
+      const expectedLength = expectedArg.length;
+      const actualLength = actualArg.length;
+      assert(
+        expectedLength === actualLength,
+        `Expected the ${ordinal(i + 1)} argument of the "${
+          customError.name
+        }" custom error to have ${expectedLength} ${
+          expectedLength === 1 ? "element" : "elements"
+        }, but it has ${actualLength}`
+      );
       new Assertion(actualArg).to.deep.equal(expectedArg);
     } else {
       new Assertion(actualArg).to.equal(expectedArg);

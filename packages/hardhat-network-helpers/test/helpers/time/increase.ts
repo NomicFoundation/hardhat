@@ -7,52 +7,76 @@ import { NumberLike } from "../../../src/types";
 import { useEnvironment } from "../../test-utils";
 
 describe("time#increase", function () {
-  useEnvironment("simple");
+  describe("simple project", function () {
+    useEnvironment("simple");
 
-  it("should mine a new block with the timestamp increased by a given number of seconds", async function () {
-    const initialBlockNumber = await hh.time.latestBlock();
-    const initialTimestamp = await hh.time.latest();
+    it("should mine a new block with the timestamp increased by a given number of seconds", async function () {
+      const initialBlockNumber = await hh.time.latestBlock();
+      const initialTimestamp = await hh.time.latest();
 
-    const newTimestamp = initialTimestamp + 10000;
+      const newTimestamp = initialTimestamp + 10000;
 
-    const returnedTimestamp = await hh.time.increase(10000);
+      const returnedTimestamp = await hh.time.increase(10000);
 
-    const endBlockNumber = await hh.time.latestBlock();
-    const endTimestamp = await hh.time.latest();
+      const endBlockNumber = await hh.time.latestBlock();
+      const endTimestamp = await hh.time.latest();
 
-    assert.equal(endBlockNumber, initialBlockNumber + 1);
-    assert.equal(newTimestamp, endTimestamp);
-    assert.equal(returnedTimestamp, endTimestamp);
-    assert(endTimestamp - initialTimestamp === 10000);
+      assert.equal(endBlockNumber, initialBlockNumber + 1);
+      assert.equal(newTimestamp, endTimestamp);
+      assert.equal(returnedTimestamp, endTimestamp);
+      assert(endTimestamp - initialTimestamp === 10000);
+    });
+
+    it("should throw if given zero number of seconds", async function () {
+      await assert.isRejected(hh.time.increase(0));
+    });
+
+    it("should throw if given a negative number of seconds", async function () {
+      await assert.isRejected(hh.time.increase(-1));
+    });
+
+    describe("accepted parameter types for number of seconds", function () {
+      const nonceExamples: Array<[string, NumberLike]> = [
+        ["number", 100],
+        ["bigint", BigInt(100)],
+        ["hex encoded", "0x64"],
+        ["ethers's bignumber instances", ethers.BigNumber.from(100)],
+        ["bn.js instances", new BN(100)],
+      ];
+
+      for (const [type, value] of nonceExamples) {
+        it(`should accept an argument of type ${type}`, async function () {
+          const initialTimestamp = await hh.time.latest();
+
+          await hh.time.increase(value);
+
+          const endTimestamp = await hh.time.latest();
+
+          assert(endTimestamp - initialTimestamp === 100);
+        });
+      }
+    });
   });
 
-  it("should throw if given zero number of seconds", async function () {
-    await assert.isRejected(hh.time.increase(0));
-  });
+  describe("blocks with same timestamp", function () {
+    useEnvironment("allow-blocks-same-timestamp");
 
-  it("should throw if given a negative number of seconds", async function () {
-    await assert.isRejected(hh.time.increase(-1));
-  });
+    it("should not throw if given zero number of seconds", async function () {
+      const initialBlockNumber = await hh.time.latestBlock();
+      const initialTimestamp = await hh.time.latest();
 
-  describe("accepted parameter types for number of seconds", function () {
-    const nonceExamples: Array<[string, NumberLike]> = [
-      ["number", 100],
-      ["bigint", BigInt(100)],
-      ["hex encoded", "0x64"],
-      ["ethers's bignumber instances", ethers.BigNumber.from(100)],
-      ["bn.js instances", new BN(100)],
-    ];
+      const returnedTimestamp = await hh.time.increase(0);
 
-    for (const [type, value] of nonceExamples) {
-      it(`should accept an argument of type ${type}`, async function () {
-        const initialTimestamp = await hh.time.latest();
+      const endBlockNumber = await hh.time.latestBlock();
+      const endTimestamp = await hh.time.latest();
 
-        await hh.time.increase(value);
+      assert.equal(endBlockNumber, initialBlockNumber + 1);
+      assert.equal(returnedTimestamp, endTimestamp);
+      assert.equal(endTimestamp, initialTimestamp);
+    });
 
-        const endTimestamp = await hh.time.latest();
-
-        assert(endTimestamp - initialTimestamp === 100);
-      });
-    }
+    it("should throw if given a negative number of seconds", async function () {
+      await assert.isRejected(hh.time.increase(-1));
+    });
   });
 });

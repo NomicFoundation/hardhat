@@ -369,14 +369,6 @@ const communityPlugins: IPlugin[] = [
     tags: ["Blockscout", "Deployment", "Solidity", "Verification"],
   },
   {
-    name: "@georacle/hardhat-georacle",
-    author: "Georacle",
-    authorUrl: "https://georacle.io",
-    description:
-      "A Hardhat plugin for integrating smart contracts with Georacle.",
-    tags: ["Georacle", "oracle", "geospatial"],
-  },
-  {
     name: "@muzamint/hardhat-etherspot",
     author: "muzamint",
     authorUrl: "https://github.com/muzamint",
@@ -500,6 +492,21 @@ const communityPlugins: IPlugin[] = [
     description:
       "Handy set of utilities for testing contracts in Hardhat projects",
     tags: ["testing", "solidity"],
+  },
+  {
+    name: "hardhat-deals",
+    author: "use less",
+    authorUrl: "https://github.com/Karuzzzo",
+    description: "Small hardhat task for debug money transfers 🤝💰",
+    tags: ["Deployment", "Testing", "Security", "Debug", "helper", "Tasks"],
+  },
+  {
+    name: "hardhat-contract-dumper",
+    author: "use less",
+    authorUrl: "https://github.com/Karuzzzo",
+    description:
+      "Another small hardhat task for printing contract's storage layout 📐",
+    tags: ["Deployment", "Testing", "Security", "Debug", "helper", "Tasks"],
   },
   {
     name: "@0xweb/hardhat",
@@ -671,6 +678,101 @@ const communityPlugins: IPlugin[] = [
       "Hardhat plugin to check and lock the storage layout of contracts",
     tags: ["Tooling", "Testing", "Storage"],
   },
+  {
+    name: "hardhat-insight",
+    author: "Andres Adjimann",
+    authorUrl: "https://www.npmjs.com/package/hardhat-insight",
+    description:
+      "Hardhat plugin to get contract storage, gas and code size insights using the compiler ast output",
+    tags: ["Tooling", "Storage", "Gas", "Size", "Bytecode"],
+  },
+  {
+    name: "hardhat-scilla-plugin",
+    author: "Saeed Dadkhah",
+    authorUrl: "https://www.github.com/its-saeed",
+    description:
+      "Hardhat plugin to test scilla contracts. Scilla is Zillqa's programming language to develop smart contracts.",
+    tags: ["Scilla", "Testing", "Zilliqa"],
+  },
+  {
+    name: "hardhat-flat-exporter",
+    author: "Laz",
+    authorUrl: "https://github.com/Saszr",
+    description: "Export flat contract on compilation via Hardhat.",
+    tags: ["Flatten", "Smart contract", "Solidity", "Deployment"],
+  },
+  {
+    name: "@chainlink/hardhat-chainlink",
+    author: "Chainlink Labs",
+    authorUrl: "https://github.com/smartcontractkit/hardhat-chainlink",
+    description: "Integrates Chainlink into Hardhat projects.",
+    tags: ["chainlink", "hardhat"],
+  },
+  {
+    name: "@dlsl/hardhat-markup",
+    author: "Distributed Lab",
+    authorUrl: "https://distributedlab.com/",
+    description:
+      "Hardhat plugin to generate customizable smart contracts documentation",
+    tags: ["Documentation", "NatSpec", "Markdown"],
+  },
+  {
+    name: "hardhat-contract-clarity",
+    author: "Marc-Aurele Besner",
+    authorUrl: "https://github.com/marc-aurele-besner",
+    description:
+      "This Hardhat plugin add 3 tasks to Hardhat, to summarize a smart contract in human readable format using OpenAI GPT-3, to create a readme looking at your package.json and a task to ask question to chatGPT when running into errors.",
+    tags: ["chatGPT", "openai", "gpt3", "ai"],
+  },
+  {
+    name: "transaction-retry-tool",
+    author: "Marc-Aurele Besner",
+    authorUrl: "https://github.com/marc-aurele-besner",
+    description:
+      "This Hardhat plugin provides two tasks and two functions to help you manage and optimize your transactions on Ethereum compatible blockchain. The two tasks include the ability to retry a transaction and retrieve the current gas cost.",
+    tags: ["transaction", "gasPrice", "retry", "helper"],
+  },
+  {
+    name: "hardhat-fireblocks",
+    author: "Fireblocks",
+    authorUrl: "https://github.com/fireblocks",
+    description: "Hardhat plugin for integrating with Fireblocks",
+    tags: ["Deployment", "Security"],
+  },
+  {
+    name: "hardhat-uniswap-v2-deploy-plugin",
+    author: "Cyrille Derché",
+    authorUrl: "https://github.com/onmychain/hardhat-uniswap-v2-deploy-plugin",
+    description:
+      "Hardhat plugin for Uniswap V2 (pancakeswap protocol) testing and deployment. You can use it to test features such as pair creation, liquidity provisioning, and swaps.",
+    tags: ["uniswap", "pancakeswap", "testing", "deployment", "automated"],
+  },
+  {
+    name: "hardhat-deal",
+    author: "Rubilmax",
+    authorUrl: "https://github.com/rubilmax/hardhat-deal",
+    description:
+      "Hardhat plugin to ease dealing ERC20 tokens in hardhat forks.",
+    tags: [
+      "erc20",
+      "deal",
+      "foundry",
+      "forge",
+      "mock",
+      "balanceOf",
+      "fork",
+      "testing",
+      "tests",
+    ],
+  },
+  {
+    name: "@truffle/dashboard-hardhat-plugin",
+    author: "Truffle",
+    authorUrl: "https://trufflesuite.com/",
+    description:
+      "Enable project-specific features inside Truffle Dashboard, including advanced calldata decoding and more",
+    tags: ["truffle-dashboard", "transaction", "signing", "decoding"],
+  },
 ];
 
 const officialPlugins: IPlugin[] = [
@@ -696,10 +798,10 @@ const officialPlugins: IPlugin[] = [
     tags: ["Ethers.js", "Testing", "Tasks", "Scripts"],
   },
   {
-    name: "@nomiclabs/hardhat-etherscan",
+    name: "@nomicfoundation/hardhat-verify",
     author: "Nomic Foundation",
     authorUrl: "https://twitter.com/NomicFoundation",
-    description: "Automatically verify contracts on Etherscan",
+    description: "Automatically verify contracts",
     tags: ["Etherscan", "Verification"],
   },
   {
@@ -739,13 +841,6 @@ const officialPlugins: IPlugin[] = [
     description:
       "Adds a Waffle-compatible provider to the Hardhat Runtime Environment and automatically initializes the Waffle Chai matchers",
     tags: ["Waffle", "Testing"],
-  },
-  {
-    name: "@nomiclabs/hardhat-ganache",
-    author: "Nomic Foundation",
-    authorUrl: "https://twitter.com/NomicFoundation",
-    description: "Hardhat plugin for managing Ganache",
-    tags: ["Ganache", "Testing network"],
   },
   {
     name: "@nomiclabs/hardhat-web3",

@@ -110,10 +110,10 @@ export function assertTxHash(hexString: string): void {
   }
 }
 
-export function assertPositiveNumber(n: bigint): void {
-  if (n <= BigInt(0)) {
+export function assertNonNegativeNumber(n: bigint): void {
+  if (n < BigInt(0)) {
     throw new HardhatNetworkHelpersError(
-      `Invalid input: expected a positive number but ${n} was given.`
+      `Invalid input: expected a non-negative number but ${n} was given.`
     );
   }
 }

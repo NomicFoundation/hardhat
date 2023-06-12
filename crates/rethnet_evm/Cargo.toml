@@ -28,9 +28,21 @@ criterion = { version = "0.4.0", default-features = false, features = ["cargo_be
 
 [features]
 bench-once = [] # limits the benchmark variants to one
-test-disable-remote = []
+test-remote = []
 tracing = ["dep:tracing"]
 
 [[bench]]
 name = "state"
+harness = false
+
+[[bench]]
+name = "state_debug"
+harness = false
+
+[[bench]]
+name = "state_history"
+harness = false
+
+[[bench]]
+name = "state_history_block_context"
 harness = false

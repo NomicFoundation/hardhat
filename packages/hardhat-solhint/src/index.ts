@@ -11,10 +11,8 @@ function getDefaultConfig() {
 
 function getFormatter(formatterName = "stylish") {
   try {
-    const solhintPath = require.resolve("solhint");
     const formatterPath = require.resolve(
-      `eslint/lib/formatters/${formatterName}`,
-      { paths: [solhintPath] }
+      `solhint/lib/formatters/${formatterName}`
     );
     return require(formatterPath);
   } catch (ex: any) {
@@ -47,9 +45,10 @@ async function hasConfigFile(rootDirectory: string) {
 
 async function getSolhintConfig(rootDirectory: string) {
   let solhintConfig;
-  const { loadConfig, applyExtends } = await import(
-    "solhint/lib/config/config-file"
-  );
+  const {
+    loadConfig,
+    applyExtends,
+  } = require("solhint/lib/config/config-file");
   if (await hasConfigFile(rootDirectory)) {
     try {
       solhintConfig = await loadConfig();
@@ -83,9 +82,9 @@ function printReport(reports: any) {
 }
 
 subtask("hardhat-solhint:run-solhint", async (_, { config }) => {
-  const { processPath } = await import("solhint/lib/index");
+  const { processPath } = require("solhint/lib/index");
   return processPath(
-    join(config.paths.sources, "**", "*.sol"),
+    join(config.paths.sources, "**", "*.sol").replace(/\\/g, "/"),
     await getSolhintConfig(config.paths.root)
   );
 });
