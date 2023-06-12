@@ -13,7 +13,11 @@ import * as ethWrapper from "../src/internal/wrap-transport";
 import * as cache from "../src/internal/cache";
 import { LedgerProvider } from "../src/provider";
 import { EthWrapper, LedgerOptions } from "../src/types";
-import { DerivationPathError, LedgerProviderError } from "../src/errors";
+import {
+  ConnectionError,
+  DerivationPathError,
+  LedgerProviderError,
+} from "../src/errors";
 import { EthereumMockedProvider } from "./mocks";
 
 describe("LedgerProvider", () => {
@@ -164,10 +168,10 @@ describe("LedgerProvider", () => {
       try {
         await provider.init();
       } catch (error) {
-        assert.instanceOf(error, LedgerProviderError);
+        assert.instanceOf(error, ConnectionError);
         assert.equal(
-          (error as LedgerProviderError).message,
-          `There was an error trying to stablish a connection to the Ledger wallet: "${createError.message}".`
+          (error as ConnectionError).message,
+          `There was an error trying to establish a connection to the Ledger wallet: "${createError.message}".`
         );
       }
     });
@@ -182,10 +186,10 @@ describe("LedgerProvider", () => {
       try {
         await provider.init();
       } catch (error) {
-        assert.instanceOf(error, LedgerProviderError);
+        assert.instanceOf(error, ConnectionError);
         assert.equal(
-          (error as LedgerProviderError).message,
-          `There was an error trying to stablish a connection to the Ledger wallet: "${createError.message}". The error id was: ${createError.id}`
+          (error as ConnectionError).message,
+          `There was an error trying to establish a connection to the Ledger wallet: "${createError.message}". The error id was: ${createError.id}`
         );
       }
     });

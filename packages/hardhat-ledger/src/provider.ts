@@ -23,7 +23,12 @@ import { ERRORS } from "hardhat/internal/core/errors-list";
 import { wrapTransport } from "./internal/wrap-transport";
 import * as cache from "./internal/cache";
 import { LedgerOptions, EthWrapper, Signature, Paths } from "./types";
-import { DerivationPathError, LedgerProviderError } from "./errors";
+import {
+  ConnectionError,
+  DerivationPathError,
+  LedgerProviderError,
+  NotControlledAddressError,
+} from "./errors";
 
 export class LedgerProvider extends ProviderWrapperWithChainId {
   public static readonly MAX_DERIVATION_ACCOUNTS = 20;
@@ -95,13 +100,13 @@ export class LedgerProvider extends ProviderWrapperWithChainId {
         this.emit("connection_failure");
 
         if (error instanceof Error) {
-          let errorMessage = `There was an error trying to stablish a connection to the Ledger wallet: "${error.message}".`;
+          let errorMessage = `There was an error trying to establish a connection to the Ledger wallet: "${error.message}".`;
 
           if (error.name === "TransportError") {
             const transportError = error as TransportError;
             errorMessage += ` The error id was: ${transportError.id}`;
           }
-          throw new LedgerProviderError(errorMessage);
+          throw new ConnectionError(errorMessage);
         }
 
         throw error;
@@ -145,7 +150,12 @@ export class LedgerProvider extends ProviderWrapperWithChainId {
         if (args.method === "eth_sendTransaction" && params.length > 0) {
           return await this._ethSendTransaction(params);
         }
-      } catch (error) {}
+      } catch (error) {
+        // We skip non controlled errors and forward them to the wrapped provider
+        if (!(error instanceof NotControlledAddressError)) {
+          throw error;
+        }
+      }
     }
 
     return this._wrappedProvider.request(args);
@@ -425,11 +435,14 @@ export class LedgerProvider extends ProviderWrapperWithChainId {
   }
 
   private _requireControlledAddress(address: Buffer): void {
-    const isControlledAddress = this.options.accounts.includes(
-      this._toHex(address).toLowerCase()
-    );
+    const hexAddress = this._toHex(address).toLowerCase();
+    const isControlledAddress = this.options.accounts.includes(hexAddress);
+
     if (!isControlledAddress) {
-      throw new LedgerProviderError("Not controlled");
+      throw new NotControlledAddressError(
+        "Tried to send a transaction with an address we don't control.",
+        hexAddress
+      );
     }
   }
 

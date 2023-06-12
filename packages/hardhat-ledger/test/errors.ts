@@ -1,6 +1,10 @@
 import { assert } from "chai";
 
-import { DerivationPathError, LedgerProviderError } from "../src/errors";
+import {
+  DerivationPathError,
+  LedgerProviderError,
+  NotControlledAddressError,
+} from "../src/errors";
 
 describe("LedgerProviderError", () => {
   it("should set the plugin name of the error", () => {
@@ -12,6 +16,20 @@ describe("LedgerProviderError", () => {
     const message = "Some message";
     const error = new LedgerProviderError(message);
     assert.equal(error.message, message);
+  });
+});
+
+describe("NotControlledAddressError", () => {
+  it("should set the message of the error", () => {
+    const message = "Look, a message";
+    const error = new NotControlledAddressError(message, "");
+    assert.equal(error.message, message);
+  });
+
+  it("should store the address", () => {
+    const address = "0x3d6e2674e40ea221b4a48663d28eff77af564a50";
+    const error = new NotControlledAddressError("", address);
+    assert.equal(error.address, address);
   });
 });
 
