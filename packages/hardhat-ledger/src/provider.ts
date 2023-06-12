@@ -51,7 +51,7 @@ export class LedgerProvider extends ProviderWrapperWithChainId {
     super(_wrappedProvider);
 
     this.options.accounts = options.accounts.map((account) => {
-      if (isValidAddress(account) === false) {
+      if (!isValidAddress(account)) {
         throw new LedgerProviderError(
           `The following ledger address from the config is invalid: ${account}`
         );
@@ -68,7 +68,7 @@ export class LedgerProvider extends ProviderWrapperWithChainId {
   }
 
   public async init(): Promise<void> {
-    if (this._eth === undefined && this._isCreatingTransport === false) {
+    if (this._eth === undefined && !this._isCreatingTransport) {
       this._isCreatingTransport = true;
 
       const openTimeout =
@@ -128,30 +128,30 @@ export class LedgerProvider extends ProviderWrapperWithChainId {
       return [...accounts, ...this.options.accounts];
     }
 
-    if (this._methodRequiresInit(args.method)) {
-      await this.init();
+    if (this._methodRequiresSignature(args.method)) {
+      try {
+        if (args.method === "eth_sign") {
+          return await this._ethSign(params);
+        }
 
-      if (args.method === "eth_sign") {
-        return this._ethSign(params);
-      }
+        if (args.method === "personal_sign") {
+          return await this._personalSign(params);
+        }
 
-      if (args.method === "personal_sign") {
-        return this._personalSign(params);
-      }
+        if (args.method === "eth_signTypedData_v4") {
+          return await this._ethSignTypedDataV4(params);
+        }
 
-      if (args.method === "eth_signTypedData_v4") {
-        return this._ethSignTypedDataV4(params);
-      }
-
-      if (args.method === "eth_sendTransaction" && params.length > 0) {
-        return this._ethSendTransaction(params);
-      }
+        if (args.method === "eth_sendTransaction" && params.length > 0) {
+          return await this._ethSendTransaction(params);
+        }
+      } catch (error) {}
     }
 
     return this._wrappedProvider.request(args);
   }
 
-  private _methodRequiresInit(method: string): boolean {
+  private _methodRequiresSignature(method: string): boolean {
     return [
       "personal_sign",
       "eth_sign",
@@ -164,18 +164,18 @@ export class LedgerProvider extends ProviderWrapperWithChainId {
     if (params.length > 0) {
       const [address, data] = validateParams(params, rpcAddress, rpcData);
 
+      await this._requireControlledInit(address);
+
       if (address !== undefined) {
         if (data === undefined) {
           throw new HardhatError(ERRORS.NETWORK.ETHSIGN_MISSING_DATA_PARAM);
         }
 
-        if (this._isControlledAddress(address)) {
-          const path = await this._derivePath(address);
-          const signature = await this._withConfirmation(() =>
-            this.eth.signPersonalMessage(path, data.toString("hex"))
-          );
-          return this._toRpcSig(signature);
-        }
+        const path = await this._derivePath(address);
+        const signature = await this._withConfirmation(() =>
+          this.eth.signPersonalMessage(path, data.toString("hex"))
+        );
+        return this._toRpcSig(signature);
       }
     }
   }
@@ -184,6 +184,8 @@ export class LedgerProvider extends ProviderWrapperWithChainId {
     if (params.length > 0) {
       const [data, address] = validateParams(params, rpcData, rpcAddress);
 
+      await this._requireControlledInit(address);
+
       if (data !== undefined) {
         if (address === undefined) {
           throw new HardhatError(
@@ -191,19 +193,19 @@ export class LedgerProvider extends ProviderWrapperWithChainId {
           );
         }
 
-        if (this._isControlledAddress(address)) {
-          const path = await this._derivePath(address);
-          const signature = await this._withConfirmation(() =>
-            this.eth.signPersonalMessage(path, data.toString("hex"))
-          );
-          return this._toRpcSig(signature);
-        }
+        const path = await this._derivePath(address);
+        const signature = await this._withConfirmation(() =>
+          this.eth.signPersonalMessage(path, data.toString("hex"))
+        );
+        return this._toRpcSig(signature);
       }
     }
   }
 
   private async _ethSignTypedDataV4(params: any[]): Promise<unknown> {
     const [address, data] = validateParams(params, rpcAddress, t.any as any);
+
+    await this._requireControlledInit(address);
 
     if (data === undefined) {
       throw new HardhatError(ERRORS.NETWORK.ETHSIGN_MISSING_DATA_PARAM);
@@ -224,34 +226,33 @@ export class LedgerProvider extends ProviderWrapperWithChainId {
       );
     }
 
-    // If we don't manage the address, the method is forwarded
-    if (this._isControlledAddress(address)) {
-      const { types, domain, message, primaryType } = typedMessage;
-      const { EIP712Domain: _, ...structTypes } = types;
+    const { types, domain, message, primaryType } = typedMessage;
+    const { EIP712Domain: _, ...structTypes } = types;
 
-      const path = await this._derivePath(address);
-      const signature = await this._withConfirmation(async () => {
-        try {
-          return await this.eth.signEIP712Message(path, typedMessage);
-        } catch (error) {
-          return this.eth.signEIP712HashedMessage(
-            path,
-            ethers.utils._TypedDataEncoder.hashDomain(domain),
-            ethers.utils._TypedDataEncoder.hashStruct(
-              primaryType,
-              structTypes,
-              message
-            )
-          );
-        }
-      });
+    const path = await this._derivePath(address);
+    const signature = await this._withConfirmation(async () => {
+      try {
+        return await this.eth.signEIP712Message(path, typedMessage);
+      } catch (error) {
+        return this.eth.signEIP712HashedMessage(
+          path,
+          ethers.utils._TypedDataEncoder.hashDomain(domain),
+          ethers.utils._TypedDataEncoder.hashStruct(
+            primaryType,
+            structTypes,
+            message
+          )
+        );
+      }
+    });
 
-      return this._toRpcSig(signature);
-    }
+    return this._toRpcSig(signature);
   }
 
   private async _ethSendTransaction(params: any[]): Promise<unknown> {
     const [txRequest] = validateParams(params, rpcTransactionRequest);
+
+    await this._requireControlledInit(txRequest.from);
 
     if (txRequest.gas === undefined) {
       throw new HardhatError(ERRORS.NETWORK.MISSING_TX_PARAM_TO_SIGN_LOCALLY, {
@@ -290,51 +291,44 @@ export class LedgerProvider extends ProviderWrapperWithChainId {
       });
     }
 
-    // If we don't manage the address, the method is forwarded
-    if (this._isControlledAddress(txRequest.from)) {
-      const path = await this._derivePath(txRequest.from);
+    const path = await this._derivePath(txRequest.from);
 
-      if (txRequest.nonce === undefined) {
-        txRequest.nonce = await this._getNonce(txRequest.from);
-      }
-
-      const chainId = await this._getChainId();
-
-      const baseTx: ethers.utils.UnsignedTransaction = {
-        chainId,
-        data: txRequest.data,
-        gasLimit: txRequest.gas,
-        gasPrice: txRequest.gasPrice,
-        nonce: Number(txRequest.nonce),
-        value: txRequest.value,
-      };
-      if (txRequest.to !== undefined) {
-        baseTx.to = this._toHex(txRequest.to);
-      }
-
-      const txToSign = ethers.utils.serializeTransaction(baseTx).substring(2);
-
-      const resolution = await ledgerService.resolveTransaction(
-        txToSign,
-        {},
-        {}
-      );
-
-      const signature = await this._withConfirmation(() =>
-        this.eth.signTransaction(path, txToSign, resolution)
-      );
-
-      const rawTransaction = ethers.utils.serializeTransaction(baseTx, {
-        v: ethers.BigNumber.from(this._toHex(signature.v)).toNumber(),
-        r: this._toHex(signature.r),
-        s: this._toHex(signature.s),
-      });
-
-      return this._wrappedProvider.request({
-        method: "eth_sendRawTransaction",
-        params: [rawTransaction],
-      });
+    if (txRequest.nonce === undefined) {
+      txRequest.nonce = await this._getNonce(txRequest.from);
     }
+
+    const chainId = await this._getChainId();
+
+    const baseTx: ethers.utils.UnsignedTransaction = {
+      chainId,
+      data: txRequest.data,
+      gasLimit: txRequest.gas,
+      gasPrice: txRequest.gasPrice,
+      nonce: Number(txRequest.nonce),
+      value: txRequest.value,
+    };
+    if (txRequest.to !== undefined) {
+      baseTx.to = this._toHex(txRequest.to);
+    }
+
+    const txToSign = ethers.utils.serializeTransaction(baseTx).substring(2);
+
+    const resolution = await ledgerService.resolveTransaction(txToSign, {}, {});
+
+    const signature = await this._withConfirmation(() =>
+      this.eth.signTransaction(path, txToSign, resolution)
+    );
+
+    const rawTransaction = ethers.utils.serializeTransaction(baseTx, {
+      v: ethers.BigNumber.from(this._toHex(signature.v)).toNumber(),
+      r: this._toHex(signature.r),
+      s: this._toHex(signature.s),
+    });
+
+    return this._wrappedProvider.request({
+      method: "eth_sendRawTransaction",
+      params: [rawTransaction],
+    });
   }
 
   private async _derivePath(addressToFindAsBuffer: Buffer): Promise<string> {
@@ -424,11 +418,22 @@ export class LedgerProvider extends ProviderWrapperWithChainId {
     return rpcQuantityToBigInt(response);
   }
 
-  private _isControlledAddress(address: Buffer): boolean {
-    return this.options.accounts.includes(this._toHex(address).toLowerCase());
+  private async _requireControlledInit(address: Buffer): Promise<void> {
+    // If we don't manage the address, the method will be forwarded on .request()
+    this._requireControlledAddress(address);
+    await this.init();
   }
 
-  private _toHex(value: string | Buffer) {
+  private _requireControlledAddress(address: Buffer): void {
+    const isControlledAddress = this.options.accounts.includes(
+      this._toHex(address).toLowerCase()
+    );
+    if (!isControlledAddress) {
+      throw new LedgerProviderError("Not controlled");
+    }
+  }
+
+  private _toHex(value: string | Buffer): string {
     const stringValue =
       typeof value === "string" ? value : value.toString("hex");
 
