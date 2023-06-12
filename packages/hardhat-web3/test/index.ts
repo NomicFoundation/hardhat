@@ -19,13 +19,9 @@ describe("Web3 plugin", function () {
         }).send({
           from: (await this.env.web3.eth.getAccounts())[0],
         });
-        await Promise.all([
-          response.on("error", (...args) => console.log("error", args)),
-          response.on("transactionHash", (...args) =>
-            console.log("transactionHash", args)
-          ),
-          response.on("receipt", (...args) => console.log("receipt", args)),
-        ]);
+        await new Promise<void>((resolve) =>
+          response.on("receipt", () => resolve())
+        );
       });
     });
   });
@@ -42,13 +38,9 @@ describe("Web3 plugin", function () {
         }).send({
           from,
         });
-        await Promise.all([
-          response.on("error", (...args) => console.log("error", args)),
-          response.on("transactionHash", (...args) =>
-            console.log("transactionHash", args)
-          ),
-          response.on("receipt", (...args) => console.log("receipt", args)),
-        ]);
+        await new Promise<void>((resolve) =>
+          response.on("receipt", () => resolve())
+        );
       });
     });
   });
