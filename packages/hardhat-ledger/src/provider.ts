@@ -353,7 +353,7 @@ export class LedgerProvider extends ProviderWrapperWithChainId {
         account <= LedgerProvider.MAX_DERIVATION_ACCOUNTS;
         account++
       ) {
-        path = `44'/60'/${account}'/0'/0`;
+        path = `44'/60'/${account}'/0/0`;
 
         this.emit("derivation_progress", path);
 
@@ -381,7 +381,7 @@ export class LedgerProvider extends ProviderWrapperWithChainId {
 
     this.emit("derivation_failure");
     throw new DerivationPathError(
-      `Could not find a valid derivation path for ${addressToFind}. Paths from m/44'/60'/0/0'/0 to m/44'/60'/${LedgerProvider.MAX_DERIVATION_ACCOUNTS}'/0'/0 were searched.`,
+      `Could not find a valid derivation path for ${addressToFind}. Paths from m/44'/60'/0'/0/0 to m/44'/60'/${LedgerProvider.MAX_DERIVATION_ACCOUNTS}'/0/0 were searched.`,
       path
     );
   }

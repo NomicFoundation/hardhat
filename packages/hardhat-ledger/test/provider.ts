@@ -232,7 +232,7 @@ describe("LedgerProvider", () => {
 
       initSpy = sinon.spy(provider, "init");
 
-      path = "44'/60'/1'/0'/0";
+      path = "44'/60'/1'/0/0";
       account = {
         address: accounts[1],
         publicKey: "0x1",
@@ -507,8 +507,8 @@ describe("LedgerProvider", () => {
         await requestPersonalSign();
 
         sinon.assert.calledTwice(ethInstanceStub.getAddress);
-        sinon.assert.calledWith(ethInstanceStub.getAddress, "44'/60'/0'/0'/0");
-        sinon.assert.calledWith(ethInstanceStub.getAddress, "44'/60'/1'/0'/0");
+        sinon.assert.calledWith(ethInstanceStub.getAddress, "44'/60'/0'/0/0");
+        sinon.assert.calledWith(ethInstanceStub.getAddress, "44'/60'/1'/0/0");
       });
 
       it("should cache the path per address on the paths property", async () => {
@@ -524,7 +524,7 @@ describe("LedgerProvider", () => {
         try {
           await requestPersonalSign();
         } catch (error) {
-          const errorPath = "44'/60'/0'/0'/0";
+          const errorPath = "44'/60'/0'/0/0";
           assert.instanceOf(error, DerivationPathError);
           assert.equal((error as DerivationPathError).path, errorPath);
           assert.equal(
@@ -542,12 +542,12 @@ describe("LedgerProvider", () => {
           }));
           await requestPersonalSign();
         } catch (error) {
-          const errorPath = `44'/60'/${LedgerProvider.MAX_DERIVATION_ACCOUNTS}'/0'/0`;
+          const errorPath = `44'/60'/${LedgerProvider.MAX_DERIVATION_ACCOUNTS}'/0/0`;
           assert.instanceOf(error, DerivationPathError);
           assert.equal((error as DerivationPathError).path, errorPath);
           assert.equal(
             (error as DerivationPathError).message,
-            `Could not find a valid derivation path for ${accounts[1]}. Paths from m/44'/60'/0/0'/0 to m/${errorPath} were searched.`
+            `Could not find a valid derivation path for ${accounts[1]}. Paths from m/44'/60'/0'/0/0 to m/${errorPath} were searched.`
           );
         }
       });
@@ -614,12 +614,12 @@ describe("LedgerProvider", () => {
           sinon.assert.calledWithExactly(
             emitSpy,
             "derivation_progress",
-            "44'/60'/0'/0'/0"
+            "44'/60'/0'/0/0"
           );
           sinon.assert.calledWithExactly(
             emitSpy,
             "derivation_progress",
-            "44'/60'/1'/0'/0"
+            "44'/60'/1'/0/0"
           );
         });
 
@@ -628,7 +628,7 @@ describe("LedgerProvider", () => {
           sinon.assert.calledWithExactly(
             emitSpy,
             "derivation_success",
-            "44'/60'/1'/0'/0"
+            "44'/60'/1'/0/0"
           );
         });
 

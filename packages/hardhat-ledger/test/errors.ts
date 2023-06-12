@@ -23,7 +23,7 @@ describe("DerivationPathError", () => {
   });
 
   it("should store the path", () => {
-    const path = "44'/60'/0'/0'/0";
+    const path = "44'/60'/0'/0/0";
     const error = new DerivationPathError("", path);
     assert.equal(error.path, path);
   });
