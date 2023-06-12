@@ -403,7 +403,10 @@ export async function createProject() {
     await addGitIgnore(projectRoot);
   }
 
-  if (hasConsentedTelemetry() === undefined) {
+  if (
+    process.env.HARDHAT_DISABLE_TELEMETRY_PROMPT !== "true" &&
+    hasConsentedTelemetry() === undefined
+  ) {
     const telemetryConsent = await confirmTelemetryConsent();
 
     if (telemetryConsent !== undefined) {

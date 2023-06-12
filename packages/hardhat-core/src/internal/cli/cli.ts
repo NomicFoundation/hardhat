@@ -212,7 +212,8 @@ async function main() {
       telemetryConsent === undefined &&
       !isHelpCommand &&
       !isRunningOnCiServer() &&
-      process.stdout.isTTY === true
+      process.stdout.isTTY === true &&
+      process.env.HARDHAT_DISABLE_TELEMETRY_PROMPT !== "true"
     ) {
       telemetryConsent = await confirmTelemetryConsent();
 
