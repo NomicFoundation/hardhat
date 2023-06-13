@@ -89,7 +89,10 @@ pub async fn router(state: StateType) -> Router {
                                     data: jsonrpc::ResponseData::<serde_json::Value>::Error { error: jsonrpc::Error {
                                         code: 0,
                                         message: String::from("unsupported JSON-RPC method"),
-                                        data: Some(serde_json::to_value(method).unwrap()),
+                                        data: match serde_json::to_value(method) {
+                                            Ok(value) => Some(value),
+                                            Err(_) => None
+                                        }
                                     }}
                                 }))
                             }
