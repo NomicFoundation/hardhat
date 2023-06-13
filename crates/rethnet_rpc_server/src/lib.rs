@@ -27,13 +27,12 @@ pub async fn router(state: StateType) -> Router {
         "/",
         axum::routing::post(
             |State(rethnet_state): State<StateType>, payload: Json<serde_json::Value>| async move {
-                let request: RpcRequest = serde_json::from_value(payload.0.clone()).unwrap();
-                match request {
-                    RpcRequest {
+                match serde_json::from_value::<RpcRequest>(payload.0.clone()) {
+                    Ok(RpcRequest {
                         version,
                         id,
                         method: _,
-                    } if version != jsonrpc::Version::V2_0 => {
+                    }) if version != jsonrpc::Version::V2_0 => {
                         Json(serde_json::json!(jsonrpc::Response {
                             jsonrpc: jsonrpc::Version::V2_0,
                             id,
@@ -42,7 +41,7 @@ pub async fn router(state: StateType) -> Router {
                             )
                         }))
                     },
-                    RpcRequest { version: _, id, method } => {
+                    Ok(RpcRequest { version: _, id, method }) => {
                         match method {
                             MethodInvocation::Eth(EthMethodInvocation::GetBalance(address, _block_spec)) => {
                                 Json(serde_json::json!(jsonrpc::Response {
@@ -90,6 +89,19 @@ pub async fn router(state: StateType) -> Router {
                                 }))
                             }
                         }
+                    }
+                    Err(error) => {
+                        Json(serde_json::json!(jsonrpc::Response {
+                            jsonrpc: jsonrpc::Version::V2_0,
+                            id: jsonrpc::Id::Str(String::from("unknown")),
+                            data: jsonrpc::ResponseData::<()>::new_error(
+                                -32700, // from the JSON-RPC spec
+                                "Parse error",
+                                match serde_json::to_value(error.to_string()) {
+                                    Ok(error) => { Some(error) }
+                                    Err(_) => { None }
+                                })
+                        }))
                     }
                 }
             }
