@@ -1,9 +1,11 @@
+use std::net::{SocketAddr, TcpListener};
 use std::sync::Arc;
 
 use axum::{
     extract::{Json, State},
     Router,
 };
+use hashbrown::HashMap;
 use tokio::sync::RwLock;
 
 use rethnet_eth::{
@@ -12,10 +14,10 @@ use rethnet_eth::{
         jsonrpc,
         methods::{eth::EthMethodInvocation, hardhat::HardhatMethodInvocation, MethodInvocation},
     },
-    U256,
+    Address, U256,
 };
 use rethnet_evm::{
-    state::{AccountModifierFn, StateError, SyncState},
+    state::{AccountModifierFn, HybridState, StateError, SyncState},
     AccountInfo, KECCAK_EMPTY,
 };
 
@@ -113,21 +115,49 @@ pub async fn router(state: StateType) -> Router {
     .with_state(state)
 }
 
+/// accepts an address to listen on (which could be a wildcard like 0.0.0.0:0), and a set of
+/// initial accounts to initialize the state.
+/// returns the address that the server is listening on (with any input wildcards resolved).
+pub async fn run(
+    address: SocketAddr,
+    genesis_accounts: HashMap<Address, AccountInfo>,
+) -> Result<SocketAddr, std::io::Error> {
+    let listener = TcpListener::bind(address)?;
+    let address = listener.local_addr()?;
+
+    let mut accounts: hashbrown::HashMap<Address, AccountInfo> = Default::default();
+    accounts.insert(
+        Address::from_low_u64_ne(1),
+        AccountInfo {
+            code: None,
+            code_hash: KECCAK_EMPTY,
+            balance: U256::ZERO,
+            nonce: 0,
+        },
+    );
+
+    let rethnet_state: StateType = Arc::new(RwLock::new(Box::new(HybridState::with_accounts(
+        genesis_accounts,
+    ))));
+
+    tokio::spawn(async move {
+        axum::Server::from_tcp(listener)
+            .unwrap()
+            .serve(router(rethnet_state).await.into_make_service())
+            .await
+            .unwrap();
+    });
+
+    Ok(address)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
     use axum::{body::Body, http::Request};
-    use rethnet_eth::{
-        remote::{jsonrpc, BlockSpec},
-        Address,
-    };
-    use rethnet_evm::state::HybridState;
-    use std::net::{SocketAddr, TcpListener};
+    use rethnet_eth::remote::BlockSpec;
 
-    fn start_server() -> SocketAddr {
-        let listener = TcpListener::bind("0.0.0.0:0".parse::<SocketAddr>().unwrap()).unwrap();
-        let address = listener.local_addr().unwrap();
-
+    async fn start_server() -> SocketAddr {
         let mut accounts: hashbrown::HashMap<Address, AccountInfo> = Default::default();
         accounts.insert(
             Address::from_low_u64_ne(1),
@@ -139,18 +169,9 @@ mod tests {
             },
         );
 
-        let rethnet_state: StateType =
-            Arc::new(RwLock::new(Box::new(HybridState::with_accounts(accounts))));
-
-        tokio::spawn(async move {
-            axum::Server::from_tcp(listener)
-                .unwrap()
-                .serve(router(rethnet_state).await.into_make_service())
-                .await
-                .unwrap();
-        });
-
-        address
+        run("0.0.0.0:0".parse::<SocketAddr>().unwrap(), accounts)
+            .await
+            .unwrap()
     }
 
     async fn submit_request(address: &SocketAddr, request: &RpcRequest) -> String {
@@ -198,7 +219,7 @@ mod tests {
         };
 
         let actual_response: jsonrpc::Response<U256> =
-            serde_json::from_str(&submit_request(&start_server(), &request).await)
+            serde_json::from_str(&submit_request(&start_server().await, &request).await)
                 .expect("should deserialize from JSON");
 
         assert_eq!(actual_response, expected_response);
@@ -222,7 +243,7 @@ mod tests {
         };
 
         let actual_response: jsonrpc::Response<U256> =
-            serde_json::from_str(&submit_request(&start_server(), &request).await)
+            serde_json::from_str(&submit_request(&start_server().await, &request).await)
                 .expect("should deserialize from JSON");
 
         assert_eq!(actual_response, expected_response);
@@ -230,7 +251,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_set_balance_success() {
-        let server_address = start_server();
+        let server_address = start_server().await;
 
         let address = Address::from_low_u64_ne(1);
         let new_balance = U256::from(100);
