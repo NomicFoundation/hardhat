@@ -5,7 +5,7 @@ use axum::{
     Router,
 };
 use revm::db::components::state::StateRef;
-use tokio::sync::Mutex;
+use tokio::sync::RwLock;
 
 use rethnet_eth::{
     remote::{
@@ -16,11 +16,11 @@ use rethnet_eth::{
     U256,
 };
 use rethnet_evm::{
-    state::{AccountModifierFn, HybridState, RethnetLayer, StateDebug},
+    state::{AccountModifierFn, StateDebug, StateError, SyncState},
     AccountInfo, KECCAK_EMPTY,
 };
 
-type StateType = Arc<Mutex<HybridState<RethnetLayer>>>;
+type StateType = Arc<RwLock<Box<dyn SyncState<StateError>>>>;
 
 pub async fn router(state: StateType) -> Router {
     Router::new().route(
@@ -52,7 +52,7 @@ pub async fn router(state: StateType) -> Router {
                                 Json(serde_json::json!(jsonrpc::Response {
                                     jsonrpc: jsonrpc::Version::V2_0,
                                     id,
-                                    data: match (*(rethnet_state.lock().await)).basic(address) {
+                                    data: match (*rethnet_state).read().await.basic(address) {
                                         Ok(Some(account_info)) =>
                                             jsonrpc::ResponseData::<U256>::Success { result: account_info.balance },
                                         Ok(None) =>
@@ -65,7 +65,7 @@ pub async fn router(state: StateType) -> Router {
                                 Json(serde_json::json!(jsonrpc::Response {
                                     jsonrpc: jsonrpc::Version::V2_0,
                                     id,
-                                    data: match (*(rethnet_state.lock().await)).modify_account(
+                                    data: match (*rethnet_state).write().await.modify_account(
                                         address,
                                         AccountModifierFn::new(
                                             Box::new(move |account_balance, _, _| { *account_balance = balance })
@@ -122,6 +122,7 @@ mod tests {
         remote::{jsonrpc, BlockSpec},
         Address,
     };
+    use rethnet_evm::state::HybridState;
     use revm::primitives::state::AccountInfo;
     use std::net::{SocketAddr, TcpListener};
 
@@ -140,7 +141,8 @@ mod tests {
             },
         );
 
-        let rethnet_state = Arc::new(Mutex::new(HybridState::with_accounts(accounts)));
+        let rethnet_state: StateType =
+            Arc::new(RwLock::new(Box::new(HybridState::with_accounts(accounts))));
 
         tokio::spawn(async move {
             axum::Server::from_tcp(listener)
