@@ -8,7 +8,11 @@ use revm::db::components::state::StateRef;
 use tokio::sync::Mutex;
 
 use rethnet_eth::{
-    remote::{client::Request as RpcRequest, jsonrpc, MethodInvocation},
+    remote::{
+        client::Request as RpcRequest,
+        jsonrpc,
+        methods::{eth::EthMethodInvocation, MethodInvocation},
+    },
     U256,
 };
 use rethnet_evm::state::{HybridState, RethnetLayer};
@@ -37,7 +41,7 @@ pub async fn router(state: StateType) -> Router {
                     },
                     RpcRequest { version: _, id, method } => {
                         match method {
-                            MethodInvocation::GetBalance(address, _block_spec) => {
+                            MethodInvocation::Eth(EthMethodInvocation::GetBalance(address, _block_spec)) => {
                                 Json(serde_json::json!(jsonrpc::Response {
                                     jsonrpc: jsonrpc::Version::V2_0,
                                     id,
@@ -78,7 +82,7 @@ mod tests {
     use super::*;
     use axum::{body::Body, http::Request};
     use rethnet_eth::{
-        remote::{jsonrpc, BlockSpec, MethodInvocation},
+        remote::{jsonrpc, BlockSpec},
         Address,
     };
     use rethnet_evm::KECCAK_EMPTY;
@@ -139,10 +143,10 @@ mod tests {
         let request = RpcRequest {
             version: jsonrpc::Version::V2_0,
             id: jsonrpc::Id::Num(0),
-            method: MethodInvocation::GetBalance(
+            method: MethodInvocation::Eth(EthMethodInvocation::GetBalance(
                 Address::from_low_u64_ne(2),
                 BlockSpec::Tag(String::from("latest")),
-            ),
+            )),
         };
 
         let expected_response = jsonrpc::Response::<U256> {
@@ -169,10 +173,10 @@ mod tests {
         let request = RpcRequest {
             version: jsonrpc::Version::V2_0,
             id: jsonrpc::Id::Num(0),
-            method: MethodInvocation::GetBalance(
+            method: MethodInvocation::Eth(EthMethodInvocation::GetBalance(
                 Address::from_low_u64_ne(1),
                 BlockSpec::Tag(String::from("latest")),
-            ),
+            )),
         };
 
         let expected_response = jsonrpc::Response::<U256> {
