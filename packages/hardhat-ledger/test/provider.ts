@@ -13,11 +13,7 @@ import * as ethWrapper from "../src/internal/wrap-transport";
 import * as cache from "../src/internal/cache";
 import { LedgerProvider } from "../src/provider";
 import { EthWrapper, LedgerOptions } from "../src/types";
-import {
-  ConnectionError,
-  DerivationPathError,
-  LedgerProviderError,
-} from "../src/errors";
+import { ConnectionError, DerivationPathError } from "../src/errors";
 import { EthereumMockedProvider } from "./mocks";
 
 describe("LedgerProvider", () => {
