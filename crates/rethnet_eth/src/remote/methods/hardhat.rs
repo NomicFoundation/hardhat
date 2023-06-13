@@ -1,7 +1,10 @@
 use hashbrown::HashMap;
 
 use crate::{
-    remote::{sequence_to_single, single_to_sequence, ZeroXPrefixedBytes},
+    remote::{
+        serde_with_helpers::{sequence_to_single, single_to_sequence},
+        ZeroXPrefixedBytes,
+    },
     Address, B256, U256,
 };
 

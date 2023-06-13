@@ -1,5 +1,9 @@
 use crate::{
-    remote::{eth::eip712, sequence_to_single, single_to_sequence, BlockSpec, ZeroXPrefixedBytes},
+    remote::{
+        eth::eip712,
+        serde_with_helpers::{sequence_to_single, single_to_sequence},
+        BlockSpec, ZeroXPrefixedBytes,
+    },
     Address, B256, U256,
 };
 

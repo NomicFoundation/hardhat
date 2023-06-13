@@ -10,7 +10,7 @@ use std::fmt::Debug;
 
 use crate::{Address, Bloom, Bytes, B256, U256};
 
-use super::{optional_u64_from_hex, withdrawal::Withdrawal};
+use super::{serde_with_helpers::optional_u64_from_hex, withdrawal::Withdrawal};
 
 #[derive(Clone, Debug, PartialEq, Eq, Default, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]

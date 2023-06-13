@@ -49,7 +49,7 @@ fn bench_database_commit(c: &mut Criterion) {
     use hashbrown::HashMap;
     use revm::primitives::KECCAK_EMPTY;
 
-    use rethnet_eth::remote::optional_u64_from_hex;
+    use rethnet_eth::remote::serde_with_helpers::optional_u64_from_hex;
     use rethnet_evm::{Account, AccountInfo, StorageSlot};
 
     #[derive(Debug, serde::Deserialize)]
