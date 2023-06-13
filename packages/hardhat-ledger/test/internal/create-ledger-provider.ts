@@ -1,6 +1,8 @@
 import { assert } from "chai";
 import sinon from "sinon";
 
+import { NetworkConfig } from "hardhat/types";
+
 import { EthereumMockedProvider } from "../mocks";
 import { createLedgerProvider } from "../../src/internal/create-ledger-provider";
 import * as spinners from "../../src/internal/with-spinners";
@@ -19,17 +21,31 @@ describe("createLedgerProvider", () => {
       "0xe149ff2797adc146aa2d68d3df3e819c3c38e762",
       "0x343fe45cd2d785a5f2e97a00de8436f9c42ef444",
     ];
-    const ledgerProvider = createLedgerProvider(mockedProvider, {
-      ledgerAccounts,
-    });
+    const config = { ledgerAccounts } as NetworkConfig;
+    const ledgerProvider = createLedgerProvider(mockedProvider, config);
 
     assert.deepEqual(ledgerProvider.options.accounts, ledgerAccounts);
   });
 
+  it("should pass an empty array if the ledger configuration is undefined", () => {
+    const config = {} as NetworkConfig;
+    const ledgerProvider = createLedgerProvider(mockedProvider, config);
+
+    assert.deepEqual(ledgerProvider.options.accounts, []);
+  });
+
+  it("should pass an empty array if the config supplied is an HTTP config", () => {
+    const config = { url: "http://test.com" } as NetworkConfig;
+    const ledgerProvider = createLedgerProvider(mockedProvider, config);
+
+    assert.deepEqual(ledgerProvider.options.accounts, []);
+  });
+
   it("should pass the provider to the LedgerProvider", async () => {
-    const ledgerProvider = createLedgerProvider(mockedProvider, {
+    const config = {
       ledgerAccounts: ["0xf4416d306caa15dd4cdf4cd882cd764a6b2aa9b2"],
-    });
+    } as NetworkConfig;
+    const ledgerProvider = createLedgerProvider(mockedProvider, config);
     const requestStub = sinon.stub(mockedProvider, "request");
 
     await ledgerProvider.request({ method: "eth_blockNumber" });
@@ -42,9 +58,10 @@ describe("createLedgerProvider", () => {
   it("should return a new LedgerProvider with spinners handlers attached", () => {
     const withSpinnerSpy = sinon.spy(spinners, "withSpinners");
 
-    const ledgerProvider = createLedgerProvider(mockedProvider, {
+    const config = {
       ledgerAccounts: ["0xe149ff2797adc146aa2d68d3df3e819c3c38e762"],
-    });
+    } as NetworkConfig;
+    const ledgerProvider = createLedgerProvider(mockedProvider, config);
 
     sinon.assert.calledOnceWithExactly(withSpinnerSpy, ledgerProvider);
   });
