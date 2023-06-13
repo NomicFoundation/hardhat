@@ -4,7 +4,6 @@ use axum::{
     extract::{Json, State},
     Router,
 };
-use revm::db::components::state::StateRef;
 use tokio::sync::RwLock;
 
 use rethnet_eth::{
@@ -16,7 +15,7 @@ use rethnet_eth::{
     U256,
 };
 use rethnet_evm::{
-    state::{AccountModifierFn, StateDebug, StateError, SyncState},
+    state::{AccountModifierFn, StateError, SyncState},
     AccountInfo, KECCAK_EMPTY,
 };
 
@@ -123,7 +122,6 @@ mod tests {
         Address,
     };
     use rethnet_evm::state::HybridState;
-    use revm::primitives::state::AccountInfo;
     use std::net::{SocketAddr, TcpListener};
 
     fn start_server() -> SocketAddr {
