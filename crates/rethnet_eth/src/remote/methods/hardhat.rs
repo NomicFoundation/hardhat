@@ -1,5 +1,3 @@
-use hashbrown::HashMap;
-
 use crate::{
     remote::{
         serde_with_helpers::{sequence_to_single, single_to_sequence},
@@ -10,6 +8,9 @@ use crate::{
 
 /// Compiler input and output structures used as parameters to Hardhat RPC methods
 pub mod compiler_io;
+
+/// input types for use with hardhat_reset
+pub mod reset;
 
 /// an invocation of a hardhat_* RPC method, with its parameters
 #[derive(Clone, Debug, PartialEq, serde::Deserialize, serde::Serialize)]
@@ -64,7 +65,7 @@ pub enum HardhatMethodInvocation {
         serialize_with = "single_to_sequence",
         deserialize_with = "sequence_to_single"
     )]
-    Reset(Option<RpcHardhatNetworkConfig>),
+    Reset(Option<reset::RpcHardhatNetworkConfig>),
     /// hardhat_setBalance
     #[serde(rename = "hardhat_setBalance")]
     SetBalance(Address, U256),
@@ -119,20 +120,6 @@ pub enum HardhatMethodInvocation {
         deserialize_with = "sequence_to_single"
     )]
     StopImpersonatingAccount(Address),
-}
-
-/// for use with hardhat_reset
-#[derive(Clone, Debug, PartialEq, serde::Deserialize, serde::Serialize)]
-pub struct RpcHardhatNetworkConfig {
-    forking: Option<RpcForkConfig>,
-}
-
-#[derive(Clone, Debug, PartialEq, serde::Deserialize, serde::Serialize)]
-#[serde(rename_all = "camelCase")]
-struct RpcForkConfig {
-    json_rpc_url: String,
-    block_number: Option<usize>,
-    http_headers: Option<HashMap<String, String>>,
 }
 
 #[cfg(test)]
@@ -707,8 +694,8 @@ mod tests {
     #[test]
     fn test_serde_hardhat_reset() {
         help_test_method_invocation_serde(MethodInvocation::Hardhat(
-            HardhatMethodInvocation::Reset(Some(RpcHardhatNetworkConfig {
-                forking: Some(RpcForkConfig {
+            HardhatMethodInvocation::Reset(Some(reset::RpcHardhatNetworkConfig {
+                forking: Some(reset::RpcForkConfig {
                     json_rpc_url: String::from("http://whatever.com/whatever"),
                     block_number: Some(123456),
                     http_headers: None,
