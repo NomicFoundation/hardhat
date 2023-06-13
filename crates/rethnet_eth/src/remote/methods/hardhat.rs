@@ -7,7 +7,7 @@ use crate::{
 };
 
 /// Compiler input and output structures used as parameters to Hardhat RPC methods
-pub mod compiler_io;
+pub mod add_compilation_result;
 
 /// input types for use with hardhat_reset
 pub mod reset;
@@ -22,8 +22,8 @@ pub enum HardhatMethodInvocation {
     AddCompilationResult(
         /// solc version:
         String,
-        compiler_io::CompilerInput,
-        compiler_io::CompilerOutput,
+        add_compilation_result::CompilerInput,
+        add_compilation_result::CompilerOutput,
     ),
     /// hardhat_dropTransaction
     #[serde(
@@ -604,8 +604,10 @@ mod tests {
 
         let call = MethodInvocation::Hardhat(HardhatMethodInvocation::AddCompilationResult(
             String::from("0.8.0"),
-            serde_json::from_str::<compiler_io::CompilerInput>(compiler_input_json).unwrap(),
-            serde_json::from_str::<compiler_io::CompilerOutput>(compiler_output_json).unwrap(),
+            serde_json::from_str::<add_compilation_result::CompilerInput>(compiler_input_json)
+                .unwrap(),
+            serde_json::from_str::<add_compilation_result::CompilerOutput>(compiler_output_json)
+                .unwrap(),
         ));
 
         help_test_method_invocation_serde(call.clone());
@@ -617,7 +619,7 @@ mod tests {
                         assert_eq!(
                             serde_json::to_value(input).unwrap(),
                             serde_json::to_value(
-                                serde_json::from_str::<compiler_io::CompilerInput>(
+                                serde_json::from_str::<add_compilation_result::CompilerInput>(
                                     compiler_input_json
                                 )
                                 .unwrap()
@@ -627,7 +629,7 @@ mod tests {
                         assert_eq!(
                             serde_json::to_value(output).unwrap(),
                             serde_json::to_value(
-                                serde_json::from_str::<compiler_io::CompilerOutput>(
+                                serde_json::from_str::<add_compilation_result::CompilerOutput>(
                                     compiler_output_json
                                 )
                                 .unwrap()
