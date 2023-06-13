@@ -53,13 +53,11 @@ pub async fn router(state: StateType) -> Router {
                                     jsonrpc: jsonrpc::Version::V2_0,
                                     id,
                                     data: match (*(rethnet_state.lock().await)).basic(address) {
-                                        Ok(Some(account_info)) => {
-                                            jsonrpc::ResponseData::<U256>::Success { result: account_info.balance }
-                                        },
-                                        Ok(None) => {
-                                            jsonrpc::ResponseData::<U256>::new_error(0, "No such account", None)
-                                        }
-                                        Err(e) => { jsonrpc::ResponseData::<U256>::new_error(0, &e.to_string(), None) }
+                                        Ok(Some(account_info)) =>
+                                            jsonrpc::ResponseData::<U256>::Success { result: account_info.balance },
+                                        Ok(None) =>
+                                            jsonrpc::ResponseData::<U256>::new_error(0, "No such account", None),
+                                        Err(e) => jsonrpc::ResponseData::<U256>::new_error(0, &e.to_string(), None)
                                     }
                                 }))
                             }
@@ -72,12 +70,10 @@ pub async fn router(state: StateType) -> Router {
                                         AccountModifierFn::new(
                                             Box::new(move |account_balance, _, _| { *account_balance = balance })
                                         ),
-                                        &|| {
-                                            Ok(AccountInfo { balance, nonce: 0, code: None, code_hash: KECCAK_EMPTY })
-                                        },
+                                        &|| Ok(AccountInfo { balance, nonce: 0, code: None, code_hash: KECCAK_EMPTY }),
                                     ) {
-                                        Ok(()) => { jsonrpc::ResponseData::<()>::Success { result: () } },
-                                        Err(e) => { jsonrpc::ResponseData::<()>::new_error(0, &e.to_string(), None) }
+                                        Ok(()) => jsonrpc::ResponseData::<()>::Success { result: () },
+                                        Err(e) => jsonrpc::ResponseData::<()>::new_error(0, &e.to_string(), None)
                                     }
                                 }))
                             }
@@ -106,8 +102,8 @@ pub async fn router(state: StateType) -> Router {
                                 -32700, // from the JSON-RPC spec
                                 "Parse error",
                                 match serde_json::to_value(error.to_string()) {
-                                    Ok(error) => { Some(error) }
-                                    Err(_) => { None }
+                                    Ok(error) => Some(error),
+                                    Err(_) => None
                                 })
                         }))
                     }
