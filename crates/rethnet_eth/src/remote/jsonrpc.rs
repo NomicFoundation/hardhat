@@ -57,6 +57,17 @@ impl<T> ResponseData<T> {
             ResponseData::Error { error } => Err(error),
         }
     }
+
+    /// convenience constructor for an error response
+    pub fn new_error(code: i16, message: &str, data: Option<serde_json::Value>) -> Self {
+        ResponseData::<T>::Error {
+            error: Error {
+                code,
+                message: String::from(message),
+                data,
+            },
+        }
+    }
 }
 
 /// Represents JSON-RPC request/response id.

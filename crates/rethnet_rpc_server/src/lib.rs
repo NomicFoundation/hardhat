@@ -32,11 +32,9 @@ pub async fn router(state: StateType) -> Router {
                         Json(serde_json::json!(jsonrpc::Response {
                             jsonrpc: jsonrpc::Version::V2_0,
                             id,
-                            data: jsonrpc::ResponseData::<serde_json::Value>::Error { error: jsonrpc::Error {
-                                code: 0,
-                                message: String::from("unsupported JSON-RPC version"),
-                                data: Some(serde_json::to_value(version).unwrap()),
-                            }}
+                            data: jsonrpc::ResponseData::<serde_json::Value>::new_error(
+                                0, "unsupported JSON-RPC version", Some(serde_json::to_value(version).unwrap())
+                            )
                         }))
                     },
                     RpcRequest { version: _, id, method } => {
@@ -50,15 +48,9 @@ pub async fn router(state: StateType) -> Router {
                                             jsonrpc::ResponseData::<U256>::Success { result: account_info.balance }
                                         },
                                         Ok(None) => {
-                                            jsonrpc::ResponseData::<U256>::Error { error: jsonrpc::Error {
-                                                code: 0, message: String::from("No such account"), data: None,
-                                            }}
+                                            jsonrpc::ResponseData::<U256>::new_error(0, "No such account", None)
                                         }
-                                        Err(e) => {
-                                            jsonrpc::ResponseData::<U256>::Error { error: jsonrpc::Error {
-                                                code: 0, message: e.to_string(), data: None,
-                                            }}
-                                        }
+                                        Err(e) => { jsonrpc::ResponseData::<U256>::new_error(0, &e.to_string(), None) }
                                     }
                                 }))
                             }
