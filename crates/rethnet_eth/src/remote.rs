@@ -1,6 +1,11 @@
-mod client;
+/// an Ethereum JSON-RPC client
+pub mod client;
+
 mod eth;
-mod jsonrpc;
+
+/// data types specific to JSON-RPC but not specific to Ethereum.
+pub mod jsonrpc;
+
 mod withdrawal;
 
 use std::fmt::Write;

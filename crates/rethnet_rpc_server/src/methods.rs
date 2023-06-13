@@ -13,7 +13,7 @@ mod compiler_io;
 #[derive(Clone, Debug, PartialEq, serde::Deserialize, serde::Serialize)]
 #[serde(untagged)]
 #[allow(clippy::large_enum_variant)]
-enum MethodInvocation {
+pub enum MethodInvocation {
     Eth(EthMethodInvocation),
     Hardhat(HardhatMethodInvocation),
 }
@@ -21,7 +21,7 @@ enum MethodInvocation {
 #[derive(Clone, Debug, PartialEq, serde::Deserialize, serde::Serialize)]
 #[serde(tag = "method", content = "params")]
 #[allow(clippy::large_enum_variant)]
-enum HardhatMethodInvocation {
+pub enum HardhatMethodInvocation {
     #[serde(rename = "hardhat_addCompilationResult")]
     AddCompilationResult(
         /// solc version:
@@ -109,7 +109,7 @@ enum HardhatMethodInvocation {
 }
 
 #[derive(Clone, Debug, PartialEq, serde::Deserialize, serde::Serialize)]
-struct RpcHardhatNetworkConfig {
+pub struct RpcHardhatNetworkConfig {
     forking: Option<RpcForkConfig>,
 }
 

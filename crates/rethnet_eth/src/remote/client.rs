@@ -37,12 +37,16 @@ pub enum RpcClientError {
     OtherError(#[from] io::Error),
 }
 
-#[derive(serde::Serialize)]
-struct Request<'a> {
-    version: jsonrpc::Version,
+/// a JSON-RPC method invocation request
+#[derive(serde::Deserialize, serde::Serialize)]
+pub struct Request {
+    /// JSON-RPC version
+    pub version: jsonrpc::Version,
+    /// the method to invoke, with its parameters
     #[serde(flatten)]
-    method: &'a MethodInvocation,
-    id: &'a jsonrpc::Id,
+    pub method: MethodInvocation,
+    /// the request ID, to be correlated via the response's ID
+    pub id: jsonrpc::Id,
 }
 
 #[derive(Debug)]
@@ -147,8 +151,8 @@ impl RpcClient {
         let request_id = jsonrpc::Id::Num(self.next_id.fetch_add(1, Ordering::Relaxed));
         let request = serde_json::json!(Request {
             version: crate::remote::jsonrpc::Version::V2_0,
-            id: &request_id,
-            method: input,
+            id: request_id.clone(),
+            method: input.clone(),
         })
         .to_string();
 
@@ -168,8 +172,8 @@ impl RpcClient {
                 let request_id = self.next_id.fetch_add(1, Ordering::Relaxed);
                 serde_json::json!(Request {
                     version: crate::remote::jsonrpc::Version::V2_0,
-                    id: &jsonrpc::Id::Num(request_id),
-                    method: i,
+                    id: jsonrpc::Id::Num(request_id),
+                    method: i.clone(),
                 })
                 .to_string()
             })
