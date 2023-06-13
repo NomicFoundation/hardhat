@@ -11,11 +11,14 @@ use rethnet_eth::{
     remote::{
         client::Request as RpcRequest,
         jsonrpc,
-        methods::{eth::EthMethodInvocation, MethodInvocation},
+        methods::{eth::EthMethodInvocation, hardhat::HardhatMethodInvocation, MethodInvocation},
     },
     U256,
 };
-use rethnet_evm::state::{HybridState, RethnetLayer};
+use rethnet_evm::{
+    state::{AccountModifierFn, HybridState, RethnetLayer, StateDebug},
+    AccountInfo, KECCAK_EMPTY,
+};
 
 type StateType = Arc<Mutex<HybridState<RethnetLayer>>>;
 
@@ -56,6 +59,24 @@ pub async fn router(state: StateType) -> Router {
                                     }
                                 }))
                             }
+                            MethodInvocation::Hardhat(HardhatMethodInvocation::SetBalance(address, balance)) => {
+                                Json(serde_json::json!(jsonrpc::Response {
+                                    jsonrpc: jsonrpc::Version::V2_0,
+                                    id,
+                                    data: match (*(rethnet_state.lock().await)).modify_account(
+                                        address,
+                                        AccountModifierFn::new(
+                                            Box::new(move |account_balance, _, _| { *account_balance = balance })
+                                        ),
+                                        &|| {
+                                            Ok(AccountInfo { balance, nonce: 0, code: None, code_hash: KECCAK_EMPTY })
+                                        },
+                                    ) {
+                                        Ok(()) => { jsonrpc::ResponseData::<()>::Success { result: () } },
+                                        Err(e) => { jsonrpc::ResponseData::<()>::new_error(0, &e.to_string(), None) }
+                                    }
+                                }))
+                            }
                             _ => { // TODO: after adding all the methods here, eliminate this
                                    // catch-all match arm.
                                 Json(serde_json::json!(jsonrpc::Response {
@@ -85,7 +106,6 @@ mod tests {
         remote::{jsonrpc, BlockSpec},
         Address,
     };
-    use rethnet_evm::KECCAK_EMPTY;
     use revm::primitives::state::AccountInfo;
     use std::net::{SocketAddr, TcpListener};
 
@@ -187,6 +207,58 @@ mod tests {
 
         let actual_response: jsonrpc::Response<U256> =
             serde_json::from_str(&submit_request(&start_server(), &request).await)
+                .expect("should deserialize from JSON");
+
+        assert_eq!(actual_response, expected_response);
+    }
+
+    #[tokio::test]
+    async fn test_set_balance_success() {
+        let server_address = start_server();
+
+        let address = Address::from_low_u64_ne(1);
+        let new_balance = U256::from(100);
+
+        let request = RpcRequest {
+            version: jsonrpc::Version::V2_0,
+            id: jsonrpc::Id::Num(0),
+            method: MethodInvocation::Hardhat(HardhatMethodInvocation::SetBalance(
+                address,
+                new_balance,
+            )),
+        };
+
+        let expected_response = jsonrpc::Response::<()> {
+            jsonrpc: request.version,
+            id: request.id.clone(),
+            data: jsonrpc::ResponseData::Success { result: () },
+        };
+
+        let actual_response: jsonrpc::Response<()> =
+            serde_json::from_str(&submit_request(&server_address, &request).await)
+                .expect("should deserialize from JSON");
+
+        assert_eq!(actual_response, expected_response);
+
+        let request = RpcRequest {
+            version: jsonrpc::Version::V2_0,
+            id: jsonrpc::Id::Num(0),
+            method: MethodInvocation::Eth(EthMethodInvocation::GetBalance(
+                address,
+                BlockSpec::Tag(String::from("latest")),
+            )),
+        };
+
+        let expected_response = jsonrpc::Response::<U256> {
+            jsonrpc: request.version,
+            id: request.id.clone(),
+            data: jsonrpc::ResponseData::Success {
+                result: new_balance,
+            },
+        };
+
+        let actual_response: jsonrpc::Response<U256> =
+            serde_json::from_str(&submit_request(&server_address, &request).await)
                 .expect("should deserialize from JSON");
 
         assert_eq!(actual_response, expected_response);
