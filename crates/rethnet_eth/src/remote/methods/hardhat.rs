@@ -1,27 +1,19 @@
 use hashbrown::HashMap;
 
-use rethnet_eth::{
-    remote::{
-        sequence_to_single, single_to_sequence, MethodInvocation as EthMethodInvocation,
-        ZeroXPrefixedBytes,
-    },
+use crate::{
+    remote::{sequence_to_single, single_to_sequence, ZeroXPrefixedBytes},
     Address, B256, U256,
 };
 
-mod compiler_io;
+/// Compiler input and output structures used as parameters to Hardhat RPC methods
+pub mod compiler_io;
 
-#[derive(Clone, Debug, PartialEq, serde::Deserialize, serde::Serialize)]
-#[serde(untagged)]
-#[allow(clippy::large_enum_variant)]
-pub enum MethodInvocation {
-    Eth(EthMethodInvocation),
-    Hardhat(HardhatMethodInvocation),
-}
-
+/// an invocation of a hardhat_* RPC method, with its parameters
 #[derive(Clone, Debug, PartialEq, serde::Deserialize, serde::Serialize)]
 #[serde(tag = "method", content = "params")]
 #[allow(clippy::large_enum_variant)]
 pub enum HardhatMethodInvocation {
+    /// hardhat_addCompilationResult
     #[serde(rename = "hardhat_addCompilationResult")]
     AddCompilationResult(
         /// solc version:
@@ -29,26 +21,33 @@ pub enum HardhatMethodInvocation {
         compiler_io::CompilerInput,
         compiler_io::CompilerOutput,
     ),
+    /// hardhat_dropTransaction
     #[serde(
         rename = "hardhat_dropTransaction",
         serialize_with = "single_to_sequence",
         deserialize_with = "sequence_to_single"
     )]
     DropTransaction(B256),
+    /// hardhat_getAutomine
     #[serde(rename = "hardhat_getAutomine")]
     GetAutomine(),
+    /// hardhat_getStackTraceFailuresCount
     #[serde(rename = "hardhat_getStackTraceFailuresCount")]
     GetStackTraceFailuresCount(),
+    /// hardhat_impersonateAccount
     #[serde(
         rename = "hardhat_impersonateAccount",
         serialize_with = "single_to_sequence",
         deserialize_with = "sequence_to_single"
     )]
     ImpersonateAccount(Address),
+    /// hardhat_intervalMine
     #[serde(rename = "hardhat_intervalMine")]
     IntervalMine(),
+    /// hardhat_metadata
     #[serde(rename = "hardhat_metadata")]
     Metadata(),
+    /// hardhat_mine
     #[serde(rename = "hardhat_mine")]
     Mine(
         /// block count:
@@ -56,50 +55,61 @@ pub enum HardhatMethodInvocation {
         /// interval:
         U256,
     ),
+    /// hardhat_reset
     #[serde(
         rename = "hardhat_reset",
         serialize_with = "single_to_sequence",
         deserialize_with = "sequence_to_single"
     )]
     Reset(Option<RpcHardhatNetworkConfig>),
+    /// hardhat_setBalance
     #[serde(rename = "hardhat_setBalance")]
     SetBalance(Address, U256),
+    /// hardhat_setCode
     #[serde(rename = "hardhat_setCode")]
     SetCode(Address, ZeroXPrefixedBytes),
+    /// hardhat_setCoinbase
     #[serde(
         rename = "hardhat_setCoinbase",
         serialize_with = "single_to_sequence",
         deserialize_with = "sequence_to_single"
     )]
     SetCoinbase(Address),
+    /// hardhat_setLoggingEnabled
     #[serde(
         rename = "hardhat_setLoggingEnabled",
         serialize_with = "single_to_sequence",
         deserialize_with = "sequence_to_single"
     )]
     SetLoggingEnabled(bool),
+    /// hardhat_setMinGasPrice
     #[serde(
         rename = "hardhat_setMinGasPrice",
         serialize_with = "single_to_sequence",
         deserialize_with = "sequence_to_single"
     )]
     SetMinGasPrice(U256),
+    /// hardhat_setNextBlockBaseFeePerGas
     #[serde(
         rename = "hardhat_setNextBlockBaseFeePerGas",
         serialize_with = "single_to_sequence",
         deserialize_with = "sequence_to_single"
     )]
     SetNextBlockBaseFeePerGas(U256),
+    /// hardhat_setNonce
     #[serde(rename = "hardhat_setNonce")]
     SetNonce(Address, U256),
+    /// hardhat_setPrevRandao
     #[serde(
         rename = "hardhat_setPrevRandao",
         serialize_with = "single_to_sequence",
         deserialize_with = "sequence_to_single"
     )]
     SetPrevRandao(ZeroXPrefixedBytes),
+    /// hardhat_setStorageAt
     #[serde(rename = "hardhat_setStorageAt")]
     SetStorageAt(Address, U256, ZeroXPrefixedBytes),
+    /// hardhat_stopImpersonatingAccount
     #[serde(
         rename = "hardhat_stopImpersonatingAccount",
         serialize_with = "single_to_sequence",
@@ -108,6 +118,7 @@ pub enum HardhatMethodInvocation {
     StopImpersonatingAccount(Address),
 }
 
+/// for use with hardhat_reset
 #[derive(Clone, Debug, PartialEq, serde::Deserialize, serde::Serialize)]
 pub struct RpcHardhatNetworkConfig {
     forking: Option<RpcForkConfig>,
@@ -126,6 +137,7 @@ mod tests {
     use bytes::Bytes;
 
     use super::*;
+    use crate::remote::methods::MethodInvocation;
 
     fn help_test_method_invocation_serde(call: MethodInvocation) {
         let json = serde_json::json!(call).to_string();

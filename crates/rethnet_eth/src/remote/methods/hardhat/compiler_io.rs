@@ -1,3 +1,5 @@
+#![allow(missing_docs)]
+
 use hashbrown::HashMap;
 
 #[derive(Clone, Debug, PartialEq, serde::Deserialize, serde::Serialize)]

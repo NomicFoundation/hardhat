@@ -13,8 +13,6 @@ use rethnet_eth::{
 };
 use rethnet_evm::state::{HybridState, RethnetLayer};
 
-mod methods;
-
 type StateType = Arc<Mutex<HybridState<RethnetLayer>>>;
 
 pub async fn router(state: StateType) -> Router {

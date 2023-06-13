@@ -6,6 +6,9 @@ mod eth;
 /// data types specific to JSON-RPC but not specific to Ethereum.
 pub mod jsonrpc;
 
+/// RPC methods
+pub mod methods;
+
 mod withdrawal;
 
 use std::fmt::Write;
