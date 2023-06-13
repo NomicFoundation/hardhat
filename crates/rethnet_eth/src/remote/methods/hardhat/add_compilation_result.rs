@@ -24,11 +24,10 @@ struct CompilerSettings {
     via_ir: Option<bool>,
     optimizer: OptimizerSettings,
     metadata: Option<MetadataSettings>,
-    /// maps a source name to a mapping from contract names to a vector of output
-    /// selections:
+    /// mapping: source name -> (mapping: contract name -> compiler output selections)
     output_selection: HashMap<String, HashMap<String, Vec<String>>>,
     evm_version: Option<String>,
-    /// maps a library file name to a mapping from library name to library content:
+    /// mapping: library file name -> (mapping: library name -> library content)
     libraries: Option<HashMap<String, HashMap<String, String>>>,
     remappings: Option<Vec<String>>,
 }
@@ -62,10 +61,9 @@ struct MetadataSettings {
 #[derive(Clone, Debug, PartialEq, serde::Deserialize, serde::Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct CompilerOutput {
-    /// a mapping from source name to CompilerOutputSource:
+    /// mapping: source name -> CompilerOutputSource
     sources: HashMap<String, CompilerOutputSource>,
-    /// a mapping from source name to a mapping from contract name to
-    /// CompilerOutputContract:
+    /// mapping: source name -> (mapping: contract name -> CompilerOutputContract)
     contracts: HashMap<String, HashMap<String, CompilerOutputContract>>,
 }
 
@@ -88,7 +86,7 @@ pub struct CompilerOutputContract {
 pub struct CompilerOutputContractEvm {
     bytecode: CompilerOutputBytecode,
     deployed_bytecode: CompilerOutputBytecode,
-    /// a mapping from method signatures to method identifiers:
+    /// mapping: method signature -> method identifier
     method_identifiers: HashMap<String, String>,
 }
 
@@ -98,8 +96,7 @@ pub struct CompilerOutputBytecode {
     object: String,
     opcodes: String,
     source_map: String,
-    /// a mapping from source name to a mapping from library name to an array of
-    /// LinkReferences:
+    /// mapping: source name -> (mapping: library name -> LinkReferences)
     link_references: HashMap<String, HashMap<String, Vec<LinkReference>>>,
 }
 
