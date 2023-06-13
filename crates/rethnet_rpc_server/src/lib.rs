@@ -37,7 +37,12 @@ pub async fn router(state: StateType) -> Router {
                             jsonrpc: jsonrpc::Version::V2_0,
                             id,
                             data: jsonrpc::ResponseData::<serde_json::Value>::new_error(
-                                0, "unsupported JSON-RPC version", Some(serde_json::to_value(version).unwrap())
+                                0,
+                                "unsupported JSON-RPC version",
+                                match serde_json::to_value(version) {
+                                    Ok(version) => Some(version),
+                                    Err(_) => None,
+                                },
                             )
                         }))
                     },
