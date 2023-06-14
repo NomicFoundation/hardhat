@@ -128,6 +128,49 @@ pub async fn router(state: StateType) -> Router {
                                         ),
                                     }
                                 })),
+                                MethodInvocation::Hardhat(HardhatMethodInvocation::SetNonce(
+                                    address,
+                                    nonce,
+                                )) => Json(serde_json::json!(jsonrpc::Response {
+                                    jsonrpc: jsonrpc::Version::V2_0,
+                                    id,
+                                    data: match TryInto::<u64>::try_into(nonce) {
+                                        Ok(nonce) => {
+                                            match (*rethnet_state).write().await.modify_account(
+                                                address,
+                                                AccountModifierFn::new(Box::new(
+                                                    move |_, account_nonce, _| {
+                                                        *account_nonce = nonce
+                                                    },
+                                                )),
+                                                &|| {
+                                                    Ok(AccountInfo {
+                                                        balance: U256::ZERO,
+                                                        nonce,
+                                                        code: None,
+                                                        code_hash: KECCAK_EMPTY,
+                                                    })
+                                                },
+                                            ) {
+                                                Ok(()) => jsonrpc::ResponseData::<()>::Success {
+                                                    result: (),
+                                                },
+                                                Err(error) => {
+                                                    jsonrpc::ResponseData::<()>::new_error(
+                                                        0,
+                                                        &error.to_string(),
+                                                        None,
+                                                    )
+                                                }
+                                            }
+                                        }
+                                        Err(error) => jsonrpc::ResponseData::<()>::new_error(
+                                            0,
+                                            &error.to_string(),
+                                            None
+                                        ),
+                                    }
+                                })),
                                 _ => {
                                     // TODO: after adding all the methods here, eliminate this
                                     // catch-all match arm.
@@ -381,6 +424,55 @@ mod tests {
             data: jsonrpc::ResponseData::Success {
                 result: new_balance,
             },
+        };
+
+        let actual_response: jsonrpc::Response<U256> =
+            serde_json::from_str(&submit_request(&server_address, &request).await)
+                .expect("should deserialize from JSON");
+
+        assert_eq!(actual_response, expected_response);
+    }
+
+    #[tokio::test]
+    async fn test_set_nonce_success() {
+        let server_address = start_server().await;
+
+        let address = Address::from_low_u64_ne(1);
+        let new_nonce = U256::from(100);
+
+        let request = RpcRequest {
+            version: jsonrpc::Version::V2_0,
+            id: jsonrpc::Id::Num(0),
+            method: MethodInvocation::Hardhat(HardhatMethodInvocation::SetNonce(
+                address, new_nonce,
+            )),
+        };
+
+        let expected_response = jsonrpc::Response::<()> {
+            jsonrpc: request.version,
+            id: request.id.clone(),
+            data: jsonrpc::ResponseData::Success { result: () },
+        };
+
+        let actual_response: jsonrpc::Response<()> =
+            serde_json::from_str(&submit_request(&server_address, &request).await)
+                .expect("should deserialize from JSON");
+
+        assert_eq!(actual_response, expected_response);
+
+        let request = RpcRequest {
+            version: jsonrpc::Version::V2_0,
+            id: jsonrpc::Id::Num(0),
+            method: MethodInvocation::Eth(EthMethodInvocation::GetTransactionCount(
+                address,
+                BlockSpec::Tag(String::from("latest")),
+            )),
+        };
+
+        let expected_response = jsonrpc::Response::<U256> {
+            jsonrpc: request.version,
+            id: request.id.clone(),
+            data: jsonrpc::ResponseData::Success { result: new_nonce },
         };
 
         let actual_response: jsonrpc::Response<U256> =
