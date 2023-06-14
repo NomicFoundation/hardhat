@@ -3,7 +3,7 @@ section-title: Plugins
 order:
   - "@nomicfoundation/hardhat-toolbox"
   - "@nomicfoundation/hardhat-chai-matchers"
-  - "@nomiclabs/hardhat-ethers"
+  - "@nomicfoundation/hardhat-ethers"
   - "@nomicfoundation/hardhat-verify"
   - "@nomicfoundation/hardhat-foundry"
   - "@nomicfoundation/hardhat-ledger"

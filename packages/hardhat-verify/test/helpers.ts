@@ -1,7 +1,7 @@
 import path from "path";
 import { resetHardhatContext } from "hardhat/plugins-testing";
 
-import type {} from "@nomiclabs/hardhat-ethers";
+import type {} from "@nomicfoundation/hardhat-ethers";
 import { FactoryOptions, HardhatRuntimeEnvironment } from "hardhat/types";
 
 declare module "mocha" {
@@ -34,9 +34,10 @@ export const deployContract = async (
 ): Promise<string> => {
   const factory = await ethers.getContractFactory(contractName, options);
   const contract = await factory.deploy(...constructorArguments);
-  await contract.deployTransaction.wait(confirmations);
-  console.log(`Deployed ${contractName} at ${contract.address}`);
-  return contract.address;
+  await contract.deploymentTransaction()?.wait(confirmations);
+  const contractAddress = await contract.getAddress();
+  console.log(`Deployed ${contractName} at ${contractAddress}`);
+  return contractAddress;
 };
 
 export const getRandomAddress = (hre: HardhatRuntimeEnvironment): string =>

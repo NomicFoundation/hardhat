@@ -1,5 +1,4 @@
 import { AssertionError, expect } from "chai";
-import { BigNumber } from "ethers";
 import { ProviderError } from "hardhat/internal/core/providers/errors";
 import path from "path";
 import util from "util";
@@ -13,6 +12,7 @@ import {
 
 import "../../src/internal/add-chai-matchers";
 import { anyUint, anyValue } from "../../src/withArgs";
+import { MatchersContract } from "../contracts";
 
 describe("INTEGRATION: Reverted with custom error", function () {
   describe("with the in-process hardhat network", function () {
@@ -29,9 +29,12 @@ describe("INTEGRATION: Reverted with custom error", function () {
 
   function runTests() {
     // deploy Matchers contract before each test
-    let matchers: any;
+    let matchers: MatchersContract;
     beforeEach("deploy matchers contract", async function () {
-      const Matchers = await this.hre.ethers.getContractFactory("Matchers");
+      const Matchers = await this.hre.ethers.getContractFactory<
+        [],
+        MatchersContract
+      >("Matchers");
 
       matchers = await Matchers.deploy();
     });
@@ -368,20 +371,6 @@ describe("INTEGRATION: Reverted with custom error", function () {
         );
       });
 
-      it("should work with bigints and bignumbers", async function () {
-        await expect(matchers.revertWithCustomErrorWithUint(1))
-          .to.be.revertedWithCustomError(matchers, "CustomErrorWithUint")
-          .withArgs(BigInt(1));
-
-        await expect(matchers.revertWithCustomErrorWithUint(1))
-          .to.be.revertedWithCustomError(matchers, "CustomErrorWithUint")
-          .withArgs(BigNumber.from(1));
-
-        await expect(matchers.revertWithCustomErrorWithPair(1, 2))
-          .to.be.revertedWithCustomError(matchers, "CustomErrorWithPair")
-          .withArgs([BigInt(1), BigNumber.from(2)]);
-      });
-
       it("should work with predicates", async function () {
         await expect(matchers.revertWithCustomErrorWithUint(1))
           .to.be.revertedWithCustomError(matchers, "CustomErrorWithUint")
@@ -460,12 +449,15 @@ describe("INTEGRATION: Reverted with custom error", function () {
           randomPrivateKey,
           this.hre.ethers.provider
         );
+        const matchersFromSenderWithoutFunds = matchers.connect(
+          signer
+        ) as MatchersContract;
 
         // this transaction will fail because of lack of funds, not because of a
         // revert
         await expect(
           expect(
-            matchers.connect(signer).revertsWithoutReason({
+            matchersFromSenderWithoutFunds.revertsWithoutReason({
               gasLimit: 1_000_000,
             })
           ).to.not.be.revertedWithCustomError(matchers, "SomeCustomError")
@@ -481,10 +473,14 @@ describe("INTEGRATION: Reverted with custom error", function () {
       it("includes test file", async function () {
         try {
           await expect(
-            matchers.revertedWith("some reason")
+            matchers.revertsWith("some reason")
           ).to.be.revertedWithCustomError(matchers, "SomeCustomError");
         } catch (e: any) {
-          expect(util.inspect(e)).to.include(
+          const errorString = util.inspect(e);
+          expect(errorString).to.include(
+            "Expected transaction to be reverted with custom error 'SomeCustomError', but it reverted with reason 'some reason'"
+          );
+          expect(errorString).to.include(
             path.join("test", "reverted", "revertedWithCustomError.ts")
           );
 

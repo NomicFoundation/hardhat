@@ -9,7 +9,7 @@ on:
       - "packages/hardhat-chai-matchers/**"
       - "packages/hardhat-network-helpers/**"
       - "packages/hardhat-ethers/**"
-      - "packages/hardhat-etherscan/**"
+      - "packages/hardhat-verify/**"
       - "packages/hardhat-common/**"
       - "config/**"
   pull_request:
@@ -21,7 +21,7 @@ on:
       - "packages/hardhat-chai-matchers/**"
       - "packages/hardhat-network-helpers/**"
       - "packages/hardhat-ethers/**"
-      - "packages/hardhat-etherscan/**"
+      - "packages/hardhat-verify/**"
       - "packages/hardhat-common/**"
       - "config/**"
 
