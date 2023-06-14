@@ -26,7 +26,7 @@ export function reconcileDependencyRules(
     if (additionalExecutionState === undefined) {
       return fail(
         future,
-        `A dependency from ${future.id} to the a new future ${additionalDep} has been added`
+        `A dependency from ${future.id} to ${additionalDep} has been added. The former has started executing before the latter started executing, so this change is incompatible.`
       );
     }
 
