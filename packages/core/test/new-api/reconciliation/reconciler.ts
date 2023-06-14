@@ -207,7 +207,7 @@ describe("Reconciliation", () => {
         {
           futureId: "Module:Contract2",
           failure:
-            "A dependency from Module:Contract2 to the already started future Module:Contract1 has been added",
+            "A dependency from Module:Contract2 to Module:Contract1 has been added, and both futures had already started executing, so this change is incompatible",
         },
       ]);
     });
@@ -236,7 +236,7 @@ describe("Reconciliation", () => {
         {
           futureId: "Module:Contract2",
           failure:
-            "A dependency from Module:Contract2 to the a new future Module:ContractNew has been added",
+            "A dependency from Module:Contract2 to Module:ContractNew has been added. The former has started executing before the latter started executing, so this change is incompatible.",
         },
       ]);
     });
