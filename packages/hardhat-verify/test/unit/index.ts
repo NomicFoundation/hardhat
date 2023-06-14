@@ -42,7 +42,7 @@ describe("verify task", () => {
       ).to.be.rejectedWith(/A valid fully qualified name was expected./);
     });
 
-    it("should return the proccesed arguments", async function () {
+    it("should return the processed arguments", async function () {
       const address = getRandomAddress(this.hre);
       const expectedArgs = {
         address,
@@ -61,7 +61,7 @@ describe("verify task", () => {
         },
         contractFQN: "contracts/TestContract.sol:TestContract",
       };
-      const proccesedArgs = await this.hre.run(TASK_VERIFY_RESOLVE_ARGUMENTS, {
+      const processedArgs = await this.hre.run(TASK_VERIFY_RESOLVE_ARGUMENTS, {
         address,
         constructorArgsParams: [],
         constructorArgs: "constructor-args.js",
@@ -69,7 +69,7 @@ describe("verify task", () => {
         contract: "contracts/TestContract.sol:TestContract",
       });
 
-      assert.deepEqual(proccesedArgs, expectedArgs);
+      assert.deepEqual(processedArgs, expectedArgs);
     });
   });
 
