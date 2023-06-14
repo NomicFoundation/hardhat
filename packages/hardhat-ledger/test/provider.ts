@@ -20,6 +20,7 @@ describe("LedgerProvider", () => {
   let accounts: string[];
   let mockedProvider: EthereumMockedProvider;
   let ethInstanceStub: sinon.SinonStubbedInstance<EthWrapper>;
+  let cacheStub: sinon.SinonStubbedInstance<typeof cache>;
   let provider: LedgerProvider;
 
   function stubTransport(transport: Transport) {
@@ -36,11 +37,10 @@ describe("LedgerProvider", () => {
     ];
     mockedProvider = new EthereumMockedProvider();
     ethInstanceStub = sinon.createStubInstance(Eth);
+    cacheStub = sinon.stub(cache);
 
     sinon.stub(ethWrapper, "wrapTransport").returns(ethInstanceStub);
-
-    sinon.stub(cache, "read").returns(Promise.resolve(undefined));
-    sinon.stub(cache, "write");
+    cacheStub.read.returns(Promise.resolve(undefined));
 
     provider = new LedgerProvider({ accounts }, mockedProvider);
   });
@@ -188,6 +188,19 @@ describe("LedgerProvider", () => {
           `There was an error trying to establish a connection to the Ledger wallet: "${createError.message}". The error id was: ${createError.id}`
         );
       }
+    });
+
+    it("should start the paths cache with what the cache returns", async () => {
+      const newPaths = {
+        "0xe149ff2797adc146aa2d68d3df3e819c3c38e762": "44'/60'/0'/0/0",
+      };
+      const oldPaths = Object.assign({}, provider.paths); // new object
+
+      cacheStub.read.returns(Promise.resolve(newPaths));
+      await provider.init();
+
+      assert.deepEqual(oldPaths, {});
+      assert.deepEqual(newPaths, provider.paths);
     });
 
     describe("events", () => {
@@ -469,7 +482,7 @@ describe("LedgerProvider", () => {
       sinon.assert.calledOnceWithExactly(
         signTransactionStub,
         path,
-        "e26464830f424094da6a52afdae5ff66aa786da68754a227331f56e36480827a698080",
+        "01e1827a696464830f424094da6a52afdae5ff66aa786da68754a227331f56e36480c0",
         {
           nfts: [],
           erc20Tokens: [],
@@ -478,14 +491,17 @@ describe("LedgerProvider", () => {
           domains: [],
         }
       );
-      sinon.assert.calledWithExactly(requestStub, {
+      sinon.assert.calledWithExactly(requestStub.getCall(0), {
         method: "eth_getTransactionCount",
         params: [account.address, "pending"],
       });
-      sinon.assert.calledWithExactly(requestStub, {
+      sinon.assert.calledWithExactly(requestStub.getCall(1), {
+        method: "eth_chainId",
+      });
+      sinon.assert.calledWithExactly(requestStub.getCall(2), {
         method: "eth_sendRawTransaction",
         params: [
-          "0xf8626464830f424094da6a52afdae5ff66aa786da68754a227331f56e3648082f4f5a04ab14d7e96a8bc7390cfffa0260d4b82848428ce7f5b8dd367d13bf31944b6c0a03cc226daa6a2f4e22334c59c2e04ac72672af72907ec9c4a601189858ba60069",
+          "0x01f864827a696464830f424094da6a52afdae5ff66aa786da68754a227331f56e36480c080a04ab14d7e96a8bc7390cfffa0260d4b82848428ce7f5b8dd367d13bf31944b6c0a03cc226daa6a2f4e22334c59c2e04ac72672af72907ec9c4a601189858ba60069",
         ],
       });
       assert.equal(tx, resultTx);
@@ -505,6 +521,7 @@ describe("LedgerProvider", () => {
         await requestPersonalSign();
         await requestPersonalSign();
         await requestPersonalSign();
+        await requestPersonalSign();
 
         sinon.assert.calledTwice(ethInstanceStub.getAddress);
         sinon.assert.calledWith(ethInstanceStub.getAddress, "44'/60'/0'/0/0");
@@ -513,9 +530,33 @@ describe("LedgerProvider", () => {
 
       it("should cache the path per address on the paths property", async () => {
         await requestPersonalSign();
-        assert.deepEqual(provider.paths, {
+        await requestPersonalSign();
+
+        assert.deepEqual(provider.paths, { [accounts[1]]: path });
+      });
+
+      it("should write the cache with the new paths", async () => {
+        await requestPersonalSign();
+        await requestPersonalSign();
+        await requestPersonalSign();
+
+        sinon.assert.calledOnceWithExactly(cacheStub.write, {
           [accounts[1]]: path,
         });
+      });
+
+      it("should not break if caching fails", async () => {
+        cacheStub.write.returns(Promise.reject(new Error("Write error")));
+
+        let hasThrown = false;
+        try {
+          await requestPersonalSign();
+        } catch (error) {
+          console.log(error);
+          hasThrown = true;
+        }
+
+        assert.isFalse(hasThrown);
       });
 
       it("should throw a DerivationPathError if trying to get the address fails", async () => {
