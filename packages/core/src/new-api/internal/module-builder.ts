@@ -53,7 +53,7 @@ import {
   ReadEventArgumentFutureImplementation,
   SendDataFutureImplementation,
 } from "./module";
-import { getFutures } from "./utils";
+import { resolveArgsToFutures } from "./utils";
 
 const STUB_MODULE_RESULTS = {
   [inspect.custom](): string {
@@ -174,7 +174,7 @@ export class IgnitionModuleBuilderImplementation<
       options.from
     );
 
-    for (const arg of getFutures(args)) {
+    for (const arg of resolveArgsToFutures(args)) {
       future.dependencies.add(arg);
     }
 
@@ -217,7 +217,7 @@ export class IgnitionModuleBuilderImplementation<
 
     this._module.futures.add(future);
 
-    for (const arg of getFutures(args)) {
+    for (const arg of resolveArgsToFutures(args)) {
       future.dependencies.add(arg);
     }
 
@@ -320,7 +320,7 @@ export class IgnitionModuleBuilderImplementation<
 
     future.dependencies.add(contractFuture);
 
-    for (const arg of getFutures(args)) {
+    for (const arg of resolveArgsToFutures(args)) {
       future.dependencies.add(arg);
     }
 
@@ -355,7 +355,7 @@ export class IgnitionModuleBuilderImplementation<
 
     future.dependencies.add(contractFuture);
 
-    for (const arg of getFutures(args)) {
+    for (const arg of resolveArgsToFutures(args)) {
       future.dependencies.add(arg);
     }
 

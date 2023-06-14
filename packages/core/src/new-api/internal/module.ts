@@ -265,12 +265,6 @@ export class IgnitionModuleImplementation<
     )}
   }`;
   }
-
-  public getFutures(): Future[] {
-    return [...this.futures].concat(
-      Array.from(this.submodules).flatMap((sub) => sub.getFutures())
-    );
-  }
 }
 
 export class AccountRuntimeValueImplementation implements AccountRuntimeValue {

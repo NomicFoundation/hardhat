@@ -3,6 +3,7 @@ import { Future, IgnitionModule } from "../types/module";
 
 import { AdjacencyList } from "./utils/adjacency-list";
 import { AdjacencyListConverter } from "./utils/adjacency-list-converter";
+import { getFuturesFromModule } from "./utils/get-futures-from-module";
 
 enum VisitStatus {
   UNVISITED,
@@ -45,7 +46,7 @@ export class Batcher {
     module: IgnitionModule,
     executionStateMap: ExecutionStateMap
   ): BatchState {
-    const allFutures = module.getFutures();
+    const allFutures = getFuturesFromModule(module);
 
     const visitState = this._intializeVisitStateFrom(
       allFutures,

@@ -3,21 +3,21 @@ import { ethers } from "ethers";
 import { isFuture } from "../type-guards";
 import { ArgumentType, Future } from "../types/module";
 
-export function getFutures(args: ArgumentType[]): Future[] {
-  return args.flatMap(_getFutures);
+export function resolveArgsToFutures(args: ArgumentType[]): Future[] {
+  return args.flatMap(_resolveArgToFutures);
 }
 
-function _getFutures(argument: ArgumentType): Future[] {
+function _resolveArgToFutures(argument: ArgumentType): Future[] {
   if (isFuture(argument)) {
     return [argument];
   }
 
   if (Array.isArray(argument)) {
-    return getFutures(argument);
+    return resolveArgsToFutures(argument);
   }
 
   if (typeof argument === "object" && argument !== null) {
-    return getFutures(Object.values(argument));
+    return resolveArgsToFutures(Object.values(argument));
   }
 
   return [];

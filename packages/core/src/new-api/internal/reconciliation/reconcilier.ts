@@ -2,6 +2,7 @@ import { ExecutionState, ExecutionStateMap } from "../../types/execution-state";
 import { Future, IgnitionModule, ModuleParameters } from "../../types/module";
 import { AdjacencyList } from "../utils/adjacency-list";
 import { AdjacencyListConverter } from "../utils/adjacency-list-converter";
+import { getFuturesFromModule } from "../utils/get-futures-from-module";
 
 import { reconcileCurrentAndPreviousTypeMatch } from "./reconcileCurrentAndPreviousTypeMatch";
 import { reconcileDependencyRules } from "./reconcileDependencyRules";
@@ -67,7 +68,9 @@ export class Reconcilier {
     module: IgnitionModule,
     executionStateMap: ExecutionStateMap
   ) {
-    const moduleFutures = new Set(module.getFutures().map((f) => f.id));
+    const moduleFutures = new Set(
+      getFuturesFromModule(module).map((f) => f.id)
+    );
 
     const previouslyStarted = Object.values(executionStateMap).map(
       (es) => es.id
@@ -81,7 +84,7 @@ export class Reconcilier {
   private static _getFuturesInReverseTopoligicalOrder(
     module: IgnitionModule
   ): Future[] {
-    const futures = module.getFutures();
+    const futures = getFuturesFromModule(module);
 
     const adjacencyList =
       AdjacencyListConverter.buildAdjacencyListFromFutures(futures);
