@@ -6,6 +6,7 @@ use axum::{
     Router,
 };
 use hashbrown::HashMap;
+use rethnet_eth::remote::ZeroXPrefixedBytes;
 use tokio::sync::RwLock;
 
 use rethnet_eth::{
@@ -77,6 +78,51 @@ pub async fn router(state: StateType) -> Router {
                                         ),
                                     }
                                 })),
+                                MethodInvocation::Eth(EthMethodInvocation::GetCode(
+                                    address,
+                                    _block_spec,
+                                )) => {
+                                    Json(serde_json::json!(
+                                        jsonrpc::Response {
+                                            jsonrpc: jsonrpc::Version::V2_0,
+                                            id,
+                                            data:
+                                                match (*rethnet_state).read().await.basic(address) {
+                                                    Ok(Some(account_info)) =>
+                                                        match (*rethnet_state)
+                                                            .read()
+                                                            .await
+                                                            .code_by_hash(account_info.code_hash)
+                                                        {
+                                                            Ok(code) => jsonrpc::ResponseData::<
+                                                                ZeroXPrefixedBytes,
+                                                            >::Success {
+                                                                result: ZeroXPrefixedBytes::from(
+                                                                    code.bytecode
+                                                                ),
+                                                            },
+                                                            Err(error) => jsonrpc::ResponseData::<
+                                                                ZeroXPrefixedBytes,
+                                                            >::new_error(
+                                                                0,
+                                                                &error.to_string(),
+                                                                None
+                                                            ),
+                                                        },
+                                                    Ok(None) => jsonrpc::ResponseData::<
+                                                        ZeroXPrefixedBytes,
+                                                    >::new_error(
+                                                        0, "No such account", None
+                                                    ),
+                                                    Err(e) => jsonrpc::ResponseData::<
+                                                        ZeroXPrefixedBytes,
+                                                    >::new_error(
+                                                        0, &e.to_string(), None
+                                                    ),
+                                                }
+                                        }
+                                    ))
+                                }
                                 MethodInvocation::Eth(
                                     EthMethodInvocation::GetTransactionCount(address, _block_spec),
                                 ) => Json(serde_json::json!(jsonrpc::Response {
@@ -239,7 +285,7 @@ pub async fn run(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use rethnet_eth::remote::BlockSpec;
+    use rethnet_eth::{remote::BlockSpec, Bytes};
 
     async fn start_server() -> SocketAddr {
         let mut accounts: hashbrown::HashMap<Address, AccountInfo> = Default::default();
@@ -321,6 +367,32 @@ mod tests {
         };
 
         let actual_response: jsonrpc::Response<U256> =
+            serde_json::from_str(&submit_request(&start_server().await, &request).await)
+                .expect("should deserialize from JSON");
+
+        assert_eq!(actual_response, expected_response);
+    }
+
+    #[tokio::test]
+    async fn test_get_code_success() {
+        let request = RpcRequest {
+            version: jsonrpc::Version::V2_0,
+            id: jsonrpc::Id::Num(0),
+            method: MethodInvocation::Eth(EthMethodInvocation::GetCode(
+                Address::from_low_u64_ne(1),
+                BlockSpec::Tag(String::from("latest")),
+            )),
+        };
+
+        let expected_response = jsonrpc::Response::<ZeroXPrefixedBytes> {
+            jsonrpc: request.version,
+            id: request.id.clone(),
+            data: jsonrpc::ResponseData::Success {
+                result: ZeroXPrefixedBytes::from(Bytes::from_static(b"\0")),
+            },
+        };
+
+        let actual_response: jsonrpc::Response<ZeroXPrefixedBytes> =
             serde_json::from_str(&submit_request(&start_server().await, &request).await)
                 .expect("should deserialize from JSON");
 
