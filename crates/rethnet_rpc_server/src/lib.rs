@@ -24,82 +24,115 @@ use rethnet_evm::{
 type StateType = Arc<RwLock<Box<dyn SyncState<StateError>>>>;
 
 pub async fn router(state: StateType) -> Router {
-    Router::new().route(
-        "/",
-        axum::routing::post(
-            |State(rethnet_state): State<StateType>, payload: Json<RpcRequest>| async move {
-                match payload {
-                    Json(RpcRequest {
-                        version,
-                        id,
-                        method: _,
-                    }) if version != jsonrpc::Version::V2_0 => {
-                        Json(serde_json::json!(jsonrpc::Response {
-                            jsonrpc: jsonrpc::Version::V2_0,
+    Router::new()
+        .route(
+            "/",
+            axum::routing::post(
+                |State(rethnet_state): State<StateType>, payload: Json<RpcRequest>| async move {
+                    match payload {
+                        Json(RpcRequest {
+                            version,
                             id,
-                            data: jsonrpc::ResponseData::<serde_json::Value>::new_error(
-                                0,
-                                "unsupported JSON-RPC version",
-                                match serde_json::to_value(version) {
-                                    Ok(version) => Some(version),
-                                    Err(_) => None,
-                                },
-                            )
-                        }))
-                    },
-                    Json(RpcRequest { version: _, id, method }) => {
-                        match method {
-                            MethodInvocation::Eth(EthMethodInvocation::GetBalance(address, _block_spec)) => {
-                                Json(serde_json::json!(jsonrpc::Response {
+                            method: _,
+                        }) if version != jsonrpc::Version::V2_0 => {
+                            Json(serde_json::json!(jsonrpc::Response {
+                                jsonrpc: jsonrpc::Version::V2_0,
+                                id,
+                                data: jsonrpc::ResponseData::<serde_json::Value>::new_error(
+                                    0,
+                                    "unsupported JSON-RPC version",
+                                    match serde_json::to_value(version) {
+                                        Ok(version) => Some(version),
+                                        Err(_) => None,
+                                    },
+                                )
+                            }))
+                        }
+                        Json(RpcRequest {
+                            version: _,
+                            id,
+                            method,
+                        }) => {
+                            match method {
+                                MethodInvocation::Eth(EthMethodInvocation::GetBalance(
+                                    address,
+                                    _block_spec,
+                                )) => Json(serde_json::json!(jsonrpc::Response {
                                     jsonrpc: jsonrpc::Version::V2_0,
                                     id,
                                     data: match (*rethnet_state).read().await.basic(address) {
                                         Ok(Some(account_info)) =>
-                                            jsonrpc::ResponseData::<U256>::Success { result: account_info.balance },
-                                        Ok(None) =>
-                                            jsonrpc::ResponseData::<U256>::new_error(0, "No such account", None),
-                                        Err(e) => jsonrpc::ResponseData::<U256>::new_error(0, &e.to_string(), None)
+                                            jsonrpc::ResponseData::<U256>::Success {
+                                                result: account_info.balance
+                                            },
+                                        Ok(None) => jsonrpc::ResponseData::<U256>::new_error(
+                                            0,
+                                            "No such account",
+                                            None
+                                        ),
+                                        Err(e) => jsonrpc::ResponseData::<U256>::new_error(
+                                            0,
+                                            &e.to_string(),
+                                            None
+                                        ),
                                     }
-                                }))
-                            }
-                            MethodInvocation::Hardhat(HardhatMethodInvocation::SetBalance(address, balance)) => {
-                                Json(serde_json::json!(jsonrpc::Response {
+                                })),
+                                MethodInvocation::Hardhat(HardhatMethodInvocation::SetBalance(
+                                    address,
+                                    balance,
+                                )) => Json(serde_json::json!(jsonrpc::Response {
                                     jsonrpc: jsonrpc::Version::V2_0,
                                     id,
                                     data: match (*rethnet_state).write().await.modify_account(
                                         address,
-                                        AccountModifierFn::new(
-                                            Box::new(move |account_balance, _, _| { *account_balance = balance })
-                                        ),
-                                        &|| Ok(AccountInfo { balance, nonce: 0, code: None, code_hash: KECCAK_EMPTY }),
+                                        AccountModifierFn::new(Box::new(
+                                            move |account_balance, _, _| {
+                                                *account_balance = balance
+                                            }
+                                        )),
+                                        &|| Ok(AccountInfo {
+                                            balance,
+                                            nonce: 0,
+                                            code: None,
+                                            code_hash: KECCAK_EMPTY
+                                        }),
                                     ) {
-                                        Ok(()) => jsonrpc::ResponseData::<()>::Success { result: () },
-                                        Err(e) => jsonrpc::ResponseData::<()>::new_error(0, &e.to_string(), None)
+                                        Ok(()) =>
+                                            jsonrpc::ResponseData::<()>::Success { result: () },
+                                        Err(e) => jsonrpc::ResponseData::<()>::new_error(
+                                            0,
+                                            &e.to_string(),
+                                            None
+                                        ),
                                     }
-                                }))
-                            }
-                            _ => { // TODO: after adding all the methods here, eliminate this
-                                   // catch-all match arm.
-                                Json(serde_json::json!(jsonrpc::Response {
-                                    jsonrpc: jsonrpc::Version::V2_0,
-                                    id,
-                                    data: jsonrpc::ResponseData::<serde_json::Value>::Error { error: jsonrpc::Error {
-                                        code: 0,
-                                        message: String::from("unsupported JSON-RPC method"),
-                                        data: match serde_json::to_value(method) {
-                                            Ok(value) => Some(value),
-                                            Err(_) => None
+                                })),
+                                _ => {
+                                    // TODO: after adding all the methods here, eliminate this
+                                    // catch-all match arm.
+                                    Json(serde_json::json!(jsonrpc::Response {
+                                        jsonrpc: jsonrpc::Version::V2_0,
+                                        id,
+                                        data: jsonrpc::ResponseData::<serde_json::Value>::Error {
+                                            error: jsonrpc::Error {
+                                                code: 0,
+                                                message: String::from(
+                                                    "unsupported JSON-RPC method"
+                                                ),
+                                                data: match serde_json::to_value(method) {
+                                                    Ok(value) => Some(value),
+                                                    Err(_) => None,
+                                                }
+                                            }
                                         }
-                                    }}
-                                }))
+                                    }))
+                                }
                             }
                         }
                     }
-                }
-            }
+                },
+            ),
         )
-    )
-    .with_state(state)
+        .with_state(state)
 }
 
 /// accepts an address to listen on (which could be a wildcard like 0.0.0.0:0), and a set of
