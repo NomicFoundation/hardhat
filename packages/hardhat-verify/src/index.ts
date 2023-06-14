@@ -21,7 +21,7 @@ import {
   TASK_VERIFY_RESOLVE_ARGUMENTS,
   TASK_VERIFY_VERIFY,
   TASK_VERIFY_ETHERSCAN,
-  TASK_VERIFY_GET_SUPPORTED_NETWORKS_LIST,
+  TASK_VERIFY_PRINT_SUPPORTED_NETWORKS,
 } from "./task-names";
 import { getCurrentChainConfig } from "./chain-config";
 import { etherscanConfigExtender } from "./config";
@@ -148,7 +148,7 @@ task(TASK_VERIFY, "Verifies a contract on Etherscan")
   .addFlag("listNetworks", "Print the list of supported networks")
   .setAction(async (taskArgs: VerifyTaskArgs, { run }) => {
     if (taskArgs.listNetworks) {
-      await run(TASK_VERIFY_GET_SUPPORTED_NETWORKS_LIST);
+      await run(TASK_VERIFY_PRINT_SUPPORTED_NETWORKS);
       return;
     }
     const verificationArgs: VerificationArgs = await run(
@@ -551,7 +551,7 @@ subtask(TASK_VERIFY_VERIFY)
   );
 
 subtask(
-  TASK_VERIFY_GET_SUPPORTED_NETWORKS_LIST,
+  TASK_VERIFY_PRINT_SUPPORTED_NETWORKS,
   "Prints the supported networks list"
 ).setAction(async ({}, { config }) => {
   await printSupportedNetworks(config.etherscan.customChains);

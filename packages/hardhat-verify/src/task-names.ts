@@ -10,5 +10,5 @@ export const TASK_VERIFY_ETHERSCAN_GET_MINIMAL_INPUT =
   "verify:etherscan-get-minimal-input";
 export const TASK_VERIFY_ETHERSCAN_ATTEMPT_VERIFICATION =
   "verify:etherscan-attempt-verification";
-export const TASK_VERIFY_GET_SUPPORTED_NETWORKS_LIST =
-  "verify:get-supported-networks-list";
+export const TASK_VERIFY_PRINT_SUPPORTED_NETWORKS =
+  "verify:print-supported-networks";
