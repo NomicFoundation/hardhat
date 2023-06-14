@@ -1,4 +1,4 @@
-import { difference } from "lodash";
+import difference from "lodash/difference";
 
 import { Future } from "../../types/module";
 import {
