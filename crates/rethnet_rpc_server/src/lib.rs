@@ -124,6 +124,16 @@ pub async fn router(state: StateType) -> Router {
                                     ))
                                 }
                                 MethodInvocation::Eth(
+                                    EthMethodInvocation::GetStorageAt(address, position, _block_spec)
+                                ) => Json(serde_json::json!(jsonrpc::Response {
+                                    jsonrpc: jsonrpc::Version::V2_0,
+                                    id,
+                                    data: match (*rethnet_state).read().await.storage(address, position) {
+                                        Ok(value) => jsonrpc::ResponseData::<U256>::Success { result: value },
+                                        Err(e) => jsonrpc::ResponseData::<U256>::new_error(0, &e.to_string(), None),
+                                    }
+                                })),
+                                MethodInvocation::Eth(
                                     EthMethodInvocation::GetTransactionCount(address, _block_spec),
                                 ) => Json(serde_json::json!(jsonrpc::Response {
                                     jsonrpc: jsonrpc::Version::V2_0,
@@ -430,6 +440,31 @@ mod tests {
         };
 
         let actual_response: jsonrpc::Response<ZeroXPrefixedBytes> =
+            serde_json::from_str(&submit_request(&start_server().await, &request).await)
+                .expect("should deserialize from JSON");
+
+        assert_eq!(actual_response, expected_response);
+    }
+
+    #[tokio::test]
+    async fn test_get_storage_success() {
+        let request = RpcRequest {
+            version: jsonrpc::Version::V2_0,
+            id: jsonrpc::Id::Num(0),
+            method: MethodInvocation::Eth(EthMethodInvocation::GetStorageAt(
+                Address::from_low_u64_ne(1),
+                U256::ZERO,
+                BlockSpec::Tag(String::from("latest")),
+            )),
+        };
+
+        let expected_response = jsonrpc::Response::<U256> {
+            jsonrpc: request.version,
+            id: request.id.clone(),
+            data: jsonrpc::ResponseData::Success { result: U256::ZERO },
+        };
+
+        let actual_response: jsonrpc::Response<U256> =
             serde_json::from_str(&submit_request(&start_server().await, &request).await)
                 .expect("should deserialize from JSON");
 
