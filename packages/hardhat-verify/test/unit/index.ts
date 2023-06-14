@@ -2,6 +2,7 @@ import { assert, expect } from "chai";
 import {
   TASK_VERIFY_RESOLVE_ARGUMENTS,
   TASK_VERIFY_VERIFY,
+  TASK_VERIFY_GET_SUPPORTED_NETWORKS_LIST,
 } from "../../src/task-names";
 import { getRandomAddress, useEnvironment } from "../helpers";
 
@@ -60,7 +61,7 @@ describe("verify task", () => {
           ConstructorLib: "0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9",
         },
         contractFQN: "contracts/TestContract.sol:TestContract",
-        listNetworks: true,
+        // listNetworks: true,
       };
       const proccesedArgs = await this.hre.run(TASK_VERIFY_RESOLVE_ARGUMENTS, {
         address,
@@ -68,7 +69,7 @@ describe("verify task", () => {
         constructorArgs: "constructor-args.js",
         libraries: "libraries.js",
         contract: "contracts/TestContract.sol:TestContract",
-        listNetworks: true,
+        // listNetworks: true,
       });
 
       assert.deepEqual(proccesedArgs, expectedArgs);
@@ -126,6 +127,12 @@ describe("verify task", () => {
           libraries: ["0x...1", "0x...2", "0x...3"],
         })
       ).to.be.rejectedWith(/The libraries parameter should be a dictionary./);
+    });
+  });
+
+  describe("verify:get-supported-networks-list", () => {
+    it("should be able to run the networks list", async function () {
+      await this.hre.run(TASK_VERIFY_GET_SUPPORTED_NETWORKS_LIST);
     });
   });
 });
