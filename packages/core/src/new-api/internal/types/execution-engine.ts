@@ -1,5 +1,5 @@
-import { ExecutionStateMap } from "./execution-state";
-import { IgnitionModule, IgnitionModuleResult } from "./module";
+import { ExecutionStateMap } from "../../types/execution-state";
+import { IgnitionModule, IgnitionModuleResult } from "../../types/module";
 
 export interface ExecutionEngineState {
   batches: string[][];

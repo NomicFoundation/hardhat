@@ -1,4 +1,4 @@
-import { ExecutionEngineState } from "../types/execution-engine";
+import { ExecutionEngineState } from "./types/execution-engine";
 
 export class ExecutionEngine {
   public execute(_preparedExecution: ExecutionEngineState) {
