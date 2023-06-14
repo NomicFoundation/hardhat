@@ -70,6 +70,12 @@ impl From<Bytes> for ZeroXPrefixedBytes {
     }
 }
 
+impl From<ZeroXPrefixedBytes> for Bytes {
+    fn from(z: ZeroXPrefixedBytes) -> Self {
+        z.inner
+    }
+}
+
 impl<'a> serde::Deserialize<'a> for ZeroXPrefixedBytes {
     fn deserialize<D>(deserializer: D) -> Result<ZeroXPrefixedBytes, D::Error>
     where

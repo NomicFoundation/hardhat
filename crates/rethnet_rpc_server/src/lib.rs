@@ -19,7 +19,7 @@ use rethnet_eth::{
 };
 use rethnet_evm::{
     state::{AccountModifierFn, HybridState, StateError, SyncState},
-    AccountInfo, KECCAK_EMPTY,
+    AccountInfo, Bytecode, KECCAK_EMPTY,
 };
 
 type StateType = Arc<RwLock<Box<dyn SyncState<StateError>>>>;
@@ -174,6 +174,43 @@ pub async fn router(state: StateType) -> Router {
                                         ),
                                     }
                                 })),
+                                MethodInvocation::Hardhat(HardhatMethodInvocation::SetCode(
+                                    address,
+                                    code,
+                                )) => {
+                                    let code_1 = code.clone();
+                                    let code_2 = code.clone();
+                                    Json(serde_json::json!(jsonrpc::Response {
+                                        jsonrpc: jsonrpc::Version::V2_0,
+                                        id,
+                                        data: match (*rethnet_state).write().await.modify_account(
+                                            address,
+                                            AccountModifierFn::new(Box::new(
+                                                move |_, _, account_code| {
+                                                    *account_code = Some(Bytecode::new_raw(
+                                                        code_1.clone().into(),
+                                                    ))
+                                                }
+                                            )),
+                                            &|| Ok(AccountInfo {
+                                                balance: U256::ZERO,
+                                                nonce: 0,
+                                                code: Some(Bytecode::new_raw(
+                                                    code_2.clone().into()
+                                                )),
+                                                code_hash: KECCAK_EMPTY
+                                            }),
+                                        ) {
+                                            Ok(()) =>
+                                                jsonrpc::ResponseData::<()>::Success { result: () },
+                                            Err(e) => jsonrpc::ResponseData::<()>::new_error(
+                                                0,
+                                                &e.to_string(),
+                                                None
+                                            ),
+                                        }
+                                    }))
+                                }
                                 MethodInvocation::Hardhat(HardhatMethodInvocation::SetNonce(
                                     address,
                                     nonce,
@@ -548,6 +585,58 @@ mod tests {
         };
 
         let actual_response: jsonrpc::Response<U256> =
+            serde_json::from_str(&submit_request(&server_address, &request).await)
+                .expect("should deserialize from JSON");
+
+        assert_eq!(actual_response, expected_response);
+    }
+
+    #[tokio::test]
+    async fn test_set_code_success() {
+        let server_address = start_server().await;
+
+        let address = Address::from_low_u64_ne(1);
+        let new_code = ZeroXPrefixedBytes::from(Bytes::from_static(b"deadbeef"));
+
+        let request = RpcRequest {
+            version: jsonrpc::Version::V2_0,
+            id: jsonrpc::Id::Num(0),
+            method: MethodInvocation::Hardhat(HardhatMethodInvocation::SetCode(
+                address,
+                new_code.clone(),
+            )),
+        };
+
+        let expected_response = jsonrpc::Response::<()> {
+            jsonrpc: request.version,
+            id: request.id.clone(),
+            data: jsonrpc::ResponseData::Success { result: () },
+        };
+
+        let actual_response: jsonrpc::Response<()> =
+            serde_json::from_str(&submit_request(&server_address, &request).await)
+                .expect("should deserialize from JSON");
+
+        assert_eq!(actual_response, expected_response);
+
+        let request = RpcRequest {
+            version: jsonrpc::Version::V2_0,
+            id: jsonrpc::Id::Num(0),
+            method: MethodInvocation::Eth(EthMethodInvocation::GetCode(
+                address,
+                BlockSpec::Tag(String::from("latest")),
+            )),
+        };
+
+        let expected_response = jsonrpc::Response::<ZeroXPrefixedBytes> {
+            jsonrpc: request.version,
+            id: request.id.clone(),
+            data: jsonrpc::ResponseData::Success {
+                result: new_code.clone(),
+            },
+        };
+
+        let actual_response: jsonrpc::Response<ZeroXPrefixedBytes> =
             serde_json::from_str(&submit_request(&server_address, &request).await)
                 .expect("should deserialize from JSON");
 
