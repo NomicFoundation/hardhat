@@ -53,7 +53,7 @@ describe("Reconciliation", () => {
     assert.deepStrictEqual(
       reconiliationResult.missingExecutedFutures,
       ["Module1:ContractMissed"],
-      "Exected one missing previous executed future"
+      "Expected one missing previous executed future"
     );
   });
 
