@@ -37,7 +37,7 @@ export function reconcileDependencyRules(
 
     return fail(
       future,
-      `A dependency from ${future.id} to the already started future ${additionalDep} has been added`
+      `A dependency from ${future.id} to ${additionalDep} has been added, and both futures had already started executing, so this change is incompatible`
     );
   }
 
