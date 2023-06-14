@@ -116,7 +116,7 @@ export class LedgerProvider extends ProviderWrapperWithChainId {
 
     try {
       const paths = await cache.read<Paths>();
-      if (paths === undefined) {
+      if (paths !== undefined) {
         Object.assign(this.paths, paths);
       }
     } catch (error) {}
