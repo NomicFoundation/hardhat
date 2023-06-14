@@ -13,7 +13,7 @@ export function createLedgerProvider(
 ): LedgerProvider {
   let accounts: string[] = [];
 
-  if (isNetworkConfig(networkConfig)) {
+  if (isHardhatNetworkConfig(networkConfig)) {
     accounts =
       networkConfig.ledgerAccounts === undefined
         ? []
@@ -25,7 +25,7 @@ export function createLedgerProvider(
   return withSpinners(ledgerProvider);
 }
 
-function isNetworkConfig(
+function isHardhatNetworkConfig(
   config: NetworkConfig
 ): config is HardhatNetworkConfig {
   return !("url" in config);
