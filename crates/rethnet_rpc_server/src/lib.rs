@@ -27,9 +27,9 @@ pub async fn router(state: StateType) -> Router {
     Router::new().route(
         "/",
         axum::routing::post(
-            |State(rethnet_state): State<StateType>, payload: Json<serde_json::Value>| async move {
-                match serde_json::from_value::<RpcRequest>(payload.0.clone()) {
-                    Ok(RpcRequest {
+            |State(rethnet_state): State<StateType>, payload: Json<RpcRequest>| async move {
+                match payload {
+                    Json(RpcRequest {
                         version,
                         id,
                         method: _,
@@ -47,7 +47,7 @@ pub async fn router(state: StateType) -> Router {
                             )
                         }))
                     },
-                    Ok(RpcRequest { version: _, id, method }) => {
+                    Json(RpcRequest { version: _, id, method }) => {
                         match method {
                             MethodInvocation::Eth(EthMethodInvocation::GetBalance(address, _block_spec)) => {
                                 Json(serde_json::json!(jsonrpc::Response {
@@ -94,19 +94,6 @@ pub async fn router(state: StateType) -> Router {
                                 }))
                             }
                         }
-                    }
-                    Err(error) => {
-                        Json(serde_json::json!(jsonrpc::Response {
-                            jsonrpc: jsonrpc::Version::V2_0,
-                            id: jsonrpc::Id::Str(String::from("unknown")),
-                            data: jsonrpc::ResponseData::<()>::new_error(
-                                -32700, // from the JSON-RPC spec
-                                "Parse error",
-                                match serde_json::to_value(error.to_string()) {
-                                    Ok(error) => Some(error),
-                                    Err(_) => None
-                                })
-                        }))
                     }
                 }
             }
