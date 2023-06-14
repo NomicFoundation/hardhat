@@ -96,8 +96,8 @@ impl TryFrom<EIP2930SignedTransaction> for rethnet_eth::transaction::EIP2930Sign
             access_list: value
                 .access_list
                 .into_iter()
-                .map(TryFrom::try_from)
-                .collect::<napi::Result<Vec<rethnet_eth::access_list::AccessListItem>>>()?
+                .map(From::from)
+                .collect::<Vec<rethnet_eth::access_list::AccessListItem>>()
                 .into(),
             odd_y_parity: value.odd_y_parity,
             r: B256::from_slice(&value.r),

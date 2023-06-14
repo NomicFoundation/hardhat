@@ -37,7 +37,7 @@ impl Block {
             trie::ordered_trie_root(transactions.iter().map(|r| rlp::encode(r).freeze()));
 
         Self {
-            header: Header::new(partial_header, ommers_hash, transactions_root),
+            header: Header::new(partial_header, ommers_hash, transactions_root, None),
             transactions,
             ommers,
         }
@@ -101,6 +101,8 @@ pub struct Header {
     pub nonce: B64,
     /// BaseFee was added by EIP-1559 and is ignored in legacy headers.
     pub base_fee_per_gas: Option<U256>,
+    /// WithdrawalsHash was added by EIP-4895 and is ignored in legacy headers.
+    pub withdrawals_root: Option<B256>,
 }
 
 #[cfg(feature = "serde")]
@@ -116,8 +118,13 @@ impl From<B64Def> for B64 {
 }
 
 impl Header {
-    /// Constructs a [`Header`] from the provided [`PartialHeader`], ommers' root hash, and transactions' root hash.
-    pub fn new(partial_header: PartialHeader, ommers_hash: B256, transactions_root: B256) -> Self {
+    /// Constructs a [`Header`] from the provided [`PartialHeader`], ommers' root hash, transactions' root hash, and withdrawals' root hash.
+    pub fn new(
+        partial_header: PartialHeader,
+        ommers_hash: B256,
+        transactions_root: B256,
+        withdrawals_root: Option<B256>,
+    ) -> Self {
         Self {
             parent_hash: partial_header.parent_hash,
             ommers_hash,
@@ -135,12 +142,14 @@ impl Header {
             mix_hash: partial_header.mix_hash,
             nonce: partial_header.nonce,
             base_fee_per_gas: partial_header.base_fee,
+            withdrawals_root,
         }
     }
 
     /// Calculates the block's hash.
     pub fn hash(&self) -> B256 {
-        keccak256(&rlp::encode(self))
+        let encoded = rlp::encode(self);
+        keccak256(&encoded)
     }
 
     /// Returns the rlp length of the Header body, _not including_ trailing EIP155 fields or the
@@ -170,17 +179,24 @@ impl Header {
             .base_fee_per_gas
             .map(|fee| fee.length())
             .unwrap_or_default();
+        length += self
+            .withdrawals_root
+            .map(|root| root.length())
+            .unwrap_or_default();
         length
     }
 }
 
 impl rlp::Encodable for Header {
     fn rlp_append(&self, s: &mut rlp::RlpStream) {
-        if self.base_fee_per_gas.is_none() {
-            s.begin_list(15);
+        s.begin_list(if self.base_fee_per_gas.is_none() {
+            15
+        } else if self.withdrawals_root.is_none() {
+            16
         } else {
-            s.begin_list(16);
-        }
+            17
+        });
+
         s.append(&ruint::aliases::B256::from_be_bytes(self.parent_hash.0));
         s.append(&ruint::aliases::B256::from_be_bytes(self.ommers_hash.0));
         s.append(&ruint::aliases::B160::from_be_bytes(self.beneficiary.0));
@@ -200,6 +216,9 @@ impl rlp::Encodable for Header {
         s.append(&self.nonce.to_le_bytes::<8>().as_ref());
         if let Some(ref base_fee) = self.base_fee_per_gas {
             s.append(base_fee);
+        }
+        if let Some(ref root) = self.withdrawals_root {
+            s.append(&ruint::aliases::B256::from_be_bytes(root.0));
         }
     }
 }
@@ -224,6 +243,13 @@ impl rlp::Decodable for Header {
             nonce: B64::from_le_bytes(rlp.val_at::<U64>(14)?.to_be_bytes::<8>()),
             base_fee_per_gas: if let Ok(base_fee) = rlp.at(15) {
                 Some(<U256 as Decodable>::decode(&base_fee)?)
+            } else {
+                None
+            },
+            withdrawals_root: if let Ok(root) = rlp.at(16) {
+                Some(B256::from(
+                    <U256 as Decodable>::decode(&root)?.to_be_bytes(),
+                ))
             } else {
                 None
             },
@@ -384,6 +410,7 @@ mod tests {
             mix_hash: Default::default(),
             nonce: B64::from(uint!(99_U64)),
             base_fee_per_gas: None,
+            withdrawals_root: None,
         };
 
         let encoded = rlp::encode(&header);
@@ -508,6 +535,7 @@ mod tests {
             .unwrap(),
             nonce: B64::from(uint!(0x0_U64)),
             base_fee_per_gas: Some(U256::from(0x036bu64)),
+            withdrawals_root: None,
         };
         assert_eq!(header.hash(), expected_hash);
     }

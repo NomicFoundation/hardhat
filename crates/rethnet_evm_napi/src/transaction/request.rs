@@ -54,15 +54,15 @@ impl TryFrom<TransactionRequest> for rethnet_evm::TxEnv {
             .input
             .map_or(Bytes::default(), |input| Bytes::copy_from_slice(&input));
 
-        let access_list = value.access_list.map_or(Ok(Vec::new()), |access_list| {
+        let access_list = value.access_list.map_or(Vec::new(), |access_list| {
             access_list
                 .into_iter()
                 .map(|item| {
-                    rethnet_eth::access_list::AccessListItem::try_from(item)
-                        .map(|item| (item.address, item.storage_keys))
+                    let item = rethnet_eth::access_list::AccessListItem::from(item);
+                    item.into()
                 })
-                .collect::<napi::Result<Vec<_>>>()
-        })?;
+                .collect::<Vec<_>>()
+        });
 
         Ok(Self {
             caller,

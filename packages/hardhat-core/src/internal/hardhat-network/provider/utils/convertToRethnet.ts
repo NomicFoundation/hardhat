@@ -67,6 +67,7 @@ export function ethereumjsBlockHeaderToRethnet(
     mixHash: blockHeader.mixHash,
     nonce: blockHeader.nonce,
     baseFeePerGas: blockHeader.baseFeePerGas,
+    withdrawalsRoot: blockHeader.withdrawalsRoot,
   };
 }
 
@@ -90,6 +91,7 @@ export function rethnetBlockHeaderToEthereumJSBlockData(
     mixHash: blockHeader.mixHash,
     nonce: blockHeader.nonce,
     baseFeePerGas: blockHeader.baseFeePerGas,
+    withdrawalsRoot: blockHeader.withdrawalsRoot,
   };
 }
 

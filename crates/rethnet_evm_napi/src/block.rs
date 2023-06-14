@@ -173,6 +173,7 @@ pub struct BlockHeader {
     pub mix_hash: Buffer,
     pub nonce: Buffer,
     pub base_fee_per_gas: Option<BigInt>,
+    pub withdrawals_root: Option<Buffer>,
 }
 
 impl BlockHeader {
@@ -225,6 +226,9 @@ impl BlockHeader {
                 sign_bit: false,
                 words: fee.as_limbs().to_vec(),
             }),
+            withdrawals_root: header
+                .withdrawals_root
+                .map(|root| Buffer::from(root.as_bytes())),
         })
     }
 }
@@ -258,6 +262,7 @@ impl TryFrom<BlockHeader> for rethnet_eth::block::Header {
             base_fee_per_gas: value
                 .base_fee_per_gas
                 .map_or(Ok(None), |fee| fee.try_cast().map(Some))?,
+            withdrawals_root: value.withdrawals_root.map(|root| B256::from_slice(&root)),
         })
     }
 }

@@ -7,7 +7,7 @@ use rethnet_eth::{
         EIP1559SignedTransaction, EIP2930SignedTransaction, LegacySignedTransaction,
         SignedTransaction, TransactionKind,
     },
-    Address, Bloom, Bytes, B256, U256,
+    Address, Bloom, Bytes, B256,
 };
 use revm::{
     db::DatabaseComponentError,
@@ -100,16 +100,6 @@ impl From<PendingTransaction> for TxEnv {
             }
         }
 
-        fn into_access_list(
-            access_list: rethnet_eth::access_list::AccessList,
-        ) -> Vec<(Address, Vec<U256>)> {
-            access_list
-                .0
-                .into_iter()
-                .map(|item| (item.address, item.storage_keys))
-                .collect()
-        }
-
         let chain_id = transaction.transaction.chain_id();
         match transaction.transaction {
             SignedTransaction::Legacy(LegacySignedTransaction {
@@ -151,7 +141,7 @@ impl From<PendingTransaction> for TxEnv {
                 data: input,
                 chain_id,
                 nonce: Some(nonce),
-                access_list: into_access_list(access_list),
+                access_list: access_list.into(),
             },
             SignedTransaction::EIP1559(EIP1559SignedTransaction {
                 nonce,
@@ -173,7 +163,7 @@ impl From<PendingTransaction> for TxEnv {
                 data: input,
                 chain_id,
                 nonce: Some(nonce),
-                access_list: into_access_list(access_list),
+                access_list: access_list.into(),
             },
         }
     }

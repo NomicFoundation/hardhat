@@ -1,6 +1,6 @@
-use napi::{bindgen_prelude::Buffer, Status};
+use napi::bindgen_prelude::Buffer;
 use napi_derive::napi;
-use rethnet_eth::{Address, U256};
+use rethnet_eth::{Address, B256};
 
 #[napi(object)]
 pub struct AccessListItem {
@@ -16,31 +16,25 @@ impl From<&rethnet_eth::access_list::AccessListItem> for AccessListItem {
             storage_keys: item
                 .storage_keys
                 .iter()
-                .map(|key| Buffer::from(key.as_le_bytes().as_ref()))
+                .map(|key| Buffer::from(key.as_ref()))
                 .collect(),
         }
     }
 }
 
-impl TryFrom<AccessListItem> for rethnet_eth::access_list::AccessListItem {
-    type Error = napi::Error;
-
-    fn try_from(value: AccessListItem) -> Result<Self, Self::Error> {
+impl From<AccessListItem> for rethnet_eth::access_list::AccessListItem {
+    fn from(value: AccessListItem) -> Self {
         let address = Address::from_slice(&value.address);
 
         let storage_keys = value
             .storage_keys
             .into_iter()
-            .map(|key| {
-                U256::try_from_le_slice(&key).ok_or_else(|| {
-                    napi::Error::new(Status::InvalidArg, "Expected a buffer containing 32 bytes")
-                })
-            })
-            .collect::<napi::Result<Vec<U256>>>()?;
+            .map(|key| B256::from_slice(&key))
+            .collect::<Vec<_>>();
 
-        Ok(rethnet_eth::access_list::AccessListItem {
+        rethnet_eth::access_list::AccessListItem {
             address,
             storage_keys,
-        })
+        }
     }
 }

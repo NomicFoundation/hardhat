@@ -1,5 +1,6 @@
 use bytes::Bytes;
 use revm_primitives::{keccak256, Address, B256, U256};
+use ruint::aliases::U64;
 
 use crate::{
     access_list::AccessList,
@@ -55,7 +56,7 @@ impl rlp::Encodable for EIP2930SignedTransaction {
     fn rlp_append(&self, s: &mut rlp::RlpStream) {
         s.begin_list(11);
         s.append(&self.chain_id);
-        s.append(&self.nonce);
+        s.append(&U64::from_limbs([self.nonce]));
         s.append(&self.gas_price);
         s.append(&self.gas_limit);
         s.append(&self.kind);
@@ -63,8 +64,8 @@ impl rlp::Encodable for EIP2930SignedTransaction {
         s.append(&self.input.as_ref());
         s.append(&self.access_list);
         s.append(&self.odd_y_parity);
-        s.append(&ruint::aliases::B256::from_be_bytes(self.r.0));
-        s.append(&ruint::aliases::B256::from_be_bytes(self.s.0));
+        s.append(&U256::from_be_bytes(self.r.0));
+        s.append(&U256::from_be_bytes(self.s.0));
     }
 }
 
