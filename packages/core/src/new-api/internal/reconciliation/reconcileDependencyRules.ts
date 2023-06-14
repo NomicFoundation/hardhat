@@ -30,6 +30,7 @@ export function reconcileDependencyRules(
       );
     }
 
+    // TODO: Check that is was successfully executed before `executionState` was created.
     if (additionalExecutionState.status === ExecutionStatus.SUCCESS) {
       continue;
     }
