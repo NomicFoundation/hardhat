@@ -1,6 +1,6 @@
-import { ExecutionStateMap, ExecutionStatus } from "../types/execution-state";
 import { Future, IgnitionModule } from "../types/module";
 
+import { ExecutionStateMap, ExecutionStatus } from "./types/execution-state";
 import { AdjacencyList } from "./utils/adjacency-list";
 import { AdjacencyListConverter } from "./utils/adjacency-list-converter";
 import { getFuturesFromModule } from "./utils/get-futures-from-module";

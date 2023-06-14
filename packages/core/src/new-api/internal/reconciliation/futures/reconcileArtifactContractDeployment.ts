@@ -1,7 +1,7 @@
 import { isEqual } from "lodash";
 
-import { DeploymentExecutionState } from "../../../types/execution-state";
 import { ArtifactContractDeploymentFuture } from "../../../types/module";
+import { DeploymentExecutionState } from "../../types/execution-state";
 import { ExecutionStateResolver } from "../execution-state-resolver";
 import { ReconciliationContext, ReconciliationFutureResult } from "../types";
 import { fail, resolveFromAddress, safeToString } from "../utils";

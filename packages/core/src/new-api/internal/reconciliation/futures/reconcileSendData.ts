@@ -1,7 +1,7 @@
 import { isEqual } from "lodash";
 
-import { SendDataExecutionState } from "../../../types/execution-state";
 import { SendDataFuture } from "../../../types/module";
+import { SendDataExecutionState } from "../../types/execution-state";
 import { ExecutionStateResolver } from "../execution-state-resolver";
 import { ReconciliationContext, ReconciliationFutureResult } from "../types";
 import { fail, resolveFromAddress, safeToString } from "../utils";

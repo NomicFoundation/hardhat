@@ -1,3 +1,4 @@
+import { Future, FutureType } from "../../types/module";
 import {
   CallExecutionState,
   ContractAtExecutionState,
@@ -6,8 +7,7 @@ import {
   ReadEventArgumentExecutionState,
   SendDataExecutionState,
   StaticCallExecutionState,
-} from "../../types/execution-state";
-import { Future, FutureType } from "../../types/module";
+} from "../types/execution-state";
 
 import { reconcileArtifactContractAt } from "./futures/reconcileArtifactContractAt";
 import { reconcileArtifactContractDeployment } from "./futures/reconcileArtifactContractDeployment";

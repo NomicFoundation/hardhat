@@ -1,5 +1,5 @@
-import { ExecutionState, ExecutionStateMap } from "../../types/execution-state";
 import { Future, ModuleParameters } from "../../types/module";
+import { ExecutionState, ExecutionStateMap } from "../types/execution-state";
 
 export interface ReconciliationFailure {
   futureId: string;

@@ -7,7 +7,7 @@ import {
   DeploymentExecutionState,
   ExecutionStateMap,
   ExecutionStatus,
-} from "../../src/new-api/types/execution-state";
+} from "../../src/new-api/internal/types/execution-state";
 import {
   FutureType,
   IgnitionModuleResult,

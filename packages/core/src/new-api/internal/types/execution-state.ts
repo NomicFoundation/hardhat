@@ -1,4 +1,4 @@
-import { ArgumentType, FutureType } from "./module";
+import { ArgumentType, FutureType } from "../../types/module";
 
 /**
  * This interface represents a transaction that was sent to the network.

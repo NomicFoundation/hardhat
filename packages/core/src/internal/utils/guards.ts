@@ -26,7 +26,7 @@ import {
   DeploymentExecutionState,
   ExecutionState,
   StaticCallExecutionState,
-} from "../../new-api/types/execution-state";
+} from "../../new-api/internal/types/execution-state";
 import { FutureType } from "../../new-api/types/module";
 import { ArtifactOld } from "../../types/hardhat";
 import { ModuleDict } from "../../types/module";

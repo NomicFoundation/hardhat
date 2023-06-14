@@ -1,18 +1,18 @@
 import { IgnitionError } from "../../../errors";
 import { isRuntimeValue } from "../../type-guards";
 import {
-  DeploymentExecutionState,
-  ExecutionState,
-  ExecutionStateMap,
-  SendDataExecutionState,
-  StaticCallExecutionState,
-} from "../../types/execution-state";
-import {
   AddressResolvableFuture,
   ContractFuture,
   Future,
   ModuleParameterRuntimeValue,
 } from "../../types/module";
+import {
+  DeploymentExecutionState,
+  ExecutionState,
+  ExecutionStateMap,
+  SendDataExecutionState,
+  StaticCallExecutionState,
+} from "../types/execution-state";
 import { isAddress } from "../utils";
 
 import { ReconciliationContext } from "./types";

@@ -3,7 +3,7 @@ import { assert } from "chai";
 import { ModuleConstructor } from "../../../src/new-api/internal/module-builder";
 import { Reconcilier } from "../../../src/new-api/internal/reconciliation/reconcilier";
 import { ReconciliationResult } from "../../../src/new-api/internal/reconciliation/types";
-import { ExecutionStateMap } from "../../../src/new-api/types/execution-state";
+import { ExecutionStateMap } from "../../../src/new-api/internal/types/execution-state";
 import {
   IgnitionModuleResult,
   ModuleParameters,

@@ -5,7 +5,7 @@ import { Batcher } from "./internal/batcher";
 import { ExecutionEngine } from "./internal/execution-engine";
 import { ModuleConstructor } from "./internal/module-builder";
 import { Reconcilier } from "./internal/reconciliation/reconcilier";
-import { ExecutionStateMap } from "./types/execution-state";
+import { ExecutionStateMap } from "./internal/types/execution-state";
 
 export class Deployer {
   private _moduleConstructor: ModuleConstructor;

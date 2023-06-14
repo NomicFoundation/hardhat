@@ -5,7 +5,7 @@ import {
   CallExecutionState,
   DeploymentExecutionState,
   ExecutionStatus,
-} from "../../../../src/new-api/types/execution-state";
+} from "../../../../src/new-api/internal/types/execution-state";
 import { FutureType } from "../../../../src/new-api/types/module";
 import { assertSuccessReconciliation, reconcile } from "../helpers";
 
