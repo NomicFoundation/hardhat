@@ -246,12 +246,8 @@ export class LedgerProvider extends ProviderWrapperWithChainId {
       } catch (error) {
         return this.eth.signEIP712HashedMessage(
           path,
-          ethers.utils._TypedDataEncoder.hashDomain(domain),
-          ethers.utils._TypedDataEncoder.hashStruct(
-            primaryType,
-            structTypes,
-            message
-          )
+          ethers.TypedDataEncoder.hashDomain(domain),
+          ethers.TypedDataEncoder.hashStruct(primaryType, structTypes, message)
         );
       }
     });
@@ -309,11 +305,14 @@ export class LedgerProvider extends ProviderWrapperWithChainId {
 
     const chainId = await this._getChainId();
 
-    const baseTx: ethers.utils.UnsignedTransaction = {
+    const baseTx: ethers.TransactionLike = {
       chainId,
-      data: txRequest.data,
+      data:
+        txRequest.data === undefined ? undefined : this._toHex(txRequest.data),
       gasLimit: txRequest.gas,
       gasPrice: txRequest.gasPrice,
+      maxFeePerGas: txRequest.maxFeePerGas,
+      maxPriorityFeePerGas: txRequest.maxPriorityFeePerGas,
       nonce: Number(txRequest.nonce),
       value: txRequest.value,
     };
@@ -321,7 +320,8 @@ export class LedgerProvider extends ProviderWrapperWithChainId {
       baseTx.to = this._toHex(txRequest.to);
     }
 
-    const txToSign = ethers.utils.serializeTransaction(baseTx).substring(2);
+    const txToSign =
+      ethers.Transaction.from(baseTx).unsignedSerialized.substring(2);
 
     const resolution = await ledgerService.resolveTransaction(txToSign, {}, {});
 
@@ -329,11 +329,14 @@ export class LedgerProvider extends ProviderWrapperWithChainId {
       this.eth.signTransaction(path, txToSign, resolution)
     );
 
-    const rawTransaction = ethers.utils.serializeTransaction(baseTx, {
-      v: ethers.BigNumber.from(this._toHex(signature.v)).toNumber(),
-      r: this._toHex(signature.r),
-      s: this._toHex(signature.s),
-    });
+    const rawTransaction = ethers.Transaction.from({
+      ...baseTx,
+      signature: {
+        v: this._toHex(signature.v),
+        r: this._toHex(signature.r),
+        s: this._toHex(signature.s),
+      },
+    }).serialized;
 
     return this._wrappedProvider.request({
       method: "eth_sendRawTransaction",
