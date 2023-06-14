@@ -300,11 +300,6 @@ export class StoredDeploymentSerializer {
         };
         return serializedSendDataFuture;
     }
-
-    throw new IgnitionError(
-      // @ts-ignore At compile type this should be impossible
-      `Unknown future type while serializing: ${FutureType[future.type]}`
-    );
   }
 
   private static _convertLibrariesToLibraryTokens(
@@ -363,6 +358,7 @@ export class StoredDeploymentSerializer {
   ): SerializedModuleParameterRuntimeValue {
     return {
       _kind: "ModuleParameterRuntimeValue",
+      moduleId: arg.moduleId,
       name: arg.name,
       defaultValue:
         arg.defaultValue === undefined
@@ -870,6 +866,7 @@ export class StoredDeploymentDeserializer {
     }
 
     return new ModuleParameterRuntimeValueImplementation(
+      serialized.moduleId,
       serialized.name,
       defaultValue
     );

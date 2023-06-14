@@ -22,7 +22,7 @@ export class Deployer {
       string,
       IgnitionModuleResult<string>
     >,
-    moduleParameters: ModuleParameters,
+    deploymentParameters: { [key: string]: ModuleParameters },
     accounts: string[]
   ) {
     const module = this._moduleConstructor.construct(moduleDefinition);
@@ -32,7 +32,7 @@ export class Deployer {
     const reconciliationResult = Reconciler.reconcile(
       module,
       previousStateMap,
-      moduleParameters,
+      deploymentParameters,
       accounts
     );
 

@@ -26,7 +26,7 @@ export interface ReconciliationResult {
 
 export interface ReconciliationContext {
   executionStateMap: ExecutionStateMap;
-  moduleParameters: ModuleParameters;
+  deploymentParameters: { [key: string]: ModuleParameters };
   accounts: string[];
 }
 

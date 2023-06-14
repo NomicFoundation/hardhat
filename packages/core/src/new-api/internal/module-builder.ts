@@ -147,6 +147,7 @@ export class IgnitionModuleBuilderImplementation<
     defaultValue?: ParamTypeT
   ): ModuleParameterRuntimeValue<ParamTypeT> {
     return new ModuleParameterRuntimeValueImplementation(
+      this._module.id,
       parameterName,
       defaultValue
     );

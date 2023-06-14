@@ -232,6 +232,7 @@ export interface SerializedAccountRuntimeValue {
  */
 export interface SerializedModuleParameterRuntimeValue {
   _kind: "ModuleParameterRuntimeValue";
+  moduleId: string;
   name: string;
   defaultValue: string | undefined;
 }

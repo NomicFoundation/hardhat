@@ -290,6 +290,7 @@ export class ModuleParameterRuntimeValueImplementation<
   public readonly type = RuntimeValueType.MODULE_PARAMETER;
 
   constructor(
+    public readonly moduleId: string,
     public readonly name: string,
     public readonly defaultValue: ParamTypeT | undefined
   ) {}

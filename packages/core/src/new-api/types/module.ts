@@ -340,6 +340,7 @@ export interface ModuleParameterRuntimeValue<
   ParamTypeT extends ModuleParameterType
 > {
   type: RuntimeValueType.MODULE_PARAMETER;
+  moduleId: string;
   name: string;
   defaultValue: ParamTypeT | undefined;
 }

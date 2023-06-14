@@ -20,12 +20,12 @@ export class Reconciler {
   public static reconcile(
     module: IgnitionModule,
     executionStateMap: ExecutionStateMap,
-    moduleParameters: ModuleParameters,
+    deploymentParameters: { [key: string]: ModuleParameters },
     accounts: string[]
   ): ReconciliationResult {
     const reconciliationFailures = this._reconcileEachFutureInModule(
       module,
-      { executionStateMap, moduleParameters, accounts },
+      { executionStateMap, deploymentParameters, accounts },
       [
         reconcileCurrentAndPreviousTypeMatch,
         reconcileDependencyRules,
@@ -43,7 +43,6 @@ export class Reconciler {
 
   private static _reconcileEachFutureInModule(
     module: IgnitionModule,
-
     context: ReconciliationContext,
     checks: ReconciliationCheck[]
   ): ReconciliationFailure[] {

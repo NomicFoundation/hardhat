@@ -58,8 +58,14 @@ export function resolveModuleParameter(
   moduleParamRuntimeValue: ModuleParameterRuntimeValue<string>,
   context: ReconciliationContext
 ) {
-  const moduleParamValue =
-    context.moduleParameters[moduleParamRuntimeValue.name];
+  const moduleParameters =
+    context.deploymentParameters[moduleParamRuntimeValue.moduleId];
+
+  if (moduleParameters === undefined) {
+    return moduleParamRuntimeValue.defaultValue;
+  }
+
+  const moduleParamValue = moduleParameters[moduleParamRuntimeValue.name];
 
   if (moduleParamValue === undefined) {
     return moduleParamRuntimeValue.defaultValue;
