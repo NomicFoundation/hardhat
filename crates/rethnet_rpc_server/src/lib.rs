@@ -77,6 +77,28 @@ pub async fn router(state: StateType) -> Router {
                                         ),
                                     }
                                 })),
+                                MethodInvocation::Eth(
+                                    EthMethodInvocation::GetTransactionCount(address, _block_spec),
+                                ) => Json(serde_json::json!(jsonrpc::Response {
+                                    jsonrpc: jsonrpc::Version::V2_0,
+                                    id,
+                                    data: match (*rethnet_state).read().await.basic(address) {
+                                        Ok(Some(account_info)) =>
+                                            jsonrpc::ResponseData::<U256>::Success {
+                                                result: U256::from(account_info.nonce)
+                                            },
+                                        Ok(None) => jsonrpc::ResponseData::<U256>::new_error(
+                                            0,
+                                            "No such account",
+                                            None
+                                        ),
+                                        Err(e) => jsonrpc::ResponseData::<U256>::new_error(
+                                            0,
+                                            &e.to_string(),
+                                            None
+                                        ),
+                                    }
+                                })),
                                 MethodInvocation::Hardhat(HardhatMethodInvocation::SetBalance(
                                     address,
                                     balance,
@@ -244,6 +266,60 @@ mod tests {
             version: jsonrpc::Version::V2_0,
             id: jsonrpc::Id::Num(0),
             method: MethodInvocation::Eth(EthMethodInvocation::GetBalance(
+                Address::from_low_u64_ne(1),
+                BlockSpec::Tag(String::from("latest")),
+            )),
+        };
+
+        let expected_response = jsonrpc::Response::<U256> {
+            jsonrpc: request.version,
+            id: request.id.clone(),
+            data: jsonrpc::ResponseData::Success { result: U256::ZERO },
+        };
+
+        let actual_response: jsonrpc::Response<U256> =
+            serde_json::from_str(&submit_request(&start_server().await, &request).await)
+                .expect("should deserialize from JSON");
+
+        assert_eq!(actual_response, expected_response);
+    }
+
+    #[tokio::test]
+    async fn test_get_transaction_count_nonexistent_account() {
+        let request = RpcRequest {
+            version: jsonrpc::Version::V2_0,
+            id: jsonrpc::Id::Num(0),
+            method: MethodInvocation::Eth(EthMethodInvocation::GetTransactionCount(
+                Address::from_low_u64_ne(2),
+                BlockSpec::Tag(String::from("latest")),
+            )),
+        };
+
+        let expected_response = jsonrpc::Response::<U256> {
+            jsonrpc: request.version,
+            id: request.id.clone(),
+            data: jsonrpc::ResponseData::Error {
+                error: jsonrpc::Error {
+                    code: 0,
+                    message: String::from("No such account"),
+                    data: None,
+                },
+            },
+        };
+
+        let actual_response: jsonrpc::Response<U256> =
+            serde_json::from_str(&submit_request(&start_server().await, &request).await)
+                .expect("should deserialize from JSON");
+
+        assert_eq!(actual_response, expected_response);
+    }
+
+    #[tokio::test]
+    async fn test_get_transaction_count_success() {
+        let request = RpcRequest {
+            version: jsonrpc::Version::V2_0,
+            id: jsonrpc::Id::Num(0),
+            method: MethodInvocation::Eth(EthMethodInvocation::GetTransactionCount(
                 Address::from_low_u64_ne(1),
                 BlockSpec::Tag(String::from("latest")),
             )),
