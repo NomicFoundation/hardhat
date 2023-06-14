@@ -61,7 +61,7 @@ export class ExecutionStateResolver {
     return contractAddress;
   }
 
-  public static resolveStaticCallToAddress(
+  public static resolveToAddress(
     address:
       | string
       | AddressResolvableFuture
