@@ -16,7 +16,7 @@ import {
   ReconciliationResult,
 } from "./types";
 
-export class Reconcilier {
+export class Reconciler {
   public static reconcile(
     module: IgnitionModule,
     executionStateMap: ExecutionStateMap,

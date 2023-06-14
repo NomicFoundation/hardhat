@@ -4,7 +4,7 @@ import type { IgnitionModuleDefinition } from "./types/module-builder";
 import { Batcher } from "./internal/batcher";
 import { ExecutionEngine } from "./internal/execution-engine";
 import { ModuleConstructor } from "./internal/module-builder";
-import { Reconcilier } from "./internal/reconciliation/reconcilier";
+import { Reconciler } from "./internal/reconciliation/reconciler";
 import { ExecutionStateMap } from "./internal/types/execution-state";
 
 export class Deployer {
@@ -29,7 +29,7 @@ export class Deployer {
 
     const previousStateMap = await this._loadExecutionStateFromJournal();
 
-    const reconciliationResult = Reconcilier.reconcile(
+    const reconciliationResult = Reconciler.reconcile(
       module,
       previousStateMap,
       moduleParameters,

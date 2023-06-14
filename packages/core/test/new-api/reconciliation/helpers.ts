@@ -1,7 +1,7 @@
 import { assert } from "chai";
 
 import { ModuleConstructor } from "../../../src/new-api/internal/module-builder";
-import { Reconcilier } from "../../../src/new-api/internal/reconciliation/reconcilier";
+import { Reconciler } from "../../../src/new-api/internal/reconciliation/reconciler";
 import { ReconciliationResult } from "../../../src/new-api/internal/reconciliation/types";
 import { ExecutionStateMap } from "../../../src/new-api/internal/types/execution-state";
 import {
@@ -42,7 +42,7 @@ export function reconcile(
     ])
   );
 
-  const reconiliationResult = Reconcilier.reconcile(
+  const reconiliationResult = Reconciler.reconcile(
     module,
     updatedExecutionStateMap,
     moduleParameters,
