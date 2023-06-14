@@ -1,3 +1,4 @@
+import { AutomaticGasPriceProvider } from "hardhat/internal/core/providers/gas-providers";
 import {
   EIP1193Provider,
   HardhatNetworkConfig,
@@ -20,7 +21,15 @@ export function createLedgerProvider(
         : networkConfig.ledgerAccounts;
   }
 
-  const ledgerProvider = new LedgerProvider({ accounts }, provider);
+  let ledgerProvider = new LedgerProvider({ accounts }, provider);
+
+  if (isHardhatNetworkConfig(networkConfig)) {
+    // Hardhat doesn't apply the AutomaticGasPriceProvider wrapper when
+    // the in-process network is being used, so we add it here,
+    // otherwise users have to specify a gas price when using a
+    // ledger account with the hardhat network
+    ledgerProvider = new AutomaticGasPriceProvider(ledgerProvider) as any;
+  }
 
   return withSpinners(ledgerProvider);
 }
