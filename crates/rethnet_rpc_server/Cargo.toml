@@ -6,7 +6,7 @@ edition = "2021"
 [dependencies]
 axum = "0.6.18"
 hashbrown = { version = "0.13", default-features = false, features = ["ahash"] }
-hyper = "0.14.26"
+reqwest = { version = "0.11", features = ["blocking", "json"] }
 rethnet_eth = { version = "0.1.0-dev", path = "../rethnet_eth", features = ["serde"] }
 rethnet_evm = { version = "0.1.0-dev", path = "../rethnet_evm" }
 serde = { version = "1.0.147", default-features = false, features = ["derive"] }

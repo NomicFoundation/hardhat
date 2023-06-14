@@ -174,7 +174,6 @@ pub async fn run(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use axum::{body::Body, http::Request};
     use rethnet_eth::remote::BlockSpec;
 
     async fn start_server() -> SocketAddr {
@@ -195,24 +194,18 @@ mod tests {
     }
 
     async fn submit_request(address: &SocketAddr, request: &RpcRequest) -> String {
-        String::from_utf8(
-            hyper::body::to_bytes(
-                hyper::Client::new()
-                    .request(
-                        Request::post(format!("http://{address}/"))
-                            .header("Content-Type", "application/json")
-                            .body(Body::from(serde_json::to_string(&request).unwrap()))
-                            .unwrap(),
-                    )
-                    .await
-                    .unwrap()
-                    .into_body(),
-            )
+        let url = format!("http://{address}/");
+        let body = serde_json::to_string(&request).expect("should serialize request to JSON");
+        reqwest::Client::new()
+            .post(&url)
+            .header(reqwest::header::CONTENT_TYPE, "application/json")
+            .body(body.clone())
+            .send()
             .await
-            .unwrap()
-            .to_vec(),
-        )
-        .expect("should decode response from UTF-8")
+            .expect(&format!("should send to url '{url}' request body '{body}'"))
+            .text()
+            .await
+            .expect(&format!("should get full response text"))
     }
 
     #[tokio::test]
