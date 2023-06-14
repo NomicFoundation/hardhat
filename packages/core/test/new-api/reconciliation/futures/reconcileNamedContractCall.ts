@@ -7,7 +7,12 @@ import {
   ExecutionStatus,
 } from "../../../../src/new-api/internal/types/execution-state";
 import { FutureType } from "../../../../src/new-api/types/module";
-import { assertSuccessReconciliation, reconcile } from "../helpers";
+import {
+  assertSuccessReconciliation,
+  oneAddress,
+  reconcile,
+  twoAddress,
+} from "../helpers";
 
 describe("Reconciliation - named contract call", () => {
   const exampleAddress = "0x1F98431c8aD98523631AE4a59f267346ea31F984";
@@ -204,7 +209,7 @@ describe("Reconciliation - named contract call", () => {
     const moduleDefinition = defineModule("Module", (m) => {
       const contract1 = m.contract("Contract1");
 
-      m.call(contract1, "function1", [], { id: "config", from: "0x222" });
+      m.call(contract1, "function1", [], { id: "config", from: twoAddress });
 
       return { contract1 };
     });
@@ -219,14 +224,14 @@ describe("Reconciliation - named contract call", () => {
         futureType: FutureType.NAMED_CONTRACT_CALL,
         status: ExecutionStatus.STARTED,
         functionName: "function1",
-        from: "0x111",
+        from: oneAddress,
       },
     });
 
     assert.deepStrictEqual(reconiliationResult.reconciliationFailures, [
       {
         futureId: "Module:Contract1#config",
-        failure: "From account has been changed from 0x111 to 0x222",
+        failure: `From account has been changed from ${oneAddress} to ${twoAddress}`,
       },
     ]);
   });

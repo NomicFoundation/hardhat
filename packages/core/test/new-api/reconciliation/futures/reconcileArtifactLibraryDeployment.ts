@@ -6,7 +6,12 @@ import {
   ExecutionStatus,
 } from "../../../../src/new-api/internal/types/execution-state";
 import { FutureType } from "../../../../src/new-api/types/module";
-import { assertSuccessReconciliation, reconcile } from "../helpers";
+import {
+  assertSuccessReconciliation,
+  oneAddress,
+  reconcile,
+  twoAddress,
+} from "../helpers";
 
 describe("Reconciliation - artifact library", () => {
   const fakeArtifact = ["Fake artifact"] as any;
@@ -135,7 +140,7 @@ describe("Reconciliation - artifact library", () => {
     const moduleDefinition = defineModule("Module", (m) => {
       const library1 = m.libraryFromArtifact("Library1", fakeArtifact, {
         id: "Example",
-        from: "0x222",
+        from: twoAddress,
       });
 
       return { contract1: library1 };
@@ -147,14 +152,14 @@ describe("Reconciliation - artifact library", () => {
         futureType: FutureType.ARTIFACT_LIBRARY_DEPLOYMENT,
         status: ExecutionStatus.STARTED,
         contractName: "Library1",
-        from: "0x111",
+        from: oneAddress,
       },
     });
 
     assert.deepStrictEqual(reconiliationResult.reconciliationFailures, [
       {
         futureId: "Module:Example",
-        failure: "From account has been changed from 0x111 to 0x222",
+        failure: `From account has been changed from ${oneAddress} to ${twoAddress}`,
       },
     ]);
   });

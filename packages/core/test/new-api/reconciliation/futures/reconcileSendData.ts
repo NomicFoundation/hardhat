@@ -119,7 +119,7 @@ describe("Reconciliation - send data", () => {
   it("should find changes to from unreconciliable", () => {
     const moduleDefinition = defineModule("Module", (m) => {
       m.send("test_send", exampleAddress, 0n, "example_data", {
-        from: "0x222",
+        from: differentAddress,
       });
 
       return {};
@@ -129,14 +129,14 @@ describe("Reconciliation - send data", () => {
       "Module:test_send": {
         ...exampleSendState,
         status: ExecutionStatus.STARTED,
-        from: "0x111",
+        from: exampleAddress,
       },
     });
 
     assert.deepStrictEqual(reconiliationResult.reconciliationFailures, [
       {
         futureId: "Module:test_send",
-        failure: "From account has been changed from 0x111 to 0x222",
+        failure: `From account has been changed from ${exampleAddress} to ${differentAddress}`,
       },
     ]);
   });

@@ -27,7 +27,7 @@ export function resolveFromAddress(
   from: string | AccountRuntimeValue | undefined,
   context: ReconciliationContext
 ): string | undefined {
-  if (from === undefined || typeof from === "string") {
+  if (from === undefined) {
     return from;
   }
 

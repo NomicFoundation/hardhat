@@ -10,6 +10,9 @@ import {
 } from "../../../src/new-api/types/module";
 import { IgnitionModuleDefinition } from "../../../src/new-api/types/module-builder";
 
+export const oneAddress = "0x1111111111111111111111111111111111111111";
+export const twoAddress = "0x2222222222222222222222222222222222222222";
+
 export function reconcile(
   moduleDefinition: IgnitionModuleDefinition<
     string,

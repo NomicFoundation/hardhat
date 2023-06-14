@@ -6,7 +6,12 @@ import {
   ExecutionStatus,
 } from "../../../../src/new-api/internal/types/execution-state";
 import { FutureType } from "../../../../src/new-api/types/module";
-import { assertSuccessReconciliation, reconcile } from "../helpers";
+import {
+  assertSuccessReconciliation,
+  oneAddress,
+  reconcile,
+  twoAddress,
+} from "../helpers";
 
 describe("Reconciliation - named library", () => {
   const exampleAddress = "0x1F98431c8aD98523631AE4a59f267346ea31F984";
@@ -129,7 +134,7 @@ describe("Reconciliation - named library", () => {
 
   it("should find changes to from unreconciliable", () => {
     const moduleDefinition = defineModule("Module", (m) => {
-      const library = m.library("Library", { id: "Library", from: "0x222" });
+      const library = m.library("Library", { id: "Library", from: twoAddress });
 
       return { library };
     });
@@ -140,14 +145,14 @@ describe("Reconciliation - named library", () => {
         futureType: FutureType.NAMED_LIBRARY_DEPLOYMENT,
         status: ExecutionStatus.STARTED,
         contractName: "Library",
-        from: "0x111",
+        from: oneAddress,
       },
     });
 
     assert.deepStrictEqual(reconiliationResult.reconciliationFailures, [
       {
         futureId: "Module:Library",
-        failure: "From account has been changed from 0x111 to 0x222",
+        failure: `From account has been changed from ${oneAddress} to ${twoAddress}`,
       },
     ]);
   });
