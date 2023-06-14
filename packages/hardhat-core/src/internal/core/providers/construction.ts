@@ -141,7 +141,11 @@ export async function createProvider(
     wrappedProvider = await extender(wrappedProvider, config, networkName);
   }
 
-  wrappedProvider = applyProviderWrappers(wrappedProvider, networkConfig);
+  wrappedProvider = applyProviderWrappers(
+    wrappedProvider,
+    networkConfig,
+    extenders
+  );
 
   const BackwardsCompatibilityProviderAdapter = importProvider<
     typeof import("./backwards-compatibility"),
@@ -153,7 +157,8 @@ export async function createProvider(
 
 export function applyProviderWrappers(
   provider: EIP1193Provider,
-  netConfig: Partial<NetworkConfig>
+  netConfig: Partial<NetworkConfig>,
+  extenders: ProviderExtender[]
 ): EIP1193Provider {
   // These dependencies are lazy-loaded because they are really big.
   const LocalAccountsProvider = importProvider<
@@ -235,8 +240,10 @@ export function applyProviderWrappers(
     // fields, as the missing ones will be resolved there.
     //
     // Hardhat Network handles this in a more performant way, so we don't use
-    // the AutomaticGasPriceProvider for it.
-    if (isResolvedHttpNetworkConfig(netConfig)) {
+    // the AutomaticGasPriceProvider for it unless there are provider extenders.
+    // The reason for this is that some extenders (like hardhat-ledger's) might
+    // do the signing themselves, and that needs the gas price to be set.
+    if (isResolvedHttpNetworkConfig(netConfig) || extenders.length > 0) {
       provider = new AutomaticGasPriceProvider(provider);
     }
   } else {
