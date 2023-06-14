@@ -188,7 +188,7 @@ mod tests {
             },
         );
 
-        run("0.0.0.0:0".parse::<SocketAddr>().unwrap(), accounts)
+        run("127.0.0.1:0".parse::<SocketAddr>().unwrap(), accounts)
             .await
             .unwrap()
     }
