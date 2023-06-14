@@ -112,7 +112,7 @@ pub enum HardhatMethodInvocation {
     SetPrevRandao(ZeroXPrefixedBytes),
     /// hardhat_setStorageAt
     #[serde(rename = "hardhat_setStorageAt")]
-    SetStorageAt(Address, U256, ZeroXPrefixedBytes),
+    SetStorageAt(Address, U256, U256),
     /// hardhat_stopImpersonatingAccount
     #[serde(
         rename = "hardhat_stopImpersonatingAccount",
@@ -771,7 +771,7 @@ mod tests {
             HardhatMethodInvocation::SetStorageAt(
                 Address::from_low_u64_ne(1),
                 U256::ZERO,
-                Bytes::from(&b"whatever"[..]).into(),
+                U256::ZERO,
             ),
         ));
     }

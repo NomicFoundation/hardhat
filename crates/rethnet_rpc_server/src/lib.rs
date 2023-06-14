@@ -264,6 +264,18 @@ pub async fn router(state: StateType) -> Router {
                                         ),
                                     }
                                 })),
+                                MethodInvocation::Hardhat(HardhatMethodInvocation::SetStorageAt(
+                                    address, position, value,
+                                )) => Json(serde_json::json!(jsonrpc::Response {
+                                    jsonrpc: jsonrpc::Version::V2_0,
+                                    id,
+                                    data: match (*rethnet_state).write().await.set_account_storage_slot(
+                                        address, position, value
+                                    ) {
+                                        Ok(()) => jsonrpc::ResponseData::<()>::Success { result: () },
+                                        Err(e) => jsonrpc::ResponseData::<()>::new_error(0, &e.to_string(), None),
+                                    }
+                                })),
                                 _ => {
                                     // TODO: after adding all the methods here, eliminate this
                                     // catch-all match arm.
@@ -672,6 +684,60 @@ mod tests {
         };
 
         let actual_response: jsonrpc::Response<ZeroXPrefixedBytes> =
+            serde_json::from_str(&submit_request(&server_address, &request).await)
+                .expect("should deserialize from JSON");
+
+        assert_eq!(actual_response, expected_response);
+    }
+
+    #[tokio::test]
+    async fn test_set_storage_at_success() {
+        let server_address = start_server().await;
+
+        let address = Address::from_low_u64_ne(1);
+        let new_storage_value = U256::from(100);
+
+        let request = RpcRequest {
+            version: jsonrpc::Version::V2_0,
+            id: jsonrpc::Id::Num(0),
+            method: MethodInvocation::Hardhat(HardhatMethodInvocation::SetStorageAt(
+                address,
+                U256::ZERO,
+                new_storage_value,
+            )),
+        };
+
+        let expected_response = jsonrpc::Response::<()> {
+            jsonrpc: request.version,
+            id: request.id.clone(),
+            data: jsonrpc::ResponseData::Success { result: () },
+        };
+
+        let actual_response: jsonrpc::Response<()> =
+            serde_json::from_str(&submit_request(&server_address, &request).await)
+                .expect("should deserialize from JSON");
+
+        assert_eq!(actual_response, expected_response);
+
+        let request = RpcRequest {
+            version: jsonrpc::Version::V2_0,
+            id: jsonrpc::Id::Num(0),
+            method: MethodInvocation::Eth(EthMethodInvocation::GetStorageAt(
+                address,
+                U256::ZERO,
+                BlockSpec::Tag(String::from("latest")),
+            )),
+        };
+
+        let expected_response = jsonrpc::Response::<U256> {
+            jsonrpc: request.version,
+            id: request.id.clone(),
+            data: jsonrpc::ResponseData::Success {
+                result: new_storage_value,
+            },
+        };
+
+        let actual_response: jsonrpc::Response<U256> =
             serde_json::from_str(&submit_request(&server_address, &request).await)
                 .expect("should deserialize from JSON");
 
