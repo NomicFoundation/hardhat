@@ -141,7 +141,7 @@ export class Analytics {
       method: "POST",
       signal: controller.signal,
     })
-      .then(async () => {
+      .then(() => {
         log(`Hit for ${eventName} sent successfully`);
       })
       .catch(() => {
