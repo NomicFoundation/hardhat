@@ -24,6 +24,22 @@ export function fail(
   };
 }
 
+export function failWithError(
+  future: Future,
+  error: unknown
+): ReconciliationFutureResult {
+  return {
+    success: false,
+    failure: {
+      futureId: future.id,
+      failure:
+        error instanceof Error
+          ? error.message
+          : "unknown failure during reconciliation",
+    },
+  };
+}
+
 export function resolveFromAddress(
   from: string | AccountRuntimeValue | undefined,
   { accounts }: ReconciliationContext
@@ -40,14 +56,15 @@ export function resolveFromAddress(
     return from;
   }
 
-  if (!isRuntimeValue(from)) {
-    throw new IgnitionError(`Could not resolve from address: ${from as any}`);
-  }
+  assertIgnitionInvariant(
+    isRuntimeValue(from),
+    `Could not resolve from address: ${JSON.stringify(from)}`
+  );
 
   const runtimeAddress = accounts[from.accountIndex];
 
   assertIgnitionInvariant(
-    !isAddress(runtimeAddress),
+    isAddress(runtimeAddress),
     `From runtime account is not a usable address: ${runtimeAddress}`
   );
 

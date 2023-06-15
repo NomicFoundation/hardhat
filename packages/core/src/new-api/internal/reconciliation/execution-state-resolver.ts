@@ -15,6 +15,7 @@ import {
   StaticCallExecutionState,
 } from "../types/execution-state";
 import { isAddress } from "../utils";
+import { assertIgnitionInvariant } from "../utils/assertions";
 import { replaceWithinArg } from "../utils/replace-within-arg";
 
 import { ReconciliationContext } from "./types";
@@ -26,22 +27,25 @@ export class ExecutionStateResolver {
     constructorArgs: ArgumentType[],
     context: ReconciliationContext
   ): ArgumentType[] {
-    return replaceWithinArg<ArgumentType>(constructorArgs, {
-      bigint: (bi) => bi.toString(),
-      future: (f) => {
-        if (!isContractFuture(f)) {
-          throw new IgnitionError(
-            `Only deployable contract and library futures can be used in args, ${f.id} is not a contract or library future`
-          );
-        }
+    const replace = (arg: ArgumentType) =>
+      replaceWithinArg<ArgumentType>(arg, {
+        bigint: (bi) => bi.toString(),
+        future: (f) => {
+          if (!isContractFuture(f)) {
+            throw new IgnitionError(
+              `Only deployable contract and library futures can be used in args, ${f.id} is not a contract or library future`
+            );
+          }
 
-        return ExecutionStateResolver.resolveContractToAddress(f, context);
-      },
-      accountRuntimeValue: (arv) => context.accounts[arv.accountIndex],
-      moduleParameterRuntimeValue: (mprv) => {
-        return resolveModuleParameter(mprv, context);
-      },
-    }) as ArgumentType[];
+          return ExecutionStateResolver.resolveContractToAddress(f, context);
+        },
+        accountRuntimeValue: (arv) => context.accounts[arv.accountIndex],
+        moduleParameterRuntimeValue: (mprv) => {
+          return resolveModuleParameter(mprv, context);
+        },
+      });
+
+    return constructorArgs.map(replace);
   }
 
   // Library addresses are resolved from previous execution states
@@ -74,13 +78,14 @@ export class ExecutionStateResolver {
       (exState: DeploymentExecutionState) => exState.contractAddress
     );
 
-    if (contractAddress === undefined) {
-      throw new IgnitionError("Previous deployment without contractAddress");
-    }
-
-    if (!isAddress(contractAddress)) {
-      throw new IgnitionError("contractAddress is not a usable address");
-    }
+    assertIgnitionInvariant(
+      contractAddress !== undefined,
+      "Previous deployment without contractAddress"
+    );
+    assertIgnitionInvariant(
+      isAddress(contractAddress),
+      "contractAddress is not a usable address"
+    );
 
     return contractAddress;
   }
@@ -101,9 +106,9 @@ export class ExecutionStateResolver {
 
       if (typeof runtimeValue !== "string" || !isAddress(runtimeValue)) {
         throw new IgnitionError(
-          `Address runtime value is not a usable address ${safeToString(
-            runtimeValue
-          )}`
+          `Module parameter ${address.moduleId}/${
+            address.name
+          } is not a usable address ${safeToString(runtimeValue)}`
         );
       }
 
@@ -117,7 +122,7 @@ export class ExecutionStateResolver {
     );
 
     if (typeof result !== "string" || !isAddress(result)) {
-      throw new IgnitionError("Result is not a usable address");
+      throw new IgnitionError("Static call result is not a usable address");
     }
 
     return result;
