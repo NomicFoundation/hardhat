@@ -315,17 +315,6 @@ pub async fn run(
     let listener = TcpListener::bind(address)?;
     let address = listener.local_addr()?;
 
-    let mut accounts: hashbrown::HashMap<Address, AccountInfo> = Default::default();
-    accounts.insert(
-        Address::from_low_u64_ne(1),
-        AccountInfo {
-            code: None,
-            code_hash: KECCAK_EMPTY,
-            balance: U256::ZERO,
-            nonce: 0,
-        },
-    );
-
     let rethnet_state: StateType = Arc::new(RwLock::new(Box::new(HybridState::with_accounts(
         genesis_accounts,
     ))));
