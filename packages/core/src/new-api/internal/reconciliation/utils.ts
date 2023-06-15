@@ -7,6 +7,7 @@ import {
   ModuleParameterType,
 } from "../../types/module";
 import { isAddress } from "../utils";
+import { assertIgnitionInvariant } from "../utils/assertions";
 
 import { ReconciliationContext, ReconciliationFutureResult } from "./types";
 
@@ -25,7 +26,7 @@ export function fail(
 
 export function resolveFromAddress(
   from: string | AccountRuntimeValue | undefined,
-  context: ReconciliationContext
+  { accounts }: ReconciliationContext
 ): string | undefined {
   if (from === undefined) {
     return from;
@@ -43,31 +44,40 @@ export function resolveFromAddress(
     throw new IgnitionError(`Could not resolve from address: ${from as any}`);
   }
 
-  const runtimeAddress = context.accounts[from.accountIndex];
+  const runtimeAddress = accounts[from.accountIndex];
 
-  if (!isAddress(runtimeAddress)) {
-    throw new IgnitionError(
-      `From runtime value is not a usable address: ${runtimeAddress}`
-    );
-  }
+  assertIgnitionInvariant(
+    !isAddress(runtimeAddress),
+    `From runtime account is not a usable address: ${runtimeAddress}`
+  );
 
   return runtimeAddress;
 }
 
 export function resolveModuleParameter(
-  moduleParamRuntimeValue: ModuleParameterRuntimeValue<string>,
+  moduleParamRuntimeValue: ModuleParameterRuntimeValue<ModuleParameterType>,
   context: ReconciliationContext
-) {
+): ModuleParameterType {
   const moduleParameters =
     context.deploymentParameters[moduleParamRuntimeValue.moduleId];
 
   if (moduleParameters === undefined) {
+    assertIgnitionInvariant(
+      moduleParamRuntimeValue.defaultValue !== undefined,
+      `No default value provided for module parameter ${moduleParamRuntimeValue.moduleId}/${moduleParamRuntimeValue.name}`
+    );
+
     return moduleParamRuntimeValue.defaultValue;
   }
 
   const moduleParamValue = moduleParameters[moduleParamRuntimeValue.name];
 
   if (moduleParamValue === undefined) {
+    assertIgnitionInvariant(
+      moduleParamRuntimeValue.defaultValue !== undefined,
+      `No default value provided for module parameter ${moduleParamRuntimeValue.moduleId}/${moduleParamRuntimeValue.name}`
+    );
+
     return moduleParamRuntimeValue.defaultValue;
   }
 

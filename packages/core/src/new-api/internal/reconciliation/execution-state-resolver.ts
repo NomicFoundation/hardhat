@@ -31,7 +31,7 @@ export class ExecutionStateResolver {
       future: (f) => {
         if (!isContractFuture(f)) {
           throw new IgnitionError(
-            `Cannot replace future in args, for non-deployable futures ${f.id}`
+            `Only deployable contract and library futures can be used in args, ${f.id} is not a contract or library future`
           );
         }
 
@@ -39,31 +39,7 @@ export class ExecutionStateResolver {
       },
       accountRuntimeValue: (arv) => context.accounts[arv.accountIndex],
       moduleParameterRuntimeValue: (mprv) => {
-        const moduleParameters = context.deploymentParameters[mprv.moduleId];
-
-        if (moduleParameters === undefined) {
-          if (mprv.defaultValue === undefined) {
-            throw new IgnitionError(
-              `No default value provided for module parameter ${mprv.moduleId}/${mprv.name}`
-            );
-          }
-
-          return mprv.defaultValue;
-        }
-
-        const parameter = moduleParameters[mprv.name];
-
-        if (parameter === undefined) {
-          if (mprv.defaultValue === undefined) {
-            throw new IgnitionError(
-              `No default value provided for module parameter ${mprv.moduleId}/${mprv.name}`
-            );
-          }
-
-          return mprv.defaultValue;
-        }
-
-        return parameter;
+        return resolveModuleParameter(mprv, context);
       },
     }) as ArgumentType[];
   }
