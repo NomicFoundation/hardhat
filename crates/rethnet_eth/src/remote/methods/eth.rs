@@ -274,9 +274,7 @@ mod tests {
 
     #[test]
     fn test_serde_eth_block_number() {
-        help_test_method_invocation_serde(
-            MethodInvocation::BlockNumber(),
-        );
+        help_test_method_invocation_serde(MethodInvocation::BlockNumber());
     }
 
     #[test]
@@ -361,39 +359,40 @@ mod tests {
 
     #[test]
     fn test_serde_eth_get_block_by_number() {
-        help_test_method_invocation_serde(
-            MethodInvocation::GetBlockByNumber(BlockSpec::Number(U256::from(100)), true),
-        );
+        help_test_method_invocation_serde(MethodInvocation::GetBlockByNumber(
+            BlockSpec::Number(U256::from(100)),
+            true,
+        ));
     }
 
     #[test]
     fn test_serde_eth_get_block_by_tag() {
-        help_test_method_invocation_serde(
-            MethodInvocation::GetBlockByNumber(BlockSpec::Tag(String::from("latest")), true),
-        );
+        help_test_method_invocation_serde(MethodInvocation::GetBlockByNumber(
+            BlockSpec::Tag(String::from("latest")),
+            true,
+        ));
     }
 
     #[test]
     fn test_serde_eth_get_block_by_hash() {
-        help_test_method_invocation_serde(
-            MethodInvocation::GetBlockByHash(B256::from_low_u64_ne(1), true),
-        );
+        help_test_method_invocation_serde(MethodInvocation::GetBlockByHash(
+            B256::from_low_u64_ne(1),
+            true,
+        ));
     }
 
     #[test]
     fn test_serde_eth_get_transaction_count_by_hash() {
-        help_test_method_invocation_serde(
-            MethodInvocation::GetBlockTransactionCountByHash(B256::from_low_u64_ne(1)),
-        );
+        help_test_method_invocation_serde(MethodInvocation::GetBlockTransactionCountByHash(
+            B256::from_low_u64_ne(1),
+        ));
     }
 
     #[test]
     fn test_serde_eth_get_transaction_count_by_number() {
-        help_test_method_invocation_serde(
-            MethodInvocation::GetBlockTransactionCountByNumber(BlockSpec::Number(U256::from(
-                100,
-            ))),
-        );
+        help_test_method_invocation_serde(MethodInvocation::GetBlockTransactionCountByNumber(
+            BlockSpec::Number(U256::from(100)),
+        ));
     }
 
     #[test]
@@ -414,108 +413,94 @@ mod tests {
 
     #[test]
     fn test_serde_eth_get_filter_changes() {
-        help_test_method_invocation_serde(
-            MethodInvocation::GetFilterChanges(U256::from(100)),
-        );
+        help_test_method_invocation_serde(MethodInvocation::GetFilterChanges(U256::from(100)));
     }
 
     #[test]
     fn test_serde_eth_get_filter_logs() {
-        help_test_method_invocation_serde(
-            MethodInvocation::GetFilterLogs(U256::from(100)),
-        );
+        help_test_method_invocation_serde(MethodInvocation::GetFilterLogs(U256::from(100)));
     }
 
     #[test]
     fn test_serde_eth_get_logs_by_block_numbers() {
-        help_test_method_invocation_serde(MethodInvocation::GetLogs(
-            GetLogsInput {
-                address: Address::from_low_u64_ne(1),
-                from_block: BlockSpec::Number(U256::from(100)),
-                to_block: BlockSpec::Number(U256::from(102)),
-            },
-        ));
+        help_test_method_invocation_serde(MethodInvocation::GetLogs(GetLogsInput {
+            address: Address::from_low_u64_ne(1),
+            from_block: BlockSpec::Number(U256::from(100)),
+            to_block: BlockSpec::Number(U256::from(102)),
+        }));
     }
 
     #[test]
     fn test_serde_eth_get_logs_by_block_tags() {
-        help_test_method_invocation_serde(MethodInvocation::GetLogs(
-            GetLogsInput {
-                address: Address::from_low_u64_ne(1),
-                from_block: BlockSpec::Tag(String::from("safe")),
-                to_block: BlockSpec::Tag(String::from("latest")),
-            },
-        ));
+        help_test_method_invocation_serde(MethodInvocation::GetLogs(GetLogsInput {
+            address: Address::from_low_u64_ne(1),
+            from_block: BlockSpec::Tag(String::from("safe")),
+            to_block: BlockSpec::Tag(String::from("latest")),
+        }));
     }
 
     #[test]
     fn test_serde_eth_get_storage_at_by_block_number() {
         help_test_method_invocation_serde(MethodInvocation::GetStorageAt(
-                Address::from_low_u64_ne(1),
-                U256::ZERO,
-                BlockSpec::Number(U256::from(100)),
-            ),
-        );
+            Address::from_low_u64_ne(1),
+            U256::ZERO,
+            BlockSpec::Number(U256::from(100)),
+        ));
     }
 
     #[test]
     fn test_serde_eth_get_storage_at_by_block_tag() {
         help_test_method_invocation_serde(MethodInvocation::GetStorageAt(
-                Address::from_low_u64_ne(1),
-                U256::ZERO,
-                BlockSpec::Tag(String::from("latest")),
-            ),
-        );
+            Address::from_low_u64_ne(1),
+            U256::ZERO,
+            BlockSpec::Tag(String::from("latest")),
+        ));
     }
 
     #[test]
     fn test_serde_eth_get_tx_by_block_hash_and_index() {
         help_test_method_invocation_serde(MethodInvocation::GetTransactionByBlockHashAndIndex(
-                B256::from_low_u64_ne(1),
-                U256::from(1),
-            ),
-        );
+            B256::from_low_u64_ne(1),
+            U256::from(1),
+        ));
     }
 
     #[test]
     fn test_serde_eth_get_tx_by_block_number_and_index() {
         help_test_method_invocation_serde(MethodInvocation::GetTransactionByBlockNumberAndIndex(
-                U256::from(100),
-                U256::from(1),
-            ),
-        );
+            U256::from(100),
+            U256::from(1),
+        ));
     }
 
     #[test]
     fn test_serde_eth_get_tx_by_hash() {
-        help_test_method_invocation_serde(
-            MethodInvocation::GetTransactionByHash(B256::from_low_u64_ne(1)),
-        );
+        help_test_method_invocation_serde(MethodInvocation::GetTransactionByHash(
+            B256::from_low_u64_ne(1),
+        ));
     }
 
     #[test]
     fn test_serde_eth_get_tx_count_by_block_number() {
         help_test_method_invocation_serde(MethodInvocation::GetTransactionCount(
-                Address::from_low_u64_ne(1),
-                BlockSpec::Number(U256::from(100)),
-            ),
-        );
+            Address::from_low_u64_ne(1),
+            BlockSpec::Number(U256::from(100)),
+        ));
     }
 
     #[test]
     fn test_serde_eth_get_tx_count_by_block_tag() {
         help_test_method_invocation_serde(MethodInvocation::GetTransactionCount(
-                Address::from_low_u64_ne(1),
-                BlockSpec::Tag(String::from("latest")),
-            ),
-        );
+            Address::from_low_u64_ne(1),
+            BlockSpec::Tag(String::from("latest")),
+        ));
     }
 
     #[test]
     fn test_serde_eth_get_tx_receipt() {
-        help_test_method_invocation_serde(
-            MethodInvocation::GetTransactionReceipt(B256::from_low_u64_ne(1)),
-        );
+        help_test_method_invocation_serde(MethodInvocation::GetTransactionReceipt(
+            B256::from_low_u64_ne(1),
+        ));
     }
 
     #[test]
@@ -525,55 +510,46 @@ mod tests {
 
     #[test]
     fn test_serde_eth_new_block_filter() {
-        help_test_method_invocation_serde(
-            MethodInvocation::NewBlockFilter(),
-        );
+        help_test_method_invocation_serde(MethodInvocation::NewBlockFilter());
     }
 
     #[test]
     fn test_serde_eth_new_filter() {
-        help_test_method_invocation_serde(MethodInvocation::NewFilter(
-            FilterOptions {
-                from_block: Some(BlockSpec::Number(U256::from(1000))),
-                to_block: Some(BlockSpec::Tag(String::from("latest"))),
-                address: Some(Address::from_low_u64_ne(1)),
-                topics: Some(vec![Bytes::from(&b"some topic"[..]).into()]),
-            },
-        ));
+        help_test_method_invocation_serde(MethodInvocation::NewFilter(FilterOptions {
+            from_block: Some(BlockSpec::Number(U256::from(1000))),
+            to_block: Some(BlockSpec::Tag(String::from("latest"))),
+            address: Some(Address::from_low_u64_ne(1)),
+            topics: Some(vec![Bytes::from(&b"some topic"[..]).into()]),
+        }));
     }
 
     #[test]
     fn test_serde_eth_new_pending_transaction_filter() {
-        help_test_method_invocation_serde(
-            MethodInvocation::NewPendingTransactionFilter(),
-        );
+        help_test_method_invocation_serde(MethodInvocation::NewPendingTransactionFilter());
     }
 
     #[test]
     fn test_serde_eth_pending_transactions() {
-        help_test_method_invocation_serde(
-            MethodInvocation::PendingTransactions(),
-        );
+        help_test_method_invocation_serde(MethodInvocation::PendingTransactions());
     }
 
     #[test]
     fn test_serde_eth_send_raw_transaction() {
-        help_test_method_invocation_serde(
-            MethodInvocation::SendRawTransaction(Bytes::from(&b"whatever"[..]).into()),
-        );
+        help_test_method_invocation_serde(MethodInvocation::SendRawTransaction(
+            Bytes::from(&b"whatever"[..]).into(),
+        ));
     }
 
     #[test]
     fn test_serde_eth_send_transaction() {
         help_test_method_invocation_serde(MethodInvocation::SendTransaction(TransactionInput {
-                from: Some(Address::from_low_u64_ne(1)),
-                to: Some(Address::from_low_u64_ne(2)),
-                gas: Some(U256::from(3)),
-                gas_price: Some(U256::from(4)),
-                value: Some(U256::from(123568919)),
-                data: Some(Bytes::from(&b"whatever"[..]).into()),
-            }),
-        );
+            from: Some(Address::from_low_u64_ne(1)),
+            to: Some(Address::from_low_u64_ne(2)),
+            gas: Some(U256::from(3)),
+            gas_price: Some(U256::from(4)),
+            value: Some(U256::from(123568919)),
+            data: Some(Bytes::from(&b"whatever"[..]).into()),
+        }));
     }
 
     #[test]
@@ -587,38 +563,35 @@ mod tests {
     #[test]
     fn test_serde_eth_sign_typed_data_v4() {
         help_test_method_invocation_serde(MethodInvocation::SignTypedDataV4(
-                Address::from_low_u64_ne(1),
-                eip712::Message {
-                    types: hashbrown::HashMap::from([(
-                        String::from("typeA"),
-                        vec![eip712::FieldType {
-                            name: String::from("A"),
-                            type_: String::from("whatever"),
-                        }],
-                    )]),
-                    primary_type: String::from("whatever"),
-                    message: serde_json::Value::from(String::from("a message body")),
-                    domain: eip712::Domain {
-                        name: Some(String::from("my domain")),
-                        version: Some(String::from("1.0.0")),
-                        chain_id: Some(U256::from(1)),
-                        verifying_contract: Some(Address::from_low_u64_ne(1)),
-                        salt: Some(B256::from_low_u64_ne(1)),
-                    },
+            Address::from_low_u64_ne(1),
+            eip712::Message {
+                types: hashbrown::HashMap::from([(
+                    String::from("typeA"),
+                    vec![eip712::FieldType {
+                        name: String::from("A"),
+                        type_: String::from("whatever"),
+                    }],
+                )]),
+                primary_type: String::from("whatever"),
+                message: serde_json::Value::from(String::from("a message body")),
+                domain: eip712::Domain {
+                    name: Some(String::from("my domain")),
+                    version: Some(String::from("1.0.0")),
+                    chain_id: Some(U256::from(1)),
+                    verifying_contract: Some(Address::from_low_u64_ne(1)),
+                    salt: Some(B256::from_low_u64_ne(1)),
                 },
-            ),
-        );
+            },
+        ));
     }
 
     #[test]
     fn test_serde_eth_subscribe() {
-        help_test_method_invocation_serde(MethodInvocation::Subscribe(
-            vec![
-                String::from("newHeads"),
-                String::from("newPendingTransactions"),
-                String::from("logs"),
-            ],
-        ));
+        help_test_method_invocation_serde(MethodInvocation::Subscribe(vec![
+            String::from("newHeads"),
+            String::from("newPendingTransactions"),
+            String::from("logs"),
+        ]));
     }
 
     #[test]
@@ -628,15 +601,14 @@ mod tests {
 
     #[test]
     fn test_serde_eth_uninstall_filter() {
-        help_test_method_invocation_serde(
-            MethodInvocation::UninstallFilter(U256::from(100)),
-        );
+        help_test_method_invocation_serde(MethodInvocation::UninstallFilter(U256::from(100)));
     }
 
     #[test]
     fn test_serde_eth_unsubscribe() {
-        help_test_method_invocation_serde(MethodInvocation::Unsubscribe(
-            vec![Bytes::from(&b"some subscription ID"[..]).into()],
-        ));
+        help_test_method_invocation_serde(MethodInvocation::Unsubscribe(vec![Bytes::from(
+            &b"some subscription ID"[..],
+        )
+        .into()]));
     }
 }

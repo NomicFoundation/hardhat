@@ -14,7 +14,7 @@ use rethnet_eth::{
         client::Request as RpcRequest,
         jsonrpc,
         methods::{
-            eth::EthMethodInvocation,
+            eth::MethodInvocation as EthMethodInvocation,
             hardhat::{reset::RpcHardhatNetworkConfig, HardhatMethodInvocation},
         },
         BlockSpec,
@@ -388,7 +388,10 @@ mod tests {
         .unwrap()
     }
 
-    async fn submit_request(address: &SocketAddr, request: &RpcRequest<MethodInvocation>) -> String {
+    async fn submit_request(
+        address: &SocketAddr,
+        request: &RpcRequest<MethodInvocation>,
+    ) -> String {
         let url = format!("http://{address}/");
         let body = serde_json::to_string(&request).expect("should serialize request to JSON");
         reqwest::Client::new()
