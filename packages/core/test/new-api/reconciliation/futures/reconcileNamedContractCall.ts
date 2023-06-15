@@ -32,7 +32,7 @@ describe("Reconciliation - named contract call", () => {
     constructorArgs: [],
     libraries: {},
     from: undefined,
-    contractAddress: "0xBA12222222228d8Ba445958a75a0704d566BF2C8",
+    contractAddress: differentAddress,
   };
 
   const exampleContractCallState: CallExecutionState = {
@@ -42,7 +42,7 @@ describe("Reconciliation - named contract call", () => {
     status: ExecutionStatus.STARTED,
     dependencies: new Set<string>(),
     history: [],
-    contractAddress: "0xBA12222222228d8Ba445958a75a0704d566BF2C8",
+    contractAddress: differentAddress,
     functionName: "function",
     args: [],
     value: BigInt("0"),
@@ -53,7 +53,7 @@ describe("Reconciliation - named contract call", () => {
     const submoduleDefinition = defineModule("Submodule", (m) => {
       const contract1 = m.contract("Contract1");
 
-      m.call(contract1, "function1", [1, "a"], {});
+      m.call(contract1, "function1", [1, "a", contract1], {});
 
       return { contract1 };
     });
@@ -74,7 +74,7 @@ describe("Reconciliation - named contract call", () => {
         futureType: FutureType.NAMED_CONTRACT_CALL,
         status: ExecutionStatus.SUCCESS,
         functionName: "function1",
-        args: [1, "a"],
+        args: [1, "a", differentAddress],
       },
     });
   });

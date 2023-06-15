@@ -42,7 +42,7 @@ describe("Reconciliation - named contract", () => {
 
       const contract1 = m.contract(
         "Contract1",
-        [owner, { nested: { supply } }, [1, ticker, 3]],
+        [owner, { nested: { supply } }, [1, ticker, 3], safeMath],
         {
           libraries: {
             SafeMath: safeMath,
@@ -74,6 +74,7 @@ describe("Reconciliation - named contract", () => {
           "0x15d34AAf54267DB7D7c367839AAf71A00a2C6A65",
           { nested: { supply: BigInt(500) } },
           [1, "CodeCoin", 3],
+          exampleAddress,
         ],
         libraries: {
           SafeMath: exampleAddress,
