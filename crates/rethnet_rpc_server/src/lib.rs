@@ -18,6 +18,7 @@ use rethnet_eth::{
             hardhat::{reset::RpcHardhatNetworkConfig, HardhatMethodInvocation},
             MethodInvocation,
         },
+        BlockSpec,
     },
     Address, U256,
 };
@@ -28,12 +29,183 @@ use rethnet_evm::{
 
 type StateType = Arc<RwLock<Box<dyn SyncState<StateError>>>>;
 
+fn response<T>(id: jsonrpc::Id, data: jsonrpc::ResponseData<T>) -> Json<serde_json::Value>
+where
+    T: serde::Serialize,
+{
+    let response: jsonrpc::Response<T> = jsonrpc::Response {
+        jsonrpc: jsonrpc::Version::V2_0,
+        id: id.clone(),
+        data,
+    };
+    let response = serde_json::to_value(response)
+        .or(serde_json::to_value(jsonrpc::Response {
+            jsonrpc: jsonrpc::Version::V2_0,
+            id,
+            data: jsonrpc::ResponseData::<T>::new_error(0, "serde_json::to_value() failed", None),
+        }))
+        .expect("shouldn't happen");
+    Json(response)
+}
+
+async fn handle_get_balance(
+    state: StateType,
+    address: Address,
+    _block_spec: BlockSpec,
+) -> jsonrpc::ResponseData<U256> {
+    match (*state).read().await.basic(address) {
+        Ok(Some(account_info)) => jsonrpc::ResponseData::Success {
+            result: account_info.balance,
+        },
+        Ok(None) => jsonrpc::ResponseData::new_error(0, "No such account", None),
+        Err(e) => jsonrpc::ResponseData::new_error(0, &e.to_string(), None),
+    }
+}
+
+async fn handle_get_code(
+    state: StateType,
+    address: Address,
+    _block_spec: BlockSpec,
+) -> jsonrpc::ResponseData<ZeroXPrefixedBytes> {
+    match (*state).read().await.basic(address) {
+        Ok(Some(account_info)) => {
+            match (*state).read().await.code_by_hash(account_info.code_hash) {
+                Ok(code) => jsonrpc::ResponseData::Success {
+                    result: ZeroXPrefixedBytes::from(code.bytecode),
+                },
+                Err(error) => jsonrpc::ResponseData::new_error(0, &error.to_string(), None),
+            }
+        }
+        Ok(None) => jsonrpc::ResponseData::new_error(0, "No such account", None),
+        Err(e) => jsonrpc::ResponseData::new_error(0, &e.to_string(), None),
+    }
+}
+
+async fn handle_get_storage_at(
+    state: StateType,
+    address: Address,
+    position: U256,
+    _block_spec: BlockSpec,
+) -> jsonrpc::ResponseData<U256> {
+    match (*state).read().await.storage(address, position) {
+        Ok(value) => jsonrpc::ResponseData::Success { result: value },
+        Err(e) => jsonrpc::ResponseData::new_error(0, &e.to_string(), None),
+    }
+}
+
+async fn handle_get_transaction_count(
+    state: StateType,
+    address: Address,
+    _block_spec: BlockSpec,
+) -> jsonrpc::ResponseData<U256> {
+    match (*state).read().await.basic(address) {
+        Ok(Some(account_info)) => jsonrpc::ResponseData::Success {
+            result: U256::from(account_info.nonce),
+        },
+        Ok(None) => jsonrpc::ResponseData::new_error(0, "No such account", None),
+        Err(e) => jsonrpc::ResponseData::new_error(0, &e.to_string(), None),
+    }
+}
+
+async fn handle_set_balance(
+    state: StateType,
+    address: Address,
+    balance: U256,
+) -> jsonrpc::ResponseData<()> {
+    match (*state).write().await.modify_account(
+        address,
+        AccountModifierFn::new(Box::new(move |account_balance, _, _| {
+            *account_balance = balance
+        })),
+        &|| {
+            Ok(AccountInfo {
+                balance,
+                nonce: 0,
+                code: None,
+                code_hash: KECCAK_EMPTY,
+            })
+        },
+    ) {
+        Ok(()) => jsonrpc::ResponseData::Success { result: () },
+        Err(e) => jsonrpc::ResponseData::new_error(0, &e.to_string(), None),
+    }
+}
+
+async fn handle_set_code(
+    state: StateType,
+    address: Address,
+    code: ZeroXPrefixedBytes,
+) -> jsonrpc::ResponseData<()> {
+    let code_1 = code.clone();
+    let code_2 = code.clone();
+    match (*state).write().await.modify_account(
+        address,
+        AccountModifierFn::new(Box::new(move |_, _, account_code| {
+            *account_code = Some(Bytecode::new_raw(code_1.clone().into()))
+        })),
+        &|| {
+            Ok(AccountInfo {
+                balance: U256::ZERO,
+                nonce: 0,
+                code: Some(Bytecode::new_raw(code_2.clone().into())),
+                code_hash: KECCAK_EMPTY,
+            })
+        },
+    ) {
+        Ok(()) => jsonrpc::ResponseData::Success { result: () },
+        Err(e) => jsonrpc::ResponseData::new_error(0, &e.to_string(), None),
+    }
+}
+
+async fn handle_set_nonce(
+    state: StateType,
+    address: Address,
+    nonce: U256,
+) -> jsonrpc::ResponseData<()> {
+    match TryInto::<u64>::try_into(nonce) {
+        Ok(nonce) => {
+            match (*state).write().await.modify_account(
+                address,
+                AccountModifierFn::new(Box::new(move |_, account_nonce, _| *account_nonce = nonce)),
+                &|| {
+                    Ok(AccountInfo {
+                        balance: U256::ZERO,
+                        nonce,
+                        code: None,
+                        code_hash: KECCAK_EMPTY,
+                    })
+                },
+            ) {
+                Ok(()) => jsonrpc::ResponseData::Success { result: () },
+                Err(error) => jsonrpc::ResponseData::new_error(0, &error.to_string(), None),
+            }
+        }
+        Err(error) => jsonrpc::ResponseData::new_error(0, &error.to_string(), None),
+    }
+}
+
+async fn handle_set_storage_at(
+    state: StateType,
+    address: Address,
+    position: U256,
+    value: U256,
+) -> jsonrpc::ResponseData<()> {
+    match (*state)
+        .write()
+        .await
+        .set_account_storage_slot(address, position, value)
+    {
+        Ok(()) => jsonrpc::ResponseData::Success { result: () },
+        Err(e) => jsonrpc::ResponseData::new_error(0, &e.to_string(), None),
+    }
+}
+
 pub async fn router(state: StateType) -> Router {
     Router::new()
         .route(
             "/",
             axum::routing::post(
-                |State(rethnet_state): State<StateType>, payload: Json<RpcRequest>| async move {
+                |State(state): State<StateType>, payload: Json<RpcRequest>| async move {
                     match payload {
                         Json(RpcRequest {
                             version,
@@ -61,225 +233,46 @@ pub async fn router(state: StateType) -> Router {
                             match method {
                                 MethodInvocation::Eth(EthMethodInvocation::GetBalance(
                                     address,
-                                    _block_spec,
-                                )) => Json(serde_json::json!(jsonrpc::Response {
-                                    jsonrpc: jsonrpc::Version::V2_0,
-                                    id,
-                                    data: match (*rethnet_state).read().await.basic(address) {
-                                        Ok(Some(account_info)) =>
-                                            jsonrpc::ResponseData::<U256>::Success {
-                                                result: account_info.balance
-                                            },
-                                        Ok(None) => jsonrpc::ResponseData::<U256>::new_error(
-                                            0,
-                                            "No such account",
-                                            None
-                                        ),
-                                        Err(e) => jsonrpc::ResponseData::<U256>::new_error(
-                                            0,
-                                            &e.to_string(),
-                                            None
-                                        ),
-                                    }
-                                })),
+                                    block,
+                                )) => response(id, handle_get_balance(state, address, block).await),
                                 MethodInvocation::Eth(EthMethodInvocation::GetCode(
                                     address,
-                                    _block_spec,
-                                )) => {
-                                    Json(serde_json::json!(
-                                        jsonrpc::Response {
-                                            jsonrpc: jsonrpc::Version::V2_0,
-                                            id,
-                                            data:
-                                                match (*rethnet_state).read().await.basic(address) {
-                                                    Ok(Some(account_info)) =>
-                                                        match (*rethnet_state)
-                                                            .read()
-                                                            .await
-                                                            .code_by_hash(account_info.code_hash)
-                                                        {
-                                                            Ok(code) => jsonrpc::ResponseData::<
-                                                                ZeroXPrefixedBytes,
-                                                            >::Success {
-                                                                result: ZeroXPrefixedBytes::from(
-                                                                    code.bytecode
-                                                                ),
-                                                            },
-                                                            Err(error) => jsonrpc::ResponseData::<
-                                                                ZeroXPrefixedBytes,
-                                                            >::new_error(
-                                                                0,
-                                                                &error.to_string(),
-                                                                None
-                                                            ),
-                                                        },
-                                                    Ok(None) => jsonrpc::ResponseData::<
-                                                        ZeroXPrefixedBytes,
-                                                    >::new_error(
-                                                        0, "No such account", None
-                                                    ),
-                                                    Err(e) => jsonrpc::ResponseData::<
-                                                        ZeroXPrefixedBytes,
-                                                    >::new_error(
-                                                        0, &e.to_string(), None
-                                                    ),
-                                                }
-                                        }
-                                    ))
-                                }
-                                MethodInvocation::Eth(
-                                    EthMethodInvocation::GetStorageAt(address, position, _block_spec)
-                                ) => Json(serde_json::json!(jsonrpc::Response {
-                                    jsonrpc: jsonrpc::Version::V2_0,
+                                    block,
+                                )) => response(id, handle_get_code(state, address, block).await),
+                                MethodInvocation::Eth(EthMethodInvocation::GetStorageAt(
+                                    address,
+                                    position,
+                                    block,
+                                )) => response(
                                     id,
-                                    data: match (*rethnet_state).read().await.storage(address, position) {
-                                        Ok(value) => jsonrpc::ResponseData::<U256>::Success { result: value },
-                                        Err(e) => jsonrpc::ResponseData::<U256>::new_error(0, &e.to_string(), None),
-                                    }
-                                })),
+                                    handle_get_storage_at(state, address, position, block).await,
+                                ),
                                 MethodInvocation::Eth(
-                                    EthMethodInvocation::GetTransactionCount(address, _block_spec),
-                                ) => Json(serde_json::json!(jsonrpc::Response {
-                                    jsonrpc: jsonrpc::Version::V2_0,
+                                    EthMethodInvocation::GetTransactionCount(address, block),
+                                ) => response(
                                     id,
-                                    data: match (*rethnet_state).read().await.basic(address) {
-                                        Ok(Some(account_info)) =>
-                                            jsonrpc::ResponseData::<U256>::Success {
-                                                result: U256::from(account_info.nonce)
-                                            },
-                                        Ok(None) => jsonrpc::ResponseData::<U256>::new_error(
-                                            0,
-                                            "No such account",
-                                            None
-                                        ),
-                                        Err(e) => jsonrpc::ResponseData::<U256>::new_error(
-                                            0,
-                                            &e.to_string(),
-                                            None
-                                        ),
-                                    }
-                                })),
+                                    handle_get_transaction_count(state, address, block).await,
+                                ),
                                 MethodInvocation::Hardhat(HardhatMethodInvocation::SetBalance(
                                     address,
                                     balance,
-                                )) => Json(serde_json::json!(jsonrpc::Response {
-                                    jsonrpc: jsonrpc::Version::V2_0,
-                                    id,
-                                    data: match (*rethnet_state).write().await.modify_account(
-                                        address,
-                                        AccountModifierFn::new(Box::new(
-                                            move |account_balance, _, _| {
-                                                *account_balance = balance
-                                            }
-                                        )),
-                                        &|| Ok(AccountInfo {
-                                            balance,
-                                            nonce: 0,
-                                            code: None,
-                                            code_hash: KECCAK_EMPTY
-                                        }),
-                                    ) {
-                                        Ok(()) =>
-                                            jsonrpc::ResponseData::<()>::Success { result: () },
-                                        Err(e) => jsonrpc::ResponseData::<()>::new_error(
-                                            0,
-                                            &e.to_string(),
-                                            None
-                                        ),
-                                    }
-                                })),
+                                )) => {
+                                    response(id, handle_set_balance(state, address, balance).await)
+                                }
                                 MethodInvocation::Hardhat(HardhatMethodInvocation::SetCode(
                                     address,
                                     code,
-                                )) => {
-                                    let code_1 = code.clone();
-                                    let code_2 = code.clone();
-                                    Json(serde_json::json!(jsonrpc::Response {
-                                        jsonrpc: jsonrpc::Version::V2_0,
-                                        id,
-                                        data: match (*rethnet_state).write().await.modify_account(
-                                            address,
-                                            AccountModifierFn::new(Box::new(
-                                                move |_, _, account_code| {
-                                                    *account_code = Some(Bytecode::new_raw(
-                                                        code_1.clone().into(),
-                                                    ))
-                                                }
-                                            )),
-                                            &|| Ok(AccountInfo {
-                                                balance: U256::ZERO,
-                                                nonce: 0,
-                                                code: Some(Bytecode::new_raw(
-                                                    code_2.clone().into()
-                                                )),
-                                                code_hash: KECCAK_EMPTY
-                                            }),
-                                        ) {
-                                            Ok(()) =>
-                                                jsonrpc::ResponseData::<()>::Success { result: () },
-                                            Err(e) => jsonrpc::ResponseData::<()>::new_error(
-                                                0,
-                                                &e.to_string(),
-                                                None
-                                            ),
-                                        }
-                                    }))
-                                }
+                                )) => response(id, handle_set_code(state, address, code).await),
                                 MethodInvocation::Hardhat(HardhatMethodInvocation::SetNonce(
                                     address,
                                     nonce,
-                                )) => Json(serde_json::json!(jsonrpc::Response {
-                                    jsonrpc: jsonrpc::Version::V2_0,
+                                )) => response(id, handle_set_nonce(state, address, nonce).await),
+                                MethodInvocation::Hardhat(
+                                    HardhatMethodInvocation::SetStorageAt(address, position, value),
+                                ) => response(
                                     id,
-                                    data: match TryInto::<u64>::try_into(nonce) {
-                                        Ok(nonce) => {
-                                            match (*rethnet_state).write().await.modify_account(
-                                                address,
-                                                AccountModifierFn::new(Box::new(
-                                                    move |_, account_nonce, _| {
-                                                        *account_nonce = nonce
-                                                    },
-                                                )),
-                                                &|| {
-                                                    Ok(AccountInfo {
-                                                        balance: U256::ZERO,
-                                                        nonce,
-                                                        code: None,
-                                                        code_hash: KECCAK_EMPTY,
-                                                    })
-                                                },
-                                            ) {
-                                                Ok(()) => jsonrpc::ResponseData::<()>::Success {
-                                                    result: (),
-                                                },
-                                                Err(error) => {
-                                                    jsonrpc::ResponseData::<()>::new_error(
-                                                        0,
-                                                        &error.to_string(),
-                                                        None,
-                                                    )
-                                                }
-                                            }
-                                        }
-                                        Err(error) => jsonrpc::ResponseData::<()>::new_error(
-                                            0,
-                                            &error.to_string(),
-                                            None
-                                        ),
-                                    }
-                                })),
-                                MethodInvocation::Hardhat(HardhatMethodInvocation::SetStorageAt(
-                                    address, position, value,
-                                )) => Json(serde_json::json!(jsonrpc::Response {
-                                    jsonrpc: jsonrpc::Version::V2_0,
-                                    id,
-                                    data: match (*rethnet_state).write().await.set_account_storage_slot(
-                                        address, position, value
-                                    ) {
-                                        Ok(()) => jsonrpc::ResponseData::<()>::Success { result: () },
-                                        Err(e) => jsonrpc::ResponseData::<()>::new_error(0, &e.to_string(), None),
-                                    }
-                                })),
+                                    handle_set_storage_at(state, address, position, value).await,
+                                ),
                                 _ => {
                                     // TODO: after adding all the methods here, eliminate this
                                     // catch-all match arm.
@@ -289,9 +282,7 @@ pub async fn router(state: StateType) -> Router {
                                         data: jsonrpc::ResponseData::<serde_json::Value>::Error {
                                             error: jsonrpc::Error {
                                                 code: -32601,
-                                                message: String::from(
-                                                    "Method not found"
-                                                ),
+                                                message: String::from("Method not found"),
                                                 data: match serde_json::to_value(method) {
                                                     Ok(value) => Some(value),
                                                     Err(_) => None,
