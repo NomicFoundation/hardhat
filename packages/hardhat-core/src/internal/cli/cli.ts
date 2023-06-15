@@ -232,7 +232,7 @@ async function main() {
     const envExtenders = ctx.extendersManager.getExtenders();
     const taskDefinitions = ctx.tasksDSL.getTaskDefinitions();
 
-    const [abortAnalytics, hitPromise] = await analytics.sendTaskHit(taskName);
+    const [abortAnalytics, hitPromise] = await analytics.sendTaskHit();
 
     let taskArguments: TaskArguments;
 
