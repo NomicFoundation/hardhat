@@ -34,13 +34,21 @@ describe("Reconciliation - named contract", () => {
 
   it("should reconcile unchanged", () => {
     const submoduleDefinition = defineModule("Submodule", (m) => {
+      const owner = m.getAccount(3);
+      const supply = m.getParameter("supply", BigInt(500));
+      const ticker = m.getParameter("ticker", "CodeCoin");
+
       const safeMath = m.library("SafeMath");
 
-      const contract1 = m.contract("Contract1", ["unchanged"], {
-        libraries: {
-          SafeMath: safeMath,
-        },
-      });
+      const contract1 = m.contract(
+        "Contract1",
+        [owner, { nested: { supply } }, [1, ticker, 3]],
+        {
+          libraries: {
+            SafeMath: safeMath,
+          },
+        }
+      );
 
       return { contract1 };
     });
@@ -62,7 +70,11 @@ describe("Reconciliation - named contract", () => {
       "Submodule:Contract1": {
         ...exampleDeploymentState,
         status: ExecutionStatus.STARTED,
-        constructorArgs: ["unchanged"],
+        constructorArgs: [
+          "0x15d34AAf54267DB7D7c367839AAf71A00a2C6A65",
+          { nested: { supply: BigInt(500) } },
+          [1, "CodeCoin", 3],
+        ],
         libraries: {
           SafeMath: exampleAddress,
         },
@@ -96,25 +108,37 @@ describe("Reconciliation - named contract", () => {
     ]);
   });
 
-  it("should find changes to constructors unreconciliable", () => {
+  it("should find changes to constructor args unreconciliable", () => {
     const moduleDefinition = defineModule("Module", (m) => {
-      const contract1 = m.contract("Contract1", ["changed"]);
+      const owner = m.getAccount(3);
+      const supply = m.getParameter("supply", BigInt(500));
+      const ticker = m.getParameter("ticker", "CodeCoin");
+
+      const contract1 = m.contract(
+        "ContractChanged",
+        [owner, { nested: { supply } }, [1, ticker, 3]],
+        {
+          id: "Example",
+        }
+      );
 
       return { contract1 };
     });
 
     const reconiliationResult = reconcile(moduleDefinition, {
-      "Module:Contract1": {
+      "Module:Example": {
         ...exampleDeploymentState,
         status: ExecutionStatus.STARTED,
-        constructorArgs: ["unchanged"],
+        contractName: "ContractUnchanged",
+        constructorArgs: [1, 2, 3],
       },
     });
 
     assert.deepStrictEqual(reconiliationResult.reconciliationFailures, [
       {
-        futureId: "Module:Contract1",
-        failure: "Constructor args have been changed",
+        futureId: "Module:Example",
+        failure:
+          "Contract name has been changed from ContractUnchanged to ContractChanged",
       },
     ]);
   });

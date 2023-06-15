@@ -19,6 +19,7 @@ import {
   Graph,
   getNodesInTopologicalOrder,
 } from "./internal/topological-order";
+import { replaceWithinArg } from "./internal/utils/replace-within-arg";
 import {
   isAddressResolvableFuture,
   isContractFuture,
@@ -36,7 +37,6 @@ import {
   IgnitionModuleResult,
   ModuleParameterRuntimeValue,
   ModuleParameterType,
-  RuntimeValue,
   RuntimeValueType,
 } from "./types/module";
 import {
@@ -57,12 +57,15 @@ import {
   SerializedNamedLibraryDeploymentFuture,
   SerializedNamedStaticCallFuture,
   SerializedReadEventArgumentFuture,
-  SerializedRuntimeValue,
   SerializedSendDataFuture,
   SerializedStoredDeployment,
   SerializedStoredModule,
   StoredDeployment,
 } from "./types/serialized-deployment";
+
+interface SerializeContext {
+  argReplacer: (arg: ArgumentType) => SerializedArgumentType;
+}
 
 /**
  * Serialize a deployment.
@@ -73,6 +76,15 @@ export class StoredDeploymentSerializer {
   public static serialize(
     deployment: StoredDeployment
   ): SerializedStoredDeployment {
+    const argReplacer = (arg: ArgumentType) =>
+      replaceWithinArg<SerializedArgumentType>(arg, {
+        accountRuntimeValue: this._serializeAccountRuntimeValue,
+        moduleParameterRuntimeValue: (mprv) =>
+          this._serializeModuleParamterRuntimeValue(mprv),
+        bigint: this._serializeBigint,
+        future: this._convertFutureToFutureToken,
+      });
+
     const allModules = this._getModulesAndSubmoduleFor(deployment.module);
 
     return {
@@ -81,18 +93,19 @@ export class StoredDeploymentSerializer {
       },
       startModule: deployment.module.id,
       modules: Object.fromEntries(
-        allModules.map((m) => [m.id, this._serializeModule(m)])
+        allModules.map((m) => [m.id, this._serializeModule(m, { argReplacer })])
       ),
     };
   }
 
   private static _serializeModule(
-    userModule: IgnitionModule<string, string, IgnitionModuleResult<string>>
+    userModule: IgnitionModule<string, string, IgnitionModuleResult<string>>,
+    context: SerializeContext
   ): SerializedStoredModule {
     return {
       id: userModule.id,
       futures: Array.from(userModule.futures).map((future) =>
-        this._serializeFuture(future)
+        this._serializeFuture(future, context)
       ),
       submodules: Array.from(userModule.submodules).map(
         this._convertModuleToModuleToken
@@ -104,7 +117,10 @@ export class StoredDeploymentSerializer {
     };
   }
 
-  private static _serializeFuture(future: Future): SerializedFuture {
+  private static _serializeFuture(
+    future: Future,
+    context: SerializeContext
+  ): SerializedFuture {
     switch (future.type) {
       case FutureType.NAMED_CONTRACT_DEPLOYMENT:
         const serializedNamedContractDeploymentFuture: SerializedNamedContractDeploymentFuture =
@@ -117,7 +133,7 @@ export class StoredDeploymentSerializer {
             ),
             contractName: future.contractName,
             constructorArgs: future.constructorArgs.map((arg) =>
-              this._serializeArgument(arg)
+              context.argReplacer(arg)
             ),
             from: isRuntimeValue(future.from)
               ? this._serializeAccountRuntimeValue(future.from)
@@ -139,7 +155,7 @@ export class StoredDeploymentSerializer {
             contractName: future.contractName,
             artifact: future.artifact,
             constructorArgs: future.constructorArgs.map((arg) =>
-              this._serializeArgument(arg)
+              context.argReplacer(arg)
             ),
             from: isRuntimeValue(future.from)
               ? this._serializeAccountRuntimeValue(future.from)
@@ -195,7 +211,7 @@ export class StoredDeploymentSerializer {
             ),
             contract: this._convertFutureToFutureToken(future.contract),
             functionName: future.functionName,
-            args: future.args.map((arg) => this._serializeArgument(arg)),
+            args: future.args.map((arg) => context.argReplacer(arg)),
             value: this._serializeBigint(future.value),
             from: isRuntimeValue(future.from)
               ? this._serializeAccountRuntimeValue(future.from)
@@ -214,7 +230,7 @@ export class StoredDeploymentSerializer {
             ),
             contract: this._convertFutureToFutureToken(future.contract),
             functionName: future.functionName,
-            args: future.args.map((arg) => this._serializeArgument(arg)),
+            args: future.args.map((arg) => context.argReplacer(arg)),
             from: isRuntimeValue(future.from)
               ? this._serializeAccountRuntimeValue(future.from)
               : future.from,
@@ -309,42 +325,6 @@ export class StoredDeploymentSerializer {
       key,
       this._convertFutureToFutureToken(lib),
     ]);
-  }
-
-  private static _serializeArgument(arg: ArgumentType): SerializedArgumentType {
-    if (typeof arg === "bigint") {
-      return this._serializeBigint(arg);
-    }
-
-    if (isFuture(arg)) {
-      return this._convertFutureToFutureToken(arg);
-    }
-
-    if (isRuntimeValue(arg)) {
-      return this._serializeRuntimeValue(arg);
-    }
-
-    if (Array.isArray(arg)) {
-      return arg.map((a) => this._serializeArgument(a));
-    }
-
-    if (typeof arg === "object" && arg !== null) {
-      return Object.fromEntries(
-        Object.entries(arg).map(([k, v]) => [k, this._serializeArgument(v)])
-      );
-    }
-
-    return arg;
-  }
-
-  private static _serializeRuntimeValue(
-    arg: RuntimeValue
-  ): SerializedRuntimeValue {
-    if (arg.type === RuntimeValueType.ACCOUNT) {
-      return this._serializeAccountRuntimeValue(arg);
-    }
-
-    return this._serializeModuleParamterRuntimeValue(arg);
   }
 
   private static _serializeAccountRuntimeValue(

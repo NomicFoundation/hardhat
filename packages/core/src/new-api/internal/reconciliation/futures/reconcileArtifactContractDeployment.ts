@@ -18,7 +18,11 @@ export function reconcileArtifactContractDeployment(
     );
   }
 
-  if (!isEqual(future.constructorArgs, executionState.constructorArgs)) {
+  const resolvedArgs = ExecutionStateResolver.resolveArgsFromExectuionState(
+    future.constructorArgs,
+    context
+  );
+  if (!isEqual(resolvedArgs, executionState.constructorArgs)) {
     return fail(future, "Constructor args have been changed");
   }
 

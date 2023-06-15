@@ -146,9 +146,11 @@ describe("Reconciliation - named static call", () => {
 
   it("should find changes to function args unreconciliable", () => {
     const moduleDefinition = defineModule("Module", (m) => {
+      const ticker = m.getParameter("ticker", "CHANGED");
+
       const contract1 = m.contract("Contract1");
 
-      m.staticCall(contract1, "function1", ["changed"], {});
+      m.staticCall(contract1, "function1", [{ ticker }], {});
 
       return { contract1 };
     });
@@ -165,7 +167,7 @@ describe("Reconciliation - named static call", () => {
         status: ExecutionStatus.STARTED,
         contractAddress: exampleAddress,
         functionName: "function1",
-        args: ["unchanged"],
+        args: [{ ticker: "UNCHANGED" }],
       },
     });
 

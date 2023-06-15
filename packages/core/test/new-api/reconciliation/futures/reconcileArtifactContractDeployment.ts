@@ -36,12 +36,13 @@ describe("Reconciliation - artifact contract", () => {
 
   it("should reconcile unchanged", () => {
     const submoduleDefinition = defineModule("Submodule", (m) => {
+      const supply = m.getParameter("supply", BigInt(1000));
       const safeMath = m.library("SafeMath");
 
       const contract1 = m.contractFromArtifact(
         "Contract1",
         fakeArtifact,
-        ["unchanged"],
+        [{ supply }],
         {
           libraries: {
             SafeMath: safeMath,
@@ -70,7 +71,7 @@ describe("Reconciliation - artifact contract", () => {
         ...exampleDeploymentState,
         futureType: FutureType.ARTIFACT_CONTRACT_DEPLOYMENT,
         status: ExecutionStatus.STARTED,
-        constructorArgs: ["unchanged"],
+        constructorArgs: [{ supply: BigInt(1000) }],
         libraries: {
           SafeMath: exampleAddress,
         },
@@ -110,8 +111,14 @@ describe("Reconciliation - artifact contract", () => {
 
   it("should find changes to constructors unreconciliable", () => {
     const moduleDefinition = defineModule("Module", (m) => {
+      const owner = m.getAccount(3);
+      const supply = m.getParameter("supply", BigInt(500));
+      const ticker = m.getParameter("ticker", "CodeCoin");
+
       const contract1 = m.contractFromArtifact("Contract1", fakeArtifact, [
-        "changed",
+        owner,
+        { nested: { supply } },
+        [1, ticker, 3],
       ]);
 
       return { contract1 };
@@ -122,7 +129,11 @@ describe("Reconciliation - artifact contract", () => {
         ...exampleDeploymentState,
         futureType: FutureType.ARTIFACT_CONTRACT_DEPLOYMENT,
         status: ExecutionStatus.STARTED,
-        constructorArgs: ["unchanged"],
+        constructorArgs: [
+          "0x15d34AAf54267DB7D7c367839AAf71A00a2C6A65",
+          { nested: { supply: BigInt(500) } },
+          [1, "NotCodeCoin", 3],
+        ],
       },
     });
 

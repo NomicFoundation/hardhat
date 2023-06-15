@@ -28,7 +28,11 @@ export function reconcileNamedContractCall(
     );
   }
 
-  if (!isEqual(future.args, executionState.args)) {
+  const resolvedArgs = ExecutionStateResolver.resolveArgsFromExectuionState(
+    future.args,
+    context
+  );
+  if (!isEqual(resolvedArgs, executionState.args)) {
     return fail(future, "Function args have been changed");
   }
 

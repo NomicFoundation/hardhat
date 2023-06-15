@@ -1,7 +1,8 @@
 import { IgnitionError } from "../../../errors";
-import { isRuntimeValue } from "../../type-guards";
+import { isContractFuture, isRuntimeValue } from "../../type-guards";
 import {
   AddressResolvableFuture,
+  ArgumentType,
   ContractFuture,
   Future,
   ModuleParameterRuntimeValue,
@@ -14,12 +15,59 @@ import {
   StaticCallExecutionState,
 } from "../types/execution-state";
 import { isAddress } from "../utils";
+import { replaceWithinArg } from "../utils/replace-within-arg";
 
 import { ReconciliationContext } from "./types";
 import { resolveModuleParameter, safeToString } from "./utils";
 
 // TODO: consider merging this into the execution state map
 export class ExecutionStateResolver {
+  public static resolveArgsFromExectuionState(
+    constructorArgs: ArgumentType[],
+    context: ReconciliationContext
+  ): ArgumentType[] {
+    return replaceWithinArg<ArgumentType>(constructorArgs, {
+      bigint: (bi) => bi.toString(),
+      future: (f) => {
+        if (!isContractFuture(f)) {
+          throw new IgnitionError(
+            `Cannot replace future in args, for non-deployable futures ${f.id}`
+          );
+        }
+
+        return ExecutionStateResolver.resolveContractToAddress(f, context);
+      },
+      accountRuntimeValue: (arv) => context.accounts[arv.accountIndex],
+      moduleParameterRuntimeValue: (mprv) => {
+        const moduleParameters = context.deploymentParameters[mprv.moduleId];
+
+        if (moduleParameters === undefined) {
+          if (mprv.defaultValue === undefined) {
+            throw new IgnitionError(
+              `No default value provided for module parameter ${mprv.moduleId}/${mprv.name}`
+            );
+          }
+
+          return mprv.defaultValue;
+        }
+
+        const parameter = moduleParameters[mprv.name];
+
+        if (parameter === undefined) {
+          if (mprv.defaultValue === undefined) {
+            throw new IgnitionError(
+              `No default value provided for module parameter ${mprv.moduleId}/${mprv.name}`
+            );
+          }
+
+          return mprv.defaultValue;
+        }
+
+        return parameter;
+      },
+    }) as ArgumentType[];
+  }
+
   // Library addresses are resolved from previous execution states
   public static resolveLibrariesFromExecutionState(
     libraries: Record<string, ContractFuture<string>>,

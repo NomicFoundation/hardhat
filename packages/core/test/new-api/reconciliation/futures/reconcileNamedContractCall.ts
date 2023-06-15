@@ -145,9 +145,11 @@ describe("Reconciliation - named contract call", () => {
 
   it("should find changes to function args unreconciliable", () => {
     const moduleDefinition = defineModule("Module", (m) => {
+      const ticker = m.getParameter("ticker", "CHANGED");
+
       const contract1 = m.contract("Contract1");
 
-      m.call(contract1, "function1", ["changed"], {});
+      m.call(contract1, "function1", [[ticker]], {});
 
       return { contract1 };
     });
@@ -162,7 +164,7 @@ describe("Reconciliation - named contract call", () => {
         futureType: FutureType.NAMED_CONTRACT_CALL,
         status: ExecutionStatus.STARTED,
         functionName: "function1",
-        args: ["unchanged"],
+        args: [["UNCHANGED"]],
       },
     });
 

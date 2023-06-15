@@ -36,8 +36,7 @@ abstract class BaseFutureImplementation<FutureTypeT extends FutureType> {
 
   public [customInspectSymbol](
     _depth: number,
-    _inspectOptions: {},
-    inspect: (arg: {}) => string
+    { inspect }: { inspect: (arg: {}) => string }
   ) {
     const padding = " ".repeat(2);
 
@@ -251,8 +250,7 @@ export class IgnitionModuleImplementation<
 
   public [customInspectSymbol](
     _depth: number,
-    _inspectOptions: {},
-    inspect: (arg: {}) => string
+    { inspect }: { inspect: (arg: {}) => string }
   ) {
     const padding = " ".repeat(2);
 
@@ -274,8 +272,7 @@ export class AccountRuntimeValueImplementation implements AccountRuntimeValue {
 
   public [customInspectSymbol](
     _depth: number,
-    _inspectOptions: {},
-    _inspect: (arg: {}) => string
+    _inspectOptions: { inspect: (arg: {}) => string }
   ) {
     return `Account RuntimeValue {
     accountIndex: ${this.accountIndex}
@@ -297,8 +294,7 @@ export class ModuleParameterRuntimeValueImplementation<
 
   public [customInspectSymbol](
     _depth: number,
-    _inspectOptions: {},
-    inspect: (arg: {}) => string
+    { inspect }: { inspect: (arg: {}) => string }
   ) {
     return `Module Parameter RuntimeValue {
     name: ${this.name}${
