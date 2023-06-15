@@ -1,5 +1,3 @@
-#![allow(missing_docs)]
-
 #[derive(Clone, Debug, PartialEq, serde::Deserialize, serde::Serialize)]
 pub struct RpcHardhatNetworkConfig {
     pub forking: Option<RpcForkConfig>,
