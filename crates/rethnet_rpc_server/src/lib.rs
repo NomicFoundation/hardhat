@@ -13,12 +13,16 @@ use rethnet_eth::{
     remote::{
         client::Request as RpcRequest,
         jsonrpc,
-        methods::{eth::EthMethodInvocation, hardhat::HardhatMethodInvocation, MethodInvocation},
+        methods::{
+            eth::EthMethodInvocation,
+            hardhat::{reset::RpcHardhatNetworkConfig, HardhatMethodInvocation},
+            MethodInvocation,
+        },
     },
     Address, U256,
 };
 use rethnet_evm::{
-    state::{AccountModifierFn, HybridState, StateError, SyncState},
+    state::{AccountModifierFn, ForkState, HybridState, StateError, SyncState},
     AccountInfo, Bytecode, KECCAK_EMPTY,
 };
 
@@ -310,14 +314,41 @@ pub async fn router(state: StateType) -> Router {
 /// returns the address that the server is listening on (with any input wildcards resolved).
 pub async fn run(
     address: SocketAddr,
+    config: RpcHardhatNetworkConfig,
     genesis_accounts: HashMap<Address, AccountInfo>,
 ) -> Result<SocketAddr, std::io::Error> {
     let listener = TcpListener::bind(address)?;
     let address = listener.local_addr()?;
 
-    let rethnet_state: StateType = Arc::new(RwLock::new(Box::new(HybridState::with_accounts(
-        genesis_accounts,
-    ))));
+    let rethnet_state: StateType = if let Some(config) = config.forking {
+        Arc::new(RwLock::new(Box::new(ForkState::new(
+            Arc::new(
+                tokio::runtime::Builder::new_multi_thread()
+                    .enable_io()
+                    .enable_time()
+                    .build()
+                    .expect("failed to construct async runtime"),
+            ),
+            Arc::new(parking_lot::Mutex::new(
+                rethnet_evm::RandomHashGenerator::with_seed("seed"),
+            )),
+            &config.json_rpc_url,
+            match config.block_number {
+                Some(block_number) => U256::from(block_number),
+                None => rethnet_eth::remote::client::RpcClient::new(&config.json_rpc_url)
+                    .get_block_by_number(rethnet_eth::remote::BlockSpec::latest())
+                    .await
+                    .expect("should retrieve latest block from fork source")
+                    .number
+                    .expect("fork source's latest block should have a block number"),
+            },
+            genesis_accounts,
+        ))))
+    } else {
+        Arc::new(RwLock::new(Box::new(HybridState::with_accounts(
+            genesis_accounts,
+        ))))
+    };
 
     tokio::spawn(async move {
         axum::Server::from_tcp(listener)
@@ -347,9 +378,13 @@ mod tests {
             },
         );
 
-        run("127.0.0.1:0".parse::<SocketAddr>().unwrap(), accounts)
-            .await
-            .unwrap()
+        run(
+            "127.0.0.1:0".parse::<SocketAddr>().unwrap(),
+            RpcHardhatNetworkConfig { forking: None },
+            accounts,
+        )
+        .await
+        .unwrap()
     }
 
     async fn submit_request(address: &SocketAddr, request: &RpcRequest) -> String {
