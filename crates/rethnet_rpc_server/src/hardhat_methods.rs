@@ -1,4 +1,4 @@
-use crate::{
+use rethnet_eth::{
     remote::{
         serde_with_helpers::{sequence_to_single, single_to_sequence},
         ZeroXPrefixedBytes,

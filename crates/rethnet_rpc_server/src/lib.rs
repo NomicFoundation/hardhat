@@ -11,13 +11,8 @@ use tokio::sync::RwLock;
 
 use rethnet_eth::{
     remote::{
-        client::Request as RpcRequest,
-        jsonrpc,
-        methods::{
-            eth::MethodInvocation as EthMethodInvocation,
-            hardhat::{reset::RpcHardhatNetworkConfig, HardhatMethodInvocation},
-        },
-        BlockSpec,
+        client::Request as RpcRequest, jsonrpc,
+        methods::eth::MethodInvocation as EthMethodInvocation, BlockSpec,
     },
     Address, U256,
 };
@@ -25,6 +20,9 @@ use rethnet_evm::{
     state::{AccountModifierFn, ForkState, HybridState, StateError, SyncState},
     AccountInfo, Bytecode, KECCAK_EMPTY,
 };
+
+mod hardhat_methods;
+use hardhat_methods::{reset::RpcHardhatNetworkConfig, HardhatMethodInvocation};
 
 /// an RPC method with its parameters
 #[derive(Clone, Debug, PartialEq, serde::Deserialize, serde::Serialize)]
