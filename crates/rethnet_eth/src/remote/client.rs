@@ -9,8 +9,7 @@ use revm_primitives::{AccountInfo, Address, Bytecode, B256, KECCAK_EMPTY, U256};
 use super::{
     eth, jsonrpc,
     methods::{
-        eth::{EthMethodInvocation, GetLogsInput},
-        MethodInvocation,
+        eth::{MethodInvocation, GetLogsInput},
     },
     BlockSpec, ZeroXPrefixedBytes,
 };
@@ -46,7 +45,7 @@ pub enum RpcClientError {
 
 /// a JSON-RPC method invocation request
 #[derive(serde::Deserialize, serde::Serialize)]
-pub struct Request {
+pub struct Request<MethodInvocation> {
     /// JSON-RPC version
     pub version: jsonrpc::Version,
     /// the method to invoke, with its parameters
@@ -213,12 +212,12 @@ impl RpcClient {
         block: BlockSpec,
     ) -> Result<AccountInfo, RpcClientError> {
         let inputs = Vec::from([
-            MethodInvocation::Eth(EthMethodInvocation::GetBalance(*address, block.clone())),
-            MethodInvocation::Eth(EthMethodInvocation::GetTransactionCount(
+            MethodInvocation::GetBalance(*address, block.clone()),
+            MethodInvocation::GetTransactionCount(
                 *address,
                 block.clone(),
-            )),
-            MethodInvocation::Eth(EthMethodInvocation::GetCode(*address, block)),
+            ),
+            MethodInvocation::GetCode(*address, block),
         ]);
 
         let response = self.batch_call(&inputs).await?;
@@ -343,9 +342,9 @@ impl RpcClient {
         &self,
         hash: &B256,
     ) -> Result<Option<eth::Block<B256>>, RpcClientError> {
-        self.call(&MethodInvocation::Eth(EthMethodInvocation::GetBlockByHash(
+        self.call(&MethodInvocation::GetBlockByHash(
             *hash, false,
-        )))
+        ))
         .await
     }
 
@@ -354,9 +353,9 @@ impl RpcClient {
         &self,
         hash: &B256,
     ) -> Result<Option<eth::Block<eth::Transaction>>, RpcClientError> {
-        self.call(&MethodInvocation::Eth(EthMethodInvocation::GetBlockByHash(
+        self.call(&MethodInvocation::GetBlockByHash(
             *hash, true,
-        )))
+        ))
         .await
     }
 
@@ -365,9 +364,8 @@ impl RpcClient {
         &self,
         spec: BlockSpec,
     ) -> Result<eth::Block<B256>, RpcClientError> {
-        self.call(&MethodInvocation::Eth(
-            EthMethodInvocation::GetBlockByNumber(spec, false),
-        ))
+        self.call(&MethodInvocation::GetBlockByNumber(spec, false),
+        )
         .await
     }
 
@@ -376,9 +374,8 @@ impl RpcClient {
         &self,
         spec: BlockSpec,
     ) -> Result<eth::Block<eth::Transaction>, RpcClientError> {
-        self.call(&MethodInvocation::Eth(
-            EthMethodInvocation::GetBlockByNumber(spec, true),
-        ))
+        self.call(&MethodInvocation::GetBlockByNumber(spec, true),
+        )
         .await
     }
 
@@ -389,13 +386,13 @@ impl RpcClient {
         to_block: BlockSpec,
         address: &Address,
     ) -> Result<Vec<eth::Log>, RpcClientError> {
-        self.call(&MethodInvocation::Eth(EthMethodInvocation::GetLogs(
+        self.call(&MethodInvocation::GetLogs(
             GetLogsInput {
                 from_block,
                 to_block,
                 address: *address,
             },
-        )))
+        ))
         .await
     }
 
@@ -404,9 +401,8 @@ impl RpcClient {
         &self,
         tx_hash: &B256,
     ) -> Result<Option<eth::Transaction>, RpcClientError> {
-        self.call(&MethodInvocation::Eth(
-            EthMethodInvocation::GetTransactionByHash(*tx_hash),
-        ))
+        self.call(&MethodInvocation::GetTransactionByHash(*tx_hash),
+        )
         .await
     }
 
@@ -416,9 +412,8 @@ impl RpcClient {
         address: &Address,
         block: BlockSpec,
     ) -> Result<U256, RpcClientError> {
-        self.call(&MethodInvocation::Eth(
-            EthMethodInvocation::GetTransactionCount(*address, block),
-        ))
+        self.call(&MethodInvocation::GetTransactionCount(*address, block),
+        )
         .await
     }
 
@@ -427,9 +422,8 @@ impl RpcClient {
         &self,
         tx_hash: &B256,
     ) -> Result<Option<eth::TransactionReceipt>, RpcClientError> {
-        self.call(&MethodInvocation::Eth(
-            EthMethodInvocation::GetTransactionReceipt(*tx_hash),
-        ))
+        self.call(&MethodInvocation::GetTransactionReceipt(*tx_hash),
+        )
         .await
     }
 
@@ -440,9 +434,9 @@ impl RpcClient {
         position: U256,
         block: BlockSpec,
     ) -> Result<U256, RpcClientError> {
-        self.call(&MethodInvocation::Eth(EthMethodInvocation::GetStorageAt(
+        self.call(&MethodInvocation::GetStorageAt(
             *address, position, block,
-        )))
+        ))
         .await
     }
 }
@@ -473,9 +467,8 @@ mod tests {
                 .expect("failed to parse hash from string");
 
         let error = RpcClient::new(&server.url())
-            .call::<Option<eth::Transaction>>(&MethodInvocation::Eth(
-                EthMethodInvocation::GetTransactionByHash(hash),
-            ))
+            .call::<Option<eth::Transaction>>(&MethodInvocation::GetTransactionByHash(hash),
+            )
             .await
             .expect_err("should have failed to interpret response as a Transaction");
 
@@ -518,9 +511,8 @@ mod tests {
             .expect("failed to parse hash from string");
 
             let error = RpcClient::new(alchemy_url)
-                .call::<Option<eth::Transaction>>(&MethodInvocation::Eth(
-                    EthMethodInvocation::GetTransactionByHash(hash),
-                ))
+                .call::<Option<eth::Transaction>>(&MethodInvocation::GetTransactionByHash(hash),
+                )
                 .await
                 .expect_err("should have failed to interpret response as a Transaction");
 
@@ -541,9 +533,8 @@ mod tests {
             .expect("failed to parse hash from string");
 
             let error = RpcClient::new(alchemy_url)
-                .call::<Option<eth::Transaction>>(&MethodInvocation::Eth(
-                    EthMethodInvocation::GetTransactionByHash(hash),
-                ))
+                .call::<Option<eth::Transaction>>(&MethodInvocation::GetTransactionByHash(hash),
+                )
                 .await
                 .expect_err("should have failed to connect due to a garbage domain name");
 

@@ -16,7 +16,6 @@ use rethnet_eth::{
         methods::{
             eth::EthMethodInvocation,
             hardhat::{reset::RpcHardhatNetworkConfig, HardhatMethodInvocation},
-            MethodInvocation,
         },
         BlockSpec,
     },
@@ -26,6 +25,17 @@ use rethnet_evm::{
     state::{AccountModifierFn, ForkState, HybridState, StateError, SyncState},
     AccountInfo, Bytecode, KECCAK_EMPTY,
 };
+
+/// an RPC method with its parameters
+#[derive(Clone, Debug, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(untagged)]
+#[allow(clippy::large_enum_variant)]
+pub enum MethodInvocation {
+    /// an eth_* method invocation
+    Eth(EthMethodInvocation),
+    /// a hardhat_* method invocation
+    Hardhat(HardhatMethodInvocation),
+}
 
 type StateType = Arc<RwLock<Box<dyn SyncState<StateError>>>>;
 
@@ -205,7 +215,7 @@ pub async fn router(state: StateType) -> Router {
         .route(
             "/",
             axum::routing::post(
-                |State(state): State<StateType>, payload: Json<RpcRequest>| async move {
+                |State(state): State<StateType>, payload: Json<RpcRequest<MethodInvocation>>| async move {
                     match payload {
                         Json(RpcRequest {
                             version,
@@ -378,7 +388,7 @@ mod tests {
         .unwrap()
     }
 
-    async fn submit_request(address: &SocketAddr, request: &RpcRequest) -> String {
+    async fn submit_request(address: &SocketAddr, request: &RpcRequest<MethodInvocation>) -> String {
         let url = format!("http://{address}/");
         let body = serde_json::to_string(&request).expect("should serialize request to JSON");
         reqwest::Client::new()
