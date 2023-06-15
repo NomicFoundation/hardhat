@@ -8,7 +8,7 @@ use revm_primitives::{AccountInfo, Address, Bytecode, B256, KECCAK_EMPTY, U256};
 
 use super::{
     eth, jsonrpc,
-    methods::eth::{GetLogsInput, MethodInvocation},
+    methods::{GetLogsInput, MethodInvocation},
     BlockSpec, ZeroXPrefixedBytes,
 };
 

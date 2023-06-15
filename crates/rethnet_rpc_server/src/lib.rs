@@ -11,8 +11,8 @@ use tokio::sync::RwLock;
 
 use rethnet_eth::{
     remote::{
-        client::Request as RpcRequest, jsonrpc,
-        methods::eth::MethodInvocation as EthMethodInvocation, BlockSpec,
+        client::Request as RpcRequest, jsonrpc, methods::MethodInvocation as EthMethodInvocation,
+        BlockSpec,
     },
     Address, U256,
 };
