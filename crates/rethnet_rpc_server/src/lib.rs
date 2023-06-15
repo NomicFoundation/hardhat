@@ -3,6 +3,7 @@ use std::sync::Arc;
 
 use axum::{
     extract::{Json, State},
+    http::StatusCode,
     Router,
 };
 use hashbrown::HashMap;
@@ -37,7 +38,10 @@ pub enum MethodInvocation {
 
 type StateType = Arc<RwLock<Box<dyn SyncState<StateError>>>>;
 
-fn response<T>(id: jsonrpc::Id, data: jsonrpc::ResponseData<T>) -> Json<serde_json::Value>
+fn response<T>(
+    id: jsonrpc::Id,
+    data: jsonrpc::ResponseData<T>,
+) -> (StatusCode, Json<serde_json::Value>)
 where
     T: serde::Serialize,
 {
@@ -46,14 +50,25 @@ where
         id: id.clone(),
         data,
     };
-    let response = serde_json::to_value(response)
-        .or(serde_json::to_value(jsonrpc::Response {
-            jsonrpc: jsonrpc::Version::V2_0,
-            id,
-            data: jsonrpc::ResponseData::<T>::new_error(0, "serde_json::to_value() failed", None),
-        }))
-        .expect("shouldn't happen");
-    Json(response)
+    if let Ok(response) = serde_json::to_value(response) {
+        (StatusCode::OK, Json(response))
+    } else {
+        (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            Json(
+                serde_json::to_value(jsonrpc::Response {
+                    jsonrpc: jsonrpc::Version::V2_0,
+                    id,
+                    data: jsonrpc::ResponseData::<T>::new_error(
+                        0,
+                        "serde_json::to_value() failed",
+                        None,
+                    ),
+                })
+                .expect("shouldn't happen"),
+            ),
+        )
+    }
 }
 
 async fn handle_get_balance(
@@ -220,7 +235,7 @@ async fn router(state: StateType) -> Router {
                             id,
                             method: _,
                         }) if version != jsonrpc::Version::V2_0 => {
-                            Json(serde_json::json!(jsonrpc::Response {
+                            (StatusCode::OK, Json(serde_json::json!(jsonrpc::Response {
                                 jsonrpc: jsonrpc::Version::V2_0,
                                 id,
                                 data: jsonrpc::ResponseData::<serde_json::Value>::new_error(
@@ -231,7 +246,7 @@ async fn router(state: StateType) -> Router {
                                         Err(_) => None,
                                     },
                                 )
-                            }))
+                            })))
                         }
                         Json(RpcRequest {
                             version: _,
@@ -284,7 +299,7 @@ async fn router(state: StateType) -> Router {
                                 _ => {
                                     // TODO: after adding all the methods here, eliminate this
                                     // catch-all match arm.
-                                    Json(serde_json::json!(jsonrpc::Response {
+                                    (StatusCode::OK, Json(serde_json::json!(jsonrpc::Response {
                                         jsonrpc: jsonrpc::Version::V2_0,
                                         id,
                                         data: jsonrpc::ResponseData::<serde_json::Value>::Error {
@@ -297,7 +312,7 @@ async fn router(state: StateType) -> Router {
                                                 }
                                             }
                                         }
-                                    }))
+                                    })))
                                 }
                             }
                         }
