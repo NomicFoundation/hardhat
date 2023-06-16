@@ -222,20 +222,17 @@ async fn router(state: StateType) -> Router {
                             version,
                             id,
                             method: _,
-                        }) if version != jsonrpc::Version::V2_0 => {
-                            (StatusCode::OK, Json(serde_json::json!(Response {
-                                jsonrpc: jsonrpc::Version::V2_0,
-                                id,
-                                data: ResponseData::<serde_json::Value>::new_error(
-                                    0,
-                                    "unsupported JSON-RPC version",
-                                    match serde_json::to_value(version) {
-                                        Ok(version) => Some(version),
-                                        Err(_) => None,
-                                    },
-                                )
-                            })))
-                        }
+                        }) if version != jsonrpc::Version::V2_0 => response(
+                            id,
+                            ResponseData::<serde_json::Value>::new_error(
+                                0,
+                                "unsupported JSON-RPC version",
+                                match serde_json::to_value(version) {
+                                    Ok(version) => Some(version),
+                                    Err(_) => None,
+                                },
+                            )
+                        ),
                         Json(RpcRequest {
                             version: _,
                             id,
@@ -284,24 +281,21 @@ async fn router(state: StateType) -> Router {
                                     id,
                                     handle_set_storage_at(state, address, position, value).await,
                                 ),
-                                _ => {
-                                    // TODO: after adding all the methods here, eliminate this
-                                    // catch-all match arm.
-                                    (StatusCode::OK, Json(serde_json::json!(Response {
-                                        jsonrpc: jsonrpc::Version::V2_0,
-                                        id,
-                                        data: ResponseData::<serde_json::Value>::Error {
-                                            error: jsonrpc::Error {
-                                                code: -32601,
-                                                message: String::from("Method not found"),
-                                                data: match serde_json::to_value(method) {
-                                                    Ok(value) => Some(value),
-                                                    Err(_) => None,
-                                                }
+                                // TODO: after adding all the methods here, eliminate this
+                                // catch-all match arm:
+                                _ => response(
+                                    id,
+                                    ResponseData::<serde_json::Value>::Error {
+                                        error: jsonrpc::Error {
+                                            code: -32601,
+                                            message: String::from("Method not found"),
+                                            data: match serde_json::to_value(method) {
+                                                Ok(value) => Some(value),
+                                                Err(_) => None,
                                             }
                                         }
-                                    })))
-                                }
+                                    }
+                                ),
                             }
                         }
                     }
