@@ -32,6 +32,10 @@ test-remote = []
 tracing = ["dep:tracing"]
 
 [[bench]]
+name = "database_commit"
+harness = false
+
+[[bench]]
 name = "state"
 harness = false
 
