@@ -79,7 +79,8 @@ fn bench_database_commit(c: &mut Criterion) {
         |state, _number_of_accounts, _, _| {
             state.commit(accounts_to_commit.clone());
 
-            debug_assert!(json_accounts.iter().all(|(address, json)| {
+            #[cfg(debug_assertions)]
+            json_accounts.iter().for_each(|(address, json)| {
                 if let Some(committed) = state.basic(*address).unwrap() {
                     debug_assert!(committed.balance == json.balance.unwrap());
                     debug_assert!(committed.nonce == json.nonce.unwrap());
@@ -93,8 +94,7 @@ fn bench_database_commit(c: &mut Criterion) {
                 } else {
                     debug_assert!(false);
                 }
-                true
-            }));
+            });
         },
         &[0],
         &[1],
