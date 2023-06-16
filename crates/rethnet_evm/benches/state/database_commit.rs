@@ -27,7 +27,7 @@ fn bench_database_commit(c: &mut Criterion) {
     let mut accounts_to_commit: HashMap<Address, Account> = HashMap::new();
     let json_accounts: HashMap<Address, AccountState> = serde_json::from_str(
         &std::fs::read_to_string(
-            "benches/fixtures/accounts_changed_in_mainnet_block_17295357.json",
+            "benches/state/fixtures/accounts_changed_in_mainnet_block_17295357.json",
         )
         .unwrap(),
         /* a fresh set of account updates can be retrieved via, eg:
