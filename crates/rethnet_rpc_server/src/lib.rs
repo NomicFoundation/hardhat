@@ -12,7 +12,7 @@ use tokio::sync::RwLock;
 
 use rethnet_eth::{
     remote::{
-        client::Request as RpcRequest, jsonrpc, methods::MethodInvocation as EthMethodInvocation,
+        client::Request as RpcRequest, jsonrpc, jsonrpc::{Response, ResponseData}, methods::MethodInvocation as EthMethodInvocation,
         BlockSpec,
     },
     Address, U256,
@@ -40,12 +40,12 @@ type StateType = Arc<RwLock<Box<dyn SyncState<StateError>>>>;
 
 fn response<T>(
     id: jsonrpc::Id,
-    data: jsonrpc::ResponseData<T>,
+    data: ResponseData<T>,
 ) -> (StatusCode, Json<serde_json::Value>)
 where
     T: serde::Serialize,
 {
-    let response: jsonrpc::Response<T> = jsonrpc::Response {
+    let response: Response<T> = Response {
         jsonrpc: jsonrpc::Version::V2_0,
         id: id.clone(),
         data,
@@ -56,10 +56,10 @@ where
         (
             StatusCode::INTERNAL_SERVER_ERROR,
             Json(
-                serde_json::to_value(jsonrpc::Response {
+                serde_json::to_value(Response {
                     jsonrpc: jsonrpc::Version::V2_0,
                     id,
-                    data: jsonrpc::ResponseData::<T>::new_error(
+                    data: ResponseData::<T>::new_error(
                         0,
                         "serde_json::to_value() failed",
                         None,
@@ -75,13 +75,13 @@ async fn handle_get_balance(
     state: StateType,
     address: Address,
     _block_spec: BlockSpec,
-) -> jsonrpc::ResponseData<U256> {
+) -> ResponseData<U256> {
     match (*state).read().await.basic(address) {
-        Ok(Some(account_info)) => jsonrpc::ResponseData::Success {
+        Ok(Some(account_info)) => ResponseData::Success {
             result: account_info.balance,
         },
-        Ok(None) => jsonrpc::ResponseData::new_error(0, "No such account", None),
-        Err(e) => jsonrpc::ResponseData::new_error(0, &e.to_string(), None),
+        Ok(None) => ResponseData::new_error(0, "No such account", None),
+        Err(e) => ResponseData::new_error(0, &e.to_string(), None),
     }
 }
 
@@ -89,18 +89,18 @@ async fn handle_get_code(
     state: StateType,
     address: Address,
     _block_spec: BlockSpec,
-) -> jsonrpc::ResponseData<ZeroXPrefixedBytes> {
+) -> ResponseData<ZeroXPrefixedBytes> {
     match (*state).read().await.basic(address) {
         Ok(Some(account_info)) => {
             match (*state).read().await.code_by_hash(account_info.code_hash) {
-                Ok(code) => jsonrpc::ResponseData::Success {
+                Ok(code) => ResponseData::Success {
                     result: ZeroXPrefixedBytes::from(code.bytecode),
                 },
-                Err(error) => jsonrpc::ResponseData::new_error(0, &error.to_string(), None),
+                Err(error) => ResponseData::new_error(0, &error.to_string(), None),
             }
         }
-        Ok(None) => jsonrpc::ResponseData::new_error(0, "No such account", None),
-        Err(e) => jsonrpc::ResponseData::new_error(0, &e.to_string(), None),
+        Ok(None) => ResponseData::new_error(0, "No such account", None),
+        Err(e) => ResponseData::new_error(0, &e.to_string(), None),
     }
 }
 
@@ -109,10 +109,10 @@ async fn handle_get_storage_at(
     address: Address,
     position: U256,
     _block_spec: BlockSpec,
-) -> jsonrpc::ResponseData<U256> {
+) -> ResponseData<U256> {
     match (*state).read().await.storage(address, position) {
-        Ok(value) => jsonrpc::ResponseData::Success { result: value },
-        Err(e) => jsonrpc::ResponseData::new_error(0, &e.to_string(), None),
+        Ok(value) => ResponseData::Success { result: value },
+        Err(e) => ResponseData::new_error(0, &e.to_string(), None),
     }
 }
 
@@ -120,13 +120,13 @@ async fn handle_get_transaction_count(
     state: StateType,
     address: Address,
     _block_spec: BlockSpec,
-) -> jsonrpc::ResponseData<U256> {
+) -> ResponseData<U256> {
     match (*state).read().await.basic(address) {
-        Ok(Some(account_info)) => jsonrpc::ResponseData::Success {
+        Ok(Some(account_info)) => ResponseData::Success {
             result: U256::from(account_info.nonce),
         },
-        Ok(None) => jsonrpc::ResponseData::new_error(0, "No such account", None),
-        Err(e) => jsonrpc::ResponseData::new_error(0, &e.to_string(), None),
+        Ok(None) => ResponseData::new_error(0, "No such account", None),
+        Err(e) => ResponseData::new_error(0, &e.to_string(), None),
     }
 }
 
@@ -134,7 +134,7 @@ async fn handle_set_balance(
     state: StateType,
     address: Address,
     balance: U256,
-) -> jsonrpc::ResponseData<()> {
+) -> ResponseData<()> {
     match (*state).write().await.modify_account(
         address,
         AccountModifierFn::new(Box::new(move |account_balance, _, _| {
@@ -149,8 +149,8 @@ async fn handle_set_balance(
             })
         },
     ) {
-        Ok(()) => jsonrpc::ResponseData::Success { result: () },
-        Err(e) => jsonrpc::ResponseData::new_error(0, &e.to_string(), None),
+        Ok(()) => ResponseData::Success { result: () },
+        Err(e) => ResponseData::new_error(0, &e.to_string(), None),
     }
 }
 
@@ -158,7 +158,7 @@ async fn handle_set_code(
     state: StateType,
     address: Address,
     code: ZeroXPrefixedBytes,
-) -> jsonrpc::ResponseData<()> {
+) -> ResponseData<()> {
     let code_1 = code.clone();
     let code_2 = code.clone();
     match (*state).write().await.modify_account(
@@ -175,8 +175,8 @@ async fn handle_set_code(
             })
         },
     ) {
-        Ok(()) => jsonrpc::ResponseData::Success { result: () },
-        Err(e) => jsonrpc::ResponseData::new_error(0, &e.to_string(), None),
+        Ok(()) => ResponseData::Success { result: () },
+        Err(e) => ResponseData::new_error(0, &e.to_string(), None),
     }
 }
 
@@ -184,7 +184,7 @@ async fn handle_set_nonce(
     state: StateType,
     address: Address,
     nonce: U256,
-) -> jsonrpc::ResponseData<()> {
+) -> ResponseData<()> {
     match TryInto::<u64>::try_into(nonce) {
         Ok(nonce) => {
             match (*state).write().await.modify_account(
@@ -199,11 +199,11 @@ async fn handle_set_nonce(
                     })
                 },
             ) {
-                Ok(()) => jsonrpc::ResponseData::Success { result: () },
-                Err(error) => jsonrpc::ResponseData::new_error(0, &error.to_string(), None),
+                Ok(()) => ResponseData::Success { result: () },
+                Err(error) => ResponseData::new_error(0, &error.to_string(), None),
             }
         }
-        Err(error) => jsonrpc::ResponseData::new_error(0, &error.to_string(), None),
+        Err(error) => ResponseData::new_error(0, &error.to_string(), None),
     }
 }
 
@@ -212,14 +212,14 @@ async fn handle_set_storage_at(
     address: Address,
     position: U256,
     value: U256,
-) -> jsonrpc::ResponseData<()> {
+) -> ResponseData<()> {
     match (*state)
         .write()
         .await
         .set_account_storage_slot(address, position, value)
     {
-        Ok(()) => jsonrpc::ResponseData::Success { result: () },
-        Err(e) => jsonrpc::ResponseData::new_error(0, &e.to_string(), None),
+        Ok(()) => ResponseData::Success { result: () },
+        Err(e) => ResponseData::new_error(0, &e.to_string(), None),
     }
 }
 
@@ -235,10 +235,10 @@ async fn router(state: StateType) -> Router {
                             id,
                             method: _,
                         }) if version != jsonrpc::Version::V2_0 => {
-                            (StatusCode::OK, Json(serde_json::json!(jsonrpc::Response {
+                            (StatusCode::OK, Json(serde_json::json!(Response {
                                 jsonrpc: jsonrpc::Version::V2_0,
                                 id,
-                                data: jsonrpc::ResponseData::<serde_json::Value>::new_error(
+                                data: ResponseData::<serde_json::Value>::new_error(
                                     0,
                                     "unsupported JSON-RPC version",
                                     match serde_json::to_value(version) {
@@ -299,10 +299,10 @@ async fn router(state: StateType) -> Router {
                                 _ => {
                                     // TODO: after adding all the methods here, eliminate this
                                     // catch-all match arm.
-                                    (StatusCode::OK, Json(serde_json::json!(jsonrpc::Response {
+                                    (StatusCode::OK, Json(serde_json::json!(Response {
                                         jsonrpc: jsonrpc::Version::V2_0,
                                         id,
-                                        data: jsonrpc::ResponseData::<serde_json::Value>::Error {
+                                        data: ResponseData::<serde_json::Value>::Error {
                                             error: jsonrpc::Error {
                                                 code: -32601,
                                                 message: String::from("Method not found"),
