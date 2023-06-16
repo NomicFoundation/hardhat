@@ -16,12 +16,10 @@ import { getPackageJson } from "../util/packageInfo";
 
 const log = debug("hardhat:core:analytics");
 
+/* eslint-disable @typescript-eslint/naming-convention */
 interface AnalyticsPayload {
-  // eslint-disable-next-line @typescript-eslint/naming-convention
   client_id: string;
-  // eslint-disable-next-line @typescript-eslint/naming-convention
   user_id: string;
-  // eslint-disable-next-line @typescript-eslint/naming-convention
   user_properties: {
     projectId: {
       value?: string;
@@ -36,13 +34,12 @@ interface AnalyticsPayload {
   events: Array<{
     name: string;
     params: {
-      // eslint-disable-next-line @typescript-eslint/naming-convention
       engagement_time_msec: string;
-      // eslint-disable-next-line @typescript-eslint/naming-convention
       session_id: string;
     };
   }>;
 }
+/* eslint-enable @typescript-eslint/naming-convention */
 
 type AbortAnalytics = () => void;
 
