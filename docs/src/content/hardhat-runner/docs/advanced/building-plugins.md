@@ -51,9 +51,12 @@ This is literally all it takes to put together a plugin for Hardhat. Now `hi` is
 
 Next, we can take a look at how to add features on top of the default provider offered by Hardhat, found on `hre.network.provider`. Doing this, any extra functionality you add will be available everywhere, just as it would if you extend the [Hardhat Runtime Environment](#extending-the-hardhat-runtime-environment).
 
-The Hardhat provider is configured through a queue of extension functions that you can add to by using the `extendProvider()` function. It receives one parameter which is a callback to be executed after first call to `hre.network.provider.request()` is made. This happens only once. If `extendProvider` is called multiple times, its callbacks will be executed in order, and Hardhat will wait on each one to finish before executing the next one. Returning an entirely new provider is possible but not advisable.
+The Hardhat provider is configured through a queue of extension functions that you can add to by using the `extendProvider()` function. It receives one parameter which is a callback to be executed after the first call to `hre.network.provider.request()` is made. This happens only once. If `extendProvider` is called multiple times, its callbacks will be executed in order, and Hardhat will wait on each one to finish before executing the next one. Returning an entirely new provider is possible but not advisable.
 
-It's important to keep in mind that after all callbacks are executed, the provider will be wrapped by Hardhat one last time so it's backwards compatible with old non-standard implementations. This boils down to adding both `send` and `sendAsync` methods, which defer to the main `request`. Lastly, each callback added is `async`, so we should be careful when adding any functionality that might take a long time to resolve.
+These callbacks can be `async`, and they will be `await`ed until they finish, so you should be careful when adding any functionality that might take a long time to resolve.
+
+It's important to keep in mind that after all callbacks are executed, the provider will be wrapped by Hardhat's built-in extenders. This means that the object returned by `extendProvider` is not the same as the one found on `hre.network.provider`, but its funcionality is included there.
+
 
 For example, adding the following to `hardhat.config.js`:
 
