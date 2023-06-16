@@ -62,7 +62,7 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: check
-          args: --workspace --all-targets
+          args: --workspace --all-targets --no-default-features
 
   test-core:
     name: Test core (${{ matrix.os }}, Node ${{ matrix.node }}, ${{ matrix.vm }})
