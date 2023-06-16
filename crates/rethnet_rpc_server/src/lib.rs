@@ -8,7 +8,7 @@ use axum::{
 };
 use hashbrown::HashMap;
 use rethnet_eth::remote::ZeroXPrefixedBytes;
-use tokio::sync::RwLock;
+use tokio::sync::{Mutex, RwLock};
 
 use rethnet_eth::{
     remote::{
@@ -18,7 +18,7 @@ use rethnet_eth::{
         methods::MethodInvocation as EthMethodInvocation,
         BlockSpec,
     },
-    Address, U256,
+    Address, B256, U256,
 };
 use rethnet_evm::{
     state::{AccountModifierFn, ForkState, HybridState, StateError, SyncState},
@@ -39,7 +39,14 @@ pub enum MethodInvocation {
     Hardhat(HardhatMethodInvocation),
 }
 
-type StateType = Arc<RwLock<Box<dyn SyncState<StateError>>>>;
+type RethnetStateType = Arc<RwLock<Box<dyn SyncState<StateError>>>>;
+
+struct AppState {
+    rethnet: RethnetStateType,
+    fork_client: Option<Arc<Mutex<rethnet_eth::remote::client::RpcClient>>>,
+}
+
+type StateType = Arc<AppState>;
 
 fn response<T>(id: jsonrpc::Id, data: ResponseData<T>) -> (StatusCode, Json<serde_json::Value>)
 where
@@ -67,36 +74,148 @@ where
     }
 }
 
+/// returns the state root in effect BEFORE setting the block context, so that the caller can
+/// restore the context to that state root.
+async fn set_block_context<T>(
+    state: &StateType,
+    block_spec: BlockSpec,
+) -> Result<B256, ResponseData<T>> {
+    let previous_state_root =
+        state.rethnet.read().await.state_root().map_err(|_| {
+            ResponseData::new_error(0, "Failed to retrieve previous state root", None)
+        })?;
+    if block_spec == BlockSpec::Tag(String::from("latest")) {
+        // do nothing
+        Ok(previous_state_root)
+    } else {
+        state
+            .rethnet
+            .write()
+            .await
+            .set_block_context(
+                &KECCAK_EMPTY,
+                Some(match block_spec {
+                    BlockSpec::Number(n) => Ok(n),
+                    BlockSpec::Tag(tag) => {
+                        if let Some(fork_client) = state.fork_client.clone() {
+                            if let Some(block_number) =
+                                (*fork_client)
+                                    .lock()
+                                    .await
+                                    .get_block_by_number(BlockSpec::Tag(tag.clone()))
+                                    .await
+                                    .map_err(|_| {
+                                        ResponseData::new_error(
+                                            0,
+                                            &format!("Failed to get block tagged {tag} from forked node"),
+                                            None,
+                                        )
+                                    })?
+                                    .number
+                            {
+                                Ok(block_number)
+                            } else {
+                                Err(ResponseData::new_error(
+                                    0,
+                                    &format!("Remote block tagged {tag} did not have a number"),
+                                    None,
+                                ))
+                            }
+                        } else {
+                            Err(ResponseData::new_error(
+                                0,
+                                &format!(
+                                    "Cannot resolve block tag {tag} because there is no forking configuration"
+                                ),
+                                None,
+                            ))
+                        }
+                    }
+                }?),
+            )
+            .map_err(|_| ResponseData::new_error(0, "Failed to set block context", None))?;
+        Ok(previous_state_root)
+    }
+}
+
+async fn restore_block_context<T>(
+    state: &StateType,
+    state_root: B256,
+) -> Result<(), ResponseData<T>> {
+    state
+        .rethnet
+        .write()
+        .await
+        .set_block_context(&state_root, None)
+        .map_err(|_| ResponseData::new_error(0, "Failed to restore previous block context", None))
+}
+
+async fn get_account_info<T>(
+    state: &StateType,
+    address: Address,
+) -> Result<AccountInfo, ResponseData<T>> {
+    match state.rethnet.read().await.basic(address) {
+        Ok(Some(account_info)) => Ok(account_info),
+        Ok(None) => Err(ResponseData::new_error(0, "No such account", None)),
+        Err(e) => Err(ResponseData::new_error(0, &e.to_string(), None)),
+    }
+}
+
 async fn handle_get_balance(
     state: StateType,
     address: Address,
-    _block_spec: BlockSpec,
+    block: BlockSpec,
 ) -> ResponseData<U256> {
-    match (*state).read().await.basic(address) {
-        Ok(Some(account_info)) => ResponseData::Success {
-            result: account_info.balance,
-        },
-        Ok(None) => ResponseData::new_error(0, "No such account", None),
-        Err(e) => ResponseData::new_error(0, &e.to_string(), None),
+    match set_block_context(&state, block).await {
+        Ok(previous_state_root) => {
+            let account_info = get_account_info(&state, address).await;
+            match restore_block_context(&state, previous_state_root).await {
+                Ok(()) => match account_info {
+                    Ok(account_info) => ResponseData::Success {
+                        result: account_info.balance,
+                    },
+                    Err(e) => e,
+                },
+                Err(e) => e,
+            }
+        }
+        Err(e) => e,
     }
 }
 
 async fn handle_get_code(
     state: StateType,
     address: Address,
-    _block_spec: BlockSpec,
+    block: BlockSpec,
 ) -> ResponseData<ZeroXPrefixedBytes> {
-    match (*state).read().await.basic(address) {
-        Ok(Some(account_info)) => {
-            match (*state).read().await.code_by_hash(account_info.code_hash) {
-                Ok(code) => ResponseData::Success {
-                    result: ZeroXPrefixedBytes::from(code.bytecode),
+    match set_block_context(&state, block).await {
+        Ok(previous_state_root) => {
+            let account_info = get_account_info(&state, address).await;
+            match restore_block_context(&state, previous_state_root).await {
+                Ok(()) => match account_info {
+                    Ok(account_info) => {
+                        match state
+                            .rethnet
+                            .read()
+                            .await
+                            .code_by_hash(account_info.code_hash)
+                        {
+                            Ok(code) => ResponseData::Success {
+                                result: ZeroXPrefixedBytes::from(code.bytecode),
+                            },
+                            Err(e) => ResponseData::new_error(
+                                0,
+                                &format!("failed to retrieve code: {}", e),
+                                None,
+                            ),
+                        }
+                    }
+                    Err(e) => e,
                 },
-                Err(error) => ResponseData::new_error(0, &error.to_string(), None),
+                Err(e) => e,
             }
         }
-        Ok(None) => ResponseData::new_error(0, "No such account", None),
-        Err(e) => ResponseData::new_error(0, &e.to_string(), None),
+        Err(e) => e,
     }
 }
 
@@ -104,30 +223,51 @@ async fn handle_get_storage_at(
     state: StateType,
     address: Address,
     position: U256,
-    _block_spec: BlockSpec,
+    block: BlockSpec,
 ) -> ResponseData<U256> {
-    match (*state).read().await.storage(address, position) {
-        Ok(value) => ResponseData::Success { result: value },
-        Err(e) => ResponseData::new_error(0, &e.to_string(), None),
+    match set_block_context(&state, block).await {
+        Ok(previous_state_root) => {
+            let value = state.rethnet.read().await.storage(address, position);
+            match restore_block_context(&state, previous_state_root).await {
+                Ok(()) => match value {
+                    Ok(value) => ResponseData::Success { result: value },
+                    Err(e) => ResponseData::new_error(
+                        0,
+                        &format!("failed to retrieve storage value: {}", e),
+                        None,
+                    ),
+                },
+                Err(e) => e,
+            }
+        }
+        Err(e) => e,
     }
 }
 
 async fn handle_get_transaction_count(
     state: StateType,
     address: Address,
-    _block_spec: BlockSpec,
+    block: BlockSpec,
 ) -> ResponseData<U256> {
-    match (*state).read().await.basic(address) {
-        Ok(Some(account_info)) => ResponseData::Success {
-            result: U256::from(account_info.nonce),
-        },
-        Ok(None) => ResponseData::new_error(0, "No such account", None),
-        Err(e) => ResponseData::new_error(0, &e.to_string(), None),
+    match set_block_context(&state, block).await {
+        Ok(previous_state_root) => {
+            let account_info = get_account_info(&state, address).await;
+            match restore_block_context(&state, previous_state_root).await {
+                Ok(()) => match account_info {
+                    Ok(account_info) => ResponseData::Success {
+                        result: U256::from(account_info.nonce),
+                    },
+                    Err(e) => e,
+                },
+                Err(e) => e,
+            }
+        }
+        Err(e) => e,
     }
 }
 
 async fn handle_set_balance(state: StateType, address: Address, balance: U256) -> ResponseData<()> {
-    match (*state).write().await.modify_account(
+    match state.rethnet.write().await.modify_account(
         address,
         AccountModifierFn::new(Box::new(move |account_balance, _, _| {
             *account_balance = balance
@@ -153,7 +293,7 @@ async fn handle_set_code(
 ) -> ResponseData<()> {
     let code_1 = code.clone();
     let code_2 = code.clone();
-    match (*state).write().await.modify_account(
+    match state.rethnet.write().await.modify_account(
         address,
         AccountModifierFn::new(Box::new(move |_, _, account_code| {
             *account_code = Some(Bytecode::new_raw(code_1.clone().into()))
@@ -175,7 +315,7 @@ async fn handle_set_code(
 async fn handle_set_nonce(state: StateType, address: Address, nonce: U256) -> ResponseData<()> {
     match TryInto::<u64>::try_into(nonce) {
         Ok(nonce) => {
-            match (*state).write().await.modify_account(
+            match (*state.rethnet).write().await.modify_account(
                 address,
                 AccountModifierFn::new(Box::new(move |_, account_nonce, _| *account_nonce = nonce)),
                 &|| {
@@ -201,7 +341,7 @@ async fn handle_set_storage_at(
     position: U256,
     value: U256,
 ) -> ResponseData<()> {
-    match (*state)
+    match (*state.rethnet)
         .write()
         .await
         .set_account_storage_slot(address, position, value)
@@ -315,33 +455,44 @@ pub async fn run(
     let address = listener.local_addr()?;
 
     let rethnet_state: StateType = if let Some(config) = config.forking {
-        Arc::new(RwLock::new(Box::new(ForkState::new(
-            Arc::new(
-                tokio::runtime::Builder::new_multi_thread()
-                    .enable_io()
-                    .enable_time()
-                    .build()
-                    .expect("failed to construct async runtime"),
-            ),
-            Arc::new(parking_lot::Mutex::new(
-                rethnet_evm::RandomHashGenerator::with_seed("seed"),
-            )),
+        let fork_client = Arc::new(Mutex::new(rethnet_eth::remote::client::RpcClient::new(
             &config.json_rpc_url,
-            match config.block_number {
-                Some(block_number) => U256::from(block_number),
-                None => rethnet_eth::remote::client::RpcClient::new(&config.json_rpc_url)
-                    .get_block_by_number(rethnet_eth::remote::BlockSpec::latest())
-                    .await
-                    .expect("should retrieve latest block from fork source")
-                    .number
-                    .expect("fork source's latest block should have a block number"),
-            },
-            genesis_accounts,
-        ))))
+        )));
+        Arc::new(AppState {
+            rethnet: Arc::new(RwLock::new(Box::new(ForkState::new(
+                Arc::new(
+                    tokio::runtime::Builder::new_multi_thread()
+                        .enable_io()
+                        .enable_time()
+                        .build()
+                        .expect("failed to construct async runtime"),
+                ),
+                Arc::new(parking_lot::Mutex::new(
+                    rethnet_evm::RandomHashGenerator::with_seed("seed"),
+                )),
+                &config.json_rpc_url,
+                match config.block_number {
+                    Some(block_number) => U256::from(block_number),
+                    None => fork_client
+                        .lock()
+                        .await
+                        .get_block_by_number(rethnet_eth::remote::BlockSpec::latest())
+                        .await
+                        .expect("should retrieve latest block from fork source")
+                        .number
+                        .expect("fork source's latest block should have a block number"),
+                },
+                genesis_accounts,
+            )))),
+            fork_client: Some(fork_client),
+        })
     } else {
-        Arc::new(RwLock::new(Box::new(HybridState::with_accounts(
-            genesis_accounts,
-        ))))
+        Arc::new(AppState {
+            rethnet: Arc::new(RwLock::new(Box::new(HybridState::with_accounts(
+                genesis_accounts,
+            )))),
+            fork_client: None,
+        })
     };
 
     tokio::spawn(async move {
