@@ -285,16 +285,14 @@ async fn router(state: StateType) -> Router {
                                 // catch-all match arm:
                                 _ => response(
                                     id,
-                                    ResponseData::<serde_json::Value>::Error {
-                                        error: jsonrpc::Error {
-                                            code: -32601,
-                                            message: String::from("Method not found"),
-                                            data: match serde_json::to_value(method) {
-                                                Ok(value) => Some(value),
-                                                Err(_) => None,
-                                            }
+                                    ResponseData::<serde_json::Value>::new_error(
+                                        -32601,
+                                        "Method not found",
+                                        match serde_json::to_value(method) {
+                                            Ok(value) => Some(value),
+                                            Err(_) => None,
                                         }
-                                    }
+                                    )
                                 ),
                             }
                         }
