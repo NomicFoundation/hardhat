@@ -1,4 +1,4 @@
-import { ArtifactResolver } from "../../types/artifact";
+import { ArtifactResolver, DeploymentLoader } from "../../types/artifact";
 import {
   Journal,
   JournalableMessage,
@@ -24,6 +24,7 @@ export interface ExecutionEngineState {
   journal: Journal;
   transactionService: TransactionService;
   artifactResolver: ArtifactResolver;
+  deploymentLoader: DeploymentLoader;
 }
 
 export interface ExecutionStrategy {

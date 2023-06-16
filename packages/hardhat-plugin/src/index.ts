@@ -17,6 +17,7 @@ import prompts from "prompts";
 
 import { buildAdaptersFrom } from "./buildAdaptersFrom";
 import { buildArtifactResolverFrom } from "./buildArtifactResolverFrom";
+import { buildDeploymentLoader } from "./buildDeploymentLoader";
 import { buildIgnitionProvidersFrom } from "./buildIgnitionProvidersFrom";
 import { IgnitionHelper } from "./ignition-helper";
 import { IgnitionWrapper } from "./ignition-wrapper";
@@ -192,13 +193,20 @@ task("deploy2")
     "parameters",
     "A JSON object as a string, of the module parameters, or a relative path to a JSON file"
   )
+  .addOptionalParam("id", "set the deployment id")
   .addFlag("force", "restart the deployment ignoring previous history")
   .setAction(
     async (
       {
         moduleNameOrPath,
         parameters: parametersInput,
-      }: { moduleNameOrPath: string; parameters?: string; force: boolean },
+        id: givenDeploymentId,
+      }: {
+        moduleNameOrPath: string;
+        parameters?: string;
+        force: boolean;
+        id: string;
+      },
       hre
     ) => {
       const chainId = Number(
@@ -245,26 +253,35 @@ task("deploy2")
         parameters = resolveParametersString(parametersInput);
       }
 
-      // TODO: bring back check with file journaling proper
-      const isHardhatNetwork = true; // hre.network.name === "hardhat";
-
-      const journal = isHardhatNetwork
-        ? new MemoryJournal()
-        : new FileJournal(
-            resolveJournalPath(userModule.name, hre.config.paths.ignition)
-          );
-
       const accounts = (await hre.network.provider.request({
         method: "eth_accounts",
       })) as string[];
 
       try {
+        const deploymentId = givenDeploymentId ?? `network-${chainId}`;
+
         const artifactResolver = buildArtifactResolverFrom(hre);
         const adapters = buildAdaptersFrom(hre);
+        // TODO: bring back check with file journaling proper
+        const isHardhatNetwork = true; // hre.network.name === "hardhat";
 
-        const deployer = new Deployer({ journal, adapters, artifactResolver });
+        const journal = isHardhatNetwork
+          ? new MemoryJournal()
+          : new FileJournal(
+              resolveJournalPath(userModule.name, hre.config.paths.ignition)
+            );
+
+        const deploymentLoader = buildDeploymentLoader(hre);
+
+        const deployer = new Deployer({
+          journal,
+          adapters,
+          artifactResolver,
+          deploymentLoader,
+        });
 
         const result = await deployer.deploy(
+          deploymentId,
           userModule as any,
           parameters as any,
           accounts

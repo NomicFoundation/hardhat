@@ -1,7 +1,9 @@
 import {
   DeployContractInteractionMessage,
+  DeployedContractExecutionSuccess,
   ExecutionResultMessage,
   ExecutionResultTypes,
+  ExecutionSuccess,
   JournalableMessage,
   OnchainInteractionMessage,
   OnchainResultMessage,
@@ -17,6 +19,12 @@ export function isExecutionResult(
   ];
 
   return (resultTypes as string[]).includes(potential.type);
+}
+
+export function isExecutionSuccess(
+  potential: JournalableMessage
+): potential is ExecutionSuccess {
+  return potential.type === "execution-success";
 }
 
 export function isExecutionMessage(
@@ -45,4 +53,12 @@ export function isDeployContractInteraction(
   potential: JournalableMessage
 ): potential is DeployContractInteractionMessage {
   return isOnChainAction(potential) && potential.subtype === "deploy-contract";
+}
+
+export function isDeployedContractExecutionSuccess(
+  potential: JournalableMessage
+): potential is DeployedContractExecutionSuccess {
+  return (
+    isExecutionSuccess(potential) && potential.subtype === "deploy-contract"
+  );
 }

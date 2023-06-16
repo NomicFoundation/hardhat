@@ -28,7 +28,12 @@ import { resolveFutureToValue } from "../utils/resolve-future-to-value";
 import { resolveModuleParameter } from "../utils/resolve-module-parameter";
 
 import { executionStateReducer } from "./executionStateReducer";
-import { isExecutionResult, isOnChainAction, isOnchainResult } from "./guards";
+import {
+  isDeployedContractExecutionSuccess,
+  isExecutionResult,
+  isOnChainAction,
+  isOnchainResult,
+} from "./guards";
 
 type ExecutionBatch = Future[];
 
@@ -139,6 +144,14 @@ export class ExecutionEngine {
     message: JournalableMessage
   ): Promise<void> {
     await state.journal.record(message);
+
+    if (isDeployedContractExecutionSuccess(message)) {
+      await state.deploymentLoader.recordDeployedAddress(
+        message.futureId,
+        message.contractAddress
+      );
+    }
+
     state.executionStateMap = executionStateReducer(
       state.executionStateMap,
       message

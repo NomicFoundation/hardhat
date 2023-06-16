@@ -13,6 +13,7 @@ import { HardhatRuntimeEnvironment } from "hardhat/types";
 
 import { buildAdaptersFrom } from "./buildAdaptersFrom";
 import { buildArtifactResolverFrom } from "./buildArtifactResolverFrom";
+import { buildDeploymentLoader } from "./buildDeploymentLoader";
 
 export class IgnitionHelper {
   constructor(private _hre: HardhatRuntimeEnvironment) {}
@@ -33,9 +34,11 @@ export class IgnitionHelper {
       journal: new MemoryJournal(),
       adapters: buildAdaptersFrom(this._hre),
       artifactResolver: buildArtifactResolverFrom(this._hre),
+      deploymentLoader: buildDeploymentLoader(this._hre),
     });
 
     const result = await deployer.deploy(
+      "deploy-01",
       ignitionModuleDefinition,
       parameters,
       accounts

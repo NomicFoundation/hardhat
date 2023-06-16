@@ -9,3 +9,5 @@ typechain-types
 cache
 artifacts
 
+ignition/deployments
+

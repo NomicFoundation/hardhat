@@ -1,6 +1,6 @@
 import { assert } from "chai";
 
-import { Artifact, FutureType } from "../../../src";
+import { Artifact, DeploymentLoader, FutureType } from "../../../src";
 import { defineModule } from "../../../src/new-api/define-module";
 import { Batcher } from "../../../src/new-api/internal/batcher";
 import { ExecutionEngine } from "../../../src/new-api/internal/execution/execution-engine";
@@ -43,6 +43,7 @@ describe("execution engine", () => {
     const accounts: string[] = exampleAccounts;
     const mockTransactionService = setupMockTransactionService();
     const mockArtifactResolver = setupMockArtifactResolver();
+    const mockDeploymentLoader = setupMockDeploymentLoader();
 
     const result = await executionEngine.execute({
       batches,
@@ -53,6 +54,7 @@ describe("execution engine", () => {
       journal,
       transactionService: mockTransactionService,
       artifactResolver: mockArtifactResolver,
+      deploymentLoader: mockDeploymentLoader,
       deploymentParameters: {
         Module1: { supply: 2000 },
       },
@@ -129,6 +131,7 @@ describe("execution engine", () => {
     const accounts: string[] = exampleAccounts;
     const mockTransactionService = setupMockTransactionService();
     const mockArtifactResolver = setupMockArtifactResolver();
+    const mockDeploymentLoader = setupMockDeploymentLoader();
 
     const result = await executionEngine.execute({
       batches,
@@ -139,6 +142,7 @@ describe("execution engine", () => {
       journal,
       transactionService: mockTransactionService,
       artifactResolver: mockArtifactResolver,
+      deploymentLoader: mockDeploymentLoader,
       deploymentParameters: {},
     });
 
@@ -212,6 +216,7 @@ describe("execution engine", () => {
     const accounts: string[] = exampleAccounts;
     const mockTransactionService = setupMockTransactionService();
     const mockArtifactResolver = setupMockArtifactResolver();
+    const mockDeploymentLoader = setupMockDeploymentLoader();
 
     const result = await executionEngine.execute({
       batches,
@@ -222,6 +227,7 @@ describe("execution engine", () => {
       journal,
       transactionService: mockTransactionService,
       artifactResolver: mockArtifactResolver,
+      deploymentLoader: mockDeploymentLoader,
       deploymentParameters: {},
     });
 
@@ -302,6 +308,7 @@ describe("execution engine", () => {
       const accounts: string[] = exampleAccounts;
       const mockTransactionService = setupMockTransactionService();
       const mockArtifactResolver = setupMockArtifactResolver();
+      const mockDeploymentLoader = setupMockDeploymentLoader();
 
       const result = await executionEngine.execute({
         batches,
@@ -312,6 +319,7 @@ describe("execution engine", () => {
         journal,
         transactionService: mockTransactionService,
         artifactResolver: mockArtifactResolver,
+        deploymentLoader: mockDeploymentLoader,
         deploymentParameters: {},
       });
 
@@ -416,6 +424,16 @@ function setupMockTransactionService(): TransactionService {
       contractAddress: exampleAddress,
     }),
   } as TransactionService;
+}
+
+function setupMockDeploymentLoader(): DeploymentLoader {
+  return {
+    journal: new MemoryJournal(),
+    initialize: () => {
+      throw new Error("Not implemented");
+    },
+    recordDeployedAddress: async () => {},
+  };
 }
 
 async function accumulateMessages(

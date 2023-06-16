@@ -16,7 +16,7 @@ import { ExecutionStateMap } from "./internal/types/execution-state";
 import { validate } from "./internal/validation/validate";
 import { isAdapters } from "./type-guards";
 import { Adapters } from "./types/adapters";
-import { ArtifactResolver } from "./types/artifact";
+import { ArtifactResolver, DeploymentLoader } from "./types/artifact";
 import { DeploymentResult } from "./types/deployer";
 import { Journal } from "./types/journal";
 import { TransactionService } from "./types/transaction-service";
@@ -33,9 +33,14 @@ export class Deployer {
   private _transactionService: TransactionService;
   private _strategy: ExecutionStrategy;
   private _artifactResolver: ArtifactResolver;
+  private _deploymentLoader: DeploymentLoader;
 
   constructor(
-    options: { journal: Journal; artifactResolver: ArtifactResolver } & (
+    options: {
+      journal: Journal;
+      artifactResolver: ArtifactResolver;
+      deploymentLoader: DeploymentLoader;
+    } & (
       | {
           transactionService: TransactionService;
         }
@@ -47,6 +52,7 @@ export class Deployer {
     this._journal = options.journal;
     this._strategy = new BasicExecutionStrategy();
     this._artifactResolver = options.artifactResolver;
+    this._deploymentLoader = options.deploymentLoader;
 
     if ("adapters" in options && isAdapters(options.adapters)) {
       const adapters: Adapters = options.adapters;
@@ -69,6 +75,7 @@ export class Deployer {
   }
 
   public async deploy(
+    deployId: string,
     moduleDefinition: IgnitionModuleDefinition<
       string,
       string,
@@ -80,6 +87,8 @@ export class Deployer {
     const module = this._moduleConstructor.construct(moduleDefinition);
 
     await validate(module, this._artifactResolver);
+
+    await this._deploymentLoader.initialize(deployId);
 
     const previousStateMap = await this._loadExecutionStateFrom(this._journal);
 
@@ -110,6 +119,7 @@ export class Deployer {
       executionStateMap: previousStateMap,
       accounts,
       deploymentParameters,
+      deploymentLoader: this._deploymentLoader,
     });
   }
 
