@@ -106,6 +106,10 @@ export class Analytics {
         {
           name: "task",
           params: {
+            // From the GA docs: amount of time someone spends with your web
+            // page in focus or app screen in the foreground
+            // The parameter has no use for our app, but it's required in order
+            // for user activity to display in standard reports like Realtime
             engagement_time_msec: "10000",
             session_id: this._sessionId,
           },
