@@ -3,7 +3,6 @@ import path from "path";
 import { HardhatError } from "../internal/core/errors";
 import { ERRORS } from "../internal/core/errors-list";
 import { FileNotFoundError, getFileTrueCase } from "../internal/util/fs-utils";
-import { getPackageName } from "../internal/util/packageInfo";
 
 const NODE_MODULES = "node_modules";
 
@@ -228,18 +227,4 @@ async function getSourceNameTrueCase(
     // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
     throw error;
   }
-}
-
-/**
- * This function returns true if the sourceName contains the current package's name
- * as a substring
- */
-export async function includesOwnPackageName(
-  sourceName: string
-): Promise<boolean> {
-  const packageName = await getPackageName(sourceName);
-  if (packageName !== "") {
-    return sourceName.startsWith(`${packageName}/`);
-  }
-  return false;
 }

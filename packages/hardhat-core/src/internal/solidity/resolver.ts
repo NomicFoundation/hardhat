@@ -8,7 +8,6 @@ import {
   ResolvedFile as IResolvedFile,
 } from "../../types/builtin-tasks";
 import {
-  includesOwnPackageName,
   isAbsolutePathSourceName,
   isLocalSourceName,
   normalizeSourceName,
@@ -129,15 +128,6 @@ export class Resolver {
 
     if (isAbsolutePathSourceName(imported)) {
       throw new HardhatError(ERRORS.RESOLVER.INVALID_IMPORT_ABSOLUTE_PATH, {
-        from: from.sourceName,
-        imported,
-      });
-    }
-
-    // Edge-case where an import can contain the current package's name in monorepos.
-    // The path can be resolved because there's a symlink in the node modules.
-    if (await includesOwnPackageName(imported)) {
-      throw new HardhatError(ERRORS.RESOLVER.INCLUDES_OWN_PACKAGE_NAME, {
         from: from.sourceName,
         imported,
       });
