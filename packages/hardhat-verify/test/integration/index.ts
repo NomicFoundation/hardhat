@@ -22,8 +22,6 @@ describe("verify task integration tests", () => {
   it("should return after printing the supported networks", async function () {
     const logStub = sinon.stub(console, "log");
     const taskResponse = await this.hre.run(TASK_VERIFY, {
-      address: getRandomAddress(this.hre),
-      constructorArgsParams: [],
       listNetworks: true,
     });
 
