@@ -164,9 +164,11 @@ describe("LedgerProvider", () => {
       try {
         await provider.init();
       } catch (error) {
-        assert.instanceOf(error, ConnectionError);
+        if (!ConnectionError.isConnectionError(error)) {
+          assert.fail("Expected a ConnectionError");
+        }
         assert.equal(
-          (error as ConnectionError).message,
+          error.message,
           `There was an error trying to establish a connection to the Ledger wallet: "${createError.message}".`
         );
       }
@@ -182,9 +184,11 @@ describe("LedgerProvider", () => {
       try {
         await provider.init();
       } catch (error) {
-        assert.instanceOf(error, ConnectionError);
+        if (!ConnectionError.isConnectionError(error)) {
+          assert.fail("Expected a ConnectionError");
+        }
         assert.equal(
-          (error as ConnectionError).message,
+          error.message,
           `There was an error trying to establish a connection to the Ledger wallet: "${createError.message}". The error id was: ${createError.id}`
         );
       }
@@ -194,7 +198,7 @@ describe("LedgerProvider", () => {
       const newPaths = {
         "0xe149ff2797adc146aa2d68d3df3e819c3c38e762": "44'/60'/0'/0/0",
       };
-      const oldPaths = Object.assign({}, provider.paths); // new object
+      const oldPaths = { ...provider.paths }; // new object
 
       cacheStub.read.returns(Promise.resolve(newPaths));
       await provider.init();
@@ -566,8 +570,10 @@ describe("LedgerProvider", () => {
           await requestPersonalSign();
         } catch (error) {
           const errorPath = "44'/60'/0'/0/0";
-          assert.instanceOf(error, DerivationPathError);
-          assert.equal((error as DerivationPathError).path, errorPath);
+          if (!DerivationPathError.isDerivationPathError(error)) {
+            assert.fail("Expected a DerivationPathError");
+          }
+          assert.equal(error.path, errorPath);
           assert.equal(
             (error as DerivationPathError).message,
             `There was an error trying to derivate path ${errorPath}: "${errorMessage}". The wallet might be connected but locked or in the wrong app.`
@@ -584,8 +590,10 @@ describe("LedgerProvider", () => {
           await requestPersonalSign();
         } catch (error) {
           const errorPath = `44'/60'/${LedgerProvider.MAX_DERIVATION_ACCOUNTS}'/0/0`;
-          assert.instanceOf(error, DerivationPathError);
-          assert.equal((error as DerivationPathError).path, errorPath);
+          if (!DerivationPathError.isDerivationPathError(error)) {
+            assert.fail("Expected a DerivationPathError");
+          }
+          assert.equal(error.path, errorPath);
           assert.equal(
             (error as DerivationPathError).message,
             `Could not find a valid derivation path for ${accounts[1]}. Paths from m/44'/60'/0'/0/0 to m/${errorPath} were searched.`

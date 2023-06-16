@@ -152,7 +152,7 @@ export class LedgerProvider extends ProviderWrapperWithChainId {
         }
       } catch (error) {
         // We skip non controlled errors and forward them to the wrapped provider
-        if (!(error instanceof NotControlledAddressError)) {
+        if (!NotControlledAddressError.isNotControlledAddressError(error)) {
           throw error;
         }
       }
