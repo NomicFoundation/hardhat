@@ -34,9 +34,9 @@ This plugin creates no additional tasks.
 
 This plugin adds nothing to the Hardhat Runtime Environment.
 
-### Provider extensions
+## Provider extensions
 
-The provider supplied by Hardhat will be extended using [`extendProvider`](https://hardhat.org/hardhat-runner/docs/advanced/building-plugins#extending-the-hardhat-provider), decorating it to be a `LedgerProvider`. Any other calls to extendProvider will be added on top of this.
+The provider supplied by Hardhat will be extended using [`extendProvider`](https://hardhat.org/hardhat-runner/docs/advanced/building-plugins#extending-the-hardhat-provider), decorating it to be a `LedgerProvider`. Any successive calls to `extendProvider` will be added on top of this.
 
 A `LedgerProvider` knows how to connect and interact with a Ledger wallet
 
@@ -60,7 +60,7 @@ module.exports = {
 };
 ```
 
-Will make available those three accounts to the `LedgerProvider`, which will then try to connect to the wallet and find a derivation path for one of them. It'll stop at the first derivation path it finds, starting from `m/44'/60'/0'/0'/0` and working it's way up to `44'/60'/20'/0'/0`.
+This will make those three accounts available to the `LedgerProvider`. If you try to send a transaction or sign something using any of those accounts, the provider will try to connect to the Ledger wallet and find a derivation path for that address. By default, the derivation paths that are tried start from `m/44'/60'/0'/0'/0` and go way up to `44'/60'/20'/0'/0`.
 
 If you want to use the provider, you could, for example in a task:
 
