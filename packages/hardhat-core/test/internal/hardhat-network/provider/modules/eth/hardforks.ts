@@ -223,19 +223,6 @@ describe("Eth module - hardfork dependant tests", function () {
     });
 
     describe("Transaction type validation by hardfork", function () {
-      function rejectsSendTransactionWithAccessList() {
-        it("Should reject an eth_sendTransaction if an access list was provided", async function () {
-          const [sender] = await this.provider.send("eth_accounts");
-
-          await assertInvalidArgumentsError(
-            this.provider,
-            "eth_sendTransaction",
-            [{ from: sender, to: sender, accessList: [] }],
-            "Access list received but is not supported by the current hardfork"
-          );
-        });
-      }
-
       function rejectsSendTransactionWithEIP1559Fields() {
         it("Should reject an eth_sendTransaction if an EIP-1559 fields were provided", async function () {
           const [sender] = await this.provider.send("eth_accounts");
@@ -258,23 +245,6 @@ describe("Eth module - hardfork dependant tests", function () {
         });
       }
 
-      function rejectsSendRawTransactionWithAccessListTx() {
-        it("Should reject an eth_sendRawTransaction if the tx uses an access list", async function () {
-          const berlinCommon = this.common.copy();
-          berlinCommon.setHardfork("berlin");
-
-          const signedTx = getSampleSignedAccessListTx(berlinCommon);
-          const serialized = bufferToRpcData(signedTx.serialize());
-
-          await assertInvalidArgumentsError(
-            this.provider,
-            "eth_sendRawTransaction",
-            [serialized],
-            "Trying to send an EIP-2930 transaction"
-          );
-        });
-      }
-
       function rejectsSendRawTransactionWithEIP1559Tx() {
         for (const hardfork of ["london", "arrowGlacier"]) {
           it(`Should reject an eth_sendRawTransaction if the tx uses an EIP-1559 tx when ${hardfork} is activated`, async function () {
@@ -293,46 +263,6 @@ describe("Eth module - hardfork dependant tests", function () {
           });
         }
       }
-
-      describe("Without EIP155 nor access list", function () {
-        useProviderAndCommon("tangerineWhistle");
-
-        it("Should reject an eth_sendRawTransaction if signed with EIP-155", async function () {
-          const spuriousDragonCommon = this.common.copy();
-          spuriousDragonCommon.setHardfork("spuriousDragon");
-
-          const signedTx = getSampleSignedTx(spuriousDragonCommon);
-          const serialized = bufferToRpcData(signedTx.serialize());
-
-          await assertInvalidArgumentsError(
-            this.provider,
-            "eth_sendRawTransaction",
-            [serialized],
-            "Trying to send an EIP-155 transaction"
-          );
-        });
-
-        rejectsSendTransactionWithAccessList();
-        rejectsSendRawTransactionWithAccessListTx();
-        rejectsSendTransactionWithEIP1559Fields();
-        rejectsSendRawTransactionWithEIP1559Tx();
-      });
-
-      describe("With EIP155 and not access list", function () {
-        useProviderAndCommon("spuriousDragon");
-
-        it("Should accept an eth_sendRawTransaction if signed with EIP-155", async function () {
-          const signedTx = getSampleSignedTx(this.common);
-          const serialized = bufferToRpcData(signedTx.serialize());
-
-          await this.provider.send("eth_sendRawTransaction", [serialized]);
-        });
-
-        rejectsSendTransactionWithAccessList();
-        rejectsSendRawTransactionWithAccessListTx();
-        rejectsSendTransactionWithEIP1559Fields();
-        rejectsSendRawTransactionWithEIP1559Tx();
-      });
 
       describe("With access list", function () {
         useProviderAndCommon("berlin");

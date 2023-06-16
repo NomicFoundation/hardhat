@@ -8,9 +8,9 @@ use rethnet_evm::{
 use crate::{
     block::BlockConfig,
     blockchain::Blockchain,
-    config::Config,
+    config::{Config, ConfigOptions},
     state::StateManager,
-    transaction::{result::TransactionResult, Transaction},
+    transaction::{result::TransactionResult, TransactionRequest},
 };
 
 /// The Rethnet runtime, which can execute individual transactions.
@@ -28,7 +28,7 @@ impl Rethnet {
     pub fn new(
         blockchain: &Blockchain,
         state_manager: &StateManager,
-        cfg: Config,
+        cfg: ConfigOptions,
     ) -> napi::Result<Self> {
         let cfg = CfgEnv::try_from(cfg)?;
 
@@ -41,12 +41,18 @@ impl Rethnet {
         Ok(Self { runtime })
     }
 
+    /// Retrieves the runtime's config.
+    #[napi]
+    pub fn config(&self) -> Config {
+        Config::new(self.runtime.config().clone())
+    }
+
     /// Executes the provided transaction without changing state.
     #[napi]
     #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     pub async fn dry_run(
         &self,
-        transaction: Transaction,
+        transaction: TransactionRequest,
         block: BlockConfig,
         with_trace: bool,
     ) -> napi::Result<TransactionResult> {
@@ -77,7 +83,7 @@ impl Rethnet {
     #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     pub async fn guaranteed_dry_run(
         &self,
-        transaction: Transaction,
+        transaction: TransactionRequest,
         block: BlockConfig,
         with_trace: bool,
     ) -> napi::Result<TransactionResult> {
@@ -108,7 +114,7 @@ impl Rethnet {
     #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     pub async fn run(
         &self,
-        transaction: Transaction,
+        transaction: TransactionRequest,
         block: BlockConfig,
         with_trace: bool,
     ) -> napi::Result<TransactionResult> {

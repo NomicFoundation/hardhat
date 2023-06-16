@@ -12,8 +12,8 @@ import { HardhatBlockchain } from "../../../../src/internal/hardhat-network/prov
 import { VMAdapter } from "../../../../src/internal/hardhat-network/provider/vm/vm-adapter";
 import { MessageTrace } from "../../../../src/internal/hardhat-network/stack-traces/message-trace";
 import { defaultHardhatNetworkParams } from "../../../../src/internal/core/config/default-config";
-import { BlockBuilder } from "../../../../src/internal/hardhat-network/provider/vm/block-builder";
 import { createVm } from "../../../../src/internal/hardhat-network/provider/vm/creation";
+import { NodeConfig } from "../../../../src/internal/hardhat-network/provider/node-types";
 
 const abi = require("ethereumjs-abi");
 
@@ -26,6 +26,20 @@ const senderAddress = privateToAddress(senderPrivateKey);
 export async function instantiateVm(): Promise<[VMAdapter, Common]> {
   const account = Account.fromAccountData({ balance: 1e15 });
 
+  const config: NodeConfig = {
+    automine: true,
+    blockGasLimit: 1_000_000,
+    chainId: 1,
+    genesisAccounts: [],
+    hardfork: "shanghai",
+    minGasPrice: 0n,
+    networkId: 1,
+    mempoolOrder: "priority",
+    coinbase: "0x0000000000000000000000000000000000000000",
+    chains: defaultHardhatNetworkParams.chains,
+    allowBlocksWithSameTimestamp: false,
+  };
+
   const common = new Common({ chain: "mainnet", hardfork: "shanghai" });
   const blockchain = new HardhatBlockchain(common);
   await blockchain.addBlock(
@@ -36,24 +50,7 @@ export async function instantiateVm(): Promise<[VMAdapter, Common]> {
     })
   );
 
-  const vm = await createVm(
-    common,
-    blockchain,
-    {
-      automine: true,
-      blockGasLimit: 1_000_000,
-      chainId: 1,
-      genesisAccounts: [],
-      hardfork: "shanghai",
-      minGasPrice: 0n,
-      networkId: 1,
-      mempoolOrder: "priority",
-      coinbase: "0x0000000000000000000000000000000000000000",
-      chains: defaultHardhatNetworkParams.chains,
-      allowBlocksWithSameTimestamp: false,
-    },
-    () => "shanghai"
-  );
+  const vm = await createVm(common, blockchain, config, () => "shanghai");
 
   await vm.putAccount(new Address(senderAddress), account);
 
@@ -107,7 +104,7 @@ export async function traceTransaction(
   const signedTx = tx.sign(senderPrivateKey);
 
   try {
-    const blockBuilder = new BlockBuilder(vm, common, {
+    const blockBuilder = await vm.createBlockBuilder(common, {
       parentBlock: Block.fromBlockData(
         {},
         {
@@ -118,10 +115,8 @@ export async function traceTransaction(
         gasLimit: 10_000_000n,
       },
     });
-    await blockBuilder.startBlock();
     await blockBuilder.addTransaction(signedTx);
-    await blockBuilder.addRewards([]);
-    await blockBuilder.seal();
+    await blockBuilder.finalize([]);
 
     const { trace, error } = vm.getLastTrace();
     if (trace === undefined) {

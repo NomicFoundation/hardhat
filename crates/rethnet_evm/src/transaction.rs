@@ -1,13 +1,13 @@
 use std::fmt::Debug;
 
 use rethnet_eth::{
-    receipt::Log,
+    log::Log,
     signature::SignatureError,
     transaction::{
         EIP1559SignedTransaction, EIP2930SignedTransaction, LegacySignedTransaction,
         SignedTransaction, TransactionKind,
     },
-    Address, Bloom, Bytes, B256, U256,
+    Address, Bloom, Bytes, B256,
 };
 use revm::{
     db::DatabaseComponentError,
@@ -63,6 +63,7 @@ pub struct TransactionInfo {
 }
 
 /// A transaction that's pending inclusion in a block.
+#[derive(Clone)]
 pub struct PendingTransaction {
     /// A signed transaction
     pub transaction: SignedTransaction,
@@ -83,6 +84,11 @@ impl PendingTransaction {
             caller,
         }
     }
+
+    /// Retursn the inner transaction and caller
+    pub fn into_inner(self) -> (SignedTransaction, Address) {
+        (self.transaction, self.caller)
+    }
 }
 
 impl From<PendingTransaction> for TxEnv {
@@ -92,16 +98,6 @@ impl From<PendingTransaction> for TxEnv {
                 TransactionKind::Call(address) => TransactTo::Call(address),
                 TransactionKind::Create => TransactTo::Create(CreateScheme::Create),
             }
-        }
-
-        fn into_access_list(
-            access_list: rethnet_eth::access_list::AccessList,
-        ) -> Vec<(Address, Vec<U256>)> {
-            access_list
-                .0
-                .into_iter()
-                .map(|item| (item.address, item.storage_keys))
-                .collect()
         }
 
         let chain_id = transaction.transaction.chain_id();
@@ -145,7 +141,7 @@ impl From<PendingTransaction> for TxEnv {
                 data: input,
                 chain_id,
                 nonce: Some(nonce),
-                access_list: into_access_list(access_list),
+                access_list: access_list.into(),
             },
             SignedTransaction::EIP1559(EIP1559SignedTransaction {
                 nonce,
@@ -167,7 +163,7 @@ impl From<PendingTransaction> for TxEnv {
                 data: input,
                 chain_id,
                 nonce: Some(nonce),
-                access_list: into_access_list(access_list),
+                access_list: access_list.into(),
             },
         }
     }

@@ -1,5 +1,5 @@
 use revm_primitives::{Address, U256};
-use ruint::aliases::U128;
+use ruint::aliases::{U128, U160};
 
 /// Ethereum withdrawal
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -22,7 +22,7 @@ impl rlp::Decodable for Withdrawal {
             index: rlp.val_at(0)?,
             validator_index: rlp.val_at(1)?,
             address: {
-                let address = rlp.val_at::<ruint::aliases::U160>(2)?.to_be_bytes();
+                let address = rlp.val_at::<U160>(2)?.to_be_bytes();
                 Address::from(address)
             },
             amount: rlp.val_at(3)?,

@@ -1,6 +1,5 @@
 import { Block } from "@nomicfoundation/ethereumjs-block";
 import { Common } from "@nomicfoundation/ethereumjs-common";
-import { Log } from "@nomicfoundation/ethereumjs-evm";
 import { TypedTransaction } from "@nomicfoundation/ethereumjs-tx";
 import {
   Account,
@@ -21,11 +20,13 @@ import { isForkedNodeConfig, NodeConfig } from "../node-types";
 import { RpcDebugTraceOutput } from "../output";
 import { randomHashSeed } from "../fork/ForkStateManager";
 import { HardhatBlockchainInterface } from "../types/HardhatBlockchainInterface";
+import { assertEqualRunTxResults } from "../utils/assertions";
 
 import { EthereumJSAdapter } from "./ethereumjs";
-import { ExitCode } from "./exit";
 import { globalRethnetContext, RethnetAdapter } from "./rethnet";
 import { RunTxResult, Trace, VMAdapter } from "./vm-adapter";
+import { BlockBuilderAdapter, BuildBlockOpts } from "./block-builder";
+import { DualModeBlockBuilder } from "./block-builder/dual";
 
 /* eslint-disable @nomiclabs/hardhat-internal-rules/only-hardhat-error */
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
@@ -112,25 +113,16 @@ export class DualModeAdapter implements VMAdapter {
     blockContext: Block,
     forceBaseFeeZero?: boolean
   ): Promise<[RunTxResult, Trace]> {
-    const ethereumJSResultPromise = this._ethereumJSAdapter.dryRun(
-      tx,
-      blockContext,
-      forceBaseFeeZero
-    );
-
-    const rethnetResultPromise = this._rethnetAdapter.dryRun(
-      tx,
-      blockContext,
-      forceBaseFeeZero
-    );
-
-    // Matches EthereumJS' runCall checkpoint call
-    globalRethnetContext.setHashGeneratorSeed(randomHashSeed());
-
     const [
       [ethereumJSResult, _ethereumJSTrace],
       [rethnetResult, rethnetTrace],
-    ] = await Promise.all([ethereumJSResultPromise, rethnetResultPromise]);
+    ] = await Promise.all([
+      this._ethereumJSAdapter.dryRun(tx, blockContext, forceBaseFeeZero),
+      this._rethnetAdapter.dryRun(tx, blockContext, forceBaseFeeZero),
+    ]);
+
+    // Matches EthereumJS' runCall checkpoint call
+    globalRethnetContext.setHashGeneratorSeed(randomHashSeed());
 
     try {
       assertEqualRunTxResults(ethereumJSResult, rethnetResult);
@@ -270,11 +262,6 @@ export class DualModeAdapter implements VMAdapter {
     );
   }
 
-  public async startBlock(): Promise<void> {
-    await this._rethnetAdapter.startBlock();
-    await this._ethereumJSAdapter.startBlock();
-  }
-
   public async runTxInBlock(
     tx: TypedTransaction,
     block: Block
@@ -307,23 +294,6 @@ export class DualModeAdapter implements VMAdapter {
 
       throw e;
     }
-  }
-
-  public async addBlockRewards(
-    rewards: Array<[Address, bigint]>
-  ): Promise<void> {
-    await this._rethnetAdapter.addBlockRewards(rewards);
-    await this._ethereumJSAdapter.addBlockRewards(rewards);
-  }
-
-  public async sealBlock(): Promise<void> {
-    await this._rethnetAdapter.sealBlock();
-    await this._ethereumJSAdapter.sealBlock();
-  }
-
-  public async revertBlock(): Promise<void> {
-    await this._rethnetAdapter.revertBlock();
-    await this._ethereumJSAdapter.revertBlock();
   }
 
   public async makeSnapshot(): Promise<Buffer> {
@@ -578,148 +548,20 @@ export class DualModeAdapter implements VMAdapter {
     console.log("Rethnet:");
     await this._rethnetAdapter.printState();
   }
-}
 
-function assertEqualRunTxResults(
-  ethereumJSResult: RunTxResult,
-  rethnetResult: RunTxResult
-) {
-  const differences: string[] = [];
+  public async createBlockBuilder(
+    common: Common,
+    opts: BuildBlockOpts
+  ): Promise<BlockBuilderAdapter> {
+    const [ethereumJSBlockBuilder, rethnetBlockBuilder] = await Promise.all([
+      this._ethereumJSAdapter.createBlockBuilder(common, opts),
+      this._rethnetAdapter.createBlockBuilder(common, opts),
+    ]);
 
-  if (ethereumJSResult.exit.kind !== rethnetResult.exit.kind) {
-    console.trace(
-      `Different exceptionError.error: ${ethereumJSResult.exit.kind} (ethereumjs) !== ${rethnetResult.exit.kind} (rethnet)`
+    return new DualModeBlockBuilder(
+      ethereumJSBlockBuilder,
+      rethnetBlockBuilder
     );
-    differences.push("exceptionError.error");
-  }
-
-  if (ethereumJSResult.gasUsed !== rethnetResult.gasUsed) {
-    console.trace(
-      `Different totalGasSpent: ${ethereumJSResult.gasUsed} (ethereumjs) !== ${rethnetResult.gasUsed} (rethnet)`
-    );
-    differences.push("totalGasSpent");
-  }
-
-  const exitCode = ethereumJSResult.exit.kind;
-  if (exitCode === ExitCode.SUCCESS || exitCode === ExitCode.REVERT) {
-    // TODO: we only compare the return values when a contract was *not* created,
-    // because sometimes ethereumjs has the created bytecode in the return value
-    // and rethnet doesn't
-    // if (ethereumJSResult.createdAddress === undefined) {
-    if (
-      ethereumJSResult.returnValue.toString("hex") !==
-      rethnetResult.returnValue.toString("hex")
-    ) {
-      console.trace(
-        `Different returnValue: ${ethereumJSResult.returnValue.toString(
-          "hex"
-        )} (ethereumjs) !== ${rethnetResult.returnValue.toString(
-          "hex"
-        )} (rethnet)`
-      );
-      differences.push("returnValue");
-    }
-    // }
-
-    if (!ethereumJSResult.bloom.equals(rethnetResult.bloom)) {
-      console.trace(
-        `Different bloom: ${ethereumJSResult.bloom} (ethereumjs) !== ${rethnetResult.bloom} (rethnet)`
-      );
-      differences.push("bloom");
-    }
-
-    if (
-      !ethereumJSResult.receipt.bitvector.equals(
-        rethnetResult.receipt.bitvector
-      )
-    ) {
-      console.trace(
-        `Different receipt bitvector: ${ethereumJSResult.receipt.bitvector} (ethereumjs) !== ${rethnetResult.receipt.bitvector} (rethnet)`
-      );
-      differences.push("receipt.bitvector");
-    }
-
-    if (
-      ethereumJSResult.receipt.cumulativeBlockGasUsed !==
-      rethnetResult.receipt.cumulativeBlockGasUsed
-    ) {
-      console.trace(
-        `Different receipt cumulativeBlockGasUsed: ${ethereumJSResult.receipt.cumulativeBlockGasUsed} (ethereumjs) !== ${rethnetResult.receipt.cumulativeBlockGasUsed} (rethnet)`
-      );
-      differences.push("receipt.cumulativeBlockGasUsed");
-    }
-
-    assertEqualLogs(ethereumJSResult.receipt.logs, rethnetResult.receipt.logs);
-  }
-
-  if (exitCode === ExitCode.SUCCESS) {
-    if (
-      ethereumJSResult.createdAddress?.toString() !==
-        rethnetResult.createdAddress?.toString() &&
-      // ethereumjs returns a createdAddress, even when reverting
-      !(
-        rethnetResult.createdAddress === undefined &&
-        ethereumJSResult.exit.kind !== ExitCode.SUCCESS
-      )
-    ) {
-      console.trace(
-        `Different createdAddress: ${ethereumJSResult.createdAddress?.toString()} (ethereumjs) !== ${rethnetResult.createdAddress?.toString()} (rethnet)`
-      );
-      differences.push("createdAddress");
-    }
-  }
-
-  if (differences.length !== 0) {
-    throw new Error(`Different result fields: ${differences}`);
-  }
-}
-
-function assertEqualLogs(ethereumJSLogs: Log[], rethnetLogs: Log[]) {
-  const differences: string[] = [];
-
-  if (ethereumJSLogs.length !== rethnetLogs.length) {
-    console.trace(
-      `Different logs length: ${ethereumJSLogs.length} (ethereumjs) !== ${rethnetLogs.length} (rethnet)`
-    );
-    differences.push("length");
-  }
-
-  for (let logIdx = 0; logIdx < ethereumJSLogs.length; ++logIdx) {
-    if (!ethereumJSLogs[logIdx][0].equals(rethnetLogs[logIdx][0])) {
-      console.trace(
-        `Different log[${logIdx}] address: ${ethereumJSLogs[logIdx][0]} (ethereumjs) !== ${rethnetLogs[logIdx][0]} (rethnet)`
-      );
-      differences.push("address");
-    }
-
-    const ethereumJSTopics = ethereumJSLogs[logIdx][1];
-    const rethnetTopics = rethnetLogs[logIdx][1];
-    if (ethereumJSTopics.length !== rethnetTopics.length) {
-      console.trace(
-        `Different log[${logIdx}] topics length: ${ethereumJSTopics.length} (ethereumjs) !== ${rethnetTopics.length} (rethnet)`
-      );
-      differences.push("topics length");
-    }
-
-    for (let topicIdx = 0; topicIdx < ethereumJSTopics.length; ++topicIdx) {
-      if (!ethereumJSTopics[topicIdx].equals(rethnetTopics[topicIdx])) {
-        console.trace(
-          `Different log[${logIdx}] topic[${topicIdx}]: ${ethereumJSTopics[topicIdx]} (ethereumjs) !== ${rethnetTopics[topicIdx]} (rethnet)`
-        );
-        differences.push("topic");
-      }
-    }
-
-    if (!ethereumJSLogs[logIdx][2].equals(rethnetLogs[logIdx][2])) {
-      console.trace(
-        `Different log[${logIdx}] data: ${ethereumJSLogs[logIdx][2]} (ethereumjs) !== ${rethnetLogs[logIdx][2]} (rethnet)`
-      );
-      differences.push("data");
-    }
-  }
-
-  if (differences.length !== 0) {
-    throw new Error(`Different log fields: ${differences}`);
   }
 }
 
