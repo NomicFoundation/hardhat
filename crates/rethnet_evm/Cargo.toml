@@ -36,10 +36,6 @@ name = "database_commit"
 harness = false
 
 [[bench]]
-name = "state"
-harness = false
-
-[[bench]]
 name = "state_debug"
 harness = false
 
@@ -49,4 +45,8 @@ harness = false
 
 [[bench]]
 name = "state_history_block_context"
+harness = false
+
+[[bench]]
+name = "state_ref"
 harness = false
