@@ -12,7 +12,10 @@ use tokio::sync::RwLock;
 
 use rethnet_eth::{
     remote::{
-        client::Request as RpcRequest, jsonrpc, jsonrpc::{Response, ResponseData}, methods::MethodInvocation as EthMethodInvocation,
+        client::Request as RpcRequest,
+        jsonrpc,
+        jsonrpc::{Response, ResponseData},
+        methods::MethodInvocation as EthMethodInvocation,
         BlockSpec,
     },
     Address, U256,
@@ -38,10 +41,7 @@ pub enum MethodInvocation {
 
 type StateType = Arc<RwLock<Box<dyn SyncState<StateError>>>>;
 
-fn response<T>(
-    id: jsonrpc::Id,
-    data: ResponseData<T>,
-) -> (StatusCode, Json<serde_json::Value>)
+fn response<T>(id: jsonrpc::Id, data: ResponseData<T>) -> (StatusCode, Json<serde_json::Value>)
 where
     T: serde::Serialize,
 {
@@ -59,11 +59,7 @@ where
                 serde_json::to_value(Response {
                     jsonrpc: jsonrpc::Version::V2_0,
                     id,
-                    data: ResponseData::<T>::new_error(
-                        0,
-                        "serde_json::to_value() failed",
-                        None,
-                    ),
+                    data: ResponseData::<T>::new_error(0, "serde_json::to_value() failed", None),
                 })
                 .expect("shouldn't happen"),
             ),
@@ -130,11 +126,7 @@ async fn handle_get_transaction_count(
     }
 }
 
-async fn handle_set_balance(
-    state: StateType,
-    address: Address,
-    balance: U256,
-) -> ResponseData<()> {
+async fn handle_set_balance(state: StateType, address: Address, balance: U256) -> ResponseData<()> {
     match (*state).write().await.modify_account(
         address,
         AccountModifierFn::new(Box::new(move |account_balance, _, _| {
@@ -180,11 +172,7 @@ async fn handle_set_code(
     }
 }
 
-async fn handle_set_nonce(
-    state: StateType,
-    address: Address,
-    nonce: U256,
-) -> ResponseData<()> {
+async fn handle_set_nonce(state: StateType, address: Address, nonce: U256) -> ResponseData<()> {
     match TryInto::<u64>::try_into(nonce) {
         Ok(nonce) => {
             match (*state).write().await.modify_account(
