@@ -74,7 +74,7 @@ export class ExecutionStateResolver {
       return address;
     }
 
-    const contractAddress = this.resolveFromExecutionState(
+    const contractAddress = this._resolveFromExecutionState(
       address,
       executionStateMap,
       (exState: DeploymentExecutionState) => exState.contractAddress
@@ -117,7 +117,7 @@ export class ExecutionStateResolver {
       return runtimeValue;
     }
 
-    const result = this.resolveFromExecutionState(
+    const result = this._resolveFromExecutionState(
       address,
       context.executionStateMap,
       (executionState: StaticCallExecutionState) => executionState.result
@@ -155,7 +155,7 @@ export class ExecutionStateResolver {
       return runtimeValue;
     }
 
-    const to = this.resolveFromExecutionState(
+    const to = this._resolveFromExecutionState(
       toAddress,
       context.executionStateMap,
       (executionState: SendDataExecutionState) => executionState.to
@@ -168,7 +168,7 @@ export class ExecutionStateResolver {
     return to;
   }
 
-  public static resolveFromExecutionState<
+  private static _resolveFromExecutionState<
     TFuture extends Future,
     TExState extends ExecutionState,
     TResult extends TExState[keyof TExState]
