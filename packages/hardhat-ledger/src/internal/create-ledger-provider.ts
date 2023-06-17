@@ -14,10 +14,7 @@ export function createLedgerProvider(
   let accounts: string[] = [];
 
   if (isHardhatNetworkConfig(networkConfig)) {
-    accounts =
-      networkConfig.ledgerAccounts === undefined
-        ? []
-        : networkConfig.ledgerAccounts;
+    accounts = networkConfig.ledgerAccounts ?? [];
   }
 
   const ledgerProvider = new LedgerProvider({ accounts }, provider);

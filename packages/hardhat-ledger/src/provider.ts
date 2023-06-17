@@ -77,14 +77,10 @@ export class LedgerProvider extends ProviderWrapperWithChainId {
       this._isCreatingTransport = true;
 
       const openTimeout =
-        this.options.openTimeout === undefined
-          ? LedgerProvider.DEFAULT_TIMEOUT
-          : this.options.openTimeout;
+        this.options.openTimeout ?? LedgerProvider.DEFAULT_TIMEOUT;
 
       const connectionTimeout =
-        this.options.connectionTimeout === undefined
-          ? LedgerProvider.DEFAULT_TIMEOUT
-          : this.options.connectionTimeout;
+        this.options.connectionTimeout ?? LedgerProvider.DEFAULT_TIMEOUT;
 
       try {
         this.emit("connection_start");
