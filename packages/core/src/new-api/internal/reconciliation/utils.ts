@@ -5,6 +5,7 @@ import {
   Future,
   ModuleParameterRuntimeValue,
   ModuleParameterType,
+  SolidityParameterType,
 } from "../../types/module";
 import { isAddress } from "../utils";
 import { assertIgnitionInvariant } from "../utils/assertions";
@@ -101,7 +102,7 @@ export function resolveModuleParameter(
   return moduleParamValue;
 }
 
-export function safeToString(potential: ModuleParameterType | undefined) {
+export function safeToString(potential: SolidityParameterType | undefined) {
   if (potential === undefined) {
     return "undefined";
   }

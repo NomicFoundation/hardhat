@@ -1,6 +1,6 @@
 import { assert } from "chai";
 
-import { ArgumentType, ModuleParameterType } from "../../../src";
+import { ArgumentType, SolidityParameterType } from "../../../src";
 import {
   AccountRuntimeValueImplementation,
   ModuleParameterRuntimeValueImplementation,
@@ -11,11 +11,11 @@ import { replaceWithinArg } from "../../../src/new-api/internal/utils/replace-wi
 describe("Arg resolution", () => {
   const exampleAddress = "0x1F98431c8aD98523631AE4a59f267346ea31F984";
 
-  let resolve: (arg: ArgumentType) => ModuleParameterType;
+  let resolve: (arg: ArgumentType) => SolidityParameterType;
 
   beforeEach(() => {
     resolve = (arg: ArgumentType) =>
-      replaceWithinArg<ModuleParameterType>(arg, {
+      replaceWithinArg<SolidityParameterType>(arg, {
         accountRuntimeValue: (arv) => ({
           _kind: "AccountRuntimeValue",
           accountIndex: arv.accountIndex,
@@ -295,7 +295,7 @@ describe("Arg resolution", () => {
 });
 
 function assertEqualBeforeAndAfterResolution(
-  resolve: (arg: ArgumentType) => ModuleParameterType,
+  resolve: (arg: ArgumentType) => SolidityParameterType,
   arg: ArgumentType
 ) {
   const before = arg;

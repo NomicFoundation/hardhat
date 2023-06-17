@@ -222,4 +222,68 @@ describe("Reconciliation - read event argument", () => {
       },
     ]);
   });
+
+  it("should not reconcile the use of an event argument that has changed", () => {
+    const moduleDefinition = defineModule("Module", (m) => {
+      const contract1 = m.contract("Contract1");
+
+      const readEvent1 = m.readEventArgument(contract1, "event1", "argument1", {
+        id: "ReadEvent1",
+      });
+
+      const readEvent2 = m.readEventArgument(contract1, "event2", "argument2", {
+        id: "ReadEvent2",
+      });
+
+      const contract2 = m.contract("Contract2", [readEvent2], {
+        after: [readEvent1, readEvent2],
+      });
+
+      return { contract1, contract2 };
+    });
+
+    // This state is the equivalent to above, but contract2's
+    // constructor arg points at the result of the first call
+    // rather than the second
+    const reconiliationResult = reconcile(moduleDefinition, {
+      "Module:Contract1": {
+        ...exampleDeploymentState,
+        status: ExecutionStatus.SUCCESS,
+        contractAddress: exampleAddress,
+      },
+      "Module:ReadEvent1": {
+        ...exampleReadArgState,
+        status: ExecutionStatus.SUCCESS,
+        dependencies: new Set(["Module:Contract1"]),
+        eventName: "event1",
+        argumentName: "argument1",
+        emitter: exampleAddress,
+        result: "first",
+      },
+      "Module:ReadEvent2": {
+        ...exampleReadArgState,
+        status: ExecutionStatus.SUCCESS,
+        dependencies: new Set(["Module:Contract1"]),
+        eventName: "event2",
+        argumentName: "argument2",
+        emitter: exampleAddress,
+        result: "second",
+      },
+      "Module:Contract2": {
+        ...exampleDeploymentState,
+        status: ExecutionStatus.STARTED,
+        dependencies: new Set(["Module:ReadEvent1", "Module:ReadEvent2"]),
+        contractName: "Contract2",
+        contractAddress: differentAddress,
+        constructorArgs: ["first"],
+      },
+    });
+
+    assert.deepStrictEqual(reconiliationResult.reconciliationFailures, [
+      {
+        futureId: "Module:Contract2",
+        failure: "Constructor args have been changed",
+      },
+    ]);
+  });
 });

@@ -1,4 +1,8 @@
-import { ArgumentType, FutureType } from "../../types/module";
+import {
+  ArgumentType,
+  FutureType,
+  SolidityParameterType,
+} from "../../types/module";
 
 /**
  * This interface represents a transaction that was sent to the network.
@@ -142,8 +146,8 @@ export interface StaticCallExecutionState
   contractAddress: string;
   functionName: string;
   args: ArgumentType[];
-  result?: ArgumentType;
   from: string | undefined;
+  result?: SolidityParameterType;
 }
 
 export interface ContractAtExecutionState
@@ -160,6 +164,7 @@ export interface ReadEventArgumentExecutionState
   argumentName: string;
   eventIndex: number;
   emitter: string;
+  result?: SolidityParameterType;
 }
 
 export interface SendDataExecutionState

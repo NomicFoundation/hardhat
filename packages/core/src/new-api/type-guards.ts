@@ -102,7 +102,7 @@ export function isFunctionCallFuture(
 }
 
 /**
- * Returns true if future is of type FunctionCallFuture<string, string>.
+ * Returns true if future is of type NamedStaticCallFuture.
  *
  * @beta
  */
@@ -110,6 +110,17 @@ export function isNamedStaticCallFuture(
   future: Future
 ): future is NamedStaticCallFuture<string, string> {
   return future.type === FutureType.NAMED_STATIC_CALL;
+}
+
+/**
+ * Returns true if future is of type ReadEventArgumentFuture.
+ *
+ * @beta
+ */
+export function isReadEventArgumentFuture(
+  future: Future
+): future is NamedStaticCallFuture<string, string> {
+  return future.type === FutureType.READ_EVENT_ARGUMENT;
 }
 
 /**

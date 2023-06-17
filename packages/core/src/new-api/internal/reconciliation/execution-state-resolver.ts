@@ -4,6 +4,7 @@ import { IgnitionError } from "../../../errors";
 import {
   isContractFuture,
   isNamedStaticCallFuture,
+  isReadEventArgumentFuture,
   isRuntimeValue,
 } from "../../type-guards";
 import {
@@ -17,6 +18,7 @@ import {
   DeploymentExecutionState,
   ExecutionState,
   ExecutionStateMap,
+  ReadEventArgumentExecutionState,
   SendDataExecutionState,
   StaticCallExecutionState,
 } from "../types/execution-state";
@@ -51,6 +53,21 @@ export class ExecutionStateResolver {
             assertIgnitionInvariant(
               result !== undefined,
               "Static call result cannot be undefined"
+            );
+
+            return result;
+          }
+
+          if (isReadEventArgumentFuture(f)) {
+            const result = this._resolveFromExecutionState(
+              f,
+              context.executionStateMap,
+              (exe: ReadEventArgumentExecutionState) => exe.result
+            );
+
+            assertIgnitionInvariant(
+              result !== undefined,
+              "Read event argument result cannot be undefined"
             );
 
             return result;

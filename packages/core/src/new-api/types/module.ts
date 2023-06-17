@@ -290,17 +290,24 @@ export interface SendDataFuture {
  *
  * @beta
  */
-export type BaseModuleParameterType = number | bigint | string | boolean;
+export type BaseSolidityParameterType = number | bigint | string | boolean;
+
+/**
+ * Types that can be passed across the Solidity ABI boundary.
+ *
+ * @beta
+ */
+export type SolidityParameterType =
+  | BaseSolidityParameterType
+  | SolidityParameterType[]
+  | { [field: string]: SolidityParameterType };
 
 /**
  * Type of module parameters's values.
  *
  * @beta
  */
-export type ModuleParameterType =
-  | BaseModuleParameterType
-  | ModuleParameterType[]
-  | { [field: string]: ModuleParameterType };
+export type ModuleParameterType = SolidityParameterType;
 
 /**
  * The different runtime values supported by Ignition.
