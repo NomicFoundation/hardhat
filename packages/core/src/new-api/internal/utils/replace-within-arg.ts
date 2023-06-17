@@ -32,7 +32,7 @@ interface Replacers<T> {
 export function replaceWithinArg<T>(
   arg: ArgumentType,
   replacers: Replacers<T>
-): Composable<T> {
+): Composable<T | string | number | boolean> {
   if (typeof arg === "bigint") {
     return replacers.bigint(arg);
   }
@@ -59,5 +59,5 @@ export function replaceWithinArg<T>(
     );
   }
 
-  return arg as any;
+  return arg;
 }
