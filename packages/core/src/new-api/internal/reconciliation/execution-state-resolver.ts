@@ -95,8 +95,8 @@ export class ExecutionStateResolver {
   public static resolveToAddress(
     address:
       | string
-      | AddressResolvableFuture
-      | ModuleParameterRuntimeValue<string>,
+      | ModuleParameterRuntimeValue<string>
+      | AddressResolvableFuture,
     context: ReconciliationContext
   ): string {
     if (typeof address === "string") {
@@ -106,13 +106,12 @@ export class ExecutionStateResolver {
     if (isRuntimeValue(address)) {
       const runtimeValue = resolveModuleParameter(address, context);
 
-      if (typeof runtimeValue !== "string" || !isAddress(runtimeValue)) {
-        throw new IgnitionError(
-          `Module parameter ${address.moduleId}/${
-            address.name
-          } is not a usable address ${safeToString(runtimeValue)}`
-        );
-      }
+      assertIgnitionInvariant(
+        typeof runtimeValue === "string" && isAddress(runtimeValue),
+        `Module parameter ${address.moduleId}/${
+          address.name
+        } is not a usable address ${safeToString(runtimeValue)}`
+      );
 
       return runtimeValue;
     }
@@ -123,9 +122,10 @@ export class ExecutionStateResolver {
       (executionState: StaticCallExecutionState) => executionState.result
     );
 
-    if (typeof result !== "string" || !isAddress(result)) {
-      throw new IgnitionError("Static call result is not a usable address");
-    }
+    assertIgnitionInvariant(
+      typeof result === "string" && isAddress(result),
+      "Static call result is not a usable address"
+    );
 
     return result;
   }
@@ -179,17 +179,14 @@ export class ExecutionStateResolver {
   ): TResult {
     const executionState = executionStateMap[future.id] as TExState;
 
-    if (executionState === undefined) {
-      throw new IgnitionError(
-        `Failure looking up execution state for future ${future.id}, there is no history of previous execution of this future`
-      );
-    }
-
-    if (future.type !== executionState.futureType) {
-      throw new IgnitionError(
-        `Execution state type does not match future for future ${future.id}`
-      );
-    }
+    assertIgnitionInvariant(
+      executionState !== undefined,
+      `Failure looking up execution state for future ${future.id}, there is no history of previous execution of this future`
+    );
+    assertIgnitionInvariant(
+      future.type === executionState.futureType,
+      `Execution state type does not match future for future ${future.id}`
+    );
 
     return func(executionState);
   }
