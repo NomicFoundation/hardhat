@@ -23,7 +23,23 @@ interface Replacers<T> {
 }
 
 /**
- * Replace runtime values in an argument.
+ * Recursively replace values with an argument based on given replacer
+ * functions. This is useful for substituting for futures and runtime
+ * arguments within the constructor or call args of a future.
+ *
+ * @example
+ * const args = [1, { nested: { insideArray: [1, new Future(1), 3] }}, "abc"]
+ *
+ * const updated = replaceWithinArg(args, {
+ *   ...,
+ *   future: (f) => ({_kind: "Future", id: f.id })
+ * })
+ *
+ * assert.equal(updated, [
+ *   1,
+ *   { nested: { insideArray: [1, {_kind: "Future", id: 1 }, 3] }},
+ *   "abc"]
+ * )
  *
  * @param arg - the argument to be replaced
  * @param replacers - substituters for each special value found in the args

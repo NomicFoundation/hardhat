@@ -1,3 +1,5 @@
+import identity from "lodash/identity";
+
 import { IgnitionError } from "../../../errors";
 import { isContractFuture, isRuntimeValue } from "../../type-guards";
 import {
@@ -29,7 +31,7 @@ export class ExecutionStateResolver {
   ): ArgumentType[] {
     const replace = (arg: ArgumentType) =>
       replaceWithinArg<ArgumentType>(arg, {
-        bigint: (bi) => bi.toString(),
+        bigint: identity,
         future: (f) => {
           if (!isContractFuture(f)) {
             throw new IgnitionError(
