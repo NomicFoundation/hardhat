@@ -1,7 +1,11 @@
 import identity from "lodash/identity";
 
 import { IgnitionError } from "../../../errors";
-import { isContractFuture, isRuntimeValue } from "../../type-guards";
+import {
+  isContractFuture,
+  isNamedStaticCallFuture,
+  isRuntimeValue,
+} from "../../type-guards";
 import {
   AddressResolvableFuture,
   ArgumentType,
@@ -33,15 +37,29 @@ export class ExecutionStateResolver {
       replaceWithinArg<ArgumentType>(arg, {
         bigint: identity,
         future: (f) => {
-          if (!isContractFuture(f)) {
-            throw new IgnitionError(
-              `Only deployable contract and library futures can be used in args, ${f.id} is not a contract or library future`
-            );
+          if (isContractFuture(f)) {
+            return this.resolveContractAddressToAddress(f, context);
           }
 
-          return ExecutionStateResolver.resolveContractAddressToAddress(
-            f,
-            context
+          if (isNamedStaticCallFuture(f)) {
+            const result = this._resolveFromExecutionState(
+              f,
+              context.executionStateMap,
+              (exe: StaticCallExecutionState) => exe.result
+            );
+
+            assertIgnitionInvariant(
+              result !== undefined,
+              "Static call result cannot be undefined"
+            );
+
+            return result;
+          }
+
+          throw new IgnitionError(
+            `Only futures that resolve to a value can be used in args,` +
+              ` ${f.id} is not a contract, library,` +
+              ` static call or event argument future`
           );
         },
         accountRuntimeValue: (arv) => context.accounts[arv.accountIndex],

@@ -36,6 +36,32 @@ describe("Reconciliation", () => {
     assertSuccessReconciliation(moduleDefinition, {});
   });
 
+  it("should successfully reconcile even in with complex arguments", () => {
+    const moduleDefinition = defineModule("Module1", (m) => {
+      const safeMath = m.library("SafeMath");
+
+      const contract1 = m.contract("Contract1", [], {
+        libraries: {
+          SafeMath: safeMath,
+        },
+      });
+
+      const call = m.call(contract1, "test", []);
+
+      const addressEventArg = m.readEventArgument(call, "Created", "address");
+      const staticCallArg = m.staticCall(contract1, "readAddress", []);
+
+      const contract2 = m.contract("Contract2", [
+        addressEventArg,
+        staticCallArg,
+      ]);
+
+      return { safeMath, contract1, contract2 };
+    });
+
+    assertSuccessReconciliation(moduleDefinition, {});
+  });
+
   it("should find previous executed futures that have been left out of the current module", () => {
     const moduleDefinition = defineModule("Module1", (m) => {
       const contract1 = m.contract("Contract1");

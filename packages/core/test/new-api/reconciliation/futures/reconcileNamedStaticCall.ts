@@ -214,4 +214,76 @@ describe("Reconciliation - named static call", () => {
       },
     ]);
   });
+
+  it("should not reconcile the use of the result of a static call that has changed", () => {
+    const moduleDefinition = defineModule("Module", (m) => {
+      const contract1 = m.contract("Contract1");
+
+      const resultArg1 = m.staticCall(contract1, "function1", ["first"], {
+        id: "first-call",
+      });
+      const resultArg2 = m.staticCall(contract1, "function1", ["second"], {
+        id: "second-call",
+        after: [resultArg1],
+      });
+
+      const contract2 = m.contract("Contract2", [resultArg2], {
+        after: [resultArg1, resultArg2],
+      });
+
+      return { contract1, contract2 };
+    });
+
+    // This state is the equivalent to above, but contract2's
+    // constructor arg points at the result of the first call
+    // rather than the second
+    const reconiliationResult = reconcile(moduleDefinition, {
+      "Module:Contract1": {
+        ...exampleDeploymentState,
+        status: ExecutionStatus.SUCCESS,
+        contractAddress: exampleAddress,
+      },
+      "Module:first-call": {
+        ...exampleStaticCallState,
+        futureType: FutureType.NAMED_STATIC_CALL,
+        status: ExecutionStatus.SUCCESS,
+        dependencies: new Set(["Module:Contract1"]),
+        contractAddress: exampleAddress,
+        functionName: "function1",
+        args: ["first"],
+        result: "first",
+      },
+      "Module:Contract1#second-call": {
+        ...exampleStaticCallState,
+        futureType: FutureType.NAMED_STATIC_CALL,
+        status: ExecutionStatus.SUCCESS,
+        dependencies: new Set([
+          "Module:Contract1",
+          "Module:Contract1#first-call",
+        ]),
+        contractAddress: exampleAddress,
+        functionName: "function1",
+        args: ["second"],
+        result: "second",
+      },
+      "Module:Contract2": {
+        ...exampleDeploymentState,
+        status: ExecutionStatus.STARTED,
+        dependencies: new Set([
+          "Module:Contract1#first-call",
+          "Module:Contract1#second-call",
+        ]),
+        contractName: "Contract2",
+        contractAddress: differentAddress,
+        constructorArgs: ["first"],
+      },
+    });
+
+    assert.deepStrictEqual(reconiliationResult.reconciliationFailures, [
+      {
+        futureId: "Module:Contract2",
+        failure: "Constructor args have been changed",
+      },
+    ]);
+  });
 });

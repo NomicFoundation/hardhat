@@ -5,6 +5,7 @@ import {
   FunctionCallFuture,
   Future,
   FutureType,
+  NamedStaticCallFuture,
   RuntimeValue,
   RuntimeValueType,
 } from "./types/module";
@@ -98,6 +99,17 @@ export function isFunctionCallFuture(
     future.type === FutureType.NAMED_CONTRACT_CALL ||
     future.type === FutureType.NAMED_STATIC_CALL
   );
+}
+
+/**
+ * Returns true if future is of type FunctionCallFuture<string, string>.
+ *
+ * @beta
+ */
+export function isNamedStaticCallFuture(
+  future: Future
+): future is NamedStaticCallFuture<string, string> {
+  return future.type === FutureType.NAMED_STATIC_CALL;
 }
 
 /**
