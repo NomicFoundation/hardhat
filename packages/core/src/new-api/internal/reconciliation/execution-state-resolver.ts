@@ -39,7 +39,10 @@ export class ExecutionStateResolver {
             );
           }
 
-          return ExecutionStateResolver.resolveContractToAddress(f, context);
+          return ExecutionStateResolver.resolveContractAddressToAddress(
+            f,
+            context
+          );
         },
         accountRuntimeValue: (arv) => context.accounts[arv.accountIndex],
         moduleParameterRuntimeValue: (mprv) => {
@@ -57,16 +60,18 @@ export class ExecutionStateResolver {
   ): Record<string, string | undefined> {
     return Object.fromEntries(
       Object.entries(libraries).map(([key, libFuture]) => {
-        const executionStateEntry = executionStateMap[
-          libFuture.id
-        ] as DeploymentExecutionState;
+        const contractAddress = this._resolveFromExecutionState(
+          libFuture,
+          executionStateMap,
+          (exState: DeploymentExecutionState) => exState.contractAddress
+        );
 
-        return [key, executionStateEntry?.contractAddress];
+        return [key, contractAddress];
       })
     );
   }
 
-  public static resolveContractToAddress(
+  public static resolveContractAddressToAddress(
     address: string | ContractFuture<string>,
     { executionStateMap }: ReconciliationContext
   ): string {
@@ -92,7 +97,7 @@ export class ExecutionStateResolver {
     return contractAddress;
   }
 
-  public static resolveToAddress(
+  public static resolveStaticCallResultToAddress(
     address:
       | string
       | ModuleParameterRuntimeValue<string>

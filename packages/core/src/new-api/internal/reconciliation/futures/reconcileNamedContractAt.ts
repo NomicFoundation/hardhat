@@ -18,10 +18,11 @@ export function reconcileNamedContractAt(
     );
   }
 
-  const resolvedAddress: string = ExecutionStateResolver.resolveToAddress(
-    future.address,
-    context
-  );
+  const resolvedAddress: string =
+    ExecutionStateResolver.resolveStaticCallResultToAddress(
+      future.address,
+      context
+    );
 
   if (!isEqual(resolvedAddress, executionState.address)) {
     return fail(

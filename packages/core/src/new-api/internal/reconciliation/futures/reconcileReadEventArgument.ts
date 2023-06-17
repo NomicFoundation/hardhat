@@ -31,7 +31,10 @@ export function reconcileReadEventArgument(
   }
 
   const resolvedEmitterAddress: string =
-    ExecutionStateResolver.resolveContractToAddress(future.emitter, context);
+    ExecutionStateResolver.resolveContractAddressToAddress(
+      future.emitter,
+      context
+    );
 
   if (resolvedEmitterAddress !== executionState.emitter) {
     return fail(

@@ -12,7 +12,10 @@ export function reconcileNamedStaticCall(
   context: ReconciliationContext
 ): ReconciliationFutureResult {
   const contractAddress: string =
-    ExecutionStateResolver.resolveContractToAddress(future.contract, context);
+    ExecutionStateResolver.resolveContractAddressToAddress(
+      future.contract,
+      context
+    );
 
   if (!isEqual(contractAddress, executionState.contractAddress)) {
     return fail(
