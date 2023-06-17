@@ -343,173 +343,224 @@ describe("LedgerProvider", () => {
       });
     });
 
-    it("should return the configured and base accounts when the JSONRPC eth_accounts method is called", async () => {
-      const baseAccounts = [
-        "0x18225dbbd263d5a01ac537db4d1eefc12fae8b24",
-        "0x704ad3adfa9eae2be46c907ef5325d0fabe17353",
-      ];
-      sinon.stub(mockedProvider, "request").callsFake(async (args) => {
-        if (args.method === "eth_accounts") {
-          return baseAccounts;
-        }
-      });
+    describe("supported (sign) methods", () => {
+      it("should forward to the wrapped provider if the address doing the signing is not controlled", async () => {
+        const requestStub = sinon.stub(mockedProvider, "request");
 
-      const resultAccounts = await provider.request({ method: "eth_accounts" });
-      assert.deepEqual([...baseAccounts, ...accounts], resultAccounts);
-      sinon.assert.notCalled(initSpy);
-    });
-    it("should return the configured and base accounts when the JSONRPC eth_requestAccounts method is called", async () => {
-      const baseAccounts = [
-        "0x18225dbbd263d5a01ac537db4d1eefc12fae8b24",
-        "0x704ad3adfa9eae2be46c907ef5325d0fabe17353",
-      ];
-      sinon.stub(mockedProvider, "request").callsFake(async (args) => {
-        if (args.method === "eth_requestAccounts") {
-          return baseAccounts;
-        }
-      });
+        // the address is not on the accounts the providers manage
+        const uncontrolledAddress =
+          "0x76F8654a8e981A4a5D634c2d3cE56E195a65c319";
 
-      const resultAccounts = await provider.request({
-        method: "eth_requestAccounts",
-      });
-      assert.deepEqual([...baseAccounts, ...accounts], resultAccounts);
-      sinon.assert.notCalled(initSpy);
-    });
-
-    it("should call the ledger's signPersonalMessage method when the JSONRPC personal_sign method is called", async () => {
-      const stub = ethInstanceStub.signPersonalMessage.returns(
-        Promise.resolve(rsv)
-      );
-
-      const resultSignature = await provider.request({
-        method: "personal_sign",
-        params: [dataToSign, account.address],
-      });
-
-      sinon.assert.calledOnceWithExactly(stub, path, dataToSign.slice(2)); // slices 0x
-      assert.deepEqual(signature, resultSignature);
-      sinon.assert.calledOnce(initSpy);
-    });
-    it("should call the ledger's signPersonalMessage method when the JSONRPC eth_sign method is called", async () => {
-      const stub = ethInstanceStub.signPersonalMessage.returns(
-        Promise.resolve(rsv)
-      );
-
-      const resultSignature = await provider.request({
-        method: "eth_sign",
-        params: [account.address, dataToSign],
-      });
-
-      sinon.assert.calledOnceWithExactly(stub, path, dataToSign.slice(2)); // slices 0x
-      assert.deepEqual(signature, resultSignature);
-      sinon.assert.calledOnce(initSpy);
-    });
-
-    it("should call the ledger's signEIP712Message method when the JSONRPC eth_signTypedData_v4 method is called", async () => {
-      const stub = ethInstanceStub.signEIP712Message.returns(
-        Promise.resolve(rsv)
-      );
-
-      const resultSignature = await provider.request({
-        method: "eth_signTypedData_v4",
-        params: [account.address, typedMessage],
-      });
-
-      sinon.assert.calledOnceWithExactly(stub, path, typedMessage);
-      assert.deepEqual(signature, resultSignature);
-      sinon.assert.calledOnce(initSpy);
-    });
-    it("should call the ledger's signEIP712HashedMessage method when the JSONRPC eth_signTypedData_v4 method is called", async () => {
-      ethInstanceStub.signEIP712Message.throws("Unsupported Ledger");
-
-      const stub = ethInstanceStub.signEIP712HashedMessage.returns(
-        Promise.resolve(rsv)
-      );
-
-      const resultSignature = await provider.request({
-        method: "eth_signTypedData_v4",
-        params: [account.address, typedMessage],
-      });
-
-      sinon.assert.calledOnceWithExactly(
-        stub,
-        path,
-        "0xf2cee375fa42b42143804025fc449deafd50cc031ca257e0b194a650a912090f", // hash domain
-        "0xc52c0ee5d84264471806290a3f2c4cecfc5490626bf912d01f240d7a274b371e" // hash struct
-      );
-      assert.deepEqual(signature, resultSignature);
-      sinon.assert.calledOnce(initSpy);
-    });
-
-    it("should call the ledger's signTransaction method when the JSONRPC eth_sendTransaction method is called", async () => {
-      const numberToRpcQuantity = (n: number | bigint) => `0x${n.toString(16)}`;
-
-      const tx =
-        "0xf8626464830f4240949f649fe750340a295dddbbd7e1ec8f378cf24b43648082f4f5a04ab14d7e96a8bc7390cfffa0260d4b82848428ce7f5b8dd367d13bf31944b6c0a03cc226daa6a2f4e22334c59c2e04ac72672af72907ec9c4a601189858ba60069";
-
-      const requestStub = sinon.stub();
-      sinon.replace(
-        mockedProvider,
-        "request",
-        async (args: RequestArguments) => {
-          requestStub(args);
-
-          switch (args.method) {
-            case "eth_chainId":
-              return "0x7a69";
-            case "eth_getTransactionCount":
-              return "0x64";
-            case "eth_sendRawTransaction":
-              return tx;
-          }
-        }
-      );
-
-      const signTransactionStub = ethInstanceStub.signTransaction.returns(
-        Promise.resolve(txRsv)
-      );
-
-      const resultTx = await provider.request({
-        method: "eth_sendTransaction",
-        params: [
+        const requestArgs = [
           {
-            from: account.address,
-            to: accounts[1],
-            value: numberToRpcQuantity(100),
-            gas: numberToRpcQuantity(1000000),
-            gasPrice: numberToRpcQuantity(100),
-            gasLimit: numberToRpcQuantity(1000000),
+            method: "eth_sign",
+            params: [uncontrolledAddress, dataToSign],
           },
-        ],
+          {
+            method: "personal_sign",
+            params: [dataToSign, uncontrolledAddress],
+          },
+          {
+            method: "eth_signTypedData_v4",
+            params: [uncontrolledAddress, typedMessage],
+          },
+          {
+            method: "eth_sendTransaction",
+            params: [
+              {
+                from: uncontrolledAddress,
+                to: accounts[1],
+                value: "0x100",
+                gas: "0x1000000",
+                gasPrice: "0x100",
+                gasLimit: "0x1000000",
+              },
+            ],
+          },
+        ];
+
+        for (const [index, args] of requestArgs.entries()) {
+          await provider.request(args);
+          sinon.assert.calledWithExactly(requestStub.getCall(index), args);
+        }
+
+        sinon.assert.notCalled(initSpy);
       });
 
-      sinon.assert.calledOnceWithExactly(
-        signTransactionStub,
-        path,
-        "01e1827a696464830f424094da6a52afdae5ff66aa786da68754a227331f56e36480c0",
-        {
-          nfts: [],
-          erc20Tokens: [],
-          externalPlugin: [],
-          plugin: [],
-          domains: [],
-        }
-      );
-      sinon.assert.calledWithExactly(requestStub.getCall(0), {
-        method: "eth_getTransactionCount",
-        params: [account.address, "pending"],
+      it("should return the configured and base accounts when the JSONRPC eth_accounts method is called", async () => {
+        const baseAccounts = [
+          "0x18225dbbd263d5a01ac537db4d1eefc12fae8b24",
+          "0x704ad3adfa9eae2be46c907ef5325d0fabe17353",
+        ];
+        sinon.stub(mockedProvider, "request").callsFake(async (args) => {
+          if (args.method === "eth_accounts") {
+            return baseAccounts;
+          }
+        });
+
+        const resultAccounts = await provider.request({
+          method: "eth_accounts",
+        });
+        assert.deepEqual([...baseAccounts, ...accounts], resultAccounts);
+        sinon.assert.notCalled(initSpy);
       });
-      sinon.assert.calledWithExactly(requestStub.getCall(1), {
-        method: "eth_chainId",
+
+      it("should return the configured and base accounts when the JSONRPC eth_requestAccounts method is called", async () => {
+        const baseAccounts = [
+          "0x18225dbbd263d5a01ac537db4d1eefc12fae8b24",
+          "0x704ad3adfa9eae2be46c907ef5325d0fabe17353",
+        ];
+        sinon.stub(mockedProvider, "request").callsFake(async (args) => {
+          if (args.method === "eth_requestAccounts") {
+            return baseAccounts;
+          }
+        });
+
+        const resultAccounts = await provider.request({
+          method: "eth_requestAccounts",
+        });
+        assert.deepEqual([...baseAccounts, ...accounts], resultAccounts);
+        sinon.assert.notCalled(initSpy);
       });
-      sinon.assert.calledWithExactly(requestStub.getCall(2), {
-        method: "eth_sendRawTransaction",
-        params: [
-          "0x01f864827a696464830f424094da6a52afdae5ff66aa786da68754a227331f56e36480c080a04ab14d7e96a8bc7390cfffa0260d4b82848428ce7f5b8dd367d13bf31944b6c0a03cc226daa6a2f4e22334c59c2e04ac72672af72907ec9c4a601189858ba60069",
-        ],
+
+      it("should call the ledger's signPersonalMessage method when the JSONRPC personal_sign method is called", async () => {
+        const stub = ethInstanceStub.signPersonalMessage.returns(
+          Promise.resolve(rsv)
+        );
+
+        const resultSignature = await provider.request({
+          method: "personal_sign",
+          params: [dataToSign, account.address],
+        });
+
+        sinon.assert.calledOnceWithExactly(stub, path, dataToSign.slice(2)); // slices 0x
+        assert.deepEqual(signature, resultSignature);
+        sinon.assert.calledOnce(initSpy);
       });
-      assert.equal(tx, resultTx);
-      sinon.assert.calledOnce(initSpy);
+
+      it("should call the ledger's signPersonalMessage method when the JSONRPC eth_sign method is called", async () => {
+        const stub = ethInstanceStub.signPersonalMessage.returns(
+          Promise.resolve(rsv)
+        );
+
+        const resultSignature = await provider.request({
+          method: "eth_sign",
+          params: [account.address, dataToSign],
+        });
+
+        sinon.assert.calledOnceWithExactly(stub, path, dataToSign.slice(2)); // slices 0x
+        assert.deepEqual(signature, resultSignature);
+        sinon.assert.calledOnce(initSpy);
+      });
+
+      it("should call the ledger's signEIP712Message method when the JSONRPC eth_signTypedData_v4 method is called", async () => {
+        const stub = ethInstanceStub.signEIP712Message.returns(
+          Promise.resolve(rsv)
+        );
+
+        const resultSignature = await provider.request({
+          method: "eth_signTypedData_v4",
+          params: [account.address, typedMessage],
+        });
+
+        sinon.assert.calledOnceWithExactly(stub, path, typedMessage);
+        assert.deepEqual(signature, resultSignature);
+        sinon.assert.calledOnce(initSpy);
+      });
+
+      it("should call the ledger's signEIP712HashedMessage method when the JSONRPC eth_signTypedData_v4 method is called", async () => {
+        ethInstanceStub.signEIP712Message.throws("Unsupported Ledger");
+
+        const stub = ethInstanceStub.signEIP712HashedMessage.returns(
+          Promise.resolve(rsv)
+        );
+
+        const resultSignature = await provider.request({
+          method: "eth_signTypedData_v4",
+          params: [account.address, typedMessage],
+        });
+
+        sinon.assert.calledOnceWithExactly(
+          stub,
+          path,
+          "0xf2cee375fa42b42143804025fc449deafd50cc031ca257e0b194a650a912090f", // hash domain
+          "0xc52c0ee5d84264471806290a3f2c4cecfc5490626bf912d01f240d7a274b371e" // hash struct
+        );
+        assert.deepEqual(signature, resultSignature);
+        sinon.assert.calledOnce(initSpy);
+      });
+
+      it("should call the ledger's signTransaction method when the JSONRPC eth_sendTransaction method is called", async () => {
+        const numberToRpcQuantity = (n: number | bigint) =>
+          `0x${n.toString(16)}`;
+
+        const tx =
+          "0xf8626464830f4240949f649fe750340a295dddbbd7e1ec8f378cf24b43648082f4f5a04ab14d7e96a8bc7390cfffa0260d4b82848428ce7f5b8dd367d13bf31944b6c0a03cc226daa6a2f4e22334c59c2e04ac72672af72907ec9c4a601189858ba60069";
+
+        const requestStub = sinon.stub();
+        sinon.replace(
+          mockedProvider,
+          "request",
+          async (args: RequestArguments) => {
+            requestStub(args);
+
+            switch (args.method) {
+              case "eth_chainId":
+                return "0x7a69";
+              case "eth_getTransactionCount":
+                return "0x64";
+              case "eth_sendRawTransaction":
+                return tx;
+            }
+          }
+        );
+
+        const signTransactionStub = ethInstanceStub.signTransaction.returns(
+          Promise.resolve(txRsv)
+        );
+
+        const resultTx = await provider.request({
+          method: "eth_sendTransaction",
+          params: [
+            {
+              from: account.address,
+              to: accounts[1],
+              value: numberToRpcQuantity(100),
+              gas: numberToRpcQuantity(1000000),
+              gasPrice: numberToRpcQuantity(100),
+              gasLimit: numberToRpcQuantity(1000000),
+            },
+          ],
+        });
+
+        sinon.assert.calledOnceWithExactly(
+          signTransactionStub,
+          path,
+          "01e1827a696464830f424094da6a52afdae5ff66aa786da68754a227331f56e36480c0",
+          {
+            nfts: [],
+            erc20Tokens: [],
+            externalPlugin: [],
+            plugin: [],
+            domains: [],
+          }
+        );
+        sinon.assert.calledWithExactly(requestStub.getCall(0), {
+          method: "eth_getTransactionCount",
+          params: [account.address, "pending"],
+        });
+        sinon.assert.calledWithExactly(requestStub.getCall(1), {
+          method: "eth_chainId",
+        });
+        sinon.assert.calledWithExactly(requestStub.getCall(2), {
+          method: "eth_sendRawTransaction",
+          params: [
+            "0x01f864827a696464830f424094da6a52afdae5ff66aa786da68754a227331f56e36480c080a04ab14d7e96a8bc7390cfffa0260d4b82848428ce7f5b8dd367d13bf31944b6c0a03cc226daa6a2f4e22334c59c2e04ac72672af72907ec9c4a601189858ba60069",
+          ],
+        });
+        assert.equal(tx, resultTx);
+        sinon.assert.calledOnce(initSpy);
+      });
     });
 
     describe("path derivation", () => {
