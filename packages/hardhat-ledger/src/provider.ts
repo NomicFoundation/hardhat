@@ -428,7 +428,6 @@ export class LedgerProvider extends ProviderWrapperWithChainId {
   }
 
   private async _requireControlledInit(address: Buffer): Promise<void> {
-    // If we don't manage the address, the method will be forwarded on .request()
     this._requireControlledAddress(address);
     await this.init();
   }
