@@ -4,9 +4,9 @@ import { AdjacencyList } from "../utils/adjacency-list";
 import { AdjacencyListConverter } from "../utils/adjacency-list-converter";
 import { getFuturesFromModule } from "../utils/get-futures-from-module";
 
-import { reconcileCurrentAndPreviousTypeMatch } from "./reconcileCurrentAndPreviousTypeMatch";
-import { reconcileDependencyRules } from "./reconcileDependencyRules";
-import { reconcileFutureSpecificReconciliations } from "./reconcileFutureSpecificReconciliations";
+import { reconcileCurrentAndPreviousTypeMatch } from "./reconcile-current-and-previous-type-match";
+import { reconcileDependencyRules } from "./reconcile-dependency-rules";
+import { reconcileFutureSpecificReconciliations } from "./reconcile-future-specific-reconciliations";
 import {
   ReconciliationCheck,
   ReconciliationContext,
