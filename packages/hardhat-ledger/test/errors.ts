@@ -1,6 +1,7 @@
 import { assert } from "chai";
 
 import {
+  ConnectionError,
   DerivationPathError,
   LedgerProviderError,
   NotControlledAddressError,
@@ -31,6 +32,17 @@ describe("NotControlledAddressError", () => {
     const error = new NotControlledAddressError("", address);
     assert.equal(error.address, address);
   });
+
+  it("should detect a NotControlledAddressError", () => {
+    assert.isFalse(
+      NotControlledAddressError.isNotControlledAddressError(new Error())
+    );
+    assert.isTrue(
+      NotControlledAddressError.isNotControlledAddressError(
+        new NotControlledAddressError("", "")
+      )
+    );
+  });
 });
 
 describe("DerivationPathError", () => {
@@ -44,5 +56,19 @@ describe("DerivationPathError", () => {
     const path = "44'/60'/0'/0/0";
     const error = new DerivationPathError("", path);
     assert.equal(error.path, path);
+  });
+
+  it("should detect a DerivationPathError", () => {
+    assert.isFalse(DerivationPathError.isDerivationPathError(new Error()));
+    assert.isTrue(
+      DerivationPathError.isDerivationPathError(new DerivationPathError("", ""))
+    );
+  });
+});
+
+describe("ConnectionError", () => {
+  it("should detect a ConnectionError", () => {
+    assert.isFalse(ConnectionError.isConnectionError(new Error()));
+    assert.isTrue(ConnectionError.isConnectionError(new ConnectionError("")));
   });
 });
