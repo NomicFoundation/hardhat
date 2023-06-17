@@ -180,11 +180,15 @@ export class ExecutionStateResolver {
     const executionState = executionStateMap[future.id] as TExState;
 
     if (executionState === undefined) {
-      throw new IgnitionError("Failure looking up execution state");
+      throw new IgnitionError(
+        `Failure looking up execution state for future ${future.id}, there is no history of previous execution of this future`
+      );
     }
 
     if (future.type !== executionState.futureType) {
-      throw new IgnitionError("Execution state type does not match future");
+      throw new IgnitionError(
+        `Execution state type does not match future for future ${future.id}`
+      );
     }
 
     return func(executionState);

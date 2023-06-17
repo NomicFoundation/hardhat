@@ -82,6 +82,8 @@ describe("Reconciliation", () => {
   });
 
   describe("dependencies", () => {
+    const exampleAddress = "0x1F98431c8aD98523631AE4a59f267346ea31F984";
+
     it("should reconcile unchanged dependencies", () => {
       const moduleDefinition = defineModule("Module", (m) => {
         const contract1 = m.contract("Contract1");
@@ -212,23 +214,36 @@ describe("Reconciliation", () => {
       ]);
     });
 
-    it("should not reconcile the addition of a dependency that was not previously started", () => {
+    it("should not reconcile the addition of a dependency where the dependent has alread started", () => {
+      const addr1 = exampleAddress;
+
       const moduleDefinition = defineModule("Module", (m) => {
+        const contractOriginal = m.contract("ContractOriginal");
+
         const contractNew = m.contract("ContractNew");
-        const contract2 = m.contract("Contract2", [], {
-          after: [contractNew],
+        const contract2 = m.contract("Contract2", [contractNew], {
+          after: [contractOriginal],
         });
 
-        return { contractNew, contract2 };
+        return { contractOriginal, contractNew, contract2 };
       });
 
       const reconiliationResult = reconcile(moduleDefinition, {
+        "Module:ContractOriginal": {
+          ...exampleDeploymentState,
+          futureType: FutureType.NAMED_CONTRACT_DEPLOYMENT,
+          status: ExecutionStatus.SUCCESS,
+          dependencies: new Set<string>(), // no deps on last run
+          contractName: "ContractOriginal",
+          contractAddress: addr1,
+        },
         "Module:Contract2": {
           ...exampleDeploymentState,
           futureType: FutureType.NAMED_CONTRACT_DEPLOYMENT,
           status: ExecutionStatus.STARTED,
-          dependencies: new Set<string>(), // no deps on last run
+          dependencies: new Set<string>("Module:ContractOriginal"), // no deps on last run
           contractName: "Contract2",
+          constructorArgs: [exampleAddress],
         },
       });
 
