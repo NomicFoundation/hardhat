@@ -295,8 +295,6 @@ export class LedgerProvider extends ProviderWrapperWithChainId {
 
     const baseTx: ethers.TransactionLike = {
       chainId,
-      data:
-        txRequest.data === undefined ? undefined : this._toHex(txRequest.data),
       gasLimit: txRequest.gas,
       gasPrice: txRequest.gasPrice,
       maxFeePerGas: txRequest.maxFeePerGas,
@@ -306,6 +304,9 @@ export class LedgerProvider extends ProviderWrapperWithChainId {
     };
     if (txRequest.to !== undefined) {
       baseTx.to = this._toHex(txRequest.to);
+    }
+    if (txRequest.data !== undefined) {
+      baseTx.data = this._toHex(txRequest.data);
     }
 
     const txToSign =
