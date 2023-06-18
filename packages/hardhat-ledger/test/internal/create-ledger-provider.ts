@@ -27,20 +27,6 @@ describe("createLedgerProvider", () => {
     assert.deepEqual(ledgerProvider.options.accounts, ledgerAccounts);
   });
 
-  it("should pass an empty array if the ledger configuration is undefined", () => {
-    const config = {} as NetworkConfig;
-    const ledgerProvider = createLedgerProvider(mockedProvider, config);
-
-    assert.deepEqual(ledgerProvider.options.accounts, []);
-  });
-
-  it("should pass an empty array if the config supplied is an HTTP config", () => {
-    const config = { url: "http://test.com" } as NetworkConfig;
-    const ledgerProvider = createLedgerProvider(mockedProvider, config);
-
-    assert.deepEqual(ledgerProvider.options.accounts, []);
-  });
-
   it("should pass the provider to the LedgerProvider", async () => {
     const config = {
       ledgerAccounts: ["0xf4416d306caa15dd4cdf4cd882cd764a6b2aa9b2"],

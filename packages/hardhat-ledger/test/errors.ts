@@ -73,7 +73,7 @@ describe("HardhatLedgerConnectionError", () => {
     assert.isFalse(HardhatLedgerConnectionError.instanceOf(new Error()));
     assert.isTrue(
       HardhatLedgerConnectionError.instanceOf(
-        new HardhatLedgerConnectionError("")
+        new HardhatLedgerConnectionError(new Error(""))
       )
     );
   });

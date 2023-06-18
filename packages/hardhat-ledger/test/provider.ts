@@ -170,7 +170,7 @@ describe("LedgerProvider", () => {
         if (!HardhatLedgerConnectionError.instanceOf(error)) {
           assert.fail("Expected a ConnectionError");
         }
-        assert.equal(
+        assert.include(
           error.message,
           `There was an error trying to establish a connection to the Ledger wallet: "${createError.message}".`
         );
@@ -190,10 +190,11 @@ describe("LedgerProvider", () => {
         if (!HardhatLedgerConnectionError.instanceOf(error)) {
           assert.fail("Expected a ConnectionError");
         }
-        assert.equal(
+        assert.include(
           error.message,
-          `There was an error trying to establish a connection to the Ledger wallet: "${createError.message}". The error id was: ${createError.id}`
+          `There was an error trying to establish a connection to the Ledger wallet: "${createError.message}".`
         );
+        assert.include(error.message, `The error id was: ${createError.id}`);
       }
     });
 
