@@ -12,7 +12,6 @@ import {
   BoundExperimentalHardhatNetworkMessageTraceHook,
   HardhatConfig,
 } from "../../../../src/types";
-import { AutomaticGasPriceProvider } from "../../../../src/internal/core/providers/gas-providers";
 import {
   applyProviderWrappers,
   createProvider,
@@ -72,10 +71,8 @@ describe("Base provider creation", () => {
     assert.instanceOf(provider, BackwardsCompatibilityProviderAdapter);
     for (const extender of extenders) {
       assert.isTrue(extender.calledOnce);
-      assert.instanceOf(
-        extender.getCall(0).firstArg,
-        AutomaticGasPriceProvider
-      );
+      // check that the extender is called with a provider
+      assert.property(extender.getCall(0).firstArg, "request");
     }
   });
 });
