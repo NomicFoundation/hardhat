@@ -24,10 +24,10 @@ import { wrapTransport } from "./internal/wrap-transport";
 import * as cache from "./internal/cache";
 import { LedgerOptions, EthWrapper, Signature, Paths } from "./types";
 import {
-  ConnectionError,
-  DerivationPathError,
-  LedgerProviderError,
-  NotControlledAddressError,
+  HardhatLedgerConnectionError,
+  HardhatLedgerDerivationPathError,
+  HardhatLedgerError,
+  HardhatLedgerNotControlledAddressError,
 } from "./errors";
 
 export class LedgerProvider extends ProviderWrapperWithChainId {
@@ -57,7 +57,7 @@ export class LedgerProvider extends ProviderWrapperWithChainId {
 
     this.options.accounts = options.accounts.map((account) => {
       if (!isValidAddress(account)) {
-        throw new LedgerProviderError(
+        throw new HardhatLedgerError(
           `The following ledger address from the config is invalid: ${account}`
         );
       }
@@ -102,7 +102,7 @@ export class LedgerProvider extends ProviderWrapperWithChainId {
             const transportError = error as TransportError;
             errorMessage += ` The error id was: ${transportError.id}`;
           }
-          throw new ConnectionError(errorMessage);
+          throw new HardhatLedgerConnectionError(errorMessage);
         }
 
         throw error;
@@ -148,7 +148,7 @@ export class LedgerProvider extends ProviderWrapperWithChainId {
         }
       } catch (error) {
         // We skip non controlled errors and forward them to the wrapped provider
-        if (!NotControlledAddressError.isNotControlledAddressError(error)) {
+        if (!HardhatLedgerNotControlledAddressError.instanceOf(error)) {
           throw error;
         }
       }
@@ -376,14 +376,14 @@ export class LedgerProvider extends ProviderWrapperWithChainId {
       const message = (error as Error).message;
 
       this.emit("derivation_failure");
-      throw new DerivationPathError(
+      throw new HardhatLedgerDerivationPathError(
         `There was an error trying to derivate path ${path}: "${message}". The wallet might be connected but locked or in the wrong app.`,
         path
       );
     }
 
     this.emit("derivation_failure");
-    throw new DerivationPathError(
+    throw new HardhatLedgerDerivationPathError(
       `Could not find a valid derivation path for ${addressToFind}. Paths from m/44'/60'/0'/0/0 to m/44'/60'/${LedgerProvider.MAX_DERIVATION_ACCOUNTS}'/0/0 were searched.`,
       path
     );
@@ -400,7 +400,7 @@ export class LedgerProvider extends ProviderWrapperWithChainId {
       return result;
     } catch (error) {
       this.emit("confirmation_failure");
-      throw new LedgerProviderError((error as Error).message);
+      throw new HardhatLedgerError((error as Error).message);
     }
   }
 
@@ -437,7 +437,7 @@ export class LedgerProvider extends ProviderWrapperWithChainId {
     const isControlledAddress = this.options.accounts.includes(hexAddress);
 
     if (!isControlledAddress) {
-      throw new NotControlledAddressError(
+      throw new HardhatLedgerNotControlledAddressError(
         "Tried to send a transaction with an address we don't control.",
         hexAddress
       );

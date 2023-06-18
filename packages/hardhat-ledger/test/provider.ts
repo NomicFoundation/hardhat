@@ -13,7 +13,10 @@ import * as ethWrapper from "../src/internal/wrap-transport";
 import * as cache from "../src/internal/cache";
 import { LedgerProvider } from "../src/provider";
 import { EthWrapper, LedgerOptions } from "../src/types";
-import { ConnectionError, DerivationPathError } from "../src/errors";
+import {
+  HardhatLedgerConnectionError,
+  HardhatLedgerDerivationPathError,
+} from "../src/errors";
 import { EthereumMockedProvider } from "./mocks";
 
 describe("LedgerProvider", () => {
@@ -164,7 +167,7 @@ describe("LedgerProvider", () => {
       try {
         await provider.init();
       } catch (error) {
-        if (!ConnectionError.isConnectionError(error)) {
+        if (!HardhatLedgerConnectionError.instanceOf(error)) {
           assert.fail("Expected a ConnectionError");
         }
         assert.equal(
@@ -184,7 +187,7 @@ describe("LedgerProvider", () => {
       try {
         await provider.init();
       } catch (error) {
-        if (!ConnectionError.isConnectionError(error)) {
+        if (!HardhatLedgerConnectionError.instanceOf(error)) {
           assert.fail("Expected a ConnectionError");
         }
         assert.equal(
@@ -621,12 +624,12 @@ describe("LedgerProvider", () => {
           await requestPersonalSign();
         } catch (error) {
           const errorPath = "44'/60'/0'/0/0";
-          if (!DerivationPathError.isDerivationPathError(error)) {
+          if (!HardhatLedgerDerivationPathError.instanceOf(error)) {
             assert.fail("Expected a DerivationPathError");
           }
           assert.equal(error.path, errorPath);
           assert.equal(
-            (error as DerivationPathError).message,
+            (error as HardhatLedgerDerivationPathError).message,
             `There was an error trying to derivate path ${errorPath}: "${errorMessage}". The wallet might be connected but locked or in the wrong app.`
           );
         }
@@ -641,12 +644,12 @@ describe("LedgerProvider", () => {
           await requestPersonalSign();
         } catch (error) {
           const errorPath = `44'/60'/${LedgerProvider.MAX_DERIVATION_ACCOUNTS}'/0/0`;
-          if (!DerivationPathError.isDerivationPathError(error)) {
+          if (!HardhatLedgerDerivationPathError.instanceOf(error)) {
             assert.fail("Expected a DerivationPathError");
           }
           assert.equal(error.path, errorPath);
           assert.equal(
-            (error as DerivationPathError).message,
+            (error as HardhatLedgerDerivationPathError).message,
             `Could not find a valid derivation path for ${accounts[1]}. Paths from m/44'/60'/0'/0/0 to m/${errorPath} were searched.`
           );
         }

@@ -1,74 +1,80 @@
 import { assert } from "chai";
 
 import {
-  ConnectionError,
-  DerivationPathError,
-  LedgerProviderError,
-  NotControlledAddressError,
+  HardhatLedgerConnectionError,
+  HardhatLedgerDerivationPathError,
+  HardhatLedgerError,
+  HardhatLedgerNotControlledAddressError,
 } from "../src/errors";
 
-describe("LedgerProviderError", () => {
+describe("HardhatLedgerError", () => {
   it("should set the plugin name of the error", () => {
-    const error = new LedgerProviderError("");
+    const error = new HardhatLedgerError("");
     assert.equal(error.pluginName, "@nomiclabs/hardhat-ledger");
   });
 
   it("should set the message of the error", () => {
     const message = "Some message";
-    const error = new LedgerProviderError(message);
+    const error = new HardhatLedgerError(message);
     assert.equal(error.message, message);
   });
 });
 
-describe("NotControlledAddressError", () => {
+describe("HardhatLedgerNotControlledAddressError", () => {
   it("should set the message of the error", () => {
     const message = "Look, a message";
-    const error = new NotControlledAddressError(message, "");
+    const error = new HardhatLedgerNotControlledAddressError(message, "");
     assert.equal(error.message, message);
   });
 
   it("should store the address", () => {
     const address = "0x3d6e2674e40ea221b4a48663d28eff77af564a50";
-    const error = new NotControlledAddressError("", address);
+    const error = new HardhatLedgerNotControlledAddressError("", address);
     assert.equal(error.address, address);
   });
 
-  it("should detect a NotControlledAddressError", () => {
+  it("should detect a HardhatLedgerNotControlledAddressError", () => {
     assert.isFalse(
-      NotControlledAddressError.isNotControlledAddressError(new Error())
+      HardhatLedgerNotControlledAddressError.instanceOf(new Error())
     );
     assert.isTrue(
-      NotControlledAddressError.isNotControlledAddressError(
-        new NotControlledAddressError("", "")
+      HardhatLedgerNotControlledAddressError.instanceOf(
+        new HardhatLedgerNotControlledAddressError("", "")
       )
     );
   });
 });
 
-describe("DerivationPathError", () => {
+describe("HardhatLedgerDerivationPathError", () => {
   it("should set the message of the error", () => {
     const message = "Yet another message";
-    const error = new DerivationPathError(message, "");
+    const error = new HardhatLedgerDerivationPathError(message, "");
     assert.equal(error.message, message);
   });
 
   it("should store the path", () => {
     const path = "44'/60'/0'/0/0";
-    const error = new DerivationPathError("", path);
+    const error = new HardhatLedgerDerivationPathError("", path);
     assert.equal(error.path, path);
   });
 
-  it("should detect a DerivationPathError", () => {
-    assert.isFalse(DerivationPathError.isDerivationPathError(new Error()));
+  it("should detect a HardhatLedgerDerivationPathError", () => {
+    assert.isFalse(HardhatLedgerDerivationPathError.instanceOf(new Error()));
     assert.isTrue(
-      DerivationPathError.isDerivationPathError(new DerivationPathError("", ""))
+      HardhatLedgerDerivationPathError.instanceOf(
+        new HardhatLedgerDerivationPathError("", "")
+      )
     );
   });
 });
 
-describe("ConnectionError", () => {
-  it("should detect a ConnectionError", () => {
-    assert.isFalse(ConnectionError.isConnectionError(new Error()));
-    assert.isTrue(ConnectionError.isConnectionError(new ConnectionError("")));
+describe("HardhatLedgerConnectionError", () => {
+  it("should detect a HardhatLegerConnectionError", () => {
+    assert.isFalse(HardhatLedgerConnectionError.instanceOf(new Error()));
+    assert.isTrue(
+      HardhatLedgerConnectionError.instanceOf(
+        new HardhatLedgerConnectionError("")
+      )
+    );
   });
 });

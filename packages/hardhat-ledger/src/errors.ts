@@ -1,15 +1,15 @@
 import { NomicLabsHardhatPluginError } from "hardhat/plugins";
 
-export class LedgerProviderError extends NomicLabsHardhatPluginError {
+export class HardhatLedgerError extends NomicLabsHardhatPluginError {
   constructor(message: string, parent?: Error) {
     super("@nomiclabs/hardhat-ledger", message, parent);
   }
 }
 
-export class NotControlledAddressError extends LedgerProviderError {
-  public static isNotControlledAddressError(
+export class HardhatLedgerNotControlledAddressError extends HardhatLedgerError {
+  public static instanceOf(
     other: any
-  ): other is NotControlledAddressError {
+  ): other is HardhatLedgerNotControlledAddressError {
     return (
       other !== undefined &&
       other !== null &&
@@ -24,8 +24,8 @@ export class NotControlledAddressError extends LedgerProviderError {
   }
 }
 
-export class ConnectionError extends LedgerProviderError {
-  public static isConnectionError(other: any): other is ConnectionError {
+export class HardhatLedgerConnectionError extends HardhatLedgerError {
+  public static instanceOf(other: any): other is HardhatLedgerConnectionError {
     return (
       other !== undefined && other !== null && other._isConnectionError === true
     );
@@ -34,10 +34,10 @@ export class ConnectionError extends LedgerProviderError {
   private readonly _isConnectionError = true;
 }
 
-export class DerivationPathError extends LedgerProviderError {
-  public static isDerivationPathError(
+export class HardhatLedgerDerivationPathError extends HardhatLedgerError {
+  public static instanceOf(
     other: any
-  ): other is DerivationPathError {
+  ): other is HardhatLedgerDerivationPathError {
     return (
       other !== undefined &&
       other !== null &&
