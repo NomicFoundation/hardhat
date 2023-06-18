@@ -350,7 +350,7 @@ export class LedgerProvider extends ProviderWrapperWithChainId {
       ) {
         path = `44'/60'/${account}'/0/0`;
 
-        this.emit("derivation_progress", path);
+        this.emit("derivation_progress", path, account);
 
         const wallet = await this.eth.getAddress(path);
         const address = wallet.address.toLowerCase();

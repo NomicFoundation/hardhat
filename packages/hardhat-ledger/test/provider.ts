@@ -718,12 +718,14 @@ describe("LedgerProvider", () => {
           sinon.assert.calledWithExactly(
             emitSpy,
             "derivation_progress",
-            "44'/60'/0'/0/0"
+            "44'/60'/0'/0/0",
+            0
           );
           sinon.assert.calledWithExactly(
             emitSpy,
             "derivation_progress",
-            "44'/60'/1'/0/0"
+            "44'/60'/1'/0/0",
+            1
           );
         });
 
