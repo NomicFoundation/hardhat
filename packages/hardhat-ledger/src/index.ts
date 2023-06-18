@@ -1,5 +1,4 @@
 import { extendConfig, extendProvider } from "hardhat/config";
-import { createLedgerProvider } from "./internal/create-ledger-provider";
 
 import "./type-extensions";
 
@@ -14,6 +13,10 @@ extendConfig((config, userConfig) => {
 });
 
 extendProvider(async (provider, config, network) => {
+  const { createLedgerProvider } = await import(
+    "./internal/create-ledger-provider"
+  );
+
   const networkConfig = config.networks[network];
   return createLedgerProvider(provider, networkConfig);
 });
