@@ -57,7 +57,6 @@ These callbacks can be `async`, and they will be `await`ed until they finish, so
 
 It's important to keep in mind that after all callbacks are executed, the provider will be wrapped by Hardhat's built-in extenders. This means that the object returned by `extendProvider` is not the same as the one found on `hre.network.provider`, but its funcionality is included there.
 
-
 For example, adding the following to `hardhat.config.js`:
 
 ```js
