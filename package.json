@@ -10,7 +10,9 @@
     ],
     "nohoist": [
       "**/find-up",
-      "**/find-up/**"
+      "**/find-up/**",
+      "**/@nomiclabs/truffle-contract",
+      "**/@nomiclabs/truffle-contract/**"
     ]
   },
   "devDependencies": {
