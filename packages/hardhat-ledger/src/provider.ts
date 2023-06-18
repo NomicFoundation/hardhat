@@ -40,9 +40,9 @@ export class LedgerProvider extends ProviderWrapperWithChainId {
 
   public static async create(
     options: LedgerOptions,
-    _wrappedProvider: EIP1193Provider
+    wrappedProvider: EIP1193Provider
   ) {
-    const provider = new LedgerProvider(options, _wrappedProvider);
+    const provider = new LedgerProvider(options, wrappedProvider);
     await provider.init();
     return provider;
   }
