@@ -6,8 +6,6 @@ import { isValidAddress } from "@nomicfoundation/ethereumjs-util";
 import { isEIP712Message, ledgerService } from "@ledgerhq/hw-app-eth";
 import TransportNodeHid from "@ledgerhq/hw-transport-node-hid";
 import { EIP712Message } from "@ledgerhq/hw-app-eth/lib/modules/EIP712";
-import { TransportError } from "@ledgerhq/errors";
-
 import { EIP1193Provider, RequestArguments } from "hardhat/types";
 import { validateParams } from "hardhat/internal/core/jsonrpc/types/input/validation";
 import { rpcTransactionRequest } from "hardhat/internal/core/jsonrpc/types/input/transactionRequest";
@@ -96,13 +94,7 @@ export class LedgerProvider extends ProviderWrapperWithChainId {
         this.emit("connection_failure");
 
         if (error instanceof Error) {
-          let errorMessage = `There was an error trying to establish a connection to the Ledger wallet: "${error.message}".`;
-
-          if (error.name === "TransportError") {
-            const transportError = error as TransportError;
-            errorMessage += ` The error id was: ${transportError.id}`;
-          }
-          throw new HardhatLedgerConnectionError(errorMessage);
+          throw new HardhatLedgerConnectionError(error);
         }
 
         throw error;

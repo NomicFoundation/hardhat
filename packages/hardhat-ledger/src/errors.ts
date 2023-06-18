@@ -1,3 +1,4 @@
+import type { TransportError } from "@ledgerhq/errors";
 import { NomicLabsHardhatPluginError } from "hardhat/plugins";
 
 export class HardhatLedgerError extends NomicLabsHardhatPluginError {
@@ -32,6 +33,17 @@ export class HardhatLedgerConnectionError extends HardhatLedgerError {
   }
 
   private readonly _isConnectionError = true;
+
+  constructor(error: Error) {
+    let errorMessage = `There was an error trying to establish a connection to the Ledger wallet: "${error.message}".`;
+
+    if (error.name === "TransportError") {
+      const transportError = error as TransportError;
+      errorMessage += ` The error id was: ${transportError.id}`;
+    }
+
+    super(errorMessage);
+  }
 }
 
 export class HardhatLedgerDerivationPathError extends HardhatLedgerError {
