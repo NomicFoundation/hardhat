@@ -1,8 +1,4 @@
-import {
-  EIP1193Provider,
-  HardhatNetworkConfig,
-  NetworkConfig,
-} from "hardhat/types";
+import { EIP1193Provider, NetworkConfig } from "hardhat/types";
 
 import { LedgerProvider } from "../provider";
 import { withSpinners } from "./with-spinners";
@@ -11,19 +7,9 @@ export function createLedgerProvider(
   provider: EIP1193Provider,
   networkConfig: NetworkConfig
 ): LedgerProvider {
-  let accounts: string[] = [];
-
-  if (isHardhatNetworkConfig(networkConfig)) {
-    accounts = networkConfig.ledgerAccounts ?? [];
-  }
+  const accounts = networkConfig.ledgerAccounts;
 
   const ledgerProvider = new LedgerProvider({ accounts }, provider);
 
   return withSpinners(ledgerProvider);
-}
-
-function isHardhatNetworkConfig(
-  config: NetworkConfig
-): config is HardhatNetworkConfig {
-  return !("url" in config);
 }
