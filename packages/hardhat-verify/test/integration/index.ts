@@ -462,7 +462,7 @@ contracts/SimpleContract.sol:SimpleContract at ${simpleContractAddress}
 for verification on the block explorer. Waiting for verification result...
 `);
       expect(logStub.getCall(1)).to.be
-        .calledWith(`Successfully verified contract SimpleContract on Etherscan.
+        .calledWith(`Successfully verified contract SimpleContract on the block explorer.
 https://hardhat.etherscan.io/address/${simpleContractAddress}#code`);
       logStub.restore();
       assert.isUndefined(taskResponse);
@@ -512,7 +512,7 @@ contracts/SimpleContract.sol:SimpleContract at ${simpleContractAddress}
 for verification on the block explorer. Waiting for verification result...
 `);
       expect(logStub.getCall(3)).to.be
-        .calledWith(`Successfully verified contract SimpleContract on Etherscan.
+        .calledWith(`Successfully verified contract SimpleContract on the block explorer.
 https://hardhat.etherscan.io/address/${simpleContractAddress}#code`);
       logStub.restore();
       assert.equal(verifyCallCount, 2);
@@ -595,7 +595,7 @@ contracts/WithLibs.sol:BothLibs at ${bothLibsContractAddress}
 for verification on the block explorer. Waiting for verification result...
 `);
       expect(logStub.getCall(1)).to.be
-        .calledWith(`Successfully verified contract BothLibs on Etherscan.
+        .calledWith(`Successfully verified contract BothLibs on the block explorer.
 https://hardhat.etherscan.io/address/${bothLibsContractAddress}#code`);
       logStub.restore();
       assert.isUndefined(taskResponse);
