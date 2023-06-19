@@ -3,8 +3,8 @@ import { isDeploymentExecutionState } from "../../../internal/utils/guards";
 import {
   DeployedContractExecutionSuccess,
   JournalableMessage,
-  OnchainInteraction,
-  OnchainResult,
+  OnchainInteractionMessage,
+  OnchainResultMessage,
 } from "../../types/journal";
 import { ExecutionStrategy } from "../types/execution-engine";
 import {
@@ -23,9 +23,9 @@ export class BasicExecutionStrategy
   }: {
     executionState: ExecutionState;
   }): AsyncGenerator<
-    OnchainInteraction,
+    OnchainInteractionMessage,
     JournalableMessage,
-    OnchainResult | null
+    OnchainResultMessage | null
   > {
     if (!isDeploymentExecutionState(executionState)) {
       throw new IgnitionError(
@@ -41,9 +41,9 @@ export class BasicExecutionStrategy
   }: {
     executionState: DeploymentExecutionState;
   }): AsyncGenerator<
-    OnchainInteraction,
+    OnchainInteractionMessage,
     JournalableMessage,
-    OnchainResult | null
+    OnchainResultMessage | null
   > {
     const result = yield {
       type: "onchain-action",

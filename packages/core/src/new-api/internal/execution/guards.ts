@@ -1,15 +1,15 @@
 import {
-  DeployContractInteraction,
-  ExecutionResult,
+  DeployContractInteractionMessage,
+  ExecutionResultMessage,
   ExecutionResultTypes,
   JournalableMessage,
-  OnchainInteraction,
-  OnchainResult,
+  OnchainInteractionMessage,
+  OnchainResultMessage,
 } from "../../types/journal";
 
 export function isExecutionResult(
   potential: JournalableMessage
-): potential is ExecutionResult {
+): potential is ExecutionResultMessage {
   const resultTypes: ExecutionResultTypes = [
     "execution-success",
     "execution-failure",
@@ -21,13 +21,13 @@ export function isExecutionResult(
 
 export function isExecutionMessage(
   potential: JournalableMessage
-): potential is ExecutionResult {
+): potential is ExecutionResultMessage {
   return isExecutionResult(potential);
 }
 
 export function isOnChainAction(
   potential: JournalableMessage
-): potential is OnchainInteraction {
+): potential is OnchainInteractionMessage {
   const resultTypes = ["onchain-action"];
 
   return resultTypes.includes(potential.type);
@@ -35,7 +35,7 @@ export function isOnChainAction(
 
 export function isOnchainResult(
   potential: JournalableMessage
-): potential is OnchainResult {
+): potential is OnchainResultMessage {
   const resultTypes = ["onchain-result"];
 
   return resultTypes.includes(potential.type);
@@ -43,6 +43,6 @@ export function isOnchainResult(
 
 export function isDeployContractInteraction(
   potential: JournalableMessage
-): potential is DeployContractInteraction {
+): potential is DeployContractInteractionMessage {
   return isOnChainAction(potential) && potential.subtype === "deploy-contract";
 }

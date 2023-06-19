@@ -1,10 +1,10 @@
 import { IgnitionError } from "../../../../errors";
 import { ArtifactResolver } from "../../../types/artifact";
 import {
-  DeployContractInteraction,
-  DeployContractResult,
-  OnchainInteraction,
-  OnchainResult,
+  DeployContractInteractionMessage,
+  DeployContractResultMessage,
+  OnchainInteractionMessage,
+  OnchainResultMessage,
 } from "../../../types/journal";
 import { TransactionService } from "../../../types/transaction-service";
 import { isDeployContractInteraction } from "../guards";
@@ -23,8 +23,8 @@ export class TransactionServiceImplementation implements TransactionService {
   ) {}
 
   public async onchain(
-    interaction: OnchainInteraction
-  ): Promise<OnchainResult> {
+    interaction: OnchainInteractionMessage
+  ): Promise<OnchainResultMessage> {
     if (!isDeployContractInteraction(interaction)) {
       throw new IgnitionError(
         "Transaction service not implemented for this interaction"
@@ -35,8 +35,8 @@ export class TransactionServiceImplementation implements TransactionService {
   }
 
   private async _dispatchDeployContract(
-    deployContractInteraction: DeployContractInteraction
-  ): Promise<DeployContractResult> {
+    deployContractInteraction: DeployContractInteractionMessage
+  ): Promise<DeployContractResultMessage> {
     // TODO: consider replacing this with a registry of artifacts
     const artifact = await this._artifactLoader.load(
       deployContractInteraction.contractName

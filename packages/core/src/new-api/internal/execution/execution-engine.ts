@@ -3,9 +3,9 @@ import { isDeploymentExecutionState } from "../../../internal/utils/guards";
 import { isRuntimeValue } from "../../type-guards";
 import { DeploymentResult } from "../../types/deployer";
 import {
-  ExecutionResult,
-  FutureRestart,
-  FutureStart,
+  ExecutionResultMessage,
+  FutureRestartMessage,
+  FutureStartMessage,
   JournalableMessage,
 } from "../../types/journal";
 import {
@@ -69,7 +69,7 @@ export class ExecutionEngine {
   private async _executeBatchEntry(
     future: Future,
     state: ExecutionEngineState
-  ): Promise<ExecutionResult> {
+  ): Promise<ExecutionResultMessage> {
     let current: JournalableMessage = this._startOrRestartFor(future, state);
     await this._apply(state, current);
 
@@ -99,7 +99,7 @@ export class ExecutionEngine {
   private _startOrRestartFor(
     future: Future,
     state: ExecutionEngineState
-  ): FutureStart | FutureRestart {
+  ): FutureStartMessage | FutureRestartMessage {
     const executionState = state.executionStateMap[future.id];
 
     if (executionState === undefined) {
@@ -149,13 +149,13 @@ export class ExecutionEngine {
   private _initCommandFor(
     future: Future,
     { accounts }: { executionStateMap: ExecutionStateMap; accounts: string[] }
-  ): FutureStart {
+  ): FutureStartMessage {
     const strategy = "basic";
 
     switch (future.type) {
       case FutureType.ARTIFACT_CONTRACT_DEPLOYMENT:
       case FutureType.NAMED_CONTRACT_DEPLOYMENT:
-        const state: FutureStart = {
+        const state: FutureStartMessage = {
           type: "execution-start",
           futureId: future.id,
           futureType: future.type,

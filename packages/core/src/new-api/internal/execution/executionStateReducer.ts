@@ -1,6 +1,6 @@
 import { isDeploymentExecutionState } from "../../../internal/utils/guards";
 import { isDeploymentType } from "../../type-guards";
-import { FutureStart, JournalableMessage } from "../../types/journal";
+import { FutureStartMessage, JournalableMessage } from "../../types/journal";
 import {
   DeploymentExecutionState,
   ExecutionState,
@@ -44,7 +44,9 @@ export function executionStateReducer(
   return executionStateMap;
 }
 
-function initialiseExecutionStateFor(futureStart: FutureStart): ExecutionState {
+function initialiseExecutionStateFor(
+  futureStart: FutureStartMessage
+): ExecutionState {
   if (!isDeploymentType(futureStart.futureType)) {
     throw new Error("Not implemented yet in the reducer");
   }

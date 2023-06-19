@@ -25,7 +25,9 @@ export type JournalableMessage = TransactionMessage | ExecutionMessage;
  *
  * @beta
  */
-export type TransactionMessage = OnchainInteraction | OnchainResult;
+export type TransactionMessage =
+  | OnchainInteractionMessage
+  | OnchainResultMessage;
 
 // #region "OnchainInteraction"
 
@@ -34,14 +36,14 @@ export type TransactionMessage = OnchainInteraction | OnchainResult;
  *
  * @beta
  */
-export type OnchainInteraction = DeployContractInteraction;
+export type OnchainInteractionMessage = DeployContractInteractionMessage;
 
 /**
  * A on-chain interaction request to deploy a contract/library.
  *
  * @beta
  */
-export interface DeployContractInteraction {
+export interface DeployContractInteractionMessage {
   value: string;
   args: ArgumentType[];
   from: string;
@@ -59,14 +61,14 @@ export interface DeployContractInteraction {
  *
  * @beta
  */
-export type OnchainResult = DeployContractResult;
+export type OnchainResultMessage = DeployContractResultMessage;
 
 /**
  * A successful deploy contract transaction result.
  *
  * @beta
  */
-export interface DeployContractResult {
+export interface DeployContractResultMessage {
   type: "onchain-result";
   subtype: "deploy-contract";
   contractAddress: string;
@@ -83,7 +85,7 @@ export interface DeployContractResult {
  *
  * @beta
  */
-export type ExecutionMessage = FutureExecutionUpdate | ExecutionResult;
+export type ExecutionMessage = ExecutionUpdateMessage | ExecutionResultMessage;
 
 // #region "FutureExecutionUpdate"
 
@@ -92,14 +94,14 @@ export type ExecutionMessage = FutureExecutionUpdate | ExecutionResult;
  *
  * @beta
  */
-export type FutureExecutionUpdate = FutureStart | FutureRestart;
+export type ExecutionUpdateMessage = FutureStartMessage | FutureRestartMessage;
 
 /**
  * A journal message to initialise the execution state for a future.
  *
  * @beta
  */
-export interface FutureStart {
+export interface FutureStartMessage {
   type: "execution-start";
   futureId: string;
   futureType: FutureType;
@@ -119,7 +121,7 @@ export interface FutureStart {
  *
  * @beta
  */
-export interface FutureRestart {
+export interface FutureRestartMessage {
   type: "execution-restart";
   futureId: string;
 }
@@ -133,7 +135,7 @@ export interface FutureRestart {
  *
  * @beta
  */
-export type ExecutionResult =
+export type ExecutionResultMessage =
   | ExecutionSuccess
   | ExecutionFailure
   | ExecutionHold;

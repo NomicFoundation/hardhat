@@ -1,4 +1,4 @@
-import { OnchainInteraction, OnchainResult } from "./journal";
+import { OnchainInteractionMessage, OnchainResultMessage } from "./journal";
 
 /**
  * A service for managing on-chain interactions as part of the deployment.
@@ -6,5 +6,7 @@ import { OnchainInteraction, OnchainResult } from "./journal";
  * @beta
  */
 export interface TransactionService {
-  onchain(interaction: OnchainInteraction): Promise<OnchainResult>;
+  onchain(
+    interaction: OnchainInteractionMessage
+  ): Promise<OnchainResultMessage>;
 }

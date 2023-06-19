@@ -1,8 +1,8 @@
 import {
   Journal,
   JournalableMessage,
-  OnchainInteraction,
-  OnchainResult,
+  OnchainInteractionMessage,
+  OnchainResultMessage,
 } from "../../types/journal";
 import { IgnitionModule, IgnitionModuleResult } from "../../types/module";
 import { TransactionService } from "../../types/transaction-service";
@@ -25,8 +25,8 @@ export interface ExecutionStrategy {
   }: {
     executionState: ExecutionState;
   }) => AsyncGenerator<
-    OnchainInteraction,
+    OnchainInteractionMessage,
     JournalableMessage,
-    OnchainResult | null
+    OnchainResultMessage | null
   >;
 }
