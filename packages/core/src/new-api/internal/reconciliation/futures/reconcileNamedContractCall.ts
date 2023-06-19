@@ -4,7 +4,7 @@ import { NamedContractCallFuture } from "../../../types/module";
 import { CallExecutionState } from "../../types/execution-state";
 import { ExecutionStateResolver } from "../execution-state-resolver";
 import { ReconciliationContext, ReconciliationFutureResult } from "../types";
-import { fail, resolveFromAddress, safeToString } from "../utils";
+import { addressToErrorString, fail, resolveFromAddress } from "../utils";
 
 export function reconcileNamedContractCall(
   future: NamedContractCallFuture<string, string>,
@@ -50,9 +50,9 @@ export function reconcileNamedContractCall(
   if (!isEqual(fromAddress, executionState.from)) {
     return fail(
       future,
-      `From account has been changed from ${safeToString(
+      `From account has been changed from ${addressToErrorString(
         executionState.from
-      )} to ${safeToString(fromAddress)}`
+      )} to ${addressToErrorString(fromAddress)}`
     );
   }
 

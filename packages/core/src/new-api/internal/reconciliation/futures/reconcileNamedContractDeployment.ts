@@ -4,7 +4,7 @@ import { NamedContractDeploymentFuture } from "../../../types/module";
 import { DeploymentExecutionState } from "../../types/execution-state";
 import { ExecutionStateResolver } from "../execution-state-resolver";
 import { ReconciliationContext, ReconciliationFutureResult } from "../types";
-import { fail, resolveFromAddress, safeToString } from "../utils";
+import { addressToErrorString, fail, resolveFromAddress } from "../utils";
 
 export function reconcileNamedContractDeployment(
   future: NamedContractDeploymentFuture<string>,
@@ -47,9 +47,9 @@ export function reconcileNamedContractDeployment(
   if (!isEqual(fromAddress, executionState.from)) {
     return fail(
       future,
-      `From account has been changed from ${safeToString(
+      `From account has been changed from ${addressToErrorString(
         executionState.from
-      )} to ${safeToString(fromAddress)}`
+      )} to ${addressToErrorString(fromAddress)}`
     );
   }
 

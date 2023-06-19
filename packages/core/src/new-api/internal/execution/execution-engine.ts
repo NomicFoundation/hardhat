@@ -14,7 +14,7 @@ import {
   FutureType,
   RuntimeValueType,
 } from "../../types/module";
-import { safeToString } from "../reconciliation/utils";
+import { accountRuntimeValueToErrorString } from "../reconciliation/utils";
 import { ExecutionEngineState } from "../types/execution-engine";
 import { ExecutionStateMap, ExecutionStatus } from "../types/execution-state";
 import { getFuturesFromModule } from "../utils/get-futures-from-module";
@@ -140,7 +140,9 @@ export class ExecutionEngine {
     }
 
     throw new IgnitionError(
-      `Unable to resolve address: ${safeToString(potential)} `
+      `Unable to resolve address: ${accountRuntimeValueToErrorString(
+        potential
+      )} `
     );
   }
 

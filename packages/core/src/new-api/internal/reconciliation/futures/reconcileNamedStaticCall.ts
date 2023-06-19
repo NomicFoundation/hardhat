@@ -4,7 +4,7 @@ import { NamedStaticCallFuture } from "../../../types/module";
 import { StaticCallExecutionState } from "../../types/execution-state";
 import { ExecutionStateResolver } from "../execution-state-resolver";
 import { ReconciliationContext, ReconciliationFutureResult } from "../types";
-import { fail, resolveFromAddress, safeToString } from "../utils";
+import { addressToErrorString, fail, resolveFromAddress } from "../utils";
 
 export function reconcileNamedStaticCall(
   future: NamedStaticCallFuture<string, string>,
@@ -43,9 +43,9 @@ export function reconcileNamedStaticCall(
   if (!isEqual(fromAddress, executionState.from)) {
     return fail(
       future,
-      `From account has been changed from ${safeToString(
+      `From account has been changed from ${addressToErrorString(
         executionState.from
-      )} to ${safeToString(fromAddress)}`
+      )} to ${addressToErrorString(fromAddress)}`
     );
   }
 

@@ -27,7 +27,7 @@ import { assertIgnitionInvariant } from "../utils/assertions";
 import { replaceWithinArg } from "../utils/replace-within-arg";
 
 import { ReconciliationContext } from "./types";
-import { resolveModuleParameter, safeToString } from "./utils";
+import { moduleParameterToErrorString, resolveModuleParameter } from "./utils";
 
 // TODO: consider merging this into the execution state map
 export class ExecutionStateResolver {
@@ -150,7 +150,7 @@ export class ExecutionStateResolver {
         typeof runtimeValue === "string" && isAddress(runtimeValue),
         `Module parameter ${address.moduleId}/${
           address.name
-        } is not a usable address ${safeToString(runtimeValue)}`
+        } is not a usable address ${moduleParameterToErrorString(runtimeValue)}`
       );
 
       return runtimeValue;
@@ -186,7 +186,7 @@ export class ExecutionStateResolver {
 
       if (typeof runtimeValue !== "string" || !isAddress(runtimeValue)) {
         throw new IgnitionError(
-          `To runtime value is not a usable address ${safeToString(
+          `To runtime value is not a usable address ${moduleParameterToErrorString(
             runtimeValue
           )}`
         );

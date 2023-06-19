@@ -4,7 +4,7 @@ import { SendDataFuture } from "../../../types/module";
 import { SendDataExecutionState } from "../../types/execution-state";
 import { ExecutionStateResolver } from "../execution-state-resolver";
 import { ReconciliationContext, ReconciliationFutureResult } from "../types";
-import { fail, resolveFromAddress, safeToString } from "../utils";
+import { addressToErrorString, fail, resolveFromAddress } from "../utils";
 
 export function reconcileSendData(
   future: SendDataFuture,
@@ -45,7 +45,7 @@ export function reconcileSendData(
       future,
       `From account has been changed from ${
         executionState.from ?? "undefined"
-      } to ${safeToString(fromAddress)}`
+      } to ${addressToErrorString(fromAddress)}`
     );
   }
 

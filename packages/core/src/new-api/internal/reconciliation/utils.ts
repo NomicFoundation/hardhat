@@ -101,14 +101,20 @@ export function resolveModuleParameter(
   return moduleParamValue;
 }
 
-export function safeToString(potential: unknown) {
+export function accountRuntimeValueToErrorString(
+  potential: AccountRuntimeValue
+) {
+  return JSON.stringify(potential);
+}
+
+export function moduleParameterToErrorString(potential: ModuleParameterType) {
+  return JSON.stringify(potential);
+}
+
+export function addressToErrorString(potential: string | undefined) {
   if (potential === undefined) {
     return "undefined";
   }
 
-  if (typeof potential === "string") {
-    return potential;
-  }
-
-  return JSON.stringify(potential);
+  return potential;
 }
