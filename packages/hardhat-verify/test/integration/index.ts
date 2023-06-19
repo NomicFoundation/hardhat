@@ -22,8 +22,6 @@ describe("verify task integration tests", () => {
   it("should return after printing the supported networks", async function () {
     const logStub = sinon.stub(console, "log");
     const taskResponse = await this.hre.run(TASK_VERIFY, {
-      address: getRandomAddress(this.hre),
-      constructorArgsParams: [],
       listNetworks: true,
     });
 
@@ -464,7 +462,7 @@ contracts/SimpleContract.sol:SimpleContract at ${simpleContractAddress}
 for verification on the block explorer. Waiting for verification result...
 `);
       expect(logStub.getCall(1)).to.be
-        .calledWith(`Successfully verified contract SimpleContract on Etherscan.
+        .calledWith(`Successfully verified contract SimpleContract on the block explorer.
 https://hardhat.etherscan.io/address/${simpleContractAddress}#code`);
       logStub.restore();
       assert.isUndefined(taskResponse);
@@ -514,7 +512,7 @@ contracts/SimpleContract.sol:SimpleContract at ${simpleContractAddress}
 for verification on the block explorer. Waiting for verification result...
 `);
       expect(logStub.getCall(3)).to.be
-        .calledWith(`Successfully verified contract SimpleContract on Etherscan.
+        .calledWith(`Successfully verified contract SimpleContract on the block explorer.
 https://hardhat.etherscan.io/address/${simpleContractAddress}#code`);
       logStub.restore();
       assert.equal(verifyCallCount, 2);
@@ -597,7 +595,7 @@ contracts/WithLibs.sol:BothLibs at ${bothLibsContractAddress}
 for verification on the block explorer. Waiting for verification result...
 `);
       expect(logStub.getCall(1)).to.be
-        .calledWith(`Successfully verified contract BothLibs on Etherscan.
+        .calledWith(`Successfully verified contract BothLibs on the block explorer.
 https://hardhat.etherscan.io/address/${bothLibsContractAddress}#code`);
       logStub.restore();
       assert.isUndefined(taskResponse);

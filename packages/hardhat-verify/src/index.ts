@@ -21,6 +21,7 @@ import {
   TASK_VERIFY_RESOLVE_ARGUMENTS,
   TASK_VERIFY_VERIFY,
   TASK_VERIFY_ETHERSCAN,
+  TASK_VERIFY_PRINT_SUPPORTED_NETWORKS,
 } from "./task-names";
 import { getCurrentChainConfig } from "./chain-config";
 import { etherscanConfigExtender } from "./config";
@@ -84,7 +85,6 @@ interface VerificationArgs {
   constructorArgs: string[];
   libraries: LibraryToAddress;
   contractFQN?: string;
-  listNetworks: boolean;
 }
 
 interface GetContractInformationArgs {
@@ -147,6 +147,10 @@ task(TASK_VERIFY, "Verifies a contract on Etherscan")
   )
   .addFlag("listNetworks", "Print the list of supported networks")
   .setAction(async (taskArgs: VerifyTaskArgs, { run }) => {
+    if (taskArgs.listNetworks) {
+      await run(TASK_VERIFY_PRINT_SUPPORTED_NETWORKS);
+      return;
+    }
     const verificationArgs: VerificationArgs = await run(
       TASK_VERIFY_RESOLVE_ARGUMENTS,
       taskArgs
@@ -167,7 +171,6 @@ subtask(TASK_VERIFY_RESOLVE_ARGUMENTS)
   .addOptionalParam("constructorArgs", undefined, undefined, types.inputFile)
   .addOptionalParam("libraries", undefined, undefined, types.inputFile)
   .addOptionalParam("contract")
-  .addFlag("listNetworks")
   .setAction(
     async ({
       address,
@@ -175,7 +178,6 @@ subtask(TASK_VERIFY_RESOLVE_ARGUMENTS)
       constructorArgs: constructorArgsModule,
       contract,
       libraries: librariesModule,
-      listNetworks,
     }: VerifyTaskArgs): Promise<VerificationArgs> => {
       if (address === undefined) {
         throw new MissingAddressError();
@@ -202,7 +204,6 @@ subtask(TASK_VERIFY_RESOLVE_ARGUMENTS)
         constructorArgs,
         libraries,
         contractFQN: contract,
-        listNetworks,
       };
     }
   );
@@ -228,20 +229,9 @@ subtask(TASK_VERIFY_ETHERSCAN)
   .addFlag("listNetworks")
   .setAction(
     async (
-      {
-        address,
-        constructorArgs,
-        libraries,
-        contractFQN,
-        listNetworks,
-      }: VerificationArgs,
+      { address, constructorArgs, libraries, contractFQN }: VerificationArgs,
       { config, network, run }
     ) => {
-      if (listNetworks) {
-        await printSupportedNetworks(config.etherscan.customChains);
-        return;
-      }
-
       const chainConfig = await getCurrentChainConfig(
         network,
         config.etherscan.customChains
@@ -503,7 +493,7 @@ for verification on the block explorer. Waiting for verification result...
 
       if (verificationStatus.isSuccess()) {
         const contractURL = verificationInterface.getContractUrl(address);
-        console.log(`Successfully verified contract ${contractInformation.contractName} on Etherscan.
+        console.log(`Successfully verified contract ${contractInformation.contractName} on the block explorer.
 ${contractURL}`);
       }
 
@@ -559,3 +549,10 @@ subtask(TASK_VERIFY_VERIFY)
       });
     }
   );
+
+subtask(
+  TASK_VERIFY_PRINT_SUPPORTED_NETWORKS,
+  "Prints the supported networks list"
+).setAction(async ({}, { config }) => {
+  await printSupportedNetworks(config.etherscan.customChains);
+});
