@@ -11,11 +11,7 @@ export class MemoryJournal implements Journal {
   private messages: string[] = [];
 
   public async record(message: JournalableMessage): Promise<void> {
-    try {
-      this.messages.push(JSON.stringify(message));
-    } catch (err) {
-      console.error(err, message);
-    }
+    this.messages.push(JSON.stringify(message));
   }
 
   public async *read(): AsyncGenerator<JournalableMessage> {
