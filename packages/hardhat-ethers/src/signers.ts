@@ -1,4 +1,4 @@
-import type { BlockTag, TransactionRequest } from "ethers/types/providers";
+import type { BlockTag, TransactionRequest } from "ethers";
 import {
   assertArgument,
   ethers,

@@ -11,7 +11,7 @@ This plugin brings to Hardhat the Ethereum library `ethers.js`, which allows you
 ## Installation
 
 ```bash
-npm install --save-dev @nomicfoundation/hardhat-ethers 'ethers@^5.0.0'
+npm install --save-dev @nomicfoundation/hardhat-ethers ethers
 ```
 
 And add the following statement to your `hardhat.config.js`:
@@ -34,11 +34,11 @@ This plugin creates no additional tasks.
 
 This plugins adds an `ethers` object to the Hardhat Runtime Environment.
 
-This object has the [same API](https://docs.ethers.io/v5/single-page/) as `ethers.js`, with some extra Hardhat-specific functionality.
+This object has the [same API](https://docs.ethers.org/v6/single-page/) as `ethers.js`, with some extra Hardhat-specific functionality.
 
 ### Provider object
 
-A `provider` field is added to `ethers`, which is an [`ethers.providers.Provider`](https://docs.ethers.io/v5/single-page/#/v5/api/providers/provider/) automatically connected to the selected network.
+A `provider` field is added to `ethers`, which is an [`ethers.Provider`](https://docs.ethers.org/v6/single-page/#api_providers__Provider) automatically connected to the selected network.
 
 ### Helpers
 
@@ -79,9 +79,7 @@ function getContractFactoryFromArtifact(artifact: Artifact, factoryOptions: Fact
 function getContractAtFromArtifact(artifact: Artifact, address: string, signer?: ethers.Signer): Promise<ethers.Contract>;
 ```
 
-The [`Contract`s](https://docs.ethers.io/v5/single-page/#/v5/api/contract/contract/) and [`ContractFactory`s](https://docs.ethers.io/v5/single-page/#/v5/api/contract/contract-factory/) returned by these helpers are connected to the first [signer](https://docs.ethers.io/v5/single-page/#/v5/api/signer/) returned by `getSigners` by default.
-
-If there is no signer available, `getContractAt` returns [read-only](https://docs.ethers.io/v5/single-page/#/v5/api/contract/contract/-%23-Contract--readonly) contracts.
+The [`Contract`s](https://docs.ethers.org/v6/single-page/#api_contract__Contract) and [`ContractFactory`s](https://docs.ethers.org/v6/single-page/#api_contract__ContractFactory) returned by these helpers are connected to the first [signer](https://docs.ethers.org/v6/single-page/#api_providers__Signer) returned by `getSigners` by default.
 
 ## Usage
 
@@ -97,9 +95,8 @@ task(
   "blockNumber",
   "Prints the current block number",
   async (_, { ethers }) => {
-    await ethers.provider.getBlockNumber().then((blockNumber) => {
-      console.log("Current block number: " + blockNumber);
-    });
+    const blockNumber = await ethers.provider.getBlockNumber();
+    console.log("Current block number: " + blockNumber);
   }
 );
 
@@ -133,7 +130,3 @@ To create a contract factory, all libraries must be linked. An error will be thr
 Ethers.js polls the network to check if some event was emitted (except when a `WebSocketProvider` is used; see below). This polling is done every 4 seconds. If you have a script or test that is not emitting an event, it's likely that the execution is finishing before the event is detected by the polling mechanism.
 
 If you are connecting to a Hardhat node using a `WebSocketProvider`, events should be emitted immediately. But keep in mind that you'll have to create this provider manually, since Hardhat only supports configuring networks via http. That is, you can't add a `localhost` network with a URL like `ws://127.0.0.1:8545`.
-
-### Gas transaction parameters in `hardhat.config` are not used
-
-When using this plugin, the `gas`, `gasPrice` and `gasMultiplier` parameters from your `hardhat.config` are not automatically applied to transactions. In order to provide such values to your transactions, specify them as [overrides](https://docs.ethers.io/v5/single-page/#/v5/api/contract/contract/-%23-contract-functionsSend) on the transaction itself.

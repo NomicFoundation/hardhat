@@ -1,9 +1,10 @@
-import type { AddressLike } from "ethers/types/address";
 import type {
+  AddressLike,
   BlockTag,
   TransactionRequest,
   Filter,
   FilterByBlockHash,
+  Listener,
   ProviderEvent,
   PerformActionTransaction,
   TransactionResponseParams,
@@ -11,9 +12,9 @@ import type {
   TransactionReceiptParams,
   LogParams,
   PerformActionFilter,
-} from "ethers/types/providers";
-import type { Listener } from "ethers/types/utils";
+} from "ethers";
 
+import debug from "debug";
 import {
   Block,
   FeeData,
@@ -46,7 +47,21 @@ import {
   NotImplementedError,
 } from "./errors";
 
+const log = debug("hardhat:hardhat-ethers:provider");
+
 export class HardhatEthersProvider implements ethers.Provider {
+  private _isHardhatNetworkCached: boolean | undefined;
+
+  private _transactionHashListeners: Map<
+    string,
+    Array<{
+      listener: Listener;
+      once: boolean;
+    }>
+  > = new Map();
+
+  private _transactionHashPollingInterval: NodeJS.Timeout | undefined;
+
   constructor(
     private readonly _hardhatProvider: EthereumProvider,
     private readonly _networkName: string
@@ -305,7 +320,7 @@ export class HardhatEthersProvider implements ethers.Provider {
       resolvedFilter,
     ]);
 
-    return logs.map((log: any) => this._wrapLog(formatLog(log)));
+    return logs.map((l: any) => this._wrapLog(formatLog(l)));
   }
 
   public async resolveName(_ensName: string): Promise<string | null> {
@@ -332,7 +347,11 @@ export class HardhatEthersProvider implements ethers.Provider {
 
   public async on(event: ProviderEvent, listener: Listener): Promise<this> {
     if (typeof event === "string") {
-      this._hardhatProvider.on(event, listener);
+      if (isTransactionHash(event)) {
+        await this._onTransactionHash(event, listener, { once: false });
+      } else {
+        this._hardhatProvider.on(event, listener);
+      }
     } else {
       throw new NonStringEventError("on", event);
     }
@@ -342,7 +361,11 @@ export class HardhatEthersProvider implements ethers.Provider {
 
   public async once(event: ProviderEvent, listener: Listener): Promise<this> {
     if (typeof event === "string") {
-      this._hardhatProvider.once(event, listener);
+      if (isTransactionHash(event)) {
+        await this._onTransactionHash(event, listener, { once: true });
+      } else {
+        this._hardhatProvider.once(event, listener);
+      }
     } else {
       throw new NonStringEventError("once", event);
     }
@@ -352,7 +375,11 @@ export class HardhatEthersProvider implements ethers.Provider {
 
   public async emit(event: ProviderEvent, ...args: any[]): Promise<boolean> {
     if (typeof event === "string") {
-      return this._hardhatProvider.emit(event, ...args);
+      if (isTransactionHash(event)) {
+        return this._emitTransactionHash(event, ...args);
+      } else {
+        return this._hardhatProvider.emit(event, ...args);
+      }
     } else {
       throw new NonStringEventError("emit", event);
     }
@@ -362,7 +389,11 @@ export class HardhatEthersProvider implements ethers.Provider {
     event?: ProviderEvent | undefined
   ): Promise<number> {
     if (typeof event === "string") {
-      return this._hardhatProvider.listenerCount(event);
+      if (isTransactionHash(event)) {
+        return this._transactionHashListeners.get(event)?.length ?? 0;
+      } else {
+        return this._hardhatProvider.listenerCount(event);
+      }
     } else {
       throw new NonStringEventError("listenerCount", event);
     }
@@ -372,7 +403,15 @@ export class HardhatEthersProvider implements ethers.Provider {
     event?: ProviderEvent | undefined
   ): Promise<Listener[]> {
     if (typeof event === "string") {
-      return this._hardhatProvider.listeners(event) as any;
+      if (isTransactionHash(event)) {
+        return (
+          this._transactionHashListeners
+            .get(event)
+            ?.map(({ listener }) => listener) ?? []
+        );
+      } else {
+        return this._hardhatProvider.listeners(event) as any;
+      }
     } else {
       throw new NonStringEventError("listeners", event);
     }
@@ -382,8 +421,17 @@ export class HardhatEthersProvider implements ethers.Provider {
     event: ProviderEvent,
     listener?: Listener | undefined
   ): Promise<this> {
-    if (typeof event === "string" && listener !== undefined) {
-      this._hardhatProvider.off(event, listener);
+    if (typeof event === "string") {
+      if (isTransactionHash(event)) {
+        this._offTransactionHash(event, listener);
+      } else if (listener !== undefined) {
+        this._hardhatProvider.off(event, listener);
+      } else {
+        const registeredListeners = this._hardhatProvider.listeners(event);
+        for (const registeredListener of registeredListeners) {
+          this._hardhatProvider.off(event, registeredListener as any);
+        }
+      }
     } else {
       throw new NonStringEventError("off", event);
     }
@@ -394,8 +442,14 @@ export class HardhatEthersProvider implements ethers.Provider {
   public async removeAllListeners(
     event?: ProviderEvent | undefined
   ): Promise<this> {
-    if (event === undefined || typeof event === "string") {
+    if (event === undefined) {
       this._hardhatProvider.removeAllListeners(event);
+    } else if (typeof event === "string") {
+      if (isTransactionHash(event)) {
+        this._transactionHashListeners.delete(event);
+      } else {
+        this._hardhatProvider.removeAllListeners(event);
+      }
     } else {
       throw new NonStringEventError("removeAllListeners", event);
     }
@@ -408,7 +462,11 @@ export class HardhatEthersProvider implements ethers.Provider {
     listener: Listener
   ): Promise<this> {
     if (typeof event === "string") {
-      this._hardhatProvider.addListener(event, listener);
+      if (isTransactionHash(event)) {
+        await this._onTransactionHash(event, listener, { once: false });
+      } else {
+        this._hardhatProvider.addListener(event, listener);
+      }
     } else {
       throw new NonStringEventError("addListener", event);
     }
@@ -421,7 +479,11 @@ export class HardhatEthersProvider implements ethers.Provider {
     listener: Listener
   ): Promise<this> {
     if (typeof event === "string") {
-      this._hardhatProvider.removeListener(event, listener);
+      if (isTransactionHash(event)) {
+        this._offTransactionHash(event, listener);
+      } else {
+        this._hardhatProvider.removeListener(event, listener);
+      }
     } else {
       throw new NonStringEventError("removeListener", event);
     }
@@ -670,6 +732,138 @@ export class HardhatEthersProvider implements ethers.Provider {
 
     return blockTag;
   }
+
+  private async _onTransactionHash(
+    transactionHash: string,
+    listener: Listener,
+    { once }: { once: boolean }
+  ): Promise<void> {
+    const listeners = this._transactionHashListeners.get(transactionHash) ?? [];
+    listeners.push({ listener, once });
+    this._transactionHashListeners.set(transactionHash, listeners);
+    await this._startTransactionHashPolling();
+  }
+
+  private _offTransactionHash(
+    transactionHash: string,
+    listener?: Listener
+  ): void {
+    if (listener === undefined) {
+      this._transactionHashListeners.delete(transactionHash);
+    } else {
+      const listeners = this._transactionHashListeners.get(transactionHash);
+      if (listeners !== undefined) {
+        const listenerIndex = listeners.findIndex(
+          (item) => item.listener === listener
+        );
+
+        if (listenerIndex >= 0) {
+          listeners.splice(listenerIndex, 1);
+        }
+
+        if (listeners.length === 0) {
+          this._transactionHashListeners.delete(transactionHash);
+        }
+
+        if (this._transactionHashListeners.size === 0) {
+          this._stopTransactionHashPolling();
+        }
+      }
+    }
+  }
+
+  private async _startTransactionHashPolling() {
+    const _isHardhatNetwork = await this._isHardhatNetwork();
+
+    const interval = _isHardhatNetwork ? 50 : 500;
+
+    if (_isHardhatNetwork) {
+      await this._pollTransactionHashes();
+    }
+
+    if (this._transactionHashPollingInterval === undefined) {
+      this._transactionHashPollingInterval = setInterval(async () => {
+        await this._pollTransactionHashes();
+      }, interval);
+    }
+  }
+
+  private _stopTransactionHashPolling() {
+    if (this._transactionHashPollingInterval !== undefined) {
+      clearInterval(this._transactionHashPollingInterval);
+      this._transactionHashPollingInterval = undefined;
+    }
+  }
+
+  /**
+   * Traverse all the registered transaction hashes and check if they were mined.
+   *
+   * This function should NOT throw.
+   */
+  private async _pollTransactionHashes() {
+    try {
+      const listenersToRemove: Array<[string, Listener]> = [];
+
+      for (const [
+        transactionHash,
+        listeners,
+      ] of this._transactionHashListeners.entries()) {
+        const receipt = await this.getTransactionReceipt(transactionHash);
+
+        if (receipt !== null) {
+          for (const { listener, once } of listeners) {
+            listener(receipt);
+            if (once) {
+              listenersToRemove.push([transactionHash, listener]);
+            }
+          }
+        }
+      }
+
+      for (const [transactionHash, listener] of listenersToRemove) {
+        this._offTransactionHash(transactionHash, listener);
+      }
+    } catch (e: any) {
+      log(`Error during transaction hash polling: ${e.message}`);
+    }
+  }
+
+  private _emitTransactionHash(
+    transactionHash: string,
+    ...args: any[]
+  ): boolean {
+    const listeners = this._transactionHashListeners.get(transactionHash);
+    const listenersToRemove: Listener[] = [];
+
+    if (listeners === undefined) {
+      return false;
+    }
+
+    for (const { listener, once } of listeners) {
+      listener(...args);
+      if (once) {
+        listenersToRemove.push(listener);
+      }
+    }
+
+    for (const listener of listenersToRemove) {
+      this._offTransactionHash(transactionHash, listener);
+    }
+
+    return true;
+  }
+
+  private async _isHardhatNetwork(): Promise<boolean> {
+    if (this._isHardhatNetworkCached === undefined) {
+      this._isHardhatNetworkCached = false;
+      try {
+        await this._hardhatProvider.send("hardhat_metadata");
+        this._isHardhatNetworkCached = true;
+      } catch {}
+    }
+
+    return this._isHardhatNetworkCached;
+  }
 }
 
 function isPromise<T = any>(value: any): value is Promise<T> {
@@ -680,4 +874,8 @@ function concisify(items: string[]): string[] {
   items = Array.from(new Set(items).values());
   items.sort();
   return items;
+}
+
+function isTransactionHash(x: string): boolean {
+  return x.startsWith("0x") && x.length === 66;
 }

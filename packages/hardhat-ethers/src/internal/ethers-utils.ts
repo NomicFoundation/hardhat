@@ -8,7 +8,7 @@ import type {
   TransactionReceiptParams,
   LogParams,
   JsonRpcTransactionRequest,
-} from "ethers/types/providers";
+} from "ethers";
 
 import {
   accessListify,
@@ -272,41 +272,6 @@ export function formatTransactionResponse(
       result.chainId = chainId;
     }
   }
-
-  // @TODO: check chainID
-  /*
-    if (value.chainId != null) {
-        let chainId = value.chainId;
-
-        if (isHexString(chainId)) {
-            chainId = BigNumber.from(chainId).toNumber();
-        }
-
-        result.chainId = chainId;
-
-    } else {
-        let chainId = value.networkId;
-
-        // geth-etc returns chainId
-        if (chainId == null && result.v == null) {
-            chainId = value.chainId;
-        }
-
-        if (isHexString(chainId)) {
-            chainId = BigNumber.from(chainId).toNumber();
-        }
-
-        if (typeof(chainId) !== "number" && result.v != null) {
-            chainId = (result.v - 35) / 2;
-            if (chainId < 0) { chainId = 0; }
-            chainId = parseInt(chainId);
-        }
-
-        if (typeof(chainId) !== "number") { chainId = 0; }
-
-        result.chainId = chainId;
-    }
-    */
 
   // 0x0000... should actually be null
   // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions

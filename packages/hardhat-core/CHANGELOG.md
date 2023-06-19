@@ -1,5 +1,11 @@
 # hardhat
 
+## 2.15.0
+
+### Minor Changes
+
+- 99995d53b: The sample projects now use the new version of the Toolbox
+
 ## 2.14.1
 
 ### Patch Changes

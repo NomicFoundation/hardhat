@@ -1,6 +1,6 @@
 {
   "name": "@nomicfoundation/hardhat-chai-matchers",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "Hardhat utils for testing",
   "homepage": "https://github.com/nomicfoundation/hardhat/tree/main/packages/hardhat-chai-matchers",
   "repository": "github:nomicfoundation/hardhat",
@@ -68,7 +68,6 @@
     "hardhat": "^2.9.4"
   },
   "dependencies": {
-    "@ethersproject/abi": "^5.1.2",
     "@types/chai-as-promised": "^7.1.3",
     "chai-as-promised": "^7.1.1",
     "deep-eql": "^4.0.1",

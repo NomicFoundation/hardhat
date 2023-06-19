@@ -1,5 +1,5 @@
 ---
-"@nomiclabs/hardhat-etherscan": patch
+"@nomiclabs/hardhat-verify": patch
 ---
 
-Fix URLs for the Aurora networks (thanks @zZoMROT!)
+Fix URLs for the Aurora networks (thanks @zZoMROT and @ZumZoom!)

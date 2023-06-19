@@ -6,7 +6,7 @@ import {
   ContractVerificationRequestError,
   ContractVerificationMissingBytecodeError,
   ContractVerificationInvalidStatusCodeError,
-  HardhatEtherscanError,
+  HardhatVerifyError,
   MissingApiKeyError,
   ContractStatusPollingResponseNotOkError,
 } from "./errors";
@@ -109,7 +109,7 @@ export class Etherscan {
     }
 
     if (!etherscanResponse.isOk()) {
-      throw new HardhatEtherscanError(etherscanResponse.message);
+      throw new HardhatVerifyError(etherscanResponse.message);
     }
 
     return etherscanResponse;
