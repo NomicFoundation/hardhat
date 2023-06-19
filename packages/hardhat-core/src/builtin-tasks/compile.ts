@@ -214,6 +214,7 @@ subtask(TASK_COMPILE_SOLIDITY_GET_DEPENDENCY_GRAPH)
       const resolvedFiles = await Promise.all(
         sourceNames.map((sn) => resolver.resolveSourceName(sn))
       );
+
       return DependencyGraph.createFromResolvedFiles(resolver, resolvedFiles);
     }
   );
@@ -1294,11 +1295,12 @@ subtask(TASK_COMPILE_SOLIDITY)
       }: { force: boolean; quiet: boolean; concurrency: number },
       { artifacts, config, run }
     ) => {
+      const rootPath = config.paths.root;
+
       const sourcePaths: string[] = await run(
         TASK_COMPILE_SOLIDITY_GET_SOURCE_PATHS,
         { sourcePath: config.paths.sources }
       );
-      const rootPath = config.paths.root;
       const sourceNames: string[] = await run(
         TASK_COMPILE_SOLIDITY_GET_SOURCE_NAMES,
         {
