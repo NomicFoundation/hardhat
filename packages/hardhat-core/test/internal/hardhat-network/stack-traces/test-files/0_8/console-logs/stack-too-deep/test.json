@@ -1,5 +1,6 @@
 {
   "solc": "^0.8.0",
+  "onlyViaIR": true,
   "transactions": [
     {
       "file": "c.sol",

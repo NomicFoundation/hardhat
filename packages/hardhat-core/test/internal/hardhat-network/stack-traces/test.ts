@@ -70,6 +70,7 @@ interface StackFrameDescription {
 interface TestDefinition {
   skip?: boolean;
   skipViaIR?: boolean;
+  onlyViaIR?: boolean;
   only?: boolean;
   print?: boolean;
   solc?: string;
@@ -143,6 +144,8 @@ function defineTest(
     testDefinition.skip === true ||
     (testDefinition.skipViaIR === true &&
       compilerOptions.optimizer?.viaIR === true) ||
+    (testDefinition.onlyViaIR === true &&
+      compilerOptions.optimizer?.viaIR !== true) ||
     solcVersionDoesntMatch
   ) {
     it.skip(desc, func);
