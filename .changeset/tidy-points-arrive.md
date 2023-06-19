@@ -2,4 +2,4 @@
 "@nomicfoundation/hardhat-verify": patch
 ---
 
-Modify success message for a more generic one.
+Success messages are now more generic (thanks @clauBv23!).
