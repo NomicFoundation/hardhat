@@ -1,3 +1,4 @@
+import { isDeploymentExecutionState } from "../../../internal/utils/guards";
 import { isDeploymentType } from "../../type-guards";
 import { FutureStart, JournalableMessage } from "../../types/journal";
 import {
@@ -6,6 +7,7 @@ import {
   ExecutionStateMap,
   ExecutionStatus,
 } from "../types/execution-state";
+import { assertIgnitionInvariant } from "../utils/assertions";
 
 export function executionStateReducer(
   executionStateMap: ExecutionStateMap,
@@ -19,8 +21,16 @@ export function executionStateReducer(
   }
 
   if (action.type === "execution-success") {
-    const updatedExecutionState: DeploymentExecutionState = {
-      ...(executionStateMap[action.futureId] as DeploymentExecutionState),
+    const previousDeploymentExecutionState = executionStateMap[action.futureId];
+
+    assertIgnitionInvariant(
+      previousDeploymentExecutionState !== undefined &&
+        isDeploymentExecutionState(previousDeploymentExecutionState),
+      "TBD - only deployment state is currently implemented for execution success"
+    );
+
+    const updatedExecutionState: ExecutionState = {
+      ...previousDeploymentExecutionState,
       status: ExecutionStatus.SUCCESS,
       contractAddress: action.contractAddress,
     };
