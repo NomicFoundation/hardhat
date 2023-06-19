@@ -9,4 +9,10 @@ contract C {
     assert(b);
   }
 
+  // test2 is needed as workaround for the source mappings issue
+  // with test2 solc is forced to generate different jumpdests
+  // as a side effect proper source mappings are generated as well
+  function test2() public {
+    console.log("s");
+  }
 }
