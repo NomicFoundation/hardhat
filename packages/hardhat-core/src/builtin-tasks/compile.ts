@@ -122,7 +122,7 @@ subtask(TASK_COMPILE_SOLIDITY_GET_SOURCE_PATHS)
       { sourcePath }: { sourcePath?: string },
       { config }
     ): Promise<string[]> => {
-      return getAllFilesMatching(sourcePath || config.paths.sources, (f) =>
+      return getAllFilesMatching(sourcePath ?? config.paths.sources, (f) =>
         f.endsWith(".sol")
       );
     }
@@ -151,7 +151,7 @@ subtask(TASK_COMPILE_SOLIDITY_GET_SOURCE_NAMES)
     ): Promise<string[]> => {
       return Promise.all(
         sourcePaths.map((p) =>
-          localPathToSourceName(rootPath || config.paths.root, p)
+          localPathToSourceName(rootPath ?? config.paths.root, p)
         )
       );
     }
@@ -203,7 +203,7 @@ subtask(TASK_COMPILE_SOLIDITY_GET_DEPENDENCY_GRAPH)
     ): Promise<taskTypes.DependencyGraph> => {
       const parser = new Parser(solidityFilesCache);
       const resolver = new Resolver(
-        rootPath || config.paths.root,
+        rootPath ?? config.paths.root,
         parser,
         (absolutePath: string) =>
           run(TASK_COMPILE_SOLIDITY_READ_FILE, { absolutePath }),
