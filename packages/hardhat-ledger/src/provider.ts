@@ -335,7 +335,7 @@ export class LedgerProvider extends ProviderWrapperWithChainId {
 
     this.emit("derivation_start");
 
-    let path = "";
+    let path = "<unset-path>";
     try {
       for (
         let account = 0;
