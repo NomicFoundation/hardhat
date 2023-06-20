@@ -6,7 +6,7 @@ describe("console.sol", function () {
   useEnvironment();
 
   it("should be memory safe", async function () {
-    // the memory-safe-consoel fixture project won't compile
+    // the memory-safe-console fixture project won't compile
     // if console.sol is not memory-safe
     await this.env.run("compile");
   });
