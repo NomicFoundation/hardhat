@@ -98,10 +98,37 @@ pub struct CompilerOutputBytecode {
     link_references: HashMap<String, HashMap<String, Vec<LinkReference>>>,
 }
 
+pub mod u64_20 {
+    pub fn serialize<S>(val: &u64, s: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        if *val == 20 {
+            s.serialize_u64(*val)
+        } else {
+            use serde::ser::Error;
+            Err(S::Error::custom("value must be 20"))
+        }
+    }
+
+    pub fn deserialize<'de, D>(deserializer: D) -> Result<u64, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        let s: u64 = serde::de::Deserialize::deserialize(deserializer)?;
+        if s == 20 {
+            Ok(s)
+        } else {
+            use serde::de::Error;
+            Err(D::Error::custom("value must be 20"))
+        }
+    }
+}
+
 #[derive(Clone, Debug, PartialEq, serde::Deserialize, serde::Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LinkReference {
     start: usize,
-    length: usize, // TODO: this should always be 20; can we enforce that
-                   // statically?
+    #[serde(with = "u64_20")]
+    length: u64,
 }
