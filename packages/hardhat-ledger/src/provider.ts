@@ -36,7 +36,6 @@ export class LedgerProvider extends ProviderWrapperWithChainId {
   public name: string = "LedgerProvider";
 
   protected _eth: EthWrapper | undefined;
-  private _isCreatingTransport = false;
 
   public static async create(
     options: LedgerOptions,
@@ -71,9 +70,7 @@ export class LedgerProvider extends ProviderWrapperWithChainId {
   }
 
   public async init(): Promise<void> {
-    if (this._eth === undefined && !this._isCreatingTransport) {
-      this._isCreatingTransport = true;
-
+    if (this._eth === undefined) {
       const openTimeout =
         this.options.openTimeout ?? LedgerProvider.DEFAULT_TIMEOUT;
 
@@ -99,7 +96,6 @@ export class LedgerProvider extends ProviderWrapperWithChainId {
 
         throw error;
       }
-      this._isCreatingTransport = false;
     }
 
     try {
