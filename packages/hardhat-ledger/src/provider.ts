@@ -109,10 +109,7 @@ export class LedgerProvider extends ProviderWrapperWithChainId {
   public async request(args: RequestArguments): Promise<unknown> {
     const params = this._getParams(args);
 
-    if (
-      args.method === "eth_accounts" ||
-      args.method === "eth_requestAccounts"
-    ) {
+    if (args.method === "eth_accounts") {
       const accounts = (await this._wrappedProvider.request(args)) as string[];
       return [...accounts, ...this.options.accounts];
     }

@@ -409,24 +409,6 @@ describe("LedgerProvider", () => {
         sinon.assert.notCalled(initSpy);
       });
 
-      it("should return the configured and base accounts when the JSONRPC eth_requestAccounts method is called", async () => {
-        const baseAccounts = [
-          "0x18225dbbd263d5a01ac537db4d1eefc12fae8b24",
-          "0x704ad3adfa9eae2be46c907ef5325d0fabe17353",
-        ];
-        sinon.stub(mockedProvider, "request").callsFake(async (args) => {
-          if (args.method === "eth_requestAccounts") {
-            return baseAccounts;
-          }
-        });
-
-        const resultAccounts = await provider.request({
-          method: "eth_requestAccounts",
-        });
-        assert.deepEqual([...baseAccounts, ...accounts], resultAccounts);
-        sinon.assert.notCalled(initSpy);
-      });
-
       it("should call the ledger's signPersonalMessage method when the JSONRPC personal_sign method is called", async () => {
         const stub = ethInstanceStub.signPersonalMessage.returns(
           Promise.resolve(rsv)
@@ -760,17 +742,12 @@ describe("LedgerProvider", () => {
 
       describe("eth_accounts", () => {
         beforeEach(() => {
-          // eth_accounts and eth_requestAccounts will be called to merge the accounts
+          // eth_accounts will be called to merge the accounts
           sinon.stub(mockedProvider, "request").returns(Promise.resolve([]));
         });
 
         it("should not emit a connection or derivation event with eth_accounts", async () => {
           await provider.request({ method: "eth_accounts" });
-          sinon.assert.notCalled(emitSpy);
-        });
-
-        it("should not emit a connection or derivation event with eth_requestAccounts", async () => {
-          await provider.request({ method: "eth_requestAccounts" });
           sinon.assert.notCalled(emitSpy);
         });
       });
