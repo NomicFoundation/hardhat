@@ -25,7 +25,7 @@ import {
 import { isAddress } from "../utils";
 import { assertIgnitionInvariant } from "../utils/assertions";
 import { replaceWithinArg } from "../utils/replace-within-arg";
-import { resolveModuleParameter } from "../utils/resolveModuleParameter";
+import { resolveModuleParameter } from "../utils/resolve-module-parameter";
 
 import { ReconciliationContext } from "./types";
 import { moduleParameterToErrorString } from "./utils";

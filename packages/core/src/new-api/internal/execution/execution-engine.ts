@@ -1,7 +1,6 @@
 import identity from "lodash/identity";
 
 import { IgnitionError } from "../../../errors";
-import { isDeploymentExecutionState } from "../../../internal/utils/guards";
 import { isRuntimeValue } from "../../type-guards";
 import { ArtifactResolver } from "../../types/artifact";
 import { DeploymentResult } from "../../types/deployer";
@@ -20,11 +19,13 @@ import {
   RuntimeValueType,
 } from "../../types/module";
 import { accountRuntimeValueToErrorString } from "../reconciliation/utils";
+import { isDeploymentExecutionState } from "../type-guards";
 import { ExecutionEngineState } from "../types/execution-engine";
 import { ExecutionStateMap, ExecutionStatus } from "../types/execution-state";
 import { getFuturesFromModule } from "../utils/get-futures-from-module";
 import { replaceWithinArg } from "../utils/replace-within-arg";
-import { resolveModuleParameter } from "../utils/resolveModuleParameter";
+import { resolveFutureToValue } from "../utils/resolve-future-to-value";
+import { resolveModuleParameter } from "../utils/resolve-module-parameter";
 
 import { executionStateReducer } from "./executionStateReducer";
 import { isExecutionResult, isOnChainAction, isOnchainResult } from "./guards";
@@ -173,6 +174,7 @@ export class ExecutionEngine {
   private async _initCommandFor(
     future: Future,
     {
+      executionStateMap,
       accounts,
       artifactResolver,
       deploymentParameters,
@@ -227,6 +229,7 @@ export class ExecutionEngine {
           constructorArgs: this._resolveArgs(future.constructorArgs, {
             accounts,
             deploymentParameters,
+            executionStateMap,
           }),
           libraries: Object.fromEntries(
             Object.entries(future.libraries).map(([key, lib]) => [key, lib.id])
@@ -294,13 +297,14 @@ export class ExecutionEngine {
     context: {
       deploymentParameters: { [key: string]: ModuleParameters };
       accounts: string[];
+      executionStateMap: ExecutionStateMap;
     }
   ) {
     const replace = (arg: ArgumentType) =>
       replaceWithinArg<ArgumentType>(arg, {
         bigint: identity,
-        future: (_f) => {
-          return null as any;
+        future: (f) => {
+          return resolveFutureToValue(f, context);
         },
         accountRuntimeValue: (arv) => context.accounts[arv.accountIndex],
         moduleParameterRuntimeValue: (mprv) => {

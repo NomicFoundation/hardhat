@@ -1,6 +1,6 @@
-import { isDeploymentExecutionState } from "../../../internal/utils/guards";
 import { isDeploymentType } from "../../type-guards";
 import { FutureStartMessage, JournalableMessage } from "../../types/journal";
+import { isDeploymentExecutionState } from "../type-guards";
 import {
   DeploymentExecutionState,
   ExecutionState,

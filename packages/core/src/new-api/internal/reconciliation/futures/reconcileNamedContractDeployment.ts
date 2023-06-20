@@ -2,7 +2,7 @@ import { isEqual } from "lodash";
 
 import { NamedContractDeploymentFuture } from "../../../types/module";
 import { DeploymentExecutionState } from "../../types/execution-state";
-import { resolveFromAddress } from "../../utils/resolveFromAddress";
+import { resolveFromAddress } from "../../utils/resolve-from-address";
 import { ExecutionStateResolver } from "../execution-state-resolver";
 import { ReconciliationContext, ReconciliationFutureResult } from "../types";
 import { addressToErrorString, fail } from "../utils";

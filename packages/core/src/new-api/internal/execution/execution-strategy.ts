@@ -1,11 +1,11 @@
 import { IgnitionError } from "../../../errors";
-import { isDeploymentExecutionState } from "../../../internal/utils/guards";
 import {
   DeployedContractExecutionSuccess,
   JournalableMessage,
   OnchainInteractionMessage,
   OnchainResultMessage,
 } from "../../types/journal";
+import { isDeploymentExecutionState } from "../type-guards";
 import { ExecutionStrategy } from "../types/execution-engine";
 import {
   DeploymentExecutionState,

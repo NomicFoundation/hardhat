@@ -35,3 +35,5 @@ export function resolveModuleParameter(
 
   return moduleParamValue;
 }
+
+export function resolveFuture() {}

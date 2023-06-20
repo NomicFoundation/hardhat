@@ -22,12 +22,6 @@ import type {
 } from "../types/deploymentGraph";
 
 import { IgnitionError } from "../../errors";
-import {
-  DeploymentExecutionState,
-  ExecutionState,
-  StaticCallExecutionState,
-} from "../../new-api/internal/types/execution-state";
-import { FutureType } from "../../new-api/types/module";
 import { ArtifactOld } from "../../types/hardhat";
 import { ModuleDict } from "../../types/module";
 
@@ -153,23 +147,6 @@ export function isLibrary(
   }
 
   return future.type === "library";
-}
-
-export function isDeploymentExecutionState(
-  executionState: ExecutionState
-): executionState is DeploymentExecutionState {
-  return [
-    FutureType.NAMED_CONTRACT_DEPLOYMENT,
-    FutureType.ARTIFACT_CONTRACT_DEPLOYMENT,
-    FutureType.NAMED_LIBRARY_DEPLOYMENT,
-    FutureType.ARTIFACT_LIBRARY_DEPLOYMENT,
-  ].includes(executionState.futureType);
-}
-
-export function isStaticCallExecutionState(
-  executionState: ExecutionState
-): executionState is StaticCallExecutionState {
-  return [FutureType.NAMED_STATIC_CALL].includes(executionState.futureType);
 }
 
 export function assertModuleReturnTypes<T extends ModuleDict>(moduleResult: T) {
