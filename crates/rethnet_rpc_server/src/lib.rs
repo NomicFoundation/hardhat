@@ -99,7 +99,7 @@ async fn set_block_context<T>(
                     BlockSpec::Tag(tag) => {
                         if let Some(fork_client) = state.fork_client.clone() {
                             if let Some(block_number) =
-                                (*fork_client)
+                                fork_client
                                     .lock()
                                     .await
                                     .get_block_by_number(BlockSpec::Tag(tag.clone()))
@@ -315,7 +315,7 @@ async fn handle_set_code(
 async fn handle_set_nonce(state: StateType, address: Address, nonce: U256) -> ResponseData<()> {
     match TryInto::<u64>::try_into(nonce) {
         Ok(nonce) => {
-            match (*state.rethnet).write().await.modify_account(
+            match state.rethnet.write().await.modify_account(
                 address,
                 AccountModifierFn::new(Box::new(move |_, account_nonce, _| *account_nonce = nonce)),
                 &|| {
@@ -341,7 +341,8 @@ async fn handle_set_storage_at(
     position: U256,
     value: U256,
 ) -> ResponseData<()> {
-    match (*state.rethnet)
+    match state
+        .rethnet
         .write()
         .await
         .set_account_storage_slot(address, position, value)
