@@ -7,7 +7,9 @@ const libArtifact = require("../libArtifacts/BasicLibrary.json");
 module.exports = defineModule("CompleteModule", (m) => {
   const basic = m.contract("BasicContract");
   const library = m.library("BasicLibrary");
-  // const libFromArtifact = m.libraryFromArtifact("BasicLibrary", libArtifact);
+  const libFromArtifact = m.libraryFromArtifact("BasicLibrary", libArtifact, {
+    id: "BasicLibrary2",
+  });
   const withLib = m.contractFromArtifact(
     "ContractWithLibrary",
     withLibArtifact,
@@ -33,7 +35,7 @@ module.exports = defineModule("CompleteModule", (m) => {
   return {
     basic,
     library,
-    // libFromArtifact,
+    libFromArtifact,
     withLib,
     // duplicate,
     // duplicateWithLib,

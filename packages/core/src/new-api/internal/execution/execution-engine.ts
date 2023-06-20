@@ -92,10 +92,6 @@ export class ExecutionEngine {
     while (!isExecutionResult(current)) {
       context.executionState = state.executionStateMap[future.id];
 
-      if (dependencies.length > 0) {
-        console.log(state.executionStateMap[dependencies[0]]);
-      }
-
       if (isOnChainAction(current)) {
         current = await state.transactionService.onchain(current, {
           libraries,
@@ -231,6 +227,25 @@ export class ExecutionEngine {
         };
         return state;
       case FutureType.ARTIFACT_LIBRARY_DEPLOYMENT:
+        state = {
+          type: "execution-start",
+          futureId: future.id,
+          futureType: future.type,
+          strategy,
+          // status: ExecutionStatus.STARTED,
+          dependencies: [...future.dependencies].map((f) => f.id),
+          // history: [],
+          storedArtifactPath: "./artifact.json",
+          storedBuildInfoPath: "./build-info.json",
+          contractName: future.contractName,
+          value: "0",
+          constructorArgs: [],
+          libraries: Object.fromEntries(
+            Object.entries(future.libraries).map(([key, lib]) => [key, lib.id])
+          ),
+          from: this._resolveAddress(future.from, { accounts }),
+        };
+        return state;
       case FutureType.NAMED_CONTRACT_CALL:
       case FutureType.NAMED_STATIC_CALL:
       case FutureType.NAMED_CONTRACT_AT:
