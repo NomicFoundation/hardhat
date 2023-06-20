@@ -247,12 +247,6 @@ export class LedgerProvider extends ProviderWrapperWithChainId {
       });
     }
 
-    if (txRequest.from === undefined) {
-      throw new HardhatError(ERRORS.NETWORK.MISSING_TX_PARAM_TO_SIGN_LOCALLY, {
-        param: "from",
-      });
-    }
-
     const hasGasPrice = txRequest.gasPrice !== undefined;
     const hasEip1559Fields =
       txRequest.maxFeePerGas !== undefined ||
