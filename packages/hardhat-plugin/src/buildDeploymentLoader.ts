@@ -9,7 +9,6 @@ import path from "path";
 import { errorMonitor } from "stream";
 
 class IgnitionDeploymentLoader implements DeploymentLoader {
-  public journal: Journal;
   private _paths: {
     deploymentDir: string;
     artifactsDir: string;
@@ -17,9 +16,7 @@ class IgnitionDeploymentLoader implements DeploymentLoader {
     deployedAddressesPath: string;
   } | null = null;
 
-  constructor(private readonly _ignitionDir: string) {
-    this.journal = new MemoryJournal();
-  }
+  constructor(private readonly _ignitionDir: string, public journal: Journal) {}
 
   public async initialize(deploymentId: string): Promise<void> {
     // TODO: validate the deployment id
@@ -82,5 +79,10 @@ class IgnitionDeploymentLoader implements DeploymentLoader {
 export function buildDeploymentLoader(
   hre: HardhatRuntimeEnvironment
 ): DeploymentLoader {
-  return new IgnitionDeploymentLoader(hre.config.paths.ignition);
+  // TODO: bring back check with file journaling proper
+  const isHardhatNetwork = true; // hre.network.name === "hardhat";
+
+  const journal = isHardhatNetwork ? new MemoryJournal() : new MemoryJournal();
+
+  return new IgnitionDeploymentLoader(hre.config.paths.ignition, journal);
 }

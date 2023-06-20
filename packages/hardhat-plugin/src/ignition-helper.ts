@@ -4,7 +4,6 @@ import {
   IgnitionError,
   IgnitionModuleDefinition,
   IgnitionModuleResult,
-  MemoryJournal,
   ModuleParameters,
 } from "@ignored/ignition-core";
 import { Contract } from "ethers";
@@ -31,7 +30,6 @@ export class IgnitionHelper {
     })) as string[];
 
     const deployer = new Deployer({
-      journal: new MemoryJournal(),
       adapters: buildAdaptersFrom(this._hre),
       artifactResolver: buildArtifactResolverFrom(this._hre),
       deploymentLoader: buildDeploymentLoader(this._hre),

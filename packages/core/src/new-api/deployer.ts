@@ -27,7 +27,6 @@ import { TransactionService } from "./types/transaction-service";
  * @beta
  */
 export class Deployer {
-  private _journal: Journal;
   private _moduleConstructor: ModuleConstructor;
   private _executionEngine: ExecutionEngine;
   private _transactionService: TransactionService;
@@ -37,7 +36,6 @@ export class Deployer {
 
   constructor(
     options: {
-      journal: Journal;
       artifactResolver: ArtifactResolver;
       deploymentLoader: DeploymentLoader;
     } & (
@@ -49,7 +47,6 @@ export class Deployer {
         }
     )
   ) {
-    this._journal = options.journal;
     this._strategy = new BasicExecutionStrategy();
     this._artifactResolver = options.artifactResolver;
     this._deploymentLoader = options.deploymentLoader;
@@ -90,7 +87,9 @@ export class Deployer {
 
     await this._deploymentLoader.initialize(deployId);
 
-    const previousStateMap = await this._loadExecutionStateFrom(this._journal);
+    const previousStateMap = await this._loadExecutionStateFrom(
+      this._deploymentLoader.journal
+    );
 
     const reconciliationResult = Reconciler.reconcile(
       module,
@@ -111,7 +110,6 @@ export class Deployer {
 
     return this._executionEngine.execute({
       strategy: this._strategy,
-      journal: this._journal,
       transactionService: this._transactionService,
       artifactResolver: this._artifactResolver,
       batches,

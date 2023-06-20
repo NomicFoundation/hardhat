@@ -143,7 +143,7 @@ export class ExecutionEngine {
     state: ExecutionEngineState,
     message: JournalableMessage
   ): Promise<void> {
-    await state.journal.record(message);
+    await state.deploymentLoader.journal.record(message);
 
     if (isDeployedContractExecutionSuccess(message)) {
       await state.deploymentLoader.recordDeployedAddress(

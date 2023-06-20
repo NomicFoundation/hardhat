@@ -1,6 +1,5 @@
 import { ArtifactResolver, DeploymentLoader } from "../../types/artifact";
 import {
-  Journal,
   JournalableMessage,
   OnchainInteractionMessage,
   OnchainResultMessage,
@@ -21,7 +20,6 @@ export interface ExecutionEngineState {
   accounts: string[];
   deploymentParameters: { [key: string]: ModuleParameters };
   strategy: ExecutionStrategy;
-  journal: Journal;
   transactionService: TransactionService;
   artifactResolver: ArtifactResolver;
   deploymentLoader: DeploymentLoader;

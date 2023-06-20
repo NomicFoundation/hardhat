@@ -1,7 +1,5 @@
 import {
   Deployer,
-  FileJournal,
-  MemoryJournal,
   Module,
   ModuleConstructor,
   ModuleDict,
@@ -262,19 +260,10 @@ task("deploy2")
 
         const artifactResolver = buildArtifactResolverFrom(hre);
         const adapters = buildAdaptersFrom(hre);
-        // TODO: bring back check with file journaling proper
-        const isHardhatNetwork = true; // hre.network.name === "hardhat";
-
-        const journal = isHardhatNetwork
-          ? new MemoryJournal()
-          : new FileJournal(
-              resolveJournalPath(userModule.name, hre.config.paths.ignition)
-            );
 
         const deploymentLoader = buildDeploymentLoader(hre);
 
         const deployer = new Deployer({
-          journal,
           adapters,
           artifactResolver,
           deploymentLoader,

@@ -43,7 +43,7 @@ describe("execution engine", () => {
     const accounts: string[] = exampleAccounts;
     const mockTransactionService = setupMockTransactionService();
     const mockArtifactResolver = setupMockArtifactResolver();
-    const mockDeploymentLoader = setupMockDeploymentLoader();
+    const mockDeploymentLoader = setupMockDeploymentLoader(journal);
 
     const result = await executionEngine.execute({
       batches,
@@ -51,7 +51,6 @@ describe("execution engine", () => {
       executionStateMap,
       accounts,
       strategy: new BasicExecutionStrategy(),
-      journal,
       transactionService: mockTransactionService,
       artifactResolver: mockArtifactResolver,
       deploymentLoader: mockDeploymentLoader,
@@ -131,7 +130,7 @@ describe("execution engine", () => {
     const accounts: string[] = exampleAccounts;
     const mockTransactionService = setupMockTransactionService();
     const mockArtifactResolver = setupMockArtifactResolver();
-    const mockDeploymentLoader = setupMockDeploymentLoader();
+    const mockDeploymentLoader = setupMockDeploymentLoader(journal);
 
     const result = await executionEngine.execute({
       batches,
@@ -139,7 +138,6 @@ describe("execution engine", () => {
       executionStateMap,
       accounts,
       strategy: new BasicExecutionStrategy(),
-      journal,
       transactionService: mockTransactionService,
       artifactResolver: mockArtifactResolver,
       deploymentLoader: mockDeploymentLoader,
@@ -216,7 +214,7 @@ describe("execution engine", () => {
     const accounts: string[] = exampleAccounts;
     const mockTransactionService = setupMockTransactionService();
     const mockArtifactResolver = setupMockArtifactResolver();
-    const mockDeploymentLoader = setupMockDeploymentLoader();
+    const mockDeploymentLoader = setupMockDeploymentLoader(journal);
 
     const result = await executionEngine.execute({
       batches,
@@ -224,7 +222,6 @@ describe("execution engine", () => {
       executionStateMap,
       accounts,
       strategy: new BasicExecutionStrategy(),
-      journal,
       transactionService: mockTransactionService,
       artifactResolver: mockArtifactResolver,
       deploymentLoader: mockDeploymentLoader,
@@ -308,7 +305,7 @@ describe("execution engine", () => {
       const accounts: string[] = exampleAccounts;
       const mockTransactionService = setupMockTransactionService();
       const mockArtifactResolver = setupMockArtifactResolver();
-      const mockDeploymentLoader = setupMockDeploymentLoader();
+      const mockDeploymentLoader = setupMockDeploymentLoader(journal);
 
       const result = await executionEngine.execute({
         batches,
@@ -316,7 +313,6 @@ describe("execution engine", () => {
         executionStateMap,
         accounts,
         strategy: new BasicExecutionStrategy(),
-        journal,
         transactionService: mockTransactionService,
         artifactResolver: mockArtifactResolver,
         deploymentLoader: mockDeploymentLoader,
@@ -426,9 +422,9 @@ function setupMockTransactionService(): TransactionService {
   } as TransactionService;
 }
 
-function setupMockDeploymentLoader(): DeploymentLoader {
+function setupMockDeploymentLoader(journal: Journal): DeploymentLoader {
   return {
-    journal: new MemoryJournal(),
+    journal,
     initialize: () => {
       throw new Error("Not implemented");
     },
