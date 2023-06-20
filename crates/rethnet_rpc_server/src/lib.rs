@@ -459,30 +459,33 @@ pub async fn run(
         let fork_client = Arc::new(Mutex::new(rethnet_eth::remote::client::RpcClient::new(
             &config.json_rpc_url,
         )));
+
+        let runtime = tokio::runtime::Builder::new_multi_thread()
+            .enable_io()
+            .enable_time()
+            .build()
+            .expect("failed to construct async runtime");
+
+        let hash_generator = rethnet_evm::RandomHashGenerator::with_seed("seed");
+
+        let fork_block_number = match config.block_number {
+            Some(block_number) => U256::from(block_number),
+            None => fork_client
+                .lock()
+                .await
+                .get_block_by_number(rethnet_eth::remote::BlockSpec::latest())
+                .await
+                .expect("should retrieve latest block from fork source")
+                .number
+                .expect("fork source's latest block should have a block number"),
+        };
+
         Arc::new(AppState {
             rethnet: Arc::new(RwLock::new(Box::new(ForkState::new(
-                Arc::new(
-                    tokio::runtime::Builder::new_multi_thread()
-                        .enable_io()
-                        .enable_time()
-                        .build()
-                        .expect("failed to construct async runtime"),
-                ),
-                Arc::new(parking_lot::Mutex::new(
-                    rethnet_evm::RandomHashGenerator::with_seed("seed"),
-                )),
+                Arc::new(runtime),
+                Arc::new(parking_lot::Mutex::new(hash_generator)),
                 &config.json_rpc_url,
-                match config.block_number {
-                    Some(block_number) => U256::from(block_number),
-                    None => fork_client
-                        .lock()
-                        .await
-                        .get_block_by_number(rethnet_eth::remote::BlockSpec::latest())
-                        .await
-                        .expect("should retrieve latest block from fork source")
-                        .number
-                        .expect("fork source's latest block should have a block number"),
-                },
+                fork_block_number,
                 genesis_accounts,
             )))),
             fork_client: Some(fork_client),
