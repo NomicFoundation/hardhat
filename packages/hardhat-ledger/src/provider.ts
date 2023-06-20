@@ -48,7 +48,7 @@ export class LedgerProvider extends ProviderWrapperWithChainId {
 
   constructor(
     public readonly options: LedgerOptions,
-    protected readonly _wrappedProvider: EIP1193Provider
+    _wrappedProvider: EIP1193Provider
   ) {
     super(_wrappedProvider);
 
