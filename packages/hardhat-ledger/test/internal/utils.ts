@@ -1,5 +1,5 @@
 import { assert } from "chai";
-import { toHex } from "../../src/internal/address";
+import { toHex } from "../../src/internal/utils";
 
 describe("toHex", () => {
   it("should append 0x to the supplied string value", () => {

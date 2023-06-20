@@ -19,7 +19,7 @@ import { HardhatError } from "hardhat/internal/core/errors";
 import { ERRORS } from "hardhat/internal/core/errors-list";
 
 import * as cache from "./internal/cache";
-import { toHex } from "./internal/address";
+import { toHex } from "./internal/utils";
 import { wrapTransport } from "./internal/wrap-transport";
 import { LedgerOptions, EthWrapper, Signature, Paths } from "./types";
 import {
@@ -71,6 +71,10 @@ export class LedgerProvider extends ProviderWrapperWithChainId {
   }
 
   public async init(): Promise<void> {
+    // If init is called concurrently, it can cause the Ledger to throw
+    // because the transport might be in use. This is a known problem but shouldn't happen
+    // as init is not called manually. More info read: https://github.com/NomicFoundation/hardhat/pull/4008#discussion_r1233258204
+
     if (this._eth === undefined) {
       const openTimeout =
         this.options.openTimeout ?? LedgerProvider.DEFAULT_TIMEOUT;
