@@ -18,8 +18,9 @@ import { ProviderWrapperWithChainId } from "hardhat/internal/core/providers/chai
 import { HardhatError } from "hardhat/internal/core/errors";
 import { ERRORS } from "hardhat/internal/core/errors-list";
 
-import { wrapTransport } from "./internal/wrap-transport";
 import * as cache from "./internal/cache";
+import { toHex } from "./internal/address";
+import { wrapTransport } from "./internal/wrap-transport";
 import { LedgerOptions, EthWrapper, Signature, Paths } from "./types";
 import {
   HardhatLedgerConnectionError,
@@ -290,10 +291,10 @@ export class LedgerProvider extends ProviderWrapperWithChainId {
       value: txRequest.value,
     };
     if (txRequest.to !== undefined) {
-      baseTx.to = this._toHex(txRequest.to);
+      baseTx.to = toHex(txRequest.to);
     }
     if (txRequest.data !== undefined) {
-      baseTx.data = this._toHex(txRequest.data);
+      baseTx.data = toHex(txRequest.data);
     }
 
     const txToSign =
@@ -308,9 +309,9 @@ export class LedgerProvider extends ProviderWrapperWithChainId {
     const rawTransaction = ethers.Transaction.from({
       ...baseTx,
       signature: {
-        v: this._toHex(signature.v),
-        r: this._toHex(signature.r),
-        s: this._toHex(signature.s),
+        v: toHex(signature.v),
+        r: toHex(signature.r),
+        s: toHex(signature.s),
       },
     }).serialized;
 
@@ -321,7 +322,7 @@ export class LedgerProvider extends ProviderWrapperWithChainId {
   }
 
   private async _derivePath(addressToFindAsBuffer: Buffer): Promise<string> {
-    const addressToFind = this._toHex(addressToFindAsBuffer).toLowerCase();
+    const addressToFind = toHex(addressToFindAsBuffer).toLowerCase();
 
     if (this.paths[addressToFind] !== undefined) {
       return this.paths[addressToFind];
@@ -391,8 +392,8 @@ export class LedgerProvider extends ProviderWrapperWithChainId {
 
     return toRpcSig(
       BigInt(signature.v - 27),
-      toBuffer(this._toHex(signature.r)),
-      toBuffer(this._toHex(signature.s))
+      toBuffer(toHex(signature.r)),
+      toBuffer(toHex(signature.s))
     );
   }
 
@@ -413,7 +414,7 @@ export class LedgerProvider extends ProviderWrapperWithChainId {
   }
 
   private _requireControlledAddress(address: Buffer): void {
-    const hexAddress = this._toHex(address).toLowerCase();
+    const hexAddress = toHex(address).toLowerCase();
     const isControlledAddress = this.options.accounts.includes(hexAddress);
 
     if (!isControlledAddress) {
@@ -422,12 +423,5 @@ export class LedgerProvider extends ProviderWrapperWithChainId {
         hexAddress
       );
     }
-  }
-
-  private _toHex(value: string | Buffer): string {
-    const stringValue =
-      typeof value === "string" ? value : value.toString("hex");
-
-    return `0x${stringValue}`;
   }
 }
