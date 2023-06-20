@@ -6,7 +6,11 @@ import {
   OnchainInteractionMessage,
   OnchainResultMessage,
 } from "../../../types/journal";
-import { TransactionService } from "../../../types/transaction-service";
+import {
+  TransactionService,
+  TransactionServiceOptions,
+} from "../../../types/transaction-service";
+import { collectLibrariesAndLink } from "../../utils/collectLibrariesAndLink";
 import { isDeployContractInteraction } from "../guards";
 
 import { ChainDispatcher } from "./chain-dispatcher";
@@ -23,7 +27,8 @@ export class TransactionServiceImplementation implements TransactionService {
   ) {}
 
   public async onchain(
-    interaction: OnchainInteractionMessage
+    interaction: OnchainInteractionMessage,
+    options?: TransactionServiceOptions
   ): Promise<OnchainResultMessage> {
     if (!isDeployContractInteraction(interaction)) {
       throw new IgnitionError(
@@ -31,11 +36,12 @@ export class TransactionServiceImplementation implements TransactionService {
       );
     }
 
-    return this._dispatchDeployContract(interaction);
+    return this._dispatchDeployContract(interaction, options?.libraries);
   }
 
   private async _dispatchDeployContract(
-    deployContractInteraction: DeployContractInteractionMessage
+    deployContractInteraction: DeployContractInteractionMessage,
+    libraries: { [libraryName: string]: string } = {}
   ): Promise<DeployContractResultMessage> {
     // TODO: consider replacing this with a registry of artifacts
     const artifact = await this._artifactLoader.load(
@@ -45,8 +51,7 @@ export class TransactionServiceImplementation implements TransactionService {
     const args = deployContractInteraction.args;
     const value = BigInt(deployContractInteraction.value);
 
-    // TODO: add library linking
-    const linkedByteCode = artifact.bytecode;
+    const linkedByteCode = await collectLibrariesAndLink(artifact, libraries);
 
     const { contractAddress } = await this._chainDispatcher.sendTx({
       abi: artifact.abi,

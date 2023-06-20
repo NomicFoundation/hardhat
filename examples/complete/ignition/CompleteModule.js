@@ -8,14 +8,14 @@ module.exports = defineModule("CompleteModule", (m) => {
   const basic = m.contract("BasicContract");
   const library = m.library("BasicLibrary");
   // const libFromArtifact = m.libraryFromArtifact("BasicLibrary", libArtifact);
-  // const withLib = m.contractFromArtifact(
-  //   "ContractWithLibrary",
-  //   withLibArtifact,
-  //   [],
-  //   {
-  //     libraries: { BasicLibrary: library },
-  //   }
-  // );
+  const withLib = m.contractFromArtifact(
+    "ContractWithLibrary",
+    withLibArtifact,
+    [],
+    {
+      libraries: { BasicLibrary: library },
+    }
+  );
 
   // const call = m.call(basic, "basicFunction", [40]);
   // const eventArg = m.readEventArgument(call, "BasicEvent", "eventArg");
@@ -34,7 +34,7 @@ module.exports = defineModule("CompleteModule", (m) => {
     basic,
     library,
     // libFromArtifact,
-    // withLib,
+    withLib,
     // duplicate,
     // duplicateWithLib,
   };

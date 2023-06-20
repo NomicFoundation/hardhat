@@ -7,6 +7,18 @@ import { OnchainInteractionMessage, OnchainResultMessage } from "./journal";
  */
 export interface TransactionService {
   onchain(
-    interaction: OnchainInteractionMessage
+    interaction: OnchainInteractionMessage,
+    options?: TransactionServiceOptions
   ): Promise<OnchainResultMessage>;
+}
+
+/**
+ * Additional data needed to support various transaction types.
+ *
+ * @beta
+ */
+export interface TransactionServiceOptions {
+  libraries?: {
+    [libraryName: string]: string;
+  };
 }
