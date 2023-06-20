@@ -32,17 +32,26 @@ test-remote = []
 tracing = ["dep:tracing"]
 
 [[bench]]
-name = "state"
+name = "database_commit"
+path = "benches/state/database_commit.rs"
 harness = false
 
 [[bench]]
 name = "state_debug"
+path = "benches/state/state_debug.rs"
 harness = false
 
 [[bench]]
 name = "state_history"
+path = "benches/state/state_history.rs"
 harness = false
 
 [[bench]]
 name = "state_history_block_context"
+path = "benches/state/state_history_block_context.rs"
+harness = false
+
+[[bench]]
+name = "state_ref"
+path = "benches/state/state_ref.rs"
 harness = false

@@ -1,20 +1,34 @@
 import {
+  BlockData,
+  Block as EthereumJSBlock,
   BlockHeader as EthereumJSBlockHeader,
-  HeaderData,
+  HeaderData as EthereumJSHeaderData,
 } from "@nomicfoundation/ethereumjs-block";
+import { Common } from "@nomicfoundation/ethereumjs-common";
 import {
   AccessListEIP2930Transaction,
   FeeMarketEIP1559Transaction,
   TypedTransaction,
 } from "@nomicfoundation/ethereumjs-tx";
-import { Address, toBuffer } from "@nomicfoundation/ethereumjs-util";
 import {
+  Address,
+  BufferLike,
+  setLengthLeft,
+  toBuffer,
+} from "@nomicfoundation/ethereumjs-util";
+import {
+  Block as RethnetBlock,
   BlockConfig,
   BlockHeader as RethnetBlockHeader,
+  BlockOptions,
   ExecutionResult,
   Log,
   SpecId,
-  Transaction,
+  TransactionRequest,
+  LegacySignedTransaction,
+  Eip1559SignedTransaction,
+  Eip2930SignedTransaction,
+  PendingTransaction,
 } from "rethnet-evm";
 import { fromBigIntLike } from "../../../util/bigint";
 import { HardforkName } from "../../../util/hardforks";
@@ -26,6 +40,9 @@ import {
 } from "../../stack-traces/message-trace";
 import { Exit, ExitCode } from "../vm/exit";
 import { RunTxResult } from "../vm/vm-adapter";
+import { FakeSenderEIP1559Transaction } from "../transactions/FakeSenderEIP1559Transaction";
+import { FakeSenderAccessListEIP2930Transaction } from "../transactions/FakeSenderAccessListEIP2930Transaction";
+import { FakeSenderTransaction } from "../transactions/FakeSenderTransaction";
 import { Bloom } from "./bloom";
 
 /* eslint-disable @nomiclabs/hardhat-internal-rules/only-hardhat-error */
@@ -48,8 +65,33 @@ export function ethereumjsBlockHeaderToRethnet(
     timestamp: blockHeader.timestamp,
     extraData: blockHeader.extraData,
     mixHash: blockHeader.mixHash,
-    nonce: BigInt(`0x${blockHeader.nonce.toString("hex")}`),
+    nonce: blockHeader.nonce,
     baseFeePerGas: blockHeader.baseFeePerGas,
+    withdrawalsRoot: blockHeader.withdrawalsRoot,
+  };
+}
+
+export function rethnetBlockHeaderToEthereumJSBlockData(
+  blockHeader: RethnetBlockHeader
+): EthereumJSHeaderData {
+  return {
+    parentHash: blockHeader.parentHash,
+    uncleHash: blockHeader.ommersHash,
+    coinbase: new Address(blockHeader.beneficiary),
+    stateRoot: blockHeader.stateRoot,
+    transactionsTrie: blockHeader.transactionsRoot,
+    receiptTrie: blockHeader.receiptsRoot,
+    logsBloom: blockHeader.logsBloom,
+    difficulty: blockHeader.difficulty,
+    number: blockHeader.number,
+    gasLimit: blockHeader.gasLimit,
+    gasUsed: blockHeader.gasUsed,
+    timestamp: blockHeader.timestamp,
+    extraData: blockHeader.extraData,
+    mixHash: blockHeader.mixHash,
+    nonce: blockHeader.nonce,
+    baseFeePerGas: blockHeader.baseFeePerGas,
+    withdrawalsRoot: blockHeader.withdrawalsRoot,
   };
 }
 
@@ -95,56 +137,202 @@ export function ethereumsjsHardforkToRethnet(hardfork: HardforkName): SpecId {
   }
 }
 
-export function ethereumjsHeaderDataToRethnet(
-  headerData?: HeaderData,
+export function ethereumjsHeaderDataToRethnetBlockConfig(
+  headerData?: EthereumJSHeaderData,
   difficulty?: bigint,
-  prevRandao?: Buffer
+  mixHash?: Buffer
 ): BlockConfig {
-  const coinbase =
+  const beneficiary =
     headerData?.coinbase === undefined
       ? undefined
       : toBuffer(headerData.coinbase);
 
   return {
     number: fromBigIntLike(headerData?.number),
-    coinbase,
+    beneficiary,
     timestamp: fromBigIntLike(headerData?.timestamp),
     difficulty,
-    prevrandao: prevRandao,
-    basefee: fromBigIntLike(headerData?.baseFeePerGas),
+    mixHash,
+    baseFee: fromBigIntLike(headerData?.baseFeePerGas),
     gasLimit: fromBigIntLike(headerData?.gasLimit),
     parentHash: headerData?.parentHash as Buffer,
   };
 }
 
-export function ethereumjsTransactionToRethnet(
-  tx: TypedTransaction
-): Transaction {
-  const chainId = (_tx: TypedTransaction) => {
-    if (_tx instanceof AccessListEIP2930Transaction) {
-      return (_tx as AccessListEIP2930Transaction).chainId;
-    } else if (_tx instanceof FeeMarketEIP1559Transaction) {
-      return (_tx as FeeMarketEIP1559Transaction).chainId;
-    } else {
-      return undefined;
+export function ethereumjsHeaderDataToRethnetBlockOptions(
+  headerData?: EthereumJSHeaderData
+): BlockOptions {
+  if (headerData === undefined) {
+    return {};
+  }
+
+  // Ensure that we leave leave options undefined, as opposed to `toBuffer`
+  function fromBufferLike(bufferLike?: BufferLike): Buffer | undefined {
+    if (bufferLike === undefined) {
+      return bufferLike;
     }
+
+    return toBuffer(bufferLike);
+  }
+
+  return {
+    parentHash: fromBufferLike(headerData.parentHash),
+    beneficiary: fromBufferLike(headerData.coinbase),
+    stateRoot: fromBufferLike(headerData.stateRoot),
+    receiptsRoot: fromBufferLike(headerData.receiptTrie),
+    logsBloom: fromBufferLike(headerData.logsBloom),
+    difficulty: fromBigIntLike(headerData.difficulty),
+    number: fromBigIntLike(headerData.number),
+    gasLimit: fromBigIntLike(headerData.gasLimit),
+    timestamp: fromBigIntLike(headerData.timestamp),
+    extraData: fromBufferLike(headerData.extraData),
+    mixHash: fromBufferLike(headerData.mixHash),
+    nonce: fromBufferLike(headerData.nonce),
+    baseFee: fromBigIntLike(headerData.baseFeePerGas),
+  };
+}
+
+export function ethereumjsTransactionToRethnetPendingTransaction(
+  tx: TypedTransaction
+): PendingTransaction {
+  const caller = tx.getSenderAddress().toBuffer();
+  if (tx instanceof AccessListEIP2930Transaction) {
+    const transaction: Eip2930SignedTransaction = {
+      chainId: tx.chainId,
+      nonce: tx.nonce,
+      gasPrice: tx.gasPrice,
+      gasLimit: tx.gasLimit,
+      to: tx.to?.buf,
+      value: tx.value,
+      input: tx.data,
+      accessList: tx.accessList.map((value, _index, _array) => {
+        return {
+          address: value[0],
+          storageKeys: value[1],
+        };
+      }),
+      oddYParity: (tx.v ?? BigInt(0)) > 0,
+      r: setLengthLeft(toBuffer(tx.r ?? BigInt(0)), 32),
+      s: setLengthLeft(toBuffer(tx.s ?? BigInt(0)), 32),
+    };
+
+    return {
+      transaction,
+      caller,
+    };
+  } else if (tx instanceof FeeMarketEIP1559Transaction) {
+    return {
+      transaction: {
+        chainId: tx.chainId,
+        nonce: tx.nonce,
+        maxPriorityFeePerGas: tx.maxPriorityFeePerGas,
+        maxFeePerGas: tx.maxFeePerGas,
+        gasLimit: tx.gasLimit,
+        to: tx.to?.buf,
+        value: tx.value,
+        input: tx.data,
+        accessList: tx.accessList.map((value, _index, _array) => {
+          return {
+            address: value[0],
+            storageKeys: value[1],
+          };
+        }),
+        oddYParity: (tx.v ?? BigInt(0)) > 0,
+        r: setLengthLeft(toBuffer(tx.r ?? BigInt(0)), 32),
+        s: setLengthLeft(toBuffer(tx.s ?? BigInt(0)), 32),
+      },
+      caller,
+    };
+  } else {
+    return {
+      transaction: {
+        nonce: tx.nonce,
+        gasPrice: tx.gasPrice,
+        gasLimit: tx.gasLimit,
+        to: tx.to?.buf,
+        value: tx.value,
+        input: tx.data,
+        signature: {
+          r: tx.r,
+          s: tx.s,
+          v: tx.v!,
+        },
+      },
+      caller,
+    };
+  }
+}
+
+export function ethereumjsTransactionToRethnetTransactionRequest(
+  tx: TypedTransaction
+): TransactionRequest {
+  if (tx instanceof AccessListEIP2930Transaction) {
+    return {
+      chainId: tx.chainId,
+      nonce: tx.nonce,
+      gasPrice: tx.gasPrice,
+      gasLimit: tx.gasLimit,
+      from: tx.getSenderAddress().toBuffer(),
+      to: tx.to?.buf,
+      value: tx.value,
+      input: tx.data,
+      accessList: tx.accessList.map((value, _index, _array) => {
+        return {
+          address: value[0],
+          storageKeys: value[1],
+        };
+      }),
+    };
+  } else if (tx instanceof FeeMarketEIP1559Transaction) {
+    return {
+      chainId: tx.chainId,
+      nonce: tx.nonce,
+      gasPriorityFee: tx.maxPriorityFeePerGas,
+      gasPrice: tx.maxFeePerGas,
+      gasLimit: tx.gasLimit,
+      from: tx.getSenderAddress().toBuffer(),
+      to: tx.to?.buf,
+      value: tx.value,
+      input: tx.data,
+      accessList: tx.accessList.map((value, _index, _array) => {
+        return {
+          address: value[0],
+          storageKeys: value[1],
+        };
+      }),
+    };
+  } else {
+    return {
+      nonce: tx.nonce,
+      gasPrice: tx.gasPrice,
+      gasLimit: tx.gasLimit,
+      from: tx.getSenderAddress().toBuffer(),
+      to: tx.to?.buf,
+      value: tx.value,
+      input: tx.data,
+    };
+  }
+}
+
+export function rethnetBlockToEthereumJS(
+  block: RethnetBlock,
+  common: Common
+): EthereumJSBlock {
+  const callers = block.callers;
+  const blockData: BlockData = {
+    header: rethnetBlockHeaderToEthereumJSBlockData(block.header),
+    transactions: block.transactions.map((transaction, index, _array) => {
+      return rethnetSignedTransactionToEthereumJSTypedTransaction(
+        transaction,
+        new Address(callers[index])
+      );
+    }),
   };
 
-  const rethnetTx: Transaction = {
-    from: tx.getSenderAddress().toBuffer(),
-    to: tx.to?.buf,
-    gasLimit: tx.gasLimit,
-    gasPrice:
-      (tx as FeeMarketEIP1559Transaction)?.maxFeePerGas ?? (tx as any).gasPrice,
-    gasPriorityFee: (tx as FeeMarketEIP1559Transaction)?.maxPriorityFeePerGas,
-    value: tx.value,
-    nonce: tx.nonce,
-    input: tx.data,
-    accessList: (tx as AccessListEIP2930Transaction)?.AccessListJSON,
-    chainId: chainId(tx),
-  };
-
-  return rethnetTx;
+  return EthereumJSBlock.fromBlockData(blockData, {
+    common,
+    skipConsensusFormatValidation: true,
+  });
 }
 
 function rethnetLogsToBloom(logs: Log[]): Bloom {
@@ -203,4 +391,93 @@ export function rethnetResultToRunTxResult(
         : [],
     },
   };
+}
+
+function rethnetSignedTransactionToEthereumJSTypedTransaction(
+  transaction:
+    | LegacySignedTransaction
+    | Eip2930SignedTransaction
+    | Eip1559SignedTransaction,
+  caller: Address
+): TypedTransaction {
+  if (isEip1559SignedTransaction(transaction)) {
+    return new FakeSenderEIP1559Transaction(caller, {
+      maxPriorityFeePerGas: transaction.maxPriorityFeePerGas,
+      maxFeePerGas: transaction.maxFeePerGas,
+      chainId: transaction.chainId,
+      accessList: transaction.accessList.map((value, _index, _array) => {
+        return [value.address, value.storageKeys];
+      }),
+      nonce: transaction.nonce,
+      gasLimit: transaction.gasLimit,
+      to: transaction.to,
+      value: transaction.value,
+      data: transaction.input,
+      v: BigInt(transaction.oddYParity),
+      r: transaction.r,
+      s: transaction.s,
+    });
+  } else if (isEip2930SignedTransaction(transaction)) {
+    return new FakeSenderAccessListEIP2930Transaction(caller, {
+      chainId: transaction.chainId,
+      accessList: transaction.accessList.map((value, _index, _array) => {
+        return [value.address, value.storageKeys];
+      }),
+      nonce: transaction.nonce,
+      gasPrice: transaction.gasPrice,
+      gasLimit: transaction.gasLimit,
+      to: transaction.to,
+      value: transaction.value,
+      data: transaction.input,
+      v: BigInt(transaction.oddYParity),
+      r: transaction.r,
+      s: transaction.s,
+    });
+  } else if (isLegacySignedTransaction(transaction)) {
+    return new FakeSenderTransaction(caller, {
+      nonce: transaction.nonce,
+      gasPrice: transaction.gasPrice,
+      gasLimit: transaction.gasLimit,
+      to: transaction.to,
+      value: transaction.value,
+      data: transaction.input,
+      v: transaction.signature.v,
+      r: transaction.signature.r,
+      s: transaction.signature.s,
+    });
+  } else {
+    throw new Error("Unknown signed transaction type");
+  }
+}
+
+function isLegacySignedTransaction(
+  transaction:
+    | LegacySignedTransaction
+    | Eip2930SignedTransaction
+    | Eip1559SignedTransaction
+): transaction is LegacySignedTransaction {
+  // Only need to check for one unique field
+  return "signature" in transaction;
+}
+
+function isEip1559SignedTransaction(
+  transaction:
+    | LegacySignedTransaction
+    | Eip2930SignedTransaction
+    | Eip1559SignedTransaction
+): transaction is Eip1559SignedTransaction {
+  // Only need to check for one unique field
+  return "maxPriorityFeePerGas" in transaction;
+}
+
+function isEip2930SignedTransaction(
+  transaction:
+    | LegacySignedTransaction
+    | Eip2930SignedTransaction
+    | Eip1559SignedTransaction
+): transaction is Eip2930SignedTransaction {
+  // Only need to check for one unique field
+  return (
+    !isEip1559SignedTransaction(transaction) && "oddYParity" in transaction
+  );
 }

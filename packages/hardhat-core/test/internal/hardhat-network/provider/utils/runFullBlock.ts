@@ -8,10 +8,10 @@ import { defaultHardhatNetworkParams } from "../../../../../src/internal/core/co
 import { ForkStateManager } from "../../../../../src/internal/hardhat-network/provider/fork/ForkStateManager";
 import { rpcToBlockData } from "../../../../../src/internal/hardhat-network/provider/fork/rpcToBlockData";
 import { makeForkClient } from "../../../../../src/internal/hardhat-network/provider/utils/makeForkClient";
+import { RunTxResult } from "../../../../../src/internal/hardhat-network/provider/vm/vm-adapter";
 import { HardhatNode } from "../../../../../src/internal/hardhat-network/provider/node";
 import { ForkedNodeConfig } from "../../../../../src/internal/hardhat-network/provider/node-types";
 import { EthereumJSAdapter } from "../../../../../src/internal/hardhat-network/provider/vm/ethereumjs";
-import { BlockBuilder } from "../../../../../src/internal/hardhat-network/provider/vm/block-builder";
 import { FORK_TESTS_CACHE_PATH } from "../../helpers/constants";
 
 import { assertEqualBlocks } from "./assertEqualBlocks";
@@ -80,20 +80,17 @@ export async function runFullBlock(
 
   const vm = forkedNode["_vm"];
 
-  const blockBuilder = new BlockBuilder(vm, common, {
+  const blockBuilder = await vm.createBlockBuilder(common, {
     parentBlock,
     headerData: block.header,
   });
-  await blockBuilder.startBlock();
 
+  const transactionResults: RunTxResult[] = [];
   for (const tx of block.transactions.values()) {
-    await blockBuilder.addTransaction(tx);
+    transactionResults.push(await blockBuilder.addTransaction(tx));
   }
 
-  await blockBuilder.addRewards([]);
-  const newBlock = await blockBuilder.seal();
-
-  const transactionResults = blockBuilder.getTransactionResults();
+  const newBlock = await blockBuilder.finalize([]);
 
   await assertEqualBlocks(newBlock, transactionResults, rpcBlock, forkClient);
   const dumpFileTarget = process.env.HARDHAT_RUN_FULL_BLOCK_DUMP_STATE_TO_FILE;

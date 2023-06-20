@@ -23,6 +23,30 @@ impl TryCast<B256> for Buffer {
     }
 }
 
+impl TryCast<u64> for BigInt {
+    type Error = napi::Error;
+
+    fn try_cast(self) -> std::result::Result<u64, Self::Error> {
+        let (signed, value, lossless) = self.get_u64();
+
+        if signed {
+            return Err(napi::Error::new(
+                Status::InvalidArg,
+                "BigInt was expected to be unsigned.".to_string(),
+            ));
+        }
+
+        if !lossless {
+            return Err(napi::Error::new(
+                Status::InvalidArg,
+                "BigInt was expected to fit within 64 bits.".to_string(),
+            ));
+        }
+
+        Ok(value)
+    }
+}
+
 impl TryCast<U256> for BigInt {
     type Error = napi::Error;
 

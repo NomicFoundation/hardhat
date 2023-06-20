@@ -20,7 +20,7 @@ pub use revm::{
 };
 
 pub use crate::{
-    block::{BlockBuilder, HeaderData},
+    block::{BlockAndCallers, BlockBuilder, BlockOptions, BlockTransactionError},
     evm::SyncInspector,
     random::RandomHashGenerator,
     runtime::{Rethnet, SyncDatabase},

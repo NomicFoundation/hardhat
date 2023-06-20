@@ -10,6 +10,8 @@ pub mod access_list;
 pub mod account;
 /// Ethereum block types
 pub mod block;
+/// Ethereum log types
+pub mod log;
 /// Ethereum receipt types
 pub mod receipt;
 /// Remote node interaction
@@ -28,8 +30,8 @@ pub mod utils;
 
 pub use bytes::Bytes;
 pub use ethbloom::Bloom;
-pub use revm_primitives::{Address, B160, B256};
-pub use ruint::aliases::{B512, B64, U256, U64};
+pub use revm_primitives::{Address, B160, B256, U256};
+pub use ruint::aliases::{B512, B64, U64};
 
 /// A secret key
 pub type Secret = B256;
