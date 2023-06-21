@@ -1,4 +1,5 @@
 import {
+  Artifact,
   DeploymentLoader,
   FileJournal,
   Journal,
@@ -15,9 +16,17 @@ class MemoryDeploymentLoader implements DeploymentLoader {
   private _deploymentId: string | null = null;
   private _deployedAddresses: { [key: string]: string };
 
-  constructor() {
+  constructor(private _hre: HardhatRuntimeEnvironment) {
     this.journal = new MemoryJournal();
     this._deployedAddresses = {};
+  }
+
+  public async loadArtifact(storedArtifactPath: string): Promise<Artifact> {
+    const json = await fs.readFile(storedArtifactPath);
+
+    const artifact = JSON.parse(json.toString());
+
+    return artifact;
   }
 
   public async initialize(deploymentId: string): Promise<void> {
@@ -29,6 +38,20 @@ class MemoryDeploymentLoader implements DeploymentLoader {
     contractAddress: string
   ): Promise<void> {
     this._deployedAddresses[futureId] = contractAddress;
+  }
+
+  public async store(_futureId: string, artifact: Artifact): Promise<string> {
+    const artifactPaths = await this._hre.artifacts.getArtifactPaths();
+
+    const artifactPath = artifactPaths.find(
+      (p) => path.parse(p).name === artifact.contractName
+    );
+
+    if (artifactPath === undefined) {
+      throw new Error(`Artifact path not found for ${artifact.contractName}`);
+    }
+
+    return artifactPath;
   }
 }
 
@@ -42,14 +65,22 @@ class FileDeploymentLoader implements DeploymentLoader {
     deployedAddressesPath: string;
   } | null = null;
 
-  constructor(private readonly _ignitionDir: string) {
+  constructor(private readonly _hre: HardhatRuntimeEnvironment) {
     this.journal = new MemoryJournal();
+  }
+
+  public async loadArtifact(storedArtifactPath: string): Promise<Artifact> {
+    const json = await fs.readFile(storedArtifactPath);
+
+    const artifact = JSON.parse(json.toString());
+
+    return artifact;
   }
 
   public async initialize(deploymentId: string): Promise<void> {
     // TODO: validate the deployment id
     const deploymentDir = path.join(
-      this._ignitionDir,
+      this._hre.config.paths.ignition,
       "deployments",
       deploymentId
     );
@@ -75,11 +106,27 @@ class FileDeploymentLoader implements DeploymentLoader {
     this.journal = new FileJournal(journalPath);
   }
 
+  public async store(futureId: string, artifact: Artifact): Promise<string> {
+    if (this._paths === null) {
+      throw new Error("Cannot record deploy address until initialized");
+    }
+
+    const artifactFilePath = path.join(
+      this._paths.artifactsDir,
+      `${futureId}.json`
+    );
+    await fs.writeFile(
+      artifactFilePath,
+      JSON.stringify(artifact, undefined, 2)
+    );
+
+    return artifactFilePath;
+  }
+
   public async recordDeployedAddress(
     futureId: string,
     contractAddress: string
   ): Promise<void> {
-    // TODO: switch to ignition invariant on move to core!
     if (this._paths === null) {
       throw new Error("Cannot record deploy address until initialized");
     }
@@ -110,8 +157,8 @@ export function buildDeploymentLoader(
   hre: HardhatRuntimeEnvironment
 ): DeploymentLoader {
   return _isEphemeral(hre)
-    ? new MemoryDeploymentLoader()
-    : new FileDeploymentLoader(hre.config.paths.ignition);
+    ? new MemoryDeploymentLoader(hre)
+    : new FileDeploymentLoader(hre);
 }
 
 /**

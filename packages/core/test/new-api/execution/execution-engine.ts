@@ -42,7 +42,7 @@ describe("execution engine", () => {
     const journal = new MemoryJournal();
     const accounts: string[] = exampleAccounts;
     const mockTransactionService = setupMockTransactionService();
-    const mockArtifactResolver = setupMockArtifactResolver();
+    const mockArtifactResolver = setupMockArtifactResolver({} as any);
     const mockDeploymentLoader = setupMockDeploymentLoader(journal);
 
     const result = await executionEngine.execute({
@@ -69,7 +69,7 @@ describe("execution engine", () => {
         futureType: FutureType.NAMED_CONTRACT_DEPLOYMENT,
         strategy: "basic",
         dependencies: [],
-        storedArtifactPath: "/user/path/Contract1.json",
+        storedArtifactPath: "Module1:Contract1.json",
         storedBuildInfoPath: "./build-info.json",
         contractName: "Contract1",
         value: BigInt(0).toString(),
@@ -92,7 +92,7 @@ describe("execution engine", () => {
         ],
         value: BigInt(0).toString(),
         from: exampleAccounts[0],
-        storedArtifactPath: "/user/path/Contract1.json",
+        storedArtifactPath: "Module1:Contract1.json",
       },
       {
         type: "onchain-result",
@@ -304,7 +304,7 @@ describe("execution engine", () => {
       const journal = new MemoryJournal();
       const accounts: string[] = exampleAccounts;
       const mockTransactionService = setupMockTransactionService();
-      const mockArtifactResolver = setupMockArtifactResolver();
+      const mockArtifactResolver = setupMockArtifactResolver({} as any);
       const mockDeploymentLoader = setupMockDeploymentLoader(journal);
 
       const result = await executionEngine.execute({
@@ -364,7 +364,7 @@ describe("execution engine", () => {
           futureType: FutureType.NAMED_CONTRACT_DEPLOYMENT,
           strategy: "basic",
           dependencies: ["Module1:Library1"],
-          storedArtifactPath: "/user/path/Contract1.json",
+          storedArtifactPath: "Module1:Contract1.json",
           storedBuildInfoPath: "./build-info.json",
           contractName: "Contract1",
           value: BigInt(0).toString(),
@@ -391,7 +391,7 @@ describe("execution engine", () => {
           ],
           value: BigInt(0).toString(),
           from: exampleAccounts[0],
-          storedArtifactPath: "/user/path/Contract1.json",
+          storedArtifactPath: "Module1:Contract1.json",
         },
         {
           type: "onchain-result",
@@ -429,6 +429,12 @@ function setupMockDeploymentLoader(journal: Journal): DeploymentLoader {
       throw new Error("Not implemented");
     },
     recordDeployedAddress: async () => {},
+    store: async (futureId, _artifact) => {
+      return `${futureId}.json`;
+    },
+    loadArtifact: async (_storedArtifactPath) => {
+      throw new Error("Not implemented");
+    },
   };
 }
 

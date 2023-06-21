@@ -54,7 +54,7 @@ export class Deployer {
     if ("adapters" in options && isAdapters(options.adapters)) {
       const adapters: Adapters = options.adapters;
       this._transactionService = new TransactionServiceImplementation(
-        options.artifactResolver,
+        options.deploymentLoader,
         new EthersChainDispatcher(
           adapters.signer,
           adapters.gas,

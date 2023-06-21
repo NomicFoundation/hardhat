@@ -1,5 +1,5 @@
 import { IgnitionError } from "../../../../errors";
-import { ArtifactResolver } from "../../../types/artifact";
+import { DeploymentLoader } from "../../../types/artifact";
 import {
   DeployContractInteractionMessage,
   DeployContractResultMessage,
@@ -22,7 +22,7 @@ import { ChainDispatcher } from "./chain-dispatcher";
  */
 export class TransactionServiceImplementation implements TransactionService {
   constructor(
-    private _artifactLoader: ArtifactResolver,
+    private _deploymentLoader: DeploymentLoader,
     private _chainDispatcher: ChainDispatcher
   ) {}
 
@@ -43,10 +43,10 @@ export class TransactionServiceImplementation implements TransactionService {
     deployContractInteraction: DeployContractInteractionMessage,
     libraries: { [libraryName: string]: string } = {}
   ): Promise<DeployContractResultMessage> {
-    // TODO: consider replacing this with a registry of artifacts
-    const artifact = await this._artifactLoader.load(
-      deployContractInteraction.contractName
+    const artifact = await this._deploymentLoader.loadArtifact(
+      deployContractInteraction.storedArtifactPath
     );
+
     const from = deployContractInteraction.from;
     const args = deployContractInteraction.args;
     const value = BigInt(deployContractInteraction.value);

@@ -2,7 +2,7 @@ import identity from "lodash/identity";
 
 import { IgnitionError } from "../../../errors";
 import { isRuntimeValue } from "../../type-guards";
-import { ArtifactResolver } from "../../types/artifact";
+import { ArtifactResolver, DeploymentLoader } from "../../types/artifact";
 import { DeploymentResult } from "../../types/deployer";
 import {
   ExecutionResultMessage,
@@ -190,11 +190,13 @@ export class ExecutionEngine {
       executionStateMap,
       accounts,
       artifactResolver,
+      deploymentLoader,
       deploymentParameters,
     }: {
       executionStateMap: ExecutionStateMap;
       accounts: string[];
       artifactResolver: ArtifactResolver;
+      deploymentLoader: DeploymentLoader;
       deploymentParameters: { [key: string]: ModuleParameters };
     }
   ): Promise<FutureStartMessage> {
@@ -223,19 +225,22 @@ export class ExecutionEngine {
           ),
           from: this._resolveAddress(future.from, { accounts }),
         };
+
         return state;
       case FutureType.NAMED_CONTRACT_DEPLOYMENT:
+        const artifact = await artifactResolver.load(future.contractName);
+        const storedArtifactPath = await deploymentLoader.store(
+          future.id,
+          artifact
+        );
+
         state = {
           type: "execution-start",
           futureId: future.id,
           futureType: future.type,
           strategy,
-          // status: ExecutionStatus.STARTED,
           dependencies: [...future.dependencies].map((f) => f.id),
-          // history: [],
-          storedArtifactPath: await artifactResolver.resolvePath(
-            future.contractName
-          ),
+          storedArtifactPath,
           storedBuildInfoPath: "./build-info.json",
           contractName: future.contractName,
           value: future.value.toString(),
@@ -249,6 +254,7 @@ export class ExecutionEngine {
           ),
           from: this._resolveAddress(future.from, { accounts }),
         };
+
         return state;
       case FutureType.NAMED_LIBRARY_DEPLOYMENT:
         state = {
@@ -271,6 +277,7 @@ export class ExecutionEngine {
           ),
           from: this._resolveAddress(future.from, { accounts }),
         };
+
         return state;
       case FutureType.ARTIFACT_LIBRARY_DEPLOYMENT:
         state = {
@@ -293,6 +300,7 @@ export class ExecutionEngine {
           ),
           from: this._resolveAddress(future.from, { accounts }),
         };
+
         return state;
       case FutureType.NAMED_CONTRACT_CALL:
       case FutureType.NAMED_STATIC_CALL:
