@@ -98,7 +98,7 @@ pub struct CompilerOutputBytecode {
     link_references: HashMap<String, HashMap<String, Vec<LinkReference>>>,
 }
 
-pub mod u64_20 {
+pub mod u64_that_must_be_20 {
     pub fn serialize<S>(val: &u64, s: S) -> Result<S::Ok, S::Error>
     where
         S: serde::Serializer,
@@ -129,6 +129,6 @@ pub mod u64_20 {
 #[serde(rename_all = "camelCase")]
 pub struct LinkReference {
     start: usize,
-    #[serde(with = "u64_20")]
+    #[serde(with = "u64_that_must_be_20")]
     length: u64,
 }
