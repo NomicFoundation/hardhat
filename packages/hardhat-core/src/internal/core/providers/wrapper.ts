@@ -3,6 +3,12 @@ import { EventEmitterWrapper } from "../../util/event-emitter";
 
 import { InvalidInputError } from "./errors";
 
+/**
+ * A wrapper class that makes it easy to implement the EIP1193 (Javascript Ethereum Provider) standard.
+ * It comes baked in with all EventEmitter methods needed,
+ * which will be added to the provider supplied in the constructor.
+ * It also provides the interface for the standard .request() method as an abstract method.
+ */
 export abstract class ProviderWrapper
   extends EventEmitterWrapper
   implements EIP1193Provider
@@ -13,6 +19,10 @@ export abstract class ProviderWrapper
 
   public abstract request(args: RequestArguments): Promise<unknown>;
 
+  /**
+   * Extract the params from RequestArguments and optionally type them.
+   * It defaults to an empty array if no params are found.
+   */
   protected _getParams<ParamsT extends any[] = any[]>(
     args: RequestArguments
   ): ParamsT | [] {

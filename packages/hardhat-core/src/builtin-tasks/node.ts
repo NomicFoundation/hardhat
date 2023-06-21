@@ -109,13 +109,10 @@ subtask(TASK_NODE_GET_PROVIDER)
       let provider = network.provider;
 
       if (network.name !== HARDHAT_NETWORK_NAME) {
-        const networkConfig = config.networks[HARDHAT_NETWORK_NAME];
-
         log(`Creating hardhat provider for JSON-RPC server`);
-        provider = createProvider(
+        provider = await createProvider(
+          config,
           HARDHAT_NETWORK_NAME,
-          networkConfig,
-          config.paths,
           artifacts
         );
       }

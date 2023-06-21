@@ -1,11 +1,21 @@
 import { EventEmitter } from "events";
 
-import { EIP1193Provider, RequestArguments } from "../../../../src/types";
+import {
+  EIP1193Provider,
+  EthereumProvider,
+  JsonRpcRequest,
+  JsonRpcResponse,
+  RequestArguments,
+} from "../../../../src/types";
 
 export class MockedProvider extends EventEmitter implements EIP1193Provider {
-  private _returnValues: any = {};
-  private _latestParams: any = {};
-  private _numberOfCalls: { [call: string]: number } = {};
+  // Record<methodName, value>
+  private _returnValues: Record<string, any> = {};
+
+  // Record<methodName, params>
+  private _latestParams: Record<string, RequestArguments["params"]> = {};
+
+  private _numberOfCalls: { [method: string]: number } = {};
 
   // If a lambda is passed as value, it's return value is used.
   public setReturnValue(method: string, value: any) {
@@ -50,5 +60,21 @@ export class MockedProvider extends EventEmitter implements EIP1193Provider {
     }
 
     return ret;
+  }
+}
+
+export class EthereumMockedProvider
+  extends EventEmitter
+  implements EthereumProvider
+{
+  public async request(_args: RequestArguments): Promise<any> {}
+
+  public async send(_method: string, _params: any[] = []) {}
+
+  public sendAsync(
+    _payload: JsonRpcRequest,
+    callback: (error: any, response: JsonRpcResponse) => void
+  ) {
+    callback(null, {} as JsonRpcRequest); // this is here just to finish the "async" operation
   }
 }

@@ -229,7 +229,8 @@ async function main() {
       Reporter.setEnabled(true);
     }
 
-    const envExtenders = ctx.extendersManager.getExtenders();
+    const envExtenders = ctx.environmentExtenders;
+    const providerExtenders = ctx.providerExtenders;
     const taskDefinitions = ctx.tasksDSL.getTaskDefinitions();
 
     const [abortAnalytics, hitPromise] = await analytics.sendTaskHit(taskName);
@@ -267,7 +268,8 @@ async function main() {
       taskDefinitions,
       envExtenders,
       ctx.experimentalHardhatNetworkMessageTraceHooks,
-      userConfig
+      userConfig,
+      providerExtenders
     );
 
     ctx.setHardhatRuntimeEnvironment(env);

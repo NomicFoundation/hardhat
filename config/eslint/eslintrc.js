@@ -80,6 +80,12 @@ module.exports = {
         leadingUnderscore: "allow",
       },
       {
+        selector: ["classProperty"],
+        modifiers: ["private"],
+        format: ["camelCase", "UPPER_CASE"],
+        leadingUnderscore: "require",
+      },
+      {
         selector: "enumMember",
         format: ["UPPER_CASE"],
       },
