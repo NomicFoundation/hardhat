@@ -521,6 +521,7 @@ mod tests {
     }
 
     #[test]
+    #[allow(clippy::redundant_clone)]
     fn clone_empty() {
         let state = AccountTrie::default();
         let cloned_state = state.clone();
@@ -529,6 +530,7 @@ mod tests {
     }
 
     #[test]
+    #[allow(clippy::redundant_clone)]
     fn clone_precompiles() {
         let accounts = precompiled_contracts();
 

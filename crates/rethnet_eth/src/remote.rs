@@ -361,9 +361,8 @@ mod tests {
             "should have successfully deserialized, with params as a Vec<String>, json {json}",
         );
 
-        let call_decoded: MethodInvocation = serde_json::from_str(&json).expect(&format!(
-            "should have successfully deserialized json {json}"
-        ));
+        let call_decoded: MethodInvocation = serde_json::from_str(&json)
+            .unwrap_or_else(|_| panic!("should have successfully deserialized json {json}"));
         assert_eq!(call, call_decoded);
     }
 

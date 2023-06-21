@@ -127,7 +127,7 @@ fn bench_modify_account_doesnt_exist(c: &mut Criterion) {
             let result = state.modify_account(
                 address,
                 AccountModifierFn::new(Box::new(|balance, nonce, _code| {
-                    *balance = *balance + U256::from(1);
+                    *balance += U256::from(1);
                     *nonce += 1;
                 })),
                 &|| Ok(AccountInfo::default()),
@@ -150,7 +150,7 @@ fn bench_modify_account_exists_with_code_no_change(c: &mut Criterion) {
             let result = state.modify_account(
                 address,
                 AccountModifierFn::new(Box::new(|balance, nonce, _code| {
-                    *balance = *balance + U256::from(1);
+                    *balance += U256::from(1);
                     *nonce += 1;
                 })),
                 &|| Ok(AccountInfo::default()),
@@ -279,7 +279,7 @@ fn bench_modify_account_exists_without_code_no_code_change(c: &mut Criterion) {
             let result = state.modify_account(
                 address,
                 AccountModifierFn::new(Box::new(|balance, nonce, _code| {
-                    *balance = *balance + U256::from(1);
+                    *balance += U256::from(1);
                     *nonce += 1;
                 })),
                 &|| Ok(AccountInfo::default()),
