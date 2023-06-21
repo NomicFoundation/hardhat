@@ -3,23 +3,23 @@ import EventEmitter from "events";
 
 export function withSpinners<T extends EventEmitter>(emitter: T): T {
   attachSpinner(emitter, {
-    startText: "Connecting to Ledger wallet",
+    startText: "[hardhat-ledger] Connecting wallet",
     eventPrefix: "connection",
   });
 
   attachSpinner(emitter, {
-    startText: "Waiting for confirmation",
+    startText: "[hardhat-ledger] Waiting for confirmation",
     eventPrefix: "confirmation",
   });
 
   const derivationSpinner = attachSpinner(emitter, {
-    startText: "Finding derivation path",
+    startText: "[hardhat-ledger] Finding derivation path",
     eventPrefix: "derivation",
   });
   emitter.on(
     "derivation_progress",
     (path: string, index: number) =>
-      (derivationSpinner.text = `Deriving address #${index} (path "${path}")`)
+      (derivationSpinner.text = `[hardhat-ledger] Deriving address #${index} (path "${path}")`)
   );
 
   return emitter;
