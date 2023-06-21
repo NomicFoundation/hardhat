@@ -44,10 +44,10 @@ async fn submit_request(address: &SocketAddr, request: &RpcRequest<MethodInvocat
         .body(body.clone())
         .send()
         .await
-        .expect(&format!("should send to url '{url}' request body '{body}'"))
+        .unwrap_or_else(|_| panic!("should send to url '{url}' request body '{body}'"))
         .text()
         .await
-        .expect(&format!("should get full response text"))
+        .unwrap_or_else(|_| panic!("should get full response text"))
 }
 
 #[tokio::test]

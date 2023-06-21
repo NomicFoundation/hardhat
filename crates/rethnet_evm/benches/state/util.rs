@@ -14,6 +14,14 @@ use rethnet_evm::state::{HybridState, LayeredState, RethnetLayer, StateError, Sy
 use rethnet_evm::{state::ForkState, HashMap, RandomHashGenerator};
 use revm::primitives::{AccountInfo, Bytecode, KECCAK_EMPTY};
 
+#[allow(dead_code)]
+struct TestState<'t> {
+    pub label: &'static str,
+    pub state_factory: Box<dyn Fn() -> Box<dyn SyncState<StateError>> + 't>,
+    pub checkpoints: &'t Vec<B256>,
+    pub snapshots: &'t Vec<B256>,
+}
+
 pub struct RethnetStates {
     layered: LayeredState<RethnetLayer>,
     layered_checkpoints: Vec<B256>,
@@ -30,8 +38,7 @@ pub struct RethnetStates {
 }
 
 impl RethnetStates {
-    #[allow(unused_variables)]
-    pub fn new(fork_block_number: U256) -> Self {
+    pub fn new(#[cfg(all(test, feature = "test-remote"))] fork_block_number: U256) -> Self {
         Self {
             layered: LayeredState::<RethnetLayer>::default(),
             layered_checkpoints: Vec::default(),
@@ -68,11 +75,13 @@ impl RethnetStates {
         number_of_snapshots: u64,
         number_of_storage_slots_per_account: u64,
     ) {
-        let mut states_and_checkpoints_and_snapshots: Vec<(
-            &mut dyn SyncState<StateError>,
-            &mut Vec<B256>,
-            &mut Vec<B256>,
-        )> = vec![
+        type StateCheckpointsAndSnapshots<'a> = (
+            &'a mut dyn SyncState<StateError>,
+            &'a mut Vec<B256>,
+            &'a mut Vec<B256>,
+        );
+
+        let mut states_and_checkpoints_and_snapshots: Vec<StateCheckpointsAndSnapshots> = vec![
             (
                 &mut self.layered,
                 &mut self.layered_checkpoints,
@@ -133,34 +142,27 @@ impl RethnetStates {
 
     /// Returns a set of factories, each member of which produces a clone of one of the state objects in this struct.
     #[allow(dead_code)]
-    fn make_state_refs(
-        &self,
-    ) -> Vec<(
-        &'static str, // label of the type of state produced by this factory
-        Box<dyn Fn() -> Box<dyn SyncState<StateError>> + '_>,
-        &Vec<B256>,
-        &Vec<B256>,
-    )> {
+    fn make_state_refs(&self) -> Vec<TestState> {
         vec![
-            (
-                "Layered",
-                Box::new(|| Box::new(self.layered.clone())),
-                &self.layered_checkpoints,
-                &self.layered_snapshots,
-            ),
-            (
-                "Hybrid",
-                Box::new(|| Box::new(self.hybrid.clone())),
-                &self.hybrid_checkpoints,
-                &self.hybrid_snapshots,
-            ),
+            TestState {
+                label: "Layered",
+                state_factory: Box::new(|| Box::new(self.layered.clone())),
+                checkpoints: &self.layered_checkpoints,
+                snapshots: &self.layered_snapshots,
+            },
+            TestState {
+                label: "Hybrid",
+                state_factory: Box::new(|| Box::new(self.hybrid.clone())),
+                checkpoints: &self.hybrid_checkpoints,
+                snapshots: &self.hybrid_snapshots,
+            },
             #[cfg(all(test, feature = "test-remote"))]
-            (
-                "Fork",
-                Box::new(|| Box::new(self.fork.clone())),
-                &self.fork_checkpoints,
-                &self.fork_snapshots,
-            ),
+            TestState {
+                label: "Fork",
+                state_factory: Box::new(|| Box::new(self.fork.clone())),
+                checkpoints: &self.fork_checkpoints,
+                snapshots: &self.fork_snapshots,
+            },
         ]
     }
 }
@@ -263,7 +265,10 @@ pub fn bench_sync_state_method<O, R, StatePrep>(
         for number_of_accounts in Permutations::address_scales().iter() {
             for storage_slots_per_account in storage_scales.iter() {
                 for number_of_snapshots in snapshot_scales.iter() {
-                    let mut rethnet_states = RethnetStates::new(U256::from(17274563));
+                    let mut rethnet_states = RethnetStates::new(
+                        #[cfg(all(test, feature = "test-remote"))]
+                        U256::from(17274563),
+                    );
                     rethnet_states.fill(
                         *number_of_accounts,
                         *number_of_checkpoints,
@@ -271,8 +276,12 @@ pub fn bench_sync_state_method<O, R, StatePrep>(
                         *storage_slots_per_account,
                     );
 
-                    for (label, state_factory, checkpoints, snapshots) in
-                        rethnet_states.make_state_refs().into_iter()
+                    for TestState {
+                        label,
+                        state_factory,
+                        checkpoints,
+                        snapshots,
+                    } in rethnet_states.make_state_refs().into_iter()
                     {
                         group.bench_with_input(
                             BenchmarkId::new(
@@ -335,10 +344,9 @@ pub fn account_has_code(state: &dyn SyncState<StateError>, address: &Address) ->
         .expect("basic should succeed")
         .expect("account should exist");
     account_info.code_hash != KECCAK_EMPTY
-        && state
+        && !state
             .code_by_hash(account_info.code_hash)
             .expect("code_by_hash should succeed")
             .bytecode
-            .len()
-            > 0
+            .is_empty()
 }

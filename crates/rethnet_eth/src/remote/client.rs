@@ -217,12 +217,6 @@ impl RpcClient {
 
         let response = self.batch_call(&inputs).await?;
 
-        type BatchResult = (
-            jsonrpc::Response<U256>,
-            jsonrpc::Response<U256>,
-            jsonrpc::Response<ZeroXPrefixedBytes>,
-        );
-
         let responses: Vec<serde_json::Value> = serde_json::from_str(&response.text)
             .unwrap_or_else(|error| {
                 panic!("Batch response `{response:?}` failed to parse due to error: {error}")

@@ -50,10 +50,7 @@ fn bench_database_commit(c: &mut Criterion) {
                 },
             );
         }
-        let code = account_state
-            .code
-            .clone()
-            .map(|bytes| Bytecode::new_raw(bytes));
+        let code = account_state.code.clone().map(Bytecode::new_raw);
         accounts_to_commit.insert(
             *address,
             Account {
@@ -84,7 +81,7 @@ fn bench_database_commit(c: &mut Criterion) {
                 if let Some(committed) = state.basic(*address).unwrap() {
                     debug_assert!(committed.balance == json.balance.unwrap());
                     debug_assert!(committed.nonce == json.nonce.unwrap());
-                    if let Some(json_code) = json.code.clone().map(|c| Bytecode::new_raw(c)) {
+                    if let Some(json_code) = json.code.clone().map(Bytecode::new_raw) {
                         debug_assert!(
                             state.code_by_hash(committed.code_hash).unwrap() == json_code
                         );
