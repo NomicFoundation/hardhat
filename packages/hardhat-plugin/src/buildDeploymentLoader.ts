@@ -4,7 +4,6 @@ import {
   Journal,
   MemoryJournal,
 } from "@ignored/ignition-core";
-import { assertIgnitionInvariant } from "@ignored/ignition-core/src/new-api/internal/utils/assertions";
 import fs from "fs-extra";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import path from "path";
@@ -44,7 +43,7 @@ class FileDeploymentLoader implements DeploymentLoader {
   } | null = null;
 
   constructor(private readonly _ignitionDir: string) {
-    this.journal = new FileJournal(path.join(_ignitionDir, "journal.jsonl"));
+    this.journal = new MemoryJournal();
   }
 
   public async initialize(deploymentId: string): Promise<void> {
@@ -72,16 +71,18 @@ class FileDeploymentLoader implements DeploymentLoader {
     await fs.ensureDir(this._paths.artifactsDir);
     await fs.ensureFile(this._paths.journalPath);
     await fs.ensureFile(this._paths.deployedAddressesPath);
+
+    this.journal = new FileJournal(journalPath);
   }
 
   public async recordDeployedAddress(
     futureId: string,
     contractAddress: string
   ): Promise<void> {
-    assertIgnitionInvariant(
-      this._paths !== null,
-      "Cannot record deploy address until initialized"
-    );
+    // TODO: switch to ignition invariant on move to core!
+    if (this._paths === null) {
+      throw new Error("Cannot record deploy address until initialized");
+    }
 
     try {
       // TODO: should this be made async to be closer to a single fs transaction?
