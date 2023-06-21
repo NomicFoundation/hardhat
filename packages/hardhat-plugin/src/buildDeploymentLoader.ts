@@ -1,14 +1,41 @@
 import {
   DeploymentLoader,
+  FileJournal,
   Journal,
   MemoryJournal,
 } from "@ignored/ignition-core";
+import { assertIgnitionInvariant } from "@ignored/ignition-core/src/new-api/internal/utils/assertions";
 import fs from "fs-extra";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import path from "path";
 import { errorMonitor } from "stream";
 
-class IgnitionDeploymentLoader implements DeploymentLoader {
+class MemoryDeploymentLoader implements DeploymentLoader {
+  public journal: Journal;
+
+  private _deploymentId: string | null = null;
+  private _deployedAddresses: { [key: string]: string };
+
+  constructor() {
+    this.journal = new MemoryJournal();
+    this._deployedAddresses = {};
+  }
+
+  public async initialize(deploymentId: string): Promise<void> {
+    this._deploymentId = deploymentId;
+  }
+
+  public async recordDeployedAddress(
+    futureId: string,
+    contractAddress: string
+  ): Promise<void> {
+    this._deployedAddresses[futureId] = contractAddress;
+  }
+}
+
+class FileDeploymentLoader implements DeploymentLoader {
+  public journal: Journal;
+
   private _paths: {
     deploymentDir: string;
     artifactsDir: string;
@@ -16,7 +43,9 @@ class IgnitionDeploymentLoader implements DeploymentLoader {
     deployedAddressesPath: string;
   } | null = null;
 
-  constructor(private readonly _ignitionDir: string, public journal: Journal) {}
+  constructor(private readonly _ignitionDir: string) {
+    this.journal = new FileJournal(path.join(_ignitionDir, "journal.jsonl"));
+  }
 
   public async initialize(deploymentId: string): Promise<void> {
     // TODO: validate the deployment id
@@ -49,10 +78,10 @@ class IgnitionDeploymentLoader implements DeploymentLoader {
     futureId: string,
     contractAddress: string
   ): Promise<void> {
-    if (this._paths === null) {
-      // TODO: change this to assertion with move to core
-      throw new Error("Cannot record deploy address until initialize");
-    }
+    assertIgnitionInvariant(
+      this._paths !== null,
+      "Cannot record deploy address until initialized"
+    );
 
     try {
       // TODO: should this be made async to be closer to a single fs transaction?
@@ -79,10 +108,19 @@ class IgnitionDeploymentLoader implements DeploymentLoader {
 export function buildDeploymentLoader(
   hre: HardhatRuntimeEnvironment
 ): DeploymentLoader {
-  // TODO: bring back check with file journaling proper
-  const isHardhatNetwork = true; // hre.network.name === "hardhat";
+  return _isEphemeral(hre)
+    ? new MemoryDeploymentLoader()
+    : new FileDeploymentLoader(hre.config.paths.ignition);
+}
 
-  const journal = isHardhatNetwork ? new MemoryJournal() : new MemoryJournal();
-
-  return new IgnitionDeploymentLoader(hre.config.paths.ignition, journal);
+/**
+ * Determine whether to use a disk based deployment loader or memory based
+ * deployment loader.
+ *
+ * The test is whether Hardhat reports the network name as hardhat which
+ * is the network name in tests and if the `--network` flag is not set.
+ * Running against a local node will not count as ephemeral.
+ */
+function _isEphemeral(hre: HardhatRuntimeEnvironment) {
+  return hre.network.name === "hardhat";
 }
