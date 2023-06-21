@@ -3,10 +3,8 @@ import type { request as RequestT } from "undici";
 import AbortController from "abort-controller";
 import debug from "debug";
 import os from "os";
-import qs from "qs";
 import { v4 as uuid } from "uuid";
 
-import * as builtinTaskNames from "../../builtin-tasks/task-names";
 import { isLocalDev } from "../core/execution-mode";
 import { isRunningOnCiServer } from "../util/ci-detection";
 import {
@@ -19,37 +17,46 @@ import { getPackageJson } from "../util/packageInfo";
 
 const log = debug("hardhat:core:analytics");
 
-// VERY IMPORTANT:
-// The documentation doesn't say so, but the user-agent parameter is required (ua).
-// If you don't send it, you won't get an error or anything, Google will *silently* drop your hit.
-//
-// https://stackoverflow.com/questions/27357954/google-analytics-measurement-protocol-not-working
-interface RawAnalytics {
-  v: "1";
-  tid: string;
-  cid: string;
-  dp: string;
-  dh: string;
-  t: string;
-  ua: string;
-  cs: string;
-  cm: string;
-  cd1: string;
-  cd2: string;
-  cd3: string;
+/* eslint-disable @typescript-eslint/naming-convention */
+interface AnalyticsPayload {
+  client_id: string;
+  user_id: string;
+  user_properties: {
+    projectId: {
+      value?: string;
+    };
+    userType: {
+      value?: string;
+    };
+    hardhatVersion: {
+      value?: string;
+    };
+    operatingSystem: {
+      value?: string;
+    };
+    nodeVersion: {
+      value?: string;
+    };
+  };
+  events: Array<{
+    name: string;
+    params: {
+      engagement_time_msec: string;
+      session_id: string;
+    };
+  }>;
 }
+/* eslint-enable @typescript-eslint/naming-convention */
 
 type AbortAnalytics = () => void;
 
-const googleAnalyticsUrl = "https://www.google-analytics.com/collect";
-
 export class Analytics {
   public static async getInstance(telemetryConsent: boolean | undefined) {
-    const analytics: Analytics = new Analytics({
-      clientId: await getClientId(),
+    const analytics: Analytics = new Analytics(
+      await getClientId(),
       telemetryConsent,
-      userType: getUserType(),
-    });
+      getUserType()
+    );
 
     return analytics;
   }
@@ -57,22 +64,22 @@ export class Analytics {
   private readonly _clientId: string;
   private readonly _enabled: boolean;
   private readonly _userType: string;
-  // Hardhat's tracking id. I guess there's no other choice than keeping it here.
-  private readonly _trackingId: string = "UA-117668706-3";
+  private readonly _analyticsUrl: string =
+    "https://www.google-analytics.com/mp/collect";
+  private readonly _apiSecret: string = "fQ5joCsDRTOp55wX8a2cVw";
+  private readonly _measurementId: string = "G-8LQ007N2QJ";
+  private _sessionId: string;
 
-  private constructor({
-    clientId,
-    telemetryConsent,
-    userType,
-  }: {
-    clientId: string;
-    telemetryConsent: boolean | undefined;
-    userType: string;
-  }) {
+  private constructor(
+    clientId: string,
+    telemetryConsent: boolean | undefined,
+    userType: string
+  ) {
     this._clientId = clientId;
     this._enabled =
       !isLocalDev() && !isRunningOnCiServer() && telemetryConsent === true;
     this._userType = userType;
+    this._sessionId = Math.random().toString();
   }
 
   /**
@@ -83,106 +90,70 @@ export class Analytics {
    *
    * Trying to abort a successfully completed request is a no-op, so it's always safe to call it.
    *
-   * @param taskName The name of the task to be logged
-   *
    * @returns The abort function
    */
-  public async sendTaskHit(
-    taskName: string
-  ): Promise<[AbortAnalytics, Promise<void>]> {
-    if (this._isABuiltinTaskName(taskName)) {
-      taskName = "builtin";
-    } else {
-      taskName = "custom";
-    }
-
+  public async sendTaskHit(): Promise<[AbortAnalytics, Promise<void>]> {
     if (!this._enabled) {
       return [() => {}, Promise.resolve()];
     }
 
-    return this._sendHit(await this._taskHit(taskName));
+    return this._sendHit(await this._buildTaskHitPayload());
   }
 
-  private _isABuiltinTaskName(taskName: string) {
-    return Object.values<string>(builtinTaskNames).includes(taskName);
-  }
-
-  private async _taskHit(taskName: string): Promise<RawAnalytics> {
+  private async _buildTaskHitPayload(): Promise<AnalyticsPayload> {
     return {
-      // Measurement protocol version.
-      v: "1",
-
-      // Hit type, we're only using pageviews for now.
-      t: "pageview",
-
-      // Hardhat's tracking Id.
-      tid: this._trackingId,
-
-      // Client Id.
-      cid: this._clientId,
-
-      // Document path, must start with a '/'.
-      dp: `/task/${taskName}`,
-
-      // Host name.
-      dh: "cli.hardhat.org",
-
-      // User agent, must be present.
-      // We use it to inform Node version used and OS.
-      // Example:
-      //   Node/v8.12.0 (Darwin 17.7.0)
-      ua: getUserAgent(),
-
-      // We're using the following values (Campaign source, Campaign medium) to track
-      // whether the user is a Developer or CI, as Custom Dimensions are not working for us atm.
-      cs: this._userType,
-      cm: "User Type",
-
-      // We're using custom dimensions for tracking different user projects, and user types (Developer/CI).
-      //
-      // See the following link for docs on these paremeters:
-      // https://developers.google.com/analytics/devguides/collection/protocol/v1/parameters#pr_cd_
-      //
-      // See the following link for setting up our custom dimensions in the Google Analytics dashboard
-      // https://support.google.com/tagmanager/answer/6164990
-      //
-      // Custom dimension 1: Project Id
-      cd1: "hardhat-project",
-      // Custom dimension 2: User type
-      //   Possible values: "CI", "Developer".
-      cd2: this._userType,
-      // Custom dimension 3: Hardhat Version
-      //   Example: "Hardhat 1.0.0".
-      cd3: await getHardhatVersion(),
+      client_id: this._clientId,
+      user_id: this._clientId,
+      user_properties: {
+        projectId: { value: "hardhat-project" },
+        userType: { value: this._userType },
+        hardhatVersion: { value: await getHardhatVersion() },
+        operatingSystem: { value: os.platform() },
+        nodeVersion: { value: process.version },
+      },
+      events: [
+        {
+          name: "task",
+          params: {
+            // From the GA docs: amount of time someone spends with your web
+            // page in focus or app screen in the foreground
+            // The parameter has no use for our app, but it's required in order
+            // for user activity to display in standard reports like Realtime
+            engagement_time_msec: "10000",
+            session_id: this._sessionId,
+          },
+        },
+      ],
     };
   }
 
-  private _sendHit(hit: RawAnalytics): [AbortAnalytics, Promise<void>] {
+  private _sendHit(payload: AnalyticsPayload): [AbortAnalytics, Promise<void>] {
     const { request } = require("undici") as { request: typeof RequestT };
-
-    log(`Sending hit for ${hit.dp}`);
+    const eventName = payload.events[0].name;
+    log(`Sending hit for ${eventName}`);
 
     const controller = new AbortController();
 
     const abortAnalytics = () => {
-      log(`Aborting hit for ${JSON.stringify(hit.dp)}`);
+      log(`Aborting hit for ${eventName}`);
 
       controller.abort();
     };
 
-    const hitPayload = qs.stringify(hit);
+    log(`Hit payload: ${JSON.stringify(payload)}`);
 
-    log(`Hit payload: ${JSON.stringify(hit)}`);
-
-    const hitPromise = request(googleAnalyticsUrl, {
-      body: hitPayload,
+    const hitPromise = request(this._analyticsUrl, {
+      query: {
+        api_secret: this._apiSecret,
+        measurement_id: this._measurementId,
+      },
+      body: JSON.stringify(payload),
       method: "POST",
       signal: controller.signal,
     })
       .then(() => {
-        log(`Hit for ${JSON.stringify(hit.dp)} sent successfully`);
+        log(`Hit for ${eventName} sent successfully`);
       })
-      // We're not really interested in handling failed analytics requests
       .catch(() => {
         log("Hit request failed");
       });
@@ -212,29 +183,6 @@ async function getClientId() {
 
 function getUserType(): string {
   return isRunningOnCiServer() ? "CI" : "Developer";
-}
-
-/**
- * At the moment, we couldn't find a reliably way to report the OS () in Node,
- * as the versions reported by the various `os` APIs (`os.platform()`, `os.type()`, etc)
- * return values different to those expected by Google Analytics
- * We decided to take the compromise of just reporting the OS Platform (OSX/Linux/Windows) for now (version information is bogus for now).
- */
-function getOperatingSystem(): string {
-  switch (os.type()) {
-    case "Windows_NT":
-      return "(Windows NT 6.1; Win64; x64)";
-    case "Darwin":
-      return "(Macintosh; Intel Mac OS X 10_13_6)";
-    case "Linux":
-      return "(X11; Linux x86_64)";
-    default:
-      return "(Unknown)";
-  }
-}
-
-function getUserAgent(): string {
-  return `Node/${process.version} ${getOperatingSystem()}`;
 }
 
 async function getHardhatVersion(): Promise<string> {
