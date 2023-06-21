@@ -2,6 +2,7 @@ import type { request as RequestT } from "undici";
 
 import AbortController from "abort-controller";
 import debug from "debug";
+import os from "os";
 import { v4 as uuid } from "uuid";
 
 import { isLocalDev } from "../core/execution-mode";
@@ -28,6 +29,12 @@ interface AnalyticsPayload {
       value?: string;
     };
     hardhatVersion: {
+      value?: string;
+    };
+    operatingSystem: {
+      value?: string;
+    };
+    nodeVersion: {
       value?: string;
     };
   };
@@ -101,6 +108,8 @@ export class Analytics {
         projectId: { value: "hardhat-project" },
         userType: { value: this._userType },
         hardhatVersion: { value: await getHardhatVersion() },
+        operatingSystem: { value: os.platform() },
+        nodeVersion: { value: process.version },
       },
       events: [
         {
