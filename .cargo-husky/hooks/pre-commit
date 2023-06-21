@@ -9,10 +9,8 @@ export RUSTFLAGS=-Dwarnings
 
 if [ -z "${ALCHEMY_URL}" ]; then
   echo WARNING: skipping remote tests because the ALCHEMY_URL environment variable is not defined. Local test results may differ from those in CI.
-  TEST_REMOTE=
   ALL_FEATURES="--features tracing,bench-once,serde,std"
 else
-  TEST_REMOTE=,test-remote
   ALL_FEATURES=--all-features
 fi
 
