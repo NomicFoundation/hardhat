@@ -16,6 +16,8 @@ import {
   Future,
   FutureType,
   ModuleParameters,
+  NamedContractDeploymentFuture,
+  NamedLibraryDeploymentFuture,
   RuntimeValueType,
 } from "../../types/module";
 import { accountRuntimeValueToErrorString } from "../reconciliation/utils";
@@ -205,6 +207,11 @@ export class ExecutionEngine {
 
     switch (future.type) {
       case FutureType.ARTIFACT_CONTRACT_DEPLOYMENT:
+        const artifactContractPath = await deploymentLoader.storeArtifact(
+          future.id,
+          future.artifact
+        );
+
         state = {
           type: "execution-start",
           futureId: future.id,
@@ -213,10 +220,8 @@ export class ExecutionEngine {
           // status: ExecutionStatus.STARTED,
           dependencies: [...future.dependencies].map((f) => f.id),
           // history: [],
-          storedArtifactPath: await artifactResolver.resolvePath(
-            future.contractName
-          ),
-          storedBuildInfoPath: "./build-info.json",
+          storedArtifactPath: artifactContractPath,
+          storedBuildInfoPath: undefined,
           contractName: future.contractName,
           value: future.value.toString(),
           constructorArgs: future.constructorArgs,
@@ -228,11 +233,13 @@ export class ExecutionEngine {
 
         return state;
       case FutureType.NAMED_CONTRACT_DEPLOYMENT:
-        const artifact = await artifactResolver.load(future.contractName);
-        const storedArtifactPath = await deploymentLoader.storeArtifact(
-          future.id,
-          artifact
-        );
+        const {
+          storedArtifactPath: namedContractArtifactPath,
+          storedBuildInfoPath: namedContractBuildInfoPath,
+        } = await this._storeArtifactAndBuildInfoAgainstDeployment(future, {
+          artifactResolver,
+          deploymentLoader,
+        });
 
         state = {
           type: "execution-start",
@@ -240,8 +247,8 @@ export class ExecutionEngine {
           futureType: future.type,
           strategy,
           dependencies: [...future.dependencies].map((f) => f.id),
-          storedArtifactPath,
-          storedBuildInfoPath: "./build-info.json",
+          storedArtifactPath: namedContractArtifactPath,
+          storedBuildInfoPath: namedContractBuildInfoPath,
           contractName: future.contractName,
           value: future.value.toString(),
           constructorArgs: this._resolveArgs(future.constructorArgs, {
@@ -257,18 +264,22 @@ export class ExecutionEngine {
 
         return state;
       case FutureType.NAMED_LIBRARY_DEPLOYMENT:
+        const {
+          storedArtifactPath: namedLibArtifactPath,
+          storedBuildInfoPath: namedLibBuildInfoPath,
+        } = await this._storeArtifactAndBuildInfoAgainstDeployment(future, {
+          artifactResolver,
+          deploymentLoader,
+        });
+
         state = {
           type: "execution-start",
           futureId: future.id,
           futureType: future.type,
           strategy,
-          // status: ExecutionStatus.STARTED,
           dependencies: [...future.dependencies].map((f) => f.id),
-          // history: [],
-          storedArtifactPath: await artifactResolver.resolvePath(
-            future.contractName
-          ),
-          storedBuildInfoPath: "./build-info.json",
+          storedArtifactPath: namedLibArtifactPath,
+          storedBuildInfoPath: namedLibBuildInfoPath,
           contractName: future.contractName,
           value: "0",
           constructorArgs: [],
@@ -280,18 +291,19 @@ export class ExecutionEngine {
 
         return state;
       case FutureType.ARTIFACT_LIBRARY_DEPLOYMENT:
+        const artifactLibraryPath = await deploymentLoader.storeArtifact(
+          future.id,
+          future.artifact
+        );
+
         state = {
           type: "execution-start",
           futureId: future.id,
           futureType: future.type,
           strategy,
-          // status: ExecutionStatus.STARTED,
           dependencies: [...future.dependencies].map((f) => f.id),
-          // history: [],
-          storedArtifactPath: await artifactResolver.resolvePath(
-            future.contractName
-          ),
-          storedBuildInfoPath: "./build-info.json",
+          storedArtifactPath: artifactLibraryPath,
+          storedBuildInfoPath: undefined,
           contractName: future.contractName,
           value: "0",
           constructorArgs: [],
@@ -311,6 +323,32 @@ export class ExecutionEngine {
         throw new Error(`Not implemented yet: FutureType ${future.type}`);
       }
     }
+  }
+
+  private async _storeArtifactAndBuildInfoAgainstDeployment(
+    future:
+      | NamedLibraryDeploymentFuture<string>
+      | NamedContractDeploymentFuture<string>,
+    {
+      deploymentLoader,
+      artifactResolver,
+    }: {
+      deploymentLoader: DeploymentLoader;
+      artifactResolver: ArtifactResolver;
+    }
+  ) {
+    const artifact = await artifactResolver.loadArtifact(future.contractName);
+    const storedArtifactPath = await deploymentLoader.storeArtifact(
+      future.id,
+      artifact
+    );
+    const buildInfo = await artifactResolver.getBuildInfo(future.contractName);
+    const storedBuildInfoPath =
+      buildInfo === undefined
+        ? undefined
+        : await deploymentLoader.storeBuildInfo(buildInfo);
+
+    return { storedArtifactPath, storedBuildInfoPath };
   }
 
   private _resolveArgs(

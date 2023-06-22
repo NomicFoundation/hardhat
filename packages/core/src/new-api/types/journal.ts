@@ -109,7 +109,7 @@ export interface FutureStartMessage {
   strategy: string;
   dependencies: string[];
   storedArtifactPath: string;
-  storedBuildInfoPath: string;
+  storedBuildInfoPath: string | undefined;
   contractName: string;
   constructorArgs: ArgumentType[];
   libraries: { [key: string]: string };

@@ -7,7 +7,7 @@ export async function validateNamedLibraryDeployment(
   future: NamedLibraryDeploymentFuture<string>,
   artifactLoader: ArtifactResolver
 ) {
-  const artifact = await artifactLoader.load(future.contractName);
+  const artifact = await artifactLoader.loadArtifact(future.contractName);
 
   if (!isArtifactType(artifact)) {
     throw new IgnitionValidationError(

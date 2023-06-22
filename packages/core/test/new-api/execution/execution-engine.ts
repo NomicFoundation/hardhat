@@ -70,7 +70,7 @@ describe("execution engine", () => {
         strategy: "basic",
         dependencies: [],
         storedArtifactPath: "Module1:Contract1.json",
-        storedBuildInfoPath: "./build-info.json",
+        storedBuildInfoPath: "build-info-12345.json",
         contractName: "Contract1",
         value: BigInt(0).toString(),
         constructorArgs: [
@@ -129,7 +129,7 @@ describe("execution engine", () => {
     const journal = new MemoryJournal();
     const accounts: string[] = exampleAccounts;
     const mockTransactionService = setupMockTransactionService();
-    const mockArtifactResolver = setupMockArtifactResolver();
+    const mockArtifactResolver = setupMockArtifactResolver({} as any);
     const mockDeploymentLoader = setupMockDeploymentLoader(journal);
 
     const result = await executionEngine.execute({
@@ -154,8 +154,8 @@ describe("execution engine", () => {
         futureType: FutureType.NAMED_LIBRARY_DEPLOYMENT,
         strategy: "basic",
         dependencies: [],
-        storedArtifactPath: "/user/path/Library1.json",
-        storedBuildInfoPath: "./build-info.json",
+        storedArtifactPath: "Module1:Library1.json",
+        storedBuildInfoPath: "build-info-12345.json",
         contractName: "Library1",
         value: BigInt(0).toString(),
         constructorArgs: [],
@@ -169,7 +169,7 @@ describe("execution engine", () => {
         args: [],
         value: BigInt(0).toString(),
         from: exampleAccounts[0],
-        storedArtifactPath: "/user/path/Library1.json",
+        storedArtifactPath: "Module1:Library1.json",
       },
       {
         type: "onchain-result",
@@ -231,43 +231,48 @@ describe("execution engine", () => {
     assert.isDefined(result);
     const journalMessages = await accumulateMessages(journal);
 
-    assert.deepStrictEqual(journalMessages, [
-      {
-        futureId: "Module1:Contract1",
-        type: "execution-start",
-        futureType: FutureType.ARTIFACT_CONTRACT_DEPLOYMENT,
-        strategy: "basic",
-        dependencies: [],
-        storedArtifactPath: "/user/path/Contract1.json",
-        storedBuildInfoPath: "./build-info.json",
-        contractName: "Contract1",
-        value: BigInt(0).toString(),
-        constructorArgs: [],
-        libraries: {},
-        from: accounts[0],
-      },
-      {
-        type: "onchain-action",
-        subtype: "deploy-contract",
-        contractName: "Contract1",
-        args: [],
-        value: BigInt(0).toString(),
-        from: exampleAccounts[0],
-        storedArtifactPath: "/user/path/Contract1.json",
-      },
-      {
-        type: "onchain-result",
-        subtype: "deploy-contract",
-        contractAddress: "0x1F98431c8aD98523631AE4a59f267346ea31F984",
-      },
-      {
-        type: "execution-success",
-        subtype: "deploy-contract",
-        futureId: "Module1:Contract1",
-        contractName: "Contract1",
-        contractAddress: "0x1F98431c8aD98523631AE4a59f267346ea31F984",
-      },
-    ]);
+    assert.deepStrictEqual(
+      journalMessages,
+      JSON.parse(
+        JSON.stringify([
+          {
+            futureId: "Module1:Contract1",
+            type: "execution-start",
+            futureType: FutureType.ARTIFACT_CONTRACT_DEPLOYMENT,
+            strategy: "basic",
+            dependencies: [],
+            storedArtifactPath: "Module1:Contract1.json",
+            storedBuildInfoPath: undefined,
+            contractName: "Contract1",
+            value: BigInt(0).toString(),
+            constructorArgs: [],
+            libraries: {},
+            from: accounts[0],
+          },
+          {
+            type: "onchain-action",
+            subtype: "deploy-contract",
+            contractName: "Contract1",
+            args: [],
+            value: BigInt(0).toString(),
+            from: exampleAccounts[0],
+            storedArtifactPath: "Module1:Contract1.json",
+          },
+          {
+            type: "onchain-result",
+            subtype: "deploy-contract",
+            contractAddress: "0x1F98431c8aD98523631AE4a59f267346ea31F984",
+          },
+          {
+            type: "execution-success",
+            subtype: "deploy-contract",
+            futureId: "Module1:Contract1",
+            contractName: "Contract1",
+            contractAddress: "0x1F98431c8aD98523631AE4a59f267346ea31F984",
+          },
+        ])
+      )
+    );
   });
 
   describe("with complex arguments", () => {
@@ -329,8 +334,8 @@ describe("execution engine", () => {
           futureType: FutureType.NAMED_LIBRARY_DEPLOYMENT,
           strategy: "basic",
           dependencies: [],
-          storedArtifactPath: "/user/path/Library1.json",
-          storedBuildInfoPath: "./build-info.json",
+          storedArtifactPath: "Module1:Library1.json",
+          storedBuildInfoPath: "build-info-12345.json",
           contractName: "Library1",
           value: BigInt(0).toString(),
           constructorArgs: [],
@@ -344,7 +349,7 @@ describe("execution engine", () => {
           args: [],
           value: BigInt(0).toString(),
           from: exampleAccounts[0],
-          storedArtifactPath: "/user/path/Library1.json",
+          storedArtifactPath: "Module1:Library1.json",
         },
         {
           type: "onchain-result",
@@ -365,7 +370,7 @@ describe("execution engine", () => {
           strategy: "basic",
           dependencies: ["Module1:Library1"],
           storedArtifactPath: "Module1:Contract1.json",
-          storedBuildInfoPath: "./build-info.json",
+          storedBuildInfoPath: "build-info-12345.json",
           contractName: "Contract1",
           value: BigInt(0).toString(),
           constructorArgs: [
@@ -431,6 +436,9 @@ function setupMockDeploymentLoader(journal: Journal): DeploymentLoader {
     recordDeployedAddress: async () => {},
     storeArtifact: async (futureId, _artifact) => {
       return `${futureId}.json`;
+    },
+    storeBuildInfo: async (buildInfo) => {
+      return `build-info-${buildInfo.id}.json`;
     },
     loadArtifact: async (_storedArtifactPath) => {
       throw new Error("Not implemented");

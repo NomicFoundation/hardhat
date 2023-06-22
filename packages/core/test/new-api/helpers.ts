@@ -21,14 +21,15 @@ export function setupMockArtifactResolver(
   artifact?: Artifact
 ): ArtifactResolver {
   return {
-    load: async () => {
+    loadArtifact: async () => {
       if (artifact === undefined) {
         throw new IgnitionError("Not implemented");
       }
 
       return artifact;
     },
-    resolvePath: async (contractName: string) =>
-      `/user/path/${contractName}.json`,
+    getBuildInfo: async (_contractName: string) => {
+      return { id: 12345 } as any;
+    },
   };
 }

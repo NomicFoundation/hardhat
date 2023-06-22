@@ -12,7 +12,7 @@ export async function validateNamedStaticCall(
   const artifact =
     "artifact" in future.contract
       ? future.contract.artifact
-      : await artifactLoader.load(future.contract.contractName);
+      : await artifactLoader.loadArtifact(future.contract.contractName);
 
   if (!isArtifactType(artifact)) {
     throw new IgnitionValidationError(

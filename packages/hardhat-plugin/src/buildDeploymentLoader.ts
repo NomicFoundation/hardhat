@@ -1,5 +1,6 @@
 import {
   Artifact,
+  BuildInfo,
   DeploymentLoader,
   FileJournal,
   Journal,
@@ -56,6 +57,12 @@ class MemoryDeploymentLoader implements DeploymentLoader {
 
     return artifactPath;
   }
+
+  public async storeBuildInfo(buildInfo: BuildInfo): Promise<string> {
+    const id = buildInfo.id;
+
+    return `${id}.json`;
+  }
 }
 
 class FileDeploymentLoader implements DeploymentLoader {
@@ -64,6 +71,7 @@ class FileDeploymentLoader implements DeploymentLoader {
   private _paths: {
     deploymentDir: string;
     artifactsDir: string;
+    buildInfoDir: string;
     journalPath: string;
     deployedAddressesPath: string;
   } | null = null;
@@ -80,6 +88,7 @@ class FileDeploymentLoader implements DeploymentLoader {
       deploymentId
     );
     const artifactsDir = path.join(deploymentDir, "artifacts");
+    const buildInfoDir = path.join(deploymentDir, "build-info");
     const journalPath = path.join(deploymentDir, "journal.jsonl");
     const deployedAddressesPath = path.join(
       deploymentDir,
@@ -89,12 +98,14 @@ class FileDeploymentLoader implements DeploymentLoader {
     this._paths = {
       deploymentDir,
       artifactsDir,
+      buildInfoDir,
       journalPath,
       deployedAddressesPath,
     };
 
     await fs.ensureDir(this._paths.deploymentDir);
     await fs.ensureDir(this._paths.artifactsDir);
+    await fs.ensureDir(this._paths.buildInfoDir);
     await fs.ensureFile(this._paths.journalPath);
     await fs.ensureFile(this._paths.deployedAddressesPath);
 
@@ -119,6 +130,23 @@ class FileDeploymentLoader implements DeploymentLoader {
     );
 
     return path.relative(this._paths.deploymentDir, artifactFilePath);
+  }
+
+  public async storeBuildInfo(buildInfo: BuildInfo): Promise<string> {
+    if (this._paths === null) {
+      throw new Error("Cannot record build info address until initialized");
+    }
+
+    const buildInfoFilePath = path.join(
+      this._paths?.buildInfoDir,
+      `${buildInfo.id}.json`
+    );
+    await fs.writeFile(
+      buildInfoFilePath,
+      JSON.stringify(buildInfo, undefined, 2)
+    );
+
+    return path.relative(this._paths.deploymentDir, buildInfoFilePath);
   }
 
   public async loadArtifact(storedArtifactPath: string): Promise<Artifact> {
