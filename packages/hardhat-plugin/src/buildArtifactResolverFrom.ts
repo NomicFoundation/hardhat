@@ -22,7 +22,14 @@ export function buildArtifactResolverFrom(
       const debugPath = artifactPath.replace(".json", ".dbg.json");
       const debugJson = await fs.promises.readFile(debugPath);
 
-      return JSON.parse(debugJson.toString());
+      const buildInfoPath = path.join(
+        path.parse(debugPath).dir,
+        JSON.parse(debugJson.toString()).buildInfo
+      );
+
+      const buildInfoJson = await fs.promises.readFile(buildInfoPath);
+
+      return JSON.parse(buildInfoJson.toString());
     },
   };
 }
