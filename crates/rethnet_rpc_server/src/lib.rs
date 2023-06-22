@@ -12,7 +12,7 @@ use tokio::sync::{Mutex, RwLock};
 
 use rethnet_eth::{
     remote::{
-        client::Request as RpcRequest,
+        client::{Request as RpcRequest, RpcClient},
         jsonrpc,
         jsonrpc::{Response, ResponseData},
         methods::MethodInvocation as EthMethodInvocation,
@@ -43,7 +43,7 @@ type RethnetStateType = Arc<RwLock<Box<dyn SyncState<StateError>>>>;
 
 struct AppState {
     rethnet_state: RethnetStateType,
-    fork_client: Option<Arc<Mutex<rethnet_eth::remote::client::RpcClient>>>,
+    fork_client: Option<Arc<Mutex<RpcClient>>>,
 }
 
 type StateType = Arc<AppState>;
@@ -456,9 +456,7 @@ pub async fn run(
     let address = listener.local_addr()?;
 
     let rethnet_state: StateType = if let Some(config) = config.forking {
-        let fork_client = Arc::new(Mutex::new(rethnet_eth::remote::client::RpcClient::new(
-            &config.json_rpc_url,
-        )));
+        let fork_client = Arc::new(Mutex::new(RpcClient::new(&config.json_rpc_url)));
 
         let runtime = tokio::runtime::Builder::new_multi_thread()
             .enable_io()
