@@ -1,5 +1,5 @@
 import { IgnitionError } from "../../../../errors";
-import { DeploymentLoader } from "../../../types/artifact";
+import { DeploymentLoader } from "../../../types/deployment-loader";
 import {
   DeployContractInteractionMessage,
   DeployContractResultMessage,

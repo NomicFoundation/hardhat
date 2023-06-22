@@ -2,8 +2,9 @@ import identity from "lodash/identity";
 
 import { IgnitionError } from "../../../errors";
 import { isRuntimeValue } from "../../type-guards";
-import { ArtifactResolver, DeploymentLoader } from "../../types/artifact";
+import { ArtifactResolver } from "../../types/artifact";
 import { DeploymentResult } from "../../types/deployer";
+import { DeploymentLoader } from "../../types/deployment-loader";
 import {
   ExecutionResultMessage,
   FutureRestartMessage,

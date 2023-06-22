@@ -1,12 +1,13 @@
 import { assert } from "chai";
 
-import { Artifact, DeploymentLoader, FutureType } from "../../../src";
+import { Artifact, FutureType } from "../../../src";
 import { defineModule } from "../../../src/new-api/define-module";
 import { Batcher } from "../../../src/new-api/internal/batcher";
 import { ExecutionEngine } from "../../../src/new-api/internal/execution/execution-engine";
 import { BasicExecutionStrategy } from "../../../src/new-api/internal/execution/execution-strategy";
 import { MemoryJournal } from "../../../src/new-api/internal/journal/memory-journal";
 import { ModuleConstructor } from "../../../src/new-api/internal/module-builder";
+import { DeploymentLoader } from "../../../src/new-api/types/deployment-loader";
 import {
   Journal,
   JournalableMessage,

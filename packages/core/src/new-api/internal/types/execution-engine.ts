@@ -1,4 +1,5 @@
-import { ArtifactResolver, DeploymentLoader } from "../../types/artifact";
+import { ArtifactResolver } from "../../types/artifact";
+import { DeploymentLoader } from "../../types/deployment-loader";
 import {
   JournalableMessage,
   OnchainInteractionMessage,

@@ -7,7 +7,7 @@ import { deserializeReplacer } from "./utils/deserialize-replacer";
 import { serializeReplacer } from "./utils/serialize-replacer";
 
 /**
- * An file-based journal.
+ * A file-based journal.
  *
  * @beta
  */

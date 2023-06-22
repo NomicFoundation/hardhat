@@ -12,6 +12,7 @@ export * from "./new-api/type-guards";
 export * from "./new-api/types/adapters";
 export * from "./new-api/types/artifact";
 export * from "./new-api/types/deployer";
+export * from "./new-api/types/deployment-loader";
 export * from "./new-api/types/journal";
 export * from "./new-api/types/module";
 export * from "./new-api/types/module-builder";

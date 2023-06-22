@@ -1,5 +1,3 @@
-import { Journal } from "./journal";
-
 /**
  * An compilation artifact representing a smart contract.
  *
@@ -23,23 +21,6 @@ export interface Artifact {
 export interface ArtifactResolver {
   loadArtifact(contractName: string): Promise<Artifact>;
   getBuildInfo(contractName: string): Promise<BuildInfo | undefined>;
-}
-
-/**
- * Read and write to the deployment storage.
- *
- * @beta
- */
-export interface DeploymentLoader {
-  journal: Journal;
-  initialize(deploymentId: string): Promise<void>;
-  loadArtifact(storedArtifactPath: string): Promise<Artifact>;
-  storeArtifact(futureId: string, artifact: Artifact): Promise<string>;
-  storeBuildInfo(buildInfo: BuildInfo): Promise<string>;
-  recordDeployedAddress(
-    futureId: string,
-    contractAddress: string
-  ): Promise<void>;
 }
 
 /**

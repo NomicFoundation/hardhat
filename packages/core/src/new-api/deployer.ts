@@ -16,8 +16,9 @@ import { ExecutionStateMap } from "./internal/types/execution-state";
 import { validate } from "./internal/validation/validate";
 import { isAdapters } from "./type-guards";
 import { Adapters } from "./types/adapters";
-import { ArtifactResolver, DeploymentLoader } from "./types/artifact";
+import { ArtifactResolver } from "./types/artifact";
 import { DeploymentResult } from "./types/deployer";
+import { DeploymentLoader } from "./types/deployment-loader";
 import { Journal } from "./types/journal";
 import { TransactionService } from "./types/transaction-service";
 
