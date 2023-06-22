@@ -17,7 +17,6 @@ export * from "./new-api/types/journal";
 export * from "./new-api/types/module";
 export * from "./new-api/types/module-builder";
 export * from "./new-api/types/serialized-deployment";
-export * from "./new-api/types/transaction-service";
 export * from "./types/dsl";
 export * from "./types/future";
 export * from "./types/hardhat";
