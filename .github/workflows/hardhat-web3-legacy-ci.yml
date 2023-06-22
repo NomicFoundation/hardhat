@@ -1,3 +1,26 @@
+name: hardhat-web3-legacy CI
+
+on:
+  push:
+    branches: [$default-branch]
+    paths:
+      - "packages/hardhat-web3-legacy/**"
+      - "packages/hardhat-core/**"
+      - "packages/hardhat-common/**/*"
+      - "config/**"
+  pull_request:
+    branches:
+      - "**"
+    paths:
+      - "packages/hardhat-web3-legacy/**"
+      - "packages/hardhat-core/**"
+      - "packages/hardhat-common/**"
+      - "config/**"
+
+defaults:
+  run:
+    working-directory: packages/hardhat-web3-legacy
+
 concurrency:
   group: ${{github.workflow}}-${{github.ref}}
   cancel-in-progress: true
