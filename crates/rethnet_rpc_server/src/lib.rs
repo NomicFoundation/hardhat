@@ -1,6 +1,8 @@
-use std::net::{SocketAddr, TcpListener};
+pub use std::net::SocketAddr;
+use std::net::TcpListener;
 use std::sync::Arc;
 
+pub use axum::Server;
 use axum::{
     extract::{Json, State},
     http::StatusCode,
@@ -9,6 +11,7 @@ use axum::{
 use hashbrown::HashMap;
 use rethnet_eth::remote::ZeroXPrefixedBytes;
 use tokio::sync::{Mutex, RwLock};
+use tracing::{event, Level};
 
 use rethnet_eth::{
     remote::{
@@ -26,7 +29,10 @@ use rethnet_evm::{
 };
 
 mod hardhat_methods;
-pub use hardhat_methods::{reset::RpcHardhatNetworkConfig, HardhatMethodInvocation};
+pub use hardhat_methods::{
+    reset::{RpcForkConfig, RpcHardhatNetworkConfig},
+    HardhatMethodInvocation,
+};
 
 /// an RPC method with its parameters
 #[derive(Clone, Debug, PartialEq, serde::Deserialize, serde::Serialize)]
@@ -49,7 +55,31 @@ struct AppState {
 
 type StateType = Arc<AppState>;
 
-fn response<T>(id: jsonrpc::Id, data: ResponseData<T>) -> (StatusCode, Json<serde_json::Value>)
+pub const TEST_ACCOUNTS: [&str; 20] = [
+    // these were taken from the standard output of a run of `hardhat node`
+    "f39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+    "70997970C51812dc3A010C7d01b50e0d17dc79C8",
+    "3C44CdDdB6a900fa2b585dd299e03d12FA4293BC",
+    "90F79bf6EB2c4f870365E785982E1f101E93b906",
+    "15d34AAf54267DB7D7c367839AAf71A00a2C6A65",
+    "9965507D1a55bcC2695C58ba16FB37d819B0A4dc",
+    "976EA74026E726554dB657fA54763abd0C3a0aa9",
+    "14dC79964da2C08b23698B3D3cc7Ca32193d9955",
+    "23618e81E3f5cdF7f54C3d65f7FBc0aBf5B21E8f",
+    "a0Ee7A142d267C1f36714E4a8F75612F20a79720",
+    "Bcd4042DE499D14e55001CcbB24a551F3b954096",
+    "71bE63f3384f5fb98995898A86B02Fb2426c5788",
+    "FABB0ac9d68B0B445fB7357272Ff202C5651694a",
+    "1CBd3b2770909D4e10f157cABC84C7264073C9Ec",
+    "dF3e18d64BC6A983f673Ab319CCaE4f1a57C7097",
+    "cd3B766CCDd6AE721141F452C550Ca635964ce71",
+    "2546BcD3c84621e976D8185a91A922aE77ECEc30",
+    "bDA5747bFD65F08deb54cb465eB87D40e51B197E",
+    "dD2FD4581271e230360230F9337D5c0430Bf44C0",
+    "8626f6940E2eb28930eFb4CeF49B2d1F2C9C1199",
+];
+
+fn response<T>(id: &jsonrpc::Id, data: ResponseData<T>) -> (StatusCode, serde_json::Value)
 where
     T: serde::Serialize,
 {
@@ -59,18 +89,16 @@ where
         data,
     };
     if let Ok(response) = serde_json::to_value(response) {
-        (StatusCode::OK, Json(response))
+        (StatusCode::OK, response)
     } else {
         (
             StatusCode::INTERNAL_SERVER_ERROR,
-            Json(
-                serde_json::to_value(Response {
-                    jsonrpc: jsonrpc::Version::V2_0,
-                    id,
-                    data: ResponseData::<T>::new_error(0, "serde_json::to_value() failed", None),
-                })
-                .expect("shouldn't happen"),
-            ),
+            serde_json::to_value(Response {
+                jsonrpc: jsonrpc::Version::V2_0,
+                id: id.clone(),
+                data: ResponseData::<T>::new_error(0, "serde_json::to_value() failed", None),
+            })
+            .expect("shouldn't happen"),
         )
     }
 }
@@ -177,6 +205,7 @@ async fn handle_get_balance(
     address: Address,
     block: BlockSpec,
 ) -> ResponseData<U256> {
+    event!(Level::INFO, "eth_getBalance({address:?}, {block:?})");
     match set_block_context(&state, block).await {
         Ok(previous_state_root) => {
             let account_info = get_account_info(&state, address).await;
@@ -199,6 +228,7 @@ async fn handle_get_code(
     address: Address,
     block: BlockSpec,
 ) -> ResponseData<ZeroXPrefixedBytes> {
+    event!(Level::INFO, "eth_getCode({address:?}, {block:?})");
     match set_block_context(&state, block).await {
         Ok(previous_state_root) => {
             let account_info = get_account_info(&state, address).await;
@@ -236,6 +266,10 @@ async fn handle_get_storage_at(
     position: U256,
     block: BlockSpec,
 ) -> ResponseData<U256> {
+    event!(
+        Level::INFO,
+        "eth_getStorageAt({address:?}, {position:?}, {block:?})"
+    );
     match set_block_context(&state, block).await {
         Ok(previous_state_root) => {
             let value = state.rethnet_state.read().await.storage(address, position);
@@ -260,6 +294,10 @@ async fn handle_get_transaction_count(
     address: Address,
     block: BlockSpec,
 ) -> ResponseData<U256> {
+    event!(
+        Level::INFO,
+        "eth_getTransactionCount({address:?}, {block:?})"
+    );
     match set_block_context(&state, block).await {
         Ok(previous_state_root) => {
             let account_info = get_account_info(&state, address).await;
@@ -278,6 +316,7 @@ async fn handle_get_transaction_count(
 }
 
 async fn handle_set_balance(state: StateType, address: Address, balance: U256) -> ResponseData<()> {
+    event!(Level::INFO, "hardhat_setBalance({address:?}, {balance:?})");
     match state.rethnet_state.write().await.modify_account(
         address,
         AccountModifierFn::new(Box::new(move |account_balance, _, _| {
@@ -302,6 +341,7 @@ async fn handle_set_code(
     address: Address,
     code: ZeroXPrefixedBytes,
 ) -> ResponseData<()> {
+    event!(Level::INFO, "hardhat_setCode({address:?}, {code:?})");
     let code_1 = code.clone();
     let code_2 = code.clone();
     match state.rethnet_state.write().await.modify_account(
@@ -324,6 +364,7 @@ async fn handle_set_code(
 }
 
 async fn handle_set_nonce(state: StateType, address: Address, nonce: U256) -> ResponseData<()> {
+    event!(Level::INFO, "hardhat_setNonce({address:?}, {nonce:?})");
     match TryInto::<u64>::try_into(nonce) {
         Ok(nonce) => {
             match state.rethnet_state.write().await.modify_account(
@@ -352,6 +393,10 @@ async fn handle_set_storage_at(
     position: U256,
     value: U256,
 ) -> ResponseData<()> {
+    event!(
+        Level::INFO,
+        "hardhat_setStorageAt({address:?}, {position:?}, {value:?})"
+    );
     match state
         .rethnet_state
         .write()
@@ -368,13 +413,27 @@ async fn router(state: StateType) -> Router {
         .route(
             "/",
             axum::routing::post(
-                |State(state): State<StateType>, payload: Json<RpcRequest<MethodInvocation>>| async move {
+                |State(state): State<StateType>, payload: Json<serde_json::Value>| async move {
+                    let payloads: Vec<Json<RpcRequest<MethodInvocation>>> = match serde_json::from_value::<RpcRequest<MethodInvocation>>(payload.clone().0) {
+                        Ok(request) => vec![Json(request)],
+                        Err(_) => {
+                            match serde_json::from_value::<Vec<RpcRequest<MethodInvocation>>>(payload.clone().0) {
+                                Ok(requests) => requests.into_iter().map(Json).collect(),
+                                Err(_) => { return (
+                                    StatusCode::INTERNAL_SERVER_ERROR,
+                                    Json(serde_json::to_value(format!("unsupported JSON body '{:?}'", payload.clone().0)).unwrap_or(serde_json::Value::Null))
+                                ); }
+                            }
+                        }
+                    };
+
+                    async fn handle_payload(state: StateType, payload: &Json<RpcRequest<MethodInvocation>>) -> (StatusCode, serde_json::Value) {
                     match payload {
                         Json(RpcRequest {
                             version,
                             id,
                             method: _,
-                        }) if version != jsonrpc::Version::V2_0 => response(
+                        }) if *version != jsonrpc::Version::V2_0 => response(
                             id,
                             ResponseData::<serde_json::Value>::new_error(
                                 0,
@@ -394,44 +453,44 @@ async fn router(state: StateType) -> Router {
                                 MethodInvocation::Eth(EthMethodInvocation::GetBalance(
                                     address,
                                     block,
-                                )) => response(id, handle_get_balance(state, address, block).await),
+                                )) => response(id, handle_get_balance(state, *address, block.clone()).await),
                                 MethodInvocation::Eth(EthMethodInvocation::GetCode(
                                     address,
                                     block,
-                                )) => response(id, handle_get_code(state, address, block).await),
+                                )) => response(id, handle_get_code(state, *address, block.clone()).await),
                                 MethodInvocation::Eth(EthMethodInvocation::GetStorageAt(
                                     address,
                                     position,
                                     block,
                                 )) => response(
                                     id,
-                                    handle_get_storage_at(state, address, position, block).await,
+                                    handle_get_storage_at(state, *address, *position, block.clone()).await,
                                 ),
                                 MethodInvocation::Eth(
                                     EthMethodInvocation::GetTransactionCount(address, block),
                                 ) => response(
                                     id,
-                                    handle_get_transaction_count(state, address, block).await,
+                                    handle_get_transaction_count(state, *address, block.clone()).await,
                                 ),
                                 MethodInvocation::Hardhat(HardhatMethodInvocation::SetBalance(
                                     address,
                                     balance,
                                 )) => {
-                                    response(id, handle_set_balance(state, address, balance).await)
+                                    response(id, handle_set_balance(state, *address, *balance).await)
                                 }
                                 MethodInvocation::Hardhat(HardhatMethodInvocation::SetCode(
                                     address,
                                     code,
-                                )) => response(id, handle_set_code(state, address, code).await),
+                                )) => response(id, handle_set_code(state, *address, code.clone()).await),
                                 MethodInvocation::Hardhat(HardhatMethodInvocation::SetNonce(
                                     address,
                                     nonce,
-                                )) => response(id, handle_set_nonce(state, address, nonce).await),
+                                )) => response(id, handle_set_nonce(state, *address, *nonce).await),
                                 MethodInvocation::Hardhat(
                                     HardhatMethodInvocation::SetStorageAt(address, position, value),
                                 ) => response(
                                     id,
-                                    handle_set_storage_at(state, address, position, value).await,
+                                    handle_set_storage_at(state, *address, *position, *value).await,
                                 ),
                                 // TODO: after adding all the methods here, eliminate this
                                 // catch-all match arm:
@@ -449,6 +508,43 @@ async fn router(state: StateType) -> Router {
                             }
                         }
                     }
+                    }
+                    let responses = {
+                        let mut responses: Vec<(StatusCode, serde_json::Value)> = Vec::with_capacity(payloads.len());
+                        for payload in payloads.iter() {
+                            let response = handle_payload(Arc::clone(&state), payload).await;
+                            responses.push(response);
+                        }
+                        responses
+                    };
+                    if let Some((status_code, value)) = responses.iter().find(
+                        |(status_code, _)| *status_code != StatusCode::OK
+                    ) {
+                        (*status_code, Json(value.clone()))
+                    } else {
+                        let response_values: Vec<serde_json::Value> = responses
+                            .into_iter()
+                            .unzip::<StatusCode, serde_json::Value, Vec<StatusCode>, Vec<serde_json::Value>>()
+                            .1;
+                        let response_value = if response_values.len() > 1 {
+                            serde_json::to_value(response_values)
+                        } else {
+                            serde_json::to_value(response_values[0].clone())
+                        };
+                        if let Ok(response_value) = response_value {
+                            (StatusCode::OK, Json(response_value))
+                        } else {
+                            (
+                                StatusCode::INTERNAL_SERVER_ERROR,
+                                Json({
+                                    response_value.unwrap_or(
+                                        serde_json::to_value("failed to serialize response data")
+                                            .unwrap_or(serde_json::Value::Null)
+                                    )
+                                })
+                            )
+                        }
+                    }
                 },
             ),
         )
@@ -458,13 +554,40 @@ async fn router(state: StateType) -> Router {
 /// accepts an address to listen on (which could be a wildcard like 0.0.0.0:0), and a set of
 /// initial accounts to initialize the state.
 /// returns the address that the server is listening on (with any input wildcards resolved).
-pub async fn run(
+pub async fn serve(
     address: SocketAddr,
     config: RpcHardhatNetworkConfig,
-    genesis_accounts: HashMap<Address, AccountInfo>,
-) -> Result<SocketAddr, std::io::Error> {
+    genesis_accounts: Option<HashMap<Address, AccountInfo>>,
+) -> Result<
+    axum::Server<hyper::server::conn::AddrIncoming, axum::routing::IntoMakeService<Router>>,
+    std::io::Error,
+> {
+    let genesis_accounts = genesis_accounts.unwrap_or(TEST_ACCOUNTS.iter().fold(
+        HashMap::default(),
+        |mut genesis_accounts, account| {
+            use std::str::FromStr;
+            genesis_accounts.insert(
+                Address::from_str(account)
+                    .map_err(|_| {
+                        std::io::Error::new(
+                            std::io::ErrorKind::Other,
+                            format!("failed to construct Address from string {account}"),
+                        )
+                    })
+                    .unwrap(),
+                AccountInfo {
+                    balance: U256::from(10000), // copied from Hardhat Network stdout
+                    nonce: 0,
+                    code: None,
+                    code_hash: KECCAK_EMPTY,
+                },
+            );
+            genesis_accounts
+        },
+    ));
+
     let listener = TcpListener::bind(address)?;
-    let address = listener.local_addr()?;
+    event!(Level::INFO, "Listening on {}", address);
 
     let rethnet_state: StateType = if let Some(config) = config.forking {
         let fork_client = Arc::new(Mutex::new(RpcClient::new(&config.json_rpc_url)));
@@ -514,13 +637,7 @@ pub async fn run(
         })
     };
 
-    tokio::spawn(async move {
-        axum::Server::from_tcp(listener)
-            .unwrap()
-            .serve(router(rethnet_state).await.into_make_service())
-            .await
-            .unwrap();
-    });
-
-    Ok(address)
+    Ok(axum::Server::from_tcp(listener)
+        .unwrap()
+        .serve(router(rethnet_state).await.into_make_service()))
 }
