@@ -388,6 +388,56 @@ task("ignition-info")
     }
   );
 
+task("ignition-info2")
+  .addParam("deploymentId")
+  .addFlag("json", "format as json")
+  .setDescription("Lists the deployed contract addresses of a deployment")
+  .setAction(
+    async (
+      {
+        deploymentId,
+        json: formatAsJson,
+      }: { deploymentId: string; json: boolean },
+      hre
+    ) => {
+      const deploymentDir = path.join(
+        hre.config.paths.ignition,
+        "deployments",
+        deploymentId
+      );
+      const deployedAddressesPath = path.join(
+        deploymentDir,
+        "deployed_addresses.json"
+      );
+
+      if (!fs.existsSync(deploymentDir)) {
+        console.error(`No deployment found with id ${deploymentDir}`);
+        process.exit(1);
+      }
+
+      if (!fs.existsSync(deployedAddressesPath)) {
+        console.log(`No contracts deployed`);
+        process.exit(0);
+      }
+
+      const deployedAddresses = fs.readJSONSync(deployedAddressesPath);
+
+      if (formatAsJson) {
+        console.log(JSON.stringify(deployedAddresses, undefined, 2));
+      } else {
+        console.log("Deployed Addresses");
+        console.log("==================");
+        console.log("");
+
+        for (const [futureId, address] of Object.entries(deployedAddresses)) {
+          console.log(`${futureId}\t${address as string}`);
+        }
+
+        console.log("");
+      }
+    }
+  );
+
 function resolveParametersFromModuleName(
   moduleName: string,
   ignitionPath: string
