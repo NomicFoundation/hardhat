@@ -6,6 +6,7 @@ import { DeploymentLoader } from "../../types/deployment-loader";
 import { Journal } from "../../types/journal";
 import { FileJournal } from "../journal/file-journal";
 import { MemoryJournal } from "../journal/memory-journal";
+import { assertIgnitionInvariant } from "../utils/assertions";
 
 export class FileDeploymentLoader implements DeploymentLoader {
   public journal: Journal;
@@ -52,9 +53,10 @@ export class FileDeploymentLoader implements DeploymentLoader {
     futureId: string,
     artifact: Artifact
   ): Promise<string> {
-    if (this._paths === null) {
-      throw new Error("Cannot record deploy address until initialized");
-    }
+    assertIgnitionInvariant(
+      this._paths !== null,
+      "Cannot record deploy address until initialized"
+    );
 
     const artifactFilePath = path.join(
       this._paths.artifactsDir,
@@ -69,9 +71,10 @@ export class FileDeploymentLoader implements DeploymentLoader {
   }
 
   public async storeBuildInfo(buildInfo: BuildInfo): Promise<string> {
-    if (this._paths === null) {
-      throw new Error("Cannot record build info address until initialized");
-    }
+    assertIgnitionInvariant(
+      this._paths !== null,
+      "Cannot record build info address until initialized"
+    );
 
     const buildInfoFilePath = path.join(
       this._paths?.buildInfoDir,
@@ -86,9 +89,10 @@ export class FileDeploymentLoader implements DeploymentLoader {
   }
 
   public async loadArtifact(storedArtifactPath: string): Promise<Artifact> {
-    if (this._paths === null) {
-      throw new Error("Cannot load artifact until initialized");
-    }
+    assertIgnitionInvariant(
+      this._paths !== null,
+      "Cannot load artifact until initialized"
+    );
 
     const json = await fs.readFile(
       path.join(this._paths?.deploymentDir, storedArtifactPath)
@@ -103,9 +107,10 @@ export class FileDeploymentLoader implements DeploymentLoader {
     futureId: string,
     contractAddress: string
   ): Promise<void> {
-    if (this._paths === null) {
-      throw new Error("Cannot record deploy address until initialized");
-    }
+    assertIgnitionInvariant(
+      this._paths !== null,
+      "Cannot record deploy address until initialized"
+    );
 
     // TODO: should this be made async to be closer to a single fs transaction?
     const json = (
