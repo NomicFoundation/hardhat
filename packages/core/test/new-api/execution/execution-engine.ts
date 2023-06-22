@@ -429,7 +429,7 @@ function setupMockDeploymentLoader(journal: Journal): DeploymentLoader {
       throw new Error("Not implemented");
     },
     recordDeployedAddress: async () => {},
-    store: async (futureId, _artifact) => {
+    storeArtifact: async (futureId, _artifact) => {
       return `${futureId}.json`;
     },
     loadArtifact: async (_storedArtifactPath) => {

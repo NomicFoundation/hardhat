@@ -40,7 +40,10 @@ class MemoryDeploymentLoader implements DeploymentLoader {
     this._deployedAddresses[futureId] = contractAddress;
   }
 
-  public async store(_futureId: string, artifact: Artifact): Promise<string> {
+  public async storeArtifact(
+    _futureId: string,
+    artifact: Artifact
+  ): Promise<string> {
     const artifactPaths = await this._hre.artifacts.getArtifactPaths();
 
     const artifactPath = artifactPaths.find(
@@ -98,7 +101,10 @@ class FileDeploymentLoader implements DeploymentLoader {
     this.journal = new FileJournal(journalPath);
   }
 
-  public async store(futureId: string, artifact: Artifact): Promise<string> {
+  public async storeArtifact(
+    futureId: string,
+    artifact: Artifact
+  ): Promise<string> {
     if (this._paths === null) {
       throw new Error("Cannot record deploy address until initialized");
     }

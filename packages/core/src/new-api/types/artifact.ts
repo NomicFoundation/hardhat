@@ -33,7 +33,7 @@ export interface ArtifactResolver {
 export interface DeploymentLoader {
   journal: Journal;
   initialize(deploymentId: string): Promise<void>;
-  store(futureId: string, artifact: Artifact): Promise<string>;
+  storeArtifact(futureId: string, artifact: Artifact): Promise<string>;
   loadArtifact(storedArtifactPath: string): Promise<Artifact>;
   recordDeployedAddress(
     futureId: string,

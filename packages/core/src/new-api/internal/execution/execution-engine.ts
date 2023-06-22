@@ -229,7 +229,7 @@ export class ExecutionEngine {
         return state;
       case FutureType.NAMED_CONTRACT_DEPLOYMENT:
         const artifact = await artifactResolver.load(future.contractName);
-        const storedArtifactPath = await deploymentLoader.store(
+        const storedArtifactPath = await deploymentLoader.storeArtifact(
           future.id,
           artifact
         );
