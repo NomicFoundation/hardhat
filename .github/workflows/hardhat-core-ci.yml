@@ -331,7 +331,7 @@ jobs:
           args: --all --check
 
       - name: Run cargo clippy
-        uses: actions-rs/clippy-check@v1
+        uses: auguwu/clippy-action@1.1.2
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           args: --workspace --all-targets --all-features
