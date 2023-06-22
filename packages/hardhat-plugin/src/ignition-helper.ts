@@ -1,5 +1,5 @@
 import {
-  Deployer,
+  deploy,
   DeploymentResultSuccess,
   IgnitionError,
   IgnitionModuleDefinition,
@@ -30,17 +30,13 @@ export class IgnitionHelper {
 
     const artifactResolver = new HardhatArtifactResolver(this._hre);
 
-    const deployer = new Deployer({
+    const result = await deploy({
       adapters: buildAdaptersFrom(this._hre),
       artifactResolver,
+      moduleDefinition: ignitionModuleDefinition,
+      deploymentParameters: parameters,
+      accounts,
     });
-
-    const result = await deployer.deploy(
-      "deploy-01",
-      ignitionModuleDefinition,
-      parameters,
-      accounts
-    );
 
     if (result.status !== "success") {
       // TODO: Show more information about why it failed

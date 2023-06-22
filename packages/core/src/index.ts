@@ -2,10 +2,8 @@ export { buildModule } from "./buildModule";
 export * from "./errors";
 export * from "./initialization";
 export { defineModule } from "./new-api/define-module";
-export { Deployer } from "./new-api/deployer";
+export { deploy } from "./new-api/deploy";
 /* TODO: how is module constructor getting exposed? */
-export { FileJournal } from "./new-api/internal/journal/file-journal";
-export { MemoryJournal } from "./new-api/internal/journal/memory-journal";
 export { ModuleConstructor } from "./new-api/internal/module-builder";
 export { StoredDeploymentSerializer } from "./new-api/stored-deployment-serializer";
 export * from "./new-api/type-guards";

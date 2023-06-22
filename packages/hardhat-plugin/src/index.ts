@@ -1,5 +1,5 @@
 import {
-  Deployer,
+  deploy,
   Module,
   ModuleConstructor,
   ModuleDict,
@@ -265,18 +265,14 @@ task("deploy2")
         const artifactResolver = new HardhatArtifactResolver(hre);
         const adapters = buildAdaptersFrom(hre);
 
-        const deployer = new Deployer({
+        const result = await deploy({
           adapters,
           artifactResolver,
           deploymentDir,
+          moduleDefinition: userModule as any,
+          deploymentParameters: parameters as any,
+          accounts,
         });
-
-        const result = await deployer.deploy(
-          deploymentId,
-          userModule as any,
-          parameters as any,
-          accounts
-        );
 
         if (result.status === "success") {
           console.log("Deployment complete");
