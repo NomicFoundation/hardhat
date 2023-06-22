@@ -69,14 +69,6 @@ class FileDeploymentLoader implements DeploymentLoader {
     this.journal = new MemoryJournal();
   }
 
-  public async loadArtifact(storedArtifactPath: string): Promise<Artifact> {
-    const json = await fs.readFile(storedArtifactPath);
-
-    const artifact = JSON.parse(json.toString());
-
-    return artifact;
-  }
-
   public async initialize(deploymentId: string): Promise<void> {
     // TODO: validate the deployment id
     const deploymentDir = path.join(
@@ -120,7 +112,21 @@ class FileDeploymentLoader implements DeploymentLoader {
       JSON.stringify(artifact, undefined, 2)
     );
 
-    return artifactFilePath;
+    return path.relative(this._paths.deploymentDir, artifactFilePath);
+  }
+
+  public async loadArtifact(storedArtifactPath: string): Promise<Artifact> {
+    if (this._paths === null) {
+      throw new Error("Cannot load artifact until initialized");
+    }
+
+    const json = await fs.readFile(
+      path.join(this._paths?.deploymentDir, storedArtifactPath)
+    );
+
+    const artifact = JSON.parse(json.toString());
+
+    return artifact;
   }
 
   public async recordDeployedAddress(
