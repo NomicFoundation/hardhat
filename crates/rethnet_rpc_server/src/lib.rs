@@ -42,7 +42,7 @@ pub enum MethodInvocation {
 type RethnetStateType = Arc<RwLock<Box<dyn SyncState<StateError>>>>;
 
 struct AppState {
-    rethnet: RethnetStateType,
+    rethnet_state: RethnetStateType,
     fork_client: Option<Arc<Mutex<rethnet_eth::remote::client::RpcClient>>>,
 }
 
@@ -81,7 +81,7 @@ async fn set_block_context<T>(
     block_spec: BlockSpec,
 ) -> Result<B256, ResponseData<T>> {
     let previous_state_root =
-        state.rethnet.read().await.state_root().map_err(|_| {
+        state.rethnet_state.read().await.state_root().map_err(|_| {
             ResponseData::new_error(0, "Failed to retrieve previous state root", None)
         })?;
     if block_spec == BlockSpec::Tag(String::from("latest")) {
@@ -89,7 +89,7 @@ async fn set_block_context<T>(
         Ok(previous_state_root)
     } else {
         state
-            .rethnet
+            .rethnet_state
             .write()
             .await
             .set_block_context(
@@ -143,7 +143,7 @@ async fn restore_block_context<T>(
     state_root: B256,
 ) -> Result<(), ResponseData<T>> {
     state
-        .rethnet
+        .rethnet_state
         .write()
         .await
         .set_block_context(&state_root, None)
@@ -154,7 +154,7 @@ async fn get_account_info<T>(
     state: &StateType,
     address: Address,
 ) -> Result<AccountInfo, ResponseData<T>> {
-    match state.rethnet.read().await.basic(address) {
+    match state.rethnet_state.read().await.basic(address) {
         Ok(Some(account_info)) => Ok(account_info),
         Ok(None) => Err(ResponseData::new_error(0, "No such account", None)),
         Err(e) => Err(ResponseData::new_error(0, &e.to_string(), None)),
@@ -195,7 +195,7 @@ async fn handle_get_code(
                 Ok(()) => match account_info {
                     Ok(account_info) => {
                         match state
-                            .rethnet
+                            .rethnet_state
                             .read()
                             .await
                             .code_by_hash(account_info.code_hash)
@@ -227,7 +227,7 @@ async fn handle_get_storage_at(
 ) -> ResponseData<U256> {
     match set_block_context(&state, block).await {
         Ok(previous_state_root) => {
-            let value = state.rethnet.read().await.storage(address, position);
+            let value = state.rethnet_state.read().await.storage(address, position);
             match restore_block_context(&state, previous_state_root).await {
                 Ok(()) => match value {
                     Ok(value) => ResponseData::Success { result: value },
@@ -267,7 +267,7 @@ async fn handle_get_transaction_count(
 }
 
 async fn handle_set_balance(state: StateType, address: Address, balance: U256) -> ResponseData<()> {
-    match state.rethnet.write().await.modify_account(
+    match state.rethnet_state.write().await.modify_account(
         address,
         AccountModifierFn::new(Box::new(move |account_balance, _, _| {
             *account_balance = balance
@@ -293,7 +293,7 @@ async fn handle_set_code(
 ) -> ResponseData<()> {
     let code_1 = code.clone();
     let code_2 = code.clone();
-    match state.rethnet.write().await.modify_account(
+    match state.rethnet_state.write().await.modify_account(
         address,
         AccountModifierFn::new(Box::new(move |_, _, account_code| {
             *account_code = Some(Bytecode::new_raw(code_1.clone().into()))
@@ -315,7 +315,7 @@ async fn handle_set_code(
 async fn handle_set_nonce(state: StateType, address: Address, nonce: U256) -> ResponseData<()> {
     match TryInto::<u64>::try_into(nonce) {
         Ok(nonce) => {
-            match state.rethnet.write().await.modify_account(
+            match state.rethnet_state.write().await.modify_account(
                 address,
                 AccountModifierFn::new(Box::new(move |_, account_nonce, _| *account_nonce = nonce)),
                 &|| {
@@ -342,7 +342,7 @@ async fn handle_set_storage_at(
     value: U256,
 ) -> ResponseData<()> {
     match state
-        .rethnet
+        .rethnet_state
         .write()
         .await
         .set_account_storage_slot(address, position, value)
@@ -481,7 +481,7 @@ pub async fn run(
         };
 
         Arc::new(AppState {
-            rethnet: Arc::new(RwLock::new(Box::new(ForkState::new(
+            rethnet_state: Arc::new(RwLock::new(Box::new(ForkState::new(
                 Arc::new(runtime),
                 Arc::new(parking_lot::Mutex::new(hash_generator)),
                 &config.json_rpc_url,
@@ -492,7 +492,7 @@ pub async fn run(
         })
     } else {
         Arc::new(AppState {
-            rethnet: Arc::new(RwLock::new(Box::new(HybridState::with_accounts(
+            rethnet_state: Arc::new(RwLock::new(Box::new(HybridState::with_accounts(
                 genesis_accounts,
             )))),
             fork_client: None,
