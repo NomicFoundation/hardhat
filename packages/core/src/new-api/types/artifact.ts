@@ -21,6 +21,7 @@ export interface Artifact {
 export interface ArtifactResolver {
   loadArtifact(contractName: string): Promise<Artifact>;
   getBuildInfo(contractName: string): Promise<BuildInfo | undefined>;
+  resolvePath(contractName: string): Promise<string | undefined>;
 }
 
 /**

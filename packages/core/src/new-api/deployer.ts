@@ -4,6 +4,8 @@ import type { IgnitionModuleDefinition } from "./types/module-builder";
 import { IgnitionError } from "../errors";
 
 import { Batcher } from "./internal/batcher";
+import { FileDeploymentLoader } from "./internal/deployment-loader/file-deployment-loader";
+import { MemoryDeploymentLoader } from "./internal/deployment-loader/memory-deployment-loader";
 import { ExecutionEngine } from "./internal/execution/execution-engine";
 import { BasicExecutionStrategy } from "./internal/execution/execution-strategy";
 import { executionStateReducer } from "./internal/execution/executionStateReducer";
@@ -38,7 +40,7 @@ export class Deployer {
   constructor(
     options: {
       artifactResolver: ArtifactResolver;
-      deploymentLoader: DeploymentLoader;
+      deploymentDir?: string;
     } & (
       | {
           transactionService: TransactionService;
@@ -50,12 +52,15 @@ export class Deployer {
   ) {
     this._strategy = new BasicExecutionStrategy();
     this._artifactResolver = options.artifactResolver;
-    this._deploymentLoader = options.deploymentLoader;
+    this._deploymentLoader =
+      options.deploymentDir === undefined
+        ? new MemoryDeploymentLoader(options.artifactResolver)
+        : new FileDeploymentLoader(options.deploymentDir);
 
     if ("adapters" in options && isAdapters(options.adapters)) {
       const adapters: Adapters = options.adapters;
       this._transactionService = new TransactionServiceImplementation(
-        options.deploymentLoader,
+        this._deploymentLoader,
         new EthersChainDispatcher(
           adapters.signer,
           adapters.gas,
@@ -86,7 +91,7 @@ export class Deployer {
 
     await validate(module, this._artifactResolver);
 
-    await this._deploymentLoader.initialize(deployId);
+    await this._deploymentLoader.initialize();
 
     const previousStateMap = await this._loadExecutionStateFrom(
       this._deploymentLoader.journal

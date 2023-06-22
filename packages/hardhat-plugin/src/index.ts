@@ -14,9 +14,8 @@ import path from "path";
 import prompts from "prompts";
 
 import { buildAdaptersFrom } from "./buildAdaptersFrom";
-import { buildArtifactResolverFrom } from "./buildArtifactResolverFrom";
-import { buildDeploymentLoader } from "./buildDeploymentLoader";
 import { buildIgnitionProvidersFrom } from "./buildIgnitionProvidersFrom";
+import { HardhatArtifactResolver } from "./hardhat-artifact-resolver.ts";
 import { IgnitionHelper } from "./ignition-helper";
 import { IgnitionWrapper } from "./ignition-wrapper";
 import { loadModule } from "./load-module";
@@ -258,15 +257,18 @@ task("deploy2")
       try {
         const deploymentId = givenDeploymentId ?? `network-${chainId}`;
 
-        const artifactResolver = buildArtifactResolverFrom(hre);
-        const adapters = buildAdaptersFrom(hre);
+        const deploymentDir =
+          hre.network.name === "hardhat"
+            ? undefined
+            : path.join(hre.config.paths.ignition, "deployments", deploymentId);
 
-        const deploymentLoader = buildDeploymentLoader(hre);
+        const artifactResolver = new HardhatArtifactResolver(hre);
+        const adapters = buildAdaptersFrom(hre);
 
         const deployer = new Deployer({
           adapters,
           artifactResolver,
-          deploymentLoader,
+          deploymentDir,
         });
 
         const result = await deployer.deploy(

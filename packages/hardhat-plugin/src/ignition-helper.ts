@@ -11,8 +11,7 @@ import fs from "fs-extra";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 
 import { buildAdaptersFrom } from "./buildAdaptersFrom";
-import { buildArtifactResolverFrom } from "./buildArtifactResolverFrom";
-import { buildDeploymentLoader } from "./buildDeploymentLoader";
+import { HardhatArtifactResolver } from "./hardhat-artifact-resolver.ts";
 
 export class IgnitionHelper {
   constructor(private _hre: HardhatRuntimeEnvironment) {}
@@ -29,10 +28,11 @@ export class IgnitionHelper {
       method: "eth_accounts",
     })) as string[];
 
+    const artifactResolver = new HardhatArtifactResolver(this._hre);
+
     const deployer = new Deployer({
       adapters: buildAdaptersFrom(this._hre),
-      artifactResolver: buildArtifactResolverFrom(this._hre),
-      deploymentLoader: buildDeploymentLoader(this._hre),
+      artifactResolver,
     });
 
     const result = await deployer.deploy(

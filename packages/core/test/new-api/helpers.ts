@@ -31,5 +31,8 @@ export function setupMockArtifactResolver(
     getBuildInfo: async (_contractName: string) => {
       return { id: 12345 } as any;
     },
+    resolvePath: async (contractName: string) => {
+      return `${contractName}.json`;
+    },
   };
 }
