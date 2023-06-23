@@ -128,7 +128,7 @@ export interface DeploymentExecutionState
   constructorArgs: ArgumentType[];
   libraries: Record<string, string>; // TODO: Do we need to store their future ids for the reconciliation process?
   value: bigint;
-  from: string | undefined;
+  from: string;
   contractAddress?: string; // The result
 }
 
@@ -138,7 +138,7 @@ export interface CallExecutionState
   functionName: string;
   args: ArgumentType[];
   value: bigint;
-  from: string | undefined;
+  from: string;
 }
 
 export interface StaticCallExecutionState
@@ -146,7 +146,7 @@ export interface StaticCallExecutionState
   contractAddress: string;
   functionName: string;
   args: ArgumentType[];
-  from: string | undefined;
+  from: string;
   result?: SolidityParameterType;
 }
 
@@ -172,7 +172,7 @@ export interface SendDataExecutionState
   to: string;
   data: string | undefined;
   value: bigint;
-  from: string | undefined;
+  from: string;
 }
 
 export type ExecutionState =

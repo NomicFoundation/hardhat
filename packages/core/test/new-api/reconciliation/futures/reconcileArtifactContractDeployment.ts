@@ -7,6 +7,7 @@ import {
   ExecutionStatus,
 } from "../../../../src/new-api/internal/types/execution-state";
 import { FutureType } from "../../../../src/new-api/types/module";
+import { exampleAccounts } from "../../helpers";
 import {
   assertSuccessReconciliation,
   oneAddress,
@@ -37,7 +38,7 @@ describe("Reconciliation - artifact contract", () => {
     value: BigInt("0"),
     constructorArgs: [],
     libraries: {},
-    from: undefined,
+    from: exampleAccounts[0],
   };
 
   it("should reconcile unchanged", () => {

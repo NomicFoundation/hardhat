@@ -7,6 +7,7 @@ import {
   StaticCallExecutionState,
 } from "../../../../src/new-api/internal/types/execution-state";
 import { FutureType } from "../../../../src/new-api/types/module";
+import { exampleAccounts } from "../../helpers";
 import {
   assertSuccessReconciliation,
   oneAddress,
@@ -31,7 +32,7 @@ describe("Reconciliation - named static call", () => {
     value: BigInt("0"),
     constructorArgs: [],
     libraries: {},
-    from: undefined,
+    from: exampleAccounts[0],
   };
 
   const exampleStaticCallState: StaticCallExecutionState = {
@@ -44,7 +45,7 @@ describe("Reconciliation - named static call", () => {
     contractAddress: exampleAddress,
     functionName: "function",
     args: [],
-    from: undefined,
+    from: exampleAccounts[0],
   };
 
   it("should reconcile unchanged", () => {

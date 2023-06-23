@@ -10,6 +10,7 @@ import {
   StaticCallExecutionState,
 } from "../../../../src/new-api/internal/types/execution-state";
 import { FutureType } from "../../../../src/new-api/types/module";
+import { exampleAccounts } from "../../helpers";
 import { assertSuccessReconciliation, reconcile } from "../helpers";
 
 describe("Reconciliation - artifact contract at", () => {
@@ -47,7 +48,7 @@ describe("Reconciliation - artifact contract at", () => {
     value: BigInt("0"),
     constructorArgs: [],
     libraries: {},
-    from: undefined,
+    from: exampleAccounts[0],
   };
 
   const exampleStaticCallState: StaticCallExecutionState = {
@@ -60,7 +61,7 @@ describe("Reconciliation - artifact contract at", () => {
     contractAddress: exampleAddress,
     functionName: "function",
     args: [],
-    from: undefined,
+    from: exampleAccounts[0],
   };
 
   it("should reconcile when using an address string", () => {

@@ -7,6 +7,7 @@ import {
   ExecutionStatus,
 } from "../../../../src/new-api/internal/types/execution-state";
 import { FutureType } from "../../../../src/new-api/types/module";
+import { exampleAccounts } from "../../helpers";
 import {
   assertSuccessReconciliation,
   oneAddress,
@@ -31,7 +32,7 @@ describe("Reconciliation - named contract call", () => {
     value: BigInt("0"),
     constructorArgs: [],
     libraries: {},
-    from: undefined,
+    from: exampleAccounts[0],
     contractAddress: differentAddress,
   };
 
@@ -46,7 +47,7 @@ describe("Reconciliation - named contract call", () => {
     functionName: "function",
     args: [],
     value: BigInt("0"),
-    from: undefined,
+    from: exampleAccounts[0],
   };
 
   it("should reconcile unchanged", () => {

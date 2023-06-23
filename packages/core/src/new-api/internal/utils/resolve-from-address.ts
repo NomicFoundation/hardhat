@@ -1,5 +1,4 @@
-import { IgnitionError } from "../../../errors";
-import { isRuntimeValue } from "../../type-guards";
+import { isAccountRuntimeValue } from "../../type-guards";
 import { AccountRuntimeValue } from "../../types/module";
 import { isAddress } from "../utils";
 
@@ -8,21 +7,23 @@ import { assertIgnitionInvariant } from "./assertions";
 export function resolveFromAddress(
   from: string | AccountRuntimeValue | undefined,
   { accounts }: { accounts: string[] }
-): string | undefined {
+): string {
   if (from === undefined) {
-    return from;
+    const address = accounts[0];
+
+    assertIgnitionInvariant(isAddress(address), `Account[0] is not an address`);
+
+    return address;
   }
 
   if (typeof from === "string") {
-    if (!isAddress(from)) {
-      throw new IgnitionError("From is not a usable address");
-    }
+    assertIgnitionInvariant(isAddress(from), `from is not an address`);
 
     return from;
   }
 
   assertIgnitionInvariant(
-    isRuntimeValue(from),
+    isAccountRuntimeValue(from),
     `Could not resolve from address: ${JSON.stringify(from)}`
   );
 

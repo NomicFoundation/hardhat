@@ -1,7 +1,6 @@
 import identity from "lodash/identity";
 
 import { IgnitionError } from "../../../errors";
-import { isRuntimeValue } from "../../type-guards";
 import { ArtifactResolver } from "../../types/artifact";
 import { DeploymentResult } from "../../types/deployer";
 import { DeploymentLoader } from "../../types/deployment-loader";
@@ -12,21 +11,19 @@ import {
   JournalableMessage,
 } from "../../types/journal";
 import {
-  AccountRuntimeValue,
   ArgumentType,
   Future,
   FutureType,
   ModuleParameters,
   NamedContractDeploymentFuture,
   NamedLibraryDeploymentFuture,
-  RuntimeValueType,
 } from "../../types/module";
-import { accountRuntimeValueToErrorString } from "../reconciliation/utils";
 import { isDeploymentExecutionState } from "../type-guards";
 import { ExecutionEngineState } from "../types/execution-engine";
 import { ExecutionStateMap, ExecutionStatus } from "../types/execution-state";
 import { getFuturesFromModule } from "../utils/get-futures-from-module";
 import { replaceWithinArg } from "../utils/replace-within-arg";
+import { resolveFromAddress } from "../utils/resolve-from-address";
 import { resolveFutureToValue } from "../utils/resolve-future-to-value";
 import { resolveModuleParameter } from "../utils/resolve-module-parameter";
 
@@ -162,32 +159,6 @@ export class ExecutionEngine {
     );
   }
 
-  private _resolveAddress(
-    potential: string | AccountRuntimeValue | undefined,
-    { accounts }: { accounts: string[] }
-  ) {
-    if (typeof potential === "string") {
-      return potential;
-    }
-
-    if (
-      isRuntimeValue(potential) &&
-      potential.type === RuntimeValueType.ACCOUNT
-    ) {
-      return accounts[potential.accountIndex];
-    }
-
-    if (potential === undefined) {
-      return accounts[0];
-    }
-
-    throw new IgnitionError(
-      `Unable to resolve address: ${accountRuntimeValueToErrorString(
-        potential
-      )} `
-    );
-  }
-
   private async _initCommandFor(
     future: Future,
     {
@@ -230,7 +201,7 @@ export class ExecutionEngine {
           libraries: Object.fromEntries(
             Object.entries(future.libraries).map(([key, lib]) => [key, lib.id])
           ),
-          from: this._resolveAddress(future.from, { accounts }),
+          from: resolveFromAddress(future.from, { accounts }),
         };
 
         return state;
@@ -261,7 +232,7 @@ export class ExecutionEngine {
           libraries: Object.fromEntries(
             Object.entries(future.libraries).map(([key, lib]) => [key, lib.id])
           ),
-          from: this._resolveAddress(future.from, { accounts }),
+          from: resolveFromAddress(future.from, { accounts }),
         };
 
         return state;
@@ -288,7 +259,7 @@ export class ExecutionEngine {
           libraries: Object.fromEntries(
             Object.entries(future.libraries).map(([key, lib]) => [key, lib.id])
           ),
-          from: this._resolveAddress(future.from, { accounts }),
+          from: resolveFromAddress(future.from, { accounts }),
         };
 
         return state;
@@ -312,7 +283,7 @@ export class ExecutionEngine {
           libraries: Object.fromEntries(
             Object.entries(future.libraries).map(([key, lib]) => [key, lib.id])
           ),
-          from: this._resolveAddress(future.from, { accounts }),
+          from: resolveFromAddress(future.from, { accounts }),
         };
 
         return state;

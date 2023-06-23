@@ -6,6 +6,7 @@ import {
   SendDataExecutionState,
 } from "../../../../src/new-api/internal/types/execution-state";
 import { FutureType } from "../../../../src/new-api/types/module";
+import { exampleAccounts } from "../../helpers";
 import { assertSuccessReconciliation, reconcile } from "../helpers";
 
 describe("Reconciliation - send data", () => {
@@ -22,7 +23,7 @@ describe("Reconciliation - send data", () => {
     to: exampleAddress,
     data: "example_data",
     value: BigInt("0"),
-    from: undefined,
+    from: exampleAccounts[0],
   };
 
   it("should reconcile unchanged", () => {
