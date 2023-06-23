@@ -5,18 +5,18 @@ import { SignerAdapter } from "../../../types/adapters";
 import { DeploymentLoader } from "../../../types/deployment-loader";
 import {
   CallFunctionInteractionMessage,
-  CallFunctionResultMessage,
   DeployContractInteractionMessage,
-  DeployContractResultMessage,
+  OnchainDeployContractSuccessMessage,
+  OnchainFailureMessage,
   OnchainInteractionMessage,
   OnchainResultMessage,
   StaticCallInteractionMessage,
-  StaticCallResultMessage,
 } from "../../../types/journal";
 import {
   TransactionService,
   TransactionServiceOptions,
 } from "../../../types/transaction-service";
+import { assertIgnitionInvariant } from "../../utils/assertions";
 import { collectLibrariesAndLink } from "../../utils/collectLibrariesAndLink";
 import {
   isCallFunctionInteraction,
@@ -62,7 +62,7 @@ export class TransactionServiceImplementation implements TransactionService {
   private async _dispatchDeployContract(
     deployContractInteraction: DeployContractInteractionMessage,
     libraries: { [libraryName: string]: string } = {}
-  ): Promise<DeployContractResultMessage> {
+  ): Promise<OnchainDeployContractSuccessMessage | OnchainFailureMessage> {
     const artifact = await this._deploymentLoader.loadArtifact(
       deployContractInteraction.storedArtifactPath
     );
@@ -81,19 +81,30 @@ export class TransactionServiceImplementation implements TransactionService {
       value,
     });
 
-    const { contractAddress } = await this._chainDispatcher.sendTx(tx, signer);
+    const result = await this._chainDispatcher.sendTx(tx, signer);
 
-    if (contractAddress === undefined) {
-      throw new IgnitionError("Contract address not available on receipt");
+    if (result.type === "transaction-success") {
+      assertIgnitionInvariant(
+        result.contractAddress !== undefined,
+        "Contract address not available on receipt"
+      );
+
+      return {
+        type: "onchain-result",
+        subtype: "deploy-contract-success",
+        futureId: deployContractInteraction.futureId,
+        transactionId: deployContractInteraction.transactionId,
+        contractAddress: result.contractAddress,
+      };
+    } else {
+      return {
+        type: "onchain-result",
+        subtype: "failure",
+        futureId: deployContractInteraction.futureId,
+        transactionId: deployContractInteraction.transactionId,
+        error: result.error,
+      };
     }
-
-    return {
-      type: "onchain-result",
-      subtype: "deploy-contract",
-      futureId: deployContractInteraction.futureId,
-      transactionId: deployContractInteraction.transactionId,
-      contractAddress,
-    };
   }
 
   private async _dispatchCallFunction({
@@ -105,7 +116,7 @@ export class TransactionServiceImplementation implements TransactionService {
     contractAddress,
     value,
     storedArtifactPath,
-  }: CallFunctionInteractionMessage): Promise<CallFunctionResultMessage> {
+  }: CallFunctionInteractionMessage): Promise<OnchainResultMessage> {
     const artifact = await this._deploymentLoader.loadArtifact(
       storedArtifactPath
     );
@@ -123,19 +134,30 @@ export class TransactionServiceImplementation implements TransactionService {
       { value: BigInt(value), from: await signer.getAddress() }
     );
 
-    const { txId } = await this._chainDispatcher.sendTx(unsignedTx, signer);
+    const result = await this._chainDispatcher.sendTx(unsignedTx, signer);
 
-    if (txId === undefined) {
-      throw new IgnitionError("Transaction hash not available on receipt");
+    if (result.type === "transaction-success") {
+      assertIgnitionInvariant(
+        result.txId !== undefined,
+        "Transaction hash not available on receipt"
+      );
+
+      return {
+        type: "onchain-result",
+        subtype: "call-function-success",
+        futureId,
+        transactionId,
+        txId: result.txId,
+      };
+    } else {
+      return {
+        type: "onchain-result",
+        subtype: "failure",
+        futureId,
+        transactionId,
+        error: result.error,
+      };
     }
-
-    return {
-      type: "onchain-result",
-      subtype: "call-function",
-      futureId,
-      transactionId,
-      txId,
-    };
   }
 
   private async _dispatchStaticCall({
@@ -146,33 +168,47 @@ export class TransactionServiceImplementation implements TransactionService {
     functionName,
     contractAddress,
     storedArtifactPath,
-  }: StaticCallInteractionMessage): Promise<StaticCallResultMessage> {
+  }: StaticCallInteractionMessage): Promise<OnchainResultMessage> {
     const artifact = await this._deploymentLoader.loadArtifact(
       storedArtifactPath
     );
 
-    const signer: ethers.Signer = await this._signerLoader.getSigner(from);
+    try {
+      const signer: ethers.Signer = await this._signerLoader.getSigner(from);
 
-    const contractInstance = new Contract(
-      contractAddress,
-      artifact.abi,
-      signer
-    );
+      const contractInstance = new Contract(
+        contractAddress,
+        artifact.abi,
+        signer
+      );
 
-    const result = await contractInstance[functionName](...args, {
-      from: await signer.getAddress(),
-    });
+      const result = await contractInstance[functionName](...args, {
+        from: await signer.getAddress(),
+      });
 
-    if (result === undefined) {
-      throw new IgnitionError("Static call result not available");
+      assertIgnitionInvariant(
+        result !== undefined,
+        "Static call result not available"
+      );
+
+      return {
+        type: "onchain-result",
+        subtype: "static-call-success",
+        futureId,
+        transactionId,
+        result,
+      };
+    } catch (error) {
+      return {
+        type: "onchain-result",
+        subtype: "failure",
+        futureId,
+        transactionId,
+        error:
+          error instanceof Error
+            ? error
+            : new Error("Unknown static call error"),
+      };
     }
-
-    return {
-      type: "onchain-result",
-      subtype: "static-call",
-      futureId,
-      transactionId,
-      result,
-    };
   }
 }

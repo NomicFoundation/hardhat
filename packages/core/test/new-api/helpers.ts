@@ -1,6 +1,20 @@
 import { assert } from "chai";
 
-import { Artifact, ArtifactResolver, IgnitionError } from "../../src";
+import {
+  Artifact,
+  ArtifactResolver,
+  DeploymentResultContracts,
+} from "../../src";
+import { Deployer } from "../../src/new-api/internal/deployer";
+import { MemoryJournal } from "../../src/new-api/internal/journal/memory-journal";
+import { DeploymentResult } from "../../src/new-api/types/deployer";
+import { DeploymentLoader } from "../../src/new-api/types/deployment-loader";
+import {
+  Journal,
+  JournalableMessage,
+  OnchainResultMessage,
+} from "../../src/new-api/types/journal";
+import { TransactionService } from "../../src/new-api/types/transaction-service";
 
 export const exampleAccounts: string[] = [
   "0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
@@ -17,16 +31,34 @@ export function assertInstanceOf<ObjectT>(
   assert.instanceOf(obj, klass, `Not a valid instace of ${klass.name}`);
 }
 
-export function setupMockArtifactResolver(
-  artifact?: Artifact
-): ArtifactResolver {
+export function setupMockArtifactResolver(artifacts?: {
+  [key: string]: Artifact;
+}): ArtifactResolver {
+  const fakeArtifact: Artifact = {
+    abi: [],
+    contractName: "",
+    bytecode: "",
+    linkReferences: {},
+  };
+
   return {
-    loadArtifact: async () => {
-      if (artifact === undefined) {
-        throw new IgnitionError("Not implemented");
+    loadArtifact: async (contractName: string) => {
+      if (artifacts === undefined) {
+        return {
+          ...fakeArtifact,
+          contractName,
+        };
       }
 
-      return artifact;
+      const artifact = artifacts[contractName];
+
+      if (artifact === undefined) {
+        throw new Error(
+          `No artifact set in test for that contractName ${contractName}`
+        );
+      }
+
+      return artifacts[contractName];
     },
     getBuildInfo: async (_contractName: string) => {
       return { id: 12345 } as any;
@@ -35,4 +67,112 @@ export function setupMockArtifactResolver(
       return `${contractName}.json`;
     },
   };
+}
+
+export function setupMockDeploymentLoader(journal: Journal): DeploymentLoader {
+  return {
+    journal,
+    recordDeployedAddress: async () => {},
+    storeArtifact: async (futureId, _artifact) => {
+      return `${futureId}.json`;
+    },
+    storeBuildInfo: async (buildInfo) => {
+      return `build-info-${buildInfo.id}.json`;
+    },
+    loadArtifact: async (_storedArtifactPath) => {
+      throw new Error("Not implemented");
+    },
+  };
+}
+
+export function setupMockTransactionService({
+  responses,
+}: {
+  responses: { [key: string]: { [key: number]: OnchainResultMessage } };
+}): TransactionService {
+  return {
+    onchain: async (request) => {
+      const futureResults = responses[request.futureId];
+
+      if (futureResults === undefined) {
+        throw new Error(
+          `Mock transaction service has no results recorded for future ${request.futureId}`
+        );
+      }
+
+      const transactionResult = futureResults[request.transactionId];
+
+      if (transactionResult === undefined) {
+        throw new Error(
+          `Mock transaction service has no results recorded for transaction ${request.futureId}/${request.transactionId}`
+        );
+      }
+
+      return transactionResult;
+    },
+  };
+}
+
+export function setupDeployerWithMocks({
+  journal = new MemoryJournal(),
+  artifacts,
+  transactionResponses,
+}: {
+  journal?: Journal;
+  artifacts?: { [key: string]: Artifact };
+  transactionResponses?: {
+    [key: string]: { [key: number]: OnchainResultMessage };
+  };
+}): Deployer {
+  const mockArtifactResolver = setupMockArtifactResolver(artifacts);
+  const mockDeploymentLoader = setupMockDeploymentLoader(journal);
+  const mockTransactionService = setupMockTransactionService({
+    responses: transactionResponses ?? {},
+  });
+
+  return new Deployer({
+    artifactResolver: mockArtifactResolver,
+    deploymentLoader: mockDeploymentLoader,
+    transactionService: mockTransactionService,
+  });
+}
+
+export async function accumulateMessages(
+  journal: Journal
+): Promise<JournalableMessage[]> {
+  const messages: JournalableMessage[] = [];
+
+  for await (const message of journal.read()) {
+    messages.push(message);
+  }
+
+  return messages;
+}
+
+export function assertDeploymentFailure(
+  result: DeploymentResult,
+  expectedErrors: {
+    [key: string]: Error;
+  }
+) {
+  assert.isDefined(result);
+
+  if (result.status !== "failure") {
+    assert.fail("result expected to be failure");
+  }
+
+  assert.deepStrictEqual(result.errors, expectedErrors);
+}
+
+export function assertDeploymentSuccess(
+  result: DeploymentResult,
+  expectedContracts: DeploymentResultContracts
+) {
+  assert.isDefined(result);
+
+  if (result.status !== "success") {
+    assert.fail("result expected to be success");
+  }
+
+  assert.deepStrictEqual(result.contracts, expectedContracts);
 }

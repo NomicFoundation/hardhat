@@ -2,10 +2,18 @@ import { ethers } from "ethers";
 
 import { GasAdapter, TransactionsAdapter } from "../../../types/adapters";
 
-interface TransactionReceipt {
+interface TransactionSuccess {
+  type: "transaction-success";
   contractAddress?: string;
   txId?: string;
 }
+
+interface TransactionFailure {
+  type: "transaction-failure";
+  error: Error;
+}
+
+type TransactionReceipt = TransactionSuccess | TransactionFailure;
 
 export interface ChainDispatcher {
   sendTx(
@@ -48,16 +56,25 @@ export class EthersChainDispatcher implements ChainDispatcher {
 
       tx.gasPrice = gasPrice;
     }
+    try {
+      const response = await signer.sendTransaction(tx);
 
-    const response = await signer.sendTransaction(tx);
+      const txHash = response.hash;
 
-    const txHash = response.hash;
+      const receipt = await this._transactionProvider.wait(txHash);
 
-    const receipt = await this._transactionProvider.wait(txHash);
-
-    return {
-      contractAddress: receipt.contractAddress,
-      txId: txHash,
-    };
+      return {
+        type: "transaction-success",
+        contractAddress: receipt.contractAddress,
+      };
+    } catch (error) {
+      return {
+        type: "transaction-failure",
+        error:
+          error instanceof Error
+            ? error
+            : new Error("Unknown issue during `sendTx`"),
+      };
+    }
   }
 }

@@ -235,7 +235,7 @@ describe("Read event argument", () => {
       await assert.isRejected(
         validateReadEventArgument(
           future as any,
-          setupMockArtifactResolver({} as any)
+          setupMockArtifactResolver({ Another: {} as any })
         ),
         /Artifact for contract 'Another' is invalid/
       );
@@ -263,10 +263,7 @@ describe("Read event argument", () => {
       );
 
       await assert.isRejected(
-        validateReadEventArgument(
-          future as any,
-          setupMockArtifactResolver(fakeArtifact)
-        ),
+        validateReadEventArgument(future as any, setupMockArtifactResolver()),
         /Contract 'Another' doesn't have an event test/
       );
     });

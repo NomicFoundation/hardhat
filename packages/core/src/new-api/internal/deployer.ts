@@ -32,8 +32,8 @@ export class Deployer {
 
   constructor(options: {
     artifactResolver: ArtifactResolver;
-    transactionService: TransactionService;
     deploymentLoader: DeploymentLoader;
+    transactionService: TransactionService;
   }) {
     this._strategy = new BasicExecutionStrategy();
     this._artifactResolver = options.artifactResolver;

@@ -2,25 +2,23 @@ import {
   CallFunctionInteractionMessage,
   DeployContractInteractionMessage,
   DeployedContractExecutionSuccess,
+  ExecutionFailure,
+  ExecutionHold,
   ExecutionResultMessage,
-  ExecutionResultTypes,
   ExecutionSuccess,
   JournalableMessage,
   OnchainInteractionMessage,
-  OnchainResultMessage,
   StaticCallInteractionMessage,
 } from "../../types/journal";
 
-export function isExecutionResult(
+export function isExecutionResultMessage(
   potential: JournalableMessage
 ): potential is ExecutionResultMessage {
-  const resultTypes: ExecutionResultTypes = [
-    "execution-success",
-    "execution-failure",
-    "execution-hold",
-  ];
-
-  return (resultTypes as string[]).includes(potential.type);
+  return (
+    isExecutionSuccess(potential) ||
+    isExecutionFailure(potential) ||
+    isExecutionHold(potential)
+  );
 }
 
 export function isExecutionSuccess(
@@ -29,24 +27,22 @@ export function isExecutionSuccess(
   return potential.type === "execution-success";
 }
 
-export function isExecutionMessage(
+export function isExecutionFailure(
   potential: JournalableMessage
-): potential is ExecutionResultMessage {
-  return isExecutionResult(potential);
+): potential is ExecutionFailure {
+  return potential.type === "execution-failure";
+}
+
+export function isExecutionHold(
+  potential: JournalableMessage
+): potential is ExecutionHold {
+  return potential.type === "execution-hold";
 }
 
 export function isOnChainAction(
   potential: JournalableMessage
 ): potential is OnchainInteractionMessage {
   return potential.type === "onchain-action";
-}
-
-export function isOnchainResult(
-  potential: JournalableMessage
-): potential is OnchainResultMessage {
-  const resultTypes = ["onchain-result"];
-
-  return resultTypes.includes(potential.type);
 }
 
 export function isOnchainInteractionMessage(

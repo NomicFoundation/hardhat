@@ -558,7 +558,7 @@ describe("call", () => {
       await assert.isRejected(
         validateNamedContractCall(
           future as any,
-          setupMockArtifactResolver({} as any)
+          setupMockArtifactResolver({ Another: {} as any })
         ),
         /Artifact for contract 'Another' is invalid/
       );
@@ -586,10 +586,7 @@ describe("call", () => {
       );
 
       await assert.isRejected(
-        validateNamedContractCall(
-          future as any,
-          setupMockArtifactResolver(fakeArtifact)
-        ),
+        validateNamedContractCall(future as any, setupMockArtifactResolver()),
         /Contract 'Another' doesn't have a function test/
       );
     });
@@ -630,10 +627,7 @@ describe("call", () => {
       );
 
       await assert.isRejected(
-        validateNamedContractCall(
-          future as any,
-          setupMockArtifactResolver(fakeArtifact)
-        ),
+        validateNamedContractCall(future as any, setupMockArtifactResolver()),
         /Function inc in contract Another expects 1 arguments but 2 were given/
       );
     });
@@ -692,10 +686,7 @@ describe("call", () => {
       );
 
       await assert.isRejected(
-        validateNamedContractCall(
-          future as any,
-          setupMockArtifactResolver(fakeArtifact)
-        ),
+        validateNamedContractCall(future as any, setupMockArtifactResolver()),
         /Function inc in contract Another is overloaded, but no overload expects 3 arguments/
       );
     });

@@ -2,6 +2,7 @@ import { FutureStartMessage, JournalableMessage } from "../../types/journal";
 import {
   isCallFunctionStartMessage,
   isDeployContractStartMessage,
+  isExecutionStartMessage,
   isStaticCallStartMessage,
 } from "../journal/type-guards";
 import {
@@ -17,8 +18,8 @@ import { assertIgnitionInvariant } from "../utils/assertions";
 export function executionStateReducer(
   executionStateMap: ExecutionStateMap,
   action: JournalableMessage
-): ExecutionStateMap {
-  if (action.type === "execution-start") {
+) {
+  if (isExecutionStartMessage(action)) {
     return {
       ...executionStateMap,
       [action.futureId]: initialiseExecutionStateFor(action),
@@ -89,6 +90,16 @@ export function executionStateReducer(
       ...executionStateMap,
       [action.futureId]: updateWithOnchainAction,
     };
+  }
+
+  if (action.type === "wipe") {
+    const updated = {
+      ...executionStateMap,
+    };
+
+    delete updated[action.futureId];
+
+    return updated;
   }
 
   return executionStateMap;

@@ -270,7 +270,9 @@ describe("contractAt", () => {
       await assert.isRejected(
         validateNamedContractAt(
           future as any,
-          setupMockArtifactResolver(fakeArtifact)
+          setupMockArtifactResolver({
+            Another: fakeArtifact,
+          })
         ),
         /Artifact for contract 'Another' is invalid/
       );

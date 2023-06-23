@@ -1,17 +1,17 @@
 import { IgnitionError } from "../../../errors";
 import {
   CallFunctionInteractionMessage,
-  CallFunctionResultMessage,
   CalledFunctionExecutionSuccess,
   DeployContractInteractionMessage,
-  DeployContractResultMessage,
   DeployedContractExecutionSuccess,
   JournalableMessage,
+  OnchainCallFunctionSuccessMessage,
+  OnchainDeployContractSuccessMessage,
   OnchainInteractionMessage,
   OnchainResultMessage,
+  OnchainStaticCallSuccessMessage,
   StaticCallExecutionSuccess,
   StaticCallInteractionMessage,
-  StaticCallResultMessage,
 } from "../../types/journal";
 import {
   isCallExecutionState,
@@ -70,7 +70,7 @@ export class BasicExecutionStrategy
   }): AsyncGenerator<
     DeployContractInteractionMessage,
     DeployedContractExecutionSuccess,
-    DeployContractResultMessage | null
+    OnchainDeployContractSuccessMessage | null
   > {
     assertIgnitionInvariant(
       sender !== undefined,
@@ -113,7 +113,7 @@ export class BasicExecutionStrategy
   }): AsyncGenerator<
     CallFunctionInteractionMessage,
     CalledFunctionExecutionSuccess,
-    CallFunctionResultMessage | null
+    OnchainCallFunctionSuccessMessage | null
   > {
     assertIgnitionInvariant(
       sender !== undefined,
@@ -158,7 +158,7 @@ export class BasicExecutionStrategy
   }): AsyncGenerator<
     StaticCallInteractionMessage,
     StaticCallExecutionSuccess,
-    StaticCallResultMessage | null
+    OnchainStaticCallSuccessMessage | null
   > {
     assertIgnitionInvariant(
       sender !== undefined,

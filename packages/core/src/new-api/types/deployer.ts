@@ -7,8 +7,9 @@ import { IgnitionModule, IgnitionModuleResult } from "./module";
  */
 export type DeploymentResult =
   | DeploymentResultSuccess
+  | DeploymentResultFailure
   | {
-      status: "failed" | "hold";
+      status: "hold";
     };
 
 /**
@@ -20,6 +21,17 @@ export interface DeploymentResultSuccess {
   status: "success";
   contracts: DeploymentResultContracts;
   module: IgnitionModule<string, string, IgnitionModuleResult<string>>;
+}
+
+/**
+ * The result of a failed deployment run (at least one future had an
+ * failed transaction).
+ *
+ * @beta
+ */
+export interface DeploymentResultFailure {
+  status: "failure";
+  errors: { [key: string]: Error };
 }
 
 /**

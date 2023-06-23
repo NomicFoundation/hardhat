@@ -16,7 +16,10 @@ export interface Journal {
  *
  * @beta
  */
-export type JournalableMessage = TransactionMessage | ExecutionMessage;
+export type JournalableMessage =
+  | TransactionMessage
+  | ExecutionMessage
+  | WipeMessage;
 
 // #region "TransactionMessage"
 
@@ -103,18 +106,24 @@ export interface StaticCallInteractionMessage {
  * @beta
  */
 export type OnchainResultMessage =
-  | DeployContractResultMessage
-  | CallFunctionResultMessage
-  | StaticCallResultMessage;
+  | OnchainResultSuccessMessage
+  | OnchainResultFailureMessage;
+
+export type OnchainResultSuccessMessage =
+  | OnchainDeployContractSuccessMessage
+  | OnchainCallFunctionSuccessMessage
+  | OnchainStaticCallSuccessMessage;
+
+export type OnchainResultFailureMessage = OnchainFailureMessage;
 
 /**
  * A successful deploy contract transaction result.
  *
  * @beta
  */
-export interface DeployContractResultMessage {
+export interface OnchainDeployContractSuccessMessage {
   type: "onchain-result";
-  subtype: "deploy-contract";
+  subtype: "deploy-contract-success";
   futureId: string;
   transactionId: number;
   contractAddress: string;
@@ -125,9 +134,9 @@ export interface DeployContractResultMessage {
  *
  * @beta
  */
-export interface CallFunctionResultMessage {
+export interface OnchainCallFunctionSuccessMessage {
   type: "onchain-result";
-  subtype: "call-function";
+  subtype: "call-function-success";
   futureId: string;
   transactionId: number;
   txId: string;
@@ -138,12 +147,25 @@ export interface CallFunctionResultMessage {
  *
  * @beta
  */
-export interface StaticCallResultMessage {
+export interface OnchainStaticCallSuccessMessage {
   type: "onchain-result";
-  subtype: "static-call";
+  subtype: "static-call-success";
   futureId: string;
   transactionId: number;
   result: PrimitiveArgType | PrimitiveArgType[];
+}
+
+/**
+ * A failed on-chain transaction result.
+ *
+ * @beta
+ */
+export interface OnchainFailureMessage {
+  type: "onchain-result";
+  subtype: "failure";
+  futureId: string;
+  transactionId: number;
+  error: Error;
 }
 
 // #endregion
@@ -336,6 +358,8 @@ export interface StaticCallExecutionSuccess {
  */
 export interface ExecutionFailure {
   type: "execution-failure";
+  futureId: string;
+  error: Error;
 }
 
 /**
@@ -349,5 +373,20 @@ export interface ExecutionHold {
 }
 
 // #endregion
+
+// #endregion
+
+// #region "WipeMessage"
+
+/**
+ * A journal message indicating the user has instructed Ignition to clear
+ * the futures state so it can be rerun.
+ *
+ * @beta
+ */
+export interface WipeMessage {
+  type: "wipe";
+  futureId: string;
+}
 
 // #endregion

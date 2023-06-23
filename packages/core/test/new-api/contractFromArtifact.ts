@@ -629,7 +629,7 @@ describe("contractFromArtifact", () => {
       await assert.isRejected(
         validateArtifactContractDeployment(
           future as any,
-          setupMockArtifactResolver(fakeArtifact)
+          setupMockArtifactResolver()
         ),
         /The constructor of the contract 'Test' expects 0 arguments but 3 were given/
       );

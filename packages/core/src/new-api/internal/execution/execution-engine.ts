@@ -5,10 +5,12 @@ import { ArtifactResolver } from "../../types/artifact";
 import { DeploymentResult } from "../../types/deployer";
 import { DeploymentLoader } from "../../types/deployment-loader";
 import {
+  ExecutionFailure,
   ExecutionResultMessage,
   FutureRestartMessage,
   FutureStartMessage,
   JournalableMessage,
+  OnchainResultFailureMessage,
 } from "../../types/journal";
 import {
   AccountRuntimeValue,
@@ -19,6 +21,10 @@ import {
   NamedContractDeploymentFuture,
   NamedLibraryDeploymentFuture,
 } from "../../types/module";
+import {
+  isOnChainFailureMessage,
+  isOnChainSuccessMessage,
+} from "../journal/type-guards";
 import {
   isCallExecutionState,
   isDeploymentExecutionState,
@@ -43,9 +49,9 @@ import { resolveModuleParameter } from "../utils/resolve-module-parameter";
 import { executionStateReducer } from "./executionStateReducer";
 import {
   isDeployedContractExecutionSuccess,
-  isExecutionResult,
+  isExecutionFailure,
+  isExecutionResultMessage,
   isOnChainAction,
-  isOnchainResult,
 } from "./guards";
 
 type ExecutionBatch = Future[];
@@ -64,8 +70,15 @@ export class ExecutionEngine {
 
       const batchResult = await this._executeBatch(executionBatch, state);
 
-      if (batchResult.some((b) => b.type === "execution-failure")) {
-        return { status: "failed" };
+      if (batchResult.some(isExecutionFailure)) {
+        return {
+          status: "failure",
+          errors: Object.fromEntries(
+            batchResult
+              .filter(isExecutionFailure)
+              .map((r) => [r.futureId, r.error])
+          ),
+        };
       }
 
       if (batchResult.some((b) => b.type === "execution-hold")) {
@@ -117,23 +130,37 @@ export class ExecutionEngine {
       })
     );
 
-    while (!isExecutionResult(current)) {
+    while (!isExecutionResultMessage(current)) {
       context.executionState = state.executionStateMap[future.id];
 
       if (isOnChainAction(current)) {
         current = await state.transactionService.onchain(current, {
           libraries,
         });
-      } else if (isOnchainResult(current)) {
+      } else if (isOnChainSuccessMessage(current)) {
         current = (await exectionStrategy.next(current)).value;
+      } else if (isOnChainFailureMessage(current)) {
+        current = this._convertToExecutionFailure(current);
       } else {
         current = (await exectionStrategy.next(null)).value;
       }
+
+      // TODO: add never type check?
 
       await this._apply(state, current);
     }
 
     return current;
+  }
+
+  private _convertToExecutionFailure(
+    current: OnchainResultFailureMessage
+  ): ExecutionFailure {
+    return {
+      type: "execution-failure",
+      futureId: current.futureId,
+      error: current.error,
+    };
   }
 
   private async _startOrRestartFor(

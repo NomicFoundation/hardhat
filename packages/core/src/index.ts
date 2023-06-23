@@ -3,6 +3,7 @@ export * from "./errors";
 export * from "./initialization";
 export { defineModule } from "./new-api/define-module";
 export { deploy } from "./new-api/deploy";
+export { wipe } from "./new-api/wipe";
 /* TODO: how is module constructor getting exposed? */
 export { ModuleConstructor } from "./new-api/internal/module-builder";
 export { StoredDeploymentSerializer } from "./new-api/stored-deployment-serializer";

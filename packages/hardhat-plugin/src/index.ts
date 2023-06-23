@@ -4,6 +4,7 @@ import {
   ModuleConstructor,
   ModuleDict,
   ModuleParams,
+  wipe,
 } from "@ignored/ignition-core";
 import "@nomiclabs/hardhat-ethers";
 import { BigNumber } from "ethers";
@@ -284,20 +285,29 @@ task("deploy2")
           ] of Object.entries(result.contracts)) {
             console.log(`${contractName} (${futureId}) - ${contractAddress}`);
           }
-        } else if (result.status === "failed") {
+        } else if (result.status === "failure") {
           console.log("Deployment failed");
+          console.log("");
+
+          for (const [futureId, error] of Object.entries(result.errors)) {
+            const errorMessage =
+              "reason" in error ? (error.reason as string) : error.message;
+
+            console.log(`Future ${futureId} failed: ${errorMessage}`);
+          }
         } else if (result.status === "hold") {
           console.log("Deployment held");
         }
       } catch (err) {
-        if (DISPLAY_UI) {
-          // display of error or on hold is done
-          // based on state, thrown error display
-          // can be ignored
-          process.exit(1);
-        } else {
-          throw err;
-        }
+        // TODO: bring back cli ui
+        // if (DISPLAY_UI) {
+        //   // display of error or on hold is done
+        //   // based on state, thrown error display
+        //   // can be ignored
+        //   process.exit(1);
+        // } else {
+        throw err;
+        // }
       }
     }
   );
@@ -433,6 +443,30 @@ task("ignition-info2")
 
         console.log("");
       }
+    }
+  );
+
+task("wipe")
+  .addParam("deployment")
+  .addParam("future")
+  .setDescription("Reset a deployments future to allow rerunning")
+  .setAction(
+    async (
+      {
+        deployment: deploymentId,
+        future: futureId,
+      }: { deployment: string; future: string },
+      hre
+    ) => {
+      const deploymentDir = path.join(
+        hre.config.paths.ignition,
+        "deployments",
+        deploymentId
+      );
+
+      await wipe(deploymentDir, futureId);
+
+      console.log(`${futureId} state has been cleared`);
     }
   );
 
