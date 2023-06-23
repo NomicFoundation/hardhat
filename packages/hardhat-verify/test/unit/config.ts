@@ -64,16 +64,16 @@ describe("Chain Config", () => {
     const userConfig: HardhatUserConfig = {
       etherscan: {
         apiKey: {
-          ropsten: "<ropsten-api-key>",
+          mainnet: "<mainnet-api-key>",
           sepolia: "<sepolia-api-key>",
         },
         customChains: [
           {
-            network: "ropsten",
-            chainId: 3,
+            network: "mainnet",
+            chainId: 1,
             urls: {
-              apiURL: "https://api-ropsten.etherscan.io/api",
-              browserURL: "https://ropsten.etherscan.io",
+              apiURL: "https://api.etherscan.io/api",
+              browserURL: "https://etherscan.io",
             },
           },
           {
@@ -89,16 +89,16 @@ describe("Chain Config", () => {
     };
     const expected: EtherscanConfig = {
       apiKey: {
-        ropsten: "<ropsten-api-key>",
+        mainnet: "<mainnet-api-key>",
         sepolia: "<sepolia-api-key>",
       },
       customChains: [
         {
-          network: "ropsten",
-          chainId: 3,
+          network: "mainnet",
+          chainId: 1,
           urls: {
-            apiURL: "https://api-ropsten.etherscan.io/api",
-            browserURL: "https://ropsten.etherscan.io",
+            apiURL: "https://api.etherscan.io/api",
+            browserURL: "https://etherscan.io",
           },
         },
         {
