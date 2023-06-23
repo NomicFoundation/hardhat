@@ -24,7 +24,12 @@ import {
   ExecutionEngineState,
   ExecutionStrategyContext,
 } from "../types/execution-engine";
-import { ExecutionStateMap, ExecutionStatus } from "../types/execution-state";
+import {
+  DeploymentExecutionState,
+  ExecutionStateMap,
+  ExecutionStatus,
+} from "../types/execution-state";
+import { assertIgnitionInvariant } from "../utils/assertions";
 import { getFuturesFromModule } from "../utils/get-futures-from-module";
 import { replaceWithinArg } from "../utils/replace-within-arg";
 import { resolveFromAddress } from "../utils/resolve-from-address";
@@ -289,6 +294,30 @@ export class ExecutionEngine {
 
         return state;
       case FutureType.NAMED_CONTRACT_CALL:
+        const contractAddress = (
+          executionStateMap[future.contract.id] as DeploymentExecutionState
+        ).contractAddress;
+
+        assertIgnitionInvariant(
+          contractAddress !== undefined,
+          "internal error - call executed before contract dependency"
+        );
+
+        state = {
+          type: "execution-start",
+          futureId: future.id,
+          futureType: future.type,
+          strategy,
+          // status: ExecutionStatus.STARTED,
+          dependencies: [...future.dependencies].map((f) => f.id),
+          // history: [],
+          args: future.args,
+          functionName: future.functionName,
+          contractAddress,
+          value: future.value.toString(),
+          from: this._resolveAddress(future.from, { accounts }),
+        };
+        return state;
       case FutureType.NAMED_STATIC_CALL:
       case FutureType.NAMED_CONTRACT_AT:
       case FutureType.ARTIFACT_CONTRACT_AT:

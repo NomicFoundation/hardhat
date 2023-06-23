@@ -140,6 +140,7 @@ export interface CallExecutionState
   args: ArgumentType[];
   value: bigint;
   from: string | undefined;
+  txId?: string;
 }
 
 export interface StaticCallExecutionState

@@ -1,4 +1,5 @@
 import {
+  CallFunctionInteractionMessage,
   DeployContractInteractionMessage,
   DeployedContractExecutionSuccess,
   ExecutionResultMessage,
@@ -50,13 +51,22 @@ export function isOnchainResult(
 export function isOnchainInteractionMessage(
   potential: JournalableMessage
 ): potential is OnchainInteractionMessage {
-  return isDeployContractInteraction(potential);
+  return (
+    isDeployContractInteraction(potential) ||
+    isCallFunctionInteraction(potential)
+  );
 }
 
 export function isDeployContractInteraction(
   potential: JournalableMessage
 ): potential is DeployContractInteractionMessage {
   return isOnChainAction(potential) && potential.subtype === "deploy-contract";
+}
+
+export function isCallFunctionInteraction(
+  potential: JournalableMessage
+): potential is CallFunctionInteractionMessage {
+  return isOnChainAction(potential) && potential.subtype === "call-function";
 }
 
 export function isDeployedContractExecutionSuccess(

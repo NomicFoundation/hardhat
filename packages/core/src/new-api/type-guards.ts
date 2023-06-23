@@ -1,6 +1,11 @@
 import { Adapters } from "./types/adapters";
 import { Artifact } from "./types/artifact";
 import {
+  CallFunctionStartMessage,
+  DeployContractStartMessage,
+  FutureStartMessage,
+} from "./types/journal";
+import {
   AccountRuntimeValue,
   AddressResolvableFuture,
   ContractFuture,
@@ -248,4 +253,33 @@ export function isAdapters(potential: unknown): potential is Adapters {
     "gas" in potential &&
     "transactions" in potential
   );
+}
+
+/**
+ * Returns true if potential is a contract deployment start message
+ *
+ * @beta
+ */
+export function isDeployContractStartMessage(
+  potential: FutureStartMessage
+): potential is DeployContractStartMessage {
+  const deploymentTypes = [
+    FutureType.NAMED_CONTRACT_DEPLOYMENT,
+    FutureType.ARTIFACT_CONTRACT_DEPLOYMENT,
+    FutureType.NAMED_LIBRARY_DEPLOYMENT,
+    FutureType.ARTIFACT_LIBRARY_DEPLOYMENT,
+  ];
+
+  return deploymentTypes.includes(potential.futureType);
+}
+
+/**
+ * Returns true if potential is a call function start message
+ *
+ * @beta
+ */
+export function isCallFunctionStartMessage(
+  potential: FutureStartMessage
+): potential is CallFunctionStartMessage {
+  return potential.futureType === FutureType.NAMED_CONTRACT_CALL;
 }

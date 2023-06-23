@@ -1,6 +1,8 @@
 import { IgnitionError } from "../../../../errors";
 import { DeploymentLoader } from "../../../types/deployment-loader";
 import {
+  CallFunctionInteractionMessage,
+  CallFunctionResultMessage,
   DeployContractInteractionMessage,
   DeployContractResultMessage,
   OnchainInteractionMessage,
@@ -11,7 +13,10 @@ import {
   TransactionServiceOptions,
 } from "../../../types/transaction-service";
 import { collectLibrariesAndLink } from "../../utils/collectLibrariesAndLink";
-import { isDeployContractInteraction } from "../guards";
+import {
+  isCallFunctionInteraction,
+  isDeployContractInteraction,
+} from "../guards";
 
 import { ChainDispatcher } from "./chain-dispatcher";
 
@@ -30,13 +35,17 @@ export class TransactionServiceImplementation implements TransactionService {
     interaction: OnchainInteractionMessage,
     options?: TransactionServiceOptions
   ): Promise<OnchainResultMessage> {
-    if (!isDeployContractInteraction(interaction)) {
-      throw new IgnitionError(
-        "Transaction service not implemented for this interaction"
-      );
+    if (isDeployContractInteraction(interaction)) {
+      return this._dispatchDeployContract(interaction, options?.libraries);
     }
 
-    return this._dispatchDeployContract(interaction, options?.libraries);
+    if (isCallFunctionInteraction(interaction)) {
+      return this._dispatchCallFunction(interaction);
+    }
+
+    throw new IgnitionError(
+      "Transaction service not implemented for this interaction"
+    );
   }
 
   private async _dispatchDeployContract(
@@ -53,6 +62,8 @@ export class TransactionServiceImplementation implements TransactionService {
 
     const linkedByteCode = await collectLibrariesAndLink(artifact, libraries);
 
+    // todo: i think chain dispatcher should only be passed a raw tx, and everything needed for that.
+    // any process necessary to generating that transaction should happen here in transaction service
     const { contractAddress } = await this._chainDispatcher.sendTx({
       abi: artifact.abi,
       bytecode: linkedByteCode,
@@ -72,5 +83,18 @@ export class TransactionServiceImplementation implements TransactionService {
       transactionId: deployContractInteraction.transactionId,
       contractAddress,
     };
+  }
+
+  private async _dispatchCallFunction(
+    callFunctionInteraction: CallFunctionInteractionMessage
+  ): Promise<CallFunctionResultMessage> {
+    const from = callFunctionInteraction.from;
+    const args = callFunctionInteraction.args;
+    const value = BigInt(callFunctionInteraction.value);
+    const functionName = callFunctionInteraction.functionName;
+
+    throw new Error(
+      `not implemented yet${from}${args as any}${value}${functionName}`
+    );
   }
 }

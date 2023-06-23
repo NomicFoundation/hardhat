@@ -36,7 +36,9 @@ export type TransactionMessage =
  *
  * @beta
  */
-export type OnchainInteractionMessage = DeployContractInteractionMessage;
+export type OnchainInteractionMessage =
+  | DeployContractInteractionMessage
+  | CallFunctionInteractionMessage;
 
 /**
  * A on-chain interaction request to deploy a contract/library.
@@ -55,6 +57,23 @@ export interface DeployContractInteractionMessage {
   from: string;
 }
 
+/**
+ * A on-chain interaction request to call a function.
+ *
+ * @beta
+ */
+export interface CallFunctionInteractionMessage {
+  type: "onchain-action";
+  subtype: "call-function";
+  futureId: string;
+  transactionId: number;
+  args: ArgumentType[];
+  functionName: string;
+  value: string;
+  contractAddress: string;
+  from: string;
+}
+
 // #endregion
 
 // #region "OnchainResult"
@@ -64,7 +83,9 @@ export interface DeployContractInteractionMessage {
  *
  * @beta
  */
-export type OnchainResultMessage = DeployContractResultMessage;
+export type OnchainResultMessage =
+  | DeployContractResultMessage
+  | CallFunctionResultMessage;
 
 /**
  * A successful deploy contract transaction result.
@@ -77,6 +98,19 @@ export interface DeployContractResultMessage {
   futureId: string;
   transactionId: number;
   contractAddress: string;
+}
+
+/**
+ * A successful call function transaction result.
+ *
+ * @beta
+ */
+export interface CallFunctionResultMessage {
+  type: "onchain-result";
+  subtype: "call-function";
+  futureId: string;
+  transactionId: number;
+  txId: string;
 }
 
 // #endregion
@@ -106,10 +140,23 @@ export type ExecutionUpdateMessage = FutureStartMessage | FutureRestartMessage;
  *
  * @beta
  */
-export interface FutureStartMessage {
+export type FutureStartMessage =
+  | DeployContractStartMessage
+  | CallFunctionStartMessage;
+
+/**
+ * A journal message to initialise the execution state for a contract deployment.
+ *
+ * @beta
+ */
+export interface DeployContractStartMessage {
   type: "execution-start";
   futureId: string;
-  futureType: FutureType;
+  futureType:
+    | FutureType.NAMED_CONTRACT_DEPLOYMENT
+    | FutureType.NAMED_LIBRARY_DEPLOYMENT
+    | FutureType.ARTIFACT_CONTRACT_DEPLOYMENT
+    | FutureType.ARTIFACT_LIBRARY_DEPLOYMENT;
   strategy: string;
   dependencies: string[];
   storedArtifactPath: string;
@@ -118,6 +165,24 @@ export interface FutureStartMessage {
   constructorArgs: ArgumentType[];
   libraries: { [key: string]: string };
   value: string;
+  from: string | undefined;
+}
+
+/**
+ * A journal message to initialise the execution state for a function call.
+ *
+ * @beta
+ */
+export interface CallFunctionStartMessage {
+  type: "execution-start";
+  futureId: string;
+  futureType: FutureType.NAMED_CONTRACT_CALL;
+  strategy: string;
+  dependencies: string[];
+  args: ArgumentType[];
+  functionName: string;
+  value: string;
+  contractAddress: string;
   from: string | undefined;
 }
 
@@ -163,7 +228,9 @@ export type ExecutionResultTypes = [
  *
  * @beta
  */
-export type ExecutionSuccess = DeployedContractExecutionSuccess;
+export type ExecutionSuccess =
+  | DeployedContractExecutionSuccess
+  | CalledFunctionExecutionSuccess;
 
 /**
  * A journal message indicating a contract/library deployed successfully.
@@ -175,6 +242,20 @@ export interface DeployedContractExecutionSuccess {
   subtype: "deploy-contract";
   futureId: string;
   contractName: string;
+  contractAddress: string;
+}
+
+/**
+ * A journal message indicating a contract function was called successfully.
+ *
+ * @beta
+ */
+export interface CalledFunctionExecutionSuccess {
+  type: "execution-success";
+  subtype: "call-function";
+  futureId: string;
+  functionName: string;
+  txId: string;
   contractAddress: string;
 }
 

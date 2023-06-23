@@ -1,13 +1,22 @@
 import { IgnitionError } from "../../../errors";
 import {
+  CallFunctionInteractionMessage,
+  CallFunctionResultMessage,
+  CalledFunctionExecutionSuccess,
+  DeployContractInteractionMessage,
+  DeployContractResultMessage,
   DeployedContractExecutionSuccess,
   JournalableMessage,
   OnchainInteractionMessage,
   OnchainResultMessage,
 } from "../../types/journal";
-import { isDeploymentExecutionState } from "../type-guards";
+import {
+  isCallExecutionState,
+  isDeploymentExecutionState,
+} from "../type-guards";
 import { ExecutionStrategy } from "../types/execution-engine";
 import {
+  CallExecutionState,
   DeploymentExecutionState,
   ExecutionState,
 } from "../types/execution-state";
@@ -30,25 +39,29 @@ export class BasicExecutionStrategy
     JournalableMessage,
     OnchainResultMessage | null
   > {
-    if (!isDeploymentExecutionState(executionState)) {
-      throw new IgnitionError(
-        "Basic strategy not implemented that execution state yet"
-      );
+    if (isDeploymentExecutionState(executionState)) {
+      return this._executeDeployment({ executionState, sender });
     }
 
-    return this._executeDeployment({ executionState, sender });
+    if (isCallExecutionState(executionState)) {
+      return this._executeCall({ executionState, sender });
+    }
+
+    throw new IgnitionError(
+      "Basic strategy not implemented that execution state yet"
+    );
   }
 
-  public async *_executeDeployment({
+  private async *_executeDeployment({
     executionState: deploymentExecutionState,
     sender,
   }: {
     executionState: DeploymentExecutionState;
     sender?: string;
   }): AsyncGenerator<
-    OnchainInteractionMessage,
-    JournalableMessage,
-    OnchainResultMessage | null
+    DeployContractInteractionMessage,
+    DeployedContractExecutionSuccess,
+    DeployContractResultMessage | null
   > {
     assertIgnitionInvariant(
       sender !== undefined,
@@ -77,6 +90,50 @@ export class BasicExecutionStrategy
       futureId: deploymentExecutionState.id,
       contractName: deploymentExecutionState.contractName,
       contractAddress: result.contractAddress,
+    };
+
+    return success;
+  }
+
+  private async *_executeCall({
+    executionState: callExecutionState,
+    sender,
+  }: {
+    executionState: CallExecutionState;
+    sender?: string;
+  }): AsyncGenerator<
+    CallFunctionInteractionMessage,
+    CalledFunctionExecutionSuccess,
+    CallFunctionResultMessage | null
+  > {
+    assertIgnitionInvariant(
+      sender !== undefined,
+      "Sender must be defined for call execution"
+    );
+
+    const result = yield {
+      type: "onchain-action",
+      subtype: "call-function",
+      futureId: callExecutionState.id,
+      transactionId: 1,
+      contractAddress: callExecutionState.contractAddress,
+      value: callExecutionState.value.toString(),
+      args: callExecutionState.args,
+      functionName: callExecutionState.functionName,
+      from: sender,
+    };
+
+    if (result === null) {
+      throw new IgnitionError("No result yielded");
+    }
+
+    const success: CalledFunctionExecutionSuccess = {
+      type: "execution-success",
+      subtype: "call-function",
+      futureId: callExecutionState.id,
+      contractAddress: callExecutionState.contractAddress,
+      functionName: callExecutionState.functionName,
+      txId: result.txId,
     };
 
     return success;

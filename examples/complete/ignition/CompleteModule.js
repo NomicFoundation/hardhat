@@ -19,7 +19,7 @@ module.exports = defineModule("CompleteModule", (m) => {
     }
   );
 
-  // const call = m.call(basic, "basicFunction", [40]);
+  m.call(basic, "basicFunction", [40]);
   // const eventArg = m.readEventArgument(call, "BasicEvent", "eventArg");
   // m.staticCall(withLib, "readonlyFunction", [eventArg]);
 

@@ -1,7 +1,10 @@
-import { isDeploymentType } from "../../type-guards";
-import { FutureStartMessage, JournalableMessage } from "../../types/journal";
-import { isDeploymentExecutionState } from "../type-guards";
 import {
+  isCallFunctionStartMessage,
+  isDeployContractStartMessage,
+} from "../../type-guards";
+import { FutureStartMessage, JournalableMessage } from "../../types/journal";
+import {
+  CallExecutionState,
   DeploymentExecutionState,
   ExecutionState,
   ExecutionStateMap,
@@ -23,22 +26,35 @@ export function executionStateReducer(
   if (action.type === "execution-success") {
     const previousDeploymentExecutionState = executionStateMap[action.futureId];
 
-    assertIgnitionInvariant(
-      previousDeploymentExecutionState !== undefined &&
-        isDeploymentExecutionState(previousDeploymentExecutionState),
-      "TBD - only deployment state is currently implemented for execution success"
+    if (action.subtype === "deploy-contract") {
+      const updatedExecutionState: DeploymentExecutionState = {
+        ...(previousDeploymentExecutionState as DeploymentExecutionState),
+        status: ExecutionStatus.SUCCESS,
+        contractAddress: action.contractAddress,
+      };
+
+      return {
+        ...executionStateMap,
+        [action.futureId]: updatedExecutionState,
+      };
+    }
+
+    if (action.subtype === "call-function") {
+      const updatedExecutionState: CallExecutionState = {
+        ...(previousDeploymentExecutionState as CallExecutionState),
+        status: ExecutionStatus.SUCCESS,
+        txId: action.txId,
+      };
+
+      return {
+        ...executionStateMap,
+        [action.futureId]: updatedExecutionState,
+      };
+    }
+
+    throw new Error(
+      "TBD - only deployment and call states are currently implemented for execution success"
     );
-
-    const updatedExecutionState: ExecutionState = {
-      ...previousDeploymentExecutionState,
-      status: ExecutionStatus.SUCCESS,
-      contractAddress: action.contractAddress,
-    };
-
-    return {
-      ...executionStateMap,
-      [action.futureId]: updatedExecutionState,
-    };
   }
 
   if (action.type === "onchain-action" || action.type === "onchain-result") {
@@ -66,25 +82,43 @@ export function executionStateReducer(
 function initialiseExecutionStateFor(
   futureStart: FutureStartMessage
 ): ExecutionState {
-  if (!isDeploymentType(futureStart.futureType)) {
-    throw new Error("Not implemented yet in the reducer");
+  if (isDeployContractStartMessage(futureStart)) {
+    const deploymentExecutionState: DeploymentExecutionState = {
+      id: futureStart.futureId,
+      futureType: futureStart.futureType,
+      strategy: futureStart.strategy,
+      status: ExecutionStatus.STARTED,
+      dependencies: new Set(futureStart.dependencies),
+      history: [],
+      storedArtifactPath: futureStart.storedArtifactPath,
+      storedBuildInfoPath: futureStart.storedBuildInfoPath,
+      contractName: futureStart.contractName,
+      value: BigInt(futureStart.value),
+      constructorArgs: futureStart.constructorArgs,
+      libraries: futureStart.libraries,
+      from: futureStart.from,
+    };
+
+    return deploymentExecutionState;
   }
 
-  const deploymentExecutionState: DeploymentExecutionState = {
-    id: futureStart.futureId,
-    futureType: futureStart.futureType,
-    strategy: futureStart.strategy,
-    status: ExecutionStatus.STARTED,
-    dependencies: new Set(futureStart.dependencies),
-    history: [],
-    storedArtifactPath: futureStart.storedArtifactPath,
-    storedBuildInfoPath: futureStart.storedBuildInfoPath,
-    contractName: futureStart.contractName,
-    value: BigInt(futureStart.value),
-    constructorArgs: futureStart.constructorArgs,
-    libraries: futureStart.libraries,
-    from: futureStart.from,
-  };
+  if (isCallFunctionStartMessage(futureStart)) {
+    const callExecutionState: CallExecutionState = {
+      id: futureStart.futureId,
+      futureType: futureStart.futureType,
+      strategy: futureStart.strategy,
+      status: ExecutionStatus.STARTED,
+      dependencies: new Set(futureStart.dependencies),
+      history: [],
+      contractAddress: futureStart.contractAddress,
+      args: futureStart.args,
+      from: futureStart.from,
+      functionName: futureStart.functionName,
+      value: BigInt(futureStart.value),
+    };
 
-  return deploymentExecutionState;
+    return callExecutionState;
+  }
+
+  throw new Error("Not implemented yet in the reducer");
 }
