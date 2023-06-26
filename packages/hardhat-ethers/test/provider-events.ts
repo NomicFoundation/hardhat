@@ -1,8 +1,11 @@
-import { assert } from "chai";
+import { assert, use } from "chai";
+import chaiAsPromised from "chai-as-promised";
 import sinon from "sinon";
 
 import { useEnvironment } from "./environment";
 import { sleep, tryUntil } from "./helpers";
+
+use(chaiAsPromised);
 
 describe("provider events", function () {
   useEnvironment("minimal-project");
@@ -27,6 +30,23 @@ describe("provider events", function () {
       await txPromise;
 
       await this.env.ethers.provider.off(tx.hash, listener);
+    });
+
+    it("should support .addListener and .removeListener as aliases", async function () {
+      const [s] = await this.env.ethers.getSigners();
+      const tx = await s.sendTransaction({ to: s });
+
+      let listener: any;
+      const txPromise = new Promise((resolve) => {
+        listener = resolve;
+      });
+      await this.env.ethers.provider.addListener(tx.hash, listener);
+
+      await this.env.network.provider.send("hardhat_mine");
+
+      await txPromise;
+
+      await this.env.ethers.provider.removeListener(tx.hash, listener);
     });
 
     it("should support .once(txHash)", async function () {
@@ -124,6 +144,20 @@ describe("provider events", function () {
 
       assert.isFalse(listener1.called);
       assert.isFalse(listener2.called);
+    });
+
+    it("should support emitting a transaction event", async function () {
+      const fakeTransactionHash =
+        "0x1234567812345678123456781234567812345678123456781234567812345678";
+      const listener = sinon.spy();
+      await this.env.ethers.provider.once(fakeTransactionHash, listener);
+
+      const fakeTransaction = {};
+      await this.env.ethers.provider.emit(fakeTransactionHash, fakeTransaction);
+
+      await tryUntil(() => {
+        assert.isTrue(listener.calledOnceWith(fakeTransaction));
+      });
     });
   });
 
@@ -256,6 +290,79 @@ describe("provider events", function () {
 
       assert.isFalse(listener1.called);
       assert.isFalse(listener2.called);
+    });
+
+    it("should support emitting a block event", async function () {
+      let listener: sinon.SinonSpy = null as any;
+      const blockPromise = new Promise<void>((resolve) => {
+        listener = sinon.spy(() => {
+          resolve();
+        });
+      });
+
+      await this.env.ethers.provider.on("block", listener);
+
+      // should be emitted when a tx is sent
+      await this.env.ethers.provider.emit("block", 123);
+
+      await blockPromise;
+
+      assert.isTrue(listener.calledOnceWith(123));
+
+      // remove subscription
+      await this.env.ethers.provider.off("block", listener);
+    });
+  });
+
+  describe("listeners getters", function () {
+    it("should get all the block listeners", async function () {
+      const listener1 = () => {};
+      const listener2 = () => {};
+
+      await this.env.ethers.provider.on("block", listener1);
+      await this.env.ethers.provider.once("block", listener2);
+
+      const listeners = await this.env.ethers.provider.listeners("block");
+
+      assert.lengthOf(listeners, 2);
+      assert.sameMembers(listeners, [listener1, listener2]);
+
+      await this.env.ethers.provider.off("block");
+    });
+
+    it("should get the right block listeners after a block is mined", async function () {
+      const listener1 = () => {};
+      const listener2 = () => {};
+
+      await this.env.ethers.provider.on("block", listener1);
+      await this.env.ethers.provider.once("block", listener2);
+
+      await this.env.network.provider.send("hardhat_mine");
+
+      await tryUntil(async () => {
+        const listeners = await this.env.ethers.provider.listeners("block");
+
+        assert.lengthOf(listeners, 1);
+        assert.sameMembers(listeners, [listener1]);
+      });
+
+      await this.env.ethers.provider.off("block");
+    });
+  });
+
+  describe("unsupported events", function () {
+    it("should throw if .on is called with an unsupported event type", async function () {
+      await assert.isRejected(
+        this.env.ethers.provider.on([], () => {}),
+        "is not supported"
+      );
+    });
+
+    it("should throw if .once is called with an unsupported event type", async function () {
+      await assert.isRejected(
+        this.env.ethers.provider.once([], () => {}),
+        "is not supported"
+      );
     });
   });
 });

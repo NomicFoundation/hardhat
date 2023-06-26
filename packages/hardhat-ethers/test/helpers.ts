@@ -28,12 +28,12 @@ export function assertIsSigner(
 export const sleep = (timeout: number) =>
   new Promise((resolve) => setTimeout(resolve, timeout));
 
-export async function tryUntil(f: () => void) {
+export async function tryUntil(f: () => any) {
   const maxTries = 20;
   let tries = 0;
   while (tries < maxTries) {
     try {
-      f();
+      await f();
       return;
     } catch {}
 
