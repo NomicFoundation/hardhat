@@ -294,9 +294,9 @@ export class ExecutionEngine {
 
         return state;
       case FutureType.NAMED_CONTRACT_CALL:
-        const contractAddress = (
-          executionStateMap[future.contract.id] as DeploymentExecutionState
-        ).contractAddress;
+        const { contractAddress, storedArtifactPath } = executionStateMap[
+          future.contract.id
+        ] as DeploymentExecutionState;
 
         assertIgnitionInvariant(
           contractAddress !== undefined,
@@ -314,8 +314,9 @@ export class ExecutionEngine {
           args: future.args,
           functionName: future.functionName,
           contractAddress,
+          storedArtifactPath,
           value: future.value.toString(),
-          from: this._resolveAddress(future.from, { accounts }),
+          from: resolveFromAddress(future.from, { accounts }),
         };
         return state;
       case FutureType.NAMED_STATIC_CALL:

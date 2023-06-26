@@ -111,6 +111,7 @@ function initialiseExecutionStateFor(
       dependencies: new Set(futureStart.dependencies),
       history: [],
       contractAddress: futureStart.contractAddress,
+      storedArtifactPath: futureStart.storedArtifactPath,
       args: futureStart.args,
       from: futureStart.from,
       functionName: futureStart.functionName,

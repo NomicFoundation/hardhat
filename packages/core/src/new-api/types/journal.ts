@@ -71,6 +71,7 @@ export interface CallFunctionInteractionMessage {
   functionName: string;
   value: string;
   contractAddress: string;
+  storedArtifactPath: string;
   from: string;
 }
 
@@ -184,6 +185,7 @@ export interface CallFunctionStartMessage {
   value: string;
   contractAddress: string;
   from: string | undefined;
+  storedArtifactPath: string;
 }
 
 /**

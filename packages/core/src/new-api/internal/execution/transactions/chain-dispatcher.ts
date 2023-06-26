@@ -1,31 +1,17 @@
-import { ContractFactory, ethers } from "ethers";
+import { ethers } from "ethers";
 
-import {
-  GasAdapter,
-  SignerAdapter,
-  TransactionsAdapter,
-} from "../../../types/adapters";
-
-interface HighLevelTransaction {
-  abi: any[];
-  bytecode: string;
-  args: any;
-  value: bigint;
-  from: string;
-}
+import { GasAdapter, TransactionsAdapter } from "../../../types/adapters";
 
 interface TransactionReceipt {
   contractAddress?: string;
+  txId?: string;
 }
 
 export interface ChainDispatcher {
-  sendTx({
-    abi,
-    bytecode,
-    args,
-    value,
-    from,
-  }: HighLevelTransaction): Promise<TransactionReceipt>;
+  sendTx(
+    tx: ethers.providers.TransactionRequest,
+    signer: ethers.Signer
+  ): Promise<TransactionReceipt>;
 }
 
 /**
@@ -35,26 +21,14 @@ export interface ChainDispatcher {
  */
 export class EthersChainDispatcher implements ChainDispatcher {
   constructor(
-    private _signerLoader: SignerAdapter,
     private _gasProvider: GasAdapter,
     private _transactionProvider: TransactionsAdapter
   ) {}
 
-  public async sendTx({
-    abi,
-    bytecode,
-    args,
-    value,
-    from,
-  }: HighLevelTransaction): Promise<TransactionReceipt> {
-    const signer: ethers.Signer = await this._signerLoader.getSigner(from);
-
-    const Factory = new ContractFactory(abi, bytecode, signer);
-
-    const tx = Factory.getDeployTransaction(...args, {
-      value,
-    });
-
+  public async sendTx(
+    tx: ethers.providers.TransactionRequest,
+    signer: ethers.Signer
+  ): Promise<TransactionReceipt> {
     // if (txOptions?.gasLimit !== undefined) {
     //   tx.gasLimit = ethers.BigNumber.from(txOptions.gasLimit);
     // }
@@ -83,6 +57,7 @@ export class EthersChainDispatcher implements ChainDispatcher {
 
     return {
       contractAddress: receipt.contractAddress,
+      txId: txHash,
     };
   }
 }

@@ -117,6 +117,7 @@ export class BasicExecutionStrategy
       futureId: callExecutionState.id,
       transactionId: 1,
       contractAddress: callExecutionState.contractAddress,
+      storedArtifactPath: callExecutionState.storedArtifactPath,
       value: callExecutionState.value.toString(),
       args: callExecutionState.args,
       functionName: callExecutionState.functionName,

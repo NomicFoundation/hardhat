@@ -44,6 +44,7 @@ describe("Reconciliation - named contract call", () => {
     dependencies: new Set<string>(),
     history: [],
     contractAddress: differentAddress,
+    storedArtifactPath: "./artifact.json",
     functionName: "function",
     args: [],
     value: BigInt("0"),

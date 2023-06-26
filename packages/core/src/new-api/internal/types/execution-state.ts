@@ -135,6 +135,7 @@ export interface DeploymentExecutionState
 
 export interface CallExecutionState
   extends BaseExecutionState<FutureType.NAMED_CONTRACT_CALL> {
+  storedArtifactPath: string; // As stored in the deployment directory.
   contractAddress: string;
   functionName: string;
   args: ArgumentType[];

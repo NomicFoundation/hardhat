@@ -1,4 +1,7 @@
+import { Contract, ContractFactory, ethers } from "ethers";
+
 import { IgnitionError } from "../../../../errors";
+import { SignerAdapter } from "../../../types/adapters";
 import { DeploymentLoader } from "../../../types/deployment-loader";
 import {
   CallFunctionInteractionMessage,
@@ -28,6 +31,7 @@ import { ChainDispatcher } from "./chain-dispatcher";
 export class TransactionServiceImplementation implements TransactionService {
   constructor(
     private _deploymentLoader: DeploymentLoader,
+    private _signerLoader: SignerAdapter,
     private _chainDispatcher: ChainDispatcher
   ) {}
 
@@ -62,15 +66,15 @@ export class TransactionServiceImplementation implements TransactionService {
 
     const linkedByteCode = await collectLibrariesAndLink(artifact, libraries);
 
-    // todo: i think chain dispatcher should only be passed a raw tx, and everything needed for that.
-    // any process necessary to generating that transaction should happen here in transaction service
-    const { contractAddress } = await this._chainDispatcher.sendTx({
-      abi: artifact.abi,
-      bytecode: linkedByteCode,
-      args,
+    const signer: ethers.Signer = await this._signerLoader.getSigner(from);
+
+    const Factory = new ContractFactory(artifact.abi, linkedByteCode, signer);
+
+    const tx = Factory.getDeployTransaction(...args, {
       value,
-      from,
     });
+
+    const { contractAddress } = await this._chainDispatcher.sendTx(tx, signer);
 
     if (contractAddress === undefined) {
       throw new IgnitionError("Contract address not available on receipt");
@@ -85,16 +89,45 @@ export class TransactionServiceImplementation implements TransactionService {
     };
   }
 
-  private async _dispatchCallFunction(
-    callFunctionInteraction: CallFunctionInteractionMessage
-  ): Promise<CallFunctionResultMessage> {
-    const from = callFunctionInteraction.from;
-    const args = callFunctionInteraction.args;
-    const value = BigInt(callFunctionInteraction.value);
-    const functionName = callFunctionInteraction.functionName;
-
-    throw new Error(
-      `not implemented yet${from}${args as any}${value}${functionName}`
+  private async _dispatchCallFunction({
+    futureId,
+    transactionId,
+    from,
+    args,
+    functionName,
+    contractAddress,
+    value,
+    storedArtifactPath,
+  }: CallFunctionInteractionMessage): Promise<CallFunctionResultMessage> {
+    const artifact = await this._deploymentLoader.loadArtifact(
+      storedArtifactPath
     );
+
+    const signer: ethers.Signer = await this._signerLoader.getSigner(from);
+
+    const contractInstance = new Contract(
+      contractAddress,
+      artifact.abi,
+      signer
+    );
+
+    const unsignedTx = await contractInstance.populateTransaction[functionName](
+      ...args,
+      { value: BigInt(value), from: await signer.getAddress() }
+    );
+
+    const { txId } = await this._chainDispatcher.sendTx(unsignedTx, signer);
+
+    if (txId === undefined) {
+      throw new IgnitionError("Transaction hash not available on receipt");
+    }
+
+    return {
+      type: "onchain-result",
+      subtype: "call-function",
+      futureId,
+      transactionId,
+      txId,
+    };
   }
 }

@@ -40,11 +40,8 @@ export function deploy({
 
   const transactionService = new TransactionServiceImplementation(
     deploymentLoader,
-    new EthersChainDispatcher(
-      adapters.signer,
-      adapters.gas,
-      adapters.transactions
-    )
+    adapters.signer,
+    new EthersChainDispatcher(adapters.gas, adapters.transactions)
   );
 
   const deployer = new Deployer({
