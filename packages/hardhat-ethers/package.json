@@ -20,7 +20,7 @@
     "lint:fix": "yarn prettier --write && yarn eslint --fix",
     "eslint": "eslint 'src/**/*.ts' 'test/**/*.ts'",
     "prettier": "prettier \"**/*.{js,md,json}\"",
-    "test": "mocha --recursive \"test/**/*.ts\" --exit",
+    "test": "mocha --recursive \"test/**/*.ts\"",
     "build": "tsc --build .",
     "prepublishOnly": "yarn build",
     "clean": "rimraf dist internal types *.{d.ts,js}{,.map} build-test tsconfig.tsbuildinfo"
