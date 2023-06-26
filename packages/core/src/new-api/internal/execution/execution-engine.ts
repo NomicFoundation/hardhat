@@ -293,7 +293,7 @@ export class ExecutionEngine {
         };
 
         return state;
-      case FutureType.NAMED_CONTRACT_CALL:
+      case FutureType.NAMED_CONTRACT_CALL: {
         const { contractAddress, storedArtifactPath } = executionStateMap[
           future.contract.id
         ] as DeploymentExecutionState;
@@ -319,7 +319,34 @@ export class ExecutionEngine {
           from: resolveFromAddress(future.from, { accounts }),
         };
         return state;
-      case FutureType.NAMED_STATIC_CALL:
+      }
+      case FutureType.NAMED_STATIC_CALL: {
+        const { contractAddress, storedArtifactPath } = executionStateMap[
+          future.contract.id
+        ] as DeploymentExecutionState;
+
+        if (contractAddress === undefined) {
+          throw new Error(
+            "internal error - call executed before contract dependency"
+          );
+        }
+
+        state = {
+          type: "execution-start",
+          futureId: future.id,
+          futureType: future.type,
+          strategy,
+          // status: ExecutionStatus.STARTED,
+          dependencies: [...future.dependencies].map((f) => f.id),
+          // history: [],
+          args: future.args,
+          functionName: future.functionName,
+          contractAddress,
+          storedArtifactPath,
+          from: resolveFromAddress(future.from, { accounts }),
+        };
+        return state;
+      }
       case FutureType.NAMED_CONTRACT_AT:
       case FutureType.ARTIFACT_CONTRACT_AT:
       case FutureType.READ_EVENT_ARGUMENT:

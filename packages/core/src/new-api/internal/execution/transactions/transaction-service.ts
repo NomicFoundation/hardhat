@@ -10,6 +10,8 @@ import {
   DeployContractResultMessage,
   OnchainInteractionMessage,
   OnchainResultMessage,
+  StaticCallInteractionMessage,
+  StaticCallResultMessage,
 } from "../../../types/journal";
 import {
   TransactionService,
@@ -19,6 +21,7 @@ import { collectLibrariesAndLink } from "../../utils/collectLibrariesAndLink";
 import {
   isCallFunctionInteraction,
   isDeployContractInteraction,
+  isStaticCallInteraction,
 } from "../guards";
 
 import { ChainDispatcher } from "./chain-dispatcher";
@@ -45,6 +48,10 @@ export class TransactionServiceImplementation implements TransactionService {
 
     if (isCallFunctionInteraction(interaction)) {
       return this._dispatchCallFunction(interaction);
+    }
+
+    if (isStaticCallInteraction(interaction)) {
+      return this._dispatchStaticCall(interaction);
     }
 
     throw new IgnitionError(
@@ -128,6 +135,44 @@ export class TransactionServiceImplementation implements TransactionService {
       futureId,
       transactionId,
       txId,
+    };
+  }
+
+  private async _dispatchStaticCall({
+    futureId,
+    transactionId,
+    from,
+    args,
+    functionName,
+    contractAddress,
+    storedArtifactPath,
+  }: StaticCallInteractionMessage): Promise<StaticCallResultMessage> {
+    const artifact = await this._deploymentLoader.loadArtifact(
+      storedArtifactPath
+    );
+
+    const signer: ethers.Signer = await this._signerLoader.getSigner(from);
+
+    const contractInstance = new Contract(
+      contractAddress,
+      artifact.abi,
+      signer
+    );
+
+    const result = await contractInstance[functionName](...args, {
+      from: await signer.getAddress(),
+    });
+
+    if (result === undefined) {
+      throw new IgnitionError("Static call result not available");
+    }
+
+    return {
+      type: "onchain-result",
+      subtype: "static-call",
+      futureId,
+      transactionId,
+      result,
     };
   }
 }

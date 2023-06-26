@@ -8,6 +8,7 @@ import {
   JournalableMessage,
   OnchainInteractionMessage,
   OnchainResultMessage,
+  StaticCallInteractionMessage,
 } from "../../types/journal";
 
 export function isExecutionResult(
@@ -67,6 +68,12 @@ export function isCallFunctionInteraction(
   potential: JournalableMessage
 ): potential is CallFunctionInteractionMessage {
   return isOnChainAction(potential) && potential.subtype === "call-function";
+}
+
+export function isStaticCallInteraction(
+  potential: JournalableMessage
+): potential is StaticCallInteractionMessage {
+  return isOnChainAction(potential) && potential.subtype === "static-call";
 }
 
 export function isDeployedContractExecutionSuccess(

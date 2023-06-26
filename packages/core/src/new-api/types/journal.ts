@@ -1,4 +1,4 @@
-import { ArgumentType, FutureType } from "./module";
+import { ArgumentType, FutureType, PrimitiveArgType } from "./module";
 
 /**
  * Store a deployments execution state as a transaction log.
@@ -38,7 +38,8 @@ export type TransactionMessage =
  */
 export type OnchainInteractionMessage =
   | DeployContractInteractionMessage
-  | CallFunctionInteractionMessage;
+  | CallFunctionInteractionMessage
+  | StaticCallInteractionMessage;
 
 /**
  * A on-chain interaction request to deploy a contract/library.
@@ -75,6 +76,23 @@ export interface CallFunctionInteractionMessage {
   from: string;
 }
 
+/**
+ * A on-chain interaction request to statically call a function.
+ *
+ * @beta
+ */
+export interface StaticCallInteractionMessage {
+  type: "onchain-action";
+  subtype: "static-call";
+  futureId: string;
+  transactionId: number;
+  args: ArgumentType[];
+  functionName: string;
+  contractAddress: string;
+  storedArtifactPath: string;
+  from: string;
+}
+
 // #endregion
 
 // #region "OnchainResult"
@@ -86,7 +104,8 @@ export interface CallFunctionInteractionMessage {
  */
 export type OnchainResultMessage =
   | DeployContractResultMessage
-  | CallFunctionResultMessage;
+  | CallFunctionResultMessage
+  | StaticCallResultMessage;
 
 /**
  * A successful deploy contract transaction result.
@@ -112,6 +131,19 @@ export interface CallFunctionResultMessage {
   futureId: string;
   transactionId: number;
   txId: string;
+}
+
+/**
+ * A successful static function call transaction result.
+ *
+ * @beta
+ */
+export interface StaticCallResultMessage {
+  type: "onchain-result";
+  subtype: "static-call";
+  futureId: string;
+  transactionId: number;
+  result: PrimitiveArgType | PrimitiveArgType[];
 }
 
 // #endregion
@@ -143,7 +175,8 @@ export type ExecutionUpdateMessage = FutureStartMessage | FutureRestartMessage;
  */
 export type FutureStartMessage =
   | DeployContractStartMessage
-  | CallFunctionStartMessage;
+  | CallFunctionStartMessage
+  | StaticCallStartMessage;
 
 /**
  * A journal message to initialise the execution state for a contract deployment.
@@ -186,6 +219,24 @@ export interface CallFunctionStartMessage {
   contractAddress: string;
   from: string | undefined;
   storedArtifactPath: string;
+}
+
+/**
+ * A journal message to initialise the execution state for a static call.
+ *
+ * @beta
+ */
+export interface StaticCallStartMessage {
+  type: "execution-start";
+  futureId: string;
+  futureType: FutureType.NAMED_STATIC_CALL;
+  strategy: string;
+  dependencies: string[];
+  args: ArgumentType[];
+  functionName: string;
+  contractAddress: string;
+  storedArtifactPath: string;
+  from: string;
 }
 
 /**
@@ -232,7 +283,8 @@ export type ExecutionResultTypes = [
  */
 export type ExecutionSuccess =
   | DeployedContractExecutionSuccess
-  | CalledFunctionExecutionSuccess;
+  | CalledFunctionExecutionSuccess
+  | StaticCallExecutionSuccess;
 
 /**
  * A journal message indicating a contract/library deployed successfully.
@@ -258,6 +310,20 @@ export interface CalledFunctionExecutionSuccess {
   futureId: string;
   functionName: string;
   txId: string;
+  contractAddress: string;
+}
+
+/**
+ * A journal message indicating a static function was called successfully.
+ *
+ * @beta
+ */
+export interface StaticCallExecutionSuccess {
+  type: "execution-success";
+  subtype: "static-call";
+  futureId: string;
+  functionName: string;
+  result: PrimitiveArgType | PrimitiveArgType[];
   contractAddress: string;
 }
 

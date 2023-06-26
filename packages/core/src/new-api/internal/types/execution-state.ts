@@ -146,6 +146,7 @@ export interface CallExecutionState
 
 export interface StaticCallExecutionState
   extends BaseExecutionState<FutureType.NAMED_STATIC_CALL> {
+  storedArtifactPath: string; // As stored in the deployment directory.
   contractAddress: string;
   functionName: string;
   args: ArgumentType[];

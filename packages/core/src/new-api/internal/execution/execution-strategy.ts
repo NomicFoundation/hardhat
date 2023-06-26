@@ -9,16 +9,21 @@ import {
   JournalableMessage,
   OnchainInteractionMessage,
   OnchainResultMessage,
+  StaticCallExecutionSuccess,
+  StaticCallInteractionMessage,
+  StaticCallResultMessage,
 } from "../../types/journal";
 import {
   isCallExecutionState,
   isDeploymentExecutionState,
+  isStaticCallExecutionState,
 } from "../type-guards";
 import { ExecutionStrategy } from "../types/execution-engine";
 import {
   CallExecutionState,
   DeploymentExecutionState,
   ExecutionState,
+  StaticCallExecutionState,
 } from "../types/execution-state";
 import { assertIgnitionInvariant } from "../utils/assertions";
 
@@ -45,6 +50,10 @@ export class BasicExecutionStrategy
 
     if (isCallExecutionState(executionState)) {
       return this._executeCall({ executionState, sender });
+    }
+
+    if (isStaticCallExecutionState(executionState)) {
+      return this._executeStaticCall({ executionState, accounts });
     }
 
     throw new IgnitionError(
@@ -135,6 +144,45 @@ export class BasicExecutionStrategy
       contractAddress: callExecutionState.contractAddress,
       functionName: callExecutionState.functionName,
       txId: result.txId,
+    };
+
+    return success;
+  }
+
+  private async *_executeStaticCall({
+    executionState: staticCallExecutionState,
+    accounts,
+  }: {
+    executionState: StaticCallExecutionState;
+    accounts: string[];
+  }): AsyncGenerator<
+    StaticCallInteractionMessage,
+    StaticCallExecutionSuccess,
+    StaticCallResultMessage | null
+  > {
+    const result = yield {
+      type: "onchain-action",
+      subtype: "static-call",
+      futureId: staticCallExecutionState.id,
+      transactionId: 1,
+      contractAddress: staticCallExecutionState.contractAddress,
+      storedArtifactPath: staticCallExecutionState.storedArtifactPath,
+      args: staticCallExecutionState.args,
+      from: staticCallExecutionState.from ?? accounts[0],
+      functionName: staticCallExecutionState.functionName,
+    };
+
+    if (result === null) {
+      throw new IgnitionError("No result yielded");
+    }
+
+    const success: StaticCallExecutionSuccess = {
+      type: "execution-success",
+      subtype: "static-call",
+      futureId: staticCallExecutionState.id,
+      contractAddress: staticCallExecutionState.contractAddress,
+      functionName: staticCallExecutionState.functionName,
+      result: result.result,
     };
 
     return success;

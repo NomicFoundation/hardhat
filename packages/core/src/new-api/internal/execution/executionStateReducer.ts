@@ -1,14 +1,16 @@
+import { FutureStartMessage, JournalableMessage } from "../../types/journal";
 import {
   isCallFunctionStartMessage,
   isDeployContractStartMessage,
-} from "../../type-guards";
-import { FutureStartMessage, JournalableMessage } from "../../types/journal";
+  isStaticCallStartMessage,
+} from "../journal/type-guards";
 import {
   CallExecutionState,
   DeploymentExecutionState,
   ExecutionState,
   ExecutionStateMap,
   ExecutionStatus,
+  StaticCallExecutionState,
 } from "../types/execution-state";
 import { assertIgnitionInvariant } from "../utils/assertions";
 
@@ -44,6 +46,19 @@ export function executionStateReducer(
         ...(previousDeploymentExecutionState as CallExecutionState),
         status: ExecutionStatus.SUCCESS,
         txId: action.txId,
+      };
+
+      return {
+        ...executionStateMap,
+        [action.futureId]: updatedExecutionState,
+      };
+    }
+
+    if (action.subtype === "static-call") {
+      const updatedExecutionState: StaticCallExecutionState = {
+        ...(previousDeploymentExecutionState as StaticCallExecutionState),
+        status: ExecutionStatus.SUCCESS,
+        result: action.result,
       };
 
       return {
@@ -116,6 +131,24 @@ function initialiseExecutionStateFor(
       from: futureStart.from,
       functionName: futureStart.functionName,
       value: BigInt(futureStart.value),
+    };
+
+    return callExecutionState;
+  }
+
+  if (isStaticCallStartMessage(futureStart)) {
+    const callExecutionState: StaticCallExecutionState = {
+      id: futureStart.futureId,
+      futureType: futureStart.futureType,
+      strategy: futureStart.strategy,
+      status: ExecutionStatus.STARTED,
+      dependencies: new Set(futureStart.dependencies),
+      history: [],
+      contractAddress: futureStart.contractAddress,
+      storedArtifactPath: futureStart.storedArtifactPath,
+      args: futureStart.args,
+      from: futureStart.from,
+      functionName: futureStart.functionName,
     };
 
     return callExecutionState;
