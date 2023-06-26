@@ -20,7 +20,7 @@
     "lint:fix": "yarn prettier --write && yarn eslint --fix",
     "eslint": "eslint 'src/**/*.ts' 'test/**/*.ts'",
     "prettier": "prettier \"**/*.{js,md,json}\"",
-    "test": "mocha --recursive \"test/**/*.ts\" --exit",
+    "test": "mocha --recursive \"test/**/*.ts\"",
     "build": "tsc --build .",
     "prepublishOnly": "yarn build",
     "clean": "rimraf dist internal types *.{d.ts,js}{,.map} build-test tsconfig.tsbuildinfo"
@@ -38,13 +38,16 @@
     "README.md"
   ],
   "dependencies": {
-    "debug": "^4.1.1"
+    "debug": "^4.1.1",
+    "lodash.isequal": "^4.5.0"
   },
   "devDependencies": {
     "@types/chai": "^4.2.0",
     "@types/chai-as-promised": "^7.1.3",
+    "@types/lodash.isequal": "^4.5.6",
     "@types/mocha": ">=9.1.0",
     "@types/node": "^14.0.0",
+    "@types/sinon": "^9.0.8",
     "@typescript-eslint/eslint-plugin": "5.53.0",
     "@typescript-eslint/parser": "5.53.0",
     "chai": "^4.2.0",
@@ -60,6 +63,7 @@
     "mocha": "^10.0.0",
     "prettier": "2.4.1",
     "rimraf": "^3.0.2",
+    "sinon": "^9.0.0",
     "ts-node": "^10.8.0",
     "typescript": "~4.7.4"
   },
