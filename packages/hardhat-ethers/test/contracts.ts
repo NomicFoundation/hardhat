@@ -159,30 +159,4 @@ describe("contracts", function () {
 
     await contract.off(contractEvent, listener);
   });
-
-  it("should work with ContractEvent objects", async function () {
-    const signer = await this.env.ethers.provider.getSigner(0);
-
-    const factory = new this.env.ethers.ContractFactory<[], ExampleContract>(
-      EXAMPLE_CONTRACT.abi,
-      EXAMPLE_CONTRACT.deploymentBytecode,
-      signer
-    );
-
-    const contract = await factory.deploy();
-
-    const contractEvent = contract.getEvent("Inc");
-
-    let listener: any;
-    const eventPromise = new Promise((resolve) => {
-      listener = resolve;
-      return contract.on(contractEvent, resolve);
-    });
-
-    await contract.inc();
-
-    await eventPromise;
-
-    await contract.off(contractEvent, listener);
-  });
 });
