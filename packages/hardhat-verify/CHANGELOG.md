@@ -1,5 +1,11 @@
 # @nomicfoundation/hardhat-verify
 
+## 1.0.3
+
+### Patch Changes
+
+- efe7824e0: Removed the `rinkeby`, `ropsten` and `kovan` deprecated test networks (thanks @pcaversaccio!)
+
 ## 1.0.2
 
 ### Patch Changes

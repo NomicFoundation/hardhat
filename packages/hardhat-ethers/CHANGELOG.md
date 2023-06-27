@@ -1,5 +1,11 @@
 # @nomiclabs/hardhat-ethers
 
+## 3.0.3
+
+### Patch Changes
+
+- a1e37a40b: Added support for listening for events with `contract.on`
+
 ## 3.0.2
 
 ### Patch Changes
