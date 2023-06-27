@@ -1,5 +1,11 @@
 # hardhat
 
+## 2.16.1
+
+### Patch Changes
+
+- 68cf2a273: Fixed an issue related to compiler downloads in node v18.16.x
+
 ## 2.16.0
 
 ### Minor Changes

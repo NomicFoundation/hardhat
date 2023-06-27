@@ -1,5 +1,11 @@
 # @nomicfoundation/hardhat-foundry
 
+## 1.0.2
+
+### Patch Changes
+
+- c52470de5: Fixed a performance issue that was causing compilation to be much slower when `hardhat-foundry` was used
+
 ## 1.0.1
 
 ### Patch Changes
