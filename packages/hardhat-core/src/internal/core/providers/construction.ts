@@ -3,12 +3,13 @@ import type {
   BoundExperimentalHardhatNetworkMessageTraceHook,
   EIP1193Provider,
   EthereumProvider,
+  HardhatConfig,
   HardhatNetworkConfig,
   HDAccountsUserConfig,
   HttpNetworkAccountsUserConfig,
   HttpNetworkConfig,
   NetworkConfig,
-  ProjectPathsConfig,
+  ProviderExtender,
 } from "../../../types";
 
 import type {
@@ -46,14 +47,16 @@ function importProvider<ModuleT, ProviderNameT extends keyof ModuleT>(
   return mod[name];
 }
 
-export function createProvider(
+export async function createProvider(
+  config: HardhatConfig,
   networkName: string,
-  networkConfig: NetworkConfig,
-  paths?: ProjectPathsConfig,
   artifacts?: Artifacts,
-  experimentalHardhatNetworkMessageTraceHooks: BoundExperimentalHardhatNetworkMessageTraceHook[] = []
-): EthereumProvider {
+  experimentalHardhatNetworkMessageTraceHooks: BoundExperimentalHardhatNetworkMessageTraceHook[] = [],
+  extenders: ProviderExtender[] = []
+): Promise<EthereumProvider> {
   let eip1193Provider: EIP1193Provider;
+  const networkConfig = config.networks[networkName];
+  const paths = config.paths;
 
   if (networkName === HARDHAT_NETWORK_NAME) {
     const hardhatNetConfig = networkConfig as HardhatNetworkConfig;
@@ -132,7 +135,17 @@ export function createProvider(
     );
   }
 
-  const wrappedProvider = applyProviderWrappers(eip1193Provider, networkConfig);
+  let wrappedProvider = eip1193Provider;
+
+  for (const extender of extenders) {
+    wrappedProvider = await extender(wrappedProvider, config, networkName);
+  }
+
+  wrappedProvider = applyProviderWrappers(
+    wrappedProvider,
+    networkConfig,
+    extenders
+  );
 
   const BackwardsCompatibilityProviderAdapter = importProvider<
     typeof import("./backwards-compatibility"),
@@ -144,7 +157,8 @@ export function createProvider(
 
 export function applyProviderWrappers(
   provider: EIP1193Provider,
-  netConfig: Partial<NetworkConfig>
+  netConfig: Partial<NetworkConfig>,
+  extenders: ProviderExtender[]
 ): EIP1193Provider {
   // These dependencies are lazy-loaded because they are really big.
   const LocalAccountsProvider = importProvider<
@@ -226,8 +240,10 @@ export function applyProviderWrappers(
     // fields, as the missing ones will be resolved there.
     //
     // Hardhat Network handles this in a more performant way, so we don't use
-    // the AutomaticGasPriceProvider for it.
-    if (isResolvedHttpNetworkConfig(netConfig)) {
+    // the AutomaticGasPriceProvider for it unless there are provider extenders.
+    // The reason for this is that some extenders (like hardhat-ledger's) might
+    // do the signing themselves, and that needs the gas price to be set.
+    if (isResolvedHttpNetworkConfig(netConfig) || extenders.length > 0) {
       provider = new AutomaticGasPriceProvider(provider);
     }
   } else {

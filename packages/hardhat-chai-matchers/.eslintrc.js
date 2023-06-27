@@ -4,4 +4,7 @@ module.exports = {
     project: `${__dirname}/src/tsconfig.json`,
     sourceType: "module",
   },
+  rules: {
+    "@typescript-eslint/no-non-null-assertion": "error"
+  }
 };

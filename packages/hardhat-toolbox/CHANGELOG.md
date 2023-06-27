@@ -1,5 +1,11 @@
 # @nomicfoundation/hardhat-toolbox
 
+## 3.0.0
+
+### Major Changes
+
+- 399347f40: The Toolbox and the plugins that it includes are now based on ethers v6
+
 ## 2.0.2
 
 ### Patch Changes

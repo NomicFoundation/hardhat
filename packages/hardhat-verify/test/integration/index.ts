@@ -22,8 +22,6 @@ describe("verify task integration tests", () => {
   it("should return after printing the supported networks", async function () {
     const logStub = sinon.stub(console, "log");
     const taskResponse = await this.hre.run(TASK_VERIFY, {
-      address: getRandomAddress(this.hre),
-      constructorArgsParams: [],
       listNetworks: true,
     });
 
@@ -168,7 +166,7 @@ https://hardhat.etherscan.io/address/${address}#code`
     });
 
     describe("with deleted artifacts", () => {
-      it("should not compile the project when the noCompile is provided", async function () {
+      it("should throw if the artifacts are missing", async function () {
         await this.hre.run(TASK_CLEAN);
 
         // task will fail since we deleted all the artifacts
@@ -176,7 +174,6 @@ https://hardhat.etherscan.io/address/${address}#code`
           this.hre.run(TASK_VERIFY, {
             address: simpleContractAddress,
             constructorArgsParams: [],
-            noCompile: true,
           })
         ).to.be.rejectedWith(
           /The address provided as argument contains a contract, but its bytecode doesn't match any of your local contracts./
@@ -465,7 +462,7 @@ contracts/SimpleContract.sol:SimpleContract at ${simpleContractAddress}
 for verification on the block explorer. Waiting for verification result...
 `);
       expect(logStub.getCall(1)).to.be
-        .calledWith(`Successfully verified contract SimpleContract on Etherscan.
+        .calledWith(`Successfully verified contract SimpleContract on the block explorer.
 https://hardhat.etherscan.io/address/${simpleContractAddress}#code`);
       logStub.restore();
       assert.isUndefined(taskResponse);
@@ -515,7 +512,7 @@ contracts/SimpleContract.sol:SimpleContract at ${simpleContractAddress}
 for verification on the block explorer. Waiting for verification result...
 `);
       expect(logStub.getCall(3)).to.be
-        .calledWith(`Successfully verified contract SimpleContract on Etherscan.
+        .calledWith(`Successfully verified contract SimpleContract on the block explorer.
 https://hardhat.etherscan.io/address/${simpleContractAddress}#code`);
       logStub.restore();
       assert.equal(verifyCallCount, 2);
@@ -589,7 +586,6 @@ for verification on the block explorer. Waiting for verification result...
           NormalLib: normalLibAddress,
           ConstructorLib: constructorLibAddress,
         },
-        // noCompile: true,
       });
 
       assert.equal(logStub.callCount, 2);
@@ -599,7 +595,7 @@ contracts/WithLibs.sol:BothLibs at ${bothLibsContractAddress}
 for verification on the block explorer. Waiting for verification result...
 `);
       expect(logStub.getCall(1)).to.be
-        .calledWith(`Successfully verified contract BothLibs on Etherscan.
+        .calledWith(`Successfully verified contract BothLibs on the block explorer.
 https://hardhat.etherscan.io/address/${bothLibsContractAddress}#code`);
       logStub.restore();
       assert.isUndefined(taskResponse);
