@@ -1,9 +1,7 @@
 import type { Dispatcher } from "undici";
 
-import fs from "fs";
 import fsExtra from "fs-extra";
 import path from "path";
-import util from "util";
 
 import { getHardhatVersion } from "./packageInfo";
 import { shouldUseProxy } from "./proxy";
@@ -26,9 +24,7 @@ export async function download(
   timeoutMillis = 10000,
   extraHeaders: { [name: string]: string } = {}
 ) {
-  const { pipeline } = await import("stream");
   const { getGlobalDispatcher, ProxyAgent, request } = await import("undici");
-  const streamPipeline = util.promisify(pipeline);
 
   let dispatcher: Dispatcher;
   if (process.env.http_proxy !== undefined && shouldUseProxy(url)) {
@@ -52,10 +48,11 @@ export async function download(
   });
 
   if (response.statusCode >= 200 && response.statusCode <= 299) {
+    const responseBody = await response.body.arrayBuffer();
     const tmpFilePath = resolveTempFileName(filePath);
     await fsExtra.ensureDir(path.dirname(filePath));
 
-    await streamPipeline(response.body, fs.createWriteStream(tmpFilePath));
+    await fsExtra.writeFile(tmpFilePath, responseBody);
     return fsExtra.move(tmpFilePath, filePath, { overwrite: true });
   }
   // undici's response bodies must always be consumed to prevent leaks
