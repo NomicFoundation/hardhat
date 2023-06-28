@@ -5,7 +5,12 @@ import { DeploymentLoader } from "../../types/deployment-loader";
 import { Journal } from "../../types/journal";
 import { MemoryJournal } from "../journal/memory-journal";
 
-export class MemoryDeploymentLoader implements DeploymentLoader {
+/**
+ * Stores and loads deployment related information without making changes
+ * on disk, by either storing in memory or loading already existing files.
+ * Used when running in environments like Hardhat tests.
+ */
+export class EphemeralDeploymentLoader implements DeploymentLoader {
   public journal: Journal;
 
   private _deployedAddresses: { [key: string]: string };

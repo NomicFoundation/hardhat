@@ -1,6 +1,6 @@
 import { Deployer } from "./internal/deployer";
+import { EphemeralDeploymentLoader } from "./internal/deployment-loader/ephemeral-deployment-loader";
 import { FileDeploymentLoader } from "./internal/deployment-loader/file-deployment-loader";
-import { MemoryDeploymentLoader } from "./internal/deployment-loader/memory-deployment-loader";
 import { EthersChainDispatcher } from "./internal/execution/transactions/chain-dispatcher";
 import { TransactionServiceImplementation } from "./internal/execution/transactions/transaction-service";
 import { Adapters } from "./types/adapters";
@@ -35,7 +35,7 @@ export function deploy({
 }): Promise<DeploymentResult> {
   const deploymentLoader =
     deploymentDir === undefined
-      ? new MemoryDeploymentLoader(artifactResolver)
+      ? new EphemeralDeploymentLoader(artifactResolver)
       : new FileDeploymentLoader(deploymentDir);
 
   const transactionService = new TransactionServiceImplementation(
