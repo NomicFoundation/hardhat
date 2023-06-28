@@ -79,7 +79,7 @@ pub const TEST_ACCOUNTS: [&str; 20] = [
     "8626f6940E2eb28930eFb4CeF49B2d1F2C9C1199",
 ];
 
-fn response<T>(id: &jsonrpc::Id, data: ResponseData<T>) -> (StatusCode, serde_json::Value)
+fn response<T>(id: &jsonrpc::Id, data: ResponseData<T>) -> Result<serde_json::Value, String>
 where
     T: serde::Serialize,
 {
@@ -88,19 +88,7 @@ where
         id: id.clone(),
         data,
     };
-    if let Ok(response) = serde_json::to_value(response) {
-        (StatusCode::OK, response)
-    } else {
-        (
-            StatusCode::INTERNAL_SERVER_ERROR,
-            serde_json::to_value(Response {
-                jsonrpc: jsonrpc::Version::V2_0,
-                id: id.clone(),
-                data: ResponseData::<T>::new_error(0, "serde_json::to_value() failed", None),
-            })
-            .expect("shouldn't happen"),
-        )
-    }
+    serde_json::to_value(response).or(Err(String::from("failed to serialize response data")))
 }
 
 /// returns the state root in effect BEFORE setting the block context, so that the caller can
@@ -411,7 +399,7 @@ async fn handle_set_storage_at(
 async fn handle_payload(
     state: StateType,
     payload: &Json<RpcRequest<MethodInvocation>>,
-) -> (StatusCode, serde_json::Value) {
+) -> Result<serde_json::Value, String> {
     match payload {
         Json(RpcRequest {
             version,
@@ -496,54 +484,69 @@ async fn router(state: StateType) -> Router {
             "/",
             axum::routing::post(
                 |State(state): State<StateType>, payload: Json<serde_json::Value>| async move {
-                    let payloads: Vec<Json<RpcRequest<MethodInvocation>>> = match serde_json::from_value::<RpcRequest<MethodInvocation>>(payload.clone().0) {
-                        Ok(request) => vec![Json(request)],
-                        Err(_) => {
-                            match serde_json::from_value::<Vec<RpcRequest<MethodInvocation>>>(payload.clone().0) {
-                                Ok(requests) => requests.into_iter().map(Json).collect(),
-                                Err(_) => { return (
-                                    StatusCode::INTERNAL_SERVER_ERROR,
-                                    Json(serde_json::to_value(format!("unsupported JSON body '{:?}'", payload.clone().0)).unwrap_or(serde_json::Value::Null))
-                                ); }
+                    let payloads: Vec<Json<RpcRequest<MethodInvocation>>> =
+                        match serde_json::from_value::<RpcRequest<MethodInvocation>>(
+                            payload.clone().0,
+                        ) {
+                            Ok(request) => vec![Json(request)],
+                            Err(_) => {
+                                match serde_json::from_value::<Vec<RpcRequest<MethodInvocation>>>(
+                                    payload.clone().0,
+                                ) {
+                                    Ok(requests) => requests.into_iter().map(Json).collect(),
+                                    Err(_) => {
+                                        return (
+                                            StatusCode::INTERNAL_SERVER_ERROR,
+                                            Json(
+                                                serde_json::to_value(format!(
+                                                    "unsupported JSON body '{:?}'",
+                                                    payload.clone().0
+                                                ))
+                                                .unwrap_or(serde_json::Value::Null),
+                                            ),
+                                        );
+                                    }
+                                }
                             }
-                        }
-                    };
+                        };
 
                     let responses = {
-                        let mut responses: Vec<(StatusCode, serde_json::Value)> = Vec::with_capacity(payloads.len());
+                        let mut responses: Vec<serde_json::Value> =
+                            Vec::with_capacity(payloads.len());
                         for payload in payloads.iter() {
-                            let response = handle_payload(Arc::clone(&state), payload).await;
-                            responses.push(response);
+                            match handle_payload(Arc::clone(&state), payload).await {
+                                Ok(response) => responses.push(response),
+                                Err(s) => {
+                                    return (
+                                        StatusCode::INTERNAL_SERVER_ERROR,
+                                        Json(
+                                            serde_json::to_value(s)
+                                                .unwrap_or(serde_json::Value::Null),
+                                        ),
+                                    );
+                                }
+                            }
                         }
                         responses
                     };
-                    if let Some((status_code, value)) = responses.iter().find(
-                        |(status_code, _)| *status_code != StatusCode::OK
-                    ) {
-                        (*status_code, Json(value.clone()))
+
+                    let response = if responses.len() > 1 {
+                        serde_json::to_value(responses)
                     } else {
-                        let response_values: Vec<serde_json::Value> = responses
-                            .into_iter()
-                            .unzip::<StatusCode, serde_json::Value, Vec<StatusCode>, Vec<serde_json::Value>>()
-                            .1;
-                        let response_value = if response_values.len() > 1 {
-                            serde_json::to_value(response_values)
-                        } else {
-                            serde_json::to_value(response_values[0].clone())
-                        };
-                        if let Ok(response_value) = response_value {
-                            (StatusCode::OK, Json(response_value))
-                        } else {
-                            (
-                                StatusCode::INTERNAL_SERVER_ERROR,
-                                Json({
-                                    response_value.unwrap_or(
-                                        serde_json::to_value("failed to serialize response data")
-                                            .unwrap_or(serde_json::Value::Null)
-                                    )
-                                })
-                            )
-                        }
+                        serde_json::to_value(responses[0].clone())
+                    };
+
+                    match response {
+                        Ok(response) => (StatusCode::OK, Json(response)),
+                        Err(s) => (
+                            StatusCode::INTERNAL_SERVER_ERROR,
+                            Json(
+                                serde_json::to_value(format!(
+                                    "failed to serialize response data: {s}"
+                                ))
+                                .unwrap_or(serde_json::Value::Null),
+                            ),
+                        ),
                     }
                 },
             ),
