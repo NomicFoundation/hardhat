@@ -20,8 +20,10 @@ export class BasicExecutionStrategy
 {
   public executeStrategy({
     executionState,
+    accounts,
   }: {
     executionState: ExecutionState;
+    accounts: string[];
   }): AsyncGenerator<
     OnchainInteractionMessage,
     JournalableMessage,
@@ -33,13 +35,15 @@ export class BasicExecutionStrategy
       );
     }
 
-    return this._executeDeployment({ executionState });
+    return this._executeDeployment({ executionState, accounts });
   }
 
   public async *_executeDeployment({
     executionState: deploymentExecutionState,
+    accounts,
   }: {
     executionState: DeploymentExecutionState;
+    accounts: string[];
   }): AsyncGenerator<
     OnchainInteractionMessage,
     JournalableMessage,
@@ -55,7 +59,7 @@ export class BasicExecutionStrategy
       args: deploymentExecutionState.constructorArgs,
       // TODO: the possibily of undefined for `from` needs
       // a working resolution
-      from: deploymentExecutionState.from ?? "n/a",
+      from: deploymentExecutionState.from ?? accounts[0],
       storedArtifactPath: deploymentExecutionState.storedArtifactPath,
     };
 

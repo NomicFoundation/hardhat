@@ -21,11 +21,11 @@ describe("execution engine", () => {
       const account1 = m.getAccount(1);
       const supply = m.getParameter("supply", 1000);
 
-      const contract1 = m.contract("Contract1", [
-        account1,
-        supply,
-        { nested: supply },
-      ]);
+      const contract1 = m.contract(
+        "Contract1",
+        [account1, supply, { nested: supply }],
+        { from: account1 }
+      );
 
       return { contract1 };
     });
@@ -80,7 +80,7 @@ describe("execution engine", () => {
           { nested: 2000 },
         ],
         libraries: {},
-        from: accounts[0],
+        from: accounts[1],
       },
       {
         type: "onchain-action",
@@ -94,7 +94,7 @@ describe("execution engine", () => {
           { nested: 2000 },
         ],
         value: BigInt(0).toString(),
-        from: exampleAccounts[0],
+        from: accounts[1],
         storedArtifactPath: "Module1:Contract1.json",
       },
       {
@@ -116,7 +116,8 @@ describe("execution engine", () => {
 
   it("should execute a library deploy", async () => {
     const moduleDefinition = defineModule("Module1", (m) => {
-      const library1 = m.library("Library1");
+      const account2 = m.getAccount(2);
+      const library1 = m.library("Library1", { from: account2 });
 
       return { library1 };
     });
@@ -165,7 +166,7 @@ describe("execution engine", () => {
         value: BigInt(0).toString(),
         constructorArgs: [],
         libraries: {},
-        from: accounts[0],
+        from: accounts[2],
       },
       {
         type: "onchain-action",
@@ -175,7 +176,7 @@ describe("execution engine", () => {
         contractName: "Library1",
         args: [],
         value: BigInt(0).toString(),
-        from: exampleAccounts[0],
+        from: accounts[2],
         storedArtifactPath: "Module1:Library1.json",
       },
       {
@@ -204,7 +205,10 @@ describe("execution engine", () => {
     };
 
     const moduleDefinition = defineModule("Module1", (m) => {
-      const contract1 = m.contractFromArtifact("Contract1", fakeArtifact);
+      const account2 = m.getAccount(2);
+      const contract1 = m.contractFromArtifact("Contract1", fakeArtifact, [], {
+        from: account2,
+      });
 
       return { contract1 };
     });
@@ -256,7 +260,7 @@ describe("execution engine", () => {
             value: BigInt(0).toString(),
             constructorArgs: [],
             libraries: {},
-            from: accounts[0],
+            from: accounts[2],
           },
           {
             type: "onchain-action",
@@ -266,7 +270,7 @@ describe("execution engine", () => {
             contractName: "Contract1",
             args: [],
             value: BigInt(0).toString(),
-            from: exampleAccounts[0],
+            from: accounts[2],
             storedArtifactPath: "Module1:Contract1.json",
           },
           {
@@ -291,10 +295,10 @@ describe("execution engine", () => {
   describe("with complex arguments", () => {
     it("should execute deploy when futures are passed as nested arguments", async () => {
       const moduleDefinition = defineModule("Module1", (m) => {
-        const library1 = m.library("Library1");
-
         const account1 = m.getAccount(1);
         const supply = m.getParameter("supply", 1000);
+
+        const library1 = m.library("Library1", { from: account1 });
 
         const contract1 = m.contract(
           "Contract1",
@@ -303,6 +307,7 @@ describe("execution engine", () => {
             libraries: {
               Library1: library1,
             },
+            from: account1,
           }
         );
 
@@ -353,7 +358,7 @@ describe("execution engine", () => {
           value: BigInt(0).toString(),
           constructorArgs: [],
           libraries: {},
-          from: accounts[0],
+          from: accounts[1],
         },
         {
           type: "onchain-action",
@@ -363,7 +368,7 @@ describe("execution engine", () => {
           contractName: "Library1",
           args: [],
           value: BigInt(0).toString(),
-          from: exampleAccounts[0],
+          from: accounts[1],
           storedArtifactPath: "Module1:Library1.json",
         },
         {
@@ -399,7 +404,7 @@ describe("execution engine", () => {
           libraries: {
             Library1: "Module1:Library1",
           },
-          from: accounts[0],
+          from: accounts[1],
         },
         {
           type: "onchain-action",
@@ -414,7 +419,7 @@ describe("execution engine", () => {
             },
           ],
           value: BigInt(0).toString(),
-          from: exampleAccounts[0],
+          from: exampleAccounts[1],
           storedArtifactPath: "Module1:Contract1.json",
         },
         {

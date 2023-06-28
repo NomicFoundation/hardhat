@@ -29,8 +29,10 @@ export interface ExecutionEngineState {
 export interface ExecutionStrategy {
   executeStrategy: ({
     executionState,
+    accounts,
   }: {
     executionState: ExecutionState;
+    accounts: string[];
   }) => AsyncGenerator<
     OnchainInteractionMessage,
     JournalableMessage,

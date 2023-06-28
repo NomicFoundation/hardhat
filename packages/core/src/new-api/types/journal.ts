@@ -118,7 +118,7 @@ export interface FutureStartMessage {
   constructorArgs: ArgumentType[];
   libraries: { [key: string]: string };
   value: string;
-  from: string;
+  from: string | undefined;
 }
 
 /**

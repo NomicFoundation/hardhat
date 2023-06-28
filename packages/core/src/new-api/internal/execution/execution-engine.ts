@@ -11,6 +11,7 @@ import {
   JournalableMessage,
 } from "../../types/journal";
 import {
+  AccountRuntimeValue,
   ArgumentType,
   Future,
   FutureType,
@@ -93,6 +94,7 @@ export class ExecutionEngine {
 
     const context = {
       executionState: state.executionStateMap[future.id],
+      accounts: state.accounts,
     };
 
     const exectionStrategy = state.strategy.executeStrategy(context);
@@ -201,7 +203,7 @@ export class ExecutionEngine {
           libraries: Object.fromEntries(
             Object.entries(future.libraries).map(([key, lib]) => [key, lib.id])
           ),
-          from: resolveFromAddress(future.from, { accounts }),
+          from: this._resolveAddress(future.from, { accounts }),
         };
 
         return state;
@@ -232,7 +234,7 @@ export class ExecutionEngine {
           libraries: Object.fromEntries(
             Object.entries(future.libraries).map(([key, lib]) => [key, lib.id])
           ),
-          from: resolveFromAddress(future.from, { accounts }),
+          from: this._resolveAddress(future.from, { accounts }),
         };
 
         return state;
@@ -259,7 +261,7 @@ export class ExecutionEngine {
           libraries: Object.fromEntries(
             Object.entries(future.libraries).map(([key, lib]) => [key, lib.id])
           ),
-          from: resolveFromAddress(future.from, { accounts }),
+          from: this._resolveAddress(future.from, { accounts }),
         };
 
         return state;
@@ -283,7 +285,7 @@ export class ExecutionEngine {
           libraries: Object.fromEntries(
             Object.entries(future.libraries).map(([key, lib]) => [key, lib.id])
           ),
-          from: resolveFromAddress(future.from, { accounts }),
+          from: this._resolveAddress(future.from, { accounts }),
         };
 
         return state;
@@ -296,6 +298,21 @@ export class ExecutionEngine {
         throw new Error(`Not implemented yet: FutureType ${future.type}`);
       }
     }
+  }
+
+  /**
+   * Resolve the address like from to either undefined - which passes the
+   * user intent to the execution strategy, or to a usable string address.
+   */
+  private _resolveAddress(
+    from: string | AccountRuntimeValue | undefined,
+    { accounts }: { accounts: string[] }
+  ): string | undefined {
+    if (from === undefined) {
+      return undefined;
+    }
+
+    return resolveFromAddress(from, { accounts });
   }
 
   private async _storeArtifactAndBuildInfoAgainstDeployment(
