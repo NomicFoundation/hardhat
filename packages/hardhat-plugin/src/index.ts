@@ -18,7 +18,7 @@ import prompts from "prompts";
 import { buildAdaptersFrom } from "./buildAdaptersFrom";
 import { buildArtifactResolverFrom } from "./buildArtifactResolverFrom";
 import { buildIgnitionProvidersFrom } from "./buildIgnitionProvidersFrom";
-import { IgnitionTestHelper } from "./ignition-test-helper";
+import { IgnitionHelper } from "./ignition-helper";
 import { IgnitionWrapper } from "./ignition-wrapper";
 import { loadModule } from "./load-module";
 import { writePlan } from "./plan/write-plan";
@@ -97,7 +97,7 @@ extendEnvironment((hre) => {
     // TODO: rewire txPollingInterval
     // const txPollingInterval = isHardhatNetwork ? 100 : 5000;
 
-    return new IgnitionTestHelper(hre);
+    return new IgnitionHelper(hre);
   });
 });
 

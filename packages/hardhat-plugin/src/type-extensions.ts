@@ -5,7 +5,7 @@ import "hardhat/types/runtime";
 import type { IgnitionWrapper } from "./ignition-wrapper";
 import type { IgnitionConfig } from "./index";
 
-import { IgnitionTestHelper } from "./ignition-test-helper";
+import { IgnitionHelper } from "./ignition-helper";
 
 declare module "hardhat/types/config" {
   export interface ProjectPathsUserConfig {
@@ -33,6 +33,6 @@ declare module "hardhat/types/runtime" {
   }
 
   export interface HardhatRuntimeEnvironment {
-    ignition2: IgnitionTestHelper;
+    ignition2: IgnitionHelper;
   }
 }

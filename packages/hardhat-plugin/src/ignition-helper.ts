@@ -14,7 +14,7 @@ import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { buildAdaptersFrom } from "./buildAdaptersFrom";
 import { buildArtifactResolverFrom } from "./buildArtifactResolverFrom";
 
-export class IgnitionTestHelper {
+export class IgnitionHelper {
   constructor(private _hre: HardhatRuntimeEnvironment) {}
 
   public async deploy(
