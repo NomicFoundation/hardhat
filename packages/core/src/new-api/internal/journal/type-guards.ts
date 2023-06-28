@@ -9,6 +9,7 @@ import {
   OnchainResultMessage,
   OnchainResultSuccessMessage,
   OnchainStaticCallSuccessMessage,
+  ReadEventArgumentStartMessage,
   StaticCallStartMessage,
 } from "../../types/journal";
 import { FutureType } from "../../types/module";
@@ -54,7 +55,7 @@ export function isCallFunctionStartMessage(
 }
 
 /**
- * Returns true if potential is a call function start message
+ * Returns true if potential is a call static function start message
  *
  * @beta
  */
@@ -62,6 +63,17 @@ export function isStaticCallStartMessage(
   potential: FutureStartMessage
 ): potential is StaticCallStartMessage {
   return potential.futureType === FutureType.NAMED_STATIC_CALL;
+}
+
+/**
+ * Returns true if potential is a read event argument start message
+ *
+ * @beta
+ */
+export function isReadEventArgumentStartMessage(
+  potential: FutureStartMessage
+): potential is ReadEventArgumentStartMessage {
+  return potential.futureType === FutureType.READ_EVENT_ARGUMENT;
 }
 
 export function isOnChainResultMessage(

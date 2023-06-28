@@ -3,6 +3,7 @@ import {
   isCallFunctionStartMessage,
   isDeployContractStartMessage,
   isExecutionStartMessage,
+  isReadEventArgumentStartMessage,
   isStaticCallStartMessage,
 } from "../journal/type-guards";
 import {
@@ -11,6 +12,7 @@ import {
   ExecutionState,
   ExecutionStateMap,
   ExecutionStatus,
+  ReadEventArgumentExecutionState,
   StaticCallExecutionState,
 } from "../types/execution-state";
 import { assertIgnitionInvariant } from "../utils/assertions";
@@ -34,6 +36,7 @@ export function executionStateReducer(
         ...(previousDeploymentExecutionState as DeploymentExecutionState),
         status: ExecutionStatus.SUCCESS,
         contractAddress: action.contractAddress,
+        txId: action.txId,
       };
 
       return {
@@ -58,6 +61,19 @@ export function executionStateReducer(
     if (action.subtype === "static-call") {
       const updatedExecutionState: StaticCallExecutionState = {
         ...(previousDeploymentExecutionState as StaticCallExecutionState),
+        status: ExecutionStatus.SUCCESS,
+        result: action.result,
+      };
+
+      return {
+        ...executionStateMap,
+        [action.futureId]: updatedExecutionState,
+      };
+    }
+
+    if (action.subtype === "read-event-arg") {
+      const updatedExecutionState: ReadEventArgumentExecutionState = {
+        ...(previousDeploymentExecutionState as ReadEventArgumentExecutionState),
         status: ExecutionStatus.SUCCESS,
         result: action.result,
       };
@@ -109,7 +125,7 @@ function initialiseExecutionStateFor(
   futureStart: FutureStartMessage
 ): ExecutionState {
   if (isDeployContractStartMessage(futureStart)) {
-    const deploymentExecutionState: DeploymentExecutionState = {
+    const executionState: DeploymentExecutionState = {
       id: futureStart.futureId,
       futureType: futureStart.futureType,
       strategy: futureStart.strategy,
@@ -125,11 +141,11 @@ function initialiseExecutionStateFor(
       from: futureStart.from,
     };
 
-    return deploymentExecutionState;
+    return executionState;
   }
 
   if (isCallFunctionStartMessage(futureStart)) {
-    const callExecutionState: CallExecutionState = {
+    const executionState: CallExecutionState = {
       id: futureStart.futureId,
       futureType: futureStart.futureType,
       strategy: futureStart.strategy,
@@ -144,11 +160,11 @@ function initialiseExecutionStateFor(
       value: BigInt(futureStart.value),
     };
 
-    return callExecutionState;
+    return executionState;
   }
 
   if (isStaticCallStartMessage(futureStart)) {
-    const callExecutionState: StaticCallExecutionState = {
+    const executionState: StaticCallExecutionState = {
       id: futureStart.futureId,
       futureType: futureStart.futureType,
       strategy: futureStart.strategy,
@@ -162,7 +178,26 @@ function initialiseExecutionStateFor(
       functionName: futureStart.functionName,
     };
 
-    return callExecutionState;
+    return executionState;
+  }
+
+  if (isReadEventArgumentStartMessage(futureStart)) {
+    const executionState: ReadEventArgumentExecutionState = {
+      id: futureStart.futureId,
+      futureType: futureStart.futureType,
+      strategy: futureStart.strategy,
+      status: ExecutionStatus.STARTED,
+      dependencies: new Set(futureStart.dependencies),
+      history: [],
+      storedArtifactPath: futureStart.storedArtifactPath,
+      eventName: futureStart.eventName,
+      argumentName: futureStart.argumentName,
+      txToReadFrom: futureStart.txToReadFrom,
+      emitterAddress: futureStart.emitterAddress,
+      eventIndex: futureStart.eventIndex,
+    };
+
+    return executionState;
   }
 
   throw new Error("Not implemented yet in the reducer");

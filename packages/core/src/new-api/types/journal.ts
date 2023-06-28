@@ -1,4 +1,4 @@
-import { ArgumentType, FutureType, PrimitiveArgType } from "./module";
+import { ArgumentType, FutureType, SolidityParameterType } from "./module";
 
 /**
  * Store a deployments execution state as a transaction log.
@@ -42,7 +42,8 @@ export type TransactionMessage =
 export type OnchainInteractionMessage =
   | DeployContractInteractionMessage
   | CallFunctionInteractionMessage
-  | StaticCallInteractionMessage;
+  | StaticCallInteractionMessage
+  | ReadEventArgumentInteractionMessage;
 
 /**
  * A on-chain interaction request to deploy a contract/library.
@@ -96,6 +97,24 @@ export interface StaticCallInteractionMessage {
   from: string;
 }
 
+/**
+ * A on-chain interaction request to read an event argument.
+ *
+ * @beta
+ */
+export interface ReadEventArgumentInteractionMessage {
+  type: "onchain-action";
+  subtype: "read-event-arg";
+  futureId: string;
+  transactionId: number;
+  storedArtifactPath: string;
+  eventName: string;
+  argumentName: string;
+  txToReadFrom: string;
+  emitterAddress: string;
+  eventIndex: number;
+}
+
 // #endregion
 
 // #region "OnchainResult"
@@ -112,7 +131,8 @@ export type OnchainResultMessage =
 export type OnchainResultSuccessMessage =
   | OnchainDeployContractSuccessMessage
   | OnchainCallFunctionSuccessMessage
-  | OnchainStaticCallSuccessMessage;
+  | OnchainStaticCallSuccessMessage
+  | OnchainReadEventArgumentSuccessMessage;
 
 export type OnchainResultFailureMessage = OnchainFailureMessage;
 
@@ -127,6 +147,7 @@ export interface OnchainDeployContractSuccessMessage {
   futureId: string;
   transactionId: number;
   contractAddress: string;
+  txId: string;
 }
 
 /**
@@ -152,7 +173,20 @@ export interface OnchainStaticCallSuccessMessage {
   subtype: "static-call-success";
   futureId: string;
   transactionId: number;
-  result: PrimitiveArgType | PrimitiveArgType[];
+  result: SolidityParameterType;
+}
+
+/**
+ * A successful read event argument result.
+ *
+ * @beta
+ */
+export interface OnchainReadEventArgumentSuccessMessage {
+  type: "onchain-result";
+  subtype: "read-event-arg-success";
+  futureId: string;
+  transactionId: number;
+  result: SolidityParameterType;
 }
 
 /**
@@ -198,7 +232,8 @@ export type ExecutionUpdateMessage = FutureStartMessage | FutureRestartMessage;
 export type FutureStartMessage =
   | DeployContractStartMessage
   | CallFunctionStartMessage
-  | StaticCallStartMessage;
+  | StaticCallStartMessage
+  | ReadEventArgumentStartMessage;
 
 /**
  * A journal message to initialise the execution state for a contract deployment.
@@ -262,6 +297,25 @@ export interface StaticCallStartMessage {
 }
 
 /**
+ * A journal message to initialise the execution state for reading an event argument.
+ *
+ * @beta
+ */
+export interface ReadEventArgumentStartMessage {
+  type: "execution-start";
+  futureId: string;
+  futureType: FutureType.READ_EVENT_ARGUMENT;
+  strategy: string;
+  dependencies: string[];
+  storedArtifactPath: string;
+  eventName: string;
+  argumentName: string;
+  txToReadFrom: string;
+  emitterAddress: string;
+  eventIndex: number;
+}
+
+/**
  * A journal message to indicate a future is being restarted.
  *
  * @beta
@@ -306,7 +360,8 @@ export type ExecutionResultTypes = [
 export type ExecutionSuccess =
   | DeployedContractExecutionSuccess
   | CalledFunctionExecutionSuccess
-  | StaticCallExecutionSuccess;
+  | StaticCallExecutionSuccess
+  | ReadEventArgumentExecutionSuccess;
 
 /**
  * A journal message indicating a contract/library deployed successfully.
@@ -319,6 +374,7 @@ export interface DeployedContractExecutionSuccess {
   futureId: string;
   contractName: string;
   contractAddress: string;
+  txId: string;
 }
 
 /**
@@ -345,8 +401,22 @@ export interface StaticCallExecutionSuccess {
   subtype: "static-call";
   futureId: string;
   functionName: string;
-  result: PrimitiveArgType | PrimitiveArgType[];
+  result: SolidityParameterType;
   contractAddress: string;
+}
+
+/**
+ * A journal message indicating an event argument was read successfully.
+ *
+ * @beta
+ */
+export interface ReadEventArgumentExecutionSuccess {
+  type: "execution-success";
+  subtype: "read-event-arg";
+  futureId: string;
+  eventName: string;
+  argumentName: string;
+  result: SolidityParameterType;
 }
 
 // #endregion

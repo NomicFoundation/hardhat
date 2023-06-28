@@ -8,14 +8,18 @@ import {
   OnchainCallFunctionSuccessMessage,
   OnchainDeployContractSuccessMessage,
   OnchainInteractionMessage,
+  OnchainReadEventArgumentSuccessMessage,
   OnchainResultMessage,
   OnchainStaticCallSuccessMessage,
+  ReadEventArgumentExecutionSuccess,
+  ReadEventArgumentInteractionMessage,
   StaticCallExecutionSuccess,
   StaticCallInteractionMessage,
 } from "../../types/journal";
 import {
   isCallExecutionState,
   isDeploymentExecutionState,
+  isReadEventArgumentExecutionState,
   isStaticCallExecutionState,
 } from "../type-guards";
 import { ExecutionStrategy } from "../types/execution-engine";
@@ -23,6 +27,7 @@ import {
   CallExecutionState,
   DeploymentExecutionState,
   ExecutionState,
+  ReadEventArgumentExecutionState,
   StaticCallExecutionState,
 } from "../types/execution-state";
 import { assertIgnitionInvariant } from "../utils/assertions";
@@ -54,6 +59,10 @@ export class BasicExecutionStrategy
 
     if (isStaticCallExecutionState(executionState)) {
       return this._executeStaticCall({ executionState, sender });
+    }
+
+    if (isReadEventArgumentExecutionState(executionState)) {
+      return this._executeReadEventArgument({ executionState });
     }
 
     throw new IgnitionError(
@@ -93,15 +102,14 @@ export class BasicExecutionStrategy
       throw new IgnitionError("No result yielded");
     }
 
-    const success: DeployedContractExecutionSuccess = {
+    return {
       type: "execution-success",
       subtype: "deploy-contract",
       futureId: deploymentExecutionState.id,
       contractName: deploymentExecutionState.contractName,
       contractAddress: result.contractAddress,
+      txId: result.txId,
     };
-
-    return success;
   }
 
   private async *_executeCall({
@@ -137,7 +145,7 @@ export class BasicExecutionStrategy
       throw new IgnitionError("No result yielded");
     }
 
-    const success: CalledFunctionExecutionSuccess = {
+    return {
       type: "execution-success",
       subtype: "call-function",
       futureId: callExecutionState.id,
@@ -145,8 +153,6 @@ export class BasicExecutionStrategy
       functionName: callExecutionState.functionName,
       txId: result.txId,
     };
-
-    return success;
   }
 
   private async *_executeStaticCall({
@@ -181,7 +187,7 @@ export class BasicExecutionStrategy
       throw new IgnitionError("No result yielded");
     }
 
-    const success: StaticCallExecutionSuccess = {
+    return {
       type: "execution-success",
       subtype: "static-call",
       futureId: staticCallExecutionState.id,
@@ -189,7 +195,41 @@ export class BasicExecutionStrategy
       functionName: staticCallExecutionState.functionName,
       result: result.result,
     };
+  }
 
-    return success;
+  private async *_executeReadEventArgument({
+    executionState: readEventArgExecutionState,
+  }: {
+    executionState: ReadEventArgumentExecutionState;
+  }): AsyncGenerator<
+    ReadEventArgumentInteractionMessage,
+    ReadEventArgumentExecutionSuccess,
+    OnchainReadEventArgumentSuccessMessage | null
+  > {
+    const result = yield {
+      type: "onchain-action",
+      subtype: "read-event-arg",
+      futureId: readEventArgExecutionState.id,
+      transactionId: 1,
+      storedArtifactPath: readEventArgExecutionState.storedArtifactPath,
+      eventName: readEventArgExecutionState.eventName,
+      argumentName: readEventArgExecutionState.argumentName,
+      txToReadFrom: readEventArgExecutionState.txToReadFrom,
+      emitterAddress: readEventArgExecutionState.emitterAddress,
+      eventIndex: readEventArgExecutionState.eventIndex,
+    };
+
+    if (result === null) {
+      throw new IgnitionError("No result yielded");
+    }
+
+    return {
+      type: "execution-success",
+      subtype: "read-event-arg",
+      futureId: readEventArgExecutionState.id,
+      eventName: readEventArgExecutionState.eventName,
+      argumentName: readEventArgExecutionState.argumentName,
+      result: result.result,
+    };
   }
 }

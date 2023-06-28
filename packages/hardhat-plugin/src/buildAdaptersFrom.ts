@@ -26,6 +26,11 @@ export function buildAdaptersFrom(hre: HardhatRuntimeEnvironment): Adapters {
     async wait(txHash: string): Promise<ethers.providers.TransactionReceipt> {
       return hre.ethers.provider.waitForTransaction(txHash);
     },
+    async getTransactionReceipt(
+      txHash: string
+    ): Promise<ethers.providers.TransactionReceipt> {
+      return hre.ethers.provider.getTransactionReceipt(txHash);
+    },
   };
 
   const adapters: Adapters = {

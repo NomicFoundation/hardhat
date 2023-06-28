@@ -20,6 +20,7 @@ export interface ChainDispatcher {
     tx: ethers.providers.TransactionRequest,
     signer: ethers.Signer
   ): Promise<TransactionReceipt>;
+  getTxReceipt(txHash: string): Promise<ethers.providers.TransactionReceipt>;
 }
 
 /**
@@ -66,6 +67,7 @@ export class EthersChainDispatcher implements ChainDispatcher {
       return {
         type: "transaction-success",
         contractAddress: receipt.contractAddress,
+        txId: receipt.transactionHash,
       };
     } catch (error) {
       return {
@@ -76,5 +78,11 @@ export class EthersChainDispatcher implements ChainDispatcher {
             : new Error("Unknown issue during `sendTx`"),
       };
     }
+  }
+
+  public async getTxReceipt(
+    txHash: string
+  ): Promise<ethers.providers.TransactionReceipt> {
+    return this._transactionProvider.getTransactionReceipt(txHash);
   }
 }

@@ -1,20 +1,16 @@
 import { Artifact } from "./artifact";
 
 /**
- * Argument type representing primitive values expressed in smart contracts.
- *
- * @beta
- */
-export type PrimitiveArgType = number | bigint | string | boolean;
-
-/**
  * Base argument type that smart contracts can receive in their constructors
  * and functions.
  *
  * @beta
  */
 export type BaseArgumentType =
-  | PrimitiveArgType
+  | number
+  | bigint
+  | string
+  | boolean
   | ContractFuture<string>
   | NamedStaticCallFuture<string, string>
   | ReadEventArgumentFuture

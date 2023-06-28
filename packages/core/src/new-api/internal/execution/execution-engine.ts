@@ -331,7 +331,7 @@ export class ExecutionEngine {
 
         assertIgnitionInvariant(
           contractAddress !== undefined,
-          "internal error - call executed before contract dependency"
+          `Internal error - dependency ${future.contract.id} used before it's resolved`
         );
 
         state = {
@@ -356,11 +356,10 @@ export class ExecutionEngine {
           future.contract.id
         ] as DeploymentExecutionState;
 
-        if (contractAddress === undefined) {
-          throw new Error(
-            "internal error - call executed before contract dependency"
-          );
-        }
+        assertIgnitionInvariant(
+          contractAddress !== undefined,
+          `Internal error - dependency ${future.contract.id} used before it's resolved`
+        );
 
         state = {
           type: "execution-start",
@@ -378,9 +377,44 @@ export class ExecutionEngine {
         };
         return state;
       }
+      case FutureType.READ_EVENT_ARGUMENT: {
+        const { contractAddress, storedArtifactPath } = executionStateMap[
+          future.emitter.id
+        ] as DeploymentExecutionState;
+
+        const { txId } = executionStateMap[
+          future.futureToReadFrom.id
+        ] as DeploymentExecutionState;
+
+        assertIgnitionInvariant(
+          contractAddress !== undefined,
+          `Internal error - dependency ${future.emitter.id} used before it's resolved`
+        );
+
+        assertIgnitionInvariant(
+          txId !== undefined,
+          `Internal error - dependency ${future.futureToReadFrom.id} used before it's resolved`
+        );
+
+        state = {
+          type: "execution-start",
+          futureId: future.id,
+          futureType: future.type,
+          strategy,
+          // status: ExecutionStatus.STARTED,
+          dependencies: [...future.dependencies].map((f) => f.id),
+          // history: [],
+          storedArtifactPath,
+          eventName: future.eventName,
+          argumentName: future.argumentName,
+          txToReadFrom: txId,
+          emitterAddress: contractAddress,
+          eventIndex: future.eventIndex,
+        };
+        return state;
+      }
       case FutureType.NAMED_CONTRACT_AT:
       case FutureType.ARTIFACT_CONTRACT_AT:
-      case FutureType.READ_EVENT_ARGUMENT:
       case FutureType.SEND_DATA: {
         throw new Error(`Not implemented yet: FutureType ${future.type}`);
       }

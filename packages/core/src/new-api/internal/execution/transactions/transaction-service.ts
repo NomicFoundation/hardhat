@@ -6,10 +6,14 @@ import { DeploymentLoader } from "../../../types/deployment-loader";
 import {
   CallFunctionInteractionMessage,
   DeployContractInteractionMessage,
+  OnchainCallFunctionSuccessMessage,
   OnchainDeployContractSuccessMessage,
   OnchainFailureMessage,
   OnchainInteractionMessage,
+  OnchainReadEventArgumentSuccessMessage,
   OnchainResultMessage,
+  OnchainStaticCallSuccessMessage,
+  ReadEventArgumentInteractionMessage,
   StaticCallInteractionMessage,
 } from "../../../types/journal";
 import {
@@ -21,6 +25,7 @@ import { collectLibrariesAndLink } from "../../utils/collectLibrariesAndLink";
 import {
   isCallFunctionInteraction,
   isDeployContractInteraction,
+  isReadEventArgumentInteraction,
   isStaticCallInteraction,
 } from "../guards";
 
@@ -52,6 +57,10 @@ export class TransactionServiceImplementation implements TransactionService {
 
     if (isStaticCallInteraction(interaction)) {
       return this._dispatchStaticCall(interaction);
+    }
+
+    if (isReadEventArgumentInteraction(interaction)) {
+      return this._dispatchReadEventArgument(interaction);
     }
 
     throw new IgnitionError(
@@ -89,12 +98,18 @@ export class TransactionServiceImplementation implements TransactionService {
         "Contract address not available on receipt"
       );
 
+      assertIgnitionInvariant(
+        result.txId !== undefined,
+        "Transaction hash not available on receipt"
+      );
+
       return {
         type: "onchain-result",
         subtype: "deploy-contract-success",
         futureId: deployContractInteraction.futureId,
         transactionId: deployContractInteraction.transactionId,
         contractAddress: result.contractAddress,
+        txId: result.txId,
       };
     } else {
       return {
@@ -116,7 +131,9 @@ export class TransactionServiceImplementation implements TransactionService {
     contractAddress,
     value,
     storedArtifactPath,
-  }: CallFunctionInteractionMessage): Promise<OnchainResultMessage> {
+  }: CallFunctionInteractionMessage): Promise<
+    OnchainCallFunctionSuccessMessage | OnchainFailureMessage
+  > {
     const artifact = await this._deploymentLoader.loadArtifact(
       storedArtifactPath
     );
@@ -168,7 +185,9 @@ export class TransactionServiceImplementation implements TransactionService {
     functionName,
     contractAddress,
     storedArtifactPath,
-  }: StaticCallInteractionMessage): Promise<OnchainResultMessage> {
+  }: StaticCallInteractionMessage): Promise<
+    OnchainStaticCallSuccessMessage | OnchainFailureMessage
+  > {
     const artifact = await this._deploymentLoader.loadArtifact(
       storedArtifactPath
     );
@@ -208,6 +227,75 @@ export class TransactionServiceImplementation implements TransactionService {
           error instanceof Error
             ? error
             : new Error("Unknown static call error"),
+      };
+    }
+  }
+
+  private async _dispatchReadEventArgument({
+    futureId,
+    transactionId,
+    storedArtifactPath,
+    eventName,
+    argumentName,
+    txToReadFrom,
+    emitterAddress,
+    eventIndex,
+  }: ReadEventArgumentInteractionMessage): Promise<
+    OnchainReadEventArgumentSuccessMessage | OnchainFailureMessage
+  > {
+    const artifact = await this._deploymentLoader.loadArtifact(
+      storedArtifactPath
+    );
+
+    try {
+      const contract = new Contract(emitterAddress, artifact.abi);
+      const filter = contract.filters[eventName]();
+      const eventNameTopic = filter.topics?.[0];
+
+      assertIgnitionInvariant(
+        eventNameTopic !== undefined,
+        "Unknown event name"
+      );
+
+      const { logs } = await this._chainDispatcher.getTxReceipt(txToReadFrom);
+
+      // only keep the requested eventName and ensure they're from the emitter
+      const events = logs.filter(
+        (log) =>
+          log.address === filter.address && log.topics[0] === eventNameTopic
+      );
+
+      // sanity check to ensure the eventIndex isn't out of range
+      if (events.length > 1 && eventIndex >= events.length) {
+        throw new Error(
+          `Given eventIndex '${eventIndex}' exceeds number of events emitted '${events.length}'`
+        );
+      }
+
+      // this works in combination with the check above
+      // because we default eventIndex to 0 if not set by user
+      const eventLog = events[eventIndex];
+
+      // parse the event through the emitter ABI and return the requested arg
+      const result = contract.interface.parseLog(eventLog).args[argumentName];
+
+      return {
+        type: "onchain-result",
+        subtype: "read-event-arg-success",
+        futureId,
+        transactionId,
+        result,
+      };
+    } catch (error) {
+      return {
+        type: "onchain-result",
+        subtype: "failure",
+        futureId,
+        transactionId,
+        error:
+          error instanceof Error
+            ? error
+            : new Error("Unknown read event arg error"),
       };
     }
   }

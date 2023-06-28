@@ -131,6 +131,7 @@ export interface DeploymentExecutionState
   value: bigint;
   from: string | undefined;
   contractAddress?: string; // The result
+  txId?: string; // also stored after success for use when reading events
 }
 
 export interface CallExecutionState
@@ -164,10 +165,12 @@ export interface ContractAtExecutionState
 
 export interface ReadEventArgumentExecutionState
   extends BaseExecutionState<FutureType.READ_EVENT_ARGUMENT> {
+  storedArtifactPath: string; // As stored in the deployment directory.
   eventName: string;
   argumentName: string;
+  txToReadFrom: string;
+  emitterAddress: string;
   eventIndex: number;
-  emitter: string;
   result?: SolidityParameterType;
 }
 

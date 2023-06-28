@@ -39,4 +39,7 @@ export interface GasAdapter {
  */
 export interface TransactionsAdapter {
   wait(txHash: string): Promise<ethers.providers.TransactionReceipt>;
+  getTransactionReceipt(
+    txHash: string
+  ): Promise<ethers.providers.TransactionReceipt>;
 }

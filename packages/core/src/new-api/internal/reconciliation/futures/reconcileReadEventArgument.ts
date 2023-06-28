@@ -36,10 +36,10 @@ export function reconcileReadEventArgument(
       context
     );
 
-  if (resolvedEmitterAddress !== executionState.emitter) {
+  if (resolvedEmitterAddress !== executionState.emitterAddress) {
     return fail(
       future,
-      `Emitter has been changed from ${executionState.emitter} to ${resolvedEmitterAddress}`
+      `Emitter has been changed from ${executionState.emitterAddress} to ${resolvedEmitterAddress}`
     );
   }
 
