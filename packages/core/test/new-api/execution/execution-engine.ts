@@ -431,9 +431,6 @@ function setupMockTransactionService(): TransactionService {
 function setupMockDeploymentLoader(journal: Journal): DeploymentLoader {
   return {
     journal,
-    initialize: () => {
-      throw new Error("Not implemented");
-    },
     recordDeployedAddress: async () => {},
     storeArtifact: async (futureId, _artifact) => {
       return `${futureId}.json`;

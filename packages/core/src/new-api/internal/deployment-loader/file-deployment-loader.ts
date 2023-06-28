@@ -5,11 +5,10 @@ import { Artifact, BuildInfo } from "../../types/artifact";
 import { DeploymentLoader } from "../../types/deployment-loader";
 import { Journal } from "../../types/journal";
 import { FileJournal } from "../journal/file-journal";
-import { MemoryJournal } from "../journal/memory-journal";
-import { assertIgnitionInvariant } from "../utils/assertions";
 
 export class FileDeploymentLoader implements DeploymentLoader {
   public journal: Journal;
+  private _deploymentDirsEnsured: boolean;
 
   private _paths: {
     deploymentDir: string;
@@ -17,13 +16,9 @@ export class FileDeploymentLoader implements DeploymentLoader {
     buildInfoDir: string;
     journalPath: string;
     deployedAddressesPath: string;
-  } | null = null;
+  };
 
   constructor(private readonly _deploymentDirPath: string) {
-    this.journal = new MemoryJournal();
-  }
-
-  public async initialize(): Promise<void> {
     const artifactsDir = path.join(this._deploymentDirPath, "artifacts");
     const buildInfoDir = path.join(this._deploymentDirPath, "build-info");
     const journalPath = path.join(this._deploymentDirPath, "journal.jsonl");
@@ -31,6 +26,8 @@ export class FileDeploymentLoader implements DeploymentLoader {
       this._deploymentDirPath,
       "deployed_addresses.json"
     );
+
+    this.journal = new FileJournal(journalPath);
 
     this._paths = {
       deploymentDir: this._deploymentDirPath,
@@ -40,21 +37,26 @@ export class FileDeploymentLoader implements DeploymentLoader {
       deployedAddressesPath,
     };
 
+    this._deploymentDirsEnsured = false;
+  }
+
+  private async _initialize(): Promise<void> {
+    if (this._deploymentDirsEnsured) {
+      return;
+    }
+
     await fs.ensureDir(this._paths.deploymentDir);
     await fs.ensureDir(this._paths.artifactsDir);
     await fs.ensureDir(this._paths.buildInfoDir);
 
-    this.journal = new FileJournal(journalPath);
+    this._deploymentDirsEnsured = true;
   }
 
   public async storeArtifact(
     futureId: string,
     artifact: Artifact
   ): Promise<string> {
-    assertIgnitionInvariant(
-      this._paths !== null,
-      "Cannot record deploy address until initialized"
-    );
+    await this._initialize();
 
     const artifactFilePath = path.join(
       this._paths.artifactsDir,
@@ -69,10 +71,7 @@ export class FileDeploymentLoader implements DeploymentLoader {
   }
 
   public async storeBuildInfo(buildInfo: BuildInfo): Promise<string> {
-    assertIgnitionInvariant(
-      this._paths !== null,
-      "Cannot record build info address until initialized"
-    );
+    await this._initialize();
 
     const buildInfoFilePath = path.join(
       this._paths?.buildInfoDir,
@@ -87,10 +86,7 @@ export class FileDeploymentLoader implements DeploymentLoader {
   }
 
   public async loadArtifact(storedArtifactPath: string): Promise<Artifact> {
-    assertIgnitionInvariant(
-      this._paths !== null,
-      "Cannot load artifact until initialized"
-    );
+    await this._initialize();
 
     const json = await fs.readFile(
       path.join(this._paths?.deploymentDir, storedArtifactPath)
@@ -105,10 +101,7 @@ export class FileDeploymentLoader implements DeploymentLoader {
     futureId: string,
     contractAddress: string
   ): Promise<void> {
-    assertIgnitionInvariant(
-      this._paths !== null,
-      "Cannot record deploy address until initialized"
-    );
+    await this._initialize();
 
     let deployedAddresses: { [key: string]: string };
     if (await fs.pathExists(this._paths.deployedAddressesPath)) {

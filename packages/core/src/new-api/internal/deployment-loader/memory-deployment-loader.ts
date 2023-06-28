@@ -23,8 +23,6 @@ export class MemoryDeploymentLoader implements DeploymentLoader {
     return artifact;
   }
 
-  public async initialize(): Promise<void> {}
-
   public async recordDeployedAddress(
     futureId: string,
     contractAddress: string

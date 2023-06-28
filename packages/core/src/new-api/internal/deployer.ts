@@ -58,8 +58,6 @@ export class Deployer {
 
     await validate(module, this._artifactResolver);
 
-    await this._deploymentLoader.initialize();
-
     const previousStateMap = await this._loadExecutionStateFrom(
       this._deploymentLoader.journal
     );
