@@ -44,6 +44,7 @@ type RethnetStateType = Arc<RwLock<Box<dyn SyncState<StateError>>>>;
 struct AppState {
     rethnet_state: RethnetStateType,
     fork_client: Option<Arc<Mutex<RpcClient>>>,
+    fork_block_number: Option<usize>,
 }
 
 type StateType = Arc<AppState>;
@@ -113,6 +114,16 @@ async fn set_block_context<T>(
                                     })?
                                     .number
                             {
+                                if let Some(fork_block_number) = state.fork_block_number {
+                                    let fork_block_number = U256::from(fork_block_number);
+                                    if block_number > fork_block_number {
+                                        Err(ResponseData::new_error(
+                                            0,
+                                            &format!("Cannot use remote block tagged {tag} because its number ({block_number}) is newer than the configured fork block number ({fork_block_number})"),
+                                            None,
+                                        ))?
+                                    }
+                                }
                                 Ok(block_number)
                             } else {
                                 Err(ResponseData::new_error(
@@ -487,6 +498,11 @@ pub async fn run(
                 genesis_accounts,
             )))),
             fork_client: Some(fork_client),
+            fork_block_number: Some(
+                fork_block_number
+                    .try_into()
+                    .expect("fork block number should fit into a usize"),
+            ),
         })
     } else {
         Arc::new(AppState {
@@ -494,6 +510,7 @@ pub async fn run(
                 genesis_accounts,
             )))),
             fork_client: None,
+            fork_block_number: None,
         })
     };
 
