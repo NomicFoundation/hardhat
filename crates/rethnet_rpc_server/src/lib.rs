@@ -396,16 +396,16 @@ async fn handle_set_storage_at(
     }
 }
 
-async fn handle_payload(
+async fn handle_request(
     state: StateType,
-    payload: &Json<RpcRequest<MethodInvocation>>,
+    request: &RpcRequest<MethodInvocation>,
 ) -> Result<serde_json::Value, String> {
-    match payload {
-        Json(RpcRequest {
+    match request {
+        RpcRequest {
             version,
             id,
             method: _,
-        }) if *version != jsonrpc::Version::V2_0 => response(
+        } if *version != jsonrpc::Version::V2_0 => response(
             id,
             ResponseData::<serde_json::Value>::new_error(
                 0,
@@ -416,11 +416,11 @@ async fn handle_payload(
                 },
             ),
         ),
-        Json(RpcRequest {
+        RpcRequest {
             version: _,
             id,
             method,
-        }) => {
+        } => {
             match method {
                 MethodInvocation::Eth(EthMethodInvocation::GetBalance(address, block)) => {
                     response(id, handle_get_balance(state, *address, block.clone()).await)
@@ -484,16 +484,16 @@ async fn router(state: StateType) -> Router {
             "/",
             axum::routing::post(
                 |State(state): State<StateType>, payload: Json<serde_json::Value>| async move {
-                    let payloads: Vec<Json<RpcRequest<MethodInvocation>>> =
+                    let requests: Vec<RpcRequest<MethodInvocation>> =
                         match serde_json::from_value::<RpcRequest<MethodInvocation>>(
                             payload.clone().0,
                         ) {
-                            Ok(request) => vec![Json(request)],
+                            Ok(request) => vec![request],
                             Err(_) => {
                                 match serde_json::from_value::<Vec<RpcRequest<MethodInvocation>>>(
                                     payload.clone().0,
                                 ) {
-                                    Ok(requests) => requests.into_iter().map(Json).collect(),
+                                    Ok(requests) => requests,
                                     Err(_) => {
                                         return (
                                             StatusCode::INTERNAL_SERVER_ERROR,
@@ -512,9 +512,9 @@ async fn router(state: StateType) -> Router {
 
                     let responses = {
                         let mut responses: Vec<serde_json::Value> =
-                            Vec::with_capacity(payloads.len());
-                        for payload in payloads.iter() {
-                            match handle_payload(Arc::clone(&state), payload).await {
+                            Vec::with_capacity(requests.len());
+                        for request in requests.iter() {
+                            match handle_request(Arc::clone(&state), request).await {
                                 Ok(response) => responses.push(response),
                                 Err(s) => {
                                     return (
