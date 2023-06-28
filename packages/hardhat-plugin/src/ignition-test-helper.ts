@@ -42,6 +42,7 @@ export class IgnitionTestHelper {
     );
 
     if (result.status !== "success") {
+      // TODO: Show more information about why it failed
       throw new IgnitionError("Failed deployment");
     }
 
