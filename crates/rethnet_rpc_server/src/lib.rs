@@ -408,6 +408,88 @@ async fn handle_set_storage_at(
     }
 }
 
+async fn handle_payload(
+    state: StateType,
+    payload: &Json<RpcRequest<MethodInvocation>>,
+) -> (StatusCode, serde_json::Value) {
+    match payload {
+        Json(RpcRequest {
+            version,
+            id,
+            method: _,
+        }) if *version != jsonrpc::Version::V2_0 => response(
+            id,
+            ResponseData::<serde_json::Value>::new_error(
+                0,
+                "unsupported JSON-RPC version",
+                match serde_json::to_value(version) {
+                    Ok(version) => Some(version),
+                    Err(_) => None,
+                },
+            ),
+        ),
+        Json(RpcRequest {
+            version: _,
+            id,
+            method,
+        }) => {
+            match method {
+                MethodInvocation::Eth(EthMethodInvocation::GetBalance(address, block)) => {
+                    response(id, handle_get_balance(state, *address, block.clone()).await)
+                }
+                MethodInvocation::Eth(EthMethodInvocation::GetCode(address, block)) => {
+                    response(id, handle_get_code(state, *address, block.clone()).await)
+                }
+                MethodInvocation::Eth(EthMethodInvocation::GetStorageAt(
+                    address,
+                    position,
+                    block,
+                )) => response(
+                    id,
+                    handle_get_storage_at(state, *address, *position, block.clone()).await,
+                ),
+                MethodInvocation::Eth(EthMethodInvocation::GetTransactionCount(address, block)) => {
+                    response(
+                        id,
+                        handle_get_transaction_count(state, *address, block.clone()).await,
+                    )
+                }
+                MethodInvocation::Hardhat(HardhatMethodInvocation::SetBalance(
+                    address,
+                    balance,
+                )) => response(id, handle_set_balance(state, *address, *balance).await),
+                MethodInvocation::Hardhat(HardhatMethodInvocation::SetCode(address, code)) => {
+                    response(id, handle_set_code(state, *address, code.clone()).await)
+                }
+                MethodInvocation::Hardhat(HardhatMethodInvocation::SetNonce(address, nonce)) => {
+                    response(id, handle_set_nonce(state, *address, *nonce).await)
+                }
+                MethodInvocation::Hardhat(HardhatMethodInvocation::SetStorageAt(
+                    address,
+                    position,
+                    value,
+                )) => response(
+                    id,
+                    handle_set_storage_at(state, *address, *position, *value).await,
+                ),
+                // TODO: after adding all the methods here, eliminate this
+                // catch-all match arm:
+                _ => response(
+                    id,
+                    ResponseData::<serde_json::Value>::new_error(
+                        -32601,
+                        "Method not found",
+                        match serde_json::to_value(method) {
+                            Ok(value) => Some(value),
+                            Err(_) => None,
+                        },
+                    ),
+                ),
+            }
+        }
+    }
+}
+
 async fn router(state: StateType) -> Router {
     Router::new()
         .route(
@@ -427,88 +509,6 @@ async fn router(state: StateType) -> Router {
                         }
                     };
 
-                    async fn handle_payload(state: StateType, payload: &Json<RpcRequest<MethodInvocation>>) -> (StatusCode, serde_json::Value) {
-                    match payload {
-                        Json(RpcRequest {
-                            version,
-                            id,
-                            method: _,
-                        }) if *version != jsonrpc::Version::V2_0 => response(
-                            id,
-                            ResponseData::<serde_json::Value>::new_error(
-                                0,
-                                "unsupported JSON-RPC version",
-                                match serde_json::to_value(version) {
-                                    Ok(version) => Some(version),
-                                    Err(_) => None,
-                                },
-                            )
-                        ),
-                        Json(RpcRequest {
-                            version: _,
-                            id,
-                            method,
-                        }) => {
-                            match method {
-                                MethodInvocation::Eth(EthMethodInvocation::GetBalance(
-                                    address,
-                                    block,
-                                )) => response(id, handle_get_balance(state, *address, block.clone()).await),
-                                MethodInvocation::Eth(EthMethodInvocation::GetCode(
-                                    address,
-                                    block,
-                                )) => response(id, handle_get_code(state, *address, block.clone()).await),
-                                MethodInvocation::Eth(EthMethodInvocation::GetStorageAt(
-                                    address,
-                                    position,
-                                    block,
-                                )) => response(
-                                    id,
-                                    handle_get_storage_at(state, *address, *position, block.clone()).await,
-                                ),
-                                MethodInvocation::Eth(
-                                    EthMethodInvocation::GetTransactionCount(address, block),
-                                ) => response(
-                                    id,
-                                    handle_get_transaction_count(state, *address, block.clone()).await,
-                                ),
-                                MethodInvocation::Hardhat(HardhatMethodInvocation::SetBalance(
-                                    address,
-                                    balance,
-                                )) => {
-                                    response(id, handle_set_balance(state, *address, *balance).await)
-                                }
-                                MethodInvocation::Hardhat(HardhatMethodInvocation::SetCode(
-                                    address,
-                                    code,
-                                )) => response(id, handle_set_code(state, *address, code.clone()).await),
-                                MethodInvocation::Hardhat(HardhatMethodInvocation::SetNonce(
-                                    address,
-                                    nonce,
-                                )) => response(id, handle_set_nonce(state, *address, *nonce).await),
-                                MethodInvocation::Hardhat(
-                                    HardhatMethodInvocation::SetStorageAt(address, position, value),
-                                ) => response(
-                                    id,
-                                    handle_set_storage_at(state, *address, *position, *value).await,
-                                ),
-                                // TODO: after adding all the methods here, eliminate this
-                                // catch-all match arm:
-                                _ => response(
-                                    id,
-                                    ResponseData::<serde_json::Value>::new_error(
-                                        -32601,
-                                        "Method not found",
-                                        match serde_json::to_value(method) {
-                                            Ok(value) => Some(value),
-                                            Err(_) => None,
-                                        }
-                                    )
-                                ),
-                            }
-                        }
-                    }
-                    }
                     let responses = {
                         let mut responses: Vec<(StatusCode, serde_json::Value)> = Vec::with_capacity(payloads.len());
                         for payload in payloads.iter() {
