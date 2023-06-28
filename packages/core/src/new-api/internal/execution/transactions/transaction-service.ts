@@ -68,6 +68,8 @@ export class TransactionServiceImplementation implements TransactionService {
     return {
       type: "onchain-result",
       subtype: "deploy-contract",
+      futureId: deployContractInteraction.futureId,
+      transactionId: deployContractInteraction.transactionId,
       contractAddress,
     };
   }

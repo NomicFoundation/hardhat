@@ -12,7 +12,7 @@ import { assertIgnitionInvariant } from "../utils/assertions";
 export function executionStateReducer(
   executionStateMap: ExecutionStateMap,
   action: JournalableMessage
-) {
+): ExecutionStateMap {
   if (action.type === "execution-start") {
     return {
       ...executionStateMap,
@@ -38,6 +38,25 @@ export function executionStateReducer(
     return {
       ...executionStateMap,
       [action.futureId]: updatedExecutionState,
+    };
+  }
+
+  if (action.type === "onchain-action" || action.type === "onchain-result") {
+    const previousExState = executionStateMap[action.futureId];
+
+    assertIgnitionInvariant(
+      previousExState !== undefined,
+      "On chain message for nonexistant future"
+    );
+
+    const updateWithOnchainAction: ExecutionState = {
+      ...previousExState,
+      history: [...previousExState.history, action],
+    };
+
+    return {
+      ...executionStateMap,
+      [action.futureId]: updateWithOnchainAction,
     };
   }
 

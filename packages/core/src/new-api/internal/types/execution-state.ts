@@ -1,3 +1,4 @@
+import { TransactionMessage } from "../../types/journal";
 import {
   ArgumentType,
   FutureType,
@@ -76,7 +77,7 @@ interface SendOnchainInteraction
   transactions: Transaction[];
 }
 
-type OnchainInteraction =
+export type OnchainInteraction =
   | DeploymentOnchainInteraction
   | FunctionCallOnchainInteraction
   | SendOnchainInteraction;
@@ -84,7 +85,7 @@ type OnchainInteraction =
 /**
  * The execution history of a future is a sequence of onchain interactions.
  */
-type ExecutionHistory = OnchainInteraction[];
+type ExecutionHistory = TransactionMessage[];
 
 /**
  * The different status that the execution can be at.

@@ -46,6 +46,8 @@ export type OnchainInteractionMessage = DeployContractInteractionMessage;
 export interface DeployContractInteractionMessage {
   type: "onchain-action";
   subtype: "deploy-contract";
+  futureId: string;
+  transactionId: number;
   args: ArgumentType[];
   contractName: string;
   storedArtifactPath: string;
@@ -72,6 +74,8 @@ export type OnchainResultMessage = DeployContractResultMessage;
 export interface DeployContractResultMessage {
   type: "onchain-result";
   subtype: "deploy-contract";
+  futureId: string;
+  transactionId: number;
   contractAddress: string;
 }
 

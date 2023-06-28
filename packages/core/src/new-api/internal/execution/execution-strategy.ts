@@ -48,6 +48,8 @@ export class BasicExecutionStrategy
     const result = yield {
       type: "onchain-action",
       subtype: "deploy-contract",
+      futureId: deploymentExecutionState.id,
+      transactionId: 1,
       contractName: deploymentExecutionState.contractName,
       value: deploymentExecutionState.value.toString(),
       args: deploymentExecutionState.constructorArgs,

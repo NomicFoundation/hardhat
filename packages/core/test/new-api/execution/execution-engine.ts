@@ -85,6 +85,8 @@ describe("execution engine", () => {
       {
         type: "onchain-action",
         subtype: "deploy-contract",
+        futureId: "Module1:Contract1",
+        transactionId: 1,
         contractName: "Contract1",
         args: [
           "0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC",
@@ -98,6 +100,8 @@ describe("execution engine", () => {
       {
         type: "onchain-result",
         subtype: "deploy-contract",
+        futureId: "Module1:Contract1",
+        transactionId: 1,
         contractAddress: "0x1F98431c8aD98523631AE4a59f267346ea31F984",
       },
       {
@@ -166,6 +170,8 @@ describe("execution engine", () => {
       {
         type: "onchain-action",
         subtype: "deploy-contract",
+        futureId: "Module1:Library1",
+        transactionId: 1,
         contractName: "Library1",
         args: [],
         value: BigInt(0).toString(),
@@ -175,6 +181,8 @@ describe("execution engine", () => {
       {
         type: "onchain-result",
         subtype: "deploy-contract",
+        futureId: "Module1:Library1",
+        transactionId: 1,
         contractAddress: "0x1F98431c8aD98523631AE4a59f267346ea31F984",
       },
       {
@@ -253,6 +261,8 @@ describe("execution engine", () => {
           {
             type: "onchain-action",
             subtype: "deploy-contract",
+            futureId: "Module1:Contract1",
+            transactionId: 1,
             contractName: "Contract1",
             args: [],
             value: BigInt(0).toString(),
@@ -262,6 +272,8 @@ describe("execution engine", () => {
           {
             type: "onchain-result",
             subtype: "deploy-contract",
+            futureId: "Module1:Contract1",
+            transactionId: 1,
             contractAddress: "0x1F98431c8aD98523631AE4a59f267346ea31F984",
           },
           {
@@ -346,6 +358,8 @@ describe("execution engine", () => {
         {
           type: "onchain-action",
           subtype: "deploy-contract",
+          futureId: "Module1:Library1",
+          transactionId: 1,
           contractName: "Library1",
           args: [],
           value: BigInt(0).toString(),
@@ -355,6 +369,8 @@ describe("execution engine", () => {
         {
           type: "onchain-result",
           subtype: "deploy-contract",
+          futureId: "Module1:Library1",
+          transactionId: 1,
           contractAddress: "0x1F98431c8aD98523631AE4a59f267346ea31F984",
         },
         {
@@ -388,6 +404,8 @@ describe("execution engine", () => {
         {
           type: "onchain-action",
           subtype: "deploy-contract",
+          futureId: "Module1:Contract1",
+          transactionId: 1,
           contractName: "Contract1",
           args: [
             {
@@ -402,6 +420,8 @@ describe("execution engine", () => {
         {
           type: "onchain-result",
           subtype: "deploy-contract",
+          futureId: "Module1:Contract1",
+          transactionId: 1,
           contractAddress: "0x1F98431c8aD98523631AE4a59f267346ea31F984",
         },
         {
@@ -420,9 +440,11 @@ function setupMockTransactionService(): TransactionService {
   const exampleAddress = "0x1F98431c8aD98523631AE4a59f267346ea31F984";
 
   return {
-    onchain: async () => ({
+    onchain: async (message) => ({
       type: "onchain-result",
       subtype: "deploy-contract",
+      futureId: message.futureId,
+      transactionId: message.transactionId,
       contractAddress: exampleAddress,
     }),
   } as TransactionService;
