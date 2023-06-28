@@ -6,7 +6,7 @@ import { ArgumentType, FutureType } from "./module";
  * @beta
  */
 export interface Journal {
-  record(message: JournalableMessage): Promise<void>;
+  record(message: JournalableMessage): void;
 
   read(): AsyncGenerator<JournalableMessage>;
 }

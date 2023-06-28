@@ -1,4 +1,5 @@
-import fs from "fs";
+/* eslint-disable no-bitwise */
+import fs, { closeSync, constants, openSync, writeFileSync } from "fs";
 import ndjson from "ndjson";
 
 import { Journal, JournalableMessage } from "../../types/journal";
@@ -14,11 +15,8 @@ import { serializeReplacer } from "./utils/serialize-replacer";
 export class FileJournal implements Journal {
   constructor(private _filePath: string) {}
 
-  public async record(message: JournalableMessage): Promise<void> {
-    return fs.promises.appendFile(
-      this._filePath,
-      `${JSON.stringify(message, serializeReplacer.bind(this))}\n`
-    );
+  public record(message: JournalableMessage): void {
+    this._appendJsonLine(this._filePath, message);
   }
 
   public async *read(): AsyncGenerator<JournalableMessage> {
@@ -38,5 +36,23 @@ export class FileJournal implements Journal {
 
       yield deserializedChunk as JournalableMessage;
     }
+  }
+
+  private _appendJsonLine(path: string, value: unknown) {
+    const flags =
+      constants.O_CREAT |
+      constants.O_WRONLY | // Write only
+      constants.O_APPEND | // Append
+      constants.O_DSYNC | // Synchronous I/O waiting for writes of content and metadata
+      constants.O_DIRECT; // Minimize caching
+
+    const fd = openSync(path, flags);
+
+    writeFileSync(
+      fd,
+      `\n${JSON.stringify(value, serializeReplacer.bind(this))}`,
+      "utf-8"
+    );
+    closeSync(fd);
   }
 }

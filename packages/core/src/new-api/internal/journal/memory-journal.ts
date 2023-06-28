@@ -9,7 +9,7 @@ import { Journal, JournalableMessage } from "../../types/journal";
 export class MemoryJournal implements Journal {
   private messages: string[] = [];
 
-  public async record(message: JournalableMessage): Promise<void> {
+  public record(message: JournalableMessage): void {
     this.messages.push(JSON.stringify(message));
   }
 
