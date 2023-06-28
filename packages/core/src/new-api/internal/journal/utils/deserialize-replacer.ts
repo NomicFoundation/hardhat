@@ -9,7 +9,7 @@ export function deserializeReplacer(_key: string, value: unknown) {
   }
 
   if (_isSerializedBigInt(value)) {
-    return BigInt(value.substring(0, value.length - 1));
+    return BigInt(value.value);
   }
 
   if (typeof value === "object" && value !== null && "message" in value) {
@@ -19,6 +19,13 @@ export function deserializeReplacer(_key: string, value: unknown) {
   return value;
 }
 
-function _isSerializedBigInt(value: unknown): value is string {
-  return typeof value === "string" && /d+n/.test(value);
+function _isSerializedBigInt(
+  arg: unknown
+): arg is { _kind: "bigint"; value: string } {
+  return (
+    arg !== null &&
+    typeof arg === "object" &&
+    "_kind" in arg &&
+    arg._kind === "bigint"
+  );
 }
