@@ -79,18 +79,6 @@ pub const TEST_ACCOUNTS: [&str; 20] = [
     "8626f6940E2eb28930eFb4CeF49B2d1F2C9C1199",
 ];
 
-fn response<T>(id: &jsonrpc::Id, data: ResponseData<T>) -> Result<serde_json::Value, String>
-where
-    T: serde::Serialize,
-{
-    let response: Response<T> = Response {
-        jsonrpc: jsonrpc::Version::V2_0,
-        id: id.clone(),
-        data,
-    };
-    serde_json::to_value(response).or(Err(String::from("failed to serialize response data")))
-}
-
 /// returns the state root in effect BEFORE setting the block context, so that the caller can
 /// restore the context to that state root.
 async fn set_block_context<T>(
@@ -400,6 +388,18 @@ async fn handle_request(
     state: StateType,
     request: &RpcRequest<MethodInvocation>,
 ) -> Result<serde_json::Value, String> {
+    fn response<T>(id: &jsonrpc::Id, data: ResponseData<T>) -> Result<serde_json::Value, String>
+    where
+        T: serde::Serialize,
+    {
+        let response: Response<T> = Response {
+            jsonrpc: jsonrpc::Version::V2_0,
+            id: id.clone(),
+            data,
+        };
+        serde_json::to_value(response).or(Err(String::from("failed to serialize response data")))
+    }
+
     match request {
         RpcRequest {
             version,
