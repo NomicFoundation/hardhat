@@ -1,4 +1,5 @@
 import { assert } from "chai";
+import path from "path";
 
 import { numberToRpcQuantity } from "../../../../src/internal/core/jsonrpc/types/base-types";
 import {
@@ -76,7 +77,10 @@ describe("provider errors", function () {
         }
 
         assert.isDefined(error);
-        assert.include(error.stack, "test/internal/core/providers/errors.ts");
+        assert.include(
+          error.stack,
+          path.join("test", "internal", "core", "providers", "errors.ts")
+        );
       });
     });
   });
