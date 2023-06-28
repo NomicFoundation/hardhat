@@ -485,29 +485,23 @@ async fn router(state: StateType) -> Router {
             axum::routing::post(
                 |State(state): State<StateType>, payload: Json<serde_json::Value>| async move {
                     let requests: Vec<RpcRequest<MethodInvocation>> =
-                        match serde_json::from_value::<RpcRequest<MethodInvocation>>(
-                            payload.clone().0,
-                        ) {
+                        match serde_json::from_value(payload.clone().0) {
                             Ok(request) => vec![request],
-                            Err(_) => {
-                                match serde_json::from_value::<Vec<RpcRequest<MethodInvocation>>>(
-                                    payload.clone().0,
-                                ) {
-                                    Ok(requests) => requests,
-                                    Err(_) => {
-                                        return (
-                                            StatusCode::INTERNAL_SERVER_ERROR,
-                                            Json(
-                                                serde_json::to_value(format!(
-                                                    "unsupported JSON body '{:?}'",
-                                                    payload.clone().0
-                                                ))
-                                                .unwrap_or(serde_json::Value::Null),
-                                            ),
-                                        );
-                                    }
+                            Err(_) => match serde_json::from_value(payload.clone().0) {
+                                Ok(requests) => requests,
+                                Err(_) => {
+                                    return (
+                                        StatusCode::INTERNAL_SERVER_ERROR,
+                                        Json(
+                                            serde_json::to_value(format!(
+                                                "unsupported JSON body '{:?}'",
+                                                payload.clone().0
+                                            ))
+                                            .unwrap_or(serde_json::Value::Null),
+                                        ),
+                                    );
                                 }
-                            }
+                            },
                         };
 
                     let responses = {
