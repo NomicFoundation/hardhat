@@ -43,8 +43,6 @@ export class FileDeploymentLoader implements DeploymentLoader {
     await fs.ensureDir(this._paths.deploymentDir);
     await fs.ensureDir(this._paths.artifactsDir);
     await fs.ensureDir(this._paths.buildInfoDir);
-    await fs.ensureFile(this._paths.journalPath);
-    await fs.ensureFile(this._paths.deployedAddressesPath);
 
     this.journal = new FileJournal(journalPath);
   }
@@ -112,14 +110,16 @@ export class FileDeploymentLoader implements DeploymentLoader {
       "Cannot record deploy address until initialized"
     );
 
-    // TODO: should this be made async to be closer to a single fs transaction?
-    const json = (
-      await fs.readFile(this._paths.deployedAddressesPath)
-    ).toString();
+    let deployedAddresses: { [key: string]: string };
+    if (await fs.pathExists(this._paths.deployedAddressesPath)) {
+      const json = (
+        await fs.readFile(this._paths.deployedAddressesPath)
+      ).toString();
 
-    const deployedAddresses: { [key: string]: string } = JSON.parse(
-      json === "" ? "{}" : json
-    );
+      deployedAddresses = JSON.parse(json);
+    } else {
+      deployedAddresses = {};
+    }
 
     deployedAddresses[futureId] = contractAddress;
 
