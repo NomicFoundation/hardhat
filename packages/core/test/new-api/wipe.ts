@@ -15,6 +15,7 @@ import {
 
 describe("wipe", () => {
   const exampleAddress = "0x1F98431c8aD98523631AE4a59f267346ea31F984";
+  const txId = "0x123";
   let journal: Journal;
   let moduleDefinition: IgnitionModuleDefinition<
     string,
@@ -45,6 +46,7 @@ describe("wipe", () => {
             futureId: "Module1:Contract1",
             transactionId: 1,
             contractAddress: exampleAddress,
+            txId,
           },
         },
         "Module1:Contract2": {

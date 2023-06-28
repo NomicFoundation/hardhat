@@ -15,6 +15,7 @@ describe("execution engine", () => {
   const exampleAddress = "0x1F98431c8aD98523631AE4a59f267346ea31F984";
   const differentAddress = "0xBA12222222228d8Ba445958a75a0704d566BF2C8";
   const accounts = exampleAccounts;
+  const txId = "0x123";
 
   const contractWithThreeArgConstructorArtifact = {
     abi: [
@@ -74,6 +75,7 @@ describe("execution engine", () => {
             futureId: "Module1:Contract1",
             transactionId: 1,
             contractAddress: exampleAddress,
+            txId,
           },
         },
       },
@@ -137,6 +139,7 @@ describe("execution engine", () => {
         futureId: "Module1:Contract1",
         transactionId: 1,
         contractAddress: exampleAddress,
+        txId,
       },
       {
         type: "execution-success",
@@ -144,6 +147,7 @@ describe("execution engine", () => {
         futureId: "Module1:Contract1",
         contractName: "Contract1",
         contractAddress: exampleAddress,
+        txId,
       },
     ]);
   });
@@ -250,6 +254,7 @@ describe("execution engine", () => {
             futureId: "Module1:Library1",
             transactionId: 1,
             contractAddress: exampleAddress,
+            txId,
           },
         },
       },
@@ -299,6 +304,7 @@ describe("execution engine", () => {
         futureId: "Module1:Library1",
         transactionId: 1,
         contractAddress: exampleAddress,
+        txId,
       },
       {
         type: "execution-success",
@@ -306,6 +312,7 @@ describe("execution engine", () => {
         futureId: "Module1:Library1",
         contractName: "Library1",
         contractAddress: exampleAddress,
+        txId,
       },
     ]);
   });
@@ -339,6 +346,7 @@ describe("execution engine", () => {
             futureId: "Module1:Contract1",
             transactionId: 1,
             contractAddress: exampleAddress,
+            txId,
           },
         },
       },
@@ -391,6 +399,7 @@ describe("execution engine", () => {
             futureId: "Module1:Contract1",
             transactionId: 1,
             contractAddress: exampleAddress,
+            txId,
           },
           {
             type: "execution-success",
@@ -398,6 +407,7 @@ describe("execution engine", () => {
             futureId: "Module1:Contract1",
             contractName: "Contract1",
             contractAddress: exampleAddress,
+            txId,
           },
         ])
       )
@@ -438,6 +448,7 @@ describe("execution engine", () => {
               futureId: "Module1:Contract1",
               transactionId: 1,
               contractAddress: exampleAddress,
+              txId,
             },
           },
           "Module1:Library1": {
@@ -447,6 +458,7 @@ describe("execution engine", () => {
               futureId: "Module1:Library1",
               transactionId: 1,
               contractAddress: differentAddress,
+              txId,
             },
           },
         },
@@ -505,6 +517,7 @@ describe("execution engine", () => {
           futureId: "Module1:Library1",
           transactionId: 1,
           contractAddress: differentAddress,
+          txId,
         },
         {
           type: "execution-success",
@@ -512,6 +525,7 @@ describe("execution engine", () => {
           futureId: "Module1:Library1",
           contractName: "Library1",
           contractAddress: differentAddress,
+          txId,
         },
         {
           futureId: "Module1:Contract1",
@@ -556,6 +570,7 @@ describe("execution engine", () => {
           futureId: "Module1:Contract1",
           transactionId: 1,
           contractAddress: exampleAddress,
+          txId,
         },
         {
           type: "execution-success",
@@ -563,6 +578,7 @@ describe("execution engine", () => {
           futureId: "Module1:Contract1",
           contractName: "Contract1",
           contractAddress: exampleAddress,
+          txId,
         },
       ]);
     });

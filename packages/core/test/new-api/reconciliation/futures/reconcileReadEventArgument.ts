@@ -13,6 +13,7 @@ import { assertSuccessReconciliation, reconcile } from "../helpers";
 describe("Reconciliation - read event argument", () => {
   const exampleAddress = "0x1F98431c8aD98523631AE4a59f267346ea31F984";
   const differentAddress = "0xBA12222222228d8Ba445958a75a0704d566BF2C8";
+  const txId = "0x123";
 
   const exampleReadArgState: ReadEventArgumentExecutionState = {
     id: "Example",
@@ -21,10 +22,12 @@ describe("Reconciliation - read event argument", () => {
     status: ExecutionStatus.STARTED,
     dependencies: new Set<string>(),
     history: [],
+    storedArtifactPath: "./artifact.json",
     eventName: "event1",
     argumentName: "argument1",
     eventIndex: 0,
-    emitter: exampleAddress,
+    emitterAddress: exampleAddress,
+    txToReadFrom: txId,
   };
 
   const exampleDeploymentState: DeploymentExecutionState = {
@@ -41,6 +44,7 @@ describe("Reconciliation - read event argument", () => {
     constructorArgs: [],
     libraries: {},
     from: exampleAccounts[0],
+    txId,
   };
 
   it("should reconcile unchanged", () => {
@@ -211,7 +215,7 @@ describe("Reconciliation - read event argument", () => {
       "Module:ReadEvent": {
         ...exampleReadArgState,
         status: ExecutionStatus.STARTED,
-        emitter: exampleAddress,
+        emitterAddress: exampleAddress,
       },
     });
 
@@ -258,7 +262,7 @@ describe("Reconciliation - read event argument", () => {
         dependencies: new Set(["Module:Contract1"]),
         eventName: "event1",
         argumentName: "argument1",
-        emitter: exampleAddress,
+        emitterAddress: exampleAddress,
         result: "first",
       },
       "Module:ReadEvent2": {
@@ -267,7 +271,7 @@ describe("Reconciliation - read event argument", () => {
         dependencies: new Set(["Module:Contract1"]),
         eventName: "event2",
         argumentName: "argument2",
-        emitter: exampleAddress,
+        emitterAddress: exampleAddress,
         result: "second",
       },
       "Module:Contract2": {
