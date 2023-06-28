@@ -72,6 +72,7 @@ export class Deployer {
     );
 
     if (reconciliationResult.reconciliationFailures.length > 0) {
+      // TODO: Provide more information
       throw new Error("Reconciliation failed");
     }
 
