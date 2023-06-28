@@ -108,6 +108,102 @@ describe("Reconciliation", () => {
     ]);
   });
 
+  describe("from and accounts interactions", () => {
+    it("should reconcile from where both future and execution state are undefined but there is history", () => {
+      const moduleDefinition = defineModule("Module1", (m) => {
+        const contract1 = m.contract("Contract1", [], { from: undefined });
+
+        return { contract1 };
+      });
+
+      const reconiliationResult = reconcile(moduleDefinition, {
+        "Module1:Contract1": {
+          ...exampleDeploymentState,
+          futureType: FutureType.NAMED_CONTRACT_DEPLOYMENT,
+          status: ExecutionStatus.STARTED,
+          history: [
+            {
+              type: "onchain-action",
+              subtype: "deploy-contract",
+              futureId: "Module1:Contract1",
+              transactionId: 1,
+              args: [],
+              contractName: "Contract1",
+              storedArtifactPath: "./Module1:Contract1.json",
+              value: BigInt(0).toString(),
+              // history indicates from was accounts[3]
+              from: exampleAccounts[0],
+            },
+          ],
+          from: undefined,
+        },
+      });
+
+      assert.deepStrictEqual(reconiliationResult.reconciliationFailures, []);
+    });
+
+    it("should reconcile any from if the execution state from is not set and there were no messages", () => {
+      const moduleDefinition = defineModule("Module1", (m) => {
+        const account1 = m.getAccount(1);
+        const contract1 = m.contract("Contract1", [], { from: account1 });
+
+        return { contract1 };
+      });
+
+      const reconiliationResult = reconcile(moduleDefinition, {
+        "Module1:Contract1": {
+          ...exampleDeploymentState,
+          futureType: FutureType.NAMED_CONTRACT_DEPLOYMENT,
+          status: ExecutionStatus.STARTED,
+          history: [],
+          from: undefined,
+        },
+      });
+
+      assert.deepStrictEqual(reconiliationResult.reconciliationFailures, []);
+    });
+
+    it("should flag as unreconsiliable a changed from where the history indicates a different from", () => {
+      const moduleDefinition = defineModule("Module1", (m) => {
+        const account2 = m.getAccount(2);
+        // from is accounts[2]
+        const contract1 = m.contract("Contract1", [], { from: account2 });
+
+        return { contract1 };
+      });
+
+      const reconiliationResult = reconcile(moduleDefinition, {
+        "Module1:Contract1": {
+          ...exampleDeploymentState,
+          futureType: FutureType.NAMED_CONTRACT_DEPLOYMENT,
+          status: ExecutionStatus.STARTED,
+          history: [
+            {
+              type: "onchain-action",
+              subtype: "deploy-contract",
+              futureId: "Module1:Contract1",
+              transactionId: 1,
+              args: [],
+              contractName: "Contract1",
+              storedArtifactPath: "./Module1:Contract1.json",
+              value: BigInt(0).toString(),
+              // history indicates from was accounts[3]
+              from: exampleAccounts[3],
+            },
+          ],
+          from: undefined,
+        },
+      });
+
+      assert.deepStrictEqual(reconiliationResult.reconciliationFailures, [
+        {
+          futureId: "Module1:Contract1",
+          failure: `From account has been changed from ${exampleAccounts[3]} to ${exampleAccounts[2]}`,
+        },
+      ]);
+    });
+  });
+
   describe("dependencies", () => {
     const exampleAddress = "0x1F98431c8aD98523631AE4a59f267346ea31F984";
 

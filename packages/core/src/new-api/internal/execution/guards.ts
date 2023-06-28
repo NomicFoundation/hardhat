@@ -36,9 +36,7 @@ export function isExecutionMessage(
 export function isOnChainAction(
   potential: JournalableMessage
 ): potential is OnchainInteractionMessage {
-  const resultTypes = ["onchain-action"];
-
-  return resultTypes.includes(potential.type);
+  return potential.type === "onchain-action";
 }
 
 export function isOnchainResult(
@@ -47,6 +45,12 @@ export function isOnchainResult(
   const resultTypes = ["onchain-result"];
 
   return resultTypes.includes(potential.type);
+}
+
+export function isOnchainInteractionMessage(
+  potential: JournalableMessage
+): potential is OnchainInteractionMessage {
+  return isDeployContractInteraction(potential);
 }
 
 export function isDeployContractInteraction(

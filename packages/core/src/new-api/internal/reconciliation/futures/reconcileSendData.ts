@@ -40,13 +40,18 @@ export function reconcileSendData(
     );
   }
 
-  const fromAddress = resolveFromAddress(future.from, context);
-  if (!isEqual(fromAddress, executionState.from)) {
+  const resolvedFutureFromAddress = resolveFromAddress(future.from, context);
+  const executionStateFrom =
+    ExecutionStateResolver.resolveFromAddress(executionState);
+  if (
+    executionStateFrom !== undefined &&
+    !isEqual(resolvedFutureFromAddress, executionStateFrom)
+  ) {
     return fail(
       future,
-      `From account has been changed from ${
-        executionState.from ?? "undefined"
-      } to ${addressToErrorString(fromAddress)}`
+      `From account has been changed from ${addressToErrorString(
+        executionStateFrom
+      )} to ${addressToErrorString(resolvedFutureFromAddress)}`
     );
   }
 

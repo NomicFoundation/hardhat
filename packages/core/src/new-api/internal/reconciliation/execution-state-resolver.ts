@@ -14,7 +14,9 @@ import {
   Future,
   ModuleParameterRuntimeValue,
 } from "../../types/module";
+import { isOnchainInteractionMessage } from "../execution/guards";
 import {
+  CallExecutionState,
   DeploymentExecutionState,
   ExecutionState,
   ExecutionStateMap,
@@ -207,6 +209,32 @@ export class ExecutionStateResolver {
     }
 
     return to;
+  }
+
+  /**
+   * Return the from, or if from is undefined return the first from based
+   * on the onchain interactions, if there are no interactions return undefined.
+   */
+  public static resolveFromAddress(
+    executionState:
+      | DeploymentExecutionState
+      | SendDataExecutionState
+      | StaticCallExecutionState
+      | CallExecutionState
+  ): string | undefined {
+    if (executionState.from !== undefined) {
+      return executionState.from;
+    }
+
+    const froms = executionState.history
+      .filter(isOnchainInteractionMessage)
+      .map((m) => m.from);
+
+    if (froms.length > 0) {
+      return froms[0];
+    }
+
+    return undefined;
   }
 
   private static _resolveFromExecutionState<

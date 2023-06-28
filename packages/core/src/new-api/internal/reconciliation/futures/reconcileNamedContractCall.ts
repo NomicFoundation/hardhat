@@ -47,13 +47,18 @@ export function reconcileNamedContractCall(
     );
   }
 
-  const fromAddress = resolveFromAddress(future.from, context);
-  if (!isEqual(fromAddress, executionState.from)) {
+  const resolvedFutureFromAddress = resolveFromAddress(future.from, context);
+  const executionStateFrom =
+    ExecutionStateResolver.resolveFromAddress(executionState);
+  if (
+    executionStateFrom !== undefined &&
+    !isEqual(resolvedFutureFromAddress, executionStateFrom)
+  ) {
     return fail(
       future,
       `From account has been changed from ${addressToErrorString(
-        executionState.from
-      )} to ${addressToErrorString(fromAddress)}`
+        executionStateFrom
+      )} to ${addressToErrorString(resolvedFutureFromAddress)}`
     );
   }
 
