@@ -386,7 +386,11 @@ async fn handle_request(
             id: id.clone(),
             data,
         };
-        serde_json::to_value(response).or(Err(String::from("failed to serialize response data")))
+        serde_json::to_value(response).map_err(|e| {
+            let msg = format!("failed to serialize response data: {e}");
+            event!(Level::ERROR, "{}", &msg);
+            msg
+        })
     }
 
     match request {
@@ -397,11 +401,7 @@ async fn handle_request(
         } if *version != jsonrpc::Version::V2_0 => response(
             id,
             error_response_data::<serde_json::Value>(&format!(
-                "unsupported JSON-RPC version '{:?}'",
-                match serde_json::to_value(version) {
-                    Ok(version) => Some(version),
-                    Err(_) => None,
-                },
+                "unsupported JSON-RPC version '{version:?}'"
             )),
         ),
         RpcRequest {
@@ -522,8 +522,9 @@ async fn router(state: StateType) -> Router {
 
                     match response {
                         Ok(response) => (StatusCode::OK, Json(response)),
-                        Err(s) => {
-                            let msg = format!("failed to serialize response data: {s}");
+                        Err(e) => {
+                            let msg = format!("failed to serialize final response data: {e}");
+                            event!(Level::ERROR, "{}", &msg);
                             (
                                 StatusCode::INTERNAL_SERVER_ERROR,
                                 Json(serde_json::to_value(msg).unwrap_or(serde_json::Value::Null)),
@@ -555,7 +556,7 @@ pub async fn serve(
                 Address::from_str(account)
                     .map_err(|_| {
                         let msg = format!("failed to construct Address from string {account}");
-                        event!(Level::INFO, "{}", &msg);
+                        event!(Level::ERROR, "{}", &msg);
                         std::io::Error::new(std::io::ErrorKind::Other, msg)
                     })
                     .unwrap(),
