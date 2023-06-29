@@ -228,7 +228,7 @@ export class ExecutionStateResolver {
 
     const senders = executionState.history
       .filter(isOnchainInteractionMessage)
-      .map((m) => m.from);
+      .map((m) => ("from" in m ? m.from : undefined));
 
     if (senders.length > 0) {
       return senders[0];
