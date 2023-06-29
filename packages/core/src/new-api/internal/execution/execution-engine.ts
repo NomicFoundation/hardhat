@@ -19,7 +19,11 @@ import {
   NamedContractDeploymentFuture,
   NamedLibraryDeploymentFuture,
 } from "../../types/module";
-import { isDeploymentExecutionState } from "../type-guards";
+import {
+  isCallExecutionState,
+  isDeploymentExecutionState,
+  isStaticCallExecutionState,
+} from "../type-guards";
 import {
   ExecutionEngineState,
   ExecutionStrategyContext,
@@ -461,9 +465,12 @@ export class ExecutionEngine {
   ): ExecutionStrategyContext {
     const exState = state.executionStateMap[future.id];
 
-    const sender = isDeploymentExecutionState(exState)
-      ? exState.from ?? state.accounts[0]
-      : undefined;
+    const sender =
+      isDeploymentExecutionState(exState) ||
+      isCallExecutionState(exState) ||
+      isStaticCallExecutionState(exState)
+        ? exState.from ?? state.accounts[0]
+        : undefined;
 
     const context = {
       executionState: exState,
