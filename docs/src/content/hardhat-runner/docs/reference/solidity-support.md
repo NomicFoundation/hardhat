@@ -35,7 +35,7 @@ If you use the `viaIR` option, we recommend you set the [optimization step seque
 
 ```
 solidity: {
-  version: "0.8.20", // any version you want
+  version: "{LATEST_SOLC_VERSION}", // any version you want
   settings: {
     viaIR: true,
     optimizer: {
