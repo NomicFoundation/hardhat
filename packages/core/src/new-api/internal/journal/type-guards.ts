@@ -16,6 +16,7 @@ import {
   ReadEventArgumentStartMessage,
   SendDataStartMessage,
   StaticCallStartMessage,
+  WipeMessage,
 } from "../../types/journal";
 import { FutureType } from "../../types/module";
 
@@ -24,10 +25,14 @@ import { FutureType } from "../../types/module";
  *
  * @beta
  */
-export function isExecutionStartMessage(
+export function isFutureStartMessage(
   potential: JournalableMessage
 ): potential is FutureStartMessage {
-  return potential.type === "execution-start";
+  return (
+    isDeployContractStartMessage(potential) ||
+    isCallFunctionStartMessage(potential) ||
+    isStaticCallStartMessage(potential)
+  );
 }
 
 /**
@@ -36,7 +41,7 @@ export function isExecutionStartMessage(
  * @beta
  */
 export function isDeployContractStartMessage(
-  potential: FutureStartMessage
+  potential: JournalableMessage
 ): potential is DeployContractStartMessage {
   const deploymentTypes = [
     FutureType.NAMED_CONTRACT_DEPLOYMENT,
@@ -45,7 +50,10 @@ export function isDeployContractStartMessage(
     FutureType.ARTIFACT_LIBRARY_DEPLOYMENT,
   ];
 
-  return deploymentTypes.includes(potential.futureType);
+  return (
+    potential.type === "execution-start" &&
+    deploymentTypes.includes(potential.futureType)
+  );
 }
 
 /**
@@ -54,9 +62,12 @@ export function isDeployContractStartMessage(
  * @beta
  */
 export function isCallFunctionStartMessage(
-  potential: FutureStartMessage
+  potential: JournalableMessage
 ): potential is CallFunctionStartMessage {
-  return potential.futureType === FutureType.NAMED_CONTRACT_CALL;
+  return (
+    potential.type === "execution-start" &&
+    potential.futureType === FutureType.NAMED_CONTRACT_CALL
+  );
 }
 
 /**
@@ -65,9 +76,12 @@ export function isCallFunctionStartMessage(
  * @beta
  */
 export function isStaticCallStartMessage(
-  potential: FutureStartMessage
+  potential: JournalableMessage
 ): potential is StaticCallStartMessage {
-  return potential.futureType === FutureType.NAMED_STATIC_CALL;
+  return (
+    potential.type === "execution-start" &&
+    potential.futureType === FutureType.NAMED_STATIC_CALL
+  );
 }
 
 /**
@@ -182,4 +196,10 @@ export function isOnchainContractAtSuccessMessage(
   return (
     isOnChainResultMessage(message) && message.subtype === "contract-at-success"
   );
+}
+
+export function isWipeMessage(
+  potential: JournalableMessage
+): potential is WipeMessage {
+  return potential.type === "wipe";
 }

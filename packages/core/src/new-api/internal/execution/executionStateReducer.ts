@@ -3,7 +3,7 @@ import {
   isCallFunctionStartMessage,
   isContractAtStartMessage,
   isDeployContractStartMessage,
-  isExecutionStartMessage,
+  isFutureStartMessage,
   isReadEventArgumentStartMessage,
   isSendDataStartMessage,
   isStaticCallStartMessage,
@@ -25,7 +25,7 @@ export function executionStateReducer(
   executionStateMap: ExecutionStateMap,
   action: JournalableMessage
 ) {
-  if (isExecutionStartMessage(action)) {
+  if (isFutureStartMessage(action)) {
     return {
       ...executionStateMap,
       [action.futureId]: initialiseExecutionStateFor(action),

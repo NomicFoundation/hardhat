@@ -8,7 +8,6 @@ import { DeploymentLoader } from "../../types/deployment-loader";
 import {
   ExecutionFailure,
   ExecutionResultMessage,
-  FutureRestartMessage,
   FutureStartMessage,
   JournalableMessage,
   OnchainResultFailureMessage,
@@ -24,8 +23,10 @@ import {
   NamedLibraryDeploymentFuture,
 } from "../../types/module";
 import {
+  isFutureStartMessage,
   isOnChainFailureMessage,
   isOnChainSuccessMessage,
+  isWipeMessage,
 } from "../journal/type-guards";
 import {
   isCallExecutionState,
@@ -114,10 +115,7 @@ export class ExecutionEngine {
     future: Future,
     state: ExecutionEngineState
   ): Promise<ExecutionResultMessage> {
-    let current: JournalableMessage = await this._startOrRestartFor(
-      future,
-      state
-    );
+    let current: JournalableMessage = await this._initCommandFor(future, state);
 
     await this._apply(state, current);
 
@@ -147,16 +145,23 @@ export class ExecutionEngine {
         current = (await exectionStrategy.next(current)).value;
       } else if (isOnChainFailureMessage(current)) {
         current = this._convertToExecutionFailure(current);
-      } else {
+      } else if (isFutureStartMessage(current)) {
         current = (await exectionStrategy.next(null)).value;
+      } else if (isWipeMessage(current)) {
+        // ignore - we should never get wipe messages
+        continue;
+      } else {
+        this._assertNeverJournalableMessage(current);
       }
-
-      // TODO: add never type check?
 
       await this._apply(state, current);
     }
 
     return current;
+  }
+
+  private _assertNeverJournalableMessage(message: never) {
+    throw new IgnitionError(`Unrecognized message ${JSON.stringify(message)}`);
   }
 
   private _convertToExecutionFailure(
@@ -167,19 +172,6 @@ export class ExecutionEngine {
       futureId: current.futureId,
       error: current.error,
     };
-  }
-
-  private async _startOrRestartFor(
-    future: Future,
-    state: ExecutionEngineState
-  ): Promise<FutureStartMessage | FutureRestartMessage> {
-    const executionState = state.executionStateMap[future.id];
-
-    if (executionState === undefined) {
-      return this._initCommandFor(future, state);
-    }
-
-    return { type: "execution-restart", futureId: future.id };
   }
 
   private async _apply(

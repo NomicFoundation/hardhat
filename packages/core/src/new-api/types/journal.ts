@@ -284,7 +284,7 @@ export type ExecutionMessage = ExecutionUpdateMessage | ExecutionResultMessage;
  *
  * @beta
  */
-export type ExecutionUpdateMessage = FutureStartMessage | FutureRestartMessage;
+export type ExecutionUpdateMessage = FutureStartMessage;
 
 /**
  * A journal message to initialise the execution state for a future.
