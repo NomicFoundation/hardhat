@@ -81,7 +81,7 @@ $ npx hardhat
 888    888 888  888 888    Y88b 888 888  888 888  888 Y88b.
 888    888 "Y888888 888     "Y88888 888  888 "Y888888  "Y888
 
-Welcome to Hardhat v2.10.0
+Welcome to Hardhat v{HARDHAT_VERSION}
 
 ? What do you want to do? …
 ▸ Create a JavaScript project
@@ -95,7 +95,7 @@ If you select _Create an empty hardhat.config.js_, Hardhat will create a `hardha
 ```js
 /** @type import('hardhat/config').HardhatUserConfig */
 module.exports = {
-  solidity: "0.8.9",
+  solidity: "{LATEST_SOLC_VERSION}",
 };
 ```
 
@@ -154,7 +154,7 @@ To use a plugin, the first step is always to install it using npm or yarn, follo
 import "@nomicfoundation/hardhat-toolbox";
 
 export default {
-  solidity: "0.8.9",
+  solidity: "{LATEST_SOLC_VERSION}",
 };
 ```
 
@@ -166,7 +166,7 @@ export default {
 require("@nomicfoundation/hardhat-toolbox");
 
 module.exports = {
-  solidity: "0.8.9",
+  solidity: "{LATEST_SOLC_VERSION}",
 };
 ```
 

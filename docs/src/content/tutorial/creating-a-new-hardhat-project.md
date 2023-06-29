@@ -96,7 +96,7 @@ $ npx hardhat
 888    888 888  888 888    Y88b 888 888  888 888  888 Y88b.
 888    888 "Y888888 888     "Y88888 888  888 "Y888888  "Y888
 
-👷 Welcome to Hardhat v2.9.9 👷‍
+👷 Welcome to Hardhat v{HARDHAT_VERSION} 👷‍
 
 ? What do you want to do? …
   Create a JavaScript project
@@ -164,6 +164,6 @@ require("@nomicfoundation/hardhat-toolbox");
 
 /** @type import('hardhat/config').HardhatUserConfig */
 module.exports = {
-  solidity: "0.8.18",
+  solidity: "{LATEST_SOLC_VERSION}",
 };
 ```
