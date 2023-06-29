@@ -107,9 +107,10 @@ export const withLatestSolcVersion = (content: string) => {
   const latestSolcVersion = "0.8.20";
   const latestPragma = "^0.8.0";
 
-  return content.replaceAll("{LATEST_SOLC_VERSION}", latestSolcVersion)
+  return content
+    .replaceAll("{LATEST_SOLC_VERSION}", latestSolcVersion)
     .replaceAll("{LATEST_PRAGMA}", latestPragma);
-}
+};
 
 export const readMDFileFromPathOrIndex = (
   fileName: string
@@ -209,7 +210,9 @@ export const generateTitleFromContent = (content: string) => {
 
 export const parseMdFile = (source: string) => {
   const { content, data } = matter(source);
-  const formattedContent = withLatestSolcVersion(withoutComments(withInsertedCodeFromLinks(content)));
+  const formattedContent = withLatestSolcVersion(
+    withoutComments(withInsertedCodeFromLinks(content))
+  );
 
   const tocTitle = data.title ?? generateTitleFromContent(formattedContent);
   const seoTitle = tocTitle || "Hardhat";
