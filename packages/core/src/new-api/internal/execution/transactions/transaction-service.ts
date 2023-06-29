@@ -284,7 +284,9 @@ export class TransactionServiceImplementation implements TransactionService {
         subtype: "read-event-arg-success",
         futureId,
         transactionId,
-        result,
+        result: ethers.BigNumber.isBigNumber(result)
+          ? result.toString()
+          : result,
       };
     } catch (error) {
       return {

@@ -124,10 +124,12 @@ export class ExecutionEngine {
     const deployedContracts = this._resolveDeployedContractsFrom(state);
 
     const libraries = Object.fromEntries(
-      dependencies.map((id) => {
-        const lib = deployedContracts[id];
-        return [lib.contractName, lib.contractAddress];
-      })
+      dependencies
+        .filter((id) => deployedContracts[id] !== undefined)
+        .map((id) => {
+          const lib = deployedContracts[id];
+          return [lib.contractName, lib.contractAddress];
+        })
     );
 
     while (!isExecutionResultMessage(current)) {
@@ -234,7 +236,11 @@ export class ExecutionEngine {
           storedBuildInfoPath: undefined,
           contractName: future.contractName,
           value: future.value.toString(),
-          constructorArgs: future.constructorArgs,
+          constructorArgs: this._resolveArgs(future.constructorArgs, {
+            accounts,
+            deploymentParameters,
+            executionStateMap,
+          }),
           libraries: Object.fromEntries(
             Object.entries(future.libraries).map(([key, lib]) => [key, lib.id])
           ),
@@ -342,7 +348,11 @@ export class ExecutionEngine {
           // status: ExecutionStatus.STARTED,
           dependencies: [...future.dependencies].map((f) => f.id),
           // history: [],
-          args: future.args,
+          args: this._resolveArgs(future.args, {
+            accounts,
+            deploymentParameters,
+            executionStateMap,
+          }),
           functionName: future.functionName,
           contractAddress,
           storedArtifactPath,
@@ -369,7 +379,11 @@ export class ExecutionEngine {
           // status: ExecutionStatus.STARTED,
           dependencies: [...future.dependencies].map((f) => f.id),
           // history: [],
-          args: future.args,
+          args: this._resolveArgs(future.args, {
+            accounts,
+            deploymentParameters,
+            executionStateMap,
+          }),
           functionName: future.functionName,
           contractAddress,
           storedArtifactPath,

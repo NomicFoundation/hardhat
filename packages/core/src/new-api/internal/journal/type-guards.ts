@@ -5,6 +5,7 @@ import {
   JournalableMessage,
   OnchainCallFunctionSuccessMessage,
   OnchainDeployContractSuccessMessage,
+  OnchainReadEventArgumentSuccessMessage,
   OnchainResultFailureMessage,
   OnchainResultMessage,
   OnchainResultSuccessMessage,
@@ -88,7 +89,8 @@ export function isOnChainSuccessMessage(
   return (
     isOnchainDeployContractSuccessMessage(message) ||
     isOnchainCallFunctionSuccessMessage(message) ||
-    isOnchainStaticCallSuccessMessage(message)
+    isOnchainStaticCallSuccessMessage(message) ||
+    isOnchainReadEventArgumentSuccessMessage(message)
   );
 }
 
@@ -121,5 +123,14 @@ export function isOnchainStaticCallSuccessMessage(
 ): message is OnchainStaticCallSuccessMessage {
   return (
     isOnChainResultMessage(message) && message.subtype === "static-call-success"
+  );
+}
+
+export function isOnchainReadEventArgumentSuccessMessage(
+  message: JournalableMessage
+): message is OnchainReadEventArgumentSuccessMessage {
+  return (
+    isOnChainResultMessage(message) &&
+    message.subtype === "read-event-arg-success"
   );
 }

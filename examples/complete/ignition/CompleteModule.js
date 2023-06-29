@@ -19,9 +19,9 @@ module.exports = defineModule("CompleteModule", (m) => {
     }
   );
 
-  m.call(basic, "basicFunction", [40]);
-  // const eventArg = m.readEventArgument(call, "BasicEvent", "eventArg");
-  m.staticCall(withLib, "readonlyFunction", [42]);
+  const call = m.call(basic, "basicFunction", [40]);
+  const eventArg = m.readEventArgument(call, "BasicEvent", "eventArg");
+  m.staticCall(withLib, "readonlyFunction", [eventArg]);
 
   // const duplicate = m.contractAt("BasicContract", basic);
   // const duplicateWithLib = m.contractAtFromArtifact(
