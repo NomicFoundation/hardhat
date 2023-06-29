@@ -103,13 +103,29 @@ export const withoutComments = (content: string) => {
   return content.replace(/<!--[\s\S]*?-->/gm, "");
 };
 
-export const withLatestSolcVersion = (content: string) => {
+export const replacePlaceholders = (content: string) => {
   const latestSolcVersion = "0.8.20";
   const latestPragma = "^0.8.0";
+  const hardhatPackageJson = fs
+    .readFileSync(
+      path.resolve(
+        __dirname,
+        "..",
+        "..",
+        "..",
+        "..",
+        "packages",
+        "hardhat-core",
+        "package.json"
+      )
+    )
+    .toString();
+  const hardhatVersion = JSON.parse(hardhatPackageJson).version;
 
   return content
     .replaceAll("{LATEST_SOLC_VERSION}", latestSolcVersion)
-    .replaceAll("{LATEST_PRAGMA}", latestPragma);
+    .replaceAll("{LATEST_PRAGMA}", latestPragma)
+    .replaceAll("{HARDHAT_VERSION}", hardhatVersion);
 };
 
 export const readMDFileFromPathOrIndex = (
@@ -210,7 +226,7 @@ export const generateTitleFromContent = (content: string) => {
 
 export const parseMdFile = (source: string) => {
   const { content, data } = matter(source);
-  const formattedContent = withLatestSolcVersion(
+  const formattedContent = replacePlaceholders(
     withoutComments(withInsertedCodeFromLinks(content))
   );
 
