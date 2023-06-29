@@ -1,11 +1,10 @@
-use std::process::{Command, Stdio};
+use std::process::{Child, Command, Stdio};
 
 use assert_cmd::{
     assert::Assert,
     cargo::CommandCargoExt, // for process::Command::cargo_bin
 };
 use predicates::str::contains;
-use signal_child::Signalable; // for process::Child::interrupt
 
 use rethnet_eth::{
     remote::{
@@ -15,6 +14,43 @@ use rethnet_eth::{
     Address, Bytes, U256,
 };
 use rethnet_rpc_server::{HardhatMethodInvocation, MethodInvocation, TEST_ACCOUNTS};
+
+fn shutdown(child: &mut Child) -> Result<(), std::io::Error> {
+    #[cfg(unix)]
+    let result = {
+        use signal_child::Signalable;
+        child.interrupt()
+    };
+
+    #[cfg(windows)]
+    let result = {
+        use winsafe::{co::PROCESS, prelude::kernel_Hprocess, HPROCESS};
+
+        let process_id = child.id();
+        HPROCESS::OpenProcess(PROCESS::TERMINATE, false, process_id)
+            .map_err(|e| {
+                std::io::Error::new(
+                    std::io::ErrorKind::Other,
+                    format!("OpenProcess(TERMINATE, {process_id}) failed: {e}"),
+                )
+            })?
+            .TerminateProcess(0)
+            .map_err(|e| {
+                std::io::Error::new(
+                    std::io::ErrorKind::Other,
+                    format!("TerminateProcess() failed: {e}"),
+                )
+            })
+    };
+
+    #[cfg(all(not(windows), not(unix)))]
+    panic!(
+        "child process is STILL RUNNING (pid={}) because we don't know this OS so we don't know how to signal it to shut down",
+        child.id(),
+    );
+
+    result
+}
 
 #[tokio::test]
 async fn node() -> Result<(), Box<dyn std::error::Error>> {
@@ -88,7 +124,7 @@ async fn node() -> Result<(), Box<dyn std::error::Error>> {
         .await;
 
     // signal the server to shut down gracefully:
-    server.interrupt()?;
+    shutdown(&mut server)?;
 
     // wait for server to terminate:
     let output = server.wait_with_output()?;
