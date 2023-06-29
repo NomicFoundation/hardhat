@@ -11,6 +11,7 @@ import {
   DeploymentExecutionState,
   ExecutionState,
 } from "../types/execution-state";
+import { assertIgnitionInvariant } from "../utils/assertions";
 
 export abstract class ExecutionStrategyBase {}
 
@@ -20,10 +21,10 @@ export class BasicExecutionStrategy
 {
   public executeStrategy({
     executionState,
-    accounts,
+    sender,
   }: {
     executionState: ExecutionState;
-    accounts: string[];
+    sender?: string;
   }): AsyncGenerator<
     OnchainInteractionMessage,
     JournalableMessage,
@@ -35,20 +36,25 @@ export class BasicExecutionStrategy
       );
     }
 
-    return this._executeDeployment({ executionState, accounts });
+    return this._executeDeployment({ executionState, sender });
   }
 
   public async *_executeDeployment({
     executionState: deploymentExecutionState,
-    accounts,
+    sender,
   }: {
     executionState: DeploymentExecutionState;
-    accounts: string[];
+    sender?: string;
   }): AsyncGenerator<
     OnchainInteractionMessage,
     JournalableMessage,
     OnchainResultMessage | null
   > {
+    assertIgnitionInvariant(
+      sender !== undefined,
+      "Sender must be defined for deployment execution"
+    );
+
     const result = yield {
       type: "onchain-action",
       subtype: "deploy-contract",
@@ -57,10 +63,8 @@ export class BasicExecutionStrategy
       contractName: deploymentExecutionState.contractName,
       value: deploymentExecutionState.value.toString(),
       args: deploymentExecutionState.constructorArgs,
-      // TODO: the possibily of undefined for `from` needs
-      // a working resolution
-      from: deploymentExecutionState.from ?? accounts[0],
       storedArtifactPath: deploymentExecutionState.storedArtifactPath,
+      from: sender,
     };
 
     if (result === null) {

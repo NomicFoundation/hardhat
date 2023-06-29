@@ -226,12 +226,12 @@ export class ExecutionStateResolver {
       return executionState.from;
     }
 
-    const froms = executionState.history
+    const senders = executionState.history
       .filter(isOnchainInteractionMessage)
       .map((m) => m.from);
 
-    if (froms.length > 0) {
-      return froms[0];
+    if (senders.length > 0) {
+      return senders[0];
     }
 
     return undefined;

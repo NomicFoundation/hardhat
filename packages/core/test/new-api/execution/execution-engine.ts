@@ -94,8 +94,8 @@ describe("execution engine", () => {
           { nested: 2000 },
         ],
         value: BigInt(0).toString(),
-        from: accounts[1],
         storedArtifactPath: "Module1:Contract1.json",
+        from: accounts[1],
       },
       {
         type: "onchain-result",
@@ -176,8 +176,8 @@ describe("execution engine", () => {
         contractName: "Library1",
         args: [],
         value: BigInt(0).toString(),
-        from: accounts[2],
         storedArtifactPath: "Module1:Library1.json",
+        from: accounts[2],
       },
       {
         type: "onchain-result",
@@ -368,8 +368,8 @@ describe("execution engine", () => {
           contractName: "Library1",
           args: [],
           value: BigInt(0).toString(),
-          from: accounts[1],
           storedArtifactPath: "Module1:Library1.json",
+          from: accounts[1],
         },
         {
           type: "onchain-result",
@@ -419,8 +419,8 @@ describe("execution engine", () => {
             },
           ],
           value: BigInt(0).toString(),
-          from: exampleAccounts[1],
           storedArtifactPath: "Module1:Contract1.json",
+          from: exampleAccounts[1],
         },
         {
           type: "onchain-result",

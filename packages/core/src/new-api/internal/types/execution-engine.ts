@@ -26,14 +26,16 @@ export interface ExecutionEngineState {
   deploymentLoader: DeploymentLoader;
 }
 
+export interface ExecutionStrategyContext {
+  executionState: ExecutionState;
+  sender?: string;
+}
+
 export interface ExecutionStrategy {
   executeStrategy: ({
     executionState,
-    accounts,
-  }: {
-    executionState: ExecutionState;
-    accounts: string[];
-  }) => AsyncGenerator<
+    sender,
+  }: ExecutionStrategyContext) => AsyncGenerator<
     OnchainInteractionMessage,
     JournalableMessage,
     OnchainResultMessage | null

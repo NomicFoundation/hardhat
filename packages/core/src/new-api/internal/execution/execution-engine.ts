@@ -20,7 +20,10 @@ import {
   NamedLibraryDeploymentFuture,
 } from "../../types/module";
 import { isDeploymentExecutionState } from "../type-guards";
-import { ExecutionEngineState } from "../types/execution-engine";
+import {
+  ExecutionEngineState,
+  ExecutionStrategyContext,
+} from "../types/execution-engine";
 import { ExecutionStateMap, ExecutionStatus } from "../types/execution-state";
 import { getFuturesFromModule } from "../utils/get-futures-from-module";
 import { replaceWithinArg } from "../utils/replace-within-arg";
@@ -92,11 +95,7 @@ export class ExecutionEngine {
 
     await this._apply(state, current);
 
-    const context = {
-      executionState: state.executionStateMap[future.id],
-      accounts: state.accounts,
-    };
-
+    const context = this._setupExecutionStrategyContext(future, state);
     const exectionStrategy = state.strategy.executeStrategy(context);
 
     const dependencies = Array.from(context.executionState.dependencies);
@@ -397,5 +396,23 @@ export class ExecutionEngine {
           },
         ])
     );
+  }
+
+  private _setupExecutionStrategyContext(
+    future: Future,
+    state: ExecutionEngineState
+  ): ExecutionStrategyContext {
+    const exState = state.executionStateMap[future.id];
+
+    const sender = isDeploymentExecutionState(exState)
+      ? exState.from ?? state.accounts[0]
+      : undefined;
+
+    const context = {
+      executionState: exState,
+      sender,
+    };
+
+    return context;
   }
 }
