@@ -9,6 +9,7 @@ import {
   JournalableMessage,
   OnchainInteractionMessage,
   ReadEventArgumentInteractionMessage,
+  SendDataInteractionMessage,
   StaticCallInteractionMessage,
 } from "../../types/journal";
 
@@ -78,6 +79,12 @@ export function isReadEventArgumentInteraction(
   potential: JournalableMessage
 ): potential is ReadEventArgumentInteractionMessage {
   return isOnChainAction(potential) && potential.subtype === "read-event-arg";
+}
+
+export function isSendDataInteraction(
+  potential: JournalableMessage
+): potential is SendDataInteractionMessage {
+  return isOnChainAction(potential) && potential.subtype === "send-data";
 }
 
 export function isDeployedContractExecutionSuccess(

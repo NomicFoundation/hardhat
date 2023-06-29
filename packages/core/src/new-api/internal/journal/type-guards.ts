@@ -9,8 +9,10 @@ import {
   OnchainResultFailureMessage,
   OnchainResultMessage,
   OnchainResultSuccessMessage,
+  OnchainSendDataSuccessMessage,
   OnchainStaticCallSuccessMessage,
   ReadEventArgumentStartMessage,
+  SendDataStartMessage,
   StaticCallStartMessage,
 } from "../../types/journal";
 import { FutureType } from "../../types/module";
@@ -77,6 +79,17 @@ export function isReadEventArgumentStartMessage(
   return potential.futureType === FutureType.READ_EVENT_ARGUMENT;
 }
 
+/**
+ * Returns true if potential is a send data start message
+ *
+ * @beta
+ */
+export function isSendDataStartMessage(
+  potential: FutureStartMessage
+): potential is SendDataStartMessage {
+  return potential.futureType === FutureType.SEND_DATA;
+}
+
 export function isOnChainResultMessage(
   message: JournalableMessage
 ): message is OnchainResultMessage {
@@ -90,7 +103,8 @@ export function isOnChainSuccessMessage(
     isOnchainDeployContractSuccessMessage(message) ||
     isOnchainCallFunctionSuccessMessage(message) ||
     isOnchainStaticCallSuccessMessage(message) ||
-    isOnchainReadEventArgumentSuccessMessage(message)
+    isOnchainReadEventArgumentSuccessMessage(message) ||
+    isOnchainSendDataSuccessMessage(message)
   );
 }
 
@@ -132,5 +146,13 @@ export function isOnchainReadEventArgumentSuccessMessage(
   return (
     isOnChainResultMessage(message) &&
     message.subtype === "read-event-arg-success"
+  );
+}
+
+export function isOnchainSendDataSuccessMessage(
+  message: JournalableMessage
+): message is OnchainSendDataSuccessMessage {
+  return (
+    isOnChainResultMessage(message) && message.subtype === "send-data-success"
   );
 }

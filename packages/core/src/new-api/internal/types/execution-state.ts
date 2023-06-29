@@ -177,9 +177,10 @@ export interface ReadEventArgumentExecutionState
 export interface SendDataExecutionState
   extends BaseExecutionState<FutureType.SEND_DATA> {
   to: string;
-  data: string | undefined;
+  data: string;
   value: bigint;
   from: string | undefined;
+  txId?: string;
 }
 
 export type ExecutionState =

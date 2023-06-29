@@ -30,7 +30,7 @@ module.exports = defineModule("CompleteModule", (m) => {
   //   withLibArtifact
   // );
 
-  // m.send("test-send", duplicate, 123n);
+  m.send("test-send", basic, 123n);
 
   return {
     basic,

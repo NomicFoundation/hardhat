@@ -1,6 +1,7 @@
 import identity from "lodash/identity";
 
 import { IgnitionError } from "../../../errors";
+import { isModuleParameterRuntimeValue } from "../../type-guards";
 import { ArtifactResolver } from "../../types/artifact";
 import { DeploymentResult } from "../../types/deployer";
 import { DeploymentLoader } from "../../types/deployment-loader";
@@ -429,9 +430,44 @@ export class ExecutionEngine {
         };
         return state;
       }
-      case FutureType.NAMED_CONTRACT_AT:
-      case FutureType.ARTIFACT_CONTRACT_AT:
       case FutureType.SEND_DATA: {
+        let to: string;
+        if (typeof future.to === "string") {
+          to = future.to;
+        } else if (isModuleParameterRuntimeValue(future.to)) {
+          to = resolveModuleParameter(future.to, {
+            deploymentParameters,
+          }) as string;
+        } else {
+          const { contractAddress } = executionStateMap[
+            future.to.id
+          ] as DeploymentExecutionState;
+
+          assertIgnitionInvariant(
+            contractAddress !== undefined,
+            `Internal error - dependency ${future.to.id} used before it's resolved`
+          );
+
+          to = contractAddress;
+        }
+
+        state = {
+          type: "execution-start",
+          futureId: future.id,
+          futureType: future.type,
+          strategy,
+          // status: ExecutionStatus.STARTED,
+          dependencies: [...future.dependencies].map((f) => f.id),
+          // history: [],
+          value: future.value.toString(),
+          data: future.data ?? "0x",
+          to,
+          from: resolveFromAddress(future.from, { accounts }),
+        };
+        return state;
+      }
+      case FutureType.NAMED_CONTRACT_AT:
+      case FutureType.ARTIFACT_CONTRACT_AT: {
         throw new Error(`Not implemented yet: FutureType ${future.type}`);
       }
     }

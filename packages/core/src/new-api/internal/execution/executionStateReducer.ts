@@ -4,6 +4,7 @@ import {
   isDeployContractStartMessage,
   isExecutionStartMessage,
   isReadEventArgumentStartMessage,
+  isSendDataStartMessage,
   isStaticCallStartMessage,
 } from "../journal/type-guards";
 import {
@@ -13,6 +14,7 @@ import {
   ExecutionStateMap,
   ExecutionStatus,
   ReadEventArgumentExecutionState,
+  SendDataExecutionState,
   StaticCallExecutionState,
 } from "../types/execution-state";
 import { assertIgnitionInvariant } from "../utils/assertions";
@@ -76,6 +78,19 @@ export function executionStateReducer(
         ...(previousDeploymentExecutionState as ReadEventArgumentExecutionState),
         status: ExecutionStatus.SUCCESS,
         result: action.result,
+      };
+
+      return {
+        ...executionStateMap,
+        [action.futureId]: updatedExecutionState,
+      };
+    }
+
+    if (action.subtype === "send-data") {
+      const updatedExecutionState: SendDataExecutionState = {
+        ...(previousDeploymentExecutionState as SendDataExecutionState),
+        status: ExecutionStatus.SUCCESS,
+        txId: action.txId,
       };
 
       return {
@@ -195,6 +210,23 @@ function initialiseExecutionStateFor(
       txToReadFrom: futureStart.txToReadFrom,
       emitterAddress: futureStart.emitterAddress,
       eventIndex: futureStart.eventIndex,
+    };
+
+    return executionState;
+  }
+
+  if (isSendDataStartMessage(futureStart)) {
+    const executionState: SendDataExecutionState = {
+      id: futureStart.futureId,
+      futureType: futureStart.futureType,
+      strategy: futureStart.strategy,
+      status: ExecutionStatus.STARTED,
+      dependencies: new Set(futureStart.dependencies),
+      history: [],
+      value: BigInt(futureStart.value),
+      data: futureStart.data,
+      to: futureStart.to,
+      from: futureStart.from,
     };
 
     return executionState;

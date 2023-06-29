@@ -12,8 +12,10 @@ import {
   OnchainInteractionMessage,
   OnchainReadEventArgumentSuccessMessage,
   OnchainResultMessage,
+  OnchainSendDataSuccessMessage,
   OnchainStaticCallSuccessMessage,
   ReadEventArgumentInteractionMessage,
+  SendDataInteractionMessage,
   StaticCallInteractionMessage,
 } from "../../../types/journal";
 import {
@@ -26,6 +28,7 @@ import {
   isCallFunctionInteraction,
   isDeployContractInteraction,
   isReadEventArgumentInteraction,
+  isSendDataInteraction,
   isStaticCallInteraction,
 } from "../guards";
 
@@ -61,6 +64,10 @@ export class TransactionServiceImplementation implements TransactionService {
 
     if (isReadEventArgumentInteraction(interaction)) {
       return this._dispatchReadEventArgument(interaction);
+    }
+
+    if (isSendDataInteraction(interaction)) {
+      return this._dispatchSendData(interaction);
     }
 
     throw new IgnitionError(
@@ -298,6 +305,51 @@ export class TransactionServiceImplementation implements TransactionService {
           error instanceof Error
             ? error
             : new Error("Unknown read event arg error"),
+      };
+    }
+  }
+
+  private async _dispatchSendData({
+    futureId,
+    transactionId,
+    from,
+    value,
+    data,
+    to,
+  }: SendDataInteractionMessage): Promise<
+    OnchainSendDataSuccessMessage | OnchainFailureMessage
+  > {
+    const signer: ethers.Signer = await this._signerLoader.getSigner(from);
+
+    const unsignedTx: ethers.providers.TransactionRequest = {
+      from,
+      to,
+      value: BigInt(value),
+      data,
+    };
+
+    const result = await this._chainDispatcher.sendTx(unsignedTx, signer);
+
+    if (result.type === "transaction-success") {
+      assertIgnitionInvariant(
+        result.txId !== undefined,
+        "Transaction hash not available on receipt"
+      );
+
+      return {
+        type: "onchain-result",
+        subtype: "send-data-success",
+        futureId,
+        transactionId,
+        txId: result.txId,
+      };
+    } else {
+      return {
+        type: "onchain-result",
+        subtype: "failure",
+        futureId,
+        transactionId,
+        error: result.error,
       };
     }
   }

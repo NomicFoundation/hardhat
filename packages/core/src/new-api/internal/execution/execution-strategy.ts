@@ -10,9 +10,12 @@ import {
   OnchainInteractionMessage,
   OnchainReadEventArgumentSuccessMessage,
   OnchainResultMessage,
+  OnchainSendDataSuccessMessage,
   OnchainStaticCallSuccessMessage,
   ReadEventArgumentExecutionSuccess,
   ReadEventArgumentInteractionMessage,
+  SendDataExecutionSuccess,
+  SendDataInteractionMessage,
   StaticCallExecutionSuccess,
   StaticCallInteractionMessage,
 } from "../../types/journal";
@@ -20,6 +23,7 @@ import {
   isCallExecutionState,
   isDeploymentExecutionState,
   isReadEventArgumentExecutionState,
+  isSendDataExecutionState,
   isStaticCallExecutionState,
 } from "../type-guards";
 import { ExecutionStrategy } from "../types/execution-engine";
@@ -28,6 +32,7 @@ import {
   DeploymentExecutionState,
   ExecutionState,
   ReadEventArgumentExecutionState,
+  SendDataExecutionState,
   StaticCallExecutionState,
 } from "../types/execution-state";
 import { assertIgnitionInvariant } from "../utils/assertions";
@@ -65,6 +70,11 @@ export class BasicExecutionStrategy
       return this._executeReadEventArgument({ executionState });
     }
 
+    if (isSendDataExecutionState(executionState)) {
+      return this._executeSendData({ executionState, sender });
+    }
+
+    // TODO: add type check
     throw new IgnitionError(
       "Basic strategy not implemented that execution state yet"
     );
@@ -230,6 +240,45 @@ export class BasicExecutionStrategy
       eventName: readEventArgExecutionState.eventName,
       argumentName: readEventArgExecutionState.argumentName,
       result: result.result,
+    };
+  }
+
+  private async *_executeSendData({
+    executionState: sendDataExecutionState,
+    sender,
+  }: {
+    executionState: SendDataExecutionState;
+    sender?: string;
+  }): AsyncGenerator<
+    SendDataInteractionMessage,
+    SendDataExecutionSuccess,
+    OnchainSendDataSuccessMessage | null
+  > {
+    assertIgnitionInvariant(
+      sender !== undefined,
+      "Sender must be defined for send execution"
+    );
+
+    const result = yield {
+      type: "onchain-action",
+      subtype: "send-data",
+      futureId: sendDataExecutionState.id,
+      transactionId: 1,
+      value: sendDataExecutionState.value.toString(),
+      data: sendDataExecutionState.data,
+      to: sendDataExecutionState.to,
+      from: sender,
+    };
+
+    if (result === null) {
+      throw new IgnitionError("No result yielded");
+    }
+
+    return {
+      type: "execution-success",
+      subtype: "send-data",
+      futureId: sendDataExecutionState.id,
+      txId: result.txId,
     };
   }
 }

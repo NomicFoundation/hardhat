@@ -43,7 +43,8 @@ export type OnchainInteractionMessage =
   | DeployContractInteractionMessage
   | CallFunctionInteractionMessage
   | StaticCallInteractionMessage
-  | ReadEventArgumentInteractionMessage;
+  | ReadEventArgumentInteractionMessage
+  | SendDataInteractionMessage;
 
 /**
  * A on-chain interaction request to deploy a contract/library.
@@ -115,6 +116,22 @@ export interface ReadEventArgumentInteractionMessage {
   eventIndex: number;
 }
 
+/**
+ * A on-chain interaction request to send a generic transaction.
+ *
+ * @beta
+ */
+export interface SendDataInteractionMessage {
+  type: "onchain-action";
+  subtype: "send-data";
+  futureId: string;
+  transactionId: number;
+  value: string;
+  data: string;
+  to: string;
+  from: string;
+}
+
 // #endregion
 
 // #region "OnchainResult"
@@ -132,7 +149,8 @@ export type OnchainResultSuccessMessage =
   | OnchainDeployContractSuccessMessage
   | OnchainCallFunctionSuccessMessage
   | OnchainStaticCallSuccessMessage
-  | OnchainReadEventArgumentSuccessMessage;
+  | OnchainReadEventArgumentSuccessMessage
+  | OnchainSendDataSuccessMessage;
 
 export type OnchainResultFailureMessage = OnchainFailureMessage;
 
@@ -190,6 +208,19 @@ export interface OnchainReadEventArgumentSuccessMessage {
 }
 
 /**
+ * A successful send transaction result.
+ *
+ * @beta
+ */
+export interface OnchainSendDataSuccessMessage {
+  type: "onchain-result";
+  subtype: "send-data-success";
+  futureId: string;
+  transactionId: number;
+  txId: string;
+}
+
+/**
  * A failed on-chain transaction result.
  *
  * @beta
@@ -233,7 +264,8 @@ export type FutureStartMessage =
   | DeployContractStartMessage
   | CallFunctionStartMessage
   | StaticCallStartMessage
-  | ReadEventArgumentStartMessage;
+  | ReadEventArgumentStartMessage
+  | SendDataStartMessage;
 
 /**
  * A journal message to initialise the execution state for a contract deployment.
@@ -316,6 +348,23 @@ export interface ReadEventArgumentStartMessage {
 }
 
 /**
+ * A journal message to initialise the execution state for a generic send.
+ *
+ * @beta
+ */
+export interface SendDataStartMessage {
+  type: "execution-start";
+  futureId: string;
+  futureType: FutureType.SEND_DATA;
+  strategy: string;
+  dependencies: string[];
+  value: string;
+  data: string;
+  to: string;
+  from: string;
+}
+
+/**
  * A journal message to indicate a future is being restarted.
  *
  * @beta
@@ -361,7 +410,8 @@ export type ExecutionSuccess =
   | DeployedContractExecutionSuccess
   | CalledFunctionExecutionSuccess
   | StaticCallExecutionSuccess
-  | ReadEventArgumentExecutionSuccess;
+  | ReadEventArgumentExecutionSuccess
+  | SendDataExecutionSuccess;
 
 /**
  * A journal message indicating a contract/library deployed successfully.
@@ -417,6 +467,18 @@ export interface ReadEventArgumentExecutionSuccess {
   eventName: string;
   argumentName: string;
   result: SolidityParameterType;
+}
+
+/**
+ * A journal message indicating a generic transaction was sent successfully.
+ *
+ * @beta
+ */
+export interface SendDataExecutionSuccess {
+  type: "execution-success";
+  subtype: "send-data";
+  futureId: string;
+  txId: string;
 }
 
 // #endregion
