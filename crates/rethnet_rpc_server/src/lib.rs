@@ -79,16 +79,23 @@ pub const TEST_ACCOUNTS: [&str; 20] = [
     "8626f6940E2eb28930eFb4CeF49B2d1F2C9C1199",
 ];
 
+fn error_response_data<T>(msg: &str) -> ResponseData<T> {
+    event!(Level::INFO, "{}", &msg);
+    ResponseData::new_error(0, msg, None)
+}
+
 /// returns the state root in effect BEFORE setting the block context, so that the caller can
 /// restore the context to that state root.
 async fn set_block_context<T>(
     state: &StateType,
     block_spec: BlockSpec,
 ) -> Result<B256, ResponseData<T>> {
-    let previous_state_root =
-        state.rethnet_state.read().await.state_root().map_err(|_| {
-            ResponseData::new_error(0, "Failed to retrieve previous state root", None)
-        })?;
+    let previous_state_root = state
+        .rethnet_state
+        .read()
+        .await
+        .state_root()
+        .map_err(|_| error_response_data("Failed to retrieve previous state root"))?;
     if block_spec == BlockSpec::Tag(String::from("latest")) {
         // do nothing
         Ok(previous_state_root)
@@ -99,7 +106,7 @@ async fn set_block_context<T>(
             .await
             .set_block_context(
                 &KECCAK_EMPTY,
-                Some(match block_spec {
+                Some(match block_spec.clone() {
                     BlockSpec::Number(n) => Ok(n),
                     BlockSpec::Tag(tag) => {
                         if let Some(fork_client) = state.fork_client.clone() {
@@ -110,45 +117,31 @@ async fn set_block_context<T>(
                                     .get_block_by_number(BlockSpec::Tag(tag.clone()))
                                     .await
                                     .map_err(|_| {
-                                        ResponseData::new_error(
-                                            0,
-                                            &format!("Failed to get block tagged {tag} from forked node"),
-                                            None,
-                                        )
+                                        error_response_data(&format!("Failed to get block tagged {tag} from forked node"))
                                     })?
                                     .number
                             {
                                 if let Some(fork_block_number) = state.fork_block_number {
                                     let fork_block_number = U256::from(fork_block_number);
                                     if block_number > fork_block_number {
-                                        Err(ResponseData::new_error(
-                                            0,
-                                            &format!("Cannot use remote block tagged {tag} because its number ({block_number}) is newer than the configured fork block number ({fork_block_number})"),
-                                            None,
-                                        ))?
+                                        Err(error_response_data(&format!("Cannot use remote block tagged {tag} because its number ({block_number}) is newer than the configured fork block number ({fork_block_number})")))?
                                     }
                                 }
                                 Ok(block_number)
                             } else {
-                                Err(ResponseData::new_error(
-                                    0,
-                                    &format!("Remote block tagged {tag} did not have a number"),
-                                    None,
-                                ))
+                                Err(error_response_data(&format!("Remote block tagged {tag} did not have a number")))
                             }
                         } else {
-                            Err(ResponseData::new_error(
-                                0,
-                                &format!(
-                                    "Cannot resolve block tag {tag} because there is no forking configuration"
-                                ),
-                                None,
-                            ))
+                            Err(error_response_data(&format!(
+                                "Cannot resolve block tag {tag} because there is no forking configuration"
+                            )))
                         }
                     }
                 }?),
             )
-            .map_err(|_| ResponseData::new_error(0, "Failed to set block context", None))?;
+            .map_err(|_| {
+                error_response_data(&format!("Failed to set block context {block_spec:?}"))
+            })?;
         Ok(previous_state_root)
     }
 }
@@ -162,7 +155,7 @@ async fn restore_block_context<T>(
         .write()
         .await
         .set_block_context(&state_root, None)
-        .map_err(|_| ResponseData::new_error(0, "Failed to restore previous block context", None))
+        .map_err(|_| error_response_data("Failed to restore previous block context"))
 }
 
 async fn get_account_info<T>(
@@ -171,8 +164,8 @@ async fn get_account_info<T>(
 ) -> Result<AccountInfo, ResponseData<T>> {
     match state.rethnet_state.read().await.basic(address) {
         Ok(Some(account_info)) => Ok(account_info),
-        Ok(None) => Err(ResponseData::new_error(0, "No such account", None)),
-        Err(e) => Err(ResponseData::new_error(0, &e.to_string(), None)),
+        Ok(None) => Err(error_response_data("No such account")),
+        Err(e) => Err(error_response_data(&e.to_string())),
     }
 }
 
@@ -220,11 +213,9 @@ async fn handle_get_code(
                             Ok(code) => ResponseData::Success {
                                 result: ZeroXPrefixedBytes::from(code.bytecode),
                             },
-                            Err(e) => ResponseData::new_error(
-                                0,
-                                &format!("failed to retrieve code: {}", e),
-                                None,
-                            ),
+                            Err(e) => {
+                                error_response_data(&format!("failed to retrieve code: {}", e))
+                            }
                         }
                     }
                     Err(e) => e,
@@ -252,11 +243,9 @@ async fn handle_get_storage_at(
             match restore_block_context(&state, previous_state_root).await {
                 Ok(()) => match value {
                     Ok(value) => ResponseData::Success { result: value },
-                    Err(e) => ResponseData::new_error(
-                        0,
-                        &format!("failed to retrieve storage value: {}", e),
-                        None,
-                    ),
+                    Err(e) => {
+                        error_response_data(&format!("failed to retrieve storage value: {}", e))
+                    }
                 },
                 Err(e) => e,
             }
@@ -407,14 +396,13 @@ async fn handle_request(
             method: _,
         } if *version != jsonrpc::Version::V2_0 => response(
             id,
-            ResponseData::<serde_json::Value>::new_error(
-                0,
-                "unsupported JSON-RPC version",
+            error_response_data::<serde_json::Value>(&format!(
+                "unsupported JSON-RPC version '{:?}'",
                 match serde_json::to_value(version) {
                     Ok(version) => Some(version),
                     Err(_) => None,
                 },
-            ),
+            )),
         ),
         RpcRequest {
             version: _,
@@ -462,17 +450,19 @@ async fn handle_request(
                 ),
                 // TODO: after adding all the methods here, eliminate this
                 // catch-all match arm:
-                _ => response(
-                    id,
-                    ResponseData::<serde_json::Value>::new_error(
-                        -32601,
-                        "Method not found",
+                _ => {
+                    let msg = format!(
+                        "Method '{:?}' not found",
                         match serde_json::to_value(method) {
                             Ok(value) => Some(value),
                             Err(_) => None,
                         },
-                    ),
-                ),
+                    );
+                    response(
+                        id,
+                        ResponseData::<serde_json::Value>::new_error(-32601, &msg, None),
+                    )
+                }
             }
         }
     }
@@ -490,14 +480,14 @@ async fn router(state: StateType) -> Router {
                             Err(_) => match serde_json::from_value(payload.clone().0) {
                                 Ok(requests) => requests,
                                 Err(_) => {
+                                    let msg =
+                                        format!("unsupported JSON body '{:?}'", payload.clone().0);
+                                    event!(Level::INFO, "{}", &msg);
                                     return (
                                         StatusCode::INTERNAL_SERVER_ERROR,
                                         Json(
-                                            serde_json::to_value(format!(
-                                                "unsupported JSON body '{:?}'",
-                                                payload.clone().0
-                                            ))
-                                            .unwrap_or(serde_json::Value::Null),
+                                            serde_json::to_value(&msg)
+                                                .unwrap_or(serde_json::Value::Null),
                                         ),
                                     );
                                 }
@@ -532,15 +522,13 @@ async fn router(state: StateType) -> Router {
 
                     match response {
                         Ok(response) => (StatusCode::OK, Json(response)),
-                        Err(s) => (
-                            StatusCode::INTERNAL_SERVER_ERROR,
-                            Json(
-                                serde_json::to_value(format!(
-                                    "failed to serialize response data: {s}"
-                                ))
-                                .unwrap_or(serde_json::Value::Null),
-                            ),
-                        ),
+                        Err(s) => {
+                            let msg = format!("failed to serialize response data: {s}");
+                            (
+                                StatusCode::INTERNAL_SERVER_ERROR,
+                                Json(serde_json::to_value(msg).unwrap_or(serde_json::Value::Null)),
+                            )
+                        }
                     }
                 },
             ),
@@ -566,10 +554,9 @@ pub async fn serve(
             genesis_accounts.insert(
                 Address::from_str(account)
                     .map_err(|_| {
-                        std::io::Error::new(
-                            std::io::ErrorKind::Other,
-                            format!("failed to construct Address from string {account}"),
-                        )
+                        let msg = format!("failed to construct Address from string {account}");
+                        event!(Level::INFO, "{}", &msg);
+                        std::io::Error::new(std::io::ErrorKind::Other, msg)
                     })
                     .unwrap(),
                 AccountInfo {
