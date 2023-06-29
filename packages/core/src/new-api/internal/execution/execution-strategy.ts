@@ -53,7 +53,7 @@ export class BasicExecutionStrategy
     }
 
     if (isStaticCallExecutionState(executionState)) {
-      return this._executeStaticCall({ executionState, accounts });
+      return this._executeStaticCall({ executionState, sender });
     }
 
     throw new IgnitionError(
@@ -151,15 +151,20 @@ export class BasicExecutionStrategy
 
   private async *_executeStaticCall({
     executionState: staticCallExecutionState,
-    accounts,
+    sender,
   }: {
     executionState: StaticCallExecutionState;
-    accounts: string[];
+    sender?: string;
   }): AsyncGenerator<
     StaticCallInteractionMessage,
     StaticCallExecutionSuccess,
     StaticCallResultMessage | null
   > {
+    assertIgnitionInvariant(
+      sender !== undefined,
+      "Sender must be defined for static call execution"
+    );
+
     const result = yield {
       type: "onchain-action",
       subtype: "static-call",
@@ -168,8 +173,8 @@ export class BasicExecutionStrategy
       contractAddress: staticCallExecutionState.contractAddress,
       storedArtifactPath: staticCallExecutionState.storedArtifactPath,
       args: staticCallExecutionState.args,
-      from: staticCallExecutionState.from ?? accounts[0],
       functionName: staticCallExecutionState.functionName,
+      from: sender,
     };
 
     if (result === null) {

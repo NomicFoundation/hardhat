@@ -54,7 +54,8 @@ export function isOnchainInteractionMessage(
 ): potential is OnchainInteractionMessage {
   return (
     isDeployContractInteraction(potential) ||
-    isCallFunctionInteraction(potential)
+    isCallFunctionInteraction(potential) ||
+    isStaticCallInteraction(potential)
   );
 }
 
