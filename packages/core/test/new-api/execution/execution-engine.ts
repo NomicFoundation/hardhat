@@ -3,6 +3,7 @@ import { assert } from "chai";
 import { Artifact, FutureType } from "../../../src";
 import { defineModule } from "../../../src/new-api/define-module";
 import { MemoryJournal } from "../../../src/new-api/internal/journal/memory-journal";
+import { DeployContractStartMessage } from "../../../src/new-api/types/journal";
 import {
   accumulateMessages,
   assertDeploymentFailure,
@@ -73,7 +74,7 @@ describe("execution engine", () => {
             type: "onchain-result",
             subtype: "deploy-contract-success",
             futureId: "Module1:Contract1",
-            transactionId: 1,
+            executionId: 1,
             contractAddress: exampleAddress,
             txId,
           },
@@ -122,7 +123,7 @@ describe("execution engine", () => {
         type: "onchain-action",
         subtype: "deploy-contract",
         futureId: "Module1:Contract1",
-        transactionId: 1,
+        executionId: 1,
         contractName: "Contract1",
         args: [
           "0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC",
@@ -137,7 +138,7 @@ describe("execution engine", () => {
         type: "onchain-result",
         subtype: "deploy-contract-success",
         futureId: "Module1:Contract1",
-        transactionId: 1,
+        executionId: 1,
         contractAddress: exampleAddress,
         txId,
       },
@@ -170,7 +171,7 @@ describe("execution engine", () => {
             type: "onchain-result",
             subtype: "failure",
             futureId: "Module1:Contract1",
-            transactionId: 1,
+            executionId: 1,
             error: new Error(
               "Cannot estimate gas; transaction may fail or may require manual gas limit"
             ),
@@ -208,7 +209,7 @@ describe("execution engine", () => {
         type: "onchain-action",
         subtype: "deploy-contract",
         futureId: "Module1:Contract1",
-        transactionId: 1,
+        executionId: 1,
         contractName: "Contract1",
         args: [],
         value: BigInt(0).toString(),
@@ -219,7 +220,7 @@ describe("execution engine", () => {
         type: "onchain-result",
         subtype: "failure",
         futureId: "Module1:Contract1",
-        transactionId: 1,
+        executionId: 1,
         error: new Error(
           "Cannot estimate gas; transaction may fail or may require manual gas limit"
         ),
@@ -252,7 +253,7 @@ describe("execution engine", () => {
             type: "onchain-result",
             subtype: "deploy-contract-success",
             futureId: "Module1:Library1",
-            transactionId: 1,
+            executionId: 1,
             contractAddress: exampleAddress,
             txId,
           },
@@ -291,7 +292,7 @@ describe("execution engine", () => {
         type: "onchain-action",
         subtype: "deploy-contract",
         futureId: "Module1:Library1",
-        transactionId: 1,
+        executionId: 1,
         contractName: "Library1",
         args: [],
         value: BigInt(0).toString(),
@@ -302,7 +303,7 @@ describe("execution engine", () => {
         type: "onchain-result",
         subtype: "deploy-contract-success",
         futureId: "Module1:Library1",
-        transactionId: 1,
+        executionId: 1,
         contractAddress: exampleAddress,
         txId,
       },
@@ -344,7 +345,7 @@ describe("execution engine", () => {
             type: "onchain-result",
             subtype: "deploy-contract-success",
             futureId: "Module1:Contract1",
-            transactionId: 1,
+            executionId: 1,
             contractAddress: exampleAddress,
             txId,
           },
@@ -364,54 +365,48 @@ describe("execution engine", () => {
 
     const journalMessages = await accumulateMessages(journal);
 
-    assert.deepStrictEqual(
-      journalMessages,
-      JSON.parse(
-        JSON.stringify([
-          {
-            futureId: "Module1:Contract1",
-            type: "execution-start",
-            futureType: FutureType.ARTIFACT_CONTRACT_DEPLOYMENT,
-            strategy: "basic",
-            dependencies: [],
-            storedArtifactPath: "Module1:Contract1.json",
-            storedBuildInfoPath: undefined,
-            contractName: "Contract1",
-            value: BigInt(0).toString(),
-            constructorArgs: [],
-            libraries: {},
-            from: accounts[2],
-          },
-          {
-            type: "onchain-action",
-            subtype: "deploy-contract",
-            futureId: "Module1:Contract1",
-            transactionId: 1,
-            contractName: "Contract1",
-            args: [],
-            value: BigInt(0).toString(),
-            from: accounts[2],
-            storedArtifactPath: "Module1:Contract1.json",
-          },
-          {
-            type: "onchain-result",
-            subtype: "deploy-contract-success",
-            futureId: "Module1:Contract1",
-            transactionId: 1,
-            contractAddress: exampleAddress,
-            txId,
-          },
-          {
-            type: "execution-success",
-            subtype: "deploy-contract",
-            futureId: "Module1:Contract1",
-            contractName: "Contract1",
-            contractAddress: exampleAddress,
-            txId,
-          },
-        ])
-      )
-    );
+    assert.deepStrictEqual(journalMessages, [
+      {
+        futureId: "Module1:Contract1",
+        type: "execution-start",
+        futureType: FutureType.ARTIFACT_CONTRACT_DEPLOYMENT,
+        strategy: "basic",
+        dependencies: [],
+        storedArtifactPath: "Module1:Contract1.json",
+        contractName: "Contract1",
+        value: BigInt(0).toString(),
+        constructorArgs: [],
+        libraries: {},
+        from: accounts[2],
+      } as Omit<DeployContractStartMessage, "storedBuildInfoPath"> as any,
+      {
+        type: "onchain-action",
+        subtype: "deploy-contract",
+        futureId: "Module1:Contract1",
+        executionId: 1,
+        contractName: "Contract1",
+        args: [],
+        value: BigInt(0).toString(),
+        from: accounts[2],
+        storedArtifactPath: "Module1:Contract1.json",
+      },
+      {
+        type: "onchain-result",
+        subtype: "deploy-contract-success",
+        futureId: "Module1:Contract1",
+        executionId: 1,
+        contractAddress: exampleAddress,
+        txId,
+      },
+      {
+        type: "execution-success",
+        subtype: "deploy-contract",
+        futureId: "Module1:Contract1",
+        contractName: "Contract1",
+        contractAddress: exampleAddress,
+        txId,
+      },
+    ]);
   });
 
   describe("with complex arguments", () => {
@@ -446,7 +441,7 @@ describe("execution engine", () => {
               type: "onchain-result",
               subtype: "deploy-contract-success",
               futureId: "Module1:Contract1",
-              transactionId: 1,
+              executionId: 1,
               contractAddress: exampleAddress,
               txId,
             },
@@ -456,7 +451,7 @@ describe("execution engine", () => {
               type: "onchain-result",
               subtype: "deploy-contract-success",
               futureId: "Module1:Library1",
-              transactionId: 1,
+              executionId: 1,
               contractAddress: differentAddress,
               txId,
             },
@@ -504,7 +499,7 @@ describe("execution engine", () => {
           type: "onchain-action",
           subtype: "deploy-contract",
           futureId: "Module1:Library1",
-          transactionId: 1,
+          executionId: 1,
           contractName: "Library1",
           args: [],
           value: BigInt(0).toString(),
@@ -515,7 +510,7 @@ describe("execution engine", () => {
           type: "onchain-result",
           subtype: "deploy-contract-success",
           futureId: "Module1:Library1",
-          transactionId: 1,
+          executionId: 1,
           contractAddress: differentAddress,
           txId,
         },
@@ -552,7 +547,7 @@ describe("execution engine", () => {
           type: "onchain-action",
           subtype: "deploy-contract",
           futureId: "Module1:Contract1",
-          transactionId: 1,
+          executionId: 1,
           contractName: "Contract1",
           args: [
             {
@@ -568,7 +563,7 @@ describe("execution engine", () => {
           type: "onchain-result",
           subtype: "deploy-contract-success",
           futureId: "Module1:Contract1",
-          transactionId: 1,
+          executionId: 1,
           contractAddress: exampleAddress,
           txId,
         },

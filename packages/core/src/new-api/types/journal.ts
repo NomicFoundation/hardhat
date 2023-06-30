@@ -56,7 +56,7 @@ export interface DeployContractInteractionMessage {
   type: "onchain-action";
   subtype: "deploy-contract";
   futureId: string;
-  transactionId: number;
+  executionId: number;
   args: ArgumentType[];
   contractName: string;
   storedArtifactPath: string;
@@ -73,7 +73,7 @@ export interface CallFunctionInteractionMessage {
   type: "onchain-action";
   subtype: "call-function";
   futureId: string;
-  transactionId: number;
+  executionId: number;
   args: ArgumentType[];
   functionName: string;
   value: string;
@@ -91,7 +91,7 @@ export interface StaticCallInteractionMessage {
   type: "onchain-action";
   subtype: "static-call";
   futureId: string;
-  transactionId: number;
+  executionId: number;
   args: ArgumentType[];
   functionName: string;
   contractAddress: string;
@@ -108,7 +108,7 @@ export interface ReadEventArgumentInteractionMessage {
   type: "onchain-action";
   subtype: "read-event-arg";
   futureId: string;
-  transactionId: number;
+  executionId: number;
   storedArtifactPath: string;
   eventName: string;
   argumentName: string;
@@ -126,7 +126,7 @@ export interface SendDataInteractionMessage {
   type: "onchain-action";
   subtype: "send-data";
   futureId: string;
-  transactionId: number;
+  executionId: number;
   value: string;
   data: string;
   to: string;
@@ -142,7 +142,7 @@ export interface ContractAtInteractionMessage {
   type: "onchain-action";
   subtype: "contract-at";
   futureId: string;
-  transactionId: number;
+  executionId: number;
   contractName: string;
   contractAddress: string;
   storedArtifactPath: string;
@@ -180,7 +180,7 @@ export interface OnchainDeployContractSuccessMessage {
   type: "onchain-result";
   subtype: "deploy-contract-success";
   futureId: string;
-  transactionId: number;
+  executionId: number;
   contractAddress: string;
   txId: string;
 }
@@ -194,7 +194,7 @@ export interface OnchainCallFunctionSuccessMessage {
   type: "onchain-result";
   subtype: "call-function-success";
   futureId: string;
-  transactionId: number;
+  executionId: number;
   txId: string;
 }
 
@@ -207,7 +207,7 @@ export interface OnchainStaticCallSuccessMessage {
   type: "onchain-result";
   subtype: "static-call-success";
   futureId: string;
-  transactionId: number;
+  executionId: number;
   result: SolidityParameterType;
 }
 
@@ -220,7 +220,7 @@ export interface OnchainReadEventArgumentSuccessMessage {
   type: "onchain-result";
   subtype: "read-event-arg-success";
   futureId: string;
-  transactionId: number;
+  executionId: number;
   result: SolidityParameterType;
 }
 
@@ -233,7 +233,7 @@ export interface OnchainSendDataSuccessMessage {
   type: "onchain-result";
   subtype: "send-data-success";
   futureId: string;
-  transactionId: number;
+  executionId: number;
   txId: string;
 }
 
@@ -246,7 +246,7 @@ export interface OnchainContractAtSuccessMessage {
   type: "onchain-result";
   subtype: "contract-at-success";
   futureId: string;
-  transactionId: number;
+  executionId: number;
   contractName: string;
   contractAddress: string;
 }
@@ -260,7 +260,7 @@ export interface OnchainFailureMessage {
   type: "onchain-result";
   subtype: "failure";
   futureId: string;
-  transactionId: number;
+  executionId: number;
   error: Error;
 }
 

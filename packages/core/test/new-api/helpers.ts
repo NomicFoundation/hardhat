@@ -100,11 +100,11 @@ export function setupMockTransactionService({
         );
       }
 
-      const transactionResult = futureResults[request.transactionId];
+      const transactionResult = futureResults[request.executionId];
 
       if (transactionResult === undefined) {
         throw new Error(
-          `Mock transaction service has no results recorded for transaction ${request.futureId}/${request.transactionId}`
+          `Mock transaction service has no results recorded for transaction ${request.futureId}/${request.executionId}`
         );
       }
 
