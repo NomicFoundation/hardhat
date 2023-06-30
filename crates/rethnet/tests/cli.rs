@@ -114,6 +114,10 @@ async fn node() -> Result<(), Box<dyn std::error::Error>> {
         .stdout(Stdio::piped())
         .spawn()?;
 
+    // (required for CI runs on MacOS) sleep a moment to make sure the server comes up before we
+    // start sending requests:
+    std::thread::sleep(std::time::Duration::from_secs(1));
+
     // query the server, but don't check the Result yet, because returning early would prevent us
     // from gracefully terminating the server:
     let send_result = reqwest::Client::new()
