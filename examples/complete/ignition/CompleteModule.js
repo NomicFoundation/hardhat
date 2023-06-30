@@ -23,21 +23,23 @@ module.exports = defineModule("CompleteModule", (m) => {
   const eventArg = m.readEventArgument(call, "BasicEvent", "eventArg");
   m.staticCall(withLib, "readonlyFunction", [eventArg]);
 
-  // const duplicate = m.contractAt("BasicContract", basic);
+  const duplicate = m.contractAt("BasicContract", basic, {
+    id: "BasicContract2",
+  });
   // const duplicateWithLib = m.contractAtFromArtifact(
   //   "ContractWithLibrary",
   //   withLib,
   //   withLibArtifact
   // );
 
-  m.send("test-send", basic, 123n);
+  m.send("test-send", duplicate, 123n);
 
   return {
     basic,
     library,
     libFromArtifact,
     withLib,
-    // duplicate,
+    duplicate,
     // duplicateWithLib,
   };
 });

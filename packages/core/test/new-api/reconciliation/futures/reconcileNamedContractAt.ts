@@ -24,7 +24,8 @@ describe("Reconciliation - named contract at", () => {
     dependencies: new Set<string>(),
     history: [],
     contractName: "Contract1",
-    address: exampleAddress,
+    contractAddress: exampleAddress,
+    storedArtifactPath: "./artifact.json",
   };
 
   const exampleDeploymentState: DeploymentExecutionState = {
@@ -75,7 +76,7 @@ describe("Reconciliation - named contract at", () => {
         ...exampleContractAtState,
         futureType: FutureType.NAMED_CONTRACT_AT,
         status: ExecutionStatus.STARTED,
-        address: exampleAddress,
+        contractAddress: exampleAddress,
       },
     };
 
@@ -111,7 +112,7 @@ describe("Reconciliation - named contract at", () => {
         ...exampleContractAtState,
         futureType: FutureType.NAMED_CONTRACT_AT,
         status: ExecutionStatus.STARTED,
-        address: differentAddress,
+        contractAddress: differentAddress,
         contractName: "Another",
       },
     };
@@ -134,7 +135,7 @@ describe("Reconciliation - named contract at", () => {
         futureType: FutureType.NAMED_CONTRACT_AT,
         status: ExecutionStatus.STARTED,
         contractName: "ContractUnchanged",
-        address: exampleAddress,
+        contractAddress: exampleAddress,
       },
     });
 
@@ -161,7 +162,7 @@ describe("Reconciliation - named contract at", () => {
         ...exampleContractAtState,
         futureType: FutureType.NAMED_CONTRACT_AT,
         status: ExecutionStatus.STARTED,
-        address: differentAddress,
+        contractAddress: differentAddress,
       },
     });
 

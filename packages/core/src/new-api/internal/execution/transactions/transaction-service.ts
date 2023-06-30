@@ -5,8 +5,10 @@ import { SignerAdapter } from "../../../types/adapters";
 import { DeploymentLoader } from "../../../types/deployment-loader";
 import {
   CallFunctionInteractionMessage,
+  ContractAtInteractionMessage,
   DeployContractInteractionMessage,
   OnchainCallFunctionSuccessMessage,
+  OnchainContractAtSuccessMessage,
   OnchainDeployContractSuccessMessage,
   OnchainFailureMessage,
   OnchainInteractionMessage,
@@ -26,6 +28,7 @@ import { assertIgnitionInvariant } from "../../utils/assertions";
 import { collectLibrariesAndLink } from "../../utils/collectLibrariesAndLink";
 import {
   isCallFunctionInteraction,
+  isContractAtInteraction,
   isDeployContractInteraction,
   isReadEventArgumentInteraction,
   isSendDataInteraction,
@@ -68,6 +71,10 @@ export class TransactionServiceImplementation implements TransactionService {
 
     if (isSendDataInteraction(interaction)) {
       return this._dispatchSendData(interaction);
+    }
+
+    if (isContractAtInteraction(interaction)) {
+      return this._dispatchContractAt(interaction);
     }
 
     throw new IgnitionError(
@@ -352,5 +359,23 @@ export class TransactionServiceImplementation implements TransactionService {
         error: result.error,
       };
     }
+  }
+
+  private async _dispatchContractAt({
+    futureId,
+    transactionId,
+    contractAddress,
+    contractName,
+  }: ContractAtInteractionMessage): Promise<
+    OnchainContractAtSuccessMessage | OnchainFailureMessage
+  > {
+    return {
+      type: "onchain-result",
+      subtype: "contract-at-success",
+      futureId,
+      transactionId,
+      contractAddress,
+      contractName,
+    };
   }
 }

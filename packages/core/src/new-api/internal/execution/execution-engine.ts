@@ -19,6 +19,7 @@ import {
   Future,
   FutureType,
   ModuleParameters,
+  NamedContractAtFuture,
   NamedContractDeploymentFuture,
   NamedLibraryDeploymentFuture,
 } from "../../types/module";
@@ -28,7 +29,9 @@ import {
 } from "../journal/type-guards";
 import {
   isCallExecutionState,
+  isContractAtExecutionState,
   isDeploymentExecutionState,
+  isSendDataExecutionState,
   isStaticCallExecutionState,
 } from "../type-guards";
 import {
@@ -467,7 +470,50 @@ export class ExecutionEngine {
         };
         return state;
       }
-      case FutureType.NAMED_CONTRACT_AT:
+      case FutureType.NAMED_CONTRACT_AT: {
+        let address: string;
+        if (typeof future.address === "string") {
+          address = future.address;
+        } else if (isModuleParameterRuntimeValue(future.address)) {
+          address = resolveModuleParameter(future.address, {
+            deploymentParameters,
+          }) as string;
+        } else {
+          const { contractAddress } = executionStateMap[
+            future.address.id
+          ] as DeploymentExecutionState;
+
+          assertIgnitionInvariant(
+            contractAddress !== undefined,
+            `Internal error - dependency ${future.address.id} used before it's resolved`
+          );
+
+          address = contractAddress;
+        }
+
+        const {
+          storedArtifactPath: namedContractAtArtifactPath,
+          storedBuildInfoPath: namedContractAtBuildInfoPath,
+        } = await this._storeArtifactAndBuildInfoAgainstDeployment(future, {
+          artifactResolver,
+          deploymentLoader,
+        });
+
+        state = {
+          type: "execution-start",
+          futureId: future.id,
+          futureType: future.type,
+          strategy,
+          // status: ExecutionStatus.STARTED,
+          dependencies: [...future.dependencies].map((f) => f.id),
+          // history: [],
+          contractName: future.contractName,
+          contractAddress: address,
+          storedArtifactPath: namedContractAtArtifactPath,
+          storedBuildInfoPath: namedContractAtBuildInfoPath,
+        };
+        return state;
+      }
       case FutureType.ARTIFACT_CONTRACT_AT: {
         throw new Error(`Not implemented yet: FutureType ${future.type}`);
       }
@@ -492,7 +538,8 @@ export class ExecutionEngine {
   private async _storeArtifactAndBuildInfoAgainstDeployment(
     future:
       | NamedLibraryDeploymentFuture<string>
-      | NamedContractDeploymentFuture<string>,
+      | NamedContractDeploymentFuture<string>
+      | NamedContractAtFuture<string>,
     {
       deploymentLoader,
       artifactResolver,
@@ -558,19 +605,31 @@ export class ExecutionEngine {
       storedArtifactPath: string;
     }
   > {
-    return Object.fromEntries(
-      Object.values(executionStateMap)
-        .filter(isDeploymentExecutionState)
-        .filter((des) => des.status === ExecutionStatus.SUCCESS)
-        .map((des) => [
-          des.id,
-          {
-            contractName: des.contractName,
-            contractAddress: des.contractAddress!,
-            storedArtifactPath: des.storedArtifactPath,
-          },
-        ])
-    );
+    const deployments = Object.values(executionStateMap)
+      .filter(isDeploymentExecutionState)
+      .filter((des) => des.status === ExecutionStatus.SUCCESS)
+      .map((des) => [
+        des.id,
+        {
+          contractName: des.contractName,
+          contractAddress: des.contractAddress!,
+          storedArtifactPath: des.storedArtifactPath,
+        },
+      ]);
+
+    const contractAts = Object.values(executionStateMap)
+      .filter(isContractAtExecutionState)
+      .filter((des) => des.status === ExecutionStatus.SUCCESS)
+      .map((des) => [
+        des.id,
+        {
+          contractName: des.contractName,
+          contractAddress: des.contractAddress!,
+          storedArtifactPath: des.storedArtifactPath,
+        },
+      ]);
+
+    return Object.fromEntries([...deployments, ...contractAts]);
   }
 
   private _setupExecutionStrategyContext(
@@ -582,7 +641,8 @@ export class ExecutionEngine {
     const sender =
       isDeploymentExecutionState(exState) ||
       isCallExecutionState(exState) ||
-      isStaticCallExecutionState(exState)
+      isStaticCallExecutionState(exState) ||
+      isSendDataExecutionState(exState)
         ? exState.from ?? state.accounts[0]
         : undefined;
 

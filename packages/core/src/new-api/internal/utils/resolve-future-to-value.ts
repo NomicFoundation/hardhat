@@ -39,7 +39,7 @@ export function resolveFutureToValue(
   );
 
   if (isContractAtExecutionState(executionState)) {
-    return executionState.address;
+    return executionState.contractAddress;
   }
 
   if (isDeploymentExecutionState(executionState)) {

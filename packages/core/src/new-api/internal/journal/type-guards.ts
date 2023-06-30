@@ -1,9 +1,11 @@
 import {
   CallFunctionStartMessage,
+  ContractAtStartMessage,
   DeployContractStartMessage,
   FutureStartMessage,
   JournalableMessage,
   OnchainCallFunctionSuccessMessage,
+  OnchainContractAtSuccessMessage,
   OnchainDeployContractSuccessMessage,
   OnchainReadEventArgumentSuccessMessage,
   OnchainResultFailureMessage,
@@ -90,6 +92,22 @@ export function isSendDataStartMessage(
   return potential.futureType === FutureType.SEND_DATA;
 }
 
+/**
+ * Returns true if potential is a contract at start message
+ *
+ * @beta
+ */
+export function isContractAtStartMessage(
+  potential: FutureStartMessage
+): potential is ContractAtStartMessage {
+  const deploymentTypes = [
+    FutureType.NAMED_CONTRACT_AT,
+    FutureType.ARTIFACT_CONTRACT_AT,
+  ];
+
+  return deploymentTypes.includes(potential.futureType);
+}
+
 export function isOnChainResultMessage(
   message: JournalableMessage
 ): message is OnchainResultMessage {
@@ -104,7 +122,8 @@ export function isOnChainSuccessMessage(
     isOnchainCallFunctionSuccessMessage(message) ||
     isOnchainStaticCallSuccessMessage(message) ||
     isOnchainReadEventArgumentSuccessMessage(message) ||
-    isOnchainSendDataSuccessMessage(message)
+    isOnchainSendDataSuccessMessage(message) ||
+    isOnchainContractAtSuccessMessage(message)
   );
 }
 
@@ -154,5 +173,13 @@ export function isOnchainSendDataSuccessMessage(
 ): message is OnchainSendDataSuccessMessage {
   return (
     isOnChainResultMessage(message) && message.subtype === "send-data-success"
+  );
+}
+
+export function isOnchainContractAtSuccessMessage(
+  message: JournalableMessage
+): message is OnchainContractAtSuccessMessage {
+  return (
+    isOnChainResultMessage(message) && message.subtype === "contract-at-success"
   );
 }

@@ -42,7 +42,10 @@ export function isReadEventArgumentExecutionState(
 export function isContractAtExecutionState(
   executionState: ExecutionState
 ): executionState is ContractAtExecutionState {
-  return [FutureType.NAMED_CONTRACT_AT].includes(executionState.futureType);
+  return [
+    FutureType.NAMED_CONTRACT_AT,
+    FutureType.ARTIFACT_CONTRACT_AT,
+  ].includes(executionState.futureType);
 }
 
 export function isSendDataExecutionState(

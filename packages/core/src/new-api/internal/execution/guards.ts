@@ -1,5 +1,6 @@
 import {
   CallFunctionInteractionMessage,
+  ContractAtInteractionMessage,
   DeployContractInteractionMessage,
   DeployedContractExecutionSuccess,
   ExecutionFailure,
@@ -85,6 +86,12 @@ export function isSendDataInteraction(
   potential: JournalableMessage
 ): potential is SendDataInteractionMessage {
   return isOnChainAction(potential) && potential.subtype === "send-data";
+}
+
+export function isContractAtInteraction(
+  potential: JournalableMessage
+): potential is ContractAtInteractionMessage {
+  return isOnChainAction(potential) && potential.subtype === "contract-at";
 }
 
 export function isDeployedContractExecutionSuccess(

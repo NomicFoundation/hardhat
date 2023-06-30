@@ -2,10 +2,13 @@ import { IgnitionError } from "../../../errors";
 import {
   CallFunctionInteractionMessage,
   CalledFunctionExecutionSuccess,
+  ContractAtExecutionSuccess,
+  ContractAtInteractionMessage,
   DeployContractInteractionMessage,
   DeployedContractExecutionSuccess,
   JournalableMessage,
   OnchainCallFunctionSuccessMessage,
+  OnchainContractAtSuccessMessage,
   OnchainDeployContractSuccessMessage,
   OnchainInteractionMessage,
   OnchainReadEventArgumentSuccessMessage,
@@ -21,6 +24,7 @@ import {
 } from "../../types/journal";
 import {
   isCallExecutionState,
+  isContractAtExecutionState,
   isDeploymentExecutionState,
   isReadEventArgumentExecutionState,
   isSendDataExecutionState,
@@ -29,6 +33,7 @@ import {
 import { ExecutionStrategy } from "../types/execution-engine";
 import {
   CallExecutionState,
+  ContractAtExecutionState,
   DeploymentExecutionState,
   ExecutionState,
   ReadEventArgumentExecutionState,
@@ -72,6 +77,10 @@ export class BasicExecutionStrategy
 
     if (isSendDataExecutionState(executionState)) {
       return this._executeSendData({ executionState, sender });
+    }
+
+    if (isContractAtExecutionState(executionState)) {
+      return this._executeContractAt({ executionState });
     }
 
     // TODO: add type check
@@ -279,6 +288,38 @@ export class BasicExecutionStrategy
       subtype: "send-data",
       futureId: sendDataExecutionState.id,
       txId: result.txId,
+    };
+  }
+
+  private async *_executeContractAt({
+    executionState: contractAtExecutionState,
+  }: {
+    executionState: ContractAtExecutionState;
+  }): AsyncGenerator<
+    ContractAtInteractionMessage,
+    ContractAtExecutionSuccess,
+    OnchainContractAtSuccessMessage | null
+  > {
+    const result = yield {
+      type: "onchain-action",
+      subtype: "contract-at",
+      futureId: contractAtExecutionState.id,
+      transactionId: 1,
+      storedArtifactPath: contractAtExecutionState.storedArtifactPath,
+      contractAddress: contractAtExecutionState.contractAddress,
+      contractName: contractAtExecutionState.contractName,
+    };
+
+    if (result === null) {
+      throw new IgnitionError("No result yielded");
+    }
+
+    return {
+      type: "execution-success",
+      subtype: "contract-at",
+      futureId: contractAtExecutionState.id,
+      contractAddress: contractAtExecutionState.contractAddress,
+      contractName: contractAtExecutionState.contractName,
     };
   }
 }

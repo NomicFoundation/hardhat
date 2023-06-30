@@ -44,7 +44,8 @@ export type OnchainInteractionMessage =
   | CallFunctionInteractionMessage
   | StaticCallInteractionMessage
   | ReadEventArgumentInteractionMessage
-  | SendDataInteractionMessage;
+  | SendDataInteractionMessage
+  | ContractAtInteractionMessage;
 
 /**
  * A on-chain interaction request to deploy a contract/library.
@@ -132,6 +133,21 @@ export interface SendDataInteractionMessage {
   from: string;
 }
 
+/**
+ * A on-chain interaction request to get a contract at a given address.
+ *
+ * @beta
+ */
+export interface ContractAtInteractionMessage {
+  type: "onchain-action";
+  subtype: "contract-at";
+  futureId: string;
+  transactionId: number;
+  contractName: string;
+  contractAddress: string;
+  storedArtifactPath: string;
+}
+
 // #endregion
 
 // #region "OnchainResult"
@@ -150,7 +166,8 @@ export type OnchainResultSuccessMessage =
   | OnchainCallFunctionSuccessMessage
   | OnchainStaticCallSuccessMessage
   | OnchainReadEventArgumentSuccessMessage
-  | OnchainSendDataSuccessMessage;
+  | OnchainSendDataSuccessMessage
+  | OnchainContractAtSuccessMessage;
 
 export type OnchainResultFailureMessage = OnchainFailureMessage;
 
@@ -221,6 +238,20 @@ export interface OnchainSendDataSuccessMessage {
 }
 
 /**
+ * A successful contract at result.
+ *
+ * @beta
+ */
+export interface OnchainContractAtSuccessMessage {
+  type: "onchain-result";
+  subtype: "contract-at-success";
+  futureId: string;
+  transactionId: number;
+  contractName: string;
+  contractAddress: string;
+}
+
+/**
  * A failed on-chain transaction result.
  *
  * @beta
@@ -265,7 +296,8 @@ export type FutureStartMessage =
   | CallFunctionStartMessage
   | StaticCallStartMessage
   | ReadEventArgumentStartMessage
-  | SendDataStartMessage;
+  | SendDataStartMessage
+  | ContractAtStartMessage;
 
 /**
  * A journal message to initialise the execution state for a contract deployment.
@@ -365,6 +397,23 @@ export interface SendDataStartMessage {
 }
 
 /**
+ * A journal message to initialise the execution state for a contract at.
+ *
+ * @beta
+ */
+export interface ContractAtStartMessage {
+  type: "execution-start";
+  futureId: string;
+  futureType: FutureType.NAMED_CONTRACT_AT | FutureType.ARTIFACT_CONTRACT_AT;
+  strategy: string;
+  dependencies: string[];
+  storedArtifactPath: string;
+  storedBuildInfoPath: string | undefined;
+  contractName: string;
+  contractAddress: string;
+}
+
+/**
  * A journal message to indicate a future is being restarted.
  *
  * @beta
@@ -411,7 +460,8 @@ export type ExecutionSuccess =
   | CalledFunctionExecutionSuccess
   | StaticCallExecutionSuccess
   | ReadEventArgumentExecutionSuccess
-  | SendDataExecutionSuccess;
+  | SendDataExecutionSuccess
+  | ContractAtExecutionSuccess;
 
 /**
  * A journal message indicating a contract/library deployed successfully.
@@ -479,6 +529,19 @@ export interface SendDataExecutionSuccess {
   subtype: "send-data";
   futureId: string;
   txId: string;
+}
+
+/**
+ * A journal message indicating a contract at the given address was wrapped successfully.
+ *
+ * @beta
+ */
+export interface ContractAtExecutionSuccess {
+  type: "execution-success";
+  subtype: "contract-at";
+  futureId: string;
+  contractName: string;
+  contractAddress: string;
 }
 
 // #endregion

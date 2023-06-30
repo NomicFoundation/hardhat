@@ -159,8 +159,9 @@ export interface ContractAtExecutionState
   extends BaseExecutionState<
     FutureType.NAMED_CONTRACT_AT | FutureType.ARTIFACT_CONTRACT_AT
   > {
+  storedArtifactPath: string; // As stored in the deployment directory.
   contractName: string;
-  address: string;
+  contractAddress: string;
 }
 
 export interface ReadEventArgumentExecutionState

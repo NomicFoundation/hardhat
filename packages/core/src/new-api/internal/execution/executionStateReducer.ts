@@ -1,6 +1,7 @@
 import { FutureStartMessage, JournalableMessage } from "../../types/journal";
 import {
   isCallFunctionStartMessage,
+  isContractAtStartMessage,
   isDeployContractStartMessage,
   isExecutionStartMessage,
   isReadEventArgumentStartMessage,
@@ -9,6 +10,7 @@ import {
 } from "../journal/type-guards";
 import {
   CallExecutionState,
+  ContractAtExecutionState,
   DeploymentExecutionState,
   ExecutionState,
   ExecutionStateMap,
@@ -91,6 +93,20 @@ export function executionStateReducer(
         ...(previousDeploymentExecutionState as SendDataExecutionState),
         status: ExecutionStatus.SUCCESS,
         txId: action.txId,
+      };
+
+      return {
+        ...executionStateMap,
+        [action.futureId]: updatedExecutionState,
+      };
+    }
+
+    if (action.subtype === "contract-at") {
+      const updatedExecutionState: ContractAtExecutionState = {
+        ...(previousDeploymentExecutionState as ContractAtExecutionState),
+        status: ExecutionStatus.SUCCESS,
+        contractAddress: action.contractAddress,
+        contractName: action.contractName,
       };
 
       return {
@@ -227,6 +243,22 @@ function initialiseExecutionStateFor(
       data: futureStart.data,
       to: futureStart.to,
       from: futureStart.from,
+    };
+
+    return executionState;
+  }
+
+  if (isContractAtStartMessage(futureStart)) {
+    const executionState: ContractAtExecutionState = {
+      id: futureStart.futureId,
+      futureType: futureStart.futureType,
+      strategy: futureStart.strategy,
+      status: ExecutionStatus.STARTED,
+      dependencies: new Set(futureStart.dependencies),
+      history: [],
+      storedArtifactPath: futureStart.storedArtifactPath,
+      contractAddress: futureStart.contractAddress,
+      contractName: futureStart.contractName,
     };
 
     return executionState;

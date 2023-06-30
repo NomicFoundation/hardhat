@@ -24,10 +24,10 @@ export function reconcileArtifactContractAt(
       context
     );
 
-  if (!isEqual(resolvedAddress, executionState.address)) {
+  if (!isEqual(resolvedAddress, executionState.contractAddress)) {
     return fail(
       future,
-      `Address has been changed from ${executionState.address} to ${resolvedAddress}`
+      `Address has been changed from ${executionState.contractAddress} to ${resolvedAddress}`
     );
   }
 
