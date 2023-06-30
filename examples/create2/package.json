@@ -7,12 +7,13 @@
     "lint": "npm run prettier -- --check && npm run eslint",
     "lint:fix": "npm run prettier -- --write && npm run eslint -- --fix",
     "eslint": "eslint \"ignition/**/*.{js,jsx}\" \"test/**/*.{js,jsx}\"",
-    "prettier": "prettier \"*.{js,md,json}\" \"ignition/*.{js,md,json}\" \"test/*.{js,md,json}\""
+    "prettier": "prettier \"*.{js,md,json}\" \"ignition/*.{js,md,json}\" \"test/*.{js,md,json}\" \"contracts/**/*.sol\""
   },
   "devDependencies": {
     "@ignored/hardhat-ignition": "^0.0.13",
     "@nomicfoundation/hardhat-toolbox": "2.0.2",
-    "hardhat": "^2.14.0"
+    "hardhat": "^2.14.0",
+    "prettier-plugin-solidity": "1.1.3"
   },
   "dependencies": {
     "@openzeppelin/contracts": "4.7.3"

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.9;
 
-import './BasicLibrary.sol';
+import "./BasicLibrary.sol";
 
 using BasicLibrary for uint;
 
