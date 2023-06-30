@@ -1,6 +1,7 @@
 use std::ffi::OsString;
 
 use clap::{Args, Parser, Subcommand};
+use tracing::{event, Level};
 
 use rethnet_rpc_server::{RpcForkConfig, RpcHardhatNetworkConfig};
 
@@ -105,7 +106,7 @@ where
                     _ = terminate => {},
                 }
 
-                println!("Shutting down");
+                event!(Level::INFO, "Shutting down");
             }
 
             Ok(server

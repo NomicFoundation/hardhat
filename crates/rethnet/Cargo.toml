@@ -9,6 +9,7 @@ clap = { version = "3.2.22", default-features = false, features = ["std", "deriv
 pretty_env_logger = { version = "0.4.0", default-features = false }
 rethnet_rpc_server = { version = "0.1.0-dev", path = "../rethnet_rpc_server" }
 tokio = { version = "1.23.0", features = ["macros", "signal"] }
+tracing = { version = "0.1.37", default-features = false, features = ["std"] }
 tracing-subscriber = { version = "0.3.17", default-features = false, features = ["fmt"] }
 
 [dev-dependencies]
