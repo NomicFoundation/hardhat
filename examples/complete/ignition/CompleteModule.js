@@ -26,11 +26,12 @@ module.exports = defineModule("CompleteModule", (m) => {
   const duplicate = m.contractAt("BasicContract", basic, {
     id: "BasicContract2",
   });
-  // const duplicateWithLib = m.contractAtFromArtifact(
-  //   "ContractWithLibrary",
-  //   withLib,
-  //   withLibArtifact
-  // );
+  const duplicateWithLib = m.contractAtFromArtifact(
+    "ContractWithLibrary",
+    withLib,
+    withLibArtifact,
+    { id: "ContractWithLibrary2" }
+  );
 
   m.send("test-send", duplicate, 123n);
 
@@ -40,6 +41,6 @@ module.exports = defineModule("CompleteModule", (m) => {
     libFromArtifact,
     withLib,
     duplicate,
-    // duplicateWithLib,
+    duplicateWithLib,
   };
 });

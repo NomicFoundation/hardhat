@@ -515,8 +515,48 @@ export class ExecutionEngine {
         return state;
       }
       case FutureType.ARTIFACT_CONTRACT_AT: {
-        throw new Error(`Not implemented yet: FutureType ${future.type}`);
+        let address: string;
+        if (typeof future.address === "string") {
+          address = future.address;
+        } else if (isModuleParameterRuntimeValue(future.address)) {
+          address = resolveModuleParameter(future.address, {
+            deploymentParameters,
+          }) as string;
+        } else {
+          const { contractAddress } = executionStateMap[
+            future.address.id
+          ] as DeploymentExecutionState;
+
+          assertIgnitionInvariant(
+            contractAddress !== undefined,
+            `Internal error - dependency ${future.address.id} used before it's resolved`
+          );
+
+          address = contractAddress;
+        }
+
+        const artifactContractAtPath = await deploymentLoader.storeArtifact(
+          future.id,
+          future.artifact
+        );
+
+        state = {
+          type: "execution-start",
+          futureId: future.id,
+          futureType: future.type,
+          strategy,
+          // status: ExecutionStatus.STARTED,
+          dependencies: [...future.dependencies].map((f) => f.id),
+          // history: [],
+          contractName: future.contractName,
+          contractAddress: address,
+          storedArtifactPath: artifactContractAtPath,
+          storedBuildInfoPath: undefined,
+        };
+        return state;
       }
+      default:
+        throw new Error(`Unknown future`);
     }
   }
 
