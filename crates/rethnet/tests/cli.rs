@@ -129,6 +129,9 @@ async fn node() -> Result<(), Box<dyn std::error::Error>> {
     // wait for server to terminate:
     let output = server.wait_with_output()?;
 
+    // validate query Result:
+    send_result?.text().await?;
+
     // assert that the standard output of the server process contains the expected log entries:
     Assert::new(output.clone()).stdout(contains("Listening on 127.0.0.1:8545"));
     for method_invocation in method_invocations {
@@ -167,9 +170,6 @@ async fn node() -> Result<(), Box<dyn std::error::Error>> {
             ))?,
         }));
     }
-
-    // validate query Result:
-    send_result?.text().await?;
 
     Ok(())
 }
