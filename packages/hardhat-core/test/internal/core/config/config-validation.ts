@@ -1171,6 +1171,20 @@ describe("Config validation", function () {
             );
           });
 
+          it("Should fail if an empty url is set for custom networks", function () {
+            // Empty string
+            expectHardhatError(
+              () => validateConfig({ networks: { custom: { url: "" } } }),
+              ERRORS.GENERAL.INVALID_CONFIG
+            );
+
+            // Empty string with at least 1 whitespace
+            expectHardhatError(
+              () => validateConfig({ networks: { custom: { url: " " } } }),
+              ERRORS.GENERAL.INVALID_CONFIG
+            );
+          });
+
           it("Shouldn't fail if no url is set for localhost network", function () {
             const errors = getValidationErrors({ networks: { localhost: {} } });
             assert.isEmpty(errors);
