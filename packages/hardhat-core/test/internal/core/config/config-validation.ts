@@ -862,6 +862,30 @@ describe("Config validation", function () {
               validateConfig({
                 networks: {
                   [HARDHAT_NETWORK_NAME]: {
+                    forking: { url: "" },
+                  },
+                },
+              }),
+            ERRORS.GENERAL.INVALID_CONFIG
+          );
+
+          expectHardhatError(
+            () =>
+              validateConfig({
+                networks: {
+                  [HARDHAT_NETWORK_NAME]: {
+                    forking: { url: " " },
+                  },
+                },
+              }),
+            ERRORS.GENERAL.INVALID_CONFIG
+          );
+
+          expectHardhatError(
+            () =>
+              validateConfig({
+                networks: {
+                  [HARDHAT_NETWORK_NAME]: {
                     forking: { url: "asd", blockNumber: "asd" },
                   },
                 },

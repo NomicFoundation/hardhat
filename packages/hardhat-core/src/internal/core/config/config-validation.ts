@@ -401,6 +401,18 @@ export function getValidationErrors(config: any): string[] {
         );
       }
 
+      if (hardhatNetwork.forking !== undefined) {
+        if (isEmptyString(hardhatNetwork.forking.url)) {
+          errors.push(
+            getEmptyErrorMessage(
+              `HardhatConfig.networks.${HARDHAT_NETWORK_NAME}.forking.url`,
+              hardhatNetwork.forking.url,
+              "string"
+            )
+          );
+        }
+      }
+
       // Validating the accounts with io-ts leads to very confusing errors messages
       const { accounts, ...configExceptAccounts } = hardhatNetwork;
 
