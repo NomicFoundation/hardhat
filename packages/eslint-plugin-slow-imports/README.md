@@ -1,4 +1,4 @@
-# eslint-plugin-slow-imports
+# @nomicfoundation/eslint-plugin-slow-imports
 
 This plugin provides a rule for detecting slow imports of external dependencies.
 
@@ -10,10 +10,10 @@ You'll first need to install [ESLint](https://eslint.org/):
 npm i eslint --save-dev
 ```
 
-Next, install `eslint-plugin-slow-imports`:
+Next, install `@nomicfoundation/eslint-plugin-slow-imports`:
 
 ```sh
-npm install eslint-plugin-slow-imports --save-dev
+npm install @nomicfoundation/eslint-plugin-slow-imports --save-dev
 ```
 
 ## Usage
