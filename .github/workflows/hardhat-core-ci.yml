@@ -25,13 +25,13 @@ concurrency:
 
 jobs:
   test_on_windows:
-    name: Test hardhat-core on Windows with Node 14
+    name: Test hardhat-core on Windows with Node 16
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v2
         with:
-          node-version: 14
+          node-version: 16
           cache: yarn
       - name: Install
         run: yarn --frozen-lockfile
@@ -44,7 +44,7 @@ jobs:
         run: yarn test:except-tracing
 
   test_on_macos:
-    name: Test hardhat-core on MacOS with Node 14
+    name: Test hardhat-core on MacOS with Node 16
     runs-on: macos-latest
     # disable until actions/virtual-environments#4896 is fixed
     if: ${{ false }}
@@ -52,7 +52,7 @@ jobs:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v2
         with:
-          node-version: 14
+          node-version: 16
           cache: yarn
       - name: Install
         run: yarn --frozen-lockfile
@@ -69,7 +69,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node: [14, 16, 18.15]
+        node: [16, 18, 20]
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v2
@@ -78,6 +78,30 @@ jobs:
           cache: yarn
       - name: Install
         run: yarn --frozen-lockfile
+      - name: Build
+        run: yarn build
+      - name: Run tests
+        env:
+          DO_NOT_SET_THIS_ENV_VAR____IS_HARDHAT_CI: true
+          FORCE_COLOR: 3
+        run: yarn test:except-tracing
+
+  test_types_node:
+    name: Test different versions of @types/node
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node: [16, 18, 20]
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
+        with:
+          node-version: ${{ matrix.node }}
+          cache: yarn
+      - name: Install
+        run: yarn --frozen-lockfile
+      - name: Install @types/node
+        run: yarn add --dev @types/node@${{ matrix.node }}
       - name: Build
         run: yarn build
       - name: Run tests
