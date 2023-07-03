@@ -2,13 +2,13 @@
 
 You can start an instance of Hardhat Network that forks mainnet. This means that it will simulate having the same state as mainnet, but it will work as a local development network. That way you can interact with deployed protocols and test complex interactions locally.
 
-To use this feature you need to connect to an archive node. We recommend using [Infura] or [Alchemy].
+To use this feature you need to connect to an archive node. We recommend using [Infura], [Alchemy] or [Tenderly].
 
 ## Forking from mainnet
 
 The easiest way to try this feature is to start a node from the command line:
 
-::::tabsgroup{options=Infura,Alchemy}
+::::tabsgroup{options=Infura,Alchemy,Tenderly}
 
 :::tab{value=Infura}
 
@@ -22,7 +22,14 @@ npx hardhat node --fork https://mainnet.infura.io/v3/<key>
 
 ```
 npx hardhat node --fork https://eth-mainnet.g.alchemy.com/v2/<key>
+```
 
+:::
+
+:::tab{value=Tenderly}
+
+```
+npx hardhat node --fork https://mainnet.gateway.tenderly.co/<key>
 ```
 
 :::
@@ -31,7 +38,7 @@ npx hardhat node --fork https://eth-mainnet.g.alchemy.com/v2/<key>
 
 You can also configure Hardhat Network to always do this:
 
-::::tabsgroup{options=Infura,Alchemy}
+::::tabsgroup{options=Infura,Alchemy,Tenderly}
 
 :::tab{value=Infura}
 
@@ -61,9 +68,23 @@ networks: {
 
 :::
 
+:::tab{value=Tenderly}
+
+```js
+networks: {
+  hardhat: {
+    forking: {
+      url: "https://mainnet.gateway.tenderly.co/<key>",
+    }
+  }
+}
+```
+
+:::
+
 ::::
 
-(Note that you'll need to replace the `<key>` component of the URL with your personal Infura or Alchemy API key.)
+(Note that you'll need to replace the `<key>` component of the URL with your personal Infura, Alchemy or Tenderly API key.)
 
 By accessing any state that exists on mainnet, Hardhat Network will pull the data and expose it transparently as if it was available locally.
 
@@ -76,11 +97,11 @@ There are two reasons for this:
 - The state your tests run against may change between runs. This could cause your tests or scripts to behave differently.
 - Pinning enables caching. Every time data is fetched from mainnet, Hardhat Network caches it on disk to speed up future access. If you don't pin the block, there's going to be new data with each new block and the cache won't be useful. We measured up to 20x speed improvements with block pinning.
 
-**You will need access to a node with archival data for this to work.** This is why we recommend [Infura] or [Alchemy], since their free plans include archival data.
+**You will need access to a node with archival data for this to work.** This is why we recommend [Infura], [Alchemy] or [Tenderly], since their free plans include archival data.
 
 To pin the block number:
 
-::::tabsgroup{options=Infura,Alchemy}
+::::tabsgroup{options=Infura,Alchemy,Tenderly}
 
 :::tab{value=Infura}
 
@@ -112,11 +133,26 @@ networks: {
 
 :::
 
+:::tab{value=Tenderly}
+
+```js
+networks: {
+  hardhat: {
+    forking: {
+      url: "https://mainnet.gateway.tenderly.co/<key>",
+      blockNumber: 14390000
+    }
+  }
+}
+```
+
+:::
+
 ::::
 
 If you are using the `node` task, you can also specify a block number with the `--fork-block-number` flag:
 
-::::tabsgroup{options=Infura,Alchemy}
+::::tabsgroup{options=Infura,Alchemy,Tenderly}
 
 :::tab{value=Infura}
 
@@ -130,6 +166,14 @@ npx hardhat node --fork https://mainnet.infura.io/v3/<key> --fork-block-number 1
 
 ```
 npx hardhat node --fork https://eth-mainnet.g.alchemy.com/v2/<key> --fork-block-number 14390000
+```
+
+:::
+
+:::tab{value=Tenderly}
+
+```
+npx hardhat node --fork https://mainnet.gateway.tenderly.co/<key> --fork-block-number 14390000
 ```
 
 :::
@@ -227,7 +271,7 @@ See also [the `chains` entry in the Hardhat Network configuration reference](../
 
 ### "Project ID does not have access to archive state"
 
-When using a node that doesn't have archival data, you will only have access to the state of the blockchain from recent blocks. To avoid this problem, you can use either a local archive node or a service that provides archival data, like [Infura] or [Alchemy].
+When using a node that doesn't have archival data, you will only have access to the state of the blockchain from recent blocks. To avoid this problem, you can use either a local archive node or a service that provides archival data, like [Infura], [Alchemy] or [Tenderly].
 
 ## See also
 
@@ -235,3 +279,4 @@ For full details on what's supported, see [the Hardhat Network Config Reference]
 
 [infura]: https://infura.io
 [alchemy]: https://alchemy.com
+[tenderly]: https://tenderly.co
