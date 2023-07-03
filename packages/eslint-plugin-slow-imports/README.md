@@ -48,3 +48,11 @@ Then configure the rule according to your entry points and whitelisted dependenc
   }
 }
 ```
+
+<!-- begin auto-generated rules list -->
+
+| Name                                                                       | Description                                           |
+| :------------------------------------------------------------------------- | :---------------------------------------------------- |
+| [no-top-level-external-import](docs/rules/no-top-level-external-import.md) | Enforce usage of dynamic imports for external modules |
+
+<!-- end auto-generated rules list -->

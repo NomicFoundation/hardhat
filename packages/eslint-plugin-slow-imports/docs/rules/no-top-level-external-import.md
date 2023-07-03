@@ -1,4 +1,4 @@
-# Enforce usage of dynamic imports for external modules (`slow-imports/no-top-level-external-import`)
+# Enforce usage of dynamic imports for external modules (`@nomicfoundation/slow-imports/no-top-level-external-import`)
 
 <!-- end auto-generated rule header -->
 
