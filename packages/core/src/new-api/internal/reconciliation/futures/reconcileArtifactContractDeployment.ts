@@ -5,7 +5,11 @@ import { DeploymentExecutionState } from "../../types/execution-state";
 import { resolveFromAddress } from "../../utils/resolve-from-address";
 import { ExecutionStateResolver } from "../execution-state-resolver";
 import { ReconciliationContext, ReconciliationFutureResult } from "../types";
-import { addressToErrorString, fail } from "../utils";
+import {
+  addressToErrorString,
+  fail,
+  getBytecodeWithoutMetadata,
+} from "../utils";
 
 export function reconcileArtifactContractDeployment(
   future: ArtifactContractDeploymentFuture,
@@ -17,6 +21,20 @@ export function reconcileArtifactContractDeployment(
       future,
       `Contract name has been changed from ${executionState.contractName} to ${future.contractName}`
     );
+  }
+
+  const moduleArtifact = context.moduleArtifactMap[future.id];
+  const storedArtifact = context.storedArtifactMap[future.id];
+
+  const moduleArtifactBytecode = getBytecodeWithoutMetadata(
+    moduleArtifact.bytecode
+  );
+  const storedArtifactBytecode = getBytecodeWithoutMetadata(
+    storedArtifact.bytecode
+  );
+
+  if (!isEqual(moduleArtifactBytecode, storedArtifactBytecode)) {
+    return fail(future, "Artifact bytecodes have been changed");
   }
 
   const resolvedArgs = ExecutionStateResolver.resolveArgsFromExectuionState(

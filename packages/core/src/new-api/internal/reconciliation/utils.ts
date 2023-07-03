@@ -52,3 +52,15 @@ export function addressToErrorString(potential: string | undefined) {
 
   return potential;
 }
+
+const METADATA_LENGTH = 2;
+export function getMetadataSectionLength(bytecode: Buffer): number {
+  return bytecode.slice(-METADATA_LENGTH).readUInt16BE(0) + METADATA_LENGTH;
+}
+
+export function getBytecodeWithoutMetadata(bytecode: string): string {
+  const bytecodeBuffer = Buffer.from(bytecode);
+  return bytecodeBuffer
+    .slice(0, getMetadataSectionLength(bytecodeBuffer))
+    .toString();
+}
