@@ -49,7 +49,7 @@ export async function makeForkClient(
   let forkBlockNumber;
   if (forkConfig.blockNumber !== undefined) {
     if (forkConfig.blockNumber > latestBlock) {
-      // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
+      // eslint-disable-next-line @nomicfoundation/hardhat-internal-rules/only-hardhat-error
       throw new Error(
         `Trying to initialize a provider with block ${forkConfig.blockNumber} but the current block is ${latestBlock}`
       );

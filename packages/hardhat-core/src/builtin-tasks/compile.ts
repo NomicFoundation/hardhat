@@ -454,7 +454,7 @@ subtask(TASK_COMPILE_SOLIDITY_COMPILE_JOBS)
         return { artifactsEmittedPerJob };
       } catch (e) {
         if (!(e instanceof AggregateError)) {
-          // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
+          // eslint-disable-next-line @nomicfoundation/hardhat-internal-rules/only-hardhat-error
           throw e;
         }
 
@@ -465,7 +465,7 @@ subtask(TASK_COMPILE_SOLIDITY_COMPILE_JOBS)
               ERRORS.BUILTIN_TASKS.COMPILE_FAILURE
             )
           ) {
-            // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
+            // eslint-disable-next-line @nomicfoundation/hardhat-internal-rules/only-hardhat-error
             throw error;
           }
         }

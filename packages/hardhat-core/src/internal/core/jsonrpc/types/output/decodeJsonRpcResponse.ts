@@ -3,7 +3,7 @@ import { PathReporter } from "io-ts/lib/PathReporter";
 
 import { InvalidResponseError } from "../../../providers/errors";
 
-/* eslint-disable @nomiclabs/hardhat-internal-rules/only-hardhat-error */
+/* eslint-disable @nomicfoundation/hardhat-internal-rules/only-hardhat-error */
 
 /**
  * This function decodes an RPC out type, throwing InvalidResponseError if it's not valid.

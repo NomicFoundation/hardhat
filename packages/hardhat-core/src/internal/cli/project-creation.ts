@@ -297,7 +297,7 @@ async function getAction(isEsm: boolean): Promise<Action> {
       return Action.QUIT_ACTION;
     }
 
-    // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
+    // eslint-disable-next-line @nomicfoundation/hardhat-internal-rules/only-hardhat-error
     throw e;
   }
 }
@@ -392,7 +392,7 @@ export async function createProject() {
         return;
       }
 
-      // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
+      // eslint-disable-next-line @nomicfoundation/hardhat-internal-rules/only-hardhat-error
       throw e;
     }
   }

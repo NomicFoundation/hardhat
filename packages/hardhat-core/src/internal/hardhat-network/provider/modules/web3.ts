@@ -7,7 +7,7 @@ import { MethodNotFoundError } from "../../../core/providers/errors";
 import { keccak256 } from "../../../util/keccak";
 import { HardhatNode } from "../node";
 
-/* eslint-disable @nomiclabs/hardhat-internal-rules/only-hardhat-error */
+/* eslint-disable @nomicfoundation/hardhat-internal-rules/only-hardhat-error */
 
 export class Web3Module {
   constructor(private readonly _node: HardhatNode) {}

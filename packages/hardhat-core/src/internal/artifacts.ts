@@ -635,7 +635,7 @@ export class Artifacts implements IArtifacts {
         );
       }
 
-      // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
+      // eslint-disable-next-line @nomicfoundation/hardhat-internal-rules/only-hardhat-error
       throw e;
     }
   }
@@ -806,7 +806,7 @@ Please replace "${contractName}" for the correct contract name wherever you are 
         );
       }
 
-      // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
+      // eslint-disable-next-line @nomicfoundation/hardhat-internal-rules/only-hardhat-error
       throw e;
     }
   }

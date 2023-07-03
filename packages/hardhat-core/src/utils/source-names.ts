@@ -82,7 +82,7 @@ export async function isLocalSourceName(
       return false;
     }
 
-    // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
+    // eslint-disable-next-line @nomicfoundation/hardhat-internal-rules/only-hardhat-error
     throw error;
   }
 
@@ -225,7 +225,7 @@ async function getSourceNameTrueCase(
       );
     }
 
-    // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
+    // eslint-disable-next-line @nomicfoundation/hardhat-internal-rules/only-hardhat-error
     throw error;
   }
 }
