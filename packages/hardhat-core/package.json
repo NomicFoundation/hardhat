@@ -56,7 +56,8 @@
     "console.sol"
   ],
   "devDependencies": {
-    "@nomiclabs/eslint-plugin-hardhat-internal-rules": "^1.0.0",
+    "@nomicfoundation/eslint-plugin-hardhat-internal-rules": "^1.0.0",
+    "@nomicfoundation/eslint-plugin-slow-imports": "^1.0.0",
     "@types/async-eventemitter": "^0.2.1",
     "@types/bn.js": "^5.1.0",
     "@types/chai": "^4.2.0",
