@@ -1,6 +1,6 @@
 /**
  * @fileoverview Enforce usage of dynamic imports for top level modules
- * @author Luis Schaab
+ * @author Nomic Foundation
  */
 "use strict";
 

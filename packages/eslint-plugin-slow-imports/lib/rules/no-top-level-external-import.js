@@ -1,6 +1,6 @@
 /**
  * @fileoverview Enforce usage of dynamic imports for external modules
- * @author Luis Schaab
+ * @author Nomic Foundation
  */
 "use strict";
 const fs = require("node:fs");

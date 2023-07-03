@@ -1,6 +1,6 @@
 /**
  * @fileoverview This plugin provides a rule for detecting slow imports of external dependencies.
- * @author Luis Schaab
+ * @author Nomic Foundation
  */
 "use strict";
 

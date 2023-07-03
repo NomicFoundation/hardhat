@@ -7,8 +7,8 @@
     "eslintplugin",
     "eslint-plugin"
   ],
-  "license": "ISC",
-  "author": "Luis Schaab",
+  "license": "MIT",
+  "author": "Nomic Foundation",
   "exports": "./lib/index.js",
   "main": "./lib/index.js",
   "scripts": {
