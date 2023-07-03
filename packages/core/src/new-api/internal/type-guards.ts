@@ -1,3 +1,5 @@
+import { every } from "lodash";
+
 import { FutureType } from "../types/module";
 
 import {
@@ -52,4 +54,16 @@ export function isSendDataExecutionState(
   executionState: ExecutionState
 ): executionState is SendDataExecutionState {
   return [FutureType.SEND_DATA].includes(executionState.futureType);
+}
+
+export function isContractExecutionStateArray(
+  executionStateArray: ExecutionState[]
+): executionStateArray is Array<
+  DeploymentExecutionState | ContractAtExecutionState
+> {
+  return every(
+    executionStateArray,
+    (state) =>
+      isDeploymentExecutionState(state) || isContractAtExecutionState(state)
+  );
 }

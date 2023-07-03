@@ -1,7 +1,12 @@
-import type { IgnitionModuleResult, ModuleParameters } from "../types/module";
+import type {
+  ContractFuture,
+  IgnitionModuleResult,
+  ModuleParameters,
+} from "../types/module";
 import type { IgnitionModuleDefinition } from "../types/module-builder";
 
-import { ArtifactResolver } from "../types/artifact";
+import { isContractFuture } from "../type-guards";
+import { Artifact, ArtifactMap, ArtifactResolver } from "../types/artifact";
 import { DeploymentResult } from "../types/deployer";
 import { DeploymentLoader } from "../types/deployment-loader";
 import { Journal } from "../types/journal";
@@ -13,8 +18,15 @@ import { BasicExecutionStrategy } from "./execution/execution-strategy";
 import { executionStateReducer } from "./execution/executionStateReducer";
 import { ModuleConstructor } from "./module-builder";
 import { Reconciler } from "./reconciliation/reconciler";
+import { isContractExecutionStateArray } from "./type-guards";
 import { ExecutionStrategy } from "./types/execution-engine";
-import { ExecutionStateMap } from "./types/execution-state";
+import {
+  ContractAtExecutionState,
+  DeploymentExecutionState,
+  ExecutionStateMap,
+} from "./types/execution-state";
+import { assertIgnitionInvariant } from "./utils/assertions";
+import { getFuturesFromModule } from "./utils/get-futures-from-module";
 import { validate } from "./validation/validate";
 
 /**
@@ -62,11 +74,28 @@ export class Deployer {
       this._deploymentLoader.journal
     );
 
+    const contracts = getFuturesFromModule(module).filter(isContractFuture);
+    const contractStates = contracts.map(
+      (contract) => previousStateMap[contract.id]
+    );
+
+    // realistically this should be impossible to fail.
+    // just need it here for the type inference
+    assertIgnitionInvariant(
+      isContractExecutionStateArray(contractStates),
+      "Invalid state map"
+    );
+
+    const moduleArtifactMap = await this._loadModuleArtifactMap(contracts);
+    const storedArtifactMap = await this._loadStoredArtifactMap(contractStates);
+
     const reconciliationResult = Reconciler.reconcile(
       module,
       previousStateMap,
       deploymentParameters,
-      accounts
+      accounts,
+      moduleArtifactMap,
+      storedArtifactMap
     );
 
     if (reconciliationResult.reconciliationFailures.length > 0) {
@@ -103,5 +132,37 @@ export class Deployer {
     }
 
     return state;
+  }
+
+  private async _loadModuleArtifactMap(
+    contracts: Array<ContractFuture<string>>
+  ): Promise<ArtifactMap> {
+    const entries: Array<[string, Artifact]> = [];
+
+    for (const contract of contracts) {
+      const artifact = await this._artifactResolver.loadArtifact(
+        contract.contractName
+      );
+
+      entries.push([contract.id, artifact]);
+    }
+
+    return Object.fromEntries(entries);
+  }
+
+  private async _loadStoredArtifactMap(
+    contractStates: Array<DeploymentExecutionState | ContractAtExecutionState>
+  ): Promise<ArtifactMap> {
+    const entries: Array<[string, Artifact]> = [];
+
+    for (const contract of contractStates) {
+      const artifact = await this._deploymentLoader.loadArtifact(
+        contract.storedArtifactPath
+      );
+
+      entries.push([contract.id, artifact]);
+    }
+
+    return Object.fromEntries(entries);
   }
 }

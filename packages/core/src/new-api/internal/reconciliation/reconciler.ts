@@ -1,3 +1,4 @@
+import { ArtifactMap } from "../../types/artifact";
 import { Future, IgnitionModule, ModuleParameters } from "../../types/module";
 import { ExecutionState, ExecutionStateMap } from "../types/execution-state";
 import { AdjacencyList } from "../utils/adjacency-list";
@@ -21,11 +22,19 @@ export class Reconciler {
     module: IgnitionModule,
     executionStateMap: ExecutionStateMap,
     deploymentParameters: { [key: string]: ModuleParameters },
-    accounts: string[]
+    accounts: string[],
+    moduleArtifactMap: ArtifactMap,
+    storedArtifactMap: ArtifactMap
   ): ReconciliationResult {
     const reconciliationFailures = this._reconcileEachFutureInModule(
       module,
-      { executionStateMap, deploymentParameters, accounts },
+      {
+        executionStateMap,
+        deploymentParameters,
+        accounts,
+        moduleArtifactMap,
+        storedArtifactMap,
+      },
       [
         reconcileCurrentAndPreviousTypeMatch,
         reconcileDependencyRules,

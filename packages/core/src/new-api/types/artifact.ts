@@ -14,6 +14,16 @@ export interface Artifact {
 }
 
 /**
+ * A map of (contract) future id's to their respective artifact.
+ * Used in reconciliation.
+ *
+ * @beta
+ */
+export interface ArtifactMap {
+  [futureId: string]: Artifact;
+}
+
+/**
  * Retrieve artifacts based on contract name.
  *
  * @beta
