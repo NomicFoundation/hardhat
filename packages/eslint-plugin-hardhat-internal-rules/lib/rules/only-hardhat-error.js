@@ -4,7 +4,7 @@
  */
 "use strict";
 
-const { ESLintUtils } = require("@typescript-eslint/experimental-utils");
+const { ESLintUtils } = require("@typescript-eslint/utils");
 const { getExpressionClassName } = require("../helpers/expression-checker");
 
 //------------------------------------------------------------------------------
