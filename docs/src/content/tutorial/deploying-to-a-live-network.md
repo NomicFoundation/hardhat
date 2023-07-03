@@ -47,7 +47,7 @@ Token address: 0x5FbDB2315678afecb367f032d93F642f64180aa3
 
 To deploy to a remote network such as mainnet or any testnet, you need to add a `network` entry to your `hardhat.config.js` file. We’ll use Sepolia for this example, but you can add any network similarly:
 
-::::tabsgroup{options=Infura,Alchemy}
+::::tabsgroup{options=Infura,Alchemy,Tenderly}
 
 :::tab{value=Infura}
 
@@ -109,9 +109,39 @@ module.exports = {
 
 :::
 
+:::tab{value=Tenderly}
+
+```js{5,11,15-20}
+require("@nomicfoundation/hardhat-toolbox");
+
+// Go to https://tenderly.co, sign up, create a new App in
+// its dashboard, and replace "KEY" with its key
+const TENDERLY_API_KEY = "KEY";
+
+// Replace this private key with your Sepolia account private key
+// To export your private key from Coinbase Wallet, go to
+// Settings > Developer Settings > Show private key
+// To export your private key from Metamask, open Metamask and
+// go to Account Details > Export Private Key
+// Beware: NEVER put real Ether into testing accounts
+const SEPOLIA_PRIVATE_KEY = "YOUR SEPOLIA PRIVATE KEY";
+
+module.exports = {
+  solidity: "{LATEST_SOLC_VERSION}",
+  networks: {
+    sepolia: {
+      url: `https://sepolia.gateway.tenderly.co/${TENDERLY_API_KEY}`,
+      accounts: [SEPOLIA_PRIVATE_KEY]
+    }
+  }
+};
+```
+
+:::
+
 ::::
 
-We're using [Infura](https://infura.io) or [Alchemy](https://alchemy.com/), but pointing `url` to any Ethereum node or gateway. Go grab your API key and come back.
+We're using [Infura](https://infura.io), [Alchemy](https://alchemy.com/) or [Tenderly](https://tenderly.co), but pointing `url` to any Ethereum node or gateway. Go grab your API key and come back.
 
 To deploy on Sepolia you need to send some Sepolia ether to the address that's going to be making the deployment. You can get testnet ether from a faucet, a service that distributes testing-ETH for free. Here is one for Sepolia:
 
