@@ -3,7 +3,10 @@ import { assert } from "chai";
 import { Artifact, FutureType } from "../../../src";
 import { defineModule } from "../../../src/new-api/define-module";
 import { MemoryJournal } from "../../../src/new-api/internal/journal/memory-journal";
-import { DeployContractStartMessage } from "../../../src/new-api/types/journal";
+import {
+  DeployContractStartMessage,
+  JournalableMessage,
+} from "../../../src/new-api/types/journal";
 import {
   accumulateMessages,
   assertDeploymentFailure,
@@ -17,6 +20,7 @@ describe("execution engine", () => {
   const differentAddress = "0xBA12222222228d8Ba445958a75a0704d566BF2C8";
   const accounts = exampleAccounts;
   const txId = "0x123";
+  const diffTxId = "0x456";
 
   const contractWithThreeArgConstructorArtifact = {
     abi: [
@@ -69,14 +73,12 @@ describe("execution engine", () => {
         Contract1: contractWithThreeArgConstructorArtifact,
       },
       transactionResponses: {
-        "Module1:Contract1": {
-          1: {
-            type: "onchain-result",
-            subtype: "deploy-contract-success",
-            futureId: "Module1:Contract1",
-            executionId: 1,
+        [accounts[1]]: {
+          0: {
+            blockNumber: 0,
+            confirmations: 1,
             contractAddress: exampleAddress,
-            txId,
+            transactionHash: txId,
           },
         },
       },
@@ -135,6 +137,18 @@ describe("execution engine", () => {
         from: accounts[1],
       },
       {
+        type: "onchain-transaction",
+        futureId: "Module1:Contract1",
+        executionId: 1,
+        from: accounts[1],
+        nonce: 0,
+        tx: {
+          _kind: "TEST-TRANSACTION",
+          nonce: 0,
+        },
+        txHash: "0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC--0",
+      },
+      {
         type: "onchain-result",
         subtype: "deploy-contract-success",
         futureId: "Module1:Contract1",
@@ -165,16 +179,13 @@ describe("execution engine", () => {
 
     const deployer = setupDeployerWithMocks({
       journal,
-      transactionResponses: {
-        "Module1:Contract1": {
-          1: {
-            type: "onchain-result",
-            subtype: "failure",
-            futureId: "Module1:Contract1",
-            executionId: 1,
-            error: new Error(
-              "Cannot estimate gas; transaction may fail or may require manual gas limit"
-            ),
+      sendErrors: {
+        [accounts[1]]: {
+          0: () => {
+            const error = new Error("");
+            (error as any).reason =
+              "Cannot estimate gas; transaction may fail or may require manual gas limit";
+            throw error;
           },
         },
       },
@@ -217,15 +228,6 @@ describe("execution engine", () => {
         storedArtifactPath: "Module1:Contract1.json",
       },
       {
-        type: "onchain-result",
-        subtype: "failure",
-        futureId: "Module1:Contract1",
-        executionId: 1,
-        error: new Error(
-          "Cannot estimate gas; transaction may fail or may require manual gas limit"
-        ),
-      },
-      {
         type: "execution-failure",
         futureId: "Module1:Contract1",
         error: new Error(
@@ -248,14 +250,12 @@ describe("execution engine", () => {
     const deployer = setupDeployerWithMocks({
       journal,
       transactionResponses: {
-        "Module1:Library1": {
-          1: {
-            type: "onchain-result",
-            subtype: "deploy-contract-success",
-            futureId: "Module1:Library1",
-            executionId: 1,
+        [accounts[2]]: {
+          0: {
+            blockNumber: 0,
+            confirmations: 1,
             contractAddress: exampleAddress,
-            txId,
+            transactionHash: txId,
           },
         },
       },
@@ -300,6 +300,18 @@ describe("execution engine", () => {
         from: accounts[2],
       },
       {
+        type: "onchain-transaction",
+        futureId: "Module1:Library1",
+        executionId: 1,
+        from: accounts[2],
+        nonce: 0,
+        tx: {
+          _kind: "TEST-TRANSACTION",
+          nonce: 0,
+        },
+        txHash: "0x90F79bf6EB2c4f870365E785982E1f101E93b906--0",
+      },
+      {
         type: "onchain-result",
         subtype: "deploy-contract-success",
         futureId: "Module1:Library1",
@@ -340,14 +352,12 @@ describe("execution engine", () => {
     const deployer = setupDeployerWithMocks({
       journal,
       transactionResponses: {
-        "Module1:Contract1": {
-          1: {
-            type: "onchain-result",
-            subtype: "deploy-contract-success",
-            futureId: "Module1:Contract1",
-            executionId: 1,
+        [accounts[2]]: {
+          0: {
+            blockNumber: 0,
+            confirmations: 1,
             contractAddress: exampleAddress,
-            txId,
+            transactionHash: txId,
           },
         },
       },
@@ -378,7 +388,10 @@ describe("execution engine", () => {
         constructorArgs: [],
         libraries: {},
         from: accounts[2],
-      } as Omit<DeployContractStartMessage, "storedBuildInfoPath"> as any,
+      } as Omit<
+        DeployContractStartMessage,
+        "storedBuildInfoPath"
+      > as any as JournalableMessage,
       {
         type: "onchain-action",
         subtype: "deploy-contract",
@@ -389,6 +402,18 @@ describe("execution engine", () => {
         value: BigInt(0).toString(),
         from: accounts[2],
         storedArtifactPath: "Module1:Contract1.json",
+      },
+      {
+        type: "onchain-transaction",
+        futureId: "Module1:Contract1",
+        executionId: 1,
+        from: accounts[2],
+        nonce: 0,
+        tx: {
+          _kind: "TEST-TRANSACTION",
+          nonce: 0,
+        },
+        txHash: "0x90F79bf6EB2c4f870365E785982E1f101E93b906--0",
       },
       {
         type: "onchain-result",
@@ -407,6 +432,692 @@ describe("execution engine", () => {
         txId,
       },
     ]);
+  });
+
+  describe("send data", () => {
+    it("should execute a send data", async () => {
+      const journal = new MemoryJournal();
+
+      const moduleDefinition = defineModule("Module1", (m) => {
+        const account1 = m.getAccount(1);
+
+        const contract1 = m.contract("Contract1", [], { from: account1 });
+
+        m.send("test-send", contract1, 123n, undefined, { from: account1 });
+
+        return { contract1 };
+      });
+
+      const deployer = setupDeployerWithMocks({
+        journal,
+        transactionResponses: {
+          [accounts[1]]: {
+            0: {
+              blockNumber: 0,
+              confirmations: 1,
+              contractAddress: exampleAddress,
+              transactionHash: txId,
+            },
+            1: {
+              blockNumber: 1,
+              confirmations: 1,
+              transactionHash: diffTxId,
+            },
+          },
+        },
+      });
+
+      const result = await deployer.deploy(
+        moduleDefinition,
+        {},
+        exampleAccounts
+      );
+
+      assertDeploymentSuccess(result, {
+        "Module1:Contract1": {
+          contractName: "Contract1",
+          contractAddress: exampleAddress,
+          storedArtifactPath: "Module1:Contract1.json",
+        },
+      });
+
+      const journalMessages = await accumulateMessages(journal);
+
+      assert.deepStrictEqual(journalMessages, [
+        {
+          futureId: "Module1:Contract1",
+          type: "execution-start",
+          futureType: FutureType.NAMED_CONTRACT_DEPLOYMENT,
+          strategy: "basic",
+          dependencies: [],
+          storedArtifactPath: "Module1:Contract1.json",
+          storedBuildInfoPath: "build-info-12345.json",
+          contractName: "Contract1",
+          value: BigInt(0).toString(),
+          constructorArgs: [],
+          libraries: {},
+          from: accounts[1],
+        },
+        {
+          type: "onchain-action",
+          subtype: "deploy-contract",
+          futureId: "Module1:Contract1",
+          executionId: 1,
+          contractName: "Contract1",
+          args: [],
+          value: BigInt(0).toString(),
+          storedArtifactPath: "Module1:Contract1.json",
+          from: accounts[1],
+        },
+        {
+          type: "onchain-transaction",
+          futureId: "Module1:Contract1",
+          executionId: 1,
+          from: accounts[1],
+          nonce: 0,
+          tx: {
+            _kind: "TEST-TRANSACTION",
+            nonce: 0,
+          },
+          txHash: "0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC--0",
+        },
+        {
+          type: "onchain-result",
+          subtype: "deploy-contract-success",
+          futureId: "Module1:Contract1",
+          executionId: 1,
+          contractAddress: exampleAddress,
+          txId,
+        },
+        {
+          type: "execution-success",
+          subtype: "deploy-contract",
+          futureId: "Module1:Contract1",
+          contractName: "Contract1",
+          contractAddress: exampleAddress,
+          txId,
+        },
+        {
+          type: "execution-start",
+          futureType: FutureType.SEND_DATA,
+          futureId: "Module1:test-send",
+          strategy: "basic",
+          dependencies: ["Module1:Contract1"],
+          data: "0x",
+          from: accounts[1],
+          to: exampleAddress,
+          value: "123",
+        },
+        {
+          type: "onchain-action",
+          subtype: "send-data",
+          futureId: "Module1:test-send",
+          data: "0x",
+          executionId: 1,
+          from: accounts[1],
+          to: exampleAddress,
+          value: "123",
+        },
+        {
+          type: "onchain-transaction",
+          futureId: "Module1:test-send",
+          executionId: 1,
+          from: accounts[1],
+          nonce: 1,
+          tx: {
+            from: accounts[1],
+            nonce: 1,
+            to: exampleAddress,
+            data: "0x",
+            value: BigInt(123),
+          },
+          txHash: "0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC--1",
+        },
+        {
+          type: "onchain-result",
+          subtype: "send-data-success",
+          futureId: "Module1:test-send",
+          executionId: 1,
+          txId: diffTxId,
+        },
+        {
+          type: "execution-success",
+          subtype: "send-data",
+          futureId: "Module1:test-send",
+          txId: diffTxId,
+        },
+      ]);
+    });
+
+    it.skip("should record a revert of send data");
+  });
+
+  describe("call function", () => {
+    it("should execute a call", async () => {
+      const journal = new MemoryJournal();
+
+      const moduleDefinition = defineModule("Module1", (m) => {
+        const account1 = m.getAccount(1);
+
+        const contract1 = m.contract("Contract1", [], { from: account1 });
+
+        m.call(contract1, "configure", [1, "b", false], { from: account1 });
+
+        return { contract1 };
+      });
+
+      const deployer = setupDeployerWithMocks({
+        journal,
+        transactionResponses: {
+          [accounts[1]]: {
+            0: {
+              blockNumber: 0,
+              confirmations: 1,
+              contractAddress: exampleAddress,
+              transactionHash: txId,
+            },
+            1: {
+              blockNumber: 1,
+              confirmations: 1,
+              transactionHash: diffTxId,
+            },
+          },
+        },
+      });
+
+      const result = await deployer.deploy(
+        moduleDefinition,
+        {},
+        exampleAccounts
+      );
+
+      assertDeploymentSuccess(result, {
+        "Module1:Contract1": {
+          contractName: "Contract1",
+          contractAddress: exampleAddress,
+          storedArtifactPath: "Module1:Contract1.json",
+        },
+      });
+
+      const journalMessages = await accumulateMessages(journal);
+
+      assert.deepStrictEqual(journalMessages, [
+        {
+          futureId: "Module1:Contract1",
+          type: "execution-start",
+          futureType: FutureType.NAMED_CONTRACT_DEPLOYMENT,
+          strategy: "basic",
+          dependencies: [],
+          storedArtifactPath: "Module1:Contract1.json",
+          storedBuildInfoPath: "build-info-12345.json",
+          contractName: "Contract1",
+          value: BigInt(0).toString(),
+          constructorArgs: [],
+          libraries: {},
+          from: accounts[1],
+        },
+        {
+          type: "onchain-action",
+          subtype: "deploy-contract",
+          futureId: "Module1:Contract1",
+          executionId: 1,
+          contractName: "Contract1",
+          args: [],
+          value: BigInt(0).toString(),
+          storedArtifactPath: "Module1:Contract1.json",
+          from: accounts[1],
+        },
+        {
+          type: "onchain-transaction",
+          futureId: "Module1:Contract1",
+          executionId: 1,
+          from: accounts[1],
+          nonce: 0,
+          tx: {
+            _kind: "TEST-TRANSACTION",
+            nonce: 0,
+          },
+          txHash: "0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC--0",
+        },
+        {
+          type: "onchain-result",
+          subtype: "deploy-contract-success",
+          futureId: "Module1:Contract1",
+          executionId: 1,
+          contractAddress: exampleAddress,
+          txId,
+        },
+        {
+          type: "execution-success",
+          subtype: "deploy-contract",
+          futureId: "Module1:Contract1",
+          contractName: "Contract1",
+          contractAddress: exampleAddress,
+          txId,
+        },
+        {
+          type: "execution-start",
+          futureType: FutureType.NAMED_CONTRACT_CALL,
+          futureId: "Module1:Contract1#configure",
+          strategy: "basic",
+          dependencies: ["Module1:Contract1"],
+          args: [1, "b", false],
+          contractAddress: exampleAddress,
+          from: accounts[1],
+          functionName: "configure",
+          storedArtifactPath: "Module1:Contract1.json",
+          value: "0",
+        },
+        {
+          type: "onchain-action",
+          subtype: "call-function",
+          args: [1, "b", false],
+          contractAddress: exampleAddress,
+          executionId: 1,
+          functionName: "configure",
+          futureId: "Module1:Contract1#configure",
+          storedArtifactPath: "Module1:Contract1.json",
+          from: accounts[1],
+          value: "0",
+        },
+        {
+          type: "onchain-transaction",
+          futureId: "Module1:Contract1#configure",
+          executionId: 1,
+          from: accounts[1],
+          nonce: 1,
+          tx: {
+            _kind: "TEST-CALL-TRANSACTION",
+            nonce: 1,
+          },
+          txHash: "0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC--1",
+        },
+        {
+          type: "onchain-result",
+          subtype: "call-function-success",
+          futureId: "Module1:Contract1#configure",
+          executionId: 1,
+          txId: diffTxId,
+        },
+        {
+          type: "execution-success",
+          subtype: "call-function",
+          futureId: "Module1:Contract1#configure",
+          contractAddress: exampleAddress,
+          functionName: "configure",
+          txId: diffTxId,
+        },
+      ]);
+    });
+
+    it.skip("should record a revert of call function");
+  });
+
+  describe("static call", () => {
+    it("should execute a static call", async () => {
+      const journal = new MemoryJournal();
+
+      const moduleDefinition = defineModule("Module1", (m) => {
+        const account1 = m.getAccount(1);
+
+        const contract1 = m.contract("Contract1", [], { from: account1 });
+
+        m.staticCall(contract1, "test", [1, "b", false], { from: account1 });
+
+        return { contract1 };
+      });
+
+      const deployer = setupDeployerWithMocks({
+        journal,
+        transactionResponses: {
+          [accounts[1]]: {
+            0: {
+              blockNumber: 0,
+              confirmations: 1,
+              contractAddress: exampleAddress,
+              transactionHash: txId,
+            },
+          },
+        },
+        staticCall: async (contractAddress, _abi, functionName) => {
+          assert.equal(contractAddress, exampleAddress);
+          assert.equal(functionName, "test");
+
+          return "example_static_call_result";
+        },
+      });
+
+      const result = await deployer.deploy(
+        moduleDefinition,
+        {},
+        exampleAccounts
+      );
+
+      assertDeploymentSuccess(result, {
+        "Module1:Contract1": {
+          contractName: "Contract1",
+          contractAddress: exampleAddress,
+          storedArtifactPath: "Module1:Contract1.json",
+        },
+      });
+
+      const journalMessages = await accumulateMessages(journal);
+
+      assert.deepStrictEqual(journalMessages, [
+        {
+          futureId: "Module1:Contract1",
+          type: "execution-start",
+          futureType: FutureType.NAMED_CONTRACT_DEPLOYMENT,
+          strategy: "basic",
+          dependencies: [],
+          storedArtifactPath: "Module1:Contract1.json",
+          storedBuildInfoPath: "build-info-12345.json",
+          contractName: "Contract1",
+          value: BigInt(0).toString(),
+          constructorArgs: [],
+          libraries: {},
+          from: accounts[1],
+        },
+        {
+          type: "onchain-action",
+          subtype: "deploy-contract",
+          futureId: "Module1:Contract1",
+          executionId: 1,
+          contractName: "Contract1",
+          args: [],
+          value: BigInt(0).toString(),
+          storedArtifactPath: "Module1:Contract1.json",
+          from: accounts[1],
+        },
+        {
+          type: "onchain-transaction",
+          futureId: "Module1:Contract1",
+          executionId: 1,
+          from: accounts[1],
+          nonce: 0,
+          tx: {
+            _kind: "TEST-TRANSACTION",
+            nonce: 0,
+          },
+          txHash: "0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC--0",
+        },
+        {
+          type: "onchain-result",
+          subtype: "deploy-contract-success",
+          futureId: "Module1:Contract1",
+          executionId: 1,
+          contractAddress: exampleAddress,
+          txId,
+        },
+        {
+          type: "execution-success",
+          subtype: "deploy-contract",
+          futureId: "Module1:Contract1",
+          contractName: "Contract1",
+          contractAddress: exampleAddress,
+          txId,
+        },
+        {
+          type: "execution-start",
+          futureType: FutureType.NAMED_STATIC_CALL,
+          futureId: "Module1:Contract1#test",
+          strategy: "basic",
+          dependencies: ["Module1:Contract1"],
+          args: [1, "b", false],
+          contractAddress: exampleAddress,
+          from: accounts[1],
+          functionName: "test",
+          storedArtifactPath: "Module1:Contract1.json",
+        },
+        {
+          type: "onchain-action",
+          subtype: "static-call",
+          args: [1, "b", false],
+          contractAddress: exampleAddress,
+          executionId: 1,
+          functionName: "test",
+          futureId: "Module1:Contract1#test",
+          storedArtifactPath: "Module1:Contract1.json",
+          from: accounts[1],
+        },
+        {
+          type: "onchain-result",
+          subtype: "static-call-success",
+          futureId: "Module1:Contract1#test",
+          executionId: 1,
+          result: "example_static_call_result",
+        },
+        {
+          type: "execution-success",
+          subtype: "static-call",
+          futureId: "Module1:Contract1#test",
+          contractAddress: exampleAddress,
+          functionName: "test",
+          result: "example_static_call_result",
+        },
+      ]);
+    });
+
+    it.skip("should record a revert of call function");
+  });
+
+  describe("contract at", () => {
+    it("should execute a contract at", async () => {
+      const journal = new MemoryJournal();
+
+      const moduleDefinition = defineModule("Module1", (m) => {
+        const contract1 = m.contractAt("Contract1", exampleAddress);
+
+        return { contract1 };
+      });
+
+      const deployer = setupDeployerWithMocks({
+        journal,
+      });
+
+      const result = await deployer.deploy(
+        moduleDefinition,
+        {},
+        exampleAccounts
+      );
+
+      assertDeploymentSuccess(result, {
+        "Module1:Contract1": {
+          contractName: "Contract1",
+          contractAddress: exampleAddress,
+          storedArtifactPath: "Module1:Contract1.json",
+        },
+      });
+
+      const journalMessages = await accumulateMessages(journal);
+
+      assert.deepStrictEqual(journalMessages, [
+        {
+          type: "execution-start",
+          futureType: FutureType.NAMED_CONTRACT_AT,
+          futureId: "Module1:Contract1",
+          strategy: "basic",
+          contractAddress: exampleAddress,
+          contractName: "Contract1",
+          dependencies: [],
+          storedArtifactPath: "Module1:Contract1.json",
+          storedBuildInfoPath: "build-info-12345.json",
+        },
+        {
+          type: "onchain-action",
+          subtype: "contract-at",
+          futureId: "Module1:Contract1",
+          executionId: 1,
+          contractAddress: exampleAddress,
+          contractName: "Contract1",
+          storedArtifactPath: "Module1:Contract1.json",
+        },
+        {
+          type: "execution-success",
+          subtype: "contract-at",
+          futureId: "Module1:Contract1",
+          contractName: "Contract1",
+          contractAddress: exampleAddress,
+        },
+      ]);
+    });
+  });
+
+  describe("read event arg", () => {
+    it("should execute a read event arg", async () => {
+      const journal = new MemoryJournal();
+
+      const moduleDefinition = defineModule("Module1", (m) => {
+        const account1 = m.getAccount(1);
+
+        const contract1 = m.contract("Contract1", [], { from: account1 });
+
+        m.readEventArgument(contract1, "EventName1", "arg1");
+
+        return { contract1 };
+      });
+
+      const deployer = setupDeployerWithMocks({
+        journal,
+        transactionResponses: {
+          [accounts[1]]: {
+            0: {
+              blockNumber: 0,
+              confirmations: 1,
+              contractAddress: exampleAddress,
+              transactionHash: txId,
+              logs: { here: "example" },
+            },
+          },
+        },
+        getEventArgument: async (
+          eventName: string,
+          argumentName: string,
+          txToReadFrom: string
+        ) => {
+          assert.equal(eventName, "EventName1");
+          assert.equal(argumentName, "arg1");
+          assert.equal(txToReadFrom, txId);
+
+          return "event-arg-value";
+        },
+      });
+
+      const result = await deployer.deploy(
+        moduleDefinition,
+        {},
+        exampleAccounts
+      );
+
+      assertDeploymentSuccess(result, {
+        "Module1:Contract1": {
+          contractName: "Contract1",
+          contractAddress: exampleAddress,
+          storedArtifactPath: "Module1:Contract1.json",
+        },
+      });
+
+      const journalMessages = await accumulateMessages(journal);
+
+      assert.deepStrictEqual(journalMessages, [
+        {
+          futureId: "Module1:Contract1",
+          type: "execution-start",
+          futureType: FutureType.NAMED_CONTRACT_DEPLOYMENT,
+          strategy: "basic",
+          dependencies: [],
+          storedArtifactPath: "Module1:Contract1.json",
+          storedBuildInfoPath: "build-info-12345.json",
+          contractName: "Contract1",
+          value: BigInt(0).toString(),
+          constructorArgs: [],
+          libraries: {},
+          from: accounts[1],
+        },
+        {
+          type: "onchain-action",
+          subtype: "deploy-contract",
+          futureId: "Module1:Contract1",
+          executionId: 1,
+          contractName: "Contract1",
+          args: [],
+          value: BigInt(0).toString(),
+          storedArtifactPath: "Module1:Contract1.json",
+          from: accounts[1],
+        },
+        {
+          type: "onchain-transaction",
+          futureId: "Module1:Contract1",
+          executionId: 1,
+          from: accounts[1],
+          nonce: 0,
+          tx: {
+            _kind: "TEST-TRANSACTION",
+            nonce: 0,
+          },
+          txHash: "0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC--0",
+        },
+        {
+          type: "onchain-result",
+          subtype: "deploy-contract-success",
+          futureId: "Module1:Contract1",
+          executionId: 1,
+          contractAddress: exampleAddress,
+          txId,
+        },
+        {
+          type: "execution-success",
+          subtype: "deploy-contract",
+          futureId: "Module1:Contract1",
+          contractName: "Contract1",
+          contractAddress: exampleAddress,
+          txId,
+        },
+
+        {
+          type: "execution-start",
+          futureType: FutureType.READ_EVENT_ARGUMENT,
+          strategy: "basic",
+          dependencies: ["Module1:Contract1"],
+          futureId: "Module1:Contract1#EventName1#arg1#0",
+          eventName: "EventName1",
+          argumentName: "arg1",
+          eventIndex: 0,
+          emitterAddress: exampleAddress,
+          txToReadFrom: txId,
+          storedArtifactPath: "Module1:Contract1.json",
+        },
+        {
+          type: "onchain-action",
+          subtype: "read-event-arg",
+          futureId: "Module1:Contract1#EventName1#arg1#0",
+          executionId: 1,
+          eventName: "EventName1",
+          argumentName: "arg1",
+          eventIndex: 0,
+          emitterAddress: exampleAddress,
+          txToReadFrom: txId,
+          storedArtifactPath: "Module1:Contract1.json",
+        },
+        {
+          type: "onchain-result",
+          subtype: "read-event-arg-success",
+          futureId: "Module1:Contract1#EventName1#arg1#0",
+          executionId: 1,
+          result: "event-arg-value",
+        },
+        {
+          type: "execution-success",
+          subtype: "read-event-arg",
+          futureId: "Module1:Contract1#EventName1#arg1#0",
+          eventName: "EventName1",
+          argumentName: "arg1",
+          result: "event-arg-value",
+        },
+      ]);
+    });
+
+    it.skip("should record a revert of a read event arg");
   });
 
   describe("with complex arguments", () => {
@@ -436,24 +1147,18 @@ describe("execution engine", () => {
       const deployer = setupDeployerWithMocks({
         journal,
         transactionResponses: {
-          "Module1:Contract1": {
-            1: {
-              type: "onchain-result",
-              subtype: "deploy-contract-success",
-              futureId: "Module1:Contract1",
-              executionId: 1,
-              contractAddress: exampleAddress,
-              txId,
-            },
-          },
-          "Module1:Library1": {
-            1: {
-              type: "onchain-result",
-              subtype: "deploy-contract-success",
-              futureId: "Module1:Library1",
-              executionId: 1,
+          [accounts[1]]: {
+            0: {
+              blockNumber: 0,
+              confirmations: 1,
               contractAddress: differentAddress,
-              txId,
+              transactionHash: txId,
+            },
+            1: {
+              blockNumber: 0,
+              confirmations: 1,
+              contractAddress: exampleAddress,
+              transactionHash: diffTxId,
             },
           },
         },
@@ -505,6 +1210,18 @@ describe("execution engine", () => {
           value: BigInt(0).toString(),
           storedArtifactPath: "Module1:Library1.json",
           from: accounts[1],
+        },
+        {
+          type: "onchain-transaction",
+          futureId: "Module1:Library1",
+          executionId: 1,
+          from: accounts[1],
+          nonce: 0,
+          tx: {
+            _kind: "TEST-TRANSACTION",
+            nonce: 0,
+          },
+          txHash: "0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC--0",
         },
         {
           type: "onchain-result",
@@ -560,12 +1277,24 @@ describe("execution engine", () => {
           from: exampleAccounts[1],
         },
         {
+          type: "onchain-transaction",
+          futureId: "Module1:Contract1",
+          executionId: 1,
+          from: accounts[1],
+          nonce: 1,
+          tx: {
+            _kind: "TEST-TRANSACTION",
+            nonce: 1,
+          },
+          txHash: "0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC--1",
+        },
+        {
           type: "onchain-result",
           subtype: "deploy-contract-success",
           futureId: "Module1:Contract1",
           executionId: 1,
           contractAddress: exampleAddress,
-          txId,
+          txId: diffTxId,
         },
         {
           type: "execution-success",
@@ -573,7 +1302,7 @@ describe("execution engine", () => {
           futureId: "Module1:Contract1",
           contractName: "Contract1",
           contractAddress: exampleAddress,
-          txId,
+          txId: diffTxId,
         },
       ]);
     });

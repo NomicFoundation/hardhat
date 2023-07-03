@@ -54,7 +54,10 @@ export function isOnchainInteractionMessage(
   return (
     isDeployContractInteraction(potential) ||
     isCallFunctionInteraction(potential) ||
-    isStaticCallInteraction(potential)
+    isStaticCallInteraction(potential) ||
+    isReadEventArgumentInteraction(potential) ||
+    isSendDataInteraction(potential) ||
+    isContractAtInteraction(potential)
   );
 }
 

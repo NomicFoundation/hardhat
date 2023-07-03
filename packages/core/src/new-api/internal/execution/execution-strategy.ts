@@ -6,7 +6,7 @@ import {
   ContractAtInteractionMessage,
   DeployContractInteractionMessage,
   DeployedContractExecutionSuccess,
-  JournalableMessage,
+  ExecutionSuccess,
   OnchainCallFunctionSuccessMessage,
   OnchainContractAtSuccessMessage,
   OnchainDeployContractSuccessMessage,
@@ -56,7 +56,7 @@ export class BasicExecutionStrategy
     sender?: string;
   }): AsyncGenerator<
     OnchainInteractionMessage,
-    JournalableMessage,
+    OnchainInteractionMessage | ExecutionSuccess,
     OnchainResultMessage | null
   > {
     if (isDeploymentExecutionState(executionState)) {
@@ -105,7 +105,7 @@ export class BasicExecutionStrategy
       "Sender must be defined for deployment execution"
     );
 
-    const result = yield {
+    const deployContract: DeployContractInteractionMessage = {
       type: "onchain-action",
       subtype: "deploy-contract",
       futureId: deploymentExecutionState.id,
@@ -116,6 +116,8 @@ export class BasicExecutionStrategy
       storedArtifactPath: deploymentExecutionState.storedArtifactPath,
       from: sender,
     };
+
+    const result = yield deployContract;
 
     if (result === null) {
       throw new IgnitionError("No result yielded");

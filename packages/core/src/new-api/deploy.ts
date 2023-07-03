@@ -1,8 +1,7 @@
 import { Deployer } from "./internal/deployer";
 import { EphemeralDeploymentLoader } from "./internal/deployment-loader/ephemeral-deployment-loader";
 import { FileDeploymentLoader } from "./internal/deployment-loader/file-deployment-loader";
-import { EthersChainDispatcher } from "./internal/execution/transactions/chain-dispatcher";
-import { TransactionServiceImplementation } from "./internal/execution/transactions/transaction-service";
+import { ChainDispatcherImpl } from "./internal/execution/chain-dispatcher";
 import { Adapters } from "./types/adapters";
 import { ArtifactResolver } from "./types/artifact";
 import { DeploymentResult } from "./types/deployer";
@@ -14,7 +13,7 @@ import { IgnitionModuleDefinition } from "./types/module-builder";
  *
  * @beta
  */
-export function deploy({
+export async function deploy({
   artifactResolver,
   adapters,
   deploymentDir,
@@ -38,16 +37,12 @@ export function deploy({
       ? new EphemeralDeploymentLoader(artifactResolver)
       : new FileDeploymentLoader(deploymentDir);
 
-  const transactionService = new TransactionServiceImplementation(
-    deploymentLoader,
-    adapters.signer,
-    new EthersChainDispatcher(adapters.gas, adapters.transactions)
-  );
+  const chainDispatcher = new ChainDispatcherImpl(adapters);
 
   const deployer = new Deployer({
     artifactResolver,
-    transactionService,
     deploymentLoader,
+    chainDispatcher,
   });
 
   return deployer.deploy(moduleDefinition, deploymentParameters, accounts);

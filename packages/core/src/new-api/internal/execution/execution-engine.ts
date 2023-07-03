@@ -1,3 +1,4 @@
+import { ethers } from "ethers";
 import identity from "lodash/identity";
 
 import { IgnitionError } from "../../../errors";
@@ -6,11 +7,26 @@ import { ArtifactResolver } from "../../types/artifact";
 import { DeploymentResult } from "../../types/deployer";
 import { DeploymentLoader } from "../../types/deployment-loader";
 import {
+  CallFunctionInteractionMessage,
+  DeployContractInteractionMessage,
   ExecutionFailure,
   ExecutionResultMessage,
+  ExecutionSuccess,
   FutureStartMessage,
   JournalableMessage,
-  OnchainResultFailureMessage,
+  OnchainCallFunctionSuccessMessage,
+  OnchainContractAtSuccessMessage,
+  OnchainDeployContractSuccessMessage,
+  OnchainFailureMessage,
+  OnchainInteractionMessage,
+  OnchainReadEventArgumentSuccessMessage,
+  OnchainResultMessage,
+  OnchainSendDataSuccessMessage,
+  OnchainStaticCallSuccessMessage,
+  OnchainTransaction,
+  ReadEventArgumentInteractionMessage,
+  SendDataInteractionMessage,
+  StaticCallInteractionMessage,
 } from "../../types/journal";
 import {
   AccountRuntimeValue,
@@ -22,12 +38,7 @@ import {
   NamedContractDeploymentFuture,
   NamedLibraryDeploymentFuture,
 } from "../../types/module";
-import {
-  isFutureStartMessage,
-  isOnChainFailureMessage,
-  isOnChainSuccessMessage,
-  isWipeMessage,
-} from "../journal/type-guards";
+import { isOnchainFailureMessage } from "../journal/type-guards";
 import {
   isCallExecutionState,
   isContractAtExecutionState,
@@ -35,16 +46,19 @@ import {
   isSendDataExecutionState,
   isStaticCallExecutionState,
 } from "../type-guards";
+import { ChainDispatcher } from "../types/chain-dispatcher";
 import {
   ExecutionEngineState,
   ExecutionStrategyContext,
 } from "../types/execution-engine";
 import {
   DeploymentExecutionState,
+  ExecutionState,
   ExecutionStateMap,
   ExecutionStatus,
 } from "../types/execution-state";
 import { assertIgnitionInvariant } from "../utils/assertions";
+import { collectLibrariesAndLink } from "../utils/collectLibrariesAndLink";
 import { getFuturesFromModule } from "../utils/get-futures-from-module";
 import { replaceWithinArg } from "../utils/replace-within-arg";
 import { resolveFromAddress } from "../utils/resolve-from-address";
@@ -53,13 +67,25 @@ import { resolveModuleParameter } from "../utils/resolve-module-parameter";
 
 import { executionStateReducer } from "./executionStateReducer";
 import {
+  isCallFunctionInteraction,
+  isContractAtInteraction,
+  isDeployContractInteraction,
   isDeployedContractExecutionSuccess,
   isExecutionFailure,
   isExecutionResultMessage,
-  isOnChainAction,
+  isOnchainInteractionMessage,
+  isReadEventArgumentInteraction,
+  isSendDataInteraction,
+  isStaticCallInteraction,
 } from "./guards";
 
 type ExecutionBatch = Future[];
+
+export interface AccountsState {
+  [key: string]: number;
+}
+
+const DEFAULT_CONFIRMATIONS = 0;
 
 export class ExecutionEngine {
   public async execute(state: ExecutionEngineState): Promise<DeploymentResult> {
@@ -105,73 +131,487 @@ export class ExecutionEngine {
   private async _executeBatch(
     batch: ExecutionBatch,
     state: ExecutionEngineState
-  ) {
-    return Promise.all(
-      batch.map((entry) => this._executeBatchEntry(entry, state))
-    );
-  }
+  ): Promise<ExecutionResultMessage[]> {
+    let batchResults: ExecutionResultMessage[] = [];
 
-  private async _executeBatchEntry(
-    future: Future,
-    state: ExecutionEngineState
-  ): Promise<ExecutionResultMessage> {
-    let current: JournalableMessage = await this._initCommandFor(future, state);
-
-    await this._apply(state, current);
-
-    const context = this._setupExecutionStrategyContext(future, state);
-    const exectionStrategy = state.strategy.executeStrategy(context);
-
-    const dependencies = Array.from(context.executionState.dependencies);
-    const deployedContracts = this._resolveDeployedContractsFrom(state);
-
-    const libraries = Object.fromEntries(
-      dependencies
-        .filter((id) => deployedContracts[id] !== undefined)
-        .map((id) => {
-          const lib = deployedContracts[id];
-          return [lib.contractName, lib.contractAddress];
-        })
-    );
-
-    while (!isExecutionResultMessage(current)) {
-      context.executionState = state.executionStateMap[future.id];
-
-      if (isOnChainAction(current)) {
-        current = await state.transactionService.onchain(current, {
-          libraries,
-        });
-      } else if (isOnChainSuccessMessage(current)) {
-        current = (await exectionStrategy.next(current)).value;
-      } else if (isOnChainFailureMessage(current)) {
-        current = this._convertToExecutionFailure(current);
-      } else if (isFutureStartMessage(current)) {
-        current = (await exectionStrategy.next(null)).value;
-      } else if (isWipeMessage(current)) {
-        // ignore - we should never get wipe messages
+    // initialize all futures
+    // TODO: reconsider if this can be delayed until the first on-chain
+    // submission, to reduce restart state
+    // TODO: nonce check on initialization?
+    for (const future of batch) {
+      if (state.executionStateMap[future.id] !== undefined) {
         continue;
-      } else {
-        this._assertNeverJournalableMessage(current);
       }
 
-      await this._apply(state, current);
+      const initMessage: JournalableMessage = await this._initCommandFor(
+        future,
+        state
+      );
+
+      await this._apply(state, initMessage);
     }
 
-    return current;
+    while (!this._isBatchComplete(batch, state.executionStateMap)) {
+      const sortedFutures: Future[] = this._sortFuturesByExistingNonces(batch);
+
+      const results = await this._submitOrCheckFutures(
+        sortedFutures,
+        state,
+        state.chainDispatcher
+      );
+
+      batchResults = [...batchResults, ...results];
+
+      if (this._isBatchComplete(sortedFutures, state.executionStateMap)) {
+        break;
+      }
+
+      await this._newBlock();
+    }
+
+    return batchResults;
   }
 
-  private _assertNeverJournalableMessage(message: never) {
-    throw new IgnitionError(`Unrecognized message ${JSON.stringify(message)}`);
+  private async _submitOrCheckFutures(
+    futures: Future[],
+    state: ExecutionEngineState,
+    chainDispatcher: ChainDispatcher
+  ): Promise<ExecutionResultMessage[]> {
+    const accumulatedResults: ExecutionResultMessage[] = [];
+
+    for (const future of futures) {
+      const exState = state.executionStateMap[future.id];
+      assertIgnitionInvariant(
+        exState !== undefined,
+        "Execution state should be defined"
+      );
+
+      if (this._isFutureComplete(future, state.executionStateMap)) {
+        continue;
+      }
+
+      const result = await this._processFutureTick(
+        future,
+        exState,
+        state,
+        chainDispatcher
+      );
+
+      // if the current future has a pending transaction,
+      // continue with the batch
+      if (result === null) {
+        continue;
+      }
+
+      accumulatedResults.push(result);
+    }
+
+    return accumulatedResults;
   }
 
-  private _convertToExecutionFailure(
-    current: OnchainResultFailureMessage
-  ): ExecutionFailure {
-    return {
-      type: "execution-failure",
-      futureId: current.futureId,
-      error: current.error,
+  /**
+   * Wait for the next block to  be processed on-chain
+   */
+  private async _newBlock(): Promise<void> {
+    // TODO: add in block check and deal with test vs real chains
+    return;
+  }
+
+  private async _processFutureTick(
+    future: Future,
+    exState: ExecutionState,
+    state: ExecutionEngineState,
+    chainDispatcher: ChainDispatcher
+  ): Promise<ExecutionResultMessage | null> {
+    const context = this._setupExecutionStrategyContext(future, state);
+    const strategy = state.strategy.executeStrategy(context);
+
+    let nextInput: OnchainResultMessage | null = null;
+    while (true) {
+      const onchainRequest: OnchainInteractionMessage | ExecutionSuccess = (
+        await strategy.next(nextInput)
+      ).value;
+      await this._apply(state, onchainRequest);
+
+      if (isExecutionResultMessage(onchainRequest)) {
+        return onchainRequest;
+      }
+
+      assertIgnitionInvariant(
+        isOnchainInteractionMessage(onchainRequest),
+        "Only onchain interaction requests expected"
+      );
+
+      if (isReadEventArgumentInteraction(onchainRequest)) {
+        const readEventArgResult:
+          | OnchainReadEventArgumentSuccessMessage
+          | OnchainFailureMessage = await this._readEventArg(
+          onchainRequest,
+          state
+        );
+
+        await this._apply(state, readEventArgResult);
+
+        if (isOnchainFailureMessage(readEventArgResult)) {
+          const executionFailure: ExecutionFailure = {
+            type: "execution-failure",
+            futureId: future.id,
+            error: readEventArgResult.error,
+          };
+          await this._apply(state, executionFailure);
+
+          return executionFailure;
+        }
+
+        nextInput = readEventArgResult;
+      } else if (isContractAtInteraction(onchainRequest)) {
+        const contractAtSuccess: OnchainContractAtSuccessMessage = {
+          type: "onchain-result",
+          subtype: "contract-at-success",
+          futureId: onchainRequest.futureId,
+          executionId: onchainRequest.executionId,
+          contractAddress: onchainRequest.contractAddress,
+          contractName: onchainRequest.contractName,
+        };
+
+        nextInput = contractAtSuccess;
+      } else if (isStaticCallInteraction(onchainRequest)) {
+        const staticCallResult:
+          | OnchainStaticCallSuccessMessage
+          | OnchainFailureMessage = await this._queryStaticCall(
+          onchainRequest,
+          state
+        );
+
+        await this._apply(state, staticCallResult);
+
+        if (isOnchainFailureMessage(staticCallResult)) {
+          const executionFailure: ExecutionFailure = {
+            type: "execution-failure",
+            futureId: future.id,
+            error: staticCallResult.error,
+          };
+          await this._apply(state, executionFailure);
+
+          return executionFailure;
+        }
+
+        nextInput = staticCallResult;
+      } else if (
+        isDeployContractInteraction(onchainRequest) ||
+        isSendDataInteraction(onchainRequest) ||
+        isCallFunctionInteraction(onchainRequest)
+      ) {
+        const nonce = await chainDispatcher.allocateNextNonceForAccount(
+          onchainRequest.from
+        );
+
+        const tx = await this._convertRequestToTransaction(
+          onchainRequest,
+          state
+        );
+        tx.nonce = nonce;
+
+        let txHash: string;
+        try {
+          txHash = await chainDispatcher.sendTx(tx, onchainRequest.from);
+        } catch (error) {
+          const executionFailure: ExecutionFailure = {
+            type: "execution-failure",
+            futureId: future.id,
+            error: new Error(
+              error instanceof Error
+                ? "reason" in error
+                  ? (error.reason as string)
+                  : error.message
+                : "unknown error"
+            ),
+          };
+
+          await this._apply(state, executionFailure);
+          return executionFailure;
+        }
+
+        // TODO: should this go before submission? Can we precalculate the hash?
+        const onchainTransaction: OnchainTransaction = {
+          type: "onchain-transaction",
+          futureId: future.id,
+          executionId: onchainRequest.executionId,
+          txHash,
+          nonce,
+          from: onchainRequest.from,
+          tx,
+        };
+        await this._apply(state, onchainTransaction);
+
+        const currentTransaction = await chainDispatcher.getTransactionReceipt(
+          txHash
+        );
+
+        if (currentTransaction === null || currentTransaction === undefined) {
+          // TODO: deal with dropped transactions
+          throw new IgnitionError("TBD: deal with dropped transaction");
+        }
+
+        if (
+          currentTransaction.blockNumber === undefined ||
+          // TODO: make default confirmations config
+          currentTransaction.confirmations < DEFAULT_CONFIRMATIONS
+        ) {
+          // transaction pending, move on with batch
+          return null;
+        }
+
+        if (isDeployContractInteraction(onchainRequest)) {
+          const deployResult: OnchainDeployContractSuccessMessage = {
+            type: "onchain-result",
+            subtype: "deploy-contract-success",
+            futureId: future.id,
+            executionId: onchainRequest.executionId,
+            contractAddress: currentTransaction.contractAddress,
+            txId: currentTransaction.transactionHash,
+          };
+
+          await this._apply(state, deployResult);
+          nextInput = deployResult;
+        } else if (isSendDataInteraction(onchainRequest)) {
+          const sendDataResult: OnchainSendDataSuccessMessage = {
+            type: "onchain-result",
+            subtype: "send-data-success",
+            futureId: future.id,
+            executionId: onchainRequest.executionId,
+            txId: currentTransaction.transactionHash,
+          };
+
+          await this._apply(state, sendDataResult);
+          nextInput = sendDataResult;
+        } else if (isCallFunctionInteraction(onchainRequest)) {
+          const callFunctionResult: OnchainCallFunctionSuccessMessage = {
+            type: "onchain-result",
+            subtype: "call-function-success",
+            futureId: future.id,
+            executionId: onchainRequest.executionId,
+            txId: currentTransaction.transactionHash,
+          };
+
+          await this._apply(state, callFunctionResult);
+          nextInput = callFunctionResult;
+        } else {
+          this._assertNeverInteractionMessage(onchainRequest);
+        }
+      } else {
+        this._assertNeverInteractionMessage(onchainRequest);
+      }
+    }
+  }
+
+  private _isBatchComplete(
+    sortedFutures: Future[],
+    executionStateMap: ExecutionStateMap
+  ): boolean {
+    return sortedFutures.every((f) => {
+      return this._isFutureComplete(f, executionStateMap);
+    });
+  }
+
+  private _isFutureComplete(
+    future: Future,
+    executionStateMap: ExecutionStateMap
+  ) {
+    const state = executionStateMap[future.id];
+
+    return (
+      state !== undefined &&
+      (state.status === ExecutionStatus.HOLD ||
+        state.status === ExecutionStatus.SUCCESS ||
+        state.status === ExecutionStatus.FAILED)
+    );
+  }
+
+  private _sortFuturesByExistingNonces(futures: Future[]): Future[] {
+    // TODO: actually sort based on history against each execution state.
+    return futures;
+  }
+
+  private async _convertRequestToTransaction(
+    request: OnchainInteractionMessage,
+    state: ExecutionEngineState
+  ) {
+    switch (request.subtype) {
+      case "contract-at": {
+        throw new IgnitionError(
+          "No transaction involved in contractAt request"
+        );
+      }
+      case "read-event-arg": {
+        throw new IgnitionError(
+          "No transaction involved in readEventArg request"
+        );
+      }
+      case "static-call": {
+        throw new IgnitionError(
+          "No transaction involved in staticCall request"
+        );
+      }
+      case "call-function": {
+        return this._convertRequestToCallFunctionTransaction(request, state);
+      }
+      case "send-data": {
+        return this._convertRequestToSendDataTransaction(request, state);
+      }
+      case "deploy-contract":
+        return this._convertRequestToDeployTransaction(request, state);
+    }
+  }
+
+  private async _convertRequestToCallFunctionTransaction(
+    request: CallFunctionInteractionMessage,
+    state: ExecutionEngineState
+  ): Promise<ethers.providers.TransactionRequest> {
+    const artifact = await state.deploymentLoader.loadArtifact(
+      request.storedArtifactPath
+    );
+
+    const contractAddress: string = request.contractAddress;
+    const abi = artifact.abi;
+    const functionName: string = request.functionName;
+    const args: ArgumentType[] = request.args;
+    const value: bigint = BigInt(request.value);
+    const from: string = request.from;
+
+    const unsignedTx = state.chainDispatcher.constructCallTransaction(
+      contractAddress,
+      abi,
+      functionName,
+      args,
+      value,
+      from
+    );
+
+    return unsignedTx;
+  }
+
+  private async _convertRequestToSendDataTransaction(
+    request: SendDataInteractionMessage,
+    _state: ExecutionEngineState
+  ): Promise<ethers.providers.TransactionRequest> {
+    const unsignedTx: ethers.providers.TransactionRequest = {
+      from: request.from,
+      to: request.to,
+      value: BigInt(request.value),
+      data: request.data,
     };
+
+    return unsignedTx;
+  }
+
+  private async _convertRequestToDeployTransaction(
+    request: DeployContractInteractionMessage,
+    state: ExecutionEngineState
+  ): Promise<ethers.providers.TransactionRequest> {
+    const artifact = await state.deploymentLoader.loadArtifact(
+      request.storedArtifactPath
+    );
+
+    const abi = artifact.abi;
+    const args = request.args;
+    const value = BigInt(request.value);
+    const from = request.from;
+
+    // TODO: fix libraries
+    const linkedByteCode = await collectLibrariesAndLink(artifact, {});
+
+    const tx = state.chainDispatcher.constructDeployTransaction(
+      linkedByteCode,
+      abi,
+      args,
+      value,
+      from
+    );
+
+    return tx;
+  }
+
+  private async _readEventArg(
+    request: ReadEventArgumentInteractionMessage,
+    state: ExecutionEngineState
+  ): Promise<OnchainReadEventArgumentSuccessMessage | OnchainFailureMessage> {
+    const artifact = await state.deploymentLoader.loadArtifact(
+      request.storedArtifactPath
+    );
+
+    try {
+      const result = await state.chainDispatcher.getEventArgument(
+        request.eventName,
+        request.argumentName,
+        request.txToReadFrom,
+        request.eventIndex,
+        request.emitterAddress,
+        artifact.abi
+      );
+
+      return {
+        type: "onchain-result",
+        subtype: "read-event-arg-success",
+        futureId: request.futureId,
+        executionId: request.executionId,
+        result,
+      };
+    } catch (error) {
+      return {
+        type: "onchain-result",
+        subtype: "failure",
+        futureId: request.futureId,
+        executionId: request.executionId,
+        error:
+          error instanceof Error
+            ? error
+            : new Error("Unknown read event arg error"),
+      };
+    }
+  }
+
+  private async _queryStaticCall(
+    request: StaticCallInteractionMessage,
+    state: ExecutionEngineState
+  ): Promise<OnchainStaticCallSuccessMessage | OnchainFailureMessage> {
+    const artifact = await state.deploymentLoader.loadArtifact(
+      request.storedArtifactPath
+    );
+
+    try {
+      const result = await state.chainDispatcher.staticCallQuery(
+        request.contractAddress,
+        artifact.abi,
+        request.functionName,
+        request.args,
+        request.from
+      );
+
+      assertIgnitionInvariant(
+        result !== undefined,
+        "Static call result not available"
+      );
+
+      return {
+        type: "onchain-result",
+        subtype: "static-call-success",
+        futureId: request.futureId,
+        executionId: request.executionId,
+        result,
+      };
+    } catch (error) {
+      return {
+        type: "onchain-result",
+        subtype: "failure",
+        futureId: request.futureId,
+        executionId: request.executionId,
+        error:
+          error instanceof Error
+            ? error
+            : new Error("Unknown static call error"),
+      };
+    }
   }
 
   private async _apply(
@@ -460,6 +900,7 @@ export class ExecutionEngine {
           to,
           from: resolveFromAddress(future.from, { accounts }),
         };
+
         return state;
       }
       case FutureType.NAMED_CONTRACT_AT: {
@@ -678,11 +1119,17 @@ export class ExecutionEngine {
         ? exState.from ?? state.accounts[0]
         : undefined;
 
-    const context = {
+    const futureContext = {
       executionState: exState,
       sender,
     };
 
-    return context;
+    return futureContext;
+  }
+
+  private _assertNeverInteractionMessage(message: never) {
+    throw new IgnitionError(
+      `Unknown interaction message ${JSON.stringify(message)}`
+    );
   }
 }

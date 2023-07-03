@@ -30,6 +30,7 @@ export type JournalableMessage =
  */
 export type TransactionMessage =
   | OnchainInteractionMessage
+  | OnchainTransaction
   | OnchainResultMessage;
 
 // #region "OnchainInteraction"
@@ -146,6 +147,25 @@ export interface ContractAtInteractionMessage {
   contractName: string;
   contractAddress: string;
   storedArtifactPath: string;
+}
+
+// #endregion
+
+// #region "OnchainTransaction"
+
+/**
+ * Records a transaction submission to the chain.
+ *
+ * @beta
+ */
+export interface OnchainTransaction {
+  type: "onchain-transaction";
+  futureId: string;
+  executionId: number;
+  txHash: string;
+  from: string;
+  nonce: number;
+  tx: any;
 }
 
 // #endregion
@@ -411,16 +431,6 @@ export interface ContractAtStartMessage {
   storedBuildInfoPath: string | undefined;
   contractName: string;
   contractAddress: string;
-}
-
-/**
- * A journal message to indicate a future is being restarted.
- *
- * @beta
- */
-export interface FutureRestartMessage {
-  type: "execution-restart";
-  futureId: string;
 }
 
 // #endregion

@@ -1,20 +1,19 @@
 import { assert } from "chai";
+import ethers from "ethers";
 
 import {
+  ArgumentType,
   Artifact,
   ArtifactResolver,
   DeploymentResultContracts,
 } from "../../src";
 import { Deployer } from "../../src/new-api/internal/deployer";
+import { AccountsState } from "../../src/new-api/internal/execution/execution-engine";
 import { MemoryJournal } from "../../src/new-api/internal/journal/memory-journal";
+import { ChainDispatcher } from "../../src/new-api/internal/types/chain-dispatcher";
 import { DeploymentResult } from "../../src/new-api/types/deployer";
 import { DeploymentLoader } from "../../src/new-api/types/deployment-loader";
-import {
-  Journal,
-  JournalableMessage,
-  OnchainResultMessage,
-} from "../../src/new-api/types/journal";
-import { TransactionService } from "../../src/new-api/types/transaction-service";
+import { Journal, JournalableMessage } from "../../src/new-api/types/journal";
 
 export const exampleAccounts: string[] = [
   "0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
@@ -70,45 +69,29 @@ export function setupMockArtifactResolver(artifacts?: {
 }
 
 export function setupMockDeploymentLoader(journal: Journal): DeploymentLoader {
+  const storedArtifacts: { [key: string]: Artifact } = {};
+
   return {
     journal,
     recordDeployedAddress: async () => {},
-    storeArtifact: async (futureId, _artifact) => {
-      return `${futureId}.json`;
+    storeArtifact: async (futureId, artifact) => {
+      const storedArtifactPath = `${futureId}.json`;
+
+      storedArtifacts[storedArtifactPath] = artifact;
+
+      return storedArtifactPath;
     },
     storeBuildInfo: async (buildInfo) => {
       return `build-info-${buildInfo.id}.json`;
     },
-    loadArtifact: async (_storedArtifactPath) => {
-      throw new Error("Not implemented");
-    },
-  };
-}
+    loadArtifact: async (storedArtifactPath) => {
+      const artifact = storedArtifacts[storedArtifactPath];
 
-export function setupMockTransactionService({
-  responses,
-}: {
-  responses: { [key: string]: { [key: number]: OnchainResultMessage } };
-}): TransactionService {
-  return {
-    onchain: async (request) => {
-      const futureResults = responses[request.futureId];
-
-      if (futureResults === undefined) {
-        throw new Error(
-          `Mock transaction service has no results recorded for future ${request.futureId}`
-        );
+      if (artifact === undefined) {
+        throw new Error(`Artifact not stored for ${storedArtifactPath}`);
       }
 
-      const transactionResult = futureResults[request.executionId];
-
-      if (transactionResult === undefined) {
-        throw new Error(
-          `Mock transaction service has no results recorded for transaction ${request.futureId}/${request.executionId}`
-        );
-      }
-
-      return transactionResult;
+      return artifact;
     },
   };
 }
@@ -117,23 +100,53 @@ export function setupDeployerWithMocks({
   journal = new MemoryJournal(),
   artifacts,
   transactionResponses,
+  sendErrors,
+  staticCall,
+  getEventArgument,
 }: {
   journal?: Journal;
   artifacts?: { [key: string]: Artifact };
   transactionResponses?: {
-    [key: string]: { [key: number]: OnchainResultMessage };
+    [key: string]: {
+      [key: number]: {
+        blockNumber: number;
+        confirmations: number;
+        contractAddress?: string;
+        transactionHash: string;
+        logs?: {};
+      };
+    };
   };
+  sendErrors?: { [key: string]: { [key: number]: () => void } };
+  staticCall?: (
+    contractAddress: string,
+    abi: any[],
+    functionName: string,
+    args: ArgumentType[],
+    from: string
+  ) => Promise<any>;
+  getEventArgument?: (
+    eventName: string,
+    argumentName: string,
+    txToReadFrom: string,
+    eventIndex: number,
+    emitterAddress: string,
+    abi: any[]
+  ) => Promise<any>;
 }): Deployer {
   const mockArtifactResolver = setupMockArtifactResolver(artifacts);
   const mockDeploymentLoader = setupMockDeploymentLoader(journal);
-  const mockTransactionService = setupMockTransactionService({
-    responses: transactionResponses ?? {},
+  const mockChainDispatcher = setupMockChainDispatcher({
+    responses: transactionResponses,
+    sendErrors,
+    staticCall,
+    getEventArgument,
   });
 
   return new Deployer({
     artifactResolver: mockArtifactResolver,
     deploymentLoader: mockDeploymentLoader,
-    transactionService: mockTransactionService,
+    chainDispatcher: mockChainDispatcher,
   });
 }
 
@@ -175,4 +188,199 @@ export function assertDeploymentSuccess(
   }
 
   assert.deepStrictEqual(result.contracts, expectedContracts);
+}
+
+export function setupMockChainDispatcher({
+  responses = {},
+  sendErrors = {},
+  staticCall,
+  getEventArgument,
+}: {
+  responses?: {
+    [key: string]: {
+      [key: number]: {
+        blockNumber: number;
+        confirmations: number;
+        contractAddress?: string;
+        transactionHash: string;
+        logs?: {};
+      };
+    };
+  };
+  sendErrors?: { [key: string]: { [key: number]: () => void } };
+  staticCall?: (
+    contractAddress: string,
+    abi: any[],
+    functionName: string,
+    args: ArgumentType[],
+    from: string
+  ) => Promise<any>;
+  getEventArgument?: (
+    _eventName: string,
+    _argumentName: string,
+    _txToReadFrom: string,
+    _eventIndex: number,
+    _emitterAddress: string,
+    _abi: any[]
+  ) => Promise<any>;
+}): ChainDispatcher {
+  return new MockChainDispatcher(
+    responses,
+    sendErrors,
+    staticCall,
+    getEventArgument
+  );
+}
+
+export class MockChainDispatcher implements ChainDispatcher {
+  private _accountsState: AccountsState;
+  private _sentTxs: { [key: string]: ethers.providers.TransactionRequest };
+
+  constructor(
+    private _responses: {
+      [key: string]: {
+        [key: number]: {
+          blockNumber: number;
+          confirmations: number;
+          contractAddress?: string;
+          transactionHash: string;
+          logs?: {};
+        };
+      };
+    },
+    private _sendErrors: { [key: string]: { [key: number]: () => void } },
+    private _staticCall?: (
+      contractAddress: string,
+      abi: any[],
+      functionName: string,
+      args: ArgumentType[],
+      from: string
+    ) => Promise<any>,
+    private _getEventArgument?: (
+      _eventName: string,
+      _argumentName: string,
+      _txToReadFrom: string,
+      _eventIndex: number,
+      _emitterAddress: string,
+      _abi: any[]
+    ) => Promise<any>
+  ) {
+    this._accountsState = {};
+    this._sentTxs = {};
+  }
+
+  public getEventArgument(
+    eventName: string,
+    argumentName: string,
+    txToReadFrom: string,
+    eventIndex: number,
+    emitterAddress: string,
+    abi: any[]
+  ): Promise<any> {
+    if (this._getEventArgument === undefined) {
+      throw new Error(
+        "getEventArgument called but no `getEventArgument` mock provided"
+      );
+    }
+
+    return this._getEventArgument(
+      eventName,
+      argumentName,
+      txToReadFrom,
+      eventIndex,
+      emitterAddress,
+      abi
+    );
+  }
+
+  public async staticCallQuery(
+    contractAddress: string,
+    abi: any[],
+    functionName: string,
+    args: ArgumentType[],
+    from: string
+  ): Promise<any> {
+    if (this._staticCall === undefined) {
+      return "default-test-static-call-result";
+    }
+
+    return this._staticCall(contractAddress, abi, functionName, args, from);
+  }
+
+  public constructDeployTransaction(
+    _byteCode: string,
+    _abi: any[],
+    _args: ArgumentType[],
+    _value: bigint,
+    _from: string
+  ): Promise<ethers.providers.TransactionRequest> {
+    const fakeTransaction = { _kind: "TEST-TRANSACTION" } as any;
+
+    return fakeTransaction;
+  }
+
+  public constructCallTransaction(
+    _contractAddress: string,
+    _abi: any[],
+    _functionName: string,
+    _args: ArgumentType[],
+    _value: bigint,
+    _from: string
+  ): Promise<ethers.ethers.providers.TransactionRequest> {
+    const fakeTransaction = { _kind: "TEST-CALL-TRANSACTION" } as any;
+
+    return fakeTransaction;
+  }
+
+  public async allocateNextNonceForAccount(address: string): Promise<number> {
+    if (address in this._accountsState) {
+      const nextNonce = this._accountsState[address] + 1;
+      this._accountsState[address] = nextNonce;
+      return nextNonce;
+    }
+
+    const onchainNonce = 0;
+    this._accountsState[address] = onchainNonce;
+
+    return onchainNonce;
+  }
+
+  public async sendTx(
+    tx: ethers.providers.TransactionRequest,
+    from: string
+  ): Promise<string> {
+    if (
+      from in this._sendErrors &&
+      Number(tx.nonce) in this._sendErrors[from]
+    ) {
+      this._sendErrors[from][Number(tx.nonce)]();
+    }
+
+    const hash = `${from}--${tx.nonce?.toString() ?? "no-nonce"}`;
+    this._sentTxs[hash] = tx;
+
+    return hash;
+  }
+
+  public async getTransactionReceipt(
+    txHash: string
+  ): Promise<ethers.providers.TransactionReceipt> {
+    const [from, nonce] = txHash.split("--");
+
+    const addressEntries = this._responses[from];
+
+    if (addressEntries === undefined) {
+      throw new Error(`No transaction responses recorded for address ${from}`);
+    }
+
+    const response = addressEntries[parseInt(nonce, 10)];
+
+    if (response === undefined) {
+      throw new Error(
+        `No transaction responses recorded for nonce ${from}/${nonce}`
+      );
+    }
+
+    return response as any;
+  }
 }

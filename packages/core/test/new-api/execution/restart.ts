@@ -56,14 +56,12 @@ describe("execution engine", () => {
         artifacts: {
           Contract1: contractWithOneArgConstructorArtifact,
         },
-        transactionResponses: {
-          "Module1:Contract1": {
-            1: {
-              type: "onchain-result",
-              subtype: "failure",
-              futureId: "Module1:Contract1",
-              executionId: 1,
-              error: new Error("EVM revert"),
+        sendErrors: {
+          [exampleAccounts[0]]: {
+            0: () => {
+              const error = new Error("EVM revert");
+              (error as any).reason = "EVM revert";
+              throw error;
             },
           },
         },
@@ -89,15 +87,13 @@ describe("execution engine", () => {
           Contract1: contractWithOneArgConstructorArtifact,
         },
         transactionResponses: {
-          "Module1:Contract1": {
-            1: {
-              type: "onchain-result",
-              subtype: "deploy-contract-success",
-              futureId: "Module1:Contract1",
-              executionId: 1,
+          [exampleAccounts[0]]: {
+            0: {
+              blockNumber: 0,
+              confirmations: 1,
               contractAddress: exampleAddress,
-              txId,
-            },
+              transactionHash: txId,
+            } as any,
           },
         },
       });

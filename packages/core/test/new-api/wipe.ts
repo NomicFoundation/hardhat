@@ -39,23 +39,21 @@ describe("wipe", () => {
     const deployer = setupDeployerWithMocks({
       journal,
       transactionResponses: {
-        "Module1:Contract1": {
-          1: {
-            type: "onchain-result",
-            subtype: "deploy-contract-success",
-            futureId: "Module1:Contract1",
-            executionId: 1,
+        [exampleAccounts[0]]: {
+          0: {
+            blockNumber: 0,
+            confirmations: 1,
             contractAddress: exampleAddress,
-            txId,
-          },
+            transactionHash: txId,
+          } as any,
         },
-        "Module1:Contract2": {
-          1: {
-            type: "onchain-result",
-            subtype: "failure",
-            futureId: "Module1:Contract1",
-            executionId: 1,
-            error: new Error("EVM revert"),
+      },
+      sendErrors: {
+        [exampleAccounts[0]]: {
+          1: () => {
+            const error = new Error("");
+            (error as any).reason = "EVM revert";
+            throw error;
           },
         },
       },

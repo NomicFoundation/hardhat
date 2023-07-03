@@ -1,4 +1,4 @@
-import { Adapters } from "@ignored/ignition-core";
+import { Adapters, TransactionsAdapter } from "@ignored/ignition-core";
 import { ethers } from "ethers";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 
@@ -22,14 +22,14 @@ export function buildAdaptersFrom(hre: HardhatRuntimeEnvironment): Adapters {
     },
   };
 
-  const transactionsAdapter = {
-    async wait(txHash: string): Promise<ethers.providers.TransactionReceipt> {
-      return hre.ethers.provider.waitForTransaction(txHash);
-    },
+  const transactionsAdapter: TransactionsAdapter = {
     async getTransactionReceipt(
       txHash: string
-    ): Promise<ethers.providers.TransactionReceipt> {
+    ): Promise<ethers.providers.TransactionReceipt | null | undefined> {
       return hre.ethers.provider.getTransactionReceipt(txHash);
+    },
+    async getTransactionCount(address: string): Promise<number> {
+      return hre.ethers.provider.getTransactionCount(address);
     },
   };
 

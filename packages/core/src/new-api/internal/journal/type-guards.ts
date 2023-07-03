@@ -7,12 +7,14 @@ import {
   OnchainCallFunctionSuccessMessage,
   OnchainContractAtSuccessMessage,
   OnchainDeployContractSuccessMessage,
+  OnchainFailureMessage,
   OnchainReadEventArgumentSuccessMessage,
   OnchainResultFailureMessage,
   OnchainResultMessage,
   OnchainResultSuccessMessage,
   OnchainSendDataSuccessMessage,
   OnchainStaticCallSuccessMessage,
+  OnchainTransaction,
   ReadEventArgumentStartMessage,
   SendDataStartMessage,
   StaticCallStartMessage,
@@ -31,7 +33,10 @@ export function isFutureStartMessage(
   return (
     isDeployContractStartMessage(potential) ||
     isCallFunctionStartMessage(potential) ||
-    isStaticCallStartMessage(potential)
+    isStaticCallStartMessage(potential) ||
+    isReadEventArgumentStartMessage(potential) ||
+    isSendDataStartMessage(potential) ||
+    isContractAtStartMessage(potential)
   );
 }
 
@@ -90,9 +95,12 @@ export function isStaticCallStartMessage(
  * @beta
  */
 export function isReadEventArgumentStartMessage(
-  potential: FutureStartMessage
+  potential: JournalableMessage
 ): potential is ReadEventArgumentStartMessage {
-  return potential.futureType === FutureType.READ_EVENT_ARGUMENT;
+  return (
+    potential.type === "execution-start" &&
+    potential.futureType === FutureType.READ_EVENT_ARGUMENT
+  );
 }
 
 /**
@@ -101,9 +109,12 @@ export function isReadEventArgumentStartMessage(
  * @beta
  */
 export function isSendDataStartMessage(
-  potential: FutureStartMessage
+  potential: JournalableMessage
 ): potential is SendDataStartMessage {
-  return potential.futureType === FutureType.SEND_DATA;
+  return (
+    potential.type === "execution-start" &&
+    potential.futureType === FutureType.SEND_DATA
+  );
 }
 
 /**
@@ -112,14 +123,23 @@ export function isSendDataStartMessage(
  * @beta
  */
 export function isContractAtStartMessage(
-  potential: FutureStartMessage
+  potential: JournalableMessage
 ): potential is ContractAtStartMessage {
   const deploymentTypes = [
     FutureType.NAMED_CONTRACT_AT,
     FutureType.ARTIFACT_CONTRACT_AT,
   ];
 
-  return deploymentTypes.includes(potential.futureType);
+  return (
+    potential.type === "execution-start" &&
+    deploymentTypes.includes(potential.futureType)
+  );
+}
+
+export function isOnchainTransaction(
+  message: JournalableMessage
+): message is OnchainTransaction {
+  return message.type === "onchain-transaction";
 }
 
 export function isOnChainResultMessage(
@@ -196,6 +216,12 @@ export function isOnchainContractAtSuccessMessage(
   return (
     isOnChainResultMessage(message) && message.subtype === "contract-at-success"
   );
+}
+
+export function isOnchainFailureMessage(
+  message: JournalableMessage
+): message is OnchainFailureMessage {
+  return isOnChainResultMessage(message) && message.subtype === "failure";
 }
 
 export function isWipeMessage(

@@ -21,10 +21,12 @@ import {
 } from "../types/execution-state";
 import { assertIgnitionInvariant } from "../utils/assertions";
 
+import { isExecutionFailure } from "./guards";
+
 export function executionStateReducer(
   executionStateMap: ExecutionStateMap,
   action: JournalableMessage
-) {
+): ExecutionStateMap {
   if (isFutureStartMessage(action)) {
     return {
       ...executionStateMap,
@@ -118,6 +120,18 @@ export function executionStateReducer(
     throw new Error(
       "TBD - only deployment and call states are currently implemented for execution success"
     );
+  }
+
+  if (isExecutionFailure(action)) {
+    const failedExState = executionStateMap[action.futureId];
+
+    return {
+      ...executionStateMap,
+      [action.futureId]: {
+        ...failedExState,
+        status: ExecutionStatus.FAILED,
+      },
+    };
   }
 
   if (action.type === "onchain-action" || action.type === "onchain-result") {

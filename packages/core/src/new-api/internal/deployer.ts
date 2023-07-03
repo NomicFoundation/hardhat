@@ -10,7 +10,6 @@ import { Artifact, ArtifactResolver } from "../types/artifact";
 import { DeploymentResult } from "../types/deployer";
 import { DeploymentLoader } from "../types/deployment-loader";
 import { Journal } from "../types/journal";
-import { TransactionService } from "../types/transaction-service";
 
 import { Batcher } from "./batcher";
 import { ExecutionEngine } from "./execution/execution-engine";
@@ -20,6 +19,7 @@ import { ModuleConstructor } from "./module-builder";
 import { Reconciler } from "./reconciliation/reconciler";
 import { ArtifactMap } from "./reconciliation/types";
 import { isContractExecutionStateArray } from "./type-guards";
+import { ChainDispatcher } from "./types/chain-dispatcher";
 import { ExecutionStrategy } from "./types/execution-engine";
 import {
   ContractAtExecutionState,
@@ -38,21 +38,21 @@ import { validate } from "./validation/validate";
 export class Deployer {
   private _moduleConstructor: ModuleConstructor;
   private _executionEngine: ExecutionEngine;
-  private _transactionService: TransactionService;
   private _strategy: ExecutionStrategy;
   private _artifactResolver: ArtifactResolver;
   private _deploymentLoader: DeploymentLoader;
+  private _chainDispatcher: ChainDispatcher;
 
   constructor(options: {
     artifactResolver: ArtifactResolver;
     deploymentLoader: DeploymentLoader;
-    transactionService: TransactionService;
+    chainDispatcher: ChainDispatcher;
   }) {
     this._strategy = new BasicExecutionStrategy();
     this._artifactResolver = options.artifactResolver;
     this._deploymentLoader = options.deploymentLoader;
 
-    this._transactionService = options.transactionService;
+    this._chainDispatcher = options.chainDispatcher;
 
     this._moduleConstructor = new ModuleConstructor();
     this._executionEngine = new ExecutionEngine();
@@ -114,7 +114,6 @@ export class Deployer {
 
     return this._executionEngine.execute({
       strategy: this._strategy,
-      transactionService: this._transactionService,
       artifactResolver: this._artifactResolver,
       batches,
       module,
@@ -122,6 +121,7 @@ export class Deployer {
       accounts,
       deploymentParameters,
       deploymentLoader: this._deploymentLoader,
+      chainDispatcher: this._chainDispatcher,
     });
   }
 

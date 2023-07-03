@@ -1,7 +1,7 @@
 import { ArtifactResolver } from "../../types/artifact";
 import { DeploymentLoader } from "../../types/deployment-loader";
 import {
-  JournalableMessage,
+  ExecutionSuccess,
   OnchainInteractionMessage,
   OnchainResultMessage,
 } from "../../types/journal";
@@ -10,8 +10,8 @@ import {
   IgnitionModuleResult,
   ModuleParameters,
 } from "../../types/module";
-import { TransactionService } from "../../types/transaction-service";
 
+import { ChainDispatcher } from "./chain-dispatcher";
 import { ExecutionState, ExecutionStateMap } from "./execution-state";
 
 export interface ExecutionEngineState {
@@ -21,9 +21,9 @@ export interface ExecutionEngineState {
   accounts: string[];
   deploymentParameters: { [key: string]: ModuleParameters };
   strategy: ExecutionStrategy;
-  transactionService: TransactionService;
   artifactResolver: ArtifactResolver;
   deploymentLoader: DeploymentLoader;
+  chainDispatcher: ChainDispatcher;
 }
 
 export interface ExecutionStrategyContext {
@@ -37,7 +37,7 @@ export interface ExecutionStrategy {
     sender,
   }: ExecutionStrategyContext) => AsyncGenerator<
     OnchainInteractionMessage,
-    JournalableMessage,
+    OnchainInteractionMessage | ExecutionSuccess,
     OnchainResultMessage | null
   >;
 }
