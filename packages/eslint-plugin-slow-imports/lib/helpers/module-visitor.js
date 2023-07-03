@@ -31,6 +31,19 @@ function visitModules(visitor) {
     visitor(node.source);
   }
 
+  // for export declarations
+  function visitExportDeclaration(node) {
+    // skip nodes that are not at the top level
+    if (node.parent && node.parent.type !== "Program") {
+      return;
+    }
+    if (node.source === null || node.source.type !== "Literal") {
+      return;
+    }
+
+    visitor(node.source);
+  }
+
   // for CommonJS `require` calls
   // adapted from @mctep: https://git.io/v4rAu
   function visitCallExpression(call) {
@@ -58,6 +71,8 @@ function visitModules(visitor) {
       visitCallExpression,
     'Program > ExpressionStatement > CallExpression[callee.name="require"]':
       visitCallExpression,
+    ExportNamedDeclaration: visitExportDeclaration,
+    ExportAllDeclaration: visitExportDeclaration,
   };
 
   return visitors;
