@@ -1,6 +1,7 @@
 {
   "name": "@nomicfoundation/eslint-plugin-slow-imports",
   "version": "1.0.0",
+  "private": true,
   "description": "This plugin provides a rule for detecting slow imports of external dependencies.",
   "keywords": [
     "eslint",

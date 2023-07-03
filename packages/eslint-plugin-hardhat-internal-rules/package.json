@@ -1,6 +1,7 @@
 {
   "name": "@nomicfoundation/eslint-plugin-hardhat-internal-rules",
   "version": "1.0.2",
+  "private": true,
   "description": "This plugin contains internal linting rules used in the [Hardhat repository](https://github.com/nomiclabs/hardhat/). It's not meant to be used by other projects.",
   "keywords": [
     "eslint",
