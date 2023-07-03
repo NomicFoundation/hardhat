@@ -42,7 +42,6 @@ Then configure the rule according to your entry points and whitelisted dependenc
     "slow-imports/no-top-level-external-import": [
       "error",
       {
-        "entryPoints": [],
         "ignoreModules": []
       }
     ]

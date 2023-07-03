@@ -31,12 +31,6 @@ module.exports = {
       {
         type: "object",
         properties: {
-          entryPoints: {
-            type: "array",
-            minItems: 1,
-            items: { type: "string" },
-            uniqueItems: true,
-          },
           ignoreModules: {
             type: "array",
             minItems: 0,
@@ -56,13 +50,7 @@ module.exports = {
 
   create(context) {
     const options = context.options[0] || {};
-    const entryPoints = new Set(options.entryPoints);
     const ignoreModules = new Set(options.ignoreModules);
-
-    const relativePath = context.filename.replace(`${process.cwd()}/`, "");
-    if (!entryPoints.has(relativePath)) {
-      return {};
-    }
 
     function visitor(filename, originalNode, node) {
       const modulePath = node.value;

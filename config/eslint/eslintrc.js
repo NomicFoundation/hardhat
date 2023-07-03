@@ -11,6 +11,7 @@ module.exports = {
     "eslint-plugin-import",
     "no-only-tests",
     "@typescript-eslint",
+    "slow-imports",
   ],
   rules: {
     "@typescript-eslint/adjacent-overload-signatures": "error",
