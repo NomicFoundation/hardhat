@@ -773,6 +773,15 @@ const communityPlugins: IPlugin[] = [
       "Enable project-specific features inside Truffle Dashboard, including advanced calldata decoding and more",
     tags: ["truffle-dashboard", "transaction", "signing", "decoding"],
   },
+  {
+    name: "hardhat-w3f",
+    author: "Gelato Network",
+    npmPackage: "@gelatonetwork/web3-functions-sdk",
+    authorUrl: "https://github.com/gelatodigital/web3-functions-sdk",
+    description:
+      "The hardhat-w3f plugin allows builders to build & run Web3 Functions connecting smart off-chain data with smart contracts ",
+    tags: ["Gelato", "w3f", "offchain", "functions"],
+  },
 ];
 
 const officialPlugins: IPlugin[] = [
@@ -791,7 +800,7 @@ const officialPlugins: IPlugin[] = [
     tags: ["Chai", "Testing"],
   },
   {
-    name: "@nomiclabs/hardhat-ethers",
+    name: "@nomicfoundation/hardhat-ethers",
     author: "Nomic Foundation",
     authorUrl: "https://twitter.com/NomicFoundation",
     description: "Injects ethers.js into the Hardhat Runtime Environment",
@@ -811,6 +820,13 @@ const officialPlugins: IPlugin[] = [
     description:
       "Makes it easier to use Hardhat and Foundry in the same project",
     tags: ["Foundry"],
+  },
+  {
+    name: "@nomicfoundation/hardhat-ledger",
+    author: "Nomic Foundation",
+    authorUrl: "https://twitter.com/NomicFoundation",
+    description: "Hardhat plugin for the Ledger hardware wallet",
+    tags: ["Ledger", "Wallet"],
   },
   {
     name: "@nomiclabs/hardhat-vyper",

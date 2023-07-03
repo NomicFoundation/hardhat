@@ -1,6 +1,7 @@
 import { AssertionError } from "chai";
 
 import { isBigNumber, normalizeToBigInt } from "hardhat/common";
+import { ASSERTION_ABORTED } from "./constants";
 
 import { emitWithArgs, EMIT_CALLED } from "./emit";
 import {
@@ -51,24 +52,7 @@ export function supportWithArgs(
   utils: Chai.ChaiUtils
 ) {
   Assertion.addMethod("withArgs", function (this: any, ...expectedArgs: any[]) {
-    if (Boolean(this.__flags.negate)) {
-      throw new Error("Do not combine .not. with .withArgs()");
-    }
-
-    const emitCalled = utils.flag(this, EMIT_CALLED) === true;
-    const revertedWithCustomErrorCalled =
-      utils.flag(this, REVERTED_WITH_CUSTOM_ERROR_CALLED) === true;
-
-    if (!emitCalled && !revertedWithCustomErrorCalled) {
-      throw new Error(
-        "withArgs can only be used in combination with a previous .emit or .revertedWithCustomError assertion"
-      );
-    }
-    if (emitCalled && revertedWithCustomErrorCalled) {
-      throw new Error(
-        "withArgs called with both .emit and .revertedWithCustomError, but these assertions cannot be combined"
-      );
-    }
+    const { emitCalled } = validateInput.call(this, utils);
 
     const promise = this.then === undefined ? Promise.resolve() : this;
 
@@ -92,4 +76,40 @@ export function supportWithArgs(
     this.catch = derivedPromise.catch.bind(derivedPromise);
     return this;
   });
+}
+
+function validateInput(
+  this: any,
+  utils: Chai.ChaiUtils
+): { emitCalled: boolean } {
+  try {
+    if (Boolean(this.__flags.negate)) {
+      throw new Error("Do not combine .not. with .withArgs()");
+    }
+
+    const emitCalled = utils.flag(this, EMIT_CALLED) === true;
+    const revertedWithCustomErrorCalled =
+      utils.flag(this, REVERTED_WITH_CUSTOM_ERROR_CALLED) === true;
+
+    if (!emitCalled && !revertedWithCustomErrorCalled) {
+      throw new Error(
+        "withArgs can only be used in combination with a previous .emit or .revertedWithCustomError assertion"
+      );
+    }
+    if (emitCalled && revertedWithCustomErrorCalled) {
+      throw new Error(
+        "withArgs called with both .emit and .revertedWithCustomError, but these assertions cannot be combined"
+      );
+    }
+
+    return { emitCalled };
+  } catch (e) {
+    // signal that validation failed to allow the matchers to finish early
+    utils.flag(this, ASSERTION_ABORTED, true);
+
+    // discard subject since it could potentially be a rejected promise
+    Promise.resolve(this._obj).catch(() => {});
+
+    throw e;
+  }
 }

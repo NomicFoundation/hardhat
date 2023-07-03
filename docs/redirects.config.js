@@ -266,6 +266,11 @@ const customRedirects = [
     destination: "/hardhat-runner/plugins/nomicfoundation-hardhat-verify",
     permanent: false
   },
+  {
+    source: "/hardhat-runner/plugins/nomiclabs-hardhat-ethers",
+    destination: "/hardhat-runner/plugins/nomicfoundation-hardhat-ethers",
+    permanent: false
+  },
   ...loadErrorRedirects()
 ];
 

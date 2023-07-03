@@ -2,7 +2,9 @@ name: Pre-release tests
 
 on:
   push:
-    branches: [pre-release-testing-branch]
+    branches:
+      - pre-release-testing-branch
+      - changeset-release/main
   workflow_dispatch:
 
 concurrency:

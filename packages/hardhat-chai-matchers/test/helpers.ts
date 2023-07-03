@@ -6,7 +6,7 @@ import { HardhatRuntimeEnvironment } from "hardhat/types";
 import path from "path";
 
 // we assume that all the fixture projects use the hardhat-ethers plugin
-import "@nomiclabs/hardhat-ethers/internal/type-extensions";
+import "@nomicfoundation/hardhat-ethers/internal/type-extensions";
 
 declare module "mocha" {
   interface Context {
@@ -118,8 +118,8 @@ export async function runSuccessfulAsserts({
 }) {
   await successfulAssert(matchers[method](...args));
   await successfulAssert(matchers[`${method}View`](...args));
-  await successfulAssert(matchers.estimateGas[method](...args));
-  await successfulAssert(matchers.callStatic[method](...args));
+  await successfulAssert(matchers[method].estimateGas(...args));
+  await successfulAssert(matchers[method].staticCall(...args));
 }
 
 /**
@@ -147,9 +147,9 @@ export async function runFailedAsserts({
     failedAssert(matchers[`${method}View`](...args))
   ).to.be.rejectedWith(AssertionError, failedAssertReason);
   await expect(
-    failedAssert(matchers.estimateGas[method](...args))
+    failedAssert(matchers[method].estimateGas(...args))
   ).to.be.rejectedWith(AssertionError, failedAssertReason);
   await expect(
-    failedAssert(matchers.callStatic[method](...args))
+    failedAssert(matchers[method].staticCall(...args))
   ).to.be.rejectedWith(AssertionError, failedAssertReason);
 }

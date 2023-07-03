@@ -55,7 +55,7 @@ Follow these steps to migrate your project to Hardhat Toolbox.
    :::tab{value="npm 6"}
 
    ```
-   npm install --save-dev @nomicfoundation/hardhat-toolbox @nomicfoundation/hardhat-network-helpers @nomicfoundation/hardhat-chai-matchers @nomiclabs/hardhat-ethers @nomiclabs/hardhat-etherscan chai ethers hardhat-gas-reporter solidity-coverage @typechain/hardhat typechain @typechain/ethers-v5 @ethersproject/abi @ethersproject/providers
+   npm install --save-dev @nomicfoundation/hardhat-toolbox @nomicfoundation/hardhat-network-helpers @nomicfoundation/hardhat-chai-matchers @nomicfoundation/hardhat-ethers @nomicfoundation/hardhat-verify chai ethers hardhat-gas-reporter solidity-coverage @typechain/hardhat typechain @typechain/ethers-v6
    ```
 
    :::
@@ -63,7 +63,7 @@ Follow these steps to migrate your project to Hardhat Toolbox.
    :::tab{value="yarn"}
 
    ```
-   yarn add --dev @nomicfoundation/hardhat-toolbox @nomicfoundation/hardhat-network-helpers @nomicfoundation/hardhat-chai-matchers @nomiclabs/hardhat-ethers @nomiclabs/hardhat-etherscan chai ethers hardhat-gas-reporter solidity-coverage @typechain/hardhat typechain @typechain/ethers-v5 @ethersproject/abi @ethersproject/providers
+   yarn add --dev @nomicfoundation/hardhat-toolbox @nomicfoundation/hardhat-network-helpers @nomicfoundation/hardhat-chai-matchers@1 @nomiclabs/hardhat-ethers @nomiclabs/hardhat-etherscan chai ethers@5 hardhat-gas-reporter solidity-coverage @typechain/hardhat typechain @typechain/ethers-v6
    ```
 
    :::
@@ -96,8 +96,8 @@ Follow these steps to migrate your project to Hardhat Toolbox.
 
    Adding the Toolbox will make many other imports redundant, so you can remove any of these if you want:
 
-   - `@nomiclabs/hardhat-ethers`
-   - `@nomiclabs/hardhat-etherscan`
+   - `@nomicfoundation/hardhat-ethers`
+   - `@nomicfoundation/hardhat-verify`
    - `hardhat-gas-reporter`
    - `solidity-coverage`
    - `@typechain/hardhat`
