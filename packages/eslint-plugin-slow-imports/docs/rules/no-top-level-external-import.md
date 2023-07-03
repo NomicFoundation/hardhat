@@ -1,4 +1,6 @@
-# Enforce usage of dynamic imports for top level modules (`no-top-level-external-import`)
+# Enforce usage of dynamic imports for external modules (`slow-imports/no-top-level-external-import`)
+
+<!-- end auto-generated rule header -->
 
 Please describe the origin of the rule here.
 
@@ -27,5 +29,4 @@ async function bar() {
 
 ### Options
 
-- `entryPoints`: array of entry points for the rule to traverse. Each entry point and it's local dependencies will be checked.
 - `ignoreModules`: optional. Modules to ignore, as an array of strings. Node built-in modules are ignored by default.

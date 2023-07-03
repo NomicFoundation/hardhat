@@ -7,7 +7,7 @@ module.exports = {
   extends: ["plugin:prettier/recommended"],
   parser: "@typescript-eslint/parser",
   plugins: [
-    "@nomiclabs/eslint-plugin-hardhat-internal-rules",
+    // "@nomiclabs/eslint-plugin-hardhat-internal-rules",
     "eslint-plugin-import",
     "no-only-tests",
     "@typescript-eslint",

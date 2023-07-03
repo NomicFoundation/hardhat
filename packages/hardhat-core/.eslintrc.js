@@ -5,7 +5,7 @@ module.exports = {
     sourceType: "module"
   },
   rules: {
-    "@nomiclabs/hardhat-internal-rules/only-hardhat-error": "error"
+    // "@nomiclabs/hardhat-internal-rules/only-hardhat-error": "error"
   },
   overrides: [{
     files: ["src/internal/cli/cli.ts", "src/register.ts", "src/internal/lib/hardhat-lib.ts"],
