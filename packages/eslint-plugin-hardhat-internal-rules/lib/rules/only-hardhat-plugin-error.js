@@ -6,6 +6,7 @@
 
 const { ESLintUtils } = require("@typescript-eslint/utils");
 const {
+  getExpressionClassName,
   getExpressionClassNameAndBaseClass,
 } = require("../helpers/expression-checker");
 
@@ -24,6 +25,10 @@ module.exports = {
     },
     fixable: null, // Or `code` or `whitespace`
     schema: [], // Add a schema if the rule has options
+    messages: {
+      ONLY_HARDHAT_PLUGIN_ERROR:
+        "Only HardhatPluginError must be thrown, {{exceptionName}} found.",
+    },
   },
 
   create(context) {
@@ -41,7 +46,10 @@ module.exports = {
 
           context.report({
             node,
-            message: `Only HardhatPluginError must be thrown, ${exceptionName} found.`,
+            messageId: "ONLY_HARDHAT_PLUGIN_ERROR",
+            data: {
+              exceptionName,
+            },
           });
         }
       },

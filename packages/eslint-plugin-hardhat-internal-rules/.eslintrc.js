@@ -6,6 +6,7 @@ module.exports = {
     "eslint:recommended",
     "plugin:eslint-plugin/recommended",
     "plugin:node/recommended",
+    "plugin:prettier/recommended",
   ],
   env: {
     node: true,
@@ -16,4 +17,7 @@ module.exports = {
       env: { mocha: true },
     },
   ],
+  parserOptions: {
+    ecmaVersion: 2020,
+  },
 };
