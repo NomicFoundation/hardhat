@@ -62,6 +62,6 @@ These compilers are grouped by minor version (that is, a group with all the 0.5.
 
 The solidity files in each test directory are compiled (unless a cached compilation output exists) and then the `test.json` description is then executed.
 
-##  The `HARDHAT_TESTS_SOLC_PATH` environment variable
+## The `HARDHAT_TESTS_SOLC_PATH` environment variable
 
 If this variable is set, the only compiler used will be the one that is available in that path. For example, if you want to test a nightly version, you would set the envvars `HARDHAT_TESTS_SOLC_PATH=/path/to/solc-nightly-0.8.21 HARDHAT_TESTS_SOLC_VERSION=0.8.21` and then run the tests. This would only run the test files under `test-files/0_8` and `test-files/version-independent`.
