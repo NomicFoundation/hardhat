@@ -6,6 +6,7 @@ module.exports.slowImportsCommonIgnoredModules = [
   "semver",
   "source-map-support/register",
   "@nomicfoundation/hardhat-ethers",
+  "hardhat/common",
   "hardhat/config",
   "hardhat/plugins",
   "hardhat/types",

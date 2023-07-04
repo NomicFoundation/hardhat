@@ -23,6 +23,7 @@ module.exports = {
         // used by hh-foundry
         "src/builtin-tasks/task-names.ts",
         "src/internal/core/errors.ts",
+        "src/common/index.ts",
       ],
       rules: {
         "@nomicfoundation/slow-imports/no-top-level-external-import": [
