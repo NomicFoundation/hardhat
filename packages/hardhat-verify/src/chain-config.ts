@@ -206,6 +206,14 @@ export const builtinChains: ChainConfig[] = [
     },
   },
   {
+    network: "baseGoerli",
+    chainId: 84531,
+    urls: {
+      apiURL: "https://api-goerli.basescan.org/api",
+      browserURL: "https://goerli.basescan.org/",
+    },
+  },
+  {
     network: "arbitrumTestnet",
     chainId: 421611,
     urls: {
