@@ -10,7 +10,7 @@ To set up your config, you have to export an object from `hardhat.config.js`.
 
 This object can have entries like `defaultNetwork`, [`networks`](#networks-configuration), [`solidity`](#solidity-configuration), [`paths`](#path-configuration) and [`mocha`](#mocha-configuration). For example:
 
-::::tabsgroup{options=Infura,Alchemy}
+::::tabsgroup{options=Infura,Alchemy,Tenderly}
 
 :::tab{value=Infura}
 
@@ -84,6 +84,42 @@ module.exports = {
 
 :::
 
+:::tab{value=Tenderly}
+
+```js
+module.exports = {
+  defaultNetwork: "sepolia",
+  networks: {
+    hardhat: {
+    },
+    sepolia: {
+      url: "https://sepolia.gateway.tenderly.co/<key>",
+      accounts: [privateKey1, privateKey2, ...]
+    }
+  },
+  solidity: {
+    version: "{LATEST_SOLC_VERSION}",
+    settings: {
+      optimizer: {
+        enabled: true,
+        runs: 200
+      }
+    }
+  },
+  paths: {
+    sources: "./contracts",
+    tests: "./test",
+    cache: "./cache",
+    artifacts: "./artifacts"
+  },
+  mocha: {
+    timeout: 40000
+  }
+}
+```
+
+:::
+
 ::::
 
 ## Networks configuration
@@ -104,7 +140,7 @@ See [the Hardhat Network Configuration Reference](/hardhat-network/docs/referenc
 
 ### JSON-RPC based networks
 
-These are networks that connect to an external node. Nodes can be running in your computer, like Ganache, or remotely, like Infura or Alchemy.
+These are networks that connect to an external node. Nodes can be running in your computer, like Ganache, or remotely, like Infura, Alchemy or Tenderly.
 
 This kind of network is configured with objects with the following fields:
 
