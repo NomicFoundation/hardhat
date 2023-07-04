@@ -58,7 +58,7 @@ export class BackwardsCompatibilityProviderAdapter
       });
     } catch (error: any) {
       if (error.code === undefined) {
-        // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
+        // eslint-disable-next-line @nomicfoundation/hardhat-internal-rules/only-hardhat-error
         throw error;
       }
 

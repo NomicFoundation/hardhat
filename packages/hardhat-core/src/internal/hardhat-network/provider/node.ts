@@ -130,7 +130,7 @@ type ExecResult = EVMResult["execResult"];
 
 const log = debug("hardhat:core:hardhat-network:node");
 
-/* eslint-disable @nomiclabs/hardhat-internal-rules/only-hardhat-error */
+/* eslint-disable @nomicfoundation/hardhat-internal-rules/only-hardhat-error */
 
 export class HardhatNode extends EventEmitter {
   public static async create(
@@ -529,7 +529,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
         throw new TransactionExecutionError(err);
       }
 
-      // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
+      // eslint-disable-next-line @nomicfoundation/hardhat-internal-rules/only-hardhat-error
       throw err;
     }
 
@@ -1730,7 +1730,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
         throw new InvalidInputError(e.message);
       }
 
-      // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
+      // eslint-disable-next-line @nomicfoundation/hardhat-internal-rules/only-hardhat-error
       throw e;
     }
 

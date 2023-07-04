@@ -172,7 +172,7 @@ export class Environment implements HardhatRuntimeEnvironment {
     } catch (e) {
       analyzeModuleNotFoundError(e, this.config.paths.configFile);
 
-      // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
+      // eslint-disable-next-line @nomicfoundation/hardhat-internal-rules/only-hardhat-error
       throw e;
     } finally {
       if (taskProfile !== undefined) {

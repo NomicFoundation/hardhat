@@ -1,4 +1,4 @@
-# @nomiclabs/eslint-plugin-hardhat-internal-rules
+# @nomicfoundation/eslint-plugin-hardhat-internal-rules
 
 ## 1.0.2
 

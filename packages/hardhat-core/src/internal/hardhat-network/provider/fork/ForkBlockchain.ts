@@ -28,7 +28,7 @@ import { ReadOnlyValidUnknownTypeTransaction } from "../transactions/ReadOnlyVal
 import { rpcToBlockData } from "./rpcToBlockData";
 import { rpcToTxData } from "./rpcToTxData";
 
-/* eslint-disable @nomiclabs/hardhat-internal-rules/only-hardhat-error */
+/* eslint-disable @nomicfoundation/hardhat-internal-rules/only-hardhat-error */
 
 export class ForkBlockchain
   extends BlockchainBase

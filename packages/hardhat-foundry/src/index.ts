@@ -1,10 +1,11 @@
+import type { SolidityFilesCache } from "hardhat/builtin-tasks/utils/solidity-files-cache";
+
 import { extendConfig, internalTask, task } from "hardhat/config";
 
 import {
   TASK_COMPILE_SOLIDITY_GET_COMPILATION_JOB_FOR_FILE,
   TASK_COMPILE_TRANSFORM_IMPORT_NAME,
 } from "hardhat/builtin-tasks/task-names";
-import { SolidityFilesCache } from "hardhat/builtin-tasks/utils/solidity-files-cache";
 import {
   CompilationJob,
   CompilationJobCreationError,

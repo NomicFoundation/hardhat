@@ -181,7 +181,7 @@ export const inputFile: CLIArgumentType<string> = {
 
       if (stats.isDirectory()) {
         // This is caught and encapsulated in a hardhat error.
-        // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
+        // eslint-disable-next-line @nomicfoundation/hardhat-internal-rules/only-hardhat-error
         throw new Error(`${strValue} is a directory, not a file`);
       }
     } catch (error) {
@@ -196,7 +196,7 @@ export const inputFile: CLIArgumentType<string> = {
         );
       }
 
-      // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
+      // eslint-disable-next-line @nomicfoundation/hardhat-internal-rules/only-hardhat-error
       throw error;
     }
 
@@ -229,7 +229,7 @@ export const inputFile: CLIArgumentType<string> = {
         );
       }
 
-      // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
+      // eslint-disable-next-line @nomicfoundation/hardhat-internal-rules/only-hardhat-error
       throw error;
     }
   },
@@ -252,7 +252,7 @@ export const json: CLIArgumentType<any> = {
         );
       }
 
-      // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
+      // eslint-disable-next-line @nomicfoundation/hardhat-internal-rules/only-hardhat-error
       throw error;
     }
   },

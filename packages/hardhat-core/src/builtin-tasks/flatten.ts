@@ -58,7 +58,7 @@ function getSortedFiles(dependenciesGraph: DependencyGraph) {
       }
     }
 
-    // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
+    // eslint-disable-next-line @nomicfoundation/hardhat-internal-rules/only-hardhat-error
     throw error;
   }
 }

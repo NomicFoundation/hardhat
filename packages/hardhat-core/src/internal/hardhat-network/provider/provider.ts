@@ -54,7 +54,7 @@ const PRIVATE_RPC_METHODS = new Set([
   "hardhat_setLoggingEnabled",
 ]);
 
-/* eslint-disable @nomiclabs/hardhat-internal-rules/only-hardhat-error */
+/* eslint-disable @nomicfoundation/hardhat-internal-rules/only-hardhat-error */
 
 export const DEFAULT_COINBASE = "0xc014ba5ec014ba5ec014ba5ec014ba5ec014ba5e";
 

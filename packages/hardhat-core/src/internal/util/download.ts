@@ -58,7 +58,7 @@ export async function download(
   // undici's response bodies must always be consumed to prevent leaks
   const text = await response.body.text();
 
-  // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
+  // eslint-disable-next-line @nomicfoundation/hardhat-internal-rules/only-hardhat-error
   throw new Error(
     `Failed to download ${url} - ${response.statusCode} received. ${text}`
   );

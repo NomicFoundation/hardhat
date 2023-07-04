@@ -12,7 +12,7 @@ import {
 import { InternalError } from "../../../core/providers/errors";
 import * as BigIntUtils from "../../../util/bigint";
 
-/* eslint-disable @nomiclabs/hardhat-internal-rules/only-hardhat-error */
+/* eslint-disable @nomicfoundation/hardhat-internal-rules/only-hardhat-error */
 
 /**
  * This class is like `ReadOnlyValidTransaction` but for EIP-1559 transactions.

@@ -1,3 +1,7 @@
+const {
+  slowImportsCommonIgnoredModules,
+} = require("../../config/eslint/constants");
+
 module.exports = {
   extends: [`${__dirname}/../../config/eslint/eslintrc.js`],
   parserOptions: {
@@ -5,6 +9,19 @@ module.exports = {
     sourceType: "module",
   },
   rules: {
-    "@typescript-eslint/no-non-null-assertion": "error"
-  }
+    "@typescript-eslint/no-non-null-assertion": "error",
+  },
+  overrides: [
+    {
+      files: ["src/internal/index.ts"],
+      rules: {
+        "@nomicfoundation/slow-imports/no-top-level-external-import": [
+          "error",
+          {
+            ignoreModules: [...slowImportsCommonIgnoredModules],
+          },
+        ],
+      },
+    },
+  ],
 };

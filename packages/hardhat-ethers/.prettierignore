@@ -11,3 +11,4 @@
 /test/fixture-projects/**/cache
 /test/fixture-projects/generated-fixtures
 CHANGELOG.md
+!.eslintrc.js
