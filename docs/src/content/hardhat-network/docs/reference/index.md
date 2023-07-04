@@ -447,7 +447,7 @@ Also note that blocks created via `hardhat_mine` may not trigger new-block event
 
 You can manipulate forking during runtime to reset back to a fresh forked state, fork from another block number or disable forking by calling `hardhat_reset`:
 
-::::tabsgroup{options=Infura,Alchemy}
+::::tabsgroup{options=Infura,Alchemy,Tenderly}
 
 :::tab{value=Infura}
 
@@ -476,6 +476,24 @@ await network.provider.request({
     {
       forking: {
         jsonRpcUrl: "https://eth-mainnet.g.alchemy.com/v2/<key>",
+        blockNumber: 14390000,
+      },
+    },
+  ],
+});
+```
+
+:::
+
+:::tab{value=Tenderly}
+
+```ts
+await network.provider.request({
+  method: "hardhat_reset",
+  params: [
+    {
+      forking: {
+        jsonRpcUrl: "https://mainnet.gateway.tenderly.co/<key>",
         blockNumber: 14390000,
       },
     },
