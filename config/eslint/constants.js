@@ -5,4 +5,5 @@ module.exports.slowImportsCommonIgnoredModules = [
   "fs-extra",
   "semver",
   "source-map-support/register",
+  "@nomicfoundation/hardhat-ethers",
 ];
