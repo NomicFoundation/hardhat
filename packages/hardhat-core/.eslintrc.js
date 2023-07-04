@@ -17,6 +17,9 @@ module.exports = {
         "src/internal/cli/cli.ts",
         "src/register.ts",
         "src/internal/lib/hardhat-lib.ts",
+        "src/config.ts",
+        "src/plugins.ts",
+        "src/types/**/*.ts",
       ],
       rules: {
         "@nomicfoundation/slow-imports/no-top-level-external-import": [
