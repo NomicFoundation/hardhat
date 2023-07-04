@@ -1,9 +1,8 @@
+import type AbortControllerT from "abort-controller";
 import type { request as RequestT } from "undici";
 
-import AbortController from "abort-controller";
 import debug from "debug";
 import os from "os";
-import { v4 as uuid } from "uuid";
 
 import { isLocalDev } from "../core/execution-mode";
 import { isRunningOnCiServer } from "../util/ci-detection";
@@ -129,6 +128,9 @@ export class Analytics {
 
   private _sendHit(payload: AnalyticsPayload): [AbortAnalytics, Promise<void>] {
     const { request } = require("undici") as { request: typeof RequestT };
+    const AbortController =
+      require("abort-controller") as typeof AbortControllerT;
+
     const eventName = payload.events[0].name;
     log(`Sending hit for ${eventName}`);
 
@@ -171,6 +173,7 @@ async function getClientId() {
       (await readFirstLegacyAnalyticsId());
 
     if (clientId === undefined) {
+      const { v4: uuid } = await import("uuid");
       log("Client Id not found, generating a new one");
       clientId = uuid();
     }
