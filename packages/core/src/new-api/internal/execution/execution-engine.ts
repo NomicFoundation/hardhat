@@ -392,10 +392,12 @@ export class ExecutionEngine {
         return state;
       }
       case FutureType.READ_EVENT_ARGUMENT: {
+        // TODO: This should also support contractAt
         const { contractAddress, storedArtifactPath } = executionStateMap[
           future.emitter.id
         ] as DeploymentExecutionState;
 
+        // TODO: This should support multiple transactions
         const { txId } = executionStateMap[
           future.futureToReadFrom.id
         ] as DeploymentExecutionState;
