@@ -1,3 +1,7 @@
+const {
+  slowImportsCommonIgnoredModules,
+} = require("../../config/eslint/constants");
+
 module.exports = {
   extends: [`${__dirname}/../../config/eslint/eslintrc.js`],
   parserOptions: {
@@ -18,14 +22,7 @@ module.exports = {
         "@nomicfoundation/slow-imports/no-top-level-external-import": [
           "error",
           {
-            ignoreModules: [
-              "chalk",
-              "debug",
-              "find-up",
-              "fs-extra",
-              "semver",
-              "source-map-support/register",
-            ],
+            ignoreModules: [...slowImportsCommonIgnoredModules],
           },
         ],
       },
