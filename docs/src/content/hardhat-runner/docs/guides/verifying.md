@@ -46,7 +46,7 @@ module.exports = {
 
 We are going to use the [Sepolia testnet](https://ethereum.org/en/developers/docs/networks/#sepolia) to deploy and verify our contract, so you need to add this network in your Hardhat config. Here we are using [Infura](https://infura.io/) to connect to the network, but you can use an alternative JSON-RPC URL like [Alchemy](https://alchemy.com/) if you want.
 
-::::tabsgroup{options=Infura,Alchemy}
+::::tabsgroup{options=Infura,Alchemy,Tenderly}
 
 :::tab{value=Infura}
 
@@ -96,6 +96,34 @@ module.exports = {
   networks: {
     sepolia: {
       url: `https://eth-sepolia.g.alchemy.com/v2/${ALCHEMY_API_KEY}`,
+      accounts: [SEPOLIA_PRIVATE_KEY],
+    },
+  },
+};
+```
+
+:::
+
+:::tab{value=Tenderly}
+
+```js
+// Go to https://tenderly.co, sign up, create a new App in
+// its dashboard, and replace "KEY" with its key
+const TENDERLY_API_KEY = "KEY";
+
+// Replace this private key with your Sepolia account private key
+// To export your private key from Coinbase Wallet, go to
+// Settings > Developer Settings > Show private key
+// To export your private key from Metamask, open Metamask and
+// go to Account Details > Export Private Key
+// Beware: NEVER put real Ether into testing accounts
+const SEPOLIA_PRIVATE_KEY = "YOUR SEPOLIA PRIVATE KEY";
+
+module.exports = {
+  // ...rest of your config...
+  networks: {
+    sepolia: {
+      url: `https://sepolia.gateway.tenderly.co/${TENDERLY_API_KEY}`,
       accounts: [SEPOLIA_PRIVATE_KEY],
     },
   },
