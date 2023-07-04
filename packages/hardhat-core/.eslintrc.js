@@ -24,6 +24,9 @@ module.exports = {
         "src/builtin-tasks/task-names.ts",
         "src/internal/core/errors.ts",
         "src/common/index.ts",
+        // used by hh-truffle
+        "src/internal/core/providers/util.ts",
+        "src/utils/contract-names.ts",
       ],
       rules: {
         "@nomicfoundation/slow-imports/no-top-level-external-import": [

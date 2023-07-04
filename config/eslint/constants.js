@@ -10,8 +10,11 @@ module.exports.slowImportsCommonIgnoredModules = [
   "hardhat/config",
   "hardhat/plugins",
   "hardhat/types",
+  "hardhat/types/artifacts",
   "hardhat/types/config",
   "hardhat/types/runtime",
   "hardhat/builtin-tasks/task-names",
   "hardhat/internal/core/errors",
+  "hardhat/internal/core/providers/util",
+  "hardhat/utils/contract-names",
 ];
