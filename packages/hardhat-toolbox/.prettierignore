@@ -9,3 +9,4 @@
 /*.js.map
 /build-test
 CHANGELOG.md
+!.eslintrc.js
