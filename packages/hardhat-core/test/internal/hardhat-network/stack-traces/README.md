@@ -42,6 +42,8 @@ Transactions can be deployments or calls. In this case the first transaction dep
 
 Each transaction can have some "assertion" fields, which describe what should happen when that transaction is executed. The most common one is `stackTrace`, which indicates that the transaction should revert and that Hardhat should generate the given stack trace. In this case, the test is saying that the transaction should revert with a single frame, which has an inferred `NONCONTRACT_ACCOUNT_CALLED_ERROR` error, and points to line 11 of the `c.sol` file.
 
+Another possible assertion field is `consoleLogs`, which specifies that the transaction should emit certain logs with `console.sol`. See for example [this `test.json`](https://github.com/NomicFoundation/hardhat/blob/stack-traces-tests-explainer/packages/hardhat-core/test/internal/hardhat-network/stack-traces/test-files/0_8/console-logs/uint/uint/test.json).
+
 ## Directory structure
 
 All the tests are located under the `test-files` directory. Each directory immediately under it corresponds to a minor version of Solidity. In practice this means that tests under `test-files/0_8` will have a `pragma solidity ^0.8.0`, but it is possible to specify tests that are only run for a more precise range of versions.
