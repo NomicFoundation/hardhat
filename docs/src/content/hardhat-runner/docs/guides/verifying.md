@@ -44,7 +44,7 @@ module.exports = {
 
 ## Deploying and verifying a contract in the Sepolia testnet
 
-We are going to use the [Sepolia testnet](https://ethereum.org/en/developers/docs/networks/#sepolia) to deploy and verify our contract, so you need to add this network in your Hardhat config. Here we are using [Infura](https://infura.io/) to connect to the network, but you can use an alternative JSON-RPC URL like [Alchemy](https://alchemy.com/) if you want.
+We are going to use the [Sepolia testnet](https://ethereum.org/en/developers/docs/networks/#sepolia) to deploy and verify our contract, so you need to add this network in your Hardhat config. Here we are using [Infura](https://infura.io/) to connect to the network, but you can use an alternative JSON-RPC URL like [Alchemy](https://alchemy.com/) or [Tenderly](https://tenderly.co) if you want.
 
 ::::tabsgroup{options=Infura,Alchemy,Tenderly}
 
