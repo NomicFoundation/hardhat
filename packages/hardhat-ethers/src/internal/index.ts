@@ -1,9 +1,9 @@
 import type EthersT from "ethers";
+import type { HardhatEthersProvider as HardhatEthersProviderT } from "./hardhat-ethers-provider";
 
 import { extendEnvironment } from "hardhat/config";
 import { lazyObject } from "hardhat/plugins";
 
-import { HardhatEthersProvider } from "./hardhat-ethers-provider";
 import {
   getContractAt,
   getContractAtFromArtifact,
@@ -19,6 +19,9 @@ import "./type-extensions";
 extendEnvironment((hre) => {
   hre.ethers = lazyObject(() => {
     const { ethers } = require("ethers") as typeof EthersT;
+    const { HardhatEthersProvider } = require("./hardhat-ethers-provider") as {
+      HardhatEthersProvider: typeof HardhatEthersProviderT;
+    };
 
     const provider = new HardhatEthersProvider(
       hre.network.provider,
