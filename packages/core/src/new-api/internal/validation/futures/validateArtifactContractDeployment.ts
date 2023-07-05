@@ -1,13 +1,34 @@
 import { ethers } from "ethers";
 
 import { IgnitionValidationError } from "../../../../errors";
+import { isModuleParameterRuntimeValue } from "../../../type-guards";
 import { ArtifactResolver } from "../../../types/artifact";
-import { ArtifactContractDeploymentFuture } from "../../../types/module";
+import {
+  ArtifactContractDeploymentFuture,
+  ModuleParameters,
+} from "../../../types/module";
 
 export async function validateArtifactContractDeployment(
   future: ArtifactContractDeploymentFuture,
-  artifactLoader: ArtifactResolver
+  artifactLoader: ArtifactResolver,
+  moduleParameters: ModuleParameters
 ) {
+  const moduleParams = future.constructorArgs.filter(
+    isModuleParameterRuntimeValue
+  );
+
+  const missingParams = moduleParams.filter(
+    (param) =>
+      moduleParameters[param.name] === undefined &&
+      param.defaultValue === undefined
+  );
+
+  if (missingParams.length > 0) {
+    throw new IgnitionValidationError(
+      `Module parameter '${missingParams[0].name}' requires a value but was given none`
+    );
+  }
+
   const artifact = await artifactLoader.loadArtifact(future.contractName);
 
   const argsLength = future.constructorArgs.length;

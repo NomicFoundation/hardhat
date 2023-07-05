@@ -1,9 +1,23 @@
+import { IgnitionValidationError } from "../../../../errors";
+import { isModuleParameterRuntimeValue } from "../../../type-guards";
 import { ArtifactResolver } from "../../../types/artifact";
-import { SendDataFuture } from "../../../types/module";
+import { ModuleParameters, SendDataFuture } from "../../../types/module";
 
 export async function validateSendData(
-  _future: SendDataFuture,
-  _artifactLoader: ArtifactResolver
+  future: SendDataFuture,
+  _artifactLoader: ArtifactResolver,
+  moduleParameters: ModuleParameters
 ) {
-  return; /* noop - nothing to validate here */
+  if (isModuleParameterRuntimeValue(future.to)) {
+    if (
+      moduleParameters[future.to.name] === undefined &&
+      future.to.defaultValue === undefined
+    ) {
+      throw new IgnitionValidationError(
+        `Module parameter '${future.to.name}' requires a value but was given none`
+      );
+    }
+  }
+
+  return;
 }

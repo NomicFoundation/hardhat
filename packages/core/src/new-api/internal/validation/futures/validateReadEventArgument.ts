@@ -3,11 +3,15 @@ import { ethers } from "ethers";
 import { IgnitionValidationError } from "../../../../errors";
 import { isArtifactType } from "../../../type-guards";
 import { ArtifactResolver } from "../../../types/artifact";
-import { ReadEventArgumentFuture } from "../../../types/module";
+import {
+  ModuleParameters,
+  ReadEventArgumentFuture,
+} from "../../../types/module";
 
 export async function validateReadEventArgument(
   future: ReadEventArgumentFuture,
-  artifactLoader: ArtifactResolver
+  artifactLoader: ArtifactResolver,
+  _moduleParameters: ModuleParameters
 ) {
   const artifact =
     "artifact" in future.emitter

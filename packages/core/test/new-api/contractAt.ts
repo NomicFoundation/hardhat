@@ -272,7 +272,8 @@ describe("contractAt", () => {
           future as any,
           setupMockArtifactResolver({
             Another: fakeArtifact,
-          })
+          }),
+          {}
         ),
         /Artifact for contract 'Another' is invalid/
       );

@@ -1,14 +1,32 @@
 import { ethers } from "ethers";
 
 import { IgnitionValidationError } from "../../../../errors";
-import { isArtifactType } from "../../../type-guards";
+import {
+  isArtifactType,
+  isModuleParameterRuntimeValue,
+} from "../../../type-guards";
 import { ArtifactResolver } from "../../../types/artifact";
-import { NamedStaticCallFuture } from "../../../types/module";
+import { ModuleParameters, NamedStaticCallFuture } from "../../../types/module";
 
 export async function validateNamedStaticCall(
   future: NamedStaticCallFuture<string, string>,
-  artifactLoader: ArtifactResolver
+  artifactLoader: ArtifactResolver,
+  moduleParameters: ModuleParameters
 ) {
+  const moduleParams = future.args.filter(isModuleParameterRuntimeValue);
+
+  const missingParams = moduleParams.filter(
+    (param) =>
+      moduleParameters[param.name] === undefined &&
+      param.defaultValue === undefined
+  );
+
+  if (missingParams.length > 0) {
+    throw new IgnitionValidationError(
+      `Module parameter '${missingParams[0].name}' requires a value but was given none`
+    );
+  }
+
   const artifact =
     "artifact" in future.contract
       ? future.contract.artifact

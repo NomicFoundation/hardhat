@@ -544,7 +544,8 @@ describe("static call", () => {
       await assert.isRejected(
         validateNamedStaticCall(
           future as any,
-          setupMockArtifactResolver({ Another: {} as any })
+          setupMockArtifactResolver({ Another: {} as any }),
+          {}
         ),
         /Artifact for contract 'Another' is invalid/
       );
@@ -572,7 +573,7 @@ describe("static call", () => {
       );
 
       await assert.isRejected(
-        validateNamedStaticCall(future as any, setupMockArtifactResolver()),
+        validateNamedStaticCall(future as any, setupMockArtifactResolver(), {}),
         /Contract 'Another' doesn't have a function test/
       );
     });
@@ -613,7 +614,7 @@ describe("static call", () => {
       );
 
       await assert.isRejected(
-        validateNamedStaticCall(future as any, setupMockArtifactResolver()),
+        validateNamedStaticCall(future as any, setupMockArtifactResolver(), {}),
         /Function inc in contract Another expects 1 arguments but 2 were given/
       );
     });
@@ -672,7 +673,7 @@ describe("static call", () => {
       );
 
       await assert.isRejected(
-        validateNamedStaticCall(future as any, setupMockArtifactResolver()),
+        validateNamedStaticCall(future as any, setupMockArtifactResolver(), {}),
         /Function inc in contract Another is overloaded, but no overload expects 3 arguments/
       );
     });
@@ -713,7 +714,7 @@ describe("static call", () => {
       );
 
       await assert.isRejected(
-        validateNamedStaticCall(future as any, setupMockArtifactResolver()),
+        validateNamedStaticCall(future as any, setupMockArtifactResolver(), {}),
         /Function inc in contract Another is not 'pure' or 'view' and cannot be statically called/
       );
     });

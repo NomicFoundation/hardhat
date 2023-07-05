@@ -556,7 +556,8 @@ describe("contract", () => {
           future as any,
           setupMockArtifactResolver({
             Another: {} as any,
-          })
+          }),
+          {}
         ),
         /Artifact for contract 'Another' is invalid/
       );
@@ -588,7 +589,8 @@ describe("contract", () => {
       await assert.isRejected(
         validateNamedContractDeployment(
           future as any,
-          setupMockArtifactResolver({ Test: fakeArtifact })
+          setupMockArtifactResolver({ Test: fakeArtifact }),
+          {}
         ),
         /The constructor of the contract 'Test' expects 0 arguments but 3 were given/
       );

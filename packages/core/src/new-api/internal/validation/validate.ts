@@ -1,5 +1,9 @@
 import { ArtifactResolver } from "../../types/artifact";
-import { FutureType, IgnitionModule } from "../../types/module";
+import {
+  FutureType,
+  IgnitionModule,
+  ModuleParameters,
+} from "../../types/module";
 import { getFuturesFromModule } from "../utils/get-futures-from-module";
 
 import { validateArtifactContractAt } from "./futures/validateArtifactContractAt";
@@ -15,32 +19,69 @@ import { validateSendData } from "./futures/validateSendData";
 
 export async function validate(
   module: IgnitionModule,
-  artifactLoader: ArtifactResolver
+  artifactLoader: ArtifactResolver,
+  moduleParameters: ModuleParameters
 ): Promise<void> {
   const futures = getFuturesFromModule(module);
 
   for (const future of futures) {
     switch (future.type) {
       case FutureType.ARTIFACT_CONTRACT_DEPLOYMENT:
-        return validateArtifactContractDeployment(future, artifactLoader);
+        return validateArtifactContractDeployment(
+          future,
+          artifactLoader,
+          moduleParameters
+        );
       case FutureType.ARTIFACT_LIBRARY_DEPLOYMENT:
-        return validateArtifactLibraryDeployment(future, artifactLoader);
+        return validateArtifactLibraryDeployment(
+          future,
+          artifactLoader,
+          moduleParameters
+        );
       case FutureType.ARTIFACT_CONTRACT_AT:
-        return validateArtifactContractAt(future, artifactLoader);
+        return validateArtifactContractAt(
+          future,
+          artifactLoader,
+          moduleParameters
+        );
       case FutureType.NAMED_CONTRACT_DEPLOYMENT:
-        return validateNamedContractDeployment(future, artifactLoader);
+        return validateNamedContractDeployment(
+          future,
+          artifactLoader,
+          moduleParameters
+        );
       case FutureType.NAMED_LIBRARY_DEPLOYMENT:
-        return validateNamedLibraryDeployment(future, artifactLoader);
+        return validateNamedLibraryDeployment(
+          future,
+          artifactLoader,
+          moduleParameters
+        );
       case FutureType.NAMED_CONTRACT_AT:
-        return validateNamedContractAt(future, artifactLoader);
+        return validateNamedContractAt(
+          future,
+          artifactLoader,
+          moduleParameters
+        );
       case FutureType.NAMED_CONTRACT_CALL:
-        return validateNamedContractCall(future, artifactLoader);
+        return validateNamedContractCall(
+          future,
+          artifactLoader,
+          moduleParameters
+        );
       case FutureType.NAMED_STATIC_CALL:
-        return validateNamedStaticCall(future, artifactLoader);
+        return validateNamedStaticCall(
+          future,
+          artifactLoader,
+          moduleParameters
+        );
       case FutureType.READ_EVENT_ARGUMENT:
-        return validateReadEventArgument(future, artifactLoader);
+        return validateReadEventArgument(
+          future,
+          artifactLoader,
+          moduleParameters
+        );
       case FutureType.SEND_DATA:
-        return validateSendData(future, artifactLoader);
+        return validateSendData(future, artifactLoader, moduleParameters);
     }
   }
 }
