@@ -23,7 +23,7 @@ import {
   SendDataFuture,
 } from "../types/module";
 
-const customInspectSymbol = Symbol.for("nodejs.util.inspect.custom");
+const customInspectSymbol = Symbol.for("util.inspect.custom");
 
 abstract class BaseFutureImplementation<FutureTypeT extends FutureType> {
   public readonly dependencies: Set<Future> = new Set();
