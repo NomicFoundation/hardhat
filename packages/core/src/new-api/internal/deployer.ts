@@ -76,9 +76,9 @@ export class Deployer {
     );
 
     const contracts = getFuturesFromModule(module).filter(isContractFuture);
-    const contractStates = contracts.map(
-      (contract) => previousStateMap[contract.id]
-    );
+    const contractStates = contracts
+      .map((contract) => previousStateMap[contract.id])
+      .filter((v) => v !== undefined);
 
     // realistically this should be impossible to fail.
     // just need it here for the type inference

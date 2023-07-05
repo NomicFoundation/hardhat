@@ -1,9 +1,14 @@
 import { assert } from "chai";
 
+import { isContractFuture } from "../../../src";
 import { ModuleConstructor } from "../../../src/new-api/internal/module-builder";
 import { Reconciler } from "../../../src/new-api/internal/reconciliation/reconciler";
-import { ReconciliationResult } from "../../../src/new-api/internal/reconciliation/types";
+import {
+  ArtifactMap,
+  ReconciliationResult,
+} from "../../../src/new-api/internal/reconciliation/types";
 import { ExecutionStateMap } from "../../../src/new-api/internal/types/execution-state";
+import { getFuturesFromModule } from "../../../src/new-api/internal/utils/get-futures-from-module";
 import {
   IgnitionModuleResult,
   ModuleParameters,
@@ -35,11 +40,30 @@ export function reconcile(
     ])
   );
 
+  const contracts = getFuturesFromModule(module).filter(isContractFuture);
+
+  const moduleArtifactMap: ArtifactMap = Object.fromEntries(
+    contracts.map((contract) => [
+      contract.id,
+      {
+        contractName: contract.contractName,
+        abi: [],
+        bytecode: "0xaaaaaaaaaaa",
+        linkReferences: {},
+      },
+    ])
+  );
+
+  // todo: make testable
+  const storedArtifactMap = moduleArtifactMap;
+
   const reconiliationResult = Reconciler.reconcile(
     module,
     updatedExecutionStateMap,
     moduleParameters,
-    exampleAccounts
+    exampleAccounts,
+    moduleArtifactMap,
+    storedArtifactMap
   );
 
   return reconiliationResult;
