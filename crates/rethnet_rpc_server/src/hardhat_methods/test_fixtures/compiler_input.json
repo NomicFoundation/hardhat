@@ -1,0 +1,27 @@
+{
+  "language": "Solidity",
+  "sources": {
+    "literal.sol": {
+      "content": "\n            contract Nine {\n                function returnNine() public pure returns (int) { return 9; }\n            }\n          "
+    }
+  },
+  "settings": {
+    "optimizer": {
+      "enabled": false
+    },
+    "outputSelection": {
+      "*": {
+        "*": [
+          "abi",
+          "evm.bytecode",
+          "evm.deployedBytecode",
+          "evm.methodIdentifiers"
+        ],
+        "": [
+          "id",
+          "ast"
+        ]
+      }
+    }
+  }
+}
