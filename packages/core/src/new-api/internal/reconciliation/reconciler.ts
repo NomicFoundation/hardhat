@@ -1,4 +1,3 @@
-import { ArtifactMap } from "../../types/artifact";
 import { Future, IgnitionModule, ModuleParameters } from "../../types/module";
 import { ExecutionState, ExecutionStateMap } from "../types/execution-state";
 import { AdjacencyList } from "../utils/adjacency-list";
@@ -15,6 +14,7 @@ import {
   ReconciliationFutureResult,
   ReconciliationFutureResultFailure,
   ReconciliationResult,
+  ArtifactMap,
 } from "./types";
 
 export class Reconciler {

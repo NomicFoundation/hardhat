@@ -6,7 +6,7 @@ import type {
 import type { IgnitionModuleDefinition } from "../types/module-builder";
 
 import { isContractFuture } from "../type-guards";
-import { Artifact, ArtifactMap, ArtifactResolver } from "../types/artifact";
+import { Artifact, ArtifactResolver } from "../types/artifact";
 import { DeploymentResult } from "../types/deployer";
 import { DeploymentLoader } from "../types/deployment-loader";
 import { Journal } from "../types/journal";
@@ -18,6 +18,7 @@ import { BasicExecutionStrategy } from "./execution/execution-strategy";
 import { executionStateReducer } from "./execution/executionStateReducer";
 import { ModuleConstructor } from "./module-builder";
 import { Reconciler } from "./reconciliation/reconciler";
+import { ArtifactMap } from "./reconciliation/types";
 import { isContractExecutionStateArray } from "./type-guards";
 import { ExecutionStrategy } from "./types/execution-engine";
 import {
@@ -86,6 +87,8 @@ export class Deployer {
       "Invalid state map"
     );
 
+    // since the reconciler is purely synchronous, we load all of the artifacts at once here.
+    // if reconciler was async, we could pass it the artifact loaders and load them JIT instead.
     const moduleArtifactMap = await this._loadModuleArtifactMap(contracts);
     const storedArtifactMap = await this._loadStoredArtifactMap(contractStates);
 

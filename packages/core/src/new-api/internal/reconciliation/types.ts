@@ -1,4 +1,4 @@
-import { ArtifactMap } from "../../types/artifact";
+import { Artifact } from "../../types/artifact";
 import { Future, ModuleParameters } from "../../types/module";
 import { ExecutionState, ExecutionStateMap } from "../types/execution-state";
 
@@ -38,3 +38,7 @@ export type ReconciliationCheck = (
   executionState: ExecutionState,
   context: ReconciliationContext
 ) => ReconciliationFutureResult;
+
+export interface ArtifactMap {
+  [futureId: string]: Artifact;
+}
