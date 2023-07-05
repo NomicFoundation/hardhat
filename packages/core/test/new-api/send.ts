@@ -7,9 +7,11 @@ import {
   SendDataFutureImplementation,
 } from "../../src/new-api/internal/module";
 import { ModuleConstructor } from "../../src/new-api/internal/module-builder";
+import { getFuturesFromModule } from "../../src/new-api/internal/utils/get-futures-from-module";
+import { validateSendData } from "../../src/new-api/internal/validation/futures/validateSendData";
 import { FutureType } from "../../src/new-api/types/module";
 
-import { assertInstanceOf } from "./helpers";
+import { assertInstanceOf, setupMockArtifactResolver } from "./helpers";
 
 describe("send", () => {
   it("should be able to setup a send", () => {
@@ -367,6 +369,55 @@ describe("send", () => {
       assert.throws(
         () => constructor.construct(moduleWithDependentContractsDefinition),
         /Invalid address given/
+      );
+    });
+
+    it("should not validate a missing module parameter", async () => {
+      const moduleWithDependentContractsDefinition = defineModule(
+        "Module1",
+        (m) => {
+          const p = m.getParameter("p");
+          m.send("id", p, 0n, "");
+
+          return {};
+        }
+      );
+
+      const constructor = new ModuleConstructor();
+      const module = constructor.construct(
+        moduleWithDependentContractsDefinition
+      );
+      const future = getFuturesFromModule(module).find(
+        (v) => v.type === FutureType.SEND_DATA
+      );
+
+      await assert.isRejected(
+        validateSendData(future as any, setupMockArtifactResolver(), {}),
+        /Module parameter 'p' requires a value but was given none/
+      );
+    });
+
+    it("should validate a missing module parameter if a default parameter is present", async () => {
+      const moduleWithDependentContractsDefinition = defineModule(
+        "Module1",
+        (m) => {
+          const p = m.getParameter("p", "0x123");
+          m.send("id", p, 0n, "");
+
+          return {};
+        }
+      );
+
+      const constructor = new ModuleConstructor();
+      const module = constructor.construct(
+        moduleWithDependentContractsDefinition
+      );
+      const future = getFuturesFromModule(module).find(
+        (v) => v.type === FutureType.SEND_DATA
+      );
+
+      await assert.isFulfilled(
+        validateSendData(future as any, setupMockArtifactResolver(), {})
       );
     });
   });

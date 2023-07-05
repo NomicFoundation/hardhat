@@ -1,5 +1,6 @@
 import { assert } from "chai";
 
+import { Artifact, FutureType } from "../../src";
 import { defineModule } from "../../src/new-api/define-module";
 import { ModuleParameterRuntimeValueImplementation } from "../../src/new-api/internal/module";
 import { ModuleConstructor } from "../../src/new-api/internal/module-builder";
@@ -9,7 +10,12 @@ import { validateNamedContractAt } from "../../src/new-api/internal/validation/f
 import { assertInstanceOf, setupMockArtifactResolver } from "./helpers";
 
 describe("contractAt", () => {
-  const fakeArtifact: any = {};
+  const fakeArtifact: Artifact = {
+    abi: [],
+    contractName: "",
+    bytecode: "",
+    linkReferences: {},
+  };
 
   it("should be able to setup a contract at a given address", () => {
     const moduleWithContractFromArtifactDefinition = defineModule(
@@ -179,16 +185,8 @@ describe("contractAt", () => {
 
     it("should throw if the same contract is deployed twice without differentiating ids", () => {
       const moduleDefinition = defineModule("Module1", (m) => {
-        const sameContract1 = m.contractAt(
-          "SameContract",
-          "0x123",
-          fakeArtifact
-        );
-        const sameContract2 = m.contractAt(
-          "SameContract",
-          "0x123",
-          fakeArtifact
-        );
+        const sameContract1 = m.contractAt("SameContract", "0x123");
+        const sameContract2 = m.contractAt("SameContract", "0x123");
 
         return { sameContract1, sameContract2 };
       });
@@ -251,6 +249,67 @@ describe("contractAt", () => {
       );
     });
 
+    it("should not validate a missing module parameter", async () => {
+      const moduleWithDependentContractsDefinition = defineModule(
+        "Module1",
+        (m) => {
+          const p = m.getParameter("p");
+          const another = m.contractAt("Another", p);
+
+          return { another };
+        }
+      );
+
+      const constructor = new ModuleConstructor();
+      const module = constructor.construct(
+        moduleWithDependentContractsDefinition
+      );
+      const future = getFuturesFromModule(module).find(
+        (v) => v.type === FutureType.NAMED_CONTRACT_AT
+      );
+
+      await assert.isRejected(
+        validateNamedContractAt(
+          future as any,
+          setupMockArtifactResolver({
+            Another: fakeArtifact,
+          }),
+          {}
+        ),
+        /Module parameter 'p' requires a value but was given none/
+      );
+    });
+
+    it("should validate a missing module parameter if a default parameter is present", async () => {
+      const moduleWithDependentContractsDefinition = defineModule(
+        "Module1",
+        (m) => {
+          const p = m.getParameter("p", "0x1234");
+          const another = m.contractAt("Another", p);
+
+          return { another };
+        }
+      );
+
+      const constructor = new ModuleConstructor();
+      const module = constructor.construct(
+        moduleWithDependentContractsDefinition
+      );
+      const future = getFuturesFromModule(module).find(
+        (v) => v.type === FutureType.NAMED_CONTRACT_AT
+      );
+
+      await assert.isFulfilled(
+        validateNamedContractAt(
+          future as any,
+          setupMockArtifactResolver({
+            Another: fakeArtifact,
+          }),
+          {}
+        )
+      );
+    });
+
     it("should not validate an invalid artifact", async () => {
       const moduleWithDependentContractsDefinition = defineModule(
         "Module1",
@@ -271,7 +330,7 @@ describe("contractAt", () => {
         validateNamedContractAt(
           future as any,
           setupMockArtifactResolver({
-            Another: fakeArtifact,
+            Another: {} as any,
           }),
           {}
         ),

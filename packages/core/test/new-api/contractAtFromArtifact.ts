@@ -1,11 +1,13 @@
 import { assert } from "chai";
 
-import { Artifact } from "../../src";
+import { Artifact, FutureType } from "../../src";
 import { defineModule } from "../../src/new-api/define-module";
 import { ModuleParameterRuntimeValueImplementation } from "../../src/new-api/internal/module";
 import { ModuleConstructor } from "../../src/new-api/internal/module-builder";
+import { getFuturesFromModule } from "../../src/new-api/internal/utils/get-futures-from-module";
+import { validateArtifactContractAt } from "../../src/new-api/internal/validation/futures/validateArtifactContractAt";
 
-import { assertInstanceOf } from "./helpers";
+import { assertInstanceOf, setupMockArtifactResolver } from "./helpers";
 
 describe("contractAtFromArtifact", () => {
   const fakeArtifact: Artifact = {
@@ -273,6 +275,67 @@ describe("contractAtFromArtifact", () => {
       assert.throws(
         () => constructor.construct(moduleWithDependentContractsDefinition),
         /Invalid address given/
+      );
+    });
+
+    it("should not validate a missing module parameter", async () => {
+      const moduleWithDependentContractsDefinition = defineModule(
+        "Module1",
+        (m) => {
+          const p = m.getParameter("p");
+          const another = m.contractAtFromArtifact("Another", p, fakeArtifact);
+
+          return { another };
+        }
+      );
+
+      const constructor = new ModuleConstructor();
+      const module = constructor.construct(
+        moduleWithDependentContractsDefinition
+      );
+      const future = getFuturesFromModule(module).find(
+        (v) => v.type === FutureType.ARTIFACT_CONTRACT_AT
+      );
+
+      await assert.isRejected(
+        validateArtifactContractAt(
+          future as any,
+          setupMockArtifactResolver({
+            Another: fakeArtifact,
+          }),
+          {}
+        ),
+        /Module parameter 'p' requires a value but was given none/
+      );
+    });
+
+    it("should validate a missing module parameter if a default parameter is present", async () => {
+      const moduleWithDependentContractsDefinition = defineModule(
+        "Module1",
+        (m) => {
+          const p = m.getParameter("p", "0x1234");
+          const another = m.contractAtFromArtifact("Another", p, fakeArtifact);
+
+          return { another };
+        }
+      );
+
+      const constructor = new ModuleConstructor();
+      const module = constructor.construct(
+        moduleWithDependentContractsDefinition
+      );
+      const future = getFuturesFromModule(module).find(
+        (v) => v.type === FutureType.ARTIFACT_CONTRACT_AT
+      );
+
+      await assert.isFulfilled(
+        validateArtifactContractAt(
+          future as any,
+          setupMockArtifactResolver({
+            Another: fakeArtifact,
+          }),
+          {}
+        )
       );
     });
 
