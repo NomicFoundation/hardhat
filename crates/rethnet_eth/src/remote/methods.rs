@@ -235,30 +235,9 @@ mod tests {
 
     use crate::remote::BlockTag;
 
+    use rethnet_test_utils::help_test_method_invocation_serde;
+
     use super::*;
-
-    fn help_test_method_invocation_serde(call: MethodInvocation) {
-        let json = serde_json::json!(call).to_string();
-
-        // validate that variations of MethodInvocation which have single values can still be
-        // deserialized when presented with `params` as a vector rather than a single value:
-        #[derive(Debug, serde::Deserialize)]
-        struct MethodInvocationWithUntypedParams {
-            #[allow(dead_code)]
-            method: String,
-            #[allow(dead_code)]
-            params: Vec<serde_json::Value>,
-        }
-        serde_json::from_str::<MethodInvocationWithUntypedParams>(&json).unwrap_or_else(|_| {
-            panic!(
-                "should have successfully deserialized, with params as a Vec<String>, json {json}"
-            )
-        });
-
-        let call_decoded: MethodInvocation = serde_json::from_str(&json)
-            .unwrap_or_else(|_| panic!("should have successfully deserialized json {json}"));
-        assert_eq!(call, call_decoded);
-    }
 
     #[test]
     #[should_panic(expected = "string \\\"deadbeef\\\" does not have a '0x' prefix")]
