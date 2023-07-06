@@ -16,7 +16,7 @@ mod withdrawal;
 
 use bytes::Bytes;
 
-use crate::U256;
+use crate::{B256, U256};
 
 use serde_with_helpers::serialize_u256;
 
@@ -39,6 +39,53 @@ impl From<u64> for U64 {
     }
 }
 
+/// to represent the Object { blockHash, requireCanonical } in EIP-1898
+#[derive(Clone, Debug, PartialEq, serde::Deserialize, serde::Serialize)]
+pub struct Eip1898BlockHash {
+    /// the block hash
+    pub block_hash: B256,
+    /// whether the server should additionally raise a JSON-RPC error if the block is not in the
+    /// canonical chain
+    pub require_canonical: Option<bool>,
+}
+
+/// to represent the Object { blockNumber } in EIP-1898
+#[derive(Clone, Debug, PartialEq, serde::Deserialize, serde::Serialize)]
+pub struct Eip1898BlockNumber {
+    /// the block number
+    pub block_number: U256,
+}
+
+///
+#[derive(Clone, Debug, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(untagged)]
+pub enum Eip1898BlockSpec {
+    /// to represent the Object { blockHash, requireCanonical } in EIP-1898
+    Hash(Eip1898BlockHash),
+    /// to represent the Object { blockNumber } in EIP-1898
+    Number(Eip1898BlockNumber),
+}
+
+/// possible block tags as defined by the Ethereum JSON-RPC specification
+#[derive(Clone, Debug, PartialEq, serde::Deserialize, serde::Serialize)]
+pub enum BlockTag {
+    /// earliest
+    #[serde(rename = "earliest")]
+    Earliest,
+    /// latest
+    #[serde(rename = "latest")]
+    Latest,
+    /// pending
+    #[serde(rename = "pending")]
+    Pending,
+    /// safe
+    #[serde(rename = "safe")]
+    Safe,
+    /// finalized
+    #[serde(rename = "finalized")]
+    Finalized,
+}
+
 /// For specifying a block
 #[derive(Clone, Debug, PartialEq, serde::Deserialize, serde::Serialize)]
 #[serde(untagged)]
@@ -47,13 +94,15 @@ pub enum BlockSpec {
     #[serde(serialize_with = "serialize_u256")]
     Number(U256),
     /// as a block tag (eg "latest")
-    Tag(String),
+    Tag(BlockTag),
+    /// as an EIP-1898-compliant block specifier
+    Eip1898(Eip1898BlockSpec),
 }
 
 impl BlockSpec {
     /// Constructs a `BlockSpec` for the latest block.
     pub fn latest() -> Self {
-        Self::Tag(String::from("latest"))
+        Self::Tag(BlockTag::Latest)
     }
 }
 

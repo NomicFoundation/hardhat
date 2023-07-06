@@ -9,7 +9,7 @@ use axum::{
 };
 use hashbrown::HashMap;
 use rethnet_eth::remote::ZeroXPrefixedBytes;
-use tokio::sync::{Mutex, RwLock};
+use tokio::sync::RwLock;
 use tracing::{event, Level};
 
 use rethnet_eth::{
@@ -18,7 +18,7 @@ use rethnet_eth::{
         jsonrpc,
         jsonrpc::{Response, ResponseData},
         methods::MethodInvocation as EthMethodInvocation,
-        BlockSpec,
+        BlockSpec, BlockTag, Eip1898BlockHash, Eip1898BlockNumber, Eip1898BlockSpec,
     },
     Address, B256, U256,
 };
@@ -48,7 +48,6 @@ type RethnetStateType = Arc<RwLock<Box<dyn SyncState<StateError>>>>;
 
 struct AppState {
     rethnet_state: RethnetStateType,
-    fork_client: Option<Arc<Mutex<RpcClient>>>,
     fork_block_number: Option<usize>,
 }
 
@@ -83,65 +82,74 @@ fn error_response_data<T>(msg: &str) -> ResponseData<T> {
     ResponseData::new_error(0, msg, None)
 }
 
+async fn get_latest_block_number<T>(state: &StateType) -> Result<U256, ResponseData<T>> {
+    if let Some(fork_block_number) = state.fork_block_number {
+        // TODO: when we're able to mint local blocks, and there are some newer than
+        // fork_block_number, return the number of the latest one
+        Ok(U256::from(fork_block_number))
+    } else {
+        // TODO: when we're able to mint local blocks, return the number of the latest one
+        Ok(U256::ZERO)
+    }
+}
+
+fn check_post_merge_block_tags<T>(_state: &StateType) -> Result<(), ResponseData<T>> {
+    todo!("when we're tracking hardforks, if the given block tag is 'safe' or 'finalized', ensure that we're running a hardfork that's after the merge")
+}
+
 /// returns the state root in effect BEFORE setting the block context, so that the caller can
 /// restore the context to that state root.
 async fn set_block_context<T>(
     state: &StateType,
     block_spec: BlockSpec,
 ) -> Result<B256, ResponseData<T>> {
-    let previous_state_root = state
-        .rethnet_state
-        .read()
-        .await
-        .state_root()
-        .map_err(|_| error_response_data("Failed to retrieve previous state root"))?;
-    if block_spec == BlockSpec::Tag(String::from("latest")) {
-        // do nothing
-        Ok(previous_state_root)
-    } else {
-        state
-            .rethnet_state
-            .write()
-            .await
-            .set_block_context(
-                &KECCAK_EMPTY,
-                Some(match block_spec.clone() {
-                    BlockSpec::Number(n) => Ok(n),
-                    BlockSpec::Tag(tag) => {
-                        if let Some(fork_client) = state.fork_client.clone() {
-                            if let Some(block_number) =
-                                fork_client
-                                    .lock()
-                                    .await
-                                    .get_block_by_number(BlockSpec::Tag(tag.clone()))
-                                    .await
-                                    .map_err(|_| {
-                                        error_response_data(&format!("Failed to get block tagged {tag} from forked node"))
-                                    })?
-                                    .number
-                            {
-                                if let Some(fork_block_number) = state.fork_block_number {
-                                    let fork_block_number = U256::from(fork_block_number);
-                                    if block_number > fork_block_number {
-                                        Err(error_response_data(&format!("Cannot use remote block tagged {tag} because its number ({block_number}) is newer than the configured fork block number ({fork_block_number})")))?
-                                    }
-                                }
-                                Ok(block_number)
-                            } else {
-                                Err(error_response_data(&format!("Remote block tagged {tag} did not have a number")))
+    let previous_state_root = state.rethnet_state.read().await.state_root().map_err(|e| {
+        error_response_data(&format!("Failed to retrieve previous state root: {e}"))
+    })?;
+    match block_spec {
+        BlockSpec::Tag(BlockTag::Pending) => {
+            // do nothing
+            Ok(previous_state_root)
+        }
+        BlockSpec::Tag(BlockTag::Latest) if state.fork_block_number.is_none() => {
+            Ok(previous_state_root)
+        }
+        resolvable_block_spec => {
+            state
+                .rethnet_state
+                .write()
+                .await
+                .set_block_context(
+                    &KECCAK_EMPTY,
+                    Some(match resolvable_block_spec.clone() {
+                        BlockSpec::Number(n) => Ok(n),
+                        BlockSpec::Eip1898(s) => match s {
+                            Eip1898BlockSpec::Number(Eip1898BlockNumber { block_number: n }) => {
+                                Ok(n)
                             }
-                        } else {
-                            Err(error_response_data(&format!(
-                                "Cannot resolve block tag {tag} because there is no forking configuration"
-                            )))
-                        }
-                    }
-                }?),
-            )
-            .map_err(|_| {
-                error_response_data(&format!("Failed to set block context {block_spec:?}"))
-            })?;
-        Ok(previous_state_root)
+                            Eip1898BlockSpec::Hash(Eip1898BlockHash {
+                                block_hash: _,
+                                require_canonical: _,
+                            }) => todo!("when there's a blockchain present"),
+                        },
+                        BlockSpec::Tag(tag) => match tag {
+                            BlockTag::Earliest => Ok(U256::ZERO),
+                            BlockTag::Safe | BlockTag::Finalized => {
+                                check_post_merge_block_tags(state)?;
+                                Ok(get_latest_block_number(state).await?)
+                            }
+                            BlockTag::Latest => Ok(get_latest_block_number(state).await?),
+                            BlockTag::Pending => panic!("should never happen"),
+                        },
+                    }?),
+                )
+                .map_err(|e| {
+                    error_response_data(&format!(
+                        "Failed to set block context {resolvable_block_spec:?}: {e}"
+                    ))
+                })?;
+            Ok(previous_state_root)
+        }
     }
 }
 
@@ -574,8 +582,6 @@ pub async fn serve(
     event!(Level::INFO, "Listening on {}", address);
 
     let rethnet_state: StateType = if let Some(config) = config.forking {
-        let fork_client = Arc::new(Mutex::new(RpcClient::new(&config.json_rpc_url)));
-
         let runtime = tokio::runtime::Builder::new_multi_thread()
             .enable_io()
             .enable_time()
@@ -586,9 +592,7 @@ pub async fn serve(
 
         let fork_block_number = match config.block_number {
             Some(block_number) => U256::from(block_number),
-            None => fork_client
-                .lock()
-                .await
+            None => RpcClient::new(&config.json_rpc_url)
                 .get_block_by_number(rethnet_eth::remote::BlockSpec::latest())
                 .await
                 .expect("should retrieve latest block from fork source")
@@ -604,7 +608,6 @@ pub async fn serve(
                 fork_block_number,
                 genesis_accounts,
             )))),
-            fork_client: Some(fork_client),
             fork_block_number: Some(
                 fork_block_number
                     .try_into()
@@ -616,7 +619,6 @@ pub async fn serve(
             rethnet_state: Arc::new(RwLock::new(Box::new(HybridState::with_accounts(
                 genesis_accounts,
             )))),
-            fork_client: None,
             fork_block_number: None,
         })
     };

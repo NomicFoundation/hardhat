@@ -583,7 +583,7 @@ mod tests {
                 .expect("failed to parse address");
 
             let account_info = RpcClient::new(&alchemy_url)
-                .get_account_info(&dai_address, BlockSpec::Tag("latest".to_string()))
+                .get_account_info(&dai_address, BlockSpec::latest())
                 .await
                 .expect("should have succeeded");
 

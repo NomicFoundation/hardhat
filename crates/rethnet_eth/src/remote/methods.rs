@@ -233,6 +233,8 @@ pub struct GetLogsInput {
 mod tests {
     use bytes::Bytes;
 
+    use crate::remote::BlockTag;
+
     use super::*;
 
     fn help_test_method_invocation_serde(call: MethodInvocation) {
@@ -290,10 +292,7 @@ mod tests {
             value: Some(U256::from(123568919)),
             data: Some(Bytes::from(&b"whatever"[..]).into()),
         };
-        help_test_method_invocation_serde(MethodInvocation::Call(
-            tx.clone(),
-            BlockSpec::Tag(String::from("latest")),
-        ));
+        help_test_method_invocation_serde(MethodInvocation::Call(tx.clone(), BlockSpec::latest()));
         help_test_method_invocation_serde(MethodInvocation::Call(
             tx,
             BlockSpec::Number(U256::from(100)),
@@ -322,7 +321,7 @@ mod tests {
         };
         help_test_method_invocation_serde(MethodInvocation::EstimateGas(
             tx.clone(),
-            BlockSpec::Tag(String::from("latest")),
+            BlockSpec::latest(),
         ));
         help_test_method_invocation_serde(MethodInvocation::EstimateGas(
             tx,
@@ -356,7 +355,7 @@ mod tests {
     fn test_serde_eth_get_balance_by_block_tag() {
         help_test_method_invocation_serde(MethodInvocation::GetBalance(
             Address::from_low_u64_ne(1),
-            BlockSpec::Tag(String::from("latest")),
+            BlockSpec::latest(),
         ));
     }
 
@@ -371,7 +370,7 @@ mod tests {
     #[test]
     fn test_serde_eth_get_block_by_tag() {
         help_test_method_invocation_serde(MethodInvocation::GetBlockByNumber(
-            BlockSpec::Tag(String::from("latest")),
+            BlockSpec::latest(),
             true,
         ));
     }
@@ -410,7 +409,7 @@ mod tests {
     fn test_serde_eth_get_code_by_block_tag() {
         help_test_method_invocation_serde(MethodInvocation::GetCode(
             Address::from_low_u64_ne(1),
-            BlockSpec::Tag(String::from("latest")),
+            BlockSpec::latest(),
         ));
     }
 
@@ -437,8 +436,8 @@ mod tests {
     fn test_serde_eth_get_logs_by_block_tags() {
         help_test_method_invocation_serde(MethodInvocation::GetLogs(GetLogsInput {
             address: Address::from_low_u64_ne(1),
-            from_block: BlockSpec::Tag(String::from("safe")),
-            to_block: BlockSpec::Tag(String::from("latest")),
+            from_block: BlockSpec::Tag(BlockTag::Safe),
+            to_block: BlockSpec::latest(),
         }));
     }
 
@@ -456,7 +455,7 @@ mod tests {
         help_test_method_invocation_serde(MethodInvocation::GetStorageAt(
             Address::from_low_u64_ne(1),
             U256::ZERO,
-            BlockSpec::Tag(String::from("latest")),
+            BlockSpec::latest(),
         ));
     }
 
@@ -495,7 +494,7 @@ mod tests {
     fn test_serde_eth_get_tx_count_by_block_tag() {
         help_test_method_invocation_serde(MethodInvocation::GetTransactionCount(
             Address::from_low_u64_ne(1),
-            BlockSpec::Tag(String::from("latest")),
+            BlockSpec::latest(),
         ));
     }
 
@@ -520,7 +519,7 @@ mod tests {
     fn test_serde_eth_new_filter() {
         help_test_method_invocation_serde(MethodInvocation::NewFilter(FilterOptions {
             from_block: Some(BlockSpec::Number(U256::from(1000))),
-            to_block: Some(BlockSpec::Tag(String::from("latest"))),
+            to_block: Some(BlockSpec::latest()),
             address: Some(Address::from_low_u64_ne(1)),
             topics: Some(vec![Bytes::from(&b"some topic"[..]).into()]),
         }));

@@ -67,20 +67,17 @@ async fn node() -> Result<(), Box<dyn std::error::Error>> {
     let method_invocations = [
         MethodInvocation::Eth(EthMethodInvocation::GetBalance(
             address,
-            BlockSpec::Tag(String::from("latest")),
+            BlockSpec::latest(),
         )),
-        MethodInvocation::Eth(EthMethodInvocation::GetCode(
-            address,
-            BlockSpec::Tag(String::from("latest")),
-        )),
+        MethodInvocation::Eth(EthMethodInvocation::GetCode(address, BlockSpec::latest())),
         MethodInvocation::Eth(EthMethodInvocation::GetStorageAt(
             address,
             U256::ZERO,
-            BlockSpec::Tag(String::from("latest")),
+            BlockSpec::latest(),
         )),
         MethodInvocation::Eth(EthMethodInvocation::GetTransactionCount(
             address,
-            BlockSpec::Tag(String::from("latest")),
+            BlockSpec::latest(),
         )),
         MethodInvocation::Hardhat(HardhatMethodInvocation::SetBalance(address, U256::ZERO)),
         MethodInvocation::Hardhat(HardhatMethodInvocation::SetCode(

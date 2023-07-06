@@ -63,7 +63,7 @@ async fn test_get_balance_nonexistent_account() {
         id: jsonrpc::Id::Num(0),
         method: MethodInvocation::Eth(EthMethodInvocation::GetBalance(
             Address::from_low_u64_ne(2),
-            BlockSpec::Tag(String::from("latest")),
+            BlockSpec::latest(),
         )),
     };
 
@@ -93,7 +93,7 @@ async fn test_get_balance_success() {
         id: jsonrpc::Id::Num(0),
         method: MethodInvocation::Eth(EthMethodInvocation::GetBalance(
             Address::from_low_u64_ne(1),
-            BlockSpec::Tag(String::from("latest")),
+            BlockSpec::latest(),
         )),
     };
 
@@ -117,7 +117,7 @@ async fn test_get_code_success() {
         id: jsonrpc::Id::Num(0),
         method: MethodInvocation::Eth(EthMethodInvocation::GetCode(
             Address::from_low_u64_ne(1),
-            BlockSpec::Tag(String::from("latest")),
+            BlockSpec::latest(),
         )),
     };
 
@@ -144,7 +144,7 @@ async fn test_get_storage_success() {
         method: MethodInvocation::Eth(EthMethodInvocation::GetStorageAt(
             Address::from_low_u64_ne(1),
             U256::ZERO,
-            BlockSpec::Tag(String::from("latest")),
+            BlockSpec::latest(),
         )),
     };
 
@@ -168,7 +168,7 @@ async fn test_get_transaction_count_nonexistent_account() {
         id: jsonrpc::Id::Num(0),
         method: MethodInvocation::Eth(EthMethodInvocation::GetTransactionCount(
             Address::from_low_u64_ne(2),
-            BlockSpec::Tag(String::from("latest")),
+            BlockSpec::latest(),
         )),
     };
 
@@ -198,7 +198,7 @@ async fn test_get_transaction_count_success() {
         id: jsonrpc::Id::Num(0),
         method: MethodInvocation::Eth(EthMethodInvocation::GetTransactionCount(
             Address::from_low_u64_ne(1),
-            BlockSpec::Tag(String::from("latest")),
+            BlockSpec::latest(),
         )),
     };
 
@@ -248,7 +248,7 @@ async fn test_set_balance_success() {
         id: jsonrpc::Id::Num(0),
         method: MethodInvocation::Eth(EthMethodInvocation::GetBalance(
             address,
-            BlockSpec::Tag(String::from("latest")),
+            BlockSpec::latest(),
         )),
     };
 
@@ -297,7 +297,7 @@ async fn test_set_nonce_success() {
         id: jsonrpc::Id::Num(0),
         method: MethodInvocation::Eth(EthMethodInvocation::GetTransactionCount(
             address,
-            BlockSpec::Tag(String::from("latest")),
+            BlockSpec::latest(),
         )),
     };
 
@@ -345,10 +345,7 @@ async fn test_set_code_success() {
     let request = RpcRequest {
         version: jsonrpc::Version::V2_0,
         id: jsonrpc::Id::Num(0),
-        method: MethodInvocation::Eth(EthMethodInvocation::GetCode(
-            address,
-            BlockSpec::Tag(String::from("latest")),
-        )),
+        method: MethodInvocation::Eth(EthMethodInvocation::GetCode(address, BlockSpec::latest())),
     };
 
     let expected_response = jsonrpc::Response::<ZeroXPrefixedBytes> {
@@ -401,7 +398,7 @@ async fn test_set_storage_at_success() {
         method: MethodInvocation::Eth(EthMethodInvocation::GetStorageAt(
             address,
             U256::ZERO,
-            BlockSpec::Tag(String::from("latest")),
+            BlockSpec::latest(),
         )),
     };
 
