@@ -1077,6 +1077,9 @@ export class HardhatEthersProvider implements ethers.Provider {
         }
         if (event.topics !== undefined) {
           const topicsToMatch = event.topics;
+          // the array of topics to match can be smaller than the actual
+          // array of topics; in that case only those first topics are
+          // checked
           const topics = e.topics.slice(0, topicsToMatch.length);
 
           const topicsMatch = topics.every((topic, i) => {

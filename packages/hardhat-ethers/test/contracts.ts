@@ -208,7 +208,8 @@ describe("contracts", function () {
     // call a function that doesn't trigger IncBy
     await contract.inc();
 
-    // wait 250 ms and then check that the listener wasn't triggered
+    // contract events are implemented by polling the network, so we have to wait
+    // some time to be sure that the event wasn't emitted
     await Promise.race([eventPromise, sleep(250)]);
 
     assert.isFalse(listenerTriggered);
