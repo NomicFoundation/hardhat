@@ -43,7 +43,7 @@ type RethnetStateType = Arc<RwLock<Box<dyn SyncState<StateError>>>>;
 
 struct AppState {
     rethnet_state: RethnetStateType,
-    fork_block_number: Option<usize>,
+    fork_block_number: Option<U256>,
 }
 
 type StateType = Arc<AppState>;
@@ -491,11 +491,7 @@ pub async fn run(
                 fork_block_number,
                 genesis_accounts,
             )))),
-            fork_block_number: Some(
-                fork_block_number
-                    .try_into()
-                    .expect("fork block number should fit into a usize"),
-            ),
+            fork_block_number: Some(fork_block_number),
         })
     } else {
         Arc::new(AppState {
