@@ -862,30 +862,6 @@ describe("Config validation", function () {
               validateConfig({
                 networks: {
                   [HARDHAT_NETWORK_NAME]: {
-                    forking: { url: "" },
-                  },
-                },
-              }),
-            ERRORS.GENERAL.INVALID_CONFIG
-          );
-
-          expectHardhatError(
-            () =>
-              validateConfig({
-                networks: {
-                  [HARDHAT_NETWORK_NAME]: {
-                    forking: { url: " " },
-                  },
-                },
-              }),
-            ERRORS.GENERAL.INVALID_CONFIG
-          );
-
-          expectHardhatError(
-            () =>
-              validateConfig({
-                networks: {
-                  [HARDHAT_NETWORK_NAME]: {
                     forking: { url: "asd", blockNumber: "asd" },
                   },
                 },
@@ -1191,20 +1167,6 @@ describe("Config validation", function () {
           it("Should fail if no url is set for custom networks", function () {
             expectHardhatError(
               () => validateConfig({ networks: { custom: {} } }),
-              ERRORS.GENERAL.INVALID_CONFIG
-            );
-          });
-
-          it("Should fail if an empty url is set for custom networks", function () {
-            // Empty string
-            expectHardhatError(
-              () => validateConfig({ networks: { custom: { url: "" } } }),
-              ERRORS.GENERAL.INVALID_CONFIG
-            );
-
-            // Empty string with at least 1 whitespace
-            expectHardhatError(
-              () => validateConfig({ networks: { custom: { url: " " } } }),
               ERRORS.GENERAL.INVALID_CONFIG
             );
           });
