@@ -13,7 +13,7 @@ use rethnet_eth::{
     },
     Address, Bytes, U256,
 };
-use rethnet_rpc_server::{HardhatMethodInvocation, MethodInvocation, TEST_ACCOUNTS};
+use rethnet_rpc_server::{HardhatMethodInvocation, MethodInvocation, DEFAULT_ACCOUNTS};
 
 fn shutdown(child: &mut Child) -> Result<(), std::io::Error> {
     #[cfg(unix)]
@@ -55,7 +55,7 @@ fn shutdown(child: &mut Child) -> Result<(), std::io::Error> {
 #[tokio::test]
 async fn node() -> Result<(), Box<dyn std::error::Error>> {
     use std::str::FromStr;
-    let address = Address::from_str(TEST_ACCOUNTS[0])?;
+    let address = Address::from_str(DEFAULT_ACCOUNTS[0])?;
 
     // the order of operations is a little weird in this test, because we spawn a separate process
     // for the server, and we want to make sure that we end that process gracefully. more

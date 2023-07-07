@@ -52,7 +52,7 @@ struct AppState {
 
 type StateType = Arc<AppState>;
 
-pub const TEST_ACCOUNTS: [&str; 20] = [
+pub const DEFAULT_ACCOUNTS: [&str; 20] = [
     // these were taken from the standard output of a run of `hardhat node`
     "f39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
     "70997970C51812dc3A010C7d01b50e0d17dc79C8",
@@ -564,7 +564,7 @@ impl Server {
         config: Config,
         genesis_accounts: Option<HashMap<Address, AccountInfo>>,
     ) -> Result<Self, Error> {
-        let genesis_accounts = genesis_accounts.unwrap_or(TEST_ACCOUNTS.iter().fold(
+        let genesis_accounts = genesis_accounts.unwrap_or(DEFAULT_ACCOUNTS.iter().fold(
             HashMap::default(),
             |mut genesis_accounts, account| {
                 use std::str::FromStr;
