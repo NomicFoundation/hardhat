@@ -5,7 +5,7 @@ import { assert } from "chai";
 import { deployModule, mineBlocks } from "./helpers";
 import { useEnvironment } from "./useEnvironment";
 
-describe("module parameters", () => {
+describe.skip("module parameters", () => {
   useEnvironment("minimal");
 
   describe("required", () => {

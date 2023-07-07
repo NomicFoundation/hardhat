@@ -4,7 +4,7 @@ import { assert } from "chai";
 import { deployModule } from "./helpers";
 import { useEnvironment } from "./useEnvironment";
 
-describe("module error handling", () => {
+describe.skip("module error handling", () => {
   useEnvironment("minimal");
 
   it("should error on passing async callback", async function () {

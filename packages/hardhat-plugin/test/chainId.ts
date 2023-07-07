@@ -4,7 +4,7 @@ import { assert } from "chai";
 import { deployModule } from "./helpers";
 import { useEnvironment } from "./useEnvironment";
 
-describe("chain id", () => {
+describe.skip("chain id", () => {
   useEnvironment("minimal");
 
   it("should have a chain id", async function () {

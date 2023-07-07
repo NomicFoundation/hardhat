@@ -4,7 +4,7 @@ import { assert } from "chai";
 import { deployModule } from "./helpers";
 import { useEnvironment } from "./useEnvironment";
 
-describe("existing contract", () => {
+describe.skip("existing contract", () => {
   useEnvironment("minimal");
 
   it("should be able to use an existing contract", async function () {

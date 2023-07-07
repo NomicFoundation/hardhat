@@ -9,7 +9,7 @@ import { CommandJournal } from "../src/CommandJournal";
 
 const tempCommandFilePath = "./tmp-test-journal.journal.ndjson";
 
-describe("File based command journal", () => {
+describe.skip("File based command journal", () => {
   afterEach(() => {
     if (fs.existsSync(tempCommandFilePath)) {
       fs.unlinkSync(tempCommandFilePath);

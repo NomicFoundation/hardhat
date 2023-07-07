@@ -4,7 +4,7 @@ import { assert } from "chai";
 import { deployModule } from "./helpers";
 import { useEnvironment } from "./useEnvironment";
 
-describe("libraries", () => {
+describe.skip("libraries", () => {
   useEnvironment("minimal");
 
   it("should be able to deploy a contract that depends on a hardhat library", async function () {

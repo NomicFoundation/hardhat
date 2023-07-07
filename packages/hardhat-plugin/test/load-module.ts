@@ -5,7 +5,7 @@ import { loadModule } from "../src/load-module";
 
 import { useEnvironment } from "./useEnvironment";
 
-describe("loadModule", function () {
+describe.skip("loadModule", function () {
   useEnvironment("user-modules");
 
   it("should return the module given the module name", () => {

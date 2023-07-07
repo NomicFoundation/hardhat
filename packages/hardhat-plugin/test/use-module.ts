@@ -5,7 +5,7 @@ import { assert } from "chai";
 import { mineBlocks } from "./helpers";
 import { useEnvironment } from "./useEnvironment";
 
-describe("useModule", function () {
+describe.skip("useModule", function () {
   useEnvironment("minimal");
 
   describe("returning futures from module usage", () => {

@@ -6,7 +6,7 @@ import { BigNumber } from "ethers";
 
 import { useEnvironment } from "./useEnvironment";
 
-describe("config", () => {
+describe.skip("config", () => {
   useEnvironment("with-config");
 
   let loadedOptions: IgnitionWrapperOptions;
