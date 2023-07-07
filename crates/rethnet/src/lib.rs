@@ -37,20 +37,20 @@ impl TryFrom<NodeArgs> for Config {
         Ok(Config {
             address: format!("{}:{}", node_args.host, node_args.port).parse()?,
             rpc_hardhat_network_config: RpcHardhatNetworkConfig {
-            forking: if let Some(json_rpc_url) = node_args.fork_url {
-                Some(RpcForkConfig {
-                    json_rpc_url,
-                    block_number: node_args.fork_block_number,
-                    http_headers: None,
-                })
-            } else if node_args.fork_block_number.is_some() {
-                Err(anyhow::anyhow!(
-                    "A fork block number can only be used if you also supply a fork URL"
-                ))?
-            } else {
-                None
+                forking: if let Some(json_rpc_url) = node_args.fork_url {
+                    Some(RpcForkConfig {
+                        json_rpc_url,
+                        block_number: node_args.fork_block_number,
+                        http_headers: None,
+                    })
+                } else if node_args.fork_block_number.is_some() {
+                    Err(anyhow::anyhow!(
+                        "A fork block number can only be used if you also supply a fork URL"
+                    ))?
+                } else {
+                    None
+                },
             },
-            }
         })
     }
 }
@@ -81,9 +81,7 @@ where
         Command::Node(node_args) => {
             tracing_subscriber::fmt::Subscriber::builder().init();
 
-            let server =
-                rethnet_rpc_server::serve(node_args.try_into()?, None)
-                    .await?;
+            let server = rethnet_rpc_server::serve(node_args.try_into()?, None).await?;
 
             async fn await_signal() {
                 use tokio::signal;

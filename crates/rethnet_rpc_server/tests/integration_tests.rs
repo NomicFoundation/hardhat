@@ -13,8 +13,7 @@ use rethnet_eth::{
 use rethnet_evm::{AccountInfo, KECCAK_EMPTY};
 
 use rethnet_rpc_server::{
-    Config,
-    serve, HardhatMethodInvocation, MethodInvocation, RpcHardhatNetworkConfig,
+    serve, Config, HardhatMethodInvocation, MethodInvocation, RpcHardhatNetworkConfig,
 };
 
 async fn start_server() -> SocketAddr {
@@ -30,10 +29,9 @@ async fn start_server() -> SocketAddr {
     );
 
     let server = serve(
-        Config { address:
-        "127.0.0.1:0".parse::<SocketAddr>().unwrap(),
-        rpc_hardhat_network_config:
-        RpcHardhatNetworkConfig { forking: None },
+        Config {
+            address: "127.0.0.1:0".parse::<SocketAddr>().unwrap(),
+            rpc_hardhat_network_config: RpcHardhatNetworkConfig { forking: None },
         },
         Some(accounts),
     )
