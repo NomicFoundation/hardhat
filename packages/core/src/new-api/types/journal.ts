@@ -30,7 +30,8 @@ export type JournalableMessage =
  */
 export type TransactionMessage =
   | OnchainInteractionMessage
-  | OnchainTransaction
+  | OnchainTransactionRequest
+  | OnchainTransactionAccept
   | OnchainResultMessage;
 
 // #region "OnchainInteraction"
@@ -158,14 +159,25 @@ export interface ContractAtInteractionMessage {
  *
  * @beta
  */
-export interface OnchainTransaction {
-  type: "onchain-transaction";
+export interface OnchainTransactionRequest {
+  type: "onchain-transaction-request";
   futureId: string;
   executionId: number;
-  txHash: string;
   from: string;
   nonce: number;
   tx: any;
+}
+
+/**
+ * Records a transaction submission being accepted in the mempool.
+ *
+ * @beta
+ */
+export interface OnchainTransactionAccept {
+  type: "onchain-transaction-accept";
+  futureId: string;
+  executionId: number;
+  txHash: string;
 }
 
 // #endregion

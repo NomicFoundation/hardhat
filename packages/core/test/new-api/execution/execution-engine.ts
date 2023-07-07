@@ -137,7 +137,7 @@ describe("execution engine", () => {
         from: accounts[1],
       },
       {
-        type: "onchain-transaction",
+        type: "onchain-transaction-request",
         futureId: "Module1:Contract1",
         executionId: 1,
         from: accounts[1],
@@ -146,6 +146,11 @@ describe("execution engine", () => {
           _kind: "TEST-TRANSACTION",
           nonce: 0,
         },
+      },
+      {
+        type: "onchain-transaction-accept",
+        futureId: "Module1:Contract1",
+        executionId: 1,
         txHash: "0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC--0",
       },
       {
@@ -228,6 +233,17 @@ describe("execution engine", () => {
         storedArtifactPath: "Module1:Contract1.json",
       },
       {
+        type: "onchain-transaction-request",
+        futureId: "Module1:Contract1",
+        executionId: 1,
+        from: accounts[1],
+        nonce: 0,
+        tx: {
+          _kind: "TEST-TRANSACTION",
+          nonce: 0,
+        },
+      },
+      {
         type: "execution-failure",
         futureId: "Module1:Contract1",
         error: new Error(
@@ -300,7 +316,7 @@ describe("execution engine", () => {
         from: accounts[2],
       },
       {
-        type: "onchain-transaction",
+        type: "onchain-transaction-request",
         futureId: "Module1:Library1",
         executionId: 1,
         from: accounts[2],
@@ -309,6 +325,11 @@ describe("execution engine", () => {
           _kind: "TEST-TRANSACTION",
           nonce: 0,
         },
+      },
+      {
+        type: "onchain-transaction-accept",
+        futureId: "Module1:Library1",
+        executionId: 1,
         txHash: "0x90F79bf6EB2c4f870365E785982E1f101E93b906--0",
       },
       {
@@ -404,7 +425,7 @@ describe("execution engine", () => {
         storedArtifactPath: "Module1:Contract1.json",
       },
       {
-        type: "onchain-transaction",
+        type: "onchain-transaction-request",
         futureId: "Module1:Contract1",
         executionId: 1,
         from: accounts[2],
@@ -413,6 +434,11 @@ describe("execution engine", () => {
           _kind: "TEST-TRANSACTION",
           nonce: 0,
         },
+      },
+      {
+        type: "onchain-transaction-accept",
+        futureId: "Module1:Contract1",
+        executionId: 1,
         txHash: "0x90F79bf6EB2c4f870365E785982E1f101E93b906--0",
       },
       {
@@ -510,7 +536,7 @@ describe("execution engine", () => {
           from: accounts[1],
         },
         {
-          type: "onchain-transaction",
+          type: "onchain-transaction-request",
           futureId: "Module1:Contract1",
           executionId: 1,
           from: accounts[1],
@@ -519,6 +545,11 @@ describe("execution engine", () => {
             _kind: "TEST-TRANSACTION",
             nonce: 0,
           },
+        },
+        {
+          type: "onchain-transaction-accept",
+          futureId: "Module1:Contract1",
+          executionId: 1,
           txHash: "0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC--0",
         },
         {
@@ -559,7 +590,7 @@ describe("execution engine", () => {
           value: "123",
         },
         {
-          type: "onchain-transaction",
+          type: "onchain-transaction-request",
           futureId: "Module1:test-send",
           executionId: 1,
           from: accounts[1],
@@ -571,6 +602,11 @@ describe("execution engine", () => {
             data: "0x",
             value: BigInt(123),
           },
+        },
+        {
+          type: "onchain-transaction-accept",
+          futureId: "Module1:test-send",
+          executionId: 1,
           txHash: "0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC--1",
         },
         {
@@ -668,7 +704,7 @@ describe("execution engine", () => {
           from: accounts[1],
         },
         {
-          type: "onchain-transaction",
+          type: "onchain-transaction-request",
           futureId: "Module1:Contract1",
           executionId: 1,
           from: accounts[1],
@@ -677,6 +713,11 @@ describe("execution engine", () => {
             _kind: "TEST-TRANSACTION",
             nonce: 0,
           },
+        },
+        {
+          type: "onchain-transaction-accept",
+          futureId: "Module1:Contract1",
+          executionId: 1,
           txHash: "0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC--0",
         },
         {
@@ -721,7 +762,7 @@ describe("execution engine", () => {
           value: "0",
         },
         {
-          type: "onchain-transaction",
+          type: "onchain-transaction-request",
           futureId: "Module1:Contract1#configure",
           executionId: 1,
           from: accounts[1],
@@ -730,6 +771,11 @@ describe("execution engine", () => {
             _kind: "TEST-CALL-TRANSACTION",
             nonce: 1,
           },
+        },
+        {
+          type: "onchain-transaction-accept",
+          futureId: "Module1:Contract1#configure",
+          executionId: 1,
           txHash: "0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC--1",
         },
         {
@@ -830,7 +876,7 @@ describe("execution engine", () => {
           from: accounts[1],
         },
         {
-          type: "onchain-transaction",
+          type: "onchain-transaction-request",
           futureId: "Module1:Contract1",
           executionId: 1,
           from: accounts[1],
@@ -839,6 +885,11 @@ describe("execution engine", () => {
             _kind: "TEST-TRANSACTION",
             nonce: 0,
           },
+        },
+        {
+          type: "onchain-transaction-accept",
+          futureId: "Module1:Contract1",
+          executionId: 1,
           txHash: "0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC--0",
         },
         {
@@ -1046,7 +1097,7 @@ describe("execution engine", () => {
           from: accounts[1],
         },
         {
-          type: "onchain-transaction",
+          type: "onchain-transaction-request",
           futureId: "Module1:Contract1",
           executionId: 1,
           from: accounts[1],
@@ -1055,6 +1106,11 @@ describe("execution engine", () => {
             _kind: "TEST-TRANSACTION",
             nonce: 0,
           },
+        },
+        {
+          type: "onchain-transaction-accept",
+          futureId: "Module1:Contract1",
+          executionId: 1,
           txHash: "0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC--0",
         },
         {
@@ -1212,7 +1268,7 @@ describe("execution engine", () => {
           from: accounts[1],
         },
         {
-          type: "onchain-transaction",
+          type: "onchain-transaction-request",
           futureId: "Module1:Library1",
           executionId: 1,
           from: accounts[1],
@@ -1221,6 +1277,11 @@ describe("execution engine", () => {
             _kind: "TEST-TRANSACTION",
             nonce: 0,
           },
+        },
+        {
+          type: "onchain-transaction-accept",
+          futureId: "Module1:Library1",
+          executionId: 1,
           txHash: "0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC--0",
         },
         {
@@ -1277,7 +1338,7 @@ describe("execution engine", () => {
           from: exampleAccounts[1],
         },
         {
-          type: "onchain-transaction",
+          type: "onchain-transaction-request",
           futureId: "Module1:Contract1",
           executionId: 1,
           from: accounts[1],
@@ -1286,6 +1347,11 @@ describe("execution engine", () => {
             _kind: "TEST-TRANSACTION",
             nonce: 1,
           },
+        },
+        {
+          type: "onchain-transaction-accept",
+          futureId: "Module1:Contract1",
+          executionId: 1,
           txHash: "0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC--1",
         },
         {

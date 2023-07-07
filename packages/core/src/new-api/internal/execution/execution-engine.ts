@@ -23,7 +23,8 @@ import {
   OnchainResultMessage,
   OnchainSendDataSuccessMessage,
   OnchainStaticCallSuccessMessage,
-  OnchainTransaction,
+  OnchainTransactionAccept,
+  OnchainTransactionRequest,
   ReadEventArgumentInteractionMessage,
   SendDataInteractionMessage,
   StaticCallInteractionMessage,
@@ -312,6 +313,16 @@ export class ExecutionEngine {
         );
         tx.nonce = nonce;
 
+        const onchainTransaction: OnchainTransactionRequest = {
+          type: "onchain-transaction-request",
+          futureId: future.id,
+          executionId: onchainRequest.executionId,
+          nonce,
+          from: onchainRequest.from,
+          tx,
+        };
+        await this._apply(state, onchainTransaction);
+
         let txHash: string;
         try {
           txHash = await chainDispatcher.sendTx(tx, onchainRequest.from);
@@ -332,17 +343,13 @@ export class ExecutionEngine {
           return executionFailure;
         }
 
-        // TODO: should this go before submission? Can we precalculate the hash?
-        const onchainTransaction: OnchainTransaction = {
-          type: "onchain-transaction",
+        const onchainTransactionAccept: OnchainTransactionAccept = {
+          type: "onchain-transaction-accept",
           futureId: future.id,
           executionId: onchainRequest.executionId,
           txHash,
-          nonce,
-          from: onchainRequest.from,
-          tx,
         };
-        await this._apply(state, onchainTransaction);
+        await this._apply(state, onchainTransactionAccept);
 
         const currentTransaction = await chainDispatcher.getTransactionReceipt(
           txHash

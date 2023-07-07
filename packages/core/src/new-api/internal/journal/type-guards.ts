@@ -14,7 +14,8 @@ import {
   OnchainResultSuccessMessage,
   OnchainSendDataSuccessMessage,
   OnchainStaticCallSuccessMessage,
-  OnchainTransaction,
+  OnchainTransactionAccept,
+  OnchainTransactionRequest,
   ReadEventArgumentStartMessage,
   SendDataStartMessage,
   StaticCallStartMessage,
@@ -136,10 +137,16 @@ export function isContractAtStartMessage(
   );
 }
 
-export function isOnchainTransaction(
+export function isOnchainTransactionRequest(
   message: JournalableMessage
-): message is OnchainTransaction {
-  return message.type === "onchain-transaction";
+): message is OnchainTransactionRequest {
+  return message.type === "onchain-transaction-request";
+}
+
+export function isOnchainTransactionAccept(
+  message: JournalableMessage
+): message is OnchainTransactionAccept {
+  return message.type === "onchain-transaction-accept";
 }
 
 export function isOnChainResultMessage(
