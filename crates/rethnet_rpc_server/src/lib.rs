@@ -565,83 +565,85 @@ async fn router(state: StateType) -> Router {
 }
 
 impl Server {
-/// accepts a configuration and a set of initial accounts to initialize the state.
-pub async fn new(
-    config: Config,
-    genesis_accounts: Option<HashMap<Address, AccountInfo>>,
-) -> Result<
-    Self,
-    Error,
-> {
-    let genesis_accounts = genesis_accounts.unwrap_or(TEST_ACCOUNTS.iter().fold(
-        HashMap::default(),
-        |mut genesis_accounts, account| {
-            use std::str::FromStr;
-            genesis_accounts.insert(
-                Address::from_str(account)
-                    .map_err(|e| {
-                        let e = Error::AddressParse { address: account.to_string(), reason: e.to_string() };
-                        event!(Level::ERROR, "{e}");
-                        e
-                    })
-                    .unwrap(),
-                AccountInfo {
-                    balance: U256::from(10000), // copied from Hardhat Network stdout
-                    nonce: 0,
-                    code: None,
-                    code_hash: KECCAK_EMPTY,
-                },
-            );
-            genesis_accounts
-        },
-    ));
+    /// accepts a configuration and a set of initial accounts to initialize the state.
+    pub async fn new(
+        config: Config,
+        genesis_accounts: Option<HashMap<Address, AccountInfo>>,
+    ) -> Result<Self, Error> {
+        let genesis_accounts = genesis_accounts.unwrap_or(TEST_ACCOUNTS.iter().fold(
+            HashMap::default(),
+            |mut genesis_accounts, account| {
+                use std::str::FromStr;
+                genesis_accounts.insert(
+                    Address::from_str(account)
+                        .map_err(|e| {
+                            let e = Error::AddressParse {
+                                address: account.to_string(),
+                                reason: e.to_string(),
+                            };
+                            event!(Level::ERROR, "{e}");
+                            e
+                        })
+                        .unwrap(),
+                    AccountInfo {
+                        balance: U256::from(10000), // copied from Hardhat Network stdout
+                        nonce: 0,
+                        code: None,
+                        code_hash: KECCAK_EMPTY,
+                    },
+                );
+                genesis_accounts
+            },
+        ));
 
-    let listener = TcpListener::bind(config.address).map_err(Error::Listen)?;
-    event!(Level::INFO, "Listening on {}", config.address);
+        let listener = TcpListener::bind(config.address).map_err(Error::Listen)?;
+        event!(Level::INFO, "Listening on {}", config.address);
 
-    let rethnet_state: StateType = if let Some(config) = config.rpc_hardhat_network_config.forking {
-        let runtime = tokio::runtime::Builder::new_multi_thread()
-            .enable_io()
-            .enable_time()
-            .build()
-            .expect("failed to construct async runtime");
+        let rethnet_state: StateType =
+            if let Some(config) = config.rpc_hardhat_network_config.forking {
+                let runtime = tokio::runtime::Builder::new_multi_thread()
+                    .enable_io()
+                    .enable_time()
+                    .build()
+                    .expect("failed to construct async runtime");
 
-        let hash_generator = rethnet_evm::RandomHashGenerator::with_seed("seed");
+                let hash_generator = rethnet_evm::RandomHashGenerator::with_seed("seed");
 
-        let fork_block_number = match config.block_number {
-            Some(block_number) => U256::from(block_number),
-            None => RpcClient::new(&config.json_rpc_url)
-                .get_block_by_number(rethnet_eth::remote::BlockSpec::latest())
-                .await
-                .expect("should retrieve latest block from fork source")
-                .number
-                .expect("fork source's latest block should have a block number"),
-        };
+                let fork_block_number = match config.block_number {
+                    Some(block_number) => U256::from(block_number),
+                    None => RpcClient::new(&config.json_rpc_url)
+                        .get_block_by_number(rethnet_eth::remote::BlockSpec::latest())
+                        .await
+                        .expect("should retrieve latest block from fork source")
+                        .number
+                        .expect("fork source's latest block should have a block number"),
+                };
 
-        Arc::new(AppState {
-            rethnet_state: Arc::new(RwLock::new(Box::new(ForkState::new(
-                Arc::new(runtime),
-                Arc::new(parking_lot::Mutex::new(hash_generator)),
-                &config.json_rpc_url,
-                fork_block_number,
-                genesis_accounts,
-            )))),
-            fork_block_number: Some(fork_block_number),
+                Arc::new(AppState {
+                    rethnet_state: Arc::new(RwLock::new(Box::new(ForkState::new(
+                        Arc::new(runtime),
+                        Arc::new(parking_lot::Mutex::new(hash_generator)),
+                        &config.json_rpc_url,
+                        fork_block_number,
+                        genesis_accounts,
+                    )))),
+                    fork_block_number: Some(fork_block_number),
+                })
+            } else {
+                Arc::new(AppState {
+                    rethnet_state: Arc::new(RwLock::new(Box::new(HybridState::with_accounts(
+                        genesis_accounts,
+                    )))),
+                    fork_block_number: None,
+                })
+            };
+
+        Ok(Self {
+            inner: axum::Server::from_tcp(listener)
+                .unwrap()
+                .serve(router(rethnet_state).await.into_make_service()),
         })
-    } else {
-        Arc::new(AppState {
-            rethnet_state: Arc::new(RwLock::new(Box::new(HybridState::with_accounts(
-                genesis_accounts,
-            )))),
-            fork_block_number: None,
-        })
-    };
-
-    Ok(Self { inner:
-       axum::Server::from_tcp(listener)
-        .unwrap()
-        .serve(router(rethnet_state).await.into_make_service())})
-}
+    }
 
     pub async fn serve(self) -> Result<(), Error> {
         self.inner.await.map_err(Error::Serve)
