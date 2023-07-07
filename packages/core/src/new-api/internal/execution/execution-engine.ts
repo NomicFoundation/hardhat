@@ -349,8 +349,8 @@ export class ExecutionEngine {
         );
 
         if (currentTransaction === null || currentTransaction === undefined) {
-          // TODO: deal with dropped transactions
-          throw new IgnitionError("TBD: deal with dropped transaction");
+          // No receipt means it hasn't been included in a block yet
+          return null;
         }
 
         if (
