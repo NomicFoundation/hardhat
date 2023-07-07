@@ -109,6 +109,7 @@ interface BaseExecutionState<FutureTypeT extends FutureType> {
   status: ExecutionStatus;
   dependencies: Set<string>; // The ids of the futures it depended on
   history: ExecutionHistory;
+  onchain: OnchainState;
   // TODO: We need a message in case of failure or hold? Do we need to store them?
 }
 
@@ -194,4 +195,45 @@ export type ExecutionState =
 
 export interface ExecutionStateMap {
   [key: string]: ExecutionState;
+}
+
+export enum OnchainStatuses {
+  EXECUTE = "EXECUTE",
+
+  DEPLOY_CONTRACT_START = "DEPLOY_CONTRACT_START",
+  DEPLOY_CONTRACT_TRANSACTION_REQUEST = "DEPLOY_CONTRACT_TRANSACTION_REQUEST",
+  DEPLOY_CONTRACT_TRANSACTION_ACCEPT = "DEPLOY_CONTRACT_TRANSACTION_ACCEPT",
+
+  CALL_FUNCTION_START = "CALL_FUNCTION_START",
+  CALL_FUNCTION_TRANSACTION_REQUEST = "CALL_FUNCTION_TRANSACTION_REQUEST",
+  CALL_FUNCTION_TRANSACTION_ACCEPT = "CALL_FUNCTION_TRANSACTION_ACCEPT",
+
+  SEND_DATA_START = "SEND_DATA_START",
+  SEND_DATA_TRANSACTION_REQUEST = "SEND_DATA_TRANSACTION_REQUEST",
+  SEND_DATA_TRANSACTION_ACCEPT = "SEND_DATA_TRANSACTION_ACCEPT",
+
+  CONTRACT_AT_START = "CONTRACT_AT_START",
+
+  STATIC_CALL_START = "STATIC_CALL_START",
+
+  READ_EVENT_ARG_START = "READ_EVENT_ARG_START",
+}
+
+export interface OnchainState {
+  status:
+    | OnchainStatuses.EXECUTE
+    | OnchainStatuses.DEPLOY_CONTRACT_START
+    | OnchainStatuses.DEPLOY_CONTRACT_TRANSACTION_REQUEST
+    | OnchainStatuses.DEPLOY_CONTRACT_TRANSACTION_ACCEPT
+    | OnchainStatuses.CALL_FUNCTION_START
+    | OnchainStatuses.CALL_FUNCTION_TRANSACTION_REQUEST
+    | OnchainStatuses.CALL_FUNCTION_TRANSACTION_ACCEPT
+    | OnchainStatuses.SEND_DATA_START
+    | OnchainStatuses.SEND_DATA_TRANSACTION_REQUEST
+    | OnchainStatuses.SEND_DATA_TRANSACTION_ACCEPT
+    | OnchainStatuses.CONTRACT_AT_START
+    | OnchainStatuses.STATIC_CALL_START
+    | OnchainStatuses.READ_EVENT_ARG_START;
+  currentExecution: null | number;
+  actions: { [key: number]: {} };
 }

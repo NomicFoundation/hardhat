@@ -6,7 +6,7 @@ import {
   SendDataExecutionState,
 } from "../../../../src/new-api/internal/types/execution-state";
 import { FutureType } from "../../../../src/new-api/types/module";
-import { exampleAccounts } from "../../helpers";
+import { exampleAccounts, initOnchainState } from "../../helpers";
 import { assertSuccessReconciliation, reconcile } from "../helpers";
 
 describe("Reconciliation - send data", () => {
@@ -20,6 +20,7 @@ describe("Reconciliation - send data", () => {
     status: ExecutionStatus.STARTED,
     dependencies: new Set<string>(),
     history: [],
+    onchain: initOnchainState,
     to: exampleAddress,
     data: "example_data",
     value: BigInt("0"),

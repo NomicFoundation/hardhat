@@ -40,7 +40,7 @@
     {
       "name": "Debug integration tests",
       "internalConsoleOptions": "openOnSessionStart",
-      "program": "${workspaceFolder}/packages/hardhat-plugin/node_modules/mocha/bin/_mocha",
+      "program": "${workspaceFolder}/node_modules/mocha/bin/_mocha",
       "request": "launch",
       "skipFiles": ["<node_internals>/**"],
       "type": "node",

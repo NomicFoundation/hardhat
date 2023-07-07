@@ -7,7 +7,7 @@ import {
   StaticCallExecutionState,
 } from "../../../../src/new-api/internal/types/execution-state";
 import { FutureType } from "../../../../src/new-api/types/module";
-import { exampleAccounts } from "../../helpers";
+import { exampleAccounts, initOnchainState } from "../../helpers";
 import {
   assertSuccessReconciliation,
   oneAddress,
@@ -26,6 +26,7 @@ describe("Reconciliation - named static call", () => {
     status: ExecutionStatus.STARTED,
     dependencies: new Set<string>(),
     history: [],
+    onchain: initOnchainState,
     storedArtifactPath: "./artifact.json",
     storedBuildInfoPath: "./build-info.json",
     contractName: "Contract1",
@@ -42,6 +43,7 @@ describe("Reconciliation - named static call", () => {
     status: ExecutionStatus.STARTED,
     dependencies: new Set<string>(),
     history: [],
+    onchain: initOnchainState,
     contractAddress: exampleAddress,
     storedArtifactPath: "./artifact.json",
     functionName: "function",

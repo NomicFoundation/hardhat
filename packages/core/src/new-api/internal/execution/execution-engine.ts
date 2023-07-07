@@ -1,33 +1,16 @@
-import { ethers } from "ethers";
 import identity from "lodash/identity";
 
 import { IgnitionError } from "../../../errors";
+import { sleep } from "../../../internal/utils/sleep";
 import { isModuleParameterRuntimeValue } from "../../type-guards";
 import { ArtifactResolver } from "../../types/artifact";
 import { DeploymentResult } from "../../types/deployer";
 import { DeploymentLoader } from "../../types/deployment-loader";
 import {
-  CallFunctionInteractionMessage,
-  DeployContractInteractionMessage,
-  ExecutionFailure,
   ExecutionResultMessage,
-  ExecutionSuccess,
   FutureStartMessage,
   JournalableMessage,
-  OnchainCallFunctionSuccessMessage,
-  OnchainContractAtSuccessMessage,
-  OnchainDeployContractSuccessMessage,
-  OnchainFailureMessage,
-  OnchainInteractionMessage,
-  OnchainReadEventArgumentSuccessMessage,
-  OnchainResultMessage,
-  OnchainSendDataSuccessMessage,
-  OnchainStaticCallSuccessMessage,
-  OnchainTransactionAccept,
-  OnchainTransactionRequest,
-  ReadEventArgumentInteractionMessage,
-  SendDataInteractionMessage,
-  StaticCallInteractionMessage,
+  TransactionMessage,
 } from "../../types/journal";
 import {
   AccountRuntimeValue,
@@ -39,7 +22,6 @@ import {
   NamedContractDeploymentFuture,
   NamedLibraryDeploymentFuture,
 } from "../../types/module";
-import { isOnchainFailureMessage } from "../journal/type-guards";
 import {
   isCallExecutionState,
   isContractAtExecutionState,
@@ -47,46 +29,36 @@ import {
   isSendDataExecutionState,
   isStaticCallExecutionState,
 } from "../type-guards";
-import { ChainDispatcher } from "../types/chain-dispatcher";
 import {
   ExecutionEngineState,
   ExecutionStrategyContext,
 } from "../types/execution-engine";
 import {
   DeploymentExecutionState,
-  ExecutionState,
   ExecutionStateMap,
   ExecutionStatus,
 } from "../types/execution-state";
 import { assertIgnitionInvariant } from "../utils/assertions";
-import { collectLibrariesAndLink } from "../utils/collectLibrariesAndLink";
 import { getFuturesFromModule } from "../utils/get-futures-from-module";
 import { replaceWithinArg } from "../utils/replace-within-arg";
 import { resolveFromAddress } from "../utils/resolve-from-address";
 import { resolveFutureToValue } from "../utils/resolve-future-to-value";
 import { resolveModuleParameter } from "../utils/resolve-module-parameter";
 
-import { executionStateReducer } from "./executionStateReducer";
+import { executionStateReducer } from "./execution-state-reducer";
+import { ExecutionStategyCycler } from "./execution-strategy-cycler";
 import {
-  isCallFunctionInteraction,
-  isContractAtInteraction,
-  isDeployContractInteraction,
   isDeployedContractExecutionSuccess,
   isExecutionFailure,
   isExecutionResultMessage,
-  isOnchainInteractionMessage,
-  isReadEventArgumentInteraction,
-  isSendDataInteraction,
-  isStaticCallInteraction,
 } from "./guards";
+import { onchainStateTransitions } from "./onchain-state-transitions";
 
 type ExecutionBatch = Future[];
 
 export interface AccountsState {
   [key: string]: number;
 }
-
-const DEFAULT_CONFIRMATIONS = 0;
 
 export class ExecutionEngine {
   public async execute(state: ExecutionEngineState): Promise<DeploymentResult> {
@@ -155,11 +127,7 @@ export class ExecutionEngine {
     while (!this._isBatchComplete(batch, state.executionStateMap)) {
       const sortedFutures: Future[] = this._sortFuturesByExistingNonces(batch);
 
-      const results = await this._submitOrCheckFutures(
-        sortedFutures,
-        state,
-        state.chainDispatcher
-      );
+      const results = await this._submitOrCheckFutures(sortedFutures, state);
 
       batchResults = [...batchResults, ...results];
 
@@ -175,28 +143,16 @@ export class ExecutionEngine {
 
   private async _submitOrCheckFutures(
     futures: Future[],
-    state: ExecutionEngineState,
-    chainDispatcher: ChainDispatcher
+    state: ExecutionEngineState
   ): Promise<ExecutionResultMessage[]> {
     const accumulatedResults: ExecutionResultMessage[] = [];
 
     for (const future of futures) {
-      const exState = state.executionStateMap[future.id];
-      assertIgnitionInvariant(
-        exState !== undefined,
-        "Execution state should be defined"
-      );
-
       if (this._isFutureComplete(future, state.executionStateMap)) {
         continue;
       }
 
-      const result = await this._processFutureTick(
-        future,
-        exState,
-        state,
-        chainDispatcher
-      );
+      const result = await this._processFutureTick(future, state);
 
       // if the current future has a pending transaction,
       // continue with the batch
@@ -214,202 +170,66 @@ export class ExecutionEngine {
    * Wait for the next block to  be processed on-chain
    */
   private async _newBlock(): Promise<void> {
-    // TODO: add in block check and deal with test vs real chains
-    return;
+    await sleep(200);
   }
 
   private async _processFutureTick(
     future: Future,
-    exState: ExecutionState,
-    state: ExecutionEngineState,
-    chainDispatcher: ChainDispatcher
+    state: ExecutionEngineState
   ): Promise<ExecutionResultMessage | null> {
+    const { lastMessage, strategyInst } = await this._fastForwardToLastMessage(
+      future,
+      state
+    );
+
+    if (lastMessage !== null && isExecutionResultMessage(lastMessage)) {
+      return lastMessage;
+    }
+
+    let next: TransactionMessage | null = lastMessage;
+
+    while (true) {
+      const onchainState = state.executionStateMap[future.id].onchain;
+
+      assertIgnitionInvariant(
+        onchainState !== undefined,
+        "onchain state needed for each tick"
+      );
+
+      const response = await onchainStateTransitions[onchainState.status](
+        state,
+        next,
+        strategyInst
+      );
+
+      if (response.status === "pause") {
+        return null;
+      }
+
+      await this._apply(state, response.next);
+
+      if (isExecutionResultMessage(response.next)) {
+        return response.next;
+      }
+
+      next = response.next;
+    }
+  }
+
+  private async _fastForwardToLastMessage(
+    future: Future,
+    state: ExecutionEngineState
+  ) {
+    const exState = state.executionStateMap[future.id];
+    assertIgnitionInvariant(
+      exState !== undefined,
+      "Execution state should be defined"
+    );
+
     const context = this._setupExecutionStrategyContext(future, state);
     const strategy = state.strategy.executeStrategy(context);
 
-    let nextInput: OnchainResultMessage | null = null;
-    while (true) {
-      const onchainRequest: OnchainInteractionMessage | ExecutionSuccess = (
-        await strategy.next(nextInput)
-      ).value;
-      await this._apply(state, onchainRequest);
-
-      if (isExecutionResultMessage(onchainRequest)) {
-        return onchainRequest;
-      }
-
-      assertIgnitionInvariant(
-        isOnchainInteractionMessage(onchainRequest),
-        "Only onchain interaction requests expected"
-      );
-
-      if (isReadEventArgumentInteraction(onchainRequest)) {
-        const readEventArgResult:
-          | OnchainReadEventArgumentSuccessMessage
-          | OnchainFailureMessage = await this._readEventArg(
-          onchainRequest,
-          state
-        );
-
-        await this._apply(state, readEventArgResult);
-
-        if (isOnchainFailureMessage(readEventArgResult)) {
-          const executionFailure: ExecutionFailure = {
-            type: "execution-failure",
-            futureId: future.id,
-            error: readEventArgResult.error,
-          };
-          await this._apply(state, executionFailure);
-
-          return executionFailure;
-        }
-
-        nextInput = readEventArgResult;
-      } else if (isContractAtInteraction(onchainRequest)) {
-        const contractAtSuccess: OnchainContractAtSuccessMessage = {
-          type: "onchain-result",
-          subtype: "contract-at-success",
-          futureId: onchainRequest.futureId,
-          executionId: onchainRequest.executionId,
-          contractAddress: onchainRequest.contractAddress,
-          contractName: onchainRequest.contractName,
-        };
-
-        nextInput = contractAtSuccess;
-      } else if (isStaticCallInteraction(onchainRequest)) {
-        const staticCallResult:
-          | OnchainStaticCallSuccessMessage
-          | OnchainFailureMessage = await this._queryStaticCall(
-          onchainRequest,
-          state
-        );
-
-        await this._apply(state, staticCallResult);
-
-        if (isOnchainFailureMessage(staticCallResult)) {
-          const executionFailure: ExecutionFailure = {
-            type: "execution-failure",
-            futureId: future.id,
-            error: staticCallResult.error,
-          };
-          await this._apply(state, executionFailure);
-
-          return executionFailure;
-        }
-
-        nextInput = staticCallResult;
-      } else if (
-        isDeployContractInteraction(onchainRequest) ||
-        isSendDataInteraction(onchainRequest) ||
-        isCallFunctionInteraction(onchainRequest)
-      ) {
-        const nonce = await chainDispatcher.allocateNextNonceForAccount(
-          onchainRequest.from
-        );
-
-        const tx = await this._convertRequestToTransaction(
-          onchainRequest,
-          state
-        );
-        tx.nonce = nonce;
-
-        const onchainTransaction: OnchainTransactionRequest = {
-          type: "onchain-transaction-request",
-          futureId: future.id,
-          executionId: onchainRequest.executionId,
-          nonce,
-          from: onchainRequest.from,
-          tx,
-        };
-        await this._apply(state, onchainTransaction);
-
-        let txHash: string;
-        try {
-          txHash = await chainDispatcher.sendTx(tx, onchainRequest.from);
-        } catch (error) {
-          const executionFailure: ExecutionFailure = {
-            type: "execution-failure",
-            futureId: future.id,
-            error: new Error(
-              error instanceof Error
-                ? "reason" in error
-                  ? (error.reason as string)
-                  : error.message
-                : "unknown error"
-            ),
-          };
-
-          await this._apply(state, executionFailure);
-          return executionFailure;
-        }
-
-        const onchainTransactionAccept: OnchainTransactionAccept = {
-          type: "onchain-transaction-accept",
-          futureId: future.id,
-          executionId: onchainRequest.executionId,
-          txHash,
-        };
-        await this._apply(state, onchainTransactionAccept);
-
-        const currentTransaction = await chainDispatcher.getTransactionReceipt(
-          txHash
-        );
-
-        if (currentTransaction === null || currentTransaction === undefined) {
-          // No receipt means it hasn't been included in a block yet
-          return null;
-        }
-
-        if (
-          currentTransaction.blockNumber === undefined ||
-          // TODO: make default confirmations config
-          currentTransaction.confirmations < DEFAULT_CONFIRMATIONS
-        ) {
-          // transaction pending, move on with batch
-          return null;
-        }
-
-        if (isDeployContractInteraction(onchainRequest)) {
-          const deployResult: OnchainDeployContractSuccessMessage = {
-            type: "onchain-result",
-            subtype: "deploy-contract-success",
-            futureId: future.id,
-            executionId: onchainRequest.executionId,
-            contractAddress: currentTransaction.contractAddress,
-            txId: currentTransaction.transactionHash,
-          };
-
-          await this._apply(state, deployResult);
-          nextInput = deployResult;
-        } else if (isSendDataInteraction(onchainRequest)) {
-          const sendDataResult: OnchainSendDataSuccessMessage = {
-            type: "onchain-result",
-            subtype: "send-data-success",
-            futureId: future.id,
-            executionId: onchainRequest.executionId,
-            txId: currentTransaction.transactionHash,
-          };
-
-          await this._apply(state, sendDataResult);
-          nextInput = sendDataResult;
-        } else if (isCallFunctionInteraction(onchainRequest)) {
-          const callFunctionResult: OnchainCallFunctionSuccessMessage = {
-            type: "onchain-result",
-            subtype: "call-function-success",
-            futureId: future.id,
-            executionId: onchainRequest.executionId,
-            txId: currentTransaction.transactionHash,
-          };
-
-          await this._apply(state, callFunctionResult);
-          nextInput = callFunctionResult;
-        } else {
-          this._assertNeverInteractionMessage(onchainRequest);
-        }
-      } else {
-        this._assertNeverInteractionMessage(onchainRequest);
-      }
-    }
+    return ExecutionStategyCycler.fastForward(exState, strategy);
   }
 
   private _isBatchComplete(
@@ -438,187 +258,6 @@ export class ExecutionEngine {
   private _sortFuturesByExistingNonces(futures: Future[]): Future[] {
     // TODO: actually sort based on history against each execution state.
     return futures;
-  }
-
-  private async _convertRequestToTransaction(
-    request: OnchainInteractionMessage,
-    state: ExecutionEngineState
-  ) {
-    switch (request.subtype) {
-      case "contract-at": {
-        throw new IgnitionError(
-          "No transaction involved in contractAt request"
-        );
-      }
-      case "read-event-arg": {
-        throw new IgnitionError(
-          "No transaction involved in readEventArg request"
-        );
-      }
-      case "static-call": {
-        throw new IgnitionError(
-          "No transaction involved in staticCall request"
-        );
-      }
-      case "call-function": {
-        return this._convertRequestToCallFunctionTransaction(request, state);
-      }
-      case "send-data": {
-        return this._convertRequestToSendDataTransaction(request, state);
-      }
-      case "deploy-contract":
-        return this._convertRequestToDeployTransaction(request, state);
-    }
-  }
-
-  private async _convertRequestToCallFunctionTransaction(
-    request: CallFunctionInteractionMessage,
-    state: ExecutionEngineState
-  ): Promise<ethers.providers.TransactionRequest> {
-    const artifact = await state.deploymentLoader.loadArtifact(
-      request.storedArtifactPath
-    );
-
-    const contractAddress: string = request.contractAddress;
-    const abi = artifact.abi;
-    const functionName: string = request.functionName;
-    const args: ArgumentType[] = request.args;
-    const value: bigint = BigInt(request.value);
-    const from: string = request.from;
-
-    const unsignedTx = state.chainDispatcher.constructCallTransaction(
-      contractAddress,
-      abi,
-      functionName,
-      args,
-      value,
-      from
-    );
-
-    return unsignedTx;
-  }
-
-  private async _convertRequestToSendDataTransaction(
-    request: SendDataInteractionMessage,
-    _state: ExecutionEngineState
-  ): Promise<ethers.providers.TransactionRequest> {
-    const unsignedTx: ethers.providers.TransactionRequest = {
-      from: request.from,
-      to: request.to,
-      value: BigInt(request.value),
-      data: request.data,
-    };
-
-    return unsignedTx;
-  }
-
-  private async _convertRequestToDeployTransaction(
-    request: DeployContractInteractionMessage,
-    state: ExecutionEngineState
-  ): Promise<ethers.providers.TransactionRequest> {
-    const artifact = await state.deploymentLoader.loadArtifact(
-      request.storedArtifactPath
-    );
-
-    const abi = artifact.abi;
-    const args = request.args;
-    const value = BigInt(request.value);
-    const from = request.from;
-
-    // TODO: fix libraries
-    const linkedByteCode = await collectLibrariesAndLink(artifact, {});
-
-    const tx = state.chainDispatcher.constructDeployTransaction(
-      linkedByteCode,
-      abi,
-      args,
-      value,
-      from
-    );
-
-    return tx;
-  }
-
-  private async _readEventArg(
-    request: ReadEventArgumentInteractionMessage,
-    state: ExecutionEngineState
-  ): Promise<OnchainReadEventArgumentSuccessMessage | OnchainFailureMessage> {
-    const artifact = await state.deploymentLoader.loadArtifact(
-      request.storedArtifactPath
-    );
-
-    try {
-      const result = await state.chainDispatcher.getEventArgument(
-        request.eventName,
-        request.argumentName,
-        request.txToReadFrom,
-        request.eventIndex,
-        request.emitterAddress,
-        artifact.abi
-      );
-
-      return {
-        type: "onchain-result",
-        subtype: "read-event-arg-success",
-        futureId: request.futureId,
-        executionId: request.executionId,
-        result,
-      };
-    } catch (error) {
-      return {
-        type: "onchain-result",
-        subtype: "failure",
-        futureId: request.futureId,
-        executionId: request.executionId,
-        error:
-          error instanceof Error
-            ? error
-            : new Error("Unknown read event arg error"),
-      };
-    }
-  }
-
-  private async _queryStaticCall(
-    request: StaticCallInteractionMessage,
-    state: ExecutionEngineState
-  ): Promise<OnchainStaticCallSuccessMessage | OnchainFailureMessage> {
-    const artifact = await state.deploymentLoader.loadArtifact(
-      request.storedArtifactPath
-    );
-
-    try {
-      const result = await state.chainDispatcher.staticCallQuery(
-        request.contractAddress,
-        artifact.abi,
-        request.functionName,
-        request.args,
-        request.from
-      );
-
-      assertIgnitionInvariant(
-        result !== undefined,
-        "Static call result not available"
-      );
-
-      return {
-        type: "onchain-result",
-        subtype: "static-call-success",
-        futureId: request.futureId,
-        executionId: request.executionId,
-        result,
-      };
-    } catch (error) {
-      return {
-        type: "onchain-result",
-        subtype: "failure",
-        futureId: request.futureId,
-        executionId: request.executionId,
-        error:
-          error instanceof Error
-            ? error
-            : new Error("Unknown static call error"),
-      };
-    }
   }
 
   private async _apply(
@@ -1132,11 +771,5 @@ export class ExecutionEngine {
     };
 
     return futureContext;
-  }
-
-  private _assertNeverInteractionMessage(message: never) {
-    throw new IgnitionError(
-      `Unknown interaction message ${JSON.stringify(message)}`
-    );
   }
 }

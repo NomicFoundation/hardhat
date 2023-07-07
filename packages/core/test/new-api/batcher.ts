@@ -14,6 +14,8 @@ import {
 } from "../../src/new-api/types/module";
 import { IgnitionModuleDefinition } from "../../src/new-api/types/module-builder";
 
+import { initOnchainState } from "./helpers";
+
 describe("batcher", () => {
   const exampleDeploymentState: DeploymentExecutionState = {
     id: "Example",
@@ -22,6 +24,7 @@ describe("batcher", () => {
     status: ExecutionStatus.STARTED,
     dependencies: new Set<string>(),
     history: [],
+    onchain: initOnchainState,
     storedArtifactPath: "./artifact.json",
     storedBuildInfoPath: "./build-info.json",
     contractName: "Contract1",

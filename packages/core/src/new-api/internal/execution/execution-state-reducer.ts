@@ -7,6 +7,7 @@ import {
   isReadEventArgumentStartMessage,
   isSendDataStartMessage,
   isStaticCallStartMessage,
+  isTransactionMessage,
 } from "../journal/type-guards";
 import {
   CallExecutionState,
@@ -15,6 +16,7 @@ import {
   ExecutionState,
   ExecutionStateMap,
   ExecutionStatus,
+  OnchainStatuses,
   ReadEventArgumentExecutionState,
   SendDataExecutionState,
   StaticCallExecutionState,
@@ -22,6 +24,7 @@ import {
 import { assertIgnitionInvariant } from "../utils/assertions";
 
 import { isExecutionFailure } from "./guards";
+import { onchainActionReducer } from "./onchain-action-reducer";
 
 export function executionStateReducer(
   executionStateMap: ExecutionStateMap,
@@ -134,7 +137,7 @@ export function executionStateReducer(
     };
   }
 
-  if (action.type === "onchain-action" || action.type === "onchain-result") {
+  if (isTransactionMessage(action)) {
     const previousExState = executionStateMap[action.futureId];
 
     assertIgnitionInvariant(
@@ -145,6 +148,7 @@ export function executionStateReducer(
     const updateWithOnchainAction: ExecutionState = {
       ...previousExState,
       history: [...previousExState.history, action],
+      onchain: onchainActionReducer(previousExState.onchain, action),
     };
 
     return {
@@ -177,6 +181,11 @@ function initialiseExecutionStateFor(
       status: ExecutionStatus.STARTED,
       dependencies: new Set(futureStart.dependencies),
       history: [],
+      onchain: {
+        status: OnchainStatuses.EXECUTE,
+        currentExecution: null,
+        actions: {},
+      },
       storedArtifactPath: futureStart.storedArtifactPath,
       storedBuildInfoPath: futureStart.storedBuildInfoPath,
       contractName: futureStart.contractName,
@@ -197,6 +206,11 @@ function initialiseExecutionStateFor(
       status: ExecutionStatus.STARTED,
       dependencies: new Set(futureStart.dependencies),
       history: [],
+      onchain: {
+        status: OnchainStatuses.EXECUTE,
+        currentExecution: null,
+        actions: {},
+      },
       contractAddress: futureStart.contractAddress,
       storedArtifactPath: futureStart.storedArtifactPath,
       args: futureStart.args,
@@ -216,6 +230,11 @@ function initialiseExecutionStateFor(
       status: ExecutionStatus.STARTED,
       dependencies: new Set(futureStart.dependencies),
       history: [],
+      onchain: {
+        status: OnchainStatuses.EXECUTE,
+        currentExecution: null,
+        actions: {},
+      },
       contractAddress: futureStart.contractAddress,
       storedArtifactPath: futureStart.storedArtifactPath,
       args: futureStart.args,
@@ -234,6 +253,11 @@ function initialiseExecutionStateFor(
       status: ExecutionStatus.STARTED,
       dependencies: new Set(futureStart.dependencies),
       history: [],
+      onchain: {
+        status: OnchainStatuses.EXECUTE,
+        currentExecution: null,
+        actions: {},
+      },
       storedArtifactPath: futureStart.storedArtifactPath,
       eventName: futureStart.eventName,
       argumentName: futureStart.argumentName,
@@ -253,6 +277,11 @@ function initialiseExecutionStateFor(
       status: ExecutionStatus.STARTED,
       dependencies: new Set(futureStart.dependencies),
       history: [],
+      onchain: {
+        status: OnchainStatuses.EXECUTE,
+        currentExecution: null,
+        actions: {},
+      },
       value: BigInt(futureStart.value),
       data: futureStart.data,
       to: futureStart.to,
@@ -270,6 +299,11 @@ function initialiseExecutionStateFor(
       status: ExecutionStatus.STARTED,
       dependencies: new Set(futureStart.dependencies),
       history: [],
+      onchain: {
+        status: OnchainStatuses.EXECUTE,
+        currentExecution: null,
+        actions: {},
+      },
       storedArtifactPath: futureStart.storedArtifactPath,
       contractAddress: futureStart.contractAddress,
       contractName: futureStart.contractName,

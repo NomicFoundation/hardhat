@@ -11,6 +11,10 @@ import { Deployer } from "../../src/new-api/internal/deployer";
 import { AccountsState } from "../../src/new-api/internal/execution/execution-engine";
 import { MemoryJournal } from "../../src/new-api/internal/journal/memory-journal";
 import { ChainDispatcher } from "../../src/new-api/internal/types/chain-dispatcher";
+import {
+  OnchainState,
+  OnchainStatuses,
+} from "../../src/new-api/internal/types/execution-state";
 import { DeploymentResult } from "../../src/new-api/types/deployer";
 import { DeploymentLoader } from "../../src/new-api/types/deployment-loader";
 import { Journal, JournalableMessage } from "../../src/new-api/types/journal";
@@ -22,6 +26,12 @@ export const exampleAccounts: string[] = [
   "0x15d34AAf54267DB7D7c367839AAf71A00a2C6A65",
   "0x9965507D1a55bcC2695C58ba16FB37d819B0A4dc",
 ];
+
+export const initOnchainState: OnchainState = {
+  status: OnchainStatuses.EXECUTE,
+  currentExecution: null,
+  actions: {},
+};
 
 export function assertInstanceOf<ObjectT>(
   obj: unknown,

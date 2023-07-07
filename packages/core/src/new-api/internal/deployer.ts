@@ -13,8 +13,8 @@ import { Journal } from "../types/journal";
 
 import { Batcher } from "./batcher";
 import { ExecutionEngine } from "./execution/execution-engine";
+import { executionStateReducer } from "./execution/execution-state-reducer";
 import { BasicExecutionStrategy } from "./execution/execution-strategy";
-import { executionStateReducer } from "./execution/executionStateReducer";
 import { ModuleConstructor } from "./module-builder";
 import { Reconciler } from "./reconciliation/reconciler";
 import { ArtifactMap } from "./reconciliation/types";

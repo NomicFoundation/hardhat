@@ -7,7 +7,7 @@ import {
   ReadEventArgumentExecutionState,
 } from "../../../../src/new-api/internal/types/execution-state";
 import { FutureType } from "../../../../src/new-api/types/module";
-import { exampleAccounts } from "../../helpers";
+import { exampleAccounts, initOnchainState } from "../../helpers";
 import { assertSuccessReconciliation, reconcile } from "../helpers";
 
 describe("Reconciliation - read event argument", () => {
@@ -22,6 +22,7 @@ describe("Reconciliation - read event argument", () => {
     status: ExecutionStatus.STARTED,
     dependencies: new Set<string>(),
     history: [],
+    onchain: initOnchainState,
     storedArtifactPath: "./artifact.json",
     eventName: "event1",
     argumentName: "argument1",
@@ -37,6 +38,7 @@ describe("Reconciliation - read event argument", () => {
     status: ExecutionStatus.STARTED,
     dependencies: new Set<string>(),
     history: [],
+    onchain: initOnchainState,
     storedArtifactPath: "./artifact.json",
     storedBuildInfoPath: "./build-info.json",
     contractName: "Contract1",

@@ -7,7 +7,7 @@ import {
   ExecutionStatus,
 } from "../../../../src/new-api/internal/types/execution-state";
 import { FutureType } from "../../../../src/new-api/types/module";
-import { exampleAccounts } from "../../helpers";
+import { exampleAccounts, initOnchainState } from "../../helpers";
 import {
   assertSuccessReconciliation,
   oneAddress,
@@ -32,6 +32,7 @@ describe("Reconciliation - artifact library", () => {
     status: ExecutionStatus.STARTED,
     dependencies: new Set<string>(),
     history: [],
+    onchain: initOnchainState,
     storedArtifactPath: "./artifact.json",
     storedBuildInfoPath: "./build-info.json",
     contractName: "Contract1",

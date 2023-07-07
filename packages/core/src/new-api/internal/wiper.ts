@@ -1,7 +1,7 @@
 import { IgnitionError } from "../../errors";
 import { Journal, WipeMessage } from "../types/journal";
 
-import { executionStateReducer } from "./execution/executionStateReducer";
+import { executionStateReducer } from "./execution/execution-state-reducer";
 import { ExecutionStateMap } from "./types/execution-state";
 
 export class Wiper {

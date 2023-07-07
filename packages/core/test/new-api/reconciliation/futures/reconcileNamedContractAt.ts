@@ -9,7 +9,7 @@ import {
   StaticCallExecutionState,
 } from "../../../../src/new-api/internal/types/execution-state";
 import { FutureType } from "../../../../src/new-api/types/module";
-import { exampleAccounts } from "../../helpers";
+import { exampleAccounts, initOnchainState } from "../../helpers";
 import { assertSuccessReconciliation, reconcile } from "../helpers";
 
 describe("Reconciliation - named contract at", () => {
@@ -23,6 +23,7 @@ describe("Reconciliation - named contract at", () => {
     status: ExecutionStatus.STARTED,
     dependencies: new Set<string>(),
     history: [],
+    onchain: initOnchainState,
     contractName: "Contract1",
     contractAddress: exampleAddress,
     storedArtifactPath: "./artifact.json",
@@ -35,6 +36,7 @@ describe("Reconciliation - named contract at", () => {
     status: ExecutionStatus.STARTED,
     dependencies: new Set<string>(),
     history: [],
+    onchain: initOnchainState,
     storedArtifactPath: "./artifact.json",
     storedBuildInfoPath: "./build-info.json",
     contractName: "Contract1",
@@ -51,6 +53,7 @@ describe("Reconciliation - named contract at", () => {
     status: ExecutionStatus.STARTED,
     dependencies: new Set<string>(),
     history: [],
+    onchain: initOnchainState,
     contractAddress: exampleAddress,
     storedArtifactPath: "./artifact.json",
     functionName: "function",

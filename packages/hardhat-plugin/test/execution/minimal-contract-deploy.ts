@@ -13,7 +13,7 @@ describe("execution - minimal contract deploy", () => {
   // TODO: rename back to minimal api once execution switched over
   useEnvironment("minimal-new-api");
 
-  it.skip("should create a plan", async function () {
+  it("should create a plan", async function () {
     await this.hre.network.provider.request({
       method: "evm_setAutomine",
       params: [false],
@@ -25,16 +25,20 @@ describe("execution - minimal contract deploy", () => {
       return { foo };
     });
 
-    const result = await this.hre.ignition2.deploy(moduleDefinition, {
+    const deployPromise = this.hre.ignition2.deploy(moduleDefinition, {
       parameters: {},
     });
 
-    assert.isDefined(result);
-
+    await sleep(100);
     await this.hre.network.provider.send("evm_mine");
+
+    const result = await deployPromise;
 
     const x = await result.foo.x();
 
     assert.equal(x, Number(1));
   });
 });
+
+const sleep = (timeout: number) =>
+  new Promise((res) => setTimeout(res, timeout));

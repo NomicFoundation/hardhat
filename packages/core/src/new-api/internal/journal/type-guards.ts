@@ -19,9 +19,11 @@ import {
   ReadEventArgumentStartMessage,
   SendDataStartMessage,
   StaticCallStartMessage,
+  TransactionMessage,
   WipeMessage,
 } from "../../types/journal";
 import { FutureType } from "../../types/module";
+import { isOnchainInteractionMessage } from "../execution/guards";
 
 /**
  * Returns true if potential is ane execution start message.
@@ -134,6 +136,17 @@ export function isContractAtStartMessage(
   return (
     potential.type === "execution-start" &&
     deploymentTypes.includes(potential.futureType)
+  );
+}
+
+export function isTransactionMessage(
+  message: JournalableMessage
+): message is TransactionMessage {
+  return (
+    isOnchainInteractionMessage(message) ||
+    isOnchainTransactionRequest(message) ||
+    isOnchainTransactionAccept(message) ||
+    isOnChainResultMessage(message)
   );
 }
 
