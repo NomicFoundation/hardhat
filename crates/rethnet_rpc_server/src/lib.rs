@@ -495,31 +495,25 @@ async fn handle_request(
     }
 }
 
+#[derive(serde::Deserialize, serde::Serialize)]
+#[serde(untagged)]
+pub enum Request {
+    /// A single JSON-RPC request
+    Single(RpcRequest<MethodInvocation>),
+    /// A batch of requests
+    Batch(Vec<RpcRequest<MethodInvocation>>),
+}
+
 async fn router(state: StateType) -> Router {
     Router::new()
         .route(
             "/",
             axum::routing::post(
-                |State(state): State<StateType>, payload: Json<serde_json::Value>| async move {
-                    let requests: Vec<RpcRequest<MethodInvocation>> =
-                        match serde_json::from_value(payload.clone().0) {
-                            Ok(request) => vec![request],
-                            Err(_) => match serde_json::from_value(payload.clone().0) {
-                                Ok(requests) => requests,
-                                Err(_) => {
-                                    let msg =
-                                        format!("unsupported JSON body '{:?}'", payload.clone().0);
-                                    event!(Level::INFO, "{}", &msg);
-                                    return (
-                                        StatusCode::INTERNAL_SERVER_ERROR,
-                                        Json(
-                                            serde_json::to_value(&msg)
-                                                .unwrap_or(serde_json::Value::Null),
-                                        ),
-                                    );
-                                }
-                            },
-                        };
+                |State(state): State<StateType>, payload: Json<Request>| async move {
+                    let requests: Vec<RpcRequest<MethodInvocation>> = match payload {
+                        Json(Request::Single(request)) => vec![request],
+                        Json(Request::Batch(requests)) => requests,
+                    };
 
                     let responses = {
                         let mut responses: Vec<serde_json::Value> =
