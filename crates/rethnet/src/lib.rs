@@ -81,7 +81,7 @@ where
         Command::Node(node_args) => {
             tracing_subscriber::fmt::Subscriber::builder().init();
 
-            let server = rethnet_rpc_server::serve(node_args.try_into()?, None).await?;
+            let server = rethnet_rpc_server::Server::new(node_args.try_into()?, None).await?;
 
             async fn await_signal() {
                 use tokio::signal;
@@ -113,7 +113,7 @@ where
             }
 
             Ok(server
-                .with_graceful_shutdown(await_signal())
+                .serve_with_shutdown_signal(await_signal())
                 .await
                 .map(|_| ExitStatus::Success)?)
         }

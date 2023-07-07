@@ -1,7 +1,6 @@
 use std::net::{SocketAddr, TcpListener};
 use std::sync::Arc;
 
-pub use axum::Server;
 use axum::{
     extract::{Json, State},
     http::StatusCode,
@@ -85,6 +84,22 @@ fn error_response_data<T>(msg: &str) -> ResponseData<T> {
 pub struct Config {
     pub address: SocketAddr,
     pub rpc_hardhat_network_config: RpcHardhatNetworkConfig,
+}
+
+pub struct Server {
+    inner: axum::Server<hyper::server::conn::AddrIncoming, axum::routing::IntoMakeService<Router>>,
+}
+
+#[derive(thiserror::Error, Debug)]
+pub enum Error {
+    #[error("failed to construct Address from string {address}: {reason}")]
+    AddressParse { address: String, reason: String },
+
+    #[error("Failed to bind to address/port: {0}")]
+    Listen(std::io::Error),
+
+    #[error("Failed to initialize server: {0}")]
+    Serve(hyper::Error),
 }
 
 async fn get_latest_block_number<T>(state: &StateType) -> Result<U256, ResponseData<T>> {
@@ -549,15 +564,14 @@ async fn router(state: StateType) -> Router {
         .with_state(state)
 }
 
-/// accepts an address to listen on (which could be a wildcard like 0.0.0.0:0), and a set of
-/// initial accounts to initialize the state.
-/// returns the address that the server is listening on (with any input wildcards resolved).
-pub async fn serve(
+impl Server {
+/// accepts a configuration and a set of initial accounts to initialize the state.
+pub async fn new(
     config: Config,
     genesis_accounts: Option<HashMap<Address, AccountInfo>>,
 ) -> Result<
-    axum::Server<hyper::server::conn::AddrIncoming, axum::routing::IntoMakeService<Router>>,
-    std::io::Error,
+    Self,
+    Error,
 > {
     let genesis_accounts = genesis_accounts.unwrap_or(TEST_ACCOUNTS.iter().fold(
         HashMap::default(),
@@ -565,10 +579,10 @@ pub async fn serve(
             use std::str::FromStr;
             genesis_accounts.insert(
                 Address::from_str(account)
-                    .map_err(|_| {
-                        let msg = format!("failed to construct Address from string {account}");
-                        event!(Level::ERROR, "{}", &msg);
-                        std::io::Error::new(std::io::ErrorKind::Other, msg)
+                    .map_err(|e| {
+                        let e = Error::AddressParse { address: account.to_string(), reason: e.to_string() };
+                        event!(Level::ERROR, "{e}");
+                        e
                     })
                     .unwrap(),
                 AccountInfo {
@@ -582,7 +596,7 @@ pub async fn serve(
         },
     ));
 
-    let listener = TcpListener::bind(config.address)?;
+    let listener = TcpListener::bind(config.address).map_err(Error::Listen)?;
     event!(Level::INFO, "Listening on {}", config.address);
 
     let rethnet_state: StateType = if let Some(config) = config.rpc_hardhat_network_config.forking {
@@ -623,7 +637,27 @@ pub async fn serve(
         })
     };
 
-    Ok(axum::Server::from_tcp(listener)
+    Ok(Self { inner:
+       axum::Server::from_tcp(listener)
         .unwrap()
-        .serve(router(rethnet_state).await.into_make_service()))
+        .serve(router(rethnet_state).await.into_make_service())})
+}
+
+    pub async fn serve(self) -> Result<(), Error> {
+        self.inner.await.map_err(Error::Serve)
+    }
+
+    pub async fn serve_with_shutdown_signal<Signal>(self, signal: Signal) -> Result<(), Error>
+    where
+        Signal: std::future::Future<Output = ()>,
+    {
+        self.inner
+            .with_graceful_shutdown(signal)
+            .await
+            .map_err(Error::Serve)
+    }
+
+    pub fn local_addr(&self) -> SocketAddr {
+        self.inner.local_addr()
+    }
 }

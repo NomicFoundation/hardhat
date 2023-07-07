@@ -13,7 +13,7 @@ use rethnet_eth::{
 use rethnet_evm::{AccountInfo, KECCAK_EMPTY};
 
 use rethnet_rpc_server::{
-    serve, Config, HardhatMethodInvocation, MethodInvocation, RpcHardhatNetworkConfig,
+    Config, HardhatMethodInvocation, MethodInvocation, RpcHardhatNetworkConfig, Server,
 };
 
 async fn start_server() -> SocketAddr {
@@ -28,7 +28,7 @@ async fn start_server() -> SocketAddr {
         },
     );
 
-    let server = serve(
+    let server = Server::new(
         Config {
             address: "127.0.0.1:0".parse::<SocketAddr>().unwrap(),
             rpc_hardhat_network_config: RpcHardhatNetworkConfig { forking: None },
@@ -39,7 +39,7 @@ async fn start_server() -> SocketAddr {
     .unwrap();
 
     let address = server.local_addr();
-    tokio::spawn(async move { server.await.unwrap() });
+    tokio::spawn(async move { server.serve().await.unwrap() });
     address
 }
 
