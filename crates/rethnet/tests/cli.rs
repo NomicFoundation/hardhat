@@ -108,6 +108,8 @@ async fn node() -> Result<(), Box<dyn std::error::Error>> {
     // spawn the server process:
     let mut server = Command::cargo_bin("rethnet")?
         .arg("node")
+        .arg("--port")
+        .arg("8549")
         .stdout(Stdio::piped())
         .spawn()?;
 
@@ -118,7 +120,7 @@ async fn node() -> Result<(), Box<dyn std::error::Error>> {
     // query the server, but don't check the Result yet, because returning early would prevent us
     // from gracefully terminating the server:
     let send_result = reqwest::Client::new()
-        .post("http://127.0.0.1:8545/")
+        .post("http://127.0.0.1:8549/")
         .header(reqwest::header::CONTENT_TYPE, "application/json")
         .body(request_body)
         .send()
@@ -134,7 +136,7 @@ async fn node() -> Result<(), Box<dyn std::error::Error>> {
     send_result?.text().await?;
 
     // assert that the standard output of the server process contains the expected log entries:
-    Assert::new(output.clone()).stdout(contains("Listening on 127.0.0.1:8545"));
+    Assert::new(output.clone()).stdout(contains("Listening on 127.0.0.1:8549"));
     for method_invocation in method_invocations {
         Assert::new(output.clone()).stdout(contains(match method_invocation {
             MethodInvocation::Eth(EthMethodInvocation::GetBalance(address, block_spec)) => {

@@ -82,6 +82,11 @@ fn error_response_data<T>(msg: &str) -> ResponseData<T> {
     ResponseData::new_error(0, msg, None)
 }
 
+pub struct Config {
+    pub address: SocketAddr,
+    pub rpc_hardhat_network_config: RpcHardhatNetworkConfig,
+}
+
 async fn get_latest_block_number<T>(state: &StateType) -> Result<U256, ResponseData<T>> {
     if let Some(fork_block_number) = state.fork_block_number {
         // TODO: when we're able to mint local blocks, and there are some newer than
@@ -548,8 +553,7 @@ async fn router(state: StateType) -> Router {
 /// initial accounts to initialize the state.
 /// returns the address that the server is listening on (with any input wildcards resolved).
 pub async fn serve(
-    address: SocketAddr,
-    config: RpcHardhatNetworkConfig,
+    config: Config,
     genesis_accounts: Option<HashMap<Address, AccountInfo>>,
 ) -> Result<
     axum::Server<hyper::server::conn::AddrIncoming, axum::routing::IntoMakeService<Router>>,
@@ -578,10 +582,10 @@ pub async fn serve(
         },
     ));
 
-    let listener = TcpListener::bind(address)?;
-    event!(Level::INFO, "Listening on {}", address);
+    let listener = TcpListener::bind(config.address)?;
+    event!(Level::INFO, "Listening on {}", config.address);
 
-    let rethnet_state: StateType = if let Some(config) = config.forking {
+    let rethnet_state: StateType = if let Some(config) = config.rpc_hardhat_network_config.forking {
         let runtime = tokio::runtime::Builder::new_multi_thread()
             .enable_io()
             .enable_time()

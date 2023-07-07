@@ -3,7 +3,7 @@ use std::ffi::OsString;
 use clap::{Args, Parser, Subcommand};
 use tracing::{event, Level};
 
-use rethnet_rpc_server::{RpcForkConfig, RpcHardhatNetworkConfig};
+use rethnet_rpc_server::{Config, RpcForkConfig, RpcHardhatNetworkConfig};
 
 #[derive(Parser)]
 #[clap(author, version, about, long_about = None)]
@@ -20,17 +20,23 @@ enum Command {
 
 #[derive(Args)]
 struct NodeArgs {
+    #[clap(long, default_value = "127.0.0.1")]
+    host: String,
+    #[clap(long, default_value = "8545")]
+    port: usize,
     #[clap(long)]
     fork_url: Option<String>,
     #[clap(long)]
     fork_block_number: Option<usize>,
 }
 
-impl TryFrom<NodeArgs> for RpcHardhatNetworkConfig {
+impl TryFrom<NodeArgs> for Config {
     type Error = anyhow::Error;
 
-    fn try_from(node_args: NodeArgs) -> Result<RpcHardhatNetworkConfig, Self::Error> {
-        Ok(RpcHardhatNetworkConfig {
+    fn try_from(node_args: NodeArgs) -> Result<Config, Self::Error> {
+        Ok(Config {
+            address: format!("{}:{}", node_args.host, node_args.port).parse()?,
+            rpc_hardhat_network_config: RpcHardhatNetworkConfig {
             forking: if let Some(json_rpc_url) = node_args.fork_url {
                 Some(RpcForkConfig {
                     json_rpc_url,
@@ -44,6 +50,7 @@ impl TryFrom<NodeArgs> for RpcHardhatNetworkConfig {
             } else {
                 None
             },
+            }
         })
     }
 }
@@ -75,7 +82,7 @@ where
             tracing_subscriber::fmt::Subscriber::builder().init();
 
             let server =
-                rethnet_rpc_server::serve("127.0.0.1:8545".parse()?, node_args.try_into()?, None)
+                rethnet_rpc_server::serve(node_args.try_into()?, None)
                     .await?;
 
             async fn await_signal() {
