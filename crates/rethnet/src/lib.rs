@@ -15,7 +15,6 @@ struct Cli {
 #[derive(Subcommand)]
 #[allow(clippy::large_enum_variant)]
 enum Command {
-    Start,
     Node(NodeArgs),
 }
 
@@ -72,7 +71,6 @@ where
 {
     let args = Cli::parse_from(args);
     match args.command {
-        Command::Start => Ok(ExitStatus::Success),
         Command::Node(node_args) => {
             tracing_subscriber::fmt::Subscriber::builder().init();
 
