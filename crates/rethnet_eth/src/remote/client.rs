@@ -415,6 +415,11 @@ impl RpcClient {
         self.call(&MethodInvocation::GetStorageAt(*address, position, block))
             .await
     }
+
+    /// Calls `net_version` API
+    pub async fn network_id(&self) -> Result<U256, RpcClientError> {
+        self.call(&MethodInvocation::NetworkId()).await
+    }
 }
 
 #[cfg(test)]
