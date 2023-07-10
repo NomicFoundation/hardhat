@@ -10,8 +10,11 @@ use serde::{Deserialize, Serialize};
 #[derive(thiserror::Error, Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 #[error("The response reported error `{code}`: `{message}`. (optional data: {data:?})")]
 pub struct Error {
+    /// error code
     pub code: i16,
+    /// error message
     pub message: String,
+    /// optional additional data
     pub data: Option<serde_json::Value>,
 }
 
@@ -34,8 +37,16 @@ pub struct Response<T> {
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum ResponseData<T> {
-    Error { error: Error },
-    Success { result: T },
+    /// an error response
+    Error {
+        /// the error
+        error: Error,
+    },
+    /// a success response
+    Success {
+        /// the result
+        result: T,
+    },
 }
 
 impl<T> ResponseData<T> {
@@ -44,6 +55,17 @@ impl<T> ResponseData<T> {
         match self {
             ResponseData::Success { result } => Ok(result),
             ResponseData::Error { error } => Err(error),
+        }
+    }
+
+    /// convenience constructor for an error response
+    pub fn new_error(code: i16, message: &str, data: Option<serde_json::Value>) -> Self {
+        ResponseData::<T>::Error {
+            error: Error {
+                code,
+                message: String::from(message),
+                data,
+            },
         }
     }
 }
