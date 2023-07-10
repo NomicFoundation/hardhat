@@ -6,7 +6,23 @@ edition = "2021"
 [dependencies]
 anyhow = "1.0.65"
 clap = { version = "3.2.22", default-features = false, features = ["std", "derive"] }
+hashbrown = { version = "0.13", default-features = false, features = ["ahash"] }
 pretty_env_logger = { version = "0.4.0", default-features = false }
+rethnet_eth = { version = "0.1.0-dev", path = "../rethnet_eth" }
+rethnet_evm = { version = "0.1.0-dev", path = "../rethnet_evm" }
+rethnet_rpc_server = { version = "0.1.0-dev", path = "../rethnet_rpc_server" }
+tokio = { version = "1.23.0", features = ["macros", "signal"] }
+tracing = { version = "0.1.37", default-features = false, features = ["std"] }
+tracing-subscriber = { version = "0.3.17", default-features = false, features = ["fmt"] }
+
+[dev-dependencies]
+assert_cmd = { version = "2.0.11", default-features = false }
+predicates = { version = "3.0.3", default-features = false }
+reqwest = { version = "0.11.18", default-features = false }
+rethnet_eth = { version = "0.1.0-dev", path = "../rethnet_eth" }
+serde_json = { version = "1.0.99", default-features = false }
+signal-child = { version = "1.0.5", default-features = false }
+winsafe = { version = "0.0.16", default-features = false, features = ["kernel", "user"] }
 
 [dev-dependencies.cargo-husky]
 version = "1.5.0"

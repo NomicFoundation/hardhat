@@ -6,13 +6,16 @@ edition = "2021"
 [dependencies]
 axum = "0.6.18"
 hashbrown = { version = "0.13", default-features = false, features = ["ahash"] }
+hyper = { version = "0.14.27", default-features = false, features = ["server"] }
 parking_lot = { version = "0.12.1", default-features = false }
 reqwest = { version = "0.11", features = ["blocking", "json"] }
 rethnet_eth = { version = "0.1.0-dev", path = "../rethnet_eth", features = ["serde"] }
 rethnet_evm = { version = "0.1.0-dev", path = "../rethnet_evm" }
 serde = { version = "1.0.147", default-features = false, features = ["derive"] }
 serde_json = { version = "1.0.89" }
+thiserror = { version = "1.0.37", default-features = false }
 tokio = { version = "1.21.2", default-features = false, features = ["macros"] }
+tracing = { version = "0.1.37", default-features = false, features = ["std"] }
 
 [dev-dependencies]
 bytes = { version = "1.2.1", default-features = false }
