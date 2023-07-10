@@ -64,5 +64,10 @@ describe("Solidity console.log should print numbers without losing precision, oc
     assert.equal("1 %d %2 %%d %%3 %%%d", capturedLogs[4]);
     assert.equal("1 %i %2 %%i %%3 %%%i", capturedLogs[5]);
     assert.equal("1 %s %2 %%s %%3 %%%s", capturedLogs[6]);
+    assert.equal("%s", capturedLogs[7]);
+    assert.equal("%%d", capturedLogs[8]);
+    assert.equal("%s", capturedLogs[9]);
+    assert.equal("%s %s %s %%d", capturedLogs[10]);
+    assert.equal("1", capturedLogs[11]);
   });
 });
