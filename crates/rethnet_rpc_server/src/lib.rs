@@ -16,7 +16,7 @@ use rethnet_eth::{
         jsonrpc,
         jsonrpc::{Response, ResponseData},
         methods::MethodInvocation as EthMethodInvocation,
-        BlockSpec, BlockTag, Eip1898BlockHash, Eip1898BlockNumber, Eip1898BlockSpec,
+        BlockSpec, BlockTag, Eip1898BlockSpec,
     },
     Address, B256, U256,
 };
@@ -120,13 +120,11 @@ async fn set_block_context<T>(
                     Some(match resolvable_block_spec {
                         BlockSpec::Number(n) => Ok(n),
                         BlockSpec::Eip1898(s) => match s {
-                            Eip1898BlockSpec::Number(Eip1898BlockNumber { block_number: n }) => {
-                                Ok(n)
-                            }
-                            Eip1898BlockSpec::Hash(Eip1898BlockHash {
+                            Eip1898BlockSpec::Number { block_number: n } => Ok(n),
+                            Eip1898BlockSpec::Hash {
                                 block_hash: _,
                                 require_canonical: _,
-                            }) => todo!("when there's a blockchain present"),
+                            } => todo!("when there's a blockchain present"),
                         },
                         BlockSpec::Tag(tag) => match tag {
                             BlockTag::Earliest => Ok(U256::ZERO),

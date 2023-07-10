@@ -39,31 +39,23 @@ impl From<u64> for U64 {
     }
 }
 
-/// to represent the Object { blockHash, requireCanonical } in EIP-1898
-#[derive(Clone, Debug, PartialEq, serde::Deserialize, serde::Serialize)]
-pub struct Eip1898BlockHash {
-    /// the block hash
-    pub block_hash: B256,
-    /// whether the server should additionally raise a JSON-RPC error if the block is not in the
-    /// canonical chain
-    pub require_canonical: Option<bool>,
-}
-
-/// to represent the Object { blockNumber } in EIP-1898
-#[derive(Clone, Debug, PartialEq, serde::Deserialize, serde::Serialize)]
-pub struct Eip1898BlockNumber {
-    /// the block number
-    pub block_number: U256,
-}
-
-///
+/// for representing block specifications per EIP-1898
 #[derive(Clone, Debug, PartialEq, serde::Deserialize, serde::Serialize)]
 #[serde(untagged)]
 pub enum Eip1898BlockSpec {
     /// to represent the Object { blockHash, requireCanonical } in EIP-1898
-    Hash(Eip1898BlockHash),
+    Hash {
+        /// the block hash
+        block_hash: B256,
+        /// whether the server should additionally raise a JSON-RPC error if the block is not in
+        /// the canonical chain
+        require_canonical: Option<bool>,
+    },
     /// to represent the Object { blockNumber } in EIP-1898
-    Number(Eip1898BlockNumber),
+    Number {
+        /// the block number
+        block_number: U256,
+    },
 }
 
 /// possible block tags as defined by the Ethereum JSON-RPC specification
