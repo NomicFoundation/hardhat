@@ -39,13 +39,15 @@ impl TryFrom<NodeArgs> for Config {
     type Error = anyhow::Error;
 
     fn try_from(node_args: NodeArgs) -> Result<Config, Self::Error> {
+        use std::str::FromStr;
         Ok(Config {
-            address: match node_args.host.as_str() {
-                "127.0.0.1" => {
-                    SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), node_args.port)
-                }
-                _ => format!("{}:{}", node_args.host, node_args.port).parse()?,
-            },
+            address: SocketAddr::new(
+                match node_args.host.as_str() {
+                    "127.0.0.1" => IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)),
+                    host => IpAddr::from_str(host)?,
+                },
+                node_args.port,
+            ),
             rpc_hardhat_network_config: RpcHardhatNetworkConfig {
                 forking: if let Some(json_rpc_url) = node_args.fork_url {
                     Some(RpcForkConfig {
