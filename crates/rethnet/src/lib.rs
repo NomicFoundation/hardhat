@@ -25,8 +25,8 @@ enum Command {
 
 #[derive(Args)]
 struct NodeArgs {
-    #[clap(long, default_value = "127.0.0.1")]
-    host: String,
+    #[clap(long, default_value_t = IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)))]
+    host: IpAddr,
     #[clap(long, default_value = "8545")]
     port: u16,
     #[clap(long)]
@@ -39,15 +39,8 @@ impl TryFrom<NodeArgs> for Config {
     type Error = anyhow::Error;
 
     fn try_from(node_args: NodeArgs) -> Result<Config, Self::Error> {
-        use std::str::FromStr;
         Ok(Config {
-            address: SocketAddr::new(
-                match node_args.host.as_str() {
-                    "127.0.0.1" => IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)),
-                    host => IpAddr::from_str(host)?,
-                },
-                node_args.port,
-            ),
+            address: SocketAddr::new(node_args.host, node_args.port),
             rpc_hardhat_network_config: RpcHardhatNetworkConfig {
                 forking: if let Some(json_rpc_url) = node_args.fork_url {
                     Some(RpcForkConfig {
