@@ -38,22 +38,6 @@ export const builtinChains: ChainConfig[] = [
     },
   },
   {
-    network: "ropsten",
-    chainId: 3,
-    urls: {
-      apiURL: "https://api-ropsten.etherscan.io/api",
-      browserURL: "https://ropsten.etherscan.io",
-    },
-  },
-  {
-    network: "rinkeby",
-    chainId: 4,
-    urls: {
-      apiURL: "https://api-rinkeby.etherscan.io/api",
-      browserURL: "https://rinkeby.etherscan.io",
-    },
-  },
-  {
     network: "goerli",
     chainId: 5,
     urls: {
@@ -67,14 +51,6 @@ export const builtinChains: ChainConfig[] = [
     urls: {
       apiURL: "https://api-optimistic.etherscan.io/api",
       browserURL: "https://optimistic.etherscan.io/",
-    },
-  },
-  {
-    network: "kovan",
-    chainId: 42,
-    urls: {
-      apiURL: "https://api-kovan.etherscan.io/api",
-      browserURL: "https://kovan.etherscan.io",
     },
   },
   {
@@ -258,7 +234,7 @@ export const builtinChains: ChainConfig[] = [
     chainId: 1313161554,
     urls: {
       apiURL: "https://explorer.mainnet.aurora.dev/api",
-      browserURL: "https://aurorascan.dev/",
+      browserURL: "https://explorer.mainnet.aurora.dev",
     },
   },
   {
@@ -266,7 +242,7 @@ export const builtinChains: ChainConfig[] = [
     chainId: 1313161555,
     urls: {
       apiURL: "https://explorer.testnet.aurora.dev/api",
-      browserURL: "https://testnet.aurorascan.dev",
+      browserURL: "https://explorer.testnet.aurora.dev",
     },
   },
   {

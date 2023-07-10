@@ -1,5 +1,30 @@
 # hardhat
 
+## 2.16.0
+
+### Minor Changes
+
+- 8c5f3f3bc: Added support for extending the network provider
+
+### Patch Changes
+
+- 128b0a0de: Added a HARDHAT_DISABLE_TELEMETRY_PROMPT environment variable that can be set to `true` to prevent Hardhat from showing the telemetry consent prompt.
+- 27a5cda59: Migrated Google Universal Analytics to Google Analytics 4
+- c115dfd21: `console.sol` is now memory-safe (thanks @ZumZoom!)
+- c61fd8ac0: Added optional params to some compilation subtasks to make them more flexible (thanks @adjisb!)
+
+## 2.15.0
+
+### Minor Changes
+
+- 99995d53b: The sample projects now use the new version of the Toolbox
+
+## 2.14.1
+
+### Patch Changes
+
+- e99498638: Added block numbers for all mainnet hardforks
+
 ## 2.14.0
 
 ### Minor Changes

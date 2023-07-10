@@ -8,7 +8,6 @@ import type {
 import { extendConfig, subtask, task, types } from "hardhat/config";
 import { isFullyQualifiedName } from "hardhat/utils/contract-names";
 import {
-  TASK_COMPILE,
   TASK_COMPILE_SOLIDITY_GET_COMPILATION_JOB_FOR_FILE,
   TASK_COMPILE_SOLIDITY_GET_COMPILER_INPUT,
   TASK_COMPILE_SOLIDITY_GET_DEPENDENCY_GRAPH,
@@ -22,6 +21,7 @@ import {
   TASK_VERIFY_RESOLVE_ARGUMENTS,
   TASK_VERIFY_VERIFY,
   TASK_VERIFY_ETHERSCAN,
+  TASK_VERIFY_PRINT_SUPPORTED_NETWORKS,
 } from "./task-names";
 import { getCurrentChainConfig } from "./chain-config";
 import { etherscanConfigExtender } from "./config";
@@ -35,7 +35,7 @@ import {
   ContractNotFoundError,
   BuildInfoNotFoundError,
   BuildInfoCompilerVersionMismatchError,
-  DeployedBytecodeDoesNotMatchFQNError,
+  DeployedBytecodeMismatchError,
   UnexpectedNumberOfFilesError,
   VerificationAPIUnexpectedMessageError,
   ContractVerificationFailedError,
@@ -69,7 +69,6 @@ interface VerifyTaskArgs {
   libraries?: string;
   contract?: string;
   listNetworks: boolean;
-  noCompile: boolean;
 }
 
 // verify:verify subtask args
@@ -78,7 +77,6 @@ interface VerifySubtaskArgs {
   constructorArguments: string[];
   libraries: LibraryToAddress;
   contract?: string;
-  noCompile: boolean;
 }
 
 // parsed verification args
@@ -87,8 +85,6 @@ interface VerificationArgs {
   constructorArgs: string[];
   libraries: LibraryToAddress;
   contractFQN?: string;
-  listNetworks: boolean;
-  noCompile: boolean;
 }
 
 interface GetContractInformationArgs {
@@ -150,8 +146,11 @@ task(TASK_VERIFY, "Verifies a contract on Etherscan")
       "Use if the deployed bytecode matches more than one contract in your project"
   )
   .addFlag("listNetworks", "Print the list of supported networks")
-  .addFlag("noCompile", "Don't compile before running the task")
   .setAction(async (taskArgs: VerifyTaskArgs, { run }) => {
+    if (taskArgs.listNetworks) {
+      await run(TASK_VERIFY_PRINT_SUPPORTED_NETWORKS);
+      return;
+    }
     const verificationArgs: VerificationArgs = await run(
       TASK_VERIFY_RESOLVE_ARGUMENTS,
       taskArgs
@@ -172,8 +171,6 @@ subtask(TASK_VERIFY_RESOLVE_ARGUMENTS)
   .addOptionalParam("constructorArgs", undefined, undefined, types.inputFile)
   .addOptionalParam("libraries", undefined, undefined, types.inputFile)
   .addOptionalParam("contract")
-  .addFlag("listNetworks")
-  .addFlag("noCompile")
   .setAction(
     async ({
       address,
@@ -181,8 +178,6 @@ subtask(TASK_VERIFY_RESOLVE_ARGUMENTS)
       constructorArgs: constructorArgsModule,
       contract,
       libraries: librariesModule,
-      listNetworks,
-      noCompile,
     }: VerifyTaskArgs): Promise<VerificationArgs> => {
       if (address === undefined) {
         throw new MissingAddressError();
@@ -209,8 +204,6 @@ subtask(TASK_VERIFY_RESOLVE_ARGUMENTS)
         constructorArgs,
         libraries,
         contractFQN: contract,
-        listNetworks,
-        noCompile,
       };
     }
   );
@@ -234,24 +227,11 @@ subtask(TASK_VERIFY_ETHERSCAN)
   .addParam("libraries", undefined, undefined, types.any)
   .addOptionalParam("contractFQN")
   .addFlag("listNetworks")
-  .addFlag("noCompile")
   .setAction(
     async (
-      {
-        address,
-        constructorArgs,
-        libraries,
-        contractFQN,
-        listNetworks,
-        noCompile,
-      }: VerificationArgs,
+      { address, constructorArgs, libraries, contractFQN }: VerificationArgs,
       { config, network, run }
     ) => {
-      if (listNetworks) {
-        await printSupportedNetworks(config.etherscan.customChains);
-        return;
-      }
-
       const chainConfig = await getCurrentChainConfig(
         network,
         config.etherscan.customChains
@@ -284,11 +264,6 @@ ${contractURL}`);
           deployedBytecode.getVersion(),
           network.name
         );
-      }
-
-      // Make sure that contract artifacts are up-to-date
-      if (!noCompile) {
-        await run(TASK_COMPILE, { quiet: true });
       }
 
       const contractInformation: ExtendedContractInformation = await run(
@@ -414,10 +389,7 @@ subtask(TASK_VERIFY_ETHERSCAN_GET_CONTRACT_INFORMATION)
         );
 
         if (contractInformation === null) {
-          throw new DeployedBytecodeDoesNotMatchFQNError(
-            contractFQN,
-            network.name
-          );
+          throw new DeployedBytecodeMismatchError(network.name, contractFQN);
         }
       } else {
         contractInformation = await extractInferredContractInformation(
@@ -521,7 +493,7 @@ for verification on the block explorer. Waiting for verification result...
 
       if (verificationStatus.isSuccess()) {
         const contractURL = verificationInterface.getContractUrl(address);
-        console.log(`Successfully verified contract ${contractInformation.contractName} on Etherscan.
+        console.log(`Successfully verified contract ${contractInformation.contractName} on the block explorer.
 ${contractURL}`);
       }
 
@@ -542,16 +514,9 @@ subtask(TASK_VERIFY_VERIFY)
   .addOptionalParam("constructorArguments", undefined, [], types.any)
   .addOptionalParam("libraries", undefined, {}, types.any)
   .addOptionalParam("contract")
-  .addFlag("noCompile")
   .setAction(
     async (
-      {
-        address,
-        constructorArguments,
-        libraries,
-        contract,
-        noCompile,
-      }: VerifySubtaskArgs,
+      { address, constructorArguments, libraries, contract }: VerifySubtaskArgs,
       { run }
     ) => {
       if (address === undefined) {
@@ -581,7 +546,13 @@ subtask(TASK_VERIFY_VERIFY)
         constructorArgs: constructorArguments,
         libraries,
         contractFQN: contract,
-        noCompile,
       });
     }
   );
+
+subtask(
+  TASK_VERIFY_PRINT_SUPPORTED_NETWORKS,
+  "Prints the supported networks list"
+).setAction(async ({}, { config }) => {
+  await printSupportedNetworks(config.etherscan.customChains);
+});

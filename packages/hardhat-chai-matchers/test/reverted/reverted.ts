@@ -11,6 +11,7 @@ import {
 } from "../helpers";
 
 import "../../src/internal/add-chai-matchers";
+import { MatchersContract } from "../contracts";
 
 describe("INTEGRATION: Reverted", function () {
   describe("with the in-process hardhat network", function () {
@@ -27,9 +28,12 @@ describe("INTEGRATION: Reverted", function () {
 
   function runTests() {
     // deploy Matchers contract before each test
-    let matchers: any;
+    let matchers: MatchersContract;
     beforeEach("deploy matchers contract", async function () {
-      const Matchers = await this.hre.ethers.getContractFactory("Matchers");
+      const Matchers = await this.hre.ethers.getContractFactory<
+        [],
+        MatchersContract
+      >("Matchers");
       matchers = await Matchers.deploy();
     });
 
@@ -189,9 +193,9 @@ describe("INTEGRATION: Reverted", function () {
 
       it("TxReceipt of a reverted transaction", async function () {
         const tx = await mineRevertedTransaction(this.hre);
-        const receipt = await this.hre.ethers.provider.waitForTransaction(
+        const receipt = await this.hre.ethers.provider.getTransactionReceipt(
           tx.hash
-        ); // tx.wait rejects, so we use provider.waitForTransaction
+        ); // tx.wait rejects, so we use provider.getTransactionReceipt
 
         await expect(receipt).to.be.reverted;
         await expectAssertionError(
@@ -213,9 +217,9 @@ describe("INTEGRATION: Reverted", function () {
 
       it("promise of a TxReceipt of a reverted transaction", async function () {
         const tx = await mineRevertedTransaction(this.hre);
-        const receiptPromise = this.hre.ethers.provider.waitForTransaction(
+        const receiptPromise = this.hre.ethers.provider.getTransactionReceipt(
           tx.hash
-        ); // tx.wait rejects, so we use provider.waitForTransaction
+        ); // tx.wait rejects, so we use provider.getTransactionReceipt
 
         await expect(receiptPromise).to.be.reverted;
         await expectAssertionError(
@@ -352,12 +356,15 @@ describe("INTEGRATION: Reverted", function () {
           randomPrivateKey,
           this.hre.ethers.provider
         );
+        const matchersFromSenderWithoutFunds = matchers.connect(
+          signer
+        ) as MatchersContract;
 
         // this transaction will fail because of lack of funds, not because of a
         // revert
         await expect(
           expect(
-            matchers.connect(signer).revertsWithoutReason({
+            matchersFromSenderWithoutFunds.revertsWithoutReason({
               gasLimit: 1_000_000,
             })
           ).to.not.be.reverted
@@ -374,7 +381,9 @@ describe("INTEGRATION: Reverted", function () {
         try {
           await expect(matchers.succeeds()).to.be.reverted;
         } catch (e: any) {
-          expect(util.inspect(e)).to.include(
+          const errorString = util.inspect(e);
+          expect(errorString).to.include("Expected transaction to be reverted");
+          expect(errorString).to.include(
             path.join("test", "reverted", "reverted.ts")
           );
 

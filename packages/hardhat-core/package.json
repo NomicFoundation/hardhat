@@ -1,6 +1,6 @@
 {
   "name": "hardhat",
-  "version": "2.14.0",
+  "version": "2.16.0",
   "author": "Nomic Labs LLC",
   "license": "MIT",
   "homepage": "https://hardhat.org",
@@ -39,7 +39,7 @@
     "build": "tsc --build --force --incremental .",
     "build:tracing": "tsc --build --force --incremental .",
     "prepublishOnly": "yarn build",
-    "clean": "rimraf builtin-tasks internal types utils *.d.ts *.map *.js build-test tsconfig.tsbuildinfo test/internal/hardhat-network/provider/.hardhat_node_test_cache"
+    "clean": "rimraf builtin-tasks internal types utils *.d.ts *.map *.js build-test tsconfig.tsbuildinfo test/internal/hardhat-network/provider/.hardhat_node_test_cache test/internal/hardhat-network/stack-traces/test-files/artifacts"
   },
   "files": [
     "builtin-tasks/",
@@ -73,7 +73,6 @@
     "@types/lodash": "^4.14.123",
     "@types/mocha": ">=9.1.0",
     "@types/node": "^14.0.0",
-    "@types/qs": "^6.5.3",
     "@types/resolve": "^1.17.1",
     "@types/semver": "^6.0.2",
     "@types/sinon": "^9.0.8",
@@ -90,7 +89,8 @@
     "eslint-plugin-import": "2.24.1",
     "eslint-plugin-no-only-tests": "3.0.0",
     "eslint-plugin-prettier": "3.4.0",
-    "ethers": "^5.0.0",
+    "ethers": "^6.1.0",
+    "ethers-v5": "npm:ethers@5",
     "mocha": "^10.0.0",
     "prettier": "2.4.1",
     "rimraf": "^3.0.2",
@@ -139,7 +139,6 @@
     "mnemonist": "^0.38.0",
     "mocha": "^10.0.0",
     "p-map": "^4.0.0",
-    "qs": "^6.7.0",
     "raw-body": "^2.4.1",
     "resolve": "1.17.0",
     "rethnet-evm": "^0.1.0-dev",

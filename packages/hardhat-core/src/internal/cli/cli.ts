@@ -212,7 +212,8 @@ async function main() {
       telemetryConsent === undefined &&
       !isHelpCommand &&
       !isRunningOnCiServer() &&
-      process.stdout.isTTY === true
+      process.stdout.isTTY === true &&
+      process.env.HARDHAT_DISABLE_TELEMETRY_PROMPT !== "true"
     ) {
       telemetryConsent = await confirmTelemetryConsent();
 
@@ -228,10 +229,11 @@ async function main() {
       Reporter.setEnabled(true);
     }
 
-    const envExtenders = ctx.extendersManager.getExtenders();
+    const envExtenders = ctx.environmentExtenders;
+    const providerExtenders = ctx.providerExtenders;
     const taskDefinitions = ctx.tasksDSL.getTaskDefinitions();
 
-    const [abortAnalytics, hitPromise] = await analytics.sendTaskHit(taskName);
+    const [abortAnalytics, hitPromise] = await analytics.sendTaskHit();
 
     let taskArguments: TaskArguments;
 
@@ -266,7 +268,8 @@ async function main() {
       taskDefinitions,
       envExtenders,
       ctx.experimentalHardhatNetworkMessageTraceHooks,
-      userConfig
+      userConfig,
+      providerExtenders
     );
 
     ctx.setHardhatRuntimeEnvironment(env);

@@ -1,1 +1,1 @@
-export { SignerWithAddress } from "../../signers";
+export { HardhatEthersSigner as SignerWithAddress } from "../../signers";

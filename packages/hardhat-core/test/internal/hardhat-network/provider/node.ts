@@ -845,7 +845,7 @@ describe("HardhatNode", () => {
     block: bigint,
     targetNode: HardhatNode
   ): Promise<string> {
-    const contractInterface = new ethers.utils.Interface([
+    const contractInterface = new ethers.Interface([
       "function Hello() public pure returns (string)",
     ]);
 

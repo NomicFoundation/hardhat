@@ -17,7 +17,7 @@ use rethnet_eth::{
         jsonrpc,
         jsonrpc::{Response, ResponseData},
         methods::MethodInvocation as EthMethodInvocation,
-        BlockSpec, BlockTag, Eip1898BlockHash, Eip1898BlockNumber, Eip1898BlockSpec,
+        BlockSpec, BlockTag, Eip1898BlockSpec,
     },
     Address, B256, U256,
 };
@@ -79,6 +79,7 @@ pub enum Error {
 }
 
 async fn get_latest_block_number<T>(state: &StateType) -> Result<U256, ResponseData<T>> {
+    // limited functionality per https://github.com/NomicFoundation/hardhat/issues/4125
     if let Some(fork_block_number) = state.fork_block_number {
         // TODO: when we're able to mint local blocks, and there are some newer than
         // fork_block_number, return the number of the latest one
@@ -120,13 +121,11 @@ async fn set_block_context<T>(
                     Some(match resolvable_block_spec.clone() {
                         BlockSpec::Number(n) => Ok(n),
                         BlockSpec::Eip1898(s) => match s {
-                            Eip1898BlockSpec::Number(Eip1898BlockNumber { block_number: n }) => {
-                                Ok(n)
-                            }
-                            Eip1898BlockSpec::Hash(Eip1898BlockHash {
+                            Eip1898BlockSpec::Number { block_number: n } => Ok(n),
+                            Eip1898BlockSpec::Hash {
                                 block_hash: _,
                                 require_canonical: _,
-                            }) => todo!("when there's a blockchain present"),
+                            } => todo!("when there's a blockchain present"),
                         },
                         BlockSpec::Tag(tag) => match tag {
                             BlockTag::Earliest => Ok(U256::ZERO),

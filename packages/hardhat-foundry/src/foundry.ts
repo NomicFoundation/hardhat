@@ -7,7 +7,7 @@ const exec = promisify(execCallback);
 
 type Remappings = Record<string, string>;
 
-let cachedRemappings: Remappings | undefined;
+let cachedRemappings: Promise<Remappings> | undefined;
 
 export class HardhatFoundryError extends NomicLabsHardhatPluginError {
   constructor(message: string, parent?: Error) {
@@ -32,34 +32,32 @@ export function getForgeConfig() {
 }
 
 export async function getRemappings() {
-  // Return remappings if they were already loaded
-  if (cachedRemappings !== undefined) {
-    return cachedRemappings;
+  // Get remappings only once
+  if (cachedRemappings === undefined) {
+    cachedRemappings = runCmd("forge remappings").then((remappingsTxt) => {
+      const remappings: Remappings = {};
+      const remappingLines = remappingsTxt.split(/\r\n|\r|\n/);
+      for (const remappingLine of remappingLines) {
+        const fromTo = remappingLine.split("=");
+        if (fromTo.length !== 2) {
+          continue;
+        }
+
+        const [from, to] = fromTo;
+
+        // source names with "node_modules" in it have special treatment in hardhat core, so we skip them
+        if (to.includes("node_modules")) {
+          continue;
+        }
+
+        remappings[from] = to;
+      }
+
+      return remappings;
+    });
   }
 
-  // Get remappings from foundry
-  const remappingsTxt = await runCmd("forge remappings");
-
-  const remappings: Remappings = {};
-  const remappingLines = remappingsTxt.split(/\r\n|\r|\n/);
-  for (const remappingLine of remappingLines) {
-    const fromTo = remappingLine.split("=");
-    if (fromTo.length !== 2) {
-      continue;
-    }
-
-    const [from, to] = fromTo;
-
-    // source names with "node_modules" in it have special treatment in hardhat core, so we skip them
-    if (to.includes("node_modules")) {
-      continue;
-    }
-
-    remappings[from] = to;
-  }
-
-  cachedRemappings = remappings;
-  return remappings;
+  return cachedRemappings;
 }
 
 export async function installDependency(dependency: string) {

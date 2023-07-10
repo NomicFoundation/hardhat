@@ -1,28 +1,46 @@
-import { resetHardhatContext } from "hardhat/plugins-testing";
-import { HardhatRuntimeEnvironment } from "hardhat/types";
-import path from "path";
+import { assert } from "chai";
+import { ContractRunner, Signer } from "ethers";
 
-// Import this plugin type extensions for the HardhatRuntimeEnvironment
-import "../src/internal/type-extensions";
-
-declare module "mocha" {
-  interface Context {
-    env: HardhatRuntimeEnvironment;
+export function assertWithin(
+  value: number | bigint,
+  min: number | bigint,
+  max: number | bigint
+) {
+  if (value < min || value > max) {
+    assert.fail(`Expected ${value} to be between ${min} and ${max}`);
   }
 }
 
-export function useEnvironment(
-  fixtureProjectName: string,
-  networkName = "localhost"
-) {
-  beforeEach("Loading hardhat environment", function () {
-    process.chdir(path.join(__dirname, "fixture-projects", fixtureProjectName));
-    process.env.HARDHAT_NETWORK = networkName;
+export function assertIsNotNull<T>(
+  value: T
+): asserts value is Exclude<T, null> {
+  assert.isNotNull(value);
+}
 
-    this.env = require("hardhat");
-  });
+export function assertIsSigner(
+  value: ContractRunner | null
+): asserts value is Signer {
+  assertIsNotNull(value);
+  assert.isTrue("getAddress" in value);
+  assert.isTrue("signTransaction" in value);
+}
 
-  afterEach("Resetting hardhat", function () {
-    resetHardhatContext();
-  });
+export const sleep = (timeout: number) =>
+  new Promise((resolve) => setTimeout(resolve, timeout));
+
+export async function tryUntil(f: () => any) {
+  const maxTries = 20;
+  let tries = 0;
+  while (tries < maxTries) {
+    try {
+      await f();
+      return;
+    } catch {}
+
+    await sleep(50);
+
+    tries++;
+  }
+
+  f();
 }

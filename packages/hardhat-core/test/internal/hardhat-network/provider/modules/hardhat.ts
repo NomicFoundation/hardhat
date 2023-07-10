@@ -1705,7 +1705,7 @@ describe("Hardhat module", function () {
 
       describe("hardhat_setCode", function () {
         let contractNine: CompilerOutputContract;
-        let abiEncoder: ethers.utils.Interface;
+        let abiEncoder: ethers.Interface;
         before(async function () {
           [
             ,
@@ -1719,7 +1719,7 @@ describe("Hardhat module", function () {
                 function returnNine() public pure returns (int) { return 9; }
             }
           `);
-          abiEncoder = new ethers.utils.Interface(contractNine.abi);
+          abiEncoder = new ethers.Interface(contractNine.abi);
         });
 
         it("should reject an invalid address", async function () {
@@ -2231,7 +2231,7 @@ describe("Hardhat module", function () {
           ]);
 
           // Assert: Verify that the contract retrieves the modified value.
-          const abiEncoder = new ethers.utils.Interface(storageContract.abi);
+          const abiEncoder = new ethers.Interface(storageContract.abi);
           assert.equal(
             await this.provider.send("eth_call", [
               {

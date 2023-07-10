@@ -80,6 +80,12 @@ module.exports = {
         leadingUnderscore: "allow",
       },
       {
+        selector: ["classProperty"],
+        modifiers: ["private"],
+        format: ["camelCase", "UPPER_CASE"],
+        leadingUnderscore: "require",
+      },
+      {
         selector: "enumMember",
         format: ["UPPER_CASE"],
       },
@@ -191,7 +197,7 @@ module.exports = {
     "no-cond-assign": "error",
     "no-debugger": "error",
     "no-duplicate-case": "error",
-    "no-duplicate-imports": "error",
+    "@typescript-eslint/no-duplicate-imports": "error",
     "no-eval": "error",
     "no-extra-bind": "error",
     "no-new-func": "error",
