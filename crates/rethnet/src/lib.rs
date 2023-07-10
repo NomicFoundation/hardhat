@@ -1,4 +1,5 @@
 use std::ffi::OsString;
+use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 
 use anyhow::anyhow;
 use clap::{Args, Parser, Subcommand};
@@ -27,7 +28,7 @@ struct NodeArgs {
     #[clap(long, default_value = "127.0.0.1")]
     host: String,
     #[clap(long, default_value = "8545")]
-    port: usize,
+    port: u16,
     #[clap(long)]
     fork_url: Option<String>,
     #[clap(long)]
@@ -39,7 +40,12 @@ impl TryFrom<NodeArgs> for Config {
 
     fn try_from(node_args: NodeArgs) -> Result<Config, Self::Error> {
         Ok(Config {
-            address: format!("{}:{}", node_args.host, node_args.port).parse()?,
+            address: match node_args.host.as_str() {
+                "127.0.0.1" => {
+                    SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), node_args.port)
+                }
+                _ => format!("{}:{}", node_args.host, node_args.port).parse()?,
+            },
             rpc_hardhat_network_config: RpcHardhatNetworkConfig {
                 forking: if let Some(json_rpc_url) = node_args.fork_url {
                     Some(RpcForkConfig {
