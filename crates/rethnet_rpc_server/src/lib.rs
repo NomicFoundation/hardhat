@@ -75,6 +75,7 @@ where
 }
 
 async fn get_latest_block_number<T>(state: &StateType) -> Result<U256, ResponseData<T>> {
+    // limited functionality per https://github.com/NomicFoundation/hardhat/issues/4125
     if let Some(fork_block_number) = state.fork_block_number {
         // TODO: when we're able to mint local blocks, and there are some newer than
         // fork_block_number, return the number of the latest one
