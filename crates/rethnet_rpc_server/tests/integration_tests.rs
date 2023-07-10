@@ -33,7 +33,7 @@ async fn start_server() -> SocketAddr {
             address: "127.0.0.1:0".parse::<SocketAddr>().unwrap(),
             rpc_hardhat_network_config: RpcHardhatNetworkConfig { forking: None },
         },
-        Some(accounts),
+        accounts,
     )
     .await
     .unwrap();

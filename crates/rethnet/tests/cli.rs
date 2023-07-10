@@ -6,6 +6,7 @@ use assert_cmd::{
 };
 use predicates::str::contains;
 
+use rethnet::DEFAULT_ACCOUNTS;
 use rethnet_eth::{
     remote::{
         client::Request as RpcRequest, jsonrpc, methods::MethodInvocation as EthMethodInvocation,
@@ -13,7 +14,7 @@ use rethnet_eth::{
     },
     Address, Bytes, U256,
 };
-use rethnet_rpc_server::{HardhatMethodInvocation, MethodInvocation, DEFAULT_ACCOUNTS};
+use rethnet_rpc_server::{HardhatMethodInvocation, MethodInvocation};
 
 #[tokio::test]
 async fn node() -> Result<(), Box<dyn std::error::Error>> {

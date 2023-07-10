@@ -6,7 +6,10 @@ edition = "2021"
 [dependencies]
 anyhow = "1.0.65"
 clap = { version = "3.2.22", default-features = false, features = ["std", "derive"] }
+hashbrown = { version = "0.13", default-features = false, features = ["ahash"] }
 pretty_env_logger = { version = "0.4.0", default-features = false }
+rethnet_eth = { version = "0.1.0-dev", path = "../rethnet_eth" }
+rethnet_evm = { version = "0.1.0-dev", path = "../rethnet_evm" }
 rethnet_rpc_server = { version = "0.1.0-dev", path = "../rethnet_rpc_server" }
 tokio = { version = "1.23.0", features = ["macros", "signal"] }
 tracing = { version = "0.1.37", default-features = false, features = ["std"] }
