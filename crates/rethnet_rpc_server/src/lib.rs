@@ -32,6 +32,18 @@ pub use hardhat_methods::{
     HardhatMethodInvocation,
 };
 
+#[derive(Clone, Copy)]
+struct U256WithoutLeadingZeroes(U256);
+
+impl serde::Serialize for U256WithoutLeadingZeroes {
+    fn serialize<S>(&self, s: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        rethnet_eth::remote::serialize_u256(&self.0, s)
+    }
+}
+
 /// an RPC method with its parameters
 #[derive(Clone, Debug, PartialEq, serde::Deserialize, serde::Serialize)]
 #[serde(untagged)]
@@ -187,7 +199,7 @@ async fn handle_get_balance(
     state: StateType,
     address: Address,
     block: BlockSpec,
-) -> ResponseData<U256> {
+) -> ResponseData<U256WithoutLeadingZeroes> {
     event!(Level::INFO, "eth_getBalance({address:?}, {block:?})");
     match set_block_context(&state, block).await {
         Ok(previous_state_root) => {
@@ -195,7 +207,7 @@ async fn handle_get_balance(
             match restore_block_context(&state, previous_state_root).await {
                 Ok(()) => match account_info {
                     Ok(account_info) => ResponseData::Success {
-                        result: account_info.balance,
+                        result: U256WithoutLeadingZeroes(account_info.balance),
                     },
                     Err(e) => e,
                 },
@@ -246,7 +258,7 @@ async fn handle_get_storage_at(
     address: Address,
     position: U256,
     block: BlockSpec,
-) -> ResponseData<U256> {
+) -> ResponseData<U256WithoutLeadingZeroes> {
     event!(
         Level::INFO,
         "eth_getStorageAt({address:?}, {position:?}, {block:?})"
@@ -256,7 +268,9 @@ async fn handle_get_storage_at(
             let value = state.rethnet_state.read().await.storage(address, position);
             match restore_block_context(&state, previous_state_root).await {
                 Ok(()) => match value {
-                    Ok(value) => ResponseData::Success { result: value },
+                    Ok(value) => ResponseData::Success {
+                        result: U256WithoutLeadingZeroes(value),
+                    },
                     Err(e) => {
                         error_response_data(&format!("failed to retrieve storage value: {}", e))
                     }
@@ -272,7 +286,7 @@ async fn handle_get_transaction_count(
     state: StateType,
     address: Address,
     block: BlockSpec,
-) -> ResponseData<U256> {
+) -> ResponseData<U256WithoutLeadingZeroes> {
     event!(
         Level::INFO,
         "eth_getTransactionCount({address:?}, {block:?})"
@@ -283,7 +297,7 @@ async fn handle_get_transaction_count(
             match restore_block_context(&state, previous_state_root).await {
                 Ok(()) => match account_info {
                     Ok(account_info) => ResponseData::Success {
-                        result: U256::from(account_info.nonce),
+                        result: U256WithoutLeadingZeroes(U256::from(account_info.nonce)),
                     },
                     Err(e) => e,
                 },

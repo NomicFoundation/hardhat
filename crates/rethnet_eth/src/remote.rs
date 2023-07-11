@@ -18,7 +18,7 @@ use bytes::Bytes;
 
 use crate::{B256, U256};
 
-use serde_with_helpers::serialize_u256;
+pub use serde_with_helpers::serialize_u256;
 
 pub use client::{RpcClient, RpcClientError};
 
