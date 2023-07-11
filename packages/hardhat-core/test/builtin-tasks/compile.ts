@@ -844,4 +844,90 @@ Read about compiler configuration at https://hardhat.org/config
       }
     });
   });
+
+  describe("project with files importing dependencies", function () {
+    useFixtureProject("compilation-contract-with-deps");
+    useEnvironment();
+
+    it("should not remove the build-info if it is still referenced by an external library", async function () {
+      await this.env.run("compile");
+
+      const pathToContractA = path.join("contracts", "A.sol");
+      let contractA = fsExtra.readFileSync(pathToContractA, "utf-8");
+      contractA = contractA.replace("contract A", "contract B");
+      fsExtra.writeFileSync(pathToContractA, contractA, "utf-8");
+
+      /**
+       * The _validArtifacts variable is not cleared when running the compile
+       * task twice in the same process, leading to an invalid output. This
+       * issue is not encountered when running the task from the CLI as each
+       * command operates as a separate process. To resolve this, the private
+       * variable should be cleared after each run of the compile task.
+       */
+      // eslint-disable-next-line @typescript-eslint/dot-notation
+      (this.env.artifacts as any)["_validArtifacts"] = [];
+
+      await this.env.run("compile");
+
+      contractA = contractA.replace("contract B", "contract A");
+      fsExtra.writeFileSync(pathToContractA, contractA, "utf-8");
+
+      // asserts
+      const pathToBuildInfoB = path.join(
+        "artifacts",
+        "contracts",
+        "A.sol",
+        "B.dbg.json"
+      );
+      assertBuildInfoExists(pathToBuildInfoB);
+      const pathToBuildInfoConsole = path.join(
+        "artifacts",
+        "dependency",
+        "contracts",
+        "console.sol",
+        "console.dbg.json"
+      );
+      assertBuildInfoExists(pathToBuildInfoConsole);
+    });
+
+    it("should not remove the build-info if it is still referenced by another local contract", async function () {
+      await this.env.run("compile");
+
+      const pathToContractC = path.join("contracts", "C.sol");
+      let contractC = fsExtra.readFileSync(pathToContractC, "utf-8");
+      contractC = contractC.replace("contract C", "contract D");
+      fsExtra.writeFileSync(pathToContractC, contractC, "utf-8");
+
+      /**
+       * The _validArtifacts variable is not cleared when running the compile
+       * task twice in the same process, leading to an invalid output. This
+       * issue is not encountered when running the task from the CLI as each
+       * command operates as a separate process. To resolve this, the private
+       * variable should be cleared after each run of the compile task.
+       */
+      // eslint-disable-next-line @typescript-eslint/dot-notation
+      (this.env.artifacts as any)["_validArtifacts"] = [];
+
+      await this.env.run("compile");
+
+      contractC = contractC.replace("contract D", "contract C");
+      fsExtra.writeFileSync(pathToContractC, contractC, "utf-8");
+
+      // asserts
+      const pathToBuildInfoC = path.join(
+        "artifacts",
+        "contracts",
+        "C.sol",
+        "D.dbg.json"
+      );
+      assertBuildInfoExists(pathToBuildInfoC);
+      const pathToBuildInfoE = path.join(
+        "artifacts",
+        "contracts",
+        "E.sol",
+        "E.dbg.json"
+      );
+      assertBuildInfoExists(pathToBuildInfoE);
+    });
+  });
 });
