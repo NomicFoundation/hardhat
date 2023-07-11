@@ -45,6 +45,7 @@ pub enum RpcClientError {
 #[derive(serde::Deserialize, serde::Serialize)]
 pub struct Request<MethodInvocation> {
     /// JSON-RPC version
+    #[serde(rename = "jsonrpc")]
     pub version: jsonrpc::Version,
     /// the method to invoke, with its parameters
     #[serde(flatten)]
