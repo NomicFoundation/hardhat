@@ -852,10 +852,10 @@ Read about compiler configuration at https://hardhat.org/config
     it("should not remove the build-info if it is still referenced by an external library", async function () {
       await this.env.run("compile");
 
-      const pathContractA = path.join("contracts", "A.sol");
-      let contractA = fsExtra.readFileSync(pathContractA, "utf-8");
+      const pathToContractA = path.join("contracts", "A.sol");
+      let contractA = fsExtra.readFileSync(pathToContractA, "utf-8");
       contractA = contractA.replace("contract A", "contract B");
-      fsExtra.writeFileSync(pathContractA, contractA, "utf-8");
+      fsExtra.writeFileSync(pathToContractA, contractA, "utf-8");
 
       /**
        * The _validArtifacts variable is not cleared when running the compile
@@ -870,30 +870,30 @@ Read about compiler configuration at https://hardhat.org/config
       await this.env.run("compile");
 
       // asserts
-      const buildInfoPathB = path.join(
+      const pathToBuildInfoB = path.join(
         "artifacts",
         "contracts",
         "A.sol",
         "B.dbg.json"
       );
-      assertBuildInfoExists(buildInfoPathB);
-      const buildInfoPathConsole = path.join(
+      assertBuildInfoExists(pathToBuildInfoB);
+      const pathToBuildInfoConsole = path.join(
         "artifacts",
         "dependency",
         "contracts",
         "console.sol",
         "console.dbg.json"
       );
-      assertBuildInfoExists(buildInfoPathConsole);
+      assertBuildInfoExists(pathToBuildInfoConsole);
     });
 
     it("should not remove the build-info if it is still referenced by another local contract", async function () {
       await this.env.run("compile");
 
-      const pathContractC = path.join("contracts", "C.sol");
-      let contractC = fsExtra.readFileSync(pathContractC, "utf-8");
+      const pathToContractC = path.join("contracts", "C.sol");
+      let contractC = fsExtra.readFileSync(pathToContractC, "utf-8");
       contractC = contractC.replace("contract C", "contract D");
-      fsExtra.writeFileSync(pathContractC, contractC, "utf-8");
+      fsExtra.writeFileSync(pathToContractC, contractC, "utf-8");
 
       /**
        * The _validArtifacts variable is not cleared when running the compile
@@ -908,32 +908,32 @@ Read about compiler configuration at https://hardhat.org/config
       await this.env.run("compile");
 
       // asserts
-      const buildInfoPathC = path.join(
+      const pathToBuildInfoC = path.join(
         "artifacts",
         "contracts",
         "C.sol",
         "D.dbg.json"
       );
-      assertBuildInfoExists(buildInfoPathC);
-      const buildInfoPathE = path.join(
+      assertBuildInfoExists(pathToBuildInfoC);
+      const pathToBuildInfoE = path.join(
         "artifacts",
         "contracts",
         "E.sol",
         "E.dbg.json"
       );
-      assertBuildInfoExists(buildInfoPathE);
+      assertBuildInfoExists(pathToBuildInfoE);
     });
 
     afterEach(() => {
-      const pathContractA = path.join("contracts", "A.sol");
-      let contractA = fsExtra.readFileSync(pathContractA, "utf-8");
+      const pathToContractA = path.join("contracts", "A.sol");
+      let contractA = fsExtra.readFileSync(pathToContractA, "utf-8");
       contractA = contractA.replace("contract B", "contract A");
-      fsExtra.writeFileSync(pathContractA, contractA, "utf-8");
+      fsExtra.writeFileSync(pathToContractA, contractA, "utf-8");
 
-      const pathContractC = path.join("contracts", "C.sol");
-      let contractC = fsExtra.readFileSync(pathContractC, "utf-8");
+      const pathToContractC = path.join("contracts", "C.sol");
+      let contractC = fsExtra.readFileSync(pathToContractC, "utf-8");
       contractC = contractC.replace("contract D", "contract C");
-      fsExtra.writeFileSync(pathContractC, contractC, "utf-8");
+      fsExtra.writeFileSync(pathToContractC, contractC, "utf-8");
     });
   });
 });
