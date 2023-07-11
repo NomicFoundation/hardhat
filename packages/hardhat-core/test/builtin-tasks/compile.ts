@@ -869,6 +869,9 @@ Read about compiler configuration at https://hardhat.org/config
 
       await this.env.run("compile");
 
+      contractA = contractA.replace("contract B", "contract A");
+      fsExtra.writeFileSync(pathToContractA, contractA, "utf-8");
+
       // asserts
       const pathToBuildInfoB = path.join(
         "artifacts",
@@ -907,6 +910,9 @@ Read about compiler configuration at https://hardhat.org/config
 
       await this.env.run("compile");
 
+      contractC = contractC.replace("contract D", "contract C");
+      fsExtra.writeFileSync(pathToContractC, contractC, "utf-8");
+
       // asserts
       const pathToBuildInfoC = path.join(
         "artifacts",
@@ -922,18 +928,6 @@ Read about compiler configuration at https://hardhat.org/config
         "E.dbg.json"
       );
       assertBuildInfoExists(pathToBuildInfoE);
-    });
-
-    afterEach(() => {
-      const pathToContractA = path.join("contracts", "A.sol");
-      let contractA = fsExtra.readFileSync(pathToContractA, "utf-8");
-      contractA = contractA.replace("contract B", "contract A");
-      fsExtra.writeFileSync(pathToContractA, contractA, "utf-8");
-
-      const pathToContractC = path.join("contracts", "C.sol");
-      let contractC = fsExtra.readFileSync(pathToContractC, "utf-8");
-      contractC = contractC.replace("contract D", "contract C");
-      fsExtra.writeFileSync(pathToContractC, contractC, "utf-8");
     });
   });
 });
