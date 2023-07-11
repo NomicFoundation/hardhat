@@ -134,7 +134,32 @@ export class ConsoleLogger {
       return;
     }
 
-    return this._decode(parameters, types);
+    const consoleLogs = this._decode(parameters, types);
+
+    this._replaceNumberFormatSpecifiers(consoleLogs);
+
+    return consoleLogs;
+  }
+
+  private _replaceNumberFormatSpecifiers(consoleLogs: ConsoleLogs) {
+    /**
+     * Replace the occurrences of %d and %i with %s. This is necessary because if the arguments passed are numbers,
+     * they could be too large to be formatted as a Number or an Integer, so it is safer to use a String.
+     * %d and %i are replaced only if there is an odd number of % before the d or i.
+     * If there is an even number of % then it is assumed that the % is escaped and should not be replaced.
+     * The regex matches a '%d' or an '%i' that has an even number of
+     * '%' behind it (including 0). This group of pairs of '%' is captured
+     * and preserved, while the '%[di]' is replaced with '%s'.
+     * Naively doing (%%)* is not enough; we also have to use the
+     * (?<!%) negative look-behind to make this work.
+     * The (?:) is just to avoid capturing that inner group.
+     */
+    if (consoleLogs.length > 0 && typeof consoleLogs[0] === "string") {
+      consoleLogs[0] = consoleLogs[0].replace(
+        /((?<!%)(?:%%)*)(%[di])/g,
+        "$1%s"
+      );
+    }
   }
 
   private _decode(data: Buffer, types: string[]): ConsoleLogs {
