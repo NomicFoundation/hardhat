@@ -44,7 +44,7 @@ export async function makeForkClient(
   const maxReorg = actualMaxReorg ?? FALLBACK_MAX_REORG;
 
   const latestBlock = await getLatestBlockNumber(provider);
-  const lastSafeBlock = latestBlock - maxReorg;
+  const lastSafeBlock = getLastSafeBlock(latestBlock, maxReorg);
 
   let forkBlockNumber;
   if (forkConfig.blockNumber !== undefined) {
@@ -126,4 +126,12 @@ async function getLatestBlockNumber(provider: HttpProvider) {
 
   const latestBlock = BigInt(latestBlockString);
   return latestBlock;
+}
+
+export function getLastSafeBlock(
+  latestBlock: bigint,
+  maxReorg: bigint
+): bigint {
+  // Design choice: if latestBlock - maxReorg gives a negative number than the newest block will be used
+  return latestBlock - maxReorg >= 0 ? latestBlock - maxReorg : latestBlock;
 }
