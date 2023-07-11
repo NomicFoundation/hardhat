@@ -63,6 +63,43 @@ async fn submit_request(address: &SocketAddr, request: &RpcRequest<MethodInvocat
         .unwrap_or_else(|_| panic!("should get full response text"))
 }
 
+async fn verify_response<ResponseT>(
+    method: MethodInvocation,
+    response_data: jsonrpc::ResponseData<ResponseT>,
+) where
+    ResponseT: serde::de::DeserializeOwned + std::fmt::Debug + std::cmp::PartialEq,
+{
+    let request = RpcRequest {
+        version: jsonrpc::Version::V2_0,
+        id: jsonrpc::Id::Num(0),
+        method,
+    };
+
+    let expected_response = jsonrpc::Response::<ResponseT> {
+        jsonrpc: request.version,
+        id: request.id.clone(),
+        data: response_data,
+    };
+
+    let unparsed_response = submit_request(&start_server().await, &request).await;
+
+    let actual_response: jsonrpc::Response<ResponseT> =
+        serde_json::from_str(&unparsed_response).expect("should deserialize from JSON");
+
+    assert_eq!(actual_response, expected_response);
+}
+
+#[tokio::test]
+async fn test_accounts() {
+    verify_response(
+        MethodInvocation::Eth(EthMethodInvocation::Accounts()),
+        jsonrpc::ResponseData::Success {
+            result: vec![Address::from_low_u64_ne(1)],
+        },
+    )
+    .await;
+}
+
 #[tokio::test]
 async fn test_get_balance_nonexistent_account() {
     let request = RpcRequest {

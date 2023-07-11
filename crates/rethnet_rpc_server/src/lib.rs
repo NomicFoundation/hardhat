@@ -48,6 +48,7 @@ type RethnetStateType = Arc<RwLock<Box<dyn SyncState<StateError>>>>;
 struct AppState {
     rethnet_state: RethnetStateType,
     fork_block_number: Option<U256>,
+    accounts: Vec<Address>,
 }
 
 type StateType = Arc<AppState>;
@@ -173,6 +174,12 @@ async fn get_account_info<T>(
             code_hash: KECCAK_EMPTY,
         }),
         Err(e) => Err(error_response_data(&e.to_string())),
+    }
+}
+
+async fn handle_accounts(state: StateType) -> ResponseData<Vec<Address>> {
+    ResponseData::Success {
+        result: state.accounts.clone(),
     }
 }
 
@@ -417,6 +424,9 @@ async fn handle_request(
             method,
         } => {
             match method {
+                MethodInvocation::Eth(EthMethodInvocation::Accounts()) => {
+                    response(id, handle_accounts(state).await)
+                }
                 MethodInvocation::Eth(EthMethodInvocation::GetBalance(address, block)) => {
                     response(id, handle_get_balance(state, *address, block.clone()).await)
                 }
@@ -547,6 +557,11 @@ impl Server {
         let listener = TcpListener::bind(config.address).map_err(Error::Listen)?;
         event!(Level::INFO, "Listening on {}", config.address);
 
+        let accounts: Vec<Address> = genesis_accounts
+            .iter()
+            .map(|(address, _account_info)| *address)
+            .collect();
+
         let rethnet_state: StateType =
             if let Some(config) = config.rpc_hardhat_network_config.forking {
                 let runtime = tokio::runtime::Builder::new_multi_thread()
@@ -576,6 +591,7 @@ impl Server {
                         genesis_accounts,
                     )))),
                     fork_block_number: Some(fork_block_number),
+                    accounts,
                 })
             } else {
                 Arc::new(AppState {
@@ -583,6 +599,7 @@ impl Server {
                         genesis_accounts,
                     )))),
                     fork_block_number: None,
+                    accounts,
                 })
             };
 
