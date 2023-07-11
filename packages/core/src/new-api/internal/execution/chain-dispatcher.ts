@@ -1,5 +1,6 @@
 import { Contract, ContractFactory, ethers } from "ethers";
 
+import { IgnitionError } from "../../../errors";
 import { Adapters } from "../../types/adapters";
 import { ArgumentType } from "../../types/module";
 import { ChainDispatcher } from "../types/chain-dispatcher";
@@ -14,6 +15,14 @@ export class ChainDispatcherImpl implements ChainDispatcher {
     this._accountsState = {};
   }
 
+  public async getPendingTransactionCount(address: string): Promise<number> {
+    return this._adapters.transactions.getPendingTransactionCount(address);
+  }
+
+  public async getLatestTransactionCount(address: string): Promise<number> {
+    return this._adapters.transactions.getLatestTransactionCount(address);
+  }
+
   public async getCurrentBlock(): Promise<{ number: number; hash: string }> {
     return this._adapters.blocks.getBlock();
   }
@@ -21,16 +30,30 @@ export class ChainDispatcherImpl implements ChainDispatcher {
   // TODO: should nonce management be separated out into its own
   // class?
   public async allocateNextNonceForAccount(address: string): Promise<number> {
+    const pendingNonce = await this.getPendingTransactionCount(address);
+
     if (address in this._accountsState) {
-      const nextNonce = this._accountsState[address] + 1;
-      this._accountsState[address] = nextNonce;
-      return nextNonce;
+      const expectedNextNonce = this._accountsState[address] + 1;
+
+      if (pendingNonce < expectedNextNonce) {
+        throw new IgnitionError(
+          `The current transaction has been dropped for account ${address}`
+        );
+      }
+
+      if (pendingNonce > expectedNextNonce) {
+        throw new IgnitionError(
+          `A transaction has been submitted on the account ${address} outside of the deployment`
+        );
+      }
+
+      this._accountsState[address] = expectedNextNonce;
+      return expectedNextNonce;
     }
 
-    const onchainNonce = await this._getTransactionCount(address);
-    this._accountsState[address] = onchainNonce;
+    this._accountsState[address] = pendingNonce;
 
-    return onchainNonce;
+    return pendingNonce;
   }
 
   public async constructDeployTransaction(
@@ -158,7 +181,9 @@ export class ChainDispatcherImpl implements ChainDispatcher {
     return this._adapters.transactions.getTransactionReceipt(txHash);
   }
 
-  private async _getTransactionCount(address: string): Promise<number> {
-    return this._adapters.transactions.getTransactionCount(address);
+  public async getTransaction(
+    txHash: string
+  ): Promise<ethers.providers.TransactionResponse | null | undefined> {
+    return this._adapters.transactions.getTransaction(txHash);
   }
 }

@@ -3,6 +3,10 @@ import { ethers } from "ethers";
 import { ArgumentType } from "../../types/module";
 
 export interface ChainDispatcher {
+  getPendingTransactionCount(address: string): Promise<number>;
+
+  getLatestTransactionCount(address: string): Promise<number>;
+
   getCurrentBlock(): Promise<{ number: number; hash: string }>;
 
   allocateNextNonceForAccount(address: string): Promise<number>;
@@ -36,6 +40,10 @@ export interface ChainDispatcher {
     args: ArgumentType[],
     from: string
   ): Promise<any>;
+
+  getTransaction(
+    txHash: string
+  ): Promise<ethers.providers.TransactionResponse | null | undefined>;
 
   getTransactionReceipt(
     txHash: string

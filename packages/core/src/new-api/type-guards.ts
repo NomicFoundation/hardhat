@@ -3,13 +3,16 @@ import { Artifact } from "./types/artifact";
 import {
   AccountRuntimeValue,
   AddressResolvableFuture,
+  ArtifactContractAtFuture,
   ContractFuture,
   DeploymentFuture,
   FunctionCallFuture,
   Future,
   FutureType,
   ModuleParameterRuntimeValue,
+  NamedContractAtFuture,
   NamedStaticCallFuture,
+  ReadEventArgumentFuture,
   RuntimeValue,
   RuntimeValueType,
 } from "./types/module";
@@ -148,6 +151,28 @@ export function isReadEventArgumentFuture(
 }
 
 /**
+ * Returns true if future is of type NamedContractAtFuture.
+ *
+ * @beta
+ */
+export function isNamedContractAtFuture(
+  future: Future
+): future is NamedContractAtFuture<string> {
+  return future.type === FutureType.NAMED_CONTRACT_AT;
+}
+
+/**
+ * Returns true if future is of type ArtifactContractAtFuture.
+ *
+ * @beta
+ */
+export function isArtifactContractAtFuture(
+  future: Future
+): future is ArtifactContractAtFuture {
+  return future.type === FutureType.ARTIFACT_CONTRACT_AT;
+}
+
+/**
  * Returns true if the type is of type DeploymentFuture<string>.
  *
  * @beta
@@ -177,6 +202,31 @@ export function isDeploymentFuture(
   future: Future
 ): future is DeploymentFuture<string> {
   return isDeploymentType(future.type);
+}
+
+/**
+ * Returns true if the future requires submitting a transaction on-chain
+ *
+ * @beta
+ */
+export function isFutureThatSubmitsOnchainTransaction(
+  f: Future
+): f is Exclude<
+  Exclude<
+    Exclude<
+      Exclude<Future, NamedStaticCallFuture<string, string>>,
+      ReadEventArgumentFuture
+    >,
+    NamedContractAtFuture<string>
+  >,
+  ArtifactContractAtFuture
+> {
+  return (
+    !isNamedStaticCallFuture(f) &&
+    !isReadEventArgumentFuture(f) &&
+    !isNamedContractAtFuture(f) &&
+    !isArtifactContractAtFuture(f)
+  );
 }
 
 /**

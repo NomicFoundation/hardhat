@@ -10,6 +10,7 @@ import {
   isOnchainStaticCallSuccessMessage,
   isOnchainTransactionAccept,
   isOnchainTransactionRequest,
+  isOnchainTransactionReset,
 } from "../journal/type-guards";
 import { serializeReplacer } from "../journal/utils/serialize-replacer";
 import { OnchainState, OnchainStatuses } from "../types/execution-state";
@@ -67,7 +68,12 @@ export function onchainActionReducer(
       status: OnchainStatuses.DEPLOY_CONTRACT_START,
       currentExecution: action.executionId,
       actions: {
-        [action.executionId]: { request: null, txHash: null, receipt: null },
+        [action.executionId]: {
+          start: action,
+          request: null,
+          txHash: null,
+          receipt: null,
+        },
       },
     };
   }
@@ -91,6 +97,7 @@ export function onchainActionReducer(
         nonce: action.nonce,
         actions: {
           [action.executionId]: {
+            ...state.actions[action.executionId],
             request: action,
             txHash: null,
             receipt: null,
@@ -105,6 +112,7 @@ export function onchainActionReducer(
         nonce: action.nonce,
         actions: {
           [action.executionId]: {
+            ...state.actions[action.executionId],
             request: action,
             txHash: null,
             receipt: null,
@@ -119,6 +127,7 @@ export function onchainActionReducer(
         nonce: action.nonce,
         actions: {
           [action.executionId]: {
+            ...state.actions[action.executionId],
             request: action,
             txHash: null,
             receipt: null,
@@ -147,6 +156,7 @@ export function onchainActionReducer(
       return {
         ...state,
         status: OnchainStatuses.DEPLOY_CONTRACT_TRANSACTION_ACCEPT,
+        txHash: action.txHash,
         actions: {
           [action.executionId]: {
             ...state.actions[action.executionId],
@@ -161,6 +171,7 @@ export function onchainActionReducer(
       return {
         ...state,
         status: OnchainStatuses.CALL_FUNCTION_TRANSACTION_ACCEPT,
+        txHash: action.txHash,
         actions: {
           [action.executionId]: {
             ...state.actions[action.executionId],
@@ -173,10 +184,88 @@ export function onchainActionReducer(
       return {
         ...state,
         status: OnchainStatuses.SEND_DATA_TRANSACTION_ACCEPT,
+        txHash: action.txHash,
         actions: {
           [action.executionId]: {
             ...state.actions[action.executionId],
             txHash: action,
+            receipt: null,
+          },
+        },
+      };
+    } else {
+      throw new IgnitionError(
+        `Unexpected status for transaction accept ${state?.status as any}`
+      );
+    }
+  }
+
+  if (isOnchainTransactionReset(action)) {
+    assertCurrentStatus(
+      [
+        OnchainStatuses.DEPLOY_CONTRACT_TRANSACTION_ACCEPT,
+        OnchainStatuses.CALL_FUNCTION_TRANSACTION_ACCEPT,
+        OnchainStatuses.SEND_DATA_TRANSACTION_ACCEPT,
+      ],
+      state,
+      action
+    );
+
+    if (state.status === OnchainStatuses.DEPLOY_CONTRACT_TRANSACTION_ACCEPT) {
+      const previousStart = (state.actions[action.executionId] as any).start;
+
+      return {
+        ...state,
+        status: OnchainStatuses.DEPLOY_CONTRACT_START,
+        currentExecution: state.currentExecution,
+        from: null,
+        nonce: null,
+        txHash: null,
+        actions: {
+          [action.executionId]: {
+            start: previousStart,
+            request: null,
+            txHash: null,
+            receipt: null,
+          },
+        },
+      };
+    } else if (
+      state.status === OnchainStatuses.CALL_FUNCTION_TRANSACTION_ACCEPT
+    ) {
+      const previousStart = (state.actions[action.executionId] as any).start;
+
+      return {
+        ...state,
+        status: OnchainStatuses.CALL_FUNCTION_START,
+        currentExecution: state.currentExecution,
+        from: null,
+        nonce: null,
+        txHash: null,
+        actions: {
+          [action.executionId]: {
+            start: previousStart,
+            request: null,
+            txHash: null,
+            receipt: null,
+          },
+        },
+      };
+    } else if (state.status === OnchainStatuses.SEND_DATA_TRANSACTION_ACCEPT) {
+      const previousStart = (state.actions[action.executionId] as any).start;
+
+      return {
+        ...state,
+        status: OnchainStatuses.SEND_DATA_START,
+        currentExecution: state.currentExecution,
+        from: null,
+        nonce: null,
+        txHash: null,
+        actions: {
+          [action.executionId]: {
+            start: previousStart,
+            request: null,
+            txHash: null,
             receipt: null,
           },
         },
@@ -201,6 +290,7 @@ export function onchainActionReducer(
       currentExecution: null,
       from: null,
       nonce: null,
+      txHash: null,
       actions: {
         [action.executionId]: {
           ...state.actions[action.executionId],
@@ -222,7 +312,12 @@ export function onchainActionReducer(
       status: OnchainStatuses.CALL_FUNCTION_START,
       currentExecution: action.executionId,
       actions: {
-        [action.executionId]: { request: null, txHash: null, receipt: null },
+        [action.executionId]: {
+          start: action,
+          request: null,
+          txHash: null,
+          receipt: null,
+        },
       },
     };
   }
@@ -240,6 +335,7 @@ export function onchainActionReducer(
       currentExecution: null,
       from: null,
       nonce: null,
+      txHash: null,
       actions: {
         [action.executionId]: {
           ...state.actions[action.executionId],
@@ -262,8 +358,10 @@ export function onchainActionReducer(
       currentExecution: action.executionId,
       actions: {
         [action.executionId]: {
-          ...state.actions[action.executionId],
-          receipt: action,
+          start: action,
+          request: null,
+          txHash: null,
+          receipt: null,
         },
       },
     };
@@ -282,8 +380,12 @@ export function onchainActionReducer(
       currentExecution: null,
       from: null,
       nonce: null,
+      txHash: null,
       actions: {
-        [action.executionId]: { request: null, txHash: null, receipt: null },
+        [action.executionId]: {
+          ...state.actions[action.executionId],
+          receipt: action,
+        },
       },
     };
   }
@@ -314,6 +416,7 @@ export function onchainActionReducer(
       currentExecution: null,
       from: null,
       nonce: null,
+      txHash: null,
       actions: {
         [action.executionId]: { result: action },
       },
@@ -346,6 +449,7 @@ export function onchainActionReducer(
       currentExecution: null,
       from: null,
       nonce: null,
+      txHash: null,
       actions: {
         [action.executionId]: { result: action },
       },

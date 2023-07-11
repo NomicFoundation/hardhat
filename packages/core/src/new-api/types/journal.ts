@@ -32,6 +32,7 @@ export type TransactionMessage =
   | OnchainInteractionMessage
   | OnchainTransactionRequest
   | OnchainTransactionAccept
+  | OnchainTransactionReset
   | OnchainResultMessage;
 
 // #region "OnchainInteraction"
@@ -178,6 +179,21 @@ export interface OnchainTransactionAccept {
   futureId: string;
   executionId: number;
   txHash: string;
+}
+
+// #endregion
+
+// #region "OnchainTransactionReset"
+
+/**
+ * Records a transaction submission being reset, so it can be resent.
+ *
+ * @beta
+ */
+export interface OnchainTransactionReset {
+  type: "onchain-transaction-reset";
+  futureId: string;
+  executionId: number;
 }
 
 // #endregion

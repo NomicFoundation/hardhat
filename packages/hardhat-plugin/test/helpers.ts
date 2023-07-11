@@ -42,7 +42,7 @@ const sleep = (timeout: number) =>
 /**
  * Wait until there are at least `expectedCount` transactions in the mempool
  */
-async function waitForPendingTxs(
+export async function waitForPendingTxs(
   hre: any,
   expectedCount: number,
   finished: Promise<any>

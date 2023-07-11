@@ -32,8 +32,16 @@ export function buildAdaptersFrom(hre: HardhatRuntimeEnvironment): Adapters {
     ): Promise<ethers.providers.TransactionReceipt | null | undefined> {
       return hre.ethers.provider.getTransactionReceipt(txHash);
     },
-    async getTransactionCount(address: string): Promise<number> {
-      return hre.ethers.provider.getTransactionCount(address);
+    async getTransaction(
+      txHash: string
+    ): Promise<ethers.providers.TransactionResponse | null | undefined> {
+      return hre.ethers.provider.getTransaction(txHash);
+    },
+    async getPendingTransactionCount(address: string): Promise<number> {
+      return hre.ethers.provider.getTransactionCount(address, "pending");
+    },
+    async getLatestTransactionCount(address: string): Promise<number> {
+      return hre.ethers.provider.getTransactionCount(address, "latest");
     },
   };
 

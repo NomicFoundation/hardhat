@@ -32,6 +32,7 @@ export const initOnchainState: OnchainState = {
   currentExecution: null,
   from: null,
   nonce: null,
+  txHash: null,
   actions: {},
 };
 
@@ -399,9 +400,39 @@ export class MockChainDispatcher implements ChainDispatcher {
     return response as any;
   }
 
+  public async getTransaction(
+    txHash: string
+  ): Promise<ethers.providers.TransactionResponse | null | undefined> {
+    const [from, nonce] = txHash.split("--");
+
+    const addressEntries = this._responses[from];
+
+    if (addressEntries === undefined) {
+      throw new Error(`No transaction responses recorded for address ${from}`);
+    }
+
+    const response = addressEntries[parseInt(nonce, 10)];
+
+    if (response === undefined) {
+      throw new Error(
+        `No transaction responses recorded for nonce ${from}/${nonce}`
+      );
+    }
+
+    return { _kind: "fake-transaction" } as any;
+  }
+
   public async getCurrentBlock(): Promise<{ number: number; hash: string }> {
     const number = this._currentBlock++;
 
     return { number, hash: `test-hash-${number}` };
+  }
+
+  public async getPendingTransactionCount(_address: string): Promise<number> {
+    return 0;
+  }
+
+  public async getLatestTransactionCount(_address: string): Promise<number> {
+    return 0;
   }
 }

@@ -16,6 +16,7 @@ import {
   OnchainStaticCallSuccessMessage,
   OnchainTransactionAccept,
   OnchainTransactionRequest,
+  OnchainTransactionReset,
   ReadEventArgumentStartMessage,
   SendDataStartMessage,
   StaticCallStartMessage,
@@ -146,6 +147,7 @@ export function isTransactionMessage(
     isOnchainInteractionMessage(message) ||
     isOnchainTransactionRequest(message) ||
     isOnchainTransactionAccept(message) ||
+    isOnchainTransactionReset(message) ||
     isOnChainResultMessage(message)
   );
 }
@@ -160,6 +162,12 @@ export function isOnchainTransactionAccept(
   message: JournalableMessage
 ): message is OnchainTransactionAccept {
   return message.type === "onchain-transaction-accept";
+}
+
+export function isOnchainTransactionReset(
+  message: JournalableMessage
+): message is OnchainTransactionReset {
+  return message.type === "onchain-transaction-reset";
 }
 
 export function isOnChainResultMessage(

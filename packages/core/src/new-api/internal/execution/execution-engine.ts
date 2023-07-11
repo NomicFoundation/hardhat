@@ -1,8 +1,15 @@
+import groupBy from "lodash/groupBy";
 import identity from "lodash/identity";
+import maxBy from "lodash/maxBy";
+import sortBy from "lodash/sortBy";
+import uniq from "lodash/uniq";
 
 import { IgnitionError } from "../../../errors";
 import { sleep } from "../../../internal/utils/sleep";
-import { isModuleParameterRuntimeValue } from "../../type-guards";
+import {
+  isFutureThatSubmitsOnchainTransaction,
+  isModuleParameterRuntimeValue,
+} from "../../type-guards";
 import { ArtifactResolver } from "../../types/artifact";
 import { DeploymentResult } from "../../types/deployer";
 import { DeploymentLoader } from "../../types/deployment-loader";
@@ -10,6 +17,7 @@ import {
   ExecutionResultMessage,
   FutureStartMessage,
   JournalableMessage,
+  OnchainTransactionReset,
   TransactionMessage,
 } from "../../types/journal";
 import {
@@ -70,6 +78,8 @@ export class ExecutionEngine {
 
     const futures = getFuturesFromModule(module);
 
+    await this._checkNonces(state, futures);
+
     for (const batch of batches) {
       // TODO: consider changing batcher to return futures rather than ids
       const executionBatch = batch.map((futureId) =>
@@ -103,6 +113,130 @@ export class ExecutionEngine {
       contracts: this._resolveDeployedContractsFrom(state),
       module: state.module,
     };
+  }
+
+  private async _checkNonces(state: ExecutionEngineState, futures: Future[]) {
+    const transactionSubmittingFutures = futures.filter(
+      isFutureThatSubmitsOnchainTransaction
+    );
+
+    const usedAccounts = uniq(
+      transactionSubmittingFutures.map((f) => resolveFromAddress(f.from, state))
+    );
+
+    const pendingIgnitionTransactions = transactionSubmittingFutures
+      .map((f) => {
+        const exState = state.executionStateMap[f.id];
+
+        if (
+          exState === undefined ||
+          exState.onchain.currentExecution === null ||
+          exState.onchain.nonce === null ||
+          exState.onchain.txHash === null
+        ) {
+          return null;
+        }
+
+        return {
+          futureId: f.id,
+          executionId: exState.onchain.currentExecution,
+          from: resolveFromAddress(f.from, state),
+          nonce: exState.onchain.nonce,
+          hash: exState.onchain.txHash,
+        };
+      })
+      .filter(<T>(x: T | null): x is T => x !== null);
+
+    const inflightByAccount = groupBy(pendingIgnitionTransactions, "from");
+
+    for (const usedAccount of usedAccounts) {
+      const pending = await state.chainDispatcher.getPendingTransactionCount(
+        usedAccount
+      );
+      const latest = await state.chainDispatcher.getLatestTransactionCount(
+        usedAccount
+      );
+
+      const inflight = inflightByAccount[usedAccount];
+
+      // no inflight transactions
+      if (inflight === undefined) {
+        if (pending !== latest) {
+          throw new IgnitionError(
+            `Pending transactions for account: ${usedAccount}, please wait for transactions to complete before running a deploy`
+          );
+        }
+
+        // no pending transactions
+        return;
+      }
+
+      const maxNonceTran = maxBy(inflight, "nonce");
+
+      assertIgnitionInvariant(
+        maxNonceTran !== undefined,
+        "Always at least one entry going into maxBy"
+      );
+
+      // The pending transactions do not match the expected list
+      // given the inflight transactions from the previous run
+      if (maxNonceTran.nonce + 1 < pending) {
+        // TODO: is this error message correct?
+        throw new IgnitionError(
+          `Pending transactions for account: ${usedAccount}, please wait for transactions to complete before running a deploy`
+        );
+      }
+
+      for (const intran of sortBy(inflight, "nonce")) {
+        const result = await state.chainDispatcher.getTransaction(intran.hash);
+
+        // transaction is confirmed or pending as expected
+        if (result !== null && result !== undefined) {
+          continue;
+        }
+
+        // There is a confirmed user sent transaction that
+        // has replaced the expected transaction
+        if (latest >= intran.nonce + 1) {
+          // Try sending the request again, using a new nonce
+          const revert: OnchainTransactionReset = {
+            type: "onchain-transaction-reset",
+            futureId: intran.futureId,
+            executionId: intran.executionId,
+          };
+
+          await this._apply(state, revert);
+        }
+
+        // there is a pending transaction sent by the user
+        // with the same nonce
+        if (latest < intran.nonce + 1 && pending >= intran.nonce + 1) {
+          throw new IgnitionError("Pending transaction from user");
+        }
+
+        // the transaction has been dropped without any user interference
+        if (latest < intran.nonce + 1 && pending < intran.nonce + 1) {
+          // try sending again potentially using the same nonce
+          const revert: OnchainTransactionReset = {
+            type: "onchain-transaction-reset",
+            futureId: intran.futureId,
+            executionId: intran.executionId,
+          };
+
+          await this._apply(state, revert);
+        }
+
+        assertIgnitionInvariant(
+          true,
+          `Unexpected nonce check state for account ${usedAccount}`
+        );
+      }
+
+      // There are pending transactions but they are accounted for
+      // by the inflight transactions from the previous run,
+      // including those that confirmed between runs
+      return;
+    }
   }
 
   private async _executeBatch(

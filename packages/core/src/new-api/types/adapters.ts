@@ -39,10 +39,17 @@ export interface GasAdapter {
  * @beta
  */
 export interface TransactionsAdapter {
-  getTransactionCount(address: string): Promise<number>;
+  getTransaction(
+    txHash: string
+  ): Promise<ethers.providers.TransactionResponse | null | undefined>;
+
   getTransactionReceipt(
     txHash: string
   ): Promise<ethers.providers.TransactionReceipt | null | undefined>;
+
+  getPendingTransactionCount(address: string): Promise<number>;
+
+  getLatestTransactionCount(address: string): Promise<number>;
 }
 
 /**

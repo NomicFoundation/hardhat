@@ -1,4 +1,5 @@
 import {
+  Adapters,
   deploy,
   DeploymentResultSuccess,
   IgnitionError,
@@ -9,12 +10,23 @@ import {
 import { Contract } from "ethers";
 import fs from "fs-extra";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
+import path from "path";
 
 import { buildAdaptersFrom } from "./buildAdaptersFrom";
 import { HardhatArtifactResolver } from "./hardhat-artifact-resolver.ts";
 
 export class IgnitionHelper {
-  constructor(private _hre: HardhatRuntimeEnvironment) {}
+  private _adapters: Adapters;
+  private _deploymentDir: string | undefined;
+
+  constructor(
+    private _hre: HardhatRuntimeEnvironment,
+    adapters?: Adapters,
+    deploymentDir?: string
+  ) {
+    this._adapters = adapters ?? buildAdaptersFrom(this._hre);
+    this._deploymentDir = deploymentDir;
+  }
 
   public async deploy(
     ignitionModuleDefinition: IgnitionModuleDefinition<
@@ -23,7 +35,7 @@ export class IgnitionHelper {
       IgnitionModuleResult<string>
     >,
     { parameters = {} }: { parameters: { [key: string]: ModuleParameters } }
-  ): Promise<any> {
+  ): Promise<Record<string, Contract>> {
     const accounts = (await this._hre.network.provider.request({
       method: "eth_accounts",
     })) as string[];
@@ -31,7 +43,8 @@ export class IgnitionHelper {
     const artifactResolver = new HardhatArtifactResolver(this._hre);
 
     const result = await deploy({
-      adapters: buildAdaptersFrom(this._hre),
+      adapters: this._adapters,
+      deploymentDir: this._deploymentDir,
       artifactResolver,
       moduleDefinition: ignitionModuleDefinition,
       deploymentParameters: parameters,
@@ -79,7 +92,13 @@ export class IgnitionHelper {
     storedArtifactPath: any
   ): Promise<any[]> {
     const artifact = JSON.parse(
-      (await fs.readFile(storedArtifactPath)).toString()
+      (
+        await fs.readFile(
+          this._deploymentDir !== undefined
+            ? path.join(this._deploymentDir, storedArtifactPath)
+            : storedArtifactPath
+        )
+      ).toString()
     );
 
     return artifact.abi;

@@ -1,5 +1,6 @@
 import { ethers } from "ethers";
 
+import { IgnitionError } from "../../../errors";
 import { serializeReplacer } from "../../../helpers";
 import {
   CallFunctionInteractionMessage,
@@ -28,9 +29,13 @@ import {
   isOnchainFailureMessage,
   isOnchainTransactionAccept,
   isOnchainTransactionRequest,
+  isOnchainTransactionReset,
 } from "../journal/type-guards";
 import { ExecutionEngineState } from "../types/execution-engine";
-import { OnchainStatuses } from "../types/execution-state";
+import {
+  DeploymentExecutionState,
+  OnchainStatuses,
+} from "../types/execution-state";
 import { assertIgnitionInvariant } from "../utils/assertions";
 import { collectLibrariesAndLink } from "../utils/collectLibrariesAndLink";
 
@@ -86,18 +91,26 @@ export const onchainStateTransitions: OnchainStateTransitions = {
   },
   [OnchainStatuses.DEPLOY_CONTRACT_START]: async (state, next) => {
     assertIgnitionInvariant(
-      next !== null && isDeployContractInteraction(next),
+      next !== null &&
+        (isDeployContractInteraction(next) || isOnchainTransactionReset(next)),
       `Message not in sync with onchain state - DEPLOY_CONTRACT_START: ${JSON.stringify(
         next,
         serializeReplacer
       )}`
     );
 
+    const exState = state.executionStateMap[
+      next.futureId
+    ] as DeploymentExecutionState;
+
+    const start = (exState.onchain.actions[next.executionId] as any)
+      .start as DeployContractInteractionMessage;
+
     const nonce = await state.chainDispatcher.allocateNextNonceForAccount(
-      next.from
+      start.from
     );
 
-    const tx = await _convertRequestToDeployTransaction(next, state);
+    const tx = await _convertRequestToDeployTransaction(start, state);
     tx.nonce = nonce;
 
     const onchainTransaction: OnchainTransactionRequest = {
@@ -105,7 +118,7 @@ export const onchainStateTransitions: OnchainStateTransitions = {
       futureId: next.futureId,
       executionId: next.executionId,
       nonce,
-      from: next.from,
+      from: start.from,
       tx,
     };
 
@@ -166,33 +179,18 @@ export const onchainStateTransitions: OnchainStateTransitions = {
       )}`
     );
 
-    const currentTransaction =
-      await state.chainDispatcher.getTransactionReceipt(next.txHash);
+    return checkTransactionComplete(state, next, (receipt) => {
+      const deployResult: OnchainDeployContractSuccessMessage = {
+        type: "onchain-result",
+        subtype: "deploy-contract-success",
+        futureId: next.futureId,
+        executionId: next.executionId,
+        contractAddress: receipt.contractAddress,
+        txId: receipt.transactionHash,
+      };
 
-    if (currentTransaction === null || currentTransaction === undefined) {
-      // No receipt means it hasn't been included in a block yet
-      return { status: "pause" };
-    }
-
-    if (
-      currentTransaction.blockNumber === undefined ||
-      // TODO: make default confirmations config
-      currentTransaction.confirmations < DEFAULT_CONFIRMATIONS
-    ) {
-      // transaction pending, move on with batch
-      return { status: "pause" };
-    }
-
-    const deployResult: OnchainDeployContractSuccessMessage = {
-      type: "onchain-result",
-      subtype: "deploy-contract-success",
-      futureId: next.futureId,
-      executionId: next.executionId,
-      contractAddress: currentTransaction.contractAddress,
-      txId: currentTransaction.transactionHash,
-    };
-
-    return { status: "continue", next: deployResult };
+      return deployResult;
+    });
   },
   [OnchainStatuses.CALL_FUNCTION_START]: async (state, next) => {
     assertIgnitionInvariant(
@@ -270,32 +268,17 @@ export const onchainStateTransitions: OnchainStateTransitions = {
       )}`
     );
 
-    const currentTransaction =
-      await state.chainDispatcher.getTransactionReceipt(next.txHash);
+    return checkTransactionComplete(state, next, (receipt) => {
+      const callResult: OnchainCallFunctionSuccessMessage = {
+        type: "onchain-result",
+        subtype: "call-function-success",
+        futureId: next.futureId,
+        executionId: next.executionId,
+        txId: receipt.transactionHash,
+      };
 
-    if (currentTransaction === null || currentTransaction === undefined) {
-      // No receipt means it hasn't been included in a block yet
-      return { status: "pause" };
-    }
-
-    if (
-      currentTransaction.blockNumber === undefined ||
-      // TODO: make default confirmations config
-      currentTransaction.confirmations < DEFAULT_CONFIRMATIONS
-    ) {
-      // transaction pending, move on with batch
-      return { status: "pause" };
-    }
-
-    const deployResult: OnchainCallFunctionSuccessMessage = {
-      type: "onchain-result",
-      subtype: "call-function-success",
-      futureId: next.futureId,
-      executionId: next.executionId,
-      txId: currentTransaction.transactionHash,
-    };
-
-    return { status: "continue", next: deployResult };
+      return callResult;
+    });
   },
   [OnchainStatuses.SEND_DATA_START]: async (state, next) => {
     assertIgnitionInvariant(
@@ -373,32 +356,17 @@ export const onchainStateTransitions: OnchainStateTransitions = {
       )}`
     );
 
-    const currentTransaction =
-      await state.chainDispatcher.getTransactionReceipt(next.txHash);
+    return checkTransactionComplete(state, next, (receipt) => {
+      const sendResult: OnchainSendDataSuccessMessage = {
+        type: "onchain-result",
+        subtype: "send-data-success",
+        futureId: next.futureId,
+        executionId: next.executionId,
+        txId: receipt.transactionHash,
+      };
 
-    if (currentTransaction === null || currentTransaction === undefined) {
-      // No receipt means it hasn't been included in a block yet
-      return { status: "pause" };
-    }
-
-    if (
-      currentTransaction.blockNumber === undefined ||
-      // TODO: make default confirmations config
-      currentTransaction.confirmations < DEFAULT_CONFIRMATIONS
-    ) {
-      // transaction pending, move on with batch
-      return { status: "pause" };
-    }
-
-    const deployResult: OnchainSendDataSuccessMessage = {
-      type: "onchain-result",
-      subtype: "send-data-success",
-      futureId: next.futureId,
-      executionId: next.executionId,
-      txId: currentTransaction.transactionHash,
-    };
-
-    return { status: "continue", next: deployResult };
+      return sendResult;
+    });
   },
   [OnchainStatuses.CONTRACT_AT_START]: async (state, next) => {
     assertIgnitionInvariant(
@@ -618,4 +586,44 @@ async function _readEventArg(
           : new Error("Unknown read event arg error"),
     };
   }
+}
+
+async function checkTransactionComplete(
+  state: ExecutionEngineState,
+  next: { txHash: string; futureId: string; executionId: number },
+  successConstructor: (
+    receipt: ethers.providers.TransactionReceipt
+  ) => ExecutionSuccess | ExecutionFailure | TransactionMessage
+): Promise<OnchainStateTransitionContinue | OnchainStateTransitionPause> {
+  const currentTransaction = await state.chainDispatcher.getTransaction(
+    next.txHash
+  );
+
+  if (currentTransaction === null || currentTransaction === undefined) {
+    throw new IgnitionError(
+      `Transaction ${next.txHash} (${next.futureId}/${next.executionId}) has dropped from mempool`
+    );
+  }
+
+  const receipt = await state.chainDispatcher.getTransactionReceipt(
+    next.txHash
+  );
+
+  if (receipt === null || receipt === undefined) {
+    // No receipt means it hasn't been included in a block yet
+    return { status: "pause" };
+  }
+
+  if (
+    receipt.blockNumber === undefined ||
+    // TODO: make default confirmations config
+    receipt.confirmations < DEFAULT_CONFIRMATIONS
+  ) {
+    // transaction pending, move on with batch
+    return { status: "pause" };
+  }
+
+  const successMessage = successConstructor(receipt);
+
+  return { status: "continue", next: successMessage };
 }
