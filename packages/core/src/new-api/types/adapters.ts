@@ -9,6 +9,7 @@ export interface Adapters {
   signer: SignerAdapter;
   gas: GasAdapter;
   transactions: TransactionsAdapter;
+  blocks: BlocksAdapter;
 }
 
 /**
@@ -42,4 +43,13 @@ export interface TransactionsAdapter {
   getTransactionReceipt(
     txHash: string
   ): Promise<ethers.providers.TransactionReceipt | null | undefined>;
+}
+
+/**
+ * Provide accto to Ethereum blocks
+ *
+ * @beta
+ */
+export interface BlocksAdapter {
+  getBlock(): Promise<{ number: number; hash: string }>;
 }

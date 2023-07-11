@@ -1,4 +1,8 @@
-import { Adapters, TransactionsAdapter } from "@ignored/ignition-core";
+import {
+  Adapters,
+  BlocksAdapter,
+  TransactionsAdapter,
+} from "@ignored/ignition-core";
 import { ethers } from "ethers";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 
@@ -33,10 +37,21 @@ export function buildAdaptersFrom(hre: HardhatRuntimeEnvironment): Adapters {
     },
   };
 
+  const blockAdapter: BlocksAdapter = {
+    async getBlock(): Promise<{ number: number; hash: string }> {
+      const blockNumber = await hre.ethers.provider.getBlockNumber();
+
+      const block = await hre.ethers.provider.getBlock(blockNumber);
+
+      return { number: block.number, hash: block.hash };
+    },
+  };
+
   const adapters: Adapters = {
     transactions: transactionsAdapter,
     gas: gasAdapter,
     signer: signerAdapter,
+    blocks: blockAdapter,
   };
 
   return adapters;

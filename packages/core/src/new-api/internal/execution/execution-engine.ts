@@ -65,6 +65,9 @@ export class ExecutionEngine {
   public async execute(state: ExecutionEngineState): Promise<DeploymentResult> {
     const { batches, module } = state;
 
+    // Initialise the current block number/hash
+    state.block = await state.chainDispatcher.getCurrentBlock();
+
     const futures = getFuturesFromModule(module);
 
     for (const batch of batches) {
@@ -136,7 +139,7 @@ export class ExecutionEngine {
         break;
       }
 
-      await this._newBlock();
+      await this._newBlock(state);
     }
 
     return batchResults;
@@ -170,8 +173,21 @@ export class ExecutionEngine {
   /**
    * Wait for the next block to  be processed on-chain
    */
-  private async _newBlock(): Promise<void> {
-    await sleep(200);
+  private async _newBlock(state: ExecutionEngineState): Promise<void> {
+    while (true) {
+      const currentBlock = await state.chainDispatcher.getCurrentBlock();
+
+      if (
+        currentBlock.number > state.block.number ||
+        currentBlock.hash !== state.block.hash
+      ) {
+        state.block = currentBlock;
+
+        return;
+      }
+
+      await sleep(state.config.blockPollingInterval);
+    }
   }
 
   private async _processFutureTick(

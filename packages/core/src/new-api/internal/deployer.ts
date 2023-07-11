@@ -30,6 +30,8 @@ import { assertIgnitionInvariant } from "./utils/assertions";
 import { getFuturesFromModule } from "./utils/get-futures-from-module";
 import { validate } from "./validation/validate";
 
+const BLOCK_POLLING_INTERVAL = 200;
+
 /**
  * Run an Igntition deployment.
  *
@@ -113,6 +115,10 @@ export class Deployer {
     const batches = Batcher.batch(module, previousStateMap);
 
     return this._executionEngine.execute({
+      block: { number: -1, hash: "-" },
+      config: {
+        blockPollingInterval: BLOCK_POLLING_INTERVAL,
+      },
       strategy: this._strategy,
       artifactResolver: this._artifactResolver,
       batches,

@@ -247,6 +247,7 @@ export function setupMockChainDispatcher({
 export class MockChainDispatcher implements ChainDispatcher {
   private _accountsState: AccountsState;
   private _sentTxs: { [key: string]: ethers.providers.TransactionRequest };
+  private _currentBlock: number;
 
   constructor(
     private _responses: {
@@ -279,6 +280,8 @@ export class MockChainDispatcher implements ChainDispatcher {
   ) {
     this._accountsState = {};
     this._sentTxs = {};
+
+    this._currentBlock = 1;
   }
 
   public getEventArgument(
@@ -394,5 +397,11 @@ export class MockChainDispatcher implements ChainDispatcher {
     }
 
     return response as any;
+  }
+
+  public async getCurrentBlock(): Promise<{ number: number; hash: string }> {
+    const number = this._currentBlock++;
+
+    return { number, hash: `test-hash-${number}` };
   }
 }

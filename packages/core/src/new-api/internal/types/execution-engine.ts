@@ -15,6 +15,13 @@ import { ChainDispatcher } from "./chain-dispatcher";
 import { ExecutionState, ExecutionStateMap } from "./execution-state";
 
 export interface ExecutionEngineState {
+  block: {
+    number: number;
+    hash: string;
+  };
+  config: {
+    blockPollingInterval: number;
+  };
   batches: string[][];
   module: IgnitionModule<string, string, IgnitionModuleResult<string>>;
   executionStateMap: ExecutionStateMap;

@@ -14,6 +14,10 @@ export class ChainDispatcherImpl implements ChainDispatcher {
     this._accountsState = {};
   }
 
+  public async getCurrentBlock(): Promise<{ number: number; hash: string }> {
+    return this._adapters.blocks.getBlock();
+  }
+
   // TODO: should nonce management be separated out into its own
   // class?
   public async allocateNextNonceForAccount(address: string): Promise<number> {

@@ -3,6 +3,8 @@ import { ethers } from "ethers";
 import { ArgumentType } from "../../types/module";
 
 export interface ChainDispatcher {
+  getCurrentBlock(): Promise<{ number: number; hash: string }>;
+
   allocateNextNonceForAccount(address: string): Promise<number>;
 
   constructDeployTransaction(
