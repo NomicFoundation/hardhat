@@ -43,7 +43,7 @@ describe("Solidity console.log should print numbers without losing precision, oc
       {
         from: deployer,
         to: receipt.contractAddress,
-        data: "0xf8a8fd6d",
+        data: "0xf8a8fd6d", // selector of 'test()'
       },
     ]);
 
