@@ -111,19 +111,20 @@ fn check_post_merge_block_tags<T>(_state: &StateType) -> Result<(), ResponseData
 /// restore the context to that state root.
 async fn set_block_context<T>(
     state: &StateType,
-    block_spec: BlockSpec,
+    block_spec: Option<BlockSpec>,
 ) -> Result<B256, ResponseData<T>> {
     let previous_state_root = state.rethnet_state.read().await.state_root().map_err(|e| {
         error_response_data(&format!("Failed to retrieve previous state root: {e}"))
     })?;
     match block_spec {
-        BlockSpec::Tag(BlockTag::Pending) => {
+        Some(BlockSpec::Tag(BlockTag::Pending)) => {
             // do nothing
             Ok(previous_state_root)
         }
-        BlockSpec::Tag(BlockTag::Latest) if state.fork_block_number.is_none() => {
+        Some(BlockSpec::Tag(BlockTag::Latest)) if state.fork_block_number.is_none() => {
             Ok(previous_state_root)
         }
+        None => Ok(previous_state_root),
         resolvable_block_spec => {
             state
                 .rethnet_state
@@ -132,23 +133,24 @@ async fn set_block_context<T>(
                 .set_block_context(
                     &KECCAK_EMPTY,
                     Some(match resolvable_block_spec.clone() {
-                        BlockSpec::Number(n) => Ok(n),
-                        BlockSpec::Eip1898(s) => match s {
+                        Some(BlockSpec::Number(n)) => Ok(n),
+                        Some(BlockSpec::Eip1898(s)) => match s {
                             Eip1898BlockSpec::Number { block_number: n } => Ok(n),
                             Eip1898BlockSpec::Hash {
                                 block_hash: _,
                                 require_canonical: _,
                             } => todo!("when there's a blockchain present"),
                         },
-                        BlockSpec::Tag(tag) => match tag {
+                        Some(BlockSpec::Tag(tag)) => match tag {
                             BlockTag::Earliest => Ok(U256::ZERO),
                             BlockTag::Safe | BlockTag::Finalized => {
                                 check_post_merge_block_tags(state)?;
                                 Ok(get_latest_block_number(state).await?)
                             }
                             BlockTag::Latest => Ok(get_latest_block_number(state).await?),
-                            BlockTag::Pending => panic!("should never happen"),
+                            BlockTag::Pending => unreachable!(),
                         },
+                        None => unreachable!(),
                     }?),
                 )
                 .map_err(|e| {
@@ -198,7 +200,7 @@ async fn handle_accounts(state: StateType) -> ResponseData<Vec<Address>> {
 async fn handle_get_balance(
     state: StateType,
     address: Address,
-    block: BlockSpec,
+    block: Option<BlockSpec>,
 ) -> ResponseData<U256WithoutLeadingZeroes> {
     event!(Level::INFO, "eth_getBalance({address:?}, {block:?})");
     match set_block_context(&state, block).await {
@@ -221,7 +223,7 @@ async fn handle_get_balance(
 async fn handle_get_code(
     state: StateType,
     address: Address,
-    block: BlockSpec,
+    block: Option<BlockSpec>,
 ) -> ResponseData<ZeroXPrefixedBytes> {
     event!(Level::INFO, "eth_getCode({address:?}, {block:?})");
     match set_block_context(&state, block).await {
@@ -257,7 +259,7 @@ async fn handle_get_storage_at(
     state: StateType,
     address: Address,
     position: U256,
-    block: BlockSpec,
+    block: Option<BlockSpec>,
 ) -> ResponseData<U256WithoutLeadingZeroes> {
     event!(
         Level::INFO,
@@ -285,7 +287,7 @@ async fn handle_get_storage_at(
 async fn handle_get_transaction_count(
     state: StateType,
     address: Address,
-    block: BlockSpec,
+    block: Option<BlockSpec>,
 ) -> ResponseData<U256WithoutLeadingZeroes> {
     event!(
         Level::INFO,

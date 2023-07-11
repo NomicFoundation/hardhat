@@ -208,7 +208,7 @@ impl RpcClient {
     pub async fn get_account_info(
         &self,
         address: &Address,
-        block: BlockSpec,
+        block: Option<BlockSpec>,
     ) -> Result<AccountInfo, RpcClientError> {
         let inputs = Vec::from([
             MethodInvocation::GetBalance(*address, block.clone()),
@@ -391,7 +391,7 @@ impl RpcClient {
     pub async fn get_transaction_count(
         &self,
         address: &Address,
-        block: BlockSpec,
+        block: Option<BlockSpec>,
     ) -> Result<U256, RpcClientError> {
         self.call(&MethodInvocation::GetTransactionCount(*address, block))
             .await
@@ -411,7 +411,7 @@ impl RpcClient {
         &self,
         address: &Address,
         position: U256,
-        block: BlockSpec,
+        block: Option<BlockSpec>,
     ) -> Result<U256, RpcClientError> {
         self.call(&MethodInvocation::GetStorageAt(*address, position, block))
             .await
@@ -532,7 +532,7 @@ mod tests {
                 .expect("failed to parse address");
 
             let account_info = RpcClient::new(&alchemy_url)
-                .get_account_info(&dai_address, BlockSpec::Number(U256::from(16220843)))
+                .get_account_info(&dai_address, Some(BlockSpec::Number(U256::from(16220843))))
                 .await
                 .expect("should have succeeded");
 
@@ -550,7 +550,7 @@ mod tests {
                 .expect("failed to parse address");
 
             let account_info = RpcClient::new(&alchemy_url)
-                .get_account_info(&empty_address, BlockSpec::Number(U256::from(1)))
+                .get_account_info(&empty_address, Some(BlockSpec::Number(U256::from(1))))
                 .await
                 .expect("should have succeeded");
 
@@ -568,7 +568,7 @@ mod tests {
                 .expect("failed to parse address");
 
             let error = RpcClient::new(&alchemy_url)
-                .get_account_info(&dai_address, BlockSpec::Number(U256::MAX))
+                .get_account_info(&dai_address, Some(BlockSpec::Number(U256::MAX)))
                 .await
                 .expect_err("should have failed");
 
@@ -589,7 +589,7 @@ mod tests {
                 .expect("failed to parse address");
 
             let account_info = RpcClient::new(&alchemy_url)
-                .get_account_info(&dai_address, BlockSpec::latest())
+                .get_account_info(&dai_address, Some(BlockSpec::latest()))
                 .await
                 .expect("should have succeeded");
 
@@ -937,7 +937,7 @@ mod tests {
                 .expect("failed to parse address");
 
             let transaction_count = RpcClient::new(&alchemy_url)
-                .get_transaction_count(&dai_address, BlockSpec::Number(U256::from(16220843)))
+                .get_transaction_count(&dai_address, Some(BlockSpec::Number(U256::from(16220843))))
                 .await
                 .expect("should have succeeded");
 
@@ -952,7 +952,10 @@ mod tests {
                 .expect("failed to parse address");
 
             let transaction_count = RpcClient::new(&alchemy_url)
-                .get_transaction_count(&missing_address, BlockSpec::Number(U256::from(16220843)))
+                .get_transaction_count(
+                    &missing_address,
+                    Some(BlockSpec::Number(U256::from(16220843))),
+                )
                 .await
                 .expect("should have succeeded");
 
@@ -967,7 +970,7 @@ mod tests {
                 .expect("failed to parse address");
 
             let error = RpcClient::new(&alchemy_url)
-                .get_transaction_count(&missing_address, BlockSpec::Number(U256::MAX))
+                .get_transaction_count(&missing_address, Some(BlockSpec::Number(U256::MAX)))
                 .await
                 .expect_err("should have failed");
 
@@ -1071,7 +1074,7 @@ mod tests {
                 .get_storage_at(
                     &dai_address,
                     U256::from(1),
-                    BlockSpec::Number(U256::from(16220843)),
+                    Some(BlockSpec::Number(U256::from(16220843))),
                 )
                 .await
                 .expect("should have succeeded");
@@ -1097,7 +1100,7 @@ mod tests {
                 .get_storage_at(
                     &missing_address,
                     U256::from(1),
-                    BlockSpec::Number(U256::from(1)),
+                    Some(BlockSpec::Number(U256::from(1))),
                 )
                 .await
                 .expect("should have succeeded");
@@ -1120,7 +1123,7 @@ mod tests {
                         16,
                     )
                     .expect("failed to parse storage location"),
-                    BlockSpec::latest(),
+                    Some(BlockSpec::latest()),
                 )
                 .await
                 .expect("should have succeeded");
@@ -1134,7 +1137,11 @@ mod tests {
                 .expect("failed to parse address");
 
             let error = RpcClient::new(&alchemy_url)
-                .get_storage_at(&dai_address, U256::from(1), BlockSpec::Number(U256::MAX))
+                .get_storage_at(
+                    &dai_address,
+                    U256::from(1),
+                    Some(BlockSpec::Number(U256::MAX)),
+                )
                 .await
                 .expect_err("should have failed");
 

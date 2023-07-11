@@ -1,7 +1,8 @@
 /// an Ethereum JSON-RPC client
 pub mod client;
 
-mod eth;
+/// ethereum objects as specifically used in the JSON-RPC interface
+pub mod eth;
 
 /// data types specific to JSON-RPC but not specific to Ethereum.
 pub mod jsonrpc;
@@ -95,6 +96,11 @@ impl BlockSpec {
     /// Constructs a `BlockSpec` for the latest block.
     pub fn latest() -> Self {
         Self::Tag(BlockTag::Latest)
+    }
+
+    /// Constructs a `BlockSpec` for the pending transactions.
+    pub fn pending() -> Self {
+        Self::Tag(BlockTag::Pending)
     }
 }
 

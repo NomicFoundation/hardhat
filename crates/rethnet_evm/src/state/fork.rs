@@ -53,7 +53,8 @@ impl ForkState {
         accounts.iter_mut().for_each(|(address, mut account_info)| {
             let nonce = runtime
                 .block_on(
-                    rpc_client.get_transaction_count(address, BlockSpec::Number(fork_block_number)),
+                    rpc_client
+                        .get_transaction_count(address, Some(BlockSpec::Number(fork_block_number))),
                 )
                 .expect("failed to retrieve remote account info for local account initialization");
 

@@ -4,5 +4,6 @@ version = "0.1.0-dev"
 edition = "2021"
 
 [dependencies]
+rethnet_eth = { version = "0.1.0-dev", path = "../rethnet_eth", default-features = false, features = ["serde"] }
 serde = { version = "1.0.147", default-features = false, features = ["derive"] }
 serde_json = { version = "1.0.89" }

@@ -1,5 +1,6 @@
 use rethnet_eth::{
     remote::{
+        methods::ResolveUnspecifiedBlockTag,
         serde_with_helpers::{sequence_to_single, single_to_sequence},
         ZeroXPrefixedBytes,
     },
@@ -120,6 +121,12 @@ pub enum HardhatMethodInvocation {
         deserialize_with = "sequence_to_single"
     )]
     StopImpersonatingAccount(Address),
+}
+
+impl ResolveUnspecifiedBlockTag for HardhatMethodInvocation {
+    fn resolve_unspecified_block_tag(self) -> Self {
+        self
+    }
 }
 
 #[cfg(test)]

@@ -1,6 +1,12 @@
+use rethnet_eth::remote::methods::ResolveUnspecifiedBlockTag;
+
 pub fn help_test_method_invocation_serde<MethodInvocation>(call: MethodInvocation)
 where
-    MethodInvocation: PartialEq + std::fmt::Debug + serde::de::DeserializeOwned + serde::Serialize,
+    MethodInvocation: PartialEq
+        + std::fmt::Debug
+        + serde::de::DeserializeOwned
+        + serde::Serialize
+        + ResolveUnspecifiedBlockTag,
 {
     let json = serde_json::json!(call).to_string();
 
@@ -22,6 +28,8 @@ where
     serde_json::from_str::<MethodInvocationEnumWithUntypedParams>(&json).unwrap_or_else(|_| {
         panic!("should have successfully deserialized, with params as a Vec<String>, json {json}")
     });
+
+    let call = call.resolve_unspecified_block_tag();
 
     let call_decoded: MethodInvocation = serde_json::from_str(&json)
         .unwrap_or_else(|_| panic!("should have successfully deserialized json {json}"));

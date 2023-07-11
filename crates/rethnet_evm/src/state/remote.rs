@@ -67,7 +67,7 @@ impl StateRef for RemoteState {
             self.runtime
                 .block_on(
                     self.client
-                        .get_account_info(&address, BlockSpec::Number(self.block_number)),
+                        .get_account_info(&address, Some(BlockSpec::Number(self.block_number))),
                 )
                 .map_err(StateError::Remote)
         })?))
@@ -84,7 +84,7 @@ impl StateRef for RemoteState {
                 .block_on(self.client.get_storage_at(
                     &address,
                     index,
-                    BlockSpec::Number(self.block_number),
+                    Some(BlockSpec::Number(self.block_number)),
                 ))
                 .map_err(StateError::Remote)
         })
