@@ -468,13 +468,7 @@ async fn handle_request(
                 // TODO: after adding all the methods here, eliminate this
                 // catch-all match arm:
                 _ => {
-                    let msg = format!(
-                        "Method '{:?}' not found",
-                        match serde_json::to_value(method) {
-                            Ok(value) => Some(value),
-                            Err(_) => None,
-                        },
-                    );
+                    let msg = format!("Method not found for invocation '{:?}'", method,);
                     response(
                         id,
                         ResponseData::<serde_json::Value>::new_error(-32601, &msg, None),
