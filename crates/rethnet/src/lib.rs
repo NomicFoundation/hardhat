@@ -33,6 +33,8 @@ struct NodeArgs {
     fork_url: Option<String>,
     #[clap(long)]
     fork_block_number: Option<usize>,
+    #[clap(short, long, action = clap::ArgAction::Count)]
+    verbose: u8,
 }
 
 impl TryFrom<NodeArgs> for Config {
@@ -108,7 +110,15 @@ where
     let args = Cli::parse_from(args);
     match args.command {
         Command::Node(node_args) => {
-            tracing_subscriber::fmt::Subscriber::builder().init();
+            tracing_subscriber::fmt::Subscriber::builder()
+                .with_max_level(match node_args.verbose {
+                    0 => Level::ERROR,
+                    1 => Level::WARN,
+                    2 => Level::INFO,
+                    3 => Level::DEBUG,
+                    _ => Level::TRACE,
+                })
+                .init();
 
             let accounts = DEFAULT_ACCOUNTS.iter().fold(
                 HashMap::default(),

@@ -74,6 +74,7 @@ async fn node() -> Result<(), Box<dyn std::error::Error>> {
         .arg("node")
         .arg("--port")
         .arg("8549")
+        .arg("-vv")
         .stdout(Stdio::piped())
         .spawn()?;
 
