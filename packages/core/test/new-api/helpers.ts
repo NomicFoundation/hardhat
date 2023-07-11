@@ -30,6 +30,8 @@ export const exampleAccounts: string[] = [
 export const initOnchainState: OnchainState = {
   status: OnchainStatuses.EXECUTE,
   currentExecution: null,
+  from: null,
+  nonce: null,
   actions: {},
 };
 

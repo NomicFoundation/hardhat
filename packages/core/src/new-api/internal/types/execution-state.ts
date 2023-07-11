@@ -234,6 +234,8 @@ export interface OnchainState {
     | OnchainStatuses.CONTRACT_AT_START
     | OnchainStatuses.STATIC_CALL_START
     | OnchainStatuses.READ_EVENT_ARG_START;
-  currentExecution: null | number;
+  currentExecution: number | null;
   actions: { [key: number]: {} };
+  from: string | null;
+  nonce: number | null;
 }

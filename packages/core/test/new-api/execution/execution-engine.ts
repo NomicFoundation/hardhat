@@ -2177,4 +2177,148 @@ describe("execution engine", () => {
       ]);
     });
   });
+
+  describe("with multiple froms", () => {
+    const addr1 = "0x1F98431c8aD98523631AE4a59f267346ea31F981";
+    const addr2 = "0x1F98431c8aD98523631AE4a59f267346ea31F982";
+    const addr3 = "0x1F98431c8aD98523631AE4a59f267346ea31F983";
+    const addr4 = "0x1F98431c8aD98523631AE4a59f267346ea31F984";
+    const addr5 = "0x1F98431c8aD98523631AE4a59f267346ea31F985";
+    const addr6 = "0x1F98431c8aD98523631AE4a59f267346ea31F986";
+
+    const tx1 = "0x111";
+    const tx2 = "0x222";
+    const tx3 = "0x333";
+    const tx4 = "0x444";
+    const tx5 = "0x555";
+    const tx6 = "0x666";
+
+    it("should execute a deploy over multiple batches with different from accounts", async () => {
+      const moduleDefinition = defineModule("Module1", (m) => {
+        const account1 = m.getAccount(1);
+        const account2 = m.getAccount(2);
+
+        // batch 1
+        const contract1 = m.contract("Contract1", [], {
+          from: account1,
+        });
+        const contractA = m.contract("ContractA", [], {
+          from: account1,
+        });
+
+        // batch 2
+        const contract2 = m.contract("Contract2", [], {
+          from: account1,
+          after: [contract1],
+        });
+        const contractB = m.contract("ContractB", [], {
+          from: account2,
+          after: [contractA],
+        });
+
+        // batch 3
+        const contract3 = m.contract("Contract3", [], {
+          from: account2,
+          after: [contract2],
+        });
+        const contractC = m.contract("ContractC", [], {
+          from: account2,
+          after: [contractB],
+        });
+
+        return {
+          contract1,
+          contract2,
+          contract3,
+          contractA,
+          contractB,
+          contractC,
+        };
+      });
+
+      const deployer = setupDeployerWithMocks({
+        transactionResponses: {
+          [accounts[1]]: {
+            0: {
+              blockNumber: 0,
+              confirmations: 1,
+              contractAddress: addr1,
+              transactionHash: tx1,
+            },
+            1: {
+              blockNumber: 0,
+              confirmations: 1,
+              contractAddress: addr2,
+              transactionHash: tx2,
+            },
+            2: {
+              blockNumber: 1,
+              confirmations: 1,
+              contractAddress: addr3,
+              transactionHash: tx3,
+            },
+          },
+          [accounts[2]]: {
+            0: {
+              blockNumber: 1,
+              confirmations: 1,
+              contractAddress: addr4,
+              transactionHash: tx4,
+            },
+            1: {
+              blockNumber: 2,
+              confirmations: 1,
+              contractAddress: addr5,
+              transactionHash: tx5,
+            },
+            2: {
+              blockNumber: 2,
+              confirmations: 1,
+              contractAddress: addr6,
+              transactionHash: tx6,
+            },
+          },
+        },
+      });
+
+      const result = await deployer.deploy(
+        moduleDefinition,
+        {},
+        exampleAccounts
+      );
+
+      assertDeploymentSuccess(result, {
+        "Module1:Contract1": {
+          contractName: "Contract1",
+          storedArtifactPath: "Module1:Contract1.json",
+          contractAddress: addr1,
+        },
+        "Module1:ContractA": {
+          contractName: "ContractA",
+          storedArtifactPath: "Module1:ContractA.json",
+          contractAddress: addr2,
+        },
+        "Module1:Contract2": {
+          contractName: "Contract2",
+          storedArtifactPath: "Module1:Contract2.json",
+          contractAddress: addr3,
+        },
+        "Module1:ContractB": {
+          contractName: "ContractB",
+          storedArtifactPath: "Module1:ContractB.json",
+          contractAddress: addr4,
+        },
+        "Module1:Contract3": {
+          contractName: "Contract3",
+          storedArtifactPath: "Module1:Contract3.json",
+          contractAddress: addr5,
+        },
+        "Module1:ContractC": {
+          contractName: "ContractC",
+          storedArtifactPath: "Module1:ContractC.json",
+          contractAddress: addr6,
+        },
+      });
+    });
+  });
 });

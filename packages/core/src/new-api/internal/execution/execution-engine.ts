@@ -53,6 +53,7 @@ import {
   isExecutionResultMessage,
 } from "./guards";
 import { onchainStateTransitions } from "./onchain-state-transitions";
+import { sortFuturesByNonces } from "./sort-futures-by-nonces";
 
 type ExecutionBatch = Future[];
 
@@ -124,14 +125,14 @@ export class ExecutionEngine {
       await this._apply(state, initMessage);
     }
 
-    while (!this._isBatchComplete(batch, state.executionStateMap)) {
-      const sortedFutures: Future[] = this._sortFuturesByExistingNonces(batch);
+    while (!this._isBatchComplete(batch, state)) {
+      const sortedFutures: Future[] = sortFuturesByNonces(batch, state);
 
       const results = await this._submitOrCheckFutures(sortedFutures, state);
 
       batchResults = [...batchResults, ...results];
 
-      if (this._isBatchComplete(sortedFutures, state.executionStateMap)) {
+      if (this._isBatchComplete(sortedFutures, state)) {
         break;
       }
 
@@ -234,10 +235,10 @@ export class ExecutionEngine {
 
   private _isBatchComplete(
     sortedFutures: Future[],
-    executionStateMap: ExecutionStateMap
+    state: ExecutionEngineState
   ): boolean {
     return sortedFutures.every((f) => {
-      return this._isFutureComplete(f, executionStateMap);
+      return this._isFutureComplete(f, state.executionStateMap);
     });
   }
 
@@ -253,11 +254,6 @@ export class ExecutionEngine {
         state.status === ExecutionStatus.SUCCESS ||
         state.status === ExecutionStatus.FAILED)
     );
-  }
-
-  private _sortFuturesByExistingNonces(futures: Future[]): Future[] {
-    // TODO: actually sort based on history against each execution state.
-    return futures;
   }
 
   private async _apply(

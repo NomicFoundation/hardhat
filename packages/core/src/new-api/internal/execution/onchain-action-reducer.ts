@@ -87,6 +87,8 @@ export function onchainActionReducer(
       return {
         ...state,
         status: OnchainStatuses.DEPLOY_CONTRACT_TRANSACTION_REQUEST,
+        from: action.from,
+        nonce: action.nonce,
         actions: {
           [action.executionId]: {
             request: action,
@@ -99,6 +101,8 @@ export function onchainActionReducer(
       return {
         ...state,
         status: OnchainStatuses.CALL_FUNCTION_TRANSACTION_REQUEST,
+        from: action.from,
+        nonce: action.nonce,
         actions: {
           [action.executionId]: {
             request: action,
@@ -111,6 +115,8 @@ export function onchainActionReducer(
       return {
         ...state,
         status: OnchainStatuses.SEND_DATA_TRANSACTION_REQUEST,
+        from: action.from,
+        nonce: action.nonce,
         actions: {
           [action.executionId]: {
             request: action,
@@ -193,6 +199,8 @@ export function onchainActionReducer(
       ...state,
       status: OnchainStatuses.EXECUTE,
       currentExecution: null,
+      from: null,
+      nonce: null,
       actions: {
         [action.executionId]: {
           ...state.actions[action.executionId],
@@ -230,6 +238,8 @@ export function onchainActionReducer(
       ...state,
       status: OnchainStatuses.EXECUTE,
       currentExecution: null,
+      from: null,
+      nonce: null,
       actions: {
         [action.executionId]: {
           ...state.actions[action.executionId],
@@ -249,7 +259,7 @@ export function onchainActionReducer(
     return {
       ...state,
       status: OnchainStatuses.SEND_DATA_START,
-      currentExecution: null,
+      currentExecution: action.executionId,
       actions: {
         [action.executionId]: {
           ...state.actions[action.executionId],
@@ -269,7 +279,9 @@ export function onchainActionReducer(
     return {
       ...state,
       status: OnchainStatuses.EXECUTE,
-      currentExecution: action.executionId,
+      currentExecution: null,
+      from: null,
+      nonce: null,
       actions: {
         [action.executionId]: { request: null, txHash: null, receipt: null },
       },
@@ -286,6 +298,7 @@ export function onchainActionReducer(
     return {
       ...state,
       status: OnchainStatuses.STATIC_CALL_START,
+      currentExecution: action.executionId,
       actions: {
         [action.executionId]: { result: null },
       },
@@ -298,6 +311,9 @@ export function onchainActionReducer(
     return {
       ...state,
       status: OnchainStatuses.EXECUTE,
+      currentExecution: null,
+      from: null,
+      nonce: null,
       actions: {
         [action.executionId]: { result: action },
       },
@@ -314,6 +330,7 @@ export function onchainActionReducer(
     return {
       ...state,
       status: OnchainStatuses.READ_EVENT_ARG_START,
+      currentExecution: action.executionId,
       actions: {
         [action.executionId]: { result: null },
       },
@@ -326,6 +343,9 @@ export function onchainActionReducer(
     return {
       ...state,
       status: OnchainStatuses.EXECUTE,
+      currentExecution: null,
+      from: null,
+      nonce: null,
       actions: {
         [action.executionId]: { result: action },
       },

@@ -4,16 +4,20 @@ import { assert } from "chai";
 
 import { useEnvironment } from "../useEnvironment";
 
+import { sleep } from "./helpers";
+
 /**
  * This is the simplest contract deploy case.
  *
  * Deploy a single contract with non-problematic network
  */
-describe("execution - minimal contract deploy", () => {
+describe.skip("execution - minimal contract deploy", function () {
+  this.timeout(60000);
+
   // TODO: rename back to minimal api once execution switched over
   useEnvironment("minimal-new-api");
 
-  it.skip("should deploy the contract", async function () {
+  it("should deploy a contract that is callable", async function () {
     await this.hre.run("compile", { quiet: true });
 
     await this.hre.network.provider.request({
@@ -41,6 +45,3 @@ describe("execution - minimal contract deploy", () => {
     assert.equal(x, Number(1));
   });
 });
-
-const sleep = (timeout: number) =>
-  new Promise((res) => setTimeout(res, timeout));
