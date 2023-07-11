@@ -77,13 +77,7 @@ async fn test_get_balance_nonexistent_account() {
     let expected_response = jsonrpc::Response::<U256> {
         jsonrpc: request.version,
         id: request.id.clone(),
-        data: jsonrpc::ResponseData::Error {
-            error: jsonrpc::Error {
-                code: 0,
-                message: String::from("No such account"),
-                data: None,
-            },
-        },
+        data: jsonrpc::ResponseData::Success { result: U256::ZERO },
     };
 
     let actual_response: jsonrpc::Response<U256> =
@@ -182,13 +176,7 @@ async fn test_get_transaction_count_nonexistent_account() {
     let expected_response = jsonrpc::Response::<U256> {
         jsonrpc: request.version,
         id: request.id.clone(),
-        data: jsonrpc::ResponseData::Error {
-            error: jsonrpc::Error {
-                code: 0,
-                message: String::from("No such account"),
-                data: None,
-            },
-        },
+        data: jsonrpc::ResponseData::Success { result: U256::ZERO },
     };
 
     let actual_response: jsonrpc::Response<U256> =

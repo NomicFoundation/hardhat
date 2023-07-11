@@ -166,7 +166,12 @@ async fn get_account_info<T>(
 ) -> Result<AccountInfo, ResponseData<T>> {
     match state.rethnet_state.read().await.basic(address) {
         Ok(Some(account_info)) => Ok(account_info),
-        Ok(None) => Err(error_response_data("No such account")),
+        Ok(None) => Ok(AccountInfo {
+            balance: U256::ZERO,
+            nonce: 0,
+            code: None,
+            code_hash: KECCAK_EMPTY,
+        }),
         Err(e) => Err(error_response_data(&e.to_string())),
     }
 }
