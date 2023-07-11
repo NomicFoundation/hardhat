@@ -2,6 +2,7 @@ use std::net::SocketAddr;
 
 use hashbrown::HashMap;
 use rethnet_eth::remote::ZeroXPrefixedBytes;
+use tracing::Level;
 
 use rethnet_eth::{
     remote::{
@@ -44,6 +45,10 @@ async fn start_server() -> SocketAddr {
 }
 
 async fn submit_request(address: &SocketAddr, request: &RpcRequest<MethodInvocation>) -> String {
+    tracing_subscriber::fmt::Subscriber::builder()
+        .with_max_level(Level::INFO)
+        .try_init()
+        .ok();
     let url = format!("http://{address}/");
     let body = serde_json::to_string(&request).expect("should serialize request to JSON");
     reqwest::Client::new()
