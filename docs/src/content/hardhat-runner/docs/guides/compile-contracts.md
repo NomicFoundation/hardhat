@@ -27,7 +27,7 @@ If you need to customize the Solidity compiler options, then you can do so throu
 
 ```js
 module.exports = {
-  solidity: "{LATEST_SOLC_VERSION}",
+  solidity: "{RECOMMENDED_SOLC_VERSION}",
 };
 ```
 
@@ -44,7 +44,7 @@ The expanded usage allows for more control of the compiler:
 ```js
 module.exports = {
   solidity: {
-    version: "{LATEST_SOLC_VERSION}",
+    version: "{RECOMMENDED_SOLC_VERSION}",
     settings: {
       optimizer: {
         enabled: true,

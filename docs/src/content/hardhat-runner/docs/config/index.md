@@ -26,7 +26,7 @@ module.exports = {
     }
   },
   solidity: {
-    version: "{LATEST_SOLC_VERSION}",
+    version: "{RECOMMENDED_SOLC_VERSION}",
     settings: {
       optimizer: {
         enabled: true,
@@ -62,7 +62,7 @@ module.exports = {
     }
   },
   solidity: {
-    version: "{LATEST_SOLC_VERSION}",
+    version: "{RECOMMENDED_SOLC_VERSION}",
     settings: {
       optimizer: {
         enabled: true,
@@ -176,7 +176,7 @@ module.exports = {
 
 The `solidity` config is an optional field that can be one of the following:
 
-- A solc version to use, e.g. `"{LATEST_SOLC_VERSION}"`.
+- A solc version to use, e.g. `"{RECOMMENDED_SOLC_VERSION}"`.
 
 - An object which describes the configuration for a single compiler. It contains the following keys:
 

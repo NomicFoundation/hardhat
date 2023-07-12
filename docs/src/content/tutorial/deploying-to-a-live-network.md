@@ -67,7 +67,7 @@ const INFURA_API_KEY = "KEY";
 const SEPOLIA_PRIVATE_KEY = "YOUR SEPOLIA PRIVATE KEY";
 
 module.exports = {
-  solidity: "{LATEST_SOLC_VERSION}",
+  solidity: "{RECOMMENDED_SOLC_VERSION}",
   networks: {
     sepolia: {
       url: `https://sepolia.infura.io/v3/${INFURA_API_KEY}`,
@@ -97,7 +97,7 @@ const ALCHEMY_API_KEY = "KEY";
 const SEPOLIA_PRIVATE_KEY = "YOUR SEPOLIA PRIVATE KEY";
 
 module.exports = {
-  solidity: "{LATEST_SOLC_VERSION}",
+  solidity: "{RECOMMENDED_SOLC_VERSION}",
   networks: {
     sepolia: {
       url: `https://eth-sepolia.g.alchemy.com/v2/${ALCHEMY_API_KEY}`,

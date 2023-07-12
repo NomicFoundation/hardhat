@@ -93,7 +93,7 @@ task("balance", "Prints an account's balance").setAction(async () => {});
 
 /** @type import('hardhat/config').HardhatUserConfig */
 module.exports = {
-  solidity: "{LATEST_SOLC_VERSION}",
+  solidity: "{RECOMMENDED_SOLC_VERSION}",
 };
 ```
 

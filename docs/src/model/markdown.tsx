@@ -104,7 +104,7 @@ export const withoutComments = (content: string) => {
 };
 
 export const replacePlaceholders = (content: string) => {
-  const latestSolcVersion = "0.8.20";
+  const recommendedSolcVersion = "0.8.19";
   const latestPragma = "^0.8.0";
   const hardhatPackageJson = fs
     .readFileSync(
@@ -123,7 +123,7 @@ export const replacePlaceholders = (content: string) => {
   const hardhatVersion = JSON.parse(hardhatPackageJson).version;
 
   return content
-    .replaceAll("{LATEST_SOLC_VERSION}", latestSolcVersion)
+    .replaceAll("{RECOMMENDED_SOLC_VERSION}", recommendedSolcVersion)
     .replaceAll("{LATEST_PRAGMA}", latestPragma)
     .replaceAll("{HARDHAT_VERSION}", hardhatVersion);
 };
