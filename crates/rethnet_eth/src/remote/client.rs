@@ -1145,5 +1145,17 @@ mod tests {
                 unreachable!("Invalid error: {error}");
             }
         }
+
+        #[tokio::test]
+        async fn network_id_success() {
+            let alchemy_url = get_alchemy_url();
+
+            let version = RpcClient::new(&alchemy_url)
+                .network_id()
+                .await
+                .expect("should have succeeded");
+
+            assert_eq!(version, U256::from(1));
+        }
     }
 }
