@@ -56,13 +56,13 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: check
-          args: --workspace --all-features --all-targets
+          args: --workspace --all-features --all-targets --profile bench
 
       - name: Cargo check without all features
         uses: actions-rs/cargo@v1
         with:
           command: check
-          args: --workspace --all-targets --no-default-features
+          args: --workspace --all-targets --no-default-features --profile bench
 
   test-core:
     name: Test core (${{ matrix.os }}, Node ${{ matrix.node }}, ${{ matrix.vm }})
