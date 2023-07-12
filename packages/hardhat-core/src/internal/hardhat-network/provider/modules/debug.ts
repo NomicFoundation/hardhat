@@ -4,13 +4,18 @@ import {
   RpcDebugTracingConfig,
 } from "../../../core/jsonrpc/types/input/debugTraceTransaction";
 import { validateParams } from "../../../core/jsonrpc/types/input/validation";
-import { MethodNotFoundError } from "../../../core/providers/errors";
+import {
+  InvalidArgumentsError,
+  MethodNotFoundError,
+} from "../../../core/providers/errors";
 import { HardhatNode } from "../node";
 import { RpcDebugTraceOutput } from "../output";
 
 /* eslint-disable @nomicfoundation/hardhat-internal-rules/only-hardhat-error */
 
 export class DebugModule {
+  static readonly supportedTracers = ["structLogs"];
+
   constructor(private readonly _node: HardhatNode) {}
 
   public async processRequest(
@@ -32,7 +37,31 @@ export class DebugModule {
   private _traceTransactionParams(
     params: any[]
   ): [Buffer, RpcDebugTracingConfig] {
-    return validateParams(params, rpcHash, rpcDebugTracingConfig);
+    const validatedParams = validateParams(
+      params,
+      rpcHash,
+      rpcDebugTracingConfig
+    );
+
+    this._throwErrIfTracerIsNotSupported(validatedParams[1]);
+
+    return validatedParams;
+  }
+
+  private _throwErrIfTracerIsNotSupported(config: RpcDebugTracingConfig) {
+    if (
+      config &&
+      config.tracer &&
+      !DebugModule.supportedTracers.includes(config.tracer)
+    ) {
+      throw new InvalidArgumentsError(
+        `tracer '${
+          config.tracer
+        }' is not allowed. Available values are: ${DebugModule.supportedTracers.join(
+          ", "
+        )}`
+      );
+    }
   }
 
   private async _traceTransactionAction(

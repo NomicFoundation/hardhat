@@ -14,7 +14,10 @@ import { trace as mainnetReturnsDataTraceGeth } from "../../../../fixture-debug-
 import { trace as mainnetRevertTrace } from "../../../../fixture-debug-traces/mainnetRevertTrace";
 import { trace as modifiesStateTrace } from "../../../../fixture-debug-traces/modifiesStateTrace";
 import { ALCHEMY_URL } from "../../../../setup";
-import { assertInvalidInputError } from "../../helpers/assertions";
+import {
+  assertInvalidArgumentsError,
+  assertInvalidInputError,
+} from "../../helpers/assertions";
 import { FORK_TESTS_CACHE_PATH } from "../../helpers/constants";
 import { EXAMPLE_CONTRACT } from "../../helpers/contracts";
 import { setCWD } from "../../helpers/cwd";
@@ -31,9 +34,9 @@ import { sendDummyTransaction } from "../../helpers/sendDummyTransaction";
 import { deployContract } from "../../helpers/transactions";
 import { assertEqualTraces } from "../utils/assertEqualTraces";
 
-// temporarily skipped because the latest version of ethereumjs
+// TODO: temporarily skip some of the tests because the latest version of ethereumjs
 // sometimes wrongly adds dummy empty words in the memory field
-describe.skip("Debug module", function () {
+describe("Debug module", function () {
   PROVIDERS.forEach(({ name, useProvider }) => {
     describe(`${name} provider`, function () {
       setCWD();
@@ -68,7 +71,21 @@ describe.skip("Debug module", function () {
           });
         });
 
-        it("Should return the right values for fake sender txs", async function () {
+        it("Should throw an error when the value passed as tracer is not supported", async function () {
+          await assertInvalidArgumentsError(
+            this.provider,
+            "debug_traceTransaction",
+            [
+              "0x1234567876543234567876543456765434567aeaeaed67616732632762762373",
+              {
+                tracer: "wrongTracer",
+              },
+            ],
+            "tracer 'wrongTracer' is not allowed. Available values are: structLogs"
+          );
+        });
+
+        it.skip("Should return the right values for fake sender txs", async function () {
           const impersonatedAddress =
             "0xC014BA5EC014ba5ec014Ba5EC014ba5Ec014bA5E";
 
@@ -106,7 +123,7 @@ describe.skip("Debug module", function () {
           });
         });
 
-        it("Should return the right values for successful contract tx", async function () {
+        it.skip("Should return the right values for successful contract tx", async function () {
           const contractAddress = await deployContract(
             this.provider,
             `0x${EXAMPLE_CONTRACT.bytecode.object}`,
@@ -228,7 +245,7 @@ describe.skip("Debug module", function () {
       );
     });
 
-    it("Should return the right values for a successful tx", async function () {
+    it.skip("Should return the right values for a successful tx", async function () {
       const trace: RpcDebugTraceOutput = await provider.send(
         "debug_traceTransaction",
         ["0x89ebeb319fcd7bda9c7f8c1b78a7571842a705425b175f24f34fe8e6c60580d4"]
@@ -238,7 +255,7 @@ describe.skip("Debug module", function () {
       assertEqualTraces(trace, mainnetReturnsDataTraceGeth);
     });
 
-    it("Should return the right values for a reverted tx", async function () {
+    it.skip("Should return the right values for a reverted tx", async function () {
       const trace: RpcDebugTraceOutput = await provider.send(
         "debug_traceTransaction",
         ["0x6214b912cc9916d8b7bf5f4ff876e259f5f3754ddebb6df8c8e897cad31ae148"]
@@ -268,7 +285,7 @@ describe.skip("Debug module", function () {
       });
     });
 
-    it("Should respect the disableStack option", async function () {
+    it.skip("Should respect the disableStack option", async function () {
       const trace: RpcDebugTraceOutput = await provider.send(
         "debug_traceTransaction",
         [
@@ -289,7 +306,7 @@ describe.skip("Debug module", function () {
       });
     });
 
-    it("Should respect the disableStorage option", async function () {
+    it.skip("Should respect the disableStorage option", async function () {
       const trace: RpcDebugTraceOutput = await provider.send(
         "debug_traceTransaction",
         [
