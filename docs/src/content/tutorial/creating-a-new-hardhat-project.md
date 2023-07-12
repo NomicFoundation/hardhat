@@ -164,6 +164,6 @@ require("@nomicfoundation/hardhat-toolbox");
 
 /** @type import('hardhat/config').HardhatUserConfig */
 module.exports = {
-  solidity: "{LATEST_SOLC_VERSION}",
+  solidity: "{RECOMMENDED_SOLC_VERSION}",
 };
 ```

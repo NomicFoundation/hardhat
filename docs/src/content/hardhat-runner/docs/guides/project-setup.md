@@ -95,7 +95,7 @@ If you select _Create an empty hardhat.config.js_, Hardhat will create a `hardha
 ```js
 /** @type import('hardhat/config').HardhatUserConfig */
 module.exports = {
-  solidity: "{LATEST_SOLC_VERSION}",
+  solidity: "{RECOMMENDED_SOLC_VERSION}",
 };
 ```
 
@@ -154,7 +154,7 @@ To use a plugin, the first step is always to install it using npm or yarn, follo
 import "@nomicfoundation/hardhat-toolbox";
 
 export default {
-  solidity: "{LATEST_SOLC_VERSION}",
+  solidity: "{RECOMMENDED_SOLC_VERSION}",
 };
 ```
 
@@ -166,7 +166,7 @@ export default {
 require("@nomicfoundation/hardhat-toolbox");
 
 module.exports = {
-  solidity: "{LATEST_SOLC_VERSION}",
+  solidity: "{RECOMMENDED_SOLC_VERSION}",
 };
 ```
 
