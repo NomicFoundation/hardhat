@@ -415,6 +415,11 @@ impl RpcClient {
         self.call(&MethodInvocation::GetStorageAt(*address, position, block))
             .await
     }
+
+    /// Calls `net_version` API
+    pub async fn network_id(&self) -> Result<U256, RpcClientError> {
+        self.call(&MethodInvocation::NetVersion()).await
+    }
 }
 
 #[cfg(test)]
@@ -1139,6 +1144,18 @@ mod tests {
             } else {
                 unreachable!("Invalid error: {error}");
             }
+        }
+
+        #[tokio::test]
+        async fn network_id_success() {
+            let alchemy_url = get_alchemy_url();
+
+            let version = RpcClient::new(&alchemy_url)
+                .network_id()
+                .await
+                .expect("should have succeeded");
+
+            assert_eq!(version, U256::from(1));
         }
     }
 }
