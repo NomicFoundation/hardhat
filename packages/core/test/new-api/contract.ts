@@ -188,6 +188,41 @@ describe("contract", () => {
     assert.equal(anotherFuture.value, BigInt(42));
   });
 
+  it("Should be able to pass a ModuleParameterRuntimeValue as a value option", () => {
+    const moduleWithDependentContractsDefinition = defineModule(
+      "Module1",
+      (m) => {
+        const another = m.contract("Another", [], {
+          value: m.getParameter("value"),
+        });
+
+        return { another };
+      }
+    );
+
+    const constructor = new ModuleConstructor();
+    const moduleWithDependentContracts = constructor.construct(
+      moduleWithDependentContractsDefinition
+    );
+
+    assert.isDefined(moduleWithDependentContracts);
+
+    const anotherFuture = [...moduleWithDependentContracts.futures].find(
+      ({ id }) => id === "Module1:Another"
+    );
+
+    if (
+      !(anotherFuture instanceof NamedContractDeploymentFutureImplementation)
+    ) {
+      assert.fail("Not a named contract deployment");
+    }
+
+    assertInstanceOf(
+      anotherFuture.value,
+      ModuleParameterRuntimeValueImplementation
+    );
+  });
+
   it("should be able to pass a string as from option", () => {
     const moduleWithDependentContractsDefinition = defineModule(
       "Module1",

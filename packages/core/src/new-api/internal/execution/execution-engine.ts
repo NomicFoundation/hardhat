@@ -538,11 +538,20 @@ export class ExecutionEngine {
     let state: FutureStartMessage;
 
     switch (future.type) {
-      case FutureType.ARTIFACT_CONTRACT_DEPLOYMENT:
+      case FutureType.ARTIFACT_CONTRACT_DEPLOYMENT: {
         await deploymentLoader.storeUserProvidedArtifact(
           future.id,
           future.artifact
         );
+
+        let value: string;
+        if (typeof future.value === "bigint") {
+          value = future.value.toString();
+        } else {
+          value = resolveModuleParameter(future.value, {
+            deploymentParameters,
+          }) as string;
+        }
 
         state = {
           type: "execution-start",
@@ -554,7 +563,7 @@ export class ExecutionEngine {
           // history: [],
           artifactFutureId: future.id,
           contractName: future.contractName,
-          value: future.value.toString(),
+          value,
           constructorArgs: this._resolveArgs(future.constructorArgs, {
             accounts,
             deploymentParameters,
@@ -567,11 +576,21 @@ export class ExecutionEngine {
         };
 
         return state;
-      case FutureType.NAMED_CONTRACT_DEPLOYMENT:
+      }
+      case FutureType.NAMED_CONTRACT_DEPLOYMENT: {
         await this._storeArtifactAndBuildInfoAgainstDeployment(future, {
           artifactResolver,
           deploymentLoader,
         });
+
+        let value: string;
+        if (typeof future.value === "bigint") {
+          value = future.value.toString();
+        } else {
+          value = resolveModuleParameter(future.value, {
+            deploymentParameters,
+          }) as string;
+        }
 
         state = {
           type: "execution-start",
@@ -581,7 +600,7 @@ export class ExecutionEngine {
           dependencies: [...future.dependencies].map((f) => f.id),
           artifactFutureId: future.id,
           contractName: future.contractName,
-          value: future.value.toString(),
+          value,
           constructorArgs: this._resolveArgs(future.constructorArgs, {
             accounts,
             deploymentParameters,
@@ -594,6 +613,7 @@ export class ExecutionEngine {
         };
 
         return state;
+      }
       case FutureType.NAMED_LIBRARY_DEPLOYMENT:
         await this._storeArtifactAndBuildInfoAgainstDeployment(future, {
           artifactResolver,
@@ -649,6 +669,15 @@ export class ExecutionEngine {
           `Internal error - dependency ${future.contract.id} used before it's resolved`
         );
 
+        let value: string;
+        if (typeof future.value === "bigint") {
+          value = future.value.toString();
+        } else {
+          value = resolveModuleParameter(future.value, {
+            deploymentParameters,
+          }) as string;
+        }
+
         state = {
           type: "execution-start",
           futureId: future.id,
@@ -663,7 +692,7 @@ export class ExecutionEngine {
           functionName: future.functionName,
           contractAddress,
           artifactFutureId: callContractFutureId,
-          value: future.value.toString(),
+          value,
           from: resolveFromAddress(future.from, { accounts }),
         };
         return state;
@@ -758,6 +787,15 @@ export class ExecutionEngine {
           to = contractAddress;
         }
 
+        let value: string;
+        if (typeof future.value === "bigint") {
+          value = future.value.toString();
+        } else {
+          value = resolveModuleParameter(future.value, {
+            deploymentParameters,
+          }) as string;
+        }
+
         state = {
           type: "execution-start",
           futureId: future.id,
@@ -766,7 +804,7 @@ export class ExecutionEngine {
           // status: ExecutionStatus.STARTED,
           dependencies: [...future.dependencies].map((f) => f.id),
           // history: [],
-          value: future.value.toString(),
+          value,
           data: future.data ?? "0x",
           to,
           from: resolveFromAddress(future.from, { accounts }),

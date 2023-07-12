@@ -121,7 +121,7 @@ export interface NamedContractDeploymentFuture<ContractNameT extends string> {
   contractName: ContractNameT;
   constructorArgs: ArgumentType[];
   libraries: Record<string, ContractFuture<string>>;
-  value: bigint;
+  value: bigint | ModuleParameterRuntimeValue<string>;
   from: string | AccountRuntimeValue | undefined;
 }
 
@@ -140,7 +140,7 @@ export interface ArtifactContractDeploymentFuture {
   artifact: Artifact;
   constructorArgs: ArgumentType[];
   libraries: Record<string, ContractFuture<string>>;
-  value: bigint;
+  value: bigint | ModuleParameterRuntimeValue<string>;
   from: string | AccountRuntimeValue | undefined;
 }
 
@@ -192,7 +192,7 @@ export interface NamedContractCallFuture<
   contract: ContractFuture<ContractNameT>;
   functionName: FunctionNameT;
   args: ArgumentType[];
-  value: bigint;
+  value: bigint | ModuleParameterRuntimeValue<string>;
   from: string | AccountRuntimeValue | undefined;
 }
 
@@ -280,7 +280,7 @@ export interface SendDataFuture {
   module: IgnitionModule;
   dependencies: Set<Future>;
   to: string | AddressResolvableFuture | ModuleParameterRuntimeValue<string>;
-  value: bigint;
+  value: bigint | ModuleParameterRuntimeValue<string>;
   data: string | undefined;
   from: string | AccountRuntimeValue | undefined;
 }

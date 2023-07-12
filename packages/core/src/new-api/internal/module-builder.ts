@@ -722,8 +722,11 @@ export class IgnitionModuleBuilderImplementation<
     }
   }
 
-  private _assertValidValue(value: bigint | any, func: (...[]: any[]) => any) {
-    if (typeof value !== "bigint") {
+  private _assertValidValue(
+    value: bigint | ModuleParameterRuntimeValue<string> | any,
+    func: (...[]: any[]) => any
+  ) {
+    if (!isModuleParameterRuntimeValue(value) && typeof value !== "bigint") {
       this._throwErrorWithStackTrace(
         `Given value option '${value}' is not a \`bigint\``,
         func

@@ -139,7 +139,9 @@ export class StoredDeploymentSerializer {
               ? this._serializeAccountRuntimeValue(future.from)
               : future.from,
             libraries: this._convertLibrariesToLibraryTokens(future.libraries),
-            value: this._serializeBigint(future.value),
+            value: isRuntimeValue(future.value)
+              ? this._serializeModuleParamterRuntimeValue(future.value)
+              : this._serializeBigint(future.value),
           };
         return serializedNamedContractDeploymentFuture;
 
@@ -161,7 +163,9 @@ export class StoredDeploymentSerializer {
               ? this._serializeAccountRuntimeValue(future.from)
               : future.from,
             libraries: this._convertLibrariesToLibraryTokens(future.libraries),
-            value: this._serializeBigint(future.value),
+            value: isRuntimeValue(future.value)
+              ? this._serializeModuleParamterRuntimeValue(future.value)
+              : this._serializeBigint(future.value),
           };
         return serializedArtifactContractDeploymentFuture;
 
@@ -212,7 +216,9 @@ export class StoredDeploymentSerializer {
             contract: this._convertFutureToFutureToken(future.contract),
             functionName: future.functionName,
             args: future.args.map((arg) => context.argReplacer(arg)),
-            value: this._serializeBigint(future.value),
+            value: isRuntimeValue(future.value)
+              ? this._serializeModuleParamterRuntimeValue(future.value)
+              : this._serializeBigint(future.value),
             from: isRuntimeValue(future.from)
               ? this._serializeAccountRuntimeValue(future.from)
               : future.from,
@@ -308,7 +314,9 @@ export class StoredDeploymentSerializer {
             : isRuntimeValue(future.to)
             ? this._serializeModuleParamterRuntimeValue(future.to)
             : future.to,
-          value: this._serializeBigint(future.value),
+          value: isRuntimeValue(future.value)
+            ? this._serializeModuleParamterRuntimeValue(future.value)
+            : this._serializeBigint(future.value),
           data: future.data,
           from: isRuntimeValue(future.from)
             ? this._serializeAccountRuntimeValue(future.from)
@@ -635,7 +643,11 @@ export class StoredDeploymentDeserializer {
               this._lookup(contractFuturesLookup, lib.futureId),
             ])
           ),
-          this._deserializedBigint(serializedFuture.value),
+          this._isSerializedModuleParameterRuntimeValue(serializedFuture.value)
+            ? (this._deserializeModuleParameterRuntimeValue(
+                serializedFuture.value
+              ) as ModuleParameterRuntimeValue<string>) // This is unsafe, but we only serialize valid values
+            : this._deserializedBigint(serializedFuture.value),
           this._isSerializedAccountRuntimeValue(serializedFuture.from)
             ? this._deserializeAccountRuntimeValue(serializedFuture.from)
             : serializedFuture.from
@@ -655,7 +667,11 @@ export class StoredDeploymentDeserializer {
               this._lookup(contractFuturesLookup, lib.futureId),
             ])
           ),
-          this._deserializedBigint(serializedFuture.value),
+          this._isSerializedModuleParameterRuntimeValue(serializedFuture.value)
+            ? (this._deserializeModuleParameterRuntimeValue(
+                serializedFuture.value
+              ) as ModuleParameterRuntimeValue<string>) // This is unsafe, but we only serialize valid values
+            : this._deserializedBigint(serializedFuture.value),
           this._isSerializedAccountRuntimeValue(serializedFuture.from)
             ? this._deserializeAccountRuntimeValue(serializedFuture.from)
             : serializedFuture.from
@@ -703,7 +719,11 @@ export class StoredDeploymentDeserializer {
           serializedFuture.args.map((arg) =>
             this._deserializeArgument(arg, futuresLookup)
           ),
-          this._deserializedBigint(serializedFuture.value),
+          this._isSerializedModuleParameterRuntimeValue(serializedFuture.value)
+            ? (this._deserializeModuleParameterRuntimeValue(
+                serializedFuture.value
+              ) as ModuleParameterRuntimeValue<string>) // This is unsafe, but we only serialize valid values
+            : this._deserializedBigint(serializedFuture.value),
           this._isSerializedAccountRuntimeValue(serializedFuture.from)
             ? this._deserializeAccountRuntimeValue(serializedFuture.from)
             : serializedFuture.from
@@ -739,7 +759,7 @@ export class StoredDeploymentDeserializer {
               )
             ? (this._deserializeModuleParameterRuntimeValue(
                 serializedFuture.address
-              ) as ModuleParameterRuntimeValue<string>) // This is unsafe, but we only serialize valid valus
+              ) as ModuleParameterRuntimeValue<string>) // This is unsafe, but we only serialize valid values
             : serializedFuture.address
         );
       case FutureType.ARTIFACT_CONTRACT_AT:
@@ -791,7 +811,11 @@ export class StoredDeploymentDeserializer {
                 serializedFuture.to
               ) as ModuleParameterRuntimeValue<string>) // This is unsafe, but we only serialize valid valus
             : serializedFuture.to,
-          this._deserializedBigint(serializedFuture.value),
+          this._isSerializedModuleParameterRuntimeValue(serializedFuture.value)
+            ? (this._deserializeModuleParameterRuntimeValue(
+                serializedFuture.value
+              ) as ModuleParameterRuntimeValue<string>) // This is unsafe, but we only serialize valid values
+            : this._deserializedBigint(serializedFuture.value),
           serializedFuture.data,
           this._isSerializedAccountRuntimeValue(serializedFuture.from)
             ? this._deserializeAccountRuntimeValue(serializedFuture.from)

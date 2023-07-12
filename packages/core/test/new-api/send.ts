@@ -145,6 +145,37 @@ describe("send", () => {
     assert.equal(sendFuture.value, BigInt(42));
   });
 
+  it("Should be able to pass a ModuleParameterRuntimeValue as a value option", () => {
+    const moduleWithDependentContractsDefinition = defineModule(
+      "Module1",
+      (m) => {
+        m.send("test send", "0xtest", m.getParameter("value"), "");
+
+        return {};
+      }
+    );
+
+    const constructor = new ModuleConstructor();
+    const moduleWithDependentContracts = constructor.construct(
+      moduleWithDependentContractsDefinition
+    );
+
+    assert.isDefined(moduleWithDependentContracts);
+
+    const sendFuture = [...moduleWithDependentContracts.futures].find(
+      ({ id }) => id === "Module1:test send"
+    );
+
+    if (!(sendFuture instanceof SendDataFutureImplementation)) {
+      assert.fail("Not a send data future");
+    }
+
+    assertInstanceOf(
+      sendFuture.value,
+      ModuleParameterRuntimeValueImplementation
+    );
+  });
+
   it("should be able to pass a string as from option", () => {
     const moduleWithDependentContractsDefinition = defineModule(
       "Module1",
