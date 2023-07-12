@@ -43,12 +43,12 @@ export class DebugModule {
       rpcDebugTracingConfig
     );
 
-    this._throwErrIfTracerIsNotSupported(validatedParams[1]);
+    this._validateTracerParam(validatedParams[1]);
 
     return validatedParams;
   }
 
-  private _throwErrIfTracerIsNotSupported(config: RpcDebugTracingConfig) {
+  private _validateTracerParam(config: RpcDebugTracingConfig) {
     if (
       config !== undefined &&
       config.tracer !== undefined &&
