@@ -64,6 +64,7 @@ async fn submit_request(address: &SocketAddr, request: &RpcRequest<MethodInvocat
 }
 
 async fn verify_response<ResponseT>(
+    server: &SocketAddr,
     method: MethodInvocation,
     response_data: jsonrpc::ResponseData<ResponseT>,
 ) where
@@ -81,7 +82,7 @@ async fn verify_response<ResponseT>(
         data: response_data,
     };
 
-    let unparsed_response = submit_request(&start_server().await, &request).await;
+    let unparsed_response = submit_request(server, &request).await;
 
     let actual_response: jsonrpc::Response<ResponseT> =
         serde_json::from_str(&unparsed_response).expect("should deserialize from JSON");
@@ -92,6 +93,7 @@ async fn verify_response<ResponseT>(
 #[tokio::test]
 async fn test_accounts() {
     verify_response(
+        &start_server().await,
         MethodInvocation::Eth(EthMethodInvocation::Accounts()),
         jsonrpc::ResponseData::Success {
             result: vec![Address::from_low_u64_ne(1)],
@@ -102,149 +104,83 @@ async fn test_accounts() {
 
 #[tokio::test]
 async fn test_get_balance_nonexistent_account() {
-    let request = RpcRequest {
-        version: jsonrpc::Version::V2_0,
-        id: jsonrpc::Id::Num(0),
-        method: MethodInvocation::Eth(EthMethodInvocation::GetBalance(
+    verify_response(
+        &start_server().await,
+        MethodInvocation::Eth(EthMethodInvocation::GetBalance(
             Address::from_low_u64_ne(2),
             Some(BlockSpec::latest()),
         )),
-    };
-
-    let expected_response = jsonrpc::Response::<U256> {
-        jsonrpc: request.version,
-        id: request.id.clone(),
-        data: jsonrpc::ResponseData::Success { result: U256::ZERO },
-    };
-
-    let actual_response: jsonrpc::Response<U256> =
-        serde_json::from_str(&submit_request(&start_server().await, &request).await)
-            .expect("should deserialize from JSON");
-
-    assert_eq!(actual_response, expected_response);
+        jsonrpc::ResponseData::Success { result: U256::ZERO },
+    )
+    .await;
 }
 
 #[tokio::test]
 async fn test_get_balance_success() {
-    let request = RpcRequest {
-        version: jsonrpc::Version::V2_0,
-        id: jsonrpc::Id::Num(0),
-        method: MethodInvocation::Eth(EthMethodInvocation::GetBalance(
+    verify_response(
+        &start_server().await,
+        MethodInvocation::Eth(EthMethodInvocation::GetBalance(
             Address::from_low_u64_ne(1),
             Some(BlockSpec::latest()),
         )),
-    };
-
-    let expected_response = jsonrpc::Response::<U256> {
-        jsonrpc: request.version,
-        id: request.id.clone(),
-        data: jsonrpc::ResponseData::Success { result: U256::ZERO },
-    };
-
-    let actual_response: jsonrpc::Response<U256> =
-        serde_json::from_str(&submit_request(&start_server().await, &request).await)
-            .expect("should deserialize from JSON");
-
-    assert_eq!(actual_response, expected_response);
+        jsonrpc::ResponseData::Success { result: U256::ZERO },
+    )
+    .await;
 }
 
 #[tokio::test]
 async fn test_get_code_success() {
-    let request = RpcRequest {
-        version: jsonrpc::Version::V2_0,
-        id: jsonrpc::Id::Num(0),
-        method: MethodInvocation::Eth(EthMethodInvocation::GetCode(
+    verify_response(
+        &start_server().await,
+        MethodInvocation::Eth(EthMethodInvocation::GetCode(
             Address::from_low_u64_ne(1),
             Some(BlockSpec::latest()),
         )),
-    };
-
-    let expected_response = jsonrpc::Response::<ZeroXPrefixedBytes> {
-        jsonrpc: request.version,
-        id: request.id.clone(),
-        data: jsonrpc::ResponseData::Success {
+        jsonrpc::ResponseData::Success {
             result: ZeroXPrefixedBytes::from(Bytes::from_static(b"\0")),
         },
-    };
-
-    let actual_response: jsonrpc::Response<ZeroXPrefixedBytes> =
-        serde_json::from_str(&submit_request(&start_server().await, &request).await)
-            .expect("should deserialize from JSON");
-
-    assert_eq!(actual_response, expected_response);
+    )
+    .await;
 }
 
 #[tokio::test]
 async fn test_get_storage_success() {
-    let request = RpcRequest {
-        version: jsonrpc::Version::V2_0,
-        id: jsonrpc::Id::Num(0),
-        method: MethodInvocation::Eth(EthMethodInvocation::GetStorageAt(
+    verify_response(
+        &start_server().await,
+        MethodInvocation::Eth(EthMethodInvocation::GetStorageAt(
             Address::from_low_u64_ne(1),
             U256::ZERO,
             Some(BlockSpec::latest()),
         )),
-    };
-
-    let expected_response = jsonrpc::Response::<U256> {
-        jsonrpc: request.version,
-        id: request.id.clone(),
-        data: jsonrpc::ResponseData::Success { result: U256::ZERO },
-    };
-
-    let actual_response: jsonrpc::Response<U256> =
-        serde_json::from_str(&submit_request(&start_server().await, &request).await)
-            .expect("should deserialize from JSON");
-
-    assert_eq!(actual_response, expected_response);
+        jsonrpc::ResponseData::Success { result: U256::ZERO },
+    )
+    .await;
 }
 
 #[tokio::test]
 async fn test_get_transaction_count_nonexistent_account() {
-    let request = RpcRequest {
-        version: jsonrpc::Version::V2_0,
-        id: jsonrpc::Id::Num(0),
-        method: MethodInvocation::Eth(EthMethodInvocation::GetTransactionCount(
+    verify_response(
+        &start_server().await,
+        MethodInvocation::Eth(EthMethodInvocation::GetTransactionCount(
             Address::from_low_u64_ne(2),
             Some(BlockSpec::latest()),
         )),
-    };
-
-    let expected_response = jsonrpc::Response::<U256> {
-        jsonrpc: request.version,
-        id: request.id.clone(),
-        data: jsonrpc::ResponseData::Success { result: U256::ZERO },
-    };
-
-    let actual_response: jsonrpc::Response<U256> =
-        serde_json::from_str(&submit_request(&start_server().await, &request).await)
-            .expect("should deserialize from JSON");
-
-    assert_eq!(actual_response, expected_response);
+        jsonrpc::ResponseData::Success { result: U256::ZERO },
+    )
+    .await;
 }
 
 #[tokio::test]
 async fn test_get_transaction_count_success() {
-    let request = RpcRequest {
-        version: jsonrpc::Version::V2_0,
-        id: jsonrpc::Id::Num(0),
-        method: MethodInvocation::Eth(EthMethodInvocation::GetTransactionCount(
+    verify_response(
+        &start_server().await,
+        MethodInvocation::Eth(EthMethodInvocation::GetTransactionCount(
             Address::from_low_u64_ne(1),
             Some(BlockSpec::latest()),
         )),
-    };
-
-    let expected_response = jsonrpc::Response::<U256> {
-        jsonrpc: request.version,
-        id: request.id.clone(),
-        data: jsonrpc::ResponseData::Success { result: U256::ZERO },
-    };
-
-    let actual_response: jsonrpc::Response<U256> =
-        serde_json::from_str(&submit_request(&start_server().await, &request).await)
-            .expect("should deserialize from JSON");
-
-    assert_eq!(actual_response, expected_response);
+        jsonrpc::ResponseData::Success { result: U256::ZERO },
+    )
+    .await;
 }
 
 #[tokio::test]
@@ -254,49 +190,24 @@ async fn test_set_balance_success() {
     let address = Address::from_low_u64_ne(1);
     let new_balance = U256::from(100);
 
-    let request = RpcRequest {
-        version: jsonrpc::Version::V2_0,
-        id: jsonrpc::Id::Num(0),
-        method: MethodInvocation::Hardhat(HardhatMethodInvocation::SetBalance(
-            address,
-            new_balance,
-        )),
-    };
+    verify_response(
+        &server_address,
+        MethodInvocation::Hardhat(HardhatMethodInvocation::SetBalance(address, new_balance)),
+        jsonrpc::ResponseData::Success { result: () },
+    )
+    .await;
 
-    let expected_response = jsonrpc::Response::<()> {
-        jsonrpc: request.version,
-        id: request.id.clone(),
-        data: jsonrpc::ResponseData::Success { result: () },
-    };
-
-    let actual_response: jsonrpc::Response<()> =
-        serde_json::from_str(&submit_request(&server_address, &request).await)
-            .expect("should deserialize from JSON");
-
-    assert_eq!(actual_response, expected_response);
-
-    let request = RpcRequest {
-        version: jsonrpc::Version::V2_0,
-        id: jsonrpc::Id::Num(0),
-        method: MethodInvocation::Eth(EthMethodInvocation::GetBalance(
+    verify_response(
+        &server_address,
+        MethodInvocation::Eth(EthMethodInvocation::GetBalance(
             address,
             Some(BlockSpec::latest()),
         )),
-    };
-
-    let expected_response = jsonrpc::Response::<U256> {
-        jsonrpc: request.version,
-        id: request.id.clone(),
-        data: jsonrpc::ResponseData::Success {
+        jsonrpc::ResponseData::Success {
             result: new_balance,
         },
-    };
-
-    let actual_response: jsonrpc::Response<U256> =
-        serde_json::from_str(&submit_request(&server_address, &request).await)
-            .expect("should deserialize from JSON");
-
-    assert_eq!(actual_response, expected_response);
+    )
+    .await;
 }
 
 #[tokio::test]
@@ -306,44 +217,22 @@ async fn test_set_nonce_success() {
     let address = Address::from_low_u64_ne(1);
     let new_nonce = U256::from(100);
 
-    let request = RpcRequest {
-        version: jsonrpc::Version::V2_0,
-        id: jsonrpc::Id::Num(0),
-        method: MethodInvocation::Hardhat(HardhatMethodInvocation::SetNonce(address, new_nonce)),
-    };
+    verify_response(
+        &server_address,
+        MethodInvocation::Hardhat(HardhatMethodInvocation::SetNonce(address, new_nonce)),
+        jsonrpc::ResponseData::Success { result: () },
+    )
+    .await;
 
-    let expected_response = jsonrpc::Response::<()> {
-        jsonrpc: request.version,
-        id: request.id.clone(),
-        data: jsonrpc::ResponseData::Success { result: () },
-    };
-
-    let actual_response: jsonrpc::Response<()> =
-        serde_json::from_str(&submit_request(&server_address, &request).await)
-            .expect("should deserialize from JSON");
-
-    assert_eq!(actual_response, expected_response);
-
-    let request = RpcRequest {
-        version: jsonrpc::Version::V2_0,
-        id: jsonrpc::Id::Num(0),
-        method: MethodInvocation::Eth(EthMethodInvocation::GetTransactionCount(
+    verify_response(
+        &server_address,
+        MethodInvocation::Eth(EthMethodInvocation::GetTransactionCount(
             address,
             Some(BlockSpec::latest()),
         )),
-    };
-
-    let expected_response = jsonrpc::Response::<U256> {
-        jsonrpc: request.version,
-        id: request.id.clone(),
-        data: jsonrpc::ResponseData::Success { result: new_nonce },
-    };
-
-    let actual_response: jsonrpc::Response<U256> =
-        serde_json::from_str(&submit_request(&server_address, &request).await)
-            .expect("should deserialize from JSON");
-
-    assert_eq!(actual_response, expected_response);
+        jsonrpc::ResponseData::Success { result: new_nonce },
+    )
+    .await;
 }
 
 #[tokio::test]
@@ -353,49 +242,24 @@ async fn test_set_code_success() {
     let address = Address::from_low_u64_ne(1);
     let new_code = ZeroXPrefixedBytes::from(Bytes::from_static(b"deadbeef"));
 
-    let request = RpcRequest {
-        version: jsonrpc::Version::V2_0,
-        id: jsonrpc::Id::Num(0),
-        method: MethodInvocation::Hardhat(HardhatMethodInvocation::SetCode(
-            address,
-            new_code.clone(),
-        )),
-    };
+    verify_response(
+        &server_address,
+        MethodInvocation::Hardhat(HardhatMethodInvocation::SetCode(address, new_code.clone())),
+        jsonrpc::ResponseData::Success { result: () },
+    )
+    .await;
 
-    let expected_response = jsonrpc::Response::<()> {
-        jsonrpc: request.version,
-        id: request.id.clone(),
-        data: jsonrpc::ResponseData::Success { result: () },
-    };
-
-    let actual_response: jsonrpc::Response<()> =
-        serde_json::from_str(&submit_request(&server_address, &request).await)
-            .expect("should deserialize from JSON");
-
-    assert_eq!(actual_response, expected_response);
-
-    let request = RpcRequest {
-        version: jsonrpc::Version::V2_0,
-        id: jsonrpc::Id::Num(0),
-        method: MethodInvocation::Eth(EthMethodInvocation::GetCode(
+    verify_response(
+        &server_address,
+        MethodInvocation::Eth(EthMethodInvocation::GetCode(
             address,
             Some(BlockSpec::latest()),
         )),
-    };
-
-    let expected_response = jsonrpc::Response::<ZeroXPrefixedBytes> {
-        jsonrpc: request.version,
-        id: request.id.clone(),
-        data: jsonrpc::ResponseData::Success {
+        jsonrpc::ResponseData::Success {
             result: new_code.clone(),
         },
-    };
-
-    let actual_response: jsonrpc::Response<ZeroXPrefixedBytes> =
-        serde_json::from_str(&submit_request(&server_address, &request).await)
-            .expect("should deserialize from JSON");
-
-    assert_eq!(actual_response, expected_response);
+    )
+    .await;
 }
 
 #[tokio::test]
@@ -405,49 +269,27 @@ async fn test_set_storage_at_success() {
     let address = Address::from_low_u64_ne(1);
     let new_storage_value = U256::from(100);
 
-    let request = RpcRequest {
-        version: jsonrpc::Version::V2_0,
-        id: jsonrpc::Id::Num(0),
-        method: MethodInvocation::Hardhat(HardhatMethodInvocation::SetStorageAt(
+    verify_response(
+        &server_address,
+        MethodInvocation::Hardhat(HardhatMethodInvocation::SetStorageAt(
             address,
             U256::ZERO,
             new_storage_value,
         )),
-    };
+        jsonrpc::ResponseData::Success { result: () },
+    )
+    .await;
 
-    let expected_response = jsonrpc::Response::<()> {
-        jsonrpc: request.version,
-        id: request.id.clone(),
-        data: jsonrpc::ResponseData::Success { result: () },
-    };
-
-    let actual_response: jsonrpc::Response<()> =
-        serde_json::from_str(&submit_request(&server_address, &request).await)
-            .expect("should deserialize from JSON");
-
-    assert_eq!(actual_response, expected_response);
-
-    let request = RpcRequest {
-        version: jsonrpc::Version::V2_0,
-        id: jsonrpc::Id::Num(0),
-        method: MethodInvocation::Eth(EthMethodInvocation::GetStorageAt(
+    verify_response(
+        &server_address,
+        MethodInvocation::Eth(EthMethodInvocation::GetStorageAt(
             address,
             U256::ZERO,
             Some(BlockSpec::latest()),
         )),
-    };
-
-    let expected_response = jsonrpc::Response::<U256> {
-        jsonrpc: request.version,
-        id: request.id.clone(),
-        data: jsonrpc::ResponseData::Success {
+        jsonrpc::ResponseData::Success {
             result: new_storage_value,
         },
-    };
-
-    let actual_response: jsonrpc::Response<U256> =
-        serde_json::from_str(&submit_request(&server_address, &request).await)
-            .expect("should deserialize from JSON");
-
-    assert_eq!(actual_response, expected_response);
+    )
+    .await;
 }
