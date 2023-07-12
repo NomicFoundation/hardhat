@@ -19,6 +19,8 @@ pub mod receipt;
 pub mod remote;
 /// Ethereum signature types
 pub mod signature;
+/// Specification of hardforks
+pub mod spec;
 /// Ethereum state types and functions
 pub mod state;
 /// Ethereum transaction types
