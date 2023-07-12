@@ -26,7 +26,9 @@ export function reconcile(
     IgnitionModuleResult<string>
   >,
   executionStateMap: ExecutionStateMap,
-  moduleParameters: { [key: string]: ModuleParameters } = {}
+  moduleParameters: { [key: string]: ModuleParameters } = {},
+  moduleArtifactMap?: ArtifactMap,
+  storedArtifactMap?: ArtifactMap
 ): ReconciliationResult {
   const constructor = new ModuleConstructor();
   const module = constructor.construct(moduleDefinition);
@@ -42,7 +44,7 @@ export function reconcile(
 
   const contracts = getFuturesFromModule(module).filter(isContractFuture);
 
-  const moduleArtifactMap: ArtifactMap = Object.fromEntries(
+  moduleArtifactMap ??= Object.fromEntries(
     contracts.map((contract) => [
       contract.id,
       {
@@ -54,8 +56,7 @@ export function reconcile(
     ])
   );
 
-  // todo: make testable
-  const storedArtifactMap = moduleArtifactMap;
+  storedArtifactMap ??= moduleArtifactMap;
 
   const reconiliationResult = Reconciler.reconcile(
     module,

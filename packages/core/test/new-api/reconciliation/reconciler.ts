@@ -1,6 +1,7 @@
 import { assert } from "chai";
 
 import { defineModule } from "../../../src/new-api/define-module";
+import { ArtifactMap } from "../../../src/new-api/internal/reconciliation/types";
 import {
   DeploymentExecutionState,
   ExecutionStatus,
@@ -8,7 +9,11 @@ import {
 import { FutureType } from "../../../src/new-api/types/module";
 import { exampleAccounts } from "../helpers";
 
-import { assertSuccessReconciliation, reconcile } from "./helpers";
+import {
+  assertNoWarningsOrErrors,
+  assertSuccessReconciliation,
+  reconcile,
+} from "./helpers";
 
 describe("Reconciliation", () => {
   const exampleDeploymentState: DeploymentExecutionState = {
@@ -375,6 +380,102 @@ describe("Reconciliation", () => {
           futureId: "Module:Contract2",
           failure:
             "A dependency from Module:Contract2 to Module:ContractNew has been added. The former has started executing before the latter started executing, so this change is incompatible.",
+        },
+      ]);
+    });
+  });
+
+  describe("artifacts", () => {
+    const exampleAddress = "0x1F98431c8aD98523631AE4a59f267346ea31F984";
+
+    it("should reconcile unchanged bytecodes", () => {
+      const addr1 = exampleAddress;
+
+      const moduleDefinition = defineModule("Module", (m) => {
+        const contract1 = m.contract("Contract1");
+
+        return { contract1 };
+      });
+
+      const moduleArtifactMap: ArtifactMap = {
+        "Module:Contract1": {
+          abi: [],
+          bytecode: "0xaaaaaa",
+          contractName: "Contract1",
+          linkReferences: {},
+        },
+      };
+
+      const storedArtifactMap: ArtifactMap = moduleArtifactMap;
+
+      const reconciliationResult = reconcile(
+        moduleDefinition,
+        {
+          "Module:Contract1": {
+            ...exampleDeploymentState,
+            futureType: FutureType.NAMED_CONTRACT_DEPLOYMENT,
+            status: ExecutionStatus.SUCCESS,
+            dependencies: new Set<string>(), // no deps on last run
+            contractName: "Contract1",
+            contractAddress: addr1,
+          },
+        },
+        undefined,
+        moduleArtifactMap,
+        storedArtifactMap
+      );
+
+      assertNoWarningsOrErrors(reconciliationResult);
+    });
+
+    it("should not reconcile changed bytecodes", () => {
+      const addr1 = exampleAddress;
+
+      const moduleDefinition = defineModule("Module", (m) => {
+        const contract1 = m.contract("Contract1");
+
+        return { contract1 };
+      });
+
+      const moduleArtifactMap: ArtifactMap = {
+        "Module:Contract1": {
+          abi: [],
+          bytecode: "0xaaaaaa",
+          contractName: "Contract1",
+          linkReferences: {},
+        },
+      };
+
+      const storedArtifactMap: ArtifactMap = {
+        "Module:Contract1": {
+          abi: [],
+          bytecode: "0xbbbbbb",
+          contractName: "Contract1",
+          linkReferences: {},
+        },
+      };
+
+      const reconciliationResult = reconcile(
+        moduleDefinition,
+        {
+          "Module:Contract1": {
+            ...exampleDeploymentState,
+            futureType: FutureType.NAMED_CONTRACT_DEPLOYMENT,
+            status: ExecutionStatus.SUCCESS,
+            dependencies: new Set<string>(), // no deps on last run
+            contractName: "Contract1",
+            contractAddress: addr1,
+          },
+        },
+        undefined,
+        moduleArtifactMap,
+        storedArtifactMap
+      );
+
+      assert.deepStrictEqual(reconciliationResult.reconciliationFailures, [
+        {
+          futureId: "Module:Contract1",
+          failure: "Artifact bytecodes have been changed",
         },
       ]);
     });
