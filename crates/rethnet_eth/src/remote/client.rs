@@ -418,7 +418,7 @@ impl RpcClient {
 
     /// Calls `net_version` API
     pub async fn network_id(&self) -> Result<U256, RpcClientError> {
-        self.call(&MethodInvocation::NetworkId()).await
+        self.call(&MethodInvocation::NetVersion()).await
     }
 }
 

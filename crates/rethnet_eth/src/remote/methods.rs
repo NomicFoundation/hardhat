@@ -157,7 +157,7 @@ pub enum MethodInvocation {
     Mining(),
     /// net_version
     #[serde(rename = "net_version")]
-    NetworkId(),
+    NetVersion(),
     /// eth_newBlockFilter
     #[serde(rename = "eth_newBlockFilter")]
     NewBlockFilter(),
