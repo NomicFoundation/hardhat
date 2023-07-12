@@ -113,8 +113,7 @@ describe("contracts", function () {
     await contract.off("Inc", listener);
   });
 
-  // temporarily skipped because contract.once doesn't call provider.off
-  it.skip("should wait for an event using .once", async function () {
+  it("should wait for an event using .once", async function () {
     const signer = await this.env.ethers.provider.getSigner(0);
 
     const factory = new this.env.ethers.ContractFactory<[], ExampleContract>(
