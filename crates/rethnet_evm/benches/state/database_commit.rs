@@ -1,5 +1,5 @@
 use criterion::{criterion_group, criterion_main, Criterion};
-use revm::{db::StateRef, primitives::Bytecode};
+use revm::primitives::Bytecode;
 
 use rethnet_eth::{Address, Bytes, U256};
 
