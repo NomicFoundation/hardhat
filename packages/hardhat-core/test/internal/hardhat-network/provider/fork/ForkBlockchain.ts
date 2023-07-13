@@ -69,7 +69,6 @@ describe("ForkBlockchain", () => {
     assert.instanceOf(fb, ForkBlockchain);
   });
 
-  // TODO: remove regex code
   describe("getLastSafeBlock", () => {
     it("should return a safe block that is the difference between the latestBlock and maxReorg", () => {
       assert.strictEqual(getLastSafeBlock(100n, 50n), 50n);

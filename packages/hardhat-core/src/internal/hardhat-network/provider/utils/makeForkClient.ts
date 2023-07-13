@@ -132,6 +132,7 @@ export function getLastSafeBlock(
   latestBlock: bigint,
   maxReorg: bigint
 ): bigint {
-  // Design choice: if latestBlock - maxReorg gives a negative number than the newest block will be used
+  // Design choice: if latestBlock - maxReorg results in a negative number then the latestBlock block will be used.
+  // This decision is based on the assumption that if maxReorg > latestBlock then there is a high probability that the fork is occurring on a devnet.
   return latestBlock - maxReorg >= 0 ? latestBlock - maxReorg : latestBlock;
 }
