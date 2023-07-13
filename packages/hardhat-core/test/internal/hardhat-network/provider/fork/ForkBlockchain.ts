@@ -77,7 +77,7 @@ describe("ForkBlockchain", () => {
     });
 
     it("should return latestBlock as fork block because the difference between the latestBlock and maxReorg is < 0", () => {
-      assert.strictEqual(getLastSafeBlock(100n, 50n), 50n);
+      assert.strictEqual(getLastSafeBlock(20n, 200n), 20n);
     });
   });
 
