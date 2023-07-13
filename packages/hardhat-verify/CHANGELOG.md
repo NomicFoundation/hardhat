@@ -1,5 +1,11 @@
 # @nomicfoundation/hardhat-verify
 
+## 1.0.4
+
+### Patch Changes
+
+- 0f4411ce0: Added `baseGoerli` testnet.
+
 ## 1.0.3
 
 ### Patch Changes
