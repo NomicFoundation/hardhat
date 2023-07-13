@@ -225,7 +225,8 @@ async function printRecommendedDepsInstallationInstructions(
 }
 
 // exported so we can test that it uses the latest supported version of solidity
-export const EMPTY_HARDHAT_CONFIG = `/** @type import('hardhat/config').HardhatUserConfig */
+export const EMPTY_HARDHAT_CONFIG = `// @ts-check
+/** @type import('hardhat/config').HardhatUserConfig */
 module.exports = {
   solidity: "0.8.19",
 };
@@ -315,7 +316,7 @@ async function createPackageJson() {
 function showStarOnGitHubMessage() {
   console.log(
     chalk.cyan("Give Hardhat a star on Github if you're enjoying it!") +
-      emoji(" 💞✨")
+      emoji(" ⭐️✨")
   );
   console.log();
   console.log(chalk.cyan("     https://github.com/NomicFoundation/hardhat"));
