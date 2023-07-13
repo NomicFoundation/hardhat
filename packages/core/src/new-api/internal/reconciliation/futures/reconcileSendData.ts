@@ -36,7 +36,9 @@ export function reconcileSendData(
   if (!isEqual(future.value, executionState.value)) {
     return fail(
       future,
-      `Value has been changed from ${executionState.value} to ${future.value}`
+      `Value has been changed from ${executionState.value} to ${
+        typeof future.value === "bigint" ? future.value : "a module parameter"
+      }`
     );
   }
 
