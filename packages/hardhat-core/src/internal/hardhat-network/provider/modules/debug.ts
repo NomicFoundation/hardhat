@@ -14,7 +14,7 @@ import { RpcDebugTraceOutput } from "../output";
 /* eslint-disable @nomicfoundation/hardhat-internal-rules/only-hardhat-error */
 
 export class DebugModule {
-  public static readonly supportedTracers = ["structLogs"];
+  public static readonly supportedTracers = ["callTracer"];
 
   constructor(private readonly _node: HardhatNode) {}
 
@@ -50,8 +50,7 @@ export class DebugModule {
 
   private _validateTracerParam(config: RpcDebugTracingConfig) {
     if (
-      config !== undefined &&
-      config.tracer !== undefined &&
+      config?.tracer !== undefined &&
       !DebugModule.supportedTracers.includes(config.tracer)
     ) {
       throw new InvalidArgumentsError(

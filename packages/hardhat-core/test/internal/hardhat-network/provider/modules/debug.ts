@@ -78,10 +78,10 @@ describe("Debug module", function () {
             [
               "0x1234567876543234567876543456765434567aeaeaed67616732632762762373",
               {
-                tracer: "wrongTracer",
+                tracer: "unsupportedTracer",
               },
             ],
-            "tracer 'wrongTracer' is not allowed. Available values are: structLogs"
+            "tracer 'unsupportedTracer' is not allowed. Available values are: callTracer"
           );
         });
 
