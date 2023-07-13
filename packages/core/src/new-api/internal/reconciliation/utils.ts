@@ -61,6 +61,6 @@ export function getMetadataSectionLength(bytecode: Buffer): number {
 export function getBytecodeWithoutMetadata(bytecode: string): string {
   const bytecodeBuffer = Buffer.from(bytecode);
   return bytecodeBuffer
-    .slice(0, getMetadataSectionLength(bytecodeBuffer))
+    .slice(0, bytecode.length - getMetadataSectionLength(bytecodeBuffer))
     .toString();
 }
