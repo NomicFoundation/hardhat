@@ -2,12 +2,6 @@
   "name": "@nomicfoundation/hardhat-verify",
   "version": "1.0.4",
   "description": "Hardhat plugin for verifying contracts",
-  "homepage": "https://github.com/nomicfoundation/hardhat/tree/main/packages/hardhat-verify",
-  "repository": "github:nomicfoundation/hardhat",
-  "author": "Nomic Foundation",
-  "license": "MIT",
-  "main": "dist/src/index.js",
-  "types": "dist/src/index.d.ts",
   "keywords": [
     "ethereum",
     "smart-contracts",
@@ -15,23 +9,32 @@
     "hardhat-plugin",
     "etherscan"
   ],
-  "scripts": {
-    "lint": "yarn prettier --check && yarn eslint",
-    "lint:fix": "yarn prettier --write && yarn eslint --fix",
-    "eslint": "eslint 'src/**/*.ts' 'test/**/*.ts'",
-    "prettier": "prettier \"**/*.{js,md,json}\"",
-    "test": "mocha --recursive \"test/**/*.ts\" --exit",
-    "coverage": "nyc yarn test -- --reporter min",
-    "build": "tsc --build .",
-    "prepublishOnly": "yarn build",
-    "clean": "rimraf dist"
+  "homepage": "https://github.com/nomicfoundation/hardhat/tree/main/packages/hardhat-verify",
+  "repository": "github:nomicfoundation/hardhat",
+  "license": "MIT",
+  "author": "Nomic Foundation",
+  "exports": {
+    "./etherscan": "./src/etherscan"
   },
+  "main": "dist/src/index.js",
+  "types": "dist/src/index.d.ts",
   "files": [
     "dist/src/",
     "src/",
     "LICENSE",
     "README.md"
   ],
+  "scripts": {
+    "build": "tsc --build .",
+    "clean": "rimraf dist",
+    "coverage": "nyc yarn test -- --reporter min",
+    "eslint": "eslint 'src/**/*.ts' 'test/**/*.ts'",
+    "lint": "yarn prettier --check && yarn eslint",
+    "lint:fix": "yarn prettier --write && yarn eslint --fix",
+    "prepublishOnly": "yarn build",
+    "prettier": "prettier \"**/*.{js,md,json}\"",
+    "test": "mocha --recursive \"test/**/*.ts\" --exit"
+  },
   "dependencies": {
     "@ethersproject/abi": "^5.1.2",
     "@ethersproject/address": "^5.0.2",
@@ -75,8 +78,5 @@
   },
   "peerDependencies": {
     "hardhat": "^2.0.4"
-  },
-  "exports": {
-    "./etherscan": "./src/etherscan"
   }
 }
