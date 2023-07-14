@@ -63,25 +63,25 @@ fn server_config_from_cli_args_and_config_file(
     node_args: NodeArgs,
     config_file: ConfigFile,
 ) -> Result<ServerConfig, anyhow::Error> {
-        Ok(ServerConfig {
-            address: SocketAddr::new(node_args.host, node_args.port),
-            rpc_hardhat_network_config: RpcHardhatNetworkConfig {
-                forking: if let Some(json_rpc_url) = node_args.fork_url {
-                    Some(RpcForkConfig {
-                        json_rpc_url,
-                        block_number: node_args.fork_block_number,
-                        http_headers: None,
-                    })
-                } else if node_args.fork_block_number.is_some() {
-                    Err(anyhow!(
-                        "A fork block number can only be used if you also supply a fork URL"
-                    ))?
-                } else {
-                    None
-                },
+    Ok(ServerConfig {
+        address: SocketAddr::new(node_args.host, node_args.port),
+        rpc_hardhat_network_config: RpcHardhatNetworkConfig {
+            forking: if let Some(json_rpc_url) = node_args.fork_url {
+                Some(RpcForkConfig {
+                    json_rpc_url,
+                    block_number: node_args.fork_block_number,
+                    http_headers: None,
+                })
+            } else if node_args.fork_block_number.is_some() {
+                Err(anyhow!(
+                    "A fork block number can only be used if you also supply a fork URL"
+                ))?
+            } else {
+                None
             },
-            accounts: config_file.accounts,
-        })
+        },
+        accounts: config_file.accounts,
+    })
 }
 
 #[derive(Copy, Debug, Clone, PartialEq, Eq)]
