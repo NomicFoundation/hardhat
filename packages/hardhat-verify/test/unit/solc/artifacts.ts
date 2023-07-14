@@ -5,7 +5,7 @@ import {
   getCallProtectionOffsets,
   getImmutableOffsets,
   getLibraryOffsets,
-} from "../../../src/solc/artifacts";
+} from "../../../src/internal/solc/artifacts";
 
 describe("artifacts", () => {
   describe("getLibraryOffsets", () => {

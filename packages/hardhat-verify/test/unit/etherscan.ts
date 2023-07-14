@@ -1,5 +1,5 @@
 import { assert, expect } from "chai";
-import { Etherscan } from "../../src/etherscan";
+import { Etherscan } from "../../src/internal/etherscan";
 
 describe("Etherscan", () => {
   const chainConfig = {
