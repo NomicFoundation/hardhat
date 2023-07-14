@@ -1,8 +1,8 @@
 import sinon from "sinon";
 import { assert, expect } from "chai";
 import { HardhatConfig, HardhatUserConfig } from "hardhat/types";
-import { etherscanConfigExtender } from "../../src/config";
-import { EtherscanConfig } from "../../src/types";
+import { etherscanConfigExtender } from "../../src/internal/config";
+import { EtherscanConfig } from "../../src/internal/types";
 
 describe("Chain Config", () => {
   it("should extend the hardhat config with the user config", async () => {

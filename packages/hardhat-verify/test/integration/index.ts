@@ -4,7 +4,7 @@ import sinon from "sinon";
 import { assert, expect } from "chai";
 import { TASK_CLEAN, TASK_COMPILE } from "hardhat/builtin-tasks/task-names";
 import { SolcConfig } from "hardhat/types/config";
-import { TASK_VERIFY, TASK_VERIFY_VERIFY } from "../../src/task-names";
+import { TASK_VERIFY, TASK_VERIFY_VERIFY } from "../../src/internal/task-names";
 import { deployContract, getRandomAddress, useEnvironment } from "../helpers";
 import {
   interceptGetStatus,
@@ -13,7 +13,7 @@ import {
   mockEnvironment,
 } from "./mocks/etherscan";
 
-import "../../src/type-extensions";
+import "../../src/internal/type-extensions";
 
 describe("verify task integration tests", () => {
   useEnvironment("hardhat-project");

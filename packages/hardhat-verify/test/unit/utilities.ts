@@ -7,7 +7,7 @@ import {
   getCompilerVersions,
   resolveConstructorArguments,
   resolveLibraries,
-} from "../../src/utilities";
+} from "../../src/internal/utilities";
 
 describe("Utilities", () => {
   describe("resolveConstructorArguments", () => {

@@ -1,7 +1,10 @@
 import type { Network } from "hardhat/types";
-import type { ChainConfig } from "../../src/types";
+import type { ChainConfig } from "../../src/internal/types";
 import { assert, expect } from "chai";
-import { builtinChains, getCurrentChainConfig } from "../../src/chain-config";
+import {
+  builtinChains,
+  getCurrentChainConfig,
+} from "../../src/internal/chain-config";
 
 describe("Chain Config", () => {
   describe("getCurrentChainConfig", () => {

@@ -22,9 +22,9 @@ import {
   TASK_VERIFY_VERIFY,
   TASK_VERIFY_ETHERSCAN,
   TASK_VERIFY_PRINT_SUPPORTED_NETWORKS,
-} from "./task-names";
-import { getCurrentChainConfig } from "./chain-config";
-import { etherscanConfigExtender } from "./config";
+} from "./internal/task-names";
+import { getCurrentChainConfig } from "./internal/chain-config";
+import { etherscanConfigExtender } from "./internal/config";
 import {
   MissingAddressError,
   InvalidAddressError,
@@ -39,7 +39,7 @@ import {
   UnexpectedNumberOfFilesError,
   VerificationAPIUnexpectedMessageError,
   ContractVerificationFailedError,
-} from "./errors";
+} from "./internal/errors";
 import {
   sleep,
   encodeArguments,
@@ -47,9 +47,9 @@ import {
   printSupportedNetworks,
   resolveConstructorArguments,
   resolveLibraries,
-} from "./utilities";
-import { Etherscan } from "./etherscan";
-import { Bytecode } from "./solc/bytecode";
+} from "./internal/utilities";
+import { Etherscan } from "./internal/etherscan";
+import { Bytecode } from "./internal/solc/bytecode";
 import {
   ContractInformation,
   ExtendedContractInformation,
@@ -57,9 +57,9 @@ import {
   extractMatchingContractInformation,
   getLibraryInformation,
   LibraryToAddress,
-} from "./solc/artifacts";
+} from "./internal/solc/artifacts";
 
-import "./type-extensions";
+import "./internal/type-extensions";
 
 // Main task args
 interface VerifyTaskArgs {
