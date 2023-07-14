@@ -81,7 +81,7 @@ describe("Debug module", function () {
                 tracer: "unsupportedTracer",
               },
             ],
-            "tracer 'unsupportedTracer' is not allowed. Available values are: callTracer"
+            "Hardhat currently only supports the default tracer, so no tracer parameter should be passed."
           );
         });
 

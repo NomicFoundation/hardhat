@@ -14,8 +14,6 @@ import { RpcDebugTraceOutput } from "../output";
 /* eslint-disable @nomicfoundation/hardhat-internal-rules/only-hardhat-error */
 
 export class DebugModule {
-  public static readonly supportedTracers = ["callTracer"];
-
   constructor(private readonly _node: HardhatNode) {}
 
   public async processRequest(
@@ -49,16 +47,9 @@ export class DebugModule {
   }
 
   private _validateTracerParam(config: RpcDebugTracingConfig) {
-    if (
-      config?.tracer !== undefined &&
-      !DebugModule.supportedTracers.includes(config.tracer)
-    ) {
+    if (config?.tracer !== undefined) {
       throw new InvalidArgumentsError(
-        `tracer '${
-          config.tracer
-        }' is not allowed. Available values are: ${DebugModule.supportedTracers.join(
-          ", "
-        )}`
+        "Hardhat currently only supports the default tracer, so no tracer parameter should be passed."
       );
     }
   }
