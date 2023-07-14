@@ -5,21 +5,23 @@ use assert_cmd::{
     cargo::CommandCargoExt, // for process::Command::cargo_bin
 };
 use predicates::str::contains;
+use secp256k1::Secp256k1;
 
-use rethnet::DEFAULT_ACCOUNTS;
+use rethnet::DEFAULT_PRIVATE_KEYS;
 use rethnet_eth::{
     remote::{
         client::Request as RpcRequest, jsonrpc, methods::MethodInvocation as EthMethodInvocation,
         BlockSpec,
     },
-    Address, Bytes, U256,
+    signature::private_key_to_address,
+    Bytes, U256,
 };
 use rethnet_rpc_server::{HardhatMethodInvocation, MethodInvocation};
 
 #[tokio::test]
 async fn node() -> Result<(), Box<dyn std::error::Error>> {
-    use std::str::FromStr;
-    let address = Address::from_str(DEFAULT_ACCOUNTS[0])?;
+    let address =
+        private_key_to_address(&Secp256k1::signing_only(), DEFAULT_PRIVATE_KEYS[0]).unwrap();
 
     // the order of operations is a little weird in this test, because we spawn a separate process
     // for the server, and we want to make sure that we end that process gracefully. more
@@ -29,6 +31,7 @@ async fn node() -> Result<(), Box<dyn std::error::Error>> {
     // hold method invocations separately from requests so that we can easily iterate over them in
     // order to check for corresponding log entries in the server output:
     let method_invocations = [
+        MethodInvocation::Eth(EthMethodInvocation::Accounts()),
         MethodInvocation::Eth(EthMethodInvocation::GetBalance(
             address,
             Some(BlockSpec::latest()),
@@ -105,8 +108,18 @@ async fn node() -> Result<(), Box<dyn std::error::Error>> {
 
     // assert that the standard output of the server process contains the expected log entries:
     Assert::new(output.clone()).stdout(contains("Listening on 127.0.0.1:8549"));
+    let secp = Secp256k1::signing_only();
+    for (i, default_private_key) in DEFAULT_PRIVATE_KEYS.to_vec().iter().enumerate() {
+        Assert::new(output.clone())
+            .stdout(contains(format!("Private Key: 0x{}", default_private_key)))
+            .stdout(contains(format!(
+                "Account #{i}: {:?}",
+                private_key_to_address(&secp, default_private_key).unwrap()
+            )));
+    }
     for method_invocation in method_invocations {
         Assert::new(output.clone()).stdout(contains(match method_invocation {
+            MethodInvocation::Eth(EthMethodInvocation::Accounts()) => String::from("eth_accounts"),
             MethodInvocation::Eth(EthMethodInvocation::GetBalance(address, block_spec)) => {
                 format!("eth_getBalance({address:?}, {block_spec:?})")
             }

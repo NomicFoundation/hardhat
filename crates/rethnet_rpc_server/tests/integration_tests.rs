@@ -2,6 +2,7 @@ use std::net::SocketAddr;
 
 use hashbrown::HashMap;
 use rethnet_eth::remote::ZeroXPrefixedBytes;
+use secp256k1::{Secp256k1, SecretKey};
 use tracing::Level;
 
 use rethnet_eth::{
@@ -9,13 +10,17 @@ use rethnet_eth::{
         client::Request as RpcRequest, jsonrpc, methods::MethodInvocation as EthMethodInvocation,
         BlockSpec,
     },
+    signature::private_key_to_address,
     Address, Bytes, U256,
 };
 use rethnet_evm::{AccountInfo, KECCAK_EMPTY};
 
 use rethnet_rpc_server::{
-    Config, HardhatMethodInvocation, MethodInvocation, RpcHardhatNetworkConfig, Server,
+    AccountConfig, Config, HardhatMethodInvocation, MethodInvocation, RpcHardhatNetworkConfig,
+    Server,
 };
+
+const PRIVATE_KEY: &str = "ac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80";
 
 async fn start_server() -> SocketAddr {
     let mut accounts: HashMap<Address, AccountInfo> = Default::default();
@@ -29,13 +34,16 @@ async fn start_server() -> SocketAddr {
         },
     );
 
-    let server = Server::new(
-        Config {
-            address: "127.0.0.1:0".parse::<SocketAddr>().unwrap(),
-            rpc_hardhat_network_config: RpcHardhatNetworkConfig { forking: None },
-        },
-        accounts,
-    )
+    use std::str::FromStr;
+    let server = Server::new(Config {
+        address: "127.0.0.1:0".parse::<SocketAddr>().unwrap(),
+        rpc_hardhat_network_config: RpcHardhatNetworkConfig { forking: None },
+        accounts: vec![AccountConfig {
+            private_key: SecretKey::from_str(PRIVATE_KEY)
+                .expect("should construct private key from string"),
+            balance: U256::ZERO,
+        }],
+    })
     .await
     .unwrap();
 
@@ -95,7 +103,7 @@ async fn test_accounts() {
     verify_response(
         &start_server().await,
         MethodInvocation::Eth(EthMethodInvocation::Accounts()),
-        vec![Address::from_low_u64_ne(1)],
+        vec![private_key_to_address(&Secp256k1::signing_only(), PRIVATE_KEY).unwrap()],
     )
     .await;
 }
