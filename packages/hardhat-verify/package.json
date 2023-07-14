@@ -75,5 +75,8 @@
   },
   "peerDependencies": {
     "hardhat": "^2.0.4"
+  },
+  "exports": {
+    "./etherscan": "./src/etherscan"
   }
 }
