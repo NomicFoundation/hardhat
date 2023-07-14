@@ -74,7 +74,7 @@ There are no additional steps you need to take for this plugin to work.
 
 ## Test directives
 
-Brownie allows you to use the test directive `#@ if mode == "test":` to specify when a portion of code should be compiled only for testing purposes.
+Brownie allows you to use the test directive `#@ if mode == "test":` to specify when a portion of code should be included only for testing purposes.
 
 Example:
 
