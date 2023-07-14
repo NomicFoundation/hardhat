@@ -1,3 +1,5 @@
+import type CborT from "cbor";
+
 import {
   AccountRuntimeValue,
   Future,
@@ -54,13 +56,33 @@ export function addressToErrorString(potential: string | undefined) {
 }
 
 const METADATA_LENGTH = 2;
-export function getMetadataSectionLength(bytecode: Buffer): number {
+function getMetadataSectionLength(bytecode: Buffer): number {
   return bytecode.slice(-METADATA_LENGTH).readUInt16BE(0) + METADATA_LENGTH;
 }
 
+function isValidMetadata(data: Buffer): boolean {
+  const { decode } = require("cbor") as typeof CborT;
+  try {
+    decode(data);
+    return true;
+  } catch (e) {
+    console.log(e);
+    return false;
+  }
+}
+
 export function getBytecodeWithoutMetadata(bytecode: string): string {
-  const bytecodeBuffer = Buffer.from(bytecode);
-  return bytecodeBuffer
-    .slice(0, bytecode.length - getMetadataSectionLength(bytecodeBuffer))
-    .toString();
+  const bytecodeBuffer = Buffer.from(bytecode.slice(2), "hex");
+  const metadataSectionLength = getMetadataSectionLength(bytecodeBuffer);
+
+  const metadataPayload = bytecodeBuffer.slice(
+    -metadataSectionLength,
+    -METADATA_LENGTH
+  );
+
+  if (isValidMetadata(metadataPayload)) {
+    return bytecodeBuffer.slice(0, -metadataSectionLength).toString("hex");
+  }
+
+  return bytecode;
 }
