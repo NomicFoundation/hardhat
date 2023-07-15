@@ -1,4 +1,5 @@
 use std::net::SocketAddr;
+use std::str::FromStr;
 
 use hashbrown::HashMap;
 use rethnet_eth::remote::ZeroXPrefixedBytes;
@@ -10,7 +11,7 @@ use rethnet_eth::{
         client::Request as RpcRequest, jsonrpc, methods::MethodInvocation as EthMethodInvocation,
         BlockSpec,
     },
-    signature::private_key_to_address,
+    signature::{private_key_to_address, Signature},
     Address, Bytes, U256,
 };
 use rethnet_evm::{AccountInfo, KECCAK_EMPTY};
@@ -34,7 +35,6 @@ async fn start_server() -> SocketAddr {
         },
     );
 
-    use std::str::FromStr;
     let server = Server::new(Config {
         address: "127.0.0.1:0".parse::<SocketAddr>().unwrap(),
         rpc_hardhat_network_config: RpcHardhatNetworkConfig { forking: None },
@@ -290,4 +290,18 @@ async fn test_set_storage_at_success() {
         new_storage_value,
     )
     .await;
+}
+
+#[tokio::test]
+async fn test_sign() {
+    // the expected response for this test case was created by submitting the same request to a
+    // default-configured instance of Hardhat Network.
+    verify_response(
+        &start_server().await,
+        MethodInvocation::Eth(EthMethodInvocation::Sign(
+            Address::from_str("0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266").unwrap(),
+            bytes::Bytes::from(hex::decode("deadbeef").unwrap()).into(),
+        )),
+        Signature::from_str("0xa114c834af73872c6c9efe918d85b0b1b34a486d10f9011e2630e28417c828c060dbd65cda67e73d52ebb7c555260621dbc1b0b4036acb61086bba091ac3f1641b").unwrap(),
+    ).await;
 }

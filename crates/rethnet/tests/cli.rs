@@ -49,6 +49,10 @@ async fn node() -> Result<(), Box<dyn std::error::Error>> {
             address,
             Some(BlockSpec::latest()),
         )),
+        MethodInvocation::Eth(EthMethodInvocation::Sign(
+            address,
+            bytes::Bytes::from(hex::decode("deadbeef").unwrap()).into(),
+        )),
         MethodInvocation::Hardhat(HardhatMethodInvocation::SetBalance(address, U256::ZERO)),
         MethodInvocation::Hardhat(HardhatMethodInvocation::SetCode(
             address,
@@ -135,6 +139,9 @@ async fn node() -> Result<(), Box<dyn std::error::Error>> {
                 address,
                 block_spec,
             )) => format!("eth_getTransactionCount({address:?}, {block_spec:?})"),
+            MethodInvocation::Eth(EthMethodInvocation::Sign(address, message)) => {
+                format!("eth_sign({address:?}, {message:?})")
+            }
             MethodInvocation::Hardhat(HardhatMethodInvocation::SetBalance(address, balance)) => {
                 format!("hardhat_setBalance({address:?}, {balance:?}")
             }

@@ -20,7 +20,7 @@ use rethnet_eth::{
         methods::MethodInvocation as EthMethodInvocation,
         BlockSpec, BlockTag, Eip1898BlockSpec,
     },
-    signature::public_key_to_address,
+    signature::{public_key_to_address, Signature},
     Address, B256, U256,
 };
 use rethnet_evm::{
@@ -415,6 +415,25 @@ async fn handle_set_storage_at(
     }
 }
 
+fn handle_sign(
+    state: StateType,
+    address: &Address,
+    message: &ZeroXPrefixedBytes,
+) -> ResponseData<Signature> {
+    event!(Level::INFO, "eth_sign({address:?}, {message:?})");
+    match state.local_accounts.get(address) {
+        Some(private_key) => {
+            match Signature::new(&bytes::Bytes::from(message.clone())[..], private_key) {
+                Ok(result) => ResponseData::Success { result },
+                Err(e) => {
+                    ResponseData::new_error(0, &format!("Failed to produce signature: {e}"), None)
+                }
+            }
+        }
+        None => ResponseData::new_error(0, "{address} is not an account owned by this node", None),
+    }
+}
+
 async fn handle_request(
     state: StateType,
     request: &RpcRequest<MethodInvocation>,
@@ -474,6 +493,9 @@ async fn handle_request(
                         id,
                         handle_get_transaction_count(state, *address, block.clone()).await,
                     )
+                }
+                MethodInvocation::Eth(EthMethodInvocation::Sign(address, message)) => {
+                    response(id, handle_sign(state, address, message))
                 }
                 MethodInvocation::Hardhat(HardhatMethodInvocation::SetBalance(
                     address,

@@ -5,6 +5,7 @@ edition = "2021"
 
 [dependencies]
 axum = "0.6.18"
+bytes = { version = "1.2.1", default-features = false }
 hashbrown = { version = "0.13", default-features = false, features = ["ahash"] }
 hex = { version = "0.4.3", default-features = false, features = ["alloc"] }
 hyper = { version = "0.14.27", default-features = false, features = ["server"] }
