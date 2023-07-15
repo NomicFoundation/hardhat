@@ -5,7 +5,7 @@ const { keccak256 } = require("../internal/util/keccak");
 
 const functionPrefix = "\tfunction";
 const functionBody =
-  ") internal view {" + '\n\t\t_sendLogPayload(abi.encodeWithSignature("log(';
+  ") internal pure {" + '\n\t\t_sendLogPayload(abi.encodeWithSignature("log(';
 const functionSuffix = "));" + "\n\t}" + "\n" + "\n";
 
 let logger =
@@ -37,28 +37,46 @@ for (let i = 1; i <= 32; i++) {
 
 const types = ["uint256", "string memory", "bool", "address"];
 
-let consoleSolFile =
-  "// SPDX-License-Identifier: MIT\n" +
-  "pragma solidity >= 0.4.22 <0.9.0;" +
-  "\n" +
-  "\n" +
-  "library console {" +
-  "\n" +
-  "\taddress constant CONSOLE_ADDRESS = 0x000000000000000000636F6e736F6c652e6c6f67;" +
-  "\n" +
-  "\n" +
-  "\tfunction _sendLogPayload(bytes memory payload) private view {\n" +
-  "\t\taddress consoleAddress = CONSOLE_ADDRESS;\n" +
-  "\t\t/// @solidity memory-safe-assembly\n" +
-  "\t\tassembly {\n" +
-  "\t\t\tpop(staticcall(gas(), consoleAddress, add(payload, 32), mload(payload), 0, 0))\n" +
-  "\t\t}\n" +
-  "\t}\n" +
-  "\n" +
-  "\tfunction log() internal view {\n" +
-  '\t\t_sendLogPayload(abi.encodeWithSignature("log()"));\n' +
-  "\t}\n" +
-  "\n";
+let consoleSolFile = `// SPDX-License-Identifier: MIT
+pragma solidity >=0.4.22 <0.9.0;
+
+library console {
+    address constant CONSOLE_ADDRESS =
+        0x000000000000000000636F6e736F6c652e6c6f67;
+
+    function _sendLogPayloadImplementation(bytes memory payload) internal view {
+        address consoleAddress = CONSOLE_ADDRESS;
+        /// @solidity memory-safe-assembly
+        assembly {
+            pop(
+                staticcall(
+                    gas(),
+                    consoleAddress,
+                    add(payload, 32),
+                    mload(payload),
+                    0,
+                    0
+                )
+            )
+        }
+    }
+
+    function _castToPure(
+      function(bytes memory) internal view fnIn
+    ) internal pure returns (function(bytes memory) pure fnOut) {
+        assembly {
+            fnOut := fnIn
+        }
+    }
+
+    function _sendLogPayload(bytes memory payload) internal pure {
+        _castToPure(_sendLogPayloadImplementation)(payload);
+    }
+
+    function log() internal pure {
+        _sendLogPayload(abi.encodeWithSignature("log()"));
+    }
+`;
 
 logger +=
   "\n// In order to optimize map lookup\n" +
