@@ -3,10 +3,10 @@ const fs = require("fs");
 
 const { keccak256 } = require("../internal/util/keccak");
 
-const functionPrefix = "\tfunction";
+const functionPrefix = "    function";
 const functionBody =
-  ") internal pure {" + '\n\t\t_sendLogPayload(abi.encodeWithSignature("log(';
-const functionSuffix = "));" + "\n\t}" + "\n" + "\n";
+  ") internal pure {" + '\n        _sendLogPayload(abi.encodeWithSignature("log(';
+const functionSuffix = "));" + "\n    }" + "\n" + "\n";
 
 let logger =
   "// ------------------------------------\n" +
