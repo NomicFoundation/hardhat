@@ -15,6 +15,13 @@ import {
   TASK_FLATTEN_GET_FLATTENED_SOURCE,
 } from "./task-names";
 
+// Match every line where a SPDX license is defined. The first captured group is the license.
+const SPDX_LICENSES_REGEX =
+  /^(?:\/\/|\/\*) *SPDX-License-Identifier:\s*([\w\d._-]+) *(\*\/)?(\n|$)/gim;
+// Match every line where a pragma version is defined. The first captured group is the pragma version.
+const PRAGMA_VERSIONS_REGEX =
+  /^ *(pragma +abicoder +v(1|2)|pragma experimental ABIEncoderV2); *(\n|$)/gim;
+
 function getSortedFiles(dependenciesGraph: DependencyGraph) {
   const tsort = require("tsort");
   const graph = tsort();
@@ -71,6 +78,64 @@ function getFileWithoutImports(resolvedFile: ResolvedFile) {
     .trim();
 }
 
+function addLicensesHeader(sortedFiles: ResolvedFile[]): string {
+  const licenses: Set<string> = new Set();
+
+  for (const file of sortedFiles) {
+    const matches = [...file.content.rawContent.matchAll(SPDX_LICENSES_REGEX)];
+
+    for (const [, license] of matches) {
+      licenses.add(license);
+    }
+  }
+
+  return licenses.size <= 0
+    ? ""
+    : `\n\n// SPDX-License-Identifier: ${Array.from(licenses).join(" AND ")}`;
+}
+
+function addPragmaAbicoderVersionHeader(sortedFiles: ResolvedFile[]): string {
+  let version = "";
+  const versionsByImportance = [
+    "pragma abicoder v1",
+    "pragma experimental ABIEncoderV2",
+    "pragma abicoder v2",
+  ];
+
+  for (const file of sortedFiles) {
+    const matches = [
+      ...file.content.rawContent.matchAll(PRAGMA_VERSIONS_REGEX),
+    ];
+
+    for (const [, currV] of matches) {
+      if (
+        versionsByImportance.indexOf(currV) >
+        versionsByImportance.indexOf(version)
+      ) {
+        version = currV;
+      }
+    }
+  }
+
+  return version === "" ? "" : `\n\n${version}`;
+}
+
+function replaceLicenses(file: string): string {
+  const originalLicense = "// Original license: SPDX_License_Identifier:";
+
+  return file.replace(
+    SPDX_LICENSES_REGEX,
+    (...groups) => `${originalLicense} ${groups[1]}\n`
+  );
+}
+
+function replacePragmaAbicoderVersions(file: string): string {
+  return file.replace(
+    PRAGMA_VERSIONS_REGEX,
+    (...groups) => `// ${groups[1]}\n`
+  );
+}
+
 subtask(
   TASK_FLATTEN_GET_FLATTENED_SOURCE,
   "Returns all contracts and their dependencies flattened"
@@ -93,9 +158,17 @@ subtask(
 
     const sortedFiles = getSortedFiles(dependencyGraph);
 
+    flattened += addLicensesHeader(sortedFiles);
+    flattened += addPragmaAbicoderVersionHeader(sortedFiles);
+
     for (const file of sortedFiles) {
       flattened += `\n\n// File ${file.getVersionedName()}\n`;
-      flattened += `\n${getFileWithoutImports(file)}\n`;
+
+      let tmpFile = getFileWithoutImports(file);
+      tmpFile = replaceLicenses(tmpFile);
+      tmpFile = replacePragmaAbicoderVersions(tmpFile);
+
+      flattened += `\n${tmpFile}\n`;
     }
 
     return flattened.trim();
