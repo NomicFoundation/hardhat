@@ -5,7 +5,8 @@ const { keccak256 } = require("../internal/util/keccak");
 
 const functionPrefix = "    function";
 const functionBody =
-  ") internal pure {" + '\n        _sendLogPayload(abi.encodeWithSignature("log(';
+  ") internal pure {" +
+  '\n        _sendLogPayload(abi.encodeWithSignature("log(';
 const functionSuffix = "));" + "\n    }" + "\n" + "\n";
 
 let logger =
