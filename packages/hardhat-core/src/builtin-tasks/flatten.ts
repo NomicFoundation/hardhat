@@ -20,7 +20,7 @@ const SPDX_LICENSES_REGEX =
   /^(?:\/\/|\/\*) *SPDX-License-Identifier:\s*([\w\d._-]+) *(\*\/)?(\n|$)/gim;
 // Match every line where a pragma directive is defined. The first captured group is the pragma directive.
 const PRAGMA_DIRECTIVES_REGEX =
-  /^ *(pragma +abicoder +v(1|2)|pragma experimental ABIEncoderV2); *(\n|$)/gim;
+  /^ *(pragma +abicoder +v(1|2)|pragma +experimental +ABIEncoderV2) *; *(\n|$)/gim;
 
 function getSortedFiles(dependenciesGraph: DependencyGraph) {
   const tsort = require("tsort");
@@ -96,6 +96,10 @@ function addLicensesHeader(sortedFiles: ResolvedFile[]): string {
         .join(" AND ")}`;
 }
 
+function removeUnnecessarySpaces(str: string): string {
+  return str.replace(/\s+/g, " ").trim();
+}
+
 function addPragmaAbicoderDirectiveHeader(sortedFiles: ResolvedFile[]): string {
   let directive = "";
   const directivesByImportance = [
@@ -109,12 +113,14 @@ function addPragmaAbicoderDirectiveHeader(sortedFiles: ResolvedFile[]): string {
       ...file.content.rawContent.matchAll(PRAGMA_DIRECTIVES_REGEX),
     ];
 
-    for (const [, currV] of matches) {
+    for (const [, m] of matches) {
+      const tmpM = removeUnnecessarySpaces(m);
+
       if (
-        directivesByImportance.indexOf(currV) >
+        directivesByImportance.indexOf(tmpM) >
         directivesByImportance.indexOf(directive)
       ) {
-        directive = currV;
+        directive = tmpM;
       }
     }
   }
@@ -136,7 +142,8 @@ function replacePragmaAbicoderDirectives(file: string): string {
 
   return file.replace(
     PRAGMA_DIRECTIVES_REGEX,
-    (...groups) => `${originalPragmaDirective} ${groups[1]}\n`
+    (...groups) =>
+      `${originalPragmaDirective} ${removeUnnecessarySpaces(groups[1])}\n`
   );
 }
 
