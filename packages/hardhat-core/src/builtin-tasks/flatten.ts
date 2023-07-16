@@ -18,8 +18,8 @@ import {
 // Match every line where a SPDX license is defined. The first captured group is the license.
 const SPDX_LICENSES_REGEX =
   /^(?:\/\/|\/\*) *SPDX-License-Identifier:\s*([\w\d._-]+) *(\*\/)?(\n|$)/gim;
-// Match every line where a pragma version is defined. The first captured group is the pragma version.
-const PRAGMA_VERSIONS_REGEX =
+// Match every line where a pragma directive is defined. The first captured group is the pragma directive.
+const PRAGMA_DIRECTIVE_REGEX =
   /^ *(pragma +abicoder +v(1|2)|pragma experimental ABIEncoderV2); *(\n|$)/gim;
 
 function getSortedFiles(dependenciesGraph: DependencyGraph) {
@@ -96,9 +96,9 @@ function addLicensesHeader(sortedFiles: ResolvedFile[]): string {
         .join(" AND ")}`;
 }
 
-function addPragmaAbicoderVersionHeader(sortedFiles: ResolvedFile[]): string {
-  let version = "";
-  const versionsByImportance = [
+function addPragmaAbicoderDirectiveHeader(sortedFiles: ResolvedFile[]): string {
+  let directive = "";
+  const directivesByImportance = [
     "pragma abicoder v1",
     "pragma experimental ABIEncoderV2",
     "pragma abicoder v2",
@@ -106,20 +106,20 @@ function addPragmaAbicoderVersionHeader(sortedFiles: ResolvedFile[]): string {
 
   for (const file of sortedFiles) {
     const matches = [
-      ...file.content.rawContent.matchAll(PRAGMA_VERSIONS_REGEX),
+      ...file.content.rawContent.matchAll(PRAGMA_DIRECTIVE_REGEX),
     ];
 
     for (const [, currV] of matches) {
       if (
-        versionsByImportance.indexOf(currV) >
-        versionsByImportance.indexOf(version)
+        directivesByImportance.indexOf(currV) >
+        directivesByImportance.indexOf(directive)
       ) {
-        version = currV;
+        directive = currV;
       }
     }
   }
 
-  return version === "" ? "" : `\n\n${version};`;
+  return directive === "" ? "" : `\n\n${directive};`;
 }
 
 function replaceLicenses(file: string): string {
@@ -131,12 +131,12 @@ function replaceLicenses(file: string): string {
   );
 }
 
-function replacePragmaAbicoderVersions(file: string): string {
-  const pragmaVersion = "// Original pragma version:";
+function replacePragmaAbicoderDirectives(file: string): string {
+  const originalPragmaDirective = "// Original pragma directive:";
 
   return file.replace(
-    PRAGMA_VERSIONS_REGEX,
-    (...groups) => `${pragmaVersion} ${groups[1]}\n`
+    PRAGMA_DIRECTIVE_REGEX,
+    (...groups) => `${originalPragmaDirective} ${groups[1]}\n`
   );
 }
 
@@ -163,14 +163,14 @@ subtask(
     const sortedFiles = getSortedFiles(dependencyGraph);
 
     flattened += addLicensesHeader(sortedFiles);
-    flattened += addPragmaAbicoderVersionHeader(sortedFiles);
+    flattened += addPragmaAbicoderDirectiveHeader(sortedFiles);
 
     for (const file of sortedFiles) {
       flattened += `\n\n// File ${file.getVersionedName()}\n`;
 
       let tmpFile = getFileWithoutImports(file);
       tmpFile = replaceLicenses(tmpFile);
-      tmpFile = replacePragmaAbicoderVersions(tmpFile);
+      tmpFile = replacePragmaAbicoderDirectives(tmpFile);
 
       flattened += `\n${tmpFile}\n`;
     }

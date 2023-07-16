@@ -111,17 +111,17 @@ describe("Flatten task", () => {
     });
   });
 
-  describe("SPDX licenses and pragma abicoder versions", () => {
+  describe("SPDX licenses and pragma abicoder directives", () => {
     // Licenses
     const LICENSES_HEADER = "// SPDX-License-Identifier:";
     const COMMENTED_LICENSES = "// Original license: SPDX_License_Identifier:";
-    // Abi pragma versions
+    // Abi pragma directives
     const PRAGMA_ABICODER_V1 = "pragma abicoder v1";
     const PRAGMA_ABICODER_V2 = "pragma abicoder v2";
     const PRAGMA_EXPERIMENTAL_V2 = "pragma experimental ABIEncoderV2";
-    const COMMENTED_PRAGMA_VERSION = "// Original pragma version:";
+    const COMMENTED_PRAGMA_DIRECTIVE = "// Original pragma directive:";
 
-    describe("Flatten files that not contain SPDX licenses or pragma versions", () => {
+    describe("Flatten files that not contain SPDX licenses or pragma directives", () => {
       useFixtureProject("contracts-no-spdx-no-pragma");
 
       it("should successfully flatten and compile the files", async function () {
@@ -137,7 +137,7 @@ describe("Flatten task", () => {
         assert.isFalse(flattenedFiles.includes(PRAGMA_ABICODER_V2));
         assert.isFalse(flattenedFiles.includes(PRAGMA_EXPERIMENTAL_V2));
 
-        // Abi pragma versions
+        // Abi pragma directives
         assert.isFalse(flattenedFiles.includes(LICENSES_HEADER));
         assert.isFalse(flattenedFiles.includes(COMMENTED_LICENSES));
       });
@@ -290,10 +290,10 @@ describe("Flatten task", () => {
       });
     });
 
-    describe("Flatten files that contain pragma abicoder versions", () => {
-      describe("Files contain one single pragma version per file", () => {
-        describe("Files contain same pragma versions", () => {
-          useFixtureProject("contracts-pragma-same-version");
+    describe("Flatten files that contain pragma abicoder directives", () => {
+      describe("Files contain one single pragma directive per file", () => {
+        describe("Files contain same pragma directive", () => {
+          useFixtureProject("contracts-pragma-same-directives");
 
           it("should successfully flatten and compile the files", async function () {
             const flattenedFiles = await this.env.run(
@@ -311,15 +311,15 @@ describe("Flatten task", () => {
             assert.equal(
               getStringOccurrences(
                 flattenedFiles,
-                `${COMMENTED_PRAGMA_VERSION} ${PRAGMA_ABICODER_V1}`
+                `${COMMENTED_PRAGMA_DIRECTIVE} ${PRAGMA_ABICODER_V1}`
               ),
               2
             );
           });
         });
 
-        describe("Files contain different pragma versions", () => {
-          useFixtureProject("contracts-pragma-different-versions");
+        describe("Files contain different pragma directives", () => {
+          useFixtureProject("contracts-pragma-different-directives");
 
           it("should successfully flatten and compile the files", async function () {
             const flattenedFiles = await this.env.run(
@@ -340,7 +340,7 @@ describe("Flatten task", () => {
             assert.equal(
               getStringOccurrences(
                 flattenedFiles,
-                `${COMMENTED_PRAGMA_VERSION} ${PRAGMA_EXPERIMENTAL_V2}`
+                `${COMMENTED_PRAGMA_DIRECTIVE} ${PRAGMA_EXPERIMENTAL_V2}`
               ),
               1
             );
@@ -348,7 +348,7 @@ describe("Flatten task", () => {
             assert.equal(
               getStringOccurrences(
                 flattenedFiles,
-                `${COMMENTED_PRAGMA_VERSION} ${PRAGMA_ABICODER_V1}`
+                `${COMMENTED_PRAGMA_DIRECTIVE} ${PRAGMA_ABICODER_V1}`
               ),
               1
             );
@@ -356,8 +356,8 @@ describe("Flatten task", () => {
         });
       });
 
-      describe("Files contain multiple pragma versions", () => {
-        useFixtureProject("contracts-pragma-multiple-versions");
+      describe("Files contain multiple pragma directives", () => {
+        useFixtureProject("contracts-pragma-multiple-directives");
 
         it("should successfully flatten and compile the files", async function () {
           const flattenedFiles = await this.env.run(
@@ -375,7 +375,7 @@ describe("Flatten task", () => {
           assert.equal(
             getStringOccurrences(
               flattenedFiles,
-              `${COMMENTED_PRAGMA_VERSION} ${PRAGMA_ABICODER_V2}`
+              `${COMMENTED_PRAGMA_DIRECTIVE} ${PRAGMA_ABICODER_V2}`
             ),
             1
           );
@@ -383,7 +383,7 @@ describe("Flatten task", () => {
           assert.equal(
             getStringOccurrences(
               flattenedFiles,
-              `${COMMENTED_PRAGMA_VERSION} ${PRAGMA_EXPERIMENTAL_V2}`
+              `${COMMENTED_PRAGMA_DIRECTIVE} ${PRAGMA_EXPERIMENTAL_V2}`
             ),
             2
           );
@@ -391,8 +391,8 @@ describe("Flatten task", () => {
       });
     });
 
-    describe("Files contains several SPDX licenses and pragma versions", () => {
-      useFixtureProject("contracts-spdx-licenses-and-pragma-versions");
+    describe("Files contains several SPDX licenses and pragma directives", () => {
+      useFixtureProject("contracts-spdx-licenses-and-pragma-directives");
 
       it("should successfully flatten and compile the files", async function () {
         const flattenedFiles = await this.env.run(
@@ -402,7 +402,7 @@ describe("Flatten task", () => {
         // Check that the flattened file compiles correctly
         await compileLiteral(flattenedFiles);
 
-        // Abi pragma versions
+        // Abi pragma directives
         assert.equal(
           getStringOccurrences(flattenedFiles, `${PRAGMA_ABICODER_V2};`),
           1
@@ -411,7 +411,7 @@ describe("Flatten task", () => {
         assert.equal(
           getStringOccurrences(
             flattenedFiles,
-            `${COMMENTED_PRAGMA_VERSION} ${PRAGMA_ABICODER_V1}`
+            `${COMMENTED_PRAGMA_DIRECTIVE} ${PRAGMA_ABICODER_V1}`
           ),
           1
         );
@@ -419,7 +419,7 @@ describe("Flatten task", () => {
         assert.equal(
           getStringOccurrences(
             flattenedFiles,
-            `${COMMENTED_PRAGMA_VERSION} ${PRAGMA_ABICODER_V2}`
+            `${COMMENTED_PRAGMA_DIRECTIVE} ${PRAGMA_ABICODER_V2}`
           ),
           2
         );
@@ -427,7 +427,7 @@ describe("Flatten task", () => {
         assert.equal(
           getStringOccurrences(
             flattenedFiles,
-            `${COMMENTED_PRAGMA_VERSION} ${PRAGMA_EXPERIMENTAL_V2}`
+            `${COMMENTED_PRAGMA_DIRECTIVE} ${PRAGMA_EXPERIMENTAL_V2}`
           ),
           1
         );
