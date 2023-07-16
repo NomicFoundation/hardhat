@@ -114,7 +114,6 @@
     "@sentry/node": "^5.18.1",
     "@types/bn.js": "^5.1.0",
     "@types/lru-cache": "^5.1.0",
-    "abort-controller": "^3.0.0",
     "adm-zip": "^0.4.16",
     "aggregate-error": "^3.0.0",
     "ansi-escapes": "^4.3.0",
