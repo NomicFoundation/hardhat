@@ -19,7 +19,7 @@ import {
 const SPDX_LICENSES_REGEX =
   /^(?:\/\/|\/\*) *SPDX-License-Identifier:\s*([\w\d._-]+) *(\*\/)?(\n|$)/gim;
 // Match every line where a pragma directive is defined. The first captured group is the pragma directive.
-const PRAGMA_DIRECTIVE_REGEX =
+const PRAGMA_DIRECTIVES_REGEX =
   /^ *(pragma +abicoder +v(1|2)|pragma experimental ABIEncoderV2); *(\n|$)/gim;
 
 function getSortedFiles(dependenciesGraph: DependencyGraph) {
@@ -106,7 +106,7 @@ function addPragmaAbicoderDirectiveHeader(sortedFiles: ResolvedFile[]): string {
 
   for (const file of sortedFiles) {
     const matches = [
-      ...file.content.rawContent.matchAll(PRAGMA_DIRECTIVE_REGEX),
+      ...file.content.rawContent.matchAll(PRAGMA_DIRECTIVES_REGEX),
     ];
 
     for (const [, currV] of matches) {
@@ -135,7 +135,7 @@ function replacePragmaAbicoderDirectives(file: string): string {
   const originalPragmaDirective = "// Original pragma directive:";
 
   return file.replace(
-    PRAGMA_DIRECTIVE_REGEX,
+    PRAGMA_DIRECTIVES_REGEX,
     (...groups) => `${originalPragmaDirective} ${groups[1]}\n`
   );
 }
