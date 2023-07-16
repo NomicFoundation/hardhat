@@ -139,7 +139,7 @@ function replaceLicenses(file: string): string {
 function replacePragmaAbicoderDirectives(file: string): string {
   return file.replaceAll(PRAGMA_DIRECTIVES_REGEX, (...groups) => {
     // If there is code after the pragma directives, move it to the next line.
-    // This is necessary because the pragma directives will be commented out.
+    // This is necessary because the original pragma directives will be commented out.
     // E.g.: pragma abicoder v2; contract Bar {
     const codeToMove = groups[9] !== "" ? `\n${groups[9].trimStart()}` : "";
 
