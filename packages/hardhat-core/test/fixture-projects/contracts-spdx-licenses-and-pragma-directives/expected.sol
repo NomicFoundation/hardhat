@@ -19,7 +19,6 @@ contract Bar {}
 // Original license: SPDX_License_Identifier: MPL-2.0-no-copyleft-exception
 // Original license: SPDX_License_Identifier: Linux-man-pages-1-para
 
-// Leave multiple spaces and tabs to test function that remove unnecessary spaces
 // Original pragma directive: pragma abicoder v2
 // Original pragma directive: pragma experimental ABIEncoderV2
 

@@ -15,12 +15,13 @@ import {
   TASK_FLATTEN_GET_FLATTENED_SOURCE,
 } from "./task-names";
 
-// Match every line where a SPDX license is defined. The first captured group is the license.
+// Match every group where a SPDX license is defined. The fourth captured group is the license.
 const SPDX_LICENSES_REGEX =
-  /^(?:\/\/|\/\*) *SPDX-License-Identifier:\s*([\w\d._-]+) *(\*\/)?(\n|$)/gim;
-// Match every line where a pragma directive is defined. The first captured group is the pragma directive.
+  /^(\/\/|\/\*)(\s|\t)*SPDX-License-Identifier:(\s|\t)*([\w\d._-]+).*/gm;
+// Match every group where a pragma directive is defined. The second captured group is the pragma directive.
+// If, after the pragma directives, there is code, it will be captured in group 9.
 const PRAGMA_DIRECTIVES_REGEX =
-  /^ *(pragma +abicoder +v(1|2)|pragma +experimental +ABIEncoderV2) *; *(\n|$)/gim;
+  /^( |\t)*(pragma(\s|\t)*abicoder(\s|\t)*v(1|2)|pragma(\s|\t)*experimental(\s|\t)*ABIEncoderV2)(\s|\t)*;(.*)/gim;
 
 function getSortedFiles(dependenciesGraph: DependencyGraph) {
   const tsort = require("tsort");
@@ -78,14 +79,14 @@ function getFileWithoutImports(resolvedFile: ResolvedFile) {
     .trim();
 }
 
-function addLicensesHeader(sortedFiles: ResolvedFile[]): string {
+function getLicensesHeader(sortedFiles: ResolvedFile[]): string {
   const licenses: Set<string> = new Set();
 
   for (const file of sortedFiles) {
     const matches = [...file.content.rawContent.matchAll(SPDX_LICENSES_REGEX)];
 
-    for (const [, license] of matches) {
-      licenses.add(license);
+    for (const groups of matches) {
+      licenses.add(groups[4]);
     }
   }
 
@@ -100,7 +101,7 @@ function removeUnnecessarySpaces(str: string): string {
   return str.replace(/\s+/g, " ").trim();
 }
 
-function addPragmaAbicoderDirectiveHeader(sortedFiles: ResolvedFile[]): string {
+function getPragmaAbicoderDirectiveHeader(sortedFiles: ResolvedFile[]): string {
   let directive = "";
   const directivesByImportance = [
     "pragma abicoder v1",
@@ -113,14 +114,14 @@ function addPragmaAbicoderDirectiveHeader(sortedFiles: ResolvedFile[]): string {
       ...file.content.rawContent.matchAll(PRAGMA_DIRECTIVES_REGEX),
     ];
 
-    for (const [, m] of matches) {
-      const tmpM = removeUnnecessarySpaces(m);
+    for (const groups of matches) {
+      const normalizedPragma = removeUnnecessarySpaces(groups[2]);
 
       if (
-        directivesByImportance.indexOf(tmpM) >
+        directivesByImportance.indexOf(normalizedPragma) >
         directivesByImportance.indexOf(directive)
       ) {
-        directive = tmpM;
+        directive = normalizedPragma;
       }
     }
   }
@@ -129,22 +130,23 @@ function addPragmaAbicoderDirectiveHeader(sortedFiles: ResolvedFile[]): string {
 }
 
 function replaceLicenses(file: string): string {
-  const originalLicense = "// Original license: SPDX_License_Identifier:";
-
-  return file.replace(
+  return file.replaceAll(
     SPDX_LICENSES_REGEX,
-    (...groups) => `${originalLicense} ${groups[1]}\n`
+    (...groups) => `// Original license: SPDX_License_Identifier: ${groups[4]}`
   );
 }
 
 function replacePragmaAbicoderDirectives(file: string): string {
-  const originalPragmaDirective = "// Original pragma directive:";
+  return file.replaceAll(PRAGMA_DIRECTIVES_REGEX, (...groups) => {
+    // If there is code after the pragma directives, move it to the next line.
+    // This is necessary because the pragma directives will be commented out.
+    // E.g.: pragma abicoder v2; contract Bar {
+    const codeToMove = groups[9] !== "" ? `\n${groups[9].trimStart()}` : "";
 
-  return file.replace(
-    PRAGMA_DIRECTIVES_REGEX,
-    (...groups) =>
-      `${originalPragmaDirective} ${removeUnnecessarySpaces(groups[1])}\n`
-  );
+    return `// Original pragma directive: ${removeUnnecessarySpaces(
+      groups[2]
+    )}${codeToMove}`;
+  });
 }
 
 subtask(
@@ -169,16 +171,15 @@ subtask(
 
     const sortedFiles = getSortedFiles(dependencyGraph);
 
-    flattened += addLicensesHeader(sortedFiles);
-    flattened += addPragmaAbicoderDirectiveHeader(sortedFiles);
+    flattened += getLicensesHeader(sortedFiles);
+    flattened += getPragmaAbicoderDirectiveHeader(sortedFiles);
 
     for (const file of sortedFiles) {
-      flattened += `\n\n// File ${file.getVersionedName()}\n`;
-
       let tmpFile = getFileWithoutImports(file);
       tmpFile = replaceLicenses(tmpFile);
       tmpFile = replacePragmaAbicoderDirectives(tmpFile);
 
+      flattened += `\n\n// File ${file.getVersionedName()}\n`;
       flattened += `\n${tmpFile}\n`;
     }
 

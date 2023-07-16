@@ -243,5 +243,17 @@ describe("Flatten task", () => {
         await assertFlattenedFilesResult(flattenedFiles);
       });
     });
+
+    describe("Check regex rules in files that contains several SPDX licenses and pragma directives", () => {
+      useFixtureProject("contracts-regex-spdx-licenses-and-pragma-directives");
+
+      it("should successfully flatten and compile the files", async function () {
+        const flattenedFiles = await this.env.run(
+          TASK_FLATTEN_GET_FLATTENED_SOURCE
+        );
+
+        await assertFlattenedFilesResult(flattenedFiles);
+      });
+    });
   });
 });
