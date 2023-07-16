@@ -91,7 +91,9 @@ function addLicensesHeader(sortedFiles: ResolvedFile[]): string {
 
   return licenses.size <= 0
     ? ""
-    : `\n\n// SPDX-License-Identifier: ${Array.from(licenses).join(" AND ")}`;
+    : `\n\n// SPDX-License-Identifier: ${Array.from(licenses)
+        .sort() // Sort alphabetically
+        .join(" AND ")}`;
 }
 
 function addPragmaAbicoderVersionHeader(sortedFiles: ResolvedFile[]): string {
@@ -117,7 +119,7 @@ function addPragmaAbicoderVersionHeader(sortedFiles: ResolvedFile[]): string {
     }
   }
 
-  return version === "" ? "" : `\n\n${version}`;
+  return version === "" ? "" : `\n\n${version};`;
 }
 
 function replaceLicenses(file: string): string {
@@ -130,9 +132,11 @@ function replaceLicenses(file: string): string {
 }
 
 function replacePragmaAbicoderVersions(file: string): string {
+  const pragmaVersion = "// Original pragma version:";
+
   return file.replace(
     PRAGMA_VERSIONS_REGEX,
-    (...groups) => `// ${groups[1]}\n`
+    (...groups) => `${pragmaVersion} ${groups[1]}\n`
   );
 }
 

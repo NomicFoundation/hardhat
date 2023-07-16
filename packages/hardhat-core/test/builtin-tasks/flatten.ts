@@ -3,12 +3,17 @@ import { assert } from "chai";
 import { TASK_FLATTEN_GET_FLATTENED_SOURCE } from "../../src/builtin-tasks/task-names";
 import { useEnvironment } from "../helpers/environment";
 import { useFixtureProject } from "../helpers/project";
+import { compileLiteral } from "../internal/hardhat-network/stack-traces/compilation";
 
 function getContractsOrder(flattenedFiles: string) {
   const CONTRACT_REGEX = /\s*contract(\s+)(\w)/gm;
   const matches = flattenedFiles.match(CONTRACT_REGEX);
 
   return matches!.map((m: string) => m.replace("contract", "").trim());
+}
+
+function getStringOccurrences(file: string, subStr: string): number {
+  return file.split(subStr).length - 1;
 }
 
 describe("Flatten task", () => {
@@ -103,6 +108,365 @@ describe("Flatten task", () => {
       for (let i = 0; i + 1 < runs; i++) {
         assert.equal(flattenedFiles[i], flattenedFiles[i + 1]);
       }
+    });
+  });
+
+  describe("SPDX licenses and pragma abicoder versions", () => {
+    // Licenses
+    const LICENSES_HEADER = "// SPDX-License-Identifier:";
+    const COMMENTED_LICENSES = "// Original license: SPDX_License_Identifier:";
+    // Abi pragma versions
+    const PRAGMA_ABICODER_V1 = "pragma abicoder v1";
+    const PRAGMA_ABICODER_V2 = "pragma abicoder v2";
+    const PRAGMA_EXPERIMENTAL_V2 = "pragma experimental ABIEncoderV2";
+    const COMMENTED_PRAGMA_VERSION = "// Original pragma version:";
+
+    describe("Flatten files that not contain SPDX licenses or pragma versions", () => {
+      useFixtureProject("contracts-no-spdx-no-pragma");
+
+      it("should successfully flatten and compile the files", async function () {
+        const flattenedFiles = await this.env.run(
+          TASK_FLATTEN_GET_FLATTENED_SOURCE
+        );
+
+        // Check that the flattened file compiles correctly
+        await compileLiteral(flattenedFiles);
+
+        // Licenses
+        assert.isFalse(flattenedFiles.includes(PRAGMA_ABICODER_V1));
+        assert.isFalse(flattenedFiles.includes(PRAGMA_ABICODER_V2));
+        assert.isFalse(flattenedFiles.includes(PRAGMA_EXPERIMENTAL_V2));
+
+        // Abi pragma versions
+        assert.isFalse(flattenedFiles.includes(LICENSES_HEADER));
+        assert.isFalse(flattenedFiles.includes(COMMENTED_LICENSES));
+      });
+    });
+
+    describe("Flatten files that contain SPDX licenses", () => {
+      describe("Files contain one single license per file", () => {
+        describe("Files contain same licenses", () => {
+          useFixtureProject("contracts-spdx-same-licenses");
+
+          it("should successfully flatten and compile the files", async function () {
+            const flattenedFiles = await this.env.run(
+              TASK_FLATTEN_GET_FLATTENED_SOURCE
+            );
+
+            // Check that the flattened file compiles correctly
+            await compileLiteral(flattenedFiles);
+
+            assert.equal(
+              getStringOccurrences(flattenedFiles, `${LICENSES_HEADER} MIT`),
+              1
+            );
+
+            assert.equal(
+              getStringOccurrences(flattenedFiles, `${COMMENTED_LICENSES} MIT`),
+              2
+            );
+          });
+        });
+
+        describe("Files contain different licenses", () => {
+          useFixtureProject("contracts-spdx-different-licenses");
+
+          it("should successfully flatten and compile the files", async function () {
+            const flattenedFiles = await this.env.run(
+              TASK_FLATTEN_GET_FLATTENED_SOURCE
+            );
+
+            // Check that the flattened file compiles correctly
+            await compileLiteral(flattenedFiles);
+
+            assert.equal(
+              getStringOccurrences(
+                flattenedFiles,
+                `${LICENSES_HEADER} MIT AND MPL-2.0`
+              ),
+              1
+            );
+
+            assert.equal(
+              getStringOccurrences(flattenedFiles, `${COMMENTED_LICENSES} MIT`),
+              1
+            );
+
+            assert.equal(
+              getStringOccurrences(
+                flattenedFiles,
+                `${COMMENTED_LICENSES} MPL-2.0`
+              ),
+              1
+            );
+          });
+        });
+      });
+
+      describe("Files contain multiple licenses", () => {
+        describe("Files contain multiple same licenses", () => {
+          useFixtureProject("contracts-spdx-same-multiple-licenses");
+
+          it("should successfully flatten and compile the files", async function () {
+            const flattenedFiles = await this.env.run(
+              TASK_FLATTEN_GET_FLATTENED_SOURCE
+            );
+
+            // Check that the flattened file compiles correctly
+            await compileLiteral(flattenedFiles);
+
+            assert.equal(
+              getStringOccurrences(
+                flattenedFiles,
+                `${LICENSES_HEADER} Linux-man-pages-1-para AND MIT`
+              ),
+              1
+            );
+
+            assert.equal(
+              getStringOccurrences(
+                flattenedFiles,
+                `${COMMENTED_LICENSES} Linux-man-pages-1-para`
+              ),
+              2
+            );
+
+            assert.equal(
+              getStringOccurrences(flattenedFiles, `${COMMENTED_LICENSES} MIT`),
+              2
+            );
+          });
+        });
+
+        describe("Files contain multiple different licenses", () => {
+          useFixtureProject("contracts-spdx-different-multiple-licenses");
+
+          it("should successfully flatten and compile the files", async function () {
+            const flattenedFiles = await this.env.run(
+              TASK_FLATTEN_GET_FLATTENED_SOURCE
+            );
+
+            // Check that the flattened file compiles correctly
+            await compileLiteral(flattenedFiles);
+
+            assert.equal(
+              getStringOccurrences(
+                flattenedFiles,
+                `${LICENSES_HEADER} Linux-man-pages-1-para AND MIT AND MPL-1.1 AND MPL-2.0-no-copyleft-exception`
+              ),
+              1
+            );
+
+            assert.equal(
+              getStringOccurrences(
+                flattenedFiles,
+                `${COMMENTED_LICENSES} Linux-man-pages-1-para`
+              ),
+              3
+            );
+
+            assert.equal(
+              getStringOccurrences(flattenedFiles, `${COMMENTED_LICENSES} MIT`),
+              1
+            );
+
+            assert.equal(
+              getStringOccurrences(
+                flattenedFiles,
+                `${COMMENTED_LICENSES} MPL-1.1`
+              ),
+              1
+            );
+
+            assert.equal(
+              getStringOccurrences(
+                flattenedFiles,
+                `${COMMENTED_LICENSES} MPL-2.0-no-copyleft-exception`
+              ),
+              2
+            );
+          });
+        });
+      });
+    });
+
+    describe("Flatten files that contain pragma abicoder versions", () => {
+      describe("Files contain one single pragma version per file", () => {
+        describe("Files contain same pragma versions", () => {
+          useFixtureProject("contracts-pragma-same-version");
+
+          it("should successfully flatten and compile the files", async function () {
+            const flattenedFiles = await this.env.run(
+              TASK_FLATTEN_GET_FLATTENED_SOURCE
+            );
+
+            // Check that the flattened file compiles correctly
+            await compileLiteral(flattenedFiles);
+
+            assert.equal(
+              getStringOccurrences(flattenedFiles, `${PRAGMA_ABICODER_V1};`),
+              1
+            );
+
+            assert.equal(
+              getStringOccurrences(
+                flattenedFiles,
+                `${COMMENTED_PRAGMA_VERSION} ${PRAGMA_ABICODER_V1}`
+              ),
+              2
+            );
+          });
+        });
+
+        describe("Files contain different pragma versions", () => {
+          useFixtureProject("contracts-pragma-different-versions");
+
+          it("should successfully flatten and compile the files", async function () {
+            const flattenedFiles = await this.env.run(
+              TASK_FLATTEN_GET_FLATTENED_SOURCE
+            );
+
+            // Check that the flattened file compiles correctly
+            await compileLiteral(flattenedFiles);
+
+            assert.equal(
+              getStringOccurrences(
+                flattenedFiles,
+                `${PRAGMA_EXPERIMENTAL_V2};`
+              ),
+              1
+            );
+
+            assert.equal(
+              getStringOccurrences(
+                flattenedFiles,
+                `${COMMENTED_PRAGMA_VERSION} ${PRAGMA_EXPERIMENTAL_V2}`
+              ),
+              1
+            );
+
+            assert.equal(
+              getStringOccurrences(
+                flattenedFiles,
+                `${COMMENTED_PRAGMA_VERSION} ${PRAGMA_ABICODER_V1}`
+              ),
+              1
+            );
+          });
+        });
+      });
+
+      describe("Files contain multiple pragma versions", () => {
+        useFixtureProject("contracts-pragma-multiple-versions");
+
+        it("should successfully flatten and compile the files", async function () {
+          const flattenedFiles = await this.env.run(
+            TASK_FLATTEN_GET_FLATTENED_SOURCE
+          );
+
+          // Check that the flattened file compiles correctly
+          await compileLiteral(flattenedFiles);
+
+          assert.equal(
+            getStringOccurrences(flattenedFiles, `${PRAGMA_ABICODER_V2};`),
+            1
+          );
+
+          assert.equal(
+            getStringOccurrences(
+              flattenedFiles,
+              `${COMMENTED_PRAGMA_VERSION} ${PRAGMA_ABICODER_V2}`
+            ),
+            1
+          );
+
+          assert.equal(
+            getStringOccurrences(
+              flattenedFiles,
+              `${COMMENTED_PRAGMA_VERSION} ${PRAGMA_EXPERIMENTAL_V2}`
+            ),
+            2
+          );
+        });
+      });
+    });
+
+    describe("Files contains several SPDX licenses and pragma versions", () => {
+      useFixtureProject("contracts-spdx-licenses-and-pragma-versions");
+
+      it("should successfully flatten and compile the files", async function () {
+        const flattenedFiles = await this.env.run(
+          TASK_FLATTEN_GET_FLATTENED_SOURCE
+        );
+
+        // Check that the flattened file compiles correctly
+        await compileLiteral(flattenedFiles);
+
+        // Abi pragma versions
+        assert.equal(
+          getStringOccurrences(flattenedFiles, `${PRAGMA_ABICODER_V2};`),
+          1
+        );
+
+        assert.equal(
+          getStringOccurrences(
+            flattenedFiles,
+            `${COMMENTED_PRAGMA_VERSION} ${PRAGMA_ABICODER_V1}`
+          ),
+          1
+        );
+
+        assert.equal(
+          getStringOccurrences(
+            flattenedFiles,
+            `${COMMENTED_PRAGMA_VERSION} ${PRAGMA_ABICODER_V2}`
+          ),
+          2
+        );
+
+        assert.equal(
+          getStringOccurrences(
+            flattenedFiles,
+            `${COMMENTED_PRAGMA_VERSION} ${PRAGMA_EXPERIMENTAL_V2}`
+          ),
+          1
+        );
+
+        // Licenses
+        assert.equal(
+          getStringOccurrences(
+            flattenedFiles,
+            `${LICENSES_HEADER} Linux-man-pages-1-para AND MIT AND MPL-1.1 AND MPL-2.0-no-copyleft-exception`
+          ),
+          1
+        );
+
+        assert.equal(
+          getStringOccurrences(flattenedFiles, `${COMMENTED_LICENSES} MIT`),
+          1
+        );
+
+        assert.equal(
+          getStringOccurrences(
+            flattenedFiles,
+            `${COMMENTED_LICENSES} Linux-man-pages-1-para`
+          ),
+          3
+        );
+
+        assert.equal(
+          getStringOccurrences(
+            flattenedFiles,
+            `${COMMENTED_LICENSES} MPL-2.0-no-copyleft-exception`
+          ),
+          2
+        );
+
+        assert.equal(
+          getStringOccurrences(flattenedFiles, `${COMMENTED_LICENSES} MPL-1.1`),
+          1
+        );
+      });
     });
   });
 });
