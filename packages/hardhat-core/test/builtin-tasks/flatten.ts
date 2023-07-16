@@ -14,10 +14,6 @@ function getContractsOrder(flattenedFiles: string) {
   return matches!.map((m: string) => m.replace("contract", "").trim());
 }
 
-function getStringOccurrences(file: string, subStr: string): number {
-  return file.split(subStr).length - 1;
-}
-
 describe("Flatten task", () => {
   useEnvironment();
 
@@ -114,15 +110,6 @@ describe("Flatten task", () => {
   });
 
   describe("SPDX licenses and pragma abicoder directives", () => {
-    // Licenses
-    const LICENSES_HEADER = "// SPDX-License-Identifier:";
-    const COMMENTED_LICENSES = "// Original license: SPDX_License_Identifier:";
-    // Abi pragma directives
-    const PRAGMA_ABICODER_V1 = "pragma abicoder v1";
-    const PRAGMA_ABICODER_V2 = "pragma abicoder v2";
-    const PRAGMA_EXPERIMENTAL_V2 = "pragma experimental ABIEncoderV2";
-    const COMMENTED_PRAGMA_DIRECTIVE = "// Original pragma directive:";
-
     async function getExpectedSol() {
       const expected = fs.readFileSync("expected.sol", "utf8");
 
@@ -161,18 +148,7 @@ describe("Flatten task", () => {
               TASK_FLATTEN_GET_FLATTENED_SOURCE
             );
 
-            // Check that the flattened file compiles correctly
-            await compileLiteral(flattenedFiles);
-
-            assert.equal(
-              getStringOccurrences(flattenedFiles, `${LICENSES_HEADER} MIT`),
-              1
-            );
-
-            assert.equal(
-              getStringOccurrences(flattenedFiles, `${COMMENTED_LICENSES} MIT`),
-              2
-            );
+            await assertFlattenedFilesResult(flattenedFiles);
           });
         });
 
@@ -184,29 +160,7 @@ describe("Flatten task", () => {
               TASK_FLATTEN_GET_FLATTENED_SOURCE
             );
 
-            // Check that the flattened file compiles correctly
-            await compileLiteral(flattenedFiles);
-
-            assert.equal(
-              getStringOccurrences(
-                flattenedFiles,
-                `${LICENSES_HEADER} MIT AND MPL-2.0`
-              ),
-              1
-            );
-
-            assert.equal(
-              getStringOccurrences(flattenedFiles, `${COMMENTED_LICENSES} MIT`),
-              1
-            );
-
-            assert.equal(
-              getStringOccurrences(
-                flattenedFiles,
-                `${COMMENTED_LICENSES} MPL-2.0`
-              ),
-              1
-            );
+            await assertFlattenedFilesResult(flattenedFiles);
           });
         });
       });
@@ -220,29 +174,7 @@ describe("Flatten task", () => {
               TASK_FLATTEN_GET_FLATTENED_SOURCE
             );
 
-            // Check that the flattened file compiles correctly
-            await compileLiteral(flattenedFiles);
-
-            assert.equal(
-              getStringOccurrences(
-                flattenedFiles,
-                `${LICENSES_HEADER} Linux-man-pages-1-para AND MIT`
-              ),
-              1
-            );
-
-            assert.equal(
-              getStringOccurrences(
-                flattenedFiles,
-                `${COMMENTED_LICENSES} Linux-man-pages-1-para`
-              ),
-              2
-            );
-
-            assert.equal(
-              getStringOccurrences(flattenedFiles, `${COMMENTED_LICENSES} MIT`),
-              2
-            );
+            await assertFlattenedFilesResult(flattenedFiles);
           });
         });
 
@@ -254,45 +186,7 @@ describe("Flatten task", () => {
               TASK_FLATTEN_GET_FLATTENED_SOURCE
             );
 
-            // Check that the flattened file compiles correctly
-            await compileLiteral(flattenedFiles);
-
-            assert.equal(
-              getStringOccurrences(
-                flattenedFiles,
-                `${LICENSES_HEADER} Linux-man-pages-1-para AND MIT AND MPL-1.1 AND MPL-2.0-no-copyleft-exception`
-              ),
-              1
-            );
-
-            assert.equal(
-              getStringOccurrences(
-                flattenedFiles,
-                `${COMMENTED_LICENSES} Linux-man-pages-1-para`
-              ),
-              3
-            );
-
-            assert.equal(
-              getStringOccurrences(flattenedFiles, `${COMMENTED_LICENSES} MIT`),
-              1
-            );
-
-            assert.equal(
-              getStringOccurrences(
-                flattenedFiles,
-                `${COMMENTED_LICENSES} MPL-1.1`
-              ),
-              1
-            );
-
-            assert.equal(
-              getStringOccurrences(
-                flattenedFiles,
-                `${COMMENTED_LICENSES} MPL-2.0-no-copyleft-exception`
-              ),
-              2
-            );
+            await assertFlattenedFilesResult(flattenedFiles);
           });
         });
       });
@@ -308,21 +202,7 @@ describe("Flatten task", () => {
               TASK_FLATTEN_GET_FLATTENED_SOURCE
             );
 
-            // Check that the flattened file compiles correctly
-            await compileLiteral(flattenedFiles);
-
-            assert.equal(
-              getStringOccurrences(flattenedFiles, `${PRAGMA_ABICODER_V1};`),
-              1
-            );
-
-            assert.equal(
-              getStringOccurrences(
-                flattenedFiles,
-                `${COMMENTED_PRAGMA_DIRECTIVE} ${PRAGMA_ABICODER_V1}`
-              ),
-              2
-            );
+            await assertFlattenedFilesResult(flattenedFiles);
           });
         });
 
@@ -334,32 +214,7 @@ describe("Flatten task", () => {
               TASK_FLATTEN_GET_FLATTENED_SOURCE
             );
 
-            // Check that the flattened file compiles correctly
-            await compileLiteral(flattenedFiles);
-
-            assert.equal(
-              getStringOccurrences(
-                flattenedFiles,
-                `${PRAGMA_EXPERIMENTAL_V2};`
-              ),
-              1
-            );
-
-            assert.equal(
-              getStringOccurrences(
-                flattenedFiles,
-                `${COMMENTED_PRAGMA_DIRECTIVE} ${PRAGMA_EXPERIMENTAL_V2}`
-              ),
-              1
-            );
-
-            assert.equal(
-              getStringOccurrences(
-                flattenedFiles,
-                `${COMMENTED_PRAGMA_DIRECTIVE} ${PRAGMA_ABICODER_V1}`
-              ),
-              1
-            );
+            await assertFlattenedFilesResult(flattenedFiles);
           });
         });
       });
@@ -372,29 +227,7 @@ describe("Flatten task", () => {
             TASK_FLATTEN_GET_FLATTENED_SOURCE
           );
 
-          // Check that the flattened file compiles correctly
-          await compileLiteral(flattenedFiles);
-
-          assert.equal(
-            getStringOccurrences(flattenedFiles, `${PRAGMA_ABICODER_V2};`),
-            1
-          );
-
-          assert.equal(
-            getStringOccurrences(
-              flattenedFiles,
-              `${COMMENTED_PRAGMA_DIRECTIVE} ${PRAGMA_ABICODER_V2}`
-            ),
-            1
-          );
-
-          assert.equal(
-            getStringOccurrences(
-              flattenedFiles,
-              `${COMMENTED_PRAGMA_DIRECTIVE} ${PRAGMA_EXPERIMENTAL_V2}`
-            ),
-            2
-          );
+          await assertFlattenedFilesResult(flattenedFiles);
         });
       });
     });
@@ -407,73 +240,7 @@ describe("Flatten task", () => {
           TASK_FLATTEN_GET_FLATTENED_SOURCE
         );
 
-        // Check that the flattened file compiles correctly
-        await compileLiteral(flattenedFiles);
-
-        // Abi pragma directives
-        assert.equal(
-          getStringOccurrences(flattenedFiles, `${PRAGMA_ABICODER_V2};`),
-          1
-        );
-
-        assert.equal(
-          getStringOccurrences(
-            flattenedFiles,
-            `${COMMENTED_PRAGMA_DIRECTIVE} ${PRAGMA_ABICODER_V1}`
-          ),
-          1
-        );
-
-        assert.equal(
-          getStringOccurrences(
-            flattenedFiles,
-            `${COMMENTED_PRAGMA_DIRECTIVE} ${PRAGMA_ABICODER_V2}`
-          ),
-          2
-        );
-
-        assert.equal(
-          getStringOccurrences(
-            flattenedFiles,
-            `${COMMENTED_PRAGMA_DIRECTIVE} ${PRAGMA_EXPERIMENTAL_V2}`
-          ),
-          1
-        );
-
-        // Licenses
-        assert.equal(
-          getStringOccurrences(
-            flattenedFiles,
-            `${LICENSES_HEADER} Linux-man-pages-1-para AND MIT AND MPL-1.1 AND MPL-2.0-no-copyleft-exception`
-          ),
-          1
-        );
-
-        assert.equal(
-          getStringOccurrences(flattenedFiles, `${COMMENTED_LICENSES} MIT`),
-          1
-        );
-
-        assert.equal(
-          getStringOccurrences(
-            flattenedFiles,
-            `${COMMENTED_LICENSES} Linux-man-pages-1-para`
-          ),
-          3
-        );
-
-        assert.equal(
-          getStringOccurrences(
-            flattenedFiles,
-            `${COMMENTED_LICENSES} MPL-2.0-no-copyleft-exception`
-          ),
-          2
-        );
-
-        assert.equal(
-          getStringOccurrences(flattenedFiles, `${COMMENTED_LICENSES} MPL-1.1`),
-          1
-        );
+        await assertFlattenedFilesResult(flattenedFiles);
       });
     });
   });
