@@ -116,7 +116,10 @@ where
                     1 => Level::WARN,
                     2 => Level::INFO,
                     3 => Level::DEBUG,
-                    _ => Level::TRACE,
+                    4 => Level::TRACE,
+                    _ => Err(anyhow::anyhow!(
+                        "Specifying --verbose more than 4 times is unsupported"
+                    ))?,
                 })
                 .init();
 
