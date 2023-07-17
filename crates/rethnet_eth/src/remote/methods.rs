@@ -40,12 +40,15 @@ pub struct FilterOptions {
     pub topics: Option<Vec<ZeroXPrefixedBytes>>,
 }
 
-fn latest() -> Option<BlockSpec> {
-    Some(BlockSpec::latest())
-}
+struct OptionalBlockSpecResolved;
+impl OptionalBlockSpecResolved {
+    fn latest() -> Option<BlockSpec> {
+        Some(BlockSpec::latest())
+    }
 
-fn pending() -> Option<BlockSpec> {
-    Some(BlockSpec::pending())
+    fn pending() -> Option<BlockSpec> {
+        Some(BlockSpec::pending())
+    }
 }
 
 /// Used to transform a MethodInvocation such that an unspecified block tag will be resolved to its
@@ -87,7 +90,11 @@ pub enum MethodInvocation {
     #[serde(rename = "eth_call")]
     Call(
         TransactionInput,
-        #[serde(skip_serializing_if = "Option::is_none", default = "latest")] Option<BlockSpec>,
+        #[serde(
+            skip_serializing_if = "Option::is_none",
+            default = "OptionalBlockSpecResolved::latest"
+        )]
+        Option<BlockSpec>,
     ),
     /// eth_chainId
     #[serde(rename = "eth_chainId")]
@@ -99,7 +106,11 @@ pub enum MethodInvocation {
     #[serde(rename = "eth_estimateGas")]
     EstimateGas(
         TransactionInput,
-        #[serde(skip_serializing_if = "Option::is_none", default = "pending")] Option<BlockSpec>,
+        #[serde(
+            skip_serializing_if = "Option::is_none",
+            default = "OptionalBlockSpecResolved::pending"
+        )]
+        Option<BlockSpec>,
     ),
     /// eth_feeHistory
     #[serde(rename = "eth_feeHistory")]
@@ -118,7 +129,11 @@ pub enum MethodInvocation {
     #[serde(rename = "eth_getBalance")]
     GetBalance(
         Address,
-        #[serde(skip_serializing_if = "Option::is_none", default = "latest")] Option<BlockSpec>,
+        #[serde(
+            skip_serializing_if = "Option::is_none",
+            default = "OptionalBlockSpecResolved::latest"
+        )]
+        Option<BlockSpec>,
     ),
     /// eth_getBlockByNumber
     #[serde(rename = "eth_getBlockByNumber")]
@@ -153,7 +168,11 @@ pub enum MethodInvocation {
     #[serde(rename = "eth_getCode")]
     GetCode(
         Address,
-        #[serde(skip_serializing_if = "Option::is_none", default = "latest")] Option<BlockSpec>,
+        #[serde(
+            skip_serializing_if = "Option::is_none",
+            default = "OptionalBlockSpecResolved::latest"
+        )]
+        Option<BlockSpec>,
     ),
     /// eth_getFilterChanges
     #[serde(
@@ -182,7 +201,11 @@ pub enum MethodInvocation {
         Address,
         /// position
         U256,
-        #[serde(skip_serializing_if = "Option::is_none", default = "latest")] Option<BlockSpec>,
+        #[serde(
+            skip_serializing_if = "Option::is_none",
+            default = "OptionalBlockSpecResolved::latest"
+        )]
+        Option<BlockSpec>,
     ),
     /// eth_getTransactionByBlockHashAndIndex
     #[serde(rename = "eth_getTransactionByBlockHashAndIndex")]
@@ -201,7 +224,11 @@ pub enum MethodInvocation {
     #[serde(rename = "eth_getTransactionCount")]
     GetTransactionCount(
         Address,
-        #[serde(skip_serializing_if = "Option::is_none", default = "latest")] Option<BlockSpec>,
+        #[serde(
+            skip_serializing_if = "Option::is_none",
+            default = "OptionalBlockSpecResolved::latest"
+        )]
+        Option<BlockSpec>,
     ),
     /// eth_getTransactionReceipt
     #[serde(
