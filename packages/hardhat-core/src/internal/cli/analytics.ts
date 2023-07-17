@@ -1,4 +1,3 @@
-import type AbortControllerT from "abort-controller";
 import type { request as RequestT } from "undici";
 
 import debug from "debug";
@@ -128,8 +127,6 @@ export class Analytics {
 
   private _sendHit(payload: AnalyticsPayload): [AbortAnalytics, Promise<void>] {
     const { request } = require("undici") as { request: typeof RequestT };
-    const AbortController =
-      require("abort-controller") as typeof AbortControllerT;
 
     const eventName = payload.events[0].name;
     log(`Sending hit for ${eventName}`);
