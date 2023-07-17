@@ -66,7 +66,6 @@ function isValidMetadata(data: Buffer): boolean {
     decode(data);
     return true;
   } catch (e) {
-    console.log(e);
     return false;
   }
 }
