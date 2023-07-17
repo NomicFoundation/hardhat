@@ -66,7 +66,7 @@ async fn submit_request(address: &SocketAddr, request: &RpcRequest<MethodInvocat
 async fn verify_response<ResponseT>(
     server: &SocketAddr,
     method: MethodInvocation,
-    response_data: jsonrpc::ResponseData<ResponseT>,
+    response: ResponseT,
 ) where
     ResponseT: serde::de::DeserializeOwned + std::fmt::Debug + std::cmp::PartialEq,
 {
@@ -79,7 +79,7 @@ async fn verify_response<ResponseT>(
     let expected_response = jsonrpc::Response::<ResponseT> {
         jsonrpc: request.version,
         id: request.id.clone(),
-        data: response_data,
+        data: jsonrpc::ResponseData::Success { result: response },
     };
 
     let unparsed_response = submit_request(server, &request).await;
@@ -95,9 +95,7 @@ async fn test_accounts() {
     verify_response(
         &start_server().await,
         MethodInvocation::Eth(EthMethodInvocation::Accounts()),
-        jsonrpc::ResponseData::Success {
-            result: vec![Address::from_low_u64_ne(1)],
-        },
+        vec![Address::from_low_u64_ne(1)],
     )
     .await;
 }
@@ -110,7 +108,7 @@ async fn test_get_balance_nonexistent_account() {
             Address::from_low_u64_ne(2),
             Some(BlockSpec::latest()),
         )),
-        jsonrpc::ResponseData::Success { result: U256::ZERO },
+        U256::ZERO,
     )
     .await;
 }
@@ -123,7 +121,7 @@ async fn test_get_balance_success() {
             Address::from_low_u64_ne(1),
             Some(BlockSpec::latest()),
         )),
-        jsonrpc::ResponseData::Success { result: U256::ZERO },
+        U256::ZERO,
     )
     .await;
 }
@@ -136,9 +134,7 @@ async fn test_get_code_success() {
             Address::from_low_u64_ne(1),
             Some(BlockSpec::latest()),
         )),
-        jsonrpc::ResponseData::Success {
-            result: ZeroXPrefixedBytes::from(Bytes::from_static(b"\0")),
-        },
+        ZeroXPrefixedBytes::from(Bytes::from_static(b"\0")),
     )
     .await;
 }
@@ -152,7 +148,7 @@ async fn test_get_storage_success() {
             U256::ZERO,
             Some(BlockSpec::latest()),
         )),
-        jsonrpc::ResponseData::Success { result: U256::ZERO },
+        U256::ZERO,
     )
     .await;
 }
@@ -165,7 +161,7 @@ async fn test_get_transaction_count_nonexistent_account() {
             Address::from_low_u64_ne(2),
             Some(BlockSpec::latest()),
         )),
-        jsonrpc::ResponseData::Success { result: U256::ZERO },
+        U256::ZERO,
     )
     .await;
 }
@@ -178,7 +174,7 @@ async fn test_get_transaction_count_success() {
             Address::from_low_u64_ne(1),
             Some(BlockSpec::latest()),
         )),
-        jsonrpc::ResponseData::Success { result: U256::ZERO },
+        U256::ZERO,
     )
     .await;
 }
@@ -193,7 +189,7 @@ async fn test_set_balance_success() {
     verify_response(
         &server_address,
         MethodInvocation::Hardhat(HardhatMethodInvocation::SetBalance(address, new_balance)),
-        jsonrpc::ResponseData::Success { result: () },
+        (),
     )
     .await;
 
@@ -203,9 +199,7 @@ async fn test_set_balance_success() {
             address,
             Some(BlockSpec::latest()),
         )),
-        jsonrpc::ResponseData::Success {
-            result: new_balance,
-        },
+        new_balance,
     )
     .await;
 }
@@ -220,7 +214,7 @@ async fn test_set_nonce_success() {
     verify_response(
         &server_address,
         MethodInvocation::Hardhat(HardhatMethodInvocation::SetNonce(address, new_nonce)),
-        jsonrpc::ResponseData::Success { result: () },
+        (),
     )
     .await;
 
@@ -230,7 +224,7 @@ async fn test_set_nonce_success() {
             address,
             Some(BlockSpec::latest()),
         )),
-        jsonrpc::ResponseData::Success { result: new_nonce },
+        new_nonce,
     )
     .await;
 }
@@ -245,7 +239,7 @@ async fn test_set_code_success() {
     verify_response(
         &server_address,
         MethodInvocation::Hardhat(HardhatMethodInvocation::SetCode(address, new_code.clone())),
-        jsonrpc::ResponseData::Success { result: () },
+        (),
     )
     .await;
 
@@ -255,9 +249,7 @@ async fn test_set_code_success() {
             address,
             Some(BlockSpec::latest()),
         )),
-        jsonrpc::ResponseData::Success {
-            result: new_code.clone(),
-        },
+        new_code.clone(),
     )
     .await;
 }
@@ -276,7 +268,7 @@ async fn test_set_storage_at_success() {
             U256::ZERO,
             new_storage_value,
         )),
-        jsonrpc::ResponseData::Success { result: () },
+        (),
     )
     .await;
 
@@ -287,9 +279,7 @@ async fn test_set_storage_at_success() {
             U256::ZERO,
             Some(BlockSpec::latest()),
         )),
-        jsonrpc::ResponseData::Success {
-            result: new_storage_value,
-        },
+        new_storage_value,
     )
     .await;
 }
