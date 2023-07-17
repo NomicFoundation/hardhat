@@ -9,6 +9,7 @@ import {
   isDeployedContractExecutionSuccess,
   isExecutionFailure,
   isExecutionHold,
+  isExecutionTimeout,
   isReadEventArgumentExecutionSuccess,
   isReadEventArgumentInteraction,
   isSendDataExecutionSuccess,
@@ -32,11 +33,18 @@ import {
   isOnchainTransactionReset,
   isReadEventArgumentStartMessage,
   isSendDataStartMessage,
+  isStartRunMessage,
   isStaticCallStartMessage,
   isWipeMessage,
 } from "../type-guards";
 
 export function logJournalableMessage(message: JournalableMessage): void {
+  /* run messages */
+
+  if (isStartRunMessage(message)) {
+    return console.log(`deployment run starting`);
+  }
+
   /* start messages */
 
   if (isDeployContractStartMessage(message)) {
@@ -218,6 +226,12 @@ export function logJournalableMessage(message: JournalableMessage): void {
   if (isOnChainFailureMessage(message)) {
     return console.log(
       `on chain failure - futureId: '${message.futureId}' - executionId: ${message.executionId} - error: '${message.error.message}'`
+    );
+  }
+
+  if (isExecutionTimeout(message)) {
+    return console.log(
+      `execution timeout - futureId: '${message.futureId}' - executionId: ${message.executionId}'`
     );
   }
 

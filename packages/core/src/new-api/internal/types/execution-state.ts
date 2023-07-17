@@ -95,6 +95,7 @@ type ExecutionHistory = TransactionMessage[];
 export enum ExecutionStatus {
   STARTED,
   HOLD,
+  TIMEOUT,
   SUCCESS,
   FAILED,
 }

@@ -17,9 +17,24 @@ export interface Journal {
  * @beta
  */
 export type JournalableMessage =
+  | StartRunMessage
   | TransactionMessage
   | ExecutionMessage
   | WipeMessage;
+
+// #region "StartRunMessage"
+
+/**
+ * A message indicating the start of a new run.
+ *
+ * @beta
+ */
+export interface StartRunMessage {
+  // TODO: we should add chain id, so we can reconcile on previous chain id
+  type: "run-start";
+}
+
+// #endregion
 
 // #region "TransactionMessage"
 
@@ -473,6 +488,7 @@ export interface ContractAtStartMessage {
 export type ExecutionResultMessage =
   | ExecutionSuccess
   | ExecutionFailure
+  | ExecutionTimeout
   | ExecutionHold;
 
 /**
@@ -483,6 +499,7 @@ export type ExecutionResultMessage =
 export type ExecutionResultTypes = [
   "execution-success",
   "execution-failure",
+  "execution-timeout",
   "execution-hold"
 ];
 
@@ -596,6 +613,18 @@ export interface ExecutionFailure {
 }
 
 /**
+ * A journal message indicating a future execution timed out.
+ *
+ * @beta
+ */
+export interface ExecutionTimeout {
+  type: "execution-timeout";
+  futureId: string;
+  executionId: number;
+  txHash: string;
+}
+
+/**
  * A journal message indicating a future's execution was not completed within
  * the timeout.
  *
@@ -603,6 +632,8 @@ export interface ExecutionFailure {
  */
 export interface ExecutionHold {
   type: "execution-hold";
+  futureId: string;
+  executionId: number;
 }
 
 // #endregion

@@ -4,7 +4,7 @@ import { FileDeploymentLoader } from "./internal/deployment-loader/file-deployme
 import { ChainDispatcherImpl } from "./internal/execution/chain-dispatcher";
 import { Adapters } from "./types/adapters";
 import { ArtifactResolver } from "./types/artifact";
-import { DeploymentResult } from "./types/deployer";
+import { DeployConfig, DeploymentResult } from "./types/deployer";
 import { IgnitionModuleResult, ModuleParameters } from "./types/module";
 import { IgnitionModuleDefinition } from "./types/module-builder";
 
@@ -14,6 +14,7 @@ import { IgnitionModuleDefinition } from "./types/module-builder";
  * @beta
  */
 export async function deploy({
+  config,
   artifactResolver,
   adapters,
   deploymentDir,
@@ -22,6 +23,7 @@ export async function deploy({
   accounts,
   verbose,
 }: {
+  config?: Partial<DeployConfig>;
   artifactResolver: ArtifactResolver;
   adapters: Adapters;
   deploymentDir?: string;
@@ -42,6 +44,7 @@ export async function deploy({
   const chainDispatcher = new ChainDispatcherImpl(adapters);
 
   const deployer = new Deployer({
+    config: config ?? {},
     artifactResolver,
     deploymentLoader,
     chainDispatcher,

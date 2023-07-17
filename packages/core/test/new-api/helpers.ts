@@ -419,7 +419,7 @@ export class MockChainDispatcher implements ChainDispatcher {
       );
     }
 
-    return { _kind: "fake-transaction" } as any;
+    return { _kind: "fake-transaction", ...response } as any;
   }
 
   public async getCurrentBlock(): Promise<{ number: number; hash: string }> {

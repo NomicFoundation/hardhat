@@ -7,6 +7,7 @@ import {
   DeployContractInteractionMessage,
   ExecutionFailure,
   ExecutionSuccess,
+  ExecutionTimeout,
   OnchainCallFunctionSuccessMessage,
   OnchainContractAtSuccessMessage,
   OnchainDeployContractSuccessMessage,
@@ -50,7 +51,11 @@ import {
 
 export interface OnchainStateTransitionContinue {
   status: "continue";
-  next: ExecutionSuccess | ExecutionFailure | TransactionMessage;
+  next:
+    | ExecutionSuccess
+    | ExecutionTimeout
+    | ExecutionFailure
+    | TransactionMessage;
 }
 
 export interface OnchainStateTransitionPause {
@@ -595,6 +600,12 @@ async function checkTransactionComplete(
     receipt: ethers.providers.TransactionReceipt
   ) => ExecutionSuccess | ExecutionFailure | TransactionMessage
 ): Promise<OnchainStateTransitionContinue | OnchainStateTransitionPause> {
+  state.transactionLookupTimer.registerStartTimeIfNeeded({
+    futureId: next.futureId,
+    executionId: next.executionId,
+    txHash: next.txHash,
+  });
+
   const currentTransaction = await state.chainDispatcher.getTransaction(
     next.txHash
   );
@@ -605,12 +616,31 @@ async function checkTransactionComplete(
     );
   }
 
+  // No blocknumber means it hasn't been included in a block yet
   if (
     currentTransaction.blockNumber === null ||
-    // TODO: make default confirmations config
-    currentTransaction.confirmations < DEFAULT_CONFIRMATIONS
+    currentTransaction.blockNumber === undefined
   ) {
-    // transaction pending, move on with batch
+    // Check whether timed out
+    if (state.transactionLookupTimer.isTimedOut(next.txHash)) {
+      const timeout: ExecutionTimeout = {
+        type: "execution-timeout",
+        futureId: next.futureId,
+        executionId: next.executionId,
+        txHash: next.txHash,
+      };
+
+      return { status: "continue", next: timeout };
+    }
+
+    // otherwise transaction pending, move on with batch
+    return { status: "pause" };
+  }
+
+  // if the transaction is confirmed but we haven't passed the
+  // required number of confirmations, then pause and continue the
+  // batch
+  if (currentTransaction.confirmations < DEFAULT_CONFIRMATIONS) {
     return { status: "pause" };
   }
 

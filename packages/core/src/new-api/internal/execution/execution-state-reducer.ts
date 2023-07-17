@@ -1,3 +1,4 @@
+import { IgnitionError } from "../../../errors";
 import { FutureStartMessage, JournalableMessage } from "../../types/journal";
 import {
   isCallFunctionStartMessage,
@@ -6,8 +7,10 @@ import {
   isFutureStartMessage,
   isReadEventArgumentStartMessage,
   isSendDataStartMessage,
+  isStartRunMessage,
   isStaticCallStartMessage,
   isTransactionMessage,
+  isWipeMessage,
 } from "../journal/type-guards";
 import {
   CallExecutionState,
@@ -23,13 +26,22 @@ import {
 } from "../types/execution-state";
 import { assertIgnitionInvariant } from "../utils/assertions";
 
-import { isExecutionFailure } from "./guards";
+import {
+  isExecutionFailure,
+  isExecutionHold,
+  isExecutionSuccess,
+  isExecutionTimeout,
+} from "./guards";
 import { onchainActionReducer } from "./onchain-action-reducer";
 
 export function executionStateReducer(
   executionStateMap: ExecutionStateMap,
   action: JournalableMessage
 ): ExecutionStateMap {
+  if (isStartRunMessage(action)) {
+    return setTimeoutFuturesToStarted(executionStateMap);
+  }
+
   if (isFutureStartMessage(action)) {
     return {
       ...executionStateMap,
@@ -37,7 +49,7 @@ export function executionStateReducer(
     };
   }
 
-  if (action.type === "execution-success") {
+  if (isExecutionSuccess(action)) {
     const previousDeploymentExecutionState = executionStateMap[action.futureId];
 
     if (action.subtype === "deploy-contract") {
@@ -120,9 +132,31 @@ export function executionStateReducer(
       };
     }
 
-    throw new Error(
-      "TBD - only deployment and call states are currently implemented for execution success"
-    );
+    return assertUnknownMessageType(action);
+  }
+
+  if (isExecutionTimeout(action)) {
+    const failedExState = executionStateMap[action.futureId];
+
+    return {
+      ...executionStateMap,
+      [action.futureId]: {
+        ...failedExState,
+        status: ExecutionStatus.TIMEOUT,
+      },
+    };
+  }
+
+  if (isExecutionHold(action)) {
+    const failedExState = executionStateMap[action.futureId];
+
+    return {
+      ...executionStateMap,
+      [action.futureId]: {
+        ...failedExState,
+        status: ExecutionStatus.HOLD,
+      },
+    };
   }
 
   if (isExecutionFailure(action)) {
@@ -157,7 +191,7 @@ export function executionStateReducer(
     };
   }
 
-  if (action.type === "wipe") {
+  if (isWipeMessage(action)) {
     const updated = {
       ...executionStateMap,
     };
@@ -167,7 +201,7 @@ export function executionStateReducer(
     return updated;
   }
 
-  return executionStateMap;
+  return assertUnknownMessageType(action);
 }
 
 function initialiseExecutionStateFor(
@@ -330,5 +364,27 @@ function initialiseExecutionStateFor(
     return executionState;
   }
 
-  throw new Error("Not implemented yet in the reducer");
+  return assertUnknownMessageType(futureStart);
+}
+
+/**
+ * Update the timed out futures to be started so they can be rerun
+ * @param executionStateMap - the execution states of all seen futures
+ * @returns the execution states with timed out futures moved back to started
+ */
+function setTimeoutFuturesToStarted(
+  executionStateMap: ExecutionStateMap
+): ExecutionStateMap {
+  return Object.fromEntries(
+    Object.entries(executionStateMap).map(([futureId, exState]) => [
+      futureId,
+      exState.status === ExecutionStatus.TIMEOUT
+        ? { ...exState, status: ExecutionStatus.STARTED }
+        : exState,
+    ])
+  );
+}
+
+function assertUnknownMessageType(message: never): any {
+  throw new IgnitionError(`Unknown message type${JSON.stringify(message)}`);
 }

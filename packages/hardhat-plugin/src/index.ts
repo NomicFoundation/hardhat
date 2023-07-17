@@ -299,8 +299,17 @@ task("deploy2")
 
             console.log(`Future ${futureId} failed: ${errorMessage}`);
           }
+        } else if (result.status === "timeout") {
+          console.log("Deployment halted due to timeout");
+          console.log("");
+
+          for (const { futureId, executionId, txHash } of result.timeouts) {
+            console.log(`  ${txHash} (${futureId}/${executionId})`);
+          }
         } else if (result.status === "hold") {
           console.log("Deployment held");
+        } else {
+          assertNeverResult(result);
         }
       } catch (err) {
         // TODO: bring back cli ui
@@ -514,4 +523,8 @@ function resolveParametersString(paramString: string): ModuleParams {
     console.warn(`Could not parse JSON parameters`);
     process.exit(0);
   }
+}
+
+function assertNeverResult(result: never) {
+  throw new Error(`Unknown result from deploy: ${JSON.stringify(result)}`);
 }

@@ -7,7 +7,7 @@ import type { IgnitionModuleDefinition } from "../types/module-builder";
 
 import { isContractFuture } from "../type-guards";
 import { Artifact, ArtifactResolver } from "../types/artifact";
-import { DeploymentResult } from "../types/deployer";
+import { DeployConfig, DeploymentResult } from "../types/deployer";
 import { DeploymentLoader } from "../types/deployment-loader";
 import { Journal } from "../types/journal";
 
@@ -15,6 +15,7 @@ import { Batcher } from "./batcher";
 import { ExecutionEngine } from "./execution/execution-engine";
 import { executionStateReducer } from "./execution/execution-state-reducer";
 import { BasicExecutionStrategy } from "./execution/execution-strategy";
+import { TranactionLookupTimerImpl } from "./execution/transaction-lookup-timer";
 import { ModuleConstructor } from "./module-builder";
 import { Reconciler } from "./reconciliation/reconciler";
 import { ArtifactMap } from "./reconciliation/types";
@@ -26,11 +27,17 @@ import {
   DeploymentExecutionState,
   ExecutionStateMap,
 } from "./types/execution-state";
+import { TransactionLookupTimer } from "./types/transaction-timer";
 import { assertIgnitionInvariant } from "./utils/assertions";
 import { getFuturesFromModule } from "./utils/get-futures-from-module";
 import { validate } from "./validation/validate";
 
-const BLOCK_POLLING_INTERVAL = 200;
+// The interval between checks to see if a new block has been created
+const DEFAULT_BLOCK_POLLING_INTERVAL = 200;
+
+// In milliseconds the amount of time to wait on a transaction to
+// confirm before timing out
+const DEFAULT_TRANSACTION_TIMEOUT_INTERVAL = 3 * 60 * 1000;
 
 /**
  * Run an Igntition deployment.
@@ -38,18 +45,27 @@ const BLOCK_POLLING_INTERVAL = 200;
  * @beta
  */
 export class Deployer {
+  private _config: DeployConfig;
   private _moduleConstructor: ModuleConstructor;
   private _executionEngine: ExecutionEngine;
   private _strategy: ExecutionStrategy;
   private _artifactResolver: ArtifactResolver;
   private _deploymentLoader: DeploymentLoader;
   private _chainDispatcher: ChainDispatcher;
+  private _transactionLookupTimer: TransactionLookupTimer;
 
   constructor(options: {
+    config?: Partial<DeployConfig>;
     artifactResolver: ArtifactResolver;
     deploymentLoader: DeploymentLoader;
     chainDispatcher: ChainDispatcher;
   }) {
+    this._config = {
+      blockPollingInterval: DEFAULT_BLOCK_POLLING_INTERVAL,
+      transactionTimeoutInterval: DEFAULT_TRANSACTION_TIMEOUT_INTERVAL,
+      ...options.config,
+    };
+
     this._strategy = new BasicExecutionStrategy();
     this._artifactResolver = options.artifactResolver;
     this._deploymentLoader = options.deploymentLoader;
@@ -58,6 +74,9 @@ export class Deployer {
 
     this._moduleConstructor = new ModuleConstructor();
     this._executionEngine = new ExecutionEngine();
+    this._transactionLookupTimer = new TranactionLookupTimerImpl(
+      this._config.transactionTimeoutInterval
+    );
   }
 
   public async deploy(
@@ -115,10 +134,8 @@ export class Deployer {
     const batches = Batcher.batch(module, previousStateMap);
 
     return this._executionEngine.execute({
+      config: this._config,
       block: { number: -1, hash: "-" },
-      config: {
-        blockPollingInterval: BLOCK_POLLING_INTERVAL,
-      },
       strategy: this._strategy,
       artifactResolver: this._artifactResolver,
       batches,
@@ -128,6 +145,7 @@ export class Deployer {
       deploymentParameters,
       deploymentLoader: this._deploymentLoader,
       chainDispatcher: this._chainDispatcher,
+      transactionLookupTimer: this._transactionLookupTimer,
     });
   }
 

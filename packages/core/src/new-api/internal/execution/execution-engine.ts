@@ -15,9 +15,11 @@ import { DeploymentResult } from "../../types/deployer";
 import { DeploymentLoader } from "../../types/deployment-loader";
 import {
   ExecutionResultMessage,
+  ExecutionTimeout,
   FutureStartMessage,
   JournalableMessage,
   OnchainTransactionReset,
+  StartRunMessage,
   TransactionMessage,
 } from "../../types/journal";
 import {
@@ -58,7 +60,10 @@ import { ExecutionStategyCycler } from "./execution-strategy-cycler";
 import {
   isDeployedContractExecutionSuccess,
   isExecutionFailure,
+  isExecutionHold,
   isExecutionResultMessage,
+  isExecutionSuccess,
+  isExecutionTimeout,
 } from "./guards";
 import { onchainStateTransitions } from "./onchain-state-transitions";
 import { sortFuturesByNonces } from "./sort-futures-by-nonces";
@@ -88,6 +93,13 @@ export class ExecutionEngine {
 
     await this._checkNonces(state, futures);
 
+    // Record start of the run (which resets timeout to started)
+    const startRun: StartRunMessage = {
+      type: "run-start",
+    };
+
+    await this._apply(state, startRun);
+
     for (const batch of batches) {
       // TODO: consider changing batcher to return futures rather than ids
       const executionBatch = batch.map((futureId) =>
@@ -95,6 +107,11 @@ export class ExecutionEngine {
       );
 
       const batchResult = await this._executeBatch(executionBatch, state);
+
+      assertIgnitionInvariant(
+        batchResult.length === batch.length,
+        "All futures should have reached a completion state"
+      );
 
       if (batchResult.some(isExecutionFailure)) {
         return {
@@ -107,11 +124,22 @@ export class ExecutionEngine {
         };
       }
 
-      if (batchResult.some((b) => b.type === "execution-hold")) {
+      if (batchResult.some(isExecutionTimeout)) {
+        return {
+          status: "timeout",
+          timeouts: batchResult.filter(isExecutionTimeout).map((r) => ({
+            futureId: r.futureId,
+            executionId: r.executionId,
+            txHash: r.txHash,
+          })),
+        };
+      }
+
+      if (batchResult.some(isExecutionHold)) {
         return { status: "hold" };
       }
 
-      if (batchResult.every((b) => b.type !== "execution-success")) {
+      if (batchResult.every((b) => !isExecutionSuccess(b))) {
         throw new IgnitionError("Unexpected state");
       }
     }
@@ -264,12 +292,13 @@ export class ExecutionEngine {
     batch: ExecutionBatch,
     state: ExecutionEngineState
   ): Promise<ExecutionResultMessage[]> {
+    // TODO: replace this with deriving the batch results from the
+    // execution state at the end.
     let batchResults: ExecutionResultMessage[] = [];
 
     // initialize all futures
     // TODO: reconsider if this can be delayed until the first on-chain
     // submission, to reduce restart state
-    // TODO: nonce check on initialization?
     for (const future of batch) {
       if (state.executionStateMap[future.id] !== undefined) {
         continue;
@@ -283,18 +312,23 @@ export class ExecutionEngine {
       await this._apply(state, initMessage);
     }
 
-    while (!this._isBatchComplete(batch, state)) {
+    while (!this._isBatchComplete(state, batch)) {
       const sortedFutures: Future[] = sortFuturesByNonces(batch, state);
 
       const results = await this._submitOrCheckFutures(sortedFutures, state);
 
       batchResults = [...batchResults, ...results];
 
-      if (this._isBatchComplete(sortedFutures, state)) {
+      if (this._isBatchComplete(state, sortedFutures)) {
         break;
       }
 
-      await this._newBlock(state);
+      const timeoutResults = await this._newBlockOrTimeout(
+        state,
+        sortedFutures
+      );
+
+      batchResults = [...timeoutResults, ...results];
     }
 
     return batchResults;
@@ -326,9 +360,16 @@ export class ExecutionEngine {
   }
 
   /**
-   * Wait for the next block to  be processed on-chain
+   * Wait for the next block to  be processed on-chain, monitoring transactions
+   * for timeout at the same time. If timing out transactions complete
+   * the batch we return before the next block.
    */
-  private async _newBlock(state: ExecutionEngineState): Promise<void> {
+  private async _newBlockOrTimeout(
+    state: ExecutionEngineState,
+    futures: Future[]
+  ): Promise<ExecutionTimeout[]> {
+    const timeoutResults: ExecutionTimeout[] = [];
+
     while (true) {
       const currentBlock = await state.chainDispatcher.getCurrentBlock();
 
@@ -338,7 +379,27 @@ export class ExecutionEngine {
       ) {
         state.block = currentBlock;
 
-        return;
+        return timeoutResults;
+      }
+
+      const timedOutTransactions =
+        state.transactionLookupTimer.getTimedOutTransactions();
+
+      for (const { futureId, executionId, txHash } of timedOutTransactions) {
+        const timedOut: ExecutionTimeout = {
+          type: "execution-timeout",
+          futureId,
+          executionId,
+          txHash,
+        };
+
+        timeoutResults.push(timedOut);
+
+        await this._apply(state, timedOut);
+      }
+
+      if (this._isBatchComplete(state, futures)) {
+        return timeoutResults;
       }
 
       await sleep(state.config.blockPollingInterval);
@@ -405,8 +466,8 @@ export class ExecutionEngine {
   }
 
   private _isBatchComplete(
-    sortedFutures: Future[],
-    state: ExecutionEngineState
+    state: ExecutionEngineState,
+    sortedFutures: Future[]
   ): boolean {
     return sortedFutures.every((f) => {
       return this._isFutureComplete(f, state.executionStateMap);
@@ -422,6 +483,7 @@ export class ExecutionEngine {
     return (
       state !== undefined &&
       (state.status === ExecutionStatus.HOLD ||
+        state.status === ExecutionStatus.TIMEOUT ||
         state.status === ExecutionStatus.SUCCESS ||
         state.status === ExecutionStatus.FAILED)
     );

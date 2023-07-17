@@ -1,4 +1,5 @@
 import {
+  DeployConfig,
   IgnitionModuleDefinition,
   IgnitionModuleResult,
 } from "@ignored/ignition-core";
@@ -15,7 +16,8 @@ import { clearPendingTransactionsFromMemoryPool } from "../helpers";
 
 export function useDeploymentDirectory(
   fixtureProjectName: string,
-  deploymentId: string
+  deploymentId: string,
+  config?: Partial<DeployConfig>
 ) {
   beforeEach("Load environment", async function () {
     process.chdir(
@@ -35,6 +37,13 @@ export function useDeploymentDirectory(
 
     await hre.run("compile", { quiet: true });
 
+    const testConfig: Partial<DeployConfig> = {
+      transactionTimeoutInterval: 1000,
+      ...config,
+    };
+
+    this.config = testConfig;
+
     fs.ensureDirSync(deploymentDir);
 
     this.deploy = (
@@ -45,7 +54,12 @@ export function useDeploymentDirectory(
       >,
       chainUpdates: (c: TestChainHelper) => Promise<void> = async () => {}
     ) => {
-      return runDeploy(deploymentDir, moduleDefinition, { hre }, chainUpdates);
+      return runDeploy(
+        deploymentDir,
+        moduleDefinition,
+        { hre, config: testConfig },
+        chainUpdates
+      );
     };
   });
 
@@ -63,11 +77,14 @@ async function runDeploy(
     string,
     IgnitionModuleResult<string>
   >,
-  { hre }: { hre: HardhatRuntimeEnvironment },
+  {
+    hre,
+    config,
+  }: { hre: HardhatRuntimeEnvironment; config?: Partial<DeployConfig> },
   chainUpdates: (c: TestChainHelper) => Promise<void> = async () => {}
 ): Promise<Record<string, Contract>> {
   const { ignitionHelper: ignitionHelper, kill: killFn } =
-    setupIgnitionHelperRiggedToThrow(hre, deploymentDir);
+    setupIgnitionHelperRiggedToThrow(hre, deploymentDir, config);
 
   try {
     const deployPromise = ignitionHelper.deploy(moduleDefinition, {
@@ -93,7 +110,8 @@ async function runDeploy(
 
 function setupIgnitionHelperRiggedToThrow(
   hre: HardhatRuntimeEnvironment,
-  deploymentDir: string
+  deploymentDir: string,
+  config: Partial<DeployConfig> = {}
 ): {
   ignitionHelper: IgnitionHelper;
   kill: () => void;
@@ -122,7 +140,12 @@ function setupIgnitionHelperRiggedToThrow(
     },
   };
 
-  const ignitionHelper = new IgnitionHelper(hre, adapters, deploymentDir);
+  const ignitionHelper = new IgnitionHelper(
+    hre,
+    config,
+    adapters,
+    deploymentDir
+  );
 
   return { ignitionHelper, kill };
 }

@@ -1,6 +1,7 @@
 import {
   Adapters,
   deploy,
+  DeployConfig,
   DeploymentResultSuccess,
   IgnitionError,
   IgnitionModuleDefinition,
@@ -21,6 +22,7 @@ export class IgnitionHelper {
 
   constructor(
     private _hre: HardhatRuntimeEnvironment,
+    private _config?: Partial<DeployConfig>,
     adapters?: Adapters,
     deploymentDir?: string
   ) {
@@ -43,6 +45,7 @@ export class IgnitionHelper {
     const artifactResolver = new HardhatArtifactResolver(this._hre);
 
     const result = await deploy({
+      config: this._config,
       adapters: this._adapters,
       deploymentDir: this._deploymentDir,
       artifactResolver,
@@ -51,6 +54,14 @@ export class IgnitionHelper {
       accounts,
       verbose: false,
     });
+
+    if (result.status === "timeout") {
+      throw new IgnitionError(
+        `The deployment has been halted due to transaction timeouts:\n  ${result.timeouts
+          .map((t) => `${t.txHash} (${t.futureId}/${t.executionId})`)
+          .join("\n  ")}`
+      );
+    }
 
     if (result.status !== "success") {
       // TODO: Show more information about why it failed

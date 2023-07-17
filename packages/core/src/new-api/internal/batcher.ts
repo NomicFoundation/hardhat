@@ -76,6 +76,7 @@ export class Batcher {
         switch (executionState.status) {
           case ExecutionStatus.FAILED:
           case ExecutionStatus.HOLD:
+          case ExecutionStatus.TIMEOUT:
           case ExecutionStatus.STARTED:
             return [f.id, VisitStatus.UNVISITED];
           case ExecutionStatus.SUCCESS:

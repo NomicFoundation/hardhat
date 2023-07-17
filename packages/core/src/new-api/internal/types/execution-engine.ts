@@ -13,15 +13,19 @@ import {
 
 import { ChainDispatcher } from "./chain-dispatcher";
 import { ExecutionState, ExecutionStateMap } from "./execution-state";
+import { TransactionLookupTimer } from "./transaction-timer";
+
+export interface ExecutionConfig {
+  blockPollingInterval: number;
+  transactionTimeoutInterval: number;
+}
 
 export interface ExecutionEngineState {
   block: {
     number: number;
     hash: string;
   };
-  config: {
-    blockPollingInterval: number;
-  };
+  config: ExecutionConfig;
   batches: string[][];
   module: IgnitionModule<string, string, IgnitionModuleResult<string>>;
   executionStateMap: ExecutionStateMap;
@@ -31,6 +35,7 @@ export interface ExecutionEngineState {
   artifactResolver: ArtifactResolver;
   deploymentLoader: DeploymentLoader;
   chainDispatcher: ChainDispatcher;
+  transactionLookupTimer: TransactionLookupTimer;
 }
 
 export interface ExecutionStrategyContext {

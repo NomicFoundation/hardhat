@@ -19,12 +19,33 @@ import {
   OnchainTransactionReset,
   ReadEventArgumentStartMessage,
   SendDataStartMessage,
+  StartRunMessage,
   StaticCallStartMessage,
   TransactionMessage,
   WipeMessage,
 } from "../../types/journal";
 import { FutureType } from "../../types/module";
 import { isOnchainInteractionMessage } from "../execution/guards";
+
+/**
+ * Determines if potential is a StartRunMessage.
+ *
+ * @beta
+ */
+export function isStartRunMessage(
+  potential: JournalableMessage
+): potential is StartRunMessage {
+  return potential.type === "run-start";
+}
+
+/**
+ * Determines if potential is a Wipe message
+ */
+export function isWipeMessage(
+  potential: JournalableMessage
+): potential is WipeMessage {
+  return potential.type === "wipe";
+}
 
 /**
  * Returns true if potential is ane execution start message.
@@ -250,10 +271,4 @@ export function isOnchainFailureMessage(
   message: JournalableMessage
 ): message is OnchainFailureMessage {
   return isOnChainResultMessage(message) && message.subtype === "failure";
-}
-
-export function isWipeMessage(
-  potential: JournalableMessage
-): potential is WipeMessage {
-  return potential.type === "wipe";
 }

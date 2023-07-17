@@ -104,6 +104,7 @@ describe("execution engine", () => {
       const journalMessages = await accumulateMessages(journal);
 
       assert.deepStrictEqual(journalMessages, [
+        { type: "run-start" },
         {
           futureId: "Module1:Contract1",
           type: "execution-start",
@@ -228,6 +229,7 @@ describe("execution engine", () => {
       const journalMessages = await accumulateMessages(journal);
 
       assert.deepStrictEqual(journalMessages, [
+        { type: "run-start" },
         {
           futureId: "Module1:Contract1",
           type: "execution-start",
@@ -330,6 +332,7 @@ describe("execution engine", () => {
       const journalMessages = await accumulateMessages(journal);
 
       assert.deepStrictEqual(journalMessages, [
+        { type: "run-start" },
         {
           futureId: "Module1:Contract1",
           type: "execution-start",
@@ -419,6 +422,7 @@ describe("execution engine", () => {
       const journalMessages = await accumulateMessages(journal);
 
       assert.deepStrictEqual(journalMessages, [
+        { type: "run-start" },
         {
           futureId: "Module1:Library1",
           type: "execution-start",
@@ -530,6 +534,7 @@ describe("execution engine", () => {
       const journalMessages = await accumulateMessages(journal);
 
       assert.deepStrictEqual(journalMessages, [
+        { type: "run-start" },
         {
           futureId: "Module1:Library1",
           type: "execution-start",
@@ -632,6 +637,7 @@ describe("execution engine", () => {
       const journalMessages = await accumulateMessages(journal);
 
       assert.deepStrictEqual(journalMessages, [
+        { type: "run-start" },
         {
           futureId: "Module1:Library1",
           type: "execution-start",
@@ -729,6 +735,7 @@ describe("execution engine", () => {
       const journalMessages = await accumulateMessages(journal);
 
       assert.deepStrictEqual(journalMessages, [
+        { type: "run-start" },
         {
           futureId: "Module1:Contract1",
           type: "execution-start",
@@ -896,6 +903,7 @@ describe("execution engine", () => {
       const journalMessages = await accumulateMessages(journal);
 
       assert.deepStrictEqual(journalMessages, [
+        { type: "run-start" },
         {
           futureId: "Module1:Contract1",
           type: "execution-start",
@@ -1050,6 +1058,7 @@ describe("execution engine", () => {
       const journalMessages = await accumulateMessages(journal);
 
       assert.deepStrictEqual(journalMessages, [
+        { type: "run-start" },
         {
           futureId: "Module1:Contract1",
           type: "execution-start",
@@ -1220,6 +1229,7 @@ describe("execution engine", () => {
       const journalMessages = await accumulateMessages(journal);
 
       assert.deepStrictEqual(journalMessages, [
+        { type: "run-start" },
         {
           futureId: "Module1:Contract1",
           type: "execution-start",
@@ -1376,6 +1386,7 @@ describe("execution engine", () => {
       const journalMessages = await accumulateMessages(journal);
 
       assert.deepStrictEqual(journalMessages, [
+        { type: "run-start" },
         {
           futureId: "Module1:Contract1",
           type: "execution-start",
@@ -1518,6 +1529,7 @@ describe("execution engine", () => {
       const journalMessages = await accumulateMessages(journal);
 
       assert.deepStrictEqual(journalMessages, [
+        { type: "run-start" },
         {
           futureId: "Module1:Contract1",
           type: "execution-start",
@@ -1639,6 +1651,7 @@ describe("execution engine", () => {
       const journalMessages = await accumulateMessages(journal);
 
       assert.deepStrictEqual(journalMessages, [
+        { type: "run-start" },
         {
           type: "execution-start",
           futureType: FutureType.NAMED_CONTRACT_AT,
@@ -1735,6 +1748,7 @@ describe("execution engine", () => {
       const journalMessages = await accumulateMessages(journal);
 
       assert.deepStrictEqual(journalMessages, [
+        { type: "run-start" },
         {
           futureId: "Module1:Contract1",
           type: "execution-start",
@@ -1887,6 +1901,7 @@ describe("execution engine", () => {
       const journalMessages = await accumulateMessages(journal);
 
       assert.deepStrictEqual(journalMessages, [
+        { type: "run-start" },
         {
           futureId: "Module1:Contract1",
           type: "execution-start",
@@ -2046,6 +2061,7 @@ describe("execution engine", () => {
       const journalMessages = await accumulateMessages(journal);
 
       assert.deepStrictEqual(journalMessages, [
+        { type: "run-start" },
         {
           futureId: "Module1:Library1",
           type: "execution-start",
