@@ -149,7 +149,7 @@ fn test_serde_eth_get_transaction_count_by_number() {
 }
 
 #[test]
-fn test_serde_eth_get_code_by_block_number() {
+fn test_serde_eth_get_code() {
     for block_spec in [
         Some(BlockSpec::Number(U256::from(100))),
         Some(BlockSpec::latest()),
@@ -191,7 +191,7 @@ fn test_serde_eth_get_logs_by_block_tags() {
 }
 
 #[test]
-fn test_serde_eth_get_storage_at_by_block_number() {
+fn test_serde_eth_get_storage_at() {
     for block_spec in [
         Some(BlockSpec::Number(U256::from(100))),
         Some(BlockSpec::latest()),
