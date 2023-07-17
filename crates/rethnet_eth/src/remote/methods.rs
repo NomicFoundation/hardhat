@@ -51,31 +51,6 @@ impl OptionalBlockSpecResolved {
     }
 }
 
-/// Used to transform a MethodInvocation such that an unspecified block tag will be resolved to its
-/// default value
-pub trait ResolveUnspecifiedBlockTag {
-    /// resolve the unspecified block tag, if there is one; if not, simply return self unchanged.
-    fn resolve_unspecified_block_tag(self) -> Self;
-}
-
-impl ResolveUnspecifiedBlockTag for MethodInvocation {
-    fn resolve_unspecified_block_tag(self) -> Self {
-        match self {
-            Self::GetBalance(address, None) => Self::GetBalance(address, Some(BlockSpec::latest())),
-            Self::GetCode(address, None) => Self::GetCode(address, Some(BlockSpec::latest())),
-            Self::GetStorageAt(address, index, None) => {
-                Self::GetStorageAt(address, index, Some(BlockSpec::latest()))
-            }
-            Self::GetTransactionCount(address, None) => {
-                Self::GetTransactionCount(address, Some(BlockSpec::latest()))
-            }
-            Self::Call(tx, None) => Self::Call(tx, Some(BlockSpec::latest())),
-            Self::EstimateGas(tx, None) => Self::EstimateGas(tx, Some(BlockSpec::pending())),
-            other => other,
-        }
-    }
-}
-
 /// for an invoking a method on a remote ethereum node
 #[derive(Clone, Debug, PartialEq, serde::Deserialize, serde::Serialize)]
 #[serde(tag = "method", content = "params")]

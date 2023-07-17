@@ -1,12 +1,9 @@
-use rethnet_eth::remote::methods::ResolveUnspecifiedBlockTag;
-
-pub fn help_test_method_invocation_serde<MethodInvocation>(call: MethodInvocation)
-where
-    MethodInvocation: PartialEq
-        + std::fmt::Debug
-        + serde::de::DeserializeOwned
-        + serde::Serialize
-        + ResolveUnspecifiedBlockTag,
+#[allow(clippy::type_complexity)]
+pub fn help_test_method_invocation_serde<MethodInvocation>(
+    call: MethodInvocation,
+    default_block_tag_resolver: Option<Box<fn(MethodInvocation) -> MethodInvocation>>,
+) where
+    MethodInvocation: PartialEq + std::fmt::Debug + serde::de::DeserializeOwned + serde::Serialize,
 {
     let json = serde_json::json!(call).to_string();
 
@@ -29,7 +26,11 @@ where
         panic!("should have successfully deserialized, with params as a Vec<String>, json {json}")
     });
 
-    let call = call.resolve_unspecified_block_tag();
+    let call = if let Some(resolver) = default_block_tag_resolver {
+        resolver(call)
+    } else {
+        call
+    };
 
     let call_decoded: MethodInvocation = serde_json::from_str(&json)
         .unwrap_or_else(|_| panic!("should have successfully deserialized json {json}"));
