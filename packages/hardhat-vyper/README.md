@@ -86,7 +86,7 @@ def _mint_for_testing(_to: address, _token_id: uint256):
 #@ endif
 ```
 
-We currently do NOT support this feature. An error will be thrown every time that, when compiling a contract, the directive `#@ if mode == "test":` is found.
+We do NOT support this feature. An error will be thrown every time that, when compiling a contract, the directive `#@ if mode == "test":` is found.
 
 ### Additional notes
 
