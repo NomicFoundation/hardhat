@@ -22,9 +22,6 @@
   "bin": {
     "hardhat": "internal/cli/bootstrap.js"
   },
-  "engines": {
-    "node": ">=16.0.0"
-  },
   "scripts": {
     "lint": "yarn prettier --check && yarn eslint",
     "lint:fix": "yarn prettier --write && yarn eslint --fix",
