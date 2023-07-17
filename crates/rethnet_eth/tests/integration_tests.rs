@@ -3,7 +3,9 @@ use bytes::Bytes;
 use rethnet_eth::{
     remote::{
         eth::eip712,
-        methods::{FilterOptions, GetLogsInput, MethodInvocation, TransactionInput},
+        methods::{
+            FilterOptions, GetLogsInput, MethodInvocation, SubscriptionType, TransactionInput,
+        },
         BlockSpec, BlockTag,
     },
     Address, B256, U256,
@@ -403,9 +405,9 @@ fn test_serde_eth_sign_typed_data_v4() {
 fn test_serde_eth_subscribe() {
     help_test_method_invocation_serde(
         MethodInvocation::Subscribe(vec![
-            String::from("newHeads"),
-            String::from("newPendingTransactions"),
-            String::from("logs"),
+            SubscriptionType::Logs,
+            SubscriptionType::NewPendingTransactions,
+            SubscriptionType::NewHeads,
         ]),
         None,
     );
