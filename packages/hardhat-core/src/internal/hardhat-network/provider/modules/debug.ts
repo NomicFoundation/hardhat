@@ -4,7 +4,10 @@ import {
   RpcDebugTracingConfig,
 } from "../../../core/jsonrpc/types/input/debugTraceTransaction";
 import { validateParams } from "../../../core/jsonrpc/types/input/validation";
-import { MethodNotFoundError } from "../../../core/providers/errors";
+import {
+  InvalidArgumentsError,
+  MethodNotFoundError,
+} from "../../../core/providers/errors";
 import { HardhatNode } from "../node";
 import { RpcDebugTraceOutput } from "../output";
 
@@ -32,7 +35,23 @@ export class DebugModule {
   private _traceTransactionParams(
     params: any[]
   ): [Buffer, RpcDebugTracingConfig] {
-    return validateParams(params, rpcHash, rpcDebugTracingConfig);
+    const validatedParams = validateParams(
+      params,
+      rpcHash,
+      rpcDebugTracingConfig
+    );
+
+    this._validateTracerParam(validatedParams[1]);
+
+    return validatedParams;
+  }
+
+  private _validateTracerParam(config: RpcDebugTracingConfig) {
+    if (config?.tracer !== undefined) {
+      throw new InvalidArgumentsError(
+        "Hardhat currently only supports the default tracer, so no tracer parameter should be passed."
+      );
+    }
   }
 
   private async _traceTransactionAction(
