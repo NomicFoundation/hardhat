@@ -193,16 +193,19 @@ task("deploy2")
   )
   .addOptionalParam("id", "set the deployment id")
   .addFlag("force", "restart the deployment ignoring previous history")
+  .addFlag("logs", "output journal logs to the terminal")
   .setAction(
     async (
       {
         moduleNameOrPath,
         parameters: parametersInput,
+        logs,
         id: givenDeploymentId,
       }: {
         moduleNameOrPath: string;
         parameters?: string;
         force: boolean;
+        logs: boolean;
         id: string;
       },
       hre
@@ -273,6 +276,7 @@ task("deploy2")
           moduleDefinition: userModule as any,
           deploymentParameters: parameters as any,
           accounts,
+          verbose: logs,
         });
 
         if (result.status === "success") {

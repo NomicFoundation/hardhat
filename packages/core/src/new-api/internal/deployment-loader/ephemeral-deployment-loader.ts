@@ -15,8 +15,11 @@ export class EphemeralDeploymentLoader implements DeploymentLoader {
 
   private _deployedAddresses: { [key: string]: string };
 
-  constructor(private _artifactResolver: ArtifactResolver) {
-    this.journal = new MemoryJournal();
+  constructor(
+    private _artifactResolver: ArtifactResolver,
+    private _verbose: boolean
+  ) {
+    this.journal = new MemoryJournal(this._verbose);
     this._deployedAddresses = {};
   }
 

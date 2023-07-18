@@ -18,7 +18,10 @@ export class FileDeploymentLoader implements DeploymentLoader {
     deployedAddressesPath: string;
   };
 
-  constructor(private readonly _deploymentDirPath: string) {
+  constructor(
+    private readonly _deploymentDirPath: string,
+    private readonly _verbose: boolean
+  ) {
     const artifactsDir = path.join(this._deploymentDirPath, "artifacts");
     const buildInfoDir = path.join(this._deploymentDirPath, "build-info");
     const journalPath = path.join(this._deploymentDirPath, "journal.jsonl");
@@ -27,7 +30,7 @@ export class FileDeploymentLoader implements DeploymentLoader {
       "deployed_addresses.json"
     );
 
-    this.journal = new FileJournal(journalPath);
+    this.journal = new FileJournal(journalPath, this._verbose);
 
     this._paths = {
       deploymentDir: this._deploymentDirPath,

@@ -20,6 +20,7 @@ export async function deploy({
   moduleDefinition,
   deploymentParameters,
   accounts,
+  verbose,
 }: {
   artifactResolver: ArtifactResolver;
   adapters: Adapters;
@@ -31,11 +32,12 @@ export async function deploy({
   >;
   deploymentParameters: { [key: string]: ModuleParameters };
   accounts: string[];
+  verbose: boolean;
 }): Promise<DeploymentResult> {
   const deploymentLoader =
     deploymentDir === undefined
-      ? new EphemeralDeploymentLoader(artifactResolver)
-      : new FileDeploymentLoader(deploymentDir);
+      ? new EphemeralDeploymentLoader(artifactResolver, verbose)
+      : new FileDeploymentLoader(deploymentDir, verbose);
 
   const chainDispatcher = new ChainDispatcherImpl(adapters);
 

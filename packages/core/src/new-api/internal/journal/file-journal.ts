@@ -5,6 +5,7 @@ import ndjson from "ndjson";
 import { Journal, JournalableMessage } from "../../types/journal";
 
 import { deserializeReplacer } from "./utils/deserialize-replacer";
+import { logJournalableMessage } from "./utils/log";
 import { serializeReplacer } from "./utils/serialize-replacer";
 
 /**
@@ -13,9 +14,11 @@ import { serializeReplacer } from "./utils/serialize-replacer";
  * @beta
  */
 export class FileJournal implements Journal {
-  constructor(private _filePath: string) {}
+  constructor(private _filePath: string, private _verbose: boolean = false) {}
 
   public record(message: JournalableMessage): void {
+    this._log(message);
+
     this._appendJsonLine(this._filePath, message);
   }
 
@@ -38,7 +41,7 @@ export class FileJournal implements Journal {
     }
   }
 
-  private _appendJsonLine(path: string, value: unknown) {
+  private _appendJsonLine(path: string, value: JournalableMessage) {
     const flags =
       constants.O_CREAT |
       constants.O_WRONLY | // Write only
@@ -53,5 +56,11 @@ export class FileJournal implements Journal {
       "utf-8"
     );
     closeSync(fd);
+  }
+
+  private _log(message: JournalableMessage): void {
+    if (this._verbose) {
+      return logJournalableMessage(message);
+    }
   }
 }

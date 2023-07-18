@@ -1,5 +1,7 @@
 import {
   CallFunctionInteractionMessage,
+  CalledFunctionExecutionSuccess,
+  ContractAtExecutionSuccess,
   ContractAtInteractionMessage,
   DeployContractInteractionMessage,
   DeployedContractExecutionSuccess,
@@ -9,8 +11,11 @@ import {
   ExecutionSuccess,
   JournalableMessage,
   OnchainInteractionMessage,
+  ReadEventArgumentExecutionSuccess,
   ReadEventArgumentInteractionMessage,
+  SendDataExecutionSuccess,
   SendDataInteractionMessage,
+  StaticCallExecutionSuccess,
   StaticCallInteractionMessage,
 } from "../../types/journal";
 
@@ -103,4 +108,36 @@ export function isDeployedContractExecutionSuccess(
   return (
     isExecutionSuccess(potential) && potential.subtype === "deploy-contract"
   );
+}
+
+export function isCalledFunctionExecutionSuccess(
+  potential: JournalableMessage
+): potential is CalledFunctionExecutionSuccess {
+  return isExecutionSuccess(potential) && potential.subtype === "call-function";
+}
+
+export function isStaticCallExecutionSuccess(
+  potential: JournalableMessage
+): potential is StaticCallExecutionSuccess {
+  return isExecutionSuccess(potential) && potential.subtype === "static-call";
+}
+
+export function isReadEventArgumentExecutionSuccess(
+  potential: JournalableMessage
+): potential is ReadEventArgumentExecutionSuccess {
+  return (
+    isExecutionSuccess(potential) && potential.subtype === "read-event-arg"
+  );
+}
+
+export function isSendDataExecutionSuccess(
+  potential: JournalableMessage
+): potential is SendDataExecutionSuccess {
+  return isExecutionSuccess(potential) && potential.subtype === "send-data";
+}
+
+export function isContractAtExecutionSuccess(
+  potential: JournalableMessage
+): potential is ContractAtExecutionSuccess {
+  return isExecutionSuccess(potential) && potential.subtype === "contract-at";
 }

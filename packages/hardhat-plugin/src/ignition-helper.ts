@@ -49,6 +49,7 @@ export class IgnitionHelper {
       moduleDefinition: ignitionModuleDefinition,
       deploymentParameters: parameters,
       accounts,
+      verbose: false,
     });
 
     if (result.status !== "success") {

@@ -1,6 +1,7 @@
 import { Journal, JournalableMessage } from "../../types/journal";
 
 import { deserializeReplacer } from "./utils/deserialize-replacer";
+import { logJournalableMessage } from "./utils/log";
 import { serializeReplacer } from "./utils/serialize-replacer";
 
 /**
@@ -11,7 +12,11 @@ import { serializeReplacer } from "./utils/serialize-replacer";
 export class MemoryJournal implements Journal {
   private messages: string[] = [];
 
+  constructor(private _verbose: boolean = false) {}
+
   public record(message: JournalableMessage): void {
+    this._log(message);
+
     this.messages.push(JSON.stringify(message, serializeReplacer.bind(this)));
   }
 
@@ -23,6 +28,12 @@ export class MemoryJournal implements Journal {
       );
 
       yield message;
+    }
+  }
+
+  private _log(message: JournalableMessage): void {
+    if (this._verbose) {
+      return logJournalableMessage(message);
     }
   }
 }
