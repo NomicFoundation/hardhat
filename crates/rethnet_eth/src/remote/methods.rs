@@ -40,13 +40,14 @@ pub struct FilterOptions {
     pub topics: Option<Vec<ZeroXPrefixedBytes>>,
 }
 
-struct OptionalBlockSpecResolved;
-impl OptionalBlockSpecResolved {
-    fn latest() -> Option<BlockSpec> {
+mod optional_block_spec_resolved {
+    use super::BlockSpec;
+
+    pub fn latest() -> Option<BlockSpec> {
         Some(BlockSpec::latest())
     }
 
-    fn pending() -> Option<BlockSpec> {
+    pub fn pending() -> Option<BlockSpec> {
         Some(BlockSpec::pending())
     }
 }
@@ -67,7 +68,7 @@ pub enum MethodInvocation {
         TransactionInput,
         #[serde(
             skip_serializing_if = "Option::is_none",
-            default = "OptionalBlockSpecResolved::latest"
+            default = "optional_block_spec_resolved::latest"
         )]
         Option<BlockSpec>,
     ),
@@ -83,7 +84,7 @@ pub enum MethodInvocation {
         TransactionInput,
         #[serde(
             skip_serializing_if = "Option::is_none",
-            default = "OptionalBlockSpecResolved::pending"
+            default = "optional_block_spec_resolved::pending"
         )]
         Option<BlockSpec>,
     ),
@@ -106,7 +107,7 @@ pub enum MethodInvocation {
         Address,
         #[serde(
             skip_serializing_if = "Option::is_none",
-            default = "OptionalBlockSpecResolved::latest"
+            default = "optional_block_spec_resolved::latest"
         )]
         Option<BlockSpec>,
     ),
@@ -145,7 +146,7 @@ pub enum MethodInvocation {
         Address,
         #[serde(
             skip_serializing_if = "Option::is_none",
-            default = "OptionalBlockSpecResolved::latest"
+            default = "optional_block_spec_resolved::latest"
         )]
         Option<BlockSpec>,
     ),
@@ -178,7 +179,7 @@ pub enum MethodInvocation {
         U256,
         #[serde(
             skip_serializing_if = "Option::is_none",
-            default = "OptionalBlockSpecResolved::latest"
+            default = "optional_block_spec_resolved::latest"
         )]
         Option<BlockSpec>,
     ),
@@ -201,7 +202,7 @@ pub enum MethodInvocation {
         Address,
         #[serde(
             skip_serializing_if = "Option::is_none",
-            default = "OptionalBlockSpecResolved::latest"
+            default = "optional_block_spec_resolved::latest"
         )]
         Option<BlockSpec>,
     ),
