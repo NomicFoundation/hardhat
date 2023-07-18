@@ -23,7 +23,6 @@ import {
   TASK_VERIFY_ETHERSCAN,
   TASK_VERIFY_PRINT_SUPPORTED_NETWORKS,
 } from "./internal/task-names";
-import { getCurrentChainConfig } from "./internal/chain-config";
 import { etherscanConfigExtender } from "./internal/config";
 import {
   MissingAddressError,
@@ -232,7 +231,7 @@ subtask(TASK_VERIFY_ETHERSCAN)
       { address, constructorArgs, libraries, contractFQN }: VerificationArgs,
       { config, network, run }
     ) => {
-      const chainConfig = await getCurrentChainConfig(
+      const chainConfig = await Etherscan.getCurrentChainConfig(
         network,
         config.etherscan.customChains
       );

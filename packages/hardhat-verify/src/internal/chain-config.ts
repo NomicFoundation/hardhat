@@ -1,31 +1,4 @@
-import type { Network } from "hardhat/types";
 import type { ChainConfig } from "../types";
-
-import { HARDHAT_NETWORK_NAME } from "hardhat/plugins";
-import { ChainConfigNotFoundError, NetworkNotSupportedError } from "./errors";
-
-export async function getCurrentChainConfig(
-  { name, provider }: Network,
-  customChains: ChainConfig[]
-): Promise<ChainConfig> {
-  const currentChainId = parseInt(await provider.send("eth_chainId"), 16);
-
-  const currentChainConfig = [
-    // custom chains has higher precedence than builtin chains
-    ...[...customChains].reverse(), // the last entry has higher precedence
-    ...builtinChains,
-  ].find(({ chainId }) => chainId === currentChainId);
-
-  if (currentChainConfig === undefined) {
-    if (name === HARDHAT_NETWORK_NAME) {
-      throw new NetworkNotSupportedError(name);
-    }
-
-    throw new ChainConfigNotFoundError(currentChainId);
-  }
-
-  return currentChainConfig;
-}
 
 // See https://github.com/ethereum/EIPs/blob/master/EIPS/eip-155.md#list-of-chain-ids
 export const builtinChains: ChainConfig[] = [
