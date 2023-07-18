@@ -422,14 +422,9 @@ fn handle_sign(
 ) -> ResponseData<Signature> {
     event!(Level::INFO, "eth_sign({address:?}, {message:?})");
     match state.local_accounts.get(address) {
-        Some(private_key) => {
-            match Signature::new(&bytes::Bytes::from(message.clone())[..], private_key) {
-                Ok(result) => ResponseData::Success { result },
-                Err(e) => {
-                    ResponseData::new_error(0, &format!("Failed to produce signature: {e}"), None)
-                }
-            }
-        }
+        Some(private_key) => ResponseData::Success {
+            result: Signature::new(&bytes::Bytes::from(message.clone())[..], private_key),
+        },
         None => ResponseData::new_error(0, "{address} is not an account owned by this node", None),
     }
 }

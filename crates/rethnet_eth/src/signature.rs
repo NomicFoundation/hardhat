@@ -102,7 +102,7 @@ impl fmt::Display for Signature {
 
 impl Signature {
     /// to obtain message_hash consider rethnet_eth::src::utils::hash_message().
-    pub fn new<M>(message: M, private_key: &SecretKey) -> Result<Self, secp256k1::Error>
+    pub fn new<M>(message: M, private_key: &SecretKey) -> Self
     where
         M: Into<RecoveryMessage>,
     {
@@ -123,7 +123,7 @@ impl Signature {
         let s = U256::try_from_be_slice(&bytes[32..64]).expect("Must be valid");
         let v = u64::try_from(recovery_id.to_i32()).expect("Recovery IDs can only be 0..=3") + 27;
 
-        Ok(Self { r, s, v })
+        Self { r, s, v }
     }
 
     /// Verifies that signature on `message` was produced by `address`
@@ -412,7 +412,7 @@ mod tests {
                 "ac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80";
             let private_key = SecretKey::from_str(private_key_str).unwrap();
 
-            let signature = Signature::new(msg_input, &private_key).unwrap();
+            let signature = Signature::new(msg_input, &private_key);
 
             let recovered_address = signature.recover(hashed_message).unwrap();
 
