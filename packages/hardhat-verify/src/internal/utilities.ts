@@ -1,8 +1,9 @@
 import type { JsonFragment } from "@ethersproject/abi";
+import type { SolidityConfig } from "hardhat/types";
+import type { ChainConfig } from "../types";
 
 import chalk from "chalk";
 import path from "path";
-import { SolidityConfig } from "hardhat/types";
 import { builtinChains } from "./chain-config";
 import {
   ABIArgumentLengthError,
@@ -15,7 +16,6 @@ import {
   InvalidLibrariesModuleError,
 } from "./errors";
 
-import { ChainConfig } from "./types";
 import { LibraryToAddress } from "./solc/artifacts";
 import {
   isABIArgumentLengthError,

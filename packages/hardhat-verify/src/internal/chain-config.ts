@@ -1,5 +1,5 @@
 import type { Network } from "hardhat/types";
-import type { ChainConfig } from "./types";
+import type { ChainConfig } from "../types";
 
 import { HARDHAT_NETWORK_NAME } from "hardhat/plugins";
 import { ChainConfigNotFoundError, NetworkNotSupportedError } from "./errors";
