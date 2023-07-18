@@ -1,5 +1,5 @@
 import type { Dispatcher } from "undici";
-import type { Network } from "hardhat/types";
+import type { EthereumProvider } from "hardhat/types";
 import type { ChainConfig, ApiKey } from "../types";
 
 import { HARDHAT_NETWORK_NAME } from "hardhat/plugins";
@@ -44,7 +44,8 @@ export class Etherscan {
   }
 
   public static async getCurrentChainConfig(
-    { name, provider }: Network,
+    name: string,
+    provider: EthereumProvider,
     customChains: ChainConfig[]
   ): Promise<ChainConfig> {
     const currentChainId = parseInt(await provider.send("eth_chainId"), 16);
