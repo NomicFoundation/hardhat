@@ -1,6 +1,6 @@
 /* eslint-disable import/no-unused-modules */
 import { assert } from "chai";
-import fs from "fs-extra";
+import { emptyDirSync, readdir } from "fs-extra";
 import path from "path";
 
 import { useEphemeralIgnitionProject } from "../use-ignition-project";
@@ -11,7 +11,7 @@ describe("plan", () => {
 
   it("should create a plan", async function () {
     const planPath = path.resolve("../minimal-new-api/cache/plan");
-    fs.emptyDirSync(planPath);
+    emptyDirSync(planPath);
 
     await this.hre.run("compile", { quiet: true });
     await this.hre.run("plan", {
@@ -19,7 +19,7 @@ describe("plan", () => {
       moduleNameOrPath: "MyModule.js",
     });
 
-    const files = await fs.readdir(planPath);
+    const files = await readdir(planPath);
 
     assert(files.includes("index.html"));
   });

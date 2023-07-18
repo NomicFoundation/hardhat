@@ -2,7 +2,7 @@ import {
   StoredDeployment,
   StoredDeploymentSerializer,
 } from "@ignored/ignition-core";
-import fs from "fs-extra";
+import { ensureDir, pathExists, readFile, writeFile } from "fs-extra";
 import path from "path";
 
 export async function writePlan(
@@ -17,7 +17,7 @@ export async function writePlan(
     "../dist"
   );
 
-  const templateDirExists = await fs.pathExists(templateDir);
+  const templateDirExists = await pathExists(templateDir);
 
   if (!templateDirExists) {
     console.warn(`Unable to find template directory: ${templateDir}`);
@@ -26,12 +26,12 @@ export async function writePlan(
 
   const planDir = path.join(cacheDir, "plan");
 
-  await fs.ensureDir(planDir);
+  await ensureDir(planDir);
 
-  const indexHtml = await fs.readFile(path.join(templateDir, "index.html"));
+  const indexHtml = await readFile(path.join(templateDir, "index.html"));
   const updatedHtml = indexHtml
     .toString()
     .replace('{"unloaded":true}', JSON.stringify(serializedStoredDeployment));
 
-  await fs.writeFile(path.join(planDir, "index.html"), updatedHtml);
+  await writeFile(path.join(planDir, "index.html"), updatedHtml);
 }

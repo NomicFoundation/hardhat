@@ -4,15 +4,31 @@ module.exports = {
     es6: true,
     node: true,
   },
-  extends: ["plugin:prettier/recommended"],
+  extends: [
+    "plugin:prettier/recommended",
+    "plugin:import/recommended",
+    "plugin:import/typescript",
+  ],
   parser: "@typescript-eslint/parser",
   plugins: [
     "@nomiclabs/eslint-plugin-hardhat-internal-rules",
     "eslint-plugin-import",
     "no-only-tests",
     "@typescript-eslint",
+    "import",
   ],
+  settings: {
+    "import/resolver": {
+      typescript: true,
+      node: true,
+    },
+  },
+
   rules: {
+    "import/no-unused-modules": [
+      2,
+      { unusedExports: true, missingExports: true },
+    ],
     "@typescript-eslint/adjacent-overload-signatures": "error",
     "@typescript-eslint/array-type": [
       "error",

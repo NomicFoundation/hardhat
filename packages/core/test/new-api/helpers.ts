@@ -1,5 +1,5 @@
 import { assert } from "chai";
-import ethers from "ethers";
+import { ethers, providers } from "ethers";
 
 import { ArgumentType, Artifact, ArtifactResolver } from "../../src";
 import { Deployer } from "../../src/new-api/internal/deployer";
@@ -253,7 +253,7 @@ export function setupMockChainDispatcher({
 
 export class MockChainDispatcher implements ChainDispatcher {
   private _accountsState: AccountsState;
-  private _sentTxs: { [key: string]: ethers.providers.TransactionRequest };
+  private _sentTxs: { [key: string]: providers.TransactionRequest };
   private _currentBlock: number;
 
   constructor(
@@ -348,7 +348,7 @@ export class MockChainDispatcher implements ChainDispatcher {
     _args: ArgumentType[],
     _value: bigint,
     _from: string
-  ): Promise<ethers.ethers.providers.TransactionRequest> {
+  ): Promise<ethers.providers.TransactionRequest> {
     const fakeTransaction = { _kind: "TEST-CALL-TRANSACTION" } as any;
 
     return fakeTransaction;

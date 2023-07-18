@@ -1,4 +1,4 @@
-import fs from "fs-extra";
+import { ensureDir, pathExists, readFile, writeFile } from "fs-extra";
 import path from "path";
 
 import { Artifact, BuildInfo } from "../../types/artifact";
@@ -48,9 +48,9 @@ export class FileDeploymentLoader implements DeploymentLoader {
       return;
     }
 
-    await fs.ensureDir(this._paths.deploymentDir);
-    await fs.ensureDir(this._paths.artifactsDir);
-    await fs.ensureDir(this._paths.buildInfoDir);
+    await ensureDir(this._paths.deploymentDir);
+    await ensureDir(this._paths.artifactsDir);
+    await ensureDir(this._paths.buildInfoDir);
 
     this._deploymentDirsEnsured = true;
   }
@@ -75,10 +75,8 @@ export class FileDeploymentLoader implements DeploymentLoader {
       this._paths.artifactsDir,
       `${futureId}.json`
     );
-    await fs.writeFile(
-      artifactFilePath,
-      JSON.stringify(artifact, undefined, 2)
-    );
+
+    await writeFile(artifactFilePath, JSON.stringify(artifact, undefined, 2));
   }
 
   public async storeBuildInfo(buildInfo: BuildInfo): Promise<void> {
@@ -89,10 +87,7 @@ export class FileDeploymentLoader implements DeploymentLoader {
       `${buildInfo.id}.json`
     );
 
-    await fs.writeFile(
-      buildInfoFilePath,
-      JSON.stringify(buildInfo, undefined, 2)
-    );
+    await writeFile(buildInfoFilePath, JSON.stringify(buildInfo, undefined, 2));
   }
 
   public async loadArtifact(futureId: string): Promise<Artifact> {
@@ -100,7 +95,7 @@ export class FileDeploymentLoader implements DeploymentLoader {
 
     const artifactFilePath = this._resolveArtifactPathFor(futureId);
 
-    const json = await fs.readFile(artifactFilePath);
+    const json = await readFile(artifactFilePath);
 
     const artifact = JSON.parse(json.toString());
 
@@ -114,9 +109,9 @@ export class FileDeploymentLoader implements DeploymentLoader {
     await this._initialize();
 
     let deployedAddresses: { [key: string]: string };
-    if (await fs.pathExists(this._paths.deployedAddressesPath)) {
+    if (await pathExists(this._paths.deployedAddressesPath)) {
       const json = (
-        await fs.readFile(this._paths.deployedAddressesPath)
+        await readFile(this._paths.deployedAddressesPath)
       ).toString();
 
       deployedAddresses = JSON.parse(json);
@@ -126,7 +121,7 @@ export class FileDeploymentLoader implements DeploymentLoader {
 
     deployedAddresses[futureId] = contractAddress;
 
-    await fs.writeFile(
+    await writeFile(
       this._paths.deployedAddressesPath,
       `${JSON.stringify(deployedAddresses, undefined, 2)}\n`
     );

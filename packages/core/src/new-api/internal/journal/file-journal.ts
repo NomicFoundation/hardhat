@@ -1,6 +1,6 @@
 /* eslint-disable no-bitwise */
 import fs, { closeSync, constants, openSync, writeFileSync } from "fs";
-import ndjson from "ndjson";
+import { parse } from "ndjson";
 
 import { Journal, JournalableMessage } from "../../types/journal";
 
@@ -27,7 +27,7 @@ export class FileJournal implements Journal {
       return;
     }
 
-    const stream = fs.createReadStream(this._filePath).pipe(ndjson.parse());
+    const stream = fs.createReadStream(this._filePath).pipe(parse());
 
     for await (const chunk of stream) {
       const json = JSON.stringify(chunk);

@@ -73,7 +73,7 @@
     "chai-as-promised": "7.1.1",
     "eslint": "^7.32.0",
     "eslint-config-prettier": "8.3.0",
-    "eslint-import-resolver-typescript": "^3.5.1",
+    "eslint-import-resolver-typescript": "3.5.5",
     "eslint-plugin-import": "2.24.2",
     "eslint-plugin-mocha": "^9.0.0",
     "eslint-plugin-no-only-tests": "3.1.0",

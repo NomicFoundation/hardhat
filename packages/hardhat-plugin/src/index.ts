@@ -6,11 +6,11 @@ import {
 } from "@ignored/ignition-core";
 import "@nomiclabs/hardhat-ethers";
 import { BigNumber } from "ethers";
-import fs from "fs-extra";
+import { existsSync, readdirSync, readJSONSync } from "fs-extra";
 import { extendConfig, extendEnvironment, task } from "hardhat/config";
 import { lazyObject } from "hardhat/plugins";
 import path from "path";
-import prompts from "prompts";
+import Prompt from "prompts";
 
 import { buildAdaptersFrom } from "./build-adapters-from";
 import { HardhatArtifactResolver } from "./hardhat-artifact-resolver.ts";
@@ -21,7 +21,8 @@ import { open } from "./utils/open";
 
 import "./type-extensions";
 
-export { buildModule, defineModule } from "@ignored/ignition-core";
+// eslint-disable-next-line import/no-unused-modules
+export { defineModule } from "@ignored/ignition-core";
 
 export interface IgnitionConfig {
   maxRetries: number;
@@ -108,7 +109,7 @@ task("deploy")
       );
 
       if (chainId !== 31337) {
-        const prompt = await prompts({
+        const prompt = await Prompt({
           type: "confirm",
           name: "networkConfirmation",
           message: `Confirm deploy to network ${hre.network.name} (${chainId})?`,
@@ -297,17 +298,17 @@ task("ignition-info")
         "deployed_addresses.json"
       );
 
-      if (!fs.existsSync(deploymentDir)) {
+      if (!existsSync(deploymentDir)) {
         console.error(`No deployment found with id ${deploymentDir}`);
         process.exit(1);
       }
 
-      if (!fs.existsSync(deployedAddressesPath)) {
+      if (!existsSync(deployedAddressesPath)) {
         console.log(`No contracts deployed`);
         process.exit(0);
       }
 
-      const deployedAddresses = fs.readJSONSync(deployedAddressesPath);
+      const deployedAddresses = readJSONSync(deployedAddressesPath);
 
       if (formatAsJson) {
         console.log(JSON.stringify(deployedAddresses, undefined, 2));
@@ -353,7 +354,7 @@ function resolveParametersFromModuleName(
   moduleName: string,
   ignitionPath: string
 ): ModuleParams | undefined {
-  const files = fs.readdirSync(ignitionPath);
+  const files = readdirSync(ignitionPath);
   const configFilename = `${moduleName}.config.json`;
 
   return files.includes(configFilename)

@@ -5,7 +5,7 @@ import {
   ModuleParameters,
 } from "@ignored/ignition-core";
 import { Contract } from "ethers";
-import fs from "fs-extra";
+import { ensureDirSync, removeSync } from "fs-extra";
 import { resetHardhatContext } from "hardhat/plugins-testing";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import path from "path";
@@ -91,7 +91,7 @@ export function useFileIgnitionProject(
 
     this.config = testConfig;
 
-    fs.ensureDirSync(deploymentDir);
+    ensureDirSync(deploymentDir);
 
     this.deploy = (
       moduleDefinition: IgnitionModuleDefinition<
@@ -113,7 +113,7 @@ export function useFileIgnitionProject(
   afterEach("reset hardhat context", function () {
     resetHardhatContext();
 
-    fs.removeSync(this.deploymentDir);
+    removeSync(this.deploymentDir);
   });
 }
 

@@ -1,6 +1,6 @@
 import { IgnitionError } from "@ignored/ignition-core";
 import setupDebug from "debug";
-import fsExtra from "fs-extra";
+import { existsSync, pathExistsSync } from "fs-extra";
 import path from "path";
 
 const debug = setupDebug("hardhat-ignition:modules");
@@ -11,7 +11,7 @@ export function loadModule(
 ): any | undefined {
   debug(`Loading user modules from '${modulesDirectory}'`);
 
-  if (!fsExtra.existsSync(modulesDirectory)) {
+  if (!existsSync(modulesDirectory)) {
     throw new IgnitionError(`Directory ${modulesDirectory} not found.`);
   }
 
@@ -42,12 +42,12 @@ function resolveFullPathToModule(
   moduleNameOrPath: string
 ): string | undefined {
   const pathToModule = path.resolve(moduleNameOrPath);
-  if (fsExtra.pathExistsSync(pathToModule)) {
+  if (pathExistsSync(pathToModule)) {
     return pathToModule;
   }
 
   const relativeToModules = path.resolve(modulesDirectory, moduleNameOrPath);
-  if (fsExtra.pathExistsSync(relativeToModules)) {
+  if (pathExistsSync(relativeToModules)) {
     return relativeToModules;
   }
 
@@ -55,7 +55,7 @@ function resolveFullPathToModule(
     modulesDirectory,
     `${moduleNameOrPath}.js`
   );
-  if (fsExtra.pathExistsSync(relativeToModulesWithJsExtension)) {
+  if (pathExistsSync(relativeToModulesWithJsExtension)) {
     return relativeToModulesWithJsExtension;
   }
 
@@ -63,7 +63,7 @@ function resolveFullPathToModule(
     modulesDirectory,
     `${moduleNameOrPath}.ts`
   );
-  if (fsExtra.pathExistsSync(relativeToModulesWithTsExtension)) {
+  if (pathExistsSync(relativeToModulesWithTsExtension)) {
     return relativeToModulesWithTsExtension;
   }
 
