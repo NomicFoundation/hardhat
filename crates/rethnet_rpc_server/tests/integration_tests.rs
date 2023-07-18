@@ -1,4 +1,4 @@
-use std::net::SocketAddr;
+use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 use std::str::FromStr;
 
 use hashbrown::HashMap;
@@ -36,7 +36,7 @@ async fn start_server() -> SocketAddr {
     );
 
     let server = Server::new(Config {
-        address: "127.0.0.1:0".parse::<SocketAddr>().unwrap(),
+        address: SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 0),
         rpc_hardhat_network_config: RpcHardhatNetworkConfig { forking: None },
         accounts: vec![AccountConfig {
             private_key: SecretKey::from_str(PRIVATE_KEY)
