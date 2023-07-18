@@ -232,7 +232,8 @@ subtask(TASK_VERIFY_ETHERSCAN)
       { config, network, run }
     ) => {
       const chainConfig = await Etherscan.getCurrentChainConfig(
-        network,
+        network.name,
+        network.provider,
         config.etherscan.customChains
       );
 
