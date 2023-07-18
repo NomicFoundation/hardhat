@@ -34,6 +34,9 @@ pub use hardhat_methods::{
     HardhatMethodInvocation,
 };
 
+mod config;
+pub use config::{AccountConfig, Config};
+
 #[derive(Clone, Copy)]
 struct U256WithoutLeadingZeroes(U256);
 
@@ -70,20 +73,6 @@ type StateType = Arc<AppState>;
 fn error_response_data<T>(msg: &str) -> ResponseData<T> {
     event!(Level::INFO, "{}", &msg);
     ResponseData::new_error(0, msg, None)
-}
-
-pub struct Config {
-    pub address: SocketAddr,
-    pub rpc_hardhat_network_config: RpcHardhatNetworkConfig,
-    pub accounts: Vec<AccountConfig>,
-}
-
-/// configuration input for a single account
-pub struct AccountConfig {
-    /// the private key of the account
-    pub private_key: SecretKey,
-    /// the balance of the account
-    pub balance: U256,
 }
 
 pub struct Server {
