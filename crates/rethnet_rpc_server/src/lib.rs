@@ -266,7 +266,7 @@ async fn handle_get_storage_at(
     address: Address,
     position: U256,
     block: Option<BlockSpec>,
-) -> ResponseData<U256WithoutLeadingZeroes> {
+) -> ResponseData<U256> {
     event!(
         Level::INFO,
         "eth_getStorageAt({address:?}, {position:?}, {block:?})"
@@ -276,9 +276,7 @@ async fn handle_get_storage_at(
             let value = state.rethnet_state.read().await.storage(address, position);
             match restore_block_context(&state, previous_state_root).await {
                 Ok(()) => match value {
-                    Ok(value) => ResponseData::Success {
-                        result: U256WithoutLeadingZeroes(value),
-                    },
+                    Ok(value) => ResponseData::Success { result: value },
                     Err(e) => {
                         error_response_data(0, &format!("failed to retrieve storage value: {}", e))
                     }
