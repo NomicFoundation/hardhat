@@ -1,5 +1,8 @@
 import type { Dispatcher } from "undici";
+import type { Network } from "hardhat/types";
 import type { ChainConfig, ApiKey } from "../types";
+
+import { HARDHAT_NETWORK_NAME } from "hardhat/plugins";
 
 import {
   ContractStatusPollingError,
@@ -10,10 +13,12 @@ import {
   HardhatVerifyError,
   MissingApiKeyError,
   ContractStatusPollingResponseNotOkError,
+  ChainConfigNotFoundError,
+  NetworkNotSupportedError,
 } from "./errors";
 import { sendGetRequest, sendPostRequest } from "./undici";
-
 import { sleep } from "./utilities";
+import { builtinChains } from "./chain-config";
 
 interface EtherscanVerifyRequestParams {
   address: string;
@@ -36,6 +41,29 @@ export class Etherscan {
     this._apiKey = resolveApiKey(apiKey, chainConfig.network);
     this._apiUrl = chainConfig.urls.apiURL;
     this._browserUrl = chainConfig.urls.browserURL.trim().replace(/\/$/, "");
+  }
+
+  public static async getCurrentChainConfig(
+    { name, provider }: Network,
+    customChains: ChainConfig[]
+  ): Promise<ChainConfig> {
+    const currentChainId = parseInt(await provider.send("eth_chainId"), 16);
+
+    const currentChainConfig = [
+      // custom chains has higher precedence than builtin chains
+      ...[...customChains].reverse(), // the last entry has higher precedence
+      ...builtinChains,
+    ].find(({ chainId }) => chainId === currentChainId);
+
+    if (currentChainConfig === undefined) {
+      if (name === HARDHAT_NETWORK_NAME) {
+        throw new NetworkNotSupportedError(name);
+      }
+
+      throw new ChainConfigNotFoundError(currentChainId);
+    }
+
+    return currentChainConfig;
   }
 
   // https://docs.etherscan.io/api-endpoints/contracts#get-contract-source-code-for-verified-contract-source-codes
