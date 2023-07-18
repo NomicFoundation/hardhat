@@ -587,36 +587,39 @@ impl Server {
             HashMap<Address, AccountInfo>,
         ) = {
             let secp256k1 = Secp256k1::signing_only();
-            config.accounts.iter().enumerate().fold(
-                (HashMap::default(), HashMap::default()),
-                |(mut local_accounts, mut genesis_accounts),
-                 (
-                    i,
-                    AccountConfig {
-                        private_key,
-                        balance,
-                    },
-                )| {
-                    let address = public_key_to_address(private_key.public_key(&secp256k1));
-                    event!(Level::INFO, "Account #{i}: {address:?}");
-                    event!(
-                        Level::INFO,
-                        "Private Key: 0x{}",
-                        hex::encode(private_key.secret_bytes())
-                    );
-                    local_accounts.insert(address, *private_key);
-                    genesis_accounts.insert(
-                        address,
-                        AccountInfo {
-                            balance: *balance,
-                            nonce: 0,
-                            code: None,
-                            code_hash: KECCAK_EMPTY,
+            config
+                .accounts
+                .iter()
+                .enumerate()
+                .map(
+                    |(
+                        i,
+                        AccountConfig {
+                            private_key,
+                            balance,
                         },
-                    );
-                    (local_accounts, genesis_accounts)
-                },
-            )
+                    )| {
+                        let address = public_key_to_address(private_key.public_key(&secp256k1));
+                        event!(Level::INFO, "Account #{i}: {address:?}");
+                        event!(
+                            Level::INFO,
+                            "Private Key: 0x{}",
+                            hex::encode(private_key.secret_bytes())
+                        );
+                        let local_account = (address, *private_key);
+                        let genesis_account = (
+                            address,
+                            AccountInfo {
+                                balance: *balance,
+                                nonce: 0,
+                                code: None,
+                                code_hash: KECCAK_EMPTY,
+                            },
+                        );
+                        (local_account, genesis_account)
+                    },
+                )
+                .unzip()
         };
 
         let rethnet_state: StateType =
