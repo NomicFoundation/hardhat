@@ -38,10 +38,6 @@ fn test_serde_eth_call() {
         tx.clone(),
         Some(BlockSpec::latest()),
     ));
-    help_test_method_invocation_serde(MethodInvocation::Call(
-        tx.clone(),
-        Some(BlockSpec::Number(U256::from(100))),
-    ));
     help_test_method_invocation_serde_with_expected(
         MethodInvocation::Call(tx.clone(), None),
         MethodInvocation::Call(tx, Some(BlockSpec::latest())),
@@ -70,10 +66,6 @@ fn test_serde_eth_estimate_gas() {
     };
     help_test_method_invocation_serde(MethodInvocation::EstimateGas(
         tx.clone(),
-        Some(BlockSpec::Number(U256::from(100))),
-    ));
-    help_test_method_invocation_serde(MethodInvocation::EstimateGas(
-        tx.clone(),
         Some(BlockSpec::latest()),
     ));
     help_test_method_invocation_serde_with_expected(
@@ -98,10 +90,6 @@ fn test_serde_eth_gas_price() {
 
 #[test]
 fn test_serde_eth_get_balance() {
-    help_test_method_invocation_serde(MethodInvocation::GetBalance(
-        Address::from_low_u64_ne(1),
-        Some(BlockSpec::Number(U256::from(100))),
-    ));
     help_test_method_invocation_serde(MethodInvocation::GetBalance(
         Address::from_low_u64_ne(1),
         Some(BlockSpec::latest()),
@@ -140,10 +128,6 @@ fn test_serde_eth_get_block_by_hash() {
 fn test_serde_eth_get_transaction_count() {
     help_test_method_invocation_serde(MethodInvocation::GetTransactionCount(
         Address::from_low_u64_ne(1),
-        Some(BlockSpec::Number(U256::from(100))),
-    ));
-    help_test_method_invocation_serde(MethodInvocation::GetTransactionCount(
-        Address::from_low_u64_ne(1),
         Some(BlockSpec::latest()),
     ));
     help_test_method_invocation_serde_with_expected(
@@ -171,10 +155,6 @@ fn test_serde_eth_get_transaction_count_by_number() {
 
 #[test]
 fn test_serde_eth_get_code() {
-    help_test_method_invocation_serde(MethodInvocation::GetCode(
-        Address::from_low_u64_ne(1),
-        Some(BlockSpec::Number(U256::from(100))),
-    ));
     help_test_method_invocation_serde(MethodInvocation::GetCode(
         Address::from_low_u64_ne(1),
         Some(BlockSpec::latest()),
@@ -215,11 +195,6 @@ fn test_serde_eth_get_logs_by_block_tags() {
 
 #[test]
 fn test_serde_eth_get_storage_at() {
-    help_test_method_invocation_serde(MethodInvocation::GetStorageAt(
-        Address::from_low_u64_ne(1),
-        U256::ZERO,
-        Some(BlockSpec::Number(U256::from(100))),
-    ));
     help_test_method_invocation_serde(MethodInvocation::GetStorageAt(
         Address::from_low_u64_ne(1),
         U256::ZERO,

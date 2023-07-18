@@ -166,3 +166,28 @@ impl serde::Serialize for ZeroXPrefixedBytes {
         serializer.serialize_str(&format!("0x{}", hex::encode(&self.inner)))
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn help_test_block_spec_serde(block_spec: BlockSpec) {
+        let json = serde_json::json!(block_spec).to_string();
+        let block_spec_decoded: BlockSpec = serde_json::from_str(&json)
+            .unwrap_or_else(|_| panic!("should have successfully deserialized json {json}"));
+        assert_eq!(block_spec, block_spec_decoded);
+    }
+
+    #[test]
+    fn test_serde_block_spec() {
+        help_test_block_spec_serde(BlockSpec::Number(U256::from(123)));
+        help_test_block_spec_serde(BlockSpec::latest());
+        help_test_block_spec_serde(BlockSpec::Eip1898(Eip1898BlockSpec::Hash {
+            block_hash: B256::from_low_u64_ne(1),
+            require_canonical: Some(true),
+        }));
+        help_test_block_spec_serde(BlockSpec::Eip1898(Eip1898BlockSpec::Number {
+            block_number: U256::from(1),
+        }));
+    }
+}
