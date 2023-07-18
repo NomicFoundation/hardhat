@@ -1,5 +1,6 @@
 use std::ffi::OsString;
 use std::net::{IpAddr, Ipv4Addr, SocketAddr};
+use std::str::FromStr;
 
 use anyhow::anyhow;
 use clap::{Args, Parser, Subcommand};
@@ -45,7 +46,6 @@ pub struct ConfigFile {
 
 impl Default for ConfigFile {
     fn default() -> Self {
-        use std::str::FromStr;
         Self {
             accounts: DEFAULT_PRIVATE_KEYS
                 .into_iter()

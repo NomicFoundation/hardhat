@@ -353,6 +353,7 @@ impl From<B256> for RecoveryMessage {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::str::FromStr;
 
     #[test]
     fn recover_web3_signature() {
@@ -387,7 +388,6 @@ mod tests {
         //     Private Key: 0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80
         // we'll use these as fixtures.
 
-        use std::str::FromStr;
         let expected_address = Address::from_str("0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266")
             .expect("should parse address from string");
 
