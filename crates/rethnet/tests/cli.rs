@@ -112,13 +112,13 @@ async fn node() -> Result<(), Box<dyn std::error::Error>> {
 
     // assert that the standard output of the server process contains the expected log entries:
     Assert::new(output.clone()).stdout(contains("Listening on 127.0.0.1:8549"));
-    let secp = Secp256k1::signing_only();
+    let context = Secp256k1::signing_only();
     for (i, default_private_key) in DEFAULT_PRIVATE_KEYS.to_vec().iter().enumerate() {
         Assert::new(output.clone())
             .stdout(contains(format!("Private Key: 0x{}", default_private_key)))
             .stdout(contains(format!(
                 "Account #{i}: {:?}",
-                private_key_to_address(&secp, default_private_key).unwrap()
+                private_key_to_address(&context, default_private_key).unwrap()
             )));
     }
     for method_invocation in method_invocations {
