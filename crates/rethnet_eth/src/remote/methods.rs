@@ -279,6 +279,13 @@ pub enum MethodInvocation {
         deserialize_with = "sequence_to_single"
     )]
     Unsubscribe(Vec<ZeroXPrefixedBytes>),
+    /// evm_setAutomine
+    #[serde(
+        rename = "evm_setAutomine",
+        serialize_with = "single_to_sequence",
+        deserialize_with = "sequence_to_single"
+    )]
+    EvmSetAutomine(bool),
     /// evm_snapshot
     #[serde(rename = "evm_snapshot")]
     EvmSnapshot(),

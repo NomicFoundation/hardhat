@@ -366,6 +366,11 @@ fn test_serde_eth_unsubscribe() {
 }
 
 #[test]
+fn test_evm_set_automine() {
+    help_test_method_invocation_serde(MethodInvocation::EvmSetAutomine(false));
+}
+
+#[test]
 fn test_evm_snapshot() {
     help_test_method_invocation_serde(MethodInvocation::EvmSnapshot());
 }
