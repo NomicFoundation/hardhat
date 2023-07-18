@@ -1,12 +1,13 @@
 /* eslint-disable import/no-unused-modules */
-import type { IgnitionWrapperOptions } from "../src/ignition-wrapper";
 
 import { assert } from "chai";
 import { BigNumber } from "ethers";
 
 // TODO: convert these tests over once Ignition config has been updated
 describe.skip("config", () => {
-  let loadedOptions: IgnitionWrapperOptions;
+  // useEnvironment("with-config");
+
+  let loadedOptions: any;
 
   beforeEach(function () {
     loadedOptions = this.hre.ignition.options;

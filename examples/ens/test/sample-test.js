@@ -10,7 +10,7 @@ describe("ENS", function () {
       await hre.ethers.getSigners();
 
     // Arrange
-    const { ens, resolver } = await ignition2.deploy(ENSModule);
+    const { ens, resolver } = await ignition.deploy(ENSModule);
 
     await ens.setSubnodeOwner(
       namehash.hash("test"),

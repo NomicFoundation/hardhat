@@ -22,7 +22,7 @@ describe("Uniswap", function () {
 
     // Deploy Uniswap
     ({ nonfungibleTokenPositionManager, uniswapV3Factory, swapRouter02 } =
-      await ignition2.deploy(UniswapModule));
+      await ignition.deploy(UniswapModule));
 
     // Deploy example tokens Solidus and Florin
     const Solidus = await hre.ethers.getContractFactory("Solidus");

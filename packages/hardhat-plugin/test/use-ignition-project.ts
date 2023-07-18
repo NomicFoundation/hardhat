@@ -10,7 +10,7 @@ import { resetHardhatContext } from "hardhat/plugins-testing";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import path from "path";
 
-import { buildAdaptersFrom } from "../src/buildAdaptersFrom";
+import { buildAdaptersFrom } from "../src/build-adapters-from";
 import { IgnitionHelper } from "../src/ignition-helper";
 
 import { clearPendingTransactionsFromMemoryPool } from "./execution/helpers";
@@ -50,7 +50,7 @@ export function useEphemeralIgnitionProject(
       >,
       parameters: { [key: string]: ModuleParameters } = {}
     ) => {
-      return this.hre.ignition2.deploy(moduleDefinition, {
+      return this.hre.ignition.deploy(moduleDefinition, {
         parameters,
       });
     };

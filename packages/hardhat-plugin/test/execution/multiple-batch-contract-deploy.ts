@@ -53,7 +53,7 @@ describe("execution - multiple batch contract deploy", function () {
       };
     });
 
-    const deployPromise = this.hre.ignition2.deploy(moduleDefinition, {
+    const deployPromise = this.hre.ignition.deploy(moduleDefinition, {
       parameters: {},
     });
 

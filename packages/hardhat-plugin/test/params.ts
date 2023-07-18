@@ -97,7 +97,7 @@ describe.skip("validation", () => {
       return { foo };
     });
 
-    const deployPromise = this.hre.ignition2.deploy(userModule);
+    const deployPromise = this.hre.ignition.deploy(userModule);
 
     await assert.isRejected(
       deployPromise,
@@ -118,7 +118,7 @@ describe.skip("validation", () => {
       return { foo };
     });
 
-    const deployPromise = this.hre.ignition2.deploy(userModule, {
+    const deployPromise = this.hre.ignition.deploy(userModule, {
       parameters: {
         UserModule: {
           NotMyNumber: 11,

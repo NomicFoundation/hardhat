@@ -20,7 +20,7 @@ describe("Lock", function () {
     // Contracts are deployed using the first signer/account by default
     const [owner, otherAccount] = await ethers.getSigners();
 
-    const { lock } = await ignition2.deploy(LockModule, {
+    const { lock } = await ignition.deploy(LockModule, {
       parameters: {
         LockModule: {
           unlockTime,

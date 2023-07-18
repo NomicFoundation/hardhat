@@ -14,16 +14,14 @@ import { lazyObject } from "hardhat/plugins";
 import path from "path";
 import prompts from "prompts";
 
-import { buildAdaptersFrom } from "./buildAdaptersFrom";
-import { buildIgnitionProvidersFrom } from "./buildIgnitionProvidersFrom";
+import { buildAdaptersFrom } from "./build-adapters-from";
 import { HardhatArtifactResolver } from "./hardhat-artifact-resolver.ts";
 import { IgnitionHelper } from "./ignition-helper";
-import { IgnitionWrapper } from "./ignition-wrapper";
 import { loadModule } from "./load-module";
 import { writePlan } from "./plan/write-plan";
-import "./type-extensions";
-import { renderInfo } from "./ui/components/info";
 import { open } from "./utils/open";
+
+import "./type-extensions";
 
 export { buildModule, defineModule } from "@ignored/ignition-core";
 
@@ -33,8 +31,6 @@ export interface IgnitionConfig {
   pollingInterval: number;
   eventDuration: number;
 }
-
-const DISPLAY_UI = process.env.DEBUG === undefined;
 
 /* ignition config defaults */
 const IGNITION_DIR = "ignition";
@@ -63,6 +59,7 @@ extendConfig((config, userConfig) => {
   /* setup core configs */
   const userIgnitionConfig = userConfig.ignition ?? {};
 
+  // TODO: this should wire into the new config
   config.ignition = {
     maxRetries: userIgnitionConfig.maxRetries ?? MAX_RETRIES,
     gasPriceIncrementPerRetry:
@@ -76,116 +73,12 @@ extendConfig((config, userConfig) => {
  * Add an `ignition` object to the HRE.
  */
 extendEnvironment((hre) => {
-  const providers = buildIgnitionProvidersFrom(hre);
-
   hre.ignition = lazyObject(() => {
-    const isHardhatNetwork = hre.network.name === "hardhat";
-
-    const txPollingInterval = isHardhatNetwork ? 100 : 5000;
-
-    return new IgnitionWrapper(providers, hre.ethers, {
-      ...hre.config.ignition,
-      txPollingInterval,
-      networkName: hre.network.name,
-    });
-  });
-
-  hre.ignition2 = lazyObject(() => {
-    // const isHardhatNetwork = hre.network.name === "hardhat";
-
-    // TODO: rewire txPollingInterval
-    // const txPollingInterval = isHardhatNetwork ? 100 : 5000;
-
     return new IgnitionHelper(hre);
   });
 });
 
 task("deploy")
-  .addPositionalParam("moduleNameOrPath")
-  .addOptionalParam(
-    "parameters",
-    "A JSON object as a string, of the module parameters, or a relative path to a JSON file"
-  )
-  .addFlag("force", "restart the deployment ignoring previous history")
-  .setAction(
-    async (
-      {
-        moduleNameOrPath,
-        parameters: parametersInput,
-        force,
-      }: { moduleNameOrPath: string; parameters?: string; force: boolean },
-      hre
-    ) => {
-      const chainId = Number(
-        await hre.network.provider.request({
-          method: "eth_chainId",
-        })
-      );
-
-      if (chainId !== 31337) {
-        const prompt = await prompts({
-          type: "confirm",
-          name: "networkConfirmation",
-          message: `Confirm deploy to network ${hre.network.name} (${chainId})?`,
-          initial: false,
-        });
-
-        if (prompt.networkConfirmation !== true) {
-          console.log("Deploy cancelled");
-          return;
-        }
-      }
-
-      await hre.run("compile", { quiet: true });
-
-      const userModule: Module<ModuleDict> | undefined = loadModule(
-        hre.config.paths.ignition,
-        moduleNameOrPath
-      );
-
-      if (userModule === undefined) {
-        console.warn("No Ignition modules found");
-        process.exit(0);
-      }
-
-      let parameters: ModuleParams | undefined;
-      if (parametersInput === undefined) {
-        parameters = resolveParametersFromModuleName(
-          userModule.name,
-          hre.config.paths.ignition
-        );
-      } else if (parametersInput.endsWith(".json")) {
-        parameters = resolveParametersFromFileName(parametersInput);
-      } else {
-        parameters = resolveParametersString(parametersInput);
-      }
-
-      const isHardhatNetwork = hre.network.name === "hardhat";
-      const journalPath = isHardhatNetwork
-        ? undefined
-        : resolveJournalPath(userModule.name, hre.config.paths.ignition);
-
-      try {
-        await hre.ignition.deploy(userModule, {
-          parameters,
-          journalPath,
-          ui: DISPLAY_UI,
-          force,
-        });
-      } catch (err) {
-        if (DISPLAY_UI) {
-          // display of error or on hold is done
-          // based on state, thrown error display
-          // can be ignored
-          process.exit(1);
-        } else {
-          throw err;
-        }
-      }
-    }
-  );
-
-task("deploy2")
   .addPositionalParam("moduleNameOrPath")
   .addOptionalParam(
     "parameters",
@@ -385,32 +278,6 @@ task("plan")
   );
 
 task("ignition-info")
-  .addPositionalParam("moduleNameOrPath")
-  .setDescription("Lists the status of all deployments")
-  .setAction(
-    async ({ moduleNameOrPath }: { moduleNameOrPath: string }, hre) => {
-      const userModule: Module<ModuleDict> | undefined = loadModule(
-        hre.config.paths.ignition,
-        moduleNameOrPath
-      );
-
-      if (userModule === undefined) {
-        console.warn("No Ignition modules found");
-        process.exit(0);
-      }
-
-      const journalPath = resolveJournalPath(
-        userModule?.name,
-        hre.config.paths.ignition
-      );
-
-      const moduleInfo = await hre.ignition.info(userModule.name, journalPath);
-
-      renderInfo(Object.values(moduleInfo));
-    }
-  );
-
-task("ignition-info2")
   .addParam("deploymentId")
   .addFlag("json", "format as json")
   .setDescription("Lists the deployed contract addresses of a deployment")
@@ -509,12 +376,6 @@ function resolveConfigPath(filepath: string): ModuleParams {
     console.warn(`Could not parse parameters from ${filepath}`);
     process.exit(0);
   }
-}
-
-function resolveJournalPath(moduleName: string, ignitionPath: string) {
-  const journalFile = `${moduleName}.journal.ndjson`;
-
-  return path.join(ignitionPath, journalFile);
 }
 
 function resolveParametersString(paramString: string): ModuleParams {

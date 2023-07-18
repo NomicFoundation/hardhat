@@ -1,18 +1,20 @@
 import {
   Adapters,
   BlocksAdapter,
+  GasAdapter,
+  SignerAdapter,
   TransactionsAdapter,
 } from "@ignored/ignition-core";
 import { ethers } from "ethers";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 
 export function buildAdaptersFrom(hre: HardhatRuntimeEnvironment): Adapters {
-  const signerAdapter = {
+  const signerAdapter: SignerAdapter = {
     getSigner: (address: string): Promise<ethers.Signer> =>
       hre.ethers.getSigner(address),
   };
 
-  const gasAdapter = {
+  const gasAdapter: GasAdapter = {
     estimateGasLimit: async (
       tx: ethers.providers.TransactionRequest
     ): Promise<ethers.BigNumber> => {

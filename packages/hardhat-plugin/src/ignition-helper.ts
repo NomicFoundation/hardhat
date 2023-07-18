@@ -11,7 +11,7 @@ import {
 import { Contract } from "ethers";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 
-import { buildAdaptersFrom } from "./buildAdaptersFrom";
+import { buildAdaptersFrom } from "./build-adapters-from";
 import { HardhatArtifactResolver } from "./hardhat-artifact-resolver.ts";
 
 export class IgnitionHelper {
