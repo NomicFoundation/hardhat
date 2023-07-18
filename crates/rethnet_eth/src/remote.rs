@@ -189,7 +189,14 @@ impl serde::Serialize for ZeroXPrefixedBytes {
     where
         S: serde::Serializer,
     {
-        serializer.serialize_str(&format!("0x{}", hex::encode(&self.inner)))
+        let encoded = hex::encode(&self.inner);
+        serializer.serialize_str(&format!(
+            "0x{}",
+            match encoded.as_str() {
+                "00" => "",
+                other => other,
+            }
+        ))
     }
 }
 

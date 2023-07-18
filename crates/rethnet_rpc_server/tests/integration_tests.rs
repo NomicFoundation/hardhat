@@ -142,7 +142,7 @@ async fn test_get_code_success() {
             Address::from_low_u64_ne(1),
             Some(BlockSpec::latest()),
         )),
-        ZeroXPrefixedBytes::from(Bytes::from_static(b"\0")),
+        ZeroXPrefixedBytes::from(Bytes::from_static(b"")),
     )
     .await;
 }
