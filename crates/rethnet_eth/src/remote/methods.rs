@@ -279,6 +279,9 @@ pub enum MethodInvocation {
         deserialize_with = "sequence_to_single"
     )]
     Unsubscribe(Vec<ZeroXPrefixedBytes>),
+    /// evm_snapshot
+    #[serde(rename = "evm_snapshot")]
+    EvmSnapshot(),
 }
 
 /// subscription type to be used with eth_subscribe
