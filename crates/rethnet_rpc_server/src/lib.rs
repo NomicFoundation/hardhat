@@ -70,9 +70,9 @@ struct AppState {
 
 type StateType = Arc<AppState>;
 
-fn error_response_data<T>(msg: &str) -> ResponseData<T> {
+fn error_response_data<T>(code: i16, msg: &str) -> ResponseData<T> {
     event!(Level::INFO, "{}", &msg);
-    ResponseData::new_error(0, msg, None)
+    ResponseData::new_error(code, msg, None)
 }
 
 pub struct Server {
@@ -114,7 +114,7 @@ async fn set_block_context<T>(
     block_spec: Option<BlockSpec>,
 ) -> Result<B256, ResponseData<T>> {
     let previous_state_root = state.rethnet_state.read().await.state_root().map_err(|e| {
-        error_response_data(&format!("Failed to retrieve previous state root: {e}"))
+        error_response_data(0, &format!("Failed to retrieve previous state root: {e}"))
     })?;
     match block_spec {
         Some(BlockSpec::Tag(BlockTag::Pending)) => {
@@ -154,9 +154,10 @@ async fn set_block_context<T>(
                     }?),
                 )
                 .map_err(|e| {
-                    error_response_data(&format!(
-                        "Failed to set block context {resolvable_block_spec:?}: {e}"
-                    ))
+                    error_response_data(
+                        0,
+                        &format!("Failed to set block context {resolvable_block_spec:?}: {e}"),
+                    )
                 })?;
             Ok(previous_state_root)
         }
@@ -172,7 +173,7 @@ async fn restore_block_context<T>(
         .write()
         .await
         .set_block_context(&state_root, None)
-        .map_err(|_| error_response_data("Failed to restore previous block context"))
+        .map_err(|_| error_response_data(0, "Failed to restore previous block context"))
 }
 
 async fn get_account_info<T>(
@@ -187,7 +188,7 @@ async fn get_account_info<T>(
             code: None,
             code_hash: KECCAK_EMPTY,
         }),
-        Err(e) => Err(error_response_data(&e.to_string())),
+        Err(e) => Err(error_response_data(0, &e.to_string())),
     }
 }
 
@@ -204,7 +205,7 @@ async fn handle_get_balance(
     block: Option<BlockSpec>,
 ) -> ResponseData<U256WithoutLeadingZeroes> {
     event!(Level::INFO, "eth_getBalance({address:?}, {block:?})");
-    match set_block_context(&state, block).await {
+    match set_block_context(&state, block.clone()).await {
         Ok(previous_state_root) => {
             let account_info = get_account_info(&state, address).await;
             match restore_block_context(&state, previous_state_root).await {
@@ -243,7 +244,7 @@ async fn handle_get_code(
                                 result: ZeroXPrefixedBytes::from(code.bytecode),
                             },
                             Err(e) => {
-                                error_response_data(&format!("failed to retrieve code: {}", e))
+                                error_response_data(0, &format!("failed to retrieve code: {}", e))
                             }
                         }
                     }
@@ -275,7 +276,7 @@ async fn handle_get_storage_at(
                         result: U256WithoutLeadingZeroes(value),
                     },
                     Err(e) => {
-                        error_response_data(&format!("failed to retrieve storage value: {}", e))
+                        error_response_data(0, &format!("failed to retrieve storage value: {}", e))
                     }
                 },
                 Err(e) => e,
@@ -445,9 +446,10 @@ async fn handle_request(
             method: _,
         } if *version != jsonrpc::Version::V2_0 => response(
             id,
-            error_response_data::<serde_json::Value>(&format!(
-                "unsupported JSON-RPC version '{version:?}'"
-            )),
+            error_response_data::<serde_json::Value>(
+                0,
+                &format!("unsupported JSON-RPC version '{version:?}'"),
+            ),
         ),
         RpcRequest {
             version: _,
