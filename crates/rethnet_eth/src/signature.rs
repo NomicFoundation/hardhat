@@ -400,7 +400,7 @@ mod tests {
     }
 
     #[test]
-    fn test_signature_construction() {
+    fn test_signature_new() {
         let message = "whatever";
         let hashed_message = crate::utils::hash_message(message);
 
