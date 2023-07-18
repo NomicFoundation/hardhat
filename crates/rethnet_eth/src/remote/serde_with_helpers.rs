@@ -65,8 +65,6 @@ pub fn optional_u64_from_hex<'de, D>(deserializer: D) -> Result<Option<u64>, D::
 where
     D: serde::Deserializer<'de>,
 {
-    let s: &str = serde::Deserialize::deserialize(deserializer)?;
-    Ok(Some(
-        u64::from_str_radix(&s[2..], 16).expect("failed to parse u64"),
-    ))
+    let s: Option<&str> = serde::Deserialize::deserialize(deserializer)?;
+    Ok(s.map(|s| u64::from_str_radix(&s[2..], 16).expect("failed to parse u64")))
 }

@@ -11,18 +11,19 @@ pub mod eip712;
 
 use std::fmt::Debug;
 
-use crate::{Address, Bloom, Bytes, B256, U256};
+use revm_primitives::ruint::aliases::B64;
+
+use crate::{
+    access_list::AccessListItem,
+    signature::Signature,
+    transaction::{
+        EIP1559SignedTransaction, EIP2930SignedTransaction, LegacySignedTransaction,
+        SignedTransaction, TransactionKind,
+    },
+    Address, Bloom, Bytes, B256, U256,
+};
 
 use super::{serde_with_helpers::optional_u64_from_hex, withdrawal::Withdrawal};
-
-/// for use as the access_list field in the Transaction struct
-#[derive(Clone, Debug, PartialEq, Eq, Default, serde::Deserialize, serde::Serialize)]
-#[serde(deny_unknown_fields)]
-#[serde(rename_all = "camelCase")]
-pub struct AccessListEntry {
-    address: Address,
-    storage_keys: Vec<U256>,
-}
 
 /// transaction
 #[derive(Clone, Debug, PartialEq, Eq, Default, serde::Deserialize, serde::Serialize)]
@@ -32,7 +33,8 @@ pub struct Transaction {
     /// hash of the transaction
     pub hash: B256,
     /// the number of transactions made by the sender prior to this one
-    pub nonce: U256,
+    #[serde(deserialize_with = "u64_from_hex")]
+    pub nonce: u64,
     /// hash of the block where this transaction was in
     pub block_hash: Option<B256>,
     /// block number where this transaction was in
@@ -47,7 +49,7 @@ pub struct Transaction {
     /// value transferred in Wei
     pub value: U256,
     /// gas price provided by the sender in Wei
-    pub gas_price: Option<U256>,
+    pub gas_price: U256,
     /// gas provided by the sender
     pub gas: U256,
     /// the data sent along with the transaction
@@ -63,16 +65,11 @@ pub struct Transaction {
     #[serde(default, deserialize_with = "optional_u64_from_hex")]
     pub chain_id: Option<u64>,
     /// integer of the transaction type, 0x0 for legacy transactions, 0x1 for access list types, 0x2 for dynamic fees
-    #[serde(
-        rename = "type",
-        default,
-        skip_serializing_if = "Option::is_none",
-        deserialize_with = "optional_u64_from_hex"
-    )]
-    pub transaction_type: Option<u64>,
+    #[serde(rename = "type", default, deserialize_with = "u64_from_hex")]
+    pub transaction_type: u64,
     /// access list
     #[serde(default)]
-    pub access_list: Option<Vec<AccessListEntry>>,
+    pub access_list: Option<Vec<AccessListItem>>,
     /// max fee per gas
     #[serde(default)]
     pub max_fee_per_gas: Option<U256>,
@@ -180,18 +177,13 @@ pub struct TransactionReceipt {
 #[derive(Debug, Default, Clone, PartialEq, Eq, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 #[serde(rename_all = "camelCase")]
-pub struct Block<TX>
-where
-    TX: Debug + Default + Clone + PartialEq + Eq,
-{
-    /// hash of the block. None when its pending block.
+pub struct Block<TX> {
+    /// Hash of the block
     pub hash: Option<B256>,
     /// hash of the parent block.
     pub parent_hash: B256,
     /// SHA3 of the uncles data in the block
     pub sha3_uncles: B256,
-    /// author
-    pub author: Option<Address>,
     /// the root of the final state trie of the block
     pub state_root: B256,
     /// the root of the transaction trie of the block
@@ -207,18 +199,13 @@ where
     /// the "extra data" field of this block
     pub extra_data: Bytes,
     /// the bloom filter for the logs of the block. None when its pending block.
-    pub logs_bloom: Option<Bloom>,
+    pub logs_bloom: Bloom,
     /// the unix timestamp for when the block was collated
-    #[serde(default)]
     pub timestamp: U256,
     /// integer of the difficulty for this block
-    #[serde(default)]
     pub difficulty: U256,
     /// integer of the total difficulty of the chain until this block
     pub total_difficulty: Option<U256>,
-    /// seal fields
-    #[serde(default, deserialize_with = "deserialize_null_default")]
-    pub seal_fields: Vec<Bytes>,
     /// Array of uncle hashes
     #[serde(default)]
     pub uncles: Vec<B256>,
@@ -226,29 +213,164 @@ where
     #[serde(default)]
     pub transactions: Vec<TX>,
     /// integer the size of this block in bytes
-    pub size: Option<U256>,
+    pub size: U256,
     /// mix hash
-    pub mix_hash: Option<B256>,
+    pub mix_hash: B256,
     /// hash of the generated proof-of-work. null when its pending block.
-    pub nonce: Option<U256>,
+    #[serde(deserialize_with = "optional_u64_from_hex")]
+    pub nonce: Option<u64>,
     /// base fee per gas
     pub base_fee_per_gas: Option<U256>,
     /// the address of the beneficiary to whom the mining rewards were given
-    pub miner: Address,
+    pub miner: Option<Address>,
     #[serde(default)]
     /// withdrawals
     pub withdrawals: Vec<Withdrawal>,
     /// withdrawals root
-    #[serde(default)]
-    pub withdrawals_root: B256,
+    pub withdrawals_root: Option<B256>,
 }
 
-fn deserialize_null_default<'de, D, T>(deserializer: D) -> Result<T, D::Error>
+/// Error that occurs when trying to convert the JSON-RPC `Transaction` type.
+#[derive(Debug, thiserror::Error)]
+pub enum TransactionConversionError {
+    /// Missing access list
+    #[error("Missing access list")]
+    MissingAccessList,
+    /// Missing chain ID
+    #[error("Missing chain ID")]
+    MissingChainId,
+    /// Missing max fee per gas
+    #[error("Missing max fee per gas")]
+    MissingMaxFeePerGas,
+    /// Missing max priority fee per gas
+    #[error("Missing max priority fee per gas")]
+    MissingMaxPriorityFeePerGas,
+    /// The transaction type is not supported.
+    #[error("Unsupported type {0}")]
+    UnsupportedType(u64),
+}
+
+impl TryFrom<Transaction> for SignedTransaction {
+    type Error = TransactionConversionError;
+
+    fn try_from(value: Transaction) -> Result<Self, Self::Error> {
+        let kind = if let Some(to) = value.to {
+            TransactionKind::Call(to)
+        } else {
+            TransactionKind::Create
+        };
+
+        match value.transaction_type {
+            0 => Ok(Self::Legacy(LegacySignedTransaction {
+                nonce: value.nonce,
+                gas_price: value.gas_price,
+                gas_limit: value.gas.to(),
+                kind,
+                value: value.value,
+                input: value.input,
+                signature: Signature {
+                    r: value.r,
+                    s: value.s,
+                    v: value.v,
+                },
+            })),
+            1 => Ok(Self::EIP2930(EIP2930SignedTransaction {
+                chain_id: value
+                    .chain_id
+                    .ok_or(TransactionConversionError::MissingChainId)?,
+                nonce: value.nonce,
+                gas_price: value.gas_price,
+                gas_limit: value.gas.to(),
+                kind,
+                value: value.value,
+                input: value.input,
+                access_list: value
+                    .access_list
+                    .ok_or(TransactionConversionError::MissingAccessList)?
+                    .into(),
+                odd_y_parity: value.v != 0,
+                r: B256::from(value.r),
+                s: B256::from(value.s),
+            })),
+            2 => Ok(Self::EIP1559(EIP1559SignedTransaction {
+                chain_id: value
+                    .chain_id
+                    .ok_or(TransactionConversionError::MissingChainId)?,
+                nonce: value.nonce,
+                max_priority_fee_per_gas: value
+                    .max_priority_fee_per_gas
+                    .ok_or(TransactionConversionError::MissingMaxPriorityFeePerGas)?,
+                max_fee_per_gas: value
+                    .max_fee_per_gas
+                    .ok_or(TransactionConversionError::MissingMaxFeePerGas)?,
+                gas_limit: value.gas.to(),
+                kind,
+                value: value.value,
+                input: value.input,
+                access_list: value
+                    .access_list
+                    .ok_or(TransactionConversionError::MissingAccessList)?
+                    .into(),
+                odd_y_parity: value.v != 0,
+                r: B256::from(value.r),
+                s: B256::from(value.s),
+            })),
+            r#type => Err(TransactionConversionError::UnsupportedType(r#type)),
+        }
+    }
+}
+
+/// Error that occurs when trying to convert the JSON-RPC `Block` type.
+#[derive(Debug, thiserror::Error)]
+pub enum BlockConversionError {
+    /// Missing miner
+    #[error("Missing miner")]
+    MissingMiner,
+    /// Missing nonce
+    #[error("Missing nonce")]
+    MissingNonce,
+    /// Missing number
+    #[error("Missing numbeer")]
+    MissingNumber,
+    /// Transaction conversion error
+    #[error(transparent)]
+    TransactionConversionError(#[from] TransactionConversionError),
+}
+
+impl<TX> TryFrom<Block<TX>> for crate::block::Block
 where
-    T: Default + serde::Deserialize<'de>,
-    D: serde::Deserializer<'de>,
+    TX: TryInto<SignedTransaction, Error = TransactionConversionError>,
 {
-    use serde::Deserialize;
-    let opt = Option::deserialize(deserializer)?;
-    Ok(opt.unwrap_or_default())
+    type Error = BlockConversionError;
+
+    fn try_from(value: Block<TX>) -> Result<Self, Self::Error> {
+        Ok(Self {
+            header: crate::block::Header {
+                parent_hash: value.parent_hash,
+                ommers_hash: value.sha3_uncles,
+                beneficiary: value.miner.ok_or(BlockConversionError::MissingMiner)?,
+                state_root: value.state_root,
+                transactions_root: value.transactions_root,
+                receipts_root: value.receipts_root,
+                logs_bloom: value.logs_bloom,
+                difficulty: value.difficulty,
+                number: value.number.ok_or(BlockConversionError::MissingNumber)?,
+                gas_limit: value.gas_limit,
+                gas_used: value.gas_used,
+                timestamp: value.timestamp,
+                extra_data: value.extra_data,
+                mix_hash: value.mix_hash,
+                nonce: B64::from_limbs([value.nonce.ok_or(BlockConversionError::MissingNonce)?]),
+                base_fee_per_gas: value.base_fee_per_gas,
+                withdrawals_root: value.withdrawals_root,
+            },
+            transactions: value
+                .transactions
+                .into_iter()
+                .map(TryInto::try_into)
+                .collect::<Result<Vec<SignedTransaction>, TransactionConversionError>>()?,
+            // TODO: Include headers
+            ommers: Vec::new(),
+        })
+    }
 }
