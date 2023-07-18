@@ -1,5 +1,5 @@
 use rethnet_eth::{block::Header, trie::KECCAK_RLP_EMPTY_ARRAY, U256};
-use revm::primitives::{CfgEnv, SpecId};
+use revm::primitives::SpecId;
 
 fn bomb_delay(spec_id: SpecId) -> U256 {
     U256::from(match spec_id {
@@ -23,13 +23,13 @@ fn bomb_delay(spec_id: SpecId) -> U256 {
 }
 
 pub fn calculate_ethash_canonical_difficulty(
-    cfg: &CfgEnv,
+    spec_id: SpecId,
     parent: &Header,
     block_number: &U256,
     block_timestamp: &U256,
 ) -> U256 {
     // TODO: Create a custom config that prevents usage of older hardforks
-    if cfg.spec_id < SpecId::BYZANTIUM {
+    if spec_id < SpecId::BYZANTIUM {
         panic!("Hardforks older than Byzantium are not supported");
     }
 
@@ -55,7 +55,7 @@ pub fn calculate_ethash_canonical_difficulty(
     };
 
     if let Some(exp) = block_number
-        .checked_sub(bomb_delay(cfg.spec_id))
+        .checked_sub(bomb_delay(spec_id))
         .and_then(|num| (num / U256::from(100000)).checked_sub(U256::from(2)))
     {
         diff += U256::from(2).pow(exp);

@@ -1,5 +1,10 @@
-use revm_primitives::{Address, U256};
-use ruint::aliases::{U128, U160};
+use revm_primitives::{
+    ruint::{
+        self,
+        aliases::{U128, U160},
+    },
+    Address, U256,
+};
 
 /// Ethereum withdrawal
 #[derive(Clone, Debug, PartialEq, Eq)]

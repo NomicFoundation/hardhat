@@ -4,7 +4,7 @@ use rethnet_eth::B256;
 use revm::primitives::keccak256;
 
 /// A pseudorandom hash generator which allows overriding of the next generated hash.
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct RandomHashGenerator {
     /// The next hash that will be returned
     next_value: B256,

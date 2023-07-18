@@ -3,11 +3,20 @@
 // - https://github.com/foundry-rs/foundry/blob/01b16238ff87dc7ca8ee3f5f13e389888c2a2ee4/LICENSE-MIT
 // For the original context see: https://github.com/foundry-rs/foundry/blob/01b16238ff87dc7ca8ee3f5f13e389888c2a2ee4/anvil/core/src/eth/block.rs
 
-use revm_primitives::keccak256;
+mod detailed;
+
+use revm_primitives::{
+    keccak256,
+    ruint::{
+        self,
+        aliases::{U160, U64},
+    },
+};
 use rlp::{Decodable, DecoderError, Encodable, Rlp, RlpStream};
-use ruint::aliases::{U160, U64};
 
 use crate::{transaction::SignedTransaction, trie, Address, Bloom, Bytes, B256, B64, U256};
+
+pub use self::detailed::DetailedBlock;
 
 /// Ethereum block
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -387,8 +396,6 @@ impl From<Header> for PartialHeader {
 mod tests {
     use std::str::FromStr;
 
-    use ruint::uint;
-
     use super::*;
 
     #[test]
@@ -408,7 +415,7 @@ mod tests {
             timestamp: U256::ZERO,
             extra_data: Default::default(),
             mix_hash: Default::default(),
-            nonce: B64::from(uint!(99_U64)),
+            nonce: B64::from(U64::from(99)),
             base_fee_per_gas: None,
             withdrawals_root: None,
         };
@@ -533,7 +540,7 @@ mod tests {
                 "0000000000000000000000000000000000000000000000000000000000000000",
             )
             .unwrap(),
-            nonce: B64::from(uint!(0x0_U64)),
+            nonce: B64::from(U64::ZERO),
             base_fee_per_gas: Some(U256::from(0x036bu64)),
             withdrawals_root: None,
         };

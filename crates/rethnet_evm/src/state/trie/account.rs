@@ -175,49 +175,53 @@ impl AccountTrie {
         .expect("Invalid state root");
 
         changes.iter().for_each(|(address, account)| {
-            if account.is_destroyed || account.is_empty() {
-                // Removes account only if it exists, so safe to use for empty, touched accounts
-                Self::remove_account_in(address, &mut state_trie, &mut self.storage_trie_dbs);
-            } else {
-                if account.storage_cleared {
-                    // We can simply remove the storage trie db, as it will get reinitialized in the next operation
-                    self.storage_trie_dbs.remove(address);
+            if account.is_touched() {
+                if account.is_selfdestructed() {
+                    // Removes account only if it exists, so safe to use for empty, touched accounts
+                    Self::remove_account_in(address, &mut state_trie, &mut self.storage_trie_dbs);
+                } else {
+                    if account.is_newly_created() {
+                        // We can simply remove the storage trie db, as it will get reinitialized in the next operation
+                        self.storage_trie_dbs.remove(address);
+                    }
+
+                    let (storage_trie_db, storage_root) =
+                        self.storage_trie_dbs.entry(*address).or_insert_with(|| {
+                            let storage_trie_db = Arc::new(MemoryDB::new(true));
+                            let storage_root = {
+                                let mut storage_trie = Trie::new(
+                                    storage_trie_db.clone(),
+                                    Arc::new(HasherKeccak::new()),
+                                );
+
+                                B256::from_slice(&storage_trie.root().unwrap())
+                            };
+
+                            (storage_trie_db, storage_root)
+                        });
+
+                    let storage_changed = account.is_newly_created() || !account.storage.is_empty();
+                    if storage_changed {
+                        let mut storage_trie = Trie::from(
+                            storage_trie_db.clone(),
+                            Arc::new(HasherKeccak::new()),
+                            storage_root.as_bytes(),
+                        )
+                        .expect("Invalid storage root");
+
+                        account.storage.iter().for_each(|(index, value)| {
+                            Self::set_account_storage_slot_in(
+                                index,
+                                &value.present_value,
+                                &mut storage_trie,
+                            );
+                        });
+
+                        *storage_root = B256::from_slice(&storage_trie.root().unwrap());
+                    }
+
+                    Self::set_account_in(address, &account.info, *storage_root, &mut state_trie);
                 }
-
-                let (storage_trie_db, storage_root) =
-                    self.storage_trie_dbs.entry(*address).or_insert_with(|| {
-                        let storage_trie_db = Arc::new(MemoryDB::new(true));
-                        let storage_root = {
-                            let mut storage_trie =
-                                Trie::new(storage_trie_db.clone(), Arc::new(HasherKeccak::new()));
-
-                            B256::from_slice(&storage_trie.root().unwrap())
-                        };
-
-                        (storage_trie_db, storage_root)
-                    });
-
-                let storage_changed = account.storage_cleared || !account.storage.is_empty();
-                if storage_changed {
-                    let mut storage_trie = Trie::from(
-                        storage_trie_db.clone(),
-                        Arc::new(HasherKeccak::new()),
-                        storage_root.as_bytes(),
-                    )
-                    .expect("Invalid storage root");
-
-                    account.storage.iter().for_each(|(index, value)| {
-                        Self::set_account_storage_slot_in(
-                            index,
-                            &value.present_value,
-                            &mut storage_trie,
-                        );
-                    });
-
-                    *storage_root = B256::from_slice(&storage_trie.root().unwrap());
-                }
-
-                Self::set_account_in(address, &account.info, *storage_root, &mut state_trie);
             }
         });
 

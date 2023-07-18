@@ -1,5 +1,6 @@
 use std::{
     mem,
+    ops::Deref,
     sync::{
         mpsc::{channel, Sender},
         Arc,
@@ -81,8 +82,36 @@ fn add_precompiles(accounts: &mut HashMap<Address, AccountInfo>) {
 #[napi(custom_finalize)]
 #[derive(Debug)]
 pub struct StateManager {
-    pub(super) state: Arc<RwLock<dyn SyncState<StateError>>>,
+    state: Arc<RwLock<dyn SyncState<StateError>>>,
     context: Arc<Context>,
+}
+
+impl StateManager {
+    /// Returns the instance's [`Context`].
+    pub fn context(&self) -> &Context {
+        &self.context
+    }
+
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
+    fn with_state<S>(env: &mut Env, context: &RethnetContext, state: S) -> napi::Result<Self>
+    where
+        S: SyncState<StateError>,
+    {
+        env.adjust_external_memory(STATE_MEMORY_SIZE)?;
+
+        Ok(Self {
+            state: Arc::new(RwLock::new(state)),
+            context: (*context).clone(),
+        })
+    }
+}
+
+impl Deref for StateManager {
+    type Target = Arc<RwLock<dyn SyncState<StateError>>>;
+
+    fn deref(&self) -> &Self::Target {
+        &self.state
+    }
 }
 
 #[napi]
@@ -134,28 +163,13 @@ impl StateManager {
             &mut env,
             context,
             ForkState::new(
-                context.as_inner().runtime().clone(),
-                context.as_inner().hash_generator().clone(),
+                context.runtime().clone(),
+                context.hash_generator().clone(),
                 remote_node_url.into_utf8()?.as_str()?,
                 fork_block_number,
                 accounts,
             ),
         )
-    }
-
-    #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
-    fn with_state<S>(env: &mut Env, context: &RethnetContext, state: S) -> napi::Result<Self>
-    where
-        S: SyncState<StateError>,
-    {
-        let state: Box<dyn SyncState<StateError>> = Box::new(state);
-
-        env.adjust_external_memory(STATE_MEMORY_SIZE)?;
-
-        Ok(Self {
-            state: Arc::new(RwLock::new(state)),
-            context: context.as_inner().clone(),
-        })
     }
 
     /// Creates a state checkpoint that can be reverted to using [`revert`].

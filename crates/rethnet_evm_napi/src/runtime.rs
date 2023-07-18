@@ -1,8 +1,8 @@
 use napi::Status;
 use napi_derive::napi;
 use rethnet_evm::{
-    state::StateError, trace::TraceCollector, BlockEnv, CfgEnv, InvalidTransaction, ResultAndState,
-    SyncInspector, TransactionError, TxEnv,
+    blockchain::BlockchainError, state::StateError, trace::TraceCollector, BlockEnv, CfgEnv,
+    InvalidTransaction, ResultAndState, SyncInspector, TransactionError, TxEnv,
 };
 
 use crate::{
@@ -17,7 +17,7 @@ use crate::{
 #[napi]
 #[derive(Debug)]
 pub struct Rethnet {
-    runtime: rethnet_evm::Rethnet<napi::Error, StateError>,
+    runtime: rethnet_evm::Rethnet<BlockchainError, StateError>,
 }
 
 #[napi]
@@ -32,11 +32,8 @@ impl Rethnet {
     ) -> napi::Result<Self> {
         let cfg = CfgEnv::try_from(cfg)?;
 
-        let runtime = rethnet_evm::Rethnet::new(
-            blockchain.as_inner().clone(),
-            state_manager.state.clone(),
-            cfg,
-        );
+        let runtime =
+            rethnet_evm::Rethnet::new((*blockchain).clone(), (*state_manager).clone(), cfg);
 
         Ok(Self { runtime })
     }
@@ -60,7 +57,7 @@ impl Rethnet {
         let block = BlockEnv::try_from(block)?;
 
         let mut tracer = TraceCollector::default();
-        let inspector: Option<&mut dyn SyncInspector<napi::Error, StateError>> =
+        let inspector: Option<&mut dyn SyncInspector<BlockchainError, StateError>> =
             if with_trace { Some(&mut tracer) } else { None };
 
         let ResultAndState { result, state } = self
@@ -91,7 +88,7 @@ impl Rethnet {
         let block = BlockEnv::try_from(block)?;
 
         let mut tracer = TraceCollector::default();
-        let inspector: Option<&mut dyn SyncInspector<napi::Error, StateError>> =
+        let inspector: Option<&mut dyn SyncInspector<BlockchainError, StateError>> =
             if with_trace { Some(&mut tracer) } else { None };
 
         let ResultAndState { result, state } = self
@@ -122,7 +119,7 @@ impl Rethnet {
         let block = BlockEnv::try_from(block)?;
 
         let mut tracer = TraceCollector::default();
-        let inspector: Option<&mut dyn SyncInspector<napi::Error, StateError>> =
+        let inspector: Option<&mut dyn SyncInspector<BlockchainError, StateError>> =
             if with_trace { Some(&mut tracer) } else { None };
 
         let result = self
@@ -134,8 +131,8 @@ impl Rethnet {
                 Status::GenericFailure,
                 match e {
                     TransactionError::InvalidTransaction(
-                        InvalidTransaction::LackOfFundForGasLimit { gas_limit, balance },
-                    ) => format!("sender doesn't have enough funds to send tx. The max upfront cost is: {} and the sender's account only has: {}", gas_limit, balance),
+                        InvalidTransaction::LackOfFundForMaxFee { fee, balance }
+                    ) => format!("sender doesn't have enough funds to send tx. The max upfront cost is: {fee} and the sender's account only has: {balance}"),
                     e => e.to_string(),
                 },
             )
