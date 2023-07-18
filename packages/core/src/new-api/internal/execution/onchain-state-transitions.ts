@@ -84,7 +84,8 @@ export const onchainStateTransitions: OnchainStateTransitions = {
     assertIgnitionInvariant(
       next === null || isOnChainResultMessage(next),
       `Message not in sync with onchain state - EXECUTE: ${JSON.stringify(
-        next
+        next,
+        serializeReplacer
       )}`
     );
 

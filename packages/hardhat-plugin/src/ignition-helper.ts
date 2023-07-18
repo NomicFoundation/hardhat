@@ -34,7 +34,9 @@ export class IgnitionHelper {
       string,
       IgnitionModuleResult<string>
     >,
-    { parameters = {} }: { parameters: { [key: string]: ModuleParameters } }
+    { parameters = {} }: { parameters: { [key: string]: ModuleParameters } } = {
+      parameters: {},
+    }
   ): Promise<Record<string, Contract>> {
     const accounts = (await this._hre.network.provider.request({
       method: "eth_accounts",

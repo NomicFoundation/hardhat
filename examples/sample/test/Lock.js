@@ -14,7 +14,7 @@ describe("Lock", function () {
     const ONE_YEAR_IN_SECS = 365 * 24 * 60 * 60;
     const ONE_GWEI = 1_000_000_000;
 
-    const lockedAmount = ONE_GWEI;
+    const lockedAmount = BigInt(ONE_GWEI);
     const unlockTime = (await time.latest()) + ONE_YEAR_IN_SECS;
 
     // Contracts are deployed using the first signer/account by default
@@ -116,7 +116,7 @@ describe("Lock", function () {
     });
 
     describe("Transfers", function () {
-      it.skip("Should transfer the funds to the owner", async function () {
+      it("Should transfer the funds to the owner", async function () {
         const { lock, unlockTime, lockedAmount, owner } = await loadFixture(
           deployOneYearLockFixture
         );

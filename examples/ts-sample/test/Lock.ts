@@ -1,7 +1,7 @@
-import { ethers, ignition } from "hardhat";
-import { time, loadFixture } from "@nomicfoundation/hardhat-network-helpers";
 import { anyValue } from "@nomicfoundation/hardhat-chai-matchers/withArgs";
+import { loadFixture, time } from "@nomicfoundation/hardhat-network-helpers";
 import { expect } from "chai";
+import { ethers } from "hardhat";
 
 import LockModule from "../ignition/LockModule";
 
@@ -13,16 +13,18 @@ describe("Lock", function () {
     const ONE_YEAR_IN_SECS = 365 * 24 * 60 * 60;
     const ONE_GWEI = 1_000_000_000;
 
-    const lockedAmount = ONE_GWEI;
+    const lockedAmount = BigInt(ONE_GWEI);
     const unlockTime = (await time.latest()) + ONE_YEAR_IN_SECS;
 
     // Contracts are deployed using the first signer/account by default
     const [owner, otherAccount] = await ethers.getSigners();
 
-    const { lock } = await ignition.deploy(LockModule, {
+    const { lock } = await ignition2.deploy(LockModule, {
       parameters: {
-        unlockTime,
-        lockedAmount,
+        LockModule: {
+          unlockTime,
+          lockedAmount,
+        },
       },
     });
 
@@ -113,7 +115,7 @@ describe("Lock", function () {
     });
 
     describe("Transfers", function () {
-      it.skip("Should transfer the funds to the owner", async function () {
+      it("Should transfer the funds to the owner", async function () {
         const { lock, unlockTime, lockedAmount, owner } = await loadFixture(
           deployOneYearLockFixture
         );

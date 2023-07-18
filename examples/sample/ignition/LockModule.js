@@ -9,11 +9,10 @@ const ONE_GWEI = hre.ethers.utils.parseUnits("1", "gwei").toString();
 
 module.exports = defineModule("LockModule", (m) => {
   const unlockTime = m.getParameter("unlockTime", TEN_YEARS_IN_FUTURE);
-  // TODO: do we intend to support runtime values for value?
-  // const lockedAmount = m.getParameter("lockedAmount", ONE_GWEI);
+  const lockedAmount = m.getParameter("lockedAmount", BigInt(ONE_GWEI));
 
   const lock = m.contract("Lock", [unlockTime], {
-    value: BigInt(ONE_GWEI),
+    value: lockedAmount,
   });
 
   return { lock };

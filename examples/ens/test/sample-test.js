@@ -4,13 +4,13 @@ const namehash = require("eth-ens-namehash");
 const labelhash = (label) =>
   hre.ethers.utils.keccak256(hre.ethers.utils.toUtf8Bytes(label));
 
-const ACCOUNT_0 = "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266";
-const ACCOUNT_1 = "0x70997970C51812dc3A010C7d01b50e0d17dc79C8";
-
 describe("ENS", function () {
   it("should be able to create new subrecords", async function () {
+    const [{ address: ACCOUNT_0 }, { address: ACCOUNT_1 }] =
+      await hre.ethers.getSigners();
+
     // Arrange
-    const { ens, resolver } = await ignition.deploy(ENSModule);
+    const { ens, resolver } = await ignition2.deploy(ENSModule);
 
     await ens.setSubnodeOwner(
       namehash.hash("test"),

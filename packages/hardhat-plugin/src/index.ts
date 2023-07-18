@@ -274,7 +274,8 @@ task("deploy2")
           artifactResolver,
           deploymentDir,
           moduleDefinition: userModule as any,
-          deploymentParameters: parameters as any,
+          // TODO: parameters needs properly typed with module
+          deploymentParameters: (parameters as any) ?? {},
           accounts,
           verbose: logs,
         });
