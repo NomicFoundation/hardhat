@@ -7,7 +7,7 @@ use assert_cmd::{
 use predicates::str::contains;
 use secp256k1::Secp256k1;
 
-use rethnet::DEFAULT_PRIVATE_KEYS;
+use rethnet::config::DEFAULT_PRIVATE_KEYS;
 use rethnet_eth::{
     remote::{
         client::Request as RpcRequest, jsonrpc, methods::MethodInvocation as EthMethodInvocation,
