@@ -2,12 +2,11 @@
 import { defineModule } from "@ignored/ignition-core";
 import { assert } from "chai";
 
-import { clearPendingTransactionsFromMemoryPool, mineBlock } from "../helpers";
-
 import {
   TestChainHelper,
-  useDeploymentDirectory,
-} from "./useDeploymentDirectory";
+  useFileIgnitionProject,
+} from "../../use-ignition-project";
+import { clearPendingTransactionsFromMemoryPool, mineBlock } from "../helpers";
 
 /**
  * Run an initial deploy, that starts but does not finish an on-chain
@@ -15,7 +14,7 @@ import {
  * the transaction should be resubmitted.
  */
 describe("execution - rerun with dropped ignition transactions", () => {
-  useDeploymentDirectory(
+  useFileIgnitionProject(
     "minimal-new-api",
     "rerun-with-dropped-ignition-transactions"
   );

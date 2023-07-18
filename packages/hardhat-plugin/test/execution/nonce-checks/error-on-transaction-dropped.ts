@@ -4,15 +4,15 @@ import { assert } from "chai";
 
 import {
   TestChainHelper,
-  useDeploymentDirectory,
-} from "./useDeploymentDirectory";
+  useFileIgnitionProject,
+} from "../../use-ignition-project";
 
 /**
  * On running a deploy, if a transaction is dropped from the mempool
  * before it is confirmed, then we halt and display an error.
  */
 describe("execution - error on transaction dropped", () => {
-  useDeploymentDirectory("minimal-new-api", "error-on-transaction-dropped");
+  useFileIgnitionProject("minimal-new-api", "error-on-transaction-dropped");
 
   it("should error on the drop being detected", async function () {
     // Setup a module with two contract deploys (foo1 and foo2) over 2 batches

@@ -1,3 +1,5 @@
+import { IgnitionError } from "../errors";
+
 import { IgnitionModuleResult } from "./types/module";
 import {
   IgnitionModuleBuilder,
@@ -22,5 +24,13 @@ export function defineModule<
   moduleId: ModuleIdT,
   moduleDefintionFunction: (m: IgnitionModuleBuilder) => IgnitionModuleResultsT
 ): IgnitionModuleDefinition<ModuleIdT, ContractNameT, IgnitionModuleResultsT> {
+  if (typeof moduleId !== "string") {
+    throw new IgnitionError(`\`moduleId\` must be a string`);
+  }
+
+  if (typeof moduleDefintionFunction !== "function") {
+    throw new IgnitionError(`\`moduleDefintionFunction\` must be a function`);
+  }
+
   return { id: moduleId, moduleDefintionFunction };
 }

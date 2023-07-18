@@ -4,8 +4,8 @@ import { assert } from "chai";
 
 import {
   TestChainHelper,
-  useDeploymentDirectory,
-} from "./useDeploymentDirectory";
+  useFileIgnitionProject,
+} from "../../use-ignition-project";
 
 /**
  * Run an initial deploy, that starts but does not finish several on-chain
@@ -14,7 +14,7 @@ import {
  * error that there is a pending non-ignition transaction.
  */
 describe("execution - error on rerun with replaced pending user transaction", () => {
-  useDeploymentDirectory(
+  useFileIgnitionProject(
     "minimal-new-api",
     "error-on-rerun-with-replaced-pending-user-transaction"
   );

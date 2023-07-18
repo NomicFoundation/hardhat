@@ -4,14 +4,14 @@ import { assert } from "chai";
 
 import {
   TestChainHelper,
-  useDeploymentDirectory,
-} from "../nonce-checks/useDeploymentDirectory";
+  useFileIgnitionProject,
+} from "../../use-ignition-project";
 
 /**
  * A run that deploys a contract times out
  */
 describe("execution - rerun a deploy that timed out", () => {
-  useDeploymentDirectory("minimal-new-api", "rerun-a-deploy-that-timed-out", {
+  useFileIgnitionProject("minimal-new-api", "rerun-a-deploy-that-timed-out", {
     transactionTimeoutInterval: 400,
   });
 

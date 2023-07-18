@@ -1,208 +1,134 @@
 /* eslint-disable import/no-unused-modules */
-import { buildModule } from "@ignored/ignition-core";
+import { defineModule } from "@ignored/ignition-core";
 import { assert } from "chai";
 
-import { deployModule, mineBlocks } from "./helpers";
-import { useEnvironment } from "./useEnvironment";
+import { useEphemeralIgnitionProject } from "./use-ignition-project";
 
-describe.skip("module parameters", () => {
-  useEnvironment("minimal");
+describe("module parameters", () => {
+  useEphemeralIgnitionProject("minimal-new-api");
 
-  describe("required", () => {
-    it("should be able to retrieve a number", async function () {
-      const result = await deployModule(
-        this.hre,
-        (m) => {
-          const myNumber = m.getParam("MyNumber");
+  it("should be able to retrieve a default number", async function () {
+    const moduleDefinition = defineModule("WithDefaultModule", (m) => {
+      const myNumber = m.getParameter("MyNumber", 42);
 
-          const foo = m.contract("Foo");
+      const foo = m.contract("Foo");
 
-          m.call(foo, "incByPositiveNumber", {
-            args: [myNumber],
-          });
+      m.call(foo, "incByPositiveNumber", [myNumber]);
 
-          return { foo };
-        },
-        {
-          parameters: {
-            MyNumber: 123,
-          },
-        }
-      );
-
-      const v = await result.foo.x();
-
-      assert.equal(v, Number(124));
+      return { foo };
     });
 
-    it("should be able to retrieve a string", async function () {
-      const result = await deployModule(
-        this.hre,
-        (m) => {
-          const myString = m.getParam("MyString");
+    const result = await this.deploy(moduleDefinition);
 
-          const greeter = m.contract("Greeter", {
-            args: [myString],
-          });
+    const v = await result.foo.x();
 
-          return { greeter };
-        },
-        {
-          parameters: {
-            MyString: "Example",
-          },
-        }
-      );
-
-      const v = await result.greeter.getGreeting();
-
-      assert.equal(v, "Example");
-    });
+    assert.equal(v, Number(43));
   });
 
-  describe("optional", () => {
-    it("should be able to retrieve a default number", async function () {
-      const result = await deployModule(this.hre, (m) => {
-        const myNumber = m.getOptionalParam("MyNumber", 42);
+  it("should be able to override a default number", async function () {
+    const moduleDefinition = defineModule("WithDefaultModule", (m) => {
+      const myNumber = m.getParameter("MyNumber", 10);
 
-        const foo = m.contract("Foo");
+      const foo = m.contract("Foo");
 
-        m.call(foo, "incByPositiveNumber", {
-          args: [myNumber],
-        });
+      m.call(foo, "incByPositiveNumber", [myNumber]);
 
-        return { foo };
-      });
-
-      // then
-      const v = await result.foo.x();
-
-      assert.equal(v, Number(43));
+      return { foo };
     });
 
-    it("should be able to override a default number", async function () {
-      const result = await deployModule(
-        this.hre,
-        (m) => {
-          const myNumber = m.getOptionalParam("MyNumber", 10);
-
-          const foo = m.contract("Foo");
-
-          m.call(foo, "incByPositiveNumber", {
-            args: [myNumber],
-          });
-
-          return { foo };
-        },
-        {
-          parameters: {
-            MyNumber: 20,
-          },
-        }
-      );
-
-      // then
-      const v = await result.foo.x();
-
-      assert.equal(v, Number(21));
+    const result = await this.deploy(moduleDefinition, {
+      WithDefaultModule: {
+        MyNumber: 20,
+      },
     });
 
-    it("should be able to retrieve a default string", async function () {
-      const result = await deployModule(this.hre, (m) => {
-        const myString = m.getOptionalParam("MyString", "Example");
-
-        const greeter = m.contract("Greeter", {
-          args: [myString],
-        });
-
-        return { greeter };
-      });
-
-      const v = await result.greeter.getGreeting();
-
-      assert.equal(v, "Example");
-    });
-
-    it("should be able to override a default string", async function () {
-      const result = await deployModule(
-        this.hre,
-        (m) => {
-          const myString = m.getOptionalParam("MyString", "Example");
-
-          const greeter = m.contract("Greeter", {
-            args: [myString],
-          });
-
-          return { greeter };
-        },
-        {
-          parameters: {
-            MyString: "NotExample",
-          },
-        }
-      );
-
-      // then
-      const v = await result.greeter.getGreeting();
-
-      assert.equal(v, "NotExample");
-    });
+    assert.equal(await result.foo.x(), Number(21));
   });
 
-  describe("validation", () => {
-    it("should throw if no parameters object provided", async function () {
-      await this.hre.run("compile", { quiet: true });
+  it("should be able to retrieve a default string", async function () {
+    const moduleDefinition = defineModule("WithDefaultStringModule", (m) => {
+      const myString = m.getParameter("MyString", "Example");
 
-      const userModule = buildModule("MyModule", (m) => {
-        const myNumber = m.getParam("MyNumber");
+      const greeter = m.contract("Greeter", [myString]);
 
-        const foo = m.contract("Foo");
-
-        m.call(foo, "incByPositiveNumber", {
-          args: [myNumber],
-        });
-
-        return { foo };
-      });
-
-      const deployPromise = this.hre.ignition.deploy(userModule, { ui: false });
-
-      await mineBlocks(this.hre, [1, 1], deployPromise);
-
-      await assert.isRejected(
-        deployPromise,
-        'No parameters object provided to deploy options, but module requires parameter "MyNumber"'
-      );
+      return { greeter };
     });
 
-    it("should throw if parameter missing from parameters", async function () {
-      await this.hre.run("compile", { quiet: true });
+    const result = await this.deploy(moduleDefinition);
 
-      const userModule = buildModule("MyModule", (m) => {
-        const myNumber = m.getParam("MyNumber");
+    const v = await result.greeter.getGreeting();
 
-        const foo = m.contract("Foo");
+    assert.equal(v, "Example");
+  });
 
-        m.call(foo, "incByPositiveNumber", {
-          args: [myNumber],
-        });
+  it("should be able to override a default string", async function () {
+    const moduleDefinition = defineModule("WithDefaultStringModule", (m) => {
+      const myString = m.getParameter("MyString", "Example");
 
-        return { foo };
-      });
+      const greeter = m.contract("Greeter", [myString]);
 
-      const deployPromise = this.hre.ignition.deploy(userModule, {
-        parameters: {
+      return { greeter };
+    });
+
+    const result = await this.deploy(moduleDefinition, {
+      WithDefaultStringModule: {
+        MyString: "NotExample",
+      },
+    });
+
+    assert.equal(await result.greeter.getGreeting(), "NotExample");
+  });
+});
+
+// TODO: bring back with parameter validation
+describe.skip("validation", () => {
+  useEphemeralIgnitionProject("minimal-new-api");
+
+  it("should throw if no parameters object provided", async function () {
+    await this.hre.run("compile", { quiet: true });
+
+    const userModule = defineModule("UserModule", (m) => {
+      const myNumber = m.getParameter("MyNumber");
+
+      const foo = m.contract("Foo");
+
+      m.call(foo, "incByPositiveNumber", [myNumber]);
+
+      return { foo };
+    });
+
+    const deployPromise = this.hre.ignition2.deploy(userModule);
+
+    await assert.isRejected(
+      deployPromise,
+      'No parameters object provided to deploy options, but module requires parameter "MyNumber"'
+    );
+  });
+
+  it("should throw if parameter missing from parameters", async function () {
+    await this.hre.run("compile", { quiet: true });
+
+    const userModule = defineModule("UserModule", (m) => {
+      const myNumber = m.getParameter("MyNumber");
+
+      const foo = m.contract("Foo");
+
+      m.call(foo, "incByPositiveNumber", [myNumber]);
+
+      return { foo };
+    });
+
+    const deployPromise = this.hre.ignition2.deploy(userModule, {
+      parameters: {
+        UserModule: {
           NotMyNumber: 11,
         },
-        ui: false,
-      });
-
-      await mineBlocks(this.hre, [1, 1], deployPromise);
-
-      await assert.isRejected(
-        deployPromise,
-        'No parameter provided for "MyNumber"'
-      );
+      },
     });
+
+    await assert.isRejected(
+      deployPromise,
+      'No parameter provided for "MyNumber"'
+    );
   });
 });

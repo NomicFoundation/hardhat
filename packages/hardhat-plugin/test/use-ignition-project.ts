@@ -2,6 +2,7 @@ import {
   DeployConfig,
   IgnitionModuleDefinition,
   IgnitionModuleResult,
+  ModuleParameters,
 } from "@ignored/ignition-core";
 import { Contract } from "ethers";
 import fs from "fs-extra";
@@ -9,25 +10,70 @@ import { resetHardhatContext } from "hardhat/plugins-testing";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import path from "path";
 
-import { buildAdaptersFrom } from "../../../src/buildAdaptersFrom";
-import { IgnitionHelper } from "../../../src/ignition-helper";
-import { waitForPendingTxs } from "../../helpers";
-import { clearPendingTransactionsFromMemoryPool } from "../helpers";
+import { buildAdaptersFrom } from "../src/buildAdaptersFrom";
+import { IgnitionHelper } from "../src/ignition-helper";
 
-export function useDeploymentDirectory(
+import { clearPendingTransactionsFromMemoryPool } from "./execution/helpers";
+import { waitForPendingTxs } from "./helpers";
+
+export function useEphemeralIgnitionProject(
+  fixtureProjectName: string,
+  config?: Partial<DeployConfig>
+) {
+  beforeEach("Load environment", async function () {
+    process.chdir(
+      path.join(__dirname, "./fixture-projects", fixtureProjectName)
+    );
+
+    const hre = require("hardhat");
+
+    await hre.network.provider.send("evm_setAutomine", [true]);
+
+    this.hre = hre;
+    this.deploymentDir = undefined;
+
+    await hre.run("compile", { quiet: true });
+
+    const testConfig: Partial<DeployConfig> = {
+      transactionTimeoutInterval: 1000,
+      ...config,
+    };
+
+    this.config = testConfig;
+
+    this.deploy = (
+      moduleDefinition: IgnitionModuleDefinition<
+        string,
+        string,
+        IgnitionModuleResult<string>
+      >,
+      parameters: { [key: string]: ModuleParameters } = {}
+    ) => {
+      return this.hre.ignition2.deploy(moduleDefinition, {
+        parameters,
+      });
+    };
+  });
+
+  afterEach("reset hardhat context", function () {
+    resetHardhatContext();
+  });
+}
+
+export function useFileIgnitionProject(
   fixtureProjectName: string,
   deploymentId: string,
   config?: Partial<DeployConfig>
 ) {
   beforeEach("Load environment", async function () {
     process.chdir(
-      path.join(__dirname, "../../fixture-projects", fixtureProjectName)
+      path.join(__dirname, "./fixture-projects", fixtureProjectName)
     );
 
     const hre = require("hardhat");
 
     const deploymentDir = path.join(
-      path.resolve(__dirname, "../../fixture-projects/minimal-new-api/"),
+      path.resolve(__dirname, "./fixture-projects/minimal-new-api/"),
       "deployments",
       deploymentId
     );

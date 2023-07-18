@@ -3,11 +3,11 @@ import { assert } from "chai";
 import fs from "fs-extra";
 import path from "path";
 
-import { useEnvironment } from "../useEnvironment";
+import { useEphemeralIgnitionProject } from "../use-ignition-project";
 
 describe("plan", () => {
   // TODO: rename back to minimal api once execution switched over
-  useEnvironment("minimal-new-api");
+  useEphemeralIgnitionProject("minimal-new-api");
 
   it("should create a plan", async function () {
     const planPath = path.resolve("../minimal-new-api/cache/plan");

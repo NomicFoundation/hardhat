@@ -1,48 +1,50 @@
 /* eslint-disable import/no-unused-modules */
+import { defineModule } from "@ignored/ignition-core";
 import { assert } from "chai";
 
-import { deployModule } from "./helpers";
-import { useEnvironment } from "./useEnvironment";
+import { useEphemeralIgnitionProject } from "./use-ignition-project";
 
-describe.skip("existing contract", () => {
-  useEnvironment("minimal");
+describe("existing contract", () => {
+  useEphemeralIgnitionProject("minimal-new-api");
 
   it("should be able to use an existing contract", async function () {
     await this.hre.run("compile", { quiet: true });
 
-    const { abi: barAbi } = await this.hre.artifacts.readArtifact("Bar");
-    const { abi: usesContractAbi } = await this.hre.artifacts.readArtifact(
+    const barArtifact = await this.hre.artifacts.readArtifact("Bar");
+    const usesContractArtifact = await this.hre.artifacts.readArtifact(
       "UsesContract"
     );
 
-    const firstResult = await deployModule(this.hre, (m) => {
+    const firstModuleDefinition = defineModule("FirstModule", (m) => {
       const bar = m.contract("Bar");
-      const usesContract = m.contract("UsesContract", {
-        args: ["0x0000000000000000000000000000000000000000"],
-      });
+      const usesContract = m.contract("UsesContract", [
+        "0x0000000000000000000000000000000000000000",
+      ]);
 
       return { bar, usesContract };
     });
+
+    const firstResult = await this.deploy(firstModuleDefinition);
 
     assert.isDefined(firstResult.bar.address);
     assert.isDefined(firstResult.usesContract.address);
     const barAddress: string = firstResult.bar.address;
     const usesContractAddress: string = firstResult.usesContract.address;
 
-    const result = await deployModule(this.hre, (m) => {
-      const bar = m.contractAt("Bar", barAddress, barAbi);
+    const secondModuleDefinition = defineModule("SecondModule", (m) => {
+      const bar = m.contractAt("Bar", barAddress, barArtifact);
       const usesContract = m.contractAt(
         "UsesContract",
         usesContractAddress,
-        usesContractAbi
+        usesContractArtifact
       );
 
-      m.call(usesContract, "setAddress", {
-        args: [bar],
-      });
+      m.call(usesContract, "setAddress", [bar]);
 
       return { bar, usesContract };
     });
+
+    const result = await this.deploy(secondModuleDefinition);
 
     assert.isDefined(result.bar);
     assert.isDefined(result.usesContract);

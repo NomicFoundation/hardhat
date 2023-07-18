@@ -3,12 +3,11 @@ import { defineModule } from "@ignored/ignition-core";
 import { assert } from "chai";
 
 import { waitForPendingTxs } from "../../helpers";
-import { mineBlock } from "../helpers";
-
 import {
   TestChainHelper,
-  useDeploymentDirectory,
-} from "./useDeploymentDirectory";
+  useFileIgnitionProject,
+} from "../../use-ignition-project";
+import { mineBlock } from "../helpers";
 
 /**
  * For all accounts that will be used during the deployment we check
@@ -16,7 +15,7 @@ import {
  * and error if there are any.
  */
 describe("execution - error on pending user transactions", () => {
-  useDeploymentDirectory(
+  useFileIgnitionProject(
     "minimal-new-api",
     "error-on-rerun-with-replaced-pending-user-transaction"
   );

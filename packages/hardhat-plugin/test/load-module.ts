@@ -3,11 +3,8 @@ import { assert } from "chai";
 
 import { loadModule } from "../src/load-module";
 
-import { useEnvironment } from "./useEnvironment";
-
+// TODO: convert over once old code paths are removed
 describe.skip("loadModule", function () {
-  useEnvironment("user-modules");
-
   it("should return the module given the module name", () => {
     const module = loadModule("ignition", "TestModule");
 

@@ -4,8 +4,8 @@ import { assert } from "chai";
 
 import {
   TestChainHelper,
-  useDeploymentDirectory,
-} from "./useDeploymentDirectory";
+  useFileIgnitionProject,
+} from "../../use-ignition-project";
 
 /**
  * On running a deploy, if a transaction is pending and the user
@@ -13,7 +13,7 @@ import {
  * we should error and halt immediately
  */
 describe("execution - error on user transaction sent", () => {
-  useDeploymentDirectory("minimal-new-api", "error-on-user-transaction-sent");
+  useFileIgnitionProject("minimal-new-api", "error-on-user-transaction-sent");
 
   it("should error on the drop being detected", async function () {
     const moduleDefinition = defineModule("FooModule", (m) => {

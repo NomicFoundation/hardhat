@@ -2,12 +2,11 @@
 import { defineModule } from "@ignored/ignition-core";
 import { assert } from "chai";
 
-import { mineBlock, sleep } from "../helpers";
-
 import {
   TestChainHelper,
-  useDeploymentDirectory,
-} from "./useDeploymentDirectory";
+  useFileIgnitionProject,
+} from "../../use-ignition-project";
+import { mineBlock, sleep } from "../helpers";
 
 /**
  * Run an initial deploy, that starts but does not finish several on-chain
@@ -17,7 +16,7 @@ import {
  * the original transaction with a new nonce.
  */
 describe("execution - rerun with replaced confirmed user transaction", () => {
-  useDeploymentDirectory(
+  useFileIgnitionProject(
     "minimal-new-api",
     "rerun-with-replaced-confirmed-user-transaction"
   );

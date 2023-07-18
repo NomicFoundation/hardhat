@@ -2,7 +2,7 @@
 import { defineModule } from "@ignored/ignition-core";
 import { assert } from "chai";
 
-import { useEnvironment } from "../useEnvironment";
+import { useEphemeralIgnitionProject } from "../use-ignition-project";
 
 import { sleep } from "./helpers";
 
@@ -11,11 +11,11 @@ import { sleep } from "./helpers";
  *
  * The intent here is to test batching.
  */
-describe.skip("execution - multiple batch contract deploy", function () {
+describe("execution - multiple batch contract deploy", function () {
   this.timeout(60000);
 
   // TODO: rename back to minimal api once execution switched over
-  useEnvironment("minimal-new-api");
+  useEphemeralIgnitionProject("minimal-new-api");
 
   it("should deploy over multiple batches", async function () {
     await this.hre.network.provider.request({

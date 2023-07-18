@@ -1,18 +1,17 @@
 /* eslint-disable import/no-unused-modules */
+import { defineModule } from "@ignored/ignition-core";
 import { assert } from "chai";
 
-import { deployModule } from "./helpers";
-import { useEnvironment } from "./useEnvironment";
+import { useEphemeralIgnitionProject } from "./use-ignition-project";
 
+// TODO: fix libraries in execution
 describe.skip("libraries", () => {
-  useEnvironment("minimal");
+  useEphemeralIgnitionProject("minimal-new-api");
 
   it("should be able to deploy a contract that depends on a hardhat library", async function () {
-    await this.hre.run("compile", { quiet: true });
-
-    const result = await deployModule(this.hre, (m) => {
+    const moduleDefinition = defineModule("WithLibModule", (m) => {
       const rubbishMath = m.library("RubbishMath");
-      const dependsOnLib = m.contract("DependsOnLib", {
+      const dependsOnLib = m.contract("DependsOnLib", [], {
         libraries: {
           RubbishMath: rubbishMath,
         },
@@ -20,6 +19,8 @@ describe.skip("libraries", () => {
 
       return { rubbishMath, dependsOnLib };
     });
+
+    const result = await this.deploy(moduleDefinition);
 
     assert.isDefined(result);
     const contractThatDependsOnLib = result.dependsOnLib;
@@ -40,9 +41,9 @@ describe.skip("libraries", () => {
       "RubbishMath"
     );
 
-    const result = await deployModule(this.hre, (m) => {
-      const rubbishMath = m.library("RubbishMath", libraryArtifact);
-      const dependsOnLib = m.contract("DependsOnLib", {
+    const moduleDefinition = defineModule("ArtifactLibraryModule", (m) => {
+      const rubbishMath = m.libraryFromArtifact("RubbishMath", libraryArtifact);
+      const dependsOnLib = m.contract("DependsOnLib", [], {
         libraries: {
           RubbishMath: rubbishMath,
         },
@@ -50,6 +51,8 @@ describe.skip("libraries", () => {
 
       return { rubbishMath, dependsOnLib };
     });
+
+    const result = await this.deploy(moduleDefinition);
 
     assert.isDefined(result);
     const contractThatDependsOnLib = result.dependsOnLib;
@@ -64,20 +67,21 @@ describe.skip("libraries", () => {
   });
 
   it("should deploy a contract with an existing library", async function () {
-    // given
-    const libDeployResult = await deployModule(this.hre, (m) => {
-      const rubbishMath = m.contract("RubbishMath");
+    const libraryModuleDefinition = defineModule("LibraryModule", (m) => {
+      const rubbishMath = m.library("RubbishMath");
 
       return { rubbishMath };
     });
 
+    const libDeployResult = await this.deploy(libraryModuleDefinition);
+
     const libAddress = libDeployResult.rubbishMath.address;
     const libAbi = libDeployResult.rubbishMath.abi;
 
-    const result = await deployModule(this.hre, (m) => {
+    const moduleDefinition = defineModule("ConsumingLibModule", (m) => {
       const rubbishMath = m.contractAt("RubbishMath", libAddress, libAbi);
 
-      const dependsOnLib = m.contract("DependsOnLib", {
+      const dependsOnLib = m.contract("DependsOnLib", [], {
         libraries: {
           RubbishMath: rubbishMath,
         },
@@ -85,6 +89,8 @@ describe.skip("libraries", () => {
 
       return { dependsOnLib };
     });
+
+    const result = await this.deploy(moduleDefinition);
 
     assert.equal(await libDeployResult.rubbishMath.add(1, 2), 3);
     assert.equal(await result.dependsOnLib.addThreeNumbers(1, 2, 3), 6);

@@ -1,52 +1,46 @@
 /* eslint-disable import/no-unused-modules */
-import { buildModule } from "@ignored/ignition-core";
+import { defineModule } from "@ignored/ignition-core";
 import { assert } from "chai";
 
-import { deployModule } from "./helpers";
-import { useEnvironment } from "./useEnvironment";
+import { useEphemeralIgnitionProject } from "./use-ignition-project";
 
-describe.skip("contract deploys", () => {
-  useEnvironment("minimal");
+describe("contract deploys", () => {
+  useEphemeralIgnitionProject("minimal-new-api");
 
   it("should be able to deploy a contract", async function () {
-    const result = await deployModule(this.hre, (m) => {
+    const moduleDefinition = defineModule("FooModule", (m) => {
       const foo = m.contract("Foo");
 
       return { foo };
     });
 
-    assert.isDefined(result);
+    const result = await this.deploy(moduleDefinition);
 
-    const x = await result.foo.x();
-
-    assert.equal(x, Number(1));
+    assert.equal(await result.foo.x(), Number(1));
   });
 
   it("should be able to deploy a contract with arguments", async function () {
-    const result = await deployModule(this.hre, (m) => {
-      const greeter = m.contract("Greeter", {
-        args: ["Hello World"],
-      });
+    const moduleDefinition = defineModule("GreeterModule", (m) => {
+      const greeter = m.contract("Greeter", ["Hello World"]);
 
       return { greeter };
     });
 
-    assert.isDefined(result);
+    const result = await this.deploy(moduleDefinition);
 
     const greeting = await result.greeter.getGreeting();
-
     assert.equal(greeting, "Hello World");
   });
 
   it("should be able to deploy contracts with dependencies", async function () {
-    const result = await deployModule(this.hre, (m) => {
+    const moduleDefinition = defineModule("DependentModule", (m) => {
       const bar = m.contract("Bar");
-      const usesContract = m.contract("UsesContract", {
-        args: [bar],
-      });
+      const usesContract = m.contract("UsesContract", [bar]);
 
       return { bar, usesContract };
     });
+
+    const result = await this.deploy(moduleDefinition);
 
     assert.isDefined(result.bar);
     assert.isDefined(result.usesContract);
@@ -57,14 +51,14 @@ describe.skip("contract deploys", () => {
   });
 
   it("should be able to deploy contracts without dependencies", async function () {
-    const result = await deployModule(this.hre, (m) => {
+    const moduleDefinition = defineModule("WithoutDepModule", (m) => {
       const foo = m.contract("Foo");
       const bar = m.contract("Bar");
 
       return { foo, bar };
     });
 
-    assert.isDefined(result);
+    const result = await this.deploy(moduleDefinition);
 
     const x = await result.foo.x();
     const isBar = await result.bar.isBar();
@@ -78,30 +72,31 @@ describe.skip("contract deploys", () => {
 
     const artifact = await this.hre.artifacts.readArtifact("Greeter");
 
-    const result = await deployModule(this.hre, (m) => {
-      const greeter = m.contract("Greeter", artifact, {
-        args: ["Hello World"],
-      });
+    const moduleDefinition = defineModule("ArtifactModule", (m) => {
+      const greeter = m.contractFromArtifact("Greeter", artifact, [
+        "Hello World",
+      ]);
 
       return { greeter };
     });
 
-    assert.isDefined(result);
+    const result = await this.deploy(moduleDefinition);
 
     const greeting = await result.greeter.getGreeting();
-
     assert.equal(greeting, "Hello World");
   });
 
   describe("with endowment", () => {
     it("should be able to deploy a contract with an endowment", async function () {
-      const result = await deployModule(this.hre, (m) => {
-        const passingValue = m.contract("PassingValue", {
-          value: this.hre.ethers.utils.parseEther("1"),
+      const moduleDefinition = defineModule("EndowmentModule", (m) => {
+        const passingValue = m.contract("PassingValue", [], {
+          value: BigInt(this.hre.ethers.utils.parseEther("1").toString()),
         });
 
         return { passingValue };
       });
+
+      const result = await this.deploy(moduleDefinition);
 
       assert.isDefined(result.passingValue);
 
@@ -115,26 +110,28 @@ describe.skip("contract deploys", () => {
       );
     });
 
-    it("should be able to deploy a contract with an endowment via a parameter", async function () {
-      const submodule = buildModule("submodule", (m) => {
-        const endowment = m.getParam("endowment");
+    // TODO: bring this back once parameters for value enabled
+    it.skip("should be able to deploy a contract with an endowment via a parameter", async function () {
+      const submoduleDefinition = defineModule("submodule", (m) => {
+        const endowment = m.getParameter(
+          "endowment",
+          BigInt(this.hre.ethers.utils.parseEther("2").toString())
+        );
 
-        const passingValue = m.contract("PassingValue", {
-          value: endowment,
+        const passingValue = m.contract("PassingValue", [], {
+          value: endowment as any,
         });
 
         return { passingValue };
       });
 
-      const result = await deployModule(this.hre, (m) => {
-        const { passingValue } = m.useModule(submodule, {
-          parameters: {
-            endowment: this.hre.ethers.utils.parseEther("1"),
-          },
-        });
+      const moduleDefinition = defineModule("Module", (m) => {
+        const { passingValue } = m.useModule(submoduleDefinition);
 
         return { passingValue };
       });
+
+      const result = await this.deploy(moduleDefinition);
 
       assert.isDefined(result.passingValue);
 

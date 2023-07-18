@@ -4,8 +4,8 @@ import { assert } from "chai";
 
 import {
   TestChainHelper,
-  useDeploymentDirectory,
-} from "./useDeploymentDirectory";
+  useFileIgnitionProject,
+} from "../../use-ignition-project";
 
 /**
  * Run an initial deploy, that starts but does not finish several on-chain
@@ -13,7 +13,7 @@ import {
  * up where the first run left off and without any other user transactions.
  */
 describe("execution - rerun with pending ignition transactions", () => {
-  useDeploymentDirectory(
+  useFileIgnitionProject(
     "minimal-new-api",
     "rerun-with-pending-ignition-transactions"
   );

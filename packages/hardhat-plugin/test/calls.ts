@@ -1,26 +1,25 @@
 /* eslint-disable import/no-unused-modules */
-import { buildModule } from "@ignored/ignition-core";
+import { defineModule } from "@ignored/ignition-core";
 import { assert } from "chai";
 
-import { deployModule } from "./helpers";
-import { useEnvironment } from "./useEnvironment";
+import { useEphemeralIgnitionProject } from "./use-ignition-project";
 
-describe.skip("calls", () => {
-  useEnvironment("minimal");
+describe("calls", () => {
+  useEphemeralIgnitionProject("minimal-new-api");
 
   it("should be able to call contracts", async function () {
-    const result = await deployModule(this.hre, (m) => {
+    const moduleDefinition = defineModule("SetAddressModule", (m) => {
       const bar = m.contract("Bar");
-      const usesContract = m.contract("UsesContract", {
-        args: ["0x0000000000000000000000000000000000000000"],
-      });
+      const usesContract = m.contract("UsesContract", [
+        "0x0000000000000000000000000000000000000000",
+      ]);
 
-      m.call(usesContract, "setAddress", {
-        args: [bar],
-      });
+      m.call(usesContract, "setAddress", [bar]);
 
       return { bar, usesContract };
     });
+
+    const result = await this.deploy(moduleDefinition);
 
     assert.isDefined(result.bar);
     assert.isDefined(result.usesContract);
@@ -31,19 +30,19 @@ describe.skip("calls", () => {
   });
 
   it("should be able to call contracts with array args", async function () {
-    const result = await deployModule(this.hre, (m) => {
+    const moduleDefinition = defineModule("ArrayArgModule", (m) => {
       const captureArraysContract = m.contract("CaptureArraysContract");
 
-      m.call(captureArraysContract, "recordArrays", {
-        args: [
-          [1, 2, 3],
-          ["a", "b", "c"],
-          [true, false, true],
-        ],
-      });
+      m.call(captureArraysContract, "recordArrays", [
+        [1, 2, 3],
+        ["a", "b", "c"],
+        [true, false, true],
+      ]);
 
       return { captureArraysContract };
     });
+
+    const result = await this.deploy(moduleDefinition);
 
     assert.isDefined(result.captureArraysContract);
 
@@ -53,23 +52,23 @@ describe.skip("calls", () => {
   });
 
   it("should be able to call contracts with arrays nested in objects args", async function () {
-    const result = await deployModule(this.hre, (m) => {
+    const moduleDefinition = defineModule("ArrayNestedModule", (m) => {
       const captureComplexObjectContract = m.contract(
         "CaptureComplexObjectContract"
       );
 
-      m.call(captureComplexObjectContract, "testComplexObject", {
-        args: [
-          {
-            firstBool: true,
-            secondArray: [1, 2, 3],
-            thirdSubcomplex: { sub: "sub" },
-          },
-        ],
-      });
+      m.call(captureComplexObjectContract, "testComplexObject", [
+        {
+          firstBool: true,
+          secondArray: [1, 2, 3],
+          thirdSubcomplex: { sub: "sub" },
+        },
+      ]);
 
       return { captureComplexObjectContract };
     });
+
+    const result = await this.deploy(moduleDefinition);
 
     assert.isDefined(result.captureComplexObjectContract);
 
@@ -80,22 +79,20 @@ describe.skip("calls", () => {
   });
 
   it("should be able to make calls in order", async function () {
-    const result = await deployModule(this.hre, (m) => {
-      const trace = m.contract("Trace", {
-        args: ["first"],
-      });
+    const moduleDefinition = defineModule("OrderedModule", (m) => {
+      const trace = m.contract("Trace", ["first"]);
 
-      const second = m.call(trace, "addEntry", {
-        args: ["second"],
-      });
+      const second = m.call(trace, "addEntry", ["second"], { id: "AddEntry1" });
 
-      m.call(trace, "addEntry", {
-        args: ["third"],
+      m.call(trace, "addEntry", ["third"], {
+        id: "AddEntry2",
         after: [second],
       });
 
       return { trace };
     });
+
+    const result = await this.deploy(moduleDefinition);
 
     assert.isDefined(result.trace);
 
@@ -111,16 +108,17 @@ describe.skip("calls", () => {
 
   describe("passing value", () => {
     it("should be able to call a contract passing a value", async function () {
-      const result = await deployModule(this.hre, (m) => {
+      const moduleDefinition = defineModule("PassingValue", (m) => {
         const passingValue = m.contract("PassingValue");
 
-        m.call(passingValue, "deposit", {
-          args: [],
-          value: this.hre.ethers.utils.parseEther("1"),
+        m.call(passingValue, "deposit", [], {
+          value: BigInt(this.hre.ethers.utils.parseEther("1").toString()),
         });
 
         return { passingValue };
       });
+
+      const result = await this.deploy(moduleDefinition);
 
       assert.isDefined(result.passingValue);
 
@@ -135,27 +133,29 @@ describe.skip("calls", () => {
     });
 
     it("should be able to call a contract passing a value via a parameter", async function () {
-      const submodule = buildModule("submodule", (m) => {
-        const depositValue = m.getParam("depositValue");
+      const submoduleDefinition = defineModule("Submodule", (m) => {
+        // const depositValue = m.getParameter("depositValue", 1000);
 
         const passingValue = m.contract("PassingValue");
 
-        m.call(passingValue, "deposit", {
-          args: [],
-          value: depositValue,
+        m.call(passingValue, "deposit", [], {
+          // TODO: bring back passing this by parameter
+          value: BigInt(this.hre.ethers.utils.parseEther("1")),
         });
 
         return { passingValue };
       });
 
-      const result = await deployModule(this.hre, (m) => {
-        const { passingValue } = m.useModule(submodule, {
-          parameters: {
-            depositValue: this.hre.ethers.utils.parseEther("1"),
-          },
-        });
+      const moduleDefinition = defineModule("Module", (m) => {
+        const { passingValue } = m.useModule(submoduleDefinition);
 
         return { passingValue };
+      });
+
+      const result = await this.deploy(moduleDefinition, {
+        Module: {
+          depositValue: BigInt(this.hre.ethers.utils.parseEther("1")),
+        },
       });
 
       assert.isDefined(result.passingValue);

@@ -2,12 +2,11 @@
 import { defineModule } from "@ignored/ignition-core";
 import { assert } from "chai";
 
-import { mineBlock } from "../helpers";
-
 import {
   TestChainHelper,
-  useDeploymentDirectory,
-} from "./useDeploymentDirectory";
+  useFileIgnitionProject,
+} from "../../use-ignition-project";
+import { mineBlock } from "../helpers";
 
 /**
  * Run an initial deploy, that sumbit but does not confirm several on-chain
@@ -15,7 +14,7 @@ import {
  * a second run completes the deploy.
  */
 describe("execution - rerun with now complete ignition transactions", () => {
-  useDeploymentDirectory(
+  useFileIgnitionProject(
     "minimal-new-api",
     "rerun-with-now-complete-ignition-transactions"
   );

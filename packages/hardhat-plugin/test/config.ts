@@ -4,11 +4,8 @@ import type { IgnitionWrapperOptions } from "../src/ignition-wrapper";
 import { assert } from "chai";
 import { BigNumber } from "ethers";
 
-import { useEnvironment } from "./useEnvironment";
-
+// TODO: convert these tests over once Ignition config has been updated
 describe.skip("config", () => {
-  useEnvironment("with-config");
-
   let loadedOptions: IgnitionWrapperOptions;
 
   beforeEach(function () {
