@@ -124,8 +124,7 @@ pub enum HardhatMethodInvocation {
 
 #[cfg(test)]
 mod tests {
-    use bytes::Bytes;
-
+    use rethnet_eth::Bytes;
     use rethnet_test_utils::help_test_method_invocation_serde;
 
     use super::*;

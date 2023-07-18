@@ -5,7 +5,6 @@ edition = "2021"
 
 [dependencies]
 axum = "0.6.18"
-bytes = { version = "1.2.1", default-features = false }
 hashbrown = { version = "0.13", default-features = false, features = ["ahash"] }
 hex = { version = "0.4.3", default-features = false, features = ["alloc"] }
 hyper = { version = "0.14.27", default-features = false, features = ["server"] }
@@ -21,6 +20,5 @@ tokio = { version = "1.21.2", default-features = false, features = ["macros"] }
 tracing = { version = "0.1.37", default-features = false, features = ["std"] }
 
 [dev-dependencies]
-bytes = { version = "1.2.1", default-features = false }
 rethnet_test_utils = { version = "0.1.0-dev", path = "../rethnet_test_utils" }
 tracing-subscriber = { version = "0.3.17", default-features = false, features = ["fmt"] }

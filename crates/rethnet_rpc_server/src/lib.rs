@@ -21,7 +21,7 @@ use rethnet_eth::{
         BlockSpec, BlockTag, Eip1898BlockSpec,
     },
     signature::{public_key_to_address, Signature},
-    Address, B256, U256,
+    Address, Bytes, B256, U256,
 };
 use rethnet_evm::{
     state::{AccountModifierFn, ForkState, HybridState, StateError, SyncState},
@@ -423,7 +423,7 @@ fn handle_sign(
     event!(Level::INFO, "eth_sign({address:?}, {message:?})");
     match state.local_accounts.get(address) {
         Some(private_key) => ResponseData::Success {
-            result: Signature::new(&bytes::Bytes::from(message.clone())[..], private_key),
+            result: Signature::new(&Bytes::from(message.clone())[..], private_key),
         },
         None => ResponseData::new_error(0, "{address} is not an account owned by this node", None),
     }
