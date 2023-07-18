@@ -126,6 +126,7 @@ async fn set_block_context<T>(
         }
         None => Ok(previous_state_root),
         resolvable_block_spec => {
+            let latest_block_number = get_latest_block_number(state).await?;
             state
                 .rethnet_state
                 .write()
@@ -145,9 +146,9 @@ async fn set_block_context<T>(
                             BlockTag::Earliest => Ok(U256::ZERO),
                             BlockTag::Safe | BlockTag::Finalized => {
                                 check_post_merge_block_tags(state)?;
-                                Ok(get_latest_block_number(state).await?)
+                                Ok(latest_block_number)
                             }
-                            BlockTag::Latest => Ok(get_latest_block_number(state).await?),
+                            BlockTag::Latest => Ok(latest_block_number),
                             BlockTag::Pending => unreachable!(),
                         },
                         None => unreachable!(),
@@ -155,8 +156,11 @@ async fn set_block_context<T>(
                 )
                 .map_err(|e| {
                     error_response_data(
-                        0,
-                        &format!("Failed to set block context {resolvable_block_spec:?}: {e}"),
+                        -32000,
+                        &format!(
+                            "Received invalid block tag {}. Latest block number is {latest_block_number}. {e}",
+                            resolvable_block_spec.unwrap(),
+                        ),
                     )
                 })?;
             Ok(previous_state_root)

@@ -1,3 +1,6 @@
+use std::fmt;
+use std::fmt::{Display, Formatter};
+
 /// an Ethereum JSON-RPC client
 pub mod client;
 
@@ -79,6 +82,18 @@ pub enum BlockTag {
     Finalized,
 }
 
+impl Display for BlockTag {
+    fn fmt(&self, formatter: &mut Formatter) -> Result<(), fmt::Error> {
+        formatter.write_str(match self {
+            BlockTag::Earliest => "earliest",
+            BlockTag::Latest => "latest",
+            BlockTag::Pending => "pending",
+            BlockTag::Safe => "safe",
+            BlockTag::Finalized => "finalized",
+        })
+    }
+}
+
 /// For specifying a block
 #[derive(Clone, Debug, PartialEq, serde::Deserialize, serde::Serialize)]
 #[serde(untagged)]
@@ -101,6 +116,17 @@ impl BlockSpec {
     /// Constructs a `BlockSpec` for the pending transactions.
     pub fn pending() -> Self {
         Self::Tag(BlockTag::Pending)
+    }
+}
+
+impl Display for BlockSpec {
+    fn fmt(&self, formatter: &mut Formatter) -> Result<(), fmt::Error> {
+        let s = match self {
+            BlockSpec::Number(n) => n.to_string(),
+            BlockSpec::Tag(t) => t.to_string(),
+            BlockSpec::Eip1898(e) => serde_json::to_string(e).map_err(|_| fmt::Error)?,
+        };
+        formatter.write_str(&s)
     }
 }
 
