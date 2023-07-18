@@ -1,0 +1,9 @@
+.eslintrc.js
+
+*.d.ts
+etherscan.js
+index.js
+
+build-test
+internal
+!src/internal

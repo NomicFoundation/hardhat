@@ -1,4 +1,5 @@
 import type { Dispatcher } from "undici";
+import type { ChainConfig, ApiKey } from "../types";
 
 import {
   ContractStatusPollingError,
@@ -12,7 +13,6 @@ import {
 } from "./errors";
 import { sendGetRequest, sendPostRequest } from "./undici";
 
-import { ChainConfig, ApiKey } from "./types";
 import { sleep } from "./utilities";
 
 interface EtherscanVerifyRequestParams {

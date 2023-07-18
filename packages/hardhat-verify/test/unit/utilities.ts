@@ -1,7 +1,9 @@
+import type { JsonFragment } from "@ethersproject/abi";
+import type { SolidityConfig } from "hardhat/types";
+
 import path from "path";
 import { assert, expect } from "chai";
-import { SolidityConfig } from "hardhat/types";
-import { JsonFragment } from "@ethersproject/abi";
+
 import {
   encodeArguments,
   getCompilerVersions,

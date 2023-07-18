@@ -1,5 +1,4 @@
-import { parseFullyQualifiedName } from "hardhat/utils/contract-names";
-import {
+import type {
   Artifacts,
   BuildInfo,
   CompilerInput,
@@ -7,6 +6,8 @@ import {
   CompilerOutputContract,
   Network,
 } from "hardhat/types";
+
+import { parseFullyQualifiedName } from "hardhat/utils/contract-names";
 import {
   DeployedBytecodeMismatchError,
   DeployedBytecodeMultipleMatchesError,

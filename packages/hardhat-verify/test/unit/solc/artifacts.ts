@@ -1,5 +1,7 @@
+import type { CompilerOutputBytecode } from "hardhat/types";
+
 import { assert } from "chai";
-import { CompilerOutputBytecode } from "hardhat/types";
+
 import {
   ByteOffset,
   getCallProtectionOffsets,

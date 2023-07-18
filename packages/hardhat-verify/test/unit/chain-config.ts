@@ -1,5 +1,6 @@
 import type { Network } from "hardhat/types";
-import type { ChainConfig } from "../../src/internal/types";
+import type { ChainConfig } from "../../src/types";
+
 import { assert, expect } from "chai";
 import {
   builtinChains,

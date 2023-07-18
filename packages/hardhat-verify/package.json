@@ -13,20 +13,22 @@
   "repository": "github:nomicfoundation/hardhat",
   "license": "MIT",
   "author": "Nomic Foundation",
-  "exports": {
-    "./etherscan": "./src/etherscan"
-  },
-  "main": "dist/src/index.js",
-  "types": "dist/src/index.d.ts",
+  "main": "index.js",
+  "types": "index.d.ts",
   "files": [
     "dist/src/",
     "src/",
+    "internal/",
+    "*.d.ts",
+    "*.d.ts.map",
+    "*.js",
+    "*.js.map",
     "LICENSE",
     "README.md"
   ],
   "scripts": {
     "build": "tsc --build .",
-    "clean": "rimraf dist",
+    "clean": "rimraf dist internal *.{d.ts,js}{,.map} build-test tsconfig.tsbuildinfo",
     "coverage": "nyc yarn test -- --reporter min",
     "eslint": "eslint 'src/**/*.ts' 'test/**/*.ts'",
     "lint": "yarn prettier --check && yarn eslint",
