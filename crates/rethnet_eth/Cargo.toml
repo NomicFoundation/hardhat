@@ -35,4 +35,4 @@ default = ["std"]
 # fastrlp = ["dep:open-fastrlp", "ruint/fastrlp"] Broken due to lack of support for fastrlp in primitive-types
 serde = ["dep:serde", "bytes/serde", "ethbloom/serialize", "hashbrown/serde", "primitive-types/serde", "revm-primitives/serde", "ruint/serde", "serde_json"]
 std = ["bytes/std", "ethbloom/std", "hash256-std-hasher/std", "hash-db/std", "hex/std", "itertools/use_std", "open-fastrlp?/std", "primitive-types/std", "revm-primitives/std", "rlp/std", "secp256k1/std", "serde?/std", "sha3/std", "triehash/std"]
-test-remote = []
+test-remote = ["serde"]
