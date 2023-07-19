@@ -1,6 +1,11 @@
+import type { Client as ClientT } from "undici";
+import { normalize } from "node:path";
+import { spawn } from "node:child_process";
+
 import { HardhatNetworkChainsConfig } from "../../../../src/types/config";
 import { defaultHardhatNetworkParams } from "../../../../src/internal/core/config/default-config";
 import { BackwardsCompatibilityProviderAdapter } from "../../../../src/internal/core/providers/backwards-compatibility";
+import { HttpProvider } from "../../../../src/internal/core/providers/http";
 import { JsonRpcServer } from "../../../../src/internal/hardhat-network/jsonrpc/server";
 import {
   ForkConfig,
@@ -38,6 +43,7 @@ declare module "mocha" {
 
 export interface UseProviderOptions {
   useJsonRpc?: boolean;
+  rethnetBinary?: string;
   loggerEnabled?: boolean;
   forkConfig?: ForkConfig;
   mining?: HardhatNetworkMiningConfig;
@@ -57,6 +63,7 @@ export interface UseProviderOptions {
 
 export function useProvider({
   useJsonRpc = DEFAULT_USE_JSON_RPC,
+  rethnetBinary = undefined,
   loggerEnabled = true,
   forkConfig,
   mining = DEFAULT_MINING_CONFIG,
@@ -115,6 +122,75 @@ export function useProvider({
         this.server.getProvider()
       );
     }
+
+    if (rethnetBinary !== undefined) {
+      this.rethnetProcess = spawn(normalize(rethnetBinary), ["node", "-vv"]);
+
+      let stdout = "";
+      this.rethnetProcess.stdout.on("data", (data: any) => {
+        stdout += data.toString();
+        console.log(`rethnet subprocess ${this.rethnetProcess.pid}: ${data}`);
+      });
+
+      let stderr = "";
+      this.rethnetProcess.stderr.on("data", (data: any) => {
+        stderr += data.toString();
+        console.log(`rethnet subprocess ${this.rethnetProcess.pid}: ${data}`);
+      });
+
+      function outputForError() {
+        return `stdout:\n${stdout}\nstderr:\n${stderr}`;
+      }
+
+      const wait = new Promise((resolve) => setTimeout(resolve, 2000));
+
+      const exit = new Promise<void>((resolve, reject) => {
+        this.rethnetProcess.on("exit", (code: number, signal: string) => {
+          if (signal === "SIGKILL") {
+            console.log("kill");
+            resolve();
+          } else {
+            reject(
+              new Error(
+                `rethnet process closed unexpectedly. return code: ${code}. signal: ${signal}. ${outputForError()}`
+              )
+            );
+          }
+        });
+      });
+
+      const error = new Promise((_resolve, reject) => {
+        this.rethnetProcess.on("error", (err: Error) => {
+          if (err.message.includes("ENOENT")) {
+            reject(new Error("Rethnet executable not found"));
+          } else {
+            reject(
+              new Error(`Rethnet subprocess error: ${err}. ${outputForError()}`)
+            );
+          }
+        });
+      });
+
+      // sleep a moment to let the server initialize
+      await new Promise((resolve) => setTimeout(resolve, 250));
+
+      const { Client } = require("undici") as { Client: typeof ClientT };
+      const url = "http://127.0.0.1:8545";
+      this.provider = new BackwardsCompatibilityProviderAdapter(
+        new HttpProvider(
+          url,
+          "rethnet",
+          {},
+          20000,
+          new Client(url, {
+            keepAliveTimeout: 10,
+            keepAliveMaxTimeout: 10,
+          })
+        )
+      );
+
+      await Promise.race([wait, exit, error]);
+    }
   });
 
   afterEach("Remove provider", async function () {
@@ -139,6 +215,10 @@ export function useProvider({
 
       delete this.server;
       delete this.serverInfo;
+    }
+
+    if (this.rethnetProcess !== undefined) {
+      this.rethnetProcess.kill();
     }
   });
 }

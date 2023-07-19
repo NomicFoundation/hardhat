@@ -17,6 +17,7 @@ function getEnv(key: string): string | undefined {
 
 export const INFURA_URL = getEnv("INFURA_URL");
 export const ALCHEMY_URL = getEnv("ALCHEMY_URL");
+export const RETHNET_BINARY = getEnv("RETHNET_BINARY");
 
 function printForkingLogicNotBeingTestedWarning(varName: string) {
   console.warn(
@@ -32,4 +33,12 @@ if (INFURA_URL === undefined) {
 
 if (ALCHEMY_URL === undefined) {
   printForkingLogicNotBeingTestedWarning("ALCHEMY_URL");
+}
+
+if (RETHNET_BINARY === undefined) {
+  console.warn(
+    chalk.yellow(
+      `TEST RUN INCOMPLETE: You need to define the env variable RETHNET_BINARY`
+    )
+  );
 }
