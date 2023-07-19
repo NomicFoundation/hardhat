@@ -316,7 +316,11 @@ async fn handle_get_transaction_count(
     }
 }
 
-async fn handle_set_balance(state: StateType, address: Address, balance: U256) -> ResponseData<()> {
+async fn handle_set_balance(
+    state: StateType,
+    address: Address,
+    balance: U256,
+) -> ResponseData<bool> {
     event!(Level::INFO, "hardhat_setBalance({address:?}, {balance:?})");
     match state.rethnet_state.write().await.modify_account(
         address,
@@ -332,7 +336,7 @@ async fn handle_set_balance(state: StateType, address: Address, balance: U256) -
             })
         },
     ) {
-        Ok(()) => ResponseData::Success { result: () },
+        Ok(()) => ResponseData::Success { result: true },
         Err(e) => ResponseData::new_error(0, &e.to_string(), None),
     }
 }
@@ -341,7 +345,7 @@ async fn handle_set_code(
     state: StateType,
     address: Address,
     code: ZeroXPrefixedBytes,
-) -> ResponseData<()> {
+) -> ResponseData<bool> {
     event!(Level::INFO, "hardhat_setCode({address:?}, {code:?})");
     let code_1 = code.clone();
     let code_2 = code.clone();
@@ -359,12 +363,12 @@ async fn handle_set_code(
             })
         },
     ) {
-        Ok(()) => ResponseData::Success { result: () },
+        Ok(()) => ResponseData::Success { result: true },
         Err(e) => ResponseData::new_error(0, &e.to_string(), None),
     }
 }
 
-async fn handle_set_nonce(state: StateType, address: Address, nonce: U256) -> ResponseData<()> {
+async fn handle_set_nonce(state: StateType, address: Address, nonce: U256) -> ResponseData<bool> {
     event!(Level::INFO, "hardhat_setNonce({address:?}, {nonce:?})");
     match TryInto::<u64>::try_into(nonce) {
         Ok(nonce) => {
@@ -380,7 +384,7 @@ async fn handle_set_nonce(state: StateType, address: Address, nonce: U256) -> Re
                     })
                 },
             ) {
-                Ok(()) => ResponseData::Success { result: () },
+                Ok(()) => ResponseData::Success { result: true },
                 Err(error) => ResponseData::new_error(0, &error.to_string(), None),
             }
         }
@@ -393,7 +397,7 @@ async fn handle_set_storage_at(
     address: Address,
     position: U256,
     value: U256,
-) -> ResponseData<()> {
+) -> ResponseData<bool> {
     event!(
         Level::INFO,
         "hardhat_setStorageAt({address:?}, {position:?}, {value:?})"
@@ -404,7 +408,7 @@ async fn handle_set_storage_at(
         .await
         .set_account_storage_slot(address, position, value)
     {
-        Ok(()) => ResponseData::Success { result: () },
+        Ok(()) => ResponseData::Success { result: true },
         Err(e) => ResponseData::new_error(0, &e.to_string(), None),
     }
 }
