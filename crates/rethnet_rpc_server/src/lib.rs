@@ -606,7 +606,7 @@ impl Server {
                         },
                     )| {
                         let address = public_key_to_address(private_key.public_key(&secp256k1));
-                        event!(Level::INFO, "Account #{i}: {address:?}");
+                        event!(Level::INFO, "Account #{}: {address:?}", i + 1);
                         event!(
                             Level::INFO,
                             "Private Key: 0x{}",

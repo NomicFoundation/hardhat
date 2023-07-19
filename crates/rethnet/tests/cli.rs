@@ -117,7 +117,8 @@ async fn node() -> Result<(), Box<dyn std::error::Error>> {
         Assert::new(output.clone())
             .stdout(contains(format!("Private Key: 0x{}", default_private_key)))
             .stdout(contains(format!(
-                "Account #{i}: {:?}",
+                "Account #{}: {:?}",
+                i + 1,
                 private_key_to_address(&context, default_private_key).unwrap()
             )));
     }
