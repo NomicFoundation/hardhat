@@ -5,7 +5,16 @@ import type {
 } from "../types/module";
 import type { IgnitionModuleDefinition } from "../types/module-builder";
 
-import { isContractFuture } from "../type-guards";
+import { IgnitionError } from "../../errors";
+import {
+  isArtifactContractAtFuture,
+  isArtifactContractDeploymentFuture,
+  isArtifactLibraryDeploymentFuture,
+  isContractFuture,
+  isNamedContractAtFuture,
+  isNamedContractDeploymentFuture,
+  isNamedLibraryDeploymentFuture,
+} from "../type-guards";
 import { Artifact, ArtifactResolver } from "../types/artifact";
 import { DeployConfig, DeploymentResult } from "../types/deployer";
 import { DeploymentLoader } from "../types/deployment-loader";
@@ -123,8 +132,11 @@ export class Deployer {
     );
 
     if (reconciliationResult.reconciliationFailures.length > 0) {
-      // TODO: Provide more information
-      throw new Error("Reconciliation failed");
+      const failures = reconciliationResult.reconciliationFailures
+        .map((rf) => `  ${rf.futureId} - ${rf.failure}`)
+        .join("\n");
+
+      throw new IgnitionError(`Reconciliation failed\n\n${failures}`);
     }
 
     if (reconciliationResult.missingExecutedFutures.length > 0) {
@@ -167,11 +179,33 @@ export class Deployer {
     const entries: Array<[string, Artifact]> = [];
 
     for (const contract of contracts) {
-      const artifact = await this._artifactResolver.loadArtifact(
-        contract.contractName
-      );
+      if (
+        isNamedContractDeploymentFuture(contract) ||
+        isNamedContractAtFuture(contract) ||
+        isNamedLibraryDeploymentFuture(contract)
+      ) {
+        const artifact = await this._artifactResolver.loadArtifact(
+          contract.contractName
+        );
 
-      entries.push([contract.id, artifact]);
+        entries.push([contract.id, artifact]);
+
+        continue;
+      }
+
+      if (
+        isArtifactContractDeploymentFuture(contract) ||
+        isArtifactContractAtFuture(contract) ||
+        isArtifactLibraryDeploymentFuture(contract)
+      ) {
+        const artifact = contract.artifact;
+
+        entries.push([contract.id, artifact]);
+
+        continue;
+      }
+
+      this._assertNeverContract(contract);
     }
 
     return Object.fromEntries(entries);
@@ -191,5 +225,11 @@ export class Deployer {
     }
 
     return Object.fromEntries(entries);
+  }
+
+  private _assertNeverContract(contract: never) {
+    throw new IgnitionError(
+      `Unexpected contract future type: ${JSON.stringify(contract)}`
+    );
   }
 }

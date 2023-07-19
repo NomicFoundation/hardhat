@@ -12,7 +12,7 @@ import {
  *
  * Deploy a single contract with non-problematic network
  */
-describe("execution - minimal contract deploy", function () {
+describe("execution - deploy contract", function () {
   // TODO: rename back to minimal api once execution switched over
   useEphemeralIgnitionProject("minimal-new-api");
 

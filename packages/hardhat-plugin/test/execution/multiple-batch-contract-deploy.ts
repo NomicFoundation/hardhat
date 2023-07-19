@@ -12,8 +12,6 @@ import { sleep } from "./helpers";
  * The intent here is to test batching.
  */
 describe("execution - multiple batch contract deploy", function () {
-  this.timeout(60000);
-
   // TODO: rename back to minimal api once execution switched over
   useEphemeralIgnitionProject("minimal-new-api");
 

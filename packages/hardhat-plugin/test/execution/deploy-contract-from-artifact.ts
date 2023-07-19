@@ -10,7 +10,7 @@ import {
 /**
  * Deploy a contract from an artifact.
  */
-describe("execution - deploy from artifact", function () {
+describe("execution - deploy contract from artifact", function () {
   // TODO: rename back to minimal api once execution switched over
   useEphemeralIgnitionProject("minimal-new-api");
 

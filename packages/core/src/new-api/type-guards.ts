@@ -4,6 +4,8 @@ import {
   AccountRuntimeValue,
   AddressResolvableFuture,
   ArtifactContractAtFuture,
+  ArtifactContractDeploymentFuture,
+  ArtifactLibraryDeploymentFuture,
   ContractFuture,
   DeploymentFuture,
   FunctionCallFuture,
@@ -11,6 +13,8 @@ import {
   FutureType,
   ModuleParameterRuntimeValue,
   NamedContractAtFuture,
+  NamedContractDeploymentFuture,
+  NamedLibraryDeploymentFuture,
   NamedStaticCallFuture,
   ReadEventArgumentFuture,
   RuntimeValue,
@@ -148,6 +152,50 @@ export function isReadEventArgumentFuture(
   future: Future
 ): future is NamedStaticCallFuture<string, string> {
   return future.type === FutureType.READ_EVENT_ARGUMENT;
+}
+
+/**
+ * Returns true if future is of type NamedContractDeploymentFuture.
+ *
+ * @beta
+ */
+export function isNamedContractDeploymentFuture(
+  future: Future
+): future is NamedContractDeploymentFuture<string> {
+  return future.type === FutureType.NAMED_CONTRACT_DEPLOYMENT;
+}
+
+/**
+ * Returns true if future is of type ArtifactContractDeploymentFuture.
+ *
+ * @beta
+ */
+export function isArtifactContractDeploymentFuture(
+  future: Future
+): future is ArtifactContractDeploymentFuture {
+  return future.type === FutureType.ARTIFACT_CONTRACT_DEPLOYMENT;
+}
+
+/**
+ * Returns true if future is of type NamedLibraryDeploymentFuture.
+ *
+ * @beta
+ */
+export function isNamedLibraryDeploymentFuture(
+  future: Future
+): future is NamedLibraryDeploymentFuture<string> {
+  return future.type === FutureType.NAMED_LIBRARY_DEPLOYMENT;
+}
+
+/**
+ * Returns true if future is of type ArtifactLibraryDeploymentFuture.
+ *
+ * @beta
+ */
+export function isArtifactLibraryDeploymentFuture(
+  future: Future
+): future is ArtifactLibraryDeploymentFuture {
+  return future.type === FutureType.ARTIFACT_LIBRARY_DEPLOYMENT;
 }
 
 /**
