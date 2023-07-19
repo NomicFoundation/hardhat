@@ -181,7 +181,11 @@ mod tests {
     #[test]
     fn test_serde_block_spec() {
         help_test_block_spec_serde(BlockSpec::Number(U256::from(123)));
-        help_test_block_spec_serde(BlockSpec::latest());
+        help_test_block_spec_serde(BlockSpec::Tag(BlockTag::Earliest));
+        help_test_block_spec_serde(BlockSpec::Tag(BlockTag::Finalized));
+        help_test_block_spec_serde(BlockSpec::Tag(BlockTag::Latest));
+        help_test_block_spec_serde(BlockSpec::Tag(BlockTag::Pending));
+        help_test_block_spec_serde(BlockSpec::Tag(BlockTag::Safe));
         help_test_block_spec_serde(BlockSpec::Eip1898(Eip1898BlockSpec::Hash {
             block_hash: B256::from_low_u64_ne(1),
             require_canonical: Some(true),
