@@ -242,8 +242,7 @@ export const builtinChains: ChainConfig[] = [
       browserURL: "https://explorer.pops.one",
     },
   },
+  // We are not adding new networks to the core of hardhat-verify anymore.
+  // Please read this to learn how to manually add support for custom networks:
+  // https://github.com/NomicFoundation/hardhat/tree/main/packages/hardhat-verify#adding-support-for-other-networks
 ];
-
-// We are not adding new networks to the core of hardhat-etherscan anymore.
-// Please read this to learn how to manually add support for custom networks:
-// https://github.com/NomicFoundation/hardhat/tree/main/packages/hardhat-etherscan#adding-support-for-other-networks

@@ -28,7 +28,7 @@ export async function sleep(ms: number): Promise<void> {
 }
 
 /**
- * Prints a table of networks supported by hardhat-etherscan, including both
+ * Prints a table of networks supported by hardhat-verify, including both
  * built-in and custom networks.
  */
 export async function printSupportedNetworks(
@@ -64,7 +64,7 @@ export async function printSupportedNetworks(
   // print message
   console.log(
     `
-Networks supported by hardhat-etherscan:
+Networks supported by hardhat-verify:
 
 ${supportedNetworksTable}
 
