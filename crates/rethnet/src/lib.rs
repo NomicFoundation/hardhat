@@ -94,7 +94,7 @@ where
                     2 => Level::INFO,
                     3 => Level::DEBUG,
                     4 => Level::TRACE,
-                    _ => Err(anyhow::anyhow!(
+                    _ => Err(anyhow!(
                         "Specifying --verbose more than 4 times is unsupported"
                     ))?,
                 })
