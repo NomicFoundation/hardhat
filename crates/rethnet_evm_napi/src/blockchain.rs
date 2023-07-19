@@ -18,12 +18,12 @@ use self::js_blockchain::{GetBlockHashCall, JsBlockchain};
 #[napi]
 #[derive(Debug)]
 pub struct Blockchain {
-    inner: Arc<RwLock<Box<dyn SyncBlockchain<napi::Error>>>>,
+    inner: Arc<RwLock<dyn SyncBlockchain<napi::Error>>>,
 }
 
 impl Blockchain {
     /// Provides immutable access to the inner implementation.
-    pub fn as_inner(&self) -> &Arc<RwLock<Box<dyn SyncBlockchain<napi::Error>>>> {
+    pub fn as_inner(&self) -> &Arc<RwLock<dyn SyncBlockchain<napi::Error>>> {
         &self.inner
     }
 }

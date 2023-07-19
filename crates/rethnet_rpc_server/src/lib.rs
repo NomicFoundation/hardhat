@@ -43,7 +43,7 @@ pub enum MethodInvocation {
     Hardhat(HardhatMethodInvocation),
 }
 
-type RethnetStateType = Arc<RwLock<Box<dyn SyncState<StateError>>>>;
+type RethnetStateType = Arc<RwLock<dyn SyncState<StateError>>>;
 
 struct AppState {
     rethnet_state: RethnetStateType,

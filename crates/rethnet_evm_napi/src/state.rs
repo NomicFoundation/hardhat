@@ -81,7 +81,7 @@ fn add_precompiles(accounts: &mut HashMap<Address, AccountInfo>) {
 #[napi(custom_finalize)]
 #[derive(Debug)]
 pub struct StateManager {
-    pub(super) state: Arc<RwLock<Box<dyn SyncState<StateError>>>>,
+    pub(super) state: Arc<RwLock<dyn SyncState<StateError>>>,
     context: Arc<Context>,
 }
 
