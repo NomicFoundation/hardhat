@@ -468,14 +468,13 @@ subtask(TASK_VERIFY_ETHERSCAN_ATTEMPT_VERIFICATION)
       // Ensure the linking information is present in the compiler input;
       compilerInput.settings.libraries = contractInformation.libraries;
 
-      const { message: guid } = await verificationInterface.verify({
+      const { message: guid } = await verificationInterface.verify(
         address,
-        sourceCode: JSON.stringify(compilerInput),
-        sourceName: contractInformation.sourceName,
-        contractName: contractInformation.contractName,
-        compilerVersion: contractInformation.solcLongVersion,
-        encodedConstructorArguments,
-      });
+        JSON.stringify(compilerInput),
+        `${contractInformation.sourceName}:${contractInformation.contractName}`,
+        `v${contractInformation.solcLongVersion}`,
+        encodedConstructorArguments
+      );
 
       console.log(`Successfully submitted source code for contract
 ${contractInformation.sourceName}:${contractInformation.contractName} at ${address}
