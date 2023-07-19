@@ -26,7 +26,7 @@ describe("verify task integration tests", () => {
     });
 
     expect(logStub).to.be.calledOnceWith(
-      sinon.match(/Networks supported by hardhat-etherscan/)
+      sinon.match(/Networks supported by hardhat-verify/)
     );
     logStub.restore();
     assert.isUndefined(taskResponse);
