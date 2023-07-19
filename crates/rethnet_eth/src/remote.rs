@@ -1,7 +1,8 @@
 /// an Ethereum JSON-RPC client
 pub mod client;
 
-mod eth;
+/// ethereum objects as specifically used in the JSON-RPC interface
+pub mod eth;
 
 /// data types specific to JSON-RPC but not specific to Ethereum.
 pub mod jsonrpc;
@@ -18,7 +19,7 @@ use bytes::Bytes;
 
 use crate::{B256, U256};
 
-use serde_with_helpers::serialize_u256;
+pub use serde_with_helpers::serialize_u256;
 
 pub use client::{RpcClient, RpcClientError};
 
@@ -96,6 +97,11 @@ impl BlockSpec {
     pub fn latest() -> Self {
         Self::Tag(BlockTag::Latest)
     }
+
+    /// Constructs a `BlockSpec` for the pending transactions.
+    pub fn pending() -> Self {
+        Self::Tag(BlockTag::Pending)
+    }
 }
 
 /// for specifying a bytes string that will have a 0x prefix when serialized and
@@ -158,5 +164,34 @@ impl serde::Serialize for ZeroXPrefixedBytes {
         S: serde::Serializer,
     {
         serializer.serialize_str(&format!("0x{}", hex::encode(&self.inner)))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn help_test_block_spec_serde(block_spec: BlockSpec) {
+        let json = serde_json::json!(block_spec).to_string();
+        let block_spec_decoded: BlockSpec = serde_json::from_str(&json)
+            .unwrap_or_else(|_| panic!("should have successfully deserialized json {json}"));
+        assert_eq!(block_spec, block_spec_decoded);
+    }
+
+    #[test]
+    fn test_serde_block_spec() {
+        help_test_block_spec_serde(BlockSpec::Number(U256::from(123)));
+        help_test_block_spec_serde(BlockSpec::Tag(BlockTag::Earliest));
+        help_test_block_spec_serde(BlockSpec::Tag(BlockTag::Finalized));
+        help_test_block_spec_serde(BlockSpec::Tag(BlockTag::Latest));
+        help_test_block_spec_serde(BlockSpec::Tag(BlockTag::Pending));
+        help_test_block_spec_serde(BlockSpec::Tag(BlockTag::Safe));
+        help_test_block_spec_serde(BlockSpec::Eip1898(Eip1898BlockSpec::Hash {
+            block_hash: B256::from_low_u64_ne(1),
+            require_canonical: Some(true),
+        }));
+        help_test_block_spec_serde(BlockSpec::Eip1898(Eip1898BlockSpec::Number {
+            block_number: U256::from(1),
+        }));
     }
 }

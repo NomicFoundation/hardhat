@@ -1,5 +1,16 @@
 pub fn help_test_method_invocation_serde<MethodInvocation>(call: MethodInvocation)
 where
+    MethodInvocation:
+        PartialEq + Clone + std::fmt::Debug + serde::de::DeserializeOwned + serde::Serialize,
+{
+    help_test_method_invocation_serde_with_expected(call.clone(), call);
+}
+
+#[allow(clippy::type_complexity)]
+pub fn help_test_method_invocation_serde_with_expected<MethodInvocation>(
+    call: MethodInvocation,
+    expected: MethodInvocation,
+) where
     MethodInvocation: PartialEq + std::fmt::Debug + serde::de::DeserializeOwned + serde::Serialize,
 {
     let json = serde_json::json!(call).to_string();
@@ -25,5 +36,5 @@ where
 
     let call_decoded: MethodInvocation = serde_json::from_str(&json)
         .unwrap_or_else(|_| panic!("should have successfully deserialized json {json}"));
-    assert_eq!(call, call_decoded);
+    assert_eq!(expected, call_decoded);
 }
