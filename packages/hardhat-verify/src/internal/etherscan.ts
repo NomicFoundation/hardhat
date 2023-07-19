@@ -33,15 +33,11 @@ interface EtherscanVerifyRequestParams {
 const VERIFICATION_STATUS_POLLING_TIME = 3000;
 
 export class Etherscan {
-  private _apiKey: string;
-  private _apiUrl: string;
-  private _browserUrl: string;
-
-  constructor(apiKey: ApiKey | undefined, chainConfig: ChainConfig) {
-    this._apiKey = resolveApiKey(apiKey, chainConfig.network);
-    this._apiUrl = chainConfig.urls.apiURL;
-    this._browserUrl = chainConfig.urls.browserURL.trim().replace(/\/$/, "");
-  }
+  constructor(
+    private _apiKey: string,
+    private _apiUrl: string,
+    private _browserUrl: string
+  ) {}
 
   public static async getCurrentChainConfig(
     name: string,
@@ -65,6 +61,17 @@ export class Etherscan {
     }
 
     return currentChainConfig;
+  }
+
+  public static fromChainConfig(
+    apiKey: ApiKey | undefined,
+    chainConfig: ChainConfig
+  ) {
+    const resolvedApiKey = resolveApiKey(apiKey, chainConfig.network);
+    const apiUrl = chainConfig.urls.apiURL;
+    const browserUrl = chainConfig.urls.browserURL.trim().replace(/\/$/, "");
+
+    return new Etherscan(resolvedApiKey, apiUrl, browserUrl);
   }
 
   // https://docs.etherscan.io/api-endpoints/contracts#get-contract-source-code-for-verified-contract-source-codes

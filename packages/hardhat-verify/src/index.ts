@@ -237,7 +237,10 @@ subtask(TASK_VERIFY_ETHERSCAN)
         config.etherscan.customChains
       );
 
-      const etherscan = new Etherscan(config.etherscan.apiKey, chainConfig);
+      const etherscan = Etherscan.fromChainConfig(
+        config.etherscan.apiKey,
+        chainConfig
+      );
 
       const isVerified = await etherscan.isVerified(address);
       if (isVerified) {
