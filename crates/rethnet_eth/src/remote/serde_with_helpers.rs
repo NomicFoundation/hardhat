@@ -60,7 +60,7 @@ where
 }
 
 /// for use with serde's deserialize_with on fields of hexadecimal strings that should be
-/// parsed as Option<u64>
+/// parsed as `Option<u64>`
 pub fn optional_u64_from_hex<'de, D>(deserializer: D) -> Result<Option<u64>, D::Error>
 where
     D: serde::Deserializer<'de>,
