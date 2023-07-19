@@ -8,6 +8,7 @@ use axum::{
 };
 use hashbrown::HashMap;
 use rethnet_eth::remote::ZeroXPrefixedBytes;
+use secp256k1::{Secp256k1, SecretKey};
 use tokio::sync::RwLock;
 use tracing::{event, Level};
 
@@ -19,7 +20,8 @@ use rethnet_eth::{
         methods::MethodInvocation as EthMethodInvocation,
         BlockSpec, BlockTag, Eip1898BlockSpec,
     },
-    Address, B256, U256,
+    signature::{public_key_to_address, Signature},
+    Address, Bytes, B256, U256,
 };
 use rethnet_evm::{
     state::{AccountModifierFn, ForkState, HybridState, StateError, SyncState},
@@ -31,6 +33,9 @@ pub use hardhat_methods::{
     reset::{RpcForkConfig, RpcHardhatNetworkConfig},
     HardhatMethodInvocation,
 };
+
+mod config;
+pub use config::{AccountConfig, Config};
 
 #[derive(Clone, Copy)]
 struct U256WithoutLeadingZeroes(U256);
@@ -60,7 +65,7 @@ type RethnetStateType = Arc<RwLock<Box<dyn SyncState<StateError>>>>;
 struct AppState {
     rethnet_state: RethnetStateType,
     fork_block_number: Option<U256>,
-    accounts: Vec<Address>,
+    local_accounts: HashMap<Address, SecretKey>,
 }
 
 type StateType = Arc<AppState>;
@@ -68,11 +73,6 @@ type StateType = Arc<AppState>;
 fn error_response_data<T>(msg: &str) -> ResponseData<T> {
     event!(Level::INFO, "{}", &msg);
     ResponseData::new_error(0, msg, None)
-}
-
-pub struct Config {
-    pub address: SocketAddr,
-    pub rpc_hardhat_network_config: RpcHardhatNetworkConfig,
 }
 
 pub struct Server {
@@ -192,8 +192,9 @@ async fn get_account_info<T>(
 }
 
 async fn handle_accounts(state: StateType) -> ResponseData<Vec<Address>> {
+    event!(Level::INFO, "eth_accounts");
     ResponseData::Success {
-        result: state.accounts.clone(),
+        result: state.local_accounts.keys().copied().collect(),
     }
 }
 
@@ -403,6 +404,20 @@ async fn handle_set_storage_at(
     }
 }
 
+fn handle_sign(
+    state: StateType,
+    address: &Address,
+    message: &ZeroXPrefixedBytes,
+) -> ResponseData<Signature> {
+    event!(Level::INFO, "eth_sign({address:?}, {message:?})");
+    match state.local_accounts.get(address) {
+        Some(private_key) => ResponseData::Success {
+            result: Signature::new(&Bytes::from(message.clone())[..], private_key),
+        },
+        None => ResponseData::new_error(0, "{address} is not an account owned by this node", None),
+    }
+}
+
 async fn handle_request(
     state: StateType,
     request: &RpcRequest<MethodInvocation>,
@@ -462,6 +477,9 @@ async fn handle_request(
                         id,
                         handle_get_transaction_count(state, *address, block.clone()).await,
                     )
+                }
+                MethodInvocation::Eth(EthMethodInvocation::Sign(address, message)) => {
+                    response(id, handle_sign(state, address, message))
                 }
                 MethodInvocation::Hardhat(HardhatMethodInvocation::SetBalance(
                     address,
@@ -560,17 +578,49 @@ async fn router(state: StateType) -> Router {
 
 impl Server {
     /// accepts a configuration and a set of initial accounts to initialize the state.
-    pub async fn new(
-        config: Config,
-        genesis_accounts: HashMap<Address, AccountInfo>,
-    ) -> Result<Self, Error> {
+    pub async fn new(config: Config) -> Result<Self, Error> {
         let listener = TcpListener::bind(config.address).map_err(Error::Listen)?;
         event!(Level::INFO, "Listening on {}", config.address);
 
-        let accounts: Vec<Address> = genesis_accounts
-            .iter()
-            .map(|(address, _account_info)| *address)
-            .collect();
+        let (local_accounts, genesis_accounts): (
+            HashMap<Address, SecretKey>,
+            HashMap<Address, AccountInfo>,
+        ) = {
+            let secp256k1 = Secp256k1::signing_only();
+            config
+                .accounts
+                .iter()
+                .enumerate()
+                .map(
+                    |(
+                        i,
+                        AccountConfig {
+                            private_key,
+                            balance,
+                        },
+                    )| {
+                        let address = public_key_to_address(private_key.public_key(&secp256k1));
+                        event!(Level::INFO, "Account #{i}: {address:?}");
+                        event!(
+                            Level::INFO,
+                            "Private Key: 0x{}",
+                            hex::encode(private_key.secret_bytes())
+                        );
+                        let local_account = (address, *private_key);
+                        let genesis_account = (
+                            address,
+                            AccountInfo {
+                                balance: *balance,
+                                nonce: 0,
+                                code: None,
+                                code_hash: KECCAK_EMPTY,
+                            },
+                        );
+                        (local_account, genesis_account)
+                    },
+                )
+                .unzip()
+        };
 
         let rethnet_state: StateType =
             if let Some(config) = config.rpc_hardhat_network_config.forking {
@@ -601,7 +651,7 @@ impl Server {
                         genesis_accounts,
                     )))),
                     fork_block_number: Some(fork_block_number),
-                    accounts,
+                    local_accounts,
                 })
             } else {
                 Arc::new(AppState {
@@ -609,7 +659,7 @@ impl Server {
                         genesis_accounts,
                     )))),
                     fork_block_number: None,
-                    accounts,
+                    local_accounts,
                 })
             };
 

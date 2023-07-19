@@ -73,6 +73,14 @@ pub enum RecoveryMessage {
     Hash(B256),
 }
 
+struct Hash(B256);
+
+impl ThirtyTwoByteHash for Hash {
+    fn into_32(self) -> [u8; 32] {
+        self.0 .0
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, Copy, Hash)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 /// An ECDSA signature
@@ -93,6 +101,31 @@ impl fmt::Display for Signature {
 }
 
 impl Signature {
+    /// to obtain message_hash consider rethnet_eth::src::utils::hash_message().
+    pub fn new<M>(message: M, private_key: &SecretKey) -> Self
+    where
+        M: Into<RecoveryMessage>,
+    {
+        let context = Secp256k1::signing_only();
+
+        let message = message.into();
+        let message_hash = match message {
+            RecoveryMessage::Data(ref message) => hash_message(message),
+            RecoveryMessage::Hash(hash) => hash,
+        };
+
+        let message_hash = Hash(message_hash);
+
+        let signature = context.sign_ecdsa_recoverable(&message_hash.into(), private_key);
+        let (recovery_id, bytes) = signature.serialize_compact();
+
+        let r = U256::try_from_be_slice(&bytes[..32]).expect("Must be valid");
+        let s = U256::try_from_be_slice(&bytes[32..64]).expect("Must be valid");
+        let v = u64::try_from(recovery_id.to_i32()).expect("Recovery IDs can only be 0..=3") + 27;
+
+        Self { r, s, v }
+    }
+
     /// Verifies that signature on `message` was produced by `address`
     pub fn verify<M, A>(&self, message: M, address: A) -> Result<(), SignatureError>
     where
@@ -320,6 +353,7 @@ impl From<B256> for RecoveryMessage {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::str::FromStr;
 
     #[test]
     fn recover_web3_signature() {
@@ -345,5 +379,50 @@ mod tests {
         ).expect("could not parse non-prefixed signature");
 
         assert_eq!(s1, s2);
+    }
+
+    #[test]
+    fn test_private_key_to_address() {
+        // `hardhat node`s default addresses are shown on startup. this is the first one:
+        //     Account #0: 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266 (10000 ETH)
+        //     Private Key: 0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80
+        // we'll use these as fixtures.
+
+        let expected_address = Address::from_str("0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266")
+            .expect("should parse address from string");
+
+        let actual_address = private_key_to_address(
+            &Secp256k1::signing_only(),
+            "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80",
+        )
+        .expect("should derive address");
+        assert_eq!(actual_address, expected_address);
+    }
+
+    #[test]
+    fn test_signature_new() {
+        let message = "whatever";
+        let hashed_message = crate::utils::hash_message(message);
+
+        fn verify<MsgOrHash>(msg_input: MsgOrHash, hashed_message: B256)
+        where
+            MsgOrHash: Into<RecoveryMessage>,
+        {
+            let private_key_str =
+                "ac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80";
+            let private_key = SecretKey::from_str(private_key_str).unwrap();
+
+            let signature = Signature::new(msg_input, &private_key);
+
+            let recovered_address = signature.recover(hashed_message).unwrap();
+
+            assert_eq!(
+                recovered_address,
+                private_key_to_address(&Secp256k1::signing_only(), private_key_str).unwrap()
+            );
+        }
+
+        verify(message, hashed_message);
+        verify(hashed_message, hashed_message);
     }
 }
