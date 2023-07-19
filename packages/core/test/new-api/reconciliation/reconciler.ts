@@ -136,6 +136,7 @@ describe("Reconciliation", () => {
               args: [],
               contractName: "Contract1",
               storedArtifactPath: "./Module1:Contract1.json",
+              libraries: {},
               value: BigInt(0).toString(),
               // history indicates from was accounts[3]
               from: exampleAccounts[0],
@@ -192,6 +193,7 @@ describe("Reconciliation", () => {
               args: [],
               contractName: "Contract1",
               storedArtifactPath: "./Module1:Contract1.json",
+              libraries: {},
               value: BigInt(0).toString(),
               // history indicates from was accounts[3]
               from: exampleAccounts[3],

@@ -457,9 +457,9 @@ async function _convertRequestToDeployTransaction(
   const args = request.args;
   const value = BigInt(request.value);
   const from = request.from;
+  const libraries = request.libraries;
 
-  // TODO: fix libraries
-  const linkedByteCode = await collectLibrariesAndLink(artifact, {});
+  const linkedByteCode = await collectLibrariesAndLink(artifact, libraries);
 
   const tx = state.chainDispatcher.constructDeployTransaction(
     linkedByteCode,

@@ -5,7 +5,7 @@ import { assert } from "chai";
 import { useEphemeralIgnitionProject } from "./use-ignition-project";
 
 // TODO: fix libraries in execution
-describe.skip("libraries", () => {
+describe("libraries", () => {
   useEphemeralIgnitionProject("minimal-new-api");
 
   it("should be able to deploy a contract that depends on a hardhat library", async function () {
@@ -94,5 +94,42 @@ describe.skip("libraries", () => {
 
     assert.equal(await libDeployResult.rubbishMath.add(1, 2), 3);
     assert.equal(await result.dependsOnLib.addThreeNumbers(1, 2, 3), 6);
+  });
+
+  it("should be able to deploy a library that depends on a library", async function () {
+    const moduleDefinition = defineModule("ArtifactLibraryModule", (m) => {
+      const rubbishMath = m.library("RubbishMath");
+
+      const libDependsOnLib = m.library("LibDependsOnLib", {
+        libraries: {
+          RubbishMath: rubbishMath,
+        },
+      });
+
+      const dependsOnLibThatDependsOnLib = m.contract(
+        "DependsOnLibThatDependsOnLib",
+        [],
+        {
+          libraries: {
+            LibDependsOnLib: libDependsOnLib,
+          },
+        }
+      );
+
+      return { rubbishMath, libDependsOnLib, dependsOnLibThatDependsOnLib };
+    });
+
+    const result = await this.deploy(moduleDefinition);
+
+    assert.isDefined(result);
+    const contractThatDependsOnLibOnLib = result.dependsOnLibThatDependsOnLib;
+
+    const libBasedAddtion = await contractThatDependsOnLibOnLib.addThreeNumbers(
+      1,
+      2,
+      3
+    );
+
+    assert.equal(libBasedAddtion, 6);
   });
 });

@@ -114,6 +114,7 @@ export class BasicExecutionStrategy
       value: deploymentExecutionState.value.toString(),
       args: deploymentExecutionState.constructorArgs,
       storedArtifactPath: deploymentExecutionState.storedArtifactPath,
+      libraries: deploymentExecutionState.libraries,
       from: sender,
     };
 

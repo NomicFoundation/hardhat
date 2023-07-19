@@ -136,6 +136,7 @@ describe("execution engine", () => {
           ],
           value: BigInt(0).toString(),
           storedArtifactPath: "Module1:Contract1.json",
+          libraries: {},
           from: accounts[1],
         },
         {
@@ -255,6 +256,7 @@ describe("execution engine", () => {
           args: [],
           value: BigInt(0).toString(),
           from: accounts[2],
+          libraries: {},
           storedArtifactPath: "Module1:Contract1.json",
         },
         {
@@ -356,6 +358,7 @@ describe("execution engine", () => {
           args: [],
           value: BigInt(0).toString(),
           from: accounts[1],
+          libraries: {},
           storedArtifactPath: "Module1:Contract1.json",
         },
         {
@@ -446,6 +449,7 @@ describe("execution engine", () => {
           args: [],
           value: BigInt(0).toString(),
           storedArtifactPath: "Module1:Library1.json",
+          libraries: {},
           from: accounts[2],
         },
         {
@@ -560,6 +564,7 @@ describe("execution engine", () => {
           args: [],
           value: BigInt(0).toString(),
           from: accounts[2],
+          libraries: {},
           storedArtifactPath: "Module1:Library1.json",
         },
         {
@@ -661,6 +666,7 @@ describe("execution engine", () => {
           args: [],
           value: BigInt(0).toString(),
           from: accounts[1],
+          libraries: {},
           storedArtifactPath: "Module1:Library1.json",
         },
         {
@@ -759,6 +765,7 @@ describe("execution engine", () => {
           args: [],
           value: BigInt(0).toString(),
           storedArtifactPath: "Module1:Contract1.json",
+          libraries: {},
           from: accounts[1],
         },
         {
@@ -927,6 +934,7 @@ describe("execution engine", () => {
           args: [],
           value: BigInt(0).toString(),
           storedArtifactPath: "Module1:Contract1.json",
+          libraries: {},
           from: accounts[1],
         },
         {
@@ -1082,6 +1090,7 @@ describe("execution engine", () => {
           args: [],
           value: BigInt(0).toString(),
           storedArtifactPath: "Module1:Contract1.json",
+          libraries: {},
           from: accounts[1],
         },
         {
@@ -1253,6 +1262,7 @@ describe("execution engine", () => {
           args: [],
           value: BigInt(0).toString(),
           storedArtifactPath: "Module1:Contract1.json",
+          libraries: {},
           from: accounts[1],
         },
         {
@@ -1410,6 +1420,7 @@ describe("execution engine", () => {
           args: [],
           value: BigInt(0).toString(),
           storedArtifactPath: "Module1:Contract1.json",
+          libraries: {},
           from: accounts[1],
         },
         {
@@ -1553,6 +1564,7 @@ describe("execution engine", () => {
           args: [],
           value: BigInt(0).toString(),
           storedArtifactPath: "Module1:Contract1.json",
+          libraries: {},
           from: accounts[1],
         },
         {
@@ -1772,6 +1784,7 @@ describe("execution engine", () => {
           args: [],
           value: BigInt(0).toString(),
           storedArtifactPath: "Module1:Contract1.json",
+          libraries: {},
           from: accounts[1],
         },
         {
@@ -1925,6 +1938,7 @@ describe("execution engine", () => {
           args: [],
           value: BigInt(0).toString(),
           storedArtifactPath: "Module1:Contract1.json",
+          libraries: {},
           from: accounts[1],
         },
         {
@@ -2007,9 +2021,6 @@ describe("execution engine", () => {
           "Contract1",
           [{ nested: library1, arr: [account1, supply] }],
           {
-            libraries: {
-              Library1: library1,
-            },
             from: account1,
           }
         );
@@ -2085,6 +2096,7 @@ describe("execution engine", () => {
           args: [],
           value: BigInt(0).toString(),
           storedArtifactPath: "Module1:Library1.json",
+          libraries: {},
           from: accounts[1],
         },
         {
@@ -2136,9 +2148,7 @@ describe("execution engine", () => {
               nested: differentAddress,
             },
           ],
-          libraries: {
-            Library1: "Module1:Library1",
-          },
+          libraries: {},
           from: accounts[1],
         },
         {
@@ -2155,6 +2165,7 @@ describe("execution engine", () => {
           ],
           value: BigInt(0).toString(),
           storedArtifactPath: "Module1:Contract1.json",
+          libraries: {},
           from: exampleAccounts[1],
         },
         {

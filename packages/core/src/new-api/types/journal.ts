@@ -79,6 +79,7 @@ export interface DeployContractInteractionMessage {
   contractName: string;
   storedArtifactPath: string;
   value: string;
+  libraries: { [key: string]: string };
   from: string;
 }
 

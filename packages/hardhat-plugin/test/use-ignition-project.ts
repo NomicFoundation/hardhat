@@ -28,6 +28,7 @@ export function useEphemeralIgnitionProject(
     const hre = require("hardhat");
 
     await hre.network.provider.send("evm_setAutomine", [true]);
+    await hre.run("compile", { quiet: true });
 
     this.hre = hre;
     this.deploymentDir = undefined;

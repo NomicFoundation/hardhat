@@ -25,6 +25,7 @@ import {
 import {
   AccountRuntimeValue,
   ArgumentType,
+  ContractFuture,
   Future,
   FutureType,
   ModuleParameters,
@@ -52,7 +53,10 @@ import { assertIgnitionInvariant } from "../utils/assertions";
 import { getFuturesFromModule } from "../utils/get-futures-from-module";
 import { replaceWithinArg } from "../utils/replace-within-arg";
 import { resolveFromAddress } from "../utils/resolve-from-address";
-import { resolveFutureToValue } from "../utils/resolve-future-to-value";
+import {
+  resolveContractFutureToAddress,
+  resolveFutureToValue,
+} from "../utils/resolve-futures";
 import { resolveModuleParameter } from "../utils/resolve-module-parameter";
 
 import { executionStateReducer } from "./execution-state-reducer";
@@ -552,9 +556,9 @@ export class ExecutionEngine {
             deploymentParameters,
             executionStateMap,
           }),
-          libraries: Object.fromEntries(
-            Object.entries(future.libraries).map(([key, lib]) => [key, lib.id])
-          ),
+          libraries: this._resolveLibraries(future.libraries, {
+            executionStateMap,
+          }),
           from: this._resolveAddress(future.from, { accounts }),
         };
 
@@ -583,9 +587,9 @@ export class ExecutionEngine {
             deploymentParameters,
             executionStateMap,
           }),
-          libraries: Object.fromEntries(
-            Object.entries(future.libraries).map(([key, lib]) => [key, lib.id])
-          ),
+          libraries: this._resolveLibraries(future.libraries, {
+            executionStateMap,
+          }),
           from: this._resolveAddress(future.from, { accounts }),
         };
 
@@ -610,9 +614,9 @@ export class ExecutionEngine {
           contractName: future.contractName,
           value: "0",
           constructorArgs: [],
-          libraries: Object.fromEntries(
-            Object.entries(future.libraries).map(([key, lib]) => [key, lib.id])
-          ),
+          libraries: this._resolveLibraries(future.libraries, {
+            executionStateMap,
+          }),
           from: this._resolveAddress(future.from, { accounts }),
         };
 
@@ -634,9 +638,9 @@ export class ExecutionEngine {
           contractName: future.contractName,
           value: "0",
           constructorArgs: [],
-          libraries: Object.fromEntries(
-            Object.entries(future.libraries).map(([key, lib]) => [key, lib.id])
-          ),
+          libraries: this._resolveLibraries(future.libraries, {
+            executionStateMap,
+          }),
           from: this._resolveAddress(future.from, { accounts }),
         };
 
@@ -656,9 +660,7 @@ export class ExecutionEngine {
           futureId: future.id,
           futureType: future.type,
           strategy,
-          // status: ExecutionStatus.STARTED,
           dependencies: [...future.dependencies].map((f) => f.id),
-          // history: [],
           args: this._resolveArgs(future.args, {
             accounts,
             deploymentParameters,
@@ -866,6 +868,21 @@ export class ExecutionEngine {
       default:
         throw new Error(`Unknown future`);
     }
+  }
+
+  /**
+   * Resolve the libraries to their deployed addresses.
+   */
+  private _resolveLibraries(
+    libraries: Record<string, ContractFuture<string>>,
+    { executionStateMap }: { executionStateMap: ExecutionStateMap }
+  ) {
+    return Object.fromEntries(
+      Object.entries(libraries).map(([key, lib]) => [
+        key,
+        resolveContractFutureToAddress(lib, { executionStateMap }),
+      ])
+    );
   }
 
   /**

@@ -19,6 +19,44 @@ import { assertIgnitionInvariant } from "./assertions";
  * @param future
  * @param context
  */
+export function resolveContractFutureToAddress(
+  future: Future,
+  context: { executionStateMap: ExecutionStateMap }
+): string {
+  const executionState = _resolveFromExecutionState(
+    future,
+    context.executionStateMap
+  );
+
+  assertIgnitionInvariant(
+    isDeploymentExecutionState(executionState) ||
+      isContractAtExecutionState(executionState),
+    `Cannot only resolve an address for a ContractAt, NamedLibrary, NamedContract, ArtifactLibrary, ArtifactContract`
+  );
+
+  if (isContractAtExecutionState(executionState)) {
+    return executionState.contractAddress;
+  }
+
+  if (isDeploymentExecutionState(executionState)) {
+    assertIgnitionInvariant(
+      executionState.contractAddress !== undefined,
+      `Future ${future.id} does not have a contract address`
+    );
+
+    return executionState.contractAddress;
+  }
+
+  return _assertNeverExecutionState(executionState);
+}
+
+/**
+ * Resolve a future to its value for execution. This will depend on the future
+ * type, so a contract deploy will resolve to its address.
+ *
+ * @param future
+ * @param context
+ */
 export function resolveFutureToValue(
   future: Future,
   context: { executionStateMap: ExecutionStateMap }
@@ -90,6 +128,6 @@ function _resolveFromExecutionState<
   return executionState;
 }
 
-function _assertNeverExecutionState(_state: never): SolidityParameterType {
+function _assertNeverExecutionState<T>(_state: never): T {
   throw new IgnitionError("Unknown execution state");
 }
