@@ -269,6 +269,22 @@ export const builtinChains: ChainConfig[] = [
       browserURL: "https://explorer.pops.one",
     },
   },
+  {
+    network: "xdc",
+    chainId: 50,
+    urls: {
+      apiURL: "https://xdc.blocksscan.io/api",
+      browserURL: "https://xdcscan.io",
+    },
+  },
+  {
+    network: "apothem",
+    chainId: 51,
+    urls: {
+      apiURL: "https://xdc.blocksscan.io/api",
+      browserURL: "https://apothem.xdcscan.io/",
+    },
+  }
 ];
 
 // We are not adding new networks to the core of hardhat-etherscan anymore.
