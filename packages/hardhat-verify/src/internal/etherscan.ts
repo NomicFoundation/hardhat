@@ -20,15 +20,6 @@ import { sendGetRequest, sendPostRequest } from "./undici";
 import { sleep } from "./utilities";
 import { builtinChains } from "./chain-config";
 
-interface EtherscanVerifyRequestParams {
-  address: string;
-  sourceCode: string;
-  sourceName: string;
-  contractName: string;
-  compilerVersion: string;
-  encodedConstructorArguments: string;
-}
-
 // Used for polling the result of the contract verification.
 const VERIFICATION_STATUS_POLLING_TIME = 3000;
 
@@ -98,24 +89,23 @@ export class Etherscan {
   }
 
   // https://docs.etherscan.io/api-endpoints/contracts#verify-source-code
-  public async verify({
-    address,
-    sourceCode,
-    sourceName,
-    contractName,
-    compilerVersion,
-    encodedConstructorArguments,
-  }: EtherscanVerifyRequestParams): Promise<EtherscanResponse> {
+  public async verify(
+    contractAddress: string,
+    sourceCode: string,
+    contractName: string,
+    compilerVersion: string,
+    constructorArguements: string
+  ): Promise<EtherscanResponse> {
     const parameters = new URLSearchParams({
       apikey: this._apiKey,
       module: "contract",
       action: "verifysourcecode",
-      contractaddress: address,
+      contractaddress: contractAddress,
       sourceCode,
       codeformat: "solidity-standard-json-input",
-      contractname: `${sourceName}:${contractName}`,
-      compilerversion: `v${compilerVersion}`,
-      constructorArguements: encodedConstructorArguments,
+      contractname: contractName,
+      compilerversion: compilerVersion,
+      constructorArguements,
     });
 
     let response: Dispatcher.ResponseData;
@@ -141,7 +131,10 @@ export class Etherscan {
     const etherscanResponse = new EtherscanResponse(await response.body.json());
 
     if (etherscanResponse.isBytecodeMissingInNetworkError()) {
-      throw new ContractVerificationMissingBytecodeError(this._apiUrl, address);
+      throw new ContractVerificationMissingBytecodeError(
+        this._apiUrl,
+        contractAddress
+      );
     }
 
     if (!etherscanResponse.isOk()) {
