@@ -1,5 +1,5 @@
 import type { Client as ClientT } from "undici";
-import { normalize } from "node:path";
+import { normalize, resolve as resolvePath } from "node:path";
 import { spawn } from "node:child_process";
 
 import { HardhatNetworkChainsConfig } from "../../../../src/types/config";
@@ -162,7 +162,7 @@ export function useProvider({
       const error = new Promise((_resolve, reject) => {
         this.rethnetProcess.on("error", (err: Error) => {
           if (err.message.includes("ENOENT")) {
-            reject(new Error("Rethnet executable not found"));
+            reject(new Error(`Rethnet executable not found at ${resolvePath(rethnetBinary)}`));
           } else {
             reject(
               new Error(`Rethnet subprocess error: ${err}. ${outputForError()}`)
