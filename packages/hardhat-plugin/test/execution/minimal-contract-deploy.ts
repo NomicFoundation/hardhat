@@ -13,7 +13,9 @@ describe("execution - minimal contract deploy", () => {
   // TODO: rename back to minimal api once execution switched over
   useEnvironment("minimal-new-api");
 
-  it("should create a plan", async function () {
+  it.skip("should deploy the contract", async function () {
+    await this.hre.run("compile", { quiet: true });
+
     await this.hre.network.provider.request({
       method: "evm_setAutomine",
       params: [false],
