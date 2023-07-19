@@ -177,7 +177,9 @@ async fn restore_block_context<T>(
         .write()
         .await
         .set_block_context(&state_root, None)
-        .map_err(|_| error_response_data(0, "Failed to restore previous block context"))
+        .map_err(|e| {
+            error_response_data(0, &format!("Failed to restore previous block context: {e}"))
+        })
 }
 
 async fn get_account_info<T>(
