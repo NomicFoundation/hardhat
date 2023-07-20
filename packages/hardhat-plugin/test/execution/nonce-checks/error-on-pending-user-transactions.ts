@@ -2,6 +2,9 @@
 import { defineModule } from "@ignored/ignition-core";
 import { assert } from "chai";
 
+import { waitForPendingTxs } from "../../helpers";
+import { mineBlock } from "../helpers";
+
 import {
   TestChainHelper,
   useDeploymentDirectory,
@@ -34,14 +37,16 @@ describe("execution - error on pending user transactions", () => {
     const [, , signer2] = await this.hre.ethers.getSigners();
     const FooFactory = await this.hre.ethers.getContractFactory("Foo");
     const outsideFooPromise = FooFactory.connect(signer2).deploy();
+    await waitForPendingTxs(this.hre, 1, outsideFooPromise);
 
     // Deploying the module that uses accounts[2] throws with a warning
     await assert.isRejected(
-      this.deploy(moduleDefinition, async (c: TestChainHelper) => {
-        await c.mineBlock(1);
-      }),
+      this.deploy(moduleDefinition, async (_c: TestChainHelper) => {}),
       "Pending transactions for account: 0x3c44cdddb6a900fa2b585dd299e03d12fa4293bc, please wait for transactions to complete before running a deploy"
     );
+
+    // Now mine the user interference transaction
+    await mineBlock(this.hre);
 
     // The users interfering transaction completes normally
     const outsideFoo = await outsideFooPromise;
