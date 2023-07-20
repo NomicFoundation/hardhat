@@ -686,5 +686,100 @@ describe("contract", () => {
         )
       );
     });
+
+    it("should not validate a missing module parameter (deeply nested)", async () => {
+      const fakeArtifact: Artifact = {
+        abi: [
+          {
+            inputs: [
+              {
+                internalType: "uint256",
+                name: "p",
+                type: "uint256",
+              },
+            ],
+            stateMutability: "payable",
+            type: "constructor",
+          },
+        ],
+        contractName: "",
+        bytecode: "",
+        linkReferences: {},
+      };
+
+      const moduleWithContractFromArtifactDefinition = defineModule(
+        "Module1",
+        (m) => {
+          const p = m.getParameter("p");
+          const contract1 = m.contract("Test", [
+            [123, { really: { deeply: { nested: [p] } } }],
+          ]);
+
+          return { contract1 };
+        }
+      );
+
+      const constructor = new ModuleConstructor();
+      const module = constructor.construct(
+        moduleWithContractFromArtifactDefinition
+      );
+      const [future] = getFuturesFromModule(module);
+
+      await assert.isRejected(
+        validateNamedContractDeployment(
+          future as any,
+          setupMockArtifactResolver({ Test: fakeArtifact }),
+          {}
+        ),
+        /Module parameter 'p' requires a value but was given none/
+      );
+    });
+
+    it("should validate a missing module parameter if a default parameter is present (deeply nested)", async () => {
+      const fakeArtifact: Artifact = {
+        abi: [
+          {
+            inputs: [
+              {
+                internalType: "uint256",
+                name: "p",
+                type: "uint256",
+              },
+            ],
+            stateMutability: "payable",
+            type: "constructor",
+          },
+        ],
+        contractName: "",
+        bytecode: "",
+        linkReferences: {},
+      };
+
+      const moduleWithContractFromArtifactDefinition = defineModule(
+        "Module1",
+        (m) => {
+          const p = m.getParameter("p", 123);
+          const contract1 = m.contract("Test", [
+            [123, { really: { deeply: { nested: [p] } } }],
+          ]);
+
+          return { contract1 };
+        }
+      );
+
+      const constructor = new ModuleConstructor();
+      const module = constructor.construct(
+        moduleWithContractFromArtifactDefinition
+      );
+      const [future] = getFuturesFromModule(module);
+
+      await assert.isFulfilled(
+        validateNamedContractDeployment(
+          future as any,
+          setupMockArtifactResolver({ Test: fakeArtifact }),
+          {}
+        )
+      );
+    });
   });
 });

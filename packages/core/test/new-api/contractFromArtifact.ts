@@ -711,5 +711,85 @@ describe("contractFromArtifact", () => {
         )
       );
     });
+
+    it("should not validate a missing module parameter (deeply nested)", async () => {
+      const moduleWithContractFromArtifactDefinition = defineModule(
+        "Module1",
+        (m) => {
+          const p = m.getParameter("p");
+          const contract1 = m.contractFromArtifact("Test", fakeArtifact, [
+            [123, { really: { deeply: { nested: [p] } } }],
+          ]);
+
+          return { contract1 };
+        }
+      );
+
+      const constructor = new ModuleConstructor();
+      const module = constructor.construct(
+        moduleWithContractFromArtifactDefinition
+      );
+      const future = getFuturesFromModule(module).find(
+        (v) => v.type === FutureType.ARTIFACT_CONTRACT_DEPLOYMENT
+      );
+
+      await assert.isRejected(
+        validateArtifactContractDeployment(
+          future as any,
+          setupMockArtifactResolver({ Test: fakeArtifact }),
+          {}
+        ),
+        /Module parameter 'p' requires a value but was given none/
+      );
+    });
+
+    it("should validate a missing module parameter if a default parameter is present (deeply nested)", async () => {
+      const fakerArtifact: Artifact = {
+        abi: [
+          {
+            inputs: [
+              {
+                internalType: "uint256",
+                name: "p",
+                type: "uint256",
+              },
+            ],
+            stateMutability: "payable",
+            type: "constructor",
+          },
+        ],
+        contractName: "",
+        bytecode: "",
+        linkReferences: {},
+      };
+
+      const moduleWithContractFromArtifactDefinition = defineModule(
+        "Module1",
+        (m) => {
+          const p = m.getParameter("p", 123);
+          const contract1 = m.contractFromArtifact("Test", fakerArtifact, [
+            [123, { really: { deeply: { nested: [p] } } }],
+          ]);
+
+          return { contract1 };
+        }
+      );
+
+      const constructor = new ModuleConstructor();
+      const module = constructor.construct(
+        moduleWithContractFromArtifactDefinition
+      );
+      const future = getFuturesFromModule(module).find(
+        (v) => v.type === FutureType.ARTIFACT_CONTRACT_DEPLOYMENT
+      );
+
+      await assert.isFulfilled(
+        validateArtifactContractDeployment(
+          future as any,
+          setupMockArtifactResolver({ Test: fakerArtifact }),
+          {}
+        )
+      );
+    });
   });
 });

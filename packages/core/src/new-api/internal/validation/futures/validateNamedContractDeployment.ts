@@ -1,24 +1,20 @@
 import { ethers } from "ethers";
 
 import { IgnitionValidationError } from "../../../../errors";
-import {
-  isArtifactType,
-  isModuleParameterRuntimeValue,
-} from "../../../type-guards";
+import { isArtifactType } from "../../../type-guards";
 import { ArtifactResolver } from "../../../types/artifact";
 import {
   ModuleParameters,
   NamedContractDeploymentFuture,
 } from "../../../types/module";
+import { retrieveNestedRuntimeValues } from "../../utils/retrieve-nested-runtime-values";
 
 export async function validateNamedContractDeployment(
   future: NamedContractDeploymentFuture<string>,
   artifactLoader: ArtifactResolver,
   moduleParameters: ModuleParameters
 ) {
-  const moduleParams = future.constructorArgs.filter(
-    isModuleParameterRuntimeValue
-  );
+  const moduleParams = retrieveNestedRuntimeValues(future.constructorArgs);
 
   const missingParams = moduleParams.filter(
     (param) =>
