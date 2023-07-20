@@ -90,11 +90,7 @@ export class Deployer {
   ): Promise<DeploymentResult> {
     const module = this._moduleConstructor.construct(moduleDefinition);
 
-    await validate(
-      module,
-      this._artifactResolver,
-      deploymentParameters[module.id]
-    );
+    await validate(module, this._artifactResolver, deploymentParameters);
 
     const previousStateMap = await this._loadExecutionStateFrom(
       this._deploymentLoader.journal

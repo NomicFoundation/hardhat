@@ -20,9 +20,20 @@ import { validateSendData } from "./futures/validateSendData";
 export async function validate(
   module: IgnitionModule,
   artifactLoader: ArtifactResolver,
-  moduleParameters: ModuleParameters
+  moduleParameters: { [key: string]: ModuleParameters }
 ): Promise<void> {
   const futures = getFuturesFromModule(module);
+
+  // originally, I wrote a getSubmodulesFromModule function similar to the one above
+  // that recursively retrieved all submodules regardless of how deeply nested they were.
+  // however, by taking only the top level submodules of the current depth and recursively
+  // validating each of those, we achieve the same effect.
+  const submodules = module.submodules;
+  for (const submodule of submodules) {
+    await validate(submodule, artifactLoader, moduleParameters);
+  }
+
+  const params = moduleParameters[module.id] ?? {};
 
   for (const future of futures) {
     switch (future.type) {
@@ -30,58 +41,30 @@ export async function validate(
         return validateArtifactContractDeployment(
           future,
           artifactLoader,
-          moduleParameters
+          params
         );
       case FutureType.ARTIFACT_LIBRARY_DEPLOYMENT:
         return validateArtifactLibraryDeployment(
           future,
           artifactLoader,
-          moduleParameters
+          params
         );
       case FutureType.ARTIFACT_CONTRACT_AT:
-        return validateArtifactContractAt(
-          future,
-          artifactLoader,
-          moduleParameters
-        );
+        return validateArtifactContractAt(future, artifactLoader, params);
       case FutureType.NAMED_CONTRACT_DEPLOYMENT:
-        return validateNamedContractDeployment(
-          future,
-          artifactLoader,
-          moduleParameters
-        );
+        return validateNamedContractDeployment(future, artifactLoader, params);
       case FutureType.NAMED_LIBRARY_DEPLOYMENT:
-        return validateNamedLibraryDeployment(
-          future,
-          artifactLoader,
-          moduleParameters
-        );
+        return validateNamedLibraryDeployment(future, artifactLoader, params);
       case FutureType.NAMED_CONTRACT_AT:
-        return validateNamedContractAt(
-          future,
-          artifactLoader,
-          moduleParameters
-        );
+        return validateNamedContractAt(future, artifactLoader, params);
       case FutureType.NAMED_CONTRACT_CALL:
-        return validateNamedContractCall(
-          future,
-          artifactLoader,
-          moduleParameters
-        );
+        return validateNamedContractCall(future, artifactLoader, params);
       case FutureType.NAMED_STATIC_CALL:
-        return validateNamedStaticCall(
-          future,
-          artifactLoader,
-          moduleParameters
-        );
+        return validateNamedStaticCall(future, artifactLoader, params);
       case FutureType.READ_EVENT_ARGUMENT:
-        return validateReadEventArgument(
-          future,
-          artifactLoader,
-          moduleParameters
-        );
+        return validateReadEventArgument(future, artifactLoader, params);
       case FutureType.SEND_DATA:
-        return validateSendData(future, artifactLoader, moduleParameters);
+        return validateSendData(future, artifactLoader, params);
     }
   }
 }
