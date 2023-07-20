@@ -4,8 +4,6 @@ import { MockAgent, MockPool } from "undici";
 import { HttpProvider } from "../../../../src/internal/core/providers/http";
 import { SuccessfulJsonRpcResponse } from "../../../../src/internal/util/jsonrpc";
 
-import { expectErrorAsync } from "../../../helpers/errors";
-
 const TOO_MANY_REQUEST_STATUS = 429;
 
 function makeMockPool(url: string): MockPool {
