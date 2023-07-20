@@ -43,8 +43,7 @@ export class FileJournal implements Journal {
       constants.O_CREAT |
       constants.O_WRONLY | // Write only
       constants.O_APPEND | // Append
-      constants.O_DSYNC | // Synchronous I/O waiting for writes of content and metadata
-      constants.O_DIRECT; // Minimize caching
+      constants.O_DSYNC; // Synchronous I/O waiting for writes of content and metadata
 
     const fd = openSync(path, flags);
 
