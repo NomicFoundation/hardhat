@@ -162,7 +162,11 @@ export function useProvider({
       const error = new Promise((_resolve, reject) => {
         this.rethnetProcess.on("error", (err: Error) => {
           if (err.message.includes("ENOENT")) {
-            reject(new Error(`Rethnet executable not found at ${resolvePath(rethnetBinary)}`));
+            reject(
+              new Error(
+                `Rethnet executable not found at ${resolvePath(rethnetBinary)}`
+              )
+            );
           } else {
             reject(
               new Error(`Rethnet subprocess error: ${err}. ${outputForError()}`)
