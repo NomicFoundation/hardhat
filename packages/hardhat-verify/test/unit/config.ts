@@ -27,6 +27,7 @@ describe("Chain Config", () => {
       },
     };
     const expected: EtherscanConfig = {
+      enabled: true,
       apiKey: {
         goerli: "<goerli-api-key>",
       },
@@ -49,6 +50,7 @@ describe("Chain Config", () => {
   it("should override the hardhat config with the user config", async () => {
     const hardhatConfig = {} as HardhatConfig;
     hardhatConfig.etherscan = {
+      enabled: true,
       apiKey: {
         goerli: "<goerli-api-key>",
       },
@@ -90,6 +92,7 @@ describe("Chain Config", () => {
       },
     };
     const expected: EtherscanConfig = {
+      enabled: true,
       apiKey: {
         mainnet: "<mainnet-api-key>",
         sepolia: "<sepolia-api-key>",
@@ -122,6 +125,7 @@ describe("Chain Config", () => {
     const hardhatConfig = {} as HardhatConfig;
     const userConfig: HardhatUserConfig = {};
     const expected: EtherscanConfig = {
+      enabled: true,
       apiKey: "",
       customChains: [],
     };
