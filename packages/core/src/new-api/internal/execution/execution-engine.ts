@@ -69,6 +69,14 @@ export interface AccountsState {
   [key: string]: number;
 }
 
+interface InflightTransaction {
+  futureId: string;
+  executionId: number;
+  from: string;
+  nonce: number;
+  hash: string;
+}
+
 export class ExecutionEngine {
   public async execute(state: ExecutionEngineState): Promise<DeploymentResult> {
     const { batches, module } = state;
@@ -124,28 +132,29 @@ export class ExecutionEngine {
       transactionSubmittingFutures.map((f) => resolveFromAddress(f.from, state))
     );
 
-    const pendingIgnitionTransactions = transactionSubmittingFutures
-      .map((f) => {
-        const exState = state.executionStateMap[f.id];
+    const pendingIgnitionTransactions: InflightTransaction[] =
+      transactionSubmittingFutures
+        .map((f) => {
+          const exState = state.executionStateMap[f.id];
 
-        if (
-          exState === undefined ||
-          exState.onchain.currentExecution === null ||
-          exState.onchain.nonce === null ||
-          exState.onchain.txHash === null
-        ) {
-          return null;
-        }
+          if (
+            exState === undefined ||
+            exState.onchain.currentExecution === null ||
+            exState.onchain.nonce === null ||
+            exState.onchain.txHash === null
+          ) {
+            return null;
+          }
 
-        return {
-          futureId: f.id,
-          executionId: exState.onchain.currentExecution,
-          from: resolveFromAddress(f.from, state),
-          nonce: exState.onchain.nonce,
-          hash: exState.onchain.txHash,
-        };
-      })
-      .filter(<T>(x: T | null): x is T => x !== null);
+          return {
+            futureId: f.id,
+            executionId: exState.onchain.currentExecution,
+            from: resolveFromAddress(f.from, state),
+            nonce: exState.onchain.nonce,
+            hash: exState.onchain.txHash,
+          };
+        })
+        .filter(<T>(x: T | null): x is T => x !== null);
 
     const inflightByAccount = groupBy(pendingIgnitionTransactions, "from");
 
@@ -171,24 +180,19 @@ export class ExecutionEngine {
         return;
       }
 
-      const maxNonceTran = maxBy(inflight, "nonce");
-
-      assertIgnitionInvariant(
-        maxNonceTran !== undefined,
-        "Always at least one entry going into maxBy"
-      );
-
       // The pending transactions do not match the expected list
       // given the inflight transactions from the previous run
-      if (maxNonceTran.nonce + 1 < pending) {
+      if (this._isMorePendingThanPreviousRunIndicates(pending, inflight)) {
         // TODO: is this error message correct?
         throw new IgnitionError(
           `Pending transactions for account: ${usedAccount}, please wait for transactions to complete before running a deploy`
         );
       }
 
-      for (const intran of sortBy(inflight, "nonce")) {
-        const result = await state.chainDispatcher.getTransaction(intran.hash);
+      for (const inflightTran of sortBy(inflight, "nonce")) {
+        const result = await state.chainDispatcher.getTransaction(
+          inflightTran.hash
+        );
 
         // transaction is confirmed or pending as expected
         if (result !== null && result !== undefined) {
@@ -197,12 +201,17 @@ export class ExecutionEngine {
 
         // There is a confirmed user sent transaction that
         // has replaced the expected transaction
-        if (latest >= intran.nonce + 1) {
+        if (
+          this._isIgnitionTranReplacedByConfirmedInterferingTran(
+            inflightTran,
+            latest
+          )
+        ) {
           // Try sending the request again, using a new nonce
           const revert: OnchainTransactionReset = {
             type: "onchain-transaction-reset",
-            futureId: intran.futureId,
-            executionId: intran.executionId,
+            futureId: inflightTran.futureId,
+            executionId: inflightTran.executionId,
           };
 
           await this._apply(state, revert);
@@ -210,17 +219,29 @@ export class ExecutionEngine {
 
         // there is a pending transaction sent by the user
         // with the same nonce
-        if (latest < intran.nonce + 1 && pending >= intran.nonce + 1) {
+        if (
+          this._isIgnitionTranReplacedByPendingInterferingTran(
+            inflightTran,
+            latest,
+            pending
+          )
+        ) {
           throw new IgnitionError("Pending transaction from user");
         }
 
         // the transaction has been dropped without any user interference
-        if (latest < intran.nonce + 1 && pending < intran.nonce + 1) {
+        if (
+          this._inflightTranDroppedWithoutInterference(
+            inflightTran,
+            latest,
+            pending
+          )
+        ) {
           // try sending again potentially using the same nonce
           const revert: OnchainTransactionReset = {
             type: "onchain-transaction-reset",
-            futureId: intran.futureId,
-            executionId: intran.executionId,
+            futureId: inflightTran.futureId,
+            executionId: inflightTran.executionId,
           };
 
           await this._apply(state, revert);
@@ -917,5 +938,42 @@ export class ExecutionEngine {
     };
 
     return futureContext;
+  }
+
+  private _isMorePendingThanPreviousRunIndicates(
+    pending: number,
+    inflight: InflightTransaction[]
+  ): boolean {
+    const maxNonceTran = maxBy(inflight, "nonce");
+
+    assertIgnitionInvariant(
+      maxNonceTran !== undefined,
+      "Always at least one entry going into maxBy"
+    );
+
+    return maxNonceTran.nonce + 1 < pending;
+  }
+
+  private _isIgnitionTranReplacedByConfirmedInterferingTran(
+    inflightTran: InflightTransaction,
+    latest: number
+  ): boolean {
+    return latest >= inflightTran.nonce + 1;
+  }
+
+  private _isIgnitionTranReplacedByPendingInterferingTran(
+    inflightTran: InflightTransaction,
+    latest: number,
+    pending: number
+  ) {
+    return latest < inflightTran.nonce + 1 && pending >= inflightTran.nonce + 1;
+  }
+
+  private _inflightTranDroppedWithoutInterference(
+    inflightTran: InflightTransaction,
+    latest: number,
+    pending: number
+  ) {
+    return latest < inflightTran.nonce + 1 && pending < inflightTran.nonce + 1;
   }
 }
