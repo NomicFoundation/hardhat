@@ -203,7 +203,7 @@ export class HttpProvider extends EventEmitter implements EIP1193Provider {
         // https://undici.nodejs.org/#/?id=garbage-collection
         // It's not clear how to "cancel", so we'll just consume:
         await response.body.text();
-        const seconds = this._getRetryAfterSeconds(response);
+        const seconds = this._getRetryAfterSeconds(response, retryNumber);
         if (seconds !== undefined && this._shouldRetry(retryNumber, seconds)) {
           return await this._retry(request, seconds, retryNumber);
         }
@@ -272,12 +272,15 @@ export class HttpProvider extends EventEmitter implements EIP1193Provider {
   }
 
   private _getRetryAfterSeconds(
-    response: Undici.Dispatcher.ResponseData
+    response: Undici.Dispatcher.ResponseData,
+    retryNumber: number
   ): number | undefined {
     const header = response.headers["retry-after"];
 
     if (header === undefined || header === null || Array.isArray(header)) {
-      return undefined;
+      // if the response doesn't have a retry-after header, we do
+      // an exponential backoff
+      return Math.min(2 ** retryNumber, MAX_RETRY_AWAIT_SECONDS);
     }
 
     const parsed = parseInt(header, 10);
