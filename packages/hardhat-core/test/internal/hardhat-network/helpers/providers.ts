@@ -67,7 +67,6 @@ export const PROVIDERS = [
     isJsonRpc: false,
     networkId: DEFAULT_NETWORK_ID,
     chainId: DEFAULT_CHAIN_ID,
-    rethnetBinary: undefined as string | undefined,
     useProvider: (options: UseProviderOptions = {}) => {
       useProvider({ useJsonRpc: false, loggerEnabled: true, ...options });
     },
@@ -78,7 +77,6 @@ export const PROVIDERS = [
     isJsonRpc: true,
     networkId: DEFAULT_NETWORK_ID,
     chainId: DEFAULT_CHAIN_ID,
-    rethnetBinary: undefined as string | undefined,
     useProvider: (options: UseProviderOptions = {}) => {
       useProvider({ useJsonRpc: true, loggerEnabled: true, ...options });
     },
@@ -137,7 +135,6 @@ if (ALCHEMY_URL !== undefined) {
     isJsonRpc: false,
     networkId: DEFAULT_NETWORK_ID,
     chainId: DEFAULT_CHAIN_ID,
-    rethnetBinary: undefined,
     useProvider: (options: UseProviderOptions = {}) => {
       useProvider({
         useJsonRpc: false,
@@ -203,7 +200,6 @@ if (RETHNET_BINARY !== undefined) {
     name: "Rethnet",
     isFork: false,
     isJsonRpc: false,
-    rethnetBinary: RETHNET_BINARY,
     networkId: DEFAULT_NETWORK_ID,
     chainId: DEFAULT_CHAIN_ID,
     useProvider: (options: UseProviderOptions = {}) => {
