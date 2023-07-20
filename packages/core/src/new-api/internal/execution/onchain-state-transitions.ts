@@ -605,23 +605,23 @@ async function checkTransactionComplete(
     );
   }
 
-  const receipt = await state.chainDispatcher.getTransactionReceipt(
-    next.txHash
-  );
-
-  if (receipt === null || receipt === undefined) {
-    // No receipt means it hasn't been included in a block yet
-    return { status: "pause" };
-  }
-
   if (
-    receipt.blockNumber === undefined ||
+    currentTransaction.blockNumber === null ||
     // TODO: make default confirmations config
-    receipt.confirmations < DEFAULT_CONFIRMATIONS
+    currentTransaction.confirmations < DEFAULT_CONFIRMATIONS
   ) {
     // transaction pending, move on with batch
     return { status: "pause" };
   }
+
+  const receipt = await state.chainDispatcher.getTransactionReceipt(
+    next.txHash
+  );
+
+  assertIgnitionInvariant(
+    receipt !== null && receipt !== undefined,
+    "A confirmed transaction should have a receipt"
+  );
 
   const successMessage = successConstructor(receipt);
 
