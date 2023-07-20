@@ -24,8 +24,8 @@ where
     BE: Debug + Send + 'static,
     SE: Debug + Send + 'static,
 {
-    blockchain: Arc<RwLock<Box<dyn SyncBlockchain<BE>>>>,
-    state: Arc<RwLock<Box<dyn SyncState<SE>>>>,
+    blockchain: Arc<RwLock<dyn SyncBlockchain<BE>>>,
+    state: Arc<RwLock<dyn SyncState<SE>>>,
     cfg: CfgEnv,
 }
 
@@ -36,8 +36,8 @@ where
 {
     /// Constructs a new [`Rethnet`] instance.
     pub fn new(
-        blockchain: Arc<RwLock<Box<dyn SyncBlockchain<BE>>>>,
-        state: Arc<RwLock<Box<dyn SyncState<SE>>>>,
+        blockchain: Arc<RwLock<dyn SyncBlockchain<BE>>>,
+        state: Arc<RwLock<dyn SyncState<SE>>>,
         cfg: CfgEnv,
     ) -> Self {
         Self {

@@ -81,8 +81,8 @@ where
     BE: Debug + Send + 'static,
     SE: Debug + Send + 'static,
 {
-    blockchain: Arc<RwLock<Box<dyn SyncBlockchain<BE>>>>,
-    state: Arc<RwLock<Box<dyn SyncState<SE>>>>,
+    blockchain: Arc<RwLock<dyn SyncBlockchain<BE>>>,
+    state: Arc<RwLock<dyn SyncState<SE>>>,
     cfg: CfgEnv,
     header: PartialHeader,
     callers: Vec<Address>,
@@ -98,8 +98,8 @@ where
 {
     /// Creates an intance of [`BlockBuilder`], creating a checkpoint in the process.
     pub async fn new(
-        blockchain: Arc<RwLock<Box<dyn SyncBlockchain<BE>>>>,
-        state: Arc<RwLock<Box<dyn SyncState<SE>>>>,
+        blockchain: Arc<RwLock<dyn SyncBlockchain<BE>>>,
+        state: Arc<RwLock<dyn SyncState<SE>>>,
         cfg: CfgEnv,
         parent: Header,
         options: BlockOptions,
