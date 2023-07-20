@@ -8,6 +8,7 @@ import { DEFAULT_GAS_MULTIPLIER } from "../src/constants";
 import { TruffleContract, TruffleContractInstance } from "../src/types";
 
 import { useEnvironment } from "./helpers";
+import { BlockTags, FMT_BYTES, FMT_NUMBER } from "web3";
 
 function assertIsContract(contract: TruffleContract) {
   assert.containsAllKeys(contract, [
@@ -237,12 +238,15 @@ describe("Gas multiplier", function () {
     const web3Estimation = await env.web3.eth.estimateGas({
       from: accounts[0],
       data: Greeter.bytecode,
-    });
+    }
+    ,BlockTags.SAFE , 
+    {number: FMT_NUMBER.NUMBER, bytes: FMT_BYTES.HEX}
+    );
 
     const greeter = await Greeter.new();
-    const tx = await env.web3.eth.getTransaction(greeter.transactionHash);
+    const tx = await env.web3.eth.getTransaction(greeter.transactionHash, { number: FMT_NUMBER.NUMBER , bytes: FMT_BYTES.HEX });
 
-    const gasLimit = tx.gas;
+    const gasLimit = tx.gas as unknown as Number;
 
     assert.equal(gasLimit, Math.floor(web3Estimation * multiplier));
   }
@@ -274,12 +278,13 @@ describe("Gas multiplier", function () {
       to: greeter.address,
       from: accounts[0],
       data: callData,
-    });
+    },BlockTags.SAFE , 
+    {number: FMT_NUMBER.NUMBER, bytes: FMT_BYTES.HEX});
 
     const txResult = await greeter.setGreeting(greeting);
-    const tx = await env.web3.eth.getTransaction(txResult.tx);
+    const tx = await env.web3.eth.getTransaction(txResult.tx, {number: FMT_NUMBER.NUMBER, bytes: FMT_BYTES.HEX});
 
-    const gasLimit = tx.gas;
+    const gasLimit = tx.gas as unknown as Number;
     assert.equal(gasLimit, Math.floor(web3Estimation * multiplier));
   }
 
