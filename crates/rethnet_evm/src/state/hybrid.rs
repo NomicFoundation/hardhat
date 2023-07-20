@@ -414,6 +414,7 @@ mod tests {
                 },
             )
             .unwrap();
+        state.make_snapshot();
 
         /* [eth_getBalance]
          * state_root

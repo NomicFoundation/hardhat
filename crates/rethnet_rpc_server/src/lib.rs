@@ -322,7 +322,8 @@ async fn handle_set_balance(
     balance: U256,
 ) -> ResponseData<bool> {
     event!(Level::INFO, "hardhat_setBalance({address:?}, {balance:?})");
-    match state.rethnet_state.write().await.modify_account(
+    let mut state = state.rethnet_state.write().await;
+    match state.modify_account(
         address,
         AccountModifierFn::new(Box::new(move |account_balance, _, _| {
             *account_balance = balance
@@ -336,7 +337,10 @@ async fn handle_set_balance(
             })
         },
     ) {
-        Ok(()) => ResponseData::Success { result: true },
+        Ok(()) => {
+            state.make_snapshot();
+            ResponseData::Success { result: true }
+        }
         Err(e) => ResponseData::new_error(0, &e.to_string(), None),
     }
 }
@@ -349,7 +353,8 @@ async fn handle_set_code(
     event!(Level::INFO, "hardhat_setCode({address:?}, {code:?})");
     let code_1 = code.clone();
     let code_2 = code.clone();
-    match state.rethnet_state.write().await.modify_account(
+    let mut state = state.rethnet_state.write().await;
+    match state.modify_account(
         address,
         AccountModifierFn::new(Box::new(move |_, _, account_code| {
             *account_code = Some(Bytecode::new_raw(code_1.clone().into()))
@@ -363,7 +368,10 @@ async fn handle_set_code(
             })
         },
     ) {
-        Ok(()) => ResponseData::Success { result: true },
+        Ok(()) => {
+            state.make_snapshot();
+            ResponseData::Success { result: true }
+        }
         Err(e) => ResponseData::new_error(0, &e.to_string(), None),
     }
 }
@@ -372,7 +380,8 @@ async fn handle_set_nonce(state: StateType, address: Address, nonce: U256) -> Re
     event!(Level::INFO, "hardhat_setNonce({address:?}, {nonce:?})");
     match TryInto::<u64>::try_into(nonce) {
         Ok(nonce) => {
-            match state.rethnet_state.write().await.modify_account(
+            let mut state = state.rethnet_state.write().await;
+            match state.modify_account(
                 address,
                 AccountModifierFn::new(Box::new(move |_, account_nonce, _| *account_nonce = nonce)),
                 &|| {
@@ -384,7 +393,10 @@ async fn handle_set_nonce(state: StateType, address: Address, nonce: U256) -> Re
                     })
                 },
             ) {
-                Ok(()) => ResponseData::Success { result: true },
+                Ok(()) => {
+                    state.make_snapshot();
+                    ResponseData::Success { result: true }
+                }
                 Err(error) => ResponseData::new_error(0, &error.to_string(), None),
             }
         }
@@ -402,13 +414,12 @@ async fn handle_set_storage_at(
         Level::INFO,
         "hardhat_setStorageAt({address:?}, {position:?}, {value:?})"
     );
-    match state
-        .rethnet_state
-        .write()
-        .await
-        .set_account_storage_slot(address, position, value)
-    {
-        Ok(()) => ResponseData::Success { result: true },
+    let mut state = state.rethnet_state.write().await;
+    match state.set_account_storage_slot(address, position, value) {
+        Ok(()) => {
+            state.make_snapshot();
+            ResponseData::Success { result: true }
+        }
         Err(e) => ResponseData::new_error(0, &e.to_string(), None),
     }
 }
