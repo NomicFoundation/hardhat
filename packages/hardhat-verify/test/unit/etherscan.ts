@@ -114,7 +114,7 @@ describe("Etherscan", () => {
           customChains
         )
       ).to.be.rejectedWith(
-        "The selected network is hardhat. Please select a network supported by Etherscan."
+        /The selected network is "hardhat", which is not supported for contract verification./
       );
     });
 
