@@ -30,6 +30,7 @@ import {
   DEFAULT_MEMPOOL_CONFIG,
   DEFAULT_USE_JSON_RPC,
 } from "./providers";
+import { sleep } from "./sleep";
 
 declare module "mocha" {
   interface Context {
@@ -142,8 +143,6 @@ export function useProvider({
         return `stdout:\n${stdout}\nstderr:\n${stderr}`;
       }
 
-      const wait = new Promise((resolve) => setTimeout(resolve, 2000));
-
       const exit = new Promise<void>((resolve, reject) => {
         this.rethnetProcess.on("exit", (code: number, signal: string) => {
           if (signal === "SIGKILL") {
@@ -175,8 +174,8 @@ export function useProvider({
         });
       });
 
-      // sleep a moment to let the server initialize
-      await new Promise((resolve) => setTimeout(resolve, 250));
+      // wait for the server to initialize:
+      await sleep(250);
 
       const { Client } = require("undici") as { Client: typeof ClientT };
       const url = "http://127.0.0.1:8545";
@@ -193,7 +192,7 @@ export function useProvider({
         )
       );
 
-      await Promise.race([wait, exit, error]);
+      await Promise.race([sleep(2000), exit, error]);
     }
   });
 
