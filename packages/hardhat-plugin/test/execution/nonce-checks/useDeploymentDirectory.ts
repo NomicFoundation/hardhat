@@ -17,12 +17,13 @@ export function useDeploymentDirectory(
   fixtureProjectName: string,
   deploymentId: string
 ) {
-  beforeEach("Load environment", function () {
+  beforeEach("Load environment", async function () {
     process.chdir(
       path.join(__dirname, "../../fixture-projects", fixtureProjectName)
     );
 
     const hre = require("hardhat");
+
     const deploymentDir = path.join(
       path.resolve(__dirname, "../../fixture-projects/minimal-new-api/"),
       "deployments",
@@ -31,6 +32,8 @@ export function useDeploymentDirectory(
 
     this.hre = hre;
     this.deploymentDir = deploymentDir;
+
+    await hre.run("compile", { quiet: true });
 
     fs.ensureDirSync(deploymentDir);
 
