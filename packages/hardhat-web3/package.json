@@ -7,7 +7,7 @@
   "repository": "github:nomiclabs/hardhat",
   "main": "dist/src/index.js",
   "types": "dist/src/index.d.ts",
-  "description": "Hardhat plugin for using Web3 1.x",
+  "description": "Hardhat plugin for using Web3 4.x",
   "keywords": [
     "ethereum",
     "smart-contracts",
@@ -50,11 +50,11 @@
     "rimraf": "^3.0.2",
     "ts-node": "^10.8.0",
     "typescript": "~4.7.4",
-    "web3": "^1.0.0-beta.36"
+    "web3": "^4.0.3"
   },
   "peerDependencies": {
     "hardhat": "^2.0.0",
-    "web3": "^1.0.0-beta.36"
+    "web3": "^4.0.3"
   },
   "dependencies": {
     "@types/bignumber.js": "^5.0.0"
