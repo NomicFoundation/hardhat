@@ -5,6 +5,7 @@ import type {
   DependencyGraph,
 } from "hardhat/types";
 
+import chalk from "chalk";
 import { extendConfig, subtask, task, types } from "hardhat/config";
 import { isFullyQualifiedName } from "hardhat/utils/contract-names";
 import {
@@ -22,8 +23,12 @@ import {
   TASK_VERIFY_VERIFY,
   TASK_VERIFY_ETHERSCAN,
   TASK_VERIFY_PRINT_SUPPORTED_NETWORKS,
+  TASK_VERIFY_SOURCIFY,
 } from "./internal/task-names";
-import { etherscanConfigExtender } from "./internal/config";
+import {
+  etherscanConfigExtender,
+  sourcifyConfigExtender,
+} from "./internal/config";
 import {
   MissingAddressError,
   InvalidAddressError,
@@ -111,6 +116,7 @@ interface VerificationResponse {
 }
 
 extendConfig(etherscanConfigExtender);
+extendConfig(sourcifyConfigExtender);
 
 /**
  * Main verification task.
@@ -210,9 +216,42 @@ subtask(TASK_VERIFY_RESOLVE_ARGUMENTS)
 /**
  * Returns a list of verification subtasks.
  */
-subtask(TASK_VERIFY_GET_VERIFICATION_SUBTASKS, async (): Promise<string[]> => {
-  return [TASK_VERIFY_ETHERSCAN];
-});
+subtask(
+  TASK_VERIFY_GET_VERIFICATION_SUBTASKS,
+  async (_, { config }): Promise<string[]> => {
+    const verificationSubtasks = [];
+
+    if (config.etherscan.enabled) {
+      verificationSubtasks.push(TASK_VERIFY_ETHERSCAN);
+    }
+
+    if (config.sourcify.enabled) {
+      verificationSubtasks.push(TASK_VERIFY_SOURCIFY);
+    } else {
+      console.warn(
+        chalk.yellow(
+          `WARNING: Skipping Sourcify verification: Sourcify is disabled. To enable it, add this entry to your config:
+
+sourcify: {
+  enabled: true
+}
+
+Learn more at https://...`
+        )
+      );
+    }
+
+    if (verificationSubtasks.length === 0) {
+      console.warn(
+        chalk.yellow(
+          `WARNING: No verification services are enabled. Please enable at least one verification service in your configuration.`
+        )
+      );
+    }
+
+    return verificationSubtasks;
+  }
+);
 
 /**
  * Main Etherscan verification subtask.

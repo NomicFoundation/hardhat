@@ -1,6 +1,6 @@
 import fs from "fs";
 import path from "path";
-import sinon from "sinon";
+import sinon, { SinonStub } from "sinon";
 import { assert, expect } from "chai";
 import { TASK_CLEAN, TASK_COMPILE } from "hardhat/builtin-tasks/task-names";
 import { SolcConfig } from "hardhat/types/config";
@@ -18,6 +18,17 @@ import "../../src/internal/type-extensions";
 describe("verify task integration tests", () => {
   useEnvironment("hardhat-project");
   mockEnvironment();
+
+  // suppress warnings
+  let warnStub: SinonStub;
+  before(() => {
+    warnStub = sinon.stub(console, "warn");
+  });
+
+  // suppress warnings
+  after(() => {
+    warnStub.restore();
+  });
 
   it("should return after printing the supported networks", async function () {
     const logStub = sinon.stub(console, "log");
@@ -38,6 +49,7 @@ describe("verify task integration tests", () => {
     // cleanup the etherscan config since we have hardhat defined as custom chain
     const originalConfig = this.hre.config.etherscan;
     this.hre.config.etherscan = {
+      enabled: true,
       apiKey: "",
       customChains: [],
     };
