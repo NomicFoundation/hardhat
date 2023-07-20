@@ -1,4 +1,5 @@
 import { JournalableMessage } from "../../../types/journal";
+import { SolidityParameterType } from "../../../types/module";
 import {
   isCallFunctionInteraction,
   isCalledFunctionExecutionSuccess,
@@ -93,31 +94,35 @@ export function logJournalableMessage(message: JournalableMessage): void {
 
   if (isOnchainDeployContractSuccessMessage(message)) {
     return console.log(
-      `on-chain deploy contract success - id: '${message.futureId}'`
+      `on-chain deploy contract success - id: '${message.futureId}' - txId: '${message.txId}'`
     );
   }
 
   if (isOnchainCallFunctionSuccessMessage(message)) {
     return console.log(
-      `on-chain call function success - id: '${message.futureId}'`
+      `on-chain call function success - id: '${message.futureId}' - txId: '${message.txId}'`
     );
   }
 
   if (isOnchainStaticCallSuccessMessage(message)) {
     return console.log(
-      `on-chain static call success - id: '${message.futureId}'`
+      `on-chain static call success - id: '${
+        message.futureId
+      }' - result: '${solidityParamToString(message.result)}'`
     );
   }
 
   if (isOnchainReadEventArgumentSuccessMessage(message)) {
     return console.log(
-      `on-chain read event argument success - id: '${message.futureId}'`
+      `on-chain read event argument success - id: '${
+        message.futureId
+      }' - result: '${solidityParamToString(message.result)}'`
     );
   }
 
   if (isOnchainSendDataSuccessMessage(message)) {
     return console.log(
-      `on-chain send data success - id: '${message.futureId}'`
+      `on-chain send data success - id: '${message.futureId}' - txId: '${message.txId}'`
     );
   }
 
@@ -131,31 +136,35 @@ export function logJournalableMessage(message: JournalableMessage): void {
 
   if (isDeployedContractExecutionSuccess(message)) {
     return console.log(
-      `deploy contract execution success - id: '${message.futureId}'`
+      `deploy contract execution success - id: '${message.futureId}' - txId: '${message.txId}'`
     );
   }
 
   if (isCalledFunctionExecutionSuccess(message)) {
     return console.log(
-      `call function execution success - id: '${message.futureId}'`
+      `call function execution success - id: '${message.futureId}' - txId: '${message.txId}'`
     );
   }
 
   if (isStaticCallExecutionSuccess(message)) {
     return console.log(
-      `static call execution success - id: '${message.futureId}'`
+      `static call execution success - id: '${
+        message.futureId
+      }' - result: '${solidityParamToString(message.result)}'`
     );
   }
 
   if (isReadEventArgumentExecutionSuccess(message)) {
     return console.log(
-      `read event argument execution success - id: '${message.futureId}'`
+      `read event argument execution success - id: '${
+        message.futureId
+      }' - result: '${solidityParamToString(message.result)}'`
     );
   }
 
   if (isSendDataExecutionSuccess(message)) {
     return console.log(
-      `send data execution success - id: '${message.futureId}'`
+      `send data execution success - id: '${message.futureId}' - txId: '${message.txId}'`
     );
   }
 
@@ -188,4 +197,16 @@ export function logJournalableMessage(message: JournalableMessage): void {
   }
 
   throw new Error("Unknown journal message");
+}
+
+function solidityParamToString(param: SolidityParameterType): string {
+  if (typeof param === "object") {
+    return JSON.stringify(param);
+  }
+
+  if (typeof param === "string") {
+    return param;
+  }
+
+  return param.toString();
 }
