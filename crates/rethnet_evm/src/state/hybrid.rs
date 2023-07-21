@@ -363,7 +363,7 @@ mod tests {
     use rethnet_eth::Bytes;
 
     #[test]
-    fn repro_provider_test_should_result_in_a_modified_balance() {
+    fn test_irregular_state_modification() {
         // this test reproduces the sequence of calls that are induced by (the current
         // implementation of rethnet_rpc_server) being used as a provider in the hardhat tests and
         // running the hardhat_setBalance test entitled "should result in a modified balance".
