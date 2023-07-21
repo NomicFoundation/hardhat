@@ -23,6 +23,9 @@ pub fn public_key_to_address(public_key: PublicKey) -> Address {
 }
 
 /// Converts a private to an address using the provided context.
+///
+/// # Examples
+///
 /// ```
 /// use std::str::FromStr;
 /// use rethnet_eth::{Address, signature::private_key_to_address};
