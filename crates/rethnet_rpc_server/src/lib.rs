@@ -211,7 +211,7 @@ async fn handle_get_balance(
     block: Option<BlockSpec>,
 ) -> ResponseData<U256WithoutLeadingZeroes> {
     event!(Level::INFO, "eth_getBalance({address:?}, {block:?})");
-    match set_block_context(&state, block.clone()).await {
+    match set_block_context(&state, block).await {
         Ok(previous_state_root) => {
             let account_info = get_account_info(&state, address).await;
             match restore_block_context(&state, previous_state_root).await {
