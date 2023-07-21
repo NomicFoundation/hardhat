@@ -19,6 +19,7 @@ const MAINNET_HARDFORKS: &[(u64, SpecId)] = &[
     (2_463_000, SpecId::TANGERINE),
     (2_675_000, SpecId::SPURIOUS_DRAGON),
     (4_370_000, SpecId::BYZANTIUM),
+    (7_280_000, SpecId::CONSTANTINOPLE),
     (7_280_000, SpecId::PETERSBURG),
     (9_069_000, SpecId::ISTANBUL),
     (9_200_000, SpecId::MUIR_GLACIER),
