@@ -782,6 +782,14 @@ const communityPlugins: IPlugin[] = [
       "The hardhat-w3f plugin allows builders to build & run Web3 Functions connecting smart off-chain data with smart contracts ",
     tags: ["Gelato", "w3f", "offchain", "functions"],
   },
+  {
+    name: "hardhat-publish-typechain",
+    author: "xiaosongfu",
+    npmPackage: "hardhat-publish-typechain",
+    authorUrl: "https://github.com/xiaosongfu",
+    description: "Publish generated typechain-types to NPM",
+    tags: ["typechain-types", "npm registry"],
+  },
 ];
 
 const officialPlugins: IPlugin[] = [
