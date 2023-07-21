@@ -203,6 +203,16 @@ impl RpcClient {
         }
     }
 
+    /// Calls `eth_blockNumber` and returns the block number.
+    pub async fn block_number(&self) -> Result<U256, RpcClientError> {
+        self.call(&MethodInvocation::BlockNumber()).await
+    }
+
+    /// Calls `eth_chainId` and returns the chain ID.
+    pub async fn chain_id(&self) -> Result<U256, RpcClientError> {
+        self.call(&MethodInvocation::ChainId()).await
+    }
+
     /// Submit a consolidated batch of RPC method invocations in order to obtain the set of data
     /// contained in AccountInfo.
     pub async fn get_account_info(
