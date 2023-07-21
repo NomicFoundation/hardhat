@@ -450,7 +450,7 @@ async function _convertRequestToDeployTransaction(
   state: ExecutionEngineState
 ): Promise<ethers.providers.TransactionRequest> {
   const artifact = await state.deploymentLoader.loadArtifact(
-    request.storedArtifactPath
+    request.artifactFutureId
   );
 
   const abi = artifact.abi;
@@ -477,7 +477,7 @@ async function _convertRequestToCallFunctionTransaction(
   state: ExecutionEngineState
 ): Promise<ethers.providers.TransactionRequest> {
   const artifact = await state.deploymentLoader.loadArtifact(
-    request.storedArtifactPath
+    request.artifactFutureId
   );
 
   const contractAddress: string = request.contractAddress;
@@ -518,7 +518,7 @@ async function _queryStaticCall(
   state: ExecutionEngineState
 ): Promise<OnchainStaticCallSuccessMessage | OnchainFailureMessage> {
   const artifact = await state.deploymentLoader.loadArtifact(
-    request.storedArtifactPath
+    request.artifactFutureId
   );
 
   try {
@@ -559,7 +559,7 @@ async function _readEventArg(
   state: ExecutionEngineState
 ): Promise<OnchainReadEventArgumentSuccessMessage | OnchainFailureMessage> {
   const artifact = await state.deploymentLoader.loadArtifact(
-    request.storedArtifactPath
+    request.artifactFutureId
   );
 
   try {

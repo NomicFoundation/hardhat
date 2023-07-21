@@ -11,7 +11,11 @@ import {
   isModuleParameterRuntimeValue,
 } from "../../type-guards";
 import { ArtifactResolver } from "../../types/artifact";
-import { DeploymentResult } from "../../types/deployer";
+import {
+  DeploymentResult,
+  DeploymentResultContract,
+  DeploymentResultContracts,
+} from "../../types/deployer";
 import { DeploymentLoader } from "../../types/deployment-loader";
 import {
   ExecutionResultMessage,
@@ -45,6 +49,7 @@ import {
   ExecutionStrategyContext,
 } from "../types/execution-engine";
 import {
+  ContractAtExecutionState,
   DeploymentExecutionState,
   ExecutionStateMap,
   ExecutionStatus,
@@ -150,7 +155,7 @@ export class ExecutionEngine {
 
     return {
       status: "success",
-      contracts: this._resolveDeployedContractsFrom(state),
+      contracts: await this._resolveDeployedContractsFrom(state),
       module: state.module,
     };
   }
@@ -534,7 +539,7 @@ export class ExecutionEngine {
 
     switch (future.type) {
       case FutureType.ARTIFACT_CONTRACT_DEPLOYMENT:
-        const artifactContractPath = await deploymentLoader.storeArtifact(
+        await deploymentLoader.storeUserProvidedArtifact(
           future.id,
           future.artifact
         );
@@ -547,8 +552,7 @@ export class ExecutionEngine {
           // status: ExecutionStatus.STARTED,
           dependencies: [...future.dependencies].map((f) => f.id),
           // history: [],
-          storedArtifactPath: artifactContractPath,
-          storedBuildInfoPath: undefined,
+          artifactFutureId: future.id,
           contractName: future.contractName,
           value: future.value.toString(),
           constructorArgs: this._resolveArgs(future.constructorArgs, {
@@ -564,10 +568,7 @@ export class ExecutionEngine {
 
         return state;
       case FutureType.NAMED_CONTRACT_DEPLOYMENT:
-        const {
-          storedArtifactPath: namedContractArtifactPath,
-          storedBuildInfoPath: namedContractBuildInfoPath,
-        } = await this._storeArtifactAndBuildInfoAgainstDeployment(future, {
+        await this._storeArtifactAndBuildInfoAgainstDeployment(future, {
           artifactResolver,
           deploymentLoader,
         });
@@ -578,8 +579,7 @@ export class ExecutionEngine {
           futureType: future.type,
           strategy,
           dependencies: [...future.dependencies].map((f) => f.id),
-          storedArtifactPath: namedContractArtifactPath,
-          storedBuildInfoPath: namedContractBuildInfoPath,
+          artifactFutureId: future.id,
           contractName: future.contractName,
           value: future.value.toString(),
           constructorArgs: this._resolveArgs(future.constructorArgs, {
@@ -595,10 +595,7 @@ export class ExecutionEngine {
 
         return state;
       case FutureType.NAMED_LIBRARY_DEPLOYMENT:
-        const {
-          storedArtifactPath: namedLibArtifactPath,
-          storedBuildInfoPath: namedLibBuildInfoPath,
-        } = await this._storeArtifactAndBuildInfoAgainstDeployment(future, {
+        await this._storeArtifactAndBuildInfoAgainstDeployment(future, {
           artifactResolver,
           deploymentLoader,
         });
@@ -609,8 +606,7 @@ export class ExecutionEngine {
           futureType: future.type,
           strategy,
           dependencies: [...future.dependencies].map((f) => f.id),
-          storedArtifactPath: namedLibArtifactPath,
-          storedBuildInfoPath: namedLibBuildInfoPath,
+          artifactFutureId: future.id,
           contractName: future.contractName,
           value: "0",
           constructorArgs: [],
@@ -622,7 +618,7 @@ export class ExecutionEngine {
 
         return state;
       case FutureType.ARTIFACT_LIBRARY_DEPLOYMENT:
-        const artifactLibraryPath = await deploymentLoader.storeArtifact(
+        await deploymentLoader.storeUserProvidedArtifact(
           future.id,
           future.artifact
         );
@@ -633,8 +629,7 @@ export class ExecutionEngine {
           futureType: future.type,
           strategy,
           dependencies: [...future.dependencies].map((f) => f.id),
-          storedArtifactPath: artifactLibraryPath,
-          storedBuildInfoPath: undefined,
+          artifactFutureId: future.id,
           contractName: future.contractName,
           value: "0",
           constructorArgs: [],
@@ -646,9 +641,8 @@ export class ExecutionEngine {
 
         return state;
       case FutureType.NAMED_CONTRACT_CALL: {
-        const { contractAddress, storedArtifactPath } = executionStateMap[
-          future.contract.id
-        ] as DeploymentExecutionState;
+        const { contractAddress, artifactFutureId: callContractFutureId } =
+          executionStateMap[future.contract.id] as DeploymentExecutionState;
 
         assertIgnitionInvariant(
           contractAddress !== undefined,
@@ -668,16 +662,17 @@ export class ExecutionEngine {
           }),
           functionName: future.functionName,
           contractAddress,
-          storedArtifactPath,
+          artifactFutureId: callContractFutureId,
           value: future.value.toString(),
           from: resolveFromAddress(future.from, { accounts }),
         };
         return state;
       }
       case FutureType.NAMED_STATIC_CALL: {
-        const { contractAddress, storedArtifactPath } = executionStateMap[
-          future.contract.id
-        ] as DeploymentExecutionState;
+        const {
+          contractAddress,
+          artifactFutureId: staticCallContractFutureId,
+        } = executionStateMap[future.contract.id] as DeploymentExecutionState;
 
         assertIgnitionInvariant(
           contractAddress !== undefined,
@@ -699,16 +694,15 @@ export class ExecutionEngine {
           }),
           functionName: future.functionName,
           contractAddress,
-          storedArtifactPath,
+          artifactFutureId: staticCallContractFutureId,
           from: resolveFromAddress(future.from, { accounts }),
         };
         return state;
       }
       case FutureType.READ_EVENT_ARGUMENT: {
         // TODO: This should also support contractAt
-        const { contractAddress, storedArtifactPath } = executionStateMap[
-          future.emitter.id
-        ] as DeploymentExecutionState;
+        const { contractAddress, artifactFutureId: readEventContractFutureId } =
+          executionStateMap[future.emitter.id] as DeploymentExecutionState;
 
         // TODO: This should support multiple transactions
         const { txId } = executionStateMap[
@@ -733,7 +727,7 @@ export class ExecutionEngine {
           // status: ExecutionStatus.STARTED,
           dependencies: [...future.dependencies].map((f) => f.id),
           // history: [],
-          storedArtifactPath,
+          artifactFutureId: readEventContractFutureId,
           eventName: future.eventName,
           argumentName: future.argumentName,
           txToReadFrom: txId,
@@ -801,10 +795,7 @@ export class ExecutionEngine {
           address = contractAddress;
         }
 
-        const {
-          storedArtifactPath: namedContractAtArtifactPath,
-          storedBuildInfoPath: namedContractAtBuildInfoPath,
-        } = await this._storeArtifactAndBuildInfoAgainstDeployment(future, {
+        await this._storeArtifactAndBuildInfoAgainstDeployment(future, {
           artifactResolver,
           deploymentLoader,
         });
@@ -819,8 +810,7 @@ export class ExecutionEngine {
           // history: [],
           contractName: future.contractName,
           contractAddress: address,
-          storedArtifactPath: namedContractAtArtifactPath,
-          storedBuildInfoPath: namedContractAtBuildInfoPath,
+          artifactFutureId: future.id,
         };
         return state;
       }
@@ -845,7 +835,7 @@ export class ExecutionEngine {
           address = contractAddress;
         }
 
-        const artifactContractAtPath = await deploymentLoader.storeArtifact(
+        await deploymentLoader.storeUserProvidedArtifact(
           future.id,
           future.artifact
         );
@@ -860,8 +850,7 @@ export class ExecutionEngine {
           // history: [],
           contractName: future.contractName,
           contractAddress: address,
-          storedArtifactPath: artifactContractAtPath,
-          storedBuildInfoPath: undefined,
+          artifactFutureId: future.id,
         };
         return state;
       }
@@ -914,17 +903,16 @@ export class ExecutionEngine {
     }
   ) {
     const artifact = await artifactResolver.loadArtifact(future.contractName);
-    const storedArtifactPath = await deploymentLoader.storeArtifact(
+    await deploymentLoader.storeNamedArtifact(
       future.id,
+      future.contractName,
       artifact
     );
     const buildInfo = await artifactResolver.getBuildInfo(future.contractName);
-    const storedBuildInfoPath =
-      buildInfo === undefined
-        ? undefined
-        : await deploymentLoader.storeBuildInfo(buildInfo);
 
-    return { storedArtifactPath, storedBuildInfoPath };
+    if (buildInfo !== undefined) {
+      await deploymentLoader.storeBuildInfo(buildInfo);
+    }
   }
 
   private _resolveArgs(
@@ -960,41 +948,39 @@ export class ExecutionEngine {
     return future;
   }
 
-  private _resolveDeployedContractsFrom({
+  private async _resolveDeployedContractsFrom({
     executionStateMap,
-  }: ExecutionEngineState): Record<
-    string,
-    {
-      contractName: string;
-      contractAddress: string;
-      storedArtifactPath: string;
+    deploymentLoader,
+  }: ExecutionEngineState): Promise<DeploymentResultContracts> {
+    const contracts = Object.values(executionStateMap)
+      .filter(
+        (
+          exState
+        ): exState is DeploymentExecutionState | ContractAtExecutionState =>
+          isDeploymentExecutionState(exState) ||
+          isContractAtExecutionState(exState)
+      )
+      .filter((des) => des.status === ExecutionStatus.SUCCESS)
+      .map((des): [string, Omit<DeploymentResultContract, "artifact">] => [
+        des.id,
+        {
+          contractName: des.contractName,
+          contractAddress: des.contractAddress!,
+        },
+      ]);
+
+    const deployedContracts: DeploymentResultContracts = {};
+
+    for (const [futureId, entry] of contracts) {
+      const artifact = await deploymentLoader.loadArtifact(futureId);
+
+      deployedContracts[futureId] = {
+        ...entry,
+        artifact,
+      };
     }
-  > {
-    const deployments = Object.values(executionStateMap)
-      .filter(isDeploymentExecutionState)
-      .filter((des) => des.status === ExecutionStatus.SUCCESS)
-      .map((des) => [
-        des.id,
-        {
-          contractName: des.contractName,
-          contractAddress: des.contractAddress!,
-          storedArtifactPath: des.storedArtifactPath,
-        },
-      ]);
 
-    const contractAts = Object.values(executionStateMap)
-      .filter(isContractAtExecutionState)
-      .filter((des) => des.status === ExecutionStatus.SUCCESS)
-      .map((des) => [
-        des.id,
-        {
-          contractName: des.contractName,
-          contractAddress: des.contractAddress!,
-          storedArtifactPath: des.storedArtifactPath,
-        },
-      ]);
-
-    return Object.fromEntries([...deployments, ...contractAts]);
+    return deployedContracts;
   }
 
   private _setupExecutionStrategyContext(

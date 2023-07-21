@@ -8,17 +8,17 @@ import {
 } from "../use-ignition-project";
 
 /**
- * This is the simplest contract deploy case.
- *
- * Deploy a single contract with non-problematic network
+ * Deploy a contract from an artifact.
  */
-describe("execution - minimal contract deploy", function () {
+describe("execution - deploy from artifact", function () {
   // TODO: rename back to minimal api once execution switched over
   useEphemeralIgnitionProject("minimal-new-api");
 
   it("should deploy a contract that is callable", async function () {
+    const fooArtifact = await this.hre.artifacts.readArtifact("Foo");
+
     const moduleDefinition = defineModule("FooModule", (m) => {
-      const foo = m.contract("Foo");
+      const foo = m.contractFromArtifact("Foo", fooArtifact);
 
       return { foo };
     });

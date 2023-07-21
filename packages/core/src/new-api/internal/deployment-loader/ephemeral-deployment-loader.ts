@@ -1,9 +1,8 @@
-import fs from "fs";
-
 import { Artifact, ArtifactResolver, BuildInfo } from "../../types/artifact";
 import { DeploymentLoader } from "../../types/deployment-loader";
 import { Journal } from "../../types/journal";
 import { MemoryJournal } from "../journal/memory-journal";
+import { assertIgnitionInvariant } from "../utils/assertions";
 
 /**
  * Stores and loads deployment related information without making changes
@@ -14,6 +13,11 @@ export class EphemeralDeploymentLoader implements DeploymentLoader {
   public journal: Journal;
 
   private _deployedAddresses: { [key: string]: string };
+  private _savedArtifacts: {
+    [key: string]:
+      | { _kind: "artifact"; artifact: Artifact }
+      | { _kind: "contractName"; contractName: string };
+  };
 
   constructor(
     private _artifactResolver: ArtifactResolver,
@@ -21,14 +25,7 @@ export class EphemeralDeploymentLoader implements DeploymentLoader {
   ) {
     this.journal = new MemoryJournal(this._verbose);
     this._deployedAddresses = {};
-  }
-
-  public async loadArtifact(storedArtifactPath: string): Promise<Artifact> {
-    const json = await fs.promises.readFile(storedArtifactPath);
-
-    const artifact = JSON.parse(json.toString());
-
-    return artifact;
+    this._savedArtifacts = {};
   }
 
   public async recordDeployedAddress(
@@ -38,24 +35,51 @@ export class EphemeralDeploymentLoader implements DeploymentLoader {
     this._deployedAddresses[futureId] = contractAddress;
   }
 
-  public async storeArtifact(
-    _futureId: string,
-    artifact: Artifact
-  ): Promise<string> {
-    const artifactPath = await this._artifactResolver.resolvePath(
-      artifact.contractName
-    );
-
-    if (artifactPath === undefined) {
-      throw new Error(`Artifact path not found for ${artifact.contractName}`);
-    }
-
-    return artifactPath;
+  public async storeBuildInfo(_buildInfo: BuildInfo): Promise<void> {
+    // For ephemeral we are ignoring build info
   }
 
-  public async storeBuildInfo(buildInfo: BuildInfo): Promise<string> {
-    const id = buildInfo.id;
+  public async storeNamedArtifact(
+    futureId: string,
+    contractName: string,
+    _artifact: Artifact
+  ): Promise<void> {
+    this._savedArtifacts[futureId] = { _kind: "contractName", contractName };
+  }
 
-    return `${id}.json`;
+  public async storeUserProvidedArtifact(
+    futureId: string,
+    artifact: Artifact
+  ): Promise<void> {
+    this._savedArtifacts[futureId] = { _kind: "artifact", artifact };
+  }
+
+  public async loadArtifact(artifactFutureId: string): Promise<Artifact> {
+    const futureId = artifactFutureId;
+
+    const saved = this._savedArtifacts[futureId];
+
+    assertIgnitionInvariant(
+      saved !== undefined,
+      `No stored artifact for ${futureId}`
+    );
+
+    switch (saved._kind) {
+      case "artifact": {
+        return saved.artifact;
+      }
+      case "contractName": {
+        const fileArtifact = this._artifactResolver.loadArtifact(
+          saved.contractName
+        );
+
+        assertIgnitionInvariant(
+          fileArtifact !== undefined,
+          `Unable to load artifact, underlying resolver returned undefined for ${saved.contractName}`
+        );
+
+        return fileArtifact;
+      }
+    }
   }
 }

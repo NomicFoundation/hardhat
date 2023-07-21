@@ -4,10 +4,6 @@ import { Artifact, FutureType } from "../../../src";
 import { defineModule } from "../../../src/new-api/define-module";
 import { MemoryJournal } from "../../../src/new-api/internal/journal/memory-journal";
 import {
-  DeployContractStartMessage,
-  JournalableMessage,
-} from "../../../src/new-api/types/journal";
-import {
   accumulateMessages,
   assertDeploymentFailure,
   assertDeploymentSuccess,
@@ -97,7 +93,7 @@ describe("execution engine", () => {
         "Module1:Contract1": {
           contractName: "Contract1",
           contractAddress: exampleAddress,
-          storedArtifactPath: "Module1:Contract1.json",
+          artifact: contractWithThreeArgConstructorArtifact,
         },
       });
 
@@ -111,8 +107,7 @@ describe("execution engine", () => {
           futureType: FutureType.NAMED_CONTRACT_DEPLOYMENT,
           strategy: "basic",
           dependencies: [],
-          storedArtifactPath: "Module1:Contract1.json",
-          storedBuildInfoPath: "build-info-12345.json",
+          artifactFutureId: "Module1:Contract1",
           contractName: "Contract1",
           value: BigInt(0).toString(),
           constructorArgs: [
@@ -135,7 +130,7 @@ describe("execution engine", () => {
             { nested: 2000 },
           ],
           value: BigInt(0).toString(),
-          storedArtifactPath: "Module1:Contract1.json",
+          artifactFutureId: "Module1:Contract1",
           libraries: {},
           from: accounts[1],
         },
@@ -176,7 +171,7 @@ describe("execution engine", () => {
     });
 
     it("should execute an artifact contract deploy", async () => {
-      const fakeArtifact: Artifact = {
+      const contract1Artifact: Artifact = {
         abi: [],
         contractName: "Contract1",
         bytecode: "",
@@ -187,7 +182,7 @@ describe("execution engine", () => {
         const account2 = m.getAccount(2);
         const contract1 = m.contractFromArtifact(
           "Contract1",
-          fakeArtifact,
+          contract1Artifact,
           [],
           {
             from: account2,
@@ -222,7 +217,6 @@ describe("execution engine", () => {
       assertDeploymentSuccess(result, {
         "Module1:Contract1": {
           contractName: "Contract1",
-          storedArtifactPath: "Module1:Contract1.json",
           contractAddress: exampleAddress,
         },
       });
@@ -237,16 +231,13 @@ describe("execution engine", () => {
           futureType: FutureType.ARTIFACT_CONTRACT_DEPLOYMENT,
           strategy: "basic",
           dependencies: [],
-          storedArtifactPath: "Module1:Contract1.json",
+          artifactFutureId: "Module1:Contract1",
           contractName: "Contract1",
           value: BigInt(0).toString(),
           constructorArgs: [],
           libraries: {},
           from: accounts[2],
-        } as Omit<
-          DeployContractStartMessage,
-          "storedBuildInfoPath"
-        > as any as JournalableMessage,
+        },
         {
           type: "onchain-action",
           subtype: "deploy-contract",
@@ -257,7 +248,7 @@ describe("execution engine", () => {
           value: BigInt(0).toString(),
           from: accounts[2],
           libraries: {},
-          storedArtifactPath: "Module1:Contract1.json",
+          artifactFutureId: "Module1:Contract1",
         },
         {
           type: "onchain-transaction-request",
@@ -341,8 +332,7 @@ describe("execution engine", () => {
           futureType: FutureType.NAMED_CONTRACT_DEPLOYMENT,
           strategy: "basic",
           dependencies: [],
-          storedArtifactPath: "Module1:Contract1.json",
-          storedBuildInfoPath: "build-info-12345.json",
+          artifactFutureId: "Module1:Contract1",
           contractName: "Contract1",
           value: BigInt(0).toString(),
           constructorArgs: [],
@@ -359,7 +349,7 @@ describe("execution engine", () => {
           value: BigInt(0).toString(),
           from: accounts[1],
           libraries: {},
-          storedArtifactPath: "Module1:Contract1.json",
+          artifactFutureId: "Module1:Contract1",
         },
         {
           type: "onchain-transaction-request",
@@ -417,7 +407,6 @@ describe("execution engine", () => {
       assertDeploymentSuccess(result, {
         "Module1:Library1": {
           contractName: "Library1",
-          storedArtifactPath: "Module1:Library1.json",
           contractAddress: exampleAddress,
         },
       });
@@ -432,8 +421,7 @@ describe("execution engine", () => {
           futureType: FutureType.NAMED_LIBRARY_DEPLOYMENT,
           strategy: "basic",
           dependencies: [],
-          storedArtifactPath: "Module1:Library1.json",
-          storedBuildInfoPath: "build-info-12345.json",
+          artifactFutureId: "Module1:Library1",
           contractName: "Library1",
           value: BigInt(0).toString(),
           constructorArgs: [],
@@ -448,7 +436,7 @@ describe("execution engine", () => {
           contractName: "Library1",
           args: [],
           value: BigInt(0).toString(),
-          storedArtifactPath: "Module1:Library1.json",
+          artifactFutureId: "Module1:Library1",
           libraries: {},
           from: accounts[2],
         },
@@ -489,7 +477,7 @@ describe("execution engine", () => {
     });
 
     it("should execute an artifact library deploy", async () => {
-      const fakeArtifact: Artifact = {
+      const contract1Artifact: Artifact = {
         abi: [],
         contractName: "Contract1",
         bytecode: "",
@@ -498,7 +486,7 @@ describe("execution engine", () => {
 
       const moduleDefinition = defineModule("Module1", (m) => {
         const account2 = m.getAccount(2);
-        const library1 = m.libraryFromArtifact("Library1", fakeArtifact, {
+        const library1 = m.libraryFromArtifact("Library1", contract1Artifact, {
           from: account2,
         });
 
@@ -530,8 +518,8 @@ describe("execution engine", () => {
       assertDeploymentSuccess(result, {
         "Module1:Library1": {
           contractName: "Library1",
-          storedArtifactPath: "Module1:Library1.json",
           contractAddress: exampleAddress,
+          artifact: contract1Artifact,
         },
       });
 
@@ -545,16 +533,13 @@ describe("execution engine", () => {
           futureType: FutureType.ARTIFACT_LIBRARY_DEPLOYMENT,
           strategy: "basic",
           dependencies: [],
-          storedArtifactPath: "Module1:Library1.json",
+          artifactFutureId: "Module1:Library1",
           contractName: "Library1",
           value: BigInt(0).toString(),
           constructorArgs: [],
           libraries: {},
           from: accounts[2],
-        } as Omit<
-          DeployContractStartMessage,
-          "storedBuildInfoPath"
-        > as any as JournalableMessage,
+        },
         {
           type: "onchain-action",
           subtype: "deploy-contract",
@@ -565,7 +550,7 @@ describe("execution engine", () => {
           value: BigInt(0).toString(),
           from: accounts[2],
           libraries: {},
-          storedArtifactPath: "Module1:Library1.json",
+          artifactFutureId: "Module1:Library1",
         },
         {
           type: "onchain-transaction-request",
@@ -649,8 +634,7 @@ describe("execution engine", () => {
           futureType: FutureType.NAMED_LIBRARY_DEPLOYMENT,
           strategy: "basic",
           dependencies: [],
-          storedArtifactPath: "Module1:Library1.json",
-          storedBuildInfoPath: "build-info-12345.json",
+          artifactFutureId: "Module1:Library1",
           contractName: "Library1",
           value: BigInt(0).toString(),
           constructorArgs: [],
@@ -667,7 +651,7 @@ describe("execution engine", () => {
           value: BigInt(0).toString(),
           from: accounts[1],
           libraries: {},
-          storedArtifactPath: "Module1:Library1.json",
+          artifactFutureId: "Module1:Library1",
         },
         {
           type: "onchain-transaction-request",
@@ -734,7 +718,6 @@ describe("execution engine", () => {
         "Module1:Contract1": {
           contractName: "Contract1",
           contractAddress: exampleAddress,
-          storedArtifactPath: "Module1:Contract1.json",
         },
       });
 
@@ -748,8 +731,7 @@ describe("execution engine", () => {
           futureType: FutureType.NAMED_CONTRACT_DEPLOYMENT,
           strategy: "basic",
           dependencies: [],
-          storedArtifactPath: "Module1:Contract1.json",
-          storedBuildInfoPath: "build-info-12345.json",
+          artifactFutureId: "Module1:Contract1",
           contractName: "Contract1",
           value: BigInt(0).toString(),
           constructorArgs: [],
@@ -764,7 +746,7 @@ describe("execution engine", () => {
           contractName: "Contract1",
           args: [],
           value: BigInt(0).toString(),
-          storedArtifactPath: "Module1:Contract1.json",
+          artifactFutureId: "Module1:Contract1",
           libraries: {},
           from: accounts[1],
         },
@@ -917,8 +899,7 @@ describe("execution engine", () => {
           futureType: FutureType.NAMED_CONTRACT_DEPLOYMENT,
           strategy: "basic",
           dependencies: [],
-          storedArtifactPath: "Module1:Contract1.json",
-          storedBuildInfoPath: "build-info-12345.json",
+          artifactFutureId: "Module1:Contract1",
           contractName: "Contract1",
           value: BigInt(0).toString(),
           constructorArgs: [],
@@ -933,7 +914,7 @@ describe("execution engine", () => {
           contractName: "Contract1",
           args: [],
           value: BigInt(0).toString(),
-          storedArtifactPath: "Module1:Contract1.json",
+          artifactFutureId: "Module1:Contract1",
           libraries: {},
           from: accounts[1],
         },
@@ -1059,7 +1040,6 @@ describe("execution engine", () => {
         "Module1:Contract1": {
           contractName: "Contract1",
           contractAddress: exampleAddress,
-          storedArtifactPath: "Module1:Contract1.json",
         },
       });
 
@@ -1073,8 +1053,7 @@ describe("execution engine", () => {
           futureType: FutureType.NAMED_CONTRACT_DEPLOYMENT,
           strategy: "basic",
           dependencies: [],
-          storedArtifactPath: "Module1:Contract1.json",
-          storedBuildInfoPath: "build-info-12345.json",
+          artifactFutureId: "Module1:Contract1",
           contractName: "Contract1",
           value: BigInt(0).toString(),
           constructorArgs: [],
@@ -1089,7 +1068,7 @@ describe("execution engine", () => {
           contractName: "Contract1",
           args: [],
           value: BigInt(0).toString(),
-          storedArtifactPath: "Module1:Contract1.json",
+          artifactFutureId: "Module1:Contract1",
           libraries: {},
           from: accounts[1],
         },
@@ -1136,7 +1115,7 @@ describe("execution engine", () => {
           contractAddress: exampleAddress,
           from: accounts[1],
           functionName: "configure",
-          storedArtifactPath: "Module1:Contract1.json",
+          artifactFutureId: "Module1:Contract1",
           value: "0",
         },
         {
@@ -1147,7 +1126,7 @@ describe("execution engine", () => {
           executionId: 1,
           functionName: "configure",
           futureId: "Module1:Contract1#configure",
-          storedArtifactPath: "Module1:Contract1.json",
+          artifactFutureId: "Module1:Contract1",
           from: accounts[1],
           value: "0",
         },
@@ -1245,8 +1224,7 @@ describe("execution engine", () => {
           futureType: FutureType.NAMED_CONTRACT_DEPLOYMENT,
           strategy: "basic",
           dependencies: [],
-          storedArtifactPath: "Module1:Contract1.json",
-          storedBuildInfoPath: "build-info-12345.json",
+          artifactFutureId: "Module1:Contract1",
           contractName: "Contract1",
           value: BigInt(0).toString(),
           constructorArgs: [],
@@ -1261,7 +1239,7 @@ describe("execution engine", () => {
           contractName: "Contract1",
           args: [],
           value: BigInt(0).toString(),
-          storedArtifactPath: "Module1:Contract1.json",
+          artifactFutureId: "Module1:Contract1",
           libraries: {},
           from: accounts[1],
         },
@@ -1308,7 +1286,7 @@ describe("execution engine", () => {
           contractAddress: exampleAddress,
           from: accounts[1],
           functionName: "configure",
-          storedArtifactPath: "Module1:Contract1.json",
+          artifactFutureId: "Module1:Contract1",
           value: "0",
         },
         {
@@ -1319,7 +1297,7 @@ describe("execution engine", () => {
           executionId: 1,
           functionName: "configure",
           futureId: "Module1:Contract1#configure",
-          storedArtifactPath: "Module1:Contract1.json",
+          artifactFutureId: "Module1:Contract1",
           from: accounts[1],
           value: "0",
         },
@@ -1389,7 +1367,6 @@ describe("execution engine", () => {
         "Module1:Contract1": {
           contractName: "Contract1",
           contractAddress: exampleAddress,
-          storedArtifactPath: "Module1:Contract1.json",
         },
       });
 
@@ -1403,8 +1380,7 @@ describe("execution engine", () => {
           futureType: FutureType.NAMED_CONTRACT_DEPLOYMENT,
           strategy: "basic",
           dependencies: [],
-          storedArtifactPath: "Module1:Contract1.json",
-          storedBuildInfoPath: "build-info-12345.json",
+          artifactFutureId: "Module1:Contract1",
           contractName: "Contract1",
           value: BigInt(0).toString(),
           constructorArgs: [],
@@ -1419,7 +1395,7 @@ describe("execution engine", () => {
           contractName: "Contract1",
           args: [],
           value: BigInt(0).toString(),
-          storedArtifactPath: "Module1:Contract1.json",
+          artifactFutureId: "Module1:Contract1",
           libraries: {},
           from: accounts[1],
         },
@@ -1466,7 +1442,7 @@ describe("execution engine", () => {
           contractAddress: exampleAddress,
           from: accounts[1],
           functionName: "test",
-          storedArtifactPath: "Module1:Contract1.json",
+          artifactFutureId: "Module1:Contract1",
         },
         {
           type: "onchain-action",
@@ -1476,7 +1452,7 @@ describe("execution engine", () => {
           executionId: 1,
           functionName: "test",
           futureId: "Module1:Contract1#test",
-          storedArtifactPath: "Module1:Contract1.json",
+          artifactFutureId: "Module1:Contract1",
           from: accounts[1],
         },
         {
@@ -1547,8 +1523,7 @@ describe("execution engine", () => {
           futureType: FutureType.NAMED_CONTRACT_DEPLOYMENT,
           strategy: "basic",
           dependencies: [],
-          storedArtifactPath: "Module1:Contract1.json",
-          storedBuildInfoPath: "build-info-12345.json",
+          artifactFutureId: "Module1:Contract1",
           contractName: "Contract1",
           value: BigInt(0).toString(),
           constructorArgs: [],
@@ -1563,7 +1538,7 @@ describe("execution engine", () => {
           contractName: "Contract1",
           args: [],
           value: BigInt(0).toString(),
-          storedArtifactPath: "Module1:Contract1.json",
+          artifactFutureId: "Module1:Contract1",
           libraries: {},
           from: accounts[1],
         },
@@ -1610,7 +1585,7 @@ describe("execution engine", () => {
           contractAddress: exampleAddress,
           from: accounts[1],
           functionName: "test",
-          storedArtifactPath: "Module1:Contract1.json",
+          artifactFutureId: "Module1:Contract1",
         },
         {
           type: "onchain-action",
@@ -1620,7 +1595,7 @@ describe("execution engine", () => {
           executionId: 1,
           functionName: "test",
           futureId: "Module1:Contract1#test",
-          storedArtifactPath: "Module1:Contract1.json",
+          artifactFutureId: "Module1:Contract1",
           from: accounts[1],
         },
         {
@@ -1656,7 +1631,6 @@ describe("execution engine", () => {
         "Module1:Contract1": {
           contractName: "Contract1",
           contractAddress: exampleAddress,
-          storedArtifactPath: "Module1:Contract1.json",
         },
       });
 
@@ -1672,8 +1646,7 @@ describe("execution engine", () => {
           contractAddress: exampleAddress,
           contractName: "Contract1",
           dependencies: [],
-          storedArtifactPath: "Module1:Contract1.json",
-          storedBuildInfoPath: "build-info-12345.json",
+          artifactFutureId: "Module1:Contract1",
         },
         {
           type: "onchain-action",
@@ -1682,7 +1655,7 @@ describe("execution engine", () => {
           executionId: 1,
           contractAddress: exampleAddress,
           contractName: "Contract1",
-          storedArtifactPath: "Module1:Contract1.json",
+          artifactFutureId: "Module1:Contract1",
         },
         {
           type: "onchain-result",
@@ -1753,7 +1726,6 @@ describe("execution engine", () => {
         "Module1:Contract1": {
           contractName: "Contract1",
           contractAddress: exampleAddress,
-          storedArtifactPath: "Module1:Contract1.json",
         },
       });
 
@@ -1767,8 +1739,7 @@ describe("execution engine", () => {
           futureType: FutureType.NAMED_CONTRACT_DEPLOYMENT,
           strategy: "basic",
           dependencies: [],
-          storedArtifactPath: "Module1:Contract1.json",
-          storedBuildInfoPath: "build-info-12345.json",
+          artifactFutureId: "Module1:Contract1",
           contractName: "Contract1",
           value: BigInt(0).toString(),
           constructorArgs: [],
@@ -1783,7 +1754,7 @@ describe("execution engine", () => {
           contractName: "Contract1",
           args: [],
           value: BigInt(0).toString(),
-          storedArtifactPath: "Module1:Contract1.json",
+          artifactFutureId: "Module1:Contract1",
           libraries: {},
           from: accounts[1],
         },
@@ -1832,7 +1803,7 @@ describe("execution engine", () => {
           eventIndex: 0,
           emitterAddress: exampleAddress,
           txToReadFrom: txId,
-          storedArtifactPath: "Module1:Contract1.json",
+          artifactFutureId: "Module1:Contract1",
         },
         {
           type: "onchain-action",
@@ -1844,7 +1815,7 @@ describe("execution engine", () => {
           eventIndex: 0,
           emitterAddress: exampleAddress,
           txToReadFrom: txId,
-          storedArtifactPath: "Module1:Contract1.json",
+          artifactFutureId: "Module1:Contract1",
         },
         {
           type: "onchain-result",
@@ -1921,8 +1892,7 @@ describe("execution engine", () => {
           futureType: FutureType.NAMED_CONTRACT_DEPLOYMENT,
           strategy: "basic",
           dependencies: [],
-          storedArtifactPath: "Module1:Contract1.json",
-          storedBuildInfoPath: "build-info-12345.json",
+          artifactFutureId: "Module1:Contract1",
           contractName: "Contract1",
           value: BigInt(0).toString(),
           constructorArgs: [],
@@ -1937,7 +1907,7 @@ describe("execution engine", () => {
           contractName: "Contract1",
           args: [],
           value: BigInt(0).toString(),
-          storedArtifactPath: "Module1:Contract1.json",
+          artifactFutureId: "Module1:Contract1",
           libraries: {},
           from: accounts[1],
         },
@@ -1986,7 +1956,7 @@ describe("execution engine", () => {
           eventIndex: 0,
           emitterAddress: exampleAddress,
           txToReadFrom: txId,
-          storedArtifactPath: "Module1:Contract1.json",
+          artifactFutureId: "Module1:Contract1",
         },
         {
           type: "onchain-action",
@@ -1998,7 +1968,7 @@ describe("execution engine", () => {
           eventIndex: 0,
           emitterAddress: exampleAddress,
           txToReadFrom: txId,
-          storedArtifactPath: "Module1:Contract1.json",
+          artifactFutureId: "Module1:Contract1",
         },
         {
           type: "execution-failure",
@@ -2059,12 +2029,10 @@ describe("execution engine", () => {
       assertDeploymentSuccess(result, {
         "Module1:Contract1": {
           contractName: "Contract1",
-          storedArtifactPath: "Module1:Contract1.json",
           contractAddress: exampleAddress,
         },
         "Module1:Library1": {
           contractName: "Library1",
-          storedArtifactPath: "Module1:Library1.json",
           contractAddress: differentAddress,
         },
       });
@@ -2079,8 +2047,7 @@ describe("execution engine", () => {
           futureType: FutureType.NAMED_LIBRARY_DEPLOYMENT,
           strategy: "basic",
           dependencies: [],
-          storedArtifactPath: "Module1:Library1.json",
-          storedBuildInfoPath: "build-info-12345.json",
+          artifactFutureId: "Module1:Library1",
           contractName: "Library1",
           value: BigInt(0).toString(),
           constructorArgs: [],
@@ -2095,7 +2062,7 @@ describe("execution engine", () => {
           contractName: "Library1",
           args: [],
           value: BigInt(0).toString(),
-          storedArtifactPath: "Module1:Library1.json",
+          artifactFutureId: "Module1:Library1",
           libraries: {},
           from: accounts[1],
         },
@@ -2138,8 +2105,7 @@ describe("execution engine", () => {
           futureType: FutureType.NAMED_CONTRACT_DEPLOYMENT,
           strategy: "basic",
           dependencies: ["Module1:Library1"],
-          storedArtifactPath: "Module1:Contract1.json",
-          storedBuildInfoPath: "build-info-12345.json",
+          artifactFutureId: "Module1:Contract1",
           contractName: "Contract1",
           value: BigInt(0).toString(),
           constructorArgs: [
@@ -2164,7 +2130,7 @@ describe("execution engine", () => {
             },
           ],
           value: BigInt(0).toString(),
-          storedArtifactPath: "Module1:Contract1.json",
+          artifactFutureId: "Module1:Contract1",
           libraries: {},
           from: exampleAccounts[1],
         },
@@ -2317,32 +2283,26 @@ describe("execution engine", () => {
       assertDeploymentSuccess(result, {
         "Module1:Contract1": {
           contractName: "Contract1",
-          storedArtifactPath: "Module1:Contract1.json",
           contractAddress: addr1,
         },
         "Module1:ContractA": {
           contractName: "ContractA",
-          storedArtifactPath: "Module1:ContractA.json",
           contractAddress: addr2,
         },
         "Module1:Contract2": {
           contractName: "Contract2",
-          storedArtifactPath: "Module1:Contract2.json",
           contractAddress: addr3,
         },
         "Module1:ContractB": {
           contractName: "ContractB",
-          storedArtifactPath: "Module1:ContractB.json",
           contractAddress: addr4,
         },
         "Module1:Contract3": {
           contractName: "Contract3",
-          storedArtifactPath: "Module1:Contract3.json",
           contractAddress: addr5,
         },
         "Module1:ContractC": {
           contractName: "ContractC",
-          storedArtifactPath: "Module1:ContractC.json",
           contractAddress: addr6,
         },
       });

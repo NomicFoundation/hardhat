@@ -1,3 +1,4 @@
+import { Artifact } from "./artifact";
 import { IgnitionModule, IgnitionModuleResult } from "./module";
 
 /**
@@ -57,11 +58,22 @@ export interface DeploymentResultTimeout {
 }
 
 /**
- * The successfully deployed contract from the deployment run.
+ * A successfully deployed contract from the deployment run.
+ *
+ * @beta
+ */
+export interface DeploymentResultContract {
+  contractName: string;
+  contractAddress: string;
+  artifact: Artifact;
+}
+
+/**
+ * The successfully deployed contracts from the deployment run.
  *
  * @beta
  */
 export type DeploymentResultContracts = Record<
   string,
-  { contractName: string; contractAddress: string; storedArtifactPath: string }
+  DeploymentResultContract
 >;

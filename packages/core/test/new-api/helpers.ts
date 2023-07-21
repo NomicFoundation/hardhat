@@ -1,12 +1,7 @@
 import { assert } from "chai";
 import ethers from "ethers";
 
-import {
-  ArgumentType,
-  Artifact,
-  ArtifactResolver,
-  DeploymentResultContracts,
-} from "../../src";
+import { ArgumentType, Artifact, ArtifactResolver } from "../../src";
 import { Deployer } from "../../src/new-api/internal/deployer";
 import { AccountsState } from "../../src/new-api/internal/execution/execution-engine";
 import { MemoryJournal } from "../../src/new-api/internal/journal/memory-journal";
@@ -15,7 +10,11 @@ import {
   OnchainState,
   OnchainStatuses,
 } from "../../src/new-api/internal/types/execution-state";
-import { DeploymentResult } from "../../src/new-api/types/deployer";
+import {
+  DeploymentResult,
+  DeploymentResultContract,
+  DeploymentResultContracts,
+} from "../../src/new-api/types/deployer";
 import { DeploymentLoader } from "../../src/new-api/types/deployment-loader";
 import { Journal, JournalableMessage } from "../../src/new-api/types/journal";
 
@@ -43,16 +42,16 @@ export function assertInstanceOf<ObjectT>(
   assert.instanceOf(obj, klass, `Not a valid instace of ${klass.name}`);
 }
 
+export const fakeArtifact: Artifact = {
+  abi: [],
+  contractName: "",
+  bytecode: "",
+  linkReferences: {},
+};
+
 export function setupMockArtifactResolver(artifacts?: {
   [key: string]: Artifact;
 }): ArtifactResolver {
-  const fakeArtifact: Artifact = {
-    abi: [],
-    contractName: "",
-    bytecode: "",
-    linkReferences: {},
-  };
-
   return {
     loadArtifact: async (contractName: string) => {
       if (artifacts === undefined) {
@@ -75,9 +74,6 @@ export function setupMockArtifactResolver(artifacts?: {
     getBuildInfo: async (_contractName: string) => {
       return { id: 12345 } as any;
     },
-    resolvePath: async (contractName: string) => {
-      return `${contractName}.json`;
-    },
   };
 }
 
@@ -87,21 +83,18 @@ export function setupMockDeploymentLoader(journal: Journal): DeploymentLoader {
   return {
     journal,
     recordDeployedAddress: async () => {},
-    storeArtifact: async (futureId, artifact) => {
-      const storedArtifactPath = `${futureId}.json`;
-
-      storedArtifacts[storedArtifactPath] = artifact;
-
-      return storedArtifactPath;
+    storeUserProvidedArtifact: async (artifactFutureId, artifact) => {
+      storedArtifacts[artifactFutureId] = artifact;
     },
-    storeBuildInfo: async (buildInfo) => {
-      return `build-info-${buildInfo.id}.json`;
+    storeNamedArtifact: async (artifactFutureId, _contractName, artifact) => {
+      storedArtifacts[artifactFutureId] = artifact;
     },
-    loadArtifact: async (storedArtifactPath) => {
-      const artifact = storedArtifacts[storedArtifactPath];
+    storeBuildInfo: async () => {},
+    loadArtifact: async (artifactFutureId: string) => {
+      const artifact = storedArtifacts[artifactFutureId];
 
       if (artifact === undefined) {
-        throw new Error(`Artifact not stored for ${storedArtifactPath}`);
+        throw new Error(`Artifact not stored for ${artifactFutureId}`);
       }
 
       return artifact;
@@ -192,7 +185,10 @@ export function assertDeploymentFailure(
 
 export function assertDeploymentSuccess(
   result: DeploymentResult,
-  expectedContracts: DeploymentResultContracts
+  expectedContracts: Record<
+    string,
+    Omit<DeploymentResultContract, "artifact"> & { artifact?: Artifact }
+  >
 ) {
   assert.isDefined(result);
 
@@ -200,7 +196,17 @@ export function assertDeploymentSuccess(
     assert.fail("result expected to be success");
   }
 
-  assert.deepStrictEqual(result.contracts, expectedContracts);
+  const modifiedExpected: DeploymentResultContracts = Object.fromEntries(
+    Object.entries(expectedContracts).map(([futureId, details]) => [
+      futureId,
+      {
+        artifact: { ...fakeArtifact, contractName: details.contractName },
+        ...details,
+      },
+    ])
+  );
+
+  assert.deepStrictEqual(result.contracts, modifiedExpected);
 }
 
 export function setupMockChainDispatcher({

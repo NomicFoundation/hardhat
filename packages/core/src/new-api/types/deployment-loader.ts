@@ -8,9 +8,17 @@ import { Journal } from "./journal";
  */
 export interface DeploymentLoader {
   journal: Journal;
-  loadArtifact(storedArtifactPath: string): Promise<Artifact>;
-  storeArtifact(futureId: string, artifact: Artifact): Promise<string>;
-  storeBuildInfo(buildInfo: BuildInfo): Promise<string>;
+  loadArtifact(artifactFutureId: string): Promise<Artifact>;
+  storeUserProvidedArtifact(
+    futureId: string,
+    artifact: Artifact
+  ): Promise<void>;
+  storeNamedArtifact(
+    futureId: string,
+    contractName: string,
+    artifact: Artifact
+  ): Promise<void>;
+  storeBuildInfo(buildInfo: BuildInfo): Promise<void>;
   recordDeployedAddress(
     futureId: string,
     contractAddress: string

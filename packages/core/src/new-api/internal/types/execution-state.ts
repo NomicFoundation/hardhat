@@ -125,8 +125,7 @@ export interface DeploymentExecutionState
     | FutureType.NAMED_LIBRARY_DEPLOYMENT
     | FutureType.ARTIFACT_LIBRARY_DEPLOYMENT
   > {
-  storedArtifactPath: string; // As stored in the deployment directory.
-  storedBuildInfoPath?: string; // As stored in the deployment directory. Optional as it's not always present
+  artifactFutureId: string; // As stored in the deployment directory.
   contractName: string;
   constructorArgs: ArgumentType[];
   libraries: Record<string, string>; // TODO: Do we need to store their future ids for the reconciliation process?
@@ -138,7 +137,7 @@ export interface DeploymentExecutionState
 
 export interface CallExecutionState
   extends BaseExecutionState<FutureType.NAMED_CONTRACT_CALL> {
-  storedArtifactPath: string; // As stored in the deployment directory.
+  artifactFutureId: string;
   contractAddress: string;
   functionName: string;
   args: ArgumentType[];
@@ -149,7 +148,7 @@ export interface CallExecutionState
 
 export interface StaticCallExecutionState
   extends BaseExecutionState<FutureType.NAMED_STATIC_CALL> {
-  storedArtifactPath: string; // As stored in the deployment directory.
+  artifactFutureId: string;
   contractAddress: string;
   functionName: string;
   args: ArgumentType[];
@@ -161,14 +160,14 @@ export interface ContractAtExecutionState
   extends BaseExecutionState<
     FutureType.NAMED_CONTRACT_AT | FutureType.ARTIFACT_CONTRACT_AT
   > {
-  storedArtifactPath: string; // As stored in the deployment directory.
+  artifactFutureId: string;
   contractName: string;
   contractAddress: string;
 }
 
 export interface ReadEventArgumentExecutionState
   extends BaseExecutionState<FutureType.READ_EVENT_ARGUMENT> {
-  storedArtifactPath: string; // As stored in the deployment directory.
+  artifactFutureId: string;
   eventName: string;
   argumentName: string;
   txToReadFrom: string;

@@ -34,7 +34,7 @@ describe("Reconciliation - artifact contract at", () => {
     onchain: initOnchainState,
     contractName: "Contract1",
     contractAddress: exampleAddress,
-    storedArtifactPath: "./artifact.json",
+    artifactFutureId: "./artifact.json",
   };
 
   const exampleDeploymentState: DeploymentExecutionState = {
@@ -45,8 +45,7 @@ describe("Reconciliation - artifact contract at", () => {
     dependencies: new Set<string>(),
     history: [],
     onchain: initOnchainState,
-    storedArtifactPath: "./artifact.json",
-    storedBuildInfoPath: "./build-info.json",
+    artifactFutureId: "./artifact.json",
     contractName: "Contract1",
     value: BigInt("0"),
     constructorArgs: [],
@@ -63,7 +62,7 @@ describe("Reconciliation - artifact contract at", () => {
     history: [],
     onchain: initOnchainState,
     contractAddress: exampleAddress,
-    storedArtifactPath: "./artifact.json",
+    artifactFutureId: "./artifact.json",
     functionName: "function",
     args: [],
     from: exampleAccounts[0],
@@ -92,7 +91,7 @@ describe("Reconciliation - artifact contract at", () => {
         futureType: FutureType.ARTIFACT_CONTRACT_AT,
         status: ExecutionStatus.STARTED,
         contractAddress: exampleAddress,
-        storedArtifactPath: "./artifact.json",
+        artifactFutureId: "./artifact.json",
       },
     };
 
@@ -130,7 +129,7 @@ describe("Reconciliation - artifact contract at", () => {
         status: ExecutionStatus.STARTED,
         contractName: "Another",
         contractAddress: differentAddress,
-        storedArtifactPath: "./artifact.json",
+        artifactFutureId: "./artifact.json",
       },
     };
 
@@ -158,7 +157,7 @@ describe("Reconciliation - artifact contract at", () => {
         status: ExecutionStatus.STARTED,
         contractName: "ContractUnchanged",
         contractAddress: differentAddress,
-        storedArtifactPath: "./artifact.json",
+        artifactFutureId: "./artifact.json",
       },
     });
 

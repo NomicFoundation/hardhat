@@ -55,10 +55,20 @@ export class FileDeploymentLoader implements DeploymentLoader {
     this._deploymentDirsEnsured = true;
   }
 
-  public async storeArtifact(
+  public storeNamedArtifact(
+    futureId: string,
+    _contractName: string,
+    artifact: Artifact
+  ): Promise<void> {
+    // For a file deployment we don't differentiate between
+    // named contracts (from HH) and anonymous contracts passed in by the user
+    return this.storeUserProvidedArtifact(futureId, artifact);
+  }
+
+  public async storeUserProvidedArtifact(
     futureId: string,
     artifact: Artifact
-  ): Promise<string> {
+  ): Promise<void> {
     await this._initialize();
 
     const artifactFilePath = path.join(
@@ -69,31 +79,28 @@ export class FileDeploymentLoader implements DeploymentLoader {
       artifactFilePath,
       JSON.stringify(artifact, undefined, 2)
     );
-
-    return path.relative(this._paths.deploymentDir, artifactFilePath);
   }
 
-  public async storeBuildInfo(buildInfo: BuildInfo): Promise<string> {
+  public async storeBuildInfo(buildInfo: BuildInfo): Promise<void> {
     await this._initialize();
 
     const buildInfoFilePath = path.join(
       this._paths?.buildInfoDir,
       `${buildInfo.id}.json`
     );
+
     await fs.writeFile(
       buildInfoFilePath,
       JSON.stringify(buildInfo, undefined, 2)
     );
-
-    return path.relative(this._paths.deploymentDir, buildInfoFilePath);
   }
 
-  public async loadArtifact(storedArtifactPath: string): Promise<Artifact> {
+  public async loadArtifact(futureId: string): Promise<Artifact> {
     await this._initialize();
 
-    const json = await fs.readFile(
-      path.join(this._paths?.deploymentDir, storedArtifactPath)
-    );
+    const artifactFilePath = this._resolveArtifactPathFor(futureId);
+
+    const json = await fs.readFile(artifactFilePath);
 
     const artifact = JSON.parse(json.toString());
 
@@ -123,5 +130,14 @@ export class FileDeploymentLoader implements DeploymentLoader {
       this._paths.deployedAddressesPath,
       `${JSON.stringify(deployedAddresses, undefined, 2)}\n`
     );
+  }
+
+  private _resolveArtifactPathFor(futureId: string) {
+    const artifactFilePath = path.join(
+      this._paths.artifactsDir,
+      `${futureId}.json`
+    );
+
+    return artifactFilePath;
   }
 }

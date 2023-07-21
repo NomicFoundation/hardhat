@@ -108,7 +108,7 @@ describe("execution engine", () => {
         "Module1:Contract1": {
           contractName: "Contract1",
           contractAddress: exampleAddress,
-          storedArtifactPath: "Module1:Contract1.json",
+          artifact: contractWithOneArgConstructorArtifact,
         },
       });
     });

@@ -184,7 +184,7 @@ export class Deployer {
 
     for (const contract of contractStates) {
       const artifact = await this._deploymentLoader.loadArtifact(
-        contract.storedArtifactPath
+        contract.artifactFutureId
       );
 
       entries.push([contract.id, artifact]);

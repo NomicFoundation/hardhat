@@ -26,7 +26,7 @@ describe("Reconciliation - named contract at", () => {
     onchain: initOnchainState,
     contractName: "Contract1",
     contractAddress: exampleAddress,
-    storedArtifactPath: "./artifact.json",
+    artifactFutureId: "./artifact.json",
   };
 
   const exampleDeploymentState: DeploymentExecutionState = {
@@ -37,8 +37,7 @@ describe("Reconciliation - named contract at", () => {
     dependencies: new Set<string>(),
     history: [],
     onchain: initOnchainState,
-    storedArtifactPath: "./artifact.json",
-    storedBuildInfoPath: "./build-info.json",
+    artifactFutureId: "./artifact.json",
     contractName: "Contract1",
     value: BigInt("0"),
     constructorArgs: [],
@@ -55,7 +54,7 @@ describe("Reconciliation - named contract at", () => {
     history: [],
     onchain: initOnchainState,
     contractAddress: exampleAddress,
-    storedArtifactPath: "./artifact.json",
+    artifactFutureId: "./artifact.json",
     functionName: "function",
     args: [],
     from: exampleAccounts[0],

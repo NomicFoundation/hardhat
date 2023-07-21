@@ -77,7 +77,7 @@ export interface DeployContractInteractionMessage {
   executionId: number;
   args: ArgumentType[];
   contractName: string;
-  storedArtifactPath: string;
+  artifactFutureId: string;
   value: string;
   libraries: { [key: string]: string };
   from: string;
@@ -97,7 +97,7 @@ export interface CallFunctionInteractionMessage {
   functionName: string;
   value: string;
   contractAddress: string;
-  storedArtifactPath: string;
+  artifactFutureId: string;
   from: string;
 }
 
@@ -114,7 +114,7 @@ export interface StaticCallInteractionMessage {
   args: ArgumentType[];
   functionName: string;
   contractAddress: string;
-  storedArtifactPath: string;
+  artifactFutureId: string;
   from: string;
 }
 
@@ -128,7 +128,7 @@ export interface ReadEventArgumentInteractionMessage {
   subtype: "read-event-arg";
   futureId: string;
   executionId: number;
-  storedArtifactPath: string;
+  artifactFutureId: string;
   eventName: string;
   argumentName: string;
   txToReadFrom: string;
@@ -164,7 +164,7 @@ export interface ContractAtInteractionMessage {
   executionId: number;
   contractName: string;
   contractAddress: string;
-  storedArtifactPath: string;
+  artifactFutureId: string;
 }
 
 // #endregion
@@ -378,8 +378,7 @@ export interface DeployContractStartMessage {
     | FutureType.ARTIFACT_LIBRARY_DEPLOYMENT;
   strategy: string;
   dependencies: string[];
-  storedArtifactPath: string;
-  storedBuildInfoPath: string | undefined;
+  artifactFutureId: string;
   contractName: string;
   constructorArgs: ArgumentType[];
   libraries: { [key: string]: string };
@@ -403,7 +402,7 @@ export interface CallFunctionStartMessage {
   value: string;
   contractAddress: string;
   from: string | undefined;
-  storedArtifactPath: string;
+  artifactFutureId: string;
 }
 
 /**
@@ -420,7 +419,7 @@ export interface StaticCallStartMessage {
   args: ArgumentType[];
   functionName: string;
   contractAddress: string;
-  storedArtifactPath: string;
+  artifactFutureId: string;
   from: string;
 }
 
@@ -435,7 +434,7 @@ export interface ReadEventArgumentStartMessage {
   futureType: FutureType.READ_EVENT_ARGUMENT;
   strategy: string;
   dependencies: string[];
-  storedArtifactPath: string;
+  artifactFutureId: string;
   eventName: string;
   argumentName: string;
   txToReadFrom: string;
@@ -471,8 +470,7 @@ export interface ContractAtStartMessage {
   futureType: FutureType.NAMED_CONTRACT_AT | FutureType.ARTIFACT_CONTRACT_AT;
   strategy: string;
   dependencies: string[];
-  storedArtifactPath: string;
-  storedBuildInfoPath: string | undefined;
+  artifactFutureId: string;
   contractName: string;
   contractAddress: string;
 }

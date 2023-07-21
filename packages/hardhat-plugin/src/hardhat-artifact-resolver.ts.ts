@@ -9,7 +9,7 @@ export class HardhatArtifactResolver implements ArtifactResolver {
   public async getBuildInfo(
     contractName: string
   ): Promise<BuildInfo | undefined> {
-    const artifactPath = await this.resolvePath(contractName);
+    const artifactPath = await this._resolvePath(contractName);
 
     if (artifactPath === undefined) {
       throw new Error(`Artifact path not found for ${contractName}`);
@@ -28,7 +28,9 @@ export class HardhatArtifactResolver implements ArtifactResolver {
     return JSON.parse(buildInfoJson.toString());
   }
 
-  public async resolvePath(contractName: string): Promise<string | undefined> {
+  private async _resolvePath(
+    contractName: string
+  ): Promise<string | undefined> {
     const artifactPaths = await this._hre.artifacts.getArtifactPaths();
 
     const artifactPath = artifactPaths.find(

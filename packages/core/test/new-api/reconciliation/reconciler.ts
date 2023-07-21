@@ -24,8 +24,7 @@ describe("Reconciliation", () => {
     dependencies: new Set<string>(),
     history: [],
     onchain: initOnchainState,
-    storedArtifactPath: "./artifact.json",
-    storedBuildInfoPath: "./build-info.json",
+    artifactFutureId: "./artifact.json",
     contractName: "Contract1",
     value: BigInt("0"),
     constructorArgs: [],
@@ -135,7 +134,7 @@ describe("Reconciliation", () => {
               executionId: 1,
               args: [],
               contractName: "Contract1",
-              storedArtifactPath: "./Module1:Contract1.json",
+              artifactFutureId: "./Module1:Contract1.json",
               libraries: {},
               value: BigInt(0).toString(),
               // history indicates from was accounts[3]
@@ -192,7 +191,7 @@ describe("Reconciliation", () => {
               executionId: 1,
               args: [],
               contractName: "Contract1",
-              storedArtifactPath: "./Module1:Contract1.json",
+              artifactFutureId: "./Module1:Contract1.json",
               libraries: {},
               value: BigInt(0).toString(),
               // history indicates from was accounts[3]

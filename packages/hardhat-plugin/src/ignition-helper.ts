@@ -9,9 +9,7 @@ import {
   ModuleParameters,
 } from "@ignored/ignition-core";
 import { Contract } from "ethers";
-import fs from "fs-extra";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
-import path from "path";
 
 import { buildAdaptersFrom } from "./buildAdaptersFrom";
 import { HardhatArtifactResolver } from "./hardhat-artifact-resolver.ts";
@@ -85,11 +83,9 @@ export class IgnitionHelper {
         );
       }
 
-      const { storedArtifactPath, contractAddress } = deployedContract;
+      const { contractAddress, artifact } = deployedContract;
 
-      const abi: any[] = await this._resolveAbiFromArtifactPath(
-        storedArtifactPath
-      );
+      const abi: any[] = artifact.abi;
 
       resolvedOutput[key] = await this._hre.ethers.getContractAt(
         abi,
@@ -98,21 +94,5 @@ export class IgnitionHelper {
     }
 
     return resolvedOutput;
-  }
-
-  private async _resolveAbiFromArtifactPath(
-    storedArtifactPath: any
-  ): Promise<any[]> {
-    const artifact = JSON.parse(
-      (
-        await fs.readFile(
-          this._deploymentDir !== undefined
-            ? path.join(this._deploymentDir, storedArtifactPath)
-            : storedArtifactPath
-        )
-      ).toString()
-    );
-
-    return artifact.abi;
   }
 }
