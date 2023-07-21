@@ -328,7 +328,7 @@ export class EthModule {
   }
 
   private async _blockNumberAction(): Promise<string> {
-    const blockNumber = this._node.getLatestBlockNumber();
+    const blockNumber = await this._node.getLatestBlockNumber();
     return numberToRpcQuantity(blockNumber);
   }
 
@@ -501,7 +501,7 @@ export class EthModule {
 
     return getRpcBlock(
       block,
-      totalDifficulty,
+      totalDifficulty!,
       shouldShowTransactionTypeForHardfork(this._common),
       includeTransactions
     );
@@ -539,7 +539,7 @@ export class EthModule {
 
     return getRpcBlock(
       block,
-      totalDifficulty,
+      totalDifficulty!,
       shouldShowTransactionTypeForHardfork(this._common),
       includeTransactions,
       numberOrPending === "pending"
@@ -1259,7 +1259,9 @@ export class EthModule {
           : await this._getDefaultCallFrom(),
       data: rpcCall.data !== undefined ? rpcCall.data : toBuffer([]),
       gasLimit:
-        rpcCall.gas !== undefined ? rpcCall.gas : this._node.getBlockGasLimit(),
+        rpcCall.gas !== undefined
+          ? rpcCall.gas
+          : await this._node.getBlockGasLimit(),
       value: rpcCall.value !== undefined ? rpcCall.value : 0n,
       accessList:
         rpcCall.accessList !== undefined
@@ -1278,7 +1280,9 @@ export class EthModule {
       to: rpcTx.to,
       from: rpcTx.from,
       gasLimit:
-        rpcTx.gas !== undefined ? rpcTx.gas : this._node.getBlockGasLimit(),
+        rpcTx.gas !== undefined
+          ? rpcTx.gas
+          : await this._node.getBlockGasLimit(),
       value: rpcTx.value !== undefined ? rpcTx.value : 0n,
       data: rpcTx.data !== undefined ? rpcTx.data : toBuffer([]),
       nonce:

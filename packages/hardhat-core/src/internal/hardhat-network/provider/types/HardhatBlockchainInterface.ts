@@ -3,6 +3,7 @@ import { BlockchainInterface } from "@nomicfoundation/ethereumjs-blockchain";
 
 import { FilterParams } from "../node-types";
 import { RpcLogOutput, RpcReceiptOutput } from "../output";
+import { HardforkName } from "../../../util/hardforks";
 
 export interface HardhatBlockchainInterface extends BlockchainInterface {
   addTransactionReceipts(receipts: RpcReceiptOutput[]): void;
@@ -22,4 +23,9 @@ export interface HardhatBlockchainInterface extends BlockchainInterface {
   getTransactionReceipt(
     transactionHash: Buffer
   ): Promise<RpcReceiptOutput | null>;
+
+  blockSupportsHardfork(
+    hardfork: HardforkName,
+    blockNumberOrPending?: bigint | "pending"
+  ): boolean;
 }

@@ -21,6 +21,25 @@ export function assertHardhatNetworkInvariant(
 /* eslint-disable @nomiclabs/hardhat-internal-rules/only-hardhat-error */
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
 
+export function assertEqualOptionalBlocks(
+  hardhatBlock: Block | undefined,
+  rethnetBlock: Block | undefined
+) {
+  if (hardhatBlock === undefined) {
+    if (rethnetBlock !== undefined) {
+      console.trace("hardhatBlock is undefined but rethnetBlock is defined");
+      throw new Error("hardhatBlock is undefined but rethnetBlock is defined");
+    }
+  } else {
+    if (rethnetBlock === undefined) {
+      console.trace("hardhatBlock is defined but rethnetBlock is undefined");
+      throw new Error("hardhatBlock is defined but rethnetBlock is undefined");
+    }
+
+    assertEqualBlocks(hardhatBlock, rethnetBlock);
+  }
+}
+
 export function assertEqualBlocks(ethereumJSBlock: Block, rethnetBlock: Block) {
   const differences: string[] = [];
 
@@ -195,7 +214,7 @@ export function assertEqualBlocks(ethereumJSBlock: Block, rethnetBlock: Block) {
   }
 }
 
-function transactionDifferences(
+export function transactionDifferences(
   ethereumJSTransaction: TypedTransaction,
   rethnetTransaction: TypedTransaction
 ): string[] {

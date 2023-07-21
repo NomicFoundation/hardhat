@@ -118,7 +118,7 @@ export async function traceTransaction(
     await blockBuilder.addTransaction(signedTx);
     await blockBuilder.finalize([]);
 
-    const { trace, error } = vm.getLastTrace();
+    const { trace, error } = vm.getLastTraceAndClear();
     if (trace === undefined) {
       throw error ?? new Error("Cannot get last top level message trace");
     }

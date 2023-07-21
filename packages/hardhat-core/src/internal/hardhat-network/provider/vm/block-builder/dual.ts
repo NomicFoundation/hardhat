@@ -6,8 +6,8 @@ import {
   assertEqualBlocks,
   assertEqualRunTxResults,
 } from "../../utils/assertions";
-import { globalRethnetContext } from "../rethnet";
 import { randomHashSeed } from "../../fork/ForkStateManager";
+import { globalRethnetContext } from "../../context/rethnet";
 
 export class DualModeBlockBuilder implements BlockBuilderAdapter {
   constructor(

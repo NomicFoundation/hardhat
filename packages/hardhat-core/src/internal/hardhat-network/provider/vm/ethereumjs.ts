@@ -516,18 +516,16 @@ export class EthereumJSAdapter implements VMAdapter {
     // No way of deleting snapshot
   }
 
-  public getLastTrace(): {
+  public getLastTraceAndClear(): {
     trace: MessageTrace | undefined;
     error: Error | undefined;
   } {
     const trace = this._vmTracer.getLastTopLevelMessageTrace();
     const error = this._vmTracer.getLastError();
 
-    return { trace, error };
-  }
-
-  public clearLastError() {
     this._vmTracer.clearLastError();
+
+    return { trace, error };
   }
 
   public async printState() {

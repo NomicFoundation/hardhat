@@ -1,26 +1,32 @@
 import { Block } from "@nomicfoundation/ethereumjs-block";
 import { Common } from "@nomicfoundation/ethereumjs-common";
 import { TypedTransaction } from "@nomicfoundation/ethereumjs-tx";
-import { BlockBuilder, Blockchain, Config } from "rethnet-evm";
+import {
+  BlockBuilder,
+  Blockchain,
+  Config,
+  PendingTransaction,
+} from "rethnet-evm";
 import { BlockBuilderAdapter, BuildBlockOpts, Reward } from "../block-builder";
-import { globalRethnetContext } from "../rethnet";
 import { RunTxResult } from "../vm-adapter";
 import { RethnetStateManager } from "../../RethnetState";
 import {
   ethereumjsBlockHeaderToRethnet,
   ethereumjsHeaderDataToRethnetBlockOptions,
-  ethereumjsTransactionToRethnetPendingTransaction,
-  ethereumsjsHardforkToRethnet,
+  ethereumjsTransactionToRethnetSignedTransaction,
+  ethereumsjsHardforkToRethnetSpecId,
   rethnetBlockToEthereumJS,
   rethnetResultToRunTxResult,
 } from "../../utils/convertToRethnet";
 import { VMTracer } from "../../../stack-traces/vm-tracer";
-import { HardforkName } from "../../../../util/hardforks";
+import { getHardforkName } from "../../../../util/hardforks";
+import { globalRethnetContext } from "../../context/rethnet";
 
 export class RethnetBlockBuilder implements BlockBuilderAdapter {
   constructor(
-    private _blockBuilder: BlockBuilder,
-    private _vmTracer: VMTracer,
+    private readonly _blockBuilder: BlockBuilder,
+    private readonly _stateManager: RethnetStateManager,
+    private readonly _vmTracer: VMTracer,
     private _common: Common
   ) {}
 
@@ -38,7 +44,9 @@ export class RethnetBlockBuilder implements BlockBuilderAdapter {
       state.asInner(),
       {
         chainId: common.chainId(),
-        specId: ethereumsjsHardforkToRethnet(common.hardfork() as HardforkName),
+        specId: ethereumsjsHardforkToRethnetSpecId(
+          getHardforkName(common.hardfork())
+        ),
         limitContractCodeSize: vmConfig.limitContractCodeSize ?? undefined,
         disableBlockGasLimit: vmConfig.disableBlockGasLimit,
         disableEip3607: vmConfig.disableEip3607,
@@ -47,15 +55,23 @@ export class RethnetBlockBuilder implements BlockBuilderAdapter {
       ethereumjsHeaderDataToRethnetBlockOptions(opts.headerData)
     );
 
-    return new RethnetBlockBuilder(blockBuilder, vmTracer, common);
+    return new RethnetBlockBuilder(blockBuilder, state, vmTracer, common);
   }
 
   public async addTransaction(tx: TypedTransaction): Promise<RunTxResult> {
-    const rethnetTx = ethereumjsTransactionToRethnetPendingTransaction(tx);
+    const rethnetTx = ethereumjsTransactionToRethnetSignedTransaction(tx);
+    const specId = ethereumsjsHardforkToRethnetSpecId(
+      getHardforkName(tx.common.hardfork())
+    );
 
     const cumulativeBlockGasUsed = await this.getGasUsed();
     const rethnetResult = await this._blockBuilder.addTransaction(
-      rethnetTx,
+      await PendingTransaction.create(
+        this._stateManager.asInner(),
+        specId,
+        rethnetTx,
+        tx.getSenderAddress().buf
+      ),
       true
     );
 

@@ -1,40 +1,25 @@
-import { Common } from "@nomicfoundation/ethereumjs-common";
-import { assertHardhatInvariant } from "../../../core/errors";
-
+import { EthContextAdapter } from "../context";
+import { DualEthContext } from "../context/dual";
+import { HardhatEthContext } from "../context/hardhat";
+import { RethnetEthContext } from "../context/rethnet";
 import { NodeConfig } from "../node-types";
-import { HardhatBlockchainInterface } from "../types/HardhatBlockchainInterface";
-import { DualModeAdapter } from "./dual";
-import { EthereumJSAdapter } from "./ethereumjs";
-import { RethnetAdapter } from "./rethnet";
-import { VMAdapter } from "./vm-adapter";
+import { RandomBufferGenerator } from "../utils/random";
 
 /**
- * Creates an instance of a VMAdapter. Which implementation is used depends on
+ * Creates an instance of a EthContextAdapter. Which implementation is used depends on
  * the value of the HARDHAT_EXPERIMENTAL_VM_MODE environment variable.
  */
-export function createVm(
-  common: Common,
-  blockchain: HardhatBlockchainInterface,
+export async function createContext(
   config: NodeConfig,
-  selectHardfork: (blockNumber: bigint) => string
-): Promise<VMAdapter> {
+  prevRandaoGenerator: RandomBufferGenerator
+): Promise<EthContextAdapter> {
   const vmModeEnvVar = process.env.HARDHAT_EXPERIMENTAL_VM_MODE;
 
   if (vmModeEnvVar === "ethereumjs") {
-    return EthereumJSAdapter.create(common, blockchain, config, selectHardfork);
+    return HardhatEthContext.create(config, prevRandaoGenerator);
   } else if (vmModeEnvVar === "rethnet") {
-    return RethnetAdapter.create(
-      config,
-      selectHardfork,
-      async (blockNumber) => {
-        const block = await blockchain.getBlock(blockNumber);
-        assertHardhatInvariant(block !== null, "Should be able to get block");
-
-        return block.header.hash();
-      },
-      common
-    );
+    return new RethnetEthContext(config);
   } else {
-    return DualModeAdapter.create(common, blockchain, config, selectHardfork);
+    return DualEthContext.create(config, prevRandaoGenerator);
   }
 }

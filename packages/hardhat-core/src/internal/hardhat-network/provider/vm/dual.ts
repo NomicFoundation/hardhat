@@ -7,7 +7,6 @@ import {
   bufferToHex,
 } from "@nomicfoundation/ethereumjs-util";
 
-import { assertHardhatInvariant } from "../../../core/errors";
 import { RpcDebugTracingConfig } from "../../../core/jsonrpc/types/input/debugTraceTransaction";
 import {
   isEvmStep,
@@ -16,14 +15,11 @@ import {
 } from "../../stack-traces/message-trace";
 import { opcodeName } from "../../stack-traces/opcodes";
 import { VMTracer } from "../../stack-traces/vm-tracer";
-import { isForkedNodeConfig, NodeConfig } from "../node-types";
 import { RpcDebugTraceOutput } from "../output";
+import { globalRethnetContext } from "../context/rethnet";
 import { randomHashSeed } from "../fork/ForkStateManager";
-import { HardhatBlockchainInterface } from "../types/HardhatBlockchainInterface";
 import { assertEqualRunTxResults } from "../utils/assertions";
 
-import { EthereumJSAdapter } from "./ethereumjs";
-import { globalRethnetContext, RethnetAdapter } from "./rethnet";
 import { RunTxResult, Trace, VMAdapter } from "./vm-adapter";
 import { BlockBuilderAdapter, BuildBlockOpts } from "./block-builder";
 import { DualModeBlockBuilder } from "./block-builder/dual";
@@ -50,62 +46,16 @@ function _printTrace(trace: any) {
 }
 
 export class DualModeAdapter implements VMAdapter {
+  private readonly _ethereumJSVMTracer: VMTracer;
+  private readonly _rethnetVMTracer: VMTracer;
+
   constructor(
-    private _ethereumJSAdapter: VMAdapter,
-    private _rethnetAdapter: VMAdapter,
-    private _ethereumJSVMTracer: VMTracer,
-    private _rethnetVMTracer: VMTracer
-  ) {}
-
-  public static async create(
     common: Common,
-    blockchain: HardhatBlockchainInterface,
-    config: NodeConfig,
-    selectHardfork: (blockNumber: bigint) => string
+    private readonly _ethereumJSAdapter: VMAdapter,
+    private readonly _rethnetAdapter: VMAdapter
   ) {
-    const ethereumJSAdapter = await EthereumJSAdapter.create(
-      common,
-      blockchain,
-      config,
-      selectHardfork
-    );
-
-    // If the fork node config doesn't specify a block number, then the
-    // ethereumjs adapter will fetch and use the latest block number. We re-use
-    // that value here; otherwise, rethnet would also fetch it and we could have
-    // a race condition if the latest block changed in the meantime.
-    if (
-      isForkedNodeConfig(config) &&
-      config.forkConfig.blockNumber === undefined
-    ) {
-      const forkBlockNumber = ethereumJSAdapter.getForkBlockNumber();
-      config.forkConfig.blockNumber = parseInt(
-        forkBlockNumber!.toString(10),
-        10
-      );
-    }
-
-    const rethnetAdapter = await RethnetAdapter.create(
-      config,
-      selectHardfork,
-      async (blockNumber) => {
-        const block = await blockchain.getBlock(blockNumber);
-        assertHardhatInvariant(block !== null, "Should be able to get block");
-
-        return block.header.hash();
-      },
-      common
-    );
-
-    const ethereumJSVMTracer = new VMTracer(common, false);
-    const rethnetVMTracer = new VMTracer(common, false);
-
-    return new DualModeAdapter(
-      ethereumJSAdapter,
-      rethnetAdapter,
-      ethereumJSVMTracer,
-      rethnetVMTracer
-    );
+    this._ethereumJSVMTracer = new VMTracer(common, false);
+    this._rethnetVMTracer = new VMTracer(common, false);
   }
 
   public async dryRun(
@@ -281,7 +231,7 @@ export class DualModeAdapter implements VMAdapter {
       assertEqualRunTxResults(ethereumJSResult, rethnetResult);
 
       // Validate trace
-      const _trace = this.getLastTrace();
+      const _trace = this.getLastTraceAndClear();
 
       return [rethnetResult, ethereumJSDebugTrace];
     } catch (e) {
@@ -318,14 +268,14 @@ export class DualModeAdapter implements VMAdapter {
     await this._rethnetAdapter.removeSnapshot(stateRoot);
   }
 
-  public getLastTrace(): {
+  public getLastTraceAndClear(): {
     trace: MessageTrace | undefined;
     error: Error | undefined;
   } {
     const { trace: ethereumJSTrace, error: ethereumJSError } =
-      this._ethereumJSAdapter.getLastTrace();
+      this._ethereumJSAdapter.getLastTraceAndClear();
     const { trace: rethnetTrace, error: rethnetError } =
-      this._rethnetAdapter.getLastTrace();
+      this._rethnetAdapter.getLastTraceAndClear();
 
     if (ethereumJSTrace === undefined) {
       if (rethnetTrace !== undefined) {

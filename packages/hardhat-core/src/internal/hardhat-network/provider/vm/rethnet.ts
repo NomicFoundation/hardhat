@@ -11,32 +11,33 @@ import {
   Blockchain,
   Bytecode,
   Rethnet,
-  RethnetContext,
 } from "rethnet-evm";
 
 import { isForkedNodeConfig, NodeConfig } from "../node-types";
 import {
   ethereumjsHeaderDataToRethnetBlockConfig,
   ethereumjsTransactionToRethnetTransactionRequest,
-  ethereumsjsHardforkToRethnet,
+  ethereumsjsHardforkToRethnetSpecId,
   rethnetResultToRunTxResult,
 } from "../utils/convertToRethnet";
-import { hardforkGte, HardforkName } from "../../../util/hardforks";
+import {
+  getHardforkName,
+  hardforkGte,
+  HardforkName,
+} from "../../../util/hardforks";
 import { keccak256 } from "../../../util/keccak";
 import { RpcDebugTraceOutput } from "../output";
 import { RethnetStateManager } from "../RethnetState";
 import { RpcDebugTracingConfig } from "../../../core/jsonrpc/types/input/debugTraceTransaction";
 import { MessageTrace } from "../../stack-traces/message-trace";
 import { VMTracer } from "../../stack-traces/vm-tracer";
-
+import { globalRethnetContext } from "../context/rethnet";
 import { RunTxResult, Trace, VMAdapter } from "./vm-adapter";
 import { BlockBuilderAdapter, BuildBlockOpts } from "./block-builder";
 import { RethnetBlockBuilder } from "./block-builder/rethnet";
 
 /* eslint-disable @nomiclabs/hardhat-internal-rules/only-hardhat-error */
 /* eslint-disable @typescript-eslint/no-unused-vars */
-
-export const globalRethnetContext = new RethnetContext();
 
 export class RethnetAdapter implements VMAdapter {
   private _vmTracer: VMTracer;
@@ -53,12 +54,10 @@ export class RethnetAdapter implements VMAdapter {
 
   public static async create(
     config: NodeConfig,
+    blockchain: Blockchain,
     selectHardfork: (blockNumber: bigint) => string,
-    getBlockHash: (blockNumber: bigint) => Promise<Buffer>,
     common: Common
   ): Promise<RethnetAdapter> {
-    const blockchain = new Blockchain(getBlockHash);
-
     const limitContractCodeSize =
       config.allowUnlimitedContractSize === true ? 2n ** 64n - 1n : undefined;
 
@@ -78,8 +77,11 @@ export class RethnetAdapter implements VMAdapter {
 
     const rethnet = new Rethnet(blockchain, state.asInner(), {
       chainId: BigInt(config.chainId),
-      specId: ethereumsjsHardforkToRethnet(config.hardfork as HardforkName),
+      specId: ethereumsjsHardforkToRethnetSpecId(
+        getHardforkName(config.hardfork)
+      ),
       limitContractCodeSize,
+      // Question: Should we set these per transaction, instead of for the entire EVM?
       disableBlockGasLimit: true,
       disableEip3607: true,
     });
@@ -101,6 +103,7 @@ export class RethnetAdapter implements VMAdapter {
     blockContext: Block,
     forceBaseFeeZero?: boolean
   ): Promise<[RunTxResult, Trace]> {
+    // TODO: Port to Rethnet
     if (
       tx.supports(Capability.EIP1559FeeMarket) &&
       !blockContext._common.hardforkGteHardfork(
@@ -381,18 +384,16 @@ export class RethnetAdapter implements VMAdapter {
     return this._state.removeSnapshot(stateRoot);
   }
 
-  public getLastTrace(): {
+  public getLastTraceAndClear(): {
     trace: MessageTrace | undefined;
     error: Error | undefined;
   } {
     const trace = this._vmTracer.getLastTopLevelMessageTrace();
     const error = this._vmTracer.getLastError();
 
-    return { trace, error };
-  }
-
-  public clearLastError() {
     this._vmTracer.clearLastError();
+
+    return { trace, error };
   }
 
   public async printState() {
@@ -436,7 +437,7 @@ export class RethnetAdapter implements VMAdapter {
   ): Buffer | undefined {
     const hardfork = this._selectHardfork(blockNumber);
     const isPostMergeHardfork = hardforkGte(
-      hardfork as HardforkName,
+      getHardforkName(hardfork),
       HardforkName.MERGE
     );
 

@@ -1,4 +1,10 @@
+import { Common } from "@nomicfoundation/ethereumjs-common";
+import { HardforkHistoryConfig } from "../../types/config";
+import { HARDHAT_NETWORK_SUPPORTED_HARDFORKS } from "../constants";
 import { assertHardhatInvariant } from "../core/errors";
+import { InternalError } from "../core/providers/errors";
+
+/* eslint-disable @nomiclabs/hardhat-internal-rules/only-hardhat-error */
 
 export enum HardforkName {
   FRONTIER = "chainstart",
@@ -66,4 +72,87 @@ export function hardforkGte(
   const indexB = HARDFORKS_ORDER.lastIndexOf(hardforkB);
 
   return indexA >= indexB;
+}
+
+export function selectHardfork(
+  forkBlockNumber: bigint | undefined,
+  currentHardfork: string,
+  hardforkActivations: HardforkHistoryConfig | undefined,
+  blockNumber: bigint
+): string {
+  if (forkBlockNumber === undefined || blockNumber >= forkBlockNumber) {
+    return currentHardfork;
+  }
+
+  if (hardforkActivations === undefined || hardforkActivations.size === 0) {
+    throw new InternalError(
+      `No known hardfork for execution on historical block ${blockNumber.toString()} (relative to fork block number ${forkBlockNumber}). The node was not configured with a hardfork activation history.  See http://hardhat.org/custom-hardfork-history`
+    );
+  }
+
+  /** search this._hardforkActivations for the highest block number that
+   * isn't higher than blockNumber, and then return that found block number's
+   * associated hardfork name. */
+  const hardforkHistory: Array<[name: string, block: number]> = Array.from(
+    hardforkActivations.entries()
+  );
+  const [hardfork, activationBlock] = hardforkHistory.reduce(
+    ([highestHardfork, highestBlock], [thisHardfork, thisBlock]) =>
+      thisBlock > highestBlock && thisBlock <= blockNumber
+        ? [thisHardfork, thisBlock]
+        : [highestHardfork, highestBlock]
+  );
+  if (hardfork === undefined || blockNumber < activationBlock) {
+    throw new InternalError(
+      `Could not find a hardfork to run for block ${blockNumber.toString()}, after having looked for one in the HardhatNode's hardfork activation history, which was: ${JSON.stringify(
+        hardforkHistory
+      )}. For more information, see https://hardhat.org/hardhat-network/reference/#config`
+    );
+  }
+
+  if (!HARDHAT_NETWORK_SUPPORTED_HARDFORKS.includes(hardfork)) {
+    throw new InternalError(
+      `Tried to run a call or transaction in the context of a block whose hardfork is "${hardfork}", but Hardhat Network only supports the following hardforks: ${HARDHAT_NETWORK_SUPPORTED_HARDFORKS.join(
+        ", "
+      )}`
+    );
+  }
+
+  return hardfork;
+}
+
+export function validateHardforks(
+  forkBlockNumber: number | undefined,
+  common: Common,
+  remoteChainId: number
+): void {
+  if (!common.gteHardfork("spuriousDragon")) {
+    throw new InternalError(
+      `Invalid hardfork selected in Hardhat Network's config.
+
+The hardfork must be at least spuriousDragon, but ${common.hardfork()} was given.`
+    );
+  }
+
+  if (forkBlockNumber !== undefined) {
+    let upstreamCommon: Common;
+    try {
+      upstreamCommon = new Common({ chain: remoteChainId });
+    } catch {
+      // If ethereumjs doesn't have a common it will throw and we won't have
+      // info about the activation block of each hardfork, so we don't run
+      // this validation.
+      return;
+    }
+
+    upstreamCommon.setHardforkByBlockNumber(forkBlockNumber);
+
+    if (!upstreamCommon.gteHardfork("spuriousDragon")) {
+      throw new InternalError(
+        `Cannot fork ${upstreamCommon.chainName()} from block ${forkBlockNumber}.
+
+Hardhat Network's forking functionality only works with blocks from at least spuriousDragon.`
+      );
+    }
+  }
 }

@@ -8,6 +8,8 @@ import { RpcBlockWithTransactions } from "../../../core/jsonrpc/types/output/blo
 import { RpcTransactionReceipt } from "../../../core/jsonrpc/types/output/receipt";
 import { RpcTransaction } from "../../../core/jsonrpc/types/output/transaction";
 import { InternalError } from "../../../core/providers/errors";
+import { HardforkHistoryConfig } from "../../../../types/config";
+import { HardforkName, selectHardfork } from "../../../util/hardforks";
 import { JsonRpcClient } from "../../jsonrpc/client";
 import { BlockchainBase } from "../BlockchainBase";
 import { FilterParams } from "../node-types";
@@ -39,6 +41,7 @@ export class ForkBlockchain
   constructor(
     private _jsonRpcClient: JsonRpcClient,
     private _forkBlockNumber: bigint,
+    private _hardforkActivations: HardforkHistoryConfig,
     common: Common
   ) {
     super(common);
@@ -221,6 +224,27 @@ export class ForkBlockchain
       return remoteLogs.map(toRpcLogOutput).concat(localLogs);
     }
     return this._data.getLogs(filterParams);
+  }
+
+  public blockSupportsHardfork(
+    hardfork: HardforkName,
+    blockNumberOrPending?: bigint | "pending"
+  ): boolean {
+    if (
+      blockNumberOrPending !== undefined &&
+      blockNumberOrPending !== "pending"
+    ) {
+      return this._common.hardforkGteHardfork(
+        selectHardfork(
+          this._forkBlockNumber,
+          this._common.hardfork(),
+          this._hardforkActivations,
+          blockNumberOrPending
+        ),
+        hardfork.toString()
+      );
+    }
+    return this._common.gteHardfork(hardfork.toString());
   }
 
   private async _getBlockByHash(blockHash: Buffer) {

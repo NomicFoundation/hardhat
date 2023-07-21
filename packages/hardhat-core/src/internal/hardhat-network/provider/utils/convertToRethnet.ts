@@ -16,6 +16,7 @@ import {
   setLengthLeft,
   toBuffer,
 } from "@nomicfoundation/ethereumjs-util";
+import { PostByzantiumTxReceipt } from "@nomicfoundation/ethereumjs-vm";
 import {
   Block as RethnetBlock,
   BlockConfig,
@@ -28,7 +29,7 @@ import {
   LegacySignedTransaction,
   Eip1559SignedTransaction,
   Eip2930SignedTransaction,
-  PendingTransaction,
+  Receipt as RethnetReceipt,
 } from "rethnet-evm";
 import { fromBigIntLike } from "../../../util/bigint";
 import { HardforkName } from "../../../util/hardforks";
@@ -95,7 +96,9 @@ export function rethnetBlockHeaderToEthereumJSBlockData(
   };
 }
 
-export function ethereumsjsHardforkToRethnet(hardfork: HardforkName): SpecId {
+export function ethereumsjsHardforkToRethnetSpecId(
+  hardfork: HardforkName
+): SpecId {
   switch (hardfork) {
     case HardforkName.FRONTIER:
       return SpecId.Frontier;
@@ -192,10 +195,12 @@ export function ethereumjsHeaderDataToRethnetBlockOptions(
   };
 }
 
-export function ethereumjsTransactionToRethnetPendingTransaction(
+export function ethereumjsTransactionToRethnetSignedTransaction(
   tx: TypedTransaction
-): PendingTransaction {
-  const caller = tx.getSenderAddress().toBuffer();
+):
+  | LegacySignedTransaction
+  | Eip2930SignedTransaction
+  | Eip1559SignedTransaction {
   if (tx instanceof AccessListEIP2930Transaction) {
     const transaction: Eip2930SignedTransaction = {
       chainId: tx.chainId,
@@ -216,50 +221,45 @@ export function ethereumjsTransactionToRethnetPendingTransaction(
       s: setLengthLeft(toBuffer(tx.s ?? BigInt(0)), 32),
     };
 
-    return {
-      transaction,
-      caller,
-    };
+    return transaction;
   } else if (tx instanceof FeeMarketEIP1559Transaction) {
-    return {
-      transaction: {
-        chainId: tx.chainId,
-        nonce: tx.nonce,
-        maxPriorityFeePerGas: tx.maxPriorityFeePerGas,
-        maxFeePerGas: tx.maxFeePerGas,
-        gasLimit: tx.gasLimit,
-        to: tx.to?.buf,
-        value: tx.value,
-        input: tx.data,
-        accessList: tx.accessList.map((value, _index, _array) => {
-          return {
-            address: value[0],
-            storageKeys: value[1],
-          };
-        }),
-        oddYParity: (tx.v ?? BigInt(0)) > 0,
-        r: setLengthLeft(toBuffer(tx.r ?? BigInt(0)), 32),
-        s: setLengthLeft(toBuffer(tx.s ?? BigInt(0)), 32),
-      },
-      caller,
+    const transaction: Eip1559SignedTransaction = {
+      chainId: tx.chainId,
+      nonce: tx.nonce,
+      maxPriorityFeePerGas: tx.maxPriorityFeePerGas,
+      maxFeePerGas: tx.maxFeePerGas,
+      gasLimit: tx.gasLimit,
+      to: tx.to?.buf,
+      value: tx.value,
+      input: tx.data,
+      accessList: tx.accessList.map((value, _index, _array) => {
+        return {
+          address: value[0],
+          storageKeys: value[1],
+        };
+      }),
+      oddYParity: (tx.v ?? BigInt(0)) > 0,
+      r: setLengthLeft(toBuffer(tx.r ?? BigInt(0)), 32),
+      s: setLengthLeft(toBuffer(tx.s ?? BigInt(0)), 32),
     };
+
+    return transaction;
   } else {
-    return {
-      transaction: {
-        nonce: tx.nonce,
-        gasPrice: tx.gasPrice,
-        gasLimit: tx.gasLimit,
-        to: tx.to?.buf,
-        value: tx.value,
-        input: tx.data,
-        signature: {
-          r: tx.r,
-          s: tx.s,
-          v: tx.v!,
-        },
+    const transaction: LegacySignedTransaction = {
+      nonce: tx.nonce,
+      gasPrice: tx.gasPrice,
+      gasLimit: tx.gasLimit,
+      to: tx.to?.buf,
+      value: tx.value,
+      input: tx.data,
+      signature: {
+        r: tx.r ?? BigInt(0),
+        s: tx.s ?? BigInt(0),
+        v: tx.v!,
       },
-      caller,
     };
+
+    return transaction;
   }
 }
 
@@ -346,6 +346,19 @@ function rethnetLogsToBloom(logs: Log[]): Bloom {
   return bloom;
 }
 
+export function rethnetReceiptToEthereumJS(
+  receipt: RethnetReceipt
+): PostByzantiumTxReceipt {
+  return {
+    status: receipt.statusCode > 0 ? 1 : 0,
+    cumulativeBlockGasUsed: receipt.gasUsed,
+    bitvector: receipt.logsBloom,
+    logs: receipt.logs.map((log) => {
+      return [log.address, log.topics, log.data];
+    }),
+  };
+}
+
 export function rethnetResultToRunTxResult(
   rethnetResult: ExecutionResult,
   blockGasUsed: bigint
@@ -393,7 +406,7 @@ export function rethnetResultToRunTxResult(
   };
 }
 
-function rethnetSignedTransactionToEthereumJSTypedTransaction(
+export function rethnetSignedTransactionToEthereumJSTypedTransaction(
   transaction:
     | LegacySignedTransaction
     | Eip2930SignedTransaction
