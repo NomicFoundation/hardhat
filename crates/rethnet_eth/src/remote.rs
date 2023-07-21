@@ -93,14 +93,29 @@ pub enum BlockSpec {
 }
 
 impl BlockSpec {
-    /// Constructs a `BlockSpec` for the latest block.
+    /// Constructs an instance for the earliest block.
+    pub fn earliest() -> Self {
+        Self::Tag(BlockTag::Earliest)
+    }
+
+    /// Constructs an instance for the latest block.
     pub fn latest() -> Self {
         Self::Tag(BlockTag::Latest)
     }
 
-    /// Constructs a `BlockSpec` for the pending transactions.
+    /// Constructs an instance for the pending block.
     pub fn pending() -> Self {
         Self::Tag(BlockTag::Pending)
+    }
+
+    /// Constructs an instance for the safe block.
+    pub fn safe() -> Self {
+        Self::Tag(BlockTag::Safe)
+    }
+
+    /// Constructs an instance for the finalized block.
+    pub fn finalized() -> Self {
+        Self::Tag(BlockTag::Finalized)
     }
 }
 
