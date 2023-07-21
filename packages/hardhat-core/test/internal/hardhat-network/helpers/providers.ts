@@ -199,7 +199,7 @@ if (RETHNET_BINARY !== undefined) {
   PROVIDERS.push({
     name: "Rethnet",
     isFork: false,
-    isJsonRpc: false,
+    isJsonRpc: true,
     networkId: DEFAULT_NETWORK_ID,
     chainId: DEFAULT_CHAIN_ID,
     useProvider: (options: UseProviderOptions = {}) => {
