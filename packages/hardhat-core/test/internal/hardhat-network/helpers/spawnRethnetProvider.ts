@@ -1,0 +1,80 @@
+import type { Client as ClientT } from "undici";
+import { normalize, resolve as resolvePath } from "node:path";
+import { ChildProcess, spawn } from "node:child_process";
+
+import { HttpProvider } from "../../../../src/internal/core/providers/http";
+
+import { sleep } from "./sleep";
+
+export function spawnRethnetProvider(pathToBinary: string): {
+  childProcess: ChildProcess;
+  processExit: Promise<unknown>;
+  httpProvider: HttpProvider;
+} {
+  const childProcess = spawn(normalize(pathToBinary), ["node", "-vv"]);
+
+  let stdout = "";
+  childProcess.stdout.on("data", (data: any) => {
+    stdout += data.toString();
+    console.log(`rethnet subprocess ${childProcess.pid}: ${data}`);
+  });
+
+  let stderr = "";
+  childProcess.stderr.on("data", (data: any) => {
+    stderr += data.toString();
+    console.log(`rethnet subprocess ${childProcess.pid}: ${data}`);
+  });
+
+  function outputForError() {
+    return `stdout:\n${stdout}\nstderr:\n${stderr}`;
+  }
+
+  const exit = new Promise<void>((resolve, reject) => {
+    childProcess.on("exit", (code: number, signal: string) => {
+      if (signal === "SIGKILL") {
+        console.log("kill");
+        resolve();
+      } else {
+        reject(
+          new Error(
+            `rethnet process closed unexpectedly. return code: ${code}. signal: ${signal}. ${outputForError()}`
+          )
+        );
+      }
+    });
+  });
+
+  const error = new Promise((_resolve, reject) => {
+    childProcess.on("error", (err: Error) => {
+      if (err.message.includes("ENOENT")) {
+        reject(
+          new Error(
+            `Rethnet executable not found at ${resolvePath(pathToBinary)}`
+          )
+        );
+      } else {
+        reject(
+          new Error(`Rethnet subprocess error: ${err}. ${outputForError()}`)
+        );
+      }
+    });
+  });
+
+  const { Client } = require("undici") as { Client: typeof ClientT };
+  const url = "http://127.0.0.1:8545";
+  const httpProvider = new HttpProvider(
+    url,
+    "rethnet",
+    {},
+    20000,
+    new Client(url, {
+      keepAliveTimeout: 10,
+      keepAliveMaxTimeout: 10,
+    })
+  );
+  return {
+    childProcess,
+    processExit: Promise.race([sleep(2000), exit, error]),
+    httpProvider,
+  };
+}
