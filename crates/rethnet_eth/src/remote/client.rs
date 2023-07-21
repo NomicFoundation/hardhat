@@ -750,11 +750,61 @@ mod tests {
         }
 
         #[tokio::test]
+        async fn get_earliest_block() {
+            let alchemy_url = get_alchemy_url();
+
+            let _block = RpcClient::new(&alchemy_url)
+                .get_block_by_number(BlockSpec::earliest())
+                .await
+                .expect("should have succeeded");
+        }
+
+        #[tokio::test]
+        async fn get_earliest_block_with_transaction_data() {
+            let alchemy_url = get_alchemy_url();
+
+            let _block = RpcClient::new(&alchemy_url)
+                .get_block_by_number_with_transaction_data(BlockSpec::earliest())
+                .await
+                .expect("should have succeeded");
+        }
+
+        #[tokio::test]
         async fn get_latest_block() {
             let alchemy_url = get_alchemy_url();
 
             let _block = RpcClient::new(&alchemy_url)
                 .get_block_by_number(BlockSpec::latest())
+                .await
+                .expect("should have succeeded");
+        }
+
+        #[tokio::test]
+        async fn get_latest_block_with_transaction_data() {
+            let alchemy_url = get_alchemy_url();
+
+            let _block = RpcClient::new(&alchemy_url)
+                .get_block_by_number_with_transaction_data(BlockSpec::latest())
+                .await
+                .expect("should have succeeded");
+        }
+
+        #[tokio::test]
+        async fn get_pending_block() {
+            let alchemy_url = get_alchemy_url();
+
+            let _block = RpcClient::new(&alchemy_url)
+                .get_block_by_number(BlockSpec::pending())
+                .await
+                .expect("should have succeeded");
+        }
+
+        #[tokio::test]
+        async fn get_pending_block_with_transaction_data() {
+            let alchemy_url = get_alchemy_url();
+
+            let _block = RpcClient::new(&alchemy_url)
+                .get_block_by_number_with_transaction_data(BlockSpec::pending())
                 .await
                 .expect("should have succeeded");
         }
@@ -875,7 +925,7 @@ mod tests {
             );
             assert_eq!(
                 tx.gas_price,
-                Some(U256::from_str_radix("1e449a99b8", 16).expect("couldn't parse data"))
+                U256::from_str_radix("1e449a99b8", 16).expect("couldn't parse data")
             );
             assert_eq!(
             tx.input,
@@ -883,7 +933,7 @@ mod tests {
         );
             assert_eq!(
                 tx.nonce,
-                U256::from_str_radix("653b", 16).expect("couldn't parse data")
+                u64::from_str_radix("653b", 16).expect("couldn't parse data")
             );
             assert_eq!(
                 tx.r,
