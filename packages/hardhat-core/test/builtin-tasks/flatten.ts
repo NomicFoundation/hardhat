@@ -1,6 +1,8 @@
 import { assert } from "chai";
+import fs from "fs";
 
 import { TASK_FLATTEN_GET_FLATTENED_SOURCE } from "../../src/builtin-tasks/task-names";
+import { getPackageJson } from "../../src/internal/util/packageInfo";
 import { useEnvironment } from "../helpers/environment";
 import { useFixtureProject } from "../helpers/project";
 import { compileLiteral } from "../internal/hardhat-network/stack-traces/compilation";
@@ -121,6 +123,22 @@ describe("Flatten task", () => {
     const PRAGMA_EXPERIMENTAL_V2 = "pragma experimental ABIEncoderV2";
     const COMMENTED_PRAGMA_DIRECTIVE = "// Original pragma directive:";
 
+    async function getExpectedSol() {
+      const expected = fs.readFileSync("expected.sol", "utf8");
+
+      const hardhatVersion = (await getPackageJson()).version;
+      return expected.replace("{HARDHAT_VERSION}", hardhatVersion).trim();
+    }
+
+    async function assertFlattenedFilesResult(flattenedFiles: string) {
+      // Check that the flattened file compiles correctly
+      await compileLiteral(flattenedFiles);
+
+      const expected = await getExpectedSol();
+
+      assert.equal(flattenedFiles, expected);
+    }
+
     describe("Flatten files that not contain SPDX licenses or pragma directives", () => {
       useFixtureProject("contracts-no-spdx-no-pragma");
 
@@ -129,17 +147,7 @@ describe("Flatten task", () => {
           TASK_FLATTEN_GET_FLATTENED_SOURCE
         );
 
-        // Check that the flattened file compiles correctly
-        await compileLiteral(flattenedFiles);
-
-        // Licenses
-        assert.isFalse(flattenedFiles.includes(PRAGMA_ABICODER_V1));
-        assert.isFalse(flattenedFiles.includes(PRAGMA_ABICODER_V2));
-        assert.isFalse(flattenedFiles.includes(PRAGMA_EXPERIMENTAL_V2));
-
-        // Abi pragma directives
-        assert.isFalse(flattenedFiles.includes(LICENSES_HEADER));
-        assert.isFalse(flattenedFiles.includes(COMMENTED_LICENSES));
+        await assertFlattenedFilesResult(flattenedFiles);
       });
     });
 
