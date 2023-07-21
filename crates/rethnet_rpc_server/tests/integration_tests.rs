@@ -55,6 +55,7 @@ async fn start_server() -> SocketAddr {
 async fn submit_request(address: &SocketAddr, request: &RpcRequest<MethodInvocation>) -> String {
     tracing_subscriber::fmt::Subscriber::builder()
         .with_max_level(Level::INFO)
+        .with_test_writer()
         .try_init()
         .ok();
     let url = format!("http://{address}/");
