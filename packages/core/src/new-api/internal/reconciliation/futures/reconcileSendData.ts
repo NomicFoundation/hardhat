@@ -3,6 +3,7 @@ import { isEqual } from "lodash";
 import { SendDataFuture } from "../../../types/module";
 import { SendDataExecutionState } from "../../types/execution-state";
 import { resolveFromAddress } from "../../utils/resolve-from-address";
+import { resolveModuleParameter } from "../../utils/resolve-module-parameter";
 import { ExecutionStateResolver } from "../execution-state-resolver";
 import { ReconciliationContext, ReconciliationFutureResult } from "../types";
 import { addressToErrorString, fail } from "../utils";
@@ -33,12 +34,15 @@ export function reconcileSendData(
     );
   }
 
-  if (!isEqual(future.value, executionState.value)) {
+  const resolvedValue =
+    typeof future.value === "bigint"
+      ? future.value
+      : (resolveModuleParameter(future.value, context) as bigint);
+
+  if (!isEqual(resolvedValue, executionState.value)) {
     return fail(
       future,
-      `Value has been changed from ${executionState.value} to ${
-        typeof future.value === "bigint" ? future.value : "a module parameter"
-      }`
+      `Value has been changed from ${executionState.value} to ${resolvedValue}`
     );
   }
 
