@@ -17,6 +17,7 @@ jobs:
         with:
           node-version: 16
       - name: Install typescript v4 in all packages
-        run: sed -i 's/"typescript": "~5.0.0"/"typescript": "^4.0.0"/' package.json packages/*/package.json && yarn
+        run: |
+          sed -i 's/"typescript": "~5.0.0"/"typescript": "^4.0.0"/' package.json packages/*/package.json && yarn
       - name: Build
         run: yarn build
