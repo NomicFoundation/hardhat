@@ -62,6 +62,12 @@ pub enum Eip1898BlockSpec {
     },
 }
 
+impl Display for Eip1898BlockSpec {
+    fn fmt(&self, formatter: &mut Formatter) -> Result<(), fmt::Error> {
+        formatter.write_str(&serde_json::to_string(self).map_err(|_| fmt::Error)?)
+    }
+}
+
 /// possible block tags as defined by the Ethereum JSON-RPC specification
 #[derive(Clone, Debug, PartialEq, serde::Deserialize, serde::Serialize)]
 pub enum BlockTag {
@@ -121,12 +127,11 @@ impl BlockSpec {
 
 impl Display for BlockSpec {
     fn fmt(&self, formatter: &mut Formatter) -> Result<(), fmt::Error> {
-        let s = match self {
-            BlockSpec::Number(n) => n.to_string(),
-            BlockSpec::Tag(t) => t.to_string(),
-            BlockSpec::Eip1898(e) => serde_json::to_string(e).map_err(|_| fmt::Error)?,
-        };
-        formatter.write_str(&s)
+        match self {
+            BlockSpec::Number(n) => n.fmt(formatter),
+            BlockSpec::Tag(t) => t.fmt(formatter),
+            BlockSpec::Eip1898(e) => e.fmt(formatter),
+        }
     }
 }
 
