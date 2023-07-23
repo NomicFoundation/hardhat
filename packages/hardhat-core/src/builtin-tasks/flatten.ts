@@ -13,6 +13,7 @@ import {
   TASK_FLATTEN,
   TASK_FLATTEN_GET_DEPENDENCY_GRAPH,
   TASK_FLATTEN_GET_FLATTENED_SOURCE,
+  TASK_FLATTEN_GET_FLATTENED_SOURCE_AND_METADATA,
 } from "./task-names";
 
 // Match every group where a SPDX license is defined. The fourth captured group is the license.
@@ -78,40 +79,57 @@ function getFileWithoutImports(resolvedFile: ResolvedFile) {
     .trim();
 }
 
-function getLicensesHeader(sortedFiles: ResolvedFile[]): string {
+function getLicensesInfo(sortedFiles: ResolvedFile[]): [string[], string[]] {
   const licenses: Set<string> = new Set();
+  const filesWithoutLicenses: Set<string> = new Set();
 
   for (const file of sortedFiles) {
     const matches = [...file.content.rawContent.matchAll(SPDX_LICENSES_REGEX)];
+
+    if (matches.length === 0) {
+      filesWithoutLicenses.add(file.sourceName);
+      continue;
+    }
 
     for (const groups of matches) {
       licenses.add(groups[4]);
     }
   }
 
-  return licenses.size <= 0
+  // Sort alphabetically
+  return [Array.from(licenses).sort(), Array.from(filesWithoutLicenses).sort()];
+}
+
+function getLicensesHeader(licenses: string[]): string {
+  return licenses.length <= 0
     ? ""
-    : `\n\n// SPDX-License-Identifier: ${Array.from(licenses)
-        .sort() // Sort alphabetically
-        .join(" AND ")}`;
+    : `\n\n// SPDX-License-Identifier: ${licenses.join(" AND ")}`;
 }
 
 function removeUnnecessarySpaces(str: string): string {
   return str.replace(/\s+/g, " ").trim();
 }
 
-function getPragmaAbicoderDirectiveHeader(sortedFiles: ResolvedFile[]): string {
+function getPragmaAbicoderDirectiveInfo(
+  sortedFiles: ResolvedFile[]
+): [string, string[]] {
   let directive = "";
   const directivesByImportance = [
     "pragma abicoder v1",
     "pragma experimental ABIEncoderV2",
     "pragma abicoder v2",
   ];
+  const filesWithoutPragmas: Set<string> = new Set();
 
   for (const file of sortedFiles) {
     const matches = [
       ...file.content.rawContent.matchAll(PRAGMA_DIRECTIVES_REGEX),
     ];
+
+    if (matches.length === 0) {
+      filesWithoutPragmas.add(file.sourceName);
+      continue;
+    }
 
     for (const groups of matches) {
       const normalizedPragma = removeUnnecessarySpaces(groups[2]);
@@ -125,7 +143,12 @@ function getPragmaAbicoderDirectiveHeader(sortedFiles: ResolvedFile[]): string {
     }
   }
 
-  return directive === "" ? "" : `\n\n${directive};`;
+  // Sort alphabetically
+  return [directive, Array.from(filesWithoutPragmas).sort()];
+}
+
+function getPragmaAbicoderDirectiveHeader(pragmaDirective: string): string {
+  return pragmaDirective === "" ? "" : `\n\n${pragmaDirective};`;
 }
 
 function replaceLicenses(file: string): string {
@@ -144,8 +167,8 @@ function replacePragmaAbicoderDirectives(file: string): string {
 }
 
 subtask(
-  TASK_FLATTEN_GET_FLATTENED_SOURCE,
-  "Returns all contracts and their dependencies flattened"
+  TASK_FLATTEN_GET_FLATTENED_SOURCE_AND_METADATA,
+  "Returns all contracts and their dependencies flattened. Also return metadata about pragma directives and SPDX licenses"
 )
   .addOptionalParam("files", undefined, undefined, types.any)
   .setAction(async ({ files }: { files?: string[] }, { run }) => {
@@ -157,7 +180,7 @@ subtask(
     let flattened = "";
 
     if (dependencyGraph.getResolvedFiles().length === 0) {
-      return flattened;
+      return [flattened, null];
     }
 
     const packageJson = await getPackageJson();
@@ -165,8 +188,12 @@ subtask(
 
     const sortedFiles = getSortedFiles(dependencyGraph);
 
-    flattened += getLicensesHeader(sortedFiles);
-    flattened += getPragmaAbicoderDirectiveHeader(sortedFiles);
+    const [licenses, filesWithoutLicenses] = getLicensesInfo(sortedFiles);
+    const [pragmaDirective, filesWithoutPragmas] =
+      getPragmaAbicoderDirectiveInfo(sortedFiles);
+
+    flattened += getLicensesHeader(licenses);
+    flattened += getPragmaAbicoderDirectiveHeader(pragmaDirective);
 
     for (const file of sortedFiles) {
       let tmpFile = getFileWithoutImports(file);
@@ -177,7 +204,24 @@ subtask(
       flattened += `\n${tmpFile}\n`;
     }
 
-    return flattened.trim();
+    return [
+      flattened.trim(),
+      {
+        filesWithoutLicenses,
+        filesWithoutPragmas,
+      },
+    ];
+  });
+
+subtask(
+  TASK_FLATTEN_GET_FLATTENED_SOURCE,
+  "Returns all contracts and their dependencies flattened"
+)
+  .addOptionalParam("files", undefined, undefined, types.any)
+  .setAction(async ({ files }: { files?: string[] }, { run }) => {
+    return (
+      await run(TASK_FLATTEN_GET_FLATTENED_SOURCE_AND_METADATA, { files })
+    )[0];
   });
 
 subtask(TASK_FLATTEN_GET_DEPENDENCY_GRAPH)
@@ -214,5 +258,27 @@ task(
     types.inputFile
   )
   .setAction(async ({ files }: { files: string[] | undefined }, { run }) => {
-    console.log(await run(TASK_FLATTEN_GET_FLATTENED_SOURCE, { files }));
+    const [flattenedFile, metadata] = await run(
+      TASK_FLATTEN_GET_FLATTENED_SOURCE_AND_METADATA,
+      { files }
+    );
+
+    console.log(flattenedFile);
+
+    // Warn the user when SPDX licenses or pragma abicoder directives are not specified
+    if (metadata?.filesWithoutLicenses.length > 0) {
+      console.warn(
+        `The following file(s) do NOT specify SPDX licenses: ${metadata.filesWithoutLicenses.join(
+          ", "
+        )}`
+      );
+    }
+
+    if (metadata?.filesWithoutPragmas.length > 0) {
+      console.warn(
+        `The following file(s) do NOT specify pragma abicoder directives: ${metadata.filesWithoutPragmas.join(
+          ", "
+        )}`
+      );
+    }
   });
