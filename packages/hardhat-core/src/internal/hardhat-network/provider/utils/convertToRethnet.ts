@@ -28,7 +28,6 @@ import {
   LegacySignedTransaction,
   Eip1559SignedTransaction,
   Eip2930SignedTransaction,
-  PendingTransaction,
 } from "rethnet-evm";
 import { fromBigIntLike } from "../../../util/bigint";
 import { HardforkName } from "../../../util/hardforks";
