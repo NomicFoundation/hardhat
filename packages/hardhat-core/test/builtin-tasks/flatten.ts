@@ -1,7 +1,11 @@
 import { assert } from "chai";
 import fs from "fs";
 
-import { TASK_FLATTEN_GET_FLATTENED_SOURCE } from "../../src/builtin-tasks/task-names";
+import sinon, { SinonSpy } from "sinon";
+import {
+  TASK_FLATTEN,
+  TASK_FLATTEN_GET_FLATTENED_SOURCE,
+} from "../../src/builtin-tasks/task-names";
 import { getPackageJson } from "../../src/internal/util/packageInfo";
 import { useEnvironment } from "../helpers/environment";
 import { useFixtureProject } from "../helpers/project";
@@ -12,6 +16,22 @@ function getContractsOrder(flattenedFiles: string) {
   const matches = flattenedFiles.match(CONTRACT_REGEX);
 
   return matches!.map((m: string) => m.replace("contract", "").trim());
+}
+
+async function getExpectedSol() {
+  const expected = fs.readFileSync("expected.sol", "utf8");
+
+  const hardhatVersion = (await getPackageJson()).version;
+  return expected.replace("{HARDHAT_VERSION}", hardhatVersion).trim();
+}
+
+async function assertFlattenedFilesResult(flattenedFiles: string) {
+  // Check that the flattened file compiles correctly
+  await compileLiteral(flattenedFiles);
+
+  const expected = await getExpectedSol();
+
+  assert.equal(flattenedFiles, expected);
 }
 
 describe("Flatten task", () => {
@@ -110,22 +130,6 @@ describe("Flatten task", () => {
   });
 
   describe("SPDX licenses and pragma abicoder directives", () => {
-    async function getExpectedSol() {
-      const expected = fs.readFileSync("expected.sol", "utf8");
-
-      const hardhatVersion = (await getPackageJson()).version;
-      return expected.replace("{HARDHAT_VERSION}", hardhatVersion).trim();
-    }
-
-    async function assertFlattenedFilesResult(flattenedFiles: string) {
-      // Check that the flattened file compiles correctly
-      await compileLiteral(flattenedFiles);
-
-      const expected = await getExpectedSol();
-
-      assert.equal(flattenedFiles, expected);
-    }
-
     describe("Flatten files that not contain SPDX licenses or pragma directives", () => {
       useFixtureProject("contracts-no-spdx-no-pragma");
 
@@ -254,6 +258,37 @@ describe("Flatten task", () => {
 
         await assertFlattenedFilesResult(flattenedFiles);
       });
+    });
+  });
+
+  describe("TASK_FLATTEN", () => {
+    let spyFunction: SinonSpy;
+
+    beforeEach(() => {
+      spyFunction = sinon.spy(console, "log");
+    });
+
+    afterEach(() => {
+      spyFunction.restore();
+    });
+
+    useFixtureProject("contracts-task-flatten");
+
+    it("should console log the flattened files", async function () {
+      await this.env.run(TASK_FLATTEN);
+      assert(spyFunction.calledWith(await getExpectedSol()));
+    });
+
+    it("should console log only the flattened files passed as arguments", async function () {
+      await this.env.run(TASK_FLATTEN, {
+        files: ["contracts/B.sol", "contracts/C.sol"],
+      });
+
+      const expected = (await getExpectedSol())
+        .split("// File contracts/A.sol")[0]
+        .trimEnd();
+
+      assert(spyFunction.calledWith(expected));
     });
   });
 });
