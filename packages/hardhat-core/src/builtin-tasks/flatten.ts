@@ -19,9 +19,8 @@ import {
 const SPDX_LICENSES_REGEX =
   /^(\/\/|\/\*)(\s|\t)*SPDX-License-Identifier:(\s|\t)*([\w\d._-]+).*/gm;
 // Match every group where a pragma directive is defined. The second captured group is the pragma directive.
-// If, after the pragma directives, there is code, it will be captured in group 9.
 const PRAGMA_DIRECTIVES_REGEX =
-  /^( |\t)*(pragma(\s|\t)*abicoder(\s|\t)*v(1|2)|pragma(\s|\t)*experimental(\s|\t)*ABIEncoderV2)(\s|\t)*;(.*)/gim;
+  /^( |\t)*(pragma(\s|\t)*abicoder(\s|\t)*v(1|2)|pragma(\s|\t)*experimental(\s|\t)*ABIEncoderV2)(\s|\t)*;/gim;
 
 function getSortedFiles(dependenciesGraph: DependencyGraph) {
   const tsort = require("tsort");
@@ -138,14 +137,9 @@ function replaceLicenses(file: string): string {
 
 function replacePragmaAbicoderDirectives(file: string): string {
   return file.replaceAll(PRAGMA_DIRECTIVES_REGEX, (...groups) => {
-    // If there is code after the pragma directives, move it to the next line.
-    // This is necessary because the original pragma directives will be commented out.
-    // E.g.: pragma abicoder v2; contract Bar {
-    const codeToMove = groups[9] !== "" ? `\n${groups[9].trimStart()}` : "";
-
     return `// Original pragma directive: ${removeUnnecessarySpaces(
       groups[2]
-    )}${codeToMove}`;
+    )}`;
   });
 }
 
