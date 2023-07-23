@@ -5,6 +5,7 @@ import sinon, { SinonSpy } from "sinon";
 import {
   TASK_FLATTEN,
   TASK_FLATTEN_GET_FLATTENED_SOURCE,
+  TASK_FLATTEN_GET_FLATTENED_SOURCE_AND_METADATA,
 } from "../../src/builtin-tasks/task-names";
 import { getPackageJson } from "../../src/internal/util/packageInfo";
 import { useEnvironment } from "../helpers/environment";
@@ -18,8 +19,8 @@ function getContractsOrder(flattenedFiles: string) {
   return matches!.map((m: string) => m.replace("contract", "").trim());
 }
 
-async function getExpectedSol() {
-  const expected = fs.readFileSync("expected.sol", "utf8");
+async function getExpectedSol(fileName = "expected.sol") {
+  const expected = fs.readFileSync(fileName, "utf8");
 
   const hardhatVersion = (await getPackageJson()).version;
   return expected.replace("{HARDHAT_VERSION}", hardhatVersion).trim();
@@ -134,8 +135,8 @@ describe("Flatten task", () => {
       useFixtureProject("contracts-no-spdx-no-pragma");
 
       it("should successfully flatten and compile the files", async function () {
-        const flattenedFiles = await this.env.run(
-          TASK_FLATTEN_GET_FLATTENED_SOURCE
+        const [flattenedFiles, _metadata] = await this.env.run(
+          TASK_FLATTEN_GET_FLATTENED_SOURCE_AND_METADATA
         );
 
         await assertFlattenedFilesResult(flattenedFiles);
@@ -148,8 +149,8 @@ describe("Flatten task", () => {
           useFixtureProject("contracts-spdx-same-licenses");
 
           it("should successfully flatten and compile the files", async function () {
-            const flattenedFiles = await this.env.run(
-              TASK_FLATTEN_GET_FLATTENED_SOURCE
+            const [flattenedFiles, _metadata] = await this.env.run(
+              TASK_FLATTEN_GET_FLATTENED_SOURCE_AND_METADATA
             );
 
             await assertFlattenedFilesResult(flattenedFiles);
@@ -160,8 +161,8 @@ describe("Flatten task", () => {
           useFixtureProject("contracts-spdx-different-licenses");
 
           it("should successfully flatten and compile the files", async function () {
-            const flattenedFiles = await this.env.run(
-              TASK_FLATTEN_GET_FLATTENED_SOURCE
+            const [flattenedFiles, _metadata] = await this.env.run(
+              TASK_FLATTEN_GET_FLATTENED_SOURCE_AND_METADATA
             );
 
             await assertFlattenedFilesResult(flattenedFiles);
@@ -174,8 +175,8 @@ describe("Flatten task", () => {
           useFixtureProject("contracts-spdx-same-multiple-licenses");
 
           it("should successfully flatten and compile the files", async function () {
-            const flattenedFiles = await this.env.run(
-              TASK_FLATTEN_GET_FLATTENED_SOURCE
+            const [flattenedFiles, _metadata] = await this.env.run(
+              TASK_FLATTEN_GET_FLATTENED_SOURCE_AND_METADATA
             );
 
             await assertFlattenedFilesResult(flattenedFiles);
@@ -186,8 +187,8 @@ describe("Flatten task", () => {
           useFixtureProject("contracts-spdx-different-multiple-licenses");
 
           it("should successfully flatten and compile the files", async function () {
-            const flattenedFiles = await this.env.run(
-              TASK_FLATTEN_GET_FLATTENED_SOURCE
+            const [flattenedFiles, _metadata] = await this.env.run(
+              TASK_FLATTEN_GET_FLATTENED_SOURCE_AND_METADATA
             );
 
             await assertFlattenedFilesResult(flattenedFiles);
@@ -202,8 +203,8 @@ describe("Flatten task", () => {
           useFixtureProject("contracts-pragma-same-directives");
 
           it("should successfully flatten and compile the files", async function () {
-            const flattenedFiles = await this.env.run(
-              TASK_FLATTEN_GET_FLATTENED_SOURCE
+            const [flattenedFiles, _metadata] = await this.env.run(
+              TASK_FLATTEN_GET_FLATTENED_SOURCE_AND_METADATA
             );
 
             await assertFlattenedFilesResult(flattenedFiles);
@@ -214,8 +215,8 @@ describe("Flatten task", () => {
           useFixtureProject("contracts-pragma-different-directives");
 
           it("should successfully flatten and compile the files", async function () {
-            const flattenedFiles = await this.env.run(
-              TASK_FLATTEN_GET_FLATTENED_SOURCE
+            const [flattenedFiles, _metadata] = await this.env.run(
+              TASK_FLATTEN_GET_FLATTENED_SOURCE_AND_METADATA
             );
 
             await assertFlattenedFilesResult(flattenedFiles);
@@ -227,8 +228,8 @@ describe("Flatten task", () => {
         useFixtureProject("contracts-pragma-multiple-directives");
 
         it("should successfully flatten and compile the files", async function () {
-          const flattenedFiles = await this.env.run(
-            TASK_FLATTEN_GET_FLATTENED_SOURCE
+          const [flattenedFiles, _metadata] = await this.env.run(
+            TASK_FLATTEN_GET_FLATTENED_SOURCE_AND_METADATA
           );
 
           await assertFlattenedFilesResult(flattenedFiles);
@@ -240,8 +241,8 @@ describe("Flatten task", () => {
       useFixtureProject("contracts-spdx-licenses-and-pragma-directives");
 
       it("should successfully flatten and compile the files", async function () {
-        const flattenedFiles = await this.env.run(
-          TASK_FLATTEN_GET_FLATTENED_SOURCE
+        const [flattenedFiles, _metadata] = await this.env.run(
+          TASK_FLATTEN_GET_FLATTENED_SOURCE_AND_METADATA
         );
 
         await assertFlattenedFilesResult(flattenedFiles);
@@ -252,8 +253,8 @@ describe("Flatten task", () => {
       useFixtureProject("contracts-regex-spdx-licenses-and-pragma-directives");
 
       it("should successfully flatten and compile the files", async function () {
-        const flattenedFiles = await this.env.run(
-          TASK_FLATTEN_GET_FLATTENED_SOURCE
+        const [flattenedFiles, _metadata] = await this.env.run(
+          TASK_FLATTEN_GET_FLATTENED_SOURCE_AND_METADATA
         );
 
         await assertFlattenedFilesResult(flattenedFiles);
@@ -262,33 +263,69 @@ describe("Flatten task", () => {
   });
 
   describe("TASK_FLATTEN", () => {
-    let spyFunction: SinonSpy;
+    let spyFunctionConsoleLog: SinonSpy;
+    let spyFunctionConsoleWarn: SinonSpy;
 
     beforeEach(() => {
-      spyFunction = sinon.spy(console, "log");
+      spyFunctionConsoleLog = sinon.spy(console, "log");
+      spyFunctionConsoleWarn = sinon.spy(console, "warn");
     });
 
     afterEach(() => {
-      spyFunction.restore();
+      spyFunctionConsoleLog.restore();
+      spyFunctionConsoleWarn.restore();
     });
 
     useFixtureProject("contracts-task-flatten");
 
-    it("should console log the flattened files", async function () {
+    it("should console log the flattened files and the warnings about missing licenses and pragma directives", async function () {
       await this.env.run(TASK_FLATTEN);
-      assert(spyFunction.calledWith(await getExpectedSol()));
+
+      const expectedOutput = await getExpectedSol();
+
+      assert(spyFunctionConsoleLog.calledWith(expectedOutput));
+
+      assert(
+        spyFunctionConsoleWarn.calledWith(
+          `The following file(s) do NOT specify SPDX licenses: contracts/A.sol, contracts/B.sol, contracts/C.sol`
+        )
+      );
+
+      assert(
+        spyFunctionConsoleWarn.calledWith(
+          `The following file(s) do NOT specify pragma abicoder directives: contracts/A.sol, contracts/B.sol, contracts/C.sol`
+        )
+      );
     });
 
-    it("should console log only the flattened files passed as arguments", async function () {
+    it("should console log only the flattened files passed as arguments and the warnings about missing licenses and pragma directives", async function () {
       await this.env.run(TASK_FLATTEN, {
         files: ["contracts/B.sol", "contracts/C.sol"],
       });
 
-      const expected = (await getExpectedSol())
-        .split("// File contracts/A.sol")[0]
-        .trimEnd();
+      const expectedOutput = await getExpectedSol("expected2.sol");
 
-      assert(spyFunction.calledWith(expected));
+      assert(spyFunctionConsoleLog.calledWith(expectedOutput));
+
+      assert(
+        spyFunctionConsoleWarn.calledWith(
+          `The following file(s) do NOT specify SPDX licenses: contracts/B.sol, contracts/C.sol`
+        )
+      );
+
+      assert(
+        spyFunctionConsoleWarn.calledWith(
+          `The following file(s) do NOT specify pragma abicoder directives: contracts/B.sol, contracts/C.sol`
+        )
+      );
+    });
+
+    it("should not console warn because licenses and pragma directives are specified", async function () {
+      await this.env.run(TASK_FLATTEN, {
+        files: ["contracts/D.sol"],
+      });
+
+      assert(!spyFunctionConsoleWarn.called);
     });
   });
 });

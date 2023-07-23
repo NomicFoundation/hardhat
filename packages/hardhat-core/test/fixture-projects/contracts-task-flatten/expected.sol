@@ -1,21 +1,27 @@
 // Sources flattened with hardhat v2.17.0 https://hardhat.org
 
-// File contracts/C.sol
+// SPDX-License-Identifier: MIT
 
-pragma solidity ^0.5.1;
+pragma abicoder v1;
+
+// File contracts/C.sol
 
 contract C {}
 
 
 // File contracts/B.sol
 
-pragma solidity ^0.5.1;
-
 contract B {}
 
 
 // File contracts/A.sol
 
-pragma solidity ^0.5.1;
-
 contract A {}
+
+
+// File contracts/D.sol
+
+// Original license: SPDX_License_Identifier: MIT
+// Original pragma directive: pragma abicoder v1
+
+contract D {}
