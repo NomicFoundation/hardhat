@@ -48,8 +48,8 @@ pub enum TransactionCreationError<SE> {
     /// Creating contract without any data.
     #[error("Creating contract without any data")]
     ContractMissingData,
-    /// Sender does not have sufficient funds to send transaction.
-    #[error("Sender does not have sufficient funds to send transaction. The max upfront cost is: {max_upfront_cost} and the sender's balance is: {sender_balance}.")]
+    /// Sender does not have enough funds to send transaction.
+    #[error("Sender doesn't have enough funds to send tx. The max upfront cost is: {max_upfront_cost} and the sender's balance is: {sender_balance}.")]
     InsufficientFunds {
         /// The maximum upfront cost of the transaction
         max_upfront_cost: U256,
