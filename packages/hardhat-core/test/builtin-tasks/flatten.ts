@@ -361,8 +361,8 @@ describe("Flatten task", () => {
     let spyFunctionConsoleWarn: SinonSpy;
 
     beforeEach(() => {
-      spyFunctionConsoleLog = sinon.spy(console, "log");
-      spyFunctionConsoleWarn = sinon.spy(console, "warn");
+      spyFunctionConsoleWarn = sinon.stub(console, "warn");
+      spyFunctionConsoleLog = sinon.stub(console, "log");
     });
 
     afterEach(() => {

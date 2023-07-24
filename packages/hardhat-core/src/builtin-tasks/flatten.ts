@@ -24,12 +24,12 @@ interface FlattenMetadata {
   filesWithDifferentPragmaDirectives: string[];
 }
 
-// Match every group where a SPDX license is defined. The fourth captured group is the license.
+// Match every group where a SPDX license is defined. The first captured group is the license.
 const SPDX_LICENSES_REGEX =
-  /^(\/\/|\/\*)(\s|\t)*SPDX-License-Identifier:(\s|\t)*([\w\d._-]+).*/gm;
-// Match every group where a pragma directive is defined. The second captured group is the pragma directive.
+  /^(?:\/\/|\/\*)\s*SPDX-License-Identifier:\s*([a-zA-Z\d+.-]+).*/gm;
+// Match every group where a pragma directive is defined. The first captured group is the pragma directive.
 const PRAGMA_DIRECTIVES_REGEX =
-  /^( |\t)*(pragma(\s|\t)*abicoder(\s|\t)*v(1|2)|pragma(\s|\t)*experimental(\s|\t)*ABIEncoderV2)(\s|\t)*;/gim;
+  /^(?: |\t)*(pragma\s*abicoder\s*v(1|2)|pragma\s*experimental\s*ABIEncoderV2)\s*;/gim;
 
 function getSortedFiles(dependenciesGraph: DependencyGraph) {
   const tsort = require("tsort");
@@ -100,7 +100,7 @@ function getLicensesInfo(sortedFiles: ResolvedFile[]): [string[], string[]] {
     }
 
     for (const groups of matches) {
-      licenses.add(groups[4]);
+      licenses.add(groups[1]);
     }
   }
 
@@ -142,7 +142,7 @@ function getPragmaAbicoderDirectiveInfo(
 
     let fileMostImportantDirective = "";
     for (const groups of matches) {
-      const normalizedPragma = removeUnnecessarySpaces(groups[2]);
+      const normalizedPragma = removeUnnecessarySpaces(groups[1]);
 
       // Update the most important pragma directive among all the files
       if (
@@ -189,14 +189,14 @@ function getPragmaAbicoderDirectiveHeader(pragmaDirective: string): string {
 function replaceLicenses(file: string): string {
   return file.replaceAll(
     SPDX_LICENSES_REGEX,
-    (...groups) => `// Original license: SPDX_License_Identifier: ${groups[4]}`
+    (...groups) => `// Original license: SPDX_License_Identifier: ${groups[1]}`
   );
 }
 
 function replacePragmaAbicoderDirectives(file: string): string {
   return file.replaceAll(PRAGMA_DIRECTIVES_REGEX, (...groups) => {
     return `// Original pragma directive: ${removeUnnecessarySpaces(
-      groups[2]
+      groups[1]
     )}`;
   });
 }
