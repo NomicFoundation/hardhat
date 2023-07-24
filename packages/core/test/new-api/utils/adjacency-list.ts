@@ -1,3 +1,4 @@
+/* eslint-disable import/no-unused-modules */
 import { assert } from "chai";
 
 import { AdjacencyList } from "../../../src/new-api/internal/utils/adjacency-list";

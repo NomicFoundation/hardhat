@@ -1,3 +1,4 @@
+/* eslint-disable import/no-unused-modules */
 import { defineModule } from "../../../src/new-api/define-module";
 import { MemoryJournal } from "../../../src/new-api/internal/journal/memory-journal";
 import { Wiper } from "../../../src/new-api/internal/wiper";
