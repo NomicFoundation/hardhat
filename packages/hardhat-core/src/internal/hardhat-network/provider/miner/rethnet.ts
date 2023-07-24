@@ -68,4 +68,24 @@ export class RethnetMiner implements BlockMinerAdapter {
       traces,
     };
   }
+
+  public async mineBlocks(
+    blockTimestamp: bigint,
+    minerReward: bigint,
+    count: bigint,
+    interval: bigint,
+    baseFeePerGas?: bigint
+  ): Promise<PartialMineBlockResult[]> {
+    const mineBlockResults: PartialMineBlockResult[] = [];
+
+    for (let idx = 0; idx < count; ++idx) {
+      mineBlockResults.push(
+        await this.mineBlock(blockTimestamp, minerReward, baseFeePerGas)
+      );
+
+      blockTimestamp += interval;
+    }
+
+    return mineBlockResults;
+  }
 }

@@ -309,7 +309,7 @@ export class HardhatNode extends EventEmitter {
   public async mineBlock(timestamp?: bigint): Promise<MineBlockResult> {
     const timestampAndOffset = this._calculateTimestampAndOffset(timestamp);
     let [blockTimestamp] = timestampAndOffset;
-    const [, offsetShouldChange, newOffset] = timestampAndOffset;
+    const [, newOffset] = timestampAndOffset;
 
     const needsTimestampIncrease =
       !this._allowBlocksWithSameTimestamp &&
@@ -356,9 +356,7 @@ export class HardhatNode extends EventEmitter {
       this.increaseTime(1n);
     }
 
-    if (offsetShouldChange) {
-      this.setTimeIncrement(newOffset);
-    }
+    this.setTimeIncrement(newOffset);
 
     this._resetNextBlockTimestamp();
     this._resetUserProvidedNextBlockBaseFeePerGas();
@@ -380,63 +378,39 @@ export class HardhatNode extends EventEmitter {
     if (count === 0n) {
       // nothing to do
       return [];
+    } else if (count === 1n) {
+      return [await this.mineBlock()];
     }
 
-    const mineBlockResults: MineBlockResult[] = [];
+    const timestampAndOffset = this._calculateTimestampAndOffset(undefined);
+    let [blockTimestamp] = timestampAndOffset;
 
-    // we always mine the first block, and we don't apply the interval for it
-    mineBlockResults.push(await this.mineBlock());
-
-    // helper function to mine a block with a timstamp that respects the
-    // interval
-    const mineBlock = async () => {
-      const nextTimestamp =
-        (await this.getLatestBlock()).header.timestamp + interval;
-      mineBlockResults.push(await this.mineBlock(nextTimestamp));
-    };
-
-    // then we mine any pending transactions
-    while (
-      count > mineBlockResults.length &&
-      (await this._context.memPool().hasPendingTransactions())
-    ) {
-      await mineBlock();
+    const needsTimestampIncrease =
+      !this._allowBlocksWithSameTimestamp &&
+      (await this._timestampClashesWithPreviousBlockOne(blockTimestamp));
+    if (needsTimestampIncrease) {
+      blockTimestamp += 1n;
     }
 
-    // If there is at least one remaining block, we mine one. This way, we
-    // guarantee that there's an empty block immediately before and after the
-    // reservation. This makes the logging easier to get right.
-    if (count > mineBlockResults.length) {
-      await mineBlock();
-    }
-
-    const remainingBlockCount = count - BigInt(mineBlockResults.length);
-
-    // There should be at least 2 blocks left for the reservation to work,
-    // because we always mine a block after it. But here we use a bigger
-    // number to err on the safer side.
-    if (remainingBlockCount <= 5) {
-      // if there are few blocks left to mine, we just mine them
-      while (count > mineBlockResults.length) {
-        await mineBlock();
-      }
-
-      return mineBlockResults;
-    }
-
-    // otherwise, we reserve a range and mine the last one
-    const latestBlock = await this.getLatestBlock();
-    this._context
-      .blockchain()
-      .reserveBlocks(
-        remainingBlockCount - 1n,
+    const partialMineBlockResults = await this._context
+      .blockMiner()
+      .mineBlocks(
+        blockTimestamp,
+        this._common.param("pow", "minerReward"),
+        count,
         interval,
-        await this._context.vm().getStateRoot(),
-        await this.getBlockTotalDifficulty(latestBlock),
-        latestBlock.header.baseFeePerGas
+        this.getUserProvidedNextBlockBaseFeePerGas()
       );
 
-    await mineBlock();
+    const mineBlockResults: MineBlockResult[] = [];
+    for (const result of partialMineBlockResults) {
+      mineBlockResults.push(await this._finalizeBlockResult(result));
+    }
+
+    this.setTimeIncrement(interval);
+
+    this._resetNextBlockTimestamp();
+    this._resetUserProvidedNextBlockBaseFeePerGas();
 
     return mineBlockResults;
   }
@@ -1725,12 +1699,8 @@ export class HardhatNode extends EventEmitter {
     );
   }
 
-  private _calculateTimestampAndOffset(
-    timestamp?: bigint
-  ): [bigint, boolean, bigint] {
+  private _calculateTimestampAndOffset(timestamp?: bigint): [bigint, bigint] {
     let blockTimestamp: bigint;
-    let offsetShouldChange: boolean;
-    let newOffset: bigint = 0n;
     const currentTimestamp = BigInt(getCurrentTimestamp());
 
     // if timestamp is not provided, we check nextBlockTimestamp, if it is
@@ -1739,21 +1709,15 @@ export class HardhatNode extends EventEmitter {
     if (timestamp === undefined || timestamp === 0n) {
       if (this.getNextBlockTimestamp() === 0n) {
         blockTimestamp = currentTimestamp + this.getTimeIncrement();
-        offsetShouldChange = false;
       } else {
         blockTimestamp = this.getNextBlockTimestamp();
-        offsetShouldChange = true;
       }
     } else {
-      offsetShouldChange = true;
       blockTimestamp = timestamp;
     }
 
-    if (offsetShouldChange) {
-      newOffset = blockTimestamp - currentTimestamp;
-    }
-
-    return [blockTimestamp, offsetShouldChange, newOffset];
+    const newOffset = blockTimestamp - currentTimestamp;
+    return [blockTimestamp, newOffset];
   }
 
   private _resetNextBlockTimestamp() {

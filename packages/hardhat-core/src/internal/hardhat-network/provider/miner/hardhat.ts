@@ -117,6 +117,73 @@ export class HardhatBlockMiner implements BlockMinerAdapter {
     }
   }
 
+  public async mineBlocks(
+    blockTimestamp: bigint,
+    minerReward: bigint,
+    count: bigint,
+    interval: bigint,
+    baseFeePerGas?: bigint | undefined
+  ): Promise<PartialMineBlockResult[]> {
+    const mineBlockResults: PartialMineBlockResult[] = [];
+
+    // we always mine the first block, and we don't apply the interval for it
+    mineBlockResults.push(
+      await this.mineBlock(blockTimestamp, minerReward, baseFeePerGas)
+    );
+
+    // helper function to mine a block with a timstamp that respects the
+    // interval
+    const mineBlock = async () => {
+      blockTimestamp += interval;
+      mineBlockResults.push(
+        await this.mineBlock(blockTimestamp, minerReward, baseFeePerGas)
+      );
+    };
+
+    // then we mine any pending transactions
+    while (
+      count > mineBlockResults.length &&
+      (await this._memPool.hasPendingTransactions())
+    ) {
+      await mineBlock();
+    }
+
+    // If there is at least one remaining block, we mine one. This way, we
+    // guarantee that there's an empty block immediately before and after the
+    // reservation. This makes the logging easier to get right.
+    if (count > mineBlockResults.length) {
+      await mineBlock();
+    }
+
+    const remainingBlockCount = count - BigInt(mineBlockResults.length);
+
+    // There should be at least 2 blocks left for the reservation to work,
+    // because we always mine a block after it. But here we use a bigger
+    // number to err on the safer side.
+    if (remainingBlockCount <= 5) {
+      // if there are few blocks left to mine, we just mine them
+      while (count > mineBlockResults.length) {
+        await mineBlock();
+      }
+
+      return mineBlockResults;
+    }
+
+    // otherwise, we reserve a range and mine the last one
+    const latestBlock = await this._blockchain.getLatestBlock();
+    this._blockchain.reserveBlocks(
+      remainingBlockCount - 1n,
+      interval,
+      await this._vm.getStateRoot(),
+      await this._blockchain.getTotalDifficulty(latestBlock.hash()),
+      latestBlock.header.baseFeePerGas
+    );
+
+    await mineBlock();
+
+    return mineBlockResults;
+  }
+
   private _isTxMinable(
     tx: TypedTransaction,
     nextBlockBaseFeePerGas?: bigint

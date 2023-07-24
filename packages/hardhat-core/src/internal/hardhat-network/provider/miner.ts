@@ -19,4 +19,19 @@ export interface BlockMinerAdapter {
     minerReward: bigint,
     baseFeePerGas?: bigint
   ): Promise<PartialMineBlockResult>;
+
+  /**
+   * Mines `count` blocks with a difference of `interval` seconds between their
+   * timestamps.
+   *
+   * Returns an array with the results of the blocks that were really mined (the
+   * ones that were reserved are not included).
+   */
+  mineBlocks(
+    blockTimestamp: bigint,
+    minerReward: bigint,
+    count: bigint,
+    interval: bigint,
+    baseFeePerGas?: bigint
+  ): Promise<PartialMineBlockResult[]>;
 }
