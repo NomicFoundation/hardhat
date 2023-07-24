@@ -41,7 +41,7 @@ import {
 import { Bytecode } from "../solc/bytecode";
 import {
   TASK_VERIFY_ETHERSCAN,
-  TASK_VERIFY_RESOLVE_ARGUMENTS,
+  TASK_VERIFY_ETHERSCAN_RESOLVE_ARGUMENTS,
   TASK_VERIFY_ETHERSCAN_GET_CONTRACT_INFORMATION,
   TASK_VERIFY_ETHERSCAN_GET_MINIMAL_INPUT,
   TASK_VERIFY_ETHERSCAN_ATTEMPT_VERIFICATION,
@@ -106,7 +106,10 @@ subtask(TASK_VERIFY_ETHERSCAN)
       constructorArgs,
       libraries,
       contractFQN,
-    }: VerificationArgs = await run(TASK_VERIFY_RESOLVE_ARGUMENTS, taskArgs);
+    }: VerificationArgs = await run(
+      TASK_VERIFY_ETHERSCAN_RESOLVE_ARGUMENTS,
+      taskArgs
+    );
 
     const chainConfig = await Etherscan.getCurrentChainConfig(
       network.name,
@@ -215,7 +218,7 @@ This means that unrelated contracts may be displayed on Etherscan...
     );
   });
 
-subtask(TASK_VERIFY_RESOLVE_ARGUMENTS)
+subtask(TASK_VERIFY_ETHERSCAN_RESOLVE_ARGUMENTS)
   .addOptionalParam("address")
   .addOptionalParam("constructorArgsParams", undefined, [], types.any)
   .addOptionalParam("constructorArgs", undefined, undefined, types.inputFile)

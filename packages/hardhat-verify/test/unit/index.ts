@@ -4,7 +4,7 @@ import sinon, { SinonStub } from "sinon";
 import {
   TASK_VERIFY_ETHERSCAN,
   TASK_VERIFY_GET_VERIFICATION_SUBTASKS,
-  TASK_VERIFY_RESOLVE_ARGUMENTS,
+  TASK_VERIFY_ETHERSCAN_RESOLVE_ARGUMENTS,
   TASK_VERIFY_SOURCIFY,
   TASK_VERIFY_SOURCIFY_DISABLED_WARNING,
   TASK_VERIFY_VERIFY,
@@ -14,10 +14,10 @@ import { getRandomAddress, useEnvironment } from "../helpers";
 describe("verify task", () => {
   useEnvironment("hardhat-project");
 
-  describe(TASK_VERIFY_RESOLVE_ARGUMENTS, () => {
+  describe(TASK_VERIFY_ETHERSCAN_RESOLVE_ARGUMENTS, () => {
     it("should throw if address is not provided", async function () {
       await expect(
-        this.hre.run(TASK_VERIFY_RESOLVE_ARGUMENTS, {
+        this.hre.run(TASK_VERIFY_ETHERSCAN_RESOLVE_ARGUMENTS, {
           constructorArgsParams: [],
           constructorArgs: "constructor-args.js",
           libraries: "libraries.js",
@@ -27,7 +27,7 @@ describe("verify task", () => {
 
     it("should throw if address is invalid", async function () {
       await expect(
-        this.hre.run(TASK_VERIFY_RESOLVE_ARGUMENTS, {
+        this.hre.run(TASK_VERIFY_ETHERSCAN_RESOLVE_ARGUMENTS, {
           address: "invalidAddress",
           constructorArgsParams: [],
           constructorArgs: "constructor-args.js",
@@ -38,7 +38,7 @@ describe("verify task", () => {
 
     it("should throw if contract is not a fully qualified name", async function () {
       await expect(
-        this.hre.run(TASK_VERIFY_RESOLVE_ARGUMENTS, {
+        this.hre.run(TASK_VERIFY_ETHERSCAN_RESOLVE_ARGUMENTS, {
           address: getRandomAddress(this.hre),
           constructorArgsParams: [],
           constructorArgs: "constructor-args.js",
@@ -67,13 +67,16 @@ describe("verify task", () => {
         },
         contractFQN: "contracts/TestContract.sol:TestContract",
       };
-      const processedArgs = await this.hre.run(TASK_VERIFY_RESOLVE_ARGUMENTS, {
-        address,
-        constructorArgsParams: [],
-        constructorArgs: "constructor-args.js",
-        libraries: "libraries.js",
-        contract: "contracts/TestContract.sol:TestContract",
-      });
+      const processedArgs = await this.hre.run(
+        TASK_VERIFY_ETHERSCAN_RESOLVE_ARGUMENTS,
+        {
+          address,
+          constructorArgsParams: [],
+          constructorArgs: "constructor-args.js",
+          libraries: "libraries.js",
+          contract: "contracts/TestContract.sol:TestContract",
+        }
+      );
 
       assert.deepEqual(processedArgs, expectedArgs);
     });
