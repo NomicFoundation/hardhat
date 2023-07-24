@@ -9,7 +9,6 @@ pragma abicoder v2;
 // Original license: SPDX_License_Identifier: MIT2
 // Original license: SPDX_License_Identifier: Linux2-man-pages-1-para
 
-// NOTE: leave on the same line, the regex matcher should be able to handle the scenario
 // Original pragma directive: pragma abicoder v2
 contract Bar {
         function sayHelloWorld() public pure returns (string memory) {

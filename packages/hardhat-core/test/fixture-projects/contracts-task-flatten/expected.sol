@@ -2,9 +2,11 @@
 
 // SPDX-License-Identifier: MIT
 
-pragma abicoder v1;
+pragma abicoder v2;
 
 // File contracts/C.sol
+
+// Original pragma directive: pragma abicoder v1
 
 contract C {}
 
@@ -22,6 +24,6 @@ contract A {}
 // File contracts/D.sol
 
 // Original license: SPDX_License_Identifier: MIT
-// Original pragma directive: pragma abicoder v1
+// Original pragma directive: pragma abicoder v2
 
 contract D {}

@@ -1,3 +1,4 @@
+import chalk from "chalk";
 import { subtask, task, types } from "../internal/core/config/config-env";
 import { HardhatError } from "../internal/core/errors";
 import { ERRORS } from "../internal/core/errors-list";
@@ -15,6 +16,13 @@ import {
   TASK_FLATTEN_GET_FLATTENED_SOURCE,
   TASK_FLATTEN_GET_FLATTENED_SOURCE_AND_METADATA,
 } from "./task-names";
+
+interface FlattenMetadata {
+  filesWithoutLicenses: string[];
+  pragmaDirective: string;
+  filesWithoutPragmaDirectives: string[];
+  filesWithDifferentPragmaDirectives: string[];
+}
 
 // Match every group where a SPDX license is defined. The fourth captured group is the license.
 const SPDX_LICENSES_REGEX =
@@ -112,14 +120,15 @@ function removeUnnecessarySpaces(str: string): string {
 
 function getPragmaAbicoderDirectiveInfo(
   sortedFiles: ResolvedFile[]
-): [string, string[]] {
+): [string, string[], string[]] {
   let directive = "";
   const directivesByImportance = [
     "pragma abicoder v1",
     "pragma experimental ABIEncoderV2",
     "pragma abicoder v2",
   ];
-  const filesWithoutPragmas: Set<string> = new Set();
+  const filesWithoutPragmaDirectives: Set<string> = new Set();
+  const filesWithMostImportantDirective: Array<[string, string]> = []; // Every array element has the structure: [ fileName, fileMostImportantDirective ]
 
   for (const file of sortedFiles) {
     const matches = [
@@ -127,24 +136,50 @@ function getPragmaAbicoderDirectiveInfo(
     ];
 
     if (matches.length === 0) {
-      filesWithoutPragmas.add(file.sourceName);
+      filesWithoutPragmaDirectives.add(file.sourceName);
       continue;
     }
 
+    let fileMostImportantDirective = "";
     for (const groups of matches) {
       const normalizedPragma = removeUnnecessarySpaces(groups[2]);
 
+      // Update the most important pragma directive among all the files
       if (
         directivesByImportance.indexOf(normalizedPragma) >
         directivesByImportance.indexOf(directive)
       ) {
         directive = normalizedPragma;
       }
+
+      // Update the most important pragma directive for the current file
+      if (
+        directivesByImportance.indexOf(normalizedPragma) >
+        directivesByImportance.indexOf(fileMostImportantDirective)
+      ) {
+        fileMostImportantDirective = normalizedPragma;
+      }
     }
+
+    // Add in the array the most important directive for the current file
+    filesWithMostImportantDirective.push([
+      file.sourceName,
+      fileMostImportantDirective,
+    ]);
   }
 
+  // Add to the array the files that have a pragma directive which is not the same as the main one that
+  // is going to be used in the flatten file
+  const filesWithDifferentPragmaDirectives = filesWithMostImportantDirective
+    .filter(([, fileDirective]) => fileDirective !== directive)
+    .map(([fileName]) => fileName);
+
   // Sort alphabetically
-  return [directive, Array.from(filesWithoutPragmas).sort()];
+  return [
+    directive,
+    Array.from(filesWithoutPragmaDirectives).sort(),
+    filesWithDifferentPragmaDirectives.sort(),
+  ];
 }
 
 function getPragmaAbicoderDirectiveHeader(pragmaDirective: string): string {
@@ -171,48 +206,59 @@ subtask(
   "Returns all contracts and their dependencies flattened. Also return metadata about pragma directives and SPDX licenses"
 )
   .addOptionalParam("files", undefined, undefined, types.any)
-  .setAction(async ({ files }: { files?: string[] }, { run }) => {
-    const dependencyGraph: DependencyGraph = await run(
-      TASK_FLATTEN_GET_DEPENDENCY_GRAPH,
-      { files }
-    );
+  .setAction(
+    async (
+      { files }: { files?: string[] },
+      { run }
+    ): Promise<[string, FlattenMetadata | null]> => {
+      const dependencyGraph: DependencyGraph = await run(
+        TASK_FLATTEN_GET_DEPENDENCY_GRAPH,
+        { files }
+      );
 
-    let flattened = "";
+      let flattened = "";
 
-    if (dependencyGraph.getResolvedFiles().length === 0) {
-      return [flattened, null];
+      if (dependencyGraph.getResolvedFiles().length === 0) {
+        return [flattened, null];
+      }
+
+      const packageJson = await getPackageJson();
+      flattened += `// Sources flattened with hardhat v${packageJson.version} https://hardhat.org`;
+
+      const sortedFiles = getSortedFiles(dependencyGraph);
+
+      const [licenses, filesWithoutLicenses] = getLicensesInfo(sortedFiles);
+      const [
+        pragmaDirective,
+        filesWithoutPragmaDirectives,
+        filesWithDifferentPragmaDirectives,
+      ] = getPragmaAbicoderDirectiveInfo(sortedFiles);
+
+      flattened += getLicensesHeader(licenses);
+      flattened += getPragmaAbicoderDirectiveHeader(pragmaDirective);
+
+      for (const file of sortedFiles) {
+        let tmpFile = getFileWithoutImports(file);
+        tmpFile = replaceLicenses(tmpFile);
+        tmpFile = replacePragmaAbicoderDirectives(tmpFile);
+
+        flattened += `\n\n// File ${file.getVersionedName()}\n`;
+        flattened += `\n${tmpFile}\n`;
+      }
+
+      return [
+        flattened.trim(),
+        {
+          filesWithoutLicenses,
+          pragmaDirective,
+          filesWithoutPragmaDirectives,
+          filesWithDifferentPragmaDirectives,
+        },
+      ];
     }
+  );
 
-    const packageJson = await getPackageJson();
-    flattened += `// Sources flattened with hardhat v${packageJson.version} https://hardhat.org`;
-
-    const sortedFiles = getSortedFiles(dependencyGraph);
-
-    const [licenses, filesWithoutLicenses] = getLicensesInfo(sortedFiles);
-    const [pragmaDirective, filesWithoutPragmas] =
-      getPragmaAbicoderDirectiveInfo(sortedFiles);
-
-    flattened += getLicensesHeader(licenses);
-    flattened += getPragmaAbicoderDirectiveHeader(pragmaDirective);
-
-    for (const file of sortedFiles) {
-      let tmpFile = getFileWithoutImports(file);
-      tmpFile = replaceLicenses(tmpFile);
-      tmpFile = replacePragmaAbicoderDirectives(tmpFile);
-
-      flattened += `\n\n// File ${file.getVersionedName()}\n`;
-      flattened += `\n${tmpFile}\n`;
-    }
-
-    return [
-      flattened.trim(),
-      {
-        filesWithoutLicenses,
-        filesWithoutPragmas,
-      },
-    ];
-  });
-
+// The following task is kept for backwards-compatibility reasons
 subtask(
   TASK_FLATTEN_GET_FLATTENED_SOURCE,
   "Returns all contracts and their dependencies flattened"
@@ -258,27 +304,45 @@ task(
     types.inputFile
   )
   .setAction(async ({ files }: { files: string[] | undefined }, { run }) => {
-    const [flattenedFile, metadata] = await run(
+    const [flattenedFile, metadata]: [string, FlattenMetadata] = await run(
       TASK_FLATTEN_GET_FLATTENED_SOURCE_AND_METADATA,
       { files }
     );
 
     console.log(flattenedFile);
 
-    // Warn the user when SPDX licenses or pragma abicoder directives are not specified
-    if (metadata?.filesWithoutLicenses.length > 0) {
+    if (metadata.filesWithoutLicenses.length > 0) {
       console.warn(
-        `The following file(s) do NOT specify SPDX licenses: ${metadata.filesWithoutLicenses.join(
-          ", "
-        )}`
+        chalk.yellow(
+          `The following file(s) do NOT specify SPDX licenses: ${metadata.filesWithoutLicenses.join(
+            ", "
+          )}`
+        )
       );
     }
 
-    if (metadata?.filesWithoutPragmas.length > 0) {
+    if (
+      metadata.pragmaDirective !== "" &&
+      metadata.filesWithoutPragmaDirectives.length > 0
+    ) {
       console.warn(
-        `The following file(s) do NOT specify pragma abicoder directives: ${metadata.filesWithoutPragmas.join(
-          ", "
-        )}`
+        chalk.yellow(
+          `Pragma abicoder directives are defined in some files, but they are not defined in the following ones: ${metadata.filesWithoutPragmaDirectives.join(
+            ", "
+          )}`
+        )
+      );
+    }
+
+    if (metadata.filesWithDifferentPragmaDirectives.length > 0) {
+      console.warn(
+        chalk.yellow(
+          `The flattened file is using the pragma abicoder directive '${
+            metadata.pragmaDirective
+          }' but these files have a different pragma abicoder directive: ${metadata.filesWithDifferentPragmaDirectives.join(
+            ", "
+          )}`
+        )
       );
     }
   });

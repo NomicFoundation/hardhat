@@ -2,6 +2,7 @@ import { assert } from "chai";
 import fs from "fs";
 
 import sinon, { SinonSpy } from "sinon";
+import chalk from "chalk";
 import {
   TASK_FLATTEN,
   TASK_FLATTEN_GET_FLATTENED_SOURCE,
@@ -135,11 +136,18 @@ describe("Flatten task", () => {
       useFixtureProject("contracts-no-spdx-no-pragma");
 
       it("should successfully flatten and compile the files", async function () {
-        const [flattenedFiles, _metadata] = await this.env.run(
+        const [flattenedFiles, metadata] = await this.env.run(
           TASK_FLATTEN_GET_FLATTENED_SOURCE_AND_METADATA
         );
 
         await assertFlattenedFilesResult(flattenedFiles);
+
+        assert.deepEqual(metadata, {
+          filesWithoutLicenses: ["contracts/A.sol", "contracts/B.sol"],
+          pragmaDirective: "",
+          filesWithoutPragmaDirectives: ["contracts/A.sol", "contracts/B.sol"],
+          filesWithDifferentPragmaDirectives: [],
+        });
       });
     });
 
@@ -149,11 +157,21 @@ describe("Flatten task", () => {
           useFixtureProject("contracts-spdx-same-licenses");
 
           it("should successfully flatten and compile the files", async function () {
-            const [flattenedFiles, _metadata] = await this.env.run(
+            const [flattenedFiles, metadata] = await this.env.run(
               TASK_FLATTEN_GET_FLATTENED_SOURCE_AND_METADATA
             );
 
             await assertFlattenedFilesResult(flattenedFiles);
+
+            assert.deepEqual(metadata, {
+              filesWithoutLicenses: [],
+              pragmaDirective: "",
+              filesWithoutPragmaDirectives: [
+                "contracts/A.sol",
+                "contracts/B.sol",
+              ],
+              filesWithDifferentPragmaDirectives: [],
+            });
           });
         });
 
@@ -161,11 +179,21 @@ describe("Flatten task", () => {
           useFixtureProject("contracts-spdx-different-licenses");
 
           it("should successfully flatten and compile the files", async function () {
-            const [flattenedFiles, _metadata] = await this.env.run(
+            const [flattenedFiles, metadata] = await this.env.run(
               TASK_FLATTEN_GET_FLATTENED_SOURCE_AND_METADATA
             );
 
             await assertFlattenedFilesResult(flattenedFiles);
+
+            assert.deepEqual(metadata, {
+              filesWithoutLicenses: [],
+              pragmaDirective: "",
+              filesWithoutPragmaDirectives: [
+                "contracts/A.sol",
+                "contracts/B.sol",
+              ],
+              filesWithDifferentPragmaDirectives: [],
+            });
           });
         });
       });
@@ -175,11 +203,21 @@ describe("Flatten task", () => {
           useFixtureProject("contracts-spdx-same-multiple-licenses");
 
           it("should successfully flatten and compile the files", async function () {
-            const [flattenedFiles, _metadata] = await this.env.run(
+            const [flattenedFiles, metadata] = await this.env.run(
               TASK_FLATTEN_GET_FLATTENED_SOURCE_AND_METADATA
             );
 
             await assertFlattenedFilesResult(flattenedFiles);
+
+            assert.deepEqual(metadata, {
+              filesWithoutLicenses: [],
+              pragmaDirective: "",
+              filesWithoutPragmaDirectives: [
+                "contracts/A.sol",
+                "contracts/B.sol",
+              ],
+              filesWithDifferentPragmaDirectives: [],
+            });
           });
         });
 
@@ -187,11 +225,22 @@ describe("Flatten task", () => {
           useFixtureProject("contracts-spdx-different-multiple-licenses");
 
           it("should successfully flatten and compile the files", async function () {
-            const [flattenedFiles, _metadata] = await this.env.run(
+            const [flattenedFiles, metadata] = await this.env.run(
               TASK_FLATTEN_GET_FLATTENED_SOURCE_AND_METADATA
             );
 
             await assertFlattenedFilesResult(flattenedFiles);
+
+            assert.deepEqual(metadata, {
+              filesWithoutLicenses: [],
+              pragmaDirective: "",
+              filesWithoutPragmaDirectives: [
+                "contracts/A.sol",
+                "contracts/B.sol",
+                "contracts/C.sol",
+              ],
+              filesWithDifferentPragmaDirectives: [],
+            });
           });
         });
       });
@@ -203,11 +252,18 @@ describe("Flatten task", () => {
           useFixtureProject("contracts-pragma-same-directives");
 
           it("should successfully flatten and compile the files", async function () {
-            const [flattenedFiles, _metadata] = await this.env.run(
+            const [flattenedFiles, metadata] = await this.env.run(
               TASK_FLATTEN_GET_FLATTENED_SOURCE_AND_METADATA
             );
 
             await assertFlattenedFilesResult(flattenedFiles);
+
+            assert.deepEqual(metadata, {
+              filesWithoutLicenses: ["contracts/A.sol", "contracts/B.sol"],
+              pragmaDirective: "pragma abicoder v1",
+              filesWithoutPragmaDirectives: [],
+              filesWithDifferentPragmaDirectives: [],
+            });
           });
         });
 
@@ -215,11 +271,18 @@ describe("Flatten task", () => {
           useFixtureProject("contracts-pragma-different-directives");
 
           it("should successfully flatten and compile the files", async function () {
-            const [flattenedFiles, _metadata] = await this.env.run(
+            const [flattenedFiles, metadata] = await this.env.run(
               TASK_FLATTEN_GET_FLATTENED_SOURCE_AND_METADATA
             );
 
             await assertFlattenedFilesResult(flattenedFiles);
+
+            assert.deepEqual(metadata, {
+              filesWithoutLicenses: ["contracts/A.sol", "contracts/B.sol"],
+              pragmaDirective: "pragma experimental ABIEncoderV2",
+              filesWithoutPragmaDirectives: [],
+              filesWithDifferentPragmaDirectives: ["contracts/B.sol"],
+            });
           });
         });
       });
@@ -228,11 +291,18 @@ describe("Flatten task", () => {
         useFixtureProject("contracts-pragma-multiple-directives");
 
         it("should successfully flatten and compile the files", async function () {
-          const [flattenedFiles, _metadata] = await this.env.run(
+          const [flattenedFiles, metadata] = await this.env.run(
             TASK_FLATTEN_GET_FLATTENED_SOURCE_AND_METADATA
           );
 
           await assertFlattenedFilesResult(flattenedFiles);
+
+          assert.deepEqual(metadata, {
+            filesWithoutLicenses: ["contracts/A.sol", "contracts/B.sol"],
+            pragmaDirective: "pragma abicoder v2",
+            filesWithoutPragmaDirectives: [],
+            filesWithDifferentPragmaDirectives: ["contracts/A.sol"],
+          });
         });
       });
     });
@@ -241,11 +311,18 @@ describe("Flatten task", () => {
       useFixtureProject("contracts-spdx-licenses-and-pragma-directives");
 
       it("should successfully flatten and compile the files", async function () {
-        const [flattenedFiles, _metadata] = await this.env.run(
+        const [flattenedFiles, metadata] = await this.env.run(
           TASK_FLATTEN_GET_FLATTENED_SOURCE_AND_METADATA
         );
 
         await assertFlattenedFilesResult(flattenedFiles);
+
+        assert.deepEqual(metadata, {
+          filesWithoutLicenses: [],
+          pragmaDirective: "pragma abicoder v2",
+          filesWithoutPragmaDirectives: [],
+          filesWithDifferentPragmaDirectives: ["contracts/A.sol"],
+        });
       });
     });
 
@@ -253,11 +330,18 @@ describe("Flatten task", () => {
       useFixtureProject("contracts-regex-spdx-licenses-and-pragma-directives");
 
       it("should successfully flatten and compile the files", async function () {
-        const [flattenedFiles, _metadata] = await this.env.run(
+        const [flattenedFiles, metadata] = await this.env.run(
           TASK_FLATTEN_GET_FLATTENED_SOURCE_AND_METADATA
         );
 
         await assertFlattenedFilesResult(flattenedFiles);
+
+        assert.deepEqual(metadata, {
+          filesWithoutLicenses: [],
+          pragmaDirective: "pragma abicoder v2",
+          filesWithoutPragmaDirectives: [],
+          filesWithDifferentPragmaDirectives: ["contracts/B.sol"],
+        });
       });
     });
   });
@@ -287,35 +371,25 @@ describe("Flatten task", () => {
 
       assert(
         spyFunctionConsoleWarn.calledWith(
-          `The following file(s) do NOT specify SPDX licenses: contracts/A.sol, contracts/B.sol, contracts/C.sol`
+          chalk.yellow(
+            `The following file(s) do NOT specify SPDX licenses: contracts/A.sol, contracts/B.sol, contracts/C.sol`
+          )
         )
       );
 
       assert(
         spyFunctionConsoleWarn.calledWith(
-          `The following file(s) do NOT specify pragma abicoder directives: contracts/A.sol, contracts/B.sol, contracts/C.sol`
-        )
-      );
-    });
-
-    it("should console log only the flattened files passed as arguments and the warnings about missing licenses and pragma directives", async function () {
-      await this.env.run(TASK_FLATTEN, {
-        files: ["contracts/B.sol", "contracts/C.sol"],
-      });
-
-      const expectedOutput = await getExpectedSol("expected2.sol");
-
-      assert(spyFunctionConsoleLog.calledWith(expectedOutput));
-
-      assert(
-        spyFunctionConsoleWarn.calledWith(
-          `The following file(s) do NOT specify SPDX licenses: contracts/B.sol, contracts/C.sol`
+          chalk.yellow(
+            `Pragma abicoder directives are defined in some files, but they are not defined in the following ones: contracts/A.sol, contracts/B.sol`
+          )
         )
       );
 
       assert(
         spyFunctionConsoleWarn.calledWith(
-          `The following file(s) do NOT specify pragma abicoder directives: contracts/B.sol, contracts/C.sol`
+          chalk.yellow(
+            `The flattened file is using the pragma abicoder directive 'pragma abicoder v2' but these files have a different pragma abicoder directive: contracts/C.sol`
+          )
         )
       );
     });

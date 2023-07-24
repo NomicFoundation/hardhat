@@ -1,4 +1,4 @@
 // SPDX-License-Identifier: MIT
-pragma abicoder v1;
+pragma abicoder v2;
 
 contract D {}
