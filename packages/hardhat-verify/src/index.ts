@@ -43,6 +43,7 @@ import {
   UnexpectedNumberOfFilesError,
   VerificationAPIUnexpectedMessageError,
   ContractVerificationFailedError,
+  HardhatVerifyError,
 } from "./internal/errors";
 import {
   sleep,
@@ -51,6 +52,7 @@ import {
   printSupportedNetworks,
   resolveConstructorArguments,
   resolveLibraries,
+  printVerificationErrors,
 } from "./internal/utilities";
 import { Etherscan } from "./internal/etherscan";
 import { Bytecode } from "./internal/solc/bytecode";
@@ -156,62 +158,27 @@ task(TASK_VERIFY, "Verifies a contract on Etherscan")
       await run(TASK_VERIFY_PRINT_SUPPORTED_NETWORKS);
       return;
     }
-    const verificationArgs: VerificationArgs = await run(
-      TASK_VERIFY_RESOLVE_ARGUMENTS,
-      taskArgs
-    );
 
     const verificationSubtasks: string[] = await run(
       TASK_VERIFY_GET_VERIFICATION_SUBTASKS
     );
 
+    const errors: Record<string, HardhatVerifyError> = {};
+    let hasErrors = false;
     for (const verificationSubtask of verificationSubtasks) {
-      await run(verificationSubtask, verificationArgs);
+      try {
+        await run(verificationSubtask, taskArgs);
+      } catch (error) {
+        hasErrors = true;
+        errors[verificationSubtask] = error as HardhatVerifyError;
+      }
+    }
+
+    if (hasErrors) {
+      printVerificationErrors(errors);
+      process.exit(1);
     }
   });
-
-subtask(TASK_VERIFY_RESOLVE_ARGUMENTS)
-  .addOptionalParam("address")
-  .addOptionalParam("constructorArgsParams", undefined, [], types.any)
-  .addOptionalParam("constructorArgs", undefined, undefined, types.inputFile)
-  .addOptionalParam("libraries", undefined, undefined, types.inputFile)
-  .addOptionalParam("contract")
-  .setAction(
-    async ({
-      address,
-      constructorArgsParams,
-      constructorArgs: constructorArgsModule,
-      contract,
-      libraries: librariesModule,
-    }: VerifyTaskArgs): Promise<VerificationArgs> => {
-      if (address === undefined) {
-        throw new MissingAddressError();
-      }
-
-      const { isAddress } = await import("@ethersproject/address");
-      if (!isAddress(address)) {
-        throw new InvalidAddressError(address);
-      }
-
-      if (contract !== undefined && !isFullyQualifiedName(contract)) {
-        throw new InvalidContractNameError(contract);
-      }
-
-      const constructorArgs = await resolveConstructorArguments(
-        constructorArgsParams,
-        constructorArgsModule
-      );
-
-      const libraries = await resolveLibraries(librariesModule);
-
-      return {
-        address,
-        constructorArgs,
-        libraries,
-        contractFQN: contract,
-      };
-    }
-  );
 
 /**
  * Returns a list of verification subtasks.
@@ -261,119 +228,174 @@ Learn more at https://...`
  */
 subtask(TASK_VERIFY_ETHERSCAN)
   .addParam("address")
-  .addParam("constructorArgs", undefined, undefined, types.any)
-  .addParam("libraries", undefined, undefined, types.any)
-  .addOptionalParam("contractFQN")
+  .addOptionalParam("constructorArgsParams", undefined, undefined, types.any)
+  .addOptionalParam("constructorArgs")
+  // TODO: [remove-verify-subtask] change to types.inputFile
+  .addOptionalParam("libraries", undefined, undefined, types.any)
+  .addOptionalParam("contract")
   .addFlag("listNetworks")
-  .setAction(
-    async (
-      { address, constructorArgs, libraries, contractFQN }: VerificationArgs,
-      { config, network, run }
-    ) => {
-      const chainConfig = await Etherscan.getCurrentChainConfig(
-        network.name,
-        network.provider,
-        config.etherscan.customChains
-      );
+  .setAction(async (taskArgs: VerifyTaskArgs, { config, network, run }) => {
+    const {
+      address,
+      constructorArgs,
+      libraries,
+      contractFQN,
+    }: VerificationArgs = await run(TASK_VERIFY_RESOLVE_ARGUMENTS, taskArgs);
 
-      const etherscan = Etherscan.fromChainConfig(
-        config.etherscan.apiKey,
-        chainConfig
-      );
+    const chainConfig = await Etherscan.getCurrentChainConfig(
+      network.name,
+      network.provider,
+      config.etherscan.customChains
+    );
 
-      const isVerified = await etherscan.isVerified(address);
-      if (isVerified) {
-        const contractURL = etherscan.getContractUrl(address);
-        console.log(`The contract ${address} has already been verified.
+    const etherscan = Etherscan.fromChainConfig(
+      config.etherscan.apiKey,
+      chainConfig
+    );
+
+    const isVerified = await etherscan.isVerified(address);
+    if (isVerified) {
+      const contractURL = etherscan.getContractUrl(address);
+      console.log(`The contract ${address} has already been verified.
 ${contractURL}`);
-        return;
-      }
+      return;
+    }
 
-      const configCompilerVersions = await getCompilerVersions(config.solidity);
+    const configCompilerVersions = await getCompilerVersions(config.solidity);
 
-      const deployedBytecode = await Bytecode.getDeployedContractBytecode(
-        address,
-        network.provider,
+    const deployedBytecode = await Bytecode.getDeployedContractBytecode(
+      address,
+      network.provider,
+      network.name
+    );
+
+    const matchingCompilerVersions = await deployedBytecode.getMatchingVersions(
+      configCompilerVersions
+    );
+    // don't error if the bytecode appears to be OVM bytecode, because we can't infer a specific OVM solc version from the bytecode
+    if (matchingCompilerVersions.length === 0 && !deployedBytecode.isOvm()) {
+      throw new CompilerVersionsMismatchError(
+        configCompilerVersions,
+        deployedBytecode.getVersion(),
         network.name
       );
+    }
 
-      const matchingCompilerVersions =
-        await deployedBytecode.getMatchingVersions(configCompilerVersions);
-      // don't error if the bytecode appears to be OVM bytecode, because we can't infer a specific OVM solc version from the bytecode
-      if (matchingCompilerVersions.length === 0 && !deployedBytecode.isOvm()) {
-        throw new CompilerVersionsMismatchError(
-          configCompilerVersions,
-          deployedBytecode.getVersion(),
-          network.name
-        );
+    const contractInformation: ExtendedContractInformation = await run(
+      TASK_VERIFY_ETHERSCAN_GET_CONTRACT_INFORMATION,
+      {
+        contractFQN,
+        deployedBytecode,
+        matchingCompilerVersions,
+        libraries,
       }
+    );
 
-      const contractInformation: ExtendedContractInformation = await run(
-        TASK_VERIFY_ETHERSCAN_GET_CONTRACT_INFORMATION,
-        {
-          contractFQN,
-          deployedBytecode,
-          matchingCompilerVersions,
-          libraries,
-        }
-      );
-
-      const minimalInput: CompilerInput = await run(
-        TASK_VERIFY_ETHERSCAN_GET_MINIMAL_INPUT,
-        {
-          sourceName: contractInformation.sourceName,
-        }
-      );
-
-      const encodedConstructorArguments = await encodeArguments(
-        contractInformation.contractOutput.abi,
-        contractInformation.sourceName,
-        contractInformation.contractName,
-        constructorArgs
-      );
-
-      // First, try to verify the contract using the minimal input
-      const { success: minimalInputVerificationSuccess }: VerificationResponse =
-        await run(TASK_VERIFY_ETHERSCAN_ATTEMPT_VERIFICATION, {
-          address,
-          compilerInput: minimalInput,
-          contractInformation,
-          verificationInterface: etherscan,
-          encodedConstructorArguments,
-        });
-
-      if (minimalInputVerificationSuccess) {
-        return;
+    const minimalInput: CompilerInput = await run(
+      TASK_VERIFY_ETHERSCAN_GET_MINIMAL_INPUT,
+      {
+        sourceName: contractInformation.sourceName,
       }
+    );
 
-      console.log(`We tried verifying your contract ${contractInformation.contractName} without including any unrelated one, but it failed.
+    const encodedConstructorArguments = await encodeArguments(
+      contractInformation.contractOutput.abi,
+      contractInformation.sourceName,
+      contractInformation.contractName,
+      constructorArgs
+    );
+
+    // First, try to verify the contract using the minimal input
+    const { success: minimalInputVerificationSuccess }: VerificationResponse =
+      await run(TASK_VERIFY_ETHERSCAN_ATTEMPT_VERIFICATION, {
+        address,
+        compilerInput: minimalInput,
+        contractInformation,
+        verificationInterface: etherscan,
+        encodedConstructorArguments,
+      });
+
+    if (minimalInputVerificationSuccess) {
+      return;
+    }
+
+    console.log(`We tried verifying your contract ${contractInformation.contractName} without including any unrelated one, but it failed.
 Trying again with the full solc input used to compile and deploy it.
 This means that unrelated contracts may be displayed on Etherscan...
 `);
 
-      // If verifying with the minimal input failed, try again with the full compiler input
-      const {
-        success: fullCompilerInputVerificationSuccess,
-        message: verificationMessage,
-      }: VerificationResponse = await run(
-        TASK_VERIFY_ETHERSCAN_ATTEMPT_VERIFICATION,
-        {
-          address,
-          compilerInput: contractInformation.compilerInput,
-          contractInformation,
-          verificationInterface: etherscan,
-          encodedConstructorArguments,
-        }
-      );
+    // If verifying with the minimal input failed, try again with the full compiler input
+    const {
+      success: fullCompilerInputVerificationSuccess,
+      message: verificationMessage,
+    }: VerificationResponse = await run(
+      TASK_VERIFY_ETHERSCAN_ATTEMPT_VERIFICATION,
+      {
+        address,
+        compilerInput: contractInformation.compilerInput,
+        contractInformation,
+        verificationInterface: etherscan,
+        encodedConstructorArguments,
+      }
+    );
 
-      if (fullCompilerInputVerificationSuccess) {
-        return;
+    if (fullCompilerInputVerificationSuccess) {
+      return;
+    }
+
+    throw new ContractVerificationFailedError(
+      verificationMessage,
+      contractInformation.undetectableLibraries
+    );
+  });
+
+subtask(TASK_VERIFY_RESOLVE_ARGUMENTS)
+  .addOptionalParam("address")
+  .addOptionalParam("constructorArgsParams", undefined, [], types.any)
+  .addOptionalParam("constructorArgs", undefined, undefined, types.inputFile)
+  // TODO: [remove-verify-subtask] change to types.inputFile
+  .addOptionalParam("libraries", undefined, undefined, types.any)
+  .addOptionalParam("contract")
+  .setAction(
+    async ({
+      address,
+      constructorArgsParams,
+      constructorArgs: constructorArgsModule,
+      contract,
+      libraries: librariesModule,
+    }: VerifyTaskArgs): Promise<VerificationArgs> => {
+      if (address === undefined) {
+        throw new MissingAddressError();
       }
 
-      throw new ContractVerificationFailedError(
-        verificationMessage,
-        contractInformation.undetectableLibraries
+      const { isAddress } = await import("@ethersproject/address");
+      if (!isAddress(address)) {
+        throw new InvalidAddressError(address);
+      }
+
+      if (contract !== undefined && !isFullyQualifiedName(contract)) {
+        throw new InvalidContractNameError(contract);
+      }
+
+      const constructorArgs = await resolveConstructorArguments(
+        constructorArgsParams,
+        constructorArgsModule
       );
+
+      // TODO: [remove-verify-subtask] librariesModule should always be string
+      let libraries;
+      if (typeof librariesModule === "object") {
+        libraries = librariesModule;
+      } else {
+        libraries = await resolveLibraries(librariesModule);
+      }
+
+      return {
+        address,
+        constructorArgs,
+        libraries,
+        contractFQN: contract,
+      };
     }
   );
 
@@ -547,8 +569,8 @@ ${contractURL}`);
 
 /**
  * This subtask is used for backwards compatibility.
- * It validates the parameters as it is done in TASK_VERIFY_RESOLVE_ARGUMENTS
- * and calls TASK_VERIFY_ETHERSCAN directly.
+ * TODO [remove-verify-subtask]: if you're going to remove this subtask,
+ * update TASK_VERIFY_ETHERSCAN and TASK_VERIFY_RESOLVE_ARGUMENTS accordingly
  */
 subtask(TASK_VERIFY_VERIFY)
   .addOptionalParam("address")
@@ -560,19 +582,6 @@ subtask(TASK_VERIFY_VERIFY)
       { address, constructorArguments, libraries, contract }: VerifySubtaskArgs,
       { run }
     ) => {
-      if (address === undefined) {
-        throw new MissingAddressError();
-      }
-
-      const { isAddress } = await import("@ethersproject/address");
-      if (!isAddress(address)) {
-        throw new InvalidAddressError(address);
-      }
-
-      if (contract !== undefined && !isFullyQualifiedName(contract)) {
-        throw new InvalidContractNameError(contract);
-      }
-
       // This can only happen if the subtask is invoked from within Hardhat by a user script or another task.
       if (!Array.isArray(constructorArguments)) {
         throw new InvalidConstructorArgumentsError();
@@ -584,9 +593,9 @@ subtask(TASK_VERIFY_VERIFY)
 
       await run(TASK_VERIFY_ETHERSCAN, {
         address,
-        constructorArgs: constructorArguments,
+        constructorArgsParams: constructorArguments,
         libraries,
-        contractFQN: contract,
+        contract,
       });
     }
   );

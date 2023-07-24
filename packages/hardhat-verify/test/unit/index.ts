@@ -79,36 +79,6 @@ describe("verify task", () => {
   });
 
   describe(TASK_VERIFY_VERIFY, () => {
-    it("should throw if address is not provided", async function () {
-      await expect(
-        this.hre.run(TASK_VERIFY_VERIFY, {
-          constructorArguments: [],
-          libraries: {},
-        })
-      ).to.be.rejectedWith(/You didn’t provide any address./);
-    });
-
-    it("should throw if address is invalid", async function () {
-      await expect(
-        this.hre.run(TASK_VERIFY_VERIFY, {
-          address: "invalidAddress",
-          constructorArguments: [],
-          libraries: {},
-        })
-      ).to.be.rejectedWith(/invalidAddress is an invalid address./);
-    });
-
-    it("should throw if contract is not a fully qualified name", async function () {
-      await expect(
-        this.hre.run(TASK_VERIFY_VERIFY, {
-          address: getRandomAddress(this.hre),
-          constructorArguments: [],
-          libraries: {},
-          contract: "not-a-fully-qualified-name",
-        })
-      ).to.be.rejectedWith(/A valid fully qualified name was expected./);
-    });
-
     it("should throw if constructorArguments is not an array", async function () {
       await expect(
         this.hre.run(TASK_VERIFY_VERIFY, {
@@ -138,8 +108,6 @@ describe("verify task", () => {
     beforeEach(() => {
       warnStub = sinon.stub(console, "warn");
     });
-
-    // suppress warnings
     afterEach(() => {
       warnStub.restore();
     });
