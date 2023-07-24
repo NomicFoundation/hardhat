@@ -1,8 +1,6 @@
 import {
   deploy,
-  Module,
   ModuleConstructor,
-  ModuleDict,
   ModuleParams,
   wipe,
 } from "@ignored/ignition-core";
@@ -125,7 +123,7 @@ task("deploy")
 
       await hre.run("compile", { quiet: true });
 
-      const userModule: Module<ModuleDict> | undefined = loadModule(
+      const userModule: any | undefined = loadModule(
         hre.config.paths.ignition,
         moduleNameOrPath
       );
@@ -135,7 +133,7 @@ task("deploy")
         process.exit(0);
       }
 
-      let parameters: ModuleParams | undefined;
+      let parameters: any | undefined;
       if (parametersInput === undefined) {
         parameters = resolveParametersFromModuleName(
           userModule.name,
@@ -363,13 +361,13 @@ function resolveParametersFromModuleName(
     : undefined;
 }
 
-function resolveParametersFromFileName(fileName: string): ModuleParams {
+function resolveParametersFromFileName(fileName: string): any {
   const filepath = path.resolve(process.cwd(), fileName);
 
   return resolveConfigPath(filepath);
 }
 
-function resolveConfigPath(filepath: string): ModuleParams {
+function resolveConfigPath(filepath: string): any {
   try {
     return require(filepath);
   } catch {
