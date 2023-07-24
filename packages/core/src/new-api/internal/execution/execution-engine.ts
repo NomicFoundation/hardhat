@@ -5,7 +5,6 @@ import sortBy from "lodash/sortBy";
 import uniq from "lodash/uniq";
 
 import { IgnitionError } from "../../../errors";
-import { sleep } from "../../../internal/utils/sleep";
 import {
   isFutureThatSubmitsOnchainTransaction,
   isModuleParameterRuntimeValue,
@@ -63,6 +62,7 @@ import {
   resolveFutureToValue,
 } from "../utils/resolve-futures";
 import { resolveModuleParameter } from "../utils/resolve-module-parameter";
+import { sleep } from "../utils/sleep";
 
 import { executionStateReducer } from "./execution-state-reducer";
 import { ExecutionStategyCycler } from "./execution-strategy-cycler";

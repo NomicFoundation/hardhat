@@ -1,9 +1,4 @@
-import {
-  deploy,
-  ModuleConstructor,
-  ModuleParams,
-  wipe,
-} from "@ignored/ignition-core";
+import { deploy, ModuleConstructor, wipe } from "@ignored/ignition-core";
 import "@nomiclabs/hardhat-ethers";
 import { BigNumber } from "ethers";
 import { existsSync, readdirSync, readJSONSync } from "fs-extra";
@@ -353,7 +348,7 @@ task("wipe")
 function resolveParametersFromModuleName(
   moduleName: string,
   ignitionPath: string
-): ModuleParams | undefined {
+): any | undefined {
   const files = readdirSync(ignitionPath);
   const configFilename = `${moduleName}.config.json`;
 
@@ -377,7 +372,7 @@ function resolveConfigPath(filepath: string): any {
   }
 }
 
-function resolveParametersString(paramString: string): ModuleParams {
+function resolveParametersString(paramString: string): any {
   try {
     return JSON.parse(paramString);
   } catch {

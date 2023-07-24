@@ -1,7 +1,7 @@
 import { ethers } from "ethers";
 
 import { IgnitionError } from "../../../errors";
-import { serializeReplacer } from "../../../helpers";
+
 import {
   CallFunctionInteractionMessage,
   DeployContractInteractionMessage,
@@ -40,6 +40,7 @@ import {
 import { assertIgnitionInvariant } from "../utils/assertions";
 import { collectLibrariesAndLink } from "../utils/collectLibrariesAndLink";
 
+import { serializeReplacer } from "../journal/utils/serialize-replacer";
 import {
   isCallFunctionInteraction,
   isContractAtInteraction,
