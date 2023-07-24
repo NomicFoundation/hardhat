@@ -27,6 +27,8 @@ import {
   isOnchainReadEventArgumentSuccessMessage,
   isOnchainSendDataSuccessMessage,
   isOnchainStaticCallSuccessMessage,
+  isOnchainTransactionAccept,
+  isOnchainTransactionRequest,
   isReadEventArgumentStartMessage,
   isSendDataStartMessage,
   isStaticCallStartMessage,
@@ -88,6 +90,20 @@ export function logJournalableMessage(message: JournalableMessage): void {
 
   if (isContractAtInteraction(message)) {
     return console.log(`contract at interaction - id: '${message.futureId}'`);
+  }
+
+  /* onchain transaction messages */
+
+  if (isOnchainTransactionRequest(message)) {
+    return console.log(
+      `on-chain transaction requested - id: ${message.futureId} - from: ${message.from} - nonce: ${message.nonce}`
+    );
+  }
+
+  if (isOnchainTransactionAccept(message)) {
+    return console.log(
+      `on-chain transaction accepted - id: ${message.futureId} - txId: ${message.txHash}`
+    );
   }
 
   /* onchain success messages */
@@ -196,7 +212,7 @@ export function logJournalableMessage(message: JournalableMessage): void {
     return console.log(`wiping journal`);
   }
 
-  throw new Error("Unknown journal message");
+  assertNeverJournalableMessag(message);
 }
 
 function solidityParamToString(param: SolidityParameterType): string {
@@ -209,4 +225,8 @@ function solidityParamToString(param: SolidityParameterType): string {
   }
 
   return param.toString();
+}
+
+function assertNeverJournalableMessag(message: never): never {
+  throw new Error(`Unknown journal message: ${JSON.stringify(message)}`);
 }
