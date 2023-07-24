@@ -27,7 +27,7 @@ pub struct TransactionInput {
 }
 
 /// for specifying the inputs to eth_newFilter
-#[derive(Clone, Debug, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Clone, Default, Debug, PartialEq, serde::Deserialize, serde::Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct FilterOptions {
     /// from block
@@ -38,6 +38,54 @@ pub struct FilterOptions {
     pub address: Option<Address>,
     /// topics
     pub topics: Option<Vec<ZeroXPrefixedBytes>>,
+}
+
+/// represents the output of eth_getFilterLogs, and eth_getFilterChanges when used with a log
+/// filter
+#[derive(Clone, Debug, PartialEq, serde::Deserialize, serde::Serialize)]
+pub struct LogOutput {
+    /// true when the log was removed, due to a chain reorganization. false if its a valid log
+    pub removed: bool,
+    /// integer of the log index position in the block. None when its pending log.
+    pub log_index: Option<U256>,
+    /// integer of the transactions index position log was created from. None when its pending log.
+    pub transaction_index: Option<U256>,
+    /// hash of the transactions this log was created from. None when its pending log.
+    pub transaction_hash: Option<B256>,
+    /// hash of the block where this log was in. null when its pending. None when its pending log.
+    pub block_hash: Option<B256>,
+    /// the block number where this log was in. null when its pending. None when its pending log.
+    pub block_number: Option<U256>,
+    /// address from which this log originated.
+    pub address: Address,
+    /// contains one or more 32 Bytes non-indexed arguments of the log.
+    pub data: ZeroXPrefixedBytes,
+    /// Array of 0 to 4 32 Bytes DATA of indexed log arguments. (In solidity: The first topic is
+    /// the hash of the signature of the event (e.g. Deposit(address,bytes32,uint256)), except you
+    /// declared the event with the anonymous specifier.)
+    pub topics: Vec<ZeroXPrefixedBytes>,
+}
+
+/// represents the output of eth_getFilterChanges
+#[derive(Clone, Debug, PartialEq, serde::Deserialize, serde::Serialize)]
+pub enum FilteredEvents {
+    /// logs
+    Logs(Vec<LogOutput>),
+    /// new block heads
+    NewHeads(Vec<B256>),
+    /// new pending transactions
+    NewPendingTransactions(Vec<B256>),
+}
+
+impl FilteredEvents {
+    /// clear the underlying vector
+    pub fn clear(&mut self) {
+        match self {
+            Self::Logs(v) => v.clear(),
+            Self::NewHeads(v) => v.clear(),
+            Self::NewPendingTransactions(v) => v.clear(),
+        }
+    }
 }
 
 mod optional_block_spec_resolved {
@@ -278,7 +326,7 @@ pub enum MethodInvocation {
         serialize_with = "single_to_sequence",
         deserialize_with = "sequence_to_single"
     )]
-    Unsubscribe(Vec<ZeroXPrefixedBytes>),
+    Unsubscribe(U256),
     /// evm_setAutomine
     #[serde(
         rename = "evm_setAutomine",

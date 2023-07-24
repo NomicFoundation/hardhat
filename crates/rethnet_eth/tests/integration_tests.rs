@@ -359,10 +359,7 @@ fn test_serde_eth_uninstall_filter() {
 
 #[test]
 fn test_serde_eth_unsubscribe() {
-    help_test_method_invocation_serde(MethodInvocation::Unsubscribe(vec![Bytes::from(
-        &b"some subscription ID"[..],
-    )
-    .into()]));
+    help_test_method_invocation_serde(MethodInvocation::Unsubscribe(U256::from(100)));
 }
 
 #[test]

@@ -2,17 +2,18 @@ use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 use std::str::FromStr;
 
 use hashbrown::HashMap;
-use rethnet_eth::remote::ZeroXPrefixedBytes;
 use secp256k1::{Secp256k1, SecretKey};
 use tracing::Level;
 
 use rethnet_eth::{
     remote::{
-        client::Request as RpcRequest, jsonrpc, methods::MethodInvocation as EthMethodInvocation,
-        BlockSpec,
+        client::Request as RpcRequest,
+        jsonrpc,
+        methods::{FilteredEvents, MethodInvocation as EthMethodInvocation},
+        BlockSpec, ZeroXPrefixedBytes,
     },
     signature::{private_key_to_address, Signature},
-    Address, Bytes, U256,
+    Address, Bytes, B256, U256,
 };
 use rethnet_evm::{AccountInfo, KECCAK_EMPTY};
 
@@ -149,6 +150,33 @@ async fn test_get_code_success() {
 }
 
 #[tokio::test]
+async fn test_get_filter_changes() {
+    let server = start_server().await;
+
+    let filter_id = U256::from(1);
+
+    // install a filter so that we can get its changes
+    verify_response(
+        &server,
+        MethodInvocation::Eth(EthMethodInvocation::NewPendingTransactionFilter()),
+        filter_id,
+    )
+    .await;
+
+    verify_response(
+        &server,
+        MethodInvocation::Eth(EthMethodInvocation::GetFilterChanges(filter_id)),
+        FilteredEvents::NewPendingTransactions(Vec::<B256>::new()),
+    )
+    .await;
+}
+
+#[tokio::test]
+async fn test_get_filter_logs() {
+    // TODO: when eth_newFilter is implemented for https://github.com/NomicFoundation/rethnet/issues/114
+}
+
+#[tokio::test]
 async fn test_get_storage_success() {
     verify_response(
         &start_server().await,
@@ -184,6 +212,16 @@ async fn test_get_transaction_count_success() {
             Some(BlockSpec::latest()),
         )),
         U256::ZERO,
+    )
+    .await;
+}
+
+#[tokio::test]
+async fn test_new_pending_transaction_filter_success() {
+    verify_response(
+        &start_server().await,
+        MethodInvocation::Eth(EthMethodInvocation::NewPendingTransactionFilter()),
+        U256::from(1),
     )
     .await;
 }
@@ -305,4 +343,45 @@ async fn test_sign() {
         )),
         Signature::from_str("0xa114c834af73872c6c9efe918d85b0b1b34a486d10f9011e2630e28417c828c060dbd65cda67e73d52ebb7c555260621dbc1b0b4036acb61086bba091ac3f1641b").unwrap(),
     ).await;
+}
+
+#[tokio::test]
+async fn test_uninstall_filter_success() {
+    let server = start_server().await;
+
+    let filter_id = U256::from(1);
+
+    // install a filter so that we can uninstall it
+    verify_response(
+        &server,
+        MethodInvocation::Eth(EthMethodInvocation::NewPendingTransactionFilter()),
+        filter_id,
+    )
+    .await;
+
+    verify_response(
+        &server,
+        MethodInvocation::Eth(EthMethodInvocation::UninstallFilter(filter_id)),
+        true,
+    )
+    .await;
+}
+
+#[tokio::test]
+async fn test_uninstall_filter_nonexistent_filter() {
+    let server = start_server().await;
+
+    let filter_id = U256::from(99);
+
+    verify_response(
+        &server,
+        MethodInvocation::Eth(EthMethodInvocation::UninstallFilter(filter_id)),
+        false,
+    )
+    .await;
+}
+
+#[tokio::test]
+async fn test_unsubscribe() {
+    // TODO: when eth_subscribe is implemented for https://github.com/NomicFoundation/rethnet/issues/114
 }

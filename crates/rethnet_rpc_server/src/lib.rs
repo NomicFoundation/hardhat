@@ -1,5 +1,7 @@
 use std::net::{SocketAddr, TcpListener};
+use std::ops::Add;
 use std::sync::Arc;
+use std::time::{Duration, SystemTime};
 
 use axum::{
     extract::{Json, State},
@@ -17,7 +19,9 @@ use rethnet_eth::{
         client::{Request as RpcRequest, RpcClient},
         jsonrpc,
         jsonrpc::{Response, ResponseData},
-        methods::MethodInvocation as EthMethodInvocation,
+        methods::{
+            FilterOptions, FilteredEvents, LogOutput, MethodInvocation as EthMethodInvocation,
+        },
         BlockSpec, BlockTag, Eip1898BlockSpec,
     },
     signature::{public_key_to_address, Signature},
@@ -62,9 +66,27 @@ pub enum MethodInvocation {
 
 type RethnetStateType = Arc<RwLock<dyn SyncState<StateError>>>;
 
+struct Filter {
+    // TODO: later, when adding in the rest of the filter methods, consider removing this `type`
+    // field entirely.  i suspect it's probably redundant as compared to the type implied by the
+    // variants in `events`, but that suspicion will be confirmed or denied by the addition of
+    // those other filter methods.
+    // r#type: SubscriptionType,
+    _criteria: Option<FilterOptions>,
+    deadline: std::time::SystemTime,
+    events: FilteredEvents,
+    is_subscription: bool,
+}
+
+fn new_filter_deadline() -> SystemTime {
+    SystemTime::now().add(Duration::from_secs(5 * 60))
+}
+
 struct AppState {
     rethnet_state: RethnetStateType,
+    filters: RwLock<HashMap<U256, Filter>>,
     fork_block_number: Option<U256>,
+    last_filter_id: RwLock<U256>,
     local_accounts: HashMap<Address, SecretKey>,
 }
 
@@ -263,6 +285,43 @@ async fn handle_get_code(
     }
 }
 
+async fn handle_get_filter_changes(
+    state: StateType,
+    filter_id: U256,
+) -> ResponseData<Option<FilteredEvents>> {
+    let mut filters = state.filters.write().await;
+    ResponseData::Success {
+        result: filters.get_mut(&filter_id).and_then(|filter| {
+            let events = Some(filter.events.clone());
+            filter.events.clear();
+            filter.deadline = new_filter_deadline();
+            events
+        }),
+    }
+}
+
+async fn handle_get_filter_logs(
+    state: StateType,
+    filter_id: U256,
+) -> ResponseData<Option<Vec<LogOutput>>> {
+    let mut filters = state.filters.write().await;
+    match filters.get_mut(&filter_id) {
+        Some(filter) => match &mut filter.events {
+            FilteredEvents::Logs(logs) => {
+                let result = Some(logs.clone());
+                logs.clear();
+                filter.deadline = new_filter_deadline();
+                ResponseData::Success { result }
+            }
+            _ => error_response_data(
+                0,
+                &format!("Subscription {filter_id} is not a logs subscription"),
+            ),
+        },
+        None => ResponseData::Success { result: None },
+    }
+}
+
 async fn handle_get_storage_at(
     state: StateType,
     address: Address,
@@ -314,6 +373,28 @@ async fn handle_get_transaction_count(
         }
         Err(e) => e,
     }
+}
+
+async fn get_next_filter_id(state: StateType) -> U256 {
+    let mut last_filter_id = state.last_filter_id.write().await;
+    *last_filter_id = last_filter_id
+        .checked_add(U256::from(1))
+        .expect("filter ID shouldn't overflow");
+    *last_filter_id
+}
+
+async fn handle_new_pending_transaction_filter(state: StateType) -> ResponseData<U256> {
+    let filter_id = get_next_filter_id(Arc::clone(&state)).await;
+    state.filters.write().await.insert(
+        filter_id,
+        Filter {
+            _criteria: None,
+            deadline: new_filter_deadline(),
+            events: FilteredEvents::NewPendingTransactions(Vec::new()),
+            is_subscription: false,
+        },
+    );
+    ResponseData::Success { result: filter_id }
 }
 
 async fn handle_set_balance(
@@ -438,6 +519,28 @@ fn handle_sign(
     }
 }
 
+async fn remove_filter(
+    state: StateType,
+    filter_id: U256,
+    is_subscription: bool,
+) -> ResponseData<bool> {
+    let mut filters = state.filters.write().await;
+    let result = if let Some(filter) = filters.get(&filter_id) {
+        filter.is_subscription == is_subscription && filters.remove(&filter_id).is_some()
+    } else {
+        false
+    };
+    ResponseData::Success { result }
+}
+
+async fn handle_uninstall_filter(state: StateType, filter_id: U256) -> ResponseData<bool> {
+    remove_filter(state, filter_id, false).await
+}
+
+async fn handle_unsubscribe(state: StateType, filter_id: U256) -> ResponseData<bool> {
+    remove_filter(state, filter_id, true).await
+}
+
 async fn handle_request(
     state: StateType,
     request: &RpcRequest<MethodInvocation>,
@@ -485,6 +588,12 @@ async fn handle_request(
                 MethodInvocation::Eth(EthMethodInvocation::GetCode(address, block)) => {
                     response(id, handle_get_code(state, *address, block.clone()).await)
                 }
+                MethodInvocation::Eth(EthMethodInvocation::GetFilterChanges(filter_id)) => {
+                    response(id, handle_get_filter_changes(state, *filter_id).await)
+                }
+                MethodInvocation::Eth(EthMethodInvocation::GetFilterLogs(filter_id)) => {
+                    response(id, handle_get_filter_logs(state, *filter_id).await)
+                }
                 MethodInvocation::Eth(EthMethodInvocation::GetStorageAt(
                     address,
                     position,
@@ -499,8 +608,17 @@ async fn handle_request(
                         handle_get_transaction_count(state, *address, block.clone()).await,
                     )
                 }
+                MethodInvocation::Eth(EthMethodInvocation::NewPendingTransactionFilter()) => {
+                    response(id, handle_new_pending_transaction_filter(state).await)
+                }
                 MethodInvocation::Eth(EthMethodInvocation::Sign(address, message)) => {
                     response(id, handle_sign(state, address, message))
+                }
+                MethodInvocation::Eth(EthMethodInvocation::UninstallFilter(filter_id)) => {
+                    response(id, handle_uninstall_filter(state, *filter_id).await)
+                }
+                MethodInvocation::Eth(EthMethodInvocation::Unsubscribe(subscription_id)) => {
+                    response(id, handle_unsubscribe(state, *subscription_id).await)
                 }
                 MethodInvocation::Hardhat(HardhatMethodInvocation::SetBalance(
                     address,
@@ -643,6 +761,9 @@ impl Server {
                 .unzip()
         };
 
+        let filters = RwLock::new(HashMap::default());
+        let last_filter_id = RwLock::new(U256::ZERO);
+
         let rethnet_state: StateType =
             if let Some(config) = config.rpc_hardhat_network_config.forking {
                 let runtime = tokio::runtime::Builder::new_multi_thread()
@@ -671,7 +792,9 @@ impl Server {
                         fork_block_number,
                         genesis_accounts,
                     )))),
+                    filters,
                     fork_block_number: Some(fork_block_number),
+                    last_filter_id,
                     local_accounts,
                 })
             } else {
@@ -679,7 +802,9 @@ impl Server {
                     rethnet_state: Arc::new(RwLock::new(Box::new(HybridState::with_accounts(
                         genesis_accounts,
                     )))),
+                    filters,
                     fork_block_number: None,
+                    last_filter_id,
                     local_accounts,
                 })
             };
