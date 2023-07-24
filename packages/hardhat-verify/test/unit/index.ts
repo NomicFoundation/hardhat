@@ -6,6 +6,7 @@ import {
   TASK_VERIFY_GET_VERIFICATION_SUBTASKS,
   TASK_VERIFY_RESOLVE_ARGUMENTS,
   TASK_VERIFY_SOURCIFY,
+  TASK_VERIFY_SOURCIFY_DISABLED_WARNING,
   TASK_VERIFY_VERIFY,
 } from "../../src/internal/task-names";
 import { getRandomAddress, useEnvironment } from "../helpers";
@@ -160,10 +161,8 @@ describe("verify task", () => {
       );
 
       assert.isFalse(verificationSubtasks.includes(TASK_VERIFY_SOURCIFY));
-      expect(warnStub).to.be.calledOnceWith(
-        sinon.match(
-          /WARNING: Skipping Sourcify verification: Sourcify is disabled./
-        )
+      assert.isTrue(
+        verificationSubtasks.includes(TASK_VERIFY_SOURCIFY_DISABLED_WARNING)
       );
     });
 
@@ -180,6 +179,9 @@ describe("verify task", () => {
       this.hre.config.sourcify = originalConfig;
 
       assert.isTrue(verificationSubtasks.includes(TASK_VERIFY_SOURCIFY));
+      assert.isFalse(
+        verificationSubtasks.includes(TASK_VERIFY_SOURCIFY_DISABLED_WARNING)
+      );
     });
 
     it("should ignore the sourcify subtask if it is disabled", async function () {
@@ -195,10 +197,8 @@ describe("verify task", () => {
       this.hre.config.sourcify = originalConfig;
 
       assert.isFalse(verificationSubtasks.includes(TASK_VERIFY_SOURCIFY));
-      expect(warnStub).to.be.calledOnceWith(
-        sinon.match(
-          /WARNING: Skipping Sourcify verification: Sourcify is disabled./
-        )
+      assert.isTrue(
+        verificationSubtasks.includes(TASK_VERIFY_SOURCIFY_DISABLED_WARNING)
       );
     });
 
@@ -214,19 +214,14 @@ describe("verify task", () => {
         enabled: false,
       };
 
-      const verificationSubtasks: string[] = await this.hre.run(
-        TASK_VERIFY_GET_VERIFICATION_SUBTASKS
-      );
+      await this.hre.run(TASK_VERIFY_GET_VERIFICATION_SUBTASKS);
 
       this.hre.config.etherscan = originalEtherscanConfig;
       this.hre.config.sourcify = originalSourcifyConfig;
 
-      assert.equal(verificationSubtasks.length, 0);
-      assert.isTrue(warnStub.calledTwice);
+      assert.isTrue(warnStub.calledOnce);
       expect(warnStub).to.be.calledWith(
-        sinon.match(
-          /WARNING: Skipping Sourcify verification: Sourcify is disabled./
-        )
+        sinon.match(/WARNING: No verification services are enabled./)
       );
     });
   });

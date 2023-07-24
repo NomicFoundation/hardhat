@@ -24,6 +24,7 @@ import {
   TASK_VERIFY_ETHERSCAN,
   TASK_VERIFY_PRINT_SUPPORTED_NETWORKS,
   TASK_VERIFY_SOURCIFY,
+  TASK_VERIFY_SOURCIFY_DISABLED_WARNING,
 } from "./internal/task-names";
 import {
   etherscanConfigExtender,
@@ -180,9 +181,6 @@ task(TASK_VERIFY, "Verifies a contract on Etherscan")
     }
   });
 
-/**
- * Returns a list of verification subtasks.
- */
 subtask(
   TASK_VERIFY_GET_VERIFICATION_SUBTASKS,
   async (_, { config }): Promise<string[]> => {
@@ -195,20 +193,10 @@ subtask(
     if (config.sourcify.enabled) {
       verificationSubtasks.push(TASK_VERIFY_SOURCIFY);
     } else {
-      console.warn(
-        chalk.yellow(
-          `WARNING: Skipping Sourcify verification: Sourcify is disabled. To enable it, add this entry to your config:
-
-sourcify: {
-  enabled: true
-}
-
-Learn more at https://...`
-        )
-      );
+      verificationSubtasks.push(TASK_VERIFY_SOURCIFY_DISABLED_WARNING);
     }
 
-    if (verificationSubtasks.length === 0) {
+    if (!config.etherscan.enabled && !config.sourcify.enabled) {
       console.warn(
         chalk.yellow(
           `WARNING: No verification services are enabled. Please enable at least one verification service in your configuration.`
@@ -219,6 +207,20 @@ Learn more at https://...`
     return verificationSubtasks;
   }
 );
+
+subtask(TASK_VERIFY_SOURCIFY_DISABLED_WARNING, async (): Promise<void> => {
+  console.warn(
+    chalk.yellow(
+      `WARNING: Skipping Sourcify verification: Sourcify is disabled. To enable it, add this entry to your config:
+
+sourcify: {
+enabled: true
+}
+
+Learn more at https://...`
+    )
+  );
+});
 
 /**
  * Main Etherscan verification subtask.
