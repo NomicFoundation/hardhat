@@ -7,7 +7,7 @@ pub mod storage;
 use std::{fmt::Debug, sync::Arc};
 
 use rethnet_eth::{block::DetailedBlock, remote::RpcClientError, B256, U256};
-use revm::db::BlockHashRef;
+use revm::{db::BlockHashRef, primitives::SpecId};
 
 pub use self::{
     forked::{CreationError as ForkedCreationError, ForkedBlockchain},
@@ -55,6 +55,12 @@ pub trait Blockchain {
         &self,
         transaction_hash: &B256,
     ) -> Result<Option<Arc<DetailedBlock>>, Self::Error>;
+
+    /// Whether the block corresponding to the provided number supports the specified specification.
+    fn block_supports_spec(&self, number: &U256, spec_id: SpecId) -> Result<bool, Self::Error>;
+
+    /// Retrieves the instances chain ID.
+    fn chain_id(&self) -> U256;
 
     /// Retrieves the last block in the blockchain.
     fn last_block(&self) -> Result<Arc<DetailedBlock>, Self::Error>;

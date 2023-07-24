@@ -57,13 +57,10 @@ export class RethnetEthContext implements EthContextAdapter {
       }
     );
 
-    const _selectHardfork: (blockNumber: bigint) => string;
-
     this._vm = new RethnetAdapter(
       this._blockchain.asInner(),
       this._state,
       rethnet,
-      _selectHardfork,
       common
     );
 

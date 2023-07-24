@@ -1219,7 +1219,7 @@ export class EthModule {
     newestBlock: RpcNewBlockTag,
     rewardPercentiles?: number[]
   ) {
-    if (!this._node.isEip1559Active()) {
+    if (!(await this._node.isEip1559Active())) {
       throw new InvalidInputError(
         `eth_feeHistory is disabled. It only works with the London hardfork or a later one.`
       );
@@ -1294,7 +1294,7 @@ export class EthModule {
     };
 
     if (
-      this._node.isEip1559Active() &&
+      (await this._node.isEip1559Active()) &&
       (rpcTx.maxFeePerGas !== undefined ||
         rpcTx.maxPriorityFeePerGas !== undefined ||
         rpcTx.gasPrice === undefined)

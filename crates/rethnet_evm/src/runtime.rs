@@ -64,8 +64,12 @@ where
             return Err(TransactionError::MissingPrevrandao);
         }
 
-        let state = self.state.read().await;
         let blockchain = self.blockchain.read().await;
+        if !blockchain.block_supports_spec(&block.number, SpecId::LONDON)? {
+            return Err(TransactionError::Eip1559Unsupported);
+        }
+
+        let state = self.state.read().await;
 
         let evm = build_evm(&*blockchain, &*state, self.cfg.clone(), transaction, block);
 
@@ -107,8 +111,12 @@ where
             return Err(TransactionError::MissingPrevrandao);
         }
 
-        let mut state = self.state.write().await;
         let blockchain = self.blockchain.read().await;
+        if !blockchain.block_supports_spec(&block.number, SpecId::LONDON)? {
+            return Err(TransactionError::Eip1559Unsupported);
+        }
+
+        let mut state = self.state.write().await;
 
         let evm = build_evm(&*blockchain, &*state, self.cfg.clone(), transaction, block);
 

@@ -454,7 +454,7 @@ export class HardhatNode extends EventEmitter {
 
     if (
       call.gasPrice !== undefined ||
-      !this.isEip1559Active(blockNumberOrPending)
+      !(await this.isEip1559Active(blockNumberOrPending))
     ) {
       txParams = {
         gasPrice: 0n,
@@ -792,7 +792,7 @@ export class HardhatNode extends EventEmitter {
   }
 
   public async getNextBlockBaseFeePerGas(): Promise<bigint | undefined> {
-    if (!this.isEip1559Active()) {
+    if (!(await this.isEip1559Active())) {
       return undefined;
     }
 
@@ -2153,13 +2153,17 @@ export class HardhatNode extends EventEmitter {
     );
   }
 
-  public isEip1559Active(blockNumberOrPending?: bigint | "pending"): boolean {
+  public async isEip1559Active(
+    blockNumberOrPending?: bigint | "pending"
+  ): Promise<boolean> {
     return this._context
       .blockchain()
       .blockSupportsHardfork(HardforkName.LONDON, blockNumberOrPending);
   }
 
-  public isEip4895Active(blockNumberOrPending?: bigint | "pending"): boolean {
+  public async isEip4895Active(
+    blockNumberOrPending?: bigint | "pending"
+  ): Promise<boolean> {
     return this._context
       .blockchain()
       .blockSupportsHardfork(HardforkName.SHANGHAI, blockNumberOrPending);
@@ -2226,7 +2230,7 @@ export class HardhatNode extends EventEmitter {
     | { maxFeePerGas: bigint; maxPriorityFeePerGas: bigint }
   > {
     if (
-      !this.isEip1559Active(blockNumberOrPending) ||
+      !(await this.isEip1559Active(blockNumberOrPending)) ||
       callParams.gasPrice !== undefined
     ) {
       return { gasPrice: callParams.gasPrice ?? (await this.getGasPrice()) };

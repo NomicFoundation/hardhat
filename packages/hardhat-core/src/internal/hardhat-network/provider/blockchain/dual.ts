@@ -1,14 +1,39 @@
 import { Block } from "@nomicfoundation/ethereumjs-block";
+import { HardforkName } from "../../../util/hardforks";
 import { BlockchainAdapter } from "../blockchain";
 import { assertEqualOptionalBlocks } from "../utils/assertions";
 
 /* eslint-disable @nomiclabs/hardhat-internal-rules/only-hardhat-error */
+/* eslint-disable @typescript-eslint/restrict-template-expressions */
 
 export class DualBlockchain implements BlockchainAdapter {
   constructor(
     private readonly _hardhat: BlockchainAdapter,
     private readonly _rethnet: BlockchainAdapter
   ) {}
+
+  public async blockSupportsHardfork(
+    hardfork: HardforkName,
+    blockNumberOrPending?: bigint | "pending" | undefined
+  ): Promise<boolean> {
+    const hardhat = await this._hardhat.blockSupportsHardfork(
+      hardfork,
+      blockNumberOrPending
+    );
+    const rethnet = await this._rethnet.blockSupportsHardfork(
+      hardfork,
+      blockNumberOrPending
+    );
+
+    if (hardhat !== rethnet) {
+      console.trace(
+        `Different support: ${hardhat} (hardhat) !== ${rethnet} (rethnet)`
+      );
+      throw new Error("Different support");
+    }
+
+    return rethnet;
+  }
 
   public async getBlockByHash(hash: Buffer): Promise<Block | undefined> {
     const hardhatBlock = await this._hardhat.getBlockByHash(hash);

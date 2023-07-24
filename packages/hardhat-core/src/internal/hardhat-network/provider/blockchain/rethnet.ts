@@ -1,9 +1,13 @@
 import { Block } from "@nomicfoundation/ethereumjs-block";
 import { Common } from "@nomicfoundation/ethereumjs-common";
 import { Blockchain } from "rethnet-evm";
+import { HardforkName } from "../../../util/hardforks";
 import { BlockchainAdapter } from "../blockchain";
 import { RpcReceiptOutput } from "../output";
-import { rethnetBlockToEthereumJS } from "../utils/convertToRethnet";
+import {
+  ethereumsjsHardforkToRethnetSpecId,
+  rethnetBlockToEthereumJS,
+} from "../utils/convertToRethnet";
 import { bloomFilter, filterLogs } from "../filter";
 import { Bloom } from "../utils/bloom";
 
@@ -15,6 +19,21 @@ export class RethnetBlockchain implements BlockchainAdapter {
 
   public asInner(): Blockchain {
     return this._blockchain;
+  }
+
+  public async blockSupportsHardfork(
+    hardfork: HardforkName,
+    blockNumberOrPending?: bigint | "pending"
+  ): Promise<boolean> {
+    const blockNumber =
+      blockNumberOrPending === undefined || blockNumberOrPending === "pending"
+        ? await this._blockchain.lastBlockNumber()
+        : blockNumberOrPending;
+
+    return this._blockchain.blockSupportsSpec(
+      blockNumber,
+      ethereumsjsHardforkToRethnetSpecId(hardfork)
+    );
   }
 
   public async getBlockByHash(hash: Buffer): Promise<Block | undefined> {

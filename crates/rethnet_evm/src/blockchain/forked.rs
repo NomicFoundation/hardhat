@@ -53,16 +53,16 @@ pub struct ForkedBlockchain {
     local_storage: ContiguousBlockchainStorage,
     remote: RemoteBlockchain,
     fork_block_number: U256,
-    _chain_id: U256,
+    chain_id: U256,
     _network_id: U256,
+    spec_id: SpecId,
 }
 
 impl ForkedBlockchain {
     /// Constructs a new instance.
     pub async fn new(
         runtime: Arc<Runtime>,
-        // TODO: check whether we need this
-        _spec_id: SpecId,
+        spec_id: SpecId,
         remote_url: &str,
         fork_block_number: Option<U256>,
     ) -> Result<Self, CreationError> {
@@ -122,8 +122,9 @@ impl ForkedBlockchain {
             local_storage: ContiguousBlockchainStorage::default(),
             remote: RemoteBlockchain::new(rpc_client, runtime),
             fork_block_number,
-            _chain_id: chain_id,
+            chain_id,
             _network_id: network_id,
+            spec_id,
         })
     }
 }
@@ -187,6 +188,26 @@ impl Blockchain for ForkedBlockchain {
                 .block_by_transaction_hash(transaction_hash)
                 .map_err(BlockchainError::JsonRpcError)
         }
+    }
+
+    fn block_supports_spec(&self, number: &U256, spec_id: SpecId) -> Result<bool, Self::Error> {
+        if *number <= self.fork_block_number {
+            self.remote.block_by_number(number).map_or_else(
+                |e| Err(BlockchainError::JsonRpcError(e)),
+                |block| {
+                    let block_spec_id = determine_hardfork(&self.chain_id, &block.header.number)
+                        .expect("Spec has been validated");
+
+                    Ok(spec_id <= block_spec_id)
+                },
+            )
+        } else {
+            Ok(spec_id <= self.spec_id)
+        }
+    }
+
+    fn chain_id(&self) -> U256 {
+        self.chain_id
     }
 
     fn last_block(&self) -> Result<Arc<DetailedBlock>, Self::Error> {

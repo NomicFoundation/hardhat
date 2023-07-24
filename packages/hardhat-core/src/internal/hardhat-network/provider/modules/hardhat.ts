@@ -253,7 +253,7 @@ export class HardhatModule {
       throw new InvalidInputError("Minimum gas price cannot be negative");
     }
 
-    if (this._node.isEip1559Active()) {
+    if (await this._node.isEip1559Active()) {
       throw new InvalidInputError(
         "hardhat_setMinGasPrice is not supported when EIP-1559 is active"
       );
@@ -358,8 +358,8 @@ export class HardhatModule {
     return validateParams(params, rpcQuantity);
   }
 
-  private _setNextBlockBaseFeePerGasAction(baseFeePerGas: bigint) {
-    if (!this._node.isEip1559Active()) {
+  private async _setNextBlockBaseFeePerGasAction(baseFeePerGas: bigint) {
+    if (!(await this._node.isEip1559Active())) {
       throw new InvalidInputError(
         "hardhat_setNextBlockBaseFeePerGas is disabled because EIP-1559 is not active"
       );

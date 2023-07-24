@@ -49,10 +49,21 @@ impl Blockchain {
     /// Constructs a new blockchain that queries the blockhash using a callback.
     #[napi(factory)]
     #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
-    pub fn with_genesis_block(mut env: Env, genesis_block: &Block) -> napi::Result<Self> {
-        let blockchain =
-            rethnet_evm::blockchain::LocalBlockchain::with_genesis_block((*genesis_block).clone())
-                .map_err(|e| napi::Error::new(Status::InvalidArg, e.to_string()))?;
+    pub fn with_genesis_block(
+        mut env: Env,
+        chain_id: BigInt,
+        spec_id: SpecId,
+        genesis_block: &Block,
+    ) -> napi::Result<Self> {
+        let chain_id: U256 = chain_id.try_cast()?;
+        let spec_id = rethnet_evm::SpecId::from(spec_id);
+
+        let blockchain = rethnet_evm::blockchain::LocalBlockchain::with_genesis_block(
+            chain_id,
+            spec_id,
+            (*genesis_block).clone(),
+        )
+        .map_err(|e| napi::Error::new(Status::InvalidArg, e.to_string()))?;
 
         Self::with_blockchain(&mut env, blockchain)
     }
@@ -129,6 +140,29 @@ impl Blockchain {
                 |e| Err(napi::Error::new(Status::GenericFailure, e.to_string())),
                 |block| Ok(block.map(Block::from)),
             )
+    }
+
+    #[doc = "Whether the block corresponding to the provided number supports the specified specification."]
+    #[napi]
+    pub async fn block_supports_spec(&self, number: BigInt, spec_id: SpecId) -> napi::Result<bool> {
+        let number: U256 = BigInt::try_cast(number)?;
+        let spec_id = rethnet_evm::SpecId::from(spec_id);
+
+        self.read()
+            .await
+            .block_supports_spec(&number, spec_id)
+            .map_err(|e| napi::Error::new(Status::GenericFailure, e.to_string()))
+    }
+
+    #[doc = "Retrieves the instances chain ID."]
+    #[napi]
+    pub async fn chain_id(&self) -> BigInt {
+        let chain_id = self.read().await.chain_id();
+
+        BigInt {
+            sign_bit: false,
+            words: chain_id.into_limbs().to_vec(),
+        }
     }
 
     // #[napi]

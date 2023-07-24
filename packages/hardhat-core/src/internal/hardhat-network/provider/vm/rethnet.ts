@@ -5,12 +5,13 @@ import {
   Address,
   KECCAK256_NULL,
 } from "@nomicfoundation/ethereumjs-util";
-import { Capability, TypedTransaction } from "@nomicfoundation/ethereumjs-tx";
+import { TypedTransaction } from "@nomicfoundation/ethereumjs-tx";
 import {
   Account as RethnetAccount,
   Blockchain,
   Bytecode,
   Rethnet,
+  SpecId,
 } from "rethnet-evm";
 
 import { isForkedNodeConfig, NodeConfig } from "../node-types";
@@ -20,11 +21,7 @@ import {
   ethereumsjsHardforkToRethnetSpecId,
   rethnetResultToRunTxResult,
 } from "../utils/convertToRethnet";
-import {
-  getHardforkName,
-  hardforkGte,
-  HardforkName,
-} from "../../../util/hardforks";
+import { getHardforkName } from "../../../util/hardforks";
 import { keccak256 } from "../../../util/keccak";
 import { RpcDebugTraceOutput } from "../output";
 import { RethnetStateManager } from "../RethnetState";
@@ -46,7 +43,6 @@ export class RethnetAdapter implements VMAdapter {
     private _blockchain: Blockchain,
     private _state: RethnetStateManager,
     private _rethnet: Rethnet,
-    private readonly _selectHardfork: (blockNumber: bigint) => string,
     common: Common
   ) {
     this._vmTracer = new VMTracer(common, false);
@@ -86,13 +82,7 @@ export class RethnetAdapter implements VMAdapter {
       disableEip3607: true,
     });
 
-    return new RethnetAdapter(
-      blockchain,
-      state,
-      rethnet,
-      selectHardfork,
-      common
-    );
+    return new RethnetAdapter(blockchain, state, rethnet, common);
   }
 
   /**
@@ -103,24 +93,13 @@ export class RethnetAdapter implements VMAdapter {
     blockContext: Block,
     forceBaseFeeZero?: boolean
   ): Promise<[RunTxResult, Trace]> {
-    // TODO: Port to Rethnet
-    if (
-      tx.supports(Capability.EIP1559FeeMarket) &&
-      !blockContext._common.hardforkGteHardfork(
-        this._selectHardfork(blockContext.header.number),
-        "london"
-      )
-    ) {
-      throw new Error("Cannot run transaction: EIP 1559 is not activated.");
-    }
-
     const rethnetTx = ethereumjsTransactionToRethnetTransactionRequest(tx);
 
     const difficulty = this._getBlockEnvDifficulty(
       blockContext.header.difficulty
     );
 
-    const prevRandao = this._getBlockPrevRandao(
+    const prevRandao = await this._getBlockPrevRandao(
       blockContext.header.number,
       blockContext.header.mixHash
     );
@@ -311,21 +290,11 @@ export class RethnetAdapter implements VMAdapter {
     tx: TypedTransaction,
     block: Block
   ): Promise<[RunTxResult, Trace]> {
-    if (
-      tx.supports(Capability.EIP1559FeeMarket) &&
-      !block._common.hardforkGteHardfork(
-        this._selectHardfork(block.header.number),
-        "london"
-      )
-    ) {
-      throw new Error("Cannot run transaction: EIP 1559 is not activated.");
-    }
-
     const rethnetTx = ethereumjsTransactionToRethnetTransactionRequest(tx);
 
     const difficulty = this._getBlockEnvDifficulty(block.header.difficulty);
 
-    const prevRandao = this._getBlockPrevRandao(
+    const prevRandao = await this._getBlockPrevRandao(
       block.header.number,
       block.header.mixHash
     );
@@ -431,16 +400,16 @@ export class RethnetAdapter implements VMAdapter {
     return difficulty;
   }
 
-  private _getBlockPrevRandao(
+  private async _getBlockPrevRandao(
     blockNumber: bigint,
     mixHash: Buffer | undefined
-  ): Buffer | undefined {
-    const hardfork = this._selectHardfork(blockNumber);
-    const isPostMergeHardfork = hardforkGte(
-      getHardforkName(hardfork),
-      HardforkName.MERGE
+  ): Promise<Buffer | undefined> {
+    const isPostMergeHardfork = await this._blockchain.blockSupportsSpec(
+      blockNumber,
+      SpecId.Merge
     );
 
+    // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
     if (isPostMergeHardfork) {
       if (mixHash === undefined) {
         throw new Error("mixHash must be set for post-merge hardfork");
