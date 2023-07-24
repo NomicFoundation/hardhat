@@ -52,7 +52,7 @@ describe("Flatten task", () => {
   });
 
   describe("When has contracts", function () {
-    useFixtureProject("contracts-project");
+    useFixtureProject("flatten-task/contracts-project");
 
     it("should flatten files sorted correctly", async function () {
       const flattenedFiles = await this.env.run(
@@ -63,7 +63,7 @@ describe("Flatten task", () => {
   });
 
   describe("When has contracts with name clash", function () {
-    useFixtureProject("contracts-nameclash-project");
+    useFixtureProject("flatten-task/contracts-nameclash-project");
 
     it("should flatten files sorted correctly with repetition", async function () {
       const flattenedFiles = await this.env.run(
@@ -74,7 +74,7 @@ describe("Flatten task", () => {
   });
 
   describe("Flattening only some files", function () {
-    useFixtureProject("contracts-project");
+    useFixtureProject("flatten-task/contracts-project");
 
     it("Should accept a list of files, and only flatten those and their dependencies", async function () {
       const cFlattened = await this.env.run(TASK_FLATTEN_GET_FLATTENED_SOURCE, {
@@ -101,7 +101,7 @@ describe("Flatten task", () => {
   });
 
   describe("When project has multiline imports", function () {
-    useFixtureProject("multiline-import-project");
+    useFixtureProject("flatten-task/multiline-import-project");
 
     it("should not include multiline imports", async function () {
       const flattenedFiles = await this.env.run(
@@ -133,7 +133,7 @@ describe("Flatten task", () => {
 
   describe("SPDX licenses and pragma abicoder directives", () => {
     describe("Flatten files that not contain SPDX licenses or pragma directives", () => {
-      useFixtureProject("contracts-no-spdx-no-pragma");
+      useFixtureProject("flatten-task/contracts-no-spdx-no-pragma");
 
       it("should successfully flatten and compile the files", async function () {
         const [flattenedFiles, metadata] = await this.env.run(
@@ -154,7 +154,7 @@ describe("Flatten task", () => {
     describe("Flatten files that contain SPDX licenses", () => {
       describe("Files contain one single license per file", () => {
         describe("Files contain same licenses", () => {
-          useFixtureProject("contracts-spdx-same-licenses");
+          useFixtureProject("flatten-task/contracts-spdx-same-licenses");
 
           it("should successfully flatten and compile the files", async function () {
             const [flattenedFiles, metadata] = await this.env.run(
@@ -176,7 +176,7 @@ describe("Flatten task", () => {
         });
 
         describe("Files contain different licenses", () => {
-          useFixtureProject("contracts-spdx-different-licenses");
+          useFixtureProject("flatten-task/contracts-spdx-different-licenses");
 
           it("should successfully flatten and compile the files", async function () {
             const [flattenedFiles, metadata] = await this.env.run(
@@ -200,7 +200,9 @@ describe("Flatten task", () => {
 
       describe("Files contain multiple licenses", () => {
         describe("Files contain multiple same licenses", () => {
-          useFixtureProject("contracts-spdx-same-multiple-licenses");
+          useFixtureProject(
+            "flatten-task/contracts-spdx-same-multiple-licenses"
+          );
 
           it("should successfully flatten and compile the files", async function () {
             const [flattenedFiles, metadata] = await this.env.run(
@@ -222,7 +224,9 @@ describe("Flatten task", () => {
         });
 
         describe("Files contain multiple different licenses", () => {
-          useFixtureProject("contracts-spdx-different-multiple-licenses");
+          useFixtureProject(
+            "flatten-task/contracts-spdx-different-multiple-licenses"
+          );
 
           it("should successfully flatten and compile the files", async function () {
             const [flattenedFiles, metadata] = await this.env.run(
@@ -249,7 +253,7 @@ describe("Flatten task", () => {
     describe("Flatten files that contain pragma abicoder directives", () => {
       describe("Files contain one single pragma directive per file", () => {
         describe("Files contain same pragma directive", () => {
-          useFixtureProject("contracts-pragma-same-directives");
+          useFixtureProject("flatten-task/contracts-pragma-same-directives");
 
           it("should successfully flatten and compile the files", async function () {
             const [flattenedFiles, metadata] = await this.env.run(
@@ -268,7 +272,9 @@ describe("Flatten task", () => {
         });
 
         describe("Files contain different pragma directives", () => {
-          useFixtureProject("contracts-pragma-different-directives");
+          useFixtureProject(
+            "flatten-task/contracts-pragma-different-directives"
+          );
 
           it("should successfully flatten and compile the files", async function () {
             const [flattenedFiles, metadata] = await this.env.run(
@@ -288,7 +294,7 @@ describe("Flatten task", () => {
       });
 
       describe("Files contain multiple pragma directives", () => {
-        useFixtureProject("contracts-pragma-multiple-directives");
+        useFixtureProject("flatten-task/contracts-pragma-multiple-directives");
 
         it("should successfully flatten and compile the files", async function () {
           const [flattenedFiles, metadata] = await this.env.run(
@@ -308,7 +314,9 @@ describe("Flatten task", () => {
     });
 
     describe("Files contains several SPDX licenses and pragma directives", () => {
-      useFixtureProject("contracts-spdx-licenses-and-pragma-directives");
+      useFixtureProject(
+        "flatten-task/contracts-spdx-licenses-and-pragma-directives"
+      );
 
       it("should successfully flatten and compile the files", async function () {
         const [flattenedFiles, metadata] = await this.env.run(
@@ -327,7 +335,9 @@ describe("Flatten task", () => {
     });
 
     describe("Check regex rules in files that contains several SPDX licenses and pragma directives", () => {
-      useFixtureProject("contracts-regex-spdx-licenses-and-pragma-directives");
+      useFixtureProject(
+        "flatten-task/contracts-regex-spdx-licenses-and-pragma-directives"
+      );
 
       it("should successfully flatten and compile the files", async function () {
         const [flattenedFiles, metadata] = await this.env.run(
@@ -360,7 +370,7 @@ describe("Flatten task", () => {
       spyFunctionConsoleWarn.restore();
     });
 
-    useFixtureProject("contracts-task-flatten");
+    useFixtureProject("flatten-task/contracts-task-flatten");
 
     it("should console log the flattened files and the warnings about missing licenses and pragma directives", async function () {
       await this.env.run(TASK_FLATTEN);
