@@ -5,10 +5,4 @@ module.exports = {
     sourceType: "module",
   },
   ignorePatterns: [".eslintrc.js"],
-  rules: {
-    "import/no-unused-modules": [
-      0,
-      { unusedExports: true, missingExports: true },
-    ],
-  },
 };

@@ -1,3 +1,4 @@
+/* eslint-disable import/no-unused-modules */
 export * from "./errors";
 export { defineModule } from "./new-api/define-module";
 export { deploy } from "./new-api/deploy";

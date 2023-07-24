@@ -132,7 +132,7 @@ export class ModuleConstructor {
   }
 }
 
-export class IgnitionModuleBuilderImplementation<
+class IgnitionModuleBuilderImplementation<
   ModuleIdT extends string,
   ResultsContractNameT extends string,
   IgnitionModuleResultsT extends IgnitionModuleResult<ResultsContractNameT>

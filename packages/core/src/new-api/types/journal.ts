@@ -225,7 +225,7 @@ export type OnchainResultMessage =
   | OnchainResultSuccessMessage
   | OnchainResultFailureMessage;
 
-export type OnchainResultSuccessMessage =
+type OnchainResultSuccessMessage =
   | OnchainDeployContractSuccessMessage
   | OnchainCallFunctionSuccessMessage
   | OnchainStaticCallSuccessMessage
@@ -339,7 +339,7 @@ export interface OnchainFailureMessage {
  *
  * @beta
  */
-export type ExecutionMessage = ExecutionUpdateMessage | ExecutionResultMessage;
+type ExecutionMessage = ExecutionUpdateMessage | ExecutionResultMessage;
 
 // #region "FutureExecutionUpdate"
 
@@ -348,7 +348,7 @@ export type ExecutionMessage = ExecutionUpdateMessage | ExecutionResultMessage;
  *
  * @beta
  */
-export type ExecutionUpdateMessage = FutureStartMessage;
+type ExecutionUpdateMessage = FutureStartMessage;
 
 /**
  * A journal message to initialise the execution state for a future.
@@ -489,18 +489,6 @@ export type ExecutionResultMessage =
   | ExecutionFailure
   | ExecutionTimeout
   | ExecutionHold;
-
-/**
- * The types of execution result.
- *
- * @beta
- */
-export type ExecutionResultTypes = [
-  "execution-success",
-  "execution-failure",
-  "execution-timeout",
-  "execution-hold"
-];
 
 // #region "ExecutionSuccess"
 

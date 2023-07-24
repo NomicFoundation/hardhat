@@ -11,7 +11,6 @@ import {
   OnchainReadEventArgumentSuccessMessage,
   OnchainResultFailureMessage,
   OnchainResultMessage,
-  OnchainResultSuccessMessage,
   OnchainSendDataSuccessMessage,
   OnchainStaticCallSuccessMessage,
   OnchainTransactionAccept,
@@ -195,19 +194,6 @@ export function isOnChainResultMessage(
   message: JournalableMessage
 ): message is OnchainResultMessage {
   return message.type === "onchain-result";
-}
-
-export function isOnChainSuccessMessage(
-  message: JournalableMessage
-): message is OnchainResultSuccessMessage {
-  return (
-    isOnchainDeployContractSuccessMessage(message) ||
-    isOnchainCallFunctionSuccessMessage(message) ||
-    isOnchainStaticCallSuccessMessage(message) ||
-    isOnchainReadEventArgumentSuccessMessage(message) ||
-    isOnchainSendDataSuccessMessage(message) ||
-    isOnchainContractAtSuccessMessage(message)
-  );
 }
 
 export function isOnChainFailureMessage(

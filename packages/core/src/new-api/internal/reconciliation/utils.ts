@@ -1,11 +1,7 @@
 // eslint-disable-next-line import/default
 import type CborT from "cbor";
 
-import {
-  AccountRuntimeValue,
-  Future,
-  ModuleParameterType,
-} from "../../types/module";
+import { Future, ModuleParameterType } from "../../types/module";
 
 import { ReconciliationFutureResult } from "./types";
 
@@ -36,12 +32,6 @@ export function failWithError(
           : "unknown failure during reconciliation",
     },
   };
-}
-
-export function accountRuntimeValueToErrorString(
-  potential: AccountRuntimeValue
-) {
-  return JSON.stringify(potential);
 }
 
 export function moduleParameterToErrorString(potential: ModuleParameterType) {

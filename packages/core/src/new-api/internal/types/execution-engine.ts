@@ -15,7 +15,7 @@ import { ChainDispatcher } from "./chain-dispatcher";
 import { ExecutionState, ExecutionStateMap } from "./execution-state";
 import { TransactionLookupTimer } from "./transaction-timer";
 
-export interface ExecutionConfig {
+interface ExecutionConfig {
   blockPollingInterval: number;
   transactionTimeoutInterval: number;
 }

@@ -7,7 +7,7 @@ export interface ReconciliationFailure {
   failure: string;
 }
 
-export interface ReconciliationFutureResultSuccess {
+interface ReconciliationFutureResultSuccess {
   success: true;
 }
 

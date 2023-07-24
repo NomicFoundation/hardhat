@@ -55,7 +55,7 @@ export function isExecutionHold(
   return potential.type === "execution-hold";
 }
 
-export function isOnChainAction(
+function isOnChainAction(
   potential: JournalableMessage
 ): potential is OnchainInteractionMessage {
   return potential.type === "onchain-action";

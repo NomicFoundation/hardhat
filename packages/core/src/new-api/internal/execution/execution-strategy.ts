@@ -42,12 +42,7 @@ import {
 } from "../types/execution-state";
 import { assertIgnitionInvariant } from "../utils/assertions";
 
-export abstract class ExecutionStrategyBase {}
-
-export class BasicExecutionStrategy
-  extends ExecutionStrategyBase
-  implements ExecutionStrategy
-{
+export class BasicExecutionStrategy implements ExecutionStrategy {
   public executeStrategy({
     executionState,
     sender,

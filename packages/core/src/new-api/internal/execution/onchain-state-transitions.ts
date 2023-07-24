@@ -1,7 +1,6 @@
 import { ethers } from "ethers";
 
 import { IgnitionError } from "../../../errors";
-
 import {
   CallFunctionInteractionMessage,
   DeployContractInteractionMessage,
@@ -32,6 +31,7 @@ import {
   isOnchainTransactionRequest,
   isOnchainTransactionReset,
 } from "../journal/type-guards";
+import { serializeReplacer } from "../journal/utils/serialize-replacer";
 import { ExecutionEngineState } from "../types/execution-engine";
 import {
   DeploymentExecutionState,
@@ -40,7 +40,6 @@ import {
 import { assertIgnitionInvariant } from "../utils/assertions";
 import { collectLibrariesAndLink } from "../utils/collectLibrariesAndLink";
 
-import { serializeReplacer } from "../journal/utils/serialize-replacer";
 import {
   isCallFunctionInteraction,
   isContractAtInteraction,
@@ -50,7 +49,7 @@ import {
   isStaticCallInteraction,
 } from "./guards";
 
-export interface OnchainStateTransitionContinue {
+interface OnchainStateTransitionContinue {
   status: "continue";
   next:
     | ExecutionSuccess
@@ -59,11 +58,11 @@ export interface OnchainStateTransitionContinue {
     | TransactionMessage;
 }
 
-export interface OnchainStateTransitionPause {
+interface OnchainStateTransitionPause {
   status: "pause";
 }
 
-export type OnchainStateTransition = (
+type OnchainStateTransition = (
   state: ExecutionEngineState,
   next: TransactionMessage | null,
   strategyInst: AsyncGenerator<
@@ -73,10 +72,7 @@ export type OnchainStateTransition = (
   >
 ) => Promise<OnchainStateTransitionContinue | OnchainStateTransitionPause>;
 
-export type OnchainStateTransitions = Record<
-  OnchainStatuses,
-  OnchainStateTransition
->;
+type OnchainStateTransitions = Record<OnchainStatuses, OnchainStateTransition>;
 
 const DEFAULT_CONFIRMATIONS = 0;
 
