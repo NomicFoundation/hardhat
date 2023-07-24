@@ -66,43 +66,51 @@ export function logJournalableMessage(message: JournalableMessage): void {
 
   if (isDeployContractInteraction(message)) {
     return console.log(
-      `deploy contract interaction - id: '${message.futureId}'`
+      `deploy contract interaction - id: '${message.futureId}' - executionId: ${message.executionId}`
     );
   }
 
   if (isCallFunctionInteraction(message)) {
-    return console.log(`call function interaction - id: '${message.futureId}'`);
+    return console.log(
+      `call function interaction - id: '${message.futureId}' - executionId: ${message.executionId}`
+    );
   }
 
   if (isStaticCallInteraction(message)) {
-    return console.log(`static call interaction - id: '${message.futureId}'`);
+    return console.log(
+      `static call interaction - id: '${message.futureId}' - executionId: ${message.executionId}`
+    );
   }
 
   if (isReadEventArgumentInteraction(message)) {
     return console.log(
-      `read event argument interaction - id: '${message.futureId}'`
+      `read event argument interaction - id: '${message.futureId}' - executionId: ${message.executionId}`
     );
   }
 
   if (isSendDataInteraction(message)) {
-    return console.log(`send data interaction - id: '${message.futureId}'`);
+    return console.log(
+      `send data interaction - id: '${message.futureId}' - executionId: ${message.executionId}`
+    );
   }
 
   if (isContractAtInteraction(message)) {
-    return console.log(`contract at interaction - id: '${message.futureId}'`);
+    return console.log(
+      `contract at interaction - id: '${message.futureId}' - executionId: ${message.executionId}`
+    );
   }
 
   /* onchain transaction messages */
 
   if (isOnchainTransactionRequest(message)) {
     return console.log(
-      `on-chain transaction requested - id: ${message.futureId} - from: ${message.from} - nonce: ${message.nonce}`
+      `on-chain transaction requested - id: ${message.futureId} - executionId: ${message.executionId} - from: ${message.from} - nonce: ${message.nonce}`
     );
   }
 
   if (isOnchainTransactionAccept(message)) {
     return console.log(
-      `on-chain transaction accepted - id: ${message.futureId} - txId: ${message.txHash}`
+      `on-chain transaction accepted - id: ${message.futureId} - executionId: ${message.executionId} - txId: ${message.txHash}`
     );
   }
 
@@ -110,13 +118,13 @@ export function logJournalableMessage(message: JournalableMessage): void {
 
   if (isOnchainDeployContractSuccessMessage(message)) {
     return console.log(
-      `on-chain deploy contract success - id: '${message.futureId}' - txId: '${message.txId}'`
+      `on-chain deploy contract success - id: '${message.futureId}' - executionId: ${message.executionId} - txId: '${message.txId}'`
     );
   }
 
   if (isOnchainCallFunctionSuccessMessage(message)) {
     return console.log(
-      `on-chain call function success - id: '${message.futureId}' - txId: '${message.txId}'`
+      `on-chain call function success - id: '${message.futureId}' - executionId: ${message.executionId} - txId: '${message.txId}'`
     );
   }
 
@@ -124,7 +132,9 @@ export function logJournalableMessage(message: JournalableMessage): void {
     return console.log(
       `on-chain static call success - id: '${
         message.futureId
-      }' - result: '${solidityParamToString(message.result)}'`
+      }' - executionId: ${
+        message.executionId
+      } - result: '${solidityParamToString(message.result)}'`
     );
   }
 
@@ -132,19 +142,21 @@ export function logJournalableMessage(message: JournalableMessage): void {
     return console.log(
       `on-chain read event argument success - id: '${
         message.futureId
-      }' - result: '${solidityParamToString(message.result)}'`
+      }' - executionId: ${
+        message.executionId
+      } - result: '${solidityParamToString(message.result)}'`
     );
   }
 
   if (isOnchainSendDataSuccessMessage(message)) {
     return console.log(
-      `on-chain send data success - id: '${message.futureId}' - txId: '${message.txId}'`
+      `on-chain send data success - id: '${message.futureId}' - executionId: ${message.executionId} - txId: '${message.txId}'`
     );
   }
 
   if (isOnchainContractAtSuccessMessage(message)) {
     return console.log(
-      `on-chain contract at success - id: '${message.futureId}'`
+      `on-chain contract at success - id: '${message.futureId}' - executionId: ${message.executionId}`
     );
   }
 
@@ -198,13 +210,13 @@ export function logJournalableMessage(message: JournalableMessage): void {
 
   if (isOnChainFailureMessage(message)) {
     return console.log(
-      `on chain failure - futureId: '${message.futureId}' error: '${message.error.message}'`
+      `on chain failure - futureId: '${message.futureId}' - executionId: ${message.executionId} - error: '${message.error.message}'`
     );
   }
 
   if (isExecutionFailure(message)) {
     return console.log(
-      `execution failure - futureId: '${message.futureId}' error: '${message.error.message}'`
+      `execution failure - futureId: '${message.futureId}' - error: '${message.error.message}'`
     );
   }
 
