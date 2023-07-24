@@ -147,7 +147,7 @@ subtask(
 /**
  * This subtask is used for backwards compatibility.
  * TODO [remove-verify-subtask]: if you're going to remove this subtask,
- * update TASK_VERIFY_ETHERSCAN and TASK_VERIFY_RESOLVE_ARGUMENTS accordingly
+ * update TASK_VERIFY_ETHERSCAN and TASK_VERIFY_ETHERSCAN_RESOLVE_ARGUMENTS accordingly
  */
 subtask(TASK_VERIFY_VERIFY)
   .addOptionalParam("address")
