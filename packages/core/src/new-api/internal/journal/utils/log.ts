@@ -29,6 +29,7 @@ import {
   isOnchainStaticCallSuccessMessage,
   isOnchainTransactionAccept,
   isOnchainTransactionRequest,
+  isOnchainTransactionReset,
   isReadEventArgumentStartMessage,
   isSendDataStartMessage,
   isStaticCallStartMessage,
@@ -111,6 +112,12 @@ export function logJournalableMessage(message: JournalableMessage): void {
   if (isOnchainTransactionAccept(message)) {
     return console.log(
       `on-chain transaction accepted - id: ${message.futureId} - executionId: ${message.executionId} - txId: ${message.txHash}`
+    );
+  }
+
+  if (isOnchainTransactionReset(message)) {
+    return console.log(
+      `on-chain transaction reset - id: ${message.futureId} - executionId: ${message.executionId}`
     );
   }
 
