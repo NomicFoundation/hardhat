@@ -409,7 +409,7 @@ export class RethnetAdapter implements VMAdapter {
       SpecId.Merge
     );
 
-    // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+    // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
     if (isPostMergeHardfork) {
       if (mixHash === undefined) {
         throw new Error("mixHash must be set for post-merge hardfork");

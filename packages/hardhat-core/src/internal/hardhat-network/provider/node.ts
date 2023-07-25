@@ -95,7 +95,7 @@ import { Bloom } from "./utils/bloom";
 import { getCurrentTimestamp } from "./utils/getCurrentTimestamp";
 import { makeCommon } from "./utils/makeCommon";
 import { RandomBufferGenerator } from "./utils/random";
-import { PartialTrace, RunBlockResult, RunTxResult } from "./vm/vm-adapter";
+import { PartialTrace, RunTxResult } from "./vm/vm-adapter";
 import { ExitCode, Exit } from "./vm/exit";
 import { createContext } from "./vm/creation";
 import { PartialMineBlockResult } from "./miner";
