@@ -70,9 +70,9 @@ struct AppState {
 
 type StateType = Arc<AppState>;
 
-fn error_response_data<T>(msg: &str) -> ResponseData<T> {
+fn error_response_data<T>(code: i16, msg: &str) -> ResponseData<T> {
     event!(Level::INFO, "{}", &msg);
-    ResponseData::new_error(0, msg, None)
+    ResponseData::new_error(code, msg, None)
 }
 
 pub struct Server {
@@ -114,7 +114,7 @@ async fn set_block_context<T>(
     block_spec: Option<BlockSpec>,
 ) -> Result<B256, ResponseData<T>> {
     let previous_state_root = state.rethnet_state.read().await.state_root().map_err(|e| {
-        error_response_data(&format!("Failed to retrieve previous state root: {e}"))
+        error_response_data(0, &format!("Failed to retrieve previous state root: {e}"))
     })?;
     match block_spec {
         Some(BlockSpec::Tag(BlockTag::Pending)) => {
@@ -126,6 +126,7 @@ async fn set_block_context<T>(
         }
         None => Ok(previous_state_root),
         resolvable_block_spec => {
+            let latest_block_number = get_latest_block_number(state).await?;
             state
                 .rethnet_state
                 .write()
@@ -145,18 +146,22 @@ async fn set_block_context<T>(
                             BlockTag::Earliest => Ok(U256::ZERO),
                             BlockTag::Safe | BlockTag::Finalized => {
                                 check_post_merge_block_tags(state)?;
-                                Ok(get_latest_block_number(state).await?)
+                                Ok(latest_block_number)
                             }
-                            BlockTag::Latest => Ok(get_latest_block_number(state).await?),
+                            BlockTag::Latest => Ok(latest_block_number),
                             BlockTag::Pending => unreachable!(),
                         },
                         None => unreachable!(),
                     }?),
                 )
                 .map_err(|e| {
-                    error_response_data(&format!(
-                        "Failed to set block context {resolvable_block_spec:?}: {e}"
-                    ))
+                    error_response_data(
+                        -32000,
+                        &format!(
+                            "Received invalid block tag {}. Latest block number is {latest_block_number}. {e}",
+                            resolvable_block_spec.unwrap(),
+                        ),
+                    )
                 })?;
             Ok(previous_state_root)
         }
@@ -172,7 +177,9 @@ async fn restore_block_context<T>(
         .write()
         .await
         .set_block_context(&state_root, None)
-        .map_err(|_| error_response_data("Failed to restore previous block context"))
+        .map_err(|e| {
+            error_response_data(0, &format!("Failed to restore previous block context: {e}"))
+        })
 }
 
 async fn get_account_info<T>(
@@ -187,7 +194,7 @@ async fn get_account_info<T>(
             code: None,
             code_hash: KECCAK_EMPTY,
         }),
-        Err(e) => Err(error_response_data(&e.to_string())),
+        Err(e) => Err(error_response_data(0, &e.to_string())),
     }
 }
 
@@ -243,7 +250,7 @@ async fn handle_get_code(
                                 result: ZeroXPrefixedBytes::from(code.bytecode),
                             },
                             Err(e) => {
-                                error_response_data(&format!("failed to retrieve code: {}", e))
+                                error_response_data(0, &format!("failed to retrieve code: {}", e))
                             }
                         }
                     }
@@ -261,7 +268,7 @@ async fn handle_get_storage_at(
     address: Address,
     position: U256,
     block: Option<BlockSpec>,
-) -> ResponseData<U256WithoutLeadingZeroes> {
+) -> ResponseData<U256> {
     event!(
         Level::INFO,
         "eth_getStorageAt({address:?}, {position:?}, {block:?})"
@@ -271,11 +278,9 @@ async fn handle_get_storage_at(
             let value = state.rethnet_state.read().await.storage(address, position);
             match restore_block_context(&state, previous_state_root).await {
                 Ok(()) => match value {
-                    Ok(value) => ResponseData::Success {
-                        result: U256WithoutLeadingZeroes(value),
-                    },
+                    Ok(value) => ResponseData::Success { result: value },
                     Err(e) => {
-                        error_response_data(&format!("failed to retrieve storage value: {}", e))
+                        error_response_data(0, &format!("failed to retrieve storage value: {}", e))
                     }
                 },
                 Err(e) => e,
@@ -311,9 +316,14 @@ async fn handle_get_transaction_count(
     }
 }
 
-async fn handle_set_balance(state: StateType, address: Address, balance: U256) -> ResponseData<()> {
+async fn handle_set_balance(
+    state: StateType,
+    address: Address,
+    balance: U256,
+) -> ResponseData<bool> {
     event!(Level::INFO, "hardhat_setBalance({address:?}, {balance:?})");
-    match state.rethnet_state.write().await.modify_account(
+    let mut state = state.rethnet_state.write().await;
+    match state.modify_account(
         address,
         AccountModifierFn::new(Box::new(move |account_balance, _, _| {
             *account_balance = balance
@@ -327,7 +337,10 @@ async fn handle_set_balance(state: StateType, address: Address, balance: U256) -
             })
         },
     ) {
-        Ok(()) => ResponseData::Success { result: () },
+        Ok(()) => {
+            state.make_snapshot();
+            ResponseData::Success { result: true }
+        }
         Err(e) => ResponseData::new_error(0, &e.to_string(), None),
     }
 }
@@ -336,11 +349,12 @@ async fn handle_set_code(
     state: StateType,
     address: Address,
     code: ZeroXPrefixedBytes,
-) -> ResponseData<()> {
+) -> ResponseData<bool> {
     event!(Level::INFO, "hardhat_setCode({address:?}, {code:?})");
     let code_1 = code.clone();
     let code_2 = code.clone();
-    match state.rethnet_state.write().await.modify_account(
+    let mut state = state.rethnet_state.write().await;
+    match state.modify_account(
         address,
         AccountModifierFn::new(Box::new(move |_, _, account_code| {
             *account_code = Some(Bytecode::new_raw(code_1.clone().into()))
@@ -354,16 +368,20 @@ async fn handle_set_code(
             })
         },
     ) {
-        Ok(()) => ResponseData::Success { result: () },
+        Ok(()) => {
+            state.make_snapshot();
+            ResponseData::Success { result: true }
+        }
         Err(e) => ResponseData::new_error(0, &e.to_string(), None),
     }
 }
 
-async fn handle_set_nonce(state: StateType, address: Address, nonce: U256) -> ResponseData<()> {
+async fn handle_set_nonce(state: StateType, address: Address, nonce: U256) -> ResponseData<bool> {
     event!(Level::INFO, "hardhat_setNonce({address:?}, {nonce:?})");
     match TryInto::<u64>::try_into(nonce) {
         Ok(nonce) => {
-            match state.rethnet_state.write().await.modify_account(
+            let mut state = state.rethnet_state.write().await;
+            match state.modify_account(
                 address,
                 AccountModifierFn::new(Box::new(move |_, account_nonce, _| *account_nonce = nonce)),
                 &|| {
@@ -375,7 +393,10 @@ async fn handle_set_nonce(state: StateType, address: Address, nonce: U256) -> Re
                     })
                 },
             ) {
-                Ok(()) => ResponseData::Success { result: () },
+                Ok(()) => {
+                    state.make_snapshot();
+                    ResponseData::Success { result: true }
+                }
                 Err(error) => ResponseData::new_error(0, &error.to_string(), None),
             }
         }
@@ -388,18 +409,17 @@ async fn handle_set_storage_at(
     address: Address,
     position: U256,
     value: U256,
-) -> ResponseData<()> {
+) -> ResponseData<bool> {
     event!(
         Level::INFO,
         "hardhat_setStorageAt({address:?}, {position:?}, {value:?})"
     );
-    match state
-        .rethnet_state
-        .write()
-        .await
-        .set_account_storage_slot(address, position, value)
-    {
-        Ok(()) => ResponseData::Success { result: () },
+    let mut state = state.rethnet_state.write().await;
+    match state.set_account_storage_slot(address, position, value) {
+        Ok(()) => {
+            state.make_snapshot();
+            ResponseData::Success { result: true }
+        }
         Err(e) => ResponseData::new_error(0, &e.to_string(), None),
     }
 }
@@ -445,9 +465,10 @@ async fn handle_request(
             method: _,
         } if *version != jsonrpc::Version::V2_0 => response(
             id,
-            error_response_data::<serde_json::Value>(&format!(
-                "unsupported JSON-RPC version '{version:?}'"
-            )),
+            error_response_data::<serde_json::Value>(
+                0,
+                &format!("unsupported JSON-RPC version '{version:?}'"),
+            ),
         ),
         RpcRequest {
             version: _,
@@ -600,7 +621,7 @@ impl Server {
                         },
                     )| {
                         let address = public_key_to_address(private_key.public_key(&secp256k1));
-                        event!(Level::INFO, "Account #{i}: {address:?}");
+                        event!(Level::INFO, "Account #{}: {address:?}", i + 1);
                         event!(
                             Level::INFO,
                             "Private Key: 0x{}",

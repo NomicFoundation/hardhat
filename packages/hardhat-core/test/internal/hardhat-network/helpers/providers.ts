@@ -8,7 +8,7 @@ import {
   HardhatNetworkMempoolConfig,
   HardhatNetworkMiningConfig,
 } from "../../../../src/types";
-import { ALCHEMY_URL, INFURA_URL } from "../../../setup";
+import { ALCHEMY_URL, INFURA_URL, RETHNET_BINARY } from "../../../setup";
 
 import { useProvider, UseProviderOptions } from "./useProvider";
 
@@ -189,6 +189,24 @@ if (INFURA_URL !== undefined) {
         useJsonRpc: false,
         loggerEnabled: true,
         forkConfig: { jsonRpcUrl: url, blockNumber: options.forkBlockNumber },
+        ...options,
+      });
+    },
+  });
+}
+
+if (RETHNET_BINARY !== undefined) {
+  PROVIDERS.push({
+    name: "Rethnet",
+    isFork: false,
+    isJsonRpc: true,
+    networkId: DEFAULT_NETWORK_ID,
+    chainId: DEFAULT_CHAIN_ID,
+    useProvider: (options: UseProviderOptions = {}) => {
+      useProvider({
+        useJsonRpc: true,
+        rethnetBinary: RETHNET_BINARY,
+        loggerEnabled: true,
         ...options,
       });
     },

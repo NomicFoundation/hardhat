@@ -143,7 +143,7 @@ async fn test_get_code_success() {
             Address::from_low_u64_ne(1),
             Some(BlockSpec::latest()),
         )),
-        ZeroXPrefixedBytes::from(Bytes::from_static(b"\0")),
+        ZeroXPrefixedBytes::from(Bytes::from_static(b"")),
     )
     .await;
 }
@@ -198,7 +198,7 @@ async fn test_set_balance_success() {
     verify_response(
         &server_address,
         MethodInvocation::Hardhat(HardhatMethodInvocation::SetBalance(address, new_balance)),
-        (),
+        true,
     )
     .await;
 
@@ -223,7 +223,7 @@ async fn test_set_nonce_success() {
     verify_response(
         &server_address,
         MethodInvocation::Hardhat(HardhatMethodInvocation::SetNonce(address, new_nonce)),
-        (),
+        true,
     )
     .await;
 
@@ -248,7 +248,7 @@ async fn test_set_code_success() {
     verify_response(
         &server_address,
         MethodInvocation::Hardhat(HardhatMethodInvocation::SetCode(address, new_code.clone())),
-        (),
+        true,
     )
     .await;
 
@@ -277,7 +277,7 @@ async fn test_set_storage_at_success() {
             U256::ZERO,
             new_storage_value,
         )),
-        (),
+        true,
     )
     .await;
 
