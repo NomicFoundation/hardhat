@@ -3,7 +3,7 @@ use std::sync::Arc;
 use futures::future::{self, FutureExt};
 use parking_lot::{RwLock, RwLockUpgradableReadGuard};
 use rethnet_eth::{
-    block::DetailedBlock,
+    block::{BlockAndCallers, DetailedBlock},
     receipt::TypedReceipt,
     remote::{self, BlockSpec, RpcClient, RpcClientError},
     B256, U256,
@@ -118,7 +118,10 @@ impl RemoteBlockchain {
             .total_difficulty
             .expect("Must be present as this is not a pending block");
 
-        let (block, callers) = block
+        let BlockAndCallers {
+            block,
+            transaction_callers,
+        } = block
             .try_into()
             .expect("Conversion must succeed, as we're not retrieving a pending block");
 
@@ -140,7 +143,7 @@ impl RemoteBlockchain {
             }))
         })?;
 
-        let block = DetailedBlock::new(block, callers, receipts);
+        let block = DetailedBlock::new(block, transaction_callers, receipts);
         let block = {
             let mut remote_cache = RwLockUpgradableReadGuard::upgrade(cache);
             // SAFETY: the block with this number didn't exist yet, so it must be unique
