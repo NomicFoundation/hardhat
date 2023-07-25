@@ -119,7 +119,7 @@ subtask(
 
 subtask(
   TASK_VERIFY_GET_VERIFICATION_SUBTASKS,
-  async (_, { config }): Promise<string[]> => {
+  async (_, { config, userConfig }): Promise<string[]> => {
     const verificationSubtasks = [];
 
     if (config.etherscan.enabled) {
@@ -128,7 +128,7 @@ subtask(
 
     if (config.sourcify.enabled) {
       verificationSubtasks.push(TASK_VERIFY_SOURCIFY);
-    } else {
+    } else if (userConfig.sourcify?.enabled === undefined) {
       verificationSubtasks.push(TASK_VERIFY_SOURCIFY_DISABLED_WARNING);
     }
 
