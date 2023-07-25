@@ -15,6 +15,7 @@ use revm_primitives::ruint::aliases::B64;
 
 use crate::{
     access_list::AccessListItem,
+    block::BlockAndCallers,
     receipt::{EIP658Receipt, TypedReceipt},
     signature::Signature,
     transaction::{
@@ -374,11 +375,11 @@ pub enum BlockConversionError {
     TransactionConversionError(#[from] TransactionConversionError),
 }
 
-impl TryFrom<Block<Transaction>> for (crate::block::Block, Vec<Address>) {
+impl TryFrom<Block<Transaction>> for BlockAndCallers {
     type Error = BlockConversionError;
 
     fn try_from(value: Block<Transaction>) -> Result<Self, Self::Error> {
-        let (transactions, callers): (Vec<SignedTransaction>, Vec<Address>) =
+        let (transactions, transaction_callers): (Vec<SignedTransaction>, Vec<Address>) =
             itertools::process_results(
                 value.transactions.into_iter().map(TryInto::try_into),
                 |iter| iter.unzip(),
@@ -409,6 +410,9 @@ impl TryFrom<Block<Transaction>> for (crate::block::Block, Vec<Address>) {
             ommers: Vec::new(),
         };
 
-        Ok((block, callers))
+        Ok(Self {
+            block,
+            transaction_callers,
+        })
     }
 }
