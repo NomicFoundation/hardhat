@@ -6,7 +6,7 @@
 
 Requiring **Ignition** within your `hardhat.config.{ts,js}` will automatically inject the `ignition` object as a global variable within **Hardhat** test files.
 
-The `ignition` object exposes a `deploy` method, that takes a Module as the first argument and an optional configuration object as the second argument. Module parameters can be passed under the `parameters` property of the options object:
+The `ignition` object exposes a `deploy` method, that takes a Module as the first argument and an optional configuration object as the second argument. Module parameters can be passed under the `parameters` property of the options object, indexed by the `ModuleId`:
 
 ```js
 it("should allow setting the start count for new counters", async function () {
@@ -20,7 +20,9 @@ it("should allow setting the start count for new counters", async function () {
 
   const { counter } = await ignition.deploy(CounterModule, {
     parameters: {
-      startCount: 42,
+      Counter: {
+        startCount: 42,
+      },
     },
   });
 

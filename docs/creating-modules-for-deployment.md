@@ -10,10 +10,9 @@
   - [Adding an endowment of _Eth_](./creating-modules-for-deployment.md#adding-an-endowment-of-eth)
   - [Dependencies between contracts](./creating-modules-for-deployment.md#dependencies-between-contracts)
   - [Retrieving an artifact](./creating-modules-for-deployment.md#retrieving-an-artifact)
-  - [Using an existing contract](./creating-modules-for-deployment.md#using-an-existing-contract)
   - [Deploying from an artifact](./creating-modules-for-deployment.md#deploying-from-an-artifact)
+  - [Using an existing contract](./creating-modules-for-deployment.md#using-an-existing-contract)
   - [Linking libraries](./creating-modules-for-deployment.md#linking-libraries)
-  - [Create2](./creating-modules-for-deployment.md#create2)
 - [Calling contract methods](./creating-modules-for-deployment.md#calling-contract-methods)
   - [Transferring _Eth_ as part of a call](./creating-modules-for-deployment.md#transferring-eth-as-part-of-a-call)
   - [Transferring _Eth_ outside of a call](./creating-modules-for-deployment.md#transferring-eth-outside-of-a-call)
@@ -22,7 +21,6 @@
 - [Network Accounts Management](./creating-modules-for-deployment.md#network-accounts-management)
 - [Including modules within modules](./creating-modules-for-deployment.md#including-modules-within-modules)
 - [Module Parameters](./creating-modules-for-deployment.md#module-parameters)
-- [Switching based on the _Network Chain ID_](./creating-modules-for-deployment.md#switching-based-on-the-network-chain-id)
 
 ---
 
@@ -56,12 +54,10 @@ const token = m.contract("Token");
 
 ### Constructor arguments
 
-In **Solidity** contracts may have constructor arguments that need satisfied on deployment. This can be done by passing an `args` array as part of the options:
+In **Solidity** contracts may have constructor arguments that need satisfied on deployment. This can be done by passing an `args` array as the second parameter:
 
 ```tsx
-const token = m.contract("Token", {
-  args: ["My Token", "TKN", 18],
-});
+const token = m.contract("Token", ["My Token", "TKN", 18]);
 ```
 
 ### Adding an endowment of _Eth_
@@ -69,8 +65,8 @@ const token = m.contract("Token", {
 The deployed contract can be given an endowment of _Eth_ by passing the value of the endowment under the options object:
 
 ```tsx
-const token = m.contract("Token", {
-  value: ethers.utils.parseUnits("1"),
+const token = m.contract("Token", [], {
+  value: BigInt(ethers.utils.parseUnits("1").toString()),
 });
 ```
 
@@ -80,9 +76,7 @@ If a contract needs the address of another contract as a constructor argument, t
 
 ```tsx
 const a = m.contract("A");
-const b = m.contract("B", {
-  args: [a],
-});
+const b = m.contract("B", [a]);
 ```
 
 You can think of this as `b` being the equivalent of a promise of an address, although **_futures are not promises_**.
@@ -91,42 +85,33 @@ If a contract does not directly depend through arguments on another contract, a 
 
 ```tsx
 const a = m.contract("A");
-const b = m.contract("B", {
+const b = m.contract("B", [], {
   after: [a],
 });
 ```
 
-### Retrieving an artifact
-
-You can use the module system itself to retrieve any of your locally compiled contract artifacts. This allows you to access and use the artifact ABI and bytecode wherever you'd like:
-
-```tsx
-const artifact = m.getArtifact("Foo");
-```
-
-### Using an existing contract
-
-A user might need to execute a method in a contract that wasn't deployed by Ignition. An existing contract can be leveraged by passing an address and abi:
-
-```tsx
-const artifact = m.getArtifact("UniswapRouter");
-const uniswap = m.contractAt("UniswapRouter", "0x123...", artifact.abi)
-
-m.call(uniswap, "swap", { ... })
-```
-
 ### Deploying from an artifact
 
-To allow you to use your own mechanism for getting the contract artifact, `contract` supports passing an `Artifact` as an optional second parameter:
+To allow you to use your own mechanism for getting the contract artifact, `contractFromArtifact` supports passing an `Artifact` as the second parameter:
 
 ```javascript
 const artifact = hre.artifacts.readArtifactSync("Foo");
 
 const userModule = buildModule("MyModule", (m) => {
-  m.contract("Foo", artifact, {
-    args: [0],
-  });
+  m.contractFromArtifact("Foo", artifact, [0]);
 });
+```
+
+### Using an existing contract
+
+A user might need to execute a method in a contract that wasn't deployed by Ignition. An existing contract can be leveraged by passing an address and artifact:
+
+```tsx
+const uniswap = m.contractAtFromArtifact("UniswapRouter", "0x0...", artifact);
+
+m.call(uniswap, "swap", [
+  /*...*/
+]);
 ```
 
 ### Linking libraries
@@ -135,7 +120,7 @@ A library can be deployed and linked to a contract by passing the libraries cont
 
 ```tsx
 const safeMath = m.library("SafeMath");
-const contract = m.contract("Contract", {
+const contract = m.contract("Contract", [], {
   libraries: {
     SafeMath: safeMath,
   },
@@ -143,56 +128,6 @@ const contract = m.contract("Contract", {
 ```
 
 A library is deployed in the same way as a contract.
-
-### Create2
-
-`Create2` allows for reliably determining the address of a contract before it is deployed.
-
-It requires a factory contract:
-
-```solidity
-//SPDX-License-Identifier: MIT
-pragma solidity ^0.8.5;
-
-import "@openzeppelin/contracts/utils/Create2.sol";
-
-contract Create2Factory {
-  event Deployed(bytes32 indexed salt, address deployed);
-
-  function deploy(
-    uint256 amount,
-    bytes32 salt,
-    bytes memory bytecode
-  ) public returns (address) {
-    address deployedAddress;
-
-    deployedAddress = Create2.deploy(amount, salt, bytecode);
-    emit Deployed(salt, deployedAddress);
-
-    return deployedAddress;
-  }
-}
-```
-
-Given the `create2` factory, you can deploy a contract via the factory by:
-
-```ts
-module.exports = buildModule("Create2Example", (m) => {
-  const create2 = m.contract("Create2Factory");
-
-  const fooArtifact = m.getArtifact("Foo");
-
-  const fooAddress = m.call(create2, "deploy", {
-    args: [
-      0, // amount
-      toBytes32(1), // salt
-      fooArtifact.bytecode, // contract bytecode
-    ],
-  });
-
-  return { create2, foo: m.contractAt(fooAddress) };
-});
-```
 
 ## Calling contract methods
 
@@ -202,9 +137,7 @@ Not all contract configuration happens via the constructor. To configure a contr
 const token = m.contract("Token");
 const exchange = m.contract("Exchange");
 
-m.call(exchange, "addToken", {
-  args: [token],
-});
+m.call(exchange, "addToken", [token]);
 ```
 
 ### Transferring _Eth_ as part of a call
@@ -212,8 +145,8 @@ m.call(exchange, "addToken", {
 Similar to `ethers`, a call can transfer `Eth` by passing a `value` under the options:
 
 ```tsx
-m.call(exchange, "deposit", {
-  value: ethers.utils.parseUnits("1"),
+m.call(exchange, "deposit", [], {
+  value: BigInt(ethers.utils.parseUnits("1").toString()),
 });
 ```
 
@@ -235,9 +168,7 @@ A contract might need the result of some other contract method as an input:
 const token = m.contract("Token");
 const totalSupply = m.staticCall(token, "totalSupply");
 
-const someContract = m.contract("ContractName", {
-  args: [totalSupply],
-});
+const someContract = m.contract("ContractName", [totalSupply]);
 ```
 
 In this example, `totalSupply` is called a **deferred value**. Similar to how a contract future is a contract that will eventually be deployed, a deferred value is some value that will eventually be available. That means **you can't do this**:
@@ -255,32 +186,30 @@ Because `totalSupply` is not a number, it is a future.
 A deployment can be put `on-hold` until an on-chain event has been emitted (for instance a timelock or multisig approval):
 
 ```tsx
-const artifact = m.getArtifact("Multisig");
-const multisig = m.contract("Multisig", artifact, { args: [] });
+const multisig = m.contract("Multisig", []);
 
 const call = m.call(multisig, "authorize");
 
-const event = m.event(multisig, "AuthorizedBy", {
-  args: ["0xUser1"],
-  after: [call],
-});
+const authorizerEventArg = m.readEventArgument(
+  call,
+  "AuthorizedBy", // Event name
+  "Authorizer" // Event arg name
+);
 
-m.call(multisig, "execute", { args: [event.params.transactionId] });
+m.call(multisig, "execute", [authorizerEventArg]);
 ```
 
 The `event` during deployment will check whether an event matching the given filter args has been emitted. If it has, the deployment will continue, if not the deployment will pause and listen for the event for a [configurable](./running-a-deployment.md#configuration-options) period of time. If the event has not been detected within this listening period, the deployment stops in the `on-hold` condition. A further run of the deployment will recheck the `event` condition.
 
-Upon execution, the `EventFuture` will be resolved to the values of the params emitted by the given event. You can then use those values in tests or other modules as expected.
-
-A full example of the `event` function can be seen in our [Multisig example](../examples/multisig/README.md).
+Upon execution, the `EventFuture` will be resolved to the values of the requested parameter emitted by the given event. You can then use that value in tests or other modules as expected.
 
 ## Network Accounts Management
 
-All accounts configured for the current network can be accessed from within an **Ignition** module via `m.accounts`:
+All accounts configured for the current network can be accessed from within an **Ignition** module via `m.getAccount(index)`:
 
 ```tsx
 module.exports = buildModule("Multisig", (m) => {
-  const [owner] = m.accounts; // typeof m.accounts === string[]
+  const owner = m.getAccount(0);
 });
 ```
 
@@ -288,20 +217,22 @@ You can then use these addresses anywhere you normally would, such as constructo
 
 ```tsx
 module.exports = buildModule("Multisig", (m) => {
-  const [owner, alsoAnOwner, notAnOwner] = m.accounts; // typeof m.accounts === string[]
+  const owner = m.getAccount(0);
+  const alsoAnOwner = m.getAccount(1);
+  const notAnOwner = m.getAccount(2);
 
-  const multisig = m.deploy("Multisig", { args: [owner, alsoAnOwner], { from: owner }});
+  const multisig = m.contract("Multisig", [owner, alsoAnOwner], {
+    from: owner,
+  });
 
-  const value = ethers.utils.parseUnits("100");
-  const fund = m.sendETH(multisig, { value, from: notAnOwner })
+  const value = BigInt(ethers.utils.parseUnits("100").toString());
+  const fund = m.send("fund", multisig, value, undefined, { from: notAnOwner });
 
-  const call = m.call(multisig, "authorize", { from: alsoAnOwner });
+  const call = m.call(multisig, "authorize", [], { from: alsoAnOwner });
 });
 ```
 
-Note that if `from` is not provided, **Ignition** will default to sending transactions using the first configured account (`m.accounts[0]`).
-
-A more complete example of the `from` option can be found in our [Multisig example](../examples/multisig/README.md)
+Note that if `from` is not provided, **Ignition** will default to sending transactions using the first configured account (`accounts[0]`).
 
 ## Including modules within modules
 
@@ -313,9 +244,8 @@ module.exports = buildModule("`TEST` registrar", (m) => {
 
   const { ens, resolver, reverseRegistrar } = m.useModule(setupENSRegistry);
 
-  const registrar = m.contract("FIFSRegistrar", {
-    args: [ens, namehash.hash("test")],
-  });
+  // Setup registrar
+  const registrar = m.contract("FIFSRegistrar", [ens, tldHash]);
 
   // ...
 
@@ -323,7 +253,7 @@ module.exports = buildModule("`TEST` registrar", (m) => {
 });
 ```
 
-Calls to `useModule` memoize the results object, assuming the same parameters are passed. Multiple calls to the same module with different parameters are banned.
+Calls to `useModule` memoize the results object.
 
 Only contract or library types can be returned when building a module.
 
@@ -332,8 +262,8 @@ Only contract or library types can be returned when building a module.
 Modules can have parameters that are accessed using the `DeploymentBuilder` object:
 
 ```tsx
-const symbol = m.getParam("tokenSymbol");
-const name = m.getParam("tokenName");
+const symbol = m.getParameter("tokenSymbol");
+const name = m.getParameter("tokenName");
 
 const token = m.contract("Token", {
   args: [symbol, name, 1_000_000],
@@ -342,28 +272,10 @@ const token = m.contract("Token", {
 
 When a module is deployed, the proper parameters must be provided. If they are not available, the deployment won't be executed and will error.
 
-You can use optional params with default values too:
+You can use optional params by providing default values:
 
 ```tsx
-const symbol = m.getOptionalParam("tokenSymbol", "TKN");
-```
-
-## Switching based on the _Network Chain ID_
-
-The `DeploymentBuilder` (`m`) exposes the chain id of the network in which the contracts are being deployed. This is useful if you need to do different things depending on the network.
-
-```tsx
-const userModule = buildModule("MyModule", (m) => {
-  const daiAddresses = {
-    1: "0x123...", // mainnet DAI
-    4: "0x234...", // rinkeby DAI
-  };
-
-  const daiAddress = daiAddresses[m.chainId];
-  const myContract = m.contract("MyContract", {
-    args: [daiAddress],
-  });
-});
+const symbol = m.getParameter("tokenSymbol", "TKN");
 ```
 
 ---

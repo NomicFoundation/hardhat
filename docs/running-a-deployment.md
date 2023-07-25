@@ -6,8 +6,8 @@
 
 - [Visualizing your deployment with the `plan` task](./running-a-deployment.md#visualizing-your-deployment-with-the-plan-task)
 - [Executing the deployment](./running-a-deployment.md#executing-the-deployment)
-  - [Configuration options](./running-a-deployment.md#configuration-options)
-  - [Resuming a failed or onhold deployment](./running-a-deployment.md#visualizing-your-deployment-with-the-plan-task)
+  <!-- - [Configuration options](./running-a-deployment.md#configuration-options)
+  - [Resuming a failed or onhold deployment](./running-a-deployment.md#visualizing-your-deployment-with-the-plan-task) -->
 
 ---
 
@@ -41,19 +41,19 @@ Deploying a module is done using the **Ignition** deploy task:
 npx hardhat deploy LockModule
 ```
 
-Module parameters can be passed as a `json` string to the `parameters` flag:
+Module parameters, indexed by `ModuleId`, can be passed as a `json` string to the `parameters` flag:
 
 ```sh
-npx hardhat deploy --parameters "{\"unlockTime\":4102491600,\"lockedAmount\":2000000000}" LockModule.js
+npx hardhat deploy --parameters "{\"LockModule\": {\"unlockTime\":4102491600,\"lockedAmount\":2000000000}}" LockModule.js
 ```
 
 By default the deploy task will deploy to an ephemeral Hardhat network. To target a network from your Hardhat config, you can pass its name to the network flag:
 
 ```sh
-npx hardhat deploy --network mainnet LockModule.js
+npx hardhat deploy LockModule.js --network mainnet
 ```
 
-### Configuration options
+<!-- ### Configuration options
 
 There are currently some configurable options you can add to your Hardhat config file in order to adjust the way **Ignition** runs the deployment:
 
@@ -123,4 +123,4 @@ To start a deployment again, ignoring the state from previous runs and rerunning
 npx hardhat deploy MyModule.js --network localhost --force
 ```
 
-For non-development network deployments, this means some form of deployment freezing will be recommended that records relevant information such as contract abi, deployed address and network. These files will be recommended to be committed into project repositories as well.
+For non-development network deployments, this means some form of deployment freezing will be recommended that records relevant information such as contract abi, deployed address and network. These files will be recommended to be committed into project repositories as well. -->

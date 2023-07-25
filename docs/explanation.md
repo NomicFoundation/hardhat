@@ -24,9 +24,9 @@ A module is built by calling the `buildModule` function and passing it a unique 
 
 ```tsx
 module.exports = buildModule("CounterModule", (m) => {
-  const intialCounterValue = 123;
+  const initialCounterValue = 123;
 
-  const counter = m.contract("Counter", { args: [initialCounterValue] });
+  const counter = m.contract("Counter", [initialCounterValue]);
 
   return { counter };
 });
@@ -44,7 +44,7 @@ In the above example, when we call `m.contract`, we create a contract deployment
 module.exports = buildModule("ContractWithInitModule", (m) => {
   const c = m.contract("ContractWithInitModule");
 
-  m.call(c, "init", { args: [123] });
+  m.call(c, "init", [123]);
 
   return { c };
 });
