@@ -1,15 +1,20 @@
 import { HeaderData } from "@nomicfoundation/ethereumjs-block";
 import { Common } from "@nomicfoundation/ethereumjs-common";
-import { Address } from "@nomicfoundation/ethereumjs-util";
 import { TypedTransaction } from "@nomicfoundation/ethereumjs-tx";
+import { Address } from "@nomicfoundation/ethereumjs-util";
+import { TxReceipt } from "@nomicfoundation/ethereumjs-vm";
 import { HardforkName, hardforkGte } from "../../../util/hardforks";
 import { HardhatBlockchainInterface } from "../types/HardhatBlockchainInterface";
 import { RandomBufferGenerator } from "../utils/random";
-import { PartialTrace, VMAdapter } from "../vm/vm-adapter";
+import { PartialTrace, RunTxResult, VMAdapter } from "../vm/vm-adapter";
 import { BlockMinerAdapter, PartialMineBlockResult } from "../miner";
 import { MempoolOrder } from "../node-types";
 import { TransactionQueue } from "../TransactionQueue";
 import { HardhatMemPool } from "../mem-pool/hardhat";
+import {
+  getRpcReceiptOutputsFromLocalBlockExecution,
+  shouldShowTransactionTypeForHardfork,
+} from "../output";
 
 export class HardhatBlockMiner implements BlockMinerAdapter {
   constructor(
@@ -38,7 +43,7 @@ export class HardhatBlockMiner implements BlockMinerAdapter {
       coinbase: this._coinbase,
       nonce: isPostMerge ? "0x0000000000000000" : "0x0000000000000042",
       timestamp: blockTimestamp,
-      number: this._blockchain.getLatestBlockNumber() + 1n,
+      number: (await this._blockchain.getLatestBlockNumber()) + 1n,
     };
 
     if (isPostMerge) {
@@ -66,8 +71,8 @@ export class HardhatBlockMiner implements BlockMinerAdapter {
 
       let tx = transactionQueue.getNextTransaction();
 
-      const results = [];
-      const receipts = [];
+      const results: RunTxResult[] = [];
+      const receipts: TxReceipt[] = [];
       const traces: PartialTrace[] = [];
 
       while (
@@ -93,7 +98,15 @@ export class HardhatBlockMiner implements BlockMinerAdapter {
       const block = await blockBuilder.finalize([
         [this._coinbase, minerReward],
       ]);
+
+      const receiptOutput = getRpcReceiptOutputsFromLocalBlockExecution(
+        block,
+        results,
+        shouldShowTransactionTypeForHardfork(this._common)
+      );
+
       await this._blockchain.putBlock(block);
+      this._blockchain.addTransactionReceipts(receiptOutput);
 
       await this._memPool.update();
 
@@ -175,7 +188,7 @@ export class HardhatBlockMiner implements BlockMinerAdapter {
       remainingBlockCount - 1n,
       interval,
       await this._vm.getStateRoot(),
-      await this._blockchain.getTotalDifficulty(latestBlock.hash()),
+      (await this._blockchain.getTotalDifficultyByHash(latestBlock.hash()))!,
       latestBlock.header.baseFeePerGas
     );
 

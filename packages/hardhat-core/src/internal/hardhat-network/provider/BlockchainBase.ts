@@ -50,15 +50,15 @@ export abstract class BlockchainBase {
   }
 
   public async delBlock(blockHash: Buffer) {
-    this.deleteBlock(blockHash);
+    await this.deleteBlock(blockHash);
   }
 
-  public deleteBlock(blockHash: Buffer) {
+  public async deleteBlock(blockHash: Buffer) {
     const block = this._data.getBlockByHash(blockHash);
     if (block === undefined) {
       throw new Error("Block not found");
     }
-    this._delBlock(block.header.number);
+    await this._delBlock(block.header.number);
   }
 
   public async getBlock(
@@ -95,10 +95,12 @@ export abstract class BlockchainBase {
     return blockByHash;
   }
 
-  public abstract getLatestBlockNumber(): bigint;
+  public abstract getLatestBlockNumber(): Promise<bigint>;
 
   public async getLatestBlock(): Promise<Block> {
-    return this.getBlock(this.getLatestBlockNumber());
+    return this.getLatestBlockNumber().then((blockNumber) => {
+      return this.getBlock(blockNumber);
+    });
   }
 
   public getLocalTransaction(
@@ -118,21 +120,23 @@ export abstract class BlockchainBase {
     await this.addBlock(block);
   }
 
-  public reserveBlocks(
+  public async reserveBlocks(
     count: bigint,
     interval: bigint,
     previousBlockStateRoot: Buffer,
     previousBlockTotalDifficulty: bigint,
     previousBlockBaseFeePerGas: bigint | undefined
-  ) {
-    this._data.reserveBlocks(
-      this.getLatestBlockNumber() + 1n,
-      count,
-      interval,
-      previousBlockStateRoot,
-      previousBlockTotalDifficulty,
-      previousBlockBaseFeePerGas
-    );
+  ): Promise<void> {
+    await this.getLatestBlockNumber().then((blockNumber) => {
+      this._data.reserveBlocks(
+        blockNumber + 1n,
+        count,
+        interval,
+        previousBlockStateRoot,
+        previousBlockTotalDifficulty,
+        previousBlockBaseFeePerGas
+      );
+    });
   }
 
   public copy(): BlockchainInterface {
@@ -146,20 +150,27 @@ export abstract class BlockchainBase {
     throw new Error("Method not implemented.");
   }
 
-  protected _delBlock(blockNumber: bigint): void {
+  protected async _delBlock(blockNumber: bigint): Promise<void> {
     let i = blockNumber;
+    let shouldStop = false;
 
-    while (i <= this.getLatestBlockNumber()) {
-      if (this._data.isReservedBlock(i)) {
-        const reservation = this._data.cancelReservationWithBlock(i);
-        i = reservation.last + 1n;
-      } else {
-        const current = this._data.getBlockByNumber(i);
-        if (current !== undefined) {
-          this._data.removeBlock(current);
+    while (!shouldStop) {
+      await this.getLatestBlockNumber().then((latestBlockNumber) => {
+        if (i <= latestBlockNumber) {
+          if (this._data.isReservedBlock(i)) {
+            const reservation = this._data.cancelReservationWithBlock(i);
+            i = reservation.last + 1n;
+          } else {
+            const current = this._data.getBlockByNumber(i);
+            if (current !== undefined) {
+              this._data.removeBlock(current);
+            }
+            i++;
+          }
+        } else {
+          shouldStop = true;
         }
-        i++;
-      }
+      });
     }
   }
 

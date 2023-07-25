@@ -350,7 +350,10 @@ export class HardhatNode extends EventEmitter {
     }
 
     const result = await this._finalizeBlockResult(partialResult);
-    await this._saveBlockAsSuccessfullyRun(result.block, result.blockResult);
+    await this._saveBlockAsSuccessfullyRun(
+      result.block,
+      result.blockResult.results
+    );
 
     if (needsTimestampIncrease) {
       this.increaseTime(1n);
@@ -875,7 +878,7 @@ export class HardhatNode extends EventEmitter {
     //
     // Note: There's no need to copy the maps here, as snapshots can only be
     // used once
-    this._context.blockchain().deleteLaterBlocks(snapshot.latestBlock);
+    await this._context.blockchain().deleteLaterBlocks(snapshot.latestBlock);
     this._irregularStatesByBlockNumber = snapshot.irregularStatesByBlockNumber;
     const irregularStateOrUndefined = this._irregularStatesByBlockNumber.get(
       (await this.getLatestBlock()).header.number
@@ -1753,15 +1756,13 @@ export class HardhatNode extends EventEmitter {
    */
   private async _saveBlockAsSuccessfullyRun(
     block: Block,
-    runBlockResult: RunBlockResult
+    transactionResults: RunTxResult[]
   ) {
     const receipts = getRpcReceiptOutputsFromLocalBlockExecution(
       block,
-      runBlockResult,
+      transactionResults,
       shouldShowTransactionTypeForHardfork(this._common)
     );
-
-    this._context.blockchain().addTransactionReceipts(receipts);
 
     const td = await this.getBlockTotalDifficulty(block);
     const rpcLogs: RpcLogOutput[] = [];

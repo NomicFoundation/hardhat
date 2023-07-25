@@ -21,7 +21,7 @@ export class HardhatBlockchain
     super(common);
   }
 
-  public getLatestBlockNumber(): bigint {
+  public async getLatestBlockNumber(): Promise<bigint> {
     return BigInt(this._length - 1n);
   }
 
@@ -33,14 +33,14 @@ export class HardhatBlockchain
     return block;
   }
 
-  public reserveBlocks(
+  public async reserveBlocks(
     count: bigint,
     interval: bigint,
     previousBlockStateRoot: Buffer,
     previousBlockTotalDifficulty: bigint,
     previousBlockBaseFeePerGas: bigint | undefined
   ) {
-    super.reserveBlocks(
+    await super.reserveBlocks(
       count,
       interval,
       previousBlockStateRoot,
@@ -50,16 +50,16 @@ export class HardhatBlockchain
     this._length += count;
   }
 
-  public deleteLaterBlocks(block: Block): void {
+  public async deleteLaterBlocks(block: Block): Promise<void> {
     const actual = this._data.getBlockByHash(block.hash());
     if (actual === undefined) {
       throw new Error("Invalid block");
     }
 
-    this._delBlock(actual.header.number + 1n);
+    await this._delBlock(actual.header.number + 1n);
   }
 
-  public async getTotalDifficulty(blockHash: Buffer): Promise<bigint> {
+  public async getTotalDifficultyByHash(blockHash: Buffer): Promise<bigint> {
     const totalDifficulty = this._data.getTotalDifficulty(blockHash);
     if (totalDifficulty === undefined) {
       throw new Error("Block not found");
@@ -73,11 +73,18 @@ export class HardhatBlockchain
     return this.getLocalTransaction(transactionHash);
   }
 
+  public async getBlockByHash(hash: Buffer): Promise<Block | undefined> {
+    return this._data.getBlockByHash(hash);
+  }
+
+  public async getBlockByNumber(number: bigint): Promise<Block | undefined> {
+    return this._data.getBlockByNumber(number);
+  }
+
   public async getBlockByTransactionHash(
     transactionHash: Buffer
-  ): Promise<Block | null> {
-    const block = this._data.getBlockByTransactionHash(transactionHash);
-    return block ?? null;
+  ): Promise<Block | undefined> {
+    return this._data.getBlockByTransactionHash(transactionHash);
   }
 
   public async getTransactionReceipt(transactionHash: Buffer) {
@@ -88,10 +95,10 @@ export class HardhatBlockchain
     return this._data.getLogs(filterParams);
   }
 
-  public blockSupportsHardfork(
+  public async blockSupportsHardfork(
     hardfork: HardforkName,
     _blockNumberOrPending?: bigint | "pending"
-  ): boolean {
+  ): Promise<boolean> {
     return this._common.gteHardfork(hardfork.toString());
   }
 
@@ -116,8 +123,8 @@ export class HardhatBlockchain
     }
   }
 
-  protected _delBlock(blockNumber: bigint): void {
-    super._delBlock(blockNumber);
+  protected async _delBlock(blockNumber: bigint): Promise<void> {
+    await super._delBlock(blockNumber);
     this._length = blockNumber;
   }
 }

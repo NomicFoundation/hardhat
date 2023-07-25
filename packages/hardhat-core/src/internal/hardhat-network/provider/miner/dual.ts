@@ -26,4 +26,31 @@ export class DualBlockMiner implements BlockMinerAdapter {
 
     return rethnetResult;
   }
+
+  public async mineBlocks(
+    blockTimestamp: bigint,
+    minerReward: bigint,
+    count: bigint,
+    interval: bigint,
+    baseFeePerGas?: bigint
+  ): Promise<PartialMineBlockResult[]> {
+    const _ethereumJSResult = await this._ethereumJSMiner.mineBlocks(
+      blockTimestamp,
+      minerReward,
+      count,
+      interval,
+      baseFeePerGas
+    );
+    const rethnetResult = await this._rethnetMiner.mineBlocks(
+      blockTimestamp,
+      minerReward,
+      count,
+      interval,
+      baseFeePerGas
+    );
+
+    // TODO: assert
+
+    return rethnetResult;
+  }
 }

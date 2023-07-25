@@ -27,6 +27,7 @@ import { HardforkHistoryConfig } from "../../../../types/config";
 import { HardhatBlockchain } from "../HardhatBlockchain";
 import { HardhatMemPool } from "../mem-pool/hardhat";
 import { putGenesisBlock } from "../utils/putGenesisBlock";
+import { BlockchainAdapter } from "../blockchain";
 
 export class HardhatEthContext implements EthContextAdapter {
   constructor(
@@ -109,7 +110,7 @@ export class HardhatEthContext implements EthContextAdapter {
     );
   }
 
-  public blockchain(): HardhatBlockchainInterface {
+  public blockchain(): BlockchainAdapter {
     return this._blockchain;
   }
 
