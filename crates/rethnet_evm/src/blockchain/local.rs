@@ -17,8 +17,8 @@ use super::{storage::ContiguousBlockchainStorage, Blockchain, BlockchainError, B
 /// An error that occurs upon creation of a [`LocalBlockchain`].
 #[derive(Debug, thiserror::Error)]
 pub enum CreationError<SE> {
-    /// Missing base fee per gas for post-merge blockchain
-    #[error("Missing base fee per gas for post-merge blockchain")]
+    /// Missing base fee per gas for post-London blockchain
+    #[error("Missing base fee per gas for post-London blockchain")]
     MissingBaseFee,
     /// Missing prevrandao for post-merge blockchain
     #[error("Missing prevrandao for post-merge blockchain")]
@@ -83,7 +83,7 @@ impl LocalBlockchain {
                 } else {
                     B64::from(U64::from(42))
                 },
-                base_fee: if spec_id >= SpecId::MERGE {
+                base_fee: if spec_id >= SpecId::LONDON {
                     Some(base_fee.ok_or(CreationError::MissingBaseFee)?)
                 } else {
                     None
