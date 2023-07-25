@@ -12,7 +12,7 @@ pub struct AccountModifierFn {
 }
 
 impl AccountModifierFn {
-    /// Constructs an [`AccountModifierDebuggableFn`] from the provided function.
+    /// Constructs an [`AccountModifierFn`] from the provided function.
     pub fn new(func: BoxedAccountModifierFn) -> Self {
         Self { inner: func }
     }

@@ -43,7 +43,7 @@ pub enum StateError {
     Remote(#[from] RpcClientError),
 }
 
-/// Trait that meets all requirements for a synchronous database that can be used by [`AsyncDatabase`].
+/// Trait that meets all requirements for a synchronous database
 pub trait SyncState<E>:
     StateRef<Error = E>
     + DatabaseCommit

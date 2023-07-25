@@ -89,7 +89,7 @@ impl<Layer: Default> Default for LayeredChanges<Layer> {
     }
 }
 
-/// A layer with information needed for [`Rethnet`].
+/// A layer with information needed for [`crate::runtime::Rethnet`].
 #[derive(Clone, Debug)]
 pub struct RethnetLayer {
     /// Accounts, where the Option signals deletion.
