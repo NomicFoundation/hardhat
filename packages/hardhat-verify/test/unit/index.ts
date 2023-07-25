@@ -187,24 +187,6 @@ describe("verify task", () => {
       );
     });
 
-    it("should ignore the sourcify subtask if it is disabled", async function () {
-      const originalConfig = this.hre.config.sourcify;
-      this.hre.config.sourcify = {
-        enabled: false,
-      };
-
-      const verificationSubtasks: string[] = await this.hre.run(
-        TASK_VERIFY_GET_VERIFICATION_SUBTASKS
-      );
-
-      this.hre.config.sourcify = originalConfig;
-
-      assert.isFalse(verificationSubtasks.includes(TASK_VERIFY_SOURCIFY));
-      assert.isTrue(
-        verificationSubtasks.includes(TASK_VERIFY_SOURCIFY_DISABLED_WARNING)
-      );
-    });
-
     it("should provide a warning message if both etherscan and sourcify are disabled", async function () {
       const originalEtherscanConfig = this.hre.config.etherscan;
       this.hre.config.etherscan = {
