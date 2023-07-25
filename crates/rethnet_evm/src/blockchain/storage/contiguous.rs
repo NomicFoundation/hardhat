@@ -18,7 +18,7 @@ impl ContiguousBlockchainStorage {
     /// Constructs a new instance with the provided block.
     pub fn with_block(block: DetailedBlock, total_difficulty: U256) -> Self {
         let block = Arc::new(block);
-        let block_hash = block.header.hash();
+        let block_hash = block.hash();
 
         let transaction_hash_to_block = block
             .transactions
@@ -27,7 +27,7 @@ impl ContiguousBlockchainStorage {
             .collect();
 
         let mut hash_to_block = HashMap::new();
-        hash_to_block.insert(block_hash, block.clone());
+        hash_to_block.insert(*block_hash, block.clone());
 
         Self {
             total_difficulties: vec![total_difficulty],
@@ -77,13 +77,13 @@ impl ContiguousBlockchainStorage {
         block: DetailedBlock,
         total_difficulty: U256,
     ) -> Result<&Arc<DetailedBlock>, InsertError> {
-        let block_hash = block.header.hash();
+        let block_hash = block.hash();
 
         // As blocks are contiguous, we are guaranteed that the block number won't exist if its
         // hash is not present.
-        if self.hash_to_block.contains_key(&block_hash) {
+        if self.hash_to_block.contains_key(block_hash) {
             return Err(InsertError::DuplicateBlock {
-                block_hash,
+                block_hash: *block_hash,
                 block_number: block.header.number,
             });
         }
@@ -124,7 +124,7 @@ impl ContiguousBlockchainStorage {
         self.blocks.push(block.clone());
         self.total_difficulties.push(total_difficulty);
         self.hash_to_block
-            .insert_unique_unchecked(block.header.hash(), block)
+            .insert_unique_unchecked(*block.hash(), block)
             .1
     }
 }

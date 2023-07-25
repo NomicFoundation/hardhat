@@ -101,3 +101,23 @@ where
     E: Debug + Send,
 {
 }
+
+/// Validates whether a block is a valid next block.
+fn validate_next_block(
+    last_block: &DetailedBlock,
+    next_block: &DetailedBlock,
+) -> Result<(), BlockchainError> {
+    let next_block_number = last_block.header.number + U256::from(1);
+    if next_block.header.number != next_block_number {
+        return Err(BlockchainError::InvalidBlockNumber {
+            actual: next_block.header.number,
+            expected: next_block_number,
+        });
+    }
+
+    if next_block.header.parent_hash != *last_block.hash() {
+        return Err(BlockchainError::InvalidParentHash);
+    }
+
+    Ok(())
+}

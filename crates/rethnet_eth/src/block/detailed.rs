@@ -1,7 +1,8 @@
-use std::ops::Deref;
+use std::{ops::Deref, sync::OnceLock};
 
 use crate::{block::Block, receipt::TypedReceipt, transaction::DetailedTransaction, Address};
 use itertools::izip;
+use revm_primitives::B256;
 
 /// A type that combines the block with transaction details about caller addresses
 /// and receipts.
@@ -10,6 +11,7 @@ pub struct DetailedBlock {
     block: Block,
     transaction_callers: Vec<Address>,
     transaction_receipts: Vec<TypedReceipt>,
+    hash: OnceLock<B256>,
 }
 
 impl DetailedBlock {
@@ -23,7 +25,13 @@ impl DetailedBlock {
             block,
             transaction_callers,
             transaction_receipts,
+            hash: OnceLock::new(),
         }
+    }
+
+    /// Retrieves the block's hash.
+    pub fn hash(&self) -> &B256 {
+        self.hash.get_or_init(|| self.block.header.hash())
     }
 
     /// Retrieves the instance's transactions.

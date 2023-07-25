@@ -18,7 +18,7 @@ impl SparseBlockchainStorage {
     /// Constructs a new instance with the provided block.
     pub fn with_block(block: DetailedBlock, total_difficulty: U256) -> Self {
         let block = Arc::new(block);
-        let block_hash = block.header.hash();
+        let block_hash = block.hash();
 
         let transaction_hash_to_block = block
             .transactions
@@ -27,10 +27,10 @@ impl SparseBlockchainStorage {
             .collect();
 
         let mut hash_to_block = HashMap::new();
-        hash_to_block.insert(block_hash, block.clone());
+        hash_to_block.insert(*block_hash, block.clone());
 
         let mut hash_to_total_difficulty = HashMap::new();
-        hash_to_total_difficulty.insert(block_hash, total_difficulty);
+        hash_to_total_difficulty.insert(*block_hash, total_difficulty);
 
         let mut number_to_block = HashMap::new();
         number_to_block.insert(block.header.number, block);
@@ -77,12 +77,12 @@ impl SparseBlockchainStorage {
         block: DetailedBlock,
         total_difficulty: U256,
     ) -> Result<&Arc<DetailedBlock>, InsertError> {
-        let block_hash = block.header.hash();
-        if self.hash_to_block.contains_key(&block_hash)
+        let block_hash = block.hash();
+        if self.hash_to_block.contains_key(block_hash)
             || self.number_to_block.contains_key(&block.header.number)
         {
             return Err(InsertError::DuplicateBlock {
-                block_hash,
+                block_hash: *block_hash,
                 block_number: block.header.number,
             });
         }
@@ -112,7 +112,7 @@ impl SparseBlockchainStorage {
         total_difficulty: U256,
     ) -> &Arc<DetailedBlock> {
         let block = Arc::new(block);
-        let block_hash = block.header.hash();
+        let block_hash = block.hash();
 
         self.transaction_hash_to_block.extend(
             block
@@ -122,10 +122,10 @@ impl SparseBlockchainStorage {
         );
 
         self.hash_to_block
-            .insert_unique_unchecked(block_hash, block.clone());
+            .insert_unique_unchecked(*block_hash, block.clone());
 
         self.hash_to_total_difficulty
-            .insert_unique_unchecked(block_hash, total_difficulty);
+            .insert_unique_unchecked(*block_hash, total_difficulty);
 
         self.number_to_block
             .insert_unique_unchecked(block.header.number, block)

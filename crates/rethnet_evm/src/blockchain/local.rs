@@ -12,7 +12,10 @@ use revm::{db::BlockHashRef, primitives::SpecId};
 
 use crate::state::StateDebug;
 
-use super::{storage::ContiguousBlockchainStorage, Blockchain, BlockchainError, BlockchainMut};
+use super::{
+    storage::ContiguousBlockchainStorage, validate_next_block, Blockchain, BlockchainError,
+    BlockchainMut,
+};
 
 /// An error that occurs upon creation of a [`LocalBlockchain`].
 #[derive(Debug, thiserror::Error)]
@@ -176,17 +179,7 @@ impl BlockchainMut for LocalBlockchain {
     fn insert_block(&mut self, block: DetailedBlock) -> Result<Arc<DetailedBlock>, Self::Error> {
         let last_block = self.last_block()?;
 
-        let next_block_number = last_block.header.number + U256::from(1);
-        if block.header.number != next_block_number {
-            return Err(BlockchainError::InvalidBlockNumber {
-                actual: block.header.number,
-                expected: next_block_number,
-            });
-        }
-
-        if block.header.parent_hash != last_block.header.hash() {
-            return Err(BlockchainError::InvalidParentHash);
-        }
+        validate_next_block(&last_block, &block)?;
 
         let previous_total_difficulty = self
             .storage
@@ -213,7 +206,7 @@ impl BlockHashRef for LocalBlockchain {
         self.storage
             .blocks()
             .get(number)
-            .map(|block| block.header.hash())
+            .map(|block| *block.hash())
             .ok_or(BlockchainError::UnknownBlockNumber)
     }
 }

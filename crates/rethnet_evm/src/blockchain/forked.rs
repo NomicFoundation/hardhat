@@ -11,8 +11,8 @@ use revm::{db::BlockHashRef, primitives::SpecId};
 use tokio::runtime::Runtime;
 
 use super::{
-    remote::RemoteBlockchain, storage::ContiguousBlockchainStorage, Blockchain, BlockchainError,
-    BlockchainMut,
+    remote::RemoteBlockchain, storage::ContiguousBlockchainStorage, validate_next_block,
+    Blockchain, BlockchainError, BlockchainMut,
 };
 
 /// An error that occurs upon creation of a [`ForkedBlockchain`].
@@ -135,14 +135,14 @@ impl BlockHashRef for ForkedBlockchain {
         if number <= self.fork_block_number {
             self.remote.block_by_number(&number).map_or_else(
                 |e| Err(BlockchainError::JsonRpcError(e)),
-                |block| Ok(block.header.hash()),
+                |block| Ok(*block.hash()),
             )
         } else {
             let number = usize::try_from(number).or(Err(BlockchainError::BlockNumberTooLarge))?;
             self.local_storage
                 .blocks()
                 .get(number)
-                .map(|block| block.header.hash())
+                .map(|block| *block.hash())
                 .ok_or(BlockchainError::UnknownBlockNumber)
         }
     }
@@ -220,21 +220,10 @@ impl BlockchainMut for ForkedBlockchain {
     fn insert_block(&mut self, block: DetailedBlock) -> Result<Arc<DetailedBlock>, Self::Error> {
         let last_block = self.last_block()?;
 
-        let next_block_number = last_block.header.number + U256::from(1);
-        if block.header.number != next_block_number {
-            return Err(BlockchainError::InvalidBlockNumber {
-                actual: block.header.number,
-                expected: next_block_number,
-            });
-        }
-
-        let last_hash = last_block.header.hash();
-        if block.header.parent_hash != last_hash {
-            return Err(BlockchainError::InvalidParentHash);
-        }
+        validate_next_block(&last_block, &block)?;
 
         let previous_total_difficulty = self
-            .total_difficulty_by_hash(&last_hash)
+            .total_difficulty_by_hash(last_block.hash())
             .expect("No error can occur as it is stored locally")
             .expect("Must exist as its block is stored");
 
