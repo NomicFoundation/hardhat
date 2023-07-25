@@ -98,7 +98,7 @@ impl RemoteBlockchain {
         {
             let total_difficulty = block
                 .total_difficulty
-                .expect("Must be present as this is not a pending transaction");
+                .expect("Must be present as this is not a pending block");
 
             self.fetch_and_cache_block(cache, block)?;
 
@@ -116,7 +116,7 @@ impl RemoteBlockchain {
     ) -> Result<Arc<DetailedBlock>, RpcClientError> {
         let total_difficulty = block
             .total_difficulty
-            .expect("Must be present as this is not a pending transaction");
+            .expect("Must be present as this is not a pending block");
 
         let (block, callers) = block
             .try_into()

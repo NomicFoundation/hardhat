@@ -30,7 +30,7 @@ pub enum CreationError<SE> {
 
 #[derive(Debug, thiserror::Error)]
 pub enum InsertBlockError {
-    #[error("Invalid block numnber: ${actual}. Expected: ${expected}")]
+    #[error("Invalid block number: ${actual}. Expected: ${expected}")]
     InvalidBlockNumber { actual: U256, expected: U256 },
 }
 

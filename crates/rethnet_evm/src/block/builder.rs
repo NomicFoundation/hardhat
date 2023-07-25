@@ -186,7 +186,7 @@ where
         self.header.gas_limit - self.gas_used()
     }
 
-    /// Retrievs the instance's state.
+    /// Retrieves the instance's state.
     pub async fn state(&self) -> RwLockReadGuard<dyn SyncState<SE>> {
         self.state.read().await
     }

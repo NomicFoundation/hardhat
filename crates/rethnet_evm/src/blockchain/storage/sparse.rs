@@ -53,7 +53,7 @@ impl SparseBlockchainStorage {
         self.number_to_block.get(number)
     }
 
-    /// Retrieves the block by hash, if it exists.
+    /// Retrieves the block that contains the transaction with the given hash, if it exists.
     pub fn block_by_transaction_hash(
         &self,
         transaction_hash: &B256,

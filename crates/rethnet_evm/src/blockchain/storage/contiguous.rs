@@ -47,7 +47,7 @@ impl ContiguousBlockchainStorage {
         self.hash_to_block.get(hash)
     }
 
-    /// Retrieves the block by hash, if it exists.
+    /// Retrieves the block containing the transaction with the given hash, if it exists.
     pub fn block_by_transaction_hash(
         &self,
         transaction_hash: &B256,
