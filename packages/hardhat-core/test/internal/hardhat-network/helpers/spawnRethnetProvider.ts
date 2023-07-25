@@ -8,7 +8,7 @@ import { sleep } from "./sleep";
 
 export function spawnRethnetProvider(pathToBinary: string): {
   childProcess: ChildProcess;
-  processExit: Promise<unknown>;
+  isReady: Promise<unknown>; // resolves in 2 seconds, or sooner if process fails or exits
   httpProvider: HttpProvider;
 } {
   const childProcess = spawn(normalize(pathToBinary), ["node", "-vv"]);
@@ -74,7 +74,7 @@ export function spawnRethnetProvider(pathToBinary: string): {
   );
   return {
     childProcess,
-    processExit: Promise.race([sleep(2000), exit, error]),
+    isReady: Promise.race([sleep(2000), exit, error]),
     httpProvider,
   };
 }

@@ -121,7 +121,7 @@ export function useProvider({
     }
 
     if (rethnetBinary !== undefined) {
-      const { childProcess, processExit, httpProvider } =
+      const { childProcess, isReady, httpProvider } =
         spawnRethnetProvider(rethnetBinary);
 
       this.rethnetProcess = childProcess;
@@ -131,7 +131,7 @@ export function useProvider({
 
       this.provider = new BackwardsCompatibilityProviderAdapter(httpProvider);
 
-      await processExit;
+      await isReady;
     }
   });
 
