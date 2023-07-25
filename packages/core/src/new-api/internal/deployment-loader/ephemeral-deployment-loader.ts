@@ -1,7 +1,7 @@
 import { Artifact, ArtifactResolver, BuildInfo } from "../../types/artifact";
 import { MemoryJournal } from "../journal/memory-journal";
 import { DeploymentLoader } from "../types/deployment-loader";
-import { Journal } from "../types/journal";
+import { Journal, JournalableMessage } from "../types/journal";
 import { assertIgnitionInvariant } from "../utils/assertions";
 
 /**
@@ -10,7 +10,7 @@ import { assertIgnitionInvariant } from "../utils/assertions";
  * Used when running in environments like Hardhat tests.
  */
 export class EphemeralDeploymentLoader implements DeploymentLoader {
-  public journal: Journal;
+  private _journal: Journal;
 
   private _deployedAddresses: { [key: string]: string };
   private _savedArtifacts: {
@@ -23,9 +23,17 @@ export class EphemeralDeploymentLoader implements DeploymentLoader {
     private _artifactResolver: ArtifactResolver,
     private _verbose: boolean
   ) {
-    this.journal = new MemoryJournal(this._verbose);
+    this._journal = new MemoryJournal(this._verbose);
     this._deployedAddresses = {};
     this._savedArtifacts = {};
+  }
+
+  public async recordToJournal(message: JournalableMessage): Promise<void> {
+    this._journal.record(message);
+  }
+
+  public readFromJournal(): AsyncGenerator<JournalableMessage, any, unknown> {
+    return this._journal.read();
   }
 
   public async recordDeployedAddress(

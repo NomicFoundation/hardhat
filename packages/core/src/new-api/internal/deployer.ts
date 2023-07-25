@@ -35,7 +35,6 @@ import {
   DeploymentExecutionState,
   ExecutionStateMap,
 } from "./types/execution-state";
-import { Journal } from "./types/journal";
 import { TransactionLookupTimer } from "./types/transaction-timer";
 import { assertIgnitionInvariant } from "./utils/assertions";
 import { getFuturesFromModule } from "./utils/get-futures-from-module";
@@ -102,7 +101,7 @@ export class Deployer {
     await validate(module, this._artifactResolver, deploymentParameters);
 
     const previousStateMap = await this._loadExecutionStateFrom(
-      this._deploymentLoader.journal
+      this._deploymentLoader
     );
 
     const contracts = getFuturesFromModule(module).filter(isContractFuture);
@@ -162,11 +161,11 @@ export class Deployer {
   }
 
   private async _loadExecutionStateFrom(
-    journal: Journal
+    deploymentLoader: DeploymentLoader
   ): Promise<ExecutionStateMap> {
     let state: ExecutionStateMap = {};
 
-    for await (const message of journal.read()) {
+    for await (const message of deploymentLoader.readFromJournal()) {
       state = executionStateReducer(state, message);
     }
 

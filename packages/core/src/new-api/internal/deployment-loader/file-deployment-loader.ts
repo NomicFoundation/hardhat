@@ -4,10 +4,10 @@ import path from "path";
 import { Artifact, BuildInfo } from "../../types/artifact";
 import { FileJournal } from "../journal/file-journal";
 import { DeploymentLoader } from "../types/deployment-loader";
-import { Journal } from "../types/journal";
+import { Journal, JournalableMessage } from "../types/journal";
 
 export class FileDeploymentLoader implements DeploymentLoader {
-  public journal: Journal;
+  private _journal: Journal;
   private _deploymentDirsEnsured: boolean;
 
   private _paths: {
@@ -30,7 +30,7 @@ export class FileDeploymentLoader implements DeploymentLoader {
       "deployed_addresses.json"
     );
 
-    this.journal = new FileJournal(journalPath, this._verbose);
+    this._journal = new FileJournal(journalPath, this._verbose);
 
     this._paths = {
       deploymentDir: this._deploymentDirPath,
@@ -43,16 +43,15 @@ export class FileDeploymentLoader implements DeploymentLoader {
     this._deploymentDirsEnsured = false;
   }
 
-  private async _initialize(): Promise<void> {
-    if (this._deploymentDirsEnsured) {
-      return;
-    }
+  public async recordToJournal(message: JournalableMessage): Promise<void> {
+    await this._initialize();
 
-    await ensureDir(this._paths.deploymentDir);
-    await ensureDir(this._paths.artifactsDir);
-    await ensureDir(this._paths.buildInfoDir);
+    // NOTE: the journal record is sync, even though this call is async
+    this._journal.record(message);
+  }
 
-    this._deploymentDirsEnsured = true;
+  public readFromJournal(): AsyncGenerator<JournalableMessage, any, unknown> {
+    return this._journal.read();
   }
 
   public storeNamedArtifact(
@@ -83,7 +82,7 @@ export class FileDeploymentLoader implements DeploymentLoader {
     await this._initialize();
 
     const buildInfoFilePath = path.join(
-      this._paths?.buildInfoDir,
+      this._paths.buildInfoDir,
       `${buildInfo.id}.json`
     );
 
@@ -125,6 +124,18 @@ export class FileDeploymentLoader implements DeploymentLoader {
       this._paths.deployedAddressesPath,
       `${JSON.stringify(deployedAddresses, undefined, 2)}\n`
     );
+  }
+
+  private async _initialize(): Promise<void> {
+    if (this._deploymentDirsEnsured) {
+      return;
+    }
+
+    await ensureDir(this._paths.deploymentDir);
+    await ensureDir(this._paths.artifactsDir);
+    await ensureDir(this._paths.buildInfoDir);
+
+    this._deploymentDirsEnsured = true;
   }
 
   private _resolveArtifactPathFor(futureId: string) {

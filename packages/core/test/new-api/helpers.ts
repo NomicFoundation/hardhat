@@ -85,7 +85,12 @@ export function setupMockDeploymentLoader(journal: Journal): DeploymentLoader {
   const storedArtifacts: { [key: string]: Artifact } = {};
 
   return {
-    journal,
+    recordToJournal: async (message) => {
+      journal.record(message);
+    },
+    readFromJournal: () => {
+      return journal.read();
+    },
     recordDeployedAddress: async () => {},
     storeUserProvidedArtifact: async (artifactFutureId, artifact) => {
       storedArtifacts[artifactFutureId] = artifact;

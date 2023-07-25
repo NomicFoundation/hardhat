@@ -1,6 +1,6 @@
 import { Artifact, BuildInfo } from "../../types/artifact";
 
-import { Journal } from "./journal";
+import { JournalableMessage } from "./journal";
 
 /**
  * Read and write to the deployment storage.
@@ -8,7 +8,8 @@ import { Journal } from "./journal";
  * @beta
  */
 export interface DeploymentLoader {
-  journal: Journal;
+  recordToJournal(message: JournalableMessage): Promise<void>;
+  readFromJournal(): AsyncGenerator<JournalableMessage>;
   loadArtifact(artifactFutureId: string): Promise<Artifact>;
   storeUserProvidedArtifact(
     futureId: string,

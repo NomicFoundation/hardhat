@@ -502,8 +502,7 @@ export class ExecutionEngine {
     state: ExecutionEngineState,
     message: JournalableMessage
   ): Promise<void> {
-    // NOTE: recording to the journal is a sync operation
-    state.deploymentLoader.journal.record(message);
+    await state.deploymentLoader.recordToJournal(message);
 
     if (isDeployedContractExecutionSuccess(message)) {
       await state.deploymentLoader.recordDeployedAddress(
