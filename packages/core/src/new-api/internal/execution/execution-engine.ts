@@ -15,7 +15,6 @@ import {
   DeploymentResultContract,
   DeploymentResultContracts,
 } from "../../types/deployer";
-import { DeploymentLoader } from "../../types/deployment-loader";
 import {
   AccountRuntimeValue,
   ArgumentType,
@@ -34,6 +33,7 @@ import {
   isSendDataExecutionState,
   isStaticCallExecutionState,
 } from "../type-guards";
+import { DeploymentLoader } from "../types/deployment-loader";
 import {
   ExecutionEngineState,
   ExecutionStrategyContext,

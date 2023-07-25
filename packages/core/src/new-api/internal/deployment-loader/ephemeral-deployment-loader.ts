@@ -1,6 +1,6 @@
 import { Artifact, ArtifactResolver, BuildInfo } from "../../types/artifact";
-import { DeploymentLoader } from "../../types/deployment-loader";
 import { MemoryJournal } from "../journal/memory-journal";
+import { DeploymentLoader } from "../types/deployment-loader";
 import { Journal } from "../types/journal";
 import { assertIgnitionInvariant } from "../utils/assertions";
 

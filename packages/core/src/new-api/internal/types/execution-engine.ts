@@ -1,5 +1,4 @@
 import { ArtifactResolver } from "../../types/artifact";
-import { DeploymentLoader } from "../../types/deployment-loader";
 import {
   IgnitionModule,
   IgnitionModuleResult,
@@ -7,6 +6,7 @@ import {
 } from "../../types/module";
 
 import { ChainDispatcher } from "./chain-dispatcher";
+import { DeploymentLoader } from "./deployment-loader";
 import { ExecutionState, ExecutionStateMap } from "./execution-state";
 import {
   ExecutionSuccess,
