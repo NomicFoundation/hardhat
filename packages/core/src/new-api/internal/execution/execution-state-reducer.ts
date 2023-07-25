@@ -1,5 +1,4 @@
 import { IgnitionError } from "../../../errors";
-import { FutureStartMessage, JournalableMessage } from "../../types/journal";
 import {
   isCallFunctionStartMessage,
   isContractAtStartMessage,
@@ -24,6 +23,7 @@ import {
   SendDataExecutionState,
   StaticCallExecutionState,
 } from "../types/execution-state";
+import { FutureStartMessage, JournalableMessage } from "../types/journal";
 import { assertIgnitionInvariant } from "../utils/assertions";
 
 import {

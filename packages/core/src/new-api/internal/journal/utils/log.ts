@@ -1,4 +1,3 @@
-import { JournalableMessage } from "../../../types/journal";
 import { SolidityParameterType } from "../../../types/module";
 import {
   isCallFunctionInteraction,
@@ -17,6 +16,7 @@ import {
   isStaticCallExecutionSuccess,
   isStaticCallInteraction,
 } from "../../execution/guards";
+import { JournalableMessage } from "../../types/journal";
 import {
   isCallFunctionStartMessage,
   isContractAtStartMessage,

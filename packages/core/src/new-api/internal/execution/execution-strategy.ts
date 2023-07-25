@@ -1,5 +1,23 @@
 import { IgnitionError } from "../../../errors";
 import {
+  isCallExecutionState,
+  isContractAtExecutionState,
+  isDeploymentExecutionState,
+  isReadEventArgumentExecutionState,
+  isSendDataExecutionState,
+  isStaticCallExecutionState,
+} from "../type-guards";
+import { ExecutionStrategy } from "../types/execution-engine";
+import {
+  CallExecutionState,
+  ContractAtExecutionState,
+  DeploymentExecutionState,
+  ExecutionState,
+  ReadEventArgumentExecutionState,
+  SendDataExecutionState,
+  StaticCallExecutionState,
+} from "../types/execution-state";
+import {
   CallFunctionInteractionMessage,
   CalledFunctionExecutionSuccess,
   ContractAtExecutionSuccess,
@@ -21,25 +39,7 @@ import {
   SendDataInteractionMessage,
   StaticCallExecutionSuccess,
   StaticCallInteractionMessage,
-} from "../../types/journal";
-import {
-  isCallExecutionState,
-  isContractAtExecutionState,
-  isDeploymentExecutionState,
-  isReadEventArgumentExecutionState,
-  isSendDataExecutionState,
-  isStaticCallExecutionState,
-} from "../type-guards";
-import { ExecutionStrategy } from "../types/execution-engine";
-import {
-  CallExecutionState,
-  ContractAtExecutionState,
-  DeploymentExecutionState,
-  ExecutionState,
-  ReadEventArgumentExecutionState,
-  SendDataExecutionState,
-  StaticCallExecutionState,
-} from "../types/execution-state";
+} from "../types/journal";
 import { assertIgnitionInvariant } from "../utils/assertions";
 
 export class BasicExecutionStrategy implements ExecutionStrategy {

@@ -1,11 +1,6 @@
 import { ArtifactResolver } from "../../types/artifact";
 import { DeploymentLoader } from "../../types/deployment-loader";
 import {
-  ExecutionSuccess,
-  OnchainInteractionMessage,
-  OnchainResultMessage,
-} from "../../types/journal";
-import {
   IgnitionModule,
   IgnitionModuleResult,
   ModuleParameters,
@@ -13,6 +8,11 @@ import {
 
 import { ChainDispatcher } from "./chain-dispatcher";
 import { ExecutionState, ExecutionStateMap } from "./execution-state";
+import {
+  ExecutionSuccess,
+  OnchainInteractionMessage,
+  OnchainResultMessage,
+} from "./journal";
 import { TransactionLookupTimer } from "./transaction-timer";
 
 interface ExecutionConfig {

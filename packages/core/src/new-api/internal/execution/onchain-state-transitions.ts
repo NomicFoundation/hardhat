@@ -22,7 +22,7 @@ import {
   SendDataInteractionMessage,
   StaticCallInteractionMessage,
   TransactionMessage,
-} from "../../types/journal";
+} from "../../internal/types/journal";
 import { ArgumentType } from "../../types/module";
 import {
   isOnChainResultMessage,

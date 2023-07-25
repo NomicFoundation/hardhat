@@ -1,4 +1,3 @@
-import { Adapters } from "./types/adapters";
 import { Artifact } from "./types/artifact";
 import {
   AccountRuntimeValue,
@@ -329,21 +328,5 @@ export function isModuleParameterRuntimeValue(
   return (
     isRuntimeValue(potential) &&
     potential.type === RuntimeValueType.MODULE_PARAMETER
-  );
-}
-
-/**
- * Returns true if potential is a set of adapters.
- *
- * @beta
- */
-export function isAdapters(potential: unknown): potential is Adapters {
-  return (
-    typeof potential === "object" &&
-    potential !== null &&
-    /* TODO: make this type safe */
-    "signer" in potential &&
-    "gas" in potential &&
-    "transactions" in potential
   );
 }

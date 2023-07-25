@@ -1,5 +1,6 @@
+import { Journal } from "../internal/types/journal";
+
 import { Artifact, BuildInfo } from "./artifact";
-import { Journal } from "./journal";
 
 /**
  * Read and write to the deployment storage.

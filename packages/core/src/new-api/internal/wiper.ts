@@ -1,8 +1,8 @@
 import { IgnitionError } from "../../errors";
-import { Journal, WipeMessage } from "../types/journal";
 
 import { executionStateReducer } from "./execution/execution-state-reducer";
 import { ExecutionStateMap } from "./types/execution-state";
+import { Journal, WipeMessage } from "./types/journal";
 
 export class Wiper {
   constructor(private _journal: Journal) {}

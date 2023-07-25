@@ -1,3 +1,5 @@
+import { FutureType } from "../../types/module";
+import { isOnchainInteractionMessage } from "../execution/guards";
 import {
   CallFunctionStartMessage,
   ContractAtStartMessage,
@@ -22,9 +24,7 @@ import {
   StaticCallStartMessage,
   TransactionMessage,
   WipeMessage,
-} from "../../types/journal";
-import { FutureType } from "../../types/module";
-import { isOnchainInteractionMessage } from "../execution/guards";
+} from "../types/journal";
 
 /**
  * Determines if potential is a StartRunMessage.

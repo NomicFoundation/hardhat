@@ -1,4 +1,8 @@
-import { ArgumentType, FutureType, SolidityParameterType } from "./module";
+import {
+  ArgumentType,
+  FutureType,
+  SolidityParameterType,
+} from "../../types/module";
 
 /**
  * Store a deployments execution state as a transaction log.

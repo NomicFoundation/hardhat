@@ -1,9 +1,10 @@
-import { TransactionMessage } from "../../types/journal";
 import {
   ArgumentType,
   FutureType,
   SolidityParameterType,
 } from "../../types/module";
+
+import { TransactionMessage } from "./journal";
 
 /**
  * The execution history of a future is a sequence of onchain interactions.
