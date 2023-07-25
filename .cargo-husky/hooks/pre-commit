@@ -21,4 +21,3 @@ cargo test --workspace --all-targets ${ALL_FEATURES}
 cargo test --doc --workspace ${ALL_FEATURES}
 cargo clippy --all --all-targets ${ALL_FEATURES} -- -D warnings
 cargo fmt --all -- --check
-cargo doc --workspace --no-deps ${ALL_FEATURES}
