@@ -6,6 +6,8 @@ coverage/
 .nycrc
 .prettierignore
 .prettierrc
+!dist
 dist/test
-test
-src
+test/
+src/
+temp

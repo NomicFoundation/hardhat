@@ -1,6 +1,5 @@
 {
   "name": "@ignored/ignition-ui",
-  "private": true,
   "version": "0.0.13",
   "type": "module",
   "scripts": {
@@ -11,7 +10,8 @@
     "regenerate-deployment-example": "node ./scripts/generate-example-deployment-json.js",
     "lint": "eslint src --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview",
-    "clean": "rimraf dist tsconfig.tsbuildinfo"
+    "clean": "rimraf dist tsconfig.tsbuildinfo",
+    "prepack": "npm run build"
   },
   "dependencies": {
     "@ignored/ignition-core": "^0.0.13",

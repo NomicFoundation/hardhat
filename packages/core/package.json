@@ -22,20 +22,12 @@
   "types": "./dist/src/index.d.ts",
   "exports": {
     ".": "./dist/src/index.js",
-    "./helpers": "./dist/src/helpers.js",
-    "./ui-helpers": "./dist/src/ui-helpers.js",
-    "./soon-to-be-removed": "./dist/src/soon-to-be-removed.js"
+    "./ui-helpers": "./dist/src/ui-helpers.js"
   },
   "typesVersions": {
     "*": {
-      "helpers": [
-        "./dist/src/helpers"
-      ],
       "ui-helpers": [
         "./dist/src/ui-helpers"
-      ],
-      "soon-to-be-removed": [
-        "./dist/src/soon-to-be-removed"
       ]
     }
   },
@@ -51,7 +43,8 @@
     "test:debug": "DEBUG='ignition:*' npm run test",
     "test:build": "tsc --project ./test/",
     "test:coverage": "nyc mocha --recursive \"test/**/*.ts\"",
-    "clean": "rimraf .nyc_output coverage dist tsconfig.tsbuildinfo"
+    "clean": "rimraf .nyc_output coverage dist tsconfig.tsbuildinfo",
+    "prepack": "npm run build"
   },
   "devDependencies": {
     "@istanbuljs/nyc-config-typescript": "1.0.2",
