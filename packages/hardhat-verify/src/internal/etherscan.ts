@@ -25,9 +25,9 @@ const VERIFICATION_STATUS_POLLING_TIME = 3000;
 
 export class Etherscan {
   constructor(
-    private _apiKey: string,
-    private _apiUrl: string,
-    private _browserUrl: string
+    public apiKey: string,
+    public apiUrl: string,
+    public browserUrl: string
   ) {}
 
   public static async getCurrentChainConfig(
@@ -71,13 +71,13 @@ export class Etherscan {
   // https://docs.etherscan.io/api-endpoints/contracts#get-contract-source-code-for-verified-contract-source-codes
   public async isVerified(address: string) {
     const parameters = new URLSearchParams({
-      apikey: this._apiKey,
+      apikey: this.apiKey,
       module: "contract",
       action: "getsourcecode",
       address,
     });
 
-    const url = new URL(this._apiUrl);
+    const url = new URL(this.apiUrl);
     url.search = parameters.toString();
 
     const response = await sendGetRequest(url);
@@ -100,7 +100,7 @@ export class Etherscan {
     constructorArguements: string
   ): Promise<EtherscanResponse> {
     const parameters = new URLSearchParams({
-      apikey: this._apiKey,
+      apikey: this.apiKey,
       module: "contract",
       action: "verifysourcecode",
       contractaddress: contractAddress,
@@ -114,18 +114,18 @@ export class Etherscan {
     let response: Dispatcher.ResponseData;
     try {
       response = await sendPostRequest(
-        new URL(this._apiUrl),
+        new URL(this.apiUrl),
         parameters.toString()
       );
     } catch (error: any) {
-      throw new ContractVerificationRequestError(this._apiUrl, error);
+      throw new ContractVerificationRequestError(this.apiUrl, error);
     }
 
     if (!(response.statusCode >= 200 && response.statusCode <= 299)) {
       // This could be always interpreted as JSON if there were any such guarantee in the Etherscan API.
       const responseText = await response.body.text();
       throw new ContractVerificationInvalidStatusCodeError(
-        this._apiUrl,
+        this.apiUrl,
         response.statusCode,
         responseText
       );
@@ -135,7 +135,7 @@ export class Etherscan {
 
     if (etherscanResponse.isBytecodeMissingInNetworkError()) {
       throw new ContractVerificationMissingBytecodeError(
-        this._apiUrl,
+        this.apiUrl,
         contractAddress
       );
     }
@@ -150,12 +150,12 @@ export class Etherscan {
   // https://docs.etherscan.io/api-endpoints/contracts#check-source-code-verification-submission-status
   public async getVerificationStatus(guid: string): Promise<EtherscanResponse> {
     const parameters = new URLSearchParams({
-      apikey: this._apiKey,
+      apikey: this.apiKey,
       module: "contract",
       action: "checkverifystatus",
       guid,
     });
-    const url = new URL(this._apiUrl);
+    const url = new URL(this.apiUrl);
     url.search = parameters.toString();
 
     let response;
@@ -197,7 +197,7 @@ export class Etherscan {
   }
 
   public getContractUrl(address: string) {
-    return `${this._browserUrl}/address/${address}#code`;
+    return `${this.browserUrl}/address/${address}#code`;
   }
 }
 
