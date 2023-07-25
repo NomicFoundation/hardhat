@@ -362,6 +362,15 @@ export interface ModuleParameters {
 }
 
 /**
+ * An object containing a map of module ID's to their respective ModuleParameters.
+ *
+ * @beta
+ */
+export interface DeploymentParameters {
+  [moduleId: string]: ModuleParameters;
+}
+
+/**
  * The results of deploying a module must be a dictionary of contract futures
  *
  * @beta

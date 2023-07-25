@@ -1,14 +1,14 @@
 import {
+  DeploymentParameters,
   ModuleParameterRuntimeValue,
   ModuleParameterType,
-  ModuleParameters,
 } from "../../types/module";
 
 import { assertIgnitionInvariant } from "./assertions";
 
 export function resolveModuleParameter(
   moduleParamRuntimeValue: ModuleParameterRuntimeValue<ModuleParameterType>,
-  context: { deploymentParameters: { [key: string]: ModuleParameters } }
+  context: { deploymentParameters: DeploymentParameters }
 ): ModuleParameterType {
   if (context.deploymentParameters === undefined) {
     assertIgnitionInvariant(

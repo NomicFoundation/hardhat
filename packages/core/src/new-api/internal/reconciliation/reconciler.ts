@@ -1,4 +1,8 @@
-import { Future, IgnitionModule, ModuleParameters } from "../../types/module";
+import {
+  DeploymentParameters,
+  Future,
+  IgnitionModule,
+} from "../../types/module";
 import { ExecutionState, ExecutionStateMap } from "../types/execution-state";
 import { AdjacencyList } from "../utils/adjacency-list";
 import { AdjacencyListConverter } from "../utils/adjacency-list-converter";
@@ -21,7 +25,7 @@ export class Reconciler {
   public static reconcile(
     module: IgnitionModule,
     executionStateMap: ExecutionStateMap,
-    deploymentParameters: { [key: string]: ModuleParameters },
+    deploymentParameters: DeploymentParameters,
     accounts: string[],
     moduleArtifactMap: ArtifactMap,
     storedArtifactMap: ArtifactMap

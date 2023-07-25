@@ -1,7 +1,7 @@
 import type {
   ContractFuture,
+  DeploymentParameters,
   IgnitionModuleResult,
-  ModuleParameters,
 } from "../types/module";
 import type { IgnitionModuleDefinition } from "../types/module-builder";
 
@@ -94,7 +94,7 @@ export class Deployer {
       string,
       IgnitionModuleResult<string>
     >,
-    deploymentParameters: { [key: string]: ModuleParameters },
+    deploymentParameters: DeploymentParameters,
     accounts: string[]
   ): Promise<DeploymentResult> {
     const module = this._moduleConstructor.construct(moduleDefinition);

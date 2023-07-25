@@ -1,8 +1,8 @@
 import { ArtifactResolver } from "../../types/artifact";
 import {
+  DeploymentParameters,
   FutureType,
   IgnitionModule,
-  ModuleParameters,
 } from "../../types/module";
 import { getFuturesFromModule } from "../utils/get-futures-from-module";
 
@@ -20,7 +20,7 @@ import { validateSendData } from "./futures/validateSendData";
 export async function validate(
   module: IgnitionModule,
   artifactLoader: ArtifactResolver,
-  moduleParameters: { [key: string]: ModuleParameters }
+  moduleParameters: DeploymentParameters
 ): Promise<void> {
   const futures = getFuturesFromModule(module);
 

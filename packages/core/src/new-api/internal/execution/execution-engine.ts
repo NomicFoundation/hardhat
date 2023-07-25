@@ -19,9 +19,9 @@ import {
   AccountRuntimeValue,
   ArgumentType,
   ContractFuture,
+  DeploymentParameters,
   Future,
   FutureType,
-  ModuleParameters,
   NamedContractAtFuture,
   NamedContractDeploymentFuture,
   NamedLibraryDeploymentFuture,
@@ -531,7 +531,7 @@ export class ExecutionEngine {
       accounts: string[];
       artifactResolver: ArtifactResolver;
       deploymentLoader: DeploymentLoader;
-      deploymentParameters: { [key: string]: ModuleParameters };
+      deploymentParameters: DeploymentParameters;
     }
   ): Promise<FutureStartMessage> {
     const strategy = "basic";
@@ -956,7 +956,7 @@ export class ExecutionEngine {
   private _resolveArgs(
     args: ArgumentType[],
     context: {
-      deploymentParameters: { [key: string]: ModuleParameters };
+      deploymentParameters: DeploymentParameters;
       accounts: string[];
       executionStateMap: ExecutionStateMap;
     }

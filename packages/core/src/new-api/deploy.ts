@@ -5,7 +5,7 @@ import { ChainDispatcherImpl } from "./internal/execution/chain-dispatcher";
 import { Adapters } from "./types/adapters";
 import { ArtifactResolver } from "./types/artifact";
 import { DeployConfig, DeploymentResult } from "./types/deployer";
-import { IgnitionModuleResult, ModuleParameters } from "./types/module";
+import { DeploymentParameters, IgnitionModuleResult } from "./types/module";
 import { IgnitionModuleDefinition } from "./types/module-builder";
 
 /**
@@ -32,7 +32,7 @@ export async function deploy({
     string,
     IgnitionModuleResult<string>
   >;
-  deploymentParameters: { [key: string]: ModuleParameters };
+  deploymentParameters: DeploymentParameters;
   accounts: string[];
   verbose: boolean;
 }): Promise<DeploymentResult> {
