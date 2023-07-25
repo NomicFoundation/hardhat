@@ -63,7 +63,7 @@ describe("stored deployment serializer", () => {
 
     it("should serialize a contract deployment with module parameter value", () => {
       const moduleDefinition = defineModule("Module1", (m) => {
-        const value = m.getParameter("value", "42");
+        const value = m.getParameter("value", 42n);
         const contract1 = m.contract("Contract1", [], { value });
 
         return { contract1 };

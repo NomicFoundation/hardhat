@@ -339,6 +339,37 @@ describe("contractAtFromArtifact", () => {
       );
     });
 
+    it("should not validate a module parameter of the wrong type", async () => {
+      const moduleWithDependentContractsDefinition = defineModule(
+        "Module1",
+        (m) => {
+          const p = m.getParameter("p", 123 as unknown as string);
+          const another = m.contractAtFromArtifact("Another", p, fakeArtifact);
+
+          return { another };
+        }
+      );
+
+      const constructor = new ModuleConstructor();
+      const module = constructor.construct(
+        moduleWithDependentContractsDefinition
+      );
+      const future = getFuturesFromModule(module).find(
+        (v) => v.type === FutureType.ARTIFACT_CONTRACT_AT
+      );
+
+      await assert.isRejected(
+        validateArtifactContractAt(
+          future as any,
+          setupMockArtifactResolver({
+            Another: fakeArtifact,
+          }),
+          {}
+        ),
+        /Module parameter 'p' must be of type 'string' but is 'number'/
+      );
+    });
+
     it("should not validate an invalid artifact", () => {
       const moduleWithDependentContractsDefinition = defineModule(
         "Module1",

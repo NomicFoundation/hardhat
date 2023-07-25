@@ -540,7 +540,7 @@ export class IgnitionModuleBuilderImplementation<
   public send(
     id: string,
     to: string | AddressResolvableFuture | ModuleParameterRuntimeValue<string>,
-    value?: bigint,
+    value?: bigint | ModuleParameterRuntimeValue<bigint>,
     data?: string,
     options: SendDataOptions = {}
   ): SendDataFuture {
@@ -723,7 +723,7 @@ export class IgnitionModuleBuilderImplementation<
   }
 
   private _assertValidValue(
-    value: bigint | ModuleParameterRuntimeValue<string> | any,
+    value: bigint | ModuleParameterRuntimeValue<bigint> | any,
     func: (...[]: any[]) => any
   ) {
     if (!isModuleParameterRuntimeValue(value) && typeof value !== "bigint") {

@@ -646,7 +646,7 @@ export class StoredDeploymentDeserializer {
           this._isSerializedModuleParameterRuntimeValue(serializedFuture.value)
             ? (this._deserializeModuleParameterRuntimeValue(
                 serializedFuture.value
-              ) as ModuleParameterRuntimeValue<string>) // This is unsafe, but we only serialize valid values
+              ) as ModuleParameterRuntimeValue<bigint>) // This is unsafe, but we only serialize valid values
             : this._deserializedBigint(serializedFuture.value),
           this._isSerializedAccountRuntimeValue(serializedFuture.from)
             ? this._deserializeAccountRuntimeValue(serializedFuture.from)
@@ -670,7 +670,7 @@ export class StoredDeploymentDeserializer {
           this._isSerializedModuleParameterRuntimeValue(serializedFuture.value)
             ? (this._deserializeModuleParameterRuntimeValue(
                 serializedFuture.value
-              ) as ModuleParameterRuntimeValue<string>) // This is unsafe, but we only serialize valid values
+              ) as ModuleParameterRuntimeValue<bigint>) // This is unsafe, but we only serialize valid values
             : this._deserializedBigint(serializedFuture.value),
           this._isSerializedAccountRuntimeValue(serializedFuture.from)
             ? this._deserializeAccountRuntimeValue(serializedFuture.from)
@@ -722,7 +722,7 @@ export class StoredDeploymentDeserializer {
           this._isSerializedModuleParameterRuntimeValue(serializedFuture.value)
             ? (this._deserializeModuleParameterRuntimeValue(
                 serializedFuture.value
-              ) as ModuleParameterRuntimeValue<string>) // This is unsafe, but we only serialize valid values
+              ) as ModuleParameterRuntimeValue<bigint>) // This is unsafe, but we only serialize valid values
             : this._deserializedBigint(serializedFuture.value),
           this._isSerializedAccountRuntimeValue(serializedFuture.from)
             ? this._deserializeAccountRuntimeValue(serializedFuture.from)
@@ -814,7 +814,7 @@ export class StoredDeploymentDeserializer {
           this._isSerializedModuleParameterRuntimeValue(serializedFuture.value)
             ? (this._deserializeModuleParameterRuntimeValue(
                 serializedFuture.value
-              ) as ModuleParameterRuntimeValue<string>) // This is unsafe, but we only serialize valid values
+              ) as ModuleParameterRuntimeValue<bigint>) // This is unsafe, but we only serialize valid values
             : this._deserializedBigint(serializedFuture.value),
           serializedFuture.data,
           this._isSerializedAccountRuntimeValue(serializedFuture.from)

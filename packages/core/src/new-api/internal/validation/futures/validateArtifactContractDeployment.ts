@@ -1,6 +1,7 @@
 import { ethers } from "ethers";
 
 import { IgnitionValidationError } from "../../../../errors";
+import { isModuleParameterRuntimeValue } from "../../../type-guards";
 import { ArtifactResolver } from "../../../types/artifact";
 import {
   ArtifactContractDeploymentFuture,
@@ -25,6 +26,22 @@ export async function validateArtifactContractDeployment(
     throw new IgnitionValidationError(
       `Module parameter '${missingParams[0].name}' requires a value but was given none`
     );
+  }
+
+  if (isModuleParameterRuntimeValue(future.value)) {
+    const param =
+      moduleParameters[future.value.name] ?? future.value.defaultValue;
+    if (param === undefined) {
+      throw new IgnitionValidationError(
+        `Module parameter '${future.value.name}' requires a value but was given none`
+      );
+    } else if (typeof param !== "bigint") {
+      throw new IgnitionValidationError(
+        `Module parameter '${
+          future.value.name
+        }' must be of type 'bigint' but is '${typeof param}'`
+      );
+    }
   }
 
   const artifact = await artifactLoader.loadArtifact(future.contractName);

@@ -451,5 +451,54 @@ describe("send", () => {
         validateSendData(future as any, setupMockArtifactResolver(), {})
       );
     });
+
+    it("should not validate a module parameter of the wrong type for value", async () => {
+      const moduleWithDependentContractsDefinition = defineModule(
+        "Module1",
+        (m) => {
+          const p = m.getParameter("p", false as unknown as bigint);
+          m.send("id", "0xasdf", p, "");
+
+          return {};
+        }
+      );
+
+      const constructor = new ModuleConstructor();
+      const module = constructor.construct(
+        moduleWithDependentContractsDefinition
+      );
+      const future = getFuturesFromModule(module).find(
+        (v) => v.type === FutureType.SEND_DATA
+      );
+
+      await assert.isRejected(
+        validateSendData(future as any, setupMockArtifactResolver(), {}),
+        /Module parameter 'p' must be of type 'bigint' but is 'boolean'/
+      );
+    });
+
+    it("should validate a module parameter of the correct type for value", async () => {
+      const moduleWithDependentContractsDefinition = defineModule(
+        "Module1",
+        (m) => {
+          const p = m.getParameter("p", 42n);
+          m.send("id", "0xasdf", p, "");
+
+          return {};
+        }
+      );
+
+      const constructor = new ModuleConstructor();
+      const module = constructor.construct(
+        moduleWithDependentContractsDefinition
+      );
+      const future = getFuturesFromModule(module).find(
+        (v) => v.type === FutureType.SEND_DATA
+      );
+
+      await assert.isFulfilled(
+        validateSendData(future as any, setupMockArtifactResolver(), {})
+      );
+    });
   });
 });

@@ -631,6 +631,79 @@ describe("call", () => {
       );
     });
 
+    it("should not validate a module parameter of the wrong type for value", async () => {
+      const fakeArtifact: Artifact = {
+        abi: [],
+        contractName: "",
+        bytecode: "",
+        linkReferences: {},
+      };
+
+      const moduleDef = defineModule("Module1", (m) => {
+        const p = m.getParameter("p", false as unknown as bigint);
+
+        const another = m.contractFromArtifact("Another", fakeArtifact, []);
+        m.call(another, "test", [], { value: p });
+
+        return { another };
+      });
+
+      const constructor = new ModuleConstructor();
+      const module = constructor.construct(moduleDef);
+      const future = getFuturesFromModule(module).find(
+        (v) => v.type === FutureType.NAMED_CONTRACT_CALL
+      );
+
+      await assert.isRejected(
+        validateNamedContractCall(
+          future as any,
+          setupMockArtifactResolver({ Another: fakeArtifact }),
+          {}
+        ),
+        /Module parameter 'p' must be of type 'bigint' but is 'boolean'/
+      );
+    });
+
+    it("should validate a module parameter of the correct type for value", async () => {
+      const fakeArtifact: Artifact = {
+        abi: [
+          {
+            inputs: [],
+            name: "test",
+            outputs: [],
+            stateMutability: "payable",
+            type: "function",
+          },
+        ],
+        contractName: "",
+        bytecode: "",
+        linkReferences: {},
+      };
+
+      const moduleDef = defineModule("Module1", (m) => {
+        const p = m.getParameter("p", 42n);
+
+        const another = m.contractFromArtifact("Another", fakeArtifact, []);
+        m.call(another, "test", [], { value: p });
+
+        return { another };
+      });
+
+      const constructor = new ModuleConstructor();
+      const module = constructor.construct(moduleDef);
+      const future = getFuturesFromModule(module).find(
+        (v) => v.type === FutureType.NAMED_CONTRACT_CALL
+      );
+
+      await assert.isFulfilled(
+        validateNamedContractCall(
+          future as any,
+          setupMockArtifactResolver({ Another: fakeArtifact }),
+          {}
+        )
+      );
+    });
+
     it("should validate a missing module parameter if a default parameter is present", async () => {
       const fakeArtifact: Artifact = {
         abi: [

@@ -43,7 +43,7 @@ export interface ContractOptions {
   id?: string;
   after?: Future[];
   libraries?: Record<string, ContractFuture<string>>;
-  value?: bigint | ModuleParameterRuntimeValue<string>;
+  value?: bigint | ModuleParameterRuntimeValue<bigint>;
   from?: string | AccountRuntimeValue;
 }
 
@@ -56,7 +56,7 @@ export interface ContractFromArtifactOptions {
   id?: string;
   after?: Future[];
   libraries?: Record<string, ContractFuture<string>>;
-  value?: bigint | ModuleParameterRuntimeValue<string>;
+  value?: bigint | ModuleParameterRuntimeValue<bigint>;
   from?: string | AccountRuntimeValue;
 }
 
@@ -92,7 +92,7 @@ export interface LibraryFromArtifactOptions {
 export interface CallOptions {
   id?: string;
   after?: Future[];
-  value?: bigint | ModuleParameterRuntimeValue<string>;
+  value?: bigint | ModuleParameterRuntimeValue<bigint>;
   from?: string | AccountRuntimeValue;
 }
 
@@ -235,7 +235,7 @@ export interface IgnitionModuleBuilder {
   send(
     id: string,
     to: string | AddressResolvableFuture | ModuleParameterRuntimeValue<string>,
-    value?: bigint | ModuleParameterRuntimeValue<string>,
+    value?: bigint | ModuleParameterRuntimeValue<bigint>,
     data?: string,
     options?: SendDataOptions
   ): SendDataFuture;
