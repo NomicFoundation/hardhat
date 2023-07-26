@@ -4,8 +4,12 @@ import { FileDeploymentLoader } from "./internal/deployment-loader/file-deployme
 import { ChainDispatcherImpl } from "./internal/execution/chain-dispatcher";
 import { Adapters } from "./types/adapters";
 import { ArtifactResolver } from "./types/artifact";
-import { DeployConfig, DeploymentResult } from "./types/deployer";
-import { DeploymentParameters, IgnitionModuleResult } from "./types/module";
+import {
+  DeployConfig,
+  DeploymentParameters,
+  DeploymentResult,
+} from "./types/deployer";
+import { IgnitionModuleResult } from "./types/module";
 import { IgnitionModuleDefinition } from "./types/module-builder";
 
 /**

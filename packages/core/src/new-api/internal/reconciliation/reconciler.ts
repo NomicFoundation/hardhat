@@ -1,8 +1,5 @@
-import {
-  DeploymentParameters,
-  Future,
-  IgnitionModule,
-} from "../../types/module";
+import { DeploymentParameters } from "../../types/deployer";
+import { Future, IgnitionModule } from "../../types/module";
 import { ExecutionState, ExecutionStateMap } from "../types/execution-state";
 import { AdjacencyList } from "../utils/adjacency-list";
 import { AdjacencyListConverter } from "../utils/adjacency-list-converter";

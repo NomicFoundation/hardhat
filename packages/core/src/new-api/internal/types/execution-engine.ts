@@ -1,9 +1,6 @@
 import { ArtifactResolver } from "../../types/artifact";
-import {
-  DeploymentParameters,
-  IgnitionModule,
-  IgnitionModuleResult,
-} from "../../types/module";
+import { DeploymentParameters } from "../../types/deployer";
+import { IgnitionModule, IgnitionModuleResult } from "../../types/module";
 
 import { ChainDispatcher } from "./chain-dispatcher";
 import { DeploymentLoader } from "./deployment-loader";

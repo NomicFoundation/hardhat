@@ -1,5 +1,5 @@
+import { DeploymentParameters } from "../../types/deployer";
 import {
-  DeploymentParameters,
   ModuleParameterRuntimeValue,
   ModuleParameterType,
 } from "../../types/module";

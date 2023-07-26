@@ -1,8 +1,4 @@
-import type {
-  ContractFuture,
-  DeploymentParameters,
-  IgnitionModuleResult,
-} from "../types/module";
+import type { ContractFuture, IgnitionModuleResult } from "../types/module";
 import type { IgnitionModuleDefinition } from "../types/module-builder";
 
 import { IgnitionError } from "../../errors";
@@ -16,7 +12,11 @@ import {
   isNamedLibraryDeploymentFuture,
 } from "../type-guards";
 import { Artifact, ArtifactResolver } from "../types/artifact";
-import { DeployConfig, DeploymentResult } from "../types/deployer";
+import {
+  DeployConfig,
+  DeploymentParameters,
+  DeploymentResult,
+} from "../types/deployer";
 
 import { Batcher } from "./batcher";
 import { ExecutionEngine } from "./execution/execution-engine";

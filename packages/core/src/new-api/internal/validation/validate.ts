@@ -1,9 +1,6 @@
 import { ArtifactResolver } from "../../types/artifact";
-import {
-  DeploymentParameters,
-  FutureType,
-  IgnitionModule,
-} from "../../types/module";
+import { DeploymentParameters } from "../../types/deployer";
+import { FutureType, IgnitionModule } from "../../types/module";
 import { getFuturesFromModule } from "../utils/get-futures-from-module";
 
 import { validateArtifactContractAt } from "./futures/validateArtifactContractAt";
@@ -20,7 +17,7 @@ import { validateSendData } from "./futures/validateSendData";
 export async function validate(
   module: IgnitionModule,
   artifactLoader: ArtifactResolver,
-  moduleParameters: DeploymentParameters
+  deploymentParameters: DeploymentParameters
 ): Promise<void> {
   const futures = getFuturesFromModule(module);
 
@@ -30,10 +27,10 @@ export async function validate(
   // validating each of those, we achieve the same effect.
   const submodules = module.submodules;
   for (const submodule of submodules) {
-    await validate(submodule, artifactLoader, moduleParameters);
+    await validate(submodule, artifactLoader, deploymentParameters);
   }
 
-  const params = moduleParameters[module.id] ?? {};
+  const params = deploymentParameters[module.id] ?? {};
 
   for (const future of futures) {
     switch (future.type) {

@@ -1,5 +1,9 @@
 import { Artifact } from "./artifact";
-import { IgnitionModule, IgnitionModuleResult } from "./module";
+import {
+  IgnitionModule,
+  IgnitionModuleResult,
+  ModuleParameters,
+} from "./module";
 
 /**
  * Configuration options for the deployment.
@@ -77,3 +81,12 @@ export type DeploymentResultContracts = Record<
   string,
   DeploymentResultContract
 >;
+
+/**
+ * An object containing a map of module ID's to their respective ModuleParameters.
+ *
+ * @beta
+ */
+export interface DeploymentParameters {
+  [moduleId: string]: ModuleParameters;
+}

@@ -1,5 +1,6 @@
 import { Artifact } from "../../types/artifact";
-import { DeploymentParameters, Future } from "../../types/module";
+import { DeploymentParameters } from "../../types/deployer";
+import { Future } from "../../types/module";
 import { ExecutionState, ExecutionStateMap } from "../types/execution-state";
 
 export interface ReconciliationFailure {

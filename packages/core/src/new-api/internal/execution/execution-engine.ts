@@ -11,6 +11,7 @@ import {
 } from "../../type-guards";
 import { ArtifactResolver } from "../../types/artifact";
 import {
+  DeploymentParameters,
   DeploymentResult,
   DeploymentResultContract,
   DeploymentResultContracts,
@@ -19,7 +20,6 @@ import {
   AccountRuntimeValue,
   ArgumentType,
   ContractFuture,
-  DeploymentParameters,
   Future,
   FutureType,
   NamedContractAtFuture,
