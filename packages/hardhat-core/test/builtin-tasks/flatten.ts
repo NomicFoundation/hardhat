@@ -382,7 +382,7 @@ describe("Flatten task", () => {
       assert(
         spyFunctionConsoleWarn.calledWith(
           chalk.yellow(
-            `The following file(s) do NOT specify SPDX licenses: contracts/A.sol, contracts/B.sol, contracts/C.sol`
+            `\nThe following file(s) do NOT specify SPDX licenses: contracts/A.sol, contracts/B.sol, contracts/C.sol`
           )
         )
       );
@@ -390,7 +390,7 @@ describe("Flatten task", () => {
       assert(
         spyFunctionConsoleWarn.calledWith(
           chalk.yellow(
-            `Pragma abicoder directives are defined in some files, but they are not defined in the following ones: contracts/A.sol, contracts/B.sol`
+            `\nPragma abicoder directives are defined in some files, but they are not defined in the following ones: contracts/A.sol, contracts/B.sol`
           )
         )
       );
@@ -398,7 +398,7 @@ describe("Flatten task", () => {
       assert(
         spyFunctionConsoleWarn.calledWith(
           chalk.yellow(
-            `The flattened file is using the pragma abicoder directive 'pragma abicoder v2' but these files have a different pragma abicoder directive: contracts/C.sol`
+            `\nThe flattened file is using the pragma abicoder directive 'pragma abicoder v2' but these files have a different pragma abicoder directive: contracts/C.sol`
           )
         )
       );
@@ -410,6 +410,14 @@ describe("Flatten task", () => {
       });
 
       assert(!spyFunctionConsoleWarn.called);
+    });
+
+    describe("No contracts to flatten", () => {
+      useFixtureProject("flatten-task/no-contracts");
+
+      it("should not throw an error when metadata is null", async function () {
+        await this.env.run(TASK_FLATTEN);
+      });
     });
   });
 });

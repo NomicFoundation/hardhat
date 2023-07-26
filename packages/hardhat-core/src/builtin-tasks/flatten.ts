@@ -304,17 +304,17 @@ task(
     types.inputFile
   )
   .setAction(async ({ files }: { files: string[] | undefined }, { run }) => {
-    const [flattenedFile, metadata]: [string, FlattenMetadata] = await run(
-      TASK_FLATTEN_GET_FLATTENED_SOURCE_AND_METADATA,
-      { files }
-    );
+    const [flattenedFile, metadata]: [string, FlattenMetadata | null] =
+      await run(TASK_FLATTEN_GET_FLATTENED_SOURCE_AND_METADATA, { files });
 
     console.log(flattenedFile);
+
+    if (metadata === null) return;
 
     if (metadata.filesWithoutLicenses.length > 0) {
       console.warn(
         chalk.yellow(
-          `The following file(s) do NOT specify SPDX licenses: ${metadata.filesWithoutLicenses.join(
+          `\nThe following file(s) do NOT specify SPDX licenses: ${metadata.filesWithoutLicenses.join(
             ", "
           )}`
         )
@@ -327,7 +327,7 @@ task(
     ) {
       console.warn(
         chalk.yellow(
-          `Pragma abicoder directives are defined in some files, but they are not defined in the following ones: ${metadata.filesWithoutPragmaDirectives.join(
+          `\nPragma abicoder directives are defined in some files, but they are not defined in the following ones: ${metadata.filesWithoutPragmaDirectives.join(
             ", "
           )}`
         )
@@ -337,7 +337,7 @@ task(
     if (metadata.filesWithDifferentPragmaDirectives.length > 0) {
       console.warn(
         chalk.yellow(
-          `The flattened file is using the pragma abicoder directive '${
+          `\nThe flattened file is using the pragma abicoder directive '${
             metadata.pragmaDirective
           }' but these files have a different pragma abicoder directive: ${metadata.filesWithDifferentPragmaDirectives.join(
             ", "
