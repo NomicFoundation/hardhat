@@ -7,6 +7,9 @@ pub mod client;
 /// ethereum objects as specifically used in the JSON-RPC interface
 pub mod eth;
 
+/// data types for use with filter-based RPC methods
+pub mod filter;
+
 /// data types specific to JSON-RPC but not specific to Ethereum.
 pub mod jsonrpc;
 
