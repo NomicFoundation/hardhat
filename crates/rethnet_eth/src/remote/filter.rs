@@ -4,7 +4,7 @@ use crate::{
 };
 
 /// for specifying the inputs to eth_newFilter
-#[derive(Clone, Default, Debug, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Clone, Debug, PartialEq, serde::Deserialize, serde::Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct FilterOptions {
     /// from block
