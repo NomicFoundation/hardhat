@@ -3,6 +3,15 @@ use crate::{
     Address, B256, U256,
 };
 
+/// used to specify addresses for [FilterOptions]
+#[derive(Clone, Debug, PartialEq, serde::Deserialize, serde::Serialize)]
+pub enum OneOrMoreAddresses {
+    /// one address
+    One(Address),
+    /// a collection of addresses
+    Many(Vec<Address>),
+}
+
 /// for specifying the inputs to eth_newFilter
 #[derive(Clone, Debug, PartialEq, serde::Deserialize, serde::Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -11,10 +20,10 @@ pub struct FilterOptions {
     pub from_block: Option<BlockSpec>,
     /// to block
     pub to_block: Option<BlockSpec>,
-    /// address
-    pub address: Option<Address>,
+    /// addresses
+    pub addresses: Option<OneOrMoreAddresses>,
     /// topics
-    pub topics: Option<Vec<ZeroXPrefixedBytes>>,
+    pub topics: Option<Vec<B256>>,
 }
 
 /// represents the output of eth_getFilterLogs, and eth_getFilterChanges when used with a log

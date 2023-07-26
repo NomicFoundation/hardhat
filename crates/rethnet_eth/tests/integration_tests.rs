@@ -3,6 +3,7 @@ use bytes::Bytes;
 use rethnet_eth::{
     remote::{
         eth::eip712,
+        filter::OneOrMoreAddresses,
         methods::{
             FilterOptions, GetLogsInput, MethodInvocation, SubscriptionType, TransactionInput,
         },
@@ -271,8 +272,8 @@ fn test_serde_eth_new_filter() {
     help_test_method_invocation_serde(MethodInvocation::NewFilter(FilterOptions {
         from_block: Some(BlockSpec::Number(U256::from(1000))),
         to_block: Some(BlockSpec::latest()),
-        address: Some(Address::from_low_u64_ne(1)),
-        topics: Some(vec![Bytes::from(&b"some topic"[..]).into()]),
+        addresses: Some(OneOrMoreAddresses::One(Address::from_low_u64_ne(1))),
+        topics: Some(vec![B256::from_low_u64_ne(1)]),
     }));
 }
 
