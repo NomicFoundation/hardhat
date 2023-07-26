@@ -11,8 +11,8 @@ fi
 cd "$(git rev-parse --show-toplevel)"
 
 # install dependencies
-yarn
+npm i
 
 # run hardhat tests
 cd packages/hardhat-core
-yarn test
+npm test
