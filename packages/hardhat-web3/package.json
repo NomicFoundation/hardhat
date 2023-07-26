@@ -17,13 +17,13 @@
     "web3.js"
   ],
   "scripts": {
-    "lint": "yarn prettier --check && yarn eslint",
-    "lint:fix": "yarn prettier --write && yarn eslint --fix",
+    "lint": "npm run prettier --check && npm run eslint",
+    "lint:fix": "npm run prettier --write && npm run eslint --fix",
     "eslint": "eslint 'src/**/*.ts' 'test/**/*.ts'",
     "prettier": "prettier \"**/*.{js,md,json}\"",
     "test": "mocha --recursive \"test/**/*.ts\" --exit && node web3-lazy-object-tests/when-accessing-web3-class.js && node web3-lazy-object-tests/when-accessing-web3-object.js && node web3-lazy-object-tests/when-requiring-web3-module.js",
     "build": "tsc --build .",
-    "prepublishOnly": "yarn build",
+    "prepublishOnly": "npm run build",
     "clean": "rimraf dist"
   },
   "files": [

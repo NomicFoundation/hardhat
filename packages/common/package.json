@@ -8,8 +8,8 @@
   "license": "MIT",
   "private": true,
   "scripts": {
-    "lint": "yarn prettier --check",
-    "lint:fix": "yarn prettier --write",
+    "lint": "npm run prettier --check",
+    "lint:fix": "npm run prettier --write",
     "prettier": "prettier \"**/*.{js,md,json}\""
   },
   "devDependencies": {

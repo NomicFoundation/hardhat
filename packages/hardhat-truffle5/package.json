@@ -17,13 +17,13 @@
     "truffle-contract"
   ],
   "scripts": {
-    "lint": "yarn prettier --check && yarn eslint",
-    "lint:fix": "yarn prettier --write && yarn eslint --fix",
+    "lint": "npm run prettier --check && npm run eslint",
+    "lint:fix": "npm run prettier --write && npm run eslint --fix",
     "eslint": "eslint 'src/**/*.ts' 'test/**/*.ts'",
     "prettier": "prettier \"**/*.{js,md,json}\"",
     "test": "mocha --recursive \"test/**/*.ts\" --exit",
     "build": "tsc --build .",
-    "prepublishOnly": "yarn build",
+    "prepublishOnly": "npm run build",
     "clean": "rimraf dist"
   },
   "files": [
