@@ -209,4 +209,18 @@ export const solidityCompilers: SolidityCompiler[] = [
     },
     latestSolcVersion: true,
   },
+  {
+    solidityVersion: "0.8.21",
+    compilerPath: "soljson-v0.8.21+commit.d9974bed.js",
+    latestSolcVersion: true,
+  },
+  {
+    solidityVersion: "0.8.21",
+    compilerPath: "soljson-v0.8.21+commit.d9974bed.js",
+    optimizer: {
+      runs: 200,
+      viaIR: true,
+    },
+    latestSolcVersion: true,
+  },
 ];
