@@ -39,12 +39,6 @@ pub enum CreationError {
         /// Detected hardfork
         hardfork: SpecId,
     },
-    /// The specified chain is not supported
-    #[error("Chain with ID {chain_id} not supported")]
-    UnsupportedChain {
-        /// Requested chain id
-        chain_id: U256,
-    },
 }
 
 /// A blockchain that forked from a remote blockchain.
@@ -105,17 +99,16 @@ impl ForkedBlockchain {
             safe_block_number
         };
 
-        let hardfork = determine_hardfork(&chain_id, &fork_block_number)
-            .ok_or(CreationError::UnsupportedChain { chain_id })?;
-
-        if hardfork < SpecId::SPURIOUS_DRAGON {
-            return Err(CreationError::InvalidHardfork {
-                chain_name: chain_name(&chain_id)
-                    .expect("Must succeed since we found its hardfork")
-                    .to_string(),
-                fork_block_number,
-                hardfork,
-            });
+        if let Some(hardfork) = determine_hardfork(&chain_id, &fork_block_number) {
+            if hardfork < SpecId::SPURIOUS_DRAGON {
+                return Err(CreationError::InvalidHardfork {
+                    chain_name: chain_name(&chain_id)
+                        .expect("Must succeed since we found its hardfork")
+                        .to_string(),
+                    fork_block_number,
+                    hardfork,
+                });
+            }
         }
 
         Ok(Self {
@@ -195,10 +188,14 @@ impl Blockchain for ForkedBlockchain {
             self.remote.block_by_number(number).map_or_else(
                 |e| Err(BlockchainError::JsonRpcError(e)),
                 |block| {
-                    let block_spec_id = determine_hardfork(&self.chain_id, &block.header.number)
-                        .expect("Spec has been validated");
-
-                    Ok(spec_id <= block_spec_id)
+                    determine_hardfork(&self.chain_id, &block.header.number).map_or_else(
+                        || {
+                            Err(BlockchainError::UnsupportedChain {
+                                chain_id: self.chain_id,
+                            })
+                        },
+                        |block_spec_id| Ok(spec_id <= block_spec_id),
+                    )
                 },
             )
         } else {

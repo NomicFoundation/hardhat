@@ -37,6 +37,12 @@ pub enum BlockchainError {
     /// Block number does not exist in blockchain
     #[error("Unknown block number")]
     UnknownBlockNumber,
+    /// The specified chain is not supported
+    #[error("Chain with ID {chain_id} not supported")]
+    UnsupportedChain {
+        /// Requested chain id
+        chain_id: U256,
+    },
 }
 
 /// Trait for implementations of an Ethereum blockchain.
