@@ -34,3 +34,15 @@ export function defineModule<
 
   return { id: moduleId, moduleDefintionFunction };
 }
+
+/**
+ * Construct a module definition that can be deployed through Ignition.
+ *
+ * @param moduleId - the id of the module
+ * @param moduleDefintionFunction - a function accepting the
+ * IgnitionModuleBuilder to configure the deployment
+ * @returns a module definition
+ *
+ * @beta
+ */
+export const buildModule = defineModule;
