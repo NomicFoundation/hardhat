@@ -45,7 +45,7 @@ impl serde::Serialize for U256WithoutLeadingZeroes {
     where
         S: serde::Serializer,
     {
-        rethnet_eth::remote::serialize_u256(&self.0, s)
+        rethnet_eth::serde::serialize_u256(&self.0, s)
     }
 }
 

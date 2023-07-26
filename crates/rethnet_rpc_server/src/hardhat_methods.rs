@@ -1,8 +1,6 @@
 use rethnet_eth::{
-    remote::{
-        serde_with_helpers::{sequence_to_single, single_to_sequence},
-        ZeroXPrefixedBytes,
-    },
+    remote::ZeroXPrefixedBytes,
+    serde::{sequence_to_single, single_to_sequence},
     Address, B256, U256,
 };
 

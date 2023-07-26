@@ -24,7 +24,7 @@ use crate::{
     Address, Bloom, Bytes, B256, U256,
 };
 
-use super::{serde_with_helpers::optional_u64_from_hex, withdrawal::Withdrawal};
+use super::withdrawal::Withdrawal;
 
 /// transaction
 #[derive(Clone, Debug, PartialEq, Eq, Default, serde::Deserialize, serde::Serialize)]
@@ -34,14 +34,14 @@ pub struct Transaction {
     /// hash of the transaction
     pub hash: B256,
     /// the number of transactions made by the sender prior to this one
-    #[serde(deserialize_with = "u64_from_hex")]
+    #[serde(deserialize_with = "crate::serde::u64_from_hex")]
     pub nonce: u64,
     /// hash of the block where this transaction was in
     pub block_hash: Option<B256>,
     /// block number where this transaction was in
     pub block_number: Option<U256>,
     /// integer of the transactions index position in the block. null when its pending
-    #[serde(deserialize_with = "optional_u64_from_hex")]
+    #[serde(deserialize_with = "crate::serde::optional_u64_from_hex")]
     pub transaction_index: Option<u64>,
     /// address of the sender
     pub from: Address,
@@ -56,17 +56,21 @@ pub struct Transaction {
     /// the data sent along with the transaction
     pub input: Bytes,
     /// ECDSA recovery id
-    #[serde(deserialize_with = "u64_from_hex")]
+    #[serde(deserialize_with = "crate::serde::u64_from_hex")]
     pub v: u64,
     /// ECDSA signature r
     pub r: U256,
     /// ECDSA signature s
     pub s: U256,
     /// chain ID
-    #[serde(default, deserialize_with = "optional_u64_from_hex")]
+    #[serde(default, deserialize_with = "crate::serde::optional_u64_from_hex")]
     pub chain_id: Option<u64>,
     /// integer of the transaction type, 0x0 for legacy transactions, 0x1 for access list types, 0x2 for dynamic fees
-    #[serde(rename = "type", default, deserialize_with = "u64_from_hex")]
+    #[serde(
+        rename = "type",
+        default,
+        deserialize_with = "crate::serde::u64_from_hex"
+    )]
     pub transaction_type: u64,
     /// access list
     #[serde(default)]
@@ -77,14 +81,6 @@ pub struct Transaction {
     /// max priority fee per gas
     #[serde(default)]
     pub max_priority_fee_per_gas: Option<U256>,
-}
-
-fn u64_from_hex<'de, D>(deserializer: D) -> Result<u64, D::Error>
-where
-    D: serde::Deserializer<'de>,
-{
-    let s: &str = serde::Deserialize::deserialize(deserializer)?;
-    Ok(u64::from_str_radix(&s[2..], 16).expect("failed to parse u64"))
 }
 
 /// log object used in TransactionReceipt
@@ -106,7 +102,7 @@ pub struct Log {
     /// transaction index
     #[serde(
         skip_serializing_if = "Option::is_none",
-        deserialize_with = "optional_u64_from_hex"
+        deserialize_with = "crate::serde::optional_u64_from_hex"
     )]
     pub transaction_index: Option<u64>,
     /// log index
@@ -159,17 +155,21 @@ pub struct TransactionReceipt {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub root: Option<B256>,
     /// either 1 (success) or 0 (failure)
-    #[serde(deserialize_with = "optional_u64_from_hex")]
+    #[serde(deserialize_with = "crate::serde::optional_u64_from_hex")]
     pub status: Option<u64>,
     /// address of the receiver. null when its a contract creation transaction.
     pub to: Option<Address>,
     /// hash of the transaction
     pub transaction_hash: B256,
     /// integer of the transactions index position in the block
-    #[serde(deserialize_with = "u64_from_hex")]
+    #[serde(deserialize_with = "crate::serde::u64_from_hex")]
     pub transaction_index: u64,
     /// integer of the transaction type, 0x0 for legacy transactions, 0x1 for access list types, 0x2 for dynamic fees.
-    #[serde(rename = "type", default, deserialize_with = "u64_from_hex")]
+    #[serde(
+        rename = "type",
+        default,
+        deserialize_with = "crate::serde::u64_from_hex"
+    )]
     pub transaction_type: u64,
 }
 
@@ -250,7 +250,7 @@ pub struct Block<TX> {
     /// mix hash
     pub mix_hash: B256,
     /// hash of the generated proof-of-work. null when its pending block.
-    #[serde(deserialize_with = "optional_u64_from_hex")]
+    #[serde(deserialize_with = "crate::serde::optional_u64_from_hex")]
     pub nonce: Option<u64>,
     /// base fee per gas
     pub base_fee_per_gas: Option<U256>,
