@@ -30,38 +30,74 @@ export async function validate(
     await validate(submodule, artifactLoader, deploymentParameters);
   }
 
-  const params = deploymentParameters[module.id] ?? {};
-
   for (const future of futures) {
     switch (future.type) {
       case FutureType.ARTIFACT_CONTRACT_DEPLOYMENT:
-        return validateArtifactContractDeployment(
+        await validateArtifactContractDeployment(
           future,
           artifactLoader,
-          params
+          deploymentParameters
         );
+        break;
       case FutureType.ARTIFACT_LIBRARY_DEPLOYMENT:
-        return validateArtifactLibraryDeployment(
+        await validateArtifactLibraryDeployment(
           future,
           artifactLoader,
-          params
+          deploymentParameters
         );
+        break;
       case FutureType.ARTIFACT_CONTRACT_AT:
-        return validateArtifactContractAt(future, artifactLoader, params);
+        await validateArtifactContractAt(
+          future,
+          artifactLoader,
+          deploymentParameters
+        );
+        break;
       case FutureType.NAMED_CONTRACT_DEPLOYMENT:
-        return validateNamedContractDeployment(future, artifactLoader, params);
+        await validateNamedContractDeployment(
+          future,
+          artifactLoader,
+          deploymentParameters
+        );
+        break;
       case FutureType.NAMED_LIBRARY_DEPLOYMENT:
-        return validateNamedLibraryDeployment(future, artifactLoader, params);
+        await validateNamedLibraryDeployment(
+          future,
+          artifactLoader,
+          deploymentParameters
+        );
+        break;
       case FutureType.NAMED_CONTRACT_AT:
-        return validateNamedContractAt(future, artifactLoader, params);
+        await validateNamedContractAt(
+          future,
+          artifactLoader,
+          deploymentParameters
+        );
+        break;
       case FutureType.NAMED_CONTRACT_CALL:
-        return validateNamedContractCall(future, artifactLoader, params);
+        await validateNamedContractCall(
+          future,
+          artifactLoader,
+          deploymentParameters
+        );
+        break;
       case FutureType.NAMED_STATIC_CALL:
-        return validateNamedStaticCall(future, artifactLoader, params);
+        await validateNamedStaticCall(
+          future,
+          artifactLoader,
+          deploymentParameters
+        );
+        break;
       case FutureType.READ_EVENT_ARGUMENT:
-        return validateReadEventArgument(future, artifactLoader, params);
+        await validateReadEventArgument(
+          future,
+          artifactLoader,
+          deploymentParameters
+        );
+        break;
       case FutureType.SEND_DATA:
-        return validateSendData(future, artifactLoader, params);
+        await validateSendData(future, artifactLoader, deploymentParameters);
+        break;
     }
   }
 }

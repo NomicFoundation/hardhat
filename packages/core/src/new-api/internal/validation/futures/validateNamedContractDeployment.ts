@@ -6,22 +6,20 @@ import {
   isModuleParameterRuntimeValue,
 } from "../../../type-guards";
 import { ArtifactResolver } from "../../../types/artifact";
-import {
-  ModuleParameters,
-  NamedContractDeploymentFuture,
-} from "../../../types/module";
+import { DeploymentParameters } from "../../../types/deployer";
+import { NamedContractDeploymentFuture } from "../../../types/module";
 import { retrieveNestedRuntimeValues } from "../../utils/retrieve-nested-runtime-values";
 
 export async function validateNamedContractDeployment(
   future: NamedContractDeploymentFuture<string>,
   artifactLoader: ArtifactResolver,
-  moduleParameters: ModuleParameters
+  deploymentParameters: DeploymentParameters
 ) {
   const moduleParams = retrieveNestedRuntimeValues(future.constructorArgs);
 
   const missingParams = moduleParams.filter(
     (param) =>
-      moduleParameters[param.name] === undefined &&
+      deploymentParameters[param.moduleId]?.[param.name] === undefined &&
       param.defaultValue === undefined
   );
 
@@ -33,7 +31,8 @@ export async function validateNamedContractDeployment(
 
   if (isModuleParameterRuntimeValue(future.value)) {
     const param =
-      moduleParameters[future.value.name] ?? future.value.defaultValue;
+      deploymentParameters[future.value.moduleId]?.[future.value.name] ??
+      future.value.defaultValue;
     if (param === undefined) {
       throw new IgnitionValidationError(
         `Module parameter '${future.value.name}' requires a value but was given none`

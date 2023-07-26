@@ -3,22 +3,20 @@ import { ethers } from "ethers";
 import { IgnitionValidationError } from "../../../../errors";
 import { isModuleParameterRuntimeValue } from "../../../type-guards";
 import { ArtifactResolver } from "../../../types/artifact";
-import {
-  ArtifactContractDeploymentFuture,
-  ModuleParameters,
-} from "../../../types/module";
+import { DeploymentParameters } from "../../../types/deployer";
+import { ArtifactContractDeploymentFuture } from "../../../types/module";
 import { retrieveNestedRuntimeValues } from "../../utils/retrieve-nested-runtime-values";
 
 export async function validateArtifactContractDeployment(
   future: ArtifactContractDeploymentFuture,
   artifactLoader: ArtifactResolver,
-  moduleParameters: ModuleParameters
+  deploymentParameters: DeploymentParameters
 ) {
   const moduleParams = retrieveNestedRuntimeValues(future.constructorArgs);
 
   const missingParams = moduleParams.filter(
     (param) =>
-      moduleParameters[param.name] === undefined &&
+      deploymentParameters[param.moduleId]?.[param.name] === undefined &&
       param.defaultValue === undefined
   );
 
@@ -30,7 +28,8 @@ export async function validateArtifactContractDeployment(
 
   if (isModuleParameterRuntimeValue(future.value)) {
     const param =
-      moduleParameters[future.value.name] ?? future.value.defaultValue;
+      deploymentParameters[future.value.moduleId]?.[future.value.name] ??
+      future.value.defaultValue;
     if (param === undefined) {
       throw new IgnitionValidationError(
         `Module parameter '${future.value.name}' requires a value but was given none`

@@ -3,19 +3,20 @@ import { ethers } from "ethers";
 import { IgnitionValidationError } from "../../../../errors";
 import { isArtifactType } from "../../../type-guards";
 import { ArtifactResolver } from "../../../types/artifact";
-import { ModuleParameters, NamedStaticCallFuture } from "../../../types/module";
+import { DeploymentParameters } from "../../../types/deployer";
+import { NamedStaticCallFuture } from "../../../types/module";
 import { retrieveNestedRuntimeValues } from "../../utils/retrieve-nested-runtime-values";
 
 export async function validateNamedStaticCall(
   future: NamedStaticCallFuture<string, string>,
   artifactLoader: ArtifactResolver,
-  moduleParameters: ModuleParameters
+  deploymentParameters: DeploymentParameters
 ) {
   const moduleParams = retrieveNestedRuntimeValues(future.args);
 
   const missingParams = moduleParams.filter(
     (param) =>
-      moduleParameters[param.name] === undefined &&
+      deploymentParameters[param.moduleId]?.[param.name] === undefined &&
       param.defaultValue === undefined
   );
 

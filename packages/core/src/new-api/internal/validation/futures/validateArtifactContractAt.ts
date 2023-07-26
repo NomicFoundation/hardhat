@@ -1,19 +1,18 @@
 import { IgnitionValidationError } from "../../../../errors";
 import { isModuleParameterRuntimeValue } from "../../../type-guards";
 import { ArtifactResolver } from "../../../types/artifact";
-import {
-  ArtifactContractAtFuture,
-  ModuleParameters,
-} from "../../../types/module";
+import { DeploymentParameters } from "../../../types/deployer";
+import { ArtifactContractAtFuture } from "../../../types/module";
 
 export async function validateArtifactContractAt(
   future: ArtifactContractAtFuture,
   _artifactLoader: ArtifactResolver,
-  moduleParameters: ModuleParameters
+  deploymentParameters: DeploymentParameters
 ) {
   if (isModuleParameterRuntimeValue(future.address)) {
     const param =
-      moduleParameters[future.address.name] ?? future.address.defaultValue;
+      deploymentParameters[future.address.moduleId]?.[future.address.name] ??
+      future.address.defaultValue;
     if (param === undefined) {
       throw new IgnitionValidationError(
         `Module parameter '${future.address.name}' requires a value but was given none`

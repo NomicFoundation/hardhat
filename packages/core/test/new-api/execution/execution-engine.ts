@@ -999,6 +999,37 @@ describe("execution engine", () => {
   });
 
   describe("call function", () => {
+    const fakeArtifact: Artifact = {
+      abi: [
+        {
+          inputs: [
+            {
+              internalType: "uint256",
+              name: "a",
+              type: "uint256",
+            },
+            {
+              internalType: "bytes",
+              name: "b",
+              type: "bytes",
+            },
+            {
+              internalType: "bool",
+              name: "c",
+              type: "bool",
+            },
+          ],
+          name: "configure",
+          outputs: [],
+          stateMutability: "payable",
+          type: "function",
+        },
+      ],
+      contractName: "Contract1",
+      bytecode: "",
+      linkReferences: {},
+    };
+
     it("should execute a call", async () => {
       const journal = new MemoryJournal();
 
@@ -1029,6 +1060,9 @@ describe("execution engine", () => {
             },
           },
         },
+        artifacts: {
+          Contract1: fakeArtifact,
+        },
       });
 
       const result = await deployer.deploy(
@@ -1037,12 +1071,16 @@ describe("execution engine", () => {
         exampleAccounts
       );
 
-      assertDeploymentSuccess(result, {
-        "Module1:Contract1": {
-          contractName: "Contract1",
-          contractAddress: exampleAddress,
+      assertDeploymentSuccess(
+        result,
+        {
+          "Module1:Contract1": {
+            contractName: "Contract1",
+            contractAddress: exampleAddress,
+          },
         },
-      });
+        { Contract1: fakeArtifact }
+      );
 
       const journalMessages = await accumulateMessages(journal);
 
@@ -1201,6 +1239,9 @@ describe("execution engine", () => {
             },
           },
         },
+        artifacts: {
+          Contract1: fakeArtifact,
+        },
       });
 
       const result = await deployer.deploy(
@@ -1325,6 +1366,37 @@ describe("execution engine", () => {
   });
 
   describe("static call", () => {
+    const fakeArtifact: Artifact = {
+      abi: [
+        {
+          inputs: [
+            {
+              internalType: "uint256",
+              name: "a",
+              type: "uint256",
+            },
+            {
+              internalType: "bytes",
+              name: "b",
+              type: "bytes",
+            },
+            {
+              internalType: "bool",
+              name: "c",
+              type: "bool",
+            },
+          ],
+          name: "test",
+          outputs: [],
+          stateMutability: "pure",
+          type: "function",
+        },
+      ],
+      contractName: "Contract1",
+      bytecode: "",
+      linkReferences: {},
+    };
+
     it("should execute a static call", async () => {
       const journal = new MemoryJournal();
 
@@ -1356,6 +1428,9 @@ describe("execution engine", () => {
 
           return "example_static_call_result";
         },
+        artifacts: {
+          Contract1: fakeArtifact,
+        },
       });
 
       const result = await deployer.deploy(
@@ -1364,12 +1439,16 @@ describe("execution engine", () => {
         exampleAccounts
       );
 
-      assertDeploymentSuccess(result, {
-        "Module1:Contract1": {
-          contractName: "Contract1",
-          contractAddress: exampleAddress,
+      assertDeploymentSuccess(
+        result,
+        {
+          "Module1:Contract1": {
+            contractName: "Contract1",
+            contractAddress: exampleAddress,
+          },
         },
-      });
+        { Contract1: fakeArtifact }
+      );
 
       const journalMessages = await accumulateMessages(journal);
 
@@ -1502,6 +1581,7 @@ describe("execution engine", () => {
         staticCall: async (_contractAddress, _abi, _functionName) => {
           throw new Error("Query reverted");
         },
+        artifacts: { Contract1: fakeArtifact },
       });
 
       const result = await deployer.deploy(
@@ -1678,6 +1758,27 @@ describe("execution engine", () => {
   });
 
   describe("read event arg", () => {
+    const fakeArtifact: Artifact = {
+      abi: [
+        {
+          anonymous: false,
+          inputs: [
+            {
+              indexed: false,
+              internalType: "uint256",
+              name: "arg1",
+              type: "uint256",
+            },
+          ],
+          name: "EventName1",
+          type: "event",
+        },
+      ],
+      contractName: "Contract1",
+      bytecode: "",
+      linkReferences: {},
+    };
+
     it("should execute a read event arg", async () => {
       const journal = new MemoryJournal();
 
@@ -1715,6 +1816,7 @@ describe("execution engine", () => {
 
           return "event-arg-value";
         },
+        artifacts: { Contract1: fakeArtifact },
       });
 
       const result = await deployer.deploy(
@@ -1723,12 +1825,16 @@ describe("execution engine", () => {
         exampleAccounts
       );
 
-      assertDeploymentSuccess(result, {
-        "Module1:Contract1": {
-          contractName: "Contract1",
-          contractAddress: exampleAddress,
+      assertDeploymentSuccess(
+        result,
+        {
+          "Module1:Contract1": {
+            contractName: "Contract1",
+            contractAddress: exampleAddress,
+          },
         },
-      });
+        { Contract1: fakeArtifact }
+      );
 
       const journalMessages = await accumulateMessages(journal);
 
@@ -1869,6 +1975,7 @@ describe("execution engine", () => {
         ) => {
           throw new Error("Unable to read event");
         },
+        artifacts: { Contract1: fakeArtifact },
       });
 
       const result = await deployer.deploy(
@@ -1981,6 +2088,49 @@ describe("execution engine", () => {
   });
 
   describe("with complex arguments", () => {
+    const fakeArtifact = {
+      abi: [
+        {
+          inputs: [
+            {
+              components: [
+                {
+                  internalType: "address",
+                  name: "nested",
+                  type: "address",
+                },
+                {
+                  components: [
+                    {
+                      internalType: "address",
+                      name: "a",
+                      type: "address",
+                    },
+                    {
+                      internalType: "uint256",
+                      name: "b",
+                      type: "uint256",
+                    },
+                  ],
+                  internalType: "struct Arr[1]",
+                  name: "arr",
+                  type: "tuple[1]",
+                },
+              ],
+              internalType: "struct T",
+              name: "arg",
+              type: "tuple",
+            },
+          ],
+          stateMutability: "nonpayable",
+          type: "constructor",
+        },
+      ],
+      contractName: "Contract1",
+      bytecode: "",
+      linkReferences: {},
+    };
+
     it("should execute deploy when futures are passed as nested arguments", async () => {
       const moduleDefinition = defineModule("Module1", (m) => {
         const account1 = m.getAccount(1);
@@ -1990,7 +2140,7 @@ describe("execution engine", () => {
 
         const contract1 = m.contract(
           "Contract1",
-          [{ nested: library1, arr: [account1, supply] }],
+          [{ nested: library1, arr: [{ a: account1, b: supply }] }],
           {
             from: account1,
           }
@@ -2019,6 +2169,7 @@ describe("execution engine", () => {
             },
           },
         },
+        artifacts: { Contract1: fakeArtifact },
       });
 
       const result = await deployer.deploy(
@@ -2027,16 +2178,20 @@ describe("execution engine", () => {
         exampleAccounts
       );
 
-      assertDeploymentSuccess(result, {
-        "Module1:Contract1": {
-          contractName: "Contract1",
-          contractAddress: exampleAddress,
+      assertDeploymentSuccess(
+        result,
+        {
+          "Module1:Contract1": {
+            contractName: "Contract1",
+            contractAddress: exampleAddress,
+          },
+          "Module1:Library1": {
+            contractName: "Library1",
+            contractAddress: differentAddress,
+          },
         },
-        "Module1:Library1": {
-          contractName: "Library1",
-          contractAddress: differentAddress,
-        },
-      });
+        { Contract1: fakeArtifact }
+      );
 
       const journalMessages = await accumulateMessages(journal);
 
@@ -2111,7 +2266,9 @@ describe("execution engine", () => {
           value: BigInt(0).toString(),
           constructorArgs: [
             {
-              arr: ["0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC", 1000],
+              arr: [
+                { a: "0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC", b: 1000 },
+              ],
               nested: differentAddress,
             },
           ],
@@ -2127,7 +2284,9 @@ describe("execution engine", () => {
           args: [
             {
               nested: differentAddress,
-              arr: ["0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC", 1000],
+              arr: [
+                { a: "0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC", b: 1000 },
+              ],
             },
           ],
           value: BigInt(0).toString(),

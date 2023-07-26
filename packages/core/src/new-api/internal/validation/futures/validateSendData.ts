@@ -1,15 +1,18 @@
 import { IgnitionValidationError } from "../../../../errors";
 import { isModuleParameterRuntimeValue } from "../../../type-guards";
 import { ArtifactResolver } from "../../../types/artifact";
-import { ModuleParameters, SendDataFuture } from "../../../types/module";
+import { DeploymentParameters } from "../../../types/deployer";
+import { SendDataFuture } from "../../../types/module";
 
 export async function validateSendData(
   future: SendDataFuture,
   _artifactLoader: ArtifactResolver,
-  moduleParameters: ModuleParameters
+  deploymentParameters: DeploymentParameters
 ) {
   if (isModuleParameterRuntimeValue(future.to)) {
-    const param = moduleParameters[future.to.name] ?? future.to.defaultValue;
+    const param =
+      deploymentParameters[future.to.moduleId]?.[future.to.name] ??
+      future.to.defaultValue;
     if (param === undefined) {
       throw new IgnitionValidationError(
         `Module parameter '${future.to.name}' requires a value but was given none`
@@ -25,7 +28,8 @@ export async function validateSendData(
 
   if (isModuleParameterRuntimeValue(future.value)) {
     const param =
-      moduleParameters[future.value.name] ?? future.value.defaultValue;
+      deploymentParameters[future.value.moduleId]?.[future.value.name] ??
+      future.value.defaultValue;
     if (param === undefined) {
       throw new IgnitionValidationError(
         `Module parameter '${future.value.name}' requires a value but was given none`

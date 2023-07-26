@@ -58,7 +58,7 @@ export function setupMockArtifactResolver(artifacts?: {
 }): ArtifactResolver {
   return {
     loadArtifact: async (contractName: string) => {
-      if (artifacts === undefined) {
+      if (artifacts?.[contractName] === undefined) {
         return {
           ...fakeArtifact,
           contractName,
@@ -197,7 +197,8 @@ export function assertDeploymentSuccess(
   expectedContracts: Record<
     string,
     Omit<DeploymentResultContract, "artifact"> & { artifact?: Artifact }
-  >
+  >,
+  artifacts?: { [contractName: string]: Artifact }
 ) {
   assert.isDefined(result);
 
@@ -209,7 +210,11 @@ export function assertDeploymentSuccess(
     Object.entries(expectedContracts).map(([futureId, details]) => [
       futureId,
       {
-        artifact: { ...fakeArtifact, contractName: details.contractName },
+        artifact: {
+          ...fakeArtifact,
+          contractName: details.contractName,
+          ...artifacts?.[details.contractName],
+        },
         ...details,
       },
     ])
