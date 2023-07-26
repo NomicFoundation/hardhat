@@ -4,6 +4,5 @@
 etherscan.js
 index.js
 
-build-test
-internal
-!src/internal
+/build-test
+/internal
