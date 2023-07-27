@@ -1,7 +1,6 @@
 use std::net::{SocketAddr, TcpListener};
-use std::ops::Add;
 use std::sync::Arc;
-use std::time::{Duration, SystemTime};
+use std::time::{Duration, Instant};
 
 use axum::{
     extract::{Json, State},
@@ -72,13 +71,13 @@ struct Filter {
     // those other filter methods.
     // r#type: SubscriptionType,
     _criteria: Option<FilterOptions>,
-    deadline: std::time::SystemTime,
+    deadline: std::time::Instant,
     events: FilteredEvents,
     is_subscription: bool,
 }
 
-fn new_filter_deadline() -> SystemTime {
-    SystemTime::now().add(Duration::from_secs(5 * 60))
+fn new_filter_deadline() -> Instant {
+    Instant::now() + Duration::from_secs(5 * 60)
 }
 
 struct AppState {
