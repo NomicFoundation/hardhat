@@ -402,6 +402,15 @@ fn test_serde_filter_block_target() {
 }
 
 #[test]
+fn test_serde_one_or_more_addresses() {
+    help_test_serde_value(OneOrMoreAddresses::One(Address::from_low_u64_ne(1)));
+    help_test_serde_value(OneOrMoreAddresses::Many(vec![
+        Address::from_low_u64_ne(1),
+        Address::from_low_u64_ne(1),
+    ]));
+}
+
+#[test]
 fn test_evm_set_automine() {
     help_test_method_invocation_serde(MethodInvocation::EvmSetAutomine(false));
 }
