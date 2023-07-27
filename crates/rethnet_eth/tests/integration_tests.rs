@@ -3,7 +3,7 @@ use bytes::Bytes;
 use rethnet_eth::{
     remote::{
         eth::eip712,
-        filter::{FilterOptions, OneOrMoreAddresses, SubscriptionType},
+        filter::{FilterOptions, LogOutput, OneOrMoreAddresses, SubscriptionType},
         methods::{GetLogsInput, MethodInvocation, TransactionInput},
         BlockSpec, BlockTag,
     },
@@ -359,6 +359,28 @@ fn test_serde_eth_uninstall_filter() {
 #[test]
 fn test_serde_eth_unsubscribe() {
     help_test_method_invocation_serde(MethodInvocation::Unsubscribe(U256::from(100)));
+}
+
+#[test]
+fn test_serde_log_output() {
+    let original = LogOutput {
+        removed: false,
+        log_index: Some(U256::ZERO),
+        transaction_index: Some(99),
+        transaction_hash: Some(B256::from_low_u64_ne(1)),
+        block_hash: Some(B256::from_low_u64_ne(2)),
+        block_number: Some(U256::ZERO),
+        address: Address::from_low_u64_ne(1),
+        data: Bytes::from_static(b"whatever"),
+        topics: vec![B256::from_low_u64_ne(3), B256::from_low_u64_ne(3)],
+    };
+
+    let serialized = serde_json::json!(original).to_string();
+
+    let deserialized: LogOutput = serde_json::from_str(&serialized)
+        .unwrap_or_else(|_| panic!("should have successfully deserialized json {serialized}"));
+
+    assert_eq!(original, deserialized);
 }
 
 #[test]
