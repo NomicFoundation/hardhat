@@ -515,14 +515,13 @@ fn handle_sign(
     }
 }
 
-async fn remove_filter(
+async fn remove_filter<const IS_SUBSCRIPTION: bool>(
     state: StateType,
     filter_id: U256,
-    is_subscription: bool,
 ) -> ResponseData<bool> {
     let mut filters = state.filters.write().await;
     let result = if let Some(filter) = filters.get(&filter_id) {
-        filter.is_subscription == is_subscription && filters.remove(&filter_id).is_some()
+        filter.is_subscription == IS_SUBSCRIPTION && filters.remove(&filter_id).is_some()
     } else {
         false
     };
@@ -530,11 +529,11 @@ async fn remove_filter(
 }
 
 async fn handle_uninstall_filter(state: StateType, filter_id: U256) -> ResponseData<bool> {
-    remove_filter(state, filter_id, false).await
+    remove_filter::<false>(state, filter_id).await
 }
 
 async fn handle_unsubscribe(state: StateType, filter_id: U256) -> ResponseData<bool> {
-    remove_filter(state, filter_id, true).await
+    remove_filter::<true>(state, filter_id).await
 }
 
 async fn handle_request(
