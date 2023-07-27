@@ -29,7 +29,7 @@ pub struct FilterOptions {
 /// filter
 #[derive(Clone, Debug, PartialEq, serde::Deserialize, serde::Serialize)]
 pub struct LogOutput {
-    /// true when the log was removed, due to a chain reorganization. false if its a valid log
+    /// true when the log was removed, due to a chain reorganization. false if it's a valid log
     pub removed: bool,
     /// integer of the log index position in the block. None when its pending log.
     pub log_index: Option<U256>,
