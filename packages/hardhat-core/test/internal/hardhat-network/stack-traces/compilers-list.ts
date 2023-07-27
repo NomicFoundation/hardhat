@@ -1,3 +1,5 @@
+import semver from "semver";
+
 export interface SolidityCompilerOptimizer {
   viaIR: boolean;
   runs: number;
@@ -224,3 +226,11 @@ export const solidityCompilers: SolidityCompiler[] = [
     latestSolcVersion: true,
   },
 ];
+
+export const getLatestSupportedVersion = () =>
+  solidityCompilers.map((sc) => sc.solidityVersion).sort(semver.compare)[
+    solidityCompilers.length - 1
+  ];
+
+export const increasePatch = (version: string): string =>
+  semver.inc(version, "patch")!;
