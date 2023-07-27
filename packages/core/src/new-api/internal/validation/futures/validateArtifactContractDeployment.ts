@@ -43,7 +43,7 @@ export async function validateArtifactContractDeployment(
     }
   }
 
-  const artifact = await artifactLoader.loadArtifact(future.contractName);
+  const artifact = future.artifact;
 
   const argsLength = future.constructorArgs.length;
 
