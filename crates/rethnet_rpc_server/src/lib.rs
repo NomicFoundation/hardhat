@@ -291,8 +291,7 @@ async fn handle_get_filter_changes(
     let mut filters = state.filters.write().await;
     ResponseData::Success {
         result: filters.get_mut(&filter_id).and_then(|filter| {
-            let events = Some(filter.events.clone());
-            filter.events.clear();
+            let events = Some(filter.events.take());
             filter.deadline = new_filter_deadline();
             events
         }),
@@ -307,8 +306,7 @@ async fn handle_get_filter_logs(
     match filters.get_mut(&filter_id) {
         Some(filter) => match &mut filter.events {
             FilteredEvents::Logs(logs) => {
-                let result = Some(logs.clone());
-                logs.clear();
+                let result = Some(std::mem::take(logs));
                 filter.deadline = new_filter_deadline();
                 ResponseData::Success { result }
             }

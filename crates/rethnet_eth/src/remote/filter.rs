@@ -1,3 +1,5 @@
+use std::mem::take;
+
 use bytes::Bytes;
 
 use crate::{remote::BlockSpec, Address, B256, U256};
@@ -63,12 +65,12 @@ pub enum FilteredEvents {
 }
 
 impl FilteredEvents {
-    /// clear the underlying vector
-    pub fn clear(&mut self) {
+    /// use std::mem::take to move the memory out of the variant
+    pub fn take(&mut self) -> Self {
         match self {
-            Self::Logs(v) => v.clear(),
-            Self::NewHeads(v) => v.clear(),
-            Self::NewPendingTransactions(v) => v.clear(),
+            Self::Logs(v) => Self::Logs(take(v)),
+            Self::NewHeads(v) => Self::NewHeads(take(v)),
+            Self::NewPendingTransactions(v) => Self::NewPendingTransactions(take(v)),
         }
     }
 }
