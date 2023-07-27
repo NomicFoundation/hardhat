@@ -1,9 +1,6 @@
 const {
-  getLatestSupportedVersion,
-  increasePatch,
+  getNextUnsupportedVersion,
 } = require("../../internal/hardhat-network/stack-traces/compilers-list");
-
-const nextUnsupportedVersion = increasePatch(getLatestSupportedVersion());
 
 module.exports = {
   solidity: {
@@ -13,7 +10,7 @@ module.exports = {
       },
     ],
     overrides: {
-      "contracts/Foo.sol": { version: nextUnsupportedVersion },
+      "contracts/Foo.sol": { version: getNextUnsupportedVersion() },
     },
   },
 };

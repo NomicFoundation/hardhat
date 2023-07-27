@@ -232,5 +232,8 @@ export const getLatestSupportedVersion = () =>
     solidityCompilers.length - 1
   ];
 
-export const increasePatch = (version: string): string =>
-  semver.inc(version, "patch")!;
+export const getNextUnsupportedVersion = () =>
+  semver.inc(getLatestSupportedVersion(), "patch")!;
+
+export const getNextNextUnsupportedVersion = () =>
+  semver.inc(getNextUnsupportedVersion(), "patch")!;
