@@ -49,7 +49,7 @@ pub struct LogOutput {
     /// Array of 0 to 4 32 Bytes DATA of indexed log arguments. (In solidity: The first topic is
     /// the hash of the signature of the event (e.g. Deposit(address,bytes32,uint256)), except you
     /// declared the event with the anonymous specifier.)
-    pub topics: Vec<ZeroXPrefixedBytes>,
+    pub topics: Vec<B256>,
 }
 
 /// represents the output of eth_getFilterChanges
