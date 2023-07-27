@@ -132,6 +132,7 @@ fn new_filter_deadline() -> Instant {
 
 struct AppState {
     rethnet_state: RethnetStateType,
+    chain_id: U256,
     filters: RwLock<HashMap<U256, Filter>>,
     fork_block_number: Option<U256>,
     last_filter_id: RwLock<U256>,
@@ -304,6 +305,13 @@ async fn handle_accounts(state: StateType) -> ResponseData<Vec<Address>> {
     event!(Level::INFO, "eth_accounts");
     ResponseData::Success {
         result: state.local_accounts.keys().copied().collect(),
+    }
+}
+
+async fn handle_chain_id(state: StateType) -> ResponseData<U256> {
+    event!(Level::INFO, "eth_chainId()");
+    ResponseData::Success {
+        result: state.chain_id,
     }
 }
 
@@ -664,6 +672,9 @@ async fn handle_request(
                 MethodInvocation::Eth(EthMethodInvocation::Accounts()) => {
                     response(id, handle_accounts(state).await)
                 }
+                MethodInvocation::Eth(EthMethodInvocation::ChainId()) => {
+                    response(id, handle_chain_id(state).await)
+                }
                 MethodInvocation::Eth(EthMethodInvocation::GetBalance(address, block)) => {
                     response(id, handle_get_balance(state, *address, block.clone()).await)
                 }
@@ -843,6 +854,7 @@ impl Server {
                 .unzip()
         };
 
+        let chain_id = config.chain_id;
         let filters = RwLock::new(HashMap::default());
         let last_filter_id = RwLock::new(U256::ZERO);
 
@@ -874,6 +886,7 @@ impl Server {
                         fork_block_number,
                         genesis_accounts,
                     )))),
+                    chain_id,
                     filters,
                     fork_block_number: Some(fork_block_number),
                     last_filter_id,
@@ -884,6 +897,7 @@ impl Server {
                     rethnet_state: Arc::new(RwLock::new(Box::new(HybridState::with_accounts(
                         genesis_accounts,
                     )))),
+                    chain_id,
                     filters,
                     fork_block_number: None,
                     last_filter_id,

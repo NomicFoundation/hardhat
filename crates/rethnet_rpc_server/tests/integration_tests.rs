@@ -42,6 +42,7 @@ async fn start_server() -> SocketAddr {
                 .expect("should construct private key from string"),
             balance: U256::ZERO,
         }],
+        chain_id: U256::from(1),
     })
     .await
     .unwrap();
@@ -104,6 +105,16 @@ async fn test_accounts() {
         &start_server().await,
         MethodInvocation::Eth(EthMethodInvocation::Accounts()),
         vec![private_key_to_address(&Secp256k1::signing_only(), PRIVATE_KEY).unwrap()],
+    )
+    .await;
+}
+
+#[tokio::test]
+async fn test_chain_id() {
+    verify_response(
+        &start_server().await,
+        MethodInvocation::Eth(EthMethodInvocation::ChainId()),
+        U256::from(1),
     )
     .await;
 }

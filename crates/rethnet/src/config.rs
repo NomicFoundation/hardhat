@@ -34,6 +34,7 @@ pub const DEFAULT_PRIVATE_KEYS: [&str; 20] = [
 pub struct ConfigFile {
     // TODO: expand this per https://github.com/NomicFoundation/rethnet/issues/111
     pub accounts: Vec<AccountConfig>,
+    pub chain_id: U256,
 }
 
 impl Default for ConfigFile {
@@ -47,6 +48,7 @@ impl Default for ConfigFile {
                     balance: U256::from(10000),
                 })
                 .collect(),
+            chain_id: U256::from(31337),
         }
     }
 }

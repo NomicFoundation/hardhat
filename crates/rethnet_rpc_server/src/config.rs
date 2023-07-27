@@ -10,6 +10,7 @@ pub struct Config {
     pub address: SocketAddr,
     pub rpc_hardhat_network_config: RpcHardhatNetworkConfig,
     pub accounts: Vec<AccountConfig>,
+    pub chain_id: U256,
 }
 
 /// configuration input for a single account
