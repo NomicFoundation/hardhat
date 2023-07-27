@@ -2,7 +2,7 @@ import { assert, expect } from "chai";
 import {
   TASK_VERIFY_RESOLVE_ARGUMENTS,
   TASK_VERIFY_VERIFY,
-} from "../../src/task-names";
+} from "../../src/internal/task-names";
 import { getRandomAddress, useEnvironment } from "../helpers";
 
 describe("verify task", () => {

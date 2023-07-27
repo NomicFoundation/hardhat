@@ -1,7 +1,8 @@
 import type LodashCloneDeepT from "lodash.clonedeep";
+import type { HardhatConfig, HardhatUserConfig } from "hardhat/types";
+import type { EtherscanConfig } from "../types";
+
 import chalk from "chalk";
-import { HardhatConfig, HardhatUserConfig } from "hardhat/types";
-import { EtherscanConfig } from "./types";
 
 export function etherscanConfigExtender(
   config: HardhatConfig,
