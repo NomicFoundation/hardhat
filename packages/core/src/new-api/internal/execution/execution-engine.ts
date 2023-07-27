@@ -59,6 +59,7 @@ import { isAddress } from "../utils";
 import { assertIgnitionInvariant } from "../utils/assertions";
 import { getFuturesFromModule } from "../utils/get-futures-from-module";
 import { replaceWithinArg } from "../utils/replace-within-arg";
+import { resolveAccountRuntimeValue } from "../utils/resolve-account-runtime-value";
 import { resolveFromAddress } from "../utils/resolve-from-address";
 import {
   resolveContractFutureToAddress,
@@ -79,7 +80,6 @@ import {
 } from "./guards";
 import { onchainStateTransitions } from "./onchain-state-transitions";
 import { sortFuturesByNonces } from "./sort-futures-by-nonces";
-import { resolveAccountRuntimeValue } from "../utils/resolve-account-runtime-value";
 
 type ExecutionBatch = Future[];
 
