@@ -108,10 +108,14 @@ Reason: ${parent.message}`,
   }
 }
 
-export class NetworkNotSupportedError extends HardhatVerifyError {
-  constructor(network: string) {
+export class HardhatNetworkNotSupportedError extends HardhatVerifyError {
+  constructor() {
     super(
-      `The selected network is ${network}. Please select a network supported by Etherscan.`
+      `The selected network is "hardhat", which is not supported for contract verification. Please choose a network supported by Etherscan.
+
+If you intended to use a different network, ensure that you provide the --network parameter when running the command.
+
+For example: npx hardhat verify --network <network-name>`
     );
   }
 }

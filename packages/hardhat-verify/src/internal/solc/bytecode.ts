@@ -1,4 +1,5 @@
-import { CompilerOutputBytecode, EthereumProvider } from "hardhat/types";
+import type { CompilerOutputBytecode, EthereumProvider } from "hardhat/types";
+
 import { DeployedBytecodeNotFoundError } from "../errors";
 import {
   getMetadataSectionLength,
