@@ -17,7 +17,7 @@ import { open } from "./utils/open";
 import "./type-extensions";
 
 // eslint-disable-next-line import/no-unused-modules
-export { defineModule } from "@ignored/ignition-core";
+export { buildModule, defineModule } from "@ignored/ignition-core";
 
 export interface IgnitionConfig {
   maxRetries: number;
