@@ -1,7 +1,7 @@
-pub use crate::remote::filter::{FilterOptions, SubscriptionType};
 use crate::{
     remote::{
         eth::eip712,
+        filter::{FilterOptions, SubscriptionType},
         serde_with_helpers::{sequence_to_single, single_to_sequence},
         BlockSpec, ZeroXPrefixedBytes,
     },

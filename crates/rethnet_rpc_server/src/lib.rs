@@ -17,10 +17,10 @@ use tracing::{event, Level};
 use rethnet_eth::{
     remote::{
         client::{Request as RpcRequest, RpcClient},
-        filter::{FilteredEvents, LogOutput},
+        filter::{FilterOptions, FilteredEvents, LogOutput},
         jsonrpc,
         jsonrpc::{Response, ResponseData},
-        methods::{FilterOptions, MethodInvocation as EthMethodInvocation},
+        methods::MethodInvocation as EthMethodInvocation,
         BlockSpec, BlockTag, Eip1898BlockSpec,
     },
     signature::{public_key_to_address, Signature},

@@ -3,10 +3,8 @@ use bytes::Bytes;
 use rethnet_eth::{
     remote::{
         eth::eip712,
-        filter::OneOrMoreAddresses,
-        methods::{
-            FilterOptions, GetLogsInput, MethodInvocation, SubscriptionType, TransactionInput,
-        },
+        filter::{FilterOptions, OneOrMoreAddresses, SubscriptionType},
+        methods::{GetLogsInput, MethodInvocation, TransactionInput},
         BlockSpec, BlockTag,
     },
     Address, B256, U256,
