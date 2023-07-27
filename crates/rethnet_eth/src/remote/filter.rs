@@ -13,14 +13,27 @@ pub enum OneOrMoreAddresses {
     Many(Vec<Address>),
 }
 
+/// used to specify the target block(s) for [FilterOptions]
+#[derive(Clone, Debug, PartialEq, serde::Deserialize, serde::Serialize)]
+pub enum FilterBlockTarget {
+    /// a range of blocks
+    Range {
+        /// beginning of the range
+        from: Option<BlockSpec>,
+        /// end of the range
+        to: Option<BlockSpec>,
+    },
+    /// a single block, specified by its hash
+    Hash(B256),
+}
+
 /// for specifying the inputs to eth_newFilter
 #[derive(Clone, Debug, PartialEq, serde::Deserialize, serde::Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct FilterOptions {
-    /// from block
-    pub from_block: Option<BlockSpec>,
-    /// to block
-    pub to_block: Option<BlockSpec>,
+    /// block target
+    #[serde(flatten)]
+    pub block_target: Option<FilterBlockTarget>,
     /// addresses
     pub addresses: Option<OneOrMoreAddresses>,
     /// topics

@@ -3,7 +3,9 @@ use bytes::Bytes;
 use rethnet_eth::{
     remote::{
         eth::eip712,
-        filter::{FilterOptions, LogOutput, OneOrMoreAddresses, SubscriptionType},
+        filter::{
+            FilterBlockTarget, FilterOptions, LogOutput, OneOrMoreAddresses, SubscriptionType,
+        },
         methods::{GetLogsInput, MethodInvocation, TransactionInput},
         BlockSpec, BlockTag,
     },
@@ -268,8 +270,10 @@ fn test_serde_eth_new_block_filter() {
 #[test]
 fn test_serde_eth_new_filter() {
     help_test_method_invocation_serde(MethodInvocation::NewFilter(FilterOptions {
-        from_block: Some(BlockSpec::Number(U256::from(1000))),
-        to_block: Some(BlockSpec::latest()),
+        block_target: Some(FilterBlockTarget::Range {
+            from: Some(BlockSpec::Number(U256::from(1000))),
+            to: Some(BlockSpec::latest()),
+        }),
         addresses: Some(OneOrMoreAddresses::One(Address::from_low_u64_ne(1))),
         topics: Some(vec![B256::from_low_u64_ne(1)]),
     }));
@@ -361,9 +365,21 @@ fn test_serde_eth_unsubscribe() {
     help_test_method_invocation_serde(MethodInvocation::Unsubscribe(U256::from(100)));
 }
 
+fn help_test_serde_value<T>(value: T)
+where
+    T: PartialEq + std::fmt::Debug + serde::de::DeserializeOwned + serde::Serialize,
+{
+    let serialized = serde_json::json!(value).to_string();
+
+    let deserialized: T = serde_json::from_str(&serialized)
+        .unwrap_or_else(|_| panic!("should have successfully deserialized json {serialized}"));
+
+    assert_eq!(value, deserialized);
+}
+
 #[test]
 fn test_serde_log_output() {
-    let original = LogOutput {
+    help_test_serde_value(LogOutput {
         removed: false,
         log_index: Some(U256::ZERO),
         transaction_index: Some(99),
@@ -373,14 +389,16 @@ fn test_serde_log_output() {
         address: Address::from_low_u64_ne(1),
         data: Bytes::from_static(b"whatever"),
         topics: vec![B256::from_low_u64_ne(3), B256::from_low_u64_ne(3)],
-    };
+    });
+}
 
-    let serialized = serde_json::json!(original).to_string();
-
-    let deserialized: LogOutput = serde_json::from_str(&serialized)
-        .unwrap_or_else(|_| panic!("should have successfully deserialized json {serialized}"));
-
-    assert_eq!(original, deserialized);
+#[test]
+fn test_serde_filter_block_target() {
+    help_test_serde_value(FilterBlockTarget::Hash(B256::from_low_u64_ne(1)));
+    help_test_serde_value(FilterBlockTarget::Range {
+        from: Some(BlockSpec::latest()),
+        to: Some(BlockSpec::latest()),
+    });
 }
 
 #[test]
