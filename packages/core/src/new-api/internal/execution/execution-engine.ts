@@ -79,6 +79,7 @@ import {
 } from "./guards";
 import { onchainStateTransitions } from "./onchain-state-transitions";
 import { sortFuturesByNonces } from "./sort-futures-by-nonces";
+import { resolveAccountRuntimeValue } from "../utils/resolve-account-runtime-value";
 
 type ExecutionBatch = Future[];
 
@@ -1025,7 +1026,9 @@ export class ExecutionEngine {
         future: (f) => {
           return resolveFutureToValue(f, context);
         },
-        accountRuntimeValue: (arv) => context.accounts[arv.accountIndex],
+        accountRuntimeValue: (arv) => {
+          return resolveAccountRuntimeValue(arv, context.accounts);
+        },
         moduleParameterRuntimeValue: (mprv) => {
           return resolveModuleParameter(mprv, context);
         },

@@ -2468,4 +2468,138 @@ describe("execution engine", () => {
       });
     });
   });
+
+  describe("with invalid account indexes", () => {
+    const addr1 = "0x1F98431c8aD98523631AE4a59f267346ea31F981";
+    const addr2 = "0x1F98431c8aD98523631AE4a59f267346ea31F982";
+    const addr3 = "0x1F98431c8aD98523631AE4a59f267346ea31F983";
+    const addr4 = "0x1F98431c8aD98523631AE4a59f267346ea31F984";
+    const addr5 = "0x1F98431c8aD98523631AE4a59f267346ea31F985";
+    const addr6 = "0x1F98431c8aD98523631AE4a59f267346ea31F986";
+
+    const tx1 = "0x111";
+    const tx2 = "0x222";
+    const tx3 = "0x333";
+    const tx4 = "0x444";
+    const tx5 = "0x555";
+    const tx6 = "0x666";
+
+    it("should not allow indexing an account less than zero", async () => {
+      const moduleDefinition = defineModule("Module1", (m) => {
+        const from = m.getAccount(-1);
+        const contract = m.contract("Contract1", [], { from });
+
+        return { contract };
+      });
+
+      const deployer = setupDeployerWithMocks({
+        transactionResponses: {
+          [accounts[1]]: {
+            0: {
+              blockNumber: 0,
+              confirmations: 1,
+              contractAddress: addr1,
+              transactionHash: tx1,
+            },
+            1: {
+              blockNumber: 0,
+              confirmations: 1,
+              contractAddress: addr2,
+              transactionHash: tx2,
+            },
+            2: {
+              blockNumber: 1,
+              confirmations: 1,
+              contractAddress: addr3,
+              transactionHash: tx3,
+            },
+          },
+          [accounts[2]]: {
+            0: {
+              blockNumber: 1,
+              confirmations: 1,
+              contractAddress: addr4,
+              transactionHash: tx4,
+            },
+            1: {
+              blockNumber: 2,
+              confirmations: 1,
+              contractAddress: addr5,
+              transactionHash: tx5,
+            },
+            2: {
+              blockNumber: 2,
+              confirmations: 1,
+              contractAddress: addr6,
+              transactionHash: tx6,
+            },
+          },
+        },
+      });
+
+      assert.isRejected(
+        deployer.deploy(moduleDefinition, {}, exampleAccounts),
+        /Account index cannot be a negative number/
+      );
+    });
+
+    it("should not allow indexing an account greater than the number of available accounts", async () => {
+      const moduleDefinition = defineModule("Module1", (m) => {
+        const from = m.getAccount(10);
+        const contract = m.contract("Contract1", [], { from });
+
+        return { contract };
+      });
+
+      const deployer = setupDeployerWithMocks({
+        transactionResponses: {
+          [accounts[1]]: {
+            0: {
+              blockNumber: 0,
+              confirmations: 1,
+              contractAddress: addr1,
+              transactionHash: tx1,
+            },
+            1: {
+              blockNumber: 0,
+              confirmations: 1,
+              contractAddress: addr2,
+              transactionHash: tx2,
+            },
+            2: {
+              blockNumber: 1,
+              confirmations: 1,
+              contractAddress: addr3,
+              transactionHash: tx3,
+            },
+          },
+          [accounts[2]]: {
+            0: {
+              blockNumber: 1,
+              confirmations: 1,
+              contractAddress: addr4,
+              transactionHash: tx4,
+            },
+            1: {
+              blockNumber: 2,
+              confirmations: 1,
+              contractAddress: addr5,
+              transactionHash: tx5,
+            },
+            2: {
+              blockNumber: 2,
+              confirmations: 1,
+              contractAddress: addr6,
+              transactionHash: tx6,
+            },
+          },
+        },
+      });
+
+      assert.isRejected(
+        deployer.deploy(moduleDefinition, {}, exampleAccounts),
+        /Requested account index '10' is greater than the total number of available accounts '6'/
+      );
+    });
+  });
 });
