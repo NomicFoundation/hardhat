@@ -4,6 +4,19 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## 0.1.0 - 2023-07-27
+
+### Added
+
+- Rerunning now uses a reconciliation phase to allow more leeway in changing a module between runs
+- Deployments against real networks are recorded to `./ignition/deployments/<deploy-id>`, including recording the deployed addresses and the artifacts (i.e. abi, build-info etc) used for each contract deploy
+
+### Changed
+
+- The _Module API_ has went through considerable restructuring, including _breaking changes_, please see the `./docs` for more details
+- The plan task has been enhanced to give a module centric view rather than the lower level execution that was previously shown
+- The _ui_ during a deployment has been reduced to showing the results, the full UI will be brought back in a coming release
+
 ## 0.0.13 - 2023-04-18
 
 ### Added
