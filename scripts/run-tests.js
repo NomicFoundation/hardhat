@@ -25,36 +25,28 @@ const shouldIgnoreSolppTests = isWindows;
 const ignoredPackagesList = [];
 
 if (shouldIgnoreSolppTests) {
-  ignoredPackagesList.push("packages/hardhat-solpp");
+  ignoredPackagesList.push("@nomiclabs/hardhat-solpp");
 }
 
 function runTests() {
   console.time("Total test time");
 
+  const workspaces = getWorkspaces();
   try {
-    const fastExit = !process.env.NO_FAST_EXIT;
-    const failedWorkspaces = [];
-
-    for (const workspace of getWorkspaces()) {
+    for (const workspace of workspaces) {
       if (ignoredPackagesList.includes(workspace)) continue;
 
-      try {
-        shell.exec(`npm run test -w ${workspace} --if-present`);
-      } catch (err) {
-        if (fastExit) throw err;
-        failedWorkspaces.push(workspace);
-      }
-    }
-
-    if (failedWorkspaces.length > 0) {
-      throw new Error(
-        `The following workspace(s) failed the tests: ${failedWorkspaces.join(
-          ", "
-        )}`
-      );
+      shell.exec(`npm run test -w ${workspace} --if-present`);
     }
   } finally {
     console.timeEnd("Total test time");
+    console.log(
+      `Tested ${totTested - ignoredPackagesList.length}/${
+        workspaces.length
+      } workspaces, skipped ${ignoredPackagesList.length}/${
+        workspaces.length
+      } workspaces`
+    );
   }
 }
 
@@ -63,14 +55,8 @@ async function main() {
 }
 
 function getWorkspaces() {
-  const pathToWorkspaces = `${__dirname}/../packages`;
-
-  return fs
-    .readdirSync(pathToWorkspaces)
-    .filter((file) =>
-      fs.statSync(path.join(pathToWorkspaces, file)).isDirectory()
-    )
-    .map((dirName) => `packages/${dirName}`);
+  const workspacesObj = JSON.parse(shell.exec("npm query .workspace"));
+  return Object.values(workspacesObj).map((w) => w.name);
 }
 
 main().catch((error) => {
