@@ -34,7 +34,7 @@ pub struct LogOutput {
     /// integer of the log index position in the block. None when its pending log.
     pub log_index: Option<U256>,
     /// integer of the transactions index position log was created from. None when its pending log.
-    pub transaction_index: Option<U256>,
+    pub transaction_index: Option<u64>,
     /// hash of the transactions this log was created from. None when its pending log.
     pub transaction_hash: Option<B256>,
     /// hash of the block where this log was in. null when its pending. None when its pending log.
