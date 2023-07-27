@@ -44,6 +44,10 @@ export function createModelsAndDecodeBytecodes(
   const fileIdToSourceFile = new Map<number, SourceFile>();
   const contractIdToContract = new Map<number, Contract>();
 
+  const a = 12;
+  const b = a + 12;
+  console.log(b);
+
   createSourcesModelFromAst(
     compilerOutput,
     compilerInput,
