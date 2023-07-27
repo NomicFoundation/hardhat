@@ -2,7 +2,7 @@ use std::str::FromStr;
 
 use secp256k1::SecretKey;
 
-use rethnet_eth::U256;
+use rethnet_eth::{Address, U256};
 use rethnet_rpc_server::AccountConfig;
 
 /// the default private keys from which the local accounts will be derived.
@@ -35,6 +35,7 @@ pub struct ConfigFile {
     // TODO: expand this per https://github.com/NomicFoundation/rethnet/issues/111
     pub accounts: Vec<AccountConfig>,
     pub chain_id: U256,
+    pub coinbase: Address,
 }
 
 impl Default for ConfigFile {
@@ -49,6 +50,9 @@ impl Default for ConfigFile {
                 })
                 .collect(),
             chain_id: U256::from(31337),
+            // default coinbase address taken from https://hardhat.org/hardhat-network/docs/reference
+            coinbase: Address::from_str("0xc014ba5ec014ba5ec014ba5ec014ba5ec014ba5e")
+                .expect("default value should be known to succeed"),
         }
     }
 }

@@ -33,6 +33,7 @@ async fn node() -> Result<(), Box<dyn std::error::Error>> {
     let method_invocations = [
         MethodInvocation::Eth(EthMethodInvocation::Accounts()),
         MethodInvocation::Eth(EthMethodInvocation::ChainId()),
+        MethodInvocation::Eth(EthMethodInvocation::Coinbase()),
         MethodInvocation::Eth(EthMethodInvocation::GetBalance(
             address,
             Some(BlockSpec::latest()),
@@ -132,6 +133,9 @@ async fn node() -> Result<(), Box<dyn std::error::Error>> {
         Assert::new(output.clone()).stdout(contains(match method_invocation {
             MethodInvocation::Eth(EthMethodInvocation::Accounts()) => String::from("eth_accounts"),
             MethodInvocation::Eth(EthMethodInvocation::ChainId()) => String::from("eth_chainId()"),
+            MethodInvocation::Eth(EthMethodInvocation::Coinbase()) => {
+                String::from("eth_coinbase()")
+            }
             MethodInvocation::Eth(EthMethodInvocation::GetBalance(address, block_spec)) => {
                 format!("eth_getBalance({address:?}, {block_spec:?})")
             }

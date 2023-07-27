@@ -43,6 +43,7 @@ async fn start_server() -> SocketAddr {
             balance: U256::ZERO,
         }],
         chain_id: U256::from(1),
+        coinbase: Address::from_low_u64_ne(1),
     })
     .await
     .unwrap();
@@ -115,6 +116,16 @@ async fn test_chain_id() {
         &start_server().await,
         MethodInvocation::Eth(EthMethodInvocation::ChainId()),
         U256::from(1),
+    )
+    .await;
+}
+
+#[tokio::test]
+async fn test_coinbase() {
+    verify_response(
+        &start_server().await,
+        MethodInvocation::Eth(EthMethodInvocation::Coinbase()),
+        Address::from_low_u64_ne(1),
     )
     .await;
 }

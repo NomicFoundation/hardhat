@@ -2,7 +2,7 @@ use std::net::SocketAddr;
 
 use secp256k1::SecretKey;
 
-use rethnet_eth::U256;
+use rethnet_eth::{Address, U256};
 
 pub use crate::hardhat_methods::reset::{RpcForkConfig, RpcHardhatNetworkConfig};
 
@@ -11,6 +11,7 @@ pub struct Config {
     pub rpc_hardhat_network_config: RpcHardhatNetworkConfig,
     pub accounts: Vec<AccountConfig>,
     pub chain_id: U256,
+    pub coinbase: Address,
 }
 
 /// configuration input for a single account
