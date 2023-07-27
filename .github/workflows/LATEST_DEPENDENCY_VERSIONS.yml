@@ -6,8 +6,8 @@ on:
   workflow_dispatch:
 
 jobs:
-  test-without-yarn-lock:
-    name: Test without yarn.lock
+  test-without-package-lock-json:
+    name: Test without package-lock.json
     strategy:
       matrix:
         system: ["ubuntu-latest", "windows-latest"]
@@ -17,17 +17,17 @@ jobs:
         with:
           node-version: 16
       - uses: actions/checkout@v2
-      - name: Delete yarn.lock
-        run: "rm yarn.lock"
+      - name: Delete package-lock.json
+        run: "rm package-lock.json"
       - name: Install
-        run: yarn
+        run: npm i
       - name: List dependencies
-        run: yarn list
+        run: npm list
       - name: Run tests
         env:
           DO_NOT_SET_THIS_ENV_VAR____IS_HARDHAT_CI: true
           FORCE_COLOR: 3
-        run: yarn test || (echo "===== Retry =====" && yarn test)
+        run: npm run test || (echo "===== Retry =====" && npm run test)
       - name: Notify failures
         if: failure()
         uses: slackapi/slack-github-action@v1.18.0

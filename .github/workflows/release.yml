@@ -20,10 +20,10 @@ jobs:
         uses: actions/setup-node@v2
         with:
           node-version: 16.x
-          cache: "yarn"
+          cache: "npm"
 
       - name: Install Dependencies
-        run: yarn
+        run: npm i
 
       - name: Create Release Pull Request
         uses: changesets/action@v1

@@ -18,14 +18,14 @@ jobs:
       - uses: actions/setup-node@v2
         with:
           node-version: 16
-          cache: yarn
+          cache: npm
       - name: Install
-        run: yarn --frozen-lockfile
+        run: npm ci
       - name: Install Docs
-        run: cd docs && yarn
+        run: cd docs && npm i
       - name: lint
-        run: cd docs && yarn lint
+        run: cd docs && npm run lint
       - name: Build
-        run: cd docs && yarn build
+        run: cd docs && npm run build
       - name: Storybook
-        run: cd docs && yarn build-storybook
+        run: cd docs && npm run build-storybook

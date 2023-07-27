@@ -20,13 +20,13 @@ jobs:
       - uses: actions/setup-node@v2
         with:
           node-version: 16
-          cache: yarn
+          cache: npm
       - name: Install
-        run: yarn --frozen-lockfile
+        run: npm ci
       - name: Build
-        run: yarn build
+        run: npm run build
       - name: lint
-        run: yarn lint
+        run: npm run lint
       - name: Cache artifacts
         uses: actions/cache@v2
         with:
@@ -38,7 +38,7 @@ jobs:
           DO_NOT_SET_THIS_ENV_VAR____IS_HARDHAT_CI: true
           FORCE_COLOR: 3
           NODE_OPTIONS: "--max-old-space-size=4096"
-        run: yarn test
+        run: npm run test
       - name: Check dependency versions
         run: node scripts/check-dependencies.js
   test_fork:
@@ -52,15 +52,15 @@ jobs:
       - uses: actions/setup-node@v2
         with:
           node-version: 16
-          cache: yarn
+          cache: npm
       - name: Install
-        run: yarn --frozen-lockfile
+        run: npm ci
       - name: Cache network requests
         uses: actions/cache@v2
         with:
           path: |
             packages/hardhat-core/test/internal/hardhat-network/provider/.hardhat_node_test_cache
-          key: hardhat-network-forking-tests-${{ hashFiles('yarn.lock') }}-${{ hashFiles('packages/hardhat-core/test/internal/hardhat-network/provider/node.ts') }}
+          key: hardhat-network-forking-tests-${{ hashFiles('package-lock.json') }}-${{ hashFiles('packages/hardhat-core/test/internal/hardhat-network/provider/node.ts') }}
       - name: Run tests
         env:
           INFURA_URL: ${{ secrets.INFURA_URL }}
@@ -69,5 +69,5 @@ jobs:
           FORCE_COLOR: 3
           NODE_OPTIONS: "--max-old-space-size=4096"
         run: |
-          yarn build
-          yarn test:forking
+          npm run build
+          npm run test:forking

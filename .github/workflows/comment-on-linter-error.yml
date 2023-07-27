@@ -23,21 +23,21 @@ jobs:
       - uses: actions/setup-node@v2
         with:
           node-version: 16
-          cache: yarn
+          cache: npm
       - name: Install
-        run: yarn --frozen-lockfile
+        run: npm ci
       - name: Build
-        run: yarn build
+        run: npm run build
       - name: lint
-        run: yarn lint
+        run: npm run lint
       - name: Check dependency versions
         run: node scripts/check-dependencies.js
       - name: Install website
         working-directory: docs/
-        run: yarn
+        run: npm i
       - name: Lint website
         working-directory: docs/
-        run: yarn lint
+        run: npm run lint
       - uses: actions/github-script@v6
         name: Comment on failure
         if: ${{ failure() }}
@@ -47,5 +47,5 @@ jobs:
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: "Thanks for submitting this PR!\n\nUnfortunately, it has some linter errors, so we can't merge it yet. Can you please fix them?\n\nRunning yarn `lint:fix` in the root of the repository may fix them automatically."
+              body: "Thanks for submitting this PR!\n\nUnfortunately, it has some linter errors, so we can't merge it yet. Can you please fix them?\n\nRunning npm run `lint:fix` in the root of the repository may fix them automatically."
             })

@@ -26,14 +26,14 @@ jobs:
           node-version: 16
       - uses: actions/checkout@v2
       - name: Install
-        run: yarn
+        run: npm i
       - name: Add slow import
         run: echo 'import "lodash";' >> src/internal/constants.ts
       - name: Build
-        run: yarn build
+        run: npm run build
       - name: Run eslint
         id: run-linter
-        run: yarn eslint
+        run: npx eslint
         continue-on-error: true
       - name: Check linter status code
         run: test ${{ steps.run-linter.outcome }} != success

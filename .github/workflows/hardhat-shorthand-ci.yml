@@ -34,13 +34,13 @@ jobs:
       - uses: actions/setup-node@v2
         with:
           node-version: 16
-          cache: yarn
+          cache: npm
       - name: Install
-        run: yarn --frozen-lockfile
+        run: npm ci
       - name: Build
-        run: yarn build
+        run: npm run build
       - name: Run tests
-        run: yarn test
+        run: npm run test
 
   test_on_macos:
     name: Test hardhat-shorthand on MacOS with Node 16
@@ -52,13 +52,13 @@ jobs:
       - uses: actions/setup-node@v2
         with:
           node-version: 16
-          cache: yarn
+          cache: npm
       - name: Install
-        run: yarn --frozen-lockfile
+        run: npm ci
       - name: Build
-        run: yarn build
+        run: npm run build
       - name: Run tests
-        run: yarn test
+        run: npm run test
 
   test_on_linux:
     name: Test hardhat-shorthand on Ubuntu with Node ${{ matrix.node }}
@@ -71,10 +71,10 @@ jobs:
       - uses: actions/setup-node@v2
         with:
           node-version: ${{ matrix.node }}
-          cache: yarn
+          cache: npm
       - name: Install
-        run: yarn --frozen-lockfile
+        run: npm ci
       - name: Build
-        run: yarn build
+        run: npm run build
       - name: Run tests
-        run: yarn test
+        run: npm run test
