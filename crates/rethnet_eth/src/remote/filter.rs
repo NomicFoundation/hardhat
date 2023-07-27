@@ -1,7 +1,6 @@
-use crate::{
-    remote::{BlockSpec, ZeroXPrefixedBytes},
-    Address, B256, U256,
-};
+use bytes::Bytes;
+
+use crate::{remote::BlockSpec, Address, B256, U256};
 
 /// used to specify addresses for [FilterOptions]
 #[derive(Clone, Debug, PartialEq, serde::Deserialize, serde::Serialize)]
@@ -45,7 +44,7 @@ pub struct LogOutput {
     /// address from which this log originated.
     pub address: Address,
     /// contains one or more 32 Bytes non-indexed arguments of the log.
-    pub data: ZeroXPrefixedBytes,
+    pub data: Bytes,
     /// Array of 0 to 4 32 Bytes DATA of indexed log arguments. (In solidity: The first topic is
     /// the hash of the signature of the event (e.g. Deposit(address,bytes32,uint256)), except you
     /// declared the event with the anonymous specifier.)
