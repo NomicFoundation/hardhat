@@ -289,14 +289,14 @@ This is what the output of `npx hardhat test` should look like against the full 
 ```
 $ npx hardhat test
 
-  Token contract
+ Token contract
     Deployment
-      ✓ Should set the right owner
-      ✓ Should assign the total supply of tokens to the owner
+      ✔ Should set the right owner (889ms)
+      ✔ Should assign the total supply of tokens to the owner
     Transactions
-      ✓ Should transfer tokens between accounts (199ms)
-      ✓ Should fail if sender doesn’t have enough tokens
-      ✓ Should update balances after transfers (111ms)
+      ✔ Should transfer tokens between accounts (121ms)
+      ✔ Should emit Transfer events
+      ✔ Should fail if sender doesn't have enough tokens (74ms)
 
 
   5 passing (1s)
