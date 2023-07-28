@@ -429,6 +429,11 @@ fn handle_net_listening() -> ResponseData<bool> {
     ResponseData::Success { result: true }
 }
 
+fn handle_net_peer_count() -> ResponseData<usize> {
+    event!(Level::INFO, "net_peerCount()");
+    ResponseData::Success { result: 0 }
+}
+
 fn handle_sign(
     state: StateType,
     address: &Address,
@@ -506,6 +511,9 @@ async fn handle_request(
                 }
                 MethodInvocation::Eth(EthMethodInvocation::NetListening()) => {
                     response(id, handle_net_listening())
+                }
+                MethodInvocation::Eth(EthMethodInvocation::NetPeerCount()) => {
+                    response(id, handle_net_peer_count())
                 }
                 MethodInvocation::Eth(EthMethodInvocation::Sign(address, message)) => {
                     response(id, handle_sign(state, address, message))

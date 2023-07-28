@@ -219,6 +219,9 @@ pub enum MethodInvocation {
     /// net_listening
     #[serde(rename = "net_listening")]
     NetListening(),
+    /// net_peerCount
+    #[serde(rename = "net_peerCount")]
+    NetPeerCount(),
     /// net_version
     #[serde(rename = "net_version")]
     NetVersion(),

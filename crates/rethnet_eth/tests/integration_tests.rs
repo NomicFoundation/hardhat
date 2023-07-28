@@ -379,3 +379,8 @@ fn test_evm_snapshot() {
 fn test_net_listening() {
     help_test_method_invocation_serde(MethodInvocation::NetListening());
 }
+
+#[test]
+fn test_net_peer_count() {
+    help_test_method_invocation_serde(MethodInvocation::NetPeerCount());
+}

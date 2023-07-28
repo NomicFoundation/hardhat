@@ -199,6 +199,16 @@ async fn test_net_listening() {
 }
 
 #[tokio::test]
+async fn test_net_peer_count() {
+    verify_response(
+        &start_server().await,
+        MethodInvocation::Eth(EthMethodInvocation::NetPeerCount()),
+        0,
+    )
+    .await;
+}
+
+#[tokio::test]
 async fn test_set_balance_success() {
     let server_address = start_server().await;
 
