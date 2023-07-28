@@ -97,7 +97,7 @@ export class Etherscan {
     sourceCode: string,
     contractName: string,
     compilerVersion: string,
-    constructorArguements: string
+    constructorArguments: string
   ): Promise<EtherscanResponse> {
     const parameters = new URLSearchParams({
       apikey: this.apiKey,
@@ -108,7 +108,7 @@ export class Etherscan {
       codeformat: "solidity-standard-json-input",
       contractname: contractName,
       compilerversion: compilerVersion,
-      constructorArguements,
+      constructorArguements: constructorArguments,
     });
 
     let response: Dispatcher.ResponseData;
