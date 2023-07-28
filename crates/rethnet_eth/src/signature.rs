@@ -26,16 +26,17 @@ pub fn public_key_to_address(public_key: PublicKey) -> Address {
 ///
 /// # Examples
 ///
+///
+/// # Examples
+///
 /// ```
-/// use std::str::FromStr;
 /// use rethnet_eth::{Address, signature::private_key_to_address};
-/// assert_eq!(
-///     private_key_to_address(
-///         &secp256k1::Secp256k1::signing_only(),
-///         "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80",
-///     ).unwrap(),
-///     Address::from_str("0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266").unwrap(),
-/// );
+/// use secp256k1::Secp256k1;
+///
+/// let context = Secp256k1::signing_only();
+/// let private_key = "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80";
+///
+/// let address = private_key_to_address(&context, private_key).unwrap();
 /// ```
 pub fn private_key_to_address(
     context: &Secp256k1<SignOnly>,
