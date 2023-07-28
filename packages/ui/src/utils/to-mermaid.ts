@@ -6,8 +6,8 @@ import {
   StoredDeployment,
   isFuture,
 } from "@ignored/ignition-core/ui-helpers";
-import { getAllFuturesForModule } from "../queries/futures";
-import { argumentTypeToString } from "./argumentTypeToString";
+import { getAllFuturesForModule } from "../queries/futures.js";
+import { argumentTypeToString } from "./argumentTypeToString.js";
 
 export function toMermaid(deployment: StoredDeployment) {
   const modules = recursivelyListModulesAndSubmodulesFor(deployment.module);
@@ -19,7 +19,12 @@ export function toMermaid(deployment: StoredDeployment) {
   const futureDependencies = [
     ...new Set(
       getAllFuturesForModule(deployment.module)
-        .flatMap((f) => Array.from(f.dependencies).map((d) => [f.id, d.id]))
+        .flatMap((f) =>
+          Array.from(f.dependencies).map((d) => [
+            toEscapedId(f.id),
+            toEscapedId(d.id),
+          ])
+        )
         .map(([from, to]) => `${from} --> ${to}`)
     ),
   ].join("\n");
@@ -27,23 +32,23 @@ export function toMermaid(deployment: StoredDeployment) {
   const moduleDependencies = [
     ...new Set(
       modules
-        .flatMap((f) => Array.from(f.submodules).map((d) => [f.id, d.id]))
+        .flatMap((f) =>
+          Array.from(f.submodules).map((d) => [
+            toEscapedId(f.id),
+            toEscapedId(d.id),
+          ])
+        )
         .map(([from, to]) => `${from} -.-> ${to}`)
     ),
   ].join("\n");
 
-  return `flowchart BT\n\n${deployment.module.id}:::startModule\n\n${subgraphSections}\n\n${futureDependencies}\n\n${moduleDependencies}\n\nclassDef startModule stroke-width:4px`;
-}
-
-function prettyPrintModule(
-  module: IgnitionModule<string, string, IgnitionModuleResult<string>>,
-  lineIndent = ""
-): string {
-  const futureList = Array.from(module.futures)
-    .map((f) => `${lineIndent}${f.id}["${toLabel(f)}"]`)
-    .join(`\n${lineIndent}`);
-
-  return `${lineIndent}subgraph ${module.id}\n${lineIndent}    direction BT\n\n${lineIndent}${lineIndent}${futureList}\n${lineIndent}end`;
+  return `flowchart BT\n\n${toEscapedId(
+    deployment.module.id
+  )}:::startModule\n\n${subgraphSections}${
+    futureDependencies === "" ? "" : "\n\n" + futureDependencies
+  }${
+    moduleDependencies === "" ? "" : "\n\n" + moduleDependencies
+  }\n\nclassDef startModule stroke-width:4px`;
 }
 
 function recursivelyListModulesAndSubmodulesFor(
@@ -54,6 +59,17 @@ function recursivelyListModulesAndSubmodulesFor(
       recursivelyListModulesAndSubmodulesFor
     )
   );
+}
+
+function prettyPrintModule(
+  module: IgnitionModule<string, string, IgnitionModuleResult<string>>,
+  lineIndent = ""
+): string {
+  const futureList = Array.from(module.futures)
+    .map((f) => `${lineIndent}${toEscapedId(f.id)}["${toLabel(f)}"]`)
+    .join(`\n${lineIndent}`);
+
+  return `${lineIndent}subgraph ${module.id}\n${lineIndent}  direction BT\n\n${lineIndent}${futureList}\n${lineIndent}end`;
 }
 
 function toLabel(f: Future): string {
@@ -97,4 +113,12 @@ function toLabel(f: Future): string {
           : argumentTypeToString(f.to)
       }`;
   }
+}
+
+function toEscapedId(id: string): string {
+  return id
+    .replace("(", "_")
+    .replace(")", "_")
+    .replace(",", "_")
+    .replace(" ", "_");
 }

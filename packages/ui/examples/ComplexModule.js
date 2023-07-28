@@ -31,7 +31,7 @@ const synthetixDefinition = buildModule("Synthetix", (m) => {
 
   const { router } = m.useModule(uniswap);
 
-  m.call(synthetixCore, "setUniswap", [router]);
+  m.call(synthetixCore, "setUniswap(boolean,address)", [false, router]);
 
   return { synthetix: synthetixCore };
 });

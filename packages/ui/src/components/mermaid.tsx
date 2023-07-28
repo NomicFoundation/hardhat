@@ -8,7 +8,15 @@ import { toMermaid } from "../utils/to-mermaid";
 export const Mermaid: React.FC<{
   deployment: StoredDeployment;
 }> = ({ deployment }) => {
-  const diagram = useMemo(() => toMermaid(deployment), [deployment]);
+  const diagram = useMemo(() => {
+    const d = toMermaid(deployment);
+
+    // NOTE: this is explicitly added to aid troubleshooting
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (window as any).diagram = d;
+
+    return d;
+  }, [deployment]);
 
   useEffect(() => {
     mermaid.initialize({});

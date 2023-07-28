@@ -11,7 +11,7 @@ const ZERO_HASH =
 
 const ACCOUNT_0 = "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266";
 
-module.exports = buildModule("`TEST` registrar", (m) => {
+module.exports = buildModule("TEST registrar", (m) => {
   const tld = "test";
   const tldHash = namehash.hash(tld);
   const tldLabel = labelhash(tld);
