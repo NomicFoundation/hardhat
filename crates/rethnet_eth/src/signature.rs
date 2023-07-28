@@ -26,9 +26,6 @@ pub fn public_key_to_address(public_key: PublicKey) -> Address {
 ///
 /// # Examples
 ///
-///
-/// # Examples
-///
 /// ```
 /// use rethnet_eth::{Address, signature::private_key_to_address};
 /// use secp256k1::Secp256k1;
