@@ -68,3 +68,8 @@ export async function loadFixture<T>(fixture: Fixture<T>): Promise<T> {
     return data;
   }
 }
+
+// function to clear the snapshots array when hardhat_reset is called..
+export async function deleteOnReset(){
+  snapshots=[];
+}
