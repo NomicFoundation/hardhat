@@ -16,7 +16,7 @@ use tracing::{event, Level};
 use rethnet_eth::{
     remote::{
         client::{Request as RpcRequest, RpcClient},
-        filter::{FilterOptions, FilteredEvents, LogOutput},
+        filter::{FilterBlockTarget, FilterOptions, FilteredEvents, LogOutput, OneOrMoreAddresses},
         jsonrpc,
         jsonrpc::{Response, ResponseData},
         methods::MethodInvocation as EthMethodInvocation,
@@ -64,13 +64,63 @@ pub enum MethodInvocation {
 
 type RethnetStateType = Arc<RwLock<dyn SyncState<StateError>>>;
 
+struct _FilterCriteria {
+    _from_block: U256,
+    _to_block: U256,
+    _addresses: Vec<Address>,
+    _topics: Vec<B256>,
+}
+
+impl _FilterCriteria {
+    async fn _from_request_and_state<T>(
+        request_options: FilterOptions,
+        state: StateType,
+    ) -> Result<Self, ResponseData<T>> {
+        let (_from_block, _to_block) = match request_options.block_target {
+            Some(FilterBlockTarget::Hash(hash)) => {
+                let block_number = _block_number_from_hash(&state, &hash, false)?;
+                (block_number, block_number)
+            }
+            Some(FilterBlockTarget::Range { from, to }) => {
+                let from =
+                    _block_number_from_block_spec(&state, &from.unwrap_or(BlockSpec::latest()))
+                        .await?;
+                let to = match to {
+                    None => from,
+                    Some(to) => _block_number_from_block_spec(&state, &to).await?,
+                };
+                (from, to)
+            }
+            None => {
+                let latest_block_number = get_latest_block_number(&state).await?;
+                (latest_block_number, latest_block_number)
+            }
+        };
+
+        let _addresses = match request_options.addresses {
+            Some(OneOrMoreAddresses::One(address)) => vec![address],
+            Some(OneOrMoreAddresses::Many(addresses)) => addresses,
+            None => Vec::new(),
+        };
+
+        let _topics = request_options.topics.unwrap_or(Vec::new());
+
+        Ok(Self {
+            _from_block,
+            _to_block,
+            _addresses,
+            _topics,
+        })
+    }
+}
+
 struct Filter {
     // TODO: later, when adding in the rest of the filter methods, consider removing this `type`
     // field entirely.  i suspect it's probably redundant as compared to the type implied by the
     // variants in `events`, but that suspicion will be confirmed or denied by the addition of
     // those other filter methods.
     // r#type: SubscriptionType,
-    _criteria: Option<FilterOptions>,
+    _criteria: Option<_FilterCriteria>,
     deadline: std::time::Instant,
     events: FilteredEvents,
     is_subscription: bool,
@@ -123,8 +173,40 @@ async fn get_latest_block_number<T>(state: &StateType) -> Result<U256, ResponseD
     }
 }
 
-fn check_post_merge_block_tags<T>(_state: &StateType) -> Result<(), ResponseData<T>> {
-    todo!("when we're tracking hardforks, if the given block tag is 'safe' or 'finalized', ensure that we're running a hardfork that's after the merge")
+/// require_canonical: whether the server should additionally raise a JSON-RPC error if the block
+/// is not in the canonical chain
+fn _block_number_from_hash<T>(
+    _state: &StateType,
+    _block_hash: &B256,
+    _require_canonical: bool,
+) -> Result<U256, ResponseData<T>> {
+    todo!()
+}
+
+async fn _block_number_from_block_spec<T>(
+    state: &StateType,
+    block_spec: &BlockSpec,
+) -> Result<U256, ResponseData<T>> {
+    match block_spec {
+        BlockSpec::Number(number) => Ok(*number),
+        BlockSpec::Tag(tag) => match tag {
+            BlockTag::Earliest => Ok(U256::ZERO),
+            BlockTag::Safe | BlockTag::Finalized => {
+                confirm_post_merge_hardfork(state)?;
+                get_latest_block_number(state).await
+            }
+            BlockTag::Latest | BlockTag::Pending => get_latest_block_number(state).await,
+        },
+        BlockSpec::Eip1898(Eip1898BlockSpec::Hash {
+            block_hash,
+            require_canonical,
+        }) => _block_number_from_hash(state, block_hash, require_canonical.unwrap_or(false)),
+        BlockSpec::Eip1898(Eip1898BlockSpec::Number { block_number }) => Ok(*block_number),
+    }
+}
+
+fn confirm_post_merge_hardfork<T>(_state: &StateType) -> Result<(), ResponseData<T>> {
+    todo!("when we're tracking hardforks, ensure that we're running a hardfork that's after the merge")
 }
 
 /// returns the state root in effect BEFORE setting the block context, so that the caller can
@@ -165,7 +247,7 @@ async fn set_block_context<T>(
                         Some(BlockSpec::Tag(tag)) => match tag {
                             BlockTag::Earliest => Ok(U256::ZERO),
                             BlockTag::Safe | BlockTag::Finalized => {
-                                check_post_merge_block_tags(state)?;
+                                confirm_post_merge_hardfork(state)?;
                                 Ok(latest_block_number)
                             }
                             BlockTag::Latest => Ok(latest_block_number),
