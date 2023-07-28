@@ -1,6 +1,6 @@
 use std::ops::Deref;
 
-use crate::{block::Block, receipt::TypedReceipt, transaction::DetailedTransaction, Address};
+use crate::{block::Block, receipt::BlockReceipt, transaction::DetailedTransaction, Address};
 use itertools::izip;
 
 /// A type that combines the block with transaction details about caller addresses
@@ -9,7 +9,7 @@ use itertools::izip;
 pub struct DetailedBlock {
     block: Block,
     transaction_callers: Vec<Address>,
-    transaction_receipts: Vec<TypedReceipt>,
+    transaction_receipts: Vec<BlockReceipt>,
 }
 
 impl DetailedBlock {
@@ -17,7 +17,7 @@ impl DetailedBlock {
     pub fn new(
         block: Block,
         transaction_callers: Vec<Address>,
-        transaction_receipts: Vec<TypedReceipt>,
+        transaction_receipts: Vec<BlockReceipt>,
     ) -> Self {
         Self {
             block,

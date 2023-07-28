@@ -79,7 +79,7 @@ pub enum BlockTag {
 #[serde(untagged)]
 pub enum BlockSpec {
     /// as a block number
-    #[serde(serialize_with = "crate::serde::serialize_u256")]
+    #[serde(serialize_with = "crate::serde::u256::serialize")]
     Number(U256),
     /// as a block tag (eg "latest")
     Tag(BlockTag),

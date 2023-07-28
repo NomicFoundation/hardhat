@@ -1,11 +1,11 @@
 use std::ops::Deref;
 
-use crate::{receipt::TypedReceipt, transaction::SignedTransaction, Address};
+use crate::{receipt::BlockReceipt, transaction::SignedTransaction, Address};
 
 pub struct DetailedTransaction<'t> {
     transaction: &'t SignedTransaction,
     pub caller: &'t Address,
-    pub receipt: &'t TypedReceipt,
+    pub receipt: &'t BlockReceipt,
 }
 
 impl<'t> DetailedTransaction<'t> {
@@ -13,7 +13,7 @@ impl<'t> DetailedTransaction<'t> {
     pub fn new(
         transaction: &'t SignedTransaction,
         caller: &'t Address,
-        receipt: &'t TypedReceipt,
+        receipt: &'t BlockReceipt,
     ) -> Self {
         Self {
             transaction,

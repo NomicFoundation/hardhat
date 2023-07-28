@@ -5,59 +5,246 @@
 
 #![allow(missing_docs)]
 
-mod eip658;
+mod block;
+mod transaction;
 
-use crate::{utils::enveloped, Bloom, U256};
+use ethbloom::Bloom;
+use revm_primitives::{B256, U256};
 
-pub use self::eip658::EIP658Receipt;
+pub use self::{block::BlockReceipt, transaction::TransactionReceipt};
 
-// same underlying data structure
-pub type EIP2930Receipt = EIP658Receipt;
-pub type EIP1559Receipt = EIP658Receipt;
-
+/// Typed receipt that's generated after execution of a transaction.
 #[derive(Clone, Debug, PartialEq, Eq)]
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-pub enum TypedReceipt {
-    /// Legacy receipt
-    Legacy(EIP658Receipt),
-    /// EIP-2930 receipt
-    EIP2930(EIP2930Receipt),
-    /// EIP-1559 receipt
-    EIP1559(EIP1559Receipt),
+#[cfg_attr(feature = "serde", derive(serde::Serialize))]
+#[cfg_attr(feature = "serde", serde(deny_unknown_fields))]
+#[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
+pub struct TypedReceipt<L> {
+    /// Cumulative gas used in block after this transaction was executed
+    pub cumulative_gas_used: U256,
+    /// Bloom filter of the logs generated within this transaction
+    pub logs_bloom: Bloom,
+    /// Logs generated within this transaction
+    pub logs: Vec<L>,
+    #[cfg_attr(feature = "serde", serde(flatten))]
+    pub data: TypedReceiptData,
 }
 
-impl TypedReceipt {
-    /// Returns the gas used by the transactions
-    pub fn gas_used(&self) -> U256 {
-        match self {
-            TypedReceipt::Legacy(r) | TypedReceipt::EIP2930(r) | TypedReceipt::EIP1559(r) => {
-                r.gas_used
+/// Data of a typed receipt.
+#[derive(Clone, Debug, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize))]
+#[cfg_attr(feature = "serde", serde(tag = "type"))]
+pub enum TypedReceiptData {
+    #[cfg_attr(feature = "serde", serde(rename = "0x0"))]
+    PreByzantiumLegacy {
+        #[cfg_attr(feature = "serde", serde(rename = "root"))]
+        state_root: B256,
+    },
+    #[cfg_attr(feature = "serde", serde(rename = "0x0"))]
+    PostByzantiumLegacy {
+        #[cfg_attr(feature = "serde", serde(with = "crate::serde::u8"))]
+        status: u8,
+    },
+    #[cfg_attr(feature = "serde", serde(rename = "0x1"))]
+    EIP2930 {
+        #[cfg_attr(feature = "serde", serde(with = "crate::serde::u8"))]
+        status: u8,
+    },
+    #[cfg_attr(feature = "serde", serde(rename = "0x2"))]
+    EIP1559 {
+        #[cfg_attr(feature = "serde", serde(with = "crate::serde::u8"))]
+        status: u8,
+    },
+}
+
+impl<L> TypedReceipt<L> {
+    /// Returns the status code of the receipt, if any.
+    pub fn status_code(&self) -> Option<u8> {
+        match &self.data {
+            TypedReceiptData::PreByzantiumLegacy { .. } => None,
+            TypedReceiptData::PostByzantiumLegacy { status } => Some(*status),
+            TypedReceiptData::EIP2930 { status } => Some(*status),
+            TypedReceiptData::EIP1559 { status } => Some(*status),
+        }
+    }
+
+    /// Returns the state root of the receipt, if any.
+    pub fn state_root(&self) -> Option<&B256> {
+        match &self.data {
+            TypedReceiptData::PreByzantiumLegacy { state_root } => Some(state_root),
+            _ => None,
+        }
+    }
+
+    /// Returns the transaction type of the receipt.
+    pub fn transaction_type(&self) -> u64 {
+        match &self.data {
+            TypedReceiptData::PreByzantiumLegacy { .. }
+            | TypedReceiptData::PostByzantiumLegacy { .. } => 0u64,
+            TypedReceiptData::EIP2930 { .. } => 1u64,
+            TypedReceiptData::EIP1559 { .. } => 2u64,
+        }
+    }
+}
+
+#[cfg(feature = "serde")]
+impl<'de, L> serde::Deserialize<'de> for TypedReceipt<L>
+where
+    L: serde::Deserialize<'de>,
+{
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        use core::marker::PhantomData;
+
+        use serde::de::Visitor;
+
+        #[derive(serde::Deserialize)]
+        #[serde(field_identifier, rename_all = "camelCase")]
+        enum Field {
+            Type,
+            Root,
+            Status,
+            CumulativeGasUsed,
+            LogsBloom,
+            Logs,
+        }
+
+        struct TypedReceiptVisitor<L> {
+            phantom: PhantomData<L>,
+        }
+
+        impl<'de, L> Visitor<'de> for TypedReceiptVisitor<L>
+        where
+            L: serde::Deserialize<'de>,
+        {
+            type Value = TypedReceipt<L>;
+
+            fn expecting(&self, formatter: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+                formatter.write_str("a valid receipt")
+            }
+
+            fn visit_map<A>(self, mut map: A) -> Result<Self::Value, A::Error>
+            where
+                A: serde::de::MapAccess<'de>,
+            {
+                use serde::de::Error;
+                let mut transaction_type = None;
+                let mut status_code = None;
+                let mut state_root = None;
+                let mut cumulative_gas_used = None;
+                let mut logs_bloom = None;
+                let mut logs = None;
+
+                while let Some(key) = map.next_key()? {
+                    match key {
+                        Field::Type => {
+                            if transaction_type.is_some() {
+                                return Err(Error::duplicate_field("type"));
+                            }
+                            transaction_type = Some(map.next_value()?);
+                        }
+                        Field::Root => {
+                            if state_root.is_some() {
+                                return Err(Error::duplicate_field("root"));
+                            }
+                            state_root = Some(map.next_value()?);
+                        }
+                        Field::Status => {
+                            if status_code.is_some() {
+                                return Err(Error::duplicate_field("status"));
+                            }
+                            status_code = Some(map.next_value()?);
+                        }
+                        Field::CumulativeGasUsed => {
+                            if cumulative_gas_used.is_some() {
+                                return Err(Error::duplicate_field("cumulativeGasUsed"));
+                            }
+                            cumulative_gas_used = Some(map.next_value()?);
+                        }
+                        Field::LogsBloom => {
+                            if logs_bloom.is_some() {
+                                return Err(Error::duplicate_field("logsBloom"));
+                            }
+                            logs_bloom = Some(map.next_value()?);
+                        }
+                        Field::Logs => {
+                            if logs.is_some() {
+                                return Err(Error::duplicate_field("logs"));
+                            }
+                            logs = Some(map.next_value()?);
+                        }
+                    }
+                }
+
+                let cumulative_gas_used =
+                    cumulative_gas_used.ok_or_else(|| Error::missing_field("cumulativeGasUsed"))?;
+                let logs_bloom = logs_bloom.ok_or_else(|| Error::missing_field("logsBloom"))?;
+                let logs = logs.ok_or_else(|| Error::missing_field("logs"))?;
+
+                let data = if let Some(status_code) = status_code {
+                    let status = match status_code {
+                        "0x0" => 0u8,
+                        "0x1" => 1u8,
+                        _ => return Err(Error::custom(format!("unknown status: {}", status_code))),
+                    };
+
+                    if let Some(transaction_type) = transaction_type {
+                        match transaction_type {
+                            "0x0" => TypedReceiptData::PostByzantiumLegacy { status },
+                            "0x1" => TypedReceiptData::EIP2930 { status },
+                            "0x2" => TypedReceiptData::EIP1559 { status },
+                            _ => return Err(Error::custom("unknown transaction type")),
+                        }
+                    } else {
+                        TypedReceiptData::PostByzantiumLegacy { status }
+                    }
+                } else if let Some(state_root) = state_root {
+                    TypedReceiptData::PreByzantiumLegacy { state_root }
+                } else {
+                    return Err(Error::missing_field("root or status"));
+                };
+
+                Ok(TypedReceipt {
+                    cumulative_gas_used,
+                    logs_bloom,
+                    logs,
+                    data,
+                })
             }
         }
-    }
 
-    /// Returns the gas used by the transactions
-    pub fn logs_bloom(&self) -> &Bloom {
-        match self {
-            TypedReceipt::Legacy(r) | TypedReceipt::EIP2930(r) | TypedReceipt::EIP1559(r) => {
-                &r.logs_bloom
-            }
-        }
+        deserializer.deserialize_map(TypedReceiptVisitor {
+            phantom: PhantomData,
+        })
     }
 }
 
-impl rlp::Encodable for TypedReceipt {
-    fn rlp_append(&self, s: &mut rlp::RlpStream) {
-        match self {
-            TypedReceipt::Legacy(r) => r.rlp_append(s),
-            TypedReceipt::EIP2930(r) => enveloped(1, r, s),
-            TypedReceipt::EIP1559(r) => enveloped(2, r, s),
-        }
-    }
-}
-
-impl rlp::Decodable for TypedReceipt {
+impl<L> rlp::Decodable for TypedReceipt<L>
+where
+    L: rlp::Decodable,
+{
     fn decode(rlp: &rlp::Rlp) -> Result<Self, rlp::DecoderError> {
+        fn decode_inner<L>(
+            rlp: &rlp::Rlp,
+            id: Option<u8>,
+        ) -> Result<TypedReceipt<L>, rlp::DecoderError>
+        where
+            L: rlp::Decodable,
+        {
+            let status = rlp.val_at(0)?;
+            Ok(TypedReceipt {
+                cumulative_gas_used: rlp.val_at(1)?,
+                logs_bloom: rlp.val_at(2)?,
+                logs: rlp.list_at(3)?,
+                data: match id {
+                    Some(1) => TypedReceiptData::EIP2930 { status },
+                    Some(2) => TypedReceiptData::EIP1559 { status },
+                    _ => TypedReceiptData::PostByzantiumLegacy { status },
+                },
+            })
+        }
+
         let slice = rlp.data()?;
 
         let first = *slice
@@ -65,217 +252,147 @@ impl rlp::Decodable for TypedReceipt {
             .ok_or(rlp::DecoderError::Custom("empty receipt"))?;
 
         if rlp.is_list() {
-            return Ok(TypedReceipt::Legacy(rlp::Decodable::decode(rlp)?));
+            return decode_inner(rlp, None);
         }
 
         let s = slice
             .get(1..)
             .ok_or(rlp::DecoderError::Custom("no receipt content"))?;
 
+        let rlp = rlp::Rlp::new(s);
+
         if first == 0x01 {
-            return rlp::decode(s).map(TypedReceipt::EIP2930);
+            return decode_inner(&rlp, Some(1));
         }
 
         if first == 0x02 {
-            return rlp::decode(s).map(TypedReceipt::EIP1559);
+            return decode_inner(&rlp, Some(2));
         }
 
         Err(rlp::DecoderError::Custom("unknown receipt type"))
     }
 }
 
-#[cfg(feature = "fastrlp")]
-impl open_fastrlp::Encodable for TypedReceipt {
-    fn length(&self) -> usize {
-        match self {
-            TypedReceipt::Legacy(r) => r.length(),
-            receipt => {
-                let payload_len = match receipt {
-                    TypedReceipt::EIP2930(r) => r.length() + 1,
-                    TypedReceipt::EIP1559(r) => r.length() + 1,
-                    _ => unreachable!("receipt already matched"),
-                };
+impl<L> rlp::Encodable for TypedReceipt<L>
+where
+    L: rlp::Encodable,
+{
+    fn rlp_append(&self, s: &mut rlp::RlpStream) {
+        let (id, status) = match &self.data {
+            TypedReceiptData::PreByzantiumLegacy { .. } => (None, None),
+            TypedReceiptData::PostByzantiumLegacy { status } => (None, Some(status)),
+            TypedReceiptData::EIP2930 { status } => (Some(1), Some(status)),
+            TypedReceiptData::EIP1559 { status } => (Some(2), Some(status)),
+        };
 
-                // we include a string header for typed receipts, so include the length here
-                payload_len + open_fastrlp::length_of_length(payload_len)
-            }
+        if let Some(id) = id {
+            s.append_raw(&[id], 1);
         }
-    }
-    fn encode(&self, out: &mut dyn open_fastrlp::BufMut) {
-        use open_fastrlp::Header;
 
-        match self {
-            TypedReceipt::Legacy(r) => r.encode(out),
-            receipt => {
-                let payload_len = match receipt {
-                    TypedReceipt::EIP2930(r) => r.length() + 1,
-                    TypedReceipt::EIP1559(r) => r.length() + 1,
-                    _ => unreachable!("receipt already matched"),
-                };
+        s.begin_list(4);
 
-                match receipt {
-                    TypedReceipt::EIP2930(r) => {
-                        let receipt_string_header = Header {
-                            list: false,
-                            payload_length: payload_len,
-                        };
-
-                        receipt_string_header.encode(out);
-                        out.put_u8(0x01);
-                        r.encode(out);
-                    }
-                    TypedReceipt::EIP1559(r) => {
-                        let receipt_string_header = Header {
-                            list: false,
-                            payload_length: payload_len,
-                        };
-
-                        receipt_string_header.encode(out);
-                        out.put_u8(0x02);
-                        r.encode(out);
-                    }
-                    _ => unreachable!("receipt already matched"),
-                }
-            }
+        if let Some(status) = status {
+            s.append(status);
+        } else {
+            s.append(&"");
         }
-    }
-}
 
-#[cfg(feature = "fastrlp")]
-impl open_fastrlp::Decodable for TypedReceipt {
-    fn decode(buf: &mut &[u8]) -> Result<Self, open_fastrlp::DecodeError> {
-        use bytes::Buf;
-        use open_fastrlp::Header;
-        use std::cmp::Ordering;
-
-        // a receipt is either encoded as a string (non legacy) or a list (legacy).
-        // We should not consume the buffer if we are decoding a legacy receipt, so let's
-        // check if the first byte is between 0x80 and 0xbf.
-        let rlp_type = *buf.first().ok_or(open_fastrlp::DecodeError::Custom(
-            "cannot decode a receipt from empty bytes",
-        ))?;
-
-        match rlp_type.cmp(&open_fastrlp::EMPTY_LIST_CODE) {
-            Ordering::Less => {
-                // strip out the string header
-                let _header = Header::decode(buf)?;
-                let receipt_type = *buf.first().ok_or(open_fastrlp::DecodeError::Custom(
-                    "typed receipt cannot be decoded from an empty slice",
-                ))?;
-                if receipt_type == 0x01 {
-                    buf.advance(1);
-                    <EIP2930Receipt as open_fastrlp::Decodable>::decode(buf)
-                        .map(TypedReceipt::EIP2930)
-                } else if receipt_type == 0x02 {
-                    buf.advance(1);
-                    <EIP1559Receipt as open_fastrlp::Decodable>::decode(buf)
-                        .map(TypedReceipt::EIP1559)
-                } else {
-                    Err(open_fastrlp::DecodeError::Custom("invalid receipt type"))
-                }
-            }
-            Ordering::Equal => Err(open_fastrlp::DecodeError::Custom(
-                "an empty list is not a valid receipt encoding",
-            )),
-            Ordering::Greater => {
-                <EIP658Receipt as open_fastrlp::Decodable>::decode(buf).map(TypedReceipt::Legacy)
-            }
-        }
-    }
-}
-
-impl From<TypedReceipt> for EIP658Receipt {
-    fn from(v3: TypedReceipt) -> Self {
-        match v3 {
-            TypedReceipt::Legacy(receipt) => receipt,
-            TypedReceipt::EIP2930(receipt) => receipt,
-            TypedReceipt::EIP1559(receipt) => receipt,
-        }
+        s.append(&self.cumulative_gas_used);
+        s.append(&self.logs_bloom);
+        s.append_list(&self.logs);
     }
 }
 
 #[cfg(test)]
 mod tests {
+    use std::str::FromStr;
+
+    use bytes::Bytes;
+    use revm_primitives::Address;
+
+    use crate::log::Log;
+
+    use super::*;
+
     #[test]
-    #[cfg(feature = "fastrlp")]
-    // Test vector from: https://eips.ethereum.org/EIPS/eip-2481
-    fn encode_legacy_receipt() {
-        use std::str::FromStr;
-
-        use ethers_core::{
-            types::{Bytes, H160, H256},
-            utils::hex,
-        };
-        use open_fastrlp::Encodable;
-
-        use crate::eth::receipt::{EIP658Receipt, Log, TypedReceipt};
-
-        let expected = hex::decode("f901668001b9010000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000f85ff85d940000000000000000000000000000000000000011f842a0000000000000000000000000000000000000000000000000000000000000deada0000000000000000000000000000000000000000000000000000000000000beef830100ff").unwrap();
-
-        let mut data = vec![];
-        let receipt = TypedReceipt::Legacy(EIP658Receipt {
+    fn test_typed_receipt_serde() {
+        let receipt = TypedReceipt {
             logs_bloom: [0; 256].into(),
-            gas_used: 0x1u64.into(),
+            cumulative_gas_used: U256::from(0x1u64),
             logs: vec![Log {
-                address: H160::from_str("0000000000000000000000000000000000000011").unwrap(),
-                topics: vec![
-                    H256::from_str(
-                        "000000000000000000000000000000000000000000000000000000000000dead",
-                    )
-                    .unwrap(),
-                    H256::from_str(
-                        "000000000000000000000000000000000000000000000000000000000000beef",
-                    )
-                    .unwrap(),
-                ],
-                data: Bytes::from_str("0100ff").unwrap(),
+                address: Address::default(),
+                topics: vec![],
+                data: Bytes::default(),
             }],
-            status_code: 0,
-        });
-        receipt.encode(&mut data);
+            data: TypedReceiptData::EIP1559 { status: 1 },
+        };
 
-        // check that the rlp length equals the length of the expected rlp
-        assert_eq!(receipt.length(), expected.len());
-        assert_eq!(data, expected);
+        let serialized = serde_json::to_string(&receipt).unwrap();
+        let deserialized: TypedReceipt<Log> = serde_json::from_str(&serialized).unwrap();
+
+        assert_eq!(receipt, deserialized);
     }
 
     #[test]
-    #[cfg(feature = "fastrlp")]
     // Test vector from: https://eips.ethereum.org/EIPS/eip-2481
-    fn decode_legacy_receipt() {
-        use std::str::FromStr;
+    fn test_typed_receipt_encode_legacy() {
+        let expected = hex::decode("f901668001b9010000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000f85ff85d940000000000000000000000000000000000000011f842a0000000000000000000000000000000000000000000000000000000000000deada0000000000000000000000000000000000000000000000000000000000000beef830100ff").unwrap();
 
-        use ethers_core::{
-            types::{Bytes, H160, H256},
-            utils::hex,
-        };
-        use open_fastrlp::Decodable;
-
-        use crate::eth::receipt::{EIP658Receipt, Log, TypedReceipt};
-
-        let data = hex::decode("f901668001b9010000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000f85ff85d940000000000000000000000000000000000000011f842a0000000000000000000000000000000000000000000000000000000000000deada0000000000000000000000000000000000000000000000000000000000000beef830100ff").unwrap();
-
-        let expected = TypedReceipt::Legacy(EIP658Receipt {
+        let receipt = TypedReceipt {
             logs_bloom: [0; 256].into(),
-            gas_used: 0x1u64.into(),
+            cumulative_gas_used: U256::from(0x1u64),
             logs: vec![Log {
-                address: H160::from_str("0000000000000000000000000000000000000011").unwrap(),
+                address: Address::from_str("0000000000000000000000000000000000000011").unwrap(),
                 topics: vec![
-                    H256::from_str(
+                    B256::from_str(
                         "000000000000000000000000000000000000000000000000000000000000dead",
                     )
                     .unwrap(),
-                    H256::from_str(
+                    B256::from_str(
                         "000000000000000000000000000000000000000000000000000000000000beef",
                     )
                     .unwrap(),
                 ],
-                data: Bytes::from_str("0100ff").unwrap(),
+                data: Bytes::from(hex::decode("0100ff").unwrap()),
             }],
-            status_code: 0,
-        });
+            data: TypedReceiptData::PostByzantiumLegacy { status: 0 },
+        };
 
-        let receipt = TypedReceipt::decode(&mut &data[..]).unwrap();
-        assert_eq!(receipt, expected);
+        let decoded = rlp::encode(&receipt);
+
+        // check that the rlp length equals the length of the expected rlp
+        assert_eq!(decoded.len(), expected.len());
+        assert_eq!(decoded, expected);
+    }
+
+    #[test]
+    // Test vector from: https://eips.ethereum.org/EIPS/eip-2481
+    fn test_typed_receipt_decode_legacy() {
+        use std::str::FromStr;
+
+        let data = hex::decode("f901668001b9010000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000f85ff85d940000000000000000000000000000000000000011f842a0000000000000000000000000000000000000000000000000000000000000deada0000000000000000000000000000000000000000000000000000000000000beef830100ff").unwrap();
+
+        let expected = TypedReceipt {
+            logs_bloom: [0; 256].into(),
+            cumulative_gas_used: U256::from(0x1u64),
+            logs: vec![Log {
+                address: Address::from_str("0000000000000000000000000000000000000011").unwrap(),
+                topics: vec![
+                    B256::from_str(
+                        "000000000000000000000000000000000000000000000000000000000000dead",
+                    )
+                    .unwrap(),
+                    B256::from_str(
+                        "000000000000000000000000000000000000000000000000000000000000beef",
+                    )
+                    .unwrap(),
+                ],
+                data: Bytes::from(hex::decode("0100ff").unwrap()),
+            }],
+            data: TypedReceiptData::PostByzantiumLegacy { status: 0 },
+        };
+
+        let decoded: TypedReceipt<Log> = rlp::decode(&data[..]).unwrap();
+        assert_eq!(decoded, expected);
     }
 }
