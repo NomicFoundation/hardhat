@@ -369,6 +369,7 @@ async fn handle_get_filter_changes(
     state: StateType,
     filter_id: U256,
 ) -> ResponseData<Option<FilteredEvents>> {
+    event!(Level::INFO, "eth_getFilterChanges({filter_id:?})");
     let mut filters = state.filters.write().await;
     ResponseData::Success {
         result: filters.get_mut(&filter_id).and_then(|filter| {
@@ -383,6 +384,7 @@ async fn handle_get_filter_logs(
     state: StateType,
     filter_id: U256,
 ) -> ResponseData<Option<Vec<LogOutput>>> {
+    event!(Level::INFO, "eth_getFilterLogs({filter_id:?})");
     let mut filters = state.filters.write().await;
     match filters.get_mut(&filter_id) {
         Some(filter) => match &mut filter.events {
@@ -462,6 +464,7 @@ async fn get_next_filter_id(state: StateType) -> U256 {
 }
 
 async fn handle_new_pending_transaction_filter(state: StateType) -> ResponseData<U256> {
+    event!(Level::INFO, "eth_newPendingTransactionFilter()");
     let filter_id = get_next_filter_id(Arc::clone(&state)).await;
     state.filters.write().await.insert(
         filter_id,
@@ -611,10 +614,12 @@ async fn remove_filter<const IS_SUBSCRIPTION: bool>(
 }
 
 async fn handle_uninstall_filter(state: StateType, filter_id: U256) -> ResponseData<bool> {
+    event!(Level::INFO, "eth_uninstallFilter({filter_id:?})");
     remove_filter::<false>(state, filter_id).await
 }
 
 async fn handle_unsubscribe(state: StateType, filter_id: U256) -> ResponseData<bool> {
+    event!(Level::INFO, "eth_unsubscribe({filter_id:?})");
     remove_filter::<true>(state, filter_id).await
 }
 
