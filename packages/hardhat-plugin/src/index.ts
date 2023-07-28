@@ -5,7 +5,6 @@ import {
   wipe,
 } from "@ignored/ignition-core";
 import "@nomiclabs/hardhat-ethers";
-import { BigNumber } from "ethers";
 import { existsSync, readdirSync, readJSONSync } from "fs-extra";
 import { extendConfig, extendEnvironment, task } from "hardhat/config";
 import { lazyObject } from "hardhat/plugins";
@@ -24,20 +23,8 @@ import "./type-extensions";
 // eslint-disable-next-line import/no-unused-modules
 export { buildModule } from "@ignored/ignition-core";
 
-export interface IgnitionConfig {
-  maxRetries: number;
-  gasPriceIncrementPerRetry: BigNumber | null;
-  pollingInterval: number;
-  eventDuration: number;
-}
-
 /* ignition config defaults */
 const IGNITION_DIR = "ignition";
-const DEPLOYMENTS_DIR = "deployments";
-const MAX_RETRIES = 4;
-const GAS_INCREMENT_PER_RETRY = null;
-const POLLING_INTERVAL = 300;
-const AWAIT_EVENT_DURATION = 3000; // ms
 
 extendConfig((config, userConfig) => {
   /* setup path configs */
@@ -49,23 +36,12 @@ extendConfig((config, userConfig) => {
       config.paths.root,
       userPathsConfig.ignition ?? IGNITION_DIR
     ),
-    deployments: path.resolve(
-      config.paths.root,
-      userPathsConfig.deployments ?? DEPLOYMENTS_DIR
-    ),
   };
 
   /* setup core configs */
   const userIgnitionConfig = userConfig.ignition ?? {};
 
-  // TODO: this should wire into the new config
-  config.ignition = {
-    maxRetries: userIgnitionConfig.maxRetries ?? MAX_RETRIES,
-    gasPriceIncrementPerRetry:
-      userIgnitionConfig.gasPriceIncrementPerRetry ?? GAS_INCREMENT_PER_RETRY,
-    pollingInterval: userIgnitionConfig.pollingInterval ?? POLLING_INTERVAL,
-    eventDuration: userIgnitionConfig.eventDuration ?? AWAIT_EVENT_DURATION,
-  };
+  config.ignition = userIgnitionConfig;
 });
 
 /**
@@ -162,6 +138,7 @@ task("deploy")
         const adapters = buildAdaptersFrom(hre);
 
         const result = await deploy({
+          config: hre.config.ignition,
           adapters,
           artifactResolver,
           deploymentDir,

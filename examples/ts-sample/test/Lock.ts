@@ -1,7 +1,7 @@
 import { anyValue } from "@nomicfoundation/hardhat-chai-matchers/withArgs";
 import { loadFixture, time } from "@nomicfoundation/hardhat-network-helpers";
 import { expect } from "chai";
-import { ethers } from "hardhat";
+import { ethers, ignition } from "hardhat";
 
 import LockModule from "../ignition/LockModule";
 
@@ -26,6 +26,7 @@ describe("Lock", function () {
           lockedAmount,
         },
       },
+      config: { blockConfirmations: 1 },
     });
 
     return { lock, unlockTime, lockedAmount, owner, otherAccount };

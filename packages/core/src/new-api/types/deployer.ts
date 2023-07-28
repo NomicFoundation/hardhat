@@ -11,8 +11,23 @@ import {
  * @beta
  */
 export interface DeployConfig {
+  /**
+   * The interval, in milliseconds, between checks to see if a new block
+   * has been created
+   */
   blockPollingInterval: number;
+
+  /**
+   * The amount of time, in milliseconds, to wait on a transaction to
+   * confirm before timing out
+   */
   transactionTimeoutInterval: number;
+
+  /**
+   * The number of block confirmations to wait before considering
+   * a transaction to be confirmed during Ignition execution.
+   */
+  blockConfirmations: number;
 }
 
 /**

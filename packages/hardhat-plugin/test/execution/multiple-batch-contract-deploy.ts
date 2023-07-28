@@ -16,11 +16,6 @@ describe("execution - multiple batch contract deploy", function () {
   useEphemeralIgnitionProject("minimal-new-api");
 
   it("should deploy over multiple batches", async function () {
-    await this.hre.network.provider.request({
-      method: "evm_setAutomine",
-      params: [false],
-    });
-
     const moduleDefinition = buildModule("FooModule", (m) => {
       const contract1 = m.contract("Foo", [], { id: "Contract1" });
       const contractA = m.contract("Foo", [], { id: "ContractA" });
@@ -53,7 +48,7 @@ describe("execution - multiple batch contract deploy", function () {
       };
     });
 
-    const deployPromise = this.hre.ignition.deploy(moduleDefinition, {
+    const deployPromise = this.deploy(moduleDefinition, {
       parameters: {},
     });
 

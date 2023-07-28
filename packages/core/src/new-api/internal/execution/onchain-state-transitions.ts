@@ -74,8 +74,6 @@ type OnchainStateTransition = (
 
 type OnchainStateTransitions = Record<OnchainStatuses, OnchainStateTransition>;
 
-const DEFAULT_CONFIRMATIONS = 0;
-
 export const onchainStateTransitions: OnchainStateTransitions = {
   [OnchainStatuses.EXECUTE]: async (_state, next, strategyInst) => {
     assertIgnitionInvariant(
@@ -638,7 +636,7 @@ async function checkTransactionComplete(
   // if the transaction is confirmed but we haven't passed the
   // required number of confirmations, then pause and continue the
   // batch
-  if (currentTransaction.confirmations < DEFAULT_CONFIRMATIONS) {
+  if (currentTransaction.confirmations < state.config.blockConfirmations) {
     return { status: "pause" };
   }
 

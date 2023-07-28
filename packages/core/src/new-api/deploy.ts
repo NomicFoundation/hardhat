@@ -18,7 +18,7 @@ import { IgnitionModuleDefinition } from "./types/module-builder";
  * @beta
  */
 export async function deploy({
-  config,
+  config = {},
   artifactResolver,
   adapters,
   deploymentDir,
@@ -48,7 +48,7 @@ export async function deploy({
   const chainDispatcher = new ChainDispatcherImpl(adapters);
 
   const deployer = new Deployer({
-    config: config ?? {},
+    config,
     artifactResolver,
     deploymentLoader,
     chainDispatcher,

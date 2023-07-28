@@ -1,5 +1,5 @@
 import { ArtifactResolver } from "../../types/artifact";
-import { DeploymentParameters } from "../../types/deployer";
+import { DeployConfig, DeploymentParameters } from "../../types/deployer";
 import { IgnitionModule, IgnitionModuleResult } from "../../types/module";
 
 import { ChainDispatcher } from "./chain-dispatcher";
@@ -12,17 +12,12 @@ import {
 } from "./journal";
 import { TransactionLookupTimer } from "./transaction-timer";
 
-interface ExecutionConfig {
-  blockPollingInterval: number;
-  transactionTimeoutInterval: number;
-}
-
 export interface ExecutionEngineState {
   block: {
     number: number;
     hash: string;
   };
-  config: ExecutionConfig;
+  config: DeployConfig;
   batches: string[][];
   module: IgnitionModule<string, string, IgnitionModuleResult<string>>;
   executionStateMap: ExecutionStateMap;

@@ -1,43 +1,39 @@
 /* eslint-disable import/no-unused-modules */
 
+import { DeployConfig } from "@ignored/ignition-core";
 import { assert } from "chai";
-import { BigNumber } from "ethers";
 
-// TODO: convert these tests over once Ignition config has been updated
-describe.skip("config", () => {
-  // useEnvironment("with-config");
+import { KeyListOf } from "./type-helper";
+import { useEphemeralIgnitionProject } from "./use-ignition-project";
 
-  let loadedOptions: any;
+describe("config", () => {
+  useEphemeralIgnitionProject("with-config");
+
+  let loadedOptions: DeployConfig;
 
   beforeEach(function () {
-    loadedOptions = this.hre.ignition.options;
+    loadedOptions = this.hre.config.ignition;
   });
 
-  it("should apply maxRetries", async function () {
-    assert.equal(loadedOptions.maxRetries, 1);
+  it("should apply blockConfirmations", async function () {
+    assert.equal(loadedOptions.blockConfirmations, 10);
   });
 
-  it("should apply gasPriceIncrementPerRetry", async function () {
-    assert(BigNumber.isBigNumber(loadedOptions.gasPriceIncrementPerRetry));
-    assert(BigNumber.from(loadedOptions.gasPriceIncrementPerRetry).eq(1000));
+  it("should apply blockPollingInterval", async function () {
+    assert.equal(loadedOptions.blockPollingInterval, 100);
   });
 
-  it("should apply pollingInterval", async function () {
-    assert.equal(loadedOptions.pollingInterval, 4);
-  });
-
-  it("should apply eventDuration", async function () {
-    assert.equal(loadedOptions.eventDuration, 10000);
+  it("should apply transactionTimeoutInterval", async function () {
+    assert.equal(loadedOptions.transactionTimeoutInterval, 60 * 1000);
   });
 
   it("should only have known config", () => {
-    assert.deepStrictEqual(Object.keys(loadedOptions).sort(), [
-      "eventDuration",
-      "gasPriceIncrementPerRetry",
-      "maxRetries",
-      "networkName",
-      "pollingInterval",
-      "txPollingInterval",
-    ]);
+    const configOptions: KeyListOf<DeployConfig> = [
+      "blockConfirmations",
+      "blockPollingInterval",
+      "transactionTimeoutInterval",
+    ];
+
+    assert.deepStrictEqual(Object.keys(loadedOptions).sort(), configOptions);
   });
 });

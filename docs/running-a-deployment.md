@@ -6,8 +6,8 @@
 
 - [Visualizing your deployment with the `plan` task](./running-a-deployment.md#visualizing-your-deployment-with-the-plan-task)
 - [Executing the deployment](./running-a-deployment.md#executing-the-deployment)
-  <!-- - [Configuration options](./running-a-deployment.md#configuration-options)
-  - [Resuming a failed or onhold deployment](./running-a-deployment.md#visualizing-your-deployment-with-the-plan-task) -->
+  - [Configuration options](./running-a-deployment.md#configuration-options)
+  <!-- - [Resuming a failed or onhold deployment](./running-a-deployment.md#visualizing-your-deployment-with-the-plan-task) -->
 
 ---
 
@@ -53,16 +53,15 @@ By default the deploy task will deploy to an ephemeral Hardhat network. To targe
 npx hardhat deploy LockModule.js --network mainnet
 ```
 
-<!-- ### Configuration options
+### Configuration options
 
-There are currently some configurable options you can add to your Hardhat config file in order to adjust the way **Ignition** runs the deployment:
+There are configurable options you can add to your Hardhat config file to adjust the way **Ignition** runs the deployment:
 
 ```tsx
-interface IgnitionConfig {
-  maxRetries: number;
-  gasPriceIncrementPerRetry: BigNumber | null;
-  pollingInterval: number; // milliseconds
-  eventDuration: number; // milliseconds
+export interface DeployConfig {
+  blockPollingInterval: number;
+  transactionTimeoutInterval: number;
+  blockConfirmations: number;
 }
 ```
 
@@ -73,41 +72,34 @@ const { ethers } = require("ethers");
 
 module.exports = {
   ignition: {
-    maxRetries: 10,
-    gasPriceIncrementPerRetry: ethers.utils.parseUnits("5", "gwei"),
-    pollingInterval: 300,
-    eventDuration: 10000,
+    blockPollingInterval: 200,
+    transactionTimeoutInterval: 3 * 60 * 1000,
+    blockConfirmations: 5,
   },
 };
 ```
 
 ---
 
-#### `maxRetries`
+#### `blockPollingInterval`
 
-The value of `maxRetries` is the number of times an unconfirmed transaction will be retried before considering it failed. (default value is 4)
-
----
-
-#### `gasPriceIncrementPerRetry`
-
-The value of `gasPriceIncrementPerRetry` must be an `ethers.BigNumber` and is assumed to be in wei units. This value will be added to the previous transactions gas price on each subsequent retry. However, if not given or if the given value is `null`, then the default logic will run which adds 10% of the previous transactions gas price on each retry.
+The value of `blockPollingInterval` is the time in milliseconds between checks that a new block has been minted. The default value is 1000 milliseconds (aka 1 second).
 
 ---
 
-#### `pollingInterval`
+#### `transactionTimeoutInterval`
 
-The value of `pollingInterval` is the number of milliseconds the process will wait between polls when checking if the transaction has been confirmed yet. The default value is 300 milliseconds.
-
----
-
-#### `eventDuration`
-
-This config value determines how long `m.event` waits for the given event to be emitted on-chain before marking the deployment as "on-hold". It should be given as a number of milliseconds, with the default value being 30000, or 30 seconds.
+The value of `transactionTimeoutInterval` sets the time in milliseconds to wait for a transaction to be confirmed on-chain before setting it as timed out for this deployment run. The default is 3mins.
 
 ---
 
-## Resuming a failed or onhold deployment
+#### `blockConfirmations`
+
+The value of `blockConfirmations` is the number of blocks after a transaction has been confirmed to wait before Ignition will consider the transaction as complete. This provides control over block re-org risk. The default number of confirmations is five.
+
+---
+
+<!-- ## Resuming a failed or onhold deployment
 
 A run of a deployment can succeed, fail or be on hold. A failed deployment or one that is on hold, assuming it was run against a non-ephemeral network, can be rerun using the deploy command:
 

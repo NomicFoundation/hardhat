@@ -27,6 +27,7 @@ describe("Lock", function () {
           lockedAmount,
         },
       },
+      config: { blockConfirmations: 1 },
     });
 
     return { lock, unlockTime, lockedAmount, owner, otherAccount };

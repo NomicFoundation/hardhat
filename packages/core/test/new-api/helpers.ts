@@ -162,6 +162,9 @@ export function setupDeployerWithMocks({
     artifactResolver: mockArtifactResolver,
     deploymentLoader: mockDeploymentLoader,
     chainDispatcher: mockChainDispatcher,
+    config: {
+      blockConfirmations: 0,
+    },
   });
 }
 

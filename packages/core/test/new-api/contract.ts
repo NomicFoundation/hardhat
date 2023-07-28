@@ -913,7 +913,7 @@ describe("contract", () => {
         linkReferences: {},
       };
 
-      const moduleWithContractFromArtifactDefinition = defineModule(
+      const moduleWithContractFromArtifactDefinition = buildModule(
         "Module1",
         (m) => {
           const account = m.getAccount(-1);
@@ -948,7 +948,7 @@ describe("contract", () => {
         linkReferences: {},
       };
 
-      const moduleWithContractFromArtifactDefinition = defineModule(
+      const moduleWithContractFromArtifactDefinition = buildModule(
         "Module1",
         (m) => {
           const account = m.getAccount(1);

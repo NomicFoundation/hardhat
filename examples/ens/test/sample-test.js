@@ -10,7 +10,9 @@ describe("ENS", function () {
       await hre.ethers.getSigners();
 
     // Arrange
-    const { ens, resolver } = await ignition.deploy(ENSModule);
+    const { ens, resolver } = await ignition.deploy(ENSModule, {
+      config: { blockConfirmations: 1 },
+    });
 
     await ens.setSubnodeOwner(
       namehash.hash("test"),

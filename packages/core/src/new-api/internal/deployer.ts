@@ -19,6 +19,7 @@ import {
 } from "../types/deployer";
 
 import { Batcher } from "./batcher";
+import { defaultConfig } from "./defaultConfig";
 import { ExecutionEngine } from "./execution/execution-engine";
 import { executionStateReducer } from "./execution/execution-state-reducer";
 import { BasicExecutionStrategy } from "./execution/execution-strategy";
@@ -39,13 +40,6 @@ import { TransactionLookupTimer } from "./types/transaction-timer";
 import { assertIgnitionInvariant } from "./utils/assertions";
 import { getFuturesFromModule } from "./utils/get-futures-from-module";
 import { validate } from "./validation/validate";
-
-// The interval between checks to see if a new block has been created
-const DEFAULT_BLOCK_POLLING_INTERVAL = 200;
-
-// In milliseconds the amount of time to wait on a transaction to
-// confirm before timing out
-const DEFAULT_TRANSACTION_TIMEOUT_INTERVAL = 3 * 60 * 1000;
 
 /**
  * Run an Igntition deployment.
@@ -69,8 +63,7 @@ export class Deployer {
     chainDispatcher: ChainDispatcher;
   }) {
     this._config = {
-      blockPollingInterval: DEFAULT_BLOCK_POLLING_INTERVAL,
-      transactionTimeoutInterval: DEFAULT_TRANSACTION_TIMEOUT_INTERVAL,
+      ...defaultConfig,
       ...options.config,
     };
 

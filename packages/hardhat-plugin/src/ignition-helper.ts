@@ -34,8 +34,15 @@ export class IgnitionHelper {
       string,
       IgnitionModuleResult<string>
     >,
-    { parameters = {} }: { parameters: { [key: string]: ModuleParameters } } = {
+    {
+      parameters = {},
+      config: perDeployConfig,
+    }: {
+      parameters: { [key: string]: ModuleParameters };
+      config: Partial<DeployConfig>;
+    } = {
       parameters: {},
+      config: {},
     }
   ): Promise<Record<string, Contract>> {
     const accounts = (await this._hre.network.provider.request({
@@ -44,8 +51,13 @@ export class IgnitionHelper {
 
     const artifactResolver = new HardhatArtifactResolver(this._hre);
 
+    const resolvedConfig: Partial<DeployConfig> = {
+      ...this._config,
+      ...perDeployConfig,
+    };
+
     const result = await deploy({
-      config: this._config,
+      config: resolvedConfig,
       adapters: this._adapters,
       deploymentDir: this._deploymentDir,
       artifactResolver,

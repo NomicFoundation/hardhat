@@ -1005,7 +1005,7 @@ describe("call", () => {
         linkReferences: {},
       };
 
-      const moduleDef = defineModule("Module1", (m) => {
+      const moduleDef = buildModule("Module1", (m) => {
         const another = m.contractFromArtifact("Another", fakeArtifact, []);
         const account = m.getAccount(-1);
         m.call(another, "inc", [1], { from: account });
@@ -1052,7 +1052,7 @@ describe("call", () => {
         linkReferences: {},
       };
 
-      const moduleDef = defineModule("Module1", (m) => {
+      const moduleDef = buildModule("Module1", (m) => {
         const another = m.contractFromArtifact("Another", fakeArtifact, []);
         const account = m.getAccount(1);
         m.call(another, "inc", [1], { from: account });

@@ -1,5 +1,3 @@
-const { BigNumber } = require("../../../../../node_modules/ethers/lib/index");
-
 require("../../../src/index");
 
 module.exports = {
@@ -11,9 +9,8 @@ module.exports = {
     },
   },
   ignition: {
-    maxRetries: 1,
-    gasPriceIncrementPerRetry: BigNumber.from(1000),
-    pollingInterval: 4,
-    eventDuration: 10000,
+    blockConfirmations: 10,
+    blockPollingInterval: 100,
+    transactionTimeoutInterval: 60 * 1000,
   },
 };

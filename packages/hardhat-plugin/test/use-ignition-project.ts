@@ -16,6 +16,12 @@ import { IgnitionHelper } from "../src/ignition-helper";
 import { clearPendingTransactionsFromMemoryPool } from "./execution/helpers";
 import { waitForPendingTxs } from "./helpers";
 
+const defaultTestConfig: DeployConfig = {
+  transactionTimeoutInterval: 1000,
+  blockPollingInterval: 200,
+  blockConfirmations: 0,
+};
+
 export function useEphemeralIgnitionProject(
   fixtureProjectName: string,
   config?: Partial<DeployConfig>
@@ -36,7 +42,7 @@ export function useEphemeralIgnitionProject(
     await hre.run("compile", { quiet: true });
 
     const testConfig: Partial<DeployConfig> = {
-      transactionTimeoutInterval: 1000,
+      ...defaultTestConfig,
       ...config,
     };
 
@@ -52,6 +58,7 @@ export function useEphemeralIgnitionProject(
     ) => {
       return this.hre.ignition.deploy(moduleDefinition, {
         parameters,
+        config: testConfig,
       });
     };
   });
@@ -85,7 +92,7 @@ export function useFileIgnitionProject(
     await hre.run("compile", { quiet: true });
 
     const testConfig: Partial<DeployConfig> = {
-      transactionTimeoutInterval: 1000,
+      ...defaultTestConfig,
       ...config,
     };
 
@@ -126,7 +133,7 @@ async function runDeploy(
   >,
   {
     hre,
-    config,
+    config = {},
   }: { hre: HardhatRuntimeEnvironment; config?: Partial<DeployConfig> },
   chainUpdates: (c: TestChainHelper) => Promise<void> = async () => {}
 ): Promise<Record<string, Contract>> {
@@ -136,6 +143,7 @@ async function runDeploy(
   try {
     const deployPromise = ignitionHelper.deploy(moduleDefinition, {
       parameters: {},
+      config,
     });
 
     const chainHelper = new TestChainHelper(hre, deployPromise, killFn);

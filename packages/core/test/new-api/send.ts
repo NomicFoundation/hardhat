@@ -503,7 +503,7 @@ describe("send", () => {
     });
 
     it("should not validate a negative account index", async () => {
-      const moduleWithDependentContractsDefinition = defineModule(
+      const moduleWithDependentContractsDefinition = buildModule(
         "Module1",
         (m) => {
           const account = m.getAccount(-1);
@@ -528,7 +528,7 @@ describe("send", () => {
     });
 
     it("should not validate an account index greater than the number of available accounts", async () => {
-      const moduleWithDependentContractsDefinition = defineModule(
+      const moduleWithDependentContractsDefinition = buildModule(
         "Module1",
         (m) => {
           const account = m.getAccount(1);
