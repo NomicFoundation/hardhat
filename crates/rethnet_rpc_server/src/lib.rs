@@ -138,6 +138,7 @@ struct AppState {
     fork_block_number: Option<U256>,
     last_filter_id: RwLock<U256>,
     local_accounts: HashMap<Address, SecretKey>,
+    network_id: U256,
 }
 
 type StateType = Arc<AppState>;
@@ -479,6 +480,13 @@ async fn get_next_filter_id(state: StateType) -> U256 {
     *last_filter_id
 }
 
+async fn handle_net_version(state: StateType) -> ResponseData<U256> {
+    event!(Level::INFO, "net_version()");
+    ResponseData::Success {
+        result: state.network_id,
+    }
+}
+
 async fn handle_new_pending_transaction_filter(state: StateType) -> ResponseData<U256> {
     event!(Level::INFO, "eth_newPendingTransactionFilter()");
     let filter_id = get_next_filter_id(Arc::clone(&state)).await;
@@ -712,6 +720,9 @@ async fn handle_request(
                         handle_get_transaction_count(state, *address, block.clone()).await,
                     )
                 }
+                MethodInvocation::Eth(EthMethodInvocation::NetVersion()) => {
+                    response(id, handle_net_version(state).await)
+                }
                 MethodInvocation::Eth(EthMethodInvocation::NewPendingTransactionFilter()) => {
                     response(id, handle_new_pending_transaction_filter(state).await)
                 }
@@ -869,6 +880,7 @@ impl Server {
         let coinbase = config.coinbase;
         let filters = RwLock::new(HashMap::default());
         let last_filter_id = RwLock::new(U256::ZERO);
+        let network_id = config.network_id;
 
         let rethnet_state: StateType =
             if let Some(config) = config.rpc_hardhat_network_config.forking {
@@ -904,6 +916,7 @@ impl Server {
                     fork_block_number: Some(fork_block_number),
                     last_filter_id,
                     local_accounts,
+                    network_id,
                 })
             } else {
                 Arc::new(AppState {
@@ -916,6 +929,7 @@ impl Server {
                     fork_block_number: None,
                     last_filter_id,
                     local_accounts,
+                    network_id,
                 })
             };
 

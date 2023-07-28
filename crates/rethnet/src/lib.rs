@@ -62,6 +62,7 @@ fn server_config_from_cli_args_and_config_file(
         accounts: config_file.accounts,
         chain_id: config_file.chain_id,
         coinbase: config_file.coinbase,
+        network_id: config_file.network_id,
     })
 }
 

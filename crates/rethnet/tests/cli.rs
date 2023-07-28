@@ -53,6 +53,7 @@ async fn node() -> Result<(), Box<dyn std::error::Error>> {
             address,
             Some(BlockSpec::latest()),
         )),
+        MethodInvocation::Eth(EthMethodInvocation::NetVersion()),
         MethodInvocation::Eth(EthMethodInvocation::NewPendingTransactionFilter()),
         MethodInvocation::Eth(EthMethodInvocation::UninstallFilter(U256::from(1))),
         MethodInvocation::Eth(EthMethodInvocation::Unsubscribe(U256::from(1))),
@@ -157,6 +158,9 @@ async fn node() -> Result<(), Box<dyn std::error::Error>> {
                 address,
                 block_spec,
             )) => format!("eth_getTransactionCount({address:?}, {block_spec:?})"),
+            MethodInvocation::Eth(EthMethodInvocation::NetVersion()) => {
+                String::from("net_version()")
+            }
             MethodInvocation::Eth(EthMethodInvocation::NewPendingTransactionFilter()) => {
                 String::from("eth_newPendingTransactionFilter()")
             }

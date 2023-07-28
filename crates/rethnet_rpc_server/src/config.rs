@@ -12,6 +12,7 @@ pub struct Config {
     pub accounts: Vec<AccountConfig>,
     pub chain_id: U256,
     pub coinbase: Address,
+    pub network_id: U256,
 }
 
 /// configuration input for a single account

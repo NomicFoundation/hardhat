@@ -44,6 +44,7 @@ async fn start_server() -> SocketAddr {
         }],
         chain_id: U256::from(1),
         coinbase: Address::from_low_u64_ne(1),
+        network_id: U256::from(123),
     })
     .await
     .unwrap();
@@ -232,6 +233,16 @@ async fn test_get_transaction_count_success() {
             Some(BlockSpec::latest()),
         )),
         U256::ZERO,
+    )
+    .await;
+}
+
+#[tokio::test]
+async fn test_net_version() {
+    verify_response(
+        &start_server().await,
+        MethodInvocation::Eth(EthMethodInvocation::NetVersion()),
+        U256::from(123),
     )
     .await;
 }

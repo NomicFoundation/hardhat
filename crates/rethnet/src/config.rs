@@ -36,10 +36,12 @@ pub struct ConfigFile {
     pub accounts: Vec<AccountConfig>,
     pub chain_id: U256,
     pub coinbase: Address,
+    pub network_id: U256,
 }
 
 impl Default for ConfigFile {
     fn default() -> Self {
+        let chain_id = U256::from(31337);
         Self {
             accounts: DEFAULT_PRIVATE_KEYS
                 .into_iter()
@@ -49,10 +51,11 @@ impl Default for ConfigFile {
                     balance: U256::from(10000),
                 })
                 .collect(),
-            chain_id: U256::from(31337),
+            chain_id,
             // default coinbase address taken from https://hardhat.org/hardhat-network/docs/reference
             coinbase: Address::from_str("0xc014ba5ec014ba5ec014ba5ec014ba5ec014ba5e")
                 .expect("default value should be known to succeed"),
+            network_id: chain_id,
         }
     }
 }
