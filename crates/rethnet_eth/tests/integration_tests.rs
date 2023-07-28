@@ -374,3 +374,8 @@ fn test_evm_set_automine() {
 fn test_evm_snapshot() {
     help_test_method_invocation_serde(MethodInvocation::EvmSnapshot());
 }
+
+#[test]
+fn test_net_listening() {
+    help_test_method_invocation_serde(MethodInvocation::NetListening());
+}

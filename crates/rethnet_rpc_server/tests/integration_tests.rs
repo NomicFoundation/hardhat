@@ -189,6 +189,16 @@ async fn test_get_transaction_count_success() {
 }
 
 #[tokio::test]
+async fn test_net_listening() {
+    verify_response(
+        &start_server().await,
+        MethodInvocation::Eth(EthMethodInvocation::NetListening()),
+        true,
+    )
+    .await;
+}
+
+#[tokio::test]
 async fn test_set_balance_success() {
     let server_address = start_server().await;
 

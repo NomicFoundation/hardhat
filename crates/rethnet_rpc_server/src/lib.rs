@@ -424,6 +424,11 @@ async fn handle_set_storage_at(
     }
 }
 
+fn handle_net_listening() -> ResponseData<bool> {
+    event!(Level::INFO, "net_listening()");
+    ResponseData::Success { result: true }
+}
+
 fn handle_sign(
     state: StateType,
     address: &Address,
@@ -498,6 +503,9 @@ async fn handle_request(
                         id,
                         handle_get_transaction_count(state, *address, block.clone()).await,
                     )
+                }
+                MethodInvocation::Eth(EthMethodInvocation::NetListening()) => {
+                    response(id, handle_net_listening())
                 }
                 MethodInvocation::Eth(EthMethodInvocation::Sign(address, message)) => {
                     response(id, handle_sign(state, address, message))

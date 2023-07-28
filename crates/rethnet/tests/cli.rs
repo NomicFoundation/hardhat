@@ -49,6 +49,7 @@ async fn node() -> Result<(), Box<dyn std::error::Error>> {
             address,
             Some(BlockSpec::latest()),
         )),
+        MethodInvocation::Eth(EthMethodInvocation::NetListening()),
         MethodInvocation::Eth(EthMethodInvocation::Sign(
             address,
             bytes::Bytes::from(hex::decode("deadbeef").unwrap()).into(),
@@ -140,6 +141,9 @@ async fn node() -> Result<(), Box<dyn std::error::Error>> {
                 address,
                 block_spec,
             )) => format!("eth_getTransactionCount({address:?}, {block_spec:?})"),
+            MethodInvocation::Eth(EthMethodInvocation::NetListening()) => {
+                String::from("net_listening()")
+            }
             MethodInvocation::Eth(EthMethodInvocation::Sign(address, message)) => {
                 format!("eth_sign({address:?}, {message:?})")
             }

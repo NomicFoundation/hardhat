@@ -216,6 +216,9 @@ pub enum MethodInvocation {
     /// eth_mining
     #[serde(rename = "eth_mining")]
     Mining(),
+    /// net_listening
+    #[serde(rename = "net_listening")]
+    NetListening(),
     /// net_version
     #[serde(rename = "net_version")]
     NetVersion(),
