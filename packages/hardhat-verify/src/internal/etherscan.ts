@@ -23,7 +23,18 @@ import { builtinChains } from "./chain-config";
 // Used for polling the result of the contract verification.
 const VERIFICATION_STATUS_POLLING_TIME = 3000;
 
+/**
+ * Etherscan verification provider for verifying smart contracts.
+ * It should work with other verification providers as long as the interface
+ * remains the same.
+ */
 export class Etherscan {
+  /**
+   * Create a new instance of the Etherscan verification provider.
+   * @param apiKey - The Etherscan API key.
+   * @param apiUrl - The Etherscan API URL, e.g. https://api.etherscan.io/api.
+   * @param browserUrl - The Etherscan browser URL, e.g. https://etherscan.io.
+   */
   constructor(
     public apiKey: string,
     public apiUrl: string,
@@ -68,7 +79,12 @@ export class Etherscan {
     return new Etherscan(resolvedApiKey, apiUrl, browserUrl);
   }
 
-  // https://docs.etherscan.io/api-endpoints/contracts#get-contract-source-code-for-verified-contract-source-codes
+  /**
+   * Check if a smart contract is verified on Etherscan.
+   * @link https://docs.etherscan.io/api-endpoints/contracts#get-contract-source-code-for-verified-contract-source-codes
+   * @param address - The address of the smart contract.
+   * @returns True if the contract is verified, false otherwise.
+   */
   public async isVerified(address: string) {
     const parameters = new URLSearchParams({
       apikey: this.apiKey,
@@ -91,7 +107,20 @@ export class Etherscan {
     return sourceCode !== undefined && sourceCode !== "";
   }
 
-  // https://docs.etherscan.io/api-endpoints/contracts#verify-source-code
+  /**
+   * Verify a smart contract on Etherscan.
+   * @link https://docs.etherscan.io/api-endpoints/contracts#verify-source-code
+   * @param contractAddress - The address of the smart contract to verify.
+   * @param sourceCode - The source code of the smart contract.
+   * @param contractName - The name of the smart contract, e.g. "contracts/Sample.sol:MyContract"
+   * @param compilerVersion - The version of the Solidity compiler used, e.g. `v0.8.19+commit.7dd6d404`
+   * @param constructorArguments - The encoded constructor arguments of the smart contract.
+   * @returns A promise that resolves to an `EtherscanResponse` object.
+   * @throws {ContractVerificationRequestError} if there is an error on the request.
+   * @throws {ContractVerificationInvalidStatusCodeError} if the API returns an invalid status code.
+   * @throws {ContractVerificationMissingBytecodeError} if the bytecode is not found on the block explorer.
+   * @throws {HardhatVerifyError} if the response status is not OK.
+   */
   public async verify(
     contractAddress: string,
     sourceCode: string,
@@ -147,7 +176,16 @@ export class Etherscan {
     return etherscanResponse;
   }
 
-  // https://docs.etherscan.io/api-endpoints/contracts#check-source-code-verification-submission-status
+  /**
+   * Get the verification status of a smart contract from Etherscan.
+   * This method performs polling of the verification status if it's pending.
+   * @link https://docs.etherscan.io/api-endpoints/contracts#check-source-code-verification-submission-status
+   * @param guid - The verification GUID to check.
+   * @returns A promise that resolves to an `EtherscanResponse` object.
+   * @throws {ContractStatusPollingError} if there is an error on the request.
+   * @throws {ContractStatusPollingInvalidStatusCodeError} if the API returns an invalid status code.
+   * @throws {ContractStatusPollingResponseNotOkError} if the response status is not OK.
+   */
   public async getVerificationStatus(guid: string): Promise<EtherscanResponse> {
     const parameters = new URLSearchParams({
       apikey: this.apiKey,
@@ -196,6 +234,11 @@ export class Etherscan {
     return etherscanResponse;
   }
 
+  /**
+   * Get the Etherscan URL for viewing a contract's details.
+   * @param address - The address of the smart contract.
+   * @returns The URL to view the contract on Etherscan's website.
+   */
   public getContractUrl(address: string) {
     return `${this.browserUrl}/address/${address}#code`;
   }
