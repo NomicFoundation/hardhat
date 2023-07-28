@@ -9,6 +9,7 @@ use axum::{
 use hashbrown::HashMap;
 use rethnet_eth::remote::ZeroXPrefixedBytes;
 use secp256k1::{Secp256k1, SecretKey};
+use sha3::{Digest, Keccak256};
 use tokio::sync::RwLock;
 use tracing::{event, Level};
 
@@ -448,6 +449,15 @@ fn handle_sign(
     }
 }
 
+fn handle_web3_sha3(message: ZeroXPrefixedBytes) -> ResponseData<B256> {
+    event!(Level::INFO, "web3_sha3({message:?})");
+    let message: Bytes = message.into();
+    let hash = Keccak256::digest(&message[..]);
+    ResponseData::Success {
+        result: B256::from_slice(&hash[..]),
+    }
+}
+
 async fn handle_request(
     state: StateType,
     request: &RpcRequest<MethodInvocation>,
@@ -517,6 +527,9 @@ async fn handle_request(
                 }
                 MethodInvocation::Eth(EthMethodInvocation::Sign(address, message)) => {
                     response(id, handle_sign(state, address, message))
+                }
+                MethodInvocation::Eth(EthMethodInvocation::Web3Sha3(message)) => {
+                    response(id, handle_web3_sha3(message.clone()))
                 }
                 MethodInvocation::Hardhat(HardhatMethodInvocation::SetBalance(
                     address,

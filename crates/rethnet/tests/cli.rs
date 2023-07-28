@@ -55,6 +55,9 @@ async fn node() -> Result<(), Box<dyn std::error::Error>> {
             address,
             bytes::Bytes::from(hex::decode("deadbeef").unwrap()).into(),
         )),
+        MethodInvocation::Eth(EthMethodInvocation::Web3Sha3(
+            Bytes::from_static(b"").into(),
+        )),
         MethodInvocation::Hardhat(HardhatMethodInvocation::SetBalance(address, U256::ZERO)),
         MethodInvocation::Hardhat(HardhatMethodInvocation::SetCode(
             address,
@@ -150,6 +153,9 @@ async fn node() -> Result<(), Box<dyn std::error::Error>> {
             }
             MethodInvocation::Eth(EthMethodInvocation::Sign(address, message)) => {
                 format!("eth_sign({address:?}, {message:?})")
+            }
+            MethodInvocation::Eth(EthMethodInvocation::Web3Sha3(message)) => {
+                format!("web3_sha3({message:?})")
             }
             MethodInvocation::Hardhat(HardhatMethodInvocation::SetBalance(address, balance)) => {
                 format!("hardhat_setBalance({address:?}, {balance:?}")

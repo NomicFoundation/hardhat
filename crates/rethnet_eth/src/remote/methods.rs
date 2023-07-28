@@ -285,6 +285,13 @@ pub enum MethodInvocation {
         deserialize_with = "sequence_to_single"
     )]
     Unsubscribe(Vec<ZeroXPrefixedBytes>),
+    /// web3_sha3
+    #[serde(
+        rename = "web3_sha3",
+        serialize_with = "single_to_sequence",
+        deserialize_with = "sequence_to_single"
+    )]
+    Web3Sha3(ZeroXPrefixedBytes),
     /// evm_setAutomine
     #[serde(
         rename = "evm_setAutomine",

@@ -326,3 +326,15 @@ async fn test_sign() {
         Signature::from_str("0xa114c834af73872c6c9efe918d85b0b1b34a486d10f9011e2630e28417c828c060dbd65cda67e73d52ebb7c555260621dbc1b0b4036acb61086bba091ac3f1641b").unwrap(),
     ).await;
 }
+
+#[tokio::test]
+async fn test_web3_sha3() {
+    verify_response(
+        &start_server().await,
+        MethodInvocation::Eth(EthMethodInvocation::Web3Sha3(
+            Bytes::from_static(b"").into(),
+        )),
+        KECCAK_EMPTY,
+    )
+    .await;
+}
