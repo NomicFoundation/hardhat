@@ -782,6 +782,14 @@ const communityPlugins: IPlugin[] = [
       "The hardhat-w3f plugin allows builders to build & run Web3 Functions connecting smart off-chain data with smart contracts ",
     tags: ["Gelato", "w3f", "offchain", "functions"],
   },
+  {
+    name: "hardhat-generate-function-selectors",
+    author: "3obby",
+    authorUrl: "https://github.com/3obby/generateFunctionSelectors",
+    description:
+      "generate an output file of organized function selectors for all ABI/.json files within ./artifacts/contracts",
+    tags: ["function", "selectors", "tooling", "router"],
+  },
 ];
 
 const officialPlugins: IPlugin[] = [
