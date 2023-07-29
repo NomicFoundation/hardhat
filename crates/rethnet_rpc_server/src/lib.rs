@@ -449,6 +449,17 @@ fn handle_sign(
     }
 }
 
+fn handle_web3_client_version() -> ResponseData<String> {
+    event!(Level::INFO, "web3_clientVersion()");
+    ResponseData::Success {
+        result: format!(
+            "edr/{}/revm/{}",
+            env!("CARGO_PKG_VERSION"),
+            env!("REVM_VERSION"),
+        ),
+    }
+}
+
 fn handle_web3_sha3(message: ZeroXPrefixedBytes) -> ResponseData<B256> {
     event!(Level::INFO, "web3_sha3({message:?})");
     let message: Bytes = message.into();
@@ -527,6 +538,9 @@ async fn handle_request(
                 }
                 MethodInvocation::Eth(EthMethodInvocation::Sign(address, message)) => {
                     response(id, handle_sign(state, address, message))
+                }
+                MethodInvocation::Eth(EthMethodInvocation::Web3ClientVersion()) => {
+                    response(id, handle_web3_client_version())
                 }
                 MethodInvocation::Eth(EthMethodInvocation::Web3Sha3(message)) => {
                     response(id, handle_web3_sha3(message.clone()))

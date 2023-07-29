@@ -328,6 +328,20 @@ async fn test_sign() {
 }
 
 #[tokio::test]
+async fn test_web3_client_version() {
+    verify_response(
+        &start_server().await,
+        MethodInvocation::Eth(EthMethodInvocation::Web3ClientVersion()),
+        String::from(&format!(
+            "edr/{}/revm/{}",
+            env!("CARGO_PKG_VERSION"),
+            env!("REVM_VERSION"),
+        )),
+    )
+    .await;
+}
+
+#[tokio::test]
 async fn test_web3_sha3() {
     verify_response(
         &start_server().await,

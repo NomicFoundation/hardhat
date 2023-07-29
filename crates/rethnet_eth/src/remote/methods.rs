@@ -285,6 +285,9 @@ pub enum MethodInvocation {
         deserialize_with = "sequence_to_single"
     )]
     Unsubscribe(Vec<ZeroXPrefixedBytes>),
+    /// web3_clientVersion
+    #[serde(rename = "web3_client_version")]
+    Web3ClientVersion(),
     /// web3_sha3
     #[serde(
         rename = "web3_sha3",

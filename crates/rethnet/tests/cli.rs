@@ -55,6 +55,7 @@ async fn node() -> Result<(), Box<dyn std::error::Error>> {
             address,
             bytes::Bytes::from(hex::decode("deadbeef").unwrap()).into(),
         )),
+        MethodInvocation::Eth(EthMethodInvocation::Web3ClientVersion()),
         MethodInvocation::Eth(EthMethodInvocation::Web3Sha3(
             Bytes::from_static(b"").into(),
         )),
@@ -153,6 +154,9 @@ async fn node() -> Result<(), Box<dyn std::error::Error>> {
             }
             MethodInvocation::Eth(EthMethodInvocation::Sign(address, message)) => {
                 format!("eth_sign({address:?}, {message:?})")
+            }
+            MethodInvocation::Eth(EthMethodInvocation::Web3ClientVersion()) => {
+                String::from("web3_clientVersion()")
             }
             MethodInvocation::Eth(EthMethodInvocation::Web3Sha3(message)) => {
                 format!("web3_sha3({message:?})")

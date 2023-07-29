@@ -366,6 +366,11 @@ fn test_serde_eth_unsubscribe() {
 }
 
 #[test]
+fn test_serde_web3_client_version() {
+    help_test_method_invocation_serde(MethodInvocation::Web3ClientVersion());
+}
+
+#[test]
 fn test_serde_web3_sha3() {
     help_test_method_invocation_serde(MethodInvocation::Web3Sha3(
         Bytes::from(&b"whatever"[..]).into(),
