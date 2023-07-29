@@ -7,7 +7,7 @@ use std::{
 use rethnet_eth::{
     block::{Block, DetailedBlock, Header, PartialHeader},
     log::Log,
-    receipt::{EIP658Receipt, TypedReceipt},
+    receipt::{TransactionReceipt, TypedReceipt, TypedReceiptData},
     transaction::SignedTransaction,
     trie::{ordered_trie_root, KECCAK_NULL_RLP},
     Address, Bloom, U256,
@@ -15,7 +15,7 @@ use rethnet_eth::{
 use revm::{
     db::DatabaseComponentError,
     primitives::{
-        AccountInfo, BlockEnv, CfgEnv, EVMError, ExecutionResult, InvalidTransaction,
+        AccountInfo, BlockEnv, CfgEnv, EVMError, ExecutionResult, InvalidTransaction, Output,
         ResultAndState, SpecId,
     },
 };
@@ -85,7 +85,7 @@ where
     header: PartialHeader,
     callers: Vec<Address>,
     transactions: Vec<SignedTransaction>,
-    receipts: Vec<TypedReceipt>,
+    receipts: Vec<TransactionReceipt<Log>>,
     parent_gas_limit: Option<U256>,
 }
 
@@ -253,18 +253,46 @@ where
             bloom
         };
 
-        let receipt = EIP658Receipt {
-            status_code: if result.is_success() { 1 } else { 0 },
-            gas_used: self.header.gas_used,
-            logs_bloom,
-            logs,
+        let status = if result.is_success() { 1 } else { 0 };
+        let contract_address = if let ExecutionResult::Success {
+            output: Output::Create(_, address),
+            ..
+        } = &result
+        {
+            *address
+        } else {
+            None
         };
 
-        self.receipts.push(match &*transaction {
-            SignedTransaction::Legacy(_) => TypedReceipt::Legacy(receipt),
-            SignedTransaction::EIP2930(_) => TypedReceipt::EIP2930(receipt),
-            SignedTransaction::EIP1559(_) => TypedReceipt::EIP1559(receipt),
-        });
+        let gas_price = transaction.gas_price();
+        let effective_gas_price = if let SignedTransaction::EIP1559(transaction) = &*transaction {
+            block.basefee + (gas_price - block.basefee).min(transaction.max_priority_fee_per_gas)
+        } else {
+            gas_price
+        };
+
+        let receipt = TransactionReceipt {
+            inner: TypedReceipt {
+                cumulative_gas_used: self.header.gas_used,
+                logs_bloom,
+                logs,
+                data: match &*transaction {
+                    SignedTransaction::Legacy(_) => {
+                        TypedReceiptData::PostByzantiumLegacy { status }
+                    }
+                    SignedTransaction::EIP2930(_) => TypedReceiptData::EIP2930 { status },
+                    SignedTransaction::EIP1559(_) => TypedReceiptData::EIP1559 { status },
+                },
+            },
+            transaction_hash: *transaction.hash(),
+            transaction_index: self.transactions.len() as u64,
+            from: *transaction.caller(),
+            to: transaction.to().cloned(),
+            contract_address,
+            gas_used: U256::from(result.gas_used()),
+            effective_gas_price,
+        };
+        self.receipts.push(receipt);
 
         let (transaction, caller) = transaction.into_inner();
 
@@ -321,7 +349,7 @@ where
         self.header.receipts_root = ordered_trie_root(
             self.receipts
                 .iter()
-                .map(|receipt| rlp::encode(receipt).freeze()),
+                .map(|receipt| rlp::encode(&**receipt).freeze()),
         );
 
         if let Some(timestamp) = timestamp {
@@ -338,7 +366,11 @@ where
         // TODO: handle ommers
         let block = Block::new(self.header, self.transactions, vec![]);
 
-        Ok(DetailedBlock::new(block, self.callers, self.receipts))
+        Ok(DetailedBlock::with_partial_receipts(
+            block,
+            self.callers,
+            self.receipts,
+        ))
     }
 
     /// Aborts building of the block, reverting all transactions in the process.

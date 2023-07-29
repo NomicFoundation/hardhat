@@ -1,3 +1,5 @@
+use std::ops::Deref;
+
 use ethbloom::Bloom;
 use revm_primitives::{Address, B256, U256};
 
@@ -9,7 +11,7 @@ use super::TypedReceipt;
 #[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
 pub struct TransactionReceipt<L> {
     #[cfg_attr(feature = "serde", serde(flatten))]
-    pub(crate) inner: TypedReceipt<L>,
+    pub inner: TypedReceipt<L>,
     /// Hash of the transaction
     pub transaction_hash: B256,
     /// Index of the transaction in the block
@@ -59,6 +61,23 @@ impl<L> TransactionReceipt<L> {
     /// Returns the transaction type of the receipt.
     pub fn transaction_type(&self) -> u64 {
         self.inner.transaction_type()
+    }
+}
+
+impl<L> Deref for TransactionReceipt<L> {
+    type Target = TypedReceipt<L>;
+
+    fn deref(&self) -> &Self::Target {
+        &self.inner
+    }
+}
+
+impl<L> rlp::Encodable for TransactionReceipt<L>
+where
+    L: rlp::Encodable,
+{
+    fn rlp_append(&self, s: &mut rlp::RlpStream) {
+        s.append(&self.inner);
     }
 }
 

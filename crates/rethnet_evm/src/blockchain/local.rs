@@ -188,6 +188,16 @@ impl Blockchain for LocalBlockchain {
         U256::from(self.storage.blocks().len() - 1)
     }
 
+    fn receipt_by_transaction_hash(
+        &self,
+        transaction_hash: &B256,
+    ) -> Result<Option<Arc<rethnet_eth::receipt::BlockReceipt>>, Self::Error> {
+        Ok(self
+            .storage
+            .receipt_by_transaction_hash(transaction_hash)
+            .cloned())
+    }
+
     fn total_difficulty_by_hash(&self, hash: &B256) -> Result<Option<U256>, Self::Error> {
         Ok(self.storage.total_difficulty_by_hash(hash).cloned())
     }
@@ -223,6 +233,14 @@ impl BlockchainMut for LocalBlockchain {
         let block = unsafe { self.storage.insert_block_unchecked(block, total_difficulty) };
 
         Ok(block.clone())
+    }
+
+    fn revert_to_block(&mut self, block_number: &U256) -> Result<(), Self::Error> {
+        if self.storage.revert_to_block(block_number) {
+            Ok(())
+        } else {
+            Err(BlockchainError::UnknownBlockNumber)
+        }
     }
 }
 

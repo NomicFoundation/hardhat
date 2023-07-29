@@ -20,8 +20,9 @@ pub enum BlockLog {
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
 pub struct FullBlockLog {
+    /// Receipt log
     #[cfg_attr(feature = "serde", serde(flatten))]
-    pub(crate) inner: ReceiptLog,
+    pub inner: ReceiptLog,
     /// block hash
     pub block_hash: B256,
     /// block number
@@ -43,11 +44,17 @@ impl Deref for FullBlockLog {
     }
 }
 
+impl rlp::Encodable for FullBlockLog {
+    fn rlp_append(&self, s: &mut rlp::RlpStream) {
+        s.append(&self.inner);
+    }
+}
+
 impl rlp::Encodable for BlockLog {
     fn rlp_append(&self, s: &mut rlp::RlpStream) {
         s.append(match self {
             BlockLog::Partial(log) => log,
-            BlockLog::Full(log) => &*log,
+            BlockLog::Full(log) => log,
         });
     }
 }

@@ -221,6 +221,22 @@ impl Blockchain for ForkedBlockchain {
         self.fork_block_number + U256::from(self.local_storage.blocks().len())
     }
 
+    fn receipt_by_transaction_hash(
+        &self,
+        transaction_hash: &B256,
+    ) -> Result<Option<Arc<rethnet_eth::receipt::BlockReceipt>>, Self::Error> {
+        if let Some(receipt) = self
+            .local_storage
+            .receipt_by_transaction_hash(transaction_hash)
+        {
+            Ok(Some(receipt.clone()))
+        } else {
+            self.remote
+                .receipt_by_transaction_hash(transaction_hash)
+                .map_err(BlockchainError::JsonRpcError)
+        }
+    }
+
     fn total_difficulty_by_hash(&self, hash: &B256) -> Result<Option<U256>, Self::Error> {
         if let Some(difficulty) = self.local_storage.total_difficulty_by_hash(hash).cloned() {
             Ok(Some(difficulty))
@@ -265,6 +281,24 @@ impl BlockchainMut for ForkedBlockchain {
         };
 
         Ok(block.clone())
+    }
+
+    fn revert_to_block(&mut self, block_number: &U256) -> Result<(), Self::Error> {
+        match block_number.cmp(&self.fork_block_number) {
+            std::cmp::Ordering::Less => Err(BlockchainError::CannotDeleteRemote),
+            std::cmp::Ordering::Equal => {
+                self.local_storage = ContiguousBlockchainStorage::default();
+
+                Ok(())
+            }
+            std::cmp::Ordering::Greater => {
+                if self.local_storage.revert_to_block(block_number) {
+                    Ok(())
+                } else {
+                    Err(BlockchainError::UnknownBlockNumber)
+                }
+            }
+        }
     }
 }
 

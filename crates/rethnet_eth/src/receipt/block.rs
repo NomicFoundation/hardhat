@@ -12,7 +12,7 @@ use super::TransactionReceipt;
 #[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
 pub struct BlockReceipt {
     #[cfg_attr(feature = "serde", serde(flatten))]
-    inner: TransactionReceipt<FullBlockLog>,
+    pub inner: TransactionReceipt<FullBlockLog>,
     /// Hash of the block that this is part of
     pub block_hash: B256,
     /// Number of the block that this is part of
@@ -25,6 +25,12 @@ impl Deref for BlockReceipt {
 
     fn deref(&self) -> &Self::Target {
         &self.inner
+    }
+}
+
+impl rlp::Encodable for BlockReceipt {
+    fn rlp_append(&self, s: &mut rlp::RlpStream) {
+        s.append(&self.inner);
     }
 }
 

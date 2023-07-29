@@ -9,8 +9,9 @@ use super::Log;
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
 pub struct ReceiptLog {
+    /// Execution log
     #[cfg_attr(feature = "serde", serde(flatten))]
-    pub(crate) inner: Log,
+    pub inner: Log,
     /// transaction hash
     pub transaction_hash: B256,
 }

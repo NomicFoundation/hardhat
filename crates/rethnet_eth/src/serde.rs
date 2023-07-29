@@ -1,5 +1,25 @@
 /// helper utilities for use with serde's serialize_with and deserialize_with
-use std::fmt::Write;
+use std::{fmt::Write, ops::Deref};
+
+use crate::U256;
+
+/// Type that serializes a [`U256`] without leading zeroes.
+#[derive(Clone, Copy, serde::Serialize, serde::Deserialize)]
+pub struct U256WithoutLeadingZeroes(#[serde(serialize_with = "u256::serialize")] U256);
+
+impl Deref for U256WithoutLeadingZeroes {
+    type Target = U256;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+impl From<U256> for U256WithoutLeadingZeroes {
+    fn from(value: U256) -> Self {
+        Self(value)
+    }
+}
 
 /// for use with serde's serialize_with on a single value that should be serialized as a
 /// sequence

@@ -332,10 +332,10 @@ impl Block {
 
     #[doc = "Retrieves the transactions' receipts."]
     #[napi(getter)]
-    pub fn receipts(&self, env: Env) -> napi::Result<Vec<Receipt>> {
+    pub fn receipts(&self) -> Vec<Receipt> {
         self.inner
             .transactions()
-            .map(|transaction| Receipt::new(&env, transaction.receipt))
+            .map(|transaction| transaction.receipt.clone().into())
             .collect()
     }
 }

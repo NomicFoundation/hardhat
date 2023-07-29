@@ -4,7 +4,7 @@ use futures::future::{self, FutureExt};
 use parking_lot::{RwLock, RwLockUpgradableReadGuard};
 use rethnet_eth::{
     block::DetailedBlock,
-    receipt::TypedReceipt,
+    receipt::BlockReceipt,
     remote::{self, BlockSpec, RpcClient, RpcClientError},
     B256, U256,
 };
@@ -86,6 +86,29 @@ impl RemoteBlockchain {
         }
     }
 
+    /// Retrieves the receipt of the transaction with the provided hash, if it exists.
+    pub fn receipt_by_transaction_hash(
+        &self,
+        transaction_hash: &B256,
+    ) -> Result<Option<Arc<BlockReceipt>>, RpcClientError> {
+        let cache = self.cache.upgradable_read();
+
+        if let Some(receipt) = cache.receipt_by_transaction_hash(transaction_hash) {
+            Ok(Some(receipt.clone()))
+        } else if let Some(receipt) = self
+            .runtime
+            .block_on(self.client.get_transaction_receipt(transaction_hash))?
+        {
+            Ok(Some({
+                let mut cache = RwLockUpgradableReadGuard::upgrade(cache);
+                // SAFETY: the receipt with this hash didn't exist yet, so it must be unique
+                unsafe { cache.insert_receipt_unchecked(receipt) }.clone()
+            }))
+        } else {
+            Ok(None)
+        }
+    }
+
     /// Retrieves the total difficulty at the block with the provided hash.
     pub fn total_difficulty_by_hash(&self, hash: &B256) -> Result<Option<U256>, RpcClientError> {
         let cache = self.cache.upgradable_read();
@@ -130,13 +153,9 @@ impl RemoteBlockchain {
 
         let receipts = self.runtime.block_on({
             future::try_join_all(transaction_hashes.iter().map(|hash| {
-                self.client.get_transaction_receipt(hash).map(|result| {
-                    result.map(Option::unwrap).map(|receipt| {
-                        TypedReceipt::try_from(receipt).expect(
-                            "Conversion must succeed, as we're not retrieving a pending block",
-                        )
-                    })
-                })
+                self.client
+                    .get_transaction_receipt(hash)
+                    .map(|result| result.map(|receipt| Arc::new(receipt.unwrap())))
             }))
         })?;
 
