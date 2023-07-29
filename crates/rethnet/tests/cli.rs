@@ -93,6 +93,8 @@ async fn node() -> Result<(), Box<dyn std::error::Error>> {
         .arg("--port")
         .arg("8549")
         .arg("-vv")
+        .arg("--coinbase")
+        .arg("0xffffffffffffffffffffffffffffffffffffffff")
         .arg("--chain-id")
         .arg("1")
         .arg("--network-id")

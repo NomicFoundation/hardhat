@@ -123,7 +123,7 @@ export function useProvider({
     if (rethnetBinary !== undefined) {
       const { childProcess, isReady, httpProvider } = spawnRethnetProvider(
         rethnetBinary,
-        { chainId, networkId }
+        { coinbase, chainId, networkId }
       );
 
       this.rethnetProcess = childProcess;

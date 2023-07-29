@@ -8,6 +8,7 @@ import { sleep } from "./sleep";
 
 interface RethnetProviderOptions {
   chainId?: number;
+  coinbase?: string;
   networkId?: number;
 }
 
@@ -23,6 +24,9 @@ export function spawnRethnetProvider(
   if (options !== undefined) {
     if (options.chainId !== undefined) {
       args.push("--chain-id", `${options.chainId}`);
+    }
+    if (options.coinbase !== undefined) {
+      args.push("--coinbase", options.coinbase);
     }
     if (options.networkId !== undefined) {
       args.push("--network-id", `${options.networkId}`);
