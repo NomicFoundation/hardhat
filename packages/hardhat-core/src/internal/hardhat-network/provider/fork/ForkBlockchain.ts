@@ -146,21 +146,6 @@ export class ForkBlockchain
     this._latestBlockNumber += count;
   }
 
-  public async deleteLaterBlocks(block: Block): Promise<void> {
-    const blockNumber = block.header.number;
-    const savedBlock = this._data.getBlockByNumber(blockNumber);
-    if (savedBlock === undefined || !savedBlock.hash().equals(block.hash())) {
-      throw new Error("Invalid block");
-    }
-
-    const nextBlockNumber = blockNumber + 1n;
-    if (this._forkBlockNumber >= nextBlockNumber) {
-      throw new Error("Cannot delete remote block");
-    }
-
-    await this._delBlock(nextBlockNumber);
-  }
-
   public async getTotalDifficultyByHash(blockHash: Buffer): Promise<bigint> {
     let td = this._data.getTotalDifficulty(blockHash);
     if (td !== undefined) {
@@ -207,9 +192,9 @@ export class ForkBlockchain
     return block;
   }
 
-  public async getTransactionReceipt(
+  public async getReceiptByTransactionHash(
     transactionHash: Buffer
-  ): Promise<RpcReceiptOutput | null> {
+  ): Promise<RpcReceiptOutput | undefined> {
     const local = this._data.getTransactionReceipt(transactionHash);
     if (local !== undefined) {
       return local;
@@ -218,11 +203,10 @@ export class ForkBlockchain
       transactionHash
     );
     if (remote !== null) {
-      const receipt = await this._processRemoteReceipt(remote);
-      return receipt ?? null;
+      return this._processRemoteReceipt(remote);
     }
 
-    return null;
+    return undefined;
   }
 
   public getForkBlockNumber() {
@@ -273,6 +257,20 @@ export class ForkBlockchain
       );
     }
     return this._common.gteHardfork(hardfork.toString());
+  }
+
+  public async revertToBlock(blockNumber: bigint): Promise<void> {
+    const savedBlock = this._data.getBlockByNumber(blockNumber);
+    if (savedBlock === undefined) {
+      throw new Error("Invalid block");
+    }
+
+    const nextBlockNumber = blockNumber + 1n;
+    if (this._forkBlockNumber >= nextBlockNumber) {
+      throw new Error("Cannot delete remote block");
+    }
+
+    await this._delBlock(nextBlockNumber);
   }
 
   private async _processRemoteBlock(rpcBlock: RpcBlockWithTransactions | null) {

@@ -794,7 +794,7 @@ export class HardhatNode extends EventEmitter {
     const hashBuffer = hash instanceof Buffer ? hash : toBuffer(hash);
     const receipt = await this._context
       .blockchain()
-      .getTransactionReceipt(hashBuffer);
+      .getReceiptByTransactionHash(hashBuffer);
     return receipt ?? undefined;
   }
 
@@ -878,7 +878,9 @@ export class HardhatNode extends EventEmitter {
     //
     // Note: There's no need to copy the maps here, as snapshots can only be
     // used once
-    await this._context.blockchain().deleteLaterBlocks(snapshot.latestBlock);
+    await this._context
+      .blockchain()
+      .revertToBlock(snapshot.latestBlock.header.number);
     this._irregularStatesByBlockNumber = snapshot.irregularStatesByBlockNumber;
     const irregularStateOrUndefined = this._irregularStatesByBlockNumber.get(
       (await this.getLatestBlock()).header.number

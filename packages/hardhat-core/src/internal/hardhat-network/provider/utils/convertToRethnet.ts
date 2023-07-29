@@ -13,6 +13,8 @@ import {
 import {
   Address,
   BufferLike,
+  bigIntToHex,
+  bufferToHex,
   setLengthLeft,
   toBuffer,
 } from "@nomicfoundation/ethereumjs-util";
@@ -30,8 +32,9 @@ import {
   Eip1559SignedTransaction,
   Eip2930SignedTransaction,
   Receipt as RethnetReceipt,
+  ExecutionLog,
 } from "rethnet-evm";
-import { fromBigIntLike } from "../../../util/bigint";
+import { fromBigIntLike, toHex } from "../../../util/bigint";
 import { HardforkName } from "../../../util/hardforks";
 import {
   isCreateOutput,
@@ -39,11 +42,12 @@ import {
   isRevertResult,
   isSuccessResult,
 } from "../../stack-traces/message-trace";
-import { Exit, ExitCode } from "../vm/exit";
-import { RunTxResult } from "../vm/vm-adapter";
+import { RpcLogOutput, RpcReceiptOutput } from "../output";
 import { FakeSenderEIP1559Transaction } from "../transactions/FakeSenderEIP1559Transaction";
 import { FakeSenderAccessListEIP2930Transaction } from "../transactions/FakeSenderAccessListEIP2930Transaction";
 import { FakeSenderTransaction } from "../transactions/FakeSenderTransaction";
+import { Exit, ExitCode } from "../vm/exit";
+import { RunTxResult } from "../vm/vm-adapter";
 import { Bloom } from "./bloom";
 
 /* eslint-disable @nomiclabs/hardhat-internal-rules/only-hardhat-error */
@@ -335,7 +339,7 @@ export function rethnetBlockToEthereumJS(
   });
 }
 
-function rethnetLogsToBloom(logs: Log[]): Bloom {
+function rethnetLogsToBloom(logs: ExecutionLog[]): Bloom {
   const bloom = new Bloom();
   for (const log of logs) {
     bloom.add(log.address);
@@ -346,16 +350,62 @@ function rethnetLogsToBloom(logs: Log[]): Bloom {
   return bloom;
 }
 
-export function rethnetReceiptToEthereumJS(
+export function rethnetReceiptToEthereumJsTxReceipt(
   receipt: RethnetReceipt
 ): PostByzantiumTxReceipt {
   return {
-    status: receipt.statusCode > 0 ? 1 : 0,
+    status: receipt.status! > 0 ? 1 : 0,
     cumulativeBlockGasUsed: receipt.gasUsed,
     bitvector: receipt.logsBloom,
     logs: receipt.logs.map((log) => {
       return [log.address, log.topics, log.data];
     }),
+  };
+}
+
+export function rethnetReceiptToEthereumJS(
+  receipt: RethnetReceipt
+): RpcReceiptOutput {
+  return {
+    blockHash: bufferToHex(receipt.blockHash),
+    blockNumber: bigIntToHex(receipt.blockNumber),
+    contractAddress:
+      receipt.contractAddress !== null
+        ? bufferToHex(receipt.contractAddress)
+        : null,
+    cumulativeGasUsed: bigIntToHex(receipt.cumulativeGasUsed),
+    from: bufferToHex(receipt.caller),
+    gasUsed: bigIntToHex(receipt.gasUsed),
+    logs: receipt.logs.map((log) => {
+      return rethnetLogToEthereumJS(log);
+    }),
+    logsBloom: bufferToHex(receipt.logsBloom),
+    to: receipt.callee !== null ? bufferToHex(receipt.callee) : null,
+    transactionHash: bufferToHex(receipt.transactionHash),
+    transactionIndex: bigIntToHex(receipt.transactionIndex),
+    status: receipt.status !== null ? toHex(receipt.status) : undefined,
+    root:
+      receipt.stateRoot !== null ? bufferToHex(receipt.stateRoot) : undefined,
+    type: bigIntToHex(receipt.type),
+    effectiveGasPrice: bigIntToHex(receipt.effectiveGasPrice),
+  };
+}
+
+export function rethnetLogToEthereumJS(log: Log): RpcLogOutput {
+  return {
+    address: bufferToHex(log.address),
+    blockHash: log.blockHash !== null ? bufferToHex(log.blockHash) : null,
+    blockNumber: log.blockNumber !== null ? bigIntToHex(log.blockNumber) : null,
+    data: bufferToHex(log.data),
+    logIndex: log.logIndex !== null ? bigIntToHex(log.logIndex) : null,
+    removed: log.removed,
+    topics: log.topics.map((topic) => {
+      return bufferToHex(topic);
+    }),
+    transactionHash:
+      log.transactionHash !== null ? bufferToHex(log.transactionHash) : null,
+    transactionIndex:
+      log.transactionIndex !== null ? bigIntToHex(log.transactionIndex) : null,
   };
 }
 

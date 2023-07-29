@@ -18,7 +18,7 @@ export async function createContext(
   if (vmModeEnvVar === "ethereumjs") {
     return HardhatEthContext.create(config, prevRandaoGenerator);
   } else if (vmModeEnvVar === "rethnet") {
-    return new RethnetEthContext(config);
+    return RethnetEthContext.create(config);
   } else {
     return DualEthContext.create(config, prevRandaoGenerator);
   }

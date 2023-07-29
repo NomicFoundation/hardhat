@@ -26,7 +26,7 @@ import { HARDHAT_NETWORK_DEFAULT_INITIAL_BASE_FEE_PER_GAS } from "../../../core/
 import { HardforkHistoryConfig } from "../../../../types/config";
 import { HardhatBlockchain } from "../HardhatBlockchain";
 import { HardhatMemPool } from "../mem-pool/hardhat";
-import { putGenesisBlock } from "../utils/putGenesisBlock";
+import { makeGenesisBlock } from "../utils/putGenesisBlock";
 import { BlockchainAdapter } from "../blockchain";
 
 export class HardhatEthContext implements EthContextAdapter {
@@ -71,8 +71,7 @@ export class HardhatEthContext implements EthContextAdapter {
           BigInt(HARDHAT_NETWORK_DEFAULT_INITIAL_BASE_FEE_PER_GAS)
         : undefined;
 
-      await putGenesisBlock(
-        blockchain as HardhatBlockchain,
+      const genesisBlock = makeGenesisBlock(
         common,
         config,
         await vm.getStateRoot(),
@@ -80,6 +79,8 @@ export class HardhatEthContext implements EthContextAdapter {
         prevRandaoGenerator.next(),
         genesisBlockBaseFeePerGas
       );
+
+      await blockchain.putBlock(genesisBlock);
     }
 
     const memPool = new HardhatMemPool(
@@ -213,6 +214,7 @@ async function _createBlockchain(
     return {
       blockchain,
       blockTimeOffset: initialBlockTimeOffset,
+      initialBaseFeePerGas,
       fork: new ForkData(
         forkClient,
         forkBlockNumber,
@@ -231,6 +233,7 @@ async function _createBlockchain(
     return {
       blockchain: new HardhatBlockchain(common),
       blockTimeOffset,
+      initialBaseFeePerGas,
     };
   }
 }

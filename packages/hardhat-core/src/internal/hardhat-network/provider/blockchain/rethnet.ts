@@ -3,11 +3,14 @@ import { Common } from "@nomicfoundation/ethereumjs-common";
 import { Blockchain } from "rethnet-evm";
 import { HardforkName } from "../../../util/hardforks";
 import { BlockchainAdapter } from "../blockchain";
-import { RpcReceiptOutput } from "../output";
+import { RpcLogOutput, RpcReceiptOutput } from "../output";
 import {
   ethereumsjsHardforkToRethnetSpecId,
   rethnetBlockToEthereumJS,
+  rethnetLogToEthereumJS,
+  rethnetReceiptToEthereumJS,
 } from "../utils/convertToRethnet";
+import { FilterParams } from "../node-types";
 import { bloomFilter, filterLogs } from "../filter";
 import { Bloom } from "../utils/bloom";
 
@@ -99,7 +102,7 @@ export class RethnetBlockchain implements BlockchainAdapter {
         logs.push(
           ...filterLogs(
             receipt.logs.map((log) => {
-              return [log.address, log.topics, log.data];
+              return rethnetLogToEthereumJS(log);
             }),
             {
               fromBlock: filterParams.fromBlock,
@@ -114,32 +117,27 @@ export class RethnetBlockchain implements BlockchainAdapter {
     return logs;
   }
 
-  // public async getReceiptByTransactionHash(
-  //   transactionHash: Buffer
-  // ): Promise<RpcReceiptOutput | undefined> {
-  //   const block = await this._blockchain.blockByTransactionHash(
-  //     transactionHash
-  //   );
-  //   if (block === null) {
-  //     return undefined;
-  //   }
+  public async getReceiptByTransactionHash(
+    transactionHash: Buffer
+  ): Promise<RpcReceiptOutput | undefined> {
+    const receipt = await this._blockchain.receiptByTransactionHash(
+      transactionHash
+    );
 
-  //   const receiptIdx =block.transactions .findIndex((transaction) => ) receipts.find((receipt) => {
-  //     return receipt.
-  //   })
-  //   const receipt = block.re;
+    if (receipt === null) {
+      return undefined;
+    }
 
-  //   return {
-  //     blockHash: hash.toString(),
-  //     blockNumber: block.header.number.toString(),
-  //     contractAddress: null,
-  //     cumulativeGasUsed: block.header.ga,
-  //   };
-  // }
+    return rethnetReceiptToEthereumJS(receipt);
+  }
 
   public async getTotalDifficultyByHash(
     hash: Buffer
   ): Promise<bigint | undefined> {
     return (await this._blockchain.totalDifficultyByHash(hash)) ?? undefined;
+  }
+
+  public async revertToBlock(blockNumber: bigint): Promise<void> {
+    await this._blockchain.revertToBlock(blockNumber);
   }
 }

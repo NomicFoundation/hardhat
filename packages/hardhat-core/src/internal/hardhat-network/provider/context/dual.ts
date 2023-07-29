@@ -49,7 +49,7 @@ export class DualEthContext implements EthContextAdapter {
       );
     }
 
-    const rethnet = new RethnetEthContext(config);
+    const rethnet = await RethnetEthContext.create(config);
 
     const vm = new DualModeAdapter(common, hardhat.vm(), rethnet.vm());
 

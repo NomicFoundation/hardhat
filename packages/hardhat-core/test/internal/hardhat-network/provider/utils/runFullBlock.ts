@@ -78,7 +78,7 @@ export async function runFullBlock(
     }
   );
 
-  const vm = forkedNode["_vm"];
+  const vm = forkedNode["_context"].vm();
 
   const blockBuilder = await vm.createBlockBuilder(common, {
     parentBlock,
@@ -100,7 +100,7 @@ export async function runFullBlock(
       dumpFileTarget,
       JSON.stringify(
         (
-          (forkedNode["_vm"] as EthereumJSAdapter)[
+          (forkedNode["_context"].vm() as EthereumJSAdapter)[
             "_stateManager"
           ] as ForkStateManager
         )["_state"]

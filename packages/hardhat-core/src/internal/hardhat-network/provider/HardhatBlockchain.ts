@@ -6,7 +6,7 @@ import { zeros } from "@nomicfoundation/ethereumjs-util";
 import { HardforkName } from "../../util/hardforks";
 import { BlockchainBase } from "./BlockchainBase";
 import { FilterParams } from "./node-types";
-import { RpcLogOutput } from "./output";
+import { RpcLogOutput, RpcReceiptOutput } from "./output";
 import { HardhatBlockchainInterface } from "./types/HardhatBlockchainInterface";
 
 /* eslint-disable @nomiclabs/hardhat-internal-rules/only-hardhat-error */
@@ -50,15 +50,6 @@ export class HardhatBlockchain
     this._length += count;
   }
 
-  public async deleteLaterBlocks(block: Block): Promise<void> {
-    const actual = this._data.getBlockByHash(block.hash());
-    if (actual === undefined) {
-      throw new Error("Invalid block");
-    }
-
-    await this._delBlock(actual.header.number + 1n);
-  }
-
   public async getTotalDifficultyByHash(blockHash: Buffer): Promise<bigint> {
     const totalDifficulty = this._data.getTotalDifficulty(blockHash);
     if (totalDifficulty === undefined) {
@@ -87,8 +78,10 @@ export class HardhatBlockchain
     return this._data.getBlockByTransactionHash(transactionHash);
   }
 
-  public async getTransactionReceipt(transactionHash: Buffer) {
-    return this._data.getTransactionReceipt(transactionHash) ?? null;
+  public async getReceiptByTransactionHash(
+    transactionHash: Buffer
+  ): Promise<RpcReceiptOutput | undefined> {
+    return this._data.getTransactionReceipt(transactionHash);
   }
 
   public async getLogs(filterParams: FilterParams): Promise<RpcLogOutput[]> {
@@ -100,6 +93,15 @@ export class HardhatBlockchain
     _blockNumberOrPending?: bigint | "pending"
   ): Promise<boolean> {
     return this._common.gteHardfork(hardfork.toString());
+  }
+
+  public async revertToBlock(blockNumber: bigint): Promise<void> {
+    const block = this._data.getBlockByNumber(blockNumber);
+    if (block === undefined) {
+      throw new Error("Invalid block");
+    }
+
+    await this._delBlock(blockNumber + 1n);
   }
 
   private _validateBlock(block: Block) {

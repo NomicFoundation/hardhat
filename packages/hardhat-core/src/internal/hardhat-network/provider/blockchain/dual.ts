@@ -1,7 +1,13 @@
 import { Block } from "@nomicfoundation/ethereumjs-block";
 import { HardforkName } from "../../../util/hardforks";
 import { BlockchainAdapter } from "../blockchain";
-import { assertEqualOptionalBlocks } from "../utils/assertions";
+import {
+  assertEqualOptionalBlocks,
+  assertEqualOptionalReceipts,
+  rpcLogDifferences,
+} from "../utils/assertions";
+import { FilterParams } from "../node-types";
+import { RpcLogOutput } from "../output";
 
 /* eslint-disable @nomiclabs/hardhat-internal-rules/only-hardhat-error */
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
@@ -87,6 +93,55 @@ export class DualBlockchain implements BlockchainAdapter {
     return rethnetBlockNumber;
   }
 
+  public async getLogs(filterParams: FilterParams): Promise<RpcLogOutput[]> {
+    const hardhat = await this._hardhat.getLogs(filterParams);
+    const rethnet = await this._rethnet.getLogs(filterParams);
+
+    if (hardhat.length !== rethnet.length) {
+      console.trace(
+        `Different logs length: ${hardhat.length} (hardhat) !== ${rethnet.length} (rethnet)`
+      );
+      throw new Error("Different logs length");
+    }
+
+    const differences: string[] = [];
+
+    for (let i = 0; i < hardhat.length; i++) {
+      const hardhatLog = hardhat[i];
+      const rethnetLog = rethnet[i];
+
+      const logDifferences = rpcLogDifferences(hardhatLog, rethnetLog);
+
+      if (logDifferences.length > 0) {
+        differences.push(
+          `Log ${i}:\n${logDifferences.map((l) => `  ${l}`).join("\n")}`
+        );
+      }
+    }
+
+    if (differences.length > 0) {
+      console.trace(
+        `Different logs:\n${differences.map((l) => `  ${l}`).join("\n")}`
+      );
+      throw new Error("Different logs");
+    }
+
+    return rethnet;
+  }
+
+  public async getReceiptByTransactionHash(transactionHash: Buffer) {
+    const hardhat = await this._hardhat.getReceiptByTransactionHash(
+      transactionHash
+    );
+    const rethnet = await this._rethnet.getReceiptByTransactionHash(
+      transactionHash
+    );
+
+    assertEqualOptionalReceipts(hardhat, rethnet);
+
+    return rethnet;
+  }
+
   public async getTotalDifficultyByHash(
     hash: Buffer
   ): Promise<bigint | undefined> {
@@ -124,5 +179,10 @@ export class DualBlockchain implements BlockchainAdapter {
     }
 
     return rethnetTotalDifficulty;
+  }
+
+  public async revertToBlock(blockNumber: bigint): Promise<void> {
+    await this._hardhat.revertToBlock(blockNumber);
+    await this._rethnet.revertToBlock(blockNumber);
   }
 }

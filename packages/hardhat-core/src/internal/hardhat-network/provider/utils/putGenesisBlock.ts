@@ -4,19 +4,17 @@ import { bufferToHex } from "@nomicfoundation/ethereumjs-util";
 
 import { dateToTimestampSeconds } from "../../../util/date";
 import { hardforkGte, HardforkName } from "../../../util/hardforks";
-import { HardhatBlockchain } from "../HardhatBlockchain";
 import { LocalNodeConfig } from "../node-types";
 import { getCurrentTimestamp } from "./getCurrentTimestamp";
 
-export async function putGenesisBlock(
-  blockchain: HardhatBlockchain,
+export function makeGenesisBlock(
   common: Common,
   { initialDate, blockGasLimit: initialBlockGasLimit }: LocalNodeConfig,
   stateRoot: Buffer,
   hardfork: HardforkName,
   initialMixHash: Buffer,
   initialBaseFee?: bigint
-) {
+): Block {
   const initialBlockTimestamp =
     initialDate !== undefined
       ? dateToTimestampSeconds(initialDate)
@@ -41,7 +39,7 @@ export async function putGenesisBlock(
     header.baseFeePerGas = initialBaseFee;
   }
 
-  const genesisBlock = Block.fromBlockData(
+  return Block.fromBlockData(
     {
       header,
     },
@@ -50,6 +48,4 @@ export async function putGenesisBlock(
       skipConsensusFormatValidation: true,
     }
   );
-
-  await blockchain.putBlock(genesisBlock);
 }

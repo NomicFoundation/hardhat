@@ -12,8 +12,10 @@ import { HardhatBlockchain } from "../../../../src/internal/hardhat-network/prov
 import { VMAdapter } from "../../../../src/internal/hardhat-network/provider/vm/vm-adapter";
 import { MessageTrace } from "../../../../src/internal/hardhat-network/stack-traces/message-trace";
 import { defaultHardhatNetworkParams } from "../../../../src/internal/core/config/default-config";
-import { createVm } from "../../../../src/internal/hardhat-network/provider/vm/creation";
+import { createContext } from "../../../../src/internal/hardhat-network/provider/vm/creation";
 import { NodeConfig } from "../../../../src/internal/hardhat-network/provider/node-types";
+import { RandomBufferGenerator } from "../../../../src/internal/hardhat-network/provider/utils/random";
+import { EthContextAdapter } from "../../../../src/internal/hardhat-network/provider/context";
 
 const abi = require("ethereumjs-abi");
 
@@ -23,7 +25,9 @@ const senderPrivateKey = Buffer.from(
 );
 const senderAddress = privateToAddress(senderPrivateKey);
 
-export async function instantiateVm(): Promise<[VMAdapter, Common]> {
+export async function instantiateContext(): Promise<
+  [EthContextAdapter, Common]
+> {
   const account = Account.fromAccountData({ balance: 1e15 });
 
   const config: NodeConfig = {
@@ -41,20 +45,22 @@ export async function instantiateVm(): Promise<[VMAdapter, Common]> {
   };
 
   const common = new Common({ chain: "mainnet", hardfork: "shanghai" });
-  const blockchain = new HardhatBlockchain(common);
-  await blockchain.addBlock(
-    Block.fromBlockData({
-      header: {
-        number: 0n,
-      },
-    })
+
+  const context = await createContext(
+    config,
+    RandomBufferGenerator.create("randomMixHashSeed")
   );
+  // await context.blockchain().addBlock(
+  //   Block.fromBlockData({
+  //     header: {
+  //       number: 0n,
+  //     },
+  //   })
+  // );
 
-  const vm = await createVm(common, blockchain, config, () => "shanghai");
+  await context.vm().putAccount(new Address(senderAddress), account);
 
-  await vm.putAccount(new Address(senderAddress), account);
-
-  return [vm, common];
+  return [context, common];
 }
 
 export function encodeConstructorParams(
@@ -124,7 +130,7 @@ export async function traceTransaction(
     }
     return trace;
   } finally {
-    vm.clearLastError();
+    vm.getLastTraceAndClear();
   }
 }
 

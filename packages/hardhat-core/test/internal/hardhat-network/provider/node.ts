@@ -148,7 +148,7 @@ describe("HardhatNode", () => {
 
     describe("basic tests", () => {
       it("can mine an empty block", async () => {
-        const beforeBlock = node.getLatestBlockNumber();
+        const beforeBlock = await node.getLatestBlockNumber();
         await node.mineBlock();
         const currentBlock = node.getLatestBlockNumber();
         assert.equal(currentBlock.toString(), (beforeBlock + 1n).toString());
@@ -759,16 +759,16 @@ describe("HardhatNode", () => {
 
   describe("mineBlocks", function () {
     it("shouldn't break getLatestBlock()", async function () {
-      const previousLatestBlockNumber = node.getLatestBlockNumber();
+      const previousLatestBlockNumber = await node.getLatestBlockNumber();
       await node.mineBlocks(10n);
       const latestBlock = await node.getLatestBlock();
       assert.equal(latestBlock.header.number, previousLatestBlockNumber + 10n);
     });
 
     it("shouldn't break getLatestBlockNumber()", async function () {
-      const previousLatestBlockNumber = node.getLatestBlockNumber();
+      const previousLatestBlockNumber = await node.getLatestBlockNumber();
       await node.mineBlocks(10n);
-      const latestBlockNumber = node.getLatestBlockNumber();
+      const latestBlockNumber = await node.getLatestBlockNumber();
       assert.equal(latestBlockNumber, previousLatestBlockNumber + 10n);
     });
 
@@ -799,7 +799,7 @@ describe("HardhatNode", () => {
       });
 
       it("when doing mineBlocks() after a snapshot", async function () {
-        const originalLatestBlockNumber = node.getLatestBlockNumber();
+        const originalLatestBlockNumber = await node.getLatestBlockNumber();
         await node.sendTransaction(
           createTestTransaction({
             from: DEFAULT_ACCOUNTS_ADDRESSES[1],
@@ -810,7 +810,8 @@ describe("HardhatNode", () => {
           })
         );
 
-        const latestBlockNumberBeforeSnapshot = node.getLatestBlockNumber();
+        const latestBlockNumberBeforeSnapshot =
+          await node.getLatestBlockNumber();
         assert.equal(
           latestBlockNumberBeforeSnapshot.toString(),
           originalLatestBlockNumber.toString()
@@ -818,20 +819,20 @@ describe("HardhatNode", () => {
 
         const snapshotId = await node.takeSnapshot();
         assert.equal(
-          node.getLatestBlockNumber().toString(),
+          (await node.getLatestBlockNumber()).toString(),
           originalLatestBlockNumber.toString()
         );
 
         await node.mineBlocks(10n);
         assert.equal(
-          node.getLatestBlockNumber(),
+          await node.getLatestBlockNumber(),
           latestBlockNumberBeforeSnapshot + 10n
         );
 
         await node.revertToSnapshot(snapshotId);
 
         assert.equal(
-          node.getLatestBlockNumber().toString(),
+          (await node.getLatestBlockNumber()).toString(),
           latestBlockNumberBeforeSnapshot.toString()
         );
       });
@@ -1071,7 +1072,7 @@ describe("HardhatNode", () => {
     };
     const [, hardhatNode] = await HardhatNode.create(nodeConfig);
 
-    const oldLatestBlockNumber = hardhatNode.getLatestBlockNumber();
+    const oldLatestBlockNumber = await hardhatNode.getLatestBlockNumber();
 
     await hardhatNode.mineBlocks(100n);
 

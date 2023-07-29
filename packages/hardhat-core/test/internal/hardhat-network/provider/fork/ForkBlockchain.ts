@@ -24,6 +24,7 @@ import {
   LAST_TX_HASH_OF_10496585,
   TOTAL_DIFFICULTY_OF_BLOCK_10496585,
 } from "../../helpers/constants";
+import { defaultHardhatNetworkParams } from "../../../../../src/internal/core/config/default-config";
 
 describe("ForkBlockchain", () => {
   let client: JsonRpcClient;
@@ -44,6 +45,10 @@ describe("ForkBlockchain", () => {
     );
   }
 
+  function mainnetHardforkActivations() {
+    return defaultHardhatNetworkParams.chains.get(1)!.hardforkHistory;
+  }
+
   before(async function () {
     if (ALCHEMY_URL === undefined) {
       this.skip();
@@ -59,7 +64,12 @@ describe("ForkBlockchain", () => {
     common = new Common({ chain: "mainnet" });
     common.setHardfork(common.getHardforkByBlockNumber(forkBlockNumber));
 
-    fb = new ForkBlockchain(client, forkBlockNumber, common);
+    fb = new ForkBlockchain(
+      client,
+      forkBlockNumber,
+      mainnetHardforkActivations(),
+      common
+    );
   });
 
   it("can be constructed", () => {
@@ -133,7 +143,12 @@ describe("ForkBlockchain", () => {
     });
 
     it("cannot get remote blocks that are newer than forkBlockNumber", async () => {
-      fb = new ForkBlockchain(client, forkBlockNumber - 10n, common);
+      fb = new ForkBlockchain(
+        client,
+        forkBlockNumber - 10n,
+        mainnetHardforkActivations(),
+        common
+      );
       const newerBlock = await client.getBlockByNumber(forkBlockNumber - 5n);
 
       await assert.isRejected(
@@ -168,7 +183,12 @@ describe("ForkBlockchain", () => {
 
   describe("getLatestBlock", () => {
     it("returns the block at which we fork if no blocks were added", async () => {
-      fb = new ForkBlockchain(client, BLOCK_NUMBER_OF_10496585, common);
+      fb = new ForkBlockchain(
+        client,
+        BLOCK_NUMBER_OF_10496585,
+        mainnetHardforkActivations(),
+        common
+      );
       const block = await fb.getLatestBlock();
 
       assert.isTrue(block?.hash().equals(BLOCK_HASH_OF_10496585));
@@ -339,7 +359,7 @@ describe("ForkBlockchain", () => {
       await fb.addBlock(blockTwo);
       await fb.addBlock(blockThree);
 
-      fb.deleteLaterBlocks(blockOne);
+      fb.revertToBlock(blockOne.header.number);
 
       assert.equal(await fb.getBlock(blockOne.hash()), blockOne);
       await assert.isRejected(
@@ -365,12 +385,12 @@ describe("ForkBlockchain", () => {
       await fb.addBlock(blockOne);
 
       assert.throws(
-        () => fb.deleteLaterBlocks(notAddedBlock),
+        () => fb.revertToBlock(notAddedBlock.header.number),
         Error,
         "Invalid block"
       );
       assert.throws(
-        () => fb.deleteLaterBlocks(fakeBlockOne),
+        () => fb.revertToBlock(fakeBlockOne.header.number),
         Error,
         "Invalid block"
       );
@@ -379,13 +399,13 @@ describe("ForkBlockchain", () => {
     it("does not throw if there are no following blocks", async () => {
       const blockOne = createBlock(await fb.getLatestBlock());
       await fb.addBlock(blockOne);
-      assert.doesNotThrow(() => fb.deleteLaterBlocks(blockOne));
+      assert.doesNotThrow(() => fb.revertToBlock(blockOne.header.number));
     });
 
     it("throws on attempt to remove remote blocks", async () => {
       const block = await fb.getBlock(BLOCK_NUMBER_OF_10496585);
       assert.throws(
-        () => fb.deleteLaterBlocks(block!),
+        () => fb.revertToBlock(block!.header.number),
         Error,
         "Cannot delete remote block"
       );
@@ -395,7 +415,7 @@ describe("ForkBlockchain", () => {
   describe("getBlockTotalDifficulty", () => {
     it("rejects when hash of non-existent block is given", async () => {
       await assert.isRejected(
-        fb.getTotalDifficulty(randomHashBuffer()),
+        fb.getTotalDifficultyByHash(randomHashBuffer()),
         Error,
         "Block not found"
       );
@@ -403,7 +423,7 @@ describe("ForkBlockchain", () => {
 
     it("can get difficulty of the genesis block", async () => {
       const genesis = await client.getBlockByNumber(0n, false);
-      const difficulty = await fb.getTotalDifficulty(genesis?.hash!);
+      const difficulty = await fb.getTotalDifficultyByHash(genesis?.hash!);
       assert.equal(difficulty, genesis?.difficulty);
     });
 
@@ -413,14 +433,14 @@ describe("ForkBlockchain", () => {
       fb.deleteBlock(block.hash());
 
       await assert.isRejected(
-        fb.getTotalDifficulty(block.hash()),
+        fb.getTotalDifficultyByHash(block.hash()),
         Error,
         "Block not found"
       );
     });
 
     it("can get total difficulty of a remote block", async () => {
-      const td = await fb.getTotalDifficulty(BLOCK_HASH_OF_10496585);
+      const td = await fb.getTotalDifficultyByHash(BLOCK_HASH_OF_10496585);
 
       assert.equal(
         td.toString(),
@@ -432,13 +452,13 @@ describe("ForkBlockchain", () => {
       const latest = await fb.getLatestBlock();
       const block = createBlock(latest, 1000n);
 
-      const latestDifficulty = await fb.getTotalDifficulty(latest.hash());
+      const latestDifficulty = await fb.getTotalDifficultyByHash(latest.hash());
 
       await fb.addBlock(block);
 
-      const totalDifficulty = await fb.getTotalDifficulty(block.hash());
+      const totalDifficulty = await fb.getTotalDifficultyByHash(block.hash());
 
-      assert.equal(totalDifficulty, latestDifficulty + 1000n);
+      assert.equal(totalDifficulty, BigInt(latestDifficulty) + 1000n);
     });
   });
 
@@ -480,7 +500,12 @@ describe("ForkBlockchain", () => {
     });
 
     it("returns undefined for newer remote transactions", async () => {
-      fb = new ForkBlockchain(client, BLOCK_NUMBER_OF_10496585 - 1n, common);
+      fb = new ForkBlockchain(
+        client,
+        BLOCK_NUMBER_OF_10496585 - 1n,
+        mainnetHardforkActivations(),
+        common
+      );
       assert.equal(
         await fb.getTransaction(FIRST_TX_HASH_OF_10496585),
         undefined
@@ -525,7 +550,12 @@ describe("ForkBlockchain", () => {
     });
 
     it("throws for newer remote transactions", async () => {
-      fb = new ForkBlockchain(client, BLOCK_NUMBER_OF_10496585 - 1n, common);
+      fb = new ForkBlockchain(
+        client,
+        BLOCK_NUMBER_OF_10496585 - 1n,
+        mainnetHardforkActivations(),
+        common
+      );
       await assert.isRejected(
         fb.getBlockByTransactionHash(FIRST_TX_HASH_OF_10496585),
         Error,
@@ -547,11 +577,11 @@ describe("ForkBlockchain", () => {
     });
   });
 
-  describe("getTransactionReceipt", () => {
+  describe("getReceiptByTransactionHash", () => {
     it("returns undefined for unknown transactions", async () => {
       const transaction = createTestTransaction();
       assert.equal(
-        await fb.getTransactionReceipt(transaction.hash()),
+        await fb.getReceiptByTransactionHash(transaction.hash()),
         undefined
       );
     });
@@ -563,7 +593,7 @@ describe("ForkBlockchain", () => {
       await fb.addBlock(block);
 
       assert.equal(
-        await fb.getTransactionReceipt(transaction.hash()),
+        await fb.getReceiptByTransactionHash(transaction.hash()),
         undefined
       );
     });
@@ -577,11 +607,16 @@ describe("ForkBlockchain", () => {
       await fb.addBlock(block);
       fb.addTransactionReceipts([receipt]);
 
-      assert.equal(await fb.getTransactionReceipt(transaction.hash()), receipt);
+      assert.equal(
+        await fb.getReceiptByTransactionHash(transaction.hash()),
+        receipt
+      );
     });
 
     it("returns remote receipts", async () => {
-      const receipt = await fb.getTransactionReceipt(FIRST_TX_HASH_OF_10496585);
+      const receipt = await fb.getReceiptByTransactionHash(
+        FIRST_TX_HASH_OF_10496585
+      );
       assert.equal(
         receipt?.transactionHash,
         bufferToHex(FIRST_TX_HASH_OF_10496585)
@@ -589,10 +624,15 @@ describe("ForkBlockchain", () => {
     });
 
     it("returns undefined for newer remote receipts", async () => {
-      fb = new ForkBlockchain(client, BLOCK_NUMBER_OF_10496585 - 1n, common);
+      fb = new ForkBlockchain(
+        client,
+        BLOCK_NUMBER_OF_10496585 - 1n,
+        mainnetHardforkActivations(),
+        common
+      );
 
       assert.equal(
-        await fb.getTransactionReceipt(FIRST_TX_HASH_OF_10496585),
+        await fb.getReceiptByTransactionHash(FIRST_TX_HASH_OF_10496585),
         undefined
       );
     });
@@ -608,7 +648,7 @@ describe("ForkBlockchain", () => {
       fb.deleteBlock(block.hash());
 
       assert.equal(
-        await fb.getTransactionReceipt(transaction.hash()),
+        await fb.getReceiptByTransactionHash(transaction.hash()),
         undefined
       );
     });
@@ -675,7 +715,12 @@ describe("ForkBlockchain", () => {
     });
 
     it("can fetch both remote and local logs simultaneously", async () => {
-      fb = new ForkBlockchain(client, BLOCK_NUMBER_OF_10496585, common);
+      fb = new ForkBlockchain(
+        client,
+        BLOCK_NUMBER_OF_10496585,
+        mainnetHardforkActivations(),
+        common
+      );
 
       const block1 = createBlock(await fb.getLatestBlock());
       const number = block1.header.number;

@@ -1,4 +1,3 @@
-import { Block } from "@nomicfoundation/ethereumjs-block";
 import { BlockchainInterface } from "@nomicfoundation/ethereumjs-blockchain";
 
 import { RpcReceiptOutput } from "../output";
@@ -15,8 +14,4 @@ export interface HardhatBlockchainInterface
     previousBlockTotalDifficulty: bigint,
     previousBlockBaseFeePerGas: bigint | undefined
   ): void;
-  deleteLaterBlocks(block: Block): void;
-  getTransactionReceipt(
-    transactionHash: Buffer
-  ): Promise<RpcReceiptOutput | null>;
 }

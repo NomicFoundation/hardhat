@@ -16,65 +16,111 @@ import { BlockBuilderAdapter, BuildBlockOpts } from "../vm/block-builder";
 import { VMAdapter } from "../vm/vm-adapter";
 import { RethnetMiner } from "../miner/rethnet";
 import { RethnetAdapter } from "../vm/rethnet";
-import { NodeConfig } from "../node-types";
+import { NodeConfig, isForkedNodeConfig } from "../node-types";
 import { ethereumsjsHardforkToRethnetSpecId } from "../utils/convertToRethnet";
-import { getHardforkName } from "../../../util/hardforks";
+import {
+  HardforkName,
+  getHardforkName,
+  hardforkGte,
+} from "../../../util/hardforks";
 import { RethnetStateManager } from "../RethnetState";
 import { RethnetMemPool } from "../mem-pool/rethnet";
 import { makeCommon } from "../utils/makeCommon";
+import { HARDHAT_NETWORK_DEFAULT_INITIAL_BASE_FEE_PER_GAS } from "../../../core/config/default-config";
+import { makeGenesisBlock } from "../utils/putGenesisBlock";
 
 // Only one is allowed to exist
 export const globalRethnetContext = new RethnetContext();
 
 export class RethnetEthContext implements EthContextAdapter {
-  private _blockchain: RethnetBlockchain;
-  private _mempool: RethnetMemPool;
-  private _miner: RethnetMiner;
-  private _state: RethnetStateManager;
-  private _vm: RethnetAdapter;
+  constructor(
+    private readonly _blockchain: RethnetBlockchain,
+    private readonly _memPool: RethnetMemPool,
+    private readonly _miner: RethnetMiner,
+    private readonly _state: RethnetStateManager,
+    private readonly _vm: RethnetAdapter
+  ) {}
 
-  constructor(config: NodeConfig) {
+  public static async create(config: NodeConfig): Promise<RethnetEthContext> {
     const common = makeCommon(config);
     const hardforkName = getHardforkName(config.hardfork);
 
-    this._blockchain = new RethnetBlockchain(new Blockchain(), common);
-    this._state = new RethnetStateManager(
+    const state = new RethnetStateManager(
       new StateManager(globalRethnetContext)
     );
+
+    let blockchain: RethnetBlockchain;
+
+    if (isForkedNodeConfig(config)) {
+      blockchain = new RethnetBlockchain(
+        await Blockchain.fork(
+          globalRethnetContext,
+          ethereumsjsHardforkToRethnetSpecId(hardforkName),
+          config.forkConfig.jsonRpcUrl,
+          config.forkConfig.blockNumber !== undefined
+            ? BigInt(config.forkConfig.blockNumber)
+            : undefined
+        ),
+        common
+      );
+    } else {
+      const initialBaseFeePerGas =
+        config.initialBaseFeePerGas !== undefined
+          ? BigInt(config.initialBaseFeePerGas)
+          : BigInt(HARDHAT_NETWORK_DEFAULT_INITIAL_BASE_FEE_PER_GAS);
+
+      const genesisBlockBaseFeePerGas = hardforkGte(
+        hardforkName,
+        HardforkName.LONDON
+      )
+        ? initialBaseFeePerGas
+        : undefined;
+
+      const genesisBlock = makeGenesisBlock(
+        common,
+        config,
+        await state.getStateRoot(),
+        hardforkName,
+        // TODO: mix hash
+        Buffer.allocUnsafe(0),
+        // prevRandaoGenerator.next(),
+        genesisBlockBaseFeePerGas
+      );
+
+      blockchain = new RethnetBlockchain(
+        Blockchain.withGenesisBlock(
+          common.chainId(),
+          ethereumsjsHardforkToRethnetSpecId(hardforkName),
+          {}
+        ),
+        common
+      );
+    }
 
     const limitContractCodeSize =
       config.allowUnlimitedContractSize === true ? 2n ** 64n - 1n : undefined;
 
-    const rethnet = new Rethnet(
-      this._blockchain.asInner(),
-      this._state.asInner(),
-      {
-        chainId: BigInt(config.chainId),
-        specId: ethereumsjsHardforkToRethnetSpecId(hardforkName),
-        limitContractCodeSize,
-        disableBlockGasLimit: true,
-        disableEip3607: true,
-      }
-    );
+    const rethnet = new Rethnet(blockchain.asInner(), state.asInner(), {
+      chainId: BigInt(config.chainId),
+      specId: ethereumsjsHardforkToRethnetSpecId(hardforkName),
+      limitContractCodeSize,
+      disableBlockGasLimit: true,
+      disableEip3607: true,
+    });
 
-    this._vm = new RethnetAdapter(
-      this._blockchain.asInner(),
-      this._state,
-      rethnet,
-      common
-    );
+    const vm = new RethnetAdapter(blockchain.asInner(), state, rethnet, common);
 
-    this._mempool = new RethnetMemPool(
+    const memPool = new RethnetMemPool(
       BigInt(config.blockGasLimit),
-      this._state.asInner(),
+      state.asInner(),
       hardforkName
     );
 
-    this._miner = new RethnetMiner(
+    const miner = new RethnetMiner(
       new BlockMiner(
-        this._blockchain.asInner(),
-        this._state.asInner(),
-        this._mempool.asInner(),
+        blockchain.asInner(),
+        state.asInner(),
+        memPool.asInner(),
         // TODO: Should this be the same config? Split config?
         rethnet.config(),
         BigInt(config.blockGasLimit),
@@ -82,6 +128,8 @@ export class RethnetEthContext implements EthContextAdapter {
       ),
       common
     );
+
+    return new RethnetEthContext(blockchain, memPool, miner, state, vm);
   }
 
   public blockchain(): BlockchainAdapter {
@@ -100,7 +148,7 @@ export class RethnetEthContext implements EthContextAdapter {
   }
 
   public memPool(): MemPoolAdapter {
-    return this._mempool;
+    return this._memPool;
   }
 
   public vm(): VMAdapter {

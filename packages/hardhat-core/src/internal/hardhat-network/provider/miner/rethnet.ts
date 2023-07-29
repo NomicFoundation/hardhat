@@ -3,7 +3,7 @@ import { BlockMiner } from "rethnet-evm";
 import { BlockMinerAdapter, PartialMineBlockResult } from "../miner";
 import {
   rethnetBlockToEthereumJS,
-  rethnetReceiptToEthereumJS,
+  rethnetReceiptToEthereumJsTxReceipt,
   rethnetResultToRunTxResult,
 } from "../utils/convertToRethnet";
 import { VMTracer } from "../../stack-traces/vm-tracer";
@@ -58,7 +58,7 @@ export class RethnetMiner implements BlockMinerAdapter {
           return rethnetResultToRunTxResult(result, cumulativeBlockGasUsed);
         }),
         receipts: mineResult.block.receipts.map((receipt, _index, _array) => {
-          return rethnetReceiptToEthereumJS(receipt);
+          return rethnetReceiptToEthereumJsTxReceipt(receipt);
         }),
         stateRoot: mineResult.block.header.stateRoot,
         logsBloom: mineResult.block.header.logsBloom,

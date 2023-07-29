@@ -841,7 +841,7 @@ describe("Tx Pool", () => {
         tx
       );
 
-      const txFromTxPool = txPool.getOrderedTransactionByHash(tx.hash());
+      const txFromTxPool = txPool.getTransactionByHash(tx.hash());
 
       assert.deepEqual(txFromTxPool?.data.raw, tx.raw);
     });
@@ -859,7 +859,7 @@ describe("Tx Pool", () => {
         tx
       );
 
-      const txFromTxPool = txPool.getOrderedTransactionByHash(tx.hash());
+      const txFromTxPool = txPool.getTransactionByHash(tx.hash());
 
       assert.deepEqual(txFromTxPool?.data.raw, tx.raw);
     });
@@ -878,9 +878,7 @@ describe("Tx Pool", () => {
         signedTx
       );
 
-      const oldTxFromTxPool = txPool.getOrderedTransactionByHash(
-        signedTx.hash()
-      );
+      const oldTxFromTxPool = txPool.getTransactionByHash(signedTx.hash());
 
       assert.deepEqual(oldTxFromTxPool!.data.raw(), signedTx.raw());
 
@@ -896,9 +894,7 @@ describe("Tx Pool", () => {
         stateManager.getAccount.bind(stateManager)
       );
 
-      const actualTxFromTxPool = txPool.getOrderedTransactionByHash(
-        signedTx.hash()
-      );
+      const actualTxFromTxPool = txPool.getTransactionByHash(signedTx.hash());
 
       assert.isUndefined(actualTxFromTxPool);
     });
@@ -917,9 +913,7 @@ describe("Tx Pool", () => {
         signedTx
       );
 
-      const oldTxFromTxPool = txPool.getOrderedTransactionByHash(
-        signedTx.hash()
-      );
+      const oldTxFromTxPool = txPool.getTransactionByHash(signedTx.hash());
 
       assert.deepEqual(oldTxFromTxPool!.data.raw(), signedTx.raw());
 
@@ -935,9 +929,7 @@ describe("Tx Pool", () => {
         stateManager.getAccount.bind(stateManager)
       );
 
-      const actualTxFromTxPool = txPool.getOrderedTransactionByHash(
-        signedTx.hash()
-      );
+      const actualTxFromTxPool = txPool.getTransactionByHash(signedTx.hash());
 
       assert.isUndefined(actualTxFromTxPool);
     });

@@ -1,7 +1,7 @@
 import { Block } from "@nomicfoundation/ethereumjs-block";
-import { RpcLogOutput } from "./output";
-import { FilterParams } from "./node-types";
 import { HardforkName } from "../../util/hardforks";
+import { RpcLogOutput, RpcReceiptOutput } from "./output";
+import { FilterParams } from "./node-types";
 
 export interface BlockchainAdapter {
   blockSupportsHardfork(
@@ -23,5 +23,11 @@ export interface BlockchainAdapter {
 
   getLogs(filterParams: FilterParams): Promise<RpcLogOutput[]>;
 
+  getReceiptByTransactionHash(
+    transactionHash: Buffer
+  ): Promise<RpcReceiptOutput | undefined>;
+
   getTotalDifficultyByHash(hash: Buffer): Promise<bigint | undefined>;
+
+  revertToBlock(blockNumber: bigint): Promise<void>;
 }

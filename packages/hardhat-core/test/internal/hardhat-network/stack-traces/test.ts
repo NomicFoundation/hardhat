@@ -51,7 +51,7 @@ import {
 import {
   encodeCall,
   encodeConstructorParams,
-  instantiateVm,
+  instantiateContext,
   traceTransaction,
 } from "./execution";
 
@@ -501,7 +501,7 @@ async function runTest(
   const tracer = new SolidityTracer();
   const logger = new ConsoleLogger();
 
-  const [vm, common] = await instantiateVm();
+  const [context, common] = await instantiateContext();
 
   const txIndexToContract: Map<number, DeployedContract> = new Map();
 
@@ -512,7 +512,7 @@ async function runTest(
       trace = await runDeploymentTransactionTest(
         txIndex,
         tx,
-        vm,
+        context.vm(),
         common,
         compilerOutput,
         txIndexToContract
@@ -536,7 +536,7 @@ async function runTest(
       trace = await runCallTransactionTest(
         txIndex,
         tx,
-        vm,
+        context.vm(),
         common,
         compilerOutput,
         contract!
