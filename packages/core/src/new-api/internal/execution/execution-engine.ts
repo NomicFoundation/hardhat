@@ -6,6 +6,7 @@ import uniq from "lodash/uniq";
 
 import { IgnitionError } from "../../../errors";
 import {
+  isFuture,
   isFutureThatSubmitsOnchainTransaction,
   isModuleParameterRuntimeValue,
 } from "../../type-guards";
@@ -30,6 +31,7 @@ import {
   isCallExecutionState,
   isContractAtExecutionState,
   isDeploymentExecutionState,
+  isReadEventArgumentExecutionState,
   isSendDataExecutionState,
   isStaticCallExecutionState,
 } from "../type-guards";
@@ -53,6 +55,7 @@ import {
   StartRunMessage,
   TransactionMessage,
 } from "../types/journal";
+import { isAddress } from "../utils";
 import { assertIgnitionInvariant } from "../utils/assertions";
 import { getFuturesFromModule } from "../utils/get-futures-from-module";
 import { replaceWithinArg } from "../utils/replace-within-arg";
@@ -819,17 +822,42 @@ export class ExecutionEngine {
           address = resolveModuleParameter(future.address, {
             deploymentParameters,
           }) as string;
+        } else if (isFuture(future.address)) {
+          const exState = executionStateMap[future.address.id];
+
+          if (
+            isDeploymentExecutionState(exState) ||
+            isContractAtExecutionState(exState)
+          ) {
+            const contractAddress = exState.contractAddress;
+
+            assertIgnitionInvariant(
+              contractAddress !== undefined,
+              `Internal error - dependency ${future.address.id} used before it's resolved`
+            );
+
+            address = contractAddress;
+          } else if (isReadEventArgumentExecutionState(exState)) {
+            const contractAddress = exState.result;
+
+            assertIgnitionInvariant(
+              contractAddress !== undefined,
+              `Internal error - dependency ReadEventArgument ${future.address.id} used before it's resolved`
+            );
+
+            assertIgnitionInvariant(
+              typeof contractAddress === "string" && isAddress(contractAddress),
+              `Read event argument ${future.address.id} must be a valid address`
+            );
+
+            address = contractAddress;
+          } else {
+            throw new IgnitionError(
+              `Cannot resolve address of ${future.id}, not an allowed future type ${future.address.type}`
+            );
+          }
         } else {
-          const { contractAddress } = executionStateMap[
-            future.address.id
-          ] as DeploymentExecutionState;
-
-          assertIgnitionInvariant(
-            contractAddress !== undefined,
-            `Internal error - dependency ${future.address.id} used before it's resolved`
-          );
-
-          address = contractAddress;
+          throw new IgnitionError(`Unable to resolve address of ${future.id}`);
         }
 
         await this._storeArtifactAndBuildInfoAgainstDeployment(future, {
@@ -859,17 +887,42 @@ export class ExecutionEngine {
           address = resolveModuleParameter(future.address, {
             deploymentParameters,
           }) as string;
+        } else if (isFuture(future.address)) {
+          const exState = executionStateMap[future.address.id];
+
+          if (
+            isDeploymentExecutionState(exState) ||
+            isContractAtExecutionState(exState)
+          ) {
+            const contractAddress = exState.contractAddress;
+
+            assertIgnitionInvariant(
+              contractAddress !== undefined,
+              `Internal error - dependency ${future.address.id} used before it's resolved`
+            );
+
+            address = contractAddress;
+          } else if (isReadEventArgumentExecutionState(exState)) {
+            const contractAddress = exState.result;
+
+            assertIgnitionInvariant(
+              contractAddress !== undefined,
+              `Internal error - dependency ReadEventArgument ${future.address.id} used before it's resolved`
+            );
+
+            assertIgnitionInvariant(
+              typeof contractAddress === "string" && isAddress(contractAddress),
+              `Read event argument ${future.address.id} must be a valid address`
+            );
+
+            address = contractAddress;
+          } else {
+            throw new IgnitionError(
+              `Cannot resolve address of ${future.id}, not an allowed future type ${future.address.type}`
+            );
+          }
         } else {
-          const { contractAddress } = executionStateMap[
-            future.address.id
-          ] as DeploymentExecutionState;
-
-          assertIgnitionInvariant(
-            contractAddress !== undefined,
-            `Internal error - dependency ${future.address.id} used before it's resolved`
-          );
-
-          address = contractAddress;
+          throw new IgnitionError(`Unable to resolve address of ${future.id}`);
         }
 
         await deploymentLoader.storeUserProvidedArtifact(
