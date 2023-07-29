@@ -93,6 +93,10 @@ async fn node() -> Result<(), Box<dyn std::error::Error>> {
         .arg("--port")
         .arg("8549")
         .arg("-vv")
+        .arg("--chain-id")
+        .arg("1")
+        .arg("--network-id")
+        .arg("1")
         .stdout(Stdio::piped())
         .spawn()?;
 

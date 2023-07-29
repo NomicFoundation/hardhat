@@ -25,7 +25,7 @@ use bytes::Bytes;
 
 use crate::{B256, U256};
 
-pub use serde_with_helpers::serialize_u256;
+pub use serde_with_helpers::serialize_uint_without_leading_zeroes;
 
 pub use client::{RpcClient, RpcClientError};
 
@@ -108,7 +108,7 @@ impl Display for BlockTag {
 #[serde(untagged)]
 pub enum BlockSpec {
     /// as a block number
-    #[serde(serialize_with = "serialize_u256")]
+    #[serde(serialize_with = "serialize_uint_without_leading_zeroes")]
     Number(U256),
     /// as a block tag (eg "latest")
     Tag(BlockTag),

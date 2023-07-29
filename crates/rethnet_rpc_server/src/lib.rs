@@ -23,7 +23,7 @@ use rethnet_eth::{
         BlockSpec, BlockTag, Eip1898BlockSpec,
     },
     signature::{public_key_to_address, Signature},
-    Address, Bytes, B256, U256,
+    Address, Bytes, B256, U256, U64,
 };
 use rethnet_evm::{
     state::{AccountModifierFn, ForkState, HybridState, StateError, SyncState},
@@ -47,7 +47,19 @@ impl serde::Serialize for U256WithoutLeadingZeroes {
     where
         S: serde::Serializer,
     {
-        rethnet_eth::remote::serialize_u256(&self.0, s)
+        rethnet_eth::remote::serialize_uint_without_leading_zeroes(&self.0, s)
+    }
+}
+
+#[derive(Clone, Copy)]
+struct U64WithoutLeadingZeroes(U64);
+
+impl serde::Serialize for U64WithoutLeadingZeroes {
+    fn serialize<S>(&self, s: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        rethnet_eth::remote::serialize_uint_without_leading_zeroes(&self.0, s)
     }
 }
 
@@ -132,13 +144,13 @@ fn new_filter_deadline() -> Instant {
 
 struct AppState {
     rethnet_state: RethnetStateType,
-    chain_id: U256,
+    chain_id: U64,
     coinbase: Address,
     filters: RwLock<HashMap<U256, Filter>>,
     fork_block_number: Option<U256>,
     last_filter_id: RwLock<U256>,
     local_accounts: HashMap<Address, SecretKey>,
-    network_id: U256,
+    network_id: U64,
 }
 
 type StateType = Arc<AppState>;
@@ -310,10 +322,10 @@ async fn handle_accounts(state: StateType) -> ResponseData<Vec<Address>> {
     }
 }
 
-async fn handle_chain_id(state: StateType) -> ResponseData<U256> {
+async fn handle_chain_id(state: StateType) -> ResponseData<U64WithoutLeadingZeroes> {
     event!(Level::INFO, "eth_chainId()");
     ResponseData::Success {
-        result: state.chain_id,
+        result: U64WithoutLeadingZeroes(U64::from(state.chain_id)),
     }
 }
 
@@ -480,10 +492,12 @@ async fn get_next_filter_id(state: StateType) -> U256 {
     *last_filter_id
 }
 
-async fn handle_net_version(state: StateType) -> ResponseData<U256> {
+async fn handle_net_version(state: StateType) -> ResponseData<String> {
     event!(Level::INFO, "net_version()");
     ResponseData::Success {
-        result: state.network_id,
+        result: u64::try_from(state.network_id)
+            .expect("should convert U64 to u64")
+            .to_string(),
     }
 }
 

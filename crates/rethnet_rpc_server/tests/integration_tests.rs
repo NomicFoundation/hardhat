@@ -11,7 +11,7 @@ use rethnet_eth::{
         methods::MethodInvocation as EthMethodInvocation, BlockSpec, ZeroXPrefixedBytes,
     },
     signature::{private_key_to_address, Signature},
-    Address, Bytes, B256, U256,
+    Address, Bytes, B256, U256, U64,
 };
 use rethnet_evm::{AccountInfo, KECCAK_EMPTY};
 
@@ -42,9 +42,9 @@ async fn start_server() -> SocketAddr {
                 .expect("should construct private key from string"),
             balance: U256::ZERO,
         }],
-        chain_id: U256::from(1),
+        chain_id: U64::from(1),
         coinbase: Address::from_low_u64_ne(1),
-        network_id: U256::from(123),
+        network_id: U64::from(123),
     })
     .await
     .unwrap();
@@ -116,7 +116,7 @@ async fn test_chain_id() {
     verify_response(
         &start_server().await,
         MethodInvocation::Eth(EthMethodInvocation::ChainId()),
-        U256::from(1),
+        U64::from(1),
     )
     .await;
 }
@@ -242,7 +242,7 @@ async fn test_net_version() {
     verify_response(
         &start_server().await,
         MethodInvocation::Eth(EthMethodInvocation::NetVersion()),
-        U256::from(123),
+        String::from("123"),
     )
     .await;
 }

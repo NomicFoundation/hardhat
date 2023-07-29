@@ -6,12 +6,29 @@ import { HttpProvider } from "../../../../src/internal/core/providers/http";
 
 import { sleep } from "./sleep";
 
-export function spawnRethnetProvider(pathToBinary: string): {
+interface RethnetProviderOptions {
+  chainId?: number;
+  networkId?: number;
+}
+
+export function spawnRethnetProvider(
+  pathToBinary: string,
+  options?: RethnetProviderOptions
+): {
   childProcess: ChildProcess;
   isReady: Promise<unknown>; // resolves in 2 seconds, or rejects if process fails or exits before that
   httpProvider: HttpProvider;
 } {
-  const childProcess = spawn(normalize(pathToBinary), ["node", "-vv"]);
+  const args = ["node", "-vv"];
+  if (options !== undefined) {
+    if (options.chainId !== undefined) {
+      args.push("--chain-id", `${options.chainId}`);
+    }
+    if (options.networkId !== undefined) {
+      args.push("--network-id", `${options.networkId}`);
+    }
+  }
+  const childProcess = spawn(normalize(pathToBinary), args);
 
   let stdout = "";
   childProcess.stdout.on("data", (data: any) => {
