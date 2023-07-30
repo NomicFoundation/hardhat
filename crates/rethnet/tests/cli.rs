@@ -53,6 +53,7 @@ async fn node() -> Result<(), Box<dyn std::error::Error>> {
             address,
             bytes::Bytes::from(hex::decode("deadbeef").unwrap()).into(),
         )),
+        MethodInvocation::Hardhat(HardhatMethodInvocation::ImpersonateAccount(address)),
         MethodInvocation::Hardhat(HardhatMethodInvocation::SetBalance(address, U256::ZERO)),
         MethodInvocation::Hardhat(HardhatMethodInvocation::SetCode(
             address,
@@ -64,6 +65,7 @@ async fn node() -> Result<(), Box<dyn std::error::Error>> {
             U256::ZERO,
             U256::ZERO,
         )),
+        MethodInvocation::Hardhat(HardhatMethodInvocation::StopImpersonatingAccount(address)),
     ];
 
     // prepare request body before even spawning the server because serialization could fail:
@@ -143,6 +145,9 @@ async fn node() -> Result<(), Box<dyn std::error::Error>> {
             MethodInvocation::Eth(EthMethodInvocation::Sign(address, message)) => {
                 format!("eth_sign({address:?}, {message:?})")
             }
+            MethodInvocation::Hardhat(HardhatMethodInvocation::ImpersonateAccount(address)) => {
+                format!("hardhat_impersonateAccount({address:?}")
+            }
             MethodInvocation::Hardhat(HardhatMethodInvocation::SetBalance(address, balance)) => {
                 format!("hardhat_setBalance({address:?}, {balance:?}")
             }
@@ -157,6 +162,11 @@ async fn node() -> Result<(), Box<dyn std::error::Error>> {
                 position,
                 value,
             )) => format!("hardhat_setStorageAt({address:?}, {position:?}, {value:?}"),
+            MethodInvocation::Hardhat(HardhatMethodInvocation::StopImpersonatingAccount(
+                address,
+            )) => {
+                format!("hardhat_stopImpersonatingAccount({address:?}")
+            }
             _ => Err(format!(
                 "no expectation set for method invocation {method_invocation:?}"
             ))?,

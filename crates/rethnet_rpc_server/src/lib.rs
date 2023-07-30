@@ -6,7 +6,7 @@ use axum::{
     http::StatusCode,
     Router,
 };
-use hashbrown::HashMap;
+use hashbrown::{HashMap, HashSet};
 use rethnet_eth::remote::ZeroXPrefixedBytes;
 use secp256k1::{Secp256k1, SecretKey};
 use tokio::sync::RwLock;
@@ -65,6 +65,7 @@ type RethnetStateType = Arc<RwLock<dyn SyncState<StateError>>>;
 struct AppState {
     rethnet_state: RethnetStateType,
     fork_block_number: Option<U256>,
+    impersonated_accounts: RwLock<HashSet<Address>>,
     local_accounts: HashMap<Address, SecretKey>,
 }
 
@@ -316,6 +317,12 @@ async fn handle_get_transaction_count(
     }
 }
 
+async fn handle_impersonate_account(state: StateType, address: Address) -> ResponseData<bool> {
+    event!(Level::INFO, "hardhat_impersonateAccount({address:?})");
+    state.impersonated_accounts.write().await.insert(address);
+    ResponseData::Success { result: true }
+}
+
 async fn handle_set_balance(
     state: StateType,
     address: Address,
@@ -438,6 +445,16 @@ fn handle_sign(
     }
 }
 
+async fn handle_stop_impersonating_account(
+    state: StateType,
+    address: Address,
+) -> ResponseData<bool> {
+    event!(Level::INFO, "hardhat_stopImpersonatingAccount({address:?})");
+    ResponseData::Success {
+        result: state.impersonated_accounts.write().await.remove(&address),
+    }
+}
+
 async fn handle_request(
     state: StateType,
     request: &RpcRequest<MethodInvocation>,
@@ -502,6 +519,9 @@ async fn handle_request(
                 MethodInvocation::Eth(EthMethodInvocation::Sign(address, message)) => {
                     response(id, handle_sign(state, address, message))
                 }
+                MethodInvocation::Hardhat(HardhatMethodInvocation::ImpersonateAccount(address)) => {
+                    response(id, handle_impersonate_account(state, *address).await)
+                }
                 MethodInvocation::Hardhat(HardhatMethodInvocation::SetBalance(
                     address,
                     balance,
@@ -520,6 +540,9 @@ async fn handle_request(
                     id,
                     handle_set_storage_at(state, *address, *position, *value).await,
                 ),
+                MethodInvocation::Hardhat(HardhatMethodInvocation::StopImpersonatingAccount(
+                    address,
+                )) => response(id, handle_stop_impersonating_account(state, *address).await),
                 // TODO: after adding all the methods here, eliminate this
                 // catch-all match arm:
                 _ => {
@@ -643,6 +666,8 @@ impl Server {
                 .unzip()
         };
 
+        let impersonated_accounts = RwLock::new(HashSet::new());
+
         let rethnet_state: StateType =
             if let Some(config) = config.rpc_hardhat_network_config.forking {
                 let runtime = tokio::runtime::Builder::new_multi_thread()
@@ -672,6 +697,7 @@ impl Server {
                         genesis_accounts,
                     )))),
                     fork_block_number: Some(fork_block_number),
+                    impersonated_accounts,
                     local_accounts,
                 })
             } else {
@@ -680,6 +706,7 @@ impl Server {
                         genesis_accounts,
                     )))),
                     fork_block_number: None,
+                    impersonated_accounts,
                     local_accounts,
                 })
             };
