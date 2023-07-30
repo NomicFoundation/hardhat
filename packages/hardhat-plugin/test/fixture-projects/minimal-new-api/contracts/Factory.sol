@@ -7,8 +7,14 @@ import "./Contracts.sol";
 contract FooFactory {
   event Deployed(address indexed fooAddress);
 
+  address public deployed;
+
+  bool public nonAddressResult;
+
   function create() public {
     Foo foo = new Foo();
+
+    deployed = address(foo);
 
     emit Deployed(address(foo));
   }

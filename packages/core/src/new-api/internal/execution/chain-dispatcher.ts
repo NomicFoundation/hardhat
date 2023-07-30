@@ -168,7 +168,11 @@ export class ChainDispatcherImpl implements ChainDispatcher {
 
     const contractInstance = new Contract(contractAddress, abi, signer);
 
-    const result = await contractInstance[functionName](...args, {
+    const validFunctionName = functionName.endsWith("()")
+      ? functionName
+      : `${functionName}()`;
+
+    const result = await contractInstance[validFunctionName](...args, {
       from,
     });
 
