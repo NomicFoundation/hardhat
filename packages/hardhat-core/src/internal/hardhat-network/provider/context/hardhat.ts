@@ -1,3 +1,4 @@
+import { Block } from "@nomicfoundation/ethereumjs-block";
 import { Common } from "@nomicfoundation/ethereumjs-common";
 import { Address } from "@nomicfoundation/ethereumjs-util";
 import { EthContextAdapter } from "../context";
@@ -71,13 +72,22 @@ export class HardhatEthContext implements EthContextAdapter {
           BigInt(HARDHAT_NETWORK_DEFAULT_INITIAL_BASE_FEE_PER_GAS)
         : undefined;
 
-      const genesisBlock = makeGenesisBlock(
-        common,
+      const genesisBlockHeader = makeGenesisBlock(
         config,
         await vm.getStateRoot(),
         hardfork,
         prevRandaoGenerator.next(),
         genesisBlockBaseFeePerGas
+      );
+
+      const genesisBlock = Block.fromBlockData(
+        {
+          header: genesisBlockHeader,
+        },
+        {
+          common,
+          skipConsensusFormatValidation: true,
+        }
       );
 
       await blockchain.putBlock(genesisBlock);

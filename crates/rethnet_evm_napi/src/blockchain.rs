@@ -11,7 +11,11 @@ use rethnet_eth::{B256, U256};
 use rethnet_evm::blockchain::{BlockchainError, SyncBlockchain};
 
 use crate::{
-    block::Block, cast::TryCast, config::SpecId, context::RethnetContext, receipt::Receipt,
+    block::{Block, BlockOptions},
+    cast::TryCast,
+    config::SpecId,
+    context::RethnetContext,
+    receipt::Receipt,
 };
 
 // An arbitrarily large amount of memory to signal to the javascript garbage collector that it needs to
@@ -55,15 +59,21 @@ impl Blockchain {
         mut env: Env,
         chain_id: BigInt,
         spec_id: SpecId,
-        genesis_block: &Block,
+        genesis_block: BlockOptions,
     ) -> napi::Result<Self> {
         let chain_id: U256 = chain_id.try_cast()?;
         let spec_id = rethnet_evm::SpecId::from(spec_id);
+        let options = rethnet_eth::block::BlockOptions::try_from(genesis_block)?;
+
+        let header = rethnet_eth::block::PartialHeader::new(spec_id, options, None);
+        let genesis_block = rethnet_eth::block::Block::new(header, Vec::new(), Vec::new());
+        let genesis_block =
+            rethnet_eth::block::DetailedBlock::new(genesis_block, Vec::new(), Vec::new());
 
         let blockchain = rethnet_evm::blockchain::LocalBlockchain::with_genesis_block(
             chain_id,
             spec_id,
-            (*genesis_block).clone(),
+            genesis_block,
         )
         .map_err(|e| napi::Error::new(Status::InvalidArg, e.to_string()))?;
 

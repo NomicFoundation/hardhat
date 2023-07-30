@@ -8,13 +8,12 @@ import { LocalNodeConfig } from "../node-types";
 import { getCurrentTimestamp } from "./getCurrentTimestamp";
 
 export function makeGenesisBlock(
-  common: Common,
   { initialDate, blockGasLimit: initialBlockGasLimit }: LocalNodeConfig,
   stateRoot: Buffer,
   hardfork: HardforkName,
   initialMixHash: Buffer,
   initialBaseFee?: bigint
-): Block {
+): HeaderData {
   const initialBlockTimestamp =
     initialDate !== undefined
       ? dateToTimestampSeconds(initialDate)
@@ -39,13 +38,5 @@ export function makeGenesisBlock(
     header.baseFeePerGas = initialBaseFee;
   }
 
-  return Block.fromBlockData(
-    {
-      header,
-    },
-    {
-      common,
-      skipConsensusFormatValidation: true,
-    }
-  );
+  return header;
 }

@@ -5,11 +5,11 @@ use std::{
 };
 
 use rethnet_eth::{
-    block::{Block, DetailedBlock, Header, PartialHeader},
+    block::{Block, BlockOptions, DetailedBlock, Header, PartialHeader},
     log::Log,
     receipt::{TransactionReceipt, TypedReceipt, TypedReceiptData},
     transaction::SignedTransaction,
-    trie::{ordered_trie_root, KECCAK_NULL_RLP},
+    trie::ordered_trie_root,
     Address, Bloom, U256,
 };
 use revm::{
@@ -25,10 +25,8 @@ use crate::{
     blockchain::SyncBlockchain,
     evm::{build_evm, run_transaction, SyncInspector},
     state::{AccountModifierFn, SyncState},
-    BlockOptions, PendingTransaction,
+    PendingTransaction,
 };
-
-use super::difficulty::calculate_ethash_canonical_difficulty;
 
 /// An error caused during construction of a block builder.
 #[derive(Debug, thiserror::Error)]
@@ -99,7 +97,7 @@ where
         blockchain: Arc<RwLock<dyn SyncBlockchain<BE>>>,
         state: Arc<RwLock<dyn SyncState<SE>>>,
         cfg: CfgEnv,
-        parent: Header,
+        parent: &Header,
         options: BlockOptions,
     ) -> Result<Self, BlockBuilderCreationError<SE>> {
         if cfg.spec_id < SpecId::BYZANTIUM {
@@ -108,36 +106,13 @@ where
 
         state.write().await.checkpoint()?;
 
-        let timestamp = options.timestamp.unwrap_or_default();
-        let number = options.number.unwrap_or(parent.number + U256::from(1));
-
-        // TODO: Are all user values covered?
-        let header = PartialHeader {
-            parent_hash: options.parent_hash.unwrap_or_else(|| parent.hash()),
-            beneficiary: options.beneficiary.unwrap_or_default(),
-            state_root: options.state_root.unwrap_or(KECCAK_NULL_RLP),
-            receipts_root: options.receipts_root.unwrap_or(KECCAK_NULL_RLP),
-            logs_bloom: options.logs_bloom.unwrap_or_default(),
-            difficulty: if cfg.spec_id < SpecId::MERGE {
-                calculate_ethash_canonical_difficulty(cfg.spec_id, &parent, &number, &timestamp)
-            } else {
-                options.difficulty.unwrap_or_default()
-            },
-            number,
-            gas_limit: options.gas_limit.unwrap_or(U256::from(1_000_000)),
-            gas_used: U256::ZERO,
-            timestamp,
-            extra_data: options.extra_data.unwrap_or_default(),
-            mix_hash: options.mix_hash.unwrap_or_default(),
-            nonce: options.nonce.unwrap_or_default(),
-            base_fee: options.base_fee.or_else(|| {
-                if cfg.spec_id >= SpecId::LONDON {
-                    Some(U256::from(7))
-                } else {
-                    None
-                }
-            }),
+        let parent_gas_limit = if options.gas_limit.is_none() {
+            Some(parent.gas_limit)
+        } else {
+            None
         };
+
+        let header = PartialHeader::new(cfg.spec_id, options, Some(parent));
 
         // TODO: Validate DAO extra data
         // if (this._common.hardforkIsActiveOnBlock(Hardfork.Dao, this.number) === false) {
@@ -163,11 +138,7 @@ where
             callers: Vec::new(),
             transactions: Vec::new(),
             receipts: Vec::new(),
-            parent_gas_limit: if options.gas_limit.is_none() {
-                Some(parent.gas_limit)
-            } else {
-                None
-            },
+            parent_gas_limit,
         })
     }
 

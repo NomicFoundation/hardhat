@@ -1,5 +1,6 @@
-use rethnet_eth::{block::Header, trie::KECCAK_RLP_EMPTY_ARRAY, U256};
-use revm::primitives::SpecId;
+use revm_primitives::SpecId;
+
+use crate::{block::Header, trie::KECCAK_RLP_EMPTY_ARRAY, U256};
 
 fn bomb_delay(spec_id: SpecId) -> U256 {
     U256::from(match spec_id {
@@ -22,6 +23,7 @@ fn bomb_delay(spec_id: SpecId) -> U256 {
     })
 }
 
+/// Calculates the mining difficulty of a block.
 pub fn calculate_ethash_canonical_difficulty(
     spec_id: SpecId,
     parent: &Header,

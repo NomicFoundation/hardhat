@@ -1,12 +1,6 @@
 import { Common } from "@nomicfoundation/ethereumjs-common";
 import { toBuffer } from "@nomicfoundation/ethereumjs-util";
-import {
-  BlockMiner,
-  Blockchain,
-  Rethnet,
-  RethnetContext,
-  StateManager,
-} from "rethnet-evm";
+import { BlockMiner, Blockchain, Rethnet, RethnetContext } from "rethnet-evm";
 import { BlockchainAdapter } from "../blockchain";
 import { RethnetBlockchain } from "../blockchain/rethnet";
 import { EthContextAdapter } from "../context";
@@ -17,7 +11,10 @@ import { VMAdapter } from "../vm/vm-adapter";
 import { RethnetMiner } from "../miner/rethnet";
 import { RethnetAdapter } from "../vm/rethnet";
 import { NodeConfig, isForkedNodeConfig } from "../node-types";
-import { ethereumsjsHardforkToRethnetSpecId } from "../utils/convertToRethnet";
+import {
+  ethereumjsHeaderDataToRethnetBlockOptions,
+  ethereumsjsHardforkToRethnetSpecId,
+} from "../utils/convertToRethnet";
 import {
   HardforkName,
   getHardforkName,
@@ -45,11 +42,8 @@ export class RethnetEthContext implements EthContextAdapter {
     const common = makeCommon(config);
     const hardforkName = getHardforkName(config.hardfork);
 
-    const state = new RethnetStateManager(
-      new StateManager(globalRethnetContext)
-    );
-
     let blockchain: RethnetBlockchain;
+    let state: RethnetStateManager;
 
     if (isForkedNodeConfig(config)) {
       blockchain = new RethnetBlockchain(
@@ -63,7 +57,18 @@ export class RethnetEthContext implements EthContextAdapter {
         ),
         common
       );
+
+      state = await RethnetStateManager.forkRemote(
+        globalRethnetContext,
+        config.forkConfig,
+        config.genesisAccounts
+      );
     } else {
+      state = RethnetStateManager.withGenesisAccounts(
+        globalRethnetContext,
+        config.genesisAccounts
+      );
+
       const initialBaseFeePerGas =
         config.initialBaseFeePerGas !== undefined
           ? BigInt(config.initialBaseFeePerGas)
@@ -76,14 +81,11 @@ export class RethnetEthContext implements EthContextAdapter {
         ? initialBaseFeePerGas
         : undefined;
 
-      const genesisBlock = makeGenesisBlock(
-        common,
+      const genesisBlockHeader = makeGenesisBlock(
         config,
         await state.getStateRoot(),
         hardforkName,
-        // TODO: mix hash
-        Buffer.allocUnsafe(0),
-        // prevRandaoGenerator.next(),
+        globalRethnetContext.nextMixHash(),
         genesisBlockBaseFeePerGas
       );
 
@@ -91,7 +93,7 @@ export class RethnetEthContext implements EthContextAdapter {
         Blockchain.withGenesisBlock(
           common.chainId(),
           ethereumsjsHardforkToRethnetSpecId(hardforkName),
-          {}
+          ethereumjsHeaderDataToRethnetBlockOptions(genesisBlockHeader)
         ),
         common
       );

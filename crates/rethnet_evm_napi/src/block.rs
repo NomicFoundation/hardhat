@@ -102,7 +102,7 @@ pub struct BlockOptions {
     pub base_fee: Option<BigInt>,
 }
 
-impl TryFrom<BlockOptions> for rethnet_evm::BlockOptions {
+impl TryFrom<BlockOptions> for rethnet_eth::block::BlockOptions {
     type Error = napi::Error;
 
     #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]

@@ -50,6 +50,7 @@ export async function instantiateContext(): Promise<
     config,
     RandomBufferGenerator.create("randomMixHashSeed")
   );
+  // TODO: add a block to the blockchain
   // await context.blockchain().addBlock(
   //   Block.fromBlockData({
   //     header: {

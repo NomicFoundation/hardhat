@@ -45,7 +45,7 @@ impl BlockBuilder {
         block: BlockOptions,
     ) -> napi::Result<JsObject> {
         let parent = Header::try_from(parent)?;
-        let block = rethnet_evm::BlockOptions::try_from(block)?;
+        let block = rethnet_eth::block::BlockOptions::try_from(block)?;
 
         let config = CfgEnv::try_from(config)?;
         let blockchain = (*blockchain).clone();
@@ -55,7 +55,7 @@ impl BlockBuilder {
 
         let (deferred, promise) = env.create_deferred()?;
         context.runtime().spawn(async move {
-            let result = rethnet_evm::BlockBuilder::new(blockchain, state, config, parent, block)
+            let result = rethnet_evm::BlockBuilder::new(blockchain, state, config, &parent, block)
                 .await
                 .map_or_else(
                     |e| Err(napi::Error::new(Status::GenericFailure, e.to_string())),
