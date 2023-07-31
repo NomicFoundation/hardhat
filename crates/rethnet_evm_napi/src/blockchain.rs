@@ -39,6 +39,7 @@ impl Blockchain {
     where
         B: SyncBlockchain<BlockchainError>,
     {
+        // Signal that memory was externally allocated
         env.adjust_external_memory(BLOCKCHAIN_MEMORY_SIZE)?;
 
         Ok(Self {
@@ -229,6 +230,7 @@ impl Blockchain {
 impl ObjectFinalize for Blockchain {
     #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     fn finalize(self, mut env: Env) -> napi::Result<()> {
+        // Signal that the externally allocated memory has been freed
         env.adjust_external_memory(-BLOCKCHAIN_MEMORY_SIZE)?;
 
         Ok(())

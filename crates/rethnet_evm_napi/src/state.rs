@@ -97,6 +97,7 @@ impl StateManager {
     where
         S: SyncState<StateError>,
     {
+        // Signal that memory was externally allocated
         env.adjust_external_memory(STATE_MEMORY_SIZE)?;
 
         Ok(Self {
@@ -577,6 +578,7 @@ impl StateManager {
 impl ObjectFinalize for StateManager {
     #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     fn finalize(self, mut env: Env) -> napi::Result<()> {
+        // Signal that the externally allocated memory has been freed
         env.adjust_external_memory(-STATE_MEMORY_SIZE)?;
 
         Ok(())
