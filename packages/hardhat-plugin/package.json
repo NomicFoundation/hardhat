@@ -15,9 +15,6 @@
     "solidity",
     "deployment"
   ],
-  "engines": {
-    "node": "^14.0.0 || ^16.0.0 || ^18.0.0"
-  },
   "main": "dist/src/index.js",
   "types": "dist/src/index.d.ts",
   "scripts": {
