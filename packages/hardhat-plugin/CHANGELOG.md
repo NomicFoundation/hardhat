@@ -4,7 +4,14 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
-## 0.1.0 - 2023-07-30
+## 0.1.2 - 2023-07-31
+
+### Fixed
+
+- Fix validation error when using the result of a `staticCall` as the address of a `contractAt`/`contractAtFromArtifact` ([#354](https://github.com/NomicFoundation/ignition/issues/357))
+- Fix bug in `staticCall` execution logic preventing successful execution
+
+## 0.1.1 - 2023-07-30
 
 ### Fixed
 

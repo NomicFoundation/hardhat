@@ -1,7 +1,7 @@
 {
   "name": "@nomicfoundation/ignition-sample-example",
   "private": true,
-  "version": "0.1.1",
+  "version": "0.1.2",
   "scripts": {
     "test": "hardhat test",
     "lint": "npm run prettier -- --check && npm run eslint",
@@ -10,7 +10,7 @@
     "prettier": "prettier \"*.{js,md,json}\" \"ignition/*.{js,md,json}\" \"test/*.{js,md,json}\" \"contracts/**/*.sol\""
   },
   "devDependencies": {
-    "@ignored/hardhat-ignition": "^0.1.1",
+    "@ignored/hardhat-ignition": "^0.1.2",
     "@nomicfoundation/hardhat-toolbox": "2.0.2",
     "hardhat": "^2.14.0",
     "prettier-plugin-solidity": "1.1.3"
