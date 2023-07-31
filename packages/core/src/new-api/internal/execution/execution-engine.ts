@@ -837,17 +837,20 @@ export class ExecutionEngine {
             );
 
             address = contractAddress;
-          } else if (isReadEventArgumentExecutionState(exState)) {
+          } else if (
+            isReadEventArgumentExecutionState(exState) ||
+            isStaticCallExecutionState(exState)
+          ) {
             const contractAddress = exState.result;
 
             assertIgnitionInvariant(
               contractAddress !== undefined,
-              `Internal error - dependency ReadEventArgument ${future.address.id} used before it's resolved`
+              `Internal error - dependency ${future.address.id} used before it's resolved`
             );
 
             assertIgnitionInvariant(
               typeof contractAddress === "string" && isAddress(contractAddress),
-              `Read event argument ${future.address.id} must be a valid address`
+              `Future '${future.address.id}' must be a valid address`
             );
 
             address = contractAddress;
@@ -902,17 +905,20 @@ export class ExecutionEngine {
             );
 
             address = contractAddress;
-          } else if (isReadEventArgumentExecutionState(exState)) {
+          } else if (
+            isReadEventArgumentExecutionState(exState) ||
+            isStaticCallExecutionState(exState)
+          ) {
             const contractAddress = exState.result;
 
             assertIgnitionInvariant(
               contractAddress !== undefined,
-              `Internal error - dependency ReadEventArgument ${future.address.id} used before it's resolved`
+              `Internal error - dependency ${future.address.id} used before it's resolved`
             );
 
             assertIgnitionInvariant(
               typeof contractAddress === "string" && isAddress(contractAddress),
-              `Read event argument ${future.address.id} must be a valid address`
+              `Future '${future.address.id}' must be a valid address`
             );
 
             address = contractAddress;
