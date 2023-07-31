@@ -55,6 +55,52 @@ describe("static calls", () => {
     assert.equal(await result.foo.x(), Number(1));
   });
 
+  it("should be able to use the output of a static call function in a contract at (with arg)", async function () {
+    const moduleDefinition = defineModule("FooModule", (m) => {
+      const account1 = m.getAccount(1);
+
+      const fooFactory = m.contract("FooFactory", [], { from: account1 });
+
+      const createCall = m.call(fooFactory, "create", []);
+
+      const newAddress = m.staticCall(fooFactory, "allDeployed", [0], {
+        after: [createCall],
+      });
+
+      const foo = m.contractAt("Foo", newAddress);
+
+      return { fooFactory, foo };
+    });
+
+    const result = await this.deploy(moduleDefinition);
+
+    assert.equal(await result.fooFactory.isDeployed(), true);
+    assert.equal(await result.foo.x(), Number(1));
+  });
+
+  it("should be able to use the output of a static call function in a contract at (with function signature)", async function () {
+    const moduleDefinition = defineModule("FooModule", (m) => {
+      const account1 = m.getAccount(1);
+
+      const fooFactory = m.contract("FooFactory", [], { from: account1 });
+
+      const createCall = m.call(fooFactory, "create", []);
+
+      const newAddress = m.staticCall(fooFactory, "allDeployed(uint256)", [0], {
+        after: [createCall],
+      });
+
+      const foo = m.contractAt("Foo", newAddress);
+
+      return { fooFactory, foo };
+    });
+
+    const result = await this.deploy(moduleDefinition);
+
+    assert.equal(await result.fooFactory.isDeployed(), true);
+    assert.equal(await result.foo.x(), Number(1));
+  });
+
   it("should not be able to use the output of a non-address static call in a contract at", async function () {
     const moduleDefinition = defineModule("FooModule", (m) => {
       const account1 = m.getAccount(1);

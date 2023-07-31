@@ -168,9 +168,23 @@ export class ChainDispatcherImpl implements ChainDispatcher {
 
     const contractInstance = new Contract(contractAddress, abi, signer);
 
-    const validFunctionName = functionName.endsWith("()")
-      ? functionName
-      : `${functionName}()`;
+    // todo: temp fix
+    // if user provided a function name with parenthesis, assume they know what they're doing
+    // if not, add the open parenthesis for the regex test
+    const userFnOrNormalized = functionName.endsWith(")")
+      ? functionName.replace("(", "\\(").replace(")", "\\)")
+      : `${functionName}\\(`;
+
+    const matchingFunctions = Object.keys(contractInstance).filter((key) =>
+      new RegExp(userFnOrNormalized).test(key)
+    );
+
+    assertIgnitionInvariant(
+      matchingFunctions.length === 1,
+      "Ignition does not yet support overloaded static calls"
+    );
+
+    const [validFunctionName] = matchingFunctions;
 
     const result = await contractInstance[validFunctionName](...args, {
       from,
