@@ -200,7 +200,6 @@ impl BlockHashRef for LocalBlockchain {
     type Error = BlockchainError;
 
     fn block_hash(&self, number: U256) -> Result<B256, Self::Error> {
-        // Question: Do we need to support block number larger than usize::MAX
         let number = usize::try_from(number).map_err(|_| BlockchainError::BlockNumberTooLarge)?;
 
         self.storage

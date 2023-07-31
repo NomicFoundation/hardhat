@@ -62,7 +62,6 @@ impl PendingTransaction {
             });
         }
 
-        // Question: Should we return an error if the account doesn't exist
         let sender = state.basic(caller)?.unwrap_or_default();
 
         // We need to validate funds at this stage to avoid DOS

@@ -140,10 +140,7 @@ impl MemPool {
             });
         }
 
-        let account = state.basic(*transaction.caller())?;
-
-        // Question: Must the account exist?
-        let account = account.unwrap_or_default();
+        let account = state.basic(*transaction.caller())?.unwrap_or_default();
 
         let next_nonce = self
             .last_pending_nonce(transaction.caller())
