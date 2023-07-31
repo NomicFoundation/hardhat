@@ -660,7 +660,7 @@ impl Server {
                         .await
                         .expect("should retrieve latest block from fork source")
                         .number
-                        .expect("fork source's latest block should have a block number"),
+                        .expect("Not a pending block"),
                 };
 
                 Arc::new(AppState {

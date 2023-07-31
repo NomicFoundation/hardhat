@@ -2,9 +2,12 @@
 
 use bytes::Bytes;
 use ethbloom::Bloom;
-use revm_primitives::{Address, B256, U256};
-use ruint::aliases::U160;
+use revm_primitives::{
+    ruint::{self, aliases::U160},
+    Address, B256, U256,
+};
 
+/// Transaction log
 #[derive(Clone, Debug, PartialEq, Eq)]
 #[cfg_attr(
     feature = "fastrlp",
@@ -12,8 +15,11 @@ use ruint::aliases::U160;
 )]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct Log {
+    /// Address
     pub address: Address,
+    /// Topics
     pub topics: Vec<B256>,
+    /// Data
     pub data: Bytes,
 }
 

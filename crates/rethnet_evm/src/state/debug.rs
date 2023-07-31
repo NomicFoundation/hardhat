@@ -39,7 +39,7 @@ impl Deref for AccountModifierFn {
 /// A trait for debug operation on a database.
 #[auto_impl(Box)]
 pub trait StateDebug {
-    /// The database's error type.
+    /// The state's error type.
     type Error;
 
     /// Retrieves the storage root of the account at the specified address.
