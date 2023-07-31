@@ -176,7 +176,7 @@ impl AccountTrie {
 
         changes.iter().for_each(|(address, account)| {
             if account.is_touched() {
-                if account.is_selfdestructed() {
+                if account.is_selfdestructed() | account.is_empty() {
                     // Removes account only if it exists, so safe to use for empty, touched accounts
                     Self::remove_account_in(address, &mut state_trie, &mut self.storage_trie_dbs);
                 } else {
@@ -200,8 +200,7 @@ impl AccountTrie {
                             (storage_trie_db, storage_root)
                         });
 
-                    let storage_changed = account.is_newly_created() || !account.storage.is_empty();
-                    if storage_changed {
+                    if !account.storage.is_empty() {
                         let mut storage_trie = Trie::from(
                             storage_trie_db.clone(),
                             Arc::new(HasherKeccak::new()),
