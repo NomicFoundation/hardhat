@@ -58,7 +58,7 @@ impl MemPool {
         self.next_account_nonces.get(address)
     }
 
-    /// Tries to add the provided transaction to the [`Pool`].
+    /// Tries to add the provided transaction to the [`MemPool`].
     pub fn add_transaction<S: StateRef + ?Sized>(
         &mut self,
         state: &S,
@@ -90,7 +90,7 @@ impl MemPool {
         None
     }
 
-    /// Updates the [`Pool`], moving any future transactions to the pending status, if their nonces are high enough.
+    /// Updates the [`MemPool`], moving any future transactions to the pending status, if their nonces are high enough.
     pub fn update<S>(&mut self, state: &S)
     where
         S: StateRef + ?Sized,

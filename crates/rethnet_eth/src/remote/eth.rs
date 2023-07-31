@@ -174,7 +174,7 @@ pub struct TransactionReceipt {
     pub transaction_type: u64,
 }
 
-/// Error that occurs when trying to convert the JSON-RPC `TransactionReceipt` type.
+/// Error that occurs when trying to convert the JSON-RPC [`TransactionReceipt`] type.
 #[derive(Debug, thiserror::Error)]
 pub enum ReceiptConversionError {
     /// The transaction type is not supported.

@@ -99,7 +99,7 @@ impl PendingTransaction {
         self.hash.get_or_init(|| self.transaction.hash())
     }
 
-    /// Retursn the inner transaction and caller
+    /// Returns the inner transaction and caller
     pub fn into_inner(self) -> (SignedTransaction, Address) {
         (self.transaction, self.caller)
     }

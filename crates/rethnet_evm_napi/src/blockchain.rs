@@ -195,7 +195,7 @@ impl Blockchain {
         )
     }
 
-    #[doc = "Retrieves the last block number in the blockchain."]
+    #[doc = "Retrieves the number of the last block in the blockchain."]
     #[napi]
     pub async fn last_block_number(&self) -> BigInt {
         let block_number = self.read().await.last_block_number();
