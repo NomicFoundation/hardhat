@@ -14,13 +14,13 @@ pub trait StateHistory {
         block_number: Option<U256>,
     ) -> Result<(), Self::Error>;
 
-    /// Creates a checkpoint that can be reverted to using [`revert`].
+    /// Creates a checkpoint that can be reverted to using [`Self::revert`].
     fn checkpoint(&mut self) -> Result<(), Self::Error>;
 
-    /// Reverts to the previous checkpoint, created using [`checkpoint`].
+    /// Reverts to the previous checkpoint, created using [`Self::checkpoint`].
     fn revert(&mut self) -> Result<(), Self::Error>;
 
-    /// Makes a snapshot of the database that's retained until [`remove_snapshot`] is called. Returns the snapshot's identifier and whether
+    /// Makes a snapshot of the database that's retained until [`Self::remove_snapshot`] is called. Returns the snapshot's identifier and whether
     /// that snapshot already existed.
     fn make_snapshot(&mut self) -> B256;
 

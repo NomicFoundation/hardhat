@@ -80,7 +80,7 @@ pub trait BlockchainMut {
     fn insert_block(&mut self, block: DetailedBlock) -> Result<Arc<DetailedBlock>, Self::Error>;
 }
 
-/// Trait that meets all requirements for a synchronous database that can be used by [`AsyncBlockchain`].
+/// Trait that meets all requirements for a synchronous blockchain.
 pub trait SyncBlockchain<E>:
     Blockchain<Error = E>
     + BlockchainMut<Error = E>

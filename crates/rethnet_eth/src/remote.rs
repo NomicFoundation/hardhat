@@ -1,3 +1,6 @@
+use std::fmt;
+use std::fmt::{Display, Formatter};
+
 /// an Ethereum JSON-RPC client
 pub mod client;
 
@@ -59,6 +62,12 @@ pub enum Eip1898BlockSpec {
     },
 }
 
+impl Display for Eip1898BlockSpec {
+    fn fmt(&self, formatter: &mut Formatter) -> Result<(), fmt::Error> {
+        formatter.write_str(&serde_json::to_string(self).map_err(|_| fmt::Error)?)
+    }
+}
+
 /// possible block tags as defined by the Ethereum JSON-RPC specification
 #[derive(Clone, Debug, PartialEq, serde::Deserialize, serde::Serialize)]
 pub enum BlockTag {
@@ -77,6 +86,18 @@ pub enum BlockTag {
     /// finalized
     #[serde(rename = "finalized")]
     Finalized,
+}
+
+impl Display for BlockTag {
+    fn fmt(&self, formatter: &mut Formatter) -> Result<(), fmt::Error> {
+        formatter.write_str(match self {
+            BlockTag::Earliest => "earliest",
+            BlockTag::Latest => "latest",
+            BlockTag::Pending => "pending",
+            BlockTag::Safe => "safe",
+            BlockTag::Finalized => "finalized",
+        })
+    }
 }
 
 /// For specifying a block
@@ -116,6 +137,16 @@ impl BlockSpec {
     /// Constructs an instance for the finalized block.
     pub fn finalized() -> Self {
         Self::Tag(BlockTag::Finalized)
+    }
+}
+
+impl Display for BlockSpec {
+    fn fmt(&self, formatter: &mut Formatter) -> Result<(), fmt::Error> {
+        match self {
+            BlockSpec::Number(n) => n.fmt(formatter),
+            BlockSpec::Tag(t) => t.fmt(formatter),
+            BlockSpec::Eip1898(e) => e.fmt(formatter),
+        }
     }
 }
 
@@ -178,7 +209,14 @@ impl serde::Serialize for ZeroXPrefixedBytes {
     where
         S: serde::Serializer,
     {
-        serializer.serialize_str(&format!("0x{}", hex::encode(&self.inner)))
+        let encoded = hex::encode(&self.inner);
+        serializer.serialize_str(&format!(
+            "0x{}",
+            match encoded.as_str() {
+                "00" => "",
+                other => other,
+            }
+        ))
     }
 }
 

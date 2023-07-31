@@ -107,7 +107,7 @@ pub struct TraceCollector {
 }
 
 impl TraceCollector {
-    /// Converts the [`Tracer`] into its [`Trace`].
+    /// Converts the [`TraceCollector`] into its [`Trace`].
     pub fn into_trace(self) -> Trace {
         self.trace
     }

@@ -11,7 +11,7 @@
 use crate::B256;
 use revm_primitives::keccak256;
 
-/// RLP-encodes the provided value, prepends it with the provided ID, and appends it to the provided [`RlpStream`].
+/// RLP-encodes the provided value, prepends it with the provided ID, and appends it to the provided [`rlp::RlpStream`].
 pub fn enveloped<T: rlp::Encodable>(id: u8, v: &T, s: &mut rlp::RlpStream) {
     let encoded = rlp::encode(v);
     let mut out = vec![0; 1 + encoded.len()];
