@@ -27,7 +27,7 @@
   "typesVersions": {
     "*": {
       "ui-helpers": [
-        "./dist/src/ui-helpers"
+        "./dist/src/ui-helpers.d.ts"
       ]
     }
   },
