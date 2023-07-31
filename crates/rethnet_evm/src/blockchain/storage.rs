@@ -9,7 +9,7 @@ pub use self::{contiguous::ContiguousBlockchainStorage, sparse::SparseBlockchain
 #[derive(Debug, thiserror::Error)]
 pub enum InsertError {
     /// Block already exists
-    #[error("A block with hash {block_hash} and number {block_number} already exists.")]
+    #[error("A block, with hash {block_hash} and number {block_number}, already exists.")]
     DuplicateBlock {
         /// The block's hash
         block_hash: B256,
