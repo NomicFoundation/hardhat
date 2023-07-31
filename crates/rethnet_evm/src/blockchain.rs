@@ -29,8 +29,13 @@ pub enum BlockchainError {
         expected: U256,
     },
     /// Invalid parent hash
-    #[error("Invalid parent hash")]
-    InvalidParentHash,
+    #[error("Invalid parent hash: ${actual}. Expected: ${expected}.")]
+    InvalidParentHash {
+        /// Provided parent hash
+        actual: B256,
+        /// Expected parent hash
+        expected: B256,
+    },
     /// JSON-RPC error
     #[error(transparent)]
     JsonRpcError(#[from] RpcClientError),
@@ -116,7 +121,10 @@ fn validate_next_block(
     }
 
     if next_block.header.parent_hash != *last_block.hash() {
-        return Err(BlockchainError::InvalidParentHash);
+        return Err(BlockchainError::InvalidParentHash {
+            actual: next_block.header.parent_hash,
+            expected: *last_block.hash(),
+        });
     }
 
     Ok(())
