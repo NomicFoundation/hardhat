@@ -3,14 +3,18 @@ use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 
 use anyhow::anyhow;
 use clap::{Args, Parser, Subcommand};
+use secp256k1::SecretKey;
 use tracing::{event, Level};
 
 use rethnet_eth::{Address, U64};
-use rethnet_rpc_server::{Config as ServerConfig, RpcForkConfig, RpcHardhatNetworkConfig};
+use rethnet_rpc_server::{
+    AccountConfig as ServerAccountConfig, Config as ServerConfig, RpcForkConfig,
+    RpcHardhatNetworkConfig,
+};
 
 pub mod config;
 
-use config::ConfigFile;
+use config::{AccountConfig, ConfigFile};
 
 #[derive(Parser)]
 #[clap(author, version, about, long_about = None)]
@@ -49,6 +53,7 @@ fn server_config_from_cli_args_and_config_file(
     node_args: NodeArgs,
     config_file: ConfigFile,
 ) -> Result<ServerConfig, anyhow::Error> {
+    let config_file = ConfigFile::resolve_none_values_to_defaults(config_file);
     Ok(ServerConfig {
         address: SocketAddr::new(node_args.host, node_args.port),
         rpc_hardhat_network_config: RpcHardhatNetworkConfig {
@@ -66,11 +71,36 @@ fn server_config_from_cli_args_and_config_file(
                 None
             },
         },
-        accounts: config_file.accounts,
-        chain_id: U64::from(node_args.chain_id.unwrap_or(config_file.chain_id)),
-        coinbase: node_args.coinbase.unwrap_or(config_file.coinbase),
-        network_id: U64::from(node_args.network_id.unwrap_or(config_file.network_id)),
+        accounts: config_file
+            .accounts
+            .expect("should be resolved to default")
+            .iter()
+            .map(ServerAccountConfig::from)
+            .collect(),
+        chain_id: node_args
+            .chain_id
+            .or(config_file.chain_id)
+            .map(U64::from)
+            .expect("should be resolved to default"),
+        coinbase: node_args
+            .coinbase
+            .or(config_file.coinbase)
+            .expect("should be resolved to default"),
+        network_id: node_args
+            .network_id
+            .or(config_file.network_id)
+            .map(U64::from)
+            .expect("should be resolved to default"),
     })
+}
+
+impl From<&AccountConfig> for ServerAccountConfig {
+    fn from(account_config: &AccountConfig) -> Self {
+        Self {
+            private_key: SecretKey::from_slice(&account_config.private_key[..]).unwrap(),
+            balance: account_config.balance,
+        }
+    }
 }
 
 #[derive(Copy, Debug, Clone, PartialEq, Eq)]

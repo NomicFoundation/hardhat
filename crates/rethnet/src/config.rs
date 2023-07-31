@@ -1,9 +1,9 @@
 use std::str::FromStr;
 
-use secp256k1::SecretKey;
+use hex;
 
 use rethnet_eth::{Address, U256};
-use rethnet_rpc_server::AccountConfig;
+use rethnet_evm::Bytes;
 
 /// the default private keys from which the local accounts will be derived.
 pub const DEFAULT_PRIVATE_KEYS: [&str; 20] = [
@@ -33,29 +33,68 @@ pub const DEFAULT_PRIVATE_KEYS: [&str; 20] = [
 /// struct representing the deserialized conifguration file, eg hardhat.config.json
 pub struct ConfigFile {
     // TODO: expand this per https://github.com/NomicFoundation/rethnet/issues/111
-    pub accounts: Vec<AccountConfig>,
-    pub chain_id: u64,
-    pub coinbase: Address,
-    pub network_id: u64,
+    pub accounts: Option<Vec<AccountConfig>>,
+    pub chain_id: Option<u64>,
+    pub coinbase: Option<Address>,
+    pub network_id: Option<u64>,
+}
+
+impl ConfigFile {
+    pub fn resolve_none_values_to_defaults(partial: Self) -> Self {
+        let default = Self::default();
+        Self {
+            accounts: Some(
+                partial
+                    .accounts
+                    .unwrap_or(default.accounts.expect("should have a default value")),
+            ),
+            chain_id: Some(
+                partial
+                    .chain_id
+                    .unwrap_or(default.chain_id.expect("should have a default value")),
+            ),
+            coinbase: Some(
+                partial
+                    .coinbase
+                    .unwrap_or(default.coinbase.expect("should have a default value")),
+            ),
+            network_id: Some(
+                partial
+                    .network_id
+                    .unwrap_or(default.network_id.expect("should have a default value")),
+            ),
+        }
+    }
 }
 
 impl Default for ConfigFile {
     fn default() -> Self {
-        let chain_id = 31337;
+        // default values taken from https://hardhat.org/hardhat-network/docs/reference
+        let chain_id = Some(31337);
         Self {
-            accounts: DEFAULT_PRIVATE_KEYS
-                .into_iter()
-                .map(|s| AccountConfig {
-                    private_key: SecretKey::from_str(s)
-                        .expect("should decode all default private keys from strings"),
-                    balance: U256::from(10000),
-                })
-                .collect(),
+            accounts: Some(
+                DEFAULT_PRIVATE_KEYS
+                    .into_iter()
+                    .map(|s| AccountConfig {
+                        private_key: Bytes::from_iter(
+                            hex::decode(s)
+                                .expect("should decode all default private keys from strings"),
+                        ),
+                        balance: U256::from(10000),
+                    })
+                    .collect(),
+            ),
             chain_id,
-            // default coinbase address taken from https://hardhat.org/hardhat-network/docs/reference
-            coinbase: Address::from_str("0xc014ba5ec014ba5ec014ba5ec014ba5ec014ba5e")
-                .expect("default value should be known to succeed"),
+            coinbase: Some(
+                Address::from_str("0xc014ba5ec014ba5ec014ba5ec014ba5ec014ba5e")
+                    .expect("default value should be known to succeed"),
+            ),
             network_id: chain_id,
         }
     }
+}
+
+pub struct AccountConfig {
+    pub private_key: Bytes,
+    pub balance: U256,
 }
