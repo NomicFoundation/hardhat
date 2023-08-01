@@ -22,10 +22,14 @@ describe("Web3 module", function () {
       describe("web3_clientVersion", async function () {
         it("Should return the right value", async function () {
           const res = await this.provider.send("web3_clientVersion");
-          assert.match(
-            res,
-            /^HardhatNetwork\/.*\/@nomicfoundation\/ethereumjs-vm/
-          );
+          const expectedHardhatVersion =
+            /^HardhatNetwork\/.*\/@nomicfoundation\/ethereumjs-vm/;
+          const expectedEDRVersion = /^edr\/.*\/revm\/.*$/;
+          const expected =
+            this.rethnetProcess === undefined
+              ? expectedHardhatVersion
+              : expectedEDRVersion;
+          assert.match(res, expected);
         });
       });
 

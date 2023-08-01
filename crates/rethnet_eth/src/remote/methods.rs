@@ -203,6 +203,12 @@ pub enum MethodInvocation {
     /// eth_mining
     #[serde(rename = "eth_mining")]
     Mining(),
+    /// net_listening
+    #[serde(rename = "net_listening")]
+    NetListening(),
+    /// net_peerCount
+    #[serde(rename = "net_peerCount")]
+    NetPeerCount(),
     /// net_version
     #[serde(rename = "net_version")]
     NetVersion(),
@@ -266,6 +272,16 @@ pub enum MethodInvocation {
         deserialize_with = "sequence_to_single"
     )]
     Unsubscribe(U256),
+    /// web3_clientVersion
+    #[serde(rename = "web3_clientVersion")]
+    Web3ClientVersion(),
+    /// web3_sha3
+    #[serde(
+        rename = "web3_sha3",
+        serialize_with = "single_to_sequence",
+        deserialize_with = "sequence_to_single"
+    )]
+    Web3Sha3(ZeroXPrefixedBytes),
     /// evm_setAutomine
     #[serde(
         rename = "evm_setAutomine",

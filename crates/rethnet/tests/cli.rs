@@ -53,6 +53,8 @@ async fn node() -> Result<(), Box<dyn std::error::Error>> {
             address,
             Some(BlockSpec::latest()),
         )),
+        MethodInvocation::Eth(EthMethodInvocation::NetListening()),
+        MethodInvocation::Eth(EthMethodInvocation::NetPeerCount()),
         MethodInvocation::Eth(EthMethodInvocation::NetVersion()),
         MethodInvocation::Eth(EthMethodInvocation::NewPendingTransactionFilter()),
         MethodInvocation::Eth(EthMethodInvocation::UninstallFilter(U256::from(1))),
@@ -61,6 +63,10 @@ async fn node() -> Result<(), Box<dyn std::error::Error>> {
         MethodInvocation::Eth(EthMethodInvocation::Sign(
             address,
             bytes::Bytes::from(hex::decode("deadbeef").unwrap()).into(),
+        )),
+        MethodInvocation::Eth(EthMethodInvocation::Web3ClientVersion()),
+        MethodInvocation::Eth(EthMethodInvocation::Web3Sha3(
+            Bytes::from_static(b"").into(),
         )),
         MethodInvocation::Hardhat(HardhatMethodInvocation::ImpersonateAccount(address)),
         MethodInvocation::Hardhat(HardhatMethodInvocation::SetBalance(address, U256::ZERO)),
@@ -167,6 +173,12 @@ async fn node() -> Result<(), Box<dyn std::error::Error>> {
                 address,
                 block_spec,
             )) => format!("eth_getTransactionCount({address:?}, {block_spec:?})"),
+            MethodInvocation::Eth(EthMethodInvocation::NetListening()) => {
+                String::from("net_listening()")
+            }
+            MethodInvocation::Eth(EthMethodInvocation::NetPeerCount()) => {
+                String::from("net_peerCount()")
+            }
             MethodInvocation::Eth(EthMethodInvocation::NetVersion()) => {
                 String::from("net_version()")
             }
@@ -181,6 +193,12 @@ async fn node() -> Result<(), Box<dyn std::error::Error>> {
             }
             MethodInvocation::Eth(EthMethodInvocation::Sign(address, message)) => {
                 format!("eth_sign({address:?}, {message:?})")
+            }
+            MethodInvocation::Eth(EthMethodInvocation::Web3ClientVersion()) => {
+                String::from("web3_clientVersion()")
+            }
+            MethodInvocation::Eth(EthMethodInvocation::Web3Sha3(message)) => {
+                format!("web3_sha3({message:?})")
             }
             MethodInvocation::Hardhat(HardhatMethodInvocation::ImpersonateAccount(address)) => {
                 format!("hardhat_impersonateAccount({address:?}")

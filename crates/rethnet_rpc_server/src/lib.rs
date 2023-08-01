@@ -9,6 +9,7 @@ use axum::{
 use hashbrown::{HashMap, HashSet};
 use rethnet_eth::remote::ZeroXPrefixedBytes;
 use secp256k1::{Secp256k1, SecretKey};
+use sha3::{Digest, Keccak256};
 use tokio::sync::RwLock;
 use tracing::{event, Level};
 
@@ -567,6 +568,18 @@ async fn handle_set_storage_at(
     }
 }
 
+fn handle_net_listening() -> ResponseData<bool> {
+    event!(Level::INFO, "net_listening()");
+    ResponseData::Success { result: true }
+}
+
+fn handle_net_peer_count() -> ResponseData<U64WithoutLeadingZeroes> {
+    event!(Level::INFO, "net_peerCount()");
+    ResponseData::Success {
+        result: U64WithoutLeadingZeroes(U64::from(0)),
+    }
+}
+
 fn handle_sign(
     state: StateType,
     address: &Address,
@@ -612,6 +625,26 @@ async fn handle_uninstall_filter(state: StateType, filter_id: U256) -> ResponseD
 async fn handle_unsubscribe(state: StateType, filter_id: U256) -> ResponseData<bool> {
     event!(Level::INFO, "eth_unsubscribe({filter_id:?})");
     remove_filter::<true>(state, filter_id).await
+}
+
+fn handle_web3_client_version() -> ResponseData<String> {
+    event!(Level::INFO, "web3_clientVersion()");
+    ResponseData::Success {
+        result: format!(
+            "edr/{}/revm/{}",
+            env!("CARGO_PKG_VERSION"),
+            env!("REVM_VERSION"),
+        ),
+    }
+}
+
+fn handle_web3_sha3(message: ZeroXPrefixedBytes) -> ResponseData<B256> {
+    event!(Level::INFO, "web3_sha3({message:?})");
+    let message: Bytes = message.into();
+    let hash = Keccak256::digest(&message[..]);
+    ResponseData::Success {
+        result: B256::from_slice(&hash[..]),
+    }
 }
 
 async fn handle_request(
@@ -687,6 +720,12 @@ async fn handle_request(
                         handle_get_transaction_count(state, *address, block.clone()).await,
                     )
                 }
+                MethodInvocation::Eth(EthMethodInvocation::NetListening()) => {
+                    response(id, handle_net_listening())
+                }
+                MethodInvocation::Eth(EthMethodInvocation::NetPeerCount()) => {
+                    response(id, handle_net_peer_count())
+                }
                 MethodInvocation::Eth(EthMethodInvocation::NetVersion()) => {
                     response(id, handle_net_version(state).await)
                 }
@@ -695,6 +734,12 @@ async fn handle_request(
                 }
                 MethodInvocation::Eth(EthMethodInvocation::Sign(address, message)) => {
                     response(id, handle_sign(state, address, message))
+                }
+                MethodInvocation::Eth(EthMethodInvocation::Web3ClientVersion()) => {
+                    response(id, handle_web3_client_version())
+                }
+                MethodInvocation::Eth(EthMethodInvocation::Web3Sha3(message)) => {
+                    response(id, handle_web3_sha3(message.clone()))
                 }
                 MethodInvocation::Eth(EthMethodInvocation::UninstallFilter(filter_id)) => {
                     response(id, handle_uninstall_filter(state, *filter_id).await)

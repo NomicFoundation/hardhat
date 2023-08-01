@@ -411,6 +411,18 @@ fn test_serde_one_or_more_addresses() {
 }
 
 #[test]
+fn test_serde_web3_client_version() {
+    help_test_method_invocation_serde(MethodInvocation::Web3ClientVersion());
+}
+
+#[test]
+fn test_serde_web3_sha3() {
+    help_test_method_invocation_serde(MethodInvocation::Web3Sha3(
+        Bytes::from(&b"whatever"[..]).into(),
+    ));
+}
+
+#[test]
 fn test_evm_set_automine() {
     help_test_method_invocation_serde(MethodInvocation::EvmSetAutomine(false));
 }
@@ -418,6 +430,16 @@ fn test_evm_set_automine() {
 #[test]
 fn test_evm_snapshot() {
     help_test_method_invocation_serde(MethodInvocation::EvmSnapshot());
+}
+
+#[test]
+fn test_net_listening() {
+    help_test_method_invocation_serde(MethodInvocation::NetListening());
+}
+
+#[test]
+fn test_net_peer_count() {
+    help_test_method_invocation_serde(MethodInvocation::NetPeerCount());
 }
 
 #[test]

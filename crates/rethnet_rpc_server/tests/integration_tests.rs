@@ -238,6 +238,26 @@ async fn test_get_transaction_count_success() {
 }
 
 #[tokio::test]
+async fn test_net_listening() {
+    verify_response(
+        &start_server().await,
+        MethodInvocation::Eth(EthMethodInvocation::NetListening()),
+        true,
+    )
+    .await;
+}
+
+#[tokio::test]
+async fn test_net_peer_count() {
+    verify_response(
+        &start_server().await,
+        MethodInvocation::Eth(EthMethodInvocation::NetPeerCount()),
+        U64::ZERO,
+    )
+    .await;
+}
+
+#[tokio::test]
 async fn test_net_version() {
     verify_response(
         &start_server().await,
@@ -462,4 +482,30 @@ async fn test_uninstall_filter_nonexistent_filter() {
 #[tokio::test]
 async fn test_unsubscribe() {
     // TODO: when eth_subscribe is implemented for https://github.com/NomicFoundation/rethnet/issues/114
+}
+
+#[tokio::test]
+async fn test_web3_client_version() {
+    verify_response(
+        &start_server().await,
+        MethodInvocation::Eth(EthMethodInvocation::Web3ClientVersion()),
+        String::from(&format!(
+            "edr/{}/revm/{}",
+            env!("CARGO_PKG_VERSION"),
+            env!("REVM_VERSION"),
+        )),
+    )
+    .await;
+}
+
+#[tokio::test]
+async fn test_web3_sha3() {
+    verify_response(
+        &start_server().await,
+        MethodInvocation::Eth(EthMethodInvocation::Web3Sha3(
+            Bytes::from_static(b"").into(),
+        )),
+        KECCAK_EMPTY,
+    )
+    .await;
 }
