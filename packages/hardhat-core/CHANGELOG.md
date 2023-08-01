@@ -1,5 +1,16 @@
 # hardhat
 
+## 2.17.1
+
+### Patch Changes
+
+- 8f50ab814: Removed the `abort-controller` dependency as it's not longer needed. Thanks @orlandoortegajr!
+- 951906da2: Improved the flatten task to handle SPDX licenses and pragma directives more effectively.
+- e4424e3ad: Added support for solc 0.8.21
+- fff90bb6e: `console.log` now works in `pure` functions. Thanks @0age for coming up with this technique!
+- 9fe89ef96: Fixed a bug caused by nodes returning 429 responses without a `Retry-After` header (thanks @kowalski!)
+- 6390230b7: Added logic to throw an error when the debug_traceTransaction method is called with a tracer parameter that is not supported.
+
 ## 2.17.0
 
 ### Minor Changes

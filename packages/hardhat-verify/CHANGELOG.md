@@ -1,5 +1,11 @@
 # @nomicfoundation/hardhat-verify
 
+## 1.1.0
+
+### Minor Changes
+
+- e2fc27766: Exposed the Etherscan class as a public API for third-party consumers.
+
 ## 1.0.4
 
 ### Patch Changes
