@@ -782,6 +782,14 @@ const communityPlugins: IPlugin[] = [
       "The hardhat-w3f plugin allows builders to build & run Web3 Functions connecting smart off-chain data with smart contracts ",
     tags: ["Gelato", "w3f", "offchain", "functions"],
   },
+  {
+    name: "hardhat-deployed-records",
+    author: "xiaosongfu",
+    npmPackage: "hardhat-deployed-records",
+    authorUrl: "https://github.com/xiaosongfu",
+    description: "Recording deployed contracts address to json file",
+    tags: ["deployed history"],
+  },
 ];
 
 const officialPlugins: IPlugin[] = [
