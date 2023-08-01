@@ -192,7 +192,8 @@ async fn set_block_context<T>(
         }
         None => Ok(previous_state_root),
         resolvable_block_spec => {
-            let latest_block_number = state.blockchain.read().await.last_block_number();
+            let blockchain = state.blockchain.read().await;
+            let latest_block_number = blockchain.last_block_number();
             state
                 .rethnet_state
                 .write()
@@ -204,9 +205,13 @@ async fn set_block_context<T>(
                         Some(BlockSpec::Eip1898(s)) => match s {
                             Eip1898BlockSpec::Number { block_number: n } => Ok(n),
                             Eip1898BlockSpec::Hash {
-                                block_hash: _,
+                                block_hash,
                                 require_canonical: _,
-                            } => todo!("when there's a blockchain present"),
+                            } => match blockchain.block_by_hash(&block_hash) {
+                                Err(e) => Err(error_response_data(0, &format!("failed to get block by hash {block_hash}: {e}"))),
+                                Ok(None) => Err(error_response_data(0, &format!("block hash {block_hash} does not refer to a known block"))),
+                                Ok(Some(block)) => Ok(block.header.number),
+                            }
                         },
                         Some(BlockSpec::Tag(tag)) => match tag {
                             BlockTag::Earliest => Ok(U256::ZERO),
