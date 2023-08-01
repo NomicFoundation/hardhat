@@ -7,7 +7,7 @@ export const METADATA_LENGTH = 2;
 export const SOLC_NOT_FOUND_IN_METADATA_VERSION_RANGE = "0.4.7 - 0.5.8";
 export const MISSING_METADATA_VERSION_RANGE = "<0.4.7";
 
-const log = debug("hardhat:hardhat-etherscan:metadata");
+const log = debug("hardhat:hardhat-verify:metadata");
 
 /**
  * Try to infer the Solidity compiler version from the bytecode metadata.

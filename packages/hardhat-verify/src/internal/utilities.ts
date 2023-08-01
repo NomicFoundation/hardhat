@@ -1,8 +1,9 @@
 import type { JsonFragment } from "@ethersproject/abi";
+import type { SolidityConfig } from "hardhat/types";
+import type { ChainConfig } from "../types";
 
 import chalk from "chalk";
 import path from "path";
-import { SolidityConfig } from "hardhat/types";
 import { builtinChains } from "./chain-config";
 import {
   ABIArgumentLengthError,
@@ -15,7 +16,6 @@ import {
   InvalidLibrariesModuleError,
 } from "./errors";
 
-import { ChainConfig } from "./types";
 import { LibraryToAddress } from "./solc/artifacts";
 import {
   isABIArgumentLengthError,
@@ -28,7 +28,7 @@ export async function sleep(ms: number): Promise<void> {
 }
 
 /**
- * Prints a table of networks supported by hardhat-etherscan, including both
+ * Prints a table of networks supported by hardhat-verify, including both
  * built-in and custom networks.
  */
 export async function printSupportedNetworks(
@@ -64,7 +64,7 @@ export async function printSupportedNetworks(
   // print message
   console.log(
     `
-Networks supported by hardhat-etherscan:
+Networks supported by hardhat-verify:
 
 ${supportedNetworksTable}
 

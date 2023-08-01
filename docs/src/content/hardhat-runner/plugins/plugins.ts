@@ -790,6 +790,13 @@ const communityPlugins: IPlugin[] = [
     description: "Publish generated typechain-types to NPM",
     tags: ["typechain-types", "npm registry"],
   },
+    name: "hardhat-deployed-records",
+    author: "xiaosongfu",
+    npmPackage: "hardhat-deployed-records",
+    authorUrl: "https://github.com/xiaosongfu",
+    description: "Recording deployed contracts address to json file",
+    tags: ["deployed history"],
+  },
 ];
 
 const officialPlugins: IPlugin[] = [
