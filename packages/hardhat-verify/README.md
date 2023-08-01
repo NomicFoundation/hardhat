@@ -9,14 +9,15 @@
 3. [Tasks](#tasks)
 4. [Environment extensions](#environment-extensions)
 5. [Usage](#usage)
-6. [Complex arguments](#complex-arguments)
-7. [Libraries with undetectable addresses](#libraries-with-undetectable-addresses)
-8. [Multiple API keys and alternative block explorers](#multiple-api-keys-and-alternative-block-explorers)
-9. [Adding support for other networks](#adding-support-for-other-networks)
-10. [Using programmatically](#using-programmatically)
-11. [Advanced Usage: Using the Etherscan class from another plugin](#advanced-usage-using-the-etherscan-class-from-another-plugin)
-12. [How it works](#how-it-works)
-13. [Known limitations](#known-limitations)
+   1. [Complex arguments](#complex-arguments)
+   2. [Libraries with undetectable addresses](#libraries-with-undetectable-addresses)
+   3. [Multiple API keys and alternative block explorers](#multiple-api-keys-and-alternative-block-explorers)
+   4. [Adding support for other networks](#adding-support-for-other-networks)
+   5. [Using programmatically](#using-programmatically)
+      1. [Providing libraries from a script or task](#providing-libraries-from-a-script-or-task)
+      2. [Advanced Usage: Using the Etherscan class from another plugin](#advanced-usage-using-the-etherscan-class-from-another-plugin)
+6. [How it works](#how-it-works)
+7. [Known limitations](#known-limitations)
 
 ## What
 
