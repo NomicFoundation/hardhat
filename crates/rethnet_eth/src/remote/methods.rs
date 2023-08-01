@@ -250,7 +250,7 @@ pub enum MethodInvocation {
     )]
     SendTransaction(TransactionInput),
     /// eth_sign
-    #[serde(rename = "eth_sign")]
+    #[serde(rename = "eth_sign", alias = "personal_sign")]
     Sign(Address, ZeroXPrefixedBytes),
     /// eth_signTypedData_v4
     #[serde(rename = "eth_signTypedData_v4")]
