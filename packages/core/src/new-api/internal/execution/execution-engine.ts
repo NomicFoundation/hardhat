@@ -27,25 +27,15 @@ import {
   NamedContractDeploymentFuture,
   NamedLibraryDeploymentFuture,
 } from "../../types/module";
-import {
-  isCallExecutionState,
-  isContractAtExecutionState,
-  isDeploymentExecutionState,
-  isReadEventArgumentExecutionState,
-  isSendDataExecutionState,
-  isStaticCallExecutionState,
-} from "../type-guards";
-import { DeploymentLoader } from "../types/deployment-loader";
-import {
-  ExecutionEngineState,
-  ExecutionStrategyContext,
-} from "../types/execution-engine";
+import { DeploymentLoader } from "../deployment-loader/types";
 import {
   ContractAtExecutionState,
   DeploymentExecutionState,
+  ExecutionEngineState,
   ExecutionStateMap,
   ExecutionStatus,
-} from "../types/execution-state";
+  ExecutionStrategyContext,
+} from "../execution/types";
 import {
   ExecutionResultMessage,
   ExecutionTimeout,
@@ -54,7 +44,15 @@ import {
   OnchainTransactionReset,
   StartRunMessage,
   TransactionMessage,
-} from "../types/journal";
+} from "../journal/types";
+import {
+  isCallExecutionState,
+  isContractAtExecutionState,
+  isDeploymentExecutionState,
+  isReadEventArgumentExecutionState,
+  isSendDataExecutionState,
+  isStaticCallExecutionState,
+} from "../type-guards";
 import { isAddress } from "../utils";
 import { assertIgnitionInvariant } from "../utils/assertions";
 import { getFuturesFromModule } from "../utils/get-futures-from-module";

@@ -23,7 +23,7 @@ import {
   ReadEventArgumentExecutionState,
   SendDataExecutionState,
   StaticCallExecutionState,
-} from "../types/execution-state";
+} from "../execution/types";
 import { isAddress } from "../utils";
 import { assertIgnitionInvariant } from "../utils/assertions";
 import { replaceWithinArg } from "../utils/replace-within-arg";

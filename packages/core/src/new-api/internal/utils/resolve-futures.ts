@@ -1,5 +1,6 @@
 import { IgnitionError } from "../../../errors";
 import { Future, SolidityParameterType } from "../../types/module";
+import { ExecutionState, ExecutionStateMap } from "../execution/types";
 import {
   isCallExecutionState,
   isContractAtExecutionState,
@@ -8,7 +9,6 @@ import {
   isSendDataExecutionState,
   isStaticCallExecutionState,
 } from "../type-guards";
-import { ExecutionState, ExecutionStateMap } from "../types/execution-state";
 
 import { assertIgnitionInvariant } from "./assertions";
 

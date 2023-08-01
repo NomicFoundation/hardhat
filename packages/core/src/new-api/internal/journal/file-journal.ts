@@ -2,8 +2,7 @@
 import fs, { closeSync, constants, openSync, writeFileSync } from "fs";
 import { parse } from "ndjson";
 
-import { Journal, JournalableMessage } from "../types/journal";
-
+import { Journal, JournalableMessage } from "./types";
 import { deserializeReplacer } from "./utils/deserialize-replacer";
 import { logJournalableMessage } from "./utils/log";
 import { serializeReplacer } from "./utils/serialize-replacer";

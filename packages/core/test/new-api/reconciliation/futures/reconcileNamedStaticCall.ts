@@ -6,7 +6,7 @@ import {
   DeploymentExecutionState,
   ExecutionStatus,
   StaticCallExecutionState,
-} from "../../../../src/new-api/internal/types/execution-state";
+} from "../../../../src/new-api/internal/execution/types";
 import { FutureType } from "../../../../src/new-api/types/module";
 import { exampleAccounts, initOnchainState } from "../../helpers";
 import {

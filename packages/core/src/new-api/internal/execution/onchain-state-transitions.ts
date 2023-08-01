@@ -1,6 +1,19 @@
 import { ethers } from "ethers";
 
 import { IgnitionError } from "../../../errors";
+import { ArgumentType } from "../../types/module";
+import {
+  DeploymentExecutionState,
+  ExecutionEngineState,
+  OnchainStatuses,
+} from "../execution/types";
+import {
+  isOnChainResultMessage,
+  isOnchainFailureMessage,
+  isOnchainTransactionAccept,
+  isOnchainTransactionRequest,
+  isOnchainTransactionReset,
+} from "../journal/type-guards";
 import {
   CallFunctionInteractionMessage,
   DeployContractInteractionMessage,
@@ -22,21 +35,8 @@ import {
   SendDataInteractionMessage,
   StaticCallInteractionMessage,
   TransactionMessage,
-} from "../../internal/types/journal";
-import { ArgumentType } from "../../types/module";
-import {
-  isOnChainResultMessage,
-  isOnchainFailureMessage,
-  isOnchainTransactionAccept,
-  isOnchainTransactionRequest,
-  isOnchainTransactionReset,
-} from "../journal/type-guards";
+} from "../journal/types";
 import { serializeReplacer } from "../journal/utils/serialize-replacer";
-import { ExecutionEngineState } from "../types/execution-engine";
-import {
-  DeploymentExecutionState,
-  OnchainStatuses,
-} from "../types/execution-state";
 import { assertIgnitionInvariant } from "../utils/assertions";
 import { collectLibrariesAndLink } from "../utils/collectLibrariesAndLink";
 

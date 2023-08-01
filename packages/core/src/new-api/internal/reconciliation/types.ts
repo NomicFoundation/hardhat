@@ -1,7 +1,7 @@
 import { Artifact } from "../../types/artifact";
 import { DeploymentParameters } from "../../types/deployer";
 import { Future } from "../../types/module";
-import { ExecutionState, ExecutionStateMap } from "../types/execution-state";
+import { ExecutionState, ExecutionStateMap } from "../execution/types";
 
 export interface ReconciliationFailure {
   futureId: string;

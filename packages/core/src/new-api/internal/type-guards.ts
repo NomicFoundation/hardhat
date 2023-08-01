@@ -10,7 +10,7 @@ import {
   ReadEventArgumentExecutionState,
   SendDataExecutionState,
   StaticCallExecutionState,
-} from "./types/execution-state";
+} from "./execution/types";
 
 export function isDeploymentExecutionState(
   executionState: ExecutionState

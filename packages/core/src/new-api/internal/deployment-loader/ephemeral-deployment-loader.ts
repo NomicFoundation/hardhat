@@ -1,8 +1,9 @@
 import { Artifact, ArtifactResolver, BuildInfo } from "../../types/artifact";
 import { MemoryJournal } from "../journal/memory-journal";
-import { DeploymentLoader } from "../types/deployment-loader";
-import { Journal, JournalableMessage } from "../types/journal";
+import { Journal, JournalableMessage } from "../journal/types";
 import { assertIgnitionInvariant } from "../utils/assertions";
+
+import { DeploymentLoader } from "./types";
 
 /**
  * Stores and loads deployment related information without making changes

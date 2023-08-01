@@ -4,18 +4,18 @@ import { ethers, providers } from "ethers";
 
 import { ArgumentType, Artifact, ArtifactResolver } from "../../src";
 import { Deployer } from "../../src/new-api/internal/deployer";
+import { DeploymentLoader } from "../../src/new-api/internal/deployment-loader/types";
 import { AccountsState } from "../../src/new-api/internal/execution/execution-engine";
-import { MemoryJournal } from "../../src/new-api/internal/journal/memory-journal";
-import { ChainDispatcher } from "../../src/new-api/internal/types/chain-dispatcher";
-import { DeploymentLoader } from "../../src/new-api/internal/types/deployment-loader";
 import {
+  ChainDispatcher,
   OnchainState,
   OnchainStatuses,
-} from "../../src/new-api/internal/types/execution-state";
+} from "../../src/new-api/internal/execution/types";
+import { MemoryJournal } from "../../src/new-api/internal/journal/memory-journal";
 import {
   Journal,
   JournalableMessage,
-} from "../../src/new-api/internal/types/journal";
+} from "../../src/new-api/internal/journal/types";
 import {
   DeploymentResult,
   DeploymentResultContract,

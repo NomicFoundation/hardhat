@@ -1,8 +1,6 @@
-import {
-  TransactionLookup,
-  TransactionLookupTimer,
-} from "../types/transaction-timer";
 import { assertIgnitionInvariant } from "../utils/assertions";
+
+import { TransactionLookup, TransactionLookupTimer } from "./types";
 
 type TransactionLookupEntry = TransactionLookup & {
   start: Date;

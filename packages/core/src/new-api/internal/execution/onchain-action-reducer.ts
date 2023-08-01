@@ -1,4 +1,5 @@
 import { IgnitionError } from "../../../errors";
+import { OnchainState, OnchainStatuses } from "../execution/types";
 import {
   isOnchainCallFunctionSuccessMessage,
   isOnchainContractAtSuccessMessage,
@@ -11,9 +12,8 @@ import {
   isOnchainTransactionRequest,
   isOnchainTransactionReset,
 } from "../journal/type-guards";
+import { TransactionMessage } from "../journal/types";
 import { serializeReplacer } from "../journal/utils/serialize-replacer";
-import { OnchainState, OnchainStatuses } from "../types/execution-state";
-import { TransactionMessage } from "../types/journal";
 import { assertIgnitionInvariant } from "../utils/assertions";
 
 import {

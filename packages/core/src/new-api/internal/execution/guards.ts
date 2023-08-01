@@ -18,7 +18,7 @@ import {
   SendDataInteractionMessage,
   StaticCallExecutionSuccess,
   StaticCallInteractionMessage,
-} from "../types/journal";
+} from "../journal/types";
 
 export function isExecutionResultMessage(
   potential: JournalableMessage

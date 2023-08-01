@@ -3,12 +3,12 @@ import { assert } from "chai";
 
 import { buildModule } from "../../src/new-api/build-module";
 import { Batcher } from "../../src/new-api/internal/batcher";
-import { ModuleConstructor } from "../../src/new-api/internal/module-builder";
 import {
   DeploymentExecutionState,
   ExecutionStateMap,
   ExecutionStatus,
-} from "../../src/new-api/internal/types/execution-state";
+} from "../../src/new-api/internal/execution/types";
+import { ModuleConstructor } from "../../src/new-api/internal/module-builder";
 import {
   FutureType,
   IgnitionModuleResult,

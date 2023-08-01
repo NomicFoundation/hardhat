@@ -1,6 +1,6 @@
 import { DeploymentParameters } from "../../types/deployer";
 import { Future, IgnitionModule } from "../../types/module";
-import { ExecutionState, ExecutionStateMap } from "../types/execution-state";
+import { ExecutionState, ExecutionStateMap } from "../execution/types";
 import { AdjacencyList } from "../utils/adjacency-list";
 import { AdjacencyListConverter } from "../utils/adjacency-list-converter";
 import { getFuturesFromModule } from "../utils/get-futures-from-module";
@@ -9,13 +9,13 @@ import { reconcileCurrentAndPreviousTypeMatch } from "./reconcile-current-and-pr
 import { reconcileDependencyRules } from "./reconcile-dependency-rules";
 import { reconcileFutureSpecificReconciliations } from "./reconcile-future-specific-reconciliations";
 import {
+  ArtifactMap,
   ReconciliationCheck,
   ReconciliationContext,
   ReconciliationFailure,
   ReconciliationFutureResult,
   ReconciliationFutureResultFailure,
   ReconciliationResult,
-  ArtifactMap,
 } from "./types";
 
 export class Reconciler {

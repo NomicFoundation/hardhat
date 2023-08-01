@@ -1,13 +1,13 @@
 import { assert } from "chai";
 
 import { isContractFuture } from "../../../src";
+import { ExecutionStateMap } from "../../../src/new-api/internal/execution/types";
 import { ModuleConstructor } from "../../../src/new-api/internal/module-builder";
 import { Reconciler } from "../../../src/new-api/internal/reconciliation/reconciler";
 import {
   ArtifactMap,
   ReconciliationResult,
 } from "../../../src/new-api/internal/reconciliation/types";
-import { ExecutionStateMap } from "../../../src/new-api/internal/types/execution-state";
 import { getFuturesFromModule } from "../../../src/new-api/internal/utils/get-futures-from-module";
 import {
   IgnitionModuleResult,

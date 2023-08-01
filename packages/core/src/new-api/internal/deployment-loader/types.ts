@@ -1,6 +1,5 @@
 import { Artifact, BuildInfo } from "../../types/artifact";
-
-import { JournalableMessage } from "./journal";
+import { JournalableMessage } from "../journal/types";
 
 /**
  * Read and write to the deployment storage.

@@ -1,7 +1,7 @@
 import sortBy from "lodash/sortBy";
 
 import { Future } from "../../types/module";
-import { ExecutionEngineState } from "../types/execution-engine";
+import { ExecutionEngineState } from "../execution/types";
 import { assertIgnitionInvariant } from "../utils/assertions";
 
 /**

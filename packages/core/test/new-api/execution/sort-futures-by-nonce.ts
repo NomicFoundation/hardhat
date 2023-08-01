@@ -6,7 +6,7 @@ import {
   ExecutionStateMap,
   OnchainState,
   OnchainStatuses,
-} from "../../../src/new-api/internal/types/execution-state";
+} from "../../../src/new-api/internal/execution/types";
 import { Future } from "../../../src/new-api/types/module";
 
 describe("execution engine - batch sorting", () => {

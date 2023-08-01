@@ -1,10 +1,21 @@
+import { ethers } from "ethers";
+
+import { ArtifactResolver } from "../../types/artifact";
+import { DeployConfig, DeploymentParameters } from "../../types/deployer";
 import {
   ArgumentType,
   FutureType,
+  IgnitionModule,
+  IgnitionModuleResult,
   SolidityParameterType,
 } from "../../types/module";
-
-import { TransactionMessage } from "./journal";
+import { DeploymentLoader } from "../deployment-loader/types";
+import {
+  ExecutionSuccess,
+  OnchainInteractionMessage,
+  OnchainResultMessage,
+  TransactionMessage,
+} from "../journal/types";
 
 /**
  * The execution history of a future is a sequence of onchain interactions.
@@ -175,4 +186,128 @@ export interface OnchainState {
   from: string | null;
   nonce: number | null;
   txHash: string | null;
+}
+
+export interface ChainDispatcher {
+  getPendingTransactionCount(address: string): Promise<number>;
+
+  getLatestTransactionCount(address: string): Promise<number>;
+
+  getCurrentBlock(): Promise<{ number: number; hash: string }>;
+
+  allocateNextNonceForAccount(address: string): Promise<number>;
+
+  constructDeployTransaction(
+    byteCode: string,
+    abi: any[],
+    args: ArgumentType[],
+    value: bigint,
+    from: string
+  ): Promise<ethers.providers.TransactionRequest>;
+
+  constructCallTransaction(
+    contractAddress: string,
+    abi: any[],
+    functionName: string,
+    args: ArgumentType[],
+    value: bigint,
+    from: string
+  ): Promise<ethers.providers.TransactionRequest>;
+
+  sendTx(
+    tx: ethers.providers.TransactionRequest,
+    from: string
+  ): Promise<string>;
+
+  staticCallQuery(
+    contractAddress: string,
+    abi: any[],
+    functionName: string,
+    args: ArgumentType[],
+    from: string
+  ): Promise<any>;
+
+  getTransaction(
+    txHash: string
+  ): Promise<ethers.providers.TransactionResponse | null | undefined>;
+
+  getTransactionReceipt(
+    txHash: string
+  ): Promise<ethers.providers.TransactionReceipt | null | undefined>;
+
+  getEventArgument(
+    eventName: string,
+    argumentName: string,
+    txToReadFrom: string,
+    eventIndex: number,
+    emitterAddress: string,
+    abi: any[]
+  ): Promise<any>;
+}
+
+export interface ExecutionEngineState {
+  block: {
+    number: number;
+    hash: string;
+  };
+  config: DeployConfig;
+  batches: string[][];
+  module: IgnitionModule<string, string, IgnitionModuleResult<string>>;
+  executionStateMap: ExecutionStateMap;
+  accounts: string[];
+  deploymentParameters: DeploymentParameters;
+  strategy: ExecutionStrategy;
+  artifactResolver: ArtifactResolver;
+  deploymentLoader: DeploymentLoader;
+  chainDispatcher: ChainDispatcher;
+  transactionLookupTimer: TransactionLookupTimer;
+}
+
+export interface ExecutionStrategyContext {
+  executionState: ExecutionState;
+  sender?: string;
+}
+
+export interface ExecutionStrategy {
+  executeStrategy: ({
+    executionState,
+    sender,
+  }: ExecutionStrategyContext) => AsyncGenerator<
+    OnchainInteractionMessage,
+    OnchainInteractionMessage | ExecutionSuccess,
+    OnchainResultMessage | null
+  >;
+}
+
+export interface TransactionLookup {
+  futureId: string;
+  executionId: number;
+  txHash: string;
+}
+
+export interface TransactionLookupTimer {
+  /**
+   * Register the start time of a transaction lookup.
+   *
+   * The registration is idempotent.
+   *
+   * @param txHash - the transaction hash being looked up.
+   */
+  registerStartTimeIfNeeded(transactionLookup: TransactionLookup): void;
+
+  /**
+   * Based on the registered start time of the transaction lookup, determine
+   * whether it has timed out.
+   *
+   * @param txHash  - the transaction hash being looked up.
+   * @result whether the transaction lookup has timed out.
+   */
+  isTimedOut(txHash: string): boolean;
+
+  /**
+   * Get all the currently timed out transactions.
+   *
+   * @result the currently timed out transactions.
+   */
+  getTimedOutTransactions(): TransactionLookup[];
 }

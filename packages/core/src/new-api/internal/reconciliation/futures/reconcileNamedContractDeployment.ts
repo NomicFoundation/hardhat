@@ -1,7 +1,7 @@
 import { isEqual } from "lodash";
 
 import { NamedContractDeploymentFuture } from "../../../types/module";
-import { DeploymentExecutionState } from "../../types/execution-state";
+import { DeploymentExecutionState } from "../../execution/types";
 import { resolveFromAddress } from "../../utils/resolve-from-address";
 import { resolveModuleParameter } from "../../utils/resolve-module-parameter";
 import { ExecutionStateResolver } from "../execution-state-resolver";

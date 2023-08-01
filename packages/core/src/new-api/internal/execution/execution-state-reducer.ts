@@ -1,5 +1,17 @@
 import { IgnitionError } from "../../../errors";
 import {
+  CallExecutionState,
+  ContractAtExecutionState,
+  DeploymentExecutionState,
+  ExecutionState,
+  ExecutionStateMap,
+  ExecutionStatus,
+  OnchainStatuses,
+  ReadEventArgumentExecutionState,
+  SendDataExecutionState,
+  StaticCallExecutionState,
+} from "../execution/types";
+import {
   isCallFunctionStartMessage,
   isContractAtStartMessage,
   isDeployContractStartMessage,
@@ -11,19 +23,7 @@ import {
   isTransactionMessage,
   isWipeMessage,
 } from "../journal/type-guards";
-import {
-  CallExecutionState,
-  ContractAtExecutionState,
-  DeploymentExecutionState,
-  ExecutionState,
-  ExecutionStateMap,
-  ExecutionStatus,
-  OnchainStatuses,
-  ReadEventArgumentExecutionState,
-  SendDataExecutionState,
-  StaticCallExecutionState,
-} from "../types/execution-state";
-import { FutureStartMessage, JournalableMessage } from "../types/journal";
+import { FutureStartMessage, JournalableMessage } from "../journal/types";
 import { assertIgnitionInvariant } from "../utils/assertions";
 
 import {

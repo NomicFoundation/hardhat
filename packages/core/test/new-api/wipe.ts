@@ -3,7 +3,7 @@ import { assert } from "chai";
 
 import { buildModule } from "../../src/new-api/build-module";
 import { MemoryJournal } from "../../src/new-api/internal/journal/memory-journal";
-import { Journal } from "../../src/new-api/internal/types/journal";
+import { Journal } from "../../src/new-api/internal/journal/types";
 import { Wiper } from "../../src/new-api/internal/wiper";
 import { IgnitionModuleResult } from "../../src/new-api/types/module";
 import { IgnitionModuleDefinition } from "../../src/new-api/types/module-builder";

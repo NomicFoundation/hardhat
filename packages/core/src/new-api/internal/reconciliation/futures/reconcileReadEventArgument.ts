@@ -1,5 +1,5 @@
 import { ReadEventArgumentFuture } from "../../../types/module";
-import { ReadEventArgumentExecutionState } from "../../types/execution-state";
+import { ReadEventArgumentExecutionState } from "../../execution/types";
 import { ExecutionStateResolver } from "../execution-state-resolver";
 import { ReconciliationContext, ReconciliationFutureResult } from "../types";
 import { fail } from "../utils";

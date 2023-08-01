@@ -1,11 +1,11 @@
+import { ExecutionState } from "../execution/types";
 import { isOnChainResultMessage } from "../journal/type-guards";
-import { ExecutionState } from "../types/execution-state";
 import {
   ExecutionSuccess,
   OnchainInteractionMessage,
   OnchainResultMessage,
   TransactionMessage,
-} from "../types/journal";
+} from "../journal/types";
 export class ExecutionStategyCycler {
   /**
    * Given a execution strategy and history of on chain transactions

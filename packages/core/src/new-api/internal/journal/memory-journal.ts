@@ -1,5 +1,4 @@
-import { Journal, JournalableMessage } from "../types/journal";
-
+import { Journal, JournalableMessage } from "./types";
 import { deserializeReplacer } from "./utils/deserialize-replacer";
 import { logJournalableMessage } from "./utils/log";
 import { serializeReplacer } from "./utils/serialize-replacer";

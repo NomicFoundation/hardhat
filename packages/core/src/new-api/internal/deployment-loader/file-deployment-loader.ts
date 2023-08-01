@@ -3,8 +3,9 @@ import path from "path";
 
 import { Artifact, BuildInfo } from "../../types/artifact";
 import { FileJournal } from "../journal/file-journal";
-import { DeploymentLoader } from "../types/deployment-loader";
-import { Journal, JournalableMessage } from "../types/journal";
+import { Journal, JournalableMessage } from "../journal/types";
+
+import { DeploymentLoader } from "./types";
 
 export class FileDeploymentLoader implements DeploymentLoader {
   private _journal: Journal;

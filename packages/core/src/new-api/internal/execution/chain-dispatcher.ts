@@ -3,10 +3,10 @@ import { Contract, ContractFactory, ethers } from "ethers";
 import { IgnitionError } from "../../../errors";
 import { Adapters } from "../../types/adapters";
 import { ArgumentType } from "../../types/module";
-import { ChainDispatcher } from "../types/chain-dispatcher";
 import { assertIgnitionInvariant } from "../utils/assertions";
 
 import { AccountsState } from "./execution-engine";
+import { ChainDispatcher } from "./types";
 
 export class ChainDispatcherImpl implements ChainDispatcher {
   private _accountsState: AccountsState;
