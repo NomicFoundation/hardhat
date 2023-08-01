@@ -2,7 +2,7 @@ use std::str::FromStr;
 
 use secp256k1::SecretKey;
 
-use rethnet_eth::{Address, U256, U64};
+use rethnet_eth::{Address, U256};
 use rethnet_rpc_server::AccountConfig;
 
 /// the default private keys from which the local accounts will be derived.
@@ -34,14 +34,14 @@ pub const DEFAULT_PRIVATE_KEYS: [&str; 20] = [
 pub struct ConfigFile {
     // TODO: expand this per https://github.com/NomicFoundation/rethnet/issues/111
     pub accounts: Vec<AccountConfig>,
-    pub chain_id: U64,
+    pub chain_id: u64,
     pub coinbase: Address,
-    pub network_id: U64,
+    pub network_id: u64,
 }
 
 impl Default for ConfigFile {
     fn default() -> Self {
-        let chain_id = U64::from(31337);
+        let chain_id = 31337;
         Self {
             accounts: DEFAULT_PRIVATE_KEYS
                 .into_iter()

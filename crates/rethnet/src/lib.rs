@@ -67,15 +67,9 @@ fn server_config_from_cli_args_and_config_file(
             },
         },
         accounts: config_file.accounts,
-        chain_id: node_args
-            .chain_id
-            .map(U64::from)
-            .unwrap_or(config_file.chain_id),
+        chain_id: U64::from(node_args.chain_id.unwrap_or(config_file.chain_id)),
         coinbase: node_args.coinbase.unwrap_or(config_file.coinbase),
-        network_id: node_args
-            .network_id
-            .map(U64::from)
-            .unwrap_or(config_file.network_id),
+        network_id: U64::from(node_args.network_id.unwrap_or(config_file.network_id)),
     })
 }
 
