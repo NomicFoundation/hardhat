@@ -15,8 +15,6 @@ import {
   isSendDataInteraction,
   isStaticCallExecutionSuccess,
   isStaticCallInteraction,
-} from "../../execution/guards";
-import {
   isCallFunctionStartMessage,
   isContractAtStartMessage,
   isDeployContractStartMessage,
@@ -35,7 +33,7 @@ import {
   isStartRunMessage,
   isStaticCallStartMessage,
   isWipeMessage,
-} from "../type-guards";
+} from "../../journal/type-guards";
 import { JournalableMessage } from "../types";
 
 export function logJournalableMessage(message: JournalableMessage): void {

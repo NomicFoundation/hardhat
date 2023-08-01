@@ -37,6 +37,14 @@ import {
   ExecutionStrategyContext,
 } from "../execution/types";
 import {
+  isDeployedContractExecutionSuccess,
+  isExecutionFailure,
+  isExecutionHold,
+  isExecutionResultMessage,
+  isExecutionSuccess,
+  isExecutionTimeout,
+} from "../journal/type-guards";
+import {
   ExecutionResultMessage,
   ExecutionTimeout,
   FutureStartMessage,
@@ -67,14 +75,6 @@ import { sleep } from "../utils/sleep";
 
 import { executionStateReducer } from "./execution-state-reducer";
 import { ExecutionStategyCycler } from "./execution-strategy-cycler";
-import {
-  isDeployedContractExecutionSuccess,
-  isExecutionFailure,
-  isExecutionHold,
-  isExecutionResultMessage,
-  isExecutionSuccess,
-  isExecutionTimeout,
-} from "./guards";
 import { onchainStateTransitions } from "./onchain-state-transitions";
 import { sortFuturesByNonces } from "./sort-futures-by-nonces";
 

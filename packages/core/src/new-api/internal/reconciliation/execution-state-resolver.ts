@@ -14,7 +14,6 @@ import {
   Future,
   ModuleParameterRuntimeValue,
 } from "../../types/module";
-import { isOnchainInteractionMessage } from "../execution/guards";
 import {
   CallExecutionState,
   DeploymentExecutionState,
@@ -24,6 +23,7 @@ import {
   SendDataExecutionState,
   StaticCallExecutionState,
 } from "../execution/types";
+import { isOnchainInteractionMessage } from "../journal/type-guards";
 import { isAddress } from "../utils";
 import { assertIgnitionInvariant } from "../utils/assertions";
 import { replaceWithinArg } from "../utils/replace-within-arg";

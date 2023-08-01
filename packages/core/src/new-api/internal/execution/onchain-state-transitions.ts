@@ -13,6 +13,12 @@ import {
   isOnchainTransactionAccept,
   isOnchainTransactionRequest,
   isOnchainTransactionReset,
+  isCallFunctionInteraction,
+  isContractAtInteraction,
+  isDeployContractInteraction,
+  isReadEventArgumentInteraction,
+  isSendDataInteraction,
+  isStaticCallInteraction,
 } from "../journal/type-guards";
 import {
   CallFunctionInteractionMessage,
@@ -39,15 +45,6 @@ import {
 import { serializeReplacer } from "../journal/utils/serialize-replacer";
 import { assertIgnitionInvariant } from "../utils/assertions";
 import { collectLibrariesAndLink } from "../utils/collectLibrariesAndLink";
-
-import {
-  isCallFunctionInteraction,
-  isContractAtInteraction,
-  isDeployContractInteraction,
-  isReadEventArgumentInteraction,
-  isSendDataInteraction,
-  isStaticCallInteraction,
-} from "./guards";
 
 interface OnchainStateTransitionContinue {
   status: "continue";

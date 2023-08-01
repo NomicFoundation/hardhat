@@ -22,16 +22,14 @@ import {
   isStaticCallStartMessage,
   isTransactionMessage,
   isWipeMessage,
-} from "../journal/type-guards";
-import { FutureStartMessage, JournalableMessage } from "../journal/types";
-import { assertIgnitionInvariant } from "../utils/assertions";
-
-import {
   isExecutionFailure,
   isExecutionHold,
   isExecutionSuccess,
   isExecutionTimeout,
-} from "./guards";
+} from "../journal/type-guards";
+import { FutureStartMessage, JournalableMessage } from "../journal/types";
+import { assertIgnitionInvariant } from "../utils/assertions";
+
 import { onchainActionReducer } from "./onchain-action-reducer";
 
 export function executionStateReducer(

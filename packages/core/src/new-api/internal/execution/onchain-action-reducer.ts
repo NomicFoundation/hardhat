@@ -11,19 +11,16 @@ import {
   isOnchainTransactionAccept,
   isOnchainTransactionRequest,
   isOnchainTransactionReset,
-} from "../journal/type-guards";
-import { TransactionMessage } from "../journal/types";
-import { serializeReplacer } from "../journal/utils/serialize-replacer";
-import { assertIgnitionInvariant } from "../utils/assertions";
-
-import {
   isCallFunctionInteraction,
   isContractAtInteraction,
   isDeployContractInteraction,
   isReadEventArgumentInteraction,
   isSendDataInteraction,
   isStaticCallInteraction,
-} from "./guards";
+} from "../journal/type-guards";
+import { TransactionMessage } from "../journal/types";
+import { serializeReplacer } from "../journal/utils/serialize-replacer";
+import { assertIgnitionInvariant } from "../utils/assertions";
 
 export function onchainActionReducer(
   state: OnchainState,
