@@ -16,10 +16,10 @@ import { supportWithArgs } from "./withArgs";
 
 export function hardhatChaiMatchers(
   chai: Chai.ChaiStatic,
-  utils: Chai.ChaiUtils
+  chaiUtils: Chai.ChaiUtils
 ) {
-  supportBigNumber(chai.Assertion, utils);
-  supportEmit(chai.Assertion, utils);
+  supportBigNumber(chai.Assertion, chaiUtils);
+  supportEmit(chai.Assertion, chaiUtils);
   supportHexEqual(chai.Assertion);
   supportProperAddress(chai.Assertion);
   supportProperHex(chai.Assertion);
@@ -29,8 +29,8 @@ export function hardhatChaiMatchers(
   supportChangeTokenBalance(chai.Assertion);
   supportReverted(chai.Assertion);
   supportRevertedWith(chai.Assertion);
-  supportRevertedWithCustomError(chai.Assertion, utils);
   supportRevertedWithPanic(chai.Assertion);
   supportRevertedWithoutReason(chai.Assertion);
-  supportWithArgs(chai.Assertion, utils);
+  supportRevertedWithCustomError(chai.Assertion, chaiUtils);
+  supportWithArgs(chai.Assertion, chaiUtils);
 }

@@ -22,7 +22,7 @@ interface CustomErrorAssertionData {
 
 export function supportRevertedWithCustomError(
   Assertion: Chai.AssertionStatic,
-  utils: Chai.ChaiUtils
+  chaiUtils: Chai.ChaiUtils
 ) {
   Assertion.addMethod(
     "revertedWithCustomError",
@@ -41,7 +41,7 @@ export function supportRevertedWithCustomError(
       );
 
       const onSuccess = () => {
-        if (utils.flag(this, ASSERTION_ABORTED) === true) {
+        if (chaiUtils.flag(this, ASSERTION_ABORTED) === true) {
           return;
         }
 
@@ -54,7 +54,7 @@ export function supportRevertedWithCustomError(
       };
 
       const onError = (error: any) => {
-        if (utils.flag(this, ASSERTION_ABORTED) === true) {
+        if (chaiUtils.flag(this, ASSERTION_ABORTED) === true) {
           return;
         }
 
@@ -125,7 +125,7 @@ export function supportRevertedWithCustomError(
       );
 
       // needed for .withArgs
-      utils.flag(this, REVERTED_WITH_CUSTOM_ERROR_CALLED, true);
+      chaiUtils.flag(this, REVERTED_WITH_CUSTOM_ERROR_CALLED, true);
       this.promise = derivedPromise;
 
       this.then = derivedPromise.then.bind(derivedPromise);
