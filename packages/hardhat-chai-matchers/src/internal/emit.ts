@@ -1,11 +1,12 @@
 import type EthersT from "ethers";
 import type { Contract, Transaction } from "ethers";
+
 import { AssertionError } from "chai";
 import util from "util";
 import ordinal from "ordinal";
 
 import { AssertWithSsfi, buildAssert, Ssfi } from "../utils";
-import { ASSERTION_ABORTED } from "./constants";
+import { ASSERTION_ABORTED, ASYNC_MATCHER_CALLED } from "./constants";
 import { assertIsNotNull } from "./utils";
 import { HardhatChaiMatchersAssertionError } from "./errors";
 
@@ -45,6 +46,8 @@ export function supportEmit(
       const tx = this._obj;
 
       const promise = this.then === undefined ? Promise.resolve() : this;
+
+      chaiUtils.flag(this, ASYNC_MATCHER_CALLED, true);
 
       const onSuccess = (receipt: EthersT.TransactionReceipt) => {
         // abort if the assertion chain was aborted, for example because

@@ -8,8 +8,12 @@ import { buildAssert } from "../utils";
 import { getAddressOf } from "./misc/account";
 import { getAddresses, getBalances } from "./misc/balance";
 import { assertIsNotNull } from "./utils";
+import { ASYNC_MATCHER_CALLED } from "./constants";
 
-export function supportChangeEtherBalances(Assertion: Chai.AssertionStatic) {
+export function supportChangeEtherBalances(
+  Assertion: Chai.AssertionStatic,
+  chaiUtils: Chai.ChaiUtils
+) {
   Assertion.addMethod(
     "changeEtherBalances",
     function (
@@ -26,6 +30,8 @@ export function supportChangeEtherBalances(Assertion: Chai.AssertionStatic) {
       if (typeof subject === "function") {
         subject = subject();
       }
+
+      chaiUtils.flag(this, ASYNC_MATCHER_CALLED, true);
 
       const checkBalanceChanges = ([actualChanges, accountAddresses]: [
         bigint[],

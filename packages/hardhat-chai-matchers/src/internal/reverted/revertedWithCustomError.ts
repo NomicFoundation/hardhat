@@ -3,7 +3,7 @@ import type EthersT from "ethers";
 import { AssertionError } from "chai";
 import ordinal from "ordinal";
 
-import { ASSERTION_ABORTED } from "../constants";
+import { ASSERTION_ABORTED, ASYNC_MATCHER_CALLED } from "../constants";
 import { assertIsNotNull } from "../utils";
 import { buildAssert, Ssfi } from "../../utils";
 import {
@@ -39,6 +39,8 @@ export function supportRevertedWithCustomError(
         contract,
         expectedCustomErrorName
       );
+
+      chaiUtils.flag(this, ASYNC_MATCHER_CALLED, true);
 
       const onSuccess = () => {
         if (chaiUtils.flag(this, ASSERTION_ABORTED) === true) {

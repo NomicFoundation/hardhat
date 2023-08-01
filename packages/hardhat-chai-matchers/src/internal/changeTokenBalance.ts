@@ -11,6 +11,7 @@ import { buildAssert } from "../utils";
 import { ensure } from "./calledOnContract/utils";
 import { getAddressOf } from "./misc/account";
 import { assertIsNotNull } from "./utils";
+import { ASYNC_MATCHER_CALLED } from "./constants";
 
 type TransactionResponse = EthersT.TransactionResponse;
 
@@ -25,7 +26,10 @@ export type Token = BaseContract & {
   symbol: BaseContractMethod<[], string, string>;
 };
 
-export function supportChangeTokenBalance(Assertion: Chai.AssertionStatic) {
+export function supportChangeTokenBalance(
+  Assertion: Chai.AssertionStatic,
+  chaiUtils: Chai.ChaiUtils
+) {
   Assertion.addMethod(
     "changeTokenBalance",
     function (
@@ -43,6 +47,8 @@ export function supportChangeTokenBalance(Assertion: Chai.AssertionStatic) {
       if (typeof subject === "function") {
         subject = subject();
       }
+
+      chaiUtils.flag(this, ASYNC_MATCHER_CALLED, true);
 
       checkToken(token, "changeTokenBalance");
 
@@ -90,6 +96,8 @@ export function supportChangeTokenBalance(Assertion: Chai.AssertionStatic) {
       if (typeof subject === "function") {
         subject = subject();
       }
+
+      chaiUtils.flag(this, ASYNC_MATCHER_CALLED, true);
 
       validateInput(this._obj, token, accounts, balanceChanges);
 
