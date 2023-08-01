@@ -15,6 +15,7 @@ use tracing::{event, Level};
 use rethnet_eth::{
     remote::{
         client::{Request as RpcRequest, RpcClient},
+        filter::{FilteredEvents, LogOutput},
         jsonrpc,
         jsonrpc::{Response, ResponseData},
         methods::MethodInvocation as EthMethodInvocation,
@@ -36,6 +37,9 @@ pub use hardhat_methods::{
 
 mod config;
 pub use config::{AccountConfig, Config};
+
+mod filter;
+use filter::{new_filter_deadline, Filter};
 
 #[derive(Clone, Copy)]
 struct U256WithoutLeadingZeroes(U256);
@@ -64,8 +68,10 @@ type RethnetStateType = Arc<RwLock<dyn SyncState<StateError>>>;
 
 struct AppState {
     rethnet_state: RethnetStateType,
+    filters: RwLock<HashMap<U256, Filter>>,
     fork_block_number: Option<U256>,
     impersonated_accounts: RwLock<HashSet<Address>>,
+    last_filter_id: RwLock<U256>,
     local_accounts: HashMap<Address, SecretKey>,
 }
 
@@ -104,8 +110,40 @@ async fn get_latest_block_number<T>(state: &StateType) -> Result<U256, ResponseD
     }
 }
 
-fn check_post_merge_block_tags<T>(_state: &StateType) -> Result<(), ResponseData<T>> {
-    todo!("when we're tracking hardforks, if the given block tag is 'safe' or 'finalized', ensure that we're running a hardfork that's after the merge")
+/// require_canonical: whether the server should additionally raise a JSON-RPC error if the block
+/// is not in the canonical chain
+fn _block_number_from_hash<T>(
+    _state: &StateType,
+    _block_hash: &B256,
+    _require_canonical: bool,
+) -> Result<U256, ResponseData<T>> {
+    todo!()
+}
+
+async fn _block_number_from_block_spec<T>(
+    state: &StateType,
+    block_spec: &BlockSpec,
+) -> Result<U256, ResponseData<T>> {
+    match block_spec {
+        BlockSpec::Number(number) => Ok(*number),
+        BlockSpec::Tag(tag) => match tag {
+            BlockTag::Earliest => Ok(U256::ZERO),
+            BlockTag::Safe | BlockTag::Finalized => {
+                confirm_post_merge_hardfork(state)?;
+                get_latest_block_number(state).await
+            }
+            BlockTag::Latest | BlockTag::Pending => get_latest_block_number(state).await,
+        },
+        BlockSpec::Eip1898(Eip1898BlockSpec::Hash {
+            block_hash,
+            require_canonical,
+        }) => _block_number_from_hash(state, block_hash, require_canonical.unwrap_or(false)),
+        BlockSpec::Eip1898(Eip1898BlockSpec::Number { block_number }) => Ok(*block_number),
+    }
+}
+
+fn confirm_post_merge_hardfork<T>(_state: &StateType) -> Result<(), ResponseData<T>> {
+    todo!("when we're tracking hardforks, ensure that we're running a hardfork that's after the merge")
 }
 
 /// returns the state root in effect BEFORE setting the block context, so that the caller can
@@ -146,7 +184,7 @@ async fn set_block_context<T>(
                         Some(BlockSpec::Tag(tag)) => match tag {
                             BlockTag::Earliest => Ok(U256::ZERO),
                             BlockTag::Safe | BlockTag::Finalized => {
-                                check_post_merge_block_tags(state)?;
+                                confirm_post_merge_hardfork(state)?;
                                 Ok(latest_block_number)
                             }
                             BlockTag::Latest => Ok(latest_block_number),
@@ -264,6 +302,43 @@ async fn handle_get_code(
     }
 }
 
+async fn handle_get_filter_changes(
+    state: StateType,
+    filter_id: U256,
+) -> ResponseData<Option<FilteredEvents>> {
+    event!(Level::INFO, "eth_getFilterChanges({filter_id:?})");
+    let mut filters = state.filters.write().await;
+    ResponseData::Success {
+        result: filters.get_mut(&filter_id).and_then(|filter| {
+            let events = Some(filter.events.take());
+            filter.deadline = new_filter_deadline();
+            events
+        }),
+    }
+}
+
+async fn handle_get_filter_logs(
+    state: StateType,
+    filter_id: U256,
+) -> ResponseData<Option<Vec<LogOutput>>> {
+    event!(Level::INFO, "eth_getFilterLogs({filter_id:?})");
+    let mut filters = state.filters.write().await;
+    match filters.get_mut(&filter_id) {
+        Some(filter) => match &mut filter.events {
+            FilteredEvents::Logs(logs) => {
+                let result = Some(std::mem::take(logs));
+                filter.deadline = new_filter_deadline();
+                ResponseData::Success { result }
+            }
+            _ => error_response_data(
+                0,
+                &format!("Subscription {filter_id} is not a logs subscription"),
+            ),
+        },
+        None => ResponseData::Success { result: None },
+    }
+}
+
 async fn handle_get_storage_at(
     state: StateType,
     address: Address,
@@ -321,6 +396,29 @@ async fn handle_impersonate_account(state: StateType, address: Address) -> Respo
     event!(Level::INFO, "hardhat_impersonateAccount({address:?})");
     state.impersonated_accounts.write().await.insert(address);
     ResponseData::Success { result: true }
+}
+
+async fn get_next_filter_id(state: StateType) -> U256 {
+    let mut last_filter_id = state.last_filter_id.write().await;
+    *last_filter_id = last_filter_id
+        .checked_add(U256::from(1))
+        .expect("filter ID shouldn't overflow");
+    *last_filter_id
+}
+
+async fn handle_new_pending_transaction_filter(state: StateType) -> ResponseData<U256> {
+    event!(Level::INFO, "eth_newPendingTransactionFilter()");
+    let filter_id = get_next_filter_id(Arc::clone(&state)).await;
+    state.filters.write().await.insert(
+        filter_id,
+        Filter {
+            _criteria: None,
+            deadline: new_filter_deadline(),
+            events: FilteredEvents::NewPendingTransactions(Vec::new()),
+            is_subscription: false,
+        },
+    );
+    ResponseData::Success { result: filter_id }
 }
 
 async fn handle_set_balance(
@@ -455,6 +553,29 @@ async fn handle_stop_impersonating_account(
     }
 }
 
+async fn remove_filter<const IS_SUBSCRIPTION: bool>(
+    state: StateType,
+    filter_id: U256,
+) -> ResponseData<bool> {
+    let mut filters = state.filters.write().await;
+    let result = if let Some(filter) = filters.get(&filter_id) {
+        filter.is_subscription == IS_SUBSCRIPTION && filters.remove(&filter_id).is_some()
+    } else {
+        false
+    };
+    ResponseData::Success { result }
+}
+
+async fn handle_uninstall_filter(state: StateType, filter_id: U256) -> ResponseData<bool> {
+    event!(Level::INFO, "eth_uninstallFilter({filter_id:?})");
+    remove_filter::<false>(state, filter_id).await
+}
+
+async fn handle_unsubscribe(state: StateType, filter_id: U256) -> ResponseData<bool> {
+    event!(Level::INFO, "eth_unsubscribe({filter_id:?})");
+    remove_filter::<true>(state, filter_id).await
+}
+
 async fn handle_request(
     state: StateType,
     request: &RpcRequest<MethodInvocation>,
@@ -502,6 +623,12 @@ async fn handle_request(
                 MethodInvocation::Eth(EthMethodInvocation::GetCode(address, block)) => {
                     response(id, handle_get_code(state, *address, block.clone()).await)
                 }
+                MethodInvocation::Eth(EthMethodInvocation::GetFilterChanges(filter_id)) => {
+                    response(id, handle_get_filter_changes(state, *filter_id).await)
+                }
+                MethodInvocation::Eth(EthMethodInvocation::GetFilterLogs(filter_id)) => {
+                    response(id, handle_get_filter_logs(state, *filter_id).await)
+                }
                 MethodInvocation::Eth(EthMethodInvocation::GetStorageAt(
                     address,
                     position,
@@ -516,8 +643,17 @@ async fn handle_request(
                         handle_get_transaction_count(state, *address, block.clone()).await,
                     )
                 }
+                MethodInvocation::Eth(EthMethodInvocation::NewPendingTransactionFilter()) => {
+                    response(id, handle_new_pending_transaction_filter(state).await)
+                }
                 MethodInvocation::Eth(EthMethodInvocation::Sign(address, message)) => {
                     response(id, handle_sign(state, address, message))
+                }
+                MethodInvocation::Eth(EthMethodInvocation::UninstallFilter(filter_id)) => {
+                    response(id, handle_uninstall_filter(state, *filter_id).await)
+                }
+                MethodInvocation::Eth(EthMethodInvocation::Unsubscribe(subscription_id)) => {
+                    response(id, handle_unsubscribe(state, *subscription_id).await)
                 }
                 MethodInvocation::Hardhat(HardhatMethodInvocation::ImpersonateAccount(address)) => {
                     response(id, handle_impersonate_account(state, *address).await)
@@ -666,6 +802,9 @@ impl Server {
                 .unzip()
         };
 
+        let filters = RwLock::new(HashMap::default());
+        let last_filter_id = RwLock::new(U256::ZERO);
+
         let impersonated_accounts = RwLock::new(HashSet::new());
 
         let rethnet_state: StateType =
@@ -685,7 +824,7 @@ impl Server {
                         .await
                         .expect("should retrieve latest block from fork source")
                         .number
-                        .expect("fork source's latest block should have a block number"),
+                        .expect("Not a pending block"),
                 };
 
                 Arc::new(AppState {
@@ -696,8 +835,10 @@ impl Server {
                         fork_block_number,
                         genesis_accounts,
                     )))),
+                    filters,
                     fork_block_number: Some(fork_block_number),
                     impersonated_accounts,
+                    last_filter_id,
                     local_accounts,
                 })
             } else {
@@ -705,8 +846,10 @@ impl Server {
                     rethnet_state: Arc::new(RwLock::new(Box::new(HybridState::with_accounts(
                         genesis_accounts,
                     )))),
+                    filters,
                     fork_block_number: None,
                     impersonated_accounts,
+                    last_filter_id,
                     local_accounts,
                 })
             };

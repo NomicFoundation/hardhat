@@ -23,6 +23,18 @@ pub fn public_key_to_address(public_key: PublicKey) -> Address {
 }
 
 /// Converts a private to an address using the provided context.
+///
+/// # Examples
+///
+/// ```
+/// use rethnet_eth::signature::private_key_to_address;
+/// use secp256k1::Secp256k1;
+///
+/// let context = Secp256k1::signing_only();
+/// let private_key = "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80";
+///
+/// let address = private_key_to_address(&context, private_key).unwrap();
+/// ```
 pub fn private_key_to_address(
     context: &Secp256k1<SignOnly>,
     private_key: &str,

@@ -151,7 +151,7 @@ impl ExecutionResult {
             } => {
                 let logs = logs
                     .iter()
-                    .map(|log| Log::new(env, log))
+                    .map(|log| Log::with_evm_log(env, log))
                     .collect::<napi::Result<_>>()?;
 
                 Either3::A(SuccessResult {

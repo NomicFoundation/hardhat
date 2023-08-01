@@ -1,6 +1,5 @@
 use bytes::Bytes;
-use revm_primitives::{keccak256, Address, B256, U256};
-use ruint::aliases::U64;
+use revm_primitives::{keccak256, ruint::aliases::U64, Address, B256, U256};
 
 use crate::{
     access_list::AccessList,

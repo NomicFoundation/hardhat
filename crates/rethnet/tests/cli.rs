@@ -40,6 +40,8 @@ async fn node() -> Result<(), Box<dyn std::error::Error>> {
             address,
             Some(BlockSpec::latest()),
         )),
+        MethodInvocation::Eth(EthMethodInvocation::GetFilterChanges(U256::from(1))),
+        MethodInvocation::Eth(EthMethodInvocation::GetFilterLogs(U256::from(1))),
         MethodInvocation::Eth(EthMethodInvocation::GetStorageAt(
             address,
             U256::ZERO,
@@ -49,6 +51,9 @@ async fn node() -> Result<(), Box<dyn std::error::Error>> {
             address,
             Some(BlockSpec::latest()),
         )),
+        MethodInvocation::Eth(EthMethodInvocation::NewPendingTransactionFilter()),
+        MethodInvocation::Eth(EthMethodInvocation::UninstallFilter(U256::from(1))),
+        MethodInvocation::Eth(EthMethodInvocation::Unsubscribe(U256::from(1))),
         MethodInvocation::Eth(EthMethodInvocation::Sign(
             address,
             bytes::Bytes::from(hex::decode("deadbeef").unwrap()).into(),
@@ -133,6 +138,12 @@ async fn node() -> Result<(), Box<dyn std::error::Error>> {
             MethodInvocation::Eth(EthMethodInvocation::GetCode(address, block_spec)) => {
                 format!("eth_getCode({address:?}, {block_spec:?})")
             }
+            MethodInvocation::Eth(EthMethodInvocation::GetFilterChanges(filter_id)) => {
+                format!("eth_getFilterChanges({filter_id:?})")
+            }
+            MethodInvocation::Eth(EthMethodInvocation::GetFilterLogs(filter_id)) => {
+                format!("eth_getFilterLogs({filter_id:?})")
+            }
             MethodInvocation::Eth(EthMethodInvocation::GetStorageAt(
                 address,
                 position,
@@ -142,6 +153,15 @@ async fn node() -> Result<(), Box<dyn std::error::Error>> {
                 address,
                 block_spec,
             )) => format!("eth_getTransactionCount({address:?}, {block_spec:?})"),
+            MethodInvocation::Eth(EthMethodInvocation::NewPendingTransactionFilter()) => {
+                String::from("eth_newPendingTransactionFilter()")
+            }
+            MethodInvocation::Eth(EthMethodInvocation::UninstallFilter(filter_id)) => {
+                format!("eth_uninstallFilter({filter_id:?})")
+            }
+            MethodInvocation::Eth(EthMethodInvocation::Unsubscribe(filter_id)) => {
+                format!("eth_unsubscribe({filter_id:?})")
+            }
             MethodInvocation::Eth(EthMethodInvocation::Sign(address, message)) => {
                 format!("eth_sign({address:?}, {message:?})")
             }

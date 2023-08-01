@@ -6,6 +6,7 @@ use bytes::Bytes;
 use revm_primitives::{Address, B256, U256};
 
 use crate::{
+    access_list::AccessList,
     signature::{Signature, SignatureError},
     utils::enveloped,
 };
@@ -58,6 +59,14 @@ impl SignedTransaction {
             SignedTransaction::Legacy(tx) => &tx.input,
             SignedTransaction::EIP2930(tx) => &tx.input,
             SignedTransaction::EIP1559(tx) => &tx.input,
+        }
+    }
+
+    pub fn access_list(&self) -> Option<&AccessList> {
+        match self {
+            SignedTransaction::Legacy(_) => None,
+            SignedTransaction::EIP2930(tx) => Some(&tx.access_list),
+            SignedTransaction::EIP1559(tx) => Some(&tx.access_list),
         }
     }
 

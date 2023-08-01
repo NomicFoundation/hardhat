@@ -51,22 +51,26 @@ fn bench_database_commit(c: &mut Criterion) {
             );
         }
         let code = account_state.code.clone().map(Bytecode::new_raw);
-        accounts_to_commit.insert(
-            *address,
-            Account {
-                info: AccountInfo {
-                    balance: account_state.balance.unwrap(),
-                    nonce: account_state.nonce.unwrap(),
-                    code: code.clone(),
-                    code_hash: code.map_or(KECCAK_EMPTY, |code| code.hash()),
-                },
-                storage,
-                storage_cleared: account_state.storage_cleared,
-                is_destroyed: false,
-                is_touched: false,
-                is_not_existing: false,
+
+        let mut account = Account {
+            info: AccountInfo {
+                balance: account_state.balance.unwrap(),
+                nonce: account_state.nonce.unwrap(),
+                code: code.clone(),
+                code_hash: code.map_or(KECCAK_EMPTY, |code| code.hash()),
             },
-        );
+            storage,
+            status: Default::default(),
+        };
+
+        account.mark_touch();
+
+        // TODO: https://github.com/NomicFoundation/rethnet/issues/143
+        if account_state.storage_cleared {
+            account.mark_created();
+        }
+
+        accounts_to_commit.insert(*address, account);
     }
 
     bench_sync_state_method(

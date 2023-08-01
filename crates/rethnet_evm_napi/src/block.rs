@@ -1,6 +1,6 @@
 mod builder;
 
-use std::mem;
+use std::{mem, ops::Deref, sync::Arc};
 
 use napi::{
     bindgen_prelude::{BigInt, Buffer, Either3},
@@ -12,6 +12,7 @@ use rethnet_evm::BlockEnv;
 
 use crate::{
     cast::TryCast,
+    receipt::Receipt,
     transaction::signed::{
         EIP1559SignedTransaction, EIP2930SignedTransaction, LegacySignedTransaction,
     },
@@ -269,26 +270,32 @@ impl TryFrom<BlockHeader> for rethnet_eth::block::Header {
 
 #[napi]
 pub struct Block {
-    block: rethnet_eth::block::Block,
-    callers: Vec<rethnet_eth::Address>,
+    inner: Arc<rethnet_eth::block::DetailedBlock>,
 }
 
-impl Block {
-    /// Constructs a [`Block`] instance.
-    pub fn new(block: rethnet_eth::block::Block, callers: Vec<rethnet_eth::Address>) -> Self {
-        Self { block, callers }
+impl From<Arc<rethnet_eth::block::DetailedBlock>> for Block {
+    fn from(value: Arc<rethnet_eth::block::DetailedBlock>) -> Self {
+        Self { inner: value }
+    }
+}
+
+impl Deref for Block {
+    type Target = rethnet_eth::block::DetailedBlock;
+
+    fn deref(&self) -> &Self::Target {
+        &self.inner
     }
 }
 
 #[napi]
 impl Block {
-    /// Retrieves the block's header.
+    #[doc = "Retrieves the block's header."]
     #[napi(getter)]
     pub fn header(&self, env: Env) -> napi::Result<BlockHeader> {
-        BlockHeader::new(&env, &self.block.header)
+        BlockHeader::new(&env, &self.header)
     }
 
-    /// Retrieves the block's transactions.
+    #[doc = "Retrieves the block's transactions."]
     #[napi(getter)]
     pub fn transactions(
         &self,
@@ -298,8 +305,7 @@ impl Block {
         // so manually do that here
         Vec<Either3<LegacySignedTransaction, EIP2930SignedTransaction, EIP1559SignedTransaction>>,
     > {
-        self.block
-            .transactions
+        self.transactions
             .iter()
             .map(|transaction| match transaction {
                 rethnet_eth::transaction::SignedTransaction::Legacy(transaction) => {
@@ -315,12 +321,21 @@ impl Block {
             .collect()
     }
 
-    /// Retrieves the callers of the block's transactions
+    #[doc = "Retrieves the callers of the block's transactions"]
     #[napi(getter)]
     pub fn callers(&self) -> Vec<Buffer> {
-        self.callers
-            .iter()
-            .map(|caller| Buffer::from(caller.as_bytes()))
+        self.inner
+            .transactions()
+            .map(|transaction| Buffer::from(transaction.caller.as_bytes()))
+            .collect()
+    }
+
+    #[doc = "Retrieves the transactions' receipts."]
+    #[napi(getter)]
+    pub fn receipts(&self, env: Env) -> napi::Result<Vec<Receipt>> {
+        self.inner
+            .transactions()
+            .map(|transaction| Receipt::new(&env, transaction.receipt))
             .collect()
     }
 }

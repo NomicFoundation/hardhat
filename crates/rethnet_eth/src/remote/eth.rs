@@ -9,12 +9,14 @@
 /// input types for EIP-712 message signing
 pub mod eip712;
 
-use std::fmt::Debug;
+use std::{fmt::Debug, ops::Deref};
 
 use revm_primitives::ruint::aliases::B64;
 
 use crate::{
     access_list::AccessListItem,
+    block::BlockAndCallers,
+    receipt::{EIP658Receipt, TypedReceipt},
     signature::Signature,
     transaction::{
         EIP1559SignedTransaction, EIP2930SignedTransaction, LegacySignedTransaction,
@@ -91,12 +93,8 @@ where
 #[serde(deny_unknown_fields)]
 #[serde(rename_all = "camelCase")]
 pub struct Log {
-    /// address
-    pub address: Address,
-    /// topics
-    pub topics: Vec<B256>,
-    /// data
-    pub data: Bytes,
+    #[serde(flatten)]
+    inner: crate::log::Log,
     /// block hash
     #[serde(skip_serializing_if = "Option::is_none")]
     pub block_hash: Option<B256>,
@@ -124,6 +122,14 @@ pub struct Log {
     /// removed
     #[serde(skip_serializing_if = "Option::is_none")]
     pub removed: Option<bool>,
+}
+
+impl Deref for Log {
+    type Target = crate::log::Log;
+
+    fn deref(&self) -> &Self::Target {
+        &self.inner
+    }
 }
 
 /// object returned by eth_getTransactionReceipt
@@ -163,14 +169,42 @@ pub struct TransactionReceipt {
     /// integer of the transactions index position in the block
     #[serde(deserialize_with = "u64_from_hex")]
     pub transaction_index: u64,
-    /// integer of the transaction type, 0x0 for legacy transactions, 0x1 for access list types, 0x2 for dynamic fees. It also returns either :
-    #[serde(
-        rename = "type",
-        default,
-        skip_serializing_if = "Option::is_none",
-        deserialize_with = "optional_u64_from_hex"
-    )]
-    pub transaction_type: Option<u64>,
+    /// integer of the transaction type, 0x0 for legacy transactions, 0x1 for access list types, 0x2 for dynamic fees.
+    #[serde(rename = "type", default, deserialize_with = "u64_from_hex")]
+    pub transaction_type: u64,
+}
+
+/// Error that occurs when trying to convert the JSON-RPC [`TransactionReceipt`] type.
+#[derive(Debug, thiserror::Error)]
+pub enum ReceiptConversionError {
+    /// The transaction type is not supported.
+    #[error("Unsupported type {0}")]
+    UnsupportedType(u64),
+}
+
+impl TryFrom<TransactionReceipt> for TypedReceipt {
+    type Error = ReceiptConversionError;
+
+    fn try_from(value: TransactionReceipt) -> Result<Self, Self::Error> {
+        let receipt = EIP658Receipt {
+            // Not supported for pre-Byzantium hardforks
+            status_code: value
+                .status
+                .unwrap_or(1)
+                .try_into()
+                .expect("Is either 1 or 0"),
+            gas_used: value.cumulative_gas_used,
+            logs_bloom: value.logs_bloom,
+            logs: value.logs.into_iter().map(|log| log.inner).collect(),
+        };
+
+        match value.transaction_type {
+            0 => Ok(TypedReceipt::Legacy(receipt)),
+            1 => Ok(TypedReceipt::EIP2930(receipt)),
+            2 => Ok(TypedReceipt::EIP1559(receipt)),
+            r#type => Err(ReceiptConversionError::UnsupportedType(r#type)),
+        }
+    }
 }
 
 /// block object returned by eth_getBlockBy*
@@ -250,7 +284,7 @@ pub enum TransactionConversionError {
     UnsupportedType(u64),
 }
 
-impl TryFrom<Transaction> for SignedTransaction {
+impl TryFrom<Transaction> for (SignedTransaction, Address) {
     type Error = TransactionConversionError;
 
     fn try_from(value: Transaction) -> Result<Self, Self::Error> {
@@ -260,8 +294,8 @@ impl TryFrom<Transaction> for SignedTransaction {
             TransactionKind::Create
         };
 
-        match value.transaction_type {
-            0 => Ok(Self::Legacy(LegacySignedTransaction {
+        let transaction = match value.transaction_type {
+            0 => SignedTransaction::Legacy(LegacySignedTransaction {
                 nonce: value.nonce,
                 gas_price: value.gas_price,
                 gas_limit: value.gas.to(),
@@ -273,8 +307,8 @@ impl TryFrom<Transaction> for SignedTransaction {
                     s: value.s,
                     v: value.v,
                 },
-            })),
-            1 => Ok(Self::EIP2930(EIP2930SignedTransaction {
+            }),
+            1 => SignedTransaction::EIP2930(EIP2930SignedTransaction {
                 chain_id: value
                     .chain_id
                     .ok_or(TransactionConversionError::MissingChainId)?,
@@ -291,8 +325,8 @@ impl TryFrom<Transaction> for SignedTransaction {
                 odd_y_parity: value.v != 0,
                 r: B256::from(value.r),
                 s: B256::from(value.s),
-            })),
-            2 => Ok(Self::EIP1559(EIP1559SignedTransaction {
+            }),
+            2 => SignedTransaction::EIP1559(EIP1559SignedTransaction {
                 chain_id: value
                     .chain_id
                     .ok_or(TransactionConversionError::MissingChainId)?,
@@ -314,9 +348,13 @@ impl TryFrom<Transaction> for SignedTransaction {
                 odd_y_parity: value.v != 0,
                 r: B256::from(value.r),
                 s: B256::from(value.s),
-            })),
-            r#type => Err(TransactionConversionError::UnsupportedType(r#type)),
-        }
+            }),
+            r#type => {
+                return Err(TransactionConversionError::UnsupportedType(r#type));
+            }
+        };
+
+        Ok((transaction, value.from))
     }
 }
 
@@ -337,14 +375,17 @@ pub enum BlockConversionError {
     TransactionConversionError(#[from] TransactionConversionError),
 }
 
-impl<TX> TryFrom<Block<TX>> for crate::block::Block
-where
-    TX: TryInto<SignedTransaction, Error = TransactionConversionError>,
-{
+impl TryFrom<Block<Transaction>> for BlockAndCallers {
     type Error = BlockConversionError;
 
-    fn try_from(value: Block<TX>) -> Result<Self, Self::Error> {
-        Ok(Self {
+    fn try_from(value: Block<Transaction>) -> Result<Self, Self::Error> {
+        let (transactions, transaction_callers): (Vec<SignedTransaction>, Vec<Address>) =
+            itertools::process_results(
+                value.transactions.into_iter().map(TryInto::try_into),
+                |iter| iter.unzip(),
+            )?;
+
+        let block = crate::block::Block {
             header: crate::block::Header {
                 parent_hash: value.parent_hash,
                 ommers_hash: value.sha3_uncles,
@@ -364,13 +405,14 @@ where
                 base_fee_per_gas: value.base_fee_per_gas,
                 withdrawals_root: value.withdrawals_root,
             },
-            transactions: value
-                .transactions
-                .into_iter()
-                .map(TryInto::try_into)
-                .collect::<Result<Vec<SignedTransaction>, TransactionConversionError>>()?,
+            transactions,
             // TODO: Include headers
             ommers: Vec::new(),
+        };
+
+        Ok(Self {
+            block,
+            transaction_callers,
         })
     }
 }

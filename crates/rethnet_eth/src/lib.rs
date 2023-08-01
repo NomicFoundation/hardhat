@@ -32,8 +32,10 @@ pub mod utils;
 
 pub use bytes::Bytes;
 pub use ethbloom::Bloom;
-pub use revm_primitives::{Address, B160, B256, U256};
-pub use ruint::aliases::{B512, B64, U64};
+pub use revm_primitives::{
+    ruint::aliases::{B512, B64, U64},
+    Address, B160, B256, U256,
+};
 
 /// A secret key
 pub type Secret = B256;

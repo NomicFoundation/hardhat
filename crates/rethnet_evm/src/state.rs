@@ -21,7 +21,7 @@ pub use self::{
     remote::RemoteState,
 };
 
-/// Combinatorial error for the database API
+/// Combinatorial error for the state API
 #[derive(Debug, thiserror::Error)]
 pub enum StateError {
     /// No checkpoints to revert
