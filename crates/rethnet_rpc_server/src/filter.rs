@@ -25,7 +25,7 @@ impl _FilterCriteria {
     ) -> Result<Self, ResponseData<T>> {
         let (_from_block, _to_block) = match request_options.block_target {
             Some(FilterBlockTarget::Hash(hash)) => {
-                let block_number = _block_number_from_hash(&state, &hash, false)?;
+                let block_number = _block_number_from_hash(&state, &hash, false).await?;
                 (block_number, block_number)
             }
             Some(FilterBlockTarget::Range { from, to }) => {

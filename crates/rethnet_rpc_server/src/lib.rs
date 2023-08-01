@@ -127,12 +127,22 @@ pub enum Error {
 
 /// require_canonical: whether the server should additionally raise a JSON-RPC error if the block
 /// is not in the canonical chain
-fn _block_number_from_hash<T>(
-    _state: &StateType,
-    _block_hash: &B256,
+async fn _block_number_from_hash<T>(
+    state: &StateType,
+    block_hash: &B256,
     _require_canonical: bool,
 ) -> Result<U256, ResponseData<T>> {
-    todo!()
+    match state.blockchain.read().await.block_by_hash(block_hash) {
+        Ok(Some(block)) => Ok(block.header.number),
+        Ok(None) => Err(error_response_data(
+            0,
+            &format!("Hash {block_hash} does not refer to a known block"),
+        )),
+        Err(e) => Err(error_response_data(
+            0,
+            &format!("Failed to retrieve block by hash ({block_hash}): {e}"),
+        )),
+    }
 }
 
 async fn _block_number_from_block_spec<T>(
@@ -154,7 +164,7 @@ async fn _block_number_from_block_spec<T>(
         BlockSpec::Eip1898(Eip1898BlockSpec::Hash {
             block_hash,
             require_canonical,
-        }) => _block_number_from_hash(state, block_hash, require_canonical.unwrap_or(false)),
+        }) => _block_number_from_hash(state, block_hash, require_canonical.unwrap_or(false)).await,
         BlockSpec::Eip1898(Eip1898BlockSpec::Number { block_number }) => Ok(*block_number),
     }
 }
