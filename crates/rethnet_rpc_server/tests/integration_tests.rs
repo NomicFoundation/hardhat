@@ -12,7 +12,7 @@ use rethnet_eth::{
         BlockSpec,
     },
     signature::{private_key_to_address, Signature},
-    Address, Bytes, U256,
+    Address, Bytes, U256, U64,
 };
 use rethnet_evm::{AccountInfo, KECCAK_EMPTY};
 
@@ -203,7 +203,7 @@ async fn test_net_peer_count() {
     verify_response(
         &start_server().await,
         MethodInvocation::Eth(EthMethodInvocation::NetPeerCount()),
-        0,
+        U64::ZERO,
     )
     .await;
 }

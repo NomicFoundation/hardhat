@@ -22,7 +22,7 @@ use rethnet_eth::{
         BlockSpec, BlockTag, Eip1898BlockSpec,
     },
     signature::{public_key_to_address, Signature},
-    Address, Bytes, B256, U256,
+    Address, Bytes, B256, U256, U64,
 };
 use rethnet_evm::{
     state::{AccountModifierFn, ForkState, HybridState, StateError, SyncState},
@@ -46,7 +46,19 @@ impl serde::Serialize for U256WithoutLeadingZeroes {
     where
         S: serde::Serializer,
     {
-        rethnet_eth::remote::serialize_u256(&self.0, s)
+        rethnet_eth::remote::serialize_uint_without_leading_zeroes(&self.0, s)
+    }
+}
+
+#[derive(Clone, Copy)]
+struct U64WithoutLeadingZeroes(U64);
+
+impl serde::Serialize for U64WithoutLeadingZeroes {
+    fn serialize<S>(&self, s: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        rethnet_eth::remote::serialize_uint_without_leading_zeroes(&self.0, s)
     }
 }
 
@@ -430,9 +442,11 @@ fn handle_net_listening() -> ResponseData<bool> {
     ResponseData::Success { result: true }
 }
 
-fn handle_net_peer_count() -> ResponseData<usize> {
+fn handle_net_peer_count() -> ResponseData<U64WithoutLeadingZeroes> {
     event!(Level::INFO, "net_peerCount()");
-    ResponseData::Success { result: 0 }
+    ResponseData::Success {
+        result: U64WithoutLeadingZeroes(U64::from(0)),
+    }
 }
 
 fn handle_sign(
