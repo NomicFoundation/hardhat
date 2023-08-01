@@ -4,11 +4,11 @@ import type {
   TransactionResponse,
   default as EthersT,
 } from "ethers";
+import type { BalanceChangeOptions } from "./misc/balance";
 
 import { buildAssert } from "../utils";
 import { ensure } from "./calledOnContract/utils";
 import { getAddressOf } from "./misc/account";
-import { BalanceChangeOptions } from "./misc/balance";
 import { assertIsNotNull } from "./utils";
 
 export function supportChangeEtherBalance(Assertion: Chai.AssertionStatic) {

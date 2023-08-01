@@ -1,14 +1,12 @@
 import type EthersT from "ethers";
 import type { Addressable, BigNumberish, TransactionResponse } from "ethers";
+import type { BalanceChangeOptions } from "./misc/balance";
+
 import ordinal from "ordinal";
 
 import { buildAssert } from "../utils";
 import { getAddressOf } from "./misc/account";
-import {
-  BalanceChangeOptions,
-  getAddresses,
-  getBalances,
-} from "./misc/balance";
+import { getAddresses, getBalances } from "./misc/balance";
 import { assertIsNotNull } from "./utils";
 
 export function supportChangeEtherBalances(Assertion: Chai.AssertionStatic) {
