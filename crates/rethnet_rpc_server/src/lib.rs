@@ -6,7 +6,7 @@ use axum::{
     http::StatusCode,
     Router,
 };
-use hashbrown::HashMap;
+use hashbrown::{HashMap, HashSet};
 use rethnet_eth::remote::ZeroXPrefixedBytes;
 use secp256k1::{Secp256k1, SecretKey};
 use sha3::{Digest, Keccak256};
@@ -81,10 +81,14 @@ type RethnetStateType = Arc<RwLock<dyn SyncState<StateError>>>;
 
 struct AppState {
     rethnet_state: RethnetStateType,
+    chain_id: U64,
+    coinbase: Address,
     filters: RwLock<HashMap<U256, Filter>>,
     fork_block_number: Option<U256>,
+    impersonated_accounts: RwLock<HashSet<Address>>,
     last_filter_id: RwLock<U256>,
     local_accounts: HashMap<Address, SecretKey>,
+    network_id: U64,
 }
 
 type StateType = Arc<AppState>;
@@ -256,6 +260,20 @@ async fn handle_accounts(state: StateType) -> ResponseData<Vec<Address>> {
     }
 }
 
+async fn handle_chain_id(state: StateType) -> ResponseData<U64WithoutLeadingZeroes> {
+    event!(Level::INFO, "eth_chainId()");
+    ResponseData::Success {
+        result: U64WithoutLeadingZeroes(U64::from(state.chain_id)),
+    }
+}
+
+async fn handle_coinbase(state: StateType) -> ResponseData<Address> {
+    event!(Level::INFO, "eth_coinbase()");
+    ResponseData::Success {
+        result: state.coinbase,
+    }
+}
+
 async fn handle_get_balance(
     state: StateType,
     address: Address,
@@ -404,12 +422,27 @@ async fn handle_get_transaction_count(
     }
 }
 
+async fn handle_impersonate_account(state: StateType, address: Address) -> ResponseData<bool> {
+    event!(Level::INFO, "hardhat_impersonateAccount({address:?})");
+    state.impersonated_accounts.write().await.insert(address);
+    ResponseData::Success { result: true }
+}
+
 async fn get_next_filter_id(state: StateType) -> U256 {
     let mut last_filter_id = state.last_filter_id.write().await;
     *last_filter_id = last_filter_id
         .checked_add(U256::from(1))
         .expect("filter ID shouldn't overflow");
     *last_filter_id
+}
+
+async fn handle_net_version(state: StateType) -> ResponseData<String> {
+    event!(Level::INFO, "net_version()");
+    ResponseData::Success {
+        result: u64::try_from(state.network_id)
+            .expect("should convert U64 to u64")
+            .to_string(),
+    }
 }
 
 async fn handle_new_pending_transaction_filter(state: StateType) -> ResponseData<U256> {
@@ -561,6 +594,16 @@ fn handle_sign(
     }
 }
 
+async fn handle_stop_impersonating_account(
+    state: StateType,
+    address: Address,
+) -> ResponseData<bool> {
+    event!(Level::INFO, "hardhat_stopImpersonatingAccount({address:?})");
+    ResponseData::Success {
+        result: state.impersonated_accounts.write().await.remove(&address),
+    }
+}
+
 async fn remove_filter<const IS_SUBSCRIPTION: bool>(
     state: StateType,
     filter_id: U256,
@@ -645,6 +688,12 @@ async fn handle_request(
                 MethodInvocation::Eth(EthMethodInvocation::Accounts()) => {
                     response(id, handle_accounts(state).await)
                 }
+                MethodInvocation::Eth(EthMethodInvocation::ChainId()) => {
+                    response(id, handle_chain_id(state).await)
+                }
+                MethodInvocation::Eth(EthMethodInvocation::Coinbase()) => {
+                    response(id, handle_coinbase(state).await)
+                }
                 MethodInvocation::Eth(EthMethodInvocation::GetBalance(address, block)) => {
                     response(id, handle_get_balance(state, *address, block.clone()).await)
                 }
@@ -677,6 +726,9 @@ async fn handle_request(
                 MethodInvocation::Eth(EthMethodInvocation::NetPeerCount()) => {
                     response(id, handle_net_peer_count())
                 }
+                MethodInvocation::Eth(EthMethodInvocation::NetVersion()) => {
+                    response(id, handle_net_version(state).await)
+                }
                 MethodInvocation::Eth(EthMethodInvocation::NewPendingTransactionFilter()) => {
                     response(id, handle_new_pending_transaction_filter(state).await)
                 }
@@ -694,6 +746,9 @@ async fn handle_request(
                 }
                 MethodInvocation::Eth(EthMethodInvocation::Unsubscribe(subscription_id)) => {
                     response(id, handle_unsubscribe(state, *subscription_id).await)
+                }
+                MethodInvocation::Hardhat(HardhatMethodInvocation::ImpersonateAccount(address)) => {
+                    response(id, handle_impersonate_account(state, *address).await)
                 }
                 MethodInvocation::Hardhat(HardhatMethodInvocation::SetBalance(
                     address,
@@ -713,6 +768,9 @@ async fn handle_request(
                     id,
                     handle_set_storage_at(state, *address, *position, *value).await,
                 ),
+                MethodInvocation::Hardhat(HardhatMethodInvocation::StopImpersonatingAccount(
+                    address,
+                )) => response(id, handle_stop_impersonating_account(state, *address).await),
                 // TODO: after adding all the methods here, eliminate this
                 // catch-all match arm:
                 _ => {
@@ -836,8 +894,12 @@ impl Server {
                 .unzip()
         };
 
+        let chain_id = config.chain_id;
+        let coinbase = config.coinbase;
         let filters = RwLock::new(HashMap::default());
+        let impersonated_accounts = RwLock::new(HashSet::new());
         let last_filter_id = RwLock::new(U256::ZERO);
+        let network_id = config.network_id;
 
         let rethnet_state: StateType =
             if let Some(config) = config.rpc_hardhat_network_config.forking {
@@ -867,20 +929,28 @@ impl Server {
                         fork_block_number,
                         genesis_accounts,
                     )))),
+                    chain_id,
+                    coinbase,
                     filters,
                     fork_block_number: Some(fork_block_number),
+                    impersonated_accounts,
                     last_filter_id,
                     local_accounts,
+                    network_id,
                 })
             } else {
                 Arc::new(AppState {
                     rethnet_state: Arc::new(RwLock::new(Box::new(HybridState::with_accounts(
                         genesis_accounts,
                     )))),
+                    chain_id,
+                    coinbase,
                     filters,
                     fork_block_number: None,
+                    impersonated_accounts,
                     last_filter_id,
                     local_accounts,
+                    network_id,
                 })
             };
 

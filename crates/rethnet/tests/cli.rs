@@ -32,6 +32,8 @@ async fn node() -> Result<(), Box<dyn std::error::Error>> {
     // order to check for corresponding log entries in the server output:
     let method_invocations = [
         MethodInvocation::Eth(EthMethodInvocation::Accounts()),
+        MethodInvocation::Eth(EthMethodInvocation::ChainId()),
+        MethodInvocation::Eth(EthMethodInvocation::Coinbase()),
         MethodInvocation::Eth(EthMethodInvocation::GetBalance(
             address,
             Some(BlockSpec::latest()),
@@ -53,8 +55,10 @@ async fn node() -> Result<(), Box<dyn std::error::Error>> {
         )),
         MethodInvocation::Eth(EthMethodInvocation::NetListening()),
         MethodInvocation::Eth(EthMethodInvocation::NetPeerCount()),
+        MethodInvocation::Eth(EthMethodInvocation::NetVersion()),
         MethodInvocation::Eth(EthMethodInvocation::NewPendingTransactionFilter()),
         MethodInvocation::Eth(EthMethodInvocation::UninstallFilter(U256::from(1))),
+        MethodInvocation::Eth(EthMethodInvocation::Unsubscribe(U256::from(1))),
         MethodInvocation::Eth(EthMethodInvocation::Unsubscribe(U256::from(1))),
         MethodInvocation::Eth(EthMethodInvocation::Sign(
             address,
@@ -64,6 +68,7 @@ async fn node() -> Result<(), Box<dyn std::error::Error>> {
         MethodInvocation::Eth(EthMethodInvocation::Web3Sha3(
             Bytes::from_static(b"").into(),
         )),
+        MethodInvocation::Hardhat(HardhatMethodInvocation::ImpersonateAccount(address)),
         MethodInvocation::Hardhat(HardhatMethodInvocation::SetBalance(address, U256::ZERO)),
         MethodInvocation::Hardhat(HardhatMethodInvocation::SetCode(
             address,
@@ -75,6 +80,7 @@ async fn node() -> Result<(), Box<dyn std::error::Error>> {
             U256::ZERO,
             U256::ZERO,
         )),
+        MethodInvocation::Hardhat(HardhatMethodInvocation::StopImpersonatingAccount(address)),
     ];
 
     // prepare request body before even spawning the server because serialization could fail:
@@ -96,6 +102,12 @@ async fn node() -> Result<(), Box<dyn std::error::Error>> {
         .arg("--port")
         .arg("8549")
         .arg("-vv")
+        .arg("--coinbase")
+        .arg("0xffffffffffffffffffffffffffffffffffffffff")
+        .arg("--chain-id")
+        .arg("1")
+        .arg("--network-id")
+        .arg("1")
         .stdout(Stdio::piped())
         .spawn()?;
 
@@ -136,6 +148,10 @@ async fn node() -> Result<(), Box<dyn std::error::Error>> {
     for method_invocation in method_invocations {
         Assert::new(output.clone()).stdout(contains(match method_invocation {
             MethodInvocation::Eth(EthMethodInvocation::Accounts()) => String::from("eth_accounts"),
+            MethodInvocation::Eth(EthMethodInvocation::ChainId()) => String::from("eth_chainId()"),
+            MethodInvocation::Eth(EthMethodInvocation::Coinbase()) => {
+                String::from("eth_coinbase()")
+            }
             MethodInvocation::Eth(EthMethodInvocation::GetBalance(address, block_spec)) => {
                 format!("eth_getBalance({address:?}, {block_spec:?})")
             }
@@ -163,6 +179,9 @@ async fn node() -> Result<(), Box<dyn std::error::Error>> {
             MethodInvocation::Eth(EthMethodInvocation::NetPeerCount()) => {
                 String::from("net_peerCount()")
             }
+            MethodInvocation::Eth(EthMethodInvocation::NetVersion()) => {
+                String::from("net_version()")
+            }
             MethodInvocation::Eth(EthMethodInvocation::NewPendingTransactionFilter()) => {
                 String::from("eth_newPendingTransactionFilter()")
             }
@@ -181,6 +200,9 @@ async fn node() -> Result<(), Box<dyn std::error::Error>> {
             MethodInvocation::Eth(EthMethodInvocation::Web3Sha3(message)) => {
                 format!("web3_sha3({message:?})")
             }
+            MethodInvocation::Hardhat(HardhatMethodInvocation::ImpersonateAccount(address)) => {
+                format!("hardhat_impersonateAccount({address:?}")
+            }
             MethodInvocation::Hardhat(HardhatMethodInvocation::SetBalance(address, balance)) => {
                 format!("hardhat_setBalance({address:?}, {balance:?}")
             }
@@ -195,6 +217,11 @@ async fn node() -> Result<(), Box<dyn std::error::Error>> {
                 position,
                 value,
             )) => format!("hardhat_setStorageAt({address:?}, {position:?}, {value:?}"),
+            MethodInvocation::Hardhat(HardhatMethodInvocation::StopImpersonatingAccount(
+                address,
+            )) => {
+                format!("hardhat_stopImpersonatingAccount({address:?}")
+            }
             _ => Err(format!(
                 "no expectation set for method invocation {method_invocation:?}"
             ))?,
