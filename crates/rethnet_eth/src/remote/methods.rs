@@ -286,7 +286,7 @@ pub enum MethodInvocation {
     )]
     Unsubscribe(Vec<ZeroXPrefixedBytes>),
     /// web3_clientVersion
-    #[serde(rename = "web3_client_version")]
+    #[serde(rename = "web3_clientVersion")]
     Web3ClientVersion(),
     /// web3_sha3
     #[serde(
