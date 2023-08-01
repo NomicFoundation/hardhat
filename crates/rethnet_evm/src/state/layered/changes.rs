@@ -232,39 +232,41 @@ impl LayeredChanges<RethnetLayer> {
     #[cfg_attr(feature = "tracing", tracing::instrument)]
     pub fn apply(&mut self, changes: &HashMap<Address, Account>) {
         changes.iter().for_each(|(address, account)| {
-            if account.is_destroyed || account.is_empty() {
-                // Removes account only if it exists, so safe to use for empty, touched accounts
-                self.remove_account(address);
-            } else {
-                let old_account = self.account_or_insert_mut(address, &|| {
-                    Ok(AccountInfo {
-                        code: None,
-                        ..AccountInfo::default()
-                    })
-                });
+            if account.is_touched() {
+                if account.is_selfdestructed() {
+                    // Removes account only if it exists, so safe to use for empty, touched accounts
+                    self.remove_account(address);
+                } else {
+                    let old_account = self.account_or_insert_mut(address, &|| {
+                        Ok(AccountInfo {
+                            code: None,
+                            ..AccountInfo::default()
+                        })
+                    });
 
-                if account.storage_cleared {
-                    old_account.storage.clear();
-                }
-
-                account.storage.iter().for_each(|(index, value)| {
-                    old_account.storage.insert(*index, value.present_value());
-                });
-
-                let mut account_info = account.info.clone();
-
-                let old_code_hash = old_account.info.code_hash;
-                let code_changed = old_code_hash != account_info.code_hash;
-
-                let new_code = account_info.code.take();
-                old_account.info = account_info;
-
-                if code_changed {
-                    if let Some(new_code) = new_code {
-                        self.insert_code(new_code);
+                    if account.is_newly_created() {
+                        old_account.storage.clear();
                     }
 
-                    self.remove_code(&old_code_hash);
+                    account.storage.iter().for_each(|(index, value)| {
+                        old_account.storage.insert(*index, value.present_value());
+                    });
+
+                    let mut account_info = account.info.clone();
+
+                    let old_code_hash = old_account.info.code_hash;
+                    let code_changed = old_code_hash != account_info.code_hash;
+
+                    let new_code = account_info.code.take();
+                    old_account.info = account_info;
+
+                    if code_changed {
+                        if let Some(new_code) = new_code {
+                            self.insert_code(new_code);
+                        }
+
+                        self.remove_code(&old_code_hash);
+                    }
                 }
             }
         });

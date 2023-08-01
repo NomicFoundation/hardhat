@@ -20,11 +20,13 @@ pub use revm::{
 };
 
 pub use crate::{
-    block::{BlockAndCallers, BlockBuilder, BlockOptions, BlockTransactionError},
+    block::*,
     evm::SyncInspector,
+    mempool::MemPool,
+    miner::{BlockMiner, MineBlockResult},
     random::RandomHashGenerator,
     runtime::{Rethnet, SyncDatabase},
-    transaction::{PendingTransaction, TransactionError},
+    transaction::*,
 };
 
 /// Types for managing Ethereum blockchain
@@ -39,6 +41,8 @@ pub mod trace;
 mod block;
 pub(crate) mod collections;
 pub(crate) mod evm;
+mod mempool;
+mod miner;
 pub(crate) mod random;
 mod runtime;
 mod transaction;

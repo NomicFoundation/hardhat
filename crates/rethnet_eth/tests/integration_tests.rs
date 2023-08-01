@@ -396,3 +396,20 @@ fn test_net_listening() {
 fn test_net_peer_count() {
     help_test_method_invocation_serde(MethodInvocation::NetPeerCount());
 }
+
+#[test]
+fn test_personal_sign() {
+    let call = MethodInvocation::Sign(
+        Address::from_low_u64_ne(1),
+        Bytes::from(&b"whatever"[..]).into(),
+    );
+
+    let serialized = serde_json::json!(call)
+        .to_string()
+        .replace("eth_sign", "personal_sign");
+
+    let call_deserialized: MethodInvocation = serde_json::from_str(&serialized)
+        .unwrap_or_else(|_| panic!("should have successfully deserialized json {serialized}"));
+
+    assert_eq!(call, call_deserialized);
+}

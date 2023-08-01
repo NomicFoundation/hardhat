@@ -4,7 +4,7 @@ use rethnet_eth::{B256, U256};
 /// A trait for debug operation on a database.
 #[auto_impl(Box)]
 pub trait StateHistory {
-    /// The database's error type.
+    /// The state's error type.
     type Error;
 
     /// Reverts the state to match the specified block.

@@ -127,7 +127,6 @@ where
         &mut self,
         data: &mut dyn EVMData<E>,
         inputs: &mut CallInputs,
-        _is_static: bool,
     ) -> (InstructionResult, Gas, rethnet_eth::Bytes) {
         self.validate_before_message();
 
@@ -178,7 +177,6 @@ where
         remaining_gas: Gas,
         ret: InstructionResult,
         out: Bytes,
-        _is_static: bool,
     ) -> (InstructionResult, Gas, Bytes) {
         match ret {
             return_revert!() if self.pending_before.is_some() => {
@@ -291,12 +289,7 @@ where
         (ret, address, remaining_gas, out)
     }
 
-    fn step(
-        &mut self,
-        interp: &mut Interpreter,
-        data: &mut dyn EVMData<E>,
-        _is_static: bool,
-    ) -> InstructionResult {
+    fn step(&mut self, interp: &mut Interpreter, data: &mut dyn EVMData<E>) -> InstructionResult {
         // Skip the step
         let skip_step = self.pending_before.as_ref().map_or(false, |message| {
             message.code.is_some() && interp.current_opcode() == opcode::STOP

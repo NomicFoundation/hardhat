@@ -1103,7 +1103,7 @@ mod tests {
             );
             assert_eq!(receipt.transaction_hash, hash);
             assert_eq!(receipt.transaction_index, 136);
-            assert_eq!(receipt.transaction_type, Some(0));
+            assert_eq!(receipt.transaction_type, 0);
         }
 
         #[tokio::test]
