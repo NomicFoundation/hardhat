@@ -225,6 +225,18 @@ async fn test_new_pending_transaction_filter_success() {
 }
 
 #[tokio::test]
+async fn test_impersonate_account() {
+    verify_response(
+        &start_server().await,
+        MethodInvocation::Hardhat(HardhatMethodInvocation::ImpersonateAccount(
+            Address::from_low_u64_ne(1),
+        )),
+        true,
+    )
+    .await;
+}
+
+#[tokio::test]
 async fn test_set_balance_success() {
     let server_address = start_server().await;
 
@@ -341,6 +353,41 @@ async fn test_sign() {
         )),
         Signature::from_str("0xa114c834af73872c6c9efe918d85b0b1b34a486d10f9011e2630e28417c828c060dbd65cda67e73d52ebb7c555260621dbc1b0b4036acb61086bba091ac3f1641b").unwrap(),
     ).await;
+}
+
+#[tokio::test]
+async fn test_stop_impersonating_account() {
+    let server_address = start_server().await;
+
+    // verify that stopping the impersonation of an account that wasn't already being impersonated
+    // results in a `false` return value:
+    verify_response(
+        &server_address,
+        MethodInvocation::Hardhat(HardhatMethodInvocation::StopImpersonatingAccount(
+            Address::from_low_u64_ne(1),
+        )),
+        false,
+    )
+    .await;
+
+    // verify that stopping the impersonation of an account that WAS already being impersonated
+    // results in a `false` return value:
+    verify_response(
+        &server_address,
+        MethodInvocation::Hardhat(HardhatMethodInvocation::ImpersonateAccount(
+            Address::from_low_u64_ne(1),
+        )),
+        true,
+    )
+    .await;
+    verify_response(
+        &server_address,
+        MethodInvocation::Hardhat(HardhatMethodInvocation::StopImpersonatingAccount(
+            Address::from_low_u64_ne(1),
+        )),
+        true,
+    )
+    .await;
 }
 
 #[tokio::test]
