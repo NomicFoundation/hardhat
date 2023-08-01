@@ -160,7 +160,7 @@ async fn _block_number_from_block_spec<T>(
 }
 
 fn confirm_post_merge_hardfork<T>(_state: &StateType) -> Result<(), ResponseData<T>> {
-    todo!("when we're tracking hardforks, ensure that we're running a hardfork that's after the merge")
+    todo!("when we're allowing configuration of hardfork history (that is, when https://github.com/NomicFoundation/rethnet/issues/124 is resolved), if the given block tag is 'safe' or 'finalized', ensure that we're running a hardfork that's after the merge")
 }
 
 /// returns the state root in effect BEFORE setting the block context, so that the caller can
