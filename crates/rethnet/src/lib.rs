@@ -1,12 +1,13 @@
 use std::ffi::OsString;
 use std::net::{IpAddr, Ipv4Addr, SocketAddr};
+use std::time::UNIX_EPOCH;
 
 use anyhow::anyhow;
 use clap::{Args, Parser, Subcommand};
 use secp256k1::SecretKey;
 use tracing::{event, Level};
 
-use rethnet_eth::{Address, U64};
+use rethnet_eth::{Address, U256, U64};
 use rethnet_rpc_server::{
     AccountConfig as ServerAccountConfig, Config as ServerConfig, RpcForkConfig,
     RpcHardhatNetworkConfig,
@@ -77,6 +78,9 @@ fn server_config_from_cli_args_and_config_file(
             .iter()
             .map(ServerAccountConfig::from)
             .collect(),
+        block_gas_limit: config_file
+            .block_gas_limit
+            .expect("should be resovled to default"),
         chain_id: node_args
             .chain_id
             .or(config_file.chain_id)
@@ -86,6 +90,17 @@ fn server_config_from_cli_args_and_config_file(
             .coinbase
             .or(config_file.coinbase)
             .expect("should be resolved to default"),
+        gas: config_file.gas.expect("should be resolved to default"),
+        hardfork: config_file.hardfork.expect("should be resovled to default"),
+        initial_base_fee_per_gas: config_file.initial_base_fee_per_gas,
+        initial_date: config_file.initial_date.map(|instant| {
+            U256::from(
+                instant
+                    .duration_since(UNIX_EPOCH)
+                    .expect("initial date must be after UNIX epoch")
+                    .as_secs(),
+            )
+        }),
         network_id: node_args
             .network_id
             .or(config_file.network_id)

@@ -14,7 +14,7 @@ use tracing::{event, Level};
 
 use rethnet_eth::{
     remote::{
-        client::{Request as RpcRequest, RpcClient},
+        client::Request as RpcRequest,
         filter::{FilteredEvents, LogOutput},
         jsonrpc,
         jsonrpc::{Response, ResponseData},
@@ -25,8 +25,12 @@ use rethnet_eth::{
     Address, Bytes, B256, U256, U64,
 };
 use rethnet_evm::{
+    blockchain::{
+        Blockchain, BlockchainError, ForkedBlockchain, ForkedCreationError, LocalBlockchain,
+        LocalCreationError, SyncBlockchain,
+    },
     state::{AccountModifierFn, ForkState, HybridState, StateError, SyncState},
-    AccountInfo, Bytecode, KECCAK_EMPTY,
+    AccountInfo, Bytecode, MemPool, RandomHashGenerator, KECCAK_EMPTY,
 };
 
 mod hardhat_methods;
@@ -79,6 +83,7 @@ pub enum MethodInvocation {
 type RethnetStateType = Arc<RwLock<dyn SyncState<StateError>>>;
 
 struct AppState {
+    blockchain: Arc<RwLock<dyn SyncBlockchain<BlockchainError>>>,
     rethnet_state: RethnetStateType,
     chain_id: U64,
     coinbase: Address,
@@ -87,6 +92,7 @@ struct AppState {
     impersonated_accounts: RwLock<HashSet<Address>>,
     last_filter_id: RwLock<U256>,
     local_accounts: HashMap<Address, SecretKey>,
+    _mempool: Arc<RwLock<MemPool>>,
     network_id: U64,
 }
 
@@ -111,18 +117,12 @@ pub enum Error {
 
     #[error("Failed to initialize server: {0}")]
     Serve(hyper::Error),
-}
 
-async fn get_latest_block_number<T>(state: &StateType) -> Result<U256, ResponseData<T>> {
-    // limited functionality per https://github.com/NomicFoundation/hardhat/issues/4125
-    if let Some(fork_block_number) = state.fork_block_number {
-        // TODO: when we're able to mint local blocks, and there are some newer than
-        // fork_block_number, return the number of the latest one
-        Ok(U256::from(fork_block_number))
-    } else {
-        // TODO: when we're able to mint local blocks, return the number of the latest one
-        Ok(U256::ZERO)
-    }
+    #[error(transparent)]
+    ForkedBlockchainCreation(#[from] ForkedCreationError),
+
+    #[error(transparent)]
+    LocalBlockchainCreation(#[from] LocalCreationError<StateError>),
 }
 
 /// require_canonical: whether the server should additionally raise a JSON-RPC error if the block
@@ -145,9 +145,11 @@ async fn _block_number_from_block_spec<T>(
             BlockTag::Earliest => Ok(U256::ZERO),
             BlockTag::Safe | BlockTag::Finalized => {
                 confirm_post_merge_hardfork(state)?;
-                get_latest_block_number(state).await
+                Ok(state.blockchain.read().await.last_block_number())
             }
-            BlockTag::Latest | BlockTag::Pending => get_latest_block_number(state).await,
+            BlockTag::Latest | BlockTag::Pending => {
+                Ok(state.blockchain.read().await.last_block_number())
+            }
         },
         BlockSpec::Eip1898(Eip1898BlockSpec::Hash {
             block_hash,
@@ -180,7 +182,7 @@ async fn set_block_context<T>(
         }
         None => Ok(previous_state_root),
         resolvable_block_spec => {
-            let latest_block_number = get_latest_block_number(state).await?;
+            let latest_block_number = state.blockchain.read().await.last_block_number();
             state
                 .rethnet_state
                 .write()
@@ -854,31 +856,39 @@ impl Server {
         let filters = RwLock::new(HashMap::default());
         let impersonated_accounts = RwLock::new(HashSet::new());
         let last_filter_id = RwLock::new(U256::ZERO);
+        let _mempool = Arc::new(RwLock::new(MemPool::new(config.block_gas_limit)));
         let network_id = config.network_id;
+        let spec_id = config.hardfork;
 
         let rethnet_state: StateType =
             if let Some(config) = config.rpc_hardhat_network_config.forking {
-                let runtime = tokio::runtime::Builder::new_multi_thread()
-                    .enable_io()
-                    .enable_time()
-                    .build()
-                    .expect("failed to construct async runtime");
+                let runtime = Arc::new(
+                    tokio::runtime::Builder::new_multi_thread()
+                        .enable_io()
+                        .enable_time()
+                        .build()
+                        .expect("failed to construct async runtime"),
+                );
 
                 let hash_generator = rethnet_evm::RandomHashGenerator::with_seed("seed");
 
-                let fork_block_number = match config.block_number {
-                    Some(block_number) => U256::from(block_number),
-                    None => RpcClient::new(&config.json_rpc_url)
-                        .get_block_by_number(rethnet_eth::remote::BlockSpec::latest())
-                        .await
-                        .expect("should retrieve latest block from fork source")
-                        .number
-                        .expect("Not a pending block"),
-                };
+                let blockchain = ForkedBlockchain::new(
+                    Arc::clone(&runtime),
+                    spec_id,
+                    &config.json_rpc_url,
+                    config.block_number.map(U256::from),
+                )
+                .await?;
+
+                let fork_block_number = blockchain.last_block_number();
+
+                let blockchain = Arc::new(RwLock::new(blockchain));
 
                 Arc::new(AppState {
+                    blockchain,
+                    _mempool,
                     rethnet_state: Arc::new(RwLock::new(Box::new(ForkState::new(
-                        Arc::new(runtime),
+                        Arc::clone(&runtime),
                         Arc::new(parking_lot::Mutex::new(hash_generator)),
                         &config.json_rpc_url,
                         fork_block_number,
@@ -894,10 +904,20 @@ impl Server {
                     network_id,
                 })
             } else {
+                let rethnet_state = HybridState::with_accounts(genesis_accounts);
+                let blockchain = Arc::new(RwLock::new(LocalBlockchain::new(
+                    &rethnet_state,
+                    spec_id,
+                    config.gas,
+                    config.initial_date,
+                    Some(RandomHashGenerator::with_seed("seed").next_value()),
+                    config.initial_base_fee_per_gas,
+                )?));
+                let rethnet_state = Arc::new(RwLock::new(Box::new(rethnet_state)));
                 Arc::new(AppState {
-                    rethnet_state: Arc::new(RwLock::new(Box::new(HybridState::with_accounts(
-                        genesis_accounts,
-                    )))),
+                    blockchain,
+                    _mempool,
+                    rethnet_state,
                     chain_id,
                     coinbase,
                     filters,

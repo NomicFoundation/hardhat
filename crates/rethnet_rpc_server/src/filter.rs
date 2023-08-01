@@ -9,9 +9,7 @@ use rethnet_eth::{
     Address, B256, U256,
 };
 
-use super::{
-    _block_number_from_block_spec, _block_number_from_hash, get_latest_block_number, StateType,
-};
+use super::{StateType, _block_number_from_block_spec, _block_number_from_hash};
 
 pub struct _FilterCriteria {
     pub _from_block: U256,
@@ -41,7 +39,7 @@ impl _FilterCriteria {
                 (from, to)
             }
             None => {
-                let latest_block_number = get_latest_block_number(&state).await?;
+                let latest_block_number = state.blockchain.read().await.last_block_number();
                 (latest_block_number, latest_block_number)
             }
         };
