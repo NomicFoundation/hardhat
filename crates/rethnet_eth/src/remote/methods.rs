@@ -1,6 +1,7 @@
 use crate::{
     remote::{
         eth::eip712,
+        filter::{FilterOptions, SubscriptionType},
         serde_with_helpers::{sequence_to_single, single_to_sequence},
         BlockSpec, ZeroXPrefixedBytes,
     },
@@ -24,20 +25,6 @@ pub struct TransactionInput {
     pub value: Option<U256>,
     /// transaction data
     pub data: Option<ZeroXPrefixedBytes>,
-}
-
-/// for specifying the inputs to eth_newFilter
-#[derive(Clone, Debug, PartialEq, serde::Deserialize, serde::Serialize)]
-#[serde(rename_all = "camelCase")]
-pub struct FilterOptions {
-    /// from block
-    pub from_block: Option<BlockSpec>,
-    /// to block
-    pub to_block: Option<BlockSpec>,
-    /// address
-    pub address: Option<Address>,
-    /// topics
-    pub topics: Option<Vec<ZeroXPrefixedBytes>>,
 }
 
 mod optional_block_spec_resolved {
@@ -278,7 +265,7 @@ pub enum MethodInvocation {
         serialize_with = "single_to_sequence",
         deserialize_with = "sequence_to_single"
     )]
-    Unsubscribe(Vec<ZeroXPrefixedBytes>),
+    Unsubscribe(U256),
     /// evm_setAutomine
     #[serde(
         rename = "evm_setAutomine",
@@ -289,60 +276,6 @@ pub enum MethodInvocation {
     /// evm_snapshot
     #[serde(rename = "evm_snapshot")]
     EvmSnapshot(),
-}
-
-/// subscription type to be used with eth_subscribe
-#[derive(Clone, Debug, PartialEq)]
-pub enum SubscriptionType {
-    /// Induces the emission of logs attached to a new block that match certain topic filters.
-    Logs,
-    /// Induces the emission of new blocks that are added to the blockchain.
-    NewHeads,
-    /// Induces the emission of transaction hashes that are sent to the network and marked as "pending".
-    NewPendingTransactions,
-}
-
-impl serde::Serialize for SubscriptionType {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: serde::Serializer,
-    {
-        serializer.serialize_str(match self {
-            SubscriptionType::Logs => "logs",
-            SubscriptionType::NewHeads => "newHeads",
-            SubscriptionType::NewPendingTransactions => "newPendingTransactions",
-        })
-    }
-}
-
-impl<'a> serde::Deserialize<'a> for SubscriptionType {
-    fn deserialize<D>(deserializer: D) -> Result<SubscriptionType, D::Error>
-    where
-        D: serde::Deserializer<'a>,
-    {
-        struct SubscriptionTypeVisitor;
-        impl<'a> serde::de::Visitor<'a> for SubscriptionTypeVisitor {
-            type Value = SubscriptionType;
-
-            fn expecting(&self, formatter: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-                formatter.write_str("a string")
-            }
-
-            fn visit_str<E>(self, value: &str) -> Result<Self::Value, E>
-            where
-                E: serde::de::Error,
-            {
-                match value {
-                    "logs" => Ok(SubscriptionType::Logs),
-                    "newHeads" => Ok(SubscriptionType::NewHeads),
-                    "newPendingTransactions" => Ok(SubscriptionType::NewPendingTransactions),
-                    _ => Err(serde::de::Error::custom("Invalid subscription type")),
-                }
-            }
-        }
-
-        deserializer.deserialize_identifier(SubscriptionTypeVisitor)
-    }
 }
 
 /// for specifying the inputs to eth_getLogs
