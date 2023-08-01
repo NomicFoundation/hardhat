@@ -1,7 +1,7 @@
 /// helper utilities for use with serde's serialize_with and deserialize_with
 use std::fmt::Write;
 
-use crate::U256;
+use revm_primitives::ruint::Uint;
 
 /// for use with serde's serialize_with on a single value that should be serialized as a
 /// sequence
@@ -29,14 +29,17 @@ where
 
 /// a custom implementation because the one from ruint includes leading zeroes and the JSON-RPC
 /// server implementations reject that.
-pub fn serialize_u256<S>(x: &U256, s: S) -> Result<S::Ok, S::Error>
+pub fn serialize_uint_without_leading_zeroes<const BITS: usize, const LIMBS: usize, S>(
+    x: &Uint<BITS, LIMBS>,
+    s: S,
+) -> Result<S::Ok, S::Error>
 where
     S: serde::Serializer,
 {
     let bytes = x.to_be_bytes_vec();
 
     // OPT: Allocation free method.
-    let mut result = String::with_capacity(2 * U256::BYTES + 2);
+    let mut result = String::with_capacity(2 * Uint::<BITS, LIMBS>::BYTES + 2);
     result.push_str("0x");
 
     let mut leading_zeroes = true;

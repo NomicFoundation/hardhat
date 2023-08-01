@@ -11,7 +11,7 @@ use rethnet_eth::{
         methods::MethodInvocation as EthMethodInvocation, BlockSpec, ZeroXPrefixedBytes,
     },
     signature::{private_key_to_address, Signature},
-    Address, Bytes, B256, U256,
+    Address, Bytes, B256, U256, U64,
 };
 use rethnet_evm::{AccountInfo, KECCAK_EMPTY};
 
@@ -42,6 +42,9 @@ async fn start_server() -> SocketAddr {
                 .expect("should construct private key from string"),
             balance: U256::ZERO,
         }],
+        chain_id: U64::from(1),
+        coinbase: Address::from_low_u64_ne(1),
+        network_id: U64::from(123),
     })
     .await
     .unwrap();
@@ -104,6 +107,26 @@ async fn test_accounts() {
         &start_server().await,
         MethodInvocation::Eth(EthMethodInvocation::Accounts()),
         vec![private_key_to_address(&Secp256k1::signing_only(), PRIVATE_KEY).unwrap()],
+    )
+    .await;
+}
+
+#[tokio::test]
+async fn test_chain_id() {
+    verify_response(
+        &start_server().await,
+        MethodInvocation::Eth(EthMethodInvocation::ChainId()),
+        U64::from(1),
+    )
+    .await;
+}
+
+#[tokio::test]
+async fn test_coinbase() {
+    verify_response(
+        &start_server().await,
+        MethodInvocation::Eth(EthMethodInvocation::Coinbase()),
+        Address::from_low_u64_ne(1),
     )
     .await;
 }
@@ -210,6 +233,16 @@ async fn test_get_transaction_count_success() {
             Some(BlockSpec::latest()),
         )),
         U256::ZERO,
+    )
+    .await;
+}
+
+#[tokio::test]
+async fn test_net_version() {
+    verify_response(
+        &start_server().await,
+        MethodInvocation::Eth(EthMethodInvocation::NetVersion()),
+        String::from("123"),
     )
     .await;
 }
