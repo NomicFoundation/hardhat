@@ -13,7 +13,9 @@ rethnet_eth = { version = "0.1.0-dev", path = "../rethnet_eth" }
 rethnet_evm = { version = "0.1.0-dev", path = "../rethnet_evm" }
 rethnet_rpc_server = { version = "0.1.0-dev", path = "../rethnet_rpc_server" }
 secp256k1 = { version = "0.24.0", default-features = false, features = ["alloc"] }
+serde = { version = "1.0.147", default-features = false, features = ["derive"] }
 tokio = { version = "1.23.0", features = ["macros", "signal"] }
+toml = "0.7.6"
 tracing = { version = "0.1.37", default-features = false, features = ["std"] }
 tracing-subscriber = { version = "0.3.17", default-features = false, features = ["fmt"] }
 

@@ -1,8 +1,9 @@
 use std::{str::FromStr, time::SystemTime};
 
 use hex;
+use serde::{Deserialize, Serialize};
 
-use rethnet_eth::{Address, SpecId, U256};
+use rethnet_eth::{remote::ZeroXPrefixedBytes, Address, SpecId, U256};
 use rethnet_evm::Bytes;
 
 /// the default private keys from which the local accounts will be derived.
@@ -31,6 +32,7 @@ pub const DEFAULT_PRIVATE_KEYS: [&str; 20] = [
 ];
 
 /// struct representing the deserialized conifguration file, eg hardhat.config.json
+#[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
 pub struct ConfigFile {
     // TODO: expand this per https://github.com/NomicFoundation/rethnet/issues/111
     pub accounts: Option<Vec<AccountConfig>>,
@@ -110,7 +112,8 @@ impl Default for ConfigFile {
                         private_key: Bytes::from_iter(
                             hex::decode(s)
                                 .expect("should decode all default private keys from strings"),
-                        ),
+                        )
+                        .into(),
                         balance: U256::from(10000),
                     })
                     .collect(),
@@ -130,7 +133,23 @@ impl Default for ConfigFile {
     }
 }
 
+#[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
 pub struct AccountConfig {
-    pub private_key: Bytes,
+    pub private_key: ZeroXPrefixedBytes,
     pub balance: U256,
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    use toml;
+
+    #[test]
+    fn test_config_file_serde() {
+        let config_file = ConfigFile::default();
+        let serialized = toml::to_string(&config_file).unwrap();
+        let deserialized = toml::from_str(&serialized).unwrap();
+        assert_eq!(config_file, deserialized);
+    }
 }

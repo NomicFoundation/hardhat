@@ -7,7 +7,7 @@ use clap::{Args, Parser, Subcommand};
 use secp256k1::SecretKey;
 use tracing::{event, Level};
 
-use rethnet_eth::{Address, U256, U64};
+use rethnet_eth::{Address, Bytes, U256, U64};
 use rethnet_rpc_server::{
     AccountConfig as ServerAccountConfig, Config as ServerConfig, RpcForkConfig,
     RpcHardhatNetworkConfig,
@@ -111,8 +111,9 @@ fn server_config_from_cli_args_and_config_file(
 
 impl From<&AccountConfig> for ServerAccountConfig {
     fn from(account_config: &AccountConfig) -> Self {
+        let bytes: Bytes = account_config.private_key.clone().into();
         Self {
-            private_key: SecretKey::from_slice(&account_config.private_key[..]).unwrap(),
+            private_key: SecretKey::from_slice(&bytes[..]).unwrap(),
             balance: account_config.balance,
         }
     }
