@@ -26,7 +26,7 @@ const VERIFICATION_STATUS_POLLING_TIME = 3000;
 /**
  * Etherscan verification provider for verifying smart contracts.
  * It should work with other verification providers as long as the interface
- * remains the same.
+ * is compatible with Etherscan's.
  */
 export class Etherscan {
   /**
