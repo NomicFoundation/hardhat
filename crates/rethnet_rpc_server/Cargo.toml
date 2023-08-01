@@ -25,5 +25,6 @@ rethnet_test_utils = { version = "0.1.0-dev", path = "../rethnet_test_utils" }
 tracing-subscriber = { version = "0.3.17", default-features = false, features = ["fmt"] }
 
 [build-dependencies]
+cargo_toml = {version = "0.15.3", default-features = false }
 serde = { version = "1.0.147", default-features = false, features = ["derive"] }
 toml = { version = "0.5.9", default-features = false }
