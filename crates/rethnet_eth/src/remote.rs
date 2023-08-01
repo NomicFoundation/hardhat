@@ -10,16 +10,11 @@ pub mod jsonrpc;
 /// RPC methods
 pub mod methods;
 
-/// helper utilities for use with serde's serialize_with and deserialize_with
-pub mod serde_with_helpers;
-
 mod withdrawal;
 
 use bytes::Bytes;
 
 use crate::{B256, U256};
-
-pub use serde_with_helpers::serialize_u256;
 
 pub use client::{RpcClient, RpcClientError};
 
@@ -84,7 +79,7 @@ pub enum BlockTag {
 #[serde(untagged)]
 pub enum BlockSpec {
     /// as a block number
-    #[serde(serialize_with = "serialize_u256")]
+    #[serde(serialize_with = "crate::serde::u256::serialize")]
     Number(U256),
     /// as a block tag (eg "latest")
     Tag(BlockTag),

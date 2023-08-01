@@ -5,17 +5,17 @@ use std::{
 };
 
 use rethnet_eth::{
-    block::{Block, DetailedBlock, Header, PartialHeader},
+    block::{Block, BlockOptions, DetailedBlock, Header, PartialHeader},
     log::Log,
-    receipt::{EIP658Receipt, TypedReceipt},
+    receipt::{TransactionReceipt, TypedReceipt, TypedReceiptData},
     transaction::SignedTransaction,
-    trie::{ordered_trie_root, KECCAK_NULL_RLP},
+    trie::ordered_trie_root,
     Address, Bloom, U256,
 };
 use revm::{
     db::DatabaseComponentError,
     primitives::{
-        AccountInfo, BlockEnv, CfgEnv, EVMError, ExecutionResult, InvalidTransaction,
+        AccountInfo, BlockEnv, CfgEnv, EVMError, ExecutionResult, InvalidTransaction, Output,
         ResultAndState, SpecId,
     },
 };
@@ -25,10 +25,8 @@ use crate::{
     blockchain::SyncBlockchain,
     evm::{build_evm, run_transaction, SyncInspector},
     state::{AccountModifierFn, SyncState},
-    BlockOptions, PendingTransaction,
+    PendingTransaction,
 };
-
-use super::difficulty::calculate_ethash_canonical_difficulty;
 
 /// An error caused during construction of a block builder.
 #[derive(Debug, thiserror::Error)]
@@ -85,7 +83,7 @@ where
     header: PartialHeader,
     callers: Vec<Address>,
     transactions: Vec<SignedTransaction>,
-    receipts: Vec<TypedReceipt>,
+    receipts: Vec<TransactionReceipt<Log>>,
     parent_gas_limit: Option<U256>,
 }
 
@@ -99,7 +97,7 @@ where
         blockchain: Arc<RwLock<dyn SyncBlockchain<BE>>>,
         state: Arc<RwLock<dyn SyncState<SE>>>,
         cfg: CfgEnv,
-        parent: Header,
+        parent: &Header,
         options: BlockOptions,
     ) -> Result<Self, BlockBuilderCreationError<SE>> {
         if cfg.spec_id < SpecId::BYZANTIUM {
@@ -108,36 +106,13 @@ where
 
         state.write().await.checkpoint()?;
 
-        let timestamp = options.timestamp.unwrap_or_default();
-        let number = options.number.unwrap_or(parent.number + U256::from(1));
-
-        // TODO: Are all user values covered?
-        let header = PartialHeader {
-            parent_hash: options.parent_hash.unwrap_or_else(|| parent.hash()),
-            beneficiary: options.beneficiary.unwrap_or_default(),
-            state_root: options.state_root.unwrap_or(KECCAK_NULL_RLP),
-            receipts_root: options.receipts_root.unwrap_or(KECCAK_NULL_RLP),
-            logs_bloom: options.logs_bloom.unwrap_or_default(),
-            difficulty: if cfg.spec_id < SpecId::MERGE {
-                calculate_ethash_canonical_difficulty(cfg.spec_id, &parent, &number, &timestamp)
-            } else {
-                options.difficulty.unwrap_or_default()
-            },
-            number,
-            gas_limit: options.gas_limit.unwrap_or(U256::from(1_000_000)),
-            gas_used: U256::ZERO,
-            timestamp,
-            extra_data: options.extra_data.unwrap_or_default(),
-            mix_hash: options.mix_hash.unwrap_or_default(),
-            nonce: options.nonce.unwrap_or_default(),
-            base_fee: options.base_fee.or_else(|| {
-                if cfg.spec_id >= SpecId::LONDON {
-                    Some(U256::from(7))
-                } else {
-                    None
-                }
-            }),
+        let parent_gas_limit = if options.gas_limit.is_none() {
+            Some(parent.gas_limit)
+        } else {
+            None
         };
+
+        let header = PartialHeader::new(cfg.spec_id, options, Some(parent));
 
         // TODO: Validate DAO extra data
         // if (this._common.hardforkIsActiveOnBlock(Hardfork.Dao, this.number) === false) {
@@ -163,11 +138,7 @@ where
             callers: Vec::new(),
             transactions: Vec::new(),
             receipts: Vec::new(),
-            parent_gas_limit: if options.gas_limit.is_none() {
-                Some(parent.gas_limit)
-            } else {
-                None
-            },
+            parent_gas_limit,
         })
     }
 
@@ -253,18 +224,46 @@ where
             bloom
         };
 
-        let receipt = EIP658Receipt {
-            status_code: if result.is_success() { 1 } else { 0 },
-            gas_used: self.header.gas_used,
-            logs_bloom,
-            logs,
+        let status = if result.is_success() { 1 } else { 0 };
+        let contract_address = if let ExecutionResult::Success {
+            output: Output::Create(_, address),
+            ..
+        } = &result
+        {
+            *address
+        } else {
+            None
         };
 
-        self.receipts.push(match &*transaction {
-            SignedTransaction::Legacy(_) => TypedReceipt::Legacy(receipt),
-            SignedTransaction::EIP2930(_) => TypedReceipt::EIP2930(receipt),
-            SignedTransaction::EIP1559(_) => TypedReceipt::EIP1559(receipt),
-        });
+        let gas_price = transaction.gas_price();
+        let effective_gas_price = if let SignedTransaction::EIP1559(transaction) = &*transaction {
+            block.basefee + (gas_price - block.basefee).min(transaction.max_priority_fee_per_gas)
+        } else {
+            gas_price
+        };
+
+        let receipt = TransactionReceipt {
+            inner: TypedReceipt {
+                cumulative_gas_used: self.header.gas_used,
+                logs_bloom,
+                logs,
+                data: match &*transaction {
+                    SignedTransaction::Legacy(_) => {
+                        TypedReceiptData::PostByzantiumLegacy { status }
+                    }
+                    SignedTransaction::EIP2930(_) => TypedReceiptData::EIP2930 { status },
+                    SignedTransaction::EIP1559(_) => TypedReceiptData::EIP1559 { status },
+                },
+            },
+            transaction_hash: *transaction.hash(),
+            transaction_index: self.transactions.len() as u64,
+            from: *transaction.caller(),
+            to: transaction.to().cloned(),
+            contract_address,
+            gas_used: U256::from(result.gas_used()),
+            effective_gas_price,
+        };
+        self.receipts.push(receipt);
 
         let (transaction, caller) = transaction.into_inner();
 
@@ -321,7 +320,7 @@ where
         self.header.receipts_root = ordered_trie_root(
             self.receipts
                 .iter()
-                .map(|receipt| rlp::encode(receipt).freeze()),
+                .map(|receipt| rlp::encode(&**receipt).freeze()),
         );
 
         if let Some(timestamp) = timestamp {
@@ -338,7 +337,11 @@ where
         // TODO: handle ommers
         let block = Block::new(self.header, self.transactions, vec![]);
 
-        Ok(DetailedBlock::new(block, self.callers, self.receipts))
+        Ok(DetailedBlock::with_partial_receipts(
+            block,
+            self.callers,
+            self.receipts,
+        ))
     }
 
     /// Aborts building of the block, reverting all transactions in the process.

@@ -1,7 +1,7 @@
 use std::{collections::VecDeque, fmt::Debug, sync::Arc};
 
 use rethnet_eth::{
-    block::{DetailedBlock, Header},
+    block::{BlockOptions, DetailedBlock, Header},
     Address, B64, U256, U64,
 };
 use revm::primitives::{CfgEnv, ExecutionResult, SpecId};
@@ -12,7 +12,7 @@ use crate::{
     blockchain::SyncBlockchain,
     state::SyncState,
     trace::{Trace, TraceCollector},
-    BlockBuilder, BlockOptions, BlockTransactionError, MemPool, RandomHashGenerator,
+    BlockBuilder, BlockTransactionError, MemPool, RandomHashGenerator,
 };
 
 /// The result of mining a block.
@@ -104,7 +104,7 @@ where
                 self.blockchain.clone(),
                 self.state.clone(),
                 self.cfg.clone(),
-                parent_block.header.clone(),
+                &parent_block.header,
                 BlockOptions {
                     beneficiary: Some(self.beneficiary),
                     number: Some(parent_block.header.number),

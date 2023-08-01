@@ -9,13 +9,12 @@
 /// input types for EIP-712 message signing
 pub mod eip712;
 
-use std::{fmt::Debug, ops::Deref};
+use std::fmt::Debug;
 
 use revm_primitives::ruint::aliases::B64;
 
 use crate::{
     access_list::AccessListItem,
-    receipt::{EIP658Receipt, TypedReceipt},
     signature::Signature,
     transaction::{
         EIP1559SignedTransaction, EIP2930SignedTransaction, LegacySignedTransaction,
@@ -24,24 +23,23 @@ use crate::{
     Address, Bloom, Bytes, B256, U256,
 };
 
-use super::{serde_with_helpers::optional_u64_from_hex, withdrawal::Withdrawal};
+use super::withdrawal::Withdrawal;
 
 /// transaction
 #[derive(Clone, Debug, PartialEq, Eq, Default, serde::Deserialize, serde::Serialize)]
-#[serde(deny_unknown_fields)]
 #[serde(rename_all = "camelCase")]
 pub struct Transaction {
     /// hash of the transaction
     pub hash: B256,
     /// the number of transactions made by the sender prior to this one
-    #[serde(deserialize_with = "u64_from_hex")]
+    #[serde(with = "crate::serde::u64")]
     pub nonce: u64,
     /// hash of the block where this transaction was in
     pub block_hash: Option<B256>,
     /// block number where this transaction was in
     pub block_number: Option<U256>,
     /// integer of the transactions index position in the block. null when its pending
-    #[serde(deserialize_with = "optional_u64_from_hex")]
+    #[serde(deserialize_with = "crate::serde::optional_u64_from_hex")]
     pub transaction_index: Option<u64>,
     /// address of the sender
     pub from: Address,
@@ -56,17 +54,17 @@ pub struct Transaction {
     /// the data sent along with the transaction
     pub input: Bytes,
     /// ECDSA recovery id
-    #[serde(deserialize_with = "u64_from_hex")]
+    #[serde(with = "crate::serde::u64")]
     pub v: u64,
     /// ECDSA signature r
     pub r: U256,
     /// ECDSA signature s
     pub s: U256,
     /// chain ID
-    #[serde(default, deserialize_with = "optional_u64_from_hex")]
+    #[serde(default, deserialize_with = "crate::serde::optional_u64_from_hex")]
     pub chain_id: Option<u64>,
     /// integer of the transaction type, 0x0 for legacy transactions, 0x1 for access list types, 0x2 for dynamic fees
-    #[serde(rename = "type", default, deserialize_with = "u64_from_hex")]
+    #[serde(default, with = "crate::serde::u64")]
     pub transaction_type: u64,
     /// access list
     #[serde(default)]
@@ -79,131 +77,12 @@ pub struct Transaction {
     pub max_priority_fee_per_gas: Option<U256>,
 }
 
-fn u64_from_hex<'de, D>(deserializer: D) -> Result<u64, D::Error>
-where
-    D: serde::Deserializer<'de>,
-{
-    let s: &str = serde::Deserialize::deserialize(deserializer)?;
-    Ok(u64::from_str_radix(&s[2..], 16).expect("failed to parse u64"))
-}
-
-/// log object used in TransactionReceipt
-#[derive(Debug, Clone, PartialEq, Eq, serde::Deserialize, serde::Serialize)]
-#[serde(deny_unknown_fields)]
-#[serde(rename_all = "camelCase")]
-pub struct Log {
-    #[serde(flatten)]
-    inner: crate::log::Log,
-    /// block hash
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub block_hash: Option<B256>,
-    /// block number
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub block_number: Option<U256>,
-    /// transaction hash
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub transaction_hash: Option<B256>,
-    /// transaction index
-    #[serde(
-        skip_serializing_if = "Option::is_none",
-        deserialize_with = "optional_u64_from_hex"
-    )]
-    pub transaction_index: Option<u64>,
-    /// log index
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub log_index: Option<U256>,
-    /// transaction log index
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub transaction_log_index: Option<U256>,
-    /// log type
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub log_type: Option<String>,
-    /// removed
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub removed: Option<bool>,
-}
-
-impl Deref for Log {
-    type Target = crate::log::Log;
-
-    fn deref(&self) -> &Self::Target {
-        &self.inner
-    }
-}
-
-/// object returned by eth_getTransactionReceipt
-#[derive(Clone, Debug, PartialEq, Eq, Default, serde::Deserialize, serde::Serialize)]
-#[serde(deny_unknown_fields)]
-#[serde(rename_all = "camelCase")]
-pub struct TransactionReceipt {
-    /// hash of the block where this transaction was in
-    pub block_hash: Option<B256>,
-    /// block number where this transaction was in
-    pub block_number: Option<U256>,
-    /// The contract address created, if the transaction was a contract creation, otherwise null.
-    pub contract_address: Option<Address>,
-    /// The total amount of gas used when this transaction was executed in the block.
-    pub cumulative_gas_used: U256,
-    /// The sum of the base fee and tip paid per unit of gas.
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub effective_gas_price: Option<U256>,
-    /// address of the sender
-    pub from: Address,
-    /// The amount of gas used by this specific transaction alone.
-    pub gas_used: Option<U256>,
-    /// Array of log objects, which this transaction generated.
-    pub logs: Vec<Log>,
-    /// Bloom filter for light clients to quickly retrieve related logs.
-    pub logs_bloom: Bloom,
-    /// 32 bytes of post-transaction stateroot (pre Byzantium)
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub root: Option<B256>,
-    /// either 1 (success) or 0 (failure)
-    #[serde(deserialize_with = "optional_u64_from_hex")]
-    pub status: Option<u64>,
-    /// address of the receiver. null when its a contract creation transaction.
-    pub to: Option<Address>,
-    /// hash of the transaction
-    pub transaction_hash: B256,
-    /// integer of the transactions index position in the block
-    #[serde(deserialize_with = "u64_from_hex")]
-    pub transaction_index: u64,
-    /// integer of the transaction type, 0x0 for legacy transactions, 0x1 for access list types, 0x2 for dynamic fees.
-    #[serde(rename = "type", default, deserialize_with = "u64_from_hex")]
-    pub transaction_type: u64,
-}
-
 /// Error that occurs when trying to convert the JSON-RPC `TransactionReceipt` type.
 #[derive(Debug, thiserror::Error)]
 pub enum ReceiptConversionError {
     /// The transaction type is not supported.
     #[error("Unsupported type {0}")]
     UnsupportedType(u64),
-}
-
-impl TryFrom<TransactionReceipt> for TypedReceipt {
-    type Error = ReceiptConversionError;
-
-    fn try_from(value: TransactionReceipt) -> Result<Self, Self::Error> {
-        let receipt = EIP658Receipt {
-            // Not supported for pre-Byzantium hardforks
-            status_code: value
-                .status
-                .unwrap_or(1)
-                .try_into()
-                .expect("Is either 1 or 0"),
-            gas_used: value.cumulative_gas_used,
-            logs_bloom: value.logs_bloom,
-            logs: value.logs.into_iter().map(|log| log.inner).collect(),
-        };
-
-        match value.transaction_type {
-            0 => Ok(TypedReceipt::Legacy(receipt)),
-            1 => Ok(TypedReceipt::EIP2930(receipt)),
-            2 => Ok(TypedReceipt::EIP1559(receipt)),
-            r#type => Err(ReceiptConversionError::UnsupportedType(r#type)),
-        }
-    }
 }
 
 /// block object returned by eth_getBlockBy*
@@ -250,7 +129,7 @@ pub struct Block<TX> {
     /// mix hash
     pub mix_hash: B256,
     /// hash of the generated proof-of-work. null when its pending block.
-    #[serde(deserialize_with = "optional_u64_from_hex")]
+    #[serde(deserialize_with = "crate::serde::optional_u64_from_hex")]
     pub nonce: Option<u64>,
     /// base fee per gas
     pub base_fee_per_gas: Option<U256>,

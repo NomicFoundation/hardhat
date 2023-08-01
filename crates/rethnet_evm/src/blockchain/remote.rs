@@ -4,7 +4,7 @@ use futures::future::{self, FutureExt};
 use parking_lot::{RwLock, RwLockUpgradableReadGuard};
 use rethnet_eth::{
     block::DetailedBlock,
-    receipt::TypedReceipt,
+    receipt::BlockReceipt,
     remote::{self, BlockSpec, RpcClient, RpcClientError},
     B256, U256,
 };
@@ -37,10 +37,10 @@ impl RemoteBlockchain {
             return Ok(Some(block));
         }
 
-        if let Some(block) = self
-            .runtime
-            .block_on(self.client.get_block_by_hash_with_transaction_data(hash))?
-        {
+        if let Some(block) = tokio::task::block_in_place(move || {
+            self.runtime
+                .block_on(self.client.get_block_by_hash_with_transaction_data(hash))
+        })? {
             self.fetch_and_cache_block(cache, block).map(Option::Some)
         } else {
             Ok(None)
@@ -75,12 +75,35 @@ impl RemoteBlockchain {
             .cloned()
         {
             Ok(Some(block))
-        } else if let Some(transaction) = self
-            .runtime
-            .block_on(self.client.get_transaction_by_hash(transaction_hash))?
-        {
+        } else if let Some(transaction) = tokio::task::block_in_place(move || {
+            self.runtime
+                .block_on(self.client.get_transaction_by_hash(transaction_hash))
+        })? {
             // TODO: is this true?
             self.block_by_hash(&transaction.block_hash.expect("Not a pending transaction"))
+        } else {
+            Ok(None)
+        }
+    }
+
+    /// Retrieves the receipt of the transaction with the provided hash, if it exists.
+    pub fn receipt_by_transaction_hash(
+        &self,
+        transaction_hash: &B256,
+    ) -> Result<Option<Arc<BlockReceipt>>, RpcClientError> {
+        let cache = self.cache.upgradable_read();
+
+        if let Some(receipt) = cache.receipt_by_transaction_hash(transaction_hash) {
+            Ok(Some(receipt.clone()))
+        } else if let Some(receipt) = tokio::task::block_in_place(move || {
+            self.runtime
+                .block_on(self.client.get_transaction_receipt(transaction_hash))
+        })? {
+            Ok(Some({
+                let mut cache = RwLockUpgradableReadGuard::upgrade(cache);
+                // SAFETY: the receipt with this hash didn't exist yet, so it must be unique
+                unsafe { cache.insert_receipt_unchecked(receipt) }.clone()
+            }))
         } else {
             Ok(None)
         }
@@ -92,10 +115,10 @@ impl RemoteBlockchain {
 
         if let Some(difficulty) = cache.total_difficulty_by_hash(hash).cloned() {
             Ok(Some(difficulty))
-        } else if let Some(block) = self
-            .runtime
-            .block_on(self.client.get_block_by_hash_with_transaction_data(hash))?
-        {
+        } else if let Some(block) = tokio::task::block_in_place(move || {
+            self.runtime
+                .block_on(self.client.get_block_by_hash_with_transaction_data(hash))
+        })? {
             let total_difficulty = block
                 .total_difficulty
                 .expect("Must be present as this is not a pending transaction");
@@ -128,16 +151,14 @@ impl RemoteBlockchain {
             .map(|transaction| transaction.hash())
             .collect();
 
-        let receipts = self.runtime.block_on({
-            future::try_join_all(transaction_hashes.iter().map(|hash| {
-                self.client.get_transaction_receipt(hash).map(|result| {
-                    result.map(Option::unwrap).map(|receipt| {
-                        TypedReceipt::try_from(receipt).expect(
-                            "Conversion must succeed, as we're not retrieving a pending block",
-                        )
-                    })
-                })
-            }))
+        let receipts = tokio::task::block_in_place(move || {
+            self.runtime.block_on({
+                future::try_join_all(transaction_hashes.iter().map(|hash| {
+                    self.client
+                        .get_transaction_receipt(hash)
+                        .map(|result| result.map(|receipt| Arc::new(receipt.unwrap())))
+                }))
+            })
         })?;
 
         let block = DetailedBlock::new(block, callers, receipts);

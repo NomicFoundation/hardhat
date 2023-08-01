@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
 use hashbrown::HashMap;
-use rethnet_eth::{block::DetailedBlock, B256, U256};
+use rethnet_eth::{block::DetailedBlock, receipt::BlockReceipt, B256, U256};
 
 use super::InsertError;
 
@@ -12,13 +12,20 @@ pub struct ContiguousBlockchainStorage {
     hash_to_block: HashMap<B256, Arc<DetailedBlock>>,
     total_difficulties: Vec<U256>,
     transaction_hash_to_block: HashMap<B256, Arc<DetailedBlock>>,
+    transaction_hash_to_receipt: HashMap<B256, Arc<BlockReceipt>>,
 }
 
 impl ContiguousBlockchainStorage {
     /// Constructs a new instance with the provided block.
     pub fn with_block(block: DetailedBlock, total_difficulty: U256) -> Self {
         let block = Arc::new(block);
-        let block_hash = block.header.hash();
+        let block_hash = block.hash();
+
+        let transaction_hash_to_receipt = block
+            .transaction_receipts()
+            .iter()
+            .map(|receipt| (receipt.transaction_hash, receipt.clone()))
+            .collect();
 
         let transaction_hash_to_block = block
             .transactions
@@ -27,13 +34,14 @@ impl ContiguousBlockchainStorage {
             .collect();
 
         let mut hash_to_block = HashMap::new();
-        hash_to_block.insert(block_hash, block.clone());
+        hash_to_block.insert(*block_hash, block.clone());
 
         Self {
             total_difficulties: vec![total_difficulty],
             blocks: vec![block],
             hash_to_block,
             transaction_hash_to_block,
+            transaction_hash_to_receipt,
         }
     }
 
@@ -47,12 +55,56 @@ impl ContiguousBlockchainStorage {
         self.hash_to_block.get(hash)
     }
 
-    /// Retrieves the block by hash, if it exists.
+    /// Retrieves the block that contains the transaction with the provided hash, if it exists.
     pub fn block_by_transaction_hash(
         &self,
         transaction_hash: &B256,
     ) -> Option<&Arc<DetailedBlock>> {
         self.transaction_hash_to_block.get(transaction_hash)
+    }
+
+    /// Retrieves the receipt of the transaction with the provided hash, if it exists.
+    pub fn receipt_by_transaction_hash(
+        &self,
+        transaction_hash: &B256,
+    ) -> Option<&Arc<BlockReceipt>> {
+        self.transaction_hash_to_receipt.get(transaction_hash)
+    }
+
+    /// Reverts to the block with the provided number, deleting all later blocks.
+    pub fn revert_to_block(&mut self, block_number: &U256) -> bool {
+        let block_number = usize::try_from(block_number)
+            .expect("No blocks with a number larger than usize::MAX are inserted");
+
+        let block_index = if let Some(first_block) = self.blocks.first() {
+            let first_block_number = usize::try_from(first_block.header.number)
+                .expect("No blocks with a number larger than usize::MAX are inserted");
+
+            if block_number < first_block_number {
+                return false;
+            }
+
+            block_number - first_block_number
+        } else {
+            return false;
+        };
+
+        if block_index > self.blocks.len() {
+            return false;
+        }
+
+        self.total_difficulties.truncate(block_index + 1);
+        let removed_blocks = self.blocks.split_off(block_index + 1);
+
+        for block in removed_blocks {
+            let block_hash = block.hash();
+
+            self.hash_to_block.remove(block_hash);
+            self.transaction_hash_to_block.remove(block_hash);
+            self.transaction_hash_to_receipt.remove(block_hash);
+        }
+
+        true
     }
 
     /// Retrieves the instance's total difficulties.
@@ -77,13 +129,13 @@ impl ContiguousBlockchainStorage {
         block: DetailedBlock,
         total_difficulty: U256,
     ) -> Result<&Arc<DetailedBlock>, InsertError> {
-        let block_hash = block.header.hash();
+        let block_hash = block.hash();
 
         // As blocks are contiguous, we are guaranteed that the block number won't exist if its
         // hash is not present.
-        if self.hash_to_block.contains_key(&block_hash) {
+        if self.hash_to_block.contains_key(block_hash) {
             return Err(InsertError::DuplicateBlock {
-                block_hash,
+                block_hash: *block_hash,
                 block_number: block.header.number,
             });
         }
@@ -113,6 +165,13 @@ impl ContiguousBlockchainStorage {
         total_difficulty: U256,
     ) -> &Arc<DetailedBlock> {
         let block = Arc::new(block);
+
+        self.transaction_hash_to_receipt.extend(
+            block
+                .transaction_receipts()
+                .iter()
+                .map(|receipt| (receipt.transaction_hash, receipt.clone())),
+        );
 
         self.transaction_hash_to_block.extend(
             block

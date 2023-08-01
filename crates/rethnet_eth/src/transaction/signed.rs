@@ -30,6 +30,7 @@ pub enum SignedTransaction {
 }
 
 impl SignedTransaction {
+    /// Returns the gas price of the transaction.
     pub fn gas_price(&self) -> U256 {
         match self {
             SignedTransaction::Legacy(tx) => tx.gas_price,
@@ -38,6 +39,7 @@ impl SignedTransaction {
         }
     }
 
+    /// Returns the gas limit of the transaction.
     pub fn gas_limit(&self) -> u64 {
         match self {
             SignedTransaction::Legacy(tx) => tx.gas_limit,
@@ -46,6 +48,7 @@ impl SignedTransaction {
         }
     }
 
+    /// Returns the value of the transaction.
     pub fn value(&self) -> U256 {
         match self {
             SignedTransaction::Legacy(tx) => tx.value,
@@ -54,6 +57,7 @@ impl SignedTransaction {
         }
     }
 
+    /// Returns the input data of the transaction.
     pub fn data(&self) -> &Bytes {
         match self {
             SignedTransaction::Legacy(tx) => &tx.input,
@@ -62,6 +66,7 @@ impl SignedTransaction {
         }
     }
 
+    /// Returns the access list of the transaction, if any.
     pub fn access_list(&self) -> Option<&AccessList> {
         match self {
             SignedTransaction::Legacy(_) => None,
@@ -117,6 +122,7 @@ impl SignedTransaction {
         }
     }
 
+    /// Returns the nonce of the transaction.
     pub fn nonce(&self) -> &u64 {
         match self {
             SignedTransaction::Legacy(t) => t.nonce(),
@@ -125,6 +131,7 @@ impl SignedTransaction {
         }
     }
 
+    /// Returns the chain id of the transaction.
     pub fn chain_id(&self) -> Option<u64> {
         match self {
             SignedTransaction::Legacy(t) => t.chain_id(),
@@ -140,16 +147,17 @@ impl SignedTransaction {
         }
     }
 
-    /// Returns true whether this tx is a legacy transaction
+    /// Returns whether this is a legacy transaction
     pub fn is_legacy(&self) -> bool {
         matches!(self, SignedTransaction::Legacy(_))
     }
 
-    /// Returns true whether this tx is a EIP1559 transaction
+    /// Returns whether this is an EIP-1559 transaction
     pub fn is_eip1559(&self) -> bool {
         matches!(self, SignedTransaction::EIP1559(_))
     }
 
+    /// Computes the hash of the transaction.
     pub fn hash(&self) -> B256 {
         match self {
             SignedTransaction::Legacy(t) => t.hash(),
@@ -181,7 +189,7 @@ impl SignedTransaction {
         self.kind().as_call()
     }
 
-    /// Returns the Signature of the transaction
+    /// Returns the [`Signature`] of the transaction
     pub fn signature(&self) -> Signature {
         match self {
             SignedTransaction::Legacy(tx) => tx.signature,
