@@ -783,6 +783,14 @@ const communityPlugins: IPlugin[] = [
     tags: ["Gelato", "w3f", "offchain", "functions"],
   },
   {
+    name: "hardhat-publish-typechain",
+    author: "xiaosongfu",
+    npmPackage: "hardhat-publish-typechain",
+    authorUrl: "https://github.com/xiaosongfu",
+    description: "Publish generated typechain-types to NPM",
+    tags: ["typechain-types", "npm registry"],
+  },
+  {
     name: "hardhat-deployed-records",
     author: "xiaosongfu",
     npmPackage: "hardhat-deployed-records",
