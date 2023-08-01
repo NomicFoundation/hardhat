@@ -16,7 +16,6 @@ primitive-types = { version = "0.11.1", default-features = false, features = ["r
 reqwest = { version = "0.11", features = ["blocking", "json"] }
 revm-primitives = { git = "https://github.com/Wodann/revm", rev = "9fdf446", version = "1.1", default-features = false }
 # revm-primitives = { path = "../../../revm/crates/primitives", version = "1.0", default-features = false }
-ruint = { version = "1.7.0", default-features = false }
 rlp = { version = "0.5.2", default-features = false, features = ["derive"] }
 secp256k1 = { version = "0.24.0", default-features = false, features = ["alloc", "recovery"] }
 serde = { version = "1.0.147", default-features = false, features = ["derive"], optional = true }
