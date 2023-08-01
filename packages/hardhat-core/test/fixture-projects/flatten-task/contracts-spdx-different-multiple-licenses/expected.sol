@@ -1,4 +1,4 @@
-// Sources flattened with hardhat v2.17.0 https://hardhat.org
+// Sources flattened with hardhat v{HARDHAT_VERSION} https://hardhat.org
 
 // SPDX-License-Identifier: Linux-man-pages-1-para AND MIT AND MPL-1.1 AND MPL-2.0-no-copyleft-exception
 
