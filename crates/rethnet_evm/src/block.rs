@@ -1,22 +1,12 @@
 mod builder;
 mod difficulty;
 
-use rethnet_eth::{block::Block, receipt::TypedReceipt, Address, Bloom, Bytes, B256, B64, U256};
+use rethnet_eth::{Address, Bloom, Bytes, B256, B64, U256};
 
-use crate::transaction::TransactionInfo;
-
-pub use builder::{BlockAndCallers, BlockBuilder, BlockTransactionError};
-
-/// Container type that gathers all block data
-#[derive(Debug, Clone)]
-pub struct BlockInfo {
-    pub block: Block,
-    pub transactions: Vec<TransactionInfo>,
-    pub receipts: Vec<TypedReceipt>,
-}
+pub use self::builder::{BlockBuilder, BlockBuilderCreationError, BlockTransactionError};
 
 /// Data of a block header
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct BlockOptions {
     /// The parent block's hash
     pub parent_hash: Option<B256>,

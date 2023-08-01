@@ -1,6 +1,5 @@
-use revm_primitives::Address;
+use revm_primitives::{ruint::aliases::U160, Address};
 use rlp::{DecoderError, Rlp, RlpStream};
-use ruint::aliases::U160;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]

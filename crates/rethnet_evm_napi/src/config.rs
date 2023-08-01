@@ -1,3 +1,5 @@
+use std::ops::Deref;
+
 use napi::{
     bindgen_prelude::{BigInt, FromNapiValue, ToNapiValue},
     Status,
@@ -87,9 +89,12 @@ impl Config {
     pub fn new(cfg: CfgEnv) -> Self {
         Self { inner: cfg }
     }
+}
 
-    /// Returns an immutable reference to the inner [`CfgEnv`].
-    pub fn as_inner(&self) -> &CfgEnv {
+impl Deref for Config {
+    type Target = CfgEnv;
+
+    fn deref(&self) -> &Self::Target {
         &self.inner
     }
 }

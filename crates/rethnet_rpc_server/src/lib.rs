@@ -1,13 +1,12 @@
 use std::net::{SocketAddr, TcpListener};
 use std::sync::Arc;
-use std::time::{Duration, Instant};
 
 use axum::{
     extract::{Json, State},
     http::StatusCode,
     Router,
 };
-use hashbrown::HashMap;
+use hashbrown::{HashMap, HashSet};
 use rethnet_eth::remote::ZeroXPrefixedBytes;
 use secp256k1::{Secp256k1, SecretKey};
 use tokio::sync::RwLock;
@@ -16,7 +15,7 @@ use tracing::{event, Level};
 use rethnet_eth::{
     remote::{
         client::{Request as RpcRequest, RpcClient},
-        filter::{FilterBlockTarget, FilterOptions, FilteredEvents, LogOutput, OneOrMoreAddresses},
+        filter::{FilteredEvents, LogOutput},
         jsonrpc,
         jsonrpc::{Response, ResponseData},
         methods::MethodInvocation as EthMethodInvocation,
@@ -38,6 +37,9 @@ pub use hardhat_methods::{
 
 mod config;
 pub use config::{AccountConfig, Config};
+
+mod filter;
+use filter::{new_filter_deadline, Filter};
 
 #[derive(Clone, Copy)]
 struct U256WithoutLeadingZeroes(U256);
@@ -76,78 +78,13 @@ pub enum MethodInvocation {
 
 type RethnetStateType = Arc<RwLock<dyn SyncState<StateError>>>;
 
-struct _FilterCriteria {
-    _from_block: U256,
-    _to_block: U256,
-    _addresses: Vec<Address>,
-    _topics: Vec<B256>,
-}
-
-impl _FilterCriteria {
-    async fn _from_request_and_state<T>(
-        request_options: FilterOptions,
-        state: StateType,
-    ) -> Result<Self, ResponseData<T>> {
-        let (_from_block, _to_block) = match request_options.block_target {
-            Some(FilterBlockTarget::Hash(hash)) => {
-                let block_number = _block_number_from_hash(&state, &hash, false)?;
-                (block_number, block_number)
-            }
-            Some(FilterBlockTarget::Range { from, to }) => {
-                let from =
-                    _block_number_from_block_spec(&state, &from.unwrap_or(BlockSpec::latest()))
-                        .await?;
-                let to = match to {
-                    None => from,
-                    Some(to) => _block_number_from_block_spec(&state, &to).await?,
-                };
-                (from, to)
-            }
-            None => {
-                let latest_block_number = get_latest_block_number(&state).await?;
-                (latest_block_number, latest_block_number)
-            }
-        };
-
-        let _addresses = match request_options.addresses {
-            Some(OneOrMoreAddresses::One(address)) => vec![address],
-            Some(OneOrMoreAddresses::Many(addresses)) => addresses,
-            None => Vec::new(),
-        };
-
-        let _topics = request_options.topics.unwrap_or(Vec::new());
-
-        Ok(Self {
-            _from_block,
-            _to_block,
-            _addresses,
-            _topics,
-        })
-    }
-}
-
-struct Filter {
-    // TODO: later, when adding in the rest of the filter methods, consider removing this `type`
-    // field entirely.  i suspect it's probably redundant as compared to the type implied by the
-    // variants in `events`, but that suspicion will be confirmed or denied by the addition of
-    // those other filter methods.
-    // r#type: SubscriptionType,
-    _criteria: Option<_FilterCriteria>,
-    deadline: std::time::Instant,
-    events: FilteredEvents,
-    is_subscription: bool,
-}
-
-fn new_filter_deadline() -> Instant {
-    Instant::now() + Duration::from_secs(5 * 60)
-}
-
 struct AppState {
     rethnet_state: RethnetStateType,
     chain_id: U64,
     coinbase: Address,
     filters: RwLock<HashMap<U256, Filter>>,
     fork_block_number: Option<U256>,
+    impersonated_accounts: RwLock<HashSet<Address>>,
     last_filter_id: RwLock<U256>,
     local_accounts: HashMap<Address, SecretKey>,
     network_id: U64,
@@ -484,6 +421,12 @@ async fn handle_get_transaction_count(
     }
 }
 
+async fn handle_impersonate_account(state: StateType, address: Address) -> ResponseData<bool> {
+    event!(Level::INFO, "hardhat_impersonateAccount({address:?})");
+    state.impersonated_accounts.write().await.insert(address);
+    ResponseData::Success { result: true }
+}
+
 async fn get_next_filter_id(state: StateType) -> U256 {
     let mut last_filter_id = state.last_filter_id.write().await;
     *last_filter_id = last_filter_id
@@ -638,6 +581,16 @@ fn handle_sign(
     }
 }
 
+async fn handle_stop_impersonating_account(
+    state: StateType,
+    address: Address,
+) -> ResponseData<bool> {
+    event!(Level::INFO, "hardhat_stopImpersonatingAccount({address:?})");
+    ResponseData::Success {
+        result: state.impersonated_accounts.write().await.remove(&address),
+    }
+}
+
 async fn remove_filter<const IS_SUBSCRIPTION: bool>(
     state: StateType,
     filter_id: U256,
@@ -749,6 +702,9 @@ async fn handle_request(
                 MethodInvocation::Eth(EthMethodInvocation::Unsubscribe(subscription_id)) => {
                     response(id, handle_unsubscribe(state, *subscription_id).await)
                 }
+                MethodInvocation::Hardhat(HardhatMethodInvocation::ImpersonateAccount(address)) => {
+                    response(id, handle_impersonate_account(state, *address).await)
+                }
                 MethodInvocation::Hardhat(HardhatMethodInvocation::SetBalance(
                     address,
                     balance,
@@ -767,6 +723,9 @@ async fn handle_request(
                     id,
                     handle_set_storage_at(state, *address, *position, *value).await,
                 ),
+                MethodInvocation::Hardhat(HardhatMethodInvocation::StopImpersonatingAccount(
+                    address,
+                )) => response(id, handle_stop_impersonating_account(state, *address).await),
                 // TODO: after adding all the methods here, eliminate this
                 // catch-all match arm:
                 _ => {
@@ -893,6 +852,7 @@ impl Server {
         let chain_id = config.chain_id;
         let coinbase = config.coinbase;
         let filters = RwLock::new(HashMap::default());
+        let impersonated_accounts = RwLock::new(HashSet::new());
         let last_filter_id = RwLock::new(U256::ZERO);
         let network_id = config.network_id;
 
@@ -913,7 +873,7 @@ impl Server {
                         .await
                         .expect("should retrieve latest block from fork source")
                         .number
-                        .expect("fork source's latest block should have a block number"),
+                        .expect("Not a pending block"),
                 };
 
                 Arc::new(AppState {
@@ -928,6 +888,7 @@ impl Server {
                     coinbase,
                     filters,
                     fork_block_number: Some(fork_block_number),
+                    impersonated_accounts,
                     last_filter_id,
                     local_accounts,
                     network_id,
@@ -941,6 +902,7 @@ impl Server {
                     coinbase,
                     filters,
                     fork_block_number: None,
+                    impersonated_accounts,
                     last_filter_id,
                     local_accounts,
                     network_id,

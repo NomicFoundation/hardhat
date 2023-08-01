@@ -3,8 +3,10 @@
 // - https://github.com/gakonst/ethers-rs/blob/cba6f071aedafb766e82e4c2f469ed5e4638337d/LICENSE-MIT
 // For the original context see: https://github.com/gakonst/ethers-rs/blob/3d9c3290d42b77c510e5b5d0b6f7a2f72913bfff/ethers-core/src/types/transaction/eip2930.rs
 
-use revm_primitives::B256;
-use ruint::aliases::U160;
+use revm_primitives::{
+    ruint::{self, aliases::U160},
+    B256,
+};
 
 use crate::{Address, U256};
 

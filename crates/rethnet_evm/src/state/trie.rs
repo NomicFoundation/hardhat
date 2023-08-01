@@ -85,7 +85,7 @@ impl StateRef for TrieState {
 impl DatabaseCommit for TrieState {
     fn commit(&mut self, mut changes: HashMap<B160, Account>) {
         changes.iter_mut().for_each(|(address, account)| {
-            if account.is_destroyed {
+            if account.is_selfdestructed() {
                 self.remove_code(&account.info.code_hash);
             } else if account.is_empty() {
                 // Don't do anything. Account was merely touched

@@ -5,7 +5,10 @@ use std::{
 
 use napi::Status;
 use rethnet_eth::{B256, U256};
-use rethnet_evm::BlockHashRef;
+use rethnet_evm::{
+    blockchain::{Blockchain, BlockchainError, BlockchainMut},
+    BlockHashRef,
+};
 
 use crate::threadsafe_function::{ThreadsafeFunction, ThreadsafeFunctionCallMode};
 
@@ -19,7 +22,7 @@ pub struct JsBlockchain {
 }
 
 impl BlockHashRef for JsBlockchain {
-    type Error = napi::Error;
+    type Error = BlockchainError;
 
     #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     fn block_hash(&self, block_number: U256) -> Result<B256, Self::Error> {
@@ -34,7 +37,58 @@ impl BlockHashRef for JsBlockchain {
         );
         assert_eq!(status, Status::Ok);
 
-        receiver.recv().unwrap()
+        receiver
+            .recv()
+            .unwrap()
+            .map_err(|e| panic!("Error occurred: {e}"))
+    }
+}
+
+impl Blockchain for JsBlockchain {
+    type Error = BlockchainError;
+
+    fn block_by_hash(
+        &self,
+        _hash: &B256,
+    ) -> Result<Option<std::sync::Arc<rethnet_eth::block::DetailedBlock>>, Self::Error> {
+        unimplemented!("Unsupported API")
+    }
+
+    fn block_by_number(
+        &self,
+        _number: &U256,
+    ) -> Result<Option<std::sync::Arc<rethnet_eth::block::DetailedBlock>>, Self::Error> {
+        unimplemented!("Unsupported API")
+    }
+
+    fn block_by_transaction_hash(
+        &self,
+        _transaction_hash: &B256,
+    ) -> Result<Option<std::sync::Arc<rethnet_eth::block::DetailedBlock>>, Self::Error> {
+        unimplemented!("Unsupported API")
+    }
+
+    fn last_block(&self) -> Result<std::sync::Arc<rethnet_eth::block::DetailedBlock>, Self::Error> {
+        unimplemented!("Unsupported API")
+    }
+
+    fn last_block_number(&self) -> U256 {
+        unimplemented!("Unsupported API")
+    }
+
+    fn total_difficulty_by_hash(&self, _hash: &B256) -> Result<Option<U256>, Self::Error> {
+        unimplemented!("Unsupported API")
+    }
+}
+
+impl BlockchainMut for JsBlockchain {
+    type Error = BlockchainError;
+
+    fn insert_block(
+        &mut self,
+        _block: rethnet_eth::block::DetailedBlock,
+    ) -> Result<std::sync::Arc<rethnet_eth::block::DetailedBlock>, Self::Error> {
+        unimplemented!("Unsupported API")
     }
 }
 

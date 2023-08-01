@@ -1,7 +1,7 @@
 /// helper utilities for use with serde's serialize_with and deserialize_with
 use std::fmt::Write;
 
-use ruint::Uint;
+use revm_primitives::ruint::Uint;
 
 /// for use with serde's serialize_with on a single value that should be serialized as a
 /// sequence

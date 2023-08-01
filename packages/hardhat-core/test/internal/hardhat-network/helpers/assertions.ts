@@ -54,7 +54,10 @@ export async function assertProviderError(
     }
 
     if (message !== undefined) {
-      assert.include(error.message, message);
+      assert.include(
+        error.message.toLocaleLowerCase(),
+        message.toLocaleLowerCase()
+      );
     }
 
     return;

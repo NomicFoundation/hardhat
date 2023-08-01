@@ -1,4 +1,4 @@
-use std::{io, sync::Arc};
+use std::{io, ops::Deref, sync::Arc};
 
 use napi::{
     bindgen_prelude::Buffer,
@@ -17,9 +17,10 @@ pub struct RethnetContext {
     inner: Arc<Context>,
 }
 
-impl RethnetContext {
-    /// Provides immutable access to the inner implementation.
-    pub(crate) fn as_inner(&self) -> &Arc<Context> {
+impl Deref for RethnetContext {
+    type Target = Arc<Context>;
+
+    fn deref(&self) -> &Self::Target {
         &self.inner
     }
 }
