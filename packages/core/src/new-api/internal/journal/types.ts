@@ -26,6 +26,26 @@ export type JournalableMessage =
   | ExecutionMessage
   | WipeMessage;
 
+/**
+ * The types of journal messages.
+ *
+ * @beta
+ */
+export enum JournalMessageType {
+  RUN_START = "run-start",
+  EXECUTION_START = "execution-start",
+  ONCHAIN_ACTION = "onchain-action",
+  ONCHAIN_TRANSACTION_REQUEST = "onchain-transaction-request",
+  ONCHAIN_TRANSACTION_ACCEPT = "onchain-transaction-accept",
+  ONCHAIN_TRANSACTION_RESET = "onchain-transaction-reset",
+  ONCHAIN_RESULT = "onchain-result",
+  EXECUTION_SUCCESS = "execution-success",
+  EXECUTION_FAILURE = "execution-failure",
+  EXECUTION_TIMEOUT = "execution-timeout",
+  EXECUTION_HOLD = "execution-hold",
+  WIPE = "wipe",
+}
+
 // #region "StartRunMessage"
 
 /**
@@ -35,7 +55,7 @@ export type JournalableMessage =
  */
 export interface StartRunMessage {
   // TODO: we should add chain id, so we can reconcile on previous chain id
-  type: "run-start";
+  type: JournalMessageType.RUN_START;
 }
 
 // #endregion
@@ -75,7 +95,7 @@ export type OnchainInteractionMessage =
  * @beta
  */
 export interface DeployContractInteractionMessage {
-  type: "onchain-action";
+  type: JournalMessageType.ONCHAIN_ACTION;
   subtype: "deploy-contract";
   futureId: string;
   executionId: number;
@@ -93,7 +113,7 @@ export interface DeployContractInteractionMessage {
  * @beta
  */
 export interface CallFunctionInteractionMessage {
-  type: "onchain-action";
+  type: JournalMessageType.ONCHAIN_ACTION;
   subtype: "call-function";
   futureId: string;
   executionId: number;
@@ -111,7 +131,7 @@ export interface CallFunctionInteractionMessage {
  * @beta
  */
 export interface StaticCallInteractionMessage {
-  type: "onchain-action";
+  type: JournalMessageType.ONCHAIN_ACTION;
   subtype: "static-call";
   futureId: string;
   executionId: number;
@@ -128,7 +148,7 @@ export interface StaticCallInteractionMessage {
  * @beta
  */
 export interface ReadEventArgumentInteractionMessage {
-  type: "onchain-action";
+  type: JournalMessageType.ONCHAIN_ACTION;
   subtype: "read-event-arg";
   futureId: string;
   executionId: number;
@@ -146,7 +166,7 @@ export interface ReadEventArgumentInteractionMessage {
  * @beta
  */
 export interface SendDataInteractionMessage {
-  type: "onchain-action";
+  type: JournalMessageType.ONCHAIN_ACTION;
   subtype: "send-data";
   futureId: string;
   executionId: number;
@@ -162,7 +182,7 @@ export interface SendDataInteractionMessage {
  * @beta
  */
 export interface ContractAtInteractionMessage {
-  type: "onchain-action";
+  type: JournalMessageType.ONCHAIN_ACTION;
   subtype: "contract-at";
   futureId: string;
   executionId: number;
@@ -181,7 +201,7 @@ export interface ContractAtInteractionMessage {
  * @beta
  */
 export interface OnchainTransactionRequest {
-  type: "onchain-transaction-request";
+  type: JournalMessageType.ONCHAIN_TRANSACTION_REQUEST;
   futureId: string;
   executionId: number;
   from: string;
@@ -195,7 +215,7 @@ export interface OnchainTransactionRequest {
  * @beta
  */
 export interface OnchainTransactionAccept {
-  type: "onchain-transaction-accept";
+  type: JournalMessageType.ONCHAIN_TRANSACTION_ACCEPT;
   futureId: string;
   executionId: number;
   txHash: string;
@@ -211,7 +231,7 @@ export interface OnchainTransactionAccept {
  * @beta
  */
 export interface OnchainTransactionReset {
-  type: "onchain-transaction-reset";
+  type: JournalMessageType.ONCHAIN_TRANSACTION_RESET;
   futureId: string;
   executionId: number;
 }
@@ -245,7 +265,7 @@ export type OnchainResultFailureMessage = OnchainFailureMessage;
  * @beta
  */
 export interface OnchainDeployContractSuccessMessage {
-  type: "onchain-result";
+  type: JournalMessageType.ONCHAIN_RESULT;
   subtype: "deploy-contract-success";
   futureId: string;
   executionId: number;
@@ -259,7 +279,7 @@ export interface OnchainDeployContractSuccessMessage {
  * @beta
  */
 export interface OnchainCallFunctionSuccessMessage {
-  type: "onchain-result";
+  type: JournalMessageType.ONCHAIN_RESULT;
   subtype: "call-function-success";
   futureId: string;
   executionId: number;
@@ -272,7 +292,7 @@ export interface OnchainCallFunctionSuccessMessage {
  * @beta
  */
 export interface OnchainStaticCallSuccessMessage {
-  type: "onchain-result";
+  type: JournalMessageType.ONCHAIN_RESULT;
   subtype: "static-call-success";
   futureId: string;
   executionId: number;
@@ -285,7 +305,7 @@ export interface OnchainStaticCallSuccessMessage {
  * @beta
  */
 export interface OnchainReadEventArgumentSuccessMessage {
-  type: "onchain-result";
+  type: JournalMessageType.ONCHAIN_RESULT;
   subtype: "read-event-arg-success";
   futureId: string;
   executionId: number;
@@ -298,7 +318,7 @@ export interface OnchainReadEventArgumentSuccessMessage {
  * @beta
  */
 export interface OnchainSendDataSuccessMessage {
-  type: "onchain-result";
+  type: JournalMessageType.ONCHAIN_RESULT;
   subtype: "send-data-success";
   futureId: string;
   executionId: number;
@@ -311,7 +331,7 @@ export interface OnchainSendDataSuccessMessage {
  * @beta
  */
 export interface OnchainContractAtSuccessMessage {
-  type: "onchain-result";
+  type: JournalMessageType.ONCHAIN_RESULT;
   subtype: "contract-at-success";
   futureId: string;
   executionId: number;
@@ -325,7 +345,7 @@ export interface OnchainContractAtSuccessMessage {
  * @beta
  */
 export interface OnchainFailureMessage {
-  type: "onchain-result";
+  type: JournalMessageType.ONCHAIN_RESULT;
   subtype: "failure";
   futureId: string;
   executionId: number;
@@ -373,7 +393,7 @@ export type FutureStartMessage =
  * @beta
  */
 export interface DeployContractStartMessage {
-  type: "execution-start";
+  type: JournalMessageType.EXECUTION_START;
   futureId: string;
   futureType:
     | FutureType.NAMED_CONTRACT_DEPLOYMENT
@@ -396,7 +416,7 @@ export interface DeployContractStartMessage {
  * @beta
  */
 export interface CallFunctionStartMessage {
-  type: "execution-start";
+  type: JournalMessageType.EXECUTION_START;
   futureId: string;
   futureType: FutureType.NAMED_CONTRACT_CALL;
   strategy: string;
@@ -415,7 +435,7 @@ export interface CallFunctionStartMessage {
  * @beta
  */
 export interface StaticCallStartMessage {
-  type: "execution-start";
+  type: JournalMessageType.EXECUTION_START;
   futureId: string;
   futureType: FutureType.NAMED_STATIC_CALL;
   strategy: string;
@@ -433,7 +453,7 @@ export interface StaticCallStartMessage {
  * @beta
  */
 export interface ReadEventArgumentStartMessage {
-  type: "execution-start";
+  type: JournalMessageType.EXECUTION_START;
   futureId: string;
   futureType: FutureType.READ_EVENT_ARGUMENT;
   strategy: string;
@@ -452,7 +472,7 @@ export interface ReadEventArgumentStartMessage {
  * @beta
  */
 export interface SendDataStartMessage {
-  type: "execution-start";
+  type: JournalMessageType.EXECUTION_START;
   futureId: string;
   futureType: FutureType.SEND_DATA;
   strategy: string;
@@ -469,7 +489,7 @@ export interface SendDataStartMessage {
  * @beta
  */
 export interface ContractAtStartMessage {
-  type: "execution-start";
+  type: JournalMessageType.EXECUTION_START;
   futureId: string;
   futureType: FutureType.NAMED_CONTRACT_AT | FutureType.ARTIFACT_CONTRACT_AT;
   strategy: string;
@@ -515,7 +535,7 @@ export type ExecutionSuccess =
  * @beta
  */
 export interface DeployedContractExecutionSuccess {
-  type: "execution-success";
+  type: JournalMessageType.EXECUTION_SUCCESS;
   subtype: "deploy-contract";
   futureId: string;
   contractName: string;
@@ -529,7 +549,7 @@ export interface DeployedContractExecutionSuccess {
  * @beta
  */
 export interface CalledFunctionExecutionSuccess {
-  type: "execution-success";
+  type: JournalMessageType.EXECUTION_SUCCESS;
   subtype: "call-function";
   futureId: string;
   functionName: string;
@@ -543,7 +563,7 @@ export interface CalledFunctionExecutionSuccess {
  * @beta
  */
 export interface StaticCallExecutionSuccess {
-  type: "execution-success";
+  type: JournalMessageType.EXECUTION_SUCCESS;
   subtype: "static-call";
   futureId: string;
   functionName: string;
@@ -557,7 +577,7 @@ export interface StaticCallExecutionSuccess {
  * @beta
  */
 export interface ReadEventArgumentExecutionSuccess {
-  type: "execution-success";
+  type: JournalMessageType.EXECUTION_SUCCESS;
   subtype: "read-event-arg";
   futureId: string;
   eventName: string;
@@ -571,7 +591,7 @@ export interface ReadEventArgumentExecutionSuccess {
  * @beta
  */
 export interface SendDataExecutionSuccess {
-  type: "execution-success";
+  type: JournalMessageType.EXECUTION_SUCCESS;
   subtype: "send-data";
   futureId: string;
   txId: string;
@@ -583,7 +603,7 @@ export interface SendDataExecutionSuccess {
  * @beta
  */
 export interface ContractAtExecutionSuccess {
-  type: "execution-success";
+  type: JournalMessageType.EXECUTION_SUCCESS;
   subtype: "contract-at";
   futureId: string;
   contractName: string;
@@ -598,7 +618,7 @@ export interface ContractAtExecutionSuccess {
  * @beta
  */
 export interface ExecutionFailure {
-  type: "execution-failure";
+  type: JournalMessageType.EXECUTION_FAILURE;
   futureId: string;
   error: Error;
 }
@@ -609,7 +629,7 @@ export interface ExecutionFailure {
  * @beta
  */
 export interface ExecutionTimeout {
-  type: "execution-timeout";
+  type: JournalMessageType.EXECUTION_TIMEOUT;
   futureId: string;
   executionId: number;
   txHash: string;
@@ -622,7 +642,7 @@ export interface ExecutionTimeout {
  * @beta
  */
 export interface ExecutionHold {
-  type: "execution-hold";
+  type: JournalMessageType.EXECUTION_HOLD;
   futureId: string;
   executionId: number;
 }
@@ -640,7 +660,7 @@ export interface ExecutionHold {
  * @beta
  */
 export interface WipeMessage {
-  type: "wipe";
+  type: JournalMessageType.WIPE;
   futureId: string;
 }
 

@@ -8,14 +8,14 @@ import {
   OnchainStatuses,
 } from "../execution/types";
 import {
+  isCallFunctionInteraction,
+  isContractAtInteraction,
+  isDeployContractInteraction,
   isOnChainResultMessage,
   isOnchainFailureMessage,
   isOnchainTransactionAccept,
   isOnchainTransactionRequest,
   isOnchainTransactionReset,
-  isCallFunctionInteraction,
-  isContractAtInteraction,
-  isDeployContractInteraction,
   isReadEventArgumentInteraction,
   isSendDataInteraction,
   isStaticCallInteraction,
@@ -26,6 +26,7 @@ import {
   ExecutionFailure,
   ExecutionSuccess,
   ExecutionTimeout,
+  JournalMessageType,
   OnchainCallFunctionSuccessMessage,
   OnchainContractAtSuccessMessage,
   OnchainDeployContractSuccessMessage,
@@ -112,7 +113,7 @@ export const onchainStateTransitions: OnchainStateTransitions = {
     tx.nonce = nonce;
 
     const onchainTransaction: OnchainTransactionRequest = {
-      type: "onchain-transaction-request",
+      type: JournalMessageType.ONCHAIN_TRANSACTION_REQUEST,
       futureId: next.futureId,
       executionId: next.executionId,
       nonce,
@@ -142,7 +143,7 @@ export const onchainStateTransitions: OnchainStateTransitions = {
       txHash = await state.chainDispatcher.sendTx(next.tx, next.from);
     } catch (error) {
       const executionFailure: ExecutionFailure = {
-        type: "execution-failure",
+        type: JournalMessageType.EXECUTION_FAILURE,
         futureId: next.futureId,
         error: new Error(
           error instanceof Error
@@ -157,7 +158,7 @@ export const onchainStateTransitions: OnchainStateTransitions = {
     }
 
     const onchainTransactionAccept: OnchainTransactionAccept = {
-      type: "onchain-transaction-accept",
+      type: JournalMessageType.ONCHAIN_TRANSACTION_ACCEPT,
       futureId: next.futureId,
       executionId: next.executionId,
       txHash,
@@ -179,7 +180,7 @@ export const onchainStateTransitions: OnchainStateTransitions = {
 
     return checkTransactionComplete(state, next, (receipt) => {
       const deployResult: OnchainDeployContractSuccessMessage = {
-        type: "onchain-result",
+        type: JournalMessageType.ONCHAIN_RESULT,
         subtype: "deploy-contract-success",
         futureId: next.futureId,
         executionId: next.executionId,
@@ -207,7 +208,7 @@ export const onchainStateTransitions: OnchainStateTransitions = {
     tx.nonce = nonce;
 
     const onchainTransaction: OnchainTransactionRequest = {
-      type: "onchain-transaction-request",
+      type: JournalMessageType.ONCHAIN_TRANSACTION_REQUEST,
       futureId: next.futureId,
       executionId: next.executionId,
       nonce,
@@ -234,7 +235,7 @@ export const onchainStateTransitions: OnchainStateTransitions = {
       txHash = await state.chainDispatcher.sendTx(next.tx, next.from);
     } catch (error) {
       const executionFailure: ExecutionFailure = {
-        type: "execution-failure",
+        type: JournalMessageType.EXECUTION_FAILURE,
         futureId: next.futureId,
         error: new Error(
           error instanceof Error
@@ -249,7 +250,7 @@ export const onchainStateTransitions: OnchainStateTransitions = {
     }
 
     const onchainTransactionAccept: OnchainTransactionAccept = {
-      type: "onchain-transaction-accept",
+      type: JournalMessageType.ONCHAIN_TRANSACTION_ACCEPT,
       futureId: next.futureId,
       executionId: next.executionId,
       txHash,
@@ -268,7 +269,7 @@ export const onchainStateTransitions: OnchainStateTransitions = {
 
     return checkTransactionComplete(state, next, (receipt) => {
       const callResult: OnchainCallFunctionSuccessMessage = {
-        type: "onchain-result",
+        type: JournalMessageType.ONCHAIN_RESULT,
         subtype: "call-function-success",
         futureId: next.futureId,
         executionId: next.executionId,
@@ -295,7 +296,7 @@ export const onchainStateTransitions: OnchainStateTransitions = {
     tx.nonce = nonce;
 
     const onchainTransaction: OnchainTransactionRequest = {
-      type: "onchain-transaction-request",
+      type: JournalMessageType.ONCHAIN_TRANSACTION_REQUEST,
       futureId: next.futureId,
       executionId: next.executionId,
       nonce,
@@ -322,7 +323,7 @@ export const onchainStateTransitions: OnchainStateTransitions = {
       txHash = await state.chainDispatcher.sendTx(next.tx, next.from);
     } catch (error) {
       const executionFailure: ExecutionFailure = {
-        type: "execution-failure",
+        type: JournalMessageType.EXECUTION_FAILURE,
         futureId: next.futureId,
         error: new Error(
           error instanceof Error
@@ -337,7 +338,7 @@ export const onchainStateTransitions: OnchainStateTransitions = {
     }
 
     const onchainTransactionAccept: OnchainTransactionAccept = {
-      type: "onchain-transaction-accept",
+      type: JournalMessageType.ONCHAIN_TRANSACTION_ACCEPT,
       futureId: next.futureId,
       executionId: next.executionId,
       txHash,
@@ -356,7 +357,7 @@ export const onchainStateTransitions: OnchainStateTransitions = {
 
     return checkTransactionComplete(state, next, (receipt) => {
       const sendResult: OnchainSendDataSuccessMessage = {
-        type: "onchain-result",
+        type: JournalMessageType.ONCHAIN_RESULT,
         subtype: "send-data-success",
         futureId: next.futureId,
         executionId: next.executionId,
@@ -376,7 +377,7 @@ export const onchainStateTransitions: OnchainStateTransitions = {
     );
 
     const contractAtSuccess: OnchainContractAtSuccessMessage = {
-      type: "onchain-result",
+      type: JournalMessageType.ONCHAIN_RESULT,
       subtype: "contract-at-success",
       futureId: next.futureId,
       executionId: next.executionId,
@@ -401,7 +402,7 @@ export const onchainStateTransitions: OnchainStateTransitions = {
 
     if (isOnchainFailureMessage(staticCallResult)) {
       const executionFailure: ExecutionFailure = {
-        type: "execution-failure",
+        type: JournalMessageType.EXECUTION_FAILURE,
         futureId: next.futureId,
         error: staticCallResult.error,
       };
@@ -426,7 +427,7 @@ export const onchainStateTransitions: OnchainStateTransitions = {
 
     if (isOnchainFailureMessage(readEventArgResult)) {
       const executionFailure: ExecutionFailure = {
-        type: "execution-failure",
+        type: JournalMessageType.EXECUTION_FAILURE,
         futureId: next.futureId,
         error: readEventArgResult.error,
       };
@@ -529,7 +530,7 @@ async function _queryStaticCall(
     );
 
     return {
-      type: "onchain-result",
+      type: JournalMessageType.ONCHAIN_RESULT,
       subtype: "static-call-success",
       futureId: request.futureId,
       executionId: request.executionId,
@@ -537,7 +538,7 @@ async function _queryStaticCall(
     };
   } catch (error) {
     return {
-      type: "onchain-result",
+      type: JournalMessageType.ONCHAIN_RESULT,
       subtype: "failure",
       futureId: request.futureId,
       executionId: request.executionId,
@@ -566,7 +567,7 @@ async function _readEventArg(
     );
 
     return {
-      type: "onchain-result",
+      type: JournalMessageType.ONCHAIN_RESULT,
       subtype: "read-event-arg-success",
       futureId: request.futureId,
       executionId: request.executionId,
@@ -574,7 +575,7 @@ async function _readEventArg(
     };
   } catch (error) {
     return {
-      type: "onchain-result",
+      type: JournalMessageType.ONCHAIN_RESULT,
       subtype: "failure",
       futureId: request.futureId,
       executionId: request.executionId,
@@ -617,7 +618,7 @@ async function checkTransactionComplete(
     // Check whether timed out
     if (state.transactionLookupTimer.isTimedOut(next.txHash)) {
       const timeout: ExecutionTimeout = {
-        type: "execution-timeout",
+        type: JournalMessageType.EXECUTION_TIMEOUT,
         futureId: next.futureId,
         executionId: next.executionId,
         txHash: next.txHash,

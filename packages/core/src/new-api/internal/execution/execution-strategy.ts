@@ -17,6 +17,7 @@ import {
   DeployContractInteractionMessage,
   DeployedContractExecutionSuccess,
   ExecutionSuccess,
+  JournalMessageType,
   OnchainCallFunctionSuccessMessage,
   OnchainContractAtSuccessMessage,
   OnchainDeployContractSuccessMessage,
@@ -101,7 +102,7 @@ export class BasicExecutionStrategy implements ExecutionStrategy {
     );
 
     const deployContract: DeployContractInteractionMessage = {
-      type: "onchain-action",
+      type: JournalMessageType.ONCHAIN_ACTION,
       subtype: "deploy-contract",
       futureId: deploymentExecutionState.id,
       executionId: 1,
@@ -120,7 +121,7 @@ export class BasicExecutionStrategy implements ExecutionStrategy {
     }
 
     return {
-      type: "execution-success",
+      type: JournalMessageType.EXECUTION_SUCCESS,
       subtype: "deploy-contract",
       futureId: deploymentExecutionState.id,
       contractName: deploymentExecutionState.contractName,
@@ -146,7 +147,7 @@ export class BasicExecutionStrategy implements ExecutionStrategy {
     );
 
     const result = yield {
-      type: "onchain-action",
+      type: JournalMessageType.ONCHAIN_ACTION,
       subtype: "call-function",
       futureId: callExecutionState.id,
       executionId: 1,
@@ -163,7 +164,7 @@ export class BasicExecutionStrategy implements ExecutionStrategy {
     }
 
     return {
-      type: "execution-success",
+      type: JournalMessageType.EXECUTION_SUCCESS,
       subtype: "call-function",
       futureId: callExecutionState.id,
       contractAddress: callExecutionState.contractAddress,
@@ -189,7 +190,7 @@ export class BasicExecutionStrategy implements ExecutionStrategy {
     );
 
     const result = yield {
-      type: "onchain-action",
+      type: JournalMessageType.ONCHAIN_ACTION,
       subtype: "static-call",
       futureId: staticCallExecutionState.id,
       executionId: 1,
@@ -205,7 +206,7 @@ export class BasicExecutionStrategy implements ExecutionStrategy {
     }
 
     return {
-      type: "execution-success",
+      type: JournalMessageType.EXECUTION_SUCCESS,
       subtype: "static-call",
       futureId: staticCallExecutionState.id,
       contractAddress: staticCallExecutionState.contractAddress,
@@ -224,7 +225,7 @@ export class BasicExecutionStrategy implements ExecutionStrategy {
     OnchainReadEventArgumentSuccessMessage | null
   > {
     const result = yield {
-      type: "onchain-action",
+      type: JournalMessageType.ONCHAIN_ACTION,
       subtype: "read-event-arg",
       futureId: readEventArgExecutionState.id,
       executionId: 1,
@@ -241,7 +242,7 @@ export class BasicExecutionStrategy implements ExecutionStrategy {
     }
 
     return {
-      type: "execution-success",
+      type: JournalMessageType.EXECUTION_SUCCESS,
       subtype: "read-event-arg",
       futureId: readEventArgExecutionState.id,
       eventName: readEventArgExecutionState.eventName,
@@ -267,7 +268,7 @@ export class BasicExecutionStrategy implements ExecutionStrategy {
     );
 
     const result = yield {
-      type: "onchain-action",
+      type: JournalMessageType.ONCHAIN_ACTION,
       subtype: "send-data",
       futureId: sendDataExecutionState.id,
       executionId: 1,
@@ -282,7 +283,7 @@ export class BasicExecutionStrategy implements ExecutionStrategy {
     }
 
     return {
-      type: "execution-success",
+      type: JournalMessageType.EXECUTION_SUCCESS,
       subtype: "send-data",
       futureId: sendDataExecutionState.id,
       txId: result.txId,
@@ -299,7 +300,7 @@ export class BasicExecutionStrategy implements ExecutionStrategy {
     OnchainContractAtSuccessMessage | null
   > {
     const result = yield {
-      type: "onchain-action",
+      type: JournalMessageType.ONCHAIN_ACTION,
       subtype: "contract-at",
       futureId: contractAtExecutionState.id,
       executionId: 1,
@@ -313,7 +314,7 @@ export class BasicExecutionStrategy implements ExecutionStrategy {
     }
 
     return {
-      type: "execution-success",
+      type: JournalMessageType.EXECUTION_SUCCESS,
       subtype: "contract-at",
       futureId: contractAtExecutionState.id,
       contractAddress: contractAtExecutionState.contractAddress,

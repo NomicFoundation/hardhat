@@ -6,6 +6,7 @@ import {
   DeploymentExecutionState,
   ExecutionStatus,
 } from "../../../src/new-api/internal/execution/types";
+import { JournalMessageType } from "../../../src/new-api/internal/journal/types";
 import { ArtifactMap } from "../../../src/new-api/internal/reconciliation/types";
 import { FutureType } from "../../../src/new-api/types/module";
 import { exampleAccounts, initOnchainState } from "../helpers";
@@ -129,7 +130,7 @@ describe("Reconciliation", () => {
           status: ExecutionStatus.STARTED,
           history: [
             {
-              type: "onchain-action",
+              type: JournalMessageType.ONCHAIN_ACTION,
               subtype: "deploy-contract",
               futureId: "Module1:Contract1",
               executionId: 1,
@@ -186,7 +187,7 @@ describe("Reconciliation", () => {
           status: ExecutionStatus.STARTED,
           history: [
             {
-              type: "onchain-action",
+              type: JournalMessageType.ONCHAIN_ACTION,
               subtype: "deploy-contract",
               futureId: "Module1:Contract1",
               executionId: 1,

@@ -4,6 +4,7 @@ import { assert } from "chai";
 import { Artifact, FutureType } from "../../../src";
 import { buildModule } from "../../../src/new-api/build-module";
 import { MemoryJournal } from "../../../src/new-api/internal/journal/memory-journal";
+import { JournalMessageType } from "../../../src/new-api/internal/journal/types";
 import {
   accumulateMessages,
   assertDeploymentFailure,
@@ -101,10 +102,10 @@ describe("execution engine", () => {
       const journalMessages = await accumulateMessages(journal);
 
       assert.deepStrictEqual(journalMessages, [
-        { type: "run-start" },
+        { type: JournalMessageType.RUN_START },
         {
           futureId: "Module1:Contract1",
-          type: "execution-start",
+          type: JournalMessageType.EXECUTION_START,
           futureType: FutureType.NAMED_CONTRACT_DEPLOYMENT,
           strategy: "basic",
           dependencies: [],
@@ -120,7 +121,7 @@ describe("execution engine", () => {
           from: accounts[1],
         },
         {
-          type: "onchain-action",
+          type: JournalMessageType.ONCHAIN_ACTION,
           subtype: "deploy-contract",
           futureId: "Module1:Contract1",
           executionId: 1,
@@ -136,7 +137,7 @@ describe("execution engine", () => {
           from: accounts[1],
         },
         {
-          type: "onchain-transaction-request",
+          type: JournalMessageType.ONCHAIN_TRANSACTION_REQUEST,
           futureId: "Module1:Contract1",
           executionId: 1,
           from: accounts[1],
@@ -147,13 +148,13 @@ describe("execution engine", () => {
           },
         },
         {
-          type: "onchain-transaction-accept",
+          type: JournalMessageType.ONCHAIN_TRANSACTION_ACCEPT,
           futureId: "Module1:Contract1",
           executionId: 1,
           txHash: "0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC--0",
         },
         {
-          type: "onchain-result",
+          type: JournalMessageType.ONCHAIN_RESULT,
           subtype: "deploy-contract-success",
           futureId: "Module1:Contract1",
           executionId: 1,
@@ -161,7 +162,7 @@ describe("execution engine", () => {
           txId,
         },
         {
-          type: "execution-success",
+          type: JournalMessageType.EXECUTION_SUCCESS,
           subtype: "deploy-contract",
           futureId: "Module1:Contract1",
           contractName: "Contract1",
@@ -225,10 +226,10 @@ describe("execution engine", () => {
       const journalMessages = await accumulateMessages(journal);
 
       assert.deepStrictEqual(journalMessages, [
-        { type: "run-start" },
+        { type: JournalMessageType.RUN_START },
         {
           futureId: "Module1:Contract1",
-          type: "execution-start",
+          type: JournalMessageType.EXECUTION_START,
           futureType: FutureType.ARTIFACT_CONTRACT_DEPLOYMENT,
           strategy: "basic",
           dependencies: [],
@@ -240,7 +241,7 @@ describe("execution engine", () => {
           from: accounts[2],
         },
         {
-          type: "onchain-action",
+          type: JournalMessageType.ONCHAIN_ACTION,
           subtype: "deploy-contract",
           futureId: "Module1:Contract1",
           executionId: 1,
@@ -252,7 +253,7 @@ describe("execution engine", () => {
           artifactFutureId: "Module1:Contract1",
         },
         {
-          type: "onchain-transaction-request",
+          type: JournalMessageType.ONCHAIN_TRANSACTION_REQUEST,
           futureId: "Module1:Contract1",
           executionId: 1,
           from: accounts[2],
@@ -263,13 +264,13 @@ describe("execution engine", () => {
           },
         },
         {
-          type: "onchain-transaction-accept",
+          type: JournalMessageType.ONCHAIN_TRANSACTION_ACCEPT,
           futureId: "Module1:Contract1",
           executionId: 1,
           txHash: "0x90F79bf6EB2c4f870365E785982E1f101E93b906--0",
         },
         {
-          type: "onchain-result",
+          type: JournalMessageType.ONCHAIN_RESULT,
           subtype: "deploy-contract-success",
           futureId: "Module1:Contract1",
           executionId: 1,
@@ -277,7 +278,7 @@ describe("execution engine", () => {
           txId,
         },
         {
-          type: "execution-success",
+          type: JournalMessageType.EXECUTION_SUCCESS,
           subtype: "deploy-contract",
           futureId: "Module1:Contract1",
           contractName: "Contract1",
@@ -326,10 +327,10 @@ describe("execution engine", () => {
       const journalMessages = await accumulateMessages(journal);
 
       assert.deepStrictEqual(journalMessages, [
-        { type: "run-start" },
+        { type: JournalMessageType.RUN_START },
         {
           futureId: "Module1:Contract1",
-          type: "execution-start",
+          type: JournalMessageType.EXECUTION_START,
           futureType: FutureType.NAMED_CONTRACT_DEPLOYMENT,
           strategy: "basic",
           dependencies: [],
@@ -341,7 +342,7 @@ describe("execution engine", () => {
           from: accounts[1],
         },
         {
-          type: "onchain-action",
+          type: JournalMessageType.ONCHAIN_ACTION,
           subtype: "deploy-contract",
           futureId: "Module1:Contract1",
           executionId: 1,
@@ -353,7 +354,7 @@ describe("execution engine", () => {
           artifactFutureId: "Module1:Contract1",
         },
         {
-          type: "onchain-transaction-request",
+          type: JournalMessageType.ONCHAIN_TRANSACTION_REQUEST,
           futureId: "Module1:Contract1",
           executionId: 1,
           from: accounts[1],
@@ -364,7 +365,7 @@ describe("execution engine", () => {
           },
         },
         {
-          type: "execution-failure",
+          type: JournalMessageType.EXECUTION_FAILURE,
           futureId: "Module1:Contract1",
           error: new Error(
             "Cannot estimate gas; transaction may fail or may require manual gas limit"
@@ -415,10 +416,10 @@ describe("execution engine", () => {
       const journalMessages = await accumulateMessages(journal);
 
       assert.deepStrictEqual(journalMessages, [
-        { type: "run-start" },
+        { type: JournalMessageType.RUN_START },
         {
           futureId: "Module1:Library1",
-          type: "execution-start",
+          type: JournalMessageType.EXECUTION_START,
           futureType: FutureType.NAMED_LIBRARY_DEPLOYMENT,
           strategy: "basic",
           dependencies: [],
@@ -430,7 +431,7 @@ describe("execution engine", () => {
           from: accounts[2],
         },
         {
-          type: "onchain-action",
+          type: JournalMessageType.ONCHAIN_ACTION,
           subtype: "deploy-contract",
           futureId: "Module1:Library1",
           executionId: 1,
@@ -442,7 +443,7 @@ describe("execution engine", () => {
           from: accounts[2],
         },
         {
-          type: "onchain-transaction-request",
+          type: JournalMessageType.ONCHAIN_TRANSACTION_REQUEST,
           futureId: "Module1:Library1",
           executionId: 1,
           from: accounts[2],
@@ -453,13 +454,13 @@ describe("execution engine", () => {
           },
         },
         {
-          type: "onchain-transaction-accept",
+          type: JournalMessageType.ONCHAIN_TRANSACTION_ACCEPT,
           futureId: "Module1:Library1",
           executionId: 1,
           txHash: "0x90F79bf6EB2c4f870365E785982E1f101E93b906--0",
         },
         {
-          type: "onchain-result",
+          type: JournalMessageType.ONCHAIN_RESULT,
           subtype: "deploy-contract-success",
           futureId: "Module1:Library1",
           executionId: 1,
@@ -467,7 +468,7 @@ describe("execution engine", () => {
           txId,
         },
         {
-          type: "execution-success",
+          type: JournalMessageType.EXECUTION_SUCCESS,
           subtype: "deploy-contract",
           futureId: "Module1:Library1",
           contractName: "Library1",
@@ -527,10 +528,10 @@ describe("execution engine", () => {
       const journalMessages = await accumulateMessages(journal);
 
       assert.deepStrictEqual(journalMessages, [
-        { type: "run-start" },
+        { type: JournalMessageType.RUN_START },
         {
           futureId: "Module1:Library1",
-          type: "execution-start",
+          type: JournalMessageType.EXECUTION_START,
           futureType: FutureType.ARTIFACT_LIBRARY_DEPLOYMENT,
           strategy: "basic",
           dependencies: [],
@@ -542,7 +543,7 @@ describe("execution engine", () => {
           from: accounts[2],
         },
         {
-          type: "onchain-action",
+          type: JournalMessageType.ONCHAIN_ACTION,
           subtype: "deploy-contract",
           futureId: "Module1:Library1",
           executionId: 1,
@@ -554,7 +555,7 @@ describe("execution engine", () => {
           artifactFutureId: "Module1:Library1",
         },
         {
-          type: "onchain-transaction-request",
+          type: JournalMessageType.ONCHAIN_TRANSACTION_REQUEST,
           futureId: "Module1:Library1",
           executionId: 1,
           from: accounts[2],
@@ -565,13 +566,13 @@ describe("execution engine", () => {
           },
         },
         {
-          type: "onchain-transaction-accept",
+          type: JournalMessageType.ONCHAIN_TRANSACTION_ACCEPT,
           futureId: "Module1:Library1",
           executionId: 1,
           txHash: "0x90F79bf6EB2c4f870365E785982E1f101E93b906--0",
         },
         {
-          type: "onchain-result",
+          type: JournalMessageType.ONCHAIN_RESULT,
           subtype: "deploy-contract-success",
           futureId: "Module1:Library1",
           executionId: 1,
@@ -579,7 +580,7 @@ describe("execution engine", () => {
           txId,
         },
         {
-          type: "execution-success",
+          type: JournalMessageType.EXECUTION_SUCCESS,
           subtype: "deploy-contract",
           futureId: "Module1:Library1",
           contractName: "Library1",
@@ -628,10 +629,10 @@ describe("execution engine", () => {
       const journalMessages = await accumulateMessages(journal);
 
       assert.deepStrictEqual(journalMessages, [
-        { type: "run-start" },
+        { type: JournalMessageType.RUN_START },
         {
           futureId: "Module1:Library1",
-          type: "execution-start",
+          type: JournalMessageType.EXECUTION_START,
           futureType: FutureType.NAMED_LIBRARY_DEPLOYMENT,
           strategy: "basic",
           dependencies: [],
@@ -643,7 +644,7 @@ describe("execution engine", () => {
           from: accounts[1],
         },
         {
-          type: "onchain-action",
+          type: JournalMessageType.ONCHAIN_ACTION,
           subtype: "deploy-contract",
           futureId: "Module1:Library1",
           executionId: 1,
@@ -655,7 +656,7 @@ describe("execution engine", () => {
           artifactFutureId: "Module1:Library1",
         },
         {
-          type: "onchain-transaction-request",
+          type: JournalMessageType.ONCHAIN_TRANSACTION_REQUEST,
           futureId: "Module1:Library1",
           executionId: 1,
           from: accounts[1],
@@ -666,7 +667,7 @@ describe("execution engine", () => {
           },
         },
         {
-          type: "execution-failure",
+          type: JournalMessageType.EXECUTION_FAILURE,
           futureId: "Module1:Library1",
           error: new Error(
             "Cannot estimate gas; transaction may fail or may require manual gas limit"
@@ -725,10 +726,10 @@ describe("execution engine", () => {
       const journalMessages = await accumulateMessages(journal);
 
       assert.deepStrictEqual(journalMessages, [
-        { type: "run-start" },
+        { type: JournalMessageType.RUN_START },
         {
           futureId: "Module1:Contract1",
-          type: "execution-start",
+          type: JournalMessageType.EXECUTION_START,
           futureType: FutureType.NAMED_CONTRACT_DEPLOYMENT,
           strategy: "basic",
           dependencies: [],
@@ -740,7 +741,7 @@ describe("execution engine", () => {
           from: accounts[1],
         },
         {
-          type: "onchain-action",
+          type: JournalMessageType.ONCHAIN_ACTION,
           subtype: "deploy-contract",
           futureId: "Module1:Contract1",
           executionId: 1,
@@ -752,7 +753,7 @@ describe("execution engine", () => {
           from: accounts[1],
         },
         {
-          type: "onchain-transaction-request",
+          type: JournalMessageType.ONCHAIN_TRANSACTION_REQUEST,
           futureId: "Module1:Contract1",
           executionId: 1,
           from: accounts[1],
@@ -763,13 +764,13 @@ describe("execution engine", () => {
           },
         },
         {
-          type: "onchain-transaction-accept",
+          type: JournalMessageType.ONCHAIN_TRANSACTION_ACCEPT,
           futureId: "Module1:Contract1",
           executionId: 1,
           txHash: "0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC--0",
         },
         {
-          type: "onchain-result",
+          type: JournalMessageType.ONCHAIN_RESULT,
           subtype: "deploy-contract-success",
           futureId: "Module1:Contract1",
           executionId: 1,
@@ -777,7 +778,7 @@ describe("execution engine", () => {
           txId,
         },
         {
-          type: "execution-success",
+          type: JournalMessageType.EXECUTION_SUCCESS,
           subtype: "deploy-contract",
           futureId: "Module1:Contract1",
           contractName: "Contract1",
@@ -785,7 +786,7 @@ describe("execution engine", () => {
           txId,
         },
         {
-          type: "execution-start",
+          type: JournalMessageType.EXECUTION_START,
           futureType: FutureType.SEND_DATA,
           futureId: "Module1:test-send",
           strategy: "basic",
@@ -796,7 +797,7 @@ describe("execution engine", () => {
           value: "123",
         },
         {
-          type: "onchain-action",
+          type: JournalMessageType.ONCHAIN_ACTION,
           subtype: "send-data",
           futureId: "Module1:test-send",
           data: "0x",
@@ -806,7 +807,7 @@ describe("execution engine", () => {
           value: "123",
         },
         {
-          type: "onchain-transaction-request",
+          type: JournalMessageType.ONCHAIN_TRANSACTION_REQUEST,
           futureId: "Module1:test-send",
           executionId: 1,
           from: accounts[1],
@@ -820,20 +821,20 @@ describe("execution engine", () => {
           },
         },
         {
-          type: "onchain-transaction-accept",
+          type: JournalMessageType.ONCHAIN_TRANSACTION_ACCEPT,
           futureId: "Module1:test-send",
           executionId: 1,
           txHash: "0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC--1",
         },
         {
-          type: "onchain-result",
+          type: JournalMessageType.ONCHAIN_RESULT,
           subtype: "send-data-success",
           futureId: "Module1:test-send",
           executionId: 1,
           txId: diffTxId,
         },
         {
-          type: "execution-success",
+          type: JournalMessageType.EXECUTION_SUCCESS,
           subtype: "send-data",
           futureId: "Module1:test-send",
           txId: diffTxId,
@@ -893,10 +894,10 @@ describe("execution engine", () => {
       const journalMessages = await accumulateMessages(journal);
 
       assert.deepStrictEqual(journalMessages, [
-        { type: "run-start" },
+        { type: JournalMessageType.RUN_START },
         {
           futureId: "Module1:Contract1",
-          type: "execution-start",
+          type: JournalMessageType.EXECUTION_START,
           futureType: FutureType.NAMED_CONTRACT_DEPLOYMENT,
           strategy: "basic",
           dependencies: [],
@@ -908,7 +909,7 @@ describe("execution engine", () => {
           from: accounts[1],
         },
         {
-          type: "onchain-action",
+          type: JournalMessageType.ONCHAIN_ACTION,
           subtype: "deploy-contract",
           futureId: "Module1:Contract1",
           executionId: 1,
@@ -920,7 +921,7 @@ describe("execution engine", () => {
           from: accounts[1],
         },
         {
-          type: "onchain-transaction-request",
+          type: JournalMessageType.ONCHAIN_TRANSACTION_REQUEST,
           futureId: "Module1:Contract1",
           executionId: 1,
           from: accounts[1],
@@ -931,13 +932,13 @@ describe("execution engine", () => {
           },
         },
         {
-          type: "onchain-transaction-accept",
+          type: JournalMessageType.ONCHAIN_TRANSACTION_ACCEPT,
           futureId: "Module1:Contract1",
           executionId: 1,
           txHash: "0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC--0",
         },
         {
-          type: "onchain-result",
+          type: JournalMessageType.ONCHAIN_RESULT,
           subtype: "deploy-contract-success",
           futureId: "Module1:Contract1",
           executionId: 1,
@@ -945,7 +946,7 @@ describe("execution engine", () => {
           txId,
         },
         {
-          type: "execution-success",
+          type: JournalMessageType.EXECUTION_SUCCESS,
           subtype: "deploy-contract",
           futureId: "Module1:Contract1",
           contractName: "Contract1",
@@ -953,7 +954,7 @@ describe("execution engine", () => {
           txId,
         },
         {
-          type: "execution-start",
+          type: JournalMessageType.EXECUTION_START,
           futureType: FutureType.SEND_DATA,
           futureId: "Module1:test-send",
           strategy: "basic",
@@ -964,7 +965,7 @@ describe("execution engine", () => {
           value: "123",
         },
         {
-          type: "onchain-action",
+          type: JournalMessageType.ONCHAIN_ACTION,
           subtype: "send-data",
           futureId: "Module1:test-send",
           data: "0x",
@@ -974,7 +975,7 @@ describe("execution engine", () => {
           value: "123",
         },
         {
-          type: "onchain-transaction-request",
+          type: JournalMessageType.ONCHAIN_TRANSACTION_REQUEST,
           futureId: "Module1:test-send",
           executionId: 1,
           from: accounts[1],
@@ -988,7 +989,7 @@ describe("execution engine", () => {
           },
         },
         {
-          type: "execution-failure",
+          type: JournalMessageType.EXECUTION_FAILURE,
           futureId: "Module1:test-send",
           error: new Error(
             "Cannot estimate gas; transaction may fail or may require manual gas limit"
@@ -1085,10 +1086,10 @@ describe("execution engine", () => {
       const journalMessages = await accumulateMessages(journal);
 
       assert.deepStrictEqual(journalMessages, [
-        { type: "run-start" },
+        { type: JournalMessageType.RUN_START },
         {
           futureId: "Module1:Contract1",
-          type: "execution-start",
+          type: JournalMessageType.EXECUTION_START,
           futureType: FutureType.NAMED_CONTRACT_DEPLOYMENT,
           strategy: "basic",
           dependencies: [],
@@ -1100,7 +1101,7 @@ describe("execution engine", () => {
           from: accounts[1],
         },
         {
-          type: "onchain-action",
+          type: JournalMessageType.ONCHAIN_ACTION,
           subtype: "deploy-contract",
           futureId: "Module1:Contract1",
           executionId: 1,
@@ -1112,7 +1113,7 @@ describe("execution engine", () => {
           from: accounts[1],
         },
         {
-          type: "onchain-transaction-request",
+          type: JournalMessageType.ONCHAIN_TRANSACTION_REQUEST,
           futureId: "Module1:Contract1",
           executionId: 1,
           from: accounts[1],
@@ -1123,13 +1124,13 @@ describe("execution engine", () => {
           },
         },
         {
-          type: "onchain-transaction-accept",
+          type: JournalMessageType.ONCHAIN_TRANSACTION_ACCEPT,
           futureId: "Module1:Contract1",
           executionId: 1,
           txHash: "0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC--0",
         },
         {
-          type: "onchain-result",
+          type: JournalMessageType.ONCHAIN_RESULT,
           subtype: "deploy-contract-success",
           futureId: "Module1:Contract1",
           executionId: 1,
@@ -1137,7 +1138,7 @@ describe("execution engine", () => {
           txId,
         },
         {
-          type: "execution-success",
+          type: JournalMessageType.EXECUTION_SUCCESS,
           subtype: "deploy-contract",
           futureId: "Module1:Contract1",
           contractName: "Contract1",
@@ -1145,7 +1146,7 @@ describe("execution engine", () => {
           txId,
         },
         {
-          type: "execution-start",
+          type: JournalMessageType.EXECUTION_START,
           futureType: FutureType.NAMED_CONTRACT_CALL,
           futureId: "Module1:Contract1#configure",
           strategy: "basic",
@@ -1158,7 +1159,7 @@ describe("execution engine", () => {
           value: "0",
         },
         {
-          type: "onchain-action",
+          type: JournalMessageType.ONCHAIN_ACTION,
           subtype: "call-function",
           args: [1, "b", false],
           contractAddress: exampleAddress,
@@ -1170,7 +1171,7 @@ describe("execution engine", () => {
           value: "0",
         },
         {
-          type: "onchain-transaction-request",
+          type: JournalMessageType.ONCHAIN_TRANSACTION_REQUEST,
           futureId: "Module1:Contract1#configure",
           executionId: 1,
           from: accounts[1],
@@ -1181,20 +1182,20 @@ describe("execution engine", () => {
           },
         },
         {
-          type: "onchain-transaction-accept",
+          type: JournalMessageType.ONCHAIN_TRANSACTION_ACCEPT,
           futureId: "Module1:Contract1#configure",
           executionId: 1,
           txHash: "0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC--1",
         },
         {
-          type: "onchain-result",
+          type: JournalMessageType.ONCHAIN_RESULT,
           subtype: "call-function-success",
           futureId: "Module1:Contract1#configure",
           executionId: 1,
           txId: diffTxId,
         },
         {
-          type: "execution-success",
+          type: JournalMessageType.EXECUTION_SUCCESS,
           subtype: "call-function",
           futureId: "Module1:Contract1#configure",
           contractAddress: exampleAddress,
@@ -1259,10 +1260,10 @@ describe("execution engine", () => {
       const journalMessages = await accumulateMessages(journal);
 
       assert.deepStrictEqual(journalMessages, [
-        { type: "run-start" },
+        { type: JournalMessageType.RUN_START },
         {
           futureId: "Module1:Contract1",
-          type: "execution-start",
+          type: JournalMessageType.EXECUTION_START,
           futureType: FutureType.NAMED_CONTRACT_DEPLOYMENT,
           strategy: "basic",
           dependencies: [],
@@ -1274,7 +1275,7 @@ describe("execution engine", () => {
           from: accounts[1],
         },
         {
-          type: "onchain-action",
+          type: JournalMessageType.ONCHAIN_ACTION,
           subtype: "deploy-contract",
           futureId: "Module1:Contract1",
           executionId: 1,
@@ -1286,7 +1287,7 @@ describe("execution engine", () => {
           from: accounts[1],
         },
         {
-          type: "onchain-transaction-request",
+          type: JournalMessageType.ONCHAIN_TRANSACTION_REQUEST,
           futureId: "Module1:Contract1",
           executionId: 1,
           from: accounts[1],
@@ -1297,13 +1298,13 @@ describe("execution engine", () => {
           },
         },
         {
-          type: "onchain-transaction-accept",
+          type: JournalMessageType.ONCHAIN_TRANSACTION_ACCEPT,
           futureId: "Module1:Contract1",
           executionId: 1,
           txHash: "0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC--0",
         },
         {
-          type: "onchain-result",
+          type: JournalMessageType.ONCHAIN_RESULT,
           subtype: "deploy-contract-success",
           futureId: "Module1:Contract1",
           executionId: 1,
@@ -1311,7 +1312,7 @@ describe("execution engine", () => {
           txId,
         },
         {
-          type: "execution-success",
+          type: JournalMessageType.EXECUTION_SUCCESS,
           subtype: "deploy-contract",
           futureId: "Module1:Contract1",
           contractName: "Contract1",
@@ -1319,7 +1320,7 @@ describe("execution engine", () => {
           txId,
         },
         {
-          type: "execution-start",
+          type: JournalMessageType.EXECUTION_START,
           futureType: FutureType.NAMED_CONTRACT_CALL,
           futureId: "Module1:Contract1#configure",
           strategy: "basic",
@@ -1332,7 +1333,7 @@ describe("execution engine", () => {
           value: "0",
         },
         {
-          type: "onchain-action",
+          type: JournalMessageType.ONCHAIN_ACTION,
           subtype: "call-function",
           args: [1, "b", false],
           contractAddress: exampleAddress,
@@ -1344,7 +1345,7 @@ describe("execution engine", () => {
           value: "0",
         },
         {
-          type: "onchain-transaction-request",
+          type: JournalMessageType.ONCHAIN_TRANSACTION_REQUEST,
           futureId: "Module1:Contract1#configure",
           executionId: 1,
           from: accounts[1],
@@ -1355,7 +1356,7 @@ describe("execution engine", () => {
           },
         },
         {
-          type: "execution-failure",
+          type: JournalMessageType.EXECUTION_FAILURE,
           futureId: "Module1:Contract1#configure",
           error: new Error(
             "Cannot estimate gas; transaction may fail or may require manual gas limit"
@@ -1453,10 +1454,10 @@ describe("execution engine", () => {
       const journalMessages = await accumulateMessages(journal);
 
       assert.deepStrictEqual(journalMessages, [
-        { type: "run-start" },
+        { type: JournalMessageType.RUN_START },
         {
           futureId: "Module1:Contract1",
-          type: "execution-start",
+          type: JournalMessageType.EXECUTION_START,
           futureType: FutureType.NAMED_CONTRACT_DEPLOYMENT,
           strategy: "basic",
           dependencies: [],
@@ -1468,7 +1469,7 @@ describe("execution engine", () => {
           from: accounts[1],
         },
         {
-          type: "onchain-action",
+          type: JournalMessageType.ONCHAIN_ACTION,
           subtype: "deploy-contract",
           futureId: "Module1:Contract1",
           executionId: 1,
@@ -1480,7 +1481,7 @@ describe("execution engine", () => {
           from: accounts[1],
         },
         {
-          type: "onchain-transaction-request",
+          type: JournalMessageType.ONCHAIN_TRANSACTION_REQUEST,
           futureId: "Module1:Contract1",
           executionId: 1,
           from: accounts[1],
@@ -1491,13 +1492,13 @@ describe("execution engine", () => {
           },
         },
         {
-          type: "onchain-transaction-accept",
+          type: JournalMessageType.ONCHAIN_TRANSACTION_ACCEPT,
           futureId: "Module1:Contract1",
           executionId: 1,
           txHash: "0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC--0",
         },
         {
-          type: "onchain-result",
+          type: JournalMessageType.ONCHAIN_RESULT,
           subtype: "deploy-contract-success",
           futureId: "Module1:Contract1",
           executionId: 1,
@@ -1505,7 +1506,7 @@ describe("execution engine", () => {
           txId,
         },
         {
-          type: "execution-success",
+          type: JournalMessageType.EXECUTION_SUCCESS,
           subtype: "deploy-contract",
           futureId: "Module1:Contract1",
           contractName: "Contract1",
@@ -1513,7 +1514,7 @@ describe("execution engine", () => {
           txId,
         },
         {
-          type: "execution-start",
+          type: JournalMessageType.EXECUTION_START,
           futureType: FutureType.NAMED_STATIC_CALL,
           futureId: "Module1:Contract1#test",
           strategy: "basic",
@@ -1525,7 +1526,7 @@ describe("execution engine", () => {
           artifactFutureId: "Module1:Contract1",
         },
         {
-          type: "onchain-action",
+          type: JournalMessageType.ONCHAIN_ACTION,
           subtype: "static-call",
           args: [1, "b", false],
           contractAddress: exampleAddress,
@@ -1536,14 +1537,14 @@ describe("execution engine", () => {
           from: accounts[1],
         },
         {
-          type: "onchain-result",
+          type: JournalMessageType.ONCHAIN_RESULT,
           subtype: "static-call-success",
           futureId: "Module1:Contract1#test",
           executionId: 1,
           result: "example_static_call_result",
         },
         {
-          type: "execution-success",
+          type: JournalMessageType.EXECUTION_SUCCESS,
           subtype: "static-call",
           futureId: "Module1:Contract1#test",
           contractAddress: exampleAddress,
@@ -1597,10 +1598,10 @@ describe("execution engine", () => {
       const journalMessages = await accumulateMessages(journal);
 
       assert.deepStrictEqual(journalMessages, [
-        { type: "run-start" },
+        { type: JournalMessageType.RUN_START },
         {
           futureId: "Module1:Contract1",
-          type: "execution-start",
+          type: JournalMessageType.EXECUTION_START,
           futureType: FutureType.NAMED_CONTRACT_DEPLOYMENT,
           strategy: "basic",
           dependencies: [],
@@ -1612,7 +1613,7 @@ describe("execution engine", () => {
           from: accounts[1],
         },
         {
-          type: "onchain-action",
+          type: JournalMessageType.ONCHAIN_ACTION,
           subtype: "deploy-contract",
           futureId: "Module1:Contract1",
           executionId: 1,
@@ -1624,7 +1625,7 @@ describe("execution engine", () => {
           from: accounts[1],
         },
         {
-          type: "onchain-transaction-request",
+          type: JournalMessageType.ONCHAIN_TRANSACTION_REQUEST,
           futureId: "Module1:Contract1",
           executionId: 1,
           from: accounts[1],
@@ -1635,13 +1636,13 @@ describe("execution engine", () => {
           },
         },
         {
-          type: "onchain-transaction-accept",
+          type: JournalMessageType.ONCHAIN_TRANSACTION_ACCEPT,
           futureId: "Module1:Contract1",
           executionId: 1,
           txHash: "0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC--0",
         },
         {
-          type: "onchain-result",
+          type: JournalMessageType.ONCHAIN_RESULT,
           subtype: "deploy-contract-success",
           futureId: "Module1:Contract1",
           executionId: 1,
@@ -1649,7 +1650,7 @@ describe("execution engine", () => {
           txId,
         },
         {
-          type: "execution-success",
+          type: JournalMessageType.EXECUTION_SUCCESS,
           subtype: "deploy-contract",
           futureId: "Module1:Contract1",
           contractName: "Contract1",
@@ -1657,7 +1658,7 @@ describe("execution engine", () => {
           txId,
         },
         {
-          type: "execution-start",
+          type: JournalMessageType.EXECUTION_START,
           futureType: FutureType.NAMED_STATIC_CALL,
           futureId: "Module1:Contract1#test",
           strategy: "basic",
@@ -1669,7 +1670,7 @@ describe("execution engine", () => {
           artifactFutureId: "Module1:Contract1",
         },
         {
-          type: "onchain-action",
+          type: JournalMessageType.ONCHAIN_ACTION,
           subtype: "static-call",
           args: [1, "b", false],
           contractAddress: exampleAddress,
@@ -1680,7 +1681,7 @@ describe("execution engine", () => {
           from: accounts[1],
         },
         {
-          type: "execution-failure",
+          type: JournalMessageType.EXECUTION_FAILURE,
           futureId: "Module1:Contract1#test",
           error: new Error("Query reverted"),
         },
@@ -1718,9 +1719,9 @@ describe("execution engine", () => {
       const journalMessages = await accumulateMessages(journal);
 
       assert.deepStrictEqual(journalMessages, [
-        { type: "run-start" },
+        { type: JournalMessageType.RUN_START },
         {
-          type: "execution-start",
+          type: JournalMessageType.EXECUTION_START,
           futureType: FutureType.NAMED_CONTRACT_AT,
           futureId: "Module1:Contract1",
           strategy: "basic",
@@ -1730,7 +1731,7 @@ describe("execution engine", () => {
           artifactFutureId: "Module1:Contract1",
         },
         {
-          type: "onchain-action",
+          type: JournalMessageType.ONCHAIN_ACTION,
           subtype: "contract-at",
           futureId: "Module1:Contract1",
           executionId: 1,
@@ -1739,7 +1740,7 @@ describe("execution engine", () => {
           artifactFutureId: "Module1:Contract1",
         },
         {
-          type: "onchain-result",
+          type: JournalMessageType.ONCHAIN_RESULT,
           subtype: "contract-at-success",
           futureId: "Module1:Contract1",
           executionId: 1,
@@ -1747,7 +1748,7 @@ describe("execution engine", () => {
           contractAddress: exampleAddress,
         },
         {
-          type: "execution-success",
+          type: JournalMessageType.EXECUTION_SUCCESS,
           subtype: "contract-at",
           futureId: "Module1:Contract1",
           contractName: "Contract1",
@@ -1839,10 +1840,10 @@ describe("execution engine", () => {
       const journalMessages = await accumulateMessages(journal);
 
       assert.deepStrictEqual(journalMessages, [
-        { type: "run-start" },
+        { type: JournalMessageType.RUN_START },
         {
           futureId: "Module1:Contract1",
-          type: "execution-start",
+          type: JournalMessageType.EXECUTION_START,
           futureType: FutureType.NAMED_CONTRACT_DEPLOYMENT,
           strategy: "basic",
           dependencies: [],
@@ -1854,7 +1855,7 @@ describe("execution engine", () => {
           from: accounts[1],
         },
         {
-          type: "onchain-action",
+          type: JournalMessageType.ONCHAIN_ACTION,
           subtype: "deploy-contract",
           futureId: "Module1:Contract1",
           executionId: 1,
@@ -1866,7 +1867,7 @@ describe("execution engine", () => {
           from: accounts[1],
         },
         {
-          type: "onchain-transaction-request",
+          type: JournalMessageType.ONCHAIN_TRANSACTION_REQUEST,
           futureId: "Module1:Contract1",
           executionId: 1,
           from: accounts[1],
@@ -1877,13 +1878,13 @@ describe("execution engine", () => {
           },
         },
         {
-          type: "onchain-transaction-accept",
+          type: JournalMessageType.ONCHAIN_TRANSACTION_ACCEPT,
           futureId: "Module1:Contract1",
           executionId: 1,
           txHash: "0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC--0",
         },
         {
-          type: "onchain-result",
+          type: JournalMessageType.ONCHAIN_RESULT,
           subtype: "deploy-contract-success",
           futureId: "Module1:Contract1",
           executionId: 1,
@@ -1891,7 +1892,7 @@ describe("execution engine", () => {
           txId,
         },
         {
-          type: "execution-success",
+          type: JournalMessageType.EXECUTION_SUCCESS,
           subtype: "deploy-contract",
           futureId: "Module1:Contract1",
           contractName: "Contract1",
@@ -1900,7 +1901,7 @@ describe("execution engine", () => {
         },
 
         {
-          type: "execution-start",
+          type: JournalMessageType.EXECUTION_START,
           futureType: FutureType.READ_EVENT_ARGUMENT,
           strategy: "basic",
           dependencies: ["Module1:Contract1"],
@@ -1913,7 +1914,7 @@ describe("execution engine", () => {
           artifactFutureId: "Module1:Contract1",
         },
         {
-          type: "onchain-action",
+          type: JournalMessageType.ONCHAIN_ACTION,
           subtype: "read-event-arg",
           futureId: "Module1:Contract1#EventName1#arg1#0",
           executionId: 1,
@@ -1925,14 +1926,14 @@ describe("execution engine", () => {
           artifactFutureId: "Module1:Contract1",
         },
         {
-          type: "onchain-result",
+          type: JournalMessageType.ONCHAIN_RESULT,
           subtype: "read-event-arg-success",
           futureId: "Module1:Contract1#EventName1#arg1#0",
           executionId: 1,
           result: "event-arg-value",
         },
         {
-          type: "execution-success",
+          type: JournalMessageType.EXECUTION_SUCCESS,
           subtype: "read-event-arg",
           futureId: "Module1:Contract1#EventName1#arg1#0",
           eventName: "EventName1",
@@ -1993,10 +1994,10 @@ describe("execution engine", () => {
       const journalMessages = await accumulateMessages(journal);
 
       assert.deepStrictEqual(journalMessages, [
-        { type: "run-start" },
+        { type: JournalMessageType.RUN_START },
         {
           futureId: "Module1:Contract1",
-          type: "execution-start",
+          type: JournalMessageType.EXECUTION_START,
           futureType: FutureType.NAMED_CONTRACT_DEPLOYMENT,
           strategy: "basic",
           dependencies: [],
@@ -2008,7 +2009,7 @@ describe("execution engine", () => {
           from: accounts[1],
         },
         {
-          type: "onchain-action",
+          type: JournalMessageType.ONCHAIN_ACTION,
           subtype: "deploy-contract",
           futureId: "Module1:Contract1",
           executionId: 1,
@@ -2020,7 +2021,7 @@ describe("execution engine", () => {
           from: accounts[1],
         },
         {
-          type: "onchain-transaction-request",
+          type: JournalMessageType.ONCHAIN_TRANSACTION_REQUEST,
           futureId: "Module1:Contract1",
           executionId: 1,
           from: accounts[1],
@@ -2031,13 +2032,13 @@ describe("execution engine", () => {
           },
         },
         {
-          type: "onchain-transaction-accept",
+          type: JournalMessageType.ONCHAIN_TRANSACTION_ACCEPT,
           futureId: "Module1:Contract1",
           executionId: 1,
           txHash: "0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC--0",
         },
         {
-          type: "onchain-result",
+          type: JournalMessageType.ONCHAIN_RESULT,
           subtype: "deploy-contract-success",
           futureId: "Module1:Contract1",
           executionId: 1,
@@ -2045,7 +2046,7 @@ describe("execution engine", () => {
           txId,
         },
         {
-          type: "execution-success",
+          type: JournalMessageType.EXECUTION_SUCCESS,
           subtype: "deploy-contract",
           futureId: "Module1:Contract1",
           contractName: "Contract1",
@@ -2054,7 +2055,7 @@ describe("execution engine", () => {
         },
 
         {
-          type: "execution-start",
+          type: JournalMessageType.EXECUTION_START,
           futureType: FutureType.READ_EVENT_ARGUMENT,
           strategy: "basic",
           dependencies: ["Module1:Contract1"],
@@ -2067,7 +2068,7 @@ describe("execution engine", () => {
           artifactFutureId: "Module1:Contract1",
         },
         {
-          type: "onchain-action",
+          type: JournalMessageType.ONCHAIN_ACTION,
           subtype: "read-event-arg",
           futureId: "Module1:Contract1#EventName1#arg1#0",
           executionId: 1,
@@ -2079,7 +2080,7 @@ describe("execution engine", () => {
           artifactFutureId: "Module1:Contract1",
         },
         {
-          type: "execution-failure",
+          type: JournalMessageType.EXECUTION_FAILURE,
           futureId: "Module1:Contract1#EventName1#arg1#0",
           error: new Error("Unable to read event"),
         },
@@ -2196,10 +2197,10 @@ describe("execution engine", () => {
       const journalMessages = await accumulateMessages(journal);
 
       assert.deepStrictEqual(journalMessages, [
-        { type: "run-start" },
+        { type: JournalMessageType.RUN_START },
         {
           futureId: "Module1:Library1",
-          type: "execution-start",
+          type: JournalMessageType.EXECUTION_START,
           futureType: FutureType.NAMED_LIBRARY_DEPLOYMENT,
           strategy: "basic",
           dependencies: [],
@@ -2211,7 +2212,7 @@ describe("execution engine", () => {
           from: accounts[1],
         },
         {
-          type: "onchain-action",
+          type: JournalMessageType.ONCHAIN_ACTION,
           subtype: "deploy-contract",
           futureId: "Module1:Library1",
           executionId: 1,
@@ -2223,7 +2224,7 @@ describe("execution engine", () => {
           from: accounts[1],
         },
         {
-          type: "onchain-transaction-request",
+          type: JournalMessageType.ONCHAIN_TRANSACTION_REQUEST,
           futureId: "Module1:Library1",
           executionId: 1,
           from: accounts[1],
@@ -2234,13 +2235,13 @@ describe("execution engine", () => {
           },
         },
         {
-          type: "onchain-transaction-accept",
+          type: JournalMessageType.ONCHAIN_TRANSACTION_ACCEPT,
           futureId: "Module1:Library1",
           executionId: 1,
           txHash: "0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC--0",
         },
         {
-          type: "onchain-result",
+          type: JournalMessageType.ONCHAIN_RESULT,
           subtype: "deploy-contract-success",
           futureId: "Module1:Library1",
           executionId: 1,
@@ -2248,7 +2249,7 @@ describe("execution engine", () => {
           txId,
         },
         {
-          type: "execution-success",
+          type: JournalMessageType.EXECUTION_SUCCESS,
           subtype: "deploy-contract",
           futureId: "Module1:Library1",
           contractName: "Library1",
@@ -2257,7 +2258,7 @@ describe("execution engine", () => {
         },
         {
           futureId: "Module1:Contract1",
-          type: "execution-start",
+          type: JournalMessageType.EXECUTION_START,
           futureType: FutureType.NAMED_CONTRACT_DEPLOYMENT,
           strategy: "basic",
           dependencies: ["Module1:Library1"],
@@ -2276,7 +2277,7 @@ describe("execution engine", () => {
           from: accounts[1],
         },
         {
-          type: "onchain-action",
+          type: JournalMessageType.ONCHAIN_ACTION,
           subtype: "deploy-contract",
           futureId: "Module1:Contract1",
           executionId: 1,
@@ -2295,7 +2296,7 @@ describe("execution engine", () => {
           from: exampleAccounts[1],
         },
         {
-          type: "onchain-transaction-request",
+          type: JournalMessageType.ONCHAIN_TRANSACTION_REQUEST,
           futureId: "Module1:Contract1",
           executionId: 1,
           from: accounts[1],
@@ -2306,13 +2307,13 @@ describe("execution engine", () => {
           },
         },
         {
-          type: "onchain-transaction-accept",
+          type: JournalMessageType.ONCHAIN_TRANSACTION_ACCEPT,
           futureId: "Module1:Contract1",
           executionId: 1,
           txHash: "0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC--1",
         },
         {
-          type: "onchain-result",
+          type: JournalMessageType.ONCHAIN_RESULT,
           subtype: "deploy-contract-success",
           futureId: "Module1:Contract1",
           executionId: 1,
@@ -2320,7 +2321,7 @@ describe("execution engine", () => {
           txId: diffTxId,
         },
         {
-          type: "execution-success",
+          type: JournalMessageType.EXECUTION_SUCCESS,
           subtype: "deploy-contract",
           futureId: "Module1:Contract1",
           contractName: "Contract1",

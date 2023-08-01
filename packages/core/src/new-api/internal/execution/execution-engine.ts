@@ -48,6 +48,7 @@ import {
   ExecutionResultMessage,
   ExecutionTimeout,
   FutureStartMessage,
+  JournalMessageType,
   JournalableMessage,
   OnchainTransactionReset,
   StartRunMessage,
@@ -105,7 +106,7 @@ export class ExecutionEngine {
 
     // Record start of the run (which resets timeout to started)
     const startRun: StartRunMessage = {
-      type: "run-start",
+      type: JournalMessageType.RUN_START,
     };
 
     await this._apply(state, startRun);
@@ -247,7 +248,7 @@ export class ExecutionEngine {
         ) {
           // Try sending the request again, using a new nonce
           const revert: OnchainTransactionReset = {
-            type: "onchain-transaction-reset",
+            type: JournalMessageType.ONCHAIN_TRANSACTION_RESET,
             futureId: inflightTran.futureId,
             executionId: inflightTran.executionId,
           };
@@ -277,7 +278,7 @@ export class ExecutionEngine {
         ) {
           // try sending again potentially using the same nonce
           const revert: OnchainTransactionReset = {
-            type: "onchain-transaction-reset",
+            type: JournalMessageType.ONCHAIN_TRANSACTION_RESET,
             futureId: inflightTran.futureId,
             executionId: inflightTran.executionId,
           };
@@ -397,7 +398,7 @@ export class ExecutionEngine {
 
       for (const { futureId, executionId, txHash } of timedOutTransactions) {
         const timedOut: ExecutionTimeout = {
-          type: "execution-timeout",
+          type: JournalMessageType.EXECUTION_TIMEOUT,
           futureId,
           executionId,
           txHash,
@@ -554,7 +555,7 @@ export class ExecutionEngine {
         }
 
         state = {
-          type: "execution-start",
+          type: JournalMessageType.EXECUTION_START,
           futureId: future.id,
           futureType: future.type,
           strategy,
@@ -593,7 +594,7 @@ export class ExecutionEngine {
         }
 
         state = {
-          type: "execution-start",
+          type: JournalMessageType.EXECUTION_START,
           futureId: future.id,
           futureType: future.type,
           strategy,
@@ -621,7 +622,7 @@ export class ExecutionEngine {
         });
 
         state = {
-          type: "execution-start",
+          type: JournalMessageType.EXECUTION_START,
           futureId: future.id,
           futureType: future.type,
           strategy,
@@ -644,7 +645,7 @@ export class ExecutionEngine {
         );
 
         state = {
-          type: "execution-start",
+          type: JournalMessageType.EXECUTION_START,
           futureId: future.id,
           futureType: future.type,
           strategy,
@@ -679,7 +680,7 @@ export class ExecutionEngine {
         }
 
         state = {
-          type: "execution-start",
+          type: JournalMessageType.EXECUTION_START,
           futureId: future.id,
           futureType: future.type,
           strategy,
@@ -709,7 +710,7 @@ export class ExecutionEngine {
         );
 
         state = {
-          type: "execution-start",
+          type: JournalMessageType.EXECUTION_START,
           futureId: future.id,
           futureType: future.type,
           strategy,
@@ -749,7 +750,7 @@ export class ExecutionEngine {
         );
 
         state = {
-          type: "execution-start",
+          type: JournalMessageType.EXECUTION_START,
           futureId: future.id,
           futureType: future.type,
           strategy,
@@ -797,7 +798,7 @@ export class ExecutionEngine {
         }
 
         state = {
-          type: "execution-start",
+          type: JournalMessageType.EXECUTION_START,
           futureId: future.id,
           futureType: future.type,
           strategy,
@@ -867,7 +868,7 @@ export class ExecutionEngine {
         });
 
         state = {
-          type: "execution-start",
+          type: JournalMessageType.EXECUTION_START,
           futureId: future.id,
           futureType: future.type,
           strategy,
@@ -935,7 +936,7 @@ export class ExecutionEngine {
         );
 
         state = {
-          type: "execution-start",
+          type: JournalMessageType.EXECUTION_START,
           futureId: future.id,
           futureType: future.type,
           strategy,

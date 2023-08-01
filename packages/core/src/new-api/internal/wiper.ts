@@ -2,7 +2,7 @@ import { IgnitionError } from "../../errors";
 
 import { executionStateReducer } from "./execution/execution-state-reducer";
 import { ExecutionStateMap } from "./execution/types";
-import { Journal, WipeMessage } from "./journal/types";
+import { Journal, JournalMessageType, WipeMessage } from "./journal/types";
 
 export class Wiper {
   constructor(private _journal: Journal) {}
@@ -31,7 +31,7 @@ export class Wiper {
     }
 
     const wipeMessage: WipeMessage = {
-      type: "wipe",
+      type: JournalMessageType.WIPE,
       futureId,
     };
 

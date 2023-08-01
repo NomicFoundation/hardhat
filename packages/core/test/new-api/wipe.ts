@@ -3,7 +3,10 @@ import { assert } from "chai";
 
 import { buildModule } from "../../src/new-api/build-module";
 import { MemoryJournal } from "../../src/new-api/internal/journal/memory-journal";
-import { Journal } from "../../src/new-api/internal/journal/types";
+import {
+  Journal,
+  JournalMessageType,
+} from "../../src/new-api/internal/journal/types";
 import { Wiper } from "../../src/new-api/internal/wiper";
 import { IgnitionModuleResult } from "../../src/new-api/types/module";
 import { IgnitionModuleDefinition } from "../../src/new-api/types/module-builder";
@@ -70,7 +73,7 @@ describe("wipe", () => {
 
     assert.deepStrictEqual(messages[messages.length - 1], {
       futureId: "Module1:Contract2",
-      type: "wipe",
+      type: JournalMessageType.WIPE,
     });
   });
 
