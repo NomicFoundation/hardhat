@@ -118,26 +118,31 @@ pub enum BlockSpec {
 
 impl BlockSpec {
     /// Constructs an instance for the earliest block.
+    #[must_use]
     pub fn earliest() -> Self {
         Self::Tag(BlockTag::Earliest)
     }
 
     /// Constructs an instance for the latest block.
+    #[must_use]
     pub fn latest() -> Self {
         Self::Tag(BlockTag::Latest)
     }
 
     /// Constructs an instance for the pending block.
+    #[must_use]
     pub fn pending() -> Self {
         Self::Tag(BlockTag::Pending)
     }
 
     /// Constructs an instance for the safe block.
+    #[must_use]
     pub fn safe() -> Self {
         Self::Tag(BlockTag::Safe)
     }
 
     /// Constructs an instance for the finalized block.
+    #[must_use]
     pub fn finalized() -> Self {
         Self::Tag(BlockTag::Finalized)
     }
@@ -189,16 +194,16 @@ impl<'a> serde::Deserialize<'a> for ZeroXPrefixedBytes {
             where
                 E: serde::de::Error,
             {
-                if &value[0..=1] != "0x" {
-                    Err(serde::de::Error::custom(format!(
-                        "string \"{value}\" does not have a '0x' prefix"
-                    )))
-                } else {
+                if &value[0..=1] == "0x" {
                     Ok(Bytes::from(
                         hex::decode(&value[2..])
                             .unwrap_or_else(|_| panic!("failed to decode hex string \"{value}\"")),
                     )
                     .into())
+                } else {
+                    Err(serde::de::Error::custom(format!(
+                        "string \"{value}\" does not have a '0x' prefix"
+                    )))
                 }
             }
         }

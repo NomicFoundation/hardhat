@@ -162,12 +162,6 @@ impl Signature {
     where
         M: Into<RecoveryMessage>,
     {
-        let message = message.into();
-        let message_hash = match message {
-            RecoveryMessage::Data(ref message) => hash_message(message),
-            RecoveryMessage::Hash(hash) => hash,
-        };
-
         struct Hash(B256);
 
         impl ThirtyTwoByteHash for Hash {
@@ -175,6 +169,12 @@ impl Signature {
                 self.0 .0
             }
         }
+
+        let message = message.into();
+        let message_hash = match message {
+            RecoveryMessage::Data(ref message) => hash_message(message),
+            RecoveryMessage::Hash(hash) => hash,
+        };
 
         let message_hash = Hash(message_hash);
 
@@ -412,9 +412,6 @@ mod tests {
 
     #[test]
     fn test_signature_new() {
-        let message = "whatever";
-        let hashed_message = crate::utils::hash_message(message);
-
         fn verify<MsgOrHash>(msg_input: MsgOrHash, hashed_message: B256)
         where
             MsgOrHash: Into<RecoveryMessage>,
@@ -432,6 +429,9 @@ mod tests {
                 private_key_to_address(&Secp256k1::signing_only(), private_key_str).unwrap()
             );
         }
+
+        let message = "whatever";
+        let hashed_message = crate::utils::hash_message(message);
 
         verify(message, hashed_message);
         verify(hashed_message, hashed_message);

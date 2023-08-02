@@ -66,6 +66,8 @@ impl ForkedBlockchain {
         remote_url: &str,
         fork_block_number: Option<U256>,
     ) -> Result<Self, CreationError> {
+        const FALLBACK_MAX_REORG: u64 = 30;
+
         let rpc_client = RpcClient::new(remote_url);
 
         let (chain_id, network_id, latest_block_number) = tokio::join!(
@@ -78,7 +80,6 @@ impl ForkedBlockchain {
         let network_id = network_id?;
         let latest_block_number = latest_block_number?;
 
-        const FALLBACK_MAX_REORG: u64 = 30;
         let max_reorg =
             largest_possible_reorg(&chain_id).unwrap_or_else(|| U256::from(FALLBACK_MAX_REORG));
 

@@ -236,7 +236,9 @@ impl StateDebug for ForkState {
         let current_state = self.current_state.upgradable_read();
         let state_root_to_state = self.state_root_to_state.upgradable_read();
 
-        Ok(if local_root != current_state.1 {
+        Ok(if local_root == current_state.1 {
+            current_state.0
+        } else {
             let next_state_root = self.hash_generator.lock().next_value();
 
             let mut state_root_to_state = RwLockUpgradableReadGuard::upgrade(state_root_to_state);
@@ -245,8 +247,6 @@ impl StateDebug for ForkState {
             *RwLockUpgradableReadGuard::upgrade(current_state) = (next_state_root, local_root);
 
             next_state_root
-        } else {
-            current_state.0
         })
     }
 }
@@ -397,6 +397,9 @@ mod tests {
 
     #[test]
     fn set_block_context_with_zeroed_storage_slots() {
+        const STORAGE_SLOT_INDEX: u64 = 1;
+        const DUMMY_STORAGE_VALUE: u64 = 1000;
+
         let runtime = Arc::new(
             Builder::new_multi_thread()
                 .enable_io()
@@ -417,9 +420,6 @@ mod tests {
 
         let dai_address = Address::from_str("0x6b175474e89094c44da98b954eedeac495271d0f")
             .expect("failed to parse address");
-
-        const STORAGE_SLOT_INDEX: u64 = 1;
-        const DUMMY_STORAGE_VALUE: u64 = 1000;
 
         let storage_slot_index = U256::from(STORAGE_SLOT_INDEX);
         let dummy_storage_value = U256::from(DUMMY_STORAGE_VALUE);

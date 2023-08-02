@@ -309,13 +309,6 @@ impl AccountTrie {
     /// Serializes the state using ordering of addresses and storage indices.
     #[cfg_attr(feature = "tracing", tracing::instrument)]
     pub fn serialize(&self) -> String {
-        let state_trie = Trie::from(
-            self.state_trie_db.clone(),
-            Arc::new(HasherKeccak::new()),
-            self.state_root.as_bytes(),
-        )
-        .expect("Invalid state root");
-
         #[derive(serde::Serialize)]
         struct StateAccount {
             /// Balance of the account.
@@ -329,6 +322,13 @@ impl AccountTrie {
             /// Storage root of the account.
             pub storage_root: B256,
         }
+
+        let state_trie = Trie::from(
+            self.state_trie_db.clone(),
+            Arc::new(HasherKeccak::new()),
+            self.state_root.as_bytes(),
+        )
+        .expect("Invalid state root");
 
         let state: BTreeMap<Address, StateAccount> = self
             .storage_trie_dbs
