@@ -107,9 +107,9 @@ pub mod u256 {
     }
 }
 
-/// Helper module for (de)serializing [`u64`]s into hexadecimal strings.
+/// Helper module for (de)serializing [`std::primitive::u64`]s into hexadecimal strings.
 pub mod u64 {
-    /// Helper function for deserializing a hexadecimal string into a [`u64`].
+    /// Helper function for deserializing a hexadecimal string into a [`std::primitive::u64`].
     pub fn deserialize<'de, D>(deserializer: D) -> Result<u64, D::Error>
     where
         D: serde::Deserializer<'de>,
@@ -118,7 +118,7 @@ pub mod u64 {
         Ok(u64::from_str_radix(&s[2..], 16).expect("failed to parse u64"))
     }
 
-    /// Helper function for serializing a [`u64`] into a hexadecimal string.
+    /// Helper function for serializing a [`std::primitive::u64`] into a hexadecimal string.
     pub fn serialize<S>(value: &u64, s: S) -> Result<S::Ok, S::Error>
     where
         S: serde::Serializer,
@@ -131,9 +131,9 @@ pub mod u64 {
     }
 }
 
-/// Helper module for (de)serializing [`u8`]s into hexadecimal strings.
+/// Helper module for (de)serializing [`std::primitive::u8`]s into hexadecimal strings.
 pub mod u8 {
-    /// Helper function for deserializing a hexadecimal string into a [`u64`].
+    /// Helper function for deserializing a hexadecimal string into a [`std::primitive::u8`].
     pub fn deserialize<'de, D>(deserializer: D) -> Result<u8, D::Error>
     where
         D: serde::Deserializer<'de>,
@@ -142,7 +142,7 @@ pub mod u8 {
         Ok(u8::from_str_radix(&s[2..], 16).expect("failed to parse u8"))
     }
 
-    /// Helper function for serializing a [`u64`] into a hexadecimal string.
+    /// Helper function for serializing a [`std::primitive::u8`] into a hexadecimal string.
     pub fn serialize<S>(value: &u8, s: S) -> Result<S::Ok, S::Error>
     where
         S: serde::Serializer,
@@ -155,7 +155,7 @@ pub mod u8 {
     }
 }
 
-/// Helper function for deserializing a'n optional hexadecimal string into a [`u64`].
+/// Helper function for deserializing a'n optional hexadecimal string into a [`std::primitive::u64`].
 pub fn optional_u64_from_hex<'de, D>(deserializer: D) -> Result<Option<u64>, D::Error>
 where
     D: serde::Deserializer<'de>,

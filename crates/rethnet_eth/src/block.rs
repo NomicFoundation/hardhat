@@ -380,7 +380,7 @@ pub struct PartialHeader {
 }
 
 impl PartialHeader {
-    /// Constructs a new instance based on the provided [`BlockOptions`] and parent [`Header`] for the given [`CfgEnv`].
+    /// Constructs a new instance based on the provided [`BlockOptions`] and parent [`Header`] for the given [`SpecId`].
     pub fn new(spec_id: SpecId, options: BlockOptions, parent: Option<&Header>) -> Self {
         let timestamp = options.timestamp.unwrap_or_default();
         let number = options.number.unwrap_or_else(|| {

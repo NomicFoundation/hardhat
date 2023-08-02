@@ -4,7 +4,7 @@ use revm_primitives::{B256, U256};
 
 use super::receipt::ReceiptLog;
 
-///
+/// A log that's returned by a block query.
 #[derive(Debug, Clone, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "serde", serde(untagged))]
