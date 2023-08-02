@@ -903,13 +903,13 @@ impl Server {
 
             let blockchain = Arc::new(RwLock::new(blockchain));
 
-            let rethnet_state = Arc::new(RwLock::new(Box::new(ForkState::new(
+            let rethnet_state = Arc::new(RwLock::new(ForkState::new(
                 Arc::clone(&runtime),
                 Arc::new(parking_lot::Mutex::new(hash_generator)),
                 &config.json_rpc_url,
                 fork_block_number,
                 genesis_accounts,
-            ))));
+            )));
 
             (rethnet_state, blockchain, Some(fork_block_number))
         } else {
@@ -922,7 +922,7 @@ impl Server {
                 Some(RandomHashGenerator::with_seed("seed").next_value()),
                 config.initial_base_fee_per_gas,
             )?));
-            let rethnet_state = Arc::new(RwLock::new(Box::new(rethnet_state)));
+            let rethnet_state = Arc::new(RwLock::new(rethnet_state));
             let fork_block_number = None;
             (rethnet_state, blockchain, fork_block_number)
         };
