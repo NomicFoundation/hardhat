@@ -1,4 +1,15 @@
-import { JournalableMessage, StartRunMessage, WipeMessage } from "../types";
+import {
+  JournalableMessage,
+  RunLevelJournalMessage,
+  StartRunMessage,
+  WipeMessage,
+} from "../types";
+
+export function isRunLevelJournalMessage(
+  potential: JournalableMessage
+): potential is RunLevelJournalMessage {
+  return isStartRunMessage(potential) || isWipeMessage(potential);
+}
 
 /**
  * Determines if potential is a StartRunMessage.

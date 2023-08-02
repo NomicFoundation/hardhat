@@ -12,7 +12,7 @@ import { isOnChainResultMessage } from "./onchain-result-message";
 export * from "./onchain-interaction-message";
 export * from "./onchain-result-message";
 
-export function isTransactionMessage(
+export function isTransactionLevelJournalMessage(
   message: JournalableMessage
 ): message is TransactionLevelJournalMessage {
   return (

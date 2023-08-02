@@ -1,5 +1,4 @@
-import { IgnitionError } from "../../../errors";
-import { OnchainState, OnchainStatuses } from "../execution/types";
+import { IgnitionError } from "../../../../errors";
 import {
   isCallFunctionInteraction,
   isContractAtInteraction,
@@ -17,10 +16,11 @@ import {
   isReadEventArgumentInteraction,
   isSendDataInteraction,
   isStaticCallInteraction,
-} from "../journal/type-guards";
-import { TransactionLevelJournalMessage } from "../journal/types";
-import { serializeReplacer } from "../journal/utils/serialize-replacer";
-import { assertIgnitionInvariant } from "../utils/assertions";
+} from "../../journal/type-guards";
+import { TransactionLevelJournalMessage } from "../../journal/types";
+import { serializeReplacer } from "../../journal/utils/serialize-replacer";
+import { assertIgnitionInvariant } from "../../utils/assertions";
+import { OnchainState, OnchainStatuses } from "../types";
 
 export function onchainActionReducer(
   state: OnchainState,
