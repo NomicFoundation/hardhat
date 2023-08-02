@@ -1,5 +1,5 @@
 /* eslint-disable import/no-unused-modules */
-import { defineModule } from "@ignored/ignition-core";
+import { buildModule } from "@ignored/ignition-core";
 import { assert } from "chai";
 
 import {
@@ -16,7 +16,7 @@ describe("execution - error on transaction dropped", () => {
 
   it("should error on the drop being detected", async function () {
     // Setup a module with two contract deploys (foo1 and foo2) over 2 batches
-    const moduleDefinition = defineModule("FooModule", (m) => {
+    const moduleDefinition = buildModule("FooModule", (m) => {
       const account2 = m.getAccount(2);
 
       // batch 1

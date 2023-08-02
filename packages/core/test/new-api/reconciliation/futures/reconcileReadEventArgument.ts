@@ -1,7 +1,7 @@
 /* eslint-disable import/no-unused-modules */
 import { assert } from "chai";
 
-import { defineModule } from "../../../../src/new-api/define-module";
+import { buildModule } from "../../../../src/new-api/build-module";
 import {
   DeploymentExecutionState,
   ExecutionStatus,
@@ -50,7 +50,7 @@ describe("Reconciliation - read event argument", () => {
   };
 
   it("should reconcile unchanged", () => {
-    const submoduleDefinition = defineModule("Submodule", (m) => {
+    const submoduleDefinition = buildModule("Submodule", (m) => {
       const contract = m.contract("Contract");
 
       m.readEventArgument(contract, "EventName1", "arg1");
@@ -58,7 +58,7 @@ describe("Reconciliation - read event argument", () => {
       return { contract };
     });
 
-    const moduleDefinition = defineModule("Module", (m) => {
+    const moduleDefinition = buildModule("Module", (m) => {
       const { contract } = m.useModule(submoduleDefinition);
 
       return { contract };
@@ -82,7 +82,7 @@ describe("Reconciliation - read event argument", () => {
   });
 
   it("should find changes to the event unreconciliable", () => {
-    const moduleDefinition = defineModule("Module", (m) => {
+    const moduleDefinition = buildModule("Module", (m) => {
       const contract = m.contract("Contract");
 
       m.readEventArgument(contract, "EventChanged", "arg1", {
@@ -117,7 +117,7 @@ describe("Reconciliation - read event argument", () => {
   });
 
   it("should find changes to the argument unreconciliable", () => {
-    const moduleDefinition = defineModule("Module", (m) => {
+    const moduleDefinition = buildModule("Module", (m) => {
       const contract = m.contract("Contract");
 
       m.readEventArgument(contract, "event1", "argChanged", {
@@ -152,7 +152,7 @@ describe("Reconciliation - read event argument", () => {
   });
 
   it("should find changes to the event index unreconciliable", () => {
-    const moduleDefinition = defineModule("Module", (m) => {
+    const moduleDefinition = buildModule("Module", (m) => {
       const contract = m.contract("Contract");
 
       m.readEventArgument(contract, "event1", "argument1", {
@@ -187,7 +187,7 @@ describe("Reconciliation - read event argument", () => {
   });
 
   it("should find changes to the emitter unreconciliable", () => {
-    const moduleDefinition = defineModule("Module", (m) => {
+    const moduleDefinition = buildModule("Module", (m) => {
       const contract1 = m.contract("Contract1");
       const contract2 = m.contract("Contract2");
 
@@ -231,7 +231,7 @@ describe("Reconciliation - read event argument", () => {
   });
 
   it("should not reconcile the use of an event argument that has changed", () => {
-    const moduleDefinition = defineModule("Module", (m) => {
+    const moduleDefinition = buildModule("Module", (m) => {
       const contract1 = m.contract("Contract1");
 
       const readEvent1 = m.readEventArgument(contract1, "event1", "argument1", {

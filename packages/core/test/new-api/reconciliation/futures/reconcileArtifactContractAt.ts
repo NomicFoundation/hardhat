@@ -2,7 +2,7 @@
 import { assert } from "chai";
 
 import { Artifact } from "../../../../src";
-import { defineModule } from "../../../../src/new-api/define-module";
+import { buildModule } from "../../../../src/new-api/build-module";
 import {
   ContractAtExecutionState,
   DeploymentExecutionState,
@@ -70,7 +70,7 @@ describe("Reconciliation - artifact contract at", () => {
   };
 
   it("should reconcile when using an address string", () => {
-    const submoduleDefinition = defineModule("Submodule", (m) => {
+    const submoduleDefinition = buildModule("Submodule", (m) => {
       const contract1 = m.contractAtFromArtifact(
         "Contract1",
         exampleAddress,
@@ -80,7 +80,7 @@ describe("Reconciliation - artifact contract at", () => {
       return { contract1 };
     });
 
-    const moduleDefinition = defineModule("Module", (m) => {
+    const moduleDefinition = buildModule("Module", (m) => {
       const { contract1 } = m.useModule(submoduleDefinition);
 
       return { contract1 };
@@ -100,7 +100,7 @@ describe("Reconciliation - artifact contract at", () => {
   });
 
   it("should reconcile when using a static call", () => {
-    const moduleDefinition = defineModule("Module", (m) => {
+    const moduleDefinition = buildModule("Module", (m) => {
       const example = m.contract("Example");
       const call = m.staticCall(example, "getAddress");
 
@@ -138,7 +138,7 @@ describe("Reconciliation - artifact contract at", () => {
   });
 
   it("should find changes to contract name unreconciliable", () => {
-    const moduleDefinition = defineModule("Module", (m) => {
+    const moduleDefinition = buildModule("Module", (m) => {
       const contract1 = m.contractAtFromArtifact(
         "ContractChanged",
         exampleAddress,
@@ -172,7 +172,7 @@ describe("Reconciliation - artifact contract at", () => {
   });
 
   it("should find changes to contract address as a literal unreconciliable", () => {
-    const moduleDefinition = defineModule("Module", (m) => {
+    const moduleDefinition = buildModule("Module", (m) => {
       const contract1 = m.contractAtFromArtifact(
         "Contract1",
         exampleAddress,

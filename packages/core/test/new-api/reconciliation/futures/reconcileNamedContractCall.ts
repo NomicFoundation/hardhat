@@ -1,7 +1,7 @@
 /* eslint-disable import/no-unused-modules */
 import { assert } from "chai";
 
-import { defineModule } from "../../../../src/new-api/define-module";
+import { buildModule } from "../../../../src/new-api/build-module";
 import {
   CallExecutionState,
   DeploymentExecutionState,
@@ -54,7 +54,7 @@ describe("Reconciliation - named contract call", () => {
   };
 
   it("should reconcile unchanged", () => {
-    const submoduleDefinition = defineModule("Submodule", (m) => {
+    const submoduleDefinition = buildModule("Submodule", (m) => {
       const contract1 = m.contract("Contract1");
 
       m.call(contract1, "function1", [1, "a", contract1], {});
@@ -62,7 +62,7 @@ describe("Reconciliation - named contract call", () => {
       return { contract1 };
     });
 
-    const moduleDefinition = defineModule("Module", (m) => {
+    const moduleDefinition = buildModule("Module", (m) => {
       const { contract1 } = m.useModule(submoduleDefinition);
 
       return { contract1 };
@@ -84,7 +84,7 @@ describe("Reconciliation - named contract call", () => {
   });
 
   it("should find changes to contract unreconciliable", () => {
-    const moduleDefinition = defineModule("Module", (m) => {
+    const moduleDefinition = buildModule("Module", (m) => {
       const contract1 = m.contract("Contract1");
 
       m.call(contract1, "function1", [], { id: "config" });
@@ -117,7 +117,7 @@ describe("Reconciliation - named contract call", () => {
   });
 
   it("should find changes to function name unreconciliable", () => {
-    const moduleDefinition = defineModule("Module", (m) => {
+    const moduleDefinition = buildModule("Module", (m) => {
       const contract1 = m.contract("Contract1");
 
       m.call(contract1, "functionChanged", [], { id: "config" });
@@ -148,7 +148,7 @@ describe("Reconciliation - named contract call", () => {
   });
 
   it("should find changes to function args unreconciliable", () => {
-    const moduleDefinition = defineModule("Module", (m) => {
+    const moduleDefinition = buildModule("Module", (m) => {
       const ticker = m.getParameter("ticker", "CHANGED");
 
       const contract1 = m.contract("Contract1");
@@ -181,7 +181,7 @@ describe("Reconciliation - named contract call", () => {
   });
 
   it("should find changes to value unreconciliable", () => {
-    const moduleDefinition = defineModule("Module", (m) => {
+    const moduleDefinition = buildModule("Module", (m) => {
       const contract1 = m.contract("Contract1");
 
       m.call(contract1, "function1", [], { id: "config", value: BigInt(3) });
@@ -212,7 +212,7 @@ describe("Reconciliation - named contract call", () => {
   });
 
   it("should find changes to from unreconciliable", () => {
-    const moduleDefinition = defineModule("Module", (m) => {
+    const moduleDefinition = buildModule("Module", (m) => {
       const contract1 = m.contract("Contract1");
 
       m.call(contract1, "function1", [], { id: "config", from: twoAddress });

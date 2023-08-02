@@ -2,7 +2,7 @@
 import { assert } from "chai";
 
 import { Artifact } from "../../src";
-import { defineModule } from "../../src/new-api/define-module";
+import { buildModule } from "../../src/new-api/build-module";
 import { ModuleConstructor } from "../../src/new-api/internal/module-builder";
 import { validate } from "../../src/new-api/internal/validation/validate";
 
@@ -10,13 +10,13 @@ import { setupMockArtifactResolver } from "./helpers";
 
 describe("useModule", () => {
   it("should be able to use a submodule", () => {
-    const submoduleDefinition = defineModule("Submodule1", (m) => {
+    const submoduleDefinition = buildModule("Submodule1", (m) => {
       const contract1 = m.contract("Contract1");
 
       return { contract1 };
     });
 
-    const moduleWithSubmoduleDefinition = defineModule("Module1", (m) => {
+    const moduleWithSubmoduleDefinition = buildModule("Module1", (m) => {
       const { contract1 } = m.useModule(submoduleDefinition);
 
       return { contract1 };
@@ -34,13 +34,13 @@ describe("useModule", () => {
   });
 
   it("returns the same result set (object equal) for each usage", () => {
-    const submoduleDefinition = defineModule("Submodule1", (m) => {
+    const submoduleDefinition = buildModule("Submodule1", (m) => {
       const contract1 = m.contract("Contract1");
 
       return { contract1 };
     });
 
-    const moduleWithSubmoduleDefinition = defineModule("Module1", (m) => {
+    const moduleWithSubmoduleDefinition = buildModule("Module1", (m) => {
       const { contract1: first } = m.useModule(submoduleDefinition);
       const { contract1: second } = m.useModule(submoduleDefinition);
 
@@ -63,13 +63,13 @@ describe("useModule", () => {
   });
 
   it("supports dependending on returned results", () => {
-    const submoduleDefinition = defineModule("Submodule1", (m) => {
+    const submoduleDefinition = buildModule("Submodule1", (m) => {
       const contract1 = m.contract("Contract1");
 
       return { contract1 };
     });
 
-    const moduleWithSubmoduleDefinition = defineModule("Module1", (m) => {
+    const moduleWithSubmoduleDefinition = buildModule("Module1", (m) => {
       const { contract1 } = m.useModule(submoduleDefinition);
 
       const contract2 = m.contract("Contract2", [contract1]);
@@ -111,14 +111,14 @@ describe("useModule", () => {
         linkReferences: {},
       };
 
-      const submoduleDefinition = defineModule("Submodule1", (m) => {
+      const submoduleDefinition = buildModule("Submodule1", (m) => {
         const param1 = m.getParameter("param1");
         const contract1 = m.contract("Contract1", [param1]);
 
         return { contract1 };
       });
 
-      const submodule2Definition = defineModule("Submodule2", (m) => {
+      const submodule2Definition = buildModule("Submodule2", (m) => {
         const { contract1 } = m.useModule(submoduleDefinition);
 
         const param2 = m.getParameter("param2");
@@ -127,7 +127,7 @@ describe("useModule", () => {
         return { contract1, contract2 };
       });
 
-      const moduleWithSubmoduleDefinition = defineModule("Module1", (m) => {
+      const moduleWithSubmoduleDefinition = buildModule("Module1", (m) => {
         const { contract1, contract2 } = m.useModule(submodule2Definition);
 
         const param3 = m.getParameter("param3");
@@ -187,14 +187,14 @@ describe("useModule", () => {
         linkReferences: {},
       };
 
-      const submoduleDefinition = defineModule("Submodule1", (m) => {
+      const submoduleDefinition = buildModule("Submodule1", (m) => {
         const param1 = m.getParameter("param1");
         const contract1 = m.contract("Contract1", [param1]);
 
         return { contract1 };
       });
 
-      const submodule2Definition = defineModule("Submodule2", (m) => {
+      const submodule2Definition = buildModule("Submodule2", (m) => {
         const { contract1 } = m.useModule(submoduleDefinition);
 
         const param2 = m.getParameter("param2");
@@ -203,7 +203,7 @@ describe("useModule", () => {
         return { contract1, contract2 };
       });
 
-      const moduleWithSubmoduleDefinition = defineModule("Module1", (m) => {
+      const moduleWithSubmoduleDefinition = buildModule("Module1", (m) => {
         const { contract1, contract2 } = m.useModule(submodule2Definition);
 
         const param3 = m.getParameter("param3");

@@ -1,5 +1,5 @@
 /* eslint-disable import/no-unused-modules */
-import { defineModule } from "@ignored/ignition-core";
+import { buildModule } from "@ignored/ignition-core";
 import { assert } from "chai";
 
 import { useEphemeralIgnitionProject } from "./use-ignition-project";
@@ -9,7 +9,7 @@ describe("libraries", () => {
   useEphemeralIgnitionProject("minimal-new-api");
 
   it("should be able to deploy a contract that depends on a hardhat library", async function () {
-    const moduleDefinition = defineModule("WithLibModule", (m) => {
+    const moduleDefinition = buildModule("WithLibModule", (m) => {
       const rubbishMath = m.library("RubbishMath");
       const dependsOnLib = m.contract("DependsOnLib", [], {
         libraries: {
@@ -41,7 +41,7 @@ describe("libraries", () => {
       "RubbishMath"
     );
 
-    const moduleDefinition = defineModule("ArtifactLibraryModule", (m) => {
+    const moduleDefinition = buildModule("ArtifactLibraryModule", (m) => {
       const rubbishMath = m.libraryFromArtifact("RubbishMath", libraryArtifact);
       const dependsOnLib = m.contract("DependsOnLib", [], {
         libraries: {
@@ -67,7 +67,7 @@ describe("libraries", () => {
   });
 
   it("should deploy a contract with an existing library", async function () {
-    const libraryModuleDefinition = defineModule("LibraryModule", (m) => {
+    const libraryModuleDefinition = buildModule("LibraryModule", (m) => {
       const rubbishMath = m.library("RubbishMath");
 
       return { rubbishMath };
@@ -78,7 +78,7 @@ describe("libraries", () => {
     const libAddress = libDeployResult.rubbishMath.address;
     const libAbi = libDeployResult.rubbishMath.abi;
 
-    const moduleDefinition = defineModule("ConsumingLibModule", (m) => {
+    const moduleDefinition = buildModule("ConsumingLibModule", (m) => {
       const rubbishMath = m.contractAt("RubbishMath", libAddress, libAbi);
 
       const dependsOnLib = m.contract("DependsOnLib", [], {
@@ -97,7 +97,7 @@ describe("libraries", () => {
   });
 
   it("should be able to deploy a library that depends on a library", async function () {
-    const moduleDefinition = defineModule("ArtifactLibraryModule", (m) => {
+    const moduleDefinition = buildModule("ArtifactLibraryModule", (m) => {
       const rubbishMath = m.library("RubbishMath");
 
       const libDependsOnLib = m.library("LibDependsOnLib", {

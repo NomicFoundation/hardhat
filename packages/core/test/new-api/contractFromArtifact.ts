@@ -2,7 +2,7 @@
 import { assert } from "chai";
 
 import { Artifact, FutureType } from "../../src";
-import { defineModule } from "../../src/new-api/define-module";
+import { buildModule } from "../../src/new-api/build-module";
 import {
   AccountRuntimeValueImplementation,
   ArtifactContractDeploymentFutureImplementation,
@@ -23,7 +23,7 @@ describe("contractFromArtifact", () => {
   };
 
   it("should be able to deploy with a contract based on an artifact", () => {
-    const moduleWithContractFromArtifactDefinition = defineModule(
+    const moduleWithContractFromArtifactDefinition = buildModule(
       "Module1",
       (m) => {
         const contract1 = m.contractFromArtifact("Contract1", fakeArtifact, [
@@ -64,7 +64,7 @@ describe("contractFromArtifact", () => {
   });
 
   it("should be able to pass an arg dependency", () => {
-    const moduleWithDependentContractsDefinition = defineModule(
+    const moduleWithDependentContractsDefinition = buildModule(
       "Module1",
       (m) => {
         const example = m.contract("Example");
@@ -91,7 +91,7 @@ describe("contractFromArtifact", () => {
   });
 
   it("should be able to pass an after dependency", () => {
-    const moduleWithDependentContractsDefinition = defineModule(
+    const moduleWithDependentContractsDefinition = buildModule(
       "Module1",
       (m) => {
         const example = m.contract("Example");
@@ -118,7 +118,7 @@ describe("contractFromArtifact", () => {
   });
 
   it("should be able to pass a library as a dependency of a contract", () => {
-    const moduleWithDependentContractsDefinition = defineModule(
+    const moduleWithDependentContractsDefinition = buildModule(
       "Module1",
       (m) => {
         const example = m.library("Example");
@@ -157,7 +157,7 @@ describe("contractFromArtifact", () => {
   });
 
   it("should be able to pass value as an option", () => {
-    const moduleWithDependentContractsDefinition = defineModule(
+    const moduleWithDependentContractsDefinition = buildModule(
       "Module1",
       (m) => {
         const another = m.contractFromArtifact("Another", fakeArtifact, [], {
@@ -189,7 +189,7 @@ describe("contractFromArtifact", () => {
   });
 
   it("Should be able to pass a ModuleParameterRuntimeValue as a value option", () => {
-    const moduleWithDependentContractsDefinition = defineModule(
+    const moduleWithDependentContractsDefinition = buildModule(
       "Module1",
       (m) => {
         const another = m.contractFromArtifact("Another", fakeArtifact, [], {
@@ -224,7 +224,7 @@ describe("contractFromArtifact", () => {
   });
 
   it("should be able to pass a string as from option", () => {
-    const moduleWithDependentContractsDefinition = defineModule(
+    const moduleWithDependentContractsDefinition = buildModule(
       "Module1",
       (m) => {
         const another = m.contractFromArtifact("Another", fakeArtifact, [], {
@@ -256,7 +256,7 @@ describe("contractFromArtifact", () => {
   });
 
   it("Should be able to pass an AccountRuntimeValue as from option", () => {
-    const moduleWithDependentContractsDefinition = defineModule(
+    const moduleWithDependentContractsDefinition = buildModule(
       "Module1",
       (m) => {
         const another = m.contractFromArtifact("Another", fakeArtifact, [], {
@@ -290,7 +290,7 @@ describe("contractFromArtifact", () => {
 
   describe("Arguments", () => {
     it("Should support base values as arguments", () => {
-      const moduleDefinition = defineModule("Module", (m) => {
+      const moduleDefinition = buildModule("Module", (m) => {
         const contract1 = m.contractFromArtifact("Contract1", fakeArtifact, [
           1,
           true,
@@ -313,7 +313,7 @@ describe("contractFromArtifact", () => {
     });
 
     it("Should support arrays as arguments", () => {
-      const moduleDefinition = defineModule("Module", (m) => {
+      const moduleDefinition = buildModule("Module", (m) => {
         const contract1 = m.contractFromArtifact("Contract1", fakeArtifact, [
           [1, 2, 3n],
         ]);
@@ -328,7 +328,7 @@ describe("contractFromArtifact", () => {
     });
 
     it("Should support objects as arguments", () => {
-      const moduleDefinition = defineModule("Module", (m) => {
+      const moduleDefinition = buildModule("Module", (m) => {
         const contract1 = m.contractFromArtifact("Contract1", fakeArtifact, [
           { a: 1, b: [1, 2] },
         ]);
@@ -346,7 +346,7 @@ describe("contractFromArtifact", () => {
     });
 
     it("Should support futures as arguments", () => {
-      const moduleDefinition = defineModule("Module", (m) => {
+      const moduleDefinition = buildModule("Module", (m) => {
         const contract1 = m.contract("Contract1");
         const contract2 = m.contractFromArtifact("Contract2", fakeArtifact, [
           contract1,
@@ -365,7 +365,7 @@ describe("contractFromArtifact", () => {
     });
 
     it("should support nested futures as arguments", () => {
-      const moduleDefinition = defineModule("Module", (m) => {
+      const moduleDefinition = buildModule("Module", (m) => {
         const contract1 = m.contract("Contract1");
         const contract2 = m.contractFromArtifact("Contract2", fakeArtifact, [
           { arr: [contract1] },
@@ -384,7 +384,7 @@ describe("contractFromArtifact", () => {
     });
 
     it("should support AccountRuntimeValues as arguments", () => {
-      const moduleDefinition = defineModule("Module", (m) => {
+      const moduleDefinition = buildModule("Module", (m) => {
         const account1 = m.getAccount(1);
         const contract1 = m.contractFromArtifact("Contract1", fakeArtifact, [
           account1,
@@ -404,7 +404,7 @@ describe("contractFromArtifact", () => {
     });
 
     it("should support nested AccountRuntimeValues as arguments", () => {
-      const moduleDefinition = defineModule("Module", (m) => {
+      const moduleDefinition = buildModule("Module", (m) => {
         const account1 = m.getAccount(1);
         const contract1 = m.contractFromArtifact("Contract1", fakeArtifact, [
           { arr: [account1] },
@@ -425,7 +425,7 @@ describe("contractFromArtifact", () => {
     });
 
     it("should support ModuleParameterRuntimeValue as arguments", () => {
-      const moduleDefinition = defineModule("Module", (m) => {
+      const moduleDefinition = buildModule("Module", (m) => {
         const p = m.getParameter("p", 123);
         const contract1 = m.contractFromArtifact("Contract1", fakeArtifact, [
           p,
@@ -449,7 +449,7 @@ describe("contractFromArtifact", () => {
     });
 
     it("should support nested ModuleParameterRuntimeValue as arguments", () => {
-      const moduleDefinition = defineModule("Module", (m) => {
+      const moduleDefinition = buildModule("Module", (m) => {
         const p = m.getParameter("p", 123);
         const contract1 = m.contractFromArtifact("Contract1", fakeArtifact, [
           { arr: [p] },
@@ -470,7 +470,7 @@ describe("contractFromArtifact", () => {
 
   describe("passing id", () => {
     it("should use contract from artifact twice by passing an id", () => {
-      const moduleWithSameContractTwiceDefinition = defineModule(
+      const moduleWithSameContractTwiceDefinition = buildModule(
         "Module1",
         (m) => {
           const sameContract1 = m.contractFromArtifact(
@@ -510,7 +510,7 @@ describe("contractFromArtifact", () => {
     });
 
     it("should throw if the same contract is deployed twice without differentiating ids", () => {
-      const moduleDefinition = defineModule("Module1", (m) => {
+      const moduleDefinition = buildModule("Module1", (m) => {
         const sameContract1 = m.contractFromArtifact(
           "SameContract",
           fakeArtifact
@@ -531,7 +531,7 @@ describe("contractFromArtifact", () => {
     });
 
     it("should throw if a contract tries to pass the same id twice", () => {
-      const moduleDefinition = defineModule("Module1", (m) => {
+      const moduleDefinition = buildModule("Module1", (m) => {
         const sameContract1 = m.contractFromArtifact(
           "SameContract",
           fakeArtifact,
@@ -562,7 +562,7 @@ describe("contractFromArtifact", () => {
 
   describe("validation", () => {
     it("should not validate a non-bignumber value option", () => {
-      const moduleWithDependentContractsDefinition = defineModule(
+      const moduleWithDependentContractsDefinition = buildModule(
         "Module1",
         (m) => {
           const another = m.contractFromArtifact("Another", fakeArtifact, [], {
@@ -582,7 +582,7 @@ describe("contractFromArtifact", () => {
     });
 
     it("should not validate a non-address from option", () => {
-      const moduleWithDependentContractsDefinition = defineModule(
+      const moduleWithDependentContractsDefinition = buildModule(
         "Module1",
         (m) => {
           const another = m.contractFromArtifact("Another", fakeArtifact, [], {
@@ -602,7 +602,7 @@ describe("contractFromArtifact", () => {
     });
 
     it("should not validate a non-contract library", () => {
-      const moduleWithDependentContractsDefinition = defineModule(
+      const moduleWithDependentContractsDefinition = buildModule(
         "Module1",
         (m) => {
           const another = m.contract("Another", []);
@@ -625,7 +625,7 @@ describe("contractFromArtifact", () => {
     });
 
     it("should not validate an invalid artifact", () => {
-      const moduleWithDependentContractsDefinition = defineModule(
+      const moduleWithDependentContractsDefinition = buildModule(
         "Module1",
         (m) => {
           const another = m.contractFromArtifact("Another", {} as Artifact, []);
@@ -643,7 +643,7 @@ describe("contractFromArtifact", () => {
     });
 
     it("should not validate an incorrect number of constructor args", async () => {
-      const moduleWithContractFromArtifactDefinition = defineModule(
+      const moduleWithContractFromArtifactDefinition = buildModule(
         "Module1",
         (m) => {
           const contract1 = m.contractFromArtifact(
@@ -673,7 +673,7 @@ describe("contractFromArtifact", () => {
     });
 
     it("should not validate a missing module parameter", async () => {
-      const moduleWithContractFromArtifactDefinition = defineModule(
+      const moduleWithContractFromArtifactDefinition = buildModule(
         "Module1",
         (m) => {
           const p = m.getParameter("p");
@@ -721,7 +721,7 @@ describe("contractFromArtifact", () => {
         linkReferences: {},
       };
 
-      const moduleWithContractFromArtifactDefinition = defineModule(
+      const moduleWithContractFromArtifactDefinition = buildModule(
         "Module1",
         (m) => {
           const p = m.getParameter("p", 123);
@@ -762,7 +762,7 @@ describe("contractFromArtifact", () => {
         linkReferences: {},
       };
 
-      const moduleWithContractFromArtifactDefinition = defineModule(
+      const moduleWithContractFromArtifactDefinition = buildModule(
         "Module1",
         (m) => {
           const p = m.getParameter("p", false as unknown as bigint);
@@ -806,7 +806,7 @@ describe("contractFromArtifact", () => {
         linkReferences: {},
       };
 
-      const moduleWithContractFromArtifactDefinition = defineModule(
+      const moduleWithContractFromArtifactDefinition = buildModule(
         "Module1",
         (m) => {
           const p = m.getParameter("p", 42n);
@@ -836,7 +836,7 @@ describe("contractFromArtifact", () => {
     });
 
     it("should not validate a missing module parameter (deeply nested)", async () => {
-      const moduleWithContractFromArtifactDefinition = defineModule(
+      const moduleWithContractFromArtifactDefinition = buildModule(
         "Module1",
         (m) => {
           const p = m.getParameter("p");
@@ -886,7 +886,7 @@ describe("contractFromArtifact", () => {
         linkReferences: {},
       };
 
-      const moduleWithContractFromArtifactDefinition = defineModule(
+      const moduleWithContractFromArtifactDefinition = buildModule(
         "Module1",
         (m) => {
           const p = m.getParameter("p", 123);

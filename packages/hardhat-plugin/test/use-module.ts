@@ -1,5 +1,5 @@
 /* eslint-disable import/no-unused-modules */
-import { defineModule } from "@ignored/ignition-core";
+import { buildModule } from "@ignored/ignition-core";
 import { assert } from "chai";
 
 import { useEphemeralIgnitionProject } from "./use-ignition-project";
@@ -11,13 +11,13 @@ describe("useModule", function () {
     it("using useModule", async function () {
       await this.hre.run("compile", { quiet: true });
 
-      const thirdPartyModule = defineModule("ThirdPartySubmodule", (m) => {
+      const thirdPartyModule = buildModule("ThirdPartySubmodule", (m) => {
         const foo = m.contract("Foo");
 
         return { foo };
       });
 
-      const userModule = defineModule("UserModule", (m) => {
+      const userModule = buildModule("UserModule", (m) => {
         const { foo } = m.useModule(thirdPartyModule);
 
         m.call(foo, "inc");
@@ -35,7 +35,7 @@ describe("useModule", function () {
     it("should execute all in a module before any that depends on a contract within the module", async function () {
       await this.hre.run("compile", { quiet: true });
 
-      const firstSecondAndThirdModule = defineModule(
+      const firstSecondAndThirdModule = buildModule(
         "SecondAndThirdCallModule",
         (m) => {
           const trace = m.contract("Trace", ["first"]);
@@ -51,7 +51,7 @@ describe("useModule", function () {
         }
       );
 
-      const fourthCallModule = defineModule("FourthCallModule", (m) => {
+      const fourthCallModule = buildModule("FourthCallModule", (m) => {
         const { trace } = m.useModule(firstSecondAndThirdModule);
 
         m.call(trace, "addEntry", ["fourth"]);
@@ -59,7 +59,7 @@ describe("useModule", function () {
         return { trace };
       });
 
-      const userModule = defineModule("UserModule", (m) => {
+      const userModule = buildModule("UserModule", (m) => {
         const { trace } = m.useModule(fourthCallModule);
 
         return { trace };

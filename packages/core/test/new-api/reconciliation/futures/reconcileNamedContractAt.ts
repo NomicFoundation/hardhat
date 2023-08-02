@@ -1,7 +1,7 @@
 /* eslint-disable import/no-unused-modules */
 import { assert } from "chai";
 
-import { defineModule } from "../../../../src/new-api/define-module";
+import { buildModule } from "../../../../src/new-api/build-module";
 import {
   ContractAtExecutionState,
   DeploymentExecutionState,
@@ -62,13 +62,13 @@ describe("Reconciliation - named contract at", () => {
   };
 
   it("should reconcile unchanged when using an address string", () => {
-    const submoduleDefinition = defineModule("Submodule", (m) => {
+    const submoduleDefinition = buildModule("Submodule", (m) => {
       const contract1 = m.contractAt("Contract1", exampleAddress);
 
       return { contract1 };
     });
 
-    const moduleDefinition = defineModule("Module", (m) => {
+    const moduleDefinition = buildModule("Module", (m) => {
       const { contract1 } = m.useModule(submoduleDefinition);
 
       return { contract1 };
@@ -87,7 +87,7 @@ describe("Reconciliation - named contract at", () => {
   });
 
   it("should reconcile unchanged when using an static call", () => {
-    const moduleDefinition = defineModule("Module", (m) => {
+    const moduleDefinition = buildModule("Module", (m) => {
       const example = m.contract("Example");
       const call = m.staticCall(example, "getAddress");
 
@@ -124,7 +124,7 @@ describe("Reconciliation - named contract at", () => {
   });
 
   it("should find changes to contract name unreconciliable", () => {
-    const moduleDefinition = defineModule("Module", (m) => {
+    const moduleDefinition = buildModule("Module", (m) => {
       const contract1 = m.contractAt("ContractChanged", exampleAddress, {
         id: "Factory",
       });
@@ -152,7 +152,7 @@ describe("Reconciliation - named contract at", () => {
   });
 
   it("should find changes to contract address as a literal unreconciliable", () => {
-    const moduleDefinition = defineModule("Module", (m) => {
+    const moduleDefinition = buildModule("Module", (m) => {
       const contract1 = m.contractAt("Contract1", exampleAddress, {
         id: "Factory",
       });

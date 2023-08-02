@@ -1,7 +1,7 @@
 /* eslint-disable import/no-unused-modules */
 import { assert } from "chai";
 
-import { defineModule } from "../../src/new-api/define-module";
+import { buildModule } from "../../src/new-api/build-module";
 import {
   AccountRuntimeValueImplementation,
   ModuleParameterRuntimeValueImplementation,
@@ -16,7 +16,7 @@ import { assertInstanceOf, setupMockArtifactResolver } from "./helpers";
 
 describe("send", () => {
   it("should be able to setup a send", () => {
-    const moduleWithASingleContractDefinition = defineModule("Module1", (m) => {
+    const moduleWithASingleContractDefinition = buildModule("Module1", (m) => {
       m.send("test send", "0xtest", 0n, "test-data");
 
       return {};
@@ -51,7 +51,7 @@ describe("send", () => {
   });
 
   it("should be able to pass one contract as the 'to' arg for a send", () => {
-    const moduleWithDependentContractsDefinition = defineModule(
+    const moduleWithDependentContractsDefinition = buildModule(
       "Module1",
       (m) => {
         const example = m.contract("Example");
@@ -85,7 +85,7 @@ describe("send", () => {
   });
 
   it("should be able to pass one contract as an after dependency of a send", () => {
-    const moduleWithDependentContractsDefinition = defineModule(
+    const moduleWithDependentContractsDefinition = buildModule(
       "Module1",
       (m) => {
         const example = m.contract("Example");
@@ -119,7 +119,7 @@ describe("send", () => {
   });
 
   it("should be able to pass a value", () => {
-    const moduleWithDependentContractsDefinition = defineModule(
+    const moduleWithDependentContractsDefinition = buildModule(
       "Module1",
       (m) => {
         m.send("test send", "0xtest", 42n, "");
@@ -147,7 +147,7 @@ describe("send", () => {
   });
 
   it("Should be able to pass a ModuleParameterRuntimeValue as a value option", () => {
-    const moduleWithDependentContractsDefinition = defineModule(
+    const moduleWithDependentContractsDefinition = buildModule(
       "Module1",
       (m) => {
         m.send("test send", "0xtest", m.getParameter("value"), "");
@@ -178,7 +178,7 @@ describe("send", () => {
   });
 
   it("should be able to pass a string as from option", () => {
-    const moduleWithDependentContractsDefinition = defineModule(
+    const moduleWithDependentContractsDefinition = buildModule(
       "Module1",
       (m) => {
         m.send("test send", "0xtest", 0n, "", { from: "0x2" });
@@ -206,7 +206,7 @@ describe("send", () => {
   });
 
   it("Should be able to pass an AccountRuntimeValue as from option", () => {
-    const moduleWithDependentContractsDefinition = defineModule(
+    const moduleWithDependentContractsDefinition = buildModule(
       "Module1",
       (m) => {
         m.send("test send", "0xtest", 0n, "", { from: m.getAccount(1) });
@@ -235,7 +235,7 @@ describe("send", () => {
   });
 
   it("Should be able to pass a module param as address", () => {
-    const moduleDefinition = defineModule("Module", (m) => {
+    const moduleDefinition = buildModule("Module", (m) => {
       const paramWithDefault = m.getParameter("addressWithDefault", "0x000000");
       const paramWithoutDefault = m.getParameter("addressWithoutDefault");
 
@@ -267,7 +267,7 @@ describe("send", () => {
 
   describe("passing id", () => {
     it("should be able to call the same function twice by passing an id", () => {
-      const moduleWithSameCallTwiceDefinition = defineModule("Module1", (m) => {
+      const moduleWithSameCallTwiceDefinition = buildModule("Module1", (m) => {
         m.send("test send", "0xtest", 0n, "test", { id: "first" });
         m.send("test send", "0xtest", 0n, "test", { id: "second" });
 
@@ -294,7 +294,7 @@ describe("send", () => {
     });
 
     it("should throw if the same function is called twice without differentiating ids", () => {
-      const moduleDefinition = defineModule("Module1", (m) => {
+      const moduleDefinition = buildModule("Module1", (m) => {
         m.send("test send", "0xtest", 0n, "test");
         m.send("test send", "0xtest", 0n, "test");
 
@@ -310,7 +310,7 @@ describe("send", () => {
     });
 
     it("should throw if a call tries to pass the same id twice", () => {
-      const moduleDefinition = defineModule("Module1", (m) => {
+      const moduleDefinition = buildModule("Module1", (m) => {
         m.send("test send", "0xtest", 0n, "test", { id: "first" });
         m.send("test send", "0xtest", 0n, "test", { id: "first" });
         return {};
@@ -327,7 +327,7 @@ describe("send", () => {
 
   describe("validation", () => {
     it("should not validate a non-bignumber value option", () => {
-      const moduleWithDependentContractsDefinition = defineModule(
+      const moduleWithDependentContractsDefinition = buildModule(
         "Module1",
         (m) => {
           const another = m.contract("Another", []);
@@ -346,7 +346,7 @@ describe("send", () => {
     });
 
     it("should not validate a non-string data option", () => {
-      const moduleWithDependentContractsDefinition = defineModule(
+      const moduleWithDependentContractsDefinition = buildModule(
         "Module1",
         (m) => {
           const another = m.contract("Another", []);
@@ -365,7 +365,7 @@ describe("send", () => {
     });
 
     it("should not validate a non-address from option", () => {
-      const moduleWithDependentContractsDefinition = defineModule(
+      const moduleWithDependentContractsDefinition = buildModule(
         "Module1",
         (m) => {
           const another = m.contract("Another", []);
@@ -384,7 +384,7 @@ describe("send", () => {
     });
 
     it("should not validate an invalid address", () => {
-      const moduleWithDependentContractsDefinition = defineModule(
+      const moduleWithDependentContractsDefinition = buildModule(
         "Module1",
         (m) => {
           const another = m.contract("Another", []);
@@ -405,7 +405,7 @@ describe("send", () => {
     });
 
     it("should not validate a missing module parameter", async () => {
-      const moduleWithDependentContractsDefinition = defineModule(
+      const moduleWithDependentContractsDefinition = buildModule(
         "Module1",
         (m) => {
           const p = m.getParameter("p");
@@ -430,7 +430,7 @@ describe("send", () => {
     });
 
     it("should validate a missing module parameter if a default parameter is present", async () => {
-      const moduleWithDependentContractsDefinition = defineModule(
+      const moduleWithDependentContractsDefinition = buildModule(
         "Module1",
         (m) => {
           const p = m.getParameter("p", "0x123");
@@ -454,7 +454,7 @@ describe("send", () => {
     });
 
     it("should not validate a module parameter of the wrong type for value", async () => {
-      const moduleWithDependentContractsDefinition = defineModule(
+      const moduleWithDependentContractsDefinition = buildModule(
         "Module1",
         (m) => {
           const p = m.getParameter("p", false as unknown as bigint);
@@ -479,7 +479,7 @@ describe("send", () => {
     });
 
     it("should validate a module parameter of the correct type for value", async () => {
-      const moduleWithDependentContractsDefinition = defineModule(
+      const moduleWithDependentContractsDefinition = buildModule(
         "Module1",
         (m) => {
           const p = m.getParameter("p", 42n);

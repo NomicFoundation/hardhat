@@ -1,7 +1,7 @@
 /* eslint-disable import/no-unused-modules */
 import { assert } from "chai";
 
-import { defineModule } from "../../src/new-api/define-module";
+import { buildModule } from "../../src/new-api/build-module";
 import { ModuleParameterRuntimeValueImplementation } from "../../src/new-api/internal/module";
 import { ModuleConstructor } from "../../src/new-api/internal/module-builder";
 import { ModuleParameterType } from "../../src/new-api/types/module";
@@ -11,7 +11,7 @@ import { assertInstanceOf } from "./helpers";
 describe("getParameter", () => {
   describe("Without default value", function () {
     it("should return the correct RuntimeValue", () => {
-      const defintion = defineModule("MyModule", (m) => {
+      const defintion = buildModule("MyModule", (m) => {
         const p = m.getParameter("p");
 
         const contract = m.contract("Contract", [p]);
@@ -31,7 +31,7 @@ describe("getParameter", () => {
 
   describe("With default value", function () {
     it("should accept base values as default", () => {
-      const defintion = defineModule("MyModule", (m) => {
+      const defintion = buildModule("MyModule", (m) => {
         const s = m.getParameter("string", "default");
         const n = m.getParameter("number", 1);
         const bi = m.getParameter("bigint", 1n);
@@ -69,7 +69,7 @@ describe("getParameter", () => {
 
     it("Should accept arrays as deafult", () => {
       const defaultValue: ModuleParameterType = [1, "dos", 3n, false];
-      const defintion = defineModule("MyModule", (m) => {
+      const defintion = buildModule("MyModule", (m) => {
         const p = m.getParameter("p", defaultValue);
 
         const contract = m.contract("Contract", [p]);
@@ -88,7 +88,7 @@ describe("getParameter", () => {
 
     it("Should accept objects as deafult", () => {
       const defaultValue: ModuleParameterType = { a: 1, b: "dos", c: 3n };
-      const defintion = defineModule("MyModule", (m) => {
+      const defintion = buildModule("MyModule", (m) => {
         const p = m.getParameter("p", defaultValue);
 
         const contract = m.contract("Contract", [p]);
@@ -109,7 +109,7 @@ describe("getParameter", () => {
       const defaultValue: ModuleParameterType = {
         arr: [123, { a: [{ o: true }] }],
       };
-      const defintion = defineModule("MyModule", (m) => {
+      const defintion = buildModule("MyModule", (m) => {
         const p = m.getParameter("p", defaultValue);
 
         const contract = m.contract("Contract", [p]);

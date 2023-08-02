@@ -1,5 +1,5 @@
 /* eslint-disable import/no-unused-modules */
-import { defineModule } from "@ignored/ignition-core";
+import { buildModule } from "@ignored/ignition-core";
 import { assert } from "chai";
 
 import { useEphemeralIgnitionProject } from "./use-ignition-project";
@@ -8,7 +8,7 @@ describe("static calls", () => {
   useEphemeralIgnitionProject("minimal-new-api");
 
   it("should be able to use the output of a static call in a contract at", async function () {
-    const moduleDefinition = defineModule("FooModule", (m) => {
+    const moduleDefinition = buildModule("FooModule", (m) => {
       const account1 = m.getAccount(1);
 
       const fooFactory = m.contract("FooFactory", [], { from: account1 });
@@ -33,7 +33,7 @@ describe("static calls", () => {
   it("should be able to use the output of a static call in an artifact contract at", async function () {
     const artifact = await this.hre.artifacts.readArtifact("Foo");
 
-    const moduleDefinition = defineModule("FooModule", (m) => {
+    const moduleDefinition = buildModule("FooModule", (m) => {
       const account1 = m.getAccount(1);
 
       const fooFactory = m.contract("FooFactory", [], { from: account1 });
@@ -56,7 +56,7 @@ describe("static calls", () => {
   });
 
   it("should be able to use the output of a static call function in a contract at (with arg)", async function () {
-    const moduleDefinition = defineModule("FooModule", (m) => {
+    const moduleDefinition = buildModule("FooModule", (m) => {
       const account1 = m.getAccount(1);
 
       const fooFactory = m.contract("FooFactory", [], { from: account1 });
@@ -79,7 +79,7 @@ describe("static calls", () => {
   });
 
   it("should be able to use the output of a static call function in a contract at (with function signature)", async function () {
-    const moduleDefinition = defineModule("FooModule", (m) => {
+    const moduleDefinition = buildModule("FooModule", (m) => {
       const account1 = m.getAccount(1);
 
       const fooFactory = m.contract("FooFactory", [], { from: account1 });
@@ -102,7 +102,7 @@ describe("static calls", () => {
   });
 
   it("should not be able to use the output of a non-address static call in a contract at", async function () {
-    const moduleDefinition = defineModule("FooModule", (m) => {
+    const moduleDefinition = buildModule("FooModule", (m) => {
       const account1 = m.getAccount(1);
 
       const fooFactory = m.contract("FooFactory", [], { from: account1 });
@@ -127,7 +127,7 @@ describe("static calls", () => {
   it("should not be able to use the output of a non-address static call in an artifact contract at", async function () {
     const artifact = await this.hre.artifacts.readArtifact("Foo");
 
-    const moduleDefinition = defineModule("FooModule", (m) => {
+    const moduleDefinition = buildModule("FooModule", (m) => {
       const account1 = m.getAccount(1);
 
       const fooFactory = m.contract("FooFactory", [], { from: account1 });

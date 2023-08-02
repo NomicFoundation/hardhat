@@ -1,5 +1,5 @@
 /* eslint-disable import/no-unused-modules */
-import { defineModule } from "../../../src/new-api/define-module";
+import { buildModule } from "../../../src/new-api/build-module";
 import { MemoryJournal } from "../../../src/new-api/internal/journal/memory-journal";
 import { Wiper } from "../../../src/new-api/internal/wiper";
 import {
@@ -34,14 +34,14 @@ describe("execution engine", () => {
     };
 
     it("should allow restart", async () => {
-      const firstRunModDef = defineModule("Module1", (m) => {
+      const firstRunModDef = buildModule("Module1", (m) => {
         // Invalid constructor arg - causes revert
         const contract1 = m.contract("Contract1", [0]);
 
         return { contract1 };
       });
 
-      const secondRunModDef = defineModule("Module1", (m) => {
+      const secondRunModDef = buildModule("Module1", (m) => {
         // Valid constructor arg
         const contract1 = m.contract("Contract1", [1]);
 

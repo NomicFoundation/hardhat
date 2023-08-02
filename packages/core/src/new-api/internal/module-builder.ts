@@ -122,7 +122,7 @@ export class ModuleConstructor {
 
     if ((mod as any).results instanceof Promise) {
       throw new IgnitionError(
-        `The callback passed to 'defineModule' for ${moduleDefintion.id} returns a Promise; async callbacks are not allowed in 'defineModule'.`
+        `The callback passed to 'buildModule' for ${moduleDefintion.id} returns a Promise; async callbacks are not allowed in 'buildModule'.`
       );
     }
 

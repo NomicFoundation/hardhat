@@ -1,7 +1,7 @@
 /* eslint-disable import/no-unused-modules */
 import { assert } from "chai";
 
-import { defineModule } from "../../../../src/new-api/define-module";
+import { buildModule } from "../../../../src/new-api/build-module";
 import {
   DeploymentExecutionState,
   ExecutionStatus,
@@ -52,7 +52,7 @@ describe("Reconciliation - named static call", () => {
   };
 
   it("should reconcile unchanged", () => {
-    const submoduleDefinition = defineModule("Submodule", (m) => {
+    const submoduleDefinition = buildModule("Submodule", (m) => {
       const contract1 = m.contract("Contract1");
 
       m.staticCall(contract1, "function1", [1, "a"]);
@@ -60,7 +60,7 @@ describe("Reconciliation - named static call", () => {
       return { contract1 };
     });
 
-    const moduleDefinition = defineModule("Module", (m) => {
+    const moduleDefinition = buildModule("Module", (m) => {
       const { contract1 } = m.useModule(submoduleDefinition);
 
       return { contract1 };
@@ -84,7 +84,7 @@ describe("Reconciliation - named static call", () => {
   });
 
   it("should find changes to contract unreconciliable", () => {
-    const moduleDefinition = defineModule("Module", (m) => {
+    const moduleDefinition = buildModule("Module", (m) => {
       const contract1 = m.contract("Contract1");
 
       m.staticCall(contract1, "function1", [], { id: "config" });
@@ -116,7 +116,7 @@ describe("Reconciliation - named static call", () => {
   });
 
   it("should find changes to function name unreconciliable", () => {
-    const moduleDefinition = defineModule("Module", (m) => {
+    const moduleDefinition = buildModule("Module", (m) => {
       const contract1 = m.contract("Contract1");
 
       m.staticCall(contract1, "functionChanged", [], { id: "config" });
@@ -149,7 +149,7 @@ describe("Reconciliation - named static call", () => {
   });
 
   it("should find changes to function args unreconciliable", () => {
-    const moduleDefinition = defineModule("Module", (m) => {
+    const moduleDefinition = buildModule("Module", (m) => {
       const ticker = m.getParameter("ticker", "CHANGED");
 
       const contract1 = m.contract("Contract1");
@@ -184,7 +184,7 @@ describe("Reconciliation - named static call", () => {
   });
 
   it("should find changes to from unreconciliable", () => {
-    const moduleDefinition = defineModule("Module", (m) => {
+    const moduleDefinition = buildModule("Module", (m) => {
       const contract1 = m.contract("Contract1");
 
       m.staticCall(contract1, "function1", [], {
@@ -220,7 +220,7 @@ describe("Reconciliation - named static call", () => {
   });
 
   it("should not reconcile the use of the result of a static call that has changed", () => {
-    const moduleDefinition = defineModule("Module", (m) => {
+    const moduleDefinition = buildModule("Module", (m) => {
       const contract1 = m.contract("Contract1");
 
       const resultArg1 = m.staticCall(contract1, "function1", ["first"], {

@@ -1,5 +1,5 @@
 /* eslint-disable import/no-unused-modules */
-import { defineModule } from "@ignored/ignition-core";
+import { buildModule } from "@ignored/ignition-core";
 import { assert } from "chai";
 
 import {
@@ -17,7 +17,7 @@ describe("execution - deploy contract", function () {
   useEphemeralIgnitionProject("minimal-new-api");
 
   it("should deploy a contract that is callable", async function () {
-    const moduleDefinition = defineModule("FooModule", (m) => {
+    const moduleDefinition = buildModule("FooModule", (m) => {
       const foo = m.contract("Foo");
 
       return { foo };

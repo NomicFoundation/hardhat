@@ -2,7 +2,7 @@
 import { assert } from "chai";
 
 import { Artifact, FutureType, ReadEventArgumentFuture } from "../../src";
-import { defineModule } from "../../src/new-api/define-module";
+import { buildModule } from "../../src/new-api/build-module";
 import { ModuleConstructor } from "../../src/new-api/internal/module-builder";
 import { getFuturesFromModule } from "../../src/new-api/internal/utils/get-futures-from-module";
 import { validateReadEventArgument } from "../../src/new-api/internal/validation/futures/validateReadEventArgument";
@@ -19,7 +19,7 @@ describe("Read event argument", () => {
         linkReferences: {},
       };
 
-      const defintion = defineModule("Module1", (m) => {
+      const defintion = buildModule("Module1", (m) => {
         const contract = m.contract("Contract");
         const contractFromArtifact = m.contractFromArtifact(
           "ContractFromArtifact",
@@ -51,7 +51,7 @@ describe("Read event argument", () => {
     });
 
     it("should infer the emitter from the future correctly", () => {
-      const defintion = defineModule("Module1", (m) => {
+      const defintion = buildModule("Module1", (m) => {
         const contract = m.contract("Contract");
         const call = m.call(contract, "fuc");
 
@@ -73,7 +73,7 @@ describe("Read event argument", () => {
     });
 
     it("should accept an explicit emitter", () => {
-      const defintion = defineModule("Module1", (m) => {
+      const defintion = buildModule("Module1", (m) => {
         const contract = m.contract("ContractThatCallsEmitter");
         const emitter = m.contract("ContractThatEmittsEvent2");
         const call = m.call(contract, "doSomethingAndCallThEmitter", [emitter]);
@@ -96,7 +96,7 @@ describe("Read event argument", () => {
     });
 
     it("should set the right eventName and argumentName", () => {
-      const defintion = defineModule("Module1", (m) => {
+      const defintion = buildModule("Module1", (m) => {
         const contract = m.contract("Contract");
         const call = m.call(contract, "fuc");
 
@@ -121,7 +121,7 @@ describe("Read event argument", () => {
     });
 
     it("should default the eventIndex to 0", () => {
-      const defintion = defineModule("Module1", (m) => {
+      const defintion = buildModule("Module1", (m) => {
         const contract = m.contract("Contract");
 
         m.readEventArgument(contract, "EventName1", "arg1");
@@ -140,7 +140,7 @@ describe("Read event argument", () => {
     });
 
     it("should accept an explicit eventIndex", () => {
-      const defintion = defineModule("Module1", (m) => {
+      const defintion = buildModule("Module1", (m) => {
         const contract = m.contract("Contract");
 
         m.readEventArgument(contract, "EventName1", "arg1", { eventIndex: 1 });
@@ -165,7 +165,7 @@ describe("Read event argument", () => {
 
   describe("passing ids", () => {
     it("should have a default id based on the emitter's contract name, the event name, argument and index", () => {
-      const defintion = defineModule("Module1", (m) => {
+      const defintion = buildModule("Module1", (m) => {
         const main = m.contract("Main");
         const emitter = m.contract("Emitter");
 
@@ -189,7 +189,7 @@ describe("Read event argument", () => {
     });
 
     it("should be able to read the same argument twice by passing a explicit id", () => {
-      const moduleWithSameReadEventArgumentTwiceDefinition = defineModule(
+      const moduleWithSameReadEventArgumentTwiceDefinition = buildModule(
         "Module1",
         (m) => {
           const example = m.contract("Example");
@@ -220,7 +220,7 @@ describe("Read event argument", () => {
 
   describe("validation", () => {
     it("should not validate a non-existant hardhat contract", async () => {
-      const moduleDef = defineModule("Module1", (m) => {
+      const moduleDef = buildModule("Module1", (m) => {
         const another = m.contract("Another", []);
         m.readEventArgument(another, "test", "arg");
 
@@ -251,7 +251,7 @@ describe("Read event argument", () => {
         linkReferences: {},
       };
 
-      const moduleDef = defineModule("Module1", (m) => {
+      const moduleDef = buildModule("Module1", (m) => {
         const another = m.contractFromArtifact("Another", fakeArtifact, []);
         m.readEventArgument(another, "test", "arg");
 

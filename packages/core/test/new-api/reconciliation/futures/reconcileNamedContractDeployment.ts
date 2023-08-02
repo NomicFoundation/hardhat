@@ -1,7 +1,7 @@
 /* eslint-disable import/no-unused-modules */
 import { assert } from "chai";
 
-import { defineModule } from "../../../../src/new-api/define-module";
+import { buildModule } from "../../../../src/new-api/build-module";
 import {
   DeploymentExecutionState,
   ExecutionStatus,
@@ -35,7 +35,7 @@ describe("Reconciliation - named contract", () => {
   };
 
   it("should reconcile unchanged", () => {
-    const submoduleDefinition = defineModule("Submodule", (m) => {
+    const submoduleDefinition = buildModule("Submodule", (m) => {
       const owner = m.getAccount(3);
       const supply = m.getParameter("supply", BigInt(500));
       const ticker = m.getParameter("ticker", "CodeCoin");
@@ -55,7 +55,7 @@ describe("Reconciliation - named contract", () => {
       return { contract1 };
     });
 
-    const moduleDefinition = defineModule("Module", (m) => {
+    const moduleDefinition = buildModule("Module", (m) => {
       const { contract1 } = m.useModule(submoduleDefinition);
 
       return { contract1 };
@@ -86,7 +86,7 @@ describe("Reconciliation - named contract", () => {
   });
 
   it("should find changes to contract name unreconciliable", () => {
-    const moduleDefinition = defineModule("Module", (m) => {
+    const moduleDefinition = buildModule("Module", (m) => {
       const contract1 = m.contract("ContractChanged", [], {
         id: "Example",
       });
@@ -112,7 +112,7 @@ describe("Reconciliation - named contract", () => {
   });
 
   it("should find changes to constructor args unreconciliable", () => {
-    const moduleDefinition = defineModule("Module", (m) => {
+    const moduleDefinition = buildModule("Module", (m) => {
       const owner = m.getAccount(3);
       const supply = m.getParameter("supply", BigInt(500));
       const ticker = m.getParameter("ticker", "CodeCoin");
@@ -147,7 +147,7 @@ describe("Reconciliation - named contract", () => {
   });
 
   it("should find changes to libraries unreconciliable", () => {
-    const moduleDefinition = defineModule("Module", (m) => {
+    const moduleDefinition = buildModule("Module", (m) => {
       const safeMath = m.library("SafeMath");
 
       const contract1 = m.contract("Contract1", [], {
@@ -183,7 +183,7 @@ describe("Reconciliation - named contract", () => {
   });
 
   it("should find changes to value unreconciliable", () => {
-    const moduleDefinition = defineModule("Module", (m) => {
+    const moduleDefinition = buildModule("Module", (m) => {
       const contract1 = m.contract("Contract", [], {
         id: "Example",
         value: BigInt(3),
@@ -210,7 +210,7 @@ describe("Reconciliation - named contract", () => {
   });
 
   it("should find changes to from unreconciliable", () => {
-    const moduleDefinition = defineModule("Module", (m) => {
+    const moduleDefinition = buildModule("Module", (m) => {
       const contract1 = m.contract("Contract", [], {
         id: "Example",
         from: twoAddress,

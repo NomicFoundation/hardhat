@@ -1,5 +1,5 @@
 /* eslint-disable import/no-unused-modules */
-import { defineModule } from "@ignored/ignition-core";
+import { buildModule } from "@ignored/ignition-core";
 import { assert } from "chai";
 
 import { useEphemeralIgnitionProject } from "../use-ignition-project";
@@ -21,7 +21,7 @@ describe("execution - multiple batch contract deploy", function () {
       params: [false],
     });
 
-    const moduleDefinition = defineModule("FooModule", (m) => {
+    const moduleDefinition = buildModule("FooModule", (m) => {
       const contract1 = m.contract("Foo", [], { id: "Contract1" });
       const contractA = m.contract("Foo", [], { id: "ContractA" });
 

@@ -1,7 +1,7 @@
 /* eslint-disable import/no-unused-modules */
 import { assert } from "chai";
 
-import { defineModule } from "../../src/new-api/define-module";
+import { buildModule } from "../../src/new-api/build-module";
 import { MemoryJournal } from "../../src/new-api/internal/journal/memory-journal";
 import { Journal } from "../../src/new-api/internal/types/journal";
 import { Wiper } from "../../src/new-api/internal/wiper";
@@ -29,7 +29,7 @@ describe("wipe", () => {
     journal = new MemoryJournal();
     wiper = new Wiper(journal);
 
-    moduleDefinition = defineModule("Module1", (m) => {
+    moduleDefinition = buildModule("Module1", (m) => {
       const contract1 = m.contract("Contract1", [], { after: [] });
       const contract2 = m.contract("Contract2", [], { after: [contract1] });
       const contract3 = m.contract("Contract3", [], { after: [contract2] });

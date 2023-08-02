@@ -1,4 +1,4 @@
-const { defineModule } = require("@ignored/hardhat-ignition");
+const { buildModule } = require("@ignored/hardhat-ignition");
 
 const namehash = require("eth-ens-namehash");
 const ethers = hre.ethers;
@@ -16,13 +16,13 @@ const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
 const ZERO_HASH =
   "0x0000000000000000000000000000000000000000000000000000000000000000";
 
-const registryModule = defineModule("REGISTRY", (m) => {
+const registryModule = buildModule("REGISTRY", (m) => {
   const ens = m.contract("ENSRegistry");
 
   return { ens };
 });
 
-const resolverModule = defineModule("RESOLVER", (m) => {
+const resolverModule = buildModule("RESOLVER", (m) => {
   const { ens } = m.useModule(registryModule);
   const account = m.getAccount(0);
 
@@ -40,7 +40,7 @@ const resolverModule = defineModule("RESOLVER", (m) => {
   return { resolver };
 });
 
-const reverseRegistrarModule = defineModule("REVERSEREGISTRAR", (m) => {
+const reverseRegistrarModule = buildModule("REVERSEREGISTRAR", (m) => {
   const account = m.getAccount(0);
 
   const { ens } = m.useModule(registryModule);
@@ -65,7 +65,7 @@ const reverseRegistrarModule = defineModule("REVERSEREGISTRAR", (m) => {
   return { reverseRegistrar };
 });
 
-module.exports = defineModule("ENS", (m) => {
+module.exports = buildModule("ENS", (m) => {
   const { ens } = m.useModule(registryModule);
   const { resolver } = m.useModule(resolverModule);
   const { reverseRegistrar } = m.useModule(reverseRegistrarModule);

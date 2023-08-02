@@ -2,7 +2,7 @@
 import { assert } from "chai";
 
 import { Artifact } from "../../src";
-import { defineModule } from "../../src/new-api/define-module";
+import { buildModule } from "../../src/new-api/build-module";
 import {
   AccountRuntimeValueImplementation,
   ArtifactLibraryDeploymentFutureImplementation,
@@ -20,7 +20,7 @@ describe("libraryFromArtifact", () => {
   };
 
   it("should be able to deploy with a library based on an artifact", () => {
-    const moduleWithContractFromArtifactDefinition = defineModule(
+    const moduleWithContractFromArtifactDefinition = buildModule(
       "Module1",
       (m) => {
         const library1 = m.libraryFromArtifact("Library1", fakeArtifact);
@@ -51,7 +51,7 @@ describe("libraryFromArtifact", () => {
   });
 
   it("should be able to pass an after dependency", () => {
-    const moduleWithDependentContractsDefinition = defineModule(
+    const moduleWithDependentContractsDefinition = buildModule(
       "Module1",
       (m) => {
         const example = m.library("Example");
@@ -78,7 +78,7 @@ describe("libraryFromArtifact", () => {
   });
 
   it("should be able to pass a library as a dependency of a library", () => {
-    const moduleWithDependentContractsDefinition = defineModule(
+    const moduleWithDependentContractsDefinition = buildModule(
       "Module1",
       (m) => {
         const example = m.library("Example");
@@ -117,7 +117,7 @@ describe("libraryFromArtifact", () => {
   });
 
   it("should be able to pass a string as from option", () => {
-    const moduleWithDependentContractsDefinition = defineModule(
+    const moduleWithDependentContractsDefinition = buildModule(
       "Module1",
       (m) => {
         const another = m.libraryFromArtifact("Another", fakeArtifact, {
@@ -149,7 +149,7 @@ describe("libraryFromArtifact", () => {
   });
 
   it("Should be able to pass an AccountRuntimeValue as from option", () => {
-    const moduleWithDependentContractsDefinition = defineModule(
+    const moduleWithDependentContractsDefinition = buildModule(
       "Module1",
       (m) => {
         const another = m.libraryFromArtifact("Another", fakeArtifact, {
@@ -183,7 +183,7 @@ describe("libraryFromArtifact", () => {
 
   describe("passing id", () => {
     it("should use library from artifact twice by passing an id", () => {
-      const moduleWithSameContractTwiceDefinition = defineModule(
+      const moduleWithSameContractTwiceDefinition = buildModule(
         "Module1",
         (m) => {
           const sameContract1 = m.libraryFromArtifact(
@@ -221,7 +221,7 @@ describe("libraryFromArtifact", () => {
     });
 
     it("should throw if the same library is deployed twice without differentiating ids", () => {
-      const moduleDefinition = defineModule("Module1", (m) => {
+      const moduleDefinition = buildModule("Module1", (m) => {
         const sameContract1 = m.libraryFromArtifact(
           "SameContract",
           fakeArtifact
@@ -242,7 +242,7 @@ describe("libraryFromArtifact", () => {
     });
 
     it("should throw if a library tries to pass the same id twice", () => {
-      const moduleDefinition = defineModule("Module1", (m) => {
+      const moduleDefinition = buildModule("Module1", (m) => {
         const sameContract1 = m.libraryFromArtifact(
           "SameContract",
           fakeArtifact,
@@ -271,7 +271,7 @@ describe("libraryFromArtifact", () => {
 
   describe("validation", () => {
     it("should not validate a non-address from option", () => {
-      const moduleWithDependentContractsDefinition = defineModule(
+      const moduleWithDependentContractsDefinition = buildModule(
         "Module1",
         (m) => {
           const another = m.libraryFromArtifact("Another", fakeArtifact, {
@@ -291,7 +291,7 @@ describe("libraryFromArtifact", () => {
     });
 
     it("should not validate a non-contract library", () => {
-      const moduleWithDependentContractsDefinition = defineModule(
+      const moduleWithDependentContractsDefinition = buildModule(
         "Module1",
         (m) => {
           const another = m.contract("Another", []);
@@ -314,7 +314,7 @@ describe("libraryFromArtifact", () => {
     });
 
     it("should not validate an invalid artifact", () => {
-      const moduleWithDependentContractsDefinition = defineModule(
+      const moduleWithDependentContractsDefinition = buildModule(
         "Module1",
         (m) => {
           const another = m.libraryFromArtifact("Another", {} as Artifact);

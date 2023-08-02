@@ -1,4 +1,4 @@
-const { defineModule } = require("@ignored/hardhat-ignition");
+const { buildModule } = require("@ignored/hardhat-ignition");
 
 const UniswapV3Factory = require("@uniswap/v3-core/artifacts/contracts/UniswapV3Factory.sol/UniswapV3Factory.json");
 const UniswapInterfaceMulticall = require("@uniswap/v3-periphery/artifacts/contracts/lens/UniswapInterfaceMulticall.sol/UniswapInterfaceMulticall.json");
@@ -42,7 +42,7 @@ function asciiStringToBytes32(str) {
   return "0x" + Buffer.from(str, "ascii").toString("hex").padEnd(64, "0");
 }
 
-module.exports = defineModule("Uniswap", (m) => {
+module.exports = buildModule("Uniswap", (m) => {
   const owner = m.getAccount(0);
   const v2CoreFactoryAddress = ADDRESS_ZERO;
 

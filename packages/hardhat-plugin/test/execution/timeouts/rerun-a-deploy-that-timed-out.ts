@@ -1,5 +1,5 @@
 /* eslint-disable import/no-unused-modules */
-import { defineModule } from "@ignored/ignition-core";
+import { buildModule } from "@ignored/ignition-core";
 import { assert } from "chai";
 
 import {
@@ -17,7 +17,7 @@ describe("execution - rerun a deploy that timed out", () => {
 
   it("should error naming timed out transactions", async function () {
     // Setup a module with a contract deploy on accounts[2]
-    const moduleDefinition = defineModule("FooModule", (m) => {
+    const moduleDefinition = buildModule("FooModule", (m) => {
       const account2 = m.getAccount(2);
 
       const foo = m.contract("Foo", [], { from: account2 });

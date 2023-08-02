@@ -1,7 +1,7 @@
 /* eslint-disable import/no-unused-modules */
 import { assert } from "chai";
 
-import { defineModule } from "../../../../src/new-api/define-module";
+import { buildModule } from "../../../../src/new-api/build-module";
 import {
   ExecutionStatus,
   SendDataExecutionState,
@@ -29,13 +29,13 @@ describe("Reconciliation - send data", () => {
   };
 
   it("should reconcile unchanged", () => {
-    const submoduleDefinition = defineModule("Submodule", (m) => {
+    const submoduleDefinition = buildModule("Submodule", (m) => {
       m.send("test_send", exampleAddress, 0n, "example_data");
 
       return {};
     });
 
-    const moduleDefinition = defineModule("Module", (m) => {
+    const moduleDefinition = buildModule("Module", (m) => {
       const {} = m.useModule(submoduleDefinition);
 
       return {};
@@ -50,7 +50,7 @@ describe("Reconciliation - send data", () => {
   });
 
   it("should find changes to the to address unreconciliable", () => {
-    const moduleDefinition = defineModule("Module", (m) => {
+    const moduleDefinition = buildModule("Module", (m) => {
       m.send("test_send", differentAddress, 0n, "example_data");
 
       return {};
@@ -74,7 +74,7 @@ describe("Reconciliation - send data", () => {
   });
 
   it("should find changes to the to data unreconciliable", () => {
-    const moduleDefinition = defineModule("Module", (m) => {
+    const moduleDefinition = buildModule("Module", (m) => {
       m.send("test_send", exampleAddress, 0n, "changed_data");
 
       return {};
@@ -97,7 +97,7 @@ describe("Reconciliation - send data", () => {
   });
 
   it("should find changes to the value unreconciliable", () => {
-    const moduleDefinition = defineModule("Module", (m) => {
+    const moduleDefinition = buildModule("Module", (m) => {
       m.send("test_send", exampleAddress, 3n, "example_data");
 
       return {};
@@ -120,7 +120,7 @@ describe("Reconciliation - send data", () => {
   });
 
   it("should find changes to from unreconciliable", () => {
-    const moduleDefinition = defineModule("Module", (m) => {
+    const moduleDefinition = buildModule("Module", (m) => {
       m.send("test_send", exampleAddress, 0n, "example_data", {
         from: differentAddress,
       });

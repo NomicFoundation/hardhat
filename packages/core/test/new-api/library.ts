@@ -1,7 +1,7 @@
 /* eslint-disable import/no-unused-modules */
 import { assert } from "chai";
 
-import { defineModule } from "../../src/new-api/define-module";
+import { buildModule } from "../../src/new-api/build-module";
 import {
   AccountRuntimeValueImplementation,
   NamedLibraryDeploymentFutureImplementation,
@@ -15,7 +15,7 @@ import { assertInstanceOf, setupMockArtifactResolver } from "./helpers";
 
 describe("library", () => {
   it("should be able to setup a deploy library call", () => {
-    const moduleWithASingleContractDefinition = defineModule("Module1", (m) => {
+    const moduleWithASingleContractDefinition = buildModule("Module1", (m) => {
       const library1 = m.library("Library1");
 
       return { library1 };
@@ -47,7 +47,7 @@ describe("library", () => {
   });
 
   it("should be able to pass one library as an after dependency of another", () => {
-    const moduleWithDependentContractsDefinition = defineModule(
+    const moduleWithDependentContractsDefinition = buildModule(
       "Module1",
       (m) => {
         const example = m.library("Example");
@@ -83,7 +83,7 @@ describe("library", () => {
   });
 
   it("should be able to pass a library as a dependency of a library", () => {
-    const moduleWithDependentContractsDefinition = defineModule(
+    const moduleWithDependentContractsDefinition = buildModule(
       "Module1",
       (m) => {
         const example = m.library("Example");
@@ -122,7 +122,7 @@ describe("library", () => {
   });
 
   it("should be able to pass a string as from option", () => {
-    const moduleWithDependentContractsDefinition = defineModule(
+    const moduleWithDependentContractsDefinition = buildModule(
       "Module1",
       (m) => {
         const another = m.library("Another", {
@@ -154,7 +154,7 @@ describe("library", () => {
   });
 
   it("Should be able to pass an AccountRuntimeValue as from option", () => {
-    const moduleWithDependentContractsDefinition = defineModule(
+    const moduleWithDependentContractsDefinition = buildModule(
       "Module1",
       (m) => {
         const another = m.library("Another", {
@@ -188,7 +188,7 @@ describe("library", () => {
 
   describe("passing id", () => {
     it("should be able to deploy the same library twice by passing an id", () => {
-      const moduleWithSameContractTwiceDefinition = defineModule(
+      const moduleWithSameContractTwiceDefinition = buildModule(
         "Module1",
         (m) => {
           const sameContract1 = m.library("SameContract", { id: "first" });
@@ -217,7 +217,7 @@ describe("library", () => {
     });
 
     it("should throw if the same library is deployed twice without differentiating ids", () => {
-      const moduleDefinition = defineModule("Module1", (m) => {
+      const moduleDefinition = buildModule("Module1", (m) => {
         const sameContract1 = m.library("SameContract");
         const sameContract2 = m.library("SameContract");
 
@@ -232,7 +232,7 @@ describe("library", () => {
     });
 
     it("should throw if a library tries to pass the same id twice", () => {
-      const moduleDefinition = defineModule("Module1", (m) => {
+      const moduleDefinition = buildModule("Module1", (m) => {
         const sameContract1 = m.library("SameContract", {
           id: "same",
         });
@@ -253,7 +253,7 @@ describe("library", () => {
 
   describe("validation", () => {
     it("should not validate a non-address from option", () => {
-      const moduleWithDependentContractsDefinition = defineModule(
+      const moduleWithDependentContractsDefinition = buildModule(
         "Module1",
         (m) => {
           const another = m.contract("Another", [], { from: 1 as any });
@@ -271,7 +271,7 @@ describe("library", () => {
     });
 
     it("should not validate a non-contract library", () => {
-      const moduleWithDependentContractsDefinition = defineModule(
+      const moduleWithDependentContractsDefinition = buildModule(
         "Module1",
         (m) => {
           const another = m.contract("Another", []);
@@ -294,7 +294,7 @@ describe("library", () => {
     });
 
     it("should not validate an invalid artifact", async () => {
-      const moduleWithDependentContractsDefinition = defineModule(
+      const moduleWithDependentContractsDefinition = buildModule(
         "Module1",
         (m) => {
           const another = m.library("Another");

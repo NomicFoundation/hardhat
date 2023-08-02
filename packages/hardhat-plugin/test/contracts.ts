@@ -1,5 +1,5 @@
 /* eslint-disable import/no-unused-modules */
-import { defineModule } from "@ignored/ignition-core";
+import { buildModule } from "@ignored/ignition-core";
 import { assert } from "chai";
 
 import { useEphemeralIgnitionProject } from "./use-ignition-project";
@@ -8,7 +8,7 @@ describe("contract deploys", () => {
   useEphemeralIgnitionProject("minimal-new-api");
 
   it("should be able to deploy a contract", async function () {
-    const moduleDefinition = defineModule("FooModule", (m) => {
+    const moduleDefinition = buildModule("FooModule", (m) => {
       const foo = m.contract("Foo");
 
       return { foo };
@@ -20,7 +20,7 @@ describe("contract deploys", () => {
   });
 
   it("should be able to deploy a contract with arguments", async function () {
-    const moduleDefinition = defineModule("GreeterModule", (m) => {
+    const moduleDefinition = buildModule("GreeterModule", (m) => {
       const greeter = m.contract("Greeter", ["Hello World"]);
 
       return { greeter };
@@ -33,7 +33,7 @@ describe("contract deploys", () => {
   });
 
   it("should be able to deploy contracts with dependencies", async function () {
-    const moduleDefinition = defineModule("DependentModule", (m) => {
+    const moduleDefinition = buildModule("DependentModule", (m) => {
       const bar = m.contract("Bar");
       const usesContract = m.contract("UsesContract", [bar]);
 
@@ -51,7 +51,7 @@ describe("contract deploys", () => {
   });
 
   it("should be able to deploy contracts without dependencies", async function () {
-    const moduleDefinition = defineModule("WithoutDepModule", (m) => {
+    const moduleDefinition = buildModule("WithoutDepModule", (m) => {
       const foo = m.contract("Foo");
       const bar = m.contract("Bar");
 
@@ -72,7 +72,7 @@ describe("contract deploys", () => {
 
     const artifact = await this.hre.artifacts.readArtifact("Greeter");
 
-    const moduleDefinition = defineModule("ArtifactModule", (m) => {
+    const moduleDefinition = buildModule("ArtifactModule", (m) => {
       const greeter = m.contractFromArtifact("Greeter", artifact, [
         "Hello World",
       ]);
@@ -88,7 +88,7 @@ describe("contract deploys", () => {
 
   describe("with endowment", () => {
     it("should be able to deploy a contract with an endowment", async function () {
-      const moduleDefinition = defineModule("EndowmentModule", (m) => {
+      const moduleDefinition = buildModule("EndowmentModule", (m) => {
         const passingValue = m.contract("PassingValue", [], {
           value: BigInt(this.hre.ethers.utils.parseEther("1").toString()),
         });
@@ -112,7 +112,7 @@ describe("contract deploys", () => {
 
     // TODO: bring this back once parameters for value enabled
     it.skip("should be able to deploy a contract with an endowment via a parameter", async function () {
-      const submoduleDefinition = defineModule("submodule", (m) => {
+      const submoduleDefinition = buildModule("submodule", (m) => {
         const endowment = m.getParameter(
           "endowment",
           BigInt(this.hre.ethers.utils.parseEther("2").toString())
@@ -125,7 +125,7 @@ describe("contract deploys", () => {
         return { passingValue };
       });
 
-      const moduleDefinition = defineModule("Module", (m) => {
+      const moduleDefinition = buildModule("Module", (m) => {
         const { passingValue } = m.useModule(submoduleDefinition);
 
         return { passingValue };

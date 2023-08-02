@@ -1,5 +1,5 @@
 /* eslint-disable import/no-unused-modules */
-import { defineModule } from "@ignored/ignition-core";
+import { buildModule } from "@ignored/ignition-core";
 import { assert } from "chai";
 
 import { useEphemeralIgnitionProject } from "./use-ignition-project";
@@ -15,7 +15,7 @@ describe("existing contract", () => {
       "UsesContract"
     );
 
-    const firstModuleDefinition = defineModule("FirstModule", (m) => {
+    const firstModuleDefinition = buildModule("FirstModule", (m) => {
       const bar = m.contract("Bar");
       const usesContract = m.contract("UsesContract", [
         "0x0000000000000000000000000000000000000000",
@@ -31,7 +31,7 @@ describe("existing contract", () => {
     const barAddress: string = firstResult.bar.address;
     const usesContractAddress: string = firstResult.usesContract.address;
 
-    const secondModuleDefinition = defineModule("SecondModule", (m) => {
+    const secondModuleDefinition = buildModule("SecondModule", (m) => {
       const bar = m.contractAt("Bar", barAddress, barArtifact);
       const usesContract = m.contractAt(
         "UsesContract",

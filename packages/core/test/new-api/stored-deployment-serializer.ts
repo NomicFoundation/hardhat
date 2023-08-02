@@ -2,7 +2,7 @@
 import { assert } from "chai";
 
 import { Artifact } from "../../src";
-import { defineModule } from "../../src/new-api/define-module";
+import { buildModule } from "../../src/new-api/build-module";
 import {
   ArtifactContractDeploymentFutureImplementation,
   ArtifactLibraryDeploymentFutureImplementation,
@@ -29,7 +29,7 @@ describe("stored deployment serializer", () => {
 
   describe("contract", () => {
     it("should serialize a contract deployment", () => {
-      const moduleDefinition = defineModule("Module1", (m) => {
+      const moduleDefinition = buildModule("Module1", (m) => {
         const contract1 = m.contract("Contract1");
 
         return { contract1 };
@@ -45,7 +45,7 @@ describe("stored deployment serializer", () => {
     });
 
     it("should serialize a contract deployments with dependency", () => {
-      const moduleDefinition = defineModule("Module1", (m) => {
+      const moduleDefinition = buildModule("Module1", (m) => {
         const contract1 = m.contract("Contract1");
         const contract2 = m.contract("Contract2", [contract1]);
         const contract3 = m.contract("Contract3", [], { after: [contract2] });
@@ -63,7 +63,7 @@ describe("stored deployment serializer", () => {
     });
 
     it("should serialize a contract deployment with module parameter value", () => {
-      const moduleDefinition = defineModule("Module1", (m) => {
+      const moduleDefinition = buildModule("Module1", (m) => {
         const value = m.getParameter("value", 42n);
         const contract1 = m.contract("Contract1", [], { value });
 
@@ -89,7 +89,7 @@ describe("stored deployment serializer", () => {
     };
 
     it("should serialize a contractFromArtifact deployment", () => {
-      const moduleDefinition = defineModule("Module1", (m) => {
+      const moduleDefinition = buildModule("Module1", (m) => {
         const contract1 = m.contractFromArtifact("Contract1", fakeArtifact, []);
 
         return { contract1 };
@@ -105,7 +105,7 @@ describe("stored deployment serializer", () => {
     });
 
     it("should serialize a contractFromArtifact deployment with dependency", () => {
-      const moduleDefinition = defineModule("Module1", (m) => {
+      const moduleDefinition = buildModule("Module1", (m) => {
         const contract1 = m.contractFromArtifact("Contract1", fakeArtifact, []);
 
         const contract2 = m.contractFromArtifact("Contract2", fakeArtifact, [
@@ -134,7 +134,7 @@ describe("stored deployment serializer", () => {
 
   describe("contractAt", () => {
     it("should serialize a contractAt", () => {
-      const moduleDefinition = defineModule("Module1", (m) => {
+      const moduleDefinition = buildModule("Module1", (m) => {
         const contract1 = m.contractAt("Contract1", "0x0");
 
         return { contract1 };
@@ -150,7 +150,7 @@ describe("stored deployment serializer", () => {
     });
 
     it("should serialize a contractAt with a future address", () => {
-      const moduleDefinition = defineModule("Module1", (m) => {
+      const moduleDefinition = buildModule("Module1", (m) => {
         const contract1 = m.contractAt("Contract1", "0x0");
         const call = m.staticCall(contract1, "getAddress");
         const contract2 = m.contractAt("Contract2", call);
@@ -168,7 +168,7 @@ describe("stored deployment serializer", () => {
     });
 
     it("should serialize a contractAt with dependency", () => {
-      const moduleDefinition = defineModule("Module1", (m) => {
+      const moduleDefinition = buildModule("Module1", (m) => {
         const contract1 = m.contractAt("Contract1", "0x0");
         const contract2 = m.contractAt("Contract2", "0x0", {
           after: [contract1],
@@ -196,7 +196,7 @@ describe("stored deployment serializer", () => {
     };
 
     it("should serialize a contractAt", () => {
-      const moduleDefinition = defineModule("Module1", (m) => {
+      const moduleDefinition = buildModule("Module1", (m) => {
         const contract1 = m.contractAtFromArtifact(
           "Contract1",
           "0x0",
@@ -216,7 +216,7 @@ describe("stored deployment serializer", () => {
     });
 
     it("should serialize a contractAt with a future address", () => {
-      const moduleDefinition = defineModule("Module1", (m) => {
+      const moduleDefinition = buildModule("Module1", (m) => {
         const contract1 = m.contractAtFromArtifact(
           "Contract1",
           "0x0",
@@ -242,7 +242,7 @@ describe("stored deployment serializer", () => {
     });
 
     it("should serialize a contractAt with dependency", () => {
-      const moduleDefinition = defineModule("Module1", (m) => {
+      const moduleDefinition = buildModule("Module1", (m) => {
         const contract1 = m.contractAtFromArtifact(
           "Contract1",
           "0x0",
@@ -279,7 +279,7 @@ describe("stored deployment serializer", () => {
     };
 
     it("should serialize a library deployment", () => {
-      const moduleDefinition = defineModule("Module1", (m) => {
+      const moduleDefinition = buildModule("Module1", (m) => {
         const library1 = m.library("Library1");
 
         return { library1 };
@@ -295,7 +295,7 @@ describe("stored deployment serializer", () => {
     });
 
     it("should serialize a library deployment with dependency", () => {
-      const moduleDefinition = defineModule("Module1", (m) => {
+      const moduleDefinition = buildModule("Module1", (m) => {
         const library1 = m.library("Library1");
         const library2 = m.library("Library2", { after: [library1] });
 
@@ -315,7 +315,7 @@ describe("stored deployment serializer", () => {
     });
 
     it("should serialize a libraries passed in as libraries", () => {
-      const moduleDefinition = defineModule("Module1", (m) => {
+      const moduleDefinition = buildModule("Module1", (m) => {
         const library1 = m.library("Library1");
 
         const contract2 = m.contract("Contract2", [], {
@@ -371,7 +371,7 @@ describe("stored deployment serializer", () => {
     };
 
     it("should serialize a libraryFromArtifact deployment", () => {
-      const moduleDefinition = defineModule("Module1", (m) => {
+      const moduleDefinition = buildModule("Module1", (m) => {
         const library1 = m.libraryFromArtifact("Contract1", fakeArtifact);
 
         return { library1 };
@@ -387,7 +387,7 @@ describe("stored deployment serializer", () => {
     });
 
     it("should serialize a libraryFromArtifact deployment with dependency", () => {
-      const moduleDefinition = defineModule("Module1", (m) => {
+      const moduleDefinition = buildModule("Module1", (m) => {
         const library1 = m.libraryFromArtifact("Library1", fakeArtifact);
 
         const library2 = m.libraryFromArtifact("Library2", fakeArtifact, {
@@ -409,7 +409,7 @@ describe("stored deployment serializer", () => {
 
   describe("call", () => {
     it("should serialize a call", () => {
-      const moduleDefinition = defineModule("Module1", (m) => {
+      const moduleDefinition = buildModule("Module1", (m) => {
         const contract1 = m.contract("Contract1");
 
         m.call(contract1, "lock", [1, "a", false]);
@@ -427,7 +427,7 @@ describe("stored deployment serializer", () => {
     });
 
     it("should serialize a call with dependencies", () => {
-      const moduleDefinition = defineModule("Module1", (m) => {
+      const moduleDefinition = buildModule("Module1", (m) => {
         const contract1 = m.contract("Contract1");
         const contract2 = m.contract("Contract2");
 
@@ -449,7 +449,7 @@ describe("stored deployment serializer", () => {
 
   describe("static call", () => {
     it("should serialize a call", () => {
-      const moduleDefinition = defineModule("Module1", (m) => {
+      const moduleDefinition = buildModule("Module1", (m) => {
         const contract1 = m.contract("Contract1");
 
         m.staticCall(contract1, "lock", [1, "a", false]);
@@ -467,7 +467,7 @@ describe("stored deployment serializer", () => {
     });
 
     it("should serialize a static call with dependencies", () => {
-      const moduleDefinition = defineModule("Module1", (m) => {
+      const moduleDefinition = buildModule("Module1", (m) => {
         const contract1 = m.contract("Contract1");
         const contract2 = m.contract("Contract2");
 
@@ -487,7 +487,7 @@ describe("stored deployment serializer", () => {
     });
 
     it("Should serialize readEventArgument", () => {
-      const moduleDefinition = defineModule("Module1", (m) => {
+      const moduleDefinition = buildModule("Module1", (m) => {
         const contract1 = m.contract("Contract1");
         const emitter = m.contract("Emitter");
 
@@ -512,13 +512,13 @@ describe("stored deployment serializer", () => {
 
   describe("useModule", () => {
     it("should serialize a deployment leveraging useModule", () => {
-      const submodule = defineModule("Submodule", (m) => {
+      const submodule = buildModule("Submodule", (m) => {
         const contract1 = m.contract("Contract1");
 
         return { contract1 };
       });
 
-      const moduleDefinition = defineModule("Module", (m) => {
+      const moduleDefinition = buildModule("Module", (m) => {
         const { contract1 } = m.useModule(submodule);
 
         return { contract1 };
@@ -534,13 +534,13 @@ describe("stored deployment serializer", () => {
     });
 
     it("should serialize contract dependencies over the useModule barrier", () => {
-      const submodule = defineModule("Submodule", (m) => {
+      const submodule = buildModule("Submodule", (m) => {
         const contract1 = m.contract("Contract1");
 
         return { contract1 };
       });
 
-      const moduleDefinition = defineModule("Module", (m) => {
+      const moduleDefinition = buildModule("Module", (m) => {
         const { contract1 } = m.useModule(submodule);
 
         const contract2 = m.contract("Contract2", [contract1]);
@@ -559,25 +559,25 @@ describe("stored deployment serializer", () => {
     });
 
     it("should serialize a diamond useModule", () => {
-      const bottomModuleDefinition = defineModule("BottomModule", (m) => {
+      const bottomModuleDefinition = buildModule("BottomModule", (m) => {
         const bottomContract = m.contract("Contract1");
 
         return { bottomContract };
       });
 
-      const leftModuleDefinition = defineModule("LeftModule", (m) => {
+      const leftModuleDefinition = buildModule("LeftModule", (m) => {
         const { bottomContract } = m.useModule(bottomModuleDefinition);
 
         return { leftContract: bottomContract };
       });
 
-      const rightModuleDefinition = defineModule("RightModule", (m) => {
+      const rightModuleDefinition = buildModule("RightModule", (m) => {
         const { bottomContract } = m.useModule(bottomModuleDefinition);
 
         return { rightContract: bottomContract };
       });
 
-      const moduleDefinition = defineModule("TopModule", (m) => {
+      const moduleDefinition = buildModule("TopModule", (m) => {
         const { leftContract } = m.useModule(leftModuleDefinition);
         const { rightContract } = m.useModule(rightModuleDefinition);
 
@@ -612,7 +612,7 @@ describe("stored deployment serializer", () => {
 
   describe("Complex arguments serialization", () => {
     it("Should support base values as arguments", () => {
-      const moduleDefinition = defineModule("Module", (m) => {
+      const moduleDefinition = buildModule("Module", (m) => {
         const contract1 = m.contract("Contract1", [1, true, "string", 4n]);
 
         return { contract1 };
@@ -628,7 +628,7 @@ describe("stored deployment serializer", () => {
     });
 
     it("Should support arrays as arguments", () => {
-      const moduleDefinition = defineModule("Module", (m) => {
+      const moduleDefinition = buildModule("Module", (m) => {
         const contract1 = m.contract("Contract1", [[1, 2, 3n]]);
 
         return { contract1 };
@@ -644,7 +644,7 @@ describe("stored deployment serializer", () => {
     });
 
     it("Should support objects as arguments", () => {
-      const moduleDefinition = defineModule("Module", (m) => {
+      const moduleDefinition = buildModule("Module", (m) => {
         const contract1 = m.contract("Contract1", [{ a: 1, b: [1, 2] }]);
 
         return { contract1 };
@@ -660,7 +660,7 @@ describe("stored deployment serializer", () => {
     });
 
     it("Should support futures as arguments", () => {
-      const moduleDefinition = defineModule("Module", (m) => {
+      const moduleDefinition = buildModule("Module", (m) => {
         const contract1 = m.contract("Contract1");
         const contract2 = m.contract("Contract2", [contract1]);
 
@@ -677,7 +677,7 @@ describe("stored deployment serializer", () => {
     });
 
     it("should support nested futures as arguments", () => {
-      const moduleDefinition = defineModule("Module", (m) => {
+      const moduleDefinition = buildModule("Module", (m) => {
         const contract1 = m.contract("Contract1");
         const contract2 = m.contract("Contract2", [{ arr: [contract1] }]);
 
@@ -694,7 +694,7 @@ describe("stored deployment serializer", () => {
     });
 
     it("should support AccountRuntimeValues as arguments", () => {
-      const moduleDefinition = defineModule("Module", (m) => {
+      const moduleDefinition = buildModule("Module", (m) => {
         const account1 = m.getAccount(1);
         const contract1 = m.contract("Contract1", [account1]);
 
@@ -711,7 +711,7 @@ describe("stored deployment serializer", () => {
     });
 
     it("should support AccountRuntimeValues as from", () => {
-      const moduleDefinition = defineModule("Module", (m) => {
+      const moduleDefinition = buildModule("Module", (m) => {
         const account1 = m.getAccount(1);
         const contract1 = m.contract("Contract1", [], { from: account1 });
 
@@ -728,7 +728,7 @@ describe("stored deployment serializer", () => {
     });
 
     it("should support nested AccountRuntimeValues as arguments", () => {
-      const moduleDefinition = defineModule("Module", (m) => {
+      const moduleDefinition = buildModule("Module", (m) => {
         const account1 = m.getAccount(1);
         const contract1 = m.contract("Contract1", [{ arr: [account1] }]);
 
@@ -745,7 +745,7 @@ describe("stored deployment serializer", () => {
     });
 
     it("should support ModuleParameterRuntimeValue as arguments", () => {
-      const moduleDefinition = defineModule("Module", (m) => {
+      const moduleDefinition = buildModule("Module", (m) => {
         const p = m.getParameter("p", 123);
         const contract1 = m.contract("Contract1", [p]);
 
@@ -762,7 +762,7 @@ describe("stored deployment serializer", () => {
     });
 
     it("should support nested ModuleParameterRuntimeValue as arguments", () => {
-      const moduleDefinition = defineModule("Module", (m) => {
+      const moduleDefinition = buildModule("Module", (m) => {
         const p = m.getParameter("p", 123);
         const contract1 = m.contract("Contract1", [{ arr: [p] }]);
 

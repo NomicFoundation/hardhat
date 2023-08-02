@@ -1,5 +1,5 @@
 /* eslint-disable import/no-unused-modules */
-import { defineModule } from "@ignored/ignition-core";
+import { buildModule } from "@ignored/ignition-core";
 import { assert } from "chai";
 
 import {
@@ -21,7 +21,7 @@ describe("execution - rerun with now complete ignition transactions", () => {
 
   it("should complete the run on the second attempt", async function () {
     // Setup a module with 6 foo contracts deployed in pairs of 2 over 3 batches
-    const moduleDefinition = defineModule("FooModule", (m) => {
+    const moduleDefinition = buildModule("FooModule", (m) => {
       const account2 = m.getAccount(2);
 
       // batch 1

@@ -1,5 +1,5 @@
 /* eslint-disable import/no-unused-modules */
-import { defineModule } from "@ignored/ignition-core";
+import { buildModule } from "@ignored/ignition-core";
 import { assert } from "chai";
 
 import {
@@ -19,7 +19,7 @@ describe("execution - deploy contractAt from artifact", function () {
 
   it("should deploy a contract that is callable", async function () {
     // Arrange
-    const moduleDefinition = defineModule("FooModule", (m) => {
+    const moduleDefinition = buildModule("FooModule", (m) => {
       const foo = m.contract("Foo");
 
       return { foo };
@@ -38,7 +38,7 @@ describe("execution - deploy contractAt from artifact", function () {
     // Act
     const fooArtifact = await this.hre.artifacts.readArtifact("Foo");
 
-    const contractAtModuleDefinition = defineModule("FooModule", (m) => {
+    const contractAtModuleDefinition = buildModule("FooModule", (m) => {
       const atFoo = m.contractAtFromArtifact("AtFoo", fooAddress, fooArtifact);
 
       return { atFoo };

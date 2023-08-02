@@ -2,7 +2,7 @@
 import { assert } from "chai";
 
 import { Artifact } from "../../src";
-import { defineModule } from "../../src/new-api/define-module";
+import { buildModule } from "../../src/new-api/build-module";
 import {
   AccountRuntimeValueImplementation,
   ModuleParameterRuntimeValueImplementation,
@@ -18,7 +18,7 @@ import { assertInstanceOf, setupMockArtifactResolver } from "./helpers";
 
 describe("static call", () => {
   it("should be able to setup a static call", () => {
-    const moduleWithASingleContractDefinition = defineModule("Module1", (m) => {
+    const moduleWithASingleContractDefinition = buildModule("Module1", (m) => {
       const contract1 = m.contract("Contract1");
 
       m.staticCall(contract1, "test");
@@ -56,7 +56,7 @@ describe("static call", () => {
   });
 
   it("should be able to pass one contract as an arg dependency to a static call", () => {
-    const moduleWithDependentContractsDefinition = defineModule(
+    const moduleWithDependentContractsDefinition = buildModule(
       "Module1",
       (m) => {
         const example = m.contract("Example");
@@ -97,7 +97,7 @@ describe("static call", () => {
   });
 
   it("should be able to pass one contract as an after dependency of a static call", () => {
-    const moduleWithDependentContractsDefinition = defineModule(
+    const moduleWithDependentContractsDefinition = buildModule(
       "Module1",
       (m) => {
         const example = m.contract("Example");
@@ -138,7 +138,7 @@ describe("static call", () => {
   });
 
   it("should be able to pass its result into another call", () => {
-    const moduleWithASingleContractDefinition = defineModule("Module1", (m) => {
+    const moduleWithASingleContractDefinition = buildModule("Module1", (m) => {
       const contract1 = m.contract("Contract1");
 
       const data = m.staticCall(contract1, "test");
@@ -172,7 +172,7 @@ describe("static call", () => {
   });
 
   it("should be able to pass a string as from option", () => {
-    const moduleWithDependentContractsDefinition = defineModule(
+    const moduleWithDependentContractsDefinition = buildModule(
       "Module1",
       (m) => {
         const example = m.contract("Example");
@@ -202,7 +202,7 @@ describe("static call", () => {
   });
 
   it("Should be able to pass an AccountRuntimeValue as from option", () => {
-    const moduleWithDependentContractsDefinition = defineModule(
+    const moduleWithDependentContractsDefinition = buildModule(
       "Module1",
       (m) => {
         const example = m.contract("Example");
@@ -234,7 +234,7 @@ describe("static call", () => {
 
   describe("Arguments", () => {
     it("Should support base values as arguments", () => {
-      const moduleDefinition = defineModule("Module", (m) => {
+      const moduleDefinition = buildModule("Module", (m) => {
         const contract1 = m.contract("Contract1");
         m.staticCall(contract1, "foo", [1, true, "string", 4n]);
 
@@ -253,7 +253,7 @@ describe("static call", () => {
     });
 
     it("Should support arrays as arguments", () => {
-      const moduleDefinition = defineModule("Module", (m) => {
+      const moduleDefinition = buildModule("Module", (m) => {
         const contract1 = m.contract("Contract1");
         m.staticCall(contract1, "foo", [[1, 2, 3n]]);
 
@@ -272,7 +272,7 @@ describe("static call", () => {
     });
 
     it("Should support objects as arguments", () => {
-      const moduleDefinition = defineModule("Module", (m) => {
+      const moduleDefinition = buildModule("Module", (m) => {
         const contract1 = m.contract("Contract1");
         m.staticCall(contract1, "foo", [{ a: 1, b: [1, 2] }]);
 
@@ -291,7 +291,7 @@ describe("static call", () => {
     });
 
     it("Should support futures as arguments", () => {
-      const moduleDefinition = defineModule("Module", (m) => {
+      const moduleDefinition = buildModule("Module", (m) => {
         const contract1 = m.contract("Contract1");
         m.staticCall(contract1, "foo", [contract1]);
 
@@ -310,7 +310,7 @@ describe("static call", () => {
     });
 
     it("should support nested futures as arguments", () => {
-      const moduleDefinition = defineModule("Module", (m) => {
+      const moduleDefinition = buildModule("Module", (m) => {
         const contract1 = m.contract("Contract1");
         m.staticCall(contract1, "foo", [{ arr: [contract1] }]);
 
@@ -329,7 +329,7 @@ describe("static call", () => {
     });
 
     it("should support AccountRuntimeValues as arguments", () => {
-      const moduleDefinition = defineModule("Module", (m) => {
+      const moduleDefinition = buildModule("Module", (m) => {
         const account1 = m.getAccount(1);
         const contract1 = m.contract("Contract1");
         m.staticCall(contract1, "foo", [account1]);
@@ -350,7 +350,7 @@ describe("static call", () => {
     });
 
     it("should support nested AccountRuntimeValues as arguments", () => {
-      const moduleDefinition = defineModule("Module", (m) => {
+      const moduleDefinition = buildModule("Module", (m) => {
         const account1 = m.getAccount(1);
         const contract1 = m.contract("Contract1");
         m.staticCall(contract1, "foo", [{ arr: [account1] }]);
@@ -374,7 +374,7 @@ describe("static call", () => {
     });
 
     it("should support ModuleParameterRuntimeValue as arguments", () => {
-      const moduleDefinition = defineModule("Module", (m) => {
+      const moduleDefinition = buildModule("Module", (m) => {
         const p = m.getParameter("p", 123);
         const contract1 = m.contract("Contract1");
         m.staticCall(contract1, "foo", [p]);
@@ -399,7 +399,7 @@ describe("static call", () => {
     });
 
     it("should support nested ModuleParameterRuntimeValue as arguments", () => {
-      const moduleDefinition = defineModule("Module", (m) => {
+      const moduleDefinition = buildModule("Module", (m) => {
         const p = m.getParameter("p", 123);
         const contract1 = m.contract("Contract1");
         m.staticCall(contract1, "foo", [{ arr: [p] }]);
@@ -425,7 +425,7 @@ describe("static call", () => {
 
   describe("passing id", () => {
     it("should be able to statically call the same function twice by passing an id", () => {
-      const moduleWithSameCallTwiceDefinition = defineModule("Module1", (m) => {
+      const moduleWithSameCallTwiceDefinition = buildModule("Module1", (m) => {
         const sameContract1 = m.contract("Example");
 
         m.staticCall(sameContract1, "test", [], { id: "first" });
@@ -454,7 +454,7 @@ describe("static call", () => {
     });
 
     it("should throw if the same function is statically called twice without differentiating ids", () => {
-      const moduleDefinition = defineModule("Module1", (m) => {
+      const moduleDefinition = buildModule("Module1", (m) => {
         const sameContract1 = m.contract("SameContract");
         m.staticCall(sameContract1, "test");
         m.staticCall(sameContract1, "test");
@@ -471,7 +471,7 @@ describe("static call", () => {
     });
 
     it("should throw if a static call tries to pass the same id twice", () => {
-      const moduleDefinition = defineModule("Module1", (m) => {
+      const moduleDefinition = buildModule("Module1", (m) => {
         const sameContract1 = m.contract("SameContract");
         m.staticCall(sameContract1, "test", [], { id: "first" });
         m.staticCall(sameContract1, "test", [], { id: "first" });
@@ -489,7 +489,7 @@ describe("static call", () => {
 
   describe("validation", () => {
     it("should not validate a non-address from option", () => {
-      const moduleWithDependentContractsDefinition = defineModule(
+      const moduleWithDependentContractsDefinition = buildModule(
         "Module1",
         (m) => {
           const another = m.contract("Another", []);
@@ -508,7 +508,7 @@ describe("static call", () => {
     });
 
     it("should not validate a non-contract", () => {
-      const moduleWithDependentContractsDefinition = defineModule(
+      const moduleWithDependentContractsDefinition = buildModule(
         "Module1",
         (m) => {
           const another = m.contract("Another", []);
@@ -529,7 +529,7 @@ describe("static call", () => {
     });
 
     it("should not validate a non-existant hardhat contract", async () => {
-      const moduleDef = defineModule("Module1", (m) => {
+      const moduleDef = buildModule("Module1", (m) => {
         const another = m.contract("Another", []);
         m.staticCall(another, "test");
 
@@ -560,7 +560,7 @@ describe("static call", () => {
         linkReferences: {},
       };
 
-      const moduleDef = defineModule("Module1", (m) => {
+      const moduleDef = buildModule("Module1", (m) => {
         const another = m.contract("Another", []);
         const p = m.getParameter("p");
         m.staticCall(another, "test", [p]);
@@ -606,7 +606,7 @@ describe("static call", () => {
         linkReferences: {},
       };
 
-      const moduleDef = defineModule("Module1", (m) => {
+      const moduleDef = buildModule("Module1", (m) => {
         const another = m.contract("Another", []);
         const p = m.getParameter("p", true);
         m.staticCall(another, "test", [p]);
@@ -637,7 +637,7 @@ describe("static call", () => {
         linkReferences: {},
       };
 
-      const moduleDef = defineModule("Module1", (m) => {
+      const moduleDef = buildModule("Module1", (m) => {
         const another = m.contract("Another", []);
         const p = m.getParameter("p");
         m.staticCall(another, "test", [
@@ -685,7 +685,7 @@ describe("static call", () => {
         linkReferences: {},
       };
 
-      const moduleDef = defineModule("Module1", (m) => {
+      const moduleDef = buildModule("Module1", (m) => {
         const another = m.contract("Another", []);
         const p = m.getParameter("p", true);
         m.staticCall(another, "test", [
@@ -718,7 +718,7 @@ describe("static call", () => {
         linkReferences: {},
       };
 
-      const moduleDef = defineModule("Module1", (m) => {
+      const moduleDef = buildModule("Module1", (m) => {
         const another = m.contractFromArtifact("Another", fakeArtifact, []);
         m.staticCall(another, "test");
 
@@ -759,7 +759,7 @@ describe("static call", () => {
         linkReferences: {},
       };
 
-      const moduleDef = defineModule("Module1", (m) => {
+      const moduleDef = buildModule("Module1", (m) => {
         const another = m.contractFromArtifact("Another", fakeArtifact, []);
         m.staticCall(another, "inc", [1, 2]);
 
@@ -818,7 +818,7 @@ describe("static call", () => {
         linkReferences: {},
       };
 
-      const moduleDef = defineModule("Module1", (m) => {
+      const moduleDef = buildModule("Module1", (m) => {
         const another = m.contractFromArtifact("Another", fakeArtifact, []);
         m.staticCall(another, "inc", [1, 2, 3]);
 
@@ -859,7 +859,7 @@ describe("static call", () => {
         linkReferences: {},
       };
 
-      const moduleDef = defineModule("Module1", (m) => {
+      const moduleDef = buildModule("Module1", (m) => {
         const another = m.contractFromArtifact("Another", fakeArtifact, []);
         m.staticCall(another, "inc", [1]);
 

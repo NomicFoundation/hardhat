@@ -1,8 +1,8 @@
-import { defineModule } from "@ignored/ignition-core";
+import { buildModule } from "@ignored/ignition-core";
 
 const fakeArtifact = ["fake artifact"];
 
-const uniswap = defineModule("Uniswap", (m) => {
+const uniswap = buildModule("Uniswap", (m) => {
   const router = m.contract("UniswapRouter", [1, 2, 3]);
 
   m.call(router, "configure", [3, 4, 5]);
@@ -10,7 +10,7 @@ const uniswap = defineModule("Uniswap", (m) => {
   return { router };
 });
 
-const balancerDefinition = defineModule("Balancer", (m) => {
+const balancerDefinition = buildModule("Balancer", (m) => {
   const safeMath = m.library("SafeMath");
 
   const balancer = m.contract("BalancerCore", [], {
@@ -26,7 +26,7 @@ const balancerDefinition = defineModule("Balancer", (m) => {
   return { balancer };
 });
 
-const synthetixDefinition = defineModule("Synthetix", (m) => {
+const synthetixDefinition = buildModule("Synthetix", (m) => {
   const synthetixCore = m.contractAt("SynthetixCore", "0x0123", fakeArtifact);
 
   const { router } = m.useModule(uniswap);
@@ -36,7 +36,7 @@ const synthetixDefinition = defineModule("Synthetix", (m) => {
   return { synthetix: synthetixCore };
 });
 
-const moduleDefinition = defineModule("MyModule", (m) => {
+const moduleDefinition = buildModule("MyModule", (m) => {
   const { synthetix } = m.useModule(synthetixDefinition);
   const { balancer } = m.useModule(balancerDefinition);
 

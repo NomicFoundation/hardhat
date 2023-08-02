@@ -1,5 +1,5 @@
 /* eslint-disable import/no-unused-modules */
-import { defineModule } from "@ignored/ignition-core";
+import { buildModule } from "@ignored/ignition-core";
 import { assert } from "chai";
 
 import { useEphemeralIgnitionProject } from "./use-ignition-project";
@@ -8,7 +8,7 @@ describe("events", () => {
   useEphemeralIgnitionProject("minimal-new-api");
 
   it("should be able to use the output of a readEvent in a contract at", async function () {
-    const moduleDefinition = defineModule("FooModule", (m) => {
+    const moduleDefinition = buildModule("FooModule", (m) => {
       const account1 = m.getAccount(1);
 
       const fooFactory = m.contract("FooFactory", [], { from: account1 });
@@ -35,7 +35,7 @@ describe("events", () => {
   it("should be able to use the output of a readEvent in an artifact contract at", async function () {
     const artifact = await this.hre.artifacts.readArtifact("Foo");
 
-    const moduleDefinition = defineModule("FooModule", (m) => {
+    const moduleDefinition = buildModule("FooModule", (m) => {
       const account1 = m.getAccount(1);
 
       const fooFactory = m.contract("FooFactory", [], { from: account1 });

@@ -2,7 +2,7 @@
 import { assert } from "chai";
 
 import { Artifact, FutureType } from "../../../src";
-import { defineModule } from "../../../src/new-api/define-module";
+import { buildModule } from "../../../src/new-api/build-module";
 import { MemoryJournal } from "../../../src/new-api/internal/journal/memory-journal";
 import {
   accumulateMessages,
@@ -52,7 +52,7 @@ describe("execution engine", () => {
     it("should execute a contract deploy", async () => {
       const journal = new MemoryJournal();
 
-      const moduleDefinition = defineModule("Module1", (m) => {
+      const moduleDefinition = buildModule("Module1", (m) => {
         const account1 = m.getAccount(1);
         const supply = m.getParameter("supply", 1000);
 
@@ -179,7 +179,7 @@ describe("execution engine", () => {
         linkReferences: {},
       };
 
-      const moduleDefinition = defineModule("Module1", (m) => {
+      const moduleDefinition = buildModule("Module1", (m) => {
         const account2 = m.getAccount(2);
         const contract1 = m.contractFromArtifact(
           "Contract1",
@@ -288,7 +288,7 @@ describe("execution engine", () => {
     });
 
     it("should record a reverted contract deploy", async () => {
-      const moduleDefinition = defineModule("Module1", (m) => {
+      const moduleDefinition = buildModule("Module1", (m) => {
         const account1 = m.getAccount(1);
         const contract1 = m.contract("Contract1", [], { from: account1 });
 
@@ -376,7 +376,7 @@ describe("execution engine", () => {
 
   describe("library deploy", () => {
     it("should execute a library deploy", async () => {
-      const moduleDefinition = defineModule("Module1", (m) => {
+      const moduleDefinition = buildModule("Module1", (m) => {
         const account2 = m.getAccount(2);
         const library1 = m.library("Library1", { from: account2 });
 
@@ -485,7 +485,7 @@ describe("execution engine", () => {
         linkReferences: {},
       };
 
-      const moduleDefinition = defineModule("Module1", (m) => {
+      const moduleDefinition = buildModule("Module1", (m) => {
         const account2 = m.getAccount(2);
         const library1 = m.libraryFromArtifact("Library1", contract1Artifact, {
           from: account2,
@@ -590,7 +590,7 @@ describe("execution engine", () => {
     });
 
     it("should record a revert of library deploy", async () => {
-      const moduleDefinition = defineModule("Module1", (m) => {
+      const moduleDefinition = buildModule("Module1", (m) => {
         const account1 = m.getAccount(1);
         const contract1 = m.library("Library1", { from: account1 });
 
@@ -680,7 +680,7 @@ describe("execution engine", () => {
     it("should execute a send data", async () => {
       const journal = new MemoryJournal();
 
-      const moduleDefinition = defineModule("Module1", (m) => {
+      const moduleDefinition = buildModule("Module1", (m) => {
         const account1 = m.getAccount(1);
 
         const contract1 = m.contract("Contract1", [], { from: account1 });
@@ -844,7 +844,7 @@ describe("execution engine", () => {
     it("should record a revert of send data", async () => {
       const journal = new MemoryJournal();
 
-      const moduleDefinition = defineModule("Module1", (m) => {
+      const moduleDefinition = buildModule("Module1", (m) => {
         const account1 = m.getAccount(1);
 
         const contract1 = m.contract("Contract1", [], { from: account1 });
@@ -1033,7 +1033,7 @@ describe("execution engine", () => {
     it("should execute a call", async () => {
       const journal = new MemoryJournal();
 
-      const moduleDefinition = defineModule("Module1", (m) => {
+      const moduleDefinition = buildModule("Module1", (m) => {
         const account1 = m.getAccount(1);
 
         const contract1 = m.contract("Contract1", [], { from: account1 });
@@ -1207,7 +1207,7 @@ describe("execution engine", () => {
     it("should record a revert of call function", async () => {
       const journal = new MemoryJournal();
 
-      const moduleDefinition = defineModule("Module1", (m) => {
+      const moduleDefinition = buildModule("Module1", (m) => {
         const account1 = m.getAccount(1);
 
         const contract1 = m.contract("Contract1", [], { from: account1 });
@@ -1400,7 +1400,7 @@ describe("execution engine", () => {
     it("should execute a static call", async () => {
       const journal = new MemoryJournal();
 
-      const moduleDefinition = defineModule("Module1", (m) => {
+      const moduleDefinition = buildModule("Module1", (m) => {
         const account1 = m.getAccount(1);
 
         const contract1 = m.contract("Contract1", [], { from: account1 });
@@ -1556,7 +1556,7 @@ describe("execution engine", () => {
     it("should record a revert of static call function", async () => {
       const journal = new MemoryJournal();
 
-      const moduleDefinition = defineModule("Module1", (m) => {
+      const moduleDefinition = buildModule("Module1", (m) => {
         const account1 = m.getAccount(1);
 
         const contract1 = m.contract("Contract1", [], { from: account1 });
@@ -1692,7 +1692,7 @@ describe("execution engine", () => {
     it("should execute a contract at", async () => {
       const journal = new MemoryJournal();
 
-      const moduleDefinition = defineModule("Module1", (m) => {
+      const moduleDefinition = buildModule("Module1", (m) => {
         const contract1 = m.contractAt("Contract1", exampleAddress);
 
         return { contract1 };
@@ -1782,7 +1782,7 @@ describe("execution engine", () => {
     it("should execute a read event arg", async () => {
       const journal = new MemoryJournal();
 
-      const moduleDefinition = defineModule("Module1", (m) => {
+      const moduleDefinition = buildModule("Module1", (m) => {
         const account1 = m.getAccount(1);
 
         const contract1 = m.contract("Contract1", [], { from: account1 });
@@ -1945,7 +1945,7 @@ describe("execution engine", () => {
     it("should record a revert of a read event arg", async () => {
       const journal = new MemoryJournal();
 
-      const moduleDefinition = defineModule("Module1", (m) => {
+      const moduleDefinition = buildModule("Module1", (m) => {
         const account1 = m.getAccount(1);
 
         const contract1 = m.contract("Contract1", [], { from: account1 });
@@ -2132,7 +2132,7 @@ describe("execution engine", () => {
     };
 
     it("should execute deploy when futures are passed as nested arguments", async () => {
-      const moduleDefinition = defineModule("Module1", (m) => {
+      const moduleDefinition = buildModule("Module1", (m) => {
         const account1 = m.getAccount(1);
         const supply = m.getParameter("supply", 1000);
 
@@ -2347,7 +2347,7 @@ describe("execution engine", () => {
     const tx6 = "0x666";
 
     it("should execute a deploy over multiple batches with different from accounts", async () => {
-      const moduleDefinition = defineModule("Module1", (m) => {
+      const moduleDefinition = buildModule("Module1", (m) => {
         const account1 = m.getAccount(1);
         const account2 = m.getAccount(2);
 

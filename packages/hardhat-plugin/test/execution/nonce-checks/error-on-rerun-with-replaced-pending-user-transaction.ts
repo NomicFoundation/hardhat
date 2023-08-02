@@ -1,5 +1,5 @@
 /* eslint-disable import/no-unused-modules */
-import { defineModule } from "@ignored/ignition-core";
+import { buildModule } from "@ignored/ignition-core";
 import { assert } from "chai";
 
 import {
@@ -20,7 +20,7 @@ describe("execution - error on rerun with replaced pending user transaction", ()
   );
 
   it("should error on the second run", async function () {
-    const moduleDefinition = defineModule("FooModule", (m) => {
+    const moduleDefinition = buildModule("FooModule", (m) => {
       const account2 = m.getAccount(2);
 
       // batch 1

@@ -1,5 +1,5 @@
 /* eslint-disable import/no-unused-modules */
-import { defineModule } from "@ignored/ignition-core";
+import { buildModule } from "@ignored/ignition-core";
 import { assert } from "chai";
 
 import {
@@ -20,7 +20,7 @@ describe("execution - rerun with dropped ignition transactions", () => {
   );
 
   it("should deploy successfully on second run", async function () {
-    const moduleDefinition = defineModule("FooModule", (m) => {
+    const moduleDefinition = buildModule("FooModule", (m) => {
       const foo = m.contract("Foo", []);
 
       return {

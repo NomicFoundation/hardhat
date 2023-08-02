@@ -1,7 +1,7 @@
 /* eslint-disable import/no-unused-modules */
 import { assert } from "chai";
 
-import { defineModule } from "../../src/new-api/define-module";
+import { buildModule } from "../../src/new-api/build-module";
 import { Batcher } from "../../src/new-api/internal/batcher";
 import { ModuleConstructor } from "../../src/new-api/internal/module-builder";
 import {
@@ -35,7 +35,7 @@ describe("batcher", () => {
   };
 
   it("should batch a contract deploy module", () => {
-    const moduleDefinition = defineModule("Module1", (m) => {
+    const moduleDefinition = buildModule("Module1", (m) => {
       const contract1 = m.contract("Contract1");
 
       return { contract1 };
@@ -45,7 +45,7 @@ describe("batcher", () => {
   });
 
   it("should batch through dependencies", () => {
-    const moduleDefinition = defineModule("Module1", (m) => {
+    const moduleDefinition = buildModule("Module1", (m) => {
       const contract1 = m.contract("Contract1");
       const contract2 = m.contract("Contract2");
 
@@ -70,21 +70,21 @@ describe("batcher", () => {
   });
 
   it("should batch submodules such that everything in a submodule is executed if just one future in the submodule is depended on", () => {
-    const submoduleLeft = defineModule("SubmoduleLeft", (m) => {
+    const submoduleLeft = buildModule("SubmoduleLeft", (m) => {
       const contract1 = m.contract("Contract1");
       m.call(contract1, "configure");
 
       return { contract1 };
     });
 
-    const submoduleRight = defineModule("SubmoduleRight", (m) => {
+    const submoduleRight = buildModule("SubmoduleRight", (m) => {
       const contract2 = m.contract("Contract2");
       m.call(contract2, "configure");
 
       return { contract2 };
     });
 
-    const submoduleMiddle = defineModule("SubmoduleMiddle", (m) => {
+    const submoduleMiddle = buildModule("SubmoduleMiddle", (m) => {
       const { contract1 } = m.useModule(submoduleLeft);
       const { contract2 } = m.useModule(submoduleRight);
 
@@ -94,7 +94,7 @@ describe("batcher", () => {
       return { contract3 };
     });
 
-    const moduleDefinition = defineModule("Module", (m) => {
+    const moduleDefinition = buildModule("Module", (m) => {
       const { contract3 } = m.useModule(submoduleMiddle);
 
       const contract4 = m.contract("Contract4", [contract3]);
@@ -117,19 +117,19 @@ describe("batcher", () => {
   });
 
   it("should deploy submodules even when no direct connection", () => {
-    const submoduleLeft = defineModule("Left", (m) => {
+    const submoduleLeft = buildModule("Left", (m) => {
       const contract1 = m.contract("Contract1");
 
       return { contract1 };
     });
 
-    const submoduleRight = defineModule("Right", (m) => {
+    const submoduleRight = buildModule("Right", (m) => {
       const contract2 = m.contract("Contract2");
 
       return { contract2 };
     });
 
-    const submoduleMiddle = defineModule("Middle", (m) => {
+    const submoduleMiddle = buildModule("Middle", (m) => {
       m.useModule(submoduleLeft);
       m.useModule(submoduleRight);
 
@@ -138,7 +138,7 @@ describe("batcher", () => {
       return { contract3 };
     });
 
-    const moduleDefinition = defineModule("Module", (m) => {
+    const moduleDefinition = buildModule("Module", (m) => {
       const { contract3 } = m.useModule(submoduleMiddle);
 
       const contract4 = m.contract("Contract4", [contract3]);
@@ -153,7 +153,7 @@ describe("batcher", () => {
   });
 
   it("should bypass intermediary successful nodes", () => {
-    const moduleDefinition = defineModule("Module1", (m) => {
+    const moduleDefinition = buildModule("Module1", (m) => {
       const contract1 = m.contract("Contract1");
       const contract2 = m.contract("Contract2", [contract1]);
 

@@ -1,5 +1,5 @@
 /* eslint-disable import/no-unused-modules */
-import { defineModule } from "@ignored/ignition-core";
+import { buildModule } from "@ignored/ignition-core";
 import { assert } from "chai";
 
 import {
@@ -22,7 +22,7 @@ describe("execution - rerun with replaced confirmed user transaction", () => {
   );
 
   it("should deploy user interfered transaction on second run", async function () {
-    const moduleDefinition = defineModule("FooModule", (m) => {
+    const moduleDefinition = buildModule("FooModule", (m) => {
       const account2 = m.getAccount(2);
 
       // batch 1

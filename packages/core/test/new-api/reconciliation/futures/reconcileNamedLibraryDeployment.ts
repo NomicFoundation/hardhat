@@ -1,7 +1,7 @@
 /* eslint-disable import/no-unused-modules */
 import { assert } from "chai";
 
-import { defineModule } from "../../../../src/new-api/define-module";
+import { buildModule } from "../../../../src/new-api/build-module";
 import {
   DeploymentExecutionState,
   ExecutionStatus,
@@ -35,7 +35,7 @@ describe("Reconciliation - named library", () => {
   };
 
   it("should reconcile unchanged", () => {
-    const submoduleDefinition = defineModule("Submodule", (m) => {
+    const submoduleDefinition = buildModule("Submodule", (m) => {
       const safeMath = m.library("SafeMath");
 
       const mainLib = m.library("MainLibrary", {
@@ -45,7 +45,7 @@ describe("Reconciliation - named library", () => {
       return { safeMath, mainLib };
     });
 
-    const moduleDefinition = defineModule("Module", (m) => {
+    const moduleDefinition = buildModule("Module", (m) => {
       const { mainLib } = m.useModule(submoduleDefinition);
 
       return { mainLib };
@@ -72,7 +72,7 @@ describe("Reconciliation - named library", () => {
   });
 
   it("should find changes to library name unreconciliable", () => {
-    const moduleDefinition = defineModule("Module", (m) => {
+    const moduleDefinition = buildModule("Module", (m) => {
       const library = m.library("LibraryChanged", { id: "Library" });
 
       return { library };
@@ -97,7 +97,7 @@ describe("Reconciliation - named library", () => {
   });
 
   it("should find changes to libraries unreconciliable", () => {
-    const moduleDefinition = defineModule("Module", (m) => {
+    const moduleDefinition = buildModule("Module", (m) => {
       const safeMath = m.library("SafeMath");
 
       const mainLib = m.library("MainLibrary", {
@@ -135,7 +135,7 @@ describe("Reconciliation - named library", () => {
   });
 
   it("should find changes to from unreconciliable", () => {
-    const moduleDefinition = defineModule("Module", (m) => {
+    const moduleDefinition = buildModule("Module", (m) => {
       const library = m.library("Library", { id: "Library", from: twoAddress });
 
       return { library };

@@ -1,5 +1,5 @@
 /* eslint-disable import/no-unused-modules */
-import { defineModule } from "@ignored/ignition-core";
+import { buildModule } from "@ignored/ignition-core";
 import { assert } from "chai";
 
 import {
@@ -16,7 +16,7 @@ describe("execution - error on user transaction sent", () => {
   useFileIgnitionProject("minimal-new-api", "error-on-user-transaction-sent");
 
   it("should error on the drop being detected", async function () {
-    const moduleDefinition = defineModule("FooModule", (m) => {
+    const moduleDefinition = buildModule("FooModule", (m) => {
       const account2 = m.getAccount(2);
 
       // batch 1

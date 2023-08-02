@@ -2,7 +2,7 @@
 import { assert } from "chai";
 
 import { Artifact } from "../../../../src";
-import { defineModule } from "../../../../src/new-api/define-module";
+import { buildModule } from "../../../../src/new-api/build-module";
 import {
   DeploymentExecutionState,
   ExecutionStatus,
@@ -43,7 +43,7 @@ describe("Reconciliation - artifact contract", () => {
   };
 
   it("should reconcile unchanged", () => {
-    const submoduleDefinition = defineModule("Submodule", (m) => {
+    const submoduleDefinition = buildModule("Submodule", (m) => {
       const supply = m.getParameter("supply", BigInt(1000));
       const safeMath = m.library("SafeMath");
 
@@ -61,7 +61,7 @@ describe("Reconciliation - artifact contract", () => {
       return { contract1 };
     });
 
-    const moduleDefinition = defineModule("Module", (m) => {
+    const moduleDefinition = buildModule("Module", (m) => {
       const { contract1 } = m.useModule(submoduleDefinition);
 
       return { contract1 };
@@ -88,7 +88,7 @@ describe("Reconciliation - artifact contract", () => {
   });
 
   it("should find changes to contract name unreconciliable", () => {
-    const moduleDefinition = defineModule("Module", (m) => {
+    const moduleDefinition = buildModule("Module", (m) => {
       const contract1 = m.contractFromArtifact(
         "ContractChanged",
         fakeArtifact,
@@ -118,7 +118,7 @@ describe("Reconciliation - artifact contract", () => {
   });
 
   it("should find changes to constructors unreconciliable", () => {
-    const moduleDefinition = defineModule("Module", (m) => {
+    const moduleDefinition = buildModule("Module", (m) => {
       const owner = m.getAccount(3);
       const supply = m.getParameter("supply", BigInt(500));
       const ticker = m.getParameter("ticker", "CodeCoin");
@@ -154,7 +154,7 @@ describe("Reconciliation - artifact contract", () => {
   });
 
   it("should find changes to libraries unreconciliable", () => {
-    const moduleDefinition = defineModule("Module", (m) => {
+    const moduleDefinition = buildModule("Module", (m) => {
       const safeMath = m.library("SafeMath");
 
       const contract1 = m.contractFromArtifact("Contract1", fakeArtifact, [], {
@@ -191,7 +191,7 @@ describe("Reconciliation - artifact contract", () => {
   });
 
   it("should find changes to value unreconciliable", () => {
-    const moduleDefinition = defineModule("Module", (m) => {
+    const moduleDefinition = buildModule("Module", (m) => {
       const contract1 = m.contractFromArtifact("Contract1", fakeArtifact, [], {
         id: "Example",
         value: BigInt(4),
@@ -218,7 +218,7 @@ describe("Reconciliation - artifact contract", () => {
   });
 
   it("should find changes to from unreconciliable", () => {
-    const moduleDefinition = defineModule("Module", (m) => {
+    const moduleDefinition = buildModule("Module", (m) => {
       const contract1 = m.contractFromArtifact("Contract1", fakeArtifact, [], {
         id: "Example",
         from: twoAddress,

@@ -2,7 +2,7 @@
 import { assert } from "chai";
 
 import { Artifact, FutureType } from "../../src";
-import { defineModule } from "../../src/new-api/define-module";
+import { buildModule } from "../../src/new-api/build-module";
 import { ModuleParameterRuntimeValueImplementation } from "../../src/new-api/internal/module";
 import { ModuleConstructor } from "../../src/new-api/internal/module-builder";
 import { getFuturesFromModule } from "../../src/new-api/internal/utils/get-futures-from-module";
@@ -19,7 +19,7 @@ describe("contractAtFromArtifact", () => {
   };
 
   it("should be able to setup a contract at a given address", () => {
-    const moduleWithContractFromArtifactDefinition = defineModule(
+    const moduleWithContractFromArtifactDefinition = buildModule(
       "Module1",
       (m) => {
         const contract1 = m.contractAtFromArtifact(
@@ -60,7 +60,7 @@ describe("contractAtFromArtifact", () => {
   });
 
   it("should be able to pass an after dependency", () => {
-    const moduleWithDependentContractsDefinition = defineModule(
+    const moduleWithDependentContractsDefinition = buildModule(
       "Module1",
       (m) => {
         const example = m.contract("Example");
@@ -92,7 +92,7 @@ describe("contractAtFromArtifact", () => {
   });
 
   it("should be able to pass a static call future as the address", () => {
-    const moduleWithDependentContractsDefinition = defineModule(
+    const moduleWithDependentContractsDefinition = buildModule(
       "Module1",
       (m) => {
         const example = m.contract("Example");
@@ -122,7 +122,7 @@ describe("contractAtFromArtifact", () => {
   });
 
   it("Should be able to pass a module param as address", () => {
-    const moduleDefinition = defineModule("Module", (m) => {
+    const moduleDefinition = buildModule("Module", (m) => {
       const paramWithDefault = m.getParameter("addressWithDefault", "0x000000");
       const paramWithoutDefault = m.getParameter("addressWithoutDefault");
 
@@ -163,7 +163,7 @@ describe("contractAtFromArtifact", () => {
 
   describe("passing id", () => {
     it("should be able to deploy the same contract twice by passing an id", () => {
-      const moduleWithSameContractTwiceDefinition = defineModule(
+      const moduleWithSameContractTwiceDefinition = buildModule(
         "Module1",
         (m) => {
           const sameContract1 = m.contractAtFromArtifact(
@@ -202,7 +202,7 @@ describe("contractAtFromArtifact", () => {
     });
 
     it("should throw if the same contract is deployed twice without differentiating ids", () => {
-      const moduleDefinition = defineModule("Module1", (m) => {
+      const moduleDefinition = buildModule("Module1", (m) => {
         const sameContract1 = m.contractAtFromArtifact(
           "SameContract",
           "0x123",
@@ -226,7 +226,7 @@ describe("contractAtFromArtifact", () => {
     });
 
     it("should throw if a contract tries to pass the same id twice", () => {
-      const moduleDefinition = defineModule("Module1", (m) => {
+      const moduleDefinition = buildModule("Module1", (m) => {
         const sameContract1 = m.contractAtFromArtifact(
           "SameContract",
           "0x123",
@@ -258,7 +258,7 @@ describe("contractAtFromArtifact", () => {
 
   describe("validation", () => {
     it("should not validate an invalid address", () => {
-      const moduleWithDependentContractsDefinition = defineModule(
+      const moduleWithDependentContractsDefinition = buildModule(
         "Module1",
         (m) => {
           const another = m.contractAtFromArtifact(
@@ -280,7 +280,7 @@ describe("contractAtFromArtifact", () => {
     });
 
     it("should not validate a missing module parameter", async () => {
-      const moduleWithDependentContractsDefinition = defineModule(
+      const moduleWithDependentContractsDefinition = buildModule(
         "Module1",
         (m) => {
           const p = m.getParameter("p");
@@ -311,7 +311,7 @@ describe("contractAtFromArtifact", () => {
     });
 
     it("should validate a missing module parameter if a default parameter is present", async () => {
-      const moduleWithDependentContractsDefinition = defineModule(
+      const moduleWithDependentContractsDefinition = buildModule(
         "Module1",
         (m) => {
           const p = m.getParameter("p", "0x1234");
@@ -341,7 +341,7 @@ describe("contractAtFromArtifact", () => {
     });
 
     it("should not validate a module parameter of the wrong type", async () => {
-      const moduleWithDependentContractsDefinition = defineModule(
+      const moduleWithDependentContractsDefinition = buildModule(
         "Module1",
         (m) => {
           const p = m.getParameter("p", 123 as unknown as string);
@@ -372,7 +372,7 @@ describe("contractAtFromArtifact", () => {
     });
 
     it("should not validate an invalid artifact", () => {
-      const moduleWithDependentContractsDefinition = defineModule(
+      const moduleWithDependentContractsDefinition = buildModule(
         "Module1",
         (m) => {
           const another = m.contractAtFromArtifact(

@@ -1,7 +1,7 @@
 /* eslint-disable import/no-unused-modules */
 import { assert } from "chai";
 
-import { defineModule } from "../../../src/new-api/define-module";
+import { buildModule } from "../../../src/new-api/build-module";
 import { ArtifactMap } from "../../../src/new-api/internal/reconciliation/types";
 import {
   DeploymentExecutionState,
@@ -34,7 +34,7 @@ describe("Reconciliation", () => {
   };
 
   it("should successfully reconcile on an empty execution state", () => {
-    const moduleDefinition = defineModule("Module1", (m) => {
+    const moduleDefinition = buildModule("Module1", (m) => {
       const contract1 = m.contract("Contract1");
 
       return { contract1 };
@@ -44,7 +44,7 @@ describe("Reconciliation", () => {
   });
 
   it("should successfully reconcile even in with complex arguments", () => {
-    const moduleDefinition = defineModule("Module1", (m) => {
+    const moduleDefinition = buildModule("Module1", (m) => {
       const safeMath = m.library("SafeMath");
 
       const contract1 = m.contract("Contract1", [], {
@@ -70,7 +70,7 @@ describe("Reconciliation", () => {
   });
 
   it("should find previous executed futures that have been left out of the current module", () => {
-    const moduleDefinition = defineModule("Module1", (m) => {
+    const moduleDefinition = buildModule("Module1", (m) => {
       const contract1 = m.contract("Contract1");
 
       return { contract1 };
@@ -91,7 +91,7 @@ describe("Reconciliation", () => {
   });
 
   it("should flag as unreconsiliable a future that has changed type", () => {
-    const moduleDefinition = defineModule("Module1", (m) => {
+    const moduleDefinition = buildModule("Module1", (m) => {
       const library1 = m.library("Library1", { id: "Example" });
 
       return { library1 };
@@ -116,7 +116,7 @@ describe("Reconciliation", () => {
 
   describe("from and accounts interactions", () => {
     it("should reconcile from where both future and execution state are undefined but there is history", () => {
-      const moduleDefinition = defineModule("Module1", (m) => {
+      const moduleDefinition = buildModule("Module1", (m) => {
         const contract1 = m.contract("Contract1", [], { from: undefined });
 
         return { contract1 };
@@ -150,7 +150,7 @@ describe("Reconciliation", () => {
     });
 
     it("should reconcile any from if the execution state from is not set and there were no messages", () => {
-      const moduleDefinition = defineModule("Module1", (m) => {
+      const moduleDefinition = buildModule("Module1", (m) => {
         const account1 = m.getAccount(1);
         const contract1 = m.contract("Contract1", [], { from: account1 });
 
@@ -171,7 +171,7 @@ describe("Reconciliation", () => {
     });
 
     it("should flag as unreconsiliable a changed from where the history indicates a different from", () => {
-      const moduleDefinition = defineModule("Module1", (m) => {
+      const moduleDefinition = buildModule("Module1", (m) => {
         const account2 = m.getAccount(2);
         // from is accounts[2]
         const contract1 = m.contract("Contract1", [], { from: account2 });
@@ -216,7 +216,7 @@ describe("Reconciliation", () => {
     const exampleAddress = "0x1F98431c8aD98523631AE4a59f267346ea31F984";
 
     it("should reconcile unchanged dependencies", () => {
-      const moduleDefinition = defineModule("Module", (m) => {
+      const moduleDefinition = buildModule("Module", (m) => {
         const contract1 = m.contract("Contract1");
         const contract2 = m.contract("Contract2");
         const contract3 = m.contract("Contract3", [], {
@@ -250,7 +250,7 @@ describe("Reconciliation", () => {
     });
 
     it("should reconcile the reduction of dependencies", () => {
-      const moduleDefinition = defineModule("Module", (m) => {
+      const moduleDefinition = buildModule("Module", (m) => {
         const contract1 = m.contract("Contract1");
         const contract2 = m.contract("Contract2");
         const contract3 = m.contract("Contract3", [], {
@@ -284,7 +284,7 @@ describe("Reconciliation", () => {
     });
 
     it("should reconcile the addition of a dependency to a completed future", () => {
-      const moduleDefinition = defineModule("Module", (m) => {
+      const moduleDefinition = buildModule("Module", (m) => {
         const contract1 = m.contract("Contract1");
         const contract2 = m.contract("Contract2", [], {
           after: [contract1],
@@ -311,7 +311,7 @@ describe("Reconciliation", () => {
     });
 
     it("should not reconcile the addition of a dependency that is not a success", () => {
-      const moduleDefinition = defineModule("Module", (m) => {
+      const moduleDefinition = buildModule("Module", (m) => {
         const contract1 = m.contract("Contract1");
         const contract2 = m.contract("Contract2", [], {
           after: [contract1],
@@ -348,7 +348,7 @@ describe("Reconciliation", () => {
     it("should not reconcile the addition of a dependency where the dependent has alread started", () => {
       const addr1 = exampleAddress;
 
-      const moduleDefinition = defineModule("Module", (m) => {
+      const moduleDefinition = buildModule("Module", (m) => {
         const contractOriginal = m.contract("ContractOriginal");
 
         const contractNew = m.contract("ContractNew");
@@ -394,7 +394,7 @@ describe("Reconciliation", () => {
     it("should reconcile unchanged bytecodes", () => {
       const addr1 = exampleAddress;
 
-      const moduleDefinition = defineModule("Module", (m) => {
+      const moduleDefinition = buildModule("Module", (m) => {
         const contract1 = m.contract("Contract1");
 
         return { contract1 };
@@ -434,7 +434,7 @@ describe("Reconciliation", () => {
     it("should not reconcile changed bytecodes", () => {
       const addr1 = exampleAddress;
 
-      const moduleDefinition = defineModule("Module", (m) => {
+      const moduleDefinition = buildModule("Module", (m) => {
         const contract1 = m.contract("Contract1");
 
         return { contract1 };
@@ -499,7 +499,7 @@ describe("Reconciliation", () => {
 
       const addr1 = exampleAddress;
 
-      const moduleDefinition = defineModule("Module", (m) => {
+      const moduleDefinition = buildModule("Module", (m) => {
         const contract1 = m.contract("Contract1");
 
         return { contract1 };

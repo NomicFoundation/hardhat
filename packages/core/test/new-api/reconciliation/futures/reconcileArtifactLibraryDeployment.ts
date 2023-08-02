@@ -2,7 +2,7 @@
 import { assert } from "chai";
 
 import { Artifact } from "../../../../src";
-import { defineModule } from "../../../../src/new-api/define-module";
+import { buildModule } from "../../../../src/new-api/build-module";
 import {
   DeploymentExecutionState,
   ExecutionStatus,
@@ -43,7 +43,7 @@ describe("Reconciliation - artifact library", () => {
   };
 
   it("should reconcile unchanged", () => {
-    const submoduleDefinition = defineModule("Submodule", (m) => {
+    const submoduleDefinition = buildModule("Submodule", (m) => {
       const safeMath = m.library("SafeMath");
 
       const mainLib = m.libraryFromArtifact("MainLibrary", fakeArtifact, {
@@ -53,7 +53,7 @@ describe("Reconciliation - artifact library", () => {
       return { safeMath, mainLib };
     });
 
-    const moduleDefinition = defineModule("Module", (m) => {
+    const moduleDefinition = buildModule("Module", (m) => {
       const { mainLib } = m.useModule(submoduleDefinition);
 
       return { mainLib };
@@ -80,7 +80,7 @@ describe("Reconciliation - artifact library", () => {
   });
 
   it("should find changes to contract name unreconciliable", () => {
-    const moduleDefinition = defineModule("Module", (m) => {
+    const moduleDefinition = buildModule("Module", (m) => {
       const library1 = m.libraryFromArtifact("LibraryChanged", fakeArtifact, {
         id: "Example",
       });
@@ -107,7 +107,7 @@ describe("Reconciliation - artifact library", () => {
   });
 
   it("should find changes to libraries unreconciliable", () => {
-    const moduleDefinition = defineModule("Module", (m) => {
+    const moduleDefinition = buildModule("Module", (m) => {
       const safeMath = m.library("SafeMath");
 
       const mainLib = m.libraryFromArtifact("MainLibrary", fakeArtifact, {
@@ -145,7 +145,7 @@ describe("Reconciliation - artifact library", () => {
   });
 
   it("should find changes to contract name unreconciliable", () => {
-    const moduleDefinition = defineModule("Module", (m) => {
+    const moduleDefinition = buildModule("Module", (m) => {
       const library1 = m.libraryFromArtifact("Library1", fakeArtifact, {
         id: "Example",
         from: twoAddress,

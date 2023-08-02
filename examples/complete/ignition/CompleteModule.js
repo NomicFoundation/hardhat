@@ -1,10 +1,10 @@
 // ./ignition/CompleteModule.js
-const { defineModule } = require("@ignored/hardhat-ignition");
+const { buildModule } = require("@ignored/hardhat-ignition");
 
 const withLibArtifact = require("../libArtifacts/ContractWithLibrary.json");
 const libArtifact = require("../libArtifacts/BasicLibrary.json");
 
-module.exports = defineModule("CompleteModule", (m) => {
+module.exports = buildModule("CompleteModule", (m) => {
   const basic = m.contract("BasicContract");
   const library = m.library("BasicLibrary");
   const libFromArtifact = m.libraryFromArtifact("BasicLibrary", libArtifact, {
