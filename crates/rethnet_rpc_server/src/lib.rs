@@ -81,9 +81,10 @@ pub enum MethodInvocation {
 }
 
 type RethnetStateType = Arc<RwLock<dyn SyncState<StateError>>>;
+type BlockchainType = Arc<RwLock<dyn SyncBlockchain<BlockchainError>>>;
 
 struct AppState {
-    blockchain: Arc<RwLock<dyn SyncBlockchain<BlockchainError>>>,
+    blockchain: BlockchainType,
     rethnet_state: RethnetStateType,
     chain_id: U64,
     coinbase: Address,
@@ -875,7 +876,7 @@ impl Server {
         let network_id = config.network_id;
         let spec_id = config.hardfork;
 
-        let rethnet_state: StateType =
+        let (rethnet_state, blockchain, fork_block_number): (RethnetStateType, BlockchainType, Option<U256>)  =
             if let Some(config) = config.rpc_hardhat_network_config.forking {
                 let runtime = Arc::new(
                     tokio::runtime::Builder::new_multi_thread()
@@ -899,25 +900,15 @@ impl Server {
 
                 let blockchain = Arc::new(RwLock::new(blockchain));
 
-                Arc::new(AppState {
-                    blockchain,
-                    _mem_pool,
-                    rethnet_state: Arc::new(RwLock::new(Box::new(ForkState::new(
+                let rethnet_state = Arc::new(RwLock::new(Box::new(ForkState::new(
                         Arc::clone(&runtime),
                         Arc::new(parking_lot::Mutex::new(hash_generator)),
                         &config.json_rpc_url,
                         fork_block_number,
                         genesis_accounts,
-                    )))),
-                    chain_id,
-                    coinbase,
-                    filters,
-                    fork_block_number: Some(fork_block_number),
-                    impersonated_accounts,
-                    last_filter_id,
-                    local_accounts,
-                    network_id,
-                })
+                    ))));
+
+                (rethnet_state, blockchain, Some(fork_block_number))
             } else {
                 let rethnet_state = HybridState::with_accounts(genesis_accounts);
                 let blockchain = Arc::new(RwLock::new(LocalBlockchain::new(
@@ -929,25 +920,28 @@ impl Server {
                     config.initial_base_fee_per_gas,
                 )?));
                 let rethnet_state = Arc::new(RwLock::new(Box::new(rethnet_state)));
-                Arc::new(AppState {
-                    blockchain,
-                    _mem_pool,
-                    rethnet_state,
-                    chain_id,
-                    coinbase,
-                    filters,
-                    fork_block_number: None,
-                    impersonated_accounts,
-                    last_filter_id,
-                    local_accounts,
-                    network_id,
-                })
+                let fork_block_number = None;
+                (rethnet_state, blockchain, fork_block_number)
             };
+
+        let app_state = Arc::new(AppState {
+            blockchain,
+            _mem_pool,
+            rethnet_state,
+            chain_id,
+            coinbase,
+            filters,
+            fork_block_number,
+            impersonated_accounts,
+            last_filter_id,
+            local_accounts,
+            network_id,
+        });
 
         Ok(Self {
             inner: axum::Server::from_tcp(listener)
                 .unwrap()
-                .serve(router(rethnet_state).await.into_make_service()),
+                .serve(router(app_state).await.into_make_service()),
         })
     }
 
