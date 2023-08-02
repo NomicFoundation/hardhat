@@ -155,7 +155,9 @@ async fn node() -> Result<(), Box<dyn std::error::Error>> {
     }
     for method_invocation in method_invocations {
         Assert::new(output.clone()).stdout(contains(match method_invocation {
-            MethodInvocation::Eth(EthMethodInvocation::Accounts()) => String::from("eth_accounts"),
+            MethodInvocation::Eth(EthMethodInvocation::Accounts()) => {
+                String::from("eth_accounts()")
+            }
             MethodInvocation::Eth(EthMethodInvocation::ChainId()) => String::from("eth_chainId()"),
             MethodInvocation::Eth(EthMethodInvocation::Coinbase()) => {
                 String::from("eth_coinbase()")

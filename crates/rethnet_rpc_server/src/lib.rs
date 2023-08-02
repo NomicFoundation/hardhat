@@ -281,7 +281,7 @@ async fn get_account_info<T>(
 }
 
 async fn handle_accounts(state: StateType) -> ResponseData<Vec<Address>> {
-    event!(Level::INFO, "eth_accounts");
+    event!(Level::INFO, "eth_accounts()");
     ResponseData::Success {
         result: state.local_accounts.keys().copied().collect(),
     }
