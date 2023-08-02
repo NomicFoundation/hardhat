@@ -160,71 +160,71 @@ where
                 .map_err(|e| anyhow!("failed to write config file: {e}"))
                 .map(|_| ExitStatus::Success)
             } else {
-            tracing_subscriber::fmt::Subscriber::builder()
-                .with_max_level(match node_args.verbose {
-                    0 => Level::ERROR,
-                    1 => Level::WARN,
-                    2 => Level::INFO,
-                    3 => Level::DEBUG,
-                    4 => Level::TRACE,
-                    _ => Err(anyhow!(
-                        "Specifying --verbose more than 4 times is unsupported"
-                    ))?,
-                })
-                .init();
+                tracing_subscriber::fmt::Subscriber::builder()
+                    .with_max_level(match node_args.verbose {
+                        0 => Level::ERROR,
+                        1 => Level::WARN,
+                        2 => Level::INFO,
+                        3 => Level::DEBUG,
+                        4 => Level::TRACE,
+                        _ => Err(anyhow!(
+                            "Specifying --verbose more than 4 times is unsupported"
+                        ))?,
+                    })
+                    .init();
 
-            let config_file = if let Ok(mut file) = File::open(node_args.config_file.clone()) {
-                let mut contents = String::new();
-                file.read_to_string(&mut contents)?;
-                toml::from_str(&contents)?
-            } else if node_args.config_file != DEFAULT_CONFIG_FILE_NAME {
-                Err(anyhow!(
-                    "Failed to open config file {}",
-                    node_args.config_file
-                ))?
-            } else {
-                ConfigFile::default()
-            };
-
-            let server = rethnet_rpc_server::Server::new(
-                server_config_from_cli_args_and_config_file(node_args, config_file)?,
-            )
-            .await?;
-
-            async fn await_signal() {
-                use tokio::signal;
-
-                let ctrl_c = async {
-                    signal::ctrl_c()
-                        .await
-                        .expect("failed to install Ctrl+C handler");
+                let config_file = if let Ok(mut file) = File::open(node_args.config_file.clone()) {
+                    let mut contents = String::new();
+                    file.read_to_string(&mut contents)?;
+                    toml::from_str(&contents)?
+                } else if node_args.config_file != DEFAULT_CONFIG_FILE_NAME {
+                    Err(anyhow!(
+                        "Failed to open config file {}",
+                        node_args.config_file
+                    ))?
+                } else {
+                    ConfigFile::default()
                 };
 
-                #[cfg(unix)]
-                let terminate = async {
-                    use signal::unix::{signal, SignalKind};
-                    signal(SignalKind::terminate())
-                        .expect("failed to install signal handler")
-                        .recv()
-                        .await;
-                };
+                let server = rethnet_rpc_server::Server::new(
+                    server_config_from_cli_args_and_config_file(node_args, config_file)?,
+                )
+                .await?;
 
-                #[cfg(not(unix))]
-                let terminate = std::future::pending::<()>();
+                async fn await_signal() {
+                    use tokio::signal;
 
-                tokio::select! {
-                    _ = ctrl_c => {},
-                    _ = terminate => {},
+                    let ctrl_c = async {
+                        signal::ctrl_c()
+                            .await
+                            .expect("failed to install Ctrl+C handler");
+                    };
+
+                    #[cfg(unix)]
+                    let terminate = async {
+                        use signal::unix::{signal, SignalKind};
+                        signal(SignalKind::terminate())
+                            .expect("failed to install signal handler")
+                            .recv()
+                            .await;
+                    };
+
+                    #[cfg(not(unix))]
+                    let terminate = std::future::pending::<()>();
+
+                    tokio::select! {
+                        _ = ctrl_c => {},
+                        _ = terminate => {},
+                    }
+
+                    event!(Level::INFO, "Shutting down");
                 }
 
-                event!(Level::INFO, "Shutting down");
+                Ok(server
+                    .serve_with_shutdown_signal(await_signal())
+                    .await
+                    .map(|_| ExitStatus::Success)?)
             }
-
-            Ok(server
-                .serve_with_shutdown_signal(await_signal())
-                .await
-                .map(|_| ExitStatus::Success)?)
-        }
         }
     }
 }
