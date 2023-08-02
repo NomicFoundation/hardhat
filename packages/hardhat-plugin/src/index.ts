@@ -1,4 +1,9 @@
-import { deploy, ModuleConstructor, wipe } from "@ignored/ignition-core";
+import {
+  deploy,
+  DeploymentParameters,
+  ModuleConstructor,
+  wipe,
+} from "@ignored/ignition-core";
 import "@nomiclabs/hardhat-ethers";
 import { BigNumber } from "ethers";
 import { existsSync, readdirSync, readJSONSync } from "fs-extra";
@@ -119,7 +124,7 @@ task("deploy")
 
       await hre.run("compile", { quiet: true });
 
-      const userModule: any | undefined = loadModule(
+      const userModule = loadModule(
         hre.config.paths.ignition,
         moduleNameOrPath
       );
@@ -129,10 +134,10 @@ task("deploy")
         process.exit(0);
       }
 
-      let parameters: any | undefined;
+      let parameters: DeploymentParameters | undefined;
       if (parametersInput === undefined) {
         parameters = resolveParametersFromModuleName(
-          userModule.name,
+          userModule.id,
           hre.config.paths.ignition
         );
       } else if (parametersInput.endsWith(".json")) {
@@ -160,9 +165,8 @@ task("deploy")
           adapters,
           artifactResolver,
           deploymentDir,
-          moduleDefinition: userModule as any,
-          // TODO: parameters needs properly typed with module
-          deploymentParameters: (parameters as any) ?? {},
+          moduleDefinition: userModule,
+          deploymentParameters: parameters ?? {},
           accounts,
           verbose: logs,
         });
@@ -226,8 +230,7 @@ task("plan")
     ) => {
       await hre.run("compile", { quiet: true });
 
-      // TODO: alter loadModule to return new-api modules at type level
-      const userModule: any = loadModule(
+      const userModule = loadModule(
         hre.config.paths.ignition,
         moduleNameOrPath
       );
@@ -348,7 +351,7 @@ task("wipe")
 function resolveParametersFromModuleName(
   moduleName: string,
   ignitionPath: string
-): any | undefined {
+): DeploymentParameters | undefined {
   const files = readdirSync(ignitionPath);
   const configFilename = `${moduleName}.config.json`;
 
@@ -357,13 +360,13 @@ function resolveParametersFromModuleName(
     : undefined;
 }
 
-function resolveParametersFromFileName(fileName: string): any {
+function resolveParametersFromFileName(fileName: string): DeploymentParameters {
   const filepath = path.resolve(process.cwd(), fileName);
 
   return resolveConfigPath(filepath);
 }
 
-function resolveConfigPath(filepath: string): any {
+function resolveConfigPath(filepath: string): DeploymentParameters {
   try {
     return require(filepath);
   } catch {
@@ -372,7 +375,7 @@ function resolveConfigPath(filepath: string): any {
   }
 }
 
-function resolveParametersString(paramString: string): any {
+function resolveParametersString(paramString: string): DeploymentParameters {
   try {
     return JSON.parse(paramString);
   } catch {

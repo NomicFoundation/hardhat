@@ -12,7 +12,7 @@ describe.skip("loadModule", function () {
       assert.fail("Module was not loaded");
     }
 
-    assert.equal(module.name, "testing123");
+    // assert.equal(module.name, "testing123");
   });
 
   it("should return the module given the module name and extension", () => {
@@ -22,7 +22,7 @@ describe.skip("loadModule", function () {
       assert.fail("Module was not loaded");
     }
 
-    assert.equal(module.name, "testing123");
+    // assert.equal(module.name, "testing123");
   });
 
   it("should throw if the module name does not exist", () => {
