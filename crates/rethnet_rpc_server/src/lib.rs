@@ -92,7 +92,7 @@ struct AppState {
     impersonated_accounts: RwLock<HashSet<Address>>,
     last_filter_id: RwLock<U256>,
     local_accounts: HashMap<Address, SecretKey>,
-    _mempool: Arc<RwLock<MemPool>>,
+    _mem_pool: Arc<RwLock<MemPool>>,
     network_id: U64,
 }
 
@@ -871,7 +871,7 @@ impl Server {
         let filters = RwLock::new(HashMap::default());
         let impersonated_accounts = RwLock::new(HashSet::new());
         let last_filter_id = RwLock::new(U256::ZERO);
-        let _mempool = Arc::new(RwLock::new(MemPool::new(config.block_gas_limit)));
+        let _mem_pool = Arc::new(RwLock::new(MemPool::new(config.block_gas_limit)));
         let network_id = config.network_id;
         let spec_id = config.hardfork;
 
@@ -901,7 +901,7 @@ impl Server {
 
                 Arc::new(AppState {
                     blockchain,
-                    _mempool,
+                    _mem_pool,
                     rethnet_state: Arc::new(RwLock::new(Box::new(ForkState::new(
                         Arc::clone(&runtime),
                         Arc::new(parking_lot::Mutex::new(hash_generator)),
@@ -931,7 +931,7 @@ impl Server {
                 let rethnet_state = Arc::new(RwLock::new(Box::new(rethnet_state)));
                 Arc::new(AppState {
                     blockchain,
-                    _mempool,
+                    _mem_pool,
                     rethnet_state,
                     chain_id,
                     coinbase,

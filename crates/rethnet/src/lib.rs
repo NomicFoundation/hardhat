@@ -42,7 +42,7 @@ struct NodeArgs {
     port: u16,
     #[clap(long, default_value = DEFAULT_CONFIG_FILE_NAME)]
     config_file: String,
-    /// Instead of starting the node, OVERwrite edr.toml with default configuration values
+    /// Instead of starting the node, overwrite edr.toml with default configuration values
     #[clap(long, action = clap::ArgAction::SetTrue)]
     init_config_file: bool,
     #[clap(long)]

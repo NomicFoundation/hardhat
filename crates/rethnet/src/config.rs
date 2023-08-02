@@ -3,8 +3,7 @@ use std::{str::FromStr, time::SystemTime};
 use hex;
 use serde::{Deserialize, Serialize};
 
-use rethnet_eth::{remote::ZeroXPrefixedBytes, Address, SpecId, U256};
-use rethnet_evm::Bytes;
+use rethnet_eth::{remote::ZeroXPrefixedBytes, Address, Bytes, SpecId, U256};
 
 /// the default private keys from which the local accounts will be derived.
 pub const DEFAULT_PRIVATE_KEYS: [&str; 20] = [
