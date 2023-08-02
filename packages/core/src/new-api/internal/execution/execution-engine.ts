@@ -52,7 +52,7 @@ import {
   JournalableMessage,
   OnchainTransactionReset,
   StartRunMessage,
-  TransactionMessage,
+  TransactionLevelJournalMessage,
 } from "../journal/types";
 import {
   isCallExecutionState,
@@ -430,7 +430,7 @@ export class ExecutionEngine {
       return lastMessage;
     }
 
-    let next: TransactionMessage | null = lastMessage;
+    let next: TransactionLevelJournalMessage | null = lastMessage;
 
     while (true) {
       const onchainState = state.executionStateMap[future.id].onchain;

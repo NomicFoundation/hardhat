@@ -15,6 +15,10 @@ import {
   isCallFunctionStartMessage,
   isContractAtStartMessage,
   isDeployContractStartMessage,
+  isExecutionFailure,
+  isExecutionHold,
+  isExecutionSuccess,
+  isExecutionTimeout,
   isFutureStartMessage,
   isReadEventArgumentStartMessage,
   isSendDataStartMessage,
@@ -22,10 +26,6 @@ import {
   isStaticCallStartMessage,
   isTransactionMessage,
   isWipeMessage,
-  isExecutionFailure,
-  isExecutionHold,
-  isExecutionSuccess,
-  isExecutionTimeout,
 } from "../journal/type-guards";
 import { FutureStartMessage, JournalableMessage } from "../journal/types";
 import { assertIgnitionInvariant } from "../utils/assertions";

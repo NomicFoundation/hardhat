@@ -1,6 +1,9 @@
 import { IgnitionError } from "../../../errors";
 import { OnchainState, OnchainStatuses } from "../execution/types";
 import {
+  isCallFunctionInteraction,
+  isContractAtInteraction,
+  isDeployContractInteraction,
   isOnchainCallFunctionSuccessMessage,
   isOnchainContractAtSuccessMessage,
   isOnchainDeployContractSuccessMessage,
@@ -11,20 +14,17 @@ import {
   isOnchainTransactionAccept,
   isOnchainTransactionRequest,
   isOnchainTransactionReset,
-  isCallFunctionInteraction,
-  isContractAtInteraction,
-  isDeployContractInteraction,
   isReadEventArgumentInteraction,
   isSendDataInteraction,
   isStaticCallInteraction,
 } from "../journal/type-guards";
-import { TransactionMessage } from "../journal/types";
+import { TransactionLevelJournalMessage } from "../journal/types";
 import { serializeReplacer } from "../journal/utils/serialize-replacer";
 import { assertIgnitionInvariant } from "../utils/assertions";
 
 export function onchainActionReducer(
   state: OnchainState,
-  action: TransactionMessage
+  action: TransactionLevelJournalMessage
 ): OnchainState {
   // #region "contractAt"
   if (isContractAtInteraction(action)) {
@@ -467,7 +467,7 @@ export function onchainActionReducer(
 function assertCurrentStatus(
   statuses: OnchainStatuses[],
   state: OnchainState,
-  action: TransactionMessage
+  action: TransactionLevelJournalMessage
 ) {
   assertIgnitionInvariant(
     statuses.includes(state.status),

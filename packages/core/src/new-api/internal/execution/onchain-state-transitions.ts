@@ -41,7 +41,7 @@ import {
   ReadEventArgumentInteractionMessage,
   SendDataInteractionMessage,
   StaticCallInteractionMessage,
-  TransactionMessage,
+  TransactionLevelJournalMessage,
 } from "../journal/types";
 import { serializeReplacer } from "../journal/utils/serialize-replacer";
 import { assertIgnitionInvariant } from "../utils/assertions";
@@ -53,7 +53,7 @@ interface OnchainStateTransitionContinue {
     | ExecutionSuccess
     | ExecutionTimeout
     | ExecutionFailure
-    | TransactionMessage;
+    | TransactionLevelJournalMessage;
 }
 
 interface OnchainStateTransitionPause {
@@ -62,7 +62,7 @@ interface OnchainStateTransitionPause {
 
 type OnchainStateTransition = (
   state: ExecutionEngineState,
-  next: TransactionMessage | null,
+  next: TransactionLevelJournalMessage | null,
   strategyInst: AsyncGenerator<
     OnchainInteractionMessage,
     ExecutionSuccess | OnchainInteractionMessage,
@@ -592,7 +592,7 @@ async function checkTransactionComplete(
   next: { txHash: string; futureId: string; executionId: number },
   successConstructor: (
     receipt: ethers.providers.TransactionReceipt
-  ) => ExecutionSuccess | ExecutionFailure | TransactionMessage
+  ) => ExecutionSuccess | ExecutionFailure | TransactionLevelJournalMessage
 ): Promise<OnchainStateTransitionContinue | OnchainStateTransitionPause> {
   state.transactionLookupTimer.registerStartTimeIfNeeded({
     futureId: next.futureId,

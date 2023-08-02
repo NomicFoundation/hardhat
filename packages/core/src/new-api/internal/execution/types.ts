@@ -14,13 +14,13 @@ import {
   ExecutionSuccess,
   OnchainInteractionMessage,
   OnchainResultMessage,
-  TransactionMessage,
+  TransactionLevelJournalMessage,
 } from "../journal/types";
 
 /**
  * The execution history of a future is a sequence of onchain interactions.
  */
-type ExecutionHistory = TransactionMessage[];
+type ExecutionHistory = TransactionLevelJournalMessage[];
 
 /**
  * The different status that the execution can be at.

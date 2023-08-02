@@ -4,7 +4,7 @@ import {
   ExecutionSuccess,
   OnchainInteractionMessage,
   OnchainResultMessage,
-  TransactionMessage,
+  TransactionLevelJournalMessage,
 } from "../journal/types";
 export class ExecutionStategyCycler {
   /**
@@ -24,7 +24,7 @@ export class ExecutionStategyCycler {
       ExecutionSuccess | OnchainInteractionMessage,
       OnchainResultMessage | null
     >;
-    lastMessage: TransactionMessage | ExecutionSuccess | null;
+    lastMessage: TransactionLevelJournalMessage | ExecutionSuccess | null;
   }> {
     // On the first run the responsibilite for initializing the
     // execution strategy is the state machine
@@ -33,7 +33,7 @@ export class ExecutionStategyCycler {
     }
 
     // As there are messages, do an initialization first
-    let lastMessage: TransactionMessage | ExecutionSuccess = (
+    let lastMessage: TransactionLevelJournalMessage | ExecutionSuccess = (
       await strategyInst.next(null)
     ).value;
 

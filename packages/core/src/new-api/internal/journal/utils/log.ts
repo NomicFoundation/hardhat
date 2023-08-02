@@ -1,39 +1,39 @@
 import { SolidityParameterType } from "../../../types/module";
 import {
   isCallFunctionInteraction,
+  isCallFunctionStartMessage,
   isCalledFunctionExecutionSuccess,
   isContractAtExecutionSuccess,
   isContractAtInteraction,
+  isContractAtStartMessage,
   isDeployContractInteraction,
+  isDeployContractStartMessage,
   isDeployedContractExecutionSuccess,
   isExecutionFailure,
   isExecutionHold,
   isExecutionTimeout,
-  isReadEventArgumentExecutionSuccess,
-  isReadEventArgumentInteraction,
-  isSendDataExecutionSuccess,
-  isSendDataInteraction,
-  isStaticCallExecutionSuccess,
-  isStaticCallInteraction,
-  isCallFunctionStartMessage,
-  isContractAtStartMessage,
-  isDeployContractStartMessage,
-  isOnChainFailureMessage,
   isOnchainCallFunctionSuccessMessage,
   isOnchainContractAtSuccessMessage,
   isOnchainDeployContractSuccessMessage,
+  isOnchainFailureMessage,
   isOnchainReadEventArgumentSuccessMessage,
   isOnchainSendDataSuccessMessage,
   isOnchainStaticCallSuccessMessage,
   isOnchainTransactionAccept,
   isOnchainTransactionRequest,
   isOnchainTransactionReset,
+  isReadEventArgumentExecutionSuccess,
+  isReadEventArgumentInteraction,
   isReadEventArgumentStartMessage,
+  isSendDataExecutionSuccess,
+  isSendDataInteraction,
   isSendDataStartMessage,
   isStartRunMessage,
+  isStaticCallExecutionSuccess,
+  isStaticCallInteraction,
   isStaticCallStartMessage,
   isWipeMessage,
-} from "../../journal/type-guards";
+} from "../type-guards";
 import { JournalableMessage } from "../types";
 
 export function logJournalableMessage(message: JournalableMessage): void {
@@ -221,7 +221,7 @@ export function logJournalableMessage(message: JournalableMessage): void {
     return console.log(`Execution on hold`);
   }
 
-  if (isOnChainFailureMessage(message)) {
+  if (isOnchainFailureMessage(message)) {
     return console.log(
       `on chain failure - futureId: '${message.futureId}' - executionId: ${message.executionId} - error: '${message.error.message}'`
     );
