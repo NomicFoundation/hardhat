@@ -88,7 +88,7 @@ impl rlp::Decodable for LegacySignedTransaction {
             kind: rlp.val_at(3)?,
             value: rlp.val_at(4)?,
             input: rlp.val_at::<Vec<u8>>(5)?.into(),
-            signature: Signature { v, r, s },
+            signature: Signature { r, s, v },
         })
     }
 }

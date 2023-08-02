@@ -28,6 +28,7 @@ rustflags = [
     "-Wclippy::if_let_mutex",
     "-Wclippy::implicit_clone",
     "-Wclippy::imprecise_flops",
+    "-Wclippy::inconsistent_struct_constructor",
     "-Wclippy::inefficient_to_string",
     "-Wclippy::invalid_upcast_comparisons",
     "-Wclippy::large_digit_groups",
