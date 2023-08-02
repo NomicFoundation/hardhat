@@ -34,6 +34,7 @@ pub const DEFAULT_PRIVATE_KEYS: [&str; 20] = [
 #[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
 pub struct ConfigFile {
     // TODO: expand this per https://github.com/NomicFoundation/rethnet/issues/111
+    pub allow_blocks_with_same_timestamp: Option<bool>,
     pub accounts: Option<Vec<AccountConfig>>,
     pub block_gas_limit: Option<U256>,
     pub chain_id: Option<u64>,
@@ -49,6 +50,13 @@ impl ConfigFile {
     pub fn resolve_none_values_to_defaults(partial: Self) -> Self {
         let default = Self::default();
         Self {
+            allow_blocks_with_same_timestamp: Some(
+                partial.allow_blocks_with_same_timestamp.unwrap_or(
+                    default
+                        .allow_blocks_with_same_timestamp
+                        .expect("should have a default value"),
+                ),
+            ),
             accounts: Some(
                 partial
                     .accounts
@@ -104,6 +112,7 @@ impl Default for ConfigFile {
         let block_gas_limit = Some(U256::from(30_000_000));
         let chain_id = Some(31337);
         Self {
+            allow_blocks_with_same_timestamp: Some(false),
             accounts: Some(
                 DEFAULT_PRIVATE_KEYS
                     .into_iter()

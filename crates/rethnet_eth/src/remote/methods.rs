@@ -282,6 +282,13 @@ pub enum MethodInvocation {
         deserialize_with = "sequence_to_single"
     )]
     Web3Sha3(ZeroXPrefixedBytes),
+    /// evm_increaseTime
+    #[serde(
+        rename = "evm_increaseTime",
+        serialize_with = "single_to_sequence",
+        deserialize_with = "sequence_to_single"
+    )]
+    EvmIncreaseTime(U256OrUsize),
     /// evm_setAutomine
     #[serde(
         rename = "evm_setAutomine",
@@ -289,9 +296,35 @@ pub enum MethodInvocation {
         deserialize_with = "sequence_to_single"
     )]
     EvmSetAutomine(bool),
+    /// evm_setNextBlockTimestamp
+    #[serde(
+        rename = "evm_setNextBlockTimestamp",
+        serialize_with = "single_to_sequence",
+        deserialize_with = "sequence_to_single"
+    )]
+    EvmSetNextBlockTimestamp(U256OrUsize),
     /// evm_snapshot
     #[serde(rename = "evm_snapshot")]
     EvmSnapshot(),
+}
+
+/// an input that can be either a U256 or a usize
+#[derive(Clone, Debug, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(untagged)]
+pub enum U256OrUsize {
+    /// U256
+    U256(U256),
+    /// usize
+    Usize(usize),
+}
+
+impl From<U256OrUsize> for U256 {
+    fn from(either: U256OrUsize) -> Self {
+        match either {
+            U256OrUsize::U256(u) => u,
+            U256OrUsize::Usize(u) => Self::from(u),
+        }
+    }
 }
 
 /// for specifying the inputs to `eth_getLogs`

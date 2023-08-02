@@ -1,4 +1,5 @@
 use std::net::SocketAddr;
+use std::time::SystemTime;
 
 use secp256k1::SecretKey;
 
@@ -7,6 +8,7 @@ use rethnet_eth::{Address, SpecId, U256, U64};
 pub use crate::hardhat_methods::reset::{RpcForkConfig, RpcHardhatNetworkConfig};
 
 pub struct Config {
+    pub allow_blocks_with_same_timestamp: bool,
     pub address: SocketAddr,
     pub rpc_hardhat_network_config: RpcHardhatNetworkConfig,
     pub accounts: Vec<AccountConfig>,
@@ -16,7 +18,7 @@ pub struct Config {
     pub gas: U256,
     pub hardfork: SpecId,
     pub initial_base_fee_per_gas: Option<U256>,
-    pub initial_date: Option<U256>,
+    pub initial_date: Option<SystemTime>,
     pub network_id: U64,
 }
 

@@ -2,14 +2,13 @@ use std::ffi::OsString;
 use std::fs;
 use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 use std::path::Path;
-use std::time::UNIX_EPOCH;
 
 use anyhow::anyhow;
 use clap::{Args, Parser, Subcommand};
 use secp256k1::{Error as Secp256k1Error, SecretKey};
 use tracing::{event, Level};
 
-use rethnet_eth::{Address, Bytes, U256, U64};
+use rethnet_eth::{Address, Bytes, U64};
 use rethnet_rpc_server::{
     AccountConfig as ServerAccountConfig, Config as ServerConfig, RpcForkConfig,
     RpcHardhatNetworkConfig,
@@ -45,6 +44,8 @@ struct NodeArgs {
     /// Instead of starting the node, overwrite edr.toml with default configuration values
     #[clap(long, action = clap::ArgAction::SetTrue)]
     init_config_file: bool,
+    #[clap(long, action = clap::ArgAction::SetTrue)]
+    allow_blocks_with_same_timestamp: bool,
     #[clap(long)]
     fork_url: Option<String>,
     #[clap(long)]
@@ -65,6 +66,10 @@ fn server_config_from_cli_args_and_config_file(
 ) -> Result<ServerConfig, anyhow::Error> {
     let config_file = ConfigFile::resolve_none_values_to_defaults(config_file);
     Ok(ServerConfig {
+        allow_blocks_with_same_timestamp: node_args.allow_blocks_with_same_timestamp
+            || config_file
+                .allow_blocks_with_same_timestamp
+                .expect("should be resolved to default"),
         address: SocketAddr::new(node_args.host, node_args.port),
         rpc_hardhat_network_config: RpcHardhatNetworkConfig {
             forking: if let Some(json_rpc_url) = node_args.fork_url {
@@ -102,14 +107,7 @@ fn server_config_from_cli_args_and_config_file(
         gas: config_file.gas.expect("should be resolved to default"),
         hardfork: config_file.hardfork.expect("should be resovled to default"),
         initial_base_fee_per_gas: config_file.initial_base_fee_per_gas,
-        initial_date: config_file.initial_date.map(|instant| {
-            U256::from(
-                instant
-                    .duration_since(UNIX_EPOCH)
-                    .expect("initial date must be after UNIX epoch")
-                    .as_secs(),
-            )
-        }),
+        initial_date: config_file.initial_date,
         network_id: node_args
             .network_id
             .or(config_file.network_id)

@@ -1,6 +1,6 @@
 use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 use std::str::FromStr;
-use std::time::{SystemTime, UNIX_EPOCH};
+use std::time::SystemTime;
 
 use hashbrown::HashMap;
 use secp256k1::{Secp256k1, SecretKey};
@@ -8,8 +8,11 @@ use tracing::Level;
 
 use rethnet_eth::{
     remote::{
-        client::Request as RpcRequest, filter::FilteredEvents, jsonrpc,
-        methods::MethodInvocation as EthMethodInvocation, BlockSpec, ZeroXPrefixedBytes,
+        client::Request as RpcRequest,
+        filter::FilteredEvents,
+        jsonrpc,
+        methods::{MethodInvocation as EthMethodInvocation, U256OrUsize},
+        BlockSpec, ZeroXPrefixedBytes,
     },
     signature::{private_key_to_address, Signature},
     Address, Bytes, SpecId, B256, U256, U64,
@@ -37,6 +40,7 @@ async fn start_server() -> SocketAddr {
 
     let server = Server::new(Config {
         address: SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 0),
+        allow_blocks_with_same_timestamp: false,
         rpc_hardhat_network_config: RpcHardhatNetworkConfig { forking: None },
         accounts: vec![AccountConfig {
             private_key: SecretKey::from_str(PRIVATE_KEY)
@@ -49,12 +53,7 @@ async fn start_server() -> SocketAddr {
         gas: U256::from(30_000_000),
         hardfork: SpecId::LATEST,
         initial_base_fee_per_gas: Some(U256::from(1000000000)),
-        initial_date: Some(U256::from(
-            SystemTime::now()
-                .duration_since(UNIX_EPOCH)
-                .expect("current time should be after UNIX epoch")
-                .as_secs(),
-        )),
+        initial_date: Some(SystemTime::now()),
         network_id: U64::from(123),
     })
     .await
@@ -138,6 +137,30 @@ async fn test_coinbase() {
         &start_server().await,
         MethodInvocation::Eth(EthMethodInvocation::Coinbase()),
         Address::from_low_u64_ne(1),
+    )
+    .await;
+}
+
+#[tokio::test]
+async fn test_evm_increase_time() {
+    verify_response(
+        &start_server().await,
+        MethodInvocation::Eth(EthMethodInvocation::EvmIncreaseTime(U256OrUsize::U256(
+            U256::from(12345),
+        ))),
+        String::from("12345"),
+    )
+    .await;
+}
+
+#[tokio::test]
+async fn test_evm_set_next_block_timestamp() {
+    verify_response(
+        &start_server().await,
+        MethodInvocation::Eth(EthMethodInvocation::EvmSetNextBlockTimestamp(
+            U256OrUsize::U256(U256::from(2147483647)),
+        )),
+        String::from("2147483647"),
     )
     .await;
 }
