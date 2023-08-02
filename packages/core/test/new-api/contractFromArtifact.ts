@@ -666,7 +666,8 @@ describe("contractFromArtifact", () => {
         validateArtifactContractDeployment(
           future as any,
           setupMockArtifactResolver(),
-          {}
+          {},
+          []
         ),
         /The constructor of the contract 'Test' expects 0 arguments but 3 were given/
       );
@@ -695,7 +696,8 @@ describe("contractFromArtifact", () => {
         validateArtifactContractDeployment(
           future as any,
           setupMockArtifactResolver({ Test: fakeArtifact }),
-          {}
+          {},
+          []
         ),
         /Module parameter 'p' requires a value but was given none/
       );
@@ -743,7 +745,8 @@ describe("contractFromArtifact", () => {
         validateArtifactContractDeployment(
           future as any,
           setupMockArtifactResolver({ Test: fakerArtifact }),
-          {}
+          {},
+          []
         )
       );
     });
@@ -786,7 +789,8 @@ describe("contractFromArtifact", () => {
         validateArtifactContractDeployment(
           future as any,
           setupMockArtifactResolver({ Test: fakerArtifact }),
-          {}
+          {},
+          []
         ),
         /Module parameter 'p' must be of type 'bigint' but is 'boolean'/
       );
@@ -830,7 +834,8 @@ describe("contractFromArtifact", () => {
         validateArtifactContractDeployment(
           future as any,
           setupMockArtifactResolver({ Test: fakerArtifact }),
-          {}
+          {},
+          []
         )
       );
     });
@@ -860,7 +865,8 @@ describe("contractFromArtifact", () => {
         validateArtifactContractDeployment(
           future as any,
           setupMockArtifactResolver({ Test: fakeArtifact }),
-          {}
+          {},
+          []
         ),
         /Module parameter 'p' requires a value but was given none/
       );
@@ -910,7 +916,8 @@ describe("contractFromArtifact", () => {
         validateArtifactContractDeployment(
           future as any,
           setupMockArtifactResolver({ Test: fakerArtifact }),
-          {}
+          {},
+          []
         )
       );
     });

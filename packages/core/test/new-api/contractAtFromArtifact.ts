@@ -304,7 +304,8 @@ describe("contractAtFromArtifact", () => {
           setupMockArtifactResolver({
             Another: fakeArtifact,
           }),
-          {}
+          {},
+          []
         ),
         /Module parameter 'p' requires a value but was given none/
       );
@@ -335,7 +336,8 @@ describe("contractAtFromArtifact", () => {
           setupMockArtifactResolver({
             Another: fakeArtifact,
           }),
-          {}
+          {},
+          []
         )
       );
     });
@@ -365,7 +367,8 @@ describe("contractAtFromArtifact", () => {
           setupMockArtifactResolver({
             Another: fakeArtifact,
           }),
-          {}
+          {},
+          []
         ),
         /Module parameter 'p' must be of type 'string' but is 'number'/
       );

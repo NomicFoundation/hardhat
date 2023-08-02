@@ -1,11 +1,16 @@
+import { isAccountRuntimeValue } from "../../../type-guards";
 import { ArtifactResolver } from "../../../types/artifact";
 import { DeploymentParameters } from "../../../types/deployer";
 import { ArtifactLibraryDeploymentFuture } from "../../../types/module";
+import { validateAccountRuntimeValue } from "../utils";
 
 export async function validateArtifactLibraryDeployment(
-  _future: ArtifactLibraryDeploymentFuture,
+  future: ArtifactLibraryDeploymentFuture,
   _artifactLoader: ArtifactResolver,
-  _deploymentParameters: DeploymentParameters
+  _deploymentParameters: DeploymentParameters,
+  accounts: string[]
 ) {
-  return; /* noop - nothing to validate here */
+  if (isAccountRuntimeValue(future.from)) {
+    validateAccountRuntimeValue(future.from, accounts);
+  }
 }

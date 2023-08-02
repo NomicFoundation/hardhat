@@ -1,18 +1,33 @@
 import { ethers } from "ethers";
 
 import { IgnitionValidationError } from "../../../../errors";
-import { isArtifactType } from "../../../type-guards";
+import {
+  isAccountRuntimeValue,
+  isArtifactType,
+  isModuleParameterRuntimeValue,
+} from "../../../type-guards";
 import { ArtifactResolver } from "../../../types/artifact";
 import { DeploymentParameters } from "../../../types/deployer";
 import { NamedStaticCallFuture } from "../../../types/module";
-import { retrieveNestedRuntimeValues } from "../../utils/retrieve-nested-runtime-values";
+import {
+  retrieveNestedRuntimeValues,
+  validateAccountRuntimeValue,
+} from "../utils";
 
 export async function validateNamedStaticCall(
   future: NamedStaticCallFuture<string, string>,
   artifactLoader: ArtifactResolver,
-  deploymentParameters: DeploymentParameters
+  deploymentParameters: DeploymentParameters,
+  accounts: string[]
 ) {
-  const moduleParams = retrieveNestedRuntimeValues(future.args);
+  const runtimeValues = retrieveNestedRuntimeValues(future.args);
+  const moduleParams = runtimeValues.filter(isModuleParameterRuntimeValue);
+  const accountParams = [
+    ...runtimeValues.filter(isAccountRuntimeValue),
+    ...(isAccountRuntimeValue(future.from) ? [future.from] : []),
+  ];
+
+  accountParams.forEach((arv) => validateAccountRuntimeValue(arv, accounts));
 
   const missingParams = moduleParams.filter(
     (param) =>

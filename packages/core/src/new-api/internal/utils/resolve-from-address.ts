@@ -3,7 +3,6 @@ import { AccountRuntimeValue } from "../../types/module";
 import { isAddress } from "../utils";
 
 import { assertIgnitionInvariant } from "./assertions";
-import { resolveAccountRuntimeValue } from "./resolve-account-runtime-value";
 
 export function resolveFromAddress(
   from: string | AccountRuntimeValue | undefined,
@@ -28,7 +27,7 @@ export function resolveFromAddress(
     `Could not resolve from address: ${JSON.stringify(from)}`
   );
 
-  const runtimeAddress = resolveAccountRuntimeValue(from, accounts);
+  const runtimeAddress = accounts[from.accountIndex];
 
   assertIgnitionInvariant(
     isAddress(runtimeAddress),

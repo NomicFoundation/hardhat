@@ -17,7 +17,8 @@ import { validateSendData } from "./futures/validateSendData";
 export async function validate(
   module: IgnitionModule,
   artifactLoader: ArtifactResolver,
-  deploymentParameters: DeploymentParameters
+  deploymentParameters: DeploymentParameters,
+  accounts: string[]
 ): Promise<void> {
   const futures = getFuturesFromModule(module);
 
@@ -27,7 +28,7 @@ export async function validate(
   // validating each of those, we achieve the same effect.
   const submodules = module.submodules;
   for (const submodule of submodules) {
-    await validate(submodule, artifactLoader, deploymentParameters);
+    await validate(submodule, artifactLoader, deploymentParameters, accounts);
   }
 
   for (const future of futures) {
@@ -36,67 +37,81 @@ export async function validate(
         await validateArtifactContractDeployment(
           future,
           artifactLoader,
-          deploymentParameters
+          deploymentParameters,
+          accounts
         );
         break;
       case FutureType.ARTIFACT_LIBRARY_DEPLOYMENT:
         await validateArtifactLibraryDeployment(
           future,
           artifactLoader,
-          deploymentParameters
+          deploymentParameters,
+          accounts
         );
         break;
       case FutureType.ARTIFACT_CONTRACT_AT:
         await validateArtifactContractAt(
           future,
           artifactLoader,
-          deploymentParameters
+          deploymentParameters,
+          accounts
         );
         break;
       case FutureType.NAMED_CONTRACT_DEPLOYMENT:
         await validateNamedContractDeployment(
           future,
           artifactLoader,
-          deploymentParameters
+          deploymentParameters,
+          accounts
         );
         break;
       case FutureType.NAMED_LIBRARY_DEPLOYMENT:
         await validateNamedLibraryDeployment(
           future,
           artifactLoader,
-          deploymentParameters
+          deploymentParameters,
+          accounts
         );
         break;
       case FutureType.NAMED_CONTRACT_AT:
         await validateNamedContractAt(
           future,
           artifactLoader,
-          deploymentParameters
+          deploymentParameters,
+          accounts
         );
         break;
       case FutureType.NAMED_CONTRACT_CALL:
         await validateNamedContractCall(
           future,
           artifactLoader,
-          deploymentParameters
+          deploymentParameters,
+          accounts
         );
         break;
       case FutureType.NAMED_STATIC_CALL:
         await validateNamedStaticCall(
           future,
           artifactLoader,
-          deploymentParameters
+          deploymentParameters,
+          accounts
         );
         break;
       case FutureType.READ_EVENT_ARGUMENT:
         await validateReadEventArgument(
           future,
           artifactLoader,
-          deploymentParameters
+          deploymentParameters,
+          accounts
         );
         break;
       case FutureType.SEND_DATA:
-        await validateSendData(future, artifactLoader, deploymentParameters);
+        await validateSendData(
+          future,
+          artifactLoader,
+          deploymentParameters,
+          accounts
+        );
         break;
     }
   }

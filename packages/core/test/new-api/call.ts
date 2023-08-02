@@ -593,7 +593,8 @@ describe("call", () => {
         validateNamedContractCall(
           future as any,
           setupMockArtifactResolver({ Another: {} as any }),
-          {}
+          {},
+          []
         ),
         /Artifact for contract 'Another' is invalid/
       );
@@ -626,7 +627,8 @@ describe("call", () => {
         validateNamedContractCall(
           future as any,
           setupMockArtifactResolver({ Another: fakeArtifact }),
-          {}
+          {},
+          []
         ),
         /Module parameter 'p' requires a value but was given none/
       );
@@ -659,7 +661,8 @@ describe("call", () => {
         validateNamedContractCall(
           future as any,
           setupMockArtifactResolver({ Another: fakeArtifact }),
-          {}
+          {},
+          []
         ),
         /Module parameter 'p' must be of type 'bigint' but is 'boolean'/
       );
@@ -700,7 +703,8 @@ describe("call", () => {
         validateNamedContractCall(
           future as any,
           setupMockArtifactResolver({ Another: fakeArtifact }),
-          {}
+          {},
+          []
         )
       );
     });
@@ -746,7 +750,8 @@ describe("call", () => {
         validateNamedContractCall(
           future as any,
           setupMockArtifactResolver({ Another: fakeArtifact }),
-          {}
+          {},
+          []
         )
       );
     });
@@ -780,7 +785,8 @@ describe("call", () => {
         validateNamedContractCall(
           future as any,
           setupMockArtifactResolver({ Another: fakeArtifact }),
-          {}
+          {},
+          []
         ),
         /Module parameter 'p' requires a value but was given none/
       );
@@ -829,7 +835,8 @@ describe("call", () => {
         validateNamedContractCall(
           future as any,
           setupMockArtifactResolver({ Another: fakeArtifact }),
-          {}
+          {},
+          []
         )
       );
     });
@@ -859,7 +866,8 @@ describe("call", () => {
         validateNamedContractCall(
           future as any,
           setupMockArtifactResolver(),
-          {}
+          {},
+          []
         ),
         /Contract 'Another' doesn't have a function test/
       );
@@ -904,7 +912,8 @@ describe("call", () => {
         validateNamedContractCall(
           future as any,
           setupMockArtifactResolver(),
-          {}
+          {},
+          []
         ),
         /Function inc in contract Another expects 1 arguments but 2 were given/
       );
@@ -967,7 +976,8 @@ describe("call", () => {
         validateNamedContractCall(
           future as any,
           setupMockArtifactResolver(),
-          {}
+          {},
+          []
         ),
         /Function inc in contract Another is overloaded, but no overload expects 3 arguments/
       );

@@ -593,7 +593,8 @@ describe("contract", () => {
           setupMockArtifactResolver({
             Another: {} as any,
           }),
-          {}
+          {},
+          []
         ),
         /Artifact for contract 'Another' is invalid/
       );
@@ -626,7 +627,8 @@ describe("contract", () => {
         validateNamedContractDeployment(
           future as any,
           setupMockArtifactResolver({ Test: fakeArtifact }),
-          {}
+          {},
+          []
         ),
         /The constructor of the contract 'Test' expects 0 arguments but 3 were given/
       );
@@ -672,7 +674,8 @@ describe("contract", () => {
         validateNamedContractDeployment(
           future as any,
           setupMockArtifactResolver({ Test: fakeArtifact }),
-          {}
+          {},
+          []
         ),
         /Module parameter 'p' requires a value but was given none/
       );
@@ -712,7 +715,8 @@ describe("contract", () => {
         validateNamedContractDeployment(
           future as any,
           setupMockArtifactResolver({ Test: fakeArtifact }),
-          {}
+          {},
+          []
         ),
         /Module parameter 'p' must be of type 'bigint' but is 'boolean'/
       );
@@ -752,7 +756,8 @@ describe("contract", () => {
         validateNamedContractDeployment(
           future as any,
           setupMockArtifactResolver({ Test: fakeArtifact }),
-          {}
+          {},
+          []
         )
       );
     });
@@ -797,7 +802,8 @@ describe("contract", () => {
         validateNamedContractDeployment(
           future as any,
           setupMockArtifactResolver({ Test: fakeArtifact }),
-          {}
+          {},
+          []
         )
       );
     });
@@ -844,7 +850,8 @@ describe("contract", () => {
         validateNamedContractDeployment(
           future as any,
           setupMockArtifactResolver({ Test: fakeArtifact }),
-          {}
+          {},
+          []
         ),
         /Module parameter 'p' requires a value but was given none/
       );
@@ -892,7 +899,8 @@ describe("contract", () => {
         validateNamedContractDeployment(
           future as any,
           setupMockArtifactResolver({ Test: fakeArtifact }),
-          {}
+          {},
+          []
         )
       );
     });

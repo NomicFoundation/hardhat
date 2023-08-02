@@ -2,20 +2,32 @@ import { ethers } from "ethers";
 
 import { IgnitionValidationError } from "../../../../errors";
 import {
+  isAccountRuntimeValue,
   isArtifactType,
   isModuleParameterRuntimeValue,
 } from "../../../type-guards";
 import { ArtifactResolver } from "../../../types/artifact";
 import { DeploymentParameters } from "../../../types/deployer";
 import { NamedContractDeploymentFuture } from "../../../types/module";
-import { retrieveNestedRuntimeValues } from "../../utils/retrieve-nested-runtime-values";
+import {
+  retrieveNestedRuntimeValues,
+  validateAccountRuntimeValue,
+} from "../utils";
 
 export async function validateNamedContractDeployment(
   future: NamedContractDeploymentFuture<string>,
   artifactLoader: ArtifactResolver,
-  deploymentParameters: DeploymentParameters
+  deploymentParameters: DeploymentParameters,
+  accounts: string[]
 ) {
-  const moduleParams = retrieveNestedRuntimeValues(future.constructorArgs);
+  const runtimeValues = retrieveNestedRuntimeValues(future.constructorArgs);
+  const moduleParams = runtimeValues.filter(isModuleParameterRuntimeValue);
+  const accountParams = [
+    ...runtimeValues.filter(isAccountRuntimeValue),
+    ...(isAccountRuntimeValue(future.from) ? [future.from] : []),
+  ];
+
+  accountParams.forEach((arv) => validateAccountRuntimeValue(arv, accounts));
 
   const missingParams = moduleParams.filter(
     (param) =>

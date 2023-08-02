@@ -162,7 +162,8 @@ describe("useModule", () => {
             Contract2: fakeArtifact,
             Contract3: fakeArtifact,
           }),
-          moduleParams
+          moduleParams,
+          []
         )
       );
     });
@@ -235,7 +236,8 @@ describe("useModule", () => {
             Contract2: fakeArtifact,
             Contract3: fakeArtifact,
           }),
-          moduleParams
+          moduleParams,
+          []
         ),
         /Module parameter 'param1' requires a value but was given none/
       );

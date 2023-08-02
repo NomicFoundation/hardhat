@@ -424,7 +424,7 @@ describe("send", () => {
       );
 
       await assert.isRejected(
-        validateSendData(future as any, setupMockArtifactResolver(), {}),
+        validateSendData(future as any, setupMockArtifactResolver(), {}, []),
         /Module parameter 'p' requires a value but was given none/
       );
     });
@@ -449,7 +449,7 @@ describe("send", () => {
       );
 
       await assert.isFulfilled(
-        validateSendData(future as any, setupMockArtifactResolver(), {})
+        validateSendData(future as any, setupMockArtifactResolver(), {}, [])
       );
     });
 
@@ -473,7 +473,7 @@ describe("send", () => {
       );
 
       await assert.isRejected(
-        validateSendData(future as any, setupMockArtifactResolver(), {}),
+        validateSendData(future as any, setupMockArtifactResolver(), {}, []),
         /Module parameter 'p' must be of type 'bigint' but is 'boolean'/
       );
     });
@@ -498,7 +498,7 @@ describe("send", () => {
       );
 
       await assert.isFulfilled(
-        validateSendData(future as any, setupMockArtifactResolver(), {})
+        validateSendData(future as any, setupMockArtifactResolver(), {}, [])
       );
     });
   });

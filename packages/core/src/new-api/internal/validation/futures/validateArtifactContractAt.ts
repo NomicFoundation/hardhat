@@ -7,7 +7,8 @@ import { ArtifactContractAtFuture } from "../../../types/module";
 export async function validateArtifactContractAt(
   future: ArtifactContractAtFuture,
   _artifactLoader: ArtifactResolver,
-  deploymentParameters: DeploymentParameters
+  deploymentParameters: DeploymentParameters,
+  _accounts: string[]
 ) {
   if (isModuleParameterRuntimeValue(future.address)) {
     const param =
@@ -25,6 +26,4 @@ export async function validateArtifactContractAt(
       );
     }
   }
-
-  return;
 }

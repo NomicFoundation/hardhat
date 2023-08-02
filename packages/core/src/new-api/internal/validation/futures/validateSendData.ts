@@ -1,14 +1,26 @@
 import { IgnitionValidationError } from "../../../../errors";
-import { isModuleParameterRuntimeValue } from "../../../type-guards";
+import {
+  isAccountRuntimeValue,
+  isModuleParameterRuntimeValue,
+} from "../../../type-guards";
 import { ArtifactResolver } from "../../../types/artifact";
 import { DeploymentParameters } from "../../../types/deployer";
 import { SendDataFuture } from "../../../types/module";
+import { validateAccountRuntimeValue } from "../utils";
 
 export async function validateSendData(
   future: SendDataFuture,
   _artifactLoader: ArtifactResolver,
-  deploymentParameters: DeploymentParameters
+  deploymentParameters: DeploymentParameters,
+  accounts: string[]
 ) {
+  const accountParams = [
+    ...(isAccountRuntimeValue(future.from) ? [future.from] : []),
+    ...(isAccountRuntimeValue(future.to) ? [future.to] : []),
+  ];
+
+  accountParams.forEach((arv) => validateAccountRuntimeValue(arv, accounts));
+
   if (isModuleParameterRuntimeValue(future.to)) {
     const param =
       deploymentParameters[future.to.moduleId]?.[future.to.name] ??

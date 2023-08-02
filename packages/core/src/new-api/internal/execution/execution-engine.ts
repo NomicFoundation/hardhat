@@ -59,7 +59,6 @@ import { isAddress } from "../utils";
 import { assertIgnitionInvariant } from "../utils/assertions";
 import { getFuturesFromModule } from "../utils/get-futures-from-module";
 import { replaceWithinArg } from "../utils/replace-within-arg";
-import { resolveAccountRuntimeValue } from "../utils/resolve-account-runtime-value";
 import { resolveFromAddress } from "../utils/resolve-from-address";
 import {
   resolveContractFutureToAddress,
@@ -1027,7 +1026,7 @@ export class ExecutionEngine {
           return resolveFutureToValue(f, context);
         },
         accountRuntimeValue: (arv) => {
-          return resolveAccountRuntimeValue(arv, context.accounts);
+          return context.accounts[arv.accountIndex];
         },
         moduleParameterRuntimeValue: (mprv) => {
           return resolveModuleParameter(mprv, context);

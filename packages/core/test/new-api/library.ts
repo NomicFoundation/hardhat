@@ -313,7 +313,8 @@ describe("library", () => {
         validateNamedLibraryDeployment(
           future as any,
           setupMockArtifactResolver({ Another: {} as any }),
-          {}
+          {},
+          []
         ),
         /Artifact for contract 'Another' is invalid/
       );

@@ -10,7 +10,8 @@ import { NamedContractAtFuture } from "../../../types/module";
 export async function validateNamedContractAt(
   future: NamedContractAtFuture<string>,
   artifactLoader: ArtifactResolver,
-  deploymentParameters: DeploymentParameters
+  deploymentParameters: DeploymentParameters,
+  _accounts: string[]
 ) {
   if (isModuleParameterRuntimeValue(future.address)) {
     const param =

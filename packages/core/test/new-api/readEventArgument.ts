@@ -237,7 +237,8 @@ describe("Read event argument", () => {
         validateReadEventArgument(
           future as any,
           setupMockArtifactResolver({ Another: {} as any }),
-          {}
+          {},
+          []
         ),
         /Artifact for contract 'Another' is invalid/
       );
@@ -268,7 +269,8 @@ describe("Read event argument", () => {
         validateReadEventArgument(
           future as any,
           setupMockArtifactResolver(),
-          {}
+          {},
+          []
         ),
         /Contract 'Another' doesn't have an event test/
       );

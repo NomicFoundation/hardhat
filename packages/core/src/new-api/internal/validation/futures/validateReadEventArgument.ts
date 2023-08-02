@@ -9,7 +9,8 @@ import { ReadEventArgumentFuture } from "../../../types/module";
 export async function validateReadEventArgument(
   future: ReadEventArgumentFuture,
   artifactLoader: ArtifactResolver,
-  _deploymentParameters: DeploymentParameters
+  _deploymentParameters: DeploymentParameters,
+  _accounts: string[]
 ) {
   const artifact =
     "artifact" in future.emitter
