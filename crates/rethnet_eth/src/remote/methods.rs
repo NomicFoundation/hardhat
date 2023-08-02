@@ -289,6 +289,13 @@ pub enum MethodInvocation {
         deserialize_with = "sequence_to_single"
     )]
     EvmIncreaseTime(U256OrUsize),
+    /// evm_mine
+    #[serde(
+        rename = "evm_mine",
+        serialize_with = "single_to_sequence",
+        deserialize_with = "sequence_to_single"
+    )]
+    EvmMine(Option<U256OrUsize>),
     /// evm_setAutomine
     #[serde(
         rename = "evm_setAutomine",

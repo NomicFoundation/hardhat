@@ -418,6 +418,13 @@ fn test_evm_increase_time() {
 }
 
 #[test]
+fn test_evm_mine() {
+    help_test_method_invocation_serde(MethodInvocation::EvmMine(Some(U256OrUsize::U256(
+        U256::from(12345),
+    ))));
+}
+
+#[test]
 fn test_evm_set_next_block_timestamp() {
     help_test_method_invocation_serde(MethodInvocation::EvmSetNextBlockTimestamp(
         U256OrUsize::U256(U256::from(12345)),
