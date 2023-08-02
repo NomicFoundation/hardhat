@@ -145,11 +145,9 @@ impl TryFrom<ConfigOptions> for CfgEnv {
         let default = CfgEnv::default();
         let chain_id = value
             .chain_id
-            .map_or(Ok(default.chain_id), |chain_id| chain_id.try_cast())?;
+            .map_or(Ok(default.chain_id), TryCast::try_cast)?;
 
-        let spec_id = value
-            .spec_id
-            .map_or(default.spec_id, |spec_id| spec_id.into());
+        let spec_id = value.spec_id.map_or(default.spec_id, Into::into);
 
         let limit_contract_code_size = value.limit_contract_code_size.map_or(Ok(None), |size| {
             if let (false, size, true) = size.get_u64() {

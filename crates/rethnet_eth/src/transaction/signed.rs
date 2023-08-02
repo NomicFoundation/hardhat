@@ -88,7 +88,7 @@ impl SignedTransaction {
                 max_priority_fee_per_gas: None,
                 value: t.value,
                 chain_id: t.chain_id(),
-                access_list: Default::default(),
+                access_list: AccessList::default(),
             },
             SignedTransaction::EIP2930(t) => TransactionEssentials {
                 kind: t.kind,
@@ -212,7 +212,7 @@ impl rlp::Encodable for SignedTransaction {
 }
 
 impl rlp::Decodable for SignedTransaction {
-    fn decode(rlp: &rlp::Rlp) -> Result<Self, rlp::DecoderError> {
+    fn decode(rlp: &rlp::Rlp<'_>) -> Result<Self, rlp::DecoderError> {
         let data = rlp.data()?;
         let first = *data
             .first()

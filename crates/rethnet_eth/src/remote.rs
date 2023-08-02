@@ -16,7 +16,7 @@ pub mod jsonrpc;
 /// RPC methods
 pub mod methods;
 
-/// helper utilities for use with serde's serialize_with and deserialize_with
+/// helper utilities for use with serde's `serialize_with` and `deserialize_with`
 pub mod serde_with_helpers;
 
 mod withdrawal;
@@ -66,8 +66,8 @@ pub enum Eip1898BlockSpec {
 }
 
 impl Display for Eip1898BlockSpec {
-    fn fmt(&self, formatter: &mut Formatter) -> Result<(), fmt::Error> {
-        formatter.write_str(&serde_json::to_string(self).map_err(|_| fmt::Error)?)
+    fn fmt(&self, formatter: &mut Formatter<'_>) -> Result<(), fmt::Error> {
+        formatter.write_str(&serde_json::to_string(self).map_err(|_error| fmt::Error)?)
     }
 }
 
@@ -92,7 +92,7 @@ pub enum BlockTag {
 }
 
 impl Display for BlockTag {
-    fn fmt(&self, formatter: &mut Formatter) -> Result<(), fmt::Error> {
+    fn fmt(&self, formatter: &mut Formatter<'_>) -> Result<(), fmt::Error> {
         formatter.write_str(match self {
             BlockTag::Earliest => "earliest",
             BlockTag::Latest => "latest",
@@ -144,7 +144,7 @@ impl BlockSpec {
 }
 
 impl Display for BlockSpec {
-    fn fmt(&self, formatter: &mut Formatter) -> Result<(), fmt::Error> {
+    fn fmt(&self, formatter: &mut Formatter<'_>) -> Result<(), fmt::Error> {
         match self {
             BlockSpec::Number(n) => n.fmt(formatter),
             BlockSpec::Tag(t) => t.fmt(formatter),

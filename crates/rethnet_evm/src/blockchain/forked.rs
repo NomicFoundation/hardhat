@@ -244,7 +244,7 @@ impl BlockchainMut for ForkedBlockchain {
 /// # Source
 ///
 /// These numbers were taken from:
-/// https://github.com/NomicFoundation/hardhat/blob/caa504fe0e53c183578f42d66f4740b8ec147051/packages/hardhat-core/src/internal/hardhat-network/provider/utils/reorgs-protection.ts
+/// <https://github.com/NomicFoundation/hardhat/blob/caa504fe0e53c183578f42d66f4740b8ec147051/packages/hardhat-core/src/internal/hardhat-network/provider/utils/reorgs-protection.ts>
 fn largest_possible_reorg(chain_id: &U256) -> Option<U256> {
     let mut network_configs = HashMap::new();
     network_configs.insert(U256::from(1), U256::from(5)); // mainnet

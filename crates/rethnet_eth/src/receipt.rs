@@ -57,7 +57,7 @@ impl rlp::Encodable for TypedReceipt {
 }
 
 impl rlp::Decodable for TypedReceipt {
-    fn decode(rlp: &rlp::Rlp) -> Result<Self, rlp::DecoderError> {
+    fn decode(rlp: &rlp::Rlp<'_>) -> Result<Self, rlp::DecoderError> {
         let slice = rlp.data()?;
 
         let first = *slice
@@ -187,9 +187,9 @@ impl open_fastrlp::Decodable for TypedReceipt {
 impl From<TypedReceipt> for EIP658Receipt {
     fn from(v3: TypedReceipt) -> Self {
         match v3 {
-            TypedReceipt::Legacy(receipt) => receipt,
-            TypedReceipt::EIP2930(receipt) => receipt,
-            TypedReceipt::EIP1559(receipt) => receipt,
+            TypedReceipt::Legacy(receipt)
+            | TypedReceipt::EIP2930(receipt)
+            | TypedReceipt::EIP1559(receipt) => receipt,
         }
     }
 }

@@ -80,7 +80,7 @@ impl rlp::Encodable for Log {
 }
 
 impl rlp::Decodable for Log {
-    fn decode(rlp: &rlp::Rlp) -> Result<Self, rlp::DecoderError> {
+    fn decode(rlp: &rlp::Rlp<'_>) -> Result<Self, rlp::DecoderError> {
         let result = Log {
             address: {
                 let address = rlp.val_at::<U160>(0)?.to_be_bytes();

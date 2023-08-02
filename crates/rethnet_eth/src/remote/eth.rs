@@ -88,7 +88,7 @@ where
     Ok(u64::from_str_radix(&s[2..], 16).expect("failed to parse u64"))
 }
 
-/// log object used in TransactionReceipt
+/// log object used in `TransactionReceipt`
 #[derive(Debug, Clone, PartialEq, Eq, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 #[serde(rename_all = "camelCase")]
@@ -132,7 +132,7 @@ impl Deref for Log {
     }
 }
 
-/// object returned by eth_getTransactionReceipt
+/// object returned by `eth_getTransactionReceipt`
 #[derive(Clone, Debug, PartialEq, Eq, Default, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 #[serde(rename_all = "camelCase")]
@@ -207,7 +207,7 @@ impl TryFrom<TransactionReceipt> for TypedReceipt {
     }
 }
 
-/// block object returned by eth_getBlockBy*
+/// block object returned by `eth_getBlockBy*`
 #[derive(Debug, Default, Clone, PartialEq, Eq, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 #[serde(rename_all = "camelCase")]
@@ -382,6 +382,7 @@ impl TryFrom<Block<Transaction>> for BlockAndCallers {
         let (transactions, transaction_callers): (Vec<SignedTransaction>, Vec<Address>) =
             itertools::process_results(
                 value.transactions.into_iter().map(TryInto::try_into),
+                #[allow(clippy::redundant_closure_for_method_calls)]
                 |iter| iter.unzip(),
             )?;
 

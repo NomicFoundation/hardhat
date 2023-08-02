@@ -38,7 +38,7 @@ pub struct ForkState {
 }
 
 impl ForkState {
-    /// instantiate a new ForkState
+    /// Constructs a new instance.
     pub fn new(
         runtime: Arc<Runtime>,
         hash_generator: Arc<Mutex<RandomHashGenerator>>,
@@ -88,7 +88,7 @@ impl ForkState {
         self.local_state
             .changes()
             .rev()
-            .flat_map(|layer| layer.accounts())
+            .flat_map(RethnetLayer::accounts)
             .for_each(|(address, account)| {
                 // We never need to remove zero entries as a "removed" entry means that the lookup for
                 // a value in the hybrid state succeeded.
@@ -99,7 +99,7 @@ impl ForkState {
                         }
                     });
                 }
-            })
+            });
     }
 }
 
@@ -162,7 +162,7 @@ impl DatabaseCommit for ForkState {
             });
         });
 
-        self.local_state.commit(changes)
+        self.local_state.commit(changes);
     }
 }
 

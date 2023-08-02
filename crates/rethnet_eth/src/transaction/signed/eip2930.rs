@@ -69,7 +69,7 @@ impl rlp::Encodable for EIP2930SignedTransaction {
 }
 
 impl rlp::Decodable for EIP2930SignedTransaction {
-    fn decode(rlp: &rlp::Rlp) -> Result<Self, rlp::DecoderError> {
+    fn decode(rlp: &rlp::Rlp<'_>) -> Result<Self, rlp::DecoderError> {
         if rlp.item_count()? != 11 {
             return Err(rlp::DecoderError::RlpIncorrectListLen);
         }

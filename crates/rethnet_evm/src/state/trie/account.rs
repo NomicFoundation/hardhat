@@ -109,7 +109,7 @@ impl AccountTrie {
                     } else {
                         Self::remove_account_in(address, &mut state_trie, &mut storage_trie_dbs);
                     }
-                })
+                });
             });
 
             B256::from_slice(&state_trie.root().unwrap())
@@ -338,7 +338,7 @@ impl AccountTrie {
                 let account = state_trie
                     .get(&hashed_address)
                     .unwrap()
-                    .unwrap_or_else(|| panic!("Account with address '{}' and hashed address '{:?}' must exist in state, if a storage trie is stored for it", address, hashed_address));
+                    .unwrap_or_else(|| panic!("Account with address '{address}' and hashed address '{hashed_address:?}' must exist in state, if a storage trie is stored for it"));
 
                 let account: BasicAccount = rlp::decode(&account).unwrap();
 

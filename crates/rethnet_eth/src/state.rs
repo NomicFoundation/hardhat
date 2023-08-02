@@ -63,6 +63,6 @@ mod tests {
         }
 
         const EXPECTED: &str = "0x5766c887a7240e4d1c035ccd3830a2f6a0c03d213a9f0b9b27c774916a4abcce";
-        assert_eq!(state_root(&state), B256::from_str(EXPECTED).unwrap())
+        assert_eq!(state_root(&state), B256::from_str(EXPECTED).unwrap());
     }
 }

@@ -307,7 +307,7 @@ impl LayeredChanges<RethnetLayer> {
         let mut state = HashMap::new();
 
         self.rev()
-            .flat_map(|layer| layer.accounts())
+            .flat_map(RethnetLayer::accounts)
             .for_each(|(address, account)| {
                 if let Some(new_account) = account {
                     state
@@ -391,7 +391,7 @@ impl LayeredChanges<RethnetLayer> {
         let mut state = HashMap::new();
 
         self.rev()
-            .flat_map(|layer| layer.accounts())
+            .flat_map(RethnetLayer::accounts)
             .for_each(|(address, account)| {
                 if let Some(new_account) = account {
                     state
@@ -432,7 +432,7 @@ impl LayeredChanges<RethnetLayer> {
         let mut storage = Storage::default();
 
         self.rev()
-            .flat_map(|layer| layer.accounts.get(address))
+            .filter_map(|layer| layer.accounts.get(address))
             .for_each(|account| {
                 if let Some(account) = account {
                     account.storage.iter().for_each(|(index, value)| {
@@ -495,7 +495,7 @@ impl From<&LayeredChanges<RethnetLayer>> for SharedMap<B256, Bytecode, true> {
                 } else {
                     storage.as_inner_mut().remove(code_hash);
                 }
-            })
+            });
         });
 
         storage.insert(KECCAK_EMPTY, Bytecode::new());

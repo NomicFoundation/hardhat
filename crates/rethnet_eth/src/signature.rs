@@ -113,7 +113,8 @@ impl fmt::Display for Signature {
 }
 
 impl Signature {
-    /// to obtain message_hash consider rethnet_eth::src::utils::hash_message().
+    /// Constructs a new signature from a message and private key.
+    /// To obtain the hash of a message consider [`rethnet_eth::src::utils::hash_message`].
     pub fn new<M>(message: M, private_key: &SecretKey) -> Self
     where
         M: Into<RecoveryMessage>,
@@ -247,10 +248,8 @@ impl open_fastrlp::Encodable for Signature {
 
 fn normalize_recovery_id(v: u64) -> i32 {
     match v {
-        0 => 0,
-        1 => 1,
-        27 => 0,
-        28 => 1,
+        0 | 27 => 0,
+        1 | 28 => 1,
         v if v >= 35 => ((v - 1) % 2) as _,
         _ => 4,
     }

@@ -46,7 +46,7 @@ impl LegacySignedTransaction {
     }
 
     /// See <https://github.com/ethereum/EIPs/blob/master/EIPS/eip-155.md>
-    /// > If you do, then the v of the signature MUST be set to {0,1} + CHAIN_ID * 2 + 35 where
+    /// > If you do, then the v of the signature MUST be set to {0,1} + `CHAIN_ID` * 2 + 35 where
     /// > {0,1} is the parity of the y value of the curve point for which r is the x-value in the
     /// > secp256k1 signing process.
     pub fn meets_eip155(&self, chain_id: u64) -> bool {
@@ -72,7 +72,7 @@ impl rlp::Encodable for LegacySignedTransaction {
 }
 
 impl rlp::Decodable for LegacySignedTransaction {
-    fn decode(rlp: &rlp::Rlp) -> Result<Self, rlp::DecoderError> {
+    fn decode(rlp: &rlp::Rlp<'_>) -> Result<Self, rlp::DecoderError> {
         if rlp.item_count()? != 9 {
             return Err(rlp::DecoderError::RlpIncorrectListLen);
         }

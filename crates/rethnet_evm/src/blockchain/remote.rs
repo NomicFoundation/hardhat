@@ -6,6 +6,7 @@ use rethnet_eth::{
     block::{BlockAndCallers, DetailedBlock},
     receipt::TypedReceipt,
     remote::{self, BlockSpec, RpcClient, RpcClientError},
+    transaction::SignedTransaction,
     B256, U256,
 };
 use tokio::runtime::Runtime;
@@ -128,7 +129,7 @@ impl RemoteBlockchain {
         let transaction_hashes: Vec<B256> = block
             .transactions
             .iter()
-            .map(|transaction| transaction.hash())
+            .map(SignedTransaction::hash)
             .collect();
 
         let receipts = self.runtime.block_on({

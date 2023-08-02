@@ -72,7 +72,7 @@ async fn node() -> Result<(), Box<dyn std::error::Error>> {
         MethodInvocation::Hardhat(HardhatMethodInvocation::SetBalance(address, U256::ZERO)),
         MethodInvocation::Hardhat(HardhatMethodInvocation::SetCode(
             address,
-            Bytes::from_static("deadbeef".as_bytes()).into(),
+            Bytes::from_static(b"deadbeef").into(),
         )),
         MethodInvocation::Hardhat(HardhatMethodInvocation::SetNonce(address, U256::ZERO)),
         MethodInvocation::Hardhat(HardhatMethodInvocation::SetStorageAt(
@@ -138,7 +138,7 @@ async fn node() -> Result<(), Box<dyn std::error::Error>> {
     let context = Secp256k1::signing_only();
     for (i, default_private_key) in DEFAULT_PRIVATE_KEYS.to_vec().iter().enumerate() {
         Assert::new(output.clone())
-            .stdout(contains(format!("Private Key: 0x{}", default_private_key)))
+            .stdout(contains(format!("Private Key: 0x{default_private_key}")))
             .stdout(contains(format!(
                 "Account #{}: {:?}",
                 i + 1,
