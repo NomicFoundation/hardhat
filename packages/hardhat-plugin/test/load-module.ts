@@ -3,8 +3,11 @@ import { assert } from "chai";
 
 import { loadModule } from "../src/load-module";
 
-// TODO: convert over once old code paths are removed
-describe.skip("loadModule", function () {
+import { useEphemeralIgnitionProject } from "./use-ignition-project";
+
+describe("loadModule", function () {
+  useEphemeralIgnitionProject("user-modules");
+
   it("should return the module given the module name", () => {
     const module = loadModule("ignition", "TestModule");
 
@@ -12,7 +15,7 @@ describe.skip("loadModule", function () {
       assert.fail("Module was not loaded");
     }
 
-    // assert.equal(module.name, "testing123");
+    assert.equal(module.id, "testing123");
   });
 
   it("should return the module given the module name and extension", () => {
@@ -22,7 +25,7 @@ describe.skip("loadModule", function () {
       assert.fail("Module was not loaded");
     }
 
-    // assert.equal(module.name, "testing123");
+    assert.equal(module.id, "testing123");
   });
 
   it("should throw if the module name does not exist", () => {
