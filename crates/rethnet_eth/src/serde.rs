@@ -21,6 +21,23 @@ impl From<U256> for U256WithoutLeadingZeroes {
     }
 }
 
+/// Type that serializes a [`U256`] without leading zeroes.
+#[derive(Clone, Copy, serde::Serialize, serde::Deserialize)]
+pub struct U64WithoutLeadingZeroes(#[serde(serialize_with = "u64::serialize")] u64);
+
+impl Deref for U64WithoutLeadingZeroes {
+    type Target = u64;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+impl From<u64> for U64WithoutLeadingZeroes {
+    fn from(value: u64) -> Self {
+        Self(value)
+    }
+}
+
 /// for use with serde's serialize_with on a single value that should be serialized as a
 /// sequence
 pub fn single_to_sequence<S, T>(val: &T, s: S) -> Result<S::Ok, S::Error>

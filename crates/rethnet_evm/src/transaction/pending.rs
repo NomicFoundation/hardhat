@@ -62,7 +62,6 @@ impl PendingTransaction {
             });
         }
 
-        // Question: Should we return an error if the account doesn't exist
         let sender = state.basic(caller)?.unwrap_or_default();
 
         // We need to validate funds at this stage to avoid DOS
@@ -99,7 +98,7 @@ impl PendingTransaction {
         self.hash.get_or_init(|| self.transaction.hash())
     }
 
-    /// Retursn the inner transaction and caller
+    /// Returns the inner transaction and caller
     pub fn into_inner(self) -> (SignedTransaction, Address) {
         (self.transaction, self.caller)
     }

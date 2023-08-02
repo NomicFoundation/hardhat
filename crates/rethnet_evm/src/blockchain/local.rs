@@ -12,13 +12,16 @@ use revm::{db::BlockHashRef, primitives::SpecId};
 
 use crate::state::StateDebug;
 
-use super::{storage::ContiguousBlockchainStorage, Blockchain, BlockchainError, BlockchainMut};
+use super::{
+    storage::ContiguousBlockchainStorage, validate_next_block, Blockchain, BlockchainError,
+    BlockchainMut,
+};
 
 /// An error that occurs upon creation of a [`LocalBlockchain`].
 #[derive(Debug, thiserror::Error)]
 pub enum CreationError<SE> {
-    /// Missing base fee per gas for post-merge blockchain
-    #[error("Missing base fee per gas for post-merge blockchain")]
+    /// Missing base fee per gas for post-London blockchain
+    #[error("Missing base fee per gas for post-London blockchain")]
     MissingBaseFee,
     /// Missing prevrandao for post-merge blockchain
     #[error("Missing prevrandao for post-merge blockchain")]
@@ -30,7 +33,7 @@ pub enum CreationError<SE> {
 
 #[derive(Debug, thiserror::Error)]
 pub enum InsertBlockError {
-    #[error("Invalid block numnber: ${actual}. Expected: ${expected}")]
+    #[error("Invalid block number: ${actual}. Expected: ${expected}")]
     InvalidBlockNumber { actual: U256, expected: U256 },
 }
 
@@ -86,7 +89,7 @@ impl LocalBlockchain {
                 } else {
                     B64::from(U64::from(42))
                 },
-                base_fee: if spec_id >= SpecId::MERGE {
+                base_fee: if spec_id >= SpecId::LONDON {
                     Some(base_fee.ok_or(CreationError::MissingBaseFee)?)
                 } else {
                     None
@@ -209,17 +212,7 @@ impl BlockchainMut for LocalBlockchain {
     fn insert_block(&mut self, block: DetailedBlock) -> Result<Arc<DetailedBlock>, Self::Error> {
         let last_block = self.last_block()?;
 
-        let next_block_number = last_block.header.number + U256::from(1);
-        if block.header.number != next_block_number {
-            return Err(BlockchainError::InvalidBlockNumber {
-                actual: block.header.number,
-                expected: next_block_number,
-            });
-        }
-
-        if block.header.parent_hash != last_block.header.hash() {
-            return Err(BlockchainError::InvalidParentHash);
-        }
+        validate_next_block(&last_block, &block)?;
 
         let previous_total_difficulty = self
             .storage
@@ -248,13 +241,12 @@ impl BlockHashRef for LocalBlockchain {
     type Error = BlockchainError;
 
     fn block_hash(&self, number: U256) -> Result<B256, Self::Error> {
-        // Question: Do we need to support block number larger than usize::MAX
         let number = usize::try_from(number).map_err(|_| BlockchainError::BlockNumberTooLarge)?;
 
         self.storage
             .blocks()
             .get(number)
-            .map(|block| block.header.hash())
+            .map(|block| *block.hash())
             .ok_or(BlockchainError::UnknownBlockNumber)
     }
 }

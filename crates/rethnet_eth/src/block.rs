@@ -453,6 +453,14 @@ impl From<Header> for PartialHeader {
     }
 }
 
+/// Type that combines a block and the addresses of its transactions' callers
+pub struct BlockAndCallers {
+    /// Ethereum block
+    pub block: Block,
+    /// Block transactions' callers
+    pub transaction_callers: Vec<Address>,
+}
+
 #[cfg(test)]
 mod tests {
     use std::str::FromStr;

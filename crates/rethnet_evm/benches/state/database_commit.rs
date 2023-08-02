@@ -65,7 +65,7 @@ fn bench_database_commit(c: &mut Criterion) {
 
         account.mark_touch();
 
-        // TODO: Change flag in `account_state`
+        // TODO: https://github.com/NomicFoundation/rethnet/issues/143
         if account_state.storage_cleared {
             account.mark_created();
         }

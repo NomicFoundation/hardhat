@@ -153,7 +153,6 @@ where
                 .add_transaction(transaction, Some(&mut tracer))
                 .await
             {
-                // Question: Should we check this condition manually, to minimise overhead?
                 Err(BlockTransactionError::ExceedsBlockGasLimit) => continue,
                 Err(e) => {
                     block_builder

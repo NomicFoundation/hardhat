@@ -183,7 +183,7 @@ impl ContiguousBlockchainStorage {
         self.blocks.push(block.clone());
         self.total_difficulties.push(total_difficulty);
         self.hash_to_block
-            .insert_unique_unchecked(block.header.hash(), block)
+            .insert_unique_unchecked(*block.hash(), block)
             .1
     }
 }

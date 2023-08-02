@@ -355,3 +355,75 @@ impl StateHistory for HybridState<RethnetLayer> {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    use rethnet_eth::Bytes;
+
+    #[test]
+    fn test_irregular_state_modification() {
+        // this test reproduces the sequence of calls that are induced by (the current
+        // implementation of rethnet_rpc_server) being used as a provider in the hardhat tests and
+        // running the hardhat_setBalance test entitled "should result in a modified balance".
+
+        let mut state: HybridState<RethnetLayer> = Default::default();
+
+        let seed = 1;
+        let address = Address::from_low_u64_ne(1);
+        state
+            .insert_account(
+                address,
+                AccountInfo::new(
+                    U256::from(seed),
+                    seed,
+                    Bytecode::new_raw(Bytes::copy_from_slice(address.as_bytes())),
+                ),
+            )
+            .unwrap();
+
+        /* [eth_getBalance]
+         * state_root
+         * basic
+         * set_block_context(that state root)
+         * state_root
+         */
+        let state_root = state.state_root().unwrap();
+        state.basic(address).unwrap();
+        state.set_block_context(&state_root, None).unwrap();
+        state.state_root().unwrap();
+
+        /* [hardhat_setBalance]
+         * modify_account
+         */
+        let balance = U256::from(1000);
+        state
+            .modify_account(
+                address,
+                AccountModifierFn::new(Box::new(move |account_balance, _, _| {
+                    *account_balance = balance
+                })),
+                &|| {
+                    Ok(AccountInfo {
+                        balance,
+                        nonce: 0,
+                        code: None,
+                        code_hash: KECCAK_EMPTY,
+                    })
+                },
+            )
+            .unwrap();
+        state.make_snapshot();
+
+        /* [eth_getBalance]
+         * state_root
+         * basic
+         * set_block_context(that last state root) -- FAILS
+         */
+        let state_root = state.state_root().unwrap();
+        state.basic(address).unwrap();
+        state.set_block_context(&state_root, None).unwrap();
+        state.state_root().unwrap();
+    }
+}

@@ -1,9 +1,11 @@
+mod js_blockchain;
+
 use std::{fmt::Debug, ops::Deref, sync::Arc};
 
 use napi::{
     bindgen_prelude::{BigInt, Buffer, ObjectFinalize},
     tokio::sync::RwLock,
-    Env, JsObject, Status,
+    Env, JsFunction, JsObject, NapiRaw, Status,
 };
 use napi_derive::napi;
 
@@ -16,7 +18,11 @@ use crate::{
     config::SpecId,
     context::RethnetContext,
     receipt::Receipt,
+    sync::{await_promise, handle_error},
+    threadsafe_function::{ThreadSafeCallContext, ThreadsafeFunction},
 };
+
+use self::js_blockchain::{GetBlockHashCall, JsBlockchain};
 
 // An arbitrarily large amount of memory to signal to the javascript garbage collector that it needs to
 // attempt to free the blockchain object's memory.
@@ -34,6 +40,7 @@ impl Blockchain {
     where
         B: SyncBlockchain<BlockchainError>,
     {
+        // Signal that memory was externally allocated
         env.adjust_external_memory(BLOCKCHAIN_MEMORY_SIZE)?;
 
         Ok(Self {
@@ -53,6 +60,35 @@ impl Deref for Blockchain {
 #[napi]
 impl Blockchain {
     /// Constructs a new blockchain that queries the blockhash using a callback.
+    #[napi(constructor)]
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
+    pub fn new(
+        mut env: Env,
+        #[napi(ts_arg_type = "(blockNumber: bigint) => Promise<Buffer>")]
+        get_block_hash_fn: JsFunction,
+    ) -> napi::Result<Self> {
+        let get_block_hash_fn = ThreadsafeFunction::create(
+            env.raw(),
+            unsafe { get_block_hash_fn.raw() },
+            0,
+            |ctx: ThreadSafeCallContext<GetBlockHashCall>| {
+                let sender = ctx.value.sender.clone();
+
+                let block_number = ctx
+                    .env
+                    .create_bigint_from_words(false, ctx.value.block_number.as_limbs().to_vec())?;
+
+                let promise = ctx.callback.call(None, &[block_number.into_unknown()?])?;
+                let result = await_promise::<Buffer, B256>(ctx.env, promise, ctx.value.sender);
+
+                handle_error(sender, result)
+            },
+        )?;
+
+        Self::with_blockchain(&mut env, JsBlockchain { get_block_hash_fn })
+    }
+
+    /// Constructs a new blockchain from a genesis block.
     #[napi(factory)]
     #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     pub fn with_genesis_block(
@@ -201,7 +237,7 @@ impl Blockchain {
         )
     }
 
-    #[doc = "Retrieves the last block number in the blockchain."]
+    #[doc = "Retrieves the number of the last block in the blockchain."]
     #[napi]
     pub async fn last_block_number(&self) -> BigInt {
         let block_number = self.read().await.last_block_number();
@@ -263,6 +299,7 @@ impl Blockchain {
 impl ObjectFinalize for Blockchain {
     #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     fn finalize(self, mut env: Env) -> napi::Result<()> {
+        // Signal that the externally allocated memory has been freed
         env.adjust_external_memory(-BLOCKCHAIN_MEMORY_SIZE)?;
 
         Ok(())

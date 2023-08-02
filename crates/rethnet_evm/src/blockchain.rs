@@ -34,8 +34,13 @@ pub enum BlockchainError {
         expected: U256,
     },
     /// Invalid parent hash
-    #[error("Invalid parent hash")]
-    InvalidParentHash,
+    #[error("Invalid parent hash: ${actual}. Expected: ${expected}.")]
+    InvalidParentHash {
+        /// Provided parent hash
+        actual: B256,
+        /// Expected parent hash
+        expected: B256,
+    },
     /// JSON-RPC error
     #[error(transparent)]
     JsonRpcError(#[from] RpcClientError),
@@ -101,7 +106,7 @@ pub trait BlockchainMut {
     fn revert_to_block(&mut self, block_number: &U256) -> Result<(), Self::Error>;
 }
 
-/// Trait that meets all requirements for a synchronous database that can be used by [`AsyncBlockchain`].
+/// Trait that meets all requirements for a synchronous blockchain.
 pub trait SyncBlockchain<E>:
     Blockchain<Error = E>
     + BlockchainMut<Error = E>
@@ -126,4 +131,27 @@ where
         + 'static,
     E: Debug + Send,
 {
+}
+
+/// Validates whether a block is a valid next block.
+fn validate_next_block(
+    last_block: &DetailedBlock,
+    next_block: &DetailedBlock,
+) -> Result<(), BlockchainError> {
+    let next_block_number = last_block.header.number + U256::from(1);
+    if next_block.header.number != next_block_number {
+        return Err(BlockchainError::InvalidBlockNumber {
+            actual: next_block.header.number,
+            expected: next_block_number,
+        });
+    }
+
+    if next_block.header.parent_hash != *last_block.hash() {
+        return Err(BlockchainError::InvalidParentHash {
+            actual: next_block.header.parent_hash,
+            expected: *last_block.hash(),
+        });
+    }
+
+    Ok(())
 }

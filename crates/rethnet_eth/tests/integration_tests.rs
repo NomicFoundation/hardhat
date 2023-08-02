@@ -3,9 +3,10 @@ use bytes::Bytes;
 use rethnet_eth::{
     remote::{
         eth::eip712,
-        methods::{
-            FilterOptions, GetLogsInput, MethodInvocation, SubscriptionType, TransactionInput,
+        filter::{
+            FilterBlockTarget, FilterOptions, LogOutput, OneOrMoreAddresses, SubscriptionType,
         },
+        methods::{GetLogsInput, MethodInvocation, TransactionInput},
         BlockSpec, BlockTag,
     },
     Address, B256, U256,
@@ -269,10 +270,12 @@ fn test_serde_eth_new_block_filter() {
 #[test]
 fn test_serde_eth_new_filter() {
     help_test_method_invocation_serde(MethodInvocation::NewFilter(FilterOptions {
-        from_block: Some(BlockSpec::Number(U256::from(1000))),
-        to_block: Some(BlockSpec::latest()),
-        address: Some(Address::from_low_u64_ne(1)),
-        topics: Some(vec![Bytes::from(&b"some topic"[..]).into()]),
+        block_target: Some(FilterBlockTarget::Range {
+            from: Some(BlockSpec::Number(U256::from(1000))),
+            to: Some(BlockSpec::latest()),
+        }),
+        addresses: Some(OneOrMoreAddresses::One(Address::from_low_u64_ne(1))),
+        topics: Some(vec![B256::from_low_u64_ne(1)]),
     }));
 }
 
@@ -359,8 +362,99 @@ fn test_serde_eth_uninstall_filter() {
 
 #[test]
 fn test_serde_eth_unsubscribe() {
-    help_test_method_invocation_serde(MethodInvocation::Unsubscribe(vec![Bytes::from(
-        &b"some subscription ID"[..],
-    )
-    .into()]));
+    help_test_method_invocation_serde(MethodInvocation::Unsubscribe(U256::from(100)));
+}
+
+fn help_test_serde_value<T>(value: T)
+where
+    T: PartialEq + std::fmt::Debug + serde::de::DeserializeOwned + serde::Serialize,
+{
+    let serialized = serde_json::json!(value).to_string();
+
+    let deserialized: T = serde_json::from_str(&serialized)
+        .unwrap_or_else(|_| panic!("should have successfully deserialized json {serialized}"));
+
+    assert_eq!(value, deserialized);
+}
+
+#[test]
+fn test_serde_log_output() {
+    help_test_serde_value(LogOutput {
+        removed: false,
+        log_index: Some(U256::ZERO),
+        transaction_index: Some(99),
+        transaction_hash: Some(B256::from_low_u64_ne(1)),
+        block_hash: Some(B256::from_low_u64_ne(2)),
+        block_number: Some(U256::ZERO),
+        address: Address::from_low_u64_ne(1),
+        data: Bytes::from_static(b"whatever"),
+        topics: vec![B256::from_low_u64_ne(3), B256::from_low_u64_ne(3)],
+    });
+}
+
+#[test]
+fn test_serde_filter_block_target() {
+    help_test_serde_value(FilterBlockTarget::Hash(B256::from_low_u64_ne(1)));
+    help_test_serde_value(FilterBlockTarget::Range {
+        from: Some(BlockSpec::latest()),
+        to: Some(BlockSpec::latest()),
+    });
+}
+
+#[test]
+fn test_serde_one_or_more_addresses() {
+    help_test_serde_value(OneOrMoreAddresses::One(Address::from_low_u64_ne(1)));
+    help_test_serde_value(OneOrMoreAddresses::Many(vec![
+        Address::from_low_u64_ne(1),
+        Address::from_low_u64_ne(1),
+    ]));
+}
+
+#[test]
+fn test_serde_web3_client_version() {
+    help_test_method_invocation_serde(MethodInvocation::Web3ClientVersion());
+}
+
+#[test]
+fn test_serde_web3_sha3() {
+    help_test_method_invocation_serde(MethodInvocation::Web3Sha3(
+        Bytes::from(&b"whatever"[..]).into(),
+    ));
+}
+
+#[test]
+fn test_evm_set_automine() {
+    help_test_method_invocation_serde(MethodInvocation::EvmSetAutomine(false));
+}
+
+#[test]
+fn test_evm_snapshot() {
+    help_test_method_invocation_serde(MethodInvocation::EvmSnapshot());
+}
+
+#[test]
+fn test_net_listening() {
+    help_test_method_invocation_serde(MethodInvocation::NetListening());
+}
+
+#[test]
+fn test_net_peer_count() {
+    help_test_method_invocation_serde(MethodInvocation::NetPeerCount());
+}
+
+#[test]
+fn test_personal_sign() {
+    let call = MethodInvocation::Sign(
+        Address::from_low_u64_ne(1),
+        Bytes::from(&b"whatever"[..]).into(),
+    );
+
+    let serialized = serde_json::json!(call)
+        .to_string()
+        .replace("eth_sign", "personal_sign");
+
+    let call_deserialized: MethodInvocation = serde_json::from_str(&serialized)
+        .unwrap_or_else(|_| panic!("should have successfully deserialized json {serialized}"));
+
+    assert_eq!(call, call_deserialized);
 }

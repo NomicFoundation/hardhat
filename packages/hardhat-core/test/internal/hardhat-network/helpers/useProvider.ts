@@ -25,6 +25,8 @@ import {
   DEFAULT_MEMPOOL_CONFIG,
   DEFAULT_USE_JSON_RPC,
 } from "./providers";
+import { sleep } from "./sleep";
+import { spawnRethnetProvider } from "./spawnRethnetProvider";
 
 declare module "mocha" {
   interface Context {
@@ -38,6 +40,7 @@ declare module "mocha" {
 
 export interface UseProviderOptions {
   useJsonRpc?: boolean;
+  rethnetBinary?: string;
   loggerEnabled?: boolean;
   forkConfig?: ForkConfig;
   mining?: HardhatNetworkMiningConfig;
@@ -57,6 +60,7 @@ export interface UseProviderOptions {
 
 export function useProvider({
   useJsonRpc = DEFAULT_USE_JSON_RPC,
+  rethnetBinary = undefined,
   loggerEnabled = true,
   forkConfig,
   mining = DEFAULT_MINING_CONFIG,
@@ -115,6 +119,22 @@ export function useProvider({
         this.server.getProvider()
       );
     }
+
+    if (rethnetBinary !== undefined) {
+      const { childProcess, isReady, httpProvider } = spawnRethnetProvider(
+        rethnetBinary,
+        { coinbase, chainId, networkId }
+      );
+
+      this.rethnetProcess = childProcess;
+
+      // wait for the server to initialize:
+      await sleep(250);
+
+      this.provider = new BackwardsCompatibilityProviderAdapter(httpProvider);
+
+      await isReady;
+    }
   });
 
   afterEach("Remove provider", async function () {
@@ -139,6 +159,10 @@ export function useProvider({
 
       delete this.server;
       delete this.serverInfo;
+    }
+
+    if (this.rethnetProcess !== undefined) {
+      this.rethnetProcess.kill();
     }
   });
 }
