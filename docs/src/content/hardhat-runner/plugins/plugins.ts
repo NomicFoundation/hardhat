@@ -798,6 +798,15 @@ const communityPlugins: IPlugin[] = [
     description: "Recording deployed contracts address to json file",
     tags: ["deployed history"],
   },
+  {
+    name: "hardhat-generate-function-selectors",
+    author: "3obby",
+    npmPackage: "hardhat-generate-function-selectors",
+    authorUrl: "https://github.com/3obby/function-selectors-plugin",
+    description:
+      "generate an output file of organized function selectors for all ABI/.json files within ./artifacts/contracts",
+    tags: ["function", "selectors", "tooling", "router"],
+  },
 ];
 
 const officialPlugins: IPlugin[] = [
