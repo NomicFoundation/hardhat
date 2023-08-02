@@ -1,4 +1,6 @@
 use std::ffi::OsString;
+use std::fs::{write, File};
+use std::io::Read;
 use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 use std::time::UNIX_EPOCH;
 
@@ -30,12 +32,19 @@ enum Command {
     Node(NodeArgs),
 }
 
+const DEFAULT_CONFIG_FILE_NAME: &str = "edr.toml";
+
 #[derive(Args)]
 struct NodeArgs {
     #[clap(long, default_value_t = IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)))]
     host: IpAddr,
     #[clap(long, default_value = "8545")]
     port: u16,
+    #[clap(long, default_value = DEFAULT_CONFIG_FILE_NAME)]
+    config_file: String,
+    /// Instead of starting the node, OVERwrite edr.toml with default configuration values
+    #[clap(long, action = clap::ArgAction::SetTrue)]
+    init_config_file: bool,
     #[clap(long)]
     fork_url: Option<String>,
     #[clap(long)]
@@ -143,6 +152,14 @@ where
     let args = Cli::parse_from(args);
     match args.command {
         Command::Node(node_args) => {
+            if node_args.init_config_file {
+                write(
+                    DEFAULT_CONFIG_FILE_NAME,
+                    toml::to_string(&ConfigFile::default())?,
+                )
+                .map_err(|e| anyhow!("failed to write config file: {e}"))
+                .map(|_| ExitStatus::Success)
+            } else {
             tracing_subscriber::fmt::Subscriber::builder()
                 .with_max_level(match node_args.verbose {
                     0 => Level::ERROR,
@@ -156,8 +173,21 @@ where
                 })
                 .init();
 
+            let config_file = if let Ok(mut file) = File::open(node_args.config_file.clone()) {
+                let mut contents = String::new();
+                file.read_to_string(&mut contents)?;
+                toml::from_str(&contents)?
+            } else if node_args.config_file != DEFAULT_CONFIG_FILE_NAME {
+                Err(anyhow!(
+                    "Failed to open config file {}",
+                    node_args.config_file
+                ))?
+            } else {
+                ConfigFile::default()
+            };
+
             let server = rethnet_rpc_server::Server::new(
-                server_config_from_cli_args_and_config_file(node_args, ConfigFile::default())?,
+                server_config_from_cli_args_and_config_file(node_args, config_file)?,
             )
             .await?;
 
@@ -194,6 +224,7 @@ where
                 .serve_with_shutdown_signal(await_signal())
                 .await
                 .map(|_| ExitStatus::Success)?)
+        }
         }
     }
 }
