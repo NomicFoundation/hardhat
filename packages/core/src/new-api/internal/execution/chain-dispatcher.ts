@@ -124,10 +124,9 @@ export class ChainDispatcherImpl implements ChainDispatcher {
       txToReadFrom
     );
 
-    // TODO: should this really return an error result
     assertIgnitionInvariant(
       receipt !== undefined && receipt !== null,
-      `Receipt must be available: ${txToReadFrom}`
+      `Failed to find receipt when reading event for transaction: ${txToReadFrom}`
     );
 
     const { logs } = receipt;
@@ -139,11 +138,10 @@ export class ChainDispatcherImpl implements ChainDispatcher {
     );
 
     // sanity check to ensure the eventIndex isn't out of range
-    if (events.length > 1 && eventIndex >= events.length) {
-      throw new Error(
-        `Given eventIndex '${eventIndex}' exceeds number of events emitted '${events.length}'`
-      );
-    }
+    assertIgnitionInvariant(
+      events.length <= 1 || eventIndex < events.length,
+      `Given eventIndex '${eventIndex}' exceeds number of events emitted '${events.length}'`
+    );
 
     // this works in combination with the check above
     // because we default eventIndex to 0 if not set by user

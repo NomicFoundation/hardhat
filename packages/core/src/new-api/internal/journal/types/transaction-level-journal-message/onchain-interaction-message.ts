@@ -1,4 +1,4 @@
-import { ArgumentType } from "../../../../types/module";
+import { SolidityParameterType } from "../../../../types/module";
 import { JournalMessageType } from "../journal";
 
 /**
@@ -24,7 +24,7 @@ export interface DeployContractInteractionMessage {
   subtype: "deploy-contract";
   futureId: string;
   executionId: number;
-  args: ArgumentType[];
+  args: SolidityParameterType[];
   contractName: string;
   artifactFutureId: string;
   value: string;
@@ -42,7 +42,7 @@ export interface CallFunctionInteractionMessage {
   subtype: "call-function";
   futureId: string;
   executionId: number;
-  args: ArgumentType[];
+  args: SolidityParameterType[];
   functionName: string;
   value: string;
   contractAddress: string;
@@ -60,7 +60,7 @@ export interface StaticCallInteractionMessage {
   subtype: "static-call";
   futureId: string;
   executionId: number;
-  args: ArgumentType[];
+  args: SolidityParameterType[];
   functionName: string;
   contractAddress: string;
   artifactFutureId: string;
