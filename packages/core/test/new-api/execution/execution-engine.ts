@@ -2468,38 +2468,4 @@ describe("execution engine", () => {
       });
     });
   });
-
-  describe("with invalid account indexes", () => {
-    it("should not allow indexing an account less than zero", async () => {
-      const moduleDefinition = defineModule("Module1", (m) => {
-        const from = m.getAccount(-1);
-        const contract = m.contract("Contract1", [], { from });
-
-        return { contract };
-      });
-
-      const deployer = setupDeployerWithMocks({});
-
-      await assert.isRejected(
-        deployer.deploy(moduleDefinition, {}, exampleAccounts),
-        /Account index cannot be a negative number/
-      );
-    });
-
-    it("should not allow indexing an account greater than the number of available accounts", async () => {
-      const moduleDefinition = defineModule("Module1", (m) => {
-        const from = m.getAccount(10);
-        const contract = m.contract("Contract1", [], { from });
-
-        return { contract };
-      });
-
-      const deployer = setupDeployerWithMocks({});
-
-      await assert.isRejected(
-        deployer.deploy(moduleDefinition, {}, exampleAccounts),
-        /Requested account index \'10\' is greater than the total number of available accounts \'5\'/
-      );
-    });
-  });
 });

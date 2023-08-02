@@ -982,5 +982,99 @@ describe("call", () => {
         /Function inc in contract Another is overloaded, but no overload expects 3 arguments/
       );
     });
+
+    it("should not validate a negative account index", async () => {
+      const fakeArtifact: Artifact = {
+        abi: [
+          {
+            inputs: [
+              {
+                internalType: "bool",
+                name: "b",
+                type: "bool",
+              },
+            ],
+            name: "inc",
+            outputs: [],
+            stateMutability: "public",
+            type: "function",
+          },
+        ],
+        contractName: "",
+        bytecode: "",
+        linkReferences: {},
+      };
+
+      const moduleDef = defineModule("Module1", (m) => {
+        const another = m.contractFromArtifact("Another", fakeArtifact, []);
+        const account = m.getAccount(-1);
+        m.call(another, "inc", [1], { from: account });
+
+        return { another };
+      });
+
+      const constructor = new ModuleConstructor();
+      const module = constructor.construct(moduleDef);
+      const future = getFuturesFromModule(module).find(
+        (v) => v.type === FutureType.NAMED_CONTRACT_CALL
+      );
+
+      await assert.isRejected(
+        validateNamedContractCall(
+          future as any,
+          setupMockArtifactResolver(),
+          {},
+          []
+        ),
+        /Account index cannot be a negative number/
+      );
+    });
+
+    it("should not validate an account index greater than the number of available accounts", async () => {
+      const fakeArtifact: Artifact = {
+        abi: [
+          {
+            inputs: [
+              {
+                internalType: "bool",
+                name: "b",
+                type: "bool",
+              },
+            ],
+            name: "inc",
+            outputs: [],
+            stateMutability: "public",
+            type: "function",
+          },
+        ],
+        contractName: "",
+        bytecode: "",
+        linkReferences: {},
+      };
+
+      const moduleDef = defineModule("Module1", (m) => {
+        const another = m.contractFromArtifact("Another", fakeArtifact, []);
+        const account = m.getAccount(1);
+        m.call(another, "inc", [1], { from: account });
+
+        return { another };
+      });
+
+      const constructor = new ModuleConstructor();
+      const module = constructor.construct(moduleDef);
+      const future = getFuturesFromModule(module).find(
+        (v) => v.type === FutureType.NAMED_CONTRACT_CALL
+      );
+
+      await assert.isRejected(
+        validateNamedContractCall(
+          future as any,
+          setupMockArtifactResolver(),
+          {},
+          []
+        ),
+        /Requested account index \'1\' is greater than the total number of available accounts \'0\'/
+      );
+    });
   });
 });

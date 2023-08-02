@@ -1,10 +1,10 @@
 import { IgnitionValidationError } from "../../../errors";
+import { isFuture, isRuntimeValue } from "../../type-guards";
 import {
   AccountRuntimeValue,
   ArgumentType,
   RuntimeValue,
 } from "../../types/module";
-import { isFuture, isRuntimeValue } from "../../type-guards";
 
 export function validateAccountRuntimeValue(
   arv: AccountRuntimeValue,
@@ -25,7 +25,7 @@ export function validateAccountRuntimeValue(
 
 export function retrieveNestedRuntimeValues(
   args: ArgumentType[]
-): Array<RuntimeValue> {
+): RuntimeValue[] {
   return args.flatMap(checkForValues).filter(isRuntimeValue);
 }
 

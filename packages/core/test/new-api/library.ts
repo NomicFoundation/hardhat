@@ -319,5 +319,61 @@ describe("library", () => {
         /Artifact for contract 'Another' is invalid/
       );
     });
+
+    it("should not validate a negative account index", async () => {
+      const moduleWithDependentContractsDefinition = defineModule(
+        "Module1",
+        (m) => {
+          const account = m.getAccount(-1);
+          const test = m.library("Test", { from: account });
+
+          return { test };
+        }
+      );
+
+      const constructor = new ModuleConstructor();
+      const module = constructor.construct(
+        moduleWithDependentContractsDefinition
+      );
+      const [future] = getFuturesFromModule(module);
+
+      await assert.isRejected(
+        validateNamedLibraryDeployment(
+          future as any,
+          setupMockArtifactResolver({ Another: {} as any }),
+          {},
+          []
+        ),
+        /Account index cannot be a negative number/
+      );
+    });
+
+    it("should not validate an account index greater than the number of available accounts", async () => {
+      const moduleWithDependentContractsDefinition = defineModule(
+        "Module1",
+        (m) => {
+          const account = m.getAccount(1);
+          const test = m.library("Test", { from: account });
+
+          return { test };
+        }
+      );
+
+      const constructor = new ModuleConstructor();
+      const module = constructor.construct(
+        moduleWithDependentContractsDefinition
+      );
+      const [future] = getFuturesFromModule(module);
+
+      await assert.isRejected(
+        validateNamedLibraryDeployment(
+          future as any,
+          setupMockArtifactResolver({ Another: {} as any }),
+          {},
+          []
+        ),
+        /Requested account index \'1\' is greater than the total number of available accounts \'0\'/
+      );
+    });
   });
 });
