@@ -876,53 +876,56 @@ impl Server {
         let network_id = config.network_id;
         let spec_id = config.hardfork;
 
-        let (rethnet_state, blockchain, fork_block_number): (RethnetStateType, BlockchainType, Option<U256>)  =
-            if let Some(config) = config.rpc_hardhat_network_config.forking {
-                let runtime = Arc::new(
-                    tokio::runtime::Builder::new_multi_thread()
-                        .enable_io()
-                        .enable_time()
-                        .build()
-                        .expect("failed to construct async runtime"),
-                );
+        let (rethnet_state, blockchain, fork_block_number): (
+            RethnetStateType,
+            BlockchainType,
+            Option<U256>,
+        ) = if let Some(config) = config.rpc_hardhat_network_config.forking {
+            let runtime = Arc::new(
+                tokio::runtime::Builder::new_multi_thread()
+                    .enable_io()
+                    .enable_time()
+                    .build()
+                    .expect("failed to construct async runtime"),
+            );
 
-                let hash_generator = rethnet_evm::RandomHashGenerator::with_seed("seed");
+            let hash_generator = rethnet_evm::RandomHashGenerator::with_seed("seed");
 
-                let blockchain = ForkedBlockchain::new(
-                    Arc::clone(&runtime),
-                    spec_id,
-                    &config.json_rpc_url,
-                    config.block_number.map(U256::from),
-                )
-                .await?;
+            let blockchain = ForkedBlockchain::new(
+                Arc::clone(&runtime),
+                spec_id,
+                &config.json_rpc_url,
+                config.block_number.map(U256::from),
+            )
+            .await?;
 
-                let fork_block_number = blockchain.last_block_number();
+            let fork_block_number = blockchain.last_block_number();
 
-                let blockchain = Arc::new(RwLock::new(blockchain));
+            let blockchain = Arc::new(RwLock::new(blockchain));
 
-                let rethnet_state = Arc::new(RwLock::new(Box::new(ForkState::new(
-                        Arc::clone(&runtime),
-                        Arc::new(parking_lot::Mutex::new(hash_generator)),
-                        &config.json_rpc_url,
-                        fork_block_number,
-                        genesis_accounts,
-                    ))));
+            let rethnet_state = Arc::new(RwLock::new(Box::new(ForkState::new(
+                Arc::clone(&runtime),
+                Arc::new(parking_lot::Mutex::new(hash_generator)),
+                &config.json_rpc_url,
+                fork_block_number,
+                genesis_accounts,
+            ))));
 
-                (rethnet_state, blockchain, Some(fork_block_number))
-            } else {
-                let rethnet_state = HybridState::with_accounts(genesis_accounts);
-                let blockchain = Arc::new(RwLock::new(LocalBlockchain::new(
-                    &rethnet_state,
-                    spec_id,
-                    config.gas,
-                    config.initial_date,
-                    Some(RandomHashGenerator::with_seed("seed").next_value()),
-                    config.initial_base_fee_per_gas,
-                )?));
-                let rethnet_state = Arc::new(RwLock::new(Box::new(rethnet_state)));
-                let fork_block_number = None;
-                (rethnet_state, blockchain, fork_block_number)
-            };
+            (rethnet_state, blockchain, Some(fork_block_number))
+        } else {
+            let rethnet_state = HybridState::with_accounts(genesis_accounts);
+            let blockchain = Arc::new(RwLock::new(LocalBlockchain::new(
+                &rethnet_state,
+                spec_id,
+                config.gas,
+                config.initial_date,
+                Some(RandomHashGenerator::with_seed("seed").next_value()),
+                config.initial_base_fee_per_gas,
+            )?));
+            let rethnet_state = Arc::new(RwLock::new(Box::new(rethnet_state)));
+            let fork_block_number = None;
+            (rethnet_state, blockchain, fork_block_number)
+        };
 
         let app_state = Arc::new(AppState {
             blockchain,
