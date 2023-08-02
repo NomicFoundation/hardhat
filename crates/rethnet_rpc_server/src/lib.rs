@@ -287,6 +287,13 @@ async fn handle_accounts(state: StateType) -> ResponseData<Vec<Address>> {
     }
 }
 
+async fn handle_block_number(state: StateType) -> ResponseData<U256WithoutLeadingZeroes> {
+    event!(Level::INFO, "eth_blockNumber()");
+    ResponseData::Success {
+        result: U256WithoutLeadingZeroes(state.blockchain.read().await.last_block_number()),
+    }
+}
+
 async fn handle_chain_id(state: StateType) -> ResponseData<U64WithoutLeadingZeroes> {
     event!(Level::INFO, "eth_chainId()");
     ResponseData::Success {
@@ -759,6 +766,9 @@ async fn handle_request(
             match method {
                 MethodInvocation::Eth(EthMethodInvocation::Accounts()) => {
                     response(id, handle_accounts(state).await)
+                }
+                MethodInvocation::Eth(EthMethodInvocation::BlockNumber()) => {
+                    response(id, handle_block_number(state).await)
                 }
                 MethodInvocation::Eth(EthMethodInvocation::ChainId()) => {
                     response(id, handle_chain_id(state).await)

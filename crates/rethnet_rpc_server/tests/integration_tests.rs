@@ -122,6 +122,16 @@ async fn test_accounts() {
 }
 
 #[tokio::test]
+async fn test_block_number() {
+    verify_response(
+        &start_server().await,
+        MethodInvocation::Eth(EthMethodInvocation::BlockNumber()),
+        U256::ZERO,
+    )
+    .await;
+}
+
+#[tokio::test]
 async fn test_chain_id() {
     verify_response(
         &start_server().await,

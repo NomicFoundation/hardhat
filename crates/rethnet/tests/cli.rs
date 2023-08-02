@@ -34,6 +34,7 @@ async fn node() -> Result<(), Box<dyn std::error::Error>> {
     // order to check for corresponding log entries in the server output:
     let method_invocations = [
         MethodInvocation::Eth(EthMethodInvocation::Accounts()),
+        MethodInvocation::Eth(EthMethodInvocation::BlockNumber()),
         MethodInvocation::Eth(EthMethodInvocation::ChainId()),
         MethodInvocation::Eth(EthMethodInvocation::Coinbase()),
         MethodInvocation::Eth(EthMethodInvocation::EvmIncreaseTime(U256OrUsize::U256(
@@ -157,6 +158,9 @@ async fn node() -> Result<(), Box<dyn std::error::Error>> {
         Assert::new(output.clone()).stdout(contains(match method_invocation {
             MethodInvocation::Eth(EthMethodInvocation::Accounts()) => {
                 String::from("eth_accounts()")
+            }
+            MethodInvocation::Eth(EthMethodInvocation::BlockNumber()) => {
+                String::from("eth_blockNumber()")
             }
             MethodInvocation::Eth(EthMethodInvocation::ChainId()) => String::from("eth_chainId()"),
             MethodInvocation::Eth(EthMethodInvocation::Coinbase()) => {
