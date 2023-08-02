@@ -22,7 +22,6 @@ import {
   BlockHeader as RethnetBlockHeader,
   BlockOptions,
   ExecutionResult,
-  Log,
   SpecId,
   TransactionRequest,
   LegacySignedTransaction,
