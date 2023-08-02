@@ -807,6 +807,14 @@ const communityPlugins: IPlugin[] = [
       "generate an output file of organized function selectors for all ABI/.json files within ./artifacts/contracts",
     tags: ["function", "selectors", "tooling", "router"],
   },
+  {
+    name: "hardhat-gasless-deployer",
+    author: "Ahmed Ali",
+    authorUrl: "https://twitter.com/0xAhmedAli",
+    npmPackage: "https://www.npmjs.com/package/hardhat-gasless-deployer",
+    description: "Deploy contracts with HardHat using Gas Station Network",
+    tags: ["GSN", "GASLESS", "Deployment"],
+  },
 ];
 
 const officialPlugins: IPlugin[] = [
