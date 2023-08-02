@@ -6,6 +6,7 @@ rustflags = [
     "-Wclippy::all",
     "-Wclippy::await_holding_lock",
     "-Wclippy::bool-to-int-with-if",
+    "-Wclippy::cast_lossless",
     "-Wclippy::char_lit_as_u8",
     "-Wclippy::checked_conversions",
     "-Wclippy::dbg_macro",
