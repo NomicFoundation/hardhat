@@ -8,7 +8,6 @@ use axum::{
     Router,
 };
 use hashbrown::{HashMap, HashSet};
-use rethnet_eth::remote::ZeroXPrefixedBytes;
 use secp256k1::{Secp256k1, SecretKey};
 use sha3::{Digest, Keccak256};
 use tokio::sync::RwLock;
@@ -21,7 +20,7 @@ use rethnet_eth::{
         jsonrpc,
         jsonrpc::{Response, ResponseData},
         methods::{MethodInvocation as EthMethodInvocation, U256OrUsize},
-        BlockSpec, BlockTag, Eip1898BlockSpec,
+        BlockSpec, BlockTag, Eip1898BlockSpec, ZeroXPrefixedBytes,
     },
     signature::{public_key_to_address, Signature},
     Address, Bytes, B256, U256, U64,
