@@ -114,7 +114,7 @@ impl fmt::Display for Signature {
 
 impl Signature {
     /// Constructs a new signature from a message and private key.
-    /// To obtain the hash of a message consider [`rethnet_eth::src::utils::hash_message`].
+    /// To obtain the hash of a message consider [`hash_message`].
     pub fn new<M>(message: M, private_key: &SecretKey) -> Self
     where
         M: Into<RecoveryMessage>,

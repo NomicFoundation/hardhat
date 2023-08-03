@@ -88,7 +88,7 @@ where
     Ok(u64::from_str_radix(&s[2..], 16).expect("failed to parse u64"))
 }
 
-/// log object used in `TransactionReceipt`
+/// log object used in [`TransactionReceipt`]
 #[derive(Debug, Clone, PartialEq, Eq, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 #[serde(rename_all = "camelCase")]
