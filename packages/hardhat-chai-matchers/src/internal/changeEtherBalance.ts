@@ -9,15 +9,15 @@ import type { BalanceChangeOptions } from "./misc/balance";
 import { buildAssert } from "../utils";
 import { ensure } from "./calledOnContract/utils";
 import { getAddressOf } from "./misc/account";
-import { assertIsNotNull } from "./utils";
-import { ASYNC_MATCHER_CALLED } from "./constants";
+import { CHANGE_ETHER_BALANCE_MATCHER } from "./constants";
+import { assertIsNotNull, preventAsyncMatcherChaining } from "./utils";
 
 export function supportChangeEtherBalance(
   Assertion: Chai.AssertionStatic,
   chaiUtils: Chai.ChaiUtils
 ) {
   Assertion.addMethod(
-    "changeEtherBalance",
+    CHANGE_ETHER_BALANCE_MATCHER,
     function (
       this: any,
       account: Addressable | string,
@@ -29,7 +29,11 @@ export function supportChangeEtherBalance(
       const negated = this.__flags.negate;
       const subject = this._obj;
 
-      chaiUtils.flag(this, ASYNC_MATCHER_CALLED, true);
+      preventAsyncMatcherChaining(
+        this,
+        CHANGE_ETHER_BALANCE_MATCHER,
+        chaiUtils
+      );
 
       const checkBalanceChange = ([actualChange, address]: [
         bigint,

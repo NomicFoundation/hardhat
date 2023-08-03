@@ -7,15 +7,15 @@ import ordinal from "ordinal";
 import { buildAssert } from "../utils";
 import { getAddressOf } from "./misc/account";
 import { getAddresses, getBalances } from "./misc/balance";
-import { assertIsNotNull } from "./utils";
-import { ASYNC_MATCHER_CALLED } from "./constants";
+import { CHANGE_ETHER_BALANCES_MATCHER } from "./constants";
+import { assertIsNotNull, preventAsyncMatcherChaining } from "./utils";
 
 export function supportChangeEtherBalances(
   Assertion: Chai.AssertionStatic,
   chaiUtils: Chai.ChaiUtils
 ) {
   Assertion.addMethod(
-    "changeEtherBalances",
+    CHANGE_ETHER_BALANCES_MATCHER,
     function (
       this: any,
       accounts: Array<Addressable | string>,
@@ -31,7 +31,11 @@ export function supportChangeEtherBalances(
         subject = subject();
       }
 
-      chaiUtils.flag(this, ASYNC_MATCHER_CALLED, true);
+      preventAsyncMatcherChaining(
+        this,
+        CHANGE_ETHER_BALANCES_MATCHER,
+        chaiUtils
+      );
 
       const checkBalanceChanges = ([actualChanges, accountAddresses]: [
         bigint[],

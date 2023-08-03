@@ -1,21 +1,21 @@
 import type EthersT from "ethers";
 
 import { buildAssert } from "../../utils";
-import { assertIsNotNull } from "../utils";
-import { ASYNC_MATCHER_CALLED } from "../constants";
+import { REVERTED_MATCHER } from "../constants";
+import { assertIsNotNull, preventAsyncMatcherChaining } from "../utils";
 import { decodeReturnData, getReturnDataFromError } from "./utils";
 
 export function supportReverted(
   Assertion: Chai.AssertionStatic,
   chaiUtils: Chai.ChaiUtils
 ) {
-  Assertion.addProperty("reverted", function (this: any) {
+  Assertion.addProperty(REVERTED_MATCHER, function (this: any) {
     // capture negated flag before async code executes; see buildAssert's jsdoc
     const negated = this.__flags.negate;
 
     const subject: unknown = this._obj;
 
-    chaiUtils.flag(this, ASYNC_MATCHER_CALLED, true);
+    preventAsyncMatcherChaining(this, REVERTED_MATCHER, chaiUtils);
 
     // Check if the received value can be linked to a transaction, and then
     // get the receipt of that transaction and check its status.

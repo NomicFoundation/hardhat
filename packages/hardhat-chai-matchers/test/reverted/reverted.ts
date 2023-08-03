@@ -177,6 +177,50 @@ describe("INTEGRATION: Reverted", function () {
           "Expected transaction NOT to be reverted"
         );
       });
+
+      it("reverted: should throw if chained to another non-chainable method", async function () {
+        const txPromise = mineRevertedTransaction(this.hre);
+        expect(
+          () =>
+            expect(txPromise).to.be.a.nonChainableMatcher().and.to.be.reverted
+        ).to.throw(/reverted is not chainable./);
+      });
+
+      it("revertedWith: should throw if chained to another non-chainable method", async function () {
+        const txPromise = mineRevertedTransaction(this.hre);
+        expect(() =>
+          expect(txPromise)
+            .to.be.a.nonChainableMatcher()
+            .and.to.be.revertedWith("an error message")
+        ).to.throw(/revertedWith is not chainable./);
+      });
+
+      it("revertedWithCustomError: should throw if chained to another non-chainable method", async function () {
+        const txPromise = mineRevertedTransaction(this.hre);
+        expect(() =>
+          expect(txPromise)
+            .to.be.a.nonChainableMatcher()
+            .and.to.be.revertedWithCustomError(matchers, "SomeCustomError")
+        ).to.throw(/revertedWithCustomError is not chainable./);
+      });
+
+      it("revertedWithoutReason: should throw if chained to another non-chainable method", async function () {
+        const txPromise = mineRevertedTransaction(this.hre);
+        expect(() =>
+          expect(txPromise)
+            .to.be.a.nonChainableMatcher()
+            .and.to.be.revertedWithoutReason()
+        ).to.throw(/revertedWithoutReason is not chainable./);
+      });
+
+      it("revertedWithPanic: should throw if chained to another non-chainable method", async function () {
+        const txPromise = mineRevertedTransaction(this.hre);
+        expect(() =>
+          expect(txPromise)
+            .to.be.a.nonChainableMatcher()
+            .and.to.be.revertedWithPanic()
+        ).to.throw(/revertedWithPanic is not chainable./);
+      });
     });
 
     describe("with a TxReceipt as its subject", function () {

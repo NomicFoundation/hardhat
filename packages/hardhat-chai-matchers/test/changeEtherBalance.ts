@@ -511,6 +511,19 @@ describe("INTEGRATION: changeEtherBalance matcher", function () {
             `Expected the ether balance of "${sender.address}" NOT to change by -200 wei, but it did`
           );
         });
+
+        it("Should throw if chained to another non-chainable method", () => {
+          expect(() =>
+            expect(
+              sender.sendTransaction({
+                to: receiver.address,
+                value: 200,
+              })
+            )
+              .to.be.a.nonChainableMatcher()
+              .and.to.changeEtherBalance(sender, "-200")
+          ).to.throw(/changeEtherBalance is not chainable./);
+        });
       });
     });
 

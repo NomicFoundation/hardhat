@@ -3,8 +3,11 @@ import type EthersT from "ethers";
 import { AssertionError } from "chai";
 import ordinal from "ordinal";
 
-import { ASSERTION_ABORTED, ASYNC_MATCHER_CALLED } from "../constants";
-import { assertIsNotNull } from "../utils";
+import {
+  ASSERTION_ABORTED,
+  REVERTED_WITH_CUSTOM_ERROR_MATCHER,
+} from "../constants";
+import { assertIsNotNull, preventAsyncMatcherChaining } from "../utils";
 import { buildAssert, Ssfi } from "../../utils";
 import {
   decodeReturnData,
@@ -25,7 +28,7 @@ export function supportRevertedWithCustomError(
   chaiUtils: Chai.ChaiUtils
 ) {
   Assertion.addMethod(
-    "revertedWithCustomError",
+    REVERTED_WITH_CUSTOM_ERROR_MATCHER,
     function (
       this: any,
       contract: EthersT.BaseContract,
@@ -40,7 +43,11 @@ export function supportRevertedWithCustomError(
         expectedCustomErrorName
       );
 
-      chaiUtils.flag(this, ASYNC_MATCHER_CALLED, true);
+      preventAsyncMatcherChaining(
+        this,
+        REVERTED_WITH_CUSTOM_ERROR_MATCHER,
+        chaiUtils
+      );
 
       const onSuccess = () => {
         if (chaiUtils.flag(this, ASSERTION_ABORTED) === true) {

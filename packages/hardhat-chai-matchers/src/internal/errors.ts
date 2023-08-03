@@ -23,3 +23,11 @@ export class HardhatChaiMatchersAssertionError extends HardhatChaiMatchersError 
     super(`Assertion error: ${message}`);
   }
 }
+
+export class HardhatChaiMatchersNonChainableMatcherError extends HardhatChaiMatchersError {
+  constructor(matcherName: string) {
+    super(
+      `${matcherName} is not chainable. Please refer to the [README](https://github.com/NomicFoundation/hardhat/blob/main/packages/hardhat-chai-matchers#chaining-async-matchers) for more information.`
+    );
+  }
+}

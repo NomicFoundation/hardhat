@@ -47,3 +47,39 @@ await expect(token.transfer(recipient, 1000))
   .to.emit(token, "Transfer")
   .withArgs(owner, recipient, 1000);
 ```
+
+### Known issues
+
+#### Chaining Async Matchers
+
+Currently, the following matchers do not support chaining:
+
+- `reverted`
+- `revertedWith`
+- `revertedWithCustomError`
+- `revertedWithoutReason`
+- `revertedWithPanic`
+- `changeEtherBalance`
+- `changeEtherBalances`
+- `changeTokenBalance`
+- `changeTokenBalances`
+
+Which means you can't do:
+
+```js
+await expect(contract.f(...))
+  .to.changeEtherBalance(...)
+  .and.to.changeTokenBalance(...)
+```
+
+To work around this limitation, write separate assertions for each matcher:
+
+```js
+const tx = contract.f(...);
+await expect(tx).to.changeEtherBalance(...)
+await expect(tx).to.changeTokenBalance(...)
+```
+
+The decision to forbid chaining for these async matchers is due to the complexity involved in implementing proper chaining behavior. Since async matchers perform asynchronous operations and return Promises, chaining them in a meaningful way requires handling Promise resolutions and rejections correctly.
+
+If you are interested in seeing an implementation of chaining for async matchers, please visit the GitHub issue [#4235](https://github.com/NomicFoundation/hardhat/issues/4235) and leave an upvote or comment.

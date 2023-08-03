@@ -237,6 +237,19 @@ describe("INTEGRATION: changeEtherBalances matcher", function () {
         });
       });
 
+      it("Should throw if chained to another non-chainable method", () => {
+        expect(() =>
+          expect(
+            sender.sendTransaction({
+              to: contract,
+              value: 200,
+            })
+          )
+            .to.be.a.nonChainableMatcher()
+            .and.to.changeEtherBalances([sender, contract], [-200, 200])
+        ).to.throw(/changeEtherBalances is not chainable./);
+      });
+
       describe("Change balance, multiple accounts", () => {
         it("Should pass when all expected balance changes are equal to actual values", async () => {
           await expect(

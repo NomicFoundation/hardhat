@@ -1,4 +1,4 @@
-import { AssertionError, expect } from "chai";
+import { AssertionError, expect, use } from "chai";
 import { fork } from "child_process";
 import getPort from "get-port";
 import { resetHardhatContext } from "hardhat/plugins-testing";
@@ -7,6 +7,9 @@ import path from "path";
 
 // we assume that all the fixture projects use the hardhat-ethers plugin
 import "@nomicfoundation/hardhat-ethers/internal/type-extensions";
+import { preventAsyncMatcherChaining } from "../src/internal/utils";
+
+import "./types";
 
 declare module "mocha" {
   interface Context {
@@ -153,3 +156,20 @@ export async function runFailedAsserts({
     failedAssert(matchers[method].staticCall(...args))
   ).to.be.rejectedWith(AssertionError, failedAssertReason);
 }
+
+/**
+ * Used to test that non-chainable matchers like changeEtherBalance,
+ * changeTokenBalance and reverted throw an error when used along with other
+ * non-chainable matchers.
+ */
+function supportNonChainableMatcher(
+  chai: Chai.ChaiStatic,
+  chaiUtils: Chai.ChaiUtils
+) {
+  chai.Assertion.addMethod("nonChainableMatcher", function (this: any) {
+    preventAsyncMatcherChaining(this, "nonChainableMatcher", chaiUtils);
+    this.assert(true);
+  });
+}
+
+use(supportNonChainableMatcher);

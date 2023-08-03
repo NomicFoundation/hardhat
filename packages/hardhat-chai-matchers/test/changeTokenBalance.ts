@@ -11,6 +11,10 @@ import {
   clearTokenDescriptionsCache,
   Token,
 } from "../src/internal/changeTokenBalance";
+import {
+  CHANGE_TOKEN_BALANCE_MATCHER,
+  CHANGE_TOKEN_BALANCES_MATCHER,
+} from "../src/internal/constants";
 import { MatchersContract } from "./contracts";
 import { useEnvironment, useEnvironmentWithNode } from "./helpers";
 
@@ -398,11 +402,31 @@ describe("INTEGRATION: changeTokenBalance and changeTokenBalances matchers", fun
             /Expected the balance of <token at 0x\w{40}> tokens for "0x\w{40}" NOT to change by 50, but it did/
           );
         });
+
+        it("changeTokenBalance: Should throw if chained to another non-chainable method", () => {
+          expect(() =>
+            expect(mockToken.transfer(receiver.address, 50))
+              .to.be.a.nonChainableMatcher()
+              .and.to.changeTokenBalance(mockToken, receiver, 50)
+          ).to.throw(/changeTokenBalance is not chainable./);
+        });
+
+        it("changeTokenBalances: should throw if chained to another non-chainable method", () => {
+          expect(() =>
+            expect(mockToken.transfer(receiver.address, 50))
+              .to.be.a.nonChainableMatcher()
+              .and.to.changeTokenBalances(
+                mockToken,
+                [sender, receiver],
+                [-50, 100]
+              )
+          ).to.throw(/changeTokenBalances is not chainable./);
+        });
       });
     });
 
     describe("validation errors", function () {
-      describe("changeTokenBalance", function () {
+      describe(CHANGE_TOKEN_BALANCE_MATCHER, function () {
         it("token is not specified", async function () {
           expect(() =>
             expect(mockToken.transfer(receiver.address, 50))
@@ -471,7 +495,7 @@ describe("INTEGRATION: changeTokenBalance and changeTokenBalances matchers", fun
         });
       });
 
-      describe("changeTokenBalances", function () {
+      describe(CHANGE_TOKEN_BALANCES_MATCHER, function () {
         it("token is not specified", async function () {
           expect(() =>
             expect(mockToken.transfer(receiver.address, 50))
@@ -582,7 +606,7 @@ describe("INTEGRATION: changeTokenBalance and changeTokenBalances matchers", fun
 
     // smoke tests for stack traces
     describe("stack traces", function () {
-      describe("changeTokenBalance", function () {
+      describe(CHANGE_TOKEN_BALANCE_MATCHER, function () {
         it("includes test file", async function () {
           let hasProperStackTrace = false;
           try {
@@ -599,7 +623,7 @@ describe("INTEGRATION: changeTokenBalance and changeTokenBalances matchers", fun
         });
       });
 
-      describe("changeTokenBalances", function () {
+      describe(CHANGE_TOKEN_BALANCES_MATCHER, function () {
         it("includes test file", async function () {
           try {
             await expect(
