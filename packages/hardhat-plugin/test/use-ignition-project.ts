@@ -10,7 +10,6 @@ import { resetHardhatContext } from "hardhat/plugins-testing";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import path from "path";
 
-import { buildAdaptersFrom } from "../src/build-adapters-from";
 import { IgnitionHelper } from "../src/ignition-helper";
 
 import { clearPendingTransactionsFromMemoryPool } from "./execution/helpers";
@@ -137,8 +136,11 @@ async function runDeploy(
   }: { hre: HardhatRuntimeEnvironment; config?: Partial<DeployConfig> },
   chainUpdates: (c: TestChainHelper) => Promise<void> = async () => {}
 ): Promise<Record<string, Contract>> {
-  const { ignitionHelper: ignitionHelper, kill: killFn } =
-    setupIgnitionHelperRiggedToThrow(hre, deploymentDir, config);
+  const { ignitionHelper: ignitionHelper } = setupIgnitionHelperRiggedToThrow(
+    hre,
+    deploymentDir,
+    config
+  );
 
   try {
     const deployPromise = ignitionHelper.deploy(moduleDefinition, {
@@ -146,7 +148,7 @@ async function runDeploy(
       config,
     });
 
-    const chainHelper = new TestChainHelper(hre, deployPromise, killFn);
+    const chainHelper = new TestChainHelper(hre, deployPromise);
 
     const [result] = await Promise.all([
       deployPromise,
@@ -169,47 +171,21 @@ function setupIgnitionHelperRiggedToThrow(
   config: Partial<DeployConfig> = {}
 ): {
   ignitionHelper: IgnitionHelper;
-  kill: () => void;
 } {
-  const adapters = buildAdaptersFrom(hre);
-
-  let trigger: boolean = false;
-
-  const kill = () => {
-    trigger = true;
-  };
-
-  const originalGetBlock = adapters.blocks.getBlock;
-
-  adapters.blocks = {
-    ...adapters.blocks,
-    getBlock: async (): Promise<{ number: number; hash: string }> => {
-      if (trigger) {
-        trigger = false;
-        throw new Error("Killing deploy process");
-      }
-
-      const block = await originalGetBlock();
-
-      return block;
-    },
-  };
-
   const ignitionHelper = new IgnitionHelper(
     hre,
     config,
-    adapters,
+    hre.network.provider,
     deploymentDir
   );
 
-  return { ignitionHelper, kill };
+  return { ignitionHelper };
 }
 
 export class TestChainHelper {
   constructor(
     private _hre: HardhatRuntimeEnvironment,
-    private _deployPromise: Promise<any>,
-    private _exitFn: () => void
+    private _deployPromise: Promise<any>
   ) {}
 
   public async waitForPendingTxs(expectedCount: number) {
@@ -242,7 +218,5 @@ export class TestChainHelper {
   /**
    * Exit from the deploy on the next block tick.
    */
-  public exitDeploy() {
-    this._exitFn();
-  }
+  public exitDeploy() {}
 }
