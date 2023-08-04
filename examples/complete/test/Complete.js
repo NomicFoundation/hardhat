@@ -14,7 +14,11 @@ describe("Complete", function () {
       withLib,
       duplicate,
       duplicateWithLib,
-    } = await ignition.deploy(CompleteModule);
+    } = await ignition.deploy(CompleteModule, {
+      config: {
+        blockConfirmations: 1,
+      },
+    });
 
     return {
       basic,
