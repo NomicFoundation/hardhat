@@ -9,6 +9,7 @@ use axum::{
 use hashbrown::{HashMap, HashSet};
 use rethnet_eth::remote::ZeroXPrefixedBytes;
 use secp256k1::{Secp256k1, SecretKey};
+use sha3::{Digest, Keccak256};
 use tokio::sync::RwLock;
 use tracing::{event, Level};
 
@@ -126,7 +127,7 @@ pub enum Error {
     LocalBlockchainCreation(#[from] LocalCreationError<StateError>),
 }
 
-/// require_canonical: whether the server should additionally raise a JSON-RPC error if the block
+/// `require_canonical`: whether the server should additionally raise a JSON-RPC error if the block
 /// is not in the canonical chain
 async fn _block_number_from_hash<T>(
     state: &StateType,
@@ -170,12 +171,14 @@ async fn _block_number_from_block_spec<T>(
     }
 }
 
+#[allow(clippy::todo)]
 fn confirm_post_merge_hardfork<T>(_state: &StateType) -> Result<(), ResponseData<T>> {
     todo!("when we're allowing configuration of hardfork history (that is, when https://github.com/NomicFoundation/rethnet/issues/124 is resolved), if the given block tag is 'safe' or 'finalized', ensure that we're running a hardfork that's after the merge")
 }
 
 /// returns the state root in effect BEFORE setting the block context, so that the caller can
 /// restore the context to that state root.
+#[allow(clippy::todo)]
 async fn set_block_context<T>(
     state: &StateType,
     block_spec: Option<BlockSpec>,
@@ -336,7 +339,7 @@ async fn handle_get_code(
                                 result: ZeroXPrefixedBytes::from(code.bytecode),
                             },
                             Err(e) => {
-                                error_response_data(0, &format!("failed to retrieve code: {}", e))
+                                error_response_data(0, &format!("failed to retrieve code: {e}"))
                             }
                         }
                     }
@@ -403,7 +406,7 @@ async fn handle_get_storage_at(
                 Ok(()) => match value {
                     Ok(value) => ResponseData::Success { result: value },
                     Err(e) => {
-                        error_response_data(0, &format!("failed to retrieve storage value: {}", e))
+                        error_response_data(0, &format!("failed to retrieve storage value: {e}"))
                     }
                 },
                 Err(e) => e,
@@ -487,7 +490,7 @@ async fn handle_set_balance(
     match state.modify_account(
         address,
         AccountModifierFn::new(Box::new(move |account_balance, _, _| {
-            *account_balance = balance
+            *account_balance = balance;
         })),
         &|| {
             Ok(AccountInfo {
@@ -518,7 +521,7 @@ async fn handle_set_code(
     match state.modify_account(
         address,
         AccountModifierFn::new(Box::new(move |_, _, account_code| {
-            *account_code = Some(Bytecode::new_raw(code_1.clone().into()))
+            *account_code = Some(Bytecode::new_raw(code_1.clone().into()));
         })),
         &|| {
             Ok(AccountInfo {
@@ -585,6 +588,18 @@ async fn handle_set_storage_at(
     }
 }
 
+fn handle_net_listening() -> ResponseData<bool> {
+    event!(Level::INFO, "net_listening()");
+    ResponseData::Success { result: true }
+}
+
+fn handle_net_peer_count() -> ResponseData<U64WithoutLeadingZeroes> {
+    event!(Level::INFO, "net_peerCount()");
+    ResponseData::Success {
+        result: U64WithoutLeadingZeroes(U64::from(0)),
+    }
+}
+
 fn handle_sign(
     state: StateType,
     address: &Address,
@@ -630,6 +645,26 @@ async fn handle_uninstall_filter(state: StateType, filter_id: U256) -> ResponseD
 async fn handle_unsubscribe(state: StateType, filter_id: U256) -> ResponseData<bool> {
     event!(Level::INFO, "eth_unsubscribe({filter_id:?})");
     remove_filter::<true>(state, filter_id).await
+}
+
+fn handle_web3_client_version() -> ResponseData<String> {
+    event!(Level::INFO, "web3_clientVersion()");
+    ResponseData::Success {
+        result: format!(
+            "edr/{}/revm/{}",
+            env!("CARGO_PKG_VERSION"),
+            env!("REVM_VERSION"),
+        ),
+    }
+}
+
+fn handle_web3_sha3(message: ZeroXPrefixedBytes) -> ResponseData<B256> {
+    event!(Level::INFO, "web3_sha3({message:?})");
+    let message: Bytes = message.into();
+    let hash = Keccak256::digest(&message[..]);
+    ResponseData::Success {
+        result: B256::from_slice(&hash[..]),
+    }
 }
 
 async fn handle_request(
@@ -705,6 +740,12 @@ async fn handle_request(
                         handle_get_transaction_count(state, *address, block.clone()).await,
                     )
                 }
+                MethodInvocation::Eth(EthMethodInvocation::NetListening()) => {
+                    response(id, handle_net_listening())
+                }
+                MethodInvocation::Eth(EthMethodInvocation::NetPeerCount()) => {
+                    response(id, handle_net_peer_count())
+                }
                 MethodInvocation::Eth(EthMethodInvocation::NetVersion()) => {
                     response(id, handle_net_version(state).await)
                 }
@@ -713,6 +754,12 @@ async fn handle_request(
                 }
                 MethodInvocation::Eth(EthMethodInvocation::Sign(address, message)) => {
                     response(id, handle_sign(state, address, message))
+                }
+                MethodInvocation::Eth(EthMethodInvocation::Web3ClientVersion()) => {
+                    response(id, handle_web3_client_version())
+                }
+                MethodInvocation::Eth(EthMethodInvocation::Web3Sha3(message)) => {
+                    response(id, handle_web3_sha3(message.clone()))
                 }
                 MethodInvocation::Eth(EthMethodInvocation::UninstallFilter(filter_id)) => {
                     response(id, handle_uninstall_filter(state, *filter_id).await)
@@ -747,7 +794,7 @@ async fn handle_request(
                 // TODO: after adding all the methods here, eliminate this
                 // catch-all match arm:
                 _ => {
-                    let msg = format!("Method not found for invocation '{:?}'", method,);
+                    let msg = format!("Method not found for invocation '{method:?}'");
                     response(
                         id,
                         ResponseData::<serde_json::Value>::new_error(-32601, &msg, None),
@@ -929,7 +976,6 @@ impl Server {
 
         let app_state = Arc::new(AppState {
             blockchain,
-            _mem_pool,
             rethnet_state,
             chain_id,
             coinbase,
@@ -938,6 +984,7 @@ impl Server {
             impersonated_accounts,
             last_filter_id,
             local_accounts,
+            _mem_pool,
             network_id,
         });
 

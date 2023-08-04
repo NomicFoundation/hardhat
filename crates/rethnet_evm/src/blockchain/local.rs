@@ -139,7 +139,8 @@ impl Blockchain for LocalBlockchain {
     }
 
     fn block_by_number(&self, number: &U256) -> Result<Option<Arc<DetailedBlock>>, Self::Error> {
-        let number = usize::try_from(number).map_err(|_| BlockchainError::BlockNumberTooLarge)?;
+        let number =
+            usize::try_from(number).map_err(|_error| BlockchainError::BlockNumberTooLarge)?;
 
         Ok(self.storage.blocks().get(number).cloned())
     }
@@ -200,7 +201,8 @@ impl BlockHashRef for LocalBlockchain {
     type Error = BlockchainError;
 
     fn block_hash(&self, number: U256) -> Result<B256, Self::Error> {
-        let number = usize::try_from(number).map_err(|_| BlockchainError::BlockNumberTooLarge)?;
+        let number =
+            usize::try_from(number).map_err(|_error| BlockchainError::BlockNumberTooLarge)?;
 
         self.storage
             .blocks()

@@ -1,12 +1,12 @@
 use std::ffi::OsString;
-use std::fs::{write, File};
-use std::io::Read;
+use std::fs;
 use std::net::{IpAddr, Ipv4Addr, SocketAddr};
+use std::path::Path;
 use std::time::UNIX_EPOCH;
 
 use anyhow::anyhow;
 use clap::{Args, Parser, Subcommand};
-use secp256k1::SecretKey;
+use secp256k1::{Error as Secp256k1Error, SecretKey};
 use tracing::{event, Level};
 
 use rethnet_eth::{Address, Bytes, U256, U64};
@@ -85,8 +85,8 @@ fn server_config_from_cli_args_and_config_file(
             .accounts
             .expect("should be resolved to default")
             .iter()
-            .map(ServerAccountConfig::from)
-            .collect(),
+            .map(ServerAccountConfig::try_from)
+            .collect::<Result<Vec<_>, _>>()?,
         block_gas_limit: config_file
             .block_gas_limit
             .expect("should be resovled to default"),
@@ -118,13 +118,14 @@ fn server_config_from_cli_args_and_config_file(
     })
 }
 
-impl From<&AccountConfig> for ServerAccountConfig {
-    fn from(account_config: &AccountConfig) -> Self {
+impl TryFrom<&AccountConfig> for ServerAccountConfig {
+    type Error = Secp256k1Error;
+    fn try_from(account_config: &AccountConfig) -> Result<Self, Self::Error> {
         let bytes: Bytes = account_config.private_key.clone().into();
-        Self {
-            private_key: SecretKey::from_slice(&bytes[..]).unwrap(),
+        Ok(Self {
+            private_key: SecretKey::from_slice(&bytes[..])?,
             balance: account_config.balance,
-        }
+        })
     }
 }
 
@@ -149,11 +150,40 @@ where
     I: IntoIterator<Item = T>,
     T: Into<OsString> + Clone,
 {
+    async fn await_signal() {
+        use tokio::signal;
+
+        let ctrl_c = async {
+            signal::ctrl_c()
+                .await
+                .expect("failed to install Ctrl+C handler");
+        };
+
+        #[cfg(unix)]
+        let terminate = async {
+            use signal::unix::{signal, SignalKind};
+            signal(SignalKind::terminate())
+                .expect("failed to install signal handler")
+                .recv()
+                .await;
+        };
+
+        #[cfg(not(unix))]
+        let terminate = std::future::pending::<()>();
+
+        tokio::select! {
+            _ = ctrl_c => {},
+            _ = terminate => {},
+        }
+
+        event!(Level::INFO, "Shutting down");
+    }
+
     let args = Cli::parse_from(args);
     match args.command {
         Command::Node(node_args) => {
             if node_args.init_config_file {
-                write(
+                fs::write(
                     DEFAULT_CONFIG_FILE_NAME,
                     toml::to_string(&ConfigFile::default())?,
                 )
@@ -173,9 +203,9 @@ where
                     })
                     .init();
 
-                let config_file = if let Ok(mut file) = File::open(node_args.config_file.clone()) {
+                let config_file = if Path::new(&node_args.config_file).exists() {
                     let mut contents = String::new();
-                    file.read_to_string(&mut contents)?;
+                    fs::read_to_string(&mut contents)?;
                     toml::from_str(&contents)?
                 } else if node_args.config_file != DEFAULT_CONFIG_FILE_NAME {
                     Err(anyhow!(
@@ -190,35 +220,6 @@ where
                     server_config_from_cli_args_and_config_file(node_args, config_file)?,
                 )
                 .await?;
-
-                async fn await_signal() {
-                    use tokio::signal;
-
-                    let ctrl_c = async {
-                        signal::ctrl_c()
-                            .await
-                            .expect("failed to install Ctrl+C handler");
-                    };
-
-                    #[cfg(unix)]
-                    let terminate = async {
-                        use signal::unix::{signal, SignalKind};
-                        signal(SignalKind::terminate())
-                            .expect("failed to install signal handler")
-                            .recv()
-                            .await;
-                    };
-
-                    #[cfg(not(unix))]
-                    let terminate = std::future::pending::<()>();
-
-                    tokio::select! {
-                        _ = ctrl_c => {},
-                        _ = terminate => {},
-                    }
-
-                    event!(Level::INFO, "Shutting down");
-                }
 
                 Ok(server
                     .serve_with_shutdown_signal(await_signal())

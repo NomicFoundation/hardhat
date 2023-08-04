@@ -1,5 +1,6 @@
-//! NAPI bindings for the Rethnet EVM
 #![warn(missing_docs)]
+
+//! NAPI bindings for the Rethnet EVM
 
 mod access_list;
 mod account;

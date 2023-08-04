@@ -54,6 +54,8 @@ mod tests {
 
     #[test]
     fn precompiles_state_root() {
+        const EXPECTED: &str = "0x5766c887a7240e4d1c035ccd3830a2f6a0c03d213a9f0b9b27c774916a4abcce";
+
         let mut state = State::default();
 
         for idx in 1..=8u8 {
@@ -62,7 +64,6 @@ mod tests {
             state.insert(address, BasicAccount::default());
         }
 
-        const EXPECTED: &str = "0x5766c887a7240e4d1c035ccd3830a2f6a0c03d213a9f0b9b27c774916a4abcce";
-        assert_eq!(state_root(&state), B256::from_str(EXPECTED).unwrap())
+        assert_eq!(state_root(&state), B256::from_str(EXPECTED).unwrap());
     }
 }

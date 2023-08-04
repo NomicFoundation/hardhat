@@ -1,9 +1,8 @@
-/// helper utilities for use with serde's serialize_with and deserialize_with
 use std::fmt::Write;
 
 use revm_primitives::ruint::Uint;
 
-/// for use with serde's serialize_with on a single value that should be serialized as a
+/// for use with serde's `serialize_with` on a single value that should be serialized as a
 /// sequence
 pub fn single_to_sequence<S, T>(val: &T, s: S) -> Result<S::Ok, S::Error>
 where
@@ -16,7 +15,7 @@ where
     seq.end()
 }
 
-/// for use with serde's deserialize_with on a sequence that should be deserialized as a
+/// for use with serde's `deserialize_with` on a sequence that should be deserialized as a
 /// single value
 pub fn sequence_to_single<'de, D, T>(deserializer: D) -> Result<T, D::Error>
 where
@@ -62,7 +61,7 @@ where
     s.serialize_str(&result)
 }
 
-/// for use with serde's deserialize_with on fields of hexadecimal strings that should be
+/// for use with serde's `deserialize_with` on fields of hexadecimal strings that should be
 /// parsed as `Option<u64>`
 pub fn optional_u64_from_hex<'de, D>(deserializer: D) -> Result<Option<u64>, D::Error>
 where

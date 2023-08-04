@@ -44,6 +44,7 @@ impl BlockHashRef for JsBlockchain {
     }
 }
 
+#[allow(clippy::unimplemented)]
 impl Blockchain for JsBlockchain {
     type Error = BlockchainError;
 
@@ -81,6 +82,7 @@ impl Blockchain for JsBlockchain {
     }
 }
 
+#[allow(clippy::unimplemented)]
 impl BlockchainMut for JsBlockchain {
     type Error = BlockchainError;
 

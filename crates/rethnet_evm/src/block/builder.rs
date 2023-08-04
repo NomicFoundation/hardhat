@@ -187,7 +187,7 @@ where
     }
 
     /// Retrieves the instance's state.
-    pub async fn state(&self) -> RwLockReadGuard<dyn SyncState<SE>> {
+    pub async fn state(&self) -> RwLockReadGuard<'_, dyn SyncState<SE>> {
         self.state.read().await
     }
 
@@ -247,14 +247,14 @@ where
         let logs: Vec<Log> = result.logs().into_iter().map(Log::from).collect();
         let logs_bloom = {
             let mut bloom = Bloom::zero();
-            logs.iter().for_each(|log| {
+            for log in &logs {
                 log.add_to_bloom(&mut bloom);
-            });
+            }
             bloom
         };
 
         let receipt = EIP658Receipt {
-            status_code: if result.is_success() { 1 } else { 0 },
+            status_code: u8::from(result.is_success()),
             gas_used: self.header.gas_used,
             logs_bloom,
             logs,
@@ -326,7 +326,7 @@ where
 
         if let Some(timestamp) = timestamp {
             self.header.timestamp = timestamp;
-        } else if self.header.timestamp == Default::default() {
+        } else if self.header.timestamp == U256::ZERO {
             self.header.timestamp = U256::from(
                 SystemTime::now()
                     .duration_since(UNIX_EPOCH)

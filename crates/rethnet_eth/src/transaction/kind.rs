@@ -30,7 +30,7 @@ impl rlp::Encodable for TransactionKind {
 }
 
 impl rlp::Decodable for TransactionKind {
-    fn decode(rlp: &Rlp) -> Result<Self, DecoderError> {
+    fn decode(rlp: &Rlp<'_>) -> Result<Self, DecoderError> {
         if rlp.is_empty() {
             if rlp.is_data() {
                 Ok(TransactionKind::Create)

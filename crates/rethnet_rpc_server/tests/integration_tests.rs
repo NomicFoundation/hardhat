@@ -24,7 +24,7 @@ use rethnet_rpc_server::{
 const PRIVATE_KEY: &str = "ac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80";
 
 async fn start_server() -> SocketAddr {
-    let mut accounts: HashMap<Address, AccountInfo> = Default::default();
+    let mut accounts: HashMap<Address, AccountInfo> = HashMap::default();
     accounts.insert(
         Address::from_low_u64_ne(1),
         AccountInfo {
@@ -244,6 +244,26 @@ async fn test_get_transaction_count_success() {
             Some(BlockSpec::latest()),
         )),
         U256::ZERO,
+    )
+    .await;
+}
+
+#[tokio::test]
+async fn test_net_listening() {
+    verify_response(
+        &start_server().await,
+        MethodInvocation::Eth(EthMethodInvocation::NetListening()),
+        true,
+    )
+    .await;
+}
+
+#[tokio::test]
+async fn test_net_peer_count() {
+    verify_response(
+        &start_server().await,
+        MethodInvocation::Eth(EthMethodInvocation::NetPeerCount()),
+        U64::ZERO,
     )
     .await;
 }
@@ -473,4 +493,30 @@ async fn test_uninstall_filter_nonexistent_filter() {
 #[tokio::test]
 async fn test_unsubscribe() {
     // TODO: when eth_subscribe is implemented for https://github.com/NomicFoundation/rethnet/issues/114
+}
+
+#[tokio::test]
+async fn test_web3_client_version() {
+    verify_response(
+        &start_server().await,
+        MethodInvocation::Eth(EthMethodInvocation::Web3ClientVersion()),
+        String::from(&format!(
+            "edr/{}/revm/{}",
+            env!("CARGO_PKG_VERSION"),
+            env!("REVM_VERSION"),
+        )),
+    )
+    .await;
+}
+
+#[tokio::test]
+async fn test_web3_sha3() {
+    verify_response(
+        &start_server().await,
+        MethodInvocation::Eth(EthMethodInvocation::Web3Sha3(
+            Bytes::from_static(b"").into(),
+        )),
+        KECCAK_EMPTY,
+    )
+    .await;
 }

@@ -99,7 +99,7 @@ impl MemPool {
         let mut future_transactions = Vec::with_capacity(self.future_transactions.capacity());
         std::mem::swap(&mut self.future_transactions, &mut future_transactions);
 
-        for transaction in future_transactions.into_iter() {
+        for transaction in future_transactions {
             self.add_transaction_impl(state, transaction)
                 .expect("All future transactions have already been validated");
         }

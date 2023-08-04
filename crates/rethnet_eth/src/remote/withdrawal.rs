@@ -22,7 +22,7 @@ pub struct Withdrawal {
 }
 
 impl rlp::Decodable for Withdrawal {
-    fn decode(rlp: &rlp::Rlp) -> Result<Self, rlp::DecoderError> {
+    fn decode(rlp: &rlp::Rlp<'_>) -> Result<Self, rlp::DecoderError> {
         Ok(Self {
             index: rlp.val_at(0)?,
             validator_index: rlp.val_at(1)?,

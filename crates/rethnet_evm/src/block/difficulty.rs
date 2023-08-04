@@ -29,9 +29,10 @@ pub fn calculate_ethash_canonical_difficulty(
     block_timestamp: &U256,
 ) -> U256 {
     // TODO: Create a custom config that prevents usage of older hardforks
-    if spec_id < SpecId::BYZANTIUM {
-        panic!("Hardforks older than Byzantium are not supported");
-    }
+    assert!(
+        spec_id >= SpecId::BYZANTIUM,
+        "Hardforks older than Byzantium are not supported"
+    );
 
     let bound_divisor = U256::from(2048);
     let offset = parent.difficulty / bound_divisor;

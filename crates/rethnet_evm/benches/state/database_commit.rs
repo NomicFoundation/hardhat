@@ -1,4 +1,5 @@
 use criterion::{criterion_group, criterion_main, Criterion};
+use rethnet_evm::AccountStatus;
 use revm::primitives::Bytecode;
 
 use rethnet_eth::{Address, Bytes, U256};
@@ -60,7 +61,7 @@ fn bench_database_commit(c: &mut Criterion) {
                 code_hash: code.map_or(KECCAK_EMPTY, |code| code.hash()),
             },
             storage,
-            status: Default::default(),
+            status: AccountStatus::default(),
         };
 
         account.mark_touch();

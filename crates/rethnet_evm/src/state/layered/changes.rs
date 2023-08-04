@@ -304,10 +304,24 @@ impl LayeredChanges<RethnetLayer> {
     /// Serializes the state using ordering of addresses and storage indices.
     #[cfg_attr(feature = "tracing", tracing::instrument)]
     pub fn serialize(&self) -> String {
+        #[derive(serde::Serialize)]
+        struct StateAccount {
+            /// Balance of the account.
+            pub balance: U256,
+            /// Code hash of the account.
+            pub code_hash: B256,
+            /// Nonce of the account.
+            pub nonce: u64,
+            /// Storage
+            pub storage: BTreeMap<B256, U256>,
+            /// Storage root of the account.
+            pub storage_root: B256,
+        }
+
         let mut state = HashMap::new();
 
         self.rev()
-            .flat_map(|layer| layer.accounts())
+            .flat_map(RethnetLayer::accounts)
             .for_each(|(address, account)| {
                 if let Some(new_account) = account {
                     state
@@ -324,20 +338,6 @@ impl LayeredChanges<RethnetLayer> {
                     state.remove(address);
                 }
             });
-
-        #[derive(serde::Serialize)]
-        struct StateAccount {
-            /// Balance of the account.
-            pub balance: U256,
-            /// Code hash of the account.
-            pub code_hash: B256,
-            /// Nonce of the account.
-            pub nonce: u64,
-            /// Storage
-            pub storage: BTreeMap<B256, U256>,
-            /// Storage root of the account.
-            pub storage_root: B256,
-        }
 
         let state: BTreeMap<_, _> = state
             .into_iter()
@@ -391,7 +391,7 @@ impl LayeredChanges<RethnetLayer> {
         let mut state = HashMap::new();
 
         self.rev()
-            .flat_map(|layer| layer.accounts())
+            .flat_map(RethnetLayer::accounts)
             .for_each(|(address, account)| {
                 if let Some(new_account) = account {
                     state
@@ -432,7 +432,7 @@ impl LayeredChanges<RethnetLayer> {
         let mut storage = Storage::default();
 
         self.rev()
-            .flat_map(|layer| layer.accounts.get(address))
+            .filter_map(|layer| layer.accounts.get(address))
             .for_each(|account| {
                 if let Some(account) = account {
                     account.storage.iter().for_each(|(index, value)| {
@@ -495,7 +495,7 @@ impl From<&LayeredChanges<RethnetLayer>> for SharedMap<B256, Bytecode, true> {
                 } else {
                     storage.as_inner_mut().remove(code_hash);
                 }
-            })
+            });
         });
 
         storage.insert(KECCAK_EMPTY, Bytecode::new());
