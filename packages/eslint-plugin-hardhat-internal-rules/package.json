@@ -13,8 +13,8 @@
   "exports": "./lib/index.js",
   "main": "./lib/index.js",
   "scripts": {
-    "lint": "npm-run-all \"lint:*\"",
-    "lint:eslint-docs": "npm-run-all \"update:eslint-docs -- --check\"",
+    "lint": "pnpm run \"/^lint:.*/\"",
+    "lint:eslint-docs": "pnpm run update:eslint-docs --check",
     "lint:js": "eslint .",
     "update:eslint-docs": "eslint-doc-generator"
   },
