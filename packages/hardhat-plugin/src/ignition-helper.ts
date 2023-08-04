@@ -1,8 +1,8 @@
 import {
-  Adapters,
   deploy,
   DeployConfig,
   DeploymentResultSuccess,
+  EIP1193Provider,
   IgnitionError,
   IgnitionModuleDefinition,
   IgnitionModuleResult,
@@ -11,20 +11,19 @@ import {
 import { Contract } from "ethers";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 
-import { buildAdaptersFrom } from "./build-adapters-from";
 import { HardhatArtifactResolver } from "./hardhat-artifact-resolver.ts";
 
 export class IgnitionHelper {
-  private _adapters: Adapters;
+  private _provider: EIP1193Provider;
   private _deploymentDir: string | undefined;
 
   constructor(
     private _hre: HardhatRuntimeEnvironment,
     private _config?: Partial<DeployConfig>,
-    adapters?: Adapters,
+    provider?: EIP1193Provider,
     deploymentDir?: string
   ) {
-    this._adapters = adapters ?? buildAdaptersFrom(this._hre);
+    this._provider = provider ?? this._hre.network.provider;
     this._deploymentDir = deploymentDir;
   }
 
@@ -58,7 +57,7 @@ export class IgnitionHelper {
 
     const result = await deploy({
       config: resolvedConfig,
-      adapters: this._adapters,
+      provider: this._provider,
       deploymentDir: this._deploymentDir,
       artifactResolver,
       moduleDefinition: ignitionModuleDefinition,

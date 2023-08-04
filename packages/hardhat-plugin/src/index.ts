@@ -11,7 +11,6 @@ import { lazyObject } from "hardhat/plugins";
 import path from "path";
 import Prompt from "prompts";
 
-import { buildAdaptersFrom } from "./build-adapters-from";
 import { HardhatArtifactResolver } from "./hardhat-artifact-resolver.ts";
 import { IgnitionHelper } from "./ignition-helper";
 import { loadModule } from "./load-module";
@@ -135,11 +134,10 @@ task("deploy")
             : path.join(hre.config.paths.ignition, "deployments", deploymentId);
 
         const artifactResolver = new HardhatArtifactResolver(hre);
-        const adapters = buildAdaptersFrom(hre);
 
         const result = await deploy({
           config: hre.config.ignition,
-          adapters,
+          provider: hre.network.provider,
           artifactResolver,
           deploymentDir,
           moduleDefinition: userModule,

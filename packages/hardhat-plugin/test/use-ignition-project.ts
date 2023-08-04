@@ -10,7 +10,6 @@ import { resetHardhatContext } from "hardhat/plugins-testing";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import path from "path";
 
-import { buildAdaptersFrom } from "../src/build-adapters-from";
 import { IgnitionHelper } from "../src/ignition-helper";
 
 import { clearPendingTransactionsFromMemoryPool } from "./execution/helpers";
@@ -171,34 +170,27 @@ function setupIgnitionHelperRiggedToThrow(
   ignitionHelper: IgnitionHelper;
   kill: () => void;
 } {
-  const adapters = buildAdaptersFrom(hre);
-
   let trigger: boolean = false;
 
   const kill = () => {
     trigger = true;
   };
 
-  const originalGetBlock = adapters.blocks.getBlock;
-
-  adapters.blocks = {
-    ...adapters.blocks,
-    getBlock: async (): Promise<{ number: number; hash: string }> => {
+  const proxiedProvider = new Proxy(hre.network.provider, {
+    get(target: any, key) {
       if (trigger) {
         trigger = false;
         throw new Error("Killing deploy process");
       }
 
-      const block = await originalGetBlock();
-
-      return block;
+      return target[key];
     },
-  };
+  });
 
   const ignitionHelper = new IgnitionHelper(
     hre,
     config,
-    adapters,
+    proxiedProvider,
     deploymentDir
   );
 

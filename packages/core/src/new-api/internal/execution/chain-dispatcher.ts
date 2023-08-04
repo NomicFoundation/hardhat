@@ -1,8 +1,8 @@
 import { Contract, ContractFactory, ethers } from "ethers";
 
 import { IgnitionError } from "../../../errors";
-import { Adapters } from "../../types/adapters";
 import { ArgumentType } from "../../types/module";
+import { Adapters } from "../types/adapters";
 import { assertIgnitionInvariant } from "../utils/assertions";
 
 import { AccountsState } from "./execution-engine";
