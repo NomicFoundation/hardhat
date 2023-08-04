@@ -139,6 +139,14 @@ export const builtinChains: ChainConfig[] = [
     },
   },
   {
+    network: "base",
+    chainId: 8453,
+    urls: {
+      apiURL: "https://api.basescan.org/api",
+      browserURL: "https://basescan.org/",
+    },
+  },
+  {
     network: "chiado",
     chainId: 10200,
     urls: {
@@ -184,14 +192,6 @@ export const builtinChains: ChainConfig[] = [
     urls: {
       apiURL: "https://api-goerli.basescan.org/api",
       browserURL: "https://goerli.basescan.org/",
-    },
-  },
-  {
-    network: "base",
-    chainId: 8453,
-    urls: {
-      apiURL: "https://api.basescan.org/api",
-      browserURL: "https://basescan.org/",
     },
   },
   {
