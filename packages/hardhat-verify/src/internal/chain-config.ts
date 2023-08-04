@@ -187,6 +187,14 @@ export const builtinChains: ChainConfig[] = [
     },
   },
   {
+    network: "base",
+    chainId: 8453,
+    urls: {
+      apiURL: "https://api.basescan.org/api",
+      browserURL: "https://basescan.org/",
+    },
+  },
+  {
     network: "arbitrumTestnet",
     chainId: 421611,
     urls: {
