@@ -13,7 +13,7 @@ const isGithubActions = process.env.GITHUB_WORKFLOW !== undefined;
 const isLinux = os.type() === "Linux";
 const isWindows = os.type() === "Windows_NT";
 
-shell.exec("yarn build");
+shell.exec("pnpm run build");
 
 // ** check for packages to be ignored ** //
 
@@ -22,9 +22,9 @@ const shouldIgnoreSolppTests = isWindows;
 
 const ignoredPackagesList = [];
 
-if (shouldIgnoreSolppTests) {
-  ignoredPackagesList.push("--exclude @nomiclabs/hardhat-solpp");
-}
+//if (shouldIgnoreSolppTests) {
+ignoredPackagesList.push("--filter=!@nomiclabs/hardhat-solpp");
+//}
 
 const ignoredPackages = ignoredPackagesList.join(" ");
 
@@ -32,8 +32,10 @@ function runTests() {
   console.time("Total test time");
 
   try {
-    const fastExit = process.env.NO_FAST_EXIT ? "" : "--fast-exit";
-    const command = `yarn wsrun --serial ${fastExit} --exclude-missing ${ignoredPackages} test`;
+    // const fastExit = process.env.NO_FAST_EXIT ? "" : "--fast-exit";
+    // const command = `yarn wsrun --serial ${fastExit} --exclude-missing ${ignoredPackages} test`;
+
+    const command = `pnpm run --recursive ${ignoredPackages} test`;
 
     shell.exec(command);
   } finally {
