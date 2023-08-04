@@ -136,11 +136,8 @@ async function runDeploy(
   }: { hre: HardhatRuntimeEnvironment; config?: Partial<DeployConfig> },
   chainUpdates: (c: TestChainHelper) => Promise<void> = async () => {}
 ): Promise<Record<string, Contract>> {
-  const { ignitionHelper: ignitionHelper } = setupIgnitionHelperRiggedToThrow(
-    hre,
-    deploymentDir,
-    config
-  );
+  const { ignitionHelper: ignitionHelper, kill: killFn } =
+    setupIgnitionHelperRiggedToThrow(hre, deploymentDir, config);
 
   try {
     const deployPromise = ignitionHelper.deploy(moduleDefinition, {
@@ -148,7 +145,7 @@ async function runDeploy(
       config,
     });
 
-    const chainHelper = new TestChainHelper(hre, deployPromise);
+    const chainHelper = new TestChainHelper(hre, deployPromise, killFn);
 
     const [result] = await Promise.all([
       deployPromise,
@@ -171,21 +168,40 @@ function setupIgnitionHelperRiggedToThrow(
   config: Partial<DeployConfig> = {}
 ): {
   ignitionHelper: IgnitionHelper;
+  kill: () => void;
 } {
+  let trigger: boolean = false;
+
+  const kill = () => {
+    trigger = true;
+  };
+
+  const proxiedProvider = new Proxy(hre.network.provider, {
+    get(target: any, key) {
+      if (trigger) {
+        trigger = false;
+        throw new Error("Killing deploy process");
+      }
+
+      return target[key];
+    },
+  });
+
   const ignitionHelper = new IgnitionHelper(
     hre,
     config,
-    hre.network.provider,
+    proxiedProvider,
     deploymentDir
   );
 
-  return { ignitionHelper };
+  return { ignitionHelper, kill };
 }
 
 export class TestChainHelper {
   constructor(
     private _hre: HardhatRuntimeEnvironment,
-    private _deployPromise: Promise<any>
+    private _deployPromise: Promise<any>,
+    private _exitFn: () => void
   ) {}
 
   public async waitForPendingTxs(expectedCount: number) {
@@ -218,5 +234,7 @@ export class TestChainHelper {
   /**
    * Exit from the deploy on the next block tick.
    */
-  public exitDeploy() {}
+  public exitDeploy() {
+    this._exitFn();
+  }
 }
