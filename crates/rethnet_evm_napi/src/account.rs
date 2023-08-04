@@ -49,6 +49,7 @@ impl From<rethnet_evm::Bytecode> for Bytecode {
     }
 }
 
+#[allow(clippy::fallible_impl_from)]
 impl From<AccountInfo> for Account {
     #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     fn from(account_info: AccountInfo) -> Self {

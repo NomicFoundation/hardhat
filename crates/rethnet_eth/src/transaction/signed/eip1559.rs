@@ -46,7 +46,7 @@ impl EIP1559SignedTransaction {
         let mut sig = [0u8; 65];
         sig[0..32].copy_from_slice(&self.r[..]);
         sig[32..64].copy_from_slice(&self.s[..]);
-        sig[64] = self.odd_y_parity as u8;
+        sig[64] = u8::from(self.odd_y_parity);
         let signature = Signature::try_from(&sig[..])?;
         signature.recover(EIP1559TransactionRequest::from(self).hash())
     }
@@ -71,7 +71,7 @@ impl rlp::Encodable for EIP1559SignedTransaction {
 }
 
 impl rlp::Decodable for EIP1559SignedTransaction {
-    fn decode(rlp: &rlp::Rlp) -> Result<Self, rlp::DecoderError> {
+    fn decode(rlp: &rlp::Rlp<'_>) -> Result<Self, rlp::DecoderError> {
         if rlp.item_count()? != 12 {
             return Err(rlp::DecoderError::RlpIncorrectListLen);
         }

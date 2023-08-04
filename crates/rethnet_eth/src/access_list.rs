@@ -60,7 +60,7 @@ impl rlp::Encodable for AccessListItem {
 }
 
 impl rlp::Decodable for AccessListItem {
-    fn decode(rlp: &rlp::Rlp) -> Result<Self, rlp::DecoderError> {
+    fn decode(rlp: &rlp::Rlp<'_>) -> Result<Self, rlp::DecoderError> {
         let result = AccessListItem {
             address: Address::from(rlp.val_at::<U160>(0)?.to_be_bytes()),
             storage_keys: {

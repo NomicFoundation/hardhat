@@ -27,7 +27,7 @@ impl rlp::Encodable for EIP658Receipt {
 }
 
 impl rlp::Decodable for EIP658Receipt {
-    fn decode(rlp: &rlp::Rlp) -> Result<Self, rlp::DecoderError> {
+    fn decode(rlp: &rlp::Rlp<'_>) -> Result<Self, rlp::DecoderError> {
         let result = EIP658Receipt {
             status_code: rlp.val_at(0)?,
             gas_used: rlp.val_at(1)?,

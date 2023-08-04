@@ -11,7 +11,7 @@ impl From<AccountInfo> for RethnetAccount {
     fn from(info: AccountInfo) -> Self {
         Self {
             info,
-            storage: Default::default(),
+            storage: Storage::default(),
         }
     }
 }

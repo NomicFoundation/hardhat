@@ -7,14 +7,15 @@ where
 }
 
 #[allow(clippy::type_complexity)]
+/// # Panics
+///
+/// Will panic if an assertion fails
 pub fn help_test_method_invocation_serde_with_expected<MethodInvocation>(
     call: MethodInvocation,
     expected: MethodInvocation,
 ) where
     MethodInvocation: PartialEq + std::fmt::Debug + serde::de::DeserializeOwned + serde::Serialize,
 {
-    let json = serde_json::json!(call).to_string();
-
     // validate that variations of MethodInvocation which have single values can still be
     // deserialized when presented with `params` as a vector rather than a single value:
     #[derive(Debug, serde::Deserialize)]
@@ -30,6 +31,9 @@ pub fn help_test_method_invocation_serde_with_expected<MethodInvocation>(
         Eth(MethodInvocationStructWithUntypedParams),
         Hardhat(MethodInvocationStructWithUntypedParams),
     }
+
+    let json = serde_json::json!(call).to_string();
+
     serde_json::from_str::<MethodInvocationEnumWithUntypedParams>(&json).unwrap_or_else(|_| {
         panic!("should have successfully deserialized, with params as a Vec<String>, json {json}")
     });

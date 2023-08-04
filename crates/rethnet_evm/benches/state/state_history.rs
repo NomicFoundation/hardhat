@@ -1,3 +1,5 @@
+use std::cell::RefCell;
+
 use criterion::{criterion_group, criterion_main, Criterion};
 
 use rethnet_eth::B256;
@@ -33,7 +35,7 @@ fn bench_make_snapshot(c: &mut Criterion) {
 }
 
 fn bench_remove_snapshot(c: &mut Criterion) {
-    let snapshot: std::cell::RefCell<B256> = Default::default();
+    let snapshot = RefCell::new(B256::default());
     bench_sync_state_method(
         c,
         "StateHistory:remove_snapshot",
@@ -51,7 +53,7 @@ fn bench_remove_snapshot(c: &mut Criterion) {
 }
 
 fn bench_set_block_context_to_latest_snapshot(c: &mut Criterion) {
-    let snapshot: std::cell::RefCell<B256> = Default::default();
+    let snapshot = RefCell::new(B256::default());
     bench_sync_state_method(
         c,
         "StateHistory:set_block,latest snapshot",

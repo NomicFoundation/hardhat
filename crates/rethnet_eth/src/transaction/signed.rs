@@ -88,7 +88,7 @@ impl SignedTransaction {
                 max_priority_fee_per_gas: None,
                 value: t.value,
                 chain_id: t.chain_id(),
-                access_list: Default::default(),
+                access_list: AccessList::default(),
             },
             SignedTransaction::EIP2930(t) => TransactionEssentials {
                 kind: t.kind,
@@ -186,13 +186,13 @@ impl SignedTransaction {
         match self {
             SignedTransaction::Legacy(tx) => tx.signature,
             SignedTransaction::EIP2930(tx) => {
-                let v = tx.odd_y_parity as u8;
+                let v = u8::from(tx.odd_y_parity);
                 let r = U256::from_be_bytes(tx.r.0);
                 let s = U256::from_be_bytes(tx.s.0);
                 Signature { r, s, v: v.into() }
             }
             SignedTransaction::EIP1559(tx) => {
-                let v = tx.odd_y_parity as u8;
+                let v = u8::from(tx.odd_y_parity);
                 let r = U256::from_be_bytes(tx.r.0);
                 let s = U256::from_be_bytes(tx.s.0);
                 Signature { r, s, v: v.into() }
@@ -212,7 +212,7 @@ impl rlp::Encodable for SignedTransaction {
 }
 
 impl rlp::Decodable for SignedTransaction {
-    fn decode(rlp: &rlp::Rlp) -> Result<Self, rlp::DecoderError> {
+    fn decode(rlp: &rlp::Rlp<'_>) -> Result<Self, rlp::DecoderError> {
         let data = rlp.data()?;
         let first = *data
             .first()

@@ -407,7 +407,7 @@ impl StateManager {
                                 env.adjust_external_memory(-(code.len() as i64))
                                     .expect("Failed to adjust external memory");
 
-                                mem::forget(code);
+                                mem::drop(code);
                             },
                         )
                     }
@@ -503,10 +503,10 @@ impl StateManager {
             .runtime()
             .spawn(async move {
                 let mut state = state.write().await;
-                state.remove_snapshot(&state_root)
+                state.remove_snapshot(&state_root);
             })
             .await
-            .unwrap()
+            .unwrap();
     }
 
     /// Serializes the state using ordering of addresses and storage indices.

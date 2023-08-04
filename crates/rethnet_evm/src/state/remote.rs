@@ -26,7 +26,7 @@ pub struct RemoteState {
 }
 
 impl RemoteState {
-    /// Construct a new RemoteDatabse given the URL of a remote Ethereum node and a
+    /// Construct a new instance using the URL of a remote Ethereum node and a
     /// block number from which data will be pulled.
     pub fn new(runtime: Arc<Runtime>, url: &str, block_number: U256) -> Self {
         Self {

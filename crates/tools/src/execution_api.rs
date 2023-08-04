@@ -34,7 +34,7 @@ fn get_version(crate_path: &Path) -> anyhow::Result<String> {
 }
 
 fn get_openrpc_json(version: &str) -> anyhow::Result<String> {
-    let url = format!("{}/v{}/refs-openrpc.json", EXECUTION_API_RAW_REPO, version);
+    let url = format!("{EXECUTION_API_RAW_REPO}/v{version}/refs-openrpc.json");
 
     reqwest::blocking::get(url)
         .map_err(|e| {

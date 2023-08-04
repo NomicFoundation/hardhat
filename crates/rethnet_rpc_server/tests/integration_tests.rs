@@ -23,7 +23,7 @@ use rethnet_rpc_server::{
 const PRIVATE_KEY: &str = "ac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80";
 
 async fn start_server() -> SocketAddr {
-    let mut accounts: HashMap<Address, AccountInfo> = Default::default();
+    let mut accounts: HashMap<Address, AccountInfo> = HashMap::default();
     accounts.insert(
         Address::from_low_u64_ne(1),
         AccountInfo {

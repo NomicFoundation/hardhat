@@ -72,7 +72,7 @@ impl rlp::Encodable for BasicAccount {
 }
 
 impl rlp::Decodable for BasicAccount {
-    fn decode(rlp: &rlp::Rlp) -> Result<Self, rlp::DecoderError> {
+    fn decode(rlp: &rlp::Rlp<'_>) -> Result<Self, rlp::DecoderError> {
         let result = BasicAccount {
             nonce: rlp.val_at(0)?,
             balance: rlp.val_at(1)?,
