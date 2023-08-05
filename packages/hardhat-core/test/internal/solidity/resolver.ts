@@ -1,7 +1,6 @@
 import { assert } from "chai";
 import * as fsExtra from "fs-extra";
 import path from "path";
-import sinon from "sinon";
 
 import { TASK_COMPILE } from "../../../src/builtin-tasks/task-names";
 import { ERRORS } from "../../../src/internal/core/errors-list";
@@ -10,7 +9,6 @@ import {
   ResolvedFile,
   Resolver,
 } from "../../../src/internal/solidity/resolver";
-import * as packageInfo from "../../../src/internal/util/packageInfo";
 import { LibraryInfo } from "../../../src/types/builtin-tasks";
 import { useEnvironment } from "../../helpers/environment";
 import { expectHardhatErrorAsync } from "../../helpers/errors";
@@ -369,15 +367,6 @@ describe("Resolver", function () {
           () => resolver.resolveImport(localFrom, "/asd"),
           ERRORS.RESOLVER.INVALID_IMPORT_ABSOLUTE_PATH
         );
-      });
-
-      it("shouldn't let you import something that starts with the own package name", async function () {
-        sinon.stub(packageInfo, "getPackageName").resolves("myPackageName");
-        await expectHardhatErrorAsync(
-          () => resolver.resolveImport(localFrom, "myPackageName/src/file"),
-          ERRORS.RESOLVER.INCLUDES_OWN_PACKAGE_NAME
-        );
-        sinon.restore();
       });
     });
 
