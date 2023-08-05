@@ -22,6 +22,7 @@ import {
   getAllFilesMatching,
   getRealPathSync,
 } from "../../../../src/internal/util/fs-utils";
+import { HardhatConfig } from "../../../../src/types/config";
 
 describe("config loading", function () {
   describe("default config path", function () {
@@ -555,6 +556,26 @@ Hardhat plugin instead.`
       it("Should not throw", function () {
         loadConfigAndTasks();
       });
+    });
+  });
+
+  describe("Config with regexp field", function () {
+    useFixtureProject("regexp-field-in-config");
+    useEnvironment();
+
+    interface HardhatConfigWRegexp extends HardhatConfig {
+      regExpField?: RegExp;
+    }
+
+    it("Regexp field test method should return expected results", function () {
+      const regExpField: RegExp = (this.env.config as HardhatConfigWRegexp)
+        .regExpField as RegExp;
+
+      assert.isDefined(regExpField);
+      assert.deepEqual(regExpField, new RegExp("ab+c", "i"));
+
+      assert.equal(regExpField.test("abc"), true);
+      assert.equal(regExpField.test("ac"), false);
     });
   });
 });

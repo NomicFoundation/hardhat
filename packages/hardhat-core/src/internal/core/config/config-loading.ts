@@ -142,10 +142,12 @@ function deepFreezeUserConfig(
 
   return new Proxy(config, {
     get(target: any, property: string | number | symbol, receiver: any): any {
-      return deepFreezeUserConfig(Reflect.get(target, property, receiver), [
-        ...propertyPath,
-        property,
-      ]);
+      let result = Reflect.get(target, property, receiver);
+      if (result instanceof Function) {
+        result = result.bind(target);
+      }
+
+      return deepFreezeUserConfig(result, [...propertyPath, property]);
     },
 
     set(
