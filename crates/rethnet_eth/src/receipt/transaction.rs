@@ -19,9 +19,9 @@ pub struct TransactionReceipt<L> {
     pub transaction_index: u64,
     /// Address of the sender
     pub from: Address,
-    /// Address of the receiver. null when it's a contract creation transaction.
+    /// Address of the receiver. `None` when it's a contract creation transaction.
     pub to: Option<Address>,
-    /// The contract address created, if the transaction was a contract creation, otherwise null.
+    /// The contract address created, if the transaction was a contract creation, otherwise `None`.
     pub contract_address: Option<Address>,
     /// Gas used by this transaction alone.
     #[cfg_attr(

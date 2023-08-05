@@ -202,7 +202,7 @@ impl Blockchain {
             .map_err(|e| napi::Error::new(Status::GenericFailure, e.to_string()))
     }
 
-    #[doc = "Retrieves the instances chain ID."]
+    #[doc = "Retrieves the instance's chain ID."]
     #[napi]
     pub async fn chain_id(&self) -> BigInt {
         let chain_id = self.read().await.chain_id();
