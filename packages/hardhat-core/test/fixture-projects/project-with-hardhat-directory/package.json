@@ -1,4 +1,7 @@
 {
   "name": "project-with-hardhat-directory",
-  "version": "1.0.0"
+  "version": "1.0.0",
+  "devDependencies": {
+    "hardhat": "workspace:^"
+  }
 }
