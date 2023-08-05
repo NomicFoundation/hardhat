@@ -26,13 +26,16 @@ pub struct FullBlockLog {
     /// block hash
     pub block_hash: B256,
     /// block number
-    #[serde(serialize_with = "crate::serde::u256::serialize")]
+    #[cfg_attr(
+        feature = "serde",
+        serde(serialize_with = "crate::serde::u256::serialize")
+    )]
     pub block_number: U256,
     /// Index of the log within the block
-    #[serde(with = "crate::serde::u64")]
+    #[cfg_attr(feature = "serde", serde(with = "crate::serde::u64"))]
     pub log_index: u64,
     /// Index of the transaction within the block
-    #[serde(with = "crate::serde::u64")]
+    #[cfg_attr(feature = "serde", serde(with = "crate::serde::u64"))]
     pub transaction_index: u64,
 }
 

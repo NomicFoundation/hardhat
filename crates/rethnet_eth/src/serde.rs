@@ -1,4 +1,5 @@
-/// helper utilities for use with serde's serialize_with and deserialize_with
+//! Helper utilities for serde
+
 use std::{fmt::Write, ops::Deref};
 
 use crate::U256;
