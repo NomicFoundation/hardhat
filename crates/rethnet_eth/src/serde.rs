@@ -2,6 +2,8 @@
 
 use std::{fmt::Write, ops::Deref};
 
+use bytes::Bytes;
+
 use crate::U256;
 
 /// Type that serializes a [`U256`] without leading zeroes.
@@ -22,7 +24,7 @@ impl From<U256> for U256WithoutLeadingZeroes {
     }
 }
 
-/// Type that serializes a [`U256`] without leading zeroes.
+/// Type that serializes a [`u64`] without leading zeroes.
 #[derive(Clone, Copy, serde::Serialize, serde::Deserialize)]
 pub struct U64WithoutLeadingZeroes(#[serde(serialize_with = "u64::serialize")] u64);
 
@@ -33,9 +35,88 @@ impl Deref for U64WithoutLeadingZeroes {
         &self.0
     }
 }
+
 impl From<u64> for U64WithoutLeadingZeroes {
     fn from(value: u64) -> Self {
         Self(value)
+    }
+}
+
+/// Type for specifying a byte string that will have a 0x prefix when serialized and
+/// deserialized
+#[derive(Clone, Debug, PartialEq)]
+pub struct ZeroXPrefixedBytes {
+    inner: Bytes,
+}
+
+impl Deref for ZeroXPrefixedBytes {
+    type Target = Bytes;
+
+    fn deref(&self) -> &Self::Target {
+        &self.inner
+    }
+}
+
+impl From<Bytes> for ZeroXPrefixedBytes {
+    fn from(b: Bytes) -> Self {
+        ZeroXPrefixedBytes { inner: b }
+    }
+}
+
+impl From<ZeroXPrefixedBytes> for Bytes {
+    fn from(z: ZeroXPrefixedBytes) -> Self {
+        z.inner
+    }
+}
+
+impl<'a> serde::Deserialize<'a> for ZeroXPrefixedBytes {
+    fn deserialize<D>(deserializer: D) -> Result<ZeroXPrefixedBytes, D::Error>
+    where
+        D: serde::Deserializer<'a>,
+    {
+        struct ZeroXPrefixedBytesVisitor;
+        impl<'a> serde::de::Visitor<'a> for ZeroXPrefixedBytesVisitor {
+            type Value = ZeroXPrefixedBytes;
+
+            fn expecting(&self, formatter: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+                formatter.write_str("a 0x-prefixed string of hex digits")
+            }
+
+            fn visit_str<E>(self, value: &str) -> Result<Self::Value, E>
+            where
+                E: serde::de::Error,
+            {
+                if &value[0..=1] == "0x" {
+                    Ok(Bytes::from(
+                        hex::decode(&value[2..])
+                            .unwrap_or_else(|_| panic!("failed to decode hex string \"{value}\"")),
+                    )
+                    .into())
+                } else {
+                    Err(serde::de::Error::custom(format!(
+                        "string \"{value}\" does not have a '0x' prefix"
+                    )))
+                }
+            }
+        }
+
+        deserializer.deserialize_identifier(ZeroXPrefixedBytesVisitor)
+    }
+}
+
+impl serde::Serialize for ZeroXPrefixedBytes {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        let encoded = hex::encode(&self.inner);
+        serializer.serialize_str(&format!(
+            "0x{}",
+            match encoded.as_str() {
+                "00" => "",
+                other => other,
+            }
+        ))
     }
 }
 

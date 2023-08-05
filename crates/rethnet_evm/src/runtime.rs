@@ -65,7 +65,9 @@ where
         }
 
         let blockchain = self.blockchain.read().await;
-        if !blockchain.block_supports_spec(&block.number, SpecId::LONDON)? {
+        if transaction.gas_priority_fee.is_some()
+            && !blockchain.block_supports_spec(&block.number, SpecId::LONDON)?
+        {
             return Err(TransactionError::Eip1559Unsupported);
         }
 
@@ -112,7 +114,9 @@ where
         }
 
         let blockchain = self.blockchain.read().await;
-        if !blockchain.block_supports_spec(&block.number, SpecId::LONDON)? {
+        if transaction.gas_priority_fee.is_some()
+            && !blockchain.block_supports_spec(&block.number, SpecId::LONDON)?
+        {
             return Err(TransactionError::Eip1559Unsupported);
         }
 

@@ -2,9 +2,9 @@ use crate::{
     remote::{
         eth::eip712,
         filter::{FilterOptions, SubscriptionType},
-        BlockSpec, ZeroXPrefixedBytes,
+        BlockSpec,
     },
-    serde::{sequence_to_single, single_to_sequence},
+    serde::{sequence_to_single, single_to_sequence, ZeroXPrefixedBytes},
     Address, B256, U256,
 };
 

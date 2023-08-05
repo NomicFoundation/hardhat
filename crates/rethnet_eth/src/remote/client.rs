@@ -6,12 +6,12 @@ use std::{
 use itertools::Itertools;
 use revm_primitives::{AccountInfo, Address, Bytecode, B256, KECCAK_EMPTY, U256};
 
-use crate::{log::FilterLog, receipt::BlockReceipt};
+use crate::{log::FilterLog, receipt::BlockReceipt, serde::ZeroXPrefixedBytes};
 
 use super::{
     eth, jsonrpc,
     methods::{GetLogsInput, MethodInvocation},
-    BlockSpec, ZeroXPrefixedBytes,
+    BlockSpec,
 };
 
 /// Specialized error types
@@ -322,10 +322,10 @@ impl RpcClient {
                         })
                     },
                     |bytes| {
-                        Ok(if bytes.inner.is_empty() {
+                        Ok(if bytes.is_empty() {
                             None
                         } else {
-                            Some(Bytecode::new_raw(bytes.inner))
+                            Some(Bytecode::new_raw(bytes.into()))
                         })
                     },
                 )

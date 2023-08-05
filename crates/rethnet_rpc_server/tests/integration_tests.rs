@@ -8,8 +8,9 @@ use tracing::Level;
 use rethnet_eth::{
     remote::{
         client::Request as RpcRequest, filter::FilteredEvents, jsonrpc,
-        methods::MethodInvocation as EthMethodInvocation, BlockSpec, ZeroXPrefixedBytes,
+        methods::MethodInvocation as EthMethodInvocation, BlockSpec,
     },
+    serde::ZeroXPrefixedBytes,
     signature::{private_key_to_address, Signature},
     Address, Bytes, B256, U256, U64,
 };

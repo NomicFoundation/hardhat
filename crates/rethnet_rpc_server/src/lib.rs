@@ -7,8 +7,7 @@ use axum::{
     Router,
 };
 use hashbrown::{HashMap, HashSet};
-use rethnet_eth::remote::ZeroXPrefixedBytes;
-use rethnet_eth::serde::{U256WithoutLeadingZeroes, U64WithoutLeadingZeroes};
+use rethnet_eth::serde::{U256WithoutLeadingZeroes, U64WithoutLeadingZeroes, ZeroXPrefixedBytes};
 use secp256k1::{Secp256k1, SecretKey};
 use sha3::{Digest, Keccak256};
 use tokio::sync::RwLock;
