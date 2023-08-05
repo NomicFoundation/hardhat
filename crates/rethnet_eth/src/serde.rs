@@ -39,7 +39,7 @@ impl From<u64> for U64WithoutLeadingZeroes {
     }
 }
 
-/// for use with serde's serialize_with on a single value that should be serialized as a
+/// for use with serde's `serialize_with` on a single value that should be serialized as a
 /// sequence
 pub fn single_to_sequence<S, T>(val: &T, s: S) -> Result<S::Ok, S::Error>
 where
@@ -52,7 +52,7 @@ where
     seq.end()
 }
 
-/// for use with serde's deserialize_with on a sequence that should be deserialized as a
+/// for use with serde's `deserialize_with` on a sequence that should be deserialized as a
 /// single value
 pub fn sequence_to_single<'de, D, T>(deserializer: D) -> Result<T, D::Error>
 where

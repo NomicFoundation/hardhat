@@ -113,7 +113,8 @@ impl fmt::Display for Signature {
 }
 
 impl Signature {
-    /// to obtain message_hash consider rethnet_eth::src::utils::hash_message().
+    /// Constructs a new signature from a message and private key.
+    /// To obtain the hash of a message consider [`hash_message`].
     pub fn new<M>(message: M, private_key: &SecretKey) -> Self
     where
         M: Into<RecoveryMessage>,
@@ -161,12 +162,6 @@ impl Signature {
     where
         M: Into<RecoveryMessage>,
     {
-        let message = message.into();
-        let message_hash = match message {
-            RecoveryMessage::Data(ref message) => hash_message(message),
-            RecoveryMessage::Hash(hash) => hash,
-        };
-
         struct Hash(B256);
 
         impl ThirtyTwoByteHash for Hash {
@@ -174,6 +169,12 @@ impl Signature {
                 self.0 .0
             }
         }
+
+        let message = message.into();
+        let message_hash = match message {
+            RecoveryMessage::Data(ref message) => hash_message(message),
+            RecoveryMessage::Hash(hash) => hash,
+        };
 
         let message_hash = Hash(message_hash);
 
@@ -247,10 +248,8 @@ impl open_fastrlp::Encodable for Signature {
 
 fn normalize_recovery_id(v: u64) -> i32 {
     match v {
-        0 => 0,
-        1 => 1,
-        27 => 0,
-        28 => 1,
+        0 | 27 => 0,
+        1 | 28 => 1,
         v if v >= 35 => ((v - 1) % 2) as _,
         _ => 4,
     }
@@ -413,9 +412,6 @@ mod tests {
 
     #[test]
     fn test_signature_new() {
-        let message = "whatever";
-        let hashed_message = crate::utils::hash_message(message);
-
         fn verify<MsgOrHash>(msg_input: MsgOrHash, hashed_message: B256)
         where
             MsgOrHash: Into<RecoveryMessage>,
@@ -433,6 +429,9 @@ mod tests {
                 private_key_to_address(&Secp256k1::signing_only(), private_key_str).unwrap()
             );
         }
+
+        let message = "whatever";
+        let hashed_message = crate::utils::hash_message(message);
 
         verify(message, hashed_message);
         verify(hashed_message, hashed_message);

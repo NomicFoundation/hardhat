@@ -125,7 +125,7 @@ impl RpcClient {
 
     fn write_response_to_cache(&self, request_body: &str, response: &str) {
         std::fs::write(self.make_cache_path(request_body), response.as_bytes())
-            .expect("failed to write to on-disk RPC response cache")
+            .expect("failed to write to on-disk RPC response cache");
     }
 
     /// returns response text
@@ -135,7 +135,7 @@ impl RpcClient {
         } else {
             let response = self
                 .client
-                .post(self.url.to_string())
+                .post(self.url.clone())
                 .body(request_body.to_owned())
                 .send()
                 .await
@@ -196,7 +196,7 @@ impl RpcClient {
             })
     }
 
-    /// Create a new RpcClient instance, given a remote node URL.
+    /// Create a new instance, given a remote node URL.
     pub fn new(url: &str) -> Self {
         RpcClient {
             url: url.to_string(),
@@ -216,7 +216,7 @@ impl RpcClient {
     }
 
     /// Submit a consolidated batch of RPC method invocations in order to obtain the set of data
-    /// contained in AccountInfo.
+    /// contained in [`AccountInfo`].
     pub async fn get_account_info(
         &self,
         address: &Address,
@@ -375,7 +375,7 @@ impl RpcClient {
             .await
     }
 
-    /// eth_getLogs
+    /// Calls `eth_getLogs`.
     pub async fn get_logs(
         &self,
         from_block: BlockSpec,
@@ -390,7 +390,7 @@ impl RpcClient {
         .await
     }
 
-    /// eth_getTransactionByHash
+    /// Calls `eth_getTransactionByHash`.
     pub async fn get_transaction_by_hash(
         &self,
         tx_hash: &B256,
@@ -399,7 +399,7 @@ impl RpcClient {
             .await
     }
 
-    /// eth_getTransactionCount
+    /// Calls `eth_getTransactionCount`.
     pub async fn get_transaction_count(
         &self,
         address: &Address,
@@ -409,7 +409,7 @@ impl RpcClient {
             .await
     }
 
-    /// eth_getTransactionReceipt
+    /// Calls `eth_getTransactionReceipt`.
     pub async fn get_transaction_receipt(
         &self,
         tx_hash: &B256,
@@ -418,7 +418,7 @@ impl RpcClient {
             .await
     }
 
-    /// eth_getStorageAt
+    /// Calls `eth_getStorageAt`.
     pub async fn get_storage_at(
         &self,
         address: &Address,
@@ -429,7 +429,7 @@ impl RpcClient {
             .await
     }
 
-    /// Calls `net_version` API
+    /// Calls `net_version`.
     pub async fn network_id(&self) -> Result<U256, RpcClientError> {
         self.call(&MethodInvocation::NetVersion()).await
     }
@@ -551,7 +551,7 @@ mod tests {
             assert_eq!(account_info.balance, U256::ZERO);
             assert_eq!(account_info.nonce, 1);
             assert_ne!(account_info.code_hash, KECCAK_EMPTY);
-            assert!(account_info.code.is_some())
+            assert!(account_info.code.is_some());
         }
 
         #[tokio::test]
@@ -569,7 +569,7 @@ mod tests {
             assert_eq!(account_info.balance, U256::ZERO);
             assert_eq!(account_info.nonce, 0);
             assert_eq!(account_info.code_hash, KECCAK_EMPTY);
-            assert!(account_info.code.is_none())
+            assert!(account_info.code.is_none());
         }
 
         #[tokio::test]

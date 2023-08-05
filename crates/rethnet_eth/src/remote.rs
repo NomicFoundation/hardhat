@@ -61,8 +61,8 @@ pub enum Eip1898BlockSpec {
 }
 
 impl Display for Eip1898BlockSpec {
-    fn fmt(&self, formatter: &mut Formatter) -> Result<(), fmt::Error> {
-        formatter.write_str(&serde_json::to_string(self).map_err(|_| fmt::Error)?)
+    fn fmt(&self, formatter: &mut Formatter<'_>) -> Result<(), fmt::Error> {
+        formatter.write_str(&serde_json::to_string(self).map_err(|_error| fmt::Error)?)
     }
 }
 
@@ -87,7 +87,7 @@ pub enum BlockTag {
 }
 
 impl Display for BlockTag {
-    fn fmt(&self, formatter: &mut Formatter) -> Result<(), fmt::Error> {
+    fn fmt(&self, formatter: &mut Formatter<'_>) -> Result<(), fmt::Error> {
         formatter.write_str(match self {
             BlockTag::Earliest => "earliest",
             BlockTag::Latest => "latest",
@@ -113,33 +113,38 @@ pub enum BlockSpec {
 
 impl BlockSpec {
     /// Constructs an instance for the earliest block.
+    #[must_use]
     pub fn earliest() -> Self {
         Self::Tag(BlockTag::Earliest)
     }
 
     /// Constructs an instance for the latest block.
+    #[must_use]
     pub fn latest() -> Self {
         Self::Tag(BlockTag::Latest)
     }
 
     /// Constructs an instance for the pending block.
+    #[must_use]
     pub fn pending() -> Self {
         Self::Tag(BlockTag::Pending)
     }
 
     /// Constructs an instance for the safe block.
+    #[must_use]
     pub fn safe() -> Self {
         Self::Tag(BlockTag::Safe)
     }
 
     /// Constructs an instance for the finalized block.
+    #[must_use]
     pub fn finalized() -> Self {
         Self::Tag(BlockTag::Finalized)
     }
 }
 
 impl Display for BlockSpec {
-    fn fmt(&self, formatter: &mut Formatter) -> Result<(), fmt::Error> {
+    fn fmt(&self, formatter: &mut Formatter<'_>) -> Result<(), fmt::Error> {
         match self {
             BlockSpec::Number(n) => n.fmt(formatter),
             BlockSpec::Tag(t) => t.fmt(formatter),
@@ -184,16 +189,16 @@ impl<'a> serde::Deserialize<'a> for ZeroXPrefixedBytes {
             where
                 E: serde::de::Error,
             {
-                if &value[0..=1] != "0x" {
-                    Err(serde::de::Error::custom(format!(
-                        "string \"{value}\" does not have a '0x' prefix"
-                    )))
-                } else {
+                if &value[0..=1] == "0x" {
                     Ok(Bytes::from(
                         hex::decode(&value[2..])
                             .unwrap_or_else(|_| panic!("failed to decode hex string \"{value}\"")),
                     )
                     .into())
+                } else {
+                    Err(serde::de::Error::custom(format!(
+                        "string \"{value}\" does not have a '0x' prefix"
+                    )))
                 }
             }
         }

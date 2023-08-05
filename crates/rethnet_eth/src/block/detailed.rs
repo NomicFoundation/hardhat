@@ -107,7 +107,7 @@ impl DetailedBlock {
     }
 
     /// Retrieves the block's transactions.
-    pub fn transactions(&self) -> impl Iterator<Item = DetailedTransaction> {
+    pub fn transactions(&self) -> impl Iterator<Item = DetailedTransaction<'_>> {
         izip!(
             self.transactions.iter(),
             self.transaction_callers.iter(),

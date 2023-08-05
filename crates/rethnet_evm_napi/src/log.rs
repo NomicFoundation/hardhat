@@ -101,6 +101,7 @@ impl Log {
 
     #[doc = "Returns whether the log was removed."]
     #[napi(getter)]
+    #[allow(clippy::unused_self)]
     pub fn removed(&self) -> bool {
         false
     }

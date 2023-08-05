@@ -4,7 +4,7 @@ use bytes::Bytes;
 
 use crate::{remote::BlockSpec, Address, B256, U256};
 
-/// used to specify addresses for [FilterOptions]
+/// used to specify addresses for [`FilterOptions`]
 #[derive(Clone, Debug, PartialEq, serde::Deserialize, serde::Serialize)]
 pub enum OneOrMoreAddresses {
     /// one address
@@ -13,7 +13,7 @@ pub enum OneOrMoreAddresses {
     Many(Vec<Address>),
 }
 
-/// used to specify the target block(s) for [FilterOptions]
+/// used to specify the target block(s) for [`FilterOptions`]
 #[derive(Clone, Debug, PartialEq, serde::Deserialize, serde::Serialize)]
 pub enum FilterBlockTarget {
     /// a range of blocks
@@ -27,7 +27,7 @@ pub enum FilterBlockTarget {
     Hash(B256),
 }
 
-/// for specifying the inputs to eth_newFilter
+/// for specifying the inputs to `eth_newFilter`
 #[derive(Clone, Debug, PartialEq, serde::Deserialize, serde::Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct FilterOptions {
@@ -40,7 +40,7 @@ pub struct FilterOptions {
     pub topics: Option<Vec<B256>>,
 }
 
-/// represents the output of eth_getFilterLogs, and eth_getFilterChanges when used with a log
+/// represents the output of `eth_getFilterLogs` and `eth_getFilterChanges` when used with a log
 /// filter
 #[derive(Clone, Debug, PartialEq, serde::Deserialize, serde::Serialize)]
 pub struct LogOutput {
@@ -66,7 +66,7 @@ pub struct LogOutput {
     pub topics: Vec<B256>,
 }
 
-/// represents the output of eth_getFilterChanges
+/// represents the output of `eth_getFilterChanges`
 #[derive(Clone, Debug, PartialEq, serde::Deserialize, serde::Serialize)]
 pub enum FilteredEvents {
     /// logs
@@ -78,7 +78,7 @@ pub enum FilteredEvents {
 }
 
 impl FilteredEvents {
-    /// use std::mem::take to move the memory out of the variant
+    /// Move the memory out of the variant.
     pub fn take(&mut self) -> Self {
         match self {
             Self::Logs(v) => Self::Logs(take(v)),
@@ -88,7 +88,7 @@ impl FilteredEvents {
     }
 }
 
-/// subscription type to be used with eth_subscribe
+/// subscription type to be used with `eth_subscribe`
 #[derive(Clone, Debug, PartialEq)]
 pub enum SubscriptionType {
     /// Induces the emission of logs attached to a new block that match certain topic filters.

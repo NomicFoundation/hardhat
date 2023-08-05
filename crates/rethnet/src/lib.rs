@@ -94,6 +94,35 @@ where
     I: IntoIterator<Item = T>,
     T: Into<OsString> + Clone,
 {
+    async fn await_signal() {
+        use tokio::signal;
+
+        let ctrl_c = async {
+            signal::ctrl_c()
+                .await
+                .expect("failed to install Ctrl+C handler");
+        };
+
+        #[cfg(unix)]
+        let terminate = async {
+            use signal::unix::{signal, SignalKind};
+            signal(SignalKind::terminate())
+                .expect("failed to install signal handler")
+                .recv()
+                .await;
+        };
+
+        #[cfg(not(unix))]
+        let terminate = std::future::pending::<()>();
+
+        tokio::select! {
+            _ = ctrl_c => {},
+            _ = terminate => {},
+        }
+
+        event!(Level::INFO, "Shutting down");
+    }
+
     let args = Cli::parse_from(args);
     match args.command {
         Command::Node(node_args) => {
@@ -114,35 +143,6 @@ where
                 server_config_from_cli_args_and_config_file(node_args, ConfigFile::default())?,
             )
             .await?;
-
-            async fn await_signal() {
-                use tokio::signal;
-
-                let ctrl_c = async {
-                    signal::ctrl_c()
-                        .await
-                        .expect("failed to install Ctrl+C handler");
-                };
-
-                #[cfg(unix)]
-                let terminate = async {
-                    use signal::unix::{signal, SignalKind};
-                    signal(SignalKind::terminate())
-                        .expect("failed to install signal handler")
-                        .recv()
-                        .await;
-                };
-
-                #[cfg(not(unix))]
-                let terminate = std::future::pending::<()>();
-
-                tokio::select! {
-                    _ = ctrl_c => {},
-                    _ = terminate => {},
-                }
-
-                event!(Level::INFO, "Shutting down");
-            }
 
             Ok(server
                 .serve_with_shutdown_signal(await_signal())

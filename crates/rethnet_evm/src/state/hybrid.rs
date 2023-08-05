@@ -140,7 +140,7 @@ impl StateDebug for HybridState<RethnetLayer> {
         );
 
         let new_code = account_info.code.take();
-        let new_code_hash = new_code.as_ref().map_or(KECCAK_EMPTY, |code| code.hash());
+        let new_code_hash = new_code.as_ref().map_or(KECCAK_EMPTY, Bytecode::hash);
         account_info.code_hash = new_code_hash;
 
         let code_changed = old_code_hash != new_code_hash;
@@ -223,7 +223,7 @@ impl StateHistory for HybridState<RethnetLayer> {
 
     #[cfg_attr(feature = "tracing", tracing::instrument)]
     fn remove_snapshot(&mut self, state_root: &B256) {
-        self.snapshots.remove(state_root)
+        self.snapshots.remove(state_root);
     }
 
     #[cfg_attr(feature = "tracing", tracing::instrument)]
@@ -368,7 +368,7 @@ mod tests {
         // implementation of rethnet_rpc_server) being used as a provider in the hardhat tests and
         // running the hardhat_setBalance test entitled "should result in a modified balance".
 
-        let mut state: HybridState<RethnetLayer> = Default::default();
+        let mut state = HybridState::<RethnetLayer>::default();
 
         let seed = 1;
         let address = Address::from_low_u64_ne(1);
@@ -402,7 +402,7 @@ mod tests {
             .modify_account(
                 address,
                 AccountModifierFn::new(Box::new(move |account_balance, _, _| {
-                    *account_balance = balance
+                    *account_balance = balance;
                 })),
                 &|| {
                     Ok(AccountInfo {

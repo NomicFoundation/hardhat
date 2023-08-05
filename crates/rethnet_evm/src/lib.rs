@@ -1,8 +1,9 @@
+#![warn(missing_docs)]
+
 //! The Rethnet EVM
 //!
 //! The Rethnet EVM exposes APIs for running and interacting with a multi-threaded Ethereum
 //! Virtual Machine (or EVM).
-#![warn(missing_docs)]
 
 pub use hashbrown::HashMap;
 

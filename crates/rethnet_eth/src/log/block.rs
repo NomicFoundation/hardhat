@@ -15,7 +15,7 @@ pub enum BlockLog {
     Partial(ReceiptLog),
 }
 
-/// log object used in TransactionReceipt
+/// Log object used in [`TransactionReceipt`].
 #[derive(Debug, Clone, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]

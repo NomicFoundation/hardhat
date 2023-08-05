@@ -167,7 +167,7 @@ impl StateDebug for TrieState {
         // Strip the bytecode
         let new_code = account_info.code.take();
 
-        let new_code_hash = new_code.as_ref().map_or(KECCAK_EMPTY, |code| code.hash());
+        let new_code_hash = new_code.as_ref().map_or(KECCAK_EMPTY, Bytecode::hash);
         account_info.code_hash = new_code_hash;
 
         let code_changed = new_code_hash != old_code_hash;

@@ -213,7 +213,7 @@ where
                 reason,
                 gas_used: remaining_gas.limit(),
             },
-            SuccessOrHalt::InternalContinue => panic!("Internal error: {:?}", safe_ret),
+            SuccessOrHalt::InternalContinue => panic!("Internal error: {safe_ret:?}"),
             SuccessOrHalt::FatalExternalError => panic!("Fatal external error"),
         };
 
@@ -280,7 +280,7 @@ where
                 reason,
                 gas_used: remaining_gas.limit(),
             },
-            SuccessOrHalt::InternalContinue => panic!("Internal error: {:?}", safe_ret),
+            SuccessOrHalt::InternalContinue => panic!("Internal error: {safe_ret:?}"),
             SuccessOrHalt::FatalExternalError => panic!("Fatal external error"),
         };
 

@@ -57,7 +57,7 @@ fn bench_insert_account_already_exists(c: &mut Criterion) {
             let address = Address::from_low_u64_ne(number_of_accounts);
             debug_assert!(state.basic(address).unwrap().is_some());
             let result = state.insert_account(address, AccountInfo::default());
-            debug_assert!(result.is_ok())
+            debug_assert!(result.is_ok());
         },
         &[0],
         &[1],
@@ -363,7 +363,7 @@ fn bench_set_account_storage_slot_account_doesnt_exist(c: &mut Criterion) {
             let address = Address::from_low_u64_ne(number_of_accounts + 1);
             debug_assert!(state.basic(address).unwrap().is_none());
             let result = state.set_account_storage_slot(address, U256::from(1), U256::from(1));
-            debug_assert!(result.is_ok())
+            debug_assert!(result.is_ok());
         },
         &Permutations::storage_scales(),
         &[1],
@@ -379,7 +379,7 @@ fn bench_set_account_storage_slot_account_exists(c: &mut Criterion) {
             let address = Address::from_low_u64_ne(number_of_accounts);
             debug_assert!(state.basic(address).unwrap().is_some());
             let result = state.set_account_storage_slot(address, U256::from(1), U256::from(1));
-            debug_assert!(result.is_ok())
+            debug_assert!(result.is_ok());
         },
         &Permutations::storage_scales(),
         &[1],

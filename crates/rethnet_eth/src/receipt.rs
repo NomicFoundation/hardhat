@@ -61,9 +61,9 @@ impl<L> TypedReceipt<L> {
     pub fn status_code(&self) -> Option<u8> {
         match &self.data {
             TypedReceiptData::PreByzantiumLegacy { .. } => None,
-            TypedReceiptData::PostByzantiumLegacy { status } => Some(*status),
-            TypedReceiptData::EIP2930 { status } => Some(*status),
-            TypedReceiptData::EIP1559 { status } => Some(*status),
+            TypedReceiptData::PostByzantiumLegacy { status }
+            | TypedReceiptData::EIP2930 { status }
+            | TypedReceiptData::EIP1559 { status } => Some(*status),
         }
     }
 
@@ -186,7 +186,7 @@ where
                     let status = match status_code {
                         "0x0" => 0u8,
                         "0x1" => 1u8,
-                        _ => return Err(Error::custom(format!("unknown status: {}", status_code))),
+                        _ => return Err(Error::custom(format!("unknown status: {status_code}"))),
                     };
 
                     if let Some(transaction_type) = transaction_type {
@@ -224,9 +224,9 @@ impl<L> rlp::Decodable for TypedReceipt<L>
 where
     L: rlp::Decodable,
 {
-    fn decode(rlp: &rlp::Rlp) -> Result<Self, rlp::DecoderError> {
+    fn decode(rlp: &rlp::Rlp<'_>) -> Result<Self, rlp::DecoderError> {
         fn decode_inner<L>(
-            rlp: &rlp::Rlp,
+            rlp: &rlp::Rlp<'_>,
             id: Option<u8>,
         ) -> Result<TypedReceipt<L>, rlp::DecoderError>
         where

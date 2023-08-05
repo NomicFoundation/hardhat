@@ -60,6 +60,8 @@ impl ForkedBlockchain {
         remote_url: &str,
         fork_block_number: Option<U256>,
     ) -> Result<Self, CreationError> {
+        const FALLBACK_MAX_REORG: u64 = 30;
+
         let rpc_client = RpcClient::new(remote_url);
 
         let (chain_id, network_id, latest_block_number) = tokio::join!(
@@ -72,7 +74,6 @@ impl ForkedBlockchain {
         let network_id = network_id?;
         let latest_block_number = latest_block_number?;
 
-        const FALLBACK_MAX_REORG: u64 = 30;
         let max_reorg =
             largest_possible_reorg(&chain_id).unwrap_or_else(|| U256::from(FALLBACK_MAX_REORG));
 
@@ -296,7 +297,7 @@ impl BlockchainMut for ForkedBlockchain {
 /// # Source
 ///
 /// These numbers were taken from:
-/// https://github.com/NomicFoundation/hardhat/blob/caa504fe0e53c183578f42d66f4740b8ec147051/packages/hardhat-core/src/internal/hardhat-network/provider/utils/reorgs-protection.ts
+/// <https://github.com/NomicFoundation/hardhat/blob/caa504fe0e53c183578f42d66f4740b8ec147051/packages/hardhat-core/src/internal/hardhat-network/provider/utils/reorgs-protection.ts>
 fn largest_possible_reorg(chain_id: &U256) -> Option<U256> {
     let mut network_configs = HashMap::new();
     network_configs.insert(U256::from(1), U256::from(5)); // mainnet

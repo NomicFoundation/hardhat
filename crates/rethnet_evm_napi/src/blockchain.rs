@@ -261,7 +261,7 @@ impl Blockchain {
             .receipt_by_transaction_hash(&transaction_hash)
             .map_or_else(
                 |e| Err(napi::Error::new(Status::GenericFailure, e.to_string())),
-                |receipt| Ok(receipt.map(|receipt| receipt.into())),
+                |receipt| Ok(receipt.map(Into::into)),
             )
     }
 

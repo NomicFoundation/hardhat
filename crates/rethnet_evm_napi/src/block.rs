@@ -43,10 +43,9 @@ impl TryFrom<BlockConfig> for BlockEnv {
         let coinbase = value
             .beneficiary
             .map_or(default.coinbase, |coinbase| Address::from_slice(&coinbase));
-        let difficulty = value.difficulty.map_or_else(
-            || Ok(default.difficulty),
-            |difficulty| difficulty.try_cast(),
-        )?;
+        let difficulty = value
+            .difficulty
+            .map_or_else(|| Ok(default.difficulty), TryCast::try_cast)?;
         let prevrandao = value
             .mix_hash
             .map(|prevrandao| B256::from_slice(&prevrandao));
@@ -55,10 +54,10 @@ impl TryFrom<BlockConfig> for BlockEnv {
             .map_or(Ok(default.timestamp), BigInt::try_cast)?;
         let basefee = value
             .base_fee
-            .map_or_else(|| Ok(default.basefee), |basefee| basefee.try_cast())?;
+            .map_or_else(|| Ok(default.basefee), TryCast::try_cast)?;
         let gas_limit = value
             .gas_limit
-            .map_or(Ok(default.gas_limit), |gas_limit| gas_limit.try_cast())?;
+            .map_or(Ok(default.gas_limit), TryCast::try_cast)?;
 
         Ok(Self {
             number,

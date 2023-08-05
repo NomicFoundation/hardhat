@@ -109,7 +109,7 @@ impl AccountTrie {
                     } else {
                         Self::remove_account_in(address, &mut state_trie, &mut storage_trie_dbs);
                     }
-                })
+                });
             });
 
             B256::from_slice(&state_trie.root().unwrap())
@@ -309,13 +309,6 @@ impl AccountTrie {
     /// Serializes the state using ordering of addresses and storage indices.
     #[cfg_attr(feature = "tracing", tracing::instrument)]
     pub fn serialize(&self) -> String {
-        let state_trie = Trie::from(
-            self.state_trie_db.clone(),
-            Arc::new(HasherKeccak::new()),
-            self.state_root.as_bytes(),
-        )
-        .expect("Invalid state root");
-
         #[derive(serde::Serialize)]
         struct StateAccount {
             /// Balance of the account.
@@ -330,6 +323,13 @@ impl AccountTrie {
             pub storage_root: B256,
         }
 
+        let state_trie = Trie::from(
+            self.state_trie_db.clone(),
+            Arc::new(HasherKeccak::new()),
+            self.state_root.as_bytes(),
+        )
+        .expect("Invalid state root");
+
         let state: BTreeMap<Address, StateAccount> = self
             .storage_trie_dbs
             .iter()
@@ -338,7 +338,7 @@ impl AccountTrie {
                 let account = state_trie
                     .get(&hashed_address)
                     .unwrap()
-                    .unwrap_or_else(|| panic!("Account with address '{}' and hashed address '{:?}' must exist in state, if a storage trie is stored for it", address, hashed_address));
+                    .unwrap_or_else(|| panic!("Account with address '{address}' and hashed address '{hashed_address:?}' must exist in state, if a storage trie is stored for it"));
 
                 let account: BasicAccount = rlp::decode(&account).unwrap();
 

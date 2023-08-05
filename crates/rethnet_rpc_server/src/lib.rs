@@ -103,8 +103,9 @@ async fn get_latest_block_number<T>(state: &StateType) -> Result<U256, ResponseD
     }
 }
 
-/// require_canonical: whether the server should additionally raise a JSON-RPC error if the block
+/// `require_canonical`: whether the server should additionally raise a JSON-RPC error if the block
 /// is not in the canonical chain
+#[allow(clippy::todo)]
 fn _block_number_from_hash<T>(
     _state: &StateType,
     _block_hash: &B256,
@@ -135,12 +136,14 @@ async fn _block_number_from_block_spec<T>(
     }
 }
 
+#[allow(clippy::todo)]
 fn confirm_post_merge_hardfork<T>(_state: &StateType) -> Result<(), ResponseData<T>> {
     todo!("when we're tracking hardforks, ensure that we're running a hardfork that's after the merge")
 }
 
 /// returns the state root in effect BEFORE setting the block context, so that the caller can
 /// restore the context to that state root.
+#[allow(clippy::todo)]
 async fn set_block_context<T>(
     state: &StateType,
     block_spec: Option<BlockSpec>,
@@ -296,7 +299,7 @@ async fn handle_get_code(
                                 result: ZeroXPrefixedBytes::from(code.bytecode),
                             },
                             Err(e) => {
-                                error_response_data(0, &format!("failed to retrieve code: {}", e))
+                                error_response_data(0, &format!("failed to retrieve code: {e}"))
                             }
                         }
                     }
@@ -363,7 +366,7 @@ async fn handle_get_storage_at(
                 Ok(()) => match value {
                     Ok(value) => ResponseData::Success { result: value },
                     Err(e) => {
-                        error_response_data(0, &format!("failed to retrieve storage value: {}", e))
+                        error_response_data(0, &format!("failed to retrieve storage value: {e}"))
                     }
                 },
                 Err(e) => e,
@@ -445,7 +448,7 @@ async fn handle_set_balance(
     match state.modify_account(
         address,
         AccountModifierFn::new(Box::new(move |account_balance, _, _| {
-            *account_balance = balance
+            *account_balance = balance;
         })),
         &|| {
             Ok(AccountInfo {
@@ -476,7 +479,7 @@ async fn handle_set_code(
     match state.modify_account(
         address,
         AccountModifierFn::new(Box::new(move |_, _, account_code| {
-            *account_code = Some(Bytecode::new_raw(code_1.clone().into()))
+            *account_code = Some(Bytecode::new_raw(code_1.clone().into()));
         })),
         &|| {
             Ok(AccountInfo {
@@ -747,7 +750,7 @@ async fn handle_request(
                 // TODO: after adding all the methods here, eliminate this
                 // catch-all match arm:
                 _ => {
-                    let msg = format!("Method not found for invocation '{:?}'", method,);
+                    let msg = format!("Method not found for invocation '{method:?}'");
                     response(
                         id,
                         ResponseData::<serde_json::Value>::new_error(-32601, &msg, None),

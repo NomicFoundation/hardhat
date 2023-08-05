@@ -81,7 +81,7 @@ impl RethnetStates {
             &'a mut Vec<B256>,
         );
 
-        let mut states_and_checkpoints_and_snapshots: Vec<StateCheckpointsAndSnapshots> = vec![
+        let mut states_and_checkpoints_and_snapshots: Vec<StateCheckpointsAndSnapshots<'_>> = vec![
             (
                 &mut self.layered,
                 &mut self.layered_checkpoints,
@@ -142,7 +142,7 @@ impl RethnetStates {
 
     /// Returns a set of factories, each member of which produces a clone of one of the state objects in this struct.
     #[allow(dead_code)]
-    fn make_state_refs(&self) -> Vec<TestState> {
+    fn make_state_refs(&self) -> Vec<TestState<'_>> {
         vec![
             TestState {
                 label: "Layered",
@@ -281,7 +281,7 @@ pub fn bench_sync_state_method<O, R, StatePrep>(
                         state_factory,
                         checkpoints,
                         snapshots,
-                    } in rethnet_states.make_state_refs().into_iter()
+                    } in rethnet_states.make_state_refs()
                     {
                         group.bench_with_input(
                             BenchmarkId::new(
