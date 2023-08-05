@@ -40,6 +40,9 @@ async fn node() -> Result<(), Box<dyn std::error::Error>> {
         MethodInvocation::Eth(EthMethodInvocation::EvmIncreaseTime(U256OrUsize::U256(
             U256::from(12345),
         ))),
+        MethodInvocation::Eth(EthMethodInvocation::EvmMine(Some(U256OrUsize::U256(
+            U256::from(12345),
+        )))),
         MethodInvocation::Eth(EthMethodInvocation::EvmSetNextBlockTimestamp(
             U256OrUsize::U256(U256::from(12345)),
         )),
@@ -168,6 +171,9 @@ async fn node() -> Result<(), Box<dyn std::error::Error>> {
             }
             MethodInvocation::Eth(EthMethodInvocation::EvmIncreaseTime(increment)) => {
                 format!("evm_increaseTime({increment:?})")
+            }
+            MethodInvocation::Eth(EthMethodInvocation::EvmMine(timestamp)) => {
+                format!("evm_mine({timestamp:?})")
             }
             MethodInvocation::Eth(EthMethodInvocation::EvmSetNextBlockTimestamp(timestamp)) => {
                 format!("evm_setNextBlockTimestamp({timestamp:?})")

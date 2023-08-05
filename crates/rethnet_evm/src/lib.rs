@@ -24,7 +24,7 @@ pub use crate::{
     block::*,
     evm::SyncInspector,
     mempool::MemPool,
-    miner::{BlockMiner, MineBlockResult},
+    miner::{BlockMiner, MineBlockError, MineBlockResult},
     random::RandomHashGenerator,
     runtime::{Rethnet, SyncDatabase},
     transaction::*,

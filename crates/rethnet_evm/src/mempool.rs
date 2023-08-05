@@ -9,7 +9,7 @@ use crate::PendingTransaction;
 #[derive(Debug, thiserror::Error)]
 pub enum MinerTransactionError<SE> {
     /// Transaction gas limit exceeds block gas limit.
-    #[error("Transaction gas limit is {transaction_gas_limit} and exceeds block gas limit of ${block_gas_limit}")]
+    #[error("Transaction gas limit is {transaction_gas_limit} and exceeds block gas limit of {block_gas_limit}")]
     ExceedsBlockGasLimit {
         block_gas_limit: U256,
         transaction_gas_limit: U256,
