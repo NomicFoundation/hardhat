@@ -80,6 +80,4 @@ await expect(tx).to.changeEtherBalance(...)
 await expect(tx).to.changeTokenBalance(...)
 ```
 
-The decision to forbid chaining for these async matchers is due to the complexity involved in implementing proper chaining behavior. Since async matchers perform asynchronous operations and return Promises, chaining them in a meaningful way requires handling Promise resolutions and rejections correctly.
-
 If you are interested in seeing an implementation of chaining for async matchers, please visit the GitHub issue [#4235](https://github.com/NomicFoundation/hardhat/issues/4235) and leave an upvote or comment.

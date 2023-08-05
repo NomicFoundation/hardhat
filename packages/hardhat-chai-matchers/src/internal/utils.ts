@@ -1,4 +1,4 @@
-import { ASYNC_MATCHER_CALLED } from "./constants";
+import { PREVIOUS_MATCHER_NAME } from "./constants";
 import {
   HardhatChaiMatchersAssertionError,
   HardhatChaiMatchersNonChainableMatcherError,
@@ -18,10 +18,25 @@ export function assertIsNotNull<T>(
 export function preventAsyncMatcherChaining(
   context: object,
   matcherName: string,
-  chaiUtils: Chai.ChaiUtils
+  chaiUtils: Chai.ChaiUtils,
+  allowSelfChaining: boolean = false
 ) {
-  if (chaiUtils.flag(context, ASYNC_MATCHER_CALLED) === true) {
-    throw new HardhatChaiMatchersNonChainableMatcherError(matcherName);
+  const previousMatcherName: string | undefined = chaiUtils.flag(
+    context,
+    PREVIOUS_MATCHER_NAME
+  );
+
+  if (previousMatcherName === undefined) {
+    chaiUtils.flag(context, PREVIOUS_MATCHER_NAME, matcherName);
+    return;
   }
-  chaiUtils.flag(context, ASYNC_MATCHER_CALLED, true);
+
+  if (previousMatcherName === matcherName && allowSelfChaining) {
+    return;
+  }
+
+  throw new HardhatChaiMatchersNonChainableMatcherError(
+    matcherName,
+    previousMatcherName
+  );
 }

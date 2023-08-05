@@ -101,6 +101,12 @@ const customRedirects = [
       "/hardhat-runner/docs/reference/solidity-support#support-for-ir-based-codegen",
     permanent: false,
   },
+  {
+    source: "/chaining-async-matchers",
+    destination:
+      "/plugins/nomicfoundation-hardhat-chai-matchers#chaining-async-matchers",
+    permanent: false,
+  },
 
   // top-level component URLs
   {

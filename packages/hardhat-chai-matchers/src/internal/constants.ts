@@ -1,5 +1,5 @@
 export const ASSERTION_ABORTED = "hh-chai-matchers-assertion-aborted";
-export const ASYNC_MATCHER_CALLED = "asyncMatcherCalled";
+export const PREVIOUS_MATCHER_NAME = "previousMatcherName";
 
 export const CHANGE_ETHER_BALANCE_MATCHER = "changeEtherBalance";
 export const CHANGE_ETHER_BALANCES_MATCHER = "changeEtherBalances";

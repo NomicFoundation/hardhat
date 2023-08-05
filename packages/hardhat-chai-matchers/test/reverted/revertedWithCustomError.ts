@@ -359,7 +359,9 @@ describe("INTEGRATION: Reverted with custom error", function () {
         );
       });
 
-      it("should fail if both emit and revertedWithCustomError are called", async function () {
+      // TODO: re-enable this test when proper async chaining is implemented.
+      // See https://github.com/NomicFoundation/hardhat/issues/4235
+      it.skip("should fail if both emit and revertedWithCustomError are called", async function () {
         expect(() =>
           expect(matchers.revertWithSomeCustomError())
             .to.emit(matchers, "SomeEvent")

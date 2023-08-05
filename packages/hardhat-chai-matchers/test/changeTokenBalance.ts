@@ -1,21 +1,19 @@
 import type { TransactionResponse } from "ethers";
+import type { HardhatEthersSigner } from "@nomicfoundation/hardhat-ethers/signers";
+import type { Token } from "../src/internal/changeTokenBalance";
+import type { MatchersContract } from "./contracts";
 
 import assert from "assert";
-import { HardhatEthersSigner } from "@nomicfoundation/hardhat-ethers/signers";
 import { AssertionError, expect } from "chai";
 import path from "path";
 import util from "util";
 
 import "../src/internal/add-chai-matchers";
-import {
-  clearTokenDescriptionsCache,
-  Token,
-} from "../src/internal/changeTokenBalance";
+import { clearTokenDescriptionsCache } from "../src/internal/changeTokenBalance";
 import {
   CHANGE_TOKEN_BALANCE_MATCHER,
   CHANGE_TOKEN_BALANCES_MATCHER,
 } from "../src/internal/constants";
-import { MatchersContract } from "./contracts";
 import { useEnvironment, useEnvironmentWithNode } from "./helpers";
 
 describe("INTEGRATION: changeTokenBalance and changeTokenBalances matchers", function () {
@@ -406,21 +404,25 @@ describe("INTEGRATION: changeTokenBalance and changeTokenBalances matchers", fun
         it("changeTokenBalance: Should throw if chained to another non-chainable method", () => {
           expect(() =>
             expect(mockToken.transfer(receiver.address, 50))
-              .to.be.a.nonChainableMatcher()
+              .to.emit(mockToken, "SomeEvent")
               .and.to.changeTokenBalance(mockToken, receiver, 50)
-          ).to.throw(/changeTokenBalance is not chainable./);
+          ).to.throw(
+            /The matcher 'changeTokenBalance' cannot be chained after 'emit'./
+          );
         });
 
         it("changeTokenBalances: should throw if chained to another non-chainable method", () => {
           expect(() =>
-            expect(mockToken.transfer(receiver.address, 50))
-              .to.be.a.nonChainableMatcher()
-              .and.to.changeTokenBalances(
-                mockToken,
-                [sender, receiver],
-                [-50, 100]
-              )
-          ).to.throw(/changeTokenBalances is not chainable./);
+            expect(
+              mockToken.transfer(receiver.address, 50)
+            ).to.be.reverted.and.to.changeTokenBalances(
+              mockToken,
+              [sender, receiver],
+              [-50, 100]
+            )
+          ).to.throw(
+            /The matcher 'changeTokenBalances' cannot be chained after 'reverted'./
+          );
         });
       });
     });
