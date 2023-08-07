@@ -7,7 +7,10 @@ use axum::{
     Router,
 };
 use hashbrown::{HashMap, HashSet};
-use rethnet_eth::serde::{U256WithoutLeadingZeroes, U64WithoutLeadingZeroes, ZeroXPrefixedBytes};
+use rethnet_eth::{
+    serde::{U256WithoutLeadingZeroes, U64WithoutLeadingZeroes, ZeroXPrefixedBytes},
+    SpecId,
+};
 use secp256k1::{Secp256k1, SecretKey};
 use sha3::{Digest, Keccak256};
 use tokio::sync::RwLock;
@@ -132,7 +135,7 @@ async fn _block_number_from_block_spec<T>(
         BlockSpec::Tag(tag) => match tag {
             BlockTag::Earliest => Ok(U256::ZERO),
             BlockTag::Safe | BlockTag::Finalized => {
-                confirm_post_merge_hardfork(state)?;
+                confirm_post_merge_hardfork(state).await?;
                 Ok(state.blockchain.read().await.last_block_number())
             }
             BlockTag::Latest | BlockTag::Pending => {
@@ -147,9 +150,18 @@ async fn _block_number_from_block_spec<T>(
     }
 }
 
-#[allow(clippy::todo)]
-fn confirm_post_merge_hardfork<T>(_state: &StateType) -> Result<(), ResponseData<T>> {
-    todo!("when we're allowing configuration of hardfork history (that is, when https://github.com/NomicFoundation/rethnet/issues/124 is resolved), if the given block tag is 'safe' or 'finalized', ensure that we're running a hardfork that's after the merge")
+async fn confirm_post_merge_hardfork<T>(state: &StateType) -> Result<(), ResponseData<T>> {
+    let blockchain = state.blockchain.read().await;
+    let last_block_number = blockchain.last_block_number();
+    let post_merge = blockchain.block_supports_spec(&last_block_number, SpecId::MERGE).map_err(|e| error_response_data(0, &format!("Failed to determine whether block {last_block_number} supports the merge hardfork: {e}")))?;
+    if post_merge {
+        Ok(())
+    } else {
+        Err(error_response_data(
+            0,
+            &format!("Block {last_block_number} does not support the merge hardfork"),
+        ))
+    }
 }
 
 /// returns the state root in effect BEFORE setting the block context, so that the caller can
@@ -196,7 +208,7 @@ async fn set_block_context<T>(
                         Some(BlockSpec::Tag(tag)) => match tag {
                             BlockTag::Earliest => Ok(U256::ZERO),
                             BlockTag::Safe | BlockTag::Finalized => {
-                                confirm_post_merge_hardfork(state)?;
+                                confirm_post_merge_hardfork(state).await?;
                                 Ok(latest_block_number)
                             }
                             BlockTag::Latest => Ok(latest_block_number),

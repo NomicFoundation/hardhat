@@ -4,7 +4,7 @@ use std::{str::FromStr, time::SystemTime};
 
 use anyhow::anyhow;
 use hex;
-use rethnet_eth::{serde::ZeroXPrefixedBytes, Address, Bytes, SpecId, U256, U64};
+use rethnet_eth::{serde::ZeroXPrefixedBytes, Address, Bytes, SpecId, U256};
 use rethnet_rpc_server::{
     AccountConfig as ServerAccountConfig, Config as ServerConfig, RpcForkConfig,
     RpcHardhatNetworkConfig,
