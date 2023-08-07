@@ -5,7 +5,7 @@ use anyhow::anyhow;
 use clap::{Args, Parser, Subcommand};
 use tracing::{event, Level};
 
-use rethnet_eth::{Address, U64};
+use rethnet_eth::Address;
 use rethnet_rpc_server::{Config as ServerConfig, RpcForkConfig, RpcHardhatNetworkConfig};
 
 pub mod config;
@@ -67,9 +67,9 @@ fn server_config_from_cli_args_and_config_file(
             },
         },
         accounts: config_file.accounts,
-        chain_id: U64::from(node_args.chain_id.unwrap_or(config_file.chain_id)),
+        chain_id: node_args.chain_id.unwrap_or(config_file.chain_id),
         coinbase: node_args.coinbase.unwrap_or(config_file.coinbase),
-        network_id: U64::from(node_args.network_id.unwrap_or(config_file.network_id)),
+        network_id: node_args.network_id.unwrap_or(config_file.network_id),
     })
 }
 

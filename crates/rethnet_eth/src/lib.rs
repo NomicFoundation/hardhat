@@ -17,6 +17,8 @@ pub mod receipt;
 /// Remote node interaction
 #[cfg(feature = "serde")]
 pub mod remote;
+#[cfg(feature = "serde")]
+pub mod serde;
 /// Ethereum signature types
 pub mod signature;
 /// Specification of hardforks

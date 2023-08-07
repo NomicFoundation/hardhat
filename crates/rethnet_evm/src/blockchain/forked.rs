@@ -39,12 +39,6 @@ pub enum CreationError {
         /// Detected hardfork
         hardfork: SpecId,
     },
-    /// The specified chain is not supported
-    #[error("Chain with ID {chain_id} not supported")]
-    UnsupportedChain {
-        /// Requested chain id
-        chain_id: U256,
-    },
 }
 
 /// A blockchain that forked from a remote blockchain.
@@ -53,16 +47,16 @@ pub struct ForkedBlockchain {
     local_storage: ContiguousBlockchainStorage,
     remote: RemoteBlockchain,
     fork_block_number: U256,
-    _chain_id: U256,
+    chain_id: U256,
     _network_id: U256,
+    spec_id: SpecId,
 }
 
 impl ForkedBlockchain {
     /// Constructs a new instance.
     pub async fn new(
         runtime: Arc<Runtime>,
-        // TODO: check whether we need this
-        _spec_id: SpecId,
+        spec_id: SpecId,
         remote_url: &str,
         fork_block_number: Option<U256>,
     ) -> Result<Self, CreationError> {
@@ -106,25 +100,25 @@ impl ForkedBlockchain {
             safe_block_number
         };
 
-        let hardfork = determine_hardfork(&chain_id, &fork_block_number)
-            .ok_or(CreationError::UnsupportedChain { chain_id })?;
-
-        if hardfork < SpecId::SPURIOUS_DRAGON {
-            return Err(CreationError::InvalidHardfork {
-                chain_name: chain_name(&chain_id)
-                    .expect("Must succeed since we found its hardfork")
-                    .to_string(),
-                fork_block_number,
-                hardfork,
-            });
+        if let Some(hardfork) = determine_hardfork(&chain_id, &fork_block_number) {
+            if hardfork < SpecId::SPURIOUS_DRAGON {
+                return Err(CreationError::InvalidHardfork {
+                    chain_name: chain_name(&chain_id)
+                        .expect("Must succeed since we found its hardfork")
+                        .to_string(),
+                    fork_block_number,
+                    hardfork,
+                });
+            }
         }
 
         Ok(Self {
             local_storage: ContiguousBlockchainStorage::default(),
             remote: RemoteBlockchain::new(rpc_client, runtime),
             fork_block_number,
-            _chain_id: chain_id,
+            chain_id,
             _network_id: network_id,
+            spec_id,
         })
     }
 }
@@ -136,14 +130,14 @@ impl BlockHashRef for ForkedBlockchain {
         if number <= self.fork_block_number {
             self.remote.block_by_number(&number).map_or_else(
                 |e| Err(BlockchainError::JsonRpcError(e)),
-                |block| Ok(*block.hash()),
+                |block| Ok(block.header.hash()),
             )
         } else {
             let number = usize::try_from(number).or(Err(BlockchainError::BlockNumberTooLarge))?;
             self.local_storage
                 .blocks()
                 .get(number)
-                .map(|block| *block.hash())
+                .map(|block| block.header.hash())
                 .ok_or(BlockchainError::UnknownBlockNumber)
         }
     }
@@ -190,6 +184,30 @@ impl Blockchain for ForkedBlockchain {
         }
     }
 
+    fn block_supports_spec(&self, number: &U256, spec_id: SpecId) -> Result<bool, Self::Error> {
+        if *number <= self.fork_block_number {
+            self.remote.block_by_number(number).map_or_else(
+                |e| Err(BlockchainError::JsonRpcError(e)),
+                |block| {
+                    determine_hardfork(&self.chain_id, &block.header.number).map_or_else(
+                        || {
+                            Err(BlockchainError::UnsupportedChain {
+                                chain_id: self.chain_id,
+                            })
+                        },
+                        |block_spec_id| Ok(spec_id <= block_spec_id),
+                    )
+                },
+            )
+        } else {
+            Ok(spec_id <= self.spec_id)
+        }
+    }
+
+    fn chain_id(&self) -> U256 {
+        self.chain_id
+    }
+
     fn last_block(&self) -> Result<Arc<DetailedBlock>, Self::Error> {
         if let Some(block) = self.local_storage.blocks().last() {
             Ok(block.clone())
@@ -202,6 +220,22 @@ impl Blockchain for ForkedBlockchain {
 
     fn last_block_number(&self) -> U256 {
         self.fork_block_number + U256::from(self.local_storage.blocks().len())
+    }
+
+    fn receipt_by_transaction_hash(
+        &self,
+        transaction_hash: &B256,
+    ) -> Result<Option<Arc<rethnet_eth::receipt::BlockReceipt>>, Self::Error> {
+        if let Some(receipt) = self
+            .local_storage
+            .receipt_by_transaction_hash(transaction_hash)
+        {
+            Ok(Some(receipt.clone()))
+        } else {
+            self.remote
+                .receipt_by_transaction_hash(transaction_hash)
+                .map_err(BlockchainError::JsonRpcError)
+        }
     }
 
     fn total_difficulty_by_hash(&self, hash: &B256) -> Result<Option<U256>, Self::Error> {
@@ -237,6 +271,24 @@ impl BlockchainMut for ForkedBlockchain {
         };
 
         Ok(block.clone())
+    }
+
+    fn revert_to_block(&mut self, block_number: &U256) -> Result<(), Self::Error> {
+        match block_number.cmp(&self.fork_block_number) {
+            std::cmp::Ordering::Less => Err(BlockchainError::CannotDeleteRemote),
+            std::cmp::Ordering::Equal => {
+                self.local_storage = ContiguousBlockchainStorage::default();
+
+                Ok(())
+            }
+            std::cmp::Ordering::Greater => {
+                if self.local_storage.revert_to_block(block_number) {
+                    Ok(())
+                } else {
+                    Err(BlockchainError::UnknownBlockNumber)
+                }
+            }
+        }
     }
 }
 

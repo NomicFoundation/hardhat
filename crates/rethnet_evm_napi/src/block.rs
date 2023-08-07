@@ -101,7 +101,7 @@ pub struct BlockOptions {
     pub base_fee: Option<BigInt>,
 }
 
-impl TryFrom<BlockOptions> for rethnet_evm::BlockOptions {
+impl TryFrom<BlockOptions> for rethnet_eth::block::BlockOptions {
     type Error = napi::Error;
 
     #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
@@ -331,10 +331,10 @@ impl Block {
 
     #[doc = "Retrieves the transactions' receipts."]
     #[napi(getter)]
-    pub fn receipts(&self, env: Env) -> napi::Result<Vec<Receipt>> {
+    pub fn receipts(&self) -> Vec<Receipt> {
         self.inner
             .transactions()
-            .map(|transaction| Receipt::new(&env, transaction.receipt))
+            .map(|transaction| transaction.receipt.clone().into())
             .collect()
     }
 }

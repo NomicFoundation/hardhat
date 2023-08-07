@@ -13,10 +13,11 @@ use rethnet_eth::{B256, U256};
 use rethnet_evm::blockchain::{BlockchainError, SyncBlockchain};
 
 use crate::{
-    block::Block,
+    block::{Block, BlockOptions},
     cast::TryCast,
     config::SpecId,
     context::RethnetContext,
+    receipt::Receipt,
     sync::{await_promise, handle_error},
     threadsafe_function::{ThreadSafeCallContext, ThreadsafeFunction},
 };
@@ -90,15 +91,32 @@ impl Blockchain {
     /// Constructs a new blockchain from a genesis block.
     #[napi(factory)]
     #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
-    pub fn with_genesis_block(mut env: Env, genesis_block: &Block) -> napi::Result<Self> {
-        let blockchain =
-            rethnet_evm::blockchain::LocalBlockchain::with_genesis_block((*genesis_block).clone())
-                .map_err(|e| napi::Error::new(Status::InvalidArg, e.to_string()))?;
+    pub fn with_genesis_block(
+        mut env: Env,
+        chain_id: BigInt,
+        spec_id: SpecId,
+        genesis_block: BlockOptions,
+    ) -> napi::Result<Self> {
+        let chain_id: U256 = chain_id.try_cast()?;
+        let spec_id = rethnet_evm::SpecId::from(spec_id);
+        let options = rethnet_eth::block::BlockOptions::try_from(genesis_block)?;
+
+        let header = rethnet_eth::block::PartialHeader::new(spec_id, options, None);
+        let genesis_block = rethnet_eth::block::Block::new(header, Vec::new(), Vec::new());
+        let genesis_block =
+            rethnet_eth::block::DetailedBlock::new(genesis_block, Vec::new(), Vec::new());
+
+        let blockchain = rethnet_evm::blockchain::LocalBlockchain::with_genesis_block(
+            chain_id,
+            spec_id,
+            genesis_block,
+        )
+        .map_err(|e| napi::Error::new(Status::InvalidArg, e.to_string()))?;
 
         Self::with_blockchain(&mut env, blockchain)
     }
 
-    #[napi(ts_return_type = "Promise<BlockBuilder>")]
+    #[napi(ts_return_type = "Promise<Blockchain>")]
     #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     pub fn fork(
         env: Env,
@@ -172,6 +190,29 @@ impl Blockchain {
             )
     }
 
+    #[doc = "Whether the block corresponding to the provided number supports the specified specification."]
+    #[napi]
+    pub async fn block_supports_spec(&self, number: BigInt, spec_id: SpecId) -> napi::Result<bool> {
+        let number: U256 = BigInt::try_cast(number)?;
+        let spec_id = rethnet_evm::SpecId::from(spec_id);
+
+        self.read()
+            .await
+            .block_supports_spec(&number, spec_id)
+            .map_err(|e| napi::Error::new(Status::GenericFailure, e.to_string()))
+    }
+
+    #[doc = "Retrieves the instance's chain ID."]
+    #[napi]
+    pub async fn chain_id(&self) -> BigInt {
+        let chain_id = self.read().await.chain_id();
+
+        BigInt {
+            sign_bit: false,
+            words: chain_id.into_limbs().to_vec(),
+        }
+    }
+
     // #[napi]
     // pub async fn insert_block(
     //     &mut self,
@@ -205,6 +246,34 @@ impl Blockchain {
             sign_bit: false,
             words: block_number.into_limbs().to_vec(),
         }
+    }
+
+    #[doc = "Retrieves the receipt of the transaction with the provided hash, if it exists."]
+    #[napi]
+    pub async fn receipt_by_transaction_hash(
+        &self,
+        transaction_hash: Buffer,
+    ) -> napi::Result<Option<Receipt>> {
+        let transaction_hash = B256::from_slice(&transaction_hash);
+
+        self.read()
+            .await
+            .receipt_by_transaction_hash(&transaction_hash)
+            .map_or_else(
+                |e| Err(napi::Error::new(Status::GenericFailure, e.to_string())),
+                |receipt| Ok(receipt.map(Into::into)),
+            )
+    }
+
+    #[doc = "Reverts to the block with the provided number, deleting all later blocks."]
+    #[napi]
+    pub async fn revert_to_block(&self, block_number: BigInt) -> napi::Result<()> {
+        let block_number: U256 = BigInt::try_cast(block_number)?;
+
+        self.write()
+            .await
+            .revert_to_block(&block_number)
+            .map_err(|e| napi::Error::new(Status::GenericFailure, e.to_string()))
     }
 
     #[doc = "Retrieves the total difficulty at the block with the provided hash."]

@@ -6,10 +6,12 @@ use std::{
 use itertools::Itertools;
 use revm_primitives::{AccountInfo, Address, Bytecode, B256, KECCAK_EMPTY, U256};
 
+use crate::{log::FilterLog, receipt::BlockReceipt, serde::ZeroXPrefixedBytes};
+
 use super::{
     eth, jsonrpc,
     methods::{GetLogsInput, MethodInvocation},
-    BlockSpec, ZeroXPrefixedBytes,
+    BlockSpec,
 };
 
 /// Specialized error types
@@ -320,10 +322,10 @@ impl RpcClient {
                         })
                     },
                     |bytes| {
-                        Ok(if bytes.inner.is_empty() {
+                        Ok(if bytes.is_empty() {
                             None
                         } else {
-                            Some(Bytecode::new_raw(bytes.inner))
+                            Some(Bytecode::new_raw(bytes.into()))
                         })
                     },
                 )
@@ -379,7 +381,7 @@ impl RpcClient {
         from_block: BlockSpec,
         to_block: BlockSpec,
         address: &Address,
-    ) -> Result<Vec<eth::Log>, RpcClientError> {
+    ) -> Result<Vec<FilterLog>, RpcClientError> {
         self.call(&MethodInvocation::GetLogs(GetLogsInput {
             from_block,
             to_block,
@@ -411,7 +413,7 @@ impl RpcClient {
     pub async fn get_transaction_receipt(
         &self,
         tx_hash: &B256,
-    ) -> Result<Option<eth::TransactionReceipt>, RpcClientError> {
+    ) -> Result<Option<BlockReceipt>, RpcClientError> {
         self.call(&MethodInvocation::GetTransactionReceipt(*tx_hash))
             .await
     }
@@ -1062,25 +1064,23 @@ mod tests {
 
             assert_eq!(
                 receipt.block_hash,
-                Some(
-                    B256::from_str(
-                        "0x88fadbb673928c61b9ede3694ae0589ac77ae38ec90a24a6e12e83f42f18c7e8"
-                    )
-                    .expect("couldn't parse data")
+                B256::from_str(
+                    "0x88fadbb673928c61b9ede3694ae0589ac77ae38ec90a24a6e12e83f42f18c7e8"
                 )
+                .expect("couldn't parse data")
             );
             assert_eq!(
                 receipt.block_number,
-                Some(U256::from_str_radix("a74fde", 16).expect("couldn't parse data"))
+                U256::from_str_radix("a74fde", 16).expect("couldn't parse data")
             );
             assert_eq!(receipt.contract_address, None);
             assert_eq!(
-                receipt.cumulative_gas_used,
+                receipt.cumulative_gas_used(),
                 U256::from_str_radix("56c81b", 16).expect("couldn't parse data")
             );
             assert_eq!(
                 receipt.effective_gas_price,
-                Some(U256::from_str_radix("1e449a99b8", 16).expect("couldn't parse data"))
+                U256::from_str_radix("1e449a99b8", 16).expect("couldn't parse data")
             );
             assert_eq!(
                 receipt.from,
@@ -1089,11 +1089,11 @@ mod tests {
             );
             assert_eq!(
                 receipt.gas_used,
-                Some(U256::from_str_radix("a0f9", 16).expect("couldn't parse data"))
+                U256::from_str_radix("a0f9", 16).expect("couldn't parse data")
             );
-            assert_eq!(receipt.logs.len(), 1);
-            assert_eq!(receipt.root, None);
-            assert_eq!(receipt.status, Some(1));
+            assert_eq!(receipt.logs().len(), 1);
+            assert_eq!(receipt.state_root(), None);
+            assert_eq!(receipt.status_code(), Some(1));
             assert_eq!(
                 receipt.to,
                 Some(
@@ -1103,7 +1103,7 @@ mod tests {
             );
             assert_eq!(receipt.transaction_hash, hash);
             assert_eq!(receipt.transaction_index, 136);
-            assert_eq!(receipt.transaction_type, 0);
+            assert_eq!(receipt.transaction_type(), 0);
         }
 
         #[tokio::test]

@@ -165,7 +165,7 @@ impl StateManager {
             context,
             ForkState::new(
                 context.runtime().clone(),
-                context.hash_generator().clone(),
+                context.state_root_generator.clone(),
                 remote_node_url.into_utf8()?.as_str()?,
                 fork_block_number,
                 accounts,
