@@ -75,7 +75,7 @@ impl ConfigFile {
                     hex::decode(s).expect("should decode all default private keys from strings"),
                 )
                 .into(),
-                balance: U256::from(10000),
+                balance: NumberForU256(Number::U256(U256::from(10000))),
             })
             .collect()
     }
@@ -175,7 +175,7 @@ impl Default for ConfigFile {
 #[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
 pub struct AccountConfig {
     pub private_key: ZeroXPrefixedBytes,
-    pub balance: U256,
+    pub balance: NumberForU256,
 }
 
 impl TryFrom<&AccountConfig> for ServerAccountConfig {
@@ -184,7 +184,7 @@ impl TryFrom<&AccountConfig> for ServerAccountConfig {
         let bytes: Bytes = account_config.private_key.clone().into();
         Ok(Self {
             private_key: SecretKey::from_slice(&bytes[..])?,
-            balance: account_config.balance,
+            balance: account_config.balance.clone().into(),
         })
     }
 }
