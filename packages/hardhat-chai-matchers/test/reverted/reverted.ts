@@ -2,6 +2,7 @@ import type { MatchersContract } from "../contracts";
 
 import { AssertionError, expect } from "chai";
 import { ProviderError } from "hardhat/internal/core/providers/errors";
+import { HardhatRuntimeEnvironment } from "hardhat/types/runtime";
 import path from "path";
 import util from "util";
 
@@ -42,13 +43,36 @@ describe("INTEGRATION: Reverted", function () {
       return expect(x).to.be.eventually.rejectedWith(AssertionError, message);
     };
 
+    const mineBlocksUntilTxIsIncluded = async (
+      hre: HardhatRuntimeEnvironment,
+      txHash: string
+    ) => {
+      let i = 0;
+
+      while (true) {
+        const receipt = await hre.ethers.provider.getTransactionReceipt(txHash);
+
+        if (receipt !== null) {
+          return;
+        }
+
+        await hre.network.provider.send("hardhat_mine", []);
+
+        i++;
+        if (i > 100) {
+          throw new Error(`Transaction was not mined after mining ${i} blocks`);
+        }
+      }
+    };
+
     const mineSuccessfulTransaction = async (hre: any) => {
       await hre.network.provider.send("evm_setAutomine", [false]);
 
       const [signer] = await hre.ethers.getSigners();
       const tx = await signer.sendTransaction({ to: signer.address });
 
-      await hre.network.provider.send("hardhat_mine", []);
+      await mineBlocksUntilTxIsIncluded(hre, tx.hash);
+
       await hre.network.provider.send("evm_setAutomine", [true]);
 
       return tx;
@@ -61,7 +85,8 @@ describe("INTEGRATION: Reverted", function () {
         gasLimit: 1_000_000,
       });
 
-      await hre.network.provider.send("hardhat_mine", []);
+      await mineBlocksUntilTxIsIncluded(hre, tx.hash);
+
       await hre.network.provider.send("evm_setAutomine", [true]);
 
       return tx;
