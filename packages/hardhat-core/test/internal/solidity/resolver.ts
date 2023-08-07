@@ -1,4 +1,4 @@
-import { assert, expect } from "chai";
+import { assert } from "chai";
 import * as fsExtra from "fs-extra";
 import path from "path";
 import sinon from "sinon";
@@ -600,7 +600,11 @@ describe("TASK_COMPILE: the file to compile is trying to import a directory", fu
   useEnvironment();
 
   it("should throw an error because a directory is trying to be imported", async function () {
-    await expect(this.env.run(TASK_COMPILE)).to.be.rejectedWith(
+    await expectHardhatErrorAsync(
+      async () => {
+        await this.env.run(TASK_COMPILE);
+      },
+      ERRORS.RESOLVER.INVALID_IMPORT_OF_DIRECTORY,
       "HH414: Invalid import some-plugin from contracts/A.sol. Attempting to import a directory. Directories cannot be imported."
     );
   });
@@ -611,7 +615,11 @@ describe("TASK_COMPILE: the file to compile is trying to import a non existing f
   useEnvironment();
 
   it("should throw an error because a directory is trying to be imported", async function () {
-    await expect(this.env.run(TASK_COMPILE)).to.be.rejectedWith(
+    await expectHardhatErrorAsync(
+      async () => {
+        await this.env.run(TASK_COMPILE);
+      },
+      ERRORS.RESOLVER.IMPORTED_FILE_NOT_FOUND,
       "HH404: File some-plugin/nonExistingFile.sol, imported from contracts/A.sol, not found."
     );
   });

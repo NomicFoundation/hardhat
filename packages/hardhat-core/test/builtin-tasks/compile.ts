@@ -151,9 +151,11 @@ describe("compile task", function () {
 
         await expect(
           this.env.run(TASK_COMPILE_SOLIDITY_READ_FILE, { absolutePath })
-        ).to.be.rejectedWith(
-          "HH414: Invalid import %imported% from %from%. Attempting to import a directory. Directories cannot be imported."
-        );
+        )
+          .to.be.rejectedWith(
+            "HH414: Invalid import %imported% from %from%. Attempting to import a directory. Directories cannot be imported."
+          )
+          .and.eventually.have.property("name", "HardhatError");
       });
     });
 
@@ -166,7 +168,9 @@ describe("compile task", function () {
 
         await expect(
           this.env.run(TASK_COMPILE_SOLIDITY_READ_FILE, { absolutePath })
-        ).to.be.rejectedWith("HH400: File %file% doesn't exist.");
+        )
+          .to.be.rejectedWith("HH400: File %file% doesn't exist.")
+          .and.eventually.have.property("name", "HardhatError");
       });
     });
   });
