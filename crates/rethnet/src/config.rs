@@ -4,7 +4,7 @@ use std::{str::FromStr, time::SystemTime};
 
 use anyhow::anyhow;
 use hex;
-use rethnet_eth::{remote::ZeroXPrefixedBytes, Address, Bytes, SpecId, U256, U64};
+use rethnet_eth::{serde::ZeroXPrefixedBytes, Address, Bytes, SpecId, U256, U64};
 use rethnet_rpc_server::{
     AccountConfig as ServerAccountConfig, Config as ServerConfig, RpcForkConfig,
     RpcHardhatNetworkConfig,
@@ -130,7 +130,7 @@ impl ConfigFile {
                 .map(ServerAccountConfig::try_from)
                 .collect::<Result<Vec<_>, _>>()?,
             block_gas_limit: self.block_gas_limit,
-            chain_id: U64::from(cli_args.chain_id.unwrap_or(self.chain_id)),
+            chain_id: cli_args.chain_id.unwrap_or(self.chain_id),
             coinbase: cli_args.coinbase.unwrap_or(self.coinbase),
             gas: self.gas,
             hardfork: self.hardfork,
@@ -143,7 +143,7 @@ impl ConfigFile {
                         .as_secs(),
                 )
             }),
-            network_id: U64::from(cli_args.network_id.unwrap_or(self.network_id)),
+            network_id: cli_args.network_id.unwrap_or(self.network_id),
         })
     }
 }

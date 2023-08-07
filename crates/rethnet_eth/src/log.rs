@@ -1,4 +1,6 @@
-#![allow(missing_docs)]
+mod block;
+mod filter;
+mod receipt;
 
 use bytes::Bytes;
 use ethbloom::Bloom;
@@ -7,7 +9,13 @@ use revm_primitives::{
     Address, B256, U256,
 };
 
-/// Transaction log
+pub use self::{
+    block::{BlockLog, FullBlockLog},
+    filter::FilterLog,
+    receipt::ReceiptLog,
+};
+
+/// Execution log
 #[derive(Clone, Debug, PartialEq, Eq)]
 #[cfg_attr(
     feature = "fastrlp",
@@ -96,5 +104,36 @@ impl rlp::Decodable for Log {
             data: rlp.val_at::<Vec<u8>>(2)?.into(),
         };
         Ok(result)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use std::str::FromStr;
+
+    use bytes::Bytes;
+    use revm_primitives::Address;
+
+    use crate::log::Log;
+
+    use super::*;
+
+    #[test]
+    fn test_log_serde() {
+        let log = Log {
+            address: Address::from_str("0000000000000000000000000000000000000011").unwrap(),
+            topics: vec![
+                B256::from_str("000000000000000000000000000000000000000000000000000000000000dead")
+                    .unwrap(),
+                B256::from_str("000000000000000000000000000000000000000000000000000000000000beef")
+                    .unwrap(),
+            ],
+            data: Bytes::from(hex::decode("0100ff").unwrap()),
+        };
+
+        let serialized = serde_json::to_string(&log).unwrap();
+        let deserialized: Log = serde_json::from_str(&serialized).unwrap();
+
+        assert_eq!(log, deserialized);
     }
 }

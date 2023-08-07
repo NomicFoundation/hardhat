@@ -20,7 +20,7 @@ export class DualModeBlockBuilder implements BlockBuilderAdapter {
     const rethnetResult = await this._rethnetBuilder.addTransaction(tx);
 
     // Matches EthereumJS' runCall checkpoint call
-    globalRethnetContext.setHashGeneratorSeed(randomHashSeed());
+    globalRethnetContext.setStateRootGeneratorSeed(randomHashSeed());
 
     assertEqualRunTxResults(ethereumJSResult, rethnetResult);
 

@@ -122,7 +122,7 @@ export class DualModeAdapter implements VMAdapter {
     ]);
 
     // Matches EthereumJS' runCall checkpoint call
-    globalRethnetContext.setHashGeneratorSeed(randomHashSeed());
+    globalRethnetContext.setStateRootGeneratorSeed(randomHashSeed());
 
     try {
       assertEqualRunTxResults(ethereumJSResult, rethnetResult);
@@ -275,7 +275,7 @@ export class DualModeAdapter implements VMAdapter {
     ]);
 
     // Matches EthereumJS' runCall checkpoint call
-    globalRethnetContext.setHashGeneratorSeed(randomHashSeed());
+    globalRethnetContext.setStateRootGeneratorSeed(randomHashSeed());
 
     try {
       assertEqualRunTxResults(ethereumJSResult, rethnetResult);

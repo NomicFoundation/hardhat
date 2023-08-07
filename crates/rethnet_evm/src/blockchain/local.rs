@@ -41,12 +41,15 @@ pub enum InsertBlockError {
 #[derive(Debug)]
 pub struct LocalBlockchain {
     storage: ContiguousBlockchainStorage,
+    chain_id: U256,
+    spec_id: SpecId,
 }
 
 impl LocalBlockchain {
     /// Constructs a new instance using the provided arguments to build a genesis block.
     pub fn new<S: StateDebug>(
         state: &S,
+        chain_id: U256,
         spec_id: SpecId,
         gas_limit: U256,
         timestamp: Option<U256>,
@@ -98,16 +101,20 @@ impl LocalBlockchain {
         );
 
         Ok(unsafe {
-            Self::with_genesis_block_unchecked(DetailedBlock::new(
-                genesis_block,
-                Vec::new(),
-                Vec::new(),
-            ))
+            Self::with_genesis_block_unchecked(
+                chain_id,
+                spec_id,
+                DetailedBlock::new(genesis_block, Vec::new(), Vec::new()),
+            )
         })
     }
 
     /// Constructs a new instance with the provided genesis block, validating a zero block number.
-    pub fn with_genesis_block(genesis_block: DetailedBlock) -> Result<Self, InsertBlockError> {
+    pub fn with_genesis_block(
+        chain_id: U256,
+        spec_id: SpecId,
+        genesis_block: DetailedBlock,
+    ) -> Result<Self, InsertBlockError> {
         if genesis_block.header.number != U256::ZERO {
             return Err(InsertBlockError::InvalidBlockNumber {
                 actual: genesis_block.header.number,
@@ -115,7 +122,7 @@ impl LocalBlockchain {
             });
         }
 
-        Ok(unsafe { Self::with_genesis_block_unchecked(genesis_block) })
+        Ok(unsafe { Self::with_genesis_block_unchecked(chain_id, spec_id, genesis_block) })
     }
 
     /// Constructs a new instance with the provided genesis block, without validating the provided block's number.
@@ -123,11 +130,19 @@ impl LocalBlockchain {
     /// # Safety
     ///
     /// Ensure that the genesis block's number is zero.
-    pub unsafe fn with_genesis_block_unchecked(genesis_block: DetailedBlock) -> Self {
+    pub unsafe fn with_genesis_block_unchecked(
+        chain_id: U256,
+        spec_id: SpecId,
+        genesis_block: DetailedBlock,
+    ) -> Self {
         let total_difficulty = genesis_block.header.difficulty;
         let storage = ContiguousBlockchainStorage::with_block(genesis_block, total_difficulty);
 
-        Self { storage }
+        Self {
+            storage,
+            chain_id,
+            spec_id,
+        }
     }
 }
 
@@ -155,6 +170,14 @@ impl Blockchain for LocalBlockchain {
             .cloned())
     }
 
+    fn block_supports_spec(&self, _number: &U256, spec_id: SpecId) -> Result<bool, Self::Error> {
+        Ok(spec_id <= self.spec_id)
+    }
+
+    fn chain_id(&self) -> U256 {
+        self.chain_id
+    }
+
     fn last_block(&self) -> Result<Arc<DetailedBlock>, Self::Error> {
         Ok(self
             .storage
@@ -167,6 +190,16 @@ impl Blockchain for LocalBlockchain {
     fn last_block_number(&self) -> U256 {
         // The block number of the genesis block is 0, so subtract one
         U256::from(self.storage.blocks().len() - 1)
+    }
+
+    fn receipt_by_transaction_hash(
+        &self,
+        transaction_hash: &B256,
+    ) -> Result<Option<Arc<rethnet_eth::receipt::BlockReceipt>>, Self::Error> {
+        Ok(self
+            .storage
+            .receipt_by_transaction_hash(transaction_hash)
+            .cloned())
     }
 
     fn total_difficulty_by_hash(&self, hash: &B256) -> Result<Option<U256>, Self::Error> {
@@ -194,6 +227,14 @@ impl BlockchainMut for LocalBlockchain {
         let block = unsafe { self.storage.insert_block_unchecked(block, total_difficulty) };
 
         Ok(block.clone())
+    }
+
+    fn revert_to_block(&mut self, block_number: &U256) -> Result<(), Self::Error> {
+        if self.storage.revert_to_block(block_number) {
+            Ok(())
+        } else {
+            Err(BlockchainError::UnknownBlockNumber)
+        }
     }
 }
 
