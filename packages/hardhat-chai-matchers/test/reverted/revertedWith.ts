@@ -8,6 +8,7 @@ import {
   runFailedAsserts,
   useEnvironment,
   useEnvironmentWithNode,
+  mineSuccessfulTransaction,
 } from "../helpers";
 
 import "../../src/internal/add-chai-matchers";
@@ -37,19 +38,6 @@ describe("INTEGRATION: Reverted with", function () {
       >("Matchers");
       matchers = await Matchers.deploy();
     });
-
-    // helpers
-    const mineSuccessfulTransaction = async (hre: any) => {
-      await hre.network.provider.send("evm_setAutomine", [false]);
-
-      const [signer] = await hre.ethers.getSigners();
-      const tx = await signer.sendTransaction({ to: signer.address });
-
-      await hre.network.provider.send("hardhat_mine", []);
-      await hre.network.provider.send("evm_setAutomine", [true]);
-
-      return tx;
-    };
 
     describe("calling a method that succeeds", function () {
       it("successful asserts", async function () {
