@@ -855,6 +855,16 @@ Use a relative import instead of referencing the package's name.`,
 Please double check your imports and installed libraries.`,
       shouldBeReported: false,
     },
+    INVALID_IMPORT_OF_DIRECTORY: {
+      number: 414,
+      message:
+        "Invalid import %imported% from %from%. Attempting to import a directory. Directories cannot be imported.",
+      title: "Invalid import: a directory cannot be imported",
+      description: `A Solidity file is attempting to import a directory, which is not possible.
+
+      Please double check your imports.`,
+      shouldBeReported: false,
+    },
   },
   SOLC: {
     INVALID_VERSION: {

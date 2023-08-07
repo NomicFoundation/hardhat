@@ -1,4 +1,4 @@
-import { assert } from "chai";
+import { assert, expect } from "chai";
 import * as fsExtra from "fs-extra";
 import path from "path";
 import sinon from "sinon";
@@ -592,5 +592,27 @@ describe("Resolver regression tests", function () {
     it("Should compile the Greeter contract that imports console.log from hardhat", async function () {
       return this.env.run(TASK_COMPILE, { quiet: true });
     });
+  });
+});
+
+describe("TASK_COMPILE: the file to compile is trying to import a directory", function () {
+  useFixtureProject("compilation-import-folder");
+  useEnvironment();
+
+  it("should throw an error because a directory is trying to be imported", async function () {
+    await expect(this.env.run(TASK_COMPILE)).to.be.rejectedWith(
+      "HH414: Invalid import some-plugin from contracts/A.sol. Attempting to import a directory. Directories cannot be imported."
+    );
+  });
+});
+
+describe("TASK_COMPILE: the file to compile is trying to import a non existing file", function () {
+  useFixtureProject("compilation-import-non-existing-file");
+  useEnvironment();
+
+  it("should throw an error because a directory is trying to be imported", async function () {
+    await expect(this.env.run(TASK_COMPILE)).to.be.rejectedWith(
+      "HH404: File some-plugin/nonExistingFile.sol, imported from contracts/A.sol, not found."
+    );
   });
 });

@@ -1,9 +1,12 @@
-import { assert } from "chai";
+import { assert, expect } from "chai";
 import ci from "ci-info";
 import * as fsExtra from "fs-extra";
 import * as path from "path";
 
-import { TASK_COMPILE_SOLIDITY_GET_COMPILATION_JOBS_FAILURE_REASONS } from "../../src/builtin-tasks/task-names";
+import {
+  TASK_COMPILE_SOLIDITY_GET_COMPILATION_JOBS_FAILURE_REASONS,
+  TASK_COMPILE_SOLIDITY_READ_FILE,
+} from "../../src/builtin-tasks/task-names";
 import { SOLIDITY_FILES_CACHE_FILENAME } from "../../src/internal/constants";
 import { ERRORS } from "../../src/internal/core/errors-list";
 import { CompilationJobCreationErrorReason } from "../../src/types/builtin-tasks";
@@ -135,6 +138,36 @@ describe("compile task", function () {
       assert.lengthOf(buildInfos, 2);
       assertValidJson(buildInfos[0]);
       assertValidJson(buildInfos[1]);
+    });
+  });
+
+  describe("TASK_COMPILE_SOLIDITY_READ_FILE", function () {
+    describe("Import folder", () => {
+      useFixtureProject("compilation-import-folder");
+      useEnvironment();
+
+      it("should throw an error because a directory is trying to be imported", async function () {
+        const absolutePath = `${__dirname}/../fixture-projects/compilation-import-folder/contracts/`;
+
+        await expect(
+          this.env.run(TASK_COMPILE_SOLIDITY_READ_FILE, { absolutePath })
+        ).to.be.rejectedWith(
+          "HH414: Invalid import %imported% from %from%. Attempting to import a directory. Directories cannot be imported."
+        );
+      });
+    });
+
+    describe("Import non existing file", () => {
+      useFixtureProject("compilation-import-non-existing-file");
+      useEnvironment();
+
+      it("should throw an error because the file does not exist", async function () {
+        const absolutePath = `${__dirname}/../fixture-projects/compilation-import-non-existing-file/contracts/file.sol`;
+
+        await expect(
+          this.env.run(TASK_COMPILE_SOLIDITY_READ_FILE, { absolutePath })
+        ).to.be.rejectedWith("HH400: File %file% doesn't exist.");
+      });
     });
   });
 
