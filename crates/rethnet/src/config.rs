@@ -34,100 +34,82 @@ pub const DEFAULT_PRIVATE_KEYS: [&str; 20] = [
 #[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
 pub struct ConfigFile {
     // TODO: expand this per https://github.com/NomicFoundation/rethnet/issues/111
-    pub accounts: Option<Vec<AccountConfig>>,
-    pub block_gas_limit: Option<U256>,
-    pub chain_id: Option<u64>,
-    pub coinbase: Option<Address>,
-    pub gas: Option<U256>,
-    pub initial_base_fee_per_gas: Option<U256>,
+    #[serde(default = "ConfigFile::default_accounts")]
+    pub accounts: Vec<AccountConfig>,
+    #[serde(default = "ConfigFile::default_block_gas_limit")]
+    pub block_gas_limit: U256,
+    #[serde(default = "ConfigFile::default_chain_id")]
+    pub chain_id: u64,
+    #[serde(default = "ConfigFile::default_coinbase")]
+    pub coinbase: Address,
+    #[serde(default = "ConfigFile::default_gas")]
+    pub gas: U256,
+    #[serde(default = "ConfigFile::default_hardfork")]
+    pub hardfork: SpecId,
+    #[serde(default = "ConfigFile::default_initial_base_fee_per_gas")]
+    pub initial_base_fee_per_gas: U256,
     pub initial_date: Option<SystemTime>,
-    pub hardfork: Option<SpecId>,
-    pub network_id: Option<u64>,
+    #[serde(default = "ConfigFile::default_network_id")]
+    pub network_id: u64,
 }
 
 impl ConfigFile {
-    pub fn resolve_none_values_to_defaults(partial: Self) -> Self {
-        let default = Self::default();
-        Self {
-            accounts: Some(
-                partial
-                    .accounts
-                    .unwrap_or(default.accounts.expect("should have a default value")),
-            ),
-            block_gas_limit: Some(
-                partial.block_gas_limit.unwrap_or(
-                    default
-                        .block_gas_limit
-                        .expect("should have a default value"),
-                ),
-            ),
-            chain_id: Some(
-                partial
-                    .chain_id
-                    .unwrap_or(default.chain_id.expect("should have a default value")),
-            ),
-            coinbase: Some(
-                partial
-                    .coinbase
-                    .unwrap_or(default.coinbase.expect("should have a default value")),
-            ),
-            gas: Some(
-                partial
-                    .gas
-                    .unwrap_or(default.gas.expect("should have a default value")),
-            ),
-            hardfork: Some(
-                partial
-                    .hardfork
-                    .unwrap_or(default.hardfork.expect("should have a default value")),
-            ),
-            initial_base_fee_per_gas: Some(
-                partial.initial_base_fee_per_gas.unwrap_or(
-                    default
-                        .initial_base_fee_per_gas
-                        .expect("should have a default value"),
-                ),
-            ),
-            initial_date: partial.initial_date.or(default.initial_date),
-            network_id: Some(
-                partial
-                    .network_id
-                    .unwrap_or(default.network_id.expect("should have a default value")),
-            ),
-        }
+    fn default_accounts() -> Vec<AccountConfig> {
+        DEFAULT_PRIVATE_KEYS
+            .into_iter()
+            .map(|s| AccountConfig {
+                private_key: Bytes::from_iter(
+                    hex::decode(s).expect("should decode all default private keys from strings"),
+                )
+                .into(),
+                balance: U256::from(10000),
+            })
+            .collect()
+    }
+
+    fn default_block_gas_limit() -> U256 {
+        U256::from(30_000_000)
+    }
+
+    fn default_chain_id() -> u64 {
+        31337
+    }
+
+    fn default_coinbase() -> Address {
+        Address::from_str("0xc014ba5ec014ba5ec014ba5ec014ba5ec014ba5e")
+            .expect("default value should be known to succeed")
+    }
+
+    fn default_gas() -> U256 {
+        Self::default_block_gas_limit()
+    }
+
+    fn default_hardfork() -> SpecId {
+        SpecId::LATEST
+    }
+
+    fn default_initial_base_fee_per_gas() -> U256 {
+        U256::from(1000000000)
+    }
+
+    fn default_network_id() -> u64 {
+        Self::default_chain_id()
     }
 }
 
 impl Default for ConfigFile {
     fn default() -> Self {
         // default values taken from https://hardhat.org/hardhat-network/docs/reference
-        let block_gas_limit = Some(U256::from(30_000_000));
-        let chain_id = Some(31337);
         Self {
-            accounts: Some(
-                DEFAULT_PRIVATE_KEYS
-                    .into_iter()
-                    .map(|s| AccountConfig {
-                        private_key: Bytes::from_iter(
-                            hex::decode(s)
-                                .expect("should decode all default private keys from strings"),
-                        )
-                        .into(),
-                        balance: U256::from(10000),
-                    })
-                    .collect(),
-            ),
-            block_gas_limit,
-            chain_id,
-            coinbase: Some(
-                Address::from_str("0xc014ba5ec014ba5ec014ba5ec014ba5ec014ba5e")
-                    .expect("default value should be known to succeed"),
-            ),
-            gas: block_gas_limit,
-            hardfork: Some(SpecId::LATEST),
-            initial_base_fee_per_gas: Some(U256::from(1000000000)),
+            accounts: Self::default_accounts(),
+            block_gas_limit: Self::default_block_gas_limit(),
+            chain_id: Self::default_chain_id(),
+            coinbase: Self::default_coinbase(),
+            gas: Self::default_block_gas_limit(),
+            hardfork: Self::default_hardfork(),
+            initial_base_fee_per_gas: Self::default_initial_base_fee_per_gas(),
             initial_date: None,
-            network_id: chain_id,
+            network_id: Self::default_network_id(),
         }
     }
 }

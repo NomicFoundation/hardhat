@@ -63,7 +63,6 @@ fn server_config_from_cli_args_and_config_file(
     node_args: NodeArgs,
     config_file: ConfigFile,
 ) -> Result<ServerConfig, anyhow::Error> {
-    let config_file = ConfigFile::resolve_none_values_to_defaults(config_file);
     Ok(ServerConfig {
         address: SocketAddr::new(node_args.host, node_args.port),
         rpc_hardhat_network_config: RpcHardhatNetworkConfig {
@@ -83,25 +82,15 @@ fn server_config_from_cli_args_and_config_file(
         },
         accounts: config_file
             .accounts
-            .expect("should be resolved to default")
             .iter()
             .map(ServerAccountConfig::try_from)
             .collect::<Result<Vec<_>, _>>()?,
-        block_gas_limit: config_file
-            .block_gas_limit
-            .expect("should be resovled to default"),
-        chain_id: node_args
-            .chain_id
-            .or(config_file.chain_id)
-            .map(U64::from)
-            .expect("should be resolved to default"),
-        coinbase: node_args
-            .coinbase
-            .or(config_file.coinbase)
-            .expect("should be resolved to default"),
-        gas: config_file.gas.expect("should be resolved to default"),
-        hardfork: config_file.hardfork.expect("should be resovled to default"),
-        initial_base_fee_per_gas: config_file.initial_base_fee_per_gas,
+        block_gas_limit: config_file.block_gas_limit,
+        chain_id: U64::from(node_args.chain_id.unwrap_or(config_file.chain_id)),
+        coinbase: node_args.coinbase.unwrap_or(config_file.coinbase),
+        gas: config_file.gas,
+        hardfork: config_file.hardfork,
+        initial_base_fee_per_gas: Some(config_file.initial_base_fee_per_gas),
         initial_date: config_file.initial_date.map(|instant| {
             U256::from(
                 instant
@@ -110,11 +99,7 @@ fn server_config_from_cli_args_and_config_file(
                     .as_secs(),
             )
         }),
-        network_id: node_args
-            .network_id
-            .or(config_file.network_id)
-            .map(U64::from)
-            .expect("should be resolved to default"),
+        network_id: U64::from(node_args.network_id.unwrap_or(config_file.network_id)),
     })
 }
 
