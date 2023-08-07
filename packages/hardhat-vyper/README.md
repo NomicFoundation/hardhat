@@ -78,7 +78,7 @@ Brownie allows you to use the test directive `#@ if mode == "test":` to specify 
 
 Example:
 
-```vy
+```py
 #@ if mode == "test":
 @external
 def _mint_for_testing(_to: address, _token_id: uint256):
