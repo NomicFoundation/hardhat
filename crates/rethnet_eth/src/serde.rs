@@ -24,7 +24,7 @@ impl From<U256> for U256WithoutLeadingZeroes {
     }
 }
 
-/// Type that serializes a [`u64`] without leading zeroes.
+/// Type that serializes a [`std::primitive::u64`] without leading zeroes.
 #[derive(Clone, Copy, serde::Serialize, serde::Deserialize)]
 pub struct U64WithoutLeadingZeroes(#[serde(serialize_with = "u64::serialize")] u64);
 
