@@ -9,7 +9,8 @@ use rethnet_rpc_server::{
     AccountConfig as ServerAccountConfig, Config as ServerConfig, RpcForkConfig,
     RpcHardhatNetworkConfig,
 };
-use secp256k1::{Error as Secp256k1Error, SecretKey};
+use secp256k1;
+use secp256k1::SecretKey;
 use serde::{Deserialize, Serialize};
 
 pub use super::NodeArgs;
@@ -171,7 +172,7 @@ pub struct AccountConfig {
 }
 
 impl TryFrom<&AccountConfig> for ServerAccountConfig {
-    type Error = Secp256k1Error;
+    type Error = secp256k1::Error;
     fn try_from(account_config: &AccountConfig) -> Result<Self, Self::Error> {
         let bytes: Bytes = account_config.private_key.clone().into();
         Ok(Self {
