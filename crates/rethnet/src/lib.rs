@@ -1,23 +1,17 @@
 use std::ffi::OsString;
 use std::fs;
-use std::net::{IpAddr, Ipv4Addr, SocketAddr};
+use std::net::{IpAddr, Ipv4Addr};
 use std::path::Path;
-use std::time::UNIX_EPOCH;
 
 use anyhow::anyhow;
 use clap::{Args, Parser, Subcommand};
-use secp256k1::{Error as Secp256k1Error, SecretKey};
 use tracing::{event, Level};
 
-use rethnet_eth::{Address, Bytes, U256, U64};
-use rethnet_rpc_server::{
-    AccountConfig as ServerAccountConfig, Config as ServerConfig, RpcForkConfig,
-    RpcHardhatNetworkConfig,
-};
+use rethnet_eth::Address;
 
 pub mod config;
 
-use config::{AccountConfig, ConfigFile};
+use config::ConfigFile;
 
 #[derive(Parser)]
 #[clap(author, version, about, long_about = None)]
@@ -35,7 +29,7 @@ enum Command {
 const DEFAULT_CONFIG_FILE_NAME: &str = "edr.toml";
 
 #[derive(Args)]
-struct NodeArgs {
+pub struct NodeArgs {
     #[clap(long, default_value_t = IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)))]
     host: IpAddr,
     #[clap(long, default_value = "8545")]
@@ -57,61 +51,6 @@ struct NodeArgs {
     network_id: Option<u64>,
     #[clap(short, long, action = clap::ArgAction::Count)]
     verbose: u8,
-}
-
-fn server_config_from_cli_args_and_config_file(
-    node_args: NodeArgs,
-    config_file: ConfigFile,
-) -> Result<ServerConfig, anyhow::Error> {
-    Ok(ServerConfig {
-        address: SocketAddr::new(node_args.host, node_args.port),
-        rpc_hardhat_network_config: RpcHardhatNetworkConfig {
-            forking: if let Some(json_rpc_url) = node_args.fork_url {
-                Some(RpcForkConfig {
-                    json_rpc_url,
-                    block_number: node_args.fork_block_number,
-                    http_headers: None,
-                })
-            } else if node_args.fork_block_number.is_some() {
-                Err(anyhow!(
-                    "A fork block number can only be used if you also supply a fork URL"
-                ))?
-            } else {
-                None
-            },
-        },
-        accounts: config_file
-            .accounts
-            .iter()
-            .map(ServerAccountConfig::try_from)
-            .collect::<Result<Vec<_>, _>>()?,
-        block_gas_limit: config_file.block_gas_limit,
-        chain_id: U64::from(node_args.chain_id.unwrap_or(config_file.chain_id)),
-        coinbase: node_args.coinbase.unwrap_or(config_file.coinbase),
-        gas: config_file.gas,
-        hardfork: config_file.hardfork,
-        initial_base_fee_per_gas: Some(config_file.initial_base_fee_per_gas),
-        initial_date: config_file.initial_date.map(|instant| {
-            U256::from(
-                instant
-                    .duration_since(UNIX_EPOCH)
-                    .expect("initial date must be after UNIX epoch")
-                    .as_secs(),
-            )
-        }),
-        network_id: U64::from(node_args.network_id.unwrap_or(config_file.network_id)),
-    })
-}
-
-impl TryFrom<&AccountConfig> for ServerAccountConfig {
-    type Error = Secp256k1Error;
-    fn try_from(account_config: &AccountConfig) -> Result<Self, Self::Error> {
-        let bytes: Bytes = account_config.private_key.clone().into();
-        Ok(Self {
-            private_key: SecretKey::from_slice(&bytes[..])?,
-            balance: account_config.balance,
-        })
-    }
 }
 
 #[derive(Copy, Debug, Clone, PartialEq, Eq)]
@@ -201,10 +140,9 @@ where
                     ConfigFile::default()
                 };
 
-                let server = rethnet_rpc_server::Server::new(
-                    server_config_from_cli_args_and_config_file(node_args, config_file)?,
-                )
-                .await?;
+                let server =
+                    rethnet_rpc_server::Server::new(config_file.to_server_config(node_args)?)
+                        .await?;
 
                 Ok(server
                     .serve_with_shutdown_signal(await_signal())

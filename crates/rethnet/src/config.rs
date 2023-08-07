@@ -1,9 +1,18 @@
+use std::net::SocketAddr;
+use std::time::UNIX_EPOCH;
 use std::{str::FromStr, time::SystemTime};
 
+use anyhow::anyhow;
 use hex;
+use rethnet_eth::{remote::ZeroXPrefixedBytes, Address, Bytes, SpecId, U256, U64};
+use rethnet_rpc_server::{
+    AccountConfig as ServerAccountConfig, Config as ServerConfig, RpcForkConfig,
+    RpcHardhatNetworkConfig,
+};
+use secp256k1::{Error as Secp256k1Error, SecretKey};
 use serde::{Deserialize, Serialize};
 
-use rethnet_eth::{remote::ZeroXPrefixedBytes, Address, Bytes, SpecId, U256};
+pub use super::NodeArgs;
 
 /// the default private keys from which the local accounts will be derived.
 pub const DEFAULT_PRIVATE_KEYS: [&str; 20] = [
@@ -95,6 +104,47 @@ impl ConfigFile {
     fn default_network_id() -> u64 {
         Self::default_chain_id()
     }
+
+    pub fn to_server_config(&self, cli_args: NodeArgs) -> Result<ServerConfig, anyhow::Error> {
+        Ok(ServerConfig {
+            address: SocketAddr::new(cli_args.host, cli_args.port),
+            rpc_hardhat_network_config: RpcHardhatNetworkConfig {
+                forking: if let Some(json_rpc_url) = cli_args.fork_url {
+                    Some(RpcForkConfig {
+                        json_rpc_url,
+                        block_number: cli_args.fork_block_number,
+                        http_headers: None,
+                    })
+                } else if cli_args.fork_block_number.is_some() {
+                    Err(anyhow!(
+                        "A fork block number can only be used if you also supply a fork URL"
+                    ))?
+                } else {
+                    None
+                },
+            },
+            accounts: self
+                .accounts
+                .iter()
+                .map(ServerAccountConfig::try_from)
+                .collect::<Result<Vec<_>, _>>()?,
+            block_gas_limit: self.block_gas_limit,
+            chain_id: U64::from(cli_args.chain_id.unwrap_or(self.chain_id)),
+            coinbase: cli_args.coinbase.unwrap_or(self.coinbase),
+            gas: self.gas,
+            hardfork: self.hardfork,
+            initial_base_fee_per_gas: Some(self.initial_base_fee_per_gas),
+            initial_date: self.initial_date.map(|instant| {
+                U256::from(
+                    instant
+                        .duration_since(UNIX_EPOCH)
+                        .expect("initial date must be after UNIX epoch")
+                        .as_secs(),
+                )
+            }),
+            network_id: U64::from(cli_args.network_id.unwrap_or(self.network_id)),
+        })
+    }
 }
 
 impl Default for ConfigFile {
@@ -118,6 +168,17 @@ impl Default for ConfigFile {
 pub struct AccountConfig {
     pub private_key: ZeroXPrefixedBytes,
     pub balance: U256,
+}
+
+impl TryFrom<&AccountConfig> for ServerAccountConfig {
+    type Error = Secp256k1Error;
+    fn try_from(account_config: &AccountConfig) -> Result<Self, Self::Error> {
+        let bytes: Bytes = account_config.private_key.clone().into();
+        Ok(Self {
+            private_key: SecretKey::from_slice(&bytes[..])?,
+            balance: account_config.balance,
+        })
+    }
 }
 
 #[cfg(test)]
