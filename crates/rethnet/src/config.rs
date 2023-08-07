@@ -15,6 +15,9 @@ use serde::{Deserialize, Serialize};
 
 pub use super::NodeArgs;
 
+mod number;
+pub use number::{Number, NumberForU256, NumberForU64};
+
 /// the default private keys from which the local accounts will be derived.
 pub const DEFAULT_PRIVATE_KEYS: [&str; 20] = [
     // these were taken from the standard output of a run of `hardhat node`
@@ -47,20 +50,20 @@ pub struct ConfigFile {
     #[serde(default = "ConfigFile::default_accounts")]
     pub accounts: Vec<AccountConfig>,
     #[serde(default = "ConfigFile::default_block_gas_limit")]
-    pub block_gas_limit: U256,
+    pub block_gas_limit: NumberForU256,
     #[serde(default = "ConfigFile::default_chain_id")]
-    pub chain_id: u64,
+    pub chain_id: NumberForU64,
     #[serde(default = "ConfigFile::default_coinbase")]
     pub coinbase: Address,
     #[serde(default = "ConfigFile::default_gas")]
-    pub gas: U256,
+    pub gas: NumberForU256,
     #[serde(default = "ConfigFile::default_hardfork")]
     pub hardfork: SpecId,
     #[serde(default = "ConfigFile::default_initial_base_fee_per_gas")]
-    pub initial_base_fee_per_gas: U256,
+    pub initial_base_fee_per_gas: NumberForU256,
     pub initial_date: Option<SystemTime>,
     #[serde(default = "ConfigFile::default_network_id")]
-    pub network_id: u64,
+    pub network_id: NumberForU64,
 }
 
 impl ConfigFile {
@@ -77,12 +80,12 @@ impl ConfigFile {
             .collect()
     }
 
-    fn default_block_gas_limit() -> U256 {
-        U256::from(30_000_000)
+    fn default_block_gas_limit() -> NumberForU256 {
+        NumberForU256(Number::U256(U256::from(30_000_000)))
     }
 
-    fn default_chain_id() -> u64 {
-        31337
+    fn default_chain_id() -> NumberForU64 {
+        NumberForU64(Number::U64(31337))
     }
 
     fn default_coinbase() -> Address {
@@ -90,7 +93,7 @@ impl ConfigFile {
             .expect("default value should be known to succeed")
     }
 
-    fn default_gas() -> U256 {
+    fn default_gas() -> NumberForU256 {
         Self::default_block_gas_limit()
     }
 
@@ -98,11 +101,11 @@ impl ConfigFile {
         SpecId::LATEST
     }
 
-    fn default_initial_base_fee_per_gas() -> U256 {
-        U256::from(1000000000)
+    fn default_initial_base_fee_per_gas() -> NumberForU256 {
+        NumberForU256(Number::U256(U256::from(1000000000)))
     }
 
-    fn default_network_id() -> u64 {
+    fn default_network_id() -> NumberForU64 {
         Self::default_chain_id()
     }
 
@@ -129,12 +132,14 @@ impl ConfigFile {
                 .iter()
                 .map(ServerAccountConfig::try_from)
                 .collect::<Result<Vec<_>, _>>()?,
-            block_gas_limit: self.block_gas_limit,
-            chain_id: cli_args.chain_id.unwrap_or(self.chain_id),
+            block_gas_limit: self.block_gas_limit.clone().into(),
+            chain_id: cli_args
+                .chain_id
+                .unwrap_or(self.chain_id.clone().try_into()?),
             coinbase: cli_args.coinbase.unwrap_or(self.coinbase),
-            gas: self.gas,
+            gas: self.gas.clone().into(),
             hardfork: self.hardfork,
-            initial_base_fee_per_gas: Some(self.initial_base_fee_per_gas),
+            initial_base_fee_per_gas: Some(self.initial_base_fee_per_gas.clone().into()),
             initial_date: self.initial_date.map(|instant| {
                 U256::from(
                     instant
@@ -143,7 +148,9 @@ impl ConfigFile {
                         .as_secs(),
                 )
             }),
-            network_id: cli_args.network_id.unwrap_or(self.network_id),
+            network_id: cli_args
+                .network_id
+                .unwrap_or(self.network_id.clone().try_into()?),
         })
     }
 }
