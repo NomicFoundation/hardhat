@@ -24,6 +24,7 @@ on:
       - "packages/hardhat-verify/**"
       - "packages/hardhat-common/**"
       - "config/**"
+  workflow_dispatch:
 
 defaults:
   run:
