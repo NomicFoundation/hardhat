@@ -16,7 +16,10 @@ pub struct BlockReceipt {
     /// Hash of the block that this is part of
     pub block_hash: B256,
     /// Number of the block that this is part of
-    #[serde(serialize_with = "crate::serde::u256::serialize")]
+    #[cfg_attr(
+        feature = "serde",
+        serde(serialize_with = "crate::serde::u256::serialize")
+    )]
     pub block_number: U256,
 }
 

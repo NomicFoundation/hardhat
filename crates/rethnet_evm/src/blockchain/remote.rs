@@ -3,9 +3,10 @@ use std::sync::Arc;
 use futures::future::{self, FutureExt};
 use parking_lot::{RwLock, RwLockUpgradableReadGuard};
 use rethnet_eth::{
-    block::DetailedBlock,
+    block::{BlockAndCallers, DetailedBlock},
     receipt::BlockReceipt,
     remote::{self, BlockSpec, RpcClient, RpcClientError},
+    transaction::SignedTransaction,
     B256, U256,
 };
 use tokio::runtime::Runtime;
@@ -139,16 +140,19 @@ impl RemoteBlockchain {
     ) -> Result<Arc<DetailedBlock>, RpcClientError> {
         let total_difficulty = block
             .total_difficulty
-            .expect("Must be present as this is not a pending transaction");
+            .expect("Must be present as this is not a pending block");
 
-        let (block, callers) = block
+        let BlockAndCallers {
+            block,
+            transaction_callers,
+        } = block
             .try_into()
             .expect("Conversion must succeed, as we're not retrieving a pending block");
 
         let transaction_hashes: Vec<B256> = block
             .transactions
             .iter()
-            .map(|transaction| transaction.hash())
+            .map(SignedTransaction::hash)
             .collect();
 
         let receipts = tokio::task::block_in_place(move || {
@@ -161,7 +165,7 @@ impl RemoteBlockchain {
             })
         })?;
 
-        let block = DetailedBlock::new(block, callers, receipts);
+        let block = DetailedBlock::new(block, transaction_callers, receipts);
         let block = {
             let mut remote_cache = RwLockUpgradableReadGuard::upgrade(cache);
             // SAFETY: the block with this number didn't exist yet, so it must be unique

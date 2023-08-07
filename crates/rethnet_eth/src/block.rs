@@ -71,7 +71,7 @@ impl Encodable for Block {
 }
 
 impl Decodable for Block {
-    fn decode(rlp: &Rlp) -> Result<Self, DecoderError> {
+    fn decode(rlp: &Rlp<'_>) -> Result<Self, DecoderError> {
         Ok(Self {
             header: rlp.val_at(0)?,
             transactions: rlp.list_at(1)?,
@@ -241,7 +241,7 @@ impl rlp::Encodable for Header {
 }
 
 impl rlp::Decodable for Header {
-    fn decode(rlp: &rlp::Rlp) -> Result<Self, rlp::DecoderError> {
+    fn decode(rlp: &rlp::Rlp<'_>) -> Result<Self, rlp::DecoderError> {
         let result = Header {
             parent_hash: B256::from(rlp.val_at::<U256>(0)?.to_be_bytes()),
             ommers_hash: B256::from(rlp.val_at::<U256>(1)?.to_be_bytes()),
@@ -380,7 +380,7 @@ pub struct PartialHeader {
 }
 
 impl PartialHeader {
-    /// Constructs a new instance based on the provided [`BlockOptions`] and parent [`Header`] for the given [`CfgEnv`].
+    /// Constructs a new instance based on the provided [`BlockOptions`] and parent [`Header`] for the given [`SpecId`].
     pub fn new(spec_id: SpecId, options: BlockOptions, parent: Option<&Header>) -> Self {
         let timestamp = options.timestamp.unwrap_or_default();
         let number = options.number.unwrap_or_else(|| {
@@ -453,6 +453,14 @@ impl From<Header> for PartialHeader {
     }
 }
 
+/// Type that combines a block and the addresses of its transactions' callers
+pub struct BlockAndCallers {
+    /// Ethereum block
+    pub block: Block,
+    /// Block transactions' callers
+    pub transaction_callers: Vec<Address>,
+}
+
 #[cfg(test)]
 mod tests {
     use std::str::FromStr;
@@ -462,20 +470,20 @@ mod tests {
     #[test]
     fn header_rlp_roundtrip() {
         let mut header = Header {
-            parent_hash: Default::default(),
-            ommers_hash: Default::default(),
-            beneficiary: Default::default(),
-            state_root: Default::default(),
-            transactions_root: Default::default(),
-            receipts_root: Default::default(),
-            logs_bloom: Default::default(),
-            difficulty: Default::default(),
+            parent_hash: B256::default(),
+            ommers_hash: B256::default(),
+            beneficiary: Address::default(),
+            state_root: B256::default(),
+            transactions_root: B256::default(),
+            receipts_root: B256::default(),
+            logs_bloom: Bloom::default(),
+            difficulty: U256::default(),
             number: U256::from(124),
-            gas_limit: Default::default(),
+            gas_limit: U256::default(),
             gas_used: U256::from(1337),
             timestamp: U256::ZERO,
-            extra_data: Default::default(),
-            mix_hash: Default::default(),
+            extra_data: Bytes::default(),
+            mix_hash: B256::default(),
             nonce: B64::from(U64::from(99)),
             base_fee_per_gas: None,
             withdrawals_root: None,

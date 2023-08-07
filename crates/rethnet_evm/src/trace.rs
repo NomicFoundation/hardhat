@@ -107,7 +107,7 @@ pub struct TraceCollector {
 }
 
 impl TraceCollector {
-    /// Converts the [`Tracer`] into its [`Trace`].
+    /// Converts the [`TraceCollector`] into its [`Trace`].
     pub fn into_trace(self) -> Trace {
         self.trace
     }
@@ -213,7 +213,7 @@ where
                 reason,
                 gas_used: remaining_gas.limit(),
             },
-            SuccessOrHalt::InternalContinue => panic!("Internal error: {:?}", safe_ret),
+            SuccessOrHalt::InternalContinue => panic!("Internal error: {safe_ret:?}"),
             SuccessOrHalt::FatalExternalError => panic!("Fatal external error"),
         };
 
@@ -280,7 +280,7 @@ where
                 reason,
                 gas_used: remaining_gas.limit(),
             },
-            SuccessOrHalt::InternalContinue => panic!("Internal error: {:?}", safe_ret),
+            SuccessOrHalt::InternalContinue => panic!("Internal error: {safe_ret:?}"),
             SuccessOrHalt::FatalExternalError => panic!("Fatal external error"),
         };
 

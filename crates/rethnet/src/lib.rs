@@ -5,6 +5,7 @@ use anyhow::anyhow;
 use clap::{Args, Parser, Subcommand};
 use tracing::{event, Level};
 
+use rethnet_eth::Address;
 use rethnet_rpc_server::{Config as ServerConfig, RpcForkConfig, RpcHardhatNetworkConfig};
 
 pub mod config;
@@ -34,6 +35,12 @@ struct NodeArgs {
     fork_url: Option<String>,
     #[clap(long)]
     fork_block_number: Option<usize>,
+    #[clap(long)]
+    chain_id: Option<u64>,
+    #[clap(long)]
+    coinbase: Option<Address>,
+    #[clap(long)]
+    network_id: Option<u64>,
     #[clap(short, long, action = clap::ArgAction::Count)]
     verbose: u8,
 }
@@ -60,6 +67,9 @@ fn server_config_from_cli_args_and_config_file(
             },
         },
         accounts: config_file.accounts,
+        chain_id: node_args.chain_id.unwrap_or(config_file.chain_id),
+        coinbase: node_args.coinbase.unwrap_or(config_file.coinbase),
+        network_id: node_args.network_id.unwrap_or(config_file.network_id),
     })
 }
 
@@ -84,6 +94,35 @@ where
     I: IntoIterator<Item = T>,
     T: Into<OsString> + Clone,
 {
+    async fn await_signal() {
+        use tokio::signal;
+
+        let ctrl_c = async {
+            signal::ctrl_c()
+                .await
+                .expect("failed to install Ctrl+C handler");
+        };
+
+        #[cfg(unix)]
+        let terminate = async {
+            use signal::unix::{signal, SignalKind};
+            signal(SignalKind::terminate())
+                .expect("failed to install signal handler")
+                .recv()
+                .await;
+        };
+
+        #[cfg(not(unix))]
+        let terminate = std::future::pending::<()>();
+
+        tokio::select! {
+            _ = ctrl_c => {},
+            _ = terminate => {},
+        }
+
+        event!(Level::INFO, "Shutting down");
+    }
+
     let args = Cli::parse_from(args);
     match args.command {
         Command::Node(node_args) => {
@@ -104,35 +143,6 @@ where
                 server_config_from_cli_args_and_config_file(node_args, ConfigFile::default())?,
             )
             .await?;
-
-            async fn await_signal() {
-                use tokio::signal;
-
-                let ctrl_c = async {
-                    signal::ctrl_c()
-                        .await
-                        .expect("failed to install Ctrl+C handler");
-                };
-
-                #[cfg(unix)]
-                let terminate = async {
-                    use signal::unix::{signal, SignalKind};
-                    signal(SignalKind::terminate())
-                        .expect("failed to install signal handler")
-                        .recv()
-                        .await;
-                };
-
-                #[cfg(not(unix))]
-                let terminate = std::future::pending::<()>();
-
-                tokio::select! {
-                    _ = ctrl_c => {},
-                    _ = terminate => {},
-                }
-
-                event!(Level::INFO, "Shutting down");
-            }
 
             Ok(server
                 .serve_with_shutdown_signal(await_signal())

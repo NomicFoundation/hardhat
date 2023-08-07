@@ -34,6 +34,7 @@ impl Blockchain {
     where
         B: SyncBlockchain<BlockchainError>,
     {
+        // Signal that memory was externally allocated
         env.adjust_external_memory(BLOCKCHAIN_MEMORY_SIZE)?;
 
         Ok(Self {
@@ -52,7 +53,7 @@ impl Deref for Blockchain {
 
 #[napi]
 impl Blockchain {
-    /// Constructs a new blockchain that queries the blockhash using a callback.
+    /// Constructs a new blockchain from a genesis block.
     #[napi(factory)]
     #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     pub fn with_genesis_block(
@@ -166,7 +167,7 @@ impl Blockchain {
             .map_err(|e| napi::Error::new(Status::GenericFailure, e.to_string()))
     }
 
-    #[doc = "Retrieves the instances chain ID."]
+    #[doc = "Retrieves the instance's chain ID."]
     #[napi]
     pub async fn chain_id(&self) -> BigInt {
         let chain_id = self.read().await.chain_id();
@@ -201,7 +202,7 @@ impl Blockchain {
         )
     }
 
-    #[doc = "Retrieves the last block number in the blockchain."]
+    #[doc = "Retrieves the number of the last block in the blockchain."]
     #[napi]
     pub async fn last_block_number(&self) -> BigInt {
         let block_number = self.read().await.last_block_number();
@@ -225,7 +226,7 @@ impl Blockchain {
             .receipt_by_transaction_hash(&transaction_hash)
             .map_or_else(
                 |e| Err(napi::Error::new(Status::GenericFailure, e.to_string())),
-                |receipt| Ok(receipt.map(|receipt| receipt.into())),
+                |receipt| Ok(receipt.map(Into::into)),
             )
     }
 
@@ -263,6 +264,7 @@ impl Blockchain {
 impl ObjectFinalize for Blockchain {
     #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     fn finalize(self, mut env: Env) -> napi::Result<()> {
+        // Signal that the externally allocated memory has been freed
         env.adjust_external_memory(-BLOCKCHAIN_MEMORY_SIZE)?;
 
         Ok(())

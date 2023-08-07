@@ -63,7 +63,7 @@ pub struct EthTransactionRequest {
 }
 
 impl EthTransactionRequest {
-    /// Converts the request into a [TypedTransactionRequest]
+    /// Converts the request into a [`TransactionRequest`].
     pub fn into_typed_request(self) -> Option<TransactionRequest> {
         let EthTransactionRequest {
             to,

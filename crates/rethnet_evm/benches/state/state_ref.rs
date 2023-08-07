@@ -15,7 +15,7 @@ fn bench_basic(c: &mut Criterion) {
         state_prep_no_op,
         |state, number_of_accounts, _, _| {
             for i in (1..=number_of_accounts).rev() {
-                let result = state.basic(Address::from_str(&format!("0x{:0>40x}", i)).unwrap());
+                let result = state.basic(Address::from_str(&format!("0x{i:0>40x}")).unwrap());
                 debug_assert!(result.is_ok());
             }
         },

@@ -11,8 +11,8 @@ use revm::{db::BlockHashRef, primitives::SpecId};
 use tokio::runtime::Runtime;
 
 use super::{
-    remote::RemoteBlockchain, storage::ContiguousBlockchainStorage, Blockchain, BlockchainError,
-    BlockchainMut,
+    remote::RemoteBlockchain, storage::ContiguousBlockchainStorage, validate_next_block,
+    Blockchain, BlockchainError, BlockchainMut,
 };
 
 /// An error that occurs upon creation of a [`ForkedBlockchain`].
@@ -60,6 +60,8 @@ impl ForkedBlockchain {
         remote_url: &str,
         fork_block_number: Option<U256>,
     ) -> Result<Self, CreationError> {
+        const FALLBACK_MAX_REORG: u64 = 30;
+
         let rpc_client = RpcClient::new(remote_url);
 
         let (chain_id, network_id, latest_block_number) = tokio::join!(
@@ -72,7 +74,6 @@ impl ForkedBlockchain {
         let network_id = network_id?;
         let latest_block_number = latest_block_number?;
 
-        const FALLBACK_MAX_REORG: u64 = 30;
         let max_reorg =
             largest_possible_reorg(&chain_id).unwrap_or_else(|| U256::from(FALLBACK_MAX_REORG));
 
@@ -254,21 +255,10 @@ impl BlockchainMut for ForkedBlockchain {
     fn insert_block(&mut self, block: DetailedBlock) -> Result<Arc<DetailedBlock>, Self::Error> {
         let last_block = self.last_block()?;
 
-        let next_block_number = last_block.header.number + U256::from(1);
-        if block.header.number != next_block_number {
-            return Err(BlockchainError::InvalidBlockNumber {
-                actual: block.header.number,
-                expected: next_block_number,
-            });
-        }
-
-        let last_hash = last_block.header.hash();
-        if block.header.parent_hash != last_hash {
-            return Err(BlockchainError::InvalidParentHash);
-        }
+        validate_next_block(&last_block, &block)?;
 
         let previous_total_difficulty = self
-            .total_difficulty_by_hash(&last_hash)
+            .total_difficulty_by_hash(last_block.hash())
             .expect("No error can occur as it is stored locally")
             .expect("Must exist as its block is stored");
 
@@ -302,6 +292,12 @@ impl BlockchainMut for ForkedBlockchain {
     }
 }
 
+/// Retrieves the largest possible size of a reorg, i.e. ensures a "safe" block.
+///
+/// # Source
+///
+/// These numbers were taken from:
+/// <https://github.com/NomicFoundation/hardhat/blob/caa504fe0e53c183578f42d66f4740b8ec147051/packages/hardhat-core/src/internal/hardhat-network/provider/utils/reorgs-protection.ts>
 fn largest_possible_reorg(chain_id: &U256) -> Option<U256> {
     let mut network_configs = HashMap::new();
     network_configs.insert(U256::from(1), U256::from(5)); // mainnet

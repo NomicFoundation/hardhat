@@ -25,7 +25,6 @@ import {
   BlockHeader as RethnetBlockHeader,
   BlockOptions,
   ExecutionResult,
-  Log,
   SpecId,
   TransactionRequest,
   LegacySignedTransaction,
@@ -33,6 +32,7 @@ import {
   Eip2930SignedTransaction,
   Receipt as RethnetReceipt,
   ExecutionLog,
+  Log,
 } from "rethnet-evm";
 import { fromBigIntLike, toHex } from "../../../util/bigint";
 import { HardforkName } from "../../../util/hardforks";

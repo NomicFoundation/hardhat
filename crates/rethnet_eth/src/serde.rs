@@ -1,5 +1,8 @@
-/// helper utilities for use with serde's serialize_with and deserialize_with
+//! Helper utilities for serde
+
 use std::{fmt::Write, ops::Deref};
+
+use bytes::Bytes;
 
 use crate::U256;
 
@@ -21,7 +24,103 @@ impl From<U256> for U256WithoutLeadingZeroes {
     }
 }
 
-/// for use with serde's serialize_with on a single value that should be serialized as a
+/// Type that serializes a [`std::primitive::u64`] without leading zeroes.
+#[derive(Clone, Copy, serde::Serialize, serde::Deserialize)]
+pub struct U64WithoutLeadingZeroes(#[serde(serialize_with = "u64::serialize")] u64);
+
+impl Deref for U64WithoutLeadingZeroes {
+    type Target = u64;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+impl From<u64> for U64WithoutLeadingZeroes {
+    fn from(value: u64) -> Self {
+        Self(value)
+    }
+}
+
+/// Type for specifying a byte string that will have a 0x prefix when serialized and
+/// deserialized
+#[derive(Clone, Debug, PartialEq)]
+pub struct ZeroXPrefixedBytes {
+    inner: Bytes,
+}
+
+impl Deref for ZeroXPrefixedBytes {
+    type Target = Bytes;
+
+    fn deref(&self) -> &Self::Target {
+        &self.inner
+    }
+}
+
+impl From<Bytes> for ZeroXPrefixedBytes {
+    fn from(b: Bytes) -> Self {
+        ZeroXPrefixedBytes { inner: b }
+    }
+}
+
+impl From<ZeroXPrefixedBytes> for Bytes {
+    fn from(z: ZeroXPrefixedBytes) -> Self {
+        z.inner
+    }
+}
+
+impl<'a> serde::Deserialize<'a> for ZeroXPrefixedBytes {
+    fn deserialize<D>(deserializer: D) -> Result<ZeroXPrefixedBytes, D::Error>
+    where
+        D: serde::Deserializer<'a>,
+    {
+        struct ZeroXPrefixedBytesVisitor;
+        impl<'a> serde::de::Visitor<'a> for ZeroXPrefixedBytesVisitor {
+            type Value = ZeroXPrefixedBytes;
+
+            fn expecting(&self, formatter: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+                formatter.write_str("a 0x-prefixed string of hex digits")
+            }
+
+            fn visit_str<E>(self, value: &str) -> Result<Self::Value, E>
+            where
+                E: serde::de::Error,
+            {
+                if &value[0..=1] == "0x" {
+                    Ok(Bytes::from(
+                        hex::decode(&value[2..])
+                            .unwrap_or_else(|_| panic!("failed to decode hex string \"{value}\"")),
+                    )
+                    .into())
+                } else {
+                    Err(serde::de::Error::custom(format!(
+                        "string \"{value}\" does not have a '0x' prefix"
+                    )))
+                }
+            }
+        }
+
+        deserializer.deserialize_identifier(ZeroXPrefixedBytesVisitor)
+    }
+}
+
+impl serde::Serialize for ZeroXPrefixedBytes {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        let encoded = hex::encode(&self.inner);
+        serializer.serialize_str(&format!(
+            "0x{}",
+            match encoded.as_str() {
+                "00" => "",
+                other => other,
+            }
+        ))
+    }
+}
+
+/// for use with serde's `serialize_with` on a single value that should be serialized as a
 /// sequence
 pub fn single_to_sequence<S, T>(val: &T, s: S) -> Result<S::Ok, S::Error>
 where
@@ -34,7 +133,7 @@ where
     seq.end()
 }
 
-/// for use with serde's deserialize_with on a sequence that should be deserialized as a
+/// for use with serde's `deserialize_with` on a sequence that should be deserialized as a
 /// single value
 pub fn sequence_to_single<'de, D, T>(deserializer: D) -> Result<T, D::Error>
 where
@@ -90,9 +189,9 @@ pub mod u256 {
     }
 }
 
-/// Helper module for (de)serializing [`u64`]s into hexadecimal strings.
+/// Helper module for (de)serializing [`std::primitive::u64`]s from and into `0x`-prefixed hexadecimal strings.
 pub mod u64 {
-    /// Helper function for deserializing a hexadecimal string into a [`u64`].
+    /// Helper function for deserializing a [`std::primitive::u64`] from a `0x`-prefixed hexadecimal string.
     pub fn deserialize<'de, D>(deserializer: D) -> Result<u64, D::Error>
     where
         D: serde::Deserializer<'de>,
@@ -101,7 +200,7 @@ pub mod u64 {
         Ok(u64::from_str_radix(&s[2..], 16).expect("failed to parse u64"))
     }
 
-    /// Helper function for serializing a [`u64`] into a hexadecimal string.
+    /// Helper function for serializing a [`std::primitive::u64`] into a 0x-prefixed hexadecimal string.
     pub fn serialize<S>(value: &u64, s: S) -> Result<S::Ok, S::Error>
     where
         S: serde::Serializer,
@@ -114,9 +213,9 @@ pub mod u64 {
     }
 }
 
-/// Helper module for (de)serializing [`u8`]s into hexadecimal strings.
+/// Helper module for (de)serializing [`std::primitive::u8`]s from and into `0x`-prefixed hexadecimal strings.
 pub mod u8 {
-    /// Helper function for deserializing a hexadecimal string into a [`u64`].
+    /// Helper function for deserializing a [`std::primitive::u8`] from a `0x`-prefixed hexadecimal string.
     pub fn deserialize<'de, D>(deserializer: D) -> Result<u8, D::Error>
     where
         D: serde::Deserializer<'de>,
@@ -125,7 +224,7 @@ pub mod u8 {
         Ok(u8::from_str_radix(&s[2..], 16).expect("failed to parse u8"))
     }
 
-    /// Helper function for serializing a [`u64`] into a hexadecimal string.
+    /// Helper function for serializing a [`std::primitive::u8`] into a `0x`-prefixed hexadecimal string.
     pub fn serialize<S>(value: &u8, s: S) -> Result<S::Ok, S::Error>
     where
         S: serde::Serializer,
@@ -138,7 +237,7 @@ pub mod u8 {
     }
 }
 
-/// Helper function for deserializing a'n optional hexadecimal string into a [`u64`].
+/// Helper function for deserializing an [`Option<std::primitive::u64>`] from an optional `0x`-prefixed hexadecimal string.
 pub fn optional_u64_from_hex<'de, D>(deserializer: D) -> Result<Option<u64>, D::Error>
 where
     D: serde::Deserializer<'de>,

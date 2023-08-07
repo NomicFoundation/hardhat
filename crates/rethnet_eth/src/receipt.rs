@@ -18,13 +18,13 @@ pub use self::{block::BlockReceipt, transaction::TransactionReceipt};
 #[cfg_attr(feature = "serde", derive(serde::Serialize))]
 #[cfg_attr(feature = "serde", serde(deny_unknown_fields))]
 #[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
-pub struct TypedReceipt<L> {
+pub struct TypedReceipt<LogT> {
     /// Cumulative gas used in block after this transaction was executed
     pub cumulative_gas_used: U256,
     /// Bloom filter of the logs generated within this transaction
     pub logs_bloom: Bloom,
     /// Logs generated within this transaction
-    pub logs: Vec<L>,
+    pub logs: Vec<LogT>,
     #[cfg_attr(feature = "serde", serde(flatten))]
     pub data: TypedReceiptData,
 }
@@ -56,14 +56,14 @@ pub enum TypedReceiptData {
     },
 }
 
-impl<L> TypedReceipt<L> {
+impl<LogT> TypedReceipt<LogT> {
     /// Returns the status code of the receipt, if any.
     pub fn status_code(&self) -> Option<u8> {
         match &self.data {
             TypedReceiptData::PreByzantiumLegacy { .. } => None,
-            TypedReceiptData::PostByzantiumLegacy { status } => Some(*status),
-            TypedReceiptData::EIP2930 { status } => Some(*status),
-            TypedReceiptData::EIP1559 { status } => Some(*status),
+            TypedReceiptData::PostByzantiumLegacy { status }
+            | TypedReceiptData::EIP2930 { status }
+            | TypedReceiptData::EIP1559 { status } => Some(*status),
         }
     }
 
@@ -87,13 +87,13 @@ impl<L> TypedReceipt<L> {
 }
 
 #[cfg(feature = "serde")]
-impl<'de, L> serde::Deserialize<'de> for TypedReceipt<L>
+impl<'deserializer, LogT> serde::Deserialize<'deserializer> for TypedReceipt<LogT>
 where
-    L: serde::Deserialize<'de>,
+    LogT: serde::Deserialize<'deserializer>,
 {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
-        D: serde::Deserializer<'de>,
+        D: serde::Deserializer<'deserializer>,
     {
         use core::marker::PhantomData;
 
@@ -110,23 +110,26 @@ where
             Logs,
         }
 
-        struct TypedReceiptVisitor<L> {
-            phantom: PhantomData<L>,
+        struct TypedReceiptVisitor<LogT> {
+            phantom: PhantomData<LogT>,
         }
 
-        impl<'de, L> Visitor<'de> for TypedReceiptVisitor<L>
+        impl<'deserializer, LogT> Visitor<'deserializer> for TypedReceiptVisitor<LogT>
         where
-            L: serde::Deserialize<'de>,
+            LogT: serde::Deserialize<'deserializer>,
         {
-            type Value = TypedReceipt<L>;
+            type Value = TypedReceipt<LogT>;
 
             fn expecting(&self, formatter: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
                 formatter.write_str("a valid receipt")
             }
 
-            fn visit_map<A>(self, mut map: A) -> Result<Self::Value, A::Error>
+            fn visit_map<MapAccessT>(
+                self,
+                mut map: MapAccessT,
+            ) -> Result<Self::Value, MapAccessT::Error>
             where
-                A: serde::de::MapAccess<'de>,
+                MapAccessT: serde::de::MapAccess<'deserializer>,
             {
                 use serde::de::Error;
                 let mut transaction_type = None;
@@ -186,7 +189,7 @@ where
                     let status = match status_code {
                         "0x0" => 0u8,
                         "0x1" => 1u8,
-                        _ => return Err(Error::custom(format!("unknown status: {}", status_code))),
+                        _ => return Err(Error::custom(format!("unknown status: {status_code}"))),
                     };
 
                     if let Some(transaction_type) = transaction_type {
@@ -220,17 +223,17 @@ where
     }
 }
 
-impl<L> rlp::Decodable for TypedReceipt<L>
+impl<LogT> rlp::Decodable for TypedReceipt<LogT>
 where
-    L: rlp::Decodable,
+    LogT: rlp::Decodable,
 {
-    fn decode(rlp: &rlp::Rlp) -> Result<Self, rlp::DecoderError> {
-        fn decode_inner<L>(
-            rlp: &rlp::Rlp,
+    fn decode(rlp: &rlp::Rlp<'_>) -> Result<Self, rlp::DecoderError> {
+        fn decode_inner<LogT>(
+            rlp: &rlp::Rlp<'_>,
             id: Option<u8>,
-        ) -> Result<TypedReceipt<L>, rlp::DecoderError>
+        ) -> Result<TypedReceipt<LogT>, rlp::DecoderError>
         where
-            L: rlp::Decodable,
+            LogT: rlp::Decodable,
         {
             let status = rlp.val_at(0)?;
             Ok(TypedReceipt {
@@ -273,9 +276,9 @@ where
     }
 }
 
-impl<L> rlp::Encodable for TypedReceipt<L>
+impl<LogT> rlp::Encodable for TypedReceipt<LogT>
 where
-    L: rlp::Encodable,
+    LogT: rlp::Encodable,
 {
     fn rlp_append(&self, s: &mut rlp::RlpStream) {
         let (id, status) = match &self.data {

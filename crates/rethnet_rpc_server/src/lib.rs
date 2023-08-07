@@ -6,16 +6,17 @@ use axum::{
     http::StatusCode,
     Router,
 };
-use hashbrown::HashMap;
-use rethnet_eth::remote::ZeroXPrefixedBytes;
-use rethnet_eth::serde::U256WithoutLeadingZeroes;
+use hashbrown::{HashMap, HashSet};
+use rethnet_eth::serde::{U256WithoutLeadingZeroes, U64WithoutLeadingZeroes, ZeroXPrefixedBytes};
 use secp256k1::{Secp256k1, SecretKey};
+use sha3::{Digest, Keccak256};
 use tokio::sync::RwLock;
 use tracing::{event, Level};
 
 use rethnet_eth::{
     remote::{
         client::{Request as RpcRequest, RpcClient},
+        filter::{FilteredEvents, LogOutput},
         jsonrpc,
         jsonrpc::{Response, ResponseData},
         methods::MethodInvocation as EthMethodInvocation,
@@ -38,6 +39,9 @@ pub use hardhat_methods::{
 mod config;
 pub use config::{AccountConfig, Config};
 
+mod filter;
+use filter::{new_filter_deadline, Filter};
+
 /// an RPC method with its parameters
 #[derive(Clone, Debug, PartialEq, serde::Deserialize, serde::Serialize)]
 #[serde(untagged)]
@@ -53,15 +57,21 @@ type RethnetStateType = Arc<RwLock<dyn SyncState<StateError>>>;
 
 struct AppState {
     rethnet_state: RethnetStateType,
+    chain_id: u64,
+    coinbase: Address,
+    filters: RwLock<HashMap<U256, Filter>>,
     fork_block_number: Option<U256>,
+    impersonated_accounts: RwLock<HashSet<Address>>,
+    last_filter_id: RwLock<U256>,
     local_accounts: HashMap<Address, SecretKey>,
+    network_id: u64,
 }
 
 type StateType = Arc<AppState>;
 
-fn error_response_data<T>(msg: &str) -> ResponseData<T> {
+fn error_response_data<T>(code: i16, msg: &str) -> ResponseData<T> {
     event!(Level::INFO, "{}", &msg);
-    ResponseData::new_error(0, msg, None)
+    ResponseData::new_error(code, msg, None)
 }
 
 pub struct Server {
@@ -92,18 +102,53 @@ async fn get_latest_block_number<T>(state: &StateType) -> Result<U256, ResponseD
     }
 }
 
-fn check_post_merge_block_tags<T>(_state: &StateType) -> Result<(), ResponseData<T>> {
-    todo!("when we're tracking hardforks, if the given block tag is 'safe' or 'finalized', ensure that we're running a hardfork that's after the merge")
+/// `require_canonical`: whether the server should additionally raise a JSON-RPC error if the block
+/// is not in the canonical chain
+#[allow(clippy::todo)]
+fn _block_number_from_hash<T>(
+    _state: &StateType,
+    _block_hash: &B256,
+    _require_canonical: bool,
+) -> Result<U256, ResponseData<T>> {
+    todo!()
+}
+
+async fn _block_number_from_block_spec<T>(
+    state: &StateType,
+    block_spec: &BlockSpec,
+) -> Result<U256, ResponseData<T>> {
+    match block_spec {
+        BlockSpec::Number(number) => Ok(*number),
+        BlockSpec::Tag(tag) => match tag {
+            BlockTag::Earliest => Ok(U256::ZERO),
+            BlockTag::Safe | BlockTag::Finalized => {
+                confirm_post_merge_hardfork(state)?;
+                get_latest_block_number(state).await
+            }
+            BlockTag::Latest | BlockTag::Pending => get_latest_block_number(state).await,
+        },
+        BlockSpec::Eip1898(Eip1898BlockSpec::Hash {
+            block_hash,
+            require_canonical,
+        }) => _block_number_from_hash(state, block_hash, require_canonical.unwrap_or(false)),
+        BlockSpec::Eip1898(Eip1898BlockSpec::Number { block_number }) => Ok(*block_number),
+    }
+}
+
+#[allow(clippy::todo)]
+fn confirm_post_merge_hardfork<T>(_state: &StateType) -> Result<(), ResponseData<T>> {
+    todo!("when we're tracking hardforks, ensure that we're running a hardfork that's after the merge")
 }
 
 /// returns the state root in effect BEFORE setting the block context, so that the caller can
 /// restore the context to that state root.
+#[allow(clippy::todo)]
 async fn set_block_context<T>(
     state: &StateType,
     block_spec: Option<BlockSpec>,
 ) -> Result<B256, ResponseData<T>> {
     let previous_state_root = state.rethnet_state.read().await.state_root().map_err(|e| {
-        error_response_data(&format!("Failed to retrieve previous state root: {e}"))
+        error_response_data(0, &format!("Failed to retrieve previous state root: {e}"))
     })?;
     match block_spec {
         Some(BlockSpec::Tag(BlockTag::Pending)) => {
@@ -115,6 +160,7 @@ async fn set_block_context<T>(
         }
         None => Ok(previous_state_root),
         resolvable_block_spec => {
+            let latest_block_number = get_latest_block_number(state).await?;
             state
                 .rethnet_state
                 .write()
@@ -133,19 +179,23 @@ async fn set_block_context<T>(
                         Some(BlockSpec::Tag(tag)) => match tag {
                             BlockTag::Earliest => Ok(U256::ZERO),
                             BlockTag::Safe | BlockTag::Finalized => {
-                                check_post_merge_block_tags(state)?;
-                                Ok(get_latest_block_number(state).await?)
+                                confirm_post_merge_hardfork(state)?;
+                                Ok(latest_block_number)
                             }
-                            BlockTag::Latest => Ok(get_latest_block_number(state).await?),
+                            BlockTag::Latest => Ok(latest_block_number),
                             BlockTag::Pending => unreachable!(),
                         },
                         None => unreachable!(),
                     }?),
                 )
                 .map_err(|e| {
-                    error_response_data(&format!(
-                        "Failed to set block context {resolvable_block_spec:?}: {e}"
-                    ))
+                    error_response_data(
+                        -32000,
+                        &format!(
+                            "Received invalid block tag {}. Latest block number is {latest_block_number}. {e}",
+                            resolvable_block_spec.unwrap(),
+                        ),
+                    )
                 })?;
             Ok(previous_state_root)
         }
@@ -161,7 +211,9 @@ async fn restore_block_context<T>(
         .write()
         .await
         .set_block_context(&state_root, None)
-        .map_err(|_| error_response_data("Failed to restore previous block context"))
+        .map_err(|e| {
+            error_response_data(0, &format!("Failed to restore previous block context: {e}"))
+        })
 }
 
 async fn get_account_info<T>(
@@ -176,7 +228,7 @@ async fn get_account_info<T>(
             code: None,
             code_hash: KECCAK_EMPTY,
         }),
-        Err(e) => Err(error_response_data(&e.to_string())),
+        Err(e) => Err(error_response_data(0, &e.to_string())),
     }
 }
 
@@ -184,6 +236,20 @@ async fn handle_accounts(state: StateType) -> ResponseData<Vec<Address>> {
     event!(Level::INFO, "eth_accounts");
     ResponseData::Success {
         result: state.local_accounts.keys().copied().collect(),
+    }
+}
+
+fn handle_chain_id(state: StateType) -> ResponseData<U64WithoutLeadingZeroes> {
+    event!(Level::INFO, "eth_chainId()");
+    ResponseData::Success {
+        result: state.chain_id.into(),
+    }
+}
+
+async fn handle_coinbase(state: StateType) -> ResponseData<Address> {
+    event!(Level::INFO, "eth_coinbase()");
+    ResponseData::Success {
+        result: state.coinbase,
     }
 }
 
@@ -232,7 +298,7 @@ async fn handle_get_code(
                                 result: ZeroXPrefixedBytes::from(code.bytecode),
                             },
                             Err(e) => {
-                                error_response_data(&format!("failed to retrieve code: {}", e))
+                                error_response_data(0, &format!("failed to retrieve code: {e}"))
                             }
                         }
                     }
@@ -245,12 +311,49 @@ async fn handle_get_code(
     }
 }
 
+async fn handle_get_filter_changes(
+    state: StateType,
+    filter_id: U256,
+) -> ResponseData<Option<FilteredEvents>> {
+    event!(Level::INFO, "eth_getFilterChanges({filter_id:?})");
+    let mut filters = state.filters.write().await;
+    ResponseData::Success {
+        result: filters.get_mut(&filter_id).and_then(|filter| {
+            let events = Some(filter.events.take());
+            filter.deadline = new_filter_deadline();
+            events
+        }),
+    }
+}
+
+async fn handle_get_filter_logs(
+    state: StateType,
+    filter_id: U256,
+) -> ResponseData<Option<Vec<LogOutput>>> {
+    event!(Level::INFO, "eth_getFilterLogs({filter_id:?})");
+    let mut filters = state.filters.write().await;
+    match filters.get_mut(&filter_id) {
+        Some(filter) => match &mut filter.events {
+            FilteredEvents::Logs(logs) => {
+                let result = Some(std::mem::take(logs));
+                filter.deadline = new_filter_deadline();
+                ResponseData::Success { result }
+            }
+            _ => error_response_data(
+                0,
+                &format!("Subscription {filter_id} is not a logs subscription"),
+            ),
+        },
+        None => ResponseData::Success { result: None },
+    }
+}
+
 async fn handle_get_storage_at(
     state: StateType,
     address: Address,
     position: U256,
     block: Option<BlockSpec>,
-) -> ResponseData<U256WithoutLeadingZeroes> {
+) -> ResponseData<U256> {
     event!(
         Level::INFO,
         "eth_getStorageAt({address:?}, {position:?}, {block:?})"
@@ -260,11 +363,9 @@ async fn handle_get_storage_at(
             let value = state.rethnet_state.read().await.storage(address, position);
             match restore_block_context(&state, previous_state_root).await {
                 Ok(()) => match value {
-                    Ok(value) => ResponseData::Success {
-                        result: value.into(),
-                    },
+                    Ok(value) => ResponseData::Success { result: value },
                     Err(e) => {
-                        error_response_data(&format!("failed to retrieve storage value: {}", e))
+                        error_response_data(0, &format!("failed to retrieve storage value: {e}"))
                     }
                 },
                 Err(e) => e,
@@ -300,12 +401,53 @@ async fn handle_get_transaction_count(
     }
 }
 
-async fn handle_set_balance(state: StateType, address: Address, balance: U256) -> ResponseData<()> {
+async fn handle_impersonate_account(state: StateType, address: Address) -> ResponseData<bool> {
+    event!(Level::INFO, "hardhat_impersonateAccount({address:?})");
+    state.impersonated_accounts.write().await.insert(address);
+    ResponseData::Success { result: true }
+}
+
+async fn get_next_filter_id(state: StateType) -> U256 {
+    let mut last_filter_id = state.last_filter_id.write().await;
+    *last_filter_id = last_filter_id
+        .checked_add(U256::from(1))
+        .expect("filter ID shouldn't overflow");
+    *last_filter_id
+}
+
+async fn handle_net_version(state: StateType) -> ResponseData<String> {
+    event!(Level::INFO, "net_version()");
+    ResponseData::Success {
+        result: state.network_id.to_string(),
+    }
+}
+
+async fn handle_new_pending_transaction_filter(state: StateType) -> ResponseData<U256> {
+    event!(Level::INFO, "eth_newPendingTransactionFilter()");
+    let filter_id = get_next_filter_id(Arc::clone(&state)).await;
+    state.filters.write().await.insert(
+        filter_id,
+        Filter {
+            _criteria: None,
+            deadline: new_filter_deadline(),
+            events: FilteredEvents::NewPendingTransactions(Vec::new()),
+            is_subscription: false,
+        },
+    );
+    ResponseData::Success { result: filter_id }
+}
+
+async fn handle_set_balance(
+    state: StateType,
+    address: Address,
+    balance: U256,
+) -> ResponseData<bool> {
     event!(Level::INFO, "hardhat_setBalance({address:?}, {balance:?})");
-    match state.rethnet_state.write().await.modify_account(
+    let mut state = state.rethnet_state.write().await;
+    match state.modify_account(
         address,
         AccountModifierFn::new(Box::new(move |account_balance, _, _| {
-            *account_balance = balance
+            *account_balance = balance;
         })),
         &|| {
             Ok(AccountInfo {
@@ -316,7 +458,10 @@ async fn handle_set_balance(state: StateType, address: Address, balance: U256) -
             })
         },
     ) {
-        Ok(()) => ResponseData::Success { result: () },
+        Ok(()) => {
+            state.make_snapshot();
+            ResponseData::Success { result: true }
+        }
         Err(e) => ResponseData::new_error(0, &e.to_string(), None),
     }
 }
@@ -325,14 +470,15 @@ async fn handle_set_code(
     state: StateType,
     address: Address,
     code: ZeroXPrefixedBytes,
-) -> ResponseData<()> {
+) -> ResponseData<bool> {
     event!(Level::INFO, "hardhat_setCode({address:?}, {code:?})");
     let code_1 = code.clone();
     let code_2 = code.clone();
-    match state.rethnet_state.write().await.modify_account(
+    let mut state = state.rethnet_state.write().await;
+    match state.modify_account(
         address,
         AccountModifierFn::new(Box::new(move |_, _, account_code| {
-            *account_code = Some(Bytecode::new_raw(code_1.clone().into()))
+            *account_code = Some(Bytecode::new_raw(code_1.clone().into()));
         })),
         &|| {
             Ok(AccountInfo {
@@ -343,16 +489,20 @@ async fn handle_set_code(
             })
         },
     ) {
-        Ok(()) => ResponseData::Success { result: () },
+        Ok(()) => {
+            state.make_snapshot();
+            ResponseData::Success { result: true }
+        }
         Err(e) => ResponseData::new_error(0, &e.to_string(), None),
     }
 }
 
-async fn handle_set_nonce(state: StateType, address: Address, nonce: U256) -> ResponseData<()> {
+async fn handle_set_nonce(state: StateType, address: Address, nonce: U256) -> ResponseData<bool> {
     event!(Level::INFO, "hardhat_setNonce({address:?}, {nonce:?})");
     match TryInto::<u64>::try_into(nonce) {
         Ok(nonce) => {
-            match state.rethnet_state.write().await.modify_account(
+            let mut state = state.rethnet_state.write().await;
+            match state.modify_account(
                 address,
                 AccountModifierFn::new(Box::new(move |_, account_nonce, _| *account_nonce = nonce)),
                 &|| {
@@ -364,7 +514,10 @@ async fn handle_set_nonce(state: StateType, address: Address, nonce: U256) -> Re
                     })
                 },
             ) {
-                Ok(()) => ResponseData::Success { result: () },
+                Ok(()) => {
+                    state.make_snapshot();
+                    ResponseData::Success { result: true }
+                }
                 Err(error) => ResponseData::new_error(0, &error.to_string(), None),
             }
         }
@@ -377,20 +530,29 @@ async fn handle_set_storage_at(
     address: Address,
     position: U256,
     value: U256,
-) -> ResponseData<()> {
+) -> ResponseData<bool> {
     event!(
         Level::INFO,
         "hardhat_setStorageAt({address:?}, {position:?}, {value:?})"
     );
-    match state
-        .rethnet_state
-        .write()
-        .await
-        .set_account_storage_slot(address, position, value)
-    {
-        Ok(()) => ResponseData::Success { result: () },
+    let mut state = state.rethnet_state.write().await;
+    match state.set_account_storage_slot(address, position, value) {
+        Ok(()) => {
+            state.make_snapshot();
+            ResponseData::Success { result: true }
+        }
         Err(e) => ResponseData::new_error(0, &e.to_string(), None),
     }
+}
+
+fn handle_net_listening() -> ResponseData<bool> {
+    event!(Level::INFO, "net_listening()");
+    ResponseData::Success { result: true }
+}
+
+fn handle_net_peer_count() -> ResponseData<U64WithoutLeadingZeroes> {
+    event!(Level::INFO, "net_peerCount()");
+    ResponseData::Success { result: 0.into() }
 }
 
 fn handle_sign(
@@ -404,6 +566,59 @@ fn handle_sign(
             result: Signature::new(&Bytes::from(message.clone())[..], private_key),
         },
         None => ResponseData::new_error(0, "{address} is not an account owned by this node", None),
+    }
+}
+
+async fn handle_stop_impersonating_account(
+    state: StateType,
+    address: Address,
+) -> ResponseData<bool> {
+    event!(Level::INFO, "hardhat_stopImpersonatingAccount({address:?})");
+    ResponseData::Success {
+        result: state.impersonated_accounts.write().await.remove(&address),
+    }
+}
+
+async fn remove_filter<const IS_SUBSCRIPTION: bool>(
+    state: StateType,
+    filter_id: U256,
+) -> ResponseData<bool> {
+    let mut filters = state.filters.write().await;
+    let result = if let Some(filter) = filters.get(&filter_id) {
+        filter.is_subscription == IS_SUBSCRIPTION && filters.remove(&filter_id).is_some()
+    } else {
+        false
+    };
+    ResponseData::Success { result }
+}
+
+async fn handle_uninstall_filter(state: StateType, filter_id: U256) -> ResponseData<bool> {
+    event!(Level::INFO, "eth_uninstallFilter({filter_id:?})");
+    remove_filter::<false>(state, filter_id).await
+}
+
+async fn handle_unsubscribe(state: StateType, filter_id: U256) -> ResponseData<bool> {
+    event!(Level::INFO, "eth_unsubscribe({filter_id:?})");
+    remove_filter::<true>(state, filter_id).await
+}
+
+fn handle_web3_client_version() -> ResponseData<String> {
+    event!(Level::INFO, "web3_clientVersion()");
+    ResponseData::Success {
+        result: format!(
+            "edr/{}/revm/{}",
+            env!("CARGO_PKG_VERSION"),
+            env!("REVM_VERSION"),
+        ),
+    }
+}
+
+fn handle_web3_sha3(message: ZeroXPrefixedBytes) -> ResponseData<B256> {
+    event!(Level::INFO, "web3_sha3({message:?})");
+    let message: Bytes = message.into();
+    let hash = Keccak256::digest(&message[..]);
+    ResponseData::Success {
+        result: B256::from_slice(&hash[..]),
     }
 }
 
@@ -434,9 +649,10 @@ async fn handle_request(
             method: _,
         } if *version != jsonrpc::Version::V2_0 => response(
             id,
-            error_response_data::<serde_json::Value>(&format!(
-                "unsupported JSON-RPC version '{version:?}'"
-            )),
+            error_response_data::<serde_json::Value>(
+                0,
+                &format!("unsupported JSON-RPC version '{version:?}'"),
+            ),
         ),
         RpcRequest {
             version: _,
@@ -447,11 +663,23 @@ async fn handle_request(
                 MethodInvocation::Eth(EthMethodInvocation::Accounts()) => {
                     response(id, handle_accounts(state).await)
                 }
+                MethodInvocation::Eth(EthMethodInvocation::ChainId()) => {
+                    response(id, handle_chain_id(state))
+                }
+                MethodInvocation::Eth(EthMethodInvocation::Coinbase()) => {
+                    response(id, handle_coinbase(state).await)
+                }
                 MethodInvocation::Eth(EthMethodInvocation::GetBalance(address, block)) => {
                     response(id, handle_get_balance(state, *address, block.clone()).await)
                 }
                 MethodInvocation::Eth(EthMethodInvocation::GetCode(address, block)) => {
                     response(id, handle_get_code(state, *address, block.clone()).await)
+                }
+                MethodInvocation::Eth(EthMethodInvocation::GetFilterChanges(filter_id)) => {
+                    response(id, handle_get_filter_changes(state, *filter_id).await)
+                }
+                MethodInvocation::Eth(EthMethodInvocation::GetFilterLogs(filter_id)) => {
+                    response(id, handle_get_filter_logs(state, *filter_id).await)
                 }
                 MethodInvocation::Eth(EthMethodInvocation::GetStorageAt(
                     address,
@@ -467,8 +695,35 @@ async fn handle_request(
                         handle_get_transaction_count(state, *address, block.clone()).await,
                     )
                 }
+                MethodInvocation::Eth(EthMethodInvocation::NetListening()) => {
+                    response(id, handle_net_listening())
+                }
+                MethodInvocation::Eth(EthMethodInvocation::NetPeerCount()) => {
+                    response(id, handle_net_peer_count())
+                }
+                MethodInvocation::Eth(EthMethodInvocation::NetVersion()) => {
+                    response(id, handle_net_version(state).await)
+                }
+                MethodInvocation::Eth(EthMethodInvocation::NewPendingTransactionFilter()) => {
+                    response(id, handle_new_pending_transaction_filter(state).await)
+                }
                 MethodInvocation::Eth(EthMethodInvocation::Sign(address, message)) => {
                     response(id, handle_sign(state, address, message))
+                }
+                MethodInvocation::Eth(EthMethodInvocation::Web3ClientVersion()) => {
+                    response(id, handle_web3_client_version())
+                }
+                MethodInvocation::Eth(EthMethodInvocation::Web3Sha3(message)) => {
+                    response(id, handle_web3_sha3(message.clone()))
+                }
+                MethodInvocation::Eth(EthMethodInvocation::UninstallFilter(filter_id)) => {
+                    response(id, handle_uninstall_filter(state, *filter_id).await)
+                }
+                MethodInvocation::Eth(EthMethodInvocation::Unsubscribe(subscription_id)) => {
+                    response(id, handle_unsubscribe(state, *subscription_id).await)
+                }
+                MethodInvocation::Hardhat(HardhatMethodInvocation::ImpersonateAccount(address)) => {
+                    response(id, handle_impersonate_account(state, *address).await)
                 }
                 MethodInvocation::Hardhat(HardhatMethodInvocation::SetBalance(
                     address,
@@ -488,10 +743,13 @@ async fn handle_request(
                     id,
                     handle_set_storage_at(state, *address, *position, *value).await,
                 ),
+                MethodInvocation::Hardhat(HardhatMethodInvocation::StopImpersonatingAccount(
+                    address,
+                )) => response(id, handle_stop_impersonating_account(state, *address).await),
                 // TODO: after adding all the methods here, eliminate this
                 // catch-all match arm:
                 _ => {
-                    let msg = format!("Method not found for invocation '{:?}'", method,);
+                    let msg = format!("Method not found for invocation '{method:?}'");
                     response(
                         id,
                         ResponseData::<serde_json::Value>::new_error(-32601, &msg, None),
@@ -589,7 +847,7 @@ impl Server {
                         },
                     )| {
                         let address = public_key_to_address(private_key.public_key(&secp256k1));
-                        event!(Level::INFO, "Account #{i}: {address:?}");
+                        event!(Level::INFO, "Account #{}: {address:?}", i + 1);
                         event!(
                             Level::INFO,
                             "Private Key: 0x{}",
@@ -610,6 +868,13 @@ impl Server {
                 )
                 .unzip()
         };
+
+        let chain_id = config.chain_id;
+        let coinbase = config.coinbase;
+        let filters = RwLock::new(HashMap::default());
+        let impersonated_accounts = RwLock::new(HashSet::new());
+        let last_filter_id = RwLock::new(U256::ZERO);
+        let network_id = config.network_id;
 
         let rethnet_state: StateType =
             if let Some(config) = config.rpc_hardhat_network_config.forking {
@@ -639,16 +904,28 @@ impl Server {
                         fork_block_number,
                         genesis_accounts,
                     )))),
+                    chain_id,
+                    coinbase,
+                    filters,
                     fork_block_number: Some(fork_block_number),
+                    impersonated_accounts,
+                    last_filter_id,
                     local_accounts,
+                    network_id,
                 })
             } else {
                 Arc::new(AppState {
                     rethnet_state: Arc::new(RwLock::new(Box::new(HybridState::with_accounts(
                         genesis_accounts,
                     )))),
+                    chain_id,
+                    coinbase,
+                    filters,
                     fork_block_number: None,
+                    impersonated_accounts,
+                    last_filter_id,
                     local_accounts,
+                    network_id,
                 })
             };
 

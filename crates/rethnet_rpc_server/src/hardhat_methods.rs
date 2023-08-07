@@ -1,13 +1,12 @@
 use rethnet_eth::{
-    remote::ZeroXPrefixedBytes,
-    serde::{sequence_to_single, single_to_sequence},
+    serde::{sequence_to_single, single_to_sequence, ZeroXPrefixedBytes},
     Address, B256, U256,
 };
 
 /// Compiler input and output structures used as parameters to Hardhat RPC methods
 pub mod add_compilation_result;
 
-/// input types for use with hardhat_reset
+/// input types for use with `hardhat_reset`
 pub mod reset;
 
 /// an invocation of a hardhat_* RPC method, with its parameters

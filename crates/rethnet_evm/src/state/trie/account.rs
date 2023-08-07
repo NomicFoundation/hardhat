@@ -109,7 +109,7 @@ impl AccountTrie {
                     } else {
                         Self::remove_account_in(address, &mut state_trie, &mut storage_trie_dbs);
                     }
-                })
+                });
             });
 
             B256::from_slice(&state_trie.root().unwrap())
@@ -176,7 +176,7 @@ impl AccountTrie {
 
         changes.iter().for_each(|(address, account)| {
             if account.is_touched() {
-                if account.is_selfdestructed() {
+                if account.is_selfdestructed() | account.is_empty() {
                     // Removes account only if it exists, so safe to use for empty, touched accounts
                     Self::remove_account_in(address, &mut state_trie, &mut self.storage_trie_dbs);
                 } else {
@@ -200,8 +200,7 @@ impl AccountTrie {
                             (storage_trie_db, storage_root)
                         });
 
-                    let storage_changed = account.is_newly_created() || !account.storage.is_empty();
-                    if storage_changed {
+                    if !account.storage.is_empty() {
                         let mut storage_trie = Trie::from(
                             storage_trie_db.clone(),
                             Arc::new(HasherKeccak::new()),
@@ -310,13 +309,6 @@ impl AccountTrie {
     /// Serializes the state using ordering of addresses and storage indices.
     #[cfg_attr(feature = "tracing", tracing::instrument)]
     pub fn serialize(&self) -> String {
-        let state_trie = Trie::from(
-            self.state_trie_db.clone(),
-            Arc::new(HasherKeccak::new()),
-            self.state_root.as_bytes(),
-        )
-        .expect("Invalid state root");
-
         #[derive(serde::Serialize)]
         struct StateAccount {
             /// Balance of the account.
@@ -331,6 +323,13 @@ impl AccountTrie {
             pub storage_root: B256,
         }
 
+        let state_trie = Trie::from(
+            self.state_trie_db.clone(),
+            Arc::new(HasherKeccak::new()),
+            self.state_root.as_bytes(),
+        )
+        .expect("Invalid state root");
+
         let state: BTreeMap<Address, StateAccount> = self
             .storage_trie_dbs
             .iter()
@@ -339,7 +338,7 @@ impl AccountTrie {
                 let account = state_trie
                     .get(&hashed_address)
                     .unwrap()
-                    .unwrap_or_else(|| panic!("Account with address '{}' and hashed address '{:?}' must exist in state, if a storage trie is stored for it", address, hashed_address));
+                    .unwrap_or_else(|| panic!("Account with address '{address}' and hashed address '{hashed_address:?}' must exist in state, if a storage trie is stored for it"));
 
                 let account: BasicAccount = rlp::decode(&account).unwrap();
 

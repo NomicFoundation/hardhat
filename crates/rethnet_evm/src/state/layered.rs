@@ -125,7 +125,7 @@ impl StateDebug for LayeredState<RethnetLayer> {
         );
 
         let new_code = account_info.code.take();
-        let new_code_hash = new_code.as_ref().map_or(KECCAK_EMPTY, |code| code.hash());
+        let new_code_hash = new_code.as_ref().map_or(KECCAK_EMPTY, Bytecode::hash);
         account_info.code_hash = new_code_hash;
 
         let code_change = old_code_hash != new_code_hash;
@@ -197,7 +197,7 @@ impl StateHistory for LayeredState<RethnetLayer> {
 
     #[cfg_attr(feature = "tracing", tracing::instrument)]
     fn remove_snapshot(&mut self, state_root: &B256) {
-        self.snapshots.remove(state_root)
+        self.snapshots.remove(state_root);
     }
 
     #[cfg_attr(feature = "tracing", tracing::instrument)]
@@ -269,6 +269,8 @@ impl StateHistory for LayeredState<RethnetLayer> {
 
 #[cfg(test)]
 mod tests {
+    use std::cell::RefCell;
+
     use super::*;
 
     use rethnet_eth::Bytes;
@@ -289,7 +291,7 @@ mod tests {
 
     #[test]
     fn repro_remove_code_panic_with_attempt_to_subtract_with_overflow() {
-        let state: std::cell::RefCell<LayeredState<RethnetLayer>> = Default::default();
+        let state = RefCell::new(LayeredState::default());
 
         let seed = 1;
         let address = Address::from_low_u64_ne(seed);
@@ -341,7 +343,7 @@ mod tests {
 
     #[test]
     fn repro_repeated_remove_and_insert_account_has_no_effect() {
-        let state: std::cell::RefCell<LayeredState<RethnetLayer>> = Default::default();
+        let state = RefCell::new(LayeredState::default());
 
         let address = Address::from_low_u64_ne(1);
 

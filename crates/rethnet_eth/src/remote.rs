@@ -1,8 +1,14 @@
+use std::fmt;
+use std::fmt::{Display, Formatter};
+
 /// an Ethereum JSON-RPC client
 pub mod client;
 
 /// ethereum objects as specifically used in the JSON-RPC interface
 pub mod eth;
+
+/// data types for use with filter-based RPC methods
+pub mod filter;
 
 /// data types specific to JSON-RPC but not specific to Ethereum.
 pub mod jsonrpc;
@@ -11,8 +17,6 @@ pub mod jsonrpc;
 pub mod methods;
 
 mod withdrawal;
-
-use bytes::Bytes;
 
 use crate::{B256, U256};
 
@@ -54,6 +58,12 @@ pub enum Eip1898BlockSpec {
     },
 }
 
+impl Display for Eip1898BlockSpec {
+    fn fmt(&self, formatter: &mut Formatter<'_>) -> Result<(), fmt::Error> {
+        formatter.write_str(&serde_json::to_string(self).map_err(|_error| fmt::Error)?)
+    }
+}
+
 /// possible block tags as defined by the Ethereum JSON-RPC specification
 #[derive(Clone, Debug, PartialEq, serde::Deserialize, serde::Serialize)]
 pub enum BlockTag {
@@ -74,6 +84,18 @@ pub enum BlockTag {
     Finalized,
 }
 
+impl Display for BlockTag {
+    fn fmt(&self, formatter: &mut Formatter<'_>) -> Result<(), fmt::Error> {
+        formatter.write_str(match self {
+            BlockTag::Earliest => "earliest",
+            BlockTag::Latest => "latest",
+            BlockTag::Pending => "pending",
+            BlockTag::Safe => "safe",
+            BlockTag::Finalized => "finalized",
+        })
+    }
+}
+
 /// For specifying a block
 #[derive(Clone, Debug, PartialEq, serde::Deserialize, serde::Serialize)]
 #[serde(untagged)]
@@ -89,91 +111,43 @@ pub enum BlockSpec {
 
 impl BlockSpec {
     /// Constructs an instance for the earliest block.
+    #[must_use]
     pub fn earliest() -> Self {
         Self::Tag(BlockTag::Earliest)
     }
 
     /// Constructs an instance for the latest block.
+    #[must_use]
     pub fn latest() -> Self {
         Self::Tag(BlockTag::Latest)
     }
 
     /// Constructs an instance for the pending block.
+    #[must_use]
     pub fn pending() -> Self {
         Self::Tag(BlockTag::Pending)
     }
 
     /// Constructs an instance for the safe block.
+    #[must_use]
     pub fn safe() -> Self {
         Self::Tag(BlockTag::Safe)
     }
 
     /// Constructs an instance for the finalized block.
+    #[must_use]
     pub fn finalized() -> Self {
         Self::Tag(BlockTag::Finalized)
     }
 }
 
-/// for specifying a bytes string that will have a 0x prefix when serialized and
-/// deserialized
-#[derive(Clone, Debug, PartialEq)]
-pub struct ZeroXPrefixedBytes {
-    inner: Bytes,
-}
-
-impl From<Bytes> for ZeroXPrefixedBytes {
-    fn from(b: Bytes) -> Self {
-        ZeroXPrefixedBytes { inner: b }
-    }
-}
-
-impl From<ZeroXPrefixedBytes> for Bytes {
-    fn from(z: ZeroXPrefixedBytes) -> Self {
-        z.inner
-    }
-}
-
-impl<'a> serde::Deserialize<'a> for ZeroXPrefixedBytes {
-    fn deserialize<D>(deserializer: D) -> Result<ZeroXPrefixedBytes, D::Error>
-    where
-        D: serde::Deserializer<'a>,
-    {
-        struct ZeroXPrefixedBytesVisitor;
-        impl<'a> serde::de::Visitor<'a> for ZeroXPrefixedBytesVisitor {
-            type Value = ZeroXPrefixedBytes;
-
-            fn expecting(&self, formatter: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-                formatter.write_str("a 0x-prefixed string of hex digits")
-            }
-
-            fn visit_str<E>(self, value: &str) -> Result<Self::Value, E>
-            where
-                E: serde::de::Error,
-            {
-                if &value[0..=1] != "0x" {
-                    Err(serde::de::Error::custom(format!(
-                        "string \"{value}\" does not have a '0x' prefix"
-                    )))
-                } else {
-                    Ok(Bytes::from(
-                        hex::decode(&value[2..])
-                            .unwrap_or_else(|_| panic!("failed to decode hex string \"{value}\"")),
-                    )
-                    .into())
-                }
-            }
+impl Display for BlockSpec {
+    fn fmt(&self, formatter: &mut Formatter<'_>) -> Result<(), fmt::Error> {
+        match self {
+            BlockSpec::Number(n) => n.fmt(formatter),
+            BlockSpec::Tag(t) => t.fmt(formatter),
+            BlockSpec::Eip1898(e) => e.fmt(formatter),
         }
-
-        deserializer.deserialize_identifier(ZeroXPrefixedBytesVisitor)
-    }
-}
-
-impl serde::Serialize for ZeroXPrefixedBytes {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: serde::Serializer,
-    {
-        serializer.serialize_str(&format!("0x{}", hex::encode(&self.inner)))
     }
 }
 

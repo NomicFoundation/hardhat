@@ -17,7 +17,7 @@ use std::{
 
 use napi::{check_status, sys, Env, JsError, JsFunction, NapiValue, Result, Status};
 
-/// ThreadSafeFunction Context object
+/// `ThreadSafeFunction` context object
 /// the `value` is the value passed to `call` method
 pub struct ThreadSafeCallContext<T: 'static> {
     pub env: Env,
@@ -137,7 +137,7 @@ impl<T: 'static> ThreadsafeFunction<T> {
 
         let initial_thread_count = 1usize;
         let mut raw_tsfn = ptr::null_mut();
-        let ptr = Box::into_raw(Box::new(callback)) as *mut c_void;
+        let ptr = Box::into_raw(Box::new(callback)).cast::<c_void>();
         check_status!(unsafe {
             sys::napi_create_threadsafe_function(
                 env,
@@ -179,7 +179,7 @@ impl<T: 'static> ThreadsafeFunction<T> {
         unsafe {
             sys::napi_call_threadsafe_function(
                 self.raw_tsfn,
-                Box::into_raw(Box::new(value)) as *mut _,
+                Box::into_raw(Box::new(value)).cast(),
                 mode.into(),
             )
         }
@@ -267,12 +267,12 @@ unsafe extern "C" fn call_js_cb<T: 'static, R>(
         assert!(stat == sys::Status::napi_ok || stat == sys::Status::napi_pending_exception);
     } else {
         let error_code: Status = status.into();
-        let error_code_string = format!("{:?}", error_code);
+        let error_code_string = format!("{error_code:?}");
         let mut error_code_value = ptr::null_mut();
         assert_eq!(
             sys::napi_create_string_utf8(
                 raw_env,
-                error_code_string.as_ptr() as *const _,
+                error_code_string.as_ptr().cast(),
                 error_code_string.len(),
                 &mut error_code_value,
             ),
@@ -283,7 +283,7 @@ unsafe extern "C" fn call_js_cb<T: 'static, R>(
         assert_eq!(
             sys::napi_create_string_utf8(
                 raw_env,
-                error_msg.as_ptr() as *const _,
+                error_msg.as_ptr().cast(),
                 error_msg.len(),
                 &mut error_msg_value,
             ),

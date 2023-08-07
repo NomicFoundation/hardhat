@@ -59,7 +59,7 @@ impl RethnetContext {
 pub struct Context {
     runtime: Arc<Runtime>,
     mix_hash_generator: Arc<Mutex<RandomHashGenerator>>,
-    state_root_generator: Arc<Mutex<RandomHashGenerator>>,
+    pub state_root_generator: Arc<Mutex<RandomHashGenerator>>,
     #[cfg(feature = "tracing")]
     _tracing_write_guard: tracing_flame::FlushGuard<std::io::BufWriter<std::fs::File>>,
 }
@@ -109,11 +109,6 @@ impl Context {
             #[cfg(feature = "tracing")]
             _tracing_write_guard: guard,
         })
-    }
-
-    /// Retrieves the context's hash generator.
-    pub fn hash_generator(&self) -> &Arc<Mutex<RandomHashGenerator>> {
-        &self.state_root_generator
     }
 
     /// Retrieves the context's runtime.

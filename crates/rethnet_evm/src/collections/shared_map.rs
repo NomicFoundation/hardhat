@@ -64,7 +64,7 @@ where
     pub fn insert(&mut self, key: K, value: V) {
         self.entries
             .entry(key)
-            .and_modify(|entry| entry.increment())
+            .and_modify(SharedMapEntry::increment)
             .or_insert_with(|| SharedMapEntry::new(value));
     }
 
@@ -76,7 +76,7 @@ where
     {
         self.entries
             .entry(key)
-            .and_modify(|entry| entry.increment())
+            .and_modify(SharedMapEntry::increment)
             .or_insert_with(|| SharedMapEntry::new(constructor()));
     }
 }
@@ -137,7 +137,7 @@ where
 impl<K, V, const DELETE_UNUSED_ENTRY: bool> Default for SharedMap<K, V, DELETE_UNUSED_ENTRY> {
     fn default() -> Self {
         Self {
-            entries: Default::default(),
+            entries: HashMap::default(),
         }
     }
 }

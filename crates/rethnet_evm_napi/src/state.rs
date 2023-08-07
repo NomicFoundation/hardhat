@@ -97,6 +97,7 @@ impl StateManager {
     where
         S: SyncState<StateError>,
     {
+        // Signal that memory was externally allocated
         env.adjust_external_memory(STATE_MEMORY_SIZE)?;
 
         Ok(Self {
@@ -164,7 +165,7 @@ impl StateManager {
             context,
             ForkState::new(
                 context.runtime().clone(),
-                context.hash_generator().clone(),
+                context.state_root_generator.clone(),
                 remote_node_url.into_utf8()?.as_str()?,
                 fork_block_number,
                 accounts,
@@ -406,7 +407,7 @@ impl StateManager {
                                 env.adjust_external_memory(-(code.len() as i64))
                                     .expect("Failed to adjust external memory");
 
-                                mem::forget(code);
+                                mem::drop(code);
                             },
                         )
                     }
@@ -502,10 +503,10 @@ impl StateManager {
             .runtime()
             .spawn(async move {
                 let mut state = state.write().await;
-                state.remove_snapshot(&state_root)
+                state.remove_snapshot(&state_root);
             })
             .await
-            .unwrap()
+            .unwrap();
     }
 
     /// Serializes the state using ordering of addresses and storage indices.
@@ -577,6 +578,7 @@ impl StateManager {
 impl ObjectFinalize for StateManager {
     #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     fn finalize(self, mut env: Env) -> napi::Result<()> {
+        // Signal that the externally allocated memory has been freed
         env.adjust_external_memory(-STATE_MEMORY_SIZE)?;
 
         Ok(())

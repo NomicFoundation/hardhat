@@ -58,7 +58,7 @@ impl MemPool {
         self.next_account_nonces.get(address)
     }
 
-    /// Tries to add the provided transaction to the [`Pool`].
+    /// Tries to add the provided transaction to the [`MemPool`].
     pub fn add_transaction<S: StateRef + ?Sized>(
         &mut self,
         state: &S,
@@ -90,7 +90,7 @@ impl MemPool {
         None
     }
 
-    /// Updates the [`Pool`], moving any future transactions to the pending status, if their nonces are high enough.
+    /// Updates the [`MemPool`], moving any future transactions to the pending status, if their nonces are high enough.
     pub fn update<S>(&mut self, state: &S)
     where
         S: StateRef + ?Sized,
@@ -99,7 +99,7 @@ impl MemPool {
         let mut future_transactions = Vec::with_capacity(self.future_transactions.capacity());
         std::mem::swap(&mut self.future_transactions, &mut future_transactions);
 
-        for transaction in future_transactions.into_iter() {
+        for transaction in future_transactions {
             self.add_transaction_impl(state, transaction)
                 .expect("All future transactions have already been validated");
         }
@@ -140,10 +140,7 @@ impl MemPool {
             });
         }
 
-        let account = state.basic(*transaction.caller())?;
-
-        // Question: Must the account exist?
-        let account = account.unwrap_or_default();
+        let account = state.basic(*transaction.caller())?.unwrap_or_default();
 
         let next_nonce = self
             .last_pending_nonce(transaction.caller())
