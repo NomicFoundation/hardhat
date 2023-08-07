@@ -914,13 +914,6 @@ impl Server {
                 .unzip()
         };
 
-        let chain_id = config.chain_id;
-        let coinbase = config.coinbase;
-        let filters = RwLock::new(HashMap::default());
-        let impersonated_accounts = RwLock::new(HashSet::new());
-        let last_filter_id = RwLock::new(U256::ZERO);
-        let _mem_pool = Arc::new(RwLock::new(MemPool::new(config.block_gas_limit)));
-        let network_id = config.network_id;
         let spec_id = config.hardfork;
 
         let (rethnet_state, blockchain, fork_block_number): (
@@ -977,15 +970,15 @@ impl Server {
         let app_state = Arc::new(AppState {
             blockchain,
             rethnet_state,
-            chain_id,
-            coinbase,
-            filters,
+            chain_id: config.chain_id,
+            coinbase: config.coinbase,
+            filters: RwLock::new(HashMap::default()),
             fork_block_number,
-            impersonated_accounts,
-            last_filter_id,
+            impersonated_accounts: RwLock::new(HashSet::new()),
+            last_filter_id: RwLock::new(U256::ZERO),
             local_accounts,
-            _mem_pool,
-            network_id,
+            _mem_pool: Arc::new(RwLock::new(MemPool::new(config.block_gas_limit))),
+            network_id: config.network_id,
         });
 
         Ok(Self {
