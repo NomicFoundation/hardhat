@@ -105,40 +105,39 @@ where
     let args = Cli::parse_from(args);
     match args.command {
         Command::Node(node_args) => {
-                tracing_subscriber::fmt::Subscriber::builder()
-                    .with_max_level(match node_args.verbose {
-                        0 => Level::ERROR,
-                        1 => Level::WARN,
-                        2 => Level::INFO,
-                        3 => Level::DEBUG,
-                        4 => Level::TRACE,
-                        _ => Err(anyhow!(
-                            "Specifying --verbose more than 4 times is unsupported"
-                        ))?,
-                    })
-                    .init();
+            tracing_subscriber::fmt::Subscriber::builder()
+                .with_max_level(match node_args.verbose {
+                    0 => Level::ERROR,
+                    1 => Level::WARN,
+                    2 => Level::INFO,
+                    3 => Level::DEBUG,
+                    4 => Level::TRACE,
+                    _ => Err(anyhow!(
+                        "Specifying --verbose more than 4 times is unsupported"
+                    ))?,
+                })
+                .init();
 
-                let config_file = if Path::new(&node_args.config_file).exists() {
-                    let mut contents = String::new();
-                    fs::read_to_string(&mut contents)?;
-                    toml::from_str(&contents)?
-                } else if node_args.config_file != DEFAULT_CONFIG_FILE_NAME {
-                    Err(anyhow!(
-                        "Failed to open config file {}",
-                        node_args.config_file
-                    ))?
-                } else {
-                    ConfigFile::default()
-                };
+            let config_file = if Path::new(&node_args.config_file).exists() {
+                let mut contents = String::new();
+                fs::read_to_string(&mut contents)?;
+                toml::from_str(&contents)?
+            } else if node_args.config_file != DEFAULT_CONFIG_FILE_NAME {
+                Err(anyhow!(
+                    "Failed to open config file {}",
+                    node_args.config_file
+                ))?
+            } else {
+                ConfigFile::default()
+            };
 
-                let server =
-                    rethnet_rpc_server::Server::new(config_file.to_server_config(node_args)?)
-                        .await?;
+            let server =
+                rethnet_rpc_server::Server::new(config_file.to_server_config(node_args)?).await?;
 
-                Ok(server
-                    .serve_with_shutdown_signal(await_signal())
-                    .await
-                    .map(|_| ExitStatus::Success)?)
+            Ok(server
+                .serve_with_shutdown_signal(await_signal())
+                .await
+                .map(|_| ExitStatus::Success)?)
         }
         Command::InitConfigFile => fs::write(
             DEFAULT_CONFIG_FILE_NAME,
