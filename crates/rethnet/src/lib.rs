@@ -24,6 +24,8 @@ struct Cli {
 #[allow(clippy::large_enum_variant)]
 enum Command {
     Node(NodeArgs),
+    /// Write default configuration values to edr.toml, overwriting any existing file.
+    InitConfigFile,
 }
 
 const DEFAULT_CONFIG_FILE_NAME: &str = "edr.toml";
@@ -36,9 +38,6 @@ pub struct NodeArgs {
     port: u16,
     #[clap(long, default_value = DEFAULT_CONFIG_FILE_NAME)]
     config_file: String,
-    /// Instead of starting the node, overwrite edr.toml with default configuration values
-    #[clap(long, action = clap::ArgAction::SetTrue)]
-    init_config_file: bool,
     #[clap(long)]
     fork_url: Option<String>,
     #[clap(long)]
@@ -106,14 +105,6 @@ where
     let args = Cli::parse_from(args);
     match args.command {
         Command::Node(node_args) => {
-            if node_args.init_config_file {
-                fs::write(
-                    DEFAULT_CONFIG_FILE_NAME,
-                    toml::to_string(&ConfigFile::default())?,
-                )
-                .map_err(|e| anyhow!("failed to write config file: {e}"))
-                .map(|_| ExitStatus::Success)
-            } else {
                 tracing_subscriber::fmt::Subscriber::builder()
                     .with_max_level(match node_args.verbose {
                         0 => Level::ERROR,
@@ -148,7 +139,12 @@ where
                     .serve_with_shutdown_signal(await_signal())
                     .await
                     .map(|_| ExitStatus::Success)?)
-            }
         }
+        Command::InitConfigFile => fs::write(
+            DEFAULT_CONFIG_FILE_NAME,
+            toml::to_string(&ConfigFile::default())?,
+        )
+        .map_err(|e| anyhow!("failed to write config file: {e}"))
+        .map(|_| ExitStatus::Success),
     }
 }
