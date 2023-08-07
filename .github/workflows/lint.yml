@@ -6,6 +6,7 @@ on:
   pull_request:
     branches:
       - "**"
+  workflow_dispatch:
 
 concurrency:
   group: ${{github.workflow}}-${{github.ref}}

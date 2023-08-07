@@ -14,6 +14,7 @@ on:
       - "packages/hardhat-foundry/**"
       - "packages/hardhat-common/**"
       - "config/**"
+  workflow_dispatch:
 
 defaults:
   run:
