@@ -109,11 +109,11 @@ pub enum Error {
 /// `require_canonical`: whether the server should additionally raise a JSON-RPC error if the block
 /// is not in the canonical chain
 async fn _block_number_from_hash<T>(
-    state: &StateType,
+    blockchain: &dyn SyncBlockchain<BlockchainError>,
     block_hash: &B256,
     _require_canonical: bool,
 ) -> Result<U256, ResponseData<T>> {
-    match state.blockchain.read().await.block_by_hash(block_hash) {
+    match blockchain.block_by_hash(block_hash) {
         Ok(Some(block)) => Ok(block.header.number),
         Ok(None) => Err(error_response_data(
             0,
@@ -127,7 +127,7 @@ async fn _block_number_from_hash<T>(
 }
 
 async fn _block_number_from_block_spec<T>(
-    state: &StateType,
+    blockchain: &dyn SyncBlockchain<BlockchainError>,
     block_spec: &BlockSpec,
 ) -> Result<U256, ResponseData<T>> {
     match block_spec {
@@ -135,23 +135,25 @@ async fn _block_number_from_block_spec<T>(
         BlockSpec::Tag(tag) => match tag {
             BlockTag::Earliest => Ok(U256::ZERO),
             BlockTag::Safe | BlockTag::Finalized => {
-                confirm_post_merge_hardfork(state).await?;
-                Ok(state.blockchain.read().await.last_block_number())
+                confirm_post_merge_hardfork(blockchain).await?;
+                Ok(blockchain.last_block_number())
             }
-            BlockTag::Latest | BlockTag::Pending => {
-                Ok(state.blockchain.read().await.last_block_number())
-            }
+            BlockTag::Latest | BlockTag::Pending => Ok(blockchain.last_block_number()),
         },
         BlockSpec::Eip1898(Eip1898BlockSpec::Hash {
             block_hash,
             require_canonical,
-        }) => _block_number_from_hash(state, block_hash, require_canonical.unwrap_or(false)).await,
+        }) => {
+            _block_number_from_hash(blockchain, block_hash, require_canonical.unwrap_or(false))
+                .await
+        }
         BlockSpec::Eip1898(Eip1898BlockSpec::Number { block_number }) => Ok(*block_number),
     }
 }
 
-async fn confirm_post_merge_hardfork<T>(state: &StateType) -> Result<(), ResponseData<T>> {
-    let blockchain = state.blockchain.read().await;
+async fn confirm_post_merge_hardfork<T>(
+    blockchain: &dyn SyncBlockchain<BlockchainError>,
+) -> Result<(), ResponseData<T>> {
     let last_block_number = blockchain.last_block_number();
     let post_merge = blockchain.block_supports_spec(&last_block_number, SpecId::MERGE).map_err(|e| error_response_data(0, &format!("Failed to determine whether block {last_block_number} supports the merge hardfork: {e}")))?;
     if post_merge {
@@ -208,7 +210,7 @@ async fn set_block_context<T>(
                         Some(BlockSpec::Tag(tag)) => match tag {
                             BlockTag::Earliest => Ok(U256::ZERO),
                             BlockTag::Safe | BlockTag::Finalized => {
-                                confirm_post_merge_hardfork(state).await?;
+                                confirm_post_merge_hardfork(&*blockchain).await?;
                                 Ok(latest_block_number)
                             }
                             BlockTag::Latest => Ok(latest_block_number),
