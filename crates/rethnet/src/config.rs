@@ -15,7 +15,7 @@ use serde::{Deserialize, Serialize};
 pub use super::NodeArgs;
 
 mod number;
-pub use number::{Number, NumberForU256, NumberForU64};
+pub use number::{u256_number, u64_number, Number};
 
 /// the default private keys from which the local accounts will be derived.
 pub const DEFAULT_PRIVATE_KEYS: [&str; 20] = [
@@ -48,14 +48,19 @@ pub const DEFAULT_PRIVATE_KEYS: [&str; 20] = [
 pub struct ConfigFile {
     // TODO: expand this per https://github.com/NomicFoundation/rethnet/issues/111
     pub accounts: Vec<AccountConfig>,
-    pub block_gas_limit: NumberForU256,
-    pub chain_id: NumberForU64,
+    #[serde(deserialize_with = "u256_number")]
+    pub block_gas_limit: Number,
+    #[serde(deserialize_with = "u64_number")]
+    pub chain_id: Number,
     pub coinbase: Address,
-    pub gas: NumberForU256,
+    #[serde(deserialize_with = "u256_number")]
+    pub gas: Number,
     pub hardfork: SpecId,
-    pub initial_base_fee_per_gas: NumberForU256,
+    #[serde(deserialize_with = "u256_number")]
+    pub initial_base_fee_per_gas: Number,
     pub initial_date: Option<SystemTime>,
-    pub network_id: NumberForU64,
+    #[serde(deserialize_with = "u64_number")]
+    pub network_id: Number,
 }
 
 impl ConfigFile {
@@ -104,8 +109,8 @@ impl ConfigFile {
 impl Default for ConfigFile {
     fn default() -> Self {
         // default values taken from https://hardhat.org/hardhat-network/docs/reference
-        let block_gas_limit = NumberForU256(Number::U256(U256::from(30_000_000)));
-        let chain_id = NumberForU64(Number::U64(31337));
+        let block_gas_limit = Number::U256(U256::from(30_000_000));
+        let chain_id = Number::U64(31337);
         Self {
             accounts: DEFAULT_PRIVATE_KEYS
                 .into_iter()
@@ -115,7 +120,7 @@ impl Default for ConfigFile {
                             .expect("should decode all default private keys from strings"),
                     )
                     .into(),
-                    balance: NumberForU256(Number::U256(U256::from(10000))),
+                    balance: Number::U256(U256::from(10000)),
                 })
                 .collect(),
             block_gas_limit: block_gas_limit.clone(),
@@ -124,7 +129,7 @@ impl Default for ConfigFile {
                 .expect("default value should be known to succeed"),
             gas: block_gas_limit,
             hardfork: SpecId::LATEST,
-            initial_base_fee_per_gas: NumberForU256(Number::U256(U256::from(1000000000))),
+            initial_base_fee_per_gas: Number::U256(U256::from(1000000000)),
             initial_date: None,
             network_id: chain_id,
         }
@@ -134,7 +139,8 @@ impl Default for ConfigFile {
 #[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
 pub struct AccountConfig {
     pub private_key: ZeroXPrefixedBytes,
-    pub balance: NumberForU256,
+    #[serde(deserialize_with = "u256_number")]
+    pub balance: Number,
 }
 
 impl TryFrom<AccountConfig> for ServerAccountConfig {
@@ -168,10 +174,10 @@ mod tests {
     fn test_config_file_mixed_defaults() {
         let original = "chain_id = 999";
         let deserialized: ConfigFile = toml::from_str(original).unwrap();
-        assert_eq!(deserialized.chain_id, NumberForU64(Number::U64(999)));
+        assert_eq!(deserialized.chain_id, Number::U64(999));
         assert_eq!(
             deserialized.block_gas_limit,
-            NumberForU256(Number::U256(U256::from(30_000_000)))
+            Number::U256(U256::from(30_000_000))
         );
     }
 }
