@@ -21,6 +21,7 @@
     "lint:fix": "yarn prettier --write && yarn eslint --fix",
     "eslint": "eslint 'src/**/*.ts' 'test/**/*.ts'",
     "prettier": "prettier \"**/*.{js,md,json}\"",
+    "pretest": "cd ../.. && yarn build",
     "test": "mocha --recursive \"test/**/*.ts\" --exit",
     "build": "tsc --build .",
     "prepublishOnly": "yarn build",
