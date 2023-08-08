@@ -133,7 +133,7 @@ where
             };
 
             let server =
-                rethnet_rpc_server::Server::new(config_file.to_server_config(node_args)?).await?;
+                rethnet_rpc_server::Server::new(config_file.into_server_config(node_args)?).await?;
 
             Ok(server
                 .serve_with_shutdown_signal(await_signal())

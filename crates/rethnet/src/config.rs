@@ -109,7 +109,7 @@ impl ConfigFile {
         Self::default_chain_id()
     }
 
-    pub fn to_server_config(&self, cli_args: NodeArgs) -> Result<ServerConfig, anyhow::Error> {
+    pub fn into_server_config(self, cli_args: NodeArgs) -> Result<ServerConfig, anyhow::Error> {
         Ok(ServerConfig {
             address: SocketAddr::new(cli_args.host, cli_args.port),
             rpc_hardhat_network_config: RpcHardhatNetworkConfig {
@@ -132,14 +132,12 @@ impl ConfigFile {
                 .iter()
                 .map(ServerAccountConfig::try_from)
                 .collect::<Result<Vec<_>, _>>()?,
-            block_gas_limit: self.block_gas_limit.clone().into(),
-            chain_id: cli_args
-                .chain_id
-                .unwrap_or(self.chain_id.clone().try_into()?),
+            block_gas_limit: self.block_gas_limit.into(),
+            chain_id: cli_args.chain_id.unwrap_or(self.chain_id.try_into()?),
             coinbase: cli_args.coinbase.unwrap_or(self.coinbase),
-            gas: self.gas.clone().into(),
+            gas: self.gas.into(),
             hardfork: self.hardfork,
-            initial_base_fee_per_gas: Some(self.initial_base_fee_per_gas.clone().into()),
+            initial_base_fee_per_gas: Some(self.initial_base_fee_per_gas.into()),
             initial_date: self.initial_date.map(|instant| {
                 U256::from(
                     instant
@@ -148,9 +146,7 @@ impl ConfigFile {
                         .as_secs(),
                 )
             }),
-            network_id: cli_args
-                .network_id
-                .unwrap_or(self.network_id.clone().try_into()?),
+            network_id: cli_args.network_id.unwrap_or(self.network_id.try_into()?),
         })
     }
 }
