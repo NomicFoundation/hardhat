@@ -17,7 +17,7 @@ To this end, make sure to use the Conventional Commits convention for the pull r
 
 ### Merging
 
-When your pull request has been approved, ensure that the generated commit body is complient with the Conventional Commits convention before merging.
+When your pull request has been approved, ensure that the generated commit body is compliant with the Conventional Commits convention before merging.
 This includes ensuring that any work-in-progress commit messages are removed.
 Mentions of co-authors should be retained.
 
