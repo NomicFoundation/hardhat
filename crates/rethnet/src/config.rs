@@ -79,7 +79,7 @@ impl ConfigFile {
             },
             accounts: self
                 .accounts
-                .iter()
+                .into_iter()
                 .map(ServerAccountConfig::try_from)
                 .collect::<Result<Vec<_>, _>>()?,
             block_gas_limit: self.block_gas_limit.into(),
@@ -137,13 +137,13 @@ pub struct AccountConfig {
     pub balance: NumberForU256,
 }
 
-impl TryFrom<&AccountConfig> for ServerAccountConfig {
+impl TryFrom<AccountConfig> for ServerAccountConfig {
     type Error = secp256k1::Error;
-    fn try_from(account_config: &AccountConfig) -> Result<Self, Self::Error> {
-        let bytes: Bytes = account_config.private_key.clone().into();
+    fn try_from(account_config: AccountConfig) -> Result<Self, Self::Error> {
+        let bytes: Bytes = account_config.private_key.into();
         Ok(Self {
             private_key: SecretKey::from_slice(&bytes[..])?,
-            balance: account_config.balance.clone().into(),
+            balance: account_config.balance.into(),
         })
     }
 }
