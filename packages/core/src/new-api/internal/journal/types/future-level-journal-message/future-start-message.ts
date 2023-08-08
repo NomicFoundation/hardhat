@@ -1,4 +1,4 @@
-import { ArgumentType, FutureType } from "../../../../types/module";
+import { FutureType, SolidityParameterType } from "../../../../types/module";
 import { JournalMessageType } from "../journal";
 
 /**
@@ -31,7 +31,7 @@ export interface DeployContractStartMessage {
   dependencies: string[];
   artifactFutureId: string;
   contractName: string;
-  constructorArgs: ArgumentType[];
+  constructorArgs: SolidityParameterType[];
   libraries: { [key: string]: string };
   value: string;
   from: string | undefined;
@@ -48,7 +48,7 @@ export interface CallFunctionStartMessage {
   futureType: FutureType.NAMED_CONTRACT_CALL;
   strategy: string;
   dependencies: string[];
-  args: ArgumentType[];
+  args: SolidityParameterType[];
   functionName: string;
   value: string;
   contractAddress: string;
@@ -67,7 +67,7 @@ export interface StaticCallStartMessage {
   futureType: FutureType.NAMED_STATIC_CALL;
   strategy: string;
   dependencies: string[];
-  args: ArgumentType[];
+  args: SolidityParameterType[];
   functionName: string;
   contractAddress: string;
   artifactFutureId: string;

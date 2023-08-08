@@ -1,7 +1,7 @@
 import { ethers } from "ethers";
 
 import { IgnitionError } from "../../../errors";
-import { ArgumentType } from "../../types/module";
+import { SolidityParameterType } from "../../types/module";
 import {
   DeploymentExecutionState,
   ExecutionEngineState,
@@ -477,7 +477,7 @@ async function _convertRequestToCallFunctionTransaction(
   const contractAddress: string = request.contractAddress;
   const abi = artifact.abi;
   const functionName: string = request.functionName;
-  const args: ArgumentType[] = request.args;
+  const args: SolidityParameterType[] = request.args;
   const value: bigint = BigInt(request.value);
   const from: string = request.from;
 

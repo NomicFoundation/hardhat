@@ -26,6 +26,7 @@ import {
   NamedContractAtFuture,
   NamedContractDeploymentFuture,
   NamedLibraryDeploymentFuture,
+  SolidityParameterType,
 } from "../../types/module";
 import { DeploymentLoader } from "../deployment-loader/types";
 import {
@@ -1017,9 +1018,9 @@ export class ExecutionEngine {
       accounts: string[];
       executionStateMap: ExecutionStateMap;
     }
-  ) {
+  ): SolidityParameterType[] {
     const replace = (arg: ArgumentType) =>
-      replaceWithinArg<ArgumentType>(arg, {
+      replaceWithinArg<SolidityParameterType>(arg, {
         bigint: identity,
         future: (f) => {
           return resolveFutureToValue(f, context);

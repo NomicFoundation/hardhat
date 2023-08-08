@@ -3,7 +3,6 @@ import { ethers } from "ethers";
 import { ArtifactResolver } from "../../types/artifact";
 import { DeployConfig, DeploymentParameters } from "../../types/deployer";
 import {
-  ArgumentType,
   FutureType,
   IgnitionModule,
   IgnitionModuleResult,
@@ -62,7 +61,7 @@ export interface DeploymentExecutionState
   > {
   artifactFutureId: string; // As stored in the deployment directory.
   contractName: string;
-  constructorArgs: ArgumentType[];
+  constructorArgs: SolidityParameterType[];
   libraries: Record<string, string>; // TODO: Do we need to store their future ids for the reconciliation process?
   value: bigint;
   from: string | undefined;
@@ -75,7 +74,7 @@ export interface CallExecutionState
   artifactFutureId: string;
   contractAddress: string;
   functionName: string;
-  args: ArgumentType[];
+  args: SolidityParameterType[];
   value: bigint;
   from: string | undefined;
   txId?: string;
@@ -86,7 +85,7 @@ export interface StaticCallExecutionState
   artifactFutureId: string;
   contractAddress: string;
   functionName: string;
-  args: ArgumentType[];
+  args: SolidityParameterType[];
   from: string | undefined;
   result?: SolidityParameterType;
 }
@@ -200,7 +199,7 @@ export interface ChainDispatcher {
   constructDeployTransaction(
     byteCode: string,
     abi: any[],
-    args: ArgumentType[],
+    args: SolidityParameterType[],
     value: bigint,
     from: string
   ): Promise<ethers.providers.TransactionRequest>;
@@ -209,7 +208,7 @@ export interface ChainDispatcher {
     contractAddress: string,
     abi: any[],
     functionName: string,
-    args: ArgumentType[],
+    args: SolidityParameterType[],
     value: bigint,
     from: string
   ): Promise<ethers.providers.TransactionRequest>;
@@ -223,9 +222,9 @@ export interface ChainDispatcher {
     contractAddress: string,
     abi: any[],
     functionName: string,
-    args: ArgumentType[],
+    args: SolidityParameterType[],
     from: string
-  ): Promise<any>;
+  ): Promise<SolidityParameterType>;
 
   getTransaction(
     txHash: string
@@ -242,7 +241,7 @@ export interface ChainDispatcher {
     eventIndex: number,
     emitterAddress: string,
     abi: any[]
-  ): Promise<any>;
+  ): Promise<SolidityParameterType>;
 }
 
 export interface ExecutionEngineState {
