@@ -82,7 +82,7 @@
     "@ethersproject/address": "5.6.1",
     "cbor": "^9.0.0",
     "debug": "^4.3.2",
-    "ethers": "^5.4.7",
+    "ethers": "^6.7.0",
     "fs-extra": "^10.0.0",
     "js-graph-algorithms": "1.0.18",
     "lodash": "4.17.21",
