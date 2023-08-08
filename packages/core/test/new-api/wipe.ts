@@ -46,9 +46,9 @@ describe("wipe", () => {
         [exampleAccounts[0]]: {
           0: {
             blockNumber: 0,
-            confirmations: 1,
+            confirmations: async () => 1,
             contractAddress: exampleAddress,
-            transactionHash: txId,
+            hash: txId,
           } as any,
         },
       },

@@ -1,11 +1,12 @@
 import {
   BrowserProvider,
   Signer,
-  TransactionRequest,
   TransactionReceipt,
+  TransactionRequest,
   TransactionResponse,
 } from "ethers";
 
+import { IgnitionError } from "../../../errors";
 import { EIP1193Provider } from "../../types/provider";
 import {
   Adapters,
@@ -14,7 +15,6 @@ import {
   SignerAdapter,
   TransactionsAdapter,
 } from "../types/adapters";
-import { IgnitionError } from "../../../errors";
 
 export function buildAdaptersFrom(provider: EIP1193Provider): Adapters {
   const ethersProvider = new BrowserProvider(provider);
@@ -32,7 +32,8 @@ export function buildAdaptersFrom(provider: EIP1193Provider): Adapters {
       return (gasLimit * 15n) / 10n;
     },
     estimateGasPrice: (): Promise<bigint> => {
-      return ethersProvider.getGasPrice();
+      //return ethersProvider.getGasPrice();
+      throw new Error("Not implemented");
     },
   };
 

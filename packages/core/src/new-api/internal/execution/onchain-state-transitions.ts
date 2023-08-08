@@ -1,4 +1,4 @@
-import { TransactionReceipt, TransactionRequest, ethers } from "ethers";
+import { TransactionReceipt, TransactionRequest } from "ethers";
 
 import { IgnitionError } from "../../../errors";
 import { SolidityParameterType } from "../../types/module";

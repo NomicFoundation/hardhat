@@ -129,9 +129,9 @@ export function setupDeployerWithMocks({
     [key: string]: {
       [key: number]: {
         blockNumber: number;
-        confirmations: number;
+        confirmations: () => Promise<number>;
         contractAddress?: string;
-        transactionHash: string;
+        hash: string;
         logs?: {};
       };
     };
@@ -240,9 +240,9 @@ export function setupMockChainDispatcher({
     [key: string]: {
       [key: number]: {
         blockNumber: number;
-        confirmations: number;
+        confirmations: () => Promise<number>;
         contractAddress?: string;
-        transactionHash: string;
+        hash: string;
         logs?: {};
       };
     };
@@ -282,9 +282,9 @@ export class MockChainDispatcher implements ChainDispatcher {
       [key: string]: {
         [key: number]: {
           blockNumber: number;
-          confirmations: number;
+          confirmations: () => Promise<number>;
           contractAddress?: string;
-          transactionHash: string;
+          hash: string;
           logs?: {};
         };
       };
