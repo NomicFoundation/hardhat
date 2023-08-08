@@ -4,7 +4,10 @@ use crate::{
         filter::{FilterOptions, SubscriptionType},
         BlockSpec,
     },
-    serde::{sequence_to_single, single_to_sequence, ZeroXPrefixedBytes},
+    serde::{
+        optional_single_to_sequence, sequence_to_optional_single, sequence_to_single,
+        single_to_sequence, ZeroXPrefixedBytes,
+    },
     Address, B256, U256,
 };
 
@@ -292,8 +295,8 @@ pub enum MethodInvocation {
     /// evm_mine
     #[serde(
         rename = "evm_mine",
-        serialize_with = "single_to_sequence",
-        deserialize_with = "sequence_to_single"
+        serialize_with = "optional_single_to_sequence",
+        deserialize_with = "sequence_to_optional_single"
     )]
     EvmMine(Option<U256OrUsize>),
     /// evm_setAutomine

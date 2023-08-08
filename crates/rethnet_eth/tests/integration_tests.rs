@@ -422,6 +422,8 @@ fn test_evm_mine() {
     help_test_method_invocation_serde(MethodInvocation::EvmMine(Some(U256OrUsize::U256(
         U256::from(12345),
     ))));
+    help_test_method_invocation_serde(MethodInvocation::EvmMine(Some(U256OrUsize::Usize(12345))));
+    help_test_method_invocation_serde(MethodInvocation::EvmMine(None));
 }
 
 #[test]
