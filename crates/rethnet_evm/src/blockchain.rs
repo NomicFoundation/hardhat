@@ -6,8 +6,10 @@ pub mod storage;
 
 use std::{fmt::Debug, sync::Arc};
 
-use rethnet_eth::{block::DetailedBlock, remote::RpcClientError, B256, U256};
-use revm::db::BlockHashRef;
+use rethnet_eth::{
+    block::DetailedBlock, receipt::BlockReceipt, remote::RpcClientError, B256, U256,
+};
+use revm::{db::BlockHashRef, primitives::SpecId};
 
 pub use self::{
     forked::{CreationError as ForkedCreationError, ForkedBlockchain},
@@ -20,6 +22,9 @@ pub enum BlockchainError {
     /// Block number exceeds storage capacity (usize::MAX)
     #[error("Block number exceeds storage capacity.")]
     BlockNumberTooLarge,
+    /// Remote blocks cannot be deleted
+    #[error("Cannot delete remote block.")]
+    CannotDeleteRemote,
     /// Invalid block number
     #[error("Invalid block number: ${actual}. Expected: ${expected}.")]
     InvalidBlockNumber {
@@ -42,6 +47,12 @@ pub enum BlockchainError {
     /// Block number does not exist in blockchain
     #[error("Unknown block number")]
     UnknownBlockNumber,
+    /// The specified chain is not supported
+    #[error("Chain with ID {chain_id} not supported")]
+    UnsupportedChain {
+        /// Requested chain id
+        chain_id: U256,
+    },
 }
 
 /// Trait for implementations of an Ethereum blockchain.
@@ -61,11 +72,23 @@ pub trait Blockchain {
         transaction_hash: &B256,
     ) -> Result<Option<Arc<DetailedBlock>>, Self::Error>;
 
+    /// Whether the block corresponding to the provided number supports the specified specification.
+    fn block_supports_spec(&self, number: &U256, spec_id: SpecId) -> Result<bool, Self::Error>;
+
+    /// Retrieves the instances chain ID.
+    fn chain_id(&self) -> U256;
+
     /// Retrieves the last block in the blockchain.
     fn last_block(&self) -> Result<Arc<DetailedBlock>, Self::Error>;
 
     /// Retrieves the last block number in the blockchain.
     fn last_block_number(&self) -> U256;
+
+    /// Retrieves the receipt of the transaction with the provided hash, if it exists.
+    fn receipt_by_transaction_hash(
+        &self,
+        transaction_hash: &B256,
+    ) -> Result<Option<Arc<BlockReceipt>>, Self::Error>;
 
     /// Retrieves the total difficulty at the block with the provided hash.
     fn total_difficulty_by_hash(&self, hash: &B256) -> Result<Option<U256>, Self::Error>;
@@ -78,6 +101,9 @@ pub trait BlockchainMut {
 
     /// Inserts the provided block into the blockchain, returning a reference to the inserted block.
     fn insert_block(&mut self, block: DetailedBlock) -> Result<Arc<DetailedBlock>, Self::Error>;
+
+    /// Reverts to the block with the provided number, deleting all later blocks.
+    fn revert_to_block(&mut self, block_number: &U256) -> Result<(), Self::Error>;
 }
 
 /// Trait that meets all requirements for a synchronous blockchain.

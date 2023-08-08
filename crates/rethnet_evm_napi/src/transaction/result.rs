@@ -7,7 +7,7 @@ use napi::{
 use napi_derive::napi;
 
 use crate::{
-    log::Log,
+    log::ExecutionLog,
     trace::{TracingMessage, TracingMessageResult, TracingStep},
 };
 
@@ -56,7 +56,7 @@ pub struct SuccessResult {
     /// The amount of gas refunded
     pub gas_refunded: BigInt,
     /// The logs
-    pub logs: Vec<Log>,
+    pub logs: Vec<ExecutionLog>,
     /// The transaction output
     pub output: Either<CallOutput, CreateOutput>,
 }
@@ -151,7 +151,7 @@ impl ExecutionResult {
             } => {
                 let logs = logs
                     .iter()
-                    .map(|log| Log::with_evm_log(env, log))
+                    .map(|log| ExecutionLog::new(env, log))
                     .collect::<napi::Result<_>>()?;
 
                 Either3::A(SuccessResult {

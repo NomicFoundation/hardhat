@@ -15,7 +15,10 @@ pub use self::pending::PendingTransaction;
 pub enum TransactionError<BE, SE> {
     /// Blockchain errors
     #[error(transparent)]
-    BlockHash(BE),
+    Blockchain(#[from] BE),
+    /// EIP-1559 is not supported
+    #[error("Cannot run transaction: EIP 1559 is not activated.")]
+    Eip1559Unsupported,
     /// Corrupt transaction data
     #[error("Invalid transaction: {0:?}")]
     InvalidTransaction(InvalidTransaction),
@@ -37,7 +40,7 @@ where
             EVMError::Transaction(e) => Self::InvalidTransaction(e),
             EVMError::PrevrandaoNotSet => unreachable!(),
             EVMError::Database(DatabaseComponentError::State(e)) => Self::State(e),
-            EVMError::Database(DatabaseComponentError::BlockHash(e)) => Self::BlockHash(e),
+            EVMError::Database(DatabaseComponentError::BlockHash(e)) => Self::Blockchain(e),
         }
     }
 }

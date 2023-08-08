@@ -4,6 +4,8 @@
 // For the original context see: https://github.com/foundry-rs/foundry/blob/01b16238ff87dc7ca8ee3f5f13e389888c2a2ee4/anvil/core/src/eth/block.rs
 
 mod detailed;
+mod difficulty;
+mod options;
 
 use revm_primitives::{
     keccak256,
@@ -11,12 +13,18 @@ use revm_primitives::{
         self,
         aliases::{U160, U64},
     },
+    SpecId,
 };
 use rlp::{Decodable, DecoderError, Encodable, Rlp, RlpStream};
 
-use crate::{transaction::SignedTransaction, trie, Address, Bloom, Bytes, B256, B64, U256};
+use crate::{
+    transaction::SignedTransaction,
+    trie::{self, KECCAK_NULL_RLP},
+    Address, Bloom, Bytes, B256, B64, U256,
+};
 
-pub use self::detailed::DetailedBlock;
+use self::difficulty::calculate_ethash_canonical_difficulty;
+pub use self::{detailed::DetailedBlock, options::BlockOptions};
 
 /// Ethereum block
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -369,6 +377,59 @@ pub struct PartialHeader {
     pub nonce: B64,
     /// BaseFee was added by EIP-1559 and is ignored in legacy headers.
     pub base_fee: Option<U256>,
+}
+
+impl PartialHeader {
+    /// Constructs a new instance based on the provided [`BlockOptions`] and parent [`Header`] for the given [`SpecId`].
+    pub fn new(spec_id: SpecId, options: BlockOptions, parent: Option<&Header>) -> Self {
+        let timestamp = options.timestamp.unwrap_or_default();
+        let number = options.number.unwrap_or_else(|| {
+            if let Some(parent) = parent {
+                parent.number + U256::from(1)
+            } else {
+                U256::ZERO
+            }
+        });
+
+        let parent_hash = options.parent_hash.unwrap_or_else(|| {
+            if let Some(parent) = parent {
+                parent.hash()
+            } else {
+                B256::zero()
+            }
+        });
+
+        Self {
+            parent_hash,
+            beneficiary: options.beneficiary.unwrap_or_default(),
+            state_root: options.state_root.unwrap_or(KECCAK_NULL_RLP),
+            receipts_root: options.receipts_root.unwrap_or(KECCAK_NULL_RLP),
+            logs_bloom: options.logs_bloom.unwrap_or_default(),
+            difficulty: if spec_id < SpecId::MERGE {
+                if let Some(parent) = parent {
+                    calculate_ethash_canonical_difficulty(spec_id, parent, &number, &timestamp)
+                } else {
+                    U256::ZERO
+                }
+            } else {
+                options.difficulty.unwrap_or_default()
+            },
+            number,
+            gas_limit: options.gas_limit.unwrap_or(U256::from(1_000_000)),
+            gas_used: U256::ZERO,
+            timestamp,
+            extra_data: options.extra_data.unwrap_or_default(),
+            mix_hash: options.mix_hash.unwrap_or_default(),
+            nonce: options.nonce.unwrap_or_default(),
+            base_fee: options.base_fee.or_else(|| {
+                if spec_id >= SpecId::LONDON {
+                    Some(U256::from(7))
+                } else {
+                    None
+                }
+            }),
+        }
+    }
 }
 
 impl From<Header> for PartialHeader {

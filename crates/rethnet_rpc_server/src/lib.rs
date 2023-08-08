@@ -8,11 +8,6 @@ use axum::{
     Router,
 };
 use hashbrown::{HashMap, HashSet};
-use secp256k1::{Secp256k1, SecretKey};
-use sha3::{Digest, Keccak256};
-use tokio::sync::RwLock;
-use tracing::{event, Level};
-
 use rethnet_eth::{
     remote::{
         client::Request as RpcRequest,
@@ -20,10 +15,11 @@ use rethnet_eth::{
         jsonrpc,
         jsonrpc::{Response, ResponseData},
         methods::{MethodInvocation as EthMethodInvocation, U256OrUsize},
-        BlockSpec, BlockTag, Eip1898BlockSpec, ZeroXPrefixedBytes,
+        BlockSpec, BlockTag, Eip1898BlockSpec,
     },
+    serde::{U256WithoutLeadingZeroes, U64WithoutLeadingZeroes, ZeroXPrefixedBytes},
     signature::{public_key_to_address, Signature},
-    Address, Bytes, B256, U256, U64,
+    Address, Bytes, SpecId, B256, U256,
 };
 use rethnet_evm::{
     blockchain::{
@@ -33,6 +29,10 @@ use rethnet_evm::{
     state::{AccountModifierFn, ForkState, HybridState, StateError, SyncState},
     AccountInfo, Bytecode, MemPool, RandomHashGenerator, KECCAK_EMPTY,
 };
+use secp256k1::{Secp256k1, SecretKey};
+use sha3::{Digest, Keccak256};
+use tokio::sync::RwLock;
+use tracing::{event, Level};
 
 mod hardhat_methods;
 pub use hardhat_methods::{
@@ -45,30 +45,6 @@ pub use config::{AccountConfig, Config};
 
 mod filter;
 use filter::{new_filter_deadline, Filter};
-
-#[derive(Clone, Copy)]
-struct U256WithoutLeadingZeroes(U256);
-
-impl serde::Serialize for U256WithoutLeadingZeroes {
-    fn serialize<S>(&self, s: S) -> Result<S::Ok, S::Error>
-    where
-        S: serde::Serializer,
-    {
-        rethnet_eth::remote::serialize_uint_without_leading_zeroes(&self.0, s)
-    }
-}
-
-#[derive(Clone, Copy)]
-struct U64WithoutLeadingZeroes(U64);
-
-impl serde::Serialize for U64WithoutLeadingZeroes {
-    fn serialize<S>(&self, s: S) -> Result<S::Ok, S::Error>
-    where
-        S: serde::Serializer,
-    {
-        rethnet_eth::remote::serialize_uint_without_leading_zeroes(&self.0, s)
-    }
-}
 
 /// an RPC method with its parameters
 #[derive(Clone, Debug, PartialEq, serde::Deserialize, serde::Serialize)]
@@ -89,7 +65,7 @@ struct AppState {
     blockchain: Arc<RwLock<dyn SyncBlockchain<BlockchainError>>>,
     block_time_offset_seconds: RwLock<U256>,
     rethnet_state: RethnetStateType,
-    chain_id: U64,
+    chain_id: u64,
     coinbase: Address,
     filters: RwLock<HashMap<U256, Filter>>,
     fork_block_number: Option<U256>,
@@ -97,7 +73,7 @@ struct AppState {
     last_filter_id: RwLock<U256>,
     local_accounts: HashMap<Address, SecretKey>,
     _mem_pool: Arc<RwLock<MemPool>>,
-    network_id: U64,
+    network_id: u64,
     next_block_timestamp: RwLock<U256>,
 }
 
@@ -136,11 +112,11 @@ pub enum Error {
 /// `require_canonical`: whether the server should additionally raise a JSON-RPC error if the block
 /// is not in the canonical chain
 async fn _block_number_from_hash<T>(
-    state: &StateType,
+    blockchain: &dyn SyncBlockchain<BlockchainError>,
     block_hash: &B256,
     _require_canonical: bool,
 ) -> Result<U256, ResponseData<T>> {
-    match state.blockchain.read().await.block_by_hash(block_hash) {
+    match blockchain.block_by_hash(block_hash) {
         Ok(Some(block)) => Ok(block.header.number),
         Ok(None) => Err(error_response_data(
             0,
@@ -154,7 +130,7 @@ async fn _block_number_from_hash<T>(
 }
 
 async fn _block_number_from_block_spec<T>(
-    state: &StateType,
+    blockchain: &dyn SyncBlockchain<BlockchainError>,
     block_spec: &BlockSpec,
 ) -> Result<U256, ResponseData<T>> {
     match block_spec {
@@ -162,24 +138,35 @@ async fn _block_number_from_block_spec<T>(
         BlockSpec::Tag(tag) => match tag {
             BlockTag::Earliest => Ok(U256::ZERO),
             BlockTag::Safe | BlockTag::Finalized => {
-                confirm_post_merge_hardfork(state)?;
-                Ok(state.blockchain.read().await.last_block_number())
+                confirm_post_merge_hardfork(blockchain).await?;
+                Ok(blockchain.last_block_number())
             }
-            BlockTag::Latest | BlockTag::Pending => {
-                Ok(state.blockchain.read().await.last_block_number())
-            }
+            BlockTag::Latest | BlockTag::Pending => Ok(blockchain.last_block_number()),
         },
         BlockSpec::Eip1898(Eip1898BlockSpec::Hash {
             block_hash,
             require_canonical,
-        }) => _block_number_from_hash(state, block_hash, require_canonical.unwrap_or(false)).await,
+        }) => {
+            _block_number_from_hash(blockchain, block_hash, require_canonical.unwrap_or(false))
+                .await
+        }
         BlockSpec::Eip1898(Eip1898BlockSpec::Number { block_number }) => Ok(*block_number),
     }
 }
 
-#[allow(clippy::todo)]
-fn confirm_post_merge_hardfork<T>(_state: &StateType) -> Result<(), ResponseData<T>> {
-    todo!("when we're allowing configuration of hardfork history (that is, when https://github.com/NomicFoundation/rethnet/issues/124 is resolved), if the given block tag is 'safe' or 'finalized', ensure that we're running a hardfork that's after the merge")
+async fn confirm_post_merge_hardfork<T>(
+    blockchain: &dyn SyncBlockchain<BlockchainError>,
+) -> Result<(), ResponseData<T>> {
+    let last_block_number = blockchain.last_block_number();
+    let post_merge = blockchain.block_supports_spec(&last_block_number, SpecId::MERGE).map_err(|e| error_response_data(0, &format!("Failed to determine whether block {last_block_number} supports the merge hardfork: {e}")))?;
+    if post_merge {
+        Ok(())
+    } else {
+        Err(error_response_data(
+            0,
+            &format!("Block {last_block_number} does not support the merge hardfork"),
+        ))
+    }
 }
 
 /// returns the state root in effect BEFORE setting the block context, so that the caller can
@@ -226,7 +213,7 @@ async fn set_block_context<T>(
                         Some(BlockSpec::Tag(tag)) => match tag {
                             BlockTag::Earliest => Ok(U256::ZERO),
                             BlockTag::Safe | BlockTag::Finalized => {
-                                confirm_post_merge_hardfork(state)?;
+                                confirm_post_merge_hardfork(&*blockchain).await?;
                                 Ok(latest_block_number)
                             }
                             BlockTag::Latest => Ok(latest_block_number),
@@ -289,14 +276,14 @@ async fn handle_accounts(state: StateType) -> ResponseData<Vec<Address>> {
 async fn handle_block_number(state: StateType) -> ResponseData<U256WithoutLeadingZeroes> {
     event!(Level::INFO, "eth_blockNumber()");
     ResponseData::Success {
-        result: U256WithoutLeadingZeroes(state.blockchain.read().await.last_block_number()),
+        result: state.blockchain.read().await.last_block_number().into(),
     }
 }
 
-async fn handle_chain_id(state: StateType) -> ResponseData<U64WithoutLeadingZeroes> {
+fn handle_chain_id(state: StateType) -> ResponseData<U64WithoutLeadingZeroes> {
     event!(Level::INFO, "eth_chainId()");
     ResponseData::Success {
-        result: U64WithoutLeadingZeroes(U64::from(state.chain_id)),
+        result: state.chain_id.into(),
     }
 }
 
@@ -364,7 +351,7 @@ async fn handle_get_balance(
             match restore_block_context(&state, previous_state_root).await {
                 Ok(()) => match account_info {
                     Ok(account_info) => ResponseData::Success {
-                        result: U256WithoutLeadingZeroes(account_info.balance),
+                        result: account_info.balance.into(),
                     },
                     Err(e) => e,
                 },
@@ -489,7 +476,7 @@ async fn handle_get_transaction_count(
             match restore_block_context(&state, previous_state_root).await {
                 Ok(()) => match account_info {
                     Ok(account_info) => ResponseData::Success {
-                        result: U256WithoutLeadingZeroes(U256::from(account_info.nonce)),
+                        result: U256::from(account_info.nonce).into(),
                     },
                     Err(e) => e,
                 },
@@ -517,9 +504,7 @@ async fn get_next_filter_id(state: StateType) -> U256 {
 async fn handle_net_version(state: StateType) -> ResponseData<String> {
     event!(Level::INFO, "net_version()");
     ResponseData::Success {
-        result: u64::try_from(state.network_id)
-            .expect("should convert U64 to u64")
-            .to_string(),
+        result: state.network_id.to_string(),
     }
 }
 
@@ -653,9 +638,7 @@ fn handle_net_listening() -> ResponseData<bool> {
 
 fn handle_net_peer_count() -> ResponseData<U64WithoutLeadingZeroes> {
     event!(Level::INFO, "net_peerCount()");
-    ResponseData::Success {
-        result: U64WithoutLeadingZeroes(U64::from(0)),
-    }
+    ResponseData::Success { result: 0.into() }
 }
 
 fn handle_sign(
@@ -770,7 +753,7 @@ async fn handle_request(
                     response(id, handle_block_number(state).await)
                 }
                 MethodInvocation::Eth(EthMethodInvocation::ChainId()) => {
-                    response(id, handle_chain_id(state).await)
+                    response(id, handle_chain_id(state))
                 }
                 MethodInvocation::Eth(EthMethodInvocation::Coinbase()) => {
                     response(id, handle_coinbase(state).await)
@@ -997,12 +980,6 @@ impl Server {
                 U256::ZERO
             });
         let chain_id = config.chain_id;
-        let coinbase = config.coinbase;
-        let filters = RwLock::new(HashMap::default());
-        let impersonated_accounts = RwLock::new(HashSet::new());
-        let last_filter_id = RwLock::new(U256::ZERO);
-        let _mem_pool = Arc::new(RwLock::new(MemPool::new(config.block_gas_limit)));
-        let network_id = config.network_id;
         let next_block_timestamp = RwLock::new(U256::ZERO);
         let spec_id = config.hardfork;
 
@@ -1046,6 +1023,7 @@ impl Server {
             let rethnet_state = HybridState::with_accounts(genesis_accounts);
             let blockchain = Arc::new(RwLock::new(LocalBlockchain::new(
                 &rethnet_state,
+                U256::from(chain_id),
                 spec_id,
                 config.gas,
                 config.initial_date.map(|d| {
@@ -1069,14 +1047,14 @@ impl Server {
             block_time_offset_seconds,
             rethnet_state,
             chain_id,
-            coinbase,
-            filters,
+            coinbase: config.coinbase,
+            filters: RwLock::new(HashMap::default()),
             fork_block_number,
-            impersonated_accounts,
-            last_filter_id,
+            impersonated_accounts: RwLock::new(HashSet::new()),
+            last_filter_id: RwLock::new(U256::ZERO),
             local_accounts,
-            _mem_pool,
-            network_id,
+            _mem_pool: Arc::new(RwLock::new(MemPool::new(config.block_gas_limit))),
+            network_id: config.network_id,
             next_block_timestamp,
         });
 

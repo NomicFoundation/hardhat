@@ -1,0 +1,17 @@
+{
+  "name": "Hardhat + EDR",
+  "image": "mcr.microsoft.com/devcontainers/base:bullseye",
+  "features": {
+    "ghcr.io/devcontainers/features/node:1": {
+      "version": "18"
+    },
+  },
+  "postAttachCommand": "scripts/setup.sh",
+  "portsAttributes": {
+    // The default port of mdbook
+    "3000": {
+      "label": "mdbook",
+      "onAutoForward": "openPreview"
+    }
+  }
+}

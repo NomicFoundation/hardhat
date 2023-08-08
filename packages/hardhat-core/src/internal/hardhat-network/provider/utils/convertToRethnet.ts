@@ -22,12 +22,12 @@ import {
   BlockHeader as RethnetBlockHeader,
   BlockOptions,
   ExecutionResult,
-  Log,
   SpecId,
   TransactionRequest,
   LegacySignedTransaction,
   Eip1559SignedTransaction,
   Eip2930SignedTransaction,
+  ExecutionLog,
 } from "rethnet-evm";
 import { fromBigIntLike } from "../../../util/bigint";
 import { HardforkName } from "../../../util/hardforks";
@@ -331,7 +331,7 @@ export function rethnetBlockToEthereumJS(
   });
 }
 
-function rethnetLogsToBloom(logs: Log[]): Bloom {
+function rethnetLogsToBloom(logs: ExecutionLog[]): Bloom {
   const bloom = new Bloom();
   for (const log of logs) {
     bloom.add(log.address);

@@ -69,11 +69,30 @@ impl Blockchain for JsBlockchain {
         unimplemented!("Unsupported API")
     }
 
+    fn block_supports_spec(
+        &self,
+        _number: &U256,
+        _spec_id: rethnet_evm::SpecId,
+    ) -> Result<bool, Self::Error> {
+        unimplemented!("Unsupported API")
+    }
+
+    fn chain_id(&self) -> U256 {
+        unimplemented!("Unsupported API")
+    }
+
     fn last_block(&self) -> Result<std::sync::Arc<rethnet_eth::block::DetailedBlock>, Self::Error> {
         unimplemented!("Unsupported API")
     }
 
     fn last_block_number(&self) -> U256 {
+        unimplemented!("Unsupported API")
+    }
+
+    fn receipt_by_transaction_hash(
+        &self,
+        _transaction_hash: &B256,
+    ) -> Result<Option<std::sync::Arc<rethnet_eth::receipt::BlockReceipt>>, Self::Error> {
         unimplemented!("Unsupported API")
     }
 
@@ -90,6 +109,10 @@ impl BlockchainMut for JsBlockchain {
         &mut self,
         _block: rethnet_eth::block::DetailedBlock,
     ) -> Result<std::sync::Arc<rethnet_eth::block::DetailedBlock>, Self::Error> {
+        unimplemented!("Unsupported API")
+    }
+
+    fn revert_to_block(&mut self, _block_number: &U256) -> Result<(), Self::Error> {
         unimplemented!("Unsupported API")
     }
 }

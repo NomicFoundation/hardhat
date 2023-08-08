@@ -1,9 +1,20 @@
+use std::net::SocketAddr;
 use std::{str::FromStr, time::SystemTime};
 
+use anyhow::anyhow;
 use hex;
+use rethnet_eth::{serde::ZeroXPrefixedBytes, Address, Bytes, SpecId, U256};
+use rethnet_rpc_server::{
+    AccountConfig as ServerAccountConfig, Config as ServerConfig, RpcForkConfig,
+    RpcHardhatNetworkConfig,
+};
+use secp256k1::SecretKey;
 use serde::{Deserialize, Serialize};
 
-use rethnet_eth::{remote::ZeroXPrefixedBytes, Address, Bytes, SpecId, U256};
+pub use super::NodeArgs;
+
+mod number;
+pub use number::{Number, NumberForU256, NumberForU64};
 
 /// the default private keys from which the local accounts will be derived.
 pub const DEFAULT_PRIVATE_KEYS: [&str; 20] = [
@@ -32,109 +43,84 @@ pub const DEFAULT_PRIVATE_KEYS: [&str; 20] = [
 
 /// struct representing the deserialized conifguration file, eg hardhat.config.json
 #[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
+#[serde(default)]
 pub struct ConfigFile {
     // TODO: expand this per https://github.com/NomicFoundation/rethnet/issues/111
-    pub allow_blocks_with_same_timestamp: Option<bool>,
-    pub accounts: Option<Vec<AccountConfig>>,
-    pub block_gas_limit: Option<U256>,
-    pub chain_id: Option<u64>,
-    pub coinbase: Option<Address>,
-    pub gas: Option<U256>,
-    pub initial_base_fee_per_gas: Option<U256>,
+    pub accounts: Vec<AccountConfig>,
+    pub allow_blocks_with_same_timestamp: bool,
+    pub block_gas_limit: NumberForU256,
+    pub chain_id: NumberForU64,
+    pub coinbase: Address,
+    pub gas: NumberForU256,
+    pub hardfork: SpecId,
+    pub initial_base_fee_per_gas: NumberForU256,
     pub initial_date: Option<SystemTime>,
-    pub hardfork: Option<SpecId>,
-    pub network_id: Option<u64>,
+    pub network_id: NumberForU64,
 }
 
 impl ConfigFile {
-    pub fn resolve_none_values_to_defaults(partial: Self) -> Self {
-        let default = Self::default();
-        Self {
-            allow_blocks_with_same_timestamp: Some(
-                partial.allow_blocks_with_same_timestamp.unwrap_or(
-                    default
-                        .allow_blocks_with_same_timestamp
-                        .expect("should have a default value"),
-                ),
-            ),
-            accounts: Some(
-                partial
-                    .accounts
-                    .unwrap_or(default.accounts.expect("should have a default value")),
-            ),
-            block_gas_limit: Some(
-                partial.block_gas_limit.unwrap_or(
-                    default
-                        .block_gas_limit
-                        .expect("should have a default value"),
-                ),
-            ),
-            chain_id: Some(
-                partial
-                    .chain_id
-                    .unwrap_or(default.chain_id.expect("should have a default value")),
-            ),
-            coinbase: Some(
-                partial
-                    .coinbase
-                    .unwrap_or(default.coinbase.expect("should have a default value")),
-            ),
-            gas: Some(
-                partial
-                    .gas
-                    .unwrap_or(default.gas.expect("should have a default value")),
-            ),
-            hardfork: Some(
-                partial
-                    .hardfork
-                    .unwrap_or(default.hardfork.expect("should have a default value")),
-            ),
-            initial_base_fee_per_gas: Some(
-                partial.initial_base_fee_per_gas.unwrap_or(
-                    default
-                        .initial_base_fee_per_gas
-                        .expect("should have a default value"),
-                ),
-            ),
-            initial_date: partial.initial_date.or(default.initial_date),
-            network_id: Some(
-                partial
-                    .network_id
-                    .unwrap_or(default.network_id.expect("should have a default value")),
-            ),
-        }
+    pub fn into_server_config(self, cli_args: NodeArgs) -> Result<ServerConfig, anyhow::Error> {
+        Ok(ServerConfig {
+            address: SocketAddr::new(cli_args.host, cli_args.port),
+            allow_blocks_with_same_timestamp: cli_args.allow_blocks_with_same_timestamp
+                || self.allow_blocks_with_same_timestamp,
+            rpc_hardhat_network_config: RpcHardhatNetworkConfig {
+                forking: if let Some(json_rpc_url) = cli_args.fork_url {
+                    Some(RpcForkConfig {
+                        json_rpc_url,
+                        block_number: cli_args.fork_block_number,
+                        http_headers: None,
+                    })
+                } else if cli_args.fork_block_number.is_some() {
+                    Err(anyhow!(
+                        "A fork block number can only be used if you also supply a fork URL"
+                    ))?
+                } else {
+                    None
+                },
+            },
+            accounts: self
+                .accounts
+                .into_iter()
+                .map(ServerAccountConfig::try_from)
+                .collect::<Result<Vec<_>, _>>()?,
+            block_gas_limit: self.block_gas_limit.into(),
+            chain_id: cli_args.chain_id.unwrap_or(self.chain_id.try_into()?),
+            coinbase: cli_args.coinbase.unwrap_or(self.coinbase),
+            gas: self.gas.into(),
+            hardfork: self.hardfork,
+            initial_base_fee_per_gas: Some(self.initial_base_fee_per_gas.into()),
+            initial_date: self.initial_date,
+            network_id: cli_args.network_id.unwrap_or(self.network_id.try_into()?),
+        })
     }
 }
 
 impl Default for ConfigFile {
     fn default() -> Self {
         // default values taken from https://hardhat.org/hardhat-network/docs/reference
-        let block_gas_limit = Some(U256::from(30_000_000));
-        let chain_id = Some(31337);
+        let block_gas_limit = NumberForU256(Number::U256(U256::from(30_000_000)));
+        let chain_id = NumberForU64(Number::U64(31337));
         Self {
-            allow_blocks_with_same_timestamp: Some(false),
-            accounts: Some(
-                DEFAULT_PRIVATE_KEYS
-                    .into_iter()
-                    .map(|s| AccountConfig {
-                        private_key: Bytes::from_iter(
-                            hex::decode(s)
-                                .expect("should decode all default private keys from strings"),
-                        )
-                        .into(),
-                        balance: U256::from(10000),
-                    })
-                    .collect(),
-            ),
-            block_gas_limit,
-            chain_id,
-            coinbase: Some(
-                Address::from_str("0xc014ba5ec014ba5ec014ba5ec014ba5ec014ba5e")
-                    .expect("default value should be known to succeed"),
-            ),
+            allow_blocks_with_same_timestamp: false,
+            accounts: DEFAULT_PRIVATE_KEYS
+                .into_iter()
+                .map(|s| AccountConfig {
+                    private_key: Bytes::from_iter(
+                        hex::decode(s)
+                            .expect("should decode all default private keys from strings"),
+                    )
+                    .into(),
+                    balance: NumberForU256(Number::U256(U256::from(10000))),
+                })
+                .collect(),
+            block_gas_limit: block_gas_limit.clone(),
+            chain_id: chain_id.clone(),
+            coinbase: Address::from_str("0xc014ba5ec014ba5ec014ba5ec014ba5ec014ba5e")
+                .expect("default value should be known to succeed"),
             gas: block_gas_limit,
-            hardfork: Some(SpecId::LATEST),
-            initial_base_fee_per_gas: Some(U256::from(1000000000)),
+            hardfork: SpecId::LATEST,
+            initial_base_fee_per_gas: NumberForU256(Number::U256(U256::from(1000000000))),
             initial_date: None,
             network_id: chain_id,
         }
@@ -144,7 +130,18 @@ impl Default for ConfigFile {
 #[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
 pub struct AccountConfig {
     pub private_key: ZeroXPrefixedBytes,
-    pub balance: U256,
+    pub balance: NumberForU256,
+}
+
+impl TryFrom<AccountConfig> for ServerAccountConfig {
+    type Error = secp256k1::Error;
+    fn try_from(account_config: AccountConfig) -> Result<Self, Self::Error> {
+        let bytes: Bytes = account_config.private_key.into();
+        Ok(Self {
+            private_key: SecretKey::from_slice(&bytes[..])?,
+            balance: account_config.balance.into(),
+        })
+    }
 }
 
 #[cfg(test)]
@@ -157,7 +154,20 @@ mod tests {
     fn test_config_file_serde() {
         let config_file = ConfigFile::default();
         let serialized = toml::to_string(&config_file).unwrap();
-        let deserialized = toml::from_str(&serialized).unwrap();
+        let deserialized: ConfigFile = toml::from_str(&serialized).unwrap();
         assert_eq!(config_file, deserialized);
+    }
+
+    /// test that specifying a non-default value for one field still allows the other fields to
+    /// take their default values.
+    #[test]
+    fn test_config_file_mixed_defaults() {
+        let original = "chain_id = 999";
+        let deserialized: ConfigFile = toml::from_str(original).unwrap();
+        assert_eq!(deserialized.chain_id, NumberForU64(Number::U64(999)));
+        assert_eq!(
+            deserialized.block_gas_limit,
+            NumberForU256(Number::U256(U256::from(30_000_000)))
+        );
     }
 }

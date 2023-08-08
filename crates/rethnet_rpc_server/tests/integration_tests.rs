@@ -12,8 +12,9 @@ use rethnet_eth::{
         filter::FilteredEvents,
         jsonrpc,
         methods::{MethodInvocation as EthMethodInvocation, U256OrUsize},
-        BlockSpec, ZeroXPrefixedBytes,
+        BlockSpec,
     },
+    serde::ZeroXPrefixedBytes,
     signature::{private_key_to_address, Signature},
     Address, Bytes, SpecId, B256, U256, U64,
 };
@@ -48,13 +49,13 @@ async fn start_server() -> SocketAddr {
             balance: U256::ZERO,
         }],
         block_gas_limit: U256::from(30_000_000),
-        chain_id: U64::from(1),
+        chain_id: 1,
         coinbase: Address::from_low_u64_ne(1),
         gas: U256::from(30_000_000),
         hardfork: SpecId::LATEST,
         initial_base_fee_per_gas: Some(U256::from(1000000000)),
         initial_date: Some(SystemTime::now()),
-        network_id: U64::from(123),
+        network_id: 123,
     })
     .await
     .unwrap();
