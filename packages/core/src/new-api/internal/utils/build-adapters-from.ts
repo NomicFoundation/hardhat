@@ -1,4 +1,10 @@
-import { ethers } from "ethers";
+import {
+  BrowserProvider,
+  Signer,
+  TransactionRequest,
+  TransactionReceipt,
+  TransactionResponse,
+} from "ethers";
 
 import { EIP1193Provider } from "../../types/provider";
 import {
@@ -8,25 +14,24 @@ import {
   SignerAdapter,
   TransactionsAdapter,
 } from "../types/adapters";
+import { IgnitionError } from "../../../errors";
 
 export function buildAdaptersFrom(provider: EIP1193Provider): Adapters {
-  const ethersProvider = new ethers.providers.Web3Provider(provider);
+  const ethersProvider = new BrowserProvider(provider);
 
   const signerAdapter: SignerAdapter = {
-    getSigner: async (address: string): Promise<ethers.Signer> =>
+    getSigner: async (address: string): Promise<Signer> =>
       ethersProvider.getSigner(address),
   };
 
   const gasAdapter: GasAdapter = {
-    estimateGasLimit: async (
-      tx: ethers.providers.TransactionRequest
-    ): Promise<ethers.BigNumber> => {
+    estimateGasLimit: async (tx: TransactionRequest): Promise<bigint> => {
       const gasLimit = await ethersProvider.estimateGas(tx);
 
       // return 1.5x estimated gas
-      return gasLimit.mul(15).div(10);
+      return (gasLimit * 15n) / 10n;
     },
-    estimateGasPrice: (): Promise<ethers.BigNumber> => {
+    estimateGasPrice: (): Promise<bigint> => {
       return ethersProvider.getGasPrice();
     },
   };
@@ -34,12 +39,12 @@ export function buildAdaptersFrom(provider: EIP1193Provider): Adapters {
   const transactionsAdapter: TransactionsAdapter = {
     async getTransactionReceipt(
       txHash: string
-    ): Promise<ethers.providers.TransactionReceipt | null | undefined> {
+    ): Promise<TransactionReceipt | null | undefined> {
       return ethersProvider.getTransactionReceipt(txHash);
     },
     async getTransaction(
       txHash: string
-    ): Promise<ethers.providers.TransactionResponse | null | undefined> {
+    ): Promise<TransactionResponse | null | undefined> {
       return ethersProvider.getTransaction(txHash);
     },
     async getPendingTransactionCount(address: string): Promise<number> {
@@ -56,7 +61,11 @@ export function buildAdaptersFrom(provider: EIP1193Provider): Adapters {
 
       const block = await ethersProvider.getBlock(blockNumber);
 
-      return { number: block.number, hash: block.hash };
+      if (block === null) {
+        throw new IgnitionError(`Unable to fetch block #${blockNumber}`);
+      }
+
+      return { number: block.number, hash: block.hash ?? "" };
     },
   };
 

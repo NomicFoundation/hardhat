@@ -1,4 +1,8 @@
-import { ethers } from "ethers";
+import {
+  TransactionReceipt,
+  TransactionRequest,
+  TransactionResponse,
+} from "ethers";
 
 import { ArtifactResolver } from "../../types/artifact";
 import { DeployConfig, DeploymentParameters } from "../../types/deployer";
@@ -202,7 +206,7 @@ export interface ChainDispatcher {
     args: SolidityParameterType[],
     value: bigint,
     from: string
-  ): Promise<ethers.providers.TransactionRequest>;
+  ): Promise<TransactionRequest>;
 
   constructCallTransaction(
     contractAddress: string,
@@ -211,12 +215,9 @@ export interface ChainDispatcher {
     args: SolidityParameterType[],
     value: bigint,
     from: string
-  ): Promise<ethers.providers.TransactionRequest>;
+  ): Promise<TransactionRequest>;
 
-  sendTx(
-    tx: ethers.providers.TransactionRequest,
-    from: string
-  ): Promise<string>;
+  sendTx(tx: TransactionRequest, from: string): Promise<string>;
 
   staticCallQuery(
     contractAddress: string,
@@ -228,11 +229,11 @@ export interface ChainDispatcher {
 
   getTransaction(
     txHash: string
-  ): Promise<ethers.providers.TransactionResponse | null | undefined>;
+  ): Promise<TransactionResponse | null | undefined>;
 
   getTransactionReceipt(
     txHash: string
-  ): Promise<ethers.providers.TransactionReceipt | null | undefined>;
+  ): Promise<TransactionReceipt | null | undefined>;
 
   getEventArgument(
     eventName: string,

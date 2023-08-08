@@ -1,3 +1,4 @@
+import { isAddress } from "ethers";
 import groupBy from "lodash/groupBy";
 import identity from "lodash/identity";
 import maxBy from "lodash/maxBy";
@@ -63,7 +64,6 @@ import {
   isSendDataExecutionState,
   isStaticCallExecutionState,
 } from "../type-guards";
-import { isAddress } from "../utils";
 import { assertIgnitionInvariant } from "../utils/assertions";
 import { getFuturesFromModule } from "../utils/get-futures-from-module";
 import { replaceWithinArg } from "../utils/replace-within-arg";

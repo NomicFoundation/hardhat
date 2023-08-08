@@ -1,4 +1,4 @@
-import { ethers } from "ethers";
+import { Interface, EventFragment } from "ethers";
 
 import { IgnitionValidationError } from "../../../../errors";
 import { isArtifactType } from "../../../type-guards";
@@ -23,17 +23,16 @@ export async function validateReadEventArgument(
     );
   }
 
-  const iface = new ethers.utils.Interface(artifact.abi);
+  const iface = new Interface(artifact.abi);
 
-  const events = Object.entries(iface.events)
-    .filter(([fname]) => fname === future.eventName)
-    .map(([, fragment]) => fragment);
+  const events: EventFragment[] = [];
+  iface.forEachEvent((event) => {
+    if (event.name === future.eventName) {
+      events.push(event);
+    }
+  });
 
-  const eventFragments = iface.fragments
-    .filter((frag) => frag.name === future.eventName)
-    .concat(events);
-
-  if (eventFragments.length === 0) {
+  if (events.length === 0) {
     throw new IgnitionValidationError(
       `Contract '${future.emitter.contractName}' doesn't have an event ${future.eventName}`
     );

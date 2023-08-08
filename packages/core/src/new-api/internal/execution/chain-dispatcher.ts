@@ -1,4 +1,11 @@
-import { Contract, ContractFactory, ethers } from "ethers";
+import {
+  Contract,
+  ContractFactory,
+  Signer,
+  TransactionReceipt,
+  TransactionRequest,
+  TransactionResponse,
+} from "ethers";
 
 import { IgnitionError } from "../../../errors";
 import { ArgumentType } from "../../types/module";
@@ -62,8 +69,8 @@ export class ChainDispatcherImpl implements ChainDispatcher {
     args: ArgumentType[],
     value: bigint,
     from: string
-  ): Promise<ethers.providers.TransactionRequest> {
-    const signer: ethers.Signer = await this._adapters.signer.getSigner(from);
+  ): Promise<TransactionRequest> {
+    const signer: Signer = await this._adapters.signer.getSigner(from);
 
     const Factory = new ContractFactory(abi, byteCode, signer);
 
@@ -81,24 +88,22 @@ export class ChainDispatcherImpl implements ChainDispatcher {
     args: ArgumentType[],
     value: bigint,
     from: string
-  ): Promise<ethers.providers.TransactionRequest> {
-    const signer: ethers.Signer = await this._adapters.signer.getSigner(from);
+  ): Promise<TransactionRequest> {
+    const signer: Signer = await this._adapters.signer.getSigner(from);
 
     const contractInstance = new Contract(contractAddress, abi, signer);
 
-    const unsignedTx: ethers.providers.TransactionRequest =
-      await contractInstance.populateTransaction[functionName](...args, {
-        value: BigInt(value),
-        from,
-      });
+    const unsignedTx: TransactionRequest = await contractInstance[
+      functionName
+    ].populateTransaction(...args, {
+      value: BigInt(value),
+      from,
+    });
 
     return unsignedTx;
   }
 
-  public async sendTx(
-    tx: ethers.providers.TransactionRequest,
-    from: string
-  ): Promise<string> {
+  public async sendTx(tx: TransactionRequest, from: string): Promise<string> {
     const signer = await this._adapters.signer.getSigner(from);
     const response = await signer.sendTransaction(tx);
     const txHash = response.hash;
@@ -115,8 +120,8 @@ export class ChainDispatcherImpl implements ChainDispatcher {
     abi: any[]
   ): Promise<any> {
     const contract = new Contract(emitterAddress, abi);
-    const filter = contract.filters[eventName]();
-    const eventNameTopic = filter.topics?.[0];
+    const filter = await contract.filters[eventName]().getTopicFilter();
+    const eventNameTopic = filter?.[0];
 
     assertIgnitionInvariant(eventNameTopic !== undefined, "Unknown event name");
 
@@ -134,7 +139,7 @@ export class ChainDispatcherImpl implements ChainDispatcher {
     // only keep the requested eventName and ensure they're from the emitter
     const events = logs.filter(
       (log) =>
-        log.address === filter.address && log.topics[0] === eventNameTopic
+        log.address === emitterAddress && log.topics[0] === eventNameTopic
     );
 
     // sanity check to ensure the eventIndex isn't out of range
@@ -148,11 +153,12 @@ export class ChainDispatcherImpl implements ChainDispatcher {
     const eventLog = events[eventIndex];
 
     // parse the event through the emitter ABI and return the requested arg
-    const result = contract.interface.parseLog(eventLog).args[argumentName];
+    const result = contract.interface.parseLog({
+      topics: [...eventLog.topics],
+      data: eventLog.data,
+    })!.args[argumentName];
 
-    return ethers.BigNumber.isBigNumber(result)
-      ? BigInt(result.toString())
-      : result;
+    return result;
   }
 
   public async staticCallQuery(
@@ -162,7 +168,7 @@ export class ChainDispatcherImpl implements ChainDispatcher {
     args: ArgumentType[],
     from: string
   ): Promise<any> {
-    const signer: ethers.Signer = await this._adapters.signer.getSigner(from);
+    const signer: Signer = await this._adapters.signer.getSigner(from);
 
     const contractInstance = new Contract(contractAddress, abi, signer);
 
@@ -193,13 +199,13 @@ export class ChainDispatcherImpl implements ChainDispatcher {
 
   public async getTransactionReceipt(
     txHash: string
-  ): Promise<ethers.providers.TransactionReceipt | null | undefined> {
+  ): Promise<TransactionReceipt | null | undefined> {
     return this._adapters.transactions.getTransactionReceipt(txHash);
   }
 
   public async getTransaction(
     txHash: string
-  ): Promise<ethers.providers.TransactionResponse | null | undefined> {
+  ): Promise<TransactionResponse | null | undefined> {
     return this._adapters.transactions.getTransaction(txHash);
   }
 }

@@ -1,4 +1,4 @@
-import { ethers } from "ethers";
+import { Interface } from "ethers";
 
 import { IgnitionValidationError } from "../../../../errors";
 import {
@@ -61,7 +61,7 @@ export async function validateArtifactContractDeployment(
 
   const argsLength = future.constructorArgs.length;
 
-  const iface = new ethers.utils.Interface(artifact.abi);
+  const iface = new Interface(artifact.abi);
   const expectedArgsLength = iface.deploy.inputs.length;
 
   if (argsLength !== expectedArgsLength) {

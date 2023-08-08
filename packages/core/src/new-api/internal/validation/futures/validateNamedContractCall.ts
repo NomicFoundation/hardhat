@@ -1,4 +1,4 @@
-import { ethers } from "ethers";
+import { Interface, FunctionFragment } from "ethers";
 
 import { IgnitionValidationError } from "../../../../errors";
 import {
@@ -71,30 +71,29 @@ export async function validateNamedContractCall(
 
   const argsLength = future.args.length;
 
-  const iface = new ethers.utils.Interface(artifact.abi);
+  const iface = new Interface(artifact.abi);
 
-  const funcs = Object.entries(iface.functions)
-    .filter(([fname]) => fname === future.functionName)
-    .map(([, fragment]) => fragment);
+  const funcs: FunctionFragment[] = [];
+  iface.forEachFunction((func) => {
+    if (func.name === future.functionName) {
+      funcs.push(func);
+    }
+  });
 
-  const functionFragments = iface.fragments
-    .filter((frag) => frag.name === future.functionName)
-    .concat(funcs);
-
-  if (functionFragments.length === 0) {
+  if (funcs.length === 0) {
     throw new IgnitionValidationError(
       `Contract '${future.contract.contractName}' doesn't have a function ${future.functionName}`
     );
   }
 
-  const matchingFunctionFragments = functionFragments.filter(
+  const matchingFunctionFragments = funcs.filter(
     (f) => f.inputs.length === argsLength
   );
 
   if (matchingFunctionFragments.length === 0) {
-    if (functionFragments.length === 1) {
+    if (funcs.length === 1) {
       throw new IgnitionValidationError(
-        `Function ${future.functionName} in contract ${future.contract.contractName} expects ${functionFragments[0].inputs.length} arguments but ${argsLength} were given`
+        `Function ${future.functionName} in contract ${future.contract.contractName} expects ${funcs[0].inputs.length} arguments but ${argsLength} were given`
       );
     } else {
       throw new IgnitionValidationError(
