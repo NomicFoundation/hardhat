@@ -44,70 +44,21 @@ pub const DEFAULT_PRIVATE_KEYS: [&str; 20] = [
 
 /// struct representing the deserialized conifguration file, eg hardhat.config.json
 #[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
+#[serde(default)]
 pub struct ConfigFile {
     // TODO: expand this per https://github.com/NomicFoundation/rethnet/issues/111
-    #[serde(default = "ConfigFile::default_accounts")]
     pub accounts: Vec<AccountConfig>,
-    #[serde(default = "ConfigFile::default_block_gas_limit")]
     pub block_gas_limit: NumberForU256,
-    #[serde(default = "ConfigFile::default_chain_id")]
     pub chain_id: NumberForU64,
-    #[serde(default = "ConfigFile::default_coinbase")]
     pub coinbase: Address,
-    #[serde(default = "ConfigFile::default_gas")]
     pub gas: NumberForU256,
-    #[serde(default = "ConfigFile::default_hardfork")]
     pub hardfork: SpecId,
-    #[serde(default = "ConfigFile::default_initial_base_fee_per_gas")]
     pub initial_base_fee_per_gas: NumberForU256,
     pub initial_date: Option<SystemTime>,
-    #[serde(default = "ConfigFile::default_network_id")]
     pub network_id: NumberForU64,
 }
 
 impl ConfigFile {
-    fn default_accounts() -> Vec<AccountConfig> {
-        DEFAULT_PRIVATE_KEYS
-            .into_iter()
-            .map(|s| AccountConfig {
-                private_key: Bytes::from_iter(
-                    hex::decode(s).expect("should decode all default private keys from strings"),
-                )
-                .into(),
-                balance: NumberForU256(Number::U256(U256::from(10000))),
-            })
-            .collect()
-    }
-
-    fn default_block_gas_limit() -> NumberForU256 {
-        NumberForU256(Number::U256(U256::from(30_000_000)))
-    }
-
-    fn default_chain_id() -> NumberForU64 {
-        NumberForU64(Number::U64(31337))
-    }
-
-    fn default_coinbase() -> Address {
-        Address::from_str("0xc014ba5ec014ba5ec014ba5ec014ba5ec014ba5e")
-            .expect("default value should be known to succeed")
-    }
-
-    fn default_gas() -> NumberForU256 {
-        Self::default_block_gas_limit()
-    }
-
-    fn default_hardfork() -> SpecId {
-        SpecId::LATEST
-    }
-
-    fn default_initial_base_fee_per_gas() -> NumberForU256 {
-        NumberForU256(Number::U256(U256::from(1000000000)))
-    }
-
-    fn default_network_id() -> NumberForU64 {
-        Self::default_chain_id()
-    }
-
     pub fn into_server_config(self, cli_args: NodeArgs) -> Result<ServerConfig, anyhow::Error> {
         Ok(ServerConfig {
             address: SocketAddr::new(cli_args.host, cli_args.port),
@@ -153,16 +104,29 @@ impl ConfigFile {
 impl Default for ConfigFile {
     fn default() -> Self {
         // default values taken from https://hardhat.org/hardhat-network/docs/reference
+        let block_gas_limit = NumberForU256(Number::U256(U256::from(30_000_000)));
+        let chain_id = NumberForU64(Number::U64(31337));
         Self {
-            accounts: Self::default_accounts(),
-            block_gas_limit: Self::default_block_gas_limit(),
-            chain_id: Self::default_chain_id(),
-            coinbase: Self::default_coinbase(),
-            gas: Self::default_block_gas_limit(),
-            hardfork: Self::default_hardfork(),
-            initial_base_fee_per_gas: Self::default_initial_base_fee_per_gas(),
+            accounts: DEFAULT_PRIVATE_KEYS
+                .into_iter()
+                .map(|s| AccountConfig {
+                    private_key: Bytes::from_iter(
+                        hex::decode(s)
+                            .expect("should decode all default private keys from strings"),
+                    )
+                    .into(),
+                    balance: NumberForU256(Number::U256(U256::from(10000))),
+                })
+                .collect(),
+            block_gas_limit: block_gas_limit.clone(),
+            chain_id: chain_id.clone(),
+            coinbase: Address::from_str("0xc014ba5ec014ba5ec014ba5ec014ba5ec014ba5e")
+                .expect("default value should be known to succeed"),
+            gas: block_gas_limit,
+            hardfork: SpecId::LATEST,
+            initial_base_fee_per_gas: NumberForU256(Number::U256(U256::from(1000000000))),
             initial_date: None,
-            network_id: Self::default_network_id(),
+            network_id: chain_id,
         }
     }
 }
@@ -194,7 +158,20 @@ mod tests {
     fn test_config_file_serde() {
         let config_file = ConfigFile::default();
         let serialized = toml::to_string(&config_file).unwrap();
-        let deserialized = toml::from_str(&serialized).unwrap();
+        let deserialized: ConfigFile = toml::from_str(&serialized).unwrap();
         assert_eq!(config_file, deserialized);
+    }
+
+    /// test that specifying a non-default value for one field still allows the other fields to
+    /// take their default values.
+    #[test]
+    fn test_config_file_mixed_defaults() {
+        let original = "chain_id = 999";
+        let deserialized: ConfigFile = toml::from_str(original).unwrap();
+        assert_eq!(deserialized.chain_id, NumberForU64(Number::U64(999)));
+        assert_eq!(
+            deserialized.block_gas_limit,
+            NumberForU256(Number::U256(U256::from(30_000_000)))
+        );
     }
 }
