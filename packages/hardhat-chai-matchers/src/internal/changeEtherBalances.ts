@@ -1,19 +1,21 @@
 import type EthersT from "ethers";
 import type { Addressable, BigNumberish, TransactionResponse } from "ethers";
+import type { BalanceChangeOptions } from "./misc/balance";
+
 import ordinal from "ordinal";
 
 import { buildAssert } from "../utils";
 import { getAddressOf } from "./misc/account";
-import {
-  BalanceChangeOptions,
-  getAddresses,
-  getBalances,
-} from "./misc/balance";
-import { assertIsNotNull } from "./utils";
+import { getAddresses, getBalances } from "./misc/balance";
+import { CHANGE_ETHER_BALANCES_MATCHER } from "./constants";
+import { assertIsNotNull, preventAsyncMatcherChaining } from "./utils";
 
-export function supportChangeEtherBalances(Assertion: Chai.AssertionStatic) {
+export function supportChangeEtherBalances(
+  Assertion: Chai.AssertionStatic,
+  chaiUtils: Chai.ChaiUtils
+) {
   Assertion.addMethod(
-    "changeEtherBalances",
+    CHANGE_ETHER_BALANCES_MATCHER,
     function (
       this: any,
       accounts: Array<Addressable | string>,
@@ -28,6 +30,12 @@ export function supportChangeEtherBalances(Assertion: Chai.AssertionStatic) {
       if (typeof subject === "function") {
         subject = subject();
       }
+
+      preventAsyncMatcherChaining(
+        this,
+        CHANGE_ETHER_BALANCES_MATCHER,
+        chaiUtils
+      );
 
       const checkBalanceChanges = ([actualChanges, accountAddresses]: [
         bigint[],

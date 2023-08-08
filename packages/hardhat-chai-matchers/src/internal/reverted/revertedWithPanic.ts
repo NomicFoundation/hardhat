@@ -3,12 +3,17 @@ import type EthersT from "ethers";
 import { normalizeToBigInt } from "hardhat/common";
 
 import { buildAssert } from "../../utils";
+import { REVERTED_WITH_PANIC_MATCHER } from "../constants";
+import { preventAsyncMatcherChaining } from "../utils";
 import { panicErrorCodeToReason } from "./panic";
 import { decodeReturnData, getReturnDataFromError } from "./utils";
 
-export function supportRevertedWithPanic(Assertion: Chai.AssertionStatic) {
+export function supportRevertedWithPanic(
+  Assertion: Chai.AssertionStatic,
+  chaiUtils: Chai.ChaiUtils
+) {
   Assertion.addMethod(
-    "revertedWithPanic",
+    REVERTED_WITH_PANIC_MATCHER,
     function (this: any, expectedCodeArg: any) {
       const ethers = require("ethers") as typeof EthersT;
 
@@ -42,6 +47,8 @@ export function supportRevertedWithPanic(Assertion: Chai.AssertionStatic) {
           codeBN
         )} (${description})`;
       }
+
+      preventAsyncMatcherChaining(this, REVERTED_WITH_PANIC_MATCHER, chaiUtils);
 
       const onSuccess = () => {
         const assert = buildAssert(negated, onSuccess);

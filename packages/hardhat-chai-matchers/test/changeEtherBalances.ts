@@ -1,10 +1,12 @@
-import { HardhatEthersSigner } from "@nomicfoundation/hardhat-ethers/signers";
+import type { Token } from "../src/internal/changeTokenBalance";
+import type { HardhatEthersSigner } from "@nomicfoundation/hardhat-ethers/signers";
+import type { ChangeEtherBalance } from "./contracts";
+
 import { expect, AssertionError } from "chai";
 import path from "path";
 import util from "util";
 
 import "../src/internal/add-chai-matchers";
-import { ChangeEtherBalance } from "./contracts";
 import { useEnvironment, useEnvironmentWithNode } from "./helpers";
 
 describe("INTEGRATION: changeEtherBalances matcher", function () {
@@ -26,6 +28,7 @@ describe("INTEGRATION: changeEtherBalances matcher", function () {
     let receiver: HardhatEthersSigner;
     let contract: ChangeEtherBalance;
     let txGasFees: number;
+    let mockToken: Token;
 
     beforeEach(async function () {
       const wallets = await this.hre.ethers.getSigners();
@@ -41,6 +44,11 @@ describe("INTEGRATION: changeEtherBalances matcher", function () {
         "hardhat_setNextBlockBaseFeePerGas",
         ["0x0"]
       );
+
+      const MockToken = await this.hre.ethers.getContractFactory<[], Token>(
+        "MockToken"
+      );
+      mockToken = await MockToken.deploy();
     });
 
     describe("Transaction Callback", () => {
@@ -235,6 +243,21 @@ describe("INTEGRATION: changeEtherBalances matcher", function () {
             })
           ).to.changeEtherBalances([sender, contract], [-200, 200]);
         });
+      });
+
+      it("Should throw if chained to another non-chainable method", () => {
+        expect(() =>
+          expect(
+            sender.sendTransaction({
+              to: contract,
+              value: 200,
+            })
+          )
+            .to.changeTokenBalances(mockToken, [sender, receiver], [-50, 100])
+            .and.to.changeEtherBalances([sender, contract], [-200, 200])
+        ).to.throw(
+          /The matcher 'changeEtherBalances' cannot be chained after 'changeTokenBalances'./
+        );
       });
 
       describe("Change balance, multiple accounts", () => {

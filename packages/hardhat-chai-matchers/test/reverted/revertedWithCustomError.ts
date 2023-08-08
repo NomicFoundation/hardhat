@@ -8,6 +8,7 @@ import {
   runFailedAsserts,
   useEnvironment,
   useEnvironmentWithNode,
+  mineSuccessfulTransaction,
 } from "../helpers";
 
 import "../../src/internal/add-chai-matchers";
@@ -38,19 +39,6 @@ describe("INTEGRATION: Reverted with custom error", function () {
 
       matchers = await Matchers.deploy();
     });
-
-    // helpers
-    const mineSuccessfulTransaction = async (hre: any) => {
-      await hre.network.provider.send("evm_setAutomine", [false]);
-
-      const [signer] = await hre.ethers.getSigners();
-      const tx = await signer.sendTransaction({ to: signer.address });
-
-      await hre.network.provider.send("hardhat_mine", []);
-      await hre.network.provider.send("evm_setAutomine", [true]);
-
-      return tx;
-    };
 
     describe("calling a method that succeeds", function () {
       it("successful asserts", async function () {
@@ -359,7 +347,9 @@ describe("INTEGRATION: Reverted with custom error", function () {
         );
       });
 
-      it("should fail if both emit and revertedWithCustomError are called", async function () {
+      // TODO: re-enable this test when proper async chaining is implemented.
+      // See https://github.com/NomicFoundation/hardhat/issues/4235
+      it.skip("should fail if both emit and revertedWithCustomError are called", async function () {
         expect(() =>
           expect(matchers.revertWithSomeCustomError())
             .to.emit(matchers, "SomeEvent")
