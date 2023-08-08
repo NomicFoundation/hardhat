@@ -816,7 +816,7 @@ const communityPlugins: IPlugin[] = [
     description: "Deploy contracts with Hardhat using Gas Station Network",
     tags: ["GSN", "Gasless", "Deployment"],
   },
-    {
+  {
     name: "hardhat-generate-storage-namespace",
     npmPackage: "hardhat-generate-storage-namespace",
     author: "3obby",
