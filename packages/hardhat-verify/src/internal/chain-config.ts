@@ -139,6 +139,14 @@ export const builtinChains: ChainConfig[] = [
     },
   },
   {
+    network: "base",
+    chainId: 8453,
+    urls: {
+      apiURL: "https://api.basescan.org/api",
+      browserURL: "https://basescan.org/",
+    },
+  },
+  {
     network: "chiado",
     chainId: 10200,
     urls: {
