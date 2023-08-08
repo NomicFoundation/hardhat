@@ -1,5 +1,5 @@
 use rethnet_eth::U256;
-use serde::{Deserialize, Serialize};
+use serde::{de::Error, Deserialize, Serialize};
 
 #[derive(Clone, Debug, PartialEq, Deserialize)]
 #[serde(untagged)]
@@ -46,48 +46,26 @@ impl Serialize for Number {
     }
 }
 
-#[derive(Clone, Debug, PartialEq, Serialize)]
-#[serde(transparent)]
-pub struct NumberForU256(pub Number);
-
-impl From<NumberForU256> for U256 {
-    fn from(number: NumberForU256) -> U256 {
-        number.0.into()
+/// deserialize a [`Number`] but always as a [`Number::U256`]
+pub fn u256_number<'de, D>(deserializer: D) -> Result<Number, D::Error>
+where
+    D: serde::Deserializer<'de>,
+{
+    let number: Number = Deserialize::deserialize(deserializer)?;
+    match number {
+        Number::U256(number) => Ok(Number::U256(number)),
+        Number::U64(number) => Ok(Number::U256(U256::from(number))),
     }
 }
 
-impl From<NumberForU256> for u64 {
-    fn from(number: NumberForU256) -> u64 {
-        number.0.into()
-    }
-}
-
-impl<'a> Deserialize<'a> for NumberForU256 {
-    fn deserialize<D>(deserializer: D) -> Result<NumberForU256, D::Error>
-    where
-        D: serde::Deserializer<'a>,
-    {
-        Number::deserialize(deserializer).map(|number| {
-            NumberForU256(Number::U256(match number {
-                Number::U256(number) => number,
-                Number::U64(number) => U256::from(number),
-            }))
-        })
-    }
-}
-
-#[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
-#[serde(transparent)]
-pub struct NumberForU64(pub Number);
-
-impl From<NumberForU64> for U256 {
-    fn from(number: NumberForU64) -> U256 {
-        number.0.into()
-    }
-}
-
-impl From<NumberForU64> for u64 {
-    fn from(number: NumberForU64) -> u64 {
-        number.0.into()
+/// deserialize a [`Number`] but always as a [`Number::U64`], panicking if the value overflows.
+pub fn u64_number<'de, D>(deserializer: D) -> Result<Number, D::Error>
+where
+    D: serde::Deserializer<'de>,
+{
+    let number: Number = Deserialize::deserialize(deserializer)?;
+    match number {
+        Number::U256(number) => Ok(Number::U64(number.try_into().map_err(D::Error::custom)?)),
+        Number::U64(number) => Ok(Number::U64(number)),
     }
 }
