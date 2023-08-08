@@ -1,6 +1,6 @@
 # Test
 
-Functionality in EDR is tested in two way:
+Functionality in EDR is tested in two ways:
 
 1. Rust unit & integration tests
 2. End-to-end (E2E) tests of EDR in Hardhat
@@ -10,6 +10,7 @@ As EDR matures, we will gradually be moving over Hardhat E2E tests to granular u
 ## EDR
 
 Part of EDR's test suite requires a working internet connection. Those tests are marked with the `test-remote` feature flag.
+EDR uses Alchemy as an Ethereum mainnet provider for its remote tests, which requires its API URL (including token) to be set in the `ALCHEMY_URL` environment variable.
 
 To run all tests, including remote tests, execute:
 
@@ -28,9 +29,9 @@ The `bench-once` feature flag is used to ensure that benchmarks only run one ite
 ## Hardhat
 
 To validate that the port of Hardhat Node to EDR did not break any functionality, we implemented the EDR integration alongside the existing TypeScript code.
-Each system in hidden behind an interface that allows us to execute the original Hardhat implementation, EDR, or a dual-mode adapter that executes both implementations side-by-side and asserts that outputs are equal.
+Each system in hidden behind an interface that allows us to either execute the original Hardhat implementation, EDR, or a dual-mode adapter that executes both implementations side-by-side and asserts that outputs are equal.
 
-To switch modes, set the `HARDHAT_EXPERIMENTAL_VM_MODE` environment variable to one of: `ethereumjs`, `rethnet`, or `dual` (default). E.g.:
+To switch modes, set the `HARDHAT_EXPERIMENTAL_VM_MODE` environment variable to one of: `ethereumjs`, `rethnet` (for EDR), or `dual` (default). E.g.:
 
 ```bash
 cd packages/hardhat-core &&
