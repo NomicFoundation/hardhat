@@ -9,7 +9,6 @@ use rethnet_rpc_server::{
     AccountConfig as ServerAccountConfig, Config as ServerConfig, RpcForkConfig,
     RpcHardhatNetworkConfig,
 };
-use secp256k1;
 use secp256k1::SecretKey;
 use serde::{Deserialize, Serialize};
 
