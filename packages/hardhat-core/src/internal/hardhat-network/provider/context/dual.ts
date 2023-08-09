@@ -1,4 +1,3 @@
-import { Common } from "@nomicfoundation/ethereumjs-common";
 import { DualBlockMiner } from "../miner/dual";
 import { DualMemPool } from "../mem-pool/dual";
 import { makeCommon } from "../utils/makeCommon";
@@ -9,8 +8,6 @@ import { EthContextAdapter } from "../context";
 import { MemPoolAdapter } from "../mem-pool";
 import { BlockMinerAdapter } from "../miner";
 import { NodeConfig, isForkedNodeConfig } from "../node-types";
-import { BuildBlockOpts, BlockBuilderAdapter } from "../vm/block-builder";
-import { DualModeBlockBuilder } from "../vm/block-builder/dual";
 import { DualModeAdapter } from "../vm/dual";
 import { VMAdapter } from "../vm/vm-adapter";
 import { EthereumJSAdapter } from "../vm/ethereumjs";
@@ -60,16 +57,6 @@ export class DualEthContext implements EthContextAdapter {
     return new DualBlockchain(
       this._hardhat.blockchain(),
       this._rethnet.blockchain()
-    );
-  }
-
-  public async blockBuilder(
-    common: Common,
-    opts: BuildBlockOpts
-  ): Promise<BlockBuilderAdapter> {
-    return new DualModeBlockBuilder(
-      await this._hardhat.blockBuilder(common, opts),
-      await this._rethnet.blockBuilder(common, opts)
     );
   }
 

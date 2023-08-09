@@ -64,7 +64,6 @@ export class RethnetBlockBuilder implements BlockBuilderAdapter {
       getHardforkName(tx.common.hardfork())
     );
 
-    const cumulativeBlockGasUsed = await this.getGasUsed();
     const rethnetResult = await this._blockBuilder.addTransaction(
       await PendingTransaction.create(
         this._stateManager.asInner(),
@@ -86,6 +85,7 @@ export class RethnetBlockBuilder implements BlockBuilderAdapter {
       }
     }
 
+    const cumulativeBlockGasUsed = await this.getGasUsed();
     return rethnetResultToRunTxResult(
       rethnetResult.result,
       cumulativeBlockGasUsed

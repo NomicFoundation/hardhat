@@ -1,15 +1,9 @@
 import { Block } from "@nomicfoundation/ethereumjs-block";
 import { Common } from "@nomicfoundation/ethereumjs-common";
-import {
-  Address,
-  bufArrToArr,
-  bufferToHex,
-  toBuffer,
-} from "@nomicfoundation/ethereumjs-util";
+import { Address } from "@nomicfoundation/ethereumjs-util";
 import { EthContextAdapter } from "../context";
 import { MemPoolAdapter } from "../mem-pool";
 import { BlockMinerAdapter } from "../miner";
-import { BuildBlockOpts, BlockBuilderAdapter } from "../vm/block-builder";
 import { VMAdapter } from "../vm/vm-adapter";
 import { NodeConfig, isForkedNodeConfig } from "../node-types";
 import { EthereumJSAdapter } from "../vm/ethereumjs";
@@ -34,7 +28,6 @@ import { HardhatBlockchain } from "../HardhatBlockchain";
 import { HardhatMemPool } from "../mem-pool/hardhat";
 import { makeGenesisBlock } from "../utils/putGenesisBlock";
 import { BlockchainAdapter } from "../blockchain";
-import { RLP } from "@nomicfoundation/ethereumjs-rlp";
 
 export class HardhatEthContext implements EthContextAdapter {
   constructor(
@@ -129,13 +122,6 @@ export class HardhatEthContext implements EthContextAdapter {
 
   public blockchain(): BlockchainAdapter {
     return this._blockchain;
-  }
-
-  public async blockBuilder(
-    common: Common,
-    opts: BuildBlockOpts
-  ): Promise<BlockBuilderAdapter> {
-    return this._vm.createBlockBuilder(common, opts);
   }
 
   public blockMiner(): BlockMinerAdapter {

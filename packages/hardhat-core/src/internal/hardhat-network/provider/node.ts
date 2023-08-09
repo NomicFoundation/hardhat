@@ -1435,9 +1435,10 @@ export class HardhatNode extends EventEmitter {
     result: PartialMineBlockResult
   ): Promise<MineBlockResult> {
     const numberOfResults = result.blockResult.results.length;
-    if (numberOfResults !== result.traces.length) {
+    const numberOfTraces = result.traces.length;
+    if (numberOfResults !== numberOfTraces) {
       throw new Error(
-        "The number of transaction results should equal the number of transactions"
+        `The number of transaction results '${numberOfResults} should equal the number of traces '${numberOfTraces}'`
       );
     }
 

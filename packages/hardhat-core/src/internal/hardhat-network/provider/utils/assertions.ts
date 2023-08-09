@@ -309,18 +309,28 @@ export function assertEqualRunBlockResults(
   ethereumJSResult: RunBlockResult,
   rethnetResult: RunBlockResult
 ) {
+  const differences: string[] = [];
+
   if (ethereumJSResult.results.length !== rethnetResult.results.length) {
     console.log(
       `Different results length: ${ethereumJSResult.results.length} (ethereumjs) !== ${rethnetResult.results.length} (rethnet)`
     );
-    throw new Error("Different results length");
+    differences.push("length");
   }
 
-  for (let txIdx = 0; txIdx < ethereumJSResult.results.length; ++txIdx) {
-    assertEqualRunTxResults(
-      ethereumJSResult.results[txIdx],
-      rethnetResult.results[txIdx]
+  for (
+    let resultIdx = 0;
+    resultIdx < ethereumJSResult.results.length;
+    ++resultIdx
+  ) {
+    const resultDifferences = runTxResultDifferences(
+      ethereumJSResult.results[resultIdx],
+      rethnetResult.results[resultIdx]
     );
+
+    if (resultDifferences.length > 0) {
+      differences.push(`results[${resultIdx}]: ${resultDifferences}`);
+    }
   }
 
   for (
@@ -328,38 +338,46 @@ export function assertEqualRunBlockResults(
     receiptIdx < ethereumJSResult.receipts.length;
     ++receiptIdx
   ) {
-    assertEqualTxReceipts(
+    const receiptDifferences = txReceiptDifferences(
       ethereumJSResult.receipts[receiptIdx],
       rethnetResult.receipts[receiptIdx]
     );
+
+    if (receiptDifferences.length > 0) {
+      differences.push(`receipts[${receiptIdx}]: ${receiptDifferences}`);
+    }
   }
 
   if (!ethereumJSResult.stateRoot.equals(rethnetResult.stateRoot)) {
     console.log(
       `Different stateRoot: ${ethereumJSResult.stateRoot} (ethereumjs) !== ${rethnetResult.stateRoot} (rethnet)`
     );
-    throw new Error("Different stateRoot");
+    differences.push("stateRoot");
   }
 
   if (!ethereumJSResult.logsBloom.equals(rethnetResult.logsBloom)) {
     console.log(
       `Different logsBloom: ${ethereumJSResult.logsBloom} (ethereumjs) !== ${rethnetResult.logsBloom} (rethnet)`
     );
-    throw new Error("Different logsBloom");
+    differences.push("logsBloom");
   }
 
   if (!ethereumJSResult.receiptsRoot.equals(rethnetResult.receiptsRoot)) {
     console.log(
       `Different receiptsRoot: ${ethereumJSResult.receiptsRoot} (ethereumjs) !== ${rethnetResult.receiptsRoot} (rethnet)`
     );
-    throw new Error("Different receiptsRoot");
+    differences.push("receiptsRoot");
   }
 
   if (ethereumJSResult.gasUsed !== rethnetResult.gasUsed) {
     console.log(
       `Different gasUsed: ${ethereumJSResult.gasUsed} (ethereumjs) !== ${rethnetResult.gasUsed} (rethnet)`
     );
-    throw new Error("Different gasUsed");
+    differences.push("gasUsed");
+  }
+
+  if (differences.length !== 0) {
+    throw new Error(`Different RunBlockResults: ${differences}`);
   }
 }
 
@@ -367,6 +385,17 @@ export function assertEqualRunTxResults(
   ethereumJSResult: RunTxResult,
   rethnetResult: RunTxResult
 ) {
+  const differences = runTxResultDifferences(ethereumJSResult, rethnetResult);
+
+  if (differences.length !== 0) {
+    throw new Error(`Different result fields: ${differences}`);
+  }
+}
+
+function runTxResultDifferences(
+  ethereumJSResult: RunTxResult,
+  rethnetResult: RunTxResult
+): string[] {
   const differences: string[] = [];
 
   if (ethereumJSResult.exit.kind !== rethnetResult.exit.kind) {
@@ -432,10 +461,13 @@ export function assertEqualRunTxResults(
       differences.push("receipt.cumulativeBlockGasUsed");
     }
 
-    assertEqualExecutionLogs(
+    const logsDifferences = executionLogsDifferences(
       ethereumJSResult.receipt.logs,
       rethnetResult.receipt.logs
     );
+    if (logsDifferences.length > 0) {
+      differences.push(`receipt.logs: ${logsDifferences}`);
+    }
   }
 
   if (exitCode === ExitCode.SUCCESS) {
@@ -455,12 +487,13 @@ export function assertEqualRunTxResults(
     }
   }
 
-  if (differences.length !== 0) {
-    throw new Error(`Different result fields: ${differences}`);
-  }
+  return differences;
 }
 
-function assertEqualExecutionLogs(ethereumJSLogs: Log[], rethnetLogs: Log[]) {
+function executionLogsDifferences(
+  ethereumJSLogs: Log[],
+  rethnetLogs: Log[]
+): string[] {
   const differences: string[] = [];
 
   if (ethereumJSLogs.length !== rethnetLogs.length) {
@@ -504,9 +537,42 @@ function assertEqualExecutionLogs(ethereumJSLogs: Log[], rethnetLogs: Log[]) {
     }
   }
 
-  if (differences.length !== 0) {
-    throw new Error(`Different log fields: ${differences}`);
+  return differences;
+}
+
+function txReceiptDifferences(
+  hardhatReceipt: TxReceipt,
+  rethnetReceipt: TxReceipt
+) {
+  const differences: string[] = [];
+  // TODO: check stateRoot and status
+
+  if (!hardhatReceipt.bitvector.equals(rethnetReceipt.bitvector)) {
+    console.log(
+      `Different bitvector: ${hardhatReceipt.bitvector} (hardhat) !== ${rethnetReceipt.bitvector} (rethnet)`
+    );
+    differences.push("bitvector");
   }
+
+  if (
+    hardhatReceipt.cumulativeBlockGasUsed !==
+    rethnetReceipt.cumulativeBlockGasUsed
+  ) {
+    console.log(
+      `Different cumulativeBlockGasUsed: ${hardhatReceipt.cumulativeBlockGasUsed} (hardhat) !== ${rethnetReceipt.cumulativeBlockGasUsed} (rethnet)`
+    );
+    differences.push("cumulativeBlockGasUsed");
+  }
+
+  const logsDifferences = executionLogsDifferences(
+    hardhatReceipt.logs,
+    rethnetReceipt.logs
+  );
+  if (logsDifferences.length > 0) {
+    throw new Error(`logs: ${differences}`);
+  }
+
+  return differences;
 }
 
 export function assertEqualOptionalReceipts(
@@ -532,32 +598,6 @@ export function assertEqualOptionalReceipts(
 
     assertEqualReceipts(hardhatReceipt, rethnetReceipt);
   }
-}
-
-export function assertEqualTxReceipts(
-  hardhatReceipt: TxReceipt,
-  rethnetReceipt: TxReceipt
-) {
-  // TODO: check stateRoot and status
-
-  if (!hardhatReceipt.bitvector.equals(rethnetReceipt.bitvector)) {
-    console.log(
-      `Different bitvector: ${hardhatReceipt.bitvector} (hardhat) !== ${rethnetReceipt.bitvector} (rethnet)`
-    );
-    throw new Error("Different bitvector");
-  }
-
-  if (
-    hardhatReceipt.cumulativeBlockGasUsed !==
-    rethnetReceipt.cumulativeBlockGasUsed
-  ) {
-    console.log(
-      `Different cumulativeBlockGasUsed: ${hardhatReceipt.cumulativeBlockGasUsed} (hardhat) !== ${rethnetReceipt.cumulativeBlockGasUsed} (rethnet)`
-    );
-    throw new Error("Different cumulativeBlockGasUsed");
-  }
-
-  assertEqualExecutionLogs(hardhatReceipt.logs, rethnetReceipt.logs);
 }
 
 export function assertEqualReceipts(

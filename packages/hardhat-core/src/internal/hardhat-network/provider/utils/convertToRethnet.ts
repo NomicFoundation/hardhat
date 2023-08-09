@@ -355,7 +355,7 @@ export function rethnetReceiptToEthereumJsTxReceipt(
 ): PostByzantiumTxReceipt {
   return {
     status: receipt.status! > 0 ? 1 : 0,
-    cumulativeBlockGasUsed: receipt.gasUsed,
+    cumulativeBlockGasUsed: receipt.cumulativeGasUsed,
     bitvector: receipt.logsBloom,
     logs: receipt.logs.map((log) => {
       return [log.address, log.topics, log.data];

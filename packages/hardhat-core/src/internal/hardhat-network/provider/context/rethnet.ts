@@ -1,4 +1,3 @@
-import { Common } from "@nomicfoundation/ethereumjs-common";
 import { toBuffer } from "@nomicfoundation/ethereumjs-util";
 import { BlockMiner, Blockchain, Rethnet, RethnetContext } from "rethnet-evm";
 import { BlockchainAdapter } from "../blockchain";
@@ -6,7 +5,6 @@ import { RethnetBlockchain } from "../blockchain/rethnet";
 import { EthContextAdapter } from "../context";
 import { MemPoolAdapter } from "../mem-pool";
 import { BlockMinerAdapter } from "../miner";
-import { BlockBuilderAdapter, BuildBlockOpts } from "../vm/block-builder";
 import { VMAdapter } from "../vm/vm-adapter";
 import { RethnetMiner } from "../miner/rethnet";
 import { RethnetAdapter } from "../vm/rethnet";
@@ -26,7 +24,6 @@ import { makeCommon } from "../utils/makeCommon";
 import { HARDHAT_NETWORK_DEFAULT_INITIAL_BASE_FEE_PER_GAS } from "../../../core/config/default-config";
 import { makeGenesisBlock } from "../utils/putGenesisBlock";
 import { RandomBufferGenerator } from "../utils/random";
-import { Block } from "@nomicfoundation/ethereumjs-block";
 
 // Only one is allowed to exist
 export const globalRethnetContext = new RethnetContext();
@@ -146,13 +143,6 @@ export class RethnetEthContext implements EthContextAdapter {
 
   public blockchain(): BlockchainAdapter {
     return this._blockchain;
-  }
-
-  public async blockBuilder(
-    common: Common,
-    opts: BuildBlockOpts
-  ): Promise<BlockBuilderAdapter> {
-    return this._vm.createBlockBuilder(common, opts);
   }
 
   public blockMiner(): BlockMinerAdapter {

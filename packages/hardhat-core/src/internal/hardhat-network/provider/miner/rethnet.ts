@@ -39,23 +39,24 @@ export class RethnetMiner implements BlockMinerAdapter {
         } else {
           await vmTracer.addBeforeMessage(traceItem);
         }
-
-        const trace = vmTracer.getLastTopLevelMessageTrace();
-        const error = vmTracer.getLastError();
-
-        vmTracer.clearLastError();
-
-        traces.push({ trace, error });
       }
-    }
 
-    const cumulativeBlockGasUsed = mineResult.block.header.gasUsed;
+      const trace = vmTracer.getLastTopLevelMessageTrace();
+      const error = vmTracer.getLastError();
+
+      vmTracer.clearLastError();
+
+      traces.push({ trace, error });
+    }
 
     return {
       block: rethnetBlockToEthereumJS(mineResult.block, this._common),
       blockResult: {
-        results: mineResult.results.map((result, _index, _array) => {
-          return rethnetResultToRunTxResult(result, cumulativeBlockGasUsed);
+        results: mineResult.results.map((result, index, _array) => {
+          return rethnetResultToRunTxResult(
+            result,
+            mineResult.block.receipts[index].cumulativeGasUsed
+          );
         }),
         receipts: mineResult.block.receipts.map((receipt, _index, _array) => {
           return rethnetReceiptToEthereumJsTxReceipt(receipt);
