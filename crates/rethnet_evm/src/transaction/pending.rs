@@ -206,19 +206,8 @@ impl From<PendingTransaction> for TxEnv {
                 value,
                 input,
                 ..
-            }) => Self {
-                caller: transaction.caller,
-                gas_limit,
-                gas_price,
-                gas_priority_fee: None,
-                transact_to: transact_to(kind),
-                value,
-                data: input,
-                chain_id,
-                nonce: Some(nonce),
-                access_list: Vec::new(),
-            },
-            SignedTransaction::EIP155(EIP155SignedTransaction {
+            })
+            | SignedTransaction::EIP155(EIP155SignedTransaction {
                 nonce,
                 gas_price,
                 gas_limit,

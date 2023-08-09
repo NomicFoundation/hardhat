@@ -52,9 +52,10 @@ pub struct Transaction {
     /// gas provided by the sender
     pub gas: U256,
     /// the data sent along with the transaction
+    #[serde(with = "crate::serde::bytes")]
     pub input: Bytes,
     /// ECDSA recovery id
-    #[serde(with = "crate::serde::u64")]
+    #[serde(alias = "yParity", with = "crate::serde::u64")]
     pub v: u64,
     /// ECDSA signature r
     pub r: U256,
@@ -64,7 +65,7 @@ pub struct Transaction {
     #[serde(default, deserialize_with = "crate::serde::optional_u64_from_hex")]
     pub chain_id: Option<u64>,
     /// integer of the transaction type, 0x0 for legacy transactions, 0x1 for access list types, 0x2 for dynamic fees
-    #[serde(rename = "type", with = "crate::serde::u64")]
+    #[serde(rename = "type", default, with = "crate::serde::u64")]
     pub transaction_type: u64,
     /// access list
     #[serde(default)]
@@ -217,9 +218,9 @@ impl TryFrom<Transaction> for (SignedTransaction, Address) {
                     .access_list
                     .ok_or(TransactionConversionError::MissingAccessList)?
                     .into(),
-                odd_y_parity: value.v != 0,
-                r: B256::from(value.r),
-                s: B256::from(value.s),
+                odd_y_parity: value.v == 1,
+                r: value.r,
+                s: value.s,
             }),
             2 => SignedTransaction::EIP1559(EIP1559SignedTransaction {
                 chain_id: value
@@ -240,9 +241,9 @@ impl TryFrom<Transaction> for (SignedTransaction, Address) {
                     .access_list
                     .ok_or(TransactionConversionError::MissingAccessList)?
                     .into(),
-                odd_y_parity: value.v != 0,
-                r: B256::from(value.r),
-                s: B256::from(value.s),
+                odd_y_parity: value.v == 1,
+                r: value.r,
+                s: value.s,
             }),
             r#type => {
                 return Err(TransactionConversionError::UnsupportedType(r#type));

@@ -15,7 +15,7 @@ use super::{
 };
 
 /// Specialized error types
-#[derive(thiserror::Error, Debug)]
+#[derive(Debug, thiserror::Error)]
 pub enum RpcClientError {
     /// The message could not be sent to the remote node
     #[error(transparent)]
@@ -922,7 +922,7 @@ mod tests {
             );
             assert_eq!(
             tx.input,
-            Bytes::from("0xa9059cbb000000000000000000000000e2c1e729e05f34c07d80083982ccd9154045dcc600000000000000000000000000000000000000000000000000000004a817c800")
+            Bytes::from(hex::decode("a9059cbb000000000000000000000000e2c1e729e05f34c07d80083982ccd9154045dcc600000000000000000000000000000000000000000000000000000004a817c800").unwrap())
         );
             assert_eq!(
                 tx.nonce,

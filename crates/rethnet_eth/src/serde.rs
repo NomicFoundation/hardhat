@@ -2,7 +2,7 @@
 
 use std::{fmt::Write, ops::Deref};
 
-use bytes::Bytes;
+use ::bytes::Bytes;
 
 use crate::U256;
 
@@ -169,6 +169,40 @@ where
         .unwrap();
 
     s.serialize_str(&result)
+}
+
+/// Helper module for (de)serializing bytes into hexadecimal strings. This is necessary because
+/// the default bytes serialization considers a string as bytes.
+pub mod bytes {
+    use serde::Deserialize;
+
+    use super::Bytes;
+
+    /// Helper function for deserializing [`Bytes`] from a `0x`-prefixed hexadecimal string.
+    pub fn deserialize<'de, Deserializer>(d: Deserializer) -> Result<Bytes, Deserializer::Error>
+    where
+        Deserializer: serde::Deserializer<'de>,
+    {
+        let value = String::deserialize(d)?;
+        if let Some(value) = value.strip_prefix("0x") {
+            hex::decode(value)
+        } else {
+            hex::decode(&value)
+        }
+        .map(Into::into)
+        .map_err(|e| serde::de::Error::custom(e.to_string()))
+    }
+
+    /// Helper function for serializing [`Bytes`] into a hexadecimal string.
+    pub fn serialize<Serializer>(
+        value: &Bytes,
+        s: Serializer,
+    ) -> Result<Serializer::Ok, Serializer::Error>
+    where
+        Serializer: serde::Serializer,
+    {
+        s.serialize_str(&format!("0x{}", hex::encode(value.as_ref())))
+    }
 }
 
 /// Helper module for (de)serializing [`U256`]s into hexadecimal strings. This is necessary because

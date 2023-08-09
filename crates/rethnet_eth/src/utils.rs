@@ -10,27 +10,35 @@
 
 use crate::B256;
 use revm_primitives::keccak256;
+use rlp::Encodable;
 
 /// RLP-encodes the provided value, prepends it with the provided ID, and appends it to the provided [`rlp::RlpStream`].
-pub fn enveloped<T: rlp::Encodable>(id: u8, v: &T, s: &mut rlp::RlpStream) {
+pub fn enveloped<T: Encodable>(id: u8, v: &T, s: &mut rlp::RlpStream) {
     let encoded = rlp::encode(v);
-    let mut out = vec![0; 1 + encoded.len()];
-    out[0] = id;
-    out[1..].copy_from_slice(&encoded);
-    s.append_raw(&out, 1);
+    let enveloped = envelop_bytes(id, &encoded);
+    s.append_raw(&enveloped, 1);
 }
 
-const PREFIX: &str = "\x19Ethereum Signed Message:\n";
+/// Prepends the provided (RLP-encoded) bytes with the provided ID.
+pub fn envelop_bytes(id: u8, bytes: &[u8]) -> Vec<u8> {
+    let mut out = vec![0; 1 + bytes.len()];
+    out[0] = id;
+    out[1..].copy_from_slice(bytes);
+
+    out
+}
 
 /// Hash a message according to EIP-191.
 ///
-/// The data is a UTF-8 encoded string and will enveloped as follows:
+/// The data is a UTF-8 encoded string and will be enveloped as follows:
 /// `"\x19Ethereum Signed Message:\n" + message.length + message` and hashed
 /// using keccak256.
 pub fn hash_message<S>(message: S) -> B256
 where
     S: AsRef<[u8]>,
 {
+    const PREFIX: &str = "\x19Ethereum Signed Message:\n";
+
     let message = message.as_ref();
 
     let mut eth_message = format!("{}{}", PREFIX, message.len()).into_bytes();

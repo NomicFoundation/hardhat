@@ -47,7 +47,7 @@ pub struct AccessListItem {
 impl rlp::Encodable for AccessListItem {
     fn rlp_append(&self, stream: &mut rlp::RlpStream) {
         stream.begin_list(2);
-        stream.append(&ruint::aliases::B160::from_be_bytes(self.address.0));
+        stream.append(&self.address.as_bytes());
 
         let storage_keys = self
             .storage_keys
