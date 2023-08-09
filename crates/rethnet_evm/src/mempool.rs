@@ -169,6 +169,10 @@ impl MemPool {
             }
         }
 
+        // Remove empty pending entries
+        self.pending_transactions
+            .retain(|_, transactions| !transactions.is_empty());
+
         for entry in self.future_transactions.iter_mut() {
             let (caller, transactions) = entry;
             let sender = state.basic(*caller)?.unwrap_or_default();
@@ -176,6 +180,10 @@ impl MemPool {
             transactions
                 .retain(|transaction| is_valid_tx(transaction, &self.block_gas_limit, &sender));
         }
+
+        // Remove empty future entries
+        self.future_transactions
+            .retain(|_, transactions| !transactions.is_empty());
 
         Ok(())
     }
