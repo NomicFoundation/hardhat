@@ -322,10 +322,10 @@ pub enum MethodInvocation {
 #[derive(Clone, Debug, PartialEq, serde::Deserialize, serde::Serialize)]
 #[serde(untagged)]
 pub enum U256OrUsize {
-    /// U256
-    U256(U256),
     /// usize
     Usize(usize),
+    /// U256
+    U256(U256),
 }
 
 impl From<U256OrUsize> for U256 {
