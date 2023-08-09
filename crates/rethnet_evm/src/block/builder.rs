@@ -231,9 +231,12 @@ impl BlockBuilder {
                 logs_bloom,
                 logs,
                 data: match &*transaction {
-                    SignedTransaction::Legacy(_) => {
-                        TypedReceiptData::PostByzantiumLegacy { status }
-                    }
+                    SignedTransaction::Legacy(_) => TypedReceiptData::Legacy {
+                        state_root: state
+                            .state_root()
+                            .expect("Must be able to calculate state root"),
+                    },
+                    SignedTransaction::EIP155(_) => TypedReceiptData::EIP658 { status },
                     SignedTransaction::EIP2930(_) => TypedReceiptData::EIP2930 { status },
                     SignedTransaction::EIP1559(_) => TypedReceiptData::EIP1559 { status },
                 },

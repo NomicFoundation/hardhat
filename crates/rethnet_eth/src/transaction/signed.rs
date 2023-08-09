@@ -1,3 +1,4 @@
+mod eip155;
 mod eip1559;
 mod eip2930;
 mod legacy;
@@ -11,11 +12,11 @@ use crate::{
     utils::enveloped,
 };
 
-use super::{kind::TransactionKind, TransactionEssentials};
+use super::kind::TransactionKind;
 
 pub use self::{
-    eip1559::EIP1559SignedTransaction, eip2930::EIP2930SignedTransaction,
-    legacy::LegacySignedTransaction,
+    eip155::EIP155SignedTransaction, eip1559::EIP1559SignedTransaction,
+    eip2930::EIP2930SignedTransaction, legacy::LegacySignedTransaction,
 };
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
@@ -23,6 +24,8 @@ pub use self::{
 pub enum SignedTransaction {
     /// Legacy transaction type
     Legacy(LegacySignedTransaction),
+    /// EIP-155 transaction
+    EIP155(EIP155SignedTransaction),
     /// EIP-2930 transaction
     EIP2930(EIP2930SignedTransaction),
     /// EIP-1559 transaction
@@ -34,6 +37,7 @@ impl SignedTransaction {
     pub fn gas_price(&self) -> U256 {
         match self {
             SignedTransaction::Legacy(tx) => tx.gas_price,
+            SignedTransaction::EIP155(tx) => tx.gas_price,
             SignedTransaction::EIP2930(tx) => tx.gas_price,
             SignedTransaction::EIP1559(tx) => tx.max_fee_per_gas,
         }
@@ -43,6 +47,7 @@ impl SignedTransaction {
     pub fn gas_limit(&self) -> u64 {
         match self {
             SignedTransaction::Legacy(tx) => tx.gas_limit,
+            SignedTransaction::EIP155(tx) => tx.gas_limit,
             SignedTransaction::EIP2930(tx) => tx.gas_limit,
             SignedTransaction::EIP1559(tx) => tx.gas_limit,
         }
@@ -52,6 +57,7 @@ impl SignedTransaction {
     pub fn value(&self) -> U256 {
         match self {
             SignedTransaction::Legacy(tx) => tx.value,
+            SignedTransaction::EIP155(tx) => tx.value,
             SignedTransaction::EIP2930(tx) => tx.value,
             SignedTransaction::EIP1559(tx) => tx.value,
         }
@@ -61,6 +67,7 @@ impl SignedTransaction {
     pub fn data(&self) -> &Bytes {
         match self {
             SignedTransaction::Legacy(tx) => &tx.input,
+            SignedTransaction::EIP155(tx) => &tx.input,
             SignedTransaction::EIP2930(tx) => &tx.input,
             SignedTransaction::EIP1559(tx) => &tx.input,
         }
@@ -69,7 +76,7 @@ impl SignedTransaction {
     /// Returns the access list of the transaction, if any.
     pub fn access_list(&self) -> Option<&AccessList> {
         match self {
-            SignedTransaction::Legacy(_) => None,
+            SignedTransaction::Legacy(_) | SignedTransaction::EIP155(_) => None,
             SignedTransaction::EIP2930(tx) => Some(&tx.access_list),
             SignedTransaction::EIP1559(tx) => Some(&tx.access_list),
         }
@@ -85,61 +92,21 @@ impl SignedTransaction {
         self.max_cost().saturating_add(self.value())
     }
 
-    /// Returns a helper type that contains commonly used values as fields
-    pub fn essentials(&self) -> TransactionEssentials {
-        match self {
-            SignedTransaction::Legacy(t) => TransactionEssentials {
-                kind: t.kind,
-                input: t.input.clone(),
-                nonce: t.nonce,
-                gas_limit: t.gas_limit,
-                gas_price: Some(t.gas_price),
-                max_fee_per_gas: None,
-                max_priority_fee_per_gas: None,
-                value: t.value,
-                chain_id: t.chain_id(),
-                access_list: AccessList::default(),
-            },
-            SignedTransaction::EIP2930(t) => TransactionEssentials {
-                kind: t.kind,
-                input: t.input.clone(),
-                nonce: t.nonce,
-                gas_limit: t.gas_limit,
-                gas_price: Some(t.gas_price),
-                max_fee_per_gas: None,
-                max_priority_fee_per_gas: None,
-                value: t.value,
-                chain_id: Some(t.chain_id),
-                access_list: t.access_list.clone(),
-            },
-            SignedTransaction::EIP1559(t) => TransactionEssentials {
-                kind: t.kind,
-                input: t.input.clone(),
-                nonce: t.nonce,
-                gas_limit: t.gas_limit,
-                gas_price: None,
-                max_fee_per_gas: Some(t.max_fee_per_gas),
-                max_priority_fee_per_gas: Some(t.max_priority_fee_per_gas),
-                value: t.value,
-                chain_id: Some(t.chain_id),
-                access_list: t.access_list.clone(),
-            },
-        }
-    }
-
     /// Returns the nonce of the transaction.
-    pub fn nonce(&self) -> &u64 {
+    pub fn nonce(&self) -> u64 {
         match self {
-            SignedTransaction::Legacy(t) => t.nonce(),
-            SignedTransaction::EIP2930(t) => t.nonce(),
-            SignedTransaction::EIP1559(t) => t.nonce(),
+            SignedTransaction::Legacy(t) => t.nonce,
+            SignedTransaction::EIP155(t) => t.nonce,
+            SignedTransaction::EIP2930(t) => t.nonce,
+            SignedTransaction::EIP1559(t) => t.nonce,
         }
     }
 
     /// Returns the chain id of the transaction.
     pub fn chain_id(&self) -> Option<u64> {
         match self {
-            SignedTransaction::Legacy(t) => t.chain_id(),
+            SignedTransaction::Legacy(_) => None,
+            SignedTransaction::EIP155(t) => Some(t.chain_id()),
             SignedTransaction::EIP2930(t) => Some(t.chain_id),
             SignedTransaction::EIP1559(t) => Some(t.chain_id),
         }
@@ -166,6 +133,7 @@ impl SignedTransaction {
     pub fn hash(&self) -> B256 {
         match self {
             SignedTransaction::Legacy(t) => t.hash(),
+            SignedTransaction::EIP155(t) => t.hash(),
             SignedTransaction::EIP2930(t) => t.hash(),
             SignedTransaction::EIP1559(t) => t.hash(),
         }
@@ -175,6 +143,7 @@ impl SignedTransaction {
     pub fn recover(&self) -> Result<Address, SignatureError> {
         match self {
             SignedTransaction::Legacy(tx) => tx.recover(),
+            SignedTransaction::EIP155(tx) => tx.recover(),
             SignedTransaction::EIP2930(tx) => tx.recover(),
             SignedTransaction::EIP1559(tx) => tx.recover(),
         }
@@ -184,6 +153,7 @@ impl SignedTransaction {
     pub fn kind(&self) -> &TransactionKind {
         match self {
             SignedTransaction::Legacy(tx) => &tx.kind,
+            SignedTransaction::EIP155(tx) => &tx.kind,
             SignedTransaction::EIP2930(tx) => &tx.kind,
             SignedTransaction::EIP1559(tx) => &tx.kind,
         }
@@ -198,6 +168,7 @@ impl SignedTransaction {
     pub fn signature(&self) -> Signature {
         match self {
             SignedTransaction::Legacy(tx) => tx.signature,
+            SignedTransaction::EIP155(tx) => tx.signature,
             SignedTransaction::EIP2930(tx) => {
                 let v = u8::from(tx.odd_y_parity);
                 let r = U256::from_be_bytes(tx.r.0);
@@ -218,6 +189,7 @@ impl rlp::Encodable for SignedTransaction {
     fn rlp_append(&self, s: &mut rlp::RlpStream) {
         match self {
             SignedTransaction::Legacy(tx) => tx.rlp_append(s),
+            SignedTransaction::EIP155(tx) => tx.rlp_append(s),
             SignedTransaction::EIP2930(tx) => enveloped(1, tx, s),
             SignedTransaction::EIP1559(tx) => enveloped(2, tx, s),
         }
