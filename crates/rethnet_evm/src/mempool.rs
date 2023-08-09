@@ -56,7 +56,7 @@ impl MemPool {
     /// Retrieves the nonce of the last pending transaction of the account corresponding to the specified address, if it exists.
     pub fn last_pending_nonce(&self, address: &Address) -> Option<u64> {
         self.pending_transactions.get(address).map(|transactions| {
-            *transactions
+            transactions
                 .last()
                 .expect("Empty maps should be deleted")
                 .nonce()
@@ -86,7 +86,7 @@ impl MemPool {
             |nonce| Ok(nonce + 1),
         )?;
 
-        if *transaction.nonce() == next_nonce {
+        if transaction.nonce() == next_nonce {
             self.insert_pending_transaction(transaction);
         } else {
             self.insert_queued_transaction(transaction);
@@ -145,7 +145,7 @@ impl MemPool {
             sender: &AccountInfo,
         ) -> bool {
             U256::from(transaction.gas_limit()) <= *block_gas_limit
-                && *transaction.nonce() >= sender.nonce
+                && transaction.nonce() >= sender.nonce
                 && transaction.upfront_cost() <= sender.balance
         }
 
@@ -216,7 +216,7 @@ impl MemPool {
         if removed.is_some() {
             let old_transactions = pending_transactions
                 .iter_mut()
-                .find(|pending_transaction| *transaction.nonce() == *pending_transaction.nonce())
+                .find(|pending_transaction| transaction.nonce() == pending_transaction.nonce())
                 .expect("An old transaction with the same nonce should exist");
 
             *old_transactions = transaction;
@@ -238,7 +238,7 @@ impl MemPool {
         if removed.is_some() {
             let old_transactions = future_transactions
                 .iter_mut()
-                .find(|pending_transaction| *transaction.nonce() == *pending_transaction.nonce())
+                .find(|pending_transaction| transaction.nonce() == pending_transaction.nonce())
                 .expect("An old transaction with the same nonce should exist");
 
             *old_transactions = transaction;

@@ -308,7 +308,10 @@ impl Block {
             .iter()
             .map(|transaction| match transaction {
                 rethnet_eth::transaction::SignedTransaction::Legacy(transaction) => {
-                    LegacySignedTransaction::new(&env, transaction).map(Either3::A)
+                    LegacySignedTransaction::from_legacy(&env, transaction).map(Either3::A)
+                }
+                rethnet_eth::transaction::SignedTransaction::EIP155(transaction) => {
+                    LegacySignedTransaction::from_eip155(&env, transaction).map(Either3::A)
                 }
                 rethnet_eth::transaction::SignedTransaction::EIP2930(transaction) => {
                     EIP2930SignedTransaction::new(&env, transaction).map(Either3::B)

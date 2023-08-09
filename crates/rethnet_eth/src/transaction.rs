@@ -9,23 +9,9 @@ mod kind;
 mod request;
 mod signed;
 
-use crate::{
-    access_list::{AccessList, AccessListItem},
-    Address, Bytes, U256,
-};
+use crate::{access_list::AccessListItem, Address, Bytes, U256};
 
-pub use self::{
-    detailed::DetailedTransaction,
-    kind::TransactionKind,
-    request::{
-        EIP1559TransactionRequest, EIP2930TransactionRequest, LegacyTransactionRequest,
-        TransactionRequest,
-    },
-    signed::{
-        EIP1559SignedTransaction, EIP2930SignedTransaction, LegacySignedTransaction,
-        SignedTransaction,
-    },
-};
+pub use self::{detailed::DetailedTransaction, kind::TransactionKind, request::*, signed::*};
 
 /// Represents _all_ transaction requests received from RPC
 #[derive(Clone, Debug, PartialEq, Eq, Default)]
@@ -89,7 +75,6 @@ impl EthTransactionRequest {
                     Some(to) => TransactionKind::Call(to),
                     None => TransactionKind::Create,
                 },
-                chain_id: None,
             })),
             // EIP2930
             (_, None, Some(access_list)) => {
@@ -163,18 +148,4 @@ impl open_fastrlp::Decodable for TransactionKind {
             Err(open_fastrlp::DecodeError::InputTooShort)
         }
     }
-}
-
-#[derive(Clone, Debug, PartialEq, Eq)]
-pub struct TransactionEssentials {
-    pub kind: TransactionKind,
-    pub input: Bytes,
-    pub nonce: u64,
-    pub gas_limit: u64,
-    pub gas_price: Option<U256>,
-    pub max_fee_per_gas: Option<U256>,
-    pub max_priority_fee_per_gas: Option<U256>,
-    pub value: U256,
-    pub chain_id: Option<u64>,
-    pub access_list: AccessList,
 }

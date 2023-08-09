@@ -35,12 +35,12 @@ pub struct TypedReceipt<LogT> {
 #[cfg_attr(feature = "serde", serde(tag = "type"))]
 pub enum TypedReceiptData {
     #[cfg_attr(feature = "serde", serde(rename = "0x0"))]
-    PreByzantiumLegacy {
+    Legacy {
         #[cfg_attr(feature = "serde", serde(rename = "root"))]
         state_root: B256,
     },
     #[cfg_attr(feature = "serde", serde(rename = "0x0"))]
-    PostByzantiumLegacy {
+    EIP658 {
         #[cfg_attr(feature = "serde", serde(with = "crate::serde::u8"))]
         status: u8,
     },
@@ -60,8 +60,8 @@ impl<LogT> TypedReceipt<LogT> {
     /// Returns the status code of the receipt, if any.
     pub fn status_code(&self) -> Option<u8> {
         match &self.data {
-            TypedReceiptData::PreByzantiumLegacy { .. } => None,
-            TypedReceiptData::PostByzantiumLegacy { status }
+            TypedReceiptData::Legacy { .. } => None,
+            TypedReceiptData::EIP658 { status }
             | TypedReceiptData::EIP2930 { status }
             | TypedReceiptData::EIP1559 { status } => Some(*status),
         }
@@ -70,7 +70,7 @@ impl<LogT> TypedReceipt<LogT> {
     /// Returns the state root of the receipt, if any.
     pub fn state_root(&self) -> Option<&B256> {
         match &self.data {
-            TypedReceiptData::PreByzantiumLegacy { state_root } => Some(state_root),
+            TypedReceiptData::Legacy { state_root } => Some(state_root),
             _ => None,
         }
     }
@@ -78,8 +78,7 @@ impl<LogT> TypedReceipt<LogT> {
     /// Returns the transaction type of the receipt.
     pub fn transaction_type(&self) -> u64 {
         match &self.data {
-            TypedReceiptData::PreByzantiumLegacy { .. }
-            | TypedReceiptData::PostByzantiumLegacy { .. } => 0u64,
+            TypedReceiptData::Legacy { .. } | TypedReceiptData::EIP658 { .. } => 0u64,
             TypedReceiptData::EIP2930 { .. } => 1u64,
             TypedReceiptData::EIP1559 { .. } => 2u64,
         }
@@ -185,7 +184,9 @@ where
                 let logs_bloom = logs_bloom.ok_or_else(|| Error::missing_field("logsBloom"))?;
                 let logs = logs.ok_or_else(|| Error::missing_field("logs"))?;
 
-                let data = if let Some(status_code) = status_code {
+                let data = if let Some(state_root) = state_root {
+                    TypedReceiptData::Legacy { state_root }
+                } else if let Some(status_code) = status_code {
                     let status = match status_code {
                         "0x0" => 0u8,
                         "0x1" => 1u8,
@@ -194,16 +195,14 @@ where
 
                     if let Some(transaction_type) = transaction_type {
                         match transaction_type {
-                            "0x0" => TypedReceiptData::PostByzantiumLegacy { status },
+                            "0x0" => TypedReceiptData::EIP658 { status },
                             "0x1" => TypedReceiptData::EIP2930 { status },
                             "0x2" => TypedReceiptData::EIP1559 { status },
                             _ => return Err(Error::custom("unknown transaction type")),
                         }
                     } else {
-                        TypedReceiptData::PostByzantiumLegacy { status }
+                        TypedReceiptData::EIP658 { status }
                     }
-                } else if let Some(state_root) = state_root {
-                    TypedReceiptData::PreByzantiumLegacy { state_root }
                 } else {
                     return Err(Error::missing_field("root or status"));
                 };
@@ -235,20 +234,43 @@ where
         where
             LogT: rlp::Decodable,
         {
-            let status = rlp.val_at(0)?;
+            fn normalize_status(status: u8) -> u8 {
+                if status == 1 {
+                    1
+                } else {
+                    0
+                }
+            }
+
             Ok(TypedReceipt {
                 cumulative_gas_used: rlp.val_at(1)?,
                 logs_bloom: rlp.val_at(2)?,
                 logs: rlp.list_at(3)?,
                 data: match id {
-                    Some(1) => TypedReceiptData::EIP2930 { status },
-                    Some(2) => TypedReceiptData::EIP1559 { status },
-                    _ => TypedReceiptData::PostByzantiumLegacy { status },
+                    None | Some(0) => {
+                        if let Ok(status) = rlp.val_at(0) {
+                            TypedReceiptData::EIP658 {
+                                status: normalize_status(status),
+                            }
+                        } else {
+                            let state_root = rlp.val_at::<Vec<u8>>(0)?;
+                            TypedReceiptData::Legacy {
+                                state_root: B256::from_slice(&state_root),
+                            }
+                        }
+                    }
+                    Some(1) => TypedReceiptData::EIP2930 {
+                        status: normalize_status(rlp.val_at(0)?),
+                    },
+                    Some(2) => TypedReceiptData::EIP1559 {
+                        status: normalize_status(rlp.val_at(0)?),
+                    },
+                    _ => return Err(rlp::DecoderError::Custom("Unsupported receipt type")),
                 },
             })
         }
 
-        let slice = rlp.data()?;
+        let slice = rlp.as_raw();
 
         let first = *slice
             .first()
@@ -281,11 +303,10 @@ where
     LogT: rlp::Encodable,
 {
     fn rlp_append(&self, s: &mut rlp::RlpStream) {
-        let (id, status) = match &self.data {
-            TypedReceiptData::PreByzantiumLegacy { .. } => (None, None),
-            TypedReceiptData::PostByzantiumLegacy { status } => (None, Some(status)),
-            TypedReceiptData::EIP2930 { status } => (Some(1), Some(status)),
-            TypedReceiptData::EIP1559 { status } => (Some(2), Some(status)),
+        let id = match &self.data {
+            TypedReceiptData::Legacy { .. } | TypedReceiptData::EIP658 { .. } => None,
+            TypedReceiptData::EIP2930 { .. } => Some(1),
+            TypedReceiptData::EIP1559 { .. } => Some(2),
         };
 
         if let Some(id) = id {
@@ -294,10 +315,19 @@ where
 
         s.begin_list(4);
 
-        if let Some(status) = status {
-            s.append(status);
-        } else {
-            s.append(&"");
+        match &self.data {
+            TypedReceiptData::Legacy { state_root } => {
+                s.append(&state_root.as_bytes());
+            }
+            TypedReceiptData::EIP658 { status }
+            | TypedReceiptData::EIP2930 { status }
+            | TypedReceiptData::EIP1559 { status } => {
+                if *status == 0 {
+                    s.append_empty_data();
+                } else {
+                    s.append(status);
+                }
+            }
         }
 
         s.append(&self.cumulative_gas_used);
@@ -317,28 +347,61 @@ mod tests {
 
     use super::*;
 
+    fn dummy_receipts() -> Vec<TypedReceipt<Log>> {
+        [
+            TypedReceiptData::Legacy {
+                state_root: B256::random(),
+            },
+            TypedReceiptData::EIP658 { status: 1 },
+            TypedReceiptData::EIP2930 { status: 1 },
+            TypedReceiptData::EIP1559 { status: 0 },
+        ]
+        .into_iter()
+        .map(|data| TypedReceipt {
+            cumulative_gas_used: U256::from(0xffff),
+            logs_bloom: Bloom::random(),
+            logs: vec![
+                Log {
+                    address: Address::random(),
+                    topics: vec![B256::random(), B256::random()],
+                    data: Bytes::new(),
+                },
+                Log {
+                    address: Address::random(),
+                    topics: Vec::new(),
+                    data: Bytes::from_static(b"test"),
+                },
+            ],
+            data,
+        })
+        .collect()
+    }
+
+    #[test]
+    fn test_typed_receipt_rlp() {
+        let receipts = dummy_receipts();
+
+        for receipt in receipts {
+            let encoded = rlp::encode(&receipt);
+            assert_eq!(rlp::decode::<TypedReceipt<Log>>(&encoded).unwrap(), receipt);
+        }
+    }
+
     #[test]
     fn test_typed_receipt_serde() {
-        let receipt = TypedReceipt {
-            logs_bloom: [0; 256].into(),
-            cumulative_gas_used: U256::from(0x1u64),
-            logs: vec![Log {
-                address: Address::default(),
-                topics: vec![],
-                data: Bytes::default(),
-            }],
-            data: TypedReceiptData::EIP1559 { status: 1 },
-        };
+        let receipts = dummy_receipts();
 
-        let serialized = serde_json::to_string(&receipt).unwrap();
-        let deserialized: TypedReceipt<Log> = serde_json::from_str(&serialized).unwrap();
+        for receipt in receipts {
+            let serialized = serde_json::to_string(&receipt).unwrap();
+            let deserialized: TypedReceipt<Log> = serde_json::from_str(&serialized).unwrap();
 
-        assert_eq!(receipt, deserialized);
+            assert_eq!(receipt, deserialized);
+        }
     }
 
     #[test]
     // Test vector from: https://eips.ethereum.org/EIPS/eip-2481
-    fn test_typed_receipt_encode_legacy() {
+    fn test_typed_receipt_eip658_encode() {
         let expected = hex::decode("f901668001b9010000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000f85ff85d940000000000000000000000000000000000000011f842a0000000000000000000000000000000000000000000000000000000000000deada0000000000000000000000000000000000000000000000000000000000000beef830100ff").unwrap();
 
         let receipt = TypedReceipt {
@@ -358,7 +421,7 @@ mod tests {
                 ],
                 data: Bytes::from(hex::decode("0100ff").unwrap()),
             }],
-            data: TypedReceiptData::PostByzantiumLegacy { status: 0 },
+            data: TypedReceiptData::EIP658 { status: 0 },
         };
 
         let decoded = rlp::encode(&receipt);
@@ -392,7 +455,7 @@ mod tests {
                 ],
                 data: Bytes::from(hex::decode("0100ff").unwrap()),
             }],
-            data: TypedReceiptData::PostByzantiumLegacy { status: 0 },
+            data: TypedReceiptData::EIP658 { status: 0 },
         };
 
         let decoded: TypedReceipt<Log> = rlp::decode(&data[..]).unwrap();

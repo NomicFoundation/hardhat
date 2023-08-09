@@ -20,7 +20,13 @@ impl TryCast<rethnet_eth::transaction::SignedTransaction> for SignedTransaction 
     fn try_cast(self) -> Result<rethnet_eth::transaction::SignedTransaction, Self::Error> {
         Ok(match self {
             Either3::A(transaction) => {
-                rethnet_eth::transaction::SignedTransaction::Legacy(transaction.try_into()?)
+                let v: u64 = transaction.signature.v.clone().try_cast()?;
+
+                if v > 36 {
+                    rethnet_eth::transaction::SignedTransaction::EIP155(transaction.try_into()?)
+                } else {
+                    rethnet_eth::transaction::SignedTransaction::Legacy(transaction.try_into()?)
+                }
             }
             Either3::B(transaction) => {
                 rethnet_eth::transaction::SignedTransaction::EIP2930(transaction.try_into()?)
