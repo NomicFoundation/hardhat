@@ -479,20 +479,11 @@ mod tests {
 
     #[cfg(feature = "test-remote")]
     mod alchemy {
+        use rethnet_test_utils::env::get_alchemy_url;
+
         use crate::Bytes;
 
         use super::*;
-
-        fn get_alchemy_url() -> String {
-            match std::env::var_os("ALCHEMY_URL")
-                .expect("ALCHEMY_URL environment variable not defined")
-                .into_string()
-                .expect("Couldn't convert OsString into a String")
-            {
-                url if url.is_empty() => panic!("ALCHEMY_URL environment variable is empty"),
-                url => url,
-            }
-        }
 
         #[tokio::test]
         async fn call_bad_api_key() {
