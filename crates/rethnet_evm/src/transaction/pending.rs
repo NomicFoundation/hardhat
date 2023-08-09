@@ -3,8 +3,8 @@ use std::ops::Deref;
 use once_cell::sync::OnceCell;
 use rethnet_eth::{
     transaction::{
-        EIP1559SignedTransaction, EIP2930SignedTransaction, LegacySignedTransaction,
-        SignedTransaction, TransactionKind,
+        EIP1559SignedTransaction, EIP155SignedTransaction, EIP2930SignedTransaction,
+        LegacySignedTransaction, SignedTransaction, TransactionKind,
     },
     Address, B256, U256,
 };
@@ -73,7 +73,7 @@ impl PendingTransaction {
             });
         }
 
-        let transaction_nonce = *transaction.nonce();
+        let transaction_nonce = transaction.nonce();
         if transaction_nonce < sender.nonce {
             return Err(TransactionCreationError::NonceTooLow {
                 transaction_nonce,
@@ -199,6 +199,26 @@ impl From<PendingTransaction> for TxEnv {
         let chain_id = transaction.transaction.chain_id();
         match transaction.transaction {
             SignedTransaction::Legacy(LegacySignedTransaction {
+                nonce,
+                gas_price,
+                gas_limit,
+                kind,
+                value,
+                input,
+                ..
+            }) => Self {
+                caller: transaction.caller,
+                gas_limit,
+                gas_price,
+                gas_priority_fee: None,
+                transact_to: transact_to(kind),
+                value,
+                data: input,
+                chain_id,
+                nonce: Some(nonce),
+                access_list: Vec::new(),
+            },
+            SignedTransaction::EIP155(EIP155SignedTransaction {
                 nonce,
                 gas_price,
                 gas_limit,

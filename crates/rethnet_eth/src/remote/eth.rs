@@ -18,8 +18,8 @@ use crate::{
     block::BlockAndCallers,
     signature::Signature,
     transaction::{
-        EIP1559SignedTransaction, EIP2930SignedTransaction, LegacySignedTransaction,
-        SignedTransaction, TransactionKind,
+        EIP1559SignedTransaction, EIP155SignedTransaction, EIP2930SignedTransaction,
+        LegacySignedTransaction, SignedTransaction, TransactionKind,
     },
     withdrawal::Withdrawal,
     Address, Bloom, Bytes, B256, U256,
@@ -172,19 +172,37 @@ impl TryFrom<Transaction> for (SignedTransaction, Address) {
         };
 
         let transaction = match value.transaction_type {
-            0 => SignedTransaction::Legacy(LegacySignedTransaction {
-                nonce: value.nonce,
-                gas_price: value.gas_price,
-                gas_limit: value.gas.to(),
-                kind,
-                value: value.value,
-                input: value.input,
-                signature: Signature {
-                    r: value.r,
-                    s: value.s,
-                    v: value.v,
-                },
-            }),
+            0 => {
+                if value.v > 36 {
+                    SignedTransaction::EIP155(EIP155SignedTransaction {
+                        nonce: value.nonce,
+                        gas_price: value.gas_price,
+                        gas_limit: value.gas.to(),
+                        kind,
+                        value: value.value,
+                        input: value.input,
+                        signature: Signature {
+                            r: value.r,
+                            s: value.s,
+                            v: value.v,
+                        },
+                    })
+                } else {
+                    SignedTransaction::Legacy(LegacySignedTransaction {
+                        nonce: value.nonce,
+                        gas_price: value.gas_price,
+                        gas_limit: value.gas.to(),
+                        kind,
+                        value: value.value,
+                        input: value.input,
+                        signature: Signature {
+                            r: value.r,
+                            s: value.s,
+                            v: value.v,
+                        },
+                    })
+                }
+            }
             1 => SignedTransaction::EIP2930(EIP2930SignedTransaction {
                 chain_id: value
                     .chain_id

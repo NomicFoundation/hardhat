@@ -35,12 +35,12 @@ pub struct TypedReceipt<LogT> {
 #[cfg_attr(feature = "serde", serde(tag = "type"))]
 pub enum TypedReceiptData {
     #[cfg_attr(feature = "serde", serde(rename = "0x0"))]
-    PreByzantiumLegacy {
+    Legacy {
         #[cfg_attr(feature = "serde", serde(rename = "root"))]
         state_root: B256,
     },
     #[cfg_attr(feature = "serde", serde(rename = "0x0"))]
-    PostByzantiumLegacy {
+    EIP658 {
         #[cfg_attr(feature = "serde", serde(with = "crate::serde::u8"))]
         status: u8,
     },
@@ -60,8 +60,8 @@ impl<LogT> TypedReceipt<LogT> {
     /// Returns the status code of the receipt, if any.
     pub fn status_code(&self) -> Option<u8> {
         match &self.data {
-            TypedReceiptData::PreByzantiumLegacy { .. } => None,
-            TypedReceiptData::PostByzantiumLegacy { status }
+            TypedReceiptData::Legacy { .. } => None,
+            TypedReceiptData::EIP658 { status }
             | TypedReceiptData::EIP2930 { status }
             | TypedReceiptData::EIP1559 { status } => Some(*status),
         }
@@ -70,7 +70,7 @@ impl<LogT> TypedReceipt<LogT> {
     /// Returns the state root of the receipt, if any.
     pub fn state_root(&self) -> Option<&B256> {
         match &self.data {
-            TypedReceiptData::PreByzantiumLegacy { state_root } => Some(state_root),
+            TypedReceiptData::Legacy { state_root } => Some(state_root),
             _ => None,
         }
     }
@@ -78,8 +78,7 @@ impl<LogT> TypedReceipt<LogT> {
     /// Returns the transaction type of the receipt.
     pub fn transaction_type(&self) -> u64 {
         match &self.data {
-            TypedReceiptData::PreByzantiumLegacy { .. }
-            | TypedReceiptData::PostByzantiumLegacy { .. } => 0u64,
+            TypedReceiptData::Legacy { .. } | TypedReceiptData::EIP658 { .. } => 0u64,
             TypedReceiptData::EIP2930 { .. } => 1u64,
             TypedReceiptData::EIP1559 { .. } => 2u64,
         }
@@ -194,16 +193,16 @@ where
 
                     if let Some(transaction_type) = transaction_type {
                         match transaction_type {
-                            "0x0" => TypedReceiptData::PostByzantiumLegacy { status },
+                            "0x0" => TypedReceiptData::EIP658 { status },
                             "0x1" => TypedReceiptData::EIP2930 { status },
                             "0x2" => TypedReceiptData::EIP1559 { status },
                             _ => return Err(Error::custom("unknown transaction type")),
                         }
                     } else {
-                        TypedReceiptData::PostByzantiumLegacy { status }
+                        TypedReceiptData::EIP658 { status }
                     }
                 } else if let Some(state_root) = state_root {
-                    TypedReceiptData::PreByzantiumLegacy { state_root }
+                    TypedReceiptData::Legacy { state_root }
                 } else {
                     return Err(Error::missing_field("root or status"));
                 };
@@ -243,7 +242,7 @@ where
                 data: match id {
                     Some(1) => TypedReceiptData::EIP2930 { status },
                     Some(2) => TypedReceiptData::EIP1559 { status },
-                    _ => TypedReceiptData::PostByzantiumLegacy { status },
+                    _ => TypedReceiptData::EIP658 { status },
                 },
             })
         }
@@ -282,8 +281,8 @@ where
 {
     fn rlp_append(&self, s: &mut rlp::RlpStream) {
         let (id, status) = match &self.data {
-            TypedReceiptData::PreByzantiumLegacy { .. } => (None, None),
-            TypedReceiptData::PostByzantiumLegacy { status } => (None, Some(status)),
+            TypedReceiptData::Legacy { .. } => (None, None),
+            TypedReceiptData::EIP658 { status } => (None, Some(status)),
             TypedReceiptData::EIP2930 { status } => (Some(1), Some(status)),
             TypedReceiptData::EIP1559 { status } => (Some(2), Some(status)),
         };
@@ -358,7 +357,7 @@ mod tests {
                 ],
                 data: Bytes::from(hex::decode("0100ff").unwrap()),
             }],
-            data: TypedReceiptData::PostByzantiumLegacy { status: 0 },
+            data: TypedReceiptData::EIP658 { status: 0 },
         };
 
         let decoded = rlp::encode(&receipt);
@@ -392,7 +391,7 @@ mod tests {
                 ],
                 data: Bytes::from(hex::decode("0100ff").unwrap()),
             }],
-            data: TypedReceiptData::PostByzantiumLegacy { status: 0 },
+            data: TypedReceiptData::EIP658 { status: 0 },
         };
 
         let decoded: TypedReceipt<Log> = rlp::decode(&data[..]).unwrap();

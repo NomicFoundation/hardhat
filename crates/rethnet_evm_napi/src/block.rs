@@ -3,7 +3,7 @@ mod builder;
 use std::{mem, ops::Deref, sync::Arc};
 
 use napi::{
-    bindgen_prelude::{BigInt, Buffer, Either3},
+    bindgen_prelude::{BigInt, Buffer, Either4},
     Env, JsBuffer, JsBufferValue, Status,
 };
 use napi_derive::napi;
@@ -14,7 +14,8 @@ use crate::{
     cast::TryCast,
     receipt::Receipt,
     transaction::signed::{
-        EIP1559SignedTransaction, EIP2930SignedTransaction, LegacySignedTransaction,
+        EIP1559SignedTransaction, EIP155SignedTransaction, EIP2930SignedTransaction,
+        LegacySignedTransaction,
     },
 };
 
@@ -302,19 +303,29 @@ impl Block {
     ) -> napi::Result<
         // HACK: napi does not convert Rust type aliases to its underlaying types when generating bindings
         // so manually do that here
-        Vec<Either3<LegacySignedTransaction, EIP2930SignedTransaction, EIP1559SignedTransaction>>,
+        Vec<
+            Either4<
+                LegacySignedTransaction,
+                EIP155SignedTransaction,
+                EIP2930SignedTransaction,
+                EIP1559SignedTransaction,
+            >,
+        >,
     > {
         self.transactions
             .iter()
             .map(|transaction| match transaction {
                 rethnet_eth::transaction::SignedTransaction::Legacy(transaction) => {
-                    LegacySignedTransaction::new(&env, transaction).map(Either3::A)
+                    LegacySignedTransaction::new(&env, transaction).map(Either4::A)
+                }
+                rethnet_eth::transaction::SignedTransaction::EIP155(transaction) => {
+                    EIP155SignedTransaction::new(&env, transaction).map(Either4::B)
                 }
                 rethnet_eth::transaction::SignedTransaction::EIP2930(transaction) => {
-                    EIP2930SignedTransaction::new(&env, transaction).map(Either3::B)
+                    EIP2930SignedTransaction::new(&env, transaction).map(Either4::C)
                 }
                 rethnet_eth::transaction::SignedTransaction::EIP1559(transaction) => {
-                    EIP1559SignedTransaction::new(&env, transaction).map(Either3::C)
+                    EIP1559SignedTransaction::new(&env, transaction).map(Either4::D)
                 }
             })
             .collect()
