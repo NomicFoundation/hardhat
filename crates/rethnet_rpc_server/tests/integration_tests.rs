@@ -1,5 +1,6 @@
 use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 use std::str::FromStr;
+use std::time::{SystemTime, UNIX_EPOCH};
 
 use hashbrown::HashMap;
 use secp256k1::{Secp256k1, SecretKey};
@@ -12,7 +13,7 @@ use rethnet_eth::{
     },
     serde::ZeroXPrefixedBytes,
     signature::{private_key_to_address, Signature},
-    Address, Bytes, B256, U256, U64,
+    Address, Bytes, SpecId, B256, U256, U64,
 };
 use rethnet_evm::{AccountInfo, KECCAK_EMPTY};
 
@@ -43,8 +44,18 @@ async fn start_server() -> SocketAddr {
                 .expect("should construct private key from string"),
             balance: U256::ZERO,
         }],
+        block_gas_limit: U256::from(30_000_000),
         chain_id: 1,
         coinbase: Address::from_low_u64_ne(1),
+        gas: U256::from(30_000_000),
+        hardfork: SpecId::LATEST,
+        initial_base_fee_per_gas: Some(U256::from(1000000000)),
+        initial_date: Some(U256::from(
+            SystemTime::now()
+                .duration_since(UNIX_EPOCH)
+                .expect("current time should be after UNIX epoch")
+                .as_secs(),
+        )),
         network_id: 123,
     })
     .await

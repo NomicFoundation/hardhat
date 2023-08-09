@@ -8,10 +8,9 @@ use rethnet_eth::{
     },
     Address, B256, U256,
 };
+use rethnet_evm::blockchain::{BlockchainError, SyncBlockchain};
 
-use super::{
-    _block_number_from_block_spec, _block_number_from_hash, get_latest_block_number, StateType,
-};
+use super::{_block_number_from_block_spec, _block_number_from_hash};
 
 pub struct _FilterCriteria {
     pub _from_block: U256,
@@ -23,25 +22,25 @@ pub struct _FilterCriteria {
 impl _FilterCriteria {
     async fn _from_request_and_state<T>(
         request_options: FilterOptions,
-        state: StateType,
+        blockchain: &dyn SyncBlockchain<BlockchainError>,
     ) -> Result<Self, ResponseData<T>> {
         let (_from_block, _to_block) = match request_options.block_target {
             Some(FilterBlockTarget::Hash(hash)) => {
-                let block_number = _block_number_from_hash(&state, &hash, false)?;
+                let block_number = _block_number_from_hash(blockchain, &hash, false).await?;
                 (block_number, block_number)
             }
             Some(FilterBlockTarget::Range { from, to }) => {
                 let from =
-                    _block_number_from_block_spec(&state, &from.unwrap_or(BlockSpec::latest()))
+                    _block_number_from_block_spec(blockchain, &from.unwrap_or(BlockSpec::latest()))
                         .await?;
                 let to = match to {
                     None => from,
-                    Some(to) => _block_number_from_block_spec(&state, &to).await?,
+                    Some(to) => _block_number_from_block_spec(blockchain, &to).await?,
                 };
                 (from, to)
             }
             None => {
-                let latest_block_number = get_latest_block_number(&state).await?;
+                let latest_block_number = blockchain.last_block_number();
                 (latest_block_number, latest_block_number)
             }
         };

@@ -7,7 +7,10 @@ use axum::{
     Router,
 };
 use hashbrown::{HashMap, HashSet};
-use rethnet_eth::serde::{U256WithoutLeadingZeroes, U64WithoutLeadingZeroes, ZeroXPrefixedBytes};
+use rethnet_eth::{
+    serde::{U256WithoutLeadingZeroes, U64WithoutLeadingZeroes, ZeroXPrefixedBytes},
+    SpecId,
+};
 use secp256k1::{Secp256k1, SecretKey};
 use sha3::{Digest, Keccak256};
 use tokio::sync::RwLock;
@@ -15,7 +18,7 @@ use tracing::{event, Level};
 
 use rethnet_eth::{
     remote::{
-        client::{Request as RpcRequest, RpcClient},
+        client::Request as RpcRequest,
         filter::{FilteredEvents, LogOutput},
         jsonrpc,
         jsonrpc::{Response, ResponseData},
@@ -26,8 +29,12 @@ use rethnet_eth::{
     Address, Bytes, B256, U256,
 };
 use rethnet_evm::{
+    blockchain::{
+        Blockchain, BlockchainError, ForkedBlockchain, ForkedCreationError, LocalBlockchain,
+        LocalCreationError, SyncBlockchain,
+    },
     state::{AccountModifierFn, ForkState, HybridState, StateError, SyncState},
-    AccountInfo, Bytecode, KECCAK_EMPTY,
+    AccountInfo, Bytecode, MemPool, RandomHashGenerator, KECCAK_EMPTY,
 };
 
 mod hardhat_methods;
@@ -54,8 +61,10 @@ pub enum MethodInvocation {
 }
 
 type RethnetStateType = Arc<RwLock<dyn SyncState<StateError>>>;
+type BlockchainType = Arc<RwLock<dyn SyncBlockchain<BlockchainError>>>;
 
 struct AppState {
+    blockchain: BlockchainType,
     rethnet_state: RethnetStateType,
     chain_id: u64,
     coinbase: Address,
@@ -64,6 +73,7 @@ struct AppState {
     impersonated_accounts: RwLock<HashSet<Address>>,
     last_filter_id: RwLock<U256>,
     local_accounts: HashMap<Address, SecretKey>,
+    _mem_pool: Arc<RwLock<MemPool>>,
     network_id: u64,
 }
 
@@ -88,33 +98,36 @@ pub enum Error {
 
     #[error("Failed to initialize server: {0}")]
     Serve(hyper::Error),
-}
 
-async fn get_latest_block_number<T>(state: &StateType) -> Result<U256, ResponseData<T>> {
-    // limited functionality per https://github.com/NomicFoundation/hardhat/issues/4125
-    if let Some(fork_block_number) = state.fork_block_number {
-        // TODO: when we're able to mint local blocks, and there are some newer than
-        // fork_block_number, return the number of the latest one
-        Ok(U256::from(fork_block_number))
-    } else {
-        // TODO: when we're able to mint local blocks, return the number of the latest one
-        Ok(U256::ZERO)
-    }
+    #[error(transparent)]
+    ForkedBlockchainCreation(#[from] ForkedCreationError),
+
+    #[error(transparent)]
+    LocalBlockchainCreation(#[from] LocalCreationError<StateError>),
 }
 
 /// `require_canonical`: whether the server should additionally raise a JSON-RPC error if the block
 /// is not in the canonical chain
-#[allow(clippy::todo)]
-fn _block_number_from_hash<T>(
-    _state: &StateType,
-    _block_hash: &B256,
+async fn _block_number_from_hash<T>(
+    blockchain: &dyn SyncBlockchain<BlockchainError>,
+    block_hash: &B256,
     _require_canonical: bool,
 ) -> Result<U256, ResponseData<T>> {
-    todo!()
+    match blockchain.block_by_hash(block_hash) {
+        Ok(Some(block)) => Ok(block.header.number),
+        Ok(None) => Err(error_response_data(
+            0,
+            &format!("Hash {block_hash} does not refer to a known block"),
+        )),
+        Err(e) => Err(error_response_data(
+            0,
+            &format!("Failed to retrieve block by hash ({block_hash}): {e}"),
+        )),
+    }
 }
 
 async fn _block_number_from_block_spec<T>(
-    state: &StateType,
+    blockchain: &dyn SyncBlockchain<BlockchainError>,
     block_spec: &BlockSpec,
 ) -> Result<U256, ResponseData<T>> {
     match block_spec {
@@ -122,22 +135,35 @@ async fn _block_number_from_block_spec<T>(
         BlockSpec::Tag(tag) => match tag {
             BlockTag::Earliest => Ok(U256::ZERO),
             BlockTag::Safe | BlockTag::Finalized => {
-                confirm_post_merge_hardfork(state)?;
-                get_latest_block_number(state).await
+                confirm_post_merge_hardfork(blockchain).await?;
+                Ok(blockchain.last_block_number())
             }
-            BlockTag::Latest | BlockTag::Pending => get_latest_block_number(state).await,
+            BlockTag::Latest | BlockTag::Pending => Ok(blockchain.last_block_number()),
         },
         BlockSpec::Eip1898(Eip1898BlockSpec::Hash {
             block_hash,
             require_canonical,
-        }) => _block_number_from_hash(state, block_hash, require_canonical.unwrap_or(false)),
+        }) => {
+            _block_number_from_hash(blockchain, block_hash, require_canonical.unwrap_or(false))
+                .await
+        }
         BlockSpec::Eip1898(Eip1898BlockSpec::Number { block_number }) => Ok(*block_number),
     }
 }
 
-#[allow(clippy::todo)]
-fn confirm_post_merge_hardfork<T>(_state: &StateType) -> Result<(), ResponseData<T>> {
-    todo!("when we're tracking hardforks, ensure that we're running a hardfork that's after the merge")
+async fn confirm_post_merge_hardfork<T>(
+    blockchain: &dyn SyncBlockchain<BlockchainError>,
+) -> Result<(), ResponseData<T>> {
+    let last_block_number = blockchain.last_block_number();
+    let post_merge = blockchain.block_supports_spec(&last_block_number, SpecId::MERGE).map_err(|e| error_response_data(0, &format!("Failed to determine whether block {last_block_number} supports the merge hardfork: {e}")))?;
+    if post_merge {
+        Ok(())
+    } else {
+        Err(error_response_data(
+            0,
+            &format!("Block {last_block_number} does not support the merge hardfork"),
+        ))
+    }
 }
 
 /// returns the state root in effect BEFORE setting the block context, so that the caller can
@@ -160,7 +186,8 @@ async fn set_block_context<T>(
         }
         None => Ok(previous_state_root),
         resolvable_block_spec => {
-            let latest_block_number = get_latest_block_number(state).await?;
+            let blockchain = state.blockchain.read().await;
+            let latest_block_number = blockchain.last_block_number();
             state
                 .rethnet_state
                 .write()
@@ -172,14 +199,18 @@ async fn set_block_context<T>(
                         Some(BlockSpec::Eip1898(s)) => match s {
                             Eip1898BlockSpec::Number { block_number: n } => Ok(n),
                             Eip1898BlockSpec::Hash {
-                                block_hash: _,
+                                block_hash,
                                 require_canonical: _,
-                            } => todo!("when there's a blockchain present"),
+                            } => match blockchain.block_by_hash(&block_hash) {
+                                Err(e) => Err(error_response_data(0, &format!("failed to get block by hash {block_hash}: {e}"))),
+                                Ok(None) => Err(error_response_data(0, &format!("block hash {block_hash} does not refer to a known block"))),
+                                Ok(Some(block)) => Ok(block.header.number),
+                            }
                         },
                         Some(BlockSpec::Tag(tag)) => match tag {
                             BlockTag::Earliest => Ok(U256::ZERO),
                             BlockTag::Safe | BlockTag::Finalized => {
-                                confirm_post_merge_hardfork(state)?;
+                                confirm_post_merge_hardfork(&*blockchain).await?;
                                 Ok(latest_block_number)
                             }
                             BlockTag::Latest => Ok(latest_block_number),
@@ -870,69 +901,78 @@ impl Server {
         };
 
         let chain_id = config.chain_id;
-        let coinbase = config.coinbase;
-        let filters = RwLock::new(HashMap::default());
-        let impersonated_accounts = RwLock::new(HashSet::new());
-        let last_filter_id = RwLock::new(U256::ZERO);
-        let network_id = config.network_id;
+        let spec_id = config.hardfork;
 
-        let rethnet_state: StateType =
-            if let Some(config) = config.rpc_hardhat_network_config.forking {
-                let runtime = tokio::runtime::Builder::new_multi_thread()
+        let (rethnet_state, blockchain, fork_block_number): (
+            RethnetStateType,
+            BlockchainType,
+            Option<U256>,
+        ) = if let Some(config) = config.rpc_hardhat_network_config.forking {
+            let runtime = Arc::new(
+                tokio::runtime::Builder::new_multi_thread()
                     .enable_io()
                     .enable_time()
                     .build()
-                    .expect("failed to construct async runtime");
+                    .expect("failed to construct async runtime"),
+            );
 
-                let hash_generator = rethnet_evm::RandomHashGenerator::with_seed("seed");
+            let hash_generator = rethnet_evm::RandomHashGenerator::with_seed("seed");
 
-                let fork_block_number = match config.block_number {
-                    Some(block_number) => U256::from(block_number),
-                    None => RpcClient::new(&config.json_rpc_url)
-                        .get_block_by_number(rethnet_eth::remote::BlockSpec::latest())
-                        .await
-                        .expect("should retrieve latest block from fork source")
-                        .number
-                        .expect("Not a pending block"),
-                };
+            let blockchain = ForkedBlockchain::new(
+                Arc::clone(&runtime),
+                spec_id,
+                &config.json_rpc_url,
+                config.block_number.map(U256::from),
+            )
+            .await?;
 
-                Arc::new(AppState {
-                    rethnet_state: Arc::new(RwLock::new(Box::new(ForkState::new(
-                        Arc::new(runtime),
-                        Arc::new(parking_lot::Mutex::new(hash_generator)),
-                        &config.json_rpc_url,
-                        fork_block_number,
-                        genesis_accounts,
-                    )))),
-                    chain_id,
-                    coinbase,
-                    filters,
-                    fork_block_number: Some(fork_block_number),
-                    impersonated_accounts,
-                    last_filter_id,
-                    local_accounts,
-                    network_id,
-                })
-            } else {
-                Arc::new(AppState {
-                    rethnet_state: Arc::new(RwLock::new(Box::new(HybridState::with_accounts(
-                        genesis_accounts,
-                    )))),
-                    chain_id,
-                    coinbase,
-                    filters,
-                    fork_block_number: None,
-                    impersonated_accounts,
-                    last_filter_id,
-                    local_accounts,
-                    network_id,
-                })
-            };
+            let fork_block_number = blockchain.last_block_number();
+
+            let blockchain = Arc::new(RwLock::new(blockchain));
+
+            let rethnet_state = Arc::new(RwLock::new(ForkState::new(
+                Arc::clone(&runtime),
+                Arc::new(parking_lot::Mutex::new(hash_generator)),
+                &config.json_rpc_url,
+                fork_block_number,
+                genesis_accounts,
+            )));
+
+            (rethnet_state, blockchain, Some(fork_block_number))
+        } else {
+            let rethnet_state = HybridState::with_accounts(genesis_accounts);
+            let blockchain = Arc::new(RwLock::new(LocalBlockchain::new(
+                &rethnet_state,
+                U256::from(chain_id),
+                spec_id,
+                config.gas,
+                config.initial_date,
+                Some(RandomHashGenerator::with_seed("seed").next_value()),
+                config.initial_base_fee_per_gas,
+            )?));
+            let rethnet_state = Arc::new(RwLock::new(rethnet_state));
+            let fork_block_number = None;
+            (rethnet_state, blockchain, fork_block_number)
+        };
+
+        let app_state = Arc::new(AppState {
+            blockchain,
+            rethnet_state,
+            chain_id,
+            coinbase: config.coinbase,
+            filters: RwLock::new(HashMap::default()),
+            fork_block_number,
+            impersonated_accounts: RwLock::new(HashSet::new()),
+            last_filter_id: RwLock::new(U256::ZERO),
+            local_accounts,
+            _mem_pool: Arc::new(RwLock::new(MemPool::new(config.block_gas_limit))),
+            network_id: config.network_id,
+        });
 
         Ok(Self {
             inner: axum::Server::from_tcp(listener)
                 .unwrap()
-                .serve(router(rethnet_state).await.into_make_service()),
+                .serve(router(app_state).await.into_make_service()),
         })
     }
 
