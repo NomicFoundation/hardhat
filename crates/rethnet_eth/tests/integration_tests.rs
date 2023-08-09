@@ -6,7 +6,7 @@ use rethnet_eth::{
         filter::{
             FilterBlockTarget, FilterOptions, LogOutput, OneOrMoreAddresses, SubscriptionType,
         },
-        methods::{GetLogsInput, MethodInvocation, TransactionInput},
+        methods::{GetLogsInput, MethodInvocation, TransactionInput, U256OrUsize},
         BlockSpec, BlockTag,
     },
     Address, B256, U256,
@@ -408,6 +408,29 @@ fn test_serde_one_or_more_addresses() {
         Address::from_low_u64_ne(1),
         Address::from_low_u64_ne(1),
     ]));
+}
+
+#[test]
+fn test_evm_increase_time() {
+    help_test_method_invocation_serde(MethodInvocation::EvmIncreaseTime(U256OrUsize::U256(
+        U256::from(12345),
+    )));
+}
+
+#[test]
+fn test_evm_mine() {
+    help_test_method_invocation_serde(MethodInvocation::EvmMine(Some(U256OrUsize::U256(
+        U256::from(12345),
+    ))));
+    help_test_method_invocation_serde(MethodInvocation::EvmMine(Some(U256OrUsize::Usize(12345))));
+    help_test_method_invocation_serde(MethodInvocation::EvmMine(None));
+}
+
+#[test]
+fn test_evm_set_next_block_timestamp() {
+    help_test_method_invocation_serde(MethodInvocation::EvmSetNextBlockTimestamp(
+        U256OrUsize::U256(U256::from(12345)),
+    ));
 }
 
 #[test]

@@ -39,6 +39,8 @@ pub struct NodeArgs {
     port: u16,
     #[clap(long, default_value = DEFAULT_CONFIG_FILE_NAME)]
     config_file: String,
+    #[clap(long, action = clap::ArgAction::SetTrue)]
+    allow_blocks_with_same_timestamp: bool,
     #[clap(long)]
     fork_url: Option<String>,
     #[clap(long)]

@@ -1,5 +1,6 @@
 use std::net::{SocketAddr, TcpListener};
 use std::sync::Arc;
+use std::time::{SystemTime, SystemTimeError, UNIX_EPOCH};
 
 use axum::{
     extract::{Json, State},
@@ -8,25 +9,17 @@ use axum::{
 };
 use hashbrown::{HashMap, HashSet};
 use rethnet_eth::{
-    serde::{U256WithoutLeadingZeroes, U64WithoutLeadingZeroes, ZeroXPrefixedBytes},
-    SpecId,
-};
-use secp256k1::{Secp256k1, SecretKey};
-use sha3::{Digest, Keccak256};
-use tokio::sync::RwLock;
-use tracing::{event, Level};
-
-use rethnet_eth::{
     remote::{
         client::Request as RpcRequest,
         filter::{FilteredEvents, LogOutput},
         jsonrpc,
         jsonrpc::{Response, ResponseData},
-        methods::MethodInvocation as EthMethodInvocation,
+        methods::{MethodInvocation as EthMethodInvocation, U256OrUsize},
         BlockSpec, BlockTag, Eip1898BlockSpec,
     },
+    serde::{U256WithoutLeadingZeroes, U64WithoutLeadingZeroes, ZeroXPrefixedBytes},
     signature::{public_key_to_address, Signature},
-    Address, Bytes, B256, U256,
+    Address, Bytes, SpecId, B256, U256,
 };
 use rethnet_evm::{
     blockchain::{
@@ -36,6 +29,10 @@ use rethnet_evm::{
     state::{AccountModifierFn, ForkState, HybridState, StateError, SyncState},
     AccountInfo, Bytecode, MemPool, RandomHashGenerator, KECCAK_EMPTY,
 };
+use secp256k1::{Secp256k1, SecretKey};
+use sha3::{Digest, Keccak256};
+use tokio::sync::RwLock;
+use tracing::{event, Level};
 
 mod hardhat_methods;
 pub use hardhat_methods::{
@@ -64,7 +61,9 @@ type RethnetStateType = Arc<RwLock<dyn SyncState<StateError>>>;
 type BlockchainType = Arc<RwLock<dyn SyncBlockchain<BlockchainError>>>;
 
 struct AppState {
+    allow_blocks_with_same_timestamp: bool,
     blockchain: BlockchainType,
+    block_time_offset_seconds: RwLock<U256>,
     rethnet_state: RethnetStateType,
     chain_id: u64,
     coinbase: Address,
@@ -75,6 +74,7 @@ struct AppState {
     local_accounts: HashMap<Address, SecretKey>,
     _mem_pool: Arc<RwLock<MemPool>>,
     network_id: u64,
+    next_block_timestamp: RwLock<U256>,
 }
 
 type StateType = Arc<AppState>;
@@ -104,6 +104,9 @@ pub enum Error {
 
     #[error(transparent)]
     LocalBlockchainCreation(#[from] LocalCreationError<StateError>),
+
+    #[error("The initial date configuration value is in the future")]
+    InitialDateInFuture(#[from] SystemTimeError),
 }
 
 /// `require_canonical`: whether the server should additionally raise a JSON-RPC error if the block
@@ -264,9 +267,16 @@ async fn get_account_info<T>(
 }
 
 async fn handle_accounts(state: StateType) -> ResponseData<Vec<Address>> {
-    event!(Level::INFO, "eth_accounts");
+    event!(Level::INFO, "eth_accounts()");
     ResponseData::Success {
         result: state.local_accounts.keys().copied().collect(),
+    }
+}
+
+async fn handle_block_number(state: StateType) -> ResponseData<U256WithoutLeadingZeroes> {
+    event!(Level::INFO, "eth_blockNumber()");
+    ResponseData::Success {
+        result: state.blockchain.read().await.last_block_number().into(),
     }
 }
 
@@ -281,6 +291,51 @@ async fn handle_coinbase(state: StateType) -> ResponseData<Address> {
     event!(Level::INFO, "eth_coinbase()");
     ResponseData::Success {
         result: state.coinbase,
+    }
+}
+
+async fn handle_evm_increase_time(
+    state: StateType,
+    increment: U256OrUsize,
+) -> ResponseData<String> {
+    event!(Level::INFO, "evm_increaseTime({increment:?})");
+    let increment: U256 = increment.into();
+    let mut offset = state.block_time_offset_seconds.write().await;
+    *offset += increment;
+    ResponseData::Success {
+        result: offset.to_string(),
+    }
+}
+
+async fn handle_evm_set_next_block_timestamp(
+    state: StateType,
+    timestamp: U256OrUsize,
+) -> ResponseData<String> {
+    event!(Level::INFO, "evm_setNextBlockTimestamp({timestamp:?})");
+    match state.blockchain.read().await.last_block() {
+        Ok(latest_block) => {
+            match Into::<U256>::into(timestamp.clone()).checked_sub(latest_block.header.timestamp) {
+                Some(increment) => {
+                    if increment == U256::ZERO && !state.allow_blocks_with_same_timestamp {
+                        error_response_data(0, &format!("Timestamp {timestamp:?} is equal to the previous block's timestamp. Enable the 'allowBlocksWithSameTimestamp' option to allow this"))
+                    } else {
+                        let mut next_block_timestamp = state.next_block_timestamp.write().await;
+                        *next_block_timestamp = timestamp.into();
+                        ResponseData::Success {
+                            result: next_block_timestamp.to_string(),
+                        }
+                    }
+                }
+                None => error_response_data(
+                    0,
+                    &format!(
+                        "Timestamp {:?} is lower than the previous block's timestamp {}",
+                        timestamp, latest_block.header.timestamp
+                    ),
+                ),
+            }
+        }
+        Err(e) => error_response_data(0, &format!("Error: {e}")),
     }
 }
 
@@ -694,11 +749,23 @@ async fn handle_request(
                 MethodInvocation::Eth(EthMethodInvocation::Accounts()) => {
                     response(id, handle_accounts(state).await)
                 }
+                MethodInvocation::Eth(EthMethodInvocation::BlockNumber()) => {
+                    response(id, handle_block_number(state).await)
+                }
                 MethodInvocation::Eth(EthMethodInvocation::ChainId()) => {
                     response(id, handle_chain_id(state))
                 }
                 MethodInvocation::Eth(EthMethodInvocation::Coinbase()) => {
                     response(id, handle_coinbase(state).await)
+                }
+                MethodInvocation::Eth(EthMethodInvocation::EvmIncreaseTime(increment)) => {
+                    response(id, handle_evm_increase_time(state, increment.clone()).await)
+                }
+                MethodInvocation::Eth(EthMethodInvocation::EvmSetNextBlockTimestamp(timestamp)) => {
+                    response(
+                        id,
+                        handle_evm_set_next_block_timestamp(state, timestamp.clone()).await,
+                    )
                 }
                 MethodInvocation::Eth(EthMethodInvocation::GetBalance(address, block)) => {
                     response(id, handle_get_balance(state, *address, block.clone()).await)
@@ -900,7 +967,20 @@ impl Server {
                 .unzip()
         };
 
+        let allow_blocks_with_same_timestamp = config.allow_blocks_with_same_timestamp;
+        let block_time_offset_seconds =
+            RwLock::new(if let Some(initial_date) = config.initial_date {
+                U256::from(
+                    SystemTime::now()
+                        .duration_since(initial_date)
+                        .map_err(Error::InitialDateInFuture)?
+                        .as_secs(),
+                )
+            } else {
+                U256::ZERO
+            });
         let chain_id = config.chain_id;
+        let next_block_timestamp = RwLock::new(U256::ZERO);
         let spec_id = config.hardfork;
 
         let (rethnet_state, blockchain, fork_block_number): (
@@ -946,7 +1026,13 @@ impl Server {
                 U256::from(chain_id),
                 spec_id,
                 config.gas,
-                config.initial_date,
+                config.initial_date.map(|d| {
+                    U256::from(
+                        d.duration_since(UNIX_EPOCH)
+                            .expect("initial date must be after UNIX epoch")
+                            .as_secs(),
+                    )
+                }),
                 Some(RandomHashGenerator::with_seed("seed").next_value()),
                 config.initial_base_fee_per_gas,
             )?));
@@ -956,7 +1042,9 @@ impl Server {
         };
 
         let app_state = Arc::new(AppState {
+            allow_blocks_with_same_timestamp,
             blockchain,
+            block_time_offset_seconds,
             rethnet_state,
             chain_id,
             coinbase: config.coinbase,
@@ -967,6 +1055,7 @@ impl Server {
             local_accounts,
             _mem_pool: Arc::new(RwLock::new(MemPool::new(config.block_gas_limit))),
             network_id: config.network_id,
+            next_block_timestamp,
         });
 
         Ok(Self {

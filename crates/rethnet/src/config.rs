@@ -1,5 +1,4 @@
 use std::net::SocketAddr;
-use std::time::UNIX_EPOCH;
 use std::{str::FromStr, time::SystemTime};
 
 use anyhow::anyhow;
@@ -48,6 +47,7 @@ pub const DEFAULT_PRIVATE_KEYS: [&str; 20] = [
 pub struct ConfigFile {
     // TODO: expand this per https://github.com/NomicFoundation/rethnet/issues/111
     pub accounts: Vec<AccountConfig>,
+    pub allow_blocks_with_same_timestamp: bool,
     #[serde(deserialize_with = "u256_number")]
     pub block_gas_limit: Number,
     #[serde(deserialize_with = "u64_number")]
@@ -67,6 +67,8 @@ impl ConfigFile {
     pub fn into_server_config(self, cli_args: NodeArgs) -> Result<ServerConfig, anyhow::Error> {
         Ok(ServerConfig {
             address: SocketAddr::new(cli_args.host, cli_args.port),
+            allow_blocks_with_same_timestamp: cli_args.allow_blocks_with_same_timestamp
+                || self.allow_blocks_with_same_timestamp,
             rpc_hardhat_network_config: RpcHardhatNetworkConfig {
                 forking: if let Some(json_rpc_url) = cli_args.fork_url {
                     Some(RpcForkConfig {
@@ -93,14 +95,7 @@ impl ConfigFile {
             gas: self.gas.into(),
             hardfork: self.hardfork,
             initial_base_fee_per_gas: Some(self.initial_base_fee_per_gas.into()),
-            initial_date: self.initial_date.map(|instant| {
-                U256::from(
-                    instant
-                        .duration_since(UNIX_EPOCH)
-                        .expect("initial date must be after UNIX epoch")
-                        .as_secs(),
-                )
-            }),
+            initial_date: self.initial_date,
             network_id: cli_args.network_id.unwrap_or(self.network_id.try_into()?),
         })
     }
@@ -112,6 +107,7 @@ impl Default for ConfigFile {
         let block_gas_limit = Number::U256(U256::from(30_000_000));
         let chain_id = Number::U64(31337);
         Self {
+            allow_blocks_with_same_timestamp: false,
             accounts: DEFAULT_PRIVATE_KEYS
                 .into_iter()
                 .map(|s| AccountConfig {
