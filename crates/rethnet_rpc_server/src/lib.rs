@@ -62,7 +62,7 @@ type BlockchainType = Arc<RwLock<dyn SyncBlockchain<BlockchainError>>>;
 
 struct AppState {
     allow_blocks_with_same_timestamp: bool,
-    blockchain: Arc<RwLock<dyn SyncBlockchain<BlockchainError>>>,
+    blockchain: BlockchainType,
     block_time_offset_seconds: RwLock<U256>,
     rethnet_state: RethnetStateType,
     chain_id: u64,
