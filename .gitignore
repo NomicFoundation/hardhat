@@ -117,3 +117,7 @@ Cargo.lock
 
 # Rethnet remote node cache
 remote_node_cache/
+
+# Brew package manager. 
+# Lock file is not recommended to be commited: https://github.com/Homebrew/homebrew-bundle#versions-and-lockfiles
+Brewfile.lock.json
