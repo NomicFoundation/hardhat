@@ -64,7 +64,7 @@ pub struct Transaction {
     #[serde(default, deserialize_with = "crate::serde::optional_u64_from_hex")]
     pub chain_id: Option<u64>,
     /// integer of the transaction type, 0x0 for legacy transactions, 0x1 for access list types, 0x2 for dynamic fees
-    #[serde(default, with = "crate::serde::u64")]
+    #[serde(rename = "type", with = "crate::serde::u64")]
     pub transaction_type: u64,
     /// access list
     #[serde(default)]
