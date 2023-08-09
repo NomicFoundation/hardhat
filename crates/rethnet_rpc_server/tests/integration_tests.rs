@@ -363,6 +363,16 @@ async fn test_impersonate_account() {
 }
 
 #[tokio::test]
+async fn test_interval_mine() {
+    verify_response(
+        &start_server().await,
+        MethodInvocation::Hardhat(HardhatMethodInvocation::IntervalMine()),
+        true,
+    )
+    .await;
+}
+
+#[tokio::test]
 async fn test_set_balance_success() {
     let server_address = start_server().await;
 

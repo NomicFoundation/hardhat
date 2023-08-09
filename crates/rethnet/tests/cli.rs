@@ -81,6 +81,7 @@ async fn node() -> Result<(), Box<dyn std::error::Error>> {
             Bytes::from_static(b"").into(),
         )),
         MethodInvocation::Hardhat(HardhatMethodInvocation::ImpersonateAccount(address)),
+        MethodInvocation::Hardhat(HardhatMethodInvocation::IntervalMine()),
         MethodInvocation::Hardhat(HardhatMethodInvocation::SetBalance(address, U256::ZERO)),
         MethodInvocation::Hardhat(HardhatMethodInvocation::SetCode(
             address,
@@ -228,6 +229,9 @@ async fn node() -> Result<(), Box<dyn std::error::Error>> {
             }
             MethodInvocation::Hardhat(HardhatMethodInvocation::ImpersonateAccount(address)) => {
                 format!("hardhat_impersonateAccount({address:?}")
+            }
+            MethodInvocation::Hardhat(HardhatMethodInvocation::IntervalMine()) => {
+                String::from("hardhat_intervalMine()")
             }
             MethodInvocation::Hardhat(HardhatMethodInvocation::SetBalance(address, balance)) => {
                 format!("hardhat_setBalance({address:?}, {balance:?}")

@@ -340,7 +340,15 @@ async fn handle_evm_increase_time(
     }
 }
 
-fn log_block(_result: &MineBlockResult) {
+fn log_block(_result: &MineBlockResult, _is_interval_mined: bool) {
+    // TODO
+}
+
+fn log_interval_mined_block_number(
+    _block_number: U256,
+    _is_empty: bool,
+    _base_fee_per_gas: Option<U256>,
+) {
     // TODO
 }
 
@@ -425,7 +433,7 @@ async fn handle_evm_mine(state: StateType, timestamp: Option<U256OrUsize>) -> Re
 
     match mine_block(state, timestamp).await {
         Ok(mine_block_result) => {
-            log_block(&mine_block_result);
+            log_block(&mine_block_result, false);
 
             ResponseData::Success {
                 result: String::from("0"),
@@ -619,6 +627,26 @@ async fn handle_impersonate_account(state: StateType, address: Address) -> Respo
     event!(Level::INFO, "hardhat_impersonateAccount({address:?})");
     state.impersonated_accounts.write().await.insert(address);
     ResponseData::Success { result: true }
+}
+
+async fn handle_interval_mine(state: StateType) -> ResponseData<bool> {
+    event!(Level::INFO, "hardhat_intervalMine()");
+    match mine_block(state, None).await {
+        Ok(mine_block_result) => {
+            if mine_block_result.block.transactions.is_empty() {
+                log_interval_mined_block_number(
+                    mine_block_result.block.header.number,
+                    true,
+                    mine_block_result.block.header.base_fee_per_gas,
+                );
+            } else {
+                log_block(&mine_block_result, true);
+                log_interval_mined_block_number(mine_block_result.block.header.number, false, None);
+            }
+            ResponseData::Success { result: true }
+        }
+        Err(e) => error_response_data(0, &format!("Error mining block: {e}")),
+    }
 }
 
 async fn get_next_filter_id(state: StateType) -> U256 {
@@ -953,6 +981,9 @@ async fn handle_request(
                 }
                 MethodInvocation::Hardhat(HardhatMethodInvocation::ImpersonateAccount(address)) => {
                     response(id, handle_impersonate_account(state, *address).await)
+                }
+                MethodInvocation::Hardhat(HardhatMethodInvocation::IntervalMine()) => {
+                    response(id, handle_interval_mine(state).await)
                 }
                 MethodInvocation::Hardhat(HardhatMethodInvocation::SetBalance(
                     address,
