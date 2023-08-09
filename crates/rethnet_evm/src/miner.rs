@@ -151,6 +151,10 @@ where
 }
 
 /// Calculates the next base fee for a post-London block, given the parent's header.
+///
+/// # Panics
+///
+/// Panics if the parent header does not contain a base fee.
 fn calculate_next_base_fee(parent: &Header) -> U256 {
     let elasticity = U256::from(2);
     let base_fee_max_change_denominator = U256::from(8);
@@ -177,11 +181,8 @@ fn calculate_next_base_fee(parent: &Header) -> U256 {
             let delta = parent_base_fee * gas_used_delta
                 / parent_gas_target
                 / base_fee_max_change_denominator;
-            if delta > U256::from(1) {
-                delta
-            } else {
-                parent_base_fee + U256::from(1)
-            }
+
+            parent_base_fee + delta.max(U256::from(1))
         }
     }
 }
