@@ -134,7 +134,7 @@ impl Signature {
 
         let r = U256::try_from_be_slice(&bytes[..32]).expect("Must be valid");
         let s = U256::try_from_be_slice(&bytes[32..64]).expect("Must be valid");
-        let v = u64::try_from(recovery_id.to_i32()).expect("Recovery IDs can only be 0..=3") + 27;
+        let v = 27 + u64::try_from(recovery_id.to_i32()).expect("Recovery IDs can only be 0..=3");
 
         Self { r, s, v }
     }

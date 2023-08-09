@@ -89,7 +89,7 @@ impl ContiguousBlockchainStorage {
             return false;
         };
 
-        if block_index > self.blocks.len() {
+        if block_index >= self.blocks.len() {
             return false;
         }
 

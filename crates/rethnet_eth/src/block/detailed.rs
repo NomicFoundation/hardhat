@@ -126,3 +126,11 @@ impl Deref for DetailedBlock {
         &self.block
     }
 }
+
+impl PartialEq for DetailedBlock {
+    fn eq(&self, other: &Self) -> bool {
+        self.block == other.block
+            && self.transaction_callers == other.transaction_callers
+            && self.transaction_receipts == other.transaction_receipts
+    }
+}
