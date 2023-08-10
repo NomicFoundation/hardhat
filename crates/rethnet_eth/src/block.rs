@@ -15,11 +15,12 @@ use revm_primitives::{
     },
     SpecId,
 };
-use rlp::{Decodable, DecoderError, Encodable, Rlp, RlpStream};
+use rlp::Decodable;
 
 use crate::{
     transaction::SignedTransaction,
     trie::{self, KECCAK_NULL_RLP},
+    withdrawal::Withdrawal,
     Address, Bloom, Bytes, B256, B64, U256,
 };
 
@@ -40,6 +41,8 @@ pub struct Block {
     pub transactions: Vec<SignedTransaction>,
     /// The block's ommers' headers
     pub ommers: Vec<Header>,
+    /// The block's withdrawals
+    pub withdrawals: Option<Vec<Withdrawal>>,
 }
 
 impl Block {
@@ -48,37 +51,48 @@ impl Block {
         partial_header: PartialHeader,
         transactions: Vec<SignedTransaction>,
         ommers: Vec<Header>,
+        withdrawals: Option<Vec<Withdrawal>>,
     ) -> Self {
         let ommers_hash = keccak256(&rlp::encode_list(&ommers)[..]);
         let transactions_root =
             trie::ordered_trie_root(transactions.iter().map(|r| rlp::encode(r).freeze()));
 
+        let withdrawals_root = withdrawals.as_ref().map(|withdrawals| {
+            trie::ordered_trie_root(withdrawals.iter().map(|r| rlp::encode(r).freeze()))
+        });
+
         Self {
-            header: Header::new(partial_header, ommers_hash, transactions_root, None),
+            header: Header::new(
+                partial_header,
+                ommers_hash,
+                transactions_root,
+                withdrawals_root,
+            ),
             transactions,
             ommers,
+            withdrawals,
         }
     }
 }
 
-impl Encodable for Block {
-    fn rlp_append(&self, s: &mut RlpStream) {
-        s.begin_list(3);
-        s.append(&self.header);
-        s.append_list(&self.transactions);
-        s.append_list(&self.ommers);
-    }
-}
+// impl Encodable for Block {
+//     fn rlp_append(&self, s: &mut RlpStream) {
+//         s.begin_list(3);
+//         s.append(&self.header);
+//         s.append_list(&self.transactions);
+//         s.append_list(&self.ommers);
+//     }
+// }
 
-impl Decodable for Block {
-    fn decode(rlp: &Rlp<'_>) -> Result<Self, DecoderError> {
-        Ok(Self {
-            header: rlp.val_at(0)?,
-            transactions: rlp.list_at(1)?,
-            ommers: rlp.list_at(2)?,
-        })
-    }
-}
+// impl Decodable for Block {
+//     fn decode(rlp: &Rlp<'_>) -> Result<Self, DecoderError> {
+//         Ok(Self {
+//             header: rlp.val_at(0)?,
+//             transactions: rlp.list_at(1)?,
+//             ommers: rlp.list_at(2)?,
+//         })
+//     }
+// }
 
 /// ethereum block header
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -214,14 +228,12 @@ impl rlp::Encodable for Header {
             17
         });
 
-        s.append(&ruint::aliases::B256::from_be_bytes(self.parent_hash.0));
-        s.append(&ruint::aliases::B256::from_be_bytes(self.ommers_hash.0));
-        s.append(&ruint::aliases::B160::from_be_bytes(self.beneficiary.0));
-        s.append(&ruint::aliases::B256::from_be_bytes(self.state_root.0));
-        s.append(&ruint::aliases::B256::from_be_bytes(
-            self.transactions_root.0,
-        ));
-        s.append(&ruint::aliases::B256::from_be_bytes(self.receipts_root.0));
+        s.append(&self.parent_hash.as_bytes());
+        s.append(&self.ommers_hash.as_bytes());
+        s.append(&self.beneficiary.as_bytes());
+        s.append(&self.state_root.as_bytes());
+        s.append(&self.transactions_root.as_bytes());
+        s.append(&self.receipts_root.as_bytes());
         s.append(&self.logs_bloom);
         s.append(&self.difficulty);
         s.append(&self.number);
@@ -229,13 +241,13 @@ impl rlp::Encodable for Header {
         s.append(&self.gas_used);
         s.append(&self.timestamp);
         s.append(&self.extra_data);
-        s.append(&ruint::aliases::B256::from_be_bytes(self.mix_hash.0));
+        s.append(&self.mix_hash.as_bytes());
         s.append(&self.nonce.to_le_bytes::<8>().as_ref());
         if let Some(ref base_fee) = self.base_fee_per_gas {
             s.append(base_fee);
         }
         if let Some(ref root) = self.withdrawals_root {
-            s.append(&ruint::aliases::B256::from_be_bytes(root.0));
+            s.append(&root.as_bytes());
         }
     }
 }
@@ -384,7 +396,7 @@ impl PartialHeader {
     pub fn new(spec_id: SpecId, options: BlockOptions, parent: Option<&Header>) -> Self {
         let timestamp = options.timestamp.unwrap_or_default();
         let number = options.number.unwrap_or_else(|| {
-            if let Some(parent) = parent {
+            if let Some(parent) = &parent {
                 parent.number + U256::from(1)
             } else {
                 U256::ZERO

@@ -26,7 +26,7 @@ pub enum BlockchainError {
     #[error("Cannot delete remote block.")]
     CannotDeleteRemote,
     /// Invalid block number
-    #[error("Invalid block number: ${actual}. Expected: ${expected}.")]
+    #[error("Invalid block number: {actual}. Expected: {expected}.")]
     InvalidBlockNumber {
         /// Provided block number
         actual: U256,
@@ -34,7 +34,7 @@ pub enum BlockchainError {
         expected: U256,
     },
     /// Invalid parent hash
-    #[error("Invalid parent hash: ${actual}. Expected: ${expected}.")]
+    #[error("Invalid parent hash: {actual}. Expected: {expected}.")]
     InvalidParentHash {
         /// Provided parent hash
         actual: B256,
@@ -44,6 +44,9 @@ pub enum BlockchainError {
     /// JSON-RPC error
     #[error(transparent)]
     JsonRpcError(#[from] RpcClientError),
+    /// Missing withdrawals for post-Shanghai blockchain
+    #[error("Missing withdrawals for post-Shanghai blockchain")]
+    MissingWithdrawals,
     /// Block number does not exist in blockchain
     #[error("Unknown block number")]
     UnknownBlockNumber,
@@ -135,6 +138,7 @@ where
 
 /// Validates whether a block is a valid next block.
 fn validate_next_block(
+    spec_id: SpecId,
     last_block: &DetailedBlock,
     next_block: &DetailedBlock,
 ) -> Result<(), BlockchainError> {
@@ -151,6 +155,10 @@ fn validate_next_block(
             actual: next_block.header.parent_hash,
             expected: *last_block.hash(),
         });
+    }
+
+    if spec_id >= SpecId::SHANGHAI && next_block.header.withdrawals_root.is_none() {
+        return Err(BlockchainError::MissingWithdrawals);
     }
 
     Ok(())

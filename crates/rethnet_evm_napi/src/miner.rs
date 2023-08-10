@@ -49,7 +49,10 @@ impl BlockMiner {
         let block_gas_limit: U256 = BigInt::try_cast(block_gas_limit)?;
         let beneficiary = Address::from_slice(&beneficiary);
 
-        let prevrandao_generator = RandomHashGenerator::with_seed("randomMixHashSeed");
+        let mut prevrandao_generator = RandomHashGenerator::with_seed("randomMixHashSeed");
+        // HACK: skip one value as it's used for the genesis block
+        let _value = prevrandao_generator.next_value();
+
         let miner = rethnet_evm::BlockMiner::new(
             blockchain,
             state,

@@ -21,3 +21,4 @@ mod sync;
 mod threadsafe_function;
 mod trace;
 mod transaction;
+mod withdrawal;

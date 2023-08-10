@@ -51,12 +51,13 @@ impl ForkState {
         let remote_state = RemoteState::new(runtime.clone(), url, fork_block_number);
 
         accounts.iter_mut().for_each(|(address, mut account_info)| {
-            let nonce = runtime
-                .block_on(
+            let nonce = tokio::task::block_in_place(|| {
+                runtime.block_on(
                     rpc_client
                         .get_transaction_count(address, Some(BlockSpec::Number(fork_block_number))),
                 )
-                .expect("failed to retrieve remote account info for local account initialization");
+            })
+            .expect("failed to retrieve remote account info for local account initialization");
 
             account_info.nonce = nonce.to();
         });

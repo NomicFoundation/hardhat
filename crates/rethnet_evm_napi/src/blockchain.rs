@@ -16,6 +16,7 @@ use crate::{
     config::SpecId,
     context::RethnetContext,
     receipt::Receipt,
+    withdrawal::Withdrawal,
 };
 
 // An arbitrarily large amount of memory to signal to the javascript garbage collector that it needs to
@@ -61,13 +62,22 @@ impl Blockchain {
         chain_id: BigInt,
         spec_id: SpecId,
         genesis_block: BlockOptions,
+        withdrawals: Option<Vec<Withdrawal>>,
     ) -> napi::Result<Self> {
         let chain_id: U256 = chain_id.try_cast()?;
         let spec_id = rethnet_evm::SpecId::from(spec_id);
         let options = rethnet_eth::block::BlockOptions::try_from(genesis_block)?;
+        let withdrawals = withdrawals.map_or(Ok(None), |withdrawals| {
+            withdrawals
+                .into_iter()
+                .map(rethnet_eth::withdrawal::Withdrawal::try_from)
+                .collect::<napi::Result<Vec<_>>>()
+                .map(Some)
+        })?;
 
         let header = rethnet_eth::block::PartialHeader::new(spec_id, options, None);
-        let genesis_block = rethnet_eth::block::Block::new(header, Vec::new(), Vec::new());
+        let genesis_block =
+            rethnet_eth::block::Block::new(header, Vec::new(), Vec::new(), withdrawals);
         let genesis_block =
             rethnet_eth::block::DetailedBlock::new(genesis_block, Vec::new(), Vec::new());
 

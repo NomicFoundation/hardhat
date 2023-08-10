@@ -334,8 +334,14 @@ where
             );
         }
 
+        let withdrawals = if self.cfg.spec_id >= SpecId::SHANGHAI {
+            Some(Vec::new())
+        } else {
+            None
+        };
+
         // TODO: handle ommers
-        let block = Block::new(self.header, self.transactions, vec![]);
+        let block = Block::new(self.header, self.transactions, Vec::new(), withdrawals);
 
         Ok(DetailedBlock::with_partial_receipts(
             block,

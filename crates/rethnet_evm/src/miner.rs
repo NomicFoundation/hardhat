@@ -43,6 +43,9 @@ pub enum MineBlockError<BE, SE> {
     /// A blockchain error
     #[error(transparent)]
     Blockchain(BE),
+    /// An error that occurred while updating the mempool.
+    #[error(transparent)]
+    MemPoolUpdate(SE),
 }
 
 /// Type for mining blocks.
@@ -107,7 +110,7 @@ where
                 &parent_block.header,
                 BlockOptions {
                     beneficiary: Some(self.beneficiary),
-                    number: Some(parent_block.header.number),
+                    number: Some(parent_block.header.number + U256::from(1)),
                     gas_limit: Some(self.block_gas_limit),
                     timestamp: Some(timestamp),
                     mix_hash: if self.cfg.spec_id >= SpecId::MERGE {
@@ -135,11 +138,8 @@ where
         };
 
         let mut transaction_pool = self.mem_pool.write().await;
-        let mut pending_transactions: VecDeque<_> = transaction_pool
-            .pending_transactions()
-            .iter()
-            .cloned()
-            .collect();
+        let mut pending_transactions: VecDeque<_> =
+            transaction_pool.pending_transactions().cloned().collect();
 
         let mut results = Vec::new();
         let mut traces = Vec::new();
@@ -184,7 +184,9 @@ where
             .insert_block(block)
             .map_err(MineBlockError::Blockchain)?;
 
-        transaction_pool.update(&*self.state.read().await);
+        transaction_pool
+            .update(&*self.state.read().await)
+            .map_err(MineBlockError::MemPoolUpdate)?;
 
         Ok(MineBlockResult {
             block,
