@@ -363,6 +363,38 @@ async fn test_impersonate_account() {
 }
 
 #[tokio::test]
+async fn test_hardhat_mine() {
+    let server = start_server().await;
+    verify_response(
+        &server,
+        MethodInvocation::Hardhat(HardhatMethodInvocation::Mine(
+            None, // block count
+            None, // interval
+        )),
+        true,
+    )
+    .await;
+    verify_response(
+        &server,
+        MethodInvocation::Hardhat(HardhatMethodInvocation::Mine(
+            Some(U256::from(10)), // block count
+            None,                 // interval
+        )),
+        true,
+    )
+    .await;
+    verify_response(
+        &server,
+        MethodInvocation::Hardhat(HardhatMethodInvocation::Mine(
+            Some(U256::from(10)),   // block count
+            Some(U256::from(5000)), // interval
+        )),
+        true,
+    )
+    .await;
+}
+
+#[tokio::test]
 async fn test_interval_mine() {
     verify_response(
         &start_server().await,

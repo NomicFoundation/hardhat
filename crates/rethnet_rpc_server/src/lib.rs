@@ -344,6 +344,10 @@ fn log_block(_result: &MineBlockResult, _is_interval_mined: bool) {
     // TODO
 }
 
+fn log_hardhat_mined_block(_result: &MineBlockResult) {
+    // TODO
+}
+
 fn log_interval_mined_block_number(
     _block_number: U256,
     _is_empty: bool,
@@ -352,7 +356,7 @@ fn log_interval_mined_block_number(
     // TODO
 }
 
-async fn mine_block(state: StateType, timestamp: Option<U256>) -> Result<MineBlockResult, Error> {
+async fn mine_block(state: &StateType, timestamp: Option<U256>) -> Result<MineBlockResult, Error> {
     let mut block_time_offset_seconds = state.block_time_offset_seconds.write().await;
     let mut next_block_timestamp = state.next_block_timestamp.write().await;
 
@@ -402,7 +406,7 @@ async fn mine_block(state: StateType, timestamp: Option<U256>) -> Result<MineBlo
         Arc::clone(&state.rethnet_state),
         Arc::clone(&state.mem_pool),
         RandomHashGenerator::with_seed("BlockMiner"),
-        CfgEnv::from(&*state),
+        CfgEnv::from(&**state),
         state.block_gas_limit,
         state.coinbase,
     )
@@ -431,7 +435,7 @@ async fn handle_evm_mine(state: StateType, timestamp: Option<U256OrUsize>) -> Re
     event!(Level::INFO, "evm_mine({timestamp:?})");
     let timestamp: Option<U256> = timestamp.map(U256OrUsize::into);
 
-    match mine_block(state, timestamp).await {
+    match mine_block(&state, timestamp).await {
         Ok(mine_block_result) => {
             log_block(&mine_block_result, false);
 
@@ -629,9 +633,61 @@ async fn handle_impersonate_account(state: StateType, address: Address) -> Respo
     ResponseData::Success { result: true }
 }
 
+async fn handle_hardhat_mine(
+    state: StateType,
+    count: Option<U256>,
+    interval: Option<U256>,
+) -> ResponseData<bool> {
+    event!(Level::INFO, "hardhat_mine({count:?}, {interval:?})");
+
+    let mut mine_block_results: Vec<MineBlockResult> = Vec::new();
+
+    let interval = interval.unwrap_or(U256::from(1));
+    let count = count.unwrap_or(U256::from(1));
+
+    let mut i = U256::from(1);
+    while i <= count {
+        let timestamp = match mine_block_results.len() {
+            0 => None,
+            _ => Some(
+                mine_block_results[mine_block_results.len() - 1]
+                    .block
+                    .header
+                    .timestamp
+                    + interval,
+            ),
+        };
+        match mine_block(&state, timestamp).await {
+            Ok(result) => mine_block_results.push(result),
+            Err(e) => {
+                let generic_message = &format!("failed to mine the {i}th block in the interval");
+                match e {
+                    Error::TimestampLowerThanPrevious { proposed, previous } => {
+                        return error_response_data(
+                            0,
+                            &format!(
+                                "{generic_message}: {}",
+                                Error::TimestampLowerThanPrevious { proposed, previous }
+                            ),
+                        );
+                    }
+                    e => {
+                        return error_response_data(0, &format!("{generic_message}: {e}"));
+                    }
+                }
+            }
+        }
+        i += U256::from(1);
+    }
+
+    mine_block_results.iter().for_each(log_hardhat_mined_block);
+
+    ResponseData::Success { result: true }
+}
+
 async fn handle_interval_mine(state: StateType) -> ResponseData<bool> {
     event!(Level::INFO, "hardhat_intervalMine()");
-    match mine_block(state, None).await {
+    match mine_block(&state, None).await {
         Ok(mine_block_result) => {
             if mine_block_result.block.transactions.is_empty() {
                 log_interval_mined_block_number(
@@ -984,6 +1040,9 @@ async fn handle_request(
                 }
                 MethodInvocation::Hardhat(HardhatMethodInvocation::IntervalMine()) => {
                     response(id, handle_interval_mine(state).await)
+                }
+                MethodInvocation::Hardhat(HardhatMethodInvocation::Mine(count, interval)) => {
+                    response(id, handle_hardhat_mine(state, *count, *interval).await)
                 }
                 MethodInvocation::Hardhat(HardhatMethodInvocation::SetBalance(
                     address,
