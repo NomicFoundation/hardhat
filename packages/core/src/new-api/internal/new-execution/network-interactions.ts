@@ -14,7 +14,7 @@ import {
   SendDataExecutionState,
   StaticCallExecutionState,
 } from "../execution/types";
-import { decodeError, decodeResult } from "./execution-result-decoding";
+import { decodeError, decodeResult } from "./error-decoding";
 import {
   ExecutionError,
   ExecutionResult,

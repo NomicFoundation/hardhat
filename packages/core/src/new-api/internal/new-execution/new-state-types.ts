@@ -1,4 +1,3 @@
-import { type } from "os";
 import { FutureType, SolidityParameterType } from "../../types/module";
 
 export interface RawStaticCallResult {

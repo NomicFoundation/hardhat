@@ -1,18 +1,29 @@
-import { SolidityParameterType } from "../../types/module";
+import { Artifact } from "../../types/artifact";
 import { assertIgnitionInvariant } from "../utils/assertions";
+import {
+  decodeArtifactCustomError,
+  decodeArtifactFunctionCallResult,
+  encodeArtifactDeploymentData,
+  encodeArtifactFunctionCall,
+} from "./abi";
+import { decodeError } from "./error-decoding";
 import {
   CallExecutionResult,
   CallExecutionState,
   DeploymentExecutionResult,
   DeploymentExecutionState,
   EvmExecutionResultTypes,
+  EvmValues,
   ExecutionResultType,
-  FailedEvmExecutionResult,
   InvalidResultError,
+  NetworkInteractionType,
   OnchainInteraction,
   RawStaticCallResult,
+  RevertWithCustomError,
+  RevertWithInvalidData,
   SendDataExecutionResult,
   SendDataExecutionState,
+  SimulationErrorExecutionResult,
   StaticCall,
   StaticCallExecutionResult,
   StaticCallExecutionState,
@@ -20,6 +31,10 @@ import {
   Transaction,
   TransactionReceiptStatus,
 } from "./new-state-types";
+
+export type LoadArtifactFunction = (
+  artifactFutureId: string
+) => Promise<Artifact>;
 
 export type OnchainInteractionRequest = Omit<
   OnchainInteraction,
@@ -60,7 +75,8 @@ export type StaticCallResponse = RawStaticCallResult;
 export interface ExecutionStrategy {
   executeDeployment: (
     executionState: DeploymentExecutionState,
-    fallbackSender: string
+    fallbackSender: string,
+    loadArtifact: LoadArtifactFunction
   ) => AsyncGenerator<
     OnchainInteractionRequest | SimulationSuccessSignal | StaticCallRequest,
     DeploymentExecutionResult,
@@ -69,20 +85,12 @@ export interface ExecutionStrategy {
 
   executeCall: (
     executionState: CallExecutionState,
-    fallbackSender: string
+    fallbackSender: string,
+    loadArtifact: LoadArtifactFunction
   ) => AsyncGenerator<
     OnchainInteractionRequest | SimulationSuccessSignal | StaticCallRequest,
     CallExecutionResult,
     RawStaticCallResult | OnchainInteractionResponse
-  >;
-
-  executeStaticCall: (
-    executionState: StaticCallExecutionState,
-    fallbackSender: string
-  ) => AsyncGenerator<
-    StaticCallRequest,
-    StaticCallExecutionResult,
-    StaticCallResponse
   >;
 
   executeSendData: (
@@ -92,6 +100,16 @@ export interface ExecutionStrategy {
     OnchainInteractionRequest | SimulationSuccessSignal | StaticCallRequest,
     SendDataExecutionResult,
     RawStaticCallResult | OnchainInteractionResponse
+  >;
+
+  executeStaticCall: (
+    executionState: StaticCallExecutionState,
+    fallbackSender: string,
+    loadArtifact: LoadArtifactFunction
+  ) => AsyncGenerator<
+    StaticCallRequest,
+    StaticCallExecutionResult,
+    StaticCallResponse
   >;
 }
 
@@ -114,64 +132,39 @@ function isRawStaticCallResult(
 class BasicExecutionStrategy implements ExecutionStrategy {
   public async *executeDeployment(
     executionState: DeploymentExecutionState,
-    fallbackSender: string
+    fallbackSender: string,
+    loadArtifact: LoadArtifactFunction
   ): AsyncGenerator<
     OnchainInteractionRequest | SimulationSuccessSignal | StaticCallRequest,
     DeploymentExecutionResult,
     RawStaticCallResult | OnchainInteractionResponse
   > {
-    const simulationResponse = yield null as any as OnchainInteractionRequest;
+    const artifact = await loadArtifact(executionState.artifactFutureId);
 
-    assertIgnitionInvariant(
-      isOnchainInteractionResponse(simulationResponse),
-      "Expected onchain interaction response and got raw static call result"
+    const transactionOrResult = yield* executeOnchainInteraction(
+      executionState.id,
+      {
+        id: 1,
+        type: NetworkInteractionType.ONCHAIN_INTERACTION,
+        to: undefined,
+        from: executionState.from ?? fallbackSender,
+        data: await encodeArtifactDeploymentData(
+          artifact,
+          executionState.constructorArgs,
+          executionState.libraries
+        ),
+        value: executionState.value,
+      },
+      (returnData) => decodeArtifactCustomError(artifact, returnData)
     );
 
-    assertIgnitionInvariant(
-      simulationResponse.type ===
-        OnchainInteractionResponseType.SIMULATION_RESULT,
-      "Expected simulation result and got confirmed transaction"
-    );
-
-    if (!simulationResponse.result.success) {
-      const error = {} as any as FailedEvmExecutionResult;
-      return {
-        type: ExecutionResultType.SIMULATION_ERROR,
-        error,
-      };
+    if (transactionOrResult.type === ExecutionResultType.SIMULATION_ERROR) {
+      return transactionOrResult;
     }
 
-    const decodedSimulationResult = {} as any as
-      | SuccessfulEvmExecutionResult
-      | InvalidResultError;
-
-    if (
-      decodedSimulationResult.type ===
-      EvmExecutionResultTypes.INVALID_RESULT_ERROR
-    ) {
-      return {
-        type: ExecutionResultType.SIMULATION_ERROR,
-        error: decodedSimulationResult,
-      };
-    }
-
-    const onchainInteractionResponse = yield {
-      type: SIMULATION_SUCCESS_SIGNAL_TYPE,
-    };
-
-    assertIgnitionInvariant(
-      isOnchainInteractionResponse(onchainInteractionResponse),
-      "Expected onchain interaction response and got raw static call result"
-    );
-
-    assertIgnitionInvariant(
-      onchainInteractionResponse.type ===
-        OnchainInteractionResponseType.SUCCESSFUL_TRANSACTION,
-      "Expected confirmed transaction and got simulation result"
-    );
-
-    const tx = onchainInteractionResponse.transaction;
+    const tx = transactionOrResult.transaction;
     const contractAddress = tx.receipt.contractAddress;
+
     if (contractAddress === null) {
       return {
         type: ExecutionResultType.STRATEGY_ERROR,
@@ -185,36 +178,122 @@ class BasicExecutionStrategy implements ExecutionStrategy {
     };
   }
 
-  executeCall: (
+  public async *executeCall(
     executionState: CallExecutionState,
+    fallbackSender: string,
+    loadArtifact: LoadArtifactFunction
+  ): AsyncGenerator<
+    OnchainInteractionRequest | SimulationSuccessSignal | StaticCallRequest,
+    CallExecutionResult,
+    RawStaticCallResult | OnchainInteractionResponse
+  > {
+    const artifact = await loadArtifact(executionState.artifactFutureId);
+
+    const transactionOrResult = yield* executeOnchainInteraction(
+      executionState.id,
+      {
+        id: 1,
+        type: NetworkInteractionType.ONCHAIN_INTERACTION,
+        to: undefined,
+        from: executionState.from ?? fallbackSender,
+        data: await encodeArtifactFunctionCall(
+          artifact,
+          executionState.functionName,
+          executionState.args
+        ),
+        value: executionState.value,
+      },
+      (returnData) => decodeArtifactCustomError(artifact, returnData),
+      (returnData) =>
+        decodeArtifactFunctionCallResult(
+          artifact,
+          executionState.functionName,
+          returnData
+        )
+    );
+
+    if (transactionOrResult.type === ExecutionResultType.SIMULATION_ERROR) {
+      return transactionOrResult;
+    }
+
+    return {
+      type: ExecutionResultType.SUCCESS,
+    };
+  }
+
+  async *executeSendData(
+    executionState: SendDataExecutionState,
     fallbackSender: string
-  ) => AsyncGenerator<
-    OnchainInteractionRequest | StaticCallRequest,
-    RawStaticCallResult | OnchainInteractionResponse,
-    CallExecutionResult
-  >;
+  ): AsyncGenerator<
+    OnchainInteractionRequest | SimulationSuccessSignal | StaticCallRequest,
+    SendDataExecutionResult,
+    RawStaticCallResult | OnchainInteractionResponse
+  > {
+    const transactionOrResult = yield* executeOnchainInteraction(
+      executionState.id,
+      {
+        id: 1,
+        type: NetworkInteractionType.ONCHAIN_INTERACTION,
+        to: undefined,
+        from: executionState.from ?? fallbackSender,
+        data: executionState.data,
+        value: executionState.value,
+      }
+    );
+
+    if (transactionOrResult.type === ExecutionResultType.SIMULATION_ERROR) {
+      return transactionOrResult;
+    }
+
+    return {
+      type: ExecutionResultType.SUCCESS,
+    };
+  }
 
   async *executeStaticCall(
     executionState: StaticCallExecutionState,
-    fallbackSender: string
+    fallbackSender: string,
+    loadArtifact: LoadArtifactFunction
   ): AsyncGenerator<
     StaticCallRequest,
     StaticCallExecutionResult,
     StaticCallResponse
   > {
-    const result = yield null as any as StaticCallRequest;
+    const artifact = await loadArtifact(executionState.artifactFutureId);
+
+    const staticCallRequest: StaticCallRequest = {
+      id: 1,
+      type: NetworkInteractionType.STATIC_CALL,
+      to: executionState.contractAddress,
+      from: executionState.from ?? fallbackSender,
+      data: await encodeArtifactFunctionCall(
+        artifact,
+        executionState.functionName,
+        executionState.args
+      ),
+      value: 0n,
+    };
+
+    const result = yield staticCallRequest;
 
     if (!result.success) {
-      const error = {} as any as FailedEvmExecutionResult;
+      const error = decodeError(
+        result.returnData,
+        result.customErrorReported,
+        (returnData) => decodeArtifactCustomError(artifact, returnData)
+      );
+
       return {
         type: ExecutionResultType.STATIC_CALL_ERROR,
         error,
       };
     }
 
-    const decodedResult = {} as any as
-      | SuccessfulEvmExecutionResult
-      | InvalidResultError;
+    const decodedResult = decodeArtifactFunctionCallResult(
+      artifact,
+      executionState.functionName,
+      result.returnData
+    );
 
     if (decodedResult.type === EvmExecutionResultTypes.INVALID_RESULT_ERROR) {
       return {
@@ -228,13 +307,80 @@ class BasicExecutionStrategy implements ExecutionStrategy {
       result: decodedResult,
     };
   }
+}
 
-  executeSendData: (
-    executionState: SendDataExecutionState,
-    fallbackSender: string
-  ) => AsyncGenerator<
-    OnchainInteractionRequest | StaticCallRequest,
-    RawStaticCallResult | OnchainInteractionResponse,
-    SendDataExecutionResult
-  >;
+async function* executeOnchainInteraction(
+  executionStateId: string,
+  onchainInteractionRequest: OnchainInteractionRequest,
+  decodeCustomError?: (
+    returnData: string
+  ) => RevertWithCustomError | RevertWithInvalidData | undefined,
+  decodeSuccessfulSimulationResult?: (
+    returnData: string
+  ) => InvalidResultError | SuccessfulEvmExecutionResult
+): AsyncGenerator<
+  OnchainInteractionRequest | SimulationSuccessSignal,
+  SuccessfulTransaction | SimulationErrorExecutionResult,
+  RawStaticCallResult | OnchainInteractionResponse
+> {
+  const simulationResponse = yield onchainInteractionRequest;
+
+  const assertionPrefix = `[ExecutionState ${executionStateId} - Network Interaction ${onchainInteractionRequest.id}] `;
+
+  assertIgnitionInvariant(
+    isOnchainInteractionResponse(simulationResponse),
+    assertionPrefix +
+      "Expected onchain interaction response and got raw static call result"
+  );
+
+  assertIgnitionInvariant(
+    simulationResponse.type ===
+      OnchainInteractionResponseType.SIMULATION_RESULT,
+    assertionPrefix +
+      "Expected simulation result and got a successful transaction"
+  );
+
+  if (!simulationResponse.result.success) {
+    const error = decodeError(
+      simulationResponse.result.returnData,
+      simulationResponse.result.customErrorReported,
+      decodeCustomError
+    );
+
+    return {
+      type: ExecutionResultType.SIMULATION_ERROR,
+      error,
+    };
+  }
+
+  if (decodeSuccessfulSimulationResult !== undefined) {
+    const result = decodeSuccessfulSimulationResult(
+      simulationResponse.result.returnData
+    );
+
+    if (result.type === EvmExecutionResultTypes.INVALID_RESULT_ERROR) {
+      return {
+        type: ExecutionResultType.SIMULATION_ERROR,
+        error: result,
+      };
+    }
+  }
+
+  const onchainInteractionResponse = yield {
+    type: SIMULATION_SUCCESS_SIGNAL_TYPE,
+  };
+
+  assertIgnitionInvariant(
+    isOnchainInteractionResponse(onchainInteractionResponse),
+    assertionPrefix +
+      "Expected onchain interaction response and got raw static call result"
+  );
+
+  assertIgnitionInvariant(
+    onchainInteractionResponse.type ===
+      OnchainInteractionResponseType.SUCCESSFUL_TRANSACTION,
+    assertionPrefix + "Expected confirmed transaction and got simulation result"
+  );
+
+  return onchainInteractionResponse;
 }
